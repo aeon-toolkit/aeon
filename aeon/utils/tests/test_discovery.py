@@ -1,221 +1,188 @@
-"""Testing of registry lookup functionality."""
-
-__maintainer__ = []
+"""Testing of estimator lookup functionality."""
 
 import pytest
+from sklearn.base import BaseEstimator
 
+from aeon.anomaly_detection.base import BaseAnomalyDetector
 from aeon.base import BaseAeonEstimator
+from aeon.classification import BaseClassifier, DummyClassifier
+from aeon.clustering import BaseClusterer
 from aeon.transformations.base import BaseTransformer
-from aeon.utils.base._base_classes import BASE_CLASS_REGISTER
+from aeon.utils.base import BASE_CLASS_REGISTER
 from aeon.utils.discovery import all_estimators
 
-VALID_IDENTIFIERS_SET = set(BASE_CLASS_IDENTIFIER_LIST + ["estimator"])
 
-CLASSES_WITHOUT_TAGS = [
-    "series-annotator",
-    "object",
-    "collection-transformer",
-    "collection-estimator",
-    "series-estimator",
-    "series-transformer",
-    "similarity_searcher",
-]
-
-# shorthands for easy reading
-b = BASE_CLASS_IDENTIFIER_LIST
-n = len(b)
-
-# selected examples of "search for two types at once to avoid quadratic scaling"
-double_estimators = [[b[i], b[(i + 3) % n]] for i in range(n)]
-# fixtures search by individual identifiers, "None", and some pairs
-estimator_fixture = [None] + BASE_CLASS_IDENTIFIER_LIST + double_estimators
-
-
-def _to_list(obj):
-    """Put obj in list if it is not a list."""
-    if not isinstance(obj, list):
-        return [obj]
-    else:
-        return obj
-
-
-def _get_type_tuple(estimator_identifiers):
-    """Convert string(s) into tuple of classes for isinstance check.
-
-    Parameters
-    ----------
-    estimator_identifiers: None, string, or list of string
-
-    Returns
-    -------
-    estimator_classes : tuple of aeon base classes,
-        corresponding to strings in estimator_identifiers
-    """
-    if estimator_identifiers is not None:
-        estimator_classes = tuple(
-            BASE_CLASS_REGISTER[id] for id in _to_list(estimator_identifiers)
-        )
-    else:
-        estimator_classes = (BaseAeonEstimator,)
-
-    return estimator_classes
-
-
-@pytest.mark.parametrize("return_names", [True, False])
-@pytest.mark.parametrize("estimator_id", estimator_fixture)
-def test_all_estimators_by_identifier(estimator_id, return_names):
-    """Check that all_estimators return argument has correct type."""
-    estimators = all_estimators(
-        type_filter=estimator_id,
-        return_names=return_names,
-    )
-
-    estimator_classes = _get_type_tuple(estimator_id)
-
-    assert isinstance(estimators, list)
-    # there should be at least one estimator returned
-    assert len(estimators) > 0
-
-    # checks return type specification (see docstring)
-    if return_names:
-        for estimator in estimators:
-            assert isinstance(estimator, tuple) and len(estimator) == 2
-            assert isinstance(estimator[0], str)
-            assert issubclass(estimator[1], estimator_classes)
-            assert estimator[0] == estimator[1].__name__
-    else:
-        for estimator in estimators:
-            assert issubclass(estimator, estimator_classes)
-
-
-@pytest.mark.parametrize("return_names", [True, False])
-def test_all_estimators_return_names(return_names):
+def test_all_estimators():
     """Test return_names argument in all_estimators."""
-    estimators = all_estimators(return_names=return_names)
+    estimators = all_estimators()
+
     assert isinstance(estimators, list)
     assert len(estimators) > 0
 
-    if return_names:
-        assert all([isinstance(estimator, tuple) for estimator in estimators])
-        names, estimators = list(zip(*estimators))
-        assert all([isinstance(name, str) for name in names])
-        assert all(
-            [name == estimator.__name__ for name, estimator in zip(names, estimators)]
-        )
+    for estimator in estimators:
+        assert isinstance(estimator, tuple) and len(estimator) == 2
+        assert isinstance(estimator[0], str)
+        assert estimator[0] == estimator[1].__name__
+        assert "Base" not in estimator[0]
+        assert issubclass(estimator[1], BaseEstimator)
 
-    assert all([isinstance(estimator, type) for estimator in estimators])
+    estimators2 = all_estimators(return_names=False)
+
+    assert [cls for _, cls in estimators] == estimators2
+
+    estimators3 = all_estimators(include_sklearn=False)
+
+    assert isinstance(estimators3, list)
+    assert len(estimators) > 0 and len(estimators3) < len(estimators)
+
+    for estimator in estimators3:
+        assert issubclass(estimator[1], BaseAeonEstimator)
+
+
+@pytest.mark.parametrize("item", BASE_CLASS_REGISTER.items())
+def test_all_estimators_by_type(item):
+    """Check that type_filter argument returns the correct type."""
+    estimators = all_estimators(type_filter=item[0])
+
+    assert isinstance(estimators, list)
+    assert len(estimators) > 0
+
+    for estimator in estimators:
+        assert isinstance(estimator, tuple) and len(estimator) == 2
+        assert isinstance(estimator[0], str)
+        assert issubclass(estimator[1], item[1])
+
+    estimators2 = all_estimators(type_filter=item[1])
+
+    assert estimators == estimators2
+
+
+@pytest.mark.parametrize(
+    "input",
+    [
+        [BaseTransformer, BaseClassifier],
+        [BaseClassifier, "segmenter"],
+        [BaseClassifier, BaseAnomalyDetector, BaseClusterer],
+    ],
+)
+def test_all_estimators_by_multiple_types(input):
+    """Check that type_filter argument returns the correct type with multiple inputs."""
+    estimators = all_estimators(type_filter=input)
+
+    assert isinstance(estimators, list)
+    assert len(estimators) > 0
+
+    types = tuple([i if isinstance(i, type) else BASE_CLASS_REGISTER[i] for i in input])
+    for estimator in estimators:
+        assert issubclass(estimator[1], types)
 
 
 def test_all_estimators_exclude_type():
-    """Test exclude_estimator_types argument in all_estimators."""
-    estimators = all_estimators(return_names=True, exclude_types="transformer")
+    """Test exclude_types argument in all_estimators."""
+    estimators = all_estimators(exclude_types="transformer")
+
     assert isinstance(estimators, list)
     assert len(estimators) > 0
-    names, estimators = list(zip(*estimators))
 
     for estimator in estimators:
-        assert not isinstance(estimator, BaseTransformer)
+        assert not isinstance(estimator[1], BaseTransformer)
+
+    estimators2 = all_estimators(exclude_types=["transformer", "classifier"])
+
+    assert isinstance(estimators2, list)
+    assert len(estimators2) > 0 and len(estimators2) < len(estimators)
+
+    for estimator in estimators:
+        assert not isinstance(estimator[1], (BaseTransformer, BaseClassifier))
 
 
-# arbitrary list for exclude_estimators argument test
-EXCLUDE_ESTIMATORS = [
-    "ElasticEnsemble",
-    "NaiveForecaster",
-]
+@pytest.mark.parametrize(
+    "tags",
+    [
+        {"capability:multivariate": False},
+        {"algorithm_type": "interval"},
+        {"algorithm_type": "shapelet", "capability:multivariate": True},
+    ],
+)
+def test_all_estimators_by_tag(tags):
+    """Test ability to return estimator value of passed tags."""
+    estimators = all_estimators(tag_filter=tags)
 
-
-@pytest.mark.parametrize("exclude_estimators", ["NaiveForecaster", EXCLUDE_ESTIMATORS])
-def test_all_estimators_exclude_estimators(exclude_estimators):
-    """Test exclued_estimators argument in all_estimators."""
-    estimators = all_estimators(
-        return_names=True, exclude_estimators=exclude_estimators
-    )
     assert isinstance(estimators, list)
     assert len(estimators) > 0
-    names, estimators = list(zip(*estimators))
 
-    if not isinstance(exclude_estimators, list):
-        exclude_estimators = [exclude_estimators]
-    for estimator in exclude_estimators:
-        assert estimator not in names
-
-
-def _get_tag_fixture():
-    """Generate a simple list of test cases for optional return_tags."""
-    # just picked a few valid tags to try out as valid str return_tags args:
-    test_str_as_arg = [
-        "X-y-must-have-same-index",
-        "capability:pred_var",
-        "skip-inverse-transform",
-    ]
-
-    # we can also make them into a list to test list of str as a valid arg:
-    test_list_as_arg = [test_str_as_arg]
-    # Note - I don't include None explicitly as a test case - tested elsewhere
-    return test_str_as_arg + test_list_as_arg
+    for estimator in estimators:
+        assert isinstance(estimator, tuple) and len(estimator) == 2
+        assert isinstance(estimator[0], str)
+        assert issubclass(estimator[1], BaseAeonEstimator)
+        assert all(
+            [estimator[1].get_class_tag(tag) == value for tag, value in tags.items()]
+        )
 
 
-# test that all_estimators returns as expected if given correct return_tags:
-@pytest.mark.parametrize("return_tags", _get_tag_fixture())
-@pytest.mark.parametrize("return_names", [True, False])
-def test_all_estimators_return_tags(return_tags, return_names):
-    """Test ability to return estimator value of passed tags."""
+def test_all_estimators_exclude_tags():
+    """Test exclude_tags argument in all_estimators."""
+    estimators = all_estimators(tag_filter={"algorithm_type": "interval"})
+
+    assert isinstance(estimators, list)
+    assert len(estimators) > 0
+
+    for estimator in estimators:
+        assert estimator[1].get_class_tag("algorithm_type") == "interval"
+
+
+def test_all_estimators_filter_type_and_tag():
+    """Test that type_filter and tag_filter can be used together."""
     estimators = all_estimators(
-        return_tags=return_tags,
-        return_names=return_names,
+        type_filter="classifier", tag_filter={"capability:multivariate": True}
     )
-    # Helps us keep track of estimator index within the tuple:
-    ESTIMATOR_INDEX = 1 if return_names else 0
-    TAG_START_INDEX = ESTIMATOR_INDEX + 1
 
-    assert isinstance(estimators[0], tuple)
-    # check length of tuple is what we expect:
-    if isinstance(return_tags, str):
-        assert len(estimators[0]) == TAG_START_INDEX + 1
-    else:
-        assert len(estimators[0]) == len(return_tags) + TAG_START_INDEX
+    assert isinstance(estimators, list)
+    assert len(estimators) > 0
 
-    # check that for each estimator the value for that tag is correct:
-    for est_tuple in estimators:
-        est = est_tuple[ESTIMATOR_INDEX]
-        if isinstance(return_tags, str):
-            assert est.get_class_tag(return_tags) == est_tuple[TAG_START_INDEX]
-        else:
-            for tag_index, tag in enumerate(return_tags):
-                assert est.get_class_tag(tag) == est_tuple[TAG_START_INDEX + tag_index]
+    for estimator in estimators:
+        assert isinstance(estimator, tuple) and len(estimator) == 2
+        assert isinstance(estimator[0], str)
+        assert issubclass(estimator[1], BaseClassifier)
+        assert estimator[1].get_class_tag("capability:multivariate") is True
 
-
-def _get_bad_return_tags():
-    """Get return_tags arguments that should throw an exception."""
-    # case not a str or a list:
-    is_int = [12]
-    # case is a list, but not all elements are str:
-    is_not_all_str = [["this", "is", "a", "test", 12, "!"]]
-
-    return is_int + is_not_all_str
-
-
-# test that all_estimators breaks as expected if given bad return_tags:
-@pytest.mark.parametrize("return_tags", _get_bad_return_tags())
-def test_all_estimators_return_tags_bad_arg(return_tags):
-    """Test ability to catch bad arguments of return_tags."""
-    with pytest.raises(TypeError):
-        _ = all_estimators(return_tags=return_tags)
+    # impossible combination
+    estimators2 = all_estimators(
+        type_filter="segmenter", tag_filter={"capability:unequal_length": True}
+    )
+    assert len(estimators2) == 0
 
 
 def test_list_tag_lookup():
     """Check that all estimators can handle tags lists rather than single strings.
 
     DummyClassifier has two internal datatypes, "numpy3D" and "np-list". This test
-    checks that DummyClassifier is returned with either of these argument.s
+    checks that DummyClassifier is returned with either of these arguments.
     """
-    matches = all_estimators(
-        type_filter="classifier", tag_filter={"X_inner_type": "np-list"}
+    estimators = all_estimators(
+        tag_filter={"X_inner_type": "np-list"},
+        return_names=False,
     )
-    names = [t[0] for t in matches]
-    assert "DummyClassifier" in names
-    matches = all_estimators(
-        type_filter="classifier", tag_filter={"X_inner_type": "numpy3D"}
+    assert DummyClassifier in estimators
+
+    estimators2 = all_estimators(
+        tag_filter={"X_inner_type": "numpy3D"},
+        return_names=False,
     )
-    names = [t[0] for t in matches]
-    assert "DummyClassifier" in names
+    assert DummyClassifier in estimators2
+
+    estimators3 = all_estimators(
+        tag_filter={"X_inner_type": ["np-list", "numpy3D"]},
+        return_names=False,
+    )
+    assert DummyClassifier in estimators3
+
+    assert len(estimators3) > len(estimators) and len(estimators3) > len(estimators2)
+
+    estimators4 = all_estimators(
+        tag_filter={"X_inner_type": "numpy2D"},
+        return_names=False,
+    )
+    assert DummyClassifier not in estimators4
+
+    assert len(estimators4) > 0

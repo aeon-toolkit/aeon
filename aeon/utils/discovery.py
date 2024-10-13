@@ -13,7 +13,9 @@ from pkgutil import walk_packages
 from sklearn.base import BaseEstimator
 
 from aeon.base import BaseAeonEstimator
-from aeon.utils.base import VALID_ESTIMATOR_BASES
+from aeon.utils.base import BASE_CLASS_REGISTER
+from aeon.utils.tags import ESTIMATOR_TAGS
+from aeon.utils.tags._validate import check_tag_value
 
 
 def all_estimators(
@@ -70,30 +72,9 @@ def all_estimators(
 
     Returns
     -------
-    all_estimators will return one of the following:
-        1. list of estimators, if return_names=False, and return_tags is None
-        2. list of tuples (optional estimator name, class, ~optional estimator
-                tags), if return_names=True or return_tags is not None.
-        3. pandas.DataFrame if as_dataframe = True
-        if list of estimators:
-            entries are estimators matching the query,
-            in alphabetical order of estimator name
-        if list of tuples:
-            list of (optional estimator name, estimator, optional estimator
-            tags) matching the query, in alphabetical order of estimator name,
-            where
-            ``name`` is the estimator name as string, and is an
-                optional return
-            ``estimator`` is the actual estimator
-            ``tags`` are the estimator's values for each tag in return_tags
-                and is an optional return.
-        if dataframe:
-            all_estimators will return a pandas.DataFrame.
-            column names represent the attributes contained in each column.
-            "estimators" will be the name of the column of estimators, "names"
-            will be the name of the column of estimator class names and the string(s)
-            passed in return_tags will serve as column names for all columns of
-            tags that were optionally requested.
+    estimators
+        list of tuples (estimator name, estimator class) if return_names=True,
+        else list of estimator classes
 
     Examples
     --------
@@ -108,8 +89,10 @@ def all_estimators(
     ... )
     """
     modules_to_ignore = (
-        # no estimators we want to find in these packages
+        # ignore test modules and base classes
         "base",
+        "tests",
+        # ignore these submodules
         "benchmarking",
         "datasets",
         "distances",
@@ -119,12 +102,10 @@ def all_estimators(
         "testing",
         "utils",
         "visualisation",
-        # don't want to include tests
-        "tests",
     )
     base_filter = BaseEstimator if include_sklearn else BaseAeonEstimator
     root = str(Path(__file__).parent.parent)  # aeon package root directory
-    all_classes = []
+    estimators = []
 
     # ignore deprecation warnings triggered at import time and from walking packages
     with warnings.catch_warnings():
@@ -140,30 +121,37 @@ def all_estimators(
             module = import_module(module_name)
 
             classes = inspect.getmembers(module, inspect.isclass)
+            # skip private estimators and those not implemented in aeon
             classes = [
                 (name, est_cls)
                 for name, est_cls in classes
-                if not name.startswith("_") and issubclass(est_cls, base_filter)
+                if not name.startswith("_")
+                and str(est_cls).startswith("<class 'aeon")
+                and issubclass(est_cls, base_filter)
             ]
 
-            all_classes.extend(classes)
+            estimators.extend(classes)
 
     # drop duplicates
-    all_classes = set(all_classes)
+    estimators = set(estimators)
     # drop abstract classes
-    estimators = [c for c in all_classes if not _is_abstract(c[1])]
+    estimators = [c for c in estimators if not _is_abstract(c[1])]
 
-    # filter based on wanted/excluded estimator types
-    estimators = _filter_types(type_filter, estimators, "type_filter")
-    estimators = set(estimators) - set(
-        _filter_types(exclude_types, estimators, "exclude_types")
-    )
+    # filter based on wanted/excluded
+    if type_filter is not None:
+        estimators = _filter_types(type_filter, estimators, "type_filter")
+    if exclude_types is not None:
+        estimators = set(estimators) - set(
+            _filter_types(exclude_types, estimators, "exclude_types")
+        )
 
     # filter based on wanted/excluded tags
-    estimators = _filter_tags(tag_filter, estimators, "tag_filter")
-    estimators = set(estimators) - set(
-        _filter_tags(exclude_tags, estimators, "exclude_tags")
-    )
+    if tag_filter is not None:
+        estimators = _filter_tags(tag_filter, estimators, "tag_filter")
+    if exclude_tags is not None:
+        estimators = set(estimators) - set(
+            _filter_tags(exclude_tags, estimators, "exclude_tags")
+        )
 
     # sort for reproducibility, remove names if return_names=False
     estimators = sorted(set(estimators), key=itemgetter(0))
@@ -185,11 +173,9 @@ def _filter_types(types, estimators, name):
     msg = (
         f"Parameter {name} must be None, a string or type, or a list of "
         f"strings or types. Valid string/type values are: "
-        f"{VALID_ESTIMATOR_BASES}. Found: {types}"
+        f"{BASE_CLASS_REGISTER}. Found: {types}"
     )
 
-    if types is None:
-        return estimators
     if not isinstance(types, list):
         types = [types]
     else:
@@ -198,22 +184,20 @@ def _filter_types(types, estimators, name):
     filtered_estimators = []
     for t in types:
         if isinstance(t, str):
-            if t not in VALID_ESTIMATOR_BASES.keys():
+            if t not in BASE_CLASS_REGISTER.keys():
                 raise ValueError(msg)
             filtered_estimators.extend(
                 [
-                    [
-                        est
-                        for est in estimators
-                        if issubclass(est[1], VALID_ESTIMATOR_BASES[t])
-                    ]
+                    est
+                    for est in estimators
+                    if issubclass(est[1], BASE_CLASS_REGISTER[t])
                 ]
             )
         elif isinstance(t, type):
-            if t not in VALID_ESTIMATOR_BASES.values():
+            if t not in BASE_CLASS_REGISTER.values():
                 raise ValueError(msg)
             filtered_estimators.extend(
-                [[est for est in estimators if issubclass(est[1], t)]]
+                [est for est in estimators if issubclass(est[1], t)]
             )
         else:
             raise ValueError(msg)
@@ -222,27 +206,43 @@ def _filter_types(types, estimators, name):
 
 
 def _filter_tags(tags, estimators, name):
+    if tags is None:
+        return estimators
+
     msg = (
         f"Parameter {name} must be None or a dict of tag/value pairs. "
-        f"Valid tags are found in aeon.utils.tags.ESTIMATOR_TAGS . Found: {tags}"
+        f"Valid tags are found in aeon.utils.tags.ESTIMATOR_TAGS. Found: {tags}"
     )
 
-    if not isinstance(filter_tags, dict):
-        raise TypeError("filter_tags must be a dict")
+    if not isinstance(tags, dict):
+        raise TypeError(msg)
 
-    cond_sat = True
+    for key, value in tags.items():
+        if key not in ESTIMATOR_TAGS:
+            raise ValueError(f"Tag {key} is not a valid tag. {msg}")
+        if not check_tag_value(key, value, raise_error=False):
+            raise ValueError(f"Value {value} is not a valid value for tag {key}. {msg}")
 
-    for key, value in filter_tags.items():
-        if not isinstance(value, list):
-            value = [value]
-        tags = estimator.get_class_tag(key)
-        if isinstance(tags, list):
-            in_list = False
-            for s in tags:
-                if s in value:
-                    in_list = True
-            cond_sat = cond_sat and in_list
-        else:
-            cond_sat = cond_sat and tags in value
+    filtered_estimators = []
+    for est in estimators:
+        if not issubclass(est[1], BaseAeonEstimator):
+            continue
 
-    return cond_sat
+        cond_sat = True
+        for key, value in tags.items():
+            est_tag = est[1].get_class_tag(key)
+            est_tag = est_tag if isinstance(est_tag, list) else [est_tag]
+
+            if isinstance(value, list):
+                in_list = False
+                for n in value:
+                    if n in est_tag:
+                        in_list = True
+                cond_sat = cond_sat and in_list
+            else:
+                cond_sat = cond_sat and value in est_tag
+
+        if cond_sat:
+            filtered_estimators.append(est)
+
+    return filtered_estimators

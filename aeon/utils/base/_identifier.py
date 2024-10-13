@@ -5,7 +5,8 @@ __all__ = ["get_identifier"]
 
 from inspect import isclass
 
-from aeon.utils.base import BASE_CLASS_REGISTER
+from aeon.base import BaseAeonEstimator
+from aeon.utils.base._register import BASE_CLASS_REGISTER
 
 
 def get_identifier(estimator):
@@ -24,21 +25,27 @@ def get_identifier(estimator):
     Raises
     ------
     TypeError
-        If no identifier can be determined for obj
+        If no identifier can be determined for estimator
     """
-    if isclass(estimator):
+    if isinstance(estimator, BaseAeonEstimator):
         identifiers = [
-            id
-            for id in BASE_CLASS_REGISTER.values()
-            if isinstance(estimator, id) or issubclass(estimator, id)
+            key
+            for key, value in BASE_CLASS_REGISTER.items()
+            if isinstance(estimator, value)
+        ]
+    elif isclass(estimator) and issubclass(estimator, BaseAeonEstimator):
+        identifiers = [
+            key
+            for key, value in BASE_CLASS_REGISTER.items()
+            if isinstance(estimator, value) or issubclass(estimator, value)
         ]
     else:
-        identifiers = [
-            id for id in BASE_CLASS_REGISTER.values() if isinstance(estimator, id)
-        ]
+        raise TypeError(
+            "Estimator must be an instance or subclass of BaseAeonEstimator."
+        )
 
     if len(identifiers) == 0:
-        raise TypeError("Error, no identifiers could be determined for obj")
+        raise TypeError("Error, no identifiers could be determined for estimator")
 
     if len(identifiers) > 1 and "estimator" in identifiers:
         identifiers.remove("estimator")

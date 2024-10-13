@@ -74,7 +74,7 @@ from aeon.testing.utils.estimator_checks import (
 from aeon.transformations.base import BaseTransformer
 from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.transformations.series import BaseSeriesTransformer
-from aeon.utils.base._base_classes import VALID_ESTIMATOR_BASES
+from aeon.utils.base import VALID_ESTIMATOR_BASES
 from aeon.utils.tags import check_valid_tags
 from aeon.utils.validation._dependencies import _check_estimator_deps
 
