@@ -267,6 +267,7 @@ class TSFreshFeatureExtractor(_TSFreshFeatureExtractor):
             profiling_sorting=profiling_sorting,
             distributor=distributor,
         )
+        self.names_ = []
 
     def _transform(self, X, y=None):
         """Transform X and return a transformed version.
@@ -508,6 +509,7 @@ class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
         self.ml_task = ml_task
 
         self.default_fs_parameters_ = self._get_selection_params()
+        self.names_ = []
 
     def _get_selection_params(self):
         """Set default values from tsfresh."""

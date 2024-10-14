@@ -6,7 +6,11 @@ import numpy as np
 import pytest
 
 from aeon.datasets import load_unit_test
-from aeon.transformations.collection.feature_based import TSFreshFeatureExtractor
+from aeon.testing.data_generation import make_example_3d_numpy
+from aeon.transformations.collection.feature_based import (
+    TSFreshFeatureExtractor,
+    TSFreshRelevantFeatureExtractor,
+)
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
@@ -54,7 +58,11 @@ def test_kind_tsfresh_extractor():
     not _check_soft_dependencies("tsfresh", severity="none"),
     reason="skip test if required soft dependency tsfresh not available",
 )
-def test_kind_wrong_ipiut():
+def test_tsfresh_inputs():
     """Test incorrect input errors."""
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="If `default_fc_parameters` is passed"):
         TSFreshFeatureExtractor(default_fc_parameters="wrong_input")
+    TSFreshFeatureExtractor(default_fc_parameters={"n_jobs": 2, "chunksize": 2})
+    ts = TSFreshRelevantFeatureExtractor()
+    X, y = make_example_3d_numpy()
+    ts.fit_transform(X, y)
