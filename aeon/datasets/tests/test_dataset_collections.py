@@ -49,6 +49,13 @@ def test_list_available_tser_datasets():
     """Test recovering lists of available data sets."""
     res = get_available_tser_datasets()
     assert len(res) == 63
+    res = get_available_tser_datasets(return_list=False)
+    assert isinstance(res, set)
+    res = get_available_tser_datasets(name="tser_monash")
+    assert len(res) == 18
+    res = get_available_tser_datasets(return_list=False, name="tser_monash")
+    assert isinstance(res, dict)
+    assert len(res) == 18
     res = get_available_tser_datasets("FOO")
     assert not res
     res = get_available_tser_datasets("Covid3Month")
