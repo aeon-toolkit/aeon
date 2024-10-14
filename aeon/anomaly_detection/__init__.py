@@ -8,8 +8,10 @@ __all__ = [
     "PyODAdapter",
     "STOMP",
     "LeftSTAMPi",
+    "COPOD",
 ]
 
+from aeon.anomaly_detection._copod import COPOD
 from aeon.anomaly_detection._dwt_mlead import DWT_MLEAD
 from aeon.anomaly_detection._kmeans import KMeansAD
 from aeon.anomaly_detection._left_stampi import LeftSTAMPi

@@ -69,6 +69,7 @@ Detectors
     :toctree: auto_generated/
     :template: class.rst
 
+    COPOD
     DWT_MLEAD
     KMeansAD
     LeftSTAMPi
