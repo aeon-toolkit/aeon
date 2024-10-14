@@ -6,18 +6,12 @@ from typing import Optional, final
 
 import numpy as np
 from numba import get_num_threads, set_num_threads
-from numba.core.registry import CPUDispatcher
 from numba.typed import List
 
-from aeon.distances import get_distance_function
 from aeon.similarity_search._commons import (
     extract_top_k_and_threshold_from_distance_profiles,
 )
 from aeon.similarity_search.base import BaseSimilaritySearch
-from aeon.similarity_search.distance_profiles import (
-    naive_distance_profile,
-    normalized_naive_distance_profile,
-)
 from aeon.similarity_search.distance_profiles.euclidean_distance_profile import (
     euclidean_distance_profile,
     normalized_euclidean_distance_profile,
@@ -330,8 +324,10 @@ class QuerySearch(BaseSimilaritySearch):
         """
         if isinstance(self.distance, str):
             distance_dict = _QUERY_SEARCH_SPEED_UP_DICT.get(self.distance)
-            if self.speed_up is None or distance_dict is None:
-                self.distance_function_ = get_distance_function(self.distance)
+            if distance_dict is None:
+                raise NotImplementedError(
+                    f"No distance profile have been implemented for {self.distance}."
+                )
             else:
                 speed_up_profile = distance_dict.get(self.normalize).get(self.speed_up)
 
@@ -343,20 +339,9 @@ class QuerySearch(BaseSimilaritySearch):
                 self.speed_up_ = self.speed_up
                 return speed_up_profile
         else:
-            if isinstance(self.distance, CPUDispatcher) or callable(self.distance):
-                self.distance_function_ = self.distance
-
-            else:
-                raise ValueError(
-                    "If distance argument is not a string, it is expected to be either "
-                    "a callable or a numba function (CPUDispatcher), but got "
-                    f"{type(self.distance)}."
-                )
-        self.speed_up_ = None
-        if self.normalize:
-            return normalized_naive_distance_profile
-        else:
-            return naive_distance_profile
+            raise ValueError(
+                f"Expected distance argument to be str but got {type(self.distance)}"
+            )
 
     def _call_distance_profile(self, X: np.ndarray, mask: np.ndarray) -> np.ndarray:
         """
@@ -376,40 +361,18 @@ class QuerySearch(BaseSimilaritySearch):
             The distance profiles between the input time series and the query.
 
         """
-        if self.speed_up_ is None:
-            if self.normalize:
-                distance_profiles = self.distance_profile_function_(
-                    self.X_,
-                    X,
-                    mask,
-                    self.X_means_,
-                    self.X_stds_,
-                    self.query_means_,
-                    self.query_stds_,
-                    self.distance_function_,
-                    distance_args=self.distance_args,
-                )
-            else:
-                distance_profiles = self.distance_profile_function_(
-                    self.X_,
-                    X,
-                    mask,
-                    self.distance_function_,
-                    distance_args=self.distance_args,
-                )
+        if self.normalize:
+            distance_profiles = self.distance_profile_function_(
+                self.X_,
+                X,
+                mask,
+                self.X_means_,
+                self.X_stds_,
+                self.query_means_,
+                self.query_stds_,
+            )
         else:
-            if self.normalize:
-                distance_profiles = self.distance_profile_function_(
-                    self.X_,
-                    X,
-                    mask,
-                    self.X_means_,
-                    self.X_stds_,
-                    self.query_means_,
-                    self.query_stds_,
-                )
-            else:
-                distance_profiles = self.distance_profile_function_(self.X_, X, mask)
+            distance_profiles = self.distance_profile_function_(self.X_, X, mask)
 
         # For now, deal with the multidimensional case as "dependent", so we sum.
         if self.metadata_["unequal_length"]:
@@ -454,24 +417,20 @@ _QUERY_SEARCH_SPEED_UP_DICT = {
         True: {
             "fastest": normalized_euclidean_distance_profile,
             "Mueen": normalized_euclidean_distance_profile,
-            "naive": naive_distance_profile,
         },
         False: {
             "fastest": euclidean_distance_profile,
             "Mueen": euclidean_distance_profile,
-            "naive": naive_distance_profile,
         },
     },
     "squared": {
         True: {
             "fastest": normalized_squared_distance_profile,
             "Mueen": normalized_squared_distance_profile,
-            "naive": naive_distance_profile,
         },
         False: {
             "fastest": squared_distance_profile,
             "Mueen": squared_distance_profile,
-            "naive": naive_distance_profile,
         },
     },
 }

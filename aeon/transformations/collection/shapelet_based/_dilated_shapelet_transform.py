@@ -23,8 +23,10 @@ from aeon.utils.numba.general import (
     AEON_NUMBA_STD_THRESHOLD,
     choice_log,
     combinations_1d,
+    get_all_subsequences,
     get_subsequence,
     get_subsequence_with_mean_std,
+    normalize_subsequences,
     sliding_mean_std_one_series,
 )
 from aeon.utils.numba.stats import prime_up_to
@@ -821,67 +823,6 @@ def dilated_shapelet_transform(
                         )
                     )
     return X_new
-
-
-@njit(fastmath=True, cache=True)
-def normalize_subsequences(
-    X_subs: np.ndarray[np.float_],
-    X_means: np.ndarray[np.float_],
-    X_stds: np.ndarray[np.float_],
-):
-    """
-    Generate subsequences from a time series given the length and dilation parameters.
-
-    Parameters
-    ----------
-    X_subs : array, shape (n_timestamps-(length-1)*dilation, n_channels, length)
-        The subsequences of an input time series given the length and dilation parameter
-    X_means : array, shape (n_channels, n_timestamps-(length-1)*dilation)
-        Length of the subsequences to generate.
-    X_stds : array, shape (n_channels, n_timestamps-(length-1)*dilation)
-        Dilation parameter to apply when generating the strides.
-
-    Returns
-    -------
-    array, shape = (n_timestamps-(length-1)*dilation, n_channels, length)
-        Subsequences of the input time series.
-    """
-    n_subsequences, n_channels, length = X_subs.shape
-    X_new = np.zeros((n_subsequences, n_channels, length))
-    for i_sub in prange(n_subsequences):
-        for i_channel in prange(n_channels):
-            if X_stds[i_channel, i_sub] > AEON_NUMBA_STD_THRESHOLD:
-                X_new[i_sub, i_channel] = (
-                    X_subs[i_sub, i_channel] - X_means[i_channel, i_sub]
-                ) / X_stds[i_channel, i_sub]
-            # else it gives 0, the default value
-    return X_new
-
-
-@njit(fastmath=True, cache=True)
-def get_all_subsequences(X: np.ndarray, length: int, dilation: int) -> np.ndarray:
-    """
-    Generate a view of subsequcnes from a time series given length and dilation values.
-
-    Parameters
-    ----------
-    X : array, shape = (n_channels, n_timestamps)
-        An input time series as (n_channels, n_timestamps).
-    length : int
-        Length of the subsequences to generate.
-    dilation : int
-        Dilation parameter to apply when generating the strides.
-
-    Returns
-    -------
-    array, shape = (n_timestamps-(length-1)*dilation, n_channels, length)
-        The view of the subsequences of the input time series.
-    """
-    n_features, n_timestamps = X.shape
-    s0, s1 = X.strides
-    out_shape = (n_timestamps - (length - 1) * dilation, n_features, np.int64(length))
-    strides = (s1, s0, s1 * dilation)
-    return np.lib.stride_tricks.as_strided(X, shape=out_shape, strides=strides)
 
 
 @njit(fastmath=True, cache=True)

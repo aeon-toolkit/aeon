@@ -6,11 +6,8 @@ from typing import Union, final
 
 import numpy as np
 from numba import get_num_threads, set_num_threads
-from numba.core.registry import CPUDispatcher
 
-from aeon.distances import get_distance_function
 from aeon.similarity_search.base import BaseSimilaritySearch
-from aeon.similarity_search.matrix_profiles import naive_matrix_profile
 from aeon.similarity_search.matrix_profiles.stomp import (
     stomp_euclidean_matrix_profile,
     stomp_normalized_euclidean_matrix_profile,
@@ -209,7 +206,7 @@ class SeriesSearch(BaseSimilaritySearch):
             exclusion_factor=exclusion_factor,
         )
 
-        if self.normalize and self.matrix_profile_function_ is not naive_matrix_profile:
+        if self.normalize:
             _mean, _std = sliding_mean_std_one_series(X, length, 1)
             self.T_means_ = _mean
             self.T_stds_ = _std
@@ -290,24 +287,7 @@ class SeriesSearch(BaseSimilaritySearch):
             retrieved as ``X_[id_sample, :, id_timepoint : id_timepoint + length]``.
 
         """
-        if self.matrix_profile_function_ is naive_matrix_profile:
-            # Naive requiers different argument due to using query search
-            return naive_matrix_profile(
-                self.X_,
-                X,
-                length,
-                k=self.k,
-                threshold=self.threshold,
-                distance=self.distance,
-                distance_args=self.distance_args,
-                inverse_distance=self.inverse_distance,
-                normalize=self.normalize,
-                n_jobs=self.n_jobs,
-                X_index=X_index,
-                exclusion_factor=exclusion_factor,
-                apply_exclusion_to_result=apply_exclusion_to_result,
-            )
-        elif self.normalize:
+        if self.normalize:
             return self.matrix_profile_function_(
                 self.X_,
                 X,
@@ -322,7 +302,6 @@ class SeriesSearch(BaseSimilaritySearch):
                 inverse_distance=self.inverse_distance,
                 exclusion_size=exclusion_size,
             )
-
         else:
             return self.matrix_profile_function_(
                 self.X_,
@@ -381,11 +360,12 @@ class SeriesSearch(BaseSimilaritySearch):
             The series method function matching the distance argument.
 
         """
-        # TODO : test for correctness
         if isinstance(self.distance, str):
             distance_dict = _SERIES_SEARCH_SPEED_UP_DICT.get(self.distance)
-            if self.speed_up is None or distance_dict is None:
-                self.distance_function_ = get_distance_function(self.distance)
+            if distance_dict is None:
+                raise NotImplementedError(
+                    f"No distance profile have been implemented for {self.distance}."
+                )
             else:
                 speed_up_series_method = distance_dict.get(self.normalize).get(
                     self.speed_up
@@ -399,17 +379,9 @@ class SeriesSearch(BaseSimilaritySearch):
                 self.speed_up_ = self.speed_up
                 return speed_up_series_method
         else:
-            if isinstance(self.distance, CPUDispatcher) or callable(self.distance):
-                self.distance_function_ = self.distance
-
-            else:
-                raise ValueError(
-                    "If distance argument is not a string, it is expected to be either "
-                    "a callable or a numba function (CPUDispatcher), but got "
-                    f"{type(self.distance)}."
-                )
-        self.speed_up_ = None
-        return naive_matrix_profile
+            raise ValueError(
+                f"Expected distance argument to be str but got {type(self.distance)}"
+            )
 
     @classmethod
     def get_speedup_function_names(self):
@@ -444,24 +416,20 @@ _SERIES_SEARCH_SPEED_UP_DICT = {
         True: {
             "fastest": stomp_normalized_euclidean_matrix_profile,
             "STOMP": stomp_normalized_euclidean_matrix_profile,
-            "naive": naive_matrix_profile,
         },
         False: {
             "fastest": stomp_euclidean_matrix_profile,
             "STOMP": stomp_euclidean_matrix_profile,
-            "naive": naive_matrix_profile,
         },
     },
     "squared": {
         True: {
             "fastest": stomp_normalized_squared_matrix_profile,
             "STOMP": stomp_normalized_squared_matrix_profile,
-            "naive": naive_matrix_profile,
         },
         False: {
             "fastest": stomp_squared_matrix_profile,
             "STOMP": stomp_squared_matrix_profile,
-            "naive": naive_matrix_profile,
         },
     },
 }

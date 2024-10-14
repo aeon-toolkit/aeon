@@ -27,7 +27,7 @@ def test_euclidean_distance(dtype):
     q = np.asarray([[3, 4, 5]], dtype=dtype)
 
     mask = np.ones((X.shape[0], X.shape[2] - q.shape[1] + 1), dtype=bool)
-    expected = naive_squared_distance_profile(X, q, mask) ** 0.5
+    expected = naive_squared_distance_profile(X, q, mask)
     dist_profile = squared_distance_profile(X, q, mask)
 
     assert_array_almost_equal(dist_profile, expected)
@@ -40,7 +40,7 @@ def test_euclidean_constant_case(dtype):
     q = np.zeros((1, 3), dtype=dtype)
 
     mask = np.ones((X.shape[0], X.shape[2] - q.shape[1] + 1), dtype=bool)
-    expected = naive_squared_distance_profile(X, q, mask) ** 0.5
+    expected = naive_squared_distance_profile(X, q, mask)
     dist_profile = squared_distance_profile(X, q, mask)
 
     assert_array_almost_equal(dist_profile, expected)
@@ -84,7 +84,7 @@ def test_normalized_euclidean_distance(dtype):
     dist_profile = normalized_squared_distance_profile(
         X, q, mask, X_means, X_stds, q_means, q_stds
     )
-    expected = naive_squared_distance_profile(X, q, mask, normalize=True) ** 0.5
+    expected = naive_squared_distance_profile(X, q, mask, normalize=True)
 
     assert_array_almost_equal(dist_profile, expected)
 
@@ -117,7 +117,7 @@ def test_normalized_euclidean_distance_unequal_length(dtype):
     dist_profile = normalized_squared_distance_profile(
         X, q, mask, X_means, X_stds, q_means, q_stds
     )
-    expected = naive_squared_distance_profile(X, q, mask, normalize=True) ** 0.5
+    expected = naive_squared_distance_profile(X, q, mask, normalize=True)
     for i in range(len(X)):
         assert_array_almost_equal(dist_profile[i], expected[i])
 
@@ -136,7 +136,8 @@ def test_euclidean_distance_unequal_length(dtype):
     mask = List(
         [np.ones(X[i].shape[1] - q.shape[1] + 1, dtype=bool) for i in range(len(X))]
     )
-    expected = naive_squared_distance_profile(X, q, mask) ** 0.5
+
+    expected = naive_squared_distance_profile(X, q, mask)
     dist_profile = squared_distance_profile(X, q, mask)
     for i in range(len(X)):
         assert_array_almost_equal(dist_profile[i], expected[i])
@@ -165,7 +166,7 @@ def test_normalized_euclidean_constant_case(dtype):
     dist_profile = normalized_squared_distance_profile(
         X, q, mask, X_means, X_stds, q_means, q_stds
     )
-    expected = naive_squared_distance_profile(X, q, mask, normalize=True) ** 0.5
+    expected = naive_squared_distance_profile(X, q, mask, normalize=True)
 
     assert_array_almost_equal(dist_profile, expected)
 

@@ -8,6 +8,24 @@ import numpy as np
 from numba import njit, prange
 from scipy.signal import convolve
 
+from aeon.utils.numba.general import (
+    get_all_subsequences,
+    normalize_subsequences,
+    sliding_mean_std_one_series,
+    z_normalise_series_2d,
+)
+
+
+def naive_squared_distance_profile(X, q, mask, normalize=False):
+    """Compute a squared euclidean distance profile."""
+    n_channels, query_length = q.shape
+    X_subs = get_all_subsequences(X, query_length, 1)
+    if normalize:
+        X_means, X_stds = sliding_mean_std_one_series(X_subs, query_length, 1)
+        X_subs = normalize_subsequences(X_subs, X_means, X_stds)
+        q = z_normalise_series_2d(q)
+    return (X_subs - q) ** 2
+
 
 def fft_sliding_dot_product(X, q):
     """
