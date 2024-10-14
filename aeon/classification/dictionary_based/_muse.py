@@ -456,7 +456,6 @@ def _parallel_fit(
             feature_selection=feature_selection,
             save_words=False,
             n_jobs=n_jobs,
-            return_pandas_data_series=False,
             return_sparse=True,
         )
 
