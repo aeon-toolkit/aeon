@@ -267,6 +267,7 @@ class TSFreshFeatureExtractor(_TSFreshFeatureExtractor):
             profiling_sorting=profiling_sorting,
             distributor=distributor,
         )
+        self._get_names()
 
     def _transform(self, X, y=None):
         """Transform X and return a transformed version.
@@ -298,7 +299,6 @@ class TSFreshFeatureExtractor(_TSFreshFeatureExtractor):
             column_sort="time_index",
             **self.default_fc_parameters_,
         )
-        self._names = Xt.columns.tolist()
         return Xt.to_numpy()
 
     @classmethod
@@ -338,6 +338,23 @@ class TSFreshFeatureExtractor(_TSFreshFeatureExtractor):
                 "kind_to_fc_parameters": features_to_calc,
             },
         ]
+
+    def _get_names(self):
+        """Hack to get the feature names prior to transform."""
+        from tsfresh import extract_features
+
+        X = np.random.random((2, 1, 30))
+        Xt = _from_3d_numpy_to_long(X)
+        Xt = extract_features(
+            Xt,
+            column_id="index",
+            column_value="value",
+            column_kind="column",
+            column_sort="time_index",
+            **self.default_fc_parameters_,
+        )
+        # Get the list of feature names
+        self.names = Xt.columns.tolist()
 
 
 class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
