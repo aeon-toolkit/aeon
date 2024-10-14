@@ -110,3 +110,75 @@ def test_check_estimator_subset_tests():
     results_tests = [x for x in results.keys()]
 
     assert results_tests == expected_tests
+
+
+# List of valid algorithm types
+valid_algorithm_types = [
+    "distance",
+    "interval",
+    "shapelet ",
+    "signature",
+    "feature",
+    "dictionary",
+    "convolution",
+]
+
+
+def test_check_algorithm_type():
+    """
+    Test check_algorithm_type function with valid, invalid, and missing algorithm_type.
+
+    The test performs the following:
+    - Test Case 1: Checks if a valid algorithm_type passes the validation.
+    - Test Case 2: Ensures that an invalid algorithm_type raises a ValueError.
+    """
+
+    def check_algorithm_type(_tags, valid_algorithm_types):
+        """
+        Validate the 'algorithm_type' tag in the provided tags dictionary.
+
+        Parameters
+        ----------
+        - tags: dict
+            A dictionary that contains metadata or tags about the class.
+        - valid_algorithm_types: list
+            A list of valid algorithm types.
+
+        Returns
+        -------
+        - True if the 'algorithm_type' is valid.
+
+        Raises
+        ------
+        - ValueError if 'algorithm_type' is missing or invalid.
+        """
+        # Get algorithm type from tags
+        algorithm_type = _tags.get("algorithm_type")
+
+        # Check if the algorithm_type is in the valid list
+        if algorithm_type not in valid_algorithm_types:
+            raise ValueError(
+                f"Invalid 'algorithm_type': {algorithm_type}. "
+                f"Must be one of {valid_algorithm_types}."
+            )
+
+        return True
+
+    # Test Case 1: Valid algorithm_type
+    tags_valid = {"algorithm_type": "distance"}
+    result = check_algorithm_type(tags_valid, valid_algorithm_types)
+    assert result is True, "Test Case 1 Failed: Invalid algorithm_type"
+
+    # Test Case 2: Invalid algorithm_type
+    tags_invalid = {"algorithm_type": "invalid_type"}
+    try:
+        check_algorithm_type(tags_invalid, valid_algorithm_types)
+        raise AssertionError(
+            "Test Case 2 Failed: ValueError was not raised for invalid algorithm_type"
+        )
+    except ValueError as e:
+        expected_message = (
+            f"Invalid 'algorithm_type': invalid_type. "
+            f"Must be one of {valid_algorithm_types}."
+        )
+        assert str(e) == expected_message, f"Test Case 2 Failed: {e}"
