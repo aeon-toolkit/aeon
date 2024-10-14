@@ -10,6 +10,7 @@ __all__ = [
     "LeftSTAMPi",
     "COPOD",
     "IsolationForest",
+    "COPOD",
 ]
 
 from aeon.anomaly_detection._copod import COPOD
