@@ -66,7 +66,7 @@ class COPOD(PyODAdapter):
     ) -> np.ndarray:
         return super()._fit_predict(X, y)
 
-    @staticmethod
+    @classmethod
     def get_test_params(cls, parameter_set="default") -> dict:
         """Return testing parameter settings for the estimator.
 
