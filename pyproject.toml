@@ -101,7 +101,7 @@ binder = [
     "jupyterlab",
 ]
 docs = [
-    "sphinx<8.1.0",
+    "sphinx<8.2.0",
     "sphinx-design",
     "sphinx-version-warning",
     "sphinx_issues",
