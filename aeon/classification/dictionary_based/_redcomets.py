@@ -81,8 +81,8 @@ class REDCOMETS(BaseClassifier):
     --------
     >>> from aeon.classification.dictionary_based import REDCOMETS
     >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
     >>> clf = REDCOMETS()  # doctest: +SKIP
     >>> clf.fit(X_train, y_train)  # doctest: +SKIP
     REDCOMETS(...)
