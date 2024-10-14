@@ -52,7 +52,6 @@ Deep learning
     :template: class.rst
 
     BaseDeepRegressor
-    CNNRegressor
     TimeCNNRegressor
     EncoderRegressor
     FCNRegressor
