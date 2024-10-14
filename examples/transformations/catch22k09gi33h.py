@@ -5,7 +5,6 @@ from aeon.classification.feature_based import Catch22Classifier
 from aeon.datasets import load_basic_motions, load_italy_power_demand
 from aeon.transformations.collection.feature_based import Catch22
 
-
 # %%NBQA-CELL-SEPfc780c
 IPD_X_train, IPD_y_train = load_italy_power_demand(split="train")
 IPD_X_test, IPD_y_test = load_italy_power_demand(split="test")

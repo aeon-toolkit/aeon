@@ -5,7 +5,6 @@ from sklearn.pipeline import Pipeline
 from aeon.classification.convolution_based import RocketClassifier
 from aeon.datasets import load_basic_motions
 
-
 # %%NBQA-CELL-SEPfc780c
 X, y = load_basic_motions()
 X_train, X_test, y_train, y_test = train_test_split(X, y)

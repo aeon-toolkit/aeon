@@ -40,12 +40,14 @@ plt.rcParams.update(ggplot_styles)
 def rolling_window_stride_trick(X, window):
     """
     Use strides to generate rolling/sliding windows for a numpy array.
+
     Parameters
     ----------
     X : numpy.ndarray
         numpy array
     window : int
         Size of the rolling window
+
     Returns
     -------
     output : numpy.ndarray

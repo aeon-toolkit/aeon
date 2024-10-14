@@ -38,7 +38,6 @@ from aeon.classification.distance_based import (
     KNeighborsTimeSeriesClassifier,
 )
 
-
 # %%NBQA-CELL-SEPfc780c
 knn = KNeighborsTimeSeriesClassifier(distance="msm", n_neighbors=3, weights="distance")
 knn.fit(X_train, y_train)

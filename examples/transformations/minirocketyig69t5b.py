@@ -18,7 +18,6 @@ from aeon.transformations.collection.convolution_based import (
     MiniRocketMultivariateVariable,
 )
 
-
 # %%NBQA-CELL-SEPfc780c
 X_train, y_train = load_arrow_head(split="train")
 minirocket = MiniRocket()  # by default, MiniRocket uses ~10_000 kernels

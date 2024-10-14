@@ -11,7 +11,6 @@ from sklearn.pipeline import make_pipeline
 from aeon.datasets import load_arrow_head, load_basic_motions
 from aeon.transformations.collection.feature_based import TSFreshFeatureExtractor
 
-
 # %%NBQA-CELL-SEPfc780c
 X, y = load_arrow_head(return_X_y=True, return_type="nested_univ")
 X_train, X_test, y_train, y_test = train_test_split(X, y)

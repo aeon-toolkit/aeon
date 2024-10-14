@@ -252,7 +252,6 @@ from sklearn.svm import SVC
 
 from aeon.distances import twe_pairwise_distance
 
-
 # %%NBQA-CELL-SEPfc780c
 # Select 25 patterns from the dataset to speed up the example
 indices = np.random.RandomState(1234).choice(len(y_train_3D), 25, replace=False)
@@ -282,7 +281,6 @@ from sklearn.svm import NuSVR
 
 from aeon.distances import msm_pairwise_distance
 
-
 # %%NBQA-CELL-SEPfc780c
 # Select 25 patterns from the dataset to speed up the example
 indices = np.random.RandomState(1234).choice(len(y_train_3D_reg), 25, replace=False)
@@ -309,7 +307,6 @@ print(
 from sklearn.cluster import DBSCAN
 
 from aeon.distances import euclidean_pairwise_distance
-
 
 # %%NBQA-CELL-SEPfc780c
 # Fit the DBSCAN model with the euclidean distance (default).

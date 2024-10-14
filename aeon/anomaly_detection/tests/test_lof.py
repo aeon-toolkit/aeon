@@ -1,4 +1,5 @@
 """Tests for the LOF class."""
+
 import numpy as np
 import pytest
 

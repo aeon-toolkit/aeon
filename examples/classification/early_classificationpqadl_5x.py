@@ -6,7 +6,6 @@ from aeon.classification.early_classification._teaser import TEASER
 from aeon.classification.interval_based import TimeSeriesForestClassifier
 from aeon.datasets import load_arrow_head
 
-
 # %%NBQA-CELL-SEPfc780c
 # Load default train/test splits from aeon/datasets/data
 arrow_train_X, arrow_train_y = load_arrow_head(split="train")
