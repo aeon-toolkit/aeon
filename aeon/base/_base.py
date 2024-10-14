@@ -318,7 +318,9 @@ class BaseAeonEstimator(BaseEstimator, metaclass=ABCMeta):
     def _get_fitted_params(self, est, deep):
         """Recursive function to get fitted parameters."""
         # retrieves all self attributes ending in "_"
-        fitted_params = [attr for attr in dir(est) if attr.endswith("_") and not attr.startswith("_")]
+        fitted_params = [
+            attr for attr in dir(est) if attr.endswith("_") and not attr.startswith("_")
+        ]
 
         out = dict()
         for key in fitted_params:
