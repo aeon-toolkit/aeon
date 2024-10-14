@@ -48,3 +48,10 @@ def test_kind_tsfresh_extractor():
     )
     Xts_custom = ts_custom.fit_transform(X)
     assert Xts_custom.shape[1] == len(features_to_calc)
+
+
+# @pytest.mark.skipif(
+#     #    not _check_soft_dependencies("tsfresh", severity="none"),
+#     reason="skip test if required soft dependency tsfresh not available",
+# )
+# def test_kind_tsfresh_extractor():
