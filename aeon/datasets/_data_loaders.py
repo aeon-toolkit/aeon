@@ -332,9 +332,14 @@ def _load_saved_dataset(
     Returns
     -------
     X: Data stored in specified `return_type`
-        The time series data for the problem, with n instances
-    y: 1D numpy array of length n
-    meta: meta data dictionary, only returned if return_meta is True
+        The time series collection for the problem.
+    y: 1D numpy array of length len(X)
+     The class labels for each time series instance in X.
+
+    meta: dict
+        Dictionary of data characteristics, with keys
+        "problemname" (string), booleans: "timestamps", "missing", "univariate",
+        "equallength", "classlabel", "targetlabel" and list: "class_values",
 
     Raises
     ------
@@ -502,9 +507,9 @@ def _load_tsc_dataset(
     Returns
     -------
     X: Data stored in specified `return_type`
-        The time series data for the problem, with n instances
+        The time series data for the problem, with n instances.
     y: 1D numpy array of length len(X)
-        The class labels for each time series instance in X
+        The class labels for each time series instance in X.
 
     Raises
     ------
