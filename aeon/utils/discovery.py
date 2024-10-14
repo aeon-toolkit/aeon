@@ -80,12 +80,12 @@ def all_estimators(
     --------
     >>> from aeon.utils.discovery import all_estimators
     >>> # return a complete list of estimators as pd.Dataframe
-    >>> all = all_estimators(as_dataframe=True)
+    >>> all = all_estimators()
     >>> # return all classifiers by filtering for estimator type
-    >>> classifiers = all_estimators("classifier")
+    >>> classifiers = all_estimators(type_filter="classifier")
     >>> # return all classifiers which handle unequal length data by tag filtering
     >>> clf_ul = all_estimators(
-    ...     "classifier", tag_filter={"capability:unequal_length":True}
+    ...     type_filter="classifier", tag_filter={"capability:unequal_length":True}
     ... )
     """
     modules_to_ignore = (
