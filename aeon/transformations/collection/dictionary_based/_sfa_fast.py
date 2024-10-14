@@ -714,6 +714,7 @@ class SFAFast(BaseCollectionTransformer):
             "return_sparse": True,
             "feature_selection": "chi2",
             "alphabet_size": 2,
+            "return_sparse": True,
         }
         return params
 
