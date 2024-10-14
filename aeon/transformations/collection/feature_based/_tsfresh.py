@@ -667,5 +667,6 @@ class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
             "default_fc_parameters": "efficient",
             "disable_progressbar": True,
             "show_warnings": False,
+            "fdr_level": 0.01,
         }
         return params
