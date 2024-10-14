@@ -2,16 +2,19 @@
 
 __all__ = ["LSTM_AD"]
 
+import time
+
 import numpy as np
 from scipy.stats import multivariate_normal
 from sklearn.covariance import EmpiricalCovariance
 from sklearn.metrics import fbeta_score
 from sklearn.model_selection import train_test_split
 
-from aeon.anomaly_detection.base import BaseAnomalyDetector
+from aeon.anomaly_detection.deep_learning.base import BaseDeepAnomalyDetector
+from aeon.networks import LSTMNetwork
 
 
-class LSTM_AD(BaseAnomalyDetector):
+class LSTM_AD(BaseDeepAnomalyDetector):
     """LSTM-AD anomaly detector.
 
     The LSTM-AD uses stacked LSTM network for anomaly detection in time series. A
@@ -58,6 +61,8 @@ class LSTM_AD(BaseAnomalyDetector):
     batch_size : int, default=32
         The number of time steps per gradient update.
 
+    optimizer : keras.optimizer, default=keras.optimizers.Adadelta()
+
     n_epochs: int, default = 1500
         The number of epochs to train the model.
 
@@ -66,6 +71,38 @@ class LSTM_AD(BaseAnomalyDetector):
 
     verbose : boolean, default = False
         whether to output extra information
+
+    file_path : str, default = "./"
+        file_path when saving model_Checkpoint callback
+
+    save_best_model : bool, default = False
+        Whether or not to save the best model, if the
+        modelcheckpoint callback is used by default,
+        this condition, if True, will prevent the
+        automatic deletion of the best saved model from
+        file and the user can choose the file name
+
+    save_last_model : bool, default = False
+        Whether or not to save the last model, last
+        epoch trained, using the base class method
+        save_last_model_to_file
+
+    save_init_model : bool, default = False
+        Whether to save the initialization of the  model.
+
+    best_file_name : str, default = "best_model"
+        The name of the file of the best model, if
+        save_best_model is set to False, this parameter
+        is discarded
+
+    last_file_name : str, default = "last_model"
+        The name of the file of the last model, if
+        save_last_model is set to False, this parameter
+        is discarded
+
+    init_file_name : str, default = "init_model"
+        The name of the file of the init model, if save_init_model is set to False,
+        this parameter is discarded.
 
     Notes
     -----
@@ -99,6 +136,7 @@ class LSTM_AD(BaseAnomalyDetector):
         "capability:multivariate": True,
         "capability:missing_values": False,
         "fit_is_empty": False,
+        "requires_y": True,
         "python_dependencies": "tensorflow",
     }
 
@@ -112,6 +150,15 @@ class LSTM_AD(BaseAnomalyDetector):
         n_epochs: int = 1500,
         patience: int = 5,
         verbose: bool = False,
+        loss="mse",
+        optimizer=None,
+        file_path="./",
+        save_best_model=False,
+        save_last_model=False,
+        save_init_model=False,
+        best_file_name="best_model",
+        last_file_name="last_model",
+        init_file_name="init_model",
     ):
         self.n_layers = n_layers
         self.n_nodes = n_nodes
@@ -121,8 +168,76 @@ class LSTM_AD(BaseAnomalyDetector):
         self.n_epochs = n_epochs
         self.patience = patience
         self.verbose = verbose
+        self.loss = loss
+        self.optimizer = optimizer
+        self.file_path = file_path
+        self.save_best_model = save_best_model
+        self.save_last_model = save_last_model
+        self.save_init_model = save_init_model
+        self.best_file_name = best_file_name
+        self.last_file_name = last_file_name
+        self.init_file_name = init_file_name
 
-        super().__init__(axis=0)
+        self.history = None
+
+        super().__init__()
+
+        self._network = LSTMNetwork(self.n_nodes, self.n_layers)
+
+    def build_model(self, **kwargs):
+        """Construct a compiled, un-trained, keras model that is ready for training.
+
+        In aeon, time series are stored in numpy arrays of shape (d,m), where d
+        is the number of dimensions, m is the series length. Keras/tensorflow assume
+        data is in shape (m,d). This method also assumes (m,d). Transpose should
+        happen in fit.
+
+        Parameters
+        ----------
+        n_layers : int
+            The number of layers in the LSTM model.
+        n_nodes : int
+            The number of LSTM units in each layer.
+        n_channels : int
+            It is basically d, the number of dimesions.
+        window_size : int
+            Tie number of time steps fed to the model.
+        prediction_horizon : int
+            The number of time steps to be predicted by the model.
+
+        Returns
+        -------
+        output : a compiled Keras Model
+        """
+        import tensorflow as tf
+
+        # input_layer, output_layer = self._network.build_network(input_shape,
+        # prediction_horizon, **kwargs)
+        # Input layer for the LSTM model
+        input_layer = tf.keras.layers.Input(shape=(self.window_size, self.n_channels))
+
+        # Build the LSTM layers
+        x = input_layer
+        for _ in range(self.n_layers - 1):
+            x = tf.keras.layers.LSTM(self.n_nodes, return_sequences=True)(x)
+
+        # Last LSTM layer with return_sequences=False to output final representation
+        x = tf.keras.layers.LSTM(self.n_nodes, return_sequences=False)(x)
+
+        # Output Dense layer
+        output_layer = tf.keras.layers.Dense(self.n_channels * self.prediction_horizon)(
+            x
+        )
+
+        self.optimizer_ = (
+            tf.keras.optimizers.Adam() if self.optimizer is None else self.optimizer
+        )
+
+        model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
+
+        model.compile(optimizer=self.optimizer_, loss=self.loss)
+
+        return model
 
     def _fit(self, X: np.array, y: np.array):
         """Fit the model on the data.
@@ -156,6 +271,7 @@ class LSTM_AD(BaseAnomalyDetector):
         X_val1, X_val2, y_val1, y_val2 = train_test_split(
             X_val, y_val, test_size=0.5, shuffle=False
         )
+
         X_train_n, y_train_n = _create_sequences(
             X_train, self.window_size, self.prediction_horizon
         )
@@ -174,30 +290,39 @@ class LSTM_AD(BaseAnomalyDetector):
         )
         y_anomalies = y_anomalies.reshape(-1, self.prediction_horizon * self.n_channels)
 
-        # Create a stacked LSTM model and fit on the training data
-        self.model = self._build_model(
-            self.n_layers,
-            self.n_nodes,
-            self.n_channels,
-            self.window_size,
-            self.prediction_horizon,
+        # Fit LSTM model on the normal train set
+        # input_shape = (self.window_size, self.n_channels)
+
+        self.training_model_ = self.build_model()
+
+        if self.save_init_model:
+            self.training_model_.save(self.file_path + self.init_file_name + ".keras")
+
+        if self.verbose:
+            self.training_model_.summary()
+
+        self.file_name_ = (
+            self.best_file_name if self.save_best_model else str(time.time_ns())
         )
-        # self.model_summary_ = self.model.summary()
-        early_stopping = tf.keras.callbacks.EarlyStopping(
-            monitor="val_loss", patience=self.patience, restore_best_weights=True
-        )
-        self.history = self.model.fit(
+
+        self.callbacks_ = [
+            tf.keras.callbacks.EarlyStopping(
+                monitor="val_loss", patience=self.patience, restore_best_weights=True
+            )
+        ]
+
+        self.history = self.training_model_.fit(
             X_train_n,
             y_train_n,
             validation_data=(X_val_1, y_val_1),
-            epochs=self.n_epochs,
             batch_size=self.batch_size,
-            callbacks=[early_stopping],
+            epochs=self.n_epochs,
             verbose=self.verbose,
+            callbacks=self.callbacks_,
         )
 
         # Prediction errors on validation set 1 to calculate error vector
-        predicted_vN1 = self.model.predict(X_val_1)
+        predicted_vN1 = self.training_model_.predict(X_val_1)
         errors_vN1 = y_val_1 - predicted_vN1
 
         # Fit the error vectors to a Gaussian distribution
@@ -211,8 +336,8 @@ class LSTM_AD(BaseAnomalyDetector):
         # Create a Gaussian Normal Distribution
         self.distribution = multivariate_normal(mean=mu, cov=cov_matrix)
 
-        predicted_vN2 = self.model.predict(X_val_2)
-        predicted_vA = self.model.predict(X_anomalies)
+        predicted_vN2 = self.training_model_.predict(X_val_2)
+        predicted_vA = self.training_model_.predict(X_anomalies)
 
         errors_vN2 = y_val_2 - predicted_vN2
         errors_vA = y_anomalies - predicted_vA
@@ -244,59 +369,18 @@ class LSTM_AD(BaseAnomalyDetector):
                 self.best_tau = tau
                 self.best_fbeta = fbeta
 
+        return self
+
     def _predict(self, X):
         X_, y_ = _create_sequences(X, self.window_size, self.prediction_horizon)
         y_ = y_.reshape(-1, self.prediction_horizon * self.n_channels)
-        predict_test = self.model.predict(X_)
+        predict_test = self.training_model_.predict(X_)
         errors = y_ - predict_test
         likelihoods = self.distribution.pdf(errors)
         anomalies = (likelihoods < self.best_tau).astype(int)
         padding = np.zeros(X.shape[0] - len(anomalies))
         prediction = np.concatenate([padding, anomalies])
         return np.array(prediction, dtype=int)
-
-    def _build_model(
-        self, n_layers, n_nodes, n_channels, window_size, prediction_horizon
-    ):
-        """Construct a compiled, un-trained, keras model that is ready for training.
-
-        In aeon, time series are stored in numpy arrays of shape (d,m), where d
-        is the number of dimensions, m is the series length. Keras/tensorflow assume
-        data is in shape (m,d). This method also assumes (m,d). Transpose should
-        happen in fit.
-
-        Parameters
-        ----------
-        n_layers : int
-            The number of layers in the LSTM model.
-        n_nodes : int
-            The number of LSTM units in each layer.
-        n_channels : int
-            It is basically d, the number of dimesions.
-        window_size : int
-            Tie number of time steps fed to the model.
-        prediction_horizon : int
-            The number of time steps to be predicted by the model.
-
-        Returns
-        -------
-        output : a compiled Keras Model
-        """
-        import tensorflow as tf
-
-        model = tf.keras.models.Sequential()
-        model.add(tf.keras.layers.Input(shape=(window_size, n_channels)))
-        model.add(
-            tf.keras.layers.LSTM(n_nodes, return_sequences=True)
-        )  # First LSTM layer
-        if n_layers > 2:
-            for _ in range(1, n_layers - 1):
-                model.add(tf.keras.layers.LSTM(n_nodes, return_sequences=True))
-        # Last LSTM layer, return_sequences=False
-        model.add(tf.keras.layers.LSTM(n_nodes, return_sequences=False))
-        model.add(tf.keras.layers.Dense(n_channels * prediction_horizon))
-        model.compile(optimizer="adam", loss="mse")
-        return model
 
     def _check_params(self, X: np.ndarray) -> None:
         if X.ndim == 1:
