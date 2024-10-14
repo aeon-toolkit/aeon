@@ -585,7 +585,7 @@ class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
 
         Xt = self.extractor_.fit_transform(X)
         Xt = self.selector_.fit_transform(Xt, y)
-        self.names_ = self.extractor_.relevant_features
+        self.names_ = self.selector_.relevant_features
         return Xt
 
     def _fit(self, X, y=None):
@@ -626,6 +626,7 @@ class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
 
         Xt = self.extractor_.fit_transform(X)
         self.selector_.fit(Xt, y)
+        self.names_ = self.selector_.relevant_features
         return self
 
     def _transform(self, X, y=None):
