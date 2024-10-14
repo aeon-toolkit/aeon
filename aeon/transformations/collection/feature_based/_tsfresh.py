@@ -254,6 +254,7 @@ class TSFreshFeatureExtractor(_TSFreshFeatureExtractor):
         profiling_sorting=None,
         distributor=None,
     ):
+        self.names_ = []
         super().__init__(
             default_fc_parameters=default_fc_parameters,
             kind_to_fc_parameters=kind_to_fc_parameters,
@@ -298,6 +299,7 @@ class TSFreshFeatureExtractor(_TSFreshFeatureExtractor):
             column_sort="time_index",
             **self.default_fc_parameters_,
         )
+        self.names_ = Xt.columns.tolist()
         #        return Xt.reindex(X.index)
         return Xt.to_numpy()
 
