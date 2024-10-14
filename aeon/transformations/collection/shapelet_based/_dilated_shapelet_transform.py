@@ -130,7 +130,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
     ...     RandomDilatedShapeletTransform
     ... )
     >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
+    >>> X_train, y_train = load_unit_test(split="train")
     >>> t = RandomDilatedShapeletTransform(
     ...     max_shapelets=10
     ... )
