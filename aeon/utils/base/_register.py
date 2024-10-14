@@ -1,31 +1,12 @@
-"""Register of estimator base classes corresponding to aeon class.
+"""Register of estimator base classes.
 
-This module exports the following:
+BASE_CLASS_REGISTER - dictionary
+    Dictionary of base classes for each estimator type. Keys are identifier strings,
+    values are base classes.
 
----
-
-BASE_CLASS_REGISTER - list of tuples
-
-each tuple corresponds to a base class, elements as follows:
-    0 : string - shorthand identifier for base class type
-    1 : type - the base class itself
-    2 : string - plain English description of the class
-
----
-
-BASE_CLASS_IDENTIFIER_LIST - list of string
-    elements are 0-th entries of BASE_CLASS_REGISTER, in same order
-
----
-
-BASE_CLASS_LIST - list of string
-    elements are 1-st entries of BASE_CLASS_REGISTER, in same order
-
----
-
-BASE_CLASS_LOOKUP - dictionary
-    keys/entries are 0/1-th entries of BASE_CLASS_REGISTER
-
+VALID_ESTIMATOR_BASES - dictionary
+    Dictionary of base classes that are valid for estimators to inherit from. Subset of
+    BASE_CLASS_REGISTER. Keys are identifier strings, values are base classes.
 """
 
 __maintainer__ = ["MatthewMiddlehurst"]

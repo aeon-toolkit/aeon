@@ -1,3 +1,5 @@
+"""Base class collections and utilities."""
+
 __all__ = [
     "BASE_CLASS_REGISTER",
     "VALID_ESTIMATOR_BASES",

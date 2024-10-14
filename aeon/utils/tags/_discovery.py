@@ -20,7 +20,7 @@ def all_tags_for_estimator(
 
     Parameters
     ----------
-    estimator: string, estimator object, estimator class
+    estimator: str, estimator object, estimator class
         Filter tags returned by the type of estimator.
         Valid input strings can be found in the tags dictionary in
         ``aeon.utils.tags.ESTIMATOR_TAGS`` under the class key or in

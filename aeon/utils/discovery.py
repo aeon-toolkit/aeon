@@ -38,37 +38,37 @@ def all_estimators(
 
     Parameters
     ----------
-    type_filter: str, list of str, default=None
+    type_filter: str, estimator type or list of str/type, default=None
         Which kind of estimators should be returned.
-        if None, no filter is applied and all estimators are returned.
-        if str or list of str, string identifiers define types specified in search
-                only estimators that are of (at least) one of the types are returned
-            possible str values are entries of registry.BASE_CLASS_REGISTER (first col)
-                for instance 'classifier', 'regressor', 'transformer'
-    exclude_types: str, list of str, default=None
-        Names of estimator types to exclude i.e. "collection_transformer" when you are
-        looking for "transformer" classes
+        if None, no filter is applied.
+        if str, type or list, returns esimators that are of one of the provided types.
+            Valid entries are available in the keys and values of
+            utils.base.BASE_CLASS_REGISTER. i.e. "classifier" and "transformer" for
+            str, and BaseClassifier and BaseTransformer for type.
+    exclude_types: str, estimator type or list of str/type, default=None
+        Which kind of estimators to exclude. Inverse of type_filter.
+        if None, no exclusion is applied.
+        if str, type or list, excludes esimators that are of the provided types.
+            Valid entries are available in the keys and values of
+            utils.base.BASE_CLASS_REGISTER. i.e. "classifier" and "transformer" for
+            str, and BaseClassifier and BaseTransformer for type.
     tag_filter: dict of (str or list of str), default=None
-        For a list of valid tag strings, use the registry.all_tags utility.
-        subsets the returned estimators as follows:
-            each key/value pair is statement in "and"/conjunction
-                key is tag name to sub-set on
-                value str or list of string are tag values
-                condition is "key must be equal to value, or in set(value)"
-    exclude_tags: str or list of str, default=None
-        Names of tags to fetch and return each estimator's value of.
-        For a list of valid tag strings, use the registry.all_tags utility.
-        if str or list of str,
-            the tag values named in return_tags will be fetched for each
-            estimator and will be appended as either columns or tuple entries.
+        Return only estimators that have tags matching the provided values.
+            i.e. {"capability:unequal_length":True} will return all estimators that
+            have the tag "capability:unequal_length" with a value of True.
+    exclude_tags: dict of (str or list of str), default=None
+        Exclude only estimators that have tags matching the provided values. Inverse
+        of tag_filter.
+            i.e. {"capability:unequal_length":True} will exclude all estimators that
+            have the tag "capability:unequal_length" with a value of True.
     include_sklearn: bool, default=True
-        todo
+        if True, include estimators implemented using the sklearn interface (not
+        inheriting from BaseAeonEstimator) in the output. type_filter and tag_filter
+        will remove these estimators.
     return_names: bool, default=True
-        if True, estimator class name is included in the all_estimators()
-            return in the order: name, estimator class, optional tags, either as
-            a tuple or as pandas.DataFrame columns
-        if False, estimator class name is removed from the all_estimators()
-            return.
+        if True, a tuple (estimator name, estimator class) is returned for each
+            estimator in the list.
+        if False, only the estimator class is returned.
 
     Returns
     -------

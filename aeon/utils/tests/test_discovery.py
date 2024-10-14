@@ -33,7 +33,7 @@ def test_all_estimators():
     estimators3 = all_estimators(include_sklearn=False)
 
     assert isinstance(estimators3, list)
-    assert len(estimators) > 0 and len(estimators3) < len(estimators)
+    assert 0 < len(estimators3) < len(estimators)
 
     for estimator in estimators3:
         assert issubclass(estimator[1], BaseAeonEstimator)
@@ -153,7 +153,7 @@ def test_all_estimators_filter_type_and_tag():
     assert len(estimators2) == 0
 
 
-def test_list_tag_lookup():
+def test_all_estimators_list_tag_lookup():
     """Check that all estimators can handle tags lists rather than single strings.
 
     DummyClassifier has two internal datatypes, "numpy3D" and "np-list". This test

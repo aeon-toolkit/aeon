@@ -5,6 +5,7 @@ from aeon.utils.base._register import BASE_CLASS_REGISTER, VALID_ESTIMATOR_BASES
 
 
 def test_base_class_register():
+    """Test the base class registers follow the correct format."""
     assert isinstance(BASE_CLASS_REGISTER, dict)
     assert len(BASE_CLASS_REGISTER) > 0
     assert all(isinstance(k, str) for k in BASE_CLASS_REGISTER.keys())
