@@ -2,7 +2,7 @@
 
 __maintainer__ = []
 
-from abc import ABC, abstractmethod
+from abc import ABCMeta, abstractmethod
 
 from aeon.utils.validation._dependencies import (
     _check_python_version,
@@ -10,7 +10,7 @@ from aeon.utils.validation._dependencies import (
 )
 
 
-class BaseDeepLearningNetwork(ABC):
+class BaseDeepLearningNetwork(metaclass=ABCMeta):
     """Abstract base class for deep learning networks."""
 
     def __init__(self, soft_dependencies="tensorflow", python_version="<3.12"):

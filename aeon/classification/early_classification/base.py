@@ -27,7 +27,7 @@ __all__ = [
 __maintainer__ = []
 
 import time
-from abc import ABC, abstractmethod
+from abc import ABCMeta, abstractmethod
 
 import numpy as np
 
@@ -35,7 +35,7 @@ from aeon.base import BaseCollectionEstimator
 from aeon.classification import BaseClassifier
 
 
-class BaseEarlyClassifier(BaseCollectionEstimator, ABC):
+class BaseEarlyClassifier(BaseCollectionEstimator, metaclass=ABCMeta):
     """
     Abstract base class for early time series classifiers.
 

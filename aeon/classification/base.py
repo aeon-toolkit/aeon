@@ -24,7 +24,7 @@ __all__ = [
 __maintainer__ = ["TonyBagnall", "MatthewMiddlehurst"]
 
 import time
-from abc import ABC, abstractmethod
+from abc import ABCMeta, abstractmethod
 from typing import final
 
 import numpy as np
@@ -39,7 +39,7 @@ from aeon.utils.validation._dependencies import _check_estimator_deps
 from aeon.utils.validation.collection import get_n_cases
 
 
-class BaseClassifier(BaseCollectionEstimator, ABC):
+class BaseClassifier(BaseCollectionEstimator, metaclass=ABCMeta):
     """
     Abstract base class for time series classifiers.
 

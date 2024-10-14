@@ -8,14 +8,14 @@ because we can generalise tags and _predict
 __maintainer__ = []
 __all__ = ["BaseDeepRegressor"]
 
-from abc import ABC, abstractmethod
+from abc import ABCMeta, abstractmethod
 
 import numpy as np
 
 from aeon.regression.base import BaseRegressor
 
 
-class BaseDeepRegressor(BaseRegressor, ABC):
+class BaseDeepRegressor(BaseRegressor, metaclass=ABCMeta):
     """Abstract base class for deep learning time series regression.
 
     The base classifier provides a deep learning default method for

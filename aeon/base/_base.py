@@ -4,6 +4,7 @@ __maintainer__ = ["MatthewMiddlehurst", "TonyBagnall"]
 __all__ = ["BaseAeonEstimator"]
 
 import inspect
+from abc import ABCMeta
 from copy import deepcopy
 
 from sklearn import clone
@@ -12,7 +13,7 @@ from sklearn.ensemble._base import _set_random_states
 from sklearn.exceptions import NotFittedError
 
 
-class BaseAeonEstimator(BaseEstimator):
+class BaseAeonEstimator(BaseEstimator, metaclass=ABCMeta):
     """
     Base class for defining estimators in aeon.
 

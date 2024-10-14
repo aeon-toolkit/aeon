@@ -7,6 +7,8 @@ contain missing values.
 __maintainer__ = ["TonyBagnall", "MatthewMiddlehurst"]
 __all__ = ["BaseSeriesEstimator"]
 
+from abc import ABCMeta
+
 import numpy as np
 import pandas as pd
 
@@ -21,7 +23,7 @@ VALID_INNER_TYPES = [
 VALID_INPUT_TYPES = [pd.DataFrame, pd.Series, np.ndarray]
 
 
-class BaseSeriesEstimator(BaseAeonEstimator):
+class BaseSeriesEstimator(BaseAeonEstimator, metaclass=ABCMeta):
     """Base class for estimators that use single (possibly multivariate) time series.
 
     Provides functions that are common to BaseSeriesEstimator objects for the checking

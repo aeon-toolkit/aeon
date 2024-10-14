@@ -3,6 +3,7 @@
 __maintainer__ = []
 __all__ = ["_HeterogenousMetaEstimator"]
 
+from abc import ABCMeta
 from inspect import isclass
 
 from sklearn import clone
@@ -10,7 +11,7 @@ from sklearn import clone
 from aeon.base import BaseAeonEstimator
 
 
-class _HeterogenousMetaEstimator:
+class _HeterogenousMetaEstimator(metaclass=ABCMeta):
     """Handles parameter management for estimators composed of named estimators.
 
     Partly adapted from sklearn utils.metaestimator.py.
