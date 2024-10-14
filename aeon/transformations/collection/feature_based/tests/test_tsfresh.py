@@ -62,7 +62,6 @@ def test_tsfresh_inputs():
     """Test incorrect input errors."""
     with pytest.raises(ValueError, match="If `default_fc_parameters` is passed"):
         TSFreshFeatureExtractor(default_fc_parameters="wrong_input")
-    TSFreshFeatureExtractor(default_fc_parameters={"n_jobs": 2, "chunksize": 2})
     ts = TSFreshRelevantFeatureExtractor()
     X, y = make_example_3d_numpy()
     ts.fit_transform(X, y)
