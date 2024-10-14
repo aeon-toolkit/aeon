@@ -299,7 +299,7 @@ class TSFreshFeatureExtractor(_TSFreshFeatureExtractor):
             **self.default_fc_parameters_,
         )
         #        return Xt.reindex(X.index)
-        return Xt
+        return Xt.to_numpy()
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
@@ -631,19 +631,18 @@ class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
 
         Parameters
         ----------
-        X : pd.DataFrame
-            nested pandas DataFrame of shape [n_samples, n_columns]
-        y : pd.Series or np.array
-            Target variable
+        X : np.ndarray
+        y : None
+            Ignored
 
         Returns
         -------
-        Xt : pandas DataFrame
-          Transformed pandas DataFrame
+        Xt : np.ndarray
+          Transformed data
         """
         Xt = self.extractor_.transform(X)
         Xt = self.selector_.transform(Xt)
-        return Xt.reindex(X.index)
+        return Xt
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
