@@ -267,7 +267,6 @@ class TSFreshFeatureExtractor(_TSFreshFeatureExtractor):
             profiling_sorting=profiling_sorting,
             distributor=distributor,
         )
-        self.names_ = []
 
     def _transform(self, X, y=None):
         """Transform X and return a transformed version.
@@ -299,8 +298,7 @@ class TSFreshFeatureExtractor(_TSFreshFeatureExtractor):
             column_sort="time_index",
             **self.default_fc_parameters_,
         )
-        self.names_ = Xt.columns.tolist()
-        #        return Xt.reindex(X.index)
+        self._names = Xt.columns.tolist()
         return Xt.to_numpy()
 
     @classmethod

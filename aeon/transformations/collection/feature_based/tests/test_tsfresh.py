@@ -28,7 +28,7 @@ def test_tsfresh_extractor(default_fc_parameters):
     )
 
     Xt = transformer.fit_transform(X)
-    indices = [i for i, s in enumerate(transformer.names_) if "__mean" in s]
+    indices = [i for i, s in enumerate(transformer._names) if "__mean" in s]
 
     actual = Xt[:, indices].ravel()
     expected = np.mean(X, axis=2).flatten()
