@@ -1,7 +1,6 @@
 """Unit tests for check/convert functions."""
 
 import numpy as np
-import pandas as pd
 import pytest
 
 from aeon.testing.testing_data import (

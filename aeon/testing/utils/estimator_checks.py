@@ -6,8 +6,6 @@ import inspect
 from inspect import isclass, signature
 
 import numpy as np
-import pandas as pd
-from pandas.testing import assert_frame_equal
 
 from aeon.base import BaseAeonEstimator
 from aeon.clustering.base import BaseClusterer

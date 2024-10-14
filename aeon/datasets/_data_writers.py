@@ -2,7 +2,6 @@ import os
 import textwrap
 
 import numpy as np
-import pandas as pd
 
 __all__ = ["write_to_tsfile", "write_results_to_uea_format"]
 
