@@ -8,7 +8,7 @@ import aeon
 # -- Project information -----------------------------------------------------
 
 project = "aeon"
-copyright = "The aeon developers (BSD-3 License)"
+copyright = "The aeon developers (BSD-3 License)\n 2022 The sktime developers."
 author = "aeon developers"
 
 version = aeon.__version__
