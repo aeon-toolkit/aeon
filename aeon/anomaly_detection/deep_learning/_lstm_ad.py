@@ -182,7 +182,9 @@ class LSTM_AD(BaseDeepAnomalyDetector):
 
         super().__init__()
 
-        self._network = LSTMNetwork(self.n_nodes, self.n_layers)
+        self._network = LSTMNetwork(
+            self.n_nodes, self.n_layers, self.prediction_horizon
+        )
 
     def build_model(self, **kwargs):
         """Construct a compiled, un-trained, keras model that is ready for training.
@@ -211,22 +213,8 @@ class LSTM_AD(BaseDeepAnomalyDetector):
         """
         import tensorflow as tf
 
-        # input_layer, output_layer = self._network.build_network(input_shape,
-        # prediction_horizon, **kwargs)
-        # Input layer for the LSTM model
-        input_layer = tf.keras.layers.Input(shape=(self.window_size, self.n_channels))
-
-        # Build the LSTM layers
-        x = input_layer
-        for _ in range(self.n_layers - 1):
-            x = tf.keras.layers.LSTM(self.n_nodes, return_sequences=True)(x)
-
-        # Last LSTM layer with return_sequences=False to output final representation
-        x = tf.keras.layers.LSTM(self.n_nodes, return_sequences=False)(x)
-
-        # Output Dense layer
-        output_layer = tf.keras.layers.Dense(self.n_channels * self.prediction_horizon)(
-            x
+        input_layer, output_layer = self._network.build_network(
+            (self.window_size, self.n_channels), **kwargs
         )
 
         self.optimizer_ = (

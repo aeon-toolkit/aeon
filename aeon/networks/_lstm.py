@@ -19,14 +19,16 @@ class LSTMNetwork(BaseDeepLearningNetwork):
 
     def __init__(
         self,
-        n_nodes,
-        n_layers,
+        n_nodes=64,
+        n_layers=2,
+        prediction_horizon=1,
     ):
         self.n_nodes = n_nodes
         self.n_layers = n_layers
+        self.prediction_horizon = prediction_horizon
         super().__init__()
 
-    def build_network(self, input_shape, prediction_horizon, **kwargs):
+    def build_network(self, input_shape, **kwargs):
         """Construct an LSTM network and return its input and output layers.
 
         Parameters
@@ -57,6 +59,8 @@ class LSTMNetwork(BaseDeepLearningNetwork):
         x = tf.keras.layers.LSTM(self.n_nodes, return_sequences=False)(x)
 
         # Output Dense layer
-        output_layer = tf.keras.layers.Dense(prediction_horizon * input_shape[1])(x)
+        output_layer = tf.keras.layers.Dense(input_shape[1] * self.prediction_horizon)(
+            x
+        )
 
         return input_layer, output_layer
