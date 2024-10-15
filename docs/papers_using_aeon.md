@@ -4,6 +4,14 @@ This is a list of papers that use `aeon`. If you have a paper that uses `aeon`,
 please add it to this list by making a pull request. Please include a hyperlink to
 the paper and a link to the code in your personal GitHub or other repository.
 
+## Challenge
+
+- Ermshaus, A., Schäfer, P., Bagnall, A., Guyet, T., Ifrim, G., Lemaire, V., ... &
+  Malinowski, S. (2023, September). Human Activity Segmentation Challenge@ ECML/PKDD’23.
+  In International Workshop on Advanced Analytics and Learning on Temporal Data
+  (pp. 3-13). Cham: Springer Nature Switzerland.
+  [Paper](https://link.springer.com/chapter/10.1007/978-3-031-49896-1_1) [Webpage/Code](https://github.com/patrickzib/human_activity_segmentation_challenge)
+
 ## Classification
 
 - Middlehurst, M. and Schäfer, P. and  Bagnall, A. (2024). Bake off redux: a review
