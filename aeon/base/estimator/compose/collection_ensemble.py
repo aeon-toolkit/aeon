@@ -1,13 +1,16 @@
 """Base class for collection ensembles."""
 
 import numpy as np
-from sklearn.base import BaseEstimator as SklearnBaseEstimator
-from sklearn.base import is_classifier
+from sklearn.base import BaseEstimator, is_classifier
 from sklearn.metrics import accuracy_score, mean_squared_error
 from sklearn.model_selection import cross_val_predict
 from sklearn.utils import check_random_state
 
-from aeon.base import BaseCollectionEstimator, BaseEstimator, _HeterogenousMetaEstimator
+from aeon.base import (
+    BaseAeonEstimator,
+    BaseCollectionEstimator,
+    _HeterogenousMetaEstimator,
+)
 from aeon.base._base import _clone_estimator
 
 
@@ -79,7 +82,7 @@ class BaseCollectionEnsemble(_HeterogenousMetaEstimator, BaseCollectionEstimator
         self.ensemble_ = self._check_estimators(
             self._estimators,
             attr_name="_estimators",
-            cls_type=SklearnBaseEstimator,
+            cls_type=BaseEstimator,
             clone_ests=False,
         )
 
@@ -90,7 +93,7 @@ class BaseCollectionEnsemble(_HeterogenousMetaEstimator, BaseCollectionEstimator
             [
                 (
                     e[1].get_tag("capability:multivariate", False, raise_error=False)
-                    if isinstance(e[1], BaseEstimator)
+                    if isinstance(e[1], BaseAeonEstimator)
                     else False
                 )
                 for e in self.ensemble_
@@ -102,7 +105,7 @@ class BaseCollectionEnsemble(_HeterogenousMetaEstimator, BaseCollectionEstimator
             [
                 (
                     e[1].get_tag("capability:missing_values", False, raise_error=False)
-                    if isinstance(e[1], BaseEstimator)
+                    if isinstance(e[1], BaseAeonEstimator)
                     else False
                 )
                 for e in self.ensemble_
@@ -114,7 +117,7 @@ class BaseCollectionEnsemble(_HeterogenousMetaEstimator, BaseCollectionEstimator
             [
                 (
                     e[1].get_tag("capability:unequal_length", False, raise_error=False)
-                    if isinstance(e[1], BaseEstimator)
+                    if isinstance(e[1], BaseAeonEstimator)
                     else False
                 )
                 for e in self.ensemble_

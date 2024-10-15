@@ -33,12 +33,7 @@ __maintainer__ = []
 import pandas as pd
 
 from aeon.anomaly_detection.base import BaseAnomalyDetector
-from aeon.base import (
-    BaseCollectionEstimator,
-    BaseEstimator,
-    BaseObject,
-    BaseSeriesEstimator,
-)
+from aeon.base import BaseAeonEstimator, BaseCollectionEstimator, BaseSeriesEstimator
 from aeon.classification.base import BaseClassifier
 from aeon.classification.early_classification import BaseEarlyClassifier
 from aeon.clustering.base import BaseClusterer
@@ -51,8 +46,7 @@ from aeon.transformations.series import BaseSeriesTransformer
 
 BASE_CLASS_REGISTER = [
     ("anomaly-detector", BaseAnomalyDetector, "anomaly detector"),
-    ("object", BaseObject, "object"),
-    ("estimator", BaseEstimator, "estimator = object with fit"),
+    ("estimator", BaseAeonEstimator, "estimator = object with fit"),
     ("classifier", BaseClassifier, "classifier"),
     ("collection-estimator", BaseCollectionEstimator, "collection estimator"),
     ("collection-transformer", BaseCollectionTransformer, "collection transformer"),

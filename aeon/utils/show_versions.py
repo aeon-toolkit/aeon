@@ -9,6 +9,7 @@ __all__ = ["show_versions"]
 import platform
 import sys
 from importlib.metadata import PackageNotFoundError, version
+from typing import Union
 
 from aeon import __version__
 
@@ -23,17 +24,32 @@ deps = [
 ]
 
 
-def show_versions():
-    """Print useful debugging information."""
+def show_versions(as_str: bool = False) -> Union[str, None]:
+    """Print useful debugging information.
+
+    Parameters
+    ----------
+    as_str : bool, default=False
+        If True, return the output as a string instead of printing.
+
+    Returns
+    -------
+    str or None
+        The output string if `as_str` is True, otherwise None.
+
+    Examples
+    --------
+    >>> from aeon.utils import show_versions
+    >>> vers = show_versions(as_str=True)
+    """
     sys_info = {
         "python": sys.version.replace("\n", " "),
         "executable": sys.executable,
         "machine": platform.platform(),
     }
-
-    print("\nSystem:")  # noqa: T001, T201
+    str = "\nSystem:"
     for k, stat in sys_info.items():
-        print(f"{k:>10}: {stat}")  # noqa: T001, T201
+        str = f"{str}\n{k:>10}: {stat}"
 
     deps_info = {"aeon": __version__}
     for modname in deps:
@@ -41,7 +57,7 @@ def show_versions():
             deps_info[modname] = version(modname)
         except PackageNotFoundError:
             deps_info[modname] = None
-
-    print("\nPython dependencies:")  # noqa: T001, T201
+    str = f"{str}\nPython dependencies:"
     for k, stat in deps_info.items():
-        print(f"{k:>13}: {stat}")  # noqa: T001, T201
+        str = f"{str}\n{k:>13}: {stat}"  # noqa: T001, T201
+    return str

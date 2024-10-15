@@ -1,7 +1,6 @@
 """Tests for some metrics."""
 
-# currently this consists entirely of doctests from _classes and _functions
-# since the numpy output print changes between versions
+__maintainer__ = []
 
 import numpy as np
 

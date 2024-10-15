@@ -25,10 +25,6 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
     _tags = {
         "input_data_type": "Series",
         "output_data_type": "Series",
-        "X_inner_type": "np.ndarray",
-        "fit_is_empty": False,
-        "requires_y": False,
-        "capability:inverse_transform": False,
     }
 
     def __init__(self, axis):
@@ -63,7 +59,7 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
         """
         # skip the rest if fit_is_empty is True
         if self.get_tag("fit_is_empty"):
-            self._is_fitted = True
+            self.is_fitted = True
             return self
         if self.get_tag("requires_y"):
             if y is None:
@@ -74,7 +70,7 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
         if y is not None:
             self._check_y(y)
         self._fit(X=X, y=y)
-        self._is_fitted = True
+        self.is_fitted = True
         return self
 
     @final
@@ -144,7 +140,7 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
         self.reset()
         X = self._preprocess_series(X, axis=axis, store_metadata=True)
         Xt = self._fit_transform(X=X, y=y)
-        self._is_fitted = True
+        self.is_fitted = True
         return self._postprocess_series(Xt, axis=axis)
 
     @final
@@ -174,9 +170,6 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCM
         inverse transformed version of X
             of the same type as X
         """
-        if self.get_tag("skip-inverse-transform"):
-            return X
-
         if not self.get_tag("capability:inverse_transform"):
             raise NotImplementedError(
                 f"{type(self)} does not implement inverse_transform"

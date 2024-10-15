@@ -73,7 +73,7 @@ jobs:
           command: python -m pip install .[all_extras,binder,dev]
 
       - name: Run example notebooks
-        run: build_tools/run_examples.sh false
+        run: .github/utilities/run_examples.sh false
         shell: bash
 
       - name: Save new cache
