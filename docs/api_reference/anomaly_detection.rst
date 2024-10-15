@@ -74,5 +74,6 @@ Detectors
     LeftSTAMPi
     MERLIN
     PyODAdapter
+    LOF
     STRAY
     STOMP
