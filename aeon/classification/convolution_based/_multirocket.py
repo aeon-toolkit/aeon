@@ -223,7 +223,7 @@ class MultiRocketClassifier(BaseClassifier):
             return {"num_kernels": 100}
         else:
             return {
-                "num_kernels": 20,
+                "num_kernels": 100,
                 "max_dilations_per_kernel": 6,
                 "n_features_per_kernel": 2,
             }
