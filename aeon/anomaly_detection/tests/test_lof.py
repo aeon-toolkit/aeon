@@ -57,6 +57,19 @@ def test_lof_invalid_window_size():
         lof = LOF(window_size=0, stride=1)  # window size < 1
         lof.fit_predict(series)
 
+@pytest.mark.skipif(
+    not _check_soft_dependencies("pyod", severity="none"),
+    reason="required soft dependency PyOD not available",
+)
+def test_lof_invalid_stride():
+    """Test LOF with invalid stride (greater than window size)."""
+    series = make_series(n_timepoints=80, return_numpy=True, random_state=0)
+
+    # Expect a ValueError if stride > window_size
+    with pytest.raises(ValueError, match="Stride.*cannot be greater than window size"):
+        lof = LOF(window_size=5, stride=6)  # Invalid stride
+        lof.fit_predict(series)
+
 
 @pytest.mark.skipif(
     not _check_soft_dependencies("pyod", severity="none"),

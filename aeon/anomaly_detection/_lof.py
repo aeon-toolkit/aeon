@@ -104,6 +104,10 @@ class LOF(PyODAdapter):
         _check_soft_dependencies(*self._tags["python_dependencies"])
         from pyod.models.lof import LOF
 
+        #Validate that stride is not greater than winow_size
+        if stride > window_size:
+            raise ValueError(f"Stride ({stride}) cannot be greater than window size ({window_size}).")
+
         model = LOF(
             n_neighbors=n_neighbors,
             algorithm=algorithm,
