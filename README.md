@@ -140,3 +140,4 @@ If you use aeon we would appreciate a citation of the following [paper](https://
   pages   = {1--10},
   url     = {http://jmlr.org/papers/v25/23-1444.html}
 ```
+If you let us know about your paper using aeon and we will happily list it [here](https://www.aeon-toolkit.org/en/stable/papers_using_aeon.html)
