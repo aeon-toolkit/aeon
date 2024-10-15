@@ -71,6 +71,7 @@ Detectors
 
     COPOD
     DWT_MLEAD
+    IsolationForest
     KMeansAD
     LeftSTAMPi
     MERLIN
