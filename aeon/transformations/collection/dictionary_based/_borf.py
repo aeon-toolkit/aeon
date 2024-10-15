@@ -142,7 +142,7 @@ class BORF(BaseCollectionTransformer):
         time_series_length = X.shape[2]
         # for better computation time, this should be moved to the init,
         #  setting time_series_length as a user parameter
-        self.pipe_, self.configs_ = build_pipeline_auto(
+        self.pipe_, self.configs_ = _build_pipeline_auto(
             time_series_min_length=time_series_length,
             time_series_max_length=time_series_length,
             window_size_min_window_size=self.window_size_min_window_size,
@@ -207,7 +207,7 @@ class BORF(BaseCollectionTransformer):
         return params
 
 
-def build_pipeline_auto(
+def _build_pipeline_auto(
     time_series_min_length: int,
     time_series_max_length: int,
     window_size_min_window_size=4,
@@ -225,7 +225,7 @@ def build_pipeline_auto(
     pipeline_objects: Optional[Sequence[tuple]] = None,
     complexity: Literal["quadratic", "linear"] = "quadratic",
 ):
-    configs = heuristic_function_sax(
+    configs = _heuristic_function_sax(
         time_series_min_length=time_series_min_length,
         time_series_max_length=time_series_max_length,
         window_size_min_window_size=window_size_min_window_size,
@@ -240,7 +240,7 @@ def build_pipeline_auto(
     )
 
     return (
-        build_pipeline(
+        _build_pipeline(
             configs=configs,
             min_window_to_signal_std_ratio=min_window_to_signal_std_ratio,
             n_jobs=n_jobs,
@@ -252,7 +252,7 @@ def build_pipeline_auto(
     )
 
 
-def build_pipeline(
+def _build_pipeline(
     configs,
     min_window_to_signal_std_ratio: float = 0.0,
     n_jobs_numba=1,
@@ -302,11 +302,11 @@ class IndividualBORF(BaseEstimator, TransformerMixin):
         self.min_window_to_signal_std_ratio = min_window_to_signal_std_ratio
         self.prefix = prefix
         self.n_jobs = n_jobs
-        self.n_words = convert_to_base_10(
-            array_to_int(np.full(self.word_length, self.alphabet_size - 1)) + 1,
+        self.n_words = _convert_to_base_10(
+            _array_to_int(np.full(self.word_length, self.alphabet_size - 1)) + 1,
             base=self.alphabet_size,
         )
-        set_n_jobs_numba(n_jobs=self.n_jobs)
+        _set_n_jobs_numba(n_jobs=self.n_jobs)
 
     def fit(self, X, y=None):
         return self
@@ -315,7 +315,7 @@ class IndividualBORF(BaseEstimator, TransformerMixin):
         import sparse  # FIXME: can we move this outside for better performance?
 
         shape_ = (len(X), len(X[0]), self.n_words)
-        out = transform_sax_patterns(
+        out = _transform_sax_patterns(
             panel=X,
             window_size=self.window_size,
             dilation=self.dilation,
@@ -375,7 +375,7 @@ class ToScipySparse(BaseEstimator, TransformerMixin):
 
 
 @nb.njit(fastmath=True, cache=True)
-def convert_to_base_10(number, base):
+def _convert_to_base_10(number, base):
     result = 0
     multiplier = 1
 
@@ -389,14 +389,14 @@ def convert_to_base_10(number, base):
 
 
 @nb.njit(cache=True)
-def array_to_int(arr):
+def _array_to_int(arr):
     result = 0
     for i in range(len(arr)):
         result = result * 10 + arr[i]
     return result
 
 
-def set_n_jobs_numba(n_jobs):
+def _set_n_jobs_numba(n_jobs):
     if n_jobs == -1:
         nb.set_num_threads(nb.config.NUMBA_DEFAULT_NUM_THREADS)
     else:
@@ -404,7 +404,7 @@ def set_n_jobs_numba(n_jobs):
 
 
 @nb.njit(parallel=True, nogil=True, cache=True)
-def transform_sax_patterns(
+def _transform_sax_patterns(
     panel,
     window_size,
     word_length,
@@ -413,21 +413,21 @@ def transform_sax_patterns(
     dilation,
     min_window_to_signal_std_ratio=0.0,
 ):
-    bins = get_norm_bins(alphabet_size=alphabet_size)
+    bins = _get_norm_bins(alphabet_size=alphabet_size)
     n_signals = len(panel[0])
     n_ts = len(panel)
     iterations = n_ts * n_signals
     counts = np.zeros(iterations + 1, dtype=np.int64)
     for i in nb.prange(iterations):
-        ts_idx, signal_idx = ndindex_2d_array(i, n_signals)
+        ts_idx, signal_idx = _ndindex_2d_array(i, n_signals)
         signal = np.asarray(panel[ts_idx][signal_idx])
         signal = signal[~np.isnan(signal)]
-        if not are_window_size_and_dilation_compatible_with_signal_length(
+        if not _are_window_size_and_dilation_compatible_with_signal_length(
             window_size, dilation, signal.size
         ):
             continue
         counts[i + 1] = len(
-            new_transform_single_conf(
+            _new_transform_single_conf(
                 a=signal,
                 ts_idx=ts_idx,
                 signal_idx=signal_idx,
@@ -445,14 +445,14 @@ def transform_sax_patterns(
     shape = (n_rows, 4)
     out = np.empty(shape, dtype=np.int64)
     for i in nb.prange(iterations):
-        ts_idx, signal_idx = ndindex_2d_array(i, n_signals)
+        ts_idx, signal_idx = _ndindex_2d_array(i, n_signals)
         signal = np.asarray(panel[ts_idx][signal_idx])
         signal = signal[~np.isnan(signal)]
-        if not are_window_size_and_dilation_compatible_with_signal_length(
+        if not _are_window_size_and_dilation_compatible_with_signal_length(
             window_size, dilation, signal.size
         ):
             continue
-        out_ = new_transform_single_conf(
+        out_ = _new_transform_single_conf(
             a=signal,
             ts_idx=ts_idx,
             signal_idx=signal_idx,
@@ -469,7 +469,7 @@ def transform_sax_patterns(
 
 
 @nb.njit(cache=True)
-def new_transform_single_conf(
+def _new_transform_single_conf(
     a,
     ts_idx,
     signal_idx,
@@ -481,7 +481,7 @@ def new_transform_single_conf(
     stride=1,
     min_window_to_signal_std_ratio=0.0,
 ):
-    words, counts = new_transform_single(
+    words, counts = _new_transform_single(
         a=a,
         window_size=window_size,
         word_length=word_length,
@@ -497,7 +497,7 @@ def new_transform_single_conf(
 
 
 @nb.njit(cache=True)
-def new_transform_single(
+def _new_transform_single(
     a,
     window_size,
     word_length,
@@ -507,7 +507,7 @@ def new_transform_single(
     stride=1,
     min_window_to_signal_std_ratio=0.0,
 ):
-    sax_words = sax(
+    sax_words = _sax(
         a=a,
         window_size=window_size,
         word_length=word_length,
@@ -516,24 +516,24 @@ def new_transform_single(
         dilation=dilation,
         stride=stride,
     )
-    sax_words = sax_words_to_int(sax_words, alphabet_size)
-    return unique(sax_words)
+    sax_words = _sax_words_to_int(sax_words, alphabet_size)
+    return _unique(sax_words)
 
 
 @nb.njit(cache=True)
-def ndindex_2d_array(idx, dim2_shape):
+def _ndindex_2d_array(idx, dim2_shape):
     row_idx = idx // dim2_shape
     col_idx = idx % dim2_shape
     return row_idx, col_idx
 
 
 @nb.njit(cache=True)
-def get_norm_bins(alphabet_size: int, mu=0, std=1):
-    return ppf(np.linspace(0, 1, alphabet_size + 1)[1:-1], mu, std)
+def _get_norm_bins(alphabet_size: int, mu=0, std=1):
+    return _ppf(np.linspace(0, 1, alphabet_size + 1)[1:-1], mu, std)
 
 
 @nb.njit(fastmath=True, cache=True)
-def erfinv(x: float) -> float:
+def _erfinv(x: float) -> float:
     w = -math.log((1 - x) * (1 + x))
     if w < 5:
         w = w - 2.5
@@ -561,12 +561,12 @@ def erfinv(x: float) -> float:
 
 
 @nb.vectorize(cache=True)
-def ppf(x, mu=0, std=1):
-    return mu + math.sqrt(2) * erfinv(2 * x - 1) * std
+def _ppf(x, mu=0, std=1):
+    return mu + math.sqrt(2) * _erfinv(2 * x - 1) * std
 
 
 @nb.njit(fastmath=True, cache=True)
-def are_window_size_and_dilation_compatible_with_signal_length(
+def _are_window_size_and_dilation_compatible_with_signal_length(
     window_size, dilation, signal_length
 ):
     if window_size + (window_size - 1) * (dilation - 1) <= signal_length:
@@ -576,7 +576,7 @@ def are_window_size_and_dilation_compatible_with_signal_length(
 
 
 @nb.njit(cache=True)
-def sax(
+def _sax(
     a,
     window_size,
     word_length,
@@ -585,37 +585,39 @@ def sax(
     dilation=1,
     min_window_to_signal_std_ratio=0.0,
 ):
-    n_windows = get_n_windows(
+    n_windows = _get_n_windows(
         sequence_size=a.size, window_size=window_size, dilation=dilation, stride=stride
     )
-    n_windows_moving = get_n_windows(
+    n_windows_moving = _get_n_windows(
         sequence_size=a.size, window_size=window_size, dilation=dilation
     )
     global_std = np.std(a)
     if global_std == 0:
         return np.zeros((n_windows, word_length), dtype=np.uint8)
     seg_size = window_size // word_length
-    n_windows = get_n_windows(
+    n_windows = _get_n_windows(
         sequence_size=a.size, window_size=window_size, dilation=dilation, stride=stride
     )
-    n_segments = get_n_windows(
+    n_segments = _get_n_windows(
         sequence_size=a.size, window_size=seg_size, dilation=dilation
     )
     segment_means = np.full(n_segments, np.nan)
     window_means = np.full(n_windows_moving, np.nan)
     window_stds = np.full(n_windows_moving, np.nan)
     for d in range(dilation):
-        window_means[d::dilation] = move_mean(a[d::dilation], window_size)[
+        window_means[d::dilation] = _move_mean(a[d::dilation], window_size)[
             window_size - 1 :
         ]
-        window_stds[d::dilation] = move_std(a[d::dilation], window_size)[
+        window_stds[d::dilation] = _move_std(a[d::dilation], window_size)[
             window_size - 1 :
         ]
-        segment_means[d::dilation] = move_mean(a[d::dilation], seg_size)[seg_size - 1 :]
+        segment_means[d::dilation] = _move_mean(a[d::dilation], seg_size)[
+            seg_size - 1 :
+        ]
     out = np.zeros((n_windows, word_length))
     for i in range(n_windows):
         for j in range(word_length):
-            out[i, j] = zscore_threshold(
+            out[i, j] = _zscore_threshold(
                 a=segment_means[(i * stride) + (j * seg_size * dilation)],
                 mu=window_means[i * stride],
                 sigma=window_stds[i * stride],
@@ -626,7 +628,7 @@ def sax(
 
 
 @nb.njit(fastmath=True, cache=True)
-def get_n_windows(sequence_size, window_size, dilation=1, stride=1, padding=0):
+def _get_n_windows(sequence_size, window_size, dilation=1, stride=1, padding=0):
     return 1 + math.floor(
         (sequence_size + 2 * padding - window_size - (dilation - 1) * (window_size - 1))
         / stride
@@ -634,25 +636,25 @@ def get_n_windows(sequence_size, window_size, dilation=1, stride=1, padding=0):
 
 
 @nb.njit(fastmath=True, cache=True)
-def zscore_threshold(
+def _zscore_threshold(
     a: float, mu: float, sigma: float, sigma_global: float, sigma_threshold: float
 ) -> float:
     if sigma_global == 0:
         return 0
     if sigma / sigma_global < sigma_threshold:
         return 0
-    return zscore(a=a, mu=mu, sigma=sigma)
+    return _zscore(a=a, mu=mu, sigma=sigma)
 
 
 @nb.njit(fastmath=True, cache=True)
-def zscore(a: float, mu: float, sigma: float) -> float:
+def _zscore(a: float, mu: float, sigma: float) -> float:
     if sigma == 0:
         return 0
     return (a - mu) / sigma
 
 
 @nb.njit(fastmath=True, cache=True)
-def move_mean(a, window_width):
+def _move_mean(a, window_width):
     out = np.empty_like(a)
     asum = 0.0
     count = 0
@@ -671,7 +673,7 @@ def move_mean(a, window_width):
 
 
 @nb.njit(fastmath=True, cache=True)
-def move_std(a, window_width, ddof=0):
+def _move_std(a, window_width, ddof=0):
     out = np.empty_like(a, dtype=np.float64)
 
     # Initial mean and variance calculation
@@ -717,15 +719,15 @@ def move_std(a, window_width, ddof=0):
 
 
 @nb.njit(fastmath=True, cache=True)
-def sax_words_to_int(arrays, base):
+def _sax_words_to_int(arrays, base):
     out = np.empty(arrays.shape[0], dtype=np.int64)
     for i in range(arrays.shape[0]):
-        out[i] = array_to_int_new_base(arrays[i], base)
+        out[i] = _array_to_int_new_base(arrays[i], base)
     return out
 
 
 @nb.njit(fastmath=True, cache=True)
-def array_to_int_new_base(array, base):
+def _array_to_int_new_base(array, base):
     word_length = array.shape[0]
     result = 0
     for i in range(0, word_length, 1):
@@ -734,14 +736,14 @@ def array_to_int_new_base(array, base):
 
 
 @nb.njit(cache=True)
-def length(a):
+def _length(a):
     a = int(np.ceil(np.log2(a)))
     a = 2 << a
     return a
 
 
 @nb.njit(cache=True)
-def hash_function(v):
+def _hash_function(v):
 
     byte_mask = np.uint64(255)
     bs = np.uint64(v)
@@ -777,8 +779,8 @@ def hash_function(v):
 
 
 @nb.njit(cache=True)
-def make_hash_table(ar):
-    a = length(len(ar))
+def _make_hash_table(ar):
+    a = _length(len(ar))
     mask = a - 1
 
     uniques = np.empty(a, dtype=ar.dtype)
@@ -787,7 +789,7 @@ def make_hash_table(ar):
 
 
 @nb.njit(cache=True)
-def set_item(uniques, uniques_cnt, mask, h, v, total, miss_hits, weight):
+def _set_item(uniques, uniques_cnt, mask, h, v, total, miss_hits, weight):
     index = h & mask
     while True:
         if uniques_cnt[index] == 0:
@@ -807,7 +809,7 @@ def set_item(uniques, uniques_cnt, mask, h, v, total, miss_hits, weight):
 
 
 @nb.njit(cache=True)
-def concrete(ar, uniques, uniques_cnt, a, total):
+def _concrete(ar, uniques, uniques_cnt, a, total):
     # flush the results in a concrete array
     uniques_ = np.empty(total, dtype=ar.dtype)
     uniques_cnt_ = np.empty(total, dtype=np.int_)
@@ -821,21 +823,21 @@ def concrete(ar, uniques, uniques_cnt, a, total):
 
 
 @nb.njit(cache=True)
-def unique(ar):
+def _unique(ar):
     # https://github.com/lhprojects/blog/blob/master/_posts/JupyterNotebooks/HashUnique.ipynb
-    uniques, uniques_cnt, l, mask = make_hash_table(ar)
+    uniques, uniques_cnt, l, mask = _make_hash_table(ar)
     total = 0
     miss_hits = 0
     for v in ar:
-        h = hash_function(v)
-        total, miss_hits = set_item(
+        h = _hash_function(v)
+        total, miss_hits = _set_item(
             uniques, uniques_cnt, mask, h, v, total, miss_hits, 1
         )
-    uniques_, uniques_cnt_ = concrete(ar, uniques, uniques_cnt, l, total)
+    uniques_, uniques_cnt_ = _concrete(ar, uniques, uniques_cnt, l, total)
     return uniques_, uniques_cnt_
 
 
-def get_borf_params(
+def _get_borf_params(
     time_series_min_length,
     time_series_max_length,
     window_size_min_window_size=4,
@@ -853,7 +855,7 @@ def get_borf_params(
     dilations_max_dilation=None,
 ):
     params = {}
-    params["window_sizes"] = get_window_sizes(
+    params["window_sizes"] = _get_window_sizes(
         m_min=time_series_min_length,
         m_max=time_series_max_length,
         min_window_size=window_size_min_window_size,
@@ -861,23 +863,23 @@ def get_borf_params(
         power=window_size_power,
     ).tolist()
 
-    params["word_lengths"] = get_word_lengths(
+    params["word_lengths"] = _get_word_lengths(
         n_word_lengths=word_lengths_n_word_lengths,
         start=0,
     ).tolist()
 
-    params["dilations"] = get_dilations(
+    params["dilations"] = _get_dilations(
         max_length=time_series_max_length,
         min_dilation=dilations_min_dilation,
         max_dilation=dilations_max_dilation,
     ).tolist()
-    params["strides"] = get_strides(n_strides=strides_n_strides).tolist()
-    params["alphabet_sizes_slope"] = get_alphabet_sizes(
+    params["strides"] = _get_strides(n_strides=strides_n_strides).tolist()
+    params["alphabet_sizes_slope"] = _get_alphabet_sizes(
         min_symbols=alphabets_slope_min_symbols,
         max_symbols=alphabets_slope_max_symbols,
         step=alphabets_slope_step,
     ).tolist()
-    params["alphabet_sizes_mean"] = get_alphabet_sizes(
+    params["alphabet_sizes_mean"] = _get_alphabet_sizes(
         min_symbols=alphabets_mean_min_symbols,
         max_symbols=alphabets_mean_max_symbols,
         step=alphabets_mean_step,
@@ -886,11 +888,11 @@ def get_borf_params(
 
 
 @nb.njit(cache=True)
-def is_empty(a) -> bool:
+def _is_empty(a) -> bool:
     return a.size == 0
 
 
-def get_window_sizes(m_min, m_max, min_window_size=4, max_window_size=None, power=2):
+def _get_window_sizes(m_min, m_max, min_window_size=4, max_window_size=None, power=2):
     if max_window_size is None:
         max_window_size = m_max
     m = 2
@@ -904,17 +906,17 @@ def get_window_sizes(m_min, m_max, min_window_size=4, max_window_size=None, powe
         m = int(m * power)
     windows = np.array(windows)
     windows_min = np.array(windows_min[1:])
-    if not is_empty(windows_min):
+    if not _is_empty(windows_min):
         if m_min <= windows_min.max() * power:
             windows = np.concatenate([windows_min, windows])
     return windows.astype(int)
 
 
-def get_word_lengths(n_word_lengths=4, start=0):
+def _get_word_lengths(n_word_lengths=4, start=0):
     return np.array([2**i for i in range(start, n_word_lengths + start)])
 
 
-def get_dilations(max_length, min_dilation=1, max_dilation=None):
+def _get_dilations(max_length, min_dilation=1, max_dilation=None):
     dilations = list()
     max_length_log2 = np.log2(max_length)
     if max_dilation is None:
@@ -926,15 +928,15 @@ def get_dilations(max_length, min_dilation=1, max_dilation=None):
     return np.array(dilations)
 
 
-def get_strides(n_strides=1):
+def _get_strides(n_strides=1):
     return np.arange(1, n_strides + 1)
 
 
-def get_alphabet_sizes(min_symbols=3, max_symbols=4, step=1):
+def _get_alphabet_sizes(min_symbols=3, max_symbols=4, step=1):
     return np.arange(min_symbols, max_symbols, step)
 
 
-def generate_sax_parameters_configurations(
+def _generate_sax_parameters_configurations(
     window_sizes,
     strides,
     dilations,
@@ -963,7 +965,7 @@ def generate_sax_parameters_configurations(
             word_length,
             alphabet_mean,
             alphabet_slope,
-        ) = extract_parameters_from_args(parameter)
+        ) = _extract_parameters_from_args(parameter)
         if word_length > window_size:  # word_length cannot be greater than window_size
             continue
         if (
@@ -984,7 +986,7 @@ def generate_sax_parameters_configurations(
 
 
 @nb.njit(cache=True)
-def is_valid_windowing(sequence_size: int, window_size: int, dilation: int) -> bool:
+def _is_valid_windowing(sequence_size: int, window_size: int, dilation: int) -> bool:
     if (
         sequence_size < window_size * dilation
     ):  # if window_size * dilation exceeds the length of the sequence
@@ -993,7 +995,7 @@ def is_valid_windowing(sequence_size: int, window_size: int, dilation: int) -> b
         return True
 
 
-def clean_sax_parameters_configurations(parameters, max_length):
+def _clean_sax_parameters_configurations(parameters, max_length):
     cleaned_parameters = list()
     for parameter in parameters:
         window_size = parameter["window_size"]
@@ -1002,7 +1004,7 @@ def clean_sax_parameters_configurations(parameters, max_length):
         alphabet_mean = parameter["alphabet_size_mean"]
         alphabet_slope = parameter["alphabet_size_slope"]
         stride = parameter["stride"]
-        if not is_valid_windowing(
+        if not _is_valid_windowing(
             window_size=window_size, sequence_size=max_length, dilation=dilation
         ):
             continue
@@ -1021,7 +1023,7 @@ def clean_sax_parameters_configurations(parameters, max_length):
     return cleaned_parameters
 
 
-def sax_parameters_configurations_linear_strides(parameters):
+def _sax_parameters_configurations_linear_strides(parameters):
     new_parameters = list()
     for parameter in parameters:
         window_size = parameter["window_size"]
@@ -1041,7 +1043,7 @@ def sax_parameters_configurations_linear_strides(parameters):
     return new_parameters
 
 
-def extract_parameters_from_args(parameter):
+def _extract_parameters_from_args(parameter):
     window_size = parameter[0]
     stride = parameter[1]
     dilation = parameter[2]
@@ -1051,7 +1053,7 @@ def extract_parameters_from_args(parameter):
     return window_size, stride, dilation, word_length, alphabet_mean, alphabet_slope
 
 
-def heuristic_function_1dsax(
+def _heuristic_function_1dsax(
     time_series_min_length,
     time_series_max_length,
     window_size_min_window_size=4,
@@ -1069,7 +1071,7 @@ def heuristic_function_1dsax(
     dilations_max_dilation=None,
     complexity: Literal["quadratic", "linear"] = "quadratic",
 ):
-    params = get_borf_params(
+    params = _get_borf_params(
         time_series_min_length=time_series_min_length,
         time_series_max_length=time_series_max_length,
         window_size_min_window_size=window_size_min_window_size,
@@ -1087,7 +1089,7 @@ def heuristic_function_1dsax(
         dilations_max_dilation=dilations_max_dilation,
     )
 
-    params_list = generate_sax_parameters_configurations(
+    params_list = _generate_sax_parameters_configurations(
         window_sizes=params["window_sizes"],
         strides=params["strides"],
         dilations=params["dilations"],
@@ -1096,19 +1098,19 @@ def heuristic_function_1dsax(
         alphabet_sizes_slope=params["alphabet_sizes_slope"],
     )
 
-    cleaned_params_list = clean_sax_parameters_configurations(
+    cleaned_params_list = _clean_sax_parameters_configurations(
         parameters=params_list, max_length=time_series_max_length
     )
 
     if complexity == "linear":
-        cleaned_params_list = sax_parameters_configurations_linear_strides(
+        cleaned_params_list = _sax_parameters_configurations_linear_strides(
             parameters=cleaned_params_list
         )
 
     return cleaned_params_list
 
 
-def heuristic_function_sax(
+def _heuristic_function_sax(
     time_series_min_length,
     time_series_max_length,
     window_size_min_window_size=4,
@@ -1123,7 +1125,7 @@ def heuristic_function_sax(
     dilations_max_dilation=None,
     complexity: Literal["quadratic", "linear"] = "quadratic",
 ):
-    configs = heuristic_function_1dsax(
+    configs = _heuristic_function_1dsax(
         time_series_min_length=time_series_min_length,
         time_series_max_length=time_series_max_length,
         window_size_min_window_size=window_size_min_window_size,
