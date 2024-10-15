@@ -6,7 +6,6 @@ from aeon.datasets import load_japanese_vowels, load_plaid
 from aeon.registry import all_estimators
 from aeon.utils.validation import has_missing, is_equal_length, is_univariate
 
-
 # %%NBQA-CELL-SEPfc780c
 X = np.random.random(size=(10, 2, 200))
 has_missing(X)

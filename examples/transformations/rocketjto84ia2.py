@@ -11,7 +11,6 @@ from aeon.datasets import load_arrow_head  # univariate dataset
 from aeon.datasets import load_basic_motions  # multivariate dataset
 from aeon.transformations.collection.convolution_based import Rocket
 
-
 # %%NBQA-CELL-SEPfc780c
 X_train, y_train = load_arrow_head(split="train")
 

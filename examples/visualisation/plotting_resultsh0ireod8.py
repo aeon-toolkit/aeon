@@ -16,7 +16,6 @@ regressor_targets = [0.9, 0.7, 0.4, 0.0]
 # %%NBQA-CELL-SEPfc780c
 from aeon.visualisation import plot_critical_difference
 
-
 # %%NBQA-CELL-SEPfc780c
 _ = plot_critical_difference(classifier_accuracies, classifiers)
 
@@ -27,7 +26,6 @@ from aeon.visualisation import (
     plot_scatter_predictions,
     plot_score_vs_time_scatter,
 )
-
 
 # %%NBQA-CELL-SEPfc780c
 _ = plot_pairwise_scatter(
@@ -51,7 +49,6 @@ _ = plot_score_vs_time_scatter(
 
 # %%NBQA-CELL-SEPfc780c
 from aeon.visualisation import plot_boxplot
-
 
 # %%NBQA-CELL-SEPfc780c
 _ = plot_boxplot(

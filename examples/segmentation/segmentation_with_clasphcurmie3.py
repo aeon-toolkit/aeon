@@ -13,7 +13,6 @@ from aeon.datasets import load_electric_devices_segmentation
 from aeon.segmentation import ClaSPSegmenter, find_dominant_window_sizes
 from aeon.visualisation import plot_series_with_change_points, plot_series_with_profiles
 
-
 # %%NBQA-CELL-SEPfc780c
 ts, period_size, true_cps = load_electric_devices_segmentation()
 _ = plot_series_with_change_points(ts, true_cps, title="Electric Devices")

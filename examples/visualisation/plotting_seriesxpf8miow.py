@@ -14,7 +14,6 @@ from aeon.visualisation import (
     plot_spectrogram,
 )
 
-
 # %%NBQA-CELL-SEPfc780c
 _ = plot_series(airline)
 
@@ -45,7 +44,6 @@ _ = plot_spectrogram(airline, return_onesided=False)
 
 # %%NBQA-CELL-SEPfc780c
 from aeon.visualisation import plot_collection_by_class, plot_series_collection
-
 
 # %%NBQA-CELL-SEPfc780c
 _ = plot_series_collection(arrowhead_X[:3])

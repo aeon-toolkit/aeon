@@ -9,7 +9,6 @@ airline = load_airline()
 from aeon.forecasting.model_selection import SlidingWindowSplitter
 from aeon.visualisation import plot_series_windows
 
-
 # %%NBQA-CELL-SEPfc780c
 fh = list(range(1, 13))
 _ = plot_series_windows(
@@ -19,7 +18,6 @@ _ = plot_series_windows(
 
 # %%NBQA-CELL-SEPfc780c
 from aeon.visualisation import plot_series_with_change_points
-
 
 # %%NBQA-CELL-SEPfc780c
 _ = plot_series_with_change_points(ed_seg, ed_seg_chp)

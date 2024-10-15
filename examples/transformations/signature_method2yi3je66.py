@@ -5,7 +5,6 @@ from sklearn.metrics import accuracy_score
 
 from aeon.datasets import load_unit_test
 
-
 # %%NBQA-CELL-SEPfc780c
 # Load an example dataset
 train_x, train_y = load_unit_test(split="train")
@@ -15,7 +14,6 @@ test_x, test_y = load_unit_test(split="test")
 # %%NBQA-CELL-SEPfc780c
 from aeon.classification.feature_based import SignatureClassifier
 from aeon.transformations.collection.signature_based import SignatureTransformer
-
 
 # %%NBQA-CELL-SEPfc780c
 # First build a very simple signature transform module
@@ -31,9 +29,9 @@ signature_transform = SignatureTransformer(
 )
 
 # The simply transform the stream data
-print("Raw data shape is: {}".format(train_x.shape))
+print(f"Raw data shape is: {train_x.shape}")
 train_signature_x = signature_transform.fit_transform(train_x)
-print("Signature shape is: {}".format(train_signature_x.shape))
+print(f"Signature shape is: {train_signature_x.shape}")
 
 
 # %%NBQA-CELL-SEPfc780c
@@ -44,7 +42,7 @@ model.fit(train_signature_x, train_y)
 # Evaluate
 test_signature_x = signature_transform.transform(test_x)
 test_pred = model.predict(test_signature_x)
-print("Accuracy: {:.3f}%".format(accuracy_score(test_y, test_pred)))
+print(f"Accuracy: {accuracy_score(test_y, test_pred):.3f}%")
 
 
 # %%NBQA-CELL-SEPfc780c

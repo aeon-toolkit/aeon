@@ -24,7 +24,6 @@ from aeon.datasets import load_classification, load_regression
 from aeon.networks import InceptionNetwork
 from aeon.regression.deep_learning import InceptionTimeRegressor
 
-
 # %%NBQA-CELL-SEPfc780c
 xtrain, ytrain = load_classification(name="ArrowHead", split="train")
 xtest, ytest = load_classification(name="ArrowHead", split="test")

@@ -7,7 +7,6 @@ from aeon.classification.shapelet_based import SASTClassifier
 from aeon.datasets import load_classification
 from aeon.transformations.collection.shapelet_based import SAST
 
-
 # %%NBQA-CELL-SEPfc780c
 X_train, y_train = load_classification("UnitTest", split="train")
 

@@ -6,7 +6,6 @@ from aeon.datasets import (
     load_regression,
 )
 
-
 # %%NBQA-CELL-SEPfc780c
 from aeon.datasets.tsc_datasets import multivariate, univariate
 
