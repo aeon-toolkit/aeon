@@ -98,8 +98,8 @@ class RDSTRegressor(BaseRegressor):
     --------
     >>> from aeon.regression.shapelet_based import RDSTRegressor
     >>> from aeon.datasets import load_covid_3month
-    >>> X_train, y_train = load_covid_3month(split="train", return_X_y=True)
-    >>> X_test, y_test = load_covid_3month(split="test", return_X_y=True)
+    >>> X_train, y_train = load_covid_3month(split="train")
+    >>> X_test, y_test = load_covid_3month(split="test")
     >>> clf = RDSTRegressor(
     ...     max_shapelets=10
     ... )

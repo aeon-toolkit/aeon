@@ -55,8 +55,8 @@ class SummaryRegressor(BaseRegressor):
     >>> from aeon.regression.feature_based import SummaryRegressor
     >>> from sklearn.ensemble import RandomForestRegressor
     >>> from aeon.datasets import load_covid_3month
-    >>> X_train, y_train = load_covid_3month(split="train", return_X_y=True)
-    >>> X_test, y_test = load_covid_3month(split="test", return_X_y=True)
+    >>> X_train, y_train = load_covid_3month(split="train")
+    >>> X_test, y_test = load_covid_3month(split="test")
     >>> clf = SummaryRegressor(estimator=RandomForestRegressor(n_estimators=5))
     >>> clf.fit(X_train, y_train)
     SummaryRegressor(...)

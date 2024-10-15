@@ -189,6 +189,7 @@ Series transforms
     StatsModelsPACF
     BKFilter
     BoxCoxTransformer
+    YeoJohnsonTransformer
     Dobin
     ScaledLogitSeriesTransformer
     SIVSeriesTransformer
