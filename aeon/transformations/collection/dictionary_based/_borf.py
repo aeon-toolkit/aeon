@@ -149,12 +149,12 @@ class BORF(BaseCollectionTransformer):
         #  setting time_series_length as a user parameter
 
         pipeline_objects = [
-            (ReshapeTo2D, dict()),
-            (ZeroColumnsRemover, dict()),
-            (ToScipySparse, dict()),
+            (_ReshapeTo2D, dict()),
+            (_ZeroColumnsRemover, dict()),
+            (_ToScipySparse, dict()),
         ]
         if self.densify:
-            pipeline_objects.append((ToDense, dict()))
+            pipeline_objects.append((_ToDense, dict()))
 
         self.pipe_, self.configs_ = _build_pipeline_auto(
             time_series_min_length=time_series_length,
@@ -338,7 +338,7 @@ class IndividualBORF(BaseEstimator, TransformerMixin):
         return sparse.COO(coords=out[:, :3].T, data=out[:, -1].T, shape=shape_)
 
 
-class ZeroColumnsRemover(BaseEstimator, TransformerMixin):
+class _ZeroColumnsRemover(BaseEstimator, TransformerMixin):
     def __init__(self, axis=0):
         self.axis = axis
 
@@ -354,7 +354,7 @@ class ZeroColumnsRemover(BaseEstimator, TransformerMixin):
         return X[..., self.columns_to_keep_]
 
 
-class ReshapeTo2D(BaseEstimator, TransformerMixin):
+class _ReshapeTo2D(BaseEstimator, TransformerMixin):
     def __init__(self, keep_unraveled_index=False):
         self.keep_unraveled_index = keep_unraveled_index
         # shape: (n_flattened_features, 2) -> flattened index -> (dimension, word)
@@ -373,7 +373,7 @@ class ReshapeTo2D(BaseEstimator, TransformerMixin):
         return X.reshape((X.shape[0], -1))
 
 
-class ToScipySparse(BaseEstimator, TransformerMixin):
+class _ToScipySparse(BaseEstimator, TransformerMixin):
     def __init__(self):
         pass
 
@@ -384,7 +384,7 @@ class ToScipySparse(BaseEstimator, TransformerMixin):
         return X.to_scipy_sparse()
 
 
-class ToDense(BaseEstimator, TransformerMixin):
+class _ToDense(BaseEstimator, TransformerMixin):
     def __init__(self):
         pass
 
