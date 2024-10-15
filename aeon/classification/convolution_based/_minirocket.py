@@ -218,4 +218,4 @@ class MiniRocketClassifier(BaseClassifier):
         if parameter_set == "results_comparison":
             return {"num_kernels": 100}
         else:
-            return {"num_kernels": 20}
+            return {"num_kernels": 20, "max_dilations_per_kernel": 6}

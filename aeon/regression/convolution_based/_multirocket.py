@@ -166,4 +166,8 @@ class MultiRocketRegressor(BaseRegressor):
         dict or list of dict
             Parameters to create testing instances of the class.
         """
-        return {"num_kernels": 20}
+        return {
+            "num_kernels": 20,
+            "max_dilations_per_kernel": 6,
+            "n_features_per_kernel": 2,
+        }
