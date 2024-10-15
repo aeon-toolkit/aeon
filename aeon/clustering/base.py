@@ -6,7 +6,7 @@ __maintainer__ = []
 __all__ = ["BaseClusterer"]
 
 import time
-from abc import ABCMeta, abstractmethod
+from abc import abstractmethod
 from typing import final
 
 import numpy as np
@@ -15,7 +15,7 @@ from aeon.base import BaseCollectionEstimator
 from aeon.utils.validation._dependencies import _check_estimator_deps
 
 
-class BaseClusterer(BaseCollectionEstimator, metaclass=ABCMeta):
+class BaseClusterer(BaseCollectionEstimator):
     """Abstract base class for time series clusterers.
 
     Parameters

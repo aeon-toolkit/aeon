@@ -23,7 +23,7 @@ __all__ = [
 ]
 
 import time
-from abc import ABCMeta, abstractmethod
+from abc import abstractmethod
 from typing import final
 
 import numpy as np
@@ -36,7 +36,7 @@ from aeon.base import BaseCollectionEstimator
 from aeon.base._base import _clone_estimator
 
 
-class BaseRegressor(BaseCollectionEstimator, metaclass=ABCMeta):
+class BaseRegressor(BaseCollectionEstimator):
     """Abstract base class for time series regressors.
 
     The base regressor specifies the methods and method signatures that all

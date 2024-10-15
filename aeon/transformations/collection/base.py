@@ -24,7 +24,7 @@ __all__ = [
     "BaseCollectionTransformer",
 ]
 
-from abc import ABCMeta, abstractmethod
+from abc import abstractmethod
 from typing import final
 
 import numpy as np
@@ -34,9 +34,7 @@ from aeon.base import BaseCollectionEstimator
 from aeon.transformations.base import BaseTransformer
 
 
-class BaseCollectionTransformer(
-    BaseCollectionEstimator, BaseTransformer, metaclass=ABCMeta
-):
+class BaseCollectionTransformer(BaseCollectionEstimator, BaseTransformer):
     """Transformer base class for collections."""
 
     # tag values specific to CollectionTransformers

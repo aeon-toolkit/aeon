@@ -3,12 +3,12 @@
 __maintainer__ = ["MatthewMiddlehurst", "TonyBagnall"]
 __all__ = ["BaseTransformer"]
 
-from abc import ABCMeta, abstractmethod
+from abc import abstractmethod
 
 from aeon.base import BaseAeonEstimator
 
 
-class BaseTransformer(BaseAeonEstimator, metaclass=ABCMeta):
+class BaseTransformer(BaseAeonEstimator):
     """Transformer base class."""
 
     _tags = {

@@ -3,7 +3,7 @@
 __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["BaseAnomalyDetector"]
 
-from abc import ABCMeta, abstractmethod
+from abc import abstractmethod
 from typing import final
 
 import numpy as np
@@ -13,7 +13,7 @@ from aeon.base import BaseSeriesEstimator
 from aeon.base._base_series import VALID_INPUT_TYPES
 
 
-class BaseAnomalyDetector(BaseSeriesEstimator, metaclass=ABCMeta):
+class BaseAnomalyDetector(BaseSeriesEstimator):
     """Base class for anomaly detection algorithms.
 
     Anomaly detection algorithms are used to identify anomalous subsequences in time

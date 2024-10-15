@@ -1,7 +1,5 @@
 """Base class for collection ensembles."""
 
-from abc import ABCMeta
-
 import numpy as np
 from sklearn.base import BaseEstimator, is_classifier
 from sklearn.metrics import accuracy_score, mean_squared_error
@@ -16,9 +14,7 @@ from aeon.base import (
 from aeon.base._base import _clone_estimator
 
 
-class BaseCollectionEnsemble(
-    _HeterogenousMetaEstimator, BaseCollectionEstimator, metaclass=ABCMeta
-):
+class BaseCollectionEnsemble(_HeterogenousMetaEstimator, BaseCollectionEstimator):
     """Weighted ensemble of collection estimators with fittable ensemble weight.
 
     Parameters

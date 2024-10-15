@@ -1,7 +1,5 @@
 """Base class for estimators that fit collections of time series."""
 
-from abc import ABCMeta
-
 from aeon.base._base import BaseAeonEstimator
 from aeon.utils.conversion import (
     convert_collection,
@@ -21,7 +19,7 @@ from aeon.utils.validation.collection import (
 )
 
 
-class BaseCollectionEstimator(BaseAeonEstimator, metaclass=ABCMeta):
+class BaseCollectionEstimator(BaseAeonEstimator):
     """Base class for estimators that use collections of time series for method fit.
 
     Provides functions that are common to BaseClassifier, BaseRegressor,

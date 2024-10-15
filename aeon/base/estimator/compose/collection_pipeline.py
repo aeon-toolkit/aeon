@@ -5,7 +5,6 @@ i.e. classification, regression and clustering.
 
 __maintainer__ = ["MatthewMiddlehurst"]
 
-from abc import ABCMeta
 
 import numpy as np
 from sklearn.base import BaseEstimator
@@ -19,9 +18,7 @@ from aeon.base import (
 from aeon.base._base import _clone_estimator
 
 
-class BaseCollectionPipeline(
-    _HeterogenousMetaEstimator, BaseCollectionEstimator, metaclass=ABCMeta
-):
+class BaseCollectionPipeline(_HeterogenousMetaEstimator, BaseCollectionEstimator):
     """Base class for composable pipelines in collection based modules.
 
     Parameters

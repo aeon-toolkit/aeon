@@ -8,7 +8,7 @@ because we can generalise tags, _predict and _predict_proba
 __maintainer__ = ["hadifawaz1999"]
 __all__ = ["BaseDeepClassifier"]
 
-from abc import ABCMeta, abstractmethod
+from abc import abstractmethod
 
 import numpy as np
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
@@ -17,7 +17,7 @@ from sklearn.utils import check_random_state
 from aeon.classification.base import BaseClassifier
 
 
-class BaseDeepClassifier(BaseClassifier, metaclass=ABCMeta):
+class BaseDeepClassifier(BaseClassifier):
     """Abstract base class for deep learning time series classifiers.
 
     The base classifier provides a deep learning default method for

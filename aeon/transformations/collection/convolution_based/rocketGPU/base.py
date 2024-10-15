@@ -3,12 +3,11 @@
 __maintainer__ = ["hadifawaz1999"]
 __all__ = ["BaseROCKETGPU"]
 
-from abc import ABCMeta
 
 from aeon.transformations.collection import BaseCollectionTransformer
 
 
-class BaseROCKETGPU(BaseCollectionTransformer, metaclass=ABCMeta):
+class BaseROCKETGPU(BaseCollectionTransformer):
     """Base class for ROCKET GPU based transformers.
 
     Parameters

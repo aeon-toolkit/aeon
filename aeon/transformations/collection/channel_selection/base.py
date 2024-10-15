@@ -6,12 +6,11 @@ selected indexes.
 
 __maintainer__ = ["TonyBagnall"]
 
-from abc import ABCMeta
 
 from aeon.transformations.collection.base import BaseCollectionTransformer
 
 
-class BaseChannelSelector(BaseCollectionTransformer, metaclass=ABCMeta):
+class BaseChannelSelector(BaseCollectionTransformer):
     """Abstract base class for channel selection transformers.
 
     Extends BaseCollectionTransformer by implementing``_transform`` to return

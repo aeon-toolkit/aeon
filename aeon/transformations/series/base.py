@@ -8,7 +8,7 @@ transform - transform(self, X, y=None)
 fit & transform - fit_transform(self, X, y=None)
 """
 
-from abc import ABCMeta, abstractmethod
+from abc import abstractmethod
 from typing import final
 
 import numpy as np
@@ -18,7 +18,7 @@ from aeon.base import BaseSeriesEstimator
 from aeon.transformations.base import BaseTransformer
 
 
-class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer, metaclass=ABCMeta):
+class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer):
     """Transformer base class for collections."""
 
     # tag values specific to SeriesTransformers

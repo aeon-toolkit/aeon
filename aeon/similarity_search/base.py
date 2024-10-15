@@ -2,7 +2,7 @@
 
 __maintainer__ = ["baraline"]
 
-from abc import ABCMeta, abstractmethod
+from abc import abstractmethod
 from collections.abc import Iterable
 from typing import Optional, final
 
@@ -14,7 +14,7 @@ from aeon.base import BaseCollectionEstimator
 from aeon.utils.numba.general import sliding_mean_std_one_series
 
 
-class BaseSimilaritySearch(BaseCollectionEstimator, metaclass=ABCMeta):
+class BaseSimilaritySearch(BaseCollectionEstimator):
     """
     Base class for similarity search applications.
 
