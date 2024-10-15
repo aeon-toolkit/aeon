@@ -199,21 +199,40 @@ class BORF(BaseCollectionTransformer):
             instance. `create_test_instance` uses the first (or only) dictionary in
             `params`.
         """
-        params = {
-            "window_size_min_window_size": 4,
-            "window_size_max_window_size": None,
-            "word_lengths_n_word_lengths": 4,
-            "alphabets_min_symbols": 3,
-            "alphabets_max_symbols": 4,
-            "alphabets_step": 1,
-            "dilations_min_dilation": 1,
-            "dilations_max_dilation": None,
-            "min_window_to_signal_std_ratio": 0.0,
-            "n_jobs": 1,
-            "n_jobs_numba": 1,
-            "transformer_weights": None,
-            "complexity": "quadratic",
-        }
+        params = [
+            {
+                "window_size_min_window_size": 4,
+                "window_size_max_window_size": None,
+                "word_lengths_n_word_lengths": 4,
+                "alphabets_min_symbols": 3,
+                "alphabets_max_symbols": 4,
+                "alphabets_step": 1,
+                "dilations_min_dilation": 1,
+                "dilations_max_dilation": None,
+                "min_window_to_signal_std_ratio": 0.0,
+                "n_jobs": 1,
+                "n_jobs_numba": 1,
+                "transformer_weights": None,
+                "complexity": "quadratic",
+                "densify": False,
+            },
+            {
+                "window_size_min_window_size": 4,
+                "window_size_max_window_size": None,
+                "word_lengths_n_word_lengths": 4,
+                "alphabets_min_symbols": 3,
+                "alphabets_max_symbols": 4,
+                "alphabets_step": 1,
+                "dilations_min_dilation": 1,
+                "dilations_max_dilation": None,
+                "min_window_to_signal_std_ratio": 0.0,
+                "n_jobs": 1,
+                "n_jobs_numba": 1,
+                "transformer_weights": None,
+                "complexity": "quadratic",
+                "densify": True,
+            },
+        ]
         return params
 
 
