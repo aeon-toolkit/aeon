@@ -65,6 +65,9 @@ class BORF(BaseCollectionTransformer):
         The computational complexity mode:
         - `'quadratic'`: Higher accuracy with more computational cost.
         - `'linear'`: Faster computations with potentially lower accuracy.
+    densify : bool, default=False
+        If True, converts the output to a dense array.
+        By default, the output is returned as a scipy sparse matrix.
 
 
     Attributes
@@ -122,6 +125,7 @@ class BORF(BaseCollectionTransformer):
         n_jobs_numba=1,
         transformer_weights=None,
         complexity: Literal["quadratic", "linear"] = "quadratic",
+        densify=False,
     ):
         self.window_size_min_window_size = window_size_min_window_size
         self.window_size_max_window_size = window_size_max_window_size
@@ -136,12 +140,22 @@ class BORF(BaseCollectionTransformer):
         self.n_jobs_numba = n_jobs_numba
         self.transformer_weights = transformer_weights
         self.complexity = complexity
+        self.densify = densify
         super().__init__()
 
     def _fit(self, X, y=None):
         time_series_length = X.shape[2]
         # for better computation time, this should be moved to the init,
         #  setting time_series_length as a user parameter
+
+        pipeline_objects = [
+            (ReshapeTo2D, dict()),
+            (ZeroColumnsRemover, dict()),
+            (ToScipySparse, dict()),
+        ]
+        if self.densify:
+            pipeline_objects.append((ToDense, dict()))
+
         self.pipe_, self.configs_ = _build_pipeline_auto(
             time_series_min_length=time_series_length,
             time_series_max_length=time_series_length,
@@ -157,11 +171,7 @@ class BORF(BaseCollectionTransformer):
             n_jobs=self.n_jobs,
             n_jobs_numba=self.n_jobs_numba,
             transformer_weights=self.transformer_weights,
-            pipeline_objects=[
-                (ReshapeTo2D, dict()),
-                (ZeroColumnsRemover, dict()),
-                (ToScipySparse, dict()),
-            ],
+            pipeline_objects=pipeline_objects,
             complexity=self.complexity,
         )
         self.pipe_.fit(X)
@@ -372,6 +382,17 @@ class ToScipySparse(BaseEstimator, TransformerMixin):
 
     def transform(self, X):
         return X.to_scipy_sparse()
+
+
+class ToDense(BaseEstimator, TransformerMixin):
+    def __init__(self):
+        pass
+
+    def fit(self, X, y=None):
+        return self
+
+    def transform(self, X):
+        return X.toarray()
 
 
 @nb.njit(fastmath=True, cache=True)
