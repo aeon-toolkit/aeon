@@ -123,7 +123,7 @@ class LSTM_AD(BaseDeepAnomalyDetector):
     --------
     >>> import numpy as np
     >>> from aeon.datasets import load_anomaly_detection
-    >>> from aeon.anomaly_detection import LSTM_AD
+    >>> from aeon.anomaly_detection.deep_learning import LSTM_AD
     >>> X, y = load_anomaly_detection(
     ...     name=("KDD-TSAD", "001_UCR_Anomaly_DISTORTED1sddb40")
     ... )
