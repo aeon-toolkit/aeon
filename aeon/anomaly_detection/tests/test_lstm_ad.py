@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from aeon.anomaly_detection import LSTM_AD
+from aeon.anomaly_detection.deep_learning import LSTM_AD
 from aeon.testing.data_generation._legacy import make_series
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 

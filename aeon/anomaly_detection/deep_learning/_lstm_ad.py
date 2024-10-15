@@ -2,7 +2,10 @@
 
 __all__ = ["LSTM_AD"]
 
+import gc
+import os
 import time
+from copy import deepcopy
 
 import numpy as np
 from scipy.stats import multivariate_normal
@@ -194,19 +197,6 @@ class LSTM_AD(BaseDeepAnomalyDetector):
         data is in shape (m,d). This method also assumes (m,d). Transpose should
         happen in fit.
 
-        Parameters
-        ----------
-        n_layers : int
-            The number of layers in the LSTM model.
-        n_nodes : int
-            The number of LSTM units in each layer.
-        n_channels : int
-            It is basically d, the number of dimesions.
-        window_size : int
-            Tie number of time steps fed to the model.
-        prediction_horizon : int
-            The number of time steps to be predicted by the model.
-
         Returns
         -------
         output : a compiled Keras Model
@@ -357,6 +347,20 @@ class LSTM_AD(BaseDeepAnomalyDetector):
                 self.best_tau = tau
                 self.best_fbeta = fbeta
 
+        try:
+            if self.save_best_model:
+                self.model_ = tf.keras.models.load_model(
+                    self.file_path + self.file_name_ + ".keras", compile=False
+                )
+            else:
+                os.remove(self.file_path + self.file_name_ + ".keras")
+        except FileNotFoundError:
+            self.model_ = deepcopy(self.training_model_)
+
+        if self.save_last_model:
+            self.save_last_model_to_file(file_path=self.file_path)
+
+        gc.collect()
         return self
 
     def _predict(self, X):

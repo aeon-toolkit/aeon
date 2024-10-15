@@ -43,8 +43,10 @@ class BaseDeepAnomalyDetector(BaseAnomalyDetector, ABC):
 
     def __init__(
         self,
+        batch_size=40,
         last_file_name="last_model",
     ):
+        self.batch_size = batch_size
         self.last_file_name = last_file_name
         self.model_ = None
 
@@ -112,9 +114,6 @@ class BaseDeepAnomalyDetector(BaseAnomalyDetector, ABC):
 
         self.model_ = tf.keras.models.load_model(model_path)
         self.is_fitted = True
-
-        self.classes_ = classes
-        self.n_classes_ = len(self.classes_)
 
     def _get_model_checkpoint_callback(self, callbacks, file_path, file_name):
         import tensorflow as tf
