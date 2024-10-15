@@ -167,7 +167,7 @@ class MultiRocketRegressor(BaseRegressor):
             Parameters to create testing instances of the class.
         """
         return {
-            "num_kernels": 100,
-            "max_dilations_per_kernel": 6,
-            "n_features_per_kernel": 2,
+            "num_kernels": 200,
+            "max_dilations_per_kernel": 8,
+            "n_features_per_kernel": 4,
         }
