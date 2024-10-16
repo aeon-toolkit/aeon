@@ -12,7 +12,7 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
     not _check_soft_dependencies("pyod", severity="none"),
     reason="required soft dependency PyOD not available",
 )
-def test_iforest_default():
+def test_copod_default():
     """Test COPOD."""
     series = make_series(n_timepoints=80, return_numpy=True, random_state=0)
     series[50:58] -= 2
@@ -29,94 +29,35 @@ def test_iforest_default():
     not _check_soft_dependencies("pyod", severity="none"),
     reason="required soft dependency PyOD not available",
 )
-def test_iforest_multivariate():
-    """Test COPOD multivariate."""
-    series = make_series(
-        n_timepoints=80, n_columns=2, return_numpy=True, random_state=0
-    )
-    series[50:58, 0] -= 2
+def test_copod_pyod_parameters():
+    """Test parameters are correctly passed to the PyOD model."""
+    params = {"n_jobs": 2}
+    copod = COPOD(**params)
 
-    copod = COPOD(window_size=10, stride=1)
-    pred = copod.fit_predict(series, axis=0)
-
-    assert pred.shape == (80,)
-    assert pred.dtype == np.float_
-    assert 50 <= np.argmax(pred) <= 60
+    assert copod.pyod_model.n_jobs == params["n_jobs"]
 
 
 @pytest.mark.skipif(
     not _check_soft_dependencies("pyod", severity="none"),
     reason="required soft dependency PyOD not available",
 )
-def test_iforest_stride():
-    """Test COPOD with stride."""
-    series = make_series(n_timepoints=80, return_numpy=True, random_state=0)
-    series[50:58] -= 2
+def test_aeon_copod_with_pyod_copod():
+    """Test COPOD with PyOD COPOD."""
+    from pyod.models.copod import COPOD as PyODCOPOD
 
-    copod = COPOD(window_size=10, stride=1)
-    pred = copod.fit_predict(series, axis=0)
+    from aeon.utils.windowing import sliding_windows
 
-    assert pred.shape == (80,)
-    assert pred.dtype == np.float_
-    assert 50 <= np.argmax(pred) <= 60
+    series = make_series(n_timepoints=100, return_numpy=True, random_state=0)
+    series[20:30] -= 2
 
+    # fit and predict with aeon COPOD
+    copod = COPOD(window_size=1, stride=1)
+    copod_preds = copod.fit_predict(series)
 
-@pytest.mark.skipif(
-    not _check_soft_dependencies("pyod", severity="none"),
-    reason="required soft dependency PyOD not available",
-)
-def test_iforest_multivariate_stride():
-    """Test COPOD multivariate with stride."""
-    series = make_series(
-        n_timepoints=80, n_columns=2, return_numpy=True, random_state=0
-    )
-    series[50:58, 0] -= 2
+    # fit and predict with PyOD COPOD
+    _series, _ = sliding_windows(series, window_size=1, stride=1, axis=0)
+    pyod_copod = PyODCOPOD()
+    pyod_copod.fit(_series)
+    pyod_copod_preds = pyod_copod.decision_function(_series)
 
-    copod = COPOD(window_size=10, stride=1)
-    pred = copod.fit_predict(series, axis=0)
-
-    assert pred.shape == (80,)
-    assert pred.dtype == np.float_
-    assert 50 <= np.argmax(pred) <= 60
-
-
-@pytest.mark.skipif(
-    not _check_soft_dependencies("pyod", severity="none"),
-    reason="required soft dependency PyOD not available",
-)
-def test_iforest_semi_supervised_univariate():
-    """Test COPOD semi-supervised univariate."""
-    series = make_series(n_timepoints=80, return_numpy=True, random_state=0)
-    series[50:58] -= 2
-    train_series = make_series(n_timepoints=100, return_numpy=True, random_state=0)
-
-    copod = COPOD(window_size=10, stride=1)
-    copod.fit(train_series, axis=0)
-    pred = copod.predict(series, axis=0)
-
-    assert pred.shape == (80,)
-    assert pred.dtype == np.float_
-    assert 50 <= np.argmax(pred) <= 60
-
-
-@pytest.mark.skipif(
-    not _check_soft_dependencies("pyod", severity="none"),
-    reason="required soft dependency PyOD not available",
-)
-def test_iforest_semi_supervised_multivariate():
-    """Test COPOD semi-supervised multivariate."""
-    series = make_series(
-        n_timepoints=80, n_columns=2, return_numpy=True, random_state=0
-    )
-    series[50:58, 0] -= 2
-    train_series = make_series(
-        n_timepoints=100, n_columns=2, return_numpy=True, random_state=0
-    )
-
-    copod = COPOD(window_size=10, stride=1)
-    copod.fit(train_series, axis=0)
-    pred = copod.predict(series, axis=0)
-
-    assert pred.shape == (80,)
-    assert pred.dtype == np.float_
-    assert 50 <= np.argmax(pred) <= 60
+    assert np.allclose(copod_preds, pyod_copod_preds)
