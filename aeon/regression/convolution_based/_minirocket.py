@@ -1,10 +1,10 @@
-"""RandOm Convolutional KErnel Transform (Rocket) regressor.
+"""MiniRocket regressor.
 
-Pipeline regressor using the ROCKET transformer and RidgeCV estimator.
+Pipeline regressor using the MiniRocket transformer and RidgeCV estimator.
 """
 
-__maintainer__ = []
-__all__ = ["RocketRegressor"]
+__maintainer__ = ["MatthewMiddlehurst"]
+__all__ = ["MiniRocketRegressor"]
 
 import numpy as np
 from sklearn.linear_model import RidgeCV
@@ -13,35 +13,24 @@ from sklearn.preprocessing import StandardScaler
 
 from aeon.base._base import _clone_estimator
 from aeon.regression.base import BaseRegressor
-from aeon.transformations.collection.convolution_based import (
-    MiniRocket,
-    MultiRocket,
-    Rocket,
-)
+from aeon.transformations.collection.convolution_based import MiniRocket
 
 
-class RocketRegressor(BaseRegressor):
+class MiniRocketRegressor(BaseRegressor):
     """
-    Regressor wrapped for the Rocket transformer using RidgeCV regressor.
+    MiniRocket transformer using RidgeCV regressor.
 
-    This regressor simply transforms the input data using a Rocket [1,2,3]_
-    transformer, performs a Standard scaling and fits a sklearn regressor,
-    using the transformed data (default regressor is RidgeCV).
-
-    The regressor can be configured to use Rocket [1]_, MiniRocket [2]_ or
-    MultiRocket [3]_.
+    This regressor transforms the input data using the MiniRocket [1]_ transformer
+    extracting features from randomly generated kernels, performs a Standard scaling
+    and fits a sklearn regressor using the transformed data (default regressor is
+    RidgeCV).
 
     Parameters
     ----------
     num_kernels : int, default=10,000
         The number of kernels for the Rocket transform.
-    rocket_transform : str, default="rocket"
-        The type of Rocket transformer to use.
-        Valid inputs = ["rocket", "minirocket", "multirocket"]
     max_dilations_per_kernel : int, default=32
-        MiniRocket and MultiRocket only. The maximum number of dilations per kernel.
-    n_features_per_kernel : int, default=4
-        MultiRocket only. The number of features per kernel.
+        The maximum number of dilations per kernel.
     estimator : sklearn compatible regressor or None, default=None
         The estimator used. If None, a RidgeCV(alphas=np.logspace(-3, 3, 10)) is used.
     random_state : int, RandomState instance or None, default=None
@@ -53,25 +42,12 @@ class RocketRegressor(BaseRegressor):
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
 
-    See Also
-    --------
-    Rocket
-        Rocket transformers are in transformations/collection.
-    RocketClassifier
-
     References
     ----------
-    .. [1] Dempster, A., Petitjean, F. and Webb, G.I., 2020. ROCKET: exceptionally fast
-        and accurate time series classification using random convolutional kernels.
-        Data Mining and Knowledge Discovery, 34(5), pp.1454-1495.
-    .. [2] Dempster, A., Schmidt, D.F. and Webb, G.I., 2021, August. Minirocket: A very
+    .. [1] Dempster, A., Schmidt, D.F. and Webb, G.I., 2021, August. Minirocket: A very
         fast (almost) deterministic transform for time series classification. In
         Proceedings of the 27th ACM SIGKDD conference on knowledge discovery & data
         mining (pp. 248-257).
-    .. [3] Tan, C.W., Dempster, A., Bergmeir, C. and Webb, G.I., 2022. MultiRocket:
-        multiple pooling operators and transformations for fast and effective time
-        series classification. Data Mining and Knowledge Discovery, 36(5), pp.1623-1646.
-
 
     Examples
     --------
@@ -94,17 +70,13 @@ class RocketRegressor(BaseRegressor):
     def __init__(
         self,
         num_kernels=10000,
-        rocket_transform="rocket",
         max_dilations_per_kernel=32,
-        n_features_per_kernel=4,
         estimator=None,
         random_state=None,
         n_jobs=1,
     ):
         self.num_kernels = num_kernels
-        self.rocket_transform = rocket_transform
         self.max_dilations_per_kernel = max_dilations_per_kernel
-        self.n_features_per_kernel = n_features_per_kernel
         self.random_state = random_state
         self.estimator = estimator
         self.n_jobs = n_jobs
@@ -133,31 +105,12 @@ class RocketRegressor(BaseRegressor):
         """
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
 
-        rocket_transform = self.rocket_transform.lower()
-        if rocket_transform == "rocket":
-            self._transformer = Rocket(
-                num_kernels=self.num_kernels,
-                n_jobs=self.n_jobs,
-                random_state=self.random_state,
-            )
-        elif rocket_transform == "minirocket":
-            self._transformer = MiniRocket(
-                num_kernels=self.num_kernels,
-                max_dilations_per_kernel=self.max_dilations_per_kernel,
-                n_jobs=self.n_jobs,
-                random_state=self.random_state,
-            )
-        elif rocket_transform == "multirocket":
-            self._transformer = MultiRocket(
-                num_kernels=self.num_kernels,
-                max_dilations_per_kernel=self.max_dilations_per_kernel,
-                n_features_per_kernel=self.n_features_per_kernel,
-                n_jobs=self.n_jobs,
-                random_state=self.random_state,
-            )
-        else:
-            raise ValueError(f"Invalid Rocket transformer: {self.rocket_transform}")
-
+        self._transformer = MiniRocket(
+            num_kernels=self.num_kernels,
+            max_dilations_per_kernel=self.max_dilations_per_kernel,
+            n_jobs=self.n_jobs,
+            random_state=self.random_state,
+        )
         self._scaler = StandardScaler(with_mean=False)
         self._estimator = _clone_estimator(
             (
@@ -207,4 +160,4 @@ class RocketRegressor(BaseRegressor):
         dict or list of dict
             Parameters to create testing instances of the class.
         """
-        return {"num_kernels": 20}
+        return {"num_kernels": 20, "max_dilations_per_kernel": 6}
