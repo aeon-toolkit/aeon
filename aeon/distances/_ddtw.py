@@ -2,7 +2,7 @@
 
 __maintainer__ = []
 
-from typing import List, Optional, Tuple, Union
+from typing import Optional, Union
 
 import numpy as np
 from numba import njit
@@ -163,8 +163,8 @@ def ddtw_cost_matrix(
 
 
 def ddtw_pairwise_distance(
-    X: Union[np.ndarray, List[np.ndarray]],
-    y: Optional[Union[np.ndarray, List[np.ndarray]]] = None,
+    X: Union[np.ndarray, list[np.ndarray]],
+    y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
     window: Optional[float] = None,
     itakura_max_slope: Optional[float] = None,
 ) -> np.ndarray:
@@ -321,7 +321,7 @@ def ddtw_alignment_path(
     y: np.ndarray,
     window: Optional[float] = None,
     itakura_max_slope: Optional[float] = None,
-) -> Tuple[List[Tuple[int, int]], float]:
+) -> tuple[list[tuple[int, int]], float]:
     """Compute the DDTW alignment path between two time series.
 
     Parameters

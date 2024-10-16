@@ -1,7 +1,7 @@
 """E-Agglo: agglomerative clustering algorithm that preserves observation order."""
 
 import warnings
-from typing import Callable, Dict, List, Tuple
+from typing import Callable
 
 import numpy as np
 import pandas as pd
@@ -180,10 +180,10 @@ class EAggloSegmenter(BaseSegmenter):
 
         Parameters
         ----------
-        X : Series of mtype X_inner_type
+        X : pd.Dataframe
             Data to be transformed
-        y : Series of type y_inner_type, default=None
-            Not required for this unsupervised transform.
+        y : default=None
+            Ignored, for interface compatibility
 
         Returns
         -------
@@ -301,7 +301,7 @@ class EAggloSegmenter(BaseSegmenter):
         self.lm = np.zeros(2 * self.n_cluster - 1, dtype=int)
         self.lm[: self.n_cluster] = range(self.n_cluster)
 
-    def _find_closest(self, K: int) -> Tuple[int, int]:
+    def _find_closest(self, K: int) -> tuple[int, int]:
         """Determine which clusters will be merged_, for K clusters.
 
         Greedily optimize the goodness-of-fit statistic by merging the pair of adjacent
@@ -350,7 +350,7 @@ class EAggloSegmenter(BaseSegmenter):
         )
 
     @classmethod
-    def get_test_params(cls) -> List[Dict]:
+    def get_test_params(cls, parameter_set: str = "default") -> list[dict]:
         """Test parameters."""
         return [
             {"alpha": 1.0, "penalty": None},

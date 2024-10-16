@@ -438,7 +438,7 @@ class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
     >>> from aeon.transformations.collection.feature_based import (
     ...     TSFreshRelevantFeatureExtractor
     ... )
-    >>> X, y = load_arrow_head(return_X_y=True)
+    >>> X, y = load_arrow_head()
     >>> X_train, X_test, y_train, y_test = train_test_split(X, y)
     >>> ts_eff = TSFreshRelevantFeatureExtractor(
     ...     default_fc_parameters="efficient", disable_progressbar=True
@@ -456,10 +456,8 @@ class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
     """
 
     _tags = {
-        "instancewise": False,
         "requires_y": True,
         "X_inner_type": "nested_univ",
-        "y_inner_type": "pd_Series_Table",
         "fit_is_empty": False,
     }
 
@@ -550,19 +548,12 @@ class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
 
         Writes to self:
         _is_fitted : flag is set to True.
-        _X : X, coerced copy of X, if remember_data tag is True
-            possibly coerced to inner type or update_data compatible type
-            by reference, when possible
-        model attributes (ending in "_") : dependent on estimator
 
         Parameters
         ----------
-        X : Series or Panel, any supported type
-            Data to be transformed, of python type as follows:
-                Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
-                Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
-                    nested pd.DataFrame, or pd.DataFrame in long/wide format
-        y : Series or Panel, default=None
+        X : 3D np.ndarray of shape (n_cases, n_channels, n_timepoints)
+            collection of time series to transform
+        y : Series, default=None
             Additional data, e.g., labels for transformation
 
         Returns

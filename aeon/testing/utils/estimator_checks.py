@@ -9,13 +9,9 @@ import numpy as np
 import pandas as pd
 from pandas.testing import assert_frame_equal
 
-from aeon.base import BaseEstimator, BaseObject
-from aeon.classification.base import BaseClassifier
-from aeon.classification.early_classification import BaseEarlyClassifier
+from aeon.base import BaseAeonEstimator
 from aeon.clustering.base import BaseClusterer
-from aeon.forecasting.base import BaseForecaster
 from aeon.regression.base import BaseRegressor
-from aeon.testing.test_config import VALID_ESTIMATOR_TYPES
 from aeon.testing.testing_data import FULL_TEST_DATA_DICT
 from aeon.transformations.base import BaseTransformer
 from aeon.utils.validation import is_nested_univ_dataframe
@@ -24,15 +20,25 @@ from aeon.utils.validation import is_nested_univ_dataframe
 def _run_estimator_method(estimator, method_name, datatype, split):
     method = getattr(estimator, method_name)
     args = inspect.getfullargspec(method)[0]
-    if "X" in args and "y" in args:
-        return method(
-            X=FULL_TEST_DATA_DICT[datatype][split][0],
-            y=FULL_TEST_DATA_DICT[datatype][split][1],
-        )
-    elif "X" in args:
-        return method(X=FULL_TEST_DATA_DICT[datatype][split][0])
-    else:
-        return method()
+    try:
+        if "X" in args and "y" in args:
+            return method(
+                X=FULL_TEST_DATA_DICT[datatype][split][0],
+                y=FULL_TEST_DATA_DICT[datatype][split][1],
+            )
+        elif "X" in args:
+            return method(X=FULL_TEST_DATA_DICT[datatype][split][0])
+        else:
+            return method()
+    # generic message for ModuleNotFoundError which are assumed to be related to
+    # soft dependencies
+    except ModuleNotFoundError as e:
+        raise RuntimeError(
+            f"Estimator {estimator.__name__} raises a ModuleNotFoundError "
+            f"on {method.__name__}. Any required soft dependencies should "
+            f'be added to the "python_dependencies" tag, and python version bounds '
+            f'should be added to the "python_version" tag.'
+        ) from e
 
 
 def _get_tag(estimator, tag_name, default=None, raise_error=False):
@@ -48,19 +54,12 @@ def _get_tag(estimator, tag_name, default=None, raise_error=False):
         )
 
 
-def _get_err_msg(estimator):
-    return (
-        f"Invalid estimator type: {type(estimator)}. Valid estimator types are: "
-        f"{VALID_ESTIMATOR_TYPES}"
-    )
-
-
 def _list_required_methods(estimator):
-    """Return list of required method names (beyond BaseEstimator ones)."""
-    # all BaseObject children must implement these
+    """Return list of required method names (beyond BaseAeonEstimator ones)."""
+    # all BaseAeonEstimator children must implement these
     MUST_HAVE_FOR_OBJECTS = ["set_params", "get_params"]
 
-    # all BaseEstimator children must implement these
+    # all BaseAeonEstimator children must implement these
     MUST_HAVE_FOR_ESTIMATORS = [
         "fit",
         "check_is_fitted",
@@ -70,17 +69,16 @@ def _list_required_methods(estimator):
     BASE_CLASSES_THAT_MUST_HAVE_PREDICT = (
         BaseClusterer,
         BaseRegressor,
-        BaseForecaster,
     )
     # transformation base classes that must have transform
     BASE_CLASSES_THAT_MUST_HAVE_TRANSFORM = (BaseTransformer,)
 
     required_methods = []
 
-    if isinstance(estimator, BaseObject):
+    if isinstance(estimator, BaseAeonEstimator):
         required_methods += MUST_HAVE_FOR_OBJECTS
 
-    if isinstance(estimator, BaseEstimator):
+    if isinstance(estimator, BaseAeonEstimator):
         required_methods += MUST_HAVE_FOR_ESTIMATORS
 
     if isinstance(estimator, BASE_CLASSES_THAT_MUST_HAVE_PREDICT):
@@ -144,14 +142,6 @@ def _assert_array_almost_equal(x, y, decimal=6, err_msg=""):
         func(x, y, decimal=decimal, err_msg=err_msg)
 
 
-def _assert_array_equal(x, y, err_msg=""):
-    func = np.testing.assert_array_equal
-    if isinstance(x, pd.DataFrame):
-        _compare_nested_frame(func, x, y, err_msg=err_msg)
-    else:
-        func(x, y, err_msg=err_msg)
-
-
 def _get_args(function, varargs=False):
     """Get function arguments."""
     try:
@@ -175,35 +165,3 @@ def _get_args(function, varargs=False):
         return args, varargs
     else:
         return args
-
-
-def _has_capability(est, method: str) -> bool:
-    """Check whether estimator has capability of method."""
-
-    def get_tag(est, tag_name, tag_value_default=None):
-        if isclass(est):
-            return est.get_class_tag(
-                tag_name=tag_name, tag_value_default=tag_value_default
-            )
-        else:
-            return est.get_tag(tag_name=tag_name, tag_value_default=tag_value_default)
-
-    if not hasattr(est, method):
-        return False
-    if method == "inverse_transform":
-        return get_tag(est, "capability:inverse_transform", False)
-    if method in [
-        "predict_proba",
-        "predict_interval",
-        "predict_quantiles",
-        "predict_var",
-    ]:
-        ALWAYS_HAVE_PREDICT_PROBA = (BaseClassifier, BaseEarlyClassifier, BaseClusterer)
-        # all classifiers and clusterers implement predict_proba
-        if method == "predict_proba" and isinstance(est, ALWAYS_HAVE_PREDICT_PROBA):
-            return True
-        return get_tag(est, "capability:pred_int", False)
-    # skip transform for forecasters that have it - pipelines
-    if method == "transform" and isinstance(est, BaseForecaster):
-        return False
-    return True

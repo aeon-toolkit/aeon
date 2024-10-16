@@ -8,7 +8,6 @@ __maintainer__ = []
 __all__ = ["TEASER"]
 
 import copy
-from typing import Tuple
 
 import numpy as np
 from joblib import Parallel, delayed
@@ -96,8 +95,8 @@ class TEASER(BaseEarlyClassifier):
     >>> from aeon.classification.early_classification import TEASER
     >>> from aeon.classification.interval_based import TimeSeriesForestClassifier
     >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
     >>> clf = TEASER(
     ...     classification_points=[6, 16, 24],
     ...     estimator=TimeSeriesForestClassifier(n_estimators=5),
@@ -222,15 +221,15 @@ class TEASER(BaseEarlyClassifier):
 
         return self
 
-    def _predict(self, X) -> Tuple[np.ndarray, np.ndarray]:
+    def _predict(self, X) -> tuple[np.ndarray, np.ndarray]:
         out = self._predict_proba(X)
         return self._proba_output_to_preds(out)
 
-    def _update_predict(self, X) -> Tuple[np.ndarray, np.ndarray]:
+    def _update_predict(self, X) -> tuple[np.ndarray, np.ndarray]:
         out = self._update_predict_proba(X)
         return self._proba_output_to_preds(out)
 
-    def _predict_proba(self, X) -> Tuple[np.ndarray, np.ndarray]:
+    def _predict_proba(self, X) -> tuple[np.ndarray, np.ndarray]:
         n_cases, _, n_timepoints = X.shape
 
         # maybe use the largest index that is smaller than the series length
@@ -284,7 +283,7 @@ class TEASER(BaseEarlyClassifier):
 
         return probas, accept_decision
 
-    def _update_predict_proba(self, X) -> Tuple[np.ndarray, np.ndarray]:
+    def _update_predict_proba(self, X) -> tuple[np.ndarray, np.ndarray]:
         n_cases, _, n_timepoints = X.shape
 
         # maybe use the largest index that is smaller than the series length
@@ -364,7 +363,7 @@ class TEASER(BaseEarlyClassifier):
 
         return probas, accept_decision
 
-    def _score(self, X, y) -> Tuple[float, float, float]:
+    def _score(self, X, y) -> tuple[float, float, float]:
         self._predict(X)
         hm, acc, earl = self.compute_harmonic_mean(self.state_info, y)
 
@@ -580,7 +579,7 @@ class TEASER(BaseEarlyClassifier):
         )
         return preds, out[1]
 
-    def compute_harmonic_mean(self, state_info, y) -> Tuple[float, float, float]:
+    def compute_harmonic_mean(self, state_info, y) -> tuple[float, float, float]:
         """Calculate harmonic mean from a state info matrix and array of class labeles.
 
         Parameters

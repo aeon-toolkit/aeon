@@ -22,7 +22,7 @@ from aeon.testing.data_generation import (
     make_example_3d_numpy_list,
     make_example_nested_dataframe,
 )
-from aeon.testing.test_config import PR_TESTING
+from aeon.testing.testing_config import PR_TESTING
 
 
 @pytest.mark.skipif(
@@ -104,7 +104,7 @@ def test_write_data_to_tsfile_invalid():
     """Test function to check the handling of invalid inputs by write_to_tsfile."""
     with pytest.raises(TypeError, match="Wrong input data type"):
         write_to_tsfile("A string", "path")
-    with pytest.raises(TypeError, match="Data provided must be a ndarray or a list"):
+    with pytest.raises(ValueError, match="Data provided must be a ndarray or a list"):
         _write_data_to_tsfile("AFC", "49", "undefeated")
     X, _ = make_example_3d_numpy(n_cases=6, n_timepoints=10, n_channels=1)
     y = np.ndarray([0, 1, 1, 0, 1])
@@ -139,6 +139,37 @@ def test_write_dataframe_to_ts(tsfile_writer):
         # check if the dataframes are the same
         pd.testing.assert_frame_equal(newX, X)
         np.testing.assert_array_almost_equal(newy.astype(int), y)
+
+
+def test_write_inputs():
+    """Tests whether error thrown if wrong input."""
+    # load an example dataset
+    problem_name = "Testy.ts"
+    with tempfile.TemporaryDirectory() as tmp:
+        # output the dataframe in a ts file
+        X, y = make_example_nested_dataframe(min_n_timepoints=12)
+        X2, y2 = make_example_3d_numpy()
+        X3, y3 = make_example_3d_numpy_list()
+        with pytest.raises(ValueError, match="Data provided must be a ndarray"):
+            _write_data_to_tsfile(
+                X=X,
+                path=tmp,
+                y=y,
+                problem_name=problem_name,
+            )
+        _write_data_to_tsfile(X=X3, path=tmp, y=y3, problem_name=problem_name)
+        with pytest.raises(ValueError, match="Data provided must be a DataFrame"):
+            _write_dataframe_to_tsfile(
+                X=X2,
+                path=tmp,
+                y=y2,
+                problem_name=problem_name,
+            )
+        with pytest.raises(TypeError, match="Wrong input data type"):
+            write_to_arff_file(X, y, tmp)
+        X2, y2 = make_example_3d_numpy(n_cases=5, n_channels=2)
+        with pytest.raises(ValueError, match="must be a 3D array with shape"):
+            write_to_arff_file(X2, y2, tmp)
 
 
 def test_write_header():
@@ -186,6 +217,18 @@ def test_write_results_to_uea_format():
             write_results_to_uea_format(
                 "HC", "Testy", y_pred=y_pred, y_true=y_true, output_path=tmp
             )
+        with pytest.raises(ValueError, match="Unknown 'split' value"):
+            write_results_to_uea_format(
+                "HC",
+                "Testy",
+                y_pred=y_pred,
+                output_path=tmp,
+                full_path=False,
+                split="FOO",
+                timing_type="seconds",
+                first_line_comment="Hello",
+            )
+
         y_true = np.array([0, 1, 1, 0])
         write_results_to_uea_format(
             "HC",
@@ -204,6 +247,17 @@ def test_write_results_to_uea_format():
             "Testy2",
             y_pred=y_pred,
             y_true=y_true,
+            output_path=tmp,
+            full_path=False,
+            split="TEST",
+            timing_type="seconds",
+            first_line_comment="Hello",
+            predicted_probs=probs,
+        )
+        write_results_to_uea_format(
+            "HC",
+            "Testy2",
+            y_pred=y_pred,
             output_path=tmp,
             full_path=False,
             split="TEST",

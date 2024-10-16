@@ -1,33 +1,13 @@
 """Multiple Representations Sequence Miner (MrSQM) Classifier."""
 
-__maintainer__ = ["TonyBagnall"]
+__maintainer__ = ["TonyBagnall", "MatthewMiddlehurst"]
 __all__ = ["MrSQMClassifier"]
 
-from typing import List, Union
+from typing import Union
 
 import numpy as np
-import pandas as pd
 
 from aeon.classification import BaseClassifier
-
-
-def _from_numpy3d_to_nested_dataframe(X):
-    """Convert numpy3D collection to a pd.DataFrame where each cell is a series."""
-    n_cases, n_channels, n_timepoints = X.shape
-    array_type = X.dtype
-    container = pd.Series
-    column_names = [f"channel_{i}" for i in range(n_channels)]
-    column_list = []
-    for j, column in enumerate(column_names):
-        nested_column = (
-            pd.DataFrame(X[:, j, :])
-            .apply(lambda x: [container(x, dtype=array_type)], axis=1)
-            .str[0]
-            .rename(column)
-        )
-        column_list.append(nested_column)
-    df = pd.concat(column_list, axis=1)
-    return df
 
 
 class MrSQMClassifier(BaseClassifier):
@@ -35,7 +15,7 @@ class MrSQMClassifier(BaseClassifier):
     Multiple Representations Sequence Miner (MrSQM) classifier.
 
     This is a wrapper for the MrSQMClassifier algorithm from the `mrsqm` package.
-    MrSQM is not included in all extras as it requires gcc and fftw
+    MrSQM is not included in ``all_extras`` as it requires gcc and fftw
     (http://www.fftw.org/index.html) to be installed for Windows and some Linux OS.
 
     Overview: MrSQM is a time series classifier utilising symbolic
@@ -78,9 +58,6 @@ class MrSQMClassifier(BaseClassifier):
     .. [1] Nguyen, Thach Le, and Georgiana Ifrim. "Fast time series classification with
         random symbolic subsequences." Advanced Analytics and Learning on Temporal Data:
         7th ECML PKDD Workshop, AALTD 2022, Grenoble, France, September 19–23, 2022.
-    .. [2] Nguyen, Thach Le, and Georgiana Ifrim. "MrSQM: Fast time series
-        classification with symbolic representations." arXiv preprint arXiv:2109.01036
-        (2021).
 
     Examples
     --------
@@ -95,8 +72,8 @@ class MrSQMClassifier(BaseClassifier):
 
     _tags = {
         "X_inner_type": "numpy3D",
-        "algorithm_type": "shapelet",
-        "cant-pickle": True,
+        "algorithm_type": "dictionary",
+        "cant_pickle": True,
         "python_dependencies": "mrsqm",
     }
 
@@ -125,7 +102,6 @@ class MrSQMClassifier(BaseClassifier):
     def _fit(self, X, y):
         from mrsqm import MrSQMClassifier
 
-        _X = _from_numpy3d_to_nested_dataframe(X)
         self.clf_ = MrSQMClassifier(
             strat=self.strat,
             features_per_rep=self.features_per_rep,
@@ -136,20 +112,18 @@ class MrSQMClassifier(BaseClassifier):
             custom_config=self.custom_config,
             random_state=self.random_state,
         )
-        self.clf_.fit(_X, y)
+        self.clf_.fit(X, y)
 
         return self
 
     def _predict(self, X) -> np.ndarray:
-        _X = _from_numpy3d_to_nested_dataframe(X)
-        return self.clf_.predict(_X)
+        return self.clf_.predict(X)
 
     def _predict_proba(self, X) -> np.ndarray:
-        _X = _from_numpy3d_to_nested_dataframe(X)
-        return self.clf_.predict_proba(_X)
+        return self.clf_.predict_proba(X)
 
     @classmethod
-    def get_test_params(cls, parameter_set: str = "default") -> Union[dict, List[dict]]:
+    def get_test_params(cls, parameter_set: str = "default") -> Union[dict, list[dict]]:
         """Return testing parameter settings for the estimator.
 
         Parameters

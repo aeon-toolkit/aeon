@@ -1,14 +1,21 @@
 """Time series kshapes."""
 
-from typing import Union
+from typing import Optional, Union
 
 import numpy as np
+from deprecated.sphinx import deprecated
 from numpy.random import RandomState
 
 from aeon.clustering.base import BaseClusterer
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
+# TODO: remove in v1.0.0
+@deprecated(
+    version="1.0.0",
+    reason="TimeSeriesKShapes class has been renamed to TimeSeriesKShape. "
+    "The TimeSeriesKShapes version will be removed in version 1.0.0.",
+    category=FutureWarning,
+)
 class TimeSeriesKShapes(BaseClusterer):
     """Kshape algorithm: wrapper of the ``tslearn`` implementation.
 
@@ -64,6 +71,7 @@ class TimeSeriesKShapes(BaseClusterer):
     _tags = {
         "capability:multivariate": True,
         "python_dependencies": "tslearn",
+        "algorithm_type": "distance",
     }
 
     def __init__(
@@ -74,7 +82,7 @@ class TimeSeriesKShapes(BaseClusterer):
         max_iter: int = 300,
         tol: float = 1e-4,
         verbose: bool = False,
-        random_state: Union[int, RandomState] = None,
+        random_state: Optional[Union[int, RandomState]] = None,
     ):
         self.init_algorithm = init_algorithm
         self.n_init = n_init
@@ -107,7 +115,6 @@ class TimeSeriesKShapes(BaseClusterer):
         self:
             Fitted estimator.
         """
-        _check_soft_dependencies("tslearn", severity="error")
         from tslearn.clustering import KShape
 
         self._tslearn_k_shapes = KShape(

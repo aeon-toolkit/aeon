@@ -26,8 +26,6 @@ __all__ = [
 ]
 
 import os
-from urllib.error import HTTPError, URLError
-from warnings import warn
 
 import numpy as np
 import pandas as pd
@@ -40,7 +38,7 @@ DIRNAME = "data"
 MODULE = os.path.dirname(__file__)
 
 
-def load_gunpoint(split=None, return_X_y=True, return_type="numpy3d"):
+def load_gunpoint(split=None, return_type="numpy3d"):
     """Load the GunPoint univariate time series classification problem.
 
     Parameters
@@ -48,9 +46,6 @@ def load_gunpoint(split=None, return_X_y=True, return_type="numpy3d"):
     split: None or one of "TRAIN", "TEST", default=None
         Whether to load the train or test instances of the problem. By default it
         loads both train and test instances into a single array.
-    return_X_y: bool, default=True
-        If True, returns (features, target) separately instead of as single data
-        structure.
     return_type: string, default="numpy3d"
         Data structure to use for time series, should be either "numpy2d" or "numpy3d".
 
@@ -65,9 +60,8 @@ def load_gunpoint(split=None, return_X_y=True, return_type="numpy3d"):
         150) (return_type="numpy2d"), where n_cases is either 150 (split="train" or
         "test") or 300.
     y: np.ndarray
-        1D array of length 150 or 300, only returned if return_X_y is True
-        The class labels for each time series instance in X
-        If return_X_y is False, y is appended to X instead.
+        1D array of length 150 or 300. The class labels for each time series instance
+        in X.
 
     Examples
     --------
@@ -81,12 +75,12 @@ def load_gunpoint(split=None, return_X_y=True, return_type="numpy3d"):
     Train cases:        50
     Test cases:         150
     Number of classes:  2
-    Details: http://timeseriesclassification.com/description.php?Dataset=GunPoint
+    Details: https://timeseriesclassification.com/description.php?Dataset=GunPoint
     """
-    return _load_tsc_dataset("GunPoint", split, return_X_y, return_type=return_type)
+    return _load_tsc_dataset("GunPoint", split, return_type=return_type)
 
 
-def load_osuleaf(split=None, return_X_y=True, return_type="numpy3d"):
+def load_osuleaf(split=None, return_type="numpy3d"):
     """Load the OSULeaf univariate time series classification problem.
 
     Parameters
@@ -94,9 +88,6 @@ def load_osuleaf(split=None, return_X_y=True, return_type="numpy3d"):
     split: None or one of "TRAIN", "TEST", default=None
         Whether to load the train or test instances of the problem. By default it
         loads both train and test instances into a single array.
-    return_X_y: bool, default=True
-        If True, returns (features, target) separately instead of as single data
-        structure.
     return_type: string, default="numpy3d"
         Data structure to use for time series, should be either "numpy2d" or "numpy3d".
 
@@ -111,9 +102,8 @@ def load_osuleaf(split=None, return_X_y=True, return_type="numpy3d"):
         427) (return_type="numpy2d"), where n_cases where n_cases is either 200
         (split = "train") 242 (split="test") or 442.
     y: np.ndarray
-        1D array of length 200, 242 or 542, only returned if return_X_y is True
-        The class labels for each time series instance in X
-        If return_X_y is False, y is appended to X instead.
+        1D array of length 200, 242 or 542. The class labels for each time series
+        instance in X.
 
     Examples
     --------
@@ -127,12 +117,12 @@ def load_osuleaf(split=None, return_X_y=True, return_type="numpy3d"):
     Train cases:        200
     Test cases:         242
     Number of classes:  6
-    Details: http://www.timeseriesclassification.com/description.php?Dataset=OSULeaf
+    Details: https://www.timeseriesclassification.com/description.php?Dataset=OSULeaf
     """
-    return _load_tsc_dataset("OSULeaf", split, return_X_y, return_type=return_type)
+    return _load_tsc_dataset("OSULeaf", split, return_type=return_type)
 
 
-def load_italy_power_demand(split=None, return_X_y=True, return_type="numpy3d"):
+def load_italy_power_demand(split=None, return_type="numpy3d"):
     """Load ItalyPowerDemand univariate time series classification problem.
 
     Parameters
@@ -140,9 +130,6 @@ def load_italy_power_demand(split=None, return_X_y=True, return_type="numpy3d"):
     split: None or one of "TRAIN", "TEST", default=None
         Whether to load the train or test instances of the problem. By default it
         loads both train and test instances into a single array.
-    return_X_y: bool, default=True
-        If True, returns (features, target) separately instead of as single data
-        structure.
     return_type: string, default="numpy3d"
         Data structure to use for time series, should be either "numpy2d" or "numpy3d".
 
@@ -157,10 +144,8 @@ def load_italy_power_demand(split=None, return_X_y=True, return_type="numpy3d"):
         24) (return_type="numpy2d"), where n_cases where n_cases is either 67
         (split = "train") 1029 (split="test") or 1096.
     y: np.ndarray
-        1D array of length 67, 1029 or 1096, only returned if return_X_y is True
-        The class labels for each time series instance in X
-        If return_X_y is False, y is appended to X instead.
-
+        1D array of length 67, 1029 or 1096. The class labels for each time series
+        instance in X.
 
     Examples
     --------
@@ -174,13 +159,13 @@ def load_italy_power_demand(split=None, return_X_y=True, return_type="numpy3d"):
     Train cases:        67
     Test cases:         1029
     Number of classes:  2
-    Details:http://timeseriesclassification.com/description.php?Dataset=ItalyPowerDemand
+    Details:https://timeseriesclassification.com/description.php?Dataset=ItalyPowerDemand
     """
     name = "ItalyPowerDemand"
-    return _load_tsc_dataset(name, split, return_X_y, return_type=return_type)
+    return _load_tsc_dataset(name, split, return_type=return_type)
 
 
-def load_unit_test(split=None, return_X_y=True, return_type="numpy3d"):
+def load_unit_test(split=None, return_type="numpy3d"):
     """
     Load UnitTest data.
 
@@ -193,9 +178,6 @@ def load_unit_test(split=None, return_X_y=True, return_type="numpy3d"):
     split: None or one of "TRAIN", "TEST", default=None
         Whether to load the train or test instances of the problem. By default it
         loads both train and test instances into a single array.
-    return_X_y: bool, default=True
-        If True, returns (features, target) separately instead of as single data
-        structure.
     return_type: string, default="numpy3d"
         Data structure containing series, should be either "numpy2d" or "numpy3d".
 
@@ -210,9 +192,8 @@ def load_unit_test(split=None, return_X_y=True, return_type="numpy3d"):
         24) (return_type="numpy2d), where n_cases where n_cases is either 20
         (split = "train") 22 (split="test") or 42.
     y: np.ndarray
-        1D array of length 20, 22 or 42, only returned if return_X_y is True
+        1D array of length 20, 22 or 42
         The class labels for each time series instance in X
-        If return_X_y is False, y is appended to X instead.
 
     Examples
     --------
@@ -227,13 +208,13 @@ def load_unit_test(split=None, return_X_y=True, return_type="numpy3d"):
     Train cases:        20
     Test cases:         22 (full dataset has 345)
     Number of classes:  2
-    Details: http://timeseriesclassification.com/description.php?Dataset=Chinatown
+    Details: https://timeseriesclassification.com/description.php?Dataset=Chinatown
     for the full dataset
     """
-    return _load_saved_dataset("UnitTest", split, return_X_y, return_type)
+    return _load_saved_dataset("UnitTest", split, return_type)
 
 
-def load_arrow_head(split=None, return_X_y=True, return_type="numpy3d"):
+def load_arrow_head(split=None, return_type="numpy3d"):
     """
     Load the ArrowHead univariate time series classification problem.
 
@@ -242,9 +223,6 @@ def load_arrow_head(split=None, return_X_y=True, return_type="numpy3d"):
     split: None or one of "TRAIN", "TEST", default=None
         Whether to load the train or test instances of the problem. By default it
         loads both train and test instances into a single array.
-    return_X_y: bool, default=True
-        If True, returns (features, target) separately instead of as single data
-        structure.
     return_type: string, default="numpy3d"
         Data structure to use for time series, should be either "numpy2d" or "numpy3d".
 
@@ -259,9 +237,8 @@ def load_arrow_head(split=None, return_X_y=True, return_type="numpy3d"):
         251) (return_type="numpy2d"), where n_cases where n_cases is either 36
         (split = "train"), 175 (split="test") or 211.
     y: np.ndarray
-        1D array of length 36, 175 or 211, only returned if return_X_y is True
-        The class labels for each time series instance in X
-        If return_X_y is False, y is appended to X instead.
+        1D array of length 36, 175 or 211. The class labels for each time series
+        instance in X.
 
     Examples
     --------
@@ -275,14 +252,12 @@ def load_arrow_head(split=None, return_X_y=True, return_type="numpy3d"):
     Train cases:        36
     Test cases:         175
     Number of classes:  3
-    Details: http://timeseriesclassification.com/description.php?Dataset=ArrowHead
+    Details: https://timeseriesclassification.com/description.php?Dataset=ArrowHead
     """
-    return _load_saved_dataset(
-        name="ArrowHead", split=split, return_X_y=return_X_y, return_type=return_type
-    )
+    return _load_saved_dataset(name="ArrowHead", split=split, return_type=return_type)
 
 
-def load_acsf1(split=None, return_X_y=True, return_type="numpy3d"):
+def load_acsf1(split=None, return_type="numpy3d"):
     """Load the ACSF1 univariate dataset on power consumption of typical appliances.
 
     Parameters
@@ -290,9 +265,6 @@ def load_acsf1(split=None, return_X_y=True, return_type="numpy3d"):
     split: None or one of "TRAIN", "TEST", default=None
         Whether to load the train or test instances of the problem. By default it
         loads both train and test instances into a single array.
-    return_X_y: bool, default=True
-        If True, returns (features, target) separately instead of as single data
-        structure.
     return_type: string, default="numpy3d"
         Data structure to use for time series, should be either "numpy2d" or "numpy3d".
 
@@ -307,9 +279,8 @@ def load_acsf1(split=None, return_X_y=True, return_type="numpy3d"):
         1460) (return_type="numpy2d"), where n_cases where n_cases is either 100
         (split = "train" or split="test") or 200.
     y: np.ndarray
-        1D array of length 100 or 200 only returned if return_X_y is True
-        The class labels for each time series instance in X
-        If return_X_y is False, y is appended to X instead.
+        1D array of length 100 or 200. The class labels for each time series instance
+        in X.
 
     Examples
     --------
@@ -323,12 +294,12 @@ def load_acsf1(split=None, return_X_y=True, return_type="numpy3d"):
     Train cases:        100
     Test cases:         100
     Number of classes:  10
-    Details: http://www.timeseriesclassification.com/description.php?Dataset=ACSF1
+    Details: https://www.timeseriesclassification.com/description.php?Dataset=ACSF1
     """
-    return _load_tsc_dataset("ACSF1", split, return_X_y, return_type=return_type)
+    return _load_tsc_dataset("ACSF1", split, return_type=return_type)
 
 
-def load_basic_motions(split=None, return_X_y=True, return_type="numpy3d"):
+def load_basic_motions(split=None, return_type="numpy3d"):
     """
     Load the BasicMotions time series classification problem.
 
@@ -339,9 +310,6 @@ def load_basic_motions(split=None, return_X_y=True, return_type="numpy3d"):
     split: None or one of "TRAIN", "TEST", default=None
         Whether to load the train or test instances of the problem. By default it
         loads both train and test instances into a single array.
-    return_X_y: bool, default=True
-        If True, returns (features, target) separately instead of as single data
-        structure.
     return_type: string, default="numpy3d"
         Data structure to use for time series, should be "numpy3d" or "np-list".
 
@@ -355,9 +323,8 @@ def load_basic_motions(split=None, return_X_y=True, return_type="numpy3d"):
         shape (n_cases, 6, 100) (if return_type="numpy3d"), where n_cases where
         n_cases is either 40 (split = "train" or split="test") or 80.
     y: np.ndarray
-        1D array of length 40 or 80, only returned if return_X_y is True
-        The class labels for each time series instance in X
-        If return_X_y is False, y is appended to X instead.
+        1D array of length 40 or 80. The class labels for each time series instance
+        in X.
 
     Notes
     -----
@@ -366,7 +333,7 @@ def load_basic_motions(split=None, return_X_y=True, return_type="numpy3d"):
     Train cases:        40
     Test cases:         40
     Number of classes:  4
-    Details:http://www.timeseriesclassification.com/description.php?Dataset=BasicMotions
+    Details:https://www.timeseriesclassification.com/description.php?Dataset=BasicMotions
     """
     if return_type == "numpy2d" or return_type == "numpy2D":
         raise ValueError(
@@ -375,11 +342,11 @@ def load_basic_motions(split=None, return_X_y=True, return_type="numpy3d"):
             f"numpy3d instead"
         )
     return _load_saved_dataset(
-        name="BasicMotions", split=split, return_X_y=return_X_y, return_type=return_type
+        name="BasicMotions", split=split, return_type=return_type
     )
 
 
-def load_plaid(split=None, return_X_y=True, return_type="np-list"):
+def load_plaid(split=None):
     """Load the PLAID univariate time series classification problem.
 
     Example of a univariate problem with unequal length time series.
@@ -389,22 +356,12 @@ def load_plaid(split=None, return_X_y=True, return_type="np-list"):
     split: None or one of "TRAIN", "TEST", default=None
         Whether to load the train or test instances of the problem. By default it
         loads both train and test instances into a single array.
-    return_X_y: bool, default=True
-        If True, returns (features, target) separately instead of as single data
-        structure.
-    return_type: string, default="np-list"
-        Data structure to use for time series, should be "nested_univ" or "np-list".
-
-    Raises
-    ------
-    ValueError is raised if the data cannot be stored in the requested return_type.
 
     Returns
     -------
     X: list of 2D np.ndarray, one for each series.
-    y: 1D numpy array of length n, only returned if return_X_y if True
-        The class labels for each time series instance in X
-        If return_X_y is False, y is appended to X instead.
+    y: 1D numpy array of length len(X). The class labels for each time series
+    instance in X.
 
     Notes
     -----
@@ -413,17 +370,17 @@ def load_plaid(split=None, return_X_y=True, return_type="np-list"):
     Train cases:        537
     Test cases:         537
     Number of classes:  2
-    Details: http://timeseriesclassification.com/description.php?Dataset=PLAID
+    Details: https://timeseriesclassification.com/description.php?Dataset=PLAID
 
     Examples
     --------
     >>> from aeon.datasets import load_plaid
     >>> X, y = load_plaid()
     """
-    return _load_tsc_dataset("PLAID", split, return_X_y, return_type=return_type)
+    return _load_tsc_dataset("PLAID", split, return_type="np-list")
 
 
-def load_japanese_vowels(split=None, return_X_y=True, return_type="np-list"):
+def load_japanese_vowels(split=None):
     """Load the JapaneseVowels time series classification problem.
 
     Example of a multivariate problem with unequal length series.
@@ -433,18 +390,12 @@ def load_japanese_vowels(split=None, return_X_y=True, return_type="np-list"):
     split: None or one of "TRAIN", "TEST", default=None
         Whether to load the train or test instances of the problem. By default it
         loads both train and test instances into a single array.
-    return_X_y: bool, default=True
-        If True, returns (features, target) separately instead of a single
-        dataframe with columns for features and the target.
-    return_type: string, default="np-list"
-        Data structure to use for time series, should be "nested_univ" or "np-list".
 
     Returns
     -------
-    X: np.Pandas dataframe with 12 columns and a pd.Series in each cell
-    y: 1D numpy array of length n, only returned if return_X_y if True
-        The class labels for each time series instance in X
-        If return_X_y is False, y is appended to X instead.
+    X: list of 2D np.ndarray, one for each series.
+    y: 1D numpy array of length len(X). The class labels for each time series instance
+    in X.
 
     Examples
     --------
@@ -458,11 +409,104 @@ def load_japanese_vowels(split=None, return_X_y=True, return_type="np-list"):
     Train cases:        270
     Test cases:         370
     Number of classes:  9
-    Details: http://timeseriesclassification.com/description.php?Dataset=JapaneseVowels
+    Details: https://timeseriesclassification.com/description.php?Dataset=JapaneseVowels
     """
-    return _load_tsc_dataset(
-        "JapaneseVowels", split, return_X_y, return_type=return_type
-    )
+    return _load_tsc_dataset("JapaneseVowels", split, return_type="np-list")
+
+
+def load_covid_3month(split=None, return_type="numpy3d"):
+    """Load dataset of last three months confirmed covid cases.
+
+    Parameters
+    ----------
+    split: None or str{"train", "test"}, default=None
+        Whether to load the train or test partition of the problem. By
+        default, it loads both.
+    return_type: string, default="numpy3d"
+        Data structure to use for time series, should be either "numpy2d" or "numpy3d".
+
+    Returns
+    -------
+    X: np.ndarray
+        The time series data.
+    y: np.ndarray
+        The regression values for each case in X.
+
+    Examples
+    --------
+    >>> from aeon.datasets import load_covid_3month
+    >>> X, y = load_covid_3month()
+
+    Notes
+    -----
+    Dimensionality:     univariate
+    Series length:      84
+    Train cases:        140
+    Test cases:         61
+    Number of classes:  -
+
+    The goal of this dataset is to predict COVID-19's death rate on 1st April 2020 for
+    each country using daily confirmed cases for the last three months. This dataset
+    contains 201 time series with no missing values, where each time series is
+    the daily confirmed cases for a country.
+    The data was obtained from WHO's COVID-19 database.
+    Please refer to https://covid19.who.int/ for more details
+
+    Dataset details: https://zenodo.org/record/3902690#.Yy1z_HZBxEY
+    =Covid3Month
+    """
+    name = "Covid3Month"
+    X, y = _load_tsc_dataset(name, split, return_type)
+    y = y.astype(float)
+    return X, y
+
+
+def load_cardano_sentiment(split=None, return_type="numpy3d"):
+    """Load dataset of historical sentiment data for Cardano cryptocurrency.
+
+    Parameters
+    ----------
+    split: None or str{"train", "test"}, default=None
+        Whether to load the train or test partition of the problem. By
+        default, it loads both.
+    return_type: string, default="numpy3d"
+        Data structure to use for time series, should be either "numpy2d" or "numpy3d".
+
+    Returns
+    -------
+    X: np.ndarray
+        The time series data.
+    y: np.ndarray
+        The regression values for each case in X.
+
+    Examples
+    --------
+    >>> from aeon.datasets import load_cardano_sentiment
+    >>> X, y = load_cardano_sentiment()
+
+    Notes
+    -----
+    Dimensionality:     multivariate
+    Series length:      24
+    Train cases:        74
+    Test cases:         33
+    Number of classes:  -
+
+    By combining historical sentiment data for Cardano cryptocurrency, extracted from
+    EODHistoricalData and made available on Kaggle, with historical price data for the
+    same cryptocurrency, extracted from CryptoDataDownload, we created the
+    CardanoSentiment dataset, with 107 instances. The predictors are hourly close price
+    (in USD) and traded volume during a day, resulting in 2-dimensional time series of
+    length 24. The response variable is the normalized sentiment score on the day
+    spanned by the timepoints.
+
+    EODHistoricalData: https://perma.cc/37GN-BMRL
+    CryptoDataDownload: https://perma.cc/4M79-7QY4
+    Dataset details: https://arxiv.org/pdf/2305.01429.pdf
+    """
+    X, y = _load_tsc_dataset("CardanoSentiment", split, return_type)
+    y = y.astype(float)
+    return X, y
 
 
 # forecasting data sets
@@ -920,13 +964,7 @@ def load_unit_test_tsf(return_type="tsf_default"):
     )
 
 
-def load_solar(
-    start="2021-05-01",
-    end="2021-09-01",
-    normalise=True,
-    return_full_df=False,
-    api_version="v4",
-):
+def load_solar():
     """Get national solar estimates for GB from Sheffield Solar PV_Live API.
 
     This function calls the Sheffield Solar PV_Live API to extract national solar data
@@ -936,19 +974,6 @@ def load_solar(
 
     The returned time series is half hourly. For more information please refer
     to [1, 2]_.
-
-    Parameters
-    ----------
-    start : string, default="2021-05-01"
-        The start date of the time-series in "YYYY-MM-DD" format
-    end : string, default="2021-09-01"
-        The end date of the time-series in "YYYY-MM-DD" format
-    normalise : boolean, default=True
-        Normalise the returned time-series by installed capacity?
-    return_full_df : boolean, default=False
-        Return a pd.DataFrame with power, capacity, and normalised estimates?
-    api_version : string or None, default="v4"
-        API version to call. If None then a stored sample of the data is loaded.
 
     Returns
     -------
@@ -970,167 +995,4 @@ def load_solar(
     y = pd.read_csv(path, index_col=0, parse_dates=["datetime_gmt"], dtype={1: float})
     y = y.asfreq("30T")
     y = y.squeeze("columns")
-    if api_version is None:
-        return y
-
-    def _load_solar(
-        start="2021-05-01",
-        end="2021-09-01",
-        normalise=True,
-        return_full_df=False,
-        api_version="v4",
-    ):
-        """Private loader, for decoration with backoff."""
-        url = (
-            f"https://api0.solar.sheffield.ac.uk/pvlive/api/"
-            f"{api_version}/gsp/0?start={start}T00:00:00&end={end}"
-            f"extra_fields=capacity_mwp&data_format=csv"
-        )
-        df = (
-            pd.read_csv(
-                url, index_col=["gsp_id", "datetime_gmt"], parse_dates=["datetime_gmt"]
-            )
-            .droplevel(0)
-            .sort_index()
-        )
-        df = df.asfreq("30T")
-        df["generation_pu"] = df["generation_mw"] / df["capacity_mwp"]
-
-        if return_full_df:
-            df["generation_pu"] = df["generation_mw"] / df["capacity_mwp"]
-            return df
-        else:
-            if normalise:
-                return df["generation_pu"].rename("solar_gen")
-            else:
-                return df["generation_mw"].rename("solar_gen")
-
-    try:
-        return _load_solar(
-            start=start,
-            end=end,
-            normalise=normalise,
-            return_full_df=return_full_df,
-            api_version=api_version,
-        )
-    except (URLError, HTTPError):
-        warn(
-            """
-                    Error detected using API. Check connection, input arguments, and
-                    API status here https://www.solar.sheffield.ac.uk/pvlive/api/.
-                    Loading stored sample data instead.
-                    """
-        )
-        return y
-
-
-def load_covid_3month(split=None, return_X_y=True, return_type="numpy3d"):
-    """Load dataset of last three months confirmed covid cases.
-
-    Parameters
-    ----------
-    split: None or str{"train", "test"}, default=None
-        Whether to load the train or test partition of the problem. By
-        default, it loads both.
-    return_X_y: bool, default=True
-        If True, returns (features, target) separately instead of a single
-        dataframe with columns for
-        features and the target.
-    return_type: string, default="numpy3d"
-        Data structure to use for time series, should be either "numpy2d" or "numpy3d".
-
-    Returns
-    -------
-    X: pd.DataFrame with m rows and c columns
-        The time series data for the problem with m cases and c dimensions
-    y: numpy array
-        The regression values for each case in X
-
-    Examples
-    --------
-    >>> from aeon.datasets import load_covid_3month
-    >>> X, y = load_covid_3month()
-
-    Notes
-    -----
-    Dimensionality:     univariate
-    Series length:      84
-    Train cases:        140
-    Test cases:         61
-    Number of classes:  -
-
-    The goal of this dataset is to predict COVID-19's death rate on 1st April 2020 for
-    each country using daily confirmed cases for the last three months. This dataset
-    contains 201 time series with no missing values, where each time series is
-    the daily confirmed cases for a country.
-    The data was obtained from WHO's COVID-19 database.
-    Please refer to https://covid19.who.int/ for more details
-
-    Dataset details: https://zenodo.org/record/3902690#.Yy1z_HZBxEY
-    =Covid3Month
-    """
-    name = "Covid3Month"
-    if return_X_y:
-        X, y = _load_tsc_dataset(name, split, return_X_y, return_type)
-        y = y.astype(float)
-        return X, y
-    else:
-        X = _load_tsc_dataset(name, split, return_X_y, return_type)
-        return X
-
-
-def load_cardano_sentiment(split=None, return_X_y=True, return_type="numpy3d"):
-    """Load dataset of historical sentiment data for Cardano cryptocurrency.
-
-    Parameters
-    ----------
-    split: None or str{"train", "test"}, default=None
-        Whether to load the train or test partition of the problem. By
-        default, it loads both.
-    return_X_y: bool, default=True
-        If True, returns (features, target) separately instead of a single
-        dataframe with columns for
-        features and the target.
-    return_type: string, default="numpy3d"
-        Data structure to use for time series, should be either "numpy2d" or "numpy3d".
-
-    Returns
-    -------
-    X: pd.DataFrame with m rows and c columns
-        The time series data for the problem with m cases and c dimensions
-    y: numpy array
-        The regression values for each case in X
-
-    Examples
-    --------
-    >>> from aeon.datasets import load_cardano_sentiment
-    >>> X, y = load_cardano_sentiment()
-
-    Notes
-    -----
-    Dimensionality:     multivariate
-    Series length:      24
-    Train cases:        74
-    Test cases:         33
-    Number of classes:  -
-
-    By combining historical sentiment data for Cardano cryptocurrency, extracted from
-    EODHistoricalData and made available on Kaggle, with historical price data for the
-    same cryptocurrency, extracted from CryptoDataDownload, we created the
-    CardanoSentiment dataset, with 107 instances. The predictors are hourly close price
-    (in USD) and traded volume during a day, resulting in 2-dimensional time series of
-    length 24. The response variable is the normalized sentiment score on the day
-    spanned by the timepoints.
-
-    EODHistoricalData: https://perma.cc/37GN-BMRL
-    CryptoDataDownload: https://perma.cc/4M79-7QY4
-    Dataset details: https://arxiv.org/pdf/2305.01429.pdf
-    """
-    name = "CardanoSentiment"
-    if return_X_y:
-        X, y = _load_tsc_dataset(name, split, return_X_y, return_type)
-        y = y.astype(float)
-        return X, y
-    else:
-        X = _load_tsc_dataset(name, split, return_X_y, return_type)
-        return X
+    return y

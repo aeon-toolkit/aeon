@@ -1,0 +1,41 @@
+name: Issue Assigned
+
+on:
+  issues:
+    types: [assigned]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.issue.id }}
+  cancel-in-progress: true
+
+jobs:
+  remove-good-first-issue:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Create app token
+        uses: actions/create-github-app-token@v1
+        id: app-token
+        with:
+          app-id: ${{ vars.PR_APP_ID }}
+          private-key: ${{ secrets.PR_APP_KEY }}
+
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/utilities
+
+      - name: Setup Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install PyGithub
+        run: pip install -Uq PyGithub
+
+      - name: Process comment edit
+        id: label_out
+        run: python .github/utilities/remove_good_first_issue.py
+        env:
+          CONTEXT_GITHUB: ${{ toJson(github) }}
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}

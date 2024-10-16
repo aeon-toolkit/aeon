@@ -3,7 +3,7 @@
 __maintainer__ = []
 
 __all__ = [
-    "plot_boxplot_median",
+    "plot_boxplot",
 ]
 
 import numpy as np
@@ -11,9 +11,10 @@ import numpy as np
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
-def plot_boxplot_median(
+def plot_boxplot(
     results,
     labels,
+    relative=False,
     plot_type="violin",
     outliers=True,
     title=None,
@@ -21,11 +22,9 @@ def plot_boxplot_median(
     y_max=None,
 ):
     """
-    Plot a box plot of distributions from the median.
+    Plot a box plot.
 
-    Each row of results is an independent experiment for each element in names. This
-    function works out the deviation from the median for each row, then plots a
-    boxplot variant of each column.
+    Each row of results is an independent experiment for each element in names.
 
     Parameters
     ----------
@@ -33,6 +32,8 @@ def plot_boxplot_median(
         Scores (either accuracies or errors) of dataset x strategy
     labels: list of estimators
         List with names of the estimators
+    relative: bool, default = False
+        If True, the results for a given dataset are divided by the median result.
     plot_type: str, default = "violin"
         This function can create four sort of distribution plots: "violin", "swarm",
         "boxplot" or "strip". "violin" plot features a kernel density estimation of the
@@ -55,11 +56,11 @@ def plot_boxplot_median(
 
     Examples
     --------
-    >>> from aeon.visualisation import plot_boxplot_median
+    >>> from aeon.visualisation import plot_boxplot
     >>> from aeon.benchmarking.results_loaders import get_estimator_results_as_array
     >>> methods = ["IT", "WEASEL-Dilation", "HIVECOTE2", "FreshPRINCE"]
     >>> results = get_estimator_results_as_array(estimators=methods) # doctest: +SKIP
-    >>> plot = plot_boxplot_median(results[0], methods) # doctest: +SKIP
+    >>> plot = plot_boxplot(results[0], methods) # doctest: +SKIP
     >>> plot.show() # doctest: +SKIP
     >>> plot.savefig("boxplot.pdf") # doctest: +SKIP
     """
@@ -67,42 +68,46 @@ def plot_boxplot_median(
     import matplotlib.pyplot as plt
     import seaborn as sns
 
-    # Obtains deviation from median for each independent experiment.
-    medians = np.median(results, axis=1)
-    sum_results_medians = results + medians[:, np.newaxis]
+    if relative:
+        # Obtains deviation from median for each independent experiment.
+        medians = np.median(results, axis=1)
+        sum_results_medians = results + medians[:, np.newaxis]
 
-    deviation_from_median = np.divide(
-        results,
-        sum_results_medians,
-        out=np.zeros_like(results),
-        where=sum_results_medians != 0,
-    )
+        values = np.divide(
+            results,
+            sum_results_medians,
+            out=np.zeros_like(results),
+            where=sum_results_medians != 0,
+        )
+    else:
+        # Uses the raw values.
+        values = results
 
     fig, ax = plt.subplots(figsize=(10, 6), layout="tight")
 
     # Plots violin or boxplots
     if plot_type == "violin":
         plot = sns.violinplot(
-            data=deviation_from_median,
+            data=values,
             linewidth=0.2,
             palette="pastel",
             bw_method=0.3,
         )
     elif plot_type == "boxplot":
         plot = sns.boxplot(
-            data=deviation_from_median,
+            data=values,
             palette="pastel",
             showfliers=outliers,
         )
     elif plot_type == "swarm":
         plot = sns.swarmplot(
-            data=deviation_from_median,
+            data=values,
             linewidth=0.2,
             palette="pastel",
         )
     elif plot_type == "strip":
         plot = sns.stripplot(
-            data=deviation_from_median,
+            data=values,
             linewidth=0.2,
             palette="pastel",
         )
@@ -113,14 +118,20 @@ def plot_boxplot_median(
 
     # Modifying limits for y-axis.
     if y_min is None and (
-        (plot_type == "boxplot" and outliers) or (plot_type != "boxplot")
+        (plot_type == "boxplot" and outliers)
+        or (plot_type not in ["boxplot", "violin"])
     ):
-        y_min = np.around(np.amin(deviation_from_median) - 0.05, 2)
+        y_min = np.around(np.amin(values) - 0.05, 2)
+    elif y_min is None and (plot_type == "violin"):
+        y_min = np.around(ax.get_ylim()[0] - 0.05, 2)
 
     if y_max is None and (
-        (plot_type == "boxplot" and outliers) or (plot_type != "boxplot")
+        (plot_type == "boxplot" and outliers)
+        or (plot_type not in ["boxplot", "violin"])
     ):
-        y_max = np.around(np.amax(deviation_from_median) + 0.05, 2)
+        y_max = np.around(np.amax(values) + 0.05, 2)
+    elif y_min is None and (plot_type == "violin"):
+        y_max = np.around(ax.get_ylim()[1] + 0.05, 2)
 
     ax.set_ylim(y_min, y_max)
 
@@ -128,7 +139,7 @@ def plot_boxplot_median(
     ax.set_xticks(np.arange(len(labels)))
     label_lengths = np.array([len(i) for i in labels])
     if (sum(label_lengths) > 40) or (max(label_lengths[:-1] + label_lengths[1:]) > 20):
-        ax.set_xticklabels(labels, rotation=45, ha="right")
+        ax.set_xticklabels(labels, rotation=45, ha="center")
     else:
         ax.set_xticklabels(labels)
 

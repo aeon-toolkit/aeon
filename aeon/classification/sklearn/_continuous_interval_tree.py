@@ -10,7 +10,7 @@ __all__ = ["ContinuousIntervalTree"]
 
 import math
 import sys
-from typing import List, Tuple, Type, Union
+from typing import Union
 
 import numpy as np
 import pandas as pd
@@ -27,7 +27,7 @@ class _TreeNode:
     """ContinuousIntervalTree tree node."""
 
     def __init__(
-        self, random_state: Union[int, Type[np.random.RandomState], None] = None
+        self, random_state: Union[int, np.random.RandomState, None] = None
     ) -> None:
         self.random_state = random_state
 
@@ -341,7 +341,7 @@ class ContinuousIntervalTree(ClassifierMixin, BaseEstimator):
         self,
         max_depth: int = sys.maxsize,
         thresholds: int = 20,
-        random_state: Union[int, Type[np.random.RandomState], None] = None,
+        random_state: Union[int, np.random.RandomState, None] = None,
     ) -> None:
         self.max_depth = max_depth
         self.thresholds = thresholds
@@ -403,9 +403,7 @@ class ContinuousIntervalTree(ClassifierMixin, BaseEstimator):
 
         thresholds = np.linspace(np.min(X, axis=0), np.max(X, axis=0), self.thresholds)
 
-        distribution = np.zeros(self.n_classes_)
-        for i in range(len(y)):
-            distribution[y[i]] += 1
+        _, distribution = np.unique(y, return_counts=True)
 
         entropy = _entropy(distribution, distribution.sum())
 
@@ -475,7 +473,7 @@ class ContinuousIntervalTree(ClassifierMixin, BaseEstimator):
             dists[i] = self._root.predict_proba(X[i], self.n_classes_)
         return dists
 
-    def tree_node_splits_and_gain(self) -> Tuple[List[int], List[float]]:
+    def tree_node_splits_and_gain(self) -> tuple[list[int], list[float]]:
         """Recursively find the split and information gain for each tree node."""
         splits = []
         gains = []
@@ -485,7 +483,7 @@ class ContinuousIntervalTree(ClassifierMixin, BaseEstimator):
 
         return splits, gains
 
-    def _find_splits_gain(self, node: Type[_TreeNode], splits: list, gains: list):
+    def _find_splits_gain(self, node: type[_TreeNode], splits: list, gains: list):
         """Recursively find the split and information gain for each tree node."""
         splits.append(node.best_split)
         gains.append(node.best_gain)

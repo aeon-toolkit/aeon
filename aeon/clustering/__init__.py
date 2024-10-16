@@ -6,8 +6,10 @@ __all__ = [
     "TimeSeriesCLARA",
     "TimeSeriesCLARANS",
     "TimeSeriesKMeans",
+    "TimeSeriesKShape",
     "TimeSeriesKShapes",
     "TimeSeriesKernelKMeans",
+    "KSpectralCentroid",
     "DummyClusterer",
 ]
 
@@ -15,6 +17,8 @@ from aeon.clustering._clara import TimeSeriesCLARA
 from aeon.clustering._clarans import TimeSeriesCLARANS
 from aeon.clustering._k_means import TimeSeriesKMeans
 from aeon.clustering._k_medoids import TimeSeriesKMedoids
+from aeon.clustering._k_sc import KSpectralCentroid
+from aeon.clustering._k_shape import TimeSeriesKShape
 from aeon.clustering._k_shapes import TimeSeriesKShapes
 from aeon.clustering._kernel_k_means import TimeSeriesKernelKMeans
 from aeon.clustering.base import BaseClusterer

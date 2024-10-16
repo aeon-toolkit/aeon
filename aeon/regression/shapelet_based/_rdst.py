@@ -98,8 +98,8 @@ class RDSTRegressor(BaseRegressor):
     --------
     >>> from aeon.regression.shapelet_based import RDSTRegressor
     >>> from aeon.datasets import load_covid_3month
-    >>> X_train, y_train = load_covid_3month(split="train", return_X_y=True)
-    >>> X_test, y_test = load_covid_3month(split="test", return_X_y=True)
+    >>> X_train, y_train = load_covid_3month(split="train")
+    >>> X_test, y_test = load_covid_3month(split="test")
     >>> clf = RDSTRegressor(
     ...     max_shapelets=10
     ... )
@@ -113,7 +113,7 @@ class RDSTRegressor(BaseRegressor):
         "capability:unequal_length": True,
         "capability:multithreading": True,
         "X_inner_type": ["np-list", "numpy3D"],
-        "non-deterministic": True,  # due to random_state bug in MacOS #324
+        "non_deterministic": True,  # due to random_state bug in MacOS #324
         "algorithm_type": "shapelet",
     }
 

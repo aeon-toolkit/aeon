@@ -3,7 +3,6 @@
 __all__ = [
     "BaseDeepNetwork",
     "BaseDeepLearningNetwork",
-    "CNNNetwork",
     "TimeCNNNetwork",
     "EncoderNetwork",
     "FCNNetwork",
@@ -14,12 +13,17 @@ __all__ = [
     "AEFCNNetwork",
     "AEResNetNetwork",
     "LITENetwork",
+    "AEAttentionBiGRUNetwork",
+    "AEDRNNNetwork",
     "AEBiGRUNetwork",
 ]
+
+from aeon.networks._ae_abgru import AEAttentionBiGRUNetwork
 from aeon.networks._ae_bgru import AEBiGRUNetwork
+from aeon.networks._ae_drnn import AEDRNNNetwork
 from aeon.networks._ae_fcn import AEFCNNetwork
 from aeon.networks._ae_resnet import AEResNetNetwork
-from aeon.networks._cnn import CNNNetwork, TimeCNNNetwork
+from aeon.networks._cnn import TimeCNNNetwork
 from aeon.networks._encoder import EncoderNetwork
 from aeon.networks._fcn import FCNNetwork
 from aeon.networks._inception import InceptionNetwork

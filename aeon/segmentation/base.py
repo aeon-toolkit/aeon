@@ -4,7 +4,7 @@ __all__ = ["BaseSegmenter"]
 __maintainer__ = []
 
 from abc import ABC, abstractmethod
-from typing import List, final
+from typing import final
 
 import numpy as np
 import pandas as pd
@@ -72,7 +72,6 @@ class BaseSegmenter(BaseSeriesEstimator, ABC):
 
     def __init__(self, axis, n_segments=2):
         self.n_segments = n_segments
-        self._is_fitted = False
 
         super().__init__(axis=axis)
 
@@ -107,7 +106,7 @@ class BaseSegmenter(BaseSeriesEstimator, ABC):
             Fitted estimator
         """
         if self.get_class_tag("fit_is_empty"):
-            self._is_fitted = True
+            self.is_fitted = True
             return self
         if self.get_class_tag("requires_y"):
             if y is None:
@@ -120,7 +119,7 @@ class BaseSegmenter(BaseSeriesEstimator, ABC):
         if y is not None:
             y = self._check_y(y)
         self._fit(X=X, y=y)
-        self._is_fitted = True
+        self.is_fitted = True
         return self
 
     @final
@@ -212,7 +211,7 @@ class BaseSegmenter(BaseSeriesEstimator, ABC):
                 )
 
     @classmethod
-    def to_classification(cls, change_points: List[int], length: int):
+    def to_classification(cls, change_points: list[int], length: int):
         """Convert change point locations to a classification vector.
 
         Change point detection results can be treated as classification
@@ -228,7 +227,7 @@ class BaseSegmenter(BaseSeriesEstimator, ABC):
         return labels
 
     @classmethod
-    def to_clusters(cls, change_points: List[int], length: int):
+    def to_clusters(cls, change_points: list[int], length: int):
         """Convert change point locations to a clustering vector.
 
         Change point detection results can be treated as clustering

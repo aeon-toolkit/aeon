@@ -9,12 +9,6 @@ from sklearn.preprocessing import FunctionTransformer
 from sklearn.svm import SVR
 
 from aeon.classification.distance_based import KNeighborsTimeSeriesClassifier
-from aeon.datasets import (
-    load_basic_motions,
-    load_cardano_sentiment,
-    load_covid_3month,
-    load_unit_test,
-)
 from aeon.distances._distance import DISTANCES
 from aeon.regression.distance_based import KNeighborsTimeSeriesRegressor
 from aeon.testing.data_generation import make_example_3d_numpy
@@ -23,7 +17,9 @@ from aeon.testing.data_generation import make_example_3d_numpy
 @pytest.mark.parametrize("dist", DISTANCES)
 def test_function_transformer(dist):
     """Test all distances work with FunctionTransformer in a pipeline."""
-    X = make_example_3d_numpy(n_cases=5, n_channels=1, n_timepoints=10, return_y=False)
+    X = make_example_3d_numpy(
+        n_cases=5, n_channels=1, n_timepoints=10, return_y=False, random_state=1
+    )
     distance = dist["distance"]
     pairwise = dist["pairwise_distance"]
     ft = FunctionTransformer(pairwise)
@@ -41,10 +37,10 @@ def test_function_transformer(dist):
 def test_distance_based(dist):
     """Test all distances work with KNN in a pipeline."""
     X, y = make_example_3d_numpy(
-        n_cases=5, n_channels=1, n_timepoints=10, regression_target=True
+        n_cases=6, n_channels=1, n_timepoints=10, regression_target=True
     )
     X2, y2 = make_example_3d_numpy(
-        n_cases=10, n_channels=1, n_timepoints=10, regression_target=True
+        n_cases=6, n_channels=1, n_timepoints=10, regression_target=True
     )
     pairwise = dist["pairwise_distance"]
     Xt = pairwise(X)
@@ -73,8 +69,8 @@ def test_clusterer(dist):
 @pytest.mark.parametrize(
     "task",
     [
-        ["cls", load_unit_test, KNeighborsClassifier, KNeighborsTimeSeriesClassifier],
-        ["reg", load_covid_3month, KNeighborsRegressor, KNeighborsTimeSeriesRegressor],
+        ["cls", KNeighborsClassifier, KNeighborsTimeSeriesClassifier],
+        ["reg", KNeighborsRegressor, KNeighborsTimeSeriesRegressor],
     ],
 )
 def test_univariate(dist, k, task):
@@ -85,36 +81,41 @@ def test_univariate(dist, k, task):
         return
 
     # Test univariate with 2D format (compatible with sklearn)
-    problem_type, problem_loader, knn_sk_func, knn_aeon_func = task
+    problem_type, knn_sk_func, knn_aeon_func = task
 
-    # Load the unit test dataset as a 2D numpy array
-    X_train, y_train = problem_loader(split="train", return_type="numpy2D")
-    X_test, y_test = problem_loader(split="test", return_type="numpy2D")
-    indices = np.random.RandomState(0).choice(
-        min(len(y_test), len(y_train)), 6, replace=False
+    # Create a collection as a 2D numpy array
+    if problem_type == "cls":
+        reg = False
+    else:
+        reg = True
+    X_train, y_train = make_example_3d_numpy(
+        random_state=0, n_cases=6, regression_target=reg
     )
+    X_test, y_test = make_example_3d_numpy(
+        random_state=2, n_cases=6, regression_target=reg
+    )
+    X_train = np.squeeze(X_train)
+    X_test = np.squeeze(X_test)
     # Compute the pairwise distance matrix for working with sklearn knn with
     # precomputed distances.
-    X_train_precomp_distance = dist["pairwise_distance"](X_train[indices])
-    X_test_precomp_distance = dist["pairwise_distance"](
-        X_test[indices], X_train[indices]
-    )
+    X_train_precomp_distance = dist["pairwise_distance"](X_train)
+    X_test_precomp_distance = dist["pairwise_distance"](X_test, X_train)
 
     knn_aeon = knn_aeon_func(distance=dist["name"], n_neighbors=k)  # aeon
     knn_sk = knn_sk_func(metric=dist["distance"], n_neighbors=k)  # sklearn
     knn_sk_precomp = knn_sk_func(metric="precomputed", n_neighbors=k)  # sklearn pre
 
-    knn_aeon.fit(X_train[indices], y_train[indices])
-    knn_sk.fit(X_train[indices], y_train[indices])
-    knn_sk_precomp.fit(X_train_precomp_distance, y_train[indices])
+    knn_aeon.fit(X_train, y_train)
+    knn_sk.fit(X_train, y_train)
+    knn_sk_precomp.fit(X_train_precomp_distance, y_train)
 
     if problem_type == "cls":
-        knn_aeon_output = knn_aeon.predict_proba(X_test[indices])
-        knn_sk_output = knn_sk.predict_proba(X_test[indices])
+        knn_aeon_output = knn_aeon.predict_proba(X_test)
+        knn_sk_output = knn_sk.predict_proba(X_test)
         knn_sk_precomp_output = knn_sk_precomp.predict_proba(X_test_precomp_distance)
     elif problem_type == "reg":
-        knn_aeon_output = knn_aeon.predict(X_test[indices])
-        knn_sk_output = knn_sk.predict(X_test[indices])
+        knn_aeon_output = knn_aeon.predict(X_test)
+        knn_sk_output = knn_sk.predict(X_test)
         knn_sk_precomp_output = knn_sk_precomp.predict(X_test_precomp_distance)
 
     assert_allclose(knn_aeon_output, knn_sk_output)
@@ -128,13 +129,11 @@ def test_univariate(dist, k, task):
     [
         [
             "cls",
-            load_basic_motions,
             KNeighborsClassifier,
             KNeighborsTimeSeriesClassifier,
         ],
         [
             "reg",
-            load_cardano_sentiment,
             KNeighborsRegressor,
             KNeighborsTimeSeriesRegressor,
         ],
@@ -150,34 +149,36 @@ def test_multivariate(dist, k, task):
     # Test multivariate dataset in two ways: A) concatenating channels to be compatible
     # with sklearn, and B) precomputing distances.
 
-    problem_type, problem_loader, knn_sk_func, knn_aeon_func = task
-
-    # Load the basic motions dataset as a 3D numpy array
-    X_train, y_train = problem_loader(split="train", return_type="numpy3D")
-    X_test, y_test = problem_loader(split="test", return_type="numpy3D")
+    problem_type, knn_sk_func, knn_aeon_func = task
+    if problem_type == "cls":
+        reg = False
+    else:
+        reg = True
+    X_train, y_train = make_example_3d_numpy(
+        random_state=0, n_cases=6, regression_target=reg
+    )
+    X_test, y_test = make_example_3d_numpy(
+        random_state=2, n_cases=6, regression_target=reg
+    )
 
     # Transform to 2D format concatenating channels.
     X_train_concat = X_train.reshape(X_train.shape[0], -1)
     X_test_concat = X_test.reshape(X_test.shape[0], -1)
-
-    indices = np.random.RandomState(0).choice(
-        min(len(y_test), len(y_train)), 6, replace=False
-    )
 
     # A) Test multivariate with 2D format (concatenates channels to be compatible with
     # sklearn)
     knn_aeon = knn_aeon_func(distance=dist["name"], n_neighbors=k)  # aeon concat
     knn_sk = knn_sk_func(metric=dist["distance"], n_neighbors=k)  # sklearn concat
 
-    knn_aeon.fit(X_train_concat[indices], y_train[indices])
-    knn_sk.fit(X_train_concat[indices], y_train[indices])
+    knn_aeon.fit(X_train_concat, y_train)
+    knn_sk.fit(X_train_concat, y_train)
 
     if problem_type == "cls":
-        knn_aeon_output = knn_aeon.predict_proba(X_test_concat[indices])
-        knn_sk_output = knn_sk.predict_proba(X_test_concat[indices])
+        knn_aeon_output = knn_aeon.predict_proba(X_test_concat)
+        knn_sk_output = knn_sk.predict_proba(X_test_concat)
     elif problem_type == "reg":
-        knn_aeon_output = knn_aeon.predict(X_test_concat[indices])
-        knn_sk_output = knn_sk.predict(X_test_concat[indices])
+        knn_aeon_output = knn_aeon.predict(X_test_concat)
+        knn_sk_output = knn_sk.predict(X_test_concat)
 
     assert_allclose(knn_aeon_output, knn_sk_output)
 
@@ -186,22 +187,20 @@ def test_multivariate(dist, k, task):
     # distances)
 
     # Compute the pairwise distance matrix
-    X_train_precomp_distance = dist["pairwise_distance"](X_train[indices])
-    X_test_precomp_distance = dist["pairwise_distance"](
-        X_test[indices], X_train[indices]
-    )
+    X_train_precomp_distance = dist["pairwise_distance"](X_train)
+    X_test_precomp_distance = dist["pairwise_distance"](X_test, X_train)
 
     knn_aeon_3D = knn_aeon_func(distance=dist["name"], n_neighbors=k)  # aeon
     knn_sk_precomp = knn_sk_func(metric="precomputed", n_neighbors=k)  # sklearn precomp
 
-    knn_aeon_3D.fit(X_train[indices], y_train[indices])
-    knn_sk_precomp.fit(X_train_precomp_distance, y_train[indices])
+    knn_aeon_3D.fit(X_train, y_train)
+    knn_sk_precomp.fit(X_train_precomp_distance, y_train)
 
     if problem_type == "cls":
-        knn_aeon_3D_output = knn_aeon_3D.predict_proba(X_test[indices])
+        knn_aeon_3D_output = knn_aeon_3D.predict_proba(X_test)
         knn_sk_precomp_output = knn_sk_precomp.predict_proba(X_test_precomp_distance)
     elif problem_type == "reg":
-        knn_aeon_3D_output = knn_aeon_3D.predict(X_test[indices])
+        knn_aeon_3D_output = knn_aeon_3D.predict(X_test)
         knn_sk_precomp_output = knn_sk_precomp.predict(X_test_precomp_distance)
 
     assert_allclose(knn_aeon_3D_output, knn_sk_precomp_output)

@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from aeon.transformations.collection.reduce import Tabularizer
+from aeon.transformations.collection import Tabularizer
 
 
 def test_tabularizer():
