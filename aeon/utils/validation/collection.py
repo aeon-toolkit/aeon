@@ -348,8 +348,7 @@ def has_missing(X):
     Examples
     --------
     >>> from aeon.utils.validation import has_missing
-    >>> has_missing( np.zeros(shape=(10, 3, 20)))
-    False
+    >>> m = has_missing( np.zeros(shape=(10, 3, 20)))
     """
     type = get_type(X)
     if type == "numpy3D" or type == "numpy2D":

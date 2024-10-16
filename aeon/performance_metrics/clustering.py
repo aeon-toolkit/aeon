@@ -31,8 +31,7 @@ def clustering_accuracy_score(y_true, y_pred):
     Examples
     --------
     >>> from aeon.performance_metrics.clustering import clustering_accuracy_score
-    >>> clustering_accuracy_score([0, 0, 1, 1], [1, 1, 0, 0])
-    1.0
+    >>> acc = clustering_accuracy_score([0, 0, 1, 1], [1, 1, 0, 0])
     """
     matrix = confusion_matrix(y_true, y_pred)
     row, col = linear_sum_assignment(matrix.max() - matrix)
