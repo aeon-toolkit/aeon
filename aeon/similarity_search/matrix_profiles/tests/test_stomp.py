@@ -70,8 +70,8 @@ def test_stomp_squared_matrix_profile(dtype, k):
         ).T
 
         for j in range(k):
-           assert_almost_equal(mp[i][j], expected[id_bests[j, 0], id_bests[j, 1]])
-           assert_equal(ip[i][j], id_bests[j])
+            assert_almost_equal(mp[i][j], expected[id_bests[j, 0], id_bests[j, 1]])
+            assert_equal(ip[i][j], id_bests[j])
 
 
 @pytest.mark.parametrize("dtype", DATATYPES)
