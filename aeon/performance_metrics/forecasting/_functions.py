@@ -9,8 +9,8 @@ import numpy as np
 from scipy.stats import gmean
 from sklearn.metrics import mean_absolute_error as _mean_absolute_error
 from sklearn.metrics import mean_squared_error as _mean_squared_error
-from sklearn.metrics import root_mean_squared_error as _root_mean_squared_error
 from sklearn.metrics import median_absolute_error as _median_absolute_error
+from sklearn.metrics import root_mean_squared_error as _root_mean_squared_error
 from sklearn.metrics._regression import _check_reg_targets
 from sklearn.utils.stats import _weighted_percentile
 from sklearn.utils.validation import check_consistent_length
@@ -966,10 +966,8 @@ def mean_squared_error(
     # Therefore need to pass the opposite of square_root as squared argument
     # to the scikit-learn function being wrapped
     if square_root:
-        return _root_mean_squared_error(y_true,
-        y_pred,
-        sample_weight=horizon_weight,
-        multioutput=multioutput
+        return _root_mean_squared_error(
+            y_true, y_pred, sample_weight=horizon_weight, multioutput=multioutput
         )
     return _mean_squared_error(
         y_true,
