@@ -711,7 +711,7 @@ class SFAFast(BaseCollectionTransformer):
         params = {
             "word_length": 4,
             "window_size": 4,
-            "return_sparse": False,
+            "return_sparse": True,
             "feature_selection": "chi2",
             "alphabet_size": 2,
         }
