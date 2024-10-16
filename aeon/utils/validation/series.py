@@ -193,6 +193,12 @@ def _check_is_multivariate(Z, var_name="input"):
     """
     if isinstance(Z, pd.Series):
         raise ValueError(f"{var_name} must have 2 or more variables, but found 1.")
+    if isinstance(Z, pd.DataFrame):
+        nvars = Z.shape[1]
+        if nvars < 2:
+            raise ValueError(
+                f"{var_name} must have 2 or more variables, but found {nvars}."
+            )
     if isinstance(Z, np.ndarray):
         if Z.ndim == 1 or (Z.ndim == 2 and Z.shape[1] == 1):
             raise ValueError(f"{var_name} must have 2 or more variables, but found 1.")
