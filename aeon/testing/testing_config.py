@@ -72,7 +72,11 @@ EXCLUDED_TESTS = {
     "AutoCorrelationSeriesTransformer": ["check_non_state_changing_method"],
     "SIVSeriesTransformer": ["check_non_state_changing_method"],
     "RocketClassifier": ["check_non_state_changing_method"],
+    "MiniRocketClassifier": ["check_non_state_changing_method"],
+    "MultiRocketClassifier": ["check_non_state_changing_method"],
     "RocketRegressor": ["check_non_state_changing_method"],
+    "MiniRocketRegressor": ["check_non_state_changing_method"],
+    "MultiRocketRegressor": ["check_non_state_changing_method"],
     "RSTSF": ["check_non_state_changing_method"],
 }
 
