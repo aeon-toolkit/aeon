@@ -16,12 +16,13 @@ def write_to_tsfile(
 
     Parameters
     ----------
-    X : np.ndarray (n_cases, n_channels, n_timepoints) or list of np.ndarray[
-    n_cases]
-        Collection of time series: univariate, multivariate, equal or unequal length.
-    path : string.
+    X : Union[list, np.ndarray]
+        Collection of time series, either equal length shape
+        `(n_cases, n_channels, n_timepoints)` or unequal length as a list of
+        np.ndarray, each of shape `(n_channels,n_timepoints_i)`.
+    path : string
         Location of the directory to write file
-    y: None or ndarray, default = None
+    y: None or np.ndarray, default = None
         Response variable, discrete for classification, continuous for regression
         None if clustering.
     problem_name : string, default = "sample_data"
@@ -91,7 +92,7 @@ def _write_data_to_tsfile(
     -----
     This version currently does not support writing timestamp data.
     """
-    # ensure data provided is a ndarray
+    # ensure data provided is a ndarray. This is redundant here as already checked
     if not isinstance(X, np.ndarray) and not isinstance(X, list):
         raise ValueError("Data provided must be a ndarray or a list")
     class_labels = None
