@@ -389,7 +389,7 @@ class BaseAeonEstimator(BaseEstimator, ABC):
 
         Returns
         -------
-        instance : BaseEstimator or list of BaseEstimator
+        instance : BaseAeonEstimator or list of BaseAeonEstimator
             Instance of the class with default parameters. If return_first
             is False, returns list of instances.
         """
