@@ -64,5 +64,7 @@ def test_check_valid_tags_invalid():
         "non_deterministic": 1,
     }
 
-    with pytest.raises(ValueError, match="Tag non_deterministic has an invalid value"):
+    with pytest.raises(
+        ValueError, match="Value 1 is not a valid value for tag non_deterministic"
+    ):
         check_valid_tags(MockClassifier, tags=tags)
