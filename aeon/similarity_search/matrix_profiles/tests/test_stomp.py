@@ -16,7 +16,7 @@ from aeon.similarity_search.matrix_profiles.stomp import (
 )
 from aeon.utils.numba.general import sliding_mean_std_one_series
 
-DATATYPES = ["int64"] #DATATYPES = [ "int64"]
+DATATYPES = ["int64"]  # DATATYPES = [ "int64"]
 K_VALUES = [1]
 
 
@@ -70,12 +70,12 @@ def test_stomp_squared_matrix_profile(dtype, k):
         ).T
 
         for j in range(k):
-#            assert_almost_equal(mp[i][j], expected[id_bests[j, 0], id_bests[j, 1]])
+            #            assert_almost_equal(mp[i][j], expected[id_bests[j, 0], id_bests[j, 1]])
             aaa = ip[i][j]
             bbb = id_bests[j]
             if not np.array_equal(ip[i][j], id_bests[j]):
                 print(" HERE IT IS")
-            #assert_equal(ip[i][j], id_bests[j])
+            # assert_equal(ip[i][j], id_bests[j])
 
 
 @pytest.mark.parametrize("dtype", DATATYPES)
