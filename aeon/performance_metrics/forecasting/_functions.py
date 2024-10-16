@@ -644,7 +644,7 @@ def mean_squared_scaled_error(
     >>> y_train = np.array([[0.5, 1], [-1, 1], [7, -6]])
     >>> y_true = np.array([[0.5, 1], [-1, 1], [7, -6]])
     >>> y_pred = np.array([[0, 2], [-1, 2], [8, -5]])
-    >>> m = mean_squared_scaled_error(y_true, y_pred, y_train=y_train,  square_root=True)
+    >>> m = mean_squared_scaled_error(y_true, y_pred, y_train=y_train, square_root=True)
     >>> m = mean_squared_scaled_error(y_true, y_pred, y_train=y_train, \
     multioutput='raw_values', square_root=True)
     >>> m = mean_squared_scaled_error(y_true, y_pred, y_train=y_train, \
@@ -957,7 +957,8 @@ def mean_squared_error(
     >>> m = mean_squared_error(y_true, y_pred)
     >>> m = mean_squared_error(y_true, y_pred, square_root=True)
     >>> m = mean_squared_error(y_true, y_pred, multioutput='raw_values')
-    >>> m = mean_squared_error(y_true, y_pred, multioutput='raw_values', square_root=True)
+    >>> m = mean_squared_error(y_true, y_pred, multioutput='raw_values', \
+    square_root=True)
     >>> m = mean_squared_error(y_true, y_pred, multioutput=[0.3, 0.7])
     >>> m = mean_squared_error(y_true, y_pred, multioutput=[0.3, 0.7], square_root=True)
     """
@@ -1134,9 +1135,11 @@ def median_squared_error(
     >>> m = median_squared_error(y_true, y_pred)
     >>> m = median_squared_error(y_true, y_pred, square_root=True)
     >>> m = median_squared_error(y_true, y_pred, multioutput='raw_values')
-    >>> m = median_squared_error(y_true, y_pred, multioutput='raw_values', square_root=True)
+    >>> m = median_squared_error(y_true, y_pred, multioutput='raw_values', \
+    square_root=True)
     >>> m = median_squared_error(y_true, y_pred, multioutput=[0.3, 0.7])
-    >>> m = median_squared_error(y_true, y_pred, multioutput=[0.3, 0.7], square_root=True)
+    >>> m = median_squared_error(y_true, y_pred, multioutput=[0.3, 0.7], \
+    square_root=True)
     """
     _, y_true, y_pred, multioutput = _check_reg_targets(y_true, y_pred, multioutput)
     if horizon_weight is None:

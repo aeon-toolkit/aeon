@@ -61,7 +61,6 @@ def mpdist(x: np.ndarray, y: np.ndarray, m: int = 0) -> float:
     >>> y = np.array([3, 7, 13, 19, 23, 31, 36, 40, 48, 55, 63])
     >>> m = 4
     >>> mpdist(x, y, m)
-    0.05663764013361034
     """
     x = np.squeeze(x)
     y = np.squeeze(y)
