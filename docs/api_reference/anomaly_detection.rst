@@ -70,6 +70,7 @@ Detectors
     :template: class.rst
 
     DWT_MLEAD
+    IsolationForest
     KMeansAD
     LeftSTAMPi
     MERLIN

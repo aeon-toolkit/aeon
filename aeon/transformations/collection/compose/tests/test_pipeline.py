@@ -69,10 +69,10 @@ def test_unequal_tag_inference():
     assert t1.get_tag("capability:unequal_length")
     assert t1.get_tag("output_data_type") == "Tabular"
     assert t2.get_tag("capability:unequal_length")
-    assert t2.get_tag("capability:unequal_length:removes")
+    assert t2.get_tag("removes_unequal_length")
     assert not t2.get_tag("output_data_type") == "Tabular"
     assert t3.get_tag("capability:unequal_length")
-    assert not t3.get_tag("capability:unequal_length:removes")
+    assert not t3.get_tag("removes_unequal_length")
     assert not t3.get_tag("output_data_type") == "Tabular"
     assert not t4.get_tag("capability:unequal_length")
 
@@ -115,15 +115,13 @@ def test_missing_tag_inference():
     X, y = make_example_3d_numpy(n_cases=10, n_timepoints=12)
 
     t1 = MockCollectionTransformer()
-    t1.set_tags(
-        **{"capability:missing_values": True, "capability:missing_values:removes": True}
-    )
+    t1.set_tags(**{"capability:missing_values": True, "removes_missing_values": True})
     t2 = TimeSeriesScaler()
     t3 = StandardScaler()
     t4 = Tabularizer()
 
     assert t1.get_tag("capability:missing_values")
-    assert t1.get_tag("capability:missing_values:removes")
+    assert t1.get_tag("removes_missing_values")
     assert not t2.get_tag("capability:missing_values")
 
     # transformer chain removes missing values

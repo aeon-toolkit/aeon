@@ -83,7 +83,7 @@ class Resizer(BaseCollectionTransformer):
         return np.array(Xt)
 
     @classmethod
-    def get_test_params(cls):
+    def get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Returns

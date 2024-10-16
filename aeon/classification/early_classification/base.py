@@ -60,11 +60,7 @@ class BaseEarlyClassifier(BaseCollectionEstimator, ABC):
     """
 
     _tags = {
-        "X_inner_type": "numpy3D",
-        "capability:multivariate": False,
-        "capability:unequal_length": False,
-        "capability:missing_values": False,
-        "capability:multithreading": False,
+        "fit_is_empty": False,
     }
 
     def __init__(self):
@@ -124,7 +120,7 @@ class BaseEarlyClassifier(BaseCollectionEstimator, ABC):
         self._fit(X, y)
         self.fit_time_ = int(round(time.time() * 1000)) - start
         # this should happen last
-        self._is_fitted = True
+        self.is_fitted = True
         return self
 
     def predict(self, X) -> tuple[np.ndarray, np.ndarray]:

@@ -438,7 +438,7 @@ class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
     >>> from aeon.transformations.collection.feature_based import (
     ...     TSFreshRelevantFeatureExtractor
     ... )
-    >>> X, y = load_arrow_head(return_X_y=True)
+    >>> X, y = load_arrow_head()
     >>> X_train, X_test, y_train, y_test = train_test_split(X, y)
     >>> ts_eff = TSFreshRelevantFeatureExtractor(
     ...     default_fc_parameters="efficient", disable_progressbar=True
@@ -456,10 +456,8 @@ class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
     """
 
     _tags = {
-        "instancewise": False,
         "requires_y": True,
         "X_inner_type": "nested_univ",
-        "y_inner_type": "pd_Series_Table",
         "fit_is_empty": False,
     }
 

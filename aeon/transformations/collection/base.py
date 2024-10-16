@@ -43,9 +43,7 @@ class BaseCollectionTransformer(
     _tags = {
         "input_data_type": "Collection",
         "output_data_type": "Collection",
-        "fit_is_empty": False,
-        "requires_y": False,
-        "capability:inverse_transform": False,
+        "removes_unequal_length": False,
     }
 
     def __init__(self):
@@ -95,7 +93,7 @@ class BaseCollectionTransformer(
                 raise ValueError("Tag requires_y is true, but fit called with y=None")
         # skip the rest if fit_is_empty is True
         if self.get_tag("fit_is_empty"):
-            self._is_fitted = True
+            self.is_fitted = True
             return self
         self.reset()
 
@@ -104,7 +102,7 @@ class BaseCollectionTransformer(
         y_inner = y
         self._fit(X=X_inner, y=y_inner)
 
-        self._is_fitted = True
+        self.is_fitted = True
 
         return self
 
@@ -117,7 +115,6 @@ class BaseCollectionTransformer(
 
         Accesses in self:
         _is_fitted : must be True
-        _X : optionally accessed, only available if remember_data tag is True
         fitted model attributes (ending in "_") : must be set, accessed by _transform
 
         Parameters
@@ -172,9 +169,6 @@ class BaseCollectionTransformer(
 
         Writes to self:
         _is_fitted : flag is set to True.
-        _X : X, coerced copy of X, if remember_data tag is True
-            possibly coerced to inner type or update_data compatible type
-            by reference, when possible
         model attributes (ending in "_") : dependent on estimator.
 
         Parameters
@@ -209,7 +203,7 @@ class BaseCollectionTransformer(
         y_inner = y
         Xt = self._fit_transform(X=X_inner, y=y_inner)
 
-        self._is_fitted = True
+        self.is_fitted = True
 
         return Xt
 
@@ -226,7 +220,6 @@ class BaseCollectionTransformer(
 
         Accesses in self:
          _is_fitted : must be True
-         _X : optionally accessed, only available if remember_data tag is True
          fitted model attributes (ending in "_") : accessed by _inverse_transform
 
         Parameters
@@ -256,9 +249,6 @@ class BaseCollectionTransformer(
         inverse transformed version of X
             of the same type as X
         """
-        if self.get_tag("skip-inverse-transform"):
-            return X
-
         if not self.get_tag("capability:inverse_transform"):
             raise NotImplementedError(
                 f"{type(self)} does not implement inverse_transform"
