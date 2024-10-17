@@ -66,7 +66,7 @@ def test_stomp_squared_matrix_profile(dtype, k):
             ]
         )
         id_bests = np.vstack(
-            np.unravel_index(np.argsort(expected.ravel(), stable=True), expected.shape)
+            np.unravel_index(np.argsort(expected.ravel(), kind="stable"), expected.shape)
         ).T
 
         for j in range(k):
