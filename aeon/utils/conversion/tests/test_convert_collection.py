@@ -10,12 +10,10 @@ from aeon.testing.testing_data import (
 )
 from aeon.utils import COLLECTIONS_DATA_TYPES
 from aeon.utils.conversion._convert_collection import (
-    _from_numpy2d_to_df_list,
     _from_numpy2d_to_np_list,
     _from_numpy2d_to_numpy3d,
     _from_numpy2d_to_pd_multiindex,
     _from_numpy2d_to_pd_wide,
-    _from_numpy3d_to_df_list,
     _from_numpy3d_to_np_list,
     _from_numpy3d_to_numpy2d,
     _from_numpy3d_to_pd_multiindex,
@@ -76,20 +74,6 @@ def test_convert_collection(input_data, output_data):
                 )
 
 
-@pytest.mark.parametrize("input_data", COLLECTIONS_DATA_TYPES)
-def test_convert_df_list(input_data):
-    """Test that df list is correctly transposed."""
-    X = convert_collection(
-        EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[input_data]["train"][0], "df-list"
-    )
-    assert X[0].shape == (20, 1)
-    if input_data in EQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION:
-        X = convert_collection(
-            EQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION[input_data]["train"][0], "df-list"
-        )
-        assert X[0].shape == (20, 2)
-
-
 def test_resolve_equal_length_inner_type():
     """Test the resolution of inner type for equal length collections."""
     test = ["numpy3D"]
@@ -137,19 +121,17 @@ def test_is_equal_length(data):
     assert is_equal_length(EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[data]["train"][0])
 
 
-@pytest.mark.parametrize("data", ["df-list", "np-list"])
-def test_unequal_length(data):
+def test_unequal_length():
     """Test if unequal length series correctly identified."""
     assert not _equal_length(
-        UNEQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[data]["train"][0], data
+        UNEQUAL_LENGTH_UNIVARIATE_CLASSIFICATION["np-list"]["train"][0], "np-list"
     )
 
 
-@pytest.mark.parametrize("data", ["df-list", "np-list"])
-def test_is_unequal_length(data):
+def test_is_unequal_length():
     """Test if unequal length series correctly identified."""
     assert not is_equal_length(
-        UNEQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[data]["train"][0]
+        UNEQUAL_LENGTH_UNIVARIATE_CLASSIFICATION["np-list"]["train"][0]
     )
 
 
@@ -175,7 +157,6 @@ def test_is_univariate(data):
 NUMPY3D = [
     _from_numpy3d_to_pd_wide,
     _from_numpy3d_to_np_list,
-    _from_numpy3d_to_df_list,
     _from_numpy3d_to_pd_wide,
     _from_numpy3d_to_numpy2d,
     _from_numpy3d_to_pd_multiindex,
@@ -193,7 +174,6 @@ def test_numpy3D_error(function):
 NUMPY2D = [
     _from_numpy2d_to_numpy3d,
     _from_numpy2d_to_np_list,
-    _from_numpy2d_to_df_list,
     _from_numpy2d_to_pd_wide,
     _from_numpy2d_to_pd_multiindex,
 ]

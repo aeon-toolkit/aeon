@@ -168,7 +168,7 @@ class BaseCollectionEstimator(BaseAeonEstimator):
 
         If multiple types are allowed by self, then the best one for the type of input
         data is selected. So, for example, if X_inner_tag is `["np-list", "numpy3D"]`
-        and an `df-list` is passed containing equal length series, will be converted
+        and a `nuumpy3D` is passed containing equal length series, will be converted
         to numpy3D.
 
         Parameters

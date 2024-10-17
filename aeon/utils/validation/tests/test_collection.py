@@ -37,9 +37,6 @@ def test_get_type():
     np_list = [np.array([1, 2, 3, 4, 5]), np.array([4, 5, 6, 7, 8])]
     with pytest.raises(TypeError, match="np-list must contain 2D np.ndarray"):
         get_type(np_list)
-    dp_list = [pd.DataFrame(np.random.random(size=(10, 10))), np.array([1, 2, 3, 4, 5])]
-    with pytest.raises(TypeError, match="df-list must only contain pd.DataFrame"):
-        get_type(dp_list)
     res = get_type(pd.DataFrame(np.random.random(size=(10, 10))))
     assert res == "pd-wide"
     data = {

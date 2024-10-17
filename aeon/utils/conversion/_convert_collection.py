@@ -5,7 +5,6 @@ This contains all functions to convert supported collection data types.
 String identifier meanings (from aeon.utils.conversion import COLLECTIONS_DATA_TYPES) :
 numpy3D : 3D numpy array of time series shape (n_cases,  n_channels, n_timepoints)
 np-list : list of 2D numpy arrays shape (n_channels, n_timepoints_i)
-df-list : list of 2D pandas dataframes shape (n_channels, n_timepoints_i)
 numpy2D : 2D numpy array of univariate time series shape (n_cases, n_timepoints)
 pd-wide : pd.DataFrame of univariate time series shape (n_cases, n_timepoints)
 pd-multiindex : pd.DataFrame with multi-index,
@@ -21,7 +20,7 @@ import numpy as np
 import pandas as pd
 
 from aeon.utils._data_types import COLLECTIONS_DATA_TYPES
-from aeon.utils.validation.collection import _equal_length, get_type
+from aeon.utils.validation.collection import get_type
 
 
 def convert_identity(X):
@@ -36,9 +35,6 @@ NUMPY3D_ERROR = (
 NUMPY2D_OUTPUT_ERROR = "Cannot convert multivariate series to numpy 2D arrays."
 NUMPY2D_INPUT_ERROR = "Input numpy not of type numpy2D."
 NP_LIST_ERROR = "Input should be a list of 2D np.ndarray."
-DF_LIST_ERROR = (
-    "Input should be 2-dimensional np.ndarray with shape (n_cases, n_timepoints)."
-)
 
 
 def _from_numpy3d_to_np_list(X):
@@ -61,31 +57,6 @@ def _from_numpy3d_to_np_list(X):
         raise TypeError(NUMPY3D_ERROR)
     np_list = [x for x in X]
     return np_list
-
-
-def _from_numpy3d_to_df_list(X):
-    """Convert 3D np.ndarray to a list of dataframes in wide format.
-
-    Converts 3D numpy array (n_cases, n_channels, n_timepoints) to
-    a 2D list length [n_cases] of pd.DataFrames shape (n_channels, n_timepoints)
-
-    Parameters
-    ----------
-    X : np.ndarray
-        The input array with shape (n_cases, n_channels, n_timepoints)
-
-    Returns
-    -------
-    df : pd.DataFrame
-
-    Raise
-    -----
-    TypeError if X not 3D numpy array
-    """
-    if X.ndim != 3:
-        raise TypeError(NUMPY3D_ERROR)
-    df_list = [pd.DataFrame(np.transpose(x)) for x in X]
-    return df_list
 
 
 def _from_numpy3d_to_pd_wide(X):
@@ -152,17 +123,6 @@ def _from_np_list_to_numpy3d(X):
     return np.array(X)
 
 
-def _from_np_list_to_df_list(X):
-    """Convert from a list of 2D numpy to list of dataframes."""
-    if not isinstance(X, list) or not isinstance(X[0], np.ndarray) or X[0].ndim != 2:
-        raise TypeError(NP_LIST_ERROR)
-    n_cases = len(X)
-    df_list = []
-    for i in range(n_cases):
-        df_list.append(pd.DataFrame(np.transpose(X[i])))
-    return df_list
-
-
 def _from_np_list_to_numpy2d(X):
     if not isinstance(X, list) or not isinstance(X[0], np.ndarray):
         raise TypeError(NP_LIST_ERROR)
@@ -178,51 +138,27 @@ def _from_np_list_to_pd_wide(X):
 
 
 def _from_np_list_to_pd_multiindex(X):
-    X_df = _from_np_list_to_df_list(X)
-    return _from_df_list_to_pd_multiindex(X_df)
-
-
-def _from_df_list_to_np_list(X):
-    n_cases = len(X)
-    list = [np.transpose(np.array(X[i])) for i in range(n_cases)]
-    return list
-
-
-def _from_df_list_to_numpy3d(X):
-    n = len(X[0])
-    cols = set(X[0].columns)
-
+    df = []
+    index1_labels = []
+    index2_labels = []
     for i in range(len(X)):
-        if not n == len(X[i]) or not set(X[i].columns) == cols:
-            raise TypeError("Cannot convert unequal length series to numpy3D")
-    nump3D = np.array([x.to_numpy().transpose() for x in X])
-    return nump3D
-
-
-def _from_df_list_to_numpy2d(X):
-    if not _equal_length(X, "df-list"):
-        raise TypeError(
-            f"{type(X)} does not store equal length series."
-            f"Cannot convert unequal length to numpy flat"
-        )
-    np_list = _from_df_list_to_np_list(X)
-    return _from_np_list_to_numpy2d(np_list)
-
-
-def _from_df_list_to_pd_wide(X):
-    if not _equal_length(X, "df-list"):
-        raise TypeError(
-            f"{type(X)} does not store equal length series, "
-            f"Cannot convert unequal length pd wide"
-        )
-    np_list = _from_df_list_to_np_list(X)
-    return _from_np_list_to_pd_wide(np_list)
-
-
-def _from_df_list_to_pd_multiindex(X):
-    n = len(X)
-    mi = pd.concat(X, axis=0, keys=range(n), names=["instances", "timepoints"])
-    return mi
+        index1_labels.append("instance_" + str(i))
+    for i in range(X[0].shape[0]):
+        index2_labels.append("channel_" + str(i))
+    for i, array in enumerate(X):
+        df_temp = pd.DataFrame(array, columns=index2_labels)  # Use index2 as columns
+        df_temp["index1"] = index1_labels[i]  # Add the index1 label as a column
+        # Reshape the DataFrame so that index1 becomes a part of the MultiIndex
+        df_temp = df_temp.set_index("index1")
+        # Append the DataFrame to the list
+        df.append(df_temp)
+    # Concatenate all DataFrames and reset the index
+    df = pd.concat(df).stack().reset_index()
+    # Rename the columns to match the hierarchical structure
+    df.columns = ["index1", "index2", "value"]
+    # Set the index to create a hierarchical (MultiIndex) DataFrame
+    df = df.set_index(["index1", "index2"])
+    return df
 
 
 def _from_numpy2d_to_numpy3d(X):
@@ -237,14 +173,6 @@ def _from_numpy2d_to_np_list(X):
         raise TypeError(NUMPY2D_INPUT_ERROR)
     X_3d = X.reshape(X.shape[0], 1, X.shape[1])
     X_list = [x for x in X_3d]
-    return X_list
-
-
-def _from_numpy2d_to_df_list(X):
-    if not isinstance(X, np.ndarray) or X.ndim != 2:
-        raise TypeError(NUMPY2D_INPUT_ERROR)
-    X_3d = X.reshape(X.shape[0], 1, X.shape[1])
-    X_list = [pd.DataFrame(np.transpose(x)) for x in X_3d]
     return X_list
 
 
@@ -269,11 +197,6 @@ def _from_pd_wide_to_np_list(X):
     return _from_numpy2d_to_np_list(X)
 
 
-def _from_pd_wide_to_df_list(X):
-    X = X.to_numpy()
-    return _from_numpy2d_to_df_list(X)
-
-
 def _from_pd_wide_to_numpy2d(X):
     return X.to_numpy()
 
@@ -283,30 +206,24 @@ def _pd_wide_to_pd_multiindex(X):
     return _from_numpy3d_to_pd_multiindex(X_3d)
 
 
-def _from_pd_multiindex_to_df_list(X):
-    instance_index = X.index.levels[0]
-    Xlist = [X.loc[i].rename_axis(None) for i in instance_index]
-    return Xlist
-
-
 def _from_pd_multiindex_to_np_list(X):
-    df_list = _from_pd_multiindex_to_df_list(X)
-    return _from_df_list_to_np_list(df_list)
+    grouped = X.groupby(level=0)
+    return [group.unstack(level=1).values for _, group in grouped]
 
 
 def _from_pd_multiindex_to_numpy3d(X):
-    df_list = _from_pd_multiindex_to_df_list(X)
-    return _from_df_list_to_numpy3d(df_list)
+    np_list = _from_pd_multiindex_to_np_list(X)
+    return _from_np_list_to_numpy3d(np_list)
 
 
 def _from_pd_multiindex_to_numpy2d(X):
-    df_list = _from_pd_multiindex_to_df_list(X)
-    return _from_df_list_to_numpy2d(df_list)
+    np_list = _from_pd_multiindex_to_np_list(X)
+    return _from_np_list_to_numpy2d(np_list)
 
 
 def _from_pd_multiindex_to_pd_wide(X):
-    df_list = _from_pd_multiindex_to_df_list(X)
-    return _from_df_list_to_pd_wide(df_list)
+    np_list = _from_pd_multiindex_to_np_list(X)
+    return _from_np_list_to_pd_wide(np_list)
 
 
 convert_dictionary = dict()
@@ -315,38 +232,27 @@ for x in COLLECTIONS_DATA_TYPES:
     convert_dictionary[(x, x)] = convert_identity
 # numpy3D -> *
 convert_dictionary[("numpy3D", "np-list")] = _from_numpy3d_to_np_list
-convert_dictionary[("numpy3D", "df-list")] = _from_numpy3d_to_df_list
 convert_dictionary[("numpy3D", "pd-wide")] = _from_numpy3d_to_pd_wide
 convert_dictionary[("numpy3D", "numpy2D")] = _from_numpy3d_to_numpy2d
 convert_dictionary[("numpy3D", "pd-multiindex")] = _from_numpy3d_to_pd_multiindex
 # np-list-> *
 convert_dictionary[("np-list", "numpy3D")] = _from_np_list_to_numpy3d
-convert_dictionary[("np-list", "df-list")] = _from_np_list_to_df_list
 convert_dictionary[("np-list", "pd-wide")] = _from_np_list_to_pd_wide
 convert_dictionary[("np-list", "numpy2D")] = _from_np_list_to_numpy2d
 convert_dictionary[("np-list", "pd-multiindex")] = _from_np_list_to_pd_multiindex
-# df-list-> *
-convert_dictionary[("df-list", "numpy3D")] = _from_df_list_to_numpy3d
-convert_dictionary[("df-list", "np-list")] = _from_df_list_to_np_list
-convert_dictionary[("df-list", "pd-wide")] = _from_df_list_to_pd_wide
-convert_dictionary[("df-list", "numpy2D")] = _from_df_list_to_numpy2d
-convert_dictionary[("df-list", "pd-multiindex")] = _from_df_list_to_pd_multiindex
 # numpy2D -> *: NOTE ASSUMES n_channels == 1 for this conversion.
 convert_dictionary[("numpy2D", "numpy3D")] = _from_numpy2d_to_numpy3d
 convert_dictionary[("numpy2D", "np-list")] = _from_numpy2d_to_np_list
-convert_dictionary[("numpy2D", "df-list")] = _from_numpy2d_to_df_list
 convert_dictionary[("numpy2D", "pd-wide")] = _from_numpy2d_to_pd_wide
 convert_dictionary[("numpy2D", "pd-multiindex")] = _from_numpy2d_to_pd_multiindex
 # pd-wide -> *: NOTE ASSUMES n_channels == 1 for this conversion.
 convert_dictionary[("pd-wide", "numpy3D")] = _from_pd_wide_to_numpy3d
 convert_dictionary[("pd-wide", "np-list")] = _from_pd_wide_to_np_list
-convert_dictionary[("pd-wide", "df-list")] = _from_pd_wide_to_df_list
 convert_dictionary[("pd-wide", "numpy2D")] = _from_pd_wide_to_numpy2d
 convert_dictionary[("pd-wide", "pd-multiindex")] = _pd_wide_to_pd_multiindex
 # pd_multiindex -> *
 convert_dictionary[("pd-multiindex", "numpy3D")] = _from_pd_multiindex_to_numpy3d
 convert_dictionary[("pd-multiindex", "np-list")] = _from_pd_multiindex_to_np_list
-convert_dictionary[("pd-multiindex", "df-list")] = _from_pd_multiindex_to_df_list
 convert_dictionary[("pd-multiindex", "pd-wide")] = _from_pd_multiindex_to_pd_wide
 convert_dictionary[("pd-multiindex", "numpy2D")] = _from_pd_multiindex_to_numpy2d
 
@@ -390,7 +296,7 @@ def convert_collection(X, output_type):
         raise TypeError(
             f"Attempting to convert from {input_type} to {output_type} "
             f"but this is not a valid conversion. See "
-            f"aeon.utils.conversion.COLLECTIONS_DATA_TYPE "
+            f"aeon.utils.COLLECTIONS_DATA_TYPE "
             f"for the list of valid collections"
         )
     return convert_dictionary[(input_type, output_type)](X)
@@ -412,8 +318,6 @@ def resolve_equal_length_inner_type(inner_types: Sequence[str]) -> str:
         return "numpy2D"
     if "pd-multiindex" in inner_types:
         return "pd-multiindex"
-    if "df-list" in inner_types:
-        return "df-list"
     if "pd-wide" in inner_types:
         return "pd-wide"
     raise ValueError(
@@ -432,8 +336,6 @@ def resolve_unequal_length_inner_type(inner_types: Sequence[str]) -> str:
     """
     if "np-list" in inner_types:
         return "np-list"
-    if "df-list" in inner_types:
-        return "df-list"
     if "pd-multiindex" in inner_types:
         return "pd-multiindex"
     raise ValueError(
