@@ -12,6 +12,8 @@ __all__ = [
 import numpy as np
 from sklearn.utils import check_random_state
 
+from aeon.utils.validation.labels import check_classification_y
+
 
 def resample_data(X_train, y_train, X_test, y_test, random_state=None):
     """Resample data without replacement using a random state.
@@ -121,6 +123,8 @@ def stratified_resample_data(X_train, y_train, X_test, y_test, random_state=None
     Reproducible resampling. Combines train and test, resamples to get the same class
     distribution, then returns new train and test.
 
+    Only classification labels are supported.
+
     Parameters
     ----------
     X_train : np.ndarray or list of np.ndarray
@@ -187,6 +191,8 @@ def stratified_resample_data_indices(y_train, y_test, random_state=None):
     Uses indices for a combined train and test set, with test indices appearing after
     train indices.
 
+    Only classification labels are supported.
+
     Parameters
     ----------
     y_train : np.ndarray
@@ -207,6 +213,10 @@ def stratified_resample_data_indices(y_train, y_test, random_state=None):
     test_indices : np.ndarray
         The index of cases to use in the test set from the combined train and test data.
     """
+    # only classification is supported
+    check_classification_y(y_train)
+    check_classification_y(y_test)
+
     # add both train and test to a single dataset
     all_labels = np.concatenate((y_train, y_test), axis=None)
 

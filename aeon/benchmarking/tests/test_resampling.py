@@ -1,8 +1,5 @@
 """Tests for dataset resampling functions."""
 
-__author__ = ["TonyBagnall", "MatthewMiddlehurst"]
-
-
 import numpy as np
 import pandas as pd
 import pytest
@@ -232,6 +229,17 @@ def test_stratified_resample_data_unequal(data):
 
     assert list(counts_train_new) == list(counts_train)
     assert list(counts_test_new) == list(counts_test)
+
+
+def test_stratified_resample_data_regression():
+    """Test stratified resampling returns valid data for regression."""
+    X_train, y_train = EQUAL_LENGTH_UNIVARIATE_REGRESSION["numpy3D"]["train"]
+    X_test, y_test = EQUAL_LENGTH_UNIVARIATE_REGRESSION["numpy3D"]["test"]
+
+    with pytest.raises(ValueError, match="not valid for classification"):
+        X_train, y_train, X_test, y_test = stratified_resample_data(
+            X_train, y_train, X_test, y_test
+        )
 
 
 def test_stratified_resample_data_invalid():

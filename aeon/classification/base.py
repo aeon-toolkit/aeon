@@ -31,12 +31,12 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics import get_scorer, get_scorer_names
 from sklearn.model_selection import cross_val_predict
-from sklearn.utils.multiclass import type_of_target
 
 from aeon.base import BaseCollectionEstimator
 from aeon.base._base import _clone_estimator
 from aeon.utils.validation._dependencies import _check_estimator_deps
 from aeon.utils.validation.collection import get_n_cases
+from aeon.utils.validation.labels import check_classification_y
 
 
 class BaseClassifier(BaseCollectionEstimator, ABC):
@@ -559,26 +559,13 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
 
     def _check_y(self, y, n_cases, update_classes=True):
         # Check y valid input for classification
-        if not isinstance(y, (pd.Series, np.ndarray)):
-            raise TypeError(
-                f"y must be a np.array or a pd.Series, but found type: {type(y)}"
-            )
-        if isinstance(y, np.ndarray) and y.ndim > 1:
-            raise TypeError(f"y must be 1-dimensional, found {y.ndim} dimensions")
+        check_classification_y(y)
 
         # Check matching number of labels
         n_labels = y.shape[0]
         if n_cases != n_labels:
             raise ValueError(
                 f"Mismatch in number of cases. Found X = {n_cases} and y = {n_labels}"
-            )
-
-        y_type = type_of_target(y)
-        if y_type != "binary" and y_type != "multiclass":
-            raise ValueError(
-                f"y type is {y_type} which is not valid for classification. "
-                f"Should be binary or multiclass according to "
-                f"sklearn.utils.multiclass.type_of_target"
             )
 
         if isinstance(y, pd.Series):
