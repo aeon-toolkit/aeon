@@ -128,7 +128,7 @@ def check_classifier_against_expected_results(estimator_class):
 
 def check_classifier_tags_consistent(estimator_class):
     """Test the tag X_inner_type is consistent with capability:unequal_length."""
-    valid_types = {"np-list", "df-list", "pd-multivariate", "nested_univ"}
+    valid_types = {"np-list", "df-list", "pd-multiindex"}
     unequal = estimator_class.get_class_tag("capability:unequal_length")
     if unequal:  # one of X_inner_types must be capable of storing unequal length
         internal_types = estimator_class.get_class_tag("X_inner_type")
