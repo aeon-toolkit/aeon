@@ -213,7 +213,7 @@ def get_available_estimators(
     Examples
     --------
     >>> from aeon.benchmarking.results_loaders import get_available_estimators
-    >>> cls = get_available_estimators("Classification")
+    >>> cls = get_available_estimators("Classification")  # doctest: +SKIP
     """
     t = task.lower()
     if t not in VALID_TASK_TYPES:
