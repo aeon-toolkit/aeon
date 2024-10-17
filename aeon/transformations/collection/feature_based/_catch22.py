@@ -286,6 +286,7 @@ class Catch22(BaseCollectionTransformer):
             )
             for i in range(n_cases)
         )
+
         c22_array = np.array(c22_list)
         if self.replace_nans:
             c22_array = np.nan_to_num(c22_array, False, 0, 0, 0)
