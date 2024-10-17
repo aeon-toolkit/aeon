@@ -60,9 +60,6 @@ class SupervisedTimeSeriesForest(BaseIntervalForest, BaseClassifier):
         Default of 0 means n_estimators are used.
     contract_max_n_estimators : int, default=500
         Max number of estimators when time_limit_in_minutes is set.
-    use_pyfftw : bool, default=True
-        Whether to use the pyfftw library for FFT calculations. Requires the pyfftw
-        package to be installed.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -135,17 +132,14 @@ class SupervisedTimeSeriesForest(BaseIntervalForest, BaseClassifier):
         min_interval_length=3,
         time_limit_in_minutes=None,
         contract_max_n_estimators=500,
-        use_pyfftw=False,
         random_state=None,
         n_jobs=1,
         parallel_backend=None,
     ):
-        self.use_pyfftw = use_pyfftw
-
         series_transformers = [
             None,
             FunctionTransformer(func=first_order_differences_3d, validate=False),
-            PeriodogramTransformer(use_pyfftw=use_pyfftw),
+            PeriodogramTransformer(),
         ]
 
         interval_features = [
@@ -175,9 +169,6 @@ class SupervisedTimeSeriesForest(BaseIntervalForest, BaseClassifier):
             n_jobs=n_jobs,
             parallel_backend=parallel_backend,
         )
-
-        if use_pyfftw:
-            self.set_tags(**{"python_dependencies": "pyfftw"})
 
     def _fit(self, X, y):
         return super()._fit(X, y)

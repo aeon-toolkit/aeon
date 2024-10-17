@@ -18,9 +18,7 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 @pytest.mark.skipif(
-    not _check_soft_dependencies(
-        ["statsmodels", "pycatch22", "pyfftw"], severity="none"
-    ),
+    not _check_soft_dependencies(["statsmodels", "pycatch22"], severity="none"),
     reason="skip test if required soft dependency not available",
 )
 def test_rist_soft_dependencies():
@@ -28,8 +26,8 @@ def test_rist_soft_dependencies():
     rist = RISTClassifier()
     assert rist.get_tag("python_dependencies") == "statsmodels"
 
-    rist = RISTClassifier(use_pycatch22=True, use_pyfftw=True)
-    assert rist.get_tag("python_dependencies") == ["statsmodels", "pycatch22", "pyfftw"]
+    rist = RISTClassifier(use_pycatch22=True)
+    assert rist.get_tag("python_dependencies") == ["statsmodels", "pycatch22"]
 
     X, y = make_example_3d_numpy()
     rist.fit(X, y)
