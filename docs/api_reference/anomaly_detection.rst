@@ -71,6 +71,7 @@ Detectors
 
     DWT_MLEAD
     IsolationForest
+    LOF
     KMeansAD
     LeftSTAMPi
     MERLIN
