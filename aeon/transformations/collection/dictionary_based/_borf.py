@@ -1048,8 +1048,6 @@ def _clean_sax_parameters_configurations(parameters, max_length):
             window_size=window_size, sequence_size=max_length, dilation=dilation
         ):
             continue
-        # if window_size == word_length:
-        #     continue  # FIXME: should I do this?
         cleaned_parameters.append(
             dict(
                 window_size=window_size,
