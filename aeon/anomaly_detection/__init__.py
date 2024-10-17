@@ -8,7 +8,6 @@ __all__ = [
     "PyODAdapter",
     "STOMP",
     "LeftSTAMPi",
-    "COPOD",
     "IsolationForest",
     "COPOD",
 ]

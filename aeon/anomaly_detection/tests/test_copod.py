@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from aeon.anomaly_detection import COPOD
-from aeon.testing.data_generation._legacy import make_series
+from aeon.testing.data_generation import make_example_1d_numpy
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
@@ -14,7 +14,7 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 )
 def test_copod_default():
     """Test COPOD."""
-    series = make_series(n_timepoints=80, return_numpy=True, random_state=0)
+    series = make_example_1d_numpy(n_timepoints=80, random_state=0)
     series[50:58] -= 2
 
     copod = COPOD(window_size=10, stride=1)
@@ -45,9 +45,7 @@ def test_aeon_copod_with_pyod_copod():
     """Test COPOD with PyOD COPOD."""
     from pyod.models.copod import COPOD as PyODCOPOD
 
-    from aeon.utils.windowing import sliding_windows
-
-    series = make_series(n_timepoints=100, return_numpy=True, random_state=0)
+    series = make_example_1d_numpy(n_timepoints=100, random_state=0)
     series[20:30] -= 2
 
     # fit and predict with aeon COPOD
@@ -55,7 +53,7 @@ def test_aeon_copod_with_pyod_copod():
     copod_preds = copod.fit_predict(series)
 
     # fit and predict with PyOD COPOD
-    _series, _ = sliding_windows(series, window_size=1, stride=1, axis=0)
+    _series = series.reshape(-1, 1)
     pyod_copod = PyODCOPOD()
     pyod_copod.fit(_series)
     pyod_copod_preds = pyod_copod.decision_function(_series)
