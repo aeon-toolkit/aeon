@@ -4,22 +4,18 @@ import os
 import tempfile
 
 import numpy as np
-import pandas as pd
 import pytest
 from numpy.testing import assert_array_equal
 
 from aeon.datasets import load_from_arff_file, load_from_tsfile, write_to_tsfile
 from aeon.datasets._data_writers import (
     _write_data_to_tsfile,
-    _write_dataframe_to_tsfile,
     _write_header,
     write_to_arff_file,
 )
-from aeon.datasets._dataframe_loaders import load_from_tsfile_to_dataframe
 from aeon.testing.data_generation import (
     make_example_3d_numpy,
     make_example_3d_numpy_list,
-    make_example_nested_dataframe,
 )
 from aeon.testing.testing_config import PR_TESTING
 
@@ -114,42 +110,16 @@ def test_write_data_to_tsfile_invalid():
         _write_data_to_tsfile(X, "temp", "temp", y=y)
 
 
-@pytest.mark.skipif(
-    PR_TESTING,
-    reason="Only run on overnights because of intermittent fail for read/write",
-)
-@pytest.mark.parametrize("tsfile_writer", [_write_dataframe_to_tsfile, write_to_tsfile])
-def test_write_dataframe_to_ts(tsfile_writer):
-    """Tests whether a dataset can be written by the .ts writer then read in."""
-    # load an example dataset
-    problem_name = "Testy.ts"
-    X, y = make_example_nested_dataframe(min_n_timepoints=12)
-    with tempfile.TemporaryDirectory() as tmp:
-        # output the dataframe in a ts file
-        tsfile_writer(
-            X=X,
-            path=tmp,
-            y=y,
-            problem_name=problem_name,
-        )
-        # load data back from the ts file into dataframe
-        load_path = os.path.join(tmp, problem_name)
-        newX, newy = load_from_tsfile_to_dataframe(load_path)
-        # check if the dataframes are the same
-        pd.testing.assert_frame_equal(newX, X)
-        np.testing.assert_array_almost_equal(newy.astype(int), y)
-
-
 def test_write_inputs():
     """Tests whether error thrown if wrong input."""
     # load an example dataset
     problem_name = "Testy.ts"
     with tempfile.TemporaryDirectory() as tmp:
-        # output the dataframe in a ts file
-        X, y = make_example_nested_dataframe(min_n_timepoints=12)
+        X = "A string"
+        y = "another string"
         X2, y2 = make_example_3d_numpy()
         X3, y3 = make_example_3d_numpy_list()
-        with pytest.raises(ValueError, match="Data provided must be a ndarray"):
+        with pytest.raises(ValueError, match="must be a ndarray or a list"):
             _write_data_to_tsfile(
                 X=X,
                 path=tmp,
@@ -157,18 +127,11 @@ def test_write_inputs():
                 problem_name=problem_name,
             )
         _write_data_to_tsfile(X=X3, path=tmp, y=y3, problem_name=problem_name)
-        with pytest.raises(ValueError, match="Data provided must be a DataFrame"):
-            _write_dataframe_to_tsfile(
-                X=X2,
-                path=tmp,
-                y=y2,
-                problem_name=problem_name,
-            )
-        with pytest.raises(TypeError, match="Wrong input data type"):
-            write_to_arff_file(X, y, tmp)
-        X2, y2 = make_example_3d_numpy(n_cases=5, n_channels=2)
-        with pytest.raises(ValueError, match="must be a 3D array with shape"):
-            write_to_arff_file(X2, y2, tmp)
+    with pytest.raises(TypeError, match="Wrong input data type"):
+        write_to_arff_file(X, y, tmp)
+    X2, y2 = make_example_3d_numpy(n_cases=5, n_channels=2)
+    with pytest.raises(ValueError, match="must be a 3D array with shape"):
+        write_to_arff_file(X2, y2, tmp)
 
 
 def test_write_header():
