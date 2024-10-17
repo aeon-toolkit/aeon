@@ -81,7 +81,7 @@ class TSFreshClusterer(BaseClusterer):
     def __init__(
         self,
         default_fc_parameters: str = "efficient",
-        estimator = None,
+        estimator=None,
         verbose: int = 0,
         n_jobs: int = 1,
         chunksize: Optional[int] = None,
