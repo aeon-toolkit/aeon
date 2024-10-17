@@ -45,10 +45,6 @@ __all__ = [
     "load_kdd_tsad_135",
     "load_daphnet_s06r02e0",
     "load_ecg_diff_count_3",
-    # legacy load functions
-    "load_from_arff_to_dataframe",
-    "load_from_ucr_tsv_to_dataframe",
-    "load_from_tsfile_to_dataframe",
     "get_dataset_meta_data",
 ]
 
@@ -67,11 +63,6 @@ from aeon.datasets._data_writers import (
     write_results_to_uea_format,
     write_to_arff_file,
     write_to_tsfile,
-)
-from aeon.datasets._dataframe_loaders import (
-    load_from_arff_to_dataframe,
-    load_from_tsfile_to_dataframe,
-    load_from_ucr_tsv_to_dataframe,
 )
 from aeon.datasets._single_problem_loaders import (
     load_acsf1,
