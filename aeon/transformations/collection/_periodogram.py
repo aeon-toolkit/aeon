@@ -72,6 +72,7 @@ class PeriodogramTransformer(BaseCollectionTransformer):
         self.n_jobs = n_jobs
 
         super().__init__()
+
         if use_pyfftw:
             self.set_tags(**{"python_dependencies": "pyfftw"})
 

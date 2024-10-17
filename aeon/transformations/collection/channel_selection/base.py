@@ -6,6 +6,7 @@ selected indexes.
 
 __maintainer__ = ["TonyBagnall"]
 
+
 from aeon.transformations.collection.base import BaseCollectionTransformer
 
 

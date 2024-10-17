@@ -57,7 +57,7 @@ class _HeterogenousMetaEstimator:
         self._set_params(steps_attr, **kwargs)
         return self
 
-    def _get_fitted_params(self):
+    def get_fitted_params(self):
         """Get fitted parameters.
 
         private _get_fitted_params, called from get_fitted_params
@@ -70,6 +70,8 @@ class _HeterogenousMetaEstimator:
         fitted_params : dict with str keys
             fitted parameters, keyed by names of fitted parameter
         """
+        self._check_is_fitted()
+
         fitted_params = self._get_fitted_params_default()
 
         steps = self._steps_fitted_attr
@@ -78,6 +80,35 @@ class _HeterogenousMetaEstimator:
         fitted_params.update(steps_params)
 
         return fitted_params
+
+    def _get_fitted_params_default(self, obj=None):
+        """Obtain fitted params of object, per sklearn convention.
+
+        Extracts a dict with {paramstr : paramvalue} contents,
+        where paramstr are all string names of "fitted parameters".
+
+        A "fitted attribute" of obj is one that ends in "_" but does not start with "_".
+        "fitted parameters" are names of fitted attributes, minus the "_" at the end.
+
+        Parameters
+        ----------
+        obj : any object, optional, default=self.
+
+        Returns
+        -------
+        fitted_params : dict with str keys
+            fitted parameters, keyed by names of fitted parameter.
+        """
+        obj = obj if obj else self
+
+        # default retrieves all self attributes ending in "_"
+        # and returns them with keys that have the "_" removed
+        fitted_params = [attr for attr in dir(obj) if attr.endswith("_")]
+        fitted_params = [x for x in fitted_params if not x.startswith("_")]
+        fitted_params = [x for x in fitted_params if hasattr(obj, x)]
+        fitted_param_dict = {p[:-1]: getattr(obj, p) for p in fitted_params}
+
+        return fitted_param_dict
 
     def is_composite(self):
         """Check if the object is composite.
@@ -94,7 +125,7 @@ class _HeterogenousMetaEstimator:
 
     def _get_params(self, attr, deep=True, fitted=False):
         if fitted:
-            method = "_get_fitted_params"
+            method = "get_fitted_params"
             deepkw = {}
         else:
             method = "get_params"
