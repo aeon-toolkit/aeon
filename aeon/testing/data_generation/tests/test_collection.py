@@ -12,7 +12,6 @@ from aeon.testing.data_generation import (
     make_example_2d_numpy_list,
     make_example_3d_numpy,
     make_example_3d_numpy_list,
-    make_example_dataframe_list,
     make_example_multi_index_dataframe,
 )
 from aeon.utils.validation.collection import get_type
@@ -149,47 +148,6 @@ def test_make_example_2d_numpy_list(
             ]
         )
     assert y.shape == (n_cases,)
-    if regression:
-        assert y.dtype == np.float32
-    else:
-        assert len(np.unique(y)) == n_classes
-
-
-@pytest.mark.parametrize("n_cases", N_CASES)
-@pytest.mark.parametrize("n_channels", N_CHANNELS)
-@pytest.mark.parametrize("min_n_timepoints", MIN_N_TIMEPOINTS)
-@pytest.mark.parametrize("max_n_timepoints", MAX_N_TIMEPOINTS)
-@pytest.mark.parametrize("n_classes", N_CLASSES)
-@pytest.mark.parametrize("regression", REGRESSION)
-def test_make_example_dataframe_list(
-    n_cases, n_channels, min_n_timepoints, max_n_timepoints, n_classes, regression
-):
-    """Test generated DataFrame list data is in the correct format."""
-    X, y = make_example_dataframe_list(
-        n_cases=n_cases,
-        n_channels=n_channels,
-        n_labels=n_classes,
-        min_n_timepoints=min_n_timepoints,
-        max_n_timepoints=max_n_timepoints,
-        regression_target=regression,
-    )
-
-    assert isinstance(X, list)
-    assert all(isinstance(x, pd.DataFrame) for x in X)
-    assert isinstance(y, np.ndarray)
-    assert len(X) == n_cases
-    assert all([x.shape[1] == n_channels for x in X])
-    if min_n_timepoints == max_n_timepoints:
-        assert all([x.shape[0] == min_n_timepoints for x in X])
-    else:
-        assert all(
-            [
-                x.shape[0] >= min_n_timepoints and x.shape[0] <= max_n_timepoints
-                for x in X
-            ]
-        )
-    assert y.shape == (n_cases,)
-    assert get_type(X) == "df-list"
     if regression:
         assert y.dtype == np.float32
     else:

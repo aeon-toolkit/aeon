@@ -17,7 +17,6 @@ from aeon.testing.data_generation import (
     make_example_2d_numpy_series,
     make_example_3d_numpy,
     make_example_3d_numpy_list,
-    make_example_dataframe_list,
     make_example_multi_index_dataframe,
 )
 from aeon.transformations.collection import BaseCollectionTransformer
@@ -62,22 +61,6 @@ EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION = {
             random_state=data_rng.randint(np.iinfo(np.int32).max),
         ),
         "test": make_example_3d_numpy_list(
-            n_cases=5,
-            n_channels=1,
-            min_n_timepoints=20,
-            max_n_timepoints=20,
-            random_state=data_rng.randint(np.iinfo(np.int32).max),
-        ),
-    },
-    "df-list": {
-        "train": make_example_dataframe_list(
-            n_cases=10,
-            n_channels=1,
-            min_n_timepoints=20,
-            max_n_timepoints=20,
-            random_state=data_rng.randint(np.iinfo(np.int32).max),
-        ),
-        "test": make_example_dataframe_list(
             n_cases=5,
             n_channels=1,
             min_n_timepoints=20,
@@ -164,24 +147,6 @@ EQUAL_LENGTH_UNIVARIATE_REGRESSION = {
             regression_target=True,
         ),
     },
-    "df-list": {
-        "train": make_example_dataframe_list(
-            n_cases=10,
-            n_channels=1,
-            min_n_timepoints=20,
-            max_n_timepoints=20,
-            random_state=data_rng.randint(np.iinfo(np.int32).max),
-            regression_target=True,
-        ),
-        "test": make_example_dataframe_list(
-            n_cases=5,
-            n_channels=1,
-            min_n_timepoints=20,
-            max_n_timepoints=20,
-            random_state=data_rng.randint(np.iinfo(np.int32).max),
-            regression_target=True,
-        ),
-    },
     "pd-wide": {
         "train": make_example_2d_dataframe_collection(
             n_cases=10,
@@ -247,22 +212,6 @@ EQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION = {
             random_state=data_rng.randint(np.iinfo(np.int32).max),
         ),
     },
-    "df-list": {
-        "train": make_example_dataframe_list(
-            n_cases=10,
-            n_channels=2,
-            min_n_timepoints=20,
-            max_n_timepoints=20,
-            random_state=data_rng.randint(np.iinfo(np.int32).max),
-        ),
-        "test": make_example_dataframe_list(
-            n_cases=5,
-            n_channels=2,
-            min_n_timepoints=20,
-            max_n_timepoints=20,
-            random_state=data_rng.randint(np.iinfo(np.int32).max),
-        ),
-    },
     "pd-multiindex": {
         "train": make_example_multi_index_dataframe(
             n_cases=10,
@@ -316,24 +265,6 @@ EQUAL_LENGTH_MULTIVARIATE_REGRESSION = {
             regression_target=True,
         ),
     },
-    "df-list": {
-        "train": make_example_dataframe_list(
-            n_cases=10,
-            n_channels=2,
-            min_n_timepoints=20,
-            max_n_timepoints=20,
-            random_state=data_rng.randint(np.iinfo(np.int32).max),
-            regression_target=True,
-        ),
-        "test": make_example_dataframe_list(
-            n_cases=5,
-            n_channels=2,
-            min_n_timepoints=20,
-            max_n_timepoints=20,
-            random_state=data_rng.randint(np.iinfo(np.int32).max),
-            regression_target=True,
-        ),
-    },
     "pd-multiindex": {
         "train": make_example_multi_index_dataframe(
             n_cases=10,
@@ -371,22 +302,6 @@ UNEQUAL_LENGTH_UNIVARIATE_CLASSIFICATION = {
             random_state=data_rng.randint(np.iinfo(np.int32).max),
         ),
     },
-    "df-list": {
-        "train": make_example_dataframe_list(
-            n_cases=10,
-            n_channels=1,
-            min_n_timepoints=10,
-            max_n_timepoints=20,
-            random_state=data_rng.randint(np.iinfo(np.int32).max),
-        ),
-        "test": make_example_dataframe_list(
-            n_cases=5,
-            n_channels=1,
-            min_n_timepoints=10,
-            max_n_timepoints=20,
-            random_state=data_rng.randint(np.iinfo(np.int32).max),
-        ),
-    },
     "pd-multiindex": {
         "train": make_example_multi_index_dataframe(
             n_cases=10,
@@ -416,24 +331,6 @@ UNEQUAL_LENGTH_UNIVARIATE_REGRESSION = {
             regression_target=True,
         ),
         "test": make_example_3d_numpy_list(
-            n_cases=5,
-            n_channels=1,
-            min_n_timepoints=10,
-            max_n_timepoints=20,
-            random_state=data_rng.randint(np.iinfo(np.int32).max),
-            regression_target=True,
-        ),
-    },
-    "df-list": {
-        "train": make_example_dataframe_list(
-            n_cases=10,
-            n_channels=1,
-            min_n_timepoints=10,
-            max_n_timepoints=20,
-            random_state=data_rng.randint(np.iinfo(np.int32).max),
-            regression_target=True,
-        ),
-        "test": make_example_dataframe_list(
             n_cases=5,
             n_channels=1,
             min_n_timepoints=10,
@@ -479,22 +376,6 @@ UNEQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION = {
             random_state=data_rng.randint(np.iinfo(np.int32).max),
         ),
     },
-    "df-list": {
-        "train": make_example_dataframe_list(
-            n_cases=10,
-            n_channels=2,
-            min_n_timepoints=10,
-            max_n_timepoints=20,
-            random_state=data_rng.randint(np.iinfo(np.int32).max),
-        ),
-        "test": make_example_dataframe_list(
-            n_cases=5,
-            n_channels=2,
-            min_n_timepoints=10,
-            max_n_timepoints=20,
-            random_state=data_rng.randint(np.iinfo(np.int32).max),
-        ),
-    },
     "pd-multiindex": {
         "train": make_example_multi_index_dataframe(
             n_cases=10,
@@ -528,24 +409,6 @@ UNEQUAL_LENGTH_MULTIVARIATE_REGRESSION = {
             n_channels=2,
             max_n_timepoints=20,
             min_n_timepoints=10,
-            random_state=data_rng.randint(np.iinfo(np.int32).max),
-            regression_target=True,
-        ),
-    },
-    "df-list": {
-        "train": make_example_dataframe_list(
-            n_cases=10,
-            n_channels=2,
-            min_n_timepoints=10,
-            max_n_timepoints=20,
-            random_state=data_rng.randint(np.iinfo(np.int32).max),
-            regression_target=True,
-        ),
-        "test": make_example_dataframe_list(
-            n_cases=5,
-            n_channels=2,
-            min_n_timepoints=10,
-            max_n_timepoints=20,
             random_state=data_rng.randint(np.iinfo(np.int32).max),
             regression_target=True,
         ),

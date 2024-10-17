@@ -110,7 +110,7 @@ def get_n_timepoints(X):
     t = get_type(X)
     if t in ["numpy3D", "np-list"]:
         return X[0].shape[1]
-    if t in ["numpy2D", "df-list"]:
+    if t in ["numpy2D"]:
         return X[0].shape[0]
     if t == "pd-multiindex":
         return len(X.index.get_level_values(1).unique())
@@ -151,13 +151,6 @@ def get_n_channels(X):
         return X[0].shape[0]
     if t in ["numpy2D", "pd-wide"]:
         return 1
-    if t == "df-list":
-        if not all(arr.shape[1] == X[0].shape[1] for arr in X):
-            raise ValueError(
-                f"ERROR: number of channels is not consistent. "
-                f"Found values: {np.unique([arr.shape[1] for arr in X])}."
-            )
-        return X[0].shape[1]
     if t == "pd-multiindex":
         return len(X.columns)
 
@@ -197,7 +190,7 @@ def get_type(X):
             raise ValueError(
                 f"ERROR np.ndarray must be 2D or 3D but found " f"{X.ndim}"
             )
-    elif isinstance(X, list):  # np-list or df-list
+    elif isinstance(X, list):  # np-list
         if isinstance(X[0], np.ndarray):  # if one a numpy they must all be 2D numpy
             for a in X:
                 if not (isinstance(a, np.ndarray) and a.ndim == 2):
@@ -205,15 +198,10 @@ def get_type(X):
                         f"ERROR nnp-list must contain 2D np.ndarray but found {a.ndim}"
                     )
             return "np-list"
-        elif isinstance(X[0], pd.DataFrame):
-            for a in X:
-                if not isinstance(a, pd.DataFrame):
-                    raise TypeError("ERROR df-list must only contain pd.DataFrame")
-            return "df-list"
         else:
             raise TypeError(
                 f"ERROR passed a list containing {type(X[0])}, "
-                f"lists should either 2D numpy arrays or pd.DataFrames."
+                f"lists should of 2D numpy arrays."
             )
     elif isinstance(X, pd.DataFrame):  # Nested univariate, hierarchical or pd-wide
         if isinstance(X.index, pd.MultiIndex):
@@ -292,11 +280,6 @@ def has_missing(X):
             if np.any(np.isnan(np.min(x))):
                 return True
         return False
-    if type == "df-list":
-        for x in X:
-            if x.isnull().any().any():
-                return True
-        return False
     if type == "pd-wide":
         return X.isnull().any().any()
     if type == "pd-multiindex":
@@ -312,9 +295,6 @@ def is_univariate(X):
         return True
     if type == "numpy3D":
         return X.shape[1] == 1
-    # df list (n_timepoints, n_channels)
-    if type == "df-list":
-        return X[0].shape[1] == 1
     # np list (n_channels, n_timepoints)
     if type == "np-list":
         return X[0].shape[0] == 1
@@ -356,13 +336,6 @@ def _equal_length(X, input_type):
         first = X[0].shape[1]
         for i in range(1, len(X)):
             if X[i].shape[1] != first:
-                return False
-        return True
-    # df-list are shape (n_timepoints, n_channels)
-    if input_type == "df-list":
-        first = X[0].shape[0]
-        for i in range(1, len(X)):
-            if X[i].shape[0] != first:
                 return False
         return True
     if input_type == "pd-multiindex":  # multiindex dataframe
