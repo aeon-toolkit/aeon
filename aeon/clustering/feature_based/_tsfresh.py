@@ -138,7 +138,7 @@ class TSFreshClusterer(BaseClusterer):
         else:
             if hasattr(self.estimator, "n_clusters") and self.n_clusters is not None:
                 self.estimator.n_clusters = self.n_clusters
-            
+
             self._estimator = _clone_estimator(self.estimator, self.random_state)
 
         if self.verbose < 2:
