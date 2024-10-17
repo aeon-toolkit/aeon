@@ -45,7 +45,7 @@ class TSFreshClusterer(BaseClusterer):
         If `RandomState` instance, random_state is the random number generator;
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
-    n_clusters : int, default=8
+    n_clusters : int, default=20
         Number of clusters for KMeans (or other estimators that support n_clusters).
 
     See Also
