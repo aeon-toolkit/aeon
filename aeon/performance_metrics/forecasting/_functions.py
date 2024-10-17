@@ -1133,7 +1133,7 @@ def median_squared_error(
     >>> y_true = np.array([[0.5, 1], [-1, 1], [7, -6]])
     >>> y_pred = np.array([[0, 2], [-1, 2], [8, -5]])
     >>> m = median_squared_error(y_true, y_pred)
-    >>> m = median_squared_error(y_true, y_pred, square_root=True)
+    >>> m = median_squared_error(y_true, y_pred, square_root=True) 
     >>> m = median_squared_error(y_true, y_pred, multioutput='raw_values')
     >>> m = median_squared_error(y_true, y_pred, multioutput='raw_values', \
     square_root=True)
