@@ -34,7 +34,13 @@ NAME_ALIASES = {
         "CIFClassifier",
         "CanonicalIntervalForestClassifier",
     },
-    "CNN": {"cnn", "CNNClassifier", "CNNRegressor"},
+    "CNN": {
+        "cnn",
+        "CNNClassifier",
+        "CNNRegressor",
+        "TimeCNNClassifier",
+        "TimeCNNRegressor",
+    },
     "Catch22": {"catch22", "Catch22Classifier"},
     "DrCIF": {"DrCIF", "DrCIFClassifier", "DrCIFRegressor"},
     "EE": {"ElasticEnsemble", "EEClassifier", "ElasticEnsembleClassifier"},
@@ -112,7 +118,7 @@ NAME_ALIASES = {
     "TS-CHIEF": {"TSCHIEF", "TS_CHIEF"},
     "TSF": {"tsf", "TimeSeriesForest", "TimeSeriesForestClassifier"},
     "TSFresh": {"tsfresh", "TSFreshClassifier"},
-    "WEASEL-1.0": {"WEASEL", "WEASEL2", "weasel", "WEASEL 1.0"},
+    "WEASEL-1.0": {"WEASEL", "WEASEL1", "weasel", "WEASEL 1.0"},
     "WEASEL-2.0": {"WEASEL-D", "WEASEL-Dilation", "WEASEL2", "weasel 2.0", "WEASEL_V2"},
     "1NN-DTW": {
         "1NNDTW",

@@ -1,10 +1,8 @@
 """Unit tests for check/convert functions."""
 
 import numpy as np
-import pandas as pd
 import pytest
 
-from aeon.testing.data_generation import make_example_nested_dataframe
 from aeon.testing.testing_data import (
     EQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION,
     EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION,
@@ -12,16 +10,12 @@ from aeon.testing.testing_data import (
 )
 from aeon.utils import COLLECTIONS_DATA_TYPES
 from aeon.utils.conversion._convert_collection import (
-    _from_nested_univ_to_numpy2d,
-    _from_nested_univ_to_pd_multiindex,
     _from_numpy2d_to_df_list,
-    _from_numpy2d_to_nested_univ,
     _from_numpy2d_to_np_list,
     _from_numpy2d_to_numpy3d,
     _from_numpy2d_to_pd_multiindex,
     _from_numpy2d_to_pd_wide,
     _from_numpy3d_to_df_list,
-    _from_numpy3d_to_nested_univ,
     _from_numpy3d_to_np_list,
     _from_numpy3d_to_numpy2d,
     _from_numpy3d_to_pd_multiindex,
@@ -32,7 +26,6 @@ from aeon.utils.conversion._convert_collection import (
 )
 from aeon.utils.validation.collection import (
     _equal_length,
-    _nested_univ_is_equal,
     get_n_cases,
     get_type,
     has_missing,
@@ -105,7 +98,7 @@ def test_resolve_equal_length_inner_type():
     test = ["np-list", "numpy3D", "FOOBAR"]
     X = resolve_equal_length_inner_type(test)
     assert X == "numpy3D"
-    test = ["nested_univ", "np-list"]
+    test = ["pd-wide", "np-list"]
     X = resolve_equal_length_inner_type(test)
     assert X == "np-list"
 
@@ -118,9 +111,6 @@ def test_resolve_unequal_length_inner_type():
     test = ["np-list", "numpy3D"]
     X = resolve_unequal_length_inner_type(test)
     assert X == "np-list"
-    test = ["nested_univ", "FOOBAR"]
-    X = resolve_unequal_length_inner_type(test)
-    assert X == "nested_univ"
 
 
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
@@ -168,7 +158,7 @@ def test_has_missing(data):
     """Test if missing values are correctly identified."""
     assert not has_missing(EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[data]["train"][0])
     X = np.random.random(size=(10, 2, 20))
-    X[5][1][12] = np.NAN
+    X[5][1][12] = np.nan
     assert has_missing(X)
 
 
@@ -188,7 +178,6 @@ NUMPY3D = [
     _from_numpy3d_to_df_list,
     _from_numpy3d_to_pd_wide,
     _from_numpy3d_to_numpy2d,
-    _from_numpy3d_to_nested_univ,
     _from_numpy3d_to_pd_multiindex,
 ]
 
@@ -206,7 +195,6 @@ NUMPY2D = [
     _from_numpy2d_to_np_list,
     _from_numpy2d_to_df_list,
     _from_numpy2d_to_pd_wide,
-    _from_numpy2d_to_nested_univ,
     _from_numpy2d_to_pd_multiindex,
 ]
 
@@ -217,56 +205,3 @@ def test_numpy2D_error(function):
     X = np.random.random(size=(10, 2, 20))
     with pytest.raises(TypeError, match="Input numpy not of type numpy2D"):
         function(X)
-
-
-def test__nested_univ_is_equal():
-    """Test _nested_univ_is_equal function for pd.DataFrame.
-
-    Note that the function _nested_univ_is_equal assumes series are equal length
-    over channels so only tests the first channel.
-    """
-    data = {
-        "A": [pd.Series([1, 2, 3, 4]), pd.Series([4, 5, 6])],
-        "B": [pd.Series([1, 2, 3, 4]), pd.Series([4, 5, 6])],
-        "C": [pd.Series([1, 2, 3, 4]), pd.Series([4, 5, 6])],
-    }
-    X = pd.DataFrame(data)
-    assert not _nested_univ_is_equal(X)
-    X, _ = make_example_nested_dataframe(
-        n_cases=10, n_channels=1, min_n_timepoints=20, max_n_timepoints=20
-    )
-    assert _nested_univ_is_equal(X)
-
-
-def test_from_nested():
-    """Test with multiple nested columns and non-nested columns."""
-    data = {
-        "A": [pd.Series([1, 2, 3]), pd.Series([4, 5, 6])],
-        "B": [pd.Series(["a", "b", "c"]), pd.Series(["x", "y", "z"])],
-        "C": [7, 8],
-    }
-    X = pd.DataFrame(data)
-    result = _from_nested_univ_to_pd_multiindex(X)
-    assert isinstance(result, pd.DataFrame)
-    data = {
-        "A": [pd.Series([1, 2, 3, 4]), pd.Series([4, 5, 6])],
-        "B": [pd.Series([1, 2, 3, 4]), pd.Series([4, 5, 6])],
-        "C": [pd.Series([1, 2, 3, 4]), pd.Series([4, 5, 6])],
-    }
-    X = pd.DataFrame(data)
-    with pytest.raises(
-        TypeError, match="Cannot convert unequal length series to numpy2D"
-    ):
-        _from_nested_univ_to_numpy2d(X)
-    X, _ = make_example_nested_dataframe(
-        n_cases=10, n_channels=1, min_n_timepoints=20, max_n_timepoints=20
-    )
-    result = _from_nested_univ_to_numpy2d(X)
-    assert result.shape == (10, 20)
-    X, _ = make_example_nested_dataframe(
-        n_cases=10, n_channels=2, min_n_timepoints=20, max_n_timepoints=20
-    )
-    with pytest.raises(
-        TypeError, match="Cannot convert multivariate nested into numpy2D"
-    ):
-        _from_nested_univ_to_numpy2d(X)

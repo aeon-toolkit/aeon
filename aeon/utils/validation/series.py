@@ -1,9 +1,10 @@
 """Functions for checking input data."""
 
+from typing import Optional
+
 __all__ = [
     "check_series",
     "check_time_index",
-    "check_equal_time_index",
     "check_consistent_index_type",
     "is_hierarchical",
     "is_single_series",
@@ -306,7 +307,7 @@ def check_series(
 def check_time_index(
     index: Union[pd.Index, np.array],
     allow_empty: bool = False,
-    enforce_index_type: bool = None,
+    enforce_index_type: Optional[bool] = None,
     var_name: str = "input",
 ) -> pd.Index:
     """Check time index.
@@ -357,59 +358,6 @@ def check_time_index(
         )
 
     return index
-
-
-def check_equal_time_index(*ys, mode="equal"):
-    """Check that time series have the same (time) indices.
-
-    Parameters
-    ----------
-    *ys : tuple of aeon compatible time series data containers
-        must be pd.Series, pd.DataFrame or 1/2D np.ndarray, or None
-        can be Series, Panel, Hierarchical, but must be pandas or numpy
-        note: this assumption is not checked by the function itself
-    mode : str, "equal" or "contained", optional, default = "equal"
-        if "equal" will check for all indices being exactly equal
-        if "contained", will check whether all indices are subset of ys[0].index
-
-    Raises
-    ------
-    ValueError
-        if mode = "equal", raised if there are at least two non-None entries of ys
-            of which pandas indices are not the same
-        if mode = "contained, raised if there is at least one non-None ys[i]
-            such that ys[i].index is not contained in ys[o].index
-        np.ndarray are considered having (pandas) integer range index on axis 0
-    """
-    y_not_None = [y for y in ys if y is not None]
-
-    # if there is no or just one element, there is nothing to compare
-    if len(y_not_None) < 2:
-        return None
-
-    # only validate indices if data is passed as pd.Series
-    first_index = get_index_for_series(y_not_None[0])
-
-    for i, y in enumerate(y_not_None[1:]):
-        y_index = get_index_for_series(y)
-
-        if mode == "equal":
-            failure_cond = not first_index.equals(y_index)
-            msg = (
-                f"(time) indices are not the same, series 0 and {i} "
-                f"differ in the following: {first_index.symmetric_difference(y_index)}."
-            )
-        elif mode == "contains":
-            failure_cond = not y_index.isin(first_index).all()
-            msg = (
-                f"(time) indices of series {i} are not contained in index of series 0,"
-                f" extra indices are: {y_index.difference(first_index)}"
-            )
-        else:
-            raise ValueError('mode must be "equal" or "contains"')
-
-        if failure_cond:
-            raise ValueError(msg)
 
 
 def check_consistent_index_type(a, b):
@@ -549,3 +497,49 @@ def is_pdmultiindex_hierarchical(y):
     if not time_is_monotonic:
         return False
     return True
+
+
+def check_y(
+    y,
+    allow_empty=False,
+    allow_constant=True,
+    enforce_index_type=None,
+    allow_index_names=False,
+):
+    """Validate input data.
+
+    Parameters
+    ----------
+    y : pd.Series
+    allow_empty : bool, default=False
+        If False, empty `y` raises an error.
+    allow_constant : bool, default=True
+        If True, constant `y` does not raise an error.
+    enforce_index_type : type, default=None
+        type of time index
+    allow_index_names : bool, default=None
+        If False, names of y.index will be set to None
+
+    Returns
+    -------
+    y : pd.Series
+
+    Raises
+    ------
+    ValueError, TypeError
+        If y is an invalid input
+    """
+    y = check_series(
+        y,
+        enforce_univariate=True,
+        allow_empty=allow_empty,
+        allow_numpy=False,
+        enforce_index_type=enforce_index_type,
+        allow_index_names=allow_index_names,
+    )
+
+    if not allow_constant:
+        if np.all(y == y.iloc[0]):
+            raise ValueError("All values of `y` are the same.")
+
+    return y

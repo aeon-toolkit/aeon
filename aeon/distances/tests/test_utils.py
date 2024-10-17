@@ -16,6 +16,10 @@ from aeon.testing.data_generation._legacy import make_series
 
 SINGLE_POINT_NOT_SUPPORTED_DISTANCES = ["ddtw", "wddtw", "edr"]
 
+UNEQUAL_LENGTH_NOT_SUPPORTED_DISTANCES = ["shift_scale"]
+
+ASYMMETRIC_DISTANCES = ["shift_scale"]
+
 
 def test_incorrect_input():
     """Test util function incorrect input."""

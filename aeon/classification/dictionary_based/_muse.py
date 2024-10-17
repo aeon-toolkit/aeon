@@ -107,7 +107,7 @@ class MUSE(BaseClassifier):
     References
     ----------
     .. [1] Patrick Schäfer and Ulf Leser, "Multivariate time series classification
-        with WEASEL+MUSE", in proc 3rd ECML/PKDD Workshop on AALTD}, 2018
+        with WEASEL+MUSE", in proc 3rd ECML/PKDD Workshop on AALTD, 2018
         https://arxiv.org/abs/1711.11343
 
     Notes
@@ -122,8 +122,8 @@ class MUSE(BaseClassifier):
     --------
     >>> from aeon.classification.dictionary_based import MUSE
     >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
     >>> clf = MUSE(window_inc=4, use_first_order_differences=False)
     >>> clf.fit(X_train, y_train)
     MUSE(...)
@@ -131,6 +131,7 @@ class MUSE(BaseClassifier):
     """
 
     _tags = {
+        "capability:univariate": False,
         "capability:multivariate": True,
         "capability:multithreading": True,
         "algorithm_type": "dictionary",
@@ -455,7 +456,6 @@ def _parallel_fit(
             feature_selection=feature_selection,
             save_words=False,
             n_jobs=n_jobs,
-            return_pandas_data_series=False,
             return_sparse=True,
         )
 

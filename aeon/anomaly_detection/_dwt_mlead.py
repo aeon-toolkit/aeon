@@ -4,7 +4,8 @@ __maintainer__ = ["CodeLionX"]
 __all__ = ["DWT_MLEAD"]
 
 import warnings
-from typing import Any, Iterable, List, Tuple
+from collections.abc import Iterable
+from typing import Any
 
 import numpy as np
 from numpy.lib.stride_tricks import sliding_window_view
@@ -14,7 +15,7 @@ from aeon.anomaly_detection.base import BaseAnomalyDetector
 from aeon.utils.numba.wavelets import multilevel_haar_transform
 
 
-def _pad_series(x: np.ndarray) -> Tuple[np.ndarray, int, int]:
+def _pad_series(x: np.ndarray) -> tuple[np.ndarray, int, int]:
     """Pad input signal to the next power of 2 using periodic padding mode."""
     n = x.shape[0]
     exp = np.ceil(np.log2(n))
@@ -22,7 +23,7 @@ def _pad_series(x: np.ndarray) -> Tuple[np.ndarray, int, int]:
     return np.pad(x, (0, m - n), mode="wrap"), n, m
 
 
-def _combine_alternating(xs: List[Any], ys: List[Any]) -> Iterable[Any]:
+def _combine_alternating(xs: list[Any], ys: list[Any]) -> Iterable[Any]:
     """Combine two lists by alternating their elements."""
     for x, y in zip(xs, ys):
         yield x
@@ -88,7 +89,7 @@ class DWT_MLEAD(BaseAnomalyDetector):
     --------
     >>> import numpy as np
     >>> from aeon.anomaly_detection import DWT_MLEAD
-    >>> X = np.array([1, 2, 3, 4, 1, 2, 3, 3, 2, 8, 9, 8, 1, 2, 3, 4], dtype=np.float_)
+    >>> X = np.array([1, 2, 3, 4, 1, 2, 3, 3, 2, 8, 9, 8, 1, 2, 3, 4], dtype=np.float64)
     >>> detector = DWT_MLEAD(
     ...    start_level=1, quantile_boundary_type='percentile', quantile_epsilon=0.01
     ... )
@@ -133,8 +134,8 @@ class DWT_MLEAD(BaseAnomalyDetector):
         if self.quantile_epsilon < 0 or self.quantile_epsilon > 1:
             raise ValueError("quantile_epsilon must be in [0, 1]")
 
-        X, self.N_, self.M_ = _pad_series(X)
-        max_level = int(np.log2(self.M_))
+        X, n, m = _pad_series(X)
+        max_level = int(np.log2(m))
 
         if self.start_level >= max_level:
             raise ValueError(
@@ -167,13 +168,13 @@ class DWT_MLEAD(BaseAnomalyDetector):
 
         # aggregate anomaly counts (leaf counters)
         point_anomaly_scores = self._push_anomaly_counts_down_to_points(
-            coef_anomaly_counts
+            coef_anomaly_counts, m, n
         )
         return point_anomaly_scores
 
     def _multilevel_dwt(
         self, X: np.ndarray, max_level: int
-    ) -> Tuple[np.ndarray, List[np.ndarray], List[np.ndarray]]:
+    ) -> tuple[np.ndarray, list[np.ndarray], list[np.ndarray]]:
         ls_ = np.arange(self.start_level - 1, max_level - 1, dtype=np.int_) + 1
         as_, ds_ = multilevel_haar_transform(X, max_level - 1)
         as_ = as_[self.start_level :]
@@ -219,19 +220,20 @@ class DWT_MLEAD(BaseAnomalyDetector):
 
         return np.sum(mapped, axis=1)
 
+    @staticmethod
     def _push_anomaly_counts_down_to_points(
-        self, coef_anomaly_counts: List[np.ndarray]
+        coef_anomaly_counts: list[np.ndarray], m: int, n: int
     ) -> np.ndarray:
         # sum up counters of detail coeffs (orig. D^l) and approx coeffs (orig. C^l)
         anomaly_counts = coef_anomaly_counts[0::2] + coef_anomaly_counts[1::2]
 
         # extrapolate anomaly counts to the original series' points
-        counter = np.zeros(self.M_)
+        counter = np.zeros(m)
         for ac in anomaly_counts:
-            counter += ac.repeat(self.M_ // ac.shape[0], axis=0)
+            counter += ac.repeat(m // ac.shape[0], axis=0)
         # set event counters with count < 2 to 0
         counter[counter < 2] = 0
-        return counter[: self.N_]
+        return counter[:n]
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):

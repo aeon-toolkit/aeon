@@ -3,7 +3,7 @@
 __maintainer__ = ["CodeLionX"]
 __all__ = ["sliding_windows", "reverse_windowing"]
 
-from typing import Callable, Optional, Tuple
+from typing import Callable, Optional
 
 import numpy as np
 from numpy.lib.stride_tricks import sliding_window_view
@@ -11,7 +11,7 @@ from numpy.lib.stride_tricks import sliding_window_view
 
 def sliding_windows(
     X: np.ndarray, window_size: int, stride: int = 1, axis: int = 1
-) -> Tuple[np.ndarray, int]:
+) -> tuple[np.ndarray, int]:
     """Create sliding windows of a time series.
 
     Extracts sliding windows of a time series with a given window size and stride. The
@@ -284,7 +284,7 @@ def _reverse_windowing_vectorized(
 def _reverse_windowing_iterative(
     y: np.ndarray, window_size: int, reduction: Callable[..., np.ndarray]
 ) -> np.ndarray:
-    y = np.array(y, dtype=np.float_)
+    y = np.array(y, dtype=np.float64)
     unwindowed_length = len(y) + window_size - 1
     pad_n = (window_size - 1, window_size - 1)
     y = np.pad(y, pad_n, "constant", constant_values=(np.nan, np.nan))

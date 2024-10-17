@@ -78,6 +78,8 @@ def _check_soft_dependencies(
 
     if obj is None:
         class_name = "This functionality"
+    elif isinstance(obj, str):
+        class_name = obj
     elif not isclass(obj):
         class_name = type(obj).__name__
     elif isclass(obj):
@@ -232,7 +234,7 @@ def _check_python_version(obj, package=None, msg=None, severity="error"):
 
     Parameters
     ----------
-    obj : aeon estimator, BaseObject descendant
+    obj : aeon estimator, BaseAeonEstimator descendant
         used to check python version
     package : str, default = None
         if given, will be used in error message as package name
@@ -310,12 +312,12 @@ def _check_estimator_deps(obj, msg=None, severity="error"):
     Convenience wrapper around `_check_python_version` and `_check_soft_dependencies`,
     checking against estimator tags `"python_version"`, `"python_dependencies"`.
 
-    Checks whether dependency requirements of `BaseObject`-s in `obj`
+    Checks whether dependency requirements of `BaseAeonEstimator`-s in `obj`
     are satisfied by the current python environment.
 
     Parameters
     ----------
-    obj : `aeon` object, `BaseObject` descendant, or list/tuple thereof
+    obj : `aeon` object, `BaseAeonEstimator` descendant, or list/tuple thereof
         object(s) that this function checks compatibility of, with the python env
     msg : str, optional, default = default message (msg below)
         error message to be returned in the `ModuleNotFoundError`, overrides default
@@ -333,7 +335,8 @@ def _check_estimator_deps(obj, msg=None, severity="error"):
         False is returned only if no exception is raised by the function
         checks for python version using the python_version tag of obj
         checks for soft dependencies present using the python_dependencies tag of obj
-        if `obj` contains multiple `BaseObject`-s, checks whether all are compatible
+        if `obj` contains multiple `BaseAeonEstimator`-s, checks whether all are
+        compatible
 
     Raises
     ------

@@ -84,8 +84,16 @@ class AEAttentionBiGRUNetwork(BaseDeepLearningNetwork):
             ]
         else:
             self._activation_encoder = self.activation_encoder
-            assert isinstance(self.activation_encoder, list)
-            assert len(self.activation_encoder) == self.n_layers_encoder
+            if not isinstance(self.activation_encoder, list):
+                raise ValueError(
+                    "Encoder activations should be a list or a single string."
+                )
+            if len(self.activation_encoder) != self.n_layers_encoder:
+                raise ValueError(
+                    f"Number of encoder activations {len(self.activation_encoder)}"
+                    f" should be same as number of encoder layers but is"
+                    f" not: {self.n_layers_encoder}"
+                )
 
         if isinstance(self.activation_decoder, str):
             self._activation_decoder = [
@@ -93,8 +101,16 @@ class AEAttentionBiGRUNetwork(BaseDeepLearningNetwork):
             ]
         else:
             self._activation_decoder = self.activation_decoder
-            assert isinstance(self.activation_decoder, list)
-            assert len(self.activation_decoder) == self.n_layers_decoder
+            if not isinstance(self.activation_decoder, list):
+                raise ValueError(
+                    "Decoder activations should be a list or a single string."
+                )
+            if len(self.activation_decoder) != self.n_layers_decoder:
+                raise ValueError(
+                    f"Number of decoder activations {len(self.activation_decoder)}"
+                    f" should be same as number of decoder layers but is"
+                    f" not: {self.n_layers_decoder}"
+                )
 
         if not isinstance(self.n_layers_encoder, int):
             raise ValueError("Number of layers of the encoder must be an integer.")

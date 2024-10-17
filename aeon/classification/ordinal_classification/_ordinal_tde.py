@@ -19,13 +19,14 @@ from collections import defaultdict
 
 import numpy as np
 from joblib import Parallel, delayed
-from numba import njit, types
+from numba import types
 from numba.typed import Dict
 from sklearn import preprocessing
 from sklearn.kernel_ridge import KernelRidge
 from sklearn.utils import check_random_state
 
 from aeon.classification.base import BaseClassifier
+from aeon.classification.dictionary_based._tde import histogram_intersection
 from aeon.transformations.collection.dictionary_based import SFA
 
 
@@ -132,8 +133,8 @@ class OrdinalTDE(BaseClassifier):
     --------
     >>> from aeon.classification.ordinal_classification import OrdinalTDE
     >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
     >>> clf = OrdinalTDE(
     ...     n_parameter_samples=10,
     ...     max_ensemble_size=3,
@@ -398,13 +399,6 @@ class OrdinalTDE(BaseClassifier):
         y : array-like, shape = [n_cases, n_classes_]
             Predicted probabilities using the ordering in classes_.
         """
-        _, _, n_timepoints = X.shape
-        if n_timepoints != self.n_timepoints_:
-            raise TypeError(
-                "ERROR number of attributes in the train does not match "
-                "that in the test data"
-            )
-
         sums = np.zeros((X.shape[0], self.n_classes_))
 
         for n, clf in enumerate(self.estimators_):
@@ -649,8 +643,8 @@ class IndividualOrdinalTDE(BaseClassifier):
     --------
     >>> from aeon.classification.ordinal_classification import IndividualOrdinalTDE
     >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
     >>> clf = IndividualOrdinalTDE()
     >>> clf.fit(X_train, y_train)
     IndividualOrdinalTDE(...)
@@ -978,48 +972,3 @@ class IndividualOrdinalTDE(BaseClassifier):
                 nn = self._class_vals[n]
 
         return nn
-
-
-def histogram_intersection(first, second):
-    """
-    Find the distance between two histograms using the histogram intersection.
-
-    This distance function is designed for sparse matrix, represented as a
-    dictionary or numba Dict, but can accept arrays.
-
-    Parameters
-    ----------
-    first : dict, numba.Dict or array
-        First dictionary used in distance measurement.
-    second : dict, numba.Dict or array
-        Second dictionary that will be used to measure distance from `first`.
-
-    Returns
-    -------
-    float
-        The histogram intersection distance between the first and second dictionaries.
-    """
-    if isinstance(first, dict):
-        sim = 0
-        for word, val_a in first.items():
-            val_b = second.get(word, 0)
-            sim += min(val_a, val_b)
-        return sim
-    elif isinstance(first, Dict):
-        return _histogram_intersection_dict(first, second)
-    else:
-        return np.sum(
-            [
-                0 if first[n] == 0 else np.min(first[n], second[n])
-                for n in range(len(first))
-            ]
-        )
-
-
-@njit(fastmath=True, cache=True)
-def _histogram_intersection_dict(first, second):
-    sim = 0
-    for word, val_a in first.items():
-        val_b = second.get(word, types.uint32(0))
-        sim += min(val_a, val_b)
-    return sim

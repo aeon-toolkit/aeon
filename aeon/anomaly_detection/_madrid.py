@@ -5,6 +5,7 @@ __all__ = ["MADRID"]
 
 import numpy as np
 import math
+import time
 
 from aeon.anomaly_detection.base import BaseAnomalyDetector
 
@@ -21,6 +22,8 @@ class MADRID(BaseAnomalyDetector):
         max_length,
         step_size=1,
         split_psn=None,
+        look_ahead=None,
+        enable_output=False
     ):
         self.min_length = min_length
         self.max_length = max_length
@@ -31,6 +34,8 @@ class MADRID(BaseAnomalyDetector):
                 self.max_length + 1
             )  # should be greater than self.max_length
         self.step_size = step_size
+        self.look_ahead = look_ahead
+        self.enable_output = enable_output
         super().__init__(axis=1)
 
     def _fit(self, X: np.ndarray) -> "MADRID":
@@ -69,6 +74,9 @@ class MADRID(BaseAnomalyDetector):
                 "4) Carefully edit the data to remove the constant sections."
             )
             raise ValueError(error_message)
+
+        if not isinstance(self.enable_output, bool):
+            raise ValueError(f"{self.enable_output} should be a boolean")
 
 
     def _inner_fit(self, X: np.ndarray) -> None:
@@ -229,6 +237,8 @@ class MADRID(BaseAnomalyDetector):
         bfs_seed = float("-inf")  # used for first time run of dump_topk
         k = 1
         time_bf = 0
+
+        # Initialize arrays
         num_rows = int(
             np.ceil((self.max_length + 1 - self.min_length) / self.step_size)
         )
@@ -237,9 +247,20 @@ class MADRID(BaseAnomalyDetector):
         bsf = np.zeros((num_rows, 1))
         bsf_loc = np.full((num_rows, 1), np.nan)
 
+        # Data for creating convergence plots
+        time_sum_bsf = [0, 0]
+        percent_sum_bsf = [0, 0]
+
+        # Start timer
+        start_time = time.time()
+
+        # Set m values
         m_set = np.arange(self.min_length, self.max_length + 1, self.step_size)
         m_pointer = int(np.ceil(len(m_set) / 2))
         m = m_set[m_pointer]
+
+        # Call DAMP_2_0 function (you need to define it in Python)
+        discord_score, position, left_mp = self._dump_2_0(X, m)
 
         # anomalies = np.zeros(X.shape[0], dtype=bool)
         # return anomalies
@@ -262,8 +283,16 @@ class MADRID(BaseAnomalyDetector):
     def _dump_2_0(
         self,
         X,
+        subsequence_length,
+        *args
     ):
-        pass
+        if self.look_ahead is None:
+            self.look_ahead = 2 ** np.ceil(np.log2(16 * subsequence_length))
+        left_mp = -np.inf * np.ones_like(X)
+        left_mp[:self.split_psn] = np.nan
+
+        best_so_far = -np.inf
+        bool_vec = np.ones(len(X), dtype=bool)
 
     def _test_data_madrid(self):
         np.random.seed(123456789)

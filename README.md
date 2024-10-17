@@ -13,7 +13,7 @@ We strive to provide a broad library of time series algorithms including the
 latest advances, offer efficient implementations using numba, and interfaces with other
 time series packages to provide a single framework for algorithm comparison.
 
-The latest `aeon` release is `v0.11.0`. You can view the full changelog
+The latest `aeon` release is `v0.11.1`. You can view the full changelog
 [here](https://www.aeon-toolkit.org/en/stable/changelog.html).
 
 Our webpage and documentation is available at https://aeon-toolkit.org.
@@ -124,3 +124,20 @@ clu.predict(X_test)  # Assign clusters to new data
 [GitHub Issue Tracker]: https://github.com/aeon-toolkit/aeon/issues
 [GitHub Discussions]: https://github.com/aeon-toolkit/aeon/discussions
 [Slack]: https://join.slack.com/t/aeon-toolkit/shared_invite/zt-22vwvut29-HDpCu~7VBUozyfL_8j3dLA
+
+## Citation
+
+If you use aeon we would appreciate a citation of the following [paper](https://jmlr.org/papers/v25/23-1444.html)
+
+```bibtex
+@article{aeon24jmlr,
+  author  = {Matthew Middlehurst and Ali Ismail-Fawaz and Antoine Guillaume and Christopher Holder and David Guijo-Rubio and Guzal Bulatova and Leonidas Tsaprounis and Lukasz Mentel and Martin Walter and Patrick Sch{{\"a}}fer and Anthony Bagnall},
+  title   = {aeon: a Python Toolkit for Learning from Time Series},
+  journal = {Journal of Machine Learning Research},
+  year    = {2024},
+  volume  = {25},
+  number  = {289},
+  pages   = {1--10},
+  url     = {http://jmlr.org/papers/v25/23-1444.html}
+```
+If you let us know about your paper using aeon and we will happily list it [here](https://www.aeon-toolkit.org/en/stable/papers_using_aeon.html)
