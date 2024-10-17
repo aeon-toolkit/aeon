@@ -3,12 +3,12 @@
 import platform
 import sys
 
-from aeon.registry import all_estimators
 from aeon.testing.estimator_checking import parametrize_with_checks
 from aeon.testing.testing_config import PR_TESTING
+from aeon.utils.discovery import all_estimators
 from aeon.utils.sampling import random_partition
 
-ALL_TEST_ESTIMATORS = all_estimators(return_names=False)
+ALL_TEST_ESTIMATORS = all_estimators(return_names=False, include_sklearn=False)
 
 # subsample estimators by OS & python version
 # this ensures that only a 1/3 of estimators are tested for a given combination

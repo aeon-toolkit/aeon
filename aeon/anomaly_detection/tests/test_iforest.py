@@ -21,7 +21,7 @@ def test_iforest_default():
     pred = iforest.fit_predict(series, axis=0)
 
     assert pred.shape == (80,)
-    assert pred.dtype == np.float_
+    assert pred.dtype == np.float64
     assert 50 <= np.argmax(pred) <= 60
 
 
@@ -40,7 +40,7 @@ def test_iforest_multivariate():
     pred = iforest.fit_predict(series, axis=0)
 
     assert pred.shape == (80,)
-    assert pred.dtype == np.float_
+    assert pred.dtype == np.float64
     assert 50 <= np.argmax(pred) <= 60
 
 
@@ -56,7 +56,7 @@ def test_iforest_no_window_univariate():
     pred = iforest.fit_predict(series, axis=0)
 
     assert pred.shape == (80,)
-    assert pred.dtype == np.float_
+    assert pred.dtype == np.float64
     assert 50 <= np.argmax(pred) <= 60
 
 
@@ -73,7 +73,7 @@ def test_iforest_stride():
     pred = iforest.fit_predict(series, axis=0)
 
     assert pred.shape == (80,)
-    assert pred.dtype == np.float_
+    assert pred.dtype == np.float64
     assert 50 <= np.argmax(pred) <= 60
 
 
@@ -92,7 +92,7 @@ def test_iforest_multivariate_stride():
     pred = iforest.fit_predict(series, axis=0)
 
     assert pred.shape == (80,)
-    assert pred.dtype == np.float_
+    assert pred.dtype == np.float64
     assert 50 <= np.argmax(pred) <= 60
 
 
@@ -111,7 +111,7 @@ def test_iforest_semi_supervised_univariate():
     pred = iforest.predict(series, axis=0)
 
     assert pred.shape == (80,)
-    assert pred.dtype == np.float_
+    assert pred.dtype == np.float64
     assert 50 <= np.argmax(pred) <= 60
 
 
@@ -134,5 +134,5 @@ def test_iforest_semi_supervised_multivariate():
     pred = iforest.predict(series, axis=0)
 
     assert pred.shape == (80,)
-    assert pred.dtype == np.float_
+    assert pred.dtype == np.float64
     assert 50 <= np.argmax(pred) <= 60

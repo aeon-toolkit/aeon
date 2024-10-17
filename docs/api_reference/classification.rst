@@ -22,6 +22,8 @@ Convolution-based
     HydraClassifier
     MultiRocketHydraClassifier
     RocketClassifier
+    MiniRocketClassifier
+    MultiRocketClassifier
 
 Deep learning
 -------------
