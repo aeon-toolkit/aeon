@@ -7,6 +7,8 @@ __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["TSFreshClusterer"]
 
 
+from typing import Optional
+
 import numpy as np
 from sklearn.cluster import KMeans
 
@@ -43,6 +45,8 @@ class TSFreshClusterer(BaseClusterer):
         If `RandomState` instance, random_state is the random number generator;
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
+    n_clusters : int, default=8
+        Number of clusters for KMeans (or other estimators that support n_clusters).
 
     See Also
     --------
@@ -76,12 +80,13 @@ class TSFreshClusterer(BaseClusterer):
 
     def __init__(
         self,
-        default_fc_parameters="efficient",
-        estimator=None,
-        verbose=0,
-        n_jobs=1,
-        chunksize=None,
-        random_state=None,
+        default_fc_parameters: str = "efficient",
+        estimator = None,
+        verbose: int = 0,
+        n_jobs: int = 1,
+        chunksize: Optional[int] = None,
+        random_state: Optional[int] = None,
+        n_clusters: int = 20,  # Default value as 20
     ):
         self.default_fc_parameters = default_fc_parameters
         self.estimator = estimator
@@ -90,13 +95,14 @@ class TSFreshClusterer(BaseClusterer):
         self.n_jobs = n_jobs
         self.chunksize = chunksize
         self.random_state = random_state
+        self.n_clusters = n_clusters
 
         self._transformer = None
         self._estimator = None
 
         super().__init__()
 
-    def _fit(self, X, y=None):
+    def _fit(self, X: np.ndarray, y: Optional[np.ndarray] = None) -> "TSFreshClusterer":
         """Fit a pipeline on cases X.
 
         Parameters
@@ -121,10 +127,13 @@ class TSFreshClusterer(BaseClusterer):
             n_jobs=self._n_jobs,
             chunksize=self.chunksize,
         )
-        self._estimator = _clone_estimator(
-            (KMeans() if self.estimator is None else self.estimator),
-            self.random_state,
-        )
+
+        if self.estimator is None:
+            self._estimator = _clone_estimator(
+                KMeans(n_clusters=self.n_clusters), self.random_state
+            )
+        else:
+            self._estimator = _clone_estimator(self.estimator, self.random_state)
 
         if self.verbose < 2:
             self._transformer.show_warnings = False
@@ -147,7 +156,7 @@ class TSFreshClusterer(BaseClusterer):
 
         return self
 
-    def _predict(self, X) -> np.ndarray:
+    def _predict(self, X: np.ndarray) -> np.ndarray:
         """Predict class values of n instances in X.
 
         Parameters
@@ -162,7 +171,7 @@ class TSFreshClusterer(BaseClusterer):
         """
         return self._estimator.predict(self._transformer.transform(X))
 
-    def _predict_proba(self, X) -> np.ndarray:
+    def _predict_proba(self, X: np.ndarray) -> np.ndarray:
         """Predict class values of n instances in X.
 
         Parameters
@@ -194,11 +203,11 @@ class TSFreshClusterer(BaseClusterer):
                 dists[i, preds[i]] = 1
             return dists
 
-    def _score(self, X, y=None):
+    def _score(self, X: np.ndarray, y: Optional[np.ndarray] = None):
         raise NotImplementedError("TSFreshClusterer does not support scoring.")
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def get_test_params(cls, parameter_set: str = "default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
