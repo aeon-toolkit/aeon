@@ -101,14 +101,12 @@ class RegressorPipeline(BaseCollectionPipeline, BaseRegressor):
         """
         from aeon.regression.distance_based import KNeighborsTimeSeriesRegressor
         from aeon.transformations.collection import Truncator
-        from aeon.transformations.collection.feature_based import (
-            SevenNumberSummaryTransformer,
-        )
+        from aeon.transformations.collection.feature_based import SevenNumberSummary
 
         return {
             "transformers": [
                 Truncator(truncated_length=5),
-                SevenNumberSummaryTransformer(),
+                SevenNumberSummary(),
             ],
             "regressor": KNeighborsTimeSeriesRegressor(distance="euclidean"),
         }

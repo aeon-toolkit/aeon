@@ -106,14 +106,12 @@ class ClassifierPipeline(BaseCollectionPipeline, BaseClassifier):
         """
         from aeon.classification.distance_based import KNeighborsTimeSeriesClassifier
         from aeon.transformations.collection import Truncator
-        from aeon.transformations.collection.feature_based import (
-            SevenNumberSummaryTransformer,
-        )
+        from aeon.transformations.collection.feature_based import SevenNumberSummary
 
         return {
             "transformers": [
                 Truncator(truncated_length=5),
-                SevenNumberSummaryTransformer(),
+                SevenNumberSummary(),
             ],
             "classifier": KNeighborsTimeSeriesClassifier(distance="euclidean"),
         }
