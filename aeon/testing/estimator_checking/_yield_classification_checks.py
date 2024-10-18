@@ -82,12 +82,6 @@ def check_classifier_against_expected_results(estimator_class):
     if platform == "darwin":
         return None
 
-    # the test currently fails when numba is disabled. See issue #622
-    import os
-
-    if class_name == "HIVECOTEV2" and os.environ.get("NUMBA_DISABLE_JIT") == "1":
-        return None
-
     for data_name, data_dict, data_loader, data_seed in [
         ["UnitTest", unit_test_proba, load_unit_test, 0],
         ["BasicMotions", basic_motions_proba, load_basic_motions, 4],
