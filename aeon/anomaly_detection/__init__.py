@@ -9,8 +9,10 @@ __all__ = [
     "STOMP",
     "LeftSTAMPi",
     "IsolationForest",
+    "COPOD",
 ]
 
+from aeon.anomaly_detection._copod import COPOD
 from aeon.anomaly_detection._dwt_mlead import DWT_MLEAD
 from aeon.anomaly_detection._iforest import IsolationForest
 from aeon.anomaly_detection._kmeans import KMeansAD
