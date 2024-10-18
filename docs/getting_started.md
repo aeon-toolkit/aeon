@@ -28,8 +28,7 @@ time series data into tabular data.
 The following provides introductory examples for each of these modules. The examples
 use the datatypes most commonly used for the task in question, but a variety of input
 types for
-data are available. See [here](/examples/datasets/data_structures.ipynb) for
-more information on input data structures. For more information on the variety of
+data are available. For more information on the variety of
 estimators
 available for each task, see the [API](api_reference) and [examples](examples) pages.
 
@@ -277,11 +276,11 @@ statistics for each series.
 ```
 
 There are also series-to-series transformations, such as the
-[PaddingTransformer](transformations.collection.pad.PaddingTransformer) to lengthen
+[Padder](transformations.collection) to lengthen
 series and process unequal length collections.
 
 ```{code-block} python
->>> from aeon.transformations.collection.pad import PaddingTransformer
+>>> from aeon.transformations.collection import Padder
 >>> from aeon.testing.data_generation import make_example_3d_numpy_list
 >>> X, _ = make_example_3d_numpy_list(  # unequal length data with 8-12 timepoints
 ...     n_cases=2,
@@ -295,7 +294,7 @@ series and process unequal length collections.
 >>> print(X[1])
 [[2.         0.28414423 0.3485172  0.08087359 3.33047938 3.112627
   3.48004859 3.91447337 3.19663426]]
->>> pad = PaddingTransformer(pad_length=12, fill_value=0)  # pad to length 12
+>>> pad = Padder(pad_length=12, fill_value=0)  # pad to length 12
 >>> pad.fit_transform(X)
 [[[0.         1.6885315  1.71589124 1.69450348 1.24712739 0.76876341
    0.59506921 0.11342595 0.54531259 0.95533023 1.62433746 0.95995434]]
@@ -303,83 +302,11 @@ series and process unequal length collections.
    3.48004859 3.91447337 3.19663426 0.         0.         0.        ]]]
 ```
 
-If single series input is required, regular transformer functionality can be restored
-using the
-[CollectionToSeriesWrapper](transformations.collection.CollectionToSeriesWrapper) class.
-Like other `BaseTransformer` classes, this wrapper will treat 2D input as a single
-multivariate series and automatically convert output.
-
-```{code-block} python
->>> from aeon.transformations.collection import CollectionToSeriesWrapper
->>> from aeon.transformations.collection.feature_based import Catch22
->>> from aeon.datasets import load_airline
->>> y = load_airline()  # load single series airline dataset
->>> c22 = Catch22(replace_nans=True)
->>> wrapper = CollectionToSeriesWrapper(c22)  # wrap transformer to accept single series
->>> wrapper.fit_transform(y)
-           0           1     2         3   ...        18        19        20    21
-0  155.800003  181.700012  49.0  0.541667  ...  0.282051  0.769231  0.166667  11.0
-
-[1 rows x 22 columns]
-```
 
 ## Pipelines for aeon estimators
 
 Like `scikit-learn`, `aeon` provides pipeline classes which can be used to chain
-transformations and estimators together. The simplest pipeline for forecasting is the
-[TransformedTargetForecaster](forecasting.compose.TransformedTargetForecaster).
-
-In the following example, we chain together a
-[BoxCoxTransformer](transformations.boxcox.BoxCoxTransformer),
-[Deseasonalizer](transformations.detrend.Deseasonalizer) and
-[ARIMA](forecasting.arima.ARIMA) forecaster to make a forecast (if you want to run this
-yourself, you will need to `pip install statsmodels` and `pip install pmdarima`).
-
-```{code-block} python
->>> import numpy as np
->>> from aeon.datasets import load_airline
->>> from aeon.transformations.series._boxcox import BoxCoxTransformer
->>> from aeon.forecasting.arima import ARIMA
->>> from aeon.forecasting.compose import TransformedTargetForecaster
-...
->>> # Load airline data
->>> y = load_airline()
->>> # Create and fit the pipeline
->>> pipe = TransformedTargetForecaster(
-...     steps=[
-...         ("boxcox", BoxCoxTransformer(sp=12)),
-...         ("arima", ARIMA(order=(1, 1, 0))),
-...     ]
-... )
->>> pipe.fit(y)
->>> # Make predictions
->>> pipe.predict(fh=np.arange(1, 13))
-1961-01    442.440026
-1961-02    433.548016
-1961-03    493.371215
-1961-04    484.284090
-1961-05    490.850617
-1961-06    555.134680
-1961-07    609.581248
-1961-08    611.345923
-1961-09    542.610868
-1961-10    482.452172
-1961-11    428.885045
-1961-12    479.297989
-Freq: M, dtype: float64
-```
-
-For most learning tasks including forecasting, the `aeon` [make_pipeline](pipeline.make_pipeline)
-function can be used to creating pipelines as well.
-
-```{code-block} python
->>> from aeon.pipeline import make_pipeline
->>> make_pipeline(
-...     BoxCoxTransformer(sp=12), ARIMA(order=(1, 1, 0))
-... )
-TransformedTargetForecaster(steps=[BoxCoxTransformer(sp=12),
-                                   ARIMA(order=(1, 1, 0))])
-```
+transformations and estimators together.
 
 For machine learning tasks such as classification, regression and clustering, the
 `scikit-learn` `make_pipeline` functionality can be used if the transformer outputs
@@ -411,64 +338,6 @@ Pipeline(steps=[('catch22', Catch22(replace_nans=True)),
 >>> # Make predictions like any other sklearn estimator
 >>> accuracy_score(pipe.predict(X_test), y_test)
 0.8989310009718173
-```
-
-## Parameter searching for aeon estimators
-
-Tools for selecting parameter values for `aeon` estimators are available. In the
-following example, we use a [ForecastingGridSearchCV](forecasting.model_selection.ForecastingGridSearchCV)
-to ARIMA order values for the forecasting pipeline we created in the previous example.
-
-```{code-block} python
->>> import warnings
->>> import numpy as np
->>> from itertools import product
->>> from sklearn.exceptions import ConvergenceWarning
->>> from aeon.datasets import load_airline
->>> from aeon.forecasting.compose import TransformedTargetForecaster
->>> from aeon.forecasting.model_selection import (
-...     ExpandingWindowSplitter,
-...     ForecastingGridSearchCV,
-... )
->>> from aeon.forecasting.arima import ARIMA
->>> from aeon.transformations.series._boxcox import BoxCoxTransformer
->>> from aeon.transformations._legacy._deseasonalize import Deseasonalizer
-...
->>> y = load_airline()
-...
->>> cv = ExpandingWindowSplitter(initial_window=120, fh=np.arange(1, 13))
->>> arima_orders = list(product((0, 1, 2), (0, 1, 2), (0, 1, 2)))
-...
->>> warnings.simplefilter("ignore", category=ConvergenceWarning)
->>> gscv = ForecastingGridSearchCV(
-...     forecaster=TransformedTargetForecaster(
-...         steps=[
-...             ("boxcox", BoxCoxTransformer(sp=12)),
-...             ("deseasonaliser", Deseasonalizer(sp=12)),
-...             ("arima", ARIMA(order=(1, 1, 0))),
-...        ]
-...     ),
-...     param_grid={"arima__order": arima_orders},
-...     cv=cv,
-... )
->>> gscv.fit(y)
-...
->>> gscv.predict(fh=np.arange(1, 13))
-1961-01    443.073816
-1961-02    434.309107
-1961-03    494.198070
-1961-04    485.105623
-1961-05    491.684116
-1961-06    556.064082
-1961-07    610.591655
-1961-08    612.362761
-1961-09    543.533022
-1961-10    483.289701
-1961-11    429.645587
-1961-12    480.137248
-Freq: M, dtype: float64
->>> gscv.best_params_["arima__order"]
-(0, 1, 1)
 ```
 
 Like with pipelines, tasks such as classification, regression and clustering can use

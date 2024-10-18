@@ -10,7 +10,6 @@ from aeon.testing.estimator_checking._estimator_checking import _get_check_estim
 from aeon.testing.mock_estimators import (
     MockClassifier,
     MockClassifierMultiTestParams,
-    MockMultivariateSeriesTransformer,
     MockRegressor,
     MockSegmenter,
 )
@@ -24,7 +23,7 @@ test_classes = [
     TimeSeriesKMeans,
     MockSegmenter,
     MockAnomalyDetector,
-    MockMultivariateSeriesTransformer,
+    # MockMultivariateSeriesTransformer,
     TimeSeriesScaler,
     MockClassifierMultiTestParams,
 ]

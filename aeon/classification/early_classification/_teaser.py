@@ -95,8 +95,8 @@ class TEASER(BaseEarlyClassifier):
     >>> from aeon.classification.early_classification import TEASER
     >>> from aeon.classification.interval_based import TimeSeriesForestClassifier
     >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
     >>> clf = TEASER(
     ...     classification_points=[6, 16, 24],
     ...     estimator=TimeSeriesForestClassifier(n_estimators=5),

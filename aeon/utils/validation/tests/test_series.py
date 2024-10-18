@@ -6,13 +6,11 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from aeon.testing.data_generation import make_example_nested_dataframe
 from aeon.utils.validation.series import (
     _check_is_multivariate,
     _check_pd_dataframe,
     _common_checks,
     check_consistent_index_type,
-    check_equal_time_index,
     check_is_univariate,
     check_series,
     check_time_index,
@@ -36,38 +34,11 @@ def test_is_univariate_series():
     assert not is_univariate_series(np.array([[1, 2, 3, 4, 5], [6, 7, 8, 9, 10]]))
 
 
-def test_check_equal_time_index():
-    """Test check equal time index."""
-    assert check_equal_time_index(None) is None
-    x = (pd.Series([1, 2, 3, 4, 5]), pd.Series([2, 3, 4, 5, 6]))
-    with pytest.raises(ValueError, match="mode must be "):
-        check_equal_time_index(*x, mode="FOO")
-    index1 = pd.date_range(start="2023-01-01", end="2023-01-05")
-    index2 = pd.date_range(start="2023-01-06", end="2023-01-10")
-    ys = (
-        pd.Series([1, 2, 3, 4, 5], index=index1),
-        pd.Series([6, 7, 8, 9, 10], index=index2),
-    )
-    with pytest.raises(ValueError):
-        check_equal_time_index(*ys, mode="contains")
-    with pytest.raises(ValueError):
-        check_equal_time_index(*ys, mode="equal")
-
-
 def test__check_is_univariate():
     """Test check_is_univariate."""
     X = np.random.random(size=(10, 1, 20))
     check_is_univariate(X)
     X = np.random.random(size=(10, 3, 20))
-    with pytest.raises(ValueError, match="must be univariate"):
-        check_is_univariate(X)
-    X, _ = make_example_nested_dataframe(
-        n_cases=4, n_channels=1, min_n_timepoints=20, max_n_timepoints=20
-    )
-    check_is_univariate(X)
-    X, _ = make_example_nested_dataframe(
-        n_cases=4, n_channels=2, min_n_timepoints=20, max_n_timepoints=20
-    )
     with pytest.raises(ValueError, match="must be univariate"):
         check_is_univariate(X)
 
@@ -80,16 +51,6 @@ def test__check_is_multivariate():
     X = pd.Series([1, 2, 3, 4, 5])
     with pytest.raises(ValueError, match=" must have 2 or more variables, but found 1"):
         _check_is_multivariate(X)
-    X, _ = make_example_nested_dataframe(
-        n_cases=4, n_channels=2, min_n_timepoints=20, max_n_timepoints=20
-    )
-    _check_is_multivariate(X)
-    X, _ = make_example_nested_dataframe(
-        n_cases=4, n_channels=1, min_n_timepoints=20, max_n_timepoints=20
-    )
-    with pytest.raises(ValueError, match="must have 2 or more variables"):
-        _check_is_multivariate(X)
-    X = np.random.random(size=(10, 1))
 
 
 def test_check_series():
@@ -97,15 +58,6 @@ def test_check_series():
     check_series(None)
     with pytest.raises(ValueError, match="cannot be None"):
         check_series(None, allow_None=False)
-    X, _ = make_example_nested_dataframe(
-        n_cases=4, n_channels=2, min_n_timepoints=20, max_n_timepoints=20
-    )
-    with pytest.raises(ValueError, match="cannot both be set to True"):
-        check_series(Z=X, enforce_univariate=True, enforce_multivariate=True)
-    X, _ = make_example_nested_dataframe(
-        n_cases=4, n_channels=2, min_n_timepoints=20, max_n_timepoints=20
-    )
-    check_series(Z=X, enforce_multivariate=True)
 
 
 def test_check_time_index():

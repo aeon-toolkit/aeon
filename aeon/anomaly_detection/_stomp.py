@@ -8,7 +8,6 @@ __all__ = ["STOMP"]
 import numpy as np
 
 from aeon.anomaly_detection.base import BaseAnomalyDetector
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 from aeon.utils.windowing import reverse_windowing
 
 
@@ -50,7 +49,7 @@ class STOMP(BaseAnomalyDetector):
     --------
     >>> import numpy as np
     >>> from aeon.anomaly_detection import STOMP  # doctest: +SKIP
-    >>> X = np.random.default_rng(42).random((10, 2), dtype=np.float_)
+    >>> X = np.random.default_rng(42).random((10, 2), dtype=np.float64)
     >>> detector = STOMP(X, window_size=2)  # doctest: +SKIP
     >>> detector.fit_predict(X, axis=0)  # doctest: +SKIP
     array([1.02352234 1.00193038 0.98584441 0.99630753 1.00656619 1.00682081 1.00781515
@@ -82,7 +81,6 @@ class STOMP(BaseAnomalyDetector):
         p: float = 2.0,
         k: int = 1,
     ):
-        self.mp: np.ndarray | None = None
         self.window_size = window_size
         self.ignore_trivial = ignore_trivial
         self.normalize = normalize
@@ -92,11 +90,10 @@ class STOMP(BaseAnomalyDetector):
         super().__init__(axis=0)
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
-        _check_soft_dependencies("stumpy", severity="error")
         import stumpy
 
         self._check_params(X)
-        self.mp = stumpy.stump(
+        mp = stumpy.stump(
             X[:, 0],
             m=self.window_size,
             ignore_trivial=self.ignore_trivial,
@@ -104,7 +101,7 @@ class STOMP(BaseAnomalyDetector):
             p=self.p,
             k=self.k,
         )
-        point_anomaly_scores = reverse_windowing(self.mp[:, 0], self.window_size)
+        point_anomaly_scores = reverse_windowing(mp[:, 0], self.window_size)
         return point_anomaly_scores
 
     def _check_params(self, X: np.ndarray) -> None:
@@ -138,8 +135,6 @@ class STOMP(BaseAnomalyDetector):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
-        _check_soft_dependencies(*cls._tags["python_dependencies"])
-
         return {
             "window_size": 10,
             "ignore_trivial": True,

@@ -2,7 +2,6 @@ import os
 import textwrap
 
 import numpy as np
-import pandas as pd
 
 __all__ = ["write_to_tsfile", "write_results_to_uea_format"]
 
@@ -17,12 +16,13 @@ def write_to_tsfile(
 
     Parameters
     ----------
-    X : np.ndarray (n_cases, n_channels, n_timepoints) or list of np.ndarray[
-    n_cases] or pd.DataFrame with (n_cases,n_channels), each cell a pd.Series
-        Collection of time series: univariate, multivariate, equal or unequal length.
-    path : string.
+    X : Union[list, np.ndarray]
+        Collection of time series, either equal length shape
+        `(n_cases, n_channels, n_timepoints)` or unequal length as a list of
+        np.ndarray, each of shape `(n_channels,n_timepoints_i)`.
+    path : string
         Location of the directory to write file
-    y: None or ndarray, default = None
+    y: None or np.ndarray, default = None
         Response variable, discrete for classification, continuous for regression
         None if clustering.
     problem_name : string, default = "sample_data"
@@ -33,9 +33,7 @@ def write_to_tsfile(
         Indicate if this is a regression problem, so it is correcty specified in
         the header since there is no definite way of inferring this from y
     """
-    if not (
-        isinstance(X, np.ndarray) or isinstance(X, list) or isinstance(X, pd.DataFrame)
-    ):
+    if not (isinstance(X, np.ndarray) or isinstance(X, list)):
         raise TypeError(
             f" Wrong input data type {type(X)} convert to np.ndarray ("
             f"n_cases, n_channels,n_timepoints) if equal length or list "
@@ -46,20 +44,9 @@ def write_to_tsfile(
     split = problem_name.split(".")
     if split[-1] != "ts":
         problem_name = problem_name + ".ts"
-
-    if isinstance(X, np.ndarray) or isinstance(X, list):
-        _write_data_to_tsfile(
-            X, path, problem_name, y=y, comment=header, regression=regression
-        )
-    else:
-        _write_dataframe_to_tsfile(
-            X,
-            path,
-            problem_name=problem_name,
-            y=y,
-            comment=header,
-            regression=regression,
-        )
+    _write_data_to_tsfile(
+        X, path, problem_name, y=y, comment=header, regression=regression
+    )
 
 
 def _write_data_to_tsfile(
@@ -105,9 +92,9 @@ def _write_data_to_tsfile(
     -----
     This version currently does not support writing timestamp data.
     """
-    # ensure data provided is a ndarray
+    # ensure data provided is a ndarray. This is redundant here as already checked
     if not isinstance(X, np.ndarray) and not isinstance(X, list):
-        raise TypeError("Data provided must be a ndarray or a list")
+        raise ValueError("Data provided must be a ndarray or a list")
     class_labels = None
     if y is not None:
         # ensure number of cases is same as the class value list
@@ -152,45 +139,6 @@ def _write_data_to_tsfile(
         if y is not None:
             file.write(str(y[i]))
         file.write("\n")
-    file.close()
-
-
-def _write_dataframe_to_tsfile(
-    X, path, problem_name="sample_data", y=None, comment=None, regression=False
-):
-    # ensure data provided is a dataframe
-    if not isinstance(X, pd.DataFrame):
-        raise ValueError(f"Data provided must be a DataFrame, passed a {type(X)}")
-    # See if passed file name contains .ts extension or not
-    split = problem_name.split(".")
-    if split[-1] != "ts":
-        problem_name = problem_name + ".ts"
-    class_labels = None
-    if y is not None:
-        class_labels = np.unique(y)
-    univariate = X.shape[1] == 1
-    # dataframes are always equal length
-    equal_length = True
-    n_timepoints = X.shape[0]
-    file = _write_header(
-        path,
-        problem_name,
-        univariate=univariate,
-        equal_length=equal_length,
-        n_timepoints=n_timepoints,
-        class_labels=class_labels,
-        comment=comment,
-        regression=regression,
-        extension=None,
-    )
-    n_cases, n_channels = X.shape
-    for i in range(0, n_cases):
-        for j in range(0, n_channels):
-            series = X.iloc[i, j]
-            for k in range(0, series.size - 1):
-                file.write(f"{series[k]},")
-            file.write(f"{series[series.size-1]}:")
-        file.write(f"{y[i]}\n")
     file.close()
 
 
@@ -243,201 +191,6 @@ def _write_header(
             file.write("@targetlabel true\n")
     file.write("@data\n")
     return file
-
-
-def write_to_tsf_file(
-    X,
-    path,
-    y=None,
-    problem_name="sample_data.tsf",
-    header=None,
-    attribute=None,
-    frequency=None,
-    horizon=0,
-):
-    """Write an aeon collection of time series to text file in .tsf format.
-
-    Write metadata and data stored in aeon compatible data set to file.
-    A description of the tsf format is in examples/load_data.ipynb.
-
-    Parameters
-    ----------
-    X : pd.DataFrame, each cell a pd.Series
-        Collection of time series: univariate, multivariate, equal or unequal length.
-    path : string.
-        Location of the directory to write file
-    y: None or pd.Series, default = None
-        Response variable, discrete for classification, continuous for regression
-        None if clustering.
-    problem_name : string, default = "sample_data"
-        The file is written to <path>/<problem_name>/<problem_name>.tsf
-    header: string, default = None
-        Optional text at the top of the file that is ignored when loading.
-    """
-    if not (isinstance(X, pd.DataFrame)):
-        raise TypeError(f" Wrong input data type {type(X)} convert to pd.DataFrame")
-
-    # See if passed file name contains .tsf extension or not
-    split = problem_name.split(".")
-    if split[-1] != "tsf":
-        problem_name = problem_name + ".tsf"
-
-    _write_dataframe_to_tsf_file(
-        X,
-        path,
-        y=None,
-        problem_name=problem_name,
-        attribute=attribute,
-        frequency=frequency,
-        horizon=horizon,
-        comment=header,
-    )
-
-
-def _write_dataframe_to_tsf_file(
-    X,
-    path,
-    y=None,
-    problem_name="sample_data",
-    comment=None,
-    attribute=None,
-    frequency=None,
-    horizon=0,
-):
-    # ensure data provided is a dataframe
-    if not isinstance(X, pd.DataFrame):
-        raise ValueError(f"Data provided must be a DataFrame, passed a {type(X)}")
-    # See if passed file name contains .tsf extension or not
-    split = problem_name.split(".")
-    if split[-1] != "tsf":
-        problem_name = problem_name + ".tsf"
-    equal_length = not X.isnull().values.any()
-    missing = X.isnull().values.any()
-    if frequency is None:
-        frequency = calculate_frequency(X)
-    if attribute is None:
-        attribute = {"series_name": "string", "start_timestamp": "date"}
-
-    file = _write_header_tsf(
-        path,
-        problem_name=problem_name,
-        attribute=attribute,
-        equal_length=equal_length,
-        frequency=frequency,
-        horizon=horizon,
-        missing=missing,
-        comment=comment,
-    )
-
-    X = X.reset_index(drop=False, inplace=False)
-
-    n_cases, n_channels = X.shape
-
-    for j in range(1, n_channels):
-        column_name = X.columns[j]
-        file.write(f"{str(column_name)}:")
-
-        # Find the index of the first non-empty value in the column
-        first_non_empty_index = X.iloc[:, j].first_valid_index()
-        start_timestamp_index = None
-
-        if first_non_empty_index is not None:
-            start_timestamp_index = X.index[first_non_empty_index]
-            start_timestamp = X.iloc[start_timestamp_index, 0].strftime(
-                "%Y-%m-%d %H-%M-%S"
-            )
-        file.write(f"{str(start_timestamp)}:")
-
-        for i in range(start_timestamp_index, n_cases - 1):
-            series = X.iloc[i, j]
-            # Check if the value is NaN
-            if pd.notna(series):
-                series_str = str(series)
-            else:
-                series_str = "?"  # Replace NaN with a ?
-
-            # Write the series string to the file
-            file.write(f"{series_str},")
-
-        series = X.iloc[-1, j]
-        # Check if he value is NaN
-        if pd.notna(series):
-            series_str = str(series)
-        else:
-            series_str = "?"  # Replace NaN with a ?
-        # Write the series string to the file
-        file.write(f"{series_str}")
-
-        # Check if y is not None before accessing its elements
-        if y is not None:
-            file.write(f"{y[i]}\n")
-        else:
-            file.write("\n")  # Write a newline if y is None
-    file.close()
-
-
-def _write_header_tsf(
-    path,
-    problem_name,
-    attribute,
-    equal_length=True,
-    frequency=None,
-    horizon=0,
-    missing=False,
-    comment=None,
-):
-    if not os.path.exists(path):
-        os.makedirs(path)
-    # See if passed file name contains .tsf extension or not
-    split = problem_name.split(".")
-    if split[-1] != "tsf":
-        problem_name = problem_name + ".tsf"
-    load_path = f"{path}/{problem_name}"
-
-    file = open(load_path, "w")
-
-    if comment is not None:
-        file.write("\n# ".join(textwrap.wrap("# " + comment)))
-        file.write("\n")
-
-    file.write(f"@relation {str(split[0]).lower()}\n")
-    # Write attribute metadata for each column
-    if attribute is not None:
-        for attr in attribute:
-            file.write(f"@attribute {str(attr)} {str(attribute[attr])}\n")
-    file.write(f"@frequency {str(frequency).lower()}\n")
-    file.write(f"@horizon {str(horizon).lower()}\n")
-    file.write(f"@missing {str(missing).lower()}\n")
-    file.write(f"@equallength {str(equal_length).lower()}\n")
-    file.write("@data\n")
-
-    return file
-
-
-def calculate_frequency(df):
-    # Convert timestamps to DateTime format
-    df["Timestamp"] = pd.to_datetime(df.index)
-
-    # Calculate time differences
-    time_diffs = df["Timestamp"].diff().dropna()
-
-    # Calculate median time difference
-    median_diff = time_diffs.median()
-
-    # Determine frequency based on median time difference
-    if median_diff <= pd.Timedelta(days=1):
-        frequency = "daily"
-    elif median_diff <= pd.Timedelta(weeks=1):
-        frequency = "weekly"
-    elif median_diff <= pd.Timedelta(days=30):
-        frequency = "monthly"
-    elif median_diff <= pd.Timedelta(days=365):
-        frequency = "yearly"
-    else:
-        frequency = "other"  # You can define more granular frequencies as needed
-    df.drop("Timestamp", axis=1, inplace=True)
-
-    return frequency
 
 
 def write_to_arff_file(

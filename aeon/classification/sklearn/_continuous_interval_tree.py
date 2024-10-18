@@ -403,9 +403,7 @@ class ContinuousIntervalTree(ClassifierMixin, BaseEstimator):
 
         thresholds = np.linspace(np.min(X, axis=0), np.max(X, axis=0), self.thresholds)
 
-        distribution = np.zeros(self.n_classes_)
-        for i in range(len(y)):
-            distribution[y[i]] += 1
+        _, distribution = np.unique(y, return_counts=True)
 
         entropy = _entropy(distribution, distribution.sum())
 

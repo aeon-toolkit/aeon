@@ -33,6 +33,10 @@ def _test_distance_params(
     x_multi = make_series(10, 10, return_numpy=True, random_state=1)
     y_multi = make_series(10, 10, return_numpy=True, random_state=2)
 
+    if distance_str == "shift_scale":
+        # Shift it to test the max_shift parameter works
+        y_univ = np.roll(x_univ, 4)
+
     # Shape dtw needs parameters to be generated with the x and y so function used
     if distance_str == "shape_dtw":
         param_list.append(_generate_shape_dtw_params)
@@ -103,6 +107,8 @@ DIST_PARAMS = {
     "minkowski": [{"p": 1.0}, {"p": 2.0}],
     "sbd": [{"standardize": False}],
     "shape_dtw": BASIC_BOUNDING_PARAMS + [{"reach": 4}],
+    "shift_scale": [{"max_shift": 1}, {"max_shift": None}],
+    "soft_dtw": BASIC_BOUNDING_PARAMS + [{"gamma": 0.2}],
 }
 
 
