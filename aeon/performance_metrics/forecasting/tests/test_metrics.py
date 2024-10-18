@@ -37,7 +37,7 @@ def test_gmse_function():
 
 
 def test_linex_function():
-    """Doctest from mean_linex_error."""
+    """Test from mean_linex_error."""
     y_true = np.array([3, -0.5, 2, 7, 2])
     y_pred = np.array([2.5, 0.0, 2, 8, 1.25])
     assert np.allclose(mean_linex_error(y_true, y_pred), 0.19802627763937575)
