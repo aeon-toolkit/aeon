@@ -97,7 +97,7 @@ def test_check_X():
     assert dummy1._check_X(X) and dummy2._check_X(X)
 
     # univariate missing values
-    X[3][0][6] = np.NAN
+    X[3][0][6] = np.nan
     assert dummy2._check_X(X)
     with pytest.raises(ValueError, match=r"cannot handle missing values"):
         dummy1._check_X(X)
@@ -109,7 +109,7 @@ def test_check_X():
         dummy1._check_X(X)
 
     # multivariate missing values
-    X[2][1][5] = np.NAN
+    X[2][1][5] = np.nan
     assert dummy2._check_X(X)
     with pytest.raises(
         ValueError, match=r"cannot handle missing values or multivariate"

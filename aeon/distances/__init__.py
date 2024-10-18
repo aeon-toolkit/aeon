@@ -74,6 +74,10 @@ __all__ = [
     "shift_scale_invariant_distance",
     "shift_scale_invariant_pairwise_distance",
     "shift_scale_invariant_best_shift",
+    "soft_dtw_distance",
+    "soft_dtw_pairwise_distance",
+    "soft_dtw_alignment_path",
+    "soft_dtw_cost_matrix",
 ]
 
 from aeon.distances._dft_sfa_mindist import dft_sfa_mindist
@@ -136,6 +140,10 @@ from aeon.distances.elastic import (
     shape_dtw_cost_matrix,
     shape_dtw_distance,
     shape_dtw_pairwise_distance,
+    soft_dtw_alignment_path,
+    soft_dtw_cost_matrix,
+    soft_dtw_distance,
+    soft_dtw_pairwise_distance,
     twe_alignment_path,
     twe_cost_matrix,
     twe_distance,

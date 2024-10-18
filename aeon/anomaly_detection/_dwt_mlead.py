@@ -89,7 +89,7 @@ class DWT_MLEAD(BaseAnomalyDetector):
     --------
     >>> import numpy as np
     >>> from aeon.anomaly_detection import DWT_MLEAD
-    >>> X = np.array([1, 2, 3, 4, 1, 2, 3, 3, 2, 8, 9, 8, 1, 2, 3, 4], dtype=np.float_)
+    >>> X = np.array([1, 2, 3, 4, 1, 2, 3, 3, 2, 8, 9, 8, 1, 2, 3, 4], dtype=np.float64)
     >>> detector = DWT_MLEAD(
     ...    start_level=1, quantile_boundary_type='percentile', quantile_epsilon=0.01
     ... )
