@@ -9,9 +9,6 @@ from pytest import raises
 from aeon.benchmarking.results_loaders import (
     estimator_alias,
     get_available_estimators,
-    get_bake_off_2017_results,
-    get_bake_off_2021_results,
-    get_bake_off_2023_results,
     get_estimator_results,
     get_estimator_results_as_array,
 )
@@ -37,7 +34,7 @@ def test_get_estimator_results():
     res = get_estimator_results(estimators=cls, datasets=data, path=data_path)
     assert res["HC2"]["Chinatown"] == 0.9825072886297376
     res = get_estimator_results(
-        estimators=cls, datasets=data, path=data_path, default_only=False
+        estimators=cls, datasets=data, path=data_path, default_split_only=False
     )
     assert res["HC2"]["Chinatown"][0] == 0.9825072886297376
     with pytest.raises(ValueError, match="not a valid task"):
@@ -180,54 +177,3 @@ def test_get_available_estimators():
     regressors = get_available_estimators(task="regression")
     assert isinstance(regressors, pd.DataFrame)
     assert regressors.isin(["DrCIF"]).any().any()
-
-
-@pytest.mark.skipif(
-    PR_TESTING,
-    reason="Only run on overnights because it relies on external website.",
-)
-@pytest.mark.xfail(raises=CONNECTION_ERRORS)
-def test_get_bake_off_2017_results():
-    """Test original bake off results."""
-    default_results = get_bake_off_2017_results()
-    assert default_results.shape == (85, 25)
-    assert default_results[0][0] == 0.6649616368286445
-    assert default_results[84][24] == 0.853
-    average_results = get_bake_off_2017_results(default_only=False)
-    assert average_results.shape == (85, 25)
-    assert average_results[0][0] == 0.6575447570332481
-    assert average_results[84][24] == 0.8578933333100001
-
-
-@pytest.mark.skipif(
-    PR_TESTING,
-    reason="Only run on overnights because it relies on external website.",
-)
-@pytest.mark.xfail(raises=CONNECTION_ERRORS)
-def test_get_bake_off_2020_results():
-    """Test multivariate bake off results."""
-    default_results = get_bake_off_2021_results()
-    assert default_results.shape == (26, 11)
-    assert default_results[0][0] == 0.99
-    assert default_results[25][10] == 0.775
-    average_results = get_bake_off_2021_results(default_only=False)
-    assert average_results.shape == (26, 11)
-    assert average_results[0][0] == 0.9755555555555556
-    assert average_results[25][10] == 0.8505208333333333
-
-
-@pytest.mark.skipif(
-    PR_TESTING,
-    reason="Only run on overnights because it relies on external website.",
-)
-@pytest.mark.xfail(raises=CONNECTION_ERRORS)
-def test_get_bake_off_2023_results():
-    """Test bake off redux results."""
-    default_results = get_bake_off_2023_results()
-    assert default_results.shape == (112, 34)
-    assert default_results[0][0] == 0.7774936061381074
-    assert default_results[111][32] == 0.9504373177842566
-    average_results = get_bake_off_2023_results(default_only=False)
-    assert average_results.shape == (112, 34)
-    assert average_results[0][0] == 0.7692242114236999
-    assert average_results[111][32] == 0.9428571428571431
