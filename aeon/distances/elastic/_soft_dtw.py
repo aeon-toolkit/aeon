@@ -8,11 +8,42 @@ import numpy as np
 from numba import njit
 from numba.typed import List as NumbaList
 
-from aeon.distances._alignment_paths import compute_min_return_path
-from aeon.distances._bounding_matrix import create_bounding_matrix
-from aeon.distances._dtw import _dtw_cost_matrix
-from aeon.distances._squared import _univariate_squared_distance
-from aeon.distances._utils import _convert_to_list, _is_multivariate, _softmin3
+from aeon.distances.elastic._alignment_paths import compute_min_return_path
+from aeon.distances.elastic._bounding_matrix import create_bounding_matrix
+from aeon.distances.elastic._dtw import _dtw_cost_matrix
+from aeon.distances.pointwise._squared import _univariate_squared_distance
+from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
+from aeon.utils.validation.collection import _is_numpy_list_multivariate
+
+
+@njit(fastmath=True, cache=True)
+def _softmin3(a, b, c, gamma):
+    r"""Compute softmin of 3 input variables with parameter gamma.
+
+    This code is adapted from tslearn.
+
+    Parameters
+    ----------
+    a : float
+        First input variable.
+    b : float
+        Second input variable.
+    c : float
+        Third input variable.
+    gamma : float
+        Softmin parameter.
+
+    Returns
+    -------
+    float
+        Softmin of a, b, c.
+    """
+    a /= -gamma
+    b /= -gamma
+    c /= -gamma
+    max_val = max(a, b, c)
+    tmp = np.exp(a - max_val) + np.exp(b - max_val) + np.exp(c - max_val)
+    return -gamma * (np.log(tmp) + max_val)
 
 
 @njit(cache=True, fastmath=True)
@@ -285,15 +316,19 @@ def soft_dtw_pairwise_distance(
            [ 41.44055555,   0.        ,  82.43894439],
            [291.99999969,  82.43894439,   0.        ]])
     """
-    multivariate_conversion = _is_multivariate(X, y)
-    _X, unequal_length = _convert_to_list(X, "X", multivariate_conversion)
+    multivariate_conversion = _is_numpy_list_multivariate(X, y)
+    _X, unequal_length = _convert_collection_to_numba_list(
+        X, "X", multivariate_conversion
+    )
 
     if y is None:
         # To self
         return _soft_dtw_pairwise_distance(
             _X, window, itakura_max_slope, unequal_length, gamma
         )
-    _y, unequal_length = _convert_to_list(y, "y", multivariate_conversion)
+    _y, unequal_length = _convert_collection_to_numba_list(
+        y, "y", multivariate_conversion
+    )
     return _soft_dtw_from_multiple_to_multiple_distance(
         _X, _y, window, itakura_max_slope, unequal_length, gamma
     )
