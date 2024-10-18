@@ -9,6 +9,7 @@ __all__ = ["show_versions"]
 import platform
 import sys
 from importlib.metadata import PackageNotFoundError, version
+from typing import Union
 
 from aeon import __version__
 
@@ -23,17 +24,23 @@ deps = [
 ]
 
 
-def show_versions():
-    """Print useful debugging information."""
-    print(_show_versions())  # noqa: T001, T201
-
-
-def _show_versions():
+def show_versions(as_str: bool = False) -> Union[str, None]:
     """Print useful debugging information.
+
+    Parameters
+    ----------
+    as_str : bool, default=False
+        If True, return the output as a string instead of printing.
 
     Returns
     -------
-    str
+    str or None
+        The output string if `as_str` is True, otherwise None.
+
+    Examples
+    --------
+    >>> from aeon.utils import show_versions
+    >>> vers = show_versions(as_str=True)
     """
     sys_info = {
         "python": sys.version.replace("\n", " "),

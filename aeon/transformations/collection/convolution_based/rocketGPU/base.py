@@ -21,7 +21,7 @@ class BaseROCKETGPU(BaseCollectionTransformer):
         "capability:multivariate": True,
         "algorithm_type": "convolution",
         "capability:unequal_length": False,
-        "cant-pickle": True,
+        "cant_pickle": True,
         "python_dependencies": "tensorflow",
     }
 

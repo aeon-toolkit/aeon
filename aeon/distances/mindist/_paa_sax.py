@@ -64,6 +64,13 @@ def _univariate_paa_sax_distance(
     x_paa: np.ndarray, y_sax: np.ndarray, breakpoints: np.ndarray, n: int
 ) -> float:
     dist = 0.0
+
+    # The number of segments
+    m = x_paa.shape[0]
+
+    # Compute the actual length of each segment in analogy to the PAA transform
+    n_split = np.array_split(np.arange(n), m)
+
     for i in range(x_paa.shape[0]):
         if y_sax[i] >= breakpoints.shape[0]:
             br_upper = np.inf
@@ -76,12 +83,11 @@ def _univariate_paa_sax_distance(
             br_lower = breakpoints[y_sax[i] - 1]
 
         if br_lower > x_paa[i]:
-            dist += (br_lower - x_paa[i]) ** 2
+            dist += n_split[i].shape[0] * (br_lower - x_paa[i]) ** 2
         elif br_upper < x_paa[i]:
-            dist += (x_paa[i] - br_upper) ** 2
+            dist += n_split[i].shape[0] * (x_paa[i] - br_upper) ** 2
 
-    m = x_paa.shape[0]
-    return np.sqrt(n / m) * np.sqrt(dist)
+    return np.sqrt(dist)
 
 
 def mindist_paa_sax_pairwise_distance(

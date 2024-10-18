@@ -42,8 +42,8 @@ class BaseDeepClassifier(BaseClassifier, ABC):
         "X_inner_type": "numpy3D",
         "capability:multivariate": True,
         "algorithm_type": "deeplearning",
-        "non-deterministic": True,
-        "cant-pickle": True,
+        "non_deterministic": True,
+        "cant_pickle": True,
         "python_dependencies": "tensorflow",
     }
 
@@ -184,7 +184,7 @@ class BaseDeepClassifier(BaseClassifier, ABC):
         import tensorflow as tf
 
         self.model_ = tf.keras.models.load_model(model_path)
-        self._is_fitted = True
+        self.is_fitted = True
 
         self.classes_ = classes
         self.n_classes_ = len(self.classes_)

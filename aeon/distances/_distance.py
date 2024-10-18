@@ -100,6 +100,7 @@ class DistanceKwargs(TypedDict, total=False):
     standardize: bool
     m: int
     max_shift: Optional[int]
+    gamma: float
 
 
 DistanceFunction = Callable[[np.ndarray, np.ndarray, Any], float]
@@ -458,6 +459,7 @@ def get_distance_function(metric: Union[str, DistanceFunction]) -> DistanceFunct
     'minkowski'     distances.minkowski_distance
     'sbd'           distances.sbd_distance
     'shift_scale'   distances.shift_scale_invariant_distance
+    'soft_dtw'      distances.soft_dtw_distance
     =============== ========================================
 
     Parameters
@@ -516,6 +518,7 @@ def get_pairwise_distance_function(
     'minkowski'     distances.minkowski_pairwise_distance
     'sbd'           distances.sbd_pairwise_distance
     'shift_scale'   distances.shift_scale_invariant_pairwise_distance
+    'soft_dtw'      distances.soft_dtw_pairwise_distance
     =============== ========================================
 
     Parameters
@@ -569,6 +572,7 @@ def get_alignment_path_function(metric: str) -> AlignmentPathFunction:
     'msm'           distances.msm_alignment_path
     'twe'           distances.twe_alignment_path
     'lcss'          distances.lcss_alignment_path
+    'soft_dtw'      distances.soft_dtw_alignment_path
     =============== ========================================
 
     Parameters
@@ -617,6 +621,7 @@ def get_cost_matrix_function(metric: str) -> CostMatrixFunction:
     'msm'           distances.msm_cost_matrix
     'twe'           distances.twe_cost_matrix
     'lcss'          distances.lcss_cost_matrix
+    'soft_dtw'      distances.soft_dtw_cost_matrix
     =============== ========================================
 
     Parameters
@@ -815,6 +820,16 @@ DISTANCES = [
         "pairwise_distance": shape_dtw_pairwise_distance,
         "cost_matrix": shape_dtw_cost_matrix,
         "alignment_path": shape_dtw_alignment_path,
+        "type": DistanceType.ELASTIC,
+        "symmetric": True,
+        "unequal_support": True,
+    },
+    {
+        "name": "soft_dtw",
+        "distance": soft_dtw_distance,
+        "pairwise_distance": soft_dtw_pairwise_distance,
+        "cost_matrix": soft_dtw_cost_matrix,
+        "alignment_path": soft_dtw_alignment_path,
         "type": DistanceType.ELASTIC,
         "symmetric": True,
         "unequal_support": True,

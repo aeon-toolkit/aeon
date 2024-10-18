@@ -2563,6 +2563,26 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "georgejl7",
+      "name": "George Langley",
+      "avatar_url": "https://avatars.githubusercontent.com/u/134635414?v=4",
+      "profile": "https://github.com/georgejl7",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "alexbanwell1",
+      "name": "alexbanwell1",
+      "avatar_url": "https://avatars.githubusercontent.com/u/31886108?v=4",
+      "profile": "https://github.com/alexbanwell1",
+      "contributions": [
+        "code",
+        "design",
+        "doc"
+      ]
     }
   ],
   "commitType": "docs"

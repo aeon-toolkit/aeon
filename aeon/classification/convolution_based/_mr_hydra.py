@@ -1,3 +1,9 @@
+"""MultiRocketHydra classifier.
+
+Pipeline classifier concatenating the MultiRocket and Hydra transformers with a
+RidgeClassifierCV estimator.
+"""
+
 import numpy as np
 from sklearn.linear_model import RidgeClassifierCV
 from sklearn.preprocessing import StandardScaler

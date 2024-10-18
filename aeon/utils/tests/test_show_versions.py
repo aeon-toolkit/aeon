@@ -1,10 +1,15 @@
 """Test the show versions function."""
 
-from aeon.utils._show_versions import _show_versions
+from aeon.testing.utils.output_supression import suppress_output
+from aeon.utils.show_versions import show_versions
 
 
+@suppress_output()
 def test_show_versions():
     """Test show versions function."""
-    str = _show_versions()
-    assert "System" in str
-    assert "Python dependencies" in str
+    show_versions()
+
+    s = show_versions(as_str=True)
+    assert isinstance(s, str)
+    assert "System" in s
+    assert "Python dependencies" in s

@@ -7,7 +7,7 @@ from inspect import isclass
 
 from sklearn import clone
 
-from aeon.base import BaseEstimator
+from aeon.base import BaseAeonEstimator
 
 
 class _HeterogenousMetaEstimator:
@@ -87,7 +87,7 @@ class _HeterogenousMetaEstimator:
 
         Returns
         -------
-        composite: bool, whether self contains a parameter which is BaseEstimator
+        composite: bool, whether self contains a parameter which is BaseAeonEstimator
         """
         # children of this class are always composite
         return True
@@ -196,7 +196,7 @@ class _HeterogenousMetaEstimator:
 
         Parameters
         ----------
-        cls_type : class or tuple of class, optional. Default = BaseEstimator.
+        cls_type : class or tuple of class, optional. Default = BaseAeonEstimator.
             class(es) that all estimators are checked to be an instance of
 
         Returns
@@ -204,7 +204,7 @@ class _HeterogenousMetaEstimator:
         bool : True if obj is (str, cls_type) tuple, False otherise
         """
         if cls_type is None:
-            cls_type = BaseEstimator
+            cls_type = BaseAeonEstimator
         if not isinstance(obj, tuple) or len(obj) != 2:
             return False
         if not isinstance(obj[0], str) or not isinstance(obj[1], cls_type):
@@ -228,7 +228,7 @@ class _HeterogenousMetaEstimator:
             estimators should inherit from cls_type class
         attr_name : str, optional. Default = "steps"
             Name of checked attribute in error messages
-        cls_type : class or tuple of class, optional. Default = BaseEstimator.
+        cls_type : class or tuple of class, optional. Default = BaseAeonEstimator.
             class(es) that all estimators are checked to be an instance of
         allow_mix : boolean, optional. Default = True.
             whether mix of estimator and (str, estimator) is allowed in `estimators`
@@ -251,8 +251,8 @@ class _HeterogenousMetaEstimator:
             " of estimators, or a list of (string, estimator) tuples. "
         )
         if cls_type is None:
-            msg += f"All estimators in {attr_name!r} must be of type BaseEstimator."
-            cls_type = BaseEstimator
+            msg += f"All estimators in {attr_name!r} must be of type BaseAeonEstimator."
+            cls_type = BaseAeonEstimator
         elif isclass(cls_type) or isinstance(cls_type, tuple):
             msg += (
                 f"All estimators in {attr_name!r} must be of type "
@@ -369,7 +369,8 @@ class _HeterogenousMetaEstimator:
         ests = self._get_estimator_list(estimators)
         if clone_ests:
             ests = [
-                e.clone() if isinstance(e, BaseEstimator) else clone(e) for e in ests
+                e.clone() if isinstance(e, BaseAeonEstimator) else clone(e)
+                for e in ests
             ]
         unique_names = self._get_estimator_names(estimators, make_unique=True)
         est_tuples = list(zip(unique_names, ests))
