@@ -11,7 +11,6 @@ from aeon.datasets import load_from_arff_file, load_from_tsfile, write_to_tsfile
 from aeon.datasets._data_writers import (
     _write_data_to_tsfile,
     _write_header,
-    write_results_to_uea_format,
     write_to_arff_file,
 )
 from aeon.testing.data_generation import (
@@ -167,64 +166,3 @@ def test_write_to_arff_file():
         assert X.shape == X_new.shape
         assert_array_equal(X, X_new)
         assert_array_equal(y.astype(str), y_new)
-
-
-def test_write_results_to_uea_format():
-    """Test function to check writing results into UEA format."""
-    with tempfile.TemporaryDirectory() as tmp:
-        y_true = np.array([0, 1, 1, 0, 0])
-        y_pred = np.array([0, 1, 1, 0])
-        with pytest.raises(
-            IndexError, match="The number of predicted values is not the same"
-        ):
-            write_results_to_uea_format(
-                "HC", "Testy", y_pred=y_pred, y_true=y_true, output_path=tmp
-            )
-        with pytest.raises(ValueError, match="Unknown 'split' value"):
-            write_results_to_uea_format(
-                "HC",
-                "Testy",
-                y_pred=y_pred,
-                output_path=tmp,
-                full_path=False,
-                split="FOO",
-                timing_type="seconds",
-                first_line_comment="Hello",
-            )
-
-        y_true = np.array([0, 1, 1, 0])
-        write_results_to_uea_format(
-            "HC",
-            "Testy",
-            y_pred=y_pred,
-            output_path=tmp,
-            full_path=False,
-            split="TEST",
-            timing_type="seconds",
-            first_line_comment="Hello",
-        )
-
-        probs = [[0.0, 1.0], [0.0, 1.0], [0.0, 1.0], [0.0, 1.0]]
-        write_results_to_uea_format(
-            "HC",
-            "Testy2",
-            y_pred=y_pred,
-            y_true=y_true,
-            output_path=tmp,
-            full_path=False,
-            split="TEST",
-            timing_type="seconds",
-            first_line_comment="Hello",
-            predicted_probs=probs,
-        )
-        write_results_to_uea_format(
-            "HC",
-            "Testy2",
-            y_pred=y_pred,
-            output_path=tmp,
-            full_path=False,
-            split="TEST",
-            timing_type="seconds",
-            first_line_comment="Hello",
-            predicted_probs=probs,
-        )
