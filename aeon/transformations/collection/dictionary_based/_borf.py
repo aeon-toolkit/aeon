@@ -88,7 +88,7 @@ class BORF(BaseCollectionTransformer):
     --------
     >>> from aeon.transformations.collection.dictionary_based import BORF
     >>> from aeon.datasets import load_unit_test
-    >>> X, _ = load_unit_test(return_X_y=True)
+    >>> X, _ = load_unit_test()
     >>> borf = BORF()  # doctest: +SKIP
     >>> borf.fit(X)  # doctest: +SKIP
     BORF()
