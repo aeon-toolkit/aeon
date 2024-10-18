@@ -99,13 +99,12 @@ class BORF(BaseCollectionTransformer):
     _tags = {
         "X_inner_type": "numpy3D",
         "capability:inverse_transform": False,
-        "capability:missing_values:removes": True,
+        "capability:missing_values": True,
         "capability:multivariate": True,
         "capability:multithreading": True,
         "input_data_type": "Collection",
         "algorithm_type": "dictionary",
         "output_data_type": "Tabular",
-        "instancewise": False,
         "requires_y": False,
         "python_dependencies": "sparse",
     }
