@@ -73,6 +73,7 @@ all_extras = [
     "torch>=1.13.1",
     "tsfresh>=0.20.0",
     "tslearn>=0.5.2",
+    "sparse"
 ]
 dl = [
     "keras-self-attention",

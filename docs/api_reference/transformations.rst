@@ -101,6 +101,7 @@ Dictionary-based features
     PAA
     SFA
     SFAFast
+    BORF
 
 
 Feature based
