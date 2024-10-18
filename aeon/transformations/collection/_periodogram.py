@@ -8,7 +8,6 @@ import math
 import numpy as np
 
 from aeon.transformations.collection.base import BaseCollectionTransformer
-from aeon.utils.validation import check_n_jobs
 
 
 class PeriodogramTransformer(BaseCollectionTransformer):
@@ -27,12 +26,6 @@ class PeriodogramTransformer(BaseCollectionTransformer):
         options. By default, the series will be padded with zeros.
     constant_value : int, default=0
         The value to use when padding with a constant value.
-    use_pyfftw : bool, default=False
-        Whether to use the pyfftw library for FFT calculations. Requires the pyfftw
-        package to be installed.
-    n_jobs : int, default=1
-        The number of threads to use for FFT calculations. Only used if use_pyfftw is
-        True.
 
     Examples
     --------
@@ -62,23 +55,14 @@ class PeriodogramTransformer(BaseCollectionTransformer):
         pad_series=True,
         pad_with="constant",
         constant_value=0,
-        use_pyfftw=False,
-        n_jobs=1,
     ):
         self.pad_series = pad_series
         self.pad_with = pad_with
         self.constant_value = constant_value
-        self.use_pyfftw = use_pyfftw
-        self.n_jobs = n_jobs
 
         super().__init__()
 
-        if use_pyfftw:
-            self.set_tags(**{"python_dependencies": "pyfftw"})
-
     def _transform(self, X, y=None):
-        threads_to_use = check_n_jobs(self.n_jobs)
-
         if self.pad_series:
             kwargs = {"mode": self.pad_with}
             if self.pad_with == "constant":
@@ -96,19 +80,6 @@ class PeriodogramTransformer(BaseCollectionTransformer):
                 ),
                 **kwargs,
             )
-
-        if self.use_pyfftw:
-            import pyfftw
-
-            old_threads = pyfftw.config.NUM_THREADS
-            pyfftw.config.NUM_THREADS = threads_to_use
-
-            fft_object = pyfftw.builders.fft(X[:, :, :])
-            Xt = np.abs(fft_object())
-            Xt = Xt[:, :, : int(X.shape[2] / 2)]
-
-            pyfftw.config.NUM_THREADS = old_threads
-        else:
-            Xt = np.abs(np.fft.fft(X)[:, :, : int(X.shape[2] / 2)])
+        Xt = np.abs(np.fft.fft(X)[:, :, : int(X.shape[2] / 2)])
 
         return Xt

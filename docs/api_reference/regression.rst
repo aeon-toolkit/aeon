@@ -41,6 +41,8 @@ Convolution-based
     HydraRegressor
     MultiRocketHydraRegressor
     RocketRegressor
+    MiniRocketRegressor
+    MultiRocketRegressor
 
 Deep learning
 -------------
