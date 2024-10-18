@@ -6,7 +6,7 @@ __maintainer__ = []
 __all__ = ["BaseClusterer"]
 
 import time
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from typing import final
 
 import numpy as np
@@ -15,7 +15,7 @@ from aeon.base import BaseCollectionEstimator
 from aeon.utils.validation._dependencies import _check_estimator_deps
 
 
-class BaseClusterer(BaseCollectionEstimator, ABC):
+class BaseClusterer(BaseCollectionEstimator):
     """Abstract base class for time series clusterers.
 
     Parameters
@@ -89,7 +89,7 @@ class BaseClusterer(BaseCollectionEstimator, ABC):
             shape ``(n_cases)`, index of the cluster each time series in X.
             belongs to.
         """
-        self.check_is_fitted()
+        self._check_is_fitted()
         X = self._preprocess_collection(X, store_metadata=False)
         self._check_shape(X)
         return self._predict(X)
@@ -121,7 +121,7 @@ class BaseClusterer(BaseCollectionEstimator, ABC):
             2nd dimension indices correspond to possible labels (integers)
             (i, j)-th entry is predictive probability that i-th instance is of class j
         """
-        self.check_is_fitted()
+        self._check_is_fitted()
         X = self._preprocess_collection(X, store_metadata=False)
         self._check_shape(X)
         return self._predict_proba(X)
@@ -163,7 +163,7 @@ class BaseClusterer(BaseCollectionEstimator, ABC):
         score : float
             Score of the clusterer.
         """
-        self.check_is_fitted()
+        self._check_is_fitted()
         X = self._preprocess_collection(X, store_metadata=False)
         self._check_shape(X)
         return self._score(X, y)

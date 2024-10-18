@@ -1,6 +1,6 @@
 """Base class for the RIST pipeline."""
 
-from abc import ABCMeta, abstractmethod
+from abc import ABC, abstractmethod
 
 import numpy as np
 from sklearn.base import BaseEstimator, is_classifier, is_regressor
@@ -33,7 +33,7 @@ from aeon.utils.numba.stats import (
 from aeon.utils.validation import check_n_jobs
 
 
-class BaseRIST(metaclass=ABCMeta):
+class BaseRIST(ABC):
     """Randomised Interval-Shapelet Transformation (RIST) pipeline base.
 
     RIST is a hybrid pipeline using the RandomIntervalTransformer using
