@@ -112,10 +112,10 @@ Feature based
     :toctree: auto_generated/
     :template: class.rst
 
-    TSFreshRelevantFeatureExtractor
-    TSFreshFeatureExtractor
     Catch22
-    SevenNumberSummaryTransformer
+    TSFresh
+    TSFreshRelevant
+    SevenNumberSummary
 
 
 Interval based

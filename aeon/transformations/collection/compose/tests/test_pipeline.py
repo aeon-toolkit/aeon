@@ -19,20 +19,20 @@ from aeon.transformations.collection import (
     TimeSeriesScaler,
 )
 from aeon.transformations.collection.compose import CollectionTransformerPipeline
-from aeon.transformations.collection.feature_based import SevenNumberSummaryTransformer
+from aeon.transformations.collection.feature_based import SevenNumberSummary
 
 
 @pytest.mark.parametrize(
     "transformers",
     [
         Padder(pad_length=15),
-        SevenNumberSummaryTransformer(),
+        SevenNumberSummary(),
         [Padder(pad_length=15), Tabularizer(), StandardScaler()],
-        [Padder(pad_length=15), SevenNumberSummaryTransformer()],
-        [Tabularizer(), StandardScaler(), SevenNumberSummaryTransformer()],
+        [Padder(pad_length=15), SevenNumberSummary()],
+        [Tabularizer(), StandardScaler(), SevenNumberSummary()],
         [
             Padder(pad_length=15),
-            SevenNumberSummaryTransformer(),
+            SevenNumberSummary(),
         ],
     ],
 )
@@ -59,7 +59,7 @@ def test_unequal_tag_inference():
         n_cases=10, min_n_timepoints=8, max_n_timepoints=12
     )
 
-    t1 = SevenNumberSummaryTransformer()
+    t1 = SevenNumberSummary()
     t2 = Padder()
     t3 = TimeSeriesScaler()
     t4 = AutocorrelationFunctionTransformer(n_lags=5)
@@ -152,7 +152,7 @@ def test_multivariate_tag_inference():
     """Test that CollectionTransformerPipeline infers multivariate tag correctly."""
     X, y = make_example_3d_numpy(n_cases=10, n_channels=2, n_timepoints=12)
 
-    t1 = SevenNumberSummaryTransformer()
+    t1 = SevenNumberSummary()
     t2 = TimeSeriesScaler()
     t3 = HOG1DTransformer()
     t4 = StandardScaler()
