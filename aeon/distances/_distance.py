@@ -49,6 +49,10 @@ from aeon.distances.elastic import (
     shape_dtw_cost_matrix,
     shape_dtw_distance,
     shape_dtw_pairwise_distance,
+    soft_dtw_alignment_path,
+    soft_dtw_cost_matrix,
+    soft_dtw_distance,
+    soft_dtw_pairwise_distance,
     twe_alignment_path,
     twe_cost_matrix,
     twe_distance,
@@ -61,12 +65,6 @@ from aeon.distances.elastic import (
     wdtw_cost_matrix,
     wdtw_distance,
     wdtw_pairwise_distance,
-)
-from aeon.distances.elastic._soft_dtw import (
-    soft_dtw_alignment_path,
-    soft_dtw_cost_matrix,
-    soft_dtw_distance,
-    soft_dtw_pairwise_distance,
 )
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
