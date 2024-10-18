@@ -128,6 +128,9 @@ class TSFreshClusterer(BaseClusterer):
             chunksize=self.chunksize,
         )
 
+        if self.n_clusters is None:
+            self.n_clusters = 8
+
         if self.estimator is None:
             self._estimator = _clone_estimator(
                 KMeans(n_clusters=self.n_clusters), self.random_state
