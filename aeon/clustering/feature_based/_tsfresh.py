@@ -45,7 +45,7 @@ class TSFreshClusterer(BaseClusterer):
         If `RandomState` instance, random_state is the random number generator;
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
-    n_clusters : int, default=20
+    n_clusters : int, default=8
         Number of clusters for KMeans (or other estimators that support n_clusters).
 
     See Also
@@ -86,7 +86,7 @@ class TSFreshClusterer(BaseClusterer):
         n_jobs: int = 1,
         chunksize: Optional[int] = None,
         random_state: Optional[int] = None,
-        n_clusters: int = 20,  # Default value as 20
+        n_clusters: int = 8,  # Default value as 8
     ):
         self.default_fc_parameters = default_fc_parameters
         self.estimator = estimator
@@ -95,14 +95,14 @@ class TSFreshClusterer(BaseClusterer):
         self.n_jobs = n_jobs
         self.chunksize = chunksize
         self.random_state = random_state
-        self.n_clusters = n_clusters if n_clusters is not None else 20
+        self.n_clusters = n_clusters
 
         self._transformer = None
         self._estimator = None
 
         super().__init__()
 
-    def _fit(self, X: np.ndarray, y: Optional[np.ndarray] = None) -> "TSFreshClusterer":
+    def _fit(self, X: np.ndarray, y: Optional[np.ndarray] = None):
         """Fit a pipeline on cases X.
 
         Parameters
@@ -129,14 +129,11 @@ class TSFreshClusterer(BaseClusterer):
         )
 
         if self.estimator is None:
-            if self.n_clusters is not None:
-                self._estimator = _clone_estimator(
-                    KMeans(n_clusters=self.n_clusters), self.random_state
-                )
-            else:
-                self._estimator = _clone_estimator(KMeans(), self.random_state)
+            self._estimator = _clone_estimator(
+                KMeans(n_clusters=self.n_clusters), self.random_state
+            )
         else:
-            if hasattr(self.estimator, "n_clusters") and self.n_clusters is not None:
+            if hasattr(self.estimator, "n_clusters"):
                 self.estimator.n_clusters = self.n_clusters
 
             self._estimator = _clone_estimator(self.estimator, self.random_state)
