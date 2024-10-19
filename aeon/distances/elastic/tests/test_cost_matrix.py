@@ -5,8 +5,7 @@ import pytest
 from numpy.testing import assert_almost_equal
 
 from aeon.distances import cost_matrix as compute_cost_matrix
-from aeon.distances._distance import DISTANCES
-from aeon.distances.tests.test_utils import SINGLE_POINT_NOT_SUPPORTED_DISTANCES
+from aeon.distances._distance import DISTANCES, SINGLE_POINT_NOT_SUPPORTED_DISTANCES
 from aeon.testing.data_generation._legacy import make_series
 
 

@@ -8,9 +8,14 @@ import numpy as np
 from numba import njit
 from numba.typed import List as NumbaList
 
-from aeon.distances._alignment_paths import compute_min_return_path
-from aeon.distances._dtw import _dtw_cost_matrix, _dtw_distance, create_bounding_matrix
-from aeon.distances._utils import _convert_to_list, _is_multivariate
+from aeon.distances.elastic._alignment_paths import compute_min_return_path
+from aeon.distances.elastic._dtw import (
+    _dtw_cost_matrix,
+    _dtw_distance,
+    create_bounding_matrix,
+)
+from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
+from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
 @njit(cache=True, fastmath=True)
@@ -232,14 +237,18 @@ def ddtw_pairwise_distance(
            [0., 0., 0.],
            [0., 0., 0.]])
     """
-    multivariate_conversion = _is_multivariate(X, y)
-    _X, unequal_length = _convert_to_list(X, "X", multivariate_conversion)
+    multivariate_conversion = _is_numpy_list_multivariate(X, y)
+    _X, unequal_length = _convert_collection_to_numba_list(
+        X, "X", multivariate_conversion
+    )
 
     if y is None:
         # To self
         return _ddtw_pairwise_distance(_X, window, itakura_max_slope, unequal_length)
 
-    _y, unequal_length = _convert_to_list(y, "y", multivariate_conversion)
+    _y, unequal_length = _convert_collection_to_numba_list(
+        y, "y", multivariate_conversion
+    )
     return _ddtw_from_multiple_to_multiple_distance(
         _X, _y, window, itakura_max_slope, unequal_length
     )
@@ -399,7 +408,7 @@ def average_of_slope(q: np.ndarray) -> np.ndarray:
     Examples
     --------
     >>> import numpy as np
-    >>> from aeon.distances._ddtw import average_of_slope
+    >>> from aeon.distances.elastic._ddtw import average_of_slope
     >>> q = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> average_of_slope(q)
     array([[1., 1., 1., 1., 1., 1., 1., 1.]])
