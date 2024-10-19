@@ -5,7 +5,7 @@ import pytest
 
 from aeon.clustering import ElasticSOM
 from aeon.distances import dtw_distance, msm_alignment_path
-from aeon.distances._distance import DISTANCES
+from aeon.distances._distance import ELASTIC_DISTANCES
 from aeon.testing.data_generation import make_example_3d_numpy
 
 
@@ -245,7 +245,7 @@ def test_elastic_som_neighborhood_function():
         clst.fit(X)
 
 
-@pytest.mark.parametrize("dist", DISTANCES)
+@pytest.mark.parametrize("dist", ELASTIC_DISTANCES)
 def test_elastic_som_distances(dist):
     """Test ElasticSOM distances."""
     if "distance" not in dist:
