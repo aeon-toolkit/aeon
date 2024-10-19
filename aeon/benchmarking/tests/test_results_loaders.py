@@ -25,18 +25,18 @@ def test_name_alias_unique():
     for key, value in NAME_ALIASES.items():
         assert isinstance(value, list)
         assert len(value) == len(set(value))
-        assert key not in value
+        assert all(key.lower() != v.lower() for v in value)
 
 
 def test_estimator_alias():
     """Test the estimator name aliasing."""
     name = estimator_alias("hivecotev2")
     name2 = estimator_alias("hc2")
-    assert name == "hc2" and name2 == "hc2"
+    assert name == "HC2" and name2 == "HC2"
 
     name = estimator_alias("FP")
     name2 = estimator_alias("FreshPRINCEClassifier")
-    assert name == "freshprince" and name2 == "freshprince"
+    assert name == "FreshPRINCE" and name2 == "FreshPRINCE"
 
     name = estimator_alias("WEASEL-Dilation")
     name2 = estimator_alias("WEASEL")
