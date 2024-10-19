@@ -11,7 +11,7 @@ from sklearn.ensemble import RandomForestRegressor
 
 from aeon.base._base import _clone_estimator
 from aeon.regression.base import BaseRegressor
-from aeon.transformations.collection.feature_based import SevenNumberSummaryTransformer
+from aeon.transformations.collection.feature_based import SevenNumberSummary
 
 
 class SummaryRegressor(BaseRegressor):
@@ -19,7 +19,7 @@ class SummaryRegressor(BaseRegressor):
     Summary statistic regressor.
 
     This regressor simply transforms the input data using the
-    SevenNumberSummaryTransformer transformer and builds a provided estimator using the
+    SevenNumberSummary transformer and builds a provided estimator using the
     transformed data.
 
     Parameters
@@ -107,7 +107,7 @@ class SummaryRegressor(BaseRegressor):
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
         """
-        self._transformer = SevenNumberSummaryTransformer(
+        self._transformer = SevenNumberSummary(
             summary_stats=self.summary_stats,
         )
 

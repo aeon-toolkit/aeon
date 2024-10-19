@@ -12,7 +12,7 @@ from sklearn.tree import DecisionTreeRegressor
 
 from aeon.regression.base import BaseRegressor
 from aeon.regression.sklearn import RotationForestRegressor
-from aeon.transformations.collection.feature_based import TSFreshFeatureExtractor
+from aeon.transformations.collection.feature_based import TSFresh
 
 
 class FreshPRINCERegressor(BaseRegressor):
@@ -52,7 +52,7 @@ class FreshPRINCERegressor(BaseRegressor):
 
     See Also
     --------
-    TSFreshFeatureExtractor, TSFreshRegressor, RotationForestRegressor
+    TSFresh, TSFreshRegressor, RotationForestRegressor
 
     References
     ----------
@@ -169,7 +169,7 @@ class FreshPRINCERegressor(BaseRegressor):
             n_jobs=self._n_jobs,
             random_state=self.random_state,
         )
-        self._tsfresh = TSFreshFeatureExtractor(
+        self._tsfresh = TSFresh(
             default_fc_parameters=self.default_fc_parameters,
             n_jobs=self._n_jobs,
             chunksize=self.chunksize,
