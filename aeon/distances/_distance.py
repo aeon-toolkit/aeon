@@ -914,6 +914,7 @@ MP_DISTANCES = [
     d["name"] for d in DISTANCES if d["type"] == DistanceType.MATRIX_PROFILE
 ]
 MIN_DISTANCES = [d["name"] for d in DISTANCES if d["type"] == DistanceType.MIN_DISTANCE]
+
 # This is a very specific list for testing where a time series of length 1 is not
 # supported
 SINGLE_POINT_NOT_SUPPORTED_DISTANCES = ["ddtw", "wddtw", "edr"]
