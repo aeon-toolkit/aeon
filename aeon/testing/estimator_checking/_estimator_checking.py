@@ -1,7 +1,5 @@
 """Interface compliance checkers for aeon estimators."""
 
-from typing import Optional
-
 __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = [
     "parametrize_with_checks",
@@ -11,7 +9,7 @@ __all__ = [
 import re
 from functools import partial, wraps
 from inspect import isclass
-from typing import Callable, Union
+from typing import Callable, Optional, Union
 
 from sklearn import config_context
 from sklearn.utils._testing import SkipTest
