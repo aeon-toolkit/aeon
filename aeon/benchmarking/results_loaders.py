@@ -178,7 +178,7 @@ def estimator_alias(name: str) -> str:
     --------
     >>> from aeon.benchmarking.results_loaders import estimator_alias
     >>> estimator_alias("HIVECOTEV2")
-    'hc2'
+    'HC2'
     """
     nl = name.lower()
     for name_key in NAME_ALIASES.keys():
