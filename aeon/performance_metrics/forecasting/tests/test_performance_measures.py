@@ -2,18 +2,23 @@
 
 __maintainer__ = []
 
+import inspect
+
 import numpy as np
 import pandas as pd
 import pytest
 from pandas.api.types import is_numeric_dtype
 
 from aeon.performance_metrics.forecasting import (
+    geometric_mean_absolute_error,
     geometric_mean_relative_absolute_error,
     geometric_mean_relative_squared_error,
+    geometric_mean_squared_error,
     mean_absolute_error,
     mean_absolute_percentage_error,
     mean_absolute_scaled_error,
     mean_asymmetric_error,
+    mean_linex_error,
     mean_relative_absolute_error,
     mean_squared_error,
     mean_squared_percentage_error,
@@ -27,6 +32,7 @@ from aeon.performance_metrics.forecasting import (
     median_squared_scaled_error,
     relative_loss,
 )
+from aeon.performance_metrics.forecasting._functions import _get_kwarg
 from aeon.testing.data_generation._legacy import make_series
 
 RANDOM_SEED = 42
@@ -493,3 +499,60 @@ def test_y_true_y_pred_inconsistent_n_variables_raises_error(metric_func_name):
         ValueError, match="y_true and y_pred have different number of output"
     ):
         metric_func(y_true, y_pred, y_train=y_train, y_pred_benchmark=y_pred_benchmark)
+
+
+def test_kwargs():
+    """Test get_kwarg with None."""
+    with pytest.raises(ValueError):
+        _get_kwarg(None)
+
+
+functions = [
+    median_squared_scaled_error,
+    mean_squared_error,
+    # geometric_mean_relative_absolute_error,
+    geometric_mean_relative_squared_error,
+    mean_absolute_error,
+    mean_absolute_percentage_error,
+    mean_absolute_scaled_error,
+    mean_asymmetric_error,
+    mean_relative_absolute_error,
+    mean_squared_percentage_error,
+    mean_squared_scaled_error,
+    median_absolute_error,
+    median_absolute_percentage_error,
+    median_absolute_scaled_error,
+    median_relative_absolute_error,
+    median_squared_error,
+    median_squared_percentage_error,
+    relative_loss,
+    mean_linex_error,
+    geometric_mean_absolute_error,
+    geometric_mean_squared_error,
+]
+
+
+@pytest.mark.parametrize("function", functions)
+def test_check_inputs(function):
+    """Test check_consistent_lengths function in metrics."""
+    kwargs = {
+        "y_train": np.array([3, -0.5, 2, 7, 2]),
+        "y_pred_benchmark": np.array([2.5, 0.0, 2, 8, 1.25]),
+    }
+    y_true = np.array([3, -0.5, 2, 7, 2])
+    y_pred = np.array([2.5, 0.0, 2, 8, 1.25])
+    function(y_true, y_pred, **kwargs)
+    if "horizon_weight" in inspect.signature(function).parameters:
+        with pytest.raises(ValueError):
+            function(y_true, y_pred, horizon_weight=[0.1, 0.2], **kwargs)
+    y_pred = np.array([[2.5, 0.0, 2, 8, 1.25], [2.5, 0.0, 2, 8, 1.25]])
+    with pytest.raises(ValueError):
+        function(y_true, y_pred, **kwargs)
+    y_true = np.array([[3, -0.5, 2, 7], [3, -0.5, 2, 7]])
+    with pytest.raises(ValueError):
+        function(y_true, y_pred, **kwargs)
+    y_true = np.array(
+        [[2.5, 0.0, 2, 8, 1.25], [2.5, 0.0, 2, 8, 1.25], [2.5, 0.0, 2, 8, 1.25]]
+    )
+    with pytest.raises(ValueError):
+        function(y_true, y_pred, **kwargs)
