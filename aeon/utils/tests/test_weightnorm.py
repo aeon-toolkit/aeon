@@ -20,7 +20,9 @@ def test_weight_norm():
 
     X = np.random.random((10, 10, 5))
     _input = tf.keras.layers.Input((10, 5))
-    l1 = WeightNormalization(tf.keras.layers.Conv1D(filters=5, kernel_size=1))(_input)
+    l1 = WeightNormalization(
+        tf.keras.layers.Conv1D(filters=5, kernel_size=1, dilation_rate=4)
+    )(_input)
     model = tf.keras.models.Model(inputs=_input, outputs=l1)
     model.compile(
         loss="mean_squared_error",
