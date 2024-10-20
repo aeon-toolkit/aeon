@@ -1,7 +1,10 @@
 """Check collection utilities."""
 
+from typing import Optional, Union
+
 import numpy as np
 import pandas as pd
+from numba.typed import List as NumbaList
 
 __maintainer__ = ["TonyBagnall"]
 
@@ -371,4 +374,124 @@ def _equal_length(X, input_type):
             X.groupby(level=0, group_keys=True, as_index=True).count().nunique()[0] == 1
         )
     raise ValueError(f" unknown input type {input_type}")
-    return False
+
+
+# TODO: Test this function
+
+
+def _is_numpy_list_multivariate(
+    x: Union[np.ndarray, list[np.ndarray]],
+    y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
+) -> bool:
+    """Check if two numpy or list of numpy arrays are multivariate.
+
+    This method is primarily used for the distance module pairwise functions.
+    It checks if the input is a collection of multivariate time series or a collection
+    of univariate time series. This is different from the is_univariate method as
+    this reasoning is done using two different inputs rather than a single input.
+
+    Parameters
+    ----------
+    x : Union[np.ndarray, List[np.ndarray]]
+        One or more time series of shape (n_cases, n_channels, n_timepoints) or
+        (n_cases, n_timepoints) or (n_timepoints,).
+
+    Returns
+    -------
+    boolean
+        True if the input is a multivariate time series, False otherwise.
+    """
+    if y is None:
+        if isinstance(x, np.ndarray):
+            x_dims = x.ndim
+            if x_dims == 3:
+                if x.shape[1] == 1:
+                    return False
+                return True
+            if x_dims == 2:
+                # As this function is used for pairwise we assume it isnt a single
+                # multivariate time series but two collections of univariate
+                return False
+            if x_dims == 1:
+                return False
+
+        if isinstance(x, (list, NumbaList)):
+            if not isinstance(x[0], np.ndarray):
+                return False
+            x_dims = x[0].ndim
+            if x_dims == 2:
+                if x[0].shape[0] == 1:
+                    return False
+                return True
+            if x_dims == 1:
+                return False
+    else:
+        if isinstance(x, np.ndarray) and isinstance(y, np.ndarray):
+            x_dims = x.ndim
+            y_dims = y.ndim
+            if x_dims < y_dims:
+                return _is_numpy_list_multivariate(y, x)
+
+            if x_dims == 3 and y_dims == 3:
+                if x.shape[1] == 1 and y.shape[1] == 1:
+                    return False
+                return True
+            if x_dims == 3 and y_dims == 2:
+                if x.shape[1] == 1:
+                    return False
+                return True
+            if x_dims == 3 and y_dims == 1:
+                if x.shape[1] == 1:
+                    return False
+            if x_dims == 2 and y_dims == 2:
+                # If two 2d arrays passed as this function is used for pairwise we
+                # assume it isn't two multivariate time series but two collections of
+                # univariate
+                return False
+            if x_dims == 2 and y_dims == 1:
+                return False
+            if x_dims == 1 and y_dims == 1:
+                return False
+        if isinstance(x, (list, NumbaList)) and isinstance(y, (list, NumbaList)):
+            if not isinstance(x[0], np.ndarray):
+                x_dims = 1
+            else:
+                x_dims = x[0].ndim
+            if not isinstance(y[0], np.ndarray):
+                y_dims = 1
+            else:
+                y_dims = y[0].ndim
+
+            if x_dims < y_dims:
+                return _is_numpy_list_multivariate(y, x)
+
+            if x_dims == 2 and y_dims == 2:
+                if x[0].shape[0] > 1:
+                    return True
+                return False
+
+            if x_dims == 2 and y_dims == 1:
+                if x[0].shape[0] > 1:
+                    return True
+                return False
+            return False
+
+        list_x = None
+        ndarray_y: Optional[np.ndarray] = None
+        if isinstance(x, (list, NumbaList)):
+            list_x = x
+            ndarray_y = y
+        elif isinstance(y, (list, NumbaList)):
+            list_x = y
+            ndarray_y = x
+
+        if list_x is not None and ndarray_y is not None:
+            list_y = []
+            if ndarray_y.ndim == 3:
+                for i in range(ndarray_y.shape[0]):
+                    list_y.append(ndarray_y[i])
+            else:
+                list_y = [ndarray_y]
+            return _is_numpy_list_multivariate(list_x, list_y)
+
+    raise ValueError("The format of you input is not supported.")
