@@ -10,7 +10,7 @@ __maintainer__ = []
 
 
 from http.client import IncompleteRead, RemoteDisconnected
-from typing import Optional
+from typing import Optional, Union
 from urllib.error import HTTPError, URLError
 
 import numpy as np
@@ -20,7 +20,7 @@ VALID_TASK_TYPES = ["classification", "clustering", "regression"]
 
 VALID_RESULT_MEASURES = {
     "classification": ["accuracy", "auroc", "balacc", "f1", "logloss"],
-    "clustering": ["clacc", "ami", "ari", "mi", "ri"],
+    "clustering": ["clacc", "ami", "ari", "mi"],
     "regression": ["mse", "mae", "r2", "mape", "rmse"],
 }
 
@@ -250,9 +250,9 @@ def get_available_estimators(task="classification", return_dataframe=True):
 
 
 def get_estimator_results(
-    estimators: list[str],
-    datasets: list[str],
-    num_resamples: Optional[int] = None,
+    estimators: Union[str, list[str]],
+    datasets: Optional[list[str]] = None,
+    num_resamples: Optional[int] = 1,
     task: str = "classification",
     measure: str = "accuracy",
     path: str = "http://timeseriesclassification.com/results/ReferenceResults",
@@ -265,20 +265,22 @@ def get_estimator_results(
 
     Parameters
     ----------
-    estimators : list of str
-        List of estimator names to search for. See get_available_estimators,
-        aeon.benchmarking.results_loading.NAME_ALIASES or the directory at path for
-        valid options.
-    datasets : list of str
+    estimators : str ot list of str
+        Estimator name or list of estimator names to search for. See
+        get_available_estimators, aeon.benchmarking.results_loading.NAME_ALIASES or
+        the directory at path for valid options.
+    datasets : list of str or None, default=None
         List of problem names to search for. If the dataset is not present in the
         results, it is ignored.
-    num_resamples : int or None, default=None
+        If None, all datasets the estimator has results for is returned.
+    num_resamples : int or None, default=1
         The number of data resamples to return scores for. The first resample
         is the default train/test split for the dataset.
-        For None and 1, only the score for the default train/test split of the
-        dataset is returned.
-        For 2 or more, a list of scores for each resample up to num_resamples is
+        For 1, only the score for the default train/test split of the dataset is
         returned.
+        For 2 or more, a np.ndarray of scores for all resamples up to num_resamples are
+        returned.
+        If None, the scores of all resamples are returned.
     task : str, default="classification"
         Should be one of aeon.benchmarking.results_loading.VALID_TASK_TYPES. i.e.
         "classification", "clustering", "regression".
@@ -313,8 +315,8 @@ def get_estimator_results(
             f"Error in get_estimator_results, {measure} is not a valid type of "
             f"results for task {task}"
         )
-    if num_resamples is None:
-        num_resamples = 1
+    if not isinstance(estimators, list):
+        estimators = [estimators]
 
     probs_names = "Resamples:"
     path = f"{path}/{task}/{measure}/"
@@ -324,13 +326,19 @@ def get_estimator_results(
         url = path + estimator_alias(cls) + "_" + measure + ".csv"
         data = pd.read_csv(url)
         problems = list(data[probs_names].str.replace(r"_.*", "", regex=True))
-        results = data.iloc[:, 1:].to_numpy()
+        dsets = problems if datasets is None else datasets
+        res_arr = data.iloc[:, 1:].to_numpy()
 
         cls_results = {}
-        for data in datasets:
+        for data in dsets:
             if data in problems:
                 pos = problems.index(data)
-                cls_results[data] = results[pos][:num_resamples]
+                if num_resamples == 1:
+                    cls_results[data] = res_arr[pos][0]
+                elif num_resamples is None:
+                    cls_results[data] = res_arr[pos]
+                else:
+                    cls_results[data] = res_arr[pos][:num_resamples]
 
         results[cls] = cls_results
 
@@ -338,9 +346,9 @@ def get_estimator_results(
 
 
 def get_estimator_results_as_array(
-    estimators: list[str],
-    datasets: list[str],
-    num_resamples: Optional[int] = None,
+    estimators: Union[str, list[str]],
+    datasets: Optional[list[str]] = None,
+    num_resamples: Optional[int] = 1,
     task: str = "classification",
     measure: str = "accuracy",
     path: str = "http://timeseriesclassification.com/results/ReferenceResults",
@@ -354,19 +362,22 @@ def get_estimator_results_as_array(
     Parameters
     ----------
     estimators : list of str
-        List of estimator names to search for. See get_available_estimators,
-        aeon.benchmarking.results_loading.NAME_ALIASES or the directory at path for
-        valid options.
-    datasets : list of str
-        List of problem names to search for. If the dataset is not present in the
-        results, it is ignored.
+        Estimator name or list of estimator names to search for. See
+        get_available_estimators, aeon.benchmarking.results_loading.NAME_ALIASES or
+        the directory at path for valid options.
+    datasets : list of or None, default=1
+        List of problem names to search for.
+        If None, all datasets the estimator has results for is returned.
+        If the dataset is not present in any of the results, it is ignored unless
+        include_missing is true.
     num_resamples : int or None, default=None
         The number of data resamples to average over for all scores. The first resample
         is the default train/test split for the dataset.
-        For None and 1, only the score for the default train/test split of the
-        dataset is returned.
-        For 2 or more, the score of each resample up to num_resamples is averaged and
+        For 1, only the score for the default train/test split of the dataset is
         returned.
+        For 2 or more, the scores of all resamples up to num_resamples are averaged and
+        returned.
+        If None, the scores of all resamples are averaged and returned.
     task : str, default="classification"
         Should be one of aeon.benchmarking.results_loading.VALID_TASK_TYPES. i.e.
         "classification", "clustering", "regression".
@@ -383,9 +394,10 @@ def get_estimator_results_as_array(
 
     Returns
     -------
-    results: 2D numpy array or tuple
+    results: 2D numpy array
         Array of scores. Each column is a results for a classifier, each row a dataset.
-        If include_missing is True, a list of retained datasets is also returned.
+    names: list of str
+        List of dataset names that were retained.
 
     Examples
     --------
@@ -396,6 +408,9 @@ def get_estimator_results_as_array(
     (array([[0.98250729, 0.98250729],
            [0.81074169, 0.84143223]]), ['Chinatown', 'Adiac'])
     """
+    if not isinstance(estimators, list):
+        estimators = [estimators]
+
     res_dict = get_estimator_results(
         estimators=estimators,
         datasets=datasets,
@@ -405,23 +420,27 @@ def get_estimator_results_as_array(
         path=path,
     )
 
+    if datasets is None:
+        datasets = []
+        for cls in res_dict:
+            datasets.extend(res_dict[cls].keys())
+        datasets = set(datasets)
+
     results = []
     names = []
-    for data in res_dict.keys():
+    for data in datasets:
         r = np.zeros(len(estimators))
         include = True
         for i in range(len(estimators)):
             if data in res_dict[estimators[i]]:
-                r[i] = np.average(res_dict[estimators[i]])
-            elif not include_missing:  # Skip whole problem
+                r[i] = np.average(res_dict[estimators[i]][data])
+            elif not include_missing:  # Skip the whole problem
                 include = False
+                break
             else:
                 r[i] = np.NaN
         if include:
             results.append(r)
             names.append(data)
 
-    if include_missing:
-        return np.array(results)
-    else:
-        return np.array(results), names
+    return np.array(results), names
