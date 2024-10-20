@@ -3,6 +3,7 @@
 __maintainer__ = ["hadifawaz1999"]
 __all__ = ["BaseROCKETGPU"]
 
+
 from aeon.transformations.collection import BaseCollectionTransformer
 
 

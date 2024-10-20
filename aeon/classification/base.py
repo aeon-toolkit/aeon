@@ -24,7 +24,7 @@ __all__ = [
 __maintainer__ = ["TonyBagnall", "MatthewMiddlehurst"]
 
 import time
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from typing import final
 
 import numpy as np
@@ -39,7 +39,7 @@ from aeon.utils.validation._dependencies import _check_estimator_deps
 from aeon.utils.validation.collection import get_n_cases
 
 
-class BaseClassifier(BaseCollectionEstimator, ABC):
+class BaseClassifier(BaseCollectionEstimator):
     """
     Abstract base class for time series classifiers.
 
@@ -153,7 +153,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             1D np.array of float, of shape (n_cases) - predicted class labels
             indices correspond to instance indices in X
         """
-        self.check_is_fitted()
+        self._check_is_fitted()
 
         # handle the single-class-label case
         if len(self._class_dictionary) == 1:
@@ -198,7 +198,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             second dimension indices correspond to class labels, (i, j)-th entry is
             estimated probability that i-th instance is of class j
         """
-        self.check_is_fitted()
+        self._check_is_fitted()
 
         # handle the single-class-label case
         if len(self._class_dictionary) == 1:
@@ -385,7 +385,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
         score : float
              Accuracy score of predict(X) vs y.
         """
-        self.check_is_fitted()
+        self._check_is_fitted()
         self._check_y(y, len(X), update_classes=False)
         _metric_params = metric_params
         if metric_params is None:
