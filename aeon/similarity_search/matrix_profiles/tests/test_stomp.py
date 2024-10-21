@@ -17,7 +17,7 @@ from aeon.similarity_search.matrix_profiles.stomp import (
 from aeon.utils.numba.general import sliding_mean_std_one_series
 
 DATATYPES = ["int64", "float64"]
-K_VALUES = [1]
+K_VALUES = [1, 3]
 
 
 def test__update_dot_products_one_series():
