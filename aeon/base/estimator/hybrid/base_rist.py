@@ -1,6 +1,6 @@
 """Base class for the RIST pipeline."""
 
-from abc import ABCMeta, abstractmethod
+from abc import ABC, abstractmethod
 
 import numpy as np
 from sklearn.base import BaseEstimator, is_classifier, is_regressor
@@ -33,7 +33,7 @@ from aeon.utils.numba.stats import (
 from aeon.utils.validation import check_n_jobs
 
 
-class BaseRIST(metaclass=ABCMeta):
+class BaseRIST(ABC):
     """Randomised Interval-Shapelet Transformation (RIST) pipeline base.
 
     RIST is a hybrid pipeline using the RandomIntervalTransformer using
@@ -69,9 +69,6 @@ class BaseRIST(metaclass=ABCMeta):
         Wraps the C based pycatch22 implementation for aeon.
         (https://github.com/DynamicsAndNeuralSystems/pycatch22). This requires the
         ``pycatch22`` package to be installed if True.
-    use_pyfftw : bool, default=False
-        Whether to use the pyfftw library for FFT calculations. Requires the pyfftw
-        package to be installed.
     estimator : sklearn estimator, default=None
         An sklearn estimator to be built using the transformed data. Defaults to an
         extra trees forest with 200 trees.
@@ -101,7 +98,6 @@ class BaseRIST(metaclass=ABCMeta):
         n_shapelets=None,
         series_transformers="default",
         use_pycatch22=False,
-        use_pyfftw=False,
         estimator=None,
         n_jobs=1,
         random_state=None,
@@ -110,7 +106,6 @@ class BaseRIST(metaclass=ABCMeta):
         self.n_shapelets = n_shapelets
         self.series_transformers = series_transformers
         self.use_pycatch22 = use_pycatch22
-        self.use_pyfftw = use_pyfftw
         self.estimator = estimator
         self.random_state = random_state
         self.n_jobs = n_jobs
@@ -148,7 +143,7 @@ class BaseRIST(metaclass=ABCMeta):
             self._series_transformers = [
                 None,
                 FunctionTransformer(func=first_order_differences_3d, validate=False),
-                PeriodogramTransformer(use_pyfftw=self.use_pyfftw),
+                PeriodogramTransformer(),
                 ARCoefficientTransformer(
                     replace_nan=True, order=int(12 * (X.shape[2] / 100.0) ** 0.25)
                 ),
