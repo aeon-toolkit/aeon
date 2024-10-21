@@ -5,6 +5,7 @@ i.e. classification, regression and clustering.
 
 __maintainer__ = ["MatthewMiddlehurst"]
 
+
 import numpy as np
 from sklearn.base import BaseEstimator
 from sklearn.utils import check_random_state
