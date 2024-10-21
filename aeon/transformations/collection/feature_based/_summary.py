@@ -39,7 +39,7 @@ class SevenNumberSummary(BaseCollectionTransformer):
     ...                           random_state=0, return_y=False)
     >>> tnf = SevenNumberSummary()
     >>> tnf.fit(X)
-    SevenNumberSummaryTransformer(...)
+    SevenNumberSummary(...)
     >>> print(tnf.transform(X)[0])
     [1.12176987 0.52340259 0.         1.92732552 0.8542758  1.14764656
      1.39573111]
