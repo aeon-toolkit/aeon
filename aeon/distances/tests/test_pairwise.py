@@ -5,11 +5,10 @@ import pytest
 from numpy.testing import assert_almost_equal
 
 from aeon.distances import pairwise_distance as compute_pairwise_distance
-from aeon.distances._distance import DISTANCES
-from aeon.distances.tests.test_utils import (
-    ASYMMETRIC_DISTANCES,
+from aeon.distances._distance import (
+    DISTANCES,
     SINGLE_POINT_NOT_SUPPORTED_DISTANCES,
-    _make_3d_series,
+    SYMMETRIC_DISTANCES,
 )
 from aeon.testing.data_generation import (
     make_example_2d_numpy_collection,
@@ -20,14 +19,32 @@ from aeon.testing.data_generation import (
 from aeon.testing.data_generation._legacy import make_series
 
 
+def _make_3d_series(x: np.ndarray) -> np.ndarray:
+    n_channels = x.ndim
+    if n_channels == 1:
+        shape = x.shape
+        _x = np.reshape(x, (1, 1, shape[0]))
+    elif n_channels == 2:
+        shape = x.shape
+        _x = np.reshape(x, (shape[0], 1, shape[1]))
+    elif n_channels > 3:
+        raise ValueError(
+            "The matrix provided has more than 3 dimensions. This is not"
+            "supported. Please provide a matrix with less than "
+            "3 dimensions"
+        )
+    else:
+        _x = x
+    return _x
+
+
 def _validate_pairwise_result(
     x: np.ndarray,
     name,
     distance,
     pairwise_distance,
 ):
-    """
-    Validate pairwise result.
+    """Validate pairwise result.
 
     Parameters
     ----------
@@ -36,7 +53,7 @@ def _validate_pairwise_result(
     distance: Distance function.
     pairwise_distance: Pairwise distance function.
     """
-    symmetric = not (name in ASYMMETRIC_DISTANCES)
+    symmetric = name in SYMMETRIC_DISTANCES
     pairwise_result = pairwise_distance(x)
 
     expected_size = (len(x), len(x))
@@ -153,7 +170,7 @@ def _validate_single_to_multiple_result(
     single_to_multiple_distance: Single to multiple distance function.
     run_inverse: Boolean that reruns the test with x and y swapped in position
     """
-    symmetric = not (name in ASYMMETRIC_DISTANCES)
+    symmetric = name in SYMMETRIC_DISTANCES
     single_to_multiple_result = single_to_multiple_distance(x, y)
 
     expected_size = len(y)
