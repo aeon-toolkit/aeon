@@ -248,7 +248,7 @@ class ChannelEnsembleClassifier(_BaseChannelEnsembleClassifier):
         super().__init__(estimators, verbose=verbose)
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -267,7 +267,6 @@ class ChannelEnsembleClassifier(_BaseChannelEnsembleClassifier):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         from aeon.classification.dictionary_based import ContractableBOSS
         from aeon.classification.interval_based import CanonicalIntervalForestClassifier

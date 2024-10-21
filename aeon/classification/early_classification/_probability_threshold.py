@@ -460,7 +460,7 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
         )
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -479,7 +479,6 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         from aeon.classification.feature_based import SummaryClassifier
         from aeon.classification.interval_based import TimeSeriesForestClassifier

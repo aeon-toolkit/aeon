@@ -97,7 +97,9 @@ def test_ShapeletTransformerVisualizer(transformer_class):
     import matplotlib.pyplot as plt
 
     X, y = make_example_3d_numpy()
-    shp_transformer = transformer_class(**transformer_class.get_test_params()).fit(X, y)
+    shp_transformer = transformer_class(**transformer_class._get_test_params()).fit(
+        X, y
+    )
     shp_vis = ShapeletTransformerVisualizer(shp_transformer)
 
     fig = shp_vis.plot(0)
@@ -126,7 +128,7 @@ def test_ShapeletClassifierVisualizer(classifier_class):
     import matplotlib.pyplot as plt
 
     X, y = make_example_3d_numpy()
-    shp_transformer = classifier_class(**classifier_class.get_test_params()).fit(X, y)
+    shp_transformer = classifier_class(**classifier_class._get_test_params()).fit(X, y)
     shp_vis = ShapeletClassifierVisualizer(shp_transformer)
 
     fig = shp_vis.plot(0)

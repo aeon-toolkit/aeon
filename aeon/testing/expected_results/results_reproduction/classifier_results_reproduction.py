@@ -116,153 +116,159 @@ def _print_array(test_name, array):
 
 def _print_results_for_classifier(classifier_name, dataset_name):
     if classifier_name == "ChannelEnsembleClassifier":
-        classifier = ChannelEnsembleClassifier.create_test_instance(
+        classifier = ChannelEnsembleClassifier._create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "WeightedEnsembleClassifier":
-        classifier = WeightedEnsembleClassifier.create_test_instance(
+        classifier = WeightedEnsembleClassifier._create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "ClassifierPipeline":
-        classifier = ClassifierPipeline.create_test_instance(
+        classifier = ClassifierPipeline._create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "BOSSEnsemble":
-        classifier = BOSSEnsemble.create_test_instance(
+        classifier = BOSSEnsemble._create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "ContractableBOSS":
-        classifier = ContractableBOSS.create_test_instance(
+        classifier = ContractableBOSS._create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "MUSE":
-        classifier = MUSE.create_test_instance(parameter_set="results_comparison")
+        classifier = MUSE._create_test_instance(parameter_set="results_comparison")
     elif classifier_name == "TemporalDictionaryEnsemble":
-        classifier = TemporalDictionaryEnsemble.create_test_instance(
+        classifier = TemporalDictionaryEnsemble._create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "WEASEL":
-        classifier = WEASEL.create_test_instance(parameter_set="results_comparison")
+        classifier = WEASEL._create_test_instance(parameter_set="results_comparison")
     elif classifier_name == "WEASEL_V2":
-        classifier = WEASEL_V2.create_test_instance(parameter_set="results_comparison")
+        classifier = WEASEL_V2._create_test_instance(parameter_set="results_comparison")
     elif classifier_name == "REDCOMETS":
-        classifier = REDCOMETS.create_test_instance(parameter_set="results_comparison")
+        classifier = REDCOMETS._create_test_instance(parameter_set="results_comparison")
     elif classifier_name == "ElasticEnsemble":
-        classifier = ElasticEnsemble.create_test_instance(
+        classifier = ElasticEnsemble._create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "KNeighborsTimeSeriesClassifier":
-        classifier = KNeighborsTimeSeriesClassifier.create_test_instance(
+        classifier = KNeighborsTimeSeriesClassifier._create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "Catch22Classifier":
-        classifier = Catch22Classifier.create_test_instance(
+        classifier = Catch22Classifier._create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "FreshPRINCEClassifier":
-        classifier = FreshPRINCEClassifier.create_test_instance(
+        classifier = FreshPRINCEClassifier._create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "RandomIntervalClassifier":
-        classifier = RandomIntervalClassifier.create_test_instance(
+        classifier = RandomIntervalClassifier._create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "QUANTClassifier":
-        classifier = QUANTClassifier.create_test_instance(
+        classifier = QUANTClassifier._create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "SignatureClassifier":
-        classifier = SignatureClassifier.create_test_instance(
+        classifier = SignatureClassifier._create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "SummaryClassifier":
-        classifier = SummaryClassifier.create_test_instance(
+        classifier = SummaryClassifier._create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "TSFreshClassifier":
-        classifier = TSFreshClassifier.create_test_instance(
+        classifier = TSFreshClassifier._create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "HIVECOTEV1":
-        classifier = HIVECOTEV1.create_test_instance(parameter_set="results_comparison")
+        classifier = HIVECOTEV1._create_test_instance(
+            parameter_set="results_comparison"
+        )
     elif classifier_name == "HIVECOTEV2":
-        classifier = HIVECOTEV2.create_test_instance(parameter_set="results_comparison")
+        classifier = HIVECOTEV2._create_test_instance(
+            parameter_set="results_comparison"
+        )
     elif classifier_name == "CanonicalIntervalForestClassifier":
-        classifier = CanonicalIntervalForestClassifier.create_test_instance(
+        classifier = CanonicalIntervalForestClassifier._create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "DrCIFClassifier":
-        classifier = DrCIFClassifier.create_test_instance(
+        classifier = DrCIFClassifier._create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "IntervalForestClassifier":
-        classifier = IntervalForestClassifier.create_test_instance(
+        classifier = IntervalForestClassifier._create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "RandomIntervalSpectralEnsembleClassifier":
-        classifier = RandomIntervalSpectralEnsembleClassifier.create_test_instance(
+        classifier = RandomIntervalSpectralEnsembleClassifier._create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "RSTSF":
-        classifier = RSTSF.create_test_instance(parameter_set="results_comparison")
+        classifier = RSTSF._create_test_instance(parameter_set="results_comparison")
     elif classifier_name == "SupervisedTimeSeriesForest":
-        classifier = SupervisedTimeSeriesForest.create_test_instance(
+        classifier = SupervisedTimeSeriesForest._create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "TimeSeriesForestClassifier":
-        classifier = TimeSeriesForestClassifier.create_test_instance(
+        classifier = TimeSeriesForestClassifier._create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "Arsenal":
-        classifier = Arsenal.create_test_instance(parameter_set="results_comparison")
+        classifier = Arsenal._create_test_instance(parameter_set="results_comparison")
     elif classifier_name == "RocketClassifier":
-        classifier = RocketClassifier.create_test_instance(
+        classifier = RocketClassifier._create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "HydraClassifier":
-        classifier = HydraClassifier.create_test_instance(
+        classifier = HydraClassifier._create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "MultiRocketHydraClassifier":
-        classifier = MultiRocketHydraClassifier.create_test_instance(
+        classifier = MultiRocketHydraClassifier._create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "OrdinalTDE":
-        classifier = OrdinalTDE.create_test_instance(parameter_set="results_comparison")
+        classifier = OrdinalTDE._create_test_instance(
+            parameter_set="results_comparison"
+        )
     elif classifier_name == "ShapeletTransformClassifier":
-        classifier = ShapeletTransformClassifier.create_test_instance(
+        classifier = ShapeletTransformClassifier._create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "LearningShapeletClassifier":
-        classifier = LearningShapeletClassifier.create_test_instance(
+        classifier = LearningShapeletClassifier._create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "MrSQMClassifier":
-        classifier = MrSQMClassifier.create_test_instance(
+        classifier = MrSQMClassifier._create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "SASTClassifier":
-        classifier = SASTClassifier.create_test_instance(
+        classifier = SASTClassifier._create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "ContinuousIntervalTree":
-        classifier = ContinuousIntervalTree.create_test_instance(
+        classifier = ContinuousIntervalTree._create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "RotationForestClassifier":
-        classifier = RotationForestClassifier.create_test_instance(
+        classifier = RotationForestClassifier._create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "ProbabilityThresholdEarlyClassifier":
-        classifier = ProbabilityThresholdEarlyClassifier.create_test_instance(
+        classifier = ProbabilityThresholdEarlyClassifier._create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "BaseEarlyClassifier":
-        classifier = BaseEarlyClassifier.create_test_instance(
+        classifier = BaseEarlyClassifier._create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "TEASER":
-        classifier = TEASER.create_test_instance(parameter_set="results_comparison")
+        classifier = TEASER._create_test_instance(parameter_set="results_comparison")
     elif classifier_name == "TEASER-IF":
         classifier = TEASER(
             classification_points=[6, 10, 16, 24],

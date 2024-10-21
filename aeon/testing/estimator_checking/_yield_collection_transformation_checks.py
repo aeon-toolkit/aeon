@@ -35,7 +35,7 @@ def check_channel_selectors(estimator_class):
     """
     X, _ = make_example_3d_numpy(n_cases=20, n_channels=6, n_timepoints=30)
     y = np.array([0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1])
-    cs = estimator_class.create_test_instance(return_first=True)
+    cs = estimator_class._create_test_instance(return_first=True)
     assert not cs.get_tag("fit_is_empty")
     cs.fit(X, y)
     assert cs.channels_selected_ is not None

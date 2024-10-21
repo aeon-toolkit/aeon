@@ -43,7 +43,7 @@ def check_clusterer_tags_consistent(estimator_class):
     multivariate = estimator_class.get_class_tag("capability:multivariate")
     if multivariate:
         X = np.random.random((10, 2, 10))
-        inst = estimator_class.create_test_instance(parameter_set="default")
+        inst = estimator_class._create_test_instance(parameter_set="default")
         inst.fit(X)
         inst.predict(X)
         inst.predict_proba(X)

@@ -44,7 +44,7 @@ def test_parametrize_with_checks_classes(check):
     assert equal, msg
 
 
-test_instances = [c.create_test_instance() for c in list(test_classes.values())]
+test_instances = [c._create_test_instance() for c in list(test_classes.values())]
 test_instances = {c.__class__.__name__: c for c in test_instances}
 
 
@@ -63,7 +63,7 @@ def test_parametrize_with_checks_instances(check):
 @pytest.mark.parametrize("estimator_class", list(test_classes.values()))
 def test_check_estimator_passed(estimator_class):
     """Test that check_estimator returns only passed tests for examples we know pass."""
-    estimator = estimator_class.create_test_instance()
+    estimator = estimator_class._create_test_instance()
 
     result_class = check_estimator(estimator_class, verbose=False)
     assert all(x == "PASSED" for x in result_class.values())

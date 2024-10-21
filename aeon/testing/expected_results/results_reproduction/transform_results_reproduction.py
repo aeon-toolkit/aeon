@@ -45,15 +45,15 @@ def _print_array(test_name, array):
 
 def _print_results_for_transformer(transformer_name, dataset_name):
     if transformer_name == "RandomIntervals":
-        transformer = RandomIntervals.create_test_instance(
+        transformer = RandomIntervals._create_test_instance(
             parameter_set="results_comparison"
         )
     elif transformer_name == "SupervisedIntervals":
-        transformer = SupervisedIntervals.create_test_instance(
+        transformer = SupervisedIntervals._create_test_instance(
             parameter_set="results_comparison"
         )
     elif transformer_name == "RandomShapeletTransform":
-        transformer = RandomShapeletTransform.create_test_instance(
+        transformer = RandomShapeletTransform._create_test_instance(
             parameter_set="results_comparison"
         )
     else:

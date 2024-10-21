@@ -100,7 +100,7 @@ def check_classifier_against_expected_results(estimator_class):
             continue
 
         # we only use the first estimator instance for testing
-        estimator_instance = estimator_class.create_test_instance(
+        estimator_instance = estimator_class._create_test_instance(
             parameter_set="results_comparison"
         )
         # set random seed if possible
@@ -141,7 +141,7 @@ def check_classifier_tags_consistent(estimator_class):
     if multivariate:
         X = np.random.random((10, 2, 20))
         y = np.array([0, 0, 0, 0, 0, 0, 1, 1, 1, 1])
-        inst = estimator_class.create_test_instance(parameter_set="default")
+        inst = estimator_class._create_test_instance(parameter_set="default")
         inst.fit(X, y)
         inst.predict(X)
         inst.predict_proba(X)
@@ -166,7 +166,7 @@ def check_classifier_does_not_override_final_methods(estimator_class):
 
 def check_contracted_classifier(estimator_class, datatype):
     """Test classifiers that can be contracted."""
-    estimator_instance = estimator_class.create_test_instance(
+    estimator_instance = estimator_class._create_test_instance(
         parameter_set="contracting"
     )
 

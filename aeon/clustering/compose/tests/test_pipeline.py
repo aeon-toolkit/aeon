@@ -44,7 +44,7 @@ def test_clusterer_pipeline(transformers):
     X_train, y_train = make_example_3d_numpy(n_cases=10, n_timepoints=12)
     X_test, _ = make_example_3d_numpy(n_cases=10, n_timepoints=12)
 
-    c = TimeSeriesKMeans.create_test_instance()
+    c = TimeSeriesKMeans._create_test_instance()
     pipeline = ClustererPipeline(transformers=transformers, clusterer=c)
     pipeline.fit(X_train, y_train)
     c.fit(X_train, y_train)
@@ -240,7 +240,7 @@ def test_multivariate_tag_inference():
     assert not t3.get_tag("capability:multivariate")
 
     # todo revisit with mock clusterer
-    c1 = TimeSeriesKMeans.create_test_instance()
+    c1 = TimeSeriesKMeans._create_test_instance()
     # c2 = ContractableBOSS(n_parameter_samples=5, max_ensemble_size=3)
     c3 = KMeans(n_clusters=2, max_iter=3, random_state=0)
 

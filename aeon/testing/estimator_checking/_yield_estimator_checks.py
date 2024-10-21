@@ -91,7 +91,7 @@ def _yield_all_aeon_checks(
     if has_dependencies:
         if isclass(estimator) and issubclass(estimator, BaseAeonEstimator):
             estimator_class = estimator
-            estimator_instances = estimator.create_test_instance(
+            estimator_instances = estimator._create_test_instance(
                 return_first=use_first_parameter_set
             )
         elif isinstance(estimator, BaseAeonEstimator):
@@ -230,24 +230,23 @@ def _yield_estimator_checks(estimator_class, estimator_instances, datatypes):
 
 
 def check_create_test_instance(estimator_class):
-    """Check create_test_instance logic and basic constructor functionality.
+    """Check _create_test_instance logic and basic constructor functionality.
 
-    create_test_instance and create_test_instances_and_names are the
-    key methods used to create test instances in testing.
-    If this test does not pass, validity of the other tests cannot be guaranteed.
+    _create_test_instance is the key method used to create test instances in testing.
+    If this test does not pass, the validity of the other tests cannot be guaranteed.
 
     Also tests inheritance and super call logic in the constructor.
 
     Tests that:
-    * create_test_instance results in an instance of estimator_class
+    * _create_test_instance results in an instance of estimator_class
     * __init__ calls super.__init__
     * _tags_dynamic attribute for tag inspection is present after construction
     """
-    estimator = estimator_class.create_test_instance()
+    estimator = estimator_class._create_test_instance()
 
     # Check that method does not construct object of other class than itself
     assert isinstance(estimator, estimator_class), (
-        "object returned by create_test_instance must be an instance of the class, "
+        "object returned by _create_test_instance must be an instance of the class, "
         f"found {type(estimator)}"
     )
 
@@ -311,8 +310,8 @@ def check_set_params_sklearn(estimator_class):
     we use the other test parameter settings (which are assumed valid).
     This guarantees settings which play along with the __init__ content.
     """
-    estimator = estimator_class.create_test_instance()
-    test_params = estimator_class.get_test_params()
+    estimator = estimator_class._create_test_instance()
+    test_params = estimator_class._get_test_params()
     if not isinstance(test_params, list):
         test_params = [test_params]
 
@@ -342,8 +341,8 @@ def check_constructor(estimator_class):
     """Check that the constructor has sklearn compatible signature and behaviour.
 
     Based on sklearn check_estimator testing of __init__ logic.
-    Uses create_test_instance to create an instance.
-    Assumes test_create_test_instance has passed and certified create_test_instance.
+    Uses _create_test_instance to create an instance.
+    Assumes test_create_test_instance has passed and certified _create_test_instance.
 
     Tests that:
     * constructor has no varargs
@@ -358,7 +357,7 @@ def check_constructor(estimator_class):
     msg = "constructor __init__ should have no varargs"
     assert getfullargspec(estimator_class.__init__).varkw is None, msg
 
-    estimator = estimator_class.create_test_instance()
+    estimator = estimator_class._create_test_instance()
     assert isinstance(estimator, estimator_class)
 
     # Ensure that each parameter is set in init
@@ -382,7 +381,7 @@ def check_constructor(estimator_class):
 
     params = estimator.get_params()
 
-    test_params = estimator_class.get_test_params()
+    test_params = estimator_class._get_test_params()
     if isinstance(test_params, list):
         test_params = test_params[0]
     test_params = test_params.keys()
@@ -392,7 +391,7 @@ def check_constructor(estimator_class):
     for param in init_params:
         assert param.default != param.empty, (
             "parameter `%s` for %s has no default value and is not "
-            "set in `get_test_params`" % (param.name, estimator.__class__.__name__)
+            "set in _get_test_params" % (param.name, estimator.__class__.__name__)
         )
         if type(param.default) is type:
             assert param.default in [np.float64, np.int64]

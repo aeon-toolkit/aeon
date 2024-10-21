@@ -20,13 +20,14 @@ class BaseAeonEstimator(BaseEstimator, ABC):
     Contains the following methods:
 
     reset estimator to post-init  - reset(keep)
-    clonee stimator (copy)        - clone(random_state)
+    clone stimator (copy)         - clone(random_state)
     inspect tags (class method)   - get_class_tags()
     inspect tags (one tag, class) - get_class_tag(tag_name, tag_value_default,
                                                                     raise_error)
     inspect tags (all)            - get_tags()
     inspect tags (one tag)        - get_tag(tag_name, tag_value_default, raise_error)
     setting dynamic tags          - set_tags(**tag_dict)
+    get fitted parameters         - get_fitted_params(deep)
 
     All estimators have the attribute:
 
@@ -349,7 +350,7 @@ class BaseAeonEstimator(BaseEstimator, ABC):
             )
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """
         Return testing parameter settings for the estimator.
 
@@ -365,17 +366,16 @@ class BaseAeonEstimator(BaseEstimator, ABC):
             Parameters to create testing instances of the class. Each dict are
             parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         # default parameters = empty dict
         return {}
 
     @classmethod
-    def create_test_instance(cls, parameter_set="default", return_first=True):
+    def _create_test_instance(cls, parameter_set="default", return_first=True):
         """
         Construct Estimator instance if possible.
 
-        Calls the `get_test_params` method and returns an instance or list of instances
+        Calls the `_get_test_params` method and returns an instance or list of instances
         using the returned dict or list of dict.
 
         Parameters
@@ -393,7 +393,7 @@ class BaseAeonEstimator(BaseEstimator, ABC):
             Instance of the class with default parameters. If return_first
             is False, returns list of instances.
         """
-        params = cls.get_test_params(parameter_set=parameter_set)
+        params = cls._get_test_params(parameter_set=parameter_set)
 
         if isinstance(params, list):
             if return_first:
@@ -416,6 +416,19 @@ class BaseAeonEstimator(BaseEstimator, ABC):
         """Sklearn data validation."""
         raise NotImplementedError(
             "aeon estimators do not have a _validate_data method."
+        )
+
+    def get_metadata_routing(self):
+        """Sklearn metadata routing."""
+        raise NotImplementedError(
+            "aeon estimators do not have a get_metadata_routing method."
+        )
+
+    @classmethod
+    def _get_default_requests(cls):
+        """Sklearn metadata request defaults."""
+        raise NotImplementedError(
+            "aeon estimators do not have a _get_default_requests method."
         )
 
 

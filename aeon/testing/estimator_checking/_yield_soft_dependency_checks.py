@@ -30,12 +30,12 @@ def check_python_version_softdep(estimator_class):
 
     # should be compatible with python version and able to construct
     if _check_python_version(estimator_class, severity="none"):
-        estimator_class.create_test_instance()
+        estimator_class._create_test_instance()
     # should raise a specific error if python version is incompatible
     else:
         pyspec = estimator_class.get_class_tag("python_version", None)
         with pytest.raises(ModuleNotFoundError) as ex_info:
-            estimator_class.create_test_instance()
+            estimator_class._create_test_instance()
         assert "requires python version to be" in str(ex_info.value), (
             f"Estimator {estimator_class.__name__} has python version bound "
             f"{pyspec} according to tags, but does not raise an appropriate "
@@ -54,11 +54,11 @@ def check_python_dependency_softdep(estimator_class):
 
     # should be compatible with installed dependencies and able to construct
     if softdeps is None or _check_soft_dependencies(softdeps, severity="none"):
-        estimator_class.create_test_instance()
+        estimator_class._create_test_instance()
     # should raise a specific error if any soft dependencies are missing
     else:
         with pytest.raises(ModuleNotFoundError) as ex_info:
-            estimator_class.create_test_instance()
+            estimator_class._create_test_instance()
         assert (
             "is a soft dependency and not included in the base aeon installation"
             in str(ex_info.value)
