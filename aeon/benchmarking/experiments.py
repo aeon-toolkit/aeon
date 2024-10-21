@@ -336,7 +336,7 @@ def run_classification_experiment(
         The data used to test the trained classifier.
     y_test : np.array, default = None
         Testing data class labels.
-    classifier : BaseClassifier
+    estimator : BaseClassifier
         Classifier to be used in the experiment.
     results_path : str
         Location of where to write results. Any required directories will be created.
@@ -504,7 +504,7 @@ def load_and_run_classification_experiment(
     dataset : str
         Name of problem. Files must be  <problem_path>/<dataset>/<dataset>+"_TRAIN.ts",
         same for "_TEST".
-    classifier : BaseClassifier
+    estimator : BaseClassifier
         Classifier to be used in the experiment, if none is provided one is selected
         using cls_name using resample_id as a seed.
     cls_name : str, default = None
