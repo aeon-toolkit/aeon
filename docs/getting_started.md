@@ -382,33 +382,23 @@ to this format.
 
 This collection, asked for the fit method, is stored as a database. It will be used in
 the predict method, which expects a single 2D time series as input
-(n_channels, query_length), which will be used as a query to search for in the database.
-Note that the length of the time series in the 3D  collection should be superior or
-equal to the length of the 2D time series given in the predict method.
+(n_channels, query_length). This 2D time series will be used as a query to search for in the 3D database.
 
-Given those two inputs, the predict method should return the set of most similar
-candidates to the 2D series in the 3D collection. The following example shows how to use
-the [TopKSimilaritySearch](similarity_search.top_k_similarity.TopKSimilaritySearch)
-class to extract the best `k` matches, using the Euclidean distance as similarity
-function.
+The result of the predict method will then depends on wheter you use the [QuerySearch](similarity_search.query_search.QuerySearch) and the [SeriesSearch](similarity_search.series_search.SeriesSearch) estimator. In [QuerySearch](similarity_search.query_search.QuerySearch), the 2D series is a subsequence for which we want to indentify the best (or worst !) matches in the 3D database. For [SeriesSearch](similarity_search.series_search.SeriesSearch), we require a `length` parmater, and we will search for the best matches of all subsequences of size `length` in the 2D series inside the 3D database. By default, these estimators will use the Euclidean (or squared Euclidean) distance, but more distance will be added in the future.
 
 ```{code-block} python
 >>> import numpy as np
->>> from aeon.similarity_search import TopKSimilaritySearch
+>>> from aeon.similarity_search import QuerySearch
 >>> X = [[[1, 2, 3, 4, 5, 6, 7]],  # 3D array example (univariate)
 ...      [[4, 4, 4, 5, 6, 7, 3]]]  # Two samples, one channel, seven series length
 >>> X = np.array(X) # X is of shape (2, 1, 7) : (n_cases, n_channels, n_timepoints)
->>> topk = TopKSimilaritySearch(distance="euclidean",k=2)
->>> topk.fit(X)  # fit the estimator on train data
+>>> top_k = QuerySearch(k=2)
+>>> top_k.fit(X)  # fit the estimator on train data
 ...
 >>> q = np.array([[4, 5, 6]]) # q is of shape (1,3) :
->>> topk.predict(q)  # Identify the two (k=2) most similar subsequences of length 3 in X
+>>> top_k.predict(q)  # Identify the two (k=2) most similar subsequences of length 3 in X
 [(0, 3), (1, 2)]
 ```
 The output of predict gives a list of size `k`, where each element is a set indicating
 the location of the best matches in X as `(id_sample, id_timestamp)`. This is equivalent
 to the subsequence `X[id_sample, :, id_timestamps:id_timestamp + q.shape[0]]`.
-
-Note that you can still use univariate time series as inputs, you will just have to
-convert them to multivariate time series with one feature prior to using the similarity
-search module.
