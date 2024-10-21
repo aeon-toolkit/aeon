@@ -427,9 +427,9 @@ class BaseAeonEstimator(BaseEstimator, ABC):
     @classmethod
     def _get_default_requests(cls):
         """Sklearn metadata request defaults."""
-        raise NotImplementedError(
-            "aeon estimators do not have a _get_default_requests method."
-        )
+        from sklearn.utils._metadata_requests import MetadataRequest
+
+        return MetadataRequest(None)
 
 
 def _clone_estimator(base_estimator, random_state=None):
