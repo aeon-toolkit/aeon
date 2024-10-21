@@ -10,7 +10,6 @@ __all__ = [
     "uni_classifiers_2017",
     "multi_classifiers_2021",
     "uni_classifiers_2023",
-    "get_available_estimators",
 ]
 
 from aeon.benchmarking.results_loaders import (
