@@ -376,9 +376,6 @@ def _equal_length(X, input_type):
     raise ValueError(f" unknown input type {input_type}")
 
 
-# TODO: Test this function
-
-
 def _is_numpy_list_multivariate(
     x: Union[np.ndarray, list[np.ndarray]],
     y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
