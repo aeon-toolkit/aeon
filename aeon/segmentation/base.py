@@ -3,7 +3,7 @@
 __all__ = ["BaseSegmenter"]
 __maintainer__ = []
 
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from typing import final
 
 import numpy as np
@@ -13,7 +13,7 @@ from aeon.base import BaseSeriesEstimator
 from aeon.base._base_series import VALID_INPUT_TYPES
 
 
-class BaseSegmenter(BaseSeriesEstimator, ABC):
+class BaseSegmenter(BaseSeriesEstimator):
     """Base class for segmentation algorithms.
 
     Segmenters take a single time series of length ``n_timepoints`` and returns a
@@ -146,7 +146,7 @@ class BaseSegmenter(BaseSeriesEstimator, ABC):
             list of integers of ``len(X)`` indicating which segment each time point
             belongs to.
         """
-        self.check_is_fitted()
+        self._check_is_fitted()
         if axis is None:
             axis = self.axis
         X = self._preprocess_series(X, axis, self.get_class_tag("fit_is_empty"))

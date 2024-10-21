@@ -7,6 +7,7 @@ contain missing values.
 __maintainer__ = ["TonyBagnall", "MatthewMiddlehurst"]
 __all__ = ["BaseSeriesEstimator"]
 
+
 import numpy as np
 import pandas as pd
 

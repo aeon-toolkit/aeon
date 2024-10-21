@@ -6,7 +6,7 @@ __all__ = ["BaseIntervalForest"]
 import inspect
 import time
 import warnings
-from abc import ABCMeta, abstractmethod
+from abc import ABC, abstractmethod
 
 import numpy as np
 from joblib import Parallel, delayed
@@ -26,7 +26,7 @@ from aeon.utils.numba.stats import row_mean, row_slope, row_std
 from aeon.utils.validation import check_n_jobs
 
 
-class BaseIntervalForest(metaclass=ABCMeta):
+class BaseIntervalForest(ABC):
     """A base class for interval extracting forest estimators.
 
     Allows the implementation of classifiers and regressors along the lines of [1][2][3]
