@@ -24,7 +24,7 @@ def test_nemenyi_test():
     data_full = list(univariate_equal_length)
     data_full.sort()
 
-    res = get_estimator_results_as_array(
+    res, _ = get_estimator_results_as_array(
         estimators=cls, datasets=data_full, path=data_path, include_missing=True
     )
 
@@ -47,7 +47,7 @@ def test_nemenyi_test():
     # to check the existence of a clique we select a subset of the datasets.
     data = data_full[45:55]
 
-    res = get_estimator_results_as_array(
+    res, _ = get_estimator_results_as_array(
         estimators=cls, datasets=data, path=data_path, include_missing=True
     )
 
@@ -72,13 +72,13 @@ def test_wilcoxon_test():
     cls = ["HC2", "InceptionT", "WEASEL-D", "FreshPRINCE"]
     data_full = list(univariate_equal_length)
     data_full.sort()
-    res = get_estimator_results_as_array(
+    res, _ = get_estimator_results_as_array(
         estimators=cls, datasets=data_full, path=data_path, include_missing=True
     )
     p_vals = wilcoxon_test(res, cls)
     assert_almost_equal(p_vals[0], np.array([1.0, 0.0, 0.0, 0.0]), decimal=2)
 
-    res = get_estimator_results_as_array(
+    res, _ = get_estimator_results_as_array(
         estimators=cls, datasets=data_full, path=data_path, include_missing=True
     )
     p_vals = wilcoxon_test(res, cls, lower_better=True)
@@ -89,7 +89,7 @@ def test__check_friedman():
     """Test Friedman test for overall difference in estimators."""
     cls = ["HC2", "FreshPRINCE", "InceptionT", "WEASEL-D"]
     data = univariate_equal_length
-    res = get_estimator_results_as_array(
+    res, _ = get_estimator_results_as_array(
         estimators=cls, datasets=data, path=data_path, include_missing=True
     )
     ranked_data = rankdata(-1 * res, axis=1)
@@ -97,7 +97,7 @@ def test__check_friedman():
 
     # test that approaches are not significantly different.
     cls = ["HC2", "HC2", "HC2"]
-    res = get_estimator_results_as_array(
+    res, _ = get_estimator_results_as_array(
         estimators=cls,
         datasets=data,
         path=data_path,
