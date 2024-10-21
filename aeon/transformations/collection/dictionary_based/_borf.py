@@ -338,6 +338,9 @@ class IndividualBORF(BaseEstimator, TransformerMixin):
         )
         _set_n_jobs_numba(n_jobs=self.n_jobs)
 
+        self.feature_names_in_ = None
+        self.n_features_in_ = None
+
     def fit(self, X, y=None):
         return self
 
