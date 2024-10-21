@@ -23,7 +23,7 @@ from aeon.transformations.collection.feature_based import SevenNumberSummaryTran
         [SevenNumberSummaryTransformer(), RandomForestClassifier(n_estimators=2)],
         [Padder(pad_length=15), DummyRegressor()],
         [SevenNumberSummaryTransformer(), RandomForestRegressor(n_estimators=2)],
-        [Padder(pad_length=15), TimeSeriesKMeans.create_test_instance()],
+        [Padder(pad_length=15), TimeSeriesKMeans._create_test_instance()],
         [SevenNumberSummaryTransformer(), KMeans(n_clusters=2, max_iter=3)],
         [Padder(pad_length=15), SevenNumberSummaryTransformer()],
         [Padder(pad_length=15), Tabularizer(), StandardScaler()],

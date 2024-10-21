@@ -60,67 +60,67 @@ def _print_array(test_name, array):
 
 def _print_results_for_regressor(regressor_name, dataset_name):
     if regressor_name == "FreshPRINCERegressor":
-        regressor = FreshPRINCERegressor.create_test_instance(
+        regressor = FreshPRINCERegressor._create_test_instance(
             parameter_set="results_comparison"
         )
     elif regressor_name == "Catch22Regressor":
-        regressor = Catch22Regressor.create_test_instance(
+        regressor = Catch22Regressor._create_test_instance(
             parameter_set="results_comparison"
         )
     elif regressor_name == "SummaryRegressor":
-        regressor = SummaryRegressor.create_test_instance(
+        regressor = SummaryRegressor._create_test_instance(
             parameter_set="results_comparison"
         )
     elif regressor_name == "TSFreshRegressor":
-        regressor = TSFreshRegressor.create_test_instance(
+        regressor = TSFreshRegressor._create_test_instance(
             parameter_set="results_comparison"
         )
     elif regressor_name == "HydraRegressor":
-        regressor = HydraRegressor.create_test_instance(
+        regressor = HydraRegressor._create_test_instance(
             parameter_set="results_comparison"
         )
     elif regressor_name == "MultiRocketHydraRegressor":
-        regressor = MultiRocketHydraRegressor.create_test_instance(
+        regressor = MultiRocketHydraRegressor._create_test_instance(
             parameter_set="results_comparison"
         )
     elif regressor_name == "RocketRegressor":
-        regressor = RocketRegressor.create_test_instance(
+        regressor = RocketRegressor._create_test_instance(
             parameter_set="results_comparison"
         )
     elif regressor_name == "KNeighborsTimeSeriesRegressor":
-        regressor = KNeighborsTimeSeriesRegressor.create_test_instance(
+        regressor = KNeighborsTimeSeriesRegressor._create_test_instance(
             parameter_set="results_comparison"
         )
     elif regressor_name == "RISTRegressor":
-        regressor = RISTRegressor.create_test_instance(
+        regressor = RISTRegressor._create_test_instance(
             parameter_set="results_comparison"
         )
     elif regressor_name == "CanonicalIntervalForestRegressor":
-        regressor = CanonicalIntervalForestRegressor.create_test_instance(
+        regressor = CanonicalIntervalForestRegressor._create_test_instance(
             parameter_set="results_comparison"
         )
     elif regressor_name == "DrCIFRegressor":
-        regressor = DrCIFRegressor.create_test_instance(
+        regressor = DrCIFRegressor._create_test_instance(
             parameter_set="results_comparison"
         )
     elif regressor_name == "IntervalForestRegressor":
-        regressor = IntervalForestRegressor.create_test_instance(
+        regressor = IntervalForestRegressor._create_test_instance(
             parameter_set="results_comparison"
         )
     elif regressor_name == "RandomIntervalRegressor":
-        regressor = RandomIntervalRegressor.create_test_instance(
+        regressor = RandomIntervalRegressor._create_test_instance(
             parameter_set="results_comparison"
         )
     elif regressor_name == "RandomIntervalSpectralEnsembleRegressor":
-        regressor = RandomIntervalSpectralEnsembleRegressor.create_test_instance(
+        regressor = RandomIntervalSpectralEnsembleRegressor._create_test_instance(
             parameter_set="results_comparison"
         )
     elif regressor_name == "TimeSeriesForestRegressor":
-        regressor = TimeSeriesForestRegressor.create_test_instance(
+        regressor = TimeSeriesForestRegressor._create_test_instance(
             parameter_set="results_comparison"
         )
     elif regressor_name == "RDSTRegressor":
-        regressor = RDSTRegressor.create_test_instance(
+        regressor = RDSTRegressor._create_test_instance(
             parameter_set="results_comparison"
         )
     else:

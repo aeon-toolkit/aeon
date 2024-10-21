@@ -43,9 +43,9 @@ def parametrize_with_checks(
     ----------
     estimators : list of aeon BaseAeonEstimator instances or classes
         Estimators to generate checks for. If an item is a class, an instance will
-        be created using BaseAeonEstimator.create_test_instance().
+        be created using BaseAeonEstimator._create_test_instance().
     use_first_parameter_set : bool, default=False
-        If True, only the first parameter set from get_test_params will be used if a
+        If True, only the first parameter set from _get_test_params will be used if a
         class is passed.
 
     Returns
@@ -117,13 +117,13 @@ def check_estimator(
     ----------
     estimator : aeon BaseAeonEstimator instance or class
         Estimator to run checks on. If estimator is a class, an instance will
-        be created using BaseAeonEstimator.create_test_instance().
+        be created using BaseAeonEstimator._create_test_instance().
     raise_exceptions : bool, optional, default=False
         Whether to return exceptions/failures in the results dict, or raise them
             if False: returns exceptions in returned `results` dict
             if True: raises exceptions as they occur
     use_first_parameter_set : bool, default=False
-        If True, only the first parameter set from get_test_params will be used if a
+        If True, only the first parameter set from _get_test_params will be used if a
         class is passed.
     checks_to_run : str or list of str, default=None
         Name(s) of checks to run. This should include the function name of the check to

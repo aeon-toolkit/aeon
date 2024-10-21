@@ -129,7 +129,7 @@ class ChannelScorer(BaseChannelSelector):
         return self
 
     @classmethod
-    def get_test_params(cls, parameter_set: str = "default") -> TypingDict[str, any]:
+    def _get_test_params(cls, parameter_set: str = "default") -> TypingDict[str, any]:
         """Return testing parameter settings for the estimator.
 
         Parameters

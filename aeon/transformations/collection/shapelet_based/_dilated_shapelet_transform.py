@@ -346,7 +346,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
             self.threshold_percentiles_ = np.asarray(self.threshold_percentiles_)
 
     @classmethod
-    def get_test_params(
+    def _get_test_params(
         cls, parameter_set: str = "default"
     ) -> "Union[Dict, TypingList[Dict]]":
         """Return testing parameter settings for the estimator.
@@ -364,7 +364,6 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
             Parameters to create testing instances of the class
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`
         """
         if parameter_set == "default":
             params = {"max_shapelets": 10}

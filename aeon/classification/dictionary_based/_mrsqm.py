@@ -123,7 +123,9 @@ class MrSQMClassifier(BaseClassifier):
         return self.clf_.predict_proba(X)
 
     @classmethod
-    def get_test_params(cls, parameter_set: str = "default") -> Union[dict, list[dict]]:
+    def _get_test_params(
+        cls, parameter_set: str = "default"
+    ) -> Union[dict, list[dict]]:
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -142,7 +144,6 @@ class MrSQMClassifier(BaseClassifier):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         return {
             "features_per_rep": 50,

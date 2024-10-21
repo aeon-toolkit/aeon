@@ -160,7 +160,7 @@ class ClassifierEnsemble(BaseCollectionEnsemble, BaseClassifier):
             return clf
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -175,12 +175,11 @@ class ClassifierEnsemble(BaseCollectionEnsemble, BaseClassifier):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         return {
             "classifiers": [
-                KNeighborsTimeSeriesClassifier.create_test_instance(),
-                DummyClassifier.create_test_instance(),
+                KNeighborsTimeSeriesClassifier._create_test_instance(),
+                DummyClassifier._create_test_instance(),
             ],
             "weights": [2, 1],
         }
@@ -408,7 +407,7 @@ class WeightedEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier):
         return y_proba
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -423,23 +422,22 @@ class WeightedEnsembleClassifier(_HeterogenousMetaEstimator, BaseClassifier):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         from aeon.classification import DummyClassifier
         from aeon.classification.distance_based import KNeighborsTimeSeriesClassifier
 
         params1 = {
             "classifiers": [
-                KNeighborsTimeSeriesClassifier.create_test_instance(),
-                DummyClassifier.create_test_instance(),
+                KNeighborsTimeSeriesClassifier._create_test_instance(),
+                DummyClassifier._create_test_instance(),
             ],
             "weights": [42, 1],
         }
 
         params2 = {
             "classifiers": [
-                KNeighborsTimeSeriesClassifier.create_test_instance(),
-                DummyClassifier.create_test_instance(),
+                KNeighborsTimeSeriesClassifier._create_test_instance(),
+                DummyClassifier._create_test_instance(),
             ],
             "weights": 2,
             "cv": 3,

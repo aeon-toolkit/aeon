@@ -152,7 +152,7 @@ class MultiRocketRegressor(BaseRegressor):
         return self.pipeline_.predict(X)
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
