@@ -163,8 +163,8 @@ class RandomIntervalClassifier(BaseClassifier):
             ),
             self.random_state,
         )
-        m = hasattr(self._estimator, "n_jobs")
-        if m:
+
+        if hasattr(self._estimator, "n_jobs"):
             self._estimator.n_jobs = self._n_jobs
 
         X_t = self._transformer.fit_transform(X, y)
@@ -402,8 +402,8 @@ class SupervisedIntervalClassifier(BaseClassifier):
             ),
             self.random_state,
         )
-        m = hasattr(self._estimator, "n_jobs")
-        if m:
+
+        if hasattr(self._estimator, "n_jobs"):
             self._estimator.n_jobs = self._n_jobs
 
         X_t = self._transformer.fit_transform(X, y)
