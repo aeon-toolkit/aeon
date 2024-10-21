@@ -140,7 +140,7 @@ def test_plot_significance_corrections(correction):
     data_full = list(univariate_equal_length)
     data_full.sort()
 
-    res = get_estimator_results_as_array(
+    res, _ = get_estimator_results_as_array(
         estimators=cls, datasets=data_full, path=data_path, include_missing=True
     )
 
@@ -172,7 +172,7 @@ def test_plot_significance():
     data_full = list(univariate_equal_length)
     data_full.sort()
 
-    res = get_estimator_results_as_array(
+    res, _ = get_estimator_results_as_array(
         estimators=cls, datasets=data_full, path=data_path, include_missing=True
     )
 
@@ -206,7 +206,7 @@ def test_plot_significance_p_values():
     data_full = list(univariate_equal_length)
     data_full.sort()
 
-    res = get_estimator_results_as_array(
+    res, _ = get_estimator_results_as_array(
         estimators=cls, datasets=data_full, path=data_path, include_missing=True
     )
 

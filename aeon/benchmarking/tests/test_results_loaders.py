@@ -183,7 +183,7 @@ def test_get_estimator_results_as_array(path):
 @pytest.mark.parametrize("task", ["classification", "regression", "clustering"])
 def test_load_all_estimator_results(task):
     """Run through estimators from get_available_estimators and load results."""
-    estimators = get_available_estimators(task=task, return_dataframe=False)
+    estimators = get_available_estimators(task=task, as_list=True)
     for measure in VALID_RESULT_MEASURES[task]:
         for est in estimators:
             res, names = get_estimator_results_as_array(

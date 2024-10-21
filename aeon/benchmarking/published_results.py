@@ -67,7 +67,8 @@ def get_bake_off_2017_results(default_only=True):
 
     Examples
     --------
-    >>> from aeon.benchmarking import get_bake_off_2017_results, uni_classifiers_2017
+    >>> from aeon.benchmarking.published_results import (
+    ...                                 get_bake_off_2017_results, uni_classifiers_2017)
     >>> from aeon.visualisation import plot_critical_difference
     >>> default_results = get_bake_off_2017_results(default_only=True) # doctest: +SKIP
     >>> classifiers = ["MSM_1NN","LPS","TSBF","TSF","DTW_F","EE","BOSS","ST","FlatCOTE"]
@@ -135,7 +136,8 @@ def get_bake_off_2021_results(default_only=True):
 
     Examples
     --------
-    >>> from aeon.benchmarking import get_bake_off_2021_results, multi_classifiers_2021
+    >>> from aeon.benchmarking.published_results import (
+    ...                             get_bake_off_2021_results, multi_classifiers_2021)
     >>> from aeon.visualisation import plot_critical_difference
     >>> default_results = get_bake_off_2021_results(default_only=True) # doctest: +SKIP
     >>> cls = list(multi_classifiers_2021.keys()) # doctest: +SKIP
@@ -225,7 +227,8 @@ def get_bake_off_2023_results(default_only=True):
 
     Examples
     --------
-    >>> from aeon.benchmarking import get_bake_off_2023_results, uni_classifiers_2023
+    >>> from aeon.benchmarking.published_results import (
+    ...                                 get_bake_off_2023_results, uni_classifiers_2023)
     >>> from aeon.visualisation import plot_critical_difference
     >>> default_results = get_bake_off_2023_results(default_only=True) # doctest: +SKIP
     >>> classifiers = ["HC2","MR-Hydra","InceptionT", "FreshPRINCE","WEASEL-D","RDST"]

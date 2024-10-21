@@ -30,7 +30,7 @@ def test_plot_boxplot():
     cls = ["HC2", "FreshPRINCE", "InceptionT", "WEASEL-D"]
 
     data = univariate_equal_length
-    res = get_estimator_results_as_array(
+    res, _ = get_estimator_results_as_array(
         estimators=cls, datasets=data, path=data_path, include_missing=True
     )
 
