@@ -107,6 +107,8 @@ class BORF(BaseCollectionTransformer):
         "output_data_type": "Tabular",
         "requires_y": False,
         "python_dependencies": "sparse",
+        "cant_pickle": True,
+        "non_deterministic": True,
     }
 
     def __init__(
@@ -363,6 +365,9 @@ class _ZeroColumnsRemover(BaseEstimator, TransformerMixin):
         self.n_original_columns_ = None
         self.columns_to_keep_ = None
 
+        self.feature_names_in_ = None
+        self.n_features_in_ = None
+
     def fit(self, X, y=None):
         self.n_original_columns_ = X.shape[1]
         self.columns_to_keep_ = np.argwhere(X.any(axis=self.axis)).ravel()
@@ -379,6 +384,9 @@ class _ReshapeTo2D(BaseEstimator, TransformerMixin):
         self.unraveled_index_ = None
         self.original_shape_ = None
 
+        self.feature_names_in_ = None
+        self.n_features_in_ = None
+
     def fit(self, X, y=None):
         self.original_shape_ = X.shape
         if self.keep_unraveled_index:
@@ -393,7 +401,8 @@ class _ReshapeTo2D(BaseEstimator, TransformerMixin):
 
 class _ToScipySparse(BaseEstimator, TransformerMixin):
     def __init__(self):
-        pass
+        self.feature_names_in_ = None
+        self.n_features_in_ = None
 
     def fit(self, X, y=None):
         return self
@@ -404,7 +413,8 @@ class _ToScipySparse(BaseEstimator, TransformerMixin):
 
 class _ToDense(BaseEstimator, TransformerMixin):
     def __init__(self):
-        pass
+        self.feature_names_in_ = None
+        self.n_features_in_ = None
 
     def fit(self, X, y=None):
         return self
