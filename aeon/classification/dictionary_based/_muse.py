@@ -122,8 +122,8 @@ class MUSE(BaseClassifier):
     --------
     >>> from aeon.classification.dictionary_based import MUSE
     >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
     >>> clf = MUSE(window_inc=4, use_first_order_differences=False)
     >>> clf.fit(X_train, y_train)
     MUSE(...)
@@ -456,7 +456,6 @@ def _parallel_fit(
             feature_selection=feature_selection,
             save_words=False,
             n_jobs=n_jobs,
-            return_pandas_data_series=False,
             return_sparse=True,
         )
 

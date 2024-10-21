@@ -12,7 +12,6 @@ def test_correct_input():
     """Tests errors raised with wrong inputs: X and/or y."""
     dummy = MockCluster()
 
-    # list of strings X
     X = ["list", "of", "invalid", "test", "strings"]
     msg1 = r"ERROR passed a list containing <class 'str'>"
     with pytest.raises(TypeError, match=msg1):

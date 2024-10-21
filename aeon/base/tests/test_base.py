@@ -26,7 +26,6 @@ __all__ = [
     "test_set_tags",
     "test_reset",
     "test_reset_composite",
-    "test_components",
     "test_get_fitted_params",
 ]
 
@@ -275,31 +274,6 @@ def test_reset_composite():
     assert not hasattr(x.a, "d")
 
 
-def test_components():
-    """Tests component retrieval.
-
-    Raises
-    ------
-    AssertionError if logic behind _components is incorrect, logic tested:
-        calling _components on a non-composite returns an empty dict
-        calling _components on a composite returns name/BaseAeonEstimator pair in dict,
-        and BaseAeonEstimator returned is identical with attribute of the same name
-    """
-    non_composite = CompositionDummy(foo=42)
-    composite = CompositionDummy(foo=non_composite)
-
-    non_comp_comps = non_composite._components()
-    comp_comps = composite._components()
-
-    assert isinstance(non_comp_comps, dict)
-    assert set(non_comp_comps.keys()) == set()
-
-    assert isinstance(comp_comps, dict)
-    assert set(comp_comps.keys()) == {"foo_"}
-    assert comp_comps["foo_"] is composite.foo_
-    assert comp_comps["foo_"] is not composite.foo
-
-
 class FittableCompositionDummy(BaseAeonEstimator):
     """Potentially composite object, for testing."""
 
@@ -334,12 +308,12 @@ def test_get_fitted_params():
     comp_f_params_shallow = composite.get_fitted_params(deep=False)
 
     assert isinstance(non_comp_f_params, dict)
-    assert set(non_comp_f_params.keys()) == {"foo"}
+    assert set(non_comp_f_params.keys()) == {"foo_"}
 
     assert isinstance(comp_f_params, dict)
-    assert set(comp_f_params) == {"foo", "foo__foo"}
-    assert set(comp_f_params_shallow) == {"foo"}
-    assert comp_f_params["foo"] is composite.foo_
-    assert comp_f_params["foo"] is not composite.foo
-    assert comp_f_params_shallow["foo"] is composite.foo_
-    assert comp_f_params_shallow["foo"] is not composite.foo
+    assert set(comp_f_params) == {"foo_", "foo___foo_"}
+    assert set(comp_f_params_shallow) == {"foo_"}
+    assert comp_f_params["foo_"] is composite.foo_
+    assert comp_f_params["foo_"] is not composite.foo
+    assert comp_f_params_shallow["foo_"] is composite.foo_
+    assert comp_f_params_shallow["foo_"] is not composite.foo

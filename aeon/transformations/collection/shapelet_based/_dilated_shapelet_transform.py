@@ -132,7 +132,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
     ...     RandomDilatedShapeletTransform
     ... )
     >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
+    >>> X_train, y_train = load_unit_test(split="train")
     >>> t = RandomDilatedShapeletTransform(
     ...     max_shapelets=10
     ... )
@@ -468,21 +468,21 @@ def _init_random_shapelet_params(
             dilations[i] = np.int_(2 ** random_generator.uniform(0, upper_bounds[i]))
 
     # Init threshold array
-    threshold = np.zeros(max_shapelets, dtype=np.float_)
+    threshold = np.zeros(max_shapelets, dtype=np.float64)
 
     # Init values array
     values = np.full(
         (max_shapelets, n_channels, max(shapelet_lengths)),
         np.inf,
-        dtype=np.float_,
+        dtype=np.float64,
     )
 
     # Is shapelet using z-normalization ?
     normalize = random_generator.uniform(0, 1, size=max_shapelets)
     normalize = normalize < proba_normalization
 
-    means = np.zeros((max_shapelets, n_channels), dtype=np.float_)
-    stds = np.zeros((max_shapelets, n_channels), dtype=np.float_)
+    means = np.zeros((max_shapelets, n_channels), dtype=np.float64)
+    stds = np.zeros((max_shapelets, n_channels), dtype=np.float64)
 
     return (
         values,
@@ -873,7 +873,7 @@ def compute_shapelet_features(
         if _dist < threshold:
             _SO += 1
 
-    return np.float_(_min), np.float_(_argmin), np.float_(_SO)
+    return np.float64(_min), np.float64(_argmin), np.float64(_SO)
 
 
 @njit(fastmath=True, cache=True)

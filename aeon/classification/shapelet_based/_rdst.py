@@ -117,8 +117,8 @@ class RDSTClassifier(BaseClassifier):
     --------
     >>> from aeon.classification.shapelet_based import RDSTClassifier
     >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
     >>> clf = RDSTClassifier(
     ...     max_shapelets=10
     ... )
