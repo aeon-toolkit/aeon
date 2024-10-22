@@ -16,7 +16,6 @@ __all__ = [
     "is_equal_length",
     "has_missing",
     "is_univariate",
-    "is_nested_univ_dataframe",
     "is_univariate_series",
     "is_pred_interval_proba",
     "is_pred_quantiles_proba",
@@ -40,7 +39,6 @@ from aeon.utils.validation.collection import (
     has_missing,
     is_collection,
     is_equal_length,
-    is_nested_univ_dataframe,
     is_tabular,
     is_univariate,
 )

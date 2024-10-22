@@ -32,7 +32,7 @@ def check_clusterer_tags_consistent(estimator_class):
     """Test all estimators capability tags reflect their capabilities."""
     # Test the tag X_inner_type is consistent with capability:unequal_length
     unequal_length = estimator_class.get_class_tag("capability:unequal_length")
-    valid_types = {"np-list", "df-list", "pd-multivariate", "nested_univ"}
+    valid_types = {"np-list", "df-list", "pd-multivariate"}
     if unequal_length:  # one of X_inner_types must be capable of storing unequal length
         internal_types = estimator_class.get_class_tag("X_inner_type")
         if isinstance(internal_types, str):

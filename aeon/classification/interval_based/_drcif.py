@@ -110,9 +110,6 @@ class DrCIFClassifier(BaseIntervalForest, BaseClassifier):
         Wraps the C based pycatch22 implementation for aeon.
         (https://github.com/DynamicsAndNeuralSystems/pycatch22). This requires the
         ``pycatch22`` package to be installed if True.
-    use_pyfftw : bool, default=False
-        Whether to use the pyfftw library for FFT calculations. Requires the pyfftw
-        package to be installed.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -195,7 +192,6 @@ class DrCIFClassifier(BaseIntervalForest, BaseClassifier):
         time_limit_in_minutes=None,
         contract_max_n_estimators=500,
         use_pycatch22=False,
-        use_pyfftw=False,
         random_state=None,
         n_jobs=1,
         parallel_backend=None,
@@ -204,9 +200,6 @@ class DrCIFClassifier(BaseIntervalForest, BaseClassifier):
         self.use_pycatch22 = use_pycatch22
         if use_pycatch22:
             d.append("pycatch22")
-        self.use_pyfftw = use_pyfftw
-        if use_pyfftw:
-            d.append("pyfftw")
 
         if isinstance(base_estimator, ContinuousIntervalTree):
             replace_nan = "nan"
@@ -216,7 +209,7 @@ class DrCIFClassifier(BaseIntervalForest, BaseClassifier):
         series_transformers = [
             None,
             FunctionTransformer(func=first_order_differences_3d, validate=False),
-            PeriodogramTransformer(use_pyfftw=use_pyfftw),
+            PeriodogramTransformer(),
         ]
 
         interval_features = [

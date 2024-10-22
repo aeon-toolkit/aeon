@@ -39,8 +39,6 @@ class RSTSF(BaseClassifier):
         series length, number of dimensions and the number of features.
     min_interval_length : int, default=3
         The minimum length of extracted intervals. Minimum value of 3.
-    use_pyfftw : bool, default=True
-        Whether to use pyfftw for the periodogram transformation.
     random_state : None, int or instance of RandomState, default=None
         Seed or RandomState object used for random number generation.
         If random_state is None, use the RandomState singleton used by np.random.
@@ -84,21 +82,16 @@ class RSTSF(BaseClassifier):
         n_estimators=200,
         n_intervals=50,
         min_interval_length=3,
-        use_pyfftw=False,
         random_state=None,
         n_jobs=1,
     ):
         self.n_estimators = n_estimators
         self.n_intervals = n_intervals
         self.min_interval_length = min_interval_length
-        self.use_pyfftw = use_pyfftw
         self.random_state = random_state
         self.n_jobs = n_jobs
 
         super().__init__()
-
-        if use_pyfftw:
-            self.set_tags(**{"python_dependencies": ["statsmodels", "pyfftw"]})
 
     def _fit(self, X, y):
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
@@ -109,7 +102,7 @@ class RSTSF(BaseClassifier):
 
         self._series_transformers = [
             FunctionTransformer(func=first_order_differences_3d, validate=False),
-            PeriodogramTransformer(use_pyfftw=self.use_pyfftw),
+            PeriodogramTransformer(),
             ARCoefficientTransformer(order=lags, replace_nan=True),
         ]
 
