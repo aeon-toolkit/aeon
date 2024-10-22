@@ -123,17 +123,27 @@ class LOF(PyODAdapter):
 
     def fit(self, X: np.ndarray, y: Union[np.ndarray, None] = None) -> None:
         super()._fit(X, y)
-        return self    
-        
+        self.is_fitted = True  # Fitting completed
+        return self
+
     def predict(self, X: np.ndarray) -> np.ndarray:
-        if not hasattr(self, 'fitted_pyod_model_'):
-            raise NotFittedError("This instance of LOF has not been fitted yet; please call `fit` first.")
+        if not hasattr(self, "fitted_pyod_model_"):
+            raise NotFittedError(
+                "This instance of LOF has not been fitted yet; please call `fit` first."
+            )
         return super()._predict(X)
 
     def fit_predict(
         self, X: np.ndarray, y: Union[np.ndarray, None] = None
     ) -> np.ndarray:
         return super()._fit_predict(X, y)
+
+    def _check_params(self, X: np.ndarray) -> None:
+        if self.window_size < 1 or self.window_size > X.shape[0]:
+            raise ValueError(
+                "The window size must be at least 1 and "
+                "at most the length of the time series."
+            )
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
