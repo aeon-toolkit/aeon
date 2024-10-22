@@ -123,11 +123,13 @@ class LOF(PyODAdapter):
 
     def fit(self, X: np.ndarray, y: Union[np.ndarray, None] = None) -> None:
         super()._fit(X, y)
-        return self    
-        
+        return self
+
     def predict(self, X: np.ndarray) -> np.ndarray:
-        if not hasattr(self, 'fitted_pyod_model_'):
-            raise NotFittedError("This instance of LOF has not been fitted yet; please call `fit` first.")
+        if not hasattr(self, "fitted_pyod_model_"):
+            raise NotFittedError(
+                "This instance of LOF has not been fitted yet; please call `fit` first."
+            )
         return super()._predict(X)
 
     def fit_predict(
