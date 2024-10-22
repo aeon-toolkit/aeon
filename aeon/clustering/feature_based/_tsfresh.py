@@ -231,4 +231,5 @@ class TSFreshClusterer(BaseClusterer):
         """
         return {
             "default_fc_parameters": "minimal",
+            "n_clusters": 3,
         }
