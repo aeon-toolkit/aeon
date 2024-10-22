@@ -144,6 +144,7 @@ class LOF(PyODAdapter):
 
     def _check_params(self, X: np.ndarray) -> None:
         if self.window_size < 1 or self.window_size > X.shape[0]:
+            self.window_size = min(max(1, self.window_size), X.shape[0])
             raise ValueError(
                 "The window size must be at least 1 and "
                 "at most the length of the time series."
