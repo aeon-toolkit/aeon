@@ -12,7 +12,6 @@ import sys
 from warnings import simplefilter
 
 import numpy as np
-import pandas as pd
 from numba import (
     NumbaPendingDeprecationWarning,
     NumbaTypeSafetyWarning,
@@ -114,10 +113,6 @@ class SFAFast(BaseCollectionTransformer):
     n_jobs : int, default = 1
         The number of jobs to run in parallel for both `transform`.
         ``-1`` means using all processors.
-    return_pandas_data_series : boolean, default = False
-        set to true to return Pandas Series as a result of transform.
-        setting to true reduces speed significantly but is required for
-        automatic test.
 
     Attributes
     ----------
@@ -160,7 +155,6 @@ class SFAFast(BaseCollectionTransformer):
         p_threshold=0.05,
         random_state=None,
         return_sparse=True,
-        return_pandas_data_series=False,
         n_jobs=1,
     ):
         self.words = []
@@ -211,13 +205,9 @@ class SFAFast(BaseCollectionTransformer):
         self.p_threshold = p_threshold
 
         self.return_sparse = return_sparse
-        self.return_pandas_data_series = return_pandas_data_series
 
         self.random_state = random_state
         super().__init__()
-
-        if not return_pandas_data_series:
-            self._output_convert = "off"
 
     def _fit_transform(self, X, y=None):
         """Fit to data, then transform it."""
@@ -370,11 +360,7 @@ class SFAFast(BaseCollectionTransformer):
             self.remove_repeat_words,
         )[0]
 
-        if self.return_pandas_data_series:
-            bb = pd.DataFrame()
-            bb[0] = [pd.Series(bag) for bag in bags]
-            return bb
-        elif self.return_sparse:
+        if self.return_sparse:
             bags = csr_matrix(bags, dtype=np.uint32)
         return bags
 
@@ -494,12 +480,7 @@ class SFAFast(BaseCollectionTransformer):
                 bag_of_words = bag_of_words[:, relevant_features_idx]
 
         self.feature_count = bag_of_words.shape[1]
-
-        if self.return_pandas_data_series:
-            bb = pd.DataFrame()
-            bb[0] = [pd.Series(bag) for bag in bag_of_words]
-            return bb
-        elif self.return_sparse:
+        if self.return_sparse:
             bag_of_words = csr_matrix(bag_of_words, dtype=np.uint32)
         return bag_of_words
 
@@ -730,8 +711,7 @@ class SFAFast(BaseCollectionTransformer):
         params = {
             "word_length": 4,
             "window_size": 4,
-            "return_sparse": True,
-            "return_pandas_data_series": True,
+            "return_sparse": False,
             "feature_selection": "chi2",
             "alphabet_size": 2,
         }
