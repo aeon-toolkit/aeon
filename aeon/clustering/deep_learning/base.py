@@ -2,13 +2,13 @@
 
 __maintainer__ = []
 
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 
 from aeon.clustering._k_means import TimeSeriesKMeans
 from aeon.clustering.base import BaseClusterer
 
 
-class BaseDeepClusterer(BaseClusterer, ABC):
+class BaseDeepClusterer(BaseClusterer):
     """Abstract base class for deep learning time series clusterers.
 
     Parameters

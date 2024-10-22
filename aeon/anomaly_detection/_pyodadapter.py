@@ -70,7 +70,7 @@ class PyODAdapter(BaseAnomalyDetector):
     >>> import numpy as np
     >>> from pyod.models.lof import LOF  # doctest: +SKIP
     >>> from aeon.anomaly_detection import PyODAdapter  # doctest: +SKIP
-    >>> X = np.random.default_rng(42).random((10, 2), dtype=np.float_)
+    >>> X = np.random.default_rng(42).random((10, 2), dtype=np.float64)
     >>> detector = PyODAdapter(LOF(), window_size=2)  # doctest: +SKIP
     >>> detector.fit_predict(X, axis=0)  # doctest: +SKIP
     array([1.02352234 1.00193038 0.98584441 0.99630753 1.00656619 1.00682081 1.00781515
