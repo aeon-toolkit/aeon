@@ -151,6 +151,6 @@ class LOF(PyODAdapter):
             "leaf_size": 10,
             "p": 2,
             "contamination": 0.05,
-            "window_size": 1,
+            "window_size": 10,
             "stride": 2,
         }
