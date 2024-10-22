@@ -9,6 +9,7 @@ import numpy as np
 
 from aeon.anomaly_detection._pyodadapter import PyODAdapter
 from aeon.utils.validation._dependencies import _check_soft_dependencies
+from sklearn.exceptions import NotFittedError
 
 
 class LOF(PyODAdapter):
@@ -122,8 +123,10 @@ class LOF(PyODAdapter):
 
     def fit(self, X: np.ndarray, y: Union[np.ndarray, None] = None) -> None:
         super()._fit(X, y)
-
+                
     def predict(self, X: np.ndarray) -> np.ndarray:
+        if not hasattr(self, 'fitted_pyod_model_'):
+            raise NotFittedError("This LOF instance is not fitted yet.")
         return super()._predict(X)
 
     def fit_predict(
