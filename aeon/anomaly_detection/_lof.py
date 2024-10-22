@@ -131,6 +131,10 @@ class LOF(PyODAdapter):
             raise NotFittedError(
                 "This instance of LOF has not been fitted yet; please call `fit` first."
             )
+        if not hasattr(self, "fitted_pyod_model_"):
+            raise NotFittedError(
+                "This instance of LOF has not been fitted yet; please call `fit` first."
+            )
         return super()._predict(X)
 
     def fit_predict(
