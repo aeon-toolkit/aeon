@@ -6,10 +6,10 @@ __all__ = ["LOF"]
 from typing import Optional, Union
 
 import numpy as np
+from sklearn.exceptions import NotFittedError
 
 from aeon.anomaly_detection._pyodadapter import PyODAdapter
 from aeon.utils.validation._dependencies import _check_soft_dependencies
-from sklearn.exceptions import NotFittedError
 
 
 class LOF(PyODAdapter):
