@@ -58,6 +58,7 @@ def test_lof_invalid_window_size():
         lof = LOF(window_size=0, stride=1)  # window size < 1
         lof.fit_predict(series)
 
+
 @pytest.mark.skipif(
     not _check_soft_dependencies("pyod", severity="none"),
     reason="required soft dependency PyOD not available",
