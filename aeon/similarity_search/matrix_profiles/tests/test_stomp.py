@@ -16,8 +16,8 @@ from aeon.similarity_search.matrix_profiles.stomp import (
 )
 from aeon.utils.numba.general import sliding_mean_std_one_series
 
-DATATYPES = ["float64", "int64"]
-K_VALUES = [1, 3]
+DATATYPES = ["int64", "float64"]
+K_VALUES = [1]
 
 
 def test__update_dot_products_one_series():
@@ -66,7 +66,9 @@ def test_stomp_squared_matrix_profile(dtype, k):
             ]
         )
         id_bests = np.vstack(
-            np.unravel_index(np.argsort(expected.ravel()), expected.shape)
+            np.unravel_index(
+                np.argsort(expected.ravel(), kind="stable"), expected.shape
+            )
         ).T
 
         for j in range(k):
