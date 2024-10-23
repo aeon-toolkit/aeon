@@ -1,4 +1,4 @@
-"""ChannelEnsembleClassifier: For Multivariate Time Series Classification.
+"""ClassifierChannelEnsemble for multivariate time series classification.
 
 Builds classifiers on each channel (dimension) independently.
 """
@@ -137,7 +137,7 @@ class ClassifierChannelEnsemble(BaseCollectionChannelEnsemble, BaseClassifier):
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
             special parameters are defined for a value, will return `"default"` set.
-            ChannelEnsembleClassifier provides the following special sets:
+            ClassifierChannelEnsemble provides the following special sets:
             - "results_comparison" - used in some classifiers to compare against
               previously generated results where the default set of parameters
               cannot produce suitable probability estimates
