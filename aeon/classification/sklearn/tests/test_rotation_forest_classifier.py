@@ -1,10 +1,12 @@
 """Rotation Forest test code."""
 
 import numpy as np
+import pytest
 from sklearn.metrics import accuracy_score
 
 from aeon.classification.sklearn import RotationForestClassifier
 from aeon.datasets import load_unit_test
+from aeon.testing.data_generation import make_example_3d_numpy
 
 
 def test_rotf_output():
@@ -81,3 +83,19 @@ def test_rotf_fit_predict():
     y_proba = rotf.predict_proba(X_train)
     assert isinstance(y_proba, np.ndarray)
     assert y_proba.shape == (len(y_train), 2)
+
+
+def test_rotf_input():
+    """Test RotF with incorrect input."""
+    rotf = RotationForestClassifier()
+    X2 = rotf._check_X(np.random.random((10, 1, 100)))
+    assert X2.shape == (10, 100)
+    with pytest.raises(
+        ValueError, match="RotationForestClassifier is not a time series classifier"
+    ):
+        rotf._check_X(np.random.random((10, 10, 100)))
+    with pytest.raises(
+        ValueError, match="RotationForestClassifier is not a time series classifier"
+    ):
+        rotf._check_X([[1, 2, 3], [4, 5], [6, 7, 8]])
+    X, y = make_example_3d_numpy()
