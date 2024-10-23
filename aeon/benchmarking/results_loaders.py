@@ -416,7 +416,7 @@ def get_estimator_results_as_array(
                 include = False
                 break
             else:
-                r[i] = np.NaN
+                r[i] = np.nan
         if include:
             results.append(r)
             names.append(data)

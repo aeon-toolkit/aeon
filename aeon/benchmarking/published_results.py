@@ -235,7 +235,7 @@ def get_bake_off_2023_results(default_only=True):
     >>> # Get column positions of classifiers in results
     >>> cls = uni_classifiers_2023
     >>> index =[cls[key] for key in classifiers if key in cls]
-    >>> selected =default_results[:,index]  # doctest: +SKIP
+    >>> selected = default_results[:,index]  # doctest: +SKIP
     >>> plot = plot_critical_difference(selected, classifiers)  # doctest: +SKIP
     >>> plot.show()  # doctest: +SKIP
     >>> avg_results = get_bake_off_2023_results(default_only=False)  # doctest: +SKIP
