@@ -70,18 +70,18 @@ def get_bake_off_2017_results(default_only=True):
     >>> from aeon.benchmarking.published_results import (
     ...                                 get_bake_off_2017_results, uni_classifiers_2017)
     >>> from aeon.visualisation import plot_critical_difference
-    >>> default_results = get_bake_off_2017_results(default_only=True) # doctest: +SKIP
+    >>> default_results = get_bake_off_2017_results(default_only=True)  # doctest: +SKIP
     >>> classifiers = ["MSM_1NN","LPS","TSBF","TSF","DTW_F","EE","BOSS","ST","FlatCOTE"]
     >>> # Get column positions of classifiers in results
     >>> cls = uni_classifiers_2017
     >>> index =[cls[key] for key in classifiers if key in cls]
-    >>> selected =default_results[:,index] # doctest: +SKIP
-    >>> plot = plot_critical_difference(selected, classifiers)# doctest: +SKIP
-    >>> plot.show()# doctest: +SKIP
-    >>> average_results = get_bake_off_2017_results(default_only=True) # doctest: +SKIP
-    >>> selected =average_results[:,index] # doctest: +SKIP
-    >>> plot = plot_critical_difference(selected, cls)# doctest: +SKIP
-    >>> plot.show()# doctest: +SKIP
+    >>> selected =default_results[:,index]  # doctest: +SKIP
+    >>> plot = plot_critical_difference(selected, classifiers)  # doctest: +SKIP
+    >>> plot.show()  # doctest: +SKIP
+    >>> average_results = get_bake_off_2017_results(default_only=True)  # doctest: +SKIP
+    >>> selected =average_results[:,index]  # doctest: +SKIP
+    >>> plot = plot_critical_difference(selected, cls)  # doctest: +SKIP
+    >>> plot.show()  # doctest: +SKIP
     """
     return _get_published_results(
         directory="Bakeoff2017",
@@ -139,15 +139,15 @@ def get_bake_off_2021_results(default_only=True):
     >>> from aeon.benchmarking.published_results import (
     ...                             get_bake_off_2021_results, multi_classifiers_2021)
     >>> from aeon.visualisation import plot_critical_difference
-    >>> default_results = get_bake_off_2021_results(default_only=True) # doctest: +SKIP
-    >>> cls = list(multi_classifiers_2021.keys()) # doctest: +SKIP
-    >>> selected =default_results # doctest: +SKIP
-    >>> plot = plot_critical_difference(selected, cls)# doctest: +SKIP
-    >>> plot.show()# doctest: +SKIP
-    >>> average_results = get_bake_off_2021_results(default_only=False) # doctest: +SKIP
-    >>> selected =average_results # doctest: +SKIP
-    >>> plot = plot_critical_difference(selected, cls)# doctest: +SKIP
-    >>> plot.show()# doctest: +SKIP
+    >>> default_results = get_bake_off_2021_results(default_only=True)  # doctest: +SKIP
+    >>> cls = list(multi_classifiers_2021.keys())  # doctest: +SKIP
+    >>> selected =default_results  # doctest: +SKIP
+    >>> plot = plot_critical_difference(selected, cls)  # doctest: +SKIP
+    >>> plot.show()  # doctest: +SKIP
+    >>> avg_results = get_bake_off_2021_results(default_only=False)  # doctest: +SKIP
+    >>> selected = avg_results  # doctest: +SKIP
+    >>> plot = plot_critical_difference(selected, cls)  # doctest: +SKIP
+    >>> plot.show()  # doctest: +SKIP
     """
     return _get_published_results(
         directory="Bakeoff2021",
@@ -230,18 +230,18 @@ def get_bake_off_2023_results(default_only=True):
     >>> from aeon.benchmarking.published_results import (
     ...                                 get_bake_off_2023_results, uni_classifiers_2023)
     >>> from aeon.visualisation import plot_critical_difference
-    >>> default_results = get_bake_off_2023_results(default_only=True) # doctest: +SKIP
+    >>> default_results = get_bake_off_2023_results(default_only=True)  # doctest: +SKIP
     >>> classifiers = ["HC2","MR-Hydra","InceptionT", "FreshPRINCE","WEASEL-D","RDST"]
     >>> # Get column positions of classifiers in results
     >>> cls = uni_classifiers_2023
     >>> index =[cls[key] for key in classifiers if key in cls]
-    >>> selected =default_results[:,index] # doctest: +SKIP
-    >>> plot = plot_critical_difference(selected, classifiers)# doctest: +SKIP
-    >>> plot.show()# doctest: +SKIP
-    >>> average_results = get_bake_off_2023_results(default_only=False) # doctest: +SKIP
-    >>> selected =average_results[:,index] # doctest: +SKIP
-    >>> plot = plot_critical_difference(selected, classifiers)# doctest: +SKIP
-    >>> plot.show()# doctest: +SKIP
+    >>> selected =default_results[:,index]  # doctest: +SKIP
+    >>> plot = plot_critical_difference(selected, classifiers)  # doctest: +SKIP
+    >>> plot.show()  # doctest: +SKIP
+    >>> avg_results = get_bake_off_2023_results(default_only=False)  # doctest: +SKIP
+    >>> selected = avg_results[:,index]  # doctest: +SKIP
+    >>> plot = plot_critical_difference(selected, classifiers)  # doctest: +SKIP
+    >>> plot.show()  # doctest: +SKIP
     """
     return _get_published_results(
         directory="Bakeoff2023",
