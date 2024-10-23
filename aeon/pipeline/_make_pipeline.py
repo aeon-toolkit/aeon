@@ -1,6 +1,7 @@
 """Pipeline making utility."""
 
 __maintainer__ = ["MatthewMiddlehurst"]
+__all__ = ["make_pipeline"]
 
 from sklearn.base import ClassifierMixin, ClusterMixin, RegressorMixin, TransformerMixin
 
@@ -19,7 +20,7 @@ def make_pipeline(*steps):
     """Create a pipeline from aeon and sklearn estimators.
 
     Currently available for:
-        forecasters, classifiers, regressors, clusterers, and transformers.
+        classifiers, regressors, clusterers, and collection transformers.
 
     Parameters
     ----------
@@ -34,7 +35,7 @@ def make_pipeline(*steps):
 
     Examples
     --------
-    Example 2: classifier pipeline
+    Example 1: classifier pipeline
     >>> from aeon.classification.feature_based import Catch22Classifier
     >>> from aeon.pipeline import make_pipeline
     >>> from aeon.transformations.collection import PeriodogramTransformer
@@ -42,7 +43,7 @@ def make_pipeline(*steps):
     >>> type(pipe).__name__
     'ClassifierPipeline'
 
-    Example 3: transformer pipeline
+    Example 2: transformer pipeline
     >>> from aeon.pipeline import make_pipeline
     >>> from aeon.transformations.collection import PeriodogramTransformer
     >>> pipe = make_pipeline(PeriodogramTransformer(), PeriodogramTransformer())
@@ -85,8 +86,4 @@ def make_pipeline(*steps):
     ):
         return CollectionTransformerPipeline(list(steps))
     else:
-        pipe = steps[0]
-        for i in range(1, len(steps)):
-            pipe = pipe * steps[i]
-
-        return pipe
+        raise ValueError("Pipeline type not recognized")

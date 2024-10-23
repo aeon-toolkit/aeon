@@ -291,26 +291,13 @@ class BaseAeonEstimator(BaseEstimator, ABC):
         Parameters
         ----------
         deep : bool, default=True
-            Whether to return fitted parameters of components.
-
-            * If True, will return a dict of parameter name : value for this object,
-              including fitted parameters of fittable components
-              (= BaseAeonEstimator-valued parameters).
-            * If False, will return a dict of parameter name : value for this object,
-              but not include fitted parameters of components.
+            If True, will return the fitted parameters for this estimator and
+            contained subobjects that are estimators.
 
         Returns
         -------
-        fitted_params : dict with str-valued keys
-            Dictionary of fitted parameters, paramname : paramvalue
-            keys-value pairs include:
-
-            * always: all fitted parameters of this object
-            * if ``deep=True``, also contains keys/value pairs of component parameters
-              parameters of components are indexed as ``[componentname]__[paramname]``
-              all parameters of ``componentname`` appear as ``paramname`` with its value
-            * if ``deep=True``, also contains arbitrary levels of component recursion,
-              e.g., ``[componentname]__[componentcomponentname]__[paramname]``, etc.
+        fitted_params : mapping of string to any
+            Fitted parameter names mapped to their values.
         """
         self._check_is_fitted()
         return self._get_fitted_params(self, deep)
