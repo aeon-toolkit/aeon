@@ -8,7 +8,7 @@ def test_cif():
     dr = CanonicalIntervalForestRegressor(use_pycatch22=True)
     d = dr.get_tag("python_dependencies")
     assert d == "pycatch22"
-    paras = CanonicalIntervalForestRegressor.get_test_params(
+    paras = CanonicalIntervalForestRegressor._get_test_params(
         parameter_set="contracting"
     )
     assert paras["time_limit_in_minutes"] == 5
