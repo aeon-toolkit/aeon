@@ -13,7 +13,7 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class LOF(PyODAdapter):
-    """Local Outlier Factor (LOF) algorithm anomaly detection.
+    """Local Outlier Factor (LOF) algorithm for anomaly detection.
 
     This class implement metrics-based outlier detection algorithms using the
     Local Outlier Factor (LOF) algorithm from PyOD.
