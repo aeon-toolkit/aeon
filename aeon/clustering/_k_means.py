@@ -1,5 +1,7 @@
 """Time series kmeans."""
 
+from typing import Optional
+
 __maintainer__ = []
 
 from typing import Callable, Union
@@ -163,12 +165,14 @@ class TimeSeriesKMeans(BaseClusterer):
         max_iter: int = 300,
         tol: float = 1e-6,
         verbose: bool = False,
-        random_state: Union[int, RandomState] = None,
+        random_state: Optional[Union[int, RandomState]] = None,
         averaging_method: Union[str, Callable[[np.ndarray], np.ndarray]] = "ba",
-        distance_params: dict = None,
-        average_params: dict = None,
-        init_algorithm: Union[str, np.ndarray] = None,
+        distance_params: Optional[dict] = None,
+        average_params: Optional[dict] = None,
+        init_algorithm: Optional[Union[str, np.ndarray]] = None,
     ):
+        self.init = init
+        self.init_algorithm = init_algorithm
         if init_algorithm is not None:
             import warnings
 
@@ -179,9 +183,6 @@ class TimeSeriesKMeans(BaseClusterer):
                 stacklevel=2,
             )
             self.init = self.init_algorithm
-        else:
-            self.init = init
-        self.init_algorithm = init_algorithm
         self.distance = distance
         self.n_init = n_init
         self.max_iter = max_iter
@@ -225,7 +226,6 @@ class TimeSeriesKMeans(BaseClusterer):
                     print("Resumed because of empty cluster")  # noqa: T001, T201
 
         if best_labels is None:
-            self._is_fitted = False
             raise ValueError(
                 "Unable to find a valid cluster configuration "
                 "with parameters specified (empty clusters kept "

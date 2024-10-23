@@ -22,25 +22,25 @@ UNIVARIATE_MISSING = {
     "pd.Series": UNIVARIATE["pd.Series"].copy(),
     "pd.DataFrame": UNIVARIATE["pd.DataFrame"].copy(),
 }
-UNIVARIATE_MISSING["np.ndarray"][np.random.randint(20)] = np.NAN
-UNIVARIATE_MISSING["np.ndarray"][np.random.randint(20)] = np.NAN
-UNIVARIATE_MISSING["pd.Series"][np.random.randint(20)] = np.NAN
-UNIVARIATE_MISSING["pd.Series"][np.random.randint(20)] = np.NAN
-UNIVARIATE_MISSING["pd.DataFrame"].iloc[0, np.random.randint(20)] = np.NAN
-UNIVARIATE_MISSING["pd.DataFrame"].iloc[0, np.random.randint(20)] = np.NAN
+UNIVARIATE_MISSING["np.ndarray"][np.random.randint(20)] = np.nan
+UNIVARIATE_MISSING["np.ndarray"][np.random.randint(20)] = np.nan
+UNIVARIATE_MISSING["pd.Series"][np.random.randint(20)] = np.nan
+UNIVARIATE_MISSING["pd.Series"][np.random.randint(20)] = np.nan
+UNIVARIATE_MISSING["pd.DataFrame"].iloc[0, np.random.randint(20)] = np.nan
+UNIVARIATE_MISSING["pd.DataFrame"].iloc[0, np.random.randint(20)] = np.nan
 
 MULTIVARIATE_MISSING = {
     "np.ndarray": MULTIVARIATE["np.ndarray"].copy(),
     "pd.DataFrame": MULTIVARIATE["pd.DataFrame"].copy(),
 }
-MULTIVARIATE_MISSING["np.ndarray"][np.random.randint(5)][np.random.randint(20)] = np.NAN
-MULTIVARIATE_MISSING["np.ndarray"][np.random.randint(5)][np.random.randint(20)] = np.NAN
+MULTIVARIATE_MISSING["np.ndarray"][np.random.randint(5)][np.random.randint(20)] = np.nan
+MULTIVARIATE_MISSING["np.ndarray"][np.random.randint(5)][np.random.randint(20)] = np.nan
 MULTIVARIATE_MISSING["pd.DataFrame"].iloc[
     np.random.randint(5), np.random.randint(20)
-] = np.NAN
+] = np.nan
 MULTIVARIATE_MISSING["pd.DataFrame"].iloc[
     np.random.randint(5), np.random.randint(20)
-] = np.NAN
+] = np.nan
 
 
 VALID_INPUT_TYPES = [

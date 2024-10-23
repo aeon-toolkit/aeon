@@ -95,7 +95,7 @@ class LearningShapeletClassifier(BaseClassifier):
     _tags = {
         "capability:multivariate": True,
         "algorithm_type": "shapelet",
-        "cant-pickle": True,
+        "cant_pickle": True,
         "python_dependencies": ["tslearn", "tensorflow"],
     }
 
@@ -173,7 +173,7 @@ class LearningShapeletClassifier(BaseClassifier):
         array of shape=(n_ts, n_shapelets)
             Shapelet-Transform of the provided time series.
         """
-        if not self._is_fitted:
+        if not self.is_fitted:
             raise ValueError(
                 "You must fit the classifier before recovering the transform"
             )
@@ -197,7 +197,7 @@ class LearningShapeletClassifier(BaseClassifier):
         array of shape=(n_ts, n_shapelets)
             Location of the shapelet matches for the provided time series.
         """
-        if not self._is_fitted:
+        if not self.is_fitted:
             raise ValueError(
                 "You must fit the classifier before recovering the transform"
             )

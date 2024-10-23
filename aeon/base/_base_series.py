@@ -7,10 +7,11 @@ contain missing values.
 __maintainer__ = ["TonyBagnall", "MatthewMiddlehurst"]
 __all__ = ["BaseSeriesEstimator"]
 
+
 import numpy as np
 import pandas as pd
 
-from aeon.base._base import BaseEstimator
+from aeon.base._base import BaseAeonEstimator
 from aeon.utils.validation._dependencies import _check_estimator_deps
 
 # allowed input and internal data types for Series
@@ -21,7 +22,7 @@ VALID_INNER_TYPES = [
 VALID_INPUT_TYPES = [pd.DataFrame, pd.Series, np.ndarray]
 
 
-class BaseSeriesEstimator(BaseEstimator):
+class BaseSeriesEstimator(BaseAeonEstimator):
     """Base class for estimators that use single (possibly multivariate) time series.
 
     Provides functions that are common to BaseSeriesEstimator objects for the checking
@@ -56,7 +57,6 @@ class BaseSeriesEstimator(BaseEstimator):
     _tags = {
         "capability:univariate": True,
         "capability:multivariate": False,
-        "capability:missing_values": False,
         "X_inner_type": "np.ndarray",  # one of VALID_INNER_TYPES
     }
 

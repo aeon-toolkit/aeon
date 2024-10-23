@@ -61,8 +61,8 @@ class SummaryClassifier(BaseClassifier):
     >>> from aeon.classification.feature_based import SummaryClassifier
     >>> from sklearn.ensemble import RandomForestClassifier
     >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
     >>> clf = SummaryClassifier(estimator=RandomForestClassifier(n_estimators=5))
     >>> clf.fit(X_train, y_train)
     SummaryClassifier(...)

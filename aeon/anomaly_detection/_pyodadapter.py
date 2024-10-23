@@ -8,6 +8,7 @@ __all__ = ["PyODAdapter"]
 from typing import TYPE_CHECKING, Any
 
 import numpy as np
+from sklearn import clone
 
 from aeon.anomaly_detection.base import BaseAnomalyDetector
 from aeon.utils.validation._dependencies import _check_soft_dependencies
@@ -69,7 +70,7 @@ class PyODAdapter(BaseAnomalyDetector):
     >>> import numpy as np
     >>> from pyod.models.lof import LOF  # doctest: +SKIP
     >>> from aeon.anomaly_detection import PyODAdapter  # doctest: +SKIP
-    >>> X = np.random.default_rng(42).random((10, 2), dtype=np.float_)
+    >>> X = np.random.default_rng(42).random((10, 2), dtype=np.float64)
     >>> detector = PyODAdapter(LOF(), window_size=2)  # doctest: +SKIP
     >>> detector.fit_predict(X, axis=0)  # doctest: +SKIP
     array([1.02352234 1.00193038 0.98584441 0.99630753 1.00656619 1.00682081 1.00781515
@@ -81,9 +82,6 @@ class PyODAdapter(BaseAnomalyDetector):
         "capability:univariate": True,
         "capability:missing_values": False,
         "fit_is_empty": False,
-        # Omit the version specification until PyOD has __version__
-        # (https://github.com/yzhao062/pyod/pull/584 in dev but not released yet)
-        # "python_dependencies": ["pyod>=1.1.3"]
         "python_dependencies": ["pyod"],
     }
 
@@ -114,7 +112,7 @@ class PyODAdapter(BaseAnomalyDetector):
         _X, padding = sliding_windows(
             X, window_size=self.window_size, stride=self.stride, axis=0
         )
-        window_anomaly_scores = self.pyod_model.decision_function(_X)
+        window_anomaly_scores = self.fitted_pyod_model_.decision_function(_X)
         point_anomaly_scores = reverse_windowing(
             window_anomaly_scores, self.window_size, np.nanmean, self.stride, padding
         )
@@ -127,7 +125,7 @@ class PyODAdapter(BaseAnomalyDetector):
         )
         self._inner_fit(_X)
 
-        window_anomaly_scores = self.pyod_model.decision_scores_
+        window_anomaly_scores = self.fitted_pyod_model_.decision_scores_
         point_anomaly_scores = reverse_windowing(
             window_anomaly_scores, self.window_size, np.nanmean, self.stride, padding
         )
@@ -149,10 +147,11 @@ class PyODAdapter(BaseAnomalyDetector):
             )
 
     def _inner_fit(self, X: np.ndarray) -> None:
-        self.pyod_model.fit(X)
+        self.fitted_pyod_model_: BaseDetector = clone(self.pyod_model)  # type: ignore
+        self.fitted_pyod_model_.fit(X)
 
     def _inner_predict(self, X: np.ndarray, padding: int) -> np.ndarray:
-        window_anomaly_scores = self.pyod_model.decision_function(X)
+        window_anomaly_scores = self.fitted_pyod_model_.decision_function(X)
         point_anomaly_scores = reverse_windowing(
             window_anomaly_scores, self.window_size, np.nanmean, self.stride, padding
         )
@@ -176,7 +175,7 @@ class PyODAdapter(BaseAnomalyDetector):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
-        _check_soft_dependencies("pyod")
+        _check_soft_dependencies(*cls._tags["python_dependencies"])
 
         from pyod.models.lof import LOF
 

@@ -1,12 +1,11 @@
 """Time series kernel kmeans."""
 
-from typing import Union
+from typing import Optional, Union
 
 import numpy as np
 from numpy.random import RandomState
 
 from aeon.clustering.base import BaseClusterer
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class TimeSeriesKernelKMeans(BaseClusterer):
@@ -99,7 +98,7 @@ class TimeSeriesKernelKMeans(BaseClusterer):
         kernel_params: Union[dict, None] = None,
         verbose: bool = False,
         n_jobs: Union[int, None] = None,
-        random_state: Union[int, RandomState] = None,
+        random_state: Optional[Union[int, RandomState]] = None,
     ):
         self.kernel = kernel
         self.n_init = n_init
@@ -134,7 +133,6 @@ class TimeSeriesKernelKMeans(BaseClusterer):
         self:
             Fitted estimator.
         """
-        _check_soft_dependencies("tslearn", severity="error")
         from tslearn.clustering import KernelKMeans as TsLearnKernelKMeans
 
         verbose = 0

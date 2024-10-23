@@ -13,7 +13,8 @@ class ClassifierPipeline(BaseCollectionPipeline, BaseClassifier):
 
     The `ClassifierPipeline` compositor chains transformers and a single classifier.
     The pipeline is constructed with a list of aeon transformers, plus a classifier,
-        i.e., estimators following the BaseTransformer and BaseClassifier interface.
+        i.e., estimators following the BaseCollectionTransformer and BaseClassifier
+        interface.
     The transformer list can be unnamed - a simple list of transformers -
         or string named - a list of pairs of string, estimator.
 
@@ -60,14 +61,14 @@ class ClassifierPipeline(BaseCollectionPipeline, BaseClassifier):
 
     Examples
     --------
-    >>> from aeon.transformations.collection.interpolate import TSInterpolator
+    >>> from aeon.transformations.collection import Resizer
     >>> from aeon.classification.convolution_based import RocketClassifier
     >>> from aeon.datasets import load_unit_test
     >>> from aeon.classification.compose import ClassifierPipeline
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test = load_unit_test(split="test")
     >>> pipeline = ClassifierPipeline(
-    ...     TSInterpolator(length=10), RocketClassifier(num_kernels=50)
+    ...     Resizer(length=10), RocketClassifier(num_kernels=50)
     ... )
     >>> pipeline.fit(X_train, y_train)
     ClassifierPipeline(...)
@@ -104,14 +105,14 @@ class ClassifierPipeline(BaseCollectionPipeline, BaseClassifier):
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         from aeon.classification.distance_based import KNeighborsTimeSeriesClassifier
-        from aeon.transformations.collection import TruncationTransformer
+        from aeon.transformations.collection import Truncator
         from aeon.transformations.collection.feature_based import (
             SevenNumberSummaryTransformer,
         )
 
         return {
             "transformers": [
-                TruncationTransformer(truncated_length=5),
+                Truncator(truncated_length=5),
                 SevenNumberSummaryTransformer(),
             ],
             "classifier": KNeighborsTimeSeriesClassifier(distance="euclidean"),

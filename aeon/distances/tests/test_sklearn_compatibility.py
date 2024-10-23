@@ -17,7 +17,9 @@ from aeon.testing.data_generation import make_example_3d_numpy
 @pytest.mark.parametrize("dist", DISTANCES)
 def test_function_transformer(dist):
     """Test all distances work with FunctionTransformer in a pipeline."""
-    X = make_example_3d_numpy(n_cases=5, n_channels=1, n_timepoints=10, return_y=False)
+    X = make_example_3d_numpy(
+        n_cases=5, n_channels=1, n_timepoints=10, return_y=False, random_state=1
+    )
     distance = dist["distance"]
     pairwise = dist["pairwise_distance"]
     ft = FunctionTransformer(pairwise)

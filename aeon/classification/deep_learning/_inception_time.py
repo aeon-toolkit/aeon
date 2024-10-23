@@ -160,8 +160,8 @@ class InceptionTimeClassifier(BaseClassifier):
     _tags = {
         "python_dependencies": "tensorflow",
         "capability:multivariate": True,
-        "non-deterministic": True,
-        "cant-pickle": True,
+        "non_deterministic": True,
+        "cant_pickle": True,
         "algorithm_type": "deeplearning",
     }
 
@@ -493,8 +493,8 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
     --------
     >>> from aeon.classification.deep_learning import IndividualInceptionClassifier
     >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
     >>> inc = IndividualInceptionClassifier(n_epochs=20,batch_size=4)  # doctest: +SKIP
     >>> inc.fit(X_train, y_train)  # doctest: +SKIP
     IndividualInceptionClassifier(...)

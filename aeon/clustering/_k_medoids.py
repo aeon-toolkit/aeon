@@ -1,5 +1,7 @@
 """Time series kmedoids."""
 
+from typing import Optional
+
 __maintainer__ = []
 
 import warnings
@@ -157,8 +159,8 @@ class TimeSeriesKMedoids(BaseClusterer):
         max_iter: int = 300,
         tol: float = 1e-6,
         verbose: bool = False,
-        random_state: Union[int, RandomState] = None,
-        distance_params: dict = None,
+        random_state: Optional[Union[int, RandomState]] = None,
+        distance_params: Optional[dict] = None,
     ):
         self.init_algorithm = init_algorithm
         self.distance = distance

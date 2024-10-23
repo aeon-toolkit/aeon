@@ -60,14 +60,14 @@ class ClustererPipeline(BaseCollectionPipeline, BaseClusterer):
 
     Examples
     --------
-    >>> from aeon.transformations.collection.interpolate import TSInterpolator
+    >>> from aeon.transformations.collection import Resizer
     >>> from aeon.clustering import TimeSeriesKMeans
     >>> from aeon.datasets import load_unit_test
     >>> from aeon.clustering.compose import ClustererPipeline
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test = load_unit_test(split="test")
     >>> pipeline = ClustererPipeline(
-    ...     TSInterpolator(length=10), TimeSeriesKMeans.create_test_instance()
+    ...     Resizer(length=10), TimeSeriesKMeans.create_test_instance()
     ... )
     >>> pipeline.fit(X_train, y_train)
     ClustererPipeline(...)
@@ -110,14 +110,14 @@ class ClustererPipeline(BaseCollectionPipeline, BaseClusterer):
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         from aeon.clustering import TimeSeriesKMeans
-        from aeon.transformations.collection import TruncationTransformer
+        from aeon.transformations.collection import Truncator
         from aeon.transformations.collection.feature_based import (
             SevenNumberSummaryTransformer,
         )
 
         return {
             "transformers": [
-                TruncationTransformer(truncated_length=5),
+                Truncator(truncated_length=5),
                 SevenNumberSummaryTransformer(),
             ],
             "clusterer": TimeSeriesKMeans.create_test_instance(),

@@ -5,6 +5,8 @@ The class has hardcoded string references to numba based distances in aeon.dista
 It can also be used with callables, or aeon (pairwise transformer) estimators.
 """
 
+from typing import Optional
+
 __maintainer__ = []
 __all__ = ["KNeighborsTimeSeriesRegressor"]
 
@@ -72,7 +74,7 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
     def __init__(
         self,
         distance: Union[str, Callable] = "dtw",
-        distance_params: dict = None,
+        distance_params: Optional[dict] = None,
         n_neighbors: int = 1,
         weights: Union[str, Callable] = "uniform",
         n_jobs: int = 1,
@@ -129,8 +131,6 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
         y : array of shape (n_cases)
             Output values for each data sample.
         """
-        self.check_is_fitted()
-
         preds = np.empty(len(X))
         for i in range(len(X)):
             idx, weights = self._kneighbors(X[i])

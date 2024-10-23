@@ -100,14 +100,14 @@ class RegressorPipeline(BaseCollectionPipeline, BaseRegressor):
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         from aeon.regression.distance_based import KNeighborsTimeSeriesRegressor
-        from aeon.transformations.collection import TruncationTransformer
+        from aeon.transformations.collection import Truncator
         from aeon.transformations.collection.feature_based import (
             SevenNumberSummaryTransformer,
         )
 
         return {
             "transformers": [
-                TruncationTransformer(truncated_length=5),
+                Truncator(truncated_length=5),
                 SevenNumberSummaryTransformer(),
             ],
             "regressor": KNeighborsTimeSeriesRegressor(distance="euclidean"),

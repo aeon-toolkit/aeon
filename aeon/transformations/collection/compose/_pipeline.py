@@ -48,7 +48,7 @@ class CollectionTransformerPipeline(BaseCollectionPipeline, BaseCollectionTransf
 
     Examples
     --------
-    >>> from aeon.transformations.collection.interpolate import TSInterpolator
+    >>> from aeon.transformations.collection import Resizer
     >>> from aeon.transformations.collection.feature_based import (
     ...     SevenNumberSummaryTransformer)
     >>> from aeon.datasets import load_unit_test
@@ -56,7 +56,7 @@ class CollectionTransformerPipeline(BaseCollectionPipeline, BaseCollectionTransf
     ...     CollectionTransformerPipeline)
     >>> X, y = load_unit_test(split="train")
     >>> pipeline = CollectionTransformerPipeline(
-    ...     [TSInterpolator(length=10), SevenNumberSummaryTransformer()]
+    ...     [Resizer(length=10), SevenNumberSummaryTransformer()]
     ... )
     >>> pipeline.fit(X, y)
     CollectionTransformerPipeline(...)
@@ -93,14 +93,14 @@ class CollectionTransformerPipeline(BaseCollectionPipeline, BaseCollectionTransf
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
-        from aeon.transformations.collection import TruncationTransformer
+        from aeon.transformations.collection import Truncator
         from aeon.transformations.collection.feature_based import (
             SevenNumberSummaryTransformer,
         )
 
         return {
             "transformers": [
-                TruncationTransformer(truncated_length=5),
+                Truncator(truncated_length=5),
                 SevenNumberSummaryTransformer(),
             ]
         }

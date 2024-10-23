@@ -12,7 +12,7 @@ from aeon.datasets import (
 )
 from aeon.datasets.tests.test_data_loaders import CONNECTION_ERRORS
 from aeon.segmentation import ClaSPSegmenter
-from aeon.testing.test_config import PR_TESTING
+from aeon.testing.testing_config import PR_TESTING
 
 
 @pytest.mark.skipif(

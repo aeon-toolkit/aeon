@@ -111,8 +111,8 @@ class BOSSEnsemble(BaseClassifier):
     --------
     >>> from aeon.classification.dictionary_based import BOSSEnsemble
     >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
     >>> clf = BOSSEnsemble(max_ensemble_size=3)
     >>> clf.fit(X_train, y_train)
     BOSSEnsemble(...)
@@ -514,8 +514,8 @@ class IndividualBOSS(BaseClassifier):
     --------
     >>> from aeon.classification.dictionary_based import IndividualBOSS
     >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
     >>> clf = IndividualBOSS()
     >>> clf.fit(X_train, y_train)
     IndividualBOSS(...)
@@ -659,7 +659,7 @@ class IndividualBOSS(BaseClassifier):
         new_boss.classes_ = self.classes_
         new_boss._class_dictionary = self._class_dictionary
         new_boss.metadata_ = self.metadata_
-        new_boss._is_fitted = True
+        new_boss.is_fitted = True
 
         return new_boss
 

@@ -111,7 +111,7 @@ class TimeSeriesForestClassifier(BaseIntervalForest, BaseClassifier):
         Total number of intervals per tree from all representations.
     estimators_ : list of shape (n_estimators) of BaseEstimator
         The collections of estimators trained in fit.
-    intervals_ : list of shape (n_estimators) of BaseTransformer
+    intervals_ : list of shape (n_estimators) of BaseCollectionTransformer
         Stores the interval extraction transformer for all estimators.
 
     Notes

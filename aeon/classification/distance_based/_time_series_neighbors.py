@@ -5,6 +5,8 @@ The class can take callables or uses string references to utilise the numba base
 distances in aeon.distances.
 """
 
+from typing import Optional
+
 __maintainer__ = []
 __all__ = ["KNeighborsTimeSeriesClassifier"]
 
@@ -72,7 +74,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
     def __init__(
         self,
         distance: Union[str, Callable] = "dtw",
-        distance_params: dict = None,
+        distance_params: Optional[dict] = None,
         n_neighbors: int = 1,
         weights: Union[str, Callable] = "uniform",
         n_jobs: int = 1,
@@ -131,8 +133,6 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
             The class probabilities of the input samples. Classes are ordered
             by lexicographic order.
         """
-        self.check_is_fitted()
-
         preds = np.zeros((len(X), len(self.classes_)))
         for i in range(len(X)):
             idx, weights = self._kneighbors(X[i])
@@ -160,7 +160,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         y : array of shape (n_cases)
             Class labels for each data sample.
         """
-        self.check_is_fitted()
+        self._check_is_fitted()
 
         preds = np.empty(len(X), dtype=self.classes_.dtype)
         for i in range(len(X)):

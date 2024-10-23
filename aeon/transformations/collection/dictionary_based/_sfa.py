@@ -261,7 +261,6 @@ class SFA(BaseCollectionTransformer):
         self.n_cases, self.n_timepoints = X.shape
         self.breakpoints = self._binning(X, y)
 
-        self._is_fitted = True
         return self
 
     def _transform(self, X, y=None):

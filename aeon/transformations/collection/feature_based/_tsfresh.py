@@ -267,6 +267,7 @@ class TSFreshFeatureExtractor(_TSFreshFeatureExtractor):
             profiling_sorting=profiling_sorting,
             distributor=distributor,
         )
+        self._get_names()
 
     def _transform(self, X, y=None):
         """Transform X and return a transformed version.
@@ -298,8 +299,7 @@ class TSFreshFeatureExtractor(_TSFreshFeatureExtractor):
             column_sort="time_index",
             **self.default_fc_parameters_,
         )
-        #        return Xt.reindex(X.index)
-        return Xt
+        return Xt.to_numpy()
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
@@ -338,6 +338,23 @@ class TSFreshFeatureExtractor(_TSFreshFeatureExtractor):
                 "kind_to_fc_parameters": features_to_calc,
             },
         ]
+
+    def _get_names(self):
+        """Hack to get the feature names prior to transform."""
+        from tsfresh import extract_features
+
+        X = np.random.random((2, 1, 30))
+        Xt = _from_3d_numpy_to_long(X)
+        Xt = extract_features(
+            Xt,
+            column_id="index",
+            column_value="value",
+            column_kind="column",
+            column_sort="time_index",
+            **self.default_fc_parameters_,
+        )
+        # Get the list of feature names
+        self.names = Xt.columns.tolist()
 
 
 class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
@@ -405,7 +422,7 @@ class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
         Which test to be used for real target, binary feature (currently unused).
     test_for_real_target_binary_feature : str or None, default=None
         Which test to be used for real target, real feature (currently unused)
-    fdr_level: floar or None, default=None
+    fdr_level: float or None, default=None
         The FDR level that should be respected, this is the theoretical expected
         percentage of irrelevant features among all created features.
     hypotheses_independent: bool or None, default=None
@@ -438,7 +455,7 @@ class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
     >>> from aeon.transformations.collection.feature_based import (
     ...     TSFreshRelevantFeatureExtractor
     ... )
-    >>> X, y = load_arrow_head(return_X_y=True)
+    >>> X, y = load_arrow_head()
     >>> X_train, X_test, y_train, y_test = train_test_split(X, y)
     >>> ts_eff = TSFreshRelevantFeatureExtractor(
     ...     default_fc_parameters="efficient", disable_progressbar=True
@@ -456,10 +473,8 @@ class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
     """
 
     _tags = {
-        "instancewise": False,
         "requires_y": True,
-        "X_inner_type": "nested_univ",
-        "y_inner_type": "pd_Series_Table",
+        "X_inner_type": "numpy3D",
         "fit_is_empty": False,
     }
 
@@ -509,6 +524,7 @@ class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
         self.ml_task = ml_task
 
         self.default_fs_parameters_ = self._get_selection_params()
+        self.names_ = []
 
     def _get_selection_params(self):
         """Set default values from tsfresh."""
@@ -550,19 +566,12 @@ class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
 
         Writes to self:
         _is_fitted : flag is set to True.
-        _X : X, coerced copy of X, if remember_data tag is True
-            possibly coerced to inner type or update_data compatible type
-            by reference, when possible
-        model attributes (ending in "_") : dependent on estimator
 
         Parameters
         ----------
-        X : Series or Panel, any supported type
-            Data to be transformed, of python type as follows:
-                Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
-                Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
-                    nested pd.DataFrame, or pd.DataFrame in long/wide format
-        y : Series or Panel, default=None
+        X : 3D np.ndarray of shape (n_cases, n_channels, n_timepoints)
+            collection of time series to transform
+        y : Series, default=None
             Additional data, e.g., labels for transformation
 
         Returns
@@ -593,8 +602,7 @@ class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
 
         Xt = self.extractor_.fit_transform(X)
         Xt = self.selector_.fit_transform(Xt, y)
-        #       Xt = Xt.reindex(X.index)
-
+        self.names_ = self.selector_.relevant_features
         return Xt
 
     def _fit(self, X, y=None):
@@ -635,6 +643,7 @@ class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
 
         Xt = self.extractor_.fit_transform(X)
         self.selector_.fit(Xt, y)
+        self.names_ = self.selector_.relevant_features
         return self
 
     def _transform(self, X, y=None):
@@ -642,19 +651,18 @@ class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
 
         Parameters
         ----------
-        X : pd.DataFrame
-            nested pandas DataFrame of shape [n_samples, n_columns]
-        y : pd.Series or np.array
-            Target variable
+        X : np.ndarray
+        y : None
+            Ignored
 
         Returns
         -------
-        Xt : pandas DataFrame
-          Transformed pandas DataFrame
+        Xt : np.ndarray
+          Transformed data
         """
         Xt = self.extractor_.transform(X)
         Xt = self.selector_.transform(Xt)
-        return Xt.reindex(X.index)
+        return Xt
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):

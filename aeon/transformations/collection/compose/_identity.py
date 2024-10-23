@@ -9,7 +9,6 @@ class CollectionId(BaseCollectionTransformer):
 
     _tags = {
         "X_inner_type": COLLECTIONS_DATA_TYPES,
-        "y_inner_type": "None",
         "fit_is_empty": True,
         "capability:inverse_transform": True,
         "capability:multivariate": True,

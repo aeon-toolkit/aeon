@@ -7,7 +7,6 @@ import numpy as np
 import pandas as pd
 
 from aeon.segmentation.base import BaseSegmenter
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class BinSegSegmenter(BaseSegmenter):
@@ -93,7 +92,6 @@ class BinSegSegmenter(BaseSegmenter):
         return {}
 
     def _run_binseg(self, X):
-        _check_soft_dependencies("ruptures", severity="error")
         import ruptures as rpt
 
         binseg = rpt.Binseg(

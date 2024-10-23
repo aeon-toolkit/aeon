@@ -6,7 +6,6 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from aeon.forecasting.base import ForecastingHorizon
 from aeon.testing.utils.deep_equals import deep_equals
 
 # examples used for comparison below
@@ -23,8 +22,6 @@ EXAMPLES = [
     pd.DataFrame({"a": [4, 2]}),
     pd.DataFrame({"a": [4, 3]}),
     (np.array([1, 2, 4]), [pd.DataFrame({"a": [4, 2]})]),
-    ForecastingHorizon([1, 2, 3], is_relative=True),
-    ForecastingHorizon([1, 2, 3], is_relative=False),
     {"foo": [42], "bar": pd.Series([1, 2])},
     {"bar": [42], "foo": pd.Series([1, 2])},
 ]

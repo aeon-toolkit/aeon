@@ -103,7 +103,7 @@ class RSAST(BaseCollectionTransformer):
         n_random_points: int = 10,
         len_method: str = "both",
         nb_inst_per_class: int = 10,
-        seed: int = None,
+        seed: Optional[int] = None,
         n_jobs: int = 1,  # Parllel Processing
     ):
         self.n_random_points = n_random_points

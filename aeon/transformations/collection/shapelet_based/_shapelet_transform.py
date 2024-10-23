@@ -129,7 +129,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
     ...     RandomShapeletTransform
     ... )
     >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
+    >>> X_train, y_train = load_unit_test(split="train")
     >>> t = RandomShapeletTransform(
     ...     n_shapelet_samples=500,
     ...     max_shapelets=10,
@@ -145,7 +145,6 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         "capability:multivariate": True,
         "capability:unequal_length": True,
         "X_inner_type": ["np-list", "numpy3D"],
-        "y_inner_type": "numpy1D",
         "requires_y": True,
         "algorithm_type": "shapelet",
     }
