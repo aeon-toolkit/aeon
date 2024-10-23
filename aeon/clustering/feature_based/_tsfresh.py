@@ -135,7 +135,10 @@ class TSFreshClusterer(BaseClusterer):
                 KMeans(n_clusters=n_clusters), self.random_state
             )
         else:
-            if hasattr(self.estimator, "n_clusters"):
+            if (
+                hasattr(self.estimator, "n_clusters")
+                and self.estimator.n_clusters is None
+            ):
                 self.estimator.n_clusters = self.n_clusters
 
             self._estimator = _clone_estimator(self.estimator, self.random_state)
