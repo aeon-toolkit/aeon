@@ -154,5 +154,5 @@ class CBLOF(PyODAdapter):
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         return {
-            "n_clusters": 2,
+            "n_clusters": 4,
         }
