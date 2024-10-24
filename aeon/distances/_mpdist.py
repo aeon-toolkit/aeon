@@ -10,7 +10,7 @@ from aeon.utils.conversion._convert_collection import _convert_collection_to_num
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
-def mpdist(x: np.ndarray, y: np.ndarray, m: int = 0) -> float:
+def mp_distance(x: np.ndarray, y: np.ndarray, m: int = 0) -> float:
     r"""Matrix Profile Distance.
 
     MPdist [2]_ is a distance measure based on the matrix profile [1]_. Given a
@@ -57,11 +57,11 @@ def mpdist(x: np.ndarray, y: np.ndarray, m: int = 0) -> float:
     Examples
     --------
     >>> import numpy as np
-    >>> from aeon.distances import mpdist
+    >>> from aeon.distances import mp_distance
     >>> x = np.array([5, 9, 16, 23, 19, 13, 7])
     >>> y = np.array([3, 7, 13, 19, 23, 31, 36, 40, 48, 55, 63])
     >>> m = 4
-    >>> mpdist(x, y, m) # doctest: +SKIP
+    >>> mp_distance(x, y, m) # doctest: +SKIP
     0.05663764013361034
     """
     x = np.squeeze(x)
@@ -283,7 +283,7 @@ def _stomp_ab(
     return mp, ip
 
 
-def mpdist_pairwise_distance(
+def mp_pairwise_distance(
     X: Union[np.ndarray, list[np.ndarray]],
     y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
     m: int = 0,
@@ -317,24 +317,24 @@ def mpdist_pairwise_distance(
     Examples
     --------
     >>> import numpy as np
-    >>> from aeon.distances import mpdist_pairwise_distance
+    >>> from aeon.distances import mp_pairwise_distance
     >>> # Distance between each time series in a collection of time series
     >>> X = np.array([[16, 23, 19, 13],[48, 55, 63, 67]])
-    >>> mpdist_pairwise_distance(X, m = 3)
+    >>> mp_pairwise_distance(X, m = 3)
     array([[0.        , 1.56786235],
            [1.56786235, 0.        ]])
 
     >>> # Distance between two collections of time series
     >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
     >>> y = np.array([[[21, 13, 9]],[[19, 14, 5]], [[17, 11, 6]]])
-    >>> mpdist_pairwise_distance(X, y, m = 2)
+    >>> mp_pairwise_distance(X, y, m = 2)
     array([[2.82842712, 2.82842712, 2.82842712],
            [2.82842712, 2.82842712, 2.82842712],
            [2.82842712, 2.82842712, 2.82842712]])
 
     >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
     >>> y_univariate = np.array([[22, 18, 12]])
-    >>> mpdist_pairwise_distance(X, y_univariate, m = 2)
+    >>> mp_pairwise_distance(X, y_univariate, m = 2)
     array([[2.82842712],
            [2.82842712],
            [2.82842712]])
@@ -363,7 +363,7 @@ def _mpdist_pairwise_distance_single(x: NumbaList[np.ndarray], m: int) -> np.nda
 
     for i in range(n_cases):
         for j in range(i + 1, n_cases):
-            distances[i, j] = mpdist(x[i], x[j], m)
+            distances[i, j] = mp_distance(x[i], x[j], m)
             distances[j, i] = distances[i, j]
 
     return distances
@@ -379,5 +379,5 @@ def _mpdist_pairwise_distance(
 
     for i in range(n_cases):
         for j in range(m_cases):
-            distances[i, j] = mpdist(x[i], y[j], m)
+            distances[i, j] = mp_distance(x[i], y[j], m)
     return distances

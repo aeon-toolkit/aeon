@@ -10,16 +10,16 @@ from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
 @njit(cache=True, fastmath=True)
-def dft_sfa_mindist(
-    x_dft: np.ndarray, y_sfa: np.ndarray, breakpoints: np.ndarray
+def mindist_sfa_distance(
+    x: np.ndarray, y: np.ndarray, breakpoints: np.ndarray
 ) -> float:
-    r"""Compute the DFT-SFA lower bounding distance between DFT and SFA representation.
+    r"""Compute the SFA lower bounding distance between two SFA representations.
 
     Parameters
     ----------
-    x_dft : np.ndarray
-        First DFT transform of the time series, univariate, shape ``(n_timepoints,)``
-    y_sfa : np.ndarray
+    x : np.ndarray
+        First SFA transform of the time series, univariate, shape ``(n_timepoints,)``
+    y : np.ndarray
         Second SFA transform of the time series, univariate, shape ``(n_timepoints,)``
     breakpoints: np.ndarray
         The breakpoints of the SFA transformation
@@ -43,7 +43,7 @@ def dft_sfa_mindist(
     Examples
     --------
     >>> import numpy as np
-    >>> from aeon.distances import dft_sfa_mindist
+    >>> from aeon.distances import mindist_sfa_distance
     >>> from aeon.transformations.collection.dictionary_based import SFAFast
     >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> y = np.array([[11, 12, 13, 14, 15, 16, 17, 18, 19, 20]])
@@ -58,47 +58,38 @@ def dft_sfa_mindist(
     SFAFast(...)
     >>> x_sfa = transform.transform_words(x).squeeze()
     >>> y_sfa = transform.transform_words(y).squeeze()
-    >>> x_dft = transform.transform_mft(x).squeeze()
-    >>> dist = dft_sfa_mindist(x_dft, y_sfa, transform.breakpoints)
+    >>> dist = mindist_sfa_distance(x_sfa, y_sfa, transform.breakpoints)
     """
-    if x_dft.ndim == 1 and y_sfa.ndim == 1:
-        return _univariate_DFT_SFA_distance(x_dft, y_sfa, breakpoints)
+    if x.ndim == 1 and y.ndim == 1:
+        return _univariate_sfa_distance(x, y, breakpoints)
     raise ValueError("x and y must be 1D")
 
 
 @njit(cache=True, fastmath=True)
-def _univariate_DFT_SFA_distance(
-    x_dft: np.ndarray, y_sfa: np.ndarray, breakpoints: np.ndarray
+def _univariate_sfa_distance(
+    x: np.ndarray, y: np.ndarray, breakpoints: np.ndarray
 ) -> float:
     dist = 0.0
-    for i in range(x_dft.shape[0]):
-        if y_sfa[i] >= breakpoints.shape[-1]:
-            br_upper = np.inf
+    for i in range(x.shape[0]):
+        if np.abs(x[i] - y[i]) <= 1:
+            continue
         else:
-            br_upper = breakpoints[i, y_sfa[i]]
-
-        if y_sfa[i] - 1 < 0:
-            br_lower = -np.inf
-        else:
-            br_lower = breakpoints[i, y_sfa[i] - 1]
-
-        if br_lower > x_dft[i]:
-            dist += (br_lower - x_dft[i]) ** 2
-        elif br_upper < x_dft[i]:
-            dist += (x_dft[i] - br_upper) ** 2
+            dist += (
+                breakpoints[i, max(x[i], y[i]) - 1] - breakpoints[i, min(x[i], y[i])]
+            ) ** 2
 
     return np.sqrt(2 * dist)
 
 
-def sfa_pairwise_distance(
+def mindist_sfa_pairwise_distance(
     X: np.ndarray, y: np.ndarray, breakpoints: np.ndarray
 ) -> np.ndarray:
-    """Compute the SFA pairwise distance between a set of SFA representations.
+    """Compute the SFA mindist pairwise distance between a set of SFA representations.
 
     Parameters
     ----------
     X : np.ndarray
-        A collection of DFT instances  of shape ``(n_instances, n_timepoints)``.
+        A collection of SFA instances  of shape ``(n_instances, n_timepoints)``.
     y : np.ndarray
         A collection of SFA instances  of shape ``(n_instances, n_timepoints)``.
     breakpoints: np.ndarray
@@ -114,22 +105,23 @@ def sfa_pairwise_distance(
     ValueError
         If X is not 2D array when only passing X.
         If X and y are not 1D, 2D arrays when passing both X and y.
+
     """
     multivariate_conversion = _is_numpy_list_multivariate(X, y)
     _X, unequal_length = _convert_collection_to_numba_list(
         X, "X", multivariate_conversion
     )
     if y is None:
-        return _dft_sfa_from_multiple_to_multiple_distance(_X, None, breakpoints)
+        return _sfa_from_multiple_to_multiple_distance(_X, None, breakpoints)
 
     _y, unequal_length = _convert_collection_to_numba_list(
         y, "y", multivariate_conversion
     )
-    return _dft_sfa_from_multiple_to_multiple_distance(_X, _y, breakpoints)
+    return _sfa_from_multiple_to_multiple_distance(_X, _y, breakpoints)
 
 
 @njit(cache=True, fastmath=True, parallel=True)
-def _dft_sfa_from_multiple_to_multiple_distance(
+def _sfa_from_multiple_to_multiple_distance(
     X: np.ndarray, y: Union[np.ndarray, None], breakpoints: np.ndarray
 ) -> np.ndarray:
     if y is None:
@@ -138,7 +130,7 @@ def _dft_sfa_from_multiple_to_multiple_distance(
 
         for i in prange(n_instances):
             for j in prange(i + 1, n_instances):
-                distances[i, j] = _univariate_DFT_SFA_distance(X[i], X[j], breakpoints)
+                distances[i, j] = _univariate_sfa_distance(X[i], X[j], breakpoints)
                 distances[j, i] = distances[i, j]
     else:
         n_instances = X.shape[0]
@@ -147,6 +139,6 @@ def _dft_sfa_from_multiple_to_multiple_distance(
 
         for i in prange(n_instances):
             for j in prange(m_instances):
-                distances[i, j] = _univariate_DFT_SFA_distance(X[i], y[j], breakpoints)
+                distances[i, j] = _univariate_sfa_distance(X[i], y[j], breakpoints)
 
     return distances
