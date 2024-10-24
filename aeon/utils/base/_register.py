@@ -21,6 +21,7 @@ from aeon.base import BaseAeonEstimator, BaseCollectionEstimator, BaseSeriesEsti
 from aeon.classification.base import BaseClassifier
 from aeon.classification.early_classification import BaseEarlyClassifier
 from aeon.clustering.base import BaseClusterer
+from aeon.forecasting.base import BaseForecaster
 from aeon.regression.base import BaseRegressor
 from aeon.segmentation.base import BaseSegmenter
 from aeon.similarity_search.base import BaseSimilaritySearch
@@ -45,6 +46,7 @@ BASE_CLASS_REGISTER = {
     "segmenter": BaseSegmenter,
     "similarity_searcher": BaseSimilaritySearch,
     "series-transformer": BaseSeriesTransformer,
+    "forecaster": BaseForecaster,
 }
 
 # base classes which are valid for estimator to directly inherit from
