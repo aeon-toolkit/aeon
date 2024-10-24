@@ -23,5 +23,5 @@ def test_STOMP_default():
     pred = ad.fit_predict(series, axis=0)
 
     assert pred.shape == (80,)
-    assert pred.dtype == np.float_
+    assert pred.dtype == np.float64
     assert 40 <= np.argmax(pred) <= 60
