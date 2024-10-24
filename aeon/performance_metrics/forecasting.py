@@ -17,7 +17,7 @@ from sklearn.utils.validation import check_consistent_length
 from aeon.utils.validation.series import check_series
 from aeon.utils.weighted_metrics import weighted_geometric_mean
 
-__maintainer__ = []
+__maintainer__ = ["TonyBagnall"]
 __all__ = [
     "relative_loss",
     "mean_linex_error",
@@ -45,26 +45,13 @@ __all__ = [
 EPS = np.finfo(np.float64).eps
 
 
-def _get_kwarg(kwarg, metric_name="Metric", **kwargs):
-    """Pop a kwarg from kwargs and raise warning if kwarg not present."""
-    kwarg_ = kwargs.pop(kwarg, None)
-    if kwarg_ is None:
-        msg = "".join(
-            [
-                f"{metric_name} requires `{kwarg}`. ",
-                f"Pass `{kwarg}` as a keyword argument when calling the metric.",
-            ]
-        )
-        raise ValueError(msg)
-    return kwarg_
-
-
 def mean_linex_error(
     y_true,
     y_pred,
     a=1.0,
     b=1.0,
     horizon_weight=None,
+    prediction_weight=None,
     multioutput="uniform_average",
     **kwargs,
 ):
@@ -84,22 +71,21 @@ def mean_linex_error(
 
     Parameters
     ----------
-    y_true : pd.Series, pd.DataFrame or np.array of shape (fh,) or (fh, n_outputs) \
-             where fh is the forecasting horizon
-        Ground truth (correct) target values.
-    y_pred : pd.Series, pd.DataFrame or np.array of shape (fh,) or (fh, n_outputs) \
-             where fh is the forecasting horizon
-        Forecasted values.
-    a : int or float
+    y_true : pd.Series, pd.DataFrame or np.array
+        Ground truth (correct) target values, shape (n_forecasts,) or (n_forecasts,
+        n_outputs) where n_forecasts is the number of predictions to compare against.
+    y_pred : pd.Series, pd.DataFrame or np.array
+        Forecasted values of same shape as `y_true`.
+    a : int or float, default 1.0
         Controls whether over- or under- predictions receive an approximately
         linear or exponential penalty. If `a` > 0 then negative errors
         (over-predictions) are penalized approximately linearly and positive errors
         (under-predictions) are penalized approximately exponentially. If `a` < 0
         the reverse is true.
-    b : int or float
+    b : int or float, default = 1.0
         Multiplicative penalty to apply to calculated errors.
-    horizon_weight : array-like of shape (fh,), default=None
-        Forecast horizon weights.
+    prediction_weight : np.ndaarray
+        Weights for each forecast, array of same shape as `y_true`.
     multioutput : {'raw_values', 'uniform_average'}  or array-like of shape \
             (n_outputs,), default='uniform_average'
         Defines how to aggregate metric for multivariate (multioutput) data.
@@ -210,12 +196,12 @@ def mean_asymmetric_error(
 
     Parameters
     ----------
-    y_true : pd.Series, pd.DataFrame or np.array of shape (fh,) or (fh, n_outputs) \
-             where fh is the forecasting horizon
-        Ground truth (correct) target values.
-    y_pred : pd.Series, pd.DataFrame or np.array of shape (fh,) or (fh, n_outputs) \
-             where fh is the forecasting horizon
-        Forecasted values.
+    y_true : pd.Series, pd.DataFrame or np.array
+        Ground truth (correct) target values, shape (n_forecasts,) where n_forecasts is
+        the number of predictions to compare against or or (n_forecasts,
+        n_outputs) where.
+    y_pred : pd.Series, pd.DataFrame or np.array
+        Forecasted values of same shape as `y_true`.
     asymmetric_threshold : float, default = 0.0
         The value used to threshold the asymmetric loss function. Error values
         that are less than the asymmetric threshold have `left_error_function`
@@ -317,7 +303,13 @@ def mean_asymmetric_error(
 
 
 def mean_absolute_scaled_error(
-    y_true, y_pred, sp=1, horizon_weight=None, multioutput="uniform_average", **kwargs
+    y_true,
+    y_pred,
+    y_train,
+    sp=1,
+    horizon_weight=None,
+    multioutput="uniform_average",
+    **kwargs,
 ):
     """Mean absolute scaled error (MASE).
 
@@ -410,9 +402,6 @@ def mean_absolute_scaled_error(
     multioutput=[0.3, 0.7]) # doctest: +SKIP
     0.21935483870967742
     """
-    y_train = _get_kwarg("y_train", metric_name="mean_absolute_scaled_error", **kwargs)
-
-    # Other input checks
     _, y_true, y_pred, multioutput = _check_reg_targets(y_true, y_pred, multioutput)
     if horizon_weight is not None:
         check_consistent_length(y_true, horizon_weight)
@@ -442,7 +431,13 @@ def mean_absolute_scaled_error(
 
 
 def median_absolute_scaled_error(
-    y_true, y_pred, sp=1, horizon_weight=None, multioutput="uniform_average", **kwargs
+    y_true,
+    y_pred,
+    y_train,
+    sp=1,
+    horizon_weight=None,
+    multioutput="uniform_average",
+    **kwargs,
 ):
     """Median absolute scaled error (MdASE).
 
@@ -537,11 +532,6 @@ def median_absolute_scaled_error(
     multioutput=[0.3, 0.7]) # doctest: +SKIP
     0.21935483870967742
     """
-    y_train = _get_kwarg(
-        "y_train", metric_name="median_absolute_scaled_error", **kwargs
-    )
-
-    # Other input checks
     _, y_true, y_pred, multioutput = _check_reg_targets(y_true, y_pred, multioutput)
     if horizon_weight is not None:
         check_consistent_length(y_true, horizon_weight)
@@ -574,6 +564,7 @@ def median_absolute_scaled_error(
 def mean_squared_scaled_error(
     y_true,
     y_pred,
+    y_train,
     sp=1,
     horizon_weight=None,
     multioutput="uniform_average",
@@ -675,9 +666,6 @@ def mean_squared_scaled_error(
     multioutput=[0.3, 0.7], square_root=True) # doctest: +SKIP
     0.17451891814894502
     """
-    y_train = _get_kwarg("y_train", metric_name="mean_squared_scaled_error", **kwargs)
-
-    # Other input checks
     _, y_true, y_pred, multioutput = _check_reg_targets(y_true, y_pred, multioutput)
     if horizon_weight is not None:
         check_consistent_length(y_true, horizon_weight)
@@ -714,6 +702,7 @@ def mean_squared_scaled_error(
 def median_squared_scaled_error(
     y_true,
     y_pred,
+    y_train,
     sp=1,
     horizon_weight=None,
     multioutput="uniform_average",
@@ -805,9 +794,6 @@ def median_squared_scaled_error(
     multioutput=[0.3, 0.7], square_root=True) # doctest: +SKIP
     0.16914781383660782
     """
-    y_train = _get_kwarg("y_train", metric_name="median_squared_scaled_error", **kwargs)
-
-    # Other input checks
     _, y_true, y_pred, multioutput = _check_reg_targets(y_true, y_pred, multioutput)
     if horizon_weight is not None:
         check_consistent_length(y_true, horizon_weight)
@@ -1963,6 +1949,7 @@ def median_squared_percentage_error(
 def mean_relative_absolute_error(
     y_true,
     y_pred,
+    y_pred_benchmark,
     horizon_weight=None,
     multioutput="uniform_average",
     **kwargs,
@@ -1985,6 +1972,8 @@ def mean_relative_absolute_error(
     y_pred : pd.Series, pd.DataFrame or np.array of shape (fh,) or (fh, n_outputs) \
              where fh is the forecasting horizon
         Forecasted values.
+
+    y_pred_benchmark: pd.Series, pd.DataFrame or np.array
 
     horizon_weight : array-like of shape (fh,), default=None
         Forecast horizon weights.
@@ -2042,9 +2031,6 @@ def mean_relative_absolute_error(
     y_pred_benchmark=y_pred_benchmark, multioutput=[0.3, 0.7]) # doctest: +SKIP
     1.0111111111111108
     """
-    y_pred_benchmark = _get_kwarg(
-        "y_pred_benchmark", metric_name="mean_relative_absolute_error", **kwargs
-    )
     _, y_true, y_pred, multioutput = _check_reg_targets(y_true, y_pred, multioutput)
     _, y_true, y_pred_benchmark, multioutput = _check_reg_targets(
         y_true, y_pred_benchmark, multioutput
@@ -2073,7 +2059,12 @@ def mean_relative_absolute_error(
 
 
 def median_relative_absolute_error(
-    y_true, y_pred, horizon_weight=None, multioutput="uniform_average", **kwargs
+    y_true,
+    y_pred,
+    y_pred_benchmark,
+    horizon_weight=None,
+    multioutput="uniform_average",
+    **kwargs,
 ):
     """Median relative absolute error (MdRAE).
 
@@ -2151,9 +2142,6 @@ def median_relative_absolute_error(
     y_pred_benchmark=y_pred_benchmark, multioutput=[0.3, 0.7]) # doctest: +SKIP
     0.7499999999999999
     """
-    y_pred_benchmark = _get_kwarg(
-        "y_pred_benchmark", metric_name="median_relative_absolute_error", **kwargs
-    )
     _, y_true, y_pred, multioutput = _check_reg_targets(y_true, y_pred, multioutput)
     _, y_true, y_pred_benchmark, multioutput = _check_reg_targets(
         y_true, y_pred_benchmark, multioutput
@@ -2183,6 +2171,7 @@ def median_relative_absolute_error(
 def geometric_mean_relative_absolute_error(
     y_true,
     y_pred,
+    y_pred_benchmark,
     horizon_weight=None,
     multioutput="uniform_average",
     **kwargs,
@@ -2264,11 +2253,6 @@ def geometric_mean_relative_absolute_error(
     y_pred_benchmark=y_pred_benchmark, multioutput=[0.3, 0.7]) # doctest: +SKIP
     0.7810066018326863
     """
-    y_pred_benchmark = _get_kwarg(
-        "y_pred_benchmark",
-        metric_name="geometric_mean_relative_absolute_error",
-        **kwargs,
-    )
     _, y_true, y_pred, multioutput = _check_reg_targets(y_true, y_pred, multioutput)
     _, y_true, y_pred_benchmark, multioutput = _check_reg_targets(
         y_true, y_pred_benchmark, multioutput
@@ -2300,6 +2284,7 @@ def geometric_mean_relative_absolute_error(
 def geometric_mean_relative_squared_error(
     y_true,
     y_pred,
+    y_pred_benchmark,
     horizon_weight=None,
     multioutput="uniform_average",
     square_root=False,
@@ -2391,11 +2376,6 @@ def geometric_mean_relative_squared_error(
     y_pred_benchmark=y_pred_benchmark, multioutput=[0.3, 0.7]) # doctest: +SKIP
     0.8713854839582426
     """
-    y_pred_benchmark = _get_kwarg(
-        "y_pred_benchmark",
-        metric_name="geometric_mean_relative_squared_error",
-        **kwargs,
-    )
     _, y_true, y_pred, multioutput = _check_reg_targets(y_true, y_pred, multioutput)
     _, y_true, y_pred_benchmark, multioutput = _check_reg_targets(
         y_true, y_pred_benchmark, multioutput
@@ -2429,6 +2409,7 @@ def geometric_mean_relative_squared_error(
 def relative_loss(
     y_true,
     y_pred,
+    y_pred_benchmark,
     relative_loss_function=mean_absolute_error,
     horizon_weight=None,
     multioutput="uniform_average",
@@ -2527,9 +2508,6 @@ def relative_loss(
     multioutput=[0.3, 0.7]) # doctest: +SKIP
     0.927272727272727
     """
-    y_pred_benchmark = _get_kwarg(
-        "y_pred_benchmark", metric_name="relative_loss", **kwargs
-    )
     _, y_true, y_pred, multioutput = _check_reg_targets(y_true, y_pred, multioutput)
 
     if horizon_weight is not None:
