@@ -596,7 +596,7 @@ class REDCOMETS(BaseClassifier):
         return sax_parallel_res
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -610,9 +610,7 @@ class REDCOMETS(BaseClassifier):
         dict
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test
-            instance.``create_test_instance`` uses the first (or only) dictionary in
-            `params``.
+            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
         """
         return {
             "variant": 3,

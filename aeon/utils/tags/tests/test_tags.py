@@ -1,6 +1,6 @@
 """Tests for estimator tags."""
 
-from aeon.registry import BASE_CLASS_IDENTIFIER_LIST
+from aeon.utils.base import BASE_CLASS_REGISTER
 from aeon.utils.tags import ESTIMATOR_TAGS
 
 
@@ -23,7 +23,7 @@ def test_estimator_tags_dict():
         assert isinstance(value["class"], (str, list))
         cls = value["class"] if isinstance(value["class"], list) else [value["class"]]
         for v in cls:
-            assert v in BASE_CLASS_IDENTIFIER_LIST
+            assert v in BASE_CLASS_REGISTER.keys()
 
         # valid tag type
         assert isinstance(value["type"], (str, list, tuple))
