@@ -58,6 +58,7 @@ def test_lof_parameter_passing():
     assert lof.pyod_model.p == p
     assert lof.pyod_model.n_jobs == n_jobs
 
+
 @pytest.mark.skipif(
     not _check_soft_dependencies("pyod", severity="none"),
     reason="required soft dependency PyOD not available",
