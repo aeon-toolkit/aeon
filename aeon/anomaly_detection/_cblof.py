@@ -155,4 +155,6 @@ class CBLOF(PyODAdapter):
         """
         return {
             "n_clusters": 4,
+            "alpha": 0.75,
+            "beta": 3,
         }
