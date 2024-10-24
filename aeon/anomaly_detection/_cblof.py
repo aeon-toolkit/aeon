@@ -150,11 +150,7 @@ class CBLOF(PyODAdapter):
         params : dict
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `IsolationForest(**params)` creates a valid test instance.
+            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
-        return {
-            "n_clusters": 4,
-            "alpha": 0.75,
-            "beta": 3,
-        }
+        return {}
