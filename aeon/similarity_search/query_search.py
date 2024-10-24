@@ -6,7 +6,6 @@ from typing import Optional, final
 
 import numpy as np
 from numba import get_num_threads, set_num_threads
-from numba.typed import List
 
 from aeon.similarity_search._commons import (
     extract_top_k_and_threshold_from_distance_profiles,
@@ -373,14 +372,6 @@ class QuerySearch(BaseSimilaritySearch):
             )
         else:
             distance_profiles = self.distance_profile_function_(self.X_, X, mask)
-
-        # For now, deal with the multidimensional case as "dependent", so we sum.
-        if self.metadata_["unequal_length"]:
-            distance_profiles = List(
-                [distance_profiles[i].sum(axis=0) for i in range(self.n_cases_)]
-            )
-        else:
-            distance_profiles = distance_profiles.sum(axis=1)
 
         return distance_profiles
 

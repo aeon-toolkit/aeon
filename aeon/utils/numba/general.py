@@ -234,7 +234,7 @@ def z_normalize_series_with_mean_std(
         arr = (X - series_mean) / series_std
     else:
         # If std is "0", then X is constant, so a zero array if we remove mean.
-        arr = np.zeros_like(arr)
+        arr = np.zeros(X.shape)
     return arr
 
 
@@ -259,7 +259,7 @@ def z_normalise_series_2d(X: np.ndarray) -> np.ndarray:
     >>> X = np.array([[1, 2, 2, 3, 3, 3, 4, 4, 4, 4], [5, 6, 6, 7, 7, 7, 8, 8, 8, 8]])
     >>> X_norm = z_normalise_series_2d(X)
     """
-    arr = np.zeros_like(X)
+    arr = np.zeros(X.shape)
     for i in range(X.shape[0]):
         arr[i] = z_normalise_series(X[i])
     return arr
@@ -286,7 +286,7 @@ def z_normalize_series_2d_with_mean_std(
     arr : array, shape = (n_channels, n_timestamps)
         The normalized array
     """
-    arr = np.zeros_like(X)
+    arr = np.zeros(X.shape)
     for i in range(X.shape[0]):
         arr[i] = z_normalize_series_with_mean_std(X[i], series_mean[i], series_std[i])
     return arr
@@ -316,7 +316,7 @@ def z_normalise_series_3d(X: np.ndarray) -> np.ndarray:
     ... ])
     >>> X_norm = z_normalise_series_3d(X)
     """
-    arr = np.zeros_like(X)
+    arr = np.zeros(X.shape)
     for i in range(X.shape[0]):
         arr[i] = z_normalise_series_2d(X[i])
     return arr

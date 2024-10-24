@@ -6,6 +6,7 @@ import warnings
 
 import numpy as np
 from numba import njit, prange
+from numba.typed import List
 from scipy.signal import convolve
 
 from aeon.utils.numba.general import (
@@ -81,20 +82,25 @@ def naive_squared_distance_profile(
         The distance between the query and all candidates in X.
 
     """
-    n_samples, n_channels, n_timestamps = X.shape
     query_length = q.shape[1]
-    dist_profiles = np.zeros((n_samples, n_timestamps - query_length + 1))
+    dist_profiles = List()
+    # Init distance profile array with unequal length support
+    for i in range(len(X)):
+        dist_profiles.append(np.zeros(X[i].shape[1] - query_length + 1))
     if normalize:
         q = z_normalise_series_2d(q)
+    else:
+        q = q.astype(np.float64)
     for i in range(len(X)):
-        X_subs = get_all_subsequences(X[i], query_length, 1)
+        # Numba don't support strides with integers ?
+
+        X_subs = get_all_subsequences(X[i].astype(np.float64), query_length, 1)
         if normalize:
             if X_means is None and X_stds is None:
                 _X_means, _X_stds = sliding_mean_std_one_series(X[i], query_length, 1)
             else:
                 _X_means, _X_stds = X_means[i], X_stds[i]
             X_subs = normalize_subsequences(X_subs, _X_means, _X_stds)
-
         dist_profile = _compute_dist_profile(X_subs, q)
         dist_profile[~mask[i]] = np.inf
         dist_profiles[i] = dist_profile
@@ -125,16 +131,13 @@ def naive_squared_matrix_profile(X, T, query_length, mask, normalize=False):
     out : np.ndarray, 1D array of shape (n_timepoints_t - query_length + 1)
         The minimum distance between each query in T and all candidates in X.
     """
-    n_samples, n_channels, n_timestamps = X.shape
-    X_subs = np.zeros(
-        (n_samples, n_timestamps - query_length + 1, n_channels, query_length)
-    )
+    X_subs = List()
     for i in range(len(X)):
-        i_subs = get_all_subsequences(X[i], query_length, 1)
+        i_subs = get_all_subsequences(X[i].astype(np.float64), query_length, 1)
         if normalize:
             X_means, X_stds = sliding_mean_std_one_series(X[i], query_length, 1)
             i_subs = normalize_subsequences(i_subs, X_means, X_stds)
-        X_subs[i] = i_subs
+        X_subs.append(i_subs)
 
     n_candidates = T.shape[1] - query_length + 1
     mp = np.full(n_candidates, np.inf)
@@ -145,7 +148,7 @@ def naive_squared_matrix_profile(X, T, query_length, mask, normalize=False):
             q = z_normalise_series_2d(q)
         for j in range(len(X)):
             dist_profile = _compute_dist_profile(X_subs[j], q)
-            dist_profile[~mask[i]] = np.inf
+            dist_profile[~mask[j]] = np.inf
             mp[i] = min(mp[i], dist_profile.min())
     return mp
 
