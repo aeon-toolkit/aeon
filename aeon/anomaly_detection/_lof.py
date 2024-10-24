@@ -95,11 +95,13 @@ class LOF(PyODAdapter):
         n_jobs: int = 1,
         window_size: int = 10,
         stride: int = 1,
+        pyod_model=None,
     ):
         _check_soft_dependencies(*self._tags["python_dependencies"])
         from pyod.models.lof import LOF
 
-        model = LOF(
+        # Using the pyod_model if already provided else creating a new instance
+        model = pyod_model or LOF(
             n_neighbors=n_neighbors,
             algorithm=algorithm,
             leaf_size=leaf_size,

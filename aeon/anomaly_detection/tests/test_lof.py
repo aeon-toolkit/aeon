@@ -77,6 +77,6 @@ def test_lof_compare_with_pyod_direct():
     lof_pyod = PyOD_LOF()
     lof_pyod.fit(series.reshape(-1, 1))
     pred_pyod = lof_pyod.decision_function(series.reshape(-1, 1))
-    
+
     # Checking if the predictions match
     np.testing.assert_allclose(pred_aeon, pred_pyod, rtol=1e-5)
