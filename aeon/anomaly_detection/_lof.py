@@ -18,6 +18,20 @@ class LOF(PyODAdapter):
     This class implement metrics-based outlier detection algorithms using the
     Local Outlier Factor (LOF) algorithm from PyOD.
 
+    .. list-table:: Capabilities
+       :stub-columns: 1
+
+       * - Input data format
+         - univariate or multivariate
+       * - Output data format
+         - binary classification
+       * - missing_values
+         - False
+       * - Learning Type
+         - unsupervised or semi-supervised
+       * - python_dependencies
+         - ["pyod"]
+
     Parameters
     ----------
     n_neighbors : int, optional (default=20)
@@ -41,8 +55,6 @@ class LOF(PyODAdapter):
     metric : string or callable, default 'minkowski'
         metric used for the distance computation. Any metric from scikit-learn
         or scipy.spatial.distance can be used.
-        If 'precomputed', the training input X is expected to be a distance
-        matrix.
         If metric is a callable function, it is called on each
         pair of instances (rows) and the resulting value recorded. The callable
         should take two arrays as input and return one value indicating the
@@ -52,10 +64,6 @@ class LOF(PyODAdapter):
         Parameter for the Minkowski metric
     metric_params : dict, optional (default = None)
         Additional keyword arguments for the metric function.
-    contamination : float in (0., 0.5), optional (default=0.1)
-        The amount of contamination of the data set, i.e. the proportion
-        of outliers in the data set. When fitting this is used to define the
-        threshold on the decision function.
     n_jobs : int, optional (default = 1)
         The number of parallel jobs to run for neighbors search.
         If ``-1``, then the number of jobs is set to the number of CPU cores.
@@ -84,20 +92,12 @@ class LOF(PyODAdapter):
         metric: str = "minkowski",
         p: int = 2,
         metric_params: Optional[dict] = None,
-        contamination: float = 0.1,
         n_jobs: int = 1,
-        novelty: bool = True,
         window_size: int = 10,
         stride: int = 1,
     ):
         _check_soft_dependencies(*self._tags["python_dependencies"])
         from pyod.models.lof import LOF
-
-        # Validate that stride is not greater than winow_size
-        if stride > window_size:
-            raise ValueError(
-                f"Stride ({stride}) cannot be greater than window size ({window_size})."
-            )
 
         model = LOF(
             n_neighbors=n_neighbors,
@@ -106,9 +106,8 @@ class LOF(PyODAdapter):
             metric=metric,
             p=p,
             metric_params=metric_params,
-            contamination=contamination,
             n_jobs=n_jobs,
-            novelty=novelty,
+            novelty=False,
         )
         self.n_neighbors = n_neighbors
         self.algorithm = algorithm
@@ -116,39 +115,33 @@ class LOF(PyODAdapter):
         self.metric = metric
         self.p = p
         self.metric_params = metric_params
-        self.contamination = contamination
         self.n_jobs = n_jobs
-        self.novelty = novelty
+        self.window_size = window_size
+        self.stride = stride
         super().__init__(model, window_size, stride)
 
-    def fit(self, X: np.ndarray, y: Union[np.ndarray, None] = None) -> None:
+    def _fit(self, X: np.ndarray, y: Union[np.ndarray, None] = None) -> None:
+        # Set novelty to True for supervised learning
+        self.pyod_model.novelty = True
         super()._fit(X, y)
         self.is_fitted = True  # Fitting completed
         return self
 
-    def predict(self, X: np.ndarray) -> np.ndarray:
+    def _predict(self, X: np.ndarray) -> np.ndarray:
         if not hasattr(self, "fitted_pyod_model_"):
             raise NotFittedError(
                 "This instance of LOF has not been fitted yet; please call `fit` first."
             )
-        if not hasattr(self, "fitted_pyod_model_"):
-            raise NotFittedError(
-                "This instance of LOF has not been fitted yet; please call `fit` first."
-            )
+        # Set novelty to True for prediction on unseen data
+        self.pyod_model.novelty = True
         return super()._predict(X)
 
-    def fit_predict(
+    def _fit_predict(
         self, X: np.ndarray, y: Union[np.ndarray, None] = None
     ) -> np.ndarray:
+        # Set novelty to False for unsupervised learning
+        self.pyod_model.novelty = False
         return super()._fit_predict(X, y)
-
-    def _check_params(self, X: np.ndarray) -> None:
-        if self.window_size < 1 or self.window_size > X.shape[0]:
-            self.window_size = min(max(1, self.window_size), X.shape[0])
-            raise ValueError(
-                "The window size must be at least 1 and "
-                "at most the length of the time series."
-            )
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
@@ -171,7 +164,6 @@ class LOF(PyODAdapter):
             "n_neighbors": 5,
             "leaf_size": 10,
             "p": 2,
-            "contamination": 0.05,
             "window_size": 10,
             "stride": 2,
         }
