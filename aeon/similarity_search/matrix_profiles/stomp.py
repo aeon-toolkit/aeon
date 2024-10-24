@@ -468,7 +468,7 @@ def _stomp_normalized(
                 T_stds[:, i],
                 L,
                 T_stds[:, i] <= AEON_NUMBA_STD_THRESHOLD,
-            ).sum(axis=0)
+            )
             dist_profiles[~mask[i_x]] = np.inf
             if i + 1 < n_queries:
                 XdotT[i_x] = _update_dot_products_one_series(
@@ -517,9 +517,7 @@ def _stomp(
     for i_x in range(len(X)):
         for i in range(n_queries):
             Q = T[:, i : i + L]
-            dist_profiles = _squared_dist_profile_one_series(XdotT[i_x], X[i_x], Q).sum(
-                axis=0
-            )
+            dist_profiles = _squared_dist_profile_one_series(XdotT[i_x], X[i_x], Q)
             dist_profiles[~mask[i_x]] = np.inf
             if i + 1 < n_queries:
                 XdotT[i_x] = _update_dot_products_one_series(

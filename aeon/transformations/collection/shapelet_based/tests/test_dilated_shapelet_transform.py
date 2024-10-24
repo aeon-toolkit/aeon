@@ -4,11 +4,7 @@ __maintainer__ = ["baraline"]
 
 import numpy as np
 import pytest
-from numpy.testing import (
-    assert_almost_equal,
-    assert_array_almost_equal,
-    assert_array_equal,
-)
+from numpy.testing import assert_almost_equal, assert_array_almost_equal
 
 # from aeon.datasets import load_basic_motions, load_unit_test
 from aeon.datasets import load_basic_motions
@@ -17,9 +13,8 @@ from aeon.transformations.collection.shapelet_based._dilated_shapelet_transform 
     RandomDilatedShapeletTransform,
     compute_shapelet_dist_vector,
     compute_shapelet_features,
-    get_all_subsequences,
-    normalize_subsequences,
 )
+from aeon.utils.numba.general import get_all_subsequences
 from aeon.utils.numba.stats import is_prime
 
 DATATYPES = ["int64", "float64"]
@@ -89,50 +84,6 @@ def test_shapelet_prime_dilation():
     ).fit(X_train[indices], y_train[indices])
     dilations = rdst.shapelets_[2]
     assert np.all([d == 1 or is_prime(d) for d in dilations])
-
-
-@pytest.mark.parametrize("dtype", DATATYPES)
-def test_normalize_subsequences(dtype):
-    """Test normalization of subsequences."""
-    X = np.asarray([[[1, 1, 1]], [[1, 1, 1]]], dtype=dtype)
-    X_norm = normalize_subsequences(X, X.mean(axis=2).T, X.std(axis=2).T)
-    assert np.all(X_norm == 0)
-    assert np.all(X.shape == X_norm.shape)
-
-
-@pytest.mark.parametrize("dtype", DATATYPES)
-def test_get_all_subsequences(dtype):
-    """Test generation of all subsequences."""
-    X = np.asarray([[1, 2, 3, 4, 5, 6, 7, 8]], dtype=dtype)
-    length = 3
-    dilation = 1
-    X_subs = get_all_subsequences(X, length, dilation)
-    X_true = np.asarray(
-        [
-            [[1, 2, 3]],
-            [[2, 3, 4]],
-            [[3, 4, 5]],
-            [[4, 5, 6]],
-            [[5, 6, 7]],
-            [[6, 7, 8]],
-        ],
-        dtype=dtype,
-    )
-    assert_array_equal(X_subs, X_true)
-
-    length = 3
-    dilation = 2
-    X_subs = get_all_subsequences(X, length, dilation)
-    X_true = np.asarray(
-        [
-            [[1, 3, 5]],
-            [[2, 4, 6]],
-            [[3, 5, 7]],
-            [[4, 6, 8]],
-        ],
-        dtype=dtype,
-    )
-    assert_array_equal(X_subs, X_true)
 
 
 @pytest.mark.parametrize("dtype", DATATYPES)

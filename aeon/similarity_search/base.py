@@ -108,6 +108,7 @@ class BaseSimilaritySearch(BaseCollectionEstimator):
         set_num_threads(self._n_jobs)
         self._fit(X, y)
         set_num_threads(prev_threads)
+        self.is_fitted = True
         return self
 
     def _store_mean_std_from_inputs(self, query_length: int) -> None:

@@ -46,7 +46,7 @@ def test__update_dot_products_one_series():
 @pytest.mark.parametrize("dtype", DATATYPES)
 @pytest.mark.parametrize("k", K_VALUES)
 def test_stomp_squared_matrix_profile(dtype, k):
-    """Test naive series search."""
+    """Test stomp series search."""
     X = np.asarray(
         [[[1, 2, 3, 4, 5, 6, 7, 8]], [[1, 2, 4, 4, 5, 6, 5, 4]]], dtype=dtype
     )
@@ -79,7 +79,7 @@ def test_stomp_squared_matrix_profile(dtype, k):
 @pytest.mark.parametrize("dtype", DATATYPES)
 @pytest.mark.parametrize("k", K_VALUES)
 def test_stomp_normalized_squared_matrix_profile(dtype, k):
-    """Test naive series search."""
+    """Test stomp series search."""
     X = np.asarray(
         [[[1, 2, 3, 4, 5, 6, 7, 8]], [[1, 2, 4, 4, 5, 6, 5, 4]]], dtype=dtype
     )
@@ -130,7 +130,7 @@ def test_stomp_normalized_squared_matrix_profile(dtype, k):
 
 @pytest.mark.parametrize("dtype", DATATYPES)
 def test_stomp_squared_matrix_profile_unequal_length(dtype):
-    """Test naive distance with unequal length."""
+    """Test stomp with unequal length."""
     X = List(
         [
             np.array([[1, 2, 3, 4, 5, 6, 7, 8]], dtype=dtype),
@@ -165,7 +165,7 @@ def test_stomp_squared_matrix_profile_unequal_length(dtype):
 @pytest.mark.parametrize("dtype", DATATYPES)
 @pytest.mark.parametrize("k", K_VALUES)
 def test_stomp_squared_matrix_profile_inverse(dtype, k):
-    """Test naive series search for inverse distance."""
+    """Test stomp series search for inverse distance."""
     X = np.asarray(
         [[[1, 2, 3, 4, 5, 6, 7, 8]], [[1, 2, 4, 4, 5, 6, 5, 4]]], dtype=dtype
     )

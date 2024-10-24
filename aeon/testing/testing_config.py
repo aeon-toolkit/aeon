@@ -11,13 +11,8 @@ PR_TESTING = False
 
 # Exclude estimators here for short term fixes
 EXCLUDE_ESTIMATORS = [
-    "SeriesSearch",
-    "QuerySearch",
     "ClearSkyTransformer",
     # See #2071
-    "RandomDilatedShapeletTransform",
-    "RDSTClassifier",
-    "RDSTRegressor",
     "RISTRegressor",
 ]
 
