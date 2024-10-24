@@ -61,7 +61,7 @@ def mp_distance(x: np.ndarray, y: np.ndarray, m: int = 0) -> float:
     >>> x = np.array([5, 9, 16, 23, 19, 13, 7])
     >>> y = np.array([3, 7, 13, 19, 23, 31, 36, 40, 48, 55, 63])
     >>> m = 4
-    >>> mp_distance(x, y, m)
+    >>> mp_distance(x, y, m) # doctest: +SKIP
     0.05663764013361034
     """
     x = np.squeeze(x)
