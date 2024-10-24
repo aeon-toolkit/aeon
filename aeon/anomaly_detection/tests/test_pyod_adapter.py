@@ -25,7 +25,7 @@ def test_pyod_adapter_default():
     pred = ad.fit_predict(series, axis=0)
 
     assert pred.shape == (80,)
-    assert pred.dtype == np.float_
+    assert pred.dtype == np.float64
     assert 50 <= np.argmax(pred) <= 60
     assert hasattr(ad, "pyod_model")
 
@@ -47,7 +47,7 @@ def test_pyod_adapter_multivariate():
     pred = ad.fit_predict(series, axis=0)
 
     assert pred.shape == (80,)
-    assert pred.dtype == np.float_
+    assert pred.dtype == np.float64
     assert 50 <= np.argmax(pred) <= 60
     assert hasattr(ad, "pyod_model")
 
@@ -67,7 +67,7 @@ def test_pyod_adapter_no_window_univariate():
     pred = ad.fit_predict(series, axis=0)
 
     assert pred.shape == (80,)
-    assert pred.dtype == np.float_
+    assert pred.dtype == np.float64
     assert 50 <= np.argmax(pred) <= 60
     assert hasattr(ad, "pyod_model")
 
@@ -89,7 +89,7 @@ def test_pyod_adapter_no_window_multivariate():
     pred = ad.fit_predict(series, axis=0)
 
     assert pred.shape == (80,)
-    assert pred.dtype == np.float_
+    assert pred.dtype == np.float64
     assert 50 <= np.argmax(pred) <= 60
     assert hasattr(ad, "pyod_model")
 
@@ -109,7 +109,7 @@ def test_pyod_adapter_stride_univariate():
     pred = ad.fit_predict(series, axis=0)
 
     assert pred.shape == (80,)
-    assert pred.dtype == np.float_
+    assert pred.dtype == np.float64
     assert 50 <= np.argmax(pred) <= 60
     assert hasattr(ad, "pyod_model")
 
@@ -131,7 +131,7 @@ def test_pyod_adapter_stride_multivariate():
     pred = ad.fit_predict(series, axis=0)
 
     assert pred.shape == (80,)
-    assert pred.dtype == np.float_
+    assert pred.dtype == np.float64
     assert 50 <= np.argmax(pred) <= 60
     assert hasattr(ad, "pyod_model")
 
@@ -153,7 +153,7 @@ def test_pyod_adapter_semi_supervised_univariate():
     pred = ad.predict(series, axis=0)
 
     assert pred.shape == (80,)
-    assert pred.dtype == np.float_
+    assert pred.dtype == np.float64
     assert 50 <= np.argmax(pred) <= 60
     assert hasattr(ad, "pyod_model")
 
@@ -179,6 +179,6 @@ def test_pyod_adapter_semi_supervised_multivariate():
     pred = ad.predict(series, axis=0)
 
     assert pred.shape == (80,)
-    assert pred.dtype == np.float_
+    assert pred.dtype == np.float64
     assert 50 <= np.argmax(pred) <= 60
     assert hasattr(ad, "pyod_model")

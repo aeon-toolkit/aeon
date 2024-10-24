@@ -1,12 +1,11 @@
 """Time series kernel kmeans."""
 
-from typing import Dict, Union
+from typing import Optional, Union
 
 import numpy as np
 from numpy.random import RandomState
 
 from aeon.clustering.base import BaseClusterer
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class TimeSeriesKernelKMeans(BaseClusterer):
@@ -99,7 +98,7 @@ class TimeSeriesKernelKMeans(BaseClusterer):
         kernel_params: Union[dict, None] = None,
         verbose: bool = False,
         n_jobs: Union[int, None] = None,
-        random_state: Union[int, RandomState] = None,
+        random_state: Optional[Union[int, RandomState]] = None,
     ):
         self.kernel = kernel
         self.n_init = n_init
@@ -134,7 +133,6 @@ class TimeSeriesKernelKMeans(BaseClusterer):
         self:
             Fitted estimator.
         """
-        _check_soft_dependencies("tslearn", severity="error")
         from tslearn.clustering import KernelKMeans as TsLearnKernelKMeans
 
         verbose = 0
@@ -178,7 +176,7 @@ class TimeSeriesKernelKMeans(BaseClusterer):
         return self._tslearn_kernel_k_means.predict(_X)
 
     @classmethod
-    def get_test_params(cls, parameter_set="default") -> Dict:
+    def _get_test_params(cls, parameter_set="default") -> dict:
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -194,7 +192,6 @@ class TimeSeriesKernelKMeans(BaseClusterer):
             Parameters to create testing instances of the class
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`
         """
         return {
             "n_clusters": 2,

@@ -37,7 +37,7 @@ def pytest_configure(config):
 
     import numba
 
-    from aeon.testing import test_config
+    from aeon.testing import testing_config
     from aeon.utils.validation._dependencies import _check_soft_dependencies
 
     numba.set_num_threads(1)
@@ -57,4 +57,4 @@ def pytest_configure(config):
         torch.set_num_threads(1)
 
     if config.getoption("--prtesting") in [True, "True", "true"]:
-        test_config.PR_TESTING = True
+        testing_config.PR_TESTING = True

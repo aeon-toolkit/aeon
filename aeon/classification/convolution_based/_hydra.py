@@ -1,3 +1,11 @@
+"""Hydra classifier.
+
+Pipeline classifier using the Hydra transformer and RidgeClassifierCV estimator.
+"""
+
+__maintainer__ = ["MatthewMiddlehurst"]
+__all__ = ["HydraClassifier"]
+
 import numpy as np
 from sklearn.linear_model import RidgeClassifierCV
 from sklearn.pipeline import make_pipeline

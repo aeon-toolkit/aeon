@@ -3,6 +3,7 @@
 __maintainer__ = ["hadifawaz1999"]
 __all__ = ["BaseROCKETGPU"]
 
+
 from aeon.transformations.collection import BaseCollectionTransformer
 
 
@@ -21,7 +22,7 @@ class BaseROCKETGPU(BaseCollectionTransformer):
         "capability:multivariate": True,
         "algorithm_type": "convolution",
         "capability:unequal_length": False,
-        "cant-pickle": True,
+        "cant_pickle": True,
         "python_dependencies": "tensorflow",
     }
 

@@ -3,7 +3,6 @@
 __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["STRAY"]
 
-from typing import Dict
 
 import numpy as np
 import numpy.typing as npt
@@ -119,7 +118,7 @@ class STRAY(BaseAnomalyDetector):
 
         return outlier_bool.astype(bool)
 
-    def _find_outliers_kNN(self, X: np.ndarray, n: int) -> Dict:
+    def _find_outliers_kNN(self, X: np.ndarray, n: int) -> dict:
         """Find outliers using kNN distance with maximum gap.
 
         Parameters
@@ -178,7 +177,7 @@ class STRAY(BaseAnomalyDetector):
         ]
 
         log_alpha = np.log(1 / self.alpha)
-        bound = np.Inf
+        bound = np.inf
 
         for i in range(start, n):
             if gaps[i] > log_alpha * ghat[i]:

@@ -9,8 +9,8 @@ tests, or how to extend the testing framework.
 `aeon` testing happens on three layers, roughly corresponding to the inheritance layers
 of estimators.
 
-* **package level**: testing interface compliance with the `BaseObject` and
-`BaseEstimator` specifications, in `tests/test_all_estimators.py`
+* **package level**: testing interface compliance with the `BaseAeonEstimator`
+specifications, in `tests/test_all_estimators.py`
 * **module level**: testing interface compliance of concrete estimators with their base
 class, for instance `classification/tests/test_all_classifiers.py`
 * **low level**: testing individual functionality of estimators or other code, in

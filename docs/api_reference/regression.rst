@@ -41,6 +41,8 @@ Convolution-based
     HydraRegressor
     MultiRocketHydraRegressor
     RocketRegressor
+    MiniRocketRegressor
+    MultiRocketRegressor
 
 Deep learning
 -------------
@@ -52,7 +54,6 @@ Deep learning
     :template: class.rst
 
     BaseDeepRegressor
-    CNNRegressor
     TimeCNNRegressor
     EncoderRegressor
     FCNRegressor

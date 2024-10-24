@@ -1,6 +1,6 @@
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
+    rev: v5.0.0
     hooks:
       - id: check-ast
       - id: check-added-large-files
@@ -29,16 +29,16 @@ repos:
         args: [ "--create", "--python-folders", "aeon" ]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.5.7
+    rev: v0.7.0
     hooks:
       - id: ruff
         args: [ "--fix"]
 
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.17.0
+    rev: v3.18.0
     hooks:
       - id: pyupgrade
-        args: [ "--py38-plus" ]
+        args: [ "--py39-plus" ]
 
   - repo: https://github.com/pycqa/isort
     rev: 5.13.2
@@ -55,7 +55,7 @@ repos:
         args: [ "--max-line-length=88", "--extend-ignore=E203" ]
 
   - repo: https://github.com/psf/black
-    rev: 24.8.0
+    rev: 24.10.0
     hooks:
       - id: black
         language_version: python3
@@ -74,7 +74,7 @@ repos:
         args: [ "--nbqa-dont-skip-bad-cells", "--extend-ignore=E402,E203", "--max-line-length=88" ]
 
   - repo: https://github.com/mgedmin/check-manifest
-    rev: "0.49"
+    rev: "0.50"
     hooks:
       - id: check-manifest
         stages: [ manual ]
