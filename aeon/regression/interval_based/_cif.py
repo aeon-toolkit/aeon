@@ -194,7 +194,7 @@ class CanonicalIntervalForestRegressor(BaseIntervalForest, BaseRegressor):
             self.set_tags(**{"python_dependencies": "pycatch22"})
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -216,7 +216,6 @@ class CanonicalIntervalForestRegressor(BaseIntervalForest, BaseRegressor):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         if parameter_set == "results_comparison":
             return {"n_estimators": 10, "n_intervals": 2, "att_subsample_size": 4}

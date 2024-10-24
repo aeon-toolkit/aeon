@@ -67,7 +67,7 @@ class ClustererPipeline(BaseCollectionPipeline, BaseClusterer):
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test = load_unit_test(split="test")
     >>> pipeline = ClustererPipeline(
-    ...     Resizer(length=10), TimeSeriesKMeans.create_test_instance()
+    ...     Resizer(length=10), TimeSeriesKMeans._create_test_instance()
     ... )
     >>> pipeline.fit(X_train, y_train)
     ClustererPipeline(...)
@@ -92,7 +92,7 @@ class ClustererPipeline(BaseCollectionPipeline, BaseClusterer):
         raise NotImplementedError("Pipeline does not support scoring.")
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -107,7 +107,6 @@ class ClustererPipeline(BaseCollectionPipeline, BaseClusterer):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         from aeon.clustering import TimeSeriesKMeans
         from aeon.transformations.collection import Truncator
@@ -120,5 +119,5 @@ class ClustererPipeline(BaseCollectionPipeline, BaseClusterer):
                 Truncator(truncated_length=5),
                 SevenNumberSummaryTransformer(),
             ],
-            "clusterer": TimeSeriesKMeans.create_test_instance(),
+            "clusterer": TimeSeriesKMeans._create_test_instance(),
         }
