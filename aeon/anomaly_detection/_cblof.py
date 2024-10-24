@@ -136,7 +136,7 @@ class CBLOF(PyODAdapter):
         return super()._fit_predict(X, y)
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -153,4 +153,8 @@ class CBLOF(PyODAdapter):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
             `create_test_instance` uses the first (or only) dictionary in `params`.
         """
-        return {}
+        return {
+            "n_clusters": 4,
+            "alpha": 0.75,
+            "beta": 3,
+        }
