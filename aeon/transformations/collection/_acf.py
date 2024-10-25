@@ -23,8 +23,9 @@ class AutocorrelationFunctionTransformer(BaseCollectionTransformer):
 
     Parameters
     ----------
-    n_lags : int or callable, default=100
-        The maximum number of autocorrelation terms to use. If callable, the
+    n_lags : int, None or callable, default=None
+        The maximum number of autocorrelation terms to use. If None, set to
+        n_timepoints/4. If callable, the
         function should take a 3D numpy array of shape (n_cases, n_channels,
         n_timepoints) and return an integer.
     min_values : int, default=0
@@ -54,7 +55,7 @@ class AutocorrelationFunctionTransformer(BaseCollectionTransformer):
 
     def __init__(
         self,
-        n_lags=100,
+        n_lags=None,
         min_values=0,
     ):
         self.n_lags = n_lags
@@ -64,8 +65,10 @@ class AutocorrelationFunctionTransformer(BaseCollectionTransformer):
 
     def _transform(self, X, y=None):
         n_cases, n_channels, n_timepoints = X.shape
-
-        lags = self.n_lags(X) if callable(self.n_lags) else self.n_lags
+        if self.n_lags is None:
+            lags = n_timepoints / 4
+        else:
+            lags = self.n_lags(X) if callable(self.n_lags) else self.n_lags
         if lags > n_timepoints - self.min_values:
             lags = n_timepoints - self.min_values
         if lags < 0:
@@ -114,7 +117,7 @@ class AutocorrelationFunctionTransformer(BaseCollectionTransformer):
         return X_t
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -129,7 +132,6 @@ class AutocorrelationFunctionTransformer(BaseCollectionTransformer):
             Parameters to create testing instances of the class
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`
         """
         return {
             "n_lags": 4,
