@@ -722,8 +722,8 @@ def _get_datatypes_for_estimator(estimator):
     Returns
     -------
     datatypes : list of tuple
-        List of valid data types keys for the estimator usable in FULL_TEST_DATA_DICT
-        and TEST_LABEL_DICT. Each tuple is formatted (data_key, label_key).
+        List of valid data types keys for the estimator usable in
+        FULL_TEST_DATA_DICT. Each tuple is formatted (data_key, label_key).
     """
     datatypes = []
     univariate, multivariate, unequal_length, missing_values = (
