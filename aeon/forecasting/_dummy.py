@@ -13,6 +13,7 @@ class DummyForecaster(BaseForecaster):
 
     def _fit(self, y, exog=None):
         """Fit dummy forecaster."""
+        y = y.squeeze()
         self.last_value_ = y[-1]
         return self
 
@@ -20,6 +21,7 @@ class DummyForecaster(BaseForecaster):
         """Predict using dummy forecaster."""
         return self.last_value_
 
-    def _forecast(self, y, X=None):
+    def _forecast(self, y, exog=None):
         """Forecast using dummy forecaster."""
+        y = y.squeeze()
         return y[-1]

@@ -36,20 +36,21 @@ class RegressionForecaster(BaseForecaster):
             self.regressor_ = LinearRegression()
         else:
             self.regressor_ = self.regressor
+        y = y.squeeze()
         X = np.lib.stride_tricks.sliding_window_view(y, window_shape=self.window)
         # Ignore the final horizon values: need to store these for pred with empty y
         X = X[: -self.horizon]
         # Extract y
         y = y[self.window + self.horizon - 1 :]
         self.last_ = y[-self.window :]
-        self.regressor_.fit(y, exog)
+        self.regressor_.fit(X=X, y=y)
         return self
 
     def _predict(self, y=None, exog=None):
         """Predict values for time series X."""
         if y is None:
             return self.regressor_.predict(self.last_)
-
+        y = y.squeeze()
         return self.regressor_.predict(y[-self.window :])
 
     def _forecast(self, y, exog=None):

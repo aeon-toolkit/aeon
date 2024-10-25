@@ -39,7 +39,7 @@ class BaseForecaster(BaseSeriesEstimator):
         "capability:univariate": True,
         "capability:multivariate": False,
         "capability:missing_values": False,
-        "X_inner_type": "np.ndarray",
+        "y_inner_type": "np.ndarray",
     }
 
     def __init__(self, horizon=1, window=None, axis=1):
@@ -68,7 +68,7 @@ class BaseForecaster(BaseSeriesEstimator):
         # Validate y
 
         # Convert if necessary
-
+        y = self._preprocess_series(y, axis=self.axis, store_metadata=False)
         if exog is not None:
             raise NotImplementedError("Exogenous variables not yet supported")
         # Validate exog
@@ -94,6 +94,8 @@ class BaseForecaster(BaseSeriesEstimator):
         float
             single prediction self.horizon steps ahead of y.
         """
+        if y is not None:
+            y = self._preprocess_series(y, axis=self.axis, store_metadata=False)
         if not self._is_fitted:
             raise ValueError("Forecaster must be fitted before predicting")
         if exog is not None:
@@ -115,6 +117,7 @@ class BaseForecaster(BaseSeriesEstimator):
         np.ndarray
             single prediction directly after the last point in X.
         """
+        y = self._preprocess_series(y, axis=self.axis, store_metadata=False)
         return self._forecast(y, X)
 
     @abstractmethod
