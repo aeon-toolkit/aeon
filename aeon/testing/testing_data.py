@@ -814,7 +814,15 @@ def _get_label_type_for_estimator(estimator):
     Returns
     -------
     label_type : str
-        Label type key for the estimator for use in TEST_LABEL_DICT.
+        Label type key for the estimator for use in FULL_TEST_DATA_DICT. Indicates
+        whether estimator can take labels for training data, and if so what kind.
+        Classification indicates the estimator takes a discrete target variable,
+        modelled by an np.array of integers.
+        Regression indicates the estimator takes a continuous target variable,
+        modelled by an np.array of floats.
+        NoLabel indicates the estimator does not take a target variable, or that no
+        estimator is yet implemented to take labels.
+
     """
     if (
         isinstance(estimator, BaseClassifier)
