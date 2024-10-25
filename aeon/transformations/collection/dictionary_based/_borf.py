@@ -584,7 +584,7 @@ def _get_norm_bins(alphabet_size: int, mu=0, std=1):
     return _ppf(np.linspace(0, 1, alphabet_size + 1)[1:-1], mu, std)
 
 
-@nb.njit(fastmath=True, cache=True)
+@nb.vectorize(fastmath=True, cache=True)
 def _erfinv(x: float) -> float:
     w = -math.log((1 - x) * (1 + x))
     if w < 5:
