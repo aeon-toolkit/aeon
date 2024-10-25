@@ -182,7 +182,7 @@ class BORF(BaseCollectionTransformer):
         return self.pipe_.transform(X)
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -200,40 +200,7 @@ class BORF(BaseCollectionTransformer):
             instance. `create_test_instance` uses the first (or only) dictionary in
             `params`.
         """
-        params = [
-            {
-                "window_size_min_window_size": 4,
-                "window_size_max_window_size": None,
-                "word_lengths_n_word_lengths": 4,
-                "alphabets_min_symbols": 3,
-                "alphabets_max_symbols": 4,
-                "alphabets_step": 1,
-                "dilations_min_dilation": 1,
-                "dilations_max_dilation": None,
-                "min_window_to_signal_std_ratio": 0.0,
-                "n_jobs": 1,
-                "n_jobs_numba": 1,
-                "transformer_weights": None,
-                "complexity": "quadratic",
-                "densify": False,
-            },
-            {
-                "window_size_min_window_size": 4,
-                "window_size_max_window_size": None,
-                "word_lengths_n_word_lengths": 4,
-                "alphabets_min_symbols": 3,
-                "alphabets_max_symbols": 4,
-                "alphabets_step": 1,
-                "dilations_min_dilation": 1,
-                "dilations_max_dilation": None,
-                "min_window_to_signal_std_ratio": 0.0,
-                "n_jobs": 1,
-                "n_jobs_numba": 1,
-                "transformer_weights": None,
-                "complexity": "quadratic",
-                "densify": True,
-            },
-        ]
+        params = [{"densify": False}, {"densify": True}]
         return params
 
 
@@ -581,7 +548,10 @@ def _ndindex_2d_array(idx, dim2_shape):
 
 @nb.njit(cache=True)
 def _get_norm_bins(alphabet_size: int, mu=0, std=1):
-    return _ppf(np.linspace(0, 1, alphabet_size + 1)[1:-1], mu, std)
+    b = np.linspace(0, 1, alphabet_size + 1)[1:-1]
+    for i, v in enumerate(b):
+        b[i] = _ppf(v, mu, std)
+    return b
 
 
 @nb.njit(fastmath=True, cache=True)
@@ -612,7 +582,7 @@ def _erfinv(x: float) -> float:
     return p * x
 
 
-@nb.vectorize(cache=True)
+@nb.njit(cache=True)
 def _ppf(x, mu=0, std=1):
     return mu + math.sqrt(2) * _erfinv(2 * x - 1) * std
 
