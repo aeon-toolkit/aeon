@@ -12,19 +12,29 @@ package. If you want help with scikit-learn you may want to view
 the very latest algorithms for time series machine learning, in addition to a range of
 classical techniques for the following learning tasks:
 
-- {term}`Time series classification` where the time series data for a given instance
-are used to predict a categorical target class.
-- {term}`Time series extrinsic regression` where the time series data for a given
-instance are used to predict a continuous target value.
-- {term}`Time series clustering` where the goal is to discover groups consisting of
-instances with similar time series.
-- {term}`Time series similarity search` where the goal is to evaluate the similarity
+- {term}`classification`, where a collection of time series labelled with
+  a discrete value is used to train a model to predict unseen cases.
+- {term}`regression`, where a collection of time series labelled with
+  a continuous value is used to train a model to predict unseen cases.
+- {term}`clustering`, where a collection of time series without any
+  labels are used to train a model to label cases.
+- {term}`similarity search` where the goal is to evaluate the similarity
 between a time series against a collection of other time series.
+- {term}`anomaly detection` where the goal is to find values or areas of a
+  single time series that are not representative of the whole series.
+- {term}`segmentation` where the goal is to split a single time series into
+  regions where the series are sofind areas of a time series that are not
+  representative of the whole series.
 
-Additionally, it provides numerous algorithms for {term}`time series transformation`,
-altering time series into different representations and domains or processing
-time series data into tabular data.
-
+`aeon` also provides core modules that are used by the specific task modules
+above
+-
+- {term}`transformation`, where a either a single series or collection is transformed
+  into a different representation or domain.
+- {term}`distances`, measure the dissimilarity between two time series or
+  collections of series, which includes functions to align series.
+- {term}`networks`, provides core models for deep learning for all time series tasks.
+-
 The following provides introductory examples for each of these modules. The examples
 use the datatypes most commonly used for the task in question, but a variety of input
 types for
