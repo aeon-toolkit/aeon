@@ -548,10 +548,7 @@ def _ndindex_2d_array(idx, dim2_shape):
 
 @nb.njit(cache=True)
 def _get_norm_bins(alphabet_size: int, mu=0, std=1):
-    b = np.linspace(0, 1, alphabet_size + 1)[1:-1]
-    for i, v in enumerate(b):
-        b[i] = _ppf(v, mu, std)
-    return b
+    return _ppf(np.linspace(0, 1, alphabet_size + 1)[1:-1], mu, std)
 
 
 @nb.njit(fastmath=True, cache=True)
@@ -582,7 +579,7 @@ def _erfinv(x: float) -> float:
     return p * x
 
 
-@nb.njit(cache=True)
+@nb.vectorize(cache=True)
 def _ppf(x, mu=0, std=1):
     return mu + math.sqrt(2) * _erfinv(2 * x - 1) * std
 
