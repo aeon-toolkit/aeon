@@ -25,6 +25,8 @@ between a time series against a collection of other time series.
 - {term}`segmentation` where the goal is to split a single time series into
   regions where the series are sofind areas of a time series that are not
   representative of the whole series.
+- {term}`forecasting` where the goal is to predict future values for a time
+  series.
 
 `aeon` also provides core modules that are used by the specific task modules
 above
@@ -37,36 +39,37 @@ above
 -
 The following provides introductory examples for each of these modules. The examples
 use the datatypes most commonly used for the task in question, but a variety of input
-types for
-data are available. For more information on the variety of
-estimators
-available for each task, see the [API](api_reference) and [examples](examples) pages.
+types for data are available. For more information on the variety of
+estimators available for each task, see the [API](api_reference) and [examples]
+(examples) pages.
 
-## Time Series Data
+## A Single Time Series
 
 A time series is a series of real valued data assumed to be ordered. A univariate
 time series is a singular series, where each observation is a single value. For example,
 the heartbeat ECG reading from a single sensor or the number of passengers using an
-airline per month would form a univariate series.
+airline per month would form a univariate series. Single time series are stored
+either in a `pd.Series`, a `pd.DataFrame` or a `np.ndarray`. We recommend using
+numpy arrays, as algorithms use arrays internally whenever possible.
 
 ```{code-block} python
 >>> from aeon.datasets import load_airline
->>> y = load_airline()  # load an example univariate series with timestamps
->>> y.head()
-Period
-1960-08    606.0
-1960-09    508.0
-1960-10    461.0
-1960-11    390.0
-1960-12    432.0
-Freq: M, Name: Number of airline passengers, dtype: float64
+>>> y = load_airline(return_type="np.ndarray)  # load an example univariate series
+>>> y[:5]
+606.0
+508.0
+461.0
+390.0
+432.0
 ```
 
 A multivariate time series is made up of multiple series, where each observation is a
 vector of related recordings in the same time index. An examples would be a motion trace
 of from a smartwatch with at least three dimensions (X,Y,Z co-ordinates), or multiple
 financial statistics recorded over time. Single multivariate series input typically
-follows the shape `(n_timepoints, n_channels)`.
+follows the shape `(n_channels, n_timepoints)` when stored in numpy arrays. This is
+generally called wide format. You can also use dataframes, and many of our legacy
+baked in datasets load by default into this format.
 
 ```{code-block} python
 >>> from aeon.datasets import load_uschange
@@ -81,13 +84,31 @@ Quarter
 1971 Q1     1.897371  1.987154    1.909734  3.657771          -0.1
 ```
 
-We commonly refer to the number of observations for a time series as `n_timepoints`. If a series is multivariate, we refer to the dimensions as channels
+to direclty load a multivariate series in numpy format, you can use the
+`return_type` argument
+
+```{code-block} python
+>>> from aeon.datasets import load_uschange
+>>> y, X = load_uschange("Quarter", return_type="np.ndarray")  # load an example
+multivariate series
+>>> X[:5, :]
+0.615986  0.972261   -2.452700  4.810312           0.9
+0.460376  1.169085   -0.551525  7.287992           0.5
+0.876791  1.553271   -0.358708  7.289013           0.5
+-0.274245 -0.255272   -2.185455  0.985230           0.7
+1.897371  1.987154    1.909734  3.657771          -0.1
+```
+
+
+We commonly refer to the number of observations for a time series as `n_timepoints`.
+If a series is multivariate, we refer to the dimensions as channels
 (to avoid confusion with the dimensions of array) and in code use `n_channels`.
 Dimensions may also be referred to as variables.
 
 Different parts of `aeon` work with single series or collections of series. The
-`anomaly detection` and `segmentation` modules will commonly use single series input, while
-`classification`, `regression` and `clustering` modules will use collections of time
+`anomaly detection`, `forecasting` and `segmentation` modules will commonly use single
+series input, while `classification`, `regression` and `clustering` modules will use
+collections of time
 series. Collections of time series may also be referred to as Panels. Collections of
 time series will often be accompanied by an array of target variables.
 

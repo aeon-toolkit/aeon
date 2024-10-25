@@ -658,12 +658,17 @@ def load_lynx():
     return y
 
 
-def load_airline():
+def load_airline(return_type="pd.Series"):
     """Load the airline univariate time series dataset [1].
+
+    Parameters
+    ----------
+    return_type: str, valid series type, default="pd.Series"
+        The type of series to return, either "pd.Series", "pd.DataFrame or "np.ndarray".
 
     Returns
     -------
-    y : pd.Series
+    y : pd.Series, np.ndarray or pd.DataFrame
         Time series
 
     Examples
@@ -698,11 +703,20 @@ def load_airline():
     # make sure time index is properly formatted
     y.index = pd.PeriodIndex(y.index, freq="M", name="Period")
     y.name = "Number of airline passengers"
+    if return_type == "np.ndarray":
+        return y.to_numpy()
+    elif return_type == "pd.DataFrame":
+        return pd.DataFrame(y)
     return y
 
 
 def load_uschange(y_name="Consumption"):
     """Load MTS dataset for forecasting Growth rates of personal consumption and income.
+
+    Parameters
+    ----------
+    y_name: str, default="Consumption"
+        Name of target variable (y)
 
     Returns
     -------
@@ -742,9 +756,6 @@ def load_uschange(y_name="Consumption"):
     path = os.path.join(MODULE, DIRNAME, name, fname)
     data = pd.read_csv(path, index_col=0).squeeze("columns")
 
-    # Sort by Quarter then set simple numeric index
-    # TODO add support for period/datetime indexing
-    # data.index = pd.PeriodIndex(data.index, freq='Y')
     data = data.sort_values("Quarter")
     data = data.reset_index(drop=True)
     data.index = pd.Index(data.index, dtype=int)
