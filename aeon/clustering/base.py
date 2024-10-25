@@ -67,7 +67,7 @@ class BaseClusterer(BaseCollectionEstimator):
         return self
 
     @final
-    def predict(self, X, y=None) -> np.ndarray:
+    def predict(self, X) -> np.ndarray:
         """Predict the closest cluster each sample in X belongs to.
 
         Parameters
@@ -81,7 +81,6 @@ class BaseClusterer(BaseCollectionEstimator):
             of shape ``[n_cases]``, 2D np.array ``(n_channels, n_timepoints_i)``,
             where ``n_timepoints_i`` is length of series ``i``. Other types are
             allowed and converted into one of the above.
-        y: ignored, exists for API consistency reasons.
 
         Returns
         -------
