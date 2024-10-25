@@ -52,7 +52,6 @@ def pytest_configure(config):
         os.environ["OPENBLAS_NUM_THREADS"] = "1"
         os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
 
-        os.environ["NUMBA_NUM_THREADS"] = "1"
         import numba
 
         numba.set_num_threads(1)
