@@ -8,12 +8,12 @@ https://github.com/aeon-toolkit/aeon-admin/pull/14
 
 """
 
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 
 from aeon.base import BaseSeriesEstimator
 
 
-class BaseForecaster(BaseSeriesEstimator, ABC):
+class BaseForecaster(BaseSeriesEstimator):
     """
     Abstract base class for time series forecasters.
 

@@ -7,6 +7,7 @@ from aeon.base import BaseCollectionEstimator, BaseSeriesEstimator
 from aeon.classification import BaseClassifier
 from aeon.classification.early_classification import BaseEarlyClassifier
 from aeon.clustering import BaseClusterer
+from aeon.forecasting import BaseForecaster
 from aeon.regression import BaseRegressor
 from aeon.segmentation import BaseSegmenter
 from aeon.similarity_search import BaseSimilaritySearch
@@ -829,6 +830,7 @@ def _get_label_type_for_estimator(estimator):
         isinstance(estimator, BaseAnomalyDetector)
         or isinstance(estimator, BaseSegmenter)
         or isinstance(estimator, BaseSeriesTransformer)
+        or isinstance(estimator, BaseForecaster)
     ):
         label_type = "NoLabel"
     else:
