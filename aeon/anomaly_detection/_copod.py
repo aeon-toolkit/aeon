@@ -67,7 +67,7 @@ class COPOD(PyODAdapter):
         return super()._fit_predict(X, y)
 
     @classmethod
-    def get_test_params(cls, parameter_set="default") -> dict:
+    def _get_test_params(cls, parameter_set="default") -> dict:
         """Return testing parameter settings for the estimator.
 
         Parameters
