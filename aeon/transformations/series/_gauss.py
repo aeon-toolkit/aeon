@@ -14,7 +14,7 @@ class GaussSeriesTransformer(BaseSeriesTransformer):
 
     Parameters
     ----------
-    sigma : float
+    sigma : float, default=1
         Standard deviation for the Gaussian kernel.
 
     order : int, default=0
@@ -51,7 +51,7 @@ class GaussSeriesTransformer(BaseSeriesTransformer):
         "fit_is_empty": True,
     }
 
-    def __init__(self, sigma, order=0):
+    def __init__(self, sigma=1, order=0):
         self.sigma = sigma
         self.order = order
         super().__init__(axis=1)
