@@ -581,12 +581,15 @@ def _ndindex_2d_array(idx, dim2_shape):
 
 @nb.njit(cache=True)
 def _get_norm_bins(alphabet_size: int, mu=0, std=1):
-    return _ppf(np.linspace(0, 1, alphabet_size + 1)[1:-1], mu, std)
+    bins = []
+    for i in np.linspace(0, 1, alphabet_size + 1)[1:-1]:
+        bins.append(_ppf(i, mu, std))
+    return np.array(bins)
 
 
-@nb.vectorize(fastmath=True, cache=True)
+@nb.njit(fastmath=True, cache=True)
 def _erfinv(x: float) -> float:
-    w = -math.log((1 - x) * (1 + x))
+    w = -np.log((1 - x) * (1 + x))
     if w < 5:
         w = w - 2.5
         p = 2.81022636e-08
@@ -599,7 +602,7 @@ def _erfinv(x: float) -> float:
         p = 0.246640727 + p * w
         p = 1.50140941 + p * w
     else:
-        w = math.sqrt(w) - 3
+        w = np.sqrt(w) - 3
         p = -0.000200214257
         p = 0.000100950558 + p * w
         p = 0.00134934322 + p * w
@@ -612,9 +615,9 @@ def _erfinv(x: float) -> float:
     return p * x
 
 
-@nb.vectorize(cache=True)
+@nb.njit(cache=True)
 def _ppf(x, mu=0, std=1):
-    return mu + math.sqrt(2) * _erfinv(2 * x - 1) * std
+    return mu + np.sqrt(2) * _erfinv(2 * x - 1) * std
 
 
 @nb.njit(fastmath=True, cache=True)
