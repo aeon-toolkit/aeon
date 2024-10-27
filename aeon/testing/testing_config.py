@@ -73,6 +73,8 @@ EXCLUDED_TESTS = {
     "MiniRocketRegressor": ["check_non_state_changing_method"],
     "MultiRocketRegressor": ["check_non_state_changing_method"],
     "RSTSF": ["check_non_state_changing_method"],
+    # Due to numba random issue between OS
+    "RDSTRegressor": ["check_regressor_against_expected_results"],
     # These methods will try to feed invalid 3D instead 2D during predict
     "QuerySearch": [
         "check_non_state_changing_method",
