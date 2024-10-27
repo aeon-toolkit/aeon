@@ -11,7 +11,7 @@ from scipy.signal import convolve
 
 from aeon.utils.numba.general import (
     get_all_subsequences,
-    normalize_subsequences,
+    normalise_subsequences,
     sliding_mean_std_one_series,
     z_normalise_series_2d,
 )
@@ -49,7 +49,7 @@ def naive_squared_distance_profile(
     X,
     q,
     mask,
-    normalize=False,
+    normalise=False,
     X_means=None,
     X_stds=None,
 ):
@@ -65,16 +65,16 @@ def naive_squared_distance_profile(
     mask : array, shape=(n_samples, n_timepoints)
         Boolean mask indicating candidates for which the distance
         profiles computed for each query should be set to infinity.
-    normalize : bool
-        Wheter to use a z-normalized distance.
+    normalise : bool
+        Wheter to use a z-normalised distance.
     X_means : array, shape=(n_samples, n_channels, n_timepoints - query_length + 1)
         Mean of each candidate (subsequence) of length query_length in X. The
-        default is None, meaning that these values will be computed if normalize
+        default is None, meaning that these values will be computed if normalise
         is True. If provided, the computations will be skipped.
     X_stds : array, shape=(n_samples, n_channels, n_timepoints - query_length + 1)
         Standard deviation of each candidate (subsequence) of length query_length
         in X. The default is None, meaning that these values will be computed if
-        normalize is True. If provided, the computations will be skipped.
+        normalise is True. If provided, the computations will be skipped.
 
     Returns
     -------
@@ -87,7 +87,7 @@ def naive_squared_distance_profile(
     # Init distance profile array with unequal length support
     for i in range(len(X)):
         dist_profiles.append(np.zeros(X[i].shape[1] - query_length + 1))
-    if normalize:
+    if normalise:
         q = z_normalise_series_2d(q)
     else:
         q = q.astype(np.float64)
@@ -95,12 +95,12 @@ def naive_squared_distance_profile(
         # Numba don't support strides with integers ?
 
         X_subs = get_all_subsequences(X[i].astype(np.float64), query_length, 1)
-        if normalize:
+        if normalise:
             if X_means is None and X_stds is None:
                 _X_means, _X_stds = sliding_mean_std_one_series(X[i], query_length, 1)
             else:
                 _X_means, _X_stds = X_means[i], X_stds[i]
-            X_subs = normalize_subsequences(X_subs, _X_means, _X_stds)
+            X_subs = normalise_subsequences(X_subs, _X_means, _X_stds)
         dist_profile = _compute_dist_profile(X_subs, q)
         dist_profile[~mask[i]] = np.inf
         dist_profiles[i] = dist_profile
@@ -108,7 +108,7 @@ def naive_squared_distance_profile(
 
 
 @njit(cache=True, fastmath=True)
-def naive_squared_matrix_profile(X, T, query_length, mask, normalize=False):
+def naive_squared_matrix_profile(X, T, query_length, mask, normalise=False):
     """
     Compute a squared euclidean matrix profile.
 
@@ -123,8 +123,8 @@ def naive_squared_matrix_profile(X, T, query_length, mask, normalize=False):
     mask : array, shape=(n_samples, n_timepoints_x)
         Boolean mask indicating candidates for which the distance
         profiles computed for each query should be set to infinity.
-    normalize : bool
-        Wheter to use a z-normalized distance.
+    normalise : bool
+        Wheter to use a z-normalised distance.
 
     Returns
     -------
@@ -134,9 +134,9 @@ def naive_squared_matrix_profile(X, T, query_length, mask, normalize=False):
     X_subs = List()
     for i in range(len(X)):
         i_subs = get_all_subsequences(X[i].astype(np.float64), query_length, 1)
-        if normalize:
+        if normalise:
             X_means, X_stds = sliding_mean_std_one_series(X[i], query_length, 1)
-            i_subs = normalize_subsequences(i_subs, X_means, X_stds)
+            i_subs = normalise_subsequences(i_subs, X_means, X_stds)
         X_subs.append(i_subs)
 
     n_candidates = T.shape[1] - query_length + 1
@@ -144,7 +144,7 @@ def naive_squared_matrix_profile(X, T, query_length, mask, normalize=False):
 
     for i in range(n_candidates):
         q = T[:, i : i + query_length]
-        if normalize:
+        if normalise:
             q = z_normalise_series_2d(q)
         for j in range(len(X)):
             dist_profile = _compute_dist_profile(X_subs[j], q)

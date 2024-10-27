@@ -73,6 +73,17 @@ EXCLUDED_TESTS = {
     "MiniRocketRegressor": ["check_non_state_changing_method"],
     "MultiRocketRegressor": ["check_non_state_changing_method"],
     "RSTSF": ["check_non_state_changing_method"],
+    # These methods will try to feed invalid 3D instead 2D during predict
+    "QuerySearch": [
+        "check_non_state_changing_method",
+        "check_fit_deterministic",
+        "check_persistence_via_pickle",
+    ],
+    "SeriesSearch": [
+        "check_non_state_changing_method",
+        "check_fit_deterministic",
+        "check_persistence_via_pickle",
+    ],
 }
 
 # NON_STATE_CHANGING_METHODS =

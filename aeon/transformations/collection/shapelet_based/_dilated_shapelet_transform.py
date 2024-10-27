@@ -26,7 +26,7 @@ from aeon.utils.numba.general import (
     get_all_subsequences,
     get_subsequence,
     get_subsequence_with_mean_std,
-    normalize_subsequences,
+    normalise_subsequences,
     sliding_mean_std_one_series,
 )
 from aeon.utils.numba.stats import prime_up_to
@@ -69,9 +69,9 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
         min(max(2,n_timepoints//2),11).
     proba_normalization : float, default=0.8
         This probability (between 0 and 1) indicates the chance of each shapelet to be
-        initialized such as it will use a z-normalized distance, inducing either scale
+        initialized such as it will use a z-normalised distance, inducing either scale
         sensitivity or invariance. A value of 1 would mean that all shapelets will use
-        a z-normalized distance.
+        a z-normalised distance.
     threshold_percentiles : array, default=None
         The two percentiles used to select the threshold used to compute the Shapelet
         Occurrence feature. If None, the 5th and the 10th percentiles (i.e. [5,10])
@@ -399,9 +399,9 @@ def _init_random_shapelet_params(
         drawn from this set.
     proba_normalization : float
         This probability (between 0 and 1) indicate the chance of each shapelet to be
-        initialized such as it will use a z-normalized distance, inducing either scale
+        initialized such as it will use a z-normalised distance, inducing either scale
         sensitivity or invariance. A value of 1 would mean that all shapelets will use
-        a z-normalized distance.
+        a z-normalised distance.
     use_prime_dilations : bool
         If True, restrict the value of the shapelet dilation parameter to be prime
         values. This can greatly speed up the algorithm for long time series and/or
@@ -425,7 +425,7 @@ def _init_random_shapelet_params(
         The randomly initialized dilation of each shapelet
     threshold : array, shape (max_shapelets)
         An initialized (empty) value array for each shapelet
-    normalize : array, shape (max_shapelets)
+    normalise : array, shape (max_shapelets)
         The randomly initialized normalization indicator of each shapelet
     means : array, shape (max_shapelets, n_channels)
         Means of the shapelets
@@ -477,8 +477,8 @@ def _init_random_shapelet_params(
     )
 
     # Is shapelet using z-normalization ?
-    normalize = random_generator.uniform(0, 1, size=max_shapelets)
-    normalize = normalize < proba_normalization
+    normalise = random_generator.uniform(0, 1, size=max_shapelets)
+    normalise = normalise < proba_normalization
 
     means = np.zeros((max_shapelets, n_channels), dtype=np.float64)
     stds = np.zeros((max_shapelets, n_channels), dtype=np.float64)
@@ -489,7 +489,7 @@ def _init_random_shapelet_params(
         lengths,
         dilations,
         threshold,
-        normalize,
+        normalise,
         means,
         stds,
         classes,
@@ -543,9 +543,9 @@ def random_dilated_shapelet_extraction(
         drawn from this set.
     proba_normalization : float
         This probability (between 0 and 1) indicate the chance of each shapelet to be
-        initialized such as it will use a z-normalized distance, inducing either scale
+        initialized such as it will use a z-normalised distance, inducing either scale
         sensitivity or invariance. A value of 1 would mean that all shapelets will use
-        a z-normalized distance.
+        a z-normalised distance.
     threshold_percentiles : array
         The two percentiles used to select the threshold used to compute the Shapelet
         Occurrence feature.
@@ -576,7 +576,7 @@ def random_dilated_shapelet_extraction(
             Dilation parameter of the shapelets
         - threshold : array, shape (max_shapelets)
             Threshold parameter of the shapelets
-        - normalize : array, shape (max_shapelets)
+        - normalise : array, shape (max_shapelets)
             Normalization indicator of the shapelets
         - means : array, shape (max_shapelets, n_channels)
             Means of the shapelets
@@ -600,7 +600,7 @@ def random_dilated_shapelet_extraction(
         lengths,
         dilations,
         threshold,
-        normalize,
+        normalise,
         means,
         stds,
         classes,
@@ -618,7 +618,7 @@ def random_dilated_shapelet_extraction(
     n_dilations = unique_dil.shape[0]
     # For each dilation, we can do in parallel
     for i_dilation in prange(n_dilations):
-        # (2, _, _): Mask is different for normalized and non-normalized shapelets
+        # (2, _, _): Mask is different for normalised and non-normalised shapelets
         alpha_mask = np.ones((2, n_cases, max_n_timepoints), dtype=np.bool_)
         for _i in range(n_cases):
             # For the unequal length case, we scale the mask up and set to False
@@ -631,7 +631,7 @@ def random_dilated_shapelet_extraction(
             # Get shapelet params
             dilation = dilations[i_shp]
             length = lengths[i_shp]
-            norm = np.int_(normalize[i_shp])
+            norm = np.int_(normalise[i_shp])
             # Possible sampling points given self similarity mask
             current_mask = List(
                 [
@@ -688,11 +688,11 @@ def random_dilated_shapelet_extraction(
                 # Compute distance vector, first get the subsequences
                 X_subs = get_all_subsequences(X[id_test], length, dilation)
                 if norm:
-                    # Normalize them if needed
+                    # normalise them if needed
                     X_means, X_stds = sliding_mean_std_one_series(
                         X[id_test], length, dilation
                     )
-                    X_subs = normalize_subsequences(X_subs, X_means, X_stds)
+                    X_subs = normalise_subsequences(X_subs, X_means, X_stds)
                 x_dist = compute_shapelet_dist_vector(X_subs, _val)
 
                 lower_bound = np.percentile(x_dist, threshold_percentiles[0])
@@ -722,7 +722,7 @@ def random_dilated_shapelet_extraction(
         lengths[mask_values],
         dilations[mask_values],
         threshold[mask_values],
-        normalize[mask_values],
+        normalise[mask_values],
         means[mask_values],
         stds[mask_values],
         classes[mask_values],
@@ -762,7 +762,7 @@ def dilated_shapelet_transform(
             Dilation parameter of the shapelets
         - threshold : array, shape (n_shapelets)
             Threshold parameter of the shapelets
-        - normalize : array, shape (n_shapelets)
+        - normalise : array, shape (n_shapelets)
             Normalization indicator of the shapelets
         - means : array, shape (n_shapelets, n_channels)
             Means of the shapelets
@@ -785,7 +785,7 @@ def dilated_shapelet_transform(
         lengths,
         dilations,
         threshold,
-        normalize,
+        normalise,
         means,
         stds,
         classes,
@@ -805,16 +805,16 @@ def dilated_shapelet_transform(
 
         for i_x in prange(n_cases):
             X_subs = get_all_subsequences(X[i_x], length, dilation)
-            idx_no_norm = id_shps[np.where(~normalize[id_shps])[0]]
+            idx_no_norm = id_shps[np.where(~normalise[id_shps])[0]]
             for i_shp in idx_no_norm:
                 X_new[i_x, (n_ft * i_shp) : (n_ft * i_shp + n_ft)] = (
                     compute_shapelet_features(X_subs, values[i_shp], threshold[i_shp])
                 )
 
-            idx_norm = id_shps[np.where(normalize[id_shps])[0]]
+            idx_norm = id_shps[np.where(normalise[id_shps])[0]]
             if len(idx_norm) > 0:
                 X_means, X_stds = sliding_mean_std_one_series(X[i_x], length, dilation)
-                X_subs = normalize_subsequences(X_subs, X_means, X_stds)
+                X_subs = normalise_subsequences(X_subs, X_means, X_stds)
                 for i_shp in idx_norm:
                     X_new[i_x, (n_ft * i_shp) : (n_ft * i_shp + n_ft)] = (
                         compute_shapelet_features(

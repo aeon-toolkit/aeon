@@ -11,21 +11,21 @@ from aeon.utils.numba.general import (
     get_all_subsequences,
     get_subsequence,
     get_subsequence_with_mean_std,
-    normalize_subsequences,
+    normalise_subsequences,
     sliding_mean_std_one_series,
     z_normalise_series,
-    z_normalize_series_with_mean_std,
+    z_normalise_series_with_mean_std,
 )
 
 DATATYPES = ["int32", "int64", "float32", "float64"]
 
 
 @pytest.mark.parametrize("type", DATATYPES)
-def test_z_normalize_series_with_mean_std(type):
+def test_z_normalise_series_with_mean_std(type):
     """Test z-normalization of a series using mean and standard deviation."""
     a = np.array([2, 2, 2], dtype=type)
     a_expected = np.array([0, 0, 0], dtype=type)
-    a_result = z_normalize_series_with_mean_std(a, a.mean(), a.std())
+    a_result = z_normalise_series_with_mean_std(a, a.mean(), a.std())
     assert_array_equal(a_result, a_expected)
 
 
@@ -108,10 +108,10 @@ def test_combinations_1d(dtype):
 
 
 @pytest.mark.parametrize("dtype", DATATYPES)
-def test_normalize_subsequences(dtype):
+def test_normalise_subsequences(dtype):
     """Test 3d z-normalization."""
     X = np.asarray([[[1, 1, 1]], [[1, 1, 1]]], dtype=dtype)
-    X_norm = normalize_subsequences(X, X.mean(axis=2), X.std(axis=2))
+    X_norm = normalise_subsequences(X, X.mean(axis=2), X.std(axis=2))
     assert np.all(X_norm == 0)
     assert np.all(X.shape == X_norm.shape)
 

@@ -210,7 +210,7 @@ def z_normalise_series(X: np.ndarray) -> np.ndarray:
 
 
 @njit(fastmath=True, cache=True)
-def z_normalize_series_with_mean_std(
+def z_normalise_series_with_mean_std(
     X: np.ndarray, series_mean: float, series_std: float
 ):
     """
@@ -228,13 +228,12 @@ def z_normalize_series_with_mean_std(
     Returns
     -------
     arr :  1d numpy array
-        The normalized series
+        The normalised series
     """
     if series_std > AEON_NUMBA_STD_THRESHOLD:
         arr = (X - series_mean) / series_std
     else:
-        # If std is "0", then X is constant, so a zero array if we remove mean.
-        arr = np.zeros(X.shape)
+        return X - series_mean
     return arr
 
 
@@ -266,7 +265,7 @@ def z_normalise_series_2d(X: np.ndarray) -> np.ndarray:
 
 
 @njit(fastmath=True, cache=True)
-def z_normalize_series_2d_with_mean_std(
+def z_normalise_series_2d_with_mean_std(
     X: np.ndarray, series_mean: np.ndarray, series_std: np.ndarray
 ) -> np.ndarray:
     """
@@ -275,7 +274,7 @@ def z_normalize_series_2d_with_mean_std(
     Parameters
     ----------
     X : array, shape = (n_channels, n_timestamps)
-        Input array to normalize.
+        Input array to normalise.
     mean : array, shape = (n_channels)
         Mean of each channel of X.
     std : array, shape = (n_channels)
@@ -284,11 +283,11 @@ def z_normalize_series_2d_with_mean_std(
     Returns
     -------
     arr : array, shape = (n_channels, n_timestamps)
-        The normalized array
+        The normalised array
     """
     arr = np.zeros(X.shape)
     for i in range(X.shape[0]):
-        arr[i] = z_normalize_series_with_mean_std(X[i], series_mean[i], series_std[i])
+        arr[i] = z_normalise_series_with_mean_std(X[i], series_mean[i], series_std[i])
     return arr
 
 
@@ -529,27 +528,27 @@ def sliding_mean_std_one_series(
 
 
 @njit(fastmath=True, cache=True)
-def normalize_subsequences(
+def normalise_subsequences(
     X_subs: np.ndarray[np.float_],
     X_means: np.ndarray[np.float_],
     X_stds: np.ndarray[np.float_],
 ):
     """
-    Z-normalize subsequences (by length and dilation) of a time series.
+    Z-normalise subsequences (by length and dilation) of a time series.
 
     Parameters
     ----------
     X_subs : array, shape (n_timestamps-(length-1)*dilation, n_channels, length)
         The subsequences of an input time series given the length and dilation parameter
     X_means : array, shape (n_channels, n_timestamps-(length-1)*dilation)
-        Mean of the subsequences to normalize.
+        Mean of the subsequences to normalise.
     X_stds : array, shape (n_channels, n_timestamps-(length-1)*dilation)
-        Stds of the subsequences to normalize.
+        Stds of the subsequences to normalise.
 
     Returns
     -------
     array, shape = (n_timestamps-(length-1)*dilation, n_channels, length)
-        Z-normalized subsequences.
+        Z-normalised subsequences.
     """
     n_subsequences, n_channels, length = X_subs.shape
     X_new = np.zeros((n_subsequences, n_channels, length))
