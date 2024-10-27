@@ -528,11 +528,7 @@ def sliding_mean_std_one_series(
 
 
 @njit(fastmath=True, cache=True)
-def normalise_subsequences(
-    X_subs: np.ndarray[np.float_],
-    X_means: np.ndarray[np.float_],
-    X_stds: np.ndarray[np.float_],
-):
+def normalise_subsequences(X_subs: np.ndarray, X_means: np.ndarray, X_stds: np.ndarray):
     """
     Z-normalise subsequences (by length and dilation) of a time series.
 
