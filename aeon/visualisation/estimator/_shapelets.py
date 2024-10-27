@@ -438,7 +438,6 @@ class ShapeletTransformerVisualizer:
             dilation_ = self.estimator.shapelets_[3][id_shapelet]
             threshold_ = self.estimator.shapelets_[4][id_shapelet]
             normalise_ = self.estimator.shapelets_[5][id_shapelet]
-            distance = "manhattan"
 
         elif isinstance(self.estimator, (RSAST, SAST)):
             values_ = self.estimator._kernel_orig[id_shapelet]
@@ -446,7 +445,6 @@ class ShapeletTransformerVisualizer:
             dilation_ = 1
             normalise_ = True
             threshold_ = None
-            distance = "euclidean"
 
         elif isinstance(self.estimator, RandomShapeletTransform):
             values_ = self.estimator.shapelets[id_shapelet][6]
@@ -454,7 +452,6 @@ class ShapeletTransformerVisualizer:
             dilation_ = 1
             normalise_ = True
             threshold_ = None
-            distance = "euclidean"
         else:
             raise NotImplementedError(
                 "The provided estimator of type {type(self.estimator)} is not supported"
@@ -466,7 +463,6 @@ class ShapeletTransformerVisualizer:
             dilation=dilation_,
             threshold=threshold_,
             length=length_,
-            distance=distance,
         )
 
     def plot_on_X(

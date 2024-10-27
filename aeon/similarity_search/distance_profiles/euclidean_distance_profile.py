@@ -9,7 +9,7 @@ import numpy as np
 from numba.typed import List
 
 from aeon.similarity_search.distance_profiles.squared_distance_profile import (
-    normalized_squared_distance_profile,
+    normalised_squared_distance_profile,
     squared_distance_profile,
 )
 
@@ -50,7 +50,7 @@ def euclidean_distance_profile(
     return distance_profiles
 
 
-def normalized_euclidean_distance_profile(
+def normalised_euclidean_distance_profile(
     X: Union[np.ndarray, List],
     q: np.ndarray,
     mask: np.ndarray,
@@ -93,7 +93,7 @@ def normalized_euclidean_distance_profile(
         The distance profile between q and the input time series X.
 
     """
-    distance_profiles = normalized_squared_distance_profile(
+    distance_profiles = normalised_squared_distance_profile(
         X, q, mask, X_means, X_stds, q_means, q_stds
     )
     # Need loop as we can return a list of np array in the unequal length case

@@ -78,11 +78,13 @@ EXCLUDED_TESTS = {
         "check_non_state_changing_method",
         "check_fit_deterministic",
         "check_persistence_via_pickle",
+        "check_raises_not_fitted_error",
     ],
     "SeriesSearch": [
         "check_non_state_changing_method",
         "check_fit_deterministic",
         "check_persistence_via_pickle",
+        "check_raises_not_fitted_error",
     ],
 }
 

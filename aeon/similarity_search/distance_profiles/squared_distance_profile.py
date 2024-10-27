@@ -53,7 +53,7 @@ def squared_distance_profile(
     return distance_profiles
 
 
-def normalized_squared_distance_profile(
+def normalised_squared_distance_profile(
     X: Union[np.ndarray, List],
     q: np.ndarray,
     mask: np.ndarray,
@@ -102,7 +102,7 @@ def normalized_squared_distance_profile(
     elif isinstance(X, List):
         QX = List(QX)
 
-    distance_profiles = _normalized_squared_distance_profile(
+    distance_profiles = _normalised_squared_distance_profile(
         QX, mask, X_means, X_stds, q_means, q_stds, query_length
     )
     if isinstance(X, np.ndarray):
@@ -202,11 +202,11 @@ def _squared_dist_profile_one_series(QT, T, Q):
 
 
 @njit(cache=True, fastmath=True, parallel=True)
-def _normalized_squared_distance_profile(
+def _normalised_squared_distance_profile(
     QX, mask, X_means, X_stds, q_means, q_stds, query_length
 ):
     """
-    Compute the normalized squared distance profiles between query subsequence and input time series.
+    Compute the normalised squared distance profiles between query subsequence and input time series.
 
     Parameters
     ----------
@@ -232,7 +232,7 @@ def _normalized_squared_distance_profile(
     -------
     List of np.ndarray
         List of 2D arrays, each of shape (n_channels, n_timepoints - query_length + 1).
-        Each array contains the normalized squared distance profile between the query subsequence and the corresponding time series.
+        Each array contains the normalised squared distance profile between the query subsequence and the corresponding time series.
         Entries in the array are set to infinity where the mask is False.
     """
     distance_profiles = List()
@@ -247,7 +247,7 @@ def _normalized_squared_distance_profile(
         i_instance = np.int_(_i_instance)
 
         distance_profiles[i_instance][mask[i_instance]] = (
-            _normalized_squared_dist_profile_one_series(
+            _normalised_squared_dist_profile_one_series(
                 QX[i_instance],
                 X_means[i_instance],
                 X_stds[i_instance],
@@ -261,11 +261,11 @@ def _normalized_squared_distance_profile(
 
 
 @njit(cache=True, fastmath=True)
-def _normalized_squared_dist_profile_one_series(
+def _normalised_squared_dist_profile_one_series(
     QT, T_means, T_stds, Q_means, Q_stds, query_length, Q_is_constant
 ):
     """
-    Compute the z-normalized squared Euclidean distance profile for one time series.
+    Compute the z-normalised squared Euclidean distance profile for one time series.
 
     Parameters
     ----------
@@ -291,8 +291,8 @@ def _normalized_squared_dist_profile_one_series(
     -------
     np.ndarray
         2D array of shape (n_channels, n_timepoints - query_length + 1) containing the
-        z-normalized squared distance profile between the query subsequence and the time
-        series. Entries are computed based on the z-normalized values, with special
+        z-normalised squared distance profile between the query subsequence and the time
+        series. Entries are computed based on the z-normalised values, with special
         handling for constant values.
     """
     n_channels, profile_length = QT.shape

@@ -12,18 +12,18 @@ __maintainer__ = ["baraline"]
 #
 # DATATYPES = ["int64", "float64"]
 # K_VALUES = [1, 3]
-# NORMALIZE = [True, False]
+# normalise = [True, False]
 #
 #
 # @pytest.mark.parametrize("k", K_VALUES)
-# @pytest.mark.parametrize("normalize", NORMALIZE)
-# def test_SeriesSearch_naive(k, normalize):
+# @pytest.mark.parametrize("normalise", normalise)
+# def test_SeriesSearch_naive(k, normalise):
 #     """Test the k and threshold combination of SeriesSearch."""
 #     X = np.asarray([[[1, 2, 3, 4, 5, 6, 7, 8]], [[1, 2, 4, 4, 5, 6, 5, 4]]])
 #     S = np.asarray([[3, 4, 5, 4, 3, 4]])
 #     L = 3
 #
-#     search = SeriesSearch(k=k, normalize=normalize, speed_up="naive")
+#     search = SeriesSearch(k=k, normalise=normalise, speed_up="naive")
 #     search.fit(X)
 #     mp, ip = search.predict(S, L)
 #
@@ -33,14 +33,14 @@ __maintainer__ = ["baraline"]
 #
 #
 # @pytest.mark.parametrize("k", K_VALUES)
-# @pytest.mark.parametrize("normalize", NORMALIZE)
-# def test_SeriesSearch_k(k, normalize):
+# @pytest.mark.parametrize("normalise", normalise)
+# def test_SeriesSearch_k(k, normalise):
 #     """Test the k and threshold combination of SeriesSearch."""
 #     X = np.asarray([[[1, 2, 3, 4, 5, 6, 7, 8]], [[1, 2, 4, 4, 5, 6, 5, 4]]])
 #     S = np.asarray([[3, 4, 5, 4, 3, 4]])
 #     L = 3
 #
-#     search = SeriesSearch(k=k, normalize=normalize)
+#     search = SeriesSearch(k=k, normalise=normalise)
 #     search.fit(X)
 #     mp, ip = search.predict(S, L)
 #
