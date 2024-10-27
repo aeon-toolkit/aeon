@@ -61,18 +61,18 @@ COMPOSITE_ESTIMATORS = [
     Pipeline(
         [
             ("transform", Resizer(length=10)),
-            ("clf", CanonicalIntervalForestClassifier.create_test_instance()),
+            ("clf", CanonicalIntervalForestClassifier._create_test_instance()),
         ]
     ),
     VotingClassifier(
         estimators=[
-            ("clf1", CanonicalIntervalForestClassifier.create_test_instance()),
-            ("clf2", CanonicalIntervalForestClassifier.create_test_instance()),
-            ("clf3", CanonicalIntervalForestClassifier.create_test_instance()),
+            ("clf1", CanonicalIntervalForestClassifier._create_test_instance()),
+            ("clf2", CanonicalIntervalForestClassifier._create_test_instance()),
+            ("clf3", CanonicalIntervalForestClassifier._create_test_instance()),
         ]
     ),
     CalibratedClassifierCV(
-        estimator=CanonicalIntervalForestClassifier.create_test_instance(),
+        estimator=CanonicalIntervalForestClassifier._create_test_instance(),
         cv=2,
     ),
 ]
@@ -80,7 +80,7 @@ COMPOSITE_ESTIMATORS = [
 
 def test_sklearn_cross_validation():
     """Test sklearn cross-validation works with aeon data and classifiers."""
-    clf = CanonicalIntervalForestClassifier.create_test_instance()
+    clf = CanonicalIntervalForestClassifier._create_test_instance()
     X, y = make_example_3d_numpy(n_cases=20, n_channels=2, n_timepoints=30)
     scores = cross_val_score(clf, X, y=y, cv=KFold(n_splits=2))
     assert isinstance(scores, np.ndarray)
@@ -99,7 +99,7 @@ def test_sklearn_cross_validation_iterators(cross_validation_method):
 @pytest.mark.parametrize("parameter_tuning_method", PARAMETER_TUNING_METHODS)
 def test_sklearn_parameter_tuning(parameter_tuning_method):
     """Test if sklearn parameter tuners can handle aeon data and classifiers."""
-    clf = CanonicalIntervalForestClassifier.create_test_instance()
+    clf = CanonicalIntervalForestClassifier._create_test_instance()
     param_grid = {"n_intervals": [2, 3], "att_subsample_size": [2, 3]}
     X, y = make_example_3d_numpy(n_cases=20, n_channels=2, n_timepoints=30)
 

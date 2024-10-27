@@ -18,6 +18,10 @@ the paper and a link to the code in your personal GitHub or other repository.
   and experimental evaluation of recent time series classification algorithms.
   Data Mining and Knowledge Discovery, online first, open access.
   [Paper](https://link.springer.com/article/10.1007/s10618-024-01022-1) [Webpage/Code](https://tsml-eval.readthedocs.io/en/stable/publications/2023/tsc_bakeoff/tsc_bakeoff_2023.html)
+- Spinnato, F. and Guidotti, R. and Monreale, A. and Nanni, M. (2024). Fast, Interpretable,
+  and Deterministic Time Series Classification With a Bag-of-Receptive-Fields.
+  IEEE Access, vol. 12, (pp. 137893-137912).
+  [Paper](https://ieeexplore.ieee.org/document/10684604) [Code](https://github.com/fspinna/borf)
 
 - Schäfer, P, and Leser, U. (2023). WEASEL 2.0: a random dilated dictionary transform
   for fast, accurate and memory constrained time series classification.
