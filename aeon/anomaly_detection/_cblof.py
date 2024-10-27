@@ -53,6 +53,8 @@ class CBLOF(PyODAdapter):
         If not set, CBLOF uses KMeans for scalability. See
         https://scikit-learn.org/stable/modules/generated/sklearn.cluster.KMeans.html
 
+        aeon clustering estimators are not supported.
+
     alpha : float in (0.5, 1), default=0.9
         Coefficient for deciding small and large clusters. The ratio
         of the number of samples in large clusters to the number of samples in

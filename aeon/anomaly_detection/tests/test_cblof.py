@@ -91,29 +91,3 @@ def test_custom_clustering_estimator():
 
     assert preds.shape == (100,)
     assert 20 <= np.argmax(preds) <= 30
-
-
-@pytest.mark.skipif(
-    not _check_soft_dependencies("pyod", severity="none"),
-    reason="required soft dependency PyOD not available",
-)
-def test_with_aeon_estimator():
-    """Test with aeon estimator."""
-    from aeon.clustering import TimeSeriesKMeans
-
-    series = make_example_1d_numpy(n_timepoints=100, random_state=0)
-    series[22:28] -= 2
-
-    estimator = TimeSeriesKMeans(n_clusters=2, distance="euclidean")
-    cblof = CBLOF(
-        n_clusters=2,
-        clustering_estimator=estimator,
-        window_size=5,
-        stride=1,
-        random_state=2,
-    )
-
-    preds = cblof.fit_predict(series)
-
-    assert preds.shape == (100,)
-    assert 20 <= np.argmax(preds) <= 30
