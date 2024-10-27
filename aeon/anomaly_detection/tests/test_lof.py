@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from aeon.anomaly_detection import LOF
-from aeon.testing.data_generation._legacy import make_series
+from aeon.testing.data_generation import make_example_1d_numpy
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
@@ -14,7 +14,7 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 )
 def test_lof_default():
     """Test LOF with default parameters."""
-    series = make_series(n_timepoints=80, return_numpy=True, random_state=0)
+    series = make_example_1d_numpy(n_timepoints=80, random_state=0)
     series[50:58] -= 2  # Introducing anomalies
 
     lof = LOF()
@@ -22,7 +22,7 @@ def test_lof_default():
 
     assert pred.shape == (80,)
     assert pred.dtype == np.float_
-    assert 50 <= np.argmax(pred) <= 60
+    assert 50 <= np.argmax(pred) <= 58
 
 
 @pytest.mark.skipif(
@@ -63,21 +63,66 @@ def test_lof_parameter_passing():
     not _check_soft_dependencies("pyod", severity="none"),
     reason="required soft dependency PyOD not available",
 )
-def test_lof_compare_with_pyod_direct():
-    """Test that aeon LOF with window_size=1 and stride=1 matches PyOD LOF."""
-    from pyod.models.lof import LOF as PyOD_LOF
-
-    series = make_series(n_timepoints=80, return_numpy=True, random_state=0)
+def test_lof_unsupervised():
+    """Test LOF in unsupervised mode (novelty=False) using fit_predict."""
+    series = make_example_1d_numpy(n_timepoints=80, random_state=0)
     series[50:58] -= 2
 
-    # Creating aeon LOF instance with window_size=1 and stride=1
-    lof_aeon = LOF(window_size=1, stride=1)
+    # Initializing aeon LOF in unsupervised mode
+    lof_aeon = LOF()
     pred_aeon = lof_aeon.fit_predict(series)
 
-    # Directly using PyOD LOF
+    # Initializing PyOD LOF in unsupervised mode
+    from pyod.models.lof import LOF as PyOD_LOF
     lof_pyod = PyOD_LOF()
     lof_pyod.fit(series.reshape(-1, 1))
-    pred_pyod = lof_pyod.decision_function(series.reshape(-1, 1))
+    pred_pyod = (lof_pyod.predict(series.reshape(-1, 1)) > 0.5).astype(int)  # Returns binary labels (outlier or inlier)
 
-    # Checking if the predictions match
-    np.testing.assert_allclose(pred_aeon, pred_pyod, rtol=1e-5)
+    assert pred_aeon.shape == (80,)
+    assert pred_pyod.shape == (80,)
+    assert pred_aeon.dtype == np.int_
+    assert pred_pyod.dtype == np.int_
+
+    # Compare binary labels
+    np.testing.assert_array_equal(pred_aeon, pred_pyod)
+
+    # Additionally, ensure that anomalies are detected in the introduced range
+    assert np.any(pred_aeon[50:58] == 1)
+    assert np.any(pred_pyod[50:58] == 1)
+
+
+@pytest.mark.skipif(
+    not _check_soft_dependencies("pyod", severity="none"),
+    reason="required soft dependency PyOD not available",
+)
+def test_lof_semi_supervised():
+    """Test LOF in semi-supervised mode (novelty=True) using decision_function."""
+    series_train = make_example_1d_numpy(n_timepoints=100, random_state=0)
+    series_train[:10] += 5 
+
+    series_test = make_example_1d_numpy(n_timepoints=20, random_state=1)
+    series_test[5:15] -= 3  
+
+    # Initializing aeon LOF in semi-supervised mode
+    lof_aeon = LOF()
+    lof_aeon.fit(series_train)
+    scores_aeon = lof_aeon._predict(series_test)
+
+    # Initializing PyOD LOF in semi-supervised mode
+    from pyod.models.lof import LOF as PyOD_LOF
+    lof_pyod = PyOD_LOF(novelty=True)
+    lof_pyod.fit(series_train.reshape(-1, 1))
+    scores_pyod = lof_pyod.decision_function(series_test.reshape(-1, 1))
+
+    assert scores_aeon.shape == (20,)
+    assert scores_pyod.shape == (20,)
+    assert scores_aeon.dtype == np.float_
+    assert scores_pyod.dtype == np.float_
+
+    # Compare anomaly scores
+    np.testing.assert_allclose(scores_aeon, scores_pyod, rtol=1e-5)
+
+    # Additionally, ensure that anomalies have higher anomaly scores
+    assert np.any(scores_aeon < 0)
+    assert np.any(scores_pyod < 0)
+

@@ -6,7 +6,6 @@ __all__ = ["LOF"]
 from typing import Optional, Union
 
 import numpy as np
-from sklearn.exceptions import NotFittedError
 
 from aeon.anomaly_detection._pyodadapter import PyODAdapter
 from aeon.utils.validation._dependencies import _check_soft_dependencies
@@ -24,13 +23,20 @@ class LOF(PyODAdapter):
        * - Input data format
          - univariate or multivariate
        * - Output data format
-         - binary classification
+         - binary classification or anomaly scores
        * - missing_values
          - False
        * - Learning Type
          - unsupervised or semi-supervised
        * - python_dependencies
          - ["pyod"]
+
+    The documentation for parameters has been adapted from the
+    [PyOD documentation](https://pyod.readthedocs.io/en/latest/pyod.models.html#id586).
+    Here, `X` refers to the set of sliding windows extracted from the time series
+    using :func:`aeon.utils.windowing.sliding_windows` with the parameters
+    ``window_size`` and ``stride``. The internal `X` has the shape
+    `(n_windows, window_size * n_channels)`.
 
     Parameters
     ----------
@@ -95,13 +101,11 @@ class LOF(PyODAdapter):
         n_jobs: int = 1,
         window_size: int = 10,
         stride: int = 1,
-        pyod_model=None,
     ):
         _check_soft_dependencies(*self._tags["python_dependencies"])
-        from pyod.models.lof import LOF
+        from pyod.models.lof import LOF as PyOD_LOF
 
-        # Using the pyod_model if already provided else creating a new instance
-        model = pyod_model or LOF(
+        model = PyOD_LOF(
             n_neighbors=n_neighbors,
             algorithm=algorithm,
             leaf_size=leaf_size,
@@ -118,24 +122,16 @@ class LOF(PyODAdapter):
         self.p = p
         self.metric_params = metric_params
         self.n_jobs = n_jobs
+        super().__init__(pyod_model=model, window_size=window_size, stride=stride)
         self.window_size = window_size
         self.stride = stride
-        super().__init__(model, window_size, stride)
 
     def _fit(self, X: np.ndarray, y: Union[np.ndarray, None] = None) -> None:
         # Set novelty to True for supervised learning
         self.pyod_model.novelty = True
         super()._fit(X, y)
-        self.is_fitted = True  # Fitting completed
-        return self
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
-        if not hasattr(self, "fitted_pyod_model_"):
-            raise NotFittedError(
-                "This instance of LOF has not been fitted yet; please call `fit` first."
-            )
-        # Set novelty to True for prediction on unseen data
-        self.pyod_model.novelty = True
         return super()._predict(X)
 
     def _fit_predict(
