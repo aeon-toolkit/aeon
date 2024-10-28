@@ -51,7 +51,7 @@ the heartbeat ECG reading from a single sensor or the number of passengers using
 airline per month would form a univariate series. Single time series are stored
 by default in a numpy array as algorithms use arrays internally whenever possible.
 We can also handle `pd.Series` and `pd.DataFrame` objects, but these are simply
-converted to `np.ndarray` internally.
+converted to `np.ndarray` internally. The airline data
 
 ```{code-block} python
 >>> from aeon.datasets import load_airline
@@ -74,14 +74,12 @@ follows the shape `(n_channels, n_timepoints)` when stored in numpy arrays
 ```{code-block} python
 >>> from aeon.datasets import load_uschange
 >>> data = load_uschange()  # load an example multivariate series
->>> data[:5]
-         Consumption    Income  Production   Savings  Unemployment
-Quarter
-1970 Q1     0.615986  0.972261   -2.452700  4.810312           0.9
-1970 Q2     0.460376  1.169085   -0.551525  7.287992           0.5
-1970 Q3     0.876791  1.553271   -0.358708  7.289013           0.5
-1970 Q4    -0.274245 -0.255272   -2.185455  0.985230           0.7
-1971 Q1     1.897371  1.987154    1.909734  3.657771          -0.1
+>>> data[:,:5]
+[[ 0.61598622  0.46037569  0.87679142 -0.27424514  1.89737076]
+ [ 0.97226104  1.16908472  1.55327055 -0.25527238  1.98715363]
+ [-2.45270031 -0.55152509 -0.35870786 -2.18545486  1.90973412]
+ [ 4.8103115   7.28799234  7.28901306  0.98522964  3.65777061]
+ [ 0.9         0.5         0.5         0.7        -0.1       ]]
 ```
 
 We commonly refer to the number of observations for a time series as `n_timepoints`.
@@ -89,10 +87,12 @@ If a series is multivariate, we refer to the dimensions as channels
 (to avoid confusion with the dimensions of array) and in code use `n_channels`. So
 the US Change data loaded above has five channels ( ) and 187 time points.
 
+## Single series estimators
 
 Different `aeon` module work with single series or collections of series. Estimators
 in the `anomaly detection` and `segmentation` modules use single
-series input (they inherit from `BaseSeriesEstimator`).
+series input (they inherit from `BaseSeriesEstimator`). The functions in `distances`
+take two series as arguments.
 
 ### Time Series Anomaly Detection (TSAD)
 
@@ -101,6 +101,10 @@ series input (they inherit from `BaseSeriesEstimator`).
 ### Time Series Forecasting (TSF)
 
 Coming soon, we are relaunching our forecasting module.
+
+### Time Series Distances
+
+
 
 ### Transformers for Single Time Series
 
