@@ -20,7 +20,7 @@ from aeon.testing.utils.estimator_checks import _assert_array_almost_equal
 from aeon.transformations.collection import (
     AutocorrelationFunctionTransformer,
     HOG1DTransformer,
-    PaddingTransformer,
+    Padder,
     Tabularizer,
     TimeSeriesScaler,
 )
@@ -30,13 +30,13 @@ from aeon.transformations.collection.feature_based import SevenNumberSummaryTran
 @pytest.mark.parametrize(
     "transformers",
     [
-        PaddingTransformer(pad_length=15),
+        Padder(pad_length=15),
         SevenNumberSummaryTransformer(),
-        [PaddingTransformer(pad_length=15), Tabularizer(), StandardScaler()],
-        [PaddingTransformer(pad_length=15), SevenNumberSummaryTransformer()],
+        [Padder(pad_length=15), Tabularizer(), StandardScaler()],
+        [Padder(pad_length=15), SevenNumberSummaryTransformer()],
         [Tabularizer(), StandardScaler(), SevenNumberSummaryTransformer()],
         [
-            PaddingTransformer(pad_length=15),
+            Padder(pad_length=15),
             SevenNumberSummaryTransformer(),
         ],
     ],
@@ -49,7 +49,6 @@ def test_regressor_pipeline(transformers):
     r = DummyRegressor()
     pipeline = RegressorPipeline(transformers=transformers, regressor=r)
     pipeline.fit(X_train, y_train)
-    r.fit(X_train, y_train)
 
     y_pred = pipeline.predict(X_test)
     assert isinstance(y_pred, np.ndarray)
@@ -68,14 +67,14 @@ def test_regressor_pipeline(transformers):
 @pytest.mark.parametrize(
     "transformers",
     [
-        [PaddingTransformer(pad_length=15), Tabularizer()],
+        [Padder(pad_length=15), Tabularizer()],
         SevenNumberSummaryTransformer(),
         [Tabularizer(), StandardScaler()],
-        [PaddingTransformer(pad_length=15), Tabularizer(), StandardScaler()],
-        [PaddingTransformer(pad_length=15), SevenNumberSummaryTransformer()],
+        [Padder(pad_length=15), Tabularizer(), StandardScaler()],
+        [Padder(pad_length=15), SevenNumberSummaryTransformer()],
         [Tabularizer(), StandardScaler(), SevenNumberSummaryTransformer()],
         [
-            PaddingTransformer(pad_length=15),
+            Padder(pad_length=15),
             SevenNumberSummaryTransformer(),
         ],
     ],
@@ -110,7 +109,7 @@ def test_unequal_tag_inference():
     )
 
     t1 = SevenNumberSummaryTransformer()
-    t2 = PaddingTransformer()
+    t2 = Padder()
     t3 = TimeSeriesScaler()
     t4 = AutocorrelationFunctionTransformer(n_lags=5)
     t5 = StandardScaler()
@@ -119,10 +118,10 @@ def test_unequal_tag_inference():
     assert t1.get_tag("capability:unequal_length")
     assert t1.get_tag("output_data_type") == "Tabular"
     assert t2.get_tag("capability:unequal_length")
-    assert t2.get_tag("capability:unequal_length:removes")
+    assert t2.get_tag("removes_unequal_length")
     assert not t2.get_tag("output_data_type") == "Tabular"
     assert t3.get_tag("capability:unequal_length")
-    assert not t3.get_tag("capability:unequal_length:removes")
+    assert not t3.get_tag("removes_unequal_length")
     assert not t3.get_tag("output_data_type") == "Tabular"
     assert not t4.get_tag("capability:unequal_length")
 
@@ -175,17 +174,17 @@ def test_unequal_tag_inference():
 def test_missing_tag_inference():
     """Test that RegressorPipeline infers missing data tag correctly."""
     X, y = make_example_3d_numpy(n_cases=10, n_timepoints=12, regression_target=True)
+    # tags are reset so this causes a crash due to t1
+    # X[5, 0, 4] = np.nan
 
     t1 = MockCollectionTransformer()
-    t1.set_tags(
-        **{"capability:missing_values": True, "capability:missing_values:removes": True}
-    )
+    t1.set_tags(**{"capability:missing_values": True, "removes_missing_values": True})
     t2 = TimeSeriesScaler()
     t3 = StandardScaler()
     t4 = Tabularizer()
 
     assert t1.get_tag("capability:missing_values")
-    assert t1.get_tag("capability:missing_values:removes")
+    assert t1.get_tag("removes_missing_values")
     assert not t2.get_tag("capability:missing_values")
 
     c1 = DummyRegressor()

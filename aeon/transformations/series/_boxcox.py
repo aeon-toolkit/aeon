@@ -215,7 +215,6 @@ class LogTransformer(BaseSeriesTransformer):
 
     _tags = {
         "X_inner_type": "np.ndarray",
-        "y_inner_type": "None",
         "fit_is_empty": True,
         "capability:multivariate": True,
         "capability:inverse_transform": True,

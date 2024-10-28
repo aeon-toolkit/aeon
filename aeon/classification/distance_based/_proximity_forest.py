@@ -3,9 +3,11 @@
 The Proximity Forest is an ensemble of Proximity Trees.
 """
 
+from typing import Optional
+
 __all__ = ["ProximityForest"]
 
-from typing import Type, Union
+from typing import Union
 
 import numpy as np
 from joblib import Parallel, delayed
@@ -87,9 +89,9 @@ class ProximityForest(BaseClassifier):
         self,
         n_trees=100,
         n_splitters: int = 5,
-        max_depth: int = None,
+        max_depth: Optional[int] = None,
         min_samples_split: int = 2,
-        random_state: Union[int, Type[np.random.RandomState], None] = None,
+        random_state: Union[int, np.random.RandomState, None] = None,
         n_jobs: int = 1,
         parallel_backend=None,
     ):
