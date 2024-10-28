@@ -1,9 +1,11 @@
 """Hierarchical Data Generators."""
 
+from typing import Optional
+
 __maintainer__ = []
 
 from itertools import product
-from typing import Tuple, Union
+from typing import Union
 
 import numpy as np
 import pandas as pd
@@ -14,14 +16,14 @@ from aeon.testing.data_generation._legacy import _make_index
 
 
 def _make_hierarchical(
-    hierarchy_levels: Tuple = (2, 4),
+    hierarchy_levels: tuple = (2, 4),
     max_timepoints: int = 12,
     min_timepoints: int = 12,
     same_cutoff: bool = True,
     n_columns: int = 1,
     all_positive: bool = True,
-    index_type: str = None,
-    random_state: Union[int, np.random.RandomState] = None,
+    index_type: Optional[str] = None,
+    random_state: Optional[Union[int, np.random.RandomState]] = None,
     add_nan: bool = False,
 ) -> pd.DataFrame:
     """Generate hierarchical multiindex type for testing.
