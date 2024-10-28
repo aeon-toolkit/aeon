@@ -1,9 +1,12 @@
 __maintainer__ = []
 
+from typing import Union
+
 import numpy as np
 from numba import njit, prange
 
-from aeon.distances._utils import reshape_pairwise_to_multiple
+from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
+from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
 @njit(cache=True, fastmath=True)
@@ -58,19 +61,25 @@ def _univariate_SAX_distance(
     x: np.ndarray, y: np.ndarray, breakpoints: np.ndarray, n: int
 ) -> float:
     dist = 0.0
+
+    # The number of segments
+    m = x.shape[0]
+
+    # Compute the actual length of each segment in analogy to the PAA transform
+    n_split = np.array_split(np.arange(n), m)
+
     for i in range(x.shape[0]):
         if np.abs(x[i] - y[i]) <= 1:
             continue
         else:
             dist += (
-                breakpoints[max(x[i], y[i]) - 1] - breakpoints[min(x[i], y[i])]
-            ) ** 2
+                n_split[i].shape[0]
+                * (breakpoints[max(x[i], y[i]) - 1] - breakpoints[min(x[i], y[i])]) ** 2
+            )
 
-    m = x.shape[0]
-    return np.sqrt(n / m) * np.sqrt(dist)
+    return np.sqrt(dist)
 
 
-@njit(cache=True, fastmath=True)
 def sax_pairwise_distance(
     X: np.ndarray, y: np.ndarray, breakpoints: np.ndarray, n: int
 ) -> np.ndarray:
@@ -99,20 +108,22 @@ def sax_pairwise_distance(
         If X and y are not 1D, 2D arrays when passing both X and y.
 
     """
+    multivariate_conversion = _is_numpy_list_multivariate(X, y)
+    _X, unequal_length = _convert_collection_to_numba_list(
+        X, "X", multivariate_conversion
+    )
     if y is None:
-        # To self
-        if X.ndim == 2:
-            _X = X.reshape((X.shape[0], 1, X.shape[1]))
-            return _sax_from_multiple_to_multiple_distance(_X, None, breakpoints, n)
-        raise ValueError("X must be a 2D array")
+        return _sax_from_multiple_to_multiple_distance(_X, None, breakpoints, n)
 
-    _x, _y = reshape_pairwise_to_multiple(X, y)
-    return _sax_from_multiple_to_multiple_distance(_x, _y, breakpoints, n)
+    _y, unequal_length = _convert_collection_to_numba_list(
+        y, "y", multivariate_conversion
+    )
+    return _sax_from_multiple_to_multiple_distance(_X, _y, breakpoints, n)
 
 
 @njit(cache=True, fastmath=True, parallel=True)
 def _sax_from_multiple_to_multiple_distance(
-    X: np.ndarray, y: np.ndarray, breakpoints: np.ndarray, n: int
+    X: np.ndarray, y: Union[np.ndarray, None], breakpoints: np.ndarray, n: int
 ) -> np.ndarray:
     if y is None:
         n_instances = X.shape[0]

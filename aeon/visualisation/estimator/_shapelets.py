@@ -5,8 +5,11 @@ __maintainer__ = ["baraline"]
 __all__ = ["ShapeletClassifierVisualizer", "ShapeletTransformerVisualizer"]
 
 import copy
+import warnings
 
 import numpy as np
+from numba import njit
+from numba.core.registry import CPUDispatcher
 from sklearn.ensemble._forest import BaseForest
 from sklearn.linear_model._base import LinearClassifierMixin
 from sklearn.pipeline import Pipeline
@@ -26,12 +29,50 @@ from aeon.transformations.collection.shapelet_based import (
     RandomShapeletTransform,
 )
 from aeon.transformations.collection.shapelet_based._dilated_shapelet_transform import (
-    compute_shapelet_dist_vector,
     get_all_subsequences,
     normalize_subsequences,
 )
 from aeon.utils.numba.general import sliding_mean_std_one_series
 from aeon.utils.validation._dependencies import _check_soft_dependencies
+
+
+@njit(fastmath=True, cache=True)
+def compute_shapelet_dist_vector(
+    X_subs: np.ndarray,
+    values: np.ndarray,
+    dist_func: CPUDispatcher,
+):
+    """Extract the features from a shapelet distance vector.
+
+    Given a shapelet and a time series, extract three features from the resulting
+    distance vector:
+        - min
+        - argmin
+        - Shapelet Occurence : number of point in the distance vector inferior to the
+        threshold parameter
+
+    Parameters
+    ----------
+    X_subs : array, shape (n_timestamps-(length-1)*dilation, n_channels, length)
+        The subsequences of an input time series given the length and dilation parameter
+    values : array, shape (n_channels, length)
+        The value array of the shapelet
+    length : int
+        Length of the shapelet
+    distance: CPUDispatcher
+        A Numba function used to compute the distance between two multidimensional
+        time series of shape (n_channels, length).
+
+    Returns
+    -------
+    dist_vector : array, shape = (n_timestamps-(length-1)*dilation)
+        The distance vector between the shapelets and candidate subsequences
+    """
+    n_subsequences, n_channels, length = X_subs.shape
+    dist_vector = np.zeros(n_subsequences)
+    for i_sub in range(n_subsequences):
+        dist_vector[i_sub] += dist_func(X_subs[i_sub], values)
+    return dist_vector
 
 
 class ShapeletVisualizer:
@@ -248,9 +289,7 @@ class ShapeletVisualizer:
             _values = self.values
 
         # Compute distance vector
-        c = compute_shapelet_dist_vector(
-            X_subs, _values, self.length, self.distance_func
-        )
+        c = compute_shapelet_dist_vector(X_subs, _values, self.distance_func)
 
         # Get best match index
         idx_best = c.argmin()
@@ -360,10 +399,7 @@ class ShapeletVisualizer:
             )
         else:
             _values = self.values
-
-        c = compute_shapelet_dist_vector(
-            X_subs, _values, self.length, self.distance_func
-        )
+        c = compute_shapelet_dist_vector(X_subs, _values, self.distance_func)
 
         if ax is None:
             plt.style.use(matplotlib_style)
@@ -406,7 +442,7 @@ class ShapeletTransformerVisualizer:
             dilation_ = self.estimator.shapelets_[3][id_shapelet]
             threshold_ = self.estimator.shapelets_[4][id_shapelet]
             normalize_ = self.estimator.shapelets_[5][id_shapelet]
-            distance = self.estimator.distance
+            distance = "manhattan"
 
         elif isinstance(self.estimator, (RSAST, SAST)):
             values_ = self.estimator._kernel_orig[id_shapelet]
@@ -647,7 +683,7 @@ class ShapeletClassifierVisualizer:
 
     def _get_shp_importance(self, class_id):
         """
-        Return the shapelet importance for a speficied class.
+        Return the shapelet importance for a specified class.
 
         Parameters
         ----------
@@ -681,15 +717,50 @@ class ShapeletClassifierVisualizer:
         if isinstance(classifier, Pipeline):
             classifier = classifier[-1]
 
-        # This suppose that the higher the coef linked to each feature, the most
-        # impact this feature makes on classification for the given class_id
+        # This supposes that the higher (with the exception of distance features)
+        # the coef linked to each feature, the most impact this feature makes on
+        # classification for the given class_id
         if isinstance(classifier, LinearClassifierMixin):
             coefs = classifier.coef_
             n_classes = coefs.shape[0]
             if n_classes == 1:
-                coefs = np.append(-coefs, coefs, axis=0)
-            coefs = coefs[class_id]
+                if isinstance(self.estimator, RDSTClassifier):
+                    class_0_coefs = np.copy(coefs)
+                    class_1_coefs = np.copy(coefs)
 
+                    mask = np.ones(class_0_coefs.shape[1], dtype=bool)
+                    mask[::3] = False
+                    class_0_coefs[:, mask] = -class_0_coefs[:, mask]
+                    class_1_coefs[:, ::3] = -class_1_coefs[:, ::3]
+
+                    coefs = np.append(class_0_coefs, class_1_coefs, axis=0)
+                    warnings.warn(
+                        "Shapelet importance ranking may be unreliable "
+                        "when using linear classifiers with RDST. "
+                        "This is due to the interaction between argmin "
+                        "and shapelet occurrence features, which can distort "
+                        "the rankings. Consider evaluating the results carefully "
+                        "or using an alternative method.",
+                        stacklevel=1,
+                    )
+                    coefs = coefs[class_id]
+                else:
+                    coefs = np.append(coefs, -coefs, axis=0)
+                    coefs = coefs[class_id]
+            elif isinstance(self.estimator, RDSTClassifier):
+                coefs = coefs[class_id]
+                coefs[::3] = -coefs[::3]
+                warnings.warn(
+                    "Shapelet importance ranking may be unreliable "
+                    "when using linear classifiers with RDST. "
+                    "This is due to the interaction between argmin "
+                    "and shapelet occurrence features, which can distort "
+                    "the rankings. Consider evaluating the results carefully "
+                    "or using an alternative method.",
+                    stacklevel=1,
+                )
+            else:
+                coefs = -coefs[class_id]
         elif isinstance(classifier, (BaseForest, BaseDecisionTree)):
             coefs = classifier.feature_importances_
 
@@ -699,7 +770,7 @@ class ShapeletClassifierVisualizer:
                 "classifier inheriting from LinearClassifierMixin, BaseForest or "
                 f"BaseDecisionTree but got {type(classifier)}"
             )
-        # coefs = coefs[idx]
+
         if isinstance(self.estimator, RDSTClassifier):
             # As each shapelet generate 3 features, divide feature id by 3 so all
             # features generated by one shapelet share the same ID

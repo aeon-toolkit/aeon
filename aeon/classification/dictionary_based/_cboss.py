@@ -120,8 +120,8 @@ class ContractableBOSS(BaseClassifier):
     --------
     >>> from aeon.classification.dictionary_based import ContractableBOSS
     >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
     >>> clf = ContractableBOSS(n_parameter_samples=10, max_ensemble_size=3)
     >>> clf.fit(X_train, y_train)
     ContractableBOSS(...)
@@ -420,7 +420,7 @@ class ContractableBOSS(BaseClassifier):
         return correct / train_size
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -445,7 +445,6 @@ class ContractableBOSS(BaseClassifier):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         if parameter_set == "results_comparison":
             return {"n_parameter_samples": 10, "max_ensemble_size": 5}

@@ -8,7 +8,7 @@ because we can generalise tags, _predict and _predict_proba
 __maintainer__ = ["hadifawaz1999"]
 __all__ = ["BaseDeepClassifier"]
 
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 
 import numpy as np
 from sklearn.preprocessing import LabelEncoder, OneHotEncoder
@@ -17,7 +17,7 @@ from sklearn.utils import check_random_state
 from aeon.classification.base import BaseClassifier
 
 
-class BaseDeepClassifier(BaseClassifier, ABC):
+class BaseDeepClassifier(BaseClassifier):
     """Abstract base class for deep learning time series classifiers.
 
     The base classifier provides a deep learning default method for
@@ -42,8 +42,8 @@ class BaseDeepClassifier(BaseClassifier, ABC):
         "X_inner_type": "numpy3D",
         "capability:multivariate": True,
         "algorithm_type": "deeplearning",
-        "non-deterministic": True,
-        "cant-pickle": True,
+        "non_deterministic": True,
+        "cant_pickle": True,
         "python_dependencies": "tensorflow",
     }
 
@@ -184,7 +184,7 @@ class BaseDeepClassifier(BaseClassifier, ABC):
         import tensorflow as tf
 
         self.model_ = tf.keras.models.load_model(model_path)
-        self._is_fitted = True
+        self.is_fitted = True
 
         self.classes_ = classes
         self.n_classes_ = len(self.classes_)
