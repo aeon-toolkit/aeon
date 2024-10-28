@@ -49,12 +49,13 @@ A time series is a series of real valued data assumed to be ordered. A univariat
 time series is a singular series, where each observation is a single value. For example,
 the heartbeat ECG reading from a single sensor or the number of passengers using an
 airline per month would form a univariate series. Single time series are stored
-either in a `pd.Series`, a `pd.DataFrame` or a `np.ndarray`. We recommend using
-numpy arrays, as algorithms use arrays internally whenever possible.
+by default in a numpy array as algorithms use arrays internally whenever possible.
+We can also handle `pd.Series` and `pd.DataFrame` objects, but these are simply
+converted to `np.ndarray` internally.
 
 ```{code-block} python
 >>> from aeon.datasets import load_airline
->>> y = load_airline(return_type="np.ndarray)  # load an example univariate series
+>>> y = load_airline()  # load an example univariate series as an array
 >>> y[:5]
 606.0
 508.0
@@ -67,14 +68,13 @@ A multivariate time series is made up of multiple series, where each observation
 vector of related recordings in the same time index. An examples would be a motion trace
 of from a smartwatch with at least three dimensions (X,Y,Z co-ordinates), or multiple
 financial statistics recorded over time. Single multivariate series input typically
-follows the shape `(n_channels, n_timepoints)` when stored in numpy arrays. This is
-generally called wide format. You can also use dataframes, and many of our legacy
-baked in datasets load by default into this format.
+follows the shape `(n_channels, n_timepoints)` when stored in numpy arrays
+(sometimes called wide format).
 
 ```{code-block} python
 >>> from aeon.datasets import load_uschange
->>> y, X = load_uschange("Quarter")  # load an example multivariate series
->>> X.set_index(y).head()
+>>> data = load_uschange()  # load an example multivariate series
+>>> data[:5]
          Consumption    Income  Production   Savings  Unemployment
 Quarter
 1970 Q1     0.615986  0.972261   -2.452700  4.810312           0.9
@@ -84,33 +84,51 @@ Quarter
 1971 Q1     1.897371  1.987154    1.909734  3.657771          -0.1
 ```
 
-to direclty load a multivariate series in numpy format, you can use the
-`return_type` argument
-
-```{code-block} python
->>> from aeon.datasets import load_uschange
->>> y, X = load_uschange("Quarter", return_type="np.ndarray")  # load an example
-multivariate series
->>> X[:5, :]
-0.615986  0.972261   -2.452700  4.810312           0.9
-0.460376  1.169085   -0.551525  7.287992           0.5
-0.876791  1.553271   -0.358708  7.289013           0.5
--0.274245 -0.255272   -2.185455  0.985230           0.7
-1.897371  1.987154    1.909734  3.657771          -0.1
-```
-
-
 We commonly refer to the number of observations for a time series as `n_timepoints`.
 If a series is multivariate, we refer to the dimensions as channels
-(to avoid confusion with the dimensions of array) and in code use `n_channels`.
-Dimensions may also be referred to as variables.
+(to avoid confusion with the dimensions of array) and in code use `n_channels`. So
+the US Change data loaded above has five channels ( ) and 187 time points.
 
-Different parts of `aeon` work with single series or collections of series. The
-`anomaly detection`, `forecasting` and `segmentation` modules will commonly use single
-series input, while `classification`, `regression` and `clustering` modules will use
-collections of time
-series. Collections of time series may also be referred to as Panels. Collections of
-time series will often be accompanied by an array of target variables.
+
+Different `aeon` module work with single series or collections of series. Estimators
+in the `anomaly detection` and `segmentation` modules use single
+series input (they inherit from `BaseSeriesEstimator`).
+
+### Time Series Anomaly Detection (TSAD)
+
+### Time Series Segmentation (TSS)
+
+### Time Series Forecasting (TSF)
+
+Coming soon, we are relaunching our forecasting module.
+
+### Transformers for Single Time Series
+
+Transformers inheriting from the [BaseSeriesTransformer](transformations.base.BaseSeriesTransformer)
+in the `aeon.transformations.series` package transform a single (possibly multivariate)
+time series into a different time series or a feature vector.
+
+The following example shows how to use the
+[AutoCorrelationSeriesTransformer](transformations.series.AutoCorrelationSeriesTransformer)
+class to extract the autocorrelation terms of a time series.
+
+```{code-block} python
+>>> from aeon.transformations.series import AutoCorrelationSeriesTransformer
+>>> from aeon.datasets import load_airline
+>>> acf = AutoCorrelationSeriesTransformer()
+>>> y = load_airline()  # load single series airline dataset
+>>> res = acf.fit_transform(y)
+>>> res[0][:5]
+[0.96019465 0.89567531 0.83739477 0.7977347  0.78594315]
+```
+
+## Collections of Time Series
+
+The estimators in the `classification`,
+`regression` and `clustering` modules learn from collections of time
+series (they inherit from the class `BaseSeriesEstimator`). Collections of
+time series will often be accompanied by an array of target variables for supervised
+learning.
 
 ```{code-block} python
 >>> from aeon.datasets import load_italy_power_demand
@@ -127,17 +145,12 @@ time series will often be accompanied by an array of target variables.
 ['1' '1' '2' '2' '1']
 ```
 
-We use the terms case when referring to a single time series
+We use the terms case and instance interchangably when referring to a single time series
 contained in a collection. The size of a collection of time series is referred to as
 `n_cases`. Collections of time typically follows the shape `
-(n_cases, n_channels, n_timepoints)` if the series are equal length, but `n_timepoints`
+(n_cases, n_channels, n_timepoints)` if the series are equal length. , but
+`n_timepoints`
 may vary between cases.
-
-The datatypes used by modules also differ to match the use case. Module focusing
-on single series use cases will commonly use `pandas` `DataFrame` and `Series` objects
-to store time series data as shown in the first two examples. Modules focusing on
-collections on time series will commonly use `numpy` arrays or lists of arrays to
-store time series data.
 
 ```{code-block} python
 >>>from aeon.datasets import load_basic_motions, load_plaid, load_japanese_vowels
@@ -158,7 +171,7 @@ store time series data.
 (12, 20)
 ```
 
-## Time Series Classification (TSC)
+### Time Series Classification (TSC)
 
 Classification generally uses numpy arrays to store time series. We recommend storing
 time series for classification in 3D numpy arrays of shape `(n_cases, n_channels,
@@ -201,9 +214,9 @@ All `aeon` classifiers can be used with `scikit-learn` functionality for e.g.
 model evaluation, parameter searching and pipelines. Explore the wide range of
 algorithm types available in `aeon` in the [classification notebooks](examples.md#classification).
 
-## Time Series Extrinsic Regression (TSER)
+### Time Series Regression (TSR)
 
-Time series extrinsic regression assumes that the target variable is continuous rather
+Time series regression assumes that the target variable is continuous rather
 than discrete, as for classification. The same input data considerations apply from the
 classification section, and the modules function similarly. The target variable
 should be a `numpy` array of type `float`.
@@ -231,7 +244,7 @@ KNeighborsTimeSeriesRegressor()
 0.002921957478363366
 ```
 
-## Time Series Clustering (TSCL)
+### Time Series Clustering (TSCL)
 
 Like classification and regression, time series clustering aims to follow the
 `scikit-learn` interface where possible. The same input data format is used as in
@@ -258,27 +271,12 @@ After calling `fit`, the `labels_` attribute contains the cluster labels for
 each time series. The `predict` method can be used to predict the cluster labels for
 new data.
 
+### Time Series Similarity Search (TSSS)
 
-## Transformers for Single Time Series
+Add simple use case for similarity search.
 
-Transformers inheriting from the [BaseSeriesTransformer](transformations.base.BaseSeriesTransformer)
-in the `aeon.transformations.series` transform a single (possibly multivariate) time
-series into a different time series or a feature vector.
 
-The following example shows how to use the
-[AutoCorrelationSeriesTransformer](transformations.series.AutoCorrelationSeriesTransformer)
-class to extract the autocorrelation terms of a time series.
-
-```{code-block} python
->>> from aeon.transformations.series import AutoCorrelationSeriesTransformer
->>> from aeon.datasets import load_airline
->>> acf = AutoCorrelationSeriesTransformer()
->>> y = load_airline()  # load single series airline dataset
->>> res = acf.fit_transform(y)
->>> res[0][:5]
-[0.96019465 0.89567531 0.83739477 0.7977347  0.78594315]
-```
-## Transformers for Collections of Time Series
+### Transformers for Collections of Time Series
 
 The `aeon.transformations.collections` module contains a range of transformers for
 collections of time series. By default these do not allow for single series input,
