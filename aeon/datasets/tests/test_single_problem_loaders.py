@@ -9,18 +9,23 @@ import pytest
 import aeon
 from aeon.datasets import (  # Univariate; Unequal length; Multivariate
     load_acsf1,
+    load_airline,
     load_arrow_head,
     load_basic_motions,
     load_covid_3month,
     load_from_tsf_file,
     load_italy_power_demand,
     load_japanese_vowels,
+    load_longley,
+    load_lynx,
     load_macroeconomic,
     load_osuleaf,
     load_plaid,
+    load_shampoo_sales,
     load_solar,
     load_unit_test,
     load_unit_test_tsf,
+    load_uschange,
 )
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
@@ -41,7 +46,7 @@ UNEQUAL_LENGTH_PROBLEMS = [
 
 
 @pytest.mark.parametrize("loader", UNEQUAL_LENGTH_PROBLEMS)
-def test_load_dataframe(loader):
+def test_load_unequal_length(loader):
     """Test unequal length baked in TSC problems load into List of numpy."""
     # should work for all
     X, y = loader()
@@ -63,7 +68,7 @@ def test_load_numpy3d(loader):
 
 @pytest.mark.parametrize("loader", UNIVARIATE_PROBLEMS)
 def test_load_numpy2d_uni(loader):
-    """Test equal length TSC problems load into numpy3d."""
+    """Test equal length univariate TSC problems can be loaded into numpy2d."""
     X, y = loader(return_type="numpy2d")
     assert isinstance(X, np.ndarray)
     assert isinstance(y, np.ndarray)
@@ -123,3 +128,72 @@ def test_load_covid_3month():
     assert len(X) == len(y)
     assert X.shape == (201, 1, 84)
     assert isinstance(y, np.ndarray)
+
+
+def test_shampoo_sales():
+    """Test baked in loader of shampoo sales."""
+    y = load_shampoo_sales()
+    assert isinstance(y, np.ndarray)
+    y2 = load_shampoo_sales(return_array=False)
+    assert isinstance(y2, pd.Series)
+    assert y2.shape == (36,)
+    assert y.shape == y2.shape
+
+
+def test_lynx():
+    """Test baked in loader of lynx data."""
+    y = load_lynx()
+    assert isinstance(y, np.ndarray)
+    y2 = load_lynx(return_array=False)
+    assert isinstance(y2, pd.Series)
+    assert y2.shape == (114,)
+    assert y.shape == y2.shape
+
+
+def test_airline():
+    """Test baked in loader of lynx data."""
+    y = load_airline()
+    assert isinstance(y, np.ndarray)
+    y2 = load_airline(return_array=False)
+    assert isinstance(y2, pd.Series)
+    assert y2.shape == (144,)
+    assert y.shape == y2.shape
+
+
+def test_solar():
+    """Test function to load solar data."""
+    y = load_solar()
+    assert isinstance(y, np.ndarray)
+    y2 = load_solar(return_array=False)
+    assert isinstance(y2, pd.Series)
+    assert y2.shape == (289,)
+    assert y.shape == y2.shape
+
+
+def test_uschange():
+    """Test if uschange dataset is loaded correctly."""
+    y, X = load_uschange()
+    assert isinstance(y, pd.Series)
+    assert len(y) == 187
+    assert y.dtype == "float64"
+    assert isinstance(X, pd.DataFrame)
+    col_names = ["Income", "Production", "Savings", "Unemployment"]
+
+    assert X.columns.values.tolist() == col_names
+    for col in col_names:
+        assert X[col].dtype == "float64"
+    assert len(X) == len(y)
+
+
+def test_longley():
+    """Test if longley dataset is loaded correctly."""
+    y, X = load_longley()
+    assert isinstance(y, pd.Series)
+    assert len(y) == 16
+    assert y.dtype == "float64"
+    assert isinstance(X, pd.DataFrame)
+    col_names = ["GNPDEFL", "GNP", "UNEMP", "ARMED", "POP"]
+    assert X.columns.values.tolist() == col_names
+    for col in col_names:
+        assert X[col].dtype == "float64"
+    assert len(X) == len(y)
