@@ -14,7 +14,7 @@ from joblib import Parallel, effective_n_jobs
 from sklearn.metrics import pairwise
 from sklearn.utils import check_random_state, gen_even_slices
 from sklearn.utils.extmath import safe_sparse_dot
-from sklearn.utils.fixes import delayed
+from sklearn.utils.parallel import delayed
 from sklearn.utils.sparsefuncs_fast import csr_row_norms
 from sklearn.utils.validation import _num_samples
 
@@ -111,8 +111,8 @@ class BOSSEnsemble(BaseClassifier):
     --------
     >>> from aeon.classification.dictionary_based import BOSSEnsemble
     >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
     >>> clf = BOSSEnsemble(max_ensemble_size=3)
     >>> clf.fit(X_train, y_train)
     BOSSEnsemble(...)
@@ -396,7 +396,7 @@ class BOSSEnsemble(BaseClassifier):
         return correct / train_size
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -418,7 +418,6 @@ class BOSSEnsemble(BaseClassifier):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         if parameter_set == "results_comparison":
             return {
@@ -514,8 +513,8 @@ class IndividualBOSS(BaseClassifier):
     --------
     >>> from aeon.classification.dictionary_based import IndividualBOSS
     >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
     >>> clf = IndividualBOSS()
     >>> clf.fit(X_train, y_train)
     IndividualBOSS(...)
@@ -658,7 +657,8 @@ class IndividualBOSS(BaseClassifier):
         new_boss.n_classes_ = self.n_classes_
         new_boss.classes_ = self.classes_
         new_boss._class_dictionary = self._class_dictionary
-        new_boss._is_fitted = True
+        new_boss.metadata_ = self.metadata_
+        new_boss.is_fitted = True
 
         return new_boss
 

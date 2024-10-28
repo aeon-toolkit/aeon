@@ -8,7 +8,7 @@ import aeon
 from aeon.benchmarking.results_loaders import get_estimator_results_as_array
 from aeon.datasets.tsc_datasets import univariate_equal_length
 from aeon.utils.validation._dependencies import _check_soft_dependencies
-from aeon.visualisation import plot_boxplot_median
+from aeon.visualisation import plot_boxplot
 
 data_path = os.path.join(
     os.path.dirname(aeon.__file__),
@@ -20,8 +20,8 @@ data_path = os.path.join(
     not _check_soft_dependencies(["matplotlib", "seaborn"], severity="none"),
     reason="skip test if required soft dependency not available",
 )
-def test_plot_boxplot_median():
-    """Test plot_boxplot_median."""
+def test_plot_boxplot():
+    """Test plot_boxplot."""
     import matplotlib
     import matplotlib.pyplot as plt
 
@@ -34,25 +34,25 @@ def test_plot_boxplot_median():
         estimators=cls, datasets=data, path=data_path, include_missing=True
     )
 
-    fig, ax = plot_boxplot_median(res, cls, plot_type="violin")
+    fig, ax = plot_boxplot(res, cls, plot_type="violin")
     plt.gcf().canvas.draw_idle()
 
     assert isinstance(fig, plt.Figure) and isinstance(ax, plt.Axes)
 
-    fig, ax = plot_boxplot_median(res, cls, plot_type="boxplot", outliers=False)
+    fig, ax = plot_boxplot(res, cls, plot_type="boxplot", outliers=False)
     plt.gcf().canvas.draw_idle()
 
     assert isinstance(fig, plt.Figure) and isinstance(ax, plt.Axes)
 
-    fig, ax = plot_boxplot_median(res, cls, plot_type="swarm")
+    fig, ax = plot_boxplot(res, cls, plot_type="swarm")
     plt.gcf().canvas.draw_idle()
 
     assert isinstance(fig, plt.Figure) and isinstance(ax, plt.Axes)
 
-    fig, ax = plot_boxplot_median(res, cls, plot_type="strip")
+    fig, ax = plot_boxplot(res, cls, plot_type="strip")
     plt.gcf().canvas.draw_idle()
 
     assert isinstance(fig, plt.Figure) and isinstance(ax, plt.Axes)
 
     with pytest.raises(ValueError):
-        plot_boxplot_median(res, cls, plot_type="error")
+        plot_boxplot(res, cls, plot_type="error")

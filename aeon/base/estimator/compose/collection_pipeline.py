@@ -5,10 +5,17 @@ i.e. classification, regression and clustering.
 
 __maintainer__ = ["MatthewMiddlehurst"]
 
-import numpy as np
-from sklearn.base import BaseEstimator as SklearnBaseEstimator
 
-from aeon.base import BaseCollectionEstimator, BaseEstimator, _HeterogenousMetaEstimator
+import numpy as np
+from sklearn.base import BaseEstimator
+from sklearn.utils import check_random_state
+
+from aeon.base import (
+    BaseAeonEstimator,
+    BaseCollectionEstimator,
+    _HeterogenousMetaEstimator,
+)
+from aeon.base._base import _clone_estimator
 
 
 class BaseCollectionPipeline(_HeterogenousMetaEstimator, BaseCollectionEstimator):
@@ -20,12 +27,17 @@ class BaseCollectionPipeline(_HeterogenousMetaEstimator, BaseCollectionEstimator
         A transform or list of transformers to use prior to fitting or predicting.
         List of tuples (str, transformer) of transformers can also be passed, where
         the str is used to name the transformer.
-        The objecst are cloned prior, as such the state of the input will not be
+        The objects are cloned prior, as such the state of the input will not be
         modified by fitting the pipeline.
     _estimator : aeon or sklearn estimator
         A estimator to use at the end of the pipeline.
         The object is cloned prior, as such the state of the input will not be modified
         by fitting the pipeline.
+    random_state : int, RandomState instance or None, default=None
+        Random state used to fit the estimators. If None, no random state is set for
+        pipeline components (but they may still be seeded prior to input).
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
 
     Attributes
     ----------
@@ -40,9 +52,10 @@ class BaseCollectionPipeline(_HeterogenousMetaEstimator, BaseCollectionEstimator
     RegressorPipeline : A pipeline for regression tasks.
     """
 
-    def __init__(self, transformers, _estimator):
+    def __init__(self, transformers, _estimator, random_state=None):
         self.transformers = transformers
         self._estimator = _estimator
+        self.random_state = random_state
 
         self._steps = (
             [t for t in transformers]
@@ -54,17 +67,18 @@ class BaseCollectionPipeline(_HeterogenousMetaEstimator, BaseCollectionEstimator
         self._steps = self._check_estimators(
             self._steps,
             attr_name="_steps",
-            cls_type=SklearnBaseEstimator,
+            cls_type=BaseEstimator,
             clone_ests=False,
         )
 
         super().__init__()
 
-        # can handle multivariate if: both estimator and all transformers can
+        # can handle multivariate if: both estimator and all transformers can,
+        #   *or* transformer chain removes multivariate
         multivariate_tags = [
             (
                 e[1].get_tag("capability:multivariate", False, raise_error=False)
-                if isinstance(e[1], BaseEstimator)
+                if isinstance(e[1], BaseAeonEstimator)
                 else False
             )
             for e in self._steps
@@ -73,13 +87,13 @@ class BaseCollectionPipeline(_HeterogenousMetaEstimator, BaseCollectionEstimator
         multivariate_rm_tag = False
         for e in self._steps:
             if (
-                isinstance(e[1], BaseEstimator)
+                isinstance(e[1], BaseAeonEstimator)
                 and e[1].get_tag("capability:multivariate", False, raise_error=False)
                 and e[1].get_tag("output_data_type", raise_error=False) == "Tabular"
             ):
                 multivariate_rm_tag = True
                 break
-            elif not isinstance(e[1], BaseEstimator) or not e[1].get_tag(
+            elif not isinstance(e[1], BaseAeonEstimator) or not e[1].get_tag(
                 "capability:multivariate", False, raise_error=False
             ):
                 break
@@ -91,7 +105,7 @@ class BaseCollectionPipeline(_HeterogenousMetaEstimator, BaseCollectionEstimator
         missing_tags = [
             (
                 e[1].get_tag("capability:missing_values", False, raise_error=False)
-                if isinstance(e[1], BaseEstimator)
+                if isinstance(e[1], BaseAeonEstimator)
                 else False
             )
             for e in self._steps
@@ -100,15 +114,13 @@ class BaseCollectionPipeline(_HeterogenousMetaEstimator, BaseCollectionEstimator
         missing_rm_tag = False
         for e in self._steps:
             if (
-                isinstance(e[1], BaseEstimator)
+                isinstance(e[1], BaseAeonEstimator)
                 and e[1].get_tag("capability:missing_values", False, raise_error=False)
-                and e[1].get_tag(
-                    "capability:missing_values:removes", False, raise_error=False
-                )
+                and e[1].get_tag("removes_missing_values", False, raise_error=False)
             ):
                 missing_rm_tag = True
                 break
-            elif not isinstance(e[1], BaseEstimator) or not e[1].get_tag(
+            elif not isinstance(e[1], BaseAeonEstimator) or not e[1].get_tag(
                 "capability:missing_values", False, raise_error=False
             ):
                 break
@@ -121,7 +133,7 @@ class BaseCollectionPipeline(_HeterogenousMetaEstimator, BaseCollectionEstimator
         unequal_tags = [
             (
                 e[1].get_tag("capability:unequal_length", False, raise_error=False)
-                if isinstance(e[1], BaseEstimator)
+                if isinstance(e[1], BaseAeonEstimator)
                 else False
             )
             for e in self._steps
@@ -130,18 +142,16 @@ class BaseCollectionPipeline(_HeterogenousMetaEstimator, BaseCollectionEstimator
         unequal_rm_tag = False
         for e in self._steps:
             if (
-                isinstance(e[1], BaseEstimator)
+                isinstance(e[1], BaseAeonEstimator)
                 and e[1].get_tag("capability:unequal_length", False, raise_error=False)
                 and (
-                    e[1].get_tag(
-                        "capability:unequal_length:removes", False, raise_error=False
-                    )
+                    e[1].get_tag("removes_unequal_length", False, raise_error=False)
                     or e[1].get_tag("output_data_type", raise_error=False) == "Tabular"
                 )
             ):
                 unequal_rm_tag = True
                 break
-            elif not isinstance(e[1], BaseEstimator) or not e[1].get_tag(
+            elif not isinstance(e[1], BaseAeonEstimator) or not e[1].get_tag(
                 "capability:unequal_length", False, raise_error=False
             ):
                 break
@@ -167,9 +177,7 @@ class BaseCollectionPipeline(_HeterogenousMetaEstimator, BaseCollectionEstimator
         -------
         self : reference to self.
         """
-        self.steps_ = self._check_estimators(
-            self._steps, attr_name="steps_", cls_type=SklearnBaseEstimator
-        )
+        self._clone_steps()
 
         # fit transforms sequentially
         Xt = X
@@ -231,6 +239,8 @@ class BaseCollectionPipeline(_HeterogenousMetaEstimator, BaseCollectionEstimator
         -------
         Xt : transformed data
         """
+        self._clone_steps()
+
         # transform
         Xt = X
         for i in range(len(self.steps_)):
@@ -253,3 +263,18 @@ class BaseCollectionPipeline(_HeterogenousMetaEstimator, BaseCollectionEstimator
         for i in range(len(self.steps_)):
             Xt = self.steps_[i][1].transform(X=Xt)
         return Xt
+
+    def _clone_steps(self):
+        if self.random_state is not None:
+            rng = check_random_state(self.random_state)
+            self.steps_ = [
+                (
+                    step[0],
+                    _clone_estimator(
+                        step[1], random_state=rng.randint(np.iinfo(np.int32).max)
+                    ),
+                )
+                for step in self._steps
+            ]
+        else:
+            self.steps_ = [(step[0], _clone_estimator(step[1])) for step in self._steps]

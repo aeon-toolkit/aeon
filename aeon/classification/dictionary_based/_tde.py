@@ -257,7 +257,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         max_window_searches = self.n_timepoints_ / 4
         max_window = int(self.n_timepoints_ * self.max_win_len_prop)
 
-        if self.min_window >= max_window:
+        if self.min_window > max_window:
             self._min_window = max_window
             warnings.warn(
                 f"TemporalDictionaryEnsemble warning: min_window = "
@@ -410,13 +410,6 @@ class TemporalDictionaryEnsemble(BaseClassifier):
             n_cases, n_classes_).
 
         """
-        _, _, n_timepoints = X.shape
-        if n_timepoints != self.n_timepoints_:
-            raise TypeError(
-                "ERROR number of attributes in the train does not match "
-                "that in the test data"
-            )
-
         sums = np.zeros((X.shape[0], self.n_classes_))
 
         for n, clf in enumerate(self.estimators_):
@@ -537,7 +530,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         return correct / train_size
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -562,7 +555,6 @@ class TemporalDictionaryEnsemble(BaseClassifier):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         if parameter_set == "results_comparison":
             return {
@@ -668,8 +660,8 @@ class IndividualTDE(BaseClassifier):
     --------
     >>> from aeon.classification.dictionary_based import IndividualTDE
     >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
     >>> clf = IndividualTDE()
     >>> clf.fit(X_train, y_train)
     IndividualTDE(...)
@@ -1003,14 +995,14 @@ def histogram_intersection(first, second):
     """Find the distance between two histograms using the histogram intersection.
 
     This distance function is designed for sparse matrix, represented as a
-    dictionary or numba Dict, but can accept arrays.
+    dictionary or numba Dict, but can accept arrays in dense format.
 
     Parameters
     ----------
-    first : dict, numba.Dict or array
-        First dictionary used in distance measurement.
-    second : dict, numba.Dict or array
-        Second dictionary that will be used to measure distance from `first`.
+    first : dict, numba.Dict or 1 D array of integers
+        First histogram used in distance measurement.
+    second : dict, numba.Dict or 1 D array of integers
+        Second histogram that will be used to measure distance from `first`.
 
     Returns
     -------
@@ -1028,7 +1020,7 @@ def histogram_intersection(first, second):
     else:
         return np.sum(
             [
-                0 if first[n] == 0 else np.min(first[n], second[n])
+                0 if first[n] == 0 else np.minimum(first[n], second[n])
                 for n in range(len(first))
             ]
         )

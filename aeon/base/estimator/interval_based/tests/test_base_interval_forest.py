@@ -3,6 +3,7 @@
 import numpy as np
 import pytest
 from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import FunctionTransformer
 from sklearn.tree import DecisionTreeClassifier
 
 from aeon.base._base import _clone_estimator
@@ -14,7 +15,6 @@ from aeon.transformations.collection.feature_based import (
     Catch22,
     SevenNumberSummaryTransformer,
 )
-from aeon.transformations.func_transform import FunctionTransformer
 from aeon.utils.numba.stats import row_mean, row_numba_min
 
 
@@ -100,7 +100,7 @@ def test_interval_forest_n_intervals(n_intervals, n_intervals_len):
         series_transformers=[None, FunctionTransformer(np.log1p)],
         random_state=0,
     )
-    est._unit_test_flag = True
+    est.__unit_test_flag = True
     est.fit(X, y)
     est.predict_proba(X)
 
@@ -144,7 +144,7 @@ def test_interval_forest_attribute_subsample(features, output_len):
         replace_nan=0,
         random_state=0,
     )
-    est._unit_test_flag = True
+    est.__unit_test_flag = True
     est.fit(X, y)
     est.predict_proba(X)
 
@@ -184,7 +184,7 @@ def test_interval_forest_series_transformer(series_transformer):
         series_transformers=series_transformer,
         random_state=0,
     )
-    est._unit_test_flag = True
+    est.__unit_test_flag = True
     est.fit(X, y)
     est.predict_proba(X)
 

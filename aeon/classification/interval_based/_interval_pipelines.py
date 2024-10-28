@@ -94,7 +94,7 @@ class RandomIntervalClassifier(BaseClassifier):
     >>> clf.fit(X, y)
     RandomIntervalClassifier(...)
     >>> clf.predict(X)
-    array([0, 1, 0, 1, 0, 0, 0, 1, 1, 0])
+    array([0, 1, 0, 1, 0, 0, 1, 1, 1, 0])
     """
 
     _tags = {
@@ -163,9 +163,8 @@ class RandomIntervalClassifier(BaseClassifier):
             ),
             self.random_state,
         )
-
-        m = getattr(self._estimator, "n_jobs", None)
-        if m is not None:
+        m = hasattr(self._estimator, "n_jobs")
+        if m:
             self._estimator.n_jobs = self._n_jobs
 
         X_t = self._transformer.fit_transform(X, y)
@@ -212,7 +211,7 @@ class RandomIntervalClassifier(BaseClassifier):
             return dists
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -231,7 +230,6 @@ class RandomIntervalClassifier(BaseClassifier):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         from aeon.utils.numba.stats import row_mean, row_numba_min
 
@@ -403,9 +401,8 @@ class SupervisedIntervalClassifier(BaseClassifier):
             ),
             self.random_state,
         )
-
-        m = getattr(self._estimator, "n_jobs", None)
-        if m is not None:
+        m = hasattr(self._estimator, "n_jobs")
+        if m:
             self._estimator.n_jobs = self._n_jobs
 
         X_t = self._transformer.fit_transform(X, y)
@@ -452,7 +449,7 @@ class SupervisedIntervalClassifier(BaseClassifier):
             return dists
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -471,7 +468,6 @@ class SupervisedIntervalClassifier(BaseClassifier):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         from aeon.utils.numba.stats import row_mean, row_numba_min
 

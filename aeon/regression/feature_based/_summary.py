@@ -55,8 +55,8 @@ class SummaryRegressor(BaseRegressor):
     >>> from aeon.regression.feature_based import SummaryRegressor
     >>> from sklearn.ensemble import RandomForestRegressor
     >>> from aeon.datasets import load_covid_3month
-    >>> X_train, y_train = load_covid_3month(split="train", return_X_y=True)
-    >>> X_test, y_test = load_covid_3month(split="test", return_X_y=True)
+    >>> X_train, y_train = load_covid_3month(split="train")
+    >>> X_test, y_test = load_covid_3month(split="test")
     >>> clf = SummaryRegressor(estimator=RandomForestRegressor(n_estimators=5))
     >>> clf.fit(X_train, y_train)
     SummaryRegressor(...)
@@ -145,7 +145,7 @@ class SummaryRegressor(BaseRegressor):
         return self._estimator.predict(self._transformer.transform(X))
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -164,7 +164,6 @@ class SummaryRegressor(BaseRegressor):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         if parameter_set == "results_comparison":
             return {"estimator": RandomForestRegressor(n_estimators=10)}

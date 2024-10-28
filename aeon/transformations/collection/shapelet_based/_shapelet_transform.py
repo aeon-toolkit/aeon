@@ -9,6 +9,7 @@ __all__ = ["RandomShapeletTransform"]
 import heapq
 import math
 import time
+from typing import Optional
 
 import numpy as np
 from joblib import Parallel, delayed
@@ -25,7 +26,7 @@ from aeon.utils.validation import check_n_jobs
 class RandomShapeletTransform(BaseCollectionTransformer):
     """Random Shapelet Transform.
 
-    Implementation of the binary shapelet transform along the lines of [1]_[2]_, with
+    Implementation of the binary shapelet transform along the lines of [1]_, [2]_, with
     randomly extracted shapelets. A shapelet is a subsequence from the train set. The
     transform finds a set of shapelets that are good at separating the classes based on
     the distances between shapelets and whole series. The distance between a shapelet
@@ -63,10 +64,10 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         Upper bound on candidate shapelet lengths. If None no max length is used.
     remove_self_similar : boolean, default=True
         Remove overlapping "self-similar" shapelets when merging candidate shapelets.
-    time_limit_in_minutes : int, default=0
+    time_limit_in_minutes : float, default=0.0
         Time contract to limit build time in minutes, overriding n_shapelet_samples.
         Default of 0 means n_shapelet_samples is used.
-    contract_max_n_shapelet_samples : int, default=np.inf
+    contract_max_n_shapelet_samples : float, default=np.inf
         Max number of shapelets to extract when time_limit_in_minutes is set.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both `fit` and `transform`.
@@ -128,7 +129,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
     ...     RandomShapeletTransform
     ... )
     >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
+    >>> X_train, y_train = load_unit_test(split="train")
     >>> t = RandomShapeletTransform(
     ...     n_shapelet_samples=500,
     ...     max_shapelets=10,
@@ -144,25 +145,24 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         "capability:multivariate": True,
         "capability:unequal_length": True,
         "X_inner_type": ["np-list", "numpy3D"],
-        "y_inner_type": "numpy1D",
         "requires_y": True,
         "algorithm_type": "shapelet",
     }
 
     def __init__(
         self,
-        n_shapelet_samples=10000,
-        max_shapelets=None,
-        min_shapelet_length=3,
-        max_shapelet_length=None,
-        remove_self_similar=True,
-        time_limit_in_minutes=0.0,
-        contract_max_n_shapelet_samples=np.inf,
-        n_jobs=1,
+        n_shapelet_samples: int = 10000,
+        max_shapelets: Optional[int] = None,
+        min_shapelet_length: int = 3,
+        max_shapelet_length: Optional[int] = None,
+        remove_self_similar: bool = True,
+        time_limit_in_minutes: float = 0.0,
+        contract_max_n_shapelet_samples: float = np.inf,
+        n_jobs: int = 1,
         parallel_backend=None,
-        batch_size=100,
-        random_state=None,
-    ):
+        batch_size: Optional[int] = 100,
+        random_state: Optional[int] = None,
+    ) -> None:
         self.n_shapelet_samples = n_shapelet_samples
         self.max_shapelets = max_shapelets
         self.min_shapelet_length = min_shapelet_length
@@ -395,7 +395,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         return output
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -410,7 +410,6 @@ class RandomShapeletTransform(BaseCollectionTransformer):
             Parameters to create testing instances of the class
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`
         """
         if parameter_set == "results_comparison":
             return {"max_shapelets": 10, "n_shapelet_samples": 500}

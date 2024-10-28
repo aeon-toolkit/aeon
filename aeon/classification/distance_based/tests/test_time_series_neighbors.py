@@ -2,10 +2,9 @@
 
 import pytest
 
-from aeon.classification.distance_based._time_series_neighbors import (
-    KNeighborsTimeSeriesClassifier,
-)
+from aeon.classification.distance_based import KNeighborsTimeSeriesClassifier
 from aeon.datasets import load_unit_test
+from aeon.distances import get_distance_function
 
 distance_functions = [
     "euclidean",
@@ -33,7 +32,7 @@ expected_correct_window = {
     "euclidean": 19,
     "dtw": 21,
     "wdtw": 21,
-    "msm": 10,
+    "msm": 20,
     "erp": 19,
     "edr": 20,
     "lcss": 12,
@@ -65,8 +64,11 @@ def test_knn_bounding_matrix(distance_key):
         return
     X_train, y_train = load_unit_test(split="train")
     X_test, y_test = load_unit_test(split="test")
+
+    distance_callable = get_distance_function(distance_key)
+
     knn = KNeighborsTimeSeriesClassifier(
-        distance=distance_key, distance_params={"window": 0.5}
+        distance=distance_callable, distance_params={"window": 0.5}
     )
     knn.fit(X_train, y_train)
     pred = knn.predict(X_test)

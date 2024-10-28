@@ -94,8 +94,8 @@ class Catch22Regressor(BaseRegressor):
     >>> reg.fit(X, y)
     Catch22Regressor(...)
     >>> reg.predict(X)
-    array([0.66497445, 1.52167747, 0.73353397, 1.57550709, 0.46036267,
-           0.6494623 , 1.08156127, 1.09927538, 1.46025772, 0.37711294])
+    array([0.63821896, 1.0906666 , 0.58323551, 1.57550709, 0.48413489,
+           0.70976176, 1.33206165, 1.09927538, 1.51673405, 0.31683308])
     """
 
     _tags = {
@@ -195,7 +195,7 @@ class Catch22Regressor(BaseRegressor):
         return self._estimator.predict(self._transformer.transform(X))
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -214,7 +214,6 @@ class Catch22Regressor(BaseRegressor):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         if parameter_set == "results_comparison":
             return {

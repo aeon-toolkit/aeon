@@ -1,6 +1,6 @@
-"""Fully Convolutional Network (FCN) for classification."""
+"""Fully Convolutional Network (FCN) classifier."""
 
-__maintainer__ = []
+__maintainer__ = ["hadifawaz1999"]
 __all__ = ["FCNClassifier"]
 
 import gc
@@ -69,6 +69,8 @@ class FCNClassifier(BaseDeepClassifier):
         Whether or not to save the last model, last
         epoch trained, using the base class method
         save_last_model_to_file.
+    save_init_model : bool, default = False
+        Whether to save the initialization of the  model.
     best_file_name : str, default = "best_model"
         The name of the file of the best model, if
         save_best_model is set to False, this parameter
@@ -77,6 +79,10 @@ class FCNClassifier(BaseDeepClassifier):
         The name of the file of the last model, if
         save_last_model is set to False, this parameter
         is discarded.
+    init_file_name : str, default = "init_model"
+        The name of the file of the init model, if
+        save_init_model is set to False,
+        this parameter is discarded.
     callbacks : keras.callbacks, default = None
 
     Notes
@@ -93,8 +99,8 @@ class FCNClassifier(BaseDeepClassifier):
     --------
     >>> from aeon.classification.deep_learning import FCNClassifier
     >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
     >>> fcn = FCNClassifier(n_epochs=20, batch_size=4)  # doctest: +SKIP
     >>> fcn.fit(X_train, y_train)  # doctest: +SKIP
     FCNClassifier(...)
@@ -112,8 +118,10 @@ class FCNClassifier(BaseDeepClassifier):
         file_path="./",
         save_best_model=False,
         save_last_model=False,
+        save_init_model=False,
         best_file_name="best_model",
         last_file_name="last_model",
+        init_file_name="init_model",
         n_epochs=2000,
         batch_size=16,
         use_mini_batch_size=False,
@@ -145,7 +153,9 @@ class FCNClassifier(BaseDeepClassifier):
         self.file_path = file_path
         self.save_best_model = save_best_model
         self.save_last_model = save_last_model
+        self.save_init_model = save_init_model
         self.best_file_name = best_file_name
+        self.init_file_name = init_file_name
 
         self.history = None
 
@@ -238,6 +248,9 @@ class FCNClassifier(BaseDeepClassifier):
         self.input_shape = X.shape[1:]
         self.training_model_ = self.build_model(self.input_shape, self.n_classes_)
 
+        if self.save_init_model:
+            self.training_model_.save(self.file_path + self.init_file_name + ".keras")
+
         if self.verbose:
             self.training_model_.summary()
 
@@ -293,7 +306,7 @@ class FCNClassifier(BaseDeepClassifier):
         return self
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -312,7 +325,6 @@ class FCNClassifier(BaseDeepClassifier):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         param1 = {
             "n_epochs": 10,

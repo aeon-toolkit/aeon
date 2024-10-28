@@ -303,3 +303,11 @@ def test_all_reverse_windowing_implementations_equal(ws):
     np.testing.assert_array_equal(res_vec, res_strided)
     np.testing.assert_array_equal(res_vec, res_iter)
     np.testing.assert_array_equal(res_strided, res_iter)
+
+
+def test_wrong_input():
+    """Test error raises."""
+    with pytest.raises(
+        ValueError, match="padding_length must be provided when stride " "is not 1"
+    ):
+        reverse_windowing(_DATA[:9], window_size=2, stride=2)

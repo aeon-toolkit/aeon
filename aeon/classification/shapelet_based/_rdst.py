@@ -1,13 +1,13 @@
 """Random Dilated Shapelet Transform (RDST) Classifier.
 
 A Random Dilated Shapelet Transform classifier pipeline that simply performs a random
-shapelet dilated transform and build (by default) a ridge classifier on the output.
+shapelet dilated transform and builds (by default) a ridge classifier on the output.
 """
 
 __maintainer__ = ["baraline"]
 __all__ = ["RDSTClassifier"]
 
-from typing import List, Type, Union
+from typing import Union
 
 import numpy as np
 from sklearn.linear_model import RidgeClassifierCV
@@ -26,22 +26,22 @@ class RDSTClassifier(BaseClassifier):
     A random dilated shapelet transform (RDST) classifier.
 
     Implementation of the random dilated shapelet transform classifier pipeline
-    along the lines of [1]_[2]_. Transforms the data using the
+    along the lines of [1]_, [2]_. Transforms the data using the
     `RandomDilatedShapeletTransform` and then builds a `RidgeClassifierCV` classifier
-    with standard scalling.
+    with standard scaling.
 
     Parameters
     ----------
     max_shapelets : int, default=10000
-        The maximum number of shapelet to keep for the final transformation.
-        A lower number of shapelets can be kept if alpha similarity have discarded the
+        The maximum number of shapelets to keep for the final transformation.
+        A lower number of shapelets can be kept if alpha similarity has discarded the
         whole dataset.
     shapelet_lengths : array, default=None
-        The set of possible length for shapelets. Each shapelet length is uniformly
-        drawn from this set. If None, the shapelets length will be equal to
+        The set of possible lengths for shapelets. Each shapelet length is uniformly
+        drawn from this set. If None, the shapelet length will be equal to
         min(max(2,n_timepoints//2),11).
     proba_normalization : float, default=0.8
-        This probability (between 0 and 1) indicate the chance of each shapelet to be
+        This probability (between 0 and 1) indicates the chance of each shapelet to be
         initialized such as it will use a z-normalized distance, inducing either scale
         sensitivity or invariance. A value of 1 would mean that all shapelets will use
         a z-normalized distance.
@@ -50,22 +50,19 @@ class RDSTClassifier(BaseClassifier):
         Occurrence feature. If None, the 5th and the 10th percentiles (i.e. [5,10])
         will be used.
     alpha_similarity : float, default=0.5
-        The strenght of the alpha similarity pruning. The higher the value, the lower
-        the allowed number of common indexes with previously sampled shapelets
-        when sampling a new candidate with the same dilation parameter.
-        It can cause the number of sampled shapelets to be lower than max_shapelets if
-        the whole search space has been covered. The default is 0.5, and the maximum is
-        1. Value above it have no effect for now.
+        The strength of the alpha similarity pruning. The higher the value, the fewer
+        common indexes with previously sampled shapelets are allowed when sampling a
+        new candidate with the same dilation parameter. It can cause the number of
+        sampled shapelets to be lower than max_shapelets if the whole search space has
+        been covered. The default is 0.5, and the maximum is 1. Values above it have
+        no effect for now.
     use_prime_dilations : bool, default=False
-        If True, restrict the value of the shapelet dilation parameter to be prime
+        If True, restricts the value of the shapelet dilation parameter to be prime
         values. This can greatly speed-up the algorithm for long time series and/or
-        short shapelet length, possibly at the cost of some accuracy.
-    distance: str="manhattan"
-        Name of the distance function to be used. By default this is the
-        manhattan distance. Other distances from the aeon distance modules can be used.
+        short shapelet lengths, possibly at the cost of some accuracy.
     estimator : BaseEstimator or None, default=None
         Base estimator for the ensemble, can be supplied a sklearn `BaseEstimator`. If
-        `None` a default `RidgeClassifierCV` classifier is used with standard scalling.
+        `None` a default `RidgeClassifierCV` classifier is used with standard scaling.
     save_transformed_data : bool, default=False
         If True, the transformed training dataset for all classifiers will be saved.
     class_weight{“balanced”, “balanced_subsample”}, dict or list of dicts, default=None
@@ -120,8 +117,8 @@ class RDSTClassifier(BaseClassifier):
     --------
     >>> from aeon.classification.shapelet_based import RDSTClassifier
     >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
     >>> clf = RDSTClassifier(
     ...     max_shapelets=10
     ... )
@@ -135,7 +132,7 @@ class RDSTClassifier(BaseClassifier):
         "capability:unequal_length": True,
         "capability:multithreading": True,
         "X_inner_type": ["np-list", "numpy3D"],
-        "non-deterministic": True,  # due to random_state bug in MacOS #324
+        "non_deterministic": True,  # due to random_state bug in MacOS #324
         "algorithm_type": "shapelet",
     }
 
@@ -147,12 +144,11 @@ class RDSTClassifier(BaseClassifier):
         threshold_percentiles=None,
         alpha_similarity: float = 0.5,
         use_prime_dilations: bool = False,
-        distance: str = "manhattan",
         estimator=None,
         save_transformed_data: bool = False,
         class_weight=None,
         n_jobs: int = 1,
-        random_state: Union[int, Type[np.random.RandomState], None] = None,
+        random_state: Union[int, np.random.RandomState, None] = None,
     ) -> None:
         self.max_shapelets = max_shapelets
         self.shapelet_lengths = shapelet_lengths
@@ -160,7 +156,6 @@ class RDSTClassifier(BaseClassifier):
         self.threshold_percentiles = threshold_percentiles
         self.alpha_similarity = alpha_similarity
         self.use_prime_dilations = use_prime_dilations
-        self.distance = distance
         self.estimator = estimator
         self.save_transformed_data = save_transformed_data
         self.class_weight = class_weight
@@ -203,7 +198,6 @@ class RDSTClassifier(BaseClassifier):
             use_prime_dilations=self.use_prime_dilations,
             n_jobs=self.n_jobs,
             random_state=self.random_state,
-            distance=self.distance,
         )
         if self.estimator is None:
             self._estimator = make_pipeline(
@@ -234,7 +228,7 @@ class RDSTClassifier(BaseClassifier):
         Parameters
         ----------
         X: np.ndarray shape (n_cases, n_channels, n_timepoints)
-            The data to make prediction for.
+            The data to make predictions for.
 
         Returns
         -------
@@ -246,12 +240,12 @@ class RDSTClassifier(BaseClassifier):
         return self._estimator.predict(X_t)
 
     def _predict_proba(self, X) -> np.ndarray:
-        """Predicts labels probabilities for sequences in X.
+        """Predicts label probabilities for sequences in X.
 
         Parameters
         ----------
         X: np.ndarray shape (n_cases, n_channels, n_timepoints)
-            The data to make predict probabilities for.
+            The data to predict probabilities for.
 
         Returns
         -------
@@ -271,7 +265,9 @@ class RDSTClassifier(BaseClassifier):
             return dists
 
     @classmethod
-    def get_test_params(cls, parameter_set: str = "default") -> Union[dict, List[dict]]:
+    def _get_test_params(
+        cls, parameter_set: str = "default"
+    ) -> Union[dict, list[dict]]:
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -290,6 +286,5 @@ class RDSTClassifier(BaseClassifier):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         return {"max_shapelets": 20}

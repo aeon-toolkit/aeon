@@ -1,15 +1,16 @@
 """Functions to load and collate results from timeseriesclassification.com."""
 
+__maintainer__ = ["TonyBagnall", "MatthewMiddlehurst"]
 __all__ = [
     "estimator_alias",
     "get_available_estimators",
     "get_estimator_results",
     "get_estimator_results_as_array",
 ]
-__maintainer__ = []
 
 
 from http.client import IncompleteRead, RemoteDisconnected
+from typing import Union
 from urllib.error import HTTPError, URLError
 
 import numpy as np
@@ -26,144 +27,128 @@ VALID_RESULT_MEASURES = {
 }
 
 NAME_ALIASES = {
-    "Arsenal": {"ARSENAL", "TheArsenal", "AFC", "ArsenalClassifier"},
-    "BOSS": {"TheBOSS", "boss", "BOSSClassifier", "BOSSEnsemble"},
-    "cBOSS": {"CBOSS", "CBOSSClassifier", "cboss", "ContractableBOSS"},
-    "CIF": {
-        "CanonicalIntervalForest",
-        "CIFClassifier",
-        "CanonicalIntervalForestClassifier",
-    },
-    "CNN": {"cnn", "CNNClassifier", "CNNRegressor"},
-    "Catch22": {"catch22", "Catch22Classifier"},
-    "DrCIF": {"DrCIF", "DrCIFClassifier", "DrCIFRegressor"},
-    "EE": {"ElasticEnsemble", "EEClassifier", "ElasticEnsembleClassifier"},
-    "FreshPRINCE": {
-        "FP",
-        "freshPrince",
-        "FreshPrince",
-        "FreshPRINCEClassifier",
-        "FreshPRINCERegressor",
-    },
-    "GRAIL": {"GRAILClassifier", "grail"},
-    "HC1": {"HIVECOTE1", "HIVECOTEV1", "hc", "HIVE-COTEv1"},
-    "HC2": {"HIVECOTE2", "HIVECOTEV2", "hc2", "HIVE-COTE", "HIVE-COTEv2"},
-    "Hydra": {"hydra", "HydraClassifier"},
-    "H-InceptionTime": {
-        "H-IT",
-        "H-InceptionT",
-        "h-inceptiontime",
-        "H-InceptionTimeClassifier",
-    },
-    "InceptionTime": {
-        "IT",
-        "InceptionT",
-        "inceptiontime",
-        "InceptionTimeClassifier",
-        "InceptionTimeRegressor",
-    },
-    "LiteTime": {
-        "LiteTimeClassifier",
-        "litetime",
-        "LITE",
-        "LITETimeClassifier",
-        "LITETime",
-    },
-    "MiniROCKET": {"MiniRocket", "MiniROCKETClassifier"},
-    "MrSQM": {"mrsqm", "MrSQMClassifier"},
-    "MR-Hydra": {
+    # convolution based
+    "Arsenal": ["TheArsenal", "AFC", "ArsenalClassifier"],
+    "ROCKET": ["ROCKETClassifier", "ROCKETRegressor"],
+    "MiniROCKET": ["MiniROCKETClassifier"],
+    "MR": ["MultiROCKET", "MultiROCKETClassifier", "MultiROCKETRegressor"],
+    "Hydra": ["hydraclassifier"],
+    "MR-Hydra": [
         "Hydra-MultiROCKET",
         "Hydra-MR",
         "MultiROCKET-Hydra",
         "HydraMR",
         "MultiRocketHydraClassifier",
         "MultiRocketHydra",
-    },
-    "MR": {
-        "MultiRocket",
-        "MultiROCKETClassifier",
-        "MultiROCKETRegressor",
-        "MultiROCKET",
-    },
-    "PF": {"ProximityForest", "ProximityForestV1", "PFV1"},
-    "QUANT": {"quant", "QuantileForestClassifier", "QUANTClassifier"},
-    "RDST": {"rdst", "RandomDilationShapeletTransform", "RDSTClassifier"},
-    "RISE": {
+    ],
+    # deep learning
+    "CNN": [
+        "CNNClassifier",
+        "CNNRegressor",
+        "TimeCNNClassifier",
+        "TimeCNNRegressor",
+    ],
+    "FCN": ["FCNRegressor"],
+    "ResNet": ["ResNetClassifier", "ResNetRegressor"],
+    "SingleInceptionTime": ["SIT", "SingleInceptionT", "SingleInceptionTimeRegressor"],
+    "InceptionTime": [
+        "IT",
+        "InceptionT",
+        "InceptionTimeClassifier",
+        "InceptionTimeRegressor",
+    ],
+    "H-InceptionTime": ["H-IT", "H-InceptionT", "H-InceptionTimeClassifier"],
+    "LiteTime": ["LITE", "LITETimeClassifier"],
+    # dictionary based
+    "BOSS": ["theboss", "bossclassifier", "bossensemble"],
+    "cBOSS": ["CBOSSClassifier", "ContractableBOSS"],
+    "TDE": ["TDEClassifier", "TemporalDictionaryEnsemble"],
+    "WEASEL-1.0": ["WEASEL", "WEASEL1", "WEASEL 1.0"],
+    "WEASEL-2.0": ["WEASEL-D", "WEASEL-Dilation", "WEASEL2", "WEASEL 2.0", "WEASEL_V2"],
+    "MrSQM": ["MrSQMClassifier"],
+    # distance based
+    "1NN-DTW": [
+        "1NNDTW",
+        "KNeighborsTimeSeriesRegressor",
+        "KNeighborsTimeSeriesClassifier",
+        "KNeighborsTimeSeries",
+    ],
+    "5NN-DTW": ["5NNDTW"],
+    "1NN-ED": ["1NNED"],
+    "5NN-ED": ["5NNED"],
+    "ShapeDTW": ["ShapeDTWClassifier"],  # bad results?
+    "GRAIL": ["GRAILClassifier"],
+    "EE": ["ElasticEnsemble", "EEClassifier", "ElasticEnsembleClassifier"],
+    "PF": ["ProximityForest", "ProximityForestV1", "PFV1"],
+    # feature based
+    "Catch22": ["Catch22Classifier"],
+    "FreshPRINCE": [
+        "FP",
+        "FreshPRINCEClassifier",
+        "FreshPRINCERegressor",
+    ],
+    "Signatures": ["SignaturesClassifier", "SignatureClassifier", "Signature"],
+    "TSFresh": ["TSFreshClassifier"],
+    "FPCR": ["FPCRRegressor"],
+    "FPCR-b-spline": ["FPCRBSplineRegressor"],
+    # hybrid
+    "HC1": ["hivecote1", "hivecotev1", "hive-cotev1"],
+    "HC2": ["hivecote2", "hivecotev2", "hive-cote", "hive-cotev2"],
+    "TS-CHIEF": ["TSCHIEF", "TS_CHIEF"],
+    "RIST": ["RISTClassifier"],
+    # interval based
+    "TSF": ["TimeSeriesForest", "TimeSeriesForestClassifier"],
+    "RISE": [
         "RISEClassifier",
-        "rise",
         "RandomIntervalSpectralEnsembleClassifier",
         "RandomIntervalSpectralEnsemble",
-    },
-    "RIST": {"RISTClassifier", "rist"},
-    "ROCKET": {"Rocket", "RocketClassifier", "ROCKETClassifier", "ROCKETRegressor"},
-    "RSF": {"rsf", "RSFClassifier"},
-    "R-STSF": {"R_RSTF", "RandomSTF", "RSTFClassifier", "RSTSF"},
-    "ResNet": {"resnet", "ResNetClassifier", "ResNetRegressor"},
-    "STC": {
+    ],
+    "CIF": [
+        "CanonicalIntervalForest",
+        "CIFClassifier",
+        "CanonicalIntervalForestClassifier",
+    ],
+    "DrCIF": ["DrCIFClassifier", "DrCIFRegressor"],
+    "STSF": ["STSFClassifier", "SupervisedTimeSeriesForest"],
+    "R-STSF": ["R_RSTF", "RandomSTF", "RSTFClassifier", "RSTSF"],
+    "QUANT": ["QuantileForestClassifier", "QUANTClassifier"],
+    # shapelet based
+    "STC": [
         "ShapeletTransform",
         "STCClassifier",
         "RandomShapeletTransformClassifier",
         "ShapeletTransformClassifier",
-    },
-    "STSF": {"stsf", "STSFClassifier", "SupervisedTimeSeriesForest"},
-    "ShapeDTW": {"ShapeDTWClassifier"},
-    "Signatures": {"SignaturesClassifier", "SignatureClassifier", "Signature"},
-    "TDE": {"tde", "TDEClassifier", "TemporalDictionaryEnsemble"},
-    "TS-CHIEF": {"TSCHIEF", "TS_CHIEF"},
-    "TSF": {"tsf", "TimeSeriesForest", "TimeSeriesForestClassifier"},
-    "TSFresh": {"tsfresh", "TSFreshClassifier"},
-    "WEASEL-1.0": {"WEASEL", "WEASEL2", "weasel", "WEASEL 1.0"},
-    "WEASEL-2.0": {"WEASEL-D", "WEASEL-Dilation", "WEASEL2", "weasel 2.0", "WEASEL_V2"},
-    "1NN-DTW": {
-        "1NNDTW",
-        "1nn-dtw",
-        "KNeighborsTimeSeriesRegressor",
-        "KNeighborsTimeSeriesClassifier",
-        "KNeighborsTimeSeries",
-    },
-    "1NN-ED": {
-        "1NNED",
-        "1nn-ed",
-        "1nned",
-    },
-    "5NN-ED": {
-        "5NNED",
-        "5nn-ed",
-        "5nned",
-    },
-    # Clustering
-    "dtw-dba": {"DTW-DBA"},
-    "kmeans-ed": {"ed-kmeans", "kmeans-euclidean", "k-means-ed", "KMeans-ED"},
-    "kmeans-dtw": {"dtw-kmeans", "k-means-dtw", "KMeans-DTW"},
-    "kmeans-msm": {"msm-kmeans", "k-means-msm", "KMeans-MSM"},
-    "kmeans-twe": {"twe-kmeans", "k-means-twe", "KMeans-TWE"},
-    "kmeans-ddtw": {"ddtw-kmeans"},
-    "kmeans-edr": {"edr-kmeans"},
-    "kmeans-erp": {"erp-kmeans"},
-    "kmeans-lcss": {"lcss-kmeans"},
-    "kmeans-wdtw": {"wdtw-kmeans"},
-    "kmeans-wddtw": {"msm-kmeans"},
-    "kmedoids-ed": {"ed-kmedoids", "k-medoids-ed", "KMedoids-ED"},
-    "kmedoids-dtw": {"dtw-kmedoids", "k-medoids-dtw", "KMedoids-DTW"},
-    "kmedoids-msm": {"msm-kmedoids", "k-medoids-msm", "KMedoids-MSM"},
-    "kmedoids-twe": {"twe-kmedoids", "k-medoids-twe", "KMedoids-TWE"},
-    "kmedoids-ddtw": {"ddtw-kmeans"},
-    "kmedoids-edr": {"edr-kmedoids"},
-    "kmedoids-erp": {"erp-kmedoids"},
-    "kmedoids-lcss": {"lcss-kmedoids"},
-    "kmedoids-wdtw": {"wdtw-kmedoids"},
-    "kmedoids-wddtw": {"msm-kmedoids"},
-    # Regression only
-    "FCN": {"fcn", "FCNRegressor"},
-    "FPCR": {"fpcr", "FPCRRegressor"},
-    "FPCR-b-spline": {"fpcr-b-spline", "FPCRBSplineRegressor"},
-    "GridSVR": {"gridSVR", "GridSVRRegressor"},
-    "RandF": {"randf", "RandFRegressor"},
-    "RotF": {"rotf", "RotFRegressor"},
-    "Ridge": {"ridge", "RidgeRegressor"},
-    "SingleInceptionTime": {"SIT", "SingleInceptionT", "SingleInceptionTimeRegressor"},
-    "XGBoost": {"xgboost", "XGBoostRegressor"},
-    "5NN-DTW": {"5NNDTW", "5nn-dtw"},
+    ],
+    "RSF": ["RSFClassifier"],
+    "RDST": ["RandomDilationShapeletTransform", "RDSTClassifier"],
+    # distance clustering
+    "dtw-dba": [],
+    "kmeans-ed": ["ed-kmeans", "kmeans-euclidean", "k-means-ed"],
+    "kmeans-dtw": ["dtw-kmeans", "k-means-dtw"],
+    "kmeans-msm": ["msm-kmeans", "k-means-msm"],
+    "kmeans-twe": ["twe-kmeans", "k-means-twe"],
+    "kmeans-ddtw": ["ddtw-kmeans"],
+    "kmeans-edr": ["edr-kmeans"],
+    "kmeans-erp": ["erp-kmeans"],
+    "kmeans-lcss": ["lcss-kmeans"],
+    "kmeans-wdtw": ["wdtw-kmeans"],
+    "kmeans-wddtw": ["msm-kmeans"],
+    "kmedoids-ed": ["ed-kmedoids", "k-medoids-ed"],
+    "kmedoids-dtw": ["dtw-kmedoids", "k-medoids-dtw"],
+    "kmedoids-msm": ["msm-kmedoids", "k-medoids-msm"],
+    "kmedoids-twe": ["twe-kmedoids", "k-medoids-twe"],
+    "kmedoids-ddtw": ["ddtw-kmeans"],
+    "kmedoids-edr": ["edr-kmedoids"],
+    "kmedoids-erp": ["erp-kmedoids"],
+    "kmedoids-lcss": ["lcss-kmedoids"],
+    "kmedoids-wdtw": ["wdtw-kmedoids"],
+    "kmedoids-wddtw": ["msm-kmedoids"],
+    # vector classifiers
+    "GridSVR": ["GridSVRRegressor"],
+    "RandF": ["RandFRegressor"],
+    "RotF": ["RotFRegressor"],
+    "Ridge": ["RidgeRegressor"],
+    "XGBoost": ["XGBoostRegressor"],
 }
 
 CONNECTION_ERRORS = [
@@ -182,12 +167,12 @@ def estimator_alias(name: str) -> str:
     Parameters
     ----------
     name: str
-        Name of an estimator.
+        Name of an estimator. Not case-sensitive.
 
     Returns
     -------
     name: str
-        Standardized name as defined by NAME_ALIASES.
+        Standardised name as defined by NAME_ALIASES.
 
     Examples
     --------
@@ -195,32 +180,35 @@ def estimator_alias(name: str) -> str:
     >>> estimator_alias("HIVECOTEV2")
     'HC2'
     """
-    if name in NAME_ALIASES:
-        return name
+    nl = name.lower()
     for name_key in NAME_ALIASES.keys():
-        if name in NAME_ALIASES[name_key]:
+        if nl == name_key.lower():
             return name_key
+        for alias in NAME_ALIASES[name_key]:
+            if nl == alias.lower():
+                return name_key
     raise ValueError(
         f"Unknown estimator name {name}. For a list of valid names and allowed "
-        "aliases, see NAME_ALIASES in aeon/benchmarking/results_loaders.py. Note "
-        "that estimator names are case sensitive."
+        "aliases, see NAME_ALIASES in aeon/benchmarking/results_loaders.py."
     )
 
 
-def get_available_estimators(task="classification", return_dataframe=True):
-    """Get a list of estimators avialable for a specific task.
+def get_available_estimators(
+    task: str = "classification", as_list: bool = False
+) -> Union[pd.DataFrame, list]:
+    """Get a DataFrame of estimators avialable for a specific learning task.
 
     Parameters
     ----------
-    task : str, default="classification"
-        Should be one of "classification","clustering","regression". This is not case
-        sensitive.
-    return_dataframe : boolean, default = True
-        If false, returns a list.
+    task: str, default="classification"
+        A learning task contained within VALID_TASK_TYPES i.e. "classification",
+        "clustering", "regression". Not case-sensitive.
+    as_list: boolean, default=False
+        If True, returns a list instead of a dataframe.
 
     Returns
     -------
-    pd.DataFrame or List
+    data: pd.DataFrame or list
         Standardised name as defined by NAME_ALIASES.
 
     Examples
@@ -231,17 +219,14 @@ def get_available_estimators(task="classification", return_dataframe=True):
     t = task.lower()
     if t not in VALID_TASK_TYPES:
         raise ValueError(
-            f" task {t} is not available on tsc.com, must be one of {VALID_TASK_TYPES}"
+            f"Learning task {t} is not available on timeseriesclassification.com, must "
+            f"be one of {VALID_TASK_TYPES}"
         )
-    path = (
+    data = pd.read_csv(
         f"http://timeseriesclassification.com/results/ReferenceResults/"
         f"{t}/estimators.txt"
     )
-    data = pd.read_csv(path)
-    if return_dataframe:
-        return data
-    else:
-        return data.iloc[:, 0].tolist()
+    return data.iloc[:, 0].tolist() if as_list else data
 
 
 # temporary function due to legacy format

@@ -6,17 +6,7 @@ from sklearn.metrics import accuracy_score
 
 from aeon.classification.distance_based import ProximityTree
 from aeon.classification.distance_based._proximity_tree import gini, gini_gain
-from aeon.testing.data_generation import make_example_3d_numpy
-
-
-@pytest.fixture
-def time_series_dataset():
-    """Generate time series dataset for testing."""
-    n_samples = 100  # Total number of samples (should be even)
-    n_timepoints = 24  # Length of each time series
-    n_channels = 1
-    data, labels = make_example_3d_numpy(n_samples, n_channels, n_timepoints)
-    return data, labels
+from aeon.datasets import load_unit_test
 
 
 def test_gini():
@@ -110,9 +100,9 @@ def test_get_parameter_value():
             assert measure_params["c"] in [10**i for i in range(-2, 3)]
 
 
-def test_get_cadidate_splitter(time_series_dataset):
+def test_get_cadidate_splitter():
     """Test the method to generate candidate splitters."""
-    X, y = time_series_dataset
+    X, y = load_unit_test()
     clf = ProximityTree()
     splitter = clf._get_candidate_splitter(X, y)
     assert len(splitter) == 2
@@ -132,9 +122,9 @@ def test_get_cadidate_splitter(time_series_dataset):
     assert measure in expected_measures
 
 
-def test_get_best_splitter(time_series_dataset):
+def test_get_best_splitter():
     """Test the method to get optimum splitter of a node."""
-    X, y = time_series_dataset
+    X, y = load_unit_test()
     clf = ProximityTree(n_splitters=3)
 
     splitter = clf._get_best_splitter(X, y)
@@ -146,12 +136,12 @@ def test_get_best_splitter(time_series_dataset):
     assert len(splitter) == 2
 
 
-def test_proximity_tree(time_series_dataset):
+def test_proximity_tree():
     """Test the fit method of ProximityTree."""
-    X, y = time_series_dataset
-    clf = ProximityTree(n_splitters=3, max_depth=4)
+    X, y = load_unit_test()
+    clf = ProximityTree(n_splitters=3, max_depth=4, random_state=42)
     clf.fit(X, y)
-    X_test, y_test = time_series_dataset
+    X_test, y_test = load_unit_test(split="train")
     y_pred = clf.predict(X_test)
     score = accuracy_score(y_test, y_pred)
     assert score >= 0.9

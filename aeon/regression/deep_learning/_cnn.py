@@ -1,7 +1,7 @@
-"""Time Convolutional Neural Network (CNN) for regression."""
+"""Time Convolutional Neural Network (TimeCNN) regressor."""
 
-__maintainer__ = []
-__all__ = ["CNNRegressor"]
+__maintainer__ = ["hadifawaz1999"]
+__all__ = ["TimeCNNRegressor"]
 
 import gc
 import os
@@ -10,11 +10,11 @@ from copy import deepcopy
 
 from sklearn.utils import check_random_state
 
-from aeon.networks import CNNNetwork
+from aeon.networks import TimeCNNNetwork
 from aeon.regression.deep_learning.base import BaseDeepRegressor
 
 
-class CNNRegressor(BaseDeepRegressor):
+class TimeCNNRegressor(BaseDeepRegressor):
     """Time Series Convolutional Neural Network (CNN).
 
     Adapted from the implementation used in [1]_.
@@ -86,6 +86,8 @@ class CNNRegressor(BaseDeepRegressor):
         Whether or not to save the last model, last
         epoch trained, using the base class method
         save_last_model_to_file
+    save_init_model : bool, default = False
+        Whether to save the initialization of the  model.
     best_file_name      : str, default = "best_model"
         The name of the file of the best model, if
         save_best_model is set to False, this parameter
@@ -94,6 +96,9 @@ class CNNRegressor(BaseDeepRegressor):
         The name of the file of the last model, if
         save_last_model is set to False, this parameter
         is discarded
+    init_file_name : str, default = "init_model"
+        The name of the file of the init model, if save_init_model is set to False,
+        this parameter is discarded.
 
     Notes
     -----
@@ -107,14 +112,14 @@ class CNNRegressor(BaseDeepRegressor):
 
     Examples
     --------
-    >>> from aeon.regression.deep_learning import CNNRegressor
+    >>> from aeon.regression.deep_learning import TimeCNNRegressor
     >>> from aeon.testing.data_generation import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
     ...                              return_y=True, regression_target=True,
     ...                              random_state=0)
-    >>> rgs = CNNRegressor(n_epochs=20, bacth_size=4) # doctest: +SKIP
+    >>> rgs = TimeCNNRegressor(n_epochs=20, bacth_size=4) # doctest: +SKIP
     >>> rgs.fit(X, y) # doctest: +SKIP
-    CNNRegressor(...)
+    TimeCNNRegressor(...)
     """
 
     def __init__(
@@ -133,8 +138,10 @@ class CNNRegressor(BaseDeepRegressor):
         file_path="./",
         save_best_model=False,
         save_last_model=False,
+        save_init_model=False,
         best_file_name="best_model",
         last_file_name="last_model",
+        init_file_name="init_model",
         verbose=False,
         loss="mse",
         output_activation="linear",
@@ -151,7 +158,9 @@ class CNNRegressor(BaseDeepRegressor):
         self.file_path = file_path
         self.save_best_model = save_best_model
         self.save_last_model = save_last_model
+        self.save_init_model = save_init_model
         self.best_file_name = best_file_name
+        self.init_file_name = init_file_name
         self.strides = strides
         self.dilation_rate = dilation_rate
         self.callbacks = callbacks
@@ -172,7 +181,7 @@ class CNNRegressor(BaseDeepRegressor):
             last_file_name=last_file_name,
         )
 
-        self._network = CNNNetwork(
+        self._network = TimeCNNNetwork(
             n_layers=self.n_layers,
             kernel_size=self.kernel_size,
             n_filters=self.n_filters,
@@ -253,6 +262,9 @@ class CNNRegressor(BaseDeepRegressor):
         self.input_shape = X.shape[1:]
         self.training_model_ = self.build_model(self.input_shape)
 
+        if self.save_init_model:
+            self.training_model_.save(self.file_path + self.init_file_name + ".keras")
+
         if self.verbose:
             self.training_model_.summary()
 
@@ -300,7 +312,7 @@ class CNNRegressor(BaseDeepRegressor):
         return self
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -319,7 +331,6 @@ class CNNRegressor(BaseDeepRegressor):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         param = {
             "n_epochs": 10,

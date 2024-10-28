@@ -209,7 +209,7 @@ class Catch22Clusterer(BaseClusterer):
             n_clusters = self.n_clusters
             if n_clusters is None:
                 n_clusters = int(max(preds)) + 1
-            dists = np.zeros((X.shape[0], n_clusters))
+            dists = np.zeros((len(X), n_clusters))
             for i in range(n_cases):
                 dists[i, preds[i]] = 1
             return dists
@@ -218,7 +218,7 @@ class Catch22Clusterer(BaseClusterer):
         raise NotImplementedError("Catch22Clusterer does not support scoring.")
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -233,7 +233,6 @@ class Catch22Clusterer(BaseClusterer):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         return {
             "features": (

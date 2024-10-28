@@ -1,6 +1,6 @@
-"""InceptionTime classifier."""
+"""InceptionTime and Inception classifiers."""
 
-__maintainer__ = []
+__maintainer__ = ["hadifawaz1999"]
 __all__ = ["InceptionTimeClassifier"]
 
 import gc
@@ -103,6 +103,8 @@ class InceptionTimeClassifier(BaseClassifier):
         Whether or not to save the last model, last
         epoch trained, using the base class method
         save_last_model_to_file
+    save_init_model : bool, default = False
+        Whether to save the initialization of the  model.
     best_file_name      : str, default = "best_model"
         The name of the file of the best model, if
         save_best_model is set to False, this parameter
@@ -111,6 +113,9 @@ class InceptionTimeClassifier(BaseClassifier):
         The name of the file of the last model, if
         save_last_model is set to False, this parameter
         is discarded
+    init_file_name : str, default = "init_model"
+        The name of the file of the init model, if save_init_model is set to False,
+        this parameter is discarded.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -155,8 +160,8 @@ class InceptionTimeClassifier(BaseClassifier):
     _tags = {
         "python_dependencies": "tensorflow",
         "capability:multivariate": True,
-        "non-deterministic": True,
-        "cant-pickle": True,
+        "non_deterministic": True,
+        "cant_pickle": True,
         "algorithm_type": "deeplearning",
     }
 
@@ -181,8 +186,10 @@ class InceptionTimeClassifier(BaseClassifier):
         file_path="./",
         save_last_model=False,
         save_best_model=False,
+        save_init_model=False,
         best_file_name="best_model",
         last_file_name="last_model",
+        init_file_name="init_model",
         batch_size=64,
         use_mini_batch_size=False,
         n_epochs=1500,
@@ -218,8 +225,10 @@ class InceptionTimeClassifier(BaseClassifier):
 
         self.save_last_model = save_last_model
         self.save_best_model = save_best_model
+        self.save_init_model = save_init_model
         self.best_file_name = best_file_name
         self.last_file_name = last_file_name
+        self.init_file_name = init_file_name
 
         self.callbacks = callbacks
         self.random_state = random_state
@@ -229,7 +238,7 @@ class InceptionTimeClassifier(BaseClassifier):
         self.metrics = metrics
         self.optimizer = optimizer
 
-        self.classifers_ = []
+        self.classifiers_ = []
 
         super().__init__()
 
@@ -247,7 +256,7 @@ class InceptionTimeClassifier(BaseClassifier):
         -------
         self : object
         """
-        self.classifers_ = []
+        self.classifiers_ = []
         rng = check_random_state(self.random_state)
 
         for n in range(0, self.n_classifiers):
@@ -269,8 +278,10 @@ class InceptionTimeClassifier(BaseClassifier):
                 file_path=self.file_path,
                 save_best_model=self.save_best_model,
                 save_last_model=self.save_last_model,
+                save_init_model=self.save_init_model,
                 best_file_name=self.best_file_name + str(n),
                 last_file_name=self.last_file_name + str(n),
+                init_file_name=self.init_file_name + str(n),
                 batch_size=self.batch_size,
                 use_mini_batch_size=self.use_mini_batch_size,
                 n_epochs=self.n_epochs,
@@ -282,7 +293,7 @@ class InceptionTimeClassifier(BaseClassifier):
                 verbose=self.verbose,
             )
             cls.fit(X, y)
-            self.classifers_.append(cls)
+            self.classifiers_.append(cls)
             gc.collect()
 
         return self
@@ -323,7 +334,7 @@ class InceptionTimeClassifier(BaseClassifier):
         """
         probs = np.zeros((X.shape[0], self.n_classes_))
 
-        for cls in self.classifers_:
+        for cls in self.classifiers_:
             probs += cls._predict_proba(X)
 
         probs = probs / self.n_classifiers
@@ -331,7 +342,7 @@ class InceptionTimeClassifier(BaseClassifier):
         return probs
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -350,7 +361,6 @@ class InceptionTimeClassifier(BaseClassifier):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         param1 = {
             "n_classifiers": 1,
@@ -437,14 +447,19 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
             Whether or not to save the last model, last
             epoch trained, using the base class method
             save_last_model_to_file
+        save_init_model : bool, default = False
+            Whether to save the initialization of the  model.
         best_file_name      : str, default = "best_model"
             The name of the file of the best model, if
             save_best_model is set to False, this parameter
-            is discarded
+            is discarded.
         last_file_name      : str, default = "last_model"
             The name of the file of the last model, if
             save_last_model is set to False, this parameter
-            is discarded
+            is discarded.
+        init_file_name : str, default = "init_model"
+            The name of the file of the init model, if save_init_model is set to False,
+            this parameter is discarded.
         random_state : int, RandomState instance or None, default=None
             If `int`, random_state is the seed used by the random number generator;
             If `RandomState` instance, random_state is the random number generator;
@@ -477,8 +492,8 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
     --------
     >>> from aeon.classification.deep_learning import IndividualInceptionClassifier
     >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
     >>> inc = IndividualInceptionClassifier(n_epochs=20,batch_size=4)  # doctest: +SKIP
     >>> inc.fit(X_train, y_train)  # doctest: +SKIP
     IndividualInceptionClassifier(...)
@@ -504,8 +519,10 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         file_path="./",
         save_best_model=False,
         save_last_model=False,
+        save_init_model=False,
         best_file_name="best_model",
         last_file_name="last_model",
+        init_file_name="init_model",
         batch_size=64,
         use_mini_batch_size=False,
         n_epochs=1500,
@@ -538,7 +555,9 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
 
         self.save_best_model = save_best_model
         self.save_last_model = save_last_model
+        self.save_init_model = save_init_model
         self.best_file_name = best_file_name
+        self.init_file_name = init_file_name
 
         self.callbacks = callbacks
         self.verbose = verbose
@@ -652,6 +671,9 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
             mini_batch_size = self.batch_size
         self.training_model_ = self.build_model(self.input_shape, self.n_classes_)
 
+        if self.save_init_model:
+            self.training_model_.save(self.file_path + self.init_file_name + ".keras")
+
         if self.verbose:
             self.training_model_.summary()
 
@@ -702,7 +724,7 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         return self
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -721,7 +743,6 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         param1 = {
             "n_epochs": 10,

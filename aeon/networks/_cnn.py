@@ -1,11 +1,11 @@
-"""Time Convolutional Neural Network (CNN) (minus the final output layer)."""
+"""Time Convolutional Neural Network (TimeCNNNetwork)."""
 
-__maintainer__ = []
+__maintainer__ = ["hadifawaz1999"]
 
 from aeon.networks.base import BaseDeepLearningNetwork
 
 
-class CNNNetwork(BaseDeepLearningNetwork):
+class TimeCNNNetwork(BaseDeepLearningNetwork):
     """Establish the network structure for a CNN.
 
     Adapted from the implementation used in [1]_.
@@ -93,49 +93,89 @@ class CNNNetwork(BaseDeepLearningNetwork):
         self._n_filters_ = [6, 12] if self.n_filters is None else self.n_filters
 
         if isinstance(self.kernel_size, list):
-            assert len(self.kernel_size) == self.n_layers
+            if len(self.kernel_size) != self.n_layers:
+                raise ValueError(
+                    f"Number of kernels {len(self.kernel_size)} should be"
+                    f" the same as number of layers but is"
+                    f" not: {self.n_layers}"
+                )
             self._kernel_size = self.kernel_size
         else:
             self._kernel_size = [self.kernel_size] * self.n_layers
 
         if isinstance(self._n_filters_, list):
-            assert len(self._n_filters_) == self.n_layers
+            if len(self._n_filters_) != self.n_layers:
+                raise ValueError(
+                    f"Number of filters {len(self._n_filters_)} should be"
+                    f" the same as number of layers but is"
+                    f" not: {self.n_layers}"
+                )
             self._n_filters = self._n_filters_
         else:
             self._n_filters = [self._n_filters_] * self.n_layers
 
         if isinstance(self.avg_pool_size, list):
-            assert len(self.avg_pool_size) == self.n_layers
+            if len(self.avg_pool_size) != self.n_layers:
+                raise ValueError(
+                    f"Number of average pools {len(self.avg_pool_size)} should be"
+                    f" the same as number of layers but is"
+                    f" not: {self.n_layers}"
+                )
             self._avg_pool_size = self.avg_pool_size
         else:
             self._avg_pool_size = [self.avg_pool_size] * self.n_layers
 
         if isinstance(self.activation, list):
-            assert len(self.activation) == self.n_layers
+            if len(self.activation) != self.n_layers:
+                raise ValueError(
+                    f"Number of activations {len(self.activation)} should be"
+                    f" the same as number of layers but is"
+                    f" not: {self.n_layers}"
+                )
             self._activation = self.activation
         else:
             self._activation = [self.activation] * self.n_layers
 
         if isinstance(self.padding, list):
-            assert len(self.padding) == self.n_layers
+            if len(self.padding) != self.n_layers:
+                raise ValueError(
+                    f"Number of paddings {len(self.padding)} should be"
+                    f" the same as number of layers but is"
+                    f" not: {self.n_layers}"
+                )
             self._padding = self.padding
         else:
             self._padding = [self.padding] * self.n_layers
 
         if isinstance(self.strides, list):
-            assert len(self.strides) == self.n_layers
+            if len(self.strides) != self.n_layers:
+                raise ValueError(
+                    f"Number of strides {len(self.strides)} should be"
+                    f" the same as number of layers but is"
+                    f" not: {self.n_layers}"
+                )
             self._strides = self.strides
         else:
             self._strides = [self.strides] * self.n_layers
 
         if isinstance(self.dilation_rate, list):
-            assert len(self.dilation_rate) == self.n_layers
+            if len(self.dilation_rate) != self.n_layers:
+                raise ValueError(
+                    f"Number of dilation rates {len(self.dilation_rate)} should be"
+                    f" the same as number of layers but is"
+                    f" not: {self.n_layers}"
+                )
             self._dilation_rate = self.dilation_rate
         else:
             self._dilation_rate = [self.dilation_rate] * self.n_layers
 
         if isinstance(self.use_bias, list):
-            assert len(self.use_bias) == self.n_layers
+            if len(self.use_bias) != self.n_layers:
+                raise ValueError(
+                    f"Number of biases {len(self.use_bias)} should be"
+                    f" the same as number of layers but is"
+                    f" not: {self.n_layers}"
+                )
             self._use_bias = self.use_bias
         else:
             self._use_bias = [self.use_bias] * self.n_layers

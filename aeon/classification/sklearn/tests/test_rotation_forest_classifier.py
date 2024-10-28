@@ -7,6 +7,41 @@ from aeon.classification.sklearn import RotationForestClassifier
 from aeon.datasets import load_unit_test
 
 
+def test_rotf_output():
+    """Test of RotF contracting and train estimate on test data."""
+    X_train, y_train = load_unit_test(split="train", return_type="numpy2d")
+    X_test, y_test = load_unit_test(split="test", return_type="numpy2d")
+
+    rotf = RotationForestClassifier(
+        n_estimators=10,
+        pca_solver="randomized",
+        random_state=0,
+    )
+    rotf.fit(X_train, y_train)
+
+    expected = [
+        [0.8, 0.2],
+        [1.0, 0.0],
+        [1.0, 0.0],
+        [0.8, 0.2],
+        [1.0, 0.0],
+        [1.0, 0.0],
+        [0.9, 0.1],
+        [0.9, 0.1],
+        [1.0, 0.0],
+        [1.0, 0.0],
+        [0.8, 0.2],
+        [0.9, 0.1],
+        [0.0, 1.0],
+        [0.1, 0.9],
+        [0.4, 0.6],
+    ]
+
+    np.testing.assert_array_almost_equal(
+        expected, rotf.predict_proba(X_test[:15]), decimal=4
+    )
+
+
 def test_contracted_rotf():
     """Test of RotF contracting and train estimate on test data."""
     X_train, y_train = load_unit_test(split="train", return_type="numpy2d")

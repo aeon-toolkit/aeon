@@ -171,7 +171,7 @@ def _segmentation(X, clasp, n_change_points=None, exclusion_radius=0.05):
 class ClaSPSegmenter(BaseSegmenter):
     """ClaSP (Classification Score Profile) Segmentation.
 
-    Using ClaSP [1]_ [2]_ for the CPD problem is straightforward: We first compute the
+    Using ClaSP [1]_, [2]_ for the CPD problem is straightforward: We first compute the
     profile and then choose its global maximum as the change point. The following CPDs
     are obtained using a bespoke recursive split segmentation algorithm.
 
@@ -188,7 +188,7 @@ class ClaSPSegmenter(BaseSegmenter):
 
     References
     ----------
-    .. [1] Sch"afer, Patrick and Ermshaus, Arik and Leser, Ulf. "ClaSP - Time Series
+    .. [1] Schafer, Patrick and Ermshaus, Arik and Leser, Ulf. "ClaSP - Time Series
     Segmentation", CIKM, 2021.
     .. [2] Ermshaus, Arik, Sch"afer, Patrick and Leser, Ulf. ClaSP: parameter-free
     time series segmentation. Data Mining and Knowledge Discovery, 37, 2023.
@@ -301,7 +301,7 @@ class ClaSPSegmenter(BaseSegmenter):
         return pd.IntervalIndex.from_arrays(start, end)
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -316,6 +316,5 @@ class ClaSPSegmenter(BaseSegmenter):
             Parameters to create testing instances of the class
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`
         """
         return {"period_length": 5, "n_cps": 1}
