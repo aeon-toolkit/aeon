@@ -23,7 +23,7 @@ def test_hetero_meta():
     bce._check_names(names)
     assert not h._is_name_and_est("Single")
     assert not h._is_name_and_est(("Single", "Tuple"))
-    with pytest.raises(TypeError, match="must be of type BaseEstimator"):
+    with pytest.raises(TypeError, match="must be of type BaseAeonEstimator"):
         h._check_estimators(estimators="FOO")
         h._check_estimators(estimators=None)
     with pytest.raises(TypeError, match="cls_type must be a class"):

@@ -378,61 +378,111 @@ class InceptionNetwork(BaseDeepLearningNetwork):
         import tensorflow as tf
 
         if isinstance(self.n_filters, list):
-            assert len(self.n_filters) == self.depth
+            if len(self.n_filters) != self.depth:
+                raise ValueError(
+                    f"Number of filters {len(self.n_filters)} should be"
+                    f" the same as depth but is"
+                    f" not: {self.depth}"
+                )
             self._nb_filters = self.n_filters
         else:
             self._nb_filters = [self.n_filters] * self.depth
 
         if isinstance(self.kernel_size, list):
-            assert len(self.kernel_size) == self.depth
+            if len(self.kernel_size) != self.depth:
+                raise ValueError(
+                    f"Number of kernels {len(self.kernel_size)} should be"
+                    f" the same as depth but is"
+                    f" not: {self.depth}"
+                )
             self._kernel_size = self.kernel_size
         else:
             self._kernel_size = [self.kernel_size] * self.depth
 
         if isinstance(self.n_conv_per_layer, list):
-            assert len(self.n_conv_per_layer) == self.depth
+            if len(self.n_conv_per_layer) != self.depth:
+                raise ValueError(
+                    f"Number of convolution layers {len(self.n_conv_per_layer)}"
+                    f" should be the same as depth but is"
+                    f" not: {self.depth}"
+                )
             self._nb_conv_per_layer = self.n_conv_per_layer
         else:
             self._nb_conv_per_layer = [self.n_conv_per_layer] * self.depth
 
         if isinstance(self.strides, list):
-            assert len(self.strides) == self.depth
+            if len(self.strides) != self.depth:
+                raise ValueError(
+                    f"Number of strides {len(self.strides)} should be"
+                    f" the same as depth but is"
+                    f" not: {self.depth}"
+                )
             self._strides = self.strides
         else:
             self._strides = [self.strides] * self.depth
 
         if isinstance(self.dilation_rate, list):
-            assert len(self.dilation_rate) == self.depth
+            if len(self.dilation_rate) != self.depth:
+                raise ValueError(
+                    f"Number of dilations {len(self.dilation_rate)} should be"
+                    f" the same as depth but is"
+                    f" not: {self.depth}"
+                )
             self._dilation_rate = self.dilation_rate
         else:
             self._dilation_rate = [self.dilation_rate] * self.depth
 
         if isinstance(self.padding, list):
-            assert len(self.padding) == self.depth
+            if len(self.padding) != self.depth:
+                raise ValueError(
+                    f"Number of paddings {len(self.padding)} should be"
+                    f" the same as depth but is"
+                    f" not: {self.depth}"
+                )
             self._padding = self.padding
         else:
             self._padding = [self.padding] * self.depth
 
         if isinstance(self.activation, list):
-            assert len(self.activation) == self.depth
+            if len(self.activation) != self.depth:
+                raise ValueError(
+                    f"Number of activations {len(self.activation)} should be"
+                    f" the same as depth but is"
+                    f" not: {self.depth}"
+                )
             self._activation = self.activation
         else:
             self._activation = [self.activation] * self.depth
 
         if isinstance(self.use_max_pooling, list):
-            assert len(self.use_max_pooling) == self.depth
+            if len(self.use_max_pooling) != self.depth:
+                raise ValueError(
+                    f"Number of max pooling conditions"
+                    f" {len(self.use_max_pooling)} should be the"
+                    f" same as depth but is not: {self.depth}"
+                )
             self._use_max_pooling = self.use_max_pooling
         else:
             self._use_max_pooling = [self.use_max_pooling] * self.depth
 
         if isinstance(self.max_pool_size, list):
-            assert len(self.max_pool_size) == self.depth
+            if len(self.max_pool_size) != self.depth:
+                raise ValueError(
+                    f"Number of max pooling sizes {len(self.max_pool_size)} should be"
+                    f" the same as depth but is"
+                    f" not: {self.depth}"
+                )
             self._max_pool_size = self.max_pool_size
         else:
             self._max_pool_size = [self.max_pool_size] * self.depth
 
         if isinstance(self.use_bias, list):
-            assert len(self.use_bias) == self.depth
+            if len(self.use_bias) != self.depth:
+                raise ValueError(
+                    f"Number of biases {len(self.use_bias)} should be"
+                    f" the same as depth but is"
+                    f" not: {self.depth}"
+                )
             self._use_bias = self.use_bias
         else:
             self._use_bias = [self.use_bias] * self.depth

@@ -28,7 +28,6 @@ COLLECTIONS_DATA_TYPES = [
     # shape (n_channels, n_timepoints_i)
     "numpy2D",  # 2D np.ndarray of shape (n_cases, n_timepoints)
     "pd-wide",  # 2D pd.DataFrame of shape (n_cases, n_timepoints)
-    "nested_univ",  # pd.DataFrame (n_cases, n_channels) with each cell a pd.Series,
     "pd-multiindex",  # pd.DataFrame with multi-index,
 ]
 

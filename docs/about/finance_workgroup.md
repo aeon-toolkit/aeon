@@ -6,6 +6,6 @@
 </div>
 <div>
 <a href='https://github.com/dguijo'><img src='https://avatars.githubusercontent.com/u/47889499?v=4' class='avatar' /></a> <br />
-<p><a href='https://github.com/dguijo'>David Guijo Rubio</a></p>
+<p><a href='https://github.com/dguijo'>David Guijo-Rubio</a></p>
 </div>
 </div>

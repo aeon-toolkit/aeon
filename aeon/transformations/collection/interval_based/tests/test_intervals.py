@@ -29,12 +29,12 @@ def test_interval_prune():
 
 def test_random_interval_transformer():
     """Test the RandomIntervals transformer output."""
-    X, y = make_example_3d_numpy(random_state=0, n_channels=2, n_timepoints=10)
+    X, y = make_example_3d_numpy(random_state=0, n_channels=2, n_timepoints=20)
 
     rit = RandomIntervals(
         features=SevenNumberSummaryTransformer(),
         n_intervals=5,
-        random_state=2,
+        random_state=0,
     )
     X_t = rit.fit_transform(X, y)
 
