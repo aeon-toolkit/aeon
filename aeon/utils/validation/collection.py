@@ -1,7 +1,10 @@
 """Check collection utilities."""
 
+from typing import Optional, Union
+
 import numpy as np
 import pandas as pd
+from numba.typed import List as NumbaList
 
 __maintainer__ = ["TonyBagnall"]
 
@@ -49,8 +52,6 @@ def is_collection(X, include_2d=False):
     if isinstance(X, pd.DataFrame):
         if X.index.nlevels == 2:
             return True
-        if is_nested_univ_dataframe(X):
-            return True
         if include_2d and _is_pd_wide(X):
             return True
     if isinstance(X, list):
@@ -62,69 +63,10 @@ def is_collection(X, include_2d=False):
     return False
 
 
-def is_nested_univ_dataframe(X):
-    """Check if X is nested dataframe.
-
-    Parameters
-    ----------
-    X: collection
-        See aeon.utils.registry.COLLECTIONS_DATA_TYPES for details
-        on aeon supported data structures.
-
-    Returns
-    -------
-    bool
-        True if input is a nested dataframe, False otherwise.
-    """
-    # Otherwise check all entries are pd.Series
-    if not isinstance(X, pd.DataFrame):
-        return False
-    for _, series in X.items():
-        for cell in series:
-            if not isinstance(cell, pd.Series):
-                return False
-    return True
-
-
-def _nested_univ_is_equal(X):
-    """Check whether series in a nested DataFrame are of equal length.
-
-    This function checks if all series in a nested DataFrame have the same length. It
-    assumes that series are of equal length over channels, so it only tests the first
-    channel.
-
-    Parameters
-    ----------
-    X : pd.DataFrame
-        The nested DataFrame to check.
-
-    Returns
-    -------
-    bool
-        True if all series in the DataFrame are of equal length, False otherwise.
-
-    Examples
-    --------
-    >>> df = pd.DataFrame({
-    ...     'A': [pd.Series([1, 2, 3]), pd.Series([4, 5, 6])],
-    ...     'B': [pd.Series([7, 8, 9]), pd.Series([10, 11, 12])]
-    ... })
-    >>> _nested_univ_is_equal(df)
-    True
-    """
-    length = X.iloc[0, 0].size
-    for i in range(1, X.shape[0]):
-        if X.iloc[i, 0].size != length:
-            return False
-    return True
-
-
 def _is_pd_wide(X):
     """Check whether the input DataFrame is "pd-wide" type."""
     # only test is if all values are float.
     if isinstance(X, pd.DataFrame) and not isinstance(X.index, pd.MultiIndex):
-        if is_nested_univ_dataframe(X):
-            return False
         for col in X:
             if not np.issubdtype(X[col].dtype, np.floating):
                 return False
@@ -175,8 +117,6 @@ def get_n_timepoints(X):
         return X[0].shape[0]
     if t == "pd-multiindex":
         return len(X.index.get_level_values(1).unique())
-    if t == "nested_univ":
-        return X.iloc[0, 0].size
     if t == "pd-wide":
         return len(X.iloc[0])
 
@@ -223,8 +163,6 @@ def get_n_channels(X):
         return X[0].shape[1]
     if t == "pd-multiindex":
         return len(X.columns)
-    if t == "nested_univ":
-        return X.shape[1]
 
 
 def get_type(X):
@@ -281,8 +219,6 @@ def get_type(X):
                 f"lists should either 2D numpy arrays or pd.DataFrames."
             )
     elif isinstance(X, pd.DataFrame):  # Nested univariate, hierarchical or pd-wide
-        if is_nested_univ_dataframe(X):
-            return "nested_univ"
         if isinstance(X.index, pd.MultiIndex):
             return "pd-multiindex"
         elif _is_pd_wide(X):
@@ -315,7 +251,7 @@ def is_equal_length(X):
     Raises
     ------
     ValueError
-        input_type equals "dask_panel" or not in COLLECTIONS_DATA_TYPES.
+        input_type not in COLLECTIONS_DATA_TYPES.
 
     Examples
     --------
@@ -343,13 +279,12 @@ def has_missing(X):
     Raises
     ------
     ValueError
-        Input_type equals "dask_panel" or not in COLLECTIONS_DATA_TYPES.
+        Input_type not in COLLECTIONS_DATA_TYPES.
 
     Examples
     --------
     >>> from aeon.utils.validation import has_missing
-    >>> has_missing( np.zeros(shape=(10, 3, 20)))
-    False
+    >>> m = has_missing( np.zeros(shape=(10, 3, 20)))
     """
     type = get_type(X)
     if type == "numpy3D" or type == "numpy2D":
@@ -366,12 +301,6 @@ def has_missing(X):
         return False
     if type == "pd-wide":
         return X.isnull().any().any()
-    if type == "nested_univ":
-        for i in range(len(X)):
-            for j in range(X.shape[1]):
-                if X.iloc[i, j].hasnans:
-                    return True
-        return False
     if type == "pd-multiindex":
         if X.isna().values.any():
             return True
@@ -383,7 +312,7 @@ def is_univariate(X):
     type = get_type(X)
     if type == "numpy2D" or type == "pd-wide":
         return True
-    if type == "numpy3D" or type == "nested_univ":
+    if type == "numpy3D":
         return X.shape[1] == 1
     # df list (n_timepoints, n_channels)
     if type == "df-list":
@@ -438,12 +367,130 @@ def _equal_length(X, input_type):
             if X[i].shape[0] != first:
                 return False
         return True
-    if input_type == "nested_univ":  # Nested univariate
-        return _nested_univ_is_equal(X)
     if input_type == "pd-multiindex":  # multiindex dataframe
         X = X.reset_index(-1).drop(X.columns, axis=1)
         return (
             X.groupby(level=0, group_keys=True, as_index=True).count().nunique()[0] == 1
         )
     raise ValueError(f" unknown input type {input_type}")
-    return False
+
+
+# TODO: Test this function
+
+
+def _is_numpy_list_multivariate(
+    x: Union[np.ndarray, list[np.ndarray]],
+    y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
+) -> bool:
+    """Check if two numpy or list of numpy arrays are multivariate.
+
+    This method is primarily used for the distance module pairwise functions.
+    It checks if the input is a collection of multivariate time series or a collection
+    of univariate time series. This is different from the is_univariate method as
+    this reasoning is done using two different inputs rather than a single input.
+
+    Parameters
+    ----------
+    x : Union[np.ndarray, List[np.ndarray]]
+        One or more time series of shape (n_cases, n_channels, n_timepoints) or
+        (n_cases, n_timepoints) or (n_timepoints,).
+
+    Returns
+    -------
+    boolean
+        True if the input is a multivariate time series, False otherwise.
+    """
+    if y is None:
+        if isinstance(x, np.ndarray):
+            x_dims = x.ndim
+            if x_dims == 3:
+                if x.shape[1] == 1:
+                    return False
+                return True
+            if x_dims == 2:
+                # As this function is used for pairwise we assume it isnt a single
+                # multivariate time series but two collections of univariate
+                return False
+            if x_dims == 1:
+                return False
+
+        if isinstance(x, (list, NumbaList)):
+            if not isinstance(x[0], np.ndarray):
+                return False
+            x_dims = x[0].ndim
+            if x_dims == 2:
+                if x[0].shape[0] == 1:
+                    return False
+                return True
+            if x_dims == 1:
+                return False
+    else:
+        if isinstance(x, np.ndarray) and isinstance(y, np.ndarray):
+            x_dims = x.ndim
+            y_dims = y.ndim
+            if x_dims < y_dims:
+                return _is_numpy_list_multivariate(y, x)
+
+            if x_dims == 3 and y_dims == 3:
+                if x.shape[1] == 1 and y.shape[1] == 1:
+                    return False
+                return True
+            if x_dims == 3 and y_dims == 2:
+                if x.shape[1] == 1:
+                    return False
+                return True
+            if x_dims == 3 and y_dims == 1:
+                if x.shape[1] == 1:
+                    return False
+            if x_dims == 2 and y_dims == 2:
+                # If two 2d arrays passed as this function is used for pairwise we
+                # assume it isn't two multivariate time series but two collections of
+                # univariate
+                return False
+            if x_dims == 2 and y_dims == 1:
+                return False
+            if x_dims == 1 and y_dims == 1:
+                return False
+        if isinstance(x, (list, NumbaList)) and isinstance(y, (list, NumbaList)):
+            if not isinstance(x[0], np.ndarray):
+                x_dims = 1
+            else:
+                x_dims = x[0].ndim
+            if not isinstance(y[0], np.ndarray):
+                y_dims = 1
+            else:
+                y_dims = y[0].ndim
+
+            if x_dims < y_dims:
+                return _is_numpy_list_multivariate(y, x)
+
+            if x_dims == 2 and y_dims == 2:
+                if x[0].shape[0] > 1:
+                    return True
+                return False
+
+            if x_dims == 2 and y_dims == 1:
+                if x[0].shape[0] > 1:
+                    return True
+                return False
+            return False
+
+        list_x = None
+        ndarray_y: Optional[np.ndarray] = None
+        if isinstance(x, (list, NumbaList)):
+            list_x = x
+            ndarray_y = y
+        elif isinstance(y, (list, NumbaList)):
+            list_x = y
+            ndarray_y = x
+
+        if list_x is not None and ndarray_y is not None:
+            list_y = []
+            if ndarray_y.ndim == 3:
+                for i in range(ndarray_y.shape[0]):
+                    list_y.append(ndarray_y[i])
+            else:
+                list_y = [ndarray_y]
+            return _is_numpy_list_multivariate(list_x, list_y)
+
+    raise ValueError("The format of you input is not supported.")

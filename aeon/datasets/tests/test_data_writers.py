@@ -4,25 +4,20 @@ import os
 import tempfile
 
 import numpy as np
-import pandas as pd
 import pytest
 from numpy.testing import assert_array_equal
 
 from aeon.datasets import load_from_arff_file, load_from_tsfile, write_to_tsfile
 from aeon.datasets._data_writers import (
     _write_data_to_tsfile,
-    _write_dataframe_to_tsfile,
     _write_header,
-    write_results_to_uea_format,
     write_to_arff_file,
 )
-from aeon.datasets._dataframe_loaders import load_from_tsfile_to_dataframe
 from aeon.testing.data_generation import (
     make_example_3d_numpy,
     make_example_3d_numpy_list,
-    make_example_nested_dataframe,
 )
-from aeon.testing.test_config import PR_TESTING
+from aeon.testing.testing_config import PR_TESTING
 
 
 @pytest.mark.skipif(
@@ -104,7 +99,7 @@ def test_write_data_to_tsfile_invalid():
     """Test function to check the handling of invalid inputs by write_to_tsfile."""
     with pytest.raises(TypeError, match="Wrong input data type"):
         write_to_tsfile("A string", "path")
-    with pytest.raises(TypeError, match="Data provided must be a ndarray or a list"):
+    with pytest.raises(ValueError, match="Data provided must be a ndarray or a list"):
         _write_data_to_tsfile("AFC", "49", "undefeated")
     X, _ = make_example_3d_numpy(n_cases=6, n_timepoints=10, n_channels=1)
     y = np.ndarray([0, 1, 1, 0, 1])
@@ -115,30 +110,28 @@ def test_write_data_to_tsfile_invalid():
         _write_data_to_tsfile(X, "temp", "temp", y=y)
 
 
-@pytest.mark.skipif(
-    PR_TESTING,
-    reason="Only run on overnights because of intermittent fail for read/write",
-)
-@pytest.mark.parametrize("tsfile_writer", [_write_dataframe_to_tsfile, write_to_tsfile])
-def test_write_dataframe_to_ts(tsfile_writer):
-    """Tests whether a dataset can be written by the .ts writer then read in."""
+def test_write_inputs():
+    """Tests whether error thrown if wrong input."""
     # load an example dataset
     problem_name = "Testy.ts"
-    X, y = make_example_nested_dataframe(min_n_timepoints=12)
     with tempfile.TemporaryDirectory() as tmp:
-        # output the dataframe in a ts file
-        tsfile_writer(
-            X=X,
-            path=tmp,
-            y=y,
-            problem_name=problem_name,
-        )
-        # load data back from the ts file into dataframe
-        load_path = os.path.join(tmp, problem_name)
-        newX, newy = load_from_tsfile_to_dataframe(load_path)
-        # check if the dataframes are the same
-        pd.testing.assert_frame_equal(newX, X)
-        np.testing.assert_array_almost_equal(newy.astype(int), y)
+        X = "A string"
+        y = "another string"
+        X2, y2 = make_example_3d_numpy()
+        X3, y3 = make_example_3d_numpy_list()
+        with pytest.raises(ValueError, match="must be a ndarray or a list"):
+            _write_data_to_tsfile(
+                X=X,
+                path=tmp,
+                y=y,
+                problem_name=problem_name,
+            )
+        _write_data_to_tsfile(X=X3, path=tmp, y=y3, problem_name=problem_name)
+    with pytest.raises(TypeError, match="Wrong input data type"):
+        write_to_arff_file(X, y, tmp)
+    X2, y2 = make_example_3d_numpy(n_cases=5, n_channels=2)
+    with pytest.raises(ValueError, match="must be a 3D array with shape"):
+        write_to_arff_file(X2, y2, tmp)
 
 
 def test_write_header():
@@ -173,41 +166,3 @@ def test_write_to_arff_file():
         assert X.shape == X_new.shape
         assert_array_equal(X, X_new)
         assert_array_equal(y.astype(str), y_new)
-
-
-def test_write_results_to_uea_format():
-    """Test function to check writing results into UEA format."""
-    with tempfile.TemporaryDirectory() as tmp:
-        y_true = np.array([0, 1, 1, 0, 0])
-        y_pred = np.array([0, 1, 1, 0])
-        with pytest.raises(
-            IndexError, match="The number of predicted values is not the same"
-        ):
-            write_results_to_uea_format(
-                "HC", "Testy", y_pred=y_pred, y_true=y_true, output_path=tmp
-            )
-        y_true = np.array([0, 1, 1, 0])
-        write_results_to_uea_format(
-            "HC",
-            "Testy",
-            y_pred=y_pred,
-            output_path=tmp,
-            full_path=False,
-            split="TEST",
-            timing_type="seconds",
-            first_line_comment="Hello",
-        )
-
-        probs = [[0.0, 1.0], [0.0, 1.0], [0.0, 1.0], [0.0, 1.0]]
-        write_results_to_uea_format(
-            "HC",
-            "Testy2",
-            y_pred=y_pred,
-            y_true=y_true,
-            output_path=tmp,
-            full_path=False,
-            split="TEST",
-            timing_type="seconds",
-            first_line_comment="Hello",
-            predicted_probs=probs,
-        )

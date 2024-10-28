@@ -1,7 +1,5 @@
 """Numba-accelerated discrete wavelet transformations (DFTs)."""
 
-from typing import Tuple
-
 import numpy as np
 from numba import njit
 from numba.typed import List
@@ -15,7 +13,7 @@ __all__ = [
 
 def multilevel_haar_transform(
     x: np.ndarray, levels: int = 1
-) -> Tuple[List[np.ndarray], List[np.ndarray]]:
+) -> tuple[List[np.ndarray], List[np.ndarray]]:
     """Perform the multilevel discrete Haar wavelet transform on a given signal.
 
     Captures the approximate and detail coefficients per level. The approximate
@@ -45,7 +43,7 @@ def multilevel_haar_transform(
 
 
 @njit(cache=True, fastmath=True)
-def haar_transform(x: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+def haar_transform(x: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """Perform the discrete Haar wavelet transform on a given signal.
 
     Parameters
@@ -65,7 +63,7 @@ def haar_transform(x: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
 @njit(cache=True, fastmath=True)
 def _haar_transform_iterative(
     x: np.ndarray, levels: int
-) -> Tuple[List[np.ndarray], List[np.ndarray]]:
+) -> tuple[List[np.ndarray], List[np.ndarray]]:
     # initialize
     l_approx = List()
     l_approx.append(x)

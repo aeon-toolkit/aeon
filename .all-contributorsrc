@@ -2120,7 +2120,22 @@
         "bug",
         "doc",
         "test",
-        "maintenance"
+        "maintenance",
+        "review",
+        "talk",
+        "tutorial",
+        "mentoring",
+        "example"
+      ]
+    },
+    {
+      "login": "maxwell1503",
+      "name": " Maxime Devanne",
+      "avatar_url": "https://avatars.githubusercontent.com/u/28450447",
+      "profile": "https://github.com/maxwell1503",
+      "contributions": [
+        "code",
+        "bug"
       ]
     },
     {
@@ -2508,6 +2523,72 @@
       "name": "neuron283",
       "avatar_url": "https://avatars.githubusercontent.com/u/177816976?v=4",
       "profile": "https://github.com/neuron283",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "wenig",
+      "name": "Phillip Wenig",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6967289?v=4",
+      "profile": "https://github.com/wenig",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "aryanpola",
+      "name": "Aryan Pola",
+      "avatar_url": "https://avatars.githubusercontent.com/u/98093778?v=4",
+      "profile": "https://github.com/aryanpola",
+      "contributions": [
+        "code",
+        "doc"
+      ]
+    },
+    {
+      "login": "danielroberts20",
+      "name": "Daniel Roberts",
+      "avatar_url": "https://avatars.githubusercontent.com/u/29379642?v=4",
+      "profile": "https://github.com/danielroberts20",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "LinGinQiu",
+      "name": "Chuanhang Qiu ",
+      "avatar_url": "https://avatars.githubusercontent.com/u/80885865?v=4",
+      "profile": "https://github.com/LinGinQiu",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "georgejl7",
+      "name": "George Langley",
+      "avatar_url": "https://avatars.githubusercontent.com/u/134635414?v=4",
+      "profile": "https://github.com/georgejl7",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "alexbanwell1",
+      "name": "alexbanwell1",
+      "avatar_url": "https://avatars.githubusercontent.com/u/31886108?v=4",
+      "profile": "https://github.com/alexbanwell1",
+      "contributions": [
+        "code",
+        "design",
+        "doc"
+      ]
+    },
+    {
+      "login": "fspinna",
+      "name": "Francesco Spinnato",
+      "avatar_url": "https://avatars.githubusercontent.com/u/35352023?v=4",
+      "profile": "https://github.com/fspinna",
       "contributions": [
         "code"
       ]

@@ -1,4 +1,6 @@
-from typing import List, Optional, Union
+"""SAST Transformer."""
+
+from typing import Optional, Union
 
 import numpy as np
 from numba import get_num_threads, njit, prange, set_num_threads
@@ -106,7 +108,7 @@ class SAST(BaseCollectionTransformer):
         self.n_jobs = n_jobs
         self.seed = seed
 
-    def _fit(self, X: np.ndarray, y: Union[np.ndarray, List]) -> "SAST":
+    def _fit(self, X: np.ndarray, y: Union[np.ndarray, list]) -> "SAST":
         """Select reference time series and generate subsequences from them.
 
         Parameters
@@ -174,7 +176,7 @@ class SAST(BaseCollectionTransformer):
         return self
 
     def _transform(
-        self, X: np.ndarray, y: Optional[Union[np.ndarray, List]] = None
+        self, X: np.ndarray, y: Optional[Union[np.ndarray, list]] = None
     ) -> np.ndarray:
         """Transform the input X using the generated subsequences.
 

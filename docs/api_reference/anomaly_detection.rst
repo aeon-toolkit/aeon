@@ -69,8 +69,12 @@ Detectors
     :toctree: auto_generated/
     :template: class.rst
 
+    COPOD
     DWT_MLEAD
+    IsolationForest
     KMeansAD
+    LeftSTAMPi
     MERLIN
     PyODAdapter
     STRAY
+    STOMP

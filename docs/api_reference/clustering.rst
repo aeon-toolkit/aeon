@@ -38,6 +38,8 @@ Clustering Algorithms
     TimeSeriesKernelKMeans
     TimeSeriesCLARA
     TimeSeriesCLARANS
+    ElasticSOM
+    KSpectralCentroid
 
 Base
 ----

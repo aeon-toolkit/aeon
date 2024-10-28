@@ -108,7 +108,7 @@ Shapelet based TSC
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top: examples/classification/img/early_classification.png
 :class-img-top: aeon-card-image-m
 :link: /examples/classification/early_classification.ipynb
 :link-type: ref
@@ -155,7 +155,7 @@ Overview of Time Series Clustering (TSCL)
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top: examples/clustering/img/partitional.png
 :class-img-top: aeon-card-image-m
 :link: /examples/clustering/partitional_clustering.ipynb
 :link-type: ref
@@ -301,7 +301,7 @@ ClaSP segmentation
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top: examples/segmentation/img/hidalgo.png
 :class-img-top: aeon-card-image-m
 :link: /examples/segmentation/hidalgo_segmentation.ipynb
 :link-type: ref
@@ -350,7 +350,7 @@ Using aeon distances with scikit-learn
 
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top: examples/similarity_search/img/sim_search.png
 :class-img-top: aeon-card-image-m
 :link: /examples/similarity_search/similarity_search.ipynb
 :link-type: ref
@@ -361,7 +361,7 @@ Intro to similarity search
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top: examples/similarity_search/img/distance_profile.png
 :class-img-top: aeon-card-image-m
 :link: /examples/similarity_search/distance_profiles.ipynb
 :link-type: ref
@@ -372,7 +372,7 @@ Deep dive into distance profiles
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top: examples/similarity_search/img/code_speed.png
 :class-img-top: aeon-card-image-m
 :link: /examples/similarity_search/code_speed.ipynb
 :link-type: ref

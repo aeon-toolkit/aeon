@@ -1,9 +1,11 @@
 """Time series kmedoids."""
 
+from typing import Optional
+
 __maintainer__ = []
 
 import warnings
-from typing import Callable, Tuple, Union
+from typing import Callable, Union
 
 import numpy as np
 from numpy.random import RandomState
@@ -144,6 +146,7 @@ class TimeSeriesKMedoids(BaseClusterer):
 
     _tags = {
         "capability:multivariate": True,
+        "algorithm_type": "distance",
     }
 
     def __init__(
@@ -156,8 +159,8 @@ class TimeSeriesKMedoids(BaseClusterer):
         max_iter: int = 300,
         tol: float = 1e-6,
         verbose: bool = False,
-        random_state: Union[int, RandomState] = None,
-        distance_params: dict = None,
+        random_state: Optional[Union[int, RandomState]] = None,
+        distance_params: Optional[dict] = None,
     ):
         self.init_algorithm = init_algorithm
         self.distance = distance
@@ -386,7 +389,7 @@ class TimeSeriesKMedoids(BaseClusterer):
         else:
             return None
 
-    def _alternate_fit(self, X) -> Tuple[np.ndarray, np.ndarray, float, int]:
+    def _alternate_fit(self, X) -> tuple[np.ndarray, np.ndarray, float, int]:
         cluster_center_indexes = self._init_algorithm
         if isinstance(self._init_algorithm, Callable):
             cluster_center_indexes = self._init_algorithm(X)
@@ -419,7 +422,7 @@ class TimeSeriesKMedoids(BaseClusterer):
 
     def _assign_clusters(
         self, X: np.ndarray, cluster_center_indexes: np.ndarray
-    ) -> Tuple[np.ndarray, float]:
+    ) -> tuple[np.ndarray, float]:
         X_indexes = np.arange(X.shape[0], dtype=int)
         pairwise_matrix = self._compute_pairwise(X, X_indexes, cluster_center_indexes)
         return pairwise_matrix.argmin(axis=1), pairwise_matrix.min(axis=1).sum()
@@ -538,7 +541,7 @@ class TimeSeriesKMedoids(BaseClusterer):
         return np.array(medoid_idxs)
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -554,7 +557,6 @@ class TimeSeriesKMedoids(BaseClusterer):
             Parameters to create testing instances of the class
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`
         """
         return {
             "n_clusters": 2,
