@@ -32,7 +32,6 @@ Time series types:
 
 import os
 from pathlib import Path
-from typing import Dict, List, Tuple
 
 import numpy as np
 import pandas as pd
@@ -43,7 +42,7 @@ _DATA_FOLDER = Path(aeon.__file__).parent / "datasets" / "local_data"
 _TIMEEVAL_INDEX_URL = "https://my.hidrive.com/api/sharelink/download?id=koCGAvOe"
 
 
-def _to_tuple_list(X: np.ndarray) -> List[Tuple[str, str]]:
+def _to_tuple_list(X: np.ndarray) -> list[tuple[str, str]]:
     return [tuple(x) for x in X]
 
 
@@ -63,7 +62,7 @@ def _load_indexfile(refresh=False) -> pd.DataFrame:
     return df
 
 
-def tsad_collections() -> Dict[str, List[str]]:
+def tsad_collections() -> dict[str, list[str]]:
     """Return dictionary mapping collection names to dataset names."""
     df = _load_indexfile()
     return (
@@ -73,13 +72,13 @@ def tsad_collections() -> Dict[str, List[str]]:
     )
 
 
-def tsad_datasets() -> List[Tuple[str, str]]:
+def tsad_datasets() -> list[tuple[str, str]]:
     """Return list of all anomaly detection datasets in the TimeEval archive."""
     df = _load_indexfile()
     return _to_tuple_list(df[["collection_name", "dataset_name"]].values)
 
 
-def univariate() -> List[Tuple[str, str]]:
+def univariate() -> list[tuple[str, str]]:
     """Return list of univariate anomaly detection datasets."""
     df = _load_indexfile()
     return _to_tuple_list(
@@ -89,7 +88,7 @@ def univariate() -> List[Tuple[str, str]]:
     )
 
 
-def multivariate() -> List[Tuple[str, str]]:
+def multivariate() -> list[tuple[str, str]]:
     """Return list of multivariate anomaly detection datasets."""
     df = _load_indexfile()
     return _to_tuple_list(
@@ -99,7 +98,7 @@ def multivariate() -> List[Tuple[str, str]]:
     )
 
 
-def unsupervised() -> List[Tuple[str, str]]:
+def unsupervised() -> list[tuple[str, str]]:
     """Return list of unsupervised anomaly detection datasets."""
     df = _load_indexfile()
     return _to_tuple_list(
@@ -109,7 +108,7 @@ def unsupervised() -> List[Tuple[str, str]]:
     )
 
 
-def supervised() -> List[Tuple[str, str]]:
+def supervised() -> list[tuple[str, str]]:
     """Return list of supervised anomaly detection datasets."""
     df = _load_indexfile()
     return _to_tuple_list(
@@ -119,7 +118,7 @@ def supervised() -> List[Tuple[str, str]]:
     )
 
 
-def semi_supervised() -> List[Tuple[str, str]]:
+def semi_supervised() -> list[tuple[str, str]]:
     """Return list of semi-supervised anomaly detection datasets."""
     df = _load_indexfile()
     return _to_tuple_list(

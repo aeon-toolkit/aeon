@@ -8,26 +8,22 @@ np-list : list of 2D numpy arrays shape (n_channels, n_timepoints_i)
 df-list : list of 2D pandas dataframes shape (n_channels, n_timepoints_i)
 numpy2D : 2D numpy array of univariate time series shape (n_cases, n_timepoints)
 pd-wide : pd.DataFrame of univariate time series shape (n_cases, n_timepoints)
-nested_univ : pd.DataFrame shape (n_cases, n_channels) each cell a pd.Series
 pd-multiindex : pd.DataFrame with multi-index,
 
 For the seven supported, this gives 42 different converters.
 Rather than using them directly, we recommend using the conversion function
 convert_collection.
-Legacy code supported "dask_panel" but it is not actually used anywhere; thus, removed.
 """
 
-from typing import Sequence
+from collections.abc import Sequence
+from typing import Union
 
 import numpy as np
 import pandas as pd
+from numba.typed import List as NumbaList
 
 from aeon.utils._data_types import COLLECTIONS_DATA_TYPES
-from aeon.utils.validation.collection import (
-    _equal_length,
-    _nested_univ_is_equal,
-    get_type,
-)
+from aeon.utils.validation.collection import _equal_length, get_type
 
 
 def convert_identity(X):
@@ -148,27 +144,6 @@ def _from_numpy3d_to_pd_multiindex(X):
     return X_mi
 
 
-def _from_numpy3d_to_nested_univ(X):
-    """Convert numpy3D collection to nested_univ pd.DataFrame."""
-    if X.ndim != 3:
-        raise TypeError(NUMPY3D_ERROR)
-    n_cases, n_channels, n_timepoints = X.shape
-    array_type = X.dtype
-    container = pd.Series
-    column_names = [f"channel_{i}" for i in range(n_channels)]
-    column_list = []
-    for j, column in enumerate(column_names):
-        nested_column = (
-            pd.DataFrame(X[:, j, :])
-            .apply(lambda x: [container(x, dtype=array_type)], axis=1)
-            .str[0]
-            .rename(column)
-        )
-        column_list.append(nested_column)
-    df = pd.concat(column_list, axis=1)
-    return df
-
-
 def _from_np_list_to_numpy3d(X):
     """Convert from a list of 2D numpy to 3d numpy."""
     if not isinstance(X, list):
@@ -188,20 +163,6 @@ def _from_np_list_to_df_list(X):
     for i in range(n_cases):
         df_list.append(pd.DataFrame(np.transpose(X[i])))
     return df_list
-
-
-def _from_np_list_to_nested_univ(X, store=None):
-    """Convert from a list of 2D numpy to nested pd.DataFrame."""
-    if not isinstance(X, list) or not isinstance(X[0], np.ndarray) or X[0].ndim != 2:
-        raise TypeError(NP_LIST_ERROR)
-    n_cases = len(X)
-    n_channels = X[0].shape[0]
-    df = pd.DataFrame(index=range(n_cases), columns=range(n_channels))
-    for i in range(n_cases):
-        for j in range(n_channels):
-            data = pd.Series(X[i][j])
-            df.iloc[i][j] = data
-    return df
 
 
 def _from_np_list_to_numpy2d(X):
@@ -260,11 +221,6 @@ def _from_df_list_to_pd_wide(X):
     return _from_np_list_to_pd_wide(np_list)
 
 
-def _from_df_list_to_nested_univ(X):
-    np_list = _from_df_list_to_np_list(X)
-    return _from_np_list_to_nested_univ(np_list)
-
-
 def _from_df_list_to_pd_multiindex(X):
     n = len(X)
     mi = pd.concat(X, axis=0, keys=range(n), names=["instances", "timepoints"])
@@ -300,18 +256,6 @@ def _from_numpy2d_to_pd_wide(X):
     return pd.DataFrame(X)
 
 
-def _from_numpy2d_to_nested_univ(X):
-    if not isinstance(X, np.ndarray) or X.ndim != 2:
-        raise TypeError(NUMPY2D_INPUT_ERROR)
-    container = pd.Series
-    n_cases, n_timepoints = X.shape
-    time_index = np.arange(n_timepoints)
-    kwargs = {"index": time_index}
-
-    Xt = pd.DataFrame(pd.Series([container(X[i, :], **kwargs) for i in range(n_cases)]))
-    return Xt
-
-
 def _from_numpy2d_to_pd_multiindex(X):
     X_3d = _from_numpy2d_to_numpy3d(X)
     return _from_numpy3d_to_pd_multiindex(X_3d)
@@ -336,81 +280,9 @@ def _from_pd_wide_to_numpy2d(X):
     return X.to_numpy()
 
 
-def _from_pd_wide_to_nested_univ(X):
-    X = X.to_numpy()
-    return _from_numpy2d_to_nested_univ(X)
-
-
 def _pd_wide_to_pd_multiindex(X):
     X_3d = _from_pd_wide_to_numpy3d(X)
     return _from_numpy3d_to_pd_multiindex(X_3d)
-
-
-def _from_nested_univ_to_numpy3d(X):
-    if not _nested_univ_is_equal(X):
-        raise TypeError("Cannot convert unequal length series to numpy3D")
-
-    def _convert_series_cell_to_numpy(cell):
-        if isinstance(cell, pd.Series):
-            return cell.to_numpy()
-        else:
-            return cell
-
-    X_3d = np.stack(
-        X.applymap(_convert_series_cell_to_numpy)
-        .apply(lambda row: np.stack(row), axis=1)
-        .to_numpy()
-    )
-    return X_3d
-
-
-def _from_nested_univ_to_np_list(X):
-    df_list = _from_nested_univ_to_df_list(X)
-    np_list = _from_df_list_to_np_list(df_list)
-    return np_list
-
-
-def _from_nested_univ_to_pd_multiindex(X):
-    X_mi = pd.DataFrame()
-    instance_index = "instances"
-    time_index = "timepoints"
-    X_cols = X.columns
-    nested_cols = [c for c in X_cols if isinstance(X[[c]].iloc[0, 0], pd.Series)]
-    non_nested_cols = list(set(X_cols).difference(nested_cols))
-    for c in nested_cols:
-        X_col = X[[c]].explode(c)
-        X_col = X_col.infer_objects()
-        idx_df = X[[c]].applymap(lambda x: x.index).explode(c)
-        index = pd.MultiIndex.from_arrays([idx_df.index, idx_df[c].values])
-        index = index.set_names([instance_index, time_index])
-        X_col.index = index
-        X_mi[[c]] = X_col
-    for c in non_nested_cols:
-        for ix in X.index:
-            X_mi.loc[ix, c] = X[[c]].loc[ix].iloc[0]
-        X_mi[[c]] = X_mi[[c]].convert_dtypes()
-
-    return X_mi
-
-
-def _from_nested_univ_to_df_list(X):
-    # this is not already implemented, so chain two conversions
-    X_multi = _from_nested_univ_to_pd_multiindex(X)
-    return _from_pd_multiindex_to_df_list(X_multi)
-
-
-def _from_nested_univ_to_numpy2d(X):
-    if not _nested_univ_is_equal(X):
-        raise TypeError("Cannot convert unequal length series to numpy2D")
-    if X.shape[1] > 1:
-        raise TypeError("Cannot convert multivariate nested into numpy2D")
-    Xt = np.array([np.array(series) for series in X.iloc[:, 0]])
-    return Xt
-
-
-def _from_nested_univ_to_pd_wide(X):
-    npflat = _from_nested_univ_to_numpy3d(X)
-    return _from_numpy3d_to_pd_wide(npflat)
 
 
 def _from_pd_multiindex_to_df_list(X):
@@ -439,33 +311,6 @@ def _from_pd_multiindex_to_pd_wide(X):
     return _from_df_list_to_pd_wide(df_list)
 
 
-def _from_pd_multiindex_to_nested_univ(X):
-    instance_index = 0
-
-    # get number of distinct cases (note: a case may have 1 or many dimensions)
-    instance_idxs = X.index.get_level_values(instance_index).unique()
-
-    x_nested = pd.DataFrame()
-
-    # Loop the dimensions (columns) of multi-index DataFrame
-    for _label, _series in X.items():  # noqa
-        # Slice along the instance dimension to return list of series for each case
-        # Note: if you omit .rename_axis the returned DataFrame
-        #       prints time axis dimension at the start of each cell,
-        #       but this doesn't affect the values.
-        dim_list = [
-            _series.xs(instance_idx, level=instance_index).rename_axis(None)
-            for instance_idx in instance_idxs
-        ]
-        x_nested[_label] = pd.Series(dim_list)
-    x_nested = pd.DataFrame(x_nested).set_axis(instance_idxs)
-
-    col_msg = "Multi-index and nested DataFrames should have same columns names"
-    assert (x_nested.columns == X.columns).all(), col_msg
-
-    return x_nested
-
-
 convert_dictionary = dict()
 # assign identity function to type conversion to self
 for x in COLLECTIONS_DATA_TYPES:
@@ -475,54 +320,37 @@ convert_dictionary[("numpy3D", "np-list")] = _from_numpy3d_to_np_list
 convert_dictionary[("numpy3D", "df-list")] = _from_numpy3d_to_df_list
 convert_dictionary[("numpy3D", "pd-wide")] = _from_numpy3d_to_pd_wide
 convert_dictionary[("numpy3D", "numpy2D")] = _from_numpy3d_to_numpy2d
-convert_dictionary[("numpy3D", "nested_univ")] = _from_numpy3d_to_nested_univ
 convert_dictionary[("numpy3D", "pd-multiindex")] = _from_numpy3d_to_pd_multiindex
 # np-list-> *
 convert_dictionary[("np-list", "numpy3D")] = _from_np_list_to_numpy3d
 convert_dictionary[("np-list", "df-list")] = _from_np_list_to_df_list
 convert_dictionary[("np-list", "pd-wide")] = _from_np_list_to_pd_wide
 convert_dictionary[("np-list", "numpy2D")] = _from_np_list_to_numpy2d
-convert_dictionary[("np-list", "nested_univ")] = _from_np_list_to_nested_univ
 convert_dictionary[("np-list", "pd-multiindex")] = _from_np_list_to_pd_multiindex
 # df-list-> *
 convert_dictionary[("df-list", "numpy3D")] = _from_df_list_to_numpy3d
 convert_dictionary[("df-list", "np-list")] = _from_df_list_to_np_list
 convert_dictionary[("df-list", "pd-wide")] = _from_df_list_to_pd_wide
 convert_dictionary[("df-list", "numpy2D")] = _from_df_list_to_numpy2d
-convert_dictionary[("df-list", "nested_univ")] = _from_df_list_to_nested_univ
 convert_dictionary[("df-list", "pd-multiindex")] = _from_df_list_to_pd_multiindex
 # numpy2D -> *: NOTE ASSUMES n_channels == 1 for this conversion.
 convert_dictionary[("numpy2D", "numpy3D")] = _from_numpy2d_to_numpy3d
 convert_dictionary[("numpy2D", "np-list")] = _from_numpy2d_to_np_list
 convert_dictionary[("numpy2D", "df-list")] = _from_numpy2d_to_df_list
 convert_dictionary[("numpy2D", "pd-wide")] = _from_numpy2d_to_pd_wide
-convert_dictionary[("numpy2D", "nested_univ")] = _from_numpy2d_to_nested_univ
 convert_dictionary[("numpy2D", "pd-multiindex")] = _from_numpy2d_to_pd_multiindex
 # pd-wide -> *: NOTE ASSUMES n_channels == 1 for this conversion.
 convert_dictionary[("pd-wide", "numpy3D")] = _from_pd_wide_to_numpy3d
 convert_dictionary[("pd-wide", "np-list")] = _from_pd_wide_to_np_list
 convert_dictionary[("pd-wide", "df-list")] = _from_pd_wide_to_df_list
 convert_dictionary[("pd-wide", "numpy2D")] = _from_pd_wide_to_numpy2d
-convert_dictionary[("pd-wide", "nested_univ")] = _from_pd_wide_to_nested_univ
 convert_dictionary[("pd-wide", "pd-multiindex")] = _pd_wide_to_pd_multiindex
-# nested_univ -> *
-convert_dictionary[("nested_univ", "numpy3D")] = _from_nested_univ_to_numpy3d
-convert_dictionary[("nested_univ", "np-list")] = _from_nested_univ_to_np_list
-convert_dictionary[("nested_univ", "df-list")] = _from_nested_univ_to_df_list
-convert_dictionary[("nested_univ", "pd-wide")] = _from_nested_univ_to_pd_wide
-convert_dictionary[("nested_univ", "numpy2D")] = _from_nested_univ_to_numpy2d
-convert_dictionary[("nested_univ", "pd-multiindex")] = (
-    _from_nested_univ_to_pd_multiindex
-)
 # pd_multiindex -> *
 convert_dictionary[("pd-multiindex", "numpy3D")] = _from_pd_multiindex_to_numpy3d
 convert_dictionary[("pd-multiindex", "np-list")] = _from_pd_multiindex_to_np_list
 convert_dictionary[("pd-multiindex", "df-list")] = _from_pd_multiindex_to_df_list
 convert_dictionary[("pd-multiindex", "pd-wide")] = _from_pd_multiindex_to_pd_wide
 convert_dictionary[("pd-multiindex", "numpy2D")] = _from_pd_multiindex_to_numpy2d
-convert_dictionary[("pd-multiindex", "nested_univ")] = (
-    _from_pd_multiindex_to_nested_univ
-)
 
 
 def convert_collection(X, output_type):
@@ -590,8 +418,6 @@ def resolve_equal_length_inner_type(inner_types: Sequence[str]) -> str:
         return "df-list"
     if "pd-wide" in inner_types:
         return "pd-wide"
-    if "nested_univ" in inner_types:
-        return "nested_univ"
     raise ValueError(
         f"Error, no valid inner types in {inner_types} must be one of "
         f"{COLLECTIONS_DATA_TYPES}"
@@ -612,9 +438,82 @@ def resolve_unequal_length_inner_type(inner_types: Sequence[str]) -> str:
         return "df-list"
     if "pd-multiindex" in inner_types:
         return "pd-multiindex"
-    if "nested_univ" in inner_types:
-        return "nested_univ"
     raise ValueError(
         f"Error, no valid inner types for unequal series in {inner_types} "
-        f"must be one of np-list, df-list, pd-multiindex or nested_univ"
+        f"must be np-list or pd-multiindex"
     )
+
+
+def _convert_collection_to_numba_list(
+    x: Union[np.ndarray, list[np.ndarray]],
+    name: str = "X",
+    multivariate_conversion: bool = False,
+) -> NumbaList[np.ndarray]:
+    """Convert input collections to NumbaList format.
+
+    Takes a single or multiple time series and converts them to a list of 2D arrays. If
+    the input is a single time series, it is reshaped to a 2D array as the sole element
+    of a list. If the input is a 2D array of shape (n_cases, n_timepoints), it is
+    reshaped to a list of n_cases 1D arrays with n_timepoints points. A 3D array is
+    converted to a list with n_cases 2D arrays of shape (n_channels, n_timepoints).
+    Lists of 1D arrays are converted to lists of 2D arrays.
+
+    Parameters
+    ----------
+    x : Union[np.ndarray, List[np.ndarray]]
+        One or more time series of shape (n_cases, n_channels, n_timepoints) or
+        (n_cases, n_timepoints) or (n_timepoints,).
+    name : str, optional
+        Name of the variable to be converted for error handling, by default "X".
+    multivariate_conversion : bool, optional
+        Boolean indicating if the conversion should be multivariate, by default False.
+        If True, the input is assumed to be multivariate and reshaped accordingly.
+        If False, the input is reshaped to univariate.
+
+    Returns
+    -------
+    NumbaList[np.ndarray]
+        Numba typedList of 2D arrays with shape (n_channels, n_timepoints) of length
+        n_cases.
+    bool
+        Boolean indicating if the time series is of unequal length. True if the time
+        series are of unequal length, False otherwise.
+
+    Raises
+    ------
+    ValueError
+        If x is not a 1D, 2D or 3D array or a list of 1D or 2D arrays.
+    """
+    if isinstance(x, np.ndarray):
+        if x.ndim == 3:
+            return NumbaList(x), False
+        elif x.ndim == 2:
+            if multivariate_conversion:
+                return NumbaList(x.reshape(1, x.shape[0], x.shape[1])), False
+            return NumbaList(x.reshape(x.shape[0], 1, x.shape[1])), False
+        elif x.ndim == 1:
+            return NumbaList(x.reshape(1, 1, x.shape[0])), False
+        else:
+            raise ValueError(f"{name} must be 1D, 2D or 3D")
+    elif isinstance(x, (list, NumbaList)):
+        if not isinstance(x[0], np.ndarray):
+            return x, False
+        x_new = NumbaList()
+        expected_n_timepoints = x[0].shape[-1]
+        unequal_timepoints = False
+        for i in range(len(x)):
+            curr_x = x[i]
+            if curr_x.shape[-1] != expected_n_timepoints:
+                unequal_timepoints = True
+            if x[i].ndim == 2:
+                x_new.append(curr_x)
+            elif x[i].ndim == 1:
+                x_new.append(curr_x.reshape((1, curr_x.shape[0])))
+            else:
+                raise ValueError(f"{name} must include only 1D or 2D arrays")
+        return x_new, unequal_timepoints
+    else:
+        raise ValueError(
+            f"{name} must be either np.ndarray or List[np.ndarray] or "
+            f"NumbaList[np.ndarray]"
+        )

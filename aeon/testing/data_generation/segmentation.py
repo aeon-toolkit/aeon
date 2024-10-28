@@ -1,6 +1,6 @@
 """Synthetic data generating functions."""
 
-from typing import Union
+from typing import Optional, Union
 
 import numpy as np
 import numpy.typing as npt
@@ -11,8 +11,8 @@ def piecewise_normal_multivariate(
     means: npt.ArrayLike,
     lengths: npt.ArrayLike,
     variances: Union[npt.ArrayLike, float] = 1.0,
-    covariances: npt.ArrayLike = None,
-    random_state: Union[int, np.random.RandomState] = None,
+    covariances: Optional[npt.ArrayLike] = None,
+    random_state: Optional[Union[int, np.random.RandomState]] = None,
 ) -> npt.ArrayLike:
     """
     Generate multivariate series from segments.
@@ -136,7 +136,7 @@ def piecewise_normal(
     means: npt.ArrayLike,
     lengths: npt.ArrayLike,
     std_dev: Union[npt.ArrayLike, float] = 1.0,
-    random_state: Union[int, np.random.RandomState] = None,
+    random_state: Optional[Union[int, np.random.RandomState]] = None,
 ) -> npt.ArrayLike:
     """
     Generate series from segments.
@@ -199,7 +199,7 @@ def piecewise_multinomial(
     n_trials: int,
     lengths: npt.ArrayLike,
     p_vals: npt.ArrayLike,
-    random_state: Union[int, np.random.RandomState] = None,
+    random_state: Optional[Union[int, np.random.RandomState]] = None,
 ) -> npt.ArrayLike:
     """
     Generate series from segments.
@@ -276,7 +276,7 @@ def piecewise_multinomial(
 def piecewise_poisson(
     lambdas: npt.ArrayLike,
     lengths: npt.ArrayLike,
-    random_state: Union[int, np.random.RandomState] = None,
+    random_state: Optional[Union[int, np.random.RandomState]] = None,
 ) -> npt.ArrayLike:
     """
     Generate series using Possion distribution.

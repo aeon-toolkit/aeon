@@ -2,11 +2,14 @@
 
 __maintainer__ = []
 
-from typing import Callable, Dict, Union
+from typing import Callable, Union
 
 import numpy as np
 
 from aeon.clustering.averaging._barycenter_averaging import elastic_barycenter_average
+from aeon.clustering.averaging._shift_scale_invariant_averaging import (
+    shift_invariant_average,
+)
 
 
 def mean_average(X: np.ndarray, **kwargs) -> np.ndarray:
@@ -30,12 +33,13 @@ def mean_average(X: np.ndarray, **kwargs) -> np.ndarray:
 _AVERAGE_DICT = {
     "mean": mean_average,
     "ba": elastic_barycenter_average,
+    "shift_scale": shift_invariant_average,
 }
 
 
 def _resolve_average_callable(
-    averaging_method: Union[str, Callable[[np.ndarray, Dict], np.ndarray]]
-) -> Callable[[np.ndarray, Dict], np.ndarray]:
+    averaging_method: Union[str, Callable[[np.ndarray, dict], np.ndarray]]
+) -> Callable[[np.ndarray, dict], np.ndarray]:
     """Resolve a string or callable to a averaging callable.
 
     Parameters
