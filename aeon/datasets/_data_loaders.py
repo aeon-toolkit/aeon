@@ -1,5 +1,7 @@
 """Dataset loading functions."""
 
+from typing import Optional
+
 __all__ = [  # Load functions
     "load_from_tsfile",
     "load_from_tsf_file",
@@ -295,7 +297,6 @@ def load_from_tsfile(
 def _load_saved_dataset(
     name,
     split=None,
-    return_X_y=True,
     return_type=None,
     local_module=MODULE,
     local_dirname=DIRNAME,
@@ -313,9 +314,6 @@ def _load_saved_dataset(
     split: None or {"TRAIN", "TEST"}, default=None
         Whether to load the train or test instances of the problem.
         By default it loads both train and test instances into a single data structure.
-    return_X_y: bool, default=True
-        If True, returns (time series, target) separately. If False it returns (X,
-        y) as a tuple.
     return_data_type : str, default = None
         "numpy3D"/"numpy3d"/"np3D": recommended for equal length series, "np-list"
         for unequal length series that cannot be stored in numpy arrays.
@@ -334,11 +332,14 @@ def _load_saved_dataset(
     Returns
     -------
     X: Data stored in specified `return_type`
-        The time series data for the problem, with n instances
-    y: 1D numpy array of length n, only returned if return_X_y if True
-        The class labels for each time series instance in X
-        If return_X_y is False, y is appended to X instead.
-    meta: meta data dictionary, only returned if return_meta is True
+        The time series collection for the problem.
+    y: 1D numpy array of length len(X)
+     The class labels for each time series instance in X.
+
+    meta: dict
+        Dictionary of data characteristics, with keys
+        "problemname" (string), booleans: "timestamps", "missing", "univariate",
+        "equallength", "classlabel", "targetlabel" and list: "class_values",
 
     Raises
     ------
@@ -377,18 +378,10 @@ def _load_saved_dataset(
         raise ValueError("Invalid `split` value =", split)
     if return_type is not None:
         X = convert_collection(X, return_type)
-
-    if return_X_y:
-        if return_meta:
-            return X, y, meta_data
-        else:
-            return X, y
+    if return_meta:
+        return X, y, meta_data
     else:
-        combo = (X, y)
-        if return_meta:
-            return combo, meta_data
-        else:
-            return combo
+        return X, y
 
 
 def download_dataset(name, save_path=None):
@@ -490,7 +483,7 @@ def _download_and_extract(url, extract_path=None):
 
 
 def _load_tsc_dataset(
-    name, split, return_X_y=True, return_type=None, extract_path=None, return_meta=False
+    name, split, return_type=None, extract_path=None, return_meta=False
 ):
     """Load time series classification datasets (helper function).
 
@@ -500,9 +493,6 @@ def _load_tsc_dataset(
     split: None or one of "TRAIN", "TEST", default=None
         Whether to load the train or test instances of the problem.
         By default it loads both train and test instances (in a single container).
-    return_X_y: bool, default=True
-        If True, returns (features, target) separately instead of a single
-        dataframe with columns for features and the target.
     return_data_type : str, optional, default = None
         "numpy3D"/"numpy3d"/"np3D": recommended for equal length series
         "numpy2D"/"numpy2d"/"np2d": can be used for univariate equal length series,
@@ -517,10 +507,9 @@ def _load_tsc_dataset(
     Returns
     -------
     X: Data stored in specified `return_type`
-        The time series data for the problem, with n instances
-    y: 1D numpy array of length n, only returned if return_X_y if True
-        The class labels for each time series instance in X
-        If return_X_y is False, y is appended to X instead.
+        The time series data for the problem, with n instances.
+    y: 1D numpy array of length len(X)
+        The class labels for each time series instance in X.
 
     Raises
     ------
@@ -563,7 +552,6 @@ def _load_tsc_dataset(
     return _load_saved_dataset(
         name,
         split=split,
-        return_X_y=return_X_y,
         return_type=return_type,
         local_module=local_module,
         local_dirname=local_dirname,
@@ -680,7 +668,7 @@ def load_from_tsv_file(full_file_path_and_name):
 def _convert_tsf_to_hierarchical(
     data: pd.DataFrame,
     metadata,
-    freq: str = None,
+    freq: Optional[str] = None,
     value_column_name: str = "series_value",
 ) -> pd.DataFrame:
     """Convert the data from default_tsf to pd_multiindex_hier.

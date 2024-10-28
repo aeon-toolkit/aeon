@@ -100,7 +100,7 @@ def test_interval_forest_n_intervals(n_intervals, n_intervals_len):
         series_transformers=[None, FunctionTransformer(np.log1p)],
         random_state=0,
     )
-    est._unit_test_flag = True
+    est.__unit_test_flag = True
     est.fit(X, y)
     est.predict_proba(X)
 
@@ -144,7 +144,7 @@ def test_interval_forest_attribute_subsample(features, output_len):
         replace_nan=0,
         random_state=0,
     )
-    est._unit_test_flag = True
+    est.__unit_test_flag = True
     est.fit(X, y)
     est.predict_proba(X)
 
@@ -184,7 +184,7 @@ def test_interval_forest_series_transformer(series_transformer):
         series_transformers=series_transformer,
         random_state=0,
     )
-    est._unit_test_flag = True
+    est.__unit_test_flag = True
     est.fit(X, y)
     est.predict_proba(X)
 

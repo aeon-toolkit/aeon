@@ -24,22 +24,22 @@ __all__ = [
 __maintainer__ = ["TonyBagnall", "MatthewMiddlehurst"]
 
 import time
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from typing import final
 
 import numpy as np
 import pandas as pd
 from sklearn.metrics import get_scorer, get_scorer_names
 from sklearn.model_selection import cross_val_predict
-from sklearn.utils.multiclass import type_of_target
 
 from aeon.base import BaseCollectionEstimator
 from aeon.base._base import _clone_estimator
 from aeon.utils.validation._dependencies import _check_estimator_deps
 from aeon.utils.validation.collection import get_n_cases
+from aeon.utils.validation.labels import check_classification_y
 
 
-class BaseClassifier(BaseCollectionEstimator, ABC):
+class BaseClassifier(BaseCollectionEstimator):
     """
     Abstract base class for time series classifiers.
 
@@ -60,6 +60,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
     """
 
     _tags = {
+        "fit_is_empty": False,
         "capability:train_estimate": False,
         "capability:contractable": False,
     }
@@ -118,7 +119,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
 
         self.fit_time_ = int(round(time.time() * 1000)) - start
         # this should happen last
-        self._is_fitted = True
+        self.is_fitted = True
         return self
 
     @final
@@ -152,7 +153,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             1D np.array of float, of shape (n_cases) - predicted class labels
             indices correspond to instance indices in X
         """
-        self.check_is_fitted()
+        self._check_is_fitted()
 
         # handle the single-class-label case
         if len(self._class_dictionary) == 1:
@@ -197,7 +198,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             second dimension indices correspond to class labels, (i, j)-th entry is
             estimated probability that i-th instance is of class j
         """
-        self.check_is_fitted()
+        self._check_is_fitted()
 
         # handle the single-class-label case
         if len(self._class_dictionary) == 1:
@@ -270,7 +271,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             y_pred = self._fit_predict(X, y, **kwargs)
 
         # this should happen last
-        self._is_fitted = True
+        self.is_fitted = True
         return y_pred
 
     @final
@@ -339,7 +340,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
             y_proba = self._fit_predict_proba(X, y, **kwargs)
 
         # this should happen last
-        self._is_fitted = True
+        self.is_fitted = True
         return y_proba
 
     def score(
@@ -384,7 +385,7 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
         score : float
              Accuracy score of predict(X) vs y.
         """
-        self.check_is_fitted()
+        self._check_is_fitted()
         self._check_y(y, len(X), update_classes=False)
         _metric_params = metric_params
         if metric_params is None:
@@ -558,26 +559,13 @@ class BaseClassifier(BaseCollectionEstimator, ABC):
 
     def _check_y(self, y, n_cases, update_classes=True):
         # Check y valid input for classification
-        if not isinstance(y, (pd.Series, np.ndarray)):
-            raise TypeError(
-                f"y must be a np.array or a pd.Series, but found type: {type(y)}"
-            )
-        if isinstance(y, np.ndarray) and y.ndim > 1:
-            raise TypeError(f"y must be 1-dimensional, found {y.ndim} dimensions")
+        check_classification_y(y)
 
         # Check matching number of labels
         n_labels = y.shape[0]
         if n_cases != n_labels:
             raise ValueError(
                 f"Mismatch in number of cases. Found X = {n_cases} and y = {n_labels}"
-            )
-
-        y_type = type_of_target(y)
-        if y_type != "binary" and y_type != "multiclass":
-            raise ValueError(
-                f"y type is {y_type} which is not valid for classification. "
-                f"Should be binary or multiclass according to "
-                f"sklearn.utils.multiclass.type_of_target"
             )
 
         if isinstance(y, pd.Series):

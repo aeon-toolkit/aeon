@@ -2,7 +2,8 @@
 
 __maintainer__ = ["baraline"]
 
-from abc import ABC, abstractmethod
+from abc import abstractmethod
+from collections.abc import Iterable
 from typing import Optional, final
 
 import numpy as np
@@ -10,9 +11,10 @@ from numba import get_num_threads, set_num_threads
 from numba.typed import List
 
 from aeon.base import BaseCollectionEstimator
+from aeon.utils.numba.general import sliding_mean_std_one_series
 
 
-class BaseSimilaritySearch(BaseCollectionEstimator, ABC):
+class BaseSimilaritySearch(BaseCollectionEstimator):
     """
     Base class for similarity search applications.
 
@@ -107,6 +109,116 @@ class BaseSimilaritySearch(BaseCollectionEstimator, ABC):
         self._fit(X, y)
         set_num_threads(prev_threads)
         return self
+
+    def _store_mean_std_from_inputs(self, query_length: int) -> None:
+        """
+        Store the mean and std of each subsequence of size query_length in X_.
+
+        Parameters
+        ----------
+        query_length : int
+            Length of the query.
+
+        Returns
+        -------
+        None
+
+        """
+        means = []
+        stds = []
+
+        for i in range(len(self.X_)):
+            _mean, _std = sliding_mean_std_one_series(self.X_[i], query_length, 1)
+
+            stds.append(_std)
+            means.append(_mean)
+
+        self.X_means_ = List(means)
+        self.X_stds_ = List(stds)
+
+    def _init_X_index_mask(
+        self,
+        X_index: Optional[Iterable[int]],
+        query_length: int,
+        exclusion_factor: Optional[float] = 2.0,
+    ) -> np.ndarray:
+        """
+        Initiliaze the mask indicating the candidates to be evaluated in the search.
+
+        Parameters
+        ----------
+        X_index : Iterable
+            Any Iterable (tuple, list, array) of length two used to specify the index of
+            the query X if it was extracted from the input data X given during the fit
+            method. Given the tuple (id_sample, id_timestamp), the similarity search
+            will define an exclusion zone around the X_index in order to avoid matching
+            X with itself. If None, it is considered that the query is not extracted
+            from X_ (the training data).
+        query_length : int
+            Length of the queries.
+        exclusion_factor : float, optional
+            The exclusion factor is used to prevent candidates close or equal to the
+            query sample point to be returned as best matches. It is used to define a
+            region between :math:`id_timestamp - query_length//exclusion_factor` and
+            :math:`id_timestamp + query_length//exclusion_factor` which cannot be used
+            in the search. The default is 2.0.
+
+        Raises
+        ------
+        ValueError
+            If the length of the q_index iterable is not two, will raise a ValueError.
+        TypeError
+            If q_index is not an iterable, will raise a TypeError.
+
+        Returns
+        -------
+        mask : np.ndarray, 2D array of shape (n_cases, n_timepoints - query_length + 1)
+            Boolean array which indicates the candidates that should be evaluated in the
+            similarity search.
+
+        """
+        if self.metadata_["unequal_length"]:
+            mask = List(
+                [
+                    np.ones(self.X_[i].shape[1] - query_length + 1, dtype=bool)
+                    for i in range(self.n_cases_)
+                ]
+            )
+        else:
+            mask = np.ones(
+                (self.n_cases_, self.min_timepoints_ - query_length + 1),
+                dtype=bool,
+            )
+        if X_index is not None:
+            if isinstance(X_index, Iterable):
+                if len(X_index) != 2:
+                    raise ValueError(
+                        "The X_index should contain an interable of size 2 such as "
+                        "(id_sample, id_timestamp), but got an iterable of "
+                        "size {}".format(len(X_index))
+                    )
+            else:
+                raise TypeError(
+                    "If not None, the X_index parameter should be an iterable, here "
+                    "X_index is of type {}".format(type(X_index))
+                )
+
+            if exclusion_factor <= 0:
+                raise ValueError(
+                    "The value of exclusion_factor should be superior to 0, but got "
+                    "{}".format(len(exclusion_factor))
+                )
+
+            i_instance, i_timestamp = X_index
+            profile_length = self.X_[i_instance].shape[1] - query_length + 1
+            exclusion_LB = max(0, int(i_timestamp - query_length // exclusion_factor))
+            exclusion_UB = min(
+                profile_length,
+                int(i_timestamp + query_length // exclusion_factor),
+            )
+            mask[i_instance][exclusion_LB:exclusion_UB] = False
+
+        return mask
 
     @abstractmethod
     def _fit(self, X, y=None): ...

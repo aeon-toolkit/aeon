@@ -1,9 +1,12 @@
 __maintainer__ = []
 
+from typing import Union
+
 import numpy as np
 from numba import njit, prange
 
-from aeon.distances._utils import reshape_pairwise_to_multiple
+from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
+from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
 @njit(cache=True, fastmath=True)
@@ -87,7 +90,6 @@ def _univariate_DFT_SFA_distance(
     return np.sqrt(2 * dist)
 
 
-@njit(cache=True, fastmath=True)
 def sfa_pairwise_distance(
     X: np.ndarray, y: np.ndarray, breakpoints: np.ndarray
 ) -> np.ndarray:
@@ -113,20 +115,22 @@ def sfa_pairwise_distance(
         If X is not 2D array when only passing X.
         If X and y are not 1D, 2D arrays when passing both X and y.
     """
+    multivariate_conversion = _is_numpy_list_multivariate(X, y)
+    _X, unequal_length = _convert_collection_to_numba_list(
+        X, "X", multivariate_conversion
+    )
     if y is None:
-        # To self
-        if X.ndim == 2:
-            _X = X.reshape((X.shape[0], 1, X.shape[1]))
-            return _dft_sfa_from_multiple_to_multiple_distance(_X, None, breakpoints)
-        raise ValueError("X must be a 2D array")
+        return _dft_sfa_from_multiple_to_multiple_distance(_X, None, breakpoints)
 
-    _x, _y = reshape_pairwise_to_multiple(X, y)
-    return _dft_sfa_from_multiple_to_multiple_distance(_x, _y, breakpoints)
+    _y, unequal_length = _convert_collection_to_numba_list(
+        y, "y", multivariate_conversion
+    )
+    return _dft_sfa_from_multiple_to_multiple_distance(_X, _y, breakpoints)
 
 
 @njit(cache=True, fastmath=True, parallel=True)
 def _dft_sfa_from_multiple_to_multiple_distance(
-    X: np.ndarray, y: np.ndarray, breakpoints: np.ndarray
+    X: np.ndarray, y: Union[np.ndarray, None], breakpoints: np.ndarray
 ) -> np.ndarray:
     if y is None:
         n_instances = X.shape[0]

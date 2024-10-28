@@ -7,7 +7,7 @@ from inspect import isclass
 
 from sklearn import clone
 
-from aeon.base import BaseEstimator
+from aeon.base import BaseAeonEstimator
 
 
 class _HeterogenousMetaEstimator:
@@ -57,7 +57,7 @@ class _HeterogenousMetaEstimator:
         self._set_params(steps_attr, **kwargs)
         return self
 
-    def _get_fitted_params(self):
+    def get_fitted_params(self):
         """Get fitted parameters.
 
         private _get_fitted_params, called from get_fitted_params
@@ -70,6 +70,8 @@ class _HeterogenousMetaEstimator:
         fitted_params : dict with str keys
             fitted parameters, keyed by names of fitted parameter
         """
+        self._check_is_fitted()
+
         fitted_params = self._get_fitted_params_default()
 
         steps = self._steps_fitted_attr
@@ -79,6 +81,35 @@ class _HeterogenousMetaEstimator:
 
         return fitted_params
 
+    def _get_fitted_params_default(self, obj=None):
+        """Obtain fitted params of object, per sklearn convention.
+
+        Extracts a dict with {paramstr : paramvalue} contents,
+        where paramstr are all string names of "fitted parameters".
+
+        A "fitted attribute" of obj is one that ends in "_" but does not start with "_".
+        "fitted parameters" are names of fitted attributes, minus the "_" at the end.
+
+        Parameters
+        ----------
+        obj : any object, optional, default=self.
+
+        Returns
+        -------
+        fitted_params : dict with str keys
+            fitted parameters, keyed by names of fitted parameter.
+        """
+        obj = obj if obj else self
+
+        # default retrieves all self attributes ending in "_"
+        # and returns them with keys that have the "_" removed
+        fitted_params = [attr for attr in dir(obj) if attr.endswith("_")]
+        fitted_params = [x for x in fitted_params if not x.startswith("_")]
+        fitted_params = [x for x in fitted_params if hasattr(obj, x)]
+        fitted_param_dict = {p[:-1]: getattr(obj, p) for p in fitted_params}
+
+        return fitted_param_dict
+
     def is_composite(self):
         """Check if the object is composite.
 
@@ -87,14 +118,14 @@ class _HeterogenousMetaEstimator:
 
         Returns
         -------
-        composite: bool, whether self contains a parameter which is BaseObject
+        composite: bool, whether self contains a parameter which is BaseAeonEstimator
         """
         # children of this class are always composite
         return True
 
     def _get_params(self, attr, deep=True, fitted=False):
         if fitted:
-            method = "_get_fitted_params"
+            method = "get_fitted_params"
             deepkw = {}
         else:
             method = "get_params"
@@ -196,7 +227,7 @@ class _HeterogenousMetaEstimator:
 
         Parameters
         ----------
-        cls_type : class or tuple of class, optional. Default = BaseEstimator.
+        cls_type : class or tuple of class, optional. Default = BaseAeonEstimator.
             class(es) that all estimators are checked to be an instance of
 
         Returns
@@ -204,7 +235,7 @@ class _HeterogenousMetaEstimator:
         bool : True if obj is (str, cls_type) tuple, False otherise
         """
         if cls_type is None:
-            cls_type = BaseEstimator
+            cls_type = BaseAeonEstimator
         if not isinstance(obj, tuple) or len(obj) != 2:
             return False
         if not isinstance(obj[0], str) or not isinstance(obj[1], cls_type):
@@ -228,7 +259,7 @@ class _HeterogenousMetaEstimator:
             estimators should inherit from cls_type class
         attr_name : str, optional. Default = "steps"
             Name of checked attribute in error messages
-        cls_type : class or tuple of class, optional. Default = BaseEstimator.
+        cls_type : class or tuple of class, optional. Default = BaseAeonEstimator.
             class(es) that all estimators are checked to be an instance of
         allow_mix : boolean, optional. Default = True.
             whether mix of estimator and (str, estimator) is allowed in `estimators`
@@ -251,8 +282,8 @@ class _HeterogenousMetaEstimator:
             " of estimators, or a list of (string, estimator) tuples. "
         )
         if cls_type is None:
-            msg += f"All estimators in {attr_name!r} must be of type BaseEstimator."
-            cls_type = BaseEstimator
+            msg += f"All estimators in {attr_name!r} must be of type BaseAeonEstimator."
+            cls_type = BaseAeonEstimator
         elif isclass(cls_type) or isinstance(cls_type, tuple):
             msg += (
                 f"All estimators in {attr_name!r} must be of type "
@@ -369,7 +400,8 @@ class _HeterogenousMetaEstimator:
         ests = self._get_estimator_list(estimators)
         if clone_ests:
             ests = [
-                e.clone() if isinstance(e, BaseEstimator) else clone(e) for e in ests
+                e.clone() if isinstance(e, BaseAeonEstimator) else clone(e)
+                for e in ests
             ]
         unique_names = self._get_estimator_names(estimators, make_unique=True)
         est_tuples = list(zip(unique_names, ests))

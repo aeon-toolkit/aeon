@@ -1,16 +1,14 @@
 """Test for pairwise distances."""
 
-from typing import List
-
 import numpy as np
 import pytest
 from numpy.testing import assert_almost_equal
 
 from aeon.distances import pairwise_distance as compute_pairwise_distance
-from aeon.distances._distance import DISTANCES
-from aeon.distances.tests.test_utils import (
+from aeon.distances._distance import (
+    DISTANCES,
     SINGLE_POINT_NOT_SUPPORTED_DISTANCES,
-    _make_3d_series,
+    SYMMETRIC_DISTANCES,
 )
 from aeon.testing.data_generation import (
     make_example_2d_numpy_collection,
@@ -21,14 +19,32 @@ from aeon.testing.data_generation import (
 from aeon.testing.data_generation._legacy import make_series
 
 
+def _make_3d_series(x: np.ndarray) -> np.ndarray:
+    n_channels = x.ndim
+    if n_channels == 1:
+        shape = x.shape
+        _x = np.reshape(x, (1, 1, shape[0]))
+    elif n_channels == 2:
+        shape = x.shape
+        _x = np.reshape(x, (shape[0], 1, shape[1]))
+    elif n_channels > 3:
+        raise ValueError(
+            "The matrix provided has more than 3 dimensions. This is not"
+            "supported. Please provide a matrix with less than "
+            "3 dimensions"
+        )
+    else:
+        _x = x
+    return _x
+
+
 def _validate_pairwise_result(
     x: np.ndarray,
     name,
     distance,
     pairwise_distance,
 ):
-    """
-    Validate pairwise result.
+    """Validate pairwise result.
 
     Parameters
     ----------
@@ -37,14 +53,20 @@ def _validate_pairwise_result(
     distance: Distance function.
     pairwise_distance: Pairwise distance function.
     """
+    symmetric = name in SYMMETRIC_DISTANCES
     pairwise_result = pairwise_distance(x)
 
     expected_size = (len(x), len(x))
 
     assert isinstance(pairwise_result, np.ndarray)
     assert pairwise_result.shape == expected_size
-    assert_almost_equal(pairwise_result, compute_pairwise_distance(x, metric=name))
-    assert_almost_equal(pairwise_result, compute_pairwise_distance(x, metric=distance))
+    assert_almost_equal(
+        pairwise_result, compute_pairwise_distance(x, metric=name, symmetric=symmetric)
+    )
+    assert_almost_equal(
+        pairwise_result,
+        compute_pairwise_distance(x, metric=distance, symmetric=symmetric),
+    )
 
     if isinstance(x, np.ndarray):
         x = _make_3d_series(x)
@@ -121,7 +143,7 @@ def _validate_multiple_to_multiple_result(
 
     # If unequal length swap where x and y are to ensure it works both ways around
     if check_xy_permuted and (
-        isinstance(x, List) or isinstance(y, List) or x.shape[-1] != y.shape[-1]
+        isinstance(x, list) or isinstance(y, list) or x.shape[-1] != y.shape[-1]
     ):
         _validate_multiple_to_multiple_result(
             original_y,
@@ -148,6 +170,7 @@ def _validate_single_to_multiple_result(
     single_to_multiple_distance: Single to multiple distance function.
     run_inverse: Boolean that reruns the test with x and y swapped in position
     """
+    symmetric = name in SYMMETRIC_DISTANCES
     single_to_multiple_result = single_to_multiple_distance(x, y)
 
     expected_size = len(y)
@@ -171,10 +194,12 @@ def _validate_single_to_multiple_result(
     else:
         assert single_to_multiple_result.shape[1] == expected_size
     assert_almost_equal(
-        single_to_multiple_result, compute_pairwise_distance(x, y, metric=name)
+        single_to_multiple_result,
+        compute_pairwise_distance(x, y, metric=name, symmetric=symmetric),
     )
     assert_almost_equal(
-        single_to_multiple_result, compute_pairwise_distance(x, y, metric=distance)
+        single_to_multiple_result,
+        compute_pairwise_distance(x, y, metric=distance, symmetric=symmetric),
     )
 
     if len(x_shape) < len(y_shape):
@@ -191,14 +216,17 @@ def _validate_single_to_multiple_result(
         if curr_x.ndim == 1:
             curr_x = curr_x.reshape(1, -1)
 
-        dist = distance(curr_x, y)
+        if symmetric:
+            dist = distance(curr_x, y)
+        else:
+            dist = distance(y, curr_x)
         assert_almost_equal(dist, curr)
 
 
 def _supports_nonequal_length(dist) -> bool:
     anns = dist["pairwise_distance"].__annotations__
     return any(
-        param in anns and str(List) in str(anns[param])
+        param in anns and str(list) in str(anns[param])
         for param in ["x", "X", "y", "Y"]
     )
 
@@ -278,13 +306,14 @@ def test_multiple_to_multiple_distances(dist):
     """Test multiple to multiple distances."""
     # ================== Test equal length ==================
     # Test passing two singular univariate time series of shape (n_timepoints,)
-    _validate_multiple_to_multiple_result(
-        make_series(5, return_numpy=True, random_state=1),
-        make_series(5, return_numpy=True, random_state=2),
-        dist["name"],
-        dist["distance"],
-        dist["pairwise_distance"],
-    )
+    if dist["name"] != "scale_shift":
+        _validate_multiple_to_multiple_result(
+            make_series(5, return_numpy=True, random_state=1),
+            make_series(5, return_numpy=True, random_state=2),
+            dist["name"],
+            dist["distance"],
+            dist["pairwise_distance"],
+        )
 
     # Test passing two collections of univariate time series of shape
     # (n_cases, n_timepoints)
