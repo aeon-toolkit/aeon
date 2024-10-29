@@ -64,10 +64,11 @@ converted to `np.ndarray` internally. The airline data
 432.0
 ```
 
-A multivariate time series is made up of multiple series, where each observation is a
-vector of related recordings in the same time index. An examples would be a motion trace
-of from a smartwatch with at least three dimensions (X,Y,Z co-ordinates), or multiple
-financial statistics recorded over time. Single multivariate series input typically
+A multivariate time series is made up of multiple series or channels, where each
+observation is a vector of related recordings in the same time index. An examples
+would be a motion trace from a smartwatch with at least three dimensions (X,Y,Z
+co-ordinates), or multiple financial statistics recorded over time. Single
+multivariate series input typically
 follows the shape `(n_channels, n_timepoints)` when stored in numpy arrays
 (sometimes called wide format).
 
@@ -85,7 +86,9 @@ follows the shape `(n_channels, n_timepoints)` when stored in numpy arrays
 We commonly refer to the number of observations for a time series as `n_timepoints`.
 If a series is multivariate, we refer to the dimensions as channels
 (to avoid confusion with the dimensions of array) and in code use `n_channels`. So
-the US Change data loaded above has five channels ( ) and 187 time points.
+the US Change data loaded above has five channels ( ) and 187 time points. For more
+details on our provided datasets and on how to load data into aeon compatible data
+structures, see our [datasets](datasets) notebooks.
 
 ## Single series estimators
 
@@ -96,7 +99,11 @@ take two series as arguments.
 
 ### Time Series Anomaly Detection (TSAD)
 
+Anomaly detection is
+
 ### Time Series Segmentation (TSS)
+
+Segmentation is the process of dividing a time series into segments or regions.
 
 ### Time Series Forecasting (TSF)
 

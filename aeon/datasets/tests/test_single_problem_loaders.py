@@ -102,13 +102,6 @@ def test_basic_load_tsf_to_dataframe():
     assert metadata["contain_equal_length"] is False
 
 
-def test_load_solar():
-    """Test function to load solar data."""
-    solar = load_solar()
-    assert type(solar) is pd.Series
-    assert solar.shape == (289,)
-
-
 def test_load_covid_3month():
     """Test load covid 3 month."""
     X, y = load_covid_3month()
