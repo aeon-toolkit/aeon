@@ -155,11 +155,11 @@ tser_soton_clean = [
     "ZincConcentration",
 ]
 
-tser_soton_unequal_length = {
+tser_soton_unequal_length = [
     "ParkingBirmingham",
     "PPGDalia",
-}
-tser_soton_missing_values = {
+]
+tser_soton_missing_values = [
     "AcousticContaminationMadrid",
     "BeijingPM10Quality",
     "BeijingPM25Quality",
@@ -169,4 +169,4 @@ tser_soton_missing_values = {
     "MadridPM10Quality",
     "PrecipitationAndalusia",
     "SolarRadiationAndalusia",
-}
+]
