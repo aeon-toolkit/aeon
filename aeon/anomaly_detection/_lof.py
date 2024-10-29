@@ -128,10 +128,6 @@ class LOF(PyODAdapter):
         return self
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
-        if not hasattr(self, "fitted_pyod_model_"):
-            raise NotFittedError(
-                "This instance of LOF has not been fitted yet; please call `fit` first."
-            )
         # Set novelty to True for prediction on unseen data
         self.pyod_model.novelty = True
         return super()._predict(X)
