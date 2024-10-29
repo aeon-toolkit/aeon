@@ -118,8 +118,6 @@ class LOF(PyODAdapter):
         self.p = p
         self.metric_params = metric_params
         self.n_jobs = n_jobs
-        self.window_size = window_size
-        self.stride = stride
         super().__init__(model, window_size, stride)
 
     def _fit(self, X: np.ndarray, y: Union[np.ndarray, None] = None) -> None:
