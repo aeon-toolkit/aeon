@@ -109,9 +109,24 @@ Time series anomaly detection (TSAD) is ....
 
 ### Segmentation
 
-Time series segmentation (TSS) is the process of dividing a time series into
-segments or
-regions.
+Time series {term}`segmentation` (TSS) is the process of dividing a time series into
+segments or regions that are dissimilar to each other. This could, for
+example, be the problem of splitting the motion trace from a smartwatch into
+different activities such as walking, running, and sitting. It is closely related to
+the field of change point detection, which is a term used more in the statistics
+literature. Full information is available in the [segmentation notebooks](Segmentation.ipynb).
+
+The `aeon`
+```{code-block} python
+>>> from aeon.datasets import load_airline
+>>> from aeon.segmentation import ClaSPSegmenter
+>>> series = load_airline()
+>>> clasp = ClaSPSegmenter()  # An example segmenter
+>>> clasp.fit(data)  # fit the segmenter on the data
+>>> clasp.fit_predict(ts)
+[51]
+```
+
 
 ### Forecasting
 
