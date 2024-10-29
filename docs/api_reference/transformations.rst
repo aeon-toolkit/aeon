@@ -183,6 +183,7 @@ Series transforms
     ClaSPTransformer
     DFTSeriesTransformer
     Dobin
+    GaussSeriesTransformer
     MatrixProfileSeriesTransformer
     PLASeriesTransformer
     SGSeriesTransformer

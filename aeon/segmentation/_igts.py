@@ -389,7 +389,7 @@ class InformationGainSegmenter(BaseSegmenter):
         return self._igts.__repr__()
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
