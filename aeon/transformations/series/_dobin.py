@@ -64,7 +64,8 @@ class Dobin(BaseSeriesTransformer):
     >>> import numpy as np
     >>> import pandas as pd
     >>> from aeon.datasets import load_uschange
-    >>> _, X = load_uschange()
+    >>> X = load_uschange(return_array=False)
+    >>> X.drop(columns=["Consumption"], inplace=True)
     >>> scaler = MinMaxScaler()
     >>> X = scaler.fit_transform(X)
     >>> model = Dobin()
