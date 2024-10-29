@@ -12,11 +12,11 @@ package. If you want help with scikit-learn you may want to view
 the very latest algorithms for time series machine learning, in addition to a range of
 classical techniques for the following learning tasks:
 
-- [classification](#classification), where a collection of time series labelled with
-  a discrete value is used to train a model to predict unseen cases [more details](./classification.ipynb).
-- {term}`regression`, where a collection of time series labelled with
-  a continuous value is used to train a model to predict unseen cases [more details](./regression.ipynb).
-- [clustering](#clustering), where a collection of time series without any
+- Classification, where a collection of time series labelled with
+  a discrete value is used to train a model to predict unseen cases [more details](examples/classification/classification.ipynb).
+- Regression, where a collection of time series labelled with
+  a continuous value is used to train a model to predict unseen cases [more details](https://www.aeon-toolkit.org/en/latest/examples/regression/regression.html).
+- Clustering, where a collection of time series without any
   labels are used to train a model to label cases [more details](./clustering.ipynb).
 - {term}`similarity search` where the goal is to evaluate the similarity
 between a time series against a collection of other time series [more details](./similarity_search.ipynb).
