@@ -1,288 +1,321 @@
 """Functions to load published results."""
 
-__maintainer__ = ["TonyBagnall"]
+__maintainer__ = ["TonyBagnall", "MatthewMiddlehurst"]
 __all__ = [
-    "get_bake_off_2017_results",
-    "get_bake_off_2021_results",
-    "get_bake_off_2023_results",
+    "load_classification_bake_off_2017_results",
+    "load_classification_bake_off_2021_results",
+    "load_classification_bake_off_2023_results",
 ]
 
-import numpy as np
-import pandas as pd
-
-# Classifiers used in the original 2017 univariate TSC bake off
-uni_classifiers_2017 = {
-    "ACF": 0,
-    "BOSS": 1,
-    "CID_DTW": 2,
-    "CID_ED": 3,
-    "DDTW_R1_1NN": 4,
-    "DDTW_Rn_1NN": 5,
-    "DTW_F": 6,
-    "EE": 7,
-    "ERP_1NN": 8,
-    "Euclidean_1NN": 9,
-    "FlatCOTE": 10,
-    "FS": 11,
-    "LCSS_1NN": 12,
-    "LPS": 13,
-    "LS": 14,
-    "MSM_1NN": 15,
-    "PS": 16,
-    "RotF": 17,
-    "SAXVSM": 18,
-    "ST": 19,
-    "TSBF": 20,
-    "TSF": 21,
-    "TWE_1NN": 22,
-    "WDDTW_1NN": 23,
-    "WDTW_1NN": 24,
-}
+from aeon.benchmarking.results_loaders import _load_to_dict, _results_dict_to_array
+from aeon.datasets.tsc_datasets import (
+    multivariate_equal_length,
+    univariate2015,
+    univariate_equal_length,
+)
 
 
-def get_bake_off_2017_results(default_only=True):
-    """Fetch all the results of the 2017 univariate TSC bake off [1]_ from tsc.com.
+def load_classification_bake_off_2017_results(
+    num_resamples=100, as_array=False, ignore_nan=False
+):
+    """Fetch all the results of the 2017 univariate TSC bake off.
 
-    Basic utility function to recover legacy results. Loads results for 85
-    univariate UCR data sets for all the classifiers listed in ``classifiers_2017``.
-    Can load either the
-    default train/test split, or the results averaged over 100 resamples.
+    Basic utility function to recover legacy results from [1]_. Loads results for 85
+    univariate UCR data sets for  classifiers used in the publication. Can load either
+    the default train/test split, or the resampled results up to 100 resamples.
 
     Parameters
     ----------
-    default_only : boolean, default = True
-        Whether to return the results for the default train/test split, or results
-        averaged over resamples.
+    num_resamples : int or None, default=1
+        The number of data resamples to return scores for. The first resample
+        is the default train/test split for the dataset.
+        For 1, only the score for the default train/test split of the dataset is
+        returned.
+        For 2 or more, a np.ndarray of scores for all resamples up to num_resamples are
+        returned.
+        If None, the scores of all resamples are returned.
+
+        If as_array is true, the scores are averaged instead of being returned as a
+        np.ndarray.
+    as_array : bool, default=False
+        If True, return the results as a tuple containing a np.ndarray of (averaged)
+        scores for each classifier. Also returns a list of dataset names for each
+        row of the np.ndarray, and classifier names for each column.
+    ignore_nan : bool, default=False
+        Ignore the error raised when NaN values are present in the results. Ignores
+        NaN values when averaging when as_array is True.
 
     Returns
     -------
-    2D numpy array
-        Each column is a results for a classifier, each row a dataset.
+    results: dict or tuple
+        Dictionary with estimator name keys containing another dictionary.
+        Sub-dictionary consists of dataset name keys and contains of scores for each
+        dataset.
+        If as_array is true, instead returns a tuple of: An array of scores. Each
+        column is a results for a classifier, each row a dataset. A list of dataset
+        names for each row. A list of classifier names for each column.
 
     References
     ----------
     .. [1] A Bagnall, J Lines, A Bostrom, J Large, E Keogh, "The great time series
-    classification bake off: a review and experimental evaluation of recent
-    algorithmic advances", Data mining and knowledge discovery 31, 606-660, 2017.
+        classification bake off: a review and experimental evaluation of recent
+        algorithmic advances", Data mining and knowledge discovery 31, 606-660, 2017.
 
     Examples
     --------
     >>> from aeon.benchmarking.published_results import (
-    ...                                 get_bake_off_2017_results, uni_classifiers_2017)
+    ...     load_classification_bake_off_2017_results
+    ... )
     >>> from aeon.visualisation import plot_critical_difference
-    >>> default_results = get_bake_off_2017_results(default_only=True)  # doctest: +SKIP
-    >>> classifiers = ["MSM_1NN","LPS","TSBF","TSF","DTW_F","EE","BOSS","ST","FlatCOTE"]
-    >>> # Get column positions of classifiers in results
-    >>> cls = uni_classifiers_2017
-    >>> index =[cls[key] for key in classifiers if key in cls]
-    >>> selected =default_results[:,index]  # doctest: +SKIP
-    >>> plot = plot_critical_difference(selected, classifiers)  # doctest: +SKIP
-    >>> plot.show()  # doctest: +SKIP
-    >>> average_results = get_bake_off_2017_results(default_only=True)  # doctest: +SKIP
-    >>> selected =average_results[:,index]  # doctest: +SKIP
+    >>> # Load the results
+    >>> results, data, cls = load_classification_bake_off_2023_results(
+    ...     num_resamples=100, as_array=True
+    ... )  # doctest: +SKIP
+    >>> # Select a subset of classifiers
+    >>> cls = ["MSM_1NN","TSF","DTW_F","EE","BOSS","ST","FlatCOTE"] # doctest: +SKIP
+    >>> index = [cls.index(i) for i in cls] # doctest: +SKIP
+    >>> selected = results[:,index]  # doctest: +SKIP
+    >>> # Plot the critical difference diagram
     >>> plot = plot_critical_difference(selected, cls)  # doctest: +SKIP
     >>> plot.show()  # doctest: +SKIP
     """
-    return _get_published_results(
-        directory="Bakeoff2017",
-        classifiers=uni_classifiers_2017,
-        resamples=100,
-        suffix=".csv",
-        default_only=default_only,
-        header=None,
-        n_data=85,
+    path = "https://timeseriesclassification.com/results/PublishedResults/Bakeoff2017/"
+    classifiers = [
+        "ACF",
+        "BOSS",
+        "CID_DTW",
+        "CID_ED",
+        "DDTW_R1_1NN",
+        "DDTW_Rn_1NN",
+        "DTW_F",
+        "EE",
+        "ERP_1NN",
+        "Euclidean_1NN",
+        "FlatCOTE",
+        "FS",
+        "LCSS_1NN",
+        "LPS",
+        "LS",
+        "MSM_1NN",
+        "PS",
+        "RotF",
+        "SAXVSM",
+        "ST",
+        "TSBF",
+        "TSF",
+        "TWE_1NN",
+        "WDDTW_1NN",
+        "WDTW_1NN",
+    ]
+    res = _load_to_dict(
+        path=path,
+        estimators=classifiers,
+        datasets=univariate2015,
+        num_resamples=num_resamples,
+        file_suffix=".csv",
+        est_alias=False,
+        csv_header=None,
+        ignore_nan=True,
     )
+    if as_array:
+        res, datasets = _results_dict_to_array(res, classifiers, univariate2015, False)
+        return res, datasets, classifiers
+    return res
 
 
-# Classifiers used in the 2021 multivariate TSC bake off
-multi_classifiers_2021 = {
-    "CBOSS": 0,
-    "CIF": 1,
-    "DTW_D": 2,
-    "DTW_I": 3,
-    "gRSF": 4,
-    "HIVE-COTEv1": 5,
-    "ResNet": 6,
-    "RISE": 7,
-    "ROCKET": 8,
-    "STC": 9,
-    "TSF": 10,
-}
+def load_classification_bake_off_2021_results(num_resamples=30, as_array=False):
+    """Pull down all the results of the 2021 multivariate bake off.
 
-
-def get_bake_off_2021_results(default_only=True):
-    """Pull down all the results of the 2020 multivariate bake off [1]_ from tsc.com.
-
-    Basic utility function to recover legacy results. Loads results for 26 tsml
-    data sets for all the classifiers listed in ``classifiers_2021``. Can load either
-    the default train/test split, or the results averaged over 30 resamples.
+    Basic utility function to recover legacy results from [1]_. Loads results for 26
+    tsml data sets for classifiers used in the publication. Can load either
+    the default train/test split, or the resampled results up to 30 resamples.
 
     Parameters
     ----------
-    default_only : boolean, default = True
-        Whether to return the results for the default train/test split, or results
-        averaged over resamples.
+    num_resamples : int or None, default=1
+        The number of data resamples to return scores for. The first resample
+        is the default train/test split for the dataset.
+        For 1, only the score for the default train/test split of the dataset is
+        returned.
+        For 2 or more, a np.ndarray of scores for all resamples up to num_resamples are
+        returned.
+        If None, the scores of all resamples are returned.
+
+        If as_array is true, the scores are averaged instead of being returned as a
+        np.ndarray.
+    as_array : bool, default=False
+        If True, return the results as a tuple containing a np.ndarray of (averaged)
+        scores for each classifier. Also returns a list of dataset names for each
+        row of the np.ndarray, and classifier names for each column.
 
     Returns
     -------
-    2D numpy array
-        Each column is a results for a classifier, each row a dataset.
+    results: dict or tuple
+        Dictionary with estimator name keys containing another dictionary.
+        Sub-dictionary consists of dataset name keys and contains of scores for each
+        dataset.
+        If as_array is true, instead returns a tuple of: An array of scores. Each
+        column is a results for a classifier, each row a dataset. A list of dataset
+        names for each row. A list of classifier names for each column.
 
     References
     ----------
     .. [1] AP Ruiz, M Flynn, J Large, M Middlehurst, A Bagnall, "The great multivariate
-    time series classification bake off: a review and experimental evaluation of
-    recent algorithmic advances", Data mining and knowledge discovery 35, 401-449, 2021.
+        time series classification bake off: a review and experimental evaluation of
+        recent algorithmic advances", Data mining and knowledge discovery 35, 401-449,
+        2021.
 
     Examples
     --------
     >>> from aeon.benchmarking.published_results import (
-    ...                             get_bake_off_2021_results, multi_classifiers_2021)
+    ...     load_classification_bake_off_2021_results
+    ... )
     >>> from aeon.visualisation import plot_critical_difference
-    >>> default_results = get_bake_off_2021_results(default_only=True)  # doctest: +SKIP
-    >>> cls = list(multi_classifiers_2021.keys())  # doctest: +SKIP
-    >>> selected =default_results  # doctest: +SKIP
-    >>> plot = plot_critical_difference(selected, cls)  # doctest: +SKIP
-    >>> plot.show()  # doctest: +SKIP
-    >>> avg_results = get_bake_off_2021_results(default_only=False)  # doctest: +SKIP
-    >>> selected = avg_results  # doctest: +SKIP
-    >>> plot = plot_critical_difference(selected, cls)  # doctest: +SKIP
+    >>> # Load the results
+    >>> results, data, cls = load_classification_bake_off_2023_results(
+    ...     num_resamples=30, as_array=True
+    ... )  # doctest: +SKIP
+    >>> # Plot the critical difference diagram
+    >>> plot = plot_critical_difference(results, cls)  # doctest: +SKIP
     >>> plot.show()  # doctest: +SKIP
     """
-    return _get_published_results(
-        directory="Bakeoff2021",
-        classifiers=multi_classifiers_2021,
-        resamples=30,
-        suffix="_TESTFOLDS.csv",
-        default_only=default_only,
-        header="infer",
-        n_data=26,
+    path = "https://timeseriesclassification.com/results/PublishedResults/Bakeoff2021/"
+    classifiers = [
+        "CBOSS",
+        "CIF",
+        "DTW_D",
+        "DTW_I",
+        "gRSF",
+        "HIVE-COTEv1",
+        "ResNet",
+        "RISE",
+        "ROCKET",
+        "STC",
+        "TSF",
+    ]
+    res = _load_to_dict(
+        path=path,
+        estimators=classifiers,
+        datasets=multivariate_equal_length,
+        num_resamples=num_resamples,
+        file_suffix="_TESTFOLDS.csv",
+        est_alias=False,
     )
+    if as_array:
+        res, datasets = _results_dict_to_array(
+            res, classifiers, multivariate_equal_length, False
+        )
+        return res, datasets, classifiers
+    return res
 
 
-# Classifiers used in the 2023 univariate TSC bake off
-uni_classifiers_2023 = {
-    "Arsenal": 0,
-    "BOSS": 1,
-    "CIF": 2,
-    "CNN": 3,
-    "Catch22": 4,
-    "DrCIF": 5,
-    "EE": 6,
-    "FreshPRINCE": 7,
-    "HC1": 8,
-    "HC2": 9,
-    "Hydra-MR": 10,
-    "Hydra": 11,
-    "InceptionT": 12,
-    "Mini-R": 13,
-    "MrSQM": 14,
-    "Multi-R": 15,
-    "PF": 16,
-    "RDST": 17,
-    "RISE": 18,
-    "ROCKET": 19,
-    "RSF": 20,
-    "RSTSF": 21,
-    "ResNet": 22,
-    "STC": 23,
-    "ShapeDTW": 24,
-    "Signatures": 25,
-    "TDE": 26,
-    "TS-CHIEF": 27,
-    "TSF": 28,
-    "TSFresh": 29,
-    "WEASEL-D": 30,
-    "WEASEL": 31,
-    "cBOSS": 32,
-    "1NN-DTW": 33,
-}
+def load_classification_bake_off_2023_results(num_resamples=30, as_array=False):
+    """Pull down all the results of the 2023 univariate bake off.
 
-
-def get_bake_off_2023_results(default_only=True):
-    """Pull down all the results of the 2023 univariate bake off [1]_ from tsc.com.
-
-    Basic utility function to recover legacy results. Loads results for 112 UCR/tsml
-    data sets for all the classifiers listed in ``classifiers_2023``. Can load
-    either the default train/test split, or the results averaged over 30 resamples.
-    Please note this paper is under review, and there are more extensive results on
-    new datasets we will make more generally avaiable once published.
+    Basic utility function to recover legacy results from [1]_. Loads results for 112
+    UCR/tsml data sets for classifiers used in the publication. Can load either
+    the default train/test split, or the resampled results up to 30 resamples.
 
     Parameters
     ----------
-    default_only : boolean, default = True
-        Whether to return the results for the default train/test split, or results
-        averaged over resamples.
+    num_resamples : int or None, default=1
+        The number of data resamples to return scores for. The first resample
+        is the default train/test split for the dataset.
+        For 1, only the score for the default train/test split of the dataset is
+        returned.
+        For 2 or more, a np.ndarray of scores for all resamples up to num_resamples are
+        returned.
+        If None, the scores of all resamples are returned.
+
+        If as_array is true, the scores are averaged instead of being returned as a
+        np.ndarray.
+    as_array : bool, default=False
+        If True, return the results as a tuple containing a np.ndarray of (averaged)
+        scores for each classifier. Also returns a list of dataset names for each
+        row of the np.ndarray, and classifier names for each column.
 
     Returns
     -------
-    2D numpy array
-        Each column is a results for a classifier, each row a dataset.
+    results: dict or tuple
+        Dictionary with estimator name keys containing another dictionary.
+        Sub-dictionary consists of dataset name keys and contains of scores for each
+        dataset.
+        If as_array is true, instead returns a tuple of: An array of scores. Each
+        column is a results for a classifier, each row a dataset. A list of dataset
+        names for each row. A list of classifier names for each column.
 
     References
     ----------
     .. [1] M Middlehurst, P Schaefer, A Bagnall, "Bake off redux: a review and
-    experimental evaluation of recent time series classification algorithms",
-    arXiv preprint arXiv:2304.13029, 2023.
+        experimental evaluation of recent time series classification algorithms",
+        arXiv preprint arXiv:2304.13029, 2023.
 
     Examples
     --------
     >>> from aeon.benchmarking.published_results import (
-    ...                                 get_bake_off_2023_results, uni_classifiers_2023)
+    ...     load_classification_bake_off_2023_results
+    ... )
     >>> from aeon.visualisation import plot_critical_difference
-    >>> default_results = get_bake_off_2023_results(default_only=True)  # doctest: +SKIP
-    >>> classifiers = ["HC2","MR-Hydra","InceptionT", "FreshPRINCE","WEASEL-D","RDST"]
-    >>> # Get column positions of classifiers in results
-    >>> cls = uni_classifiers_2023
-    >>> index =[cls[key] for key in classifiers if key in cls]
-    >>> selected = default_results[:,index]  # doctest: +SKIP
-    >>> plot = plot_critical_difference(selected, classifiers)  # doctest: +SKIP
-    >>> plot.show()  # doctest: +SKIP
-    >>> avg_results = get_bake_off_2023_results(default_only=False)  # doctest: +SKIP
-    >>> selected = avg_results[:,index]  # doctest: +SKIP
-    >>> plot = plot_critical_difference(selected, classifiers)  # doctest: +SKIP
+    >>> # Load the results
+    >>> results, data, cls = load_classification_bake_off_2023_results(
+    ...     num_resamples=30, as_array=True
+    ... )  # doctest: +SKIP
+    >>> # Select a subset of classifiers
+    >>> cls = ["HC2","MR-Hydra","InceptionT","FreshPRINCE","RDST"] # doctest: +SKIP
+    >>> index = [cls.index(i) for i in cls] # doctest: +SKIP
+    >>> selected = results[:,index]  # doctest: +SKIP
+    >>> # Plot the critical difference diagram
+    >>> plot = plot_critical_difference(selected, cls)  # doctest: +SKIP
     >>> plot.show()  # doctest: +SKIP
     """
-    return _get_published_results(
-        directory="Bakeoff2023",
-        classifiers=uni_classifiers_2023,
-        resamples=30,
-        suffix="_TESTFOLDS.csv",
-        default_only=default_only,
-        header="infer",
-        n_data=112,
+    path = "https://timeseriesclassification.com/results/PublishedResults/Bakeoff2023/"
+    classifiers = [
+        "Arsenal",
+        "BOSS",
+        "CIF",
+        "CNN",
+        "Catch22",
+        "DrCIF",
+        "EE",
+        "FreshPRINCE",
+        "HC1",
+        "HC2",
+        "Hydra-MR",
+        "Hydra",
+        "InceptionT",
+        "Mini-R",
+        "MrSQM",
+        "Multi-R",
+        "PF",
+        "RDST",
+        "RISE",
+        "ROCKET",
+        "RSF",
+        "RSTSF",
+        "ResNet",
+        "STC",
+        "ShapeDTW",
+        "Signatures",
+        "TDE",
+        "TS-CHIEF",
+        "TSF",
+        "TSFresh",
+        "WEASEL-D",
+        "WEASEL",
+        "cBOSS",
+        "1NN-DTW",
+    ]
+    res = _load_to_dict(
+        path=path,
+        estimators=classifiers,
+        datasets=univariate_equal_length,
+        num_resamples=num_resamples,
+        file_suffix="_TESTFOLDS.csv",
+        est_alias=False,
     )
-
-
-def _get_published_results(
-    directory, classifiers, resamples, suffix, default_only, header, n_data
-):
-    path = (
-        "https://timeseriesclassification.com/results/PublishedResults/"
-        + directory
-        + "/"
-    )
-    estimators = classifiers
-    all_results = {}
-    for cls in estimators:
-        url = path + cls + suffix
-        try:
-            data = pd.read_csv(url, header=header)
-        except Exception:
-            print(" Error trying to load from url", url)  # noqa
-            print(" Check results for ", cls, " are on the website")  # noqa
-            raise
-        problems = data.iloc[:, 0].tolist()
-        results = data.iloc[:, 1:].to_numpy()
-        cls_results = np.zeros(shape=len(problems))
-        if results.shape[1] != resamples:
-            results = results[:, :resamples]
-        for i in range(len(problems)):
-            if default_only:
-                cls_results[i] = results[i][0]
-            else:
-                cls_results[i] = np.nanmean(results[i])
-        all_results[cls] = cls_results
-    arrays = [v[:n_data] for v in all_results.values()]
-    data_array = np.stack(arrays, axis=-1)
-    return data_array
+    if as_array:
+        res, datasets = _results_dict_to_array(
+            res, classifiers, univariate_equal_length, False
+        )
+        return res, datasets, classifiers
+    return res

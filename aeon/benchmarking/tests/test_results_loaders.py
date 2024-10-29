@@ -8,6 +8,7 @@ import pytest
 from pytest import raises
 
 from aeon.benchmarking.results_loaders import (
+    CONNECTION_ERRORS,
     NAME_ALIASES,
     VALID_RESULT_MEASURES,
     estimator_alias,
@@ -15,7 +16,6 @@ from aeon.benchmarking.results_loaders import (
     get_estimator_results,
     get_estimator_results_as_array,
 )
-from aeon.datasets._data_loaders import CONNECTION_ERRORS
 from aeon.testing.testing_config import PR_TESTING
 from aeon.testing.utils.deep_equals import deep_equals
 
@@ -70,7 +70,7 @@ def test_get_available_estimators():
         get_available_estimators(task="smiling")
 
 
-cls = ["HC2", "FreshPRINCE", "InceptionT"]
+cls = ["HIVECOTEV2", "FreshPRINCE", "InceptionTime"]
 data = ["Chinatown", "ItalyPowerDemand", "Tools"]
 test_path = os.path.dirname(__file__)
 data_path = os.path.join(test_path, "../example_results/")
@@ -90,17 +90,17 @@ def test_get_estimator_results(path):
     assert isinstance(res, dict)
     assert len(res) == 3
     assert all(len(v) == 2 for v in res.values())
-    assert res["HC2"]["Chinatown"] == 0.9825072886297376
+    assert res["HIVECOTEV2"]["Chinatown"] == 0.9825072886297376
 
     # test resamples
     res2 = get_estimator_results(cls, datasets=data, num_resamples=30, path=path)
     assert isinstance(res2, dict)
     assert len(res2) == 3
     assert all(len(v) == 2 for v in res2.values())
-    assert isinstance(res2["HC2"]["Chinatown"], np.ndarray)
-    assert len(res2["HC2"]["Chinatown"]) == 30
-    assert res2["HC2"]["Chinatown"][0] == 0.9825072886297376
-    assert np.average(res2["HC2"]["ItalyPowerDemand"]) == 0.9630385487528345
+    assert isinstance(res2["HIVECOTEV2"]["Chinatown"], np.ndarray)
+    assert len(res2["HIVECOTEV2"]["Chinatown"]) == 30
+    assert res2["HIVECOTEV2"]["Chinatown"][0] == 0.9825072886297376
+    assert np.average(res2["HIVECOTEV2"]["ItalyPowerDemand"]) == 0.9630385487528345
 
     res3 = get_estimator_results(cls, datasets=data, num_resamples=None, path=path)
     assert deep_equals(res3, res2)
@@ -168,7 +168,9 @@ def test_get_estimator_results_as_array(path):
     assert res4[1][0] == 0.9630385487528345
 
     # all datasets
-    res5, names5 = get_estimator_results_as_array("HC2", datasets=None, path=path)
+    res5, names5 = get_estimator_results_as_array(
+        "HIVECOTEV2", datasets=None, path=path
+    )
     assert isinstance(res5, np.ndarray)
     assert res5.shape == (112, 1)
     assert isinstance(names5, list)

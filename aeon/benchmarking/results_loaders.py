@@ -62,7 +62,14 @@ NAME_ALIASES = {
     "cBOSS": ["CBOSSClassifier", "ContractableBOSS"],
     "TDE": ["TDEClassifier", "TemporalDictionaryEnsemble"],
     "WEASEL-1.0": ["WEASEL", "WEASEL1", "WEASEL 1.0"],
-    "WEASEL-2.0": ["WEASEL-D", "WEASEL-Dilation", "WEASEL2", "WEASEL 2.0", "WEASEL_V2"],
+    "WEASEL-2.0": [
+        "WEASEL-D",
+        "WEASEL-Dilation",
+        "WEASEL2",
+        "WEASEL 2.0",
+        "WEASEL_V2",
+        "W 2.0",
+    ],
     "MrSQM": ["MrSQMClassifier"],
     # distance based
     "1NN-DTW": [
@@ -149,14 +156,14 @@ NAME_ALIASES = {
     "XGBoost": ["XGBoostRegressor"],
 }
 
-CONNECTION_ERRORS = [
+CONNECTION_ERRORS = (
     HTTPError,
     URLError,
     RemoteDisconnected,
     IncompleteRead,
     ConnectionResetError,
     TimeoutError,
-]
+)
 
 
 def estimator_alias(name: str) -> str:
@@ -233,6 +240,7 @@ def get_estimator_results(
     num_resamples: Optional[int] = 1,
     task: str = "classification",
     measure: str = "accuracy",
+    remove_dataset_modifiers: bool = False,
     path: str = "http://timeseriesclassification.com/results/ReferenceResults",
 ):
     """Look for results for given estimators for a list of datasets.
@@ -266,6 +274,10 @@ def get_estimator_results(
         Should be one of aeon.benchmarking.results_loading.VALID_RESULT_MEASURES[task].
         Dependent on the task, i.e. for classification, "accuracy", "auroc", "balacc",
         and regression, "mse", "mae", "r2".
+    remove_dataset_modifiers: bool, default=False
+        If True, will remove any dataset modifier (anything after the first underscore)
+        from the dataset names in the loaded results file.
+        i.e. a loaded result row for "Dataset_eq" will be converted to just "Dataset".
     path : str, default="https://timeseriesclassification.com/results/ReferenceResults/"
         Path where to read results from. Defaults to timeseriesclassification.com.
 
@@ -295,32 +307,17 @@ def get_estimator_results(
         )
     if not isinstance(estimators, list):
         estimators = [estimators]
-
-    probs_names = "Resamples:"
     path = f"{path}/{task}/{measure}/"
-    results = {}
 
-    for cls in estimators:
-        url = path + estimator_alias(cls) + "_" + measure + ".csv"
-        data = pd.read_csv(url)
-        problems = list(data[probs_names].str.replace(r"_.*", "", regex=True))
-        dsets = problems if datasets is None else datasets
-        res_arr = data.iloc[:, 1:].to_numpy()
-
-        cls_results = {}
-        for data in dsets:
-            if data in problems:
-                pos = problems.index(data)
-                if num_resamples == 1:
-                    cls_results[data] = res_arr[pos][0]
-                elif num_resamples is None:
-                    cls_results[data] = res_arr[pos]
-                else:
-                    cls_results[data] = res_arr[pos][:num_resamples]
-
-        results[cls] = cls_results
-
-    return results
+    return _load_to_dict(
+        path=path,
+        estimators=estimators,
+        datasets=datasets,
+        num_resamples=num_resamples,
+        file_suffix=f"_{measure}.csv",
+        est_alias=True,
+        remove_data_modifier=remove_dataset_modifiers,
+    )
 
 
 def get_estimator_results_as_array(
@@ -329,6 +326,7 @@ def get_estimator_results_as_array(
     num_resamples: Optional[int] = 1,
     task: str = "classification",
     measure: str = "accuracy",
+    remove_dataset_modifiers: bool = False,
     path: str = "http://timeseriesclassification.com/results/ReferenceResults",
     include_missing: bool = False,
 ):
@@ -363,6 +361,10 @@ def get_estimator_results_as_array(
         Should be one of aeon.benchmarking.results_loading.VALID_RESULT_MEASURES[task].
         Dependent on the task, i.e. for classification, "accuracy", "auroc", "balacc",
         and regression, "mse", "mae", "r2".
+    remove_dataset_modifiers: bool, default=False
+        If True, will remove any dataset modifier (anything after the first underscore)
+        from the dataset names in the loaded results file.
+        i.e. a loaded result row for "Dataset_eq" will be converted to just "Dataset".
     path : str, default="https://timeseriesclassification.com/results/ReferenceResults/"
         Path where to read results from. Defaults to timeseriesclassification.com.
     include_missing : bool, default=False
@@ -395,6 +397,7 @@ def get_estimator_results_as_array(
         num_resamples=num_resamples,
         task=task,
         measure=measure,
+        remove_dataset_modifiers=remove_dataset_modifiers,
         path=path,
     )
 
@@ -404,6 +407,54 @@ def get_estimator_results_as_array(
             datasets.extend(res_dict[cls].keys())
         datasets = set(datasets)
 
+    return _results_dict_to_array(res_dict, estimators, datasets, include_missing)
+
+
+def _load_to_dict(
+    path,
+    estimators,
+    datasets,
+    num_resamples,
+    file_suffix,
+    est_alias=True,
+    remove_data_modifier=False,
+    csv_header="infer",
+    ignore_nan=False,
+):
+    results = {}
+    for est in estimators:
+        est_name = estimator_alias(est) if est_alias else est
+        url = path + est_name + file_suffix
+        data = pd.read_csv(url, header=csv_header)
+        problems = (
+            list(data.iloc[:, 0].str.replace(r"_.*", "", regex=True))
+            if remove_data_modifier
+            else list(data.iloc[:, 0])
+        )
+        dsets = problems if datasets is None else datasets
+        res_arr = data.iloc[:, 1:].to_numpy()
+
+        est_results = {}
+        for data in dsets:
+            if data in problems:
+                pos = problems.index(data)
+                if num_resamples == 1:
+                    est_results[data] = res_arr[pos][0]
+                elif num_resamples is None:
+                    est_results[data] = res_arr[pos]
+                else:
+                    est_results[data] = res_arr[pos][:num_resamples]
+
+                if not ignore_nan and np.isnan(est_results[data]).any():
+                    raise ValueError(
+                        f"Missing resamples for {data} in {est}: {est_results[data]}"
+                    )
+
+        results[est] = est_results
+    return results
+
+
+def _results_dict_to_array(res_dict, estimators, datasets, include_missing):
     results = []
     names = []
     for data in datasets:
@@ -411,7 +462,7 @@ def get_estimator_results_as_array(
         include = True
         for i in range(len(estimators)):
             if data in res_dict[estimators[i]]:
-                r[i] = np.average(res_dict[estimators[i]][data])
+                r[i] = np.nanmean(res_dict[estimators[i]][data])
             elif not include_missing:  # Skip the whole problem
                 include = False
                 break
@@ -420,5 +471,4 @@ def get_estimator_results_as_array(
         if include:
             results.append(r)
             names.append(data)
-
     return np.array(results), names
