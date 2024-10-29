@@ -13,10 +13,7 @@ from sklearn.ensemble import RandomForestClassifier
 
 from aeon.base._base import _clone_estimator
 from aeon.classification.base import BaseClassifier
-from aeon.transformations.collection.feature_based import (
-    TSFreshFeatureExtractor,
-    TSFreshRelevantFeatureExtractor,
-)
+from aeon.transformations.collection.feature_based import TSFresh, TSFreshRelevant
 
 
 class TSFreshClassifier(BaseClassifier):
@@ -59,8 +56,8 @@ class TSFreshClassifier(BaseClassifier):
 
     See Also
     --------
-    TSFreshFeatureExtractor
-    TSFreshRelevantFeatureExtractor
+    TSFresh
+    TSFreshRelevant
     TSFreshRegressor
 
     References
@@ -125,13 +122,13 @@ class TSFreshClassifier(BaseClassifier):
         ending in "_" and sets is_fitted flag to True.
         """
         self._transformer = (
-            TSFreshRelevantFeatureExtractor(
+            TSFreshRelevant(
                 default_fc_parameters=self.default_fc_parameters,
                 n_jobs=self._n_jobs,
                 chunksize=self.chunksize,
             )
             if self.relevant_feature_extractor
-            else TSFreshFeatureExtractor(
+            else TSFresh(
                 default_fc_parameters=self.default_fc_parameters,
                 n_jobs=self._n_jobs,
                 chunksize=self.chunksize,
