@@ -1,10 +1,10 @@
-"""Base class for pipelines in collection data based modules.
+"""Base class for pipelines in series collection modules.
 
 i.e. classification, regression and clustering.
 """
 
 __maintainer__ = ["MatthewMiddlehurst"]
-
+__all__ = ["BaseCollectionPipeline"]
 
 import numpy as np
 from sklearn.base import BaseEstimator
@@ -13,12 +13,12 @@ from sklearn.utils import check_random_state
 from aeon.base import (
     BaseAeonEstimator,
     BaseCollectionEstimator,
-    _HeterogenousMetaEstimator,
+    _ComposableEstimatorMixin,
 )
 from aeon.base._base import _clone_estimator
 
 
-class BaseCollectionPipeline(_HeterogenousMetaEstimator, BaseCollectionEstimator):
+class BaseCollectionPipeline(_ComposableEstimatorMixin, BaseCollectionEstimator):
     """Base class for composable pipelines in collection based modules.
 
     Parameters
@@ -52,6 +52,13 @@ class BaseCollectionPipeline(_HeterogenousMetaEstimator, BaseCollectionEstimator
     RegressorPipeline : A pipeline for regression tasks.
     """
 
+    # Attribute name containing an iterable of processed (str, estimator) tuples
+    # with unfitted estimators and unique names. Used in get_params and set_params
+    _estimators_attr = "_steps"
+    # Attribute name containing an iterable of fitted (str, estimator) tuples.
+    # Used in get_fitted_params
+    _fitted_estimators_attr = "steps_"
+
     def __init__(self, transformers, _estimator, random_state=None):
         self.transformers = transformers
         self._estimator = _estimator
@@ -64,12 +71,13 @@ class BaseCollectionPipeline(_HeterogenousMetaEstimator, BaseCollectionEstimator
         )
         if _estimator is not None:
             self._steps.append(_estimator)
-        self._steps = self._check_estimators(
+
+        self._check_estimators(
             self._steps,
             attr_name="_steps",
-            cls_type=BaseEstimator,
-            clone_ests=False,
+            class_type=BaseEstimator,
         )
+        self._steps = self._convert_estimators(self._steps, clone_estimators=False)
 
         super().__init__()
 
