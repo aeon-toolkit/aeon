@@ -15,15 +15,15 @@ classical techniques for the following learning tasks:
 - Classification, where a collection of time series labelled with
   a discrete value is used to train a model to predict unseen cases ([more details](examples/classification/classification.ipynb)).
 - Regression, where a collection of time series labelled with
-  a continuous value is used to train a model to predict unseen cases ([more details](examples/regression/regression.html)).
+  a continuous value is used to train a model to predict unseen cases ([more details](examples/regression/regression.ipynb)).
 - Clustering, where a collection of time series without any
   labels are used to train a model to label cases ([more details](examples/clustering/clustering.ipynb)).
 - Similarity search where the goal is to evaluate the similarity
-between a time series against a collection of other time series ([more details](examples/similarity_search/similarity_search.ipynb)).
+between a query time series and a collection of other longer time series ([more details](examples/similarity_search/similarity_search.ipynb)).
 - anomaly detection where the goal is to find values or areas of a
   single time series that are not representative of the whole series. More details
   to follow.
-- [segmentation](#Segmentation) where the goal is to split a single time series into
+- Segmentation where the goal is to split a single time series into
   regions where the series are sofind areas of a time series that are not
   representative of the whole series ([more details](examples/segmentation/segmentation.ipynb)).
 - forecasting, where the goal is to predict future values for a time
@@ -31,12 +31,12 @@ between a time series against a collection of other time series ([more details](
 
 `aeon` also provides core modules that are used by the specific task modules
 above
--
-- [transformation](#Transformations), where a either a single series or collection is
+
+- Transformations, where a either a single series or collection is
   transformed
   into a different representation or domain. More details coming soon.
-- [distances](#Distances), measure the dissimilarity between two time series or
-  collections of series, which includes functions to align series ([more details](examples/distances/distances.ipynb)).
+- Distances, which measure the dissimilarity between two time series or
+  collections of series and include functions to align series ([more details](examples/distances/distances.ipynb)).
 - networks, provides core models for deep learning for all time series tasks.
 
 There are dedicated notebooks going into more detail for each of these modules
@@ -92,9 +92,9 @@ follows the shape `(n_channels, n_timepoints)` when stored in numpy arrays
 We commonly refer to the number of observations for a time series as `n_timepoints`.
 If a series is multivariate, we refer to the dimensions as channels
 (to avoid confusion with the dimensions of array) and in code use `n_channels`. So
-the US Change data loaded above has five channels ( ) and 187 time points. For more
+the US Change data loaded above has five channels and 187 time points. For more
 details on our provided datasets and on how to load data into aeon compatible data
-structures, see our [datasets](./datasets.ipynb) notebooks.
+structures, see our [datasets](examples/datasets/datasets.ipynb) notebooks.
 
 ## Single series estimators
 
@@ -172,10 +172,27 @@ learning.
 
 We use the terms case and instance interchangably when referring to a single time series
 contained in a collection. The size of a collection of time series is referred to as
-`n_cases`. Collections of time typically follows the shape `
-(n_cases, n_channels, n_timepoints)` if the series are equal length. , but
-`n_timepoints`
-may vary between cases.
+`n_cases` in code. Collections have the shape `
+(n_cases, n_channels, n_timepoints)` if the series are equal length. We
+recommend storing collections in 3D numpy arrays of shape `
+(n_cases, n_channels, n_timepoints)` even if each time series is univariate (i.e.
+`n_channels == 1`). Collection estimators will work with 2D input of shape `(n_cases,
+n_timepoints)` as you would
+expect from `scikit-learn`, but it is possible to confuse a collection of
+univariate series of shape `(n_cases, n_timepoints)` with a single multivariate
+series of shape `(n_channels, n_timepoints)`. This potential confusion is one reason
+we make the distinction between series and collection estimators.
+
+If `n_timepoints` varies between cases, we store a collection in a `list` of 2D numpy
+arrays, each with the same number of channels. We do not have the capability to use
+collections of time series with varying numbers of channels.  We also assume series
+length is always the same for all channels of a single series.
+
+Collection estimators closely follow the `scikit-learn` estimator interface, using
+`fit`, `predict`, `transform`, `predict_proba`, `fit_predict` and `fit_transform`
+where appropriate. They are also designed to work directly  with `scikit-learn`
+functionality for e.g. model evaluation, parameter searching and pipelines where
+appropriate.
 
 ```{code-block} python
 >>>from aeon.datasets import load_basic_motions, load_plaid, load_japanese_vowels
@@ -198,22 +215,16 @@ may vary between cases.
 
 ### Classification
 
-Time Series Classification (TSC) generally uses numpy arrays to store time series. We
-recommend storing time series for classification in 3D numpy arrays of shape `
-(n_cases, n_channels,
-n_timepoints)` even if each time series is univariate (i.e. `n_channels == 1`).
-Classifiers will work with 2D input of shape `(n_cases, n_timepoints)` as you would
-expect from `scikit-learn`, but other packages may treat 2D input as a single
-multivariate series. This is the case for non-collection transformers, and you may
-find unexpected outputs if you input a 2D array treating it as multiple time series.
-
-Note we assume series length is always the same for all channels of a single series
-regardless of input type. The target variable should be a `numpy` array of type `float`,
-`int` or `str`.
+Time series classification (TSC) involves training a model on a labelled collection
+of time series. The labels, referred to as `y` in code, should be a `numpy` array of
+type `float`, `int` or `str`. Internally the labels are converted to `int` for use
+in a training algorithm.
 
 The classification estimator interface should be familiar if you have worked with
 `scikit-learn`. In this example we fit a [KNeighborsTimeSeriesClassifier](classification.distance_based.KNeighborsTimeSeriesClassifier)
 with dynamic time warping (dtw) on our example data.
+
+
 
 ```{code-block} python
 >>> import numpy as np
@@ -234,16 +245,15 @@ KNeighborsTimeSeriesClassifier()
 Once the classifier has been fit using the training data and class labels, we can
 predict the labels for new cases. Like `scikit-learn`, `predict_proba` methods are
 available to predict class probabilities and a `score` method is present to
-calculate accuracy on new data.
-
-All `aeon` classifiers can be used with `scikit-learn` functionality for e.g.
-model evaluation, parameter searching and pipelines. Explore the wide range of
-algorithm types available in `aeon` in the [classification notebooks](examples.md#classification).
+calculate accuracy on new data. Explore the wide range of
+algorithms available in `aeon`, including the very latest state-of-the-art, in the
+[classification notebooks](examples.md#classification).
 
 ### Regression
 
-Time series regression assumes that the target variable is continuous rather
-than discrete, as for classification. The same input data considerations apply from the
+Time series regression assumes that the target variable is not a discrete label as
+with classification, but is instead a continuous variable, or target variable. The
+same input data considerations apply from the
 classification section, and the modules function similarly. The target variable
 should be a `numpy` array of type `float`.
 
@@ -253,6 +263,9 @@ target variable is not future values but some external variable.
 
 In the following example we use a [KNeighborsTimeSeriesRegressor](regression.distance_based.KNeighborsTimeSeriesRegressor)
 on an example time series regression problem called [Covid3Month](https://zenodo.org/record/3902690).
+More info in our [regression notebook](examples/regression/regression.ipynb)).
+
+
 
 ```{code-block} python
 >>> from aeon.regression.distance_based import KNeighborsTimeSeriesRegressor
@@ -295,13 +308,14 @@ TimeSeriesKMeans(n_clusters=3)
 
 After calling `fit`, the `labels_` attribute contains the cluster labels for
 each time series. The `predict` method can be used to predict the cluster labels for
-new data.
+new data. See our clustering notebook for [more details](examples/clustering/clustering.ipynb)
+
 
 ### Similarity Search
 
-The goal of Time Series Similarity Search is to find the best matches between a
+The goal of time series similarity search is to find the best matches between a
 query time series and a database (collection) of time series which are usually
-longer than  the query.
+longer than the query. [more details](examples/similarity_search/similarity_search.ipynb)
 
 
 ```{code-block} python
