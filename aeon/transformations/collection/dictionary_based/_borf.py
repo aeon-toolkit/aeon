@@ -766,17 +766,16 @@ def _length(a):
 
 @nb.njit(cache=True)
 def _hash_function(v):
-
     byte_mask = np.uint64(255)
     bs = np.uint64(v)
     x1 = (bs) & byte_mask
-    x2 = (bs >> 8) & byte_mask
-    x3 = (bs >> 16) & byte_mask
-    x4 = (bs >> 24) & byte_mask
-    x5 = (bs >> 32) & byte_mask
-    x6 = (bs >> 40) & byte_mask
-    x7 = (bs >> 48) & byte_mask
-    x8 = (bs >> 56) & byte_mask
+    x2 = (bs >> np.uint64(8)) & byte_mask
+    x3 = (bs >> np.uint64(16)) & byte_mask
+    x4 = (bs >> np.uint64(24)) & byte_mask
+    x5 = (bs >> np.uint64(32)) & byte_mask
+    x6 = (bs >> np.uint64(40)) & byte_mask
+    x7 = (bs >> np.uint64(48)) & byte_mask
+    x8 = (bs >> np.uint64(56)) & byte_mask
 
     FNV_primer = np.uint64(1099511628211)
     FNV_bias = np.uint64(14695981039346656037)
@@ -803,7 +802,7 @@ def _hash_function(v):
 @nb.njit(cache=True)
 def _make_hash_table(ar):
     a = _length(len(ar))
-    mask = a - 1
+    mask = np.uint64(a - 1)
 
     uniques = np.empty(a, dtype=ar.dtype)
     uniques_cnt = np.zeros(a, dtype=np.int_)
@@ -825,7 +824,7 @@ def _set_item(uniques, uniques_cnt, mask, h, v, total, miss_hits, weight):
             break
         else:
             miss_hits += 1
-            index += 1
+            index += np.uint64(1)
             index = index & mask
     return total, miss_hits
 
