@@ -124,8 +124,6 @@ class LOF(PyODAdapter):
         # Set novelty to True for supervised learning
         self.pyod_model.novelty = True
         super()._fit(X, y)
-        self.is_fitted = True  # Fitting completed
-        return self
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
         # Set novelty to True for prediction on unseen data
