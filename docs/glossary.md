@@ -50,7 +50,7 @@ Time series machine learning
     from {term}`time series` data. `aeon` is a library for time series machine learning
     algorithms.
 
-Forecasting
+Time series forecasting
     A {term}`Time series machine learning` task focused on prediction future values of
     a {term}`time series`.
 

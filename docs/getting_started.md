@@ -16,14 +16,14 @@ classical techniques for the following learning tasks:
   a discrete value is used to train a model to predict unseen cases [more details](./classification.ipynb).
 - {term}`regression`, where a collection of time series labelled with
   a continuous value is used to train a model to predict unseen cases [more details](./regression.ipynb).
-- {term}`clustering`, where a collection of time series without any
+- [clustering](#clustering), where a collection of time series without any
   labels are used to train a model to label cases [more details](./clustering.ipynb).
 - {term}`similarity search` where the goal is to evaluate the similarity
 between a time series against a collection of other time series [more details](./similarity_search.ipynb).
 - [anomaly detection](#Anomaly Detection) where the goal is to find values or areas of a
   single time series that are not representative of the whole series. More details
   to follow.
-- {term}`segmentation` where the goal is to split a single time series into
+- [segmentation](#Segmentation) where the goal is to split a single time series into
   regions where the series are sofind areas of a time series that are not
   representative of the whole series [more details](./segmentation.ipynb).
 - {term}`forecasting` where the goal is to predict future values for a time
@@ -32,17 +32,19 @@ between a time series against a collection of other time series [more details](.
 `aeon` also provides core modules that are used by the specific task modules
 above
 -
-- {term}`transformation`, where a either a single series or collection is transformed
+- [transformation](#Transformation), where a either a single series or collection is
+  transformed
   into a different representation or domain. More details coming soon.
-- {term}`distances`, measure the dissimilarity between two time series or
+- [distances](#Distances), measure the dissimilarity between two time series or
   collections of series, which includes functions to align series [more details](./distances.ipynb).
-- {term}`networks`, provides core models for deep learning for all time series tasks.
+- [networks](), provides core models for deep learning for all time series tasks.
 -
 There are dedicated notebooks going into more detail for each of these modules
-(linked above). This guid is meant to give you the briefest of
+(linked above). This guide is meant to give you the briefest of
 introductions to the main concepts and
-code to get started. For more information on the variety of
-estimators available for each task, see the [API](api_reference) and [examples](https://www.aeon-toolkit.org/en/latest/examples.html)
+code for each task to get started. For more information on the variety of
+estimators available for each task, see the links above, the [API](api_reference) and
+[examples](https://www.aeon-toolkit.org/en/latest/examples.html)
 pages.
 
 ## A Single Time Series
@@ -103,19 +105,31 @@ take two series as arguments.
 
 ### Anomaly Detection
 
+Time series anomaly detection (TSAD) is ....
 
-Anomaly detection is
+### Segmentation
 
-### Time Series Segmentation (TSS)
+Time series segmentation (TSS) is the process of dividing a time series into
+segments or
+regions.
 
-Segmentation is the process of dividing a time series into segments or regions.
+### Forecasting
 
-### Time Series Forecasting (TSF)
+A new module for time series forecasting (TSF) is coming soon, we are relaunching our
+forecasting module.
 
-Coming soon, we are relaunching our forecasting module.
+### Distances
+Distances between time series is a primitive operation in very many time series
+tasks. We have an extensive set of distance functions in the `aeon.distances` module,
+all optimised using numba. They all work with multivariate and unequal length series.
 
-### Time Series Distances
-
+```{code-block} python
+>>> from aeon.datasets import load_japanese_vowels
+>>> from aeon.distances import dtw_distance
+>>> data = load_japanese_vowels()  # load an example multivariate series
+>>> d = dtw_distance(data[0], data[1])  # calculate the dtw distance between the
+first two series
+```
 
 
 ### Transformers for Single Time Series
