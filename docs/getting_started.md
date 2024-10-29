@@ -139,7 +139,8 @@ first two series
 ### Anomaly Detection
 
 Anomaly detection (AD) is the process of identifying observations that are significantly
-different from the rest of the data.
+different from the rest of the data. More details to follow soon, once we have
+written the notebook.
 
 ### Forecasting
 
