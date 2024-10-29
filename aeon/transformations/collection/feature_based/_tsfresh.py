@@ -1,7 +1,7 @@
 """tsfresh interface class."""
 
 __maintainer__ = []
-__all__ = ["TSFreshFeatureExtractor", "TSFreshRelevantFeatureExtractor"]
+__all__ = ["TSFresh", "TSFreshRelevant"]
 
 import numpy as np
 import pandas as pd
@@ -29,7 +29,7 @@ def _from_3d_numpy_to_long(arr):
     return df
 
 
-class _TSFreshFeatureExtractor(BaseCollectionTransformer):
+class _TSFresh(BaseCollectionTransformer):
     """Base adapter class for tsfresh transformations."""
 
     _tags = {
@@ -147,7 +147,7 @@ class _TSFreshFeatureExtractor(BaseCollectionTransformer):
         return extraction_params
 
 
-class TSFreshFeatureExtractor(_TSFreshFeatureExtractor):
+class TSFresh(_TSFresh):
     """Transformer for extracting time series features via `tsfresh.extract_features`.
 
     Direct interface to `tsfresh.extract_features` [1] as an `aeon` transformer.
@@ -221,11 +221,11 @@ class TSFreshFeatureExtractor(_TSFreshFeatureExtractor):
     >>> from sklearn.model_selection import train_test_split
     >>> from aeon.datasets import load_arrow_head
     >>> from aeon.transformations.collection.feature_based import (
-    ...     TSFreshFeatureExtractor
+    ...     TSFresh
     ... )
     >>> X, y = load_arrow_head()
     >>> X_train, X_test, y_train, y_test = train_test_split(X, y)
-    >>> ts_eff = TSFreshFeatureExtractor(
+    >>> ts_eff = TSFresh(
     ...     default_fc_parameters="efficient", disable_progressbar=True
     ... ) # doctest: +SKIP
     >>> X_transform1 = ts_eff.fit_transform(X_train) # doctest: +SKIP
@@ -234,7 +234,7 @@ class TSFreshFeatureExtractor(_TSFreshFeatureExtractor):
     ...     "dim_0__longest_strike_above_mean",
     ...     "dim_0__variance",
     ... ]
-    >>> ts_custom = TSFreshFeatureExtractor(
+    >>> ts_custom = TSFresh(
     ...     kind_to_fc_parameters=features_to_calc, disable_progressbar=True
     ... ) # doctest: +SKIP
     >>> X_transform2 = ts_custom.fit_transform(X_train) # doctest: +SKIP
@@ -356,7 +356,7 @@ class TSFreshFeatureExtractor(_TSFreshFeatureExtractor):
         self.names = Xt.columns.tolist()
 
 
-class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
+class TSFreshRelevant(_TSFresh):
     """Transformer for extracting time series features via `tsfresh.extract_features`.
 
     Direct interface to `tsfresh.extract_features` [1] followed by the tsfresh
@@ -452,11 +452,11 @@ class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
     >>> from sklearn.model_selection import train_test_split
     >>> from aeon.datasets import load_arrow_head
     >>> from aeon.transformations.collection.feature_based import (
-    ...     TSFreshRelevantFeatureExtractor
+    ...     TSFreshRelevant
     ... )
     >>> X, y = load_arrow_head()
     >>> X_train, X_test, y_train, y_test = train_test_split(X, y)
-    >>> ts_eff = TSFreshRelevantFeatureExtractor(
+    >>> ts_eff = TSFreshRelevant(
     ...     default_fc_parameters="efficient", disable_progressbar=True
     ... ) # doctest: +SKIP
     >>> X_transform1 = ts_eff.fit_transform(X_train, y_train) # doctest: +SKIP
@@ -465,7 +465,7 @@ class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
     ...     "dim_0__longest_strike_above_mean",
     ...     "dim_0__variance",
     ... ]
-    >>> ts_custom = TSFreshRelevantFeatureExtractor(
+    >>> ts_custom = TSFreshRelevant(
     ...     kind_to_fc_parameters=features_to_calc, disable_progressbar=True
     ... ) # doctest: +SKIP
     >>> X_transform2 = ts_custom.fit_transform(X_train, y_train) # doctest: +SKIP
@@ -580,7 +580,7 @@ class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
         # lazy imports to avoid hard dependency
         from tsfresh.transformers.feature_selector import FeatureSelector
 
-        self.extractor_ = TSFreshFeatureExtractor(
+        self.extractor_ = TSFresh(
             default_fc_parameters=self.default_fc_parameters,
             kind_to_fc_parameters=self.kind_to_fc_parameters,
             chunksize=self.chunksize,
@@ -621,7 +621,7 @@ class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
         # lazy imports to avoid hard dependency
         from tsfresh.transformers.feature_selector import FeatureSelector
 
-        self.extractor_ = TSFreshFeatureExtractor(
+        self.extractor_ = TSFresh(
             default_fc_parameters=self.default_fc_parameters,
             kind_to_fc_parameters=self.kind_to_fc_parameters,
             chunksize=self.chunksize,
