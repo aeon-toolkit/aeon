@@ -12,19 +12,20 @@ package. If you want help with scikit-learn you may want to view
 the very latest algorithms for time series machine learning, in addition to a range of
 classical techniques for the following learning tasks:
 
-- {term}`classification`, where a collection of time series labelled with
-  a discrete value is used to train a model to predict unseen cases.
+- [classification](#classification), where a collection of time series labelled with
+  a discrete value is used to train a model to predict unseen cases [more details](./classification.ipynb).
 - {term}`regression`, where a collection of time series labelled with
-  a continuous value is used to train a model to predict unseen cases.
+  a continuous value is used to train a model to predict unseen cases [more details](./regression.ipynb).
 - {term}`clustering`, where a collection of time series without any
-  labels are used to train a model to label cases.
+  labels are used to train a model to label cases [more details](./clustering.ipynb).
 - {term}`similarity search` where the goal is to evaluate the similarity
-between a time series against a collection of other time series.
-- {term}`anomaly detection` where the goal is to find values or areas of a
-  single time series that are not representative of the whole series.
+between a time series against a collection of other time series [more details](./similarity_search.ipynb).
+- [anomaly detection](#Anomaly Detection) where the goal is to find values or areas of a
+  single time series that are not representative of the whole series. More details
+  to follow.
 - {term}`segmentation` where the goal is to split a single time series into
   regions where the series are sofind areas of a time series that are not
-  representative of the whole series.
+  representative of the whole series [more details](./segmentation.ipynb).
 - {term}`forecasting` where the goal is to predict future values for a time
   series (coming soon!).
 
@@ -32,17 +33,17 @@ between a time series against a collection of other time series.
 above
 -
 - {term}`transformation`, where a either a single series or collection is transformed
-  into a different representation or domain.
+  into a different representation or domain. More details coming soon.
 - {term}`distances`, measure the dissimilarity between two time series or
-  collections of series, which includes functions to align series.
+  collections of series, which includes functions to align series [more details](./distances.ipynb).
 - {term}`networks`, provides core models for deep learning for all time series tasks.
 -
 There are dedicated notebooks going into more detail for each of these modules
 (linked above). This guid is meant to give you the briefest of
 introductions to the main concepts and
 code to get started. For more information on the variety of
-estimators available for each task, see the [API](api_reference) and [examples]
-(examples) pages.
+estimators available for each task, see the [API](api_reference) and [examples](https://www.aeon-toolkit.org/en/latest/examples.html)
+pages.
 
 ## A Single Time Series
 
@@ -91,7 +92,7 @@ If a series is multivariate, we refer to the dimensions as channels
 (to avoid confusion with the dimensions of array) and in code use `n_channels`. So
 the US Change data loaded above has five channels ( ) and 187 time points. For more
 details on our provided datasets and on how to load data into aeon compatible data
-structures, see our [datasets](datasets) notebooks.
+structures, see our [datasets](./datasets.ipynb) notebooks.
 
 ## Single series estimators
 
@@ -100,7 +101,8 @@ in the `anomaly detection` and `segmentation` modules use single
 series input (they inherit from `BaseSeriesEstimator`). The functions in `distances`
 take two series as arguments.
 
-### Time Series Anomaly Detection (TSAD)
+### Anomaly Detection
+
 
 Anomaly detection is
 
@@ -186,6 +188,7 @@ may vary between cases.
 ```
 
 ### Time Series Classification (TSC)
+:term:`classification`
 
 Classification generally uses numpy arrays to store time series. We recommend storing
 time series for classification in 3D numpy arrays of shape `(n_cases, n_channels,
