@@ -26,7 +26,7 @@ between a time series against a collection of other time series.
   regions where the series are sofind areas of a time series that are not
   representative of the whole series.
 - {term}`forecasting` where the goal is to predict future values for a time
-  series.
+  series (coming soon!).
 
 `aeon` also provides core modules that are used by the specific task modules
 above
@@ -37,21 +37,24 @@ above
   collections of series, which includes functions to align series.
 - {term}`networks`, provides core models for deep learning for all time series tasks.
 -
-The following provides introductory examples for each of these modules. The examples
-use the datatypes most commonly used for the task in question, but a variety of input
-types for data are available. For more information on the variety of
+There are dedicated notebooks going into more detail for each of these modules
+(linked above). This guid is meant to give you the briefest of
+introductions to the main concepts and
+code to get started. For more information on the variety of
 estimators available for each task, see the [API](api_reference) and [examples]
 (examples) pages.
 
 ## A Single Time Series
 
 A time series is a series of real valued data assumed to be ordered. A univariate
-time series is a singular series, where each observation is a single value. For example,
+time series has a single value at each time point. For example,
 the heartbeat ECG reading from a single sensor or the number of passengers using an
 airline per month would form a univariate series. Single time series are stored
-by default in a numpy array as algorithms use arrays internally whenever possible.
+by default in a numpy array (algorithms use arrays internally whenever possible).
 We can also handle `pd.Series` and `pd.DataFrame` objects, but these are simply
-converted to `np.ndarray` internally. The airline data
+converted to `np.ndarray` internally. The airline series is a classic example of a
+univariate series from the forecasting domain. The series is the monthly totals of
+international airline passengers, 1949 to 1960, in thousands.
 
 ```{code-block} python
 >>> from aeon.datasets import load_airline
