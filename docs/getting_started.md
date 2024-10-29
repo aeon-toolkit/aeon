@@ -13,32 +13,32 @@ the very latest algorithms for time series machine learning, in addition to a ra
 classical techniques for the following learning tasks:
 
 - Classification, where a collection of time series labelled with
-  a discrete value is used to train a model to predict unseen cases [more details](examples/classification/classification.ipynb).
+  a discrete value is used to train a model to predict unseen cases ([more details](examples/classification/classification.ipynb)).
 - Regression, where a collection of time series labelled with
-  a continuous value is used to train a model to predict unseen cases [more details](https://www.aeon-toolkit.org/en/latest/examples/regression/regression.html).
+  a continuous value is used to train a model to predict unseen cases ([more details](examples/regression/regression.html)).
 - Clustering, where a collection of time series without any
-  labels are used to train a model to label cases [more details](./clustering.ipynb).
-- {term}`similarity search` where the goal is to evaluate the similarity
-between a time series against a collection of other time series [more details](./similarity_search.ipynb).
-- [anomaly detection](#Anomaly Detection) where the goal is to find values or areas of a
+  labels are used to train a model to label cases ([more details](examples/clustering/clustering.ipynb)).
+- Similarity search where the goal is to evaluate the similarity
+between a time series against a collection of other time series ([more details](examples/similarity_search/similarity_search.ipynb)).
+- anomaly detection where the goal is to find values or areas of a
   single time series that are not representative of the whole series. More details
   to follow.
 - [segmentation](#Segmentation) where the goal is to split a single time series into
   regions where the series are sofind areas of a time series that are not
-  representative of the whole series [more details](./segmentation.ipynb).
-- {term}`forecasting` where the goal is to predict future values for a time
+  representative of the whole series ([more details](examples/segmentation/segmentation.ipynb)).
+- forecasting, where the goal is to predict future values for a time
   series (coming soon!).
 
 `aeon` also provides core modules that are used by the specific task modules
 above
 -
-- [transformation](#Transformation), where a either a single series or collection is
+- [transformation](#Transformations), where a either a single series or collection is
   transformed
   into a different representation or domain. More details coming soon.
 - [distances](#Distances), measure the dissimilarity between two time series or
-  collections of series, which includes functions to align series [more details](./distances.ipynb).
-- [networks](), provides core models for deep learning for all time series tasks.
--
+  collections of series, which includes functions to align series ([more details](examples/distances/distances.ipynb)).
+- networks, provides core models for deep learning for all time series tasks.
+
 There are dedicated notebooks going into more detail for each of these modules
 (linked above). This guide is meant to give you the briefest of
 introductions to the main concepts and
@@ -103,13 +103,9 @@ in the `anomaly detection` and `segmentation` modules use single
 series input (they inherit from `BaseSeriesEstimator`). The functions in `distances`
 take two series as arguments.
 
-### Anomaly Detection
-
-Time series anomaly detection (TSAD) is ....
-
 ### Segmentation
 
-Time series {term}`segmentation` (TSS) is the process of dividing a time series into
+Time series segmentation (TSS) is the process of dividing a time series into
 segments or regions that are dissimilar to each other. This could, for
 example, be the problem of splitting the motion trace from a smartwatch into
 different activities such as walking, running, and sitting. It is closely related to
@@ -127,12 +123,6 @@ The `aeon`
 [51]
 ```
 
-
-### Forecasting
-
-A new module for time series forecasting (TSF) is coming soon, we are relaunching our
-forecasting module.
-
 ### Distances
 Distances between time series is a primitive operation in very many time series
 tasks. We have an extensive set of distance functions in the `aeon.distances` module,
@@ -146,26 +136,16 @@ all optimised using numba. They all work with multivariate and unequal length se
 first two series
 ```
 
+### Anomaly Detection
 
-### Transformers for Single Time Series
+Anomaly detection (AD) is the process of identifying observations that are significantly
+different from the rest of the data.
 
-Transformers inheriting from the [BaseSeriesTransformer](transformations.base.BaseSeriesTransformer)
-in the `aeon.transformations.series` package transform a single (possibly multivariate)
-time series into a different time series or a feature vector.
+### Forecasting
 
-The following example shows how to use the
-[AutoCorrelationSeriesTransformer](transformations.series.AutoCorrelationSeriesTransformer)
-class to extract the autocorrelation terms of a time series.
+A new module for time series forecasting (TSF) is coming soon, we are relaunching our
+forecasting module.
 
-```{code-block} python
->>> from aeon.transformations.series import AutoCorrelationSeriesTransformer
->>> from aeon.datasets import load_airline
->>> acf = AutoCorrelationSeriesTransformer()
->>> y = load_airline()  # load single series airline dataset
->>> res = acf.fit_transform(y)
->>> res[0][:5]
-[0.96019465 0.89567531 0.83739477 0.7977347  0.78594315]
-```
 
 ## Collections of Time Series
 
@@ -216,11 +196,11 @@ may vary between cases.
 (12, 20)
 ```
 
-### Time Series Classification (TSC)
-:term:`classification`
+### Classification
 
-Classification generally uses numpy arrays to store time series. We recommend storing
-time series for classification in 3D numpy arrays of shape `(n_cases, n_channels,
+Time Series Classification (TSC) generally uses numpy arrays to store time series. We
+recommend storing time series for classification in 3D numpy arrays of shape `
+(n_cases, n_channels,
 n_timepoints)` even if each time series is univariate (i.e. `n_channels == 1`).
 Classifiers will work with 2D input of shape `(n_cases, n_timepoints)` as you would
 expect from `scikit-learn`, but other packages may treat 2D input as a single
@@ -260,19 +240,19 @@ All `aeon` classifiers can be used with `scikit-learn` functionality for e.g.
 model evaluation, parameter searching and pipelines. Explore the wide range of
 algorithm types available in `aeon` in the [classification notebooks](examples.md#classification).
 
-### Time Series Regression (TSR)
+### Regression
 
 Time series regression assumes that the target variable is continuous rather
 than discrete, as for classification. The same input data considerations apply from the
 classification section, and the modules function similarly. The target variable
 should be a `numpy` array of type `float`.
 
-"Time series regression" is a term commonly used in forecasting. To avoid confusion,
-the term "time series extrinsic regression" is commonly used to refer to the traditional
-machine learning regression task but for time series data.
+TSR is a term commonly used in forecasting when used in conjunction with a sliding
+window. However, the term also includes "time series extrinsic regression" where the
+target variable is not future values but some external variable.
 
 In the following example we use a [KNeighborsTimeSeriesRegressor](regression.distance_based.KNeighborsTimeSeriesRegressor)
-on an example time series extrinsic regression problem called [Covid3Month](https://zenodo.org/record/3902690).
+on an example time series regression problem called [Covid3Month](https://zenodo.org/record/3902690).
 
 ```{code-block} python
 >>> from aeon.regression.distance_based import KNeighborsTimeSeriesRegressor
@@ -290,9 +270,9 @@ KNeighborsTimeSeriesRegressor()
 0.002921957478363366
 ```
 
-### Time Series Clustering (TSCL)
+### Clustering
 
-Like classification and regression, time series clustering aims to follow the
+Like classification and regression, time series clustering (TSCL) aims to follow the
 `scikit-learn` interface where possible. The same input data format is used as in
 the TSC and TSER modules. This example fits a [TimeSeriesKMeans](clustering._k_means.TimeSeriesKMeans)
 clusterer on the
@@ -317,9 +297,49 @@ After calling `fit`, the `labels_` attribute contains the cluster labels for
 each time series. The `predict` method can be used to predict the cluster labels for
 new data.
 
-### Time Series Similarity Search (TSSS)
+### Similarity Search
 
-Add simple use case for similarity search.
+The goal of Time Series Similarity Search is to find the best matches between a
+query time series and a database (collection) of time series which are usually
+longer than  the query.
+
+
+```{code-block} python
+>>> from aeon.datasets import load_arrow_head
+>>> X, y = load_arrow_head(split="train")
+>>> query = np.array([1,2,3,2,1,0])
+>>> kmeans.fit(X) # fit the clusterer
+TimeSeriesKMeans(n_clusters=3)
+>>> kmeans.labels_[0:10]  # cluster labels
+[2 1 1 0 1 1 0 1 1 0]
+>>> rand_score(y, kmeans.labels_)
+0.6377792823290453
+```
+
+## Transformers
+
+We split transformers into two categories: those that transform single time series
+ and those that transform a collection.
+
+### Transformers for Single Time Series
+
+Transformers inheriting from the [BaseSeriesTransformer](transformations.base.BaseSeriesTransformer)
+in the `aeon.transformations.series` package transform a single (possibly multivariate)
+time series into a different time series or a feature vector.
+
+The following example shows how to use the
+[AutoCorrelationSeriesTransformer](transformations.series.AutoCorrelationSeriesTransformer)
+class to extract the autocorrelation terms of a time series.
+
+```{code-block} python
+>>> from aeon.transformations.series import AutoCorrelationSeriesTransformer
+>>> from aeon.datasets import load_airline
+>>> acf = AutoCorrelationSeriesTransformer()
+>>> y = load_airline()  # load single series airline dataset
+>>> res = acf.fit_transform(y)
+>>> res[0][:5]
+[0.96019465 0.89567531 0.83739477 0.7977347  0.78594315]
+```
 
 
 ### Transformers for Collections of Time Series
