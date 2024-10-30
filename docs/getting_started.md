@@ -184,8 +184,7 @@ We use the terms case and instance interchangably when referring to a single tim
 contained in a collection. The size of a collection of time series is referred to as
 `n_cases` in code. Collections have the shape `
 (n_cases, n_channels, n_timepoints)` if the series are equal length. We
-recommend storing collections in 3D numpy arrays of shape `
-(n_cases, n_channels, n_timepoints)` even if each time series is univariate (i.e.
+recommend storing collections in 3D numpy arrays even if each time series is univariate (i.e.
 `n_channels == 1`). Collection estimators will work with 2D input of shape `(n_cases,
 n_timepoints)` as you would
 expect from `scikit-learn`, but it is possible to confuse a collection of
@@ -267,7 +266,8 @@ same input data considerations apply from the
 classification section, and the modules function similarly. The target variable
 should be a `numpy` array of type `float`.
 
-TSR is a term commonly used in forecasting when used in conjunction with a sliding
+Time series regression is a term commonly used in forecasting when used in
+conjunction with a sliding
 window. However, the term also includes "time series extrinsic regression" where the
 target variable is not future values but some external variable.
 
@@ -326,19 +326,32 @@ new data. See our clustering notebook for [more details](examples/clustering/clu
 The goal of time series similarity search is to find the best matches between a
 query time series and a database (collection) of time series which are usually
 longer than the query. See our notebook for [more details](examples/similarity_search/similarity_search.ipynb)
-
+ The following example shows how to use
+the [TopKSimilaritySearch](similarity_search.top_k_similarity.TopKSimilaritySearch)
+class to extract the best `k` matches, using the Euclidean distance as similarity
+function.
 
 ```{code-block} python
->>> from aeon.datasets import load_arrow_head
->>> X, y = load_arrow_head(split="train")
->>> query = np.array([1,2,3,2,1,0])
->>> kmeans.fit(X) # fit the clusterer
-TimeSeriesKMeans(n_clusters=3)
->>> kmeans.labels_[0:10]  # cluster labels
-[2 1 1 0 1 1 0 1 1 0]
->>> rand_score(y, kmeans.labels_)
-0.6377792823290453
+>>> import numpy as np
+>>> from aeon.similarity_search import TopKSimilaritySearch
+>>> X = [[[1, 2, 3, 4, 5, 6, 7]],  # 3D array example (univariate)
+...      [[4, 4, 4, 5, 6, 7, 3]]]  # Two samples, one channel, seven series length
+>>> X = np.array(X) # X is of shape (2, 1, 7) : (n_cases, n_channels, n_timepoints)
+>>> topk = TopKSimilaritySearch(distance="euclidean",k=2)
+>>> topk.fit(X)  # fit the estimator on train data
+...
+>>> q = np.array([[4, 5, 6]]) # q is of shape (1,3) :
+>>> topk.predict(q)  # Identify the two (k=2) most similar subsequences of length 3 in X
+[(0, 3), (1, 2)]
 ```
+
+The output of predict gives a list of size `k`, where each element is a set indicating
+the location of the best matches in X as `(id_sample, id_timestamp)`. This is equivalent
+to the subsequence `X[id_sample, :, id_timestamps:id_timestamp + q.shape[0]]`.
+
+Note that you can still use univariate time series as inputs, you will just have to
+convert them to multivariate time series with one feature prior to using the similarity
+search module.
 
 ## Transformers
 
@@ -486,48 +499,3 @@ the available `scikit-learn` functionality.
 >>> gscv.best_params_
 {'distance': 'euclidean', 'n_neighbors': 5}
 ```
-
-## Time series similarity search
-
-The similarity search module in `aeon` offers a set of functions and estimators to solve
-tasks related to time series similarity search. The estimators can be used standalone
-or as parts of pipelines, while the functions give you the tools to build your own
-estimators that would rely on similarity search at some point.
-
-The estimators are inheriting from the [BaseSimiliaritySearch](similarity_search.base.BaseSimiliaritySearch)
-class accepts as inputs 3D time series (n_cases, n_channels, n_timepoints) for the
-fit method. Univariate and single series can still be used, but will need to be reshaped
-to this format.
-
-This collection, asked for the fit method, is stored as a database. It will be used in
-the predict method, which expects a single 2D time series as input
-(n_channels, query_length), which will be used as a query to search for in the database.
-Note that the length of the time series in the 3D  collection should be superior or
-equal to the length of the 2D time series given in the predict method.
-
-Given those two inputs, the predict method should return the set of most similar
-candidates to the 2D series in the 3D collection. The following example shows how to use
-the [TopKSimilaritySearch](similarity_search.top_k_similarity.TopKSimilaritySearch)
-class to extract the best `k` matches, using the Euclidean distance as similarity
-function.
-
-```{code-block} python
->>> import numpy as np
->>> from aeon.similarity_search import TopKSimilaritySearch
->>> X = [[[1, 2, 3, 4, 5, 6, 7]],  # 3D array example (univariate)
-...      [[4, 4, 4, 5, 6, 7, 3]]]  # Two samples, one channel, seven series length
->>> X = np.array(X) # X is of shape (2, 1, 7) : (n_cases, n_channels, n_timepoints)
->>> topk = TopKSimilaritySearch(distance="euclidean",k=2)
->>> topk.fit(X)  # fit the estimator on train data
-...
->>> q = np.array([[4, 5, 6]]) # q is of shape (1,3) :
->>> topk.predict(q)  # Identify the two (k=2) most similar subsequences of length 3 in X
-[(0, 3), (1, 2)]
-```
-The output of predict gives a list of size `k`, where each element is a set indicating
-the location of the best matches in X as `(id_sample, id_timestamp)`. This is equivalent
-to the subsequence `X[id_sample, :, id_timestamps:id_timestamp + q.shape[0]]`.
-
-Note that you can still use univariate time series as inputs, you will just have to
-convert them to multivariate time series with one feature prior to using the similarity
-search module.
