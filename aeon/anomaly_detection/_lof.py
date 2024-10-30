@@ -23,7 +23,7 @@ class LOF(PyODAdapter):
        * - Input data format
          - univariate or multivariate
        * - Output data format
-         - binary classification or anomaly scores
+         - anomaly scores
        * - missing_values
          - False
        * - Learning Type
@@ -105,6 +105,9 @@ class LOF(PyODAdapter):
         _check_soft_dependencies(*self._tags["python_dependencies"])
         from pyod.models.lof import LOF as PyOD_LOF
 
+        # Set a default contamination value internally
+        contamination = 0.1
+
         model = PyOD_LOF(
             n_neighbors=n_neighbors,
             algorithm=algorithm,
@@ -113,7 +116,8 @@ class LOF(PyODAdapter):
             p=p,
             metric_params=metric_params,
             n_jobs=n_jobs,
-            novelty=False,
+            contamination=contamination,  # Only for PyOD LOF
+            novelty=False,  # Initialize unsupervised LOF (novelty=False)
         )
         self.n_neighbors = n_neighbors
         self.algorithm = algorithm
@@ -123,11 +127,9 @@ class LOF(PyODAdapter):
         self.metric_params = metric_params
         self.n_jobs = n_jobs
         super().__init__(pyod_model=model, window_size=window_size, stride=stride)
-        self.window_size = window_size
-        self.stride = stride
 
     def _fit(self, X: np.ndarray, y: Union[np.ndarray, None] = None) -> None:
-        # Set novelty to True for supervised learning
+        # Set novelty to True for semi-supervised learning
         self.pyod_model.novelty = True
         super()._fit(X, y)
 

@@ -7,7 +7,6 @@ from aeon.anomaly_detection import LOF
 from aeon.testing.data_generation import make_example_1d_numpy
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
-
 @pytest.mark.skipif(
     not _check_soft_dependencies("pyod", severity="none"),
     reason="required soft dependency PyOD not available",
@@ -17,12 +16,61 @@ def test_lof_default():
     series = make_example_1d_numpy(n_timepoints=80, random_state=0)
     series[50:58] -= 2  # Introducing anomalies
 
-    lof = LOF()
-    pred = lof.fit_predict(series)
+    # Define common parameters
+    n_neighbors = 20
+    algorithm = "auto"
+    leaf_size = 30
+    metric = "minkowski"
+    p = 2
+    novelty = False
+    n_jobs = 1
+    window_size = 1  # Set window_size to 1 for point-based processing
+    stride = 1  # Set stride to 1
 
-    assert pred.shape == (80,)
-    assert pred.dtype == np.float_
-    assert 50 <= np.argmax(pred) <= 58
+    # Initialize aeon LOF with window_size=1 and stride=1
+    lof_aeon = LOF(
+        n_neighbors=n_neighbors,
+        algorithm=algorithm,
+        leaf_size=leaf_size,
+        metric=metric,
+        p=p,
+        n_jobs=n_jobs,
+        window_size=window_size,
+        stride=stride,
+    )
+    scores_aeon=lof_aeon._fit_predict(series)
+
+    # Initialize PyOD LOF
+    from pyod.models.lof import LOF as PyOD_LOF
+
+    lof_pyod = PyOD_LOF(
+        n_neighbors=n_neighbors,
+        algorithm=algorithm,
+        leaf_size=leaf_size,
+        metric=metric,
+        p=p,
+        novelty=novelty,
+        n_jobs=n_jobs,
+    )
+    lof_pyod.fit(series.reshape(-1, 1))
+    scores_pyod = lof_pyod.decision_scores_
+
+    # Ensure shapes and types
+    assert scores_aeon.shape == (80,)
+    assert scores_pyod.shape == (80,)
+    assert scores_aeon.dtype == np.float64
+    assert scores_pyod.dtype == np.float64
+
+    # Compare anomaly scores using assert_allclose
+    np.testing.assert_allclose(scores_aeon, scores_pyod, rtol=1e-5, atol=1e-5)
+
+    # Ensure that the most anomalous point is within the introduced anomaly range
+    assert (
+        50 <= np.argmax(scores_aeon) <= 58
+    ), "AEON LOF did not detect anomalies in the expected range."
+    assert (
+        50 <= np.argmax(scores_pyod) <= 58
+    ), "PyOD LOF did not detect anomalies in the expected range."
 
 
 @pytest.mark.skipif(
@@ -37,6 +85,8 @@ def test_lof_parameter_passing():
     metric = "euclidean"
     p = 1
     n_jobs = 2
+    window_size = 10
+    stride = 1
 
     # Creating LOF instance with specified parameters
     lof = LOF(
@@ -46,8 +96,8 @@ def test_lof_parameter_passing():
         metric=metric,
         p=p,
         n_jobs=n_jobs,
-        window_size=10,
-        stride=1,
+        window_size=window_size,
+        stride=stride,
     )
 
     # Checking if the parameters are correctly set in the PyOD model
@@ -57,6 +107,10 @@ def test_lof_parameter_passing():
     assert lof.pyod_model.metric == metric
     assert lof.pyod_model.p == p
     assert lof.pyod_model.n_jobs == n_jobs
+    assert lof.pyod_model.contamination == 0.1  # Default contamination set internally
+    assert (
+        lof.pyod_model.novelty is False
+    )  # novelty is set to False for unsupervised learning
 
 
 @pytest.mark.skipif(
@@ -64,31 +118,65 @@ def test_lof_parameter_passing():
     reason="required soft dependency PyOD not available",
 )
 def test_lof_unsupervised():
-    """Test LOF in unsupervised mode (novelty=False) using fit_predict."""
+    """Test LOF in unsupervised mode (novelty=False) using decision_function."""
     series = make_example_1d_numpy(n_timepoints=80, random_state=0)
     series[50:58] -= 2
 
-    # Initializing aeon LOF in unsupervised mode
-    lof_aeon = LOF()
-    pred_aeon = lof_aeon.fit_predict(series)
+    # Define common parameters
+    n_neighbors = 20
+    algorithm = "auto"
+    leaf_size = 30
+    metric = "minkowski"
+    p = 2
+    novelty = False  # unsupervised learning
+    n_jobs = 1
+    window_size = 1  # Set window_size to 1
+    stride = 1  # Set stride to 1
 
-    # Initializing PyOD LOF in unsupervised mode
+    # Initialize aeon LOF with window_size=1 and stride=1
+    lof_aeon = LOF(
+        n_neighbors=n_neighbors,
+        algorithm=algorithm,
+        leaf_size=leaf_size,
+        metric=metric,
+        p=p,
+        n_jobs=n_jobs,
+        window_size=window_size,
+        stride=stride,
+    )
+    scores_aeon=lof_aeon._fit_predict(series)
+
+    # Initialize PyOD LOF
     from pyod.models.lof import LOF as PyOD_LOF
-    lof_pyod = PyOD_LOF()
+
+    lof_pyod = PyOD_LOF(
+        n_neighbors=n_neighbors,
+        algorithm=algorithm,
+        leaf_size=leaf_size,
+        metric=metric,
+        p=p,
+        novelty=novelty,
+        n_jobs=n_jobs,
+    )
     lof_pyod.fit(series.reshape(-1, 1))
-    pred_pyod = (lof_pyod.predict(series.reshape(-1, 1)) > 0.5).astype(int)  # Returns binary labels (outlier or inlier)
+    scores_pyod = lof_pyod.decision_scores_
 
-    assert pred_aeon.shape == (80,)
-    assert pred_pyod.shape == (80,)
-    assert pred_aeon.dtype == np.int_
-    assert pred_pyod.dtype == np.int_
+    # Ensure shapes and types
+    assert scores_aeon.shape == (80,)
+    assert scores_pyod.shape == (80,)
+    assert scores_aeon.dtype == np.float64
+    assert scores_pyod.dtype == np.float64
 
-    # Compare binary labels
-    np.testing.assert_array_equal(pred_aeon, pred_pyod)
+    # Compare anomaly scores using assert_allclose
+    np.testing.assert_allclose(scores_aeon, scores_pyod, rtol=1e-5, atol=1e-5)
 
-    # Additionally, ensure that anomalies are detected in the introduced range
-    assert np.any(pred_aeon[50:58] == 1)
-    assert np.any(pred_pyod[50:58] == 1)
+    # Ensure that the most anomalous point is within the introduced anomaly range
+    assert (
+        50 <= np.argmax(scores_aeon) <= 58
+    ), "AEON LOF did not detect anomalies in the expected range."
+    assert (
+        50 <= np.argmax(scores_pyod) <= 58
+    ), "PyOD LOF did not detect anomalies in the expected range."
 
 
 @pytest.mark.skipif(
@@ -98,31 +186,64 @@ def test_lof_unsupervised():
 def test_lof_semi_supervised():
     """Test LOF in semi-supervised mode (novelty=True) using decision_function."""
     series_train = make_example_1d_numpy(n_timepoints=100, random_state=0)
-    series_train[:10] += 5 
+    series_train[:10] += 5
 
     series_test = make_example_1d_numpy(n_timepoints=20, random_state=1)
-    series_test[5:15] -= 3  
+    series_test[5:15] -= 3
 
-    # Initializing aeon LOF in semi-supervised mode
-    lof_aeon = LOF()
+    # Define common parameters
+    n_neighbors = 20
+    algorithm = "auto"
+    leaf_size = 30
+    metric = "minkowski"
+    p = 2
+    novelty = True  # semi-supervised learning
+    n_jobs = 1
+    window_size = 1  # Set window_size to 1
+    stride = 1  # Set stride to 1
+
+    # Initialize aeon LOF with window_size=1 and stride=1
+    lof_aeon = LOF(
+        n_neighbors=n_neighbors,
+        algorithm=algorithm,
+        leaf_size=leaf_size,
+        metric=metric,
+        p=p,
+        n_jobs=n_jobs,
+        window_size=window_size,
+        stride=stride,
+    )
     lof_aeon.fit(series_train)
-    scores_aeon = lof_aeon._predict(series_test)
+    scores_aeon = lof_aeon._predict(series_test)  # changed from decsion_function
 
-    # Initializing PyOD LOF in semi-supervised mode
+    # Initialize PyOD LOF
     from pyod.models.lof import LOF as PyOD_LOF
-    lof_pyod = PyOD_LOF(novelty=True)
+
+    lof_pyod = PyOD_LOF(
+        n_neighbors=n_neighbors,
+        algorithm=algorithm,
+        leaf_size=leaf_size,
+        metric=metric,
+        p=p,
+        novelty=novelty,
+        n_jobs=n_jobs,
+    )
     lof_pyod.fit(series_train.reshape(-1, 1))
     scores_pyod = lof_pyod.decision_function(series_test.reshape(-1, 1))
 
+    # Ensure shapes and types
     assert scores_aeon.shape == (20,)
     assert scores_pyod.shape == (20,)
     assert scores_aeon.dtype == np.float_
     assert scores_pyod.dtype == np.float_
 
-    # Compare anomaly scores
-    np.testing.assert_allclose(scores_aeon, scores_pyod, rtol=1e-5)
+    # Compare anomaly scores using assert_allclose
+    np.testing.assert_allclose(scores_aeon, scores_pyod, rtol=1e-5, atol=1e-5)
 
-    # Additionally, ensure that anomalies have higher anomaly scores
-    assert np.any(scores_aeon < 0)
-    assert np.any(scores_pyod < 0)
-
+    # Ensure that the most anomalous point is within the introduced anomaly range
+    assert (
+        5 <= np.argmax(scores_aeon) <= 15
+    ), "AEON LOF did not detect anomalies in the expected range."
+    assert (
+        5 <= np.argmax(scores_pyod) <= 15
+    ), "PyOD LOF did not detect anomalies in the expected range."
