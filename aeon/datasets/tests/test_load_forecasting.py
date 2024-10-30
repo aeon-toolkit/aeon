@@ -8,7 +8,7 @@ from pandas.testing import assert_frame_equal
 
 import aeon
 from aeon.datasets import load_forecasting, load_from_tsf_file, load_uschange
-from aeon.testing.test_config import PR_TESTING
+from aeon.testing.testing_config import PR_TESTING
 
 _CHECKS = {
     "uschange": {

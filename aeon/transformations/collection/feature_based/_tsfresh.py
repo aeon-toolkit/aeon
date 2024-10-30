@@ -1,7 +1,7 @@
 """tsfresh interface class."""
 
 __maintainer__ = []
-__all__ = ["TSFreshFeatureExtractor", "TSFreshRelevantFeatureExtractor"]
+__all__ = ["TSFresh", "TSFreshRelevant"]
 
 import numpy as np
 import pandas as pd
@@ -29,7 +29,7 @@ def _from_3d_numpy_to_long(arr):
     return df
 
 
-class _TSFreshFeatureExtractor(BaseCollectionTransformer):
+class _TSFresh(BaseCollectionTransformer):
     """Base adapter class for tsfresh transformations."""
 
     _tags = {
@@ -147,7 +147,7 @@ class _TSFreshFeatureExtractor(BaseCollectionTransformer):
         return extraction_params
 
 
-class TSFreshFeatureExtractor(_TSFreshFeatureExtractor):
+class TSFresh(_TSFresh):
     """Transformer for extracting time series features via `tsfresh.extract_features`.
 
     Direct interface to `tsfresh.extract_features` [1] as an `aeon` transformer.
@@ -221,11 +221,11 @@ class TSFreshFeatureExtractor(_TSFreshFeatureExtractor):
     >>> from sklearn.model_selection import train_test_split
     >>> from aeon.datasets import load_arrow_head
     >>> from aeon.transformations.collection.feature_based import (
-    ...     TSFreshFeatureExtractor
+    ...     TSFresh
     ... )
     >>> X, y = load_arrow_head()
     >>> X_train, X_test, y_train, y_test = train_test_split(X, y)
-    >>> ts_eff = TSFreshFeatureExtractor(
+    >>> ts_eff = TSFresh(
     ...     default_fc_parameters="efficient", disable_progressbar=True
     ... ) # doctest: +SKIP
     >>> X_transform1 = ts_eff.fit_transform(X_train) # doctest: +SKIP
@@ -234,7 +234,7 @@ class TSFreshFeatureExtractor(_TSFreshFeatureExtractor):
     ...     "dim_0__longest_strike_above_mean",
     ...     "dim_0__variance",
     ... ]
-    >>> ts_custom = TSFreshFeatureExtractor(
+    >>> ts_custom = TSFresh(
     ...     kind_to_fc_parameters=features_to_calc, disable_progressbar=True
     ... ) # doctest: +SKIP
     >>> X_transform2 = ts_custom.fit_transform(X_train) # doctest: +SKIP
@@ -267,6 +267,7 @@ class TSFreshFeatureExtractor(_TSFreshFeatureExtractor):
             profiling_sorting=profiling_sorting,
             distributor=distributor,
         )
+        self._get_names()
 
     def _transform(self, X, y=None):
         """Transform X and return a transformed version.
@@ -298,11 +299,10 @@ class TSFreshFeatureExtractor(_TSFreshFeatureExtractor):
             column_sort="time_index",
             **self.default_fc_parameters_,
         )
-        #        return Xt.reindex(X.index)
-        return Xt
+        return Xt.to_numpy()
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -318,7 +318,6 @@ class TSFreshFeatureExtractor(_TSFreshFeatureExtractor):
             Parameters to create testing instances of the class
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`
         """
         features_to_calc = [
             "dim_0__quantile__q_0.6",
@@ -339,8 +338,25 @@ class TSFreshFeatureExtractor(_TSFreshFeatureExtractor):
             },
         ]
 
+    def _get_names(self):
+        """Hack to get the feature names prior to transform."""
+        from tsfresh import extract_features
 
-class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
+        X = np.random.random((2, 1, 30))
+        Xt = _from_3d_numpy_to_long(X)
+        Xt = extract_features(
+            Xt,
+            column_id="index",
+            column_value="value",
+            column_kind="column",
+            column_sort="time_index",
+            **self.default_fc_parameters_,
+        )
+        # Get the list of feature names
+        self.names = Xt.columns.tolist()
+
+
+class TSFreshRelevant(_TSFresh):
     """Transformer for extracting time series features via `tsfresh.extract_features`.
 
     Direct interface to `tsfresh.extract_features` [1] followed by the tsfresh
@@ -405,7 +421,7 @@ class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
         Which test to be used for real target, binary feature (currently unused).
     test_for_real_target_binary_feature : str or None, default=None
         Which test to be used for real target, real feature (currently unused)
-    fdr_level: floar or None, default=None
+    fdr_level: float or None, default=None
         The FDR level that should be respected, this is the theoretical expected
         percentage of irrelevant features among all created features.
     hypotheses_independent: bool or None, default=None
@@ -436,11 +452,11 @@ class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
     >>> from sklearn.model_selection import train_test_split
     >>> from aeon.datasets import load_arrow_head
     >>> from aeon.transformations.collection.feature_based import (
-    ...     TSFreshRelevantFeatureExtractor
+    ...     TSFreshRelevant
     ... )
-    >>> X, y = load_arrow_head(return_X_y=True)
+    >>> X, y = load_arrow_head()
     >>> X_train, X_test, y_train, y_test = train_test_split(X, y)
-    >>> ts_eff = TSFreshRelevantFeatureExtractor(
+    >>> ts_eff = TSFreshRelevant(
     ...     default_fc_parameters="efficient", disable_progressbar=True
     ... ) # doctest: +SKIP
     >>> X_transform1 = ts_eff.fit_transform(X_train, y_train) # doctest: +SKIP
@@ -449,17 +465,15 @@ class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
     ...     "dim_0__longest_strike_above_mean",
     ...     "dim_0__variance",
     ... ]
-    >>> ts_custom = TSFreshRelevantFeatureExtractor(
+    >>> ts_custom = TSFreshRelevant(
     ...     kind_to_fc_parameters=features_to_calc, disable_progressbar=True
     ... ) # doctest: +SKIP
     >>> X_transform2 = ts_custom.fit_transform(X_train, y_train) # doctest: +SKIP
     """
 
     _tags = {
-        "instancewise": False,
         "requires_y": True,
-        "X_inner_type": "nested_univ",
-        "y_inner_type": "pd_Series_Table",
+        "X_inner_type": "numpy3D",
         "fit_is_empty": False,
     }
 
@@ -509,6 +523,7 @@ class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
         self.ml_task = ml_task
 
         self.default_fs_parameters_ = self._get_selection_params()
+        self.names_ = []
 
     def _get_selection_params(self):
         """Set default values from tsfresh."""
@@ -550,19 +565,12 @@ class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
 
         Writes to self:
         _is_fitted : flag is set to True.
-        _X : X, coerced copy of X, if remember_data tag is True
-            possibly coerced to inner type or update_data compatible type
-            by reference, when possible
-        model attributes (ending in "_") : dependent on estimator
 
         Parameters
         ----------
-        X : Series or Panel, any supported type
-            Data to be transformed, of python type as follows:
-                Series: pd.Series, pd.DataFrame, or np.ndarray (1D or 2D)
-                Panel: pd.DataFrame with 2-level MultiIndex, list of pd.DataFrame,
-                    nested pd.DataFrame, or pd.DataFrame in long/wide format
-        y : Series or Panel, default=None
+        X : 3D np.ndarray of shape (n_cases, n_channels, n_timepoints)
+            collection of time series to transform
+        y : Series, default=None
             Additional data, e.g., labels for transformation
 
         Returns
@@ -572,7 +580,7 @@ class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
         # lazy imports to avoid hard dependency
         from tsfresh.transformers.feature_selector import FeatureSelector
 
-        self.extractor_ = TSFreshFeatureExtractor(
+        self.extractor_ = TSFresh(
             default_fc_parameters=self.default_fc_parameters,
             kind_to_fc_parameters=self.kind_to_fc_parameters,
             chunksize=self.chunksize,
@@ -593,8 +601,7 @@ class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
 
         Xt = self.extractor_.fit_transform(X)
         Xt = self.selector_.fit_transform(Xt, y)
-        #       Xt = Xt.reindex(X.index)
-
+        self.names_ = self.selector_.relevant_features
         return Xt
 
     def _fit(self, X, y=None):
@@ -614,7 +621,7 @@ class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
         # lazy imports to avoid hard dependency
         from tsfresh.transformers.feature_selector import FeatureSelector
 
-        self.extractor_ = TSFreshFeatureExtractor(
+        self.extractor_ = TSFresh(
             default_fc_parameters=self.default_fc_parameters,
             kind_to_fc_parameters=self.kind_to_fc_parameters,
             chunksize=self.chunksize,
@@ -635,6 +642,7 @@ class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
 
         Xt = self.extractor_.fit_transform(X)
         self.selector_.fit(Xt, y)
+        self.names_ = self.selector_.relevant_features
         return self
 
     def _transform(self, X, y=None):
@@ -642,22 +650,21 @@ class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
 
         Parameters
         ----------
-        X : pd.DataFrame
-            nested pandas DataFrame of shape [n_samples, n_columns]
-        y : pd.Series or np.array
-            Target variable
+        X : np.ndarray
+        y : None
+            Ignored
 
         Returns
         -------
-        Xt : pandas DataFrame
-          Transformed pandas DataFrame
+        Xt : np.ndarray
+          Transformed data
         """
         Xt = self.extractor_.transform(X)
         Xt = self.selector_.transform(Xt)
-        return Xt.reindex(X.index)
+        return Xt
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -673,7 +680,6 @@ class TSFreshRelevantFeatureExtractor(_TSFreshFeatureExtractor):
             Parameters to create testing instances of the class
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`
         """
         params = {
             "default_fc_parameters": "efficient",

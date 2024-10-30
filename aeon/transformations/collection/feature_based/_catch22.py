@@ -192,10 +192,10 @@ class Catch22(BaseCollectionTransformer):
         self.n_jobs = n_jobs
         self.parallel_backend = parallel_backend
 
+        super().__init__()
+
         if use_pycatch22:
             self.set_tags(**{"python_dependencies": "pycatch22"})
-
-        super().__init__()
 
     def _transform(self, X, y=None):
         """Transform X into the catch22 features.
@@ -287,10 +287,11 @@ class Catch22(BaseCollectionTransformer):
             for i in range(n_cases)
         )
 
+        c22_array = np.array(c22_list)
         if self.replace_nans:
-            c22_list = np.nan_to_num(c22_list, False, 0, 0, 0)
+            c22_array = np.nan_to_num(c22_array, False, 0, 0, 0)
 
-        return np.array(c22_list)
+        return c22_array
 
     def _transform_case(self, X, f_idx, features):
         c22 = np.zeros(len(f_idx) * len(X))

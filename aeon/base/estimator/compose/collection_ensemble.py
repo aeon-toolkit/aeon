@@ -1,30 +1,39 @@
-"""Base class for collection ensembles."""
+"""Base class for composable ensembles in series collection modules.
+
+i.e. classification, regression and clustering.
+"""
+
+__maintainer__ = ["MatthewMiddlehurst"]
+__all__ = ["BaseCollectionEnsemble"]
 
 import numpy as np
-from sklearn.base import BaseEstimator as SklearnBaseEstimator
-from sklearn.base import is_classifier
+from sklearn.base import BaseEstimator, is_classifier
 from sklearn.metrics import accuracy_score, mean_squared_error
 from sklearn.model_selection import cross_val_predict
 from sklearn.utils import check_random_state
 
-from aeon.base import BaseCollectionEstimator, BaseEstimator, _HeterogenousMetaEstimator
+from aeon.base import (
+    BaseAeonEstimator,
+    BaseCollectionEstimator,
+    _ComposableEstimatorMixin,
+)
 from aeon.base._base import _clone_estimator
 
 
-class BaseCollectionEnsemble(_HeterogenousMetaEstimator, BaseCollectionEstimator):
+class BaseCollectionEnsemble(_ComposableEstimatorMixin, BaseCollectionEstimator):
     """Weighted ensemble of collection estimators with fittable ensemble weight.
 
     Parameters
     ----------
-    _estimators : list of aeon and/or sklearn estimators or list of tuples
-        Estimators to be used in the ensemble. The str is used to name the estimator.
-        List of tuples (str, estimator) of estimators can also be passed, where
-        the str is used to name the estimator.
-        The objects are cloned prior, as such the state of the input will not be
-        modified by fitting the pipeline.
+    _ensemble : list of aeon and/or sklearn estimators or list of tuples
+        Estimators to be used in the ensemble.
+        A list of tuples (str, estimator) can also be passed, where the str is used to
+        name the estimator.
+        The objects are cloned prior. As such, the state of the input will not be
+        modified by fitting the ensemble.
     weights : float, or iterable of float, default=None
         If float, ensemble weight for estimator i will be train score to this power.
-        If iterable of float, must be equal length as _estimators. Ensemble weight for
+        If iterable of float, must be equal length as _ensemble. Ensemble weight for
             _estimator i will be weights[i].
         If None, all estimators have equal weight.
     cv : None, int, or sklearn cross-validation object, default=None
@@ -45,42 +54,55 @@ class BaseCollectionEnsemble(_HeterogenousMetaEstimator, BaseCollectionEstimator
         ensemble members (but they may still be seeded prior to input).
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
+    _ensemble_input_name : str, default="estimators"
+        Name of the input parameter for the ensemble of estimators.
 
     Attributes
     ----------
     ensemble_ : list of tuples (str, estimator) of estimators
-        Clones of estimators in _estimators which are fitted in the ensemble.
-        Will always be in (str, estimator) format regardless of _estimators input.
+        Clones of estimators in _ensemble which are fitted in the ensemble.
+        Will always be in (str, estimator) format regardless of _ensemble input.
     weights_ : dict
         Weights of estimators using the str names as keys.
 
     See Also
     --------
-    ClassifierEnsemble : A pipeline for classification tasks.
-    RegressorEnsemble : A pipeline for regression tasks.
+    ClassifierEnsemble : An ensemble for classification tasks.
+    RegressorEnsemble : An ensemble for regression tasks.
     """
+
+    # Attribute name containing an iterable of processed (str, estimator) tuples
+    # with unfitted estimators and unique names. Used in get_params and set_params
+    _estimators_attr = "_ensemble"
+    # Attribute name containing an iterable of fitted (str, estimator) tuples.
+    # Used in get_fitted_params
+    _fitted_estimators_attr = "ensemble_"
 
     def __init__(
         self,
-        _estimators,
+        _ensemble,
         weights=None,
         cv=None,
         metric=None,
         metric_probas=False,
         random_state=None,
+        _ensemble_input_name="estimators",
     ):
-        self._estimators = _estimators
+        self._ensemble = _ensemble
         self.weights = weights
         self.cv = cv
         self.metric = metric
         self.metric_probas = metric_probas
         self.random_state = random_state
+        self._ensemble_input_name = _ensemble_input_name
 
-        self.ensemble_ = self._check_estimators(
-            self._estimators,
-            attr_name="_estimators",
-            cls_type=SklearnBaseEstimator,
-            clone_ests=False,
+        self._check_estimators(
+            self._ensemble,
+            attr_name=_ensemble_input_name,
+            class_type=BaseEstimator,
+        )
+        self._ensemble = self._convert_estimators(
+            self._ensemble, clone_estimators=False
         )
 
         super().__init__()
@@ -90,10 +112,10 @@ class BaseCollectionEnsemble(_HeterogenousMetaEstimator, BaseCollectionEstimator
             [
                 (
                     e[1].get_tag("capability:multivariate", False, raise_error=False)
-                    if isinstance(e[1], BaseEstimator)
+                    if isinstance(e[1], BaseAeonEstimator)
                     else False
                 )
-                for e in self.ensemble_
+                for e in self._ensemble
             ]
         )
 
@@ -102,10 +124,10 @@ class BaseCollectionEnsemble(_HeterogenousMetaEstimator, BaseCollectionEstimator
             [
                 (
                     e[1].get_tag("capability:missing_values", False, raise_error=False)
-                    if isinstance(e[1], BaseEstimator)
+                    if isinstance(e[1], BaseAeonEstimator)
                     else False
                 )
-                for e in self.ensemble_
+                for e in self._ensemble
             ]
         )
 
@@ -114,10 +136,10 @@ class BaseCollectionEnsemble(_HeterogenousMetaEstimator, BaseCollectionEstimator
             [
                 (
                     e[1].get_tag("capability:unequal_length", False, raise_error=False)
-                    if isinstance(e[1], BaseEstimator)
+                    if isinstance(e[1], BaseAeonEstimator)
                     else False
                 )
-                for e in self.ensemble_
+                for e in self._ensemble
             ]
         )
 
@@ -129,7 +151,21 @@ class BaseCollectionEnsemble(_HeterogenousMetaEstimator, BaseCollectionEstimator
         self.set_tags(**tags_to_set)
 
     def _fit(self, X, y):
-        self._clone_steps()
+        if self.random_state is not None:
+            rng = check_random_state(self.random_state)
+            self.ensemble_ = [
+                (
+                    step[0],
+                    _clone_estimator(
+                        step[1], random_state=rng.randint(np.iinfo(np.int32).max)
+                    ),
+                )
+                for step in self._ensemble
+            ]
+        else:
+            self.ensemble_ = [
+                (step[0], _clone_estimator(step[1])) for step in self._ensemble
+            ]
 
         msg = (
             "weights must be a float, dict, or iterable of floats of length equal "
@@ -181,20 +217,3 @@ class BaseCollectionEnsemble(_HeterogenousMetaEstimator, BaseCollectionEstimator
                 self.weights_[name] = metric(y, preds) ** self.weights
 
         return self
-
-    def _clone_steps(self):
-        if self.random_state is not None:
-            rng = check_random_state(self.random_state)
-            self.ensemble_ = [
-                (
-                    step[0],
-                    _clone_estimator(
-                        step[1], random_state=rng.randint(np.iinfo(np.int32).max)
-                    ),
-                )
-                for step in self.ensemble_
-            ]
-        else:
-            self.ensemble_ = [
-                (step[0], _clone_estimator(step[1])) for step in self.ensemble_
-            ]

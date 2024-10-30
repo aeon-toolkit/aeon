@@ -2,13 +2,13 @@
 
 __maintainer__ = []
 
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 
 from aeon.clustering._k_means import TimeSeriesKMeans
 from aeon.clustering.base import BaseClusterer
 
 
-class BaseDeepClusterer(BaseClusterer, ABC):
+class BaseDeepClusterer(BaseClusterer):
     """Abstract base class for deep learning time series clusterers.
 
     Parameters
@@ -35,8 +35,8 @@ class BaseDeepClusterer(BaseClusterer, ABC):
         "X_inner_type": "numpy3D",
         "capability:multivariate": True,
         "algorithm_type": "deeplearning",
-        "non-deterministic": True,
-        "cant-pickle": True,
+        "non_deterministic": True,
+        "cant_pickle": True,
         "python_dependencies": "tensorflow",
     }
 
