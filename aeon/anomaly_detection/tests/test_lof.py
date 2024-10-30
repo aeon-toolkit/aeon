@@ -7,6 +7,7 @@ from aeon.anomaly_detection import LOF
 from aeon.testing.data_generation import make_example_1d_numpy
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
+
 @pytest.mark.skipif(
     not _check_soft_dependencies("pyod", severity="none"),
     reason="required soft dependency PyOD not available",
@@ -38,7 +39,7 @@ def test_lof_default():
         window_size=window_size,
         stride=stride,
     )
-    scores_aeon=lof_aeon._fit_predict(series)
+    scores_aeon = lof_aeon._fit_predict(series)
 
     # Initialize PyOD LOF
     from pyod.models.lof import LOF as PyOD_LOF
@@ -144,7 +145,7 @@ def test_lof_unsupervised():
         window_size=window_size,
         stride=stride,
     )
-    scores_aeon=lof_aeon._fit_predict(series)
+    scores_aeon = lof_aeon._fit_predict(series)
 
     # Initialize PyOD LOF
     from pyod.models.lof import LOF as PyOD_LOF
