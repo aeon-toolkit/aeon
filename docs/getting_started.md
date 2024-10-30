@@ -20,24 +20,24 @@ classical techniques for the following learning tasks:
   labels are used to train a model to label cases ([more details](examples/clustering/clustering.ipynb)).
 - Similarity search where the goal is to evaluate the similarity
 between a query time series and a collection of other longer time series ([more details](examples/similarity_search/similarity_search.ipynb)).
-- anomaly detection where the goal is to find values or areas of a
+- Anomaly detection where the goal is to find values or areas of a
   single time series that are not representative of the whole series. More details
-  to follow.
+  coming soon.
 - Segmentation where the goal is to split a single time series into
   regions where the series are sofind areas of a time series that are not
   representative of the whole series ([more details](examples/segmentation/segmentation.ipynb)).
-- forecasting, where the goal is to predict future values for a time
-  series (coming soon!).
+- Forecasting, where the goal is to predict future values for a time
+  series (new module coming soon).
 
-`aeon` also provides core modules that are used by the specific task modules
-above
+`aeon` also provides core modules that are used by the modules above:
 
 - Transformations, where a either a single series or collection is
   transformed
   into a different representation or domain. More details coming soon.
 - Distances, which measure the dissimilarity between two time series or
   collections of series and include functions to align series ([more details](examples/distances/distances.ipynb)).
-- networks, provides core models for deep learning for all time series tasks.
+- Networks, provides core models for deep learning for all time series tasks ([more
+  details](examples/networks/deep_learning.ipynb)).
 
 There are dedicated notebooks going into more detail for each of these modules
 (linked above). This guide is meant to give you the briefest of
@@ -53,7 +53,7 @@ A time series is a series of real valued data assumed to be ordered. A univariat
 time series has a single value at each time point. For example,
 the heartbeat ECG reading from a single sensor or the number of passengers using an
 airline per month would form a univariate series. Single time series are stored
-by default in a numpy array (algorithms use arrays internally whenever possible).
+by default in a numpy array (algorithms use numpy arrays internally whenever possible).
 We can also handle `pd.Series` and `pd.DataFrame` objects, but these are simply
 converted to `np.ndarray` internally. The airline series is a classic example of a
 univariate series from the forecasting domain. The series is the monthly totals of
@@ -132,8 +132,7 @@ all optimised using numba. They all work with multivariate and unequal length se
 >>> from aeon.datasets import load_japanese_vowels
 >>> from aeon.distances import dtw_distance
 >>> data = load_japanese_vowels()  # load an example multivariate series
->>> d = dtw_distance(data[0], data[1])  # calculate the dtw distance between the
-first two series
+>>> d = dtw_distance(data[0], data[1])  # calculate the dtw distance
 ```
 
 ### Anomaly Detection
@@ -141,6 +140,16 @@ first two series
 Anomaly detection (AD) is the process of identifying observations that are significantly
 different from the rest of the data. More details to follow soon, once we have
 written the notebook.
+
+```{code-block} python
+>>> from aeon.datasets import load_airline
+>>> from aeon.anomaly_detection import STOMP
+>>> stomp = STOMP(window_size=200)
+>>> scores = est.fit_predict(X) # Get the anomaly scores
+```
+
+
+
 
 ### Forecasting
 
@@ -152,7 +161,7 @@ forecasting module.
 
 The estimators in the `classification`,
 `regression` and `clustering` modules learn from collections of time
-series (they inherit from the class `BaseSeriesEstimator`). Collections of
+series (they inherit from the class `BaseCollectionEstimator`). Collections of
 time series will often be accompanied by an array of target variables for supervised
 learning.
 
@@ -309,14 +318,14 @@ TimeSeriesKMeans(n_clusters=3)
 
 After calling `fit`, the `labels_` attribute contains the cluster labels for
 each time series. The `predict` method can be used to predict the cluster labels for
-new data. See our clustering notebook for [more details](examples/clustering/clustering.ipynb)
+new data. See our clustering notebook for [more details](examples/clustering/clustering.ipynb).
 
 
 ### Similarity Search
 
 The goal of time series similarity search is to find the best matches between a
 query time series and a database (collection) of time series which are usually
-longer than the query. [more details](examples/similarity_search/similarity_search.ipynb)
+longer than the query. See our notebook for [more details](examples/similarity_search/similarity_search.ipynb)
 
 
 ```{code-block} python
@@ -340,7 +349,7 @@ We split transformers into two categories: those that transform single time seri
 
 Transformers inheriting from the [BaseSeriesTransformer](transformations.base.BaseSeriesTransformer)
 in the `aeon.transformations.series` package transform a single (possibly multivariate)
-time series into a different time series or a feature vector.
+time series into a different time series or a feature vector. More info to follow.
 
 The following example shows how to use the
 [AutoCorrelationSeriesTransformer](transformations.series.AutoCorrelationSeriesTransformer)
