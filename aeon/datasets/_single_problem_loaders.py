@@ -891,7 +891,7 @@ def load_uschange(return_array=True):
     This data shows an increasing trend, non-constant (increasing) variance
     and periodic, seasonal patterns.
 
-    Channels/Columns:    ['Consumption', 'Income', 'Production',
+    Channels:    ['Consumption', 'Income', 'Production',
                          'Savings', 'Unemployment']
     Series length:      187
     Frequency:          Quarterly
