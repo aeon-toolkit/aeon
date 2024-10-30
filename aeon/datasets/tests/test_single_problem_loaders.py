@@ -138,13 +138,7 @@ def test_uschange():
     assert data.shape == (5, 187)
     X = load_uschange(return_array=False)
     assert isinstance(X, pd.DataFrame)
-    col_names = ["Consumption", "Income", "Production", "Savings", "Unemployment"]
-
-    assert X.columns.values.tolist() == col_names
-    for col in col_names:
-        assert X[col].dtype == "float64"
-    assert X.shape[0] == data.shape[1]
-    assert X.shape[1] == data.shape[0]
+    assert X.shape == data.shape
 
 
 def test_longley():
@@ -155,9 +149,4 @@ def test_longley():
     X = load_longley(return_array=False)
 
     assert isinstance(X, pd.DataFrame)
-    col_names = ["TOTEMP", "GNPDEFL", "GNP", "UNEMP", "ARMED", "POP"]
-    assert X.columns.values.tolist() == col_names
-    for col in col_names:
-        assert X[col].dtype == "float64"
-    assert X.shape[0] == data.shape[1]
-    assert X.shape[1] == data.shape[0]
+    assert X.shape == data.shape

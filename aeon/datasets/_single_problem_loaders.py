@@ -899,13 +899,12 @@ def load_uschange(return_array=True):
     Parameters
     ----------
     return_array : bool, default=True
-        return series as an np.ndarray if True, else as a pd.DataFrame.
+        return series as an np.ndarray if True, else as a pd.DataFrame in wide format.
 
     Returns
     -------
     np.ndarray or pd.DataFrame
-        US Change dataset. If an np.ndarray is returned the data is in shape (5,
-        187). If a pd.DataFrame is returned the data is in shape (187, 5).
+        US Change dataset, shape (5,187).
 
     Examples
     --------
@@ -915,7 +914,7 @@ def load_uschange(return_array=True):
     (5, 187)
     >>> data = load_uschange(return_array=False)
     >>> data.shape
-    (187, 5)
+    (5, 187)
 
     References
     ----------
@@ -932,7 +931,7 @@ def load_uschange(return_array=True):
     data = data.drop("Quarter", axis=1)
     if return_array:
         return data.to_numpy().T
-    return data
+    return data.T
 
 
 def load_longley(return_array=True):
@@ -958,13 +957,12 @@ def load_longley(return_array=True):
     Parameters
     ----------
     return_array : bool, default=True
-        return series as an np.ndarray if True, else as a pd.DataFrame.
+        return series as an np.ndarray if True, else as a pd.DataFrame in wide format.
 
     Returns
     -------
     np.ndarray or pd.DataFrame
-        US Change dataset. If an np.ndarray is returned the data is in shape (6,
-        16). If a pd.DataFrame is returned the data is in shape (16, 6).
+        US Change dataset, shape (6, 16).
 
     Examples
     --------
@@ -974,7 +972,7 @@ def load_longley(return_array=True):
     (6, 16)
     >>> data = load_longley(return_array=False)
     >>> data.shape
-    (16, 6)
+    (6, 16)
 
     References
     ----------
@@ -992,4 +990,4 @@ def load_longley(return_array=True):
     data = data.astype(float)
     if return_array:
         return data.to_numpy().T
-    return data
+    return data.T
