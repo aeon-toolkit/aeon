@@ -406,7 +406,10 @@ class BaseAeonEstimator(BaseEstimator, ABC):
         )
 
     def get_metadata_routing(self):
-        """Sklearn metadata routing."""
+        """Sklearn metadata routing.
+
+        Not supported by ``aeon`` estimators.
+        """
         raise NotImplementedError(
             "aeon estimators do not have a get_metadata_routing method."
         )
