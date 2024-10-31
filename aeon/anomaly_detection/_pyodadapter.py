@@ -70,7 +70,7 @@ class PyODAdapter(BaseAnomalyDetector):
     >>> import numpy as np
     >>> from pyod.models.lof import LOF  # doctest: +SKIP
     >>> from aeon.anomaly_detection import PyODAdapter  # doctest: +SKIP
-    >>> X = np.random.default_rng(42).random((10, 2), dtype=np.float_)
+    >>> X = np.random.default_rng(42).random((10, 2), dtype=np.float64)
     >>> detector = PyODAdapter(LOF(), window_size=2)  # doctest: +SKIP
     >>> detector.fit_predict(X, axis=0)  # doctest: +SKIP
     array([1.02352234 1.00193038 0.98584441 0.99630753 1.00656619 1.00682081 1.00781515
@@ -158,7 +158,7 @@ class PyODAdapter(BaseAnomalyDetector):
         return point_anomaly_scores
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -173,7 +173,6 @@ class PyODAdapter(BaseAnomalyDetector):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         _check_soft_dependencies(*cls._tags["python_dependencies"])
 

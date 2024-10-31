@@ -342,7 +342,7 @@ class InceptionTimeClassifier(BaseClassifier):
         return probs
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -361,7 +361,6 @@ class InceptionTimeClassifier(BaseClassifier):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         param1 = {
             "n_classifiers": 1,
@@ -493,8 +492,8 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
     --------
     >>> from aeon.classification.deep_learning import IndividualInceptionClassifier
     >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
     >>> inc = IndividualInceptionClassifier(n_epochs=20,batch_size=4)  # doctest: +SKIP
     >>> inc.fit(X_train, y_train)  # doctest: +SKIP
     IndividualInceptionClassifier(...)
@@ -725,7 +724,7 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         return self
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -744,7 +743,6 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         param1 = {
             "n_epochs": 10,

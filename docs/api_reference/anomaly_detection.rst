@@ -69,7 +69,11 @@ Detectors
     :toctree: auto_generated/
     :template: class.rst
 
+
+    CBLOF
+    COPOD
     DWT_MLEAD
+    IsolationForest
     KMeansAD
     LeftSTAMPi
     MERLIN

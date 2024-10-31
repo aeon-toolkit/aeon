@@ -133,8 +133,8 @@ class OrdinalTDE(BaseClassifier):
     --------
     >>> from aeon.classification.ordinal_classification import OrdinalTDE
     >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
     >>> clf = OrdinalTDE(
     ...     n_parameter_samples=10,
     ...     max_ensemble_size=3,
@@ -514,7 +514,7 @@ class OrdinalTDE(BaseClassifier):
         return mae
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -533,7 +533,6 @@ class OrdinalTDE(BaseClassifier):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         if parameter_set == "results_comparison":
             return {
@@ -643,8 +642,8 @@ class IndividualOrdinalTDE(BaseClassifier):
     --------
     >>> from aeon.classification.ordinal_classification import IndividualOrdinalTDE
     >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
     >>> clf = IndividualOrdinalTDE()
     >>> clf.fit(X_train, y_train)
     IndividualOrdinalTDE(...)

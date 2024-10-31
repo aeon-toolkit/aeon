@@ -22,6 +22,8 @@ Convolution-based
     HydraClassifier
     MultiRocketHydraClassifier
     RocketClassifier
+    MiniRocketClassifier
+    MultiRocketClassifier
 
 Deep learning
 -------------
@@ -193,10 +195,9 @@ Composition
     :toctree: auto_generated/
     :template: class.rst
 
+    ClassifierChannelEnsemble
+    ClassifierEnsemble
     ClassifierPipeline
-    ChannelEnsembleClassifier
-    WeightedEnsembleClassifier
-
 
 Base
 ----
