@@ -24,20 +24,20 @@ from aeon.transformations.collection import (
     Tabularizer,
     TimeSeriesScaler,
 )
-from aeon.transformations.collection.feature_based import SevenNumberSummaryTransformer
+from aeon.transformations.collection.feature_based import SevenNumberSummary
 
 
 @pytest.mark.parametrize(
     "transformers",
     [
         Padder(pad_length=15),
-        SevenNumberSummaryTransformer(),
+        SevenNumberSummary(),
         [Padder(pad_length=15), Tabularizer(), StandardScaler()],
-        [Padder(pad_length=15), SevenNumberSummaryTransformer()],
-        [Tabularizer(), StandardScaler(), SevenNumberSummaryTransformer()],
+        [Padder(pad_length=15), SevenNumberSummary()],
+        [Tabularizer(), StandardScaler(), SevenNumberSummary()],
         [
             Padder(pad_length=15),
-            SevenNumberSummaryTransformer(),
+            SevenNumberSummary(),
         ],
     ],
 )
@@ -68,14 +68,14 @@ def test_regressor_pipeline(transformers):
     "transformers",
     [
         [Padder(pad_length=15), Tabularizer()],
-        SevenNumberSummaryTransformer(),
+        SevenNumberSummary(),
         [Tabularizer(), StandardScaler()],
         [Padder(pad_length=15), Tabularizer(), StandardScaler()],
-        [Padder(pad_length=15), SevenNumberSummaryTransformer()],
-        [Tabularizer(), StandardScaler(), SevenNumberSummaryTransformer()],
+        [Padder(pad_length=15), SevenNumberSummary()],
+        [Tabularizer(), StandardScaler(), SevenNumberSummary()],
         [
             Padder(pad_length=15),
-            SevenNumberSummaryTransformer(),
+            SevenNumberSummary(),
         ],
     ],
 )
@@ -108,7 +108,7 @@ def test_unequal_tag_inference():
         n_cases=10, min_n_timepoints=8, max_n_timepoints=12, regression_target=True
     )
 
-    t1 = SevenNumberSummaryTransformer()
+    t1 = SevenNumberSummary()
     t2 = Padder()
     t3 = TimeSeriesScaler()
     t4 = AutocorrelationFunctionTransformer(n_lags=5)
@@ -118,10 +118,10 @@ def test_unequal_tag_inference():
     assert t1.get_tag("capability:unequal_length")
     assert t1.get_tag("output_data_type") == "Tabular"
     assert t2.get_tag("capability:unequal_length")
-    assert t2.get_tag("capability:unequal_length:removes")
+    assert t2.get_tag("removes_unequal_length")
     assert not t2.get_tag("output_data_type") == "Tabular"
     assert t3.get_tag("capability:unequal_length")
-    assert not t3.get_tag("capability:unequal_length:removes")
+    assert not t3.get_tag("removes_unequal_length")
     assert not t3.get_tag("output_data_type") == "Tabular"
     assert not t4.get_tag("capability:unequal_length")
 
@@ -178,15 +178,13 @@ def test_missing_tag_inference():
     # X[5, 0, 4] = np.nan
 
     t1 = MockCollectionTransformer()
-    t1.set_tags(
-        **{"capability:missing_values": True, "capability:missing_values:removes": True}
-    )
+    t1.set_tags(**{"capability:missing_values": True, "removes_missing_values": True})
     t2 = TimeSeriesScaler()
     t3 = StandardScaler()
     t4 = Tabularizer()
 
     assert t1.get_tag("capability:missing_values")
-    assert t1.get_tag("capability:missing_values:removes")
+    assert t1.get_tag("removes_missing_values")
     assert not t2.get_tag("capability:missing_values")
 
     c1 = DummyRegressor()
@@ -231,7 +229,7 @@ def test_multivariate_tag_inference():
         n_cases=10, n_channels=2, n_timepoints=12, regression_target=True
     )
 
-    t1 = SevenNumberSummaryTransformer()
+    t1 = SevenNumberSummary()
     t2 = TimeSeriesScaler()
     t3 = HOG1DTransformer()
     t4 = StandardScaler()

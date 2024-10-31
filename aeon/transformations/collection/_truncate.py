@@ -39,7 +39,7 @@ class Truncator(BaseCollectionTransformer):
         "X_inner_type": ["np-list", "numpy3D"],
         "capability:multivariate": True,
         "capability:unequal_length": True,
-        "capability:unequal_length:removes": True,
+        "removes_unequal_length": True,
     }
 
     def __init__(self, truncated_length=None):
@@ -105,7 +105,7 @@ class Truncator(BaseCollectionTransformer):
         return Xt
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -121,7 +121,6 @@ class Truncator(BaseCollectionTransformer):
             Parameters to create testing instances of the class
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`
         """
         params = {"truncated_length": 5}
         return params

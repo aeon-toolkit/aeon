@@ -3,12 +3,12 @@
 __maintainer__ = ["MatthewMiddlehurst", "TonyBagnall"]
 __all__ = ["BaseTransformer"]
 
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 
-from aeon.base import BaseEstimator
+from aeon.base import BaseAeonEstimator
 
 
-class BaseTransformer(BaseEstimator, ABC):
+class BaseTransformer(BaseAeonEstimator):
     """Transformer base class."""
 
     _tags = {
@@ -16,7 +16,7 @@ class BaseTransformer(BaseEstimator, ABC):
         "fit_is_empty": False,
         "capability:inverse_transform": False,
         "capability:missing_values": False,
-        "capability:missing_values:removes": False,
+        "removes_missing_values": False,
     }
 
     def __init__(self):

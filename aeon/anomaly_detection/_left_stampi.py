@@ -77,7 +77,7 @@ class LeftSTAMPi(BaseAnomalyDetector):
         "capability:multivariate": False,
         "capability:missing_values": False,
         "fit_is_empty": False,
-        "cant-pickle": True,
+        "cant_pickle": True,
         "python_dependencies": ["stumpy"],
     }
 

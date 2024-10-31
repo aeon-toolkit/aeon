@@ -25,7 +25,7 @@ def test_check_valid_tags(estimator):
     tags = {
         "python_version": ">3.8",
         "python_dependencies": None,
-        "non-deterministic": False,
+        "non_deterministic": False,
     }
 
     check_valid_tags(estimator, tags=tags, error_on_missing=False)
@@ -61,8 +61,10 @@ def test_check_valid_tags_invalid():
     tags = {
         "python_version": ">3.8",
         "python_dependencies": None,
-        "non-deterministic": 1,
+        "non_deterministic": 1,
     }
 
-    with pytest.raises(ValueError, match="Tag non-deterministic has an invalid value"):
+    with pytest.raises(
+        ValueError, match="Value 1 is not a valid value for tag non_deterministic"
+    ):
         check_valid_tags(MockClassifier, tags=tags)

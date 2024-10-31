@@ -24,7 +24,7 @@ __all__ = [
     "BaseCollectionTransformer",
 ]
 
-from abc import ABCMeta, abstractmethod
+from abc import abstractmethod
 from typing import final
 
 import numpy as np
@@ -34,16 +34,14 @@ from aeon.base import BaseCollectionEstimator
 from aeon.transformations.base import BaseTransformer
 
 
-class BaseCollectionTransformer(
-    BaseCollectionEstimator, BaseTransformer, metaclass=ABCMeta
-):
+class BaseCollectionTransformer(BaseCollectionEstimator, BaseTransformer):
     """Transformer base class for collections."""
 
     # tag values specific to CollectionTransformers
     _tags = {
         "input_data_type": "Collection",
         "output_data_type": "Collection",
-        "capability:unequal_length:removes": False,
+        "removes_unequal_length": False,
     }
 
     def __init__(self):
@@ -93,7 +91,7 @@ class BaseCollectionTransformer(
                 raise ValueError("Tag requires_y is true, but fit called with y=None")
         # skip the rest if fit_is_empty is True
         if self.get_tag("fit_is_empty"):
-            self._is_fitted = True
+            self.is_fitted = True
             return self
         self.reset()
 
@@ -102,7 +100,7 @@ class BaseCollectionTransformer(
         y_inner = y
         self._fit(X=X_inner, y=y_inner)
 
-        self._is_fitted = True
+        self.is_fitted = True
 
         return self
 
@@ -144,7 +142,7 @@ class BaseCollectionTransformer(
         transformed version of X
         """
         # check whether is fitted
-        self.check_is_fitted()
+        self._check_is_fitted()
 
         # input check and conversion for X/y
         X_inner = self._preprocess_collection(X, store_metadata=False)
@@ -203,7 +201,7 @@ class BaseCollectionTransformer(
         y_inner = y
         Xt = self._fit_transform(X=X_inner, y=y_inner)
 
-        self._is_fitted = True
+        self.is_fitted = True
 
         return Xt
 
@@ -255,7 +253,7 @@ class BaseCollectionTransformer(
             )
 
         # check whether is fitted
-        self.check_is_fitted()
+        self._check_is_fitted()
 
         # input check and conversion for X/y
         X_inner = self._preprocess_collection(X, store_metadata=False)

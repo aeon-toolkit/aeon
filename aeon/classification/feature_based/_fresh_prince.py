@@ -12,7 +12,7 @@ from sklearn.tree import DecisionTreeClassifier
 
 from aeon.classification.base import BaseClassifier
 from aeon.classification.sklearn import RotationForestClassifier
-from aeon.transformations.collection.feature_based import TSFreshFeatureExtractor
+from aeon.transformations.collection.feature_based import TSFresh
 
 
 class FreshPRINCEClassifier(BaseClassifier):
@@ -59,7 +59,7 @@ class FreshPRINCEClassifier(BaseClassifier):
 
     See Also
     --------
-    TSFreshFeatureExtractor, TSFreshClassifier, RotationForestClassifier
+    TSFresh, TSFreshClassifier, RotationForestClassifier
         TSFresh related classes.
 
     References
@@ -189,7 +189,7 @@ class FreshPRINCEClassifier(BaseClassifier):
             n_jobs=self._n_jobs,
             random_state=self.random_state,
         )
-        self._tsfresh = TSFreshFeatureExtractor(
+        self._tsfresh = TSFresh(
             default_fc_parameters=self.default_fc_parameters,
             n_jobs=self._n_jobs,
             chunksize=self.chunksize,
@@ -200,7 +200,7 @@ class FreshPRINCEClassifier(BaseClassifier):
         return self._tsfresh.fit_transform(X, y)
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -222,7 +222,6 @@ class FreshPRINCEClassifier(BaseClassifier):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         if parameter_set == "results_comparison":
             return {

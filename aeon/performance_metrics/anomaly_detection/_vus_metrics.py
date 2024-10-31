@@ -46,9 +46,9 @@ def _extend_anomaly_labels(
 
     if buffer_size <= 1:
         anomalies = np.array(list(zip(starts, ends - 1)))
-        return y_true.astype(np.float_), anomalies
+        return y_true.astype(np.float64), anomalies
 
-    y_true_cont = y_true.astype(np.float_)
+    y_true_cont = y_true.astype(np.float64)
     slope_length = buffer_size // 2
     length = y_true_cont.shape[0]
     for s, e in zip(starts, ends):

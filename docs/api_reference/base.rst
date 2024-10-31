@@ -18,7 +18,7 @@ Base classes
     :toctree: auto_generated/
     :template: class.rst
 
-    BaseEstimator
+    BaseAeonEstimator
     BaseCollectionEstimator
     BaseSeriesEstimator
 

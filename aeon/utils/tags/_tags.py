@@ -34,13 +34,13 @@ ESTIMATOR_TAGS = {
         "as str or list of str. e.g. 'tsfresh>=0.20.0', "
         "'[tsfresh>=0.20.0, pandas<2.0.0]'. If None, no restriction.",
     },
-    "non-deterministic": {
+    "non_deterministic": {
         "class": "estimator",
         "type": "bool",
         "description": "The estimator is non-deterministic, and multiple runs will "
         "not produce the same output even if a `random_state` is set.",
     },
-    "cant-pickle": {
+    "cant_pickle": {
         "class": "estimator",
         "type": "bool",
         "description": "The estimator cannot be pickled.",
@@ -134,13 +134,13 @@ ESTIMATOR_TAGS = {
         "type": "bool",
         "description": "Does this estimator require y to be passed in its methods?",
     },
-    "capability:unequal_length:removes": {
+    "removes_unequal_length": {
         "class": "collection-transformer",
         "type": "bool",
         "description": "Is the transformer result guaranteed to be equal length series "
         "or tabular?",
     },
-    "capability:missing_values:removes": {
+    "removes_missing_values": {
         "class": "transformer",
         "type": "bool",
         "description": "Is the transformer result guaranteed to have no missing "

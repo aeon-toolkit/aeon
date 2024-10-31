@@ -19,7 +19,6 @@ from aeon.testing.data_generation import (
     make_example_3d_numpy_list,
     make_example_dataframe_list,
     make_example_multi_index_dataframe,
-    make_example_nested_dataframe,
 )
 from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.transformations.series import BaseSeriesTransformer
@@ -95,22 +94,6 @@ EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION = {
         "test": make_example_2d_dataframe_collection(
             n_cases=5,
             n_timepoints=20,
-            random_state=data_rng.randint(np.iinfo(np.int32).max),
-        ),
-    },
-    "nested_univ": {
-        "train": make_example_nested_dataframe(
-            n_cases=10,
-            n_channels=1,
-            min_n_timepoints=20,
-            max_n_timepoints=20,
-            random_state=data_rng.randint(np.iinfo(np.int32).max),
-        ),
-        "test": make_example_nested_dataframe(
-            n_cases=5,
-            n_channels=1,
-            min_n_timepoints=20,
-            max_n_timepoints=20,
             random_state=data_rng.randint(np.iinfo(np.int32).max),
         ),
     },
@@ -213,24 +196,6 @@ EQUAL_LENGTH_UNIVARIATE_REGRESSION = {
             regression_target=True,
         ),
     },
-    "nested_univ": {
-        "train": make_example_nested_dataframe(
-            n_cases=10,
-            n_channels=1,
-            min_n_timepoints=20,
-            max_n_timepoints=20,
-            random_state=data_rng.randint(np.iinfo(np.int32).max),
-            regression_target=True,
-        ),
-        "test": make_example_nested_dataframe(
-            n_cases=5,
-            n_channels=1,
-            min_n_timepoints=20,
-            max_n_timepoints=20,
-            random_state=data_rng.randint(np.iinfo(np.int32).max),
-            regression_target=True,
-        ),
-    },
     "pd-multiindex": {
         "train": make_example_multi_index_dataframe(
             n_cases=10,
@@ -291,22 +256,6 @@ EQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION = {
             random_state=data_rng.randint(np.iinfo(np.int32).max),
         ),
         "test": make_example_dataframe_list(
-            n_cases=5,
-            n_channels=2,
-            min_n_timepoints=20,
-            max_n_timepoints=20,
-            random_state=data_rng.randint(np.iinfo(np.int32).max),
-        ),
-    },
-    "nested_univ": {
-        "train": make_example_nested_dataframe(
-            n_cases=10,
-            n_channels=2,
-            min_n_timepoints=20,
-            max_n_timepoints=20,
-            random_state=data_rng.randint(np.iinfo(np.int32).max),
-        ),
-        "test": make_example_nested_dataframe(
             n_cases=5,
             n_channels=2,
             min_n_timepoints=20,
@@ -385,24 +334,6 @@ EQUAL_LENGTH_MULTIVARIATE_REGRESSION = {
             regression_target=True,
         ),
     },
-    "nested_univ": {
-        "train": make_example_nested_dataframe(
-            n_cases=10,
-            n_channels=2,
-            min_n_timepoints=20,
-            max_n_timepoints=20,
-            random_state=data_rng.randint(np.iinfo(np.int32).max),
-            regression_target=True,
-        ),
-        "test": make_example_nested_dataframe(
-            n_cases=5,
-            n_channels=2,
-            min_n_timepoints=20,
-            max_n_timepoints=20,
-            random_state=data_rng.randint(np.iinfo(np.int32).max),
-            regression_target=True,
-        ),
-    },
     "pd-multiindex": {
         "train": make_example_multi_index_dataframe(
             n_cases=10,
@@ -449,22 +380,6 @@ UNEQUAL_LENGTH_UNIVARIATE_CLASSIFICATION = {
             random_state=data_rng.randint(np.iinfo(np.int32).max),
         ),
         "test": make_example_dataframe_list(
-            n_cases=5,
-            n_channels=1,
-            min_n_timepoints=10,
-            max_n_timepoints=20,
-            random_state=data_rng.randint(np.iinfo(np.int32).max),
-        ),
-    },
-    "nested_univ": {
-        "train": make_example_nested_dataframe(
-            n_cases=10,
-            n_channels=1,
-            min_n_timepoints=10,
-            max_n_timepoints=20,
-            random_state=data_rng.randint(np.iinfo(np.int32).max),
-        ),
-        "test": make_example_nested_dataframe(
             n_cases=5,
             n_channels=1,
             min_n_timepoints=10,
@@ -527,24 +442,6 @@ UNEQUAL_LENGTH_UNIVARIATE_REGRESSION = {
             regression_target=True,
         ),
     },
-    "nested_univ": {
-        "train": make_example_nested_dataframe(
-            n_cases=10,
-            n_channels=1,
-            min_n_timepoints=10,
-            max_n_timepoints=20,
-            random_state=data_rng.randint(np.iinfo(np.int32).max),
-            regression_target=True,
-        ),
-        "test": make_example_nested_dataframe(
-            n_cases=5,
-            n_channels=1,
-            min_n_timepoints=10,
-            max_n_timepoints=20,
-            random_state=data_rng.randint(np.iinfo(np.int32).max),
-            regression_target=True,
-        ),
-    },
     "pd-multiindex": {
         "train": make_example_multi_index_dataframe(
             n_cases=10,
@@ -591,22 +488,6 @@ UNEQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION = {
             random_state=data_rng.randint(np.iinfo(np.int32).max),
         ),
         "test": make_example_dataframe_list(
-            n_cases=5,
-            n_channels=2,
-            min_n_timepoints=10,
-            max_n_timepoints=20,
-            random_state=data_rng.randint(np.iinfo(np.int32).max),
-        ),
-    },
-    "nested_univ": {
-        "train": make_example_nested_dataframe(
-            n_cases=10,
-            n_channels=2,
-            min_n_timepoints=10,
-            max_n_timepoints=20,
-            random_state=data_rng.randint(np.iinfo(np.int32).max),
-        ),
-        "test": make_example_nested_dataframe(
             n_cases=5,
             n_channels=2,
             min_n_timepoints=10,
@@ -661,24 +542,6 @@ UNEQUAL_LENGTH_MULTIVARIATE_REGRESSION = {
             regression_target=True,
         ),
         "test": make_example_dataframe_list(
-            n_cases=5,
-            n_channels=2,
-            min_n_timepoints=10,
-            max_n_timepoints=20,
-            random_state=data_rng.randint(np.iinfo(np.int32).max),
-            regression_target=True,
-        ),
-    },
-    "nested_univ": {
-        "train": make_example_nested_dataframe(
-            n_cases=10,
-            n_channels=2,
-            min_n_timepoints=10,
-            max_n_timepoints=20,
-            random_state=data_rng.randint(np.iinfo(np.int32).max),
-            regression_target=True,
-        ),
-        "test": make_example_nested_dataframe(
             n_cases=5,
             n_channels=2,
             min_n_timepoints=10,
@@ -852,7 +715,7 @@ def _get_datatypes_for_estimator(estimator):
 
     Parameters
     ----------
-    estimator : BaseEstimator instance or class
+    estimator : BaseAeonEstimator instance or class
         Estimator instance or class to check for valid input data types.
 
     Returns
@@ -916,7 +779,7 @@ def _get_capabilities_for_estimator(estimator):
 
     Parameters
     ----------
-    estimator : BaseEstimator instance or class
+    estimator : BaseAeonEstimator instance or class
         Estimator instance or class to check for valid input data types.
 
     Returns
@@ -944,7 +807,7 @@ def _get_label_type_for_estimator(estimator):
 
     Parameters
     ----------
-    estimator : BaseEstimator instance or class
+    estimator : BaseAeonEstimator instance or class
         Estimator instance or class to check for valid input data types.
 
     Returns

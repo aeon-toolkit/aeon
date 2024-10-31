@@ -81,8 +81,8 @@ class REDCOMETS(BaseClassifier):
     --------
     >>> from aeon.classification.dictionary_based import REDCOMETS
     >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
     >>> clf = REDCOMETS()  # doctest: +SKIP
     >>> clf.fit(X_train, y_train)  # doctest: +SKIP
     REDCOMETS(...)
@@ -596,7 +596,7 @@ class REDCOMETS(BaseClassifier):
         return sax_parallel_res
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -610,9 +610,7 @@ class REDCOMETS(BaseClassifier):
         dict
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test
-            instance.``create_test_instance`` uses the first (or only) dictionary in
-            `params``.
+            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
         """
         return {
             "variant": 3,

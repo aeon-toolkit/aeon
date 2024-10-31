@@ -6,6 +6,6 @@ __all__ = [
     "all_tags_for_estimator",
 ]
 
-from aeon.utils.tags._lookup import all_tags_for_estimator
+from aeon.utils.tags._discovery import all_tags_for_estimator
 from aeon.utils.tags._tags import ESTIMATOR_TAGS
 from aeon.utils.tags._validate import check_valid_tags

@@ -4,6 +4,14 @@ This is a list of papers that use `aeon`. If you have a paper that uses `aeon`,
 please add it to this list by making a pull request. Please include a hyperlink to
 the paper and a link to the code in your personal GitHub or other repository.
 
+## Challenge
+
+- Ermshaus, A., Schäfer, P., Bagnall, A., Guyet, T., Ifrim, G., Lemaire, V., ... &
+  Malinowski, S. (2023, September). Human Activity Segmentation Challenge@ ECML/PKDD’23.
+  In International Workshop on Advanced Analytics and Learning on Temporal Data
+  (pp. 3-13). Cham: Springer Nature Switzerland.
+  [Paper](https://link.springer.com/chapter/10.1007/978-3-031-49896-1_1) [Webpage/Code](https://github.com/patrickzib/human_activity_segmentation_challenge)
+
 ## Classification
 
 - Dempster, A., Tan, W. T., Miller, L., Foumani, N., Schmidt, D. and Webb, G  (2024).
@@ -18,6 +26,15 @@ the paper and a link to the code in your personal GitHub or other repository.
   and experimental evaluation of recent time series classification algorithms.
   Data Mining and Knowledge Discovery, Volume 38, pages 1958–2031.
   [Paper](https://link.springer.com/article/10.1007/s10618-024-01022-1) [Webpage/Code](https://tsml-eval.readthedocs.io/en/stable/publications/2023/tsc_bakeoff/tsc_bakeoff_2023.html)
+- Spinnato, F. and Guidotti, R. and Monreale, A. and Nanni, M. (2024). Fast, Interpretable,
+  and Deterministic Time Series Classification With a Bag-of-Receptive-Fields.
+  IEEE Access, vol. 12, (pp. 137893-137912).
+  [Paper](https://ieeexplore.ieee.org/document/10684604) [Code](https://github.com/fspinna/borf)
+
+- Schäfer, P, and Leser, U. (2023). WEASEL 2.0: a random dilated dictionary transform
+  for fast, accurate and memory constrained time series classification.
+  Machine Learning, 112(12), pp.4763-4788.
+  [Paper](https://link.springer.com/content/pdf/10.1007/s10994-023-06395-w.pdf) [Webpage/Code](https://github.com/patrickzib/dictionary)
 
 ## Clustering
 
@@ -25,7 +42,7 @@ the paper and a link to the code in your personal GitHub or other repository.
   elastic distance functions for time series clustering. Knowledge and Information
   Systems, 66(2), pp.765-809.
   [Paper](https://link.springer.com/article/10.1007/s10115-023-01952-0) [Webpage/Code](https://tsml-eval.readthedocs.io/en/stable/publications/2023/distance_based_clustering/distance_based_clustering.html)
-- Holder, C., Guijo-Rubio, D. and Bagnall, A., 2023, September. Clustering time series
+- Holder, C., Guijo-Rubio, D. and Bagnall, A., (2023), September. Clustering time series
   with k-medoids based algorithms. In International Workshop on Advanced Analytics and
   Learning on Temporal Data (pp. 39-55).
   [Paper](https://link.springer.com/chapter/10.1007/978-3-031-49896-1_4)
