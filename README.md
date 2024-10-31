@@ -61,7 +61,7 @@ Below we provide a quick example of how to use `aeon` for classification and clu
 
 *It's worth mentioning that the classifier used in the example can easily be
 swapped out for a regressor, and the labels for numeric targets. This flexibility
-allowing for seamless adaptation to different tasks and datasets while preserving
+allows for seamless adaptation to different tasks and datasets while preserving
 API consistency.*
 
 ```python
