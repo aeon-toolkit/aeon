@@ -5,10 +5,12 @@ The class can take callables or uses string references to utilise the numba base
 distances in aeon.distances.
 """
 
+from typing import Optional
+
 __maintainer__ = []
 __all__ = ["KNeighborsTimeSeriesClassifier"]
 
-from typing import Callable, List, Union
+from typing import Callable, Union
 
 import numpy as np
 
@@ -47,7 +49,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
     n_jobs : int, default = None
         The number of parallel jobs to run for neighbors search.
         ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.
-        ``-1`` means using all processors. See :term:`Glossary <n_jobs>`
+        ``-1`` means using all processors.
         for more details. Parameter for compatibility purposes, still unimplemented.
 
     Examples
@@ -72,7 +74,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
     def __init__(
         self,
         distance: Union[str, Callable] = "dtw",
-        distance_params: dict = None,
+        distance_params: Optional[dict] = None,
         n_neighbors: int = 1,
         weights: Union[str, Callable] = "uniform",
         n_jobs: int = 1,
@@ -131,8 +133,6 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
             The class probabilities of the input samples. Classes are ordered
             by lexicographic order.
         """
-        self.check_is_fitted()
-
         preds = np.zeros((len(X), len(self.classes_)))
         for i in range(len(X)):
             idx, weights = self._kneighbors(X[i])
@@ -160,7 +160,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         y : array of shape (n_cases)
             Class labels for each data sample.
         """
-        self.check_is_fitted()
+        self._check_is_fitted()
 
         preds = np.empty(len(X), dtype=self.classes_.dtype)
         for i in range(len(X)):
@@ -219,7 +219,9 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         return closest_idx, ws
 
     @classmethod
-    def get_test_params(cls, parameter_set: str = "default") -> Union[dict, List[dict]]:
+    def _get_test_params(
+        cls, parameter_set: str = "default"
+    ) -> Union[dict, list[dict]]:
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -234,7 +236,6 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         # non-default distance and algorithm
         params1 = {"distance": "euclidean"}

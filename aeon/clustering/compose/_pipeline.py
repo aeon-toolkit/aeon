@@ -60,14 +60,14 @@ class ClustererPipeline(BaseCollectionPipeline, BaseClusterer):
 
     Examples
     --------
-    >>> from aeon.transformations.collection.interpolate import TSInterpolator
+    >>> from aeon.transformations.collection import Resizer
     >>> from aeon.clustering import TimeSeriesKMeans
     >>> from aeon.datasets import load_unit_test
     >>> from aeon.clustering.compose import ClustererPipeline
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test = load_unit_test(split="test")
     >>> pipeline = ClustererPipeline(
-    ...     TSInterpolator(length=10), TimeSeriesKMeans.create_test_instance()
+    ...     Resizer(length=10), TimeSeriesKMeans._create_test_instance()
     ... )
     >>> pipeline.fit(X_train, y_train)
     ClustererPipeline(...)
@@ -92,7 +92,7 @@ class ClustererPipeline(BaseCollectionPipeline, BaseClusterer):
         raise NotImplementedError("Pipeline does not support scoring.")
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -107,18 +107,15 @@ class ClustererPipeline(BaseCollectionPipeline, BaseClusterer):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         from aeon.clustering import TimeSeriesKMeans
-        from aeon.transformations.collection import TruncationTransformer
-        from aeon.transformations.collection.feature_based import (
-            SevenNumberSummaryTransformer,
-        )
+        from aeon.transformations.collection import Truncator
+        from aeon.transformations.collection.feature_based import SevenNumberSummary
 
         return {
             "transformers": [
-                TruncationTransformer(truncated_length=5),
-                SevenNumberSummaryTransformer(),
+                Truncator(truncated_length=5),
+                SevenNumberSummary(),
             ],
-            "clusterer": TimeSeriesKMeans.create_test_instance(),
+            "clusterer": TimeSeriesKMeans._create_test_instance(),
         }

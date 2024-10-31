@@ -3,7 +3,7 @@
 __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["BaseAnomalyDetector"]
 
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from typing import final
 
 import numpy as np
@@ -13,7 +13,7 @@ from aeon.base import BaseSeriesEstimator
 from aeon.base._base_series import VALID_INPUT_TYPES
 
 
-class BaseAnomalyDetector(BaseSeriesEstimator, ABC):
+class BaseAnomalyDetector(BaseSeriesEstimator):
     """Base class for anomaly detection algorithms.
 
     Anomaly detection algorithms are used to identify anomalous subsequences in time
@@ -82,8 +82,6 @@ class BaseAnomalyDetector(BaseSeriesEstimator, ABC):
     }
 
     def __init__(self, axis):
-        self._is_fitted = False
-
         super().__init__(axis=axis)
 
     @final
@@ -118,7 +116,7 @@ class BaseAnomalyDetector(BaseSeriesEstimator, ABC):
             The fitted estimator, reference to self.
         """
         if self.get_class_tag("fit_is_empty"):
-            self._is_fitted = True
+            self.is_fitted = True
             return self
 
         if self.get_class_tag("requires_y"):
@@ -135,7 +133,7 @@ class BaseAnomalyDetector(BaseSeriesEstimator, ABC):
         self._fit(X=X, y=y)
 
         # this should happen last
-        self._is_fitted = True
+        self.is_fitted = True
         return self
 
     @final
@@ -163,7 +161,7 @@ class BaseAnomalyDetector(BaseSeriesEstimator, ABC):
         """
         fit_empty = self.get_class_tag("fit_is_empty")
         if not fit_empty:
-            self.check_is_fitted()
+            self._check_is_fitted()
 
         X = self._preprocess_series(X, axis, False)
 
@@ -206,7 +204,7 @@ class BaseAnomalyDetector(BaseSeriesEstimator, ABC):
         X = self._preprocess_series(X, axis, True)
 
         if self.get_class_tag("fit_is_empty"):
-            self._is_fitted = True
+            self.is_fitted = True
             return self._predict(X)
 
         if y is not None:
@@ -215,7 +213,7 @@ class BaseAnomalyDetector(BaseSeriesEstimator, ABC):
         pred = self._fit_predict(X, y)
 
         # this should happen last
-        self._is_fitted = True
+        self.is_fitted = True
         return pred
 
     def _fit(self, X, y):

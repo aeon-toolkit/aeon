@@ -82,7 +82,7 @@ class RegressorPipeline(BaseCollectionPipeline, BaseRegressor):
         )
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -97,18 +97,15 @@ class RegressorPipeline(BaseCollectionPipeline, BaseRegressor):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         from aeon.regression.distance_based import KNeighborsTimeSeriesRegressor
-        from aeon.transformations.collection import TruncationTransformer
-        from aeon.transformations.collection.feature_based import (
-            SevenNumberSummaryTransformer,
-        )
+        from aeon.transformations.collection import Truncator
+        from aeon.transformations.collection.feature_based import SevenNumberSummary
 
         return {
             "transformers": [
-                TruncationTransformer(truncated_length=5),
-                SevenNumberSummaryTransformer(),
+                Truncator(truncated_length=5),
+                SevenNumberSummary(),
             ],
             "regressor": KNeighborsTimeSeriesRegressor(distance="euclidean"),
         }

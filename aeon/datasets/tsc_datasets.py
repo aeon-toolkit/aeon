@@ -27,11 +27,15 @@ Ensembles Version 1.0 (HIVE-COTE v1.0). Lecture Notes in Computer Science. in pr
     The great multivariate time series classification bake off: a review and
     experimental evaluation of recent algorithmic advances,
     Data Mining and Knowledge Discovery, 2020.
+[5] Middlehurst, M., Schäfer, P. & Bagnall, A.
+    Bake off redux: a review and experimental evaluation of recent time series
+    classification algorithms. Data Min Knowl Disc 38, 1958–2031 (2024).
+    https://doi.org/10.1007/s10618-024-01022-1
 
 """
 
 # The 85 UCR univariate time series classification problems in the 2015 version
-univariate2015 = {
+univariate2015 = [
     "Adiac",
     "ArrowHead",
     "Beef",
@@ -117,11 +121,11 @@ univariate2015 = {
     "Worms",
     "WormsTwoClass",
     "Yoga",
-}
+]
 
 
 # 128 UCR univariate time series classification problems [1]
-univariate = {
+univariate = [
     "ACSF1",
     "Adiac",
     "AllGestureWiimoteX",
@@ -250,10 +254,10 @@ univariate = {
     "Worms",
     "WormsTwoClass",
     "Yoga",
-}
+]
 
 # 30 UEA multivariate time series classification problems [2]
-multivariate = {
+multivariate = [
     "ArticularyWordRecognition",
     "AtrialFibrillation",
     "BasicMotions",
@@ -284,10 +288,10 @@ multivariate = {
     "SpokenArabicDigits",
     "StandWalkJump",
     "UWaveGestureLibrary",
-}
+]
 
 # 112 equal length/no missing univariate time series classification problems [3]
-univariate_equal_length = {
+univariate_equal_length = [
     "ACSF1",
     "Adiac",
     "ArrowHead",
@@ -400,10 +404,10 @@ univariate_equal_length = {
     "Worms",
     "WormsTwoClass",
     "Yoga",
-}
+]
 
 # 11 variable length univariate time series classification problems [3]
-univariate_variable_length = {
+univariate_variable_length = [
     "AllGestureWiimoteX",
     "AllGestureWiimoteY",
     "AllGestureWiimoteZ",
@@ -415,18 +419,18 @@ univariate_variable_length = {
     "PickupGestureWiimoteZ",
     "PLAID",
     "ShakeGestureWiimoteZ",
-}
+]
 
 # 4 fixed length univariate time series classification problems with missing values"""
-univariate_missing_values = {
+univariate_missing_values = [
     "DodgerLoopDay",
     "DodgerLoopGame",
     "DodgerLoopWeekend",
     "MelbournePedestrian",
-}
+]
 
 # 26 equal length multivariate time series classification problems [4]"""
-multivariate_equal_length = {
+multivariate_equal_length = [
     "ArticularyWordRecognition",
     "AtrialFibrillation",
     "BasicMotions",
@@ -453,10 +457,10 @@ multivariate_equal_length = {
     "SelfRegulationSCP2",
     "StandWalkJump",
     "UWaveGestureLibrary",
-}
+]
 
 # 7 variable length multivariate time series classification problems [4]"""
-multivariate_unequal_length = {
+multivariate_unequal_length = [
     "AsphaltObstaclesCoordinates",
     "AsphaltPavementTypeCoordinates",
     "AsphaltRegularityCoordinates",
@@ -464,7 +468,7 @@ multivariate_unequal_length = {
     "InsectWingbeat",
     "JapaneseVowels",
     "SpokenArabicDigits",
-}
+]
 
 # 158 tsml time series classification problems
 tsc_zenodo = {
@@ -628,11 +632,38 @@ tsc_zenodo = {
     "UWaveGestureLibrary": 11206282,
 }
 
-
-# TODO: Add the following datasets:
 # 30 new univariate classification problems used in the bake off [5]. Some are new,
 # some are discrete versions of regression problems, some are equal length versions
 # of the current UCR problems and some are no missing versions of the current 128 UCR.
-# All can be loaded from the timeseriesclassification.com archive directly using the
-# function load_classification. This will download all available versions of the
-# problem in one directory. You can then set which version through function arguments.
+univariate_bake_off_2024 = [
+    "AconityMINIPrinterLarge",  # AconityMINIPrinterLarge_eq
+    "AconityMINIPrinterSmall",  # AconityMINIPrinterSmall_eq
+    "AllGestureWiimoteX",  # AllGestureWiimoteX_eq
+    "AllGestureWiimoteY",  # AllGestureWiimoteY_eq
+    "AllGestureWiimoteZ",  # AllGestureWiimoteZ_eq
+    "AsphaltObstacles",  # AsphaltObstaclesUni_eq
+    "AsphaltPavementType",  # AsphaltPavementTypeUni_eq
+    "AsphaltRegularity",  # AsphaltRegularityUni_eq
+    "Colposcopy",  # Colposcopy
+    "Covid3Month",  # Covid3Month_disc
+    "DodgerLoopDay",  # DodgerLoopDay_nmv
+    "DodgerLoopGame",  # DodgerLoopGame_nmv
+    "DodgerLoopWeekend",  # DodgerLoopWeekend_nmv
+    "ElectricDeviceDetection",  # ElectricDeviceDetection
+    "FloodModeling1",  # FloodModeling1_disc
+    "FloodModeling2",  # FloodModeling2_disc
+    "FloodModeling3",  # FloodModeling3_disc
+    "GestureMidAirD1",  # GestureMidAirD1_eq
+    "GestureMidAirD2",  # GestureMidAirD2_eq
+    "GestureMidAirD3",  # GestureMidAirD3_eq
+    "GesturePebbleZ1",  # GesturePebbleZ1_eq
+    "GesturePebbleZ2",  # GesturePebbleZ2_eq
+    "KeplerLightCurves",  # KeplerLightCurves
+    "MelbournePedestrian",  # MelbournePedestrian_nmv
+    "PhoneHeartbeatSound",  # PhoneHeartbeatSound
+    "PickupGestureWiimoteZ",  # PickupGestureWiimoteZ_eq
+    "PLAID",  # PLAID_eq
+    "ShakeGestureWiimoteZ",  # ShakeGestureWiimoteZ_eq
+    "SharePriceIncrease",  # SharePriceIncrease
+    "Tools",  # Tools
+]
