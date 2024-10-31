@@ -113,13 +113,39 @@ def test_check_estimators():
     ens = [("clf1", MockClassifier()), MockClassifier()]
     clf = ClassifierEnsemble(ens)
 
-    # estimators,
-    # attr_name="estimators",
-    # class_type=BaseAeonEstimator,
-    # allow_tuples=True,
-    # allow_single_estimators=True,
-    # unique_names=True,
-    # invalid_names=None,
+    clf._check_estimators(ens)
+
+    with pytest.raises(ValueError, match="estimators should only contain singular"):
+        clf._check_estimators(ens, allow_tuples=False)
+
+    with pytest.raises(ValueError, match="should only contain"):
+        clf._check_estimators(ens, allow_single_estimators=False)
+
+    with pytest.raises(ValueError, match="must be an instance of"):
+        clf._check_estimators([("class", MockClassifier)])
+
+    with pytest.raises(ValueError, match="must be of form"):
+        clf._check_estimators([(MockClassifier(),)])
+
+    with pytest.raises(ValueError, match="must be of form"):
+        clf._check_estimators([(MockClassifier, "class")])
+
+    with pytest.raises(ValueError, match="conflicts with constructor arguments"):
+        clf._check_estimators([("classifiers", MockClassifier())])
+
+    with pytest.raises(ValueError, match="Estimator name must not contain"):
+        clf._check_estimators([("__clf", MockClassifier())])
+
+    with pytest.raises(ValueError, match="must be unique"):
+        clf._check_estimators(
+            [("clf", MockClassifier()), ("clf", MockClassifier())], unique_names=True
+        )
+
+    with pytest.raises(ValueError, match="name is invalid"):
+        clf._check_estimators(ens, invalid_names=["clf1"])
+
+    with pytest.raises(TypeError, match="tuple or estimator"):
+        clf._check_estimators(["invalid"])
 
     with pytest.raises(TypeError, match="Invalid estimators attribute"):
         clf._check_estimators([])

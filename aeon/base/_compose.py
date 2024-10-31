@@ -189,16 +189,16 @@ class ComposableEstimatorMixin(ABC):
         for obj in estimators:
             if isinstance(obj, tuple):
                 if not allow_tuples:
-                    raise TypeError(
+                    raise ValueError(
                         f"{attr_name} should only contain singular estimators instead "
                         f"of (str, estimator) tuples."
                     )
                 if not len(obj) == 2 or not isinstance(obj[0], str):
-                    raise TypeError(
+                    raise ValueError(
                         f"All tuples in {attr_name} must be of form (str, estimator)."
                     )
                 if not isinstance(obj[1], class_type):
-                    raise TypeError(
+                    raise ValueError(
                         f"All estimators in {attr_name} must be an instance "
                         f"of {class_type}."
                     )
@@ -212,7 +212,7 @@ class ComposableEstimatorMixin(ABC):
                     raise ValueError(f"Estimator name is invalid: {obj[0]}")
                 if unique_names:
                     if obj[0] in names:
-                        raise TypeError(
+                        raise ValueError(
                             f"Names in {attr_name} must be unique. Found duplicate "
                             f"name: {obj[0]}."
                         )
@@ -220,7 +220,7 @@ class ComposableEstimatorMixin(ABC):
                         names.append(obj[0])
             elif isinstance(obj, class_type):
                 if not allow_single_estimators:
-                    raise TypeError(
+                    raise ValueError(
                         f"{attr_name} should only contain (str, estimator) tuples "
                         f"instead of singular estimators."
                     )
