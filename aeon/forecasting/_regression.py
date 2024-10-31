@@ -12,9 +12,34 @@ from aeon.forecasting.base import BaseForecaster
 
 
 class RegressionForecaster(BaseForecaster):
+    """
+    Regression based forecasting.
+
+    Container for forecaster that reduces forecasting to regression through a
+    window. Form a collection of sub series of length `window` through a sliding
+    winodw to form X, take `horizon` points ahead to form `y`, then apply an aeon or
+    sklearn regressor.
+
+
+    Parameters
+    ----------
+    window : int
+        The window prior to the current time point to use in forecasting. So if
+        horizon is one, forecaster will train using points $i$ to $window+i-1$ to
+        predict value $window+i$. If horizon is 4, forecaster will used points $i$
+        to $window+i-1$ to predict value $window+i+3$. If None, the algorithm will
+        internally determine what data to use to predict `horizon` steps ahead.
+    horizon : int, default =1
+        The number of time steps ahead to forecast. If horizon is one, the forecaster
+        will learn to predict one point ahead
+    regressor : object, default =None
+        Regression estimator that implements BaseRegressor or is otherwise compatible
+        with sklearn regressors.
+    """
+
     def __init__(self, window, horizon=1, regressor=None):
         self.regressor = regressor
-        super().__init__(horizon, window)
+        super().__init__(horizon, axis=1)
 
     def _fit(self, y, exog=None):
         """Fit forecaster to time series.

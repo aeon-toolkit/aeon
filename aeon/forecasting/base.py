@@ -26,12 +26,6 @@ class BaseForecaster(BaseSeriesEstimator):
     horizon : int, default =1
         The number of time steps ahead to forecast. If horizon is one, the forecaster
         will learn to predict one point ahead
-    window : int or None
-        The window prior to the current time point to use in forecasting. So if
-        horizon is one, forecaster will train using points $i$ to $window+i-1$ to
-        predict value $window+i$. If horizon is 4, forecaster will used points $i$
-        to $window+i-1$ to predict value $window+i+3$. If None, the algorithm will
-        internally determine what data to use to predict `horizon` steps ahead.
     """
 
     # TODO: add any forecasting specific tags
@@ -42,9 +36,8 @@ class BaseForecaster(BaseSeriesEstimator):
         "y_inner_type": "np.ndarray",
     }
 
-    def __init__(self, horizon=1, window=None, axis=1):
+    def __init__(self, horizon=1, axis=1):
         self.horizon = horizon
-        self.window = window
         self._is_fitted = False
         super().__init__(axis)
 
