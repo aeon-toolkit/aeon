@@ -1,6 +1,6 @@
-"""LITETime Regressor."""
+"""LITETime and LITE regressors."""
 
-__author__ = ["aadya940"]
+__author__ = ["aadya940", "hadifawaz1999"]
 __all__ = ["IndividualLITERegressor", "LITETimeRegressor"]
 
 import gc
@@ -61,6 +61,8 @@ class LITETimeRegressor(BaseRegressor):
         Whether or not to save the last model, last
         epoch trained, using the base class method
         save_last_model_to_file
+    save_init_model : bool, default = False
+        Whether to save the initialization of the  model.
     best_file_name : str, default = "best_model"
         The name of the file of the best model, if
         save_best_model is set to False, this parameter
@@ -69,6 +71,9 @@ class LITETimeRegressor(BaseRegressor):
         The name of the file of the last model, if
         save_last_model is set to False, this parameter
         is discarded
+    init_file_name : str, default = "init_model"
+        The name of the file of the init model, if save_init_model is set to False,
+        this parameter is discarded.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -106,8 +111,8 @@ class LITETimeRegressor(BaseRegressor):
     _tags = {
         "python_dependencies": "tensorflow",
         "capability:multivariate": True,
-        "non-deterministic": True,
-        "cant-pickle": True,
+        "non_deterministic": True,
+        "cant_pickle": True,
         "algorithm_type": "deeplearning",
     }
 
@@ -122,8 +127,10 @@ class LITETimeRegressor(BaseRegressor):
         file_path="./",
         save_last_model=False,
         save_best_model=False,
+        save_init_model=False,
         best_file_name="best_model",
         last_file_name="last_model",
+        init_file_name="init_model",
         batch_size=64,
         use_mini_batch_size=False,
         n_epochs=1500,
@@ -149,8 +156,10 @@ class LITETimeRegressor(BaseRegressor):
 
         self.save_last_model = save_last_model
         self.save_best_model = save_best_model
+        self.save_init_model = save_init_model
         self.best_file_name = best_file_name
         self.last_file_name = last_file_name
+        self.init_file_name = init_file_name
 
         self.callbacks = callbacks
         self.random_state = random_state
@@ -188,8 +197,10 @@ class LITETimeRegressor(BaseRegressor):
                 file_path=self.file_path,
                 save_best_model=self.save_best_model,
                 save_last_model=self.save_last_model,
+                save_init_model=self.save_init_model,
                 best_file_name=self.best_file_name + str(n),
                 last_file_name=self.last_file_name + str(n),
+                init_file_name=self.init_file_name + str(n),
                 batch_size=self.batch_size,
                 use_mini_batch_size=self.use_mini_batch_size,
                 n_epochs=self.n_epochs,
@@ -229,7 +240,7 @@ class LITETimeRegressor(BaseRegressor):
         return vals
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -248,7 +259,6 @@ class LITETimeRegressor(BaseRegressor):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         param1 = {
             "n_regressors": 1,
@@ -302,6 +312,8 @@ class IndividualLITERegressor(BaseDeepRegressor):
         Whether or not to save the last model, last
         epoch trained, using the base class method
         save_last_model_to_file
+    save_init_model : bool, default = False
+        Whether to save the initialization of the  model.
     best_file_name      : str, default = "best_model"
         The name of the file of the best model, if
         save_best_model is set to False, this parameter
@@ -310,6 +322,9 @@ class IndividualLITERegressor(BaseDeepRegressor):
         The name of the file of the last model, if
         save_last_model is set to False, this parameter
         is discarded
+    init_file_name : str, default = "init_model"
+        The name of the file of the init model, if save_init_model is set to False,
+        this parameter is discarded.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -337,8 +352,8 @@ class IndividualLITERegressor(BaseDeepRegressor):
     --------
     >>> from aeon.regression.deep_learning import IndividualLITERegressor
     >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
     >>> lite = IndividualLITERegressor(n_epochs=20,batch_size=4)  # doctest: +SKIP
     >>> lite.fit(X_train, y_train)  # doctest: +SKIP
     IndividualLITERegressor(...)
@@ -354,8 +369,10 @@ class IndividualLITERegressor(BaseDeepRegressor):
         file_path="./",
         save_best_model=False,
         save_last_model=False,
+        save_init_model=False,
         best_file_name="best_model",
         last_file_name="last_model",
+        init_file_name="init_model",
         batch_size=64,
         use_mini_batch_size=False,
         n_epochs=1500,
@@ -379,7 +396,9 @@ class IndividualLITERegressor(BaseDeepRegressor):
 
         self.save_best_model = save_best_model
         self.save_last_model = save_last_model
+        self.save_init_model = save_init_model
         self.best_file_name = best_file_name
+        self.init_file_name = init_file_name
 
         self.callbacks = callbacks
         self.random_state = random_state
@@ -476,6 +495,9 @@ class IndividualLITERegressor(BaseDeepRegressor):
             mini_batch_size = self.batch_size
         self.training_model_ = self.build_model(self.input_shape)
 
+        if self.save_init_model:
+            self.training_model_.save(self.file_path + self.init_file_name + ".keras")
+
         if self.verbose:
             self.training_model_.summary()
 
@@ -526,7 +548,7 @@ class IndividualLITERegressor(BaseDeepRegressor):
         return self
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -545,7 +567,6 @@ class IndividualLITERegressor(BaseDeepRegressor):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         param1 = {
             "n_epochs": 10,

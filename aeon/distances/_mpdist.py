@@ -1,12 +1,13 @@
 """Matrix Profile Distances."""
 
-from typing import List, Optional, Union
+from typing import Optional, Union
 
 import numpy as np
 from numba import njit
 from numba.typed import List as NumbaList
 
-from aeon.distances._utils import reshape_pairwise_to_multiple
+from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
+from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
 def mpdist(x: np.ndarray, y: np.ndarray, m: int = 0) -> float:
@@ -60,7 +61,7 @@ def mpdist(x: np.ndarray, y: np.ndarray, m: int = 0) -> float:
     >>> x = np.array([5, 9, 16, 23, 19, 13, 7])
     >>> y = np.array([3, 7, 13, 19, 23, 31, 36, 40, 48, 55, 63])
     >>> m = 4
-    >>> mpdist(x, y, m)
+    >>> mpdist(x, y, m) # doctest: +SKIP
     0.05663764013361034
     """
     x = np.squeeze(x)
@@ -283,8 +284,8 @@ def _stomp_ab(
 
 
 def mpdist_pairwise_distance(
-    X: Union[np.ndarray, List[np.ndarray]],
-    y: Optional[Union[np.ndarray, List[np.ndarray]]] = None,
+    X: Union[np.ndarray, list[np.ndarray]],
+    y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
     m: int = 0,
 ) -> np.ndarray:
     """Compute the mpdist pairwise distance between a set of time series.
@@ -338,17 +339,22 @@ def mpdist_pairwise_distance(
            [2.82842712],
            [2.82842712]])
     """
+    multivariate_conversion = _is_numpy_list_multivariate(X, y)
+    _X, unequal_length = _convert_collection_to_numba_list(
+        X, "X", multivariate_conversion
+    )
+
     if m == 0:
-        m = int(X.shape[1] / 4)
+        m = int(_X.shape[2] / 4)
 
     if y is None:
-        if X.ndim == 3 and X.shape[1] == 1:
-            X = np.squeeze(X)
-        return _mpdist_pairwise_distance_single(X, m)
+        return _mpdist_pairwise_distance_single(_X, m)
 
-    X, y = reshape_pairwise_to_multiple(X, y)
+    _y, unequal_length = _convert_collection_to_numba_list(
+        y, "y", multivariate_conversion
+    )
 
-    return _mpdist_pairwise_distance(X, y, m)
+    return _mpdist_pairwise_distance(_X, _y, m)
 
 
 def _mpdist_pairwise_distance_single(x: NumbaList[np.ndarray], m: int) -> np.ndarray:

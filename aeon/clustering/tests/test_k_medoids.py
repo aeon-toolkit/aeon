@@ -227,6 +227,6 @@ def test_custom_distance_params():
     # Test passing distance param
     default_dist = _get_model_centres(data, distance="msm")
     custom_params_dist = _get_model_centres(
-        data, distance="msm", distance_params={"window": 0.2}
+        data, distance="msm", distance_params={"window": 0.01}
     )
     assert not np.array_equal(default_dist, custom_params_dist)

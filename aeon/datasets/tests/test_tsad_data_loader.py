@@ -13,8 +13,13 @@ from aeon.datasets._tsad_data_loaders import (
     load_from_timeeval_csv_file,
     load_kdd_tsad_135,
 )
+from aeon.testing.testing_config import PR_TESTING
 
 
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of read from internet.",
+)
 def test_load_anomaly_detection_wrong_name(mocker):
     """Test load non-existent anomaly detection datasets."""
     with pytest.raises(
@@ -32,6 +37,10 @@ def test_load_anomaly_detection_wrong_name(mocker):
             load_anomaly_detection(("FOO", "BAR"))
 
 
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of read from internet.",
+)
 def test_load_anomaly_detection_no_train_split(mocker):
     """Test load train split of anomaly detection dataset without training split."""
     name = ("Dodgers", "101-freeway-traffic")
@@ -44,6 +53,10 @@ def test_load_anomaly_detection_no_train_split(mocker):
             load_anomaly_detection(name, extract_path=tmp, split="train")
 
 
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of read from internet.",
+)
 def test_load_anomaly_detection_from_archive(mocker):
     """Test load anomaly detection dataset from archive."""
     name = ("Genesis", "genesis-anomalies")
@@ -63,6 +76,10 @@ def test_load_anomaly_detection_from_archive(mocker):
         np.testing.assert_almost_equal(meta["contamination"], 0.0031, decimal=4)
 
 
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of read from internet.",
+)
 def test_load_anomaly_detection_unavailable(mocker):
     """Test load anomaly detection dataset that is not available."""
     name = ("IOPS", "05f10d3a-239c-3bef-9bdc-a2feeb0037aa")
@@ -74,6 +91,10 @@ def test_load_anomaly_detection_unavailable(mocker):
             load_anomaly_detection(name)
 
 
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of read from internet.",
+)
 def test_load_anomaly_detection_custom_file(mocker):
     """Test load anomaly detection dataset from custom file."""
     name = ("correlation-anomalies", "rmj-2-short-2-diff-channel")

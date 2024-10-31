@@ -1,6 +1,6 @@
-"""Time Convolutional Neural Network (CNN) (minus the final output layer)."""
+"""Time series Attentional Prototype Network (TapNetNetwork)."""
 
-__maintainer__ = []
+__maintainer__ = ["hadifawaz1999"]
 
 
 import math

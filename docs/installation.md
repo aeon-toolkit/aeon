@@ -20,8 +20,8 @@ develop the `aeon` codebase and for most other contributions to the project. [Ou
 developer installation guide is available here](../developer_guide/dev_installation).
 
 ```{note}
-    While we try to keep output similar between OS and Python version. We cannot
-    guarentee the estimators will output the same results for macOS ARM processors.
+    While we try to keep output similar between OS and Python version, we cannot
+    guarantee estimators will output the same results for macOS ARM processors.
 ```
 
 ## Optional Dependencies

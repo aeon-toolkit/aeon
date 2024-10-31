@@ -1,6 +1,6 @@
-"""Multi Layer Perceptron Network (MLP) for Regression."""
+"""Multi Layer Perceptron Network (MLP) regressor."""
 
-__author__ = ["Aadya-Chinubhai"]
+__author__ = ["Aadya-Chinubhai", "hadifawaz1999"]
 __all__ = ["MLPRegressor"]
 
 import gc
@@ -47,6 +47,8 @@ class MLPRegressor(BaseDeepRegressor):
         Whether or not to save the last model, last
         epoch trained, using the base class method
         save_last_model_to_file
+    save_init_model : bool, default = False
+        Whether to save the initialization of the  model.
     best_file_name : str, default = "best_model"
         The name of the file of the best model, if
         save_best_model is set to False, this parameter
@@ -55,6 +57,9 @@ class MLPRegressor(BaseDeepRegressor):
         The name of the file of the last model, if
         save_last_model is set to False, this parameter
         is discarded
+    init_file_name : str, default = "init_model"
+        The name of the file of the init model, if save_init_model is set to False,
+        this parameter is discarded.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -100,8 +105,10 @@ class MLPRegressor(BaseDeepRegressor):
         file_path="./",
         save_best_model=False,
         save_last_model=False,
+        save_init_model=False,
         best_file_name="best_model",
         last_file_name="last_model",
+        init_file_name="init_model",
         random_state=None,
         activation="relu",
         output_activation="linear",
@@ -118,7 +125,9 @@ class MLPRegressor(BaseDeepRegressor):
         self.file_path = file_path
         self.save_best_model = save_best_model
         self.save_last_model = save_last_model
+        self.save_init_model = save_init_model
         self.best_file_name = best_file_name
+        self.init_file_name = init_file_name
         self.optimizer = optimizer
         self.random_state = random_state
         self.output_activation = output_activation
@@ -202,6 +211,9 @@ class MLPRegressor(BaseDeepRegressor):
 
         self.training_model_ = self.build_model(self.input_shape)
 
+        if self.save_init_model:
+            self.training_model_.save(self.file_path + self.init_file_name + ".keras")
+
         if self.verbose:
             self.training_model_.summary()
 
@@ -252,7 +264,7 @@ class MLPRegressor(BaseDeepRegressor):
         return self
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -271,7 +283,6 @@ class MLPRegressor(BaseDeepRegressor):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         param = {
             "n_epochs": 10,

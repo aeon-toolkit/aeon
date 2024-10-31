@@ -1,0 +1,1 @@
+"""Ordinal classifier tests."""

@@ -1,14 +1,21 @@
 """Time series kshapes."""
 
-from typing import Union
+from typing import Optional, Union
 
 import numpy as np
+from deprecated.sphinx import deprecated
 from numpy.random import RandomState
 
 from aeon.clustering.base import BaseClusterer
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
+# TODO: remove in v1.0.0
+@deprecated(
+    version="1.0.0",
+    reason="TimeSeriesKShapes class has been renamed to TimeSeriesKShape. "
+    "The TimeSeriesKShapes version will be removed in version 1.0.0.",
+    category=FutureWarning,
+)
 class TimeSeriesKShapes(BaseClusterer):
     """Kshape algorithm: wrapper of the ``tslearn`` implementation.
 
@@ -64,6 +71,7 @@ class TimeSeriesKShapes(BaseClusterer):
     _tags = {
         "capability:multivariate": True,
         "python_dependencies": "tslearn",
+        "algorithm_type": "distance",
     }
 
     def __init__(
@@ -74,7 +82,7 @@ class TimeSeriesKShapes(BaseClusterer):
         max_iter: int = 300,
         tol: float = 1e-4,
         verbose: bool = False,
-        random_state: Union[int, RandomState] = None,
+        random_state: Optional[Union[int, RandomState]] = None,
     ):
         self.init_algorithm = init_algorithm
         self.n_init = n_init
@@ -107,7 +115,6 @@ class TimeSeriesKShapes(BaseClusterer):
         self:
             Fitted estimator.
         """
-        _check_soft_dependencies("tslearn", severity="error")
         from tslearn.clustering import KShape
 
         self._tslearn_k_shapes = KShape(
@@ -147,7 +154,7 @@ class TimeSeriesKShapes(BaseClusterer):
         return self._tslearn_k_shapes.predict(_X)
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -163,7 +170,6 @@ class TimeSeriesKShapes(BaseClusterer):
             Parameters to create testing instances of the class
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`
         """
         return {
             "n_clusters": 2,

@@ -1,7 +1,7 @@
 """
 List of datasets available for classification, regression and forecasting archives.
 
-The data can also be used for clustering.
+The classification and regression data can also be used for clustering.
 
 Classification data can be downloaded directly from the timeseriesclassification.com
 archive.

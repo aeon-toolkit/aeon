@@ -1,7 +1,7 @@
-"""Time Convolutional Neural Network (CNN) for classification."""
+"""Time Convolutional Neural Network (CNN) classifier."""
 
-__maintainer__ = []
-__all__ = ["CNNClassifier"]
+__maintainer__ = ["hadifawaz1999"]
+__all__ = ["TimeCNNClassifier"]
 
 import gc
 import os
@@ -11,10 +11,10 @@ from copy import deepcopy
 from sklearn.utils import check_random_state
 
 from aeon.classification.deep_learning.base import BaseDeepClassifier
-from aeon.networks import CNNNetwork
+from aeon.networks import TimeCNNNetwork
 
 
-class CNNClassifier(BaseDeepClassifier):
+class TimeCNNClassifier(BaseDeepClassifier):
     """
     Time Convolutional Neural Network (CNN).
 
@@ -76,11 +76,16 @@ class CNNClassifier(BaseDeepClassifier):
     save_last_model : bool, default = False
         Whether to save the last model, last epoch trained, using the base class method
         save_last_model_to_file.
+    save_init_model : bool, default = False
+        Whether to save the initialization of the  model.
     best_file_name : str, default = "best_model"
         The name of the file of the best model, if save_best_model is set to False,
         this parameter is discarded.
     last_file_name : str, default = "last_model"
         The name of the file of the last model, if save_last_model is set to False,
+        this parameter is discarded.
+    init_file_name : str, default = "init_model"
+        The name of the file of the init model, if save_init_model is set to False,
         this parameter is discarded.
 
     Notes
@@ -95,13 +100,13 @@ class CNNClassifier(BaseDeepClassifier):
 
     Examples
     --------
-    >>> from aeon.classification.deep_learning import CNNClassifier
+    >>> from aeon.classification.deep_learning import TimeCNNClassifier
     >>> from aeon.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test = load_unit_test(split="test")
-    >>> cnn = CNNClassifier(n_epochs=20, batch_size=4)  # doctest: +SKIP
+    >>> cnn = TimeCNNClassifier(n_epochs=20, batch_size=4)  # doctest: +SKIP
     >>> cnn.fit(X_train, y_train)  # doctest: +SKIP
-    CNNClassifier(...)
+    TimeCNNClassifier(...)
     """
 
     def __init__(
@@ -120,8 +125,10 @@ class CNNClassifier(BaseDeepClassifier):
         file_path="./",
         save_best_model=False,
         save_last_model=False,
+        save_init_model=False,
         best_file_name="best_model",
         last_file_name="last_model",
+        init_file_name="init_model",
         verbose=False,
         loss="mean_squared_error",
         metrics=None,
@@ -144,7 +151,9 @@ class CNNClassifier(BaseDeepClassifier):
         self.file_path = file_path
         self.save_best_model = save_best_model
         self.save_last_model = save_last_model
+        self.save_init_model = save_init_model
         self.best_file_name = best_file_name
+        self.init_file_name = init_file_name
         self.verbose = verbose
         self.loss = loss
         self.metrics = metrics
@@ -158,7 +167,7 @@ class CNNClassifier(BaseDeepClassifier):
             last_file_name=last_file_name,
         )
 
-        self._network = CNNNetwork(
+        self._network = TimeCNNNetwork(
             n_layers=self.n_layers,
             kernel_size=self.kernel_size,
             n_filters=self.n_filters,
@@ -243,6 +252,9 @@ class CNNClassifier(BaseDeepClassifier):
         self.input_shape = X.shape[1:]
         self.training_model_ = self.build_model(self.input_shape, self.n_classes_)
 
+        if self.save_init_model:
+            self.training_model_.save(self.file_path + self.init_file_name + ".keras")
+
         if self.verbose:
             self.training_model_.summary()
 
@@ -290,7 +302,7 @@ class CNNClassifier(BaseDeepClassifier):
         return self
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -309,7 +321,6 @@ class CNNClassifier(BaseDeepClassifier):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         param1 = {
             "n_epochs": 10,

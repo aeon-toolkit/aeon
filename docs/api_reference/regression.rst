@@ -41,6 +41,8 @@ Convolution-based
     HydraRegressor
     MultiRocketHydraRegressor
     RocketRegressor
+    MiniRocketRegressor
+    MultiRocketRegressor
 
 Deep learning
 -------------
@@ -51,16 +53,17 @@ Deep learning
     :toctree: auto_generated/
     :template: class.rst
 
-    CNNRegressor
+    BaseDeepRegressor
+    TimeCNNRegressor
     EncoderRegressor
     FCNRegressor
     InceptionTimeRegressor
     IndividualLITERegressor
     IndividualInceptionRegressor
     LITETimeRegressor
-    LITETimeRegressor
     ResNetRegressor
     TapNetRegressor
+    MLPRegressor
 
 Distance-based
 --------------

@@ -15,12 +15,14 @@ from aeon.datasets import (  # Univariate; Unequal length; Multivariate
     load_from_tsf_file,
     load_italy_power_demand,
     load_japanese_vowels,
+    load_macroeconomic,
     load_osuleaf,
     load_plaid,
     load_solar,
     load_unit_test,
     load_unit_test_tsf,
 )
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 UNIVARIATE_PROBLEMS = [
     load_acsf1,
@@ -47,8 +49,6 @@ def test_load_dataframe(loader):
     assert isinstance(X[0], np.ndarray)
     assert isinstance(y, np.ndarray)
     assert y.ndim == 1
-    X = loader(return_X_y=False)
-    assert isinstance(X, tuple)
 
 
 @pytest.mark.parametrize("loader", UNIVARIATE_PROBLEMS + MULTIVARIATE_PROBLEMS)
@@ -100,16 +100,20 @@ def test_basic_load_tsf_to_dataframe():
 
 def test_load_solar():
     """Test function to load solar data."""
-    solar = load_solar(api_version=None)
+    solar = load_solar()
     assert type(solar) is pd.Series
     assert solar.shape == (289,)
-    solar = load_solar(api_version="WRONG")
-    assert type(solar) is pd.Series
-    assert solar.shape == (289,)
-    solar = load_solar(api_version=None, return_full_df=True)
-    assert solar.name == "solar_gen"
-    solar = load_solar(api_version=None, normalise=False)
-    assert solar.name == "solar_gen"
+
+
+@pytest.mark.skipif(
+    not _check_soft_dependencies("statsmodels", severity="none"),
+    reason="skip test if required soft dependency statsmodels not available",
+)
+def test_load_macroeconomic():
+    """Test load macroeconomic."""
+    y = load_macroeconomic()
+    assert isinstance(y, pd.DataFrame)
+    assert y.shape == (203, 12)
 
 
 def test_load_covid_3month():
@@ -119,5 +123,3 @@ def test_load_covid_3month():
     assert len(X) == len(y)
     assert X.shape == (201, 1, 84)
     assert isinstance(y, np.ndarray)
-    X = load_covid_3month(return_X_y=False)
-    assert isinstance(X, tuple)

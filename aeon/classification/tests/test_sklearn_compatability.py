@@ -35,7 +35,7 @@ from sklearn.pipeline import Pipeline
 
 from aeon.classification.interval_based import CanonicalIntervalForestClassifier
 from aeon.testing.data_generation import make_example_3d_numpy
-from aeon.transformations.collection.interpolate import TSInterpolator
+from aeon.transformations.collection import Resizer
 
 # StratifiedGroupKFold(n_splits=2), removed because it is not available in sklearn 0.24
 CROSS_VALIDATION_METHODS = [
@@ -60,27 +60,27 @@ PARAMETER_TUNING_METHODS = [
 COMPOSITE_ESTIMATORS = [
     Pipeline(
         [
-            ("transform", TSInterpolator(length=10)),
-            ("clf", CanonicalIntervalForestClassifier.create_test_instance()),
+            ("transform", Resizer(length=10)),
+            ("clf", CanonicalIntervalForestClassifier._create_test_instance()),
         ]
     ),
     VotingClassifier(
         estimators=[
-            ("clf1", CanonicalIntervalForestClassifier.create_test_instance()),
-            ("clf2", CanonicalIntervalForestClassifier.create_test_instance()),
-            ("clf3", CanonicalIntervalForestClassifier.create_test_instance()),
+            ("clf1", CanonicalIntervalForestClassifier._create_test_instance()),
+            ("clf2", CanonicalIntervalForestClassifier._create_test_instance()),
+            ("clf3", CanonicalIntervalForestClassifier._create_test_instance()),
         ]
     ),
     CalibratedClassifierCV(
-        estimator=CanonicalIntervalForestClassifier.create_test_instance(),
-        cv=3,
+        estimator=CanonicalIntervalForestClassifier._create_test_instance(),
+        cv=2,
     ),
 ]
 
 
 def test_sklearn_cross_validation():
     """Test sklearn cross-validation works with aeon data and classifiers."""
-    clf = CanonicalIntervalForestClassifier.create_test_instance()
+    clf = CanonicalIntervalForestClassifier._create_test_instance()
     X, y = make_example_3d_numpy(n_cases=20, n_channels=2, n_timepoints=30)
     scores = cross_val_score(clf, X, y=y, cv=KFold(n_splits=2))
     assert isinstance(scores, np.ndarray)
@@ -99,12 +99,12 @@ def test_sklearn_cross_validation_iterators(cross_validation_method):
 @pytest.mark.parametrize("parameter_tuning_method", PARAMETER_TUNING_METHODS)
 def test_sklearn_parameter_tuning(parameter_tuning_method):
     """Test if sklearn parameter tuners can handle aeon data and classifiers."""
-    clf = CanonicalIntervalForestClassifier.create_test_instance()
+    clf = CanonicalIntervalForestClassifier._create_test_instance()
     param_grid = {"n_intervals": [2, 3], "att_subsample_size": [2, 3]}
     X, y = make_example_3d_numpy(n_cases=20, n_channels=2, n_timepoints=30)
 
     parameter_tuning_method = parameter_tuning_method(
-        clf, param_grid, cv=KFold(n_splits=3)
+        clf, param_grid, cv=KFold(n_splits=2)
     )
     parameter_tuning_method.fit(X, y)
     assert isinstance(

@@ -1,6 +1,6 @@
-"""Multi Layer Perceptron Network (MLP) for classification."""
+"""Multi Layer Perceptron Network (MLP) classifier."""
 
-__maintainer__ = []
+__maintainer__ = ["hadifawaz1999"]
 __all__ = ["MLPClassifier"]
 
 import gc
@@ -51,6 +51,8 @@ class MLPClassifier(BaseDeepClassifier):
         Whether or not to save the last model, last
         epoch trained, using the base class method
         save_last_model_to_file
+    save_init_model : bool, default = False
+        Whether to save the initialization of the  model.
     best_file_name : str, default = "best_model"
         The name of the file of the best model, if
         save_best_model is set to False, this parameter
@@ -59,6 +61,9 @@ class MLPClassifier(BaseDeepClassifier):
         The name of the file of the last model, if
         save_last_model is set to False, this parameter
         is discarded
+    init_file_name : str, default = "init_model"
+        The name of the file of the init model, if save_init_model is set to False,
+        this parameter is discarded.
     optimizer : keras.optimizer, default=keras.optimizers.Adadelta(),
     metrics : list of strings, default=["accuracy"],
     activation : string or a tf callable, default="sigmoid"
@@ -101,8 +106,10 @@ class MLPClassifier(BaseDeepClassifier):
         file_path="./",
         save_best_model=False,
         save_last_model=False,
+        save_init_model=False,
         best_file_name="best_model",
         last_file_name="last_model",
+        init_file_name="init_model",
         random_state=None,
         activation="sigmoid",
         use_bias=True,
@@ -119,7 +126,9 @@ class MLPClassifier(BaseDeepClassifier):
         self.file_path = file_path
         self.save_best_model = save_best_model
         self.save_last_model = save_last_model
+        self.save_init_model = save_init_model
         self.best_file_name = best_file_name
+        self.init_file_name = init_file_name
         self.optimizer = optimizer
 
         self.history = None
@@ -204,6 +213,9 @@ class MLPClassifier(BaseDeepClassifier):
         self.input_shape = X.shape[1:]
         self.training_model_ = self.build_model(self.input_shape, self.n_classes_)
 
+        if self.save_init_model:
+            self.training_model_.save(self.file_path + self.init_file_name + ".keras")
+
         if self.verbose:
             self.training_model_.summary()
 
@@ -259,7 +271,7 @@ class MLPClassifier(BaseDeepClassifier):
         return self
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -278,7 +290,6 @@ class MLPClassifier(BaseDeepClassifier):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         param1 = {
             "n_epochs": 10,
