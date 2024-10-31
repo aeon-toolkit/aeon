@@ -96,7 +96,7 @@ the US Change data loaded above has five channels and 187 time points. For more
 details on our provided datasets and on how to load data into aeon compatible data
 structures, see our [datasets](examples/datasets/datasets.ipynb) notebooks.
 
-## Single series estimators
+## Single series modules
 
 Different `aeon` module work with single series or collections of series. Estimators
 in the `anomaly detection` and `segmentation` modules use single
@@ -222,6 +222,7 @@ appropriate.
 >>> X4[0].shape
 (12, 20)
 ```
+## Collection based modules
 
 ### Classification
 
