@@ -132,7 +132,8 @@ all optimised using numba. They all work with multivariate and unequal length se
 >>> from aeon.datasets import load_japanese_vowels
 >>> from aeon.distances import dtw_distance
 >>> data = load_japanese_vowels()  # load an example multivariate series
->>> d = dtw_distance(data[0], data[1])  # calculate the dtw distance
+>>> dtw_distance(data[0], data[1])  # calculate the dtw distance
+14.416269807978
 ```
 
 ### Anomaly Detection
