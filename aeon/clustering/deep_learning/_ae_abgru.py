@@ -89,8 +89,8 @@ class AEAttentionBiGRUClusterer(BaseDeepClusterer):
     >>> from aeon.clustering.deep_learning import AEAttentionBiGRUClusterer
     >>> from aeon.clustering import DummyClusterer
     >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
     >>> _clst = DummyClusterer(n_clusters=2)
     >>> abgruc=AEAttentionBiGRUClusterer(estimator=_clst, n_epochs=20,
     ... batch_size=4) # doctest: +SKIP
