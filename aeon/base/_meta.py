@@ -52,9 +52,8 @@ class _ComposableEstimatorMixin(ABC):
         out.update(estimators)
 
         for name, estimator in estimators:
-            if hasattr(estimator, "get_params"):
-                for key, value in estimator.get_params(deep=True).items():
-                    out[f"{name}__{key}"] = value
+            for key, value in estimator.get_params(deep=True).items():
+                out[f"{name}__{key}"] = value
         return out
 
     def set_params(self, **params):
