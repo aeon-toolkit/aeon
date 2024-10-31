@@ -1,6 +1,6 @@
 """Base class for estimators that fit collections of time series."""
 
-from aeon.base._base import BaseEstimator
+from aeon.base._base import BaseAeonEstimator
 from aeon.utils.conversion import (
     convert_collection,
     resolve_equal_length_inner_type,
@@ -19,7 +19,7 @@ from aeon.utils.validation.collection import (
 )
 
 
-class BaseCollectionEstimator(BaseEstimator):
+class BaseCollectionEstimator(BaseAeonEstimator):
     """Base class for estimators that use collections of time series for method fit.
 
     Provides functions that are common to BaseClassifier, BaseRegressor,
@@ -31,12 +31,10 @@ class BaseCollectionEstimator(BaseEstimator):
     """
 
     _tags = {
+        "capability:univariate": True,
         "capability:multivariate": False,
         "capability:unequal_length": False,
-        "capability:missing_values": False,
-        "capability:multithreading": False,
         "X_inner_type": "numpy3D",
-        "python_version": None,
     }
 
     def __init__(self):
@@ -57,7 +55,7 @@ class BaseCollectionEstimator(BaseEstimator):
         Parameters
         ----------
         X : collection
-            See aeon.registry.COLLECTIONS_DATA_TYPES for details
+            See aeon.utils.registry.COLLECTIONS_DATA_TYPES for details
             on aeon supported data structures.
         store_metadata : bool, default=True
             Whether to store metadata about X in self.metadata_.
@@ -109,7 +107,7 @@ class BaseCollectionEstimator(BaseEstimator):
         Parameters
         ----------
         X : data structure
-           See aeon.registry.COLLECTIONS_DATA_TYPES for details
+           See aeon.utils.registry.COLLECTIONS_DATA_TYPES for details
            on aeon supported data structures.
 
         Returns
@@ -176,7 +174,7 @@ class BaseCollectionEstimator(BaseEstimator):
         Parameters
         ----------
         X : data structure
-            Must be of type aeon.registry.COLLECTIONS_DATA_TYPES.
+            Must be of type aeon.utils.registry.COLLECTIONS_DATA_TYPES.
 
         Returns
         -------
@@ -224,6 +222,37 @@ class BaseCollectionEstimator(BaseEstimator):
             inner_type = resolve_equal_length_inner_type(inner_type)
 
         return convert_collection(X, inner_type)
+
+    def _check_shape(self, X):
+        """Check that the shape of X is consistent with the data seen in fit.
+
+        Parameters
+        ----------
+        X : data structure
+            Must be of type aeon.registry.COLLECTIONS_DATA_TYPES.
+        """
+        # if metadata is empty, then we have not seen any data in fit. If the estimator
+        # has not been fitted, then _is_fitted should catch this.
+        # there are valid cases where metadata is empty and the estimator has been
+        # fitted, i.e. deep learner loading.
+        if len(self.metadata_) != 0:
+            if not self.get_tag("capability:unequal_length"):
+                nt = get_n_timepoints(X)
+                if nt != self.metadata_["n_timepoints"]:
+                    raise ValueError(
+                        "X has different length to the data seen in fit but "
+                        "this classifier cannot handle unequal length series."
+                        f"length of train set was {self.metadata_['n_timepoints']}",
+                        f" length in predict is {nt}.",
+                    )
+            if self.get_tag("capability:multivariate"):
+                nc = get_n_channels(X)
+                if nc != self.metadata_["n_channels"]:
+                    raise ValueError(
+                        "X has different number of channels to the data seen in fit "
+                        "number of channels in train set was ",
+                        f"{self.metadata_['n_channels']} but in predict it is {nc}.",
+                    )
 
     @staticmethod
     def _get_X_metadata(X):

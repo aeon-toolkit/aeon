@@ -87,8 +87,8 @@ class RandomIntervalRegressor(BaseRegressor):
     >>> reg.fit(X, y)
     RandomIntervalRegressor(...)
     >>> reg.predict(X)
-    array([0.90900147, 1.22266619, 0.99984114, 1.57550709, 0.39709955,
-           0.67621779, 0.76843601, 1.37005789, 1.58521712, 0.31683308])
+    array([0.70148208, 1.22266619, 0.73353397, 1.57550709, 0.46036267,
+           0.67770987, 1.11890876, 1.37005789, 1.35438452, 0.31683308])
     """
 
     _tags = {
@@ -183,7 +183,7 @@ class RandomIntervalRegressor(BaseRegressor):
         return self._estimator.predict(self._transformer.transform(X))
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -202,7 +202,6 @@ class RandomIntervalRegressor(BaseRegressor):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         from aeon.utils.numba.stats import row_mean, row_numba_min
 

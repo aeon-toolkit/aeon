@@ -4,7 +4,6 @@ __maintainer__ = []
 __all__ = ["MatrixProfileSeriesTransformer"]
 
 from aeon.transformations.series.base import BaseSeriesTransformer
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class MatrixProfileSeriesTransformer(BaseSeriesTransformer):
@@ -21,6 +20,7 @@ class MatrixProfileSeriesTransformer(BaseSeriesTransformer):
     Parameters
     ----------
     window_length : int
+        Length of the sliding winodw for the matrix profile calculation.
 
     Notes
     -----
@@ -64,26 +64,9 @@ class MatrixProfileSeriesTransformer(BaseSeriesTransformer):
             Matrix Profile of time series as output with length as
             (n_timepoints-window_length+1)
         """
-        _check_soft_dependencies("stumpy", severity="error")
         import stumpy
 
         X = X.squeeze()
 
         self.matrix_profile_ = stumpy.stump(X, self.window_length)
         return self.matrix_profile_[:, 0].astype("float")
-
-    @classmethod
-    def get_test_params(cls, parameter_set="default"):
-        """
-        Return testing parameter settings for the estimator.
-
-        Parameters
-        ----------
-        parameter_set : str, default="default"
-
-        Returns
-        -------
-        params : dict or list of dict, default = {}
-            Parameters to create testing instances of the class.
-        """
-        return {}

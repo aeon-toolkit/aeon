@@ -3,6 +3,8 @@
 Pipeline classifier using the SAST transformer and an sklearn classifier.
 """
 
+from typing import Optional
+
 __maintainer__ = ["TonyBagnall"]
 __all__ = ["SASTClassifier"]
 
@@ -61,7 +63,7 @@ class SASTClassifier(BaseClassifier):
     _tags = {
         "capability:multithreading": True,
         "capability:multivariate": False,
-        "algorithm_type": "subsequence",
+        "algorithm_type": "shapelet",
     }
 
     def __init__(
@@ -69,7 +71,7 @@ class SASTClassifier(BaseClassifier):
         length_list=None,
         stride: int = 1,
         nb_inst_per_class: int = 1,
-        seed: int = None,
+        seed: Optional[int] = None,
         classifier=None,
         n_jobs: int = -1,
     ) -> None:
@@ -177,6 +179,9 @@ class SASTClassifier(BaseClassifier):
             The figure
         """
         import matplotlib.pyplot as plt
+
+        # get overall importance irrespective of class
+        feature_importance = [abs(x) for x in feature_importance]
 
         features = zip(self._transformer._kernel_orig, feature_importance)
         sorted_features = sorted(features, key=itemgetter(1), reverse=True)

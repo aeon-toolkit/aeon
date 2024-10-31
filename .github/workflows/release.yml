@@ -8,7 +8,7 @@ on:
 
 jobs:
   check-manifest:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     steps:
       - uses: actions/checkout@v4
@@ -23,7 +23,7 @@ jobs:
 
   build-project:
     needs: check-manifest
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     steps:
       - uses: actions/checkout@v4
@@ -51,7 +51,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-20.04, macOS-14, windows-2022 ]
+        os: [ ubuntu-22.04, macOS-14, windows-2022 ]
         python-version: [ "3.9", "3.10", "3.11", "3.12" ]
 
     steps:
@@ -93,7 +93,7 @@ jobs:
 
   upload-wheels:
     needs: test-wheels
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     steps:
       - uses: actions/download-artifact@v4

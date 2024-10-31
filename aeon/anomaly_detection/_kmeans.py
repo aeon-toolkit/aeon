@@ -76,7 +76,7 @@ class KMeansAD(BaseAnomalyDetector):
     --------
     >>> import numpy as np
     >>> from aeon.anomaly_detection import KMeansAD
-    >>> X = np.array([1, 2, 3, 4, 1, 2, 3, 3, 2, 8, 9, 8, 1, 2, 3, 4], dtype=np.float_)
+    >>> X = np.array([1, 2, 3, 4, 1, 2, 3, 3, 2, 8, 9, 8, 1, 2, 3, 4], dtype=np.float64)
     >>> detector = KMeansAD(n_clusters=3, window_size=4, stride=1, random_state=0)
     >>> detector.fit_predict(X)
     array([1.97827709, 2.45374147, 2.51929879, 2.36979677, 2.34826601,
@@ -110,9 +110,44 @@ class KMeansAD(BaseAnomalyDetector):
         self.estimator_: Optional[KMeans] = None
 
     def _fit(self, X: np.ndarray, y: Optional[np.ndarray] = None) -> "KMeansAD":
+        self._check_params(X)
         _X, _ = sliding_windows(
             X, window_size=self.window_size, stride=self.stride, axis=0
         )
+        self._inner_fit(_X)
+        return self
+
+    def _predict(self, X) -> np.ndarray:
+        _X, padding = sliding_windows(
+            X, window_size=self.window_size, stride=self.stride, axis=0
+        )
+        point_anomaly_scores = self._inner_predict(_X, padding)
+        return point_anomaly_scores
+
+    def _fit_predict(self, X: np.ndarray, y: Optional[np.ndarray] = None) -> np.ndarray:
+        self._check_params(X)
+        _X, padding = sliding_windows(
+            X, window_size=self.window_size, stride=self.stride, axis=0
+        )
+        self._inner_fit(_X)
+        point_anomaly_scores = self._inner_predict(_X, padding)
+        return point_anomaly_scores
+
+    def _check_params(self, X: np.ndarray) -> None:
+        if self.window_size < 1 or self.window_size > X.shape[0]:
+            raise ValueError(
+                "The window size must be at least 1 and at most the length of the "
+                "time series."
+            )
+
+        if self.stride < 1 or self.stride > self.window_size:
+            raise ValueError(
+                "The stride must be at least 1 and at most the window size."
+            )
+        if self.n_clusters < 1:
+            raise ValueError("The number of clusters must be at least 1.")
+
+    def _inner_fit(self, X: np.ndarray) -> None:
         self.estimator_ = KMeans(
             n_clusters=self.n_clusters,
             random_state=self.random_state,
@@ -123,33 +158,12 @@ class KMeansAD(BaseAnomalyDetector):
             verbose=0,
             algorithm="lloyd",
         )
-        self.estimator_.fit(_X)
-        return self
+        self.estimator_.fit(X)
 
-    def _predict(self, X) -> np.ndarray:
-        _X, padding = sliding_windows(
-            X, window_size=self.window_size, stride=self.stride, axis=0
-        )
-        clusters = self.estimator_.predict(_X)
+    def _inner_predict(self, X: np.ndarray, padding: int) -> np.ndarray:
+        clusters = self.estimator_.predict(X)
         window_scores = np.linalg.norm(
-            _X - self.estimator_.cluster_centers_[clusters], axis=1
-        )
-        point_anomaly_scores = reverse_windowing(
-            window_scores, self.window_size, np.nanmean, self.stride, padding
-        )
-        return point_anomaly_scores
-
-    def _fit_predict(self, X: np.ndarray, y: Optional[np.ndarray] = None) -> np.ndarray:
-        _X, padding = sliding_windows(
-            X, window_size=self.window_size, stride=self.stride, axis=0
-        )
-        self.estimator_ = KMeans(
-            n_clusters=self.n_clusters, random_state=self.random_state
-        )
-        self.estimator_.fit(_X)
-        clusters = self.estimator_.predict(_X)
-        window_scores = np.linalg.norm(
-            _X - self.estimator_.cluster_centers_[clusters], axis=1
+            X - self.estimator_.cluster_centers_[clusters], axis=1
         )
         point_anomaly_scores = reverse_windowing(
             window_scores, self.window_size, np.nanmean, self.stride, padding
@@ -157,7 +171,7 @@ class KMeansAD(BaseAnomalyDetector):
         return point_anomaly_scores
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -172,7 +186,6 @@ class KMeansAD(BaseAnomalyDetector):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         return {
             "n_clusters": 5,

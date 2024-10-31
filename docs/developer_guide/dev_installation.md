@@ -41,6 +41,13 @@ and type:
 pip install --editable .[dev]
 ```
 
+```{note}
+    If this results in a "no matches found" error, it may be due to how your shell
+    handles special characters. Try surrounding the dependency portion with quotes i.e.
+
+    pip install --editable ."[dev]"
+```
+
 Alternatively, the `.` may be replaced with a full or relative path to the root
 directory.
 
@@ -53,13 +60,6 @@ If you need to work with optional dependencies, it you can also install the
 
 ```{code-block} powershell
 pip install --editable .[dev,all_extras]
-```
-
-**If this results in a "no matches found" error**, it may be due to how your shell
-handles special characters. Try surrounding the dependency portion with quotes:
-
-```{code-block} powershell
-pip install --editable ."[dev]"
 ```
 
 ## Step 3 - Install pre-commit

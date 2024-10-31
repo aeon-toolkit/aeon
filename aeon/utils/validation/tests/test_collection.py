@@ -3,55 +3,33 @@
 import numpy as np
 import pandas as pd
 import pytest
+from numba.typed import List as NumbaList
 
-from aeon.testing.data_generation import make_example_nested_dataframe
-from aeon.testing.testing_data import EQUAL_LENGTH_UNIVARIATE
+from aeon.testing.data_generation import (
+    make_example_1d_numpy,
+    make_example_2d_numpy_collection,
+    make_example_2d_numpy_list,
+    make_example_3d_numpy,
+    make_example_3d_numpy_list,
+)
+from aeon.testing.testing_data import EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION
 from aeon.utils import COLLECTIONS_DATA_TYPES
 from aeon.utils.validation.collection import (
+    _is_numpy_list_multivariate,
     _is_pd_wide,
-    _nested_univ_is_equal,
     get_type,
     has_missing,
-    is_nested_univ_dataframe,
     is_tabular,
 )
-
-
-@pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
-def test_is_nested_univ_dataframe(data):
-    """Test is_nested_univ_dataframe function for different datatypes."""
-    if data == "nested_univ":
-        assert is_nested_univ_dataframe(EQUAL_LENGTH_UNIVARIATE[data])
-    else:
-        assert not is_nested_univ_dataframe(EQUAL_LENGTH_UNIVARIATE[data])
-
-
-def test_nested_univ_is_equal():
-    """Test _nested_univ_is_equal function for pd.DataFrame.
-
-    Note that the function _nested_univ_is_equal assumes series are equal length
-    over channels so only tests the first channel.
-    """
-    data = {
-        "A": [pd.Series([1, 2, 3, 4]), pd.Series([4, 5, 6])],
-        "B": [pd.Series([1, 2, 3, 4]), pd.Series([4, 5, 6])],
-        "C": [pd.Series([1, 2, 3, 4]), pd.Series([4, 5, 6])],
-    }
-    X = pd.DataFrame(data)
-    assert not _nested_univ_is_equal(X)
-    X, _ = make_example_nested_dataframe(
-        n_cases=10, n_channels=1, min_n_timepoints=20, max_n_timepoints=20
-    )
-    assert _nested_univ_is_equal(X)
 
 
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
 def test_is_pd_wide(data):
     """Test _is_pd_wide function for different datatypes."""
     if data == "pd-wide":
-        assert _is_pd_wide(EQUAL_LENGTH_UNIVARIATE[data])
+        assert _is_pd_wide(EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[data]["train"][0])
     else:
-        assert not _is_pd_wide(EQUAL_LENGTH_UNIVARIATE[data])
+        assert not _is_pd_wide(EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[data]["train"][0])
 
 
 def test_is_tabular():
@@ -93,3 +71,259 @@ def test_has_missing():
     assert has_missing(l1)
     l2 = [pd.DataFrame(d1), pd.DataFrame(d2)]
     assert has_missing(l2)
+
+
+def test_is_numpy_list_multivariate_single():
+    """Test collection of multivariate numpy list."""
+    # 3d format tests
+    # Equal (n_cases, n_channels, n_timepoints)
+    x_univ = make_example_3d_numpy(10, 1, 20, return_y=False)
+    is_multivariate = _is_numpy_list_multivariate(x_univ)
+    assert is_multivariate is False
+
+    # Unequal List[(n_channels, n_timepoints)]
+    x_univ_unequal = make_example_3d_numpy_list(10, 1, return_y=False)
+    is_multivariate = _is_numpy_list_multivariate(x_univ_unequal)
+    assert is_multivariate is False
+
+    # Equal numba list NumbaList[(n_channels, n_timepoints)]
+    x_univ_numba_list = NumbaList(x_univ)
+    is_multivariate = _is_numpy_list_multivariate(x_univ_numba_list)
+    assert is_multivariate is False
+
+    # Unequal numba list NumbaList[(n_channels, n_timepoints)]
+    x_univ_unequal_numba_list = NumbaList(x_univ_unequal)
+    is_multivariate = _is_numpy_list_multivariate(x_univ_unequal_numba_list)
+    assert is_multivariate is False
+
+    # 2d format tests
+    # Equal (n_cases, n_timepoints)
+    x_univ_2d = make_example_2d_numpy_collection(10, 20, return_y=False)
+    is_multivariate = _is_numpy_list_multivariate(x_univ_2d)
+    assert is_multivariate is False
+
+    # Unequal List[(n_timepoints)]
+    x_univ_2d_unequal = make_example_2d_numpy_list(10, return_y=False)
+    is_multivariate = _is_numpy_list_multivariate(x_univ_2d_unequal)
+    assert is_multivariate is False
+
+    # Equal numba list NumbaList[(n_timepoints)]
+    x_univ_2d_numba_list = NumbaList(x_univ_2d)
+    is_multivariate = _is_numpy_list_multivariate(x_univ_2d_numba_list)
+    assert is_multivariate is False
+
+    # Unequal numba list NumbaList[(n_timepoints)]
+    x_univ_2d_unequal_numba_list = NumbaList(x_univ_2d_unequal)
+    is_multivariate = _is_numpy_list_multivariate(x_univ_2d_unequal_numba_list)
+    assert is_multivariate is False
+
+    # 1d format tests
+    # Equal (n_timepoints)
+    x_univ_1d = make_example_1d_numpy(10)
+    is_multivariate = _is_numpy_list_multivariate(x_univ_1d)
+    assert is_multivariate is False
+
+    # Equal NumbaList[n_timepoints]
+    x_univ_numba_list_1d = NumbaList(x_univ_1d)
+    is_multivariate = _is_numpy_list_multivariate(x_univ_numba_list_1d)
+    assert is_multivariate is False
+
+    # 3d format tests multivariate
+    # Equal (n_cases, n_channels, n_timepoints)
+    x_multi = make_example_3d_numpy(10, 5, 20, return_y=False)
+    is_multivariate = _is_numpy_list_multivariate(x_multi)
+    assert is_multivariate is True
+
+    # Unequal List[(n_channels, n_timepoints)]
+    x_multi_unequal = make_example_3d_numpy_list(10, 5, return_y=False)
+    is_multivariate = _is_numpy_list_multivariate(x_multi_unequal)
+    assert is_multivariate is True
+
+    # Equal numba list NumbaList[(n_channels, n_timepoints)]
+    x_multi_numba_list = NumbaList(x_multi)
+    is_multivariate = _is_numpy_list_multivariate(x_multi_numba_list)
+    assert is_multivariate is True
+
+    # Unequal numba list NumbaList[(n_channels, n_timepoints)]
+    x_multi_unequal_numba_list = NumbaList(x_multi_unequal)
+    is_multivariate = _is_numpy_list_multivariate(x_multi_unequal_numba_list)
+    assert is_multivariate is True
+
+    # 2d format tests
+    # Equal (n_cases, n_timepoints)
+
+    # As the function is intended to be used for pairwise we assume it isnt a single
+    # multivariate time series but two collections of univariate
+    x_multi_2d = make_example_2d_numpy_collection(10, 20, return_y=False)
+    is_multivariate = _is_numpy_list_multivariate(x_multi_2d)
+    assert is_multivariate is False
+
+    x_multi_2d_numba_list = NumbaList(x_multi_2d)
+    is_multivariate = _is_numpy_list_multivariate(x_multi_2d_numba_list)
+    assert is_multivariate is False
+
+    with pytest.raises(ValueError, match="The format of you input is not supported."):
+        _is_numpy_list_multivariate(1.0)
+
+    with pytest.raises(ValueError, match="The format of you input is not supported."):
+        _is_numpy_list_multivariate(1.0, x_multi_2d)
+
+    with pytest.raises(ValueError, match="The format of you input is not supported."):
+        _is_numpy_list_multivariate(x_multi_2d, 1.0)
+
+
+def test_is_numpy_list_multivariate_two_univ():
+    """Test collection of two univariate numpy list."""
+    # 3d format tests
+    # Equal (n_cases, n_channels, n_timepoints)
+    x_univ = make_example_3d_numpy(10, 1, 20, return_y=False)
+    y_univ = make_example_3d_numpy(10, 1, 20, return_y=False)
+    is_multivariate = _is_numpy_list_multivariate(x_univ, y_univ)
+    assert is_multivariate is False
+
+    # Unequal List[(n_channels, n_timepoints)]
+    x_univ_unequal = make_example_3d_numpy_list(10, 1, return_y=False)
+    y_univ_unequal = make_example_3d_numpy_list(10, 1, return_y=False)
+    is_multivariate = _is_numpy_list_multivariate(x_univ_unequal, y_univ_unequal)
+    assert is_multivariate is False
+
+    # Equal numba list NumbaList[(n_channels, n_timepoints)]
+    x_univ_numba_list = NumbaList(x_univ)
+    y_univ_numba_list = NumbaList(y_univ)
+    is_multivariate = _is_numpy_list_multivariate(x_univ_numba_list, y_univ_numba_list)
+    assert is_multivariate is False
+
+    # Unequal numba list NumbaList[(n_channels, n_timepoints)]
+    x_univ_unequal_numba_list = NumbaList(x_univ_unequal)
+    y_univ_unequal_numba_list = NumbaList(y_univ_unequal)
+    is_multivariate = _is_numpy_list_multivariate(
+        x_univ_unequal_numba_list, y_univ_unequal_numba_list
+    )
+    assert is_multivariate is False
+
+    # 2d format tests
+    # Equal (n_cases, n_timepoints)
+    x_univ_2d = make_example_2d_numpy_collection(10, 20, return_y=False)
+    y_univ_2d = make_example_2d_numpy_collection(10, 20, return_y=False)
+    is_multivariate = _is_numpy_list_multivariate(x_univ_2d, y_univ_2d)
+    assert is_multivariate is False
+
+    # Unequal List[(n_timepoints)]
+    x_univ_2d_unequal = make_example_2d_numpy_list(10, return_y=False)
+    y_univ_2d_unequal = make_example_2d_numpy_list(10, return_y=False)
+    is_multivariate = _is_numpy_list_multivariate(x_univ_2d_unequal, y_univ_2d_unequal)
+    assert is_multivariate is False
+
+    # Equal numba list NumbaList[(n_timepoints)]
+    x_univ_2d_numba_list = NumbaList(x_univ_2d)
+    y_univ_2d_numba_list = NumbaList(y_univ_2d)
+    is_multivariate = _is_numpy_list_multivariate(
+        x_univ_2d_numba_list, y_univ_2d_numba_list
+    )
+    assert is_multivariate is False
+
+    # Unequal numba list NumbaList[(n_timepoints)]
+    x_univ_2d_unequal_numba_list = NumbaList(x_univ_2d_unequal)
+    y_univ_2d_unequal_numba_list = NumbaList(y_univ_2d_unequal)
+    is_multivariate = _is_numpy_list_multivariate(
+        x_univ_2d_unequal_numba_list, y_univ_2d_unequal_numba_list
+    )
+    assert is_multivariate is False
+
+    # 1d format tests
+    # Equal (n_timepoints)
+    x_univ_1d = make_example_1d_numpy(10)
+    y_univ_1d = make_example_1d_numpy(10)
+    is_multivariate = _is_numpy_list_multivariate(x_univ_1d, y_univ_1d)
+    assert is_multivariate is False
+
+    # Equal NumbaList[n_timepoints]
+    x_univ_numba_list_1d = NumbaList(x_univ_1d)
+    y_univ_numba_list_1d = NumbaList(y_univ_1d)
+    is_multivariate = _is_numpy_list_multivariate(
+        x_univ_numba_list_1d, y_univ_numba_list_1d
+    )
+    assert is_multivariate is False
+
+    # Test single to multiple
+    is_multivariate = _is_numpy_list_multivariate(x_univ, x_univ_2d)
+    assert is_multivariate is False
+
+    is_multivariate = _is_numpy_list_multivariate(x_univ_2d, x_univ)
+    assert is_multivariate is False
+
+    is_multivariate = _is_numpy_list_multivariate(
+        x_univ_numba_list, x_univ_2d_numba_list
+    )
+    assert is_multivariate is False
+
+    is_multivariate = _is_numpy_list_multivariate(
+        x_univ_2d_numba_list, x_univ_numba_list
+    )
+    assert is_multivariate is False
+
+    is_multivariate = _is_numpy_list_multivariate(x_univ_2d, x_univ_1d)
+    assert is_multivariate is False
+
+    is_multivariate = _is_numpy_list_multivariate(x_univ, x_univ_1d)
+    assert is_multivariate is False
+
+    is_multivariate = _is_numpy_list_multivariate(x_univ_1d, x_univ_2d)
+    assert is_multivariate is False
+
+    is_multivariate = _is_numpy_list_multivariate(
+        x_univ_2d_numba_list, x_univ_numba_list_1d
+    )
+    assert is_multivariate is False
+
+    is_multivariate = _is_numpy_list_multivariate(
+        x_univ_numba_list_1d, x_univ_2d_numba_list
+    )
+    assert is_multivariate is False
+
+    is_multivariate = _is_numpy_list_multivariate(
+        x_univ_numba_list, x_univ_numba_list_1d
+    )
+    assert is_multivariate is False
+
+
+def test_is_numpy_list_multivariate_two_multi():
+    """Test collection of two multivariate numpy list."""
+    # 3d format tests multivariate
+    # Equal (n_cases, n_channels, n_timepoints)
+    x_multi = make_example_3d_numpy(10, 5, 20, return_y=False)
+    y_multi = make_example_3d_numpy(10, 5, 20, return_y=False)
+    is_multivariate = _is_numpy_list_multivariate(x_multi, y_multi)
+    assert is_multivariate is True
+
+    # Unequal List[(n_channels, n_timepoints)]
+    x_multi_unequal = make_example_3d_numpy_list(10, 5, return_y=False)
+    y_multi_unequal = make_example_3d_numpy_list(10, 5, return_y=False)
+    is_multivariate = _is_numpy_list_multivariate(x_multi_unequal, y_multi_unequal)
+    assert is_multivariate is True
+
+    # Equal numba list NumbaList[(n_channels, n_timepoints)]
+    x_multi_numba_list = NumbaList(x_multi)
+    y_multi_numba_list = NumbaList(y_multi)
+    is_multivariate = _is_numpy_list_multivariate(
+        x_multi_numba_list, y_multi_numba_list
+    )
+    assert is_multivariate is True
+
+    # Unequal numba list NumbaList[(n_channels, n_timepoints)]
+    x_multi_unequal_numba_list = NumbaList(x_multi_unequal)
+    y_multi_unequal_numba_list = NumbaList(y_multi_unequal)
+    is_multivariate = _is_numpy_list_multivariate(
+        x_multi_unequal_numba_list, y_multi_unequal_numba_list
+    )
+    assert is_multivariate is True
+
+    x_multi_2d = make_example_2d_numpy_collection(10, 20, return_y=False)
+    is_multivariate = _is_numpy_list_multivariate(x_multi, x_multi_2d)
+    assert is_multivariate is True
+
+    x_multi_2d_numba_list = NumbaList(x_multi_2d)
+    is_multivariate = _is_numpy_list_multivariate(
+        x_multi_numba_list, x_multi_2d_numba_list
+    )
+    assert is_multivariate is True

@@ -11,7 +11,6 @@ include README.md
 
 recursive-exclude .binder *
 recursive-exclude .github *
-recursive-exclude build_tools *
 recursive-exclude docs *
 recursive-exclude examples *
 exclude .all-contributorsrc

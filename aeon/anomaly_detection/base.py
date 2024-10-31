@@ -3,7 +3,7 @@
 __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["BaseAnomalyDetector"]
 
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from typing import final
 
 import numpy as np
@@ -13,7 +13,7 @@ from aeon.base import BaseSeriesEstimator
 from aeon.base._base_series import VALID_INPUT_TYPES
 
 
-class BaseAnomalyDetector(BaseSeriesEstimator, ABC):
+class BaseAnomalyDetector(BaseSeriesEstimator):
     """Base class for anomaly detection algorithms.
 
     Anomaly detection algorithms are used to identify anomalous subsequences in time
@@ -46,19 +46,23 @@ class BaseAnomalyDetector(BaseSeriesEstimator, ABC):
         Unsupervised (default):
             Unsupervised detectors do not require any training data and can directly be
             used on the target time series. Their tags are set to ``fit_is_empty=True``
-            and ``requires_y=False``.
+            and ``requires_y=False``. You would usually call the ``fit_predict`` method
+            on these detectors.
         Semi-supervised:
             Semi-supervised detectors require a training step on a time series without
             anomalies (normal behaving time series). The target value ``y`` would
             consist of only zeros. Thus, these algorithms have logic in the ``fit``
             method, but do not require the target values. Their tags are set to
-            ``fit_is_empty=False`` and ``requires_y=False``.
+            ``fit_is_empty=False`` and ``requires_y=False``. You would usually first
+            call the ``fit`` method on the training data and then the ``predict``
+            method for your target time series.
         Supervised:
             Supervised detectors require a training step on a time series with known
             anomalies (anomalies should be present and must be annotated). The detector
             implements the ``fit`` method, and the target value ``y`` consists of zeros
             and ones. Their tags are, thus, set to ``fit_is_empty=False`` and
-            ``requires_y=True``.
+            ``requires_y=True``. You would usually first call the ``fit`` method on the
+            training data and then the ``predict`` method for your target time series.
 
     Parameters
     ----------
@@ -78,8 +82,6 @@ class BaseAnomalyDetector(BaseSeriesEstimator, ABC):
     }
 
     def __init__(self, axis):
-        self._is_fitted = False
-
         super().__init__(axis=axis)
 
     @final
@@ -114,7 +116,7 @@ class BaseAnomalyDetector(BaseSeriesEstimator, ABC):
             The fitted estimator, reference to self.
         """
         if self.get_class_tag("fit_is_empty"):
-            self._is_fitted = True
+            self.is_fitted = True
             return self
 
         if self.get_class_tag("requires_y"):
@@ -131,7 +133,7 @@ class BaseAnomalyDetector(BaseSeriesEstimator, ABC):
         self._fit(X=X, y=y)
 
         # this should happen last
-        self._is_fitted = True
+        self.is_fitted = True
         return self
 
     @final
@@ -159,7 +161,7 @@ class BaseAnomalyDetector(BaseSeriesEstimator, ABC):
         """
         fit_empty = self.get_class_tag("fit_is_empty")
         if not fit_empty:
-            self.check_is_fitted()
+            self._check_is_fitted()
 
         X = self._preprocess_series(X, axis, False)
 
@@ -202,7 +204,7 @@ class BaseAnomalyDetector(BaseSeriesEstimator, ABC):
         X = self._preprocess_series(X, axis, True)
 
         if self.get_class_tag("fit_is_empty"):
-            self._is_fitted = True
+            self.is_fitted = True
             return self._predict(X)
 
         if y is not None:
@@ -211,7 +213,7 @@ class BaseAnomalyDetector(BaseSeriesEstimator, ABC):
         pred = self._fit_predict(X, y)
 
         # this should happen last
-        self._is_fitted = True
+        self.is_fitted = True
         return pred
 
     def _fit(self, X, y):
