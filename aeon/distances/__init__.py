@@ -65,12 +65,12 @@ __all__ = [
     "shape_dtw_pairwise_distance",
     "sbd_distance",
     "sbd_pairwise_distance",
-    "mpdist",
-    "mpdist_pairwise_distance",
-    "paa_sax_mindist",
-    "sax_mindist",
-    "sfa_mindist",
-    "dft_sfa_mindist",
+    "mp_distance",
+    "mp_pairwise_distance",
+    "mindist_paa_sax_distance",
+    "mindist_sax_distance",
+    "mindist_sfa_distance",
+    "mindist_dft_sfa_distance",
     "shift_scale_invariant_distance",
     "shift_scale_invariant_pairwise_distance",
     "shift_scale_invariant_best_shift",
@@ -80,7 +80,6 @@ __all__ = [
     "soft_dtw_cost_matrix",
 ]
 
-from aeon.distances._dft_sfa_mindist import dft_sfa_mindist
 from aeon.distances._distance import (
     alignment_path,
     cost_matrix,
@@ -92,20 +91,13 @@ from aeon.distances._distance import (
     get_pairwise_distance_function,
     pairwise_distance,
 )
-from aeon.distances._euclidean import euclidean_distance, euclidean_pairwise_distance
-from aeon.distances._manhattan import manhattan_distance, manhattan_pairwise_distance
-from aeon.distances._minkowski import minkowski_distance, minkowski_pairwise_distance
-from aeon.distances._mpdist import mpdist, mpdist_pairwise_distance
-from aeon.distances._paa_sax_mindist import paa_sax_mindist
-from aeon.distances._sax_mindist import sax_mindist
+from aeon.distances._mpdist import mp_distance, mp_pairwise_distance
 from aeon.distances._sbd import sbd_distance, sbd_pairwise_distance
-from aeon.distances._sfa_mindist import sfa_mindist
 from aeon.distances._shift_scale_invariant import (
     shift_scale_invariant_best_shift,
     shift_scale_invariant_distance,
     shift_scale_invariant_pairwise_distance,
 )
-from aeon.distances._squared import squared_distance, squared_pairwise_distance
 from aeon.distances.elastic import (
     adtw_alignment_path,
     adtw_cost_matrix,
@@ -156,4 +148,24 @@ from aeon.distances.elastic import (
     wdtw_cost_matrix,
     wdtw_distance,
     wdtw_pairwise_distance,
+)
+from aeon.distances.mindist._dft_sfa import mindist_dft_sfa_distance
+from aeon.distances.mindist._paa_sax import mindist_paa_sax_distance
+from aeon.distances.mindist._sax import mindist_sax_distance
+from aeon.distances.mindist._sfa import mindist_sfa_distance
+from aeon.distances.pointwise._euclidean import (
+    euclidean_distance,
+    euclidean_pairwise_distance,
+)
+from aeon.distances.pointwise._manhattan import (
+    manhattan_distance,
+    manhattan_pairwise_distance,
+)
+from aeon.distances.pointwise._minkowski import (
+    minkowski_distance,
+    minkowski_pairwise_distance,
+)
+from aeon.distances.pointwise._squared import (
+    squared_distance,
+    squared_pairwise_distance,
 )
