@@ -10,6 +10,7 @@ sub-dictionary has the following items:
                 ("str", list_of_string) - any string in list_of_string is valid
                 ("list", list_of_string) - any sub-list is valid
                 ("list||str", list_of_string) - combination of the above
+                ("list||str", list_of_string) - combination of the above
                 None - no value for the tag
     description : plain English description of the tag
 """
@@ -54,7 +55,7 @@ ESTIMATOR_TAGS = {
         "fit/predict.",
     },
     "y_inner_type": {
-        "class": "estimator",
+        "class": "forecaster",
         "type": [
             ("list||str", SERIES_DATA_TYPES),
         ],
