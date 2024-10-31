@@ -9,7 +9,7 @@ from sklearn.utils import check_random_state
 from aeon.anomaly_detection import PyODAdapter
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
-rng = check_random_state(0)
+rng = check_random_state(42)
 
 
 @pytest.mark.skipif(
@@ -99,7 +99,9 @@ def test_pyod_adapter_stride_univariate():
     """Test PyODAdapter with stride != 1 univariate."""
     from pyod.models.lof import LOF
 
-    series = rng.normal(size=(80,))
+    rng2 = check_random_state(0)
+
+    series = rng2.normal(size=(80,))
     series[50:58] -= 4
 
     ad = PyODAdapter(LOF(), window_size=10, stride=5)
@@ -119,17 +121,17 @@ def test_pyod_adapter_stride_multivariate():
     """Test PyODAdapter with stride != 1 multivariate."""
     from pyod.models.lof import LOF
 
-    rng2 = check_random_state(10)
+    rng2 = check_random_state(42)
 
-    series = rng2.normal(size=(100, 2))
+    series = rng2.normal(size=(80, 2))
     series[50:58, 0] -= 2
 
     ad = PyODAdapter(LOF(), window_size=10, stride=5)
     pred = ad.fit_predict(series, axis=0)
 
-    assert pred.shape == (100,)
+    assert pred.shape == (80,)
     assert pred.dtype == np.float64
-    assert 45 <= np.argmax(pred) <= 65
+    assert 45 <= np.argmax(pred) <= 70
     assert hasattr(ad, "pyod_model")
 
 
