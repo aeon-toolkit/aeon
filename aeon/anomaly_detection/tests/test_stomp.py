@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 
 from aeon.anomaly_detection import STOMP
-from aeon.testing.data_generation._legacy import make_series
+from aeon.testing.data_generation import make_example_1d_numpy
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
@@ -16,7 +16,7 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 )
 def test_STOMP_default():
     """Test STOMP."""
-    series = make_series(n_timepoints=80, return_numpy=True, random_state=0)
+    series = make_example_1d_numpy(n_timepoints=80, random_state=0)
     series[50:58] -= 2
 
     ad = STOMP(window_size=10)

@@ -12,7 +12,30 @@ import pandas as pd
 from sklearn.utils import check_random_state
 
 from aeon.datasets import load_airline
-from aeon.testing.data_generation._legacy import _make_index
+
+
+def _make_index(n_timepoints, index_type=None):
+    """Make indices for unit testing."""
+    if index_type == "period":
+        start = "2000-01"
+        freq = "M"
+        return pd.period_range(start=start, periods=n_timepoints, freq=freq)
+
+    elif index_type == "datetime" or index_type is None:
+        start = "2000-01-01"
+        freq = "D"
+        return pd.date_range(start=start, periods=n_timepoints, freq=freq)
+
+    elif index_type == "range":
+        start = 3  # check non-zero based indices
+        return pd.RangeIndex(start=start, stop=start + n_timepoints)
+
+    elif index_type == "int":
+        start = 3
+        return pd.Index(np.arange(start, start + n_timepoints), dtype=int)
+
+    else:
+        raise ValueError(f"index_class: {index_type} is not supported")
 
 
 def _make_hierarchical(
