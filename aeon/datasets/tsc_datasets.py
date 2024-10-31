@@ -35,7 +35,7 @@ Ensembles Version 1.0 (HIVE-COTE v1.0). Lecture Notes in Computer Science. in pr
 """
 
 # The 85 UCR univariate time series classification problems in the 2015 version
-univariate2015 = {
+univariate2015 = [
     "Adiac",
     "ArrowHead",
     "Beef",
@@ -121,11 +121,11 @@ univariate2015 = {
     "Worms",
     "WormsTwoClass",
     "Yoga",
-}
+]
 
 
 # 128 UCR univariate time series classification problems [1]
-univariate = {
+univariate = [
     "ACSF1",
     "Adiac",
     "AllGestureWiimoteX",
@@ -254,10 +254,10 @@ univariate = {
     "Worms",
     "WormsTwoClass",
     "Yoga",
-}
+]
 
 # 30 UEA multivariate time series classification problems [2]
-multivariate = {
+multivariate = [
     "ArticularyWordRecognition",
     "AtrialFibrillation",
     "BasicMotions",
@@ -288,10 +288,10 @@ multivariate = {
     "SpokenArabicDigits",
     "StandWalkJump",
     "UWaveGestureLibrary",
-}
+]
 
 # 112 equal length/no missing univariate time series classification problems [3]
-univariate_equal_length = {
+univariate_equal_length = [
     "ACSF1",
     "Adiac",
     "ArrowHead",
@@ -404,10 +404,10 @@ univariate_equal_length = {
     "Worms",
     "WormsTwoClass",
     "Yoga",
-}
+]
 
 # 11 variable length univariate time series classification problems [3]
-univariate_variable_length = {
+univariate_variable_length = [
     "AllGestureWiimoteX",
     "AllGestureWiimoteY",
     "AllGestureWiimoteZ",
@@ -419,18 +419,18 @@ univariate_variable_length = {
     "PickupGestureWiimoteZ",
     "PLAID",
     "ShakeGestureWiimoteZ",
-}
+]
 
 # 4 fixed length univariate time series classification problems with missing values"""
-univariate_missing_values = {
+univariate_missing_values = [
     "DodgerLoopDay",
     "DodgerLoopGame",
     "DodgerLoopWeekend",
     "MelbournePedestrian",
-}
+]
 
 # 26 equal length multivariate time series classification problems [4]"""
-multivariate_equal_length = {
+multivariate_equal_length = [
     "ArticularyWordRecognition",
     "AtrialFibrillation",
     "BasicMotions",
@@ -457,10 +457,10 @@ multivariate_equal_length = {
     "SelfRegulationSCP2",
     "StandWalkJump",
     "UWaveGestureLibrary",
-}
+]
 
 # 7 variable length multivariate time series classification problems [4]"""
-multivariate_unequal_length = {
+multivariate_unequal_length = [
     "AsphaltObstaclesCoordinates",
     "AsphaltPavementTypeCoordinates",
     "AsphaltRegularityCoordinates",
@@ -468,7 +468,7 @@ multivariate_unequal_length = {
     "InsectWingbeat",
     "JapaneseVowels",
     "SpokenArabicDigits",
-}
+]
 
 # 158 tsml time series classification problems
 tsc_zenodo = {
@@ -635,7 +635,7 @@ tsc_zenodo = {
 # 30 new univariate classification problems used in the bake off [5]. Some are new,
 # some are discrete versions of regression problems, some are equal length versions
 # of the current UCR problems and some are no missing versions of the current 128 UCR.
-univariate_bake_off_2024 = {
+univariate_bake_off_2024 = [
     "AconityMINIPrinterLarge",  # AconityMINIPrinterLarge_eq
     "AconityMINIPrinterSmall",  # AconityMINIPrinterSmall_eq
     "AllGestureWiimoteX",  # AllGestureWiimoteX_eq
@@ -666,4 +666,4 @@ univariate_bake_off_2024 = {
     "ShakeGestureWiimoteZ",  # ShakeGestureWiimoteZ_eq
     "SharePriceIncrease",  # SharePriceIncrease
     "Tools",  # Tools
-}
+]
