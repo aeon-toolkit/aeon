@@ -98,7 +98,7 @@ structures, see our [datasets](examples/datasets/datasets.ipynb) notebooks.
 
 ## Single series modules
 
-Different `aeon` module work with single series or collections of series. Estimators
+Different `aeon` module work with individual series or collections of series. Estimators
 in the `anomaly detection` and `segmentation` modules use single
 series input (they inherit from `BaseSeriesEstimator`). The functions in `distances`
 take two series as arguments.
@@ -164,7 +164,7 @@ The estimators in the `classification`,
 `regression` and `clustering` modules learn from collections of time
 series (they inherit from the class `BaseCollectionEstimator`). Collections of
 time series will often be accompanied by an array of target variables for supervised
-learning.
+learning. The module `similarity_search` also works with collections of time series.
 
 ```{code-block} python
 >>> from aeon.datasets import load_italy_power_demand
