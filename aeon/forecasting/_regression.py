@@ -87,6 +87,7 @@ class RegressionForecaster(BaseForecaster):
         self.fit(y, exog)
         return self.predict(y)
 
+    @classmethod
     def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
