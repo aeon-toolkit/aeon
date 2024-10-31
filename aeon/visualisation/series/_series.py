@@ -34,7 +34,7 @@ def plot_series(
 
     Parameters
     ----------
-    series : pd.Series or np.ndarray or pd.DataFrame
+    series : np.ndarray, pd.Series or pd.DataFrame
         One or more time series stored in `(n_channels, n_timepoints)` format.
     labels : list, default = None
         Names of series, will be displayed in figure legend.
@@ -45,6 +45,12 @@ def plot_series(
         The colors to use for plotting each series. Must contain one color per series
     title : str, default = None
         The text to use as the figure's suptitle.
+    x_label : str or None, default = None
+       String label to put on the x-axis.
+    y_label : str or None, default = None
+       String label to put on the -axis.
+    ax : plt.Axis or None
+        Axis to plot on. If None, a new figure is created.
     pred_interval : pd.DataFrame, default = None
         Contains columns for lower and upper boundaries of confidence interval.
 
@@ -71,15 +77,22 @@ def plot_series(
         series = [row for _, row in series.iterrows()]
     elif isinstance(series, pd.Series):
         series = [series]
+    elif isinstance(series, np.ndarray):
+        series = series.squeeze()
+        if series.ndim > 1:
+            series = [row for row in series]
+        else:
+            series = [series]
     s = []
     for y in series:
-        y = pd.Series(y)
+        if isinstance(y, np.ndarray):
+            y = y.squeeze()
+            y = pd.Series(y)
         check_y(y, allow_index_names=True)
         s.append(y)
     series = s
 
     n_series = len(series)
-    _ax_kwarg_is_none = True if ax is None else False
     # labels
     if labels is not None:
         if n_series != len(labels):
@@ -114,8 +127,9 @@ def plot_series(
     # generate integer x-values
     xs = [np.argwhere(index.isin(y.index)).ravel() for y in series]
 
-    # create figure if no Axe provided for plotting
-    if _ax_kwarg_is_none:
+    # create figure if no ax provided for plotting
+    local_ax = ax
+    if ax is None:
         fig, ax = plt.subplots(1, figsize=plt.figaspect(0.25))
 
     # colors
@@ -163,7 +177,7 @@ def plot_series(
         assert is_pred_interval_proba(pred_interval)
         ax = _plot_interval(ax, pred_interval)
 
-    if _ax_kwarg_is_none:
+    if local_ax is None:
         return fig, ax
     else:
         return ax
