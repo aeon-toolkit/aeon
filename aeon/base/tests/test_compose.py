@@ -113,7 +113,7 @@ def test_check_estimators():
     ens = [("clf1", MockClassifier()), MockClassifier()]
     clf = ClassifierEnsemble(ens)
 
-    clf._check_estimators(ens)
+    clf._check_estimators(ens, unique_names=False)
 
     with pytest.raises(ValueError, match="estimators should only contain singular"):
         clf._check_estimators(ens, allow_tuples=False)
@@ -143,6 +143,9 @@ def test_check_estimators():
 
     with pytest.raises(ValueError, match="name is invalid"):
         clf._check_estimators(ens, invalid_names=["clf1"])
+
+    with pytest.raises(ValueError, match="name is invalid"):
+        clf._check_estimators(ens, invalid_names="clf1")
 
     with pytest.raises(TypeError, match="tuple or estimator"):
         clf._check_estimators(["invalid"])

@@ -118,7 +118,7 @@ class ComposableEstimatorMixin(ABC):
 
         Returns
         -------
-        fitted_params : mapping of string to any
+        fitted_params : dict
             Fitted parameter names mapped to their values.
         """
         self._check_is_fitted()
