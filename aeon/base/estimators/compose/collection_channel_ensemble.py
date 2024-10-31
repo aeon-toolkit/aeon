@@ -13,12 +13,12 @@ from sklearn.utils import check_random_state
 from aeon.base import (
     BaseAeonEstimator,
     BaseCollectionEstimator,
-    _ComposableEstimatorMixin,
+    ComposableEstimatorMixin,
 )
 from aeon.base._base import _clone_estimator
 
 
-class BaseCollectionChannelEnsemble(_ComposableEstimatorMixin, BaseCollectionEstimator):
+class BaseCollectionChannelEnsemble(ComposableEstimatorMixin, BaseCollectionEstimator):
     """Applies estimators to channels of an array.
 
     Parameters

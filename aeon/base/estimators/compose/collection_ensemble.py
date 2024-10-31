@@ -15,12 +15,12 @@ from sklearn.utils import check_random_state
 from aeon.base import (
     BaseAeonEstimator,
     BaseCollectionEstimator,
-    _ComposableEstimatorMixin,
+    ComposableEstimatorMixin,
 )
 from aeon.base._base import _clone_estimator
 
 
-class BaseCollectionEnsemble(_ComposableEstimatorMixin, BaseCollectionEstimator):
+class BaseCollectionEnsemble(ComposableEstimatorMixin, BaseCollectionEstimator):
     """Weighted ensemble of collection estimators with fittable ensemble weight.
 
     Parameters

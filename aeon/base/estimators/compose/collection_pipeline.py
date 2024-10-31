@@ -13,12 +13,12 @@ from sklearn.utils import check_random_state
 from aeon.base import (
     BaseAeonEstimator,
     BaseCollectionEstimator,
-    _ComposableEstimatorMixin,
+    ComposableEstimatorMixin,
 )
 from aeon.base._base import _clone_estimator
 
 
-class BaseCollectionPipeline(_ComposableEstimatorMixin, BaseCollectionEstimator):
+class BaseCollectionPipeline(ComposableEstimatorMixin, BaseCollectionEstimator):
     """Base class for composable pipelines in collection based modules.
 
     Parameters

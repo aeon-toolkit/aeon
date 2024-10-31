@@ -1,7 +1,7 @@
 """Implements meta estimator for estimators composed of other estimators."""
 
 __maintainer__ = ["MatthewMiddlehurst"]
-__all__ = ["_ComposableEstimatorMixin"]
+__all__ = ["ComposableEstimatorMixin"]
 
 from abc import ABC, abstractmethod
 
@@ -9,7 +9,7 @@ from aeon.base import BaseAeonEstimator
 from aeon.base._base import _clone_estimator
 
 
-class _ComposableEstimatorMixin(ABC):
+class ComposableEstimatorMixin(ABC):
     """Handles parameter management for estimators composed of named estimators.
 
     Parts (i.e. get_params and set_params) adapted or copied from the scikit-learn

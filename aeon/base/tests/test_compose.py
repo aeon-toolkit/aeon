@@ -1,0 +1,1 @@
+"""Test composable estimator mixin."""
