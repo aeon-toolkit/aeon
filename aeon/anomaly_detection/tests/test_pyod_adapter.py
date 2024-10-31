@@ -4,11 +4,12 @@ __maintainer__ = ["CodeLionX"]
 
 import numpy as np
 import pytest
+from sklearn.utils import check_random_state
 
 from aeon.anomaly_detection import PyODAdapter
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
-rng = np.random.default_rng(seed=2)
+rng = check_random_state(0)
 
 
 @pytest.mark.skipif(
@@ -118,8 +119,10 @@ def test_pyod_adapter_stride_multivariate():
     """Test PyODAdapter with stride != 1 multivariate."""
     from pyod.models.lof import LOF
 
-    series = rng.normal(size=(100, 2))
-    series[50:58, 0] -= 20
+    rng2 = check_random_state(10)
+
+    series = rng2.normal(size=(100, 2))
+    series[50:58, 0] -= 2
 
     ad = PyODAdapter(LOF(), window_size=10, stride=5)
     pred = ad.fit_predict(series, axis=0)
