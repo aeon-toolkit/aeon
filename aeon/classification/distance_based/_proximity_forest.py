@@ -44,7 +44,7 @@ class ProximityForest(BaseClassifier):
     n_jobs : int, default = 1
         The number of parallel jobs to run for neighbors search.
         ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.
-        ``-1`` means using all processors. See :term:`Glossary <n_jobs>`
+        ``-1`` means using all processors.
         for more details. Parameter for compatibility purposes, still unimplemented.
     parallel_backend : str, ParallelBackendBase instance or None, default=None
         Specify the parallelisation backend implementation in joblib, if None a 'prefer'

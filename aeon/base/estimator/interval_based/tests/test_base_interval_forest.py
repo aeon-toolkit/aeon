@@ -11,10 +11,7 @@ from aeon.classification.interval_based._interval_forest import IntervalForestCl
 from aeon.classification.sklearn import ContinuousIntervalTree
 from aeon.testing.data_generation import make_example_3d_numpy
 from aeon.transformations.collection import AutocorrelationFunctionTransformer
-from aeon.transformations.collection.feature_based import (
-    Catch22,
-    SevenNumberSummaryTransformer,
-)
+from aeon.transformations.collection.feature_based import Catch22, SevenNumberSummary
 from aeon.utils.numba.stats import row_mean, row_numba_min
 
 
@@ -56,7 +53,7 @@ def test_interval_forest_invalid_feature_skipping():
     est = IntervalForestClassifier(
         n_estimators=2,
         n_intervals=2,
-        interval_features=SevenNumberSummaryTransformer(),
+        interval_features=SevenNumberSummary(),
     )
     est.fit(X, y)
 
@@ -159,7 +156,7 @@ def test_interval_forest_invalid_attribute_subsample():
         n_estimators=2,
         n_intervals=2,
         att_subsample_size=2,
-        interval_features=SevenNumberSummaryTransformer(),
+        interval_features=SevenNumberSummary(),
     )
 
     with pytest.raises(ValueError):
