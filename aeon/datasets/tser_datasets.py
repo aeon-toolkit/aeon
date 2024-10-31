@@ -23,7 +23,7 @@ tser_monash = {
     "Covid3Month": 3902690,
 }
 
-tser_soton = {
+tser_soton = [
     "AcousticContaminationMadrid",
     "AluminiumConcentration",
     "AppliancesEnergy",
@@ -87,13 +87,79 @@ tser_soton = {
     "WaveDataTension",
     "WindTurbinePower",
     "ZincConcentration",
-}
+]
 
-tser_soton_unequal_length = {
+tser_soton_clean = [
+    "AcousticContaminationMadrid_nmv",
+    "AluminiumConcentration",
+    "AppliancesEnergy",
+    "AustraliaRainfall",
+    "BarCrawl6min",
+    "BeijingIntAirportPM25Quality",
+    "BeijingPM10Quality_nmv",
+    "BeijingPM25Quality_nmv",
+    "BenzeneConcentration_nmv",
+    "BIDMC32HR",
+    "BIDMC32RR",
+    "BIDMC32SpO2",
+    "BinanceCoinSentiment",
+    "BitcoinSentiment",
+    "BoronConcentration",
+    "CalciumConcentration",
+    "CardanoSentiment",
+    "ChilledWaterPredictor",
+    "CopperConcentration",
+    "Covid19Andalusia",
+    "Covid3Month",
+    "DailyOilGasPrices",
+    "DailyTemperatureLatitude",
+    "DhakaHourlyAirQuality",
+    "ElectricityPredictor",
+    "ElectricMotorTemperature",
+    "EthereumSentiment",
+    "FloodModeling1",
+    "FloodModeling2",
+    "FloodModeling3",
+    "GasSensorArrayAcetone",
+    "GasSensorArrayEthanol",
+    "HotwaterPredictor",
+    "HouseholdPowerConsumption1_nmv",
+    "HouseholdPowerConsumption2_nmv",
+    "IEEEPPG",
+    "IronConcentration",
+    "LiveFuelMoistureContent",
+    "LPGasMonitoringHomeActivity",
+    "MadridPM10Quality_nmv",
+    "MagnesiumConcentration",
+    "ManganeseConcentration",
+    "MethaneMonitoringHomeActivity",
+    "MetroInterstateTrafficVolume",
+    "NaturalGasPricesSentiment",
+    "NewsHeadlineSentiment",
+    "NewsTitleSentiment",
+    "OccupancyDetectionLight",
+    "ParkingBirmingham_eq",
+    "PhosphorusConcentration",
+    "PotassiumConcentration",
+    "PPGDalia_eq",
+    "PrecipitationAndalusia_nmv",
+    "SierraNevadaMountainsSnow",
+    "SodiumConcentration",
+    "SolarRadiationAndalusia_nmv",
+    "SteamPredictor",
+    "SulphurConcentration",
+    "TetuanEnergyConsumption",
+    "VentilatorPressure",
+    "WaveDataTension",
+    "WindTurbinePower",
+    "ZincConcentration",
+]
+
+tser_soton_unequal_length = [
     "ParkingBirmingham",
     "PPGDalia",
-}
-tser_soton_missing_values = {
+]
+tser_soton_missing_values = [
     "AcousticContaminationMadrid",
     "BeijingPM10Quality",
     "BeijingPM25Quality",
@@ -103,4 +169,4 @@ tser_soton_missing_values = {
     "MadridPM10Quality",
     "PrecipitationAndalusia",
     "SolarRadiationAndalusia",
-}
+]
