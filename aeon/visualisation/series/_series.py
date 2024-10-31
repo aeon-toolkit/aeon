@@ -34,8 +34,8 @@ def plot_series(
 
     Parameters
     ----------
-    series : pd.Series or iterable of pd.Series
-        One or more time series.
+    series : pd.Series or np.ndarray or pd.DataFrame
+        One or more time series stored in `(n_channels, n_timepoints)` format.
     labels : list, default = None
         Names of series, will be displayed in figure legend.
     markers : list, default = None
@@ -66,6 +66,11 @@ def plot_series(
     from matplotlib.cbook import flatten
     from matplotlib.ticker import FuncFormatter, MaxNLocator
 
+    # Convert single multivariate series in wide format to list of series
+    if isinstance(series, pd.DataFrame):
+        series = [row for _, row in series.iterrows()]
+    elif isinstance(series, pd.Series):
+        series = [series]
     s = []
     for y in series:
         y = pd.Series(y)
@@ -198,8 +203,8 @@ def plot_lags(series, lags=1, suptitle=None):
 
     Parameters
     ----------
-    series : pd.Series
-        Time series for plotting lags.
+    series : pd.Series or np.ndarray
+        Single univariate  ime series for plotting lags.
     lags : int or array-like, default=1
         The lag or lags to plot.
 
@@ -226,6 +231,8 @@ def plot_lags(series, lags=1, suptitle=None):
     _check_soft_dependencies("matplotlib")
     import matplotlib.pyplot as plt
 
+    if isinstance(series, np.ndarray):
+        series = pd.Series(series)
     series = check_y(series)
 
     if isinstance(lags, int):
@@ -394,6 +401,8 @@ def plot_spectrogram(series, fs=1, return_onesided=True):
     _check_soft_dependencies("matplotlib")
     import matplotlib.pyplot as plt
 
+    if isinstance(series, np.ndarray):
+        series = pd.Series(series)
     series = check_y(series)
 
     fig, ax = plt.subplots()
