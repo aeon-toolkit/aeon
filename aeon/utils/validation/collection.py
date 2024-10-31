@@ -370,7 +370,8 @@ def _equal_length(X, input_type):
     if input_type == "pd-multiindex":  # multiindex dataframe
         X = X.reset_index(-1).drop(X.columns, axis=1)
         return (
-            X.groupby(level=0, group_keys=True, as_index=True).count().nunique()[0] == 1
+            X.groupby(level=0, group_keys=True, as_index=True).count().nunique().iloc[0]
+            == 1
         )
     raise ValueError(f" unknown input type {input_type}")
 
