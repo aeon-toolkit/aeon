@@ -146,7 +146,21 @@ class BaseClusterer(BaseCollectionEstimator):
         return self._fit_predict(X, y)
 
     def _fit_predict(self, X, y=None) -> np.ndarray:
-        """Fit predict using base methods."""
+        """Fit predict using base methods.
+
+        Parameters
+        ----------
+        X : np.ndarray (2d or 3d array of shape (n_cases, n_timepoints) or shape
+            (n_cases, n_channels, n_timepoints)).
+            Time series instances to train clusterer and then have indexes each belong
+            to return.
+        y: ignored, exists for API consistency reasons.
+
+        Returns
+        -------
+        np.ndarray (1d array of shape (n_cases,))
+            Index of the cluster each time series in X belongs to.
+        """
         self.fit(X)
         return self.predict(X)
 
