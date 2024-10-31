@@ -3,6 +3,8 @@
 Pipeline classifier using the SAST transformer and an sklearn classifier.
 """
 
+from typing import Optional
+
 __maintainer__ = ["TonyBagnall"]
 __all__ = ["SASTClassifier"]
 
@@ -69,7 +71,7 @@ class SASTClassifier(BaseClassifier):
         length_list=None,
         stride: int = 1,
         nb_inst_per_class: int = 1,
-        seed: int = None,
+        seed: Optional[int] = None,
         classifier=None,
         n_jobs: int = -1,
     ) -> None:

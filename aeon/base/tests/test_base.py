@@ -1,5 +1,5 @@
 """
-Tests for BaseObject universal base class.
+Tests for BaseAeonEstimator universal base class.
 
 tests in this module:
 
@@ -14,8 +14,6 @@ tests in this module:
 
     test_components         - tests retrieval of list of components via _components
     test_get_fitted_params  - tests get_fitted_params logic, nested and non-nested
-
-    test_eq_dunder       - tests __eq__ dunder to compare parameter definition
 """
 
 __maintainer__ = []
@@ -28,20 +26,18 @@ __all__ = [
     "test_set_tags",
     "test_reset",
     "test_reset_composite",
-    "test_components",
     "test_get_fitted_params",
-    "test_eq_dunder",
 ]
 
 from copy import deepcopy
 
 import pytest
 
-from aeon.base import BaseEstimator, BaseObject
+from aeon.base import BaseAeonEstimator
 
 
 # Fixture class for testing tag system
-class FixtureClassParent(BaseObject):
+class FixtureClassParent(BaseAeonEstimator):
     _tags = {"A": "1", "B": 2, "C": 1234, 3: "D"}
 
 
@@ -52,17 +48,41 @@ class FixtureClassChild(FixtureClassParent):
 
 FIXTURE_CLASSCHILD = FixtureClassChild
 
-FIXTURE_CLASSCHILD_TAGS = {"A": 42, "B": 2, "C": 1234, 3: "E"}
+FIXTURE_CLASSCHILD_TAGS = {
+    "python_version": None,
+    "python_dependencies": None,
+    "cant_pickle": False,
+    "non_deterministic": False,
+    "algorithm_type": None,
+    "capability:missing_values": False,
+    "capability:multithreading": False,
+    "A": 42,
+    "B": 2,
+    "C": 1234,
+    3: "E",
+}
 
 # Fixture class for testing tag system, object overrides class tags
 FIXTURE_OBJECT = FixtureClassChild()
 FIXTURE_OBJECT._tags_dynamic = {"A": 42424241, "B": 3}
 
-FIXTURE_OBJECT_TAGS = {"A": 42424241, "B": 3, "C": 1234, 3: "E"}
+FIXTURE_OBJECT_TAGS = {
+    "python_version": None,
+    "python_dependencies": None,
+    "cant_pickle": False,
+    "non_deterministic": False,
+    "algorithm_type": None,
+    "capability:missing_values": False,
+    "capability:multithreading": False,
+    "A": 42424241,
+    "B": 3,
+    "C": 1234,
+    3: "E",
+}
 
 
 def test_get_class_tags():
-    """Tests get_class_tags class method of BaseObject for correctness.
+    """Tests get_class_tags class method of BaseAeonEstimator for correctness.
 
     Raises
     ------
@@ -70,13 +90,13 @@ def test_get_class_tags():
     """
     child_tags = FIXTURE_CLASSCHILD.get_class_tags()
 
-    msg = "Inheritance logic in BaseObject.get_class_tags is incorrect"
+    msg = "Inheritance logic in BaseAeonEstimator.get_class_tags is incorrect"
 
     assert child_tags == FIXTURE_CLASSCHILD_TAGS, msg
 
 
 def test_get_class_tag():
-    """Tests get_class_tag class method of BaseObject for correctness.
+    """Tests get_class_tag class method of BaseAeonEstimator for correctness.
 
     Raises
     ------
@@ -92,19 +112,19 @@ def test_get_class_tag():
     child_tag_default = FIXTURE_CLASSCHILD.get_class_tag("foo", "bar")
     child_tag_defaultNone = FIXTURE_CLASSCHILD.get_class_tag("bar")
 
-    msg = "Inheritance logic in BaseObject.get_class_tag is incorrect"
+    msg = "Inheritance logic in BaseAeonEstimator.get_class_tag is incorrect"
 
     for key in child_tags_keys:
         assert child_tags[key] == FIXTURE_CLASSCHILD_TAGS[key], msg
 
-    msg = "Default override logic in BaseObject.get_class_tag is incorrect"
+    msg = "Default override logic in BaseAeonEstimator.get_class_tag is incorrect"
 
     assert child_tag_default == "bar", msg
     assert child_tag_defaultNone is None, msg
 
 
 def test_get_tags():
-    """Tests get_tags method of BaseObject for correctness.
+    """Tests get_tags method of BaseAeonEstimator for correctness.
 
     Raises
     ------
@@ -112,13 +132,13 @@ def test_get_tags():
     """
     object_tags = FIXTURE_OBJECT.get_tags()
 
-    msg = "Inheritance logic in BaseObject.get_tags is incorrect"
+    msg = "Inheritance logic in BaseAeonEstimator.get_tags is incorrect"
 
     assert object_tags == FIXTURE_OBJECT_TAGS, msg
 
 
 def test_get_tag():
-    """Tests get_tag method of BaseObject for correctness.
+    """Tests get_tag method of BaseAeonEstimator for correctness.
 
     Raises
     ------
@@ -134,12 +154,12 @@ def test_get_tag():
     object_tag_default = FIXTURE_OBJECT.get_tag("foo", "bar", raise_error=False)
     object_tag_defaultNone = FIXTURE_OBJECT.get_tag("bar", raise_error=False)
 
-    msg = "Inheritance logic in BaseObject.get_tag is incorrect"
+    msg = "Inheritance logic in BaseAeonEstimator.get_tag is incorrect"
 
     for key in object_tags_keys:
         assert object_tags[key] == FIXTURE_OBJECT_TAGS[key], msg
 
-    msg = "Default override logic in BaseObject.get_tag is incorrect"
+    msg = "Default override logic in BaseAeonEstimator.get_tag is incorrect"
 
     assert object_tag_default == "bar", msg
     assert object_tag_defaultNone is None, msg
@@ -158,24 +178,37 @@ def test_get_tag_raises():
 
 FIXTURE_TAG_SET = {"A": 42424243, "E": 3}
 FIXTURE_OBJECT_SET = deepcopy(FIXTURE_OBJECT).set_tags(**FIXTURE_TAG_SET)
-FIXTURE_OBJECT_SET_TAGS = {"A": 42424243, "B": 3, "C": 1234, 3: "E", "E": 3}
+FIXTURE_OBJECT_SET_TAGS = {
+    "python_version": None,
+    "python_dependencies": None,
+    "cant_pickle": False,
+    "non_deterministic": False,
+    "algorithm_type": None,
+    "capability:missing_values": False,
+    "capability:multithreading": False,
+    "A": 42424243,
+    "B": 3,
+    "C": 1234,
+    3: "E",
+    "E": 3,
+}
 FIXTURE_OBJECT_SET_DYN = {"A": 42424243, "B": 3, "E": 3}
 
 
 def test_set_tags():
-    """Tests set_tags method of BaseObject for correctness.
+    """Tests set_tags method of BaseAeonEstimator for correctness.
 
     Raises
     ------
     AssertionError if override logic in set_tags is incorrect
     """
-    msg = "Setter/override logic in BaseObject.set_tags is incorrect"
+    msg = "Setter/override logic in BaseAeonEstimator.set_tags is incorrect"
 
     assert FIXTURE_OBJECT_SET._tags_dynamic == FIXTURE_OBJECT_SET_DYN, msg
     assert FIXTURE_OBJECT_SET.get_tags() == FIXTURE_OBJECT_SET_TAGS, msg
 
 
-class CompositionDummy(BaseObject):
+class CompositionDummy(BaseAeonEstimator):
     """Potentially composite object, for testing."""
 
     def __init__(self, foo, bar=84):
@@ -184,21 +217,7 @@ class CompositionDummy(BaseObject):
         self.bar = bar
 
 
-def test_is_composite():
-    """Tests is_composite tag for correctness.
-
-    Raises
-    ------
-    AssertionError if logic behind is_composite is incorrect
-    """
-    non_composite = CompositionDummy(foo=42)
-    composite = CompositionDummy(foo=non_composite)
-
-    assert not non_composite.is_composite()
-    assert composite.is_composite()
-
-
-class ResetTester(BaseObject):
+class ResetTester(BaseAeonEstimator):
     clsvar = 210
 
     def __init__(self, a, b=42):
@@ -255,32 +274,7 @@ def test_reset_composite():
     assert not hasattr(x.a, "d")
 
 
-def test_components():
-    """Tests component retrieval.
-
-    Raises
-    ------
-    AssertionError if logic behind _components is incorrect, logic tested:
-        calling _components on a non-composite returns an empty dict
-        calling _components on a composite returns name/BaseObject pair in dict,
-        and BaseObject returned is identical with attribute of the same name
-    """
-    non_composite = CompositionDummy(foo=42)
-    composite = CompositionDummy(foo=non_composite)
-
-    non_comp_comps = non_composite._components()
-    comp_comps = composite._components()
-
-    assert isinstance(non_comp_comps, dict)
-    assert set(non_comp_comps.keys()) == set()
-
-    assert isinstance(comp_comps, dict)
-    assert set(comp_comps.keys()) == {"foo_"}
-    assert comp_comps["foo_"] is composite.foo_
-    assert comp_comps["foo_"] is not composite.foo
-
-
-class FittableCompositionDummy(BaseEstimator):
+class FittableCompositionDummy(BaseAeonEstimator):
     """Potentially composite object, for testing."""
 
     def __init__(self, foo, bar=84):
@@ -291,7 +285,7 @@ class FittableCompositionDummy(BaseEstimator):
     def fit(self):
         if hasattr(self.foo_, "fit"):
             self.foo_.fit()
-        self._is_fitted = True
+        self.is_fitted = True
 
 
 def test_get_fitted_params():
@@ -314,55 +308,12 @@ def test_get_fitted_params():
     comp_f_params_shallow = composite.get_fitted_params(deep=False)
 
     assert isinstance(non_comp_f_params, dict)
-    assert set(non_comp_f_params.keys()) == {"foo"}
+    assert set(non_comp_f_params.keys()) == {"foo_"}
 
     assert isinstance(comp_f_params, dict)
-    assert set(comp_f_params) == {"foo", "foo__foo"}
-    assert set(comp_f_params_shallow) == {"foo"}
-    assert comp_f_params["foo"] is composite.foo_
-    assert comp_f_params["foo"] is not composite.foo
-    assert comp_f_params_shallow["foo"] is composite.foo_
-    assert comp_f_params_shallow["foo"] is not composite.foo
-
-
-def test_eq_dunder():
-    """Tests equality dunder for BaseObject descendants.
-
-    Equality should be determined only by get_params results.
-
-    Raises
-    ------
-    AssertionError if logic behind __eq__ is incorrect, logic tested:
-        equality of non-composites depends only on params, not on identity
-        equality of composites depends only on params, not on identity
-        result is not affected by fitting the estimator
-    """
-    non_composite = FittableCompositionDummy(foo=42)
-    non_composite_2 = FittableCompositionDummy(foo=42)
-    non_composite_3 = FittableCompositionDummy(foo=84)
-
-    composite = FittableCompositionDummy(foo=non_composite)
-    composite_2 = FittableCompositionDummy(foo=non_composite_2)
-    composite_3 = FittableCompositionDummy(foo=non_composite_3)
-
-    assert non_composite == non_composite
-    assert composite == composite
-    assert non_composite == non_composite_2
-    assert non_composite != non_composite_3
-    assert non_composite_2 != non_composite_3
-    assert composite == composite_2
-    assert composite != composite_3
-    assert composite_2 != composite_3
-
-    # equality should not be affected by fitting
-    composite.fit()
-    non_composite_2.fit()
-
-    assert non_composite == non_composite
-    assert composite == composite
-    assert non_composite == non_composite_2
-    assert non_composite != non_composite_3
-    assert non_composite_2 != non_composite_3
-    assert composite == composite_2
-    assert composite != composite_3
-    assert composite_2 != composite_3
+    assert set(comp_f_params) == {"foo_", "foo___foo_"}
+    assert set(comp_f_params_shallow) == {"foo_"}
+    assert comp_f_params["foo_"] is composite.foo_
+    assert comp_f_params["foo_"] is not composite.foo
+    assert comp_f_params_shallow["foo_"] is composite.foo_
+    assert comp_f_params_shallow["foo_"] is not composite.foo

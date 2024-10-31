@@ -10,9 +10,9 @@ from aeon.clustering import BaseClusterer
 from aeon.clustering.compose import ClustererPipeline
 from aeon.regression import BaseRegressor
 from aeon.regression.compose import RegressorPipeline
-from aeon.transformations.base import BaseTransformer
 from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.transformations.collection.compose import CollectionTransformerPipeline
+from aeon.transformations.series import BaseSeriesTransformer
 
 
 def make_pipeline(*steps):
@@ -29,7 +29,7 @@ def make_pipeline(*steps):
     Returns
     -------
     pipe : aeon pipeline containing steps, in order
-        always a descendant of BaseObject, precise object determined by
+        always a descendant of BaseAeonEstimator, precise object determined by
         equivalent to result of step[0] * step[1] * ... * step[-1]
 
     Examples
@@ -79,7 +79,7 @@ def make_pipeline(*steps):
         or isinstance(steps[0], TransformerMixin)
         or getattr(steps[0], "_estimator_type", None) == "transformer"
     ) and (
-        isinstance(steps[-1], BaseTransformer)
+        isinstance(steps[-1], BaseSeriesTransformer)
         or isinstance(steps[-1], TransformerMixin)
         or getattr(steps[-1], "_estimator_type", None) == "transformer"
     ):
