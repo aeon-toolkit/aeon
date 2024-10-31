@@ -2,14 +2,15 @@
 
 __maintainer__ = ["codelionx"]
 
-from typing import List, Optional, Union
+from typing import Optional, Union
 
 import numpy as np
 from numba import njit, objmode
 from numba.typed import List as NumbaList
 from scipy.signal import correlate
 
-from aeon.distances._utils import _convert_to_list, _is_multivariate
+from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
+from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
 @njit(cache=True, fastmath=True)
@@ -113,8 +114,8 @@ def sbd_distance(x: np.ndarray, y: np.ndarray, standardize: bool = True) -> floa
 
 
 def sbd_pairwise_distance(
-    X: Union[np.ndarray, List[np.ndarray]],
-    y: Optional[Union[np.ndarray, List[np.ndarray]]] = None,
+    X: Union[np.ndarray, list[np.ndarray]],
+    y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
     standardize: bool = True,
 ) -> np.ndarray:
     """
@@ -187,14 +188,14 @@ def sbd_pairwise_distance(
            [0.36754447, 0.        , 0.29289322],
            [0.5527864 , 0.29289322, 0.        ]])
     """
-    multivariate_conversion = _is_multivariate(X, y)
-    _X, _ = _convert_to_list(X, "", multivariate_conversion)
+    multivariate_conversion = _is_numpy_list_multivariate(X, y)
+    _X, _ = _convert_collection_to_numba_list(X, "", multivariate_conversion)
 
     if y is None:
         # To self
         return _sbd_pairwise_distance_single(_X, standardize)
 
-    _y, _ = _convert_to_list(y, "y", multivariate_conversion)
+    _y, _ = _convert_collection_to_numba_list(y, "y", multivariate_conversion)
     return _sbd_pairwise_distance(_X, _y, standardize)
 
 

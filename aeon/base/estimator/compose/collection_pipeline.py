@@ -5,11 +5,16 @@ i.e. classification, regression and clustering.
 
 __maintainer__ = ["MatthewMiddlehurst"]
 
+
 import numpy as np
-from sklearn.base import BaseEstimator as SklearnBaseEstimator
+from sklearn.base import BaseEstimator
 from sklearn.utils import check_random_state
 
-from aeon.base import BaseCollectionEstimator, BaseEstimator, _HeterogenousMetaEstimator
+from aeon.base import (
+    BaseAeonEstimator,
+    BaseCollectionEstimator,
+    _HeterogenousMetaEstimator,
+)
 from aeon.base._base import _clone_estimator
 
 
@@ -62,7 +67,7 @@ class BaseCollectionPipeline(_HeterogenousMetaEstimator, BaseCollectionEstimator
         self._steps = self._check_estimators(
             self._steps,
             attr_name="_steps",
-            cls_type=SklearnBaseEstimator,
+            cls_type=BaseEstimator,
             clone_ests=False,
         )
 
@@ -73,7 +78,7 @@ class BaseCollectionPipeline(_HeterogenousMetaEstimator, BaseCollectionEstimator
         multivariate_tags = [
             (
                 e[1].get_tag("capability:multivariate", False, raise_error=False)
-                if isinstance(e[1], BaseEstimator)
+                if isinstance(e[1], BaseAeonEstimator)
                 else False
             )
             for e in self._steps
@@ -82,13 +87,13 @@ class BaseCollectionPipeline(_HeterogenousMetaEstimator, BaseCollectionEstimator
         multivariate_rm_tag = False
         for e in self._steps:
             if (
-                isinstance(e[1], BaseEstimator)
+                isinstance(e[1], BaseAeonEstimator)
                 and e[1].get_tag("capability:multivariate", False, raise_error=False)
                 and e[1].get_tag("output_data_type", raise_error=False) == "Tabular"
             ):
                 multivariate_rm_tag = True
                 break
-            elif not isinstance(e[1], BaseEstimator) or not e[1].get_tag(
+            elif not isinstance(e[1], BaseAeonEstimator) or not e[1].get_tag(
                 "capability:multivariate", False, raise_error=False
             ):
                 break
@@ -100,7 +105,7 @@ class BaseCollectionPipeline(_HeterogenousMetaEstimator, BaseCollectionEstimator
         missing_tags = [
             (
                 e[1].get_tag("capability:missing_values", False, raise_error=False)
-                if isinstance(e[1], BaseEstimator)
+                if isinstance(e[1], BaseAeonEstimator)
                 else False
             )
             for e in self._steps
@@ -109,15 +114,13 @@ class BaseCollectionPipeline(_HeterogenousMetaEstimator, BaseCollectionEstimator
         missing_rm_tag = False
         for e in self._steps:
             if (
-                isinstance(e[1], BaseEstimator)
+                isinstance(e[1], BaseAeonEstimator)
                 and e[1].get_tag("capability:missing_values", False, raise_error=False)
-                and e[1].get_tag(
-                    "capability:missing_values:removes", False, raise_error=False
-                )
+                and e[1].get_tag("removes_missing_values", False, raise_error=False)
             ):
                 missing_rm_tag = True
                 break
-            elif not isinstance(e[1], BaseEstimator) or not e[1].get_tag(
+            elif not isinstance(e[1], BaseAeonEstimator) or not e[1].get_tag(
                 "capability:missing_values", False, raise_error=False
             ):
                 break
@@ -130,7 +133,7 @@ class BaseCollectionPipeline(_HeterogenousMetaEstimator, BaseCollectionEstimator
         unequal_tags = [
             (
                 e[1].get_tag("capability:unequal_length", False, raise_error=False)
-                if isinstance(e[1], BaseEstimator)
+                if isinstance(e[1], BaseAeonEstimator)
                 else False
             )
             for e in self._steps
@@ -139,18 +142,16 @@ class BaseCollectionPipeline(_HeterogenousMetaEstimator, BaseCollectionEstimator
         unequal_rm_tag = False
         for e in self._steps:
             if (
-                isinstance(e[1], BaseEstimator)
+                isinstance(e[1], BaseAeonEstimator)
                 and e[1].get_tag("capability:unequal_length", False, raise_error=False)
                 and (
-                    e[1].get_tag(
-                        "capability:unequal_length:removes", False, raise_error=False
-                    )
+                    e[1].get_tag("removes_unequal_length", False, raise_error=False)
                     or e[1].get_tag("output_data_type", raise_error=False) == "Tabular"
                 )
             ):
                 unequal_rm_tag = True
                 break
-            elif not isinstance(e[1], BaseEstimator) or not e[1].get_tag(
+            elif not isinstance(e[1], BaseAeonEstimator) or not e[1].get_tag(
                 "capability:unequal_length", False, raise_error=False
             ):
                 break
