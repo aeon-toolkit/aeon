@@ -139,7 +139,7 @@ ESTIMATOR_TAGS = {
         "point belongs to.",
     },
     "requires_y": {
-        "class": ["transformer", "anomaly-detector", "segmenter"],
+        "class": ["transformer", "anomaly-detector", "segmenter", "forecaster"],
         "type": "bool",
         "description": "Does this estimator require y to be passed in its methods?",
     },

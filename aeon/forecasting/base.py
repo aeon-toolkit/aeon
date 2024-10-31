@@ -28,13 +28,13 @@ class BaseForecaster(BaseSeriesEstimator):
         will learn to predict one point ahead
     """
 
-    # TODO: add any forecasting specific tags
     _tags = {
         "capability:univariate": True,
         "capability:multivariate": False,
         "capability:missing_values": False,
         "y_inner_type": "np.ndarray",
         "fit_is_empty": False,
+        "requires_y": True,
     }
 
     def __init__(self, horizon=1, axis=1):
