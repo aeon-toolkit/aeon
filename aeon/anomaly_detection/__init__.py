@@ -10,6 +10,8 @@ __all__ = [
     "LeftSTAMPi",
     "IsolationForest",
     "LOF",
+    "CBLOF",
+    "COPOD",
 ]
 
 from aeon.anomaly_detection._dwt_mlead import DWT_MLEAD
