@@ -43,6 +43,7 @@ class RegressionForecaster(BaseForecaster):
         # Extract y
         y = y[self.window + self.horizon - 1 :]
         self.last_ = y[-self.window :]
+        self.last_ = self.last_.reshape(1, -1)
         self.regressor_.fit(X=X, y=y)
         return self
 
@@ -50,8 +51,8 @@ class RegressionForecaster(BaseForecaster):
         """Predict values for time series X."""
         if y is None:
             return self.regressor_.predict(self.last_)
-        y = y.squeeze()
-        return self.regressor_.predict(y[-self.window :])
+        last = y[:, -self.window :]
+        return self.regressor_.predict(last)
 
     def _forecast(self, y, exog=None):
         """Forecast values for time series X.
@@ -60,3 +61,18 @@ class RegressionForecaster(BaseForecaster):
         """
         self.fit(y, exog)
         return self.predict(y)
+
+    def _get_test_params(cls, parameter_set="default"):
+        """Return testing parameter settings for the estimator.
+
+        Parameters
+        ----------
+        parameter_set : str, default='default'
+            Name of the parameter set to return.
+
+        Returns
+        -------
+        dict
+            Dictionary of testing parameter settings.
+        """
+        return {"window": 4}
