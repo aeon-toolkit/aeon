@@ -20,7 +20,7 @@ from aeon.utils.validation.series import (
 
 
 def plot_series(
-    *series,
+    series,
     labels=None,
     markers=None,
     colors=None,
@@ -66,10 +66,12 @@ def plot_series(
     from matplotlib.cbook import flatten
     from matplotlib.ticker import FuncFormatter, MaxNLocator
 
+    s = []
     for y in series:
+        y = pd.Series(y)
         check_y(y, allow_index_names=True)
-
-    series = list(series)
+        s.append(y)
+    series = s
 
     n_series = len(series)
     _ax_kwarg_is_none = True if ax is None else False
