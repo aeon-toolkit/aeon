@@ -146,27 +146,6 @@ class BaseClusterer(BaseCollectionEstimator):
         self.fit(X)
         return self.predict(X)
 
-    def score(self, X, y=None) -> float:
-        """Score the quality of the clusterer.
-
-        Parameters
-        ----------
-        X : np.ndarray (2d or 3d array of shape (n_cases, n_timepoints) or shape
-            (n_cases, n_channels, n_timepoints)).
-            Time series instances to train clusterer and then have indexes each belong
-            to return.
-        y: ignored, exists for API consistency reasons.
-
-        Returns
-        -------
-        score : float
-            Score of the clusterer.
-        """
-        self._check_is_fitted()
-        X = self._preprocess_collection(X, store_metadata=False)
-        self._check_shape(X)
-        return self._score(X, y)
-
     def _predict_proba(self, X) -> np.ndarray:
         """Predicts labels probabilities for sequences in X.
 
