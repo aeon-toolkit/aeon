@@ -111,7 +111,11 @@ class BaseCollectionEnsemble(_ComposableEstimatorMixin, BaseCollectionEstimator)
         multivariate = all(
             [
                 (
-                    e[1].get_tag("capability:multivariate", False, raise_error=False)
+                    e[1].get_tag(
+                        "capability:multivariate",
+                        raise_error=False,
+                        tag_value_default=False,
+                    )
                     if isinstance(e[1], BaseAeonEstimator)
                     else False
                 )
@@ -123,7 +127,11 @@ class BaseCollectionEnsemble(_ComposableEstimatorMixin, BaseCollectionEstimator)
         missing = all(
             [
                 (
-                    e[1].get_tag("capability:missing_values", False, raise_error=False)
+                    e[1].get_tag(
+                        "capability:missing_values",
+                        raise_error=False,
+                        tag_value_default=False,
+                    )
                     if isinstance(e[1], BaseAeonEstimator)
                     else False
                 )
@@ -135,7 +143,11 @@ class BaseCollectionEnsemble(_ComposableEstimatorMixin, BaseCollectionEstimator)
         unequal = all(
             [
                 (
-                    e[1].get_tag("capability:unequal_length", False, raise_error=False)
+                    e[1].get_tag(
+                        "capability:unequal_length",
+                        raise_error=False,
+                        tag_value_default=False,
+                    )
                     if isinstance(e[1], BaseAeonEstimator)
                     else False
                 )

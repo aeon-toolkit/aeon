@@ -165,7 +165,7 @@ def test_get_class_tag():
 
     assert (
         BaseAeonEstimator.get_class_tag(
-            "invalid_tag", tag_value_default=50, raise_error=False
+            "invalid_tag", raise_error=False, tag_value_default=50
         )
         == 50
     )
@@ -193,7 +193,7 @@ def test_get_tag():
     assert clf.get_tag("capability:multivariate") is False
     assert clf.get_tag("capability:unequal_length") is False
 
-    assert clf.get_tag("invalid_tag", tag_value_default=50, raise_error=False) == 50
+    assert clf.get_tag("invalid_tag", raise_error=False, tag_value_default=50) == 50
 
     with pytest.raises(ValueError, match=r"Tag with name invalid_tag"):
         clf.get_tag("invalid_tag")

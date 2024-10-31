@@ -101,7 +101,11 @@ class BaseCollectionChannelEnsemble(_ComposableEstimatorMixin, BaseCollectionEst
         missing = all(
             [
                 (
-                    e[1].get_tag("capability:missing_values", False, raise_error=False)
+                    e[1].get_tag(
+                        "capability:missing_values",
+                        raise_error=False,
+                        tag_value_default=False,
+                    )
                     if isinstance(e[1], BaseAeonEstimator)
                     else False
                 )
@@ -110,14 +114,20 @@ class BaseCollectionChannelEnsemble(_ComposableEstimatorMixin, BaseCollectionEst
         )
         remainder_missing = remainder is None or (
             isinstance(remainder, BaseAeonEstimator)
-            and remainder.get_tag("capability:missing_values", False, raise_error=False)
+            and remainder.get_tag(
+                "capability:missing_values", raise_error=False, tag_value_default=False
+            )
         )
 
         # can handle unequal length if all estimators can
         unequal = all(
             [
                 (
-                    e[1].get_tag("capability:unequal_length", False, raise_error=False)
+                    e[1].get_tag(
+                        "capability:unequal_length",
+                        raise_error=False,
+                        tag_value_default=False,
+                    )
                     if isinstance(e[1], BaseAeonEstimator)
                     else False
                 )
@@ -126,7 +136,9 @@ class BaseCollectionChannelEnsemble(_ComposableEstimatorMixin, BaseCollectionEst
         )
         remainder_unequal = remainder is None or (
             isinstance(remainder, BaseAeonEstimator)
-            and remainder.get_tag("capability:unequal_length", False, raise_error=False)
+            and remainder.get_tag(
+                "capability:unequal_length", raise_error=False, tag_value_default=False
+            )
         )
 
         tags_to_set = {

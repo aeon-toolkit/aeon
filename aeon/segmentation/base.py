@@ -105,10 +105,10 @@ class BaseSegmenter(BaseSeriesEstimator):
         self
             Fitted estimator
         """
-        if self.get_class_tag("fit_is_empty"):
+        if self.get_tag("fit_is_empty"):
             self.is_fitted = True
             return self
-        if self.get_class_tag("requires_y"):
+        if self.get_tag("requires_y"):
             if y is None:
                 raise ValueError("Tag requires_y is true, but fit called with y=None")
         # reset estimator at the start of fit
@@ -149,7 +149,7 @@ class BaseSegmenter(BaseSeriesEstimator):
         self._check_is_fitted()
         if axis is None:
             axis = self.axis
-        X = self._preprocess_series(X, axis, self.get_class_tag("fit_is_empty"))
+        X = self._preprocess_series(X, axis, self.get_tag("fit_is_empty"))
         return self._predict(X)
 
     def fit_predict(self, X, y=None, axis=1):
