@@ -143,6 +143,10 @@ class BaseClusterer(BaseCollectionEstimator):
         np.ndarray (1d array of shape (n_cases,))
             Index of the cluster each time series in X belongs to.
         """
+        return self._fit_predict(X, y)
+
+    def _fit_predict(self, X, y=None) -> np.ndarray:
+        """Fit predict using base methods."""
         self.fit(X)
         return self.predict(X)
 
@@ -184,9 +188,6 @@ class BaseClusterer(BaseCollectionEstimator):
         for i in range(n_cases):
             dists[i, preds[i]] = 1
         return dists
-
-    @abstractmethod
-    def _score(self, X, y=None): ...
 
     @abstractmethod
     def _predict(self, X, y=None) -> np.ndarray:
