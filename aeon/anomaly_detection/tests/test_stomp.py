@@ -4,6 +4,7 @@ __maintainer__ = ["CodeLionX"]
 
 import numpy as np
 import pytest
+from sklearn.utils import check_random_state
 
 from aeon.anomaly_detection import STOMP
 from aeon.utils.validation._dependencies import _check_soft_dependencies
@@ -15,7 +16,7 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 )
 def test_STOMP():
     """Test STOMP."""
-    rng = np.random.default_rng(seed=2)
+    rng = check_random_state(0)
     series = rng.normal(size=(80,))
     series[50:58] -= 2
     ad = STOMP(window_size=10)

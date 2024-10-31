@@ -9,8 +9,6 @@ from sklearn.utils import check_random_state
 from aeon.anomaly_detection import PyODAdapter
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
-rng = check_random_state(42)
-
 
 @pytest.mark.skipif(
     not _check_soft_dependencies("pyod", severity="none"),
@@ -20,6 +18,7 @@ def test_pyod_adapter_default():
     """Test PyODAdapter."""
     from pyod.models.lof import LOF
 
+    rng = check_random_state(0)
     series = rng.normal(size=(80,))
     series[50:58] -= 2
     ad = PyODAdapter(LOF(), window_size=10, stride=1)
@@ -38,6 +37,8 @@ def test_pyod_adapter_default():
 def test_pyod_adapter_multivariate():
     """Test PyODAdapter multivariate."""
     from pyod.models.lof import LOF
+
+    rng = check_random_state(0)
 
     series = rng.normal(size=(80, 2))
     series[50:58, 0] -= 2
@@ -59,6 +60,8 @@ def test_pyod_adapter_no_window_univariate():
     """Test PyODAdapter without windows univariate."""
     from pyod.models.lof import LOF
 
+    rng = check_random_state(0)
+
     series = rng.normal(size=(80,))
     series[50:58] -= 2
 
@@ -78,6 +81,8 @@ def test_pyod_adapter_no_window_univariate():
 def test_pyod_adapter_no_window_multivariate():
     """Test PyODAdapter without windows multivariate."""
     from pyod.models.lof import LOF
+
+    rng = check_random_state(0)
 
     series = rng.normal(size=(80, 2))
     series[50:58, 0] -= 4
@@ -99,9 +104,8 @@ def test_pyod_adapter_stride_univariate():
     """Test PyODAdapter with stride != 1 univariate."""
     from pyod.models.lof import LOF
 
-    rng2 = check_random_state(0)
-
-    series = rng2.normal(size=(80,))
+    rng = check_random_state(0)
+    series = rng.normal(size=(80,))
     series[50:58] -= 4
 
     ad = PyODAdapter(LOF(), window_size=10, stride=5)
@@ -121,9 +125,9 @@ def test_pyod_adapter_stride_multivariate():
     """Test PyODAdapter with stride != 1 multivariate."""
     from pyod.models.lof import LOF
 
-    rng2 = check_random_state(42)
+    rng = check_random_state(0)
 
-    series = rng2.normal(size=(80, 2))
+    series = rng.normal(size=(80, 2))
     series[50:58, 0] -= 2
 
     ad = PyODAdapter(LOF(), window_size=10, stride=5)
@@ -142,6 +146,8 @@ def test_pyod_adapter_stride_multivariate():
 def test_pyod_adapter_semi_supervised_univariate():
     """Test PyODAdapter in semi-supervised mode."""
     from pyod.models.lof import LOF
+
+    rng = check_random_state(0)
 
     series = rng.normal(size=(80,))
     series[50:58] -= 2
@@ -164,6 +170,8 @@ def test_pyod_adapter_semi_supervised_univariate():
 def test_pyod_adapter_semi_supervised_multivariate():
     """Test PyODAdapter in semi-supervised mode (multivariate)."""
     from pyod.models.lof import LOF
+
+    rng = check_random_state(0)
 
     series = rng.normal(size=(80, 2))
     series[50:58, 0] -= 2
