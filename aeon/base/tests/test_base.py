@@ -14,7 +14,7 @@ from aeon.testing.mock_estimators import MockClassifier
 from aeon.testing.mock_estimators._mock_classifiers import (
     MockClassifierComposite,
     MockClassifierFullTags,
-    MockClassifierMultiTestParams,
+    MockClassifierParams,
 )
 from aeon.testing.testing_data import EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION
 from aeon.transformations.collection import Tabularizer
@@ -24,7 +24,7 @@ def test_reset():
     """Tests reset method for correct behaviour, on a simple estimator."""
     X, y = EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION["numpy3D"]["train"]
 
-    clf = MockClassifierMultiTestParams(return_ones=True)
+    clf = MockClassifierParams(return_ones=True)
     clf.fit(X, y)
 
     assert clf.return_ones is True
@@ -37,7 +37,7 @@ def test_reset():
 
     assert hasattr(clf, "return_ones") and clf.return_ones is True
     assert hasattr(clf, "value") and clf.value == 50
-    assert hasattr(clf, "_tags") and clf._tags == MockClassifierMultiTestParams._tags
+    assert hasattr(clf, "_tags") and clf._tags == MockClassifierParams._tags
     assert hasattr(clf, "is_fitted") and clf.is_fitted is False
     assert hasattr(clf, "__secret_att") and clf.__secret_att == 42
     assert hasattr(clf, "fit")
@@ -64,7 +64,7 @@ def test_reset_composite():
     """Test reset method for correct behaviour, on a composite estimator."""
     X, y = EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION["numpy3D"]["train"]
 
-    clf = MockClassifierComposite(mock=MockClassifierMultiTestParams(return_ones=True))
+    clf = MockClassifierComposite(mock=MockClassifierParams(return_ones=True))
     clf.fit(X, y)
 
     assert clf.foo_ == "bar"
@@ -99,7 +99,7 @@ def test_clone():
     """Tests that clone method correctly clones an estimator."""
     X, y = EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION["numpy3D"]["train"]
 
-    clf = MockClassifierMultiTestParams(return_ones=True)
+    clf = MockClassifierParams(return_ones=True)
     clf.fit(X, y)
 
     clf_clone = clf.clone()
@@ -116,7 +116,7 @@ def test_clone_function():
     """Tests that _clone_estimator function correctly clones an estimator."""
     X, y = EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION["numpy3D"]["train"]
 
-    clf = MockClassifierMultiTestParams(return_ones=True)
+    clf = MockClassifierParams(return_ones=True)
     clf.fit(X, y)
 
     clf_clone = _clone_estimator(clf)
@@ -233,30 +233,29 @@ def test_get_fitted_params():
     params = non_composite.get_fitted_params()
     comp_params = composite.get_fitted_params()
 
-    assert isinstance(params, dict)
-    assert set(params.keys()) == {
+    expected = {
         "fit_time_",
         "foo_",
         "classes_",
         "metadata_",
         "n_classes_",
     }
+
+    assert isinstance(params, dict)
+    assert set(params.keys()) == expected
     assert params["foo_"] is composite.foo_
 
     assert isinstance(comp_params, dict)
-    assert set(comp_params.keys()) == {
-        "fit_time_",
-        "foo_",
-        "classes_",
-        "metadata_",
-        "n_classes_",
-        "mock_",
-        "mock___classes_",
-        "mock___fit_time_",
-        "mock___foo_",
-        "mock___metadata_",
-        "mock___n_classes_",
-    }
+    assert set(comp_params.keys()) == expected.union(
+        {
+            "mock_",
+            "mock___classes_",
+            "mock___fit_time_",
+            "mock___foo_",
+            "mock___metadata_",
+            "mock___n_classes_",
+        }
+    )
     assert comp_params["foo_"] is composite.foo_
     assert comp_params["mock___foo_"] is composite.mock_.foo_
 

@@ -10,4 +10,4 @@ __all__ = [
 from aeon.base._base import BaseAeonEstimator
 from aeon.base._base_collection import BaseCollectionEstimator
 from aeon.base._base_series import BaseSeriesEstimator
-from aeon.base._meta import ComposableEstimatorMixin
+from aeon.base._compose import ComposableEstimatorMixin

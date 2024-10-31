@@ -43,8 +43,8 @@ class MockClassifierFullTags(MockClassifierPredictProba):
     }
 
 
-class MockClassifierMultiTestParams(MockClassifier):
-    """Mock classifier for testing fit/predict with multiple test params.
+class MockClassifierParams(MockClassifier):
+    """Mock classifier for testing fit/predict with multiple parameters.
 
     Parameters
     ----------
