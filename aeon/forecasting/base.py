@@ -39,7 +39,6 @@ class BaseForecaster(BaseSeriesEstimator):
 
     def __init__(self, horizon=1, axis=1):
         self.horizon = horizon
-        self._is_fitted = False
         super().__init__(axis)
 
     def fit(self, y, exog=None):

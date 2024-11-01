@@ -7,7 +7,7 @@ from aeon.forecasting.base import BaseForecaster
 
 
 class MockForecaster(BaseForecaster):
-    """Mock segmenter for testing."""
+    """Mock forecaster for testing."""
 
     def __init__(self):
         super().__init__()
