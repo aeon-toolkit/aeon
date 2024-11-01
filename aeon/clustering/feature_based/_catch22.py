@@ -214,9 +214,6 @@ class Catch22Clusterer(BaseClusterer):
                 dists[i, preds[i]] = 1
             return dists
 
-    def _score(self, X, y=None):
-        raise NotImplementedError("Catch22Clusterer does not support scoring.")
-
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.

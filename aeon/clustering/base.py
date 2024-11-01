@@ -1,7 +1,5 @@
 """Base class for clustering."""
 
-from typing import Optional
-
 __maintainer__ = []
 __all__ = ["BaseClusterer"]
 
@@ -28,8 +26,7 @@ class BaseClusterer(BaseCollectionEstimator):
         "fit_is_empty": False,
     }
 
-    def __init__(self, n_clusters: Optional[int] = None):
-        self.n_clusters = n_clusters
+    def __init__(self):
         # required for compatibility with some sklearn interfaces e.g.
         # CalibratedClassifierCV
         self._estimator_type = "clusterer"
@@ -195,7 +192,10 @@ class BaseClusterer(BaseCollectionEstimator):
         for i, u in enumerate(unique):
             preds[preds == u] = i
         n_cases = len(preds)
-        n_clusters = self.n_clusters
+        if hasattr(self, "n_clusters"):
+            n_clusters = self.n_clusters
+        else:
+            n_clusters = len(np.unique(preds))
         if n_clusters is None:
             n_clusters = int(max(preds)) + 1
         dists = np.zeros((X.shape[0], n_clusters))

@@ -108,6 +108,7 @@ class TimeSeriesKernelKMeans(BaseClusterer):
         self.verbose = verbose
         self.n_jobs = n_jobs
         self.random_state = random_state
+        self.n_clusters = n_clusters
 
         self.cluster_centers_ = None
         self.labels_ = None
@@ -116,7 +117,7 @@ class TimeSeriesKernelKMeans(BaseClusterer):
 
         self._tslearn_kernel_k_means = None
 
-        super().__init__(n_clusters=n_clusters)
+        super().__init__()
 
     def _fit(self, X, y=None):
         """Fit time series clusterer to training data.

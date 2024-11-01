@@ -57,8 +57,9 @@ class DummyClusterer(BaseClusterer):
     def __init__(self, strategy="random", n_clusters=3, random_state=None):
         self.strategy = strategy
         self.random_state = random_state
+        self.n_clusters = n_clusters
 
-        super().__init__(n_clusters=n_clusters)
+        super().__init__()
 
     def _fit(self, X, y=None):
         """
@@ -122,19 +123,3 @@ class DummyClusterer(BaseClusterer):
             return np.zeros(n_samples, dtype=int)
         else:
             raise ValueError("Unknown strategy type")
-
-    def _score(self, X, y=None):
-        if self.strategy == "single_cluster":
-            centers = np.mean(X, axis=0).reshape(1, -1)
-        else:
-            centers = np.array(
-                [X[self.labels_ == i].mean(axis=0) for i in range(self.n_clusters)]
-            )
-
-        inertia = np.sum(
-            [
-                np.sum((X[self.labels_ == i] - centers[i]) ** 2)
-                for i in range(len(centers))
-            ]
-        )
-        return inertia

@@ -168,10 +168,10 @@ class AEFCNClusterer(BaseDeepClusterer):
         self.save_last_model = save_last_model
         self.best_file_name = best_file_name
         self.random_state = random_state
+        self.n_clusters = n_clusters
 
         super().__init__(
             estimator=estimator,
-            n_clusters=n_clusters,
             clustering_algorithm=clustering_algorithm,
             clustering_params=clustering_params,
             batch_size=batch_size,
@@ -319,12 +319,6 @@ class AEFCNClusterer(BaseDeepClusterer):
         gc.collect()
 
         return self
-
-    def _score(self, X, y=None):
-        # Transpose to conform to Keras input style.
-        X = X.transpose(0, 2, 1)
-        latent_space = self.model_.layers[1].predict(X)
-        return self._estimator.score(latent_space)
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):

@@ -211,9 +211,6 @@ class TSFreshClusterer(BaseClusterer):
                 dists[i, preds[i]] = 1
             return dists
 
-    def _score(self, X: np.ndarray, y: Optional[np.ndarray] = None):
-        raise NotImplementedError("TSFreshClusterer does not support scoring.")
-
     @classmethod
     def _get_test_params(cls, parameter_set: str = "default"):
         """Return testing parameter settings for the estimator.

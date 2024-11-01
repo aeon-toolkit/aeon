@@ -169,6 +169,3 @@ class SummaryClusterer(BaseClusterer):
             for i in range(n_cases):
                 dists[i, preds[i]] = 1
             return dists
-
-    def _score(self, X, y=None):
-        raise NotImplementedError("SummaryClusterer does not support scoring.")

@@ -42,7 +42,6 @@ class BaseDeepClusterer(BaseClusterer):
 
     def __init__(
         self,
-        n_clusters=None,
         estimator=None,
         clustering_algorithm="deprecated",
         clustering_params=None,
@@ -50,7 +49,6 @@ class BaseDeepClusterer(BaseClusterer):
         last_file_name="last_file",
     ):
         self.estimator = estimator
-        self.n_clusters = n_clusters
         self.clustering_algorithm = clustering_algorithm
         self.clustering_params = clustering_params
         self.batch_size = batch_size
@@ -58,7 +56,7 @@ class BaseDeepClusterer(BaseClusterer):
 
         self.model_ = None
 
-        super().__init__(n_clusters=n_clusters)
+        super().__init__()
 
     @abstractmethod
     def build_model(self, input_shape):
