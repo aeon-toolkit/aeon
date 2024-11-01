@@ -289,12 +289,6 @@ class LITETimeRegressor(BaseRegressor):
             "n_epochs": 2,
             "batch_size": 4,
             "kernel_size": 4,
-        }
-        param3 = {
-            "n_regressors": 1,
-            "n_epochs": 2,
-            "batch_size": 4,
-            "kernel_size": 4,
             "metrics": "accuracy",
             "verbose": True,
             "use_mini_batch_size": True,
@@ -303,7 +297,7 @@ class LITETimeRegressor(BaseRegressor):
             ),
         }
 
-        return [param1, param2, param3]
+        return [param1, param2]
 
 
 class IndividualLITERegressor(BaseDeepRegressor):
@@ -629,11 +623,6 @@ class IndividualLITERegressor(BaseDeepRegressor):
             "n_epochs": 2,
             "batch_size": 4,
             "kernel_size": 4,
-        }
-        param3 = {
-            "n_epochs": 2,
-            "batch_size": 4,
-            "kernel_size": 4,
             "metrics": "accuracy",
             "verbose": True,
             "use_mini_batch_size": True,
@@ -642,4 +631,4 @@ class IndividualLITERegressor(BaseDeepRegressor):
             ),
         }
 
-        return [param1, param2, param3]
+        return [param1, param2]

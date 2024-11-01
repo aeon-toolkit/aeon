@@ -307,12 +307,6 @@ class LITETimeClassifier(BaseClassifier):
             "n_epochs": 2,
             "batch_size": 4,
             "kernel_size": 4,
-        }
-        param3 = {
-            "n_classifiers": 1,
-            "n_epochs": 2,
-            "batch_size": 4,
-            "kernel_size": 4,
             "metrics": "accuracy",
             "verbose": True,
             "use_mini_batch_size": True,
@@ -321,7 +315,7 @@ class LITETimeClassifier(BaseClassifier):
             ),
         }
 
-        return [param1, param2, param3]
+        return [param1, param2]
 
 
 class IndividualLITEClassifier(BaseDeepClassifier):
@@ -648,11 +642,6 @@ class IndividualLITEClassifier(BaseDeepClassifier):
             "n_epochs": 2,
             "batch_size": 4,
             "kernel_size": 4,
-        }
-        param3 = {
-            "n_epochs": 2,
-            "batch_size": 4,
-            "kernel_size": 4,
             "metrics": "accuracy",
             "verbose": True,
             "use_mini_batch_size": True,
@@ -661,4 +650,4 @@ class IndividualLITEClassifier(BaseDeepClassifier):
             ),
         }
 
-        return [param1, param2, param3]
+        return [param1, param2]
