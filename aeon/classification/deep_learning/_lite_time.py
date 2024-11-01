@@ -293,21 +293,37 @@ class LITETimeClassifier(BaseClassifier):
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
         """
+        import tensorflow as tf
+
         param1 = {
             "n_classifiers": 1,
-            "n_epochs": 10,
+            "n_epochs": 2,
             "batch_size": 4,
             "kernel_size": 4,
         }
         param2 = {
             "n_classifiers": 1,
             "use_litemv": True,
-            "n_epochs": 10,
+            "n_epochs": 2,
             "batch_size": 4,
             "kernel_size": 4,
         }
+        param3 = {
+            "n_classifiers": 1,
+            "n_epochs": 2,
+            "batch_size": 4,
+            "kernel_size": 4,
+            "metrics": "accuracy",
+            "verbose": True,
+            "use_mini_batch_size": True,
+            "callbacks": [
+                tf.keras.callbacks.ReduceLROnPlateau(
+                    monitor="loss", factor=0.5, patience=50, min_lr=0.0001
+                )
+            ],
+        }
 
-        return [param1, param2]
+        return [param1, param2, param3]
 
 
 class IndividualLITEClassifier(BaseDeepClassifier):
@@ -622,16 +638,31 @@ class IndividualLITEClassifier(BaseDeepClassifier):
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
         """
+        import tensorflow as tf
+
         param1 = {
-            "n_epochs": 10,
+            "n_epochs": 2,
             "batch_size": 4,
             "kernel_size": 4,
         }
         param2 = {
             "use_litemv": True,
-            "n_epochs": 10,
+            "n_epochs": 2,
             "batch_size": 4,
             "kernel_size": 4,
         }
+        param3 = {
+            "n_epochs": 2,
+            "batch_size": 4,
+            "kernel_size": 4,
+            "metrics": "accuracy",
+            "verbose": True,
+            "use_mini_batch_size": True,
+            "callbacks": [
+                tf.keras.callbacks.ReduceLROnPlateau(
+                    monitor="loss", factor=0.5, patience=50, min_lr=0.0001
+                )
+            ],
+        }
 
-        return [param1, param2]
+        return [param1, param2, param3]
