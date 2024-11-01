@@ -216,6 +216,38 @@ EQUAL_LENGTH_UNIVARIATE_REGRESSION = {
     },
 }
 
+EQUAL_LENGTH_UNIVARIATE_SIMILARITY_SEARCH = {
+    "numpy3D": {
+        "train": make_example_3d_numpy(
+            n_cases=10,
+            n_channels=1,
+            n_timepoints=20,
+            random_state=data_rng.randint(np.iinfo(np.int32).max),
+            return_y=False,
+        ),
+        "test": make_example_2d_numpy_series(
+            n_timepoints=10,
+            n_channels=1,
+            random_state=data_rng.randint(np.iinfo(np.int32).max),
+        ),
+    },
+    "np-list": {
+        "train": make_example_3d_numpy_list(
+            n_cases=10,
+            n_channels=1,
+            min_n_timepoints=20,
+            max_n_timepoints=20,
+            random_state=data_rng.randint(np.iinfo(np.int32).max),
+            return_y=False,
+        ),
+        "test": make_example_2d_numpy_series(
+            n_timepoints=10,
+            n_channels=1,
+            random_state=data_rng.randint(np.iinfo(np.int32).max),
+        ),
+    },
+}
+
 EQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION = {
     "numpy3D": {
         "train": make_example_3d_numpy(
@@ -354,6 +386,38 @@ EQUAL_LENGTH_MULTIVARIATE_REGRESSION = {
     },
 }
 
+EQUAL_LENGTH_MULTIVARIATE_SIMILARITY_SEARCH = {
+    "numpy3D": {
+        "train": make_example_3d_numpy(
+            n_cases=10,
+            n_channels=2,
+            n_timepoints=20,
+            random_state=data_rng.randint(np.iinfo(np.int32).max),
+            return_y=False,
+        ),
+        "test": make_example_2d_numpy_series(
+            n_timepoints=10,
+            n_channels=2,
+            random_state=data_rng.randint(np.iinfo(np.int32).max),
+        ),
+    },
+    "np-list": {
+        "train": make_example_3d_numpy_list(
+            n_cases=10,
+            n_channels=2,
+            min_n_timepoints=20,
+            max_n_timepoints=20,
+            random_state=data_rng.randint(np.iinfo(np.int32).max),
+            regression_target=True,
+        ),
+        "test": make_example_2d_numpy_series(
+            n_timepoints=10,
+            n_channels=2,
+            random_state=data_rng.randint(np.iinfo(np.int32).max),
+        ),
+    },
+}
+
 UNEQUAL_LENGTH_UNIVARIATE_CLASSIFICATION = {
     "np-list": {
         "train": make_example_3d_numpy_list(
@@ -458,6 +522,24 @@ UNEQUAL_LENGTH_UNIVARIATE_REGRESSION = {
             max_n_timepoints=20,
             random_state=data_rng.randint(np.iinfo(np.int32).max),
             regression_target=True,
+        ),
+    },
+}
+
+UNEQUAL_LENGTH_UNIVARIATE_SIMILARITY_SEARCH = {
+    "np-list": {
+        "train": make_example_3d_numpy_list(
+            n_cases=10,
+            n_channels=1,
+            min_n_timepoints=10,
+            max_n_timepoints=20,
+            random_state=data_rng.randint(np.iinfo(np.int32).max),
+            return_y=False,
+        ),
+        "test": make_example_2d_numpy_series(
+            n_timepoints=10,
+            n_channels=1,
+            random_state=data_rng.randint(np.iinfo(np.int32).max),
         ),
     },
 }
@@ -570,6 +652,24 @@ UNEQUAL_LENGTH_MULTIVARIATE_REGRESSION = {
     },
 }
 
+UNEQUAL_LENGTH_MULTIVARIATE_SIMILARITY_SEARCH = {
+    "np-list": {
+        "train": make_example_3d_numpy_list(
+            n_cases=10,
+            n_channels=2,
+            min_n_timepoints=10,
+            max_n_timepoints=20,
+            random_state=data_rng.randint(np.iinfo(np.int32).max),
+            return_y=False,
+        ),
+        "test": make_example_2d_numpy_series(
+            n_timepoints=10,
+            n_channels=2,
+            random_state=data_rng.randint(np.iinfo(np.int32).max),
+        ),
+    },
+}
+
 X_classification_missing_train, y_classification_missing_train = make_example_3d_numpy(
     n_cases=10,
     n_channels=1,
@@ -661,6 +761,12 @@ FULL_TEST_DATA_DICT.update(
 )
 FULL_TEST_DATA_DICT.update(
     {
+        f"EqualLengthUnivariate-SimilaritySearch-{k}": v
+        for k, v in EQUAL_LENGTH_UNIVARIATE_SIMILARITY_SEARCH.items()
+    }
+)
+FULL_TEST_DATA_DICT.update(
+    {
         f"EqualLengthMultivariate-Classification-{k}": v
         for k, v in EQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION.items()
     }
@@ -669,6 +775,12 @@ FULL_TEST_DATA_DICT.update(
     {
         f"EqualLengthMultivariate-Regression-{k}": v
         for k, v in EQUAL_LENGTH_MULTIVARIATE_REGRESSION.items()
+    }
+)
+FULL_TEST_DATA_DICT.update(
+    {
+        f"EqualLengthMultivariate-SimilaritySearch-{k}": v
+        for k, v in EQUAL_LENGTH_MULTIVARIATE_SIMILARITY_SEARCH.items()
     }
 )
 FULL_TEST_DATA_DICT.update(
@@ -685,6 +797,12 @@ FULL_TEST_DATA_DICT.update(
 )
 FULL_TEST_DATA_DICT.update(
     {
+        f"UnequalLengthUnivariate-SimilaritySearch-{k}": v
+        for k, v in UNEQUAL_LENGTH_UNIVARIATE_SIMILARITY_SEARCH.items()
+    }
+)
+FULL_TEST_DATA_DICT.update(
+    {
         f"UnequalLengthMultivariate-Classification-{k}": v
         for k, v in UNEQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION.items()
     }
@@ -693,6 +811,12 @@ FULL_TEST_DATA_DICT.update(
     {
         f"UnequalLengthMultivariate-Regression-{k}": v
         for k, v in UNEQUAL_LENGTH_MULTIVARIATE_REGRESSION.items()
+    }
+)
+FULL_TEST_DATA_DICT.update(
+    {
+        f"UnequalLengthMultivariate-SimilaritySearch-{k}": v
+        for k, v in UNEQUAL_LENGTH_MULTIVARIATE_SIMILARITY_SEARCH.items()
     }
 )
 FULL_TEST_DATA_DICT.update(
@@ -725,9 +849,12 @@ def _get_datatypes_for_estimator(estimator):
         and TEST_LABEL_DICT. Each tuple is formatted (data_key, label_key).
     """
     datatypes = []
-    univariate, multivariate, unequal_length, missing_values = (
-        _get_capabilities_for_estimator(estimator)
-    )
+    (
+        univariate,
+        multivariate,
+        unequal_length,
+        missing_values,
+    ) = _get_capabilities_for_estimator(estimator)
     label_type = _get_label_type_for_estimator(estimator)
 
     inner_types = estimator.get_tag("X_inner_type")
@@ -820,11 +947,12 @@ def _get_label_type_for_estimator(estimator):
         or isinstance(estimator, BaseEarlyClassifier)
         or isinstance(estimator, BaseClusterer)
         or isinstance(estimator, BaseCollectionTransformer)
-        or isinstance(estimator, BaseSimilaritySearch)
     ):
         label_type = "Classification"
     elif isinstance(estimator, BaseRegressor):
         label_type = "Regression"
+    elif isinstance(estimator, BaseSimilaritySearch):
+        label_type = "SimilaritySearch"
     elif (
         isinstance(estimator, BaseAnomalyDetector)
         or isinstance(estimator, BaseSegmenter)

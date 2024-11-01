@@ -75,19 +75,6 @@ EXCLUDED_TESTS = {
     "RSTSF": ["check_non_state_changing_method"],
     # Due to numba random issue between OS
     "RDSTRegressor": ["check_regressor_against_expected_results"],
-    # These methods will try to feed invalid 3D instead 2D during predict
-    "QuerySearch": [
-        "check_non_state_changing_method",
-        "check_fit_deterministic",
-        "check_persistence_via_pickle",
-        "check_raises_not_fitted_error",
-    ],
-    "SeriesSearch": [
-        "check_non_state_changing_method",
-        "check_fit_deterministic",
-        "check_persistence_via_pickle",
-        "check_raises_not_fitted_error",
-    ],
 }
 
 # NON_STATE_CHANGING_METHODS =
