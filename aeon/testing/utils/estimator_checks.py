@@ -10,6 +10,7 @@ import numpy as np
 from aeon.base import BaseAeonEstimator
 from aeon.clustering.base import BaseClusterer
 from aeon.regression.base import BaseRegressor
+from aeon.similarity_search.base import BaseSimilaritySearch
 from aeon.testing.testing_data import FULL_TEST_DATA_DICT
 from aeon.transformations.base import BaseTransformer
 
@@ -19,19 +20,26 @@ def _run_estimator_method(estimator, method_name, datatype, split):
     args = inspect.getfullargspec(method)[0]
     try:
         if "X" in args and "length" in args:  # SeriesSearch
-            return method(
+            value = method(
                 X=FULL_TEST_DATA_DICT[datatype][split][0],
                 length=3,
             )
         elif "X" in args and "y" in args:
-            return method(
+            value = method(
                 X=FULL_TEST_DATA_DICT[datatype][split][0],
                 y=FULL_TEST_DATA_DICT[datatype][split][1],
             )
         elif "X" in args:
-            return method(X=FULL_TEST_DATA_DICT[datatype][split][0])
+            value = method(X=FULL_TEST_DATA_DICT[datatype][split][0])
         else:
-            return method()
+            value = method()
+
+        # Similarity search return tuple as (distances, indexes)
+        if isinstance(estimator, BaseSimilaritySearch):
+            if isinstance(value, tuple):
+                return value[1]
+        else:
+            return value
     # generic message for ModuleNotFoundError which are assumed to be related to
     # soft dependencies
     except ModuleNotFoundError as e:

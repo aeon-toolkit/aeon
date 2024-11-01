@@ -218,32 +218,44 @@ EQUAL_LENGTH_UNIVARIATE_REGRESSION = {
 
 EQUAL_LENGTH_UNIVARIATE_SIMILARITY_SEARCH = {
     "numpy3D": {
-        "train": make_example_3d_numpy(
-            n_cases=10,
-            n_channels=1,
-            n_timepoints=20,
-            random_state=data_rng.randint(np.iinfo(np.int32).max),
-            return_y=False,
+        "train": (
+            make_example_3d_numpy(
+                n_cases=10,
+                n_channels=1,
+                n_timepoints=20,
+                random_state=data_rng.randint(np.iinfo(np.int32).max),
+                return_y=False,
+            ),
+            None,
         ),
-        "test": make_example_2d_numpy_series(
-            n_timepoints=10,
-            n_channels=1,
-            random_state=data_rng.randint(np.iinfo(np.int32).max),
+        "test": (
+            make_example_2d_numpy_series(
+                n_timepoints=10,
+                n_channels=1,
+                random_state=data_rng.randint(np.iinfo(np.int32).max),
+            ),
+            None,
         ),
     },
     "np-list": {
-        "train": make_example_3d_numpy_list(
-            n_cases=10,
-            n_channels=1,
-            min_n_timepoints=20,
-            max_n_timepoints=20,
-            random_state=data_rng.randint(np.iinfo(np.int32).max),
-            return_y=False,
+        "train": (
+            make_example_3d_numpy_list(
+                n_cases=10,
+                n_channels=1,
+                min_n_timepoints=20,
+                max_n_timepoints=20,
+                random_state=data_rng.randint(np.iinfo(np.int32).max),
+                return_y=False,
+            ),
+            None,
         ),
-        "test": make_example_2d_numpy_series(
-            n_timepoints=10,
-            n_channels=1,
-            random_state=data_rng.randint(np.iinfo(np.int32).max),
+        "test": (
+            make_example_2d_numpy_series(
+                n_timepoints=10,
+                n_channels=1,
+                random_state=data_rng.randint(np.iinfo(np.int32).max),
+            ),
+            None,
         ),
     },
 }
@@ -388,32 +400,44 @@ EQUAL_LENGTH_MULTIVARIATE_REGRESSION = {
 
 EQUAL_LENGTH_MULTIVARIATE_SIMILARITY_SEARCH = {
     "numpy3D": {
-        "train": make_example_3d_numpy(
-            n_cases=10,
-            n_channels=2,
-            n_timepoints=20,
-            random_state=data_rng.randint(np.iinfo(np.int32).max),
-            return_y=False,
+        "train": (
+            make_example_3d_numpy(
+                n_cases=10,
+                n_channels=2,
+                n_timepoints=20,
+                random_state=data_rng.randint(np.iinfo(np.int32).max),
+                return_y=False,
+            ),
+            None,
         ),
-        "test": make_example_2d_numpy_series(
-            n_timepoints=10,
-            n_channels=2,
-            random_state=data_rng.randint(np.iinfo(np.int32).max),
+        "test": (
+            make_example_2d_numpy_series(
+                n_timepoints=10,
+                n_channels=2,
+                random_state=data_rng.randint(np.iinfo(np.int32).max),
+            ),
+            None,
         ),
     },
     "np-list": {
-        "train": make_example_3d_numpy_list(
-            n_cases=10,
-            n_channels=2,
-            min_n_timepoints=20,
-            max_n_timepoints=20,
-            random_state=data_rng.randint(np.iinfo(np.int32).max),
-            return_y=False,
+        "train": (
+            make_example_3d_numpy_list(
+                n_cases=10,
+                n_channels=2,
+                min_n_timepoints=20,
+                max_n_timepoints=20,
+                random_state=data_rng.randint(np.iinfo(np.int32).max),
+                return_y=False,
+            ),
+            None,
         ),
-        "test": make_example_2d_numpy_series(
-            n_timepoints=10,
-            n_channels=2,
-            random_state=data_rng.randint(np.iinfo(np.int32).max),
+        "test": (
+            make_example_2d_numpy_series(
+                n_timepoints=10,
+                n_channels=2,
+                random_state=data_rng.randint(np.iinfo(np.int32).max),
+            ),
+            None,
         ),
     },
 }
@@ -528,18 +552,24 @@ UNEQUAL_LENGTH_UNIVARIATE_REGRESSION = {
 
 UNEQUAL_LENGTH_UNIVARIATE_SIMILARITY_SEARCH = {
     "np-list": {
-        "train": make_example_3d_numpy_list(
-            n_cases=10,
-            n_channels=1,
-            min_n_timepoints=10,
-            max_n_timepoints=20,
-            random_state=data_rng.randint(np.iinfo(np.int32).max),
-            return_y=False,
+        "train": (
+            make_example_3d_numpy_list(
+                n_cases=10,
+                n_channels=1,
+                min_n_timepoints=10,
+                max_n_timepoints=20,
+                random_state=data_rng.randint(np.iinfo(np.int32).max),
+                return_y=False,
+            ),
+            None,
         ),
-        "test": make_example_2d_numpy_series(
-            n_timepoints=10,
-            n_channels=1,
-            random_state=data_rng.randint(np.iinfo(np.int32).max),
+        "test": (
+            make_example_2d_numpy_series(
+                n_timepoints=10,
+                n_channels=1,
+                random_state=data_rng.randint(np.iinfo(np.int32).max),
+            ),
+            None,
         ),
     },
 }
@@ -654,18 +684,24 @@ UNEQUAL_LENGTH_MULTIVARIATE_REGRESSION = {
 
 UNEQUAL_LENGTH_MULTIVARIATE_SIMILARITY_SEARCH = {
     "np-list": {
-        "train": make_example_3d_numpy_list(
-            n_cases=10,
-            n_channels=2,
-            min_n_timepoints=10,
-            max_n_timepoints=20,
-            random_state=data_rng.randint(np.iinfo(np.int32).max),
-            return_y=False,
+        "train": (
+            make_example_3d_numpy_list(
+                n_cases=10,
+                n_channels=2,
+                min_n_timepoints=10,
+                max_n_timepoints=20,
+                random_state=data_rng.randint(np.iinfo(np.int32).max),
+                return_y=False,
+            ),
+            None,
         ),
-        "test": make_example_2d_numpy_series(
-            n_timepoints=10,
-            n_channels=2,
-            random_state=data_rng.randint(np.iinfo(np.int32).max),
+        "test": (
+            make_example_2d_numpy_series(
+                n_timepoints=10,
+                n_channels=2,
+                random_state=data_rng.randint(np.iinfo(np.int32).max),
+            ),
+            None,
         ),
     },
 }

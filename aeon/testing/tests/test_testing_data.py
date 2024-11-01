@@ -110,17 +110,28 @@ def test_equal_length_univariate_collection():
 
     for key in EQUAL_LENGTH_UNIVARIATE_SIMILARITY_SEARCH:
         assert is_collection(
-            EQUAL_LENGTH_UNIVARIATE_SIMILARITY_SEARCH[key]["train"], include_2d=True
+            EQUAL_LENGTH_UNIVARIATE_SIMILARITY_SEARCH[key]["train"][0], include_2d=True
         )
-        assert is_univariate(EQUAL_LENGTH_UNIVARIATE_SIMILARITY_SEARCH[key]["train"])
-        assert is_equal_length(EQUAL_LENGTH_UNIVARIATE_SIMILARITY_SEARCH[key]["train"])
-        assert not has_missing(EQUAL_LENGTH_UNIVARIATE_SIMILARITY_SEARCH[key]["train"])
-        assert not is_collection(EQUAL_LENGTH_UNIVARIATE_SIMILARITY_SEARCH[key]["test"])
+        assert is_univariate(EQUAL_LENGTH_UNIVARIATE_SIMILARITY_SEARCH[key]["train"][0])
+        assert is_equal_length(
+            EQUAL_LENGTH_UNIVARIATE_SIMILARITY_SEARCH[key]["train"][0]
+        )
+        assert not has_missing(
+            EQUAL_LENGTH_UNIVARIATE_SIMILARITY_SEARCH[key]["train"][0]
+        )
+        assert not is_collection(
+            EQUAL_LENGTH_UNIVARIATE_SIMILARITY_SEARCH[key]["test"][0]
+        )
         assert is_univariate(
-            EQUAL_LENGTH_UNIVARIATE_SIMILARITY_SEARCH[key]["test"], is_collection=False
+            EQUAL_LENGTH_UNIVARIATE_SIMILARITY_SEARCH[key]["test"][0],
+            is_collection=False,
         )
-        assert is_equal_length(EQUAL_LENGTH_UNIVARIATE_SIMILARITY_SEARCH[key]["test"])
-        assert not has_missing(EQUAL_LENGTH_UNIVARIATE_SIMILARITY_SEARCH[key]["test"])
+        assert is_equal_length(
+            EQUAL_LENGTH_UNIVARIATE_SIMILARITY_SEARCH[key]["test"][0]
+        )
+        assert not has_missing(
+            EQUAL_LENGTH_UNIVARIATE_SIMILARITY_SEARCH[key]["test"][0]
+        )
 
 
 def test_unequal_length_univariate_collection():
@@ -173,24 +184,31 @@ def test_unequal_length_univariate_collection():
 
     for key in UNEQUAL_LENGTH_UNIVARIATE_SIMILARITY_SEARCH:
         assert is_collection(
-            UNEQUAL_LENGTH_UNIVARIATE_SIMILARITY_SEARCH[key]["train"], include_2d=True
-        )
-        assert is_univariate(UNEQUAL_LENGTH_UNIVARIATE_SIMILARITY_SEARCH[key]["train"])
-        assert not is_equal_length(
-            UNEQUAL_LENGTH_UNIVARIATE_SIMILARITY_SEARCH[key]["train"]
-        )
-        assert not has_missing(
-            UNEQUAL_LENGTH_UNIVARIATE_SIMILARITY_SEARCH[key]["train"]
-        )
-        assert not is_collection(
-            UNEQUAL_LENGTH_UNIVARIATE_SIMILARITY_SEARCH[key]["test"]
+            UNEQUAL_LENGTH_UNIVARIATE_SIMILARITY_SEARCH[key]["train"][0],
+            include_2d=True,
         )
         assert is_univariate(
-            UNEQUAL_LENGTH_UNIVARIATE_SIMILARITY_SEARCH[key]["test"],
+            UNEQUAL_LENGTH_UNIVARIATE_SIMILARITY_SEARCH[key]["train"][0]
+        )
+        assert not is_equal_length(
+            UNEQUAL_LENGTH_UNIVARIATE_SIMILARITY_SEARCH[key]["train"][0]
+        )
+        assert not has_missing(
+            UNEQUAL_LENGTH_UNIVARIATE_SIMILARITY_SEARCH[key]["train"][0]
+        )
+        assert not is_collection(
+            UNEQUAL_LENGTH_UNIVARIATE_SIMILARITY_SEARCH[key]["test"][0]
+        )
+        assert is_univariate(
+            UNEQUAL_LENGTH_UNIVARIATE_SIMILARITY_SEARCH[key]["test"][0],
             is_collection=False,
         )
-        assert is_equal_length(UNEQUAL_LENGTH_UNIVARIATE_SIMILARITY_SEARCH[key]["test"])
-        assert not has_missing(UNEQUAL_LENGTH_UNIVARIATE_SIMILARITY_SEARCH[key]["test"])
+        assert is_equal_length(
+            UNEQUAL_LENGTH_UNIVARIATE_SIMILARITY_SEARCH[key]["test"][0]
+        )
+        assert not has_missing(
+            UNEQUAL_LENGTH_UNIVARIATE_SIMILARITY_SEARCH[key]["test"][0]
+        )
 
 
 def test_equal_length_multivariate_collection():
@@ -243,26 +261,31 @@ def test_equal_length_multivariate_collection():
 
     for key in EQUAL_LENGTH_MULTIVARIATE_SIMILARITY_SEARCH:
         assert is_collection(
-            EQUAL_LENGTH_MULTIVARIATE_SIMILARITY_SEARCH[key]["train"], include_2d=True
+            EQUAL_LENGTH_MULTIVARIATE_SIMILARITY_SEARCH[key]["train"][0],
+            include_2d=True,
         )
         assert not is_univariate(
-            EQUAL_LENGTH_MULTIVARIATE_SIMILARITY_SEARCH[key]["train"]
+            EQUAL_LENGTH_MULTIVARIATE_SIMILARITY_SEARCH[key]["train"][0]
         )
         assert is_equal_length(
-            EQUAL_LENGTH_MULTIVARIATE_SIMILARITY_SEARCH[key]["train"]
+            EQUAL_LENGTH_MULTIVARIATE_SIMILARITY_SEARCH[key]["train"][0]
         )
         assert not has_missing(
-            EQUAL_LENGTH_MULTIVARIATE_SIMILARITY_SEARCH[key]["train"]
+            EQUAL_LENGTH_MULTIVARIATE_SIMILARITY_SEARCH[key]["train"][0]
         )
         assert not is_collection(
-            EQUAL_LENGTH_MULTIVARIATE_SIMILARITY_SEARCH[key]["test"]
+            EQUAL_LENGTH_MULTIVARIATE_SIMILARITY_SEARCH[key]["test"][0]
         )
         assert not is_univariate(
-            EQUAL_LENGTH_MULTIVARIATE_SIMILARITY_SEARCH[key]["test"],
+            EQUAL_LENGTH_MULTIVARIATE_SIMILARITY_SEARCH[key]["test"][0],
             is_collection=False,
         )
-        assert is_equal_length(EQUAL_LENGTH_MULTIVARIATE_SIMILARITY_SEARCH[key]["test"])
-        assert not has_missing(EQUAL_LENGTH_MULTIVARIATE_SIMILARITY_SEARCH[key]["test"])
+        assert is_equal_length(
+            EQUAL_LENGTH_MULTIVARIATE_SIMILARITY_SEARCH[key]["test"][0]
+        )
+        assert not has_missing(
+            EQUAL_LENGTH_MULTIVARIATE_SIMILARITY_SEARCH[key]["test"][0]
+        )
 
 
 def test_unequal_length_multivariate_collection():
@@ -327,29 +350,30 @@ def test_unequal_length_multivariate_collection():
 
     for key in UNEQUAL_LENGTH_MULTIVARIATE_SIMILARITY_SEARCH:
         assert is_collection(
-            UNEQUAL_LENGTH_MULTIVARIATE_SIMILARITY_SEARCH[key]["train"], include_2d=True
+            UNEQUAL_LENGTH_MULTIVARIATE_SIMILARITY_SEARCH[key]["train"][0],
+            include_2d=True,
         )
         assert not is_univariate(
-            UNEQUAL_LENGTH_MULTIVARIATE_SIMILARITY_SEARCH[key]["train"]
+            UNEQUAL_LENGTH_MULTIVARIATE_SIMILARITY_SEARCH[key]["train"][0]
         )
         assert not is_equal_length(
-            UNEQUAL_LENGTH_MULTIVARIATE_SIMILARITY_SEARCH[key]["train"]
+            UNEQUAL_LENGTH_MULTIVARIATE_SIMILARITY_SEARCH[key]["train"][0]
         )
         assert not has_missing(
-            UNEQUAL_LENGTH_MULTIVARIATE_SIMILARITY_SEARCH[key]["train"]
+            UNEQUAL_LENGTH_MULTIVARIATE_SIMILARITY_SEARCH[key]["train"][0]
         )
         assert not is_collection(
-            UNEQUAL_LENGTH_MULTIVARIATE_SIMILARITY_SEARCH[key]["test"]
+            UNEQUAL_LENGTH_MULTIVARIATE_SIMILARITY_SEARCH[key]["test"][0]
         )
         assert not is_univariate(
-            UNEQUAL_LENGTH_MULTIVARIATE_SIMILARITY_SEARCH[key]["test"],
+            UNEQUAL_LENGTH_MULTIVARIATE_SIMILARITY_SEARCH[key]["test"][0],
             is_collection=False,
         )
         assert is_equal_length(
-            UNEQUAL_LENGTH_MULTIVARIATE_SIMILARITY_SEARCH[key]["test"]
+            UNEQUAL_LENGTH_MULTIVARIATE_SIMILARITY_SEARCH[key]["test"][0]
         )
         assert not has_missing(
-            UNEQUAL_LENGTH_MULTIVARIATE_SIMILARITY_SEARCH[key]["test"]
+            UNEQUAL_LENGTH_MULTIVARIATE_SIMILARITY_SEARCH[key]["test"][0]
         )
 
 
