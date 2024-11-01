@@ -316,11 +316,9 @@ class LITETimeClassifier(BaseClassifier):
             "metrics": "accuracy",
             "verbose": True,
             "use_mini_batch_size": True,
-            "callbacks": [
-                tf.keras.callbacks.ReduceLROnPlateau(
-                    monitor="loss", factor=0.5, patience=50, min_lr=0.0001
-                )
-            ],
+            "callbacks": tf.keras.callbacks.ReduceLROnPlateau(
+                monitor="loss", factor=0.5, patience=50, min_lr=0.0001
+            ),
         }
 
         return [param1, param2, param3]
@@ -658,11 +656,9 @@ class IndividualLITEClassifier(BaseDeepClassifier):
             "metrics": "accuracy",
             "verbose": True,
             "use_mini_batch_size": True,
-            "callbacks": [
-                tf.keras.callbacks.ReduceLROnPlateau(
-                    monitor="loss", factor=0.5, patience=50, min_lr=0.0001
-                )
-            ],
+            "callbacks": tf.keras.callbacks.ReduceLROnPlateau(
+                monitor="loss", factor=0.5, patience=50, min_lr=0.0001
+            ),
         }
 
         return [param1, param2, param3]
