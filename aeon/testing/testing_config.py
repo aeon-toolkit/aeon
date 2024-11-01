@@ -73,6 +73,10 @@ EXCLUDED_TESTS = {
     "MiniRocketRegressor": ["check_non_state_changing_method"],
     "MultiRocketRegressor": ["check_non_state_changing_method"],
     "RSTSF": ["check_non_state_changing_method"],
+    # Keeps length during predict to avoid recomputing means and std of data in fit
+    # if the next predict calls uses the same query length parameter.
+    "QuerySearch": ["check_non_state_changing_method"],
+    "SeriesSearch": ["check_non_state_changing_method"],
     # Due to numba random issue between OS
     "RDSTRegressor": ["check_regressor_against_expected_results"],
 }

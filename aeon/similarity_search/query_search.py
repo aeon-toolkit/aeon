@@ -200,6 +200,7 @@ class QuerySearch(BaseSimilaritySearch):
             retrieved as ``X_[id_sample, :, id_timepoint : id_timepoint + length]``.
 
         """
+        self._check_is_fitted()
         prev_threads = get_num_threads()
         set_num_threads(self._n_jobs)
 

@@ -196,6 +196,7 @@ class SeriesSearch(BaseSimilaritySearch):
             retrieved as ``X_[id_sample, :, id_timepoint : id_timepoint + length]``.
 
         """
+        self._check_is_fitted()
         prev_threads = get_num_threads()
         set_num_threads(self._n_jobs)
         series_dim, series_length = self._check_series_format(X, length, axis)

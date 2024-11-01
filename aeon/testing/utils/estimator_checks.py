@@ -37,7 +37,9 @@ def _run_estimator_method(estimator, method_name, datatype, split):
         # Similarity search return tuple as (distances, indexes)
         if isinstance(estimator, BaseSimilaritySearch):
             if isinstance(value, tuple):
-                return value[1]
+                return value[0]
+            else:
+                return value
         else:
             return value
     # generic message for ModuleNotFoundError which are assumed to be related to
