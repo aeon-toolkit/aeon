@@ -38,6 +38,7 @@ class RegressionForecaster(BaseForecaster):
     """
 
     def __init__(self, window, horizon=1, regressor=None):
+        self.window = window
         self.regressor = regressor
         super().__init__(horizon, axis=1)
 
