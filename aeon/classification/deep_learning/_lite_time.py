@@ -305,7 +305,7 @@ class LITETimeClassifier(BaseClassifier):
             "n_epochs": 2,
             "batch_size": 4,
             "kernel_size": 4,
-            "metrics": "accuracy",
+            "metrics": ["accuracy"],
             "verbose": True,
             "use_mini_batch_size": True,
         }
@@ -635,7 +635,7 @@ class IndividualLITEClassifier(BaseDeepClassifier):
             "n_epochs": 2,
             "batch_size": 4,
             "kernel_size": 4,
-            "metrics": "accuracy",
+            "metrics": ["accuracy"],
             "verbose": True,
             "use_mini_batch_size": True,
         }

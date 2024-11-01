@@ -287,7 +287,7 @@ class LITETimeRegressor(BaseRegressor):
             "n_epochs": 2,
             "batch_size": 4,
             "kernel_size": 4,
-            "metrics": "accuracy",
+            "metrics": ["mean_squared_error"],
             "verbose": True,
             "use_mini_batch_size": True,
         }
@@ -616,7 +616,7 @@ class IndividualLITERegressor(BaseDeepRegressor):
             "n_epochs": 2,
             "batch_size": 4,
             "kernel_size": 4,
-            "metrics": "accuracy",
+            "metrics": ["mean_squared_error"],
             "verbose": True,
             "use_mini_batch_size": True,
         }
