@@ -275,8 +275,6 @@ class LITETimeRegressor(BaseRegressor):
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
         """
-        import tensorflow as tf
-
         param1 = {
             "n_regressors": 1,
             "n_epochs": 2,
@@ -292,9 +290,6 @@ class LITETimeRegressor(BaseRegressor):
             "metrics": "accuracy",
             "verbose": True,
             "use_mini_batch_size": True,
-            "callbacks": tf.keras.callbacks.ReduceLROnPlateau(
-                monitor="loss", factor=0.5, patience=50, min_lr=0.0001
-            ),
         }
 
         return [param1, param2]
@@ -611,8 +606,6 @@ class IndividualLITERegressor(BaseDeepRegressor):
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
         """
-        import tensorflow as tf
-
         param1 = {
             "n_epochs": 2,
             "batch_size": 4,
@@ -626,9 +619,6 @@ class IndividualLITERegressor(BaseDeepRegressor):
             "metrics": "accuracy",
             "verbose": True,
             "use_mini_batch_size": True,
-            "callbacks": tf.keras.callbacks.ReduceLROnPlateau(
-                monitor="loss", factor=0.5, patience=50, min_lr=0.0001
-            ),
         }
 
         return [param1, param2]
