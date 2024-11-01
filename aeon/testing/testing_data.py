@@ -408,7 +408,7 @@ EQUAL_LENGTH_MULTIVARIATE_SIMILARITY_SEARCH = {
             min_n_timepoints=20,
             max_n_timepoints=20,
             random_state=data_rng.randint(np.iinfo(np.int32).max),
-            regression_target=True,
+            return_y=False,
         ),
         "test": make_example_2d_numpy_series(
             n_timepoints=10,

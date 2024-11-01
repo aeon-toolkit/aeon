@@ -307,10 +307,14 @@ def has_missing(X):
         return False
 
 
-def is_univariate(X):
+def is_univariate(X, is_collection=True):
     """Check if X is multivariate."""
     type = get_type(X)
-    if type == "numpy2D" or type == "pd-wide":
+    if type == "numpy2D" and is_collection:
+        return True
+    if type == "numpy2D" and not is_collection:
+        return X.shape[0] == 1
+    if type == "pd-wide":
         return True
     if type == "numpy3D":
         return X.shape[1] == 1
