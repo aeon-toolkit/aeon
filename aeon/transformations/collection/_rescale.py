@@ -75,7 +75,7 @@ class Normalizer(BaseCollectionTransformer):
             return Xt
 
 
-class MinMax(BaseCollectionTransformer):
+class MinMaxScaler(BaseCollectionTransformer):
     """MinMax transformer for collections.
 
     This transformer scales a collection of time series data to a specified range
@@ -92,10 +92,10 @@ class MinMax(BaseCollectionTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.collection import MinMax
+    >>> from aeon.transformations.collection import MinMaxScaler
     >>> import numpy as np
     >>> X = np.array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]])
-    >>> minmax = MinMax()
+    >>> minmax = MinMaxScaler()
     >>> Xt = minmax.fit_transform(X)
     >>> min_val = np.min(Xt, axis=-1)
     >>> max_val = np.max(Xt, axis=-1)
@@ -118,7 +118,7 @@ class MinMax(BaseCollectionTransformer):
 
     def _transform(self, X, y=None) -> np.ndarray:
         """
-        Transform method to apply the MinMax normalisation.
+        Transform method to apply the MinMaxScaler normalisation.
 
         Parameters
         ----------

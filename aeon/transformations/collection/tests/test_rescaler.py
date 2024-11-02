@@ -3,7 +3,11 @@
 import numpy as np
 import pytest
 
-from aeon.transformations.collection._rescale import MinMax, Normalizer, Standardizer
+from aeon.transformations.collection._rescale import (
+    MinMaxScaler,
+    Normalizer,
+    Standardizer,
+)
 
 
 def test_z_norm():
@@ -36,9 +40,9 @@ def test_standardize():
 
 
 def test_min_max():
-    """Test the MinMax class."""
+    """Test the MinMaxScaler class."""
     X = np.array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]])
-    minmax = MinMax()
+    minmax = MinMaxScaler()
     X_transformed = minmax._transform(X)
 
     min_val = np.min(X_transformed, axis=-1)
@@ -47,5 +51,5 @@ def test_min_max():
     assert np.allclose(min_val, 0)
     assert np.allclose(max_val, 1)
     with pytest.raises(ValueError, match="should be less than max value"):
-        minmax = MinMax(min=1, max=0)
+        minmax = MinMaxScaler(min=1, max=0)
         X_transformed = minmax._transform(X)

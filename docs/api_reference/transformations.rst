@@ -35,7 +35,7 @@ Collection transformers
     DWTTransformer
     HOG1DTransformer
     MatrixProfile
-    MinMax
+    MinMaxScaler
     Normalizer
     Padder
     PeriodogramTransformer

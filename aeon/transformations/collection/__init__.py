@@ -13,7 +13,7 @@ __all__ = [
     "HOG1DTransformer",
     "Resizer",
     "MatrixProfile",
-    "MinMax",
+    "MinMaxScaler",
     "Padder",
     "PeriodogramTransformer",
     "Tabularizer",
@@ -32,7 +32,11 @@ from aeon.transformations.collection._matrix_profile import MatrixProfile
 from aeon.transformations.collection._pad import Padder
 from aeon.transformations.collection._periodogram import PeriodogramTransformer
 from aeon.transformations.collection._reduce import Tabularizer
-from aeon.transformations.collection._rescale import MinMax, Normalizer, Standardizer
+from aeon.transformations.collection._rescale import (
+    MinMaxScaler,
+    Normalizer,
+    Standardizer,
+)
 from aeon.transformations.collection._resize import Resizer
 from aeon.transformations.collection._slope import SlopeTransformer
 from aeon.transformations.collection._truncate import Truncator
