@@ -6,21 +6,21 @@ __all__ = [
     # transformers
     "AutocorrelationFunctionTransformer",
     "ARCoefficientTransformer",
+    "Centerer",
     "DownsampleTransformer",
     "ElbowClassSum",
     "ElbowClassPairwise",
     "DWTTransformer",
     "HOG1DTransformer",
-    "Resizer",
     "MatrixProfile",
     "MinMaxScaler",
+    "Normalizer",
     "Padder",
     "PeriodogramTransformer",
-    "Tabularizer",
+    "Resizer",
     "SlopeTransformer",
-    "Centerer",
     "Truncator",
-    "Normalizer",
+    "Tabularizer",
 ]
 
 from aeon.transformations.collection._acf import AutocorrelationFunctionTransformer
