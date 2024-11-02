@@ -5,16 +5,29 @@ import numpy as np
 from aeon.transformations.collection.base import BaseCollectionTransformer
 
 
-class Normalise(BaseCollectionTransformer):
+class Normalizer(BaseCollectionTransformer):
     """Normaliser transformer for collections.
 
-    This transformer applies z-normalization
-    applied along the timepoints axis (the last axis).
+    This transformer applies z-normalization  applied along the timepoints axis (the
+    last axis). For multivariate data, it normalizes each channel independently.
+
+    Examples
+    --------
+    >>> from aeon.transformations.collection import Normalizer
+    >>> import numpy as np
+    >>> X = np.array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]])
+    >>> normaliser = Normalizer()
+    >>> Xt = normaliser.fit_transform(X)
+    >>> mean=np.mean(Xt, axis=-1)
+    >>> std = np.std(Xt, axis=-1)
+    >>> assert np.allclose(mean, 0)
+    >>> assert np.allclose(std, 1)
     """
 
     _tags = {
         "X_inner_type": ["numpy3D", "np-list"],
         "fit_is_empty": True,
+        "capability:multivariate": True,
     }
 
     def __init__(self):
@@ -40,13 +53,6 @@ class Normalise(BaseCollectionTransformer):
         -------
         X_transformed : np.ndarray or list
             The normalized data.
-
-        Example
-        -------
-        >>> from aeon.transformations.collection import Normalise
-        >>> from aeon.datasets import load_unit_test
-        >>> X, y = load_unit_test()
-
         """
         if isinstance(X, np.ndarray):
             # Case 1: X is a single 3D array
@@ -82,11 +88,25 @@ class MinMax(BaseCollectionTransformer):
         Minumum value of the range to scale to.
     max: float, default=1
         Maximum value of the range to scale to.
+
+    Examples
+    --------
+    >>> from aeon.transformations.collection import MinMax
+    >>> import numpy as np
+    >>> X = np.array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]])
+    >>> minmax = MinMax()
+    >>> Xt = minmax.fit_transform(X)
+    >>> min_val = np.min(Xt, axis=-1)
+    >>> max_val = np.max(Xt, axis=-1)
+    >>> assert np.allclose(min_val, 0)
+    >>> assert np.allclose(max_val, 1)
+
     """
 
     _tags = {
         "X_inner_type": ["numpy3D", "np-list"],
         "fit_is_empty": True,
+        "capability:multivariate": True,
     }
 
     def __init__(self, min: float = 0, max: float = 1):
@@ -107,7 +127,7 @@ class MinMax(BaseCollectionTransformer):
 
         Returns
         -------
-        X_transformed : np.ndarray or list
+        np.ndarray or list
             The data transformed onto [min,max] scale.
         """
         if self.min > self.max:
@@ -116,7 +136,7 @@ class MinMax(BaseCollectionTransformer):
             )
 
         if isinstance(X, np.ndarray):
-            # Case 1: Equal length, X is a single 3D array
+            # Case 1: Equal length series, X is a single 3D array
             min_val = np.min(X, axis=-1, keepdims=True)
             max_val = np.max(X, axis=-1, keepdims=True)
             range_val = np.where(
@@ -126,7 +146,7 @@ class MinMax(BaseCollectionTransformer):
             X_scaled = self.min + X_scaled * (self.max - self.min)
             return X_scaled
         else:
-            # Case 2: X is a list of 2D arrays
+            # Case 2: Unequal length series, X is a list of 2D arrays
             Xt = []
             for x in X:
                 min_val = np.min(x, axis=-1, keepdims=True)
@@ -137,4 +157,68 @@ class MinMax(BaseCollectionTransformer):
                 x_scaled = (x - min_val) / range_val
                 x_scaled = self.min + x_scaled * (self.max - self.min)
                 Xt.append(x_scaled)
+            return Xt
+
+
+class Standardizer(BaseCollectionTransformer):
+    """Standardarise transformer for collections.
+
+    This transformer recentres series to have zero mean, but does not change the
+    variance. For multivariate data, it normalizes each channel independently.
+
+    Examples
+    --------
+    >>> from aeon.transformations.collection import Standardizer
+    >>> import numpy as np
+    >>> X = np.array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]])
+    >>> recentre = Standardizer()
+    >>> Xt = recentre.fit_transform(X)
+    >>> mean=np.mean(Xt, axis=-1)
+    >>> assert np.allclose(mean, 0)
+    """
+
+    _tags = {
+        "X_inner_type": ["numpy3D", "np-list"],
+        "fit_is_empty": True,
+        "capability:multivariate": True,
+    }
+
+    def __init__(self):
+        super().__init__()
+
+    def _transform(self, X, y=None) -> np.ndarray:
+        """
+        Transform method to standardize series.
+
+        Parameters
+        ----------
+        X : np.ndarray or list
+            Collection to transform. Either a list of 2D arrays with shape
+            ``(n_channels, n_timepoints_i)`` or a single 3D array of shape
+            ``(n_cases, n_channels, n_timepoints)``.
+        y : None
+            Ignored.
+
+        Returns
+        -------
+        X_transformed : np.ndarray or list
+            The normalized data.
+        """
+        if isinstance(X, np.ndarray):
+            # Case 1: X is a single 3D array
+            mean_val = np.mean(X, axis=-1, keepdims=True)
+            std_val = np.std(X, axis=-1, keepdims=True)
+            std_val = np.where(std_val == 0, 1, std_val)  # Prevent division by zero
+            X_standardized = (X - mean_val) / std_val
+            return X_standardized
+
+        else:
+            # Case 2: X is a list of 2D arrays
+            Xt = []
+            for x in X:
+                mean_val = np.mean(x, axis=-1, keepdims=True)
+                std_val = np.std(x, axis=-1, keepdims=True)
+                std_val = np.where(std_val == 0, 1, std_val)  # Prevent division by zero
+                x_standardized = (x - mean_val) / std_val
+                Xt.append(x_standardized)
             return Xt
