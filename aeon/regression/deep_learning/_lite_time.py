@@ -96,6 +96,11 @@ class LITETimeRegressor(BaseRegressor):
     metrics : keras metrics, default = mean_squared_error,
         will be set to mean_squared_error as default if None
 
+    Notes
+    -----
+    Adapted from the implementation from Ismail-Fawaz et. al
+    https://github.com/MSD-IRIMAS/LITE
+
     References
     ----------
     ..[1] Ismail-Fawaz et al. LITE: Light Inception with boosTing
@@ -104,11 +109,6 @@ class LITETimeRegressor(BaseRegressor):
     ..[2] Ismail-Fawaz, Ali, et al. "Look Into the LITE
     in Deep Learning for Time Series Classification."
     arXiv preprint arXiv:2409.02869 (2024).
-
-    Notes
-    -----
-    Adapted from the implementation from Ismail-Fawaz et. al
-    https://github.com/MSD-IRIMAS/LITE
 
     Examples
     --------
