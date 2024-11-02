@@ -28,6 +28,7 @@ class Normalizer(BaseCollectionTransformer):
         "X_inner_type": ["numpy3D", "np-list"],
         "fit_is_empty": True,
         "capability:multivariate": True,
+        "capability:unequal_length": True,
     }
 
     def __init__(self):
@@ -107,6 +108,7 @@ class MinMax(BaseCollectionTransformer):
         "X_inner_type": ["numpy3D", "np-list"],
         "fit_is_empty": True,
         "capability:multivariate": True,
+        "capability:unequal_length": True,
     }
 
     def __init__(self, min: float = 0, max: float = 1):
@@ -181,6 +183,7 @@ class Standardizer(BaseCollectionTransformer):
         "X_inner_type": ["numpy3D", "np-list"],
         "fit_is_empty": True,
         "capability:multivariate": True,
+        "capability:unequal_length": True,
     }
 
     def __init__(self):

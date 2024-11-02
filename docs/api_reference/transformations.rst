@@ -35,13 +35,14 @@ Collection transformers
     DWTTransformer
     HOG1DTransformer
     MatrixProfile
-    Normalise
+    MinMax
+    Normalizer
     Padder
     PeriodogramTransformer
     Tabularizer
     Resizer
-    TimeSeriesScaler
     SlopeTransformer
+    Standardizer
     Truncator
 
 

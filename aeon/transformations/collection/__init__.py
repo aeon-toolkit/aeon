@@ -19,7 +19,6 @@ __all__ = [
     "Tabularizer",
     "SlopeTransformer",
     "Standardizer",
-    "TimeSeriesScaler",
     "Truncator",
     "Normalizer",
 ]
@@ -35,7 +34,6 @@ from aeon.transformations.collection._periodogram import PeriodogramTransformer
 from aeon.transformations.collection._reduce import Tabularizer
 from aeon.transformations.collection._rescale import MinMax, Normalizer, Standardizer
 from aeon.transformations.collection._resize import Resizer
-from aeon.transformations.collection._scaler import TimeSeriesScaler
 from aeon.transformations.collection._slope import SlopeTransformer
 from aeon.transformations.collection._truncate import Truncator
 from aeon.transformations.collection.base import BaseCollectionTransformer
