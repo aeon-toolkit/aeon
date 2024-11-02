@@ -47,7 +47,7 @@ requires-python = ">=3.9,<3.13"
 dependencies = [
     "deprecated>=1.2.13",
     "numba>=0.55,<0.61.0",
-    "numpy>=1.21.0,<1.27.0",
+    "numpy>=1.21.0,<2.1.0",
     "packaging>=20.0",
     "pandas>=2.0.0,<2.3.0",
     "scikit-learn>=1.0.0,<1.6.0",
@@ -73,6 +73,7 @@ all_extras = [
     "torch>=1.13.1",
     "tsfresh>=0.20.0",
     "tslearn>=0.5.2",
+    "sparse"
 ]
 dl = [
     "keras-self-attention",
@@ -81,7 +82,6 @@ dl = [
 unstable_extras = [
     "mrsqm>=0.0.7,<0.1.0; platform_system != 'Windows' and python_version < '3.12'",  # requires gcc and fftw to be installed for Windows and some other OS (see http://www.fftw.org/index.html)
     "mrseql>=0.0.4,<0.1.0; platform_system != 'Windows' and python_version < '3.12'",   # requires gcc and fftw to be installed for Windows and some other OS (see http://www.fftw.org/index.html)
-    "pyfftw>=0.12.0; python_version < '3.12'",  # requires fftw to be installed for Windows and some other OS (see http://www.fftw.org/index.html)
 ]
 dev = [
     "backoff",

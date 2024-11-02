@@ -12,7 +12,7 @@ from sklearn.tree import DecisionTreeRegressor
 
 from aeon.regression.base import BaseRegressor
 from aeon.regression.sklearn import RotationForestRegressor
-from aeon.transformations.collection.feature_based import TSFreshFeatureExtractor
+from aeon.transformations.collection.feature_based import TSFresh
 
 
 class FreshPRINCERegressor(BaseRegressor):
@@ -52,7 +52,7 @@ class FreshPRINCERegressor(BaseRegressor):
 
     See Also
     --------
-    TSFreshFeatureExtractor, TSFreshRegressor, RotationForestRegressor
+    TSFresh, TSFreshRegressor, RotationForestRegressor
 
     References
     ----------
@@ -169,7 +169,7 @@ class FreshPRINCERegressor(BaseRegressor):
             n_jobs=self._n_jobs,
             random_state=self.random_state,
         )
-        self._tsfresh = TSFreshFeatureExtractor(
+        self._tsfresh = TSFresh(
             default_fc_parameters=self.default_fc_parameters,
             n_jobs=self._n_jobs,
             chunksize=self.chunksize,
@@ -180,7 +180,7 @@ class FreshPRINCERegressor(BaseRegressor):
         return self._tsfresh.fit_transform(X, y)
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -202,7 +202,6 @@ class FreshPRINCERegressor(BaseRegressor):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         if parameter_set == "results_comparison":
             return {

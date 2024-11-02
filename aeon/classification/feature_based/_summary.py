@@ -11,7 +11,7 @@ from sklearn.ensemble import RandomForestClassifier
 
 from aeon.base._base import _clone_estimator
 from aeon.classification.base import BaseClassifier
-from aeon.transformations.collection.feature_based import SevenNumberSummaryTransformer
+from aeon.transformations.collection.feature_based import SevenNumberSummary
 
 
 class SummaryClassifier(BaseClassifier):
@@ -19,7 +19,7 @@ class SummaryClassifier(BaseClassifier):
     Summary statistic classifier.
 
     This classifier simply transforms the input data using the
-    SevenNumberSummaryTransformer transformer and builds a provided estimator using the
+    SevenNumberSummary transformer and builds a provided estimator using the
     transformed data.
 
     Parameters
@@ -113,7 +113,7 @@ class SummaryClassifier(BaseClassifier):
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
         """
-        self._transformer = SevenNumberSummaryTransformer(
+        self._transformer = SevenNumberSummary(
             summary_stats=self.summary_stats,
         )
 
@@ -174,7 +174,7 @@ class SummaryClassifier(BaseClassifier):
             return dists
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -193,7 +193,6 @@ class SummaryClassifier(BaseClassifier):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         if parameter_set == "results_comparison":
             return {"estimator": RandomForestClassifier(n_estimators=10)}
