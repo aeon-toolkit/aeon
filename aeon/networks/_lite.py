@@ -46,7 +46,7 @@ class LITENetwork(BaseDeepLearningNetwork):
     ..[1] Ismail-Fawaz et al. LITE: Light Inception with boosTing
     tEchniques for Time Series Classificaion, IEEE International
     Conference on Data Science and Advanced Analytics, 2023.
-    
+
     ..[2] Ismail-Fawaz, Ali, et al. "Look Into the LITE
     in Deep Learning for Time Series Classification."
     arXiv preprint arXiv:2409.02869 (2024).
