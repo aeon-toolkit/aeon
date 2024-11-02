@@ -53,14 +53,6 @@ ESTIMATOR_TAGS = {
         "description": "What data structure(s) the estimator uses internally for "
         "fit/predict.",
     },
-    "y_inner_type": {
-        "class": "forecaster",
-        "type": [
-            ("list||str", SERIES_DATA_TYPES),
-        ],
-        "description": "What data structure(s) the estimator uses internally for "
-        "fit/predict.",
-    },
     "algorithm_type": {
         "class": "estimator",
         "type": [
@@ -138,7 +130,7 @@ ESTIMATOR_TAGS = {
         "point belongs to.",
     },
     "requires_y": {
-        "class": ["transformer", "anomaly-detector", "segmenter", "forecaster"],
+        "class": ["transformer", "anomaly-detector", "segmenter"],
         "type": "bool",
         "description": "Does this estimator require y to be passed in its methods?",
     },

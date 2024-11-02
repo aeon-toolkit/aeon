@@ -32,9 +32,7 @@ class BaseForecaster(BaseSeriesEstimator):
         "capability:univariate": True,
         "capability:multivariate": False,
         "capability:missing_values": False,
-        "y_inner_type": "np.ndarray",
         "fit_is_empty": False,
-        "requires_y": True,
     }
 
     def __init__(self, horizon=1, axis=1):
