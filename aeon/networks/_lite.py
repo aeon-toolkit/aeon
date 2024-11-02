@@ -26,12 +26,14 @@ class LITENetwork(BaseDeepLearningNetwork):
         The activation function used in each lite layer, if not a list,
         the same is used in all lite layers.
 
-    Notes
-    -----
+    References
+    ----------
     ..[1] Ismail-Fawaz et al. LITE: Light Inception with boosTing
     tEchniques for Time Series Classificaion, IEEE International
     Conference on Data Science and Advanced Analytics, 2023.
 
+    Notes
+    -----
     Adapted from the implementation from Ismail-Fawaz et. al
 
     https://github.com/MSD-IRIMAS/LITE

@@ -87,12 +87,14 @@ class LITETimeClassifier(BaseClassifier):
     metrics : keras metrics, default = None,
         will be set to accuracy as default if None
 
-    Notes
-    -----
+    References
+    ----------
     ..[1] Ismail-Fawaz et al. LITE: Light Inception with boosTing
     tEchniques for Time Series Classification, IEEE International
     Conference on Data Science and Advanced Analytics, 2023.
 
+    Notes
+    -----
     Adapted from the implementation from Ismail-Fawaz et. al
     https://github.com/MSD-IRIMAS/LITE
 
@@ -355,12 +357,14 @@ class IndividualLITEClassifier(BaseDeepClassifier):
     metrics : keras metrics, default = None,
         will be set to accuracy as default if None
 
-    Notes
-    -----
+    References
+    ----------
     ..[1] Ismail-Fawaz et al. LITE: Light Inception with boosTing
     tEchniques for Time Series Classificaion, IEEE International
     Conference on Data Science and Advanced Analytics, 2023.
 
+    Notes
+    -----
     Adapted from the implementation from Ismail-Fawaz et. al
     https://github.com/MSD-IRIMAS/LITE
 

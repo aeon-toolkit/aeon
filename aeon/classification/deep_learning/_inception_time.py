@@ -130,8 +130,8 @@ class InceptionTimeClassifier(BaseClassifier):
     metrics             : keras metrics, default = None,
         will be set to accuracy as default if None
 
-    Notes
-    -----
+    References
+    ----------
     ..[1] Fawaz et al. InceptionTime: Finding AlexNet for Time Series
     Classification, Data Mining and Knowledge Discovery, 34, 2020
 
@@ -140,6 +140,8 @@ class InceptionTimeClassifier(BaseClassifier):
     Hand-Crafted Convolution Filters, 2022 IEEE International
     Conference on Big Data.
 
+    Notes
+    -----
     Adapted from the implementation from Fawaz et. al
     https://github.com/hfawaz/InceptionTime/blob/master/classifiers/inception.py
 
@@ -474,14 +476,16 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         metrics             : keras metrics, default = None, will be set
         to accuracy as default if None
 
-    Notes
-    -----
+    References
+    ----------
     ..[1] Fawaz et al. InceptionTime: Finding AlexNet for Time Series
     Classification, Data Mining and Knowledge Discovery, 34, 2020
 
     ..[2] Ismail-Fawaz et al. Deep Learning For Time Series Classification Using New
     Hand-Crafted Convolution Filters, 2022 IEEE International Conference on Big Data.
 
+    Notes
+    -----
     Adapted from the implementation from Fawaz et. al
     https://github.com/hfawaz/InceptionTime/blob/master/classifiers/inception.py
 

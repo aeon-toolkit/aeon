@@ -134,8 +134,8 @@ class InceptionTimeRegressor(BaseRegressor):
                               default = mean_squared_error
         will be set to accuracy as default if None
 
-    Notes
-    -----
+    References
+    ----------
     ..[1] Fawaz et al. InceptionTime: Finding AlexNet for Time Series
     regression, Data Mining and Knowledge Discovery, 34, 2020
 
@@ -144,6 +144,8 @@ class InceptionTimeRegressor(BaseRegressor):
     Hand-Crafted Convolution Filters, 2022 IEEE International
     Conference on Big Data.
 
+    Notes
+    -----
     Adapted from the implementation from Fawaz et. al
     https://github.com/hfawaz/InceptionTime/blob/master/regressors/inception.py
 
@@ -460,14 +462,16 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
         loss                : keras loss, default = mean_squared_error
         to accuracy as default if None
 
-    Notes
-    -----
+    References
+    ----------
     ..[1] Fawaz et al. InceptionTime: Finding AlexNet for Time Series
     regression, Data Mining and Knowledge Discovery, 34, 2020
 
     ..[2] Ismail-Fawaz et al. Deep Learning For Time Series regression Using New
     Hand-Crafted Convolution Filters, 2022 IEEE International Conference on Big Data.
 
+    Notes
+    -----
     Adapted from the implementation from Fawaz et. al
     https://github.com/hfawaz/InceptionTime/blob/master/regressors/inception.py
 
