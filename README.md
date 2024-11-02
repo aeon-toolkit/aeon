@@ -55,14 +55,13 @@ can be found [here](https://www.aeon-toolkit.org/en/stable/developer_guide/dev_i
 
 The best place to get started for all `aeon` packages is our [getting started guide](https://www.aeon-toolkit.org/en/stable/getting_started.html).
 
-Below we provide a quick example of how to use `aeon` for forecasting,
-classification and clustering.
+Below we provide a quick example of how to use `aeon` for classification and clustering.
 
 ### Classification
 
 *It's worth mentioning that the classifier used in the example can easily be
 swapped out for a regressor, and the labels for numeric targets. This flexibility
-allowing for seamless adaptation to different tasks and datasets while preserving
+allows for seamless adaptation to different tasks and datasets while preserving
 API consistency.*
 
 ```python

@@ -16,16 +16,24 @@ from aeon.regression.deep_learning.base import BaseDeepRegressor, BaseRegressor
 
 
 class LITETimeRegressor(BaseRegressor):
-    """LITETime ensemble Regressor.
+    """LITETime or LITEMVTime ensemble Regressor.
 
-    Ensemble of IndividualLITETimeRegressor objects, as described in [1]_.
+    Ensemble of IndividualLITETimeRegressor objects, as described in [1]_
+    and [2]_. For using LITEMV, simply set the `use_litemv`
+    bool parameter to True.
 
     Parameters
     ----------
     n_regressors : int, default = 5,
-        the number of LITE models used for the
+        the number of LITE or LITEMV models used for the
         Ensemble in order to create
-        LITETime.
+        LITETime or LITEMVTime.
+    use_litemv : bool, default = False
+        The boolean value to control which version of the
+        network to use. If set to `False`, then LITE is used,
+        if set to `True` then LITEMV is used. LITEMV is the
+        same architecture as LITE but specifically designed
+        to better handle multivariate time series.
     n_filters : int or list of int32, default = 32
         The number of filters used in one lite layer, if not a list, the same
         number of filters is used in all lite layers.
@@ -93,6 +101,9 @@ class LITETimeRegressor(BaseRegressor):
     ..[1] Ismail-Fawaz et al. LITE: Light Inception with boosTing
     tEchniques for Time Series Classification, IEEE International
     Conference on Data Science and Advanced Analytics, 2023.
+    ..[2] Ismail-Fawaz, Ali, et al. "Look Into the LITE
+    in Deep Learning for Time Series Classification."
+    arXiv preprint arXiv:2409.02869 (2024).
 
     Notes
     -----
@@ -121,6 +132,7 @@ class LITETimeRegressor(BaseRegressor):
     def __init__(
         self,
         n_regressors=5,
+        use_litemv=False,
         n_filters=32,
         kernel_size=40,
         strides=1,
@@ -144,6 +156,8 @@ class LITETimeRegressor(BaseRegressor):
         optimizer=None,
     ):
         self.n_regressors = n_regressors
+
+        self.use_litemv = use_litemv
 
         self.strides = strides
         self.activation = activation
@@ -193,6 +207,7 @@ class LITETimeRegressor(BaseRegressor):
 
         for n in range(0, self.n_regressors):
             rgs = IndividualLITERegressor(
+                use_litemv=self.use_litemv,
                 n_filters=self.n_filters,
                 kernel_size=self.kernel_size,
                 output_activation=self.output_activation,
@@ -264,22 +279,40 @@ class LITETimeRegressor(BaseRegressor):
         """
         param1 = {
             "n_regressors": 1,
-            "n_epochs": 10,
+            "n_epochs": 2,
             "batch_size": 4,
             "kernel_size": 4,
         }
+        param2 = {
+            "n_regressors": 1,
+            "use_litemv": True,
+            "n_epochs": 2,
+            "batch_size": 4,
+            "kernel_size": 4,
+            "metrics": ["mean_squared_error"],
+            "verbose": True,
+            "use_mini_batch_size": True,
+        }
 
-        return [param1]
+        return [param1, param2]
 
 
 class IndividualLITERegressor(BaseDeepRegressor):
-    """Single LITE Regressor.
+    """Single LITE or LITEMV Regressor.
 
-    One LITE deep model, as described in [1]_.
+    One LITE or LITEMV deep model, as described in [1]_
+    and [2]_. For using LITEMV, simply set the `use_litemv`
+    bool parameter to True.
 
     Parameters
     ----------
-        n_filters : int or list of int32, default = 32
+    use_litemv : bool, default = False
+        The boolean value to control which version of the
+        network to use. If set to `False`, then LITE is used,
+        if set to `True` then LITEMV is used. LITEMV is the
+        same architecture as LITE but specifically designed
+        to better handle multivariate time series.
+    n_filters : int or list of int32, default = 32
         The number of filters used in one lite layer, if not a list, the same
         number of filters is used in all lite layers.
     kernel_size : int or list of int, default = 40
@@ -351,6 +384,9 @@ class IndividualLITERegressor(BaseDeepRegressor):
     ..[1] Ismail-Fawaz et al. LITE: Light Inception with boosTing
     tEchniques for Time Series Classificaion, IEEE International
     Conference on Data Science and Advanced Analytics, 2023.
+    ..[2] Ismail-Fawaz, Ali, et al. "Look Into the LITE
+    in Deep Learning for Time Series Classification."
+    arXiv preprint arXiv:2409.02869 (2024).
 
     Examples
     --------
@@ -365,6 +401,7 @@ class IndividualLITERegressor(BaseDeepRegressor):
 
     def __init__(
         self,
+        use_litemv=False,
         n_filters=32,
         kernel_size=40,
         strides=1,
@@ -387,7 +424,7 @@ class IndividualLITERegressor(BaseDeepRegressor):
         metrics=None,
         optimizer=None,
     ):
-        # predefined
+        self.use_litemv = use_litemv
         self.n_filters = n_filters
         self.strides = strides
         self.activation = activation
@@ -418,6 +455,7 @@ class IndividualLITERegressor(BaseDeepRegressor):
         )
 
         self._network = LITENetwork(
+            use_litemv=self.use_litemv,
             n_filters=self.n_filters,
             kernel_size=self.kernel_size,
             strides=self.strides,
@@ -573,9 +611,18 @@ class IndividualLITERegressor(BaseDeepRegressor):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
         """
         param1 = {
-            "n_epochs": 10,
+            "n_epochs": 2,
             "batch_size": 4,
             "kernel_size": 4,
         }
+        param2 = {
+            "use_litemv": True,
+            "n_epochs": 2,
+            "batch_size": 4,
+            "kernel_size": 4,
+            "metrics": ["mean_squared_error"],
+            "verbose": True,
+            "use_mini_batch_size": True,
+        }
 
-        return [param1]
+        return [param1, param2]
