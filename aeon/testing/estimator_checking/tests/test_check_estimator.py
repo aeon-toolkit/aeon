@@ -9,7 +9,7 @@ from aeon.testing.estimator_checking import check_estimator, parametrize_with_ch
 from aeon.testing.estimator_checking._estimator_checking import _get_check_estimator_ids
 from aeon.testing.mock_estimators import (
     MockClassifier,
-    MockClassifierMultiTestParams,
+    MockClassifierParams,
     MockRegressor,
     MockSegmenter,
 )
@@ -25,7 +25,7 @@ test_classes = [
     MockAnomalyDetector,
     # MockMultivariateSeriesTransformer,
     TimeSeriesScaler,
-    MockClassifierMultiTestParams,
+    MockClassifierParams,
 ]
 test_classes = {c.__name__: c for c in test_classes}
 
