@@ -162,7 +162,7 @@ class MinMaxScaler(BaseCollectionTransformer):
             return Xt
 
 
-class Standardizer(BaseCollectionTransformer):
+class Centerer(BaseCollectionTransformer):
     """Standardarise transformer for collections.
 
     This transformer recentres series to have zero mean, but does not change the
@@ -170,10 +170,10 @@ class Standardizer(BaseCollectionTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.collection import Standardizer
+    >>> from aeon.transformations.collection import Centerer
     >>> import numpy as np
     >>> X = np.array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]])
-    >>> recentre = Standardizer()
+    >>> recentre = Centerer()
     >>> Xt = recentre.fit_transform(X)
     >>> mean=np.mean(Xt, axis=-1)
     >>> assert np.allclose(mean, 0)

@@ -18,7 +18,7 @@ __all__ = [
     "PeriodogramTransformer",
     "Tabularizer",
     "SlopeTransformer",
-    "Standardizer",
+    "Centerer",
     "Truncator",
     "Normalizer",
 ]
@@ -32,11 +32,7 @@ from aeon.transformations.collection._matrix_profile import MatrixProfile
 from aeon.transformations.collection._pad import Padder
 from aeon.transformations.collection._periodogram import PeriodogramTransformer
 from aeon.transformations.collection._reduce import Tabularizer
-from aeon.transformations.collection._rescale import (
-    MinMaxScaler,
-    Normalizer,
-    Standardizer,
-)
+from aeon.transformations.collection._rescale import Centerer, MinMaxScaler, Normalizer
 from aeon.transformations.collection._resize import Resizer
 from aeon.transformations.collection._slope import SlopeTransformer
 from aeon.transformations.collection._truncate import Truncator

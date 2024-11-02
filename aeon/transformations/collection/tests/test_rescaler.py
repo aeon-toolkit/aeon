@@ -3,11 +3,7 @@
 import numpy as np
 import pytest
 
-from aeon.transformations.collection._rescale import (
-    MinMaxScaler,
-    Normalizer,
-    Standardizer,
-)
+from aeon.transformations.collection._rescale import Centerer, MinMaxScaler, Normalizer
 
 
 def test_z_norm():
@@ -31,7 +27,7 @@ def test_z_norm():
 def test_standardize():
     """Test the standardization class."""
     X = np.array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]])
-    std = Standardizer()
+    std = Centerer()
     X_transformed = std._transform(X)
 
     mean = np.mean(X_transformed, axis=-1)
