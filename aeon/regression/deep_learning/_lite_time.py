@@ -341,16 +341,16 @@ class IndividualLITERegressor(BaseDeepRegressor):
     metrics : keras metrics, default = mean_squared_error,
         will be set to mean_squared_error as default if None
 
+    Notes
+    -----
+    Adapted from the implementation from Ismail-Fawaz et. al
+    https://github.com/MSD-IRIMAS/LITE
+
     References
     ----------
     ..[1] Ismail-Fawaz et al. LITE: Light Inception with boosTing
     tEchniques for Time Series Classificaion, IEEE International
     Conference on Data Science and Advanced Analytics, 2023.
-
-    Notes
-    -----
-    Adapted from the implementation from Ismail-Fawaz et. al
-    https://github.com/MSD-IRIMAS/LITE
 
     Examples
     --------

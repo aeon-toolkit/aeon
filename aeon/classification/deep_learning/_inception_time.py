@@ -130,6 +130,14 @@ class InceptionTimeClassifier(BaseClassifier):
     metrics             : keras metrics, default = None,
         will be set to accuracy as default if None
 
+    Notes
+    -----
+    Adapted from the implementation from Fawaz et. al
+    https://github.com/hfawaz/InceptionTime/blob/master/classifiers/inception.py
+
+    and Ismail-Fawaz et al.
+    https://github.com/MSD-IRIMAS/CF-4-TSC
+
     References
     ----------
     ..[1] Fawaz et al. InceptionTime: Finding AlexNet for Time Series
@@ -139,14 +147,6 @@ class InceptionTimeClassifier(BaseClassifier):
     Classification Using New
     Hand-Crafted Convolution Filters, 2022 IEEE International
     Conference on Big Data.
-
-    Notes
-    -----
-    Adapted from the implementation from Fawaz et. al
-    https://github.com/hfawaz/InceptionTime/blob/master/classifiers/inception.py
-
-    and Ismail-Fawaz et al.
-    https://github.com/MSD-IRIMAS/CF-4-TSC
 
     Examples
     --------
@@ -476,14 +476,6 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         metrics             : keras metrics, default = None, will be set
         to accuracy as default if None
 
-    References
-    ----------
-    ..[1] Fawaz et al. InceptionTime: Finding AlexNet for Time Series
-    Classification, Data Mining and Knowledge Discovery, 34, 2020
-
-    ..[2] Ismail-Fawaz et al. Deep Learning For Time Series Classification Using New
-    Hand-Crafted Convolution Filters, 2022 IEEE International Conference on Big Data.
-
     Notes
     -----
     Adapted from the implementation from Fawaz et. al
@@ -491,6 +483,14 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
 
     and Ismail-Fawaz et al.
     https://github.com/MSD-IRIMAS/CF-4-TSC
+
+    References
+    ----------
+    ..[1] Fawaz et al. InceptionTime: Finding AlexNet for Time Series
+    Classification, Data Mining and Knowledge Discovery, 34, 2020
+
+    ..[2] Ismail-Fawaz et al. Deep Learning For Time Series Classification Using New
+    Hand-Crafted Convolution Filters, 2022 IEEE International Conference on Big Data.
 
     Examples
     --------
