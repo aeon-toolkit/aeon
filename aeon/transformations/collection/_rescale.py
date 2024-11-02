@@ -1,4 +1,4 @@
-"""Normalization like z-normalization, standardization and min-max scaling."""
+"""Rescaler classes for z-normalization, centering and min-max scaling."""
 
 import numpy as np
 
@@ -36,10 +36,7 @@ class Normalizer(BaseCollectionTransformer):
 
     def _transform(self, X, y=None) -> np.ndarray:
         """
-        Transform method to apply the seleted normalisation.
-
-        keepdims=True: bool, Retains the reduced axes with size one in the output,
-        preserving the number of dimensions of the array.
+        Transform method to apply the normalisation.
 
         Parameters
         ----------
@@ -52,7 +49,7 @@ class Normalizer(BaseCollectionTransformer):
 
         Returns
         -------
-        X_transformed : np.ndarray or list
+        np.ndarray or list
             The normalized data.
         """
         if isinstance(X, np.ndarray):
@@ -123,7 +120,9 @@ class MinMaxScaler(BaseCollectionTransformer):
         Parameters
         ----------
         X: np.ndarray or list
-            Collection to transform.
+            Collection to transform. Either a list of 2D arrays with shape
+            ``(n_channels, n_timepoints_i)`` or a single 3D array of shape
+            ``(n_cases, n_channels, n_timepoints)``.
         y: None
            Ignored.
 
@@ -163,7 +162,7 @@ class MinMaxScaler(BaseCollectionTransformer):
 
 
 class Centerer(BaseCollectionTransformer):
-    """Standardarise transformer for collections.
+    """Centering transformer for collections.
 
     This transformer recentres series to have zero mean, but does not change the
     variance. For multivariate data, it normalizes each channel independently.
@@ -191,7 +190,7 @@ class Centerer(BaseCollectionTransformer):
 
     def _transform(self, X, y=None) -> np.ndarray:
         """
-        Transform method to standardize series.
+        Transform method to center series.
 
         Parameters
         ----------
@@ -204,24 +203,20 @@ class Centerer(BaseCollectionTransformer):
 
         Returns
         -------
-        X_transformed : np.ndarray or list
-            The normalized data.
+        np.ndarray or list
+            The centered data.
         """
         if isinstance(X, np.ndarray):
             # Case 1: X is a single 3D array
             mean_val = np.mean(X, axis=-1, keepdims=True)
-            std_val = np.std(X, axis=-1, keepdims=True)
-            std_val = np.where(std_val == 0, 1, std_val)  # Prevent division by zero
-            X_standardized = (X - mean_val) / std_val
-            return X_standardized
+            Xt = X - mean_val
+            return Xt
 
         else:
             # Case 2: X is a list of 2D arrays
             Xt = []
             for x in X:
                 mean_val = np.mean(x, axis=-1, keepdims=True)
-                std_val = np.std(x, axis=-1, keepdims=True)
-                std_val = np.where(std_val == 0, 1, std_val)  # Prevent division by zero
-                x_standardized = (x - mean_val) / std_val
-                Xt.append(x_standardized)
+                xt = x - mean_val
+                Xt.append(xt)
             return Xt
