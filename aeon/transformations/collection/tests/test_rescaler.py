@@ -24,8 +24,8 @@ def test_z_norm():
     assert np.allclose(std, 1)
 
 
-def test_standardize():
-    """Test the standardization class."""
+def test_centering():
+    """Test the Centerer class."""
     X = np.array([[[1, 2, 3], [4, 5, 6]], [[7, 8, 9], [10, 11, 12]]])
     std = Centerer()
     X_transformed = std._transform(X)
