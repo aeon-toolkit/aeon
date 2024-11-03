@@ -115,11 +115,11 @@ class BaseAnomalyDetector(BaseSeriesEstimator):
         BaseAnomalyDetector
             The fitted estimator, reference to self.
         """
-        if self.get_class_tag("fit_is_empty"):
+        if self.get_tag("fit_is_empty"):
             self.is_fitted = True
             return self
 
-        if self.get_class_tag("requires_y"):
+        if self.get_tag("requires_y"):
             if y is None:
                 raise ValueError("Tag requires_y is true, but fit called with y=None")
 
@@ -159,7 +159,7 @@ class BaseAnomalyDetector(BaseSeriesEstimator):
             A boolean, int or float array of length len(X), where each element indicates
             whether the corresponding subsequence is anomalous or its anomaly score.
         """
-        fit_empty = self.get_class_tag("fit_is_empty")
+        fit_empty = self.get_tag("fit_is_empty")
         if not fit_empty:
             self._check_is_fitted()
 
@@ -194,7 +194,7 @@ class BaseAnomalyDetector(BaseSeriesEstimator):
             A boolean, int or float array of length len(X), where each element indicates
             whether the corresponding subsequence is anomalous or its anomaly score.
         """
-        if self.get_class_tag("requires_y"):
+        if self.get_tag("requires_y"):
             if y is None:
                 raise ValueError("Tag requires_y is true, but fit called with y=None")
 
@@ -203,7 +203,7 @@ class BaseAnomalyDetector(BaseSeriesEstimator):
 
         X = self._preprocess_series(X, axis, True)
 
-        if self.get_class_tag("fit_is_empty"):
+        if self.get_tag("fit_is_empty"):
             self.is_fitted = True
             return self._predict(X)
 
@@ -230,7 +230,7 @@ class BaseAnomalyDetector(BaseSeriesEstimator):
         # Remind user if y is not required for this estimator on failure
         req_msg = (
             f"{self.__class__.__name__} does not require a y input."
-            if self.get_class_tag("requires_y")
+            if self.get_tag("requires_y")
             else ""
         )
         new_y = y

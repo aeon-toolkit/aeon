@@ -5,14 +5,16 @@ Used in tests for the classifier base class.
 
 import numpy as np
 
+from aeon.base._base import _clone_estimator
 from aeon.classification import BaseClassifier
 
 
 class MockClassifier(BaseClassifier):
-    """Dummy classifier for testing base class fit/predict."""
+    """Mock classifier for testing fit/predict."""
 
     def _fit(self, X, y):
         """Fit dummy."""
+        self.foo_ = "bar"
         return self
 
     def _predict(self, X):
@@ -21,7 +23,7 @@ class MockClassifier(BaseClassifier):
 
 
 class MockClassifierPredictProba(MockClassifier):
-    """Dummy classifier for testing base class fit/predict/predict_proba."""
+    """Mock classifier for testing fit/predict/predict_proba."""
 
     def _predict_proba(self, X):
         """Predict proba dummy."""
@@ -31,7 +33,7 @@ class MockClassifierPredictProba(MockClassifier):
 
 
 class MockClassifierFullTags(MockClassifierPredictProba):
-    """Dummy classifier able to handle all input types."""
+    """Mock classifier able to handle all input types."""
 
     _tags = {
         "capability:multivariate": True,
@@ -41,8 +43,8 @@ class MockClassifierFullTags(MockClassifierPredictProba):
     }
 
 
-class MockClassifierMultiTestParams(BaseClassifier):
-    """Dummy classifier for testing base class fit/predict with multiple test params.
+class MockClassifierParams(MockClassifier):
+    """Mock classifier for testing fit/predict with multiple parameters.
 
     Parameters
     ----------
@@ -50,17 +52,18 @@ class MockClassifierMultiTestParams(BaseClassifier):
         If True, predict ones, else zeros.
     """
 
-    def __init__(self, return_ones=False):
+    def __init__(self, return_ones=False, value=50):
         self.return_ones = return_ones
+        self.value = value
         super().__init__()
-
-    def _fit(self, X, y):
-        """Fit dummy."""
-        return self
 
     def _predict(self, X):
         """Predict dummy."""
-        return np.zeros(shape=(len(X),))
+        return (
+            np.zeros(shape=(len(X),))
+            if not self.return_ones
+            else np.ones(shape=(len(X),))
+        )
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
@@ -79,4 +82,26 @@ class MockClassifierMultiTestParams(BaseClassifier):
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
         """
-        return [{"return_ones": False}, {"return_ones": True}]
+        return [{"return_ones": False, "value": 10}, {"return_ones": True}]
+
+
+class MockClassifierComposite(BaseClassifier):
+    """Mock classifier which contains another mock classfier."""
+
+    def __init__(self, mock=None):
+        self.mock = mock
+        super().__init__()
+
+    def _fit(self, X, y):
+        """Fit dummy."""
+        self.mock_ = (
+            MockClassifier().fit(X, y)
+            if self.mock is None
+            else _clone_estimator(self.mock).fit(X, y)
+        )
+        self.foo_ = "bar"
+        return self
+
+    def _predict(self, X):
+        """Predict dummy."""
+        return self.mock_.predict(X)

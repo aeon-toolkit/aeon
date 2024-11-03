@@ -8,7 +8,7 @@ __all__ = ["TimeSeriesForestRegressor"]
 
 import numpy as np
 
-from aeon.base.estimator.interval_based.base_interval_forest import BaseIntervalForest
+from aeon.base.estimators.interval_based.base_interval_forest import BaseIntervalForest
 from aeon.regression import BaseRegressor
 
 

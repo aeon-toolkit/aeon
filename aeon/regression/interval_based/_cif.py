@@ -5,7 +5,7 @@ Interval-based CIF regressor extracting catch22 features from random intervals.
 
 import numpy as np
 
-from aeon.base.estimator.interval_based import BaseIntervalForest
+from aeon.base.estimators.interval_based import BaseIntervalForest
 from aeon.regression import BaseRegressor
 from aeon.transformations.collection.feature_based import Catch22
 from aeon.utils.numba.stats import row_mean, row_slope, row_std

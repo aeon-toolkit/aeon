@@ -1,7 +1,7 @@
 """Implements meta estimator for estimators composed of other estimators."""
 
 __maintainer__ = ["MatthewMiddlehurst"]
-__all__ = ["_ComposableEstimatorMixin"]
+__all__ = ["ComposableEstimatorMixin"]
 
 from abc import ABC, abstractmethod
 
@@ -9,7 +9,7 @@ from aeon.base import BaseAeonEstimator
 from aeon.base._base import _clone_estimator
 
 
-class _ComposableEstimatorMixin(ABC):
+class ComposableEstimatorMixin(ABC):
     """Handles parameter management for estimators composed of named estimators.
 
     Parts (i.e. get_params and set_params) adapted or copied from the scikit-learn
@@ -52,9 +52,8 @@ class _ComposableEstimatorMixin(ABC):
         out.update(estimators)
 
         for name, estimator in estimators:
-            if hasattr(estimator, "get_params"):
-                for key, value in estimator.get_params(deep=True).items():
-                    out[f"{name}__{key}"] = value
+            for key, value in estimator.get_params(deep=True).items():
+                out[f"{name}__{key}"] = value
         return out
 
     def set_params(self, **params):
@@ -119,7 +118,7 @@ class _ComposableEstimatorMixin(ABC):
 
         Returns
         -------
-        fitted_params : mapping of string to any
+        fitted_params : dict
             Fitted parameter names mapped to their values.
         """
         self._check_is_fitted()
@@ -190,16 +189,16 @@ class _ComposableEstimatorMixin(ABC):
         for obj in estimators:
             if isinstance(obj, tuple):
                 if not allow_tuples:
-                    raise TypeError(
+                    raise ValueError(
                         f"{attr_name} should only contain singular estimators instead "
                         f"of (str, estimator) tuples."
                     )
                 if not len(obj) == 2 or not isinstance(obj[0], str):
-                    raise TypeError(
+                    raise ValueError(
                         f"All tuples in {attr_name} must be of form (str, estimator)."
                     )
                 if not isinstance(obj[1], class_type):
-                    raise TypeError(
+                    raise ValueError(
                         f"All estimators in {attr_name} must be an instance "
                         f"of {class_type}."
                     )
@@ -213,7 +212,7 @@ class _ComposableEstimatorMixin(ABC):
                     raise ValueError(f"Estimator name is invalid: {obj[0]}")
                 if unique_names:
                     if obj[0] in names:
-                        raise TypeError(
+                        raise ValueError(
                             f"Names in {attr_name} must be unique. Found duplicate "
                             f"name: {obj[0]}."
                         )
@@ -221,7 +220,7 @@ class _ComposableEstimatorMixin(ABC):
                         names.append(obj[0])
             elif isinstance(obj, class_type):
                 if not allow_single_estimators:
-                    raise TypeError(
+                    raise ValueError(
                         f"{attr_name} should only contain (str, estimator) tuples "
                         f"instead of singular estimators."
                     )
