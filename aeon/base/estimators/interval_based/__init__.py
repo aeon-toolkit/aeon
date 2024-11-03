@@ -2,4 +2,4 @@
 
 __all__ = ["BaseIntervalForest"]
 
-from aeon.base.estimator.interval_based.base_interval_forest import BaseIntervalForest
+from aeon.base.estimators.interval_based.base_interval_forest import BaseIntervalForest

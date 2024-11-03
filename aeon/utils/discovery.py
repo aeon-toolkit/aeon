@@ -230,7 +230,7 @@ def _filter_tags(tags, estimators, name):
 
         cond_sat = True
         for key, value in tags.items():
-            est_tag = est[1].get_class_tag(key)
+            est_tag = est[1].get_class_tag(key, raise_error=False)
             est_tag = est_tag if isinstance(est_tag, list) else [est_tag]
 
             if isinstance(value, list):
