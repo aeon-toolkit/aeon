@@ -341,8 +341,8 @@ class AEDCNNClusterer(BaseDeepClusterer):
             "estimator": DummyClusterer(n_clusters=2),
             "n_epochs": 1,
             "batch_size": 4,
-            "n_layers": 3,
-            "n_filters": None,
+            "n_layers": 1,
+            "n_filters": 1,
             "kernel_size": None,
         }
 
