@@ -317,8 +317,8 @@ class AEAttentionBiGRUClusterer(BaseDeepClusterer):
             "estimator": DummyClusterer(n_clusters=2),
             "n_epochs": 1,
             "batch_size": 4,
-            "n_layers_encoder": 2,
-            "n_layers_decoder": 2,
+            "n_layers_encoder": 1,
+            "n_layers_decoder": 1,
         }
 
         return [param1]
