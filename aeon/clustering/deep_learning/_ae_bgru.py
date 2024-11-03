@@ -315,8 +315,8 @@ class AEBiGRUClusterer(BaseDeepClusterer):
             "estimator": DummyClusterer(n_clusters=2),
             "n_epochs": 1,
             "batch_size": 4,
-            "n_layers": 2,
-            "n_units": None,
+            "n_layers": 1,
+            "n_units": 2,
         }
 
         return [param1]
