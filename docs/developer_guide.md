@@ -83,27 +83,6 @@ Coding Standards
 :::{grid-item-card}
 :text-align: center
 
-CI/CD
-
-^^^
-
-A description of the `aeon` CI/CD pipeline.
-
-+++
-
-```{button-ref} developer_guide/continuous_integration
-:color: primary
-:click-parent:
-:expand:
-
-CI/CD
-```
-
-:::
-
-:::{grid-item-card}
-:text-align: center
-
 Dependencies
 
 ^^^
@@ -232,14 +211,12 @@ Testing
 ```{toctree}
 :hidden:
 
-developer_guide/add_estimators.md
 developer_guide/aep.md
 developer_guide/coding_standards.md
-developer_guide/continuous_integration.md
 developer_guide/dependencies.md
 developer_guide/deprecation.md
 developer_guide/dev_installation.md
 developer_guide/documentation.md
 developer_guide/release.md
-developer_guide/testing_framework.md
+developer_guide/testing.md
 ```

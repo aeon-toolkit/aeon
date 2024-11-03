@@ -49,12 +49,20 @@ The core developers push forward `aeon`'s development and maintain the package.
 ```{include} about/core_developers.md
 ```
 
+## Affiliation
+
+`aeon` is an affiliated project of [NumFOCUS](https://numfocus.org/).
+
+![https://numfocus.org/](images/other_logos/numfocus-logo.png){w=300px}
+
 ## History
 
 `aeon` was started in January 2023 as a fork of the `sktime` project by 8 core
 developers using [v0.16.0](https://github.com/aeon-toolkit/aeon/releases/tag/sktime-v0.16.0)
-as a base. In following year, the project grew to include an additional 4 core
-developers and was accepted as a NumFOCUS affiliated project in December 2023.
+as a base. In the following years, the project has grown to include many more core
+developers, has had a complete revamp or governance structure, had relaunched numerous
+modules for time series learning tasks, and was accepted as a NumFOCUS affiliated
+project in December 2023.
 
 ## Artwork
 
@@ -78,8 +86,33 @@ The project developers would like to thank the following funders.
 
 * -
   -
-* - The [UKRI Engineering and Physical Sciences Research Council (EPSRC)](https://gow.epsrc.ukri.org/NGBOViewGrant.aspx?GrantRef=EP/W030756/1) funds Matthew Middlehurst ({user}`matthewmiddlehurst`) and Tony Bagnall ({user}`TonyBagnall`) since 2022
+* - The [UKRI Engineering and Physical Sciences Research Council (EPSRC)](https://gow.epsrc.ukri.org/NGBOViewGrant.aspx?GrantRef=EP/W030756/1) funds Matthew Middlehurst ({user}`matthewmiddlehurst`) and Tony Bagnall ({user}`TonyBagnall`) between 2022-2025
   - ![https://epsrc.ukri.org](images/funder_logos/ukri-epsrc-logo.png)
+```
+
+Thank you to the [Google Summer of Code (GSoC)](https://summerofcode.withgoogle.com)
+which has sponsored internships for the following `aeon` contributors via the NumFOCUS
+organisation.
+
+```{list-table}
+:header-rows: 1
+
+* - Name
+  - GitHub ID
+  - Organization
+  - Year
+* - Divya Tiwari
+  - {user}`itsdivya1309`
+  - Google Summer of Code
+  - 2024
+* - Aadya Chinubhai
+  - {user}`aadya940`
+  - Google Summer of Code
+  - 2024
+* - Gabriel Riegner
+  - {user}`griegner`
+  - Google Summer of Code
+  - 2024
 ```
 
 ## Infrastructure
@@ -87,12 +120,6 @@ The project developers would like to thank the following funders.
 We would also like to thank [GitHub Actions](https://github.com/features/actions)
 and [ReadtheDocs](https://readthedocs.org) for the free compute time on their servers
 and documentation hosting.
-
-## Affiliation
-
-`aeon` is an affiliated project of [NumFOCUS](https://numfocus.org/).
-
-![https://numfocus.org/](images/other_logos/numfocus-logo.png){w=300px}
 
 
 ## Pre-fork Acknowledgements
