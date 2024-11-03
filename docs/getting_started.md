@@ -12,28 +12,26 @@ package. If you want help with scikit-learn you may want to view
 the very latest algorithms for time series machine learning, in addition to a range of
 classical techniques for the following learning tasks:
 
-- Classification, where a collection of time series labelled with
+- **Classification**, where a collection of time series labelled with
   a discrete value is used to train a model to predict unseen cases ([more details](examples/classification/classification.ipynb)).
-- Regression, where a collection of time series labelled with
+- **Regression**, where a collection of time series labelled with
   a continuous value is used to train a model to predict unseen cases ([more details](examples/regression/regression.ipynb)).
-- Clustering, where a collection of time series without any
+- **Clustering**, where a collection of time series without any
   labels are used to train a model to label cases ([more details](examples/clustering/clustering.ipynb)).
-- Similarity search where the goal is to evaluate the similarity
+- **Similarity search** where the goal is to evaluate the similarity
 between a query time series and a collection of other longer time series ([more details](examples/similarity_search/similarity_search.ipynb)).
-- Anomaly detection where the goal is to find values or areas of a
-  single time series that are not representative of the whole series. More details
-  coming soon.
-- Segmentation where the goal is to split a single time series into
+- **Anomaly detection** where the goal is to find values or areas of a
+  single time series that are not representative of the whole series.
+- **Segmentation** where the goal is to split a single time series into
   regions where the series are sofind areas of a time series that are not
   representative of the whole series ([more details](examples/segmentation/segmentation.ipynb)).
-- Forecasting, where the goal is to predict future values for a time
+- **Forecasting**, where the goal is to predict future values for a time
   series (new module coming soon).
 
 `aeon` also provides core modules that are used by the modules above:
 
 - Transformations, where a either a single series or collection is
-  transformed
-  into a different representation or domain. More details coming soon.
+  transformed into a different representation or domain. ([more details](examples/transformations/transformations.ipynb)).
 - Distances, which measure the dissimilarity between two time series or
   collections of series and include functions to align series ([more details](examples/distances/distances.ipynb)).
 - Networks, provides core models for deep learning for all time series tasks ([more
@@ -258,7 +256,7 @@ predict the labels for new cases. Like `scikit-learn`, `predict_proba` methods a
 available to predict class probabilities and a `score` method is present to
 calculate accuracy on new data. Explore the wide range of
 algorithms available in `aeon`, including the very latest state-of-the-art, in the
-[classification notebooks](examples.md#classification).
+[classification notebooks](examples/classification/classification.ipynb).
 
 ### Regression
 
