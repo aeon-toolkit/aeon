@@ -6,7 +6,7 @@ periodogram and differences representations as well as the base series.
 
 from sklearn.preprocessing import FunctionTransformer
 
-from aeon.base.estimator.interval_based import BaseIntervalForest
+from aeon.base.estimators.interval_based import BaseIntervalForest
 from aeon.regression import BaseRegressor
 from aeon.transformations.collection import PeriodogramTransformer
 from aeon.transformations.collection.feature_based import Catch22
