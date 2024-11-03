@@ -11,7 +11,7 @@ from sklearn.ensemble import RandomForestClassifier
 
 from aeon.base._base import _clone_estimator
 from aeon.classification.base import BaseClassifier
-from aeon.transformations.collection.feature_based import SevenNumberSummaryTransformer
+from aeon.transformations.collection.feature_based import SevenNumberSummary
 
 
 class SummaryClassifier(BaseClassifier):
@@ -19,7 +19,7 @@ class SummaryClassifier(BaseClassifier):
     Summary statistic classifier.
 
     This classifier simply transforms the input data using the
-    SevenNumberSummaryTransformer transformer and builds a provided estimator using the
+    SevenNumberSummary transformer and builds a provided estimator using the
     transformed data.
 
     Parameters
@@ -50,6 +50,10 @@ class SummaryClassifier(BaseClassifier):
         Number of classes. Extracted from the data.
     classes_ : ndarray of shape (n_classes)
         Holds the label for each class.
+    estimator_ : sklearn classifier
+        The fitted estimator.
+    transformer_ : SevenNumberSummary
+        The fitted transformer.
 
     See Also
     --------
@@ -88,9 +92,6 @@ class SummaryClassifier(BaseClassifier):
         self.n_jobs = n_jobs
         self.random_state = random_state
 
-        self._transformer = None
-        self._estimator = None
-
         super().__init__()
 
     def _fit(self, X, y):
@@ -113,11 +114,11 @@ class SummaryClassifier(BaseClassifier):
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
         """
-        self._transformer = SevenNumberSummaryTransformer(
+        self.transformer_ = SevenNumberSummary(
             summary_stats=self.summary_stats,
         )
 
-        self._estimator = _clone_estimator(
+        self.estimator_ = _clone_estimator(
             (
                 RandomForestClassifier(n_estimators=200)
                 if self.estimator is None
@@ -126,12 +127,12 @@ class SummaryClassifier(BaseClassifier):
             self.random_state,
         )
 
-        m = getattr(self._estimator, "n_jobs", None)
+        m = getattr(self.estimator_, "n_jobs", None)
         if m is not None:
-            self._estimator.n_jobs = self._n_jobs
+            self.estimator_.n_jobs = self._n_jobs
 
-        X_t = self._transformer.fit_transform(X, y)
-        self._estimator.fit(X_t, y)
+        X_t = self.transformer_.fit_transform(X, y)
+        self.estimator_.fit(X_t, y)
 
         return self
 
@@ -148,7 +149,7 @@ class SummaryClassifier(BaseClassifier):
         y : array-like, shape = [n_cases]
             Predicted class labels.
         """
-        return self._estimator.predict(self._transformer.transform(X))
+        return self.estimator_.predict(self.transformer_.transform(X))
 
     def _predict_proba(self, X) -> np.ndarray:
         """Predict class probabilities for n instances in X.
@@ -163,12 +164,12 @@ class SummaryClassifier(BaseClassifier):
         y : array-like, shape = [n_cases, n_classes_]
             Predicted probabilities using the ordering in classes_.
         """
-        m = getattr(self._estimator, "predict_proba", None)
+        m = getattr(self.estimator_, "predict_proba", None)
         if callable(m):
-            return self._estimator.predict_proba(self._transformer.transform(X))
+            return self.estimator_.predict_proba(self.transformer_.transform(X))
         else:
             dists = np.zeros((X.shape[0], self.n_classes_))
-            preds = self._estimator.predict(self._transformer.transform(X))
+            preds = self.estimator_.predict(self.transformer_.transform(X))
             for i in range(0, X.shape[0]):
                 dists[i, self._class_dictionary[preds[i]]] = 1
             return dists

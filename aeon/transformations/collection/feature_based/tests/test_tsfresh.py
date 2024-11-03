@@ -1,4 +1,4 @@
-"""Tests for TSFreshFeatureExtractor."""
+"""Tests for TSFresh."""
 
 __maintainer__ = []
 
@@ -7,10 +7,7 @@ import pytest
 
 from aeon.datasets import load_unit_test
 from aeon.testing.data_generation import make_example_3d_numpy
-from aeon.transformations.collection.feature_based import (
-    TSFreshFeatureExtractor,
-    TSFreshRelevantFeatureExtractor,
-)
+from aeon.transformations.collection.feature_based import TSFresh, TSFreshRelevant
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
@@ -23,7 +20,7 @@ def test_tsfresh_extractor(default_fc_parameters):
     """Test that mean feature of TSFreshFeatureExtract is identical with sample mean."""
     X = np.random.rand(10, 1, 30)
 
-    transformer = TSFreshFeatureExtractor(
+    transformer = TSFresh(
         default_fc_parameters=default_fc_parameters, disable_progressbar=True
     )
 
@@ -47,7 +44,7 @@ def test_kind_tsfresh_extractor():
         "dim_0__longest_strike_above_mean",
         "dim_0__variance",
     ]
-    ts_custom = TSFreshFeatureExtractor(
+    ts_custom = TSFresh(
         kind_to_fc_parameters=features_to_calc, disable_progressbar=True
     )
     Xts_custom = ts_custom.fit_transform(X)
@@ -61,7 +58,7 @@ def test_kind_tsfresh_extractor():
 def test_tsfresh_inputs():
     """Test incorrect input errors."""
     with pytest.raises(ValueError, match="If `default_fc_parameters` is passed"):
-        TSFreshFeatureExtractor(default_fc_parameters="wrong_input")
-    ts = TSFreshRelevantFeatureExtractor()
+        TSFresh(default_fc_parameters="wrong_input")
+    ts = TSFreshRelevant()
     X, y = make_example_3d_numpy()
     ts.fit_transform(X, y)

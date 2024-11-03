@@ -82,7 +82,7 @@ def get_n_cases(X):
     Parameters
     ----------
     X : collection
-        See aeon.utils.registry.COLLECTIONS_DATA_TYPES for details.
+        See aeon.utils.COLLECTIONS_DATA_TYPES for details.
 
     Returns
     -------
@@ -103,7 +103,7 @@ def get_n_timepoints(X):
     Parameters
     ----------
     X : collection
-        See aeon.utils.registry.COLLECTIONS_DATA_TYPES for details.
+        See aeon.utils.COLLECTIONS_DATA_TYPES for details.
 
     Returns
     -------
@@ -129,7 +129,7 @@ def get_n_channels(X):
     Parameters
     ----------
     X : collection
-        See aeon.utils.registry.COLLECTIONS_DATA_TYPES for details.
+        See aeon.utils.COLLECTIONS_DATA_TYPES for details.
 
     Returns
     -------
@@ -171,7 +171,7 @@ def get_type(X):
     Parameters
     ----------
     X : collection
-        See aeon.utils.registry.COLLECTIONS_DATA_TYPES for details.
+        See aeon.utils.COLLECTIONS_DATA_TYPES for details.
 
     Returns
     -------
@@ -241,7 +241,7 @@ def is_equal_length(X):
     Parameters
     ----------
     X : collection
-        See aeon.utils.registry.COLLECTIONS_DATA_TYPES for details.
+        See aeon.utils.COLLECTIONS_DATA_TYPES for details.
 
     Returns
     -------
@@ -373,9 +373,6 @@ def _equal_length(X, input_type):
             X.groupby(level=0, group_keys=True, as_index=True).count().nunique()[0] == 1
         )
     raise ValueError(f" unknown input type {input_type}")
-
-
-# TODO: Test this function
 
 
 def _is_numpy_list_multivariate(
