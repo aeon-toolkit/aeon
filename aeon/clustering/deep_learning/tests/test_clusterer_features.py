@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 
 from aeon.clustering.deep_learning import AEResNetClusterer
+from aeon.clustering.deep_learning import AEFCNClusterer
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
@@ -14,8 +15,16 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 def test_multi_rec_fcn():
     """Tests whether multi-rec loss works fine or not."""
     X = np.random.random((100, 5, 2))
-    clst = AEResNetClusterer(n_clusters=2, n_epochs=10, loss="multi_rec")
+    clst = AEFCNClusterer(
+        n_clusters=2, n_epochs=10, n_filters=[2, 3, 4], loss="multi_rec"
+    )
     clst.fit(X)
     assert (
         clst.history["loss"][0] > clst.history["loss"][9]
     )  # Check if loss is decreasing.
+    clst = AEResNetClusterer(n_clusters=2, n_epochs=10, loss="multi_rec")
+    clst.fit(X)
+    assert (
+        clst.history["loss"][0] > clst.history["loss"][9]
+    )
+    

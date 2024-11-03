@@ -6,9 +6,8 @@ __all__ = ["RegressorEnsemble"]
 
 import numpy as np
 
-from aeon.base.estimator.compose.collection_ensemble import BaseCollectionEnsemble
-from aeon.regression import BaseRegressor, DummyRegressor
-from aeon.regression.distance_based import KNeighborsTimeSeriesRegressor
+from aeon.base.estimators.compose.collection_ensemble import BaseCollectionEnsemble
+from aeon.regression import BaseRegressor
 from aeon.regression.sklearn._wrapper import SklearnRegressorWrapper
 from aeon.utils.sklearn import is_sklearn_regressor
 
@@ -19,11 +18,11 @@ class RegressorEnsemble(BaseCollectionEnsemble, BaseRegressor):
     Parameters
     ----------
     regressors : list of aeon and/or sklearn regressors or list of tuples
-        Estimators to be used in the ensemble. The str is used to name the estimator.
-        List of tuples (str, estimator) of estimators can also be passed, where
-        the str is used to name the estimator.
-        The objects are cloned prior, as such the state of the input will not be
-        modified by fitting the pipeline.
+        Estimators to be used in the ensemble.
+        A list of tuples (str, estimator) can also be passed, where the str is used to
+        name the estimator.
+        The objects are cloned prior. As such, the state of the input will not be
+        modified by fitting the ensemble.
     weights : float, or iterable of float, default=None
         If float, ensemble weight for estimator i will be train score to this power.
         If iterable of float, must be equal length as _estimators. Ensemble weight for
@@ -49,14 +48,14 @@ class RegressorEnsemble(BaseCollectionEnsemble, BaseRegressor):
     Attributes
     ----------
     ensemble_ : list of tuples (str, estimator) of estimators
-        Clones of estimators in _estimators which are fitted in the ensemble.
-        Will always be in (str, estimator) format regardless of _estimators input.
+        Clones of estimators in regressors which are fitted in the ensemble.
+        Will always be in (str, estimator) format regardless of regressors input.
     weights_ : dict
         Weights of estimators using the str names as keys.
 
     See Also
     --------
-    ClassifierEnsemble : A pipeline for classification tasks.
+    ClassifierEnsemble : An ensemble for classification tasks.
     """
 
     _tags = {
@@ -76,17 +75,18 @@ class RegressorEnsemble(BaseCollectionEnsemble, BaseRegressor):
         wreg = [self._wrap_sklearn(clf) for clf in self.regressors]
 
         super().__init__(
-            _estimators=wreg,
+            _ensemble=wreg,
             weights=weights,
             cv=cv,
             metric=metric,
             metric_probas=False,
             random_state=random_state,
+            _ensemble_input_name="regressors",
         )
 
     def _predict(self, X) -> np.ndarray:
         """Predicts labels for sequences in X."""
-        preds = np.zeros(X.shape[0])
+        preds = np.zeros(len(X))
 
         for reg_name, reg in self.ensemble_:
             preds += reg.predict(X=X) * self.weights_[reg_name]
@@ -122,6 +122,9 @@ class RegressorEnsemble(BaseCollectionEnsemble, BaseRegressor):
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
         """
+        from aeon.regression import DummyRegressor
+        from aeon.regression.distance_based import KNeighborsTimeSeriesRegressor
+
         return {
             "regressors": [
                 KNeighborsTimeSeriesRegressor._create_test_instance(),

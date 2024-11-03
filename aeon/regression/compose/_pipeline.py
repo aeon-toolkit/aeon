@@ -3,7 +3,7 @@
 __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["RegressorPipeline"]
 
-from aeon.base.estimator.compose.collection_pipeline import BaseCollectionPipeline
+from aeon.base.estimators.compose.collection_pipeline import BaseCollectionPipeline
 from aeon.regression.base import BaseRegressor
 
 
@@ -100,14 +100,12 @@ class RegressorPipeline(BaseCollectionPipeline, BaseRegressor):
         """
         from aeon.regression.distance_based import KNeighborsTimeSeriesRegressor
         from aeon.transformations.collection import Truncator
-        from aeon.transformations.collection.feature_based import (
-            SevenNumberSummaryTransformer,
-        )
+        from aeon.transformations.collection.feature_based import SevenNumberSummary
 
         return {
             "transformers": [
                 Truncator(truncated_length=5),
-                SevenNumberSummaryTransformer(),
+                SevenNumberSummary(),
             ],
             "regressor": KNeighborsTimeSeriesRegressor(distance="euclidean"),
         }

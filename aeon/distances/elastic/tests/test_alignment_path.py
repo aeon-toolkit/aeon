@@ -5,7 +5,11 @@ import pytest
 from numpy.testing import assert_almost_equal
 
 from aeon.distances import alignment_path as compute_alignment_path
-from aeon.distances._distance import DISTANCES, SINGLE_POINT_NOT_SUPPORTED_DISTANCES
+from aeon.distances._distance import (
+    DISTANCES,
+    DISTANCES_DICT,
+    SINGLE_POINT_NOT_SUPPORTED_DISTANCES,
+)
 from aeon.testing.data_generation._legacy import make_series
 
 
@@ -20,11 +24,14 @@ def _validate_alignment_path_result(
     original_x = x.copy()
     original_y = y.copy()
     alignment_path_result = alignment_path(x, y)
+    callable_alignment_path = DISTANCES_DICT[name]["alignment_path"](x, y)
 
     assert isinstance(alignment_path_result, tuple)
     assert isinstance(alignment_path_result[0], list)
     assert isinstance(alignment_path_result[1], float)
     assert compute_alignment_path(x, y, metric=name) == alignment_path_result
+    # Test a callable being passed
+    assert callable_alignment_path == alignment_path_result
 
     distance_result = distance(x, y)
     assert_almost_equal(alignment_path_result[1], distance_result)

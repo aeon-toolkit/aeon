@@ -5,11 +5,7 @@ from sklearn.ensemble import IsolationForest
 from sklearn.utils._testing import set_random_state
 
 from aeon.classification import BaseClassifier
-from aeon.classification.compose import (
-    ChannelEnsembleClassifier,
-    ClassifierPipeline,
-    WeightedEnsembleClassifier,
-)
+from aeon.classification.compose import ClassifierChannelEnsemble, ClassifierPipeline
 from aeon.classification.convolution_based import (
     Arsenal,
     HydraClassifier,
@@ -115,12 +111,8 @@ def _print_array(test_name, array):
 
 
 def _print_results_for_classifier(classifier_name, dataset_name):
-    if classifier_name == "ChannelEnsembleClassifier":
-        classifier = ChannelEnsembleClassifier._create_test_instance(
-            parameter_set="results_comparison"
-        )
-    elif classifier_name == "WeightedEnsembleClassifier":
-        classifier = WeightedEnsembleClassifier._create_test_instance(
+    if classifier_name == "ClassifierChannelEnsemble":
+        classifier = ClassifierChannelEnsemble._create_test_instance(
             parameter_set="results_comparison"
         )
     elif classifier_name == "ClassifierPipeline":
