@@ -4,7 +4,7 @@ __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["CollectionTransformerPipeline"]
 
 
-from aeon.base.estimator.compose.collection_pipeline import BaseCollectionPipeline
+from aeon.base.estimators.compose.collection_pipeline import BaseCollectionPipeline
 from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.transformations.collection.compose import CollectionId
 
