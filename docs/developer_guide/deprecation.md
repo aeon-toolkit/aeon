@@ -21,9 +21,9 @@ experimental. Currently experimental modules are:
 
 - `anomaly_detection`
 - `benchmarking`
+- `forecasting`
 - `segmentation`
 - `similarity_search`
-- `testing`
 - `visualisation`
 
 When we introduce a new module, we may classify it as experimental until the API is

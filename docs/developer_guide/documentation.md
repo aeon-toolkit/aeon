@@ -57,7 +57,7 @@ All parameters and fitted attributes (any public attribute i.e. those set in fit
 ending with `_`) should be listed in the docstring. Each parameter and attribute
 should include a description, type, and default value (if applicable). For example:
 
-```
+```clean
 n_jobs : int, default=1
     The number of jobs to run in parallel for both ``fit`` and ``predict``.
     ``-1`` means using all processors.
@@ -65,7 +65,7 @@ n_jobs : int, default=1
 
 Parameters without default values or attributes do not need to include a default value:
 
-```
+```clean
 n_cases_ : int
     Number of train instances in data passed to ``fit``.
 ```
@@ -76,7 +76,7 @@ This section should reference other `aeon` code related to the code being docume
 For example, the Catch22 pipeline classifier may reference the Catch22 feature
 transformation and the pipeline regressor.
 
-```
+```clean
 ContractableBOSS
     Variant of the BOSS classifier.
 WEASEL
@@ -103,7 +103,7 @@ code such as evaluations or extensions can also be included.
 
 References must be included in the following format:
 
-```
+```clean
 .. [1] Some research article, link or other type of citation.
    Long references wrap onto multiple lines, but you need to
    indent them so they start aligned with opening bracket on first line.
@@ -125,7 +125,7 @@ include a single example that illustrates basic functionality. The examples shou
 either a built-in `aeon` dataset or other simple data (e.g. randomly generated data)
 where possible. Examples should also be designed to run quickly where possible.
 
-```
+```python
 >>> import numpy as np
 >>> from aeon.distances import dtw_distance
 >>> x = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
@@ -142,7 +142,7 @@ where possible. Examples should also be designed to run quickly where possible.
 `>>>` is used to indicate a line of code. Lines can be continued with `...`, for
 example, if you have a long import you may want to do:
 
-```
+```python
 >>> from aeon.classification.dictionary_based import (
 ...     BOSSEnsemble
 ... )
@@ -178,25 +178,24 @@ listed in [pyproject.toml](https://github.com/aeon-toolkit/aeon/blob/main/pyproj
 
 1. To install documentation dependencies from the root directory, run:
 
-```{code-block} powershell
+```powershell
 pip install --editable .[docs]
 ```
 
 2. Swap to the documentation directory:
 
-```{code-block} powershell
+```powershell
 cd docs
-make html
 ```
 
 3. To build the website locally, run:
 
-```{code-block} powershell
+```powershell
 make html
 ```
 For Windows, instead use:
 
-```{code-block} powershell
+```powershell
 make.bat html
 ```
 This will generate HTML documentation in `docs/_build/html`. Repeat step 3 to

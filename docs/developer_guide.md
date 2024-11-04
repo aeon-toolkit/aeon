@@ -1,8 +1,8 @@
 # Developer Guide
 
 Welcome to the `aeon` developer guide. This guide is intended for new developers and
-current developers who want to learn about specific topics for code and non-code
-developments.
+current developers who want to learn about specific topics for both code and non-code
+project development.
 
 For a step-by-step guide for setting up a development version of `aeon`
 and creating a pull request, see the [contributing guide](contributing.md). At any point
@@ -19,24 +19,6 @@ their [developer's guide](https://scikit-learn.org/stable/developers/index.html)
 
 :::{grid-item-card}
 :text-align: center
-
-Adding Estimators
-
-^^^
-
-A guide to creating new `aeon` estimators.
-
-+++
-
-```{button-ref} developer_guide/add_estimators
-:color: primary
-:click-parent:
-:expand:
-
-Adding Estimators
-```
-
-:::
 
 :::{grid-item-card}
 :text-align: center

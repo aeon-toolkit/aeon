@@ -60,8 +60,8 @@ The core developers push forward `aeon`'s development and maintain the package.
 `aeon` was started in January 2023 as a fork of the `sktime` project by 8 core
 developers using [v0.16.0](https://github.com/aeon-toolkit/aeon/releases/tag/sktime-v0.16.0)
 as a base. In the following years, the project has grown to include many more core
-developers, has had a complete revamp or governance structure, had relaunched numerous
-modules for time series learning tasks, and was accepted as a NumFOCUS affiliated
+developers, had a complete revamp of governance structure, and relaunched numerous
+modules for time series learning tasks. `aeon` was accepted as a NumFOCUS affiliated
 project in December 2023.
 
 ## Artwork
@@ -124,7 +124,7 @@ and documentation hosting.
 
 ## Pre-fork Acknowledgements
 
-<details><summary>sktime v0.16.0 core developers</summary>
+<details><summary>`sktime` v0.16.0 core developers</summary>
 <p>
 
 The following listed contributors were part of the `sktime` core developer team at some
@@ -154,7 +154,7 @@ point prior to the split of the project.
 </p>
 </details>
 
-<details><summary>sktime v0.16.0 funders</summary>
+<details><summary>`sktime` v0.16.0 funders</summary>
 <p>
 
 As a fork of the `sktime` project, `aeon` has benefited from funding given to `sktime`
@@ -170,13 +170,13 @@ prior to the projects split. We would like to thank the funders from before the 
   - ![https://turing.ac.uk/](images/funder_logos/ati-logo.png)
 * - Markus Löning’s ({user}`mloning`) contributions between 2019 and 2021 were supported by the [UKRI Economic and Social Research Council (ESRC)](https://esrc.ukri.org), the [Consumer Data Research Centre (CDRC)](https://www.cdrc.ac.uk), the Enrichment Scheme at the [The Alan Turing Institute](https://turing.ac.uk), and the JROST Rapid Response Fund, a community effort of [Invest in Open Infrastructure](https://investinopen.org).
   - ![https://esrc.ukri.org](images/funder_logos/ukri-esrc-logo.png) ![https://www.cdrc.ac.uk](images/funder_logos/cdrc-logo.png) ![https://turing.ac.uk/](images/funder_logos/ati-logo.png)
-* - Mercedes-Benz AG/Daimler AG donated 2500 EUR to support the maintenance and development of sktime in 2021, as part of their [FOSS program](https://opensource.mercedes-benz.com).
+* - Mercedes-Benz AG/Daimler AG donated 2500 EUR to support the maintenance and development of `sktime` in 2021, as part of their [FOSS program](https://opensource.mercedes-benz.com).
   - ![https://opensource.mercedes-benz.com](images/funder_logos/mercedes-benz-logo.png)
 ```
 
 __Sprints__
 
-The 2019 joint sktime/MLJ development sprint was kindly hosted by
+The 2019 joint `sktime`/`MLJ` development sprint was kindly hosted by
 [UCL](https://www.ucl.ac.uk) and [The Alan Turing Institute](https://turing.ac.uk).
 Some participants could attend thanks to the initial funding of the
 [The Alan Turing Institute](https://turing.ac.uk).
@@ -185,9 +185,9 @@ __Internships__
 
 [Google Summer of Code (GSoC)](https://summerofcode.withgoogle.com),
 [Major League Hacking](https://mlh.io) and [Outreachy](https://www.outreachy.org)
-have all sponsored sktime internships.
+have all sponsored `sktime` internships.
 
-The [Wellcome Trust](https://wellcome.org) sponsored one sktime internship as part of
+The [Wellcome Trust](https://wellcome.org) sponsored one `sktime` internship as part of
 Outreachy.
 
 ```{list-table}
