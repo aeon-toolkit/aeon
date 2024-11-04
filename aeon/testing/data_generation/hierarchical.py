@@ -162,7 +162,7 @@ def _bottom_hier_datagen(
 
     rng = np.random.default_rng(random_seed)
 
-    base_ts = load_airline()
+    base_ts = load_airline(return_array=False)
     df = pd.DataFrame(base_ts, index=base_ts.index)
     df.index.rename(None, inplace=True)
 
