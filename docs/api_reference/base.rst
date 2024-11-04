@@ -5,10 +5,6 @@ Base
 
 The :mod:`aeon.base` module contains abstract base classes.
 
-.. automodule:: aeon.base
-    :no-members:
-    :no-inherited-members:
-
 Base classes
 ------------
 
@@ -21,15 +17,3 @@ Base classes
     BaseAeonEstimator
     BaseCollectionEstimator
     BaseSeriesEstimator
-
-Estimator base classes
-----------------------
-
-.. currentmodule:: aeon.base.estimator
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    hybrid.BaseRIST
-    interval_based.BaseIntervalForest

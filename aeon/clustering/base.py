@@ -204,7 +204,7 @@ class BaseClusterer(BaseCollectionEstimator):
         return dists
 
     @abstractmethod
-    def _predict(self, X, y=None) -> np.ndarray:
+    def _predict(self, X) -> np.ndarray:
         """Predict the closest cluster each sample in X belongs to.
 
         Parameters
@@ -212,7 +212,6 @@ class BaseClusterer(BaseCollectionEstimator):
         X : np.ndarray (2d or 3d array of shape (n_cases, n_timepoints) or shape
             (n_cases,n_channels,n_timepoints)).
             Time series instances to predict their cluster indexes.
-        y: ignored, exists for API consistency reasons.
 
         Returns
         -------
