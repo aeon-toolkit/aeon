@@ -11,7 +11,6 @@ __all__ = [
     "ElbowClassPairwise",
     "DWTTransformer",
     "HOG1DTransformer",
-    "Resizer",
     "MatrixProfile",
     "Padder",
     "PeriodogramTransformer",
