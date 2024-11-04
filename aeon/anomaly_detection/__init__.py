@@ -9,8 +9,8 @@ __all__ = [
     "PyODAdapter",
     "STOMP",
     "LeftSTAMPi",
-    "IsolationForest"
-    ]
+    "IsolationForest",
+]
 
 
 from aeon.anomaly_detection._dwt_mlead import DWT_MLEAD
