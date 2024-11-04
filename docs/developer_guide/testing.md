@@ -52,7 +52,7 @@ Do test:
 
 Test functions which require soft dependencies should be skipped if the dependencies
 are not installed. This can be done using the `pytest.mark.skipif` decorator. See the
-[dependencies page](developer_guide/dependencies).
+[dependencies page](#developer_guide/dependencies).
 
 ### General estimator testing
 
@@ -73,7 +73,7 @@ skip tests which require pickling the estimator.
 
 There is no list of all tests that are run on an estimator, but the code for all checks
 can be found in the [`estimator_checks` subpackage](https://github.com/aeon-toolkit/aeon/tree/main/aeon/testing/estimator_checking).
-The general tests can be run using functions found in the [`testing` API page](api_reference/testing).,
+The general tests can be run using functions found in the [`testing` API page](#api_reference/testing).,
 with the main function being `check_estimator`. This function will collect all
 applicable tests from the various `_yield_*_checks.py` files and run them on the
 estimator.
@@ -117,7 +117,7 @@ yield partial(
     datatype=datatypes[i][0],  # estimator i, test datatype 0
 )
 ```
-See the [_yield_classification_checks](https://github.com/aeon-toolkit/aeon/blob/main/aeon/testing/estimator_checking/_yield_classification_checks.py)
+See the [`_yield_classification_checks`](https://github.com/aeon-toolkit/aeon/blob/main/aeon/testing/estimator_checking/_yield_classification_checks.py)
 function for an example of this.
 
 #### Adding a new module to the general testing
@@ -188,7 +188,7 @@ The periodic tests will run all of the above.
 
 
 To check if your code passes all tests locally, you need to install the development
-version of `aeon` and all extra dependencies. See the [developer installation guide](developer_guide/dev_installation)
+version of `aeon` and all extra dependencies. See the [developer installation guide](#developer_guide/dev_installation)
 for more information.
 
 To run all unit tests, run:

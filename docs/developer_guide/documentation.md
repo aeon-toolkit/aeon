@@ -170,8 +170,7 @@ The source files can be found in [`docs/`](https://github.com/aeon-toolkit/aeon/
 The main configuration file for sphinx is [`conf.py`](https://github.com/aeon-toolkit/aeon/blob/main/docs/conf.py)
 and the main page is [`index.md`](https://github.com/aeon-toolkit/aeon/blob/main/docs/index.md).
 To add new pages, you need to add a new `.md` (or `.rst`, but preferably Markdown)
-file and include it in `docs/` or a subdirectory and then include the file
-in a `toctree` in `index.md`
+file and include it in a `toctree`  to include it in the sidebar.
 
 To build the documentation locally, you need to install a few extra dependencies
 listed in [pyproject.toml](https://github.com/aeon-toolkit/aeon/blob/main/pyproject.toml).
