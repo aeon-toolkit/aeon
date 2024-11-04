@@ -1,6 +1,7 @@
 """Time Series Anomaly Detection."""
 
 __all__ = [
+    "LOF",
     "DWT_MLEAD",
     "KMeansAD",
     "MERLIN",
@@ -11,7 +12,7 @@ __all__ = [
     "IsolationForest",
     "CBLOF",
     "COPOD",
-    "LOF",
+    
 ]
 
 from aeon.anomaly_detection._dwt_mlead import DWT_MLEAD
