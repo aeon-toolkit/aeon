@@ -67,7 +67,7 @@ def tsad_collections() -> dict[str, list[str]]:
     df = _load_indexfile()
     return (
         df.groupby("collection_name")
-        .apply(lambda x: x["dataset_name"].to_list())
+        .apply(lambda x: x["dataset_name"].to_list(), include_groups=False)
         .to_dict()
     )
 
