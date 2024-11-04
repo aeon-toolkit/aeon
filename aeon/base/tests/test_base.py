@@ -1,368 +1,334 @@
-"""
-Tests for BaseObject universal base class.
-
-tests in this module:
-
-    test_get_class_tags  - tests get_class_tags inheritance logic
-    test_get_class_tag   - tests get_class_tag logic, incl default value
-    test_get_tags        - tests get_tags inheritance logic
-    test_get_tag         - tests get_tag logic, incl default value
-    test_set_tags        - tests set_tags logic and related get_tags inheritance
-
-    test_reset           - tests reset logic on a simple, non-composite estimator
-    test_reset_composite - tests reset logic on a composite estimator
-
-    test_components         - tests retrieval of list of components via _components
-    test_get_fitted_params  - tests get_fitted_params logic, nested and non-nested
-
-    test_eq_dunder       - tests __eq__ dunder to compare parameter definition
-"""
-
-__maintainer__ = []
-
-__all__ = [
-    "test_get_class_tags",
-    "test_get_class_tag",
-    "test_get_tags",
-    "test_get_tag",
-    "test_set_tags",
-    "test_reset",
-    "test_reset_composite",
-    "test_components",
-    "test_get_fitted_params",
-    "test_eq_dunder",
-]
-
-from copy import deepcopy
+"""Tests for BaseAeonEstimator universal base class."""
 
 import pytest
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.utils._metadata_requests import MetadataRequest
 
-from aeon.base import BaseEstimator, BaseObject
-
-
-# Fixture class for testing tag system
-class FixtureClassParent(BaseObject):
-    _tags = {"A": "1", "B": 2, "C": 1234, 3: "D"}
-
-
-# Fixture class for testing tag system, child overrides tags
-class FixtureClassChild(FixtureClassParent):
-    _tags = {"A": 42, 3: "E"}
-
-
-FIXTURE_CLASSCHILD = FixtureClassChild
-
-FIXTURE_CLASSCHILD_TAGS = {"A": 42, "B": 2, "C": 1234, 3: "E"}
-
-# Fixture class for testing tag system, object overrides class tags
-FIXTURE_OBJECT = FixtureClassChild()
-FIXTURE_OBJECT._tags_dynamic = {"A": 42424241, "B": 3}
-
-FIXTURE_OBJECT_TAGS = {"A": 42424241, "B": 3, "C": 1234, 3: "E"}
-
-
-def test_get_class_tags():
-    """Tests get_class_tags class method of BaseObject for correctness.
-
-    Raises
-    ------
-    AssertError if inheritance logic in get_class_tags is incorrect
-    """
-    child_tags = FIXTURE_CLASSCHILD.get_class_tags()
-
-    msg = "Inheritance logic in BaseObject.get_class_tags is incorrect"
-
-    assert child_tags == FIXTURE_CLASSCHILD_TAGS, msg
-
-
-def test_get_class_tag():
-    """Tests get_class_tag class method of BaseObject for correctness.
-
-    Raises
-    ------
-    AssertError if inheritance logic in get_tag is incorrect
-    AssertError if default override logic in get_tag is incorrect
-    """
-    child_tags = dict()
-    child_tags_keys = FIXTURE_CLASSCHILD_TAGS.keys()
-
-    for key in child_tags_keys:
-        child_tags[key] = FIXTURE_CLASSCHILD.get_class_tag(key)
-
-    child_tag_default = FIXTURE_CLASSCHILD.get_class_tag("foo", "bar")
-    child_tag_defaultNone = FIXTURE_CLASSCHILD.get_class_tag("bar")
-
-    msg = "Inheritance logic in BaseObject.get_class_tag is incorrect"
-
-    for key in child_tags_keys:
-        assert child_tags[key] == FIXTURE_CLASSCHILD_TAGS[key], msg
-
-    msg = "Default override logic in BaseObject.get_class_tag is incorrect"
-
-    assert child_tag_default == "bar", msg
-    assert child_tag_defaultNone is None, msg
-
-
-def test_get_tags():
-    """Tests get_tags method of BaseObject for correctness.
-
-    Raises
-    ------
-    AssertError if inheritance logic in get_tags is incorrect
-    """
-    object_tags = FIXTURE_OBJECT.get_tags()
-
-    msg = "Inheritance logic in BaseObject.get_tags is incorrect"
-
-    assert object_tags == FIXTURE_OBJECT_TAGS, msg
-
-
-def test_get_tag():
-    """Tests get_tag method of BaseObject for correctness.
-
-    Raises
-    ------
-    AssertError if inheritance logic in get_tag is incorrect
-    AssertError if default override logic in get_tag is incorrect
-    """
-    object_tags = dict()
-    object_tags_keys = FIXTURE_OBJECT_TAGS.keys()
-
-    for key in object_tags_keys:
-        object_tags[key] = FIXTURE_OBJECT.get_tag(key, raise_error=False)
-
-    object_tag_default = FIXTURE_OBJECT.get_tag("foo", "bar", raise_error=False)
-    object_tag_defaultNone = FIXTURE_OBJECT.get_tag("bar", raise_error=False)
-
-    msg = "Inheritance logic in BaseObject.get_tag is incorrect"
-
-    for key in object_tags_keys:
-        assert object_tags[key] == FIXTURE_OBJECT_TAGS[key], msg
-
-    msg = "Default override logic in BaseObject.get_tag is incorrect"
-
-    assert object_tag_default == "bar", msg
-    assert object_tag_defaultNone is None, msg
-
-
-def test_get_tag_raises():
-    """Tests that get_tag method raises error for unknown tag.
-
-    Raises
-    ------
-    AssertError if get_tag does not raise error for unknown tag.
-    """
-    with pytest.raises(ValueError, match=r"Tag with name"):
-        FIXTURE_OBJECT.get_tag("bar")
-
-
-FIXTURE_TAG_SET = {"A": 42424243, "E": 3}
-FIXTURE_OBJECT_SET = deepcopy(FIXTURE_OBJECT).set_tags(**FIXTURE_TAG_SET)
-FIXTURE_OBJECT_SET_TAGS = {"A": 42424243, "B": 3, "C": 1234, 3: "E", "E": 3}
-FIXTURE_OBJECT_SET_DYN = {"A": 42424243, "B": 3, "E": 3}
-
-
-def test_set_tags():
-    """Tests set_tags method of BaseObject for correctness.
-
-    Raises
-    ------
-    AssertionError if override logic in set_tags is incorrect
-    """
-    msg = "Setter/override logic in BaseObject.set_tags is incorrect"
-
-    assert FIXTURE_OBJECT_SET._tags_dynamic == FIXTURE_OBJECT_SET_DYN, msg
-    assert FIXTURE_OBJECT_SET.get_tags() == FIXTURE_OBJECT_SET_TAGS, msg
-
-
-class CompositionDummy(BaseObject):
-    """Potentially composite object, for testing."""
-
-    def __init__(self, foo, bar=84):
-        self.foo = foo
-        self.foo_ = deepcopy(foo)
-        self.bar = bar
-
-
-def test_is_composite():
-    """Tests is_composite tag for correctness.
-
-    Raises
-    ------
-    AssertionError if logic behind is_composite is incorrect
-    """
-    non_composite = CompositionDummy(foo=42)
-    composite = CompositionDummy(foo=non_composite)
-
-    assert not non_composite.is_composite()
-    assert composite.is_composite()
-
-
-class ResetTester(BaseObject):
-    clsvar = 210
-
-    def __init__(self, a, b=42):
-        self.a = a
-        self.b = b
-        self.c = 84
-
-    def foo(self, d=126):
-        self.d = deepcopy(d)
-        self._d = deepcopy(d)
-        self.d_ = deepcopy(d)
-        self.f__o__o = 252
+from aeon.base import BaseAeonEstimator
+from aeon.base._base import _clone_estimator
+from aeon.classification import BaseClassifier
+from aeon.classification.feature_based import SummaryClassifier
+from aeon.testing.mock_estimators import MockClassifier
+from aeon.testing.mock_estimators._mock_classifiers import (
+    MockClassifierComposite,
+    MockClassifierFullTags,
+    MockClassifierParams,
+)
+from aeon.testing.testing_data import EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION
+from aeon.transformations.collection import Tabularizer
 
 
 def test_reset():
-    """Tests reset method for correct behaviour, on a simple estimator.
+    """Tests reset method for correct behaviour, on a simple estimator."""
+    X, y = EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION["numpy3D"]["train"]
 
-    Raises
-    ------
-    AssertionError if logic behind reset is incorrect, logic tested:
-        reset should remove any object attributes that are not hyper-parameters,
-        with the exception of attributes containing double-underscore "__"
-        reset should not remove class attributes or methods
-        reset should set hyper-parameters as in pre-reset state
-    """
-    x = ResetTester(168)
-    x.foo()
+    clf = MockClassifierParams(return_ones=True)
+    clf.fit(X, y)
 
-    x.reset()
+    assert clf.return_ones is True
+    assert clf.value == 50
+    assert clf.foo_ == "bar"
+    assert clf.is_fitted is True
+    clf.__secret_att = 42
 
-    assert hasattr(x, "a") and x.a == 168
-    assert hasattr(x, "b") and x.b == 42
-    assert hasattr(x, "c") and x.c == 84
-    assert hasattr(x, "clsvar") and x.clsvar == 210
-    assert not hasattr(x, "d")
-    assert not hasattr(x, "_d")
-    assert not hasattr(x, "d_")
-    assert hasattr(x, "f__o__o") and x.f__o__o == 252
-    assert hasattr(x, "foo")
+    clf.reset()
+
+    assert hasattr(clf, "return_ones") and clf.return_ones is True
+    assert hasattr(clf, "value") and clf.value == 50
+    assert hasattr(clf, "_tags") and clf._tags == MockClassifierParams._tags
+    assert hasattr(clf, "is_fitted") and clf.is_fitted is False
+    assert hasattr(clf, "__secret_att") and clf.__secret_att == 42
+    assert hasattr(clf, "fit")
+    assert not hasattr(clf, "foo_")
+
+    clf.fit(X, y)
+    clf.reset(keep="foo_")
+
+    assert hasattr(clf, "is_fitted") and clf.is_fitted is False
+    assert hasattr(clf, "foo_") and clf.foo_ == "bar"
+
+    clf.fit(X, y)
+    clf.random_att = 60
+    clf.unwanted_att = 70
+    clf.reset(keep=["foo_", "random_att"])
+
+    assert hasattr(clf, "is_fitted") and clf.is_fitted is False
+    assert hasattr(clf, "foo_") and clf.foo_ == "bar"
+    assert hasattr(clf, "random_att") and clf.random_att == 60
+    assert not hasattr(clf, "unwanted_att")
 
 
 def test_reset_composite():
     """Test reset method for correct behaviour, on a composite estimator."""
-    y = ResetTester(42)
-    x = ResetTester(a=y)
+    X, y = EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION["numpy3D"]["train"]
 
-    x.foo(y)
-    x.d.foo()
+    clf = MockClassifierComposite(mock=MockClassifierParams(return_ones=True))
+    clf.fit(X, y)
 
-    x.reset()
+    assert clf.foo_ == "bar"
+    assert clf.mock_.foo_ == "bar"
+    assert clf.mock.return_ones is True
+    assert clf.mock_.return_ones is True
 
-    assert hasattr(x, "a")
-    assert not hasattr(x, "d")
-    assert not hasattr(x.a, "d")
+    clf.reset()
 
+    assert hasattr(clf.mock, "return_ones") and clf.mock.return_ones is True
+    assert not hasattr(clf, "mock_")
+    assert not hasattr(clf, "foo_")
+    assert not hasattr(clf.mock, "foo_")
 
-def test_components():
-    """Tests component retrieval.
+    clf.fit(X, y)
+    clf.reset(keep="mock_")
 
-    Raises
-    ------
-    AssertionError if logic behind _components is incorrect, logic tested:
-        calling _components on a non-composite returns an empty dict
-        calling _components on a composite returns name/BaseObject pair in dict,
-        and BaseObject returned is identical with attribute of the same name
-    """
-    non_composite = CompositionDummy(foo=42)
-    composite = CompositionDummy(foo=non_composite)
-
-    non_comp_comps = non_composite._components()
-    comp_comps = composite._components()
-
-    assert isinstance(non_comp_comps, dict)
-    assert set(non_comp_comps.keys()) == set()
-
-    assert isinstance(comp_comps, dict)
-    assert set(comp_comps.keys()) == {"foo_"}
-    assert comp_comps["foo_"] is composite.foo_
-    assert comp_comps["foo_"] is not composite.foo
+    assert not hasattr(clf, "foo_")
+    assert hasattr(clf, "mock_")
+    assert hasattr(clf.mock_, "foo_") and clf.mock_.foo_ == "bar"
+    assert hasattr(clf.mock_, "return_ones") and clf.mock_.return_ones is True
 
 
-class FittableCompositionDummy(BaseEstimator):
-    """Potentially composite object, for testing."""
+def test_reset_invalid():
+    """Tests that reset method raises error for invalid keep argument."""
+    clf = MockClassifier()
+    with pytest.raises(TypeError, match=r"keep must be a string or list"):
+        clf.reset(keep=1)
 
-    def __init__(self, foo, bar=84):
-        self.foo = foo
-        self.foo_ = deepcopy(foo)
-        self.bar = bar
 
-    def fit(self):
-        if hasattr(self.foo_, "fit"):
-            self.foo_.fit()
-        self._is_fitted = True
+def test_clone():
+    """Tests that clone method correctly clones an estimator."""
+    X, y = EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION["numpy3D"]["train"]
+
+    clf = MockClassifierParams(return_ones=True)
+    clf.fit(X, y)
+
+    clf_clone = clf.clone()
+    assert clf_clone.return_ones is True
+    assert not hasattr(clf_clone, "foo_")
+
+    clf = SummaryClassifier(random_state=100)
+
+    clf_clone = clf.clone(random_state=42)
+    assert clf_clone.random_state == 1608637542
+
+
+def test_clone_function():
+    """Tests that _clone_estimator function correctly clones an estimator."""
+    X, y = EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION["numpy3D"]["train"]
+
+    clf = MockClassifierParams(return_ones=True)
+    clf.fit(X, y)
+
+    clf_clone = _clone_estimator(clf)
+    assert clf_clone.return_ones is True
+    assert not hasattr(clf_clone, "foo_")
+
+    clf = SummaryClassifier(random_state=100)
+
+    clf_clone = _clone_estimator(clf, random_state=42)
+    assert clf_clone.random_state == 1608637542
+
+
+EXPECTED_MOCK_TAGS = {
+    "X_inner_type": ["np-list", "numpy3D"],
+    "algorithm_type": None,
+    "cant_pickle": False,
+    "capability:contractable": False,
+    "capability:missing_values": True,
+    "capability:multithreading": False,
+    "capability:multivariate": True,
+    "capability:train_estimate": False,
+    "capability:unequal_length": True,
+    "capability:univariate": True,
+    "fit_is_empty": False,
+    "non_deterministic": False,
+    "python_dependencies": None,
+    "python_version": None,
+}
+
+
+def test_get_class_tags():
+    """Tests get_class_tags class method of BaseAeonEstimator for correctness."""
+    child_tags = MockClassifierFullTags.get_class_tags()
+    assert child_tags == EXPECTED_MOCK_TAGS
+
+
+def test_get_class_tag():
+    """Tests get_class_tag class method of BaseAeonEstimator for correctness."""
+    for key in EXPECTED_MOCK_TAGS.keys():
+        assert EXPECTED_MOCK_TAGS[key] == MockClassifierFullTags.get_class_tag(key)
+
+    # these should be true for inherited class above, but false for the parent class
+    assert BaseClassifier.get_class_tag("capability:missing_values") is False
+    assert BaseClassifier.get_class_tag("capability:multivariate") is False
+    assert BaseClassifier.get_class_tag("capability:unequal_length") is False
+
+    assert (
+        BaseAeonEstimator.get_class_tag(
+            "invalid_tag", raise_error=False, tag_value_default=50
+        )
+        == 50
+    )
+
+    with pytest.raises(ValueError, match=r"Tag with name invalid_tag"):
+        BaseAeonEstimator.get_class_tag("invalid_tag")
+
+
+def test_get_tags():
+    """Tests get_tags method of BaseAeonEstimator for correctness."""
+    child_tags = MockClassifierFullTags().get_tags()
+    assert child_tags == EXPECTED_MOCK_TAGS
+
+
+def test_get_tag():
+    """Tests get_tag method of BaseAeonEstimator for correctness."""
+    clf = MockClassifierFullTags()
+    for key in EXPECTED_MOCK_TAGS.keys():
+        assert EXPECTED_MOCK_TAGS[key] == clf.get_tag(key)
+
+    # these should be true for class above which overrides, but false for this which
+    # does not
+    clf = MockClassifier()
+    assert clf.get_tag("capability:missing_values") is False
+    assert clf.get_tag("capability:multivariate") is False
+    assert clf.get_tag("capability:unequal_length") is False
+
+    assert clf.get_tag("invalid_tag", raise_error=False, tag_value_default=50) == 50
+
+    with pytest.raises(ValueError, match=r"Tag with name invalid_tag"):
+        clf.get_tag("invalid_tag")
+
+
+def test_set_tags():
+    """Tests set_tags method of BaseAeonEstimator for correctness."""
+    clf = MockClassifier()
+
+    tags_to_set = {
+        "capability:multivariate": True,
+        "capability:missing_values": True,
+        "capability:unequal_length": True,
+    }
+    clf.set_tags(**tags_to_set)
+
+    assert clf.get_tag("capability:missing_values") is True
+    assert clf.get_tag("capability:multivariate") is True
+    assert clf.get_tag("capability:unequal_length") is True
+
+    clf.reset()
+
+    assert clf.get_tag("capability:missing_values") is False
+    assert clf.get_tag("capability:multivariate") is False
+    assert clf.get_tag("capability:unequal_length") is False
 
 
 def test_get_fitted_params():
-    """Tests fitted parameter retrieval.
+    """Tests fitted parameter retrieval."""
+    X, y = EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION["numpy3D"]["train"]
 
-    Raises
-    ------
-    AssertionError if logic behind get_fitted_params is incorrect, logic tested:
-        calling get_fitted_params on a non-composite fittable returns the fitted param
-        calling get_fitted_params on a composite returns all nested params
-    """
-    non_composite = FittableCompositionDummy(foo=42)
-    composite = FittableCompositionDummy(foo=deepcopy(non_composite))
+    non_composite = MockClassifier()
+    non_composite.fit(X, y)
+    composite = MockClassifierComposite()
+    composite.fit(X, y)
 
-    non_composite.fit()
-    composite.fit()
+    params = non_composite.get_fitted_params()
+    comp_params = composite.get_fitted_params()
 
-    non_comp_f_params = non_composite.get_fitted_params()
-    comp_f_params = composite.get_fitted_params()
-    comp_f_params_shallow = composite.get_fitted_params(deep=False)
+    expected = {
+        "fit_time_",
+        "foo_",
+        "classes_",
+        "metadata_",
+        "n_classes_",
+    }
 
-    assert isinstance(non_comp_f_params, dict)
-    assert set(non_comp_f_params.keys()) == {"foo"}
+    assert isinstance(params, dict)
+    assert set(params.keys()) == expected
+    assert params["foo_"] is composite.foo_
 
-    assert isinstance(comp_f_params, dict)
-    assert set(comp_f_params) == {"foo", "foo__foo"}
-    assert set(comp_f_params_shallow) == {"foo"}
-    assert comp_f_params["foo"] is composite.foo_
-    assert comp_f_params["foo"] is not composite.foo
-    assert comp_f_params_shallow["foo"] is composite.foo_
-    assert comp_f_params_shallow["foo"] is not composite.foo
+    assert isinstance(comp_params, dict)
+    assert set(comp_params.keys()) == expected.union(
+        {
+            "mock_",
+            "mock___classes_",
+            "mock___fit_time_",
+            "mock___foo_",
+            "mock___metadata_",
+            "mock___n_classes_",
+        }
+    )
+    assert comp_params["foo_"] is composite.foo_
+    assert comp_params["mock___foo_"] is composite.mock_.foo_
+
+    params_shallow = non_composite.get_fitted_params(deep=False)
+    comp_params_shallow = composite.get_fitted_params(deep=False)
+
+    assert isinstance(params_shallow, dict)
+    assert set(params_shallow.keys()) == set(params.keys())
+
+    assert isinstance(comp_params_shallow, dict)
+    assert set(comp_params_shallow.keys()) == set(params.keys()).union({"mock_"})
 
 
-def test_eq_dunder():
-    """Tests equality dunder for BaseObject descendants.
+def test_get_fitted_params_sklearn():
+    """Tests fitted parameter retrieval with sklearn components."""
+    X, y = EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION["numpy3D"]["train"]
 
-    Equality should be determined only by get_params results.
+    clf = SummaryClassifier(estimator=DecisionTreeClassifier())
+    clf.fit(X, y)
 
-    Raises
-    ------
-    AssertionError if logic behind __eq__ is incorrect, logic tested:
-        equality of non-composites depends only on params, not on identity
-        equality of composites depends only on params, not on identity
-        result is not affected by fitting the estimator
-    """
-    non_composite = FittableCompositionDummy(foo=42)
-    non_composite_2 = FittableCompositionDummy(foo=42)
-    non_composite_3 = FittableCompositionDummy(foo=84)
+    params = clf.get_fitted_params()
 
-    composite = FittableCompositionDummy(foo=non_composite)
-    composite_2 = FittableCompositionDummy(foo=non_composite_2)
-    composite_3 = FittableCompositionDummy(foo=non_composite_3)
+    assert "estimator_" in params.keys()
+    assert "transformer_" in params.keys()
+    assert "estimator___tree_" in params.keys()
+    assert "estimator___max_features_" in params.keys()
 
-    assert non_composite == non_composite
-    assert composite == composite
-    assert non_composite == non_composite_2
-    assert non_composite != non_composite_3
-    assert non_composite_2 != non_composite_3
-    assert composite == composite_2
-    assert composite != composite_3
-    assert composite_2 != composite_3
+    # pipeline
+    pipe = make_pipeline(Tabularizer(), StandardScaler(), DecisionTreeClassifier())
+    clf = SummaryClassifier(estimator=pipe)
+    clf.fit(X, y)
 
-    # equality should not be affected by fitting
-    composite.fit()
-    non_composite_2.fit()
+    params = clf.get_fitted_params()
 
-    assert non_composite == non_composite
-    assert composite == composite
-    assert non_composite == non_composite_2
-    assert non_composite != non_composite_3
-    assert non_composite_2 != non_composite_3
-    assert composite == composite_2
-    assert composite != composite_3
-    assert composite_2 != composite_3
+    assert "estimator_" in params.keys()
+    assert "transformer_" in params.keys()
+
+
+def test_check_is_fitted():
+    """Test _check_is_fitted works correctly."""
+    X, y = EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION["numpy3D"]["train"]
+
+    clf = MockClassifier()
+
+    with pytest.raises(ValueError, match=r"has not been fitted yet"):
+        clf._check_is_fitted()
+
+    clf.fit(X, y)
+
+    clf._check_is_fitted()
+
+
+def test_create_test_instance():
+    """Test _create_test_instance works as expected."""
+    clf = SummaryClassifier._create_test_instance()
+
+    assert isinstance(clf, SummaryClassifier)
+    assert clf.estimator.n_estimators == 2
+
+
+def test_overridden_sklearn():
+    """Tests that overridden sklearn components return expected outputs."""
+    X, y = EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION["numpy3D"]["train"]
+
+    clf = MockClassifier()
+    clf.fit(X, y)
+
+    assert clf.__sklearn_is_fitted__() == clf.is_fitted
+
+    assert isinstance(clf._get_default_requests(), MetadataRequest)
+
+    with pytest.raises(NotImplementedError):
+        clf._validate_data()
+
+    with pytest.raises(NotImplementedError):
+        clf.get_metadata_routing()

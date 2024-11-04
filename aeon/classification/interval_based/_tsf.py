@@ -8,7 +8,7 @@ __all__ = ["TimeSeriesForestClassifier"]
 
 import numpy as np
 
-from aeon.base.estimator.interval_based.base_interval_forest import BaseIntervalForest
+from aeon.base.estimators.interval_based.base_interval_forest import BaseIntervalForest
 from aeon.classification import BaseClassifier
 from aeon.classification.sklearn import ContinuousIntervalTree
 
@@ -111,7 +111,7 @@ class TimeSeriesForestClassifier(BaseIntervalForest, BaseClassifier):
         Total number of intervals per tree from all representations.
     estimators_ : list of shape (n_estimators) of BaseEstimator
         The collections of estimators trained in fit.
-    intervals_ : list of shape (n_estimators) of BaseTransformer
+    intervals_ : list of shape (n_estimators) of BaseCollectionTransformer
         Stores the interval extraction transformer for all estimators.
 
     Notes
@@ -198,7 +198,7 @@ class TimeSeriesForestClassifier(BaseIntervalForest, BaseClassifier):
         return super()._fit_predict_proba(X, y)
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -223,7 +223,6 @@ class TimeSeriesForestClassifier(BaseIntervalForest, BaseClassifier):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         if parameter_set == "results_comparison":
             return {"n_estimators": 10}

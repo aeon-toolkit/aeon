@@ -5,7 +5,7 @@ __all__ = ["RandomIntervalSpectralEnsembleRegressor"]
 
 import numpy as np
 
-from aeon.base.estimator.interval_based.base_interval_forest import BaseIntervalForest
+from aeon.base.estimators.interval_based.base_interval_forest import BaseIntervalForest
 from aeon.regression import BaseRegressor
 from aeon.transformations.collection import (
     AutocorrelationFunctionTransformer,
@@ -56,9 +56,6 @@ class RandomIntervalSpectralEnsembleRegressor(BaseIntervalForest, BaseRegressor)
         Default of 0 means n_estimators are used.
     contract_max_n_estimators : int, default=500
         Max number of estimators when time_limit_in_minutes is set.
-    use_pyfftw : bool, default=False
-        Whether to use the pyfftw library for FFT calculations. Requires the pyfftw
-        package to be installed.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -133,17 +130,15 @@ class RandomIntervalSpectralEnsembleRegressor(BaseIntervalForest, BaseRegressor)
         acf_min_values=4,
         time_limit_in_minutes=None,
         contract_max_n_estimators=500,
-        use_pyfftw=False,
         random_state=None,
         n_jobs=1,
         parallel_backend=None,
     ):
         self.acf_lag = acf_lag
         self.acf_min_values = acf_min_values
-        self.use_pyfftw = use_pyfftw
 
         interval_features = [
-            PeriodogramTransformer(use_pyfftw=use_pyfftw, pad_with="mean"),
+            PeriodogramTransformer(pad_with="mean"),
             AutocorrelationFunctionTransformer(
                 n_lags=acf_lag, min_values=acf_min_values
             ),
@@ -166,11 +161,8 @@ class RandomIntervalSpectralEnsembleRegressor(BaseIntervalForest, BaseRegressor)
             parallel_backend=parallel_backend,
         )
 
-        if use_pyfftw:
-            self.set_tags(**{"python_dependencies": "pyfftw"})
-
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -193,7 +185,6 @@ class RandomIntervalSpectralEnsembleRegressor(BaseIntervalForest, BaseRegressor)
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         if parameter_set == "results_comparison":
             return {"n_estimators": 10}

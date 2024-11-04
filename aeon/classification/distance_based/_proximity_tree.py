@@ -5,7 +5,7 @@ similarity of instances to chosen time series exemplars, measured using
 aeon distances.
 """
 
-from typing import Union
+from typing import Optional, Union
 
 import numpy as np
 from numba import njit
@@ -118,7 +118,7 @@ class ProximityTree(BaseClassifier):
     def __init__(
         self,
         n_splitters: int = 5,
-        max_depth: int = None,
+        max_depth: Optional[int] = None,
         min_samples_split: int = 2,
         random_state: Union[int, np.random.RandomState, None] = None,
     ) -> None:
@@ -235,7 +235,7 @@ class ProximityTree(BaseClassifier):
                         X[j],
                         splitter[0][labels[k]],
                         metric=measure,
-                        kwargs=splitter[1][measure],
+                        **splitter[1][measure],
                     )
                     if dist < min_dist:
                         min_dist = dist
@@ -321,7 +321,7 @@ class ProximityTree(BaseClassifier):
                     X[i],
                     splitter[0][labels[j]],
                     metric=measure,
-                    kwargs=splitter[1][measure],
+                    **splitter[1][measure],
                 )
                 if dist < min_dist:
                     min_dist = dist
@@ -405,7 +405,7 @@ class ProximityTree(BaseClassifier):
                     x,
                     treenode.splitter[0][branches[i]],
                     metric=measure,
-                    kwargs=treenode.splitter[1][measure],
+                    **treenode.splitter[1][measure],
                 )
                 if dist < min_dist:
                     min_dist = dist

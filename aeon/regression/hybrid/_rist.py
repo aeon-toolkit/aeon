@@ -1,7 +1,7 @@
 from sklearn.ensemble import ExtraTreesRegressor
 from sklearn.preprocessing import FunctionTransformer
 
-from aeon.base.estimator.hybrid import BaseRIST
+from aeon.base.estimators.hybrid import BaseRIST
 from aeon.regression import BaseRegressor
 from aeon.utils.numba.general import first_order_differences_3d
 
@@ -44,9 +44,6 @@ class RISTRegressor(BaseRIST, BaseRegressor):
         Wraps the C based pycatch22 implementation for aeon.
         (https://github.com/DynamicsAndNeuralSystems/pycatch22). This requires the
         ``pycatch22`` package to be installed if True.
-    use_pyfftw : bool, default=False
-        Whether to use the pyfftw library for FFT calculations. Requires the pyfftw
-        package to be installed.
     estimator : sklearn regressor, default=None
         An sklearn estimator to be built using the transformed data. Defaults to an
         ExtraTreesRegressor with 200 trees.
@@ -100,7 +97,6 @@ class RISTRegressor(BaseRIST, BaseRegressor):
         n_shapelets=None,
         series_transformers="default",
         use_pycatch22=False,
-        use_pyfftw=False,
         estimator=None,
         n_jobs=1,
         random_state=None,
@@ -109,16 +105,12 @@ class RISTRegressor(BaseRIST, BaseRegressor):
         self.use_pycatch22 = use_pycatch22
         if use_pycatch22:
             d.append("pycatch22")
-        self.use_pyfftw = use_pyfftw
-        if use_pyfftw:
-            d.append("pyfftw")
 
         super().__init__(
             n_intervals=n_intervals,
             n_shapelets=n_shapelets,
             series_transformers=series_transformers,
             use_pycatch22=use_pycatch22,
-            use_pyfftw=use_pyfftw,
             estimator=estimator,
             random_state=random_state,
             n_jobs=n_jobs,
@@ -134,7 +126,7 @@ class RISTRegressor(BaseRIST, BaseRegressor):
     }
 
     @classmethod
-    def get_test_params(cls, parameter_set=None):
+    def _get_test_params(cls, parameter_set="default"):
         """Return unit test parameter settings for the estimator.
 
         Parameters

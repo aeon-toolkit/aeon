@@ -123,8 +123,8 @@ class WEASEL(BaseClassifier):
     --------
     >>> from aeon.classification.dictionary_based import WEASEL
     >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
     >>> clf = WEASEL(window_inc=4)
     >>> clf.fit(X_train, y_train)
     WEASEL(...)
@@ -316,7 +316,7 @@ class WEASEL(BaseClassifier):
         return 1 if self.n_timepoints < 100 else self.window_inc
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -331,7 +331,6 @@ class WEASEL(BaseClassifier):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         return {
             "window_inc": 4,

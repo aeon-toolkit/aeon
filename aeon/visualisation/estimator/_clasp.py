@@ -7,7 +7,7 @@ __maintainer__ = []
 import numpy as np
 
 from aeon.utils.validation._dependencies import _check_soft_dependencies
-from aeon.utils.validation.forecasting import check_y
+from aeon.utils.validation.series import check_y
 
 
 def plot_series_with_profiles(

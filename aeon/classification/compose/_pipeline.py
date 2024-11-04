@@ -4,7 +4,7 @@ __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["ClassifierPipeline"]
 
 
-from aeon.base.estimator.compose.collection_pipeline import BaseCollectionPipeline
+from aeon.base.estimators.compose.collection_pipeline import BaseCollectionPipeline
 from aeon.classification.base import BaseClassifier
 
 
@@ -13,7 +13,8 @@ class ClassifierPipeline(BaseCollectionPipeline, BaseClassifier):
 
     The `ClassifierPipeline` compositor chains transformers and a single classifier.
     The pipeline is constructed with a list of aeon transformers, plus a classifier,
-        i.e., estimators following the BaseTransformer and BaseClassifier interface.
+        i.e., estimators following the BaseCollectionTransformer and BaseClassifier
+        interface.
     The transformer list can be unnamed - a simple list of transformers -
         or string named - a list of pairs of string, estimator.
 
@@ -60,14 +61,14 @@ class ClassifierPipeline(BaseCollectionPipeline, BaseClassifier):
 
     Examples
     --------
-    >>> from aeon.transformations.collection.interpolate import TSInterpolator
+    >>> from aeon.transformations.collection import Resizer
     >>> from aeon.classification.convolution_based import RocketClassifier
     >>> from aeon.datasets import load_unit_test
     >>> from aeon.classification.compose import ClassifierPipeline
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test = load_unit_test(split="test")
     >>> pipeline = ClassifierPipeline(
-    ...     TSInterpolator(length=10), RocketClassifier(num_kernels=50)
+    ...     Resizer(length=10), RocketClassifier(num_kernels=50)
     ... )
     >>> pipeline.fit(X_train, y_train)
     ClassifierPipeline(...)
@@ -86,7 +87,7 @@ class ClassifierPipeline(BaseCollectionPipeline, BaseClassifier):
         )
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -101,18 +102,15 @@ class ClassifierPipeline(BaseCollectionPipeline, BaseClassifier):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         from aeon.classification.distance_based import KNeighborsTimeSeriesClassifier
-        from aeon.transformations.collection import TruncationTransformer
-        from aeon.transformations.collection.feature_based import (
-            SevenNumberSummaryTransformer,
-        )
+        from aeon.transformations.collection import Truncator
+        from aeon.transformations.collection.feature_based import SevenNumberSummary
 
         return {
             "transformers": [
-                TruncationTransformer(truncated_length=5),
-                SevenNumberSummaryTransformer(),
+                Truncator(truncated_length=5),
+                SevenNumberSummary(),
             ],
             "classifier": KNeighborsTimeSeriesClassifier(distance="euclidean"),
         }
