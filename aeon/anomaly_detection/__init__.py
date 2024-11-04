@@ -1,7 +1,6 @@
 """Time Series Anomaly Detection."""
 
 __all__ = [
-    "LOF",
     "DWT_MLEAD",
     "KMeansAD",
     "MERLIN",
