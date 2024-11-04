@@ -4,7 +4,7 @@ __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["ClustererPipeline"]
 
 
-from aeon.base.estimator.compose.collection_pipeline import BaseCollectionPipeline
+from aeon.base.estimators.compose.collection_pipeline import BaseCollectionPipeline
 from aeon.clustering import BaseClusterer
 
 
@@ -110,14 +110,12 @@ class ClustererPipeline(BaseCollectionPipeline, BaseClusterer):
         """
         from aeon.clustering import TimeSeriesKMeans
         from aeon.transformations.collection import Truncator
-        from aeon.transformations.collection.feature_based import (
-            SevenNumberSummaryTransformer,
-        )
+        from aeon.transformations.collection.feature_based import SevenNumberSummary
 
         return {
             "transformers": [
                 Truncator(truncated_length=5),
-                SevenNumberSummaryTransformer(),
+                SevenNumberSummary(),
             ],
             "clusterer": TimeSeriesKMeans._create_test_instance(),
         }

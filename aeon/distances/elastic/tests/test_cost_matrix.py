@@ -5,7 +5,11 @@ import pytest
 from numpy.testing import assert_almost_equal
 
 from aeon.distances import cost_matrix as compute_cost_matrix
-from aeon.distances._distance import DISTANCES, SINGLE_POINT_NOT_SUPPORTED_DISTANCES
+from aeon.distances._distance import (
+    DISTANCES,
+    DISTANCES_DICT,
+    SINGLE_POINT_NOT_SUPPORTED_DISTANCES,
+)
 from aeon.testing.data_generation._legacy import make_series
 
 
@@ -30,9 +34,11 @@ def _validate_cost_matrix_result(
     original_x = x.copy()
     original_y = y.copy()
     cost_matrix_result = cost_matrix(x, y)
+    cost_matrix_callable_result = DISTANCES_DICT[name]["cost_matrix"](x, y)
 
     assert isinstance(cost_matrix_result, np.ndarray)
     assert_almost_equal(cost_matrix_result, compute_cost_matrix(x, y, metric=name))
+    assert_almost_equal(cost_matrix_callable_result, cost_matrix_result)
     if name == "ddtw" or name == "wddtw":
         assert cost_matrix_result.shape == (x.shape[-1] - 2, y.shape[-1] - 2)
     elif name == "lcss":

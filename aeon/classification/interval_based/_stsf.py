@@ -11,7 +11,7 @@ __all__ = ["SupervisedTimeSeriesForest"]
 import numpy as np
 from sklearn.preprocessing import FunctionTransformer
 
-from aeon.base.estimator.interval_based.base_interval_forest import BaseIntervalForest
+from aeon.base.estimators.interval_based.base_interval_forest import BaseIntervalForest
 from aeon.classification.base import BaseClassifier
 from aeon.transformations.collection import PeriodogramTransformer
 from aeon.utils.numba.general import first_order_differences_3d
