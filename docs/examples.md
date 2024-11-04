@@ -186,7 +186,7 @@ Overview of Transformations
 :::{grid-item-card}
 :img-top: examples/transformations/img/tsfresh.png
 :class-img-top: aeon-card-image-m
-:link: /examples/transformations/feature_extraction_with_tsfresh.ipynb
+:link: /examples/transformations/tsfresh.ipynb
 :link-type: ref
 :text-align: center
 
@@ -492,22 +492,11 @@ Benchmarking algorithms
 :::{grid-item-card}
 :img-top: images/logo/aeon-logo-blue-2-transparent.png
 :class-img-top: aeon-card-image-m
-:link: /examples/benchmarking/regression.ipynb
+:link: /examples/benchmarking/published_results.ipynb
 :link-type: ref
 :text-align: center
 
-Benchmarking extrinsic regression algorithms
-
-:::
-
-:::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
-:class-img-top: aeon-card-image-m
-:link: /examples/benchmarking/regression_results_per_dataset.ipynb
-:link-type: ref
-:text-align: center
-
-Compare regression algorithms on a single dataset
+Loading published results
 
 :::
 
@@ -519,6 +508,17 @@ Compare regression algorithms on a single dataset
 :text-align: center
 
 Getting estimator reference results
+
+:::
+
+:::{grid-item-card}
+:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:class-img-top: aeon-card-image-m
+:link: /examples/benchmarking/regression.ipynb
+:link-type: ref
+:text-align: center
+
+Benchmarking extrinsic regression algorithms
 
 :::
 

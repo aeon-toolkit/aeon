@@ -25,8 +25,8 @@ class HOG1DTransformer(BaseCollectionTransformer):
     scaling_factor : float
         A constant that is multiplied to modify the distribution.
 
-    Notes
-    -----
+    References
+    ----------
     [1] J. Zhao and L. Itti "Classifying time series using local descriptors with
     hybrid sampling", IEEE Transactions on Knowledge and Data Engineering 28(3), 2015.
 

@@ -8,7 +8,7 @@ __all__ = ["TimeSeriesForestClassifier"]
 
 import numpy as np
 
-from aeon.base.estimator.interval_based.base_interval_forest import BaseIntervalForest
+from aeon.base.estimators.interval_based.base_interval_forest import BaseIntervalForest
 from aeon.classification import BaseClassifier
 from aeon.classification.sklearn import ContinuousIntervalTree
 

@@ -1,7 +1,7 @@
 """Summary feature transformer."""
 
 __maintainer__ = []
-__all__ = ["SevenNumberSummaryTransformer"]
+__all__ = ["SevenNumberSummary"]
 
 import numpy as np
 
@@ -15,7 +15,7 @@ from aeon.utils.numba.stats import (
 )
 
 
-class SevenNumberSummaryTransformer(BaseCollectionTransformer):
+class SevenNumberSummary(BaseCollectionTransformer):
     """Seven-number summary transformer.
 
     Transforms a time series into seven basic summary statistics.
@@ -33,13 +33,13 @@ class SevenNumberSummaryTransformer(BaseCollectionTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.collection.feature_based import SevenNumberSummaryTransformer  # noqa
+    >>> from aeon.transformations.collection.feature_based import SevenNumberSummary  # noqa
     >>> from aeon.testing.data_generation import make_example_3d_numpy
     >>> X = make_example_3d_numpy(n_cases=4, n_channels=1, n_timepoints=10,
     ...                           random_state=0, return_y=False)
-    >>> tnf = SevenNumberSummaryTransformer()
+    >>> tnf = SevenNumberSummary()
     >>> tnf.fit(X)
-    SevenNumberSummaryTransformer(...)
+    SevenNumberSummary(...)
     >>> print(tnf.transform(X)[0])
     [1.12176987 0.52340259 0.         1.92732552 0.8542758  1.14764656
      1.39573111]
