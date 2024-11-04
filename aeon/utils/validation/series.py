@@ -1,21 +1,14 @@
 """Functions for checking input data."""
 
-from typing import Optional
-
 __all__ = [
-    "check_series",
-    "check_time_index",
-    "check_consistent_index_type",
-    "is_hierarchical",
     "is_single_series",
+    "is_hierarchical",
 ]
 __maintainer__ = ["TonyBagnall"]
 
-from typing import Union
-
 import numpy as np
 import pandas as pd
-from pandas.api.types import is_integer_dtype, is_numeric_dtype
+from pandas.api.types import is_integer_dtype
 
 # We currently support the following types for input data and time index types.
 VALID_DATA_TYPES = (pd.DataFrame, pd.Series, np.ndarray)
@@ -83,7 +76,7 @@ def _check_pd_dataframe(y):
             f"Series in a pd.DataFrame must have unique column indices " f"{y.columns}"
         )
     # check whether the time index is of valid type
-    if not is_in_valid_index_types(y.index):
+    if not _is_in_valid_index_types(y.index):
         raise ValueError(
             f"{type(y.index)} is not supported for series, use "
             f"one of {VALID_INDEX_TYPES} or integer index instead."
@@ -127,84 +120,73 @@ def is_univariate_series(y):
     return False
 
 
-def get_index_for_series(obj, cutoff=0):
-    """Get pandas index for a Series object.
-
-    Returns index even for numpy array, in that case a RangeIndex.
-
-    Assumptions on obj are not checked, these should be validated separately.
-    Function may return unexpected results without prior validation.
-
-    Parameters
-    ----------
-    obj : data structure
-        must be of one of pd.Series, pd.DataFrame, np.ndarray
-    cutoff : int, or pd.datetime, optional, default=0
-        current cutoff, used to offset index if obj is np.ndarray
-
-    Returns
-    -------
-    index : pandas.Index, index for obj
-    """
-    if hasattr(obj, "index"):
-        return obj.index
-    # now we know the object must be an np.ndarray
-    return pd.RangeIndex(cutoff, cutoff + obj.shape[0])
-
-
-def is_integer_index(x) -> bool:
+def _is_integer_index(x) -> bool:
     """Check that the input is an integer pd.Index."""
     return isinstance(x, pd.Index) and is_integer_dtype(x)
 
 
-def is_in_valid_index_types(x) -> bool:
+def _is_in_valid_index_types(x) -> bool:
     """Check that the input type belongs to the valid index types."""
-    return isinstance(x, VALID_INDEX_TYPES) or is_integer_index(x)
+    return isinstance(x, VALID_INDEX_TYPES) or _is_integer_index(x)
 
 
-def is_in_valid_relative_index_types(x) -> bool:
-    return isinstance(x, RELATIVE_INDEX_TYPES) or is_integer_index(x)
+def _is_in_valid_multiindex_types(x) -> bool:
+    """Check that the input type belongs to the valid multiindex types."""
+    return isinstance(x, (pd.RangeIndex, pd.Index)) or _is_integer_index(x)
 
 
-def is_in_valid_absolute_index_types(x) -> bool:
-    return isinstance(x, ABSOLUTE_INDEX_TYPES) or is_integer_index(x)
+def is_pdmultiindex_hierarchical(y):
+    """Check if the input is a pd.DataFrame with MultiIndex.
 
+    Parameters
+    ----------
+    y : pd.DataFrame
+        Input data to be checked.
 
-def check_is_univariate(y, var_name="input"):
-    """Check if series is univariate."""
-    if isinstance(y, pd.DataFrame):
-        nvars = y.shape[1]
-        if nvars > 1:
-            raise ValueError(
-                f"{var_name} must be univariate, but found {nvars} variables."
-            )
-    if isinstance(y, np.ndarray) and y.ndim > 1 and y.shape[1] > 1:
-        raise ValueError(
-            f"{var_name} must be univariate, but found np.ndarray with more than "
-            "one column"
-        )
+    Returns
+    -------
+    bool
+        True if y is pd multindex hierarchical.
 
-
-def _check_is_multivariate(Z, var_name="input"):
-    """Check if series is multivariate.
-
-    Warning: this function assumes ndarrays are in (n_timepoints, n_channels) shape. Do
-    not use with collections of time series.
     """
-    if isinstance(Z, pd.Series):
-        raise ValueError(f"{var_name} must have 2 or more variables, but found 1.")
-    if isinstance(Z, pd.DataFrame):
-        nvars = Z.shape[1]
-        if nvars < 2:
-            raise ValueError(
-                f"{var_name} must have 2 or more variables, but found {nvars}."
-            )
-    if isinstance(Z, np.ndarray):
-        if Z.ndim == 1 or (Z.ndim == 2 and Z.shape[1] == 1):
-            raise ValueError(f"{var_name} must have 2 or more variables, but found 1.")
+    if not isinstance(y, pd.DataFrame) or not isinstance(y.index, pd.MultiIndex):
+        return False
+    if not y.columns.is_unique:
+        return False
+    # check that there are precisely two index levels
+    if y.index.nlevels < 3:
+        return False
+    # check that no dtype is object
+    if "object" in y.dtypes.values:
+        return False
+
+    # check whether the time index is of valid type
+    if not _is_in_valid_index_types(y.index.get_level_values(-1)):
+        return False
+    time_obj = y.reset_index(-1).drop(y.columns, axis=1)
+    time_grp = time_obj.groupby(level=0, group_keys=True, as_index=True)
+    inst_inds = time_obj.index.unique()
+
+    # check instance index being integer or range index
+    if not _is_in_valid_multiindex_types(inst_inds):
+        return False
+
+    if pd.__version__ < "1.5.0":
+        # Earlier versions of pandas are very slow for this type of operation.
+        montonic_list = [y.loc[i].index.is_monotonic for i in inst_inds]
+        time_is_monotonic = len([i for i in montonic_list if i is False]) == 0
+    else:
+        timedelta_by_grp = (
+            time_grp.diff().groupby(level=0, group_keys=True, as_index=True).nunique()
+        )
+        timedelta_unique = timedelta_by_grp.iloc[:, 0].unique()
+        time_is_monotonic = all(timedelta_unique >= 0)
+    if not time_is_monotonic:
+        return False
+    return True
 
 
-def check_series(
+def _check_series(
     Z,
     enforce_univariate=False,
     enforce_multivariate=False,
@@ -284,219 +266,15 @@ def check_series(
         )
 
     if enforce_univariate:
-        check_is_univariate(Z, var_name=var_name)
-
-    if enforce_multivariate:
-        _check_is_multivariate(Z, var_name=var_name)
-
-    # check time index if input data is not an NumPy ndarray
-    if not isinstance(Z, np.ndarray):
-        check_time_index(
-            Z.index,
-            allow_empty=allow_empty,
-            enforce_index_type=enforce_index_type,
-            var_name=var_name,
-        )
+        is_univariate_series(Z)
+    elif enforce_multivariate:
+        if is_univariate_series(Z):
+            raise ValueError("Must be a multivariate series.")
 
     if not allow_index_names and not isinstance(Z, np.ndarray):
         Z.index.names = [None for name in Z.index.names]
 
     return Z
-
-
-def check_time_index(
-    index: Union[pd.Index, np.array],
-    allow_empty: bool = False,
-    enforce_index_type: Optional[bool] = None,
-    var_name: str = "input",
-) -> pd.Index:
-    """Check time index.
-
-    Parameters
-    ----------
-    index : pd.Index or np.array
-        Time index
-    allow_empty : bool, default=False
-        If False, empty `index` raises an error.
-    enforce_index_type : type, default=None
-        type of time index
-    var_name : str, default = "input" - variable name printed in error messages
-
-    Returns
-    -------
-    time_index : pd.Index
-        Validated time index - a reference to the input index
-    """
-    if isinstance(index, np.ndarray):
-        index = pd.Index(index)
-
-    # We here check for type equality because isinstance does not
-    # work reliably because index types inherit from each other.
-    if not is_in_valid_index_types(index):
-        raise NotImplementedError(
-            f"{type(index)} is not supported for {var_name}, use "
-            f"one of {VALID_INDEX_TYPES} instead."
-        )
-
-    if enforce_index_type and type(index) is not enforce_index_type:
-        raise NotImplementedError(
-            f"{type(index)} is not supported for {var_name}, use "
-            f"type: {enforce_index_type} or integer pd.Index instead."
-        )
-
-    # Check time index is ordered in time
-    if not index.is_monotonic_increasing:
-        raise ValueError(
-            f"The (time) index of {var_name} must be sorted monotonically increasing, "
-            f"but found: {index}"
-        )
-
-    # Check that index is not empty
-    if not allow_empty and len(index) < 1:
-        raise ValueError(
-            f"{var_name} must contain at least some values, but found none."
-        )
-
-    return index
-
-
-def check_consistent_index_type(a, b):
-    """Check that two indices have consistent types.
-
-    Parameters
-    ----------
-    a : pd.Index
-        Index being checked for consistency
-    b : pd.Index
-        Index being checked for consistency
-
-    Raises
-    ------
-    TypeError
-        If index types are inconsistent
-    """
-    msg = (
-        "Found series with inconsistent index types, please make sure all "
-        "series have the same index type."
-    )
-
-    if is_integer_index(a):
-        if not is_integer_index(b):
-            raise TypeError(msg)
-
-    else:
-        # check types, note that isinstance() does not work here because index
-        # types inherit from each other, hence we check for type equality
-        if not type(a) is type(b):  # noqa
-            raise TypeError(msg)
-
-
-def _common_checks(y: pd.DataFrame):
-    if not isinstance(y, pd.DataFrame):
-        return False
-    # check that column indices are unique
-    if not len(set(y.columns)) == len(y.columns):
-        return False
-    # check that all cols are numeric
-    if not np.all([is_numeric_dtype(y[c]) for c in y.columns]):
-        return False
-    # Check time index is ordered in time
-    if not y.index.is_monotonic_increasing:
-        return False
-    return True
-
-
-def is_pred_interval_proba(y):
-    """Check if the input is a dataframe of probas."""
-    # we now know obj is a pd.DataFrame
-    if not _common_checks(y):
-        return False
-    # check column multiindex
-    colidx = y.columns
-    if not isinstance(colidx, pd.MultiIndex) or not colidx.nlevels == 3:
-        return False
-    coverages = colidx.get_level_values(1)
-    if not is_numeric_dtype(coverages):
-        return False
-    if not (coverages <= 1).all() or not (coverages >= 0).all():
-        return False
-    upper_lower = colidx.get_level_values(2)
-    if not upper_lower.isin(["upper", "lower"]).all():
-        return False
-    return True
-
-
-def is_pred_quantiles_proba(y):
-    """Check if the input is a dataframe of quantiles."""
-    # check if the input is a dataframe
-    if not _common_checks(y):
-        return False
-    # check column multiindex
-    colidx = y.columns
-    if not isinstance(colidx, pd.MultiIndex) or not colidx.nlevels == 2:
-        return False
-    alphas = colidx.get_level_values(1)
-    if not is_numeric_dtype(alphas):
-        return False
-    if not (alphas <= 1).all() or not (alphas >= 0).all():
-        return False
-    return True
-
-
-def _is_in_valid_multiindex_types(x) -> bool:
-    """Check that the input type belongs to the valid multiindex types."""
-    return isinstance(x, (pd.RangeIndex, pd.Index)) or is_integer_index(x)
-
-
-def is_pdmultiindex_hierarchical(y):
-    """Check if the input is a pd.DataFrame with MultiIndex.
-
-    Parameters
-    ----------
-    y : pd.DataFrame
-        Input data to be checked.
-
-    Returns
-    -------
-    bool
-        True if y is pd multindex hierarchical.
-
-    """
-    if not isinstance(y, pd.DataFrame) or not isinstance(y.index, pd.MultiIndex):
-        return False
-    if not y.columns.is_unique:
-        return False
-    # check that there are precisely two index levels
-    if y.index.nlevels < 3:
-        return False
-    # check that no dtype is object
-    if "object" in y.dtypes.values:
-        return False
-
-    # check whether the time index is of valid type
-    if not is_in_valid_index_types(y.index.get_level_values(-1)):
-        return False
-    time_obj = y.reset_index(-1).drop(y.columns, axis=1)
-    time_grp = time_obj.groupby(level=0, group_keys=True, as_index=True)
-    inst_inds = time_obj.index.unique()
-
-    # check instance index being integer or range index
-    if not _is_in_valid_multiindex_types(inst_inds):
-        return False
-
-    if pd.__version__ < "1.5.0":
-        # Earlier versions of pandas are very slow for this type of operation.
-        montonic_list = [y.loc[i].index.is_monotonic for i in inst_inds]
-        time_is_monotonic = len([i for i in montonic_list if i is False]) == 0
-    else:
-        timedelta_by_grp = (
-            time_grp.diff().groupby(level=0, group_keys=True, as_index=True).nunique()
-        )
-        timedelta_unique = timedelta_by_grp.iloc[:, 0].unique()
-        time_is_monotonic = all(timedelta_unique >= 0)
-    if not time_is_monotonic:
-        return False
-    return True
 
 
 def check_y(
@@ -529,7 +307,7 @@ def check_y(
     ValueError, TypeError
         If y is an invalid input
     """
-    y = check_series(
+    y = _check_series(
         y,
         enforce_univariate=True,
         allow_empty=allow_empty,
