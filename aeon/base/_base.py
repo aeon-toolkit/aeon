@@ -19,19 +19,19 @@ class BaseAeonEstimator(BaseEstimator, ABC):
 
     Contains the following methods:
 
-    reset estimator to post-init  - reset(keep)
-    clone stimator (copy)         - clone(random_state)
-    inspect tags (class method)   - get_class_tags()
-    inspect tags (one tag, class) - get_class_tag(tag_name, tag_value_default,
+    - reset estimator to post-init  - reset(keep)
+    - clone stimator (copy)         - clone(random_state)
+    - inspect tags (class method)   - get_class_tags()
+    - inspect tags (one tag, class) - get_class_tag(tag_name, tag_value_default,
                                                                     raise_error)
-    inspect tags (all)            - get_tags()
-    inspect tags (one tag)        - get_tag(tag_name, tag_value_default, raise_error)
-    setting dynamic tags          - set_tags(**tag_dict)
-    get fitted parameters         - get_fitted_params(deep)
+    - inspect tags (all)            - get_tags()
+    - inspect tags (one tag)        - get_tag(tag_name, tag_value_default, raise_error)
+    - setting dynamic tags          - set_tags(**tag_dict)
+    - get fitted parameters         - get_fitted_params(deep)
 
     All estimators have the attribute:
 
-    fitted state flag             - is_fitted
+    - fitted state flag             - is_fitted
     """
 
     _tags = {
@@ -63,7 +63,7 @@ class BaseAeonEstimator(BaseEstimator, ABC):
                 hyper-parameters (arguments of ``__init__``)
                 object attributes containing double-underscores, i.e., the string "__"
             runs ``__init__`` with current values of hyperparameters (result of
-            get_params)
+            ``get_params``)
 
         Not affected by the reset are:
             object attributes containing double-underscores
@@ -73,13 +73,13 @@ class BaseAeonEstimator(BaseEstimator, ABC):
         Parameters
         ----------
         keep : None, str, or list of str, default=None
-            If None, all attributes are removed except hyper-parameters.
+            If None, all attributes are removed except hyperparameters.
             If str, only the attribute with this name is kept.
             If list of str, only the attributes with these names are kept.
 
         Returns
         -------
-        self
+        self : object
             Reference to self.
         """
         # retrieve parameters to copy them later
@@ -163,7 +163,12 @@ class BaseAeonEstimator(BaseEstimator, ABC):
         return deepcopy(collected_tags)
 
     @classmethod
-    def get_class_tag(cls, tag_name, tag_value_default=None, raise_error=False):
+    def get_class_tag(
+        cls,
+        tag_name,
+        raise_error=True,
+        tag_value_default=None,
+    ):
         """
         Get tag value from estimator class (only class tags).
 
@@ -171,22 +176,22 @@ class BaseAeonEstimator(BaseEstimator, ABC):
         ----------
         tag_name : str
             Name of tag value.
-        tag_value_default : any type
-            Default/fallback value if tag is not found.
-        raise_error : bool
+        raise_error : bool, default=True
             Whether a ValueError is raised when the tag is not found.
+        tag_value_default : any type, default=None
+            Default/fallback value if tag is not found and error is not raised.
 
         Returns
         -------
         tag_value
-            Value of the ``tag_name`` tag in self.
-            If not found, returns an error if raise_error is True, otherwise it
-            returns `tag_value_default`.
+            Value of the ``tag_name`` tag in cls.
+            If not found, returns an error if ``raise_error`` is True, otherwise it
+            returns ``tag_value_default``.
 
         Raises
         ------
         ValueError
-            if raise_error is ``True`` and ``tag_name`` is not in
+            if ``raise_error`` is True and ``tag_name`` is not in
             ``self.get_tags().keys()``
 
         Examples
@@ -221,7 +226,7 @@ class BaseAeonEstimator(BaseEstimator, ABC):
         collected_tags.update(self._tags_dynamic)
         return deepcopy(collected_tags)
 
-    def get_tag(self, tag_name, tag_value_default=None, raise_error=True):
+    def get_tag(self, tag_name, raise_error=True, tag_value_default=None):
         """
         Get tag value from estimator class.
 
@@ -231,17 +236,17 @@ class BaseAeonEstimator(BaseEstimator, ABC):
         ----------
         tag_name : str
             Name of tag to be retrieved.
-        tag_value_default : any type, default=None
-            Default/fallback value if tag is not found.
-        raise_error : bool
+        raise_error : bool, default=True
             Whether a ValueError is raised when the tag is not found.
+        tag_value_default : any type, default=None
+            Default/fallback value if tag is not found and error is not raised.
 
         Returns
         -------
         tag_value
             Value of the ``tag_name`` tag in self.
-            If not found, returns an error if raise_error is True, otherwise it
-            returns `tag_value_default`.
+            If not found, returns an error if ``raise_error`` is True, otherwise it
+            returns ``tag_value_default``.
 
         Raises
         ------
@@ -276,7 +281,7 @@ class BaseAeonEstimator(BaseEstimator, ABC):
 
         Returns
         -------
-        self
+        self : object
             Reference to self.
         """
         tag_update = deepcopy(tag_dict)
@@ -292,26 +297,13 @@ class BaseAeonEstimator(BaseEstimator, ABC):
         Parameters
         ----------
         deep : bool, default=True
-            Whether to return fitted parameters of components.
-
-            * If True, will return a dict of parameter name : value for this object,
-              including fitted parameters of fittable components
-              (= BaseAeonEstimator-valued parameters).
-            * If False, will return a dict of parameter name : value for this object,
-              but not include fitted parameters of components.
+            If True, will return the fitted parameters for this estimator and
+            contained subobjects that are estimators.
 
         Returns
         -------
-        fitted_params : dict with str-valued keys
-            Dictionary of fitted parameters, paramname : paramvalue
-            keys-value pairs include:
-
-            * always: all fitted parameters of this object
-            * if ``deep=True``, also contains keys/value pairs of component parameters
-              parameters of components are indexed as ``[componentname]__[paramname]``
-              all parameters of ``componentname`` appear as ``paramname`` with its value
-            * if ``deep=True``, also contains arbitrary levels of component recursion,
-              e.g., ``[componentname]__[componentcomponentname]__[paramname]``, etc.
+        fitted_params : dict
+            Fitted parameter names mapped to their values.
         """
         self._check_is_fitted()
         return self._get_fitted_params(self, deep)
@@ -325,7 +317,13 @@ class BaseAeonEstimator(BaseEstimator, ABC):
 
         out = dict()
         for key in fitted_params:
-            value = getattr(est, key)
+            # some of these can be properties and can make assumptions which may not be
+            # true in aeon i.e. sklearn Pipeline feature_names_in_
+            try:
+                value = getattr(est, key)
+            except AttributeError:
+                continue
+
             if deep and isinstance(value, BaseEstimator):
                 deep_items = self._get_fitted_params(value, deep).items()
                 out.update((key + "__" + k, val) for k, val in deep_items)
@@ -419,7 +417,10 @@ class BaseAeonEstimator(BaseEstimator, ABC):
         )
 
     def get_metadata_routing(self):
-        """Sklearn metadata routing."""
+        """Sklearn metadata routing.
+
+        Not supported by ``aeon`` estimators.
+        """
         raise NotImplementedError(
             "aeon estimators do not have a get_metadata_routing method."
         )
