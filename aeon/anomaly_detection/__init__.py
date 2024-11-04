@@ -12,7 +12,6 @@ __all__ = [
     "IsolationForest",
     "CBLOF",
     "COPOD",
-    
 ]
 
 from aeon.anomaly_detection._dwt_mlead import DWT_MLEAD
