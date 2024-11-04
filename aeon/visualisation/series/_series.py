@@ -16,6 +16,7 @@ from aeon.utils.validation.series import (
     check_consistent_index_type,
     check_y,
     is_pred_interval_proba,
+    is_single_series,
 )
 
 
@@ -66,6 +67,13 @@ def plot_series(
     >>> y = load_airline(return_array=False)
     >>> fig, ax = plot_series(y)  # doctest: +SKIP
     """
+    if not is_single_series(series):
+        raise ValueError(
+            "series must be a single time series, either univariate (1D "
+            "np.ndarray or pd.Series) or multivariate (2D "
+            "np.ndarray or pd.DataFrame)"
+        )
+
     _check_soft_dependencies("matplotlib", "seaborn")
     import matplotlib.pyplot as plt
     import seaborn as sns

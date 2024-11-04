@@ -81,13 +81,17 @@ invalid_input_types = [
     not _check_soft_dependencies(["matplotlib", "seaborn"], severity="none"),
     reason="skip test if required soft dependency not available",
 )
-def test_plot_series_invalid_input_type_raises_error():
+@pytest.mark.parametrize(
+    "series_to_plot",
+    [
+        "This is a string",
+        (pd.DataFrame({"y1": y_airline, "y2": y_airline}),),
+        np.random.random((4, 1, 50)),
+    ],
+)
+def test_plot_series_invalid_input_type_raises_error(series_to_plot):
     """Tests whether plot_series raises error for invalid input types."""
-    series_to_plot = "This is a string"
-    with pytest.raises((TypeError), match="found type: <class 'str'>"):
-        plot_series(series_to_plot)
-    series_to_plot = (pd.DataFrame({"y1": y_airline, "y2": y_airline}),)
-    with pytest.raises(ValueError, match="input must be univariate"):
+    with pytest.raises((ValueError), match="series must be a single time series"):
         plot_series(series_to_plot)
 
 
