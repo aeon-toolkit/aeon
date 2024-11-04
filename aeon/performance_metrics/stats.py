@@ -311,5 +311,5 @@ def wilcoxon_test(results, labels, lower_better=False):
                     results[:, j],
                     zero_method="wilcox",
                     alternative="less" if lower_better else "greater",
-                )[1]
+                ).pvalue
     return p_values
