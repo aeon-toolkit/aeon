@@ -17,7 +17,7 @@ from aeon.visualisation import (
     plot_spectrogram,
 )
 
-y_airline = load_airline()
+y_airline = load_airline(return_array=False)
 y_airline_true = y_airline.iloc[y_airline.index < "1960-01"]
 y_airline_test = y_airline.iloc[y_airline.index >= "1960-01"]
 series_to_test = [y_airline, (y_airline_true, y_airline_test)]
