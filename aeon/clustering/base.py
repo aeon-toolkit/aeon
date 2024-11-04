@@ -122,6 +122,7 @@ class BaseClusterer(BaseCollectionEstimator):
         self._check_shape(X)
         return self._predict_proba(X)
 
+    @final
     def fit_predict(self, X, y=None) -> np.ndarray:
         """Compute cluster centers and predict cluster index for each time series.
 
@@ -159,6 +160,8 @@ class BaseClusterer(BaseCollectionEstimator):
             Index of the cluster each time series in X belongs to.
         """
         self.fit(X)
+        if hasattr(self, "labels_"):
+            return self.labels_
         return self.predict(X)
 
     def _predict_proba(self, X) -> np.ndarray:
