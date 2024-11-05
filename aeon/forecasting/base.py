@@ -109,7 +109,13 @@ class BaseForecaster(BaseSeriesEstimator):
             single prediction directly after the last point in X.
         """
         y = self._preprocess_series(y, axis=self.axis, store_metadata=False)
+        self.is_fitted = True
         return self._forecast(y, X)
 
-    @abstractmethod
-    def _forecast(self, y=None, exog=None): ...
+    def _forecast(self, y=None, exog=None):
+        """Forecast values for time series X.
+
+        NOTE: deal with horizons
+        """
+        self.fit(y, exog)
+        return self.predict(y, exog)
