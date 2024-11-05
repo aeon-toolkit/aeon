@@ -39,7 +39,7 @@ def test_lof_default():
         window_size=window_size,
         stride=stride,
     )
-    scores_aeon = lof_aeon._fit_predict(series)
+    scores_aeon = lof_aeon.fit_predict(series)
 
     # Initialize PyOD LOF
     from pyod.models.lof import LOF as PyOD_LOF
