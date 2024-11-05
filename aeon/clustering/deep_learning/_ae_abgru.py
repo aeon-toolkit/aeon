@@ -141,7 +141,6 @@ class AEAttentionBiGRUClusterer(BaseDeepClusterer):
         self.save_last_model = save_last_model
         self.best_file_name = best_file_name
         self.random_state = random_state
-        self.estimator = estimator
 
         super().__init__(
             n_clusters=n_clusters,
