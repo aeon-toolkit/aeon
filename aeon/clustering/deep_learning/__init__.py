@@ -5,7 +5,9 @@ __all__ = [
     "AEFCNClusterer",
     "AEResNetClusterer",
     "AEDRNNClusterer",
+    "AEBiGRUClusterer",
 ]
+from aeon.clustering.deep_learning._ae_bgru import AEBiGRUClusterer
 from aeon.clustering.deep_learning._ae_drnn import AEDRNNClusterer
 from aeon.clustering.deep_learning._ae_fcn import AEFCNClusterer
 from aeon.clustering.deep_learning._ae_resnet import AEResNetClusterer
