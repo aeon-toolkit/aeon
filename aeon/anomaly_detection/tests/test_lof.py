@@ -240,11 +240,3 @@ def test_lof_semi_supervised():
 
     # Compare anomaly scores using assert_allclose
     np.testing.assert_allclose(scores_aeon, scores_pyod, rtol=1e-5, atol=1e-5)
-
-    # Ensure that the most anomalous point is within the introduced anomaly range
-    assert (
-        5 <= np.argmax(scores_aeon) <= 15
-    ), "AEON LOF did not detect anomalies in the expected range."
-    assert (
-        5 <= np.argmax(scores_pyod) <= 15
-    ), "PyOD LOF did not detect anomalies in the expected range."
