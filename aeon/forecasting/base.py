@@ -63,7 +63,7 @@ class BaseForecaster(BaseSeriesEstimator):
         if exog is not None:
             raise NotImplementedError("Exogenous variables not yet supported")
         # Validate exog
-        self._is_fitted = True
+        self.is_fitted = True
         return self._fit(y, exog)
 
     @abstractmethod
