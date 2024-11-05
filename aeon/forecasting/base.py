@@ -91,8 +91,6 @@ class BaseForecaster(BaseSeriesEstimator):
             raise ValueError("Forecaster must be fitted before predicting")
         if exog is not None:
             raise NotImplementedError("Exogenous variables not yet supported")
-        # Validate exog
-        self.is_fitted = True
         return self._predict(y, exog)
 
     @abstractmethod
@@ -109,7 +107,6 @@ class BaseForecaster(BaseSeriesEstimator):
             single prediction directly after the last point in X.
         """
         y = self._preprocess_series(y, axis=self.axis, store_metadata=False)
-        self.is_fitted = True
         return self._forecast(y, X)
 
     def _forecast(self, y=None, exog=None):
