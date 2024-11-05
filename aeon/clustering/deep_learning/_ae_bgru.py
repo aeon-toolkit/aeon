@@ -22,8 +22,6 @@ class AEBiGRUClusterer(BaseDeepClusterer):
     ----------
     n_clusters : int, default=None
         Number of clusters for the deep learnign model.
-    clustering_algorithm : str, default="deprecated"
-        Use 'estimator' parameter instead.
     clustering_params : dict, default=None
         Use 'estimator' parameter instead.
     estimator : aeon clusterer, default=None
@@ -100,7 +98,6 @@ class AEBiGRUClusterer(BaseDeepClusterer):
     def __init__(
         self,
         n_clusters=None,
-        clustering_algorithm="deprecated",
         estimator=None,
         clustering_params=None,
         latent_space_dim=128,

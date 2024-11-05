@@ -30,8 +30,6 @@ class AEResNetClusterer(BaseDeepClusterer):
         An aeon estimator to be built using the transformed data.
         Defaults to aeon TimeSeriesKMeans() with euclidean distance
         and mean averaging method and n_clusters set to 2.
-    clustering_algorithm : str, default="deprecated"
-        Please use 'estimator' parameter.
     clustering_params : dict, default=None
         Please use 'estimator' parameter.
     latent_space_dim : int, default=128
@@ -134,7 +132,6 @@ class AEResNetClusterer(BaseDeepClusterer):
         n_clusters=None,
         estimator=None,
         n_residual_blocks=3,
-        clustering_algorithm="deprecated",
         clustering_params=None,
         n_conv_per_residual_block=3,
         n_filters=None,
@@ -188,7 +185,6 @@ class AEResNetClusterer(BaseDeepClusterer):
         super().__init__(
             estimator=estimator,
             n_clusters=n_clusters,
-            clustering_algorithm=clustering_algorithm,
             clustering_params=clustering_params,
             batch_size=batch_size,
             last_file_name=last_file_name,

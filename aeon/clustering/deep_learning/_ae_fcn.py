@@ -27,8 +27,6 @@ class AEFCNClusterer(BaseDeepClusterer):
         An aeon estimator to be built using the transformed data.
         Defaults to aeon TimeSeriesKMeans() with euclidean distance
         and mean averaging method and n_clusters set to 2.
-    clustering_algorithm : str, default="deprecated"
-        Please use 'estimator' parameter.
     clustering_params : dict, default=None
         Please use 'estimator' parameter.
     latent_space_dim : int, default=128
@@ -124,7 +122,6 @@ class AEFCNClusterer(BaseDeepClusterer):
         self,
         n_clusters=None,
         estimator=None,
-        clustering_algorithm="deprecated",
         clustering_params=None,
         latent_space_dim=128,
         temporal_latent_space=False,
@@ -177,7 +174,6 @@ class AEFCNClusterer(BaseDeepClusterer):
         super().__init__(
             estimator=estimator,
             n_clusters=n_clusters,
-            clustering_algorithm=clustering_algorithm,
             clustering_params=clustering_params,
             batch_size=batch_size,
             last_file_name=last_file_name,

@@ -19,8 +19,6 @@ class BaseDeepClusterer(BaseClusterer):
         An aeon estimator to be built using the transformed data.
         Defaults to aeon TimeSeriesKMeans() with euclidean distance
         and mean averaging method and n_clusters set to 2.
-    clustering_algorithm : str, default="deprecated"
-        Please use 'estimator' parameter.
     clustering_params : dict, default=None
         Please use 'estimator' parameter.
     batch_size : int, default = 40
@@ -44,14 +42,12 @@ class BaseDeepClusterer(BaseClusterer):
         self,
         n_clusters=None,
         estimator=None,
-        clustering_algorithm="deprecated",
         clustering_params=None,
         batch_size=32,
         last_file_name="last_file",
     ):
         self.estimator = estimator
         self.n_clusters = n_clusters
-        self.clustering_algorithm = clustering_algorithm
         self.clustering_params = clustering_params
         self.batch_size = batch_size
         self.last_file_name = last_file_name
@@ -109,8 +105,6 @@ class BaseDeepClusterer(BaseClusterer):
         X : np.ndarray, shape=(n_cases, n_timepoints, n_channels)
             The input time series.
         """
-        import warnings
-
         self._estimator = (
             TimeSeriesKMeans(
                 n_clusters=2, distance="euclidean", averaging_method="mean"
@@ -120,22 +114,6 @@ class BaseDeepClusterer(BaseClusterer):
         )
 
         # to be removed in 1.0.0
-        if (
-            self.clustering_algorithm != "deprecated"
-            or self.clustering_params is not None
-            or self.n_clusters is not None
-        ):
-            warnings.warn(
-                "The 'n_clusters' 'clustering_algorithm' and "
-                "'clustering_params' parameters "
-                "will be removed in v1.0.0. "
-                "Their usage will not have an effect, "
-                "please use the new 'estimator' parameter to directly "
-                "give an aeon clusterer as input.",
-                FutureWarning,
-                stacklevel=2,
-            )
-
         latent_space = self.model_.layers[1].predict(X)
         self._estimator.fit(X=latent_space)
 
