@@ -2,14 +2,13 @@
 
 __all__ = [
     "DWT_MLEAD",
+    "IsolationForest",
     "KMeansAD",
+    "LeftSTAMPi" "LOF",
     "MERLIN",
-    "STRAY",
     "PyODAdapter",
     "STOMP",
-    "LeftSTAMPi",
-    "IsolationForest",
-    "LOF",
+    "STRAY",
 ]
 
 

@@ -235,8 +235,8 @@ def test_lof_semi_supervised():
     # Ensure shapes and types
     assert scores_aeon.shape == (20,)
     assert scores_pyod.shape == (20,)
-    assert scores_aeon.dtype == np.float_
-    assert scores_pyod.dtype == np.float_
+    assert scores_aeon.dtype == np.float64
+    assert scores_pyod.dtype == np.float64
 
     # Compare anomaly scores using assert_allclose
     np.testing.assert_allclose(scores_aeon, scores_pyod, rtol=1e-5, atol=1e-5)
