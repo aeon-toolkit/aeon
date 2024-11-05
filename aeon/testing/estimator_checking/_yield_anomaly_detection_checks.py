@@ -65,7 +65,7 @@ def check_anomaly_detector_univariate(estimator):
     """Test the anomaly detector on univariate data."""
     estimator = _clone_estimator(estimator)
 
-    if estimator.get_class_tag(tag_name="capability:univariate"):
+    if estimator.get_tag(tag_name="capability:univariate"):
         pred = estimator.fit_predict(uv_series, labels)
         assert isinstance(pred, np.ndarray)
         assert pred.shape == (15,)
@@ -79,7 +79,7 @@ def check_anomaly_detector_multivariate(estimator):
     """Test the anomaly detector on multivariate data."""
     estimator = _clone_estimator(estimator)
 
-    if estimator.get_class_tag(tag_name="capability:multivariate"):
+    if estimator.get_tag(tag_name="capability:multivariate"):
         pred = estimator.fit_predict(mv_series, labels)
         assert isinstance(pred, np.ndarray)
         assert pred.shape == (15,)

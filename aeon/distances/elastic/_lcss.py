@@ -8,9 +8,9 @@ import numpy as np
 from numba import njit
 from numba.typed import List as NumbaList
 
-from aeon.distances._euclidean import _univariate_euclidean_distance
 from aeon.distances.elastic._alignment_paths import compute_lcss_return_path
 from aeon.distances.elastic._bounding_matrix import create_bounding_matrix
+from aeon.distances.pointwise._euclidean import _univariate_euclidean_distance
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 

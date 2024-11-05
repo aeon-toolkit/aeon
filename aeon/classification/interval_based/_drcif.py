@@ -10,7 +10,7 @@ __all__ = ["DrCIFClassifier"]
 import numpy as np
 from sklearn.preprocessing import FunctionTransformer
 
-from aeon.base.estimator.interval_based import BaseIntervalForest
+from aeon.base.estimators.interval_based import BaseIntervalForest
 from aeon.classification.base import BaseClassifier
 from aeon.classification.sklearn._continuous_interval_tree import ContinuousIntervalTree
 from aeon.transformations.collection import PeriodogramTransformer
@@ -260,7 +260,7 @@ class DrCIFClassifier(BaseIntervalForest, BaseClassifier):
         return super()._fit_predict_proba(X, y)
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -285,7 +285,6 @@ class DrCIFClassifier(BaseIntervalForest, BaseClassifier):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         if parameter_set == "results_comparison":
             return {"n_estimators": 10, "n_intervals": 2, "att_subsample_size": 4}

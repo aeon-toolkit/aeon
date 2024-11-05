@@ -11,7 +11,7 @@ from sklearn.ensemble import RandomForestRegressor
 
 from aeon.base._base import _clone_estimator
 from aeon.regression.base import BaseRegressor
-from aeon.transformations.collection.feature_based import SevenNumberSummaryTransformer
+from aeon.transformations.collection.feature_based import SevenNumberSummary
 
 
 class SummaryRegressor(BaseRegressor):
@@ -19,7 +19,7 @@ class SummaryRegressor(BaseRegressor):
     Summary statistic regressor.
 
     This regressor simply transforms the input data using the
-    SevenNumberSummaryTransformer transformer and builds a provided estimator using the
+    SevenNumberSummary transformer and builds a provided estimator using the
     transformed data.
 
     Parameters
@@ -107,7 +107,7 @@ class SummaryRegressor(BaseRegressor):
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
         """
-        self._transformer = SevenNumberSummaryTransformer(
+        self._transformer = SevenNumberSummary(
             summary_stats=self.summary_stats,
         )
 
@@ -145,7 +145,7 @@ class SummaryRegressor(BaseRegressor):
         return self._estimator.predict(self._transformer.transform(X))
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -164,7 +164,6 @@ class SummaryRegressor(BaseRegressor):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         if parameter_set == "results_comparison":
             return {"estimator": RandomForestRegressor(n_estimators=10)}

@@ -13,10 +13,7 @@ from sklearn.ensemble import RandomForestRegressor
 
 from aeon.base._base import _clone_estimator
 from aeon.regression.base import BaseRegressor
-from aeon.transformations.collection.feature_based import (
-    TSFreshFeatureExtractor,
-    TSFreshRelevantFeatureExtractor,
-)
+from aeon.transformations.collection.feature_based import TSFresh, TSFreshRelevant
 
 
 class TSFreshRegressor(BaseRegressor):
@@ -53,8 +50,8 @@ class TSFreshRegressor(BaseRegressor):
 
     See Also
     --------
-    TSFreshFeatureExtractor
-    TSFreshRelevantFeatureExtractor
+    TSFresh
+    TSFreshRelevant
     TSFreshClassifier
 
     References
@@ -119,13 +116,13 @@ class TSFreshRegressor(BaseRegressor):
         ending in "_" and sets is_fitted flag to True.
         """
         self._transformer = (
-            TSFreshRelevantFeatureExtractor(
+            TSFreshRelevant(
                 default_fc_parameters=self.default_fc_parameters,
                 n_jobs=self._n_jobs,
                 chunksize=self.chunksize,
             )
             if self.relevant_feature_extractor
-            else TSFreshFeatureExtractor(
+            else TSFresh(
                 default_fc_parameters=self.default_fc_parameters,
                 n_jobs=self._n_jobs,
                 chunksize=self.chunksize,
@@ -186,7 +183,7 @@ class TSFreshRegressor(BaseRegressor):
         return self._estimator.predict(self._transformer.transform(X))
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -205,7 +202,6 @@ class TSFreshRegressor(BaseRegressor):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         if parameter_set == "results_comparison":
             return {

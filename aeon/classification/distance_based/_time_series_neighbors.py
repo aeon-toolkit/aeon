@@ -49,7 +49,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
     n_jobs : int, default = None
         The number of parallel jobs to run for neighbors search.
         ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.
-        ``-1`` means using all processors. See :term:`Glossary <n_jobs>`
+        ``-1`` means using all processors.
         for more details. Parameter for compatibility purposes, still unimplemented.
 
     Examples
@@ -219,7 +219,9 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         return closest_idx, ws
 
     @classmethod
-    def get_test_params(cls, parameter_set: str = "default") -> Union[dict, list[dict]]:
+    def _get_test_params(
+        cls, parameter_set: str = "default"
+    ) -> Union[dict, list[dict]]:
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -234,7 +236,6 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         # non-default distance and algorithm
         params1 = {"distance": "euclidean"}

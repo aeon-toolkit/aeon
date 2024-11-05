@@ -59,7 +59,7 @@ def check_transformer_against_expected_results(estimator_class):
             continue
 
         # we only use the first estimator instance for testing
-        estimator_instance = estimator_class.create_test_instance(
+        estimator_instance = estimator_class._create_test_instance(
             parameter_set="results_comparison"
         )
         # set random seed if possible

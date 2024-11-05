@@ -20,7 +20,6 @@ __all__ = [
     "load_PBS_dataset",
     "load_gun_point_segmentation",
     "load_electric_devices_segmentation",
-    "load_macroeconomic",
     "load_unit_test_tsf",
     "load_covid_3month",
 ]
@@ -32,7 +31,6 @@ import pandas as pd
 
 from aeon.datasets import load_from_tsf_file
 from aeon.datasets._data_loaders import _load_saved_dataset, _load_tsc_dataset
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 DIRNAME = "data"
 MODULE = os.path.dirname(__file__)
@@ -509,253 +507,6 @@ def load_cardano_sentiment(split=None, return_type="numpy3d"):
     return X, y
 
 
-# forecasting data sets
-def load_shampoo_sales():
-    """Load the shampoo sales univariate time series dataset for forecasting.
-
-    Returns
-    -------
-    y : pd.Series/DataFrame
-        Shampoo sales dataset
-
-    Examples
-    --------
-    >>> from aeon.datasets import load_shampoo_sales
-    >>> y = load_shampoo_sales()
-
-    Notes
-    -----
-    This dataset describes the monthly number of sales of shampoo over a 3
-    year period.
-    The units are a sales count.
-
-    Dimensionality:     univariate
-    Series length:      36
-    Frequency:          Monthly
-    Number of cases:    1
-
-    References
-    ----------
-    .. [1] Makridakis, Wheelwright and Hyndman (1998) Forecasting: methods
-    and applications,
-        John Wiley & Sons: New York. Chapter 3.
-    """
-    name = "ShampooSales"
-    fname = name + ".csv"
-    path = os.path.join(MODULE, DIRNAME, name, fname)
-    y = pd.read_csv(path, index_col=0, dtype={1: float}).squeeze("columns")
-    y.index = pd.PeriodIndex(y.index, freq="M", name="Period")
-    y.name = "Number of shampoo sales"
-    return y
-
-
-def load_longley(y_name="TOTEMP"):
-    """Load the Longley dataset for forecasting with exogenous variables.
-
-    Parameters
-    ----------
-    y_name: str, default="TOTEMP"
-        Name of target variable (y)
-
-    Returns
-    -------
-    y: pd.Series
-        The target series to be predicted.
-    X: pd.DataFrame
-        The exogenous time series data for the problem.
-
-    Examples
-    --------
-    >>> from aeon.datasets import load_longley
-    >>> y, X = load_longley()
-
-    Notes
-    -----
-    This mulitvariate time series dataset contains various US macroeconomic
-    variables from 1947 to 1962 that are known to be highly collinear.
-
-    Dimensionality:     multivariate, 6
-    Series length:      16
-    Frequency:          Yearly
-    Number of cases:    1
-
-    Variable description:
-
-    TOTEMP - Total employment
-    GNPDEFL - Gross national product deflator
-    GNP - Gross national product
-    UNEMP - Number of unemployed
-    ARMED - Size of armed forces
-    POP - Population
-
-    References
-    ----------
-    .. [1] Longley, J.W. (1967) "An Appraisal of Least Squares Programs for the
-        Electronic Computer from the Point of View of the User."  Journal of
-        the American Statistical Association.  62.319, 819-41.
-        (https://www.itl.nist.gov/div898/strd/lls/data/LINKS/DATA/Longley.dat)
-    """
-    name = "Longley"
-    fname = name + ".csv"
-    path = os.path.join(MODULE, DIRNAME, name, fname)
-    data = pd.read_csv(path, index_col=0)
-    data = data.set_index("YEAR")
-    data.index = pd.PeriodIndex(data.index, freq="Y", name="Period")
-    data = data.astype(float)
-
-    # Get target series
-    y = data.pop(y_name)
-    return y, data
-
-
-def load_lynx():
-    """Load the lynx univariate time series dataset for forecasting.
-
-    Returns
-    -------
-    y : pd.Series/DataFrame
-        Lynx sales dataset
-
-    Examples
-    --------
-    >>> from aeon.datasets import load_lynx
-    >>> y = load_lynx()
-
-    Notes
-    -----
-    The annual numbers of lynx trappings for 1821–1934 in Canada. This
-    time-series records the number of skins of
-    predators (lynx) that were collected over several years by the Hudson's
-    Bay Company. The dataset was
-    taken from Brockwell & Davis (1991) and appears to be the series
-    considered by Campbell & Walker (1977).
-
-    Dimensionality:     univariate
-    Series length:      114
-    Frequency:          Yearly
-    Number of cases:    1
-
-    This data shows aperiodic, cyclical patterns, as opposed to periodic,
-    seasonal patterns.
-
-    References
-    ----------
-    .. [1] Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988). The New S
-    Language. Wadsworth & Brooks/Cole.
-
-    .. [2] Campbell, M. J. and Walker, A. M. (1977). A Survey of statistical
-    work on the Mackenzie River series of
-    annual Canadian lynx trappings for the years 1821–1934 and a new
-    analysis. Journal of the Royal Statistical Society
-    series A, 140, 411–431.
-    """
-    name = "Lynx"
-    fname = name + ".csv"
-    path = os.path.join(MODULE, DIRNAME, name, fname)
-    y = pd.read_csv(path, index_col=0, dtype={1: float}).squeeze("columns")
-    y.index = pd.PeriodIndex(y.index, freq="Y", name="Period")
-    y.name = "Number of Lynx trappings"
-    return y
-
-
-def load_airline():
-    """Load the airline univariate time series dataset [1].
-
-    Returns
-    -------
-    y : pd.Series
-        Time series
-
-    Examples
-    --------
-    >>> from aeon.datasets import load_airline
-    >>> y = load_airline()
-
-    Notes
-    -----
-    The classic Box & Jenkins airline data. Monthly totals of international
-    airline passengers, 1949 to 1960.
-
-    Dimensionality:     univariate
-    Series length:      144
-    Frequency:          Monthly
-    Number of cases:    1
-
-    This data shows an increasing trend, non-constant (increasing) variance
-    and periodic, seasonal patterns.
-
-    References
-    ----------
-    .. [1] Box, G. E. P., Jenkins, G. M. and Reinsel, G. C. (1976) Time Series
-          Analysis, Forecasting and Control. Third Edition. Holden-Day.
-          Series G.
-    """
-    name = "Airline"
-    fname = name + ".csv"
-    path = os.path.join(MODULE, DIRNAME, name, fname)
-    y = pd.read_csv(path, index_col=0, dtype={1: float}).squeeze("columns")
-
-    # make sure time index is properly formatted
-    y.index = pd.PeriodIndex(y.index, freq="M", name="Period")
-    y.name = "Number of airline passengers"
-    return y
-
-
-def load_uschange(y_name="Consumption"):
-    """Load MTS dataset for forecasting Growth rates of personal consumption and income.
-
-    Returns
-    -------
-    y : pd.Series
-        selected column, default consumption
-    X : pd.DataFrame
-        columns with explanatory variables
-
-    Examples
-    --------
-    >>> from aeon.datasets import load_uschange
-    >>> y, X = load_uschange()
-
-    Notes
-    -----
-    Percentage changes in quarterly personal consumption expenditure,
-    personal disposable income, production, savings and the
-    unemployment rate for the US, 1960 to 2016.
-
-
-    Dimensionality:     multivariate
-    Columns:            ['Quarter', 'Consumption', 'Income', 'Production',
-                         'Savings', 'Unemployment']
-    Series length:      188
-    Frequency:          Quarterly
-    Number of cases:    1
-
-    This data shows an increasing trend, non-constant (increasing) variance
-    and periodic, seasonal patterns.
-
-    References
-    ----------
-    .. [1] Data for "Forecasting: Principles and Practice" (2nd Edition)
-    """
-    name = "Uschange"
-    fname = name + ".csv"
-    path = os.path.join(MODULE, DIRNAME, name, fname)
-    data = pd.read_csv(path, index_col=0).squeeze("columns")
-
-    # Sort by Quarter then set simple numeric index
-    # TODO add support for period/datetime indexing
-    # data.index = pd.PeriodIndex(data.index, freq='Y')
-    data = data.sort_values("Quarter")
-    data = data.reset_index(drop=True)
-    data.index = pd.Index(data.index, dtype=int)
-    data.name = name
-    y = data[y_name]
-    if y_name != "Quarter":
-        data = data.drop("Quarter", axis=1)
-    X = data.drop(y_name, axis=1)
-    return y, X
-
-
 def load_gun_point_segmentation():
     """Load the GunPoint time series segmentation problem and returns X.
 
@@ -836,99 +587,6 @@ def load_electric_devices_segmentation():
     return ts, period_length, change_points
 
 
-def load_PBS_dataset():
-    """Load the Pharmaceutical Benefit Scheme univariate time series dataset [1]_.
-
-    Returns
-    -------
-    y : pd.Series
-     Time series
-
-    Examples
-    --------
-    >>> from aeon.datasets import load_PBS_dataset
-    >>> y = load_PBS_dataset()
-
-    Notes
-    -----
-    The Pharmaceutical Benefits Scheme (PBS) is the Australian government drugs
-    subsidy scheme.
-    Data comprises of the numbers of scripts sold each month for immune sera
-    and immunoglobulin products in Australia.
-
-
-    Dimensionality:     univariate
-    Series length:      204
-    Frequency:          Monthly
-    Number of cases:    1
-
-    The time series is intermittent, i.e contains small counts,
-    with many months registering no sales at all,
-    and only small numbers of items sold in other months.
-
-    References
-    ----------
-    .. [1] Data for "Forecasting: Principles and Practice" (3rd Edition)
-    """
-    name = "PBS_dataset"
-    fname = name + ".csv"
-    path = os.path.join(MODULE, DIRNAME, name, fname)
-    y = pd.read_csv(path, index_col=0, dtype={1: float}).squeeze("columns")
-
-    # make sure time index is properly formatted
-    y.index = pd.PeriodIndex(y.index, freq="M", name="Period")
-    y.name = "Number of scripts"
-    return y
-
-
-def load_macroeconomic():
-    """
-    Load the US Macroeconomic Data [1]_.
-
-    Returns
-    -------
-    y : pd.DataFrame
-     Time series
-
-    Examples
-    --------
-    >>> from aeon.datasets import load_macroeconomic
-    >>> y = load_macroeconomic()  # doctest: +SKIP
-
-    Notes
-    -----
-    US Macroeconomic Data for 1959Q1 - 2009Q3.
-
-    Dimensionality:     multivariate, 14
-    Series length:      203
-    Frequency:          Quarterly
-    Number of cases:    1
-
-    This data is kindly wrapped via `statsmodels.datasets.macrodata`.
-
-    References
-    ----------
-    .. [1] Wrapped via statsmodels:
-          https://www.statsmodels.org/dev/datasets/generated/macrodata.html
-    .. [2] Data Source: FRED, Federal Reserve Economic Data, Federal Reserve
-          Bank of St. Louis; http://research.stlouisfed.org/fred2/;
-          accessed December 15, 2009.
-    .. [3] Data Source: Bureau of Labor Statistics, U.S. Department of Labor;
-          http://www.bls.gov/data/; accessed December 15, 2009.
-    """
-    _check_soft_dependencies("statsmodels")
-    import statsmodels.api as sm
-
-    y = sm.datasets.macrodata.load_pandas().data
-    y["year"] = y["year"].astype(int).astype(str)
-    y["quarter"] = y["quarter"].astype(int).astype(str).apply(lambda x: "Q" + x)
-    y["time"] = y["year"] + "-" + y["quarter"]
-    y.index = pd.PeriodIndex(data=y["time"], freq="Q", name="Period")
-    y = y.drop(columns=["year", "quarter", "time"])
-    y.name = "US Macroeconomic Data"
-    return y
-
-
 def load_unit_test_tsf(return_type="tsf_default"):
     """
     Load tsf UnitTest dataset.
@@ -964,7 +622,174 @@ def load_unit_test_tsf(return_type="tsf_default"):
     )
 
 
-def load_solar():
+# forecasting data sets
+def load_shampoo_sales(return_array=True):
+    """Load the shampoo sales univariate time series dataset for forecasting.
+
+    Parameters
+    ----------
+    return_array : bool, default=True
+        return series as an np.ndarray if True, else as a pd.Series.
+
+    Returns
+    -------
+    np.ndarray or pd.Series
+        Shampoo sales dataset
+
+    Examples
+    --------
+    >>> from aeon.datasets import load_shampoo_sales
+    >>> y = load_shampoo_sales()
+    >>> type(y)
+    <class 'numpy.ndarray'>
+    >>> y = load_shampoo_sales(return_array=False)
+    >>> type(y)
+    <class 'pandas.core.series.Series'>
+
+    Notes
+    -----
+    This dataset describes the monthly number of sales of shampoo over a 3
+    year period. The units are a sales count.
+
+    Dimensionality:     univariate
+    Series length:      36
+    Frequency:          Monthly
+    Number of cases:    1
+
+    References
+    ----------
+    .. [1] Makridakis, Wheelwright and Hyndman (1998) Forecasting: methods
+    and applications,
+        John Wiley & Sons: New York. Chapter 3.
+    """
+    name = "ShampooSales"
+    fname = name + ".csv"
+    path = os.path.join(MODULE, DIRNAME, name, fname)
+    y = pd.read_csv(path, index_col=0, dtype={1: float}).squeeze("columns")
+    if return_array:
+        return y.values
+    y.index = pd.PeriodIndex(y.index, freq="M", name="Period")
+    y.name = "Number of shampoo sales"
+    return y
+
+
+def load_lynx(return_array=True):
+    """Load the lynx univariate time series dataset for forecasting.
+
+    Parameters
+    ----------
+    return_array : bool, default=True
+        return series as an np.ndarray if True, else as a pd.Series.
+
+    Returns
+    -------
+    np.ndarray or pd.Series/DataFrame
+        Lynx sales dataset
+
+    Examples
+    --------
+    >>> from aeon.datasets import load_lynx
+    >>> y = load_lynx()
+    >>> type(y)
+    <class 'numpy.ndarray'>
+    >>> y = load_lynx(return_array=False)
+    >>> type(y)
+    <class 'pandas.core.series.Series'>
+
+    Notes
+    -----
+    The annual numbers of lynx trappings for 1821–1934 in Canada. This
+    time-series records the number of skins of
+    predators (lynx) that were collected over several years by the Hudson's
+    Bay Company. The dataset was
+    taken from Brockwell & Davis (1991) and appears to be the series
+    considered by Campbell & Walker (1977).
+
+    Dimensionality:     univariate
+    Series length:      114
+    Frequency:          Yearly
+    Number of cases:    1
+
+    This data shows aperiodic, cyclical patterns, as opposed to periodic,
+    seasonal patterns.
+
+    References
+    ----------
+    .. [1] Becker, R. A., Chambers, J. M. and Wilks, A. R. (1988). The New S
+    Language. Wadsworth & Brooks/Cole.
+
+    .. [2] Campbell, M. J. and Walker, A. M. (1977). A Survey of statistical
+    work on the Mackenzie River series of
+    annual Canadian lynx trappings for the years 1821–1934 and a new
+    analysis. Journal of the Royal Statistical Society
+    series A, 140, 411–431.
+    """
+    name = "Lynx"
+    fname = name + ".csv"
+    path = os.path.join(MODULE, DIRNAME, name, fname)
+    y = pd.read_csv(path, index_col=0, dtype={1: float}).squeeze("columns")
+    if return_array:
+        return y.values
+    y.index = pd.PeriodIndex(y.index, freq="Y", name="Period")
+    y.name = "Number of Lynx trappings"
+    return y
+
+
+def load_airline(return_array=True):
+    """Load the airline univariate time series dataset [1].
+
+    Parameters
+    ----------
+    return_array : bool, default=True
+        return series as an np.ndarray if True, else as a pd.Series.
+
+    Returns
+    -------
+    np.ndarray or pd.Series
+        Airline time series
+
+    Examples
+    --------
+    >>> from aeon.datasets import load_airline
+    >>> y = load_airline()
+    >>> type(y)
+    <class 'numpy.ndarray'>
+    >>> y = load_airline(return_array=False)
+    >>> type(y)
+    <class 'pandas.core.series.Series'>
+
+    Notes
+    -----
+    The classic Box & Jenkins airline data. Monthly totals of international
+    airline passengers, 1949 to 1960.
+
+    Dimensionality:     univariate
+    Series length:      144
+    Frequency:          Monthly
+    Number of cases:    1
+
+    This data shows an increasing trend, non-constant (increasing) variance
+    and periodic, seasonal patterns.
+
+    References
+    ----------
+    .. [1] Box, G. E. P., Jenkins, G. M. and Reinsel, G. C. (1976) Time Series
+          Analysis, Forecasting and Control. Third Edition. Holden-Day.
+          Series G.
+    """
+    name = "Airline"
+    fname = name + ".csv"
+    path = os.path.join(MODULE, DIRNAME, name, fname)
+    y = pd.read_csv(path, index_col=0, dtype={1: float}).squeeze("columns")
+    if return_array:
+        return y.values
+    # make sure time index is properly formatted
+    y.index = pd.PeriodIndex(y.index, freq="M", name="Period")
+    y.name = "Number of airline passengers"
+    return y
+
+
+def load_solar(return_array=True):
     """Get national solar estimates for GB from Sheffield Solar PV_Live API.
 
     This function calls the Sheffield Solar PV_Live API to extract national solar data
@@ -973,16 +798,21 @@ def load_solar():
     unknown.
 
     The returned time series is half hourly. For more information please refer
-    to [1, 2]_.
+    to [1]_.
+
+    Parameters
+    ----------
+    return_array : bool, default=True
+        return series as an np.ndarray if True, else as a pd.Series.
 
     Returns
     -------
-    pd.Series
+    np.ndarray or pd.Series
+        Example Sheffield solar time series
 
     References
     ----------
     .. [1] https://www.solar.sheffield.ac.uk/pvlive/
-    .. [2] https://www.solar.sheffield.ac.uk/pvlive/api/
 
     Examples
     --------
@@ -993,6 +823,171 @@ def load_solar():
     fname = name + ".csv"
     path = os.path.join(MODULE, DIRNAME, name, fname)
     y = pd.read_csv(path, index_col=0, parse_dates=["datetime_gmt"], dtype={1: float})
-    y = y.asfreq("30T")
+    y = y.asfreq("30min")
     y = y.squeeze("columns")
+    if return_array:
+        return y.values
     return y
+
+
+def load_PBS_dataset(return_array=True):
+    """Load the Pharmaceutical Benefit Scheme univariate time series dataset [1]_.
+
+    Parameters
+    ----------
+    return_array : bool, default=True
+        return series as an np.ndarray if True, else as a pd.Series.
+
+    Returns
+    -------
+    np.ndarray or pd.Series
+        PBS time series
+
+    Examples
+    --------
+    >>> from aeon.datasets import load_PBS_dataset
+    >>> y = load_PBS_dataset()
+
+    Notes
+    -----
+    The Pharmaceutical Benefits Scheme (PBS) is the Australian government drugs
+    subsidy scheme.
+    Data comprises of the numbers of scripts sold each month for immune sera
+    and immunoglobulin products in Australia.
+
+
+    Dimensionality:     univariate
+    Series length:      204
+    Frequency:          Monthly
+    Number of cases:    1
+
+    The time series is intermittent, i.e contains small counts,
+    with many months registering no sales at all,
+    and only small numbers of items sold in other months.
+
+    References
+    ----------
+    .. [1] Data for "Forecasting: Principles and Practice" (3rd Edition)
+    """
+    name = "PBS_dataset"
+    fname = name + ".csv"
+    path = os.path.join(MODULE, DIRNAME, name, fname)
+    y = pd.read_csv(path, index_col=0, dtype={1: float}).squeeze("columns")
+    if return_array:
+        return y.values
+    # make sure time index is properly formatted
+    y.index = pd.PeriodIndex(y.index, freq="M", name="Period")
+    y.name = "Number of scripts"
+    return y
+
+
+def load_uschange(return_array=True):
+    """Load US Change forecasting dataset.
+
+    An example of a single multivariate time series. The data is the percentage
+    changes in quarterly personal consumption expenditure, personal disposable
+    income, production, savings and the unemployment rate for the US, 1960 to 2016.
+
+    This data shows an increasing trend, non-constant (increasing) variance
+    and periodic, seasonal patterns.
+
+    Channels:    ['Consumption', 'Income', 'Production',
+                         'Savings', 'Unemployment']
+    Series length:      187
+    Frequency:          Quarterly
+
+    Parameters
+    ----------
+    return_array : bool, default=True
+        return series as an np.ndarray if True, else as a pd.DataFrame in wide format.
+
+    Returns
+    -------
+    np.ndarray or pd.DataFrame
+        US Change dataset, shape (5,187).
+
+    Examples
+    --------
+    >>> from aeon.datasets import load_uschange
+    >>> data = load_uschange()
+    >>> data.shape
+    (5, 187)
+    >>> data = load_uschange(return_array=False)
+    >>> data.shape
+    (5, 187)
+
+    References
+    ----------
+    .. [1] Data for "Forecasting: Principles and Practice" (2nd Edition)
+    """
+    name = "Uschange"
+    fname = name + ".csv"
+    path = os.path.join(MODULE, DIRNAME, name, fname)
+    data = pd.read_csv(path, index_col=0).squeeze("columns")
+    data = data.sort_values("Quarter")
+    data = data.reset_index(drop=True)
+    data.index = pd.Index(data.index, dtype=int)
+    data.name = name
+    data = data.drop("Quarter", axis=1)
+    if return_array:
+        return data.to_numpy().T
+    return data.T
+
+
+def load_longley(return_array=True):
+    """Load the Longley multivariate time series.
+
+    This time series contains six US macroeconomic
+    variables from 1947 to 1962 that are known to be highly collinear.
+
+    Dimensionality:     multivariate, 6
+    Series length:      16
+    Frequency:          Yearly
+    Number of cases:    1
+
+    Variable description:
+
+    TOTEMP - Total employment
+    GNPDEFL - Gross national product deflator
+    GNP - Gross national product
+    UNEMP - Number of unemployed
+    ARMED - Size of armed forces
+    POP - Population
+
+    Parameters
+    ----------
+    return_array : bool, default=True
+        return series as an np.ndarray if True, else as a pd.DataFrame in wide format.
+
+    Returns
+    -------
+    np.ndarray or pd.DataFrame
+        US Change dataset, shape (6, 16).
+
+    Examples
+    --------
+    >>> from aeon.datasets import load_longley
+    >>> data = load_longley()
+    >>> data.shape
+    (6, 16)
+    >>> data = load_longley(return_array=False)
+    >>> data.shape
+    (6, 16)
+
+    References
+    ----------
+    .. [1] Longley, J.W. (1967) "An Appraisal of Least Squares Programs for the
+        Electronic Computer from the Point of View of the User."  Journal of
+        the American Statistical Association.  62.319, 819-41.
+        (https://www.itl.nist.gov/div898/strd/lls/data/LINKS/DATA/Longley.dat)
+    """
+    name = "Longley"
+    fname = name + ".csv"
+    path = os.path.join(MODULE, DIRNAME, name, fname)
+    data = pd.read_csv(path, index_col=0)
+    data = data.set_index("YEAR")
+    data.index = pd.PeriodIndex(data.index, freq="Y", name="Period")
+    data = data.astype(float)
+    if return_array:
+        return data.to_numpy().T
+    return data.T
