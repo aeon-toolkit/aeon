@@ -25,7 +25,7 @@ class BaseForecaster(BaseSeriesEstimator):
     ----------
     horizon : int, default =1
         The number of time steps ahead to forecast. If horizon is one, the forecaster
-        will learn to predict one point ahead
+        will learn to predict one point ahead.
     """
 
     _tags = {
