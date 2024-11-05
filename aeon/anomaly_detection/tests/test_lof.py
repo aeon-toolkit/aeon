@@ -215,7 +215,7 @@ def test_lof_semi_supervised():
         stride=stride,
     )
     lof_aeon.fit(series_train)
-    scores_aeon = lof_aeon._predict(series_test)  # changed from decsion_function
+    scores_aeon = lof_aeon.predict(series_test)  # changed from decsion_function
 
     # Initialize PyOD LOF
     from pyod.models.lof import LOF as PyOD_LOF
