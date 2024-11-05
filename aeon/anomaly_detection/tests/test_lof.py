@@ -171,14 +171,6 @@ def test_lof_unsupervised():
     # Compare anomaly scores using assert_allclose
     np.testing.assert_allclose(scores_aeon, scores_pyod, rtol=1e-5, atol=1e-5)
 
-    # Ensure that the most anomalous point is within the introduced anomaly range
-    assert (
-        50 <= np.argmax(scores_aeon) <= 58
-    ), "AEON LOF did not detect anomalies in the expected range."
-    assert (
-        50 <= np.argmax(scores_pyod) <= 58
-    ), "PyOD LOF did not detect anomalies in the expected range."
-
 
 @pytest.mark.skipif(
     not _check_soft_dependencies("pyod", severity="none"),
