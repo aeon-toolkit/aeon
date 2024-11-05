@@ -87,12 +87,12 @@ class BaseForecaster(BaseSeriesEstimator):
         """
         if y is not None:
             y = self._preprocess_series(y, axis=self.axis, store_metadata=False)
-        if not self._is_fitted:
+        if not self.is_fitted:
             raise ValueError("Forecaster must be fitted before predicting")
         if exog is not None:
             raise NotImplementedError("Exogenous variables not yet supported")
         # Validate exog
-        self._is_fitted = True
+        self.is_fitted = True
         return self._predict(y, exog)
 
     @abstractmethod

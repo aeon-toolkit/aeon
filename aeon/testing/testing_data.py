@@ -23,9 +23,11 @@ from aeon.testing.data_generation import (
 )
 from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.transformations.series import BaseSeriesTransformer
+from aeon.utils.conversion import convert_collection
 
 data_rng = np.random.RandomState(42)
 
+# Collection testing data
 
 EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION = {
     "numpy3D": {
@@ -590,39 +592,61 @@ MISSING_VALUES_CLASSIFICATION = {
     "numpy3D": {
         "train": (X_classification_missing_train, y_classification_missing_train),
         "test": (X_classification_missing_test, y_classification_missing_test),
-    }
+    },
+    "np-list": {
+        "train": (
+            convert_collection(X_classification_missing_train, "np-list"),
+            y_classification_missing_train,
+        ),
+        "test": (
+            convert_collection(X_classification_missing_test, "np-list"),
+            y_classification_missing_test,
+        ),
+    },
 }
 
-X_classification_missing_train, y_classification_missing_train = make_example_3d_numpy(
+X_regression_missing_train, y_regression_missing_train = make_example_3d_numpy(
     n_cases=10,
     n_channels=1,
     n_timepoints=20,
     random_state=data_rng.randint(np.iinfo(np.int32).max),
     regression_target=True,
 )
-X_classification_missing_test, y_classification_missing_test = make_example_3d_numpy(
+X_regression_missing_test, y_regression_missing_test = make_example_3d_numpy(
     n_cases=5,
     n_channels=1,
     n_timepoints=20,
     random_state=data_rng.randint(np.iinfo(np.int32).max),
     regression_target=True,
 )
-X_classification_missing_train[:, :, data_rng.choice(20, 2)] = np.nan
-X_classification_missing_test[:, :, data_rng.choice(20, 2)] = np.nan
+X_regression_missing_train[:, :, data_rng.choice(20, 2)] = np.nan
+X_regression_missing_test[:, :, data_rng.choice(20, 2)] = np.nan
 
 MISSING_VALUES_REGRESSION = {
     "numpy3D": {
-        "train": (X_classification_missing_train, y_classification_missing_train),
-        "test": (X_classification_missing_test, y_classification_missing_test),
-    }
+        "train": (X_regression_missing_train, y_regression_missing_train),
+        "test": (X_regression_missing_test, y_regression_missing_test),
+    },
+    "np-list": {
+        "train": (
+            convert_collection(X_regression_missing_train, "np-list"),
+            y_regression_missing_train,
+        ),
+        "test": (
+            convert_collection(X_regression_missing_test, "np-list"),
+            y_regression_missing_test,
+        ),
+    },
 }
+
+# Series testing data
 
 X_series = make_example_1d_numpy(
     n_timepoints=40, random_state=data_rng.randint(np.iinfo(np.int32).max)
 )
 X_series2 = X_series[20:40]
 X_series = X_series[:20]
-UNIVARIATE_SERIES_NOLABEL = {"train": (X_series, None), "test": (X_series2, None)}
+UNIVARIATE_SERIES_NONE = {"train": (X_series, None), "test": (X_series2, None)}
 
 X_series_mv = make_example_2d_numpy_series(
     n_timepoints=40,
@@ -632,7 +656,7 @@ X_series_mv = make_example_2d_numpy_series(
 )
 X_series_mv2 = X_series_mv[:, 20:40]
 X_series_mv = X_series_mv[:, :20]
-MULTIVARIATE_SERIES_NOLABEL = {
+MULTIVARIATE_SERIES_NONE = {
     "train": (X_series_mv, None),
     "test": (X_series_mv2, None),
 }
@@ -644,7 +668,12 @@ X_series_mi2 = X_series_mi[20:40]
 X_series_mi2[data_rng.choice(20, 1)] = np.nan
 X_series_mi = X_series_mi[:20]
 X_series_mi[data_rng.choice(20, 2)] = np.nan
-MISSING_VALUES_NOLABEL = {"train": (X_series_mi, None), "test": (X_series_mi2, None)}
+MISSING_VALUES_SERIES_NONE = {
+    "train": (X_series_mi, None),
+    "test": (X_series_mi2, None),
+}
+
+# All testing data
 
 FULL_TEST_DATA_DICT = {}
 # Collection
@@ -705,10 +734,11 @@ FULL_TEST_DATA_DICT.update(
 FULL_TEST_DATA_DICT.update(
     {f"MissingValues-Regression-{k}": v for k, v in MISSING_VALUES_REGRESSION.items()}
 )
+
 # Series
-FULL_TEST_DATA_DICT.update({"UnivariateSeries-NoLabel": UNIVARIATE_SERIES_NOLABEL})
-FULL_TEST_DATA_DICT.update({"MultivariateSeries-NoLabel": MULTIVARIATE_SERIES_NOLABEL})
-FULL_TEST_DATA_DICT.update({"MissingValues-NoLabel": MISSING_VALUES_NOLABEL})
+FULL_TEST_DATA_DICT.update({"UnivariateSeries-None": UNIVARIATE_SERIES_NONE})
+FULL_TEST_DATA_DICT.update({"MultivariateSeries-None": MULTIVARIATE_SERIES_NONE})
+FULL_TEST_DATA_DICT.update({"MissingValues-None": MISSING_VALUES_SERIES_NONE})
 
 
 def _get_datatypes_for_estimator(estimator):
@@ -729,7 +759,7 @@ def _get_datatypes_for_estimator(estimator):
     univariate, multivariate, unequal_length, missing_values = (
         _get_capabilities_for_estimator(estimator)
     )
-    label_type = _get_label_type_for_estimator(estimator)
+    task = _get_task_for_estimator(estimator)
 
     inner_types = estimator.get_tag("X_inner_type")
     if not isinstance(inner_types, list):
@@ -738,34 +768,34 @@ def _get_datatypes_for_estimator(estimator):
     if isinstance(estimator, BaseCollectionEstimator):
         for inner_type in inner_types:
             if univariate:
-                s = f"EqualLengthUnivariate-{label_type}-{inner_type}"
+                s = f"EqualLengthUnivariate-{task}-{inner_type}"
                 if s in FULL_TEST_DATA_DICT:
                     datatypes.append(s)
 
                 if unequal_length:
-                    s = f"UnequalLengthUnivariate-{label_type}-{inner_type}"
+                    s = f"UnequalLengthUnivariate-{task}-{inner_type}"
                     if s in FULL_TEST_DATA_DICT:
                         datatypes.append(s)
 
             if multivariate:
-                s = f"EqualLengthMultivariate-{label_type}-{inner_type}"
+                s = f"EqualLengthMultivariate-{task}-{inner_type}"
                 if s in FULL_TEST_DATA_DICT:
                     datatypes.append(s)
 
                 if unequal_length:
-                    s = f"UnequalLengthMultivariate-{label_type}-{inner_type}"
+                    s = f"UnequalLengthMultivariate-{task}-{inner_type}"
                     if s in FULL_TEST_DATA_DICT:
                         datatypes.append(s)
 
         if missing_values:
-            datatypes.append(f"MissingValues-{label_type}-numpy3D")
+            datatypes.append(f"MissingValues-{task}-numpy3D")
     elif isinstance(estimator, BaseSeriesEstimator):
         if univariate:
-            datatypes.append("UnivariateSeries-NoLabel")
+            datatypes.append(f"UnivariateSeries-{task}")
         if multivariate:
-            datatypes.append("MultivariateSeries-NoLabel")
+            datatypes.append(f"MultivariateSeries-{task}")
         if missing_values:
-            datatypes.append("MissingValues-NoLabel")
+            datatypes.append(f"MissingValues-{task}")
     else:
         raise ValueError(f"Unknown estimator type: {type(estimator)}")
 
@@ -803,27 +833,20 @@ def _get_capabilities_for_estimator(estimator):
     return univariate, multivariate, unequal_length, missing_values
 
 
-def _get_label_type_for_estimator(estimator):
-    """Get label type for estimator.
+def _get_task_for_estimator(estimator):
+    """Get task string used to select the correct test data for the estimator.
 
     Parameters
     ----------
     estimator : BaseAeonEstimator instance or class
-        Estimator instance or class to check for valid input data types.
+        Estimator instance or class to find the task string for.
 
     Returns
     -------
-    label_type : str
-        Label type key for the estimator for use in FULL_TEST_DATA_DICT. Indicates
-        whether estimator can take labels for training data, and if so what kind.
-        Classification indicates the estimator takes a discrete target variable,
-        modelled by an np.array of integers.
-        Regression indicates the estimator takes a continuous target variable,
-        modelled by an np.array of floats.
-        NoLabel indicates the estimator does not take a target variable, or that no
-        estimator is yet implemented to take labels.
-
+    data_label : str
+        Task string for the estimator used in forming a key from FULL_TEST_DATA_DICT.
     """
+    # collection data with class labels
     if (
         isinstance(estimator, BaseClassifier)
         or isinstance(estimator, BaseEarlyClassifier)
@@ -831,17 +854,19 @@ def _get_label_type_for_estimator(estimator):
         or isinstance(estimator, BaseCollectionTransformer)
         or isinstance(estimator, BaseSimilaritySearch)
     ):
-        label_type = "Classification"
+        data_label = "Classification"
+    # collection data with continuous target labels
     elif isinstance(estimator, BaseRegressor):
-        label_type = "Regression"
+        data_label = "Regression"
+    # series data with no secondary input
     elif (
         isinstance(estimator, BaseAnomalyDetector)
         or isinstance(estimator, BaseSegmenter)
         or isinstance(estimator, BaseSeriesTransformer)
         or isinstance(estimator, BaseForecaster)
     ):
-        label_type = "NoLabel"
+        data_label = "None"
     else:
         raise ValueError(f"Unknown estimator type: {type(estimator)}")
 
-    return label_type
+    return data_label
