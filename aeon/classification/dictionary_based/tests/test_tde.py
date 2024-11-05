@@ -1,6 +1,7 @@
 """TDE test code."""
 
 import pickle
+import re
 
 import numpy as np
 import pytest
@@ -103,3 +104,28 @@ def test_histogram_intersection():
 
     res = histogram_intersection(numba_first, numba_second)
     assert res == 2
+
+
+def test_subsampling_in_highly_imbalanced_datasets():
+    """Test the subsampling during fit for highly imbalanced datasets.
+
+    This test case tests the fix for bug #1726.
+    https://github.com/aeon-toolkit/aeon/issues/1726
+    """
+    X = np.random.rand(10, 1, 20)
+    y_sc = np.array([0, 0, 0, 0, 0, 1, 0, 0, 0, 0])
+
+    with pytest.raises(
+        AttributeError,
+        match=re.escape(
+            "Could not get a subsample with more than 1 class. "
+            "Increasing `max_subsamples` will help (is: 1)."
+        ),
+    ):
+        tde = TemporalDictionaryEnsemble(random_state=42)
+        tde.fit(X, y_sc)
+
+    tde = TemporalDictionaryEnsemble(max_subsamples=5, random_state=42)
+    tde.fit(X, y_sc)
+
+    assert tde.is_fitted
