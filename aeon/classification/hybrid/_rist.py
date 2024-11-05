@@ -6,7 +6,7 @@ __maintainer__ = []
 from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.preprocessing import FunctionTransformer
 
-from aeon.base.estimator.hybrid import BaseRIST
+from aeon.base.estimators.hybrid import BaseRIST
 from aeon.classification import BaseClassifier
 from aeon.utils.numba.general import first_order_differences_3d
 
@@ -134,7 +134,7 @@ class RISTClassifier(BaseRIST, BaseClassifier):
     }
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return unit test parameter settings for the estimator.
 
         Parameters

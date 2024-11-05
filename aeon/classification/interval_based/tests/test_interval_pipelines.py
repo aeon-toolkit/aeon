@@ -27,9 +27,11 @@ def test_random_interval_classifier(cls):
 
 def test_parameter_sets():
     """Test results comparison parameter sets."""
-    paras = SupervisedIntervalClassifier.get_test_params(
+    paras = SupervisedIntervalClassifier._get_test_params(
         parameter_set="results_comparison"
     )
     assert paras["n_intervals"] == 2
-    paras = RandomIntervalClassifier.get_test_params(parameter_set="results_comparison")
+    paras = RandomIntervalClassifier._get_test_params(
+        parameter_set="results_comparison"
+    )
     assert paras["n_intervals"] == 3

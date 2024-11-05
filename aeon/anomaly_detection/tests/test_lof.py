@@ -39,7 +39,7 @@ def test_lof_default():
         window_size=window_size,
         stride=stride,
     )
-    scores_aeon = lof_aeon._fit_predict(series)
+    scores_aeon = lof_aeon.fit_predict(series)
 
     # Initialize PyOD LOF
     from pyod.models.lof import LOF as PyOD_LOF
@@ -145,7 +145,7 @@ def test_lof_unsupervised():
         window_size=window_size,
         stride=stride,
     )
-    scores_aeon = lof_aeon._fit_predict(series)
+    scores_aeon = lof_aeon.fit_predict(series)
 
     # Initialize PyOD LOF
     from pyod.models.lof import LOF as PyOD_LOF
@@ -215,7 +215,7 @@ def test_lof_semi_supervised():
         stride=stride,
     )
     lof_aeon.fit(series_train)
-    scores_aeon = lof_aeon._predict(series_test)  # changed from decsion_function
+    scores_aeon = lof_aeon.predict(series_test)  # changed from decsion_function
 
     # Initialize PyOD LOF
     from pyod.models.lof import LOF as PyOD_LOF
