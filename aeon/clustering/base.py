@@ -201,7 +201,7 @@ class BaseClusterer(BaseCollectionEstimator):
             n_clusters = len(np.unique(preds))
         if n_clusters is None:
             n_clusters = int(max(preds)) + 1
-        dists = np.zeros((X.shape[0], n_clusters))
+        dists = np.zeros((len(X), n_clusters))
         for i in range(n_cases):
             dists[i, preds[i]] = 1
         return dists

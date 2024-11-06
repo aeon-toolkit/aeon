@@ -141,9 +141,9 @@ class AEBiGRUClusterer(BaseDeepClusterer):
         self.best_file_name = best_file_name
         self.random_state = random_state
         self.estimator = estimator
+        self.n_clusters = n_clusters
 
         super().__init__(
-            n_clusters=n_clusters,
             estimator=estimator,
             batch_size=batch_size,
             last_file_name=last_file_name,
