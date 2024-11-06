@@ -387,20 +387,6 @@ unit_test_proba["OrdinalTDE"] = np.array(
         [1.0, 0.0],
     ]
 )
-unit_test_proba["LearningShapeletClassifier"] = np.array(
-    [
-        [0.0, 1.0],
-        [1.0, 0.0],
-        [0.0, 1.0],
-        [1.0, 0.0],
-        [0.0, 1.0],
-        [1.0, 0.0],
-        [1.0, 0.0],
-        [0.0, 1.0],
-        [1.0, 0.0],
-        [1.0, 0.0],
-    ]
-)
 unit_test_proba["SASTClassifier"] = np.array(
     [
         [0.0, 1.0],
@@ -834,20 +820,6 @@ basic_motions_proba["TimeSeriesForestClassifier"] = np.array(
         [0.0, 0.0, 0.9, 0.1],
         [0.2, 0.7, 0.0, 0.1],
         [0.2, 0.7, 0.0, 0.1],
-    ]
-)
-basic_motions_proba["LearningShapeletClassifier"] = np.array(
-    [
-        [1.0, 0.0, 0.0, 0.0],
-        [1.0, 0.0, 0.0, 0.0],
-        [1.0, 0.0, 0.0, 0.0],
-        [1.0, 0.0, 0.0, 0.0],
-        [1.0, 0.0, 0.0, 0.0],
-        [1.0, 0.0, 0.0, 0.0],
-        [1.0, 0.0, 0.0, 0.0],
-        [1.0, 0.0, 0.0, 0.0],
-        [1.0, 0.0, 0.0, 0.0],
-        [0.0, 1.0, 0.0, 0.0],
     ]
 )
 basic_motions_proba["Arsenal"] = np.array(
