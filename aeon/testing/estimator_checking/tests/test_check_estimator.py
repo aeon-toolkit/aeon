@@ -15,7 +15,7 @@ from aeon.testing.mock_estimators import (
 )
 from aeon.testing.mock_estimators._mock_anomaly_detectors import MockAnomalyDetector
 from aeon.testing.utils.deep_equals import deep_equals
-from aeon.transformations.collection import TimeSeriesScaler
+from aeon.transformations.collection import Normalizer
 
 test_classes = [
     MockClassifier,
@@ -24,7 +24,7 @@ test_classes = [
     MockSegmenter,
     MockAnomalyDetector,
     # MockMultivariateSeriesTransformer,
-    TimeSeriesScaler,
+    Normalizer,
     MockClassifierParams,
 ]
 test_classes = {c.__name__: c for c in test_classes}

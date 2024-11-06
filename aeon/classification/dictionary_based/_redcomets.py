@@ -17,7 +17,7 @@ from sklearn.neighbors import NearestNeighbors
 from sklearn.utils import check_random_state
 
 from aeon.classification.base import BaseClassifier
-from aeon.transformations.collection import TimeSeriesScaler
+from aeon.transformations.collection import Normalizer
 from aeon.transformations.collection.dictionary_based import SAX, SFA
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
@@ -201,7 +201,7 @@ class REDCOMETS(BaseClassifier):
 
         from imblearn.over_sampling import SMOTE, RandomOverSampler
 
-        X = TimeSeriesScaler().fit_transform(X).squeeze()
+        X = Normalizer().fit_transform(X).squeeze()
 
         if self.variant in [1, 2, 3]:
             perc_length = self.perc_length / self._n_channels
@@ -411,7 +411,7 @@ class REDCOMETS(BaseClassifier):
             2D np.ndarray of shape (n_cases, n_classes_)
             Predicted probabilities using the ordering in ``classes_``.
         """
-        X = TimeSeriesScaler().fit_transform(X).squeeze()
+        X = Normalizer().fit_transform(X).squeeze()
 
         pred_mat = np.zeros((X.shape[0], self.n_classes_))
 
@@ -455,7 +455,7 @@ class REDCOMETS(BaseClassifier):
             2D np.ndarray of shape (n_cases, n_classes_)
             Predicted probabilities using the ordering in ``classes_``.
         """
-        X = TimeSeriesScaler().fit_transform(X)
+        X = Normalizer().fit_transform(X)
 
         ensemble_pred_mats = None
 
