@@ -56,6 +56,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+# soft dependencies
 all_extras = [
     "esig>=0.9.7; platform_system != 'Darwin' and python_version < '3.11'",
     "imbalanced-learn",
@@ -83,6 +84,8 @@ unstable_extras = [
     "mrsqm>=0.0.7,<0.1.0; platform_system != 'Windows' and python_version < '3.12'",  # requires gcc and fftw to be installed for Windows and some other OS (see http://www.fftw.org/index.html)
     "mrseql>=0.0.4,<0.1.0; platform_system != 'Windows' and python_version < '3.12'",   # requires gcc and fftw to be installed for Windows and some other OS (see http://www.fftw.org/index.html)
 ]
+
+# development dependencies
 dev = [
     "backoff",
     "httpx",
