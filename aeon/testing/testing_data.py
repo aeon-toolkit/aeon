@@ -951,16 +951,16 @@ def _get_capabilities_for_estimator(estimator):
         Tuple of valid capabilities for the estimator.
     """
     univariate = estimator.get_tag(
-        "capability:univariate", tag_value_default=True, raise_error=False
+        "capability:univariate", raise_error=False, tag_value_default=True
     )
     multivariate = estimator.get_tag(
-        "capability:multivariate", tag_value_default=False, raise_error=False
+        "capability:multivariate", raise_error=False, tag_value_default=False
     )
     unequal_length = estimator.get_tag(
-        "capability:unequal_length", tag_value_default=False, raise_error=False
+        "capability:unequal_length", raise_error=False, tag_value_default=False
     )
     missing_values = estimator.get_tag(
-        "capability:missing_values", tag_value_default=False, raise_error=False
+        "capability:missing_values", raise_error=False, tag_value_default=False
     )
     return univariate, multivariate, unequal_length, missing_values
 

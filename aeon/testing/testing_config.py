@@ -45,8 +45,6 @@ EXCLUDED_TESTS = {
     "RSASTClassifier": ["check_fit_deterministic"],
     "SAST": ["check_fit_deterministic"],
     "RSAST": ["check_fit_deterministic"],
-    "AEFCNClusterer": ["check_fit_updates_state"],
-    "AEResNetClusterer": ["check_fit_updates_state"],
     "SFA": ["check_persistence_via_pickle", "check_fit_deterministic"],
     "CollectionId": ["check_transform_inverse_transform_equivalent"],
     "ScaledLogitSeriesTransformer": ["check_transform_inverse_transform_equivalent"],

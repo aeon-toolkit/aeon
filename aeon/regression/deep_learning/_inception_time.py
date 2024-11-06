@@ -136,6 +136,13 @@ class InceptionTimeRegressor(BaseRegressor):
 
     Notes
     -----
+    Adapted from the implementation from Fawaz et. al ..[1]
+
+    and Ismail-Fawaz et al.
+    https://github.com/MSD-IRIMAS/CF-4-TSC
+
+    References
+    ----------
     ..[1] Fawaz et al. InceptionTime: Finding AlexNet for Time Series
     regression, Data Mining and Knowledge Discovery, 34, 2020
 
@@ -143,12 +150,6 @@ class InceptionTimeRegressor(BaseRegressor):
     regression Using New
     Hand-Crafted Convolution Filters, 2022 IEEE International
     Conference on Big Data.
-
-    Adapted from the implementation from Fawaz et. al
-    https://github.com/hfawaz/InceptionTime/blob/master/regressors/inception.py
-
-    and Ismail-Fawaz et al.
-    https://github.com/MSD-IRIMAS/CF-4-TSC
 
     Examples
     --------
@@ -462,17 +463,19 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
 
     Notes
     -----
-    ..[1] Fawaz et al. InceptionTime: Finding AlexNet for Time Series
-    regression, Data Mining and Knowledge Discovery, 34, 2020
-
-    ..[2] Ismail-Fawaz et al. Deep Learning For Time Series regression Using New
-    Hand-Crafted Convolution Filters, 2022 IEEE International Conference on Big Data.
-
     Adapted from the implementation from Fawaz et. al
     https://github.com/hfawaz/InceptionTime/blob/master/regressors/inception.py
 
     and Ismail-Fawaz et al.
     https://github.com/MSD-IRIMAS/CF-4-TSC
+
+    References
+    ----------
+    ..[1] Fawaz et al. InceptionTime: Finding AlexNet for Time Series
+    regression, Data Mining and Knowledge Discovery, 34, 2020
+
+    ..[2] Ismail-Fawaz et al. Deep Learning For Time Series regression Using New
+    Hand-Crafted Convolution Filters, 2022 IEEE International Conference on Big Data.
 
     Examples
     --------

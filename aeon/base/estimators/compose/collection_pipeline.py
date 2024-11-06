@@ -13,12 +13,12 @@ from sklearn.utils import check_random_state
 from aeon.base import (
     BaseAeonEstimator,
     BaseCollectionEstimator,
-    _ComposableEstimatorMixin,
+    ComposableEstimatorMixin,
 )
 from aeon.base._base import _clone_estimator
 
 
-class BaseCollectionPipeline(_ComposableEstimatorMixin, BaseCollectionEstimator):
+class BaseCollectionPipeline(ComposableEstimatorMixin, BaseCollectionEstimator):
     """Base class for composable pipelines in collection based modules.
 
     Parameters
@@ -85,7 +85,11 @@ class BaseCollectionPipeline(_ComposableEstimatorMixin, BaseCollectionEstimator)
         #   *or* transformer chain removes multivariate
         multivariate_tags = [
             (
-                e[1].get_tag("capability:multivariate", False, raise_error=False)
+                e[1].get_tag(
+                    "capability:multivariate",
+                    raise_error=False,
+                    tag_value_default=False,
+                )
                 if isinstance(e[1], BaseAeonEstimator)
                 else False
             )
@@ -96,13 +100,17 @@ class BaseCollectionPipeline(_ComposableEstimatorMixin, BaseCollectionEstimator)
         for e in self._steps:
             if (
                 isinstance(e[1], BaseAeonEstimator)
-                and e[1].get_tag("capability:multivariate", False, raise_error=False)
+                and e[1].get_tag(
+                    "capability:multivariate",
+                    raise_error=False,
+                    tag_value_default=False,
+                )
                 and e[1].get_tag("output_data_type", raise_error=False) == "Tabular"
             ):
                 multivariate_rm_tag = True
                 break
             elif not isinstance(e[1], BaseAeonEstimator) or not e[1].get_tag(
-                "capability:multivariate", False, raise_error=False
+                "capability:multivariate", raise_error=False, tag_value_default=False
             ):
                 break
 
@@ -112,7 +120,11 @@ class BaseCollectionPipeline(_ComposableEstimatorMixin, BaseCollectionEstimator)
         #   *or* transformer chain removes missing data
         missing_tags = [
             (
-                e[1].get_tag("capability:missing_values", False, raise_error=False)
+                e[1].get_tag(
+                    "capability:missing_values",
+                    raise_error=False,
+                    tag_value_default=False,
+                )
                 if isinstance(e[1], BaseAeonEstimator)
                 else False
             )
@@ -123,13 +135,19 @@ class BaseCollectionPipeline(_ComposableEstimatorMixin, BaseCollectionEstimator)
         for e in self._steps:
             if (
                 isinstance(e[1], BaseAeonEstimator)
-                and e[1].get_tag("capability:missing_values", False, raise_error=False)
-                and e[1].get_tag("removes_missing_values", False, raise_error=False)
+                and e[1].get_tag(
+                    "capability:missing_values",
+                    raise_error=False,
+                    tag_value_default=False,
+                )
+                and e[1].get_tag(
+                    "removes_missing_values", raise_error=False, tag_value_default=False
+                )
             ):
                 missing_rm_tag = True
                 break
             elif not isinstance(e[1], BaseAeonEstimator) or not e[1].get_tag(
-                "capability:missing_values", False, raise_error=False
+                "capability:missing_values", raise_error=False, tag_value_default=False
             ):
                 break
 
@@ -140,7 +158,11 @@ class BaseCollectionPipeline(_ComposableEstimatorMixin, BaseCollectionEstimator)
         #   *or* transformer chain transforms the series to a tabular format
         unequal_tags = [
             (
-                e[1].get_tag("capability:unequal_length", False, raise_error=False)
+                e[1].get_tag(
+                    "capability:unequal_length",
+                    raise_error=False,
+                    tag_value_default=False,
+                )
                 if isinstance(e[1], BaseAeonEstimator)
                 else False
             )
@@ -151,16 +173,24 @@ class BaseCollectionPipeline(_ComposableEstimatorMixin, BaseCollectionEstimator)
         for e in self._steps:
             if (
                 isinstance(e[1], BaseAeonEstimator)
-                and e[1].get_tag("capability:unequal_length", False, raise_error=False)
+                and e[1].get_tag(
+                    "capability:unequal_length",
+                    raise_error=False,
+                    tag_value_default=False,
+                )
                 and (
-                    e[1].get_tag("removes_unequal_length", False, raise_error=False)
+                    e[1].get_tag(
+                        "removes_unequal_length",
+                        raise_error=False,
+                        tag_value_default=False,
+                    )
                     or e[1].get_tag("output_data_type", raise_error=False) == "Tabular"
                 )
             ):
                 unequal_rm_tag = True
                 break
             elif not isinstance(e[1], BaseAeonEstimator) or not e[1].get_tag(
-                "capability:unequal_length", False, raise_error=False
+                "capability:unequal_length", raise_error=False, tag_value_default=False
             ):
                 break
 

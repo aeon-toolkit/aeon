@@ -64,18 +64,18 @@ class Dobin(BaseSeriesTransformer):
     >>> import numpy as np
     >>> import pandas as pd
     >>> from aeon.datasets import load_uschange
-    >>> _, X = load_uschange()
-    >>> scaler = MinMaxScaler()
-    >>> X = scaler.fit_transform(X)
+    >>> X = load_uschange()
+    >>> minmax = MinMaxScaler()
+    >>> Xt = minmax.fit_transform(X.T)
     >>> model = Dobin()
-    >>> X_outlier = model.fit_transform(X, axis=0)
-    >>> X_outlier.head()
-            DB0       DB1       DB2       DB3
-    0  1.151965  0.116488  0.286064  0.288140
-    1  1.191976  0.100772  0.050835  0.225985
-    2  1.221158  0.078031  0.034030  0.249676
-    3  1.042420  0.188494  0.218460  0.205251
-    4  1.224701  0.020028 -0.294705  0.199827
+    >>> X_outlier = model.fit_transform(X)
+    >>> X_outlier.T.head()
+            DB0       DB1       DB2       DB3       DB4
+    0  4.786838 -1.332530 -1.891908  1.566322  0.753280
+    1  7.290015  0.149297 -1.242303  0.558777  0.474924
+    2  7.297553  0.419074 -1.688429  0.282187  0.573991
+    3  0.954141 -1.639316 -0.423461  1.552961  0.434186
+    4  3.702288  2.066720 -1.807646 -1.777854  0.422556
     """
 
     _tags = {
