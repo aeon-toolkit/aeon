@@ -3,8 +3,8 @@
 from aeon.classification.interval_based import CanonicalIntervalForestClassifier
 from aeon.classification.sklearn import ContinuousIntervalTree
 
-
-def test_cif():
+#todo fix these interval tests/classes
+asda def test_cif():
     """Test nans correct with ContinuousIntervalTree."""
     cif = CanonicalIntervalForestClassifier(
         base_estimator=ContinuousIntervalTree(), use_pycatch22=True
