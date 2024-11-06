@@ -186,138 +186,38 @@ def is_pdmultiindex_hierarchical(y):
     return True
 
 
-def _check_series(
-    Z,
-    enforce_univariate=False,
-    enforce_multivariate=False,
-    allow_empty=False,
-    allow_numpy=True,
-    allow_None=True,
-    enforce_index_type=None,
-    allow_index_names=False,
-    var_name="input",
-):
-    """Validate input data to be a valid type for Series.
+def check_series(y):
+    """Validate a time series is an acceptable type.
 
     Parameters
     ----------
-    Z : pd.Series, pd.DataFrame, np.ndarray, or None
-        Univariate or multivariate time series.
-    enforce_univariate : bool, default = False
-        If True, multivariate Z will raise an error.
-    enforce_multivariate: bool, default = False
-        If True, univariate Z will raise an error.
-    allow_empty : bool, default = False
-        whether a container with zero samples is allowed
-    allow_numpy : bool, default = True
-        whether no error is raised if Z is in a valid numpy.ndarray format
-    allow_None : bool, default = True
-        whether no error is raised if Z is None
-    enforce_index_type : type, default = None
-        type of time index
-    allow_index_names : bool, default = False
-        If False, names of Z.index will be set to None
-    var_name : str, default = "input" - variable name printed in error messages
+    y : any
 
     Returns
     -------
-    Z : pd.Series, pd.DataFrame, np.ndarray, or None
-        Validated time series - a reference to the input Z
+    y : np.ndarray, pd.Series or pd.DataFrame
 
     Raises
     ------
-    TypeError - if Z is not in a valid type for Series
-    if enforce_univariate is True:
-        ValueError if Z has 2 or more columns
-    if enforce_multivariate is True:
-        ValueError if Z has 1 column
-    if allow_numpy is false:
-        TypeError - if Z is of type np.ndarray
-    if allow_empty is false:
-        ValueError - if Z has length 0
-    if allow_None is false:
-        ValueError - if Z is None
-    if enforce_index_type is not None and Z is pandas type:
-        ValueError - if Z has index type other than enforce_index_type
-    """
-    if Z is None:
-        if allow_None:
-            return Z
-        else:
-            raise ValueError(var_name + " cannot be None")
-
-    # Check if pandas series or numpy array
-    if not allow_numpy:
-        valid_data_types = tuple(
-            filter(lambda x: x is not np.ndarray, VALID_DATA_TYPES)
-        )
-    else:
-        valid_data_types = VALID_DATA_TYPES
-
-    if not isinstance(Z, valid_data_types):
-        raise TypeError(
-            f"{var_name} must be a one of {valid_data_types}, but found type: {type(Z)}"
-        )
-
-    if enforce_univariate and enforce_multivariate:
-        raise ValueError(
-            "`enforce_univariate` and `enforce_multivariate` cannot both be set to "
-            "True."
-        )
-
-    if enforce_univariate:
-        is_univariate_series(Z)
-    elif enforce_multivariate:
-        if is_univariate_series(Z):
-            raise ValueError("Must be a multivariate series.")
-
-    if not allow_index_names and not isinstance(Z, np.ndarray):
-        Z.index.names = [None for name in Z.index.names]
-
-    return Z
-
-
-def check_y(
-    y,
-    allow_empty=False,
-    allow_constant=True,
-    enforce_index_type=None,
-    allow_index_names=False,
-):
-    """Validate input data.
-
-    Parameters
-    ----------
-    y : pd.Series
-    allow_empty : bool, default=False
-        If False, empty `y` raises an error.
-    allow_constant : bool, default=True
-        If True, constant `y` does not raise an error.
-    enforce_index_type : type, default=None
-        type of time index
-    allow_index_names : bool, default=None
-        If False, names of y.index will be set to None
-
-    Returns
-    -------
-    y : pd.Series
-
-    Raises
-    ------
-    ValueError, TypeError
+    ValueError
         If y is an invalid input
     """
-    y = _check_series(
-        y,
-        enforce_univariate=True,
-        allow_empty=allow_empty,
-        allow_numpy=False,
-        enforce_index_type=enforce_index_type,
-        allow_index_names=allow_index_names,
-    )
-
-    if not allow_constant:
-        if np.all(y == y.iloc[0]):
-            raise ValueError("All values of `y` are the same.")
+    if isinstance(y, np.ndarray):
+        if not (
+            issubclass(y.dtype.type, np.integer)
+            or issubclass(y.dtype.type, np.floating)
+        ):
+            raise ValueError("dtype for np.ndarray must be float or int")
+    elif isinstance(y, pd.Series):
+        if not pd.api.types.is_numeric_dtype(y):
+            raise ValueError("pd.Series dtype must be numeric")
+    elif isinstance(y, pd.DataFrame):
+        if not all(pd.api.types.is_numeric_dtype(y[col]) for col in y.columns):
+            raise ValueError("pd.DataFrame dtype must be numeric")
+    else:
+        raise ValueError(
+            f"Input type of y should be one of np.ndarray, pd.Series or pd.DataFrame, "
+            f"saw {type(y)}"
+        )
 
     return y
