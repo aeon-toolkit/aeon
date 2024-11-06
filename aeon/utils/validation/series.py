@@ -15,9 +15,6 @@ import pandas as pd
 def is_single_series(y):
     """Check if input is a single time series.
 
-    Minimal checks that do not check the index characteristics. To check index and
-    throw an error if not correct, use `check_series` instead.
-
     Parameters
     ----------
     y : Any object
@@ -73,7 +70,7 @@ def is_univariate_series(y):
     Returns
     -------
     bool
-        True if series is pd.Series, single column pd.DataFrame or np.ndarray with 1
+        True if series is pd.Series, single row/column pd.DataFrame or np.ndarray with 1
         dimension, False otherwise.
     """
     if isinstance(y, pd.Series):
