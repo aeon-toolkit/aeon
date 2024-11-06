@@ -121,7 +121,6 @@ class BaseDeepClusterer(BaseClusterer):
         if (
             self.clustering_algorithm != "deprecated"
             or self.clustering_params is not None
-            or self.n_clusters is not None
         ):
             warnings.warn(
                 "The 'n_clusters' 'clustering_algorithm' and "
