@@ -78,7 +78,7 @@ The logo was designed by [Reni Rahayu](https://www.instagram.com/kojodesignandco
 `aeon` is a community-driven project. However, institutional and private grants help to
 ensure its sustainability.
 
-The project developers would like to thank the following funders.
+The project developers would like to thank the following funders:
 
 ```{list-table}
 :widths: 50 50
@@ -90,9 +90,8 @@ The project developers would like to thank the following funders.
   - ![https://epsrc.ukri.org](images/funder_logos/ukri-epsrc-logo.png)
 ```
 
-Thank you to the [Google Summer of Code (GSoC)](https://summerofcode.withgoogle.com)
-which has sponsored internships for the following `aeon` contributors via the NumFOCUS
-organisation.
+Short-term funding (<6 months) for internships has been provided by the following
+organisations:
 
 ```{list-table}
 :header-rows: 1
@@ -103,17 +102,28 @@ organisation.
   - Year
 * - Divya Tiwari
   - {user}`itsdivya1309`
-  - Google Summer of Code
+  - [Google Summer of Code](https://summerofcode.withgoogle.com)
   - 2024
 * - Aadya Chinubhai
   - {user}`aadya940`
-  - Google Summer of Code
+  - [Google Summer of Code](https://summerofcode.withgoogle.com)
   - 2024
 * - Gabriel Riegner
   - {user}`griegner`
-  - Google Summer of Code
+  - [Google Summer of Code](https://summerofcode.withgoogle.com)
+  - 2024
+* - Ivan Knyazev
+  - {user}`IRKnyazev`
+  - [EPSRC](https://gow.epsrc.ukri.org/NGBOViewGrant.aspx?GrantRef=EP/W030756/1)
+  - 2024
+* - Daniele Carli
+  - {user}`Moonzyyy`
+  - [EPSRC](https://gow.epsrc.ukri.org/NGBOViewGrant.aspx?GrantRef=EP/W030756/1)
   - 2024
 ```
+
+Google Summer of Code (GSoC) sponsored internships applied and contributed to `aeon`
+projects via the shared NumFOCUS application for the program.
 
 ## Infrastructure
 
@@ -176,7 +186,7 @@ prior to the projects split. We would like to thank the funders from before the 
 
 __Sprints__
 
-The 2019 joint `sktime`/`MLJ` development sprint was kindly hosted by
+The 2019 joint `sktime`/`MLJ` development sprint was hosted by
 [UCL](https://www.ucl.ac.uk) and [The Alan Turing Institute](https://turing.ac.uk).
 Some participants could attend thanks to the initial funding of the
 [The Alan Turing Institute](https://turing.ac.uk).
