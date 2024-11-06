@@ -24,19 +24,13 @@ def test_STOMP():
     assert pred.shape == (80,)
     assert pred.dtype == np.float64
     assert 40 <= np.argmax(pred) <= 60
-    with pytest.raises(ValueError, match="The window size must be at least 1"):
-        ad = STOMP(window_size=0)
-        ad.fit_predict(series)
-    with pytest.raises(ValueError, match="The top `k` distances must be at least 1"):
-        ad = STOMP(k=0)
-        ad.fit_predict(series)
 
 
 @pytest.mark.skipif(
     not _check_soft_dependencies("stumpy", severity="none"),
     reason="required soft dependency stumpy not available",
 )
-def test_STOMP_incorrect_inut():
+def test_STOMP_incorrect_input():
     """Test STOMP with incorrect input."""
     rng = check_random_state(0)
     series = rng.normal(size=(80,))

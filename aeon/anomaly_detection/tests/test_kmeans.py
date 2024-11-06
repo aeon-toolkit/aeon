@@ -21,15 +21,6 @@ def test_kmeansad_univariate():
     assert pred.shape == (100,)
     assert pred.dtype == np.float64
     assert 50 <= np.argmax(pred) <= 58
-    with pytest.raises(ValueError, match="The window size must be at least 1"):
-        ad = KMeansAD(window_size=0)
-        ad.fit_predict(series)
-    with pytest.raises(ValueError, match="The stride must be at least 1"):
-        ad = KMeansAD(stride=0)
-        ad.fit_predict(series)
-    with pytest.raises(ValueError, match="The number of clusters must be at least 1"):
-        ad = KMeansAD(n_clusters=0)
-        ad.fit_predict(series)
 
 
 def test_kmeansad_multivariate():
@@ -51,6 +42,7 @@ def test_kmeansad_incorrect_input():
     """Test KMeansAD univariate output."""
     rng = check_random_state(seed=2)
     series = rng.normal(size=(100,))
+
     with pytest.raises(ValueError, match="The window size must be at least 1"):
         ad = KMeansAD(window_size=0)
         ad.fit_predict(series)
