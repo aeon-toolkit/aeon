@@ -83,17 +83,9 @@ def plot_series(
     elif isinstance(series, np.ndarray):
         series = series.squeeze()
         if series.ndim > 1:
-            series = [row for row in series]
+            series = [pd.Series(row) for row in series]
         else:
-            series = [series]
-    s = []
-    for y in series:
-        if isinstance(y, np.ndarray):
-            y = y.squeeze()
-            y = pd.Series(y)
-        s.append(y)
-    series = s
-
+            series = [pd.Series(series)]
     n_series = len(series)
     # labels
     if labels is not None:
