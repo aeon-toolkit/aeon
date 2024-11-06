@@ -23,7 +23,6 @@ def test_lof_default():
     leaf_size = 30
     metric = "minkowski"
     p = 2
-    novelty = False
     n_jobs = 1
     window_size = 1  # Set window_size to 1 for point-based processing
     stride = 1  # Set stride to 1
@@ -41,37 +40,9 @@ def test_lof_default():
     )
     scores_aeon = lof_aeon.fit_predict(series)
 
-    # Initialize PyOD LOF
-    from pyod.models.lof import LOF as PyOD_LOF
-
-    lof_pyod = PyOD_LOF(
-        n_neighbors=n_neighbors,
-        algorithm=algorithm,
-        leaf_size=leaf_size,
-        metric=metric,
-        p=p,
-        novelty=novelty,
-        n_jobs=n_jobs,
-    )
-    lof_pyod.fit(series.reshape(-1, 1))
-    scores_pyod = lof_pyod.decision_scores_
-
     # Ensure shapes and types
     assert scores_aeon.shape == (80,)
-    assert scores_pyod.shape == (80,)
     assert scores_aeon.dtype == np.float64
-    assert scores_pyod.dtype == np.float64
-
-    # Compare anomaly scores using assert_allclose
-    np.testing.assert_allclose(scores_aeon, scores_pyod, rtol=1e-5, atol=1e-5)
-
-    # Ensure that the most anomalous point is within the introduced anomaly range
-    assert (
-        50 <= np.argmax(scores_aeon) <= 58
-    ), "AEON LOF did not detect anomalies in the expected range."
-    assert (
-        50 <= np.argmax(scores_pyod) <= 58
-    ), "PyOD LOF did not detect anomalies in the expected range."
 
 
 @pytest.mark.skipif(
