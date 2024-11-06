@@ -140,6 +140,7 @@ class AEBiGRUClusterer(BaseDeepClusterer):
         self.save_last_model = save_last_model
         self.best_file_name = best_file_name
         self.random_state = random_state
+        self.n_clusters = n_clusters
 
         super().__init__(
             clustering_algorithm=clustering_algorithm,
