@@ -93,9 +93,9 @@ class PCASeriesTransformer(BaseSeriesTransformer):
     >>>
     >>> from aeon.transformations.series._pca import PCASeriesTransformer
     >>> from aeon.datasets import load_longley
-    >>> _, X = load_longley()
+    >>> data = load_longley(return_array=False)
     >>> transformer = PCASeriesTransformer(n_components=2)
-    >>> X_hat = transformer.fit_transform(X)
+    >>> X_hat = transformer.fit_transform(data)
 
     References
     ----------

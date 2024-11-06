@@ -57,7 +57,7 @@ def plot_series(
     --------
     >>> from aeon.visualisation import plot_series
     >>> from aeon.datasets import load_airline
-    >>> y = load_airline()
+    >>> y = load_airline(return_array=False)
     >>> fig, ax = plot_series(y)  # doctest: +SKIP
     """
     _check_soft_dependencies("matplotlib", "seaborn")
@@ -217,7 +217,7 @@ def plot_lags(series, lags=1, suptitle=None):
     --------
     >>> from aeon.visualisation import plot_lags
     >>> from aeon.datasets import load_airline
-    >>> y = load_airline()
+    >>> y = load_airline(return_array=False)
     >>> fig, ax = plot_lags(y, lags=2) # plot of y(t) with y(t-2)  # doctest: +SKIP
     >>> fig, ax = plot_lags(y, lags=[1,2,3]) # y(t) & y(t-1), y(t-2).. # doctest: +SKIP
     """
@@ -317,7 +317,7 @@ def plot_correlations(
     --------
     >>> from aeon.visualisation import plot_correlations
     >>> from aeon.datasets import load_airline
-    >>> y = load_airline()
+    >>> y = load_airline(return_array=False)
     >>> fig, ax = plot_correlations(y)  # doctest: +SKIP
     """
     _check_soft_dependencies("matplotlib", "statsmodels")
@@ -386,7 +386,7 @@ def plot_spectrogram(series, fs=1, return_onesided=True):
     --------
     >>> from aeon.visualisation import plot_spectrogram
     >>> from aeon.datasets import load_airline
-    >>> y = load_airline()
+    >>> y = load_airline(return_array=False)
     >>> fig, ax = plot_spectrogram(y)  # doctest: +SKIP
     """
     _check_soft_dependencies("matplotlib")

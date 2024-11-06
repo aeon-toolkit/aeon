@@ -136,8 +136,7 @@ class InceptionTimeRegressor(BaseRegressor):
 
     Notes
     -----
-    Adapted from the implementation from Fawaz et. al
-    https://github.com/hfawaz/InceptionTime/blob/master/regressors/inception.py
+    Adapted from the implementation from Fawaz et. al ..[1]
 
     and Ismail-Fawaz et al.
     https://github.com/MSD-IRIMAS/CF-4-TSC
