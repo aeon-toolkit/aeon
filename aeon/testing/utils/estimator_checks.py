@@ -12,6 +12,7 @@ from aeon.clustering.base import BaseClusterer
 from aeon.regression.base import BaseRegressor
 from aeon.testing.testing_data import FULL_TEST_DATA_DICT
 from aeon.transformations.base import BaseTransformer
+from aeon.utils.validation import get_n_cases
 
 
 def _run_estimator_method(estimator, method_name, datatype, split):
@@ -49,6 +50,27 @@ def _get_tag(estimator, tag_name, default=None, raise_error=False):
         return estimator.get_tag(
             tag_name=tag_name, raise_error=raise_error, tag_value_default=default
         )
+
+
+def _assert_predict_labels(y_pred, datatype, split="test", unique_labels=None):
+    assert isinstance(y_pred, np.ndarray)
+    assert y_pred.shape == (get_n_cases(FULL_TEST_DATA_DICT[datatype][split][0]),)
+    if unique_labels is not None:
+        assert np.all(np.isin(np.unique(y_pred), unique_labels))
+
+
+def _assert_predict_probabilities(y_proba, datatype, split="test", unique_labels=None):
+    if unique_labels is None:
+        unique_labels = np.unique(FULL_TEST_DATA_DICT[datatype][split][1])
+
+    assert isinstance(y_proba, np.ndarray)
+    assert y_proba.shape == (
+        get_n_cases(FULL_TEST_DATA_DICT[datatype][split][0]),
+        len(unique_labels),
+    )
+    assert np.all(y_proba >= 0)
+    assert np.all(y_proba <= 1)
+    assert np.allclose(np.sum(y_proba, axis=1), 1)
 
 
 def _list_required_methods(estimator):
