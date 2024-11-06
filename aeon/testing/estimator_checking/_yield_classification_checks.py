@@ -118,16 +118,13 @@ def check_classifier_against_expected_results(
     X_train, y_train = data_loader(split="train")
     X_test, y_test = data_loader(split="test")
     # resample test data
-    indices_train = np.random.RandomState(resample_seed).choice(
+    indices = np.random.RandomState(resample_seed).choice(
         len(y_train), 10, replace=False
-    )
-    indices_test = np.random.RandomState(resample_seed).choice(
-        len(y_test), 10, replace=False
     )
 
     # train classifier and predict probas
-    estimator_instance.fit(X_train[indices_train], y_train[indices_train])
-    y_proba = estimator_instance.predict_proba(X_test[indices_test])
+    estimator_instance.fit(X_train[indices], y_train[indices])
+    y_proba = estimator_instance.predict_proba(X_test[indices])
 
     # assert probabilities are the same
     _assert_array_almost_equal(
