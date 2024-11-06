@@ -64,6 +64,8 @@ def _validate_cost_matrix_result(
                 cost_matrix_result[-1, -1] / max(x.shape[-1], y.shape[-1])
             )
             assert_almost_equal(curr_distance, distance_result)
+    elif name == "soft_dtw":
+        assert_almost_equal(abs(cost_matrix_result[-1, -1]), distance_result)
     else:
         assert_almost_equal(cost_matrix_result[-1, -1], distance_result)
 
