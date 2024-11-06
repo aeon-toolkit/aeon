@@ -8,7 +8,10 @@ import pytest
 from aeon.distances import distance
 from aeon.distances._distance import DISTANCES, MIN_DISTANCES, MP_DISTANCES
 from aeon.distances.elastic._shape_dtw import _pad_ts_edges, _transform_subsequences
-from aeon.testing.data_generation._legacy import make_series
+from aeon.testing.data_generation import (
+    make_example_1d_numpy,
+    make_example_2d_numpy_series,
+)
 from aeon.testing.expected_results.expected_distance_results import (
     _expected_distance_results_params,
 )
@@ -45,11 +48,11 @@ def _test_distance_params(
     distance_func (Callable): The distance function to be tested.
     distance_str (str): The name of the distance function.
     """
-    x_univ = make_series(10, return_numpy=True, random_state=1)
-    y_univ = make_series(10, return_numpy=True, random_state=2)
+    x_univ = make_example_1d_numpy(10, random_state=1)
+    y_univ = make_example_1d_numpy(10, random_state=2)
 
-    x_multi = make_series(10, 10, return_numpy=True, random_state=1)
-    y_multi = make_series(10, 10, return_numpy=True, random_state=2)
+    x_multi = make_example_2d_numpy_series(10, 10, random_state=1)
+    y_multi = make_example_2d_numpy_series(10, 10, random_state=2)
 
     if distance_str == "shift_scale":
         # Shift it to test the max_shift parameter works
