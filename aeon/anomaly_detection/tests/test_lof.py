@@ -44,6 +44,11 @@ def test_lof_default():
     assert scores_aeon.shape == (80,)
     assert scores_aeon.dtype == np.float64
 
+    # Ensure that the most anomalous point is within the introduced anomaly range
+    assert (
+        50 <= np.argmax(scores_aeon) <= 58
+    ), "AEON LOF did not detect anomalies in the expected range."
+
 
 @pytest.mark.skipif(
     not _check_soft_dependencies("pyod", severity="none"),
