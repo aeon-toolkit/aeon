@@ -4,6 +4,7 @@ __maintainer__ = []
 
 from abc import abstractmethod
 
+from aeon.base._base import _clone_estimator
 from aeon.clustering._k_means import TimeSeriesKMeans
 from aeon.clustering.base import BaseClusterer
 
@@ -114,7 +115,7 @@ class BaseDeepClusterer(BaseClusterer):
                 n_clusters=2, distance="euclidean", averaging_method="mean"
             )
             if self.estimator is None
-            else self.estimator
+            else _clone_estimator(self.estimator)
         )
 
         # to be removed in 1.0.0

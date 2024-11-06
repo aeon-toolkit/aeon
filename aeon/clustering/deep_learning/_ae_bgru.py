@@ -140,10 +140,10 @@ class AEBiGRUClusterer(BaseDeepClusterer):
         self.save_last_model = save_last_model
         self.best_file_name = best_file_name
         self.random_state = random_state
-        self.estimator = estimator
-        self.n_clusters = n_clusters
 
         super().__init__(
+            clustering_algorithm=clustering_algorithm,
+            clustering_params=clustering_params,
             estimator=estimator,
             batch_size=batch_size,
             last_file_name=last_file_name,
@@ -290,7 +290,7 @@ class AEBiGRUClusterer(BaseDeepClusterer):
         return self._estimator.score(latent_space)
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
