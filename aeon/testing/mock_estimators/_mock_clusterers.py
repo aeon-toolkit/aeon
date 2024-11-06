@@ -30,7 +30,6 @@ class MockDeepClusterer(BaseDeepClusterer):
     def __init__(self, estimator=None, last_file_name="last_file"):
         self.last_file_name = last_file_name
         super().__init__(
-            n_clusters=None,
             estimator=estimator,
             last_file_name=last_file_name,
             clustering_params={"n_init": 1, "averaging_method": "mean"},
