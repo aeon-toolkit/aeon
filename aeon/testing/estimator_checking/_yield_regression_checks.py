@@ -269,18 +269,15 @@ def check_regressor_saving_loading_deep_learning(estimator_class, datatype):
 
 
 def check_regressor_train_estimate(estimator, datatype):
-    """Test regressors that can produce train set probability estimates."""
+    """Test regressors that can produce train set prediction estimates."""
     estimator = _clone_estimator(estimator)
     estimator_class = type(estimator)
 
     # if we have a train_estimate parameter set use it, else use default
-    if (
-        "_fit_predict" not in estimator_class.__dict__
-        or "_fit_predict_proba" not in estimator_class.__dict__
-    ):
+    if "_fit_predict" not in estimator_class.__dict__:
         raise ValueError(
-            f"rRegressor {estimator_class} has capability:train_estimate=True "
-            "and must override the _fit_predict and _fit_predict_proba methods."
+            f"Regressor {estimator_class} has capability:train_estimate=True "
+            "and must override the _fit_predict method."
         )
 
     # check the predictions are valid
