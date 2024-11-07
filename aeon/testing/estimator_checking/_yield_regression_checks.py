@@ -200,7 +200,7 @@ def check_contracted_regressor(estimator_class, datatype):
         )
 
     # too short of a contract time can lead to test failures
-    if vars(estimator_instance).get("time_limit_in_minutes", None) < 0.5:
+    if vars(estimator_instance).get("time_limit_in_minutes", 0) < 0.5:
         raise ValueError(
             "Test parameters for test_contracted_regressor must set "
             "time_limit_in_minutes to 0.5 or more. It is recommended to make "

@@ -191,7 +191,14 @@ class TimeSeriesForestRegressor(BaseIntervalForest, BaseRegressor):
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
         """
-        return {
-            "n_estimators": 2,
-            "n_intervals": 2,
-        }
+        if parameter_set == "contracting":
+            return {
+                "time_limit_in_minutes": 5,
+                "contract_max_n_estimators": 2,
+                "n_intervals": 2,
+            }
+        else:
+            return {
+                "n_estimators": 2,
+                "n_intervals": 2,
+            }
