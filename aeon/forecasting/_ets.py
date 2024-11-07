@@ -17,7 +17,7 @@ class ETSForecaster(BaseForecaster):
         Trend smoothing parameter.
     gamma : float, default = 0.2
         Seasonal smoothing parameter.
-    season_length : int, default = 1
+    season_len : int, default = 1
         The length of the seasonality period.
     """
 
