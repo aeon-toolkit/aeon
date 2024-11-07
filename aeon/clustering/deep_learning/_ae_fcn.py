@@ -501,5 +501,18 @@ class AEFCNClusterer(BaseDeepClusterer):
             "latent_space_dim": 4,
             "estimator": DummyClusterer(n_clusters=2),
         }
+        param2 = {
+            "n_epochs": 2,
+            "batch_size": 4,
+            "use_bias": False,
+            "n_layers": 2,
+            "n_filters": [2, 2],
+            "kernel_size": [2, 2],
+            "padding": "same",
+            "strides": 1,
+            "latent_space_dim": 4,
+            "estimator": DummyClusterer(n_clusters=2),
+            "loss": "multi_rec",
+        }
 
-        return [param1]
+        return [param1, param2]
