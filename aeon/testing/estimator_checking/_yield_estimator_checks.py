@@ -40,6 +40,9 @@ from aeon.testing.estimator_checking._yield_collection_transformation_checks imp
 from aeon.testing.estimator_checking._yield_early_classification_checks import (
     _yield_early_classification_checks,
 )
+from aeon.testing.estimator_checking._yield_multithreading_checks import (
+    _yield_multithreading_checks,
+)
 from aeon.testing.estimator_checking._yield_regression_checks import (
     _yield_regression_checks,
 )
@@ -119,6 +122,10 @@ def _yield_all_aeon_checks(
     yield from _yield_estimator_checks(estimator_class, estimator_instances, datatypes)
 
     yield from _yield_soft_dependency_checks(
+        estimator_class, estimator_instances, datatypes
+    )
+
+    yield from _yield_multithreading_checks(
         estimator_class, estimator_instances, datatypes
     )
 
@@ -705,41 +712,4 @@ def check_fit_deterministic(estimator, datatype):
                 err_msg=f"Running {method} after fit twice with test "
                 f"parameters gives different results.",
             )
-
             i += 1
-
-
-# def check_multiprocessing_idempotent(estimator):
-#     """Test that single and multi-process run results are identical.
-#
-#     Check that running an estimator on a single process is no different to running
-#     it on multiple processes. We also check that we can set n_jobs=-1 to make use
-#     of all CPUs. The test is not really necessary though, as we rely on joblib for
-#     parallelization and can trust that it works as expected.
-#     """
-#     method_nsc = method_nsc_arraylike
-#     params = estimator_instance.get_params()
-#
-#     if "n_jobs" in params:
-#         # run on a single process
-#         # -----------------------
-#         estimator = deepcopy(estimator_instance)
-#         estimator.set_params(n_jobs=1)
-#         set_random_state(estimator)
-#         result_single_process = scenario.run(
-#             estimator, method_sequence=["fit", method_nsc]
-#         )
-#
-#         # run on multiple processes
-#         # -------------------------
-#         estimator = deepcopy(estimator_instance)
-#         estimator.set_params(n_jobs=-1)
-#         set_random_state(estimator)
-#         result_multiple_process = scenario.run(
-#             estimator, method_sequence=["fit", method_nsc]
-#         )
-#         _assert_array_equal(
-#             result_single_process,
-#             result_multiple_process,
-#             err_msg="Results are not equal for n_jobs=1 and n_jobs=-1",
-#         )
