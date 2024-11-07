@@ -20,7 +20,7 @@ def test_alternative_estimator():
     clf = QUANTClassifier(estimator=SVC())
     clf.fit(X, y)
     prob = clf.predict_proba(X)
-    _assert_predict_probabilities(prob, X)
+    _assert_predict_probabilities(prob, X, n_classes=2)
 
 
 @pytest.mark.skipif(

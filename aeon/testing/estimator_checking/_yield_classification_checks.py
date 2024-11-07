@@ -315,7 +315,7 @@ def check_classifier_train_estimate(estimator, datatype):
         FULL_TEST_DATA_DICT[datatype]["train"][1],
     )
     _assert_predict_probabilities(
-        train_proba, datatype, split="train", unique_labels=unique_labels
+        train_proba, datatype, split="train", n_classes=len(unique_labels)
     )
 
 
@@ -370,4 +370,4 @@ def check_classifier_output(estimator, datatype):
 
     # check predict proba (all classifiers have predict_proba by default)
     y_proba = estimator.predict_proba(FULL_TEST_DATA_DICT[datatype]["test"][0])
-    _assert_predict_probabilities(y_proba, datatype, unique_labels=unique_labels)
+    _assert_predict_probabilities(y_proba, datatype, n_classes=len(unique_labels))
