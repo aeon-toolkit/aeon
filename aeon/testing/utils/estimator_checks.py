@@ -53,20 +53,30 @@ def _get_tag(estimator, tag_name, default=None, raise_error=False):
 
 
 def _assert_predict_labels(y_pred, datatype, split="test", unique_labels=None):
+    if isinstance(datatype, str):
+        datatype = FULL_TEST_DATA_DICT[datatype][split][0]
+
     assert isinstance(y_pred, np.ndarray)
-    assert y_pred.shape == (get_n_cases(FULL_TEST_DATA_DICT[datatype][split][0]),)
+    assert y_pred.shape == (get_n_cases(datatype),)
     if unique_labels is not None:
         assert np.all(np.isin(np.unique(y_pred), unique_labels))
 
 
-def _assert_predict_probabilities(y_proba, datatype, split="test", unique_labels=None):
-    if unique_labels is None:
-        unique_labels = np.unique(FULL_TEST_DATA_DICT[datatype][split][1])
+def _assert_predict_probabilities(y_proba, datatype, split="test", n_classes=None):
+    if isinstance(datatype, str):
+        if n_classes is None:
+            n_classes = len(np.unique(FULL_TEST_DATA_DICT[datatype][split][1]))
+        datatype = FULL_TEST_DATA_DICT[datatype][split][0]
+
+    if n_classes is None:
+        raise ValueError(
+            "n_classes must be provided if not using a test dataset string"
+        )
 
     assert isinstance(y_proba, np.ndarray)
     assert y_proba.shape == (
-        get_n_cases(FULL_TEST_DATA_DICT[datatype][split][0]),
-        len(unique_labels),
+        get_n_cases(datatype),
+        n_classes,
     )
     assert np.all(y_proba >= 0)
     assert np.all(y_proba <= 1)

@@ -1,11 +1,11 @@
 """Tests for the QUANTClassifier class."""
 
-import numpy as np
 import pytest
-from sklearn.linear_model import RidgeClassifierCV
+from sklearn.svm import SVC
 
 from aeon.classification.interval_based import QUANTClassifier
-from aeon.testing.data_generation import make_example_3d_numpy
+from aeon.testing.testing_data import EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION
+from aeon.testing.utils.estimator_checks import _assert_predict_probabilities
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
@@ -15,13 +15,12 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 )
 def test_alternative_estimator():
     """Test QUANTClassifier with an alternative estimator."""
-    X, y = make_example_3d_numpy()
-    clf = QUANTClassifier(estimator=RidgeClassifierCV())
-    clf.fit(X, y)
-    pred = clf.predict(X)
+    X, y = EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION["numpy3D"]["train"]
 
-    assert isinstance(pred, np.ndarray)
-    assert pred.shape[0] == X.shape[0]
+    clf = QUANTClassifier(estimator=SVC())
+    clf.fit(X, y)
+    prob = clf.predict_proba(X)
+    _assert_predict_probabilities(prob, X)
 
 
 @pytest.mark.skipif(
@@ -30,7 +29,7 @@ def test_alternative_estimator():
 )
 def test_invalid_inputs():
     """Test handling of invalid inputs by QUANTClassifier."""
-    X, y = make_example_3d_numpy()
+    X, y = EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION["numpy3D"]["train"]
 
     with pytest.raises(ValueError, match="quantile_divisor must be >= 1"):
         quant = QUANTClassifier(quantile_divisor=0)
