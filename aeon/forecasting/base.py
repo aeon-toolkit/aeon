@@ -104,7 +104,7 @@ class BaseForecaster(BaseSeriesEstimator):
     @abstractmethod
     def _predict(self, y=None, exog=None): ...
 
-    def forecast(self, y, X=None):
+    def forecast(self, y, exog=None):
         """
 
         Forecast basically fit_predict.
@@ -116,8 +116,9 @@ class BaseForecaster(BaseSeriesEstimator):
         """
         self._check_X(y, self.axis)
         y = self._convert_y(y, self.axis)
-        y = self._preprocess_series(y, axis=self.axis, store_metadata=False)
-        return self._forecast(y, X)
+        self._check_X(y, self.axis)
+        y = self._convert_y(y, self.axis)
+        return self._forecast(y, exog)
 
     def _forecast(self, y=None, exog=None):
         """Forecast values for time series X."""

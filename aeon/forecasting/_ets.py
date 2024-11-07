@@ -21,15 +21,15 @@ class ETSForecaster(BaseForecaster):
         The length of the seasonality period.
     """
 
-    def __init__(self, alpha=0.2, beta=0.2, gamma=0.2, season_length=1, horizon=1):
+    def __init__(self, alpha=0.2, beta=0.2, gamma=0.2, season_len=1, horizon=1):
         self.alpha = alpha
         self.beta = beta
         self.gamma = gamma
-        self.season_length = season_length
+        self.season_len = season_len
         self.forecast_val_ = 0.0
         self.level_ = 0.0
         self.trend_ = 0.0
-        self.seasonals_ = None
+        self.season_ = None
         super().__init__(horizon=horizon, axis=1)
 
     def _fit(self, y, exog=None):
@@ -51,31 +51,29 @@ class ETSForecaster(BaseForecaster):
         """
         data = y.squeeze()
         self.n_timepoints = len(data)
-        sl = self.season_length
+        sl = self.season_len
         # Initialize components
         self.level_ = data[0]
         self.trend_ = np.mean(data[sl : 2 * sl]) - np.mean(data[:sl])
-        self.seasonals_ = [data[i] / data[0] for i in range(sl)]
+        self.season_ = [data[i] / data[0] for i in range(sl)]
         for t in range(sl, self.n_timepoints):
             # Calculate level, trend, and seasonal components
             level_prev = self.level_
-            self.level_ = self.alpha * (
-                data[t] / self.seasonals_[t % self.season_length]
-            ) + (1 - self.alpha) * (self.level_ + self.trend_)
-            self.trend_ = (
-                self.beta * (self.level_ - level_prev) + (1 - self.beta) * self.trend_
-            )
-            self.seasonals_[t % self.season_length] = (
-                self.gamma * (data[t] / self.level_)
-                + (1 - self.gamma) * self.seasonals_[t % sl]
-            )
+            l1 = data[t] / self.season_[t % self.season_len]
+            l2 = self.level_ + self.trend_
+            self.level_ = self.alpha * l1 + (1 - self.alpha) * l2
+            trend = self.level_ - level_prev
+            self.trend_ = self.beta * trend + (1 - self.beta) * self.trend_
+            s1 = data[t] / self.level_
+            s2 = self.season_[t % sl]
+            self.season_[t % self.season_len] = self.gamma * s1 + (1 - self.gamma) * s2
         return self
 
     def _predict(self, y=None, exog=None):
         # Generate forecasts based on the final values of level, trend, and seasonals
-        forecast = (self.level_ + (self.horizon + 1) * self.trend_) * self.seasonals_[
-            (self.n_timepoints + self.horizon) % self.season_length
-        ]
+        trend = (self.horizon + 1) * self.trend_
+        seasonal = self.season_[(self.n_timepoints + self.horizon) % self.season_len]
+        forecast = (self.level_ + trend) * seasonal
         return forecast
 
     def _forecast(self, y):
