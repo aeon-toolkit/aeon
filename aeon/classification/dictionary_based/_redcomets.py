@@ -17,7 +17,7 @@ from sklearn.neighbors import NearestNeighbors
 from sklearn.utils import check_random_state
 
 from aeon.classification.base import BaseClassifier
-from aeon.transformations.collection import TimeSeriesScaler
+from aeon.transformations.collection import Normalizer
 from aeon.transformations.collection.dictionary_based import SAX, SFA
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
@@ -201,7 +201,7 @@ class REDCOMETS(BaseClassifier):
 
         from imblearn.over_sampling import SMOTE, RandomOverSampler
 
-        X = TimeSeriesScaler().fit_transform(X).squeeze()
+        X = Normalizer().fit_transform(X).squeeze()
 
         if self.variant in [1, 2, 3]:
             perc_length = self.perc_length / self._n_channels
@@ -411,7 +411,7 @@ class REDCOMETS(BaseClassifier):
             2D np.ndarray of shape (n_cases, n_classes_)
             Predicted probabilities using the ordering in ``classes_``.
         """
-        X = TimeSeriesScaler().fit_transform(X).squeeze()
+        X = Normalizer().fit_transform(X).squeeze()
 
         pred_mat = np.zeros((X.shape[0], self.n_classes_))
 
@@ -455,7 +455,7 @@ class REDCOMETS(BaseClassifier):
             2D np.ndarray of shape (n_cases, n_classes_)
             Predicted probabilities using the ordering in ``classes_``.
         """
-        X = TimeSeriesScaler().fit_transform(X)
+        X = Normalizer().fit_transform(X)
 
         ensemble_pred_mats = None
 
@@ -596,7 +596,7 @@ class REDCOMETS(BaseClassifier):
         return sax_parallel_res
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -610,9 +610,7 @@ class REDCOMETS(BaseClassifier):
         dict
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test
-            instance.``create_test_instance`` uses the first (or only) dictionary in
-            `params``.
+            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
         """
         return {
             "variant": 3,

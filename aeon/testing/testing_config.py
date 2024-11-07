@@ -50,8 +50,6 @@ EXCLUDED_TESTS = {
     "RSASTClassifier": ["check_fit_deterministic"],
     "SAST": ["check_fit_deterministic"],
     "RSAST": ["check_fit_deterministic"],
-    "AEFCNClusterer": ["check_fit_updates_state"],
-    "AEResNetClusterer": ["check_fit_updates_state"],
     "SFA": ["check_persistence_via_pickle", "check_fit_deterministic"],
     "CollectionId": ["check_transform_inverse_transform_equivalent"],
     "ScaledLogitSeriesTransformer": ["check_transform_inverse_transform_equivalent"],
@@ -71,6 +69,13 @@ EXCLUDED_TESTS = {
     "PLASeriesTransformer": ["check_non_state_changing_method"],
     "AutoCorrelationSeriesTransformer": ["check_non_state_changing_method"],
     "SIVSeriesTransformer": ["check_non_state_changing_method"],
+    "RocketClassifier": ["check_non_state_changing_method"],
+    "MiniRocketClassifier": ["check_non_state_changing_method"],
+    "MultiRocketClassifier": ["check_non_state_changing_method"],
+    "RocketRegressor": ["check_non_state_changing_method"],
+    "MiniRocketRegressor": ["check_non_state_changing_method"],
+    "MultiRocketRegressor": ["check_non_state_changing_method"],
+    "RSTSF": ["check_non_state_changing_method"],
 }
 
 # NON_STATE_CHANGING_METHODS =

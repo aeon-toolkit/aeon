@@ -203,7 +203,7 @@ This section provides full set of instructions to create a format specification 
 for your dataset that is compatible with ``aeon``.
 
 Remember that this begins with the assumption that you have the dataset readily available in
-expected `format <https://github.com/aeon-toolkit/aeon/blob/main/examples/loading_data.ipynb>`_.
+expected `format <https://github.com/aeon-toolkit/aeon/blob/main/examples/datasets/data_loading.ipynb>`_.
 
 Few points to keep in mind while creating the dataset:
 

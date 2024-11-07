@@ -12,12 +12,13 @@ from aeon.transformations.series._boxcox import BoxCoxTransformer
 
 
 def test_boxcox_against_scipy():
+    """Test BoxCoxTransformer against scipy implementation."""
     y = load_airline()
 
     t = BoxCoxTransformer()
     actual = t.fit_transform(y)
 
-    excepted, expected_lambda = boxcox(y.values)
+    excepted, expected_lambda = boxcox(y)
 
     np.testing.assert_array_equal(actual, excepted)
     assert t.lambda_ == expected_lambda
@@ -28,6 +29,7 @@ def test_boxcox_against_scipy():
     "method, sp", [("mle", None), ("pearsonr", None), ("guerrero", 5)]
 )
 def test_lambda_bounds(bounds, method, sp):
+    """Test lambda bounds for BoxCox."""
     y = load_airline()
     t = BoxCoxTransformer(bounds=bounds, method=method, sp=sp)
     t.fit(y)

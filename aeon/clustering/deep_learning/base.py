@@ -2,13 +2,14 @@
 
 __maintainer__ = []
 
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 
+from aeon.base._base import _clone_estimator
 from aeon.clustering._k_means import TimeSeriesKMeans
 from aeon.clustering.base import BaseClusterer
 
 
-class BaseDeepClusterer(BaseClusterer, ABC):
+class BaseDeepClusterer(BaseClusterer):
     """Abstract base class for deep learning time series clusterers.
 
     Parameters
@@ -116,7 +117,7 @@ class BaseDeepClusterer(BaseClusterer, ABC):
                 n_clusters=2, distance="euclidean", averaging_method="mean"
             )
             if self.estimator is None
-            else self.estimator
+            else _clone_estimator(self.estimator)
         )
 
         # to be removed in 1.0.0

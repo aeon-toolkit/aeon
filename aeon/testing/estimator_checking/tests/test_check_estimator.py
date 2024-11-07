@@ -9,13 +9,13 @@ from aeon.testing.estimator_checking import check_estimator, parametrize_with_ch
 from aeon.testing.estimator_checking._estimator_checking import _get_check_estimator_ids
 from aeon.testing.mock_estimators import (
     MockClassifier,
-    MockClassifierMultiTestParams,
+    MockClassifierParams,
     MockRegressor,
     MockSegmenter,
 )
 from aeon.testing.mock_estimators._mock_anomaly_detectors import MockAnomalyDetector
 from aeon.testing.utils.deep_equals import deep_equals
-from aeon.transformations.collection import TimeSeriesScaler
+from aeon.transformations.collection import Normalizer
 
 test_classes = [
     MockClassifier,
@@ -24,8 +24,8 @@ test_classes = [
     MockSegmenter,
     MockAnomalyDetector,
     # MockMultivariateSeriesTransformer,
-    TimeSeriesScaler,
-    MockClassifierMultiTestParams,
+    Normalizer,
+    MockClassifierParams,
 ]
 test_classes = {c.__name__: c for c in test_classes}
 
@@ -44,7 +44,7 @@ def test_parametrize_with_checks_classes(check):
     assert equal, msg
 
 
-test_instances = [c.create_test_instance() for c in list(test_classes.values())]
+test_instances = [c._create_test_instance() for c in list(test_classes.values())]
 test_instances = {c.__class__.__name__: c for c in test_instances}
 
 
@@ -63,7 +63,7 @@ def test_parametrize_with_checks_instances(check):
 @pytest.mark.parametrize("estimator_class", list(test_classes.values()))
 def test_check_estimator_passed(estimator_class):
     """Test that check_estimator returns only passed tests for examples we know pass."""
-    estimator = estimator_class.create_test_instance()
+    estimator = estimator_class._create_test_instance()
 
     result_class = check_estimator(estimator_class, verbose=False)
     assert all(x == "PASSED" for x in result_class.values())

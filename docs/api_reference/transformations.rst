@@ -35,13 +35,14 @@ Collection transformers
     DWTTransformer
     HOG1DTransformer
     MatrixProfile
-    Normalise
+    MinMaxScaler
+    Normalizer
     Padder
     PeriodogramTransformer
     Tabularizer
     Resizer
-    TimeSeriesScaler
     SlopeTransformer
+    Standardizer
     Truncator
 
 
@@ -101,6 +102,7 @@ Dictionary-based features
     PAA
     SFA
     SFAFast
+    BORF
 
 
 Feature based
@@ -112,10 +114,10 @@ Feature based
     :toctree: auto_generated/
     :template: class.rst
 
-    TSFreshRelevantFeatureExtractor
-    TSFreshFeatureExtractor
     Catch22
-    SevenNumberSummaryTransformer
+    TSFresh
+    TSFreshRelevant
+    SevenNumberSummary
 
 
 Interval based
@@ -182,6 +184,7 @@ Series transforms
     ClaSPTransformer
     DFTSeriesTransformer
     Dobin
+    GaussSeriesTransformer
     MatrixProfileSeriesTransformer
     PLASeriesTransformer
     SGSeriesTransformer
