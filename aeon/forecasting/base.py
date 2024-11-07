@@ -92,11 +92,10 @@ class BaseForecaster(BaseSeriesEstimator):
         float
             single prediction self.horizon steps ahead of y.
         """
+        self._check_is_fitted()
         if y is not None:
             self._check_X(y, self.axis)
             y = self._convert_y(y, self.axis)
-        if not self.is_fitted:
-            raise ValueError("Forecaster must be fitted before predicting")
         if exog is not None:
             raise NotImplementedError("Exogenous variables not yet supported")
         return self._predict(y, exog)
