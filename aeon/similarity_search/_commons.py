@@ -62,7 +62,7 @@ def naive_squared_distance_profile(
         Input time series dataset to search in.
     q : array, shape=(n_channels, query_length)
         Query used during the search.
-    mask : array, shape=(n_samples, n_timepoints)
+    mask : array, shape=(n_samples,  n_timepoints - query_length + 1)
         Boolean mask indicating candidates for which the distance
         profiles computed for each query should be set to infinity.
     normalise : bool
@@ -120,7 +120,7 @@ def naive_squared_matrix_profile(X, T, query_length, mask, normalise=False):
         Time series from which queries are extracted.
     query_length : int
         Length of the queries to extract from T.
-    mask : array, shape=(n_samples, n_timepoints_x)
+    mask : array, shape=(n_samples, n_timepoints_x - query_length + 1)
         Boolean mask indicating candidates for which the distance
         profiles computed for each query should be set to infinity.
     normalise : bool
@@ -146,9 +146,9 @@ def naive_squared_matrix_profile(X, T, query_length, mask, normalise=False):
         q = T[:, i : i + query_length]
         if normalise:
             q = z_normalise_series_2d(q)
-        for j in range(len(X)):
-            dist_profile = _compute_dist_profile(X_subs[j], q)
-            dist_profile[~mask[j]] = np.inf
+        for id_sample in range(len(X)):
+            dist_profile = _compute_dist_profile(X_subs[id_sample], q)
+            dist_profile[~mask[id_sample]] = np.inf
             mp[i] = min(mp[i], dist_profile.min())
     return mp
 

@@ -30,7 +30,8 @@ def test_naive_squared_distance_profile():
     X = np.zeros((1, 1, 6))
     X[0, 0] = np.arange(6)
     Q = np.array([[1, 2, 3]])
-    mask = np.ones((X.shape[0], X.shape[2]), dtype=bool)
+    query_length = Q.shape[1]
+    mask = np.ones((X.shape[0], X.shape[2] - query_length + 1), dtype=bool)
     dist_profile = naive_squared_distance_profile(X, Q, mask)
     assert_array_almost_equal(dist_profile[0], np.array([3.0, 0.0, 3.0, 12.0]))
 
@@ -40,7 +41,9 @@ def test_naive_squared_matrix_profile():
     X = np.zeros((1, 1, 6))
     X[0, 0] = np.arange(6)
     Q = np.zeros((1, 6))
+
     Q[0] = np.arange(6, 12)
-    mask = np.ones((X.shape[0], X.shape[2]), dtype=bool)
-    matrix_profile = naive_squared_matrix_profile(X, Q, 3, mask)
+    query_length = 3
+    mask = np.ones((X.shape[0], X.shape[2] - query_length + 1), dtype=bool)
+    matrix_profile = naive_squared_matrix_profile(X, Q, query_length, mask)
     assert_array_almost_equal(matrix_profile, np.array([27.0, 48.0, 75.0, 108.0]))

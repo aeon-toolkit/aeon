@@ -535,7 +535,8 @@ def normalise_subsequences(X_subs: np.ndarray, X_means: np.ndarray, X_stds: np.n
     Parameters
     ----------
     X_subs : array, shape (n_timestamps-(length-1)*dilation, n_channels, length)
-        The subsequences of an input time series given the length and dilation parameter
+        The subsequences of an input time series of size  n_timestamps given the
+        length and dilation parameter.
     X_means : array, shape (n_channels, n_timestamps-(length-1)*dilation)
         Mean of the subsequences to normalise.
     X_stds : array, shape (n_channels, n_timestamps-(length-1)*dilation)
