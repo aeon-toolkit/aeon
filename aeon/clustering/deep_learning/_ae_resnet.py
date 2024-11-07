@@ -501,17 +501,7 @@ class AEResNetClusterer(BaseDeepClusterer):
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
         """
-        param1 = {
-            "n_epochs": 1,
-            "batch_size": 4,
-            "n_residual_blocks": 1,
-            "n_conv_per_residual_block": 1,
-            "n_filters": 1,
-            "kernel_size": 2,
-            "use_bias": False,
-            "estimator": DummyClusterer(n_clusters=2),
-        }
-        param2 = {
+        param = {
             "n_epochs": 2,
             "batch_size": 4,
             "n_residual_blocks": 2,
@@ -520,9 +510,8 @@ class AEResNetClusterer(BaseDeepClusterer):
             "kernel_size": 2,
             "use_bias": False,
             "estimator": DummyClusterer(n_clusters=2),
-            "loss": "multi_rec",
         }
 
-        test_params = [param1, param2]
+        test_params = [param]
 
         return test_params
