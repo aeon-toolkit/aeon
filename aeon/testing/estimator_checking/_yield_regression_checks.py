@@ -222,6 +222,9 @@ def check_contracted_regressor(estimator_class, datatype):
 def check_regressor_saving_loading_deep_learning(estimator_class, datatype):
     """Test deep regressor saving."""
     with tempfile.TemporaryDirectory() as tmp:
+        if tmp[-1] != "/":
+            tmp = tmp + "/"
+
         curr_time = str(time.time_ns())
         last_file_name = curr_time + "last"
         best_file_name = curr_time + "best"
