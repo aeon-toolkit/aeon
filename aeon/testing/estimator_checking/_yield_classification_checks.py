@@ -260,7 +260,7 @@ def check_classifier_saving_loading_deep_learning(estimator_class, datatype):
             model_path=os.path.join(tmp, best_file_name + ".keras"),
             classes=np.unique(FULL_TEST_DATA_DICT[datatype]["train"][1]),
         )
-        ypred_best = deep_cls_best.predict(FULL_TEST_DATA_DICT[datatype]["train"][0])
+        ypred_best = deep_cls_best.predict(FULL_TEST_DATA_DICT[datatype]["test"][0])
         _assert_predict_labels(ypred_best, datatype)
 
         deep_cls_last = estimator_class()
@@ -268,7 +268,7 @@ def check_classifier_saving_loading_deep_learning(estimator_class, datatype):
             model_path=os.path.join(tmp, last_file_name + ".keras"),
             classes=np.unique(FULL_TEST_DATA_DICT[datatype]["train"][1]),
         )
-        ypred_last = deep_cls_last.predict(FULL_TEST_DATA_DICT[datatype]["train"][0])
+        ypred_last = deep_cls_last.predict(FULL_TEST_DATA_DICT[datatype]["test"][0])
         _assert_predict_labels(ypred_last, datatype)
 
         deep_cls_init = estimator_class()
@@ -276,7 +276,7 @@ def check_classifier_saving_loading_deep_learning(estimator_class, datatype):
             model_path=os.path.join(tmp, init_file_name + ".keras"),
             classes=np.unique(FULL_TEST_DATA_DICT[datatype]["train"][1]),
         )
-        ypred_init = deep_cls_init.predict(FULL_TEST_DATA_DICT[datatype]["train"][0])
+        ypred_init = deep_cls_init.predict(FULL_TEST_DATA_DICT[datatype]["test"][0])
         _assert_predict_labels(ypred_init, datatype)
 
         ypred = deep_cls_train.predict(FULL_TEST_DATA_DICT[datatype]["test"][0])
