@@ -10,9 +10,12 @@ from sklearn.utils import check_random_state
 from typing_extensions import Unpack
 
 from aeon.classification.base import BaseClassifier
-from aeon.distances._minkowski import _univariate_minkowski_distance, minkowski_distance
 from aeon.distances.elastic._bounding_matrix import create_bounding_matrix
 from aeon.distances.elastic._lcss import lcss_distance
+from aeon.distances.pointwise._minkowski import (
+    _univariate_minkowski_distance,
+    minkowski_distance,
+)
 
 
 class ProximityForest2(BaseClassifier):
