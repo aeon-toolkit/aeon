@@ -502,11 +502,11 @@ class AEResNetClusterer(BaseDeepClusterer):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
         """
         param = {
-            "n_epochs": 1,
+            "n_epochs": 2,
             "batch_size": 4,
-            "n_residual_blocks": 1,
+            "n_residual_blocks": 2,
             "n_conv_per_residual_block": 1,
-            "n_filters": 1,
+            "n_filters": [2, 2],
             "kernel_size": 2,
             "use_bias": False,
             "estimator": DummyClusterer(n_clusters=2),
