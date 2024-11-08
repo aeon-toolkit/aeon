@@ -30,5 +30,6 @@ class OutlierDetectionClassifier(BaseCollectionAnomalyDetector):
         pred[pred == -1] = 0
         return pred
 
+    @classmethod
     def _get_test_params(cls, parameter_set="default"):
         return {"estimator": IsolationForest()}
