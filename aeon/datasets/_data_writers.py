@@ -3,11 +3,17 @@ import textwrap
 
 import numpy as np
 
-__all__ = ["write_to_tsfile", "write_to_arff_file"]
+__all__ = ["write_to_ts_file", "write_to_arff_file"]
 
 
-def write_to_tsfile(
-    X, path, y=None, problem_name="sample_data.ts", header=None, regression=False
+def write_to_ts_file(
+    X,
+    path,
+    y=None,
+    problem_name="sample_data.ts",
+    header=None,
+    suffix=None,
+    regression=False,
 ):
     """Write an aeon collection of time series to text file in .ts format.
 
@@ -29,6 +35,9 @@ def write_to_tsfile(
         The file is written to <path>/<problem_name>/<problem_name>.ts
     header: string, default = None
         Optional text at the top of the file that is ignored when loading.
+    suffix: str or None, default=None
+        Addon at the end of the filename before the file extension, i.e. _TRAIN or
+        _TEST
     regression: boolean, default = False
         Indicate if this is a regression problem, so it is correcty specified in
         the header since there is no definite way of inferring this from y
@@ -41,60 +50,15 @@ def write_to_tsfile(
         )
 
     # See if passed file name contains .ts extension or not
-    split = problem_name.split(".")
-    if split[-1] != "ts":
-        problem_name = problem_name + ".ts"
-    _write_data_to_tsfile(
-        X, path, problem_name, y=y, comment=header, regression=regression
-    )
+    problem_name, extension = os.path.splitext(problem_name)
+    if extension == "":  # .ts file extension not present
+        extension = ".ts"
 
+    if suffix is not None:
+        problem_name = problem_name + suffix
+    if extension is not None:
+        problem_name = problem_name + extension
 
-def _write_data_to_tsfile(
-    X,
-    path,
-    problem_name,
-    y=None,
-    missing_values="NaN",
-    comment=None,
-    suffix=None,
-    regression=False,
-):
-    """Output a dataset to .ts texfile format.
-
-    Automatically adds the .ts suffix if not the suffix to problem_name.
-
-    Parameters
-    ----------
-    X: Union[list, np.ndarray]
-        time series collection, either a 3d ndarray  (n_cases, n_channels,
-        n_timepoints) or a list of [n_cases] 2d numpy arrays (possibly variable
-        length)
-    path: str
-        The full path to output the ts file to.
-    problem_name: str
-        The problemName to print in the header of the ts file and also the name of
-        the file.
-    y: list, ndarray or None, default=None
-        The class values for each case, optional.
-    missing_values: str, default="NaN"
-        Representation for missing values.
-    comment: str or None, default=None
-        Comment text to be inserted before the header in a block.
-    suffix: str or None, default=None
-        Addon at the end of the filename before the file extension, i.e. _TRAIN or
-        _TEST
-
-    Returns
-    -------
-    None
-
-    Notes
-    -----
-    This version currently does not support writing timestamp data.
-    """
-    # ensure data provided is a ndarray. This is redundant here as already checked
-    if not isinstance(X, np.ndarray) and not isinstance(X, list):
-        raise ValueError("Data provided must be a ndarray or a list")
     class_labels = None
     if y is not None:
         # ensure number of cases is same as the class value list
@@ -124,11 +88,12 @@ def _write_data_to_tsfile(
         equal_length=equal_length,
         n_timepoints=n_timepoints,
         class_labels=class_labels,
-        comment=comment,
+        comment=header,
         regression=regression,
         suffix=suffix,
         extension=None,
     )
+    missing_values = "NaN"
     for i in range(n_cases):
         for j in range(n_channels):
             series = ",".join(
@@ -157,17 +122,13 @@ def _write_header(
     if class_labels is not None and regression:
         raise ValueError("Cannot have class_labels true for a regression problem")
     # create path if it does not exist
-    dir = f"{str(path)}/"
+    dir = os.path.join(path, "")
     try:
         os.makedirs(dir, exist_ok=True)
     except OSError:
         raise ValueError(f"Error trying to access {dir} in _write_header")
     # create ts file in the path
-    load_path = f"{dir}{str(problem_name)}"
-    if suffix is not None:
-        load_path = load_path + suffix
-    if extension is not None:
-        load_path = load_path + extension
+    load_path = os.path.join(dir, problem_name)
     file = open(load_path, "w")
     # write comment if any as a block at start of file
     if comment is not None:
