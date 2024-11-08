@@ -1,23 +1,19 @@
 """Metrics for anomaly detection."""
 
-from aeon.performance_metrics.anomaly_detection._binary import (
-    range_f_score,
-    range_precision,
-    range_recall,
-)
-from aeon.performance_metrics.anomaly_detection._continuous import (
+from aeon.benchmarking.performance_metrics import (
     f_score_at_k_points,
     f_score_at_k_ranges,
     pr_auc_score,
-    roc_auc_score,
-    rp_rr_auc_score,
-)
-from aeon.performance_metrics.anomaly_detection._vus_metrics import (
+    range_f_score,
     range_pr_auc_score,
     range_pr_roc_auc_support,
     range_pr_vus_score,
+    range_precision,
+    range_recall,
     range_roc_auc_score,
     range_roc_vus_score,
+    roc_auc_score,
+    rp_rr_auc_score,
 )
 
 __all__ = [

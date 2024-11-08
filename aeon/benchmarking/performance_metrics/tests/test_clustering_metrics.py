@@ -4,7 +4,7 @@ __maintainer__ = []
 
 import numpy as np
 
-from aeon.performance_metrics.clustering import clustering_accuracy_score
+from aeon.benchmarking.performance_metrics import clustering_accuracy_score
 
 
 def test_clustering_accuracy():

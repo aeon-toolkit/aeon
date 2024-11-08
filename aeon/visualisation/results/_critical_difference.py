@@ -11,7 +11,11 @@ import math
 import numpy as np
 from scipy.stats import rankdata
 
-from aeon.performance_metrics.stats import check_friedman, nemenyi_test, wilcoxon_test
+from aeon.benchmarking.performance_metrics import (
+    check_friedman,
+    nemenyi_test,
+    wilcoxon_test,
+)
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 

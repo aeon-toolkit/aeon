@@ -17,8 +17,8 @@ import numpy as np
 from sklearn.metrics import auc, f1_score, precision_recall_curve
 from sklearn.metrics import roc_auc_score as _roc_auc_score
 
-from aeon.performance_metrics.anomaly_detection._util import check_y
-from aeon.performance_metrics.anomaly_detection.thresholding import (
+from aeon.benchmarking.performance_metrics import (
+    check_y,
     top_k_points_threshold,
     top_k_ranges_threshold,
 )

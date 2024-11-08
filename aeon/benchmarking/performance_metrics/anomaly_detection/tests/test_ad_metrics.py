@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from aeon.performance_metrics.anomaly_detection import (
+from aeon.benchmarking.performance_metrics import (
     f_score_at_k_points,
     f_score_at_k_ranges,
     pr_auc_score,

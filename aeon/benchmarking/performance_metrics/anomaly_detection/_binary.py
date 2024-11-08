@@ -7,7 +7,7 @@ import warnings
 
 import numpy as np
 
-from aeon.performance_metrics.anomaly_detection._util import check_y
+from aeon.benchmarking.performance_metrics import check_y
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 

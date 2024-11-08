@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from aeon.performance_metrics.anomaly_detection.thresholding import (
+from aeon.benchmarking.performance_metrics import (
     percentile_threshold,
     sigma_threshold,
     top_k_points_threshold,
