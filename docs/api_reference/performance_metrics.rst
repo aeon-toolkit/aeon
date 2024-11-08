@@ -4,9 +4,10 @@
 Performance metrics
 ===================
 
-The :mod:`aeon.performance_metrics` module contains metrics for evaluating and tuning time series models.
+The :mod:`aeon.benchmarking.performance_metrics` module contains functions for
+evaluating and tuning time series models.
 
-.. automodule:: aeon.performance_metrics
+.. automodule:: aeon.benchmarking.performance_metrics
     :no-members:
     :no-inherited-members:
 
@@ -14,7 +15,7 @@ The :mod:`aeon.performance_metrics` module contains metrics for evaluating and t
 Segmentation
 ------------
 
-.. currentmodule:: aeon.performance_metrics.segmentation.metrics
+.. currentmodule:: aeon.benchmarking.performance_metrics.segmentation.metrics
 
 .. autosummary::
     :toctree: auto_generated/
@@ -27,7 +28,7 @@ Segmentation
 Anomaly Detection
 -----------------
 
-.. currentmodule:: aeon.performance_metrics.anomaly_detection
+.. currentmodule:: aeon.benchmarking.performance_metrics.anomaly_detection
 
 .. autosummary::
     :toctree: auto_generated/
@@ -50,7 +51,7 @@ Anomaly Detection
 AD Thresholding
 ~~~~~~~~~~~~~~~
 
-.. currentmodule:: aeon.performance_metrics.anomaly_detection.thresholding
+.. currentmodule:: aeon.benchmarking.performance_metrics.anomaly_detection.thresholding
 
 .. autosummary::
     :toctree: auto_generated/
