@@ -119,7 +119,7 @@ class BaseForecaster(BaseSeriesEstimator):
         y = self._convert_y(y, self.axis)
         return self._forecast(y, exog)
 
-    def _forecast(self, y=None, exog=None):
+    def _forecast(self, y, exog=None):
         """Forecast values for time series X."""
         self.fit(y, exog)
         return self.predict(y, exog)
