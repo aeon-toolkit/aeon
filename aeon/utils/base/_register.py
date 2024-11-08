@@ -38,7 +38,7 @@ BASE_CLASS_REGISTER = {
     "transformer": BaseTransformer,
     # estimator types
     "anomaly-detector": BaseAnomalyDetector,
-    "collection-anomaly-detector": BaseCollectionAnomalyDetector,
+    "collection_anomaly_detector": BaseCollectionAnomalyDetector,
     "collection-transformer": BaseCollectionTransformer,
     "classifier": BaseClassifier,
     "clusterer": BaseClusterer,
