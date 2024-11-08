@@ -1,6 +1,7 @@
 """Basic outlier detection classifier."""
 
-from aeon.anomaly_detection import IsolationForest
+from sklearn.ensemble import IsolationForest
+
 from aeon.anomaly_detection.whole_series.base import BaseCollectionAnomalyDetector
 from aeon.base._base import _clone_estimator
 
@@ -32,4 +33,4 @@ class OutlierDetectionClassifier(BaseCollectionAnomalyDetector):
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
-        return {"estimator": IsolationForest()}
+        return {"estimator": IsolationForest(n_estimators=3)}
