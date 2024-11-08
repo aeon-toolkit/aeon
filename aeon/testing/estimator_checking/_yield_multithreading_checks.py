@@ -70,7 +70,7 @@ def check_no_multithreading_param(estimator_class):
     # check that the estimator does not have a n_jobs parameter
     if default_params.get("n_jobs", None) is not None:
         raise ValueError(
-            f"{estimator_class} has a n_jobs parameter, but does not set"
+            f"{estimator_class} has a n_jobs parameter, but does not set "
             "capability:multithreading=True in its tags."
         )
 

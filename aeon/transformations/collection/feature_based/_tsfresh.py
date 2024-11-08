@@ -35,6 +35,7 @@ class _TSFresh(BaseCollectionTransformer):
     _tags = {
         "output_data_type": "Tabular",
         "capability:multivariate": True,
+        "capability:multithreading": True,
         "fit_is_empty": True,
         "python_dependencies": "tsfresh",
     }
