@@ -9,7 +9,6 @@ __all__ = [
     "InceptionNetwork",
     "MLPNetwork",
     "ResNetNetwork",
-    "TapNetNetwork",
     "AEFCNNetwork",
     "AEResNetNetwork",
     "LITENetwork",
@@ -34,5 +33,4 @@ from aeon.networks._inception import InceptionNetwork
 from aeon.networks._lite import LITENetwork
 from aeon.networks._mlp import MLPNetwork
 from aeon.networks._resnet import ResNetNetwork
-from aeon.networks._tapnet import TapNetNetwork
 from aeon.networks.base import BaseDeepLearningNetwork
