@@ -9,7 +9,7 @@ import numpy as np
 from numba.typed import List
 
 from aeon.similarity_search.distance_profiles.squared_distance_profile import (
-    normalized_squared_distance_profile,
+    normalised_squared_distance_profile,
     squared_distance_profile,
 )
 
@@ -39,18 +39,18 @@ def euclidean_distance_profile(
     Returns
     -------
     distance_profiles : np.ndarray
-        3D array of shape (n_cases, n_channels, n_timepoints - query_length + 1)
-        The distance profile between q and the input time series X independently
-        for each channel.
+        3D array of shape (n_cases, n_timepoints - query_length + 1)
+        The distance profile between q and the input time series X.
 
     """
     distance_profiles = squared_distance_profile(X, q, mask)
+    # Need loop as we can return a list of np array in the unequal length case
     for i in range(len(distance_profiles)):
         distance_profiles[i] = distance_profiles[i] ** 0.5
     return distance_profiles
 
 
-def normalized_euclidean_distance_profile(
+def normalised_euclidean_distance_profile(
     X: Union[np.ndarray, List],
     q: np.ndarray,
     mask: np.ndarray,
@@ -89,14 +89,14 @@ def normalized_euclidean_distance_profile(
     Returns
     -------
     distance_profiles : np.ndarray
-        3D array of shape (n_cases, n_channels, n_timepoints - query_length + 1)
-        The distance profile between q and the input time series X independently
-        for each channel.
+        3D array of shape (n_cases, n_timepoints - query_length + 1)
+        The distance profile between q and the input time series X.
 
     """
-    distance_profiles = normalized_squared_distance_profile(
+    distance_profiles = normalised_squared_distance_profile(
         X, q, mask, X_means, X_stds, q_means, q_stds
     )
+    # Need loop as we can return a list of np array in the unequal length case
     for i in range(len(distance_profiles)):
         distance_profiles[i] = distance_profiles[i] ** 0.5
     return distance_profiles
