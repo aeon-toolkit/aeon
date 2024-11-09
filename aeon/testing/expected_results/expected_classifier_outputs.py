@@ -471,6 +471,20 @@ unit_test_proba["ShapeletTransformClassifier"] = np.array(
         [0.6, 0.4],
     ]
 )
+unit_test_proba["RDSTClassifier"] = np.array(
+    [
+        [0.0, 1.0],
+        [1.0, 0.0],
+        [0.0, 1.0],
+        [1.0, 0.0],
+        [1.0, 0.0],
+        [1.0, 0.0],
+        [1.0, 0.0],
+        [0.0, 1.0],
+        [1.0, 0.0],
+        [1.0, 0.0],
+    ]
+)
 unit_test_proba["TEASER"] = np.array(
     [
         [0.2, 0.8],
@@ -822,6 +836,22 @@ basic_motions_proba["TimeSeriesForestClassifier"] = np.array(
         [0.2, 0.7, 0.0, 0.1],
     ]
 )
+
+basic_motions_proba["RDSTClassifier"] = np.array(
+    [
+        [0.0, 0.0, 0.0, 1.0],
+        [1.0, 0.0, 0.0, 0.0],
+        [0.0, 0.0, 1.0, 0.0],
+        [0.0, 1.0, 0.0, 0.0],
+        [0.0, 0.0, 0.0, 1.0],
+        [0.0, 0.0, 0.0, 1.0],
+        [1.0, 0.0, 0.0, 0.0],
+        [0.0, 0.0, 1.0, 0.0],
+        [0.0, 1.0, 0.0, 0.0],
+        [0.0, 1.0, 0.0, 0.0],
+    ]
+)
+
 basic_motions_proba["Arsenal"] = np.array(
     [
         [-0.0, -0.0, -0.0, 1.0],
