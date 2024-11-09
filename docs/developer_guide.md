@@ -1,8 +1,8 @@
 # Developer Guide
 
 Welcome to the `aeon` developer guide. This guide is intended for new developers and
-current developers who want to learn about specific topics for code and non-code
-developments.
+current developers who want to learn about specific topics for both code and non-code
+project development.
 
 For a step-by-step guide for setting up a development version of `aeon`
 and creating a pull request, see the [contributing guide](contributing.md). At any point
@@ -19,24 +19,6 @@ their [developer's guide](https://scikit-learn.org/stable/developers/index.html)
 
 :::{grid-item-card}
 :text-align: center
-
-Adding Estimators
-
-^^^
-
-A guide to creating new `aeon` estimators.
-
-+++
-
-```{button-ref} developer_guide/add_estimators
-:color: primary
-:click-parent:
-:expand:
-
-Adding Estimators
-```
-
-:::
 
 :::{grid-item-card}
 :text-align: center
@@ -76,27 +58,6 @@ Coding standards for the `aeon` code base.
 :expand:
 
 Coding Standards
-```
-
-:::
-
-:::{grid-item-card}
-:text-align: center
-
-CI/CD
-
-^^^
-
-A description of the `aeon` CI/CD pipeline.
-
-+++
-
-```{button-ref} developer_guide/continuous_integration
-:color: primary
-:click-parent:
-:expand:
-
-CI/CD
 ```
 
 :::
@@ -232,14 +193,12 @@ Testing
 ```{toctree}
 :hidden:
 
-developer_guide/add_estimators.md
 developer_guide/aep.md
 developer_guide/coding_standards.md
-developer_guide/continuous_integration.md
 developer_guide/dependencies.md
 developer_guide/deprecation.md
 developer_guide/dev_installation.md
 developer_guide/documentation.md
 developer_guide/release.md
-developer_guide/testing_framework.md
+developer_guide/testing.md
 ```

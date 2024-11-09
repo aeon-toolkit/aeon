@@ -65,8 +65,8 @@ class Dobin(BaseSeriesTransformer):
     >>> import pandas as pd
     >>> from aeon.datasets import load_uschange
     >>> X = load_uschange()
-    >>> min = MinMaxScaler()
-    >>> Xt = min.fit_transform(X.T)
+    >>> minmax = MinMaxScaler()
+    >>> Xt = minmax.fit_transform(X.T)
     >>> model = Dobin()
     >>> X_outlier = model.fit_transform(X)
     >>> X_outlier.T.head()
