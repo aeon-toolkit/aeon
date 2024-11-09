@@ -43,11 +43,11 @@ def _get_tag(estimator, tag_name, default=None, raise_error=False):
         return None
     elif isclass(estimator):
         return estimator.get_class_tag(
-            tag_name=tag_name, tag_value_default=default, raise_error=raise_error
+            tag_name=tag_name, raise_error=raise_error, tag_value_default=default
         )
     else:
         return estimator.get_tag(
-            tag_name=tag_name, tag_value_default=default, raise_error=raise_error
+            tag_name=tag_name, raise_error=raise_error, tag_value_default=default
         )
 
 

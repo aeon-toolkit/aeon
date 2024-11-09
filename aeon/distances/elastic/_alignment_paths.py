@@ -3,7 +3,7 @@ __maintainer__ = []
 import numpy as np
 from numba import njit
 
-from aeon.distances._euclidean import _univariate_euclidean_distance
+from aeon.distances.pointwise._euclidean import _univariate_euclidean_distance
 
 
 @njit(cache=True, fastmath=True)

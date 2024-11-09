@@ -6,6 +6,7 @@ __all__ = [
     "ClaSPTransformer",
     "DFTSeriesTransformer",
     "Dobin",
+    "GaussSeriesTransformer",
     "MatrixProfileSeriesTransformer",
     "PLASeriesTransformer",
     "SGSeriesTransformer",
@@ -30,6 +31,7 @@ from aeon.transformations.series._boxcox import BoxCoxTransformer
 from aeon.transformations.series._clasp import ClaSPTransformer
 from aeon.transformations.series._dft import DFTSeriesTransformer
 from aeon.transformations.series._dobin import Dobin
+from aeon.transformations.series._gauss import GaussSeriesTransformer
 from aeon.transformations.series._matrix_profile import MatrixProfileSeriesTransformer
 from aeon.transformations.series._pca import PCASeriesTransformer
 from aeon.transformations.series._pla import PLASeriesTransformer

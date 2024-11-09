@@ -28,21 +28,6 @@ covid_3month_preds["Catch22Regressor"] = np.array(
     [0.0310, 0.0555, 0.0193, 0.0359, 0.0261, 0.0361, 0.0387, 0.0835, 0.0827, 0.0414]
 )
 
-covid_3month_preds["RandomForestRegressor"] = np.array(
-    [
-        0.0319,
-        0.0505,
-        0.0082,
-        0.0291,
-        0.028,
-        0.0266,
-        0.0239,
-        0.0946,
-        0.0946,
-        0.0251,
-    ]
-)
-
 covid_3month_preds["TSFreshRegressor"] = np.array(
     [
         0.0106,

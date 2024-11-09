@@ -17,9 +17,6 @@ __all__ = [
     "has_missing",
     "is_univariate",
     "is_univariate_series",
-    "is_pred_interval_proba",
-    "is_pred_quantiles_proba",
-    "is_pdmultiindex_hierarchical",
     "is_single_series",
     "is_collection",
     "is_tabular",
@@ -44,9 +41,6 @@ from aeon.utils.validation.collection import (
 )
 from aeon.utils.validation.series import (
     is_hierarchical,
-    is_pdmultiindex_hierarchical,
-    is_pred_interval_proba,
-    is_pred_quantiles_proba,
     is_single_series,
     is_univariate_series,
 )
