@@ -1,7 +1,7 @@
 from sklearn.ensemble import ExtraTreesRegressor
 from sklearn.preprocessing import FunctionTransformer
 
-from aeon.base.estimator.hybrid import BaseRIST
+from aeon.base.estimators.hybrid import BaseRIST
 from aeon.regression import BaseRegressor
 from aeon.utils.numba.general import first_order_differences_3d
 

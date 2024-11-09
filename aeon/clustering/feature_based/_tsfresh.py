@@ -14,7 +14,7 @@ from sklearn.cluster import KMeans
 
 from aeon.base._base import _clone_estimator
 from aeon.clustering import BaseClusterer
-from aeon.transformations.collection.feature_based import TSFreshFeatureExtractor
+from aeon.transformations.collection.feature_based import TSFresh
 
 
 class TSFreshClusterer(BaseClusterer):
@@ -50,7 +50,7 @@ class TSFreshClusterer(BaseClusterer):
 
     See Also
     --------
-    TSFreshFeatureExtractor
+    TSFresh
 
     References
     ----------
@@ -122,7 +122,7 @@ class TSFreshClusterer(BaseClusterer):
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
         """
-        self._transformer = TSFreshFeatureExtractor(
+        self._transformer = TSFresh(
             default_fc_parameters=self.default_fc_parameters,
             n_jobs=self._n_jobs,
             chunksize=self.chunksize,
