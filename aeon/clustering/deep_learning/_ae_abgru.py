@@ -141,7 +141,6 @@ class AEAttentionBiGRUClusterer(BaseDeepClusterer):
         self.save_last_model = save_last_model
         self.best_file_name = best_file_name
         self.random_state = random_state
-        self.estimator = estimator
 
         super().__init__(
             n_clusters=n_clusters,
@@ -292,7 +291,7 @@ class AEAttentionBiGRUClusterer(BaseDeepClusterer):
         return self._estimator.score(latent_space)
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -317,8 +316,8 @@ class AEAttentionBiGRUClusterer(BaseDeepClusterer):
             "estimator": DummyClusterer(n_clusters=2),
             "n_epochs": 1,
             "batch_size": 4,
-            "n_layers_encoder": 2,
-            "n_layers_decoder": 2,
+            "n_layers_encoder": 1,
+            "n_layers_decoder": 1,
         }
 
         return [param1]
