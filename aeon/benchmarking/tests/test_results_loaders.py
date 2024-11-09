@@ -17,7 +17,6 @@ from aeon.benchmarking.results_loaders import (
     get_estimator_results_as_array,
 )
 from aeon.testing.testing_config import PR_TESTING
-from aeon.testing.utils.deep_equals import deep_equals
 
 
 def test_name_alias_unique():
@@ -103,7 +102,7 @@ def test_get_estimator_results(path):
     assert np.average(res2["HIVECOTEV2"]["ItalyPowerDemand"]) == 0.9630385487528345
 
     res3 = get_estimator_results(cls, datasets=data, num_resamples=None, path=path)
-    assert deep_equals(res3, res2)
+    assert res3 == res2
 
     with pytest.raises(ValueError, match="not a valid task"):
         get_estimator_results(cls, datasets=data, task="invalid")

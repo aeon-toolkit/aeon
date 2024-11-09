@@ -7,7 +7,6 @@ Objects compared can have one of the following valid types:
 """
 
 __maintainer__ = []
-
 __all__ = ["deep_equals"]
 
 from inspect import isclass
