@@ -165,6 +165,8 @@ class AEDCNNClusterer(BaseDeepClusterer):
 
         super().__init__(
             n_clusters=n_clusters,
+            clustering_params=clustering_params,
+            clustering_algorithm=clustering_algorithm,
             estimator=estimator,
             batch_size=batch_size,
             last_file_name=last_file_name,
