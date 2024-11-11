@@ -13,20 +13,7 @@ import numpy as np
 import pandas as pd
 from scipy.stats import wilcoxon
 
-# from aeon.utils.validation._dependencies import _check_soft_dependencies
-
-
-class _NpEncoder(json.JSONEncoder):
-    """Encoder for json files saving."""
-
-    def default(self, obj):
-        if isinstance(obj, np.integer):
-            return int(obj)
-        if isinstance(obj, np.floating):
-            return float(obj)
-        if isinstance(obj, np.ndarray):
-            return obj.tolist()
-        return super().default(obj)
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 def create_multi_comparison_matrix(
@@ -174,6 +161,7 @@ def create_multi_comparison_matrix(
     ----------
     [1] Demsar, J. (2006). Statistical comparisons of classifiers over multiple data
     """
+    _check_soft_dependencies("matplotlib", "seaborn")
     if isinstance(df_results, str):
         try:
             df_results = pd.read_csv(df_results)
@@ -1366,3 +1354,16 @@ def _get_ticks(analysis, row_comparates, col_comparates, precision=4):
 
 def _get_sign(x):
     return 1 if x > 0 else -1
+
+
+class _NpEncoder(json.JSONEncoder):
+    """Encoder for json files saving."""
+
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        if isinstance(obj, np.floating):
+            return float(obj)
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return super().default(obj)
