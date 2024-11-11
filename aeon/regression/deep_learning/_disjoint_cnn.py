@@ -206,6 +206,7 @@ class DisjointCNNRegressor(BaseDeepRegressor):
         self.hidden_fc_units = hidden_fc_units
         self.activation_fc = activation_fc
 
+        self.random_state = random_state
         self.callbacks = callbacks
         self.n_epochs = n_epochs
         self.use_mini_batch_size = use_mini_batch_size
