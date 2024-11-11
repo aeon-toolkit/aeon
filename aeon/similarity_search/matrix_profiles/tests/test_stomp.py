@@ -11,7 +11,7 @@ from aeon.distances import get_distance_function
 from aeon.similarity_search._commons import get_ith_products
 from aeon.similarity_search.matrix_profiles.stomp import (
     _update_dot_products_one_series,
-    stomp_normalized_squared_matrix_profile,
+    stomp_normalised_squared_matrix_profile,
     stomp_squared_matrix_profile,
 )
 from aeon.utils.numba.general import sliding_mean_std_one_series
@@ -46,7 +46,7 @@ def test__update_dot_products_one_series():
 @pytest.mark.parametrize("dtype", DATATYPES)
 @pytest.mark.parametrize("k", K_VALUES)
 def test_stomp_squared_matrix_profile(dtype, k):
-    """Test naive series search."""
+    """Test stomp series search."""
     X = np.asarray(
         [[[1, 2, 3, 4, 5, 6, 7, 8]], [[1, 2, 4, 4, 5, 6, 5, 4]]], dtype=dtype
     )
@@ -78,8 +78,8 @@ def test_stomp_squared_matrix_profile(dtype, k):
 
 @pytest.mark.parametrize("dtype", DATATYPES)
 @pytest.mark.parametrize("k", K_VALUES)
-def test_stomp_normalized_squared_matrix_profile(dtype, k):
-    """Test naive series search."""
+def test_stomp_normalised_squared_matrix_profile(dtype, k):
+    """Test stomp series search."""
     X = np.asarray(
         [[[1, 2, 3, 4, 5, 6, 7, 8]], [[1, 2, 4, 4, 5, 6, 5, 4]]], dtype=dtype
     )
@@ -101,7 +101,7 @@ def test_stomp_normalized_squared_matrix_profile(dtype, k):
 
     S_means, S_stds = sliding_mean_std_one_series(S, L, 1)
 
-    mp, ip = stomp_normalized_squared_matrix_profile(
+    mp, ip = stomp_normalised_squared_matrix_profile(
         X, S, L, X_means, X_stds, S_means, S_stds, mask, k=k
     )
 
@@ -130,7 +130,7 @@ def test_stomp_normalized_squared_matrix_profile(dtype, k):
 
 @pytest.mark.parametrize("dtype", DATATYPES)
 def test_stomp_squared_matrix_profile_unequal_length(dtype):
-    """Test naive distance with unequal length."""
+    """Test stomp with unequal length."""
     X = List(
         [
             np.array([[1, 2, 3, 4, 5, 6, 7, 8]], dtype=dtype),
@@ -165,7 +165,7 @@ def test_stomp_squared_matrix_profile_unequal_length(dtype):
 @pytest.mark.parametrize("dtype", DATATYPES)
 @pytest.mark.parametrize("k", K_VALUES)
 def test_stomp_squared_matrix_profile_inverse(dtype, k):
-    """Test naive series search for inverse distance."""
+    """Test stomp series search for inverse distance."""
     X = np.asarray(
         [[[1, 2, 3, 4, 5, 6, 7, 8]], [[1, 2, 4, 4, 5, 6, 5, 4]]], dtype=dtype
     )

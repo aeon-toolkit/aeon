@@ -9,9 +9,9 @@ from numba.typed import List
 from numpy.testing import assert_array_almost_equal, assert_array_equal
 
 from aeon.similarity_search._commons import naive_squared_distance_profile
-from aeon.similarity_search.distance_profiles.euclidean_distance_profile import (
-    euclidean_distance_profile,
-    normalised_euclidean_distance_profile,
+from aeon.similarity_search.distance_profiles.squared_distance_profile import (
+    normalised_squared_distance_profile,
+    squared_distance_profile,
 )
 from aeon.utils.numba.general import sliding_mean_std_one_series
 
@@ -27,8 +27,8 @@ def test_euclidean_distance(dtype):
     q = np.asarray([[3, 4, 5]], dtype=dtype)
 
     mask = np.ones((X.shape[0], X.shape[2] - q.shape[1] + 1), dtype=bool)
-    expected = [T**0.5 for T in naive_squared_distance_profile(X, q, mask)]
-    dist_profile = euclidean_distance_profile(X, q, mask)
+    expected = naive_squared_distance_profile(X, q, mask)
+    dist_profile = squared_distance_profile(X, q, mask)
 
     assert_array_almost_equal(dist_profile, expected)
 
@@ -40,8 +40,8 @@ def test_euclidean_constant_case(dtype):
     q = np.zeros((1, 3), dtype=dtype)
 
     mask = np.ones((X.shape[0], X.shape[2] - q.shape[1] + 1), dtype=bool)
-    expected = [T**0.5 for T in naive_squared_distance_profile(X, q, mask)]
-    dist_profile = euclidean_distance_profile(X, q, mask)
+    expected = naive_squared_distance_profile(X, q, mask)
+    dist_profile = squared_distance_profile(X, q, mask)
 
     assert_array_almost_equal(dist_profile, expected)
 
@@ -54,7 +54,7 @@ def test_non_alteration_of_inputs_euclidean():
     q_copy = np.copy(q)
 
     mask = np.ones((X.shape[0], X.shape[2] - q.shape[1] + 1), dtype=bool)
-    _ = euclidean_distance_profile(X, q, mask)
+    _ = squared_distance_profile(X, q, mask)
     assert_array_equal(q, q_copy)
     assert_array_equal(X, X_copy)
 
@@ -81,12 +81,10 @@ def test_normalised_euclidean_distance(dtype):
     q_stds = q.std(axis=-1)
     mask = np.ones((X.shape[0], X.shape[2] - q.shape[1] + 1), dtype=bool)
 
-    dist_profile = normalised_euclidean_distance_profile(
+    dist_profile = normalised_squared_distance_profile(
         X, q, mask, X_means, X_stds, q_means, q_stds
     )
-    expected = [
-        T**0.5 for T in naive_squared_distance_profile(X, q, mask, normalise=True)
-    ]
+    expected = naive_squared_distance_profile(X, q, mask, normalise=True)
 
     assert_array_almost_equal(dist_profile, expected)
 
@@ -116,15 +114,10 @@ def test_normalised_euclidean_distance_unequal_length(dtype):
         [np.ones(X[i].shape[1] - q.shape[1] + 1, dtype=bool) for i in range(len(X))]
     )
 
-    dist_profile = normalised_euclidean_distance_profile(
+    dist_profile = normalised_squared_distance_profile(
         X, q, mask, X_means, X_stds, q_means, q_stds
     )
-    expected = [
-        T**0.5
-        for T in naive_squared_distance_profile(
-            X, q, mask, normalise=True, X_means=X_means, X_stds=X_stds
-        )
-    ]
+    expected = naive_squared_distance_profile(X, q, mask, normalise=True)
     for i in range(len(X)):
         assert_array_almost_equal(dist_profile[i], expected[i])
 
@@ -143,8 +136,9 @@ def test_euclidean_distance_unequal_length(dtype):
     mask = List(
         [np.ones(X[i].shape[1] - q.shape[1] + 1, dtype=bool) for i in range(len(X))]
     )
-    expected = [T**0.5 for T in naive_squared_distance_profile(X, q, mask)]
-    dist_profile = euclidean_distance_profile(X, q, mask)
+
+    expected = naive_squared_distance_profile(X, q, mask)
+    dist_profile = squared_distance_profile(X, q, mask)
     for i in range(len(X)):
         assert_array_almost_equal(dist_profile[i], expected[i])
 
@@ -169,12 +163,10 @@ def test_normalised_euclidean_constant_case(dtype):
 
     mask = np.ones((X.shape[0], X.shape[2] - q.shape[1] + 1), dtype=bool)
 
-    dist_profile = normalised_euclidean_distance_profile(
+    dist_profile = normalised_squared_distance_profile(
         X, q, mask, X_means, X_stds, q_means, q_stds
     )
-    expected = [
-        T**0.5 for T in naive_squared_distance_profile(X, q, mask, normalise=True)
-    ]
+    expected = naive_squared_distance_profile(X, q, mask, normalise=True)
 
     assert_array_almost_equal(dist_profile, expected)
 
@@ -200,7 +192,7 @@ def test_non_alteration_of_inputs_normalised_euclidean():
     q_stds = q.std(axis=-1)
 
     mask = np.ones((X.shape[0], X.shape[2] - q.shape[1] + 1), dtype=bool)
-    _ = normalised_euclidean_distance_profile(
+    _ = normalised_squared_distance_profile(
         X, q, mask, X_means, X_stds, q_means, q_stds
     )
 

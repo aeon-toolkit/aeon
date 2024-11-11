@@ -63,6 +63,7 @@ Deep learning
     LITETimeRegressor
     ResNetRegressor
     MLPRegressor
+    DisjointCNNRegressor
 
 Distance-based
 --------------
