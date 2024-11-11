@@ -18,5 +18,5 @@ def test_disjoint_cnn_netowkr_kernel_initializer():
         kernel_size=[2, 2],
     ).build_network(input_shape=((10, 2)))
 
-    assert len(output_layer.shape) == 3
+    assert len(output_layer.shape) == 2
     assert len(input_layer.shape) == 3
