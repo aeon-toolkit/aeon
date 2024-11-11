@@ -12,9 +12,11 @@ __all__ = [
     "LITETimeRegressor",
     "EncoderRegressor",
     "MLPRegressor",
+    "DisjointCNNRegressor",
 ]
 
 from aeon.regression.deep_learning._cnn import TimeCNNRegressor
+from aeon.regression.deep_learning._disjoint_cnn import DisjointCNNRegressor
 from aeon.regression.deep_learning._encoder import EncoderRegressor
 from aeon.regression.deep_learning._fcn import FCNRegressor
 from aeon.regression.deep_learning._inception_time import (

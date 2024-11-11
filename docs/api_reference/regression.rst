@@ -64,6 +64,7 @@ Deep learning
     ResNetRegressor
     TapNetRegressor
     MLPRegressor
+    DisjointCNNRegressor
 
 Distance-based
 --------------
