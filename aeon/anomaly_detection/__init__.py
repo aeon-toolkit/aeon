@@ -11,6 +11,7 @@ __all__ = [
     "IsolationForest",
     "CBLOF",
     "COPOD",
+    "OneClassSVM"
 ]
 
 from aeon.anomaly_detection._cblof import CBLOF
@@ -23,3 +24,4 @@ from aeon.anomaly_detection._merlin import MERLIN
 from aeon.anomaly_detection._pyodadapter import PyODAdapter
 from aeon.anomaly_detection._stomp import STOMP
 from aeon.anomaly_detection._stray import STRAY
+from aeon.anomaly_detection._one_class_svm import OneClassSVM
