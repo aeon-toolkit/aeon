@@ -136,25 +136,15 @@ def check_algorithm_type(estimator_class):
     """Test the tag algorithm_type is classifier."""
     valid_algorithm_types = [
         "distance",
-        "classification",
-        "regression",
-        "clustering",
-        "anomalydetection",
         "deeplearning",
         "convolution",
         "dictionary",
         "interval",
-        "segmentation",
         "feature",
         "hybrid",
         "shapelet",
     ]
     algorithm_type = estimator_class.get_class_tag("algorithm_type")
-
-    # check if the algorithm type tag is present
-    assert (
-        algorithm_type is not None
-    ), f"Estimator {estimator_class.__name__} must havr an 'algorithm_type' tag."
 
     # Check if algorithm type is string
     if not isinstance(algorithm_type, str):
