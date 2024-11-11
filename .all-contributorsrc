@@ -2601,6 +2601,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "pattplatt",
+      "name": "Patrick Müller",
+      "avatar_url": "https://avatars.githubusercontent.com/u/55019140?v=4",
+      "profile": "https://github.com/pattplatt",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "commitType": "docs"
