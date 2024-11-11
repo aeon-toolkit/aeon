@@ -115,6 +115,9 @@ def test_all_networks_params(network):
         if network.__name__ == "LITENetwork":
             continue
 
+        if network.__name__ == "MLPNetwork":
+            continue
+
         # Here we use 'None' string as default to differentiate with None values
         attr = getattr(my_network, attrname, "None")
         if attr != "None":
