@@ -89,9 +89,10 @@ def create_multi_comparison_matrix(
     include_pvalue bool, default = True
         Condition whether or not include a pvalue stats.
     pvalue_test: str, default = 'wilcoxon'
-        The statistical test to produce the pvalue stats.
+        The statistical test to produce the pvalue stats. Currently only wilcoxon is
+        supported.
     pvalue_correction: str, default = None
-        Correction to use for the pvalue significant test
+        Correction to use for the pvalue significant test, None or "Holm".
     pvalue_threshold: float, default = 0.05
         Threshold for considering a comparison is significant or not. If pvalue <
         pvalue_threshhold -> comparison is significant.
@@ -141,6 +142,8 @@ def create_multi_comparison_matrix(
     show_symetry: bool, default = True
         Whether or not to show the symetrical part of the heatmap.
 
+    Returns
+    -------
     Example
     -------
     >>> from aeon.visualisation import create_multi_comparison_matrix
@@ -152,9 +155,9 @@ def create_multi_comparison_matrix(
 
     References
     ----------
-    [1] Demsar, J. (2006). Statistical comparisons of classifiers over multiple data
+    [1]
     """
-    _check_soft_dependencies("matplotlib", "seaborn")
+    _check_soft_dependencies("matplotlib")
     if isinstance(df_results, str):
         try:
             df_results = pd.read_csv(df_results)
@@ -167,7 +170,7 @@ def create_multi_comparison_matrix(
         used_statistic=used_statistic,
         save_as_json=save_as_json,
         plot_1v1_comparisons=plot_1v1_comparisons,
-        order_WinTieLoss=order_win_tie_loss,
+        order_win_tie_loss=order_win_tie_loss,
         include_pvalue=include_pvalue,
         pvalue_test=pvalue_test,
         pvalue_correction=pvalue_correction,
@@ -181,7 +184,7 @@ def create_multi_comparison_matrix(
     )
 
     # start drawing heatmap
-    _draw(
+    temp = _draw(
         analysis,
         pdf_savename=pdf_savename,
         png_savename=png_savename,
@@ -204,6 +207,7 @@ def create_multi_comparison_matrix(
         include_legend=include_legend,
         show_symetry=show_symetry,
     )
+    return temp
 
 
 def _get_analysis(
@@ -775,9 +779,7 @@ def _draw(
     # * https://tex.stackexchange.com/a/334293
     # * https://tex.stackexchange.com/a/592942
     # * https://tex.stackexchange.com/a/304215
-
-    if tex_savename is None and pdf_savename is None and png_savename is None:
-        plt.show()
+    return plt.Figure()
 
 
 def _get_keys_for_two_comparates(a, b):
