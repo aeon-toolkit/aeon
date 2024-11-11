@@ -146,12 +146,6 @@ def check_algorithm_type(estimator_class):
     ]
     algorithm_type = estimator_class.get_class_tag("algorithm_type")
 
-    # Check if algorithm type is string
-    if not isinstance(algorithm_type, str):
-        raise TypeError(
-            f"The 'algorithm_type' tag in {estimator_class.__name__} must be a string."
-        )
-
     assert algorithm_type in valid_algorithm_types, (
         f"Estimator {estimator_class.__name__} has an invalid 'algorithm_type' tag: "
         f"'{algorithm_type}'. Valid types are {valid_algorithm_types}."
