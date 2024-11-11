@@ -1,7 +1,5 @@
 """Tests for the OneClassSVM anomaly detector."""
 
-__maintainer__ = [""]
-
 import numpy as np
 import pytest
 from sklearn.utils import check_random_state

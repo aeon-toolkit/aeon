@@ -1,5 +1,7 @@
 """OneClassSVM anomaly detector."""
 
+__all__ = ["OneClassSVM"]
+
 from sklearn.svm import OneClassSVM as OCSVM
 
 from typing import Optional
@@ -10,6 +12,88 @@ from aeon.utils.windowing import reverse_windowing, sliding_windows
 
 
 class OneClassSVM(BaseAnomalyDetector):
+    """OneClassSVM for anomaly detection.
+
+    This class implements the OneClassSVM algorithm for anomaly detection
+    fromo sklearn to be used in the aeon framework. All parameters are passed to
+    the sklearn ``OneClassSVM`` except for `window_size` and `stride`, which are used to
+    construct the sliding windows.
+
+    .. list-table:: Capabilities
+       :stub-columns: 1
+
+       * - Input data format
+         - univariate and multivariate
+       * - Output data format
+         - anomaly scores
+       * - Learning Type
+         - semi-supervised
+
+    The documentation for parameters has been adapted from the
+    [scikit learn documentation](https://scikit-learn.org/dev/modules/generated/sklearn.svm.OneClassSVM.html).
+    Here, `X` refers to the set of sliding windows extracted from the time series
+    using :func:`aeon.utils.windowing.sliding_windows` with the parameters
+    ``window_size`` and ``stride``. The internal `X` has the shape
+    `(n_windows, window_size * n_channels)`.
+
+    Parameters
+    ----------
+    kernel : {'linear', 'poly', 'rbf', 'sigmoid', 'precomputed'} or callable,  \
+        default='rbf'
+         Specifies the kernel type to be used in the algorithm.
+         If none is given, 'rbf' will be used. If a callable is given it is
+         used to precompute the kernel matrix.
+
+    degree : int, default=3
+        Degree of the polynomial kernel function ('poly').
+        Must be non-negative. Ignored by all other kernels.
+
+    gamma : {'scale', 'auto'} or float, default='scale'
+        Kernel coefficient for 'rbf', 'poly' and 'sigmoid'.
+
+        - if ``gamma='scale'`` (default) is passed then it uses
+          1 / (n_features * X.var()) as value of gamma,
+        - if 'auto', uses 1 / n_features
+        - if float, must be non-negative.
+
+        .. versionchanged:: 0.22
+           The default value of ``gamma`` changed from 'auto' to 'scale'.
+
+    coef0 : float, default=0.0
+        Independent term in kernel function.
+        It is only significant in 'poly' and 'sigmoid'.
+
+    tol : float, default=1e-3
+        Tolerance for stopping criterion.
+
+    nu : float, default=0.5
+        An upper bound on the fraction of training
+        errors and a lower bound of the fraction of support
+        vectors. Should be in the interval (0, 1]. By default 0.5
+        will be taken.
+
+    shrinking : bool, default=True
+        Whether to use the shrinking heuristic.
+        See the :ref:`User Guide <shrinking_svm>`.
+
+    cache_size : float, default=200
+        Specify the size of the kernel cache (in MB).
+
+    verbose : bool, default=False
+        Enable verbose output. Note that this setting takes advantage of a
+        per-process runtime setting in libsvm that, if enabled, may not work
+        properly in a multithreaded context.
+
+    max_iter : int, default=-1
+        Hard limit on iterations within solver, or -1 for no limit.
+
+    window_size : int, default=10
+        Size of the sliding window.
+
+    stride : int, default=1
+        Stride of the sliding window.
+
+"""
 
     _tags = {
         "capability:univariate": True,
@@ -30,7 +114,7 @@ class OneClassSVM(BaseAnomalyDetector):
         cache_size=200,
         verbose=False,
         max_iter=-1,
-        window_size: int = 20,
+        window_size: int = 10,
         stride: int = 1,
     ):
         super().__init__(axis=0)
