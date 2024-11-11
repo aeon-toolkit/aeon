@@ -27,8 +27,6 @@ def create_multi_comparison_matrix(
     save_as_json=True,
     plot_1v1_comparisons=False,
     order_win_tie_loss="higher",
-    include_proba_win_tie_loss=False,
-    bayesian_rope=0.01,
     include_pvalue=True,
     pvalue_test="wilcoxon",
     pvalue_correction=None,
@@ -88,11 +86,6 @@ def create_multi_comparison_matrix(
         Whether or not to plot the 1v1 scatter results.
     order_win_tie_loss: str, default = 'higher'
         The order on considering a win or a loss for a given statistics.
-    include_proba_win_tie_loss : bool, default = False
-        Condition whether or not include the Bayesian test for a probabilistic win
-        tie loss count.
-    bayesian_rope: float, default = 0.01
-        The rope used in case include_ProbaWinTieLoss is True.
     include_pvalue bool, default = True
         Condition whether or not include a pvalue stats.
     pvalue_test: str, default = 'wilcoxon'
@@ -175,8 +168,6 @@ def create_multi_comparison_matrix(
         save_as_json=save_as_json,
         plot_1v1_comparisons=plot_1v1_comparisons,
         order_WinTieLoss=order_win_tie_loss,
-        include_ProbaWinTieLoss=include_proba_win_tie_loss,
-        bayesian_rope=bayesian_rope,
         include_pvalue=include_pvalue,
         pvalue_test=pvalue_test,
         pvalue_correction=pvalue_correction,
@@ -221,9 +212,7 @@ def _get_analysis(
     used_statistic="Score",
     save_as_json=True,
     plot_1v1_comparisons=False,
-    order_WinTieLoss="higher",
-    include_ProbaWinTieLoss=False,
-    bayesian_rope=0.01,
+    order_win_tie_loss="higher",
     include_pvalue=True,
     pvalue_test="wilcoxon",
     pvalue_correction=None,
@@ -249,7 +238,7 @@ def _get_analysis(
         "order-stats": order_stats,
         "order-better": order_better,
         "used-statistics": used_statistic,
-        "order-WinTieLoss": order_WinTieLoss,
+        "order-win_tie_loss": order_win_tie_loss,
         "include-pvalue": include_pvalue,
         "pvalue-test": pvalue_test,
         "pvalue-threshold": pvalue_threshhold,
@@ -281,13 +270,10 @@ def _get_analysis(
                 pairwise_content = _get_pairwise_content(
                     x=x,
                     y=y,
-                    order_WinTieLoss=order_WinTieLoss,
-                    includeProbaWinTieLoss=include_ProbaWinTieLoss,
                     include_pvalue=include_pvalue,
                     pvalue_test=pvalue_test,
                     pvalue_threshhold=pvalue_threshhold,
                     use_mean=use_mean,
-                    bayesian_rope=bayesian_rope,
                 )
 
                 analysis[pairwise_key] = pairwise_content
