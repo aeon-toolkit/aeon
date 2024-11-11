@@ -33,7 +33,6 @@ class AEAttentionBiGRUNetwork(BaseDeepLearningNetwork):
     Discovery and Data Mining: 24th Pacific-Asia Conference, PAKDD 2020, Singapore,
     May 11-14, 2020, Proceedings, Part I 24 (pp. 318-329). Springer International
     Publishing.
-
     """
 
     _config = {

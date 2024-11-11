@@ -16,6 +16,7 @@ __all__ = [
     "DCNNNetwork",
     "AEDCNNNetwork",
     "AEAttentionBiGRUNetwork",
+    "AEBiGRUNetwork",
     "AEDRNNNetwork",
     "AEBiGRUNetwork",
 ]
