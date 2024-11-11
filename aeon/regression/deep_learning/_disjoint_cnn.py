@@ -226,7 +226,6 @@ class DisjointCNNRegressor(BaseDeepRegressor):
 
         super().__init__(
             batch_size=batch_size,
-            random_state=random_state,
             last_file_name=last_file_name,
         )
 
