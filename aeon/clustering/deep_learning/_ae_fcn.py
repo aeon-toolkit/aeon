@@ -489,17 +489,17 @@ class AEFCNClusterer(BaseDeepClusterer):
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
         """
-        param1 = {
-            "n_epochs": 1,
+        param = {
+            "n_epochs": 2,
             "batch_size": 4,
             "use_bias": False,
-            "n_layers": 1,
-            "n_filters": 4,
-            "kernel_size": 2,
+            "n_layers": 2,
+            "n_filters": [2, 2],
+            "kernel_size": [2, 2],
             "padding": "same",
             "strides": 1,
-            "latent_space_dim": 4,
+            "latent_space_dim": 2,
             "estimator": DummyClusterer(n_clusters=2),
         }
 
-        return [param1]
+        return [param]

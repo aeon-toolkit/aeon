@@ -1,7 +1,7 @@
-"""Deep Learning Auto-Encoder using Bidirectional GRU Network."""
+"""Deep Learning Auto-Encoder using DRNN Network."""
 
 __maintainer__ = []
-__all__ = ["AEBiGRUClusterer"]
+__all__ = ["AEDRNNClusterer"]
 
 import gc
 import os
@@ -12,32 +12,48 @@ from sklearn.utils import check_random_state
 
 from aeon.clustering import DummyClusterer
 from aeon.clustering.deep_learning.base import BaseDeepClusterer
-from aeon.networks import AEBiGRUNetwork
+from aeon.networks import AEDRNNNetwork
+from aeon.utils.validation._dependencies import _check_soft_dependencies
+
+if _check_soft_dependencies(["tensorflow"], severity="none"):
+    from aeon.networks._ae_drnn import _TensorDilation
 
 
-class AEBiGRUClusterer(BaseDeepClusterer):
-    """Auto-Encoder based Bidirectional GRU Network.
+class AEDRNNClusterer(BaseDeepClusterer):
+    """Auto-Encoder based Dilated Recurrent Neural Network (DRNN).
 
     Parameters
     ----------
     n_clusters : int, default=None
         Number of clusters for the deep learnign model.
     clustering_algorithm : str, default="deprecated"
-        Use 'estimator' parameter instead.
-    clustering_params : dict, default=None
-        Use 'estimator' parameter instead.
+        Please use the 'estimator' parameter.
     estimator : aeon clusterer, default=None
         An aeon estimator to be built using the transformed data.
         Defaults to aeon TimeSeriesKMeans() with euclidean distance
         and mean averaging method and n_clusters set to 2.
+    clustering_params : dict, default=None
+        Please use 'estimator' parameter.
     latent_space_dim : int, default=128
         Dimension of the latent space of the auto-encoder.
     temporal_latent_space : bool, default = False
         Flag to choose whether the latent space is an MTS or Euclidean space.
-    n_layers : int, default = 2
-        Number of Bidirectional GRU Layers.
-    activation : str or list of str, default = "relu"
-        Activation used after the Bidirectional GRU Layer.
+    n_layers_encoder : int, default = 3
+        Number of layers in the encoder.
+    n_layers_decoder : int, default = 3
+        Number of layers in the decoder.
+    dilation_rate_encoder : int or list of int, default = 1
+        The dilation rate for the encoder.
+    dilation_rate_decoder : int or list of int, default = 1
+        The dilation rate for the decoder.
+    activation_encoder : str or list of str, default = "relu"
+        Activation used after DRNN Layer in the encoder.
+    activation_decoder : str or list of str, default = "relu"
+        Activation used after DRNN Layer in the decoder.
+    n_units_encoder : list or int, default = None
+        Number of Units in each DRNN Layer of the encoder.
+    n_units_decoder : list or int, default = None
+        Number of Units in each DRNN Layer of the decoder.
     n_epochs : int, default = 2000
         The number of epochs to train the model.
     batch_size : int, default = 16
@@ -53,10 +69,10 @@ class AEBiGRUClusterer(BaseDeepClusterer):
         GPU processing will be non-deterministic.
     verbose : boolean, default = False
         Whether to output extra information.
-    loss : str, default="mean_squared_error"
+    loss : string, default="mean_squared_error"
         Fit parameter for the keras model.
-    metrics : str, default=["mean_squared_error"]
-        Metrics to evaluate model predictions.
+    metrics : keras metrics, default = ["mean_squared_error"]
+        will be set to mean_squared_error as default if None
     optimizer : keras.optimizers object, default = Adam(lr=0.01)
         Specify the optimizer and the learning rate to be used.
     file_path : str, default = "./"
@@ -82,32 +98,36 @@ class AEBiGRUClusterer(BaseDeepClusterer):
     callbacks : keras.callbacks, default = None
         List of keras callbacks.
 
-
     Examples
     --------
-    >>> from aeon.clustering.deep_learning import AEBiGRUClusterer
-    >>> from aeon.clustering import DummyClusterer
+    >>> from aeon.clustering.deep_learning import AEDRNNClusterer
     >>> from aeon.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test = load_unit_test(split="test")
+    >>> from aeon.clustering import DummyClusterer
     >>> _clst = DummyClusterer(n_clusters=2)
-    >>> aebgru=AEBiGRUClusterer( estimator=_clst, n_epochs=20,
-    ... batch_size=4 )  # doctest: +SKIP
-    >>> aebgru.fit(X_train)  # doctest: +SKIP
-    AEBiGRUClusterer(...)
+    >>> aefcn = AEDRNNClusterer(estimator = _clst,
+    ... n_epochs=20,batch_size=4)  # doctest: +SKIP
+    >>> aefcn.fit(X_train)  # doctest: +SKIP
+    AEDRNNClusterer(...)
     """
 
     def __init__(
         self,
         n_clusters=None,
-        clustering_algorithm="deprecated",
         estimator=None,
+        clustering_algorithm="deprecated",
         clustering_params=None,
         latent_space_dim=128,
         temporal_latent_space=False,
-        n_layers=2,
-        n_units=None,
-        activation="relu",
+        n_layers_encoder=3,
+        n_layers_decoder=3,
+        dilation_rate_encoder=1,
+        dilation_rate_decoder=1,
+        n_units_encoder=None,
+        n_units_decoder=None,
+        activation_encoder="relu",
+        activation_decoder="relu",
         n_epochs=2000,
         batch_size=32,
         use_mini_batch_size=False,
@@ -125,9 +145,14 @@ class AEBiGRUClusterer(BaseDeepClusterer):
     ):
         self.latent_space_dim = latent_space_dim
         self.temporal_latent_space = temporal_latent_space
-        self.n_layers = n_layers
-        self.n_units = n_units
-        self.activation = activation
+        self.n_layers_encoder = n_layers_encoder
+        self.n_layers_decoder = n_layers_decoder
+        self.activation_encoder = activation_encoder
+        self.activation_decoder = activation_decoder
+        self.dilation_rate_encoder = dilation_rate_encoder
+        self.dilation_rate_decoder = dilation_rate_decoder
+        self.n_units_encoder = n_units_encoder
+        self.n_units_decoder = n_units_decoder
         self.optimizer = optimizer
         self.loss = loss
         self.metrics = metrics
@@ -143,19 +168,24 @@ class AEBiGRUClusterer(BaseDeepClusterer):
 
         super().__init__(
             n_clusters=n_clusters,
+            estimator=estimator,
             clustering_algorithm=clustering_algorithm,
             clustering_params=clustering_params,
-            estimator=estimator,
             batch_size=batch_size,
             last_file_name=last_file_name,
         )
 
-        self._network = AEBiGRUNetwork(
+        self._network = AEDRNNNetwork(
             latent_space_dim=self.latent_space_dim,
-            n_layers=self.n_layers,
-            n_units=self.n_units,
-            activation=self.activation,
             temporal_latent_space=self.temporal_latent_space,
+            n_layers_encoder=self.n_layers_encoder,
+            n_layers_decoder=self.n_layers_decoder,
+            dilation_rate_encoder=self.dilation_rate_encoder,
+            dilation_rate_decoder=self.dilation_rate_decoder,
+            activation_encoder=self.activation_encoder,
+            activation_decoder=self.activation_decoder,
+            n_units_encoder=self.n_units_encoder,
+            n_units_decoder=self.n_units_decoder,
         )
 
     def build_model(self, input_shape, **kwargs):
@@ -271,7 +301,9 @@ class AEBiGRUClusterer(BaseDeepClusterer):
 
         try:
             self.model_ = tf.keras.models.load_model(
-                self.file_path + self.file_name_ + ".keras", compile=False
+                self.file_path + self.file_name_ + ".keras",
+                compile=False,
+                custom_objects={"_TensorDilation": _TensorDilation},
             )
             if not self.save_best_model:
                 os.remove(self.file_path + self.file_name_ + ".keras")
@@ -316,8 +348,8 @@ class AEBiGRUClusterer(BaseDeepClusterer):
             "estimator": DummyClusterer(n_clusters=2),
             "n_epochs": 1,
             "batch_size": 4,
-            "n_layers": 1,
-            "n_units": 2,
+            "n_layers_encoder": 1,
+            "n_layers_decoder": 1,
         }
 
         return [param1]

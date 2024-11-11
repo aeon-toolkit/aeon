@@ -1,6 +1,6 @@
 """Shape-based distance (SBD) between two time series."""
 
-__maintainer__ = ["codelionx"]
+__maintainer__ = ["SebastianSchmidl"]
 
 from typing import Optional, Union
 

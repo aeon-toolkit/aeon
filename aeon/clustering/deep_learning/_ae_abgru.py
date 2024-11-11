@@ -1,7 +1,7 @@
-"""Deep Learning Auto-Encoder using Bidirectional GRU Network."""
+"""Deep Learning Auto-Encoder using Attention Bidirectional GRU Network."""
 
 __maintainer__ = []
-__all__ = ["AEBiGRUClusterer"]
+__all__ = ["AEAttentionBiGRUClusterer"]
 
 import gc
 import os
@@ -12,11 +12,11 @@ from sklearn.utils import check_random_state
 
 from aeon.clustering import DummyClusterer
 from aeon.clustering.deep_learning.base import BaseDeepClusterer
-from aeon.networks import AEBiGRUNetwork
+from aeon.networks import AEAttentionBiGRUNetwork
 
 
-class AEBiGRUClusterer(BaseDeepClusterer):
-    """Auto-Encoder based Bidirectional GRU Network.
+class AEAttentionBiGRUClusterer(BaseDeepClusterer):
+    """Auto-Encoder based the Attention Bidirectional GRU Network.
 
     Parameters
     ----------
@@ -32,12 +32,14 @@ class AEBiGRUClusterer(BaseDeepClusterer):
         and mean averaging method and n_clusters set to 2.
     latent_space_dim : int, default=128
         Dimension of the latent space of the auto-encoder.
-    temporal_latent_space : bool, default = False
-        Flag to choose whether the latent space is an MTS or Euclidean space.
-    n_layers : int, default = 2
-        Number of Bidirectional GRU Layers.
-    activation : str or list of str, default = "relu"
-        Activation used after the Bidirectional GRU Layer.
+    n_layers_encoder : int, default = 2
+        Number of Attention Bidirectional GRU Layers in the encoder.
+    n_layers_encoder : int, default = 2
+        Number of Attention Bidirectional GRU Layers in the decoder.
+    activation_encoder : str or list of str, default = "relu"
+        Activation used after the Attention Bidirectional GRU Layer of the encoder.
+    activation_encoder : str or list of str, default = "relu"
+        Activation used after the Attention Bidirectional GRU Layer of the decoder.
     n_epochs : int, default = 2000
         The number of epochs to train the model.
     batch_size : int, default = 16
@@ -82,32 +84,31 @@ class AEBiGRUClusterer(BaseDeepClusterer):
     callbacks : keras.callbacks, default = None
         List of keras callbacks.
 
-
     Examples
     --------
-    >>> from aeon.clustering.deep_learning import AEBiGRUClusterer
+    >>> from aeon.clustering.deep_learning import AEAttentionBiGRUClusterer
     >>> from aeon.clustering import DummyClusterer
     >>> from aeon.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test = load_unit_test(split="test")
     >>> _clst = DummyClusterer(n_clusters=2)
-    >>> aebgru=AEBiGRUClusterer( estimator=_clst, n_epochs=20,
-    ... batch_size=4 )  # doctest: +SKIP
-    >>> aebgru.fit(X_train)  # doctest: +SKIP
-    AEBiGRUClusterer(...)
+    >>> abgruc=AEAttentionBiGRUClusterer(estimator=_clst, n_epochs=20,
+    ... batch_size=4) # doctest: +SKIP
+    >>> abgruc.fit(X_train)  # doctest: +SKIP
+    AEAttentionBiGRUClusterer(...)
     """
 
     def __init__(
         self,
         n_clusters=None,
-        clustering_algorithm="deprecated",
         estimator=None,
+        clustering_algorithm="deprecated",
         clustering_params=None,
         latent_space_dim=128,
-        temporal_latent_space=False,
-        n_layers=2,
-        n_units=None,
-        activation="relu",
+        n_layers_encoder=2,
+        n_layers_decoder=2,
+        activation_encoder="relu",
+        activation_decoder="relu",
         n_epochs=2000,
         batch_size=32,
         use_mini_batch_size=False,
@@ -124,10 +125,10 @@ class AEBiGRUClusterer(BaseDeepClusterer):
         callbacks=None,
     ):
         self.latent_space_dim = latent_space_dim
-        self.temporal_latent_space = temporal_latent_space
-        self.n_layers = n_layers
-        self.n_units = n_units
-        self.activation = activation
+        self.n_layers_encoder = n_layers_encoder
+        self.n_layers_decoder = n_layers_decoder
+        self.activation_encoder = activation_encoder
+        self.activation_decoder = activation_decoder
         self.optimizer = optimizer
         self.loss = loss
         self.metrics = metrics
@@ -150,12 +151,12 @@ class AEBiGRUClusterer(BaseDeepClusterer):
             last_file_name=last_file_name,
         )
 
-        self._network = AEBiGRUNetwork(
+        self._network = AEAttentionBiGRUNetwork(
             latent_space_dim=self.latent_space_dim,
-            n_layers=self.n_layers,
-            n_units=self.n_units,
-            activation=self.activation,
-            temporal_latent_space=self.temporal_latent_space,
+            n_layers_encoder=self.n_layers_encoder,
+            n_layers_decoder=self.n_layers_decoder,
+            activation_encoder=self.activation_encoder,
+            activation_decoder=self.activation_decoder,
         )
 
     def build_model(self, input_shape, **kwargs):
@@ -271,7 +272,8 @@ class AEBiGRUClusterer(BaseDeepClusterer):
 
         try:
             self.model_ = tf.keras.models.load_model(
-                self.file_path + self.file_name_ + ".keras", compile=False
+                self.file_path + self.file_name_ + ".keras",
+                compile=False,
             )
             if not self.save_best_model:
                 os.remove(self.file_path + self.file_name_ + ".keras")
@@ -316,8 +318,8 @@ class AEBiGRUClusterer(BaseDeepClusterer):
             "estimator": DummyClusterer(n_clusters=2),
             "n_epochs": 1,
             "batch_size": 4,
-            "n_layers": 1,
-            "n_units": 2,
+            "n_layers_encoder": 1,
+            "n_layers_decoder": 1,
         }
 
         return [param1]
