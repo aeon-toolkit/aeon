@@ -14,7 +14,7 @@ def test_disjoint_cnn_netowkr_kernel_initializer():
     """Test DisjointCNN for different kernel_initializer per layer."""
     input_layer, output_layer = DisjointCNNNetwork(
         n_layers=2, kernel_initializer=["he_uniform", "glorot_uniform"]
-    )
+    ).build_network(input_shape=((10, 2)))
 
     assert len(output_layer.shape) == 3
     assert len(input_layer.shape) == 3
