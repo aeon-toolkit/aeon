@@ -3,8 +3,9 @@
 __maintainer__ = ["hadifawaz1999"]
 
 
+import typing
+
 from aeon.networks.base import BaseDeepLearningNetwork
-from typing import Union, List
 
 
 class MLPNetwork(BaseDeepLearningNetwork):
@@ -37,9 +38,9 @@ class MLPNetwork(BaseDeepLearningNetwork):
     def __init__(
         self,
         n_layers: int = 3,
-        n_units: Union[int, List[int]] = 200,
-        activation: Union[str, List[str]] = "relu",
-        dropout_rate: Union[int, List[int]] = None,
+        n_units: typing.Union[int, list[int]] = 200,
+        activation: typing.Union[str, list[str]] = "relu",
+        dropout_rate: typing.Union[int, list[int]] = None,
     ):
         super().__init__()
 
