@@ -146,7 +146,7 @@ def create_multi_comparison_matrix(
     -------
     Example
     -------
-    >>> from aeon.visualisation import create_multi_comparison_matrix
+    >>> from aeon.visualisation import create_multi_comparison_matrix # doctest: +SKIP
     >>> create_multi_comparison_matrix(df_results='results.csv') # doctest: +SKIP
 
     Notes
