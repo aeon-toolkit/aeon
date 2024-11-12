@@ -7,8 +7,6 @@ __all__ = ["create_multi_comparison_matrix"]
 import json
 import os
 
-import matplotlib as mpl
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from scipy.stats import wilcoxon
@@ -52,7 +50,7 @@ def create_multi_comparison_matrix(
     include_legend=True,
     show_symetry=True,
 ):
-    """Generate the Multi-Comparison Matrix (MCM)[1].
+    """Generate the Multi-Comparison Matrix (MCM) [1]_.
 
     MCM summarises a set of results for multiple estimators evaluated on multiple
     datasets. The MCM is a heatmap that shows absolute performance and tests for
@@ -144,6 +142,9 @@ def create_multi_comparison_matrix(
 
     Returns
     -------
+    fig: plt.Figure
+        The figure object of the heatmap.
+
     Example
     -------
     >>> from aeon.visualisation import create_multi_comparison_matrix # doctest: +SKIP
@@ -151,13 +152,14 @@ def create_multi_comparison_matrix(
 
     Notes
     -----
-    Developed from the code in X.
+    Developed from the code in https://github.com/MSD-IRIMAS/Multi_Comparison_Matrix
 
     References
     ----------
-    [1]
+    .. [1] Ismail-Fawaz A. et al, An Approach To Multiple Comparison Benchmark
+    Evaluations That Is Stable Under Manipulation Of The Comparate Set
+    arXiv preprint arXiv:2305.11921, 2023.
     """
-    _check_soft_dependencies("matplotlib")
     if isinstance(df_results, str):
         try:
             df_results = pd.read_csv(df_results)
@@ -228,6 +230,84 @@ def _get_analysis(
     precision=4,
     load_analysis=False,
 ):
+    _check_soft_dependencies("matplotlib")
+    import matplotlib as mpl
+    import matplotlib.pyplot as plt
+
+    def _plot_1v1(
+        x,
+        y,
+        name_x,
+        name_y,
+        win_x,
+        loss_x,
+        tie,
+        output_directory="./",
+        min_lim: int = 0,
+        max_lim: int = 1,
+        scatter_size: int = 100,
+        linewidth: int = 3,
+        linecolor: str = "black",
+        fontsize: int = 20,
+    ):
+        save_path = os.path.join(
+            output_directory,
+            "1v1_plots",
+            _get_keys_for_two_comparates(name_x, name_y) + ".pdf",
+        )
+        if os.path.exists(save_path):
+            return
+
+        fig = plt.figure()
+        ax = fig.add_subplot(111)
+
+        for i in range(len(x)):
+            if x[i] > y[i]:
+                ax.scatter(y[i], x[i], color="blue", s=scatter_size)
+            elif x[i] < y[i]:
+                ax.scatter(y[i], x[i], color="orange", s=scatter_size)
+            else:
+                ax.scatter(y[i], x[i], color="green", s=scatter_size)
+
+        ax.plot([min_lim, max_lim], [min_lim, max_lim], lw=linewidth, color=linecolor)
+        ax.set_xlim(min_lim, max_lim)
+        ax.set_ylim(min_lim, max_lim)
+        ax.set_aspect("equal", adjustable="box")
+
+        ax.set_xlabel(name_y, fontsize=fontsize)
+        ax.set_ylabel(name_x, fontsize=fontsize)
+
+        p_value = round(wilcoxon(x=x, y=y, zero_method="pratt")[1], 4)
+        legend_elements = [
+            mpl.lines.Line2D(
+                [], [], marker="o", color="blue", label=f"Win {win_x}", linestyle="None"
+            ),
+            mpl.lines.Line2D(
+                [], [], marker="o", color="green", label=f"Tie {tie}", linestyle="None"
+            ),
+            mpl.lines.Line2D(
+                [],
+                [],
+                marker="o",
+                color="orange",
+                label=f"Loss {loss_x}",
+                linestyle="None",
+            ),
+            mpl.lines.Line2D(
+                [], [], marker=" ", color="none", label=f"P-Value {p_value}"
+            ),
+        ]
+
+        ax.legend(handles=legend_elements)
+
+        if not os.path.exists(output_directory + "1v1_plots/"):
+            os.mkdir(output_directory + "1v1_plots/")
+        plt.savefig(save_path, bbox_inches="tight")
+        plt.savefig(save_path.replace(".pdf", ".png"), bbox_inches="tight")
+        plt.cla()
+        plt.clf()
+        plt.close()
+
     save_file = output_dir + "analysis.json"
 
     if load_analysis and os.path.exists(save_file):
@@ -341,6 +421,9 @@ def _draw(
     show_symetry=True,
     include_legend=True,
 ):
+    _check_soft_dependencies("matplotlib")
+    import matplotlib.pyplot as plt
+
     latex_string = "\\documentclass[a4,12pt]{article}\n"
     latex_string += "\\usepackage{colortbl}\n"
     latex_string += "\\usepackage{pgfplots}\n"
@@ -872,74 +955,6 @@ def _get_pairwise_content(
         content["mean"] = np.mean(x) - np.mean(y)
 
     return content
-
-
-def _plot_1v1(
-    x,
-    y,
-    name_x,
-    name_y,
-    win_x,
-    loss_x,
-    tie,
-    output_directory="./",
-    min_lim: int = 0,
-    max_lim: int = 1,
-    scatter_size: int = 100,
-    linewidth: int = 3,
-    linecolor: str = "black",
-    fontsize: int = 20,
-):
-    save_path = os.path.join(
-        output_directory,
-        "1v1_plots",
-        _get_keys_for_two_comparates(name_x, name_y) + ".pdf",
-    )
-    if os.path.exists(save_path):
-        return
-
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
-
-    for i in range(len(x)):
-        if x[i] > y[i]:
-            ax.scatter(y[i], x[i], color="blue", s=scatter_size)
-        elif x[i] < y[i]:
-            ax.scatter(y[i], x[i], color="orange", s=scatter_size)
-        else:
-            ax.scatter(y[i], x[i], color="green", s=scatter_size)
-
-    ax.plot([min_lim, max_lim], [min_lim, max_lim], lw=linewidth, color=linecolor)
-    ax.set_xlim(min_lim, max_lim)
-    ax.set_ylim(min_lim, max_lim)
-    ax.set_aspect("equal", adjustable="box")
-
-    ax.set_xlabel(name_y, fontsize=fontsize)
-    ax.set_ylabel(name_x, fontsize=fontsize)
-
-    p_value = round(wilcoxon(x=x, y=y, zero_method="pratt")[1], 4)
-    legend_elements = [
-        mpl.lines.Line2D(
-            [], [], marker="o", color="blue", label=f"Win {win_x}", linestyle="None"
-        ),
-        mpl.lines.Line2D(
-            [], [], marker="o", color="green", label=f"Tie {tie}", linestyle="None"
-        ),
-        mpl.lines.Line2D(
-            [], [], marker="o", color="orange", label=f"Loss {loss_x}", linestyle="None"
-        ),
-        mpl.lines.Line2D([], [], marker=" ", color="none", label=f"P-Value {p_value}"),
-    ]
-
-    ax.legend(handles=legend_elements)
-
-    if not os.path.exists(output_directory + "1v1_plots/"):
-        os.mkdir(output_directory + "1v1_plots/")
-    plt.savefig(save_path, bbox_inches="tight")
-    plt.savefig(save_path.replace(".pdf", ".png"), bbox_inches="tight")
-    plt.cla()
-    plt.clf()
-    plt.close()
 
 
 def _holms_correction(analysis):
