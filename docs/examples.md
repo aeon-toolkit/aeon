@@ -184,6 +184,17 @@ Overview of Transformations
 :::
 
 :::{grid-item-card}
+:img-top: examples/transformations/img/preprocessing.png
+:class-img-top: aeon-card-image-m
+:link: /examples/transformations/preprocessing.ipynb
+:link-type: ref
+:text-align: center
+
+Preprocessing time series
+
+:::
+
+:::{grid-item-card}
 :img-top: examples/transformations/img/tsfresh.png
 :class-img-top: aeon-card-image-m
 :link: /examples/transformations/tsfresh.ipynb
