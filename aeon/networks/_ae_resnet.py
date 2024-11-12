@@ -70,6 +70,7 @@ class AEResNetNetwork(BaseDeepLearningNetwork):
 
     _config = {
         "python_dependencies": ["tensorflow"],
+        "python_version": "<=3.12",
         "structure": "auto-encoder",
     }
 

@@ -10,12 +10,13 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 class BaseDeepLearningNetwork(ABC):
     """Abstract base class for deep learning networks."""
 
-    def __init__(self, soft_dependencies="tensorflow"):
+    def __init__(self, soft_dependencies="tensorflow", python_version="<=3.12"):
         _check_soft_dependencies(soft_dependencies)
         super().__init__()
 
     _config = {
         "python_dependencies": ["tensorflow"],
+        "python_version": "<=3.12",
         "structure": "encoder",
     }
 

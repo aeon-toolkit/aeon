@@ -1,6 +1,6 @@
 """Auto-Encoder based Dilated Recurrent Neural Networks (DRNN)."""
 
-__maintainer__ = []
+__maintainer__ = ["aadya940", "hadifawaz1999"]
 
 from aeon.networks.base import BaseDeepLearningNetwork
 from aeon.utils.validation._dependencies import _check_soft_dependencies
@@ -58,6 +58,7 @@ class AEDRNNNetwork(BaseDeepLearningNetwork):
 
     _config = {
         "python_dependencies": ["tensorflow"],
+        "python_version": "<=3.12",
         "structure": "auto-encoder",
     }
 
