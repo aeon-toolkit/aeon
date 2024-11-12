@@ -22,6 +22,8 @@ Convolution-based
     HydraClassifier
     MultiRocketHydraClassifier
     RocketClassifier
+    MiniRocketClassifier
+    MultiRocketClassifier
 
 Deep learning
 -------------
@@ -33,7 +35,6 @@ Deep learning
     :template: class.rst
 
     BaseDeepClassifier
-    CNNClassifier
     TimeCNNClassifier
     EncoderClassifier
     FCNClassifier
@@ -43,7 +44,7 @@ Deep learning
     LITETimeClassifier
     MLPClassifier
     ResNetClassifier
-    TapNetClassifier
+    DisjointCNNClassifier
 
 Dictionary-based
 ----------------
@@ -194,10 +195,9 @@ Composition
     :toctree: auto_generated/
     :template: class.rst
 
+    ClassifierChannelEnsemble
+    ClassifierEnsemble
     ClassifierPipeline
-    ChannelEnsembleClassifier
-    WeightedEnsembleClassifier
-
 
 Base
 ----

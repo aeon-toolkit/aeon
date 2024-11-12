@@ -3,6 +3,8 @@
 The Proximity Forest is an ensemble of Proximity Trees.
 """
 
+from typing import Optional
+
 __all__ = ["ProximityForest"]
 
 from typing import Union
@@ -42,7 +44,7 @@ class ProximityForest(BaseClassifier):
     n_jobs : int, default = 1
         The number of parallel jobs to run for neighbors search.
         ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.
-        ``-1`` means using all processors. See :term:`Glossary <n_jobs>`
+        ``-1`` means using all processors.
         for more details. Parameter for compatibility purposes, still unimplemented.
     parallel_backend : str, ParallelBackendBase instance or None, default=None
         Specify the parallelisation backend implementation in joblib, if None a 'prefer'
@@ -87,7 +89,7 @@ class ProximityForest(BaseClassifier):
         self,
         n_trees=100,
         n_splitters: int = 5,
-        max_depth: int = None,
+        max_depth: Optional[int] = None,
         min_samples_split: int = 2,
         random_state: Union[int, np.random.RandomState, None] = None,
         n_jobs: int = 1,

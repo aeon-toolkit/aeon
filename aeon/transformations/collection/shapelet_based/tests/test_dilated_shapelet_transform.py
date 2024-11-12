@@ -4,11 +4,7 @@ __maintainer__ = ["baraline"]
 
 import numpy as np
 import pytest
-from numpy.testing import (
-    assert_almost_equal,
-    assert_array_almost_equal,
-    assert_array_equal,
-)
+from numpy.testing import assert_almost_equal, assert_array_almost_equal
 
 # from aeon.datasets import load_basic_motions, load_unit_test
 from aeon.datasets import load_basic_motions
@@ -17,9 +13,8 @@ from aeon.transformations.collection.shapelet_based._dilated_shapelet_transform 
     RandomDilatedShapeletTransform,
     compute_shapelet_dist_vector,
     compute_shapelet_features,
-    get_all_subsequences,
-    normalize_subsequences,
 )
+from aeon.utils.numba.general import get_all_subsequences
 from aeon.utils.numba.stats import is_prime
 
 DATATYPES = ["int64", "float64"]
@@ -92,50 +87,6 @@ def test_shapelet_prime_dilation():
 
 
 @pytest.mark.parametrize("dtype", DATATYPES)
-def test_normalize_subsequences(dtype):
-    """Test normalization of subsequences."""
-    X = np.asarray([[[1, 1, 1]], [[1, 1, 1]]], dtype=dtype)
-    X_norm = normalize_subsequences(X, X.mean(axis=2).T, X.std(axis=2).T)
-    assert np.all(X_norm == 0)
-    assert np.all(X.shape == X_norm.shape)
-
-
-@pytest.mark.parametrize("dtype", DATATYPES)
-def test_get_all_subsequences(dtype):
-    """Test generation of all subsequences."""
-    X = np.asarray([[1, 2, 3, 4, 5, 6, 7, 8]], dtype=dtype)
-    length = 3
-    dilation = 1
-    X_subs = get_all_subsequences(X, length, dilation)
-    X_true = np.asarray(
-        [
-            [[1, 2, 3]],
-            [[2, 3, 4]],
-            [[3, 4, 5]],
-            [[4, 5, 6]],
-            [[5, 6, 7]],
-            [[6, 7, 8]],
-        ],
-        dtype=dtype,
-    )
-    assert_array_equal(X_subs, X_true)
-
-    length = 3
-    dilation = 2
-    X_subs = get_all_subsequences(X, length, dilation)
-    X_true = np.asarray(
-        [
-            [[1, 3, 5]],
-            [[2, 4, 6]],
-            [[3, 5, 7]],
-            [[4, 6, 8]],
-        ],
-        dtype=dtype,
-    )
-    assert_array_equal(X_subs, X_true)
-
-
-@pytest.mark.parametrize("dtype", DATATYPES)
 def test_compute_shapelet_features(dtype):
     """Test computation of shapelet features."""
     X = np.asarray([[1, 1, 2, 1, 1, 1, 2, 1, 1, 1, 1, 2]], dtype=dtype)
@@ -144,9 +95,7 @@ def test_compute_shapelet_features(dtype):
     dilation = 1
     threshold = 0.01
     X_subs = get_all_subsequences(X, length, dilation)
-    _min, _argmin, SO = compute_shapelet_features(
-        X_subs, values, length, threshold, manhattan_distance
-    )
+    _min, _argmin, SO = compute_shapelet_features(X_subs, values, threshold)
 
     # On some occasion, float32 precision with fasmath retruns things like
     # 2.1835059227370834e-07 instead of 0
@@ -157,9 +106,7 @@ def test_compute_shapelet_features(dtype):
     dilation = 2
     threshold = 0.1
     X_subs = get_all_subsequences(X, length, dilation)
-    _min, _argmin, SO = compute_shapelet_features(
-        X_subs, values, length, threshold, manhattan_distance
-    )
+    _min, _argmin, SO = compute_shapelet_features(X_subs, values, threshold)
 
     assert_almost_equal(_min, 0.0, decimal=4)
     assert _argmin == 7.0
@@ -168,9 +115,7 @@ def test_compute_shapelet_features(dtype):
     dilation = 4
     threshold = 2
     X_subs = get_all_subsequences(X, length, dilation)
-    _min, _argmin, SO = compute_shapelet_features(
-        X_subs, values, length, threshold, manhattan_distance
-    )
+    _min, _argmin, SO = compute_shapelet_features(X_subs, values, threshold)
 
     assert_almost_equal(_min, 0.0, decimal=4)
     assert _argmin == 3.0
@@ -185,9 +130,7 @@ def test_compute_shapelet_dist_vector(dtype):
         for dilation in [1, 3, 5]:
             values = np.random.rand(3, length).astype(dtype)
             X_subs = get_all_subsequences(X, length, dilation)
-            d_vect = compute_shapelet_dist_vector(
-                X_subs, values, length, manhattan_distance
-            )
+            d_vect = compute_shapelet_dist_vector(X_subs, values)
             true_vect = np.zeros(X.shape[1] - (length - 1) * dilation)
             for i_sub in range(true_vect.shape[0]):
                 _idx = [i_sub + j * dilation for j in range(length)]

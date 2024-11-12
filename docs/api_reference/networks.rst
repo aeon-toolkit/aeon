@@ -14,15 +14,14 @@ Deep learning networks
     :template: class.rst
 
     BaseDeepLearningNetwork
-    CNNNetwork
     TimeCNNNetwork
     EncoderNetwork
     FCNNetwork
     InceptionNetwork
     MLPNetwork
     ResNetNetwork
-    TapNetNetwork
     AEFCNNetwork
     AEResNetNetwork
     LITENetwork
     AEBiGRUNetwork
+    DisjointCNNNetwork

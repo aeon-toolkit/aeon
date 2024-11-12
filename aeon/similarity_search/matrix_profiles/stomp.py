@@ -1,5 +1,7 @@
 """Implementation of stomp for euclidean and squared euclidean distance profile."""
 
+from typing import Optional
+
 __maintainer__ = ["baraline"]
 
 
@@ -15,7 +17,7 @@ from aeon.similarity_search._commons import (
     numba_roll_1D_no_warparound,
 )
 from aeon.similarity_search.distance_profiles.squared_distance_profile import (
-    _normalized_squared_dist_profile_one_series,
+    _normalised_squared_dist_profile_one_series,
     _squared_dist_profile_one_series,
 )
 from aeon.utils.numba.general import AEON_NUMBA_STD_THRESHOLD
@@ -29,7 +31,7 @@ def stomp_euclidean_matrix_profile(
     k: int = 1,
     threshold: float = np.inf,
     inverse_distance: bool = False,
-    exclusion_size: int = None,
+    exclusion_size: Optional[int] = None,
 ):
     """
     Compute a euclidean euclidean matrix profile using STOMP [1]_.
@@ -109,7 +111,7 @@ def stomp_squared_matrix_profile(
     k: int = 1,
     threshold: float = np.inf,
     inverse_distance: bool = False,
-    exclusion_size: int = None,
+    exclusion_size: Optional[int] = None,
 ):
     """
     Compute a squared euclidean matrix profile using STOMP [1]_.
@@ -186,7 +188,7 @@ def stomp_squared_matrix_profile(
     return MP, IP
 
 
-def stomp_normalized_euclidean_matrix_profile(
+def stomp_normalised_euclidean_matrix_profile(
     X: Union[np.ndarray, List],
     T: np.ndarray,
     L: int,
@@ -198,7 +200,7 @@ def stomp_normalized_euclidean_matrix_profile(
     k: int = 1,
     threshold: float = np.inf,
     inverse_distance: bool = False,
-    exclusion_size: int = None,
+    exclusion_size: Optional[int] = None,
 ):
     """
     Compute a euclidean matrix profile using STOMP [1]_.
@@ -265,7 +267,7 @@ def stomp_normalized_euclidean_matrix_profile(
         retrieved as ``X_[id_sample, :, id_timepoint : id_timepoint + length]``.
 
     """
-    MP, IP = stomp_normalized_squared_matrix_profile(
+    MP, IP = stomp_normalised_squared_matrix_profile(
         X,
         T,
         L,
@@ -284,7 +286,7 @@ def stomp_normalized_euclidean_matrix_profile(
     return MP, IP
 
 
-def stomp_normalized_squared_matrix_profile(
+def stomp_normalised_squared_matrix_profile(
     X: Union[np.ndarray, List],
     T: np.ndarray,
     L: int,
@@ -296,7 +298,7 @@ def stomp_normalized_squared_matrix_profile(
     k: int = 1,
     threshold: float = np.inf,
     inverse_distance: bool = False,
-    exclusion_size: int = None,
+    exclusion_size: Optional[int] = None,
 ):
     """
     Compute a squared euclidean matrix profile using STOMP [1]_.
@@ -369,7 +371,7 @@ def stomp_normalized_squared_matrix_profile(
     elif isinstance(X, List):
         XdotT = List(XdotT)
 
-    MP, IP = _stomp_normalized(
+    MP, IP = _stomp_normalised(
         X,
         T,
         XdotT,
@@ -387,7 +389,7 @@ def stomp_normalized_squared_matrix_profile(
     return MP, IP
 
 
-def _stomp_normalized(
+def _stomp_normalised(
     X,
     T,
     XdotT,
@@ -402,12 +404,63 @@ def _stomp_normalized(
     exclusion_size,
     inverse_distance,
 ):
+    """
+    Compute the Matrix Profile using the STOMP algorithm with normalised distances.
+
+    X:  np.ndarray, 3D array of shape (n_cases, n_channels, n_timepoints)
+        The input samples. If X is an unquel length collection, expect a TypedList
+        of 2D arrays of shape (n_channels, n_timepoints)
+    T : np.ndarray, 2D array of shape (n_channels, series_length)
+        The series used for similarity search. Note that series_length can be equal,
+        superior or inferior to n_timepoints, it doesn't matter.
+    L : int
+        Length of the subsequences used for the distance computation.
+    XdotT : np.ndarray, 3D array of shape (n_cases, n_channels, n_timepoints - L + 1)
+        Precomputed dot products between each time series in X and the query series T.
+    X_means : np.ndarray, 3D array of shape (n_cases, n_channels, n_timepoints - L + 1)
+        Means of each subsequences of X of size L. Should be a numba TypedList if X is
+        unequal length.
+    X_stds : np.ndarray, 3D array of shape (n_cases, n_channels, n_timepoints - L + 1)
+        Stds of each subsequences of X of size L. Should be a numba TypedList if X is
+        unequal length.
+    T_means : np.ndarray, 2D array of shape (n_channels, n_timepoints - L + 1)
+        Means of each subsequences of T of size L.
+    T_stds : np.ndarray, 2D array of shape (n_channels, n_timepoints - L + 1)
+        Stds of each subsequences of T of size L.
+    mask : np.ndarray, 2D array of shape (n_cases, n_timepoints - length + 1)
+        Boolean mask of the shape of the distance profiles indicating for which part
+        of it the distance should be computed. In this context, it is the mask for the
+        first query of size L in T. This mask will be updated during the algorithm.
+    k : int, default=1
+        The number of best matches to return during predict for each subsequence.
+    threshold : float, default=np.inf
+        The number of best matches to return during predict for each subsequence.
+    inverse_distance : bool, default=False
+        If True, the matching will be made on the inverse of the distance, and thus, the
+        worst matches to the query will be returned instead of the best ones.
+    exclusion_size : int, optional
+        The size of the exclusion zone used to prevent returning as top k candidates
+        the ones that are close to each other (for example i and i+1).
+        It is used to define a region between
+        :math:`id_timestomp - exclusion_size` and
+        :math:`id_timestomp + exclusion_size` which cannot be returned
+        as best match if :math:`id_timestomp` was already selected. By default,
+        the value None means that this is not used.
+
+    Returns
+    -------
+    tuple of np.ndarray
+        - MP : array of shape (n_queries,)
+          Matrix profile distances for each query subsequence.
+        - IP : array of shape (n_queries,)
+          Indexes of the top matches for each query subsequence.
+    """
     n_queries = T.shape[1] - L + 1
     MP = np.empty(n_queries, dtype=object)
     IP = np.empty(n_queries, dtype=object)
     for i_x in range(len(X)):
         for i in range(n_queries):
-            dist_profiles = _normalized_squared_dist_profile_one_series(
+            dist_profiles = _normalised_squared_dist_profile_one_series(
                 XdotT[i_x],
                 X_means[i_x],
                 X_stds[i_x],
@@ -415,7 +468,7 @@ def _stomp_normalized(
                 T_stds[:, i],
                 L,
                 T_stds[:, i] <= AEON_NUMBA_STD_THRESHOLD,
-            ).sum(axis=0)
+            )
             dist_profiles[~mask[i_x]] = np.inf
             if i + 1 < n_queries:
                 XdotT[i_x] = _update_dot_products_one_series(
@@ -464,9 +517,7 @@ def _stomp(
     for i_x in range(len(X)):
         for i in range(n_queries):
             Q = T[:, i : i + L]
-            dist_profiles = _squared_dist_profile_one_series(XdotT[i_x], X[i_x], Q).sum(
-                axis=0
-            )
+            dist_profiles = _squared_dist_profile_one_series(XdotT[i_x], X[i_x], Q)
             dist_profiles[~mask[i_x]] = np.inf
             if i + 1 < n_queries:
                 XdotT[i_x] = _update_dot_products_one_series(
@@ -499,6 +550,33 @@ def _stomp(
 
 
 def _sort_out_tops(top_dists, prev_top_dists, top_indexes, prev_to_indexes, k):
+    """
+    Sort and combine top distance results from previous and current computations.
+
+    Parameters
+    ----------
+    top_dists : np.ndarray
+        Array of distances from the current computation. Shape should be (n,).
+    prev_top_dists : np.ndarray
+        Array of distances from previous computations. Shape should be (n,).
+    top_indexes : np.ndarray
+        Array of indexes corresponding to the top distances from current computation.
+        Shape should be (n,).
+    prev_to_indexes : np.ndarray
+        Array of indexes corresponding to the top distances from previous computations.
+        Shape should be (n,).
+    k : int, default=1
+        The number of best matches to return during predict for each subsequence.
+
+    Returns
+    -------
+    tuple
+        A tuple containing two elements:
+        - A 1D numpy array of sorted distances, of length min(k,
+          total number of distances).
+        - A 1D numpy array of indexes corresponding to the sorted distances,
+          of length min(k, total number of distances).
+    """
     all_dists = np.concatenate((prev_top_dists, top_dists))
     all_indexes = np.concatenate((prev_to_indexes, top_indexes))
     if k == np.inf:

@@ -9,7 +9,7 @@ from aeon.datasets import (
     load_plaid,
     load_unit_test,
 )
-from aeon.transformations.collection.truncate import TruncationTransformer
+from aeon.transformations.collection import Truncator
 
 
 @pytest.mark.parametrize(
@@ -20,7 +20,7 @@ def test_truncation_transformer(loader):
     X_train, y_train = loader(split="train")
     n_cases = len(X_train)
     n_channels = len(X_train[0])
-    truncator = TruncationTransformer(5)
+    truncator = Truncator(5)
     Xt = truncator.fit_transform(X_train)
     assert isinstance(Xt, np.ndarray)
     assert Xt.shape == (n_cases, n_channels, 5)
@@ -32,9 +32,9 @@ def test_truncation_equal_length():
     Truncation should not change shape of equal length unless passed parameter.
     """
     X = np.random.rand(10, 2, 20)
-    truncator = TruncationTransformer()
-    X_padded = truncator.fit_transform(X)
-    assert X_padded.shape == X.shape
+    truncator = Truncator()
+    Xt = truncator.fit_transform(X)
+    assert Xt.shape == X.shape
 
 
 def test_truncation_parameterised_transformer():
@@ -44,18 +44,29 @@ def test_truncation_parameterised_transformer():
     """
     # load data
     X = np.random.rand(10, 2, 20)
-    truncator = TruncationTransformer(truncated_length=10)
-    X_padded = truncator.fit_transform(X)
+    truncator = Truncator(truncated_length=10)
+    Xt = truncator.fit_transform(X)
     #  Series now of length 10
-    assert X_padded.shape == (X.shape[0], X.shape[1], 10)
+    assert Xt.shape == (X.shape[0], X.shape[1], 10)
 
 
 def test_truncation_fill_unequal_length():
-    """Tes TruncationTransformer handles unequal length data correctly."""
+    """Tes Truncator handles unequal length data correctly."""
     X = []
     for i in range(10):
         X.append(np.random.random((10, 15 + i)))
-    truncator = TruncationTransformer(truncated_length=10)
-    X_trunc = truncator.fit_transform(X)
-    assert isinstance(X_trunc, np.ndarray)
-    assert X_trunc.shape == (len(X), X[0].shape[0], 10)
+    truncator = Truncator(truncated_length=10)
+    Xt = truncator.fit_transform(X)
+    assert isinstance(Xt, np.ndarray)
+    assert Xt.shape == (len(X), X[0].shape[0], 10)
+
+
+def test_incorrect_arguments():
+    """Test Truncator with incorrect constructor arguments."""
+    X = np.random.rand(10, 1, 20)
+    truncator = Truncator(truncated_length=30)
+    truncator.fit(X)
+    assert truncator.truncated_length_ == 20
+    X2 = np.random.rand(10, 1, 10)
+    with pytest.raises(ValueError, match="min_length of series"):
+        truncator.transform(X2)

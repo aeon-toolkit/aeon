@@ -6,24 +6,17 @@ from typing import Optional, final
 
 import numpy as np
 from numba import get_num_threads, set_num_threads
-from numba.core.registry import CPUDispatcher
-from numba.typed import List
 
-from aeon.distances import get_distance_function
 from aeon.similarity_search._commons import (
     extract_top_k_and_threshold_from_distance_profiles,
 )
 from aeon.similarity_search.base import BaseSimilaritySearch
-from aeon.similarity_search.distance_profiles import (
-    naive_distance_profile,
-    normalized_naive_distance_profile,
-)
 from aeon.similarity_search.distance_profiles.euclidean_distance_profile import (
     euclidean_distance_profile,
-    normalized_euclidean_distance_profile,
+    normalised_euclidean_distance_profile,
 )
 from aeon.similarity_search.distance_profiles.squared_distance_profile import (
-    normalized_squared_distance_profile,
+    normalised_squared_distance_profile,
     squared_distance_profile,
 )
 
@@ -55,8 +48,8 @@ class QuerySearch(BaseSimilaritySearch):
         with nopython=True, that takes two 1d numpy arrays as input and returns a float.
     distance_args : dict, default=None
         Optional keyword arguments for the distance function.
-    normalize : bool, default=False
-        Whether the distance function should be z-normalized.
+    normalise : bool, default=False
+        Whether the distance function should be z-normalised.
     speed_up : str, default='fastest'
         Which speed up technique to use with for the selected distance
         function. By default, the fastest algorithm is used. A list of available
@@ -79,7 +72,7 @@ class QuerySearch(BaseSimilaritySearch):
         database we search in when given a query.
     distance_profile_function : function
         The function used to compute the distance profile. This is determined
-        during the fit method based on the distance and normalize
+        during the fit method based on the distance and normalise
         parameters.
 
     Notes
@@ -96,7 +89,7 @@ class QuerySearch(BaseSimilaritySearch):
         distance: str = "euclidean",
         distance_args: Optional[dict] = None,
         inverse_distance: bool = False,
-        normalize: bool = False,
+        normalise: bool = False,
         speed_up: str = "fastest",
         n_jobs: int = 1,
         store_distance_profiles: bool = False,
@@ -111,7 +104,7 @@ class QuerySearch(BaseSimilaritySearch):
             distance=distance,
             distance_args=distance_args,
             inverse_distance=inverse_distance,
-            normalize=normalize,
+            normalise=normalise,
             speed_up=speed_up,
             n_jobs=n_jobs,
         )
@@ -153,7 +146,7 @@ class QuerySearch(BaseSimilaritySearch):
         """
         Predict method : Check the shape of X and call _predict to perform the search.
 
-        If the distance profile function is normalized, it stores the mean and stds
+        If the distance profile function is normalised, it stores the mean and stds
         from X and X_, with X_ the training data.
 
         Parameters
@@ -207,6 +200,7 @@ class QuerySearch(BaseSimilaritySearch):
             retrieved as ``X_[id_sample, :, id_timepoint : id_timepoint + length]``.
 
         """
+        self._check_is_fitted()
         prev_threads = get_num_threads()
         set_num_threads(self._n_jobs)
 
@@ -218,7 +212,7 @@ class QuerySearch(BaseSimilaritySearch):
             exclusion_factor=exclusion_factor,
         )
 
-        if self.normalize:
+        if self.normalise:
             self.query_means_ = np.mean(X, axis=-1)
             self.query_stds_ = np.std(X, axis=-1)
             if self._previous_query_length != query_length:
@@ -330,10 +324,12 @@ class QuerySearch(BaseSimilaritySearch):
         """
         if isinstance(self.distance, str):
             distance_dict = _QUERY_SEARCH_SPEED_UP_DICT.get(self.distance)
-            if self.speed_up is None or distance_dict is None:
-                self.distance_function_ = get_distance_function(self.distance)
+            if distance_dict is None:
+                raise NotImplementedError(
+                    f"No distance profile have been implemented for {self.distance}."
+                )
             else:
-                speed_up_profile = distance_dict.get(self.normalize).get(self.speed_up)
+                speed_up_profile = distance_dict.get(self.normalise).get(self.speed_up)
 
                 if speed_up_profile is None:
                     raise ValueError(
@@ -343,20 +339,9 @@ class QuerySearch(BaseSimilaritySearch):
                 self.speed_up_ = self.speed_up
                 return speed_up_profile
         else:
-            if isinstance(self.distance, CPUDispatcher) or callable(self.distance):
-                self.distance_function_ = self.distance
-
-            else:
-                raise ValueError(
-                    "If distance argument is not a string, it is expected to be either "
-                    "a callable or a numba function (CPUDispatcher), but got "
-                    f"{type(self.distance)}."
-                )
-        self.speed_up_ = None
-        if self.normalize:
-            return normalized_naive_distance_profile
-        else:
-            return naive_distance_profile
+            raise ValueError(
+                f"Expected distance argument to be str but got {type(self.distance)}"
+            )
 
     def _call_distance_profile(self, X: np.ndarray, mask: np.ndarray) -> np.ndarray:
         """
@@ -376,48 +361,18 @@ class QuerySearch(BaseSimilaritySearch):
             The distance profiles between the input time series and the query.
 
         """
-        if self.speed_up_ is None:
-            if self.normalize:
-                distance_profiles = self.distance_profile_function_(
-                    self.X_,
-                    X,
-                    mask,
-                    self.X_means_,
-                    self.X_stds_,
-                    self.query_means_,
-                    self.query_stds_,
-                    self.distance_function_,
-                    distance_args=self.distance_args,
-                )
-            else:
-                distance_profiles = self.distance_profile_function_(
-                    self.X_,
-                    X,
-                    mask,
-                    self.distance_function_,
-                    distance_args=self.distance_args,
-                )
-        else:
-            if self.normalize:
-                distance_profiles = self.distance_profile_function_(
-                    self.X_,
-                    X,
-                    mask,
-                    self.X_means_,
-                    self.X_stds_,
-                    self.query_means_,
-                    self.query_stds_,
-                )
-            else:
-                distance_profiles = self.distance_profile_function_(self.X_, X, mask)
-
-        # For now, deal with the multidimensional case as "dependent", so we sum.
-        if self.metadata_["unequal_length"]:
-            distance_profiles = List(
-                [distance_profiles[i].sum(axis=0) for i in range(self.n_cases_)]
+        if self.normalise:
+            distance_profiles = self.distance_profile_function_(
+                self.X_,
+                X,
+                mask,
+                self.X_means_,
+                self.X_stds_,
+                self.query_means_,
+                self.query_stds_,
             )
         else:
-            distance_profiles = distance_profiles.sum(axis=1)
+            distance_profiles = self.distance_profile_function_(self.X_, X, mask)
 
         return distance_profiles
 
@@ -427,7 +382,7 @@ class QuerySearch(BaseSimilaritySearch):
         Get available speedup for query search in aeon.
 
         The returned structure is a dictionnary that contains the names of all
-        avaialble speedups for normalized and non-normalized distance functions.
+        avaialble speedups for normalised and non-normalised distance functions.
 
         Returns
         -------
@@ -438,12 +393,12 @@ class QuerySearch(BaseSimilaritySearch):
         """
         speedups = {}
         for dist_name in _QUERY_SEARCH_SPEED_UP_DICT.keys():
-            for normalize in _QUERY_SEARCH_SPEED_UP_DICT[dist_name].keys():
+            for normalise in _QUERY_SEARCH_SPEED_UP_DICT[dist_name].keys():
                 speedups_names = list(
-                    _QUERY_SEARCH_SPEED_UP_DICT[dist_name][normalize].keys()
+                    _QUERY_SEARCH_SPEED_UP_DICT[dist_name][normalise].keys()
                 )
-                if normalize:
-                    speedups.update({f"normalized {dist_name}": speedups_names})
+                if normalise:
+                    speedups.update({f"normalised {dist_name}": speedups_names})
                 else:
                     speedups.update({f"{dist_name}": speedups_names})
         return speedups
@@ -452,26 +407,22 @@ class QuerySearch(BaseSimilaritySearch):
 _QUERY_SEARCH_SPEED_UP_DICT = {
     "euclidean": {
         True: {
-            "fastest": normalized_euclidean_distance_profile,
-            "Mueen": normalized_euclidean_distance_profile,
-            "naive": naive_distance_profile,
+            "fastest": normalised_euclidean_distance_profile,
+            "Mueen": normalised_euclidean_distance_profile,
         },
         False: {
             "fastest": euclidean_distance_profile,
             "Mueen": euclidean_distance_profile,
-            "naive": naive_distance_profile,
         },
     },
     "squared": {
         True: {
-            "fastest": normalized_squared_distance_profile,
-            "Mueen": normalized_squared_distance_profile,
-            "naive": naive_distance_profile,
+            "fastest": normalised_squared_distance_profile,
+            "Mueen": normalised_squared_distance_profile,
         },
         False: {
             "fastest": squared_distance_profile,
             "Mueen": squared_distance_profile,
-            "naive": naive_distance_profile,
         },
     },
 }

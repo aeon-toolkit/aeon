@@ -43,8 +43,9 @@ class PLASeriesTransformer(BaseSeriesTransformer):
 
     References
     ----------
-    .. [1] Keogh, E., Chu, S., Hart, D. and Pazzani, M., 2001, November.
-    An online algorithm for segmenting time series. (pp. 289-296).
+    .. [1] E. Keogh, S. Chu, D. Hart and M. Pazzani, "An online algorithm for
+    segmenting time series," Proceedings 2001 IEEE International Conference on
+    Data Mining, San Jose, CA, USA, 2001, pp. 289-296, doi: 10.1109/ICDM.2001.989531.
 
     Examples
     --------
@@ -54,12 +55,6 @@ class PLASeriesTransformer(BaseSeriesTransformer):
     >>> ts = ts.values
     >>> pla = PLASeriesTransformer(max_error = 0.001, transformer="bottom up")
     >>> transformed_x = pla.fit_transform(ts)
-
-    References
-    ----------
-    .. [1] E. Keogh, S. Chu, D. Hart and M. Pazzani, "An online algorithm for
-    segmenting time series," Proceedings 2001 IEEE International Conference on
-    Data Mining, San Jose, CA, USA, 2001, pp. 289-296, doi: 10.1109/ICDM.2001.989531.
     """
 
     _tags = {

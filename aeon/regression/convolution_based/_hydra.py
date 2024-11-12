@@ -1,3 +1,11 @@
+"""Hydra regressor.
+
+Pipeline regressor using the Hydra transformer and RidgeCV estimator.
+"""
+
+__maintainer__ = ["MatthewMiddlehurst"]
+__all__ = ["HydraRegressor"]
+
 import numpy as np
 from sklearn.linear_model import RidgeCV
 from sklearn.pipeline import make_pipeline

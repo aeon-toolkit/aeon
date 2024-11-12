@@ -11,6 +11,11 @@ class MLPNetwork(BaseDeepLearningNetwork):
 
     Adapted from the implementation used in [1]_
 
+    Parameters
+    ----------
+    use_bias : bool, default = True
+        Condition on whether or not to use bias values for dense layers.
+
     Notes
     -----
     Adapted from the implementation from source code
@@ -24,7 +29,10 @@ class MLPNetwork(BaseDeepLearningNetwork):
 
     def __init__(
         self,
+        use_bias=True,
     ):
+        self.use_bias = use_bias
+
         super().__init__()
 
     def build_network(self, input_shape, **kwargs):
@@ -47,13 +55,19 @@ class MLPNetwork(BaseDeepLearningNetwork):
         input_layer_flattened = keras.layers.Flatten()(input_layer)
 
         layer_1 = keras.layers.Dropout(0.1)(input_layer_flattened)
-        layer_1 = keras.layers.Dense(500, activation="relu")(layer_1)
+        layer_1 = keras.layers.Dense(500, activation="relu", use_bias=self.use_bias)(
+            layer_1
+        )
 
         layer_2 = keras.layers.Dropout(0.2)(layer_1)
-        layer_2 = keras.layers.Dense(500, activation="relu")(layer_2)
+        layer_2 = keras.layers.Dense(500, activation="relu", use_bias=self.use_bias)(
+            layer_2
+        )
 
         layer_3 = keras.layers.Dropout(0.2)(layer_2)
-        layer_3 = keras.layers.Dense(500, activation="relu")(layer_3)
+        layer_3 = keras.layers.Dense(500, activation="relu", use_bias=self.use_bias)(
+            layer_3
+        )
 
         output_layer = keras.layers.Dropout(0.3)(layer_3)
 

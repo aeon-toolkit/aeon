@@ -333,7 +333,7 @@ def _make_estimator_overview(app):
     """Make estimator overview table."""
     import pandas as pd
 
-    from aeon.registry import all_estimators
+    from aeon.utils.discovery import all_estimators
 
     def _does_not_start_with_underscore(input_string):
         return not input_string.startswith("_")
@@ -352,7 +352,7 @@ def _make_estimator_overview(app):
 
     data = {k: [] for k in COLNAMES}
 
-    for estimator_name, estimator_class in all_estimators():
+    for estimator_name, estimator_class in all_estimators(include_sklearn=False):
         algorithm_type = "::".join(str(estimator_class).split(".")[1:-2])
         # fetch tags
         tag_dict = estimator_class.get_class_tags()

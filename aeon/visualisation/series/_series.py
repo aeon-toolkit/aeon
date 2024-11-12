@@ -12,15 +12,11 @@ from scipy.fft import fftshift
 from scipy.signal import spectrogram
 
 from aeon.utils.validation._dependencies import _check_soft_dependencies
-from aeon.utils.validation.series import (
-    check_consistent_index_type,
-    check_y,
-    is_pred_interval_proba,
-)
+from aeon.utils.validation.series import is_single_series, is_univariate_series
 
 
 def plot_series(
-    *series,
+    series,
     labels=None,
     markers=None,
     colors=None,
@@ -34,8 +30,8 @@ def plot_series(
 
     Parameters
     ----------
-    series : pd.Series or iterable of pd.Series
-        One or more time series.
+    series : np.ndarray, pd.Series or pd.DataFrame
+        One or more time series stored in `(n_channels, n_timepoints)` format.
     labels : list, default = None
         Names of series, will be displayed in figure legend.
     markers : list, default = None
@@ -45,6 +41,12 @@ def plot_series(
         The colors to use for plotting each series. Must contain one color per series
     title : str, default = None
         The text to use as the figure's suptitle.
+    x_label : str or None, default = None
+       String label to put on the x-axis.
+    y_label : str or None, default = None
+       String label to put on the -axis.
+    ax : plt.Axis or None
+        Axis to plot on. If None, a new figure is created.
     pred_interval : pd.DataFrame, default = None
         Contains columns for lower and upper boundaries of confidence interval.
 
@@ -57,22 +59,34 @@ def plot_series(
     --------
     >>> from aeon.visualisation import plot_series
     >>> from aeon.datasets import load_airline
-    >>> y = load_airline()
+    >>> y = load_airline(return_array=False)
     >>> fig, ax = plot_series(y)  # doctest: +SKIP
     """
+    if not is_single_series(series):
+        raise ValueError(
+            "series must be a single time series, either univariate (1D "
+            "np.ndarray or pd.Series) or multivariate (2D np.ndarray or pd.DataFrame)"
+            "of shape (n_channels, n_timepoints)"
+        )
+
     _check_soft_dependencies("matplotlib", "seaborn")
     import matplotlib.pyplot as plt
     import seaborn as sns
     from matplotlib.cbook import flatten
     from matplotlib.ticker import FuncFormatter, MaxNLocator
 
-    for y in series:
-        check_y(y, allow_index_names=True)
-
-    series = list(series)
-
+    # Convert single multivariate series in wide format to list of series
+    if isinstance(series, pd.DataFrame):
+        series = [row for _, row in series.iterrows()]
+    elif isinstance(series, pd.Series):
+        series = [series]
+    elif isinstance(series, np.ndarray):
+        series = series.squeeze()
+        if series.ndim > 1:
+            series = [pd.Series(row) for row in series]
+        else:
+            series = [pd.Series(series)]
     n_series = len(series)
-    _ax_kwarg_is_none = True if ax is None else False
     # labels
     if labels is not None:
         if n_series != len(labels):
@@ -99,16 +113,13 @@ def plot_series(
 
     # create combined index
     index = series[0].index
-    for y in series[1:]:
-        # check index types
-        check_consistent_index_type(index, y.index)
-        index = index.union(y.index)
 
     # generate integer x-values
     xs = [np.argwhere(index.isin(y.index)).ravel() for y in series]
 
-    # create figure if no Axe provided for plotting
-    if _ax_kwarg_is_none:
+    # create figure if no ax provided for plotting
+    local_ax = ax
+    if ax is None:
         fig, ax = plt.subplots(1, figsize=plt.figaspect(0.25))
 
     # colors
@@ -153,10 +164,9 @@ def plot_series(
     if legend:
         ax.legend()
     if pred_interval is not None:
-        assert is_pred_interval_proba(pred_interval)
         ax = _plot_interval(ax, pred_interval)
 
-    if _ax_kwarg_is_none:
+    if local_ax is None:
         return fig, ax
     else:
         return ax
@@ -196,8 +206,8 @@ def plot_lags(series, lags=1, suptitle=None):
 
     Parameters
     ----------
-    series : pd.Series
-        Time series for plotting lags.
+    series : pd.Series or np.ndarray
+        Single univariate  ime series for plotting lags.
     lags : int or array-like, default=1
         The lag or lags to plot.
 
@@ -217,14 +227,18 @@ def plot_lags(series, lags=1, suptitle=None):
     --------
     >>> from aeon.visualisation import plot_lags
     >>> from aeon.datasets import load_airline
-    >>> y = load_airline()
+    >>> y = load_airline(return_array=False)
     >>> fig, ax = plot_lags(y, lags=2) # plot of y(t) with y(t-2)  # doctest: +SKIP
     >>> fig, ax = plot_lags(y, lags=[1,2,3]) # y(t) & y(t-1), y(t-2).. # doctest: +SKIP
     """
     _check_soft_dependencies("matplotlib")
     import matplotlib.pyplot as plt
 
-    series = check_y(series)
+    if not (is_single_series(series) and is_univariate_series(series)):
+        raise ValueError("series must be a single univariate time series")
+
+    if isinstance(series, np.ndarray):
+        series = pd.Series(series)
 
     if isinstance(lags, int):
         single_lag = True
@@ -317,14 +331,15 @@ def plot_correlations(
     --------
     >>> from aeon.visualisation import plot_correlations
     >>> from aeon.datasets import load_airline
-    >>> y = load_airline()
+    >>> y = load_airline(return_array=False)
     >>> fig, ax = plot_correlations(y)  # doctest: +SKIP
     """
     _check_soft_dependencies("matplotlib", "statsmodels")
     import matplotlib.pyplot as plt
     from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 
-    series = check_y(series)
+    if not (is_single_series(series) and is_univariate_series(series)):
+        raise ValueError("series must be a single univariate time series")
 
     # Setup figure for plotting
     fig = plt.figure(constrained_layout=True, figsize=(12, 8))
@@ -392,7 +407,10 @@ def plot_spectrogram(series, fs=1, return_onesided=True):
     _check_soft_dependencies("matplotlib")
     import matplotlib.pyplot as plt
 
-    series = check_y(series)
+    if not (is_single_series(series) and is_univariate_series(series)):
+        raise ValueError("series must be a single univariate time series")
+    if isinstance(series, np.ndarray):
+        series = pd.Series(series)
 
     fig, ax = plt.subplots()
 

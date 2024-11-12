@@ -3,7 +3,7 @@
 __all__ = ["BaseSegmenter"]
 __maintainer__ = []
 
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from typing import final
 
 import numpy as np
@@ -13,7 +13,7 @@ from aeon.base import BaseSeriesEstimator
 from aeon.base._base_series import VALID_INPUT_TYPES
 
 
-class BaseSegmenter(BaseSeriesEstimator, ABC):
+class BaseSegmenter(BaseSeriesEstimator):
     """Base class for segmentation algorithms.
 
     Segmenters take a single time series of length ``n_timepoints`` and returns a
@@ -72,7 +72,6 @@ class BaseSegmenter(BaseSeriesEstimator, ABC):
 
     def __init__(self, axis, n_segments=2):
         self.n_segments = n_segments
-        self._is_fitted = False
 
         super().__init__(axis=axis)
 
@@ -106,10 +105,10 @@ class BaseSegmenter(BaseSeriesEstimator, ABC):
         self
             Fitted estimator
         """
-        if self.get_class_tag("fit_is_empty"):
-            self._is_fitted = True
+        if self.get_tag("fit_is_empty"):
+            self.is_fitted = True
             return self
-        if self.get_class_tag("requires_y"):
+        if self.get_tag("requires_y"):
             if y is None:
                 raise ValueError("Tag requires_y is true, but fit called with y=None")
         # reset estimator at the start of fit
@@ -120,7 +119,7 @@ class BaseSegmenter(BaseSeriesEstimator, ABC):
         if y is not None:
             y = self._check_y(y)
         self._fit(X=X, y=y)
-        self._is_fitted = True
+        self.is_fitted = True
         return self
 
     @final
@@ -147,10 +146,10 @@ class BaseSegmenter(BaseSeriesEstimator, ABC):
             list of integers of ``len(X)`` indicating which segment each time point
             belongs to.
         """
-        self.check_is_fitted()
+        self._check_is_fitted()
         if axis is None:
             axis = self.axis
-        X = self._preprocess_series(X, axis, self.get_class_tag("fit_is_empty"))
+        X = self._preprocess_series(X, axis, self.get_tag("fit_is_empty"))
         return self._predict(X)
 
     def fit_predict(self, X, y=None, axis=1):

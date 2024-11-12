@@ -4,7 +4,6 @@ __maintainer__ = []
 
 import numpy as np
 import pytest
-from numpy.testing import assert_almost_equal
 
 from aeon.testing.data_generation import (
     make_example_2d_numpy_collection,
@@ -45,22 +44,15 @@ def test_collection_transformer_invalid_input(dtype):
         t.fit_transform(y)
 
 
-def test_inverse_transform():
-    """Test inverse transform."""
+def test_raise_inverse_transform():
+    """Test that inverse transform raises NotImplementedError."""
     d = _Dummy()
     x, _ = make_example_3d_numpy()
     d.fit(x)
-    d.set_tags(**{"skip-inverse-transform": True})
-    x2 = d.inverse_transform(x)
-    assert_almost_equal(x, x2)
-    d.set_tags(**{"skip-inverse-transform": False})
     with pytest.raises(
         NotImplementedError, match="does not implement " "inverse_transform"
     ):
         d.inverse_transform(x)
-    d.set_tags(**{"capability:inverse_transform": True})
-    x2 = d.inverse_transform(x)
-    assert_almost_equal(x, x2)
 
 
 class _Dummy(BaseCollectionTransformer):

@@ -98,8 +98,8 @@ class RDSTRegressor(BaseRegressor):
     --------
     >>> from aeon.regression.shapelet_based import RDSTRegressor
     >>> from aeon.datasets import load_covid_3month
-    >>> X_train, y_train = load_covid_3month(split="train", return_X_y=True)
-    >>> X_test, y_test = load_covid_3month(split="test", return_X_y=True)
+    >>> X_train, y_train = load_covid_3month(split="train")
+    >>> X_test, y_test = load_covid_3month(split="test")
     >>> clf = RDSTRegressor(
     ...     max_shapelets=10
     ... )
@@ -113,7 +113,6 @@ class RDSTRegressor(BaseRegressor):
         "capability:unequal_length": True,
         "capability:multithreading": True,
         "X_inner_type": ["np-list", "numpy3D"],
-        "non-deterministic": True,  # due to random_state bug in MacOS #324
         "algorithm_type": "shapelet",
     }
 
@@ -218,7 +217,7 @@ class RDSTRegressor(BaseRegressor):
         return self._estimator.predict(X_t)
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -237,6 +236,5 @@ class RDSTRegressor(BaseRegressor):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         return {"max_shapelets": 20}

@@ -1,5 +1,7 @@
 """Time series kmeans."""
 
+from typing import Optional
+
 __maintainer__ = []
 
 from typing import Callable, Union
@@ -163,11 +165,11 @@ class TimeSeriesKMeans(BaseClusterer):
         max_iter: int = 300,
         tol: float = 1e-6,
         verbose: bool = False,
-        random_state: Union[int, RandomState] = None,
+        random_state: Optional[Union[int, RandomState]] = None,
         averaging_method: Union[str, Callable[[np.ndarray], np.ndarray]] = "ba",
-        distance_params: dict = None,
-        average_params: dict = None,
-        init_algorithm: Union[str, np.ndarray] = None,
+        distance_params: Optional[dict] = None,
+        average_params: Optional[dict] = None,
+        init_algorithm: Optional[Union[str, np.ndarray]] = None,
     ):
         self.init = init
         self.init_algorithm = init_algorithm
@@ -224,7 +226,6 @@ class TimeSeriesKMeans(BaseClusterer):
                     print("Resumed because of empty cluster")  # noqa: T001, T201
 
         if best_labels is None:
-            self._is_fitted = False
             raise ValueError(
                 "Unable to find a valid cluster configuration "
                 "with parameters specified (empty clusters kept "
@@ -407,7 +408,7 @@ class TimeSeriesKMeans(BaseClusterer):
         return curr_pw, curr_labels, curr_inertia, cluster_centres
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -423,7 +424,6 @@ class TimeSeriesKMeans(BaseClusterer):
             Parameters to create testing instances of the class
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`
         """
         return {
             "n_clusters": 2,

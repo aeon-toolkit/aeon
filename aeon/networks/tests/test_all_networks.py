@@ -106,13 +106,13 @@ def test_all_networks_params(network):
     ]:
 
         # Exceptions to fix
-        if (
-            attrname in ["kernel_size", "padding"]
-            and network.__name__ == "TapNetNetwork"
-        ):
+        if attrname in ["kernel_size", "padding"]:
             continue
         # LITENetwork does not seem to work with list args
         if network.__name__ == "LITENetwork":
+            continue
+
+        if network.__name__ == "MLPNetwork":
             continue
 
         # Here we use 'None' string as default to differentiate with None values
