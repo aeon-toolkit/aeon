@@ -41,14 +41,7 @@ class EncoderNetwork(BaseDeepLearningNetwork):
     .. [1] Serrà et al. Towards a Universal Neural Network Encoder for Time Series
     In proceedings International Conference of the Catalan Association
     for Artificial Intelligence, 120--129 2018.
-
-
     """
-
-    _config = {
-        "python_dependencies": ["tensorflow"],
-        "structure": "encoder",
-    }
 
     def __init__(
         self,
