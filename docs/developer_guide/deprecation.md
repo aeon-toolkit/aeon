@@ -1,37 +1,57 @@
 # Deprecation Policy
 
-`aeon` [releases](https://github.com/aeon-toolkit/aeon/releases) follow [semantic versioning](https://semver.org). A release number denotes `<major>.<minor>.<patch>` versions.
+`aeon` [releases](https://github.com/aeon-toolkit/aeon/releases) follow [semantic versioning](https://semver.org). A release number
+denotes `<major>.<minor>.<patch>` versions.
 
-Broadly, if a change could unexpectedly cause code using `aeon` to crash when updating to the next version, then it should be deprecated to give the user a chance to prepare.
+Broadly, if a change could unexpectedly cause code using `aeon` to crash when updating
+to the next version, then it should be deprecated to give the user a chance to prepare.
 
 When to deprecate:
 - Removal or renaming of public classes or functions
 - Removal or renaming of public class parameters or function arguments
 - Addition of positional arguments without default values
 
-Deprecation warnings should be included for at least one full minor version cycle before change or removal. If an item is deprecated on the release of v0.6.0, it can be removed in v0.7.0. If an item is deprecated between v0.6.0 and v0.7.0 (i.e. v0.6.1), it can be removed in v0.8.0.
+Deprecation warnings should be included for at least one full minor version cycle before
+change or removal. If an item is deprecated on the release of `v0.6.0`, it can be
+removed  in `v0.7.0`. If an item is deprecated between `v0.6.0` and `v0.7.0`
+(i.e. `v0.6.1`), it can be removed in `v0.8.0`.
 
-Note that the deprecation policy does not necessarily apply to modules we class as still experimental. Currently experimental modules are:
+Note that the deprecation policy does not necessarily apply to modules we class as still
+experimental. Currently experimental modules are:
 
 - `anomaly_detection`
 - `benchmarking`
+- `forecasting`
 - `segmentation`
 - `similarity_search`
-- `testing`
-- `transformations/series`
 - `visualisation`
 
-When we introduce a new module, we may classify it as experimental until the API is stable. We will try to not make drastic changes to experimental modules, but we need to retain the freedom to be more agile with the design in these cases.
+When we introduce a new module, we may classify it as experimental until the API is
+stable. We will try to not make drastic changes to experimental modules, but we need
+to retain the freedom to be more agile with the design in these cases.
 
 ## Deprecation Process
 
-To deprecate functions and classes, write a "TODO" comment stating the version the code should be removed in and raise a warning using the [deprecated package](https://deprecated.readthedocs.io/en/latest/index.html). This raises a `FutureWarning` saying that the functionality has been deprecated. Import from `deprecated.sphinx` so the  deprecation message is automatically added to the documentation.
+To deprecate functions and classes, write a "TODO" comment stating the version the code
+should be removed in and raise a warning using the [deprecated package](https://deprecated.readthedocs.io/en/latest/index.html). This
+raises a `FutureWarning` saying that the functionality has been deprecated. Import
+from `deprecated.sphinx` so the  deprecation message is automatically added to the
+documentation.
 
-When renaming items, the functionality should ideally already be available with the new name when the deprecation warning is added. For example, including both the old and new name for a positional argument, or both functions/classes with the old and new names. This is not always possible, but it is good practice to do so.
+When renaming items, the functionality should ideally already be available with the new
+name when the deprecation warning is added. For example, including both the old and new
+name for a positional argument, or both functions/classes with the old and new names.
+This is not always possible, but it is good practice to do so.
 
-In most cases not necessary to use the `deprecated` package when renaming or removing function and class keyword arguments. The default value of the argument can be set to `"deprecated"`. If this value is changed, a `FutureWarning` can be raised. This isolates the deprecation warning to the argument, rather than the whole function or class. If renaming, the new keyword argument can be added alongside this, with the warning directing users to use the new keyword argument.
+In most cases not necessary to use the `deprecated` package when renaming or removing
+function and class keyword arguments. The default value of the argument can be set to
+`"deprecated"`. If this value is changed, a `FutureWarning` can be raised. This
+isolates the deprecation warning to the argument, rather than the whole function or
+class. If renaming, the new keyword argument can be added alongside this, with the
+warning directing users to use the new keyword argument.
 
-If the next version number has not been decided, use the next minor version number for the deprecated package `version` parameter.
+If the next version number has not been decided, use the next minor version number
+for the deprecated package `version` parameter.
 
 ## Examples
 
@@ -53,7 +73,8 @@ def my_function(x, y):
     return x + y
 ```
 
-Deprecate a function to add a new positional argument. In certain cases, you can add a keyword argument with a default value, to ease the transition.
+Deprecate a function to add a new positional argument. In certain cases, you can add a
+keyword argument with a default value, to ease the transition.
 
 ```python
 from deprecated.sphinx import deprecated
@@ -92,7 +113,8 @@ class MyClass:
 
 Deprecate a class.
 
-Since this example is deprecated on a patch release, it cannot be removed from the next minor release.
+Since this example is deprecated on a patch release, it cannot be removed from the next
+minor release.
 
 ```python
 from deprecated.sphinx import deprecated
@@ -108,7 +130,8 @@ class MyClass:
     pass
 ```
 
-Deprecate a public class attribute. If we are renaming, we could add the new name and direct users to use that instead while updating both.
+Deprecate a public class attribute. If we are renaming, we could add the new name and
+direct users to use that instead while updating both.
 
 ```python
 from deprecated.sphinx import deprecated

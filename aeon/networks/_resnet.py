@@ -209,7 +209,7 @@ class ResNetNetwork(BaseDeepLearningNetwork):
                 conv = tf.keras.layers.Conv1D(
                     filters=self._n_filters[d],
                     kernel_size=self._kernel_size[c],
-                    strides=self._strides[d],
+                    strides=self._strides[c],
                     padding=self._padding[c],
                     dilation_rate=self._dilation_rate[c],
                 )(x)
