@@ -170,17 +170,26 @@ def test_ets_comparison(setup_func, random_seed, catch_errors):
 
 def time_etsfast():
     """Test function for optimised numba ets algorithm."""
-    etsfast.ETSForecaster(2, 2, 2, 4).fit(ap)
+    etsfast.ETSForecaster(2, 2, 2, 4).fit(ap).predict()
 
 
 def time_ets_structtest():
     """Test function for ets algorithm using classes."""
-    ets_structtest.ETSForecaster(ets_structtest.ModelType(2, 2, 2, 4)).fit(ap)
+    ets_structtest.ETSForecaster(ets_structtest.ModelType(2, 2, 2, 4)).fit(ap).predict()
 
 
 def time_etsnoopt():
     """Test function for non-optimised ets algorithm."""
-    ETSForecaster(ModelType(2, 2, 2, 4)).fit(ap)
+    ETSForecaster(ModelType(2, 2, 2, 4)).fit(ap).predict()
+
+
+def time_etsfast_noclass():
+    """Test function for optimised ets algorithm without the class based structure."""
+    data = np.array(ap.squeeze(), dtype=np.float64)
+    (level, trend, seasonality, residuals_, avg_mean_sq_err_, liklihood_) = (
+        etsfast._fit(data, 2, 2, 2, 4, 0.1, 0.01, 0.01, 0.99)
+    )
+    etsfast._predict(2, 2, level, trend, seasonality, 0.99, 1, 144, 4)
 
 
 def time_sf():
@@ -225,15 +234,23 @@ def time_compare(random_seed):
         nmse,
     ) = setup()
     # etsnoopt_time = timeit.timeit(time_etsnoopt, globals={}, number=10000)
-    # print(f"Execution time ETS No-opt: {etsnoopt_time} seconds")
+    # print (f"Execution time ETS No-opt: {etsnoopt_time} seconds")
     # ets_structtest_time = timeit.timeit(time_ets_structtest, globals={}, number=10000)
-    # print(f"Execution time ETS Structtest: {ets_structtest_time} seconds")
+    # print (f"Execution time ETS Structtest: {ets_structtest_time} seconds")
+    for _i in range(10):
+        time_etsfast()
+        time_sf()
+        time_etsfast_noclass()
     etsfast_time = timeit.timeit(time_etsfast, globals={}, number=1000)
     print(f"Execution time ETS Fast: {etsfast_time} seconds")  # noqa
+    etsfast_noclass_time = timeit.timeit(time_etsfast_noclass, globals={}, number=1000)
+    print(f"Execution time ETS Fast NoClass: {etsfast_noclass_time} seconds")  # noqa
     statsforecast_time = timeit.timeit(time_sf, globals={}, number=1000)
     print(f"Execution time StatsForecast: {statsforecast_time} seconds")  # noqa
     etsfast_time = timeit.timeit(time_etsfast, globals={}, number=1000)
     print(f"Execution time ETS Fast: {etsfast_time} seconds")  # noqa
+    etsfast_noclass_time = timeit.timeit(time_etsfast_noclass, globals={}, number=1000)
+    print(f"Execution time ETS Fast NoClass: {etsfast_noclass_time} seconds")  # noqa
     statsforecast_time = timeit.timeit(time_sf, globals={}, number=1000)
     print(f"Execution time StatsForecast: {statsforecast_time} seconds")  # noqa
     # _ets_fast_nostruct implementation

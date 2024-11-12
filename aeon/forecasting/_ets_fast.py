@@ -160,22 +160,18 @@ class ETSForecaster(BaseForecaster):
             single prediction self.horizon steps ahead of y.
         """
         y = np.array(y, dtype=np.float64)
-        # Generate forecasts based on the final values of level, trend, and seasonals
-        if self.phi == 1:  # No damping case
-            phi_h = float(self.horizon)
-        else:
-            # Geometric series formula for calculating phi + phi^2 + ... + phi^h
-            phi_h = self.phi * (1 - self.phi**self.horizon) / (1 - self.phi)
-        seasonal_index = (self.n_timepoints + self.horizon) % self.seasonal_period
-        fitted_value = _predict_value(
+
+        return _predict(
             self.trend_type,
             self.seasonality_type,
             self.level,
             self.trend,
-            self.seasonality[seasonal_index],
-            phi_h,
-        )[0]
-        return fitted_value
+            self.seasonality,
+            self.phi,
+            self.horizon,
+            self.n_timepoints,
+            self.seasonal_period,
+        )
 
 
 @njit(nogil=NOGIL, cache=CACHE)
@@ -229,6 +225,34 @@ def _fit(
     if error_type == MULTIPLICATIVE:
         liklihood_ += 2 * mul_liklihood_pt2
     return level, trend, seasonality, residuals_, avg_mean_sq_err_, liklihood_
+
+
+def _predict(
+    trend_type,
+    seasonality_type,
+    level,
+    trend,
+    seasonality,
+    phi,
+    horizon,
+    n_timepoints,
+    seasonal_period,
+):
+    # Generate forecasts based on the final values of level, trend, and seasonals
+    if phi == 1:  # No damping case
+        phi_h = float(horizon)
+    else:
+        # Geometric series formula for calculating phi + phi^2 + ... + phi^h
+        phi_h = phi * (1 - phi**horizon) / (1 - phi)
+    seasonal_index = (n_timepoints + horizon) % seasonal_period
+    return _predict_value(
+        trend_type,
+        seasonality_type,
+        level,
+        trend,
+        seasonality[seasonal_index],
+        phi_h,
+    )[0]
 
 
 @njit(nogil=NOGIL, cache=CACHE)
