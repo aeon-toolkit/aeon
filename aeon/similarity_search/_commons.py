@@ -6,7 +6,151 @@ import warnings
 
 import numpy as np
 from numba import njit, prange
+from numba.typed import List
 from scipy.signal import convolve
+
+from aeon.utils.numba.general import (
+    get_all_subsequences,
+    normalise_subsequences,
+    sliding_mean_std_one_series,
+    z_normalise_series_2d,
+)
+
+
+@njit(cache=True, fastmath=True)
+def _compute_dist_profile(X_subs, q):
+    """
+    Compute the distance profile between subsequences and a query.
+
+    Parameters
+    ----------
+    X_subs : array, shape=(n_samples, n_channels, query_length)
+        Input subsequences extracted from a time series.
+    q : array, shape=(n_channels, query_length)
+        Query used for the distance computation
+
+    Returns
+    -------
+    dist_profile : np.ndarray, 1D array of shape (n_samples)
+        The distance between the query all subsequences.
+
+    """
+    n_candidates, n_channels, q_length = X_subs.shape
+    dist_profile = np.zeros(n_candidates)
+    for i in range(n_candidates):
+        for j in range(n_channels):
+            for k in range(q_length):
+                dist_profile[i] += (X_subs[i, j, k] - q[j, k]) ** 2
+    return dist_profile
+
+
+@njit(cache=True, fastmath=True)
+def naive_squared_distance_profile(
+    X,
+    q,
+    mask,
+    normalise=False,
+    X_means=None,
+    X_stds=None,
+):
+    """
+    Compute a squared euclidean distance profile.
+
+    Parameters
+    ----------
+    X : array, shape=(n_samples, n_channels, n_timepoints)
+        Input time series dataset to search in.
+    q : array, shape=(n_channels, query_length)
+        Query used during the search.
+    mask : array, shape=(n_samples,  n_timepoints - query_length + 1)
+        Boolean mask indicating candidates for which the distance
+        profiles computed for each query should be set to infinity.
+    normalise : bool
+        Wheter to use a z-normalised distance.
+    X_means : array, shape=(n_samples, n_channels, n_timepoints - query_length + 1)
+        Mean of each candidate (subsequence) of length query_length in X. The
+        default is None, meaning that these values will be computed if normalise
+        is True. If provided, the computations will be skipped.
+    X_stds : array, shape=(n_samples, n_channels, n_timepoints - query_length + 1)
+        Standard deviation of each candidate (subsequence) of length query_length
+        in X. The default is None, meaning that these values will be computed if
+        normalise is True. If provided, the computations will be skipped.
+
+    Returns
+    -------
+    out : np.ndarray, 1D array of shape (n_samples, n_timepoints_t - query_length + 1)
+        The distance between the query and all candidates in X.
+
+    """
+    query_length = q.shape[1]
+    dist_profiles = List()
+    # Init distance profile array with unequal length support
+    for i in range(len(X)):
+        dist_profiles.append(np.zeros(X[i].shape[1] - query_length + 1))
+    if normalise:
+        q = z_normalise_series_2d(q)
+    else:
+        q = q.astype(np.float64)
+    for i in range(len(X)):
+        # Numba don't support strides with integers ?
+
+        X_subs = get_all_subsequences(X[i].astype(np.float64), query_length, 1)
+        if normalise:
+            if X_means is None and X_stds is None:
+                _X_means, _X_stds = sliding_mean_std_one_series(X[i], query_length, 1)
+            else:
+                _X_means, _X_stds = X_means[i], X_stds[i]
+            X_subs = normalise_subsequences(X_subs, _X_means, _X_stds)
+        dist_profile = _compute_dist_profile(X_subs, q)
+        dist_profile[~mask[i]] = np.inf
+        dist_profiles[i] = dist_profile
+    return dist_profiles
+
+
+@njit(cache=True, fastmath=True)
+def naive_squared_matrix_profile(X, T, query_length, mask, normalise=False):
+    """
+    Compute a squared euclidean matrix profile.
+
+    Parameters
+    ----------
+    X : array, shape=(n_samples, n_channels, n_timepoints_x)
+        Input time series dataset to search in.
+    T : array, shape=(n_channels, n_timepoints_t)
+        Time series from which queries are extracted.
+    query_length : int
+        Length of the queries to extract from T.
+    mask : array, shape=(n_samples, n_timepoints_x - query_length + 1)
+        Boolean mask indicating candidates for which the distance
+        profiles computed for each query should be set to infinity.
+    normalise : bool
+        Wheter to use a z-normalised distance.
+
+    Returns
+    -------
+    out : np.ndarray, 1D array of shape (n_timepoints_t - query_length + 1)
+        The minimum distance between each query in T and all candidates in X.
+    """
+    X_subs = List()
+    for i in range(len(X)):
+        i_subs = get_all_subsequences(X[i].astype(np.float64), query_length, 1)
+        if normalise:
+            X_means, X_stds = sliding_mean_std_one_series(X[i], query_length, 1)
+            i_subs = normalise_subsequences(i_subs, X_means, X_stds)
+        X_subs.append(i_subs)
+
+    n_candidates = T.shape[1] - query_length + 1
+    mp = np.full(n_candidates, np.inf)
+
+    for i in range(n_candidates):
+        q = T[:, i : i + query_length]
+        if normalise:
+            q = z_normalise_series_2d(q)
+        for id_sample in range(len(X)):
+            dist_profile = _compute_dist_profile(X_subs[id_sample], q)
+            dist_profile[~mask[id_sample]] = np.inf
+            mp[i] = min(mp[i], dist_profile.min())
+    return mp
 
 
 def fft_sliding_dot_product(X, q):
@@ -23,7 +167,6 @@ def fft_sliding_dot_product(X, q):
     ----------
     X : array, shape=(n_channels, n_timepoints)
         Input time series
-
     q : array, shape=(n_channels, query_length)
         Input query
 

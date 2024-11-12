@@ -30,8 +30,8 @@ class BaseSimilaritySearch(BaseCollectionEstimator):
     inverse_distance : bool, default=False
         If True, the matching will be made on the inverse of the distance, and thus, the
         worst matches to the query will be returned instead of the best ones.
-    normalize : bool, default=False
-        Whether the distance function should be z-normalized.
+    normalise : bool, default=False
+        Whether the distance function should be z-normalised.
     speed_up : str, default='fastest'
         Which speed up technique to use with for the selected distance
         function. By default, the fastest algorithm is used. A list of available
@@ -56,6 +56,7 @@ class BaseSimilaritySearch(BaseCollectionEstimator):
         "capability:multivariate": True,
         "capability:unequal_length": True,
         "capability:multithreading": True,
+        "fit_is_empty": False,
         "X_inner_type": ["np-list", "numpy3D"],
     }
 
@@ -64,14 +65,14 @@ class BaseSimilaritySearch(BaseCollectionEstimator):
         distance: str = "euclidean",
         distance_args: Optional[dict] = None,
         inverse_distance: bool = False,
-        normalize: bool = False,
+        normalise: bool = False,
         speed_up: str = "fastest",
         n_jobs: int = 1,
     ):
         self.distance = distance
         self.distance_args = distance_args
         self.inverse_distance = inverse_distance
-        self.normalize = normalize
+        self.normalise = normalise
         self.n_jobs = n_jobs
         self.speed_up = speed_up
         super().__init__()
@@ -108,6 +109,7 @@ class BaseSimilaritySearch(BaseCollectionEstimator):
         set_num_threads(self._n_jobs)
         self._fit(X, y)
         set_num_threads(prev_threads)
+        self.is_fitted = True
         return self
 
     def _store_mean_std_from_inputs(self, query_length: int) -> None:

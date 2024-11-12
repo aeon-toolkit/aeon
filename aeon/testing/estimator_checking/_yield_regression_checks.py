@@ -139,7 +139,6 @@ def check_regressor_saving_loading_deep_learning(estimator_class, datatype):
                 "BaseDeepRegressor",
                 "InceptionTimeRegressor",
                 "LITETimeRegressor",
-                "TapNetRegressor",
             ]
         ):
             if tmp[-1] != "/":
