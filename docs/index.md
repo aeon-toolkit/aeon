@@ -9,11 +9,13 @@ such as anomaly detection, classification, clustering, forecasting, regression,
 segmentation and similarity search.</p>
 
 - We provide a broad library of time series algorithms, including the latest
-  state of the art for many tasks.
-- Our algorithms are all implemented as efficiently as possible by, for example,
+  advances and state-of-the-art for many tasks.
+- Our algorithms are implemented as efficiently as possible by, for example,
   using `numba`.
 - `aeon` is built on top of `scikit-learn`, allowing for easy integration with other
   machine learning libraries and other time series packages.
+- We provide a range of tools for reproducing benchmarking results and evaluating time
+  series algorithms implemented in `aeon` and other `scikit-learn` compatible packages.
 
 ```{admonition} Large scale changes for aeon v1.0.0
 We are currently working on v1.0.0 of aeon, which includes a number of large changes
