@@ -45,7 +45,6 @@ Deep learning
     MLPClassifier
     ResNetClassifier
     DisjointCNNClassifier
-    TapNetClassifier
 
 Dictionary-based
 ----------------

@@ -224,7 +224,6 @@ def check_classifier_saving_loading_deep_learning(estimator_class, datatype):
                 "BaseDeepClassifier",
                 "InceptionTimeClassifier",
                 "LITETimeClassifier",
-                "TapNetClassifier",
             ]
         ):
             if tmp[-1] != "/":
