@@ -21,16 +21,21 @@ class MLPRegressor(BaseDeepRegressor):
 
     Parameters
     ----------
+    use_bias : bool, default = True
+        Condition on whether or not to use bias values for dense layers.
     n_epochs : int, default = 2000
         the number of epochs to train the model
     batch_size : int, default = 16
         the number of samples per gradient update.
-    callbacks : callable or None, default
+    callbacks : keras callback or list of callbacks,
+        default = None
+        The default list of callbacks are set to
+        ModelCheckpoint and ReduceLROnPlateau.
     verbose : boolean, default = False
         whether to output extra information
-    loss : string, default="mean_squared_error"
-        fit parameter for the keras model
-    metrics : list of strings, default="mean_squared_error"
+    loss : str, default = "mean_squared_error"
+        The name of the keras training loss.
+    metrics : str or list[str], default="mean_squared_error"
         The evaluation metrics to use during training. If
         a single string metric is provided, it will be
         used as the only metric. If a list of metrics are
@@ -72,10 +77,9 @@ class MLPRegressor(BaseDeepRegressor):
         List of available activation functions:
         https://keras.io/api/layers/activations/
     output_activation : str = "linear"
-        Activation for the last layer in a Regressor
-    use_bias : boolean, default = True
-        whether the layer uses a bias vector.
-    optimizer : keras.optimizer, default=keras.optimizers.Adadelta()
+        Activation for the last layer in a Regressor.
+    optimizer : keras.optimizer, default = tf.keras.optimizers.Adam()
+        The keras optimizer used for training.
 
 
     References
@@ -96,11 +100,12 @@ class MLPRegressor(BaseDeepRegressor):
 
     def __init__(
         self,
+        use_bias=True,
         n_epochs=2000,
         batch_size=16,
         callbacks=None,
         verbose=False,
-        loss="mse",
+        loss="mean_squared_error",
         metrics="mean_squared_error",
         file_path="./",
         save_best_model=False,
@@ -112,7 +117,6 @@ class MLPRegressor(BaseDeepRegressor):
         random_state=None,
         activation="relu",
         output_activation="linear",
-        use_bias=True,
         optimizer=None,
     ):
         self.callbacks = callbacks
@@ -139,7 +143,7 @@ class MLPRegressor(BaseDeepRegressor):
             last_file_name=last_file_name,
         )
 
-        self._network = MLPNetwork()
+        self._network = MLPNetwork(use_bias=self.use_bias)
 
     def build_model(self, input_shape, **kwargs):
         """Construct a compiled, un-trained, keras model that is ready for training.
@@ -168,9 +172,9 @@ class MLPRegressor(BaseDeepRegressor):
 
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
-        output_layer = keras.layers.Dense(
-            units=1, activation=self.output_activation, use_bias=self.use_bias
-        )(output_layer)
+        output_layer = keras.layers.Dense(units=1, activation=self.output_activation)(
+            output_layer
+        )
 
         self.optimizer_ = (
             keras.optimizers.Adadelta() if self.optimizer is None else self.optimizer
@@ -203,10 +207,11 @@ class MLPRegressor(BaseDeepRegressor):
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
 
-        if isinstance(self.metrics, str):
-            self._metrics = [self.metrics]
-        else:
+        if isinstance(self.metrics, list):
             self._metrics = self.metrics
+        elif isinstance(self.metrics, str):
+            self._metrics = [self.metrics]
+
         self.input_shape = X.shape[1:]
 
         self.training_model_ = self.build_model(self.input_shape)

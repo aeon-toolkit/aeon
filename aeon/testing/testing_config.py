@@ -11,13 +11,8 @@ PR_TESTING = False
 
 # Exclude estimators here for short term fixes
 EXCLUDE_ESTIMATORS = [
-    "SeriesSearch",
-    "QuerySearch",
     "ClearSkyTransformer",
     # See #2071
-    "RandomDilatedShapeletTransform",
-    "RDSTClassifier",
-    "RDSTRegressor",
     "RISTRegressor",
 ]
 
@@ -43,8 +38,6 @@ EXCLUDED_TESTS = {
     # has a keras fail, unknown reason, see #1387
     "LearningShapeletClassifier": ["check_fit_deterministic"],
     # does not fit structure for test, needs investigation
-    "TapNetClassifier": ["check_classifier_random_state_deep_learning"],
-    "TapNetRegressor": ["check_regressor_random_state_deep_learning"],
     # needs investigation
     "SASTClassifier": ["check_fit_deterministic"],
     "RSASTClassifier": ["check_fit_deterministic"],
@@ -76,6 +69,12 @@ EXCLUDED_TESTS = {
     "MiniRocketRegressor": ["check_non_state_changing_method"],
     "MultiRocketRegressor": ["check_non_state_changing_method"],
     "RSTSF": ["check_non_state_changing_method"],
+    # Keeps length during predict to avoid recomputing means and std of data in fit
+    # if the next predict calls uses the same query length parameter.
+    "QuerySearch": ["check_non_state_changing_method"],
+    "SeriesSearch": ["check_non_state_changing_method"],
+    # Unknown issue not producing the same results for Covid3Month (other is fine)
+    "RDSTRegressor": ["check_regressor_against_expected_results"],
 }
 
 # NON_STATE_CHANGING_METHODS =

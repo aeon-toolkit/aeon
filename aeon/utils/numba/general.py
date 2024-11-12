@@ -2,7 +2,6 @@
 
 __maintainer__ = []
 __all__ = [
-    "generate_new_default_njit_func",
     "unique_count",
     "first_order_differences",
     "first_order_differences_2d",
@@ -16,7 +15,6 @@ __all__ = [
     "get_subsequence",
     "get_subsequence_with_mean_std",
     "sliding_mean_std_one_series",
-    "sliding_dot_product",
     "combinations_1d",
     "slope_derivative",
     "slope_derivative_2d",
@@ -25,115 +23,13 @@ __all__ = [
 ]
 
 
-import inspect
-import types
-from copy import deepcopy
-
 import numpy as np
 from numba import njit, prange
-from numba.core.registry import CPUDispatcher
 from numpy.random._generator import Generator
 
 import aeon.utils.numba.stats as stats
 
 AEON_NUMBA_STD_THRESHOLD = 1e-8
-
-
-def generate_new_default_njit_func(
-    base_func,
-    new_defaults_args,
-    use_fastmath_for_callable=True,
-    use_cache_for_callable=True,
-):
-    """
-    Return a function with same code, globals, defaults, closure, and name.
-
-    If the function is not a CPUDispatcher (numba) function, it will try to create
-    a numba function if the base function is callable.
-
-    Parameters
-    ----------
-    base_func : function or CPUDispatcher
-        A Python or Numba function to modify.
-    new_defaults_args : dict
-        Dictionnary of new default keyword args. If new_defaults_args is None or empty,
-        directly return base_func.
-    use_fastmath_for_callable : bool
-        If base_func is a callable, add fastmath as numba option when compiling
-        the new function to numba.
-    use_cache_for_callable : bool
-        If base_func is a callable, add cache as numba option when compiling
-        the new function to numba.
-
-    Returns
-    -------
-    new_func_njit : CPUDispatcher
-        Created numba function with new default args.
-
-    """
-    # empty dict evaluate to false
-    if new_defaults_args is None or (
-        isinstance(new_defaults_args, dict) and not new_defaults_args
-    ):
-        if isinstance(base_func, CPUDispatcher):
-            return base_func
-        else:
-            numba_args_for_callable = {}
-            if use_fastmath_for_callable:
-                numba_args_for_callable.update({"fastmath": True})
-            if use_cache_for_callable:
-                numba_args_for_callable.update({"cache": True})
-            return njit(base_func, **numba_args_for_callable)
-
-    elif not isinstance(new_defaults_args, dict):
-        raise TypeError(
-            "Expected new_defaults_args to be a dict but got "
-            f"{type(new_defaults_args)}"
-        )
-    if isinstance(base_func, CPUDispatcher):
-        base_func_py = base_func.py_func
-    elif callable(base_func):
-        base_func_py = base_func
-    else:
-        raise TypeError(
-            "Expected base_func to be of type callable or CPUDispatcher type (numba "
-            f"function), but got {type(base_func)}"
-        )
-    signature = inspect.signature(base_func_py)
-
-    _new_defaults = []
-    for k, v in signature.parameters.items():
-        if v.default is not inspect.Parameter.empty:
-            if k in new_defaults_args.keys():
-                _new_defaults.append(new_defaults_args[k])
-            else:
-                _new_defaults.append(v.default)
-
-    new_func = types.FunctionType(
-        base_func_py.__code__,
-        base_func_py.__globals__,
-        "_tmp_" + base_func_py.__name__,
-        tuple(_new_defaults),
-        base_func_py.__closure__,
-    )
-    # If new_func was given attrs (dict is a shallow copy we shouldn't modify)
-    new_func.__dict__.update(base_func_py.__dict__)
-    if isinstance(base_func, CPUDispatcher):
-        numba_options = deepcopy(base_func.targetoptions)
-        # remove nopython option as we already use njit to avoid a warning
-        numba_options.pop("nopython")
-        new_func_njit = njit(new_func, **numba_options)
-
-    elif callable(base_func):
-        # This should return a Python function when DISABLE_NJIT = True
-        numba_args_for_callable = {}
-        if use_fastmath_for_callable:
-            numba_args_for_callable.update({"fastmath": True})
-        if use_cache_for_callable:
-            numba_args_for_callable.update({"cache": True})
-        new_func_njit = njit(new_func, **numba_args_for_callable)
-
-    return new_func_njit
 
 
 @njit(fastmath=True, cache=True)
@@ -314,7 +210,7 @@ def z_normalise_series(X: np.ndarray) -> np.ndarray:
 
 
 @njit(fastmath=True, cache=True)
-def z_normalize_series_with_mean_std(
+def z_normalise_series_with_mean_std(
     X: np.ndarray, series_mean: float, series_std: float
 ):
     """
@@ -332,12 +228,12 @@ def z_normalize_series_with_mean_std(
     Returns
     -------
     arr :  1d numpy array
-        The normalized series
+        The normalised series
     """
     if series_std > AEON_NUMBA_STD_THRESHOLD:
         arr = (X - series_mean) / series_std
     else:
-        arr = X - series_mean
+        return X - series_mean
     return arr
 
 
@@ -369,7 +265,7 @@ def z_normalise_series_2d(X: np.ndarray) -> np.ndarray:
 
 
 @njit(fastmath=True, cache=True)
-def z_normalize_series_2d_with_mean_std(
+def z_normalise_series_2d_with_mean_std(
     X: np.ndarray, series_mean: np.ndarray, series_std: np.ndarray
 ) -> np.ndarray:
     """
@@ -378,7 +274,7 @@ def z_normalize_series_2d_with_mean_std(
     Parameters
     ----------
     X : array, shape = (n_channels, n_timestamps)
-        Input array to normalize.
+        Input array to normalise.
     mean : array, shape = (n_channels)
         Mean of each channel of X.
     std : array, shape = (n_channels)
@@ -387,11 +283,11 @@ def z_normalize_series_2d_with_mean_std(
     Returns
     -------
     arr : array, shape = (n_channels, n_timestamps)
-        The normalized array
+        The normalised array
     """
     arr = np.zeros(X.shape)
     for i in range(X.shape[0]):
-        arr[i] = z_normalize_series_with_mean_std(X[i], series_mean[i], series_std[i])
+        arr[i] = z_normalise_series_with_mean_std(X[i], series_mean[i], series_std[i])
     return arr
 
 
@@ -632,40 +528,35 @@ def sliding_mean_std_one_series(
 
 
 @njit(fastmath=True, cache=True)
-def sliding_dot_product(
-    X: np.ndarray, values: np.ndarray, length: int, dilation: int
-) -> np.ndarray:
-    """Compute a sliding dot product between a time series and a shapelet.
+def normalise_subsequences(X_subs: np.ndarray, X_means: np.ndarray, X_stds: np.ndarray):
+    """
+    Z-normalise subsequences (by length and dilation) of a time series.
 
     Parameters
     ----------
-    X : array, shape (n_channels, n_timestamps)
-        An input time series
-    values : array, shape (n_channels, length)
-        The value array of the shapelet
-    length : int
-        Length of the shapelet
-    dilation : int
-        Dilation of the shapelet
+    X_subs : array, shape (n_timestamps-(length-1)*dilation, n_channels, length)
+        The subsequences of an input time series of size  n_timestamps given the
+        length and dilation parameter.
+    X_means : array, shape (n_channels, n_timestamps-(length-1)*dilation)
+        Mean of the subsequences to normalise.
+    X_stds : array, shape (n_channels, n_timestamps-(length-1)*dilation)
+        Stds of the subsequences to normalise.
 
     Returns
     -------
-    dot_prods : array, shape (n_channels, n_timestamps - (length-1) * dilation)
-        The dot products between each subsequence (l,d) of X and the value of the
-        shapelet.
+    array, shape = (n_timestamps-(length-1)*dilation, n_channels, length)
+        Z-normalised subsequences.
     """
-    n_channels, n_timestamps = X.shape
-    n_subs = n_timestamps - (length - 1) * dilation
-    dot_prods = np.zeros((n_channels, n_subs))
-    for i_sub in prange(n_subs):
-        idx = i_sub
-        for i_l in prange(length):
-            for i_channel in prange(n_channels):
-                dot_prods[i_channel, i_sub] += (
-                    X[i_channel, idx] * values[i_channel, i_l]
-                )
-            idx += dilation
-    return dot_prods
+    n_subsequences, n_channels, length = X_subs.shape
+    X_new = np.zeros((n_subsequences, n_channels, length))
+    for i_sub in prange(n_subsequences):
+        for i_channel in prange(n_channels):
+            if X_stds[i_channel, i_sub] > AEON_NUMBA_STD_THRESHOLD:
+                X_new[i_sub, i_channel] = (
+                    X_subs[i_sub, i_channel] - X_means[i_channel, i_sub]
+                ) / X_stds[i_channel, i_sub]
+            # else it gives 0, the default value
+    return X_new
 
 
 @njit(cache=True)
@@ -855,3 +746,29 @@ def generate_combinations(n, k):
         _next_combination(comb_array, n, k)
 
     return combinations
+
+
+@njit(fastmath=True, cache=True)
+def get_all_subsequences(X: np.ndarray, length: int, dilation: int) -> np.ndarray:
+    """
+    Generate a view of subsequcnes from a time series given length and dilation values.
+
+    Parameters
+    ----------
+    X : array, shape = (n_channels, n_timestamps)
+        An input time series as (n_channels, n_timestamps).
+    length : int
+        Length of the subsequences to generate.
+    dilation : int
+        Dilation parameter to apply when generating the strides.
+
+    Returns
+    -------
+    array, shape = (n_timestamps-(length-1)*dilation, n_channels, length)
+        The view of the subsequences of the input time series.
+    """
+    n_features, n_timestamps = X.shape
+    s0, s1 = X.strides
+    out_shape = (n_timestamps - (length - 1) * dilation, n_features, np.int64(length))
+    strides = (s1, s0, s1 * dilation)
+    return np.lib.stride_tricks.as_strided(X, shape=out_shape, strides=strides)

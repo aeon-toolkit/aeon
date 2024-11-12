@@ -9,7 +9,6 @@ import warnings
 
 import numpy as np
 from numba import njit
-from numba.core.registry import CPUDispatcher
 from sklearn.ensemble._forest import BaseForest
 from sklearn.linear_model._base import LinearClassifierMixin
 from sklearn.pipeline import Pipeline
@@ -21,7 +20,6 @@ from aeon.classification.shapelet_based import (
     SASTClassifier,
     ShapeletTransformClassifier,
 )
-from aeon.distances import get_distance_function
 from aeon.transformations.collection.shapelet_based import (
     RSAST,
     SAST,
@@ -30,7 +28,7 @@ from aeon.transformations.collection.shapelet_based import (
 )
 from aeon.transformations.collection.shapelet_based._dilated_shapelet_transform import (
     get_all_subsequences,
-    normalize_subsequences,
+    normalise_subsequences,
 )
 from aeon.utils.numba.general import sliding_mean_std_one_series
 from aeon.utils.validation._dependencies import _check_soft_dependencies
@@ -40,7 +38,6 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 def compute_shapelet_dist_vector(
     X_subs: np.ndarray,
     values: np.ndarray,
-    dist_func: CPUDispatcher,
 ):
     """Extract the features from a shapelet distance vector.
 
@@ -66,12 +63,13 @@ def compute_shapelet_dist_vector(
     Returns
     -------
     dist_vector : array, shape = (n_timestamps-(length-1)*dilation)
-        The distance vector between the shapelets and candidate subsequences
+        The distance vector between the shapelets and candidate subsequences using
+        the Euclidean distance.
     """
     n_subsequences, n_channels, length = X_subs.shape
     dist_vector = np.zeros(n_subsequences)
     for i_sub in range(n_subsequences):
-        dist_vector[i_sub] += dist_func(X_subs[i_sub], values)
+        dist_vector[i_sub] += (((X_subs[i_sub] - values) ** 2).sum()) ** 0.5
     return dist_vector
 
 
@@ -83,8 +81,8 @@ class ShapeletVisualizer:
     ----------
     values : array, shape=(n_channels, length)
         Values of the shapelet.
-    normalize : bool
-        Wheter the shapelet use a normalized distance.
+    normalise : bool
+        Wheter the shapelet use a normalised distance.
     dilation : int
         Dilation of the shapelet. The default is 1, which is equivalent to no
         dilation.
@@ -101,11 +99,10 @@ class ShapeletVisualizer:
     def __init__(
         self,
         values,
-        normalize=False,
+        normalise=False,
         dilation=1,
         threshold=None,
         length=None,
-        distance="euclidean",
     ):
         self.values = np.asarray(values)
         if self.values.ndim == 1:
@@ -116,10 +113,9 @@ class ShapeletVisualizer:
             self.values = self.values[:, :length]
             self.length = length
         self.n_channels = self.values.shape[0]
-        self.normalize = normalize
+        self.normalise = normalise
         self.threshold = threshold
         self.dilation = dilation
-        self.distance_func = get_distance_function(distance)
 
     def plot(
         self,
@@ -183,7 +179,7 @@ class ShapeletVisualizer:
                 title_string += f" dilation={self.dilation}"
             if self.threshold is not None:
                 title_string += f" threshold={np.round(self.threshold, decimals=2)}"
-            title_string += f" normalize={self.normalize}"
+            title_string += f" normalise={self.normalise}"
         else:
             title_string = custom_title_string
         if ax is None:
@@ -262,7 +258,7 @@ class ShapeletVisualizer:
         Returns
         -------
         fig : matplotlib figure
-            The resulting figure with S on its best match on X. A normalized
+            The resulting figure with S on its best match on X. A normalised
             shapelet will be scalled to macth the scale of X.
 
         """
@@ -278,10 +274,10 @@ class ShapeletVisualizer:
         # Get candidate subsequences in X
         X_subs = get_all_subsequences(X, self.length, self.dilation)
 
-        # Normalize candidates and shapelet values
-        if self.normalize:
+        # normalise candidates and shapelet values
+        if self.normalise:
             X_means, X_stds = sliding_mean_std_one_series(X, self.length, self.dilation)
-            X_subs = normalize_subsequences(X_subs, X_means, X_stds)
+            X_subs = normalise_subsequences(X_subs, X_means, X_stds)
             _values = (
                 self.values - self.values.mean(axis=-1, keepdims=True)
             ) / self.values.std(axis=-1, keepdims=True)
@@ -289,7 +285,7 @@ class ShapeletVisualizer:
             _values = self.values
 
         # Compute distance vector
-        c = compute_shapelet_dist_vector(X_subs, _values, self.distance_func)
+        c = compute_shapelet_dist_vector(X_subs, _values)
 
         # Get best match index
         idx_best = c.argmin()
@@ -297,8 +293,8 @@ class ShapeletVisualizer:
             [(idx_best + i * self.dilation) % X.shape[1] for i in range(self.length)]
         ).astype(int)
 
-        # If normalize, scale back the values of the shapelet to the scale of the match
-        if self.normalize:
+        # If normalise, scale back the values of the shapelet to the scale of the match
+        if self.normalise:
             _values = (_values * X[:, idx_match].std(axis=-1, keepdims=True)) + X[
                 :, idx_match
             ].mean(axis=-1, keepdims=True)
@@ -390,16 +386,16 @@ class ShapeletVisualizer:
             X = X[np.newaxis, :]
         # Get candidate subsequences in X
         X_subs = get_all_subsequences(X, self.length, self.dilation)
-        # Normalize candidates and shapelet values
-        if self.normalize:
+        # normalise candidates and shapelet values
+        if self.normalise:
             X_means, X_stds = sliding_mean_std_one_series(X, self.length, self.dilation)
-            X_subs = normalize_subsequences(X_subs, X_means, X_stds)
+            X_subs = normalise_subsequences(X_subs, X_means, X_stds)
             _values = (self.values - self.values.mean(axis=-1)) / self.values.std(
                 axis=1
             )
         else:
             _values = self.values
-        c = compute_shapelet_dist_vector(X_subs, _values, self.distance_func)
+        c = compute_shapelet_dist_vector(X_subs, _values)
 
         if ax is None:
             plt.style.use(matplotlib_style)
@@ -441,24 +437,21 @@ class ShapeletTransformerVisualizer:
             length_ = self.estimator.shapelets_[2][id_shapelet]
             dilation_ = self.estimator.shapelets_[3][id_shapelet]
             threshold_ = self.estimator.shapelets_[4][id_shapelet]
-            normalize_ = self.estimator.shapelets_[5][id_shapelet]
-            distance = "manhattan"
+            normalise_ = self.estimator.shapelets_[5][id_shapelet]
 
         elif isinstance(self.estimator, (RSAST, SAST)):
             values_ = self.estimator._kernel_orig[id_shapelet]
             length_ = values_.shape[0]
             dilation_ = 1
-            normalize_ = True
+            normalise_ = True
             threshold_ = None
-            distance = "euclidean"
 
         elif isinstance(self.estimator, RandomShapeletTransform):
             values_ = self.estimator.shapelets[id_shapelet][6]
             length_ = self.estimator.shapelets[id_shapelet][1]
             dilation_ = 1
-            normalize_ = True
+            normalise_ = True
             threshold_ = None
-            distance = "euclidean"
         else:
             raise NotImplementedError(
                 "The provided estimator of type {type(self.estimator)} is not supported"
@@ -466,11 +459,10 @@ class ShapeletTransformerVisualizer:
             )
         return ShapeletVisualizer(
             values_,
-            normalize=normalize_,
+            normalise=normalise_,
             dilation=dilation_,
             threshold=threshold_,
             length=length_,
-            distance=distance,
         )
 
     def plot_on_X(
@@ -519,7 +511,7 @@ class ShapeletTransformerVisualizer:
         Returns
         -------
         fig : matplotlib figure
-            The resulting figure with S on its best match on X. A normalized
+            The resulting figure with S on its best match on X. A normalised
             shapelet will be scalled to macth the scale of X.
 
         """
@@ -1119,7 +1111,7 @@ class ShapeletClassifierVisualizer:
         Returns
         -------
         fig : matplotlib figure
-            The resulting figure with S on its best match on X. A normalized
+            The resulting figure with S on its best match on X. A normalised
             shapelet will be scalled to macth the scale of X.
 
         """
