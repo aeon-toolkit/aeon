@@ -62,7 +62,6 @@ Deep learning
     IndividualInceptionRegressor
     LITETimeRegressor
     ResNetRegressor
-    TapNetRegressor
     MLPRegressor
     DisjointCNNRegressor
 
