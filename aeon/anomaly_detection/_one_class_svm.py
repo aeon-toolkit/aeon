@@ -2,11 +2,11 @@
 
 __all__ = ["OneClassSVM"]
 
-from sklearn.svm import OneClassSVM as OCSVM
-
 from typing import Optional
 
 import numpy as np
+from sklearn.svm import OneClassSVM as OCSVM
+
 from aeon.anomaly_detection.base import BaseAnomalyDetector
 from aeon.utils.windowing import reverse_windowing, sliding_windows
 
@@ -93,7 +93,7 @@ class OneClassSVM(BaseAnomalyDetector):
     stride : int, default=1
         Stride of the sliding window.
 
-"""
+    """
 
     _tags = {
         "capability:univariate": True,
