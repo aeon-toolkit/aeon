@@ -332,7 +332,7 @@ Using aeon distances with scikit-learn
 
 ::::
 
-## Similarity search
+## Similarity Search
 
 ::::{grid} 2 3 4 4
 :gutter: 1
