@@ -38,7 +38,6 @@ class MockDeepClusterer(BaseDeepClusterer):
             n_clusters=None,
             estimator=estimator,
             last_file_name=last_file_name,
-            clustering_params={"n_init": 1, "averaging_method": "mean"},
         )
 
     def build_model(self, input_shape):

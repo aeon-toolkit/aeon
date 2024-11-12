@@ -44,7 +44,7 @@ Deep learning
     LITETimeClassifier
     MLPClassifier
     ResNetClassifier
-    TapNetClassifier
+    DisjointCNNClassifier
 
 Dictionary-based
 ----------------
@@ -195,10 +195,9 @@ Composition
     :toctree: auto_generated/
     :template: class.rst
 
+    ClassifierChannelEnsemble
+    ClassifierEnsemble
     ClassifierPipeline
-    ChannelEnsembleClassifier
-    WeightedEnsembleClassifier
-
 
 Base
 ----

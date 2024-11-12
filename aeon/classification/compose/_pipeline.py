@@ -4,7 +4,7 @@ __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["ClassifierPipeline"]
 
 
-from aeon.base.estimator.compose.collection_pipeline import BaseCollectionPipeline
+from aeon.base.estimators.compose.collection_pipeline import BaseCollectionPipeline
 from aeon.classification.base import BaseClassifier
 
 
@@ -42,7 +42,7 @@ class ClassifierPipeline(BaseCollectionPipeline, BaseClassifier):
         the str is used to name the transformer.
         The objecst are cloned prior, as such the state of the input will not be
         modified by fitting the pipeline.
-    classifier : aeon or sklearn classifier
+    estimator : aeon or sklearn classifier
         A classifier to use at the end of the pipeline.
         The object is cloned prior, as such the state of the input will not be modified
         by fitting the pipeline.
@@ -105,14 +105,12 @@ class ClassifierPipeline(BaseCollectionPipeline, BaseClassifier):
         """
         from aeon.classification.distance_based import KNeighborsTimeSeriesClassifier
         from aeon.transformations.collection import Truncator
-        from aeon.transformations.collection.feature_based import (
-            SevenNumberSummaryTransformer,
-        )
+        from aeon.transformations.collection.feature_based import SevenNumberSummary
 
         return {
             "transformers": [
                 Truncator(truncated_length=5),
-                SevenNumberSummaryTransformer(),
+                SevenNumberSummary(),
             ],
             "classifier": KNeighborsTimeSeriesClassifier(distance="euclidean"),
         }

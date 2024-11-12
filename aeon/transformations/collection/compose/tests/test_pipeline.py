@@ -14,25 +14,25 @@ from aeon.testing.utils.estimator_checks import _assert_array_almost_equal
 from aeon.transformations.collection import (
     AutocorrelationFunctionTransformer,
     HOG1DTransformer,
+    Normalizer,
     Padder,
     Tabularizer,
-    TimeSeriesScaler,
 )
 from aeon.transformations.collection.compose import CollectionTransformerPipeline
-from aeon.transformations.collection.feature_based import SevenNumberSummaryTransformer
+from aeon.transformations.collection.feature_based import SevenNumberSummary
 
 
 @pytest.mark.parametrize(
     "transformers",
     [
         Padder(pad_length=15),
-        SevenNumberSummaryTransformer(),
+        SevenNumberSummary(),
         [Padder(pad_length=15), Tabularizer(), StandardScaler()],
-        [Padder(pad_length=15), SevenNumberSummaryTransformer()],
-        [Tabularizer(), StandardScaler(), SevenNumberSummaryTransformer()],
+        [Padder(pad_length=15), SevenNumberSummary()],
+        [Tabularizer(), StandardScaler(), SevenNumberSummary()],
         [
             Padder(pad_length=15),
-            SevenNumberSummaryTransformer(),
+            SevenNumberSummary(),
         ],
     ],
 )
@@ -59,9 +59,9 @@ def test_unequal_tag_inference():
         n_cases=10, min_n_timepoints=8, max_n_timepoints=12
     )
 
-    t1 = SevenNumberSummaryTransformer()
+    t1 = SevenNumberSummary()
     t2 = Padder()
-    t3 = TimeSeriesScaler()
+    t3 = Normalizer()
     t4 = AutocorrelationFunctionTransformer(n_lags=5)
     t5 = StandardScaler()
     t6 = Tabularizer()
@@ -116,7 +116,7 @@ def test_missing_tag_inference():
 
     t1 = MockCollectionTransformer()
     t1.set_tags(**{"capability:missing_values": True, "removes_missing_values": True})
-    t2 = TimeSeriesScaler()
+    t2 = Normalizer()
     t3 = StandardScaler()
     t4 = Tabularizer()
 
@@ -152,8 +152,8 @@ def test_multivariate_tag_inference():
     """Test that CollectionTransformerPipeline infers multivariate tag correctly."""
     X, y = make_example_3d_numpy(n_cases=10, n_channels=2, n_timepoints=12)
 
-    t1 = SevenNumberSummaryTransformer()
-    t2 = TimeSeriesScaler()
+    t1 = SevenNumberSummary()
+    t2 = Normalizer()
     t3 = HOG1DTransformer()
     t4 = StandardScaler()
 

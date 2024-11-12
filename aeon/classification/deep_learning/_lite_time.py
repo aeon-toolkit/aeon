@@ -17,16 +17,24 @@ from aeon.networks import LITENetwork
 
 
 class LITETimeClassifier(BaseClassifier):
-    """LITETime ensemble classifier.
+    """LITETime or LITEMVTime ensemble classifier.
 
-    Ensemble of IndividualLITETimeClassifier objects, as described in [1]_.
+    Ensemble of IndividualLITETimeClassifier objects, as described in [1]_
+    and [2]_. For using LITEMV, simply set the `use_litemv`
+    bool parameter to True.
 
     Parameters
     ----------
     n_classifiers : int, default = 5,
-        the number of LITE models used for the
+        the number of LITE or LITEMV models used for the
         Ensemble in order to create
-        LITETime.
+        LITETime or LITEMVTime.
+    use_litemv : bool, default = False
+        The boolean value to control which version of the
+        network to use. If set to `False`, then LITE is used,
+        if set to `True` then LITEMV is used. LITEMV is the
+        same architecture as LITE but specifically designed
+        to better handle multivariate time series.
     n_filters : int or list of int32, default = 32
         The number of filters used in one lite layer, if not a list, the same
         number of filters is used in all lite layers.
@@ -46,8 +54,10 @@ class LITETimeClassifier(BaseClassifier):
         formula Wang et al.
     n_epochs : int, default = 1500
         the number of epochs to train the model.
-    callbacks : callable or None, default = ReduceOnPlateau and ModelCheckpoint
-        list of tf.keras.callbacks.Callback objects.
+    callbacks : keras callback or list of callbacks,
+        default = None
+        The default list of callbacks are set to
+        ModelCheckpoint and ReduceLROnPlateau.
     file_path : str, default = "./"
         file_path when saving model_Checkpoint callback
     save_best_model : bool, default = False
@@ -82,17 +92,27 @@ class LITETimeClassifier(BaseClassifier):
         GPU processing will be non-deterministic.
     verbose : boolean, default = False
         whether to output extra information
-    optimizer : keras optimizer, default = Adam
-    loss : keras loss, default = categorical_crossentropy
-    metrics : keras metrics, default = None,
-        will be set to accuracy as default if None
+    optimizer : keras.optimizer, default = tf.keras.optimizers.Adam()
+        The keras optimizer used for training.
+    loss : str, default = "categorical_crossentropy"
+        The name of the keras training loss.
+    metrics : str or list[str], default="accuracy"
+        The evaluation metrics to use during training. If
+        a single string metric is provided, it will be
+        used as the only metric. If a list of metrics are
+        provided, all will be used for evaluation.
 
-    Notes
-    -----
+    References
+    ----------
     ..[1] Ismail-Fawaz et al. LITE: Light Inception with boosTing
     tEchniques for Time Series Classification, IEEE International
     Conference on Data Science and Advanced Analytics, 2023.
+    ..[2] Ismail-Fawaz, Ali, et al. "Look Into the LITE
+    in Deep Learning for Time Series Classification."
+    arXiv preprint arXiv:2409.02869 (2024).
 
+    Notes
+    -----
     Adapted from the implementation from Ismail-Fawaz et. al
     https://github.com/MSD-IRIMAS/LITE
 
@@ -118,6 +138,7 @@ class LITETimeClassifier(BaseClassifier):
     def __init__(
         self,
         n_classifiers=5,
+        use_litemv=False,
         n_filters=32,
         kernel_size=40,
         strides=1,
@@ -136,10 +157,12 @@ class LITETimeClassifier(BaseClassifier):
         random_state=None,
         verbose=False,
         loss="categorical_crossentropy",
-        metrics=None,
+        metrics="accuracy",
         optimizer=None,
     ):
         self.n_classifiers = n_classifiers
+
+        self.use_litemv = use_litemv
 
         self.strides = strides
         self.activation = activation
@@ -189,6 +212,7 @@ class LITETimeClassifier(BaseClassifier):
 
         for n in range(0, self.n_classifiers):
             cls = IndividualLITEClassifier(
+                use_litemv=self.use_litemv,
                 n_filters=self.n_filters,
                 kernel_size=self.kernel_size,
                 file_path=self.file_path,
@@ -280,22 +304,40 @@ class LITETimeClassifier(BaseClassifier):
         """
         param1 = {
             "n_classifiers": 1,
-            "n_epochs": 10,
+            "n_epochs": 2,
             "batch_size": 4,
             "kernel_size": 4,
         }
+        param2 = {
+            "n_classifiers": 1,
+            "use_litemv": True,
+            "n_epochs": 2,
+            "batch_size": 4,
+            "kernel_size": 4,
+            "metrics": ["accuracy"],
+            "verbose": True,
+            "use_mini_batch_size": True,
+        }
 
-        return [param1]
+        return [param1, param2]
 
 
 class IndividualLITEClassifier(BaseDeepClassifier):
-    """Single LITETime classifier.
+    """Single LITE or LITEMV classifier.
 
-    One LITE deep model, as described in [1]_.
+    One LITE or LITEMV deep model, as described in [1]_
+    and [2]_. For using LITEMV, simply set the `use_litemv`
+    bool parameter to True.
 
     Parameters
     ----------
-        n_filters : int or list of int32, default = 32
+    use_litemv : bool, default = False
+        The boolean value to control which version of the
+        network to use. If set to `False`, then LITE is used,
+        if set to `True` then LITEMV is used. LITEMV is the
+        same architecture as LITE but specifically designed
+        to better handle multivariate time series.
+    n_filters : int or list of int32, default = 32
         The number of filters used in one lite layer, if not a list, the same
         number of filters is used in all lite layers.
     kernel_size : int or list of int, default = 40
@@ -314,8 +356,10 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         formula Wang et al.
     n_epochs : int, default = 1500
         the number of epochs to train the model.
-    callbacks : callable or None, default = ReduceOnPlateau and ModelCheckpoint
-        list of tf.keras.callbacks.Callback objects.
+    callbacks : keras callback or list of callbacks,
+        default = None
+        The default list of callbacks are set to
+        ModelCheckpoint and ReduceLROnPlateau.
     file_path : str, default = "./"
         file_path when saving model_Checkpoint callback
     save_best_model : bool, default = False
@@ -350,17 +394,27 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         GPU processing will be non-deterministic.
     verbose : boolean, default = False
         whether to output extra information
-    optimizer : keras optimizer, default = Adam
-    loss : keras loss, default = categorical_crossentropy
-    metrics : keras metrics, default = None,
-        will be set to accuracy as default if None
+    optimizer : keras.optimizer, default = tf.keras.optimizers.Adam()
+        The keras optimizer used for training.
+    loss : str, default = "categorical_crossentropy"
+        The name of the keras training loss.
+    metrics : str or list[str], default="accuracy"
+        The evaluation metrics to use during training. If
+        a single string metric is provided, it will be
+        used as the only metric. If a list of metrics are
+        provided, all will be used for evaluation.
 
-    Notes
-    -----
+    References
+    ----------
     ..[1] Ismail-Fawaz et al. LITE: Light Inception with boosTing
     tEchniques for Time Series Classificaion, IEEE International
     Conference on Data Science and Advanced Analytics, 2023.
+    ..[2] Ismail-Fawaz, Ali, et al. "Look Into the LITE
+    in Deep Learning for Time Series Classification."
+    arXiv preprint arXiv:2409.02869 (2024).
 
+    Notes
+    -----
     Adapted from the implementation from Ismail-Fawaz et. al
     https://github.com/MSD-IRIMAS/LITE
 
@@ -377,6 +431,7 @@ class IndividualLITEClassifier(BaseDeepClassifier):
 
     def __init__(
         self,
+        use_litemv=False,
         n_filters=32,
         kernel_size=40,
         strides=1,
@@ -395,10 +450,10 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         random_state=None,
         verbose=False,
         loss="categorical_crossentropy",
-        metrics=None,
+        metrics="accuracy",
         optimizer=None,
     ):
-        # predefined
+        self.use_litemv = use_litemv
         self.n_filters = n_filters
         self.strides = strides
         self.activation = activation
@@ -428,6 +483,7 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         )
 
         self._network = LITENetwork(
+            use_litemv=self.use_litemv,
             n_filters=self.n_filters,
             kernel_size=self.kernel_size,
             strides=self.strides,
@@ -464,11 +520,6 @@ class IndividualLITEClassifier(BaseDeepClassifier):
 
         model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
 
-        if self.metrics is None:
-            metrics = ["accuracy"]
-        else:
-            metrics = self.metrics
-
         self.optimizer_ = (
             tf.keras.optimizers.Adam() if self.optimizer is None else self.optimizer
         )
@@ -476,7 +527,7 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         model.compile(
             loss=self.loss,
             optimizer=self.optimizer_,
-            metrics=metrics,
+            metrics=self._metrics,
         )
 
         return model
@@ -503,6 +554,11 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         y_onehot = self.convert_y_to_keras(y)
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
+
+        if isinstance(self.metrics, list):
+            self._metrics = self.metrics
+        elif isinstance(self.metrics, str):
+            self._metrics = [self.metrics]
 
         # ignore the number of instances, X.shape[0],
         # just want the shape of each instance
@@ -588,9 +644,18 @@ class IndividualLITEClassifier(BaseDeepClassifier):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
         """
         param1 = {
-            "n_epochs": 10,
+            "n_epochs": 2,
             "batch_size": 4,
             "kernel_size": 4,
         }
+        param2 = {
+            "use_litemv": True,
+            "n_epochs": 2,
+            "batch_size": 4,
+            "kernel_size": 4,
+            "metrics": ["accuracy"],
+            "verbose": True,
+            "use_mini_batch_size": True,
+        }
 
-        return [param1]
+        return [param1, param2]

@@ -1,6 +1,6 @@
 """DWT-MLEAD anomaly detector."""
 
-__maintainer__ = ["CodeLionX"]
+__maintainer__ = ["SebastianSchmidl"]
 __all__ = ["DWT_MLEAD"]
 
 import warnings

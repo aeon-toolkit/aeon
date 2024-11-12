@@ -20,8 +20,8 @@ class PAA(BaseCollectionTransformer):
     n_segments : int, default = 8
         Dimension of the transformed data.
 
-    Notes
-    -----
+    References
+    ----------
     [1]  Eamonn Keogh, Kaushik Chakrabarti, Michael Pazzani, and Sharad Mehrotra.
     Dimensionality reduction for fast similarity search in large time series
     databases. Knowledge and information Systems, 3(3), 263-286, 2001.

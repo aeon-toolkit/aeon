@@ -40,7 +40,9 @@ address. If you are unsure about any feedback, please ask for clarification.
 making a contribution! Make sure you are included in the [list of contributors](contributors.md).
 
 Further guidance for contributing to `aeon` via GitHub can be found on the
-[developer guide](developer_guide.md).
+[developer guide](developer_guide.md). It is not necessary to read everything here prior to
+contributing, but if your issue to related to a specific topic i.e. documentation or
+testing you may find it useful.
 
 If your intended method of contribution does not fit into the above steps, please
 reach out to us on [Slack](https://join.slack.com/t/aeon-toolkit/shared_invite/zt-22vwvut29-HDpCu~7VBUozyfL_8j3dLA)
@@ -89,11 +91,11 @@ Developer Guide
 :::{grid-item-card}
 :text-align: center
 
-Reporting Bugs
+Opening Issues
 
 ^^^
 
-Guidance for reporting bugs in `aeon`.
+Guidance for issues and reporting bugs in `aeon`.
 
 +++
 
@@ -102,7 +104,7 @@ Guidance for reporting bugs in `aeon`.
 :click-parent:
 :expand:
 
-Reporting Bugs
+Opening Issues
 ```
 
 :::
@@ -132,5 +134,5 @@ Mentoring and Projects
 ```{toctree}
 :hidden:
 
-contributing/reporting_bugs.md
+contributing/issues.md
 ```

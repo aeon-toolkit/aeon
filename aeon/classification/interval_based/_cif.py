@@ -8,7 +8,7 @@ __all__ = ["CanonicalIntervalForestClassifier"]
 
 import numpy as np
 
-from aeon.base.estimator.interval_based import BaseIntervalForest
+from aeon.base.estimators.interval_based import BaseIntervalForest
 from aeon.classification import BaseClassifier
 from aeon.classification.sklearn import ContinuousIntervalTree
 from aeon.transformations.collection.feature_based import Catch22
