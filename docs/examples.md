@@ -250,17 +250,6 @@ SAST transform
 :::
 
 :::{grid-item-card}
-:img-top: examples/transformations/img/interpolation.png
-:class-img-top: aeon-card-image-m
-:link: /examples/transformations/interpolation.ipynb
-:link-type: ref
-:text-align: center
-
-Interpolation
-
-:::
-
-:::{grid-item-card}
 :img-top: examples/transformations/img/signature.png
 :class-img-top: aeon-card-image-m
 :link: /examples/transformations/signature_method.ipynb
@@ -268,17 +257,6 @@ Interpolation
 :text-align: center
 
 Signature method
-
-:::
-
-:::{grid-item-card}
-:img-top: examples/transformations/img/theta.png
-:class-img-top: aeon-card-image-m
-:link: /examples/transformations/theta_transform.ipynb
-:link-type: ref
-:text-align: center
-
-Theta transform
 
 :::
 
