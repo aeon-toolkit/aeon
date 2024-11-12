@@ -22,7 +22,7 @@ def create_multi_comparison_matrix(
     csv_savename=None,
     tex_savename=None,
     used_statistic="Accuracy",
-    save_as_json=True,
+    save_as_json=False,
     plot_1v1_comparisons=False,
     order_win_tie_loss="higher",
     include_pvalue=True,
