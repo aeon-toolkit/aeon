@@ -71,13 +71,13 @@ class MiniRocketClassifier(BaseClassifier):
 
     Examples
     --------
-    >>> from aeon.classification.convolution_based import RocketClassifier
+    >>> from aeon.classification.convolution_based import MiniRocketClassifier
     >>> from aeon.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test = load_unit_test(split="test")
-    >>> clf = RocketClassifier(num_kernels=500)
+    >>> clf = MiniRocketClassifier(num_kernels=500)
     >>> clf.fit(X_train, y_train)
-    RocketClassifier(...)
+    MiniRocketClassifier(...)
     >>> y_pred = clf.predict(X_test)
     """
 

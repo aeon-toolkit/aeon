@@ -126,7 +126,7 @@ def test_unequal_tag_inference():
     assert not t4.get_tag("capability:unequal_length")
 
     c1 = DummyRegressor()
-    c2 = RocketRegressor(num_kernels=5)
+    c2 = RocketRegressor(n_kernels=5)
     c3 = RandomForestRegressor(n_estimators=2)
 
     assert c1.get_tag("capability:unequal_length")
@@ -188,7 +188,7 @@ def test_missing_tag_inference():
     assert not t2.get_tag("capability:missing_values")
 
     c1 = DummyRegressor()
-    c2 = RocketRegressor(num_kernels=5)
+    c2 = RocketRegressor(n_kernels=5)
     c3 = RandomForestRegressor(n_estimators=2)
 
     assert c1.get_tag("capability:missing_values")
