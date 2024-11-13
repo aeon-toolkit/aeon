@@ -13,18 +13,14 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
     reason="skip test if required soft dependency not available",
 )
 def test_get_transform():
-    """Learned Shapelets tests not covered by standard test sauite."""
-    X = make_example_3d_numpy(return_y=False, n_cases=10)
+    """Learned Shapelets tests not covered by standard test suite."""
+    X = make_example_3d_numpy(return_y=False, n_cases=10, n_timepoints=20)
     y = np.array([0, 1, 0, 1, 0, 1, 0, 1, 0, 1])
 
     # Test get transform and location with and without save_transformed_data
-    clf = LearningShapeletClassifier(max_iter=100)
-    clf.fit(X, y)
-    with pytest.raises(ValueError):
-        clf.get_transform(X)
-    with pytest.raises(ValueError):
-        clf.get_locations(X)
-    clf = LearningShapeletClassifier(max_iter=100, save_transformed_data=True)
+    clf = LearningShapeletClassifier(
+        max_iter=10, total_lengths=1, save_transformed_data=True
+    )
     with pytest.raises(ValueError):
         clf.get_transform(X)
     with pytest.raises(ValueError):

@@ -1,6 +1,6 @@
 """Tests for the DWT_MLEAD class."""
 
-__maintainer__ = ["CodeLionX"]
+__maintainer__ = ["SebastianSchmidl"]
 
 import numpy as np
 import pytest
