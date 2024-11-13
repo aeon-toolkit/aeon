@@ -58,7 +58,7 @@ class MultiRocketRegressor(BaseRegressor):
     >>> X_test, y_test = load_covid_3month(split="test")
     >>> reg = MultiRocketRegressor(num_kernels=500)
     >>> reg.fit(X_train, y_train)
-    RocketRegressor(num_kernels=500)
+    MultiRocketRegressor(num_kernels=500)
     >>> y_pred = reg.predict(X_test)
     """
 

@@ -3,6 +3,8 @@
 __maintainer__ = ["hadifawaz1999"]
 __all__ = ["ROCKETGPU"]
 
+import numpy as np
+
 from aeon.transformations.collection.convolution_based.rocketGPU.base import (
     BaseROCKETGPU,
 )
@@ -24,7 +26,7 @@ class ROCKETGPU(BaseROCKETGPU):
 
     Parameters
     ----------
-    n_filters : int, default=10,000
+    n_filters : int, default=1000
        Number of random convolutional filters.
     kernel_size : list, default = None
         The list of possible kernel sizes, default is [7, 9, 11].
@@ -71,8 +73,6 @@ class ROCKETGPU(BaseROCKETGPU):
 
     def _define_parameters(self):
         """Define the parameters of ROCKET."""
-        import numpy as np
-
         rng = np.random.default_rng(self.random_state)
 
         self._list_of_kernels = []
@@ -178,7 +178,6 @@ class ROCKETGPU(BaseROCKETGPU):
         output_rocket : np.ndarray [n_cases, n_filters * 2]
             transformed features.
         """
-        import numpy as np
         import tensorflow as tf
 
         tf.random.set_seed(self.random_state)

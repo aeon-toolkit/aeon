@@ -78,7 +78,7 @@ class MultiRocketClassifier(BaseClassifier):
     >>> X_test, y_test = load_unit_test(split="test")
     >>> clf = MultiRocketClassifier(num_kernels=500)
     >>> clf.fit(X_train, y_train)
-    RocketClassifier(...)
+    MultiRocketClassifier(...)
     >>> y_pred = clf.predict(X_test)
     """
 

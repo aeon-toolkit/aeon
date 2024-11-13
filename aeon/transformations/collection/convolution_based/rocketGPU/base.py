@@ -12,7 +12,7 @@ class BaseROCKETGPU(BaseCollectionTransformer):
 
     Parameters
     ----------
-    nb_filters : int, default = 1000
+    n_filters : int, default = 10000
         Number of random convolutional kernels.
     """
 
