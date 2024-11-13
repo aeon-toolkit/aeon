@@ -4,7 +4,10 @@ __maintainer__ = []
 
 from abc import ABC, abstractmethod
 
-from aeon.utils.validation._dependencies import _check_soft_dependencies
+from aeon.utils.validation._dependencies import (
+    _check_python_version,
+    _check_soft_dependencies,
+)
 
 
 class BaseDeepLearningNetwork(ABC):
@@ -12,6 +15,7 @@ class BaseDeepLearningNetwork(ABC):
 
     def __init__(self, soft_dependencies="tensorflow", python_version="<=3.12"):
         _check_soft_dependencies(soft_dependencies)
+        _check_python_version(python_version)
         super().__init__()
 
     _config = {
