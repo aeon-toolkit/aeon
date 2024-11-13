@@ -3,7 +3,7 @@ import time
 import timeit
 
 import numpy as np
-from statsforecast.ets import etscalc
+from statsforecast.ets import pegelsresid_C
 from statsforecast.utils import AirPassengers as ap
 
 import aeon.forecasting._ets_fast as etsfast
@@ -18,7 +18,6 @@ MAX_SEASONAL_PERIOD = 24
 def setup():
     """Generate parameters required for ETS algorithms."""
     y = ap
-    n = len(ap)
     m = random.randint(1, 24)
     error = random.randint(1, 2)
     trend = random.randint(0, 2)
@@ -35,26 +34,54 @@ def setup():
     phi = round(
         random.random() * 0.18 + 0.8, 4
     )  # Common constraint for phi is 0.8 < phi < 0.98
-    e = np.zeros(n)
-    lik_fitets = np.zeros(1)
-    amse = np.zeros(MAX_NMSE)
-    nmse = 3
-    return (
-        y,
-        n,
+    return (y, m, error, trend, season, alpha, beta, gamma, phi)
+
+
+def obscure_statsforecast_version(
+    y: np.ndarray,
+    m: int,
+    init_state: np.ndarray,
+    errortype: int,
+    trendtype: int,
+    seasontype: int,
+    alpha: float,
+    beta: float,
+    gamma: float,
+    phi: float,
+    nmse: int,
+):
+    """Hide the differences between different statsforecast versions."""
+    amse, e, x, lik = pegelsresid_C(
+        y[m:],
         m,
-        error,
-        trend,
-        season,
+        init_state,
+        "A" if errortype == 1 else "M",
+        "A" if trendtype == 1 else "M" if trendtype == 2 else "N",
+        "A" if seasontype == 1 else "M" if seasontype == 2 else "N",
+        phi != 1,
         alpha,
         beta,
         gamma,
         phi,
-        e,
-        lik_fitets,
-        amse,
         nmse,
     )
+    # e = np.zeros(len(y))
+    # amse = np.zeros(MAX_NMSE)
+    # lik = etscalc(y[m:],
+    #     len(y) - m,
+    #     init_state,
+    #     m,
+    #     errortype,
+    #     trendtype,
+    #     seasontype,
+    #     alpha,
+    #     beta,
+    #     gamma,
+    #     phi,
+    #     e,
+    #     amse,
+    #     nmse)
+    return amse, e, lik
 
 
 def test_ets_comparison(setup_func, random_seed, catch_errors):
@@ -62,7 +89,6 @@ def test_ets_comparison(setup_func, random_seed, catch_errors):
     random.seed(random_seed)
     (
         y,
-        n,
         m,
         error,
         trend,
@@ -71,10 +97,6 @@ def test_ets_comparison(setup_func, random_seed, catch_errors):
         beta,
         gamma,
         phi,
-        e,
-        lik_fitets,
-        amse,
-        nmse,
     ) = setup_func()
     # tsml-eval implementation
     start = time.perf_counter()
@@ -92,12 +114,9 @@ def test_ets_comparison(setup_func, random_seed, catch_errors):
     e_fitets = f1.residuals_
     amse_fitets = f1.avg_mean_sq_err_
     lik_fitets = f1.liklihood_
-    # Reinitialise arrays
-    e.fill(0)
-    amse.fill(0)
     f1 = ETSForecaster(ModelType(error, trend, season, m), alpha, beta, gamma, phi, 1)
     f1._initialise(y)
-    init_states_etscalc = np.zeros(n * (1 + (trend > 0) + m * (season > 0) + 1))
+    init_states_etscalc = np.zeros(len(y) * (1 + (trend > 0) + m * (season > 0) + 1))
     init_states_etscalc[0] = f1.level_
     init_states_etscalc[1] = f1.trend_
     init_states_etscalc[1 + (trend != 0) : m + 1 + (trend != 0)] = f1.season_[::-1]
@@ -105,26 +124,12 @@ def test_ets_comparison(setup_func, random_seed, catch_errors):
         m = 1
     # Nixtla/statsforcast implementation
     start = time.perf_counter()
-    lik_etscalc = etscalc(
-        y[m:],
-        n - m,
-        init_states_etscalc,
-        m,
-        error,
-        trend,
-        season,
-        alpha,
-        beta,
-        gamma,
-        phi,
-        e,
-        amse,
-        nmse,
+    amse_etscalc, e_etscalc, lik_etscalc = obscure_statsforecast_version(
+        y, m, init_states_etscalc, error, trend, season, alpha, beta, gamma, phi, 1
     )
     end = time.perf_counter()
     time_etscalc = end - start
-    e_etscalc = e.copy()
-    amse_etscalc = amse.copy()[0]
+    amse_etscalc = amse_etscalc[0]
 
     if catch_errors:
         try:
@@ -196,11 +201,10 @@ def time_sf():
     """Test function for statsforecast ets algorithm."""
     x = np.zeros(144 * 7)
     x[0:6] = [122.75, 1.123230970596215, 0.91242363, 0.96130346, 1.07535642, 1.0509165]
-    etscalc(
+    obscure_statsforecast_version(
         ap[4:],
-        140,
-        x,
         4,
+        x,
         2,
         2,
         2,
@@ -208,8 +212,6 @@ def time_sf():
         0.01,
         0.01,
         0.99,
-        np.zeros(144),
-        np.zeros(30),
         1,
     )
 
@@ -217,26 +219,12 @@ def time_sf():
 def time_compare(random_seed):
     """Compare timings of different ets algorithms."""
     random.seed(random_seed)
-    (
-        y,
-        n,
-        m,
-        error,
-        trend,
-        season,
-        alpha,
-        beta,
-        gamma,
-        phi,
-        e,
-        lik_fitets,
-        amse,
-        nmse,
-    ) = setup()
+    (y, m, error, trend, season, alpha, beta, gamma, phi) = setup()
     # etsnoopt_time = timeit.timeit(time_etsnoopt, globals={}, number=10000)
     # print (f"Execution time ETS No-opt: {etsnoopt_time} seconds")
     # ets_structtest_time = timeit.timeit(time_ets_structtest, globals={}, number=10000)
     # print (f"Execution time ETS Structtest: {ets_structtest_time} seconds")
+    # Do a few iterations to remove background/overheads. Makes comparison more reliable
     for _i in range(10):
         time_etsfast()
         time_sf()
