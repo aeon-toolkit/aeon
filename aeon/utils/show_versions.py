@@ -59,5 +59,7 @@ def show_versions(as_str: bool = False) -> Union[str, None]:
             deps_info[modname] = None
     str = f"{str}\nPython dependencies:"
     for k, stat in deps_info.items():
-        str = f"{str}\n{k:>13}: {stat}"  # noqa: T001, T201
-    return str
+        str = f"{str}\n{k:>13}: {stat}"
+    if as_str:
+        return str
+    print(str)  # noqa: T201

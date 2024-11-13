@@ -20,8 +20,8 @@ Deep learning networks
     InceptionNetwork
     MLPNetwork
     ResNetNetwork
-    TapNetNetwork
     AEFCNNetwork
     AEResNetNetwork
     LITENetwork
     AEBiGRUNetwork
+    DisjointCNNNetwork
