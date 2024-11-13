@@ -44,7 +44,7 @@ Deep learning
     LITETimeClassifier
     MLPClassifier
     ResNetClassifier
-    TapNetClassifier
+    DisjointCNNClassifier
 
 Dictionary-based
 ----------------

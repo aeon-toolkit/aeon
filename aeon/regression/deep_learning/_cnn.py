@@ -21,35 +21,35 @@ class TimeCNNRegressor(BaseDeepRegressor):
 
     Parameters
     ----------
-    n_layers        : int, default = 2,
+    n_layers : int, default = 2,
         the number of convolution layers in the network
-    kernel_size    : int or list of int, default = 7,
+    kernel_size : int or list of int, default = 7,
         kernel size of convolution layers, if not a list, the same kernel size
         is used for all layer, len(list) should be n_layers
-    n_filters       : int or list of int, default = [6, 12],
+    n_filters : int or list of int, default = [6, 12],
         number of filters for each convolution layer, if not a list, the same n_filters
         is used in all layers.
-    avg_pool_size   : int or list of int, default = 3,
+    avg_pool_size : int or list of int, default = 3,
         the size of the average pooling layer, if not a list, the same
         max pooling size is used
         for all convolution layer
-    output_activation   : str, default = "linear",
+    output_activation : str, default = "linear",
         the output activation for the regressor
-    activation      : str or list of str, default = "sigmoid",
+    activation : str or list of str, default = "sigmoid",
         keras activation function used in the model for each layer,
         if not a list, the same
         activation is used for all layers
-    padding         : str or list of str, default = 'valid',
+    padding : str or list of str, default = 'valid',
         the method of padding in convolution layers, if not a list,
         the same padding used
         for all convolution layers
-    strides         : int or list of int, default = 1,
+    strides : int or list of int, default = 1,
         the strides of kernels in the convolution and max pooling layers,
         if not a list, the same strides are used for all layers
-    dilation_rate   : int or list of int, default = 1,
+    dilation_rate : int or list of int, default = 1,
         the dilation rate of the convolution layers, if not a list,
         the same dilation rate is used all over the network
-    use_bias        : bool or list of bool, default = True,
+    use_bias : bool or list of bool, default = True,
         condition on whether or not to use bias values for convolution layers,
         if not a list, the same condition is used for all layers
     random_state : int, RandomState instance or None, default=None
@@ -59,40 +59,43 @@ class TimeCNNRegressor(BaseDeepRegressor):
         by `np.random`.
         Seeded random number generation can only be guaranteed on CPU processing,
         GPU processing will be non-deterministic.
-    n_epochs       : int, default = 2000
+    n_epochs : int, default = 2000
         the number of epochs to train the model
-    batch_size      : int, default = 16
+    batch_size : int, default = 16
         the number of samples per gradient update.
-    verbose         : boolean, default = False
+    verbose : boolean, default = False
         whether to output extra information
-    loss            : string, default="mean_squared_error"
-        fit parameter for the keras model
-    optimizer       : keras.optimizer, default=keras.optimizers.Adam(),
-    metrics         : str or list of str, default="mean_squared_error"
+    loss : str, default = "mean_squared_error"
+        The name of the keras training loss.
+    optimizer : keras.optimizer, default = tf.keras.optimizers.Adam()
+        The keras optimizer used for training.
+    metrics : str or list[str], default="mean_squared_error"
         The evaluation metrics to use during training. If
         a single string metric is provided, it will be
         used as the only metric. If a list of metrics are
         provided, all will be used for evaluation.
-    callbacks       : keras.callbacks, default=model_checkpoint to save best
-                      model on training loss
-    file_path       : file_path for the best model (if checkpoint is used as callback)
-    save_best_model     : bool, default = False
+    callbacks : keras callback or list of callbacks,
+        default = None
+        The default list of callbacks are set to
+        ModelCheckpoint.
+    file_path : file_path for the best model (if checkpoint is used as callback)
+    save_best_model : bool, default = False
         Whether or not to save the best model, if the
         modelcheckpoint callback is used by default,
         this condition, if True, will prevent the
         automatic deletion of the best saved model from
         file and the user can choose the file name
-    save_last_model     : bool, default = False
+    save_last_model : bool, default = False
         Whether or not to save the last model, last
         epoch trained, using the base class method
         save_last_model_to_file
     save_init_model : bool, default = False
         Whether to save the initialization of the  model.
-    best_file_name      : str, default = "best_model"
+    best_file_name : str, default = "best_model"
         The name of the file of the best model, if
         save_best_model is set to False, this parameter
         is discarded
-    last_file_name      : str, default = "last_model"
+    last_file_name : str, default = "last_model"
         The name of the file of the last model, if
         save_last_model is set to False, this parameter
         is discarded
@@ -143,7 +146,7 @@ class TimeCNNRegressor(BaseDeepRegressor):
         last_file_name="last_model",
         init_file_name="init_model",
         verbose=False,
-        loss="mse",
+        loss="mean_squared_error",
         output_activation="linear",
         metrics="mean_squared_error",
         random_state=None,
@@ -255,10 +258,11 @@ class TimeCNNRegressor(BaseDeepRegressor):
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
 
-        if isinstance(self.metrics, str):
-            self._metrics = [self.metrics]
-        else:
+        if isinstance(self.metrics, list):
             self._metrics = self.metrics
+        elif isinstance(self.metrics, str):
+            self._metrics = [self.metrics]
+
         self.input_shape = X.shape[1:]
         self.training_model_ = self.build_model(self.input_shape)
 

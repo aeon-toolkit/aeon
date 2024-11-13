@@ -1,7 +1,7 @@
-"""Fully Convolutional Network (FCN) regressor."""
+"""DisjointCNN classifier."""
 
 __maintainer__ = ["hadifawaz1999"]
-__all__ = ["FCNRegressor"]
+__all__ = ["DisjointCNNClassifier"]
 
 import gc
 import os
@@ -10,39 +10,78 @@ from copy import deepcopy
 
 from sklearn.utils import check_random_state
 
-from aeon.networks import FCNNetwork
-from aeon.regression.deep_learning.base import BaseDeepRegressor
+from aeon.classification.deep_learning.base import BaseDeepClassifier
+from aeon.networks import DisjointCNNNetwork
 
 
-class FCNRegressor(BaseDeepRegressor):
-    """Fully Convolutional Network (FCN).
+class DisjointCNNClassifier(BaseDeepClassifier):
+    """Disjoint Convolutional Neural Netowkr classifier.
 
     Adapted from the implementation used in [1]_.
 
     Parameters
     ----------
-    n_layers : int, default = 3
-        number of convolution layers
-    n_filters : int or list of int, default = [128,256,128]
-        number of filters used in convolution layers
-    kernel_size : int or list of int, default = [8,5,3]
-        size of convolution kernel
+    n_layers : int, default = 4
+        Number of 1+1D Convolution layers.
+    n_filters : int or list of int, default = 64
+        Number of filters used in convolution layers. If
+        input is set to a list, the lenght should be the same
+        as `n_layers`, if input is int the a list of the same
+        element is created of length `n_layers`.
+    kernel_size : int or list of int, default = [8, 5, 5, 3]
+        Size of convolution kernel. If
+        input is set to a list, the lenght should be the same
+        as `n_layers`, if input is int the a list of the same
+        element is created of length `n_layers`.
     dilation_rate : int or list of int, default = 1
-        the dilation rate for convolution
+        The dilation rate for convolution. If
+        input is set to a list, the lenght should be the same
+        as `n_layers`, if input is int the a list of the same
+        element is created of length `n_layers`.
     strides : int or list of int, default = 1
-        the strides of the convolution filter
+        The strides of the convolution filter. If
+        input is set to a list, the lenght should be the same
+        as `n_layers`, if input is int the a list of the same
+        element is created of length `n_layers`.
     padding : str or list of str, default = "same"
-        the type of padding used for convolution
-    activation : str or list of str, default = "relu"
-        activation used after the convolution
+        The type of padding used for convolution. If
+        input is set to a list, the lenght should be the same
+        as `n_layers`, if input is int the a list of the same
+        element is created of length `n_layers`.
+    activation : str or list of str, default = "elu"
+        Activation used after the convolution. If
+        input is set to a list, the lenght should be the same
+        as `n_layers`, if input is int the a list of the same
+        element is created of length `n_layers`.
     use_bias : bool or list of bool, default = True
-        whether or not ot use bias in convolution
+        Whether or not ot use bias in convolution. If
+        input is set to a list, the lenght should be the same
+        as `n_layers`, if input is int the a list of the same
+        element is created of length `n_layers`.
+    kernel_initializer: str or list of str, default = "he_uniform"
+        The initialization method of convolution layers. If
+        input is set to a list, the lenght should be the same
+        as `n_layers`, if input is int the a list of the same
+        element is created of length `n_layers`.
+    pool_size: int, default = 5
+        The size of the one max pool layer at the end of
+        the model, default = 5.
+    pool_strides: int, default = None
+        The strides used for the one max pool layer at
+        the end of the model, default = None.
+    pool_padding: str, default = "valid"
+        The padding method for the one max pool layer at
+        the end of the model, default = "valid".
+    hidden_fc_units: int, default = 128
+        The number of fully connected units.
+    activation_fc: str, default = "relu"
+        The activation of the fully connected layer.
     n_epochs : int, default = 2000
-        the number of epochs to train the model
+        The number of epochs to train the model.
     batch_size : int, default = 16
-        the number of samples per gradient update.
-    use_mini_batch_size : bool, default = False,
-        whether or not to use the mini batch size formula
+        The number of samples per gradient update.
+    use_mini_batch_size : bool, default = False
+        Whether or not to use the mini batch size formula.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -51,12 +90,10 @@ class FCNRegressor(BaseDeepRegressor):
         Seeded random number generation can only be guaranteed on CPU processing,
         GPU processing will be non-deterministic.
     verbose : boolean, default = False
-        whether to output extra information
-    output_activation   : str, default = "linear",
-        the output activation of the regressor
-    loss : str, default = "mean_squared_error"
+        Whether to output extra information.
+    loss : str, default = "categorical_crossentropy"
         The name of the keras training loss.
-    metrics : str or list[str], default="mean_squared_error"
+    metrics : str or list[str], default="accuracy"
         The evaluation metrics to use during training. If
         a single string metric is provided, it will be
         used as the only metric. If a list of metrics are
@@ -64,29 +101,30 @@ class FCNRegressor(BaseDeepRegressor):
     optimizer : keras.optimizer, default = tf.keras.optimizers.Adam()
         The keras optimizer used for training.
     file_path : str, default = "./"
-        file path to save best model
+        File path to save best model.
     save_best_model : bool, default = False
         Whether or not to save the best model, if the
         modelcheckpoint callback is used by default,
         this condition, if True, will prevent the
         automatic deletion of the best saved model from
-        file and the user can choose the file name
+        file and the user can choose the file name.
     save_last_model : bool, default = False
         Whether or not to save the last model, last
         epoch trained, using the base class method
-        save_last_model_to_file
+        save_last_model_to_file.
     save_init_model : bool, default = False
         Whether to save the initialization of the  model.
     best_file_name : str, default = "best_model"
         The name of the file of the best model, if
         save_best_model is set to False, this parameter
-        is discarded
+        is discarded.
     last_file_name : str, default = "last_model"
         The name of the file of the last model, if
         save_last_model is set to False, this parameter
-        is discarded
+        is discarded.
     init_file_name : str, default = "init_model"
-        The name of the file of the init model, if save_init_model is set to False,
+        The name of the file of the init model, if
+        save_init_model is set to False,
         this parameter is discarded.
     callbacks : keras callback or list of callbacks,
         default = None
@@ -95,35 +133,52 @@ class FCNRegressor(BaseDeepRegressor):
 
     Notes
     -----
-    Adapted from the implementation from Fawaz et. al
-    https://github.com/hfawaz/dl-4-tsc/blob/master/classifiers/fcn.py
+    Adapted from the implementation from:
+    https://github.com/Navidfoumani/Disjoint-CNN
 
     References
     ----------
-    .. [1] Zhao et. al, Convolutional neural networks for time series classification,
-    Journal of Systems Engineering and Electronics, 28(1):2017.
+    .. [1] Foumani, Seyed Navid Mohammadi, Chang Wei Tan, and Mahsa Salehi.
+    "Disjoint-cnn for multivariate time series classification."
+    2021 International Conference on Data Mining Workshops
+    (ICDMW). IEEE, 2021.
 
     Examples
     --------
-    >>> from aeon.regression.deep_learning import FCNRegressor
-    >>> from aeon.testing.data_generation import make_example_3d_numpy
-    >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
-    ...                              return_y=True, regression_target=True,
-    ...                              random_state=0)
-    >>> rgs = FCNRegressor(n_epochs=20,batch_size=4)  # doctest: +SKIP
-    >>> rgs.fit(X, y)  # doctest: +SKIP
-    FCNRegressor(...)
+    >>> from aeon.classification.deep_learning import DisjointCNNClassifier
+    >>> from aeon.datasets import load_unit_test
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
+    >>> disjoint_cnn = DisjointCNNClassifier(n_epochs=20,
+    ... batch_size=4)  # doctest: +SKIP
+    >>> disjoint_cnn.fit(X_train, y_train)  # doctest: +SKIP
+    DisjointCNNClassifier(...)
     """
 
     def __init__(
         self,
-        n_layers=3,
-        n_filters=None,
+        n_layers=4,
+        n_filters=64,
         kernel_size=None,
         dilation_rate=1,
         strides=1,
         padding="same",
-        activation="relu",
+        activation="elu",
+        use_bias=True,
+        kernel_initializer="he_uniform",
+        pool_size=5,
+        pool_strides=None,
+        pool_padding="valid",
+        hidden_fc_units=128,
+        activation_fc="relu",
+        n_epochs=2000,
+        batch_size=16,
+        use_mini_batch_size=False,
+        random_state=None,
+        verbose=False,
+        loss="categorical_crossentropy",
+        metrics="accuracy",
+        optimizer=None,
         file_path="./",
         save_best_model=False,
         save_last_model=False,
@@ -131,35 +186,31 @@ class FCNRegressor(BaseDeepRegressor):
         best_file_name="best_model",
         last_file_name="last_model",
         init_file_name="init_model",
-        n_epochs=2000,
-        batch_size=16,
-        use_mini_batch_size=False,
         callbacks=None,
-        verbose=False,
-        output_activation="linear",
-        loss="mean_squared_error",
-        metrics="mean_squared_error",
-        random_state=None,
-        use_bias=True,
-        optimizer=None,
     ):
         self.n_layers = n_layers
-        self.kernel_size = kernel_size
         self.n_filters = n_filters
-        self.strides = strides
-        self.activation = activation
+        self.kernel_size = kernel_size
         self.dilation_rate = dilation_rate
+        self.strides = strides
         self.padding = padding
+        self.activation = activation
         self.use_bias = use_bias
-        self.output_activation = output_activation
+        self.kernel_initializer = kernel_initializer
+        self.pool_size = pool_size
+        self.pool_strides = pool_strides
+        self.pool_padding = pool_padding
+        self.hidden_fc_units = hidden_fc_units
+        self.activation_fc = activation_fc
+
         self.callbacks = callbacks
         self.n_epochs = n_epochs
         self.use_mini_batch_size = use_mini_batch_size
         self.verbose = verbose
         self.loss = loss
         self.metrics = metrics
-        self.random_state = random_state
         self.optimizer = optimizer
+
         self.file_path = file_path
         self.save_best_model = save_best_model
         self.save_last_model = save_last_model
@@ -169,20 +220,30 @@ class FCNRegressor(BaseDeepRegressor):
 
         self.history = None
 
-        super().__init__(batch_size=batch_size, last_file_name=last_file_name)
-
-        self._network = FCNNetwork(
-            n_layers=self.n_layers,
-            kernel_size=self.kernel_size,
-            n_filters=self.n_filters,
-            strides=self.strides,
-            padding=self.padding,
-            dilation_rate=self.dilation_rate,
-            activation=self.activation,
-            use_bias=self.use_bias,
+        super().__init__(
+            batch_size=batch_size,
+            random_state=random_state,
+            last_file_name=last_file_name,
         )
 
-    def build_model(self, input_shape, **kwargs):
+        self._network = DisjointCNNNetwork(
+            n_layers=self.n_layers,
+            n_filters=self.n_filters,
+            kernel_size=self.kernel_size,
+            dilation_rate=self.dilation_rate,
+            strides=self.strides,
+            padding=self.padding,
+            activation=self.activation,
+            use_bias=self.use_bias,
+            kernel_initializer=self.kernel_initializer,
+            pool_size=self.pool_size,
+            pool_strides=self.pool_strides,
+            pool_padding=self.pool_padding,
+            hidden_fc_units=self.hidden_fc_units,
+            activation_fc=self.activation_fc,
+        )
+
+    def build_model(self, input_shape, n_classes, **kwargs):
         """Construct a compiled, un-trained, keras model that is ready for training.
 
         In aeon, time series are stored in numpy arrays of shape (d,m), where d
@@ -193,7 +254,9 @@ class FCNRegressor(BaseDeepRegressor):
         Parameters
         ----------
         input_shape : tuple
-            The shape of the data fed into the input layer, should be (m,d)
+            The shape of the data fed into the input layer, should be (m, d).
+        n_classes : int
+            The number of classes, which becomes the size of the output layer.
 
         Returns
         -------
@@ -207,10 +270,9 @@ class FCNRegressor(BaseDeepRegressor):
         tf.keras.utils.set_random_seed(self.random_state_)
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
-        output_layer = tf.keras.layers.Dense(
-            units=1,
-            activation=self.output_activation,
-        )(output_layer)
+        output_layer = tf.keras.layers.Dense(units=n_classes, activation="softmax")(
+            output_layer
+        )
 
         self.optimizer_ = (
             tf.keras.optimizers.Adam() if self.optimizer is None else self.optimizer
@@ -226,14 +288,14 @@ class FCNRegressor(BaseDeepRegressor):
         return model
 
     def _fit(self, X, y):
-        """Fit the regressor on the training set (X, y).
+        """Fit the classifier on the training set (X, y).
 
         Parameters
         ----------
         X : np.ndarray
-            The training input samples of shape (n_cases, n_channels, n_timepoints).
+            The training input samples of shape (n_cases, n_channels, n_timepoints)
         y : np.ndarray
-            The training data target values of shape (n_cases,).
+            The training data class labels of shape (n_cases,).
 
         Returns
         -------
@@ -241,6 +303,7 @@ class FCNRegressor(BaseDeepRegressor):
         """
         import tensorflow as tf
 
+        y_onehot = self.convert_y_to_keras(y)
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
 
@@ -250,7 +313,7 @@ class FCNRegressor(BaseDeepRegressor):
             self._metrics = [self.metrics]
 
         self.input_shape = X.shape[1:]
-        self.training_model_ = self.build_model(self.input_shape)
+        self.training_model_ = self.build_model(self.input_shape, self.n_classes_)
 
         if self.save_init_model:
             self.training_model_.save(self.file_path + self.init_file_name + ".keras")
@@ -287,7 +350,7 @@ class FCNRegressor(BaseDeepRegressor):
 
         self.history = self.training_model_.fit(
             X,
-            y,
+            y_onehot,
             batch_size=mini_batch_size,
             epochs=self.n_epochs,
             verbose=self.verbose,
@@ -315,30 +378,39 @@ class FCNRegressor(BaseDeepRegressor):
 
         Parameters
         ----------
-        parameter_set : str, default="default"
+        parameter_set : str, default = "default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
-            For Regressors, a "default" set of parameters should be provided for
+            special parameters are defined for a value, will return "default" set.
+            For classifiers, a "default" set of parameters should be provided for
             general testing, and a "results_comparison" set for comparing against
             previously recorded results if the general set does not produce suitable
             probabilities to compare against.
 
         Returns
         -------
-        params : dict or list of dict, default={}
+        params : dict or list of dict, default = {}
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
         """
-        param = {
-            "n_epochs": 10,
+        param1 = {
+            "n_epochs": 3,
             "batch_size": 4,
             "use_bias": False,
-            "n_layers": 1,
-            "n_filters": 5,
-            "kernel_size": 3,
-            "padding": "valid",
-            "strides": 2,
+            "n_layers": 2,
+            "n_filters": 2,
+            "kernel_size": [2, 2],
+        }
+        param2 = {
+            "n_epochs": 3,
+            "batch_size": 4,
+            "use_bias": False,
+            "n_layers": 2,
+            "n_filters": 2,
+            "kernel_size": [2, 2],
+            "verbose": True,
+            "metrics": ["accuracy"],
+            "use_mini_batch_size": True,
         }
 
-        return [param]
+        return [param1, param2]

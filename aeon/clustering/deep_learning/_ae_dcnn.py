@@ -1,7 +1,6 @@
-"""Fully Convolutional Network (FCN) classifier."""
+"""Deep Learning Auto-Encoder using DCNN Network."""
 
-__maintainer__ = ["hadifawaz1999"]
-__all__ = ["FCNClassifier"]
+__all__ = ["AEDCNNClusterer"]
 
 import gc
 import os
@@ -10,38 +9,55 @@ from copy import deepcopy
 
 from sklearn.utils import check_random_state
 
-from aeon.classification.deep_learning.base import BaseDeepClassifier
-from aeon.networks import FCNNetwork
+from aeon.clustering import DummyClusterer
+from aeon.clustering.deep_learning.base import BaseDeepClusterer
+from aeon.networks import AEDCNNNetwork
 
 
-class FCNClassifier(BaseDeepClassifier):
-    """Fully Convolutional Network (FCN).
-
-    Adapted from the implementation used in [1]_.
+class AEDCNNClusterer(BaseDeepClusterer):
+    """Auto-Encoder based Dilated Convolutional Networks (DCNN), as described in [1]_.
 
     Parameters
     ----------
+    n_clusters : int, default=None
+        Number of clusters for the deep learnign model.
+    clustering_algorithm : str, default="deprecated"
+        Use 'estimator' parameter instead.
+    clustering_params : dict, default=None
+        Use 'estimator' parameter instead.
+    estimator : aeon clusterer, default=None
+        An aeon estimator to be built using the transformed data.
+        Defaults to aeon TimeSeriesKMeans() with euclidean distance
+        and mean averaging method and n_clusters set to 2.
+    latent_space_dim : int, default=128
+        Dimension of the latent space of the auto-encoder.
+    temporal_latent_space : bool, default = False
+        Flag to choose whether the latent space is an MTS or Euclidean space.
     n_layers : int, default = 3
-        Number of convolution layers.
-    n_filters : int or list of int, default = [128,256,128]
-        Number of filters used in convolution layers.
-    kernel_size : int or list of int, default = [8,5,3]
-        Size of convolution kernel.
+        Number of convolution layers in the encoder.
+    n_filters : int or list of int, default = None
+        Number of filters used in convolution layers in the encoder.
+    kernel_size : int or list of int, default = 3
+        Size of convolution kernel in the encoder.
     dilation_rate : int or list of int, default = 1
-        The dilation rate for convolution.
-    strides : int or list of int, default = 1
-        The strides of the convolution filter.
-    padding : str or list of str, default = "same"
-        The type of padding used for convolution.
+        The dilation rate for convolution in the encoder.
+        `dilation_rate` greater than `1` is not supported on
+        `Conv1DTranspose` for some devices/OS.
     activation : str or list of str, default = "relu"
-        Activation used after the convolution.
+        Activation used after the convolution in the encoder.
+    padding_encoder : str or list of str, default = "causal"
+        Keras compatible Padding string for the encoder. Defaults to a list
+        of "causal" paddings.
+    padding_decoder : str or list of str, default = "same"
+        Keras compatible Padding string for the decoder. Defaults to a list
+        of "same" paddings.
     use_bias : bool or list of bool, default = True
         Whether or not ot use bias in convolution.
     n_epochs : int, default = 2000
         The number of epochs to train the model.
     batch_size : int, default = 16
         The number of samples per gradient update.
-    use_mini_batch_size : bool, default = False
+    use_mini_batch_size : bool, default = True,
         Whether or not to use the mini batch size formula.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
@@ -52,15 +68,12 @@ class FCNClassifier(BaseDeepClassifier):
         GPU processing will be non-deterministic.
     verbose : boolean, default = False
         Whether to output extra information.
-    loss : str, default = "categorical_crossentropy"
-        The name of the keras training loss.
-    metrics : str or list[str], default="accuracy"
-        The evaluation metrics to use during training. If
-        a single string metric is provided, it will be
-        used as the only metric. If a list of metrics are
-        provided, all will be used for evaluation.
-    optimizer : keras.optimizer, default = tf.keras.optimizers.Adam()
-        The keras optimizer used for training.
+    loss : string, default="mean_squared_error"
+        Fit parameter for the keras model.
+    metrics : List[str], default=["mean_squared_error"]
+        Metrics to evaluate the performance of the deep learning network.
+    optimizer : keras.optimizers object, default = Adam(lr=0.01)
+        Specify the optimizer and the learning rate to be used.
     file_path : str, default = "./"
         File path to save best model.
     save_best_model : bool, default = False
@@ -73,8 +86,6 @@ class FCNClassifier(BaseDeepClassifier):
         Whether or not to save the last model, last
         epoch trained, using the base class method
         save_last_model_to_file.
-    save_init_model : bool, default = False
-        Whether to save the initialization of the  model.
     best_file_name : str, default = "best_model"
         The name of the file of the best model, if
         save_best_model is set to False, this parameter
@@ -83,124 +94,113 @@ class FCNClassifier(BaseDeepClassifier):
         The name of the file of the last model, if
         save_last_model is set to False, this parameter
         is discarded.
-    init_file_name : str, default = "init_model"
-        The name of the file of the init model, if
-        save_init_model is set to False,
-        this parameter is discarded.
-    callbacks : keras callback or list of callbacks,
-        default = None
-        The default list of callbacks are set to
-        ModelCheckpoint and ReduceLROnPlateau.
-
-    Notes
-    -----
-    Adapted from the implementation from Fawaz et. al
-    https://github.com/hfawaz/dl-4-tsc/blob/master/classifiers/fcn.py
-
-    References
-    ----------
-    .. [1] Zhao et. al, Convolutional neural networks for time series classification,
-    Journal of Systems Engineering and Electronics, 28(1):2017.
+    callbacks : keras.callbacks, default = None
+        List of keras callbacks.
 
     Examples
     --------
-    >>> from aeon.classification.deep_learning import FCNClassifier
+    >>> from aeon.clustering.deep_learning import AEDCNNClusterer
     >>> from aeon.datasets import load_unit_test
+    >>> from aeon.clustering import DummyClusterer
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test = load_unit_test(split="test")
-    >>> fcn = FCNClassifier(n_epochs=20, batch_size=4)  # doctest: +SKIP
-    >>> fcn.fit(X_train, y_train)  # doctest: +SKIP
-    FCNClassifier(...)
+    >>> _clst = DummyClusterer(n_clusters=2)
+    >>> aedcnn=AEDCNNClusterer(estimator=_clst, n_epochs=20,
+    ... batch_size=4)  # doctest: +SKIP
+    >>> aedcnn.fit(X_train)  # doctest: +SKIP
+    AEDCNNClusterer(...)
     """
 
     def __init__(
         self,
+        n_clusters=None,
+        estimator=None,
+        clustering_algorithm="deprecated",
+        clustering_params=None,
+        latent_space_dim=128,
+        temporal_latent_space=False,
         n_layers=3,
         n_filters=None,
-        kernel_size=None,
+        kernel_size=3,
         dilation_rate=1,
-        strides=1,
-        padding="same",
         activation="relu",
+        padding_encoder="same",
+        padding_decoder="same",
+        n_epochs=2000,
+        batch_size=32,
+        use_mini_batch_size=False,
+        random_state=None,
+        verbose=False,
+        loss="mse",
+        metrics=None,
+        optimizer="Adam",
         file_path="./",
         save_best_model=False,
         save_last_model=False,
-        save_init_model=False,
         best_file_name="best_model",
-        last_file_name="last_model",
-        init_file_name="init_model",
-        n_epochs=2000,
-        batch_size=16,
-        use_mini_batch_size=False,
+        last_file_name="last_file",
         callbacks=None,
-        verbose=False,
-        loss="categorical_crossentropy",
-        metrics="accuracy",
-        random_state=None,
-        use_bias=True,
-        optimizer=None,
     ):
+        self.latent_space_dim = latent_space_dim
+        self.temporal_latent_space = temporal_latent_space
         self.n_layers = n_layers
-        self.kernel_size = kernel_size
         self.n_filters = n_filters
-        self.strides = strides
+        self.kernel_size = kernel_size
         self.activation = activation
+        self.padding_encoder = padding_encoder
+        self.padding_decoder = padding_decoder
         self.dilation_rate = dilation_rate
-        self.padding = padding
-        self.use_bias = use_bias
-
-        self.callbacks = callbacks
-        self.n_epochs = n_epochs
-        self.use_mini_batch_size = use_mini_batch_size
-        self.verbose = verbose
+        self.optimizer = optimizer
         self.loss = loss
         self.metrics = metrics
-        self.optimizer = optimizer
-
+        self.verbose = verbose
+        self.use_mini_batch_size = use_mini_batch_size
+        self.callbacks = callbacks
         self.file_path = file_path
+        self.n_epochs = n_epochs
         self.save_best_model = save_best_model
         self.save_last_model = save_last_model
-        self.save_init_model = save_init_model
         self.best_file_name = best_file_name
-        self.init_file_name = init_file_name
-
-        self.history = None
+        self.random_state = random_state
 
         super().__init__(
+            n_clusters=n_clusters,
+            clustering_params=clustering_params,
+            clustering_algorithm=clustering_algorithm,
+            estimator=estimator,
             batch_size=batch_size,
-            random_state=random_state,
             last_file_name=last_file_name,
         )
 
-        self._network = FCNNetwork(
+        self._network = AEDCNNNetwork(
+            latent_space_dim=self.latent_space_dim,
+            temporal_latent_space=self.temporal_latent_space,
             n_layers=self.n_layers,
-            kernel_size=self.kernel_size,
             n_filters=self.n_filters,
-            strides=self.strides,
-            padding=self.padding,
+            kernel_size=self.kernel_size,
             dilation_rate=self.dilation_rate,
             activation=self.activation,
-            use_bias=self.use_bias,
+            padding_encoder=self.padding_encoder,
+            padding_decoder=self.padding_decoder,
         )
 
-    def build_model(self, input_shape, n_classes, **kwargs):
+    def build_model(self, input_shape, **kwargs):
         """Construct a compiled, un-trained, keras model that is ready for training.
 
-        In aeon, time series are stored in numpy arrays of shape (d,m), where d
-        is the number of dimensions, m is the series length. Keras/tensorflow assume
-        data is in shape (m,d). This method also assumes (m,d). Transpose should
-        happen in fit.
+        In aeon, time series are stored in numpy arrays of shape
+        (n_channels,n_timepoints). Keras/tensorflow assume
+        data is in shape (n_timepoints,n_channels). This method also assumes
+        (n_timepoints,n_channels). Transpose should happen in fit.
 
         Parameters
         ----------
         input_shape : tuple
-            The shape of the data fed into the input layer, should be (m, d).
-        n_classes : int
-            The number of classes, which becomes the size of the output layer.
+            The shape of the data fed into the input layer, should be
+            (n_timepoints,n_channels).
 
         Returns
         -------
-        output : a compiled Keras Model
+        output : a compiled Keras Model.
         """
         import numpy as np
         import tensorflow as tf
@@ -208,34 +208,41 @@ class FCNClassifier(BaseDeepClassifier):
         rng = check_random_state(self.random_state)
         self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
         tf.keras.utils.set_random_seed(self.random_state_)
-        input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
+        encoder, decoder = self._network.build_network(input_shape, **kwargs)
 
-        output_layer = tf.keras.layers.Dense(units=n_classes, activation="softmax")(
-            output_layer
-        )
+        input_layer = tf.keras.layers.Input(input_shape, name="input layer")
+        encoder_output = encoder(input_layer)
+        decoder_output = decoder(encoder_output)
+        output_layer = tf.keras.layers.Reshape(
+            target_shape=input_shape, name="outputlayer"
+        )(decoder_output)
+
+        model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
 
         self.optimizer_ = (
             tf.keras.optimizers.Adam() if self.optimizer is None else self.optimizer
         )
 
-        model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
-        model.compile(
-            loss=self.loss,
-            optimizer=self.optimizer_,
-            metrics=self._metrics,
-        )
+        if self.metrics is None:
+            self._metrics = ["mean_squared_error"]
+        elif isinstance(self.metrics, list):
+            self._metrics = self.metrics
+        elif isinstance(self.metrics, str):
+            self._metrics = [self.metrics]
+        else:
+            raise ValueError("Metrics should be a list, string, or None.")
+
+        model.compile(optimizer=self.optimizer_, loss=self.loss, metrics=self._metrics)
 
         return model
 
-    def _fit(self, X, y):
+    def _fit(self, X):
         """Fit the classifier on the training set (X, y).
 
         Parameters
         ----------
-        X : np.ndarray
-            The training input samples of shape (n_cases, n_channels, n_timepoints)
-        y : np.ndarray
-            The training data class labels of shape (n_cases,).
+        X : np.ndarray of shape = (n_cases (n), n_channels (d), n_timepoints (m))
+            The training input samples.
 
         Returns
         -------
@@ -243,20 +250,11 @@ class FCNClassifier(BaseDeepClassifier):
         """
         import tensorflow as tf
 
-        y_onehot = self.convert_y_to_keras(y)
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
 
-        if isinstance(self.metrics, list):
-            self._metrics = self.metrics
-        elif isinstance(self.metrics, str):
-            self._metrics = [self.metrics]
-
         self.input_shape = X.shape[1:]
-        self.training_model_ = self.build_model(self.input_shape, self.n_classes_)
-
-        if self.save_init_model:
-            self.training_model_.save(self.file_path + self.init_file_name + ".keras")
+        self.training_model_ = self.build_model(self.input_shape)
 
         if self.verbose:
             self.training_model_.summary()
@@ -290,7 +288,7 @@ class FCNClassifier(BaseDeepClassifier):
 
         self.history = self.training_model_.fit(
             X,
-            y_onehot,
+            X,
             batch_size=mini_batch_size,
             epochs=self.n_epochs,
             verbose=self.verbose,
@@ -306,11 +304,17 @@ class FCNClassifier(BaseDeepClassifier):
         except FileNotFoundError:
             self.model_ = deepcopy(self.training_model_)
 
-        if self.save_last_model:
-            self.save_last_model_to_file(file_path=self.file_path)
+        self._fit_clustering(X=X)
 
         gc.collect()
+
         return self
+
+    def _score(self, X, y=None):
+        # Transpose to conform to Keras input style.
+        X = X.transpose(0, 2, 1)
+        latent_space = self.model_.layers[1].predict(X)
+        return self._estimator.score(latent_space)
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
@@ -318,9 +322,9 @@ class FCNClassifier(BaseDeepClassifier):
 
         Parameters
         ----------
-        parameter_set : str, default = "default"
+        parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return "default" set.
+            special parameters are defined for a value, will return `"default"` set.
             For classifiers, a "default" set of parameters should be provided for
             general testing, and a "results_comparison" set for comparing against
             previously recorded results if the general set does not produce suitable
@@ -328,22 +332,19 @@ class FCNClassifier(BaseDeepClassifier):
 
         Returns
         -------
-        params : dict or list of dict, default = {}
+        params : dict or list of dict, default={}
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         param1 = {
-            "n_epochs": 10,
+            "estimator": DummyClusterer(n_clusters=2),
+            "n_epochs": 1,
             "batch_size": 4,
-            "use_bias": False,
             "n_layers": 1,
-            "n_filters": 4,
-            "kernel_size": 3,
-            "padding": "valid",
-            "strides": 2,
+            "n_filters": 1,
+            "kernel_size": None,
         }
 
-        test_params = [param1]
-
-        return test_params
+        return [param1]
