@@ -19,7 +19,7 @@ def test_plot_series_with_change_points():
 
     matplotlib.use("Agg")
 
-    series = make_example_pandas_series()
+    series = make_example_pandas_series(n_timepoints=50)
     chp = np.random.randint(0, len(series), 3)
 
     fig, ax = plot_series_with_change_points(series, chp)
