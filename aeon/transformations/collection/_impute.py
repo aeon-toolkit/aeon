@@ -97,9 +97,7 @@ class SimpleImputer(BaseCollectionTransformer):
                     X = np.where(np.isnan(X), self.fill_value, X)
 
             elif self.strategy == "most frequent":
-                if np.issubdtype(X.dtype, np.str_) or np.issubdtype(
-                    X.dtype, np.unicode_
-                ):  # if X is a string array
+                if np.issubdtype(X.dtype, np.str_):  # if X is a string array
                     for i in range(X.shape[0]):
                         for j in range(X.shape[1]):
                             X[i, j][X[i, j] == "nan"] = Counter(X[i, j]).most_common(1)[
@@ -142,9 +140,7 @@ class SimpleImputer(BaseCollectionTransformer):
             elif self.strategy == "constant":
                 fill_values = self.fill_value
             elif self.strategy == "most frequent":
-                if np.issubdtype(non_missing_values[0].dtype, np.str_) or np.issubdtype(
-                    non_missing_values[0].dtype, np.unicode_
-                ):
+                if np.issubdtype(non_missing_values[0].dtype, np.str_):
                     fill_values = [
                         Counter(non_missing_values[i]).most_common(1)[0][0]
                         for i in range(channels)
@@ -159,9 +155,7 @@ class SimpleImputer(BaseCollectionTransformer):
 
             Xt = []
             for x in X:
-                if np.issubdtype(x.dtype, np.str_) or np.issubdtype(
-                    x.dtype, np.unicode_
-                ):
+                if np.issubdtype(x.dtype, np.str_):
                     nan_mask = x == "nan"
                     if self.strategy == "constant":
                         x[nan_mask] = fill_values
