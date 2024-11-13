@@ -15,7 +15,7 @@ from aeon.testing.data_generation import (
     make_example_3d_numpy,
     make_example_3d_numpy_list,
 )
-from aeon.testing.mock_estimators import MockCollectionTransformer
+from aeon.testing.mock_estimators import MockCollectionTransformer, MockRegressor
 from aeon.testing.utils.estimator_checks import _assert_array_almost_equal
 from aeon.transformations.collection import (
     AutocorrelationFunctionTransformer,
@@ -126,7 +126,7 @@ def test_unequal_tag_inference():
     assert not t4.get_tag("capability:unequal_length")
 
     c1 = DummyRegressor()
-    c2 = RocketRegressor(n_kernels=5)
+    c2 = MockRegressor()
     c3 = RandomForestRegressor(n_estimators=2)
 
     assert c1.get_tag("capability:unequal_length")
