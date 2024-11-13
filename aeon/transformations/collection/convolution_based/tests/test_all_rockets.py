@@ -55,7 +55,7 @@ def test_rocket_on_univariate(transform):
     # Create random univariate training data
     X = uni_test_data
     if transform == "Rocket":
-        rocket = Rocket(num_kernels=100, random_state=0)
+        rocket = Rocket(n_kernels=100, random_state=0)
     elif transform == "MiniRocket":
         rocket = MiniRocket(num_kernels=100, random_state=0)
     elif transform == "MultiRocket":
@@ -84,7 +84,7 @@ def test_rocket_on_multivariate(transform):
     # Create random univariate training data
     X = multi_test_data
     if transform == "Rocket":
-        rocket = Rocket(num_kernels=100, random_state=0)
+        rocket = Rocket(n_kernels=100, random_state=0)
     elif transform == "MiniRocket":
         rocket = MiniRocket(num_kernels=100, random_state=0)
     else:
@@ -110,7 +110,7 @@ def test_rocket_on_multivariate(transform):
 def test_normalise_rocket():
     """Test normalization with Rocket."""
     arr = np.random.random(size=(10, 1, 100))
-    rocket = Rocket(num_kernels=200, normalise=True)
+    rocket = Rocket(n_kernels=200, normalise=True)
     trans = rocket.fit_transform(arr)
     assert trans.shape == (10, 400)
     rocket = MultiRocket(num_kernels=200, normalise=True)
@@ -158,7 +158,7 @@ expected_basic_motions["MiniRocket"] = np.array(
     ]
 )
 rockets = [
-    Rocket(num_kernels=100),
+    Rocket(n_kernels=100),
     MultiRocket(num_kernels=100),
     MiniRocket(num_kernels=100),
 ]

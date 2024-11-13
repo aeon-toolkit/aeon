@@ -281,7 +281,7 @@ class Arsenal(BaseClassifier):
         train_time = 0
 
         if self.rocket_transform == "rocket":
-            base_rocket = Rocket(num_kernels=self.num_kernels)
+            base_rocket = Rocket(n_kernels=self.num_kernels)
         elif self.rocket_transform == "minirocket":
             base_rocket = MiniRocket(
                 num_kernels=self.num_kernels,

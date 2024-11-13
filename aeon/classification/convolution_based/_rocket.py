@@ -27,7 +27,7 @@ class RocketClassifier(BaseClassifier):
 
     Parameters
     ----------
-    num_kernels : int, default=10,000
+    n_kernels : int, default=10,000
         The number of kernels for the Rocket transform.
     estimator : sklearn compatible classifier or None, default=None
         The estimator used. If None, a RidgeClassifierCV(alphas=np.logspace(-3, 3, 10))
@@ -78,7 +78,7 @@ class RocketClassifier(BaseClassifier):
     >>> from aeon.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test = load_unit_test(split="test")
-    >>> clf = RocketClassifier(num_kernels=500)
+    >>> clf = RocketClassifier(n_kernels=500)
     >>> clf.fit(X_train, y_train)
     RocketClassifier(...)
     >>> y_pred = clf.predict(X_test)
@@ -88,17 +88,19 @@ class RocketClassifier(BaseClassifier):
         "capability:multithreading": True,
         "capability:multivariate": True,
         "algorithm_type": "convolution",
+        "capability:unequal_length": True,
+        "X_inner_type": ["numpy3d", "np-list"],
     }
 
     def __init__(
         self,
-        num_kernels=10000,
+        n_kernels=10000,
         estimator=None,
         class_weight=None,
         n_jobs=1,
         random_state=None,
     ):
-        self.num_kernels = num_kernels
+        self.n_kernels = n_kernels
         self.estimator = estimator
 
         self.class_weight = class_weight
@@ -112,8 +114,8 @@ class RocketClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.ndarray
-            The training data of shape = (n_cases, n_channels, n_timepoints).
+        X : 3D np.ndarray or list
+            Collection of time series.
         y : 3D np.ndarray
             The class labels, shape = (n_cases,).
 
@@ -127,10 +129,8 @@ class RocketClassifier(BaseClassifier):
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
         """
-        self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
-
         self._transformer = Rocket(
-            num_kernels=self.num_kernels,
+            n_kernels=self.n_kernels,
             n_jobs=self.n_jobs,
             random_state=self.random_state,
         )
@@ -160,8 +160,8 @@ class RocketClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = (n_cases, n_channels, n_timepoints)
-            The data to make predictions for.
+        X : 3D np.ndarray or list
+            Collection of time series.
 
         Returns
         -------
@@ -175,8 +175,8 @@ class RocketClassifier(BaseClassifier):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = (n_cases, n_channels, n_timepoints)
-            The data to make predict probabilities for.
+        X : 3D np.ndarray or list
+            Collection of time series.
 
         Returns
         -------
@@ -187,9 +187,9 @@ class RocketClassifier(BaseClassifier):
         if callable(m):
             return self.pipeline_.predict_proba(X)
         else:
-            dists = np.zeros((X.shape[0], self.n_classes_))
+            dists = np.zeros((len(X), self.n_classes_))
             preds = self.pipeline_.predict(X)
-            for i in range(0, X.shape[0]):
+            for i in range(0, len(X)):
                 dists[i, np.where(self.classes_ == preds[i])] = 1
             return dists
 
@@ -215,6 +215,6 @@ class RocketClassifier(BaseClassifier):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
         """
         if parameter_set == "results_comparison":
-            return {"num_kernels": 100}
+            return {"n_kernels": 100}
         else:
-            return {"num_kernels": 20}
+            return {"n_kernels": 20}
