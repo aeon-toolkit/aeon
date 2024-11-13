@@ -50,6 +50,12 @@ class TimeCNNNetwork(BaseDeepLearningNetwork):
     Journal of Systems Engineering and Electronics 28(1), 162--169, 2017
     """
 
+    _config = {
+        "python_dependencies": ["tensorflow"],
+        "python_version": "<3.13",
+        "structure": "encoder",
+    }
+
     def __init__(
         self,
         n_layers=2,

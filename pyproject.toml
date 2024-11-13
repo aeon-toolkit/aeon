@@ -69,14 +69,14 @@ all_extras = [
     "seaborn>=0.11.0",
     "statsmodels>=0.12.1",
     "stumpy>=1.5.1",
-    "tensorflow>=2.14; python_version < '3.12'",
+    "tensorflow>=2.14",
     "torch>=1.13.1",
     "tsfresh>=0.20.0",
     "tslearn>=0.5.2",
     "sparse"
 ]
 dl = [
-    "tensorflow>=2.14; python_version < '3.12'",
+    "tensorflow>=2.14",
 ]
 unstable_extras = [
     "mrsqm>=0.0.7,<0.1.0; platform_system != 'Windows' and python_version < '3.12'",  # requires gcc and fftw to be installed for Windows and some other OS (see http://www.fftw.org/index.html)
