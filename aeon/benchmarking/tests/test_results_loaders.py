@@ -5,6 +5,7 @@ import os
 import numpy as np
 import pandas as pd
 import pytest
+from numpy.testing import assert_equal
 from pytest import raises
 
 from aeon.benchmarking.results_loaders import (
@@ -102,7 +103,7 @@ def test_get_estimator_results(path):
     assert np.average(res2["HIVECOTEV2"]["ItalyPowerDemand"]) == 0.9630385487528345
 
     res3 = get_estimator_results(cls, datasets=data, num_resamples=None, path=path)
-    assert res3 == res2
+    assert_equal(res3, res2)
 
     with pytest.raises(ValueError, match="not a valid task"):
         get_estimator_results(cls, datasets=data, task="invalid")

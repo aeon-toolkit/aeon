@@ -4,7 +4,7 @@ import platform
 import sys
 
 import numpy as np
-from statsmodels.tsa.statespace.simulation_smoother import check_random_state
+from sklearn.utils import check_random_state
 
 from aeon.testing.estimator_checking import parametrize_with_checks
 from aeon.testing.testing_config import PR_TESTING
