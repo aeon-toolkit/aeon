@@ -55,8 +55,10 @@ class LITETimeRegressor(BaseRegressor):
         formula Wang et al.
     n_epochs : int, default = 1500
         the number of epochs to train the model.
-    callbacks : callable or None, default = ReduceOnPlateau and ModelCheckpoint
-        list of tf.keras.callbacks.Callback objects.
+    callbacks : keras callback or list of callbacks,
+        default = None
+        The default list of callbacks are set to
+        ModelCheckpoint and ReduceLROnPlateau.
     file_path : str, default = "./"
         file_path when saving model_Checkpoint callback
     save_best_model : bool, default = False
@@ -91,10 +93,15 @@ class LITETimeRegressor(BaseRegressor):
         GPU processing will be non-deterministic.
     verbose : boolean, default = False
         whether to output extra information
-    optimizer : keras optimizer, default = Adam
-    loss : keras loss, default = "mean_squared_error"
-    metrics : keras metrics, default = mean_squared_error,
-        will be set to mean_squared_error as default if None
+    loss : str, default = "mean_squared_error"
+        The name of the keras training loss.
+    metrics : str or list[str], default="mean_squared_error"
+        The evaluation metrics to use during training. If
+        a single string metric is provided, it will be
+        used as the only metric. If a list of metrics are
+        provided, all will be used for evaluation.
+    optimizer : keras.optimizer, default = tf.keras.optimizers.Adam()
+        The keras optimizer used for training.
 
     Notes
     -----
@@ -152,7 +159,7 @@ class LITETimeRegressor(BaseRegressor):
         random_state=None,
         verbose=False,
         loss="mean_squared_error",
-        metrics=None,
+        metrics="mean_squared_error",
         optimizer=None,
     ):
         self.n_regressors = n_regressors
@@ -333,8 +340,10 @@ class IndividualLITERegressor(BaseDeepRegressor):
         formula Wang et al.
     n_epochs : int, default = 1500
         the number of epochs to train the model.
-    callbacks : callable or None, default = ReduceOnPlateau and ModelCheckpoint
-        list of tf.keras.callbacks.Callback objects.
+    callbacks : keras callback or list of callbacks,
+        default = None
+        The default list of callbacks are set to
+        ModelCheckpoint and ReduceLROnPlateau.
     file_path : str, default = "./"
         file_path when saving model_Checkpoint callback
     save_best_model : bool, default = False
@@ -369,10 +378,15 @@ class IndividualLITERegressor(BaseDeepRegressor):
         GPU processing will be non-deterministic.
     verbose : boolean, default = False
         whether to output extra information
-    optimizer : keras optimizer, default = Adam
-    loss : keras loss, default = 'mean_squared_error'
-    metrics : keras metrics, default = mean_squared_error,
-        will be set to mean_squared_error as default if None
+    loss : str, default = "mean_squared_error"
+        The name of the keras training loss.
+    metrics : str or list[str], default="mean_squared_error"
+        The evaluation metrics to use during training. If
+        a single string metric is provided, it will be
+        used as the only metric. If a list of metrics are
+        provided, all will be used for evaluation.
+    optimizer : keras.optimizer, default = tf.keras.optimizers.Adam()
+        The keras optimizer used for training.
 
     Notes
     -----
@@ -421,7 +435,7 @@ class IndividualLITERegressor(BaseDeepRegressor):
         random_state=None,
         verbose=False,
         loss="mean_squared_error",
-        metrics=None,
+        metrics="mean_squared_error",
         optimizer=None,
     ):
         self.use_litemv = use_litemv
@@ -489,11 +503,6 @@ class IndividualLITERegressor(BaseDeepRegressor):
 
         model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
 
-        if self.metrics is None:
-            metrics = ["mean_squared_error"]
-        else:
-            metrics = self.metrics
-
         self.optimizer_ = (
             tf.keras.optimizers.Adam() if self.optimizer is None else self.optimizer
         )
@@ -501,7 +510,7 @@ class IndividualLITERegressor(BaseDeepRegressor):
         model.compile(
             loss=self.loss,
             optimizer=self.optimizer_,
-            metrics=metrics,
+            metrics=self._metrics,
         )
 
         return model
@@ -526,6 +535,11 @@ class IndividualLITERegressor(BaseDeepRegressor):
 
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
+
+        if isinstance(self.metrics, list):
+            self._metrics = self.metrics
+        elif isinstance(self.metrics, str):
+            self._metrics = [self.metrics]
 
         # ignore the number of instances, X.shape[0],
         # just want the shape of each instance

@@ -34,6 +34,12 @@ def _yield_classification_checks(estimator_class, estimator_instances, datatypes
         estimator_class=estimator_class,
     )
 
+    # Algorithm_type check
+    yield partial(
+        check_algorithm_type,
+        estimator_class=estimator_class,
+    )
+
     # data type irrelevant
     if _get_tag(estimator_class, "capability:contractable", raise_error=True):
         yield partial(
@@ -124,6 +130,30 @@ def check_classifier_against_expected_results(estimator_class):
             decimal=2,
             err_msg=f"Failed to reproduce results for {class_name} on {data_name}",
         )
+
+
+def check_algorithm_type(estimator_class):
+    """Test the tag algorithm_type is classifier."""
+    valid_algorithm_types = [
+        "distance",
+        "deeplearning",
+        "convolution",
+        "dictionary",
+        "interval",
+        "feature",
+        "hybrid",
+        "shapelet",
+    ]
+    algorithm_type = estimator_class.get_class_tag("algorithm_type")
+
+    # Pass the test
+    if algorithm_type is None:
+        return
+
+    assert algorithm_type in valid_algorithm_types, (
+        f"Estimator {estimator_class.__name__} has an invalid 'algorithm_type' tag: "
+        f"'{algorithm_type}'. Valid types are {valid_algorithm_types}."
+    )
 
 
 def check_classifier_tags_consistent(estimator_class):
@@ -224,7 +254,6 @@ def check_classifier_saving_loading_deep_learning(estimator_class, datatype):
                 "BaseDeepClassifier",
                 "InceptionTimeClassifier",
                 "LITETimeClassifier",
-                "TapNetClassifier",
             ]
         ):
             if tmp[-1] != "/":

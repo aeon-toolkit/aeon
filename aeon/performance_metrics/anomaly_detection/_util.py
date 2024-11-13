@@ -1,6 +1,6 @@
 """Utility functions for anomaly detection performance metrics."""
 
-__maintainer__ = ["CodeLionX"]
+__maintainer__ = ["SebastianSchmidl"]
 __all__ = ["check_y"]
 
 import warnings

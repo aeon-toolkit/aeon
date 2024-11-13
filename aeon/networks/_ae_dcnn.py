@@ -1,6 +1,6 @@
 """Auto-Encoder based on Dilated Convolutional Nerual Networks (DCNN) Model."""
 
-__maintainer__ = []
+__maintainer__ = ["aadya940", "hadifawaz1999"]
 
 import warnings
 
@@ -54,7 +54,7 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
 
     _config = {
         "python_dependencies": ["tensorflow"],
-        "python_version": "<3.12",
+        "python_version": "<3.13",
         "structure": "auto-encoder",
     }
 

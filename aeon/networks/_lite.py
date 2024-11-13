@@ -52,6 +52,12 @@ class LITENetwork(BaseDeepLearningNetwork):
     arXiv preprint arXiv:2409.02869 (2024).
     """
 
+    _config = {
+        "python_dependencies": ["tensorflow"],
+        "python_version": "<3.13",
+        "structure": "encoder",
+    }
+
     def __init__(
         self,
         use_litemv=False,
