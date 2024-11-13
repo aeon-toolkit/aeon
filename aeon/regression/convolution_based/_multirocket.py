@@ -52,11 +52,11 @@ class MultiRocketRegressor(BaseRegressor):
 
     Examples
     --------
-    >>> from aeon.regression.convolution_based import RocketRegressor
+    >>> from aeon.regression.convolution_based import MultiRocketRegressor
     >>> from aeon.datasets import load_covid_3month
     >>> X_train, y_train = load_covid_3month(split="train")
     >>> X_test, y_test = load_covid_3month(split="test")
-    >>> reg = RocketRegressor(num_kernels=500)
+    >>> reg = MultiRocketRegressor(num_kernels=500)
     >>> reg.fit(X_train, y_train)
     RocketRegressor(num_kernels=500)
     >>> y_pred = reg.predict(X_test)

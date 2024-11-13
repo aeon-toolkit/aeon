@@ -72,11 +72,11 @@ class MultiRocketClassifier(BaseClassifier):
 
     Examples
     --------
-    >>> from aeon.classification.convolution_based import RocketClassifier
+    >>> from aeon.classification.convolution_based import MultiRocketClassifier
     >>> from aeon.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test = load_unit_test(split="test")
-    >>> clf = RocketClassifier(num_kernels=500)
+    >>> clf = MultiRocketClassifier(num_kernels=500)
     >>> clf.fit(X_train, y_train)
     RocketClassifier(...)
     >>> y_pred = clf.predict(X_test)
