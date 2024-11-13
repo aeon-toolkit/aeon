@@ -29,8 +29,8 @@ class OneClassSVM(BaseAnomalyDetector):
        * - Learning Type
          - semi-supervised
 
-    The documentation for parameters has been adapted from the
-    [scikit learn documentation](https://scikit-learn.org/dev/modules/generated/sklearn.svm.OneClassSVM.html).
+    The documentation for parameters has been adapted from
+    (https://scikit-learn.org/dev/modules/generated/sklearn.svm.OneClassSVM.html).
     Here, `X` refers to the set of sliding windows extracted from the time series
     using :func:`aeon.utils.windowing.sliding_windows` with the parameters
     ``window_size`` and ``stride``. The internal `X` has the shape
@@ -74,7 +74,7 @@ class OneClassSVM(BaseAnomalyDetector):
 
     shrinking : bool, default=True
         Whether to use the shrinking heuristic.
-        See the :ref:`User Guide <shrinking_svm>`.
+        See https://scikit-learn.org/dev/modules/svm.html#shrinking-svm.
 
     cache_size : float, default=200
         Specify the size of the kernel cache (in MB).
