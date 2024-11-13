@@ -10,8 +10,6 @@ from aeon.utils.validation._dependencies import (
     _check_soft_dependencies,
 )
 
-__maintainer__ = ["aadya940", "hadifawaz1999"]
-
 _networks = network_classes = [
     member[1] for member in inspect.getmembers(networks, inspect.isclass)
 ]
@@ -38,7 +36,7 @@ def test_all_networks_functionality(network):
     if not (network.__name__ in ["BaseDeepLearningNetwork"]):
         if _check_soft_dependencies(
             network._config["python_dependencies"], severity="none"
-        ):
+        ) and _check_python_version(network._config["python_version"], severity="none"):
             my_network = network()
 
             if network._config["structure"] == "auto-encoder":
