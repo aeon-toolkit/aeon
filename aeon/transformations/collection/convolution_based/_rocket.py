@@ -67,7 +67,7 @@ class Rocket(BaseCollectionTransformer):
         "capability:multivariate": True,
         "algorithm_type": "convolution",
         "capability:unequal_length": True,
-        "X_inner_type": ["numpy3d", "np-list"],
+        "X_inner_type": ["numpy3D", "np-list"],
     }
 
     def __init__(
