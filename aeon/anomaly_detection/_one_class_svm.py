@@ -15,7 +15,7 @@ class OneClassSVM(BaseAnomalyDetector):
     """OneClassSVM for anomaly detection.
 
     This class implements the OneClassSVM algorithm for anomaly detection
-    fromo sklearn to be used in the aeon framework. All parameters are passed to
+    from sklearn to be used in the aeon framework. All parameters are passed to
     the sklearn ``OneClassSVM`` except for `window_size` and `stride`, which are used to
     construct the sliding windows.
 
