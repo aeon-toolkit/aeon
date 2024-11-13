@@ -19,7 +19,7 @@ def test_plot_series_windows():
 
     matplotlib.use("Agg")
 
-    series = make_example_pandas_series()
+    series = make_example_pandas_series(n_timepoints=50)
     cv = TimeSeriesSplit(n_splits=4)
 
     fig, ax = plot_series_windows(series, cv)
