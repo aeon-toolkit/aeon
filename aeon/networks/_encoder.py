@@ -43,12 +43,6 @@ class EncoderNetwork(BaseDeepLearningNetwork):
     for Artificial Intelligence, 120--129 2018.
     """
 
-    _config = {
-        "python_dependencies": ["tensorflow"],
-        "python_version": "<=3.12",
-        "structure": "encoder",
-    }
-
     def __init__(
         self,
         kernel_size=None,
