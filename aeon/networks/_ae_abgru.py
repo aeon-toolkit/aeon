@@ -1,5 +1,7 @@
 """Implements an Auto-Encoder based on Attention Bidirectional GRUs."""
 
+__maintainer__ = ["aadya940", "hadifawaz1999"]
+
 from aeon.networks.base import BaseDeepLearningNetwork
 
 
@@ -37,7 +39,7 @@ class AEAttentionBiGRUNetwork(BaseDeepLearningNetwork):
 
     _config = {
         "python_dependencies": ["tensorflow"],
-        "python_version": "<3.12",
+        "python_version": "<3.13",
         "structure": "auto-encoder",
     }
 
