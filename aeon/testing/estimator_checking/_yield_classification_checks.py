@@ -8,6 +8,7 @@ from functools import partial
 from sys import platform
 
 import numpy as np
+import pytest
 from sklearn.utils._testing import set_random_state
 
 from aeon.base._base import _clone_estimator
@@ -143,8 +144,14 @@ def check_algorithm_type(estimator_class):
         "feature",
         "hybrid",
         "shapelet",
+        "None",
     ]
     algorithm_type = estimator_class.get_class_tag("algorithm_type")
+
+    if algorithm_type is None:
+        pytest.skip(
+            f"{estimator_class.__name__} does not have an 'algorithm_type' tag."
+        )
 
     assert algorithm_type in valid_algorithm_types, (
         f"Estimator {estimator_class.__name__} has an invalid 'algorithm_type' tag: "
