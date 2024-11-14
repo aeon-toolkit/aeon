@@ -46,8 +46,6 @@ class BaseEarlyClassifier(BaseCollectionEstimator):
         Class labels, possibly strings.
     n_classes_ : int
         Number of classes (length of classes_).
-    fit_time_ : int
-        Time (in milliseconds) for fit to run.
     _class_dictionary : dict
         dictionary mapping classes_ onto integers 0...n_classes_-1.
     _n_jobs : int, default=1

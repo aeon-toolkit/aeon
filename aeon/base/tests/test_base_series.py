@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 from numpy.testing import assert_equal
 
-from aeon.base import BaseSeriesEstimator
+from aeon.testing.mock_estimators._mock_anomaly_detectors import MockAnomalyDetector
 
 UNIVARIATE = {
     "np.ndarray": np.random.random(size=(20)),
@@ -56,7 +56,7 @@ VALID_INNER_TYPES = [
 
 def test_check_X():
     """Test if capabilities correctly tested in _check_X."""
-    dummy = BaseSeriesEstimator(axis=1)
+    dummy = MockAnomalyDetector()
 
     # check basic univariate input
     meta = dummy._check_X(UNIVARIATE["np.ndarray"], axis=1)
@@ -160,7 +160,7 @@ def test_check_X():
 @pytest.mark.parametrize("input_type", VALID_INPUT_TYPES)
 def test_convert_X_ndarray_inner(input_type):
     """Test _convert_X on with np.ndarray inner type."""
-    dummy = BaseSeriesEstimator(axis=1)
+    dummy = MockAnomalyDetector()
     dummy.set_tags(**{"X_inner_type": "np.ndarray"})
     # test univariate
     X = UNIVARIATE[input_type]
@@ -194,7 +194,7 @@ def test_convert_X_ndarray_inner(input_type):
 @pytest.mark.parametrize("input_type", VALID_INPUT_TYPES)
 def test_convert_X_dataframe_inner(input_type):
     """Test _convert_X on with pd.DataFrame inner type."""
-    dummy = BaseSeriesEstimator(axis=1)
+    dummy = MockAnomalyDetector()
     dummy.set_tags(**{"X_inner_type": "pd.DataFrame"})
     # test univariate
     X = UNIVARIATE[input_type]
@@ -227,7 +227,7 @@ def test_convert_X_dataframe_inner(input_type):
 
 def test_convert_X_invalid():
     """Test _convert_X for invalid inputs."""
-    dummy = BaseSeriesEstimator(axis=1)
+    dummy = MockAnomalyDetector()
 
     with pytest.raises(ValueError, match="Input axis should be 0 or 1, saw 2"):
         dummy._convert_X(UNIVARIATE["np.ndarray"], axis=2)
@@ -243,7 +243,7 @@ def test_convert_X_invalid():
 @pytest.mark.parametrize("inner_type", VALID_INNER_TYPES)
 def test_preprocess_series(input_type, inner_type):
     """Test _preprocess_series for different input and inner types."""
-    dummy = BaseSeriesEstimator(axis=1)
+    dummy = MockAnomalyDetector()
     dummy.set_tags(**{"X_inner_type": inner_type})
     inner_name = inner_type.split(".")[1]
     # test univariate
@@ -287,7 +287,7 @@ def test_preprocess_series(input_type, inner_type):
 
 def test_axis():
     """Test axis property."""
-    dummy = BaseSeriesEstimator(axis=1)
+    dummy = MockAnomalyDetector()
     dummy.set_tags(**{"capability:multivariate": True})
     X = MULTIVARIATE["np.ndarray"]
 

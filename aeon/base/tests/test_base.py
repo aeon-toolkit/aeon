@@ -234,7 +234,6 @@ def test_get_fitted_params():
     comp_params = composite.get_fitted_params()
 
     expected = {
-        "fit_time_",
         "foo_",
         "classes_",
         "metadata_",
@@ -250,7 +249,6 @@ def test_get_fitted_params():
         {
             "mock_",
             "mock___classes_",
-            "mock___fit_time_",
             "mock___foo_",
             "mock___metadata_",
             "mock___n_classes_",

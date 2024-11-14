@@ -6,6 +6,7 @@ import numpy as np
 import pytest
 
 from aeon.base import BaseCollectionEstimator
+from aeon.testing.mock_estimators import MockClassifier
 from aeon.testing.testing_data import (
     EQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION,
     EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION,
@@ -83,8 +84,8 @@ def test_get_metadata(data):
 
 def test_check_X():
     """Test if capabilities correctly tested."""
-    dummy1 = BaseCollectionEstimator()
-    dummy2 = BaseCollectionEstimator()
+    dummy1 = MockClassifier()
+    dummy2 = MockClassifier()
     all_tags = {
         "capability:multivariate": True,
         "capability:unequal_length": True,
@@ -141,7 +142,7 @@ def test_check_X():
         dummy1._check_X(X)
 
     # invalid type
-    X = BaseCollectionEstimator()
+    X = MockClassifier()
     with pytest.raises(
         TypeError,
         match="must be of type np.ndarray, pd.DataFrame or list of"
@@ -159,7 +160,7 @@ def test_convert_X(internal_type, data):
     This test runs a subset of these but also checks classifiers with multiple
     internal types.
     """
-    cls = BaseCollectionEstimator()
+    cls = MockClassifier()
 
     # Equal length should default to numpy3D
     X = EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[data]["train"][0]
@@ -215,7 +216,7 @@ def test_preprocess_collection(data):
     """Test the functionality for preprocessing fit."""
     data = EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[data]["train"][0]
     data2 = np.random.random(size=(11, 1, 30))
-    cls = BaseCollectionEstimator()
+    cls = MockClassifier()
 
     X = cls._preprocess_collection(data)
     assert cls._n_jobs == 1
@@ -223,13 +224,13 @@ def test_preprocess_collection(data):
     assert get_type(X) == "numpy3D"
 
     tags = {"capability:multithreading": True}
-    cls = BaseCollectionEstimator()
+    cls = MockClassifier()
     cls.set_tags(**tags)
     with pytest.raises(AttributeError, match="self.n_jobs must be set"):
         cls._preprocess_collection(data)
 
     # Test two calls do not overwrite metadata (predict should not reset fit meta)
-    cls = BaseCollectionEstimator()
+    cls = MockClassifier()
     cls._preprocess_collection(data)
     meta = cls.metadata_
     cls._preprocess_collection(data2)

@@ -42,16 +42,6 @@ class BaseRegressor(BaseCollectionEstimator):
 
     Attributes
     ----------
-    fit_time_ : int
-        Time (in milliseconds) for fit to run.
-    _n_jobs : int
-        Number of threads to use in fit as determined by n_jobs.
-
-    fit_time_ : int
-        Time (in milliseconds) for ``fit`` to run.
-    _n_jobs : int
-        Number of threads to use in estimator methods such as ``fit`` and ``predict``.
-        Determined by the ``n_jobs`` parameter if present.
     _estimator_type : string
         The type of estimator. Required by some ``sklearn`` tools, set to "regressor".
     """
