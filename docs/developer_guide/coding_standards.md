@@ -37,11 +37,9 @@ Additional configurations for some hooks can be found in the [pyproject.toml](ht
 
 ### `aeon` specific code formatting conventions
 
-- Check out our [glossary](glossary.md) for
-preferred terminology
 - Use underscores to separate words in non-class names i.e.`n_cases` rather than
-`n_cases`.
-- Exceptionally, capital letters `X`, `Y`, `Z`, are permissible as variable names or
+`ncases`,  `nCases` or similar.
+- Exceptionally, capital letters i.e. `X` are permissible as variable names or
 part of variable names such as `X_train` if referring to data sets.
 - Use absolute imports for references inside `aeon`.
 - Don’t use `import *` in the source code. It is considered harmful by the official
@@ -59,7 +57,7 @@ clone:
 includes `pre-commit`:
 
 ```{code-block} powershell
-pip install -e .[dev]
+pip install --editable .[dev]
 ```
 
 2. Set up pre-commit:

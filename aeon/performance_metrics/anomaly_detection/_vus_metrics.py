@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-__maintainer__ = ["CodeLionX"]
+__maintainer__ = ["SebastianSchmidl"]
 __all__ = [
     "range_pr_auc_score",
     "range_roc_auc_score",

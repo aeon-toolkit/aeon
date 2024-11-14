@@ -2357,10 +2357,10 @@
       ]
     },
     {
-      "login": "codelionx",
+      "login": "SebastianSchmidl",
       "name": "Sebastian Schmidl",
       "avatar_url": "https://avatars.githubusercontent.com/u/10573700?v=4",
-      "profile": "https://github.com/codelionx",
+      "profile": "https://github.com/SebastianSchmidl",
       "contributions": [
         "bug",
         "code",
@@ -2600,6 +2600,15 @@
       "profile": "https://github.com/emmanuel-ferdman",
       "contributions": [
         "doc"
+      ]
+    },
+    {
+      "login": "pattplatt",
+      "name": "Patrick Müller",
+      "avatar_url": "https://avatars.githubusercontent.com/u/55019140?v=4",
+      "profile": "https://github.com/pattplatt",
+      "contributions": [
+        "code"
       ]
     }
   ],

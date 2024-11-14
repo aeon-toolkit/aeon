@@ -78,19 +78,23 @@ class EncoderRegressor(BaseDeepRegressor):
         by `np.random`.
         Seeded random number generation can only be guaranteed on CPU processing,
         GPU processing will be non-deterministic.
-    loss:
-        The loss function to use for training.
-    metrics: str or list of str, default="mean_squared_error"
+    loss : str, default = "mean_squared_error"
+        The name of the keras training loss.
+    metrics : str or list[str], default="mean_squared_error"
         The evaluation metrics to use during training. If
         a single string metric is provided, it will be
         used as the only metric. If a list of metrics are
         provided, all will be used for evaluation.
     use_bias:
         Whether to use bias in the dense layers.
-    optimizer:
-        The optimizer to use for training.
+    optimizer : keras.optimizer, default = tf.keras.optimizers.Adam()
+        The keras optimizer used for training.
     verbose:
         Whether to print progress messages during training.
+    callbacks : keras callback or list of callbacks,
+        default = None
+        The default list of callbacks are set to
+        ModelCheckpoint.
 
     Notes
     -----
@@ -104,10 +108,6 @@ class EncoderRegressor(BaseDeepRegressor):
     for Artificial Intelligence, 120--129 2018.
 
     """
-
-    _tags = {
-        "python_dependencies": ["tensorflow"],
-    }
 
     def __init__(
         self,
@@ -204,7 +204,7 @@ class EncoderRegressor(BaseDeepRegressor):
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
         output_layer = tf.keras.layers.Dense(
-            units=1, activation=self.output_activation, use_bias=self.use_bias
+            units=1, activation=self.output_activation
         )(output_layer)
 
         self.optimizer_ = (
@@ -241,10 +241,11 @@ class EncoderRegressor(BaseDeepRegressor):
         # Transpose X to conform to Keras input style
         X = X.transpose(0, 2, 1)
 
-        if isinstance(self.metrics, str):
-            self._metrics = [self.metrics]
-        else:
+        if isinstance(self.metrics, list):
             self._metrics = self.metrics
+        elif isinstance(self.metrics, str):
+            self._metrics = [self.metrics]
+
         self.input_shape = X.shape[1:]
         self.training_model_ = self.build_model(self.input_shape)
 

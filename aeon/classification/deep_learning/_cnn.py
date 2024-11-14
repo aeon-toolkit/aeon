@@ -61,12 +61,19 @@ class TimeCNNClassifier(BaseDeepClassifier):
         The number of samples per gradient update.
     verbose : boolean, default = False
         Whether to output extra information.
-    loss : string, default = "mean_squared_error"
-        Fit parameter for the keras model.
-    optimizer : keras.optimizer, default = keras.optimizers.Adam()
-    metrics : list of strings, default = ["accuracy"]
-    callbacks : keras.callbacks, default = model_checkpoint
-        To save best model on training loss.
+    loss : str, default = "mean_squared_error"
+        The name of the keras training loss.
+    optimizer : keras.optimizer, default = tf.keras.optimizers.Adam()
+        The keras optimizer used for training.
+    metrics : str or list[str], default="accuracy"
+        The evaluation metrics to use during training. If
+        a single string metric is provided, it will be
+        used as the only metric. If a list of metrics are
+        provided, all will be used for evaluation.
+    callbacks : keras callback or list of callbacks,
+        default = None
+        The default list of callbacks are set to
+        ModelCheckpoint.
     file_path : file_path for the best model
         Only used if checkpoint is used as callback.
     save_best_model : bool, default = False
@@ -131,7 +138,7 @@ class TimeCNNClassifier(BaseDeepClassifier):
         init_file_name="init_model",
         verbose=False,
         loss="mean_squared_error",
-        metrics=None,
+        metrics="accuracy",
         random_state=None,
         use_bias=True,
         optimizer=None,
@@ -201,18 +208,13 @@ class TimeCNNClassifier(BaseDeepClassifier):
         import numpy as np
         import tensorflow as tf
 
-        if self.metrics is None:
-            metrics = ["accuracy"]
-        else:
-            metrics = self.metrics
-
         rng = check_random_state(self.random_state)
         self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
         tf.keras.utils.set_random_seed(self.random_state_)
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
         output_layer = tf.keras.layers.Dense(
-            units=n_classes, activation=self.activation, use_bias=self.use_bias
+            units=n_classes, activation=self.activation
         )(output_layer)
 
         self.optimizer_ = (
@@ -223,7 +225,7 @@ class TimeCNNClassifier(BaseDeepClassifier):
         model.compile(
             loss=self.loss,
             optimizer=self.optimizer_,
-            metrics=metrics,
+            metrics=self._metrics,
         )
 
         return model
@@ -248,6 +250,11 @@ class TimeCNNClassifier(BaseDeepClassifier):
         y_onehot = self.convert_y_to_keras(y)
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
+
+        if isinstance(self.metrics, list):
+            self._metrics = self.metrics
+        elif isinstance(self.metrics, str):
+            self._metrics = [self.metrics]
 
         self.input_shape = X.shape[1:]
         self.training_model_ = self.build_model(self.input_shape, self.n_classes_)

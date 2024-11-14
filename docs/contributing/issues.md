@@ -1,4 +1,4 @@
-# Reporting Bugs and Opening Issues
+# Opening Issues and Reporting Bugs
 
 We use [GitHub issues](https://github.com/aeon-toolkit/aeon/issues) to track all bugs
 and feature requests; feel free to open an issue if you have found a bug or wish to see

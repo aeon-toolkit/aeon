@@ -1,6 +1,6 @@
 """Metrics on binary predictions for anomaly detection."""
 
-__maintainer__ = ["CodeLionX"]
+__maintainer__ = ["SebastianSchmidl"]
 __all__ = ["range_precision", "range_recall", "range_f_score"]
 
 import warnings
