@@ -15,9 +15,8 @@ from aeon.transformations.collection.base import BaseCollectionTransformer
 class SimpleImputer(BaseCollectionTransformer):
     """Time series imputer.
 
-    Transformer that imputes missing values in time series. It is fitted on each channel
-    independently. After transformation the collection will be a 3D numpy array shape
-    (n_cases, n_channels, length).
+    Transformer that imputes missing values in time series. Fill values are calculated
+    across series.
 
     Parameters
     ----------
@@ -72,7 +71,7 @@ class SimpleImputer(BaseCollectionTransformer):
 
         Returns
         -------
-        np.ndarray
+        np.ndarray or list
         """
         self._validate_parameters()
 
