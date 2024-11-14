@@ -87,9 +87,7 @@ class SimpleImputer(BaseCollectionTransformer):
                 )
 
             elif self.strategy == "constant":
-                if np.issubdtype(X.dtype, np.str_) or np.issubdtype(
-                    X.dtype, np.unicode_
-                ):  # if X is a string array
+                if np.issubdtype(X.dtype, np.str_):  # if X is a string array
                     fill_values = np.array([self.fill_value])
                     fill_values = np.broadcast_to(fill_values, X.shape)
                     X[X == "nan"] = fill_values[X == "nan"]
