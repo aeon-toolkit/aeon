@@ -1,10 +1,8 @@
 """Tests for performance metric functions."""
 
-__maintainer__ = []
-
 import numpy as np
 
-from aeon.performance_metrics.clustering import clustering_accuracy_score
+from aeon.benchmarking.metrics.clustering import clustering_accuracy_score
 
 
 def test_clustering_accuracy():

@@ -2,7 +2,7 @@
 
 import pytest
 
-from aeon.performance_metrics.segmentation.metrics import (
+from aeon.benchmarking.metrics.segmentation import (
     count_error,
     hausdorff_error,
     prediction_ratio,
