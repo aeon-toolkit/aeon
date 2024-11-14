@@ -57,6 +57,9 @@ VALID_INNER_TYPES = [
 def test_check_X():
     """Test if capabilities correctly tested in _check_X."""
     dummy = MockAnomalyDetector()
+    dummy.set_tags(
+        **{"capability:multivariate": False, "capability:missing_values": False}
+    )
 
     # check basic univariate input
     meta = dummy._check_X(UNIVARIATE["np.ndarray"], axis=1)

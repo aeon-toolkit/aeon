@@ -86,7 +86,7 @@ class BaseCollectionEstimator(BaseAeonEstimator):
         >>> from aeon.testing.mock_estimators import MockClassifier
         >>> from aeon.testing.data_generation import make_example_2d_numpy_collection
         >>> clf = MockClassifier()
-        >>> X = make_example_2d_numpy_collection(n_cases=10, n_timepoints=20)
+        >>> X, _ = make_example_2d_numpy_collection(n_cases=10, n_timepoints=20)
         >>> X2 = clf._preprocess_collection(X)
         >>> X2.shape
         (10, 1, 20)
@@ -151,7 +151,7 @@ class BaseCollectionEstimator(BaseAeonEstimator):
         >>> from aeon.testing.mock_estimators import MockClassifierFullTags
         >>> from aeon.testing.data_generation import make_example_3d_numpy
         >>> clf = MockClassifierFullTags()
-        >>> X = make_example_3d_numpy(n_channels=3) # X is equal length, multivariate
+        >>> X, _ = make_example_3d_numpy(n_channels=3) # X is equal length, multivariate
         >>> meta = clf._check_X(X) # Classifier can handle this
         """
         # check if X is a valid type
@@ -216,7 +216,7 @@ class BaseCollectionEstimator(BaseAeonEstimator):
         >>> from aeon.testing.data_generation import make_example_3d_numpy_list
         >>> from aeon.utils.validation import get_type
         >>> clf = MockClassifier()
-        >>> X = make_example_3d_numpy_list()
+        >>> X, _ = make_example_3d_numpy_list(max_n_timepoints=8)
         >>> get_type(X)
         'np-list'
         >>> clf.get_tag("X_inner_type")

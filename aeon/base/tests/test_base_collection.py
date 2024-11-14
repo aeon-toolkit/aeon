@@ -100,34 +100,34 @@ def test_check_X():
     # univariate missing values
     X[3][0][6] = np.nan
     assert dummy2._check_X(X)
-    with pytest.raises(ValueError, match=r"cannot handle missing values"):
+    with pytest.raises(ValueError, match=r"has missing values, but"):
         dummy1._check_X(X)
 
     # multivariate equal length
     X = EQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION["numpy3D"]["train"][0].copy()
     assert dummy2._check_X(X)
-    with pytest.raises(ValueError, match=r"cannot handle multivariate"):
+    with pytest.raises(ValueError, match=r"has multivariate series, but"):
         dummy1._check_X(X)
 
     # multivariate missing values
     X[2][1][5] = np.nan
     assert dummy2._check_X(X)
     with pytest.raises(
-        ValueError, match=r"cannot handle missing values or multivariate"
+        ValueError, match=r"has missing values and multivariate series, but"
     ):
         dummy1._check_X(X)
 
     # univariate equal length
     X = UNEQUAL_LENGTH_UNIVARIATE_CLASSIFICATION["np-list"]["train"][0]
     assert dummy2._check_X(X)
-    with pytest.raises(ValueError, match=r"cannot handle unequal length series"):
+    with pytest.raises(ValueError, match=r"has unequal length series, but"):
         dummy1._check_X(X)
 
     # multivariate unequal length
     X = UNEQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION["np-list"]["train"][0]
     assert dummy2._check_X(X)
     with pytest.raises(
-        ValueError, match=r"cannot handle multivariate series or unequal length"
+        ValueError, match=r"has multivariate series and unequal length series, but"
     ):
         dummy1._check_X(X)
 

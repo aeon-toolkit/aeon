@@ -114,7 +114,7 @@ def test_unequal_length_input(data):
         dummy = _TestRegressor()
         X = UNEQUAL_LENGTH_UNIVARIATE_REGRESSION[data]["train"][0]
         y = np.random.random(size=10)
-        with pytest.raises(ValueError, match=r"cannot handle unequal length series"):
+        with pytest.raises(ValueError, match=r"has unequal length series, but"):
             dummy.fit(X, y)
         dummy = _TestHandlesAllInput()
         _assert_fit_predict(dummy, X, y)
