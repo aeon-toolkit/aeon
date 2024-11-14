@@ -94,11 +94,6 @@ class TemporalDictionaryEnsemble(BaseClassifier):
     n_jobs : int, default=1
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
-    max_subsamples : int, default=1
-        The maximum number of retries for subsampling during `fit`. Highly imbalanced
-        datasets can result in subsamples containing only a single class. Increasing
-        this parameter will solve this problem. The more unbalanced the data set,
-        the higher this parameter needs to be.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -181,7 +176,6 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         typed_dict=True,
         train_estimate_method="loocv",
         n_jobs=1,
-        max_subsamples=1,
         random_state=None,
     ):
         self.n_parameter_samples = n_parameter_samples
@@ -201,7 +195,6 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         self.train_estimate_method = train_estimate_method
         self.random_state = random_state
         self.n_jobs = n_jobs
-        self.max_subsamples = max_subsamples
 
         self.n_cases_ = 0
         self.n_channels_ = 0
@@ -327,7 +320,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
                     rng.choice(np.flatnonzero(preds == preds.max()))
                 )
 
-            for i in range(self.max_subsamples):
+            while True:
                 subsample = rng.choice(
                     self.n_cases_, size=subsample_size, replace=False
                 )
@@ -335,12 +328,6 @@ class TemporalDictionaryEnsemble(BaseClassifier):
                 y_subsample = y[subsample]
                 if len(np.unique(y_subsample)) > 1:
                     break
-                if i == self.max_subsamples - 1:
-                    raise AttributeError(
-                        "Could not get a subsample with more than 1 class. "
-                        "Increasing `max_subsamples` will help "
-                        f"(is: {self.max_subsamples})."
-                    )
 
             tde = IndividualTDE(
                 *parameters,
