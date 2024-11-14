@@ -294,9 +294,9 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer):
 
         Parameters
         ----------
-        Xt: one of aeon.base._base_series.VALID_INPUT_TYPES
+        Xt: one of aeon.base._base_series.VALID_SERIES_INPUT_TYPES
             A valid aeon time series data structure. See
-            aeon.base._base_series.VALID_INPUT_TYPES for aeon supported types.
+            aeon.base._base_series.VALID_SERIES_INPUT_TYPES for aeon supported types.
             Intended for algorithms which have another series as output.
         axis: int
             The axids of time in the series.
@@ -309,7 +309,7 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer):
 
         Returns
         -------
-        Xt: one of aeon.base._base_series.VALID_INPUT_TYPES
+        Xt: one of aeon.base._base_series.VALID_SERIES_INPUT_TYPES
             New time series input reshaped to match the original input.
         """
         if axis is None:

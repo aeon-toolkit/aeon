@@ -21,12 +21,9 @@ State:
     streaming decision info - state_info attribute
 """
 
-__all__ = [
-    "BaseEarlyClassifier",
-]
-__maintainer__ = []
+__maintainer__ = ["MatthewMiddlehurst"]
+__all__ = ["BaseEarlyClassifier"]
 
-import time
 from abc import abstractmethod
 
 import numpy as np
@@ -66,9 +63,7 @@ class BaseEarlyClassifier(BaseCollectionEstimator):
     def __init__(self):
         self.classes_ = []
         self.n_classes_ = 0
-        self.fit_time_ = 0
         self._class_dictionary = {}
-        self._n_jobs = 1
 
         """
         An array containing the state info for each decision in X from update and
@@ -114,11 +109,9 @@ class BaseEarlyClassifier(BaseCollectionEstimator):
         self.reset()
 
         # All of this can move up to BaseCollection
-        start = int(round(time.time() * 1000))
         X = self._preprocess_collection(X)
         y = BaseClassifier._check_y(self, y, self.metadata_["n_cases"])
         self._fit(X, y)
-        self.fit_time_ = int(round(time.time() * 1000)) - start
         # this should happen last
         self.is_fitted = True
         return self

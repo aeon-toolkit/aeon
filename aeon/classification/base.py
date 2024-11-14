@@ -18,12 +18,9 @@ State:
     fitted state inspection - check_is_fitted()
 """
 
-__all__ = [
-    "BaseClassifier",
-]
 __maintainer__ = ["TonyBagnall", "MatthewMiddlehurst"]
+__all__ = ["BaseClassifier"]
 
-import time
 from abc import abstractmethod
 from typing import final
 
@@ -111,13 +108,11 @@ class BaseClassifier(BaseCollectionEstimator):
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
         """
-        start = int(round(time.time() * 1000))
         X, y, single_class = self._fit_setup(X, y)
 
         if not single_class:
             self._fit(X, y)
 
-        self.fit_time_ = int(round(time.time() * 1000)) - start
         # this should happen last
         self.is_fitted = True
         return self

@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 
 from aeon.base._base import _clone_estimator
-from aeon.base._base_series import VALID_INNER_TYPES
+from aeon.base._base_series import VALID_SERIES_INNER_TYPES
 from aeon.testing.data_generation._legacy import make_series
 
 
@@ -43,7 +43,7 @@ def check_anomaly_detector_overrides_and_tags(estimator_class):
 
     # Test valid tag for X_inner_type
     X_inner_type = estimator_class.get_class_tag(tag_name="X_inner_type")
-    assert X_inner_type in VALID_INNER_TYPES
+    assert X_inner_type in VALID_SERIES_INNER_TYPES
 
     # Must have at least one set to True
     multi = estimator_class.get_class_tag(tag_name="capability:multivariate")

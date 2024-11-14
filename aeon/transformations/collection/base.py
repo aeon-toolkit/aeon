@@ -45,8 +45,6 @@ class BaseCollectionTransformer(BaseCollectionEstimator, BaseTransformer):
     }
 
     def __init__(self):
-        self._estimator_type = "transformer"
-
         super().__init__()
 
     @final

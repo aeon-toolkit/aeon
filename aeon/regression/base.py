@@ -18,11 +18,8 @@ State:
 """
 
 __maintainer__ = []
-__all__ = [
-    "BaseRegressor",
-]
+__all__ = ["BaseRegressor"]
 
-import time
 from abc import abstractmethod
 from typing import final
 
@@ -66,10 +63,6 @@ class BaseRegressor(BaseCollectionEstimator):
     }
 
     def __init__(self):
-        # reserved attributes written to in fit
-        self.fit_time_ = -1
-        self._n_jobs = 1
-
         # required for compatibility with some sklearn interfaces
         self._estimator_type = "regressor"
 
@@ -113,12 +106,10 @@ class BaseRegressor(BaseCollectionEstimator):
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
         """
-        start = int(round(time.time() * 1000))
         X, y = self._fit_setup(X, y)
 
         self._fit(X, y)
 
-        self.fit_time_ = int(round(time.time() * 1000)) - start
         # this should happen last
         self.is_fitted = True
         return self
