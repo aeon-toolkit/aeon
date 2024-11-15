@@ -11,11 +11,12 @@ __all__ = [
     "range_pr_roc_auc_support",
 ]
 
+
 import warnings
 
 import numpy as np
 
-from aeon.performance_metrics.anomaly_detection._util import check_y
+from aeon.benchmarking.metrics.anomaly_detection._util import check_y
 
 
 def _anomaly_bounds(y_true: np.ndarray) -> tuple[np.ndarray, np.ndarray]:

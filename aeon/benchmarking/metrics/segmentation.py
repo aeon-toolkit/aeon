@@ -11,6 +11,7 @@ from scipy.spatial.distance import directed_hausdorff
 from sklearn.utils import check_array
 
 __maintainer__ = []
+__all__ = ["count_error", "hausdorff_error", "prediction_ratio"]
 
 
 def count_error(

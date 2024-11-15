@@ -107,7 +107,6 @@ docs = [
     "sphinx-version-warning",
     "sphinx_issues",
     "sphinx-copybutton",
-    "sphinx-remove-toctrees",
     "sphinxext-opengraph",
     "nbsphinx",
     "numpydoc",
