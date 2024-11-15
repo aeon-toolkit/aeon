@@ -1,7 +1,6 @@
 """Deep learning networks."""
 
 __all__ = [
-    "BaseDeepNetwork",
     "BaseDeepLearningNetwork",
     "TimeCNNNetwork",
     "EncoderNetwork",

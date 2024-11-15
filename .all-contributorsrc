@@ -2601,6 +2601,25 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "pattplatt",
+      "name": "Patrick Müller",
+      "avatar_url": "https://avatars.githubusercontent.com/u/55019140?v=4",
+      "profile": "https://github.com/pattplatt",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "ferewi",
+      "name": "Ferdinand Rewicki",
+      "avatar_url": "https://avatars.githubusercontent.com/u/3592978?v=4",
+      "profile": "https://github.com/ferewi",
+      "contributions": [
+        "code",
+        "bug"
+      ]
     }
   ],
   "commitType": "docs"
