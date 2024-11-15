@@ -7,8 +7,8 @@ from numpy.testing import assert_almost_equal
 from scipy.stats import rankdata
 
 import aeon
-from aeon.benchmarking.metrics.stats import check_friedman, nemenyi_test, wilcoxon_test
 from aeon.benchmarking.results_loaders import get_estimator_results_as_array
+from aeon.benchmarking.stats import check_friedman, nemenyi_test, wilcoxon_test
 from aeon.datasets.tsc_datasets import univariate_equal_length
 
 data_path = os.path.join(

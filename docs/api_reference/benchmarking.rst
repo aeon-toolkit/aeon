@@ -3,9 +3,9 @@
 Benchmarking
 ============
 
-The ``aeon.benchmarking`` module contains tools and utilities for comparing and
-evaluating and time series models, loading stored results, and calculating performance
-metrics for a variety of tasks.
+The ``aeon.benchmarking`` module contains tools for comparing and evaluating time
+series models, loading stored results, and calculating performance metrics for a
+variety of tasks.
 
 Results loading
 ---------------
@@ -119,3 +119,16 @@ Segmentation
     count_error
     hausdorff_error
     prediction_ratio
+
+Stats
+-----
+
+.. currentmodule:: aeon.benchmarking.metrics.stats
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: function.rst
+
+    check_friedman
+    nemenyi_test
+    wilcoxon_test
