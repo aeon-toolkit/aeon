@@ -23,15 +23,13 @@ class SimpleImputer(BaseCollectionTransformer):
         The imputation strategy.
             - if "mean", replace missing values using the mean.
             - if "median", replace missing values using the median.
-            - if "constant", replace missing values with the fill_value,
-            works with str or int.
-            - if "most frequent", replace missing values with the most frequent value,
-            works with str or int.
+            - if "constant", replace missing values with the fill_value.
+            - if "most frequent", replace missing values with the most frequent value.
             - if Callable, a function that returns the value to replace
             missing values with on each 1D array containing all
             non-missing values of each series.
 
-    fill_value : float, int, str or None, default=None
+    fill_value : float or None, default=None
         The value to replace missing values with. Only used when strategy is "constant".
     """
 
