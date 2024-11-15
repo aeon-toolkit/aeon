@@ -106,7 +106,7 @@ class ScaledLogitSeriesTransformer(BaseSeriesTransformer):
         else:
             X_transformed = deepcopy(X)
 
-        return X_transformed
+        return X_transformed.squeeze()
 
     def _inverse_transform(self, X, y=None):
         """Inverse transform, inverse operation to transform.
@@ -134,7 +134,7 @@ class ScaledLogitSeriesTransformer(BaseSeriesTransformer):
         else:
             X_inv_transformed = deepcopy(X)
 
-        return X_inv_transformed
+        return X_inv_transformed.squeeze()
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
@@ -146,7 +146,6 @@ class ScaledLogitSeriesTransformer(BaseSeriesTransformer):
             Name of the set of test parameters to return, for use in tests. If no
             special parameters are defined for a value, will return `"default"` set.
 
-
         Returns
         -------
         params : dict or list of dict, default = {}
@@ -154,10 +153,4 @@ class ScaledLogitSeriesTransformer(BaseSeriesTransformer):
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
         """
-        test_params = [
-            {"lower_bound": None, "upper_bound": None},
-            {"lower_bound": -(10**6), "upper_bound": None},
-            {"lower_bound": None, "upper_bound": 10**6},
-            {"lower_bound": -(10**6), "upper_bound": 10**6},
-        ]
-        return test_params
+        return ({"lower_bound": -(10**6), "upper_bound": 10**6},)

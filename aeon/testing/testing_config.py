@@ -10,11 +10,7 @@ import aeon.testing._cicd_numba_caching  # noqa: F401
 PR_TESTING = False
 
 # Exclude estimators here for short term fixes
-EXCLUDE_ESTIMATORS = [
-    "ClearSkyTransformer",
-    # See #2071
-    "RISTRegressor",
-]
+EXCLUDE_ESTIMATORS = []
 
 
 EXCLUDED_TESTS = {
@@ -35,21 +31,12 @@ EXCLUDED_TESTS = {
         "check_persistence_via_pickle",
         "check_save_estimators_to_file",
     ],
-    # has a keras fail, unknown reason, see #1387
-    "LearningShapeletClassifier": ["check_fit_deterministic"],
-    # does not fit structure for test, needs investigation
     # needs investigation
     "SASTClassifier": ["check_fit_deterministic"],
     "RSASTClassifier": ["check_fit_deterministic"],
     "SAST": ["check_fit_deterministic"],
     "RSAST": ["check_fit_deterministic"],
     "SFA": ["check_persistence_via_pickle", "check_fit_deterministic"],
-    "CollectionId": ["check_transform_inverse_transform_equivalent"],
-    "ScaledLogitSeriesTransformer": ["check_transform_inverse_transform_equivalent"],
-    # also uncomment in test_check_estimator.py
-    "MockMultivariateSeriesTransformer": [
-        "check_transform_inverse_transform_equivalent"
-    ],
     # missed in legacy testing, changes state in predict/transform
     "FLUSSSegmenter": ["check_non_state_changing_method"],
     "InformationGainSegmenter": ["check_non_state_changing_method"],
