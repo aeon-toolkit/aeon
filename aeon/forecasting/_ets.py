@@ -104,12 +104,12 @@ class ETSForecaster(BaseForecaster):
 
     def __init__(
         self,
+        model_type=default_model_type,
         alpha=0.1,
         beta=0.01,
         gamma=0.01,
         phi=0.99,
         horizon=1,
-        model_type=default_model_type,
     ):
         self.alpha = alpha
         self.beta = beta
