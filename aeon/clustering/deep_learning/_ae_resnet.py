@@ -24,8 +24,6 @@ class AEResNetClusterer(BaseDeepClusterer):
 
     Parameters
     ----------
-    n_clusters : int, default=None
-        Please use 'estimator' parameter.
     estimator : aeon clusterer, default=None
         An aeon estimator to be built using the transformed data.
         Defaults to aeon TimeSeriesKMeans() with euclidean distance
@@ -131,7 +129,6 @@ class AEResNetClusterer(BaseDeepClusterer):
 
     def __init__(
         self,
-        n_clusters=None,
         estimator=None,
         n_residual_blocks=3,
         clustering_algorithm="deprecated",
@@ -182,7 +179,6 @@ class AEResNetClusterer(BaseDeepClusterer):
         self.best_file_name = best_file_name
         self.last_file_name = last_file_name
         self.optimizer = optimizer
-        self.n_clusters = n_clusters
 
         self.history = None
 

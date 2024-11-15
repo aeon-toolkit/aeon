@@ -20,8 +20,6 @@ class AEBiGRUClusterer(BaseDeepClusterer):
 
     Parameters
     ----------
-    n_clusters : int, default=None
-        Number of clusters for the deep learnign model.
     clustering_algorithm : str, default="deprecated"
         Use 'estimator' parameter instead.
     clustering_params : dict, default=None
@@ -99,7 +97,6 @@ class AEBiGRUClusterer(BaseDeepClusterer):
 
     def __init__(
         self,
-        n_clusters=None,
         clustering_algorithm="deprecated",
         estimator=None,
         clustering_params=None,
@@ -140,7 +137,6 @@ class AEBiGRUClusterer(BaseDeepClusterer):
         self.save_last_model = save_last_model
         self.best_file_name = best_file_name
         self.random_state = random_state
-        self.n_clusters = n_clusters
 
         super().__init__(
             clustering_algorithm=clustering_algorithm,

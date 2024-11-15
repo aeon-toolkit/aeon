@@ -21,8 +21,6 @@ class AEFCNClusterer(BaseDeepClusterer):
 
     Parameters
     ----------
-    n_clusters : int, default=None
-        Please use 'estimator' parameter.
     estimator : aeon clusterer, default=None
         An aeon estimator to be built using the transformed data.
         Defaults to aeon TimeSeriesKMeans() with euclidean distance
@@ -122,7 +120,6 @@ class AEFCNClusterer(BaseDeepClusterer):
 
     def __init__(
         self,
-        n_clusters=None,
         estimator=None,
         clustering_algorithm="deprecated",
         clustering_params=None,
@@ -173,7 +170,6 @@ class AEFCNClusterer(BaseDeepClusterer):
         self.save_last_model = save_last_model
         self.best_file_name = best_file_name
         self.random_state = random_state
-        self.n_clusters = n_clusters
 
         super().__init__(
             estimator=estimator,

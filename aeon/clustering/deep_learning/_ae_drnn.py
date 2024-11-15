@@ -24,8 +24,6 @@ class AEDRNNClusterer(BaseDeepClusterer):
 
     Parameters
     ----------
-    n_clusters : int, default=None
-        Number of clusters for the deep learnign model.
     clustering_algorithm : str, default="deprecated"
         Please use the 'estimator' parameter.
     estimator : aeon clusterer, default=None
@@ -114,7 +112,6 @@ class AEDRNNClusterer(BaseDeepClusterer):
 
     def __init__(
         self,
-        n_clusters=None,
         estimator=None,
         clustering_algorithm="deprecated",
         clustering_params=None,
@@ -167,7 +164,6 @@ class AEDRNNClusterer(BaseDeepClusterer):
         self.random_state = random_state
 
         super().__init__(
-            n_clusters=n_clusters,
             estimator=estimator,
             clustering_algorithm=clustering_algorithm,
             clustering_params=clustering_params,

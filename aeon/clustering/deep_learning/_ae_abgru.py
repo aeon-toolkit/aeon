@@ -20,8 +20,6 @@ class AEAttentionBiGRUClusterer(BaseDeepClusterer):
 
     Parameters
     ----------
-    n_clusters : int, default=None
-        Number of clusters for the deep learnign model.
     clustering_algorithm : str, default="deprecated"
         Use 'estimator' parameter instead.
     clustering_params : dict, default=None
@@ -100,7 +98,6 @@ class AEAttentionBiGRUClusterer(BaseDeepClusterer):
 
     def __init__(
         self,
-        n_clusters=None,
         estimator=None,
         clustering_algorithm="deprecated",
         clustering_params=None,
@@ -143,7 +140,6 @@ class AEAttentionBiGRUClusterer(BaseDeepClusterer):
         self.random_state = random_state
 
         super().__init__(
-            n_clusters=n_clusters,
             clustering_algorithm=clustering_algorithm,
             clustering_params=clustering_params,
             estimator=estimator,
