@@ -123,7 +123,7 @@ Segmentation
 Stats
 -----
 
-.. currentmodule:: aeon.benchmarking.metrics.stats
+.. currentmodule:: aeon.benchmarking.stats
 
 .. autosummary::
     :toctree: auto_generated/
