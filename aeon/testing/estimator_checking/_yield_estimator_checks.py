@@ -1,5 +1,6 @@
 """Tests for all estimators."""
 
+import inspect
 import numbers
 import pickle
 import types
@@ -10,6 +11,7 @@ from inspect import getfullargspec, isclass, signature
 import joblib
 import numpy as np
 import pytest
+from numpy.testing import assert_array_almost_equal
 from sklearn.exceptions import NotFittedError
 from sklearn.utils.estimator_checks import check_get_params_invariance
 
@@ -64,13 +66,7 @@ from aeon.testing.testing_config import (
 )
 from aeon.testing.testing_data import FULL_TEST_DATA_DICT, _get_datatypes_for_estimator
 from aeon.testing.utils.deep_equals import deep_equals
-from aeon.testing.utils.estimator_checks import (
-    _assert_array_almost_equal,
-    _get_args,
-    _get_tag,
-    _list_required_methods,
-    _run_estimator_method,
-)
+from aeon.testing.utils.estimator_checks import _get_tag, _run_estimator_method
 from aeon.transformations.base import BaseTransformer
 from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.transformations.series import BaseSeriesTransformer
@@ -286,21 +282,22 @@ def check_inheritance(estimator_class):
 
 def check_has_common_interface(estimator_class):
     """Check estimator implements the common interface."""
-    # Check class for type of attribute
-    if isinstance(estimator_class, BaseAeonEstimator):
-        assert isinstance(estimator_class.is_fitted, property)
-
-    required_methods = _list_required_methods(estimator_class)
-
-    for attr in required_methods:
-        assert hasattr(
-            estimator_class, attr
-        ), f"Estimator: {estimator_class.__name__} does not implement attribute: {attr}"
-
-    if hasattr(estimator_class, "inverse_transform"):
-        assert hasattr(estimator_class, "transform")
-    if hasattr(estimator_class, "predict_proba"):
-        assert hasattr(estimator_class, "predict")
+    assert issubclass(estimator_class, BaseAeonEstimator)
+    assert hasattr(estimator_class, "fit") and callable(estimator_class.fit)
+    assert hasattr(estimator_class, "reset") and callable(estimator_class.reset)
+    assert hasattr(estimator_class, "clone") and callable(estimator_class.clone)
+    assert hasattr(estimator_class, "get_class_tags") and callable(
+        estimator_class.get_class_tags
+    )
+    assert hasattr(estimator_class, "get_class_tag") and callable(
+        estimator_class.get_class_tag
+    )
+    assert hasattr(estimator_class, "get_tags") and callable(estimator_class.get_tags)
+    assert hasattr(estimator_class, "get_tag") and callable(estimator_class.get_tag)
+    assert hasattr(estimator_class, "set_tags") and callable(estimator_class.set_tags)
+    assert hasattr(estimator_class, "get_fitted_params") and callable(
+        estimator_class.get_fitted_params
+    )
 
 
 def check_set_params_sklearn(estimator_class):
@@ -322,9 +319,10 @@ def check_set_params_sklearn(estimator_class):
         params_full = estimator.get_params(deep=False)
         params_full.update(params)
 
-        msg = f"set_params of {estimator_class.__name__} does not return self"
         est_after_set = estimator.set_params(**params_full)
-        assert est_after_set is estimator, msg
+        assert (
+            est_after_set is estimator
+        ), f"set_params of {estimator_class.__name__} does not return self"
 
         is_equal, equals_msg = deep_equals(
             estimator.get_params(deep=False), params_full, return_msg=True
@@ -361,7 +359,7 @@ def check_constructor(estimator_class):
     assert isinstance(estimator, estimator_class)
 
     # Ensure that each parameter is set in init
-    init_params = _get_args(type(estimator).__init__)
+    init_params = inspect.signature(estimator_class.__init__).parameters
     invalid_attr = set(init_params) - set(vars(estimator)) - {"self"}
     assert not invalid_attr, (
         "Estimator %s should store all parameters"
@@ -461,8 +459,9 @@ def check_set_params(estimator):
     estimator = _clone_estimator(estimator)
     params = estimator.get_params()
 
-    msg = f"set_params of {type(estimator).__name__} does not return self"
-    assert estimator.set_params(**params) is estimator, msg
+    assert (
+        estimator.set_params(**params) is estimator
+    ), f"set_params of {type(estimator).__name__} does not return self"
 
     is_equal, equals_msg = deep_equals(estimator.get_params(), params, return_msg=True)
     msg = (
@@ -559,8 +558,7 @@ def check_non_state_changing_method(estimator, datatype):
         ), f"Estimator: {type(estimator)} has side effects on arguments of {method}"
 
         # dict_after = dictionary of estimator after predict and fit
-        dict_after = estimator.__dict__
-        is_equal, msg = deep_equals(dict_after, dict_before, return_msg=True)
+        is_equal, msg = deep_equals(estimator.__dict__, dict_before, return_msg=True)
         assert is_equal, (
             f"Estimator: {type(estimator).__name__} changes __dict__ "
             f"during {method}, "
@@ -667,7 +665,7 @@ def check_persistence_via_pickle(estimator, datatype):
         if hasattr(estimator, method) and callable(getattr(estimator, method)):
             output = _run_estimator_method(estimator, method, datatype, "test")
 
-            _assert_array_almost_equal(
+            assert_array_almost_equal(
                 output,
                 results[i],
                 err_msg=f"Running {method} after fit twice with test "
@@ -699,7 +697,7 @@ def check_fit_deterministic(estimator, datatype):
         if hasattr(estimator, method) and callable(getattr(estimator, method)):
             output = _run_estimator_method(estimator, method, datatype, "test")
 
-            _assert_array_almost_equal(
+            assert_array_almost_equal(
                 output,
                 results[i],
                 err_msg=f"Running {method} after fit twice with test "
