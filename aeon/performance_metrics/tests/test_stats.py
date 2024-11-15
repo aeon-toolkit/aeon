@@ -13,7 +13,7 @@ from aeon.performance_metrics.stats import check_friedman, nemenyi_test, wilcoxo
 
 data_path = os.path.join(
     os.path.dirname(aeon.__file__),
-    "benchmarking/example_results/",
+    "testing/example_results_files/",
 )
 
 

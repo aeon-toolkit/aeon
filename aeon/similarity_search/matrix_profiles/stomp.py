@@ -17,7 +17,7 @@ from aeon.similarity_search._commons import (
     numba_roll_1D_no_warparound,
 )
 from aeon.similarity_search.distance_profiles.squared_distance_profile import (
-    _normalized_squared_dist_profile_one_series,
+    _normalised_squared_dist_profile_one_series,
     _squared_dist_profile_one_series,
 )
 from aeon.utils.numba.general import AEON_NUMBA_STD_THRESHOLD
@@ -188,7 +188,7 @@ def stomp_squared_matrix_profile(
     return MP, IP
 
 
-def stomp_normalized_euclidean_matrix_profile(
+def stomp_normalised_euclidean_matrix_profile(
     X: Union[np.ndarray, List],
     T: np.ndarray,
     L: int,
@@ -267,7 +267,7 @@ def stomp_normalized_euclidean_matrix_profile(
         retrieved as ``X_[id_sample, :, id_timepoint : id_timepoint + length]``.
 
     """
-    MP, IP = stomp_normalized_squared_matrix_profile(
+    MP, IP = stomp_normalised_squared_matrix_profile(
         X,
         T,
         L,
@@ -286,7 +286,7 @@ def stomp_normalized_euclidean_matrix_profile(
     return MP, IP
 
 
-def stomp_normalized_squared_matrix_profile(
+def stomp_normalised_squared_matrix_profile(
     X: Union[np.ndarray, List],
     T: np.ndarray,
     L: int,
@@ -371,7 +371,7 @@ def stomp_normalized_squared_matrix_profile(
     elif isinstance(X, List):
         XdotT = List(XdotT)
 
-    MP, IP = _stomp_normalized(
+    MP, IP = _stomp_normalised(
         X,
         T,
         XdotT,
@@ -389,7 +389,7 @@ def stomp_normalized_squared_matrix_profile(
     return MP, IP
 
 
-def _stomp_normalized(
+def _stomp_normalised(
     X,
     T,
     XdotT,
@@ -405,7 +405,7 @@ def _stomp_normalized(
     inverse_distance,
 ):
     """
-    Compute the Matrix Profile using the STOMP algorithm with normalized distances.
+    Compute the Matrix Profile using the STOMP algorithm with normalised distances.
 
     X:  np.ndarray, 3D array of shape (n_cases, n_channels, n_timepoints)
         The input samples. If X is an unquel length collection, expect a TypedList
@@ -460,7 +460,7 @@ def _stomp_normalized(
     IP = np.empty(n_queries, dtype=object)
     for i_x in range(len(X)):
         for i in range(n_queries):
-            dist_profiles = _normalized_squared_dist_profile_one_series(
+            dist_profiles = _normalised_squared_dist_profile_one_series(
                 XdotT[i_x],
                 X_means[i_x],
                 X_stds[i_x],
@@ -468,7 +468,7 @@ def _stomp_normalized(
                 T_stds[:, i],
                 L,
                 T_stds[:, i] <= AEON_NUMBA_STD_THRESHOLD,
-            ).sum(axis=0)
+            )
             dist_profiles[~mask[i_x]] = np.inf
             if i + 1 < n_queries:
                 XdotT[i_x] = _update_dot_products_one_series(
@@ -517,9 +517,7 @@ def _stomp(
     for i_x in range(len(X)):
         for i in range(n_queries):
             Q = T[:, i : i + L]
-            dist_profiles = _squared_dist_profile_one_series(XdotT[i_x], X[i_x], Q).sum(
-                axis=0
-            )
+            dist_profiles = _squared_dist_profile_one_series(XdotT[i_x], X[i_x], Q)
             dist_profiles[~mask[i_x]] = np.inf
             if i + 1 < n_queries:
                 XdotT[i_x] = _update_dot_products_one_series(

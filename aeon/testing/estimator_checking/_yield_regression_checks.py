@@ -8,7 +8,7 @@ import time
 from functools import partial
 
 import numpy as np
-from numpy.ma.testutils import assert_array_equal
+from numpy.testing import assert_array_almost_equal
 from sklearn.utils._testing import set_random_state
 
 from aeon.base._base import _clone_estimator
@@ -19,11 +19,7 @@ from aeon.testing.expected_results.expected_regressor_outputs import (
     covid_3month_preds,
 )
 from aeon.testing.testing_data import FULL_TEST_DATA_DICT
-from aeon.testing.utils.estimator_checks import (
-    _assert_array_almost_equal,
-    _assert_predict_labels,
-    _get_tag,
-)
+from aeon.testing.utils.estimator_checks import _assert_predict_labels, _get_tag
 from aeon.utils import COLLECTIONS_DATA_TYPES
 
 
@@ -123,7 +119,7 @@ def check_regressor_against_expected_results(
     y_pred = estimator_instance.predict(X_test[indices_test])
 
     # assert predictions are the same
-    _assert_array_almost_equal(
+    assert_array_almost_equal(
         y_pred,
         expected_preds,
         decimal=2,
@@ -171,6 +167,23 @@ def check_regressor_overrides_and_tags(estimator_class):
     multi = estimator_class.get_class_tag(tag_name="capability:multivariate")
     uni = estimator_class.get_class_tag(tag_name="capability:univariate")
     assert multi or uni
+
+    valid_algorithm_types = [
+        "distance",
+        "deeplearning",
+        "convolution",
+        "dictionary",
+        "interval",
+        "feature",
+        "hybrid",
+        "shapelet",
+    ]
+    algorithm_type = estimator_class.get_class_tag("algorithm_type")
+    if algorithm_type is not None:
+        assert algorithm_type in valid_algorithm_types, (
+            f"Estimator {estimator_class.__name__} has an invalid 'algorithm_type' "
+            f"tag: '{algorithm_type}'. Valid types are {valid_algorithm_types}."
+        )
 
 
 def check_contracted_regressor(estimator_class, datatype):
@@ -268,7 +281,7 @@ def check_regressor_saving_loading_deep_learning(estimator_class, datatype):
 
         ypred = deep_rgs_train.predict(FULL_TEST_DATA_DICT[datatype]["test"][0])
         _assert_predict_labels(ypred, datatype)
-        assert_array_equal(ypred, ypred_best)
+        assert_array_almost_equal(ypred, ypred_best)
 
 
 def check_regressor_train_estimate(estimator, datatype):

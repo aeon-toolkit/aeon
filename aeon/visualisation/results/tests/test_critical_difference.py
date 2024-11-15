@@ -16,7 +16,7 @@ from aeon.visualisation.results._critical_difference import (
 
 data_path = os.path.join(
     os.path.dirname(aeon.__file__),
-    "benchmarking/example_results/",
+    "testing/example_results_files/",
 )
 
 test_clique1 = np.array(
