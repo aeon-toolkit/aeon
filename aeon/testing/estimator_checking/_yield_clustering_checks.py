@@ -33,7 +33,7 @@ def _yield_clustering_checks(estimator_class, estimator_instances, datatypes):
         if issubclass(estimator_class, BaseDeepClusterer):
             yield partial(
                 check_clusterer_saving_loading_deep_learning,
-                estimator=estimator_class,
+                estimator_class=estimator_class,
                 datatype=datatypes[i][0],
             )
 
