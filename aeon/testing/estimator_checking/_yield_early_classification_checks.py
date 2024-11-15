@@ -4,6 +4,7 @@ from functools import partial
 from sys import platform
 
 import numpy as np
+from numpy.testing import assert_array_almost_equal
 from sklearn.utils._testing import set_random_state
 
 from aeon.base._base import _clone_estimator
@@ -13,7 +14,6 @@ from aeon.testing.expected_results.expected_classifier_outputs import (
     unit_test_proba,
 )
 from aeon.testing.testing_data import FULL_TEST_DATA_DICT
-from aeon.testing.utils.estimator_checks import _assert_array_almost_equal
 from aeon.utils.validation import get_n_cases
 
 
@@ -74,7 +74,7 @@ def check_early_classifier_against_expected_results(estimator_class):
         y_proba, _ = estimator_instance.predict_proba(X_test[indices])
 
         # assert probabilities are the same
-        _assert_array_almost_equal(
+        assert_array_almost_equal(
             y_proba,
             expected_probas,
             decimal=2,

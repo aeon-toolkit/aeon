@@ -13,7 +13,7 @@ from aeon.datasets.tsc_datasets import univariate_equal_length
 
 data_path = os.path.join(
     os.path.dirname(aeon.__file__),
-    "benchmarking/example_results/",
+    "testing/example_results_files/",
 )
 
 

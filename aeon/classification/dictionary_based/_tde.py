@@ -320,9 +320,14 @@ class TemporalDictionaryEnsemble(BaseClassifier):
                     rng.choice(np.flatnonzero(preds == preds.max()))
                 )
 
-            subsample = rng.choice(self.n_cases_, size=subsample_size, replace=False)
-            X_subsample = X[subsample]
-            y_subsample = y[subsample]
+            while True:
+                subsample = rng.choice(
+                    self.n_cases_, size=subsample_size, replace=False
+                )
+                X_subsample = X[subsample]
+                y_subsample = y[subsample]
+                if len(np.unique(y_subsample)) > 1:
+                    break
 
             tde = IndividualTDE(
                 *parameters,
