@@ -86,6 +86,8 @@ class AEDCNNClusterer(BaseDeepClusterer):
         Whether or not to save the last model, last
         epoch trained, using the base class method
         save_last_model_to_file.
+    save_init_model : bool, default = False
+        Whether to save the initialization of the  model.
     best_file_name : str, default = "best_model"
         The name of the file of the best model, if
         save_best_model is set to False, this parameter
@@ -94,6 +96,10 @@ class AEDCNNClusterer(BaseDeepClusterer):
         The name of the file of the last model, if
         save_last_model is set to False, this parameter
         is discarded.
+    init_file_name : str, default = "init_model"
+        The name of the file of the init model, if
+        save_init_model is set to False,
+        this parameter is discarded.
     callbacks : keras.callbacks, default = None
         List of keras callbacks.
 
@@ -137,8 +143,10 @@ class AEDCNNClusterer(BaseDeepClusterer):
         file_path="./",
         save_best_model=False,
         save_last_model=False,
+        save_init_model=False,
         best_file_name="best_model",
-        last_file_name="last_file",
+        last_file_name="last_model",
+        init_file_name="init_model",
         callbacks=None,
     ):
         self.latent_space_dim = latent_space_dim
@@ -160,7 +168,9 @@ class AEDCNNClusterer(BaseDeepClusterer):
         self.n_epochs = n_epochs
         self.save_best_model = save_best_model
         self.save_last_model = save_last_model
+        self.save_init_model = save_init_model
         self.best_file_name = best_file_name
+        self.init_file_name = init_file_name
         self.random_state = random_state
 
         super().__init__(
@@ -255,6 +265,9 @@ class AEDCNNClusterer(BaseDeepClusterer):
 
         self.input_shape = X.shape[1:]
         self.training_model_ = self.build_model(self.input_shape)
+
+        if self.save_init_model:
+            self.training_model_.save(self.file_path + self.init_file_name + ".keras")
 
         if self.verbose:
             self.training_model_.summary()
