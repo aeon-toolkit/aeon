@@ -40,8 +40,29 @@ class EncoderClassifier(BaseDeepClassifier):
     fc_units : int, default = 256
         Specifying the number of units in the hidden fully
         connected layer used in the EncoderNetwork.
+    verbose : boolean, default = False
+        Whether to output extra information.
+    loss : str, default = "categorical_crossentropy"
+        The name of the keras training loss.
+    metrics : str or list[str], default="accuracy"
+        The evaluation metrics to use during training. If
+        a single string metric is provided, it will be
+        used as the only metric. If a list of metrics are
+        provided, all will be used for evaluation.
+    optimizer : keras.optimizer, default = tf.keras.optimizers.Adam()
+        The keras optimizer used for training.
+    callbacks : keras callback or list of callbacks,
+        default = None
+        The default list of callbacks are set to
+        ModelCheckpoint.
     file_path : str, default = "./"
         File path when saving model_Checkpoint callback.
+    n_epochs : int, default = 2000
+        The number of epochs to train the model.
+    batch_size : int, default = 16
+        The number of samples per gradient update.
+    use_mini_batch_size : bool, default = False
+        Whether or not to use the mini batch size formula.
     save_best_model : bool, default = False
         Whether or not to save the best model, if the
         modelcheckpoint callback is used by default,
@@ -87,10 +108,6 @@ class EncoderClassifier(BaseDeepClassifier):
 
     """
 
-    _tags = {
-        "python_dependencies": ["tensorflow"],
-    }
-
     def __init__(
         self,
         n_epochs=100,
@@ -113,7 +130,7 @@ class EncoderClassifier(BaseDeepClassifier):
         init_file_name="init_model",
         verbose=False,
         loss="categorical_crossentropy",
-        metrics=None,
+        metrics="accuracy",
         random_state=None,
         use_bias=True,
         optimizer=None,
@@ -182,18 +199,13 @@ class EncoderClassifier(BaseDeepClassifier):
         import numpy as np
         import tensorflow as tf
 
-        if self.metrics is None:
-            metrics = ["accuracy"]
-        else:
-            metrics = self.metrics
-
         rng = check_random_state(self.random_state)
         self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
         tf.keras.utils.set_random_seed(self.random_state_)
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
         output_layer = tf.keras.layers.Dense(
-            units=n_classes, activation=self.activation, use_bias=self.use_bias
+            units=n_classes, activation=self.activation
         )(output_layer)
 
         self.optimizer_ = (
@@ -206,7 +218,7 @@ class EncoderClassifier(BaseDeepClassifier):
         model.compile(
             loss=self.loss,
             optimizer=self.optimizer_,
-            metrics=metrics,
+            metrics=self._metrics,
         )
 
         return model
@@ -230,6 +242,11 @@ class EncoderClassifier(BaseDeepClassifier):
         y_onehot = self.convert_y_to_keras(y)
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
+
+        if isinstance(self.metrics, list):
+            self._metrics = self.metrics
+        elif isinstance(self.metrics, str):
+            self._metrics = [self.metrics]
 
         self.input_shape = X.shape[1:]
         self.training_model_ = self.build_model(self.input_shape, self.n_classes_)

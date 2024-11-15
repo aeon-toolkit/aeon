@@ -42,6 +42,12 @@ class FCNNetwork(BaseDeepLearningNetwork):
     networks: a strong baseline, IJCNN, 2017
     """
 
+    _config = {
+        "python_dependencies": ["tensorflow"],
+        "python_version": "<3.13",
+        "structure": "encoder",
+    }
+
     def __init__(
         self,
         n_layers=3,
