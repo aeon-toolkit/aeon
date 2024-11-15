@@ -153,4 +153,4 @@ class ScaledLogitSeriesTransformer(BaseSeriesTransformer):
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
         """
-        return ({"lower_bound": -(10**6), "upper_bound": 10**6},)
+        return {"lower_bound": -(10**6), "upper_bound": 10**6}

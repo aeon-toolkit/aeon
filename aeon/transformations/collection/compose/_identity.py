@@ -17,7 +17,7 @@ class CollectionId(BaseCollectionTransformer):
     }
 
     def _transform(self, X, y=None):
-        return X
+        return X.squeeze()
 
     def _inverse_transform(self, X, y=None):
-        return X
+        return X.squeeze()

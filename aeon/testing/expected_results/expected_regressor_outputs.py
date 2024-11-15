@@ -293,7 +293,18 @@ cardano_sentiment_preds["KNeighborsTimeSeriesRegressor"] = np.array(
 )
 
 cardano_sentiment_preds["RISTRegressor"] = np.array(
-    [0.0825, 0.1924, 0.7180, 0.0413, 0.4840, 0.0825, 0.2336, 0.0000, 0.0413, 0.2814]
+    [
+        0.0687,
+        0.071,
+        0.0227,
+        0.0425,
+        0.0834,
+        0.0251,
+        0.0064,
+        0.1398,
+        0.0667,
+        0.031,
+    ]
 )
 
 cardano_sentiment_preds["CanonicalIntervalForestRegressor"] = np.array(
