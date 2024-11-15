@@ -25,7 +25,7 @@ def test_3d_numpy():
 
     assert not np.isnan(Xt).any()
     assert Xt.shape == X.shape
-    assert np.allclose(Xt[2, 1, 10], np.nanmean(X[:, 1, :]))
+    assert np.allclose(Xt[2, 1, 10], np.nanmean(X[2, 1, :]))
 
 
 def test_2d_list():
@@ -44,6 +44,8 @@ def test_2d_list():
     Xt = imputer.fit_transform(X)
 
     assert all(not np.isnan(x).any() for x in Xt)  # no NaNs in any of the arrays
+    assert Xt[2][1, 10] == np.nanmean(X[2][1, :])
+    assert Xt[4][0, 20] == np.nanmean(X[4][0, :])
 
 
 def test_median():
@@ -59,8 +61,8 @@ def test_median():
 
     assert not np.isnan(Xt).any()
     assert Xt.shape == X.shape
-    assert np.allclose(Xt[2, 1, 10], np.nanmedian(X[:, 1, :]))
-    assert np.allclose(Xt[5, 0, 20], np.nanmedian(X[:, 0, :]))
+    assert np.allclose(Xt[2, 1, 10], np.nanmedian(X[2, 1, :]))
+    assert np.allclose(Xt[5, 0, 20], np.nanmedian(X[5, 0, :]))
 
 
 def test_most_frequent():
@@ -78,8 +80,8 @@ def test_most_frequent():
 
     assert not np.isnan(Xt).any()
     assert Xt.shape == X.shape
-    assert np.allclose(Xt[2, 1, 10], mode(X[:, 1, :].flatten(), nan_policy="omit").mode)
-    assert np.allclose(Xt[5, 0, 20], mode(X[:, 0, :].flatten(), nan_policy="omit").mode)
+    assert np.allclose(Xt[2, 1, 10], mode(X[2, 1, :], nan_policy="omit").mode)
+    assert np.allclose(Xt[5, 0, 20], mode(X[5, 0, :], nan_policy="omit").mode)
 
 
 def test_constant():

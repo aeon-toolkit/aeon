@@ -3,8 +3,7 @@
 __maintainer__ = []
 __all__ = ["SimpleImputer"]
 
-from collections import Counter
-from typing import Callable, Union
+from typing import Callable, Optional, Union
 
 import numpy as np
 from scipy.stats import mode
@@ -38,7 +37,7 @@ class SimpleImputer(BaseCollectionTransformer):
 
     _tags = {
         "X_inner_type": ["np-list", "numpy3D"],
-        "fit_is_empty": False,
+        "fit_is_empty": True,
         "capability:multivariate": True,
         "capability:unequal_length": True,
         "capability:missing_values": True,
@@ -48,7 +47,7 @@ class SimpleImputer(BaseCollectionTransformer):
     def __init__(
         self,
         strategy: Union[str, Callable] = "mean",
-        fill_value: Union[int, float, str, None] = None,
+        fill_value: Optional[float] = None,
     ):
         self.strategy = strategy
         self.fill_value = fill_value
@@ -78,89 +77,52 @@ class SimpleImputer(BaseCollectionTransformer):
         if isinstance(X, np.ndarray):  # if X is a 3D array
 
             if self.strategy == "mean":
-                X = np.where(np.isnan(X), np.nanmean(X, axis=(0, 2), keepdims=True), X)
+                X = np.where(np.isnan(X), np.nanmean(X, axis=-1, keepdims=True), X)
 
             elif self.strategy == "median":
-                X = np.where(
-                    np.isnan(X), np.nanmedian(X, axis=(0, 2), keepdims=True), X
-                )
+                X = np.where(np.isnan(X), np.nanmedian(X, axis=-1, keepdims=True), X)
 
             elif self.strategy == "constant":
-                if np.issubdtype(X.dtype, np.str_):  # if X is a string array
-                    fill_values = np.array([self.fill_value])
-                    fill_values = np.broadcast_to(fill_values, X.shape)
-                    X[X == "nan"] = fill_values[X == "nan"]
-                else:
-                    X = np.where(np.isnan(X), self.fill_value, X)
+                X = np.where(np.isnan(X), self.fill_value, X)
 
             elif self.strategy == "most frequent":
-                if np.issubdtype(X.dtype, np.str_):  # if X is a string array
-                    for i in range(X.shape[0]):
-                        for j in range(X.shape[1]):
-                            X[i, j][X[i, j] == "nan"] = Counter(X[i, j]).most_common(1)[
-                                0
-                            ][0]
-                else:
-                    modes = [
-                        mode(X[:, i, :].flatten(), nan_policy="omit").mode
-                        for i in range(X.shape[1])
-                    ]
-                    modes = np.array(modes).reshape(1, X.shape[1], 1)
-                    X = np.where(
-                        np.isnan(X),
-                        modes,
-                        X,
-                    )
+                X = np.where(
+                    np.isnan(X),
+                    mode(X, axis=-1, nan_policy="omit", keepdims=True).mode,
+                    X,
+                )
 
             else:  # if strategy is a callable function
-                fill_values = []
-                for i in range(X.shape[1]):
-                    non_nan_1d_array = X[:, i, :][~np.isnan(X[:, i, :])].flatten()
-                    fill_values.append(self.strategy(non_nan_1d_array))
-                fill_values = np.array(fill_values).reshape(1, X.shape[1], 1)
-                X = np.where(np.isnan(X), fill_values, X)
+                for i in range(X.shape[0]):
+                    for j in range(X.shape[1]):
+                        nan_mask = np.isnan(X[i, j])
+                        X[i, j] = np.where(
+                            nan_mask, self.strategy(X[i, j][nan_mask]), X[i, j]
+                        )  # applying callable function to each case without nan values
             return X
 
         else:  # if X is a list of 2D arrays
-            channels = X[0].shape[0]
-
-            non_missing_values = [[] for _ in range(channels)]
-            for x in X:
-                for i in range(channels):
-                    non_missing_values[i].extend(x[i][~np.isnan(x[i])])
-            non_missing_values = np.array([np.array(x) for x in non_missing_values])
-
-            if self.strategy == "mean":
-                fill_values = np.mean(non_missing_values, axis=1, keepdims=True)
-            elif self.strategy == "median":
-                fill_values = np.median(non_missing_values, axis=1, keepdims=True)
-            elif self.strategy == "constant":
-                fill_values = self.fill_value
-            elif self.strategy == "most frequent":
-                if np.issubdtype(non_missing_values[0].dtype, np.str_):
-                    fill_values = [
-                        Counter(non_missing_values[i]).most_common(1)[0][0]
-                        for i in range(channels)
-                    ]
-                else:
-                    fill_values = mode(non_missing_values, axis=1, keepdims=True).mode
-            else:
-                fill_values = [
-                    self.strategy(non_missing_values[i]) for i in range(channels)
-                ]
-                fill_values = np.array(fill_values).reshape(channels, 1)
-
             Xt = []
+
             for x in X:
-                if np.issubdtype(x.dtype, np.str_):
-                    nan_mask = x == "nan"
-                    if self.strategy == "constant":
-                        x[nan_mask] = fill_values
-                    else:
-                        x[nan_mask] = np.broadcast_to(fill_values, x.shape)[nan_mask]
-                else:
-                    x = np.where(np.isnan(x), fill_values, x)
+                if self.strategy == "mean":
+                    x = np.where(np.isnan(x), np.nanmean(x, axis=-1, keepdims=True), x)
+                elif self.strategy == "median":
+                    x = np.where(
+                        np.isnan(x), np.nanmedian(x, axis=-1, keepdims=True), x
+                    )
+                elif self.strategy == "constant":
+                    x = np.where(np.isnan(x), self.fill_value, x)
+                elif self.strategy == "most frequent":
+                    x = np.where(
+                        np.isnan(x),
+                        mode(x, axis=-1, nan_policy="omit", keepdims=True).mode,
+                        x,
+                    )
+                else:  # if strategy is a callable function
+                    x = np.where(np.isnan(x), self.strategy(x), x)
                 Xt.append(x)
+
             return Xt
 
     def _validate_parameters(self):
