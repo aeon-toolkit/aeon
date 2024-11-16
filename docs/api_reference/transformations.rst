@@ -41,6 +41,7 @@ Collection transformers
     PeriodogramTransformer
     Tabularizer
     Resizer
+    SimpleImputer
     SlopeTransformer
     Standardizer
     Truncator

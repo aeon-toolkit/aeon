@@ -8,12 +8,12 @@ from scipy.stats import rankdata
 
 import aeon
 from aeon.benchmarking.results_loaders import get_estimator_results_as_array
+from aeon.benchmarking.stats import check_friedman, nemenyi_test, wilcoxon_test
 from aeon.datasets.tsc_datasets import univariate_equal_length
-from aeon.performance_metrics.stats import check_friedman, nemenyi_test, wilcoxon_test
 
 data_path = os.path.join(
     os.path.dirname(aeon.__file__),
-    "benchmarking/example_results/",
+    "testing/example_results_files/",
 )
 
 
