@@ -135,7 +135,7 @@ class Rocket(BaseCollectionTransformer):
         if transform_min_length_ < self.fit_min_length_:
             raise ValueError(
                 f"Min length in transform = {transform_min_length_} is less "
-                f"than the minimum seen in fit {self.n_timepoints_}. , Rocket cannot "
+                f"than the minimum seen in fit {self.fit_min_length_}. , Rocket cannot "
                 f"yet handle this scenario, we suggest you pad the series so the "
                 f"shortest transform data is as long as the shortest fit data."
             )
