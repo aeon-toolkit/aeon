@@ -83,10 +83,6 @@ class ETSForecaster(BaseForecaster):
         self.beta = beta
         self.gamma = gamma
         self.phi = phi
-        if trend_type == NONE:
-            self.beta = 0
-        if seasonality_type == NONE:
-            self.gamma = 0
         self.forecast_val_ = 0.0
         self.level = (0,)
         self.trend = (0,)
@@ -118,6 +114,13 @@ class ETSForecaster(BaseForecaster):
         self
             Fitted BaseForecaster.
         """
+        self.beta_ = self.beta
+        if self.trend_type == NONE:
+            self.beta_ = 0
+        self.gamma_ = self.gamma
+        if self.seasonality_type == NONE:
+            self.gamma_ = 0
+
         data = np.array(y.squeeze(), dtype=np.float64)
         (
             self.level,
@@ -133,8 +136,8 @@ class ETSForecaster(BaseForecaster):
             self.seasonality_type,
             self.seasonal_period,
             self.alpha,
-            self.beta,
-            self.gamma,
+            self.beta_,
+            self.gamma_,
             self.phi,
         )
         return self
