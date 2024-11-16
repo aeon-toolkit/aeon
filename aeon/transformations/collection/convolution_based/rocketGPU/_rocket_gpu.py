@@ -26,7 +26,7 @@ class ROCKETGPU(BaseROCKETGPU):
 
     Parameters
     ----------
-    n_filters : int, default=1000
+    n_filters : int, default=10000
        Number of random convolutional filters.
     kernel_size : list, default = None
         The list of possible kernel sizes, default is [7, 9, 11].
@@ -53,7 +53,7 @@ class ROCKETGPU(BaseROCKETGPU):
 
     def __init__(
         self,
-        n_filters=1000,
+        n_filters=10000,
         kernel_size=None,
         padding=None,
         use_dilation=True,
