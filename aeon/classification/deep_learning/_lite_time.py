@@ -54,8 +54,10 @@ class LITETimeClassifier(BaseClassifier):
         formula Wang et al.
     n_epochs : int, default = 1500
         the number of epochs to train the model.
-    callbacks : callable or None, default = ReduceOnPlateau and ModelCheckpoint
-        list of tf.keras.callbacks.Callback objects.
+    callbacks : keras callback or list of callbacks,
+        default = None
+        The default list of callbacks are set to
+        ModelCheckpoint and ReduceLROnPlateau.
     file_path : str, default = "./"
         file_path when saving model_Checkpoint callback
     save_best_model : bool, default = False
@@ -90,10 +92,15 @@ class LITETimeClassifier(BaseClassifier):
         GPU processing will be non-deterministic.
     verbose : boolean, default = False
         whether to output extra information
-    optimizer : keras optimizer, default = Adam
-    loss : keras loss, default = categorical_crossentropy
-    metrics : keras metrics, default = None,
-        will be set to accuracy as default if None
+    optimizer : keras.optimizer, default = tf.keras.optimizers.Adam()
+        The keras optimizer used for training.
+    loss : str, default = "categorical_crossentropy"
+        The name of the keras training loss.
+    metrics : str or list[str], default="accuracy"
+        The evaluation metrics to use during training. If
+        a single string metric is provided, it will be
+        used as the only metric. If a list of metrics are
+        provided, all will be used for evaluation.
 
     References
     ----------
@@ -150,7 +157,7 @@ class LITETimeClassifier(BaseClassifier):
         random_state=None,
         verbose=False,
         loss="categorical_crossentropy",
-        metrics=None,
+        metrics="accuracy",
         optimizer=None,
     ):
         self.n_classifiers = n_classifiers
@@ -349,8 +356,10 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         formula Wang et al.
     n_epochs : int, default = 1500
         the number of epochs to train the model.
-    callbacks : callable or None, default = ReduceOnPlateau and ModelCheckpoint
-        list of tf.keras.callbacks.Callback objects.
+    callbacks : keras callback or list of callbacks,
+        default = None
+        The default list of callbacks are set to
+        ModelCheckpoint and ReduceLROnPlateau.
     file_path : str, default = "./"
         file_path when saving model_Checkpoint callback
     save_best_model : bool, default = False
@@ -385,10 +394,15 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         GPU processing will be non-deterministic.
     verbose : boolean, default = False
         whether to output extra information
-    optimizer : keras optimizer, default = Adam
-    loss : keras loss, default = categorical_crossentropy
-    metrics : keras metrics, default = None,
-        will be set to accuracy as default if None
+    optimizer : keras.optimizer, default = tf.keras.optimizers.Adam()
+        The keras optimizer used for training.
+    loss : str, default = "categorical_crossentropy"
+        The name of the keras training loss.
+    metrics : str or list[str], default="accuracy"
+        The evaluation metrics to use during training. If
+        a single string metric is provided, it will be
+        used as the only metric. If a list of metrics are
+        provided, all will be used for evaluation.
 
     References
     ----------
@@ -436,7 +450,7 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         random_state=None,
         verbose=False,
         loss="categorical_crossentropy",
-        metrics=None,
+        metrics="accuracy",
         optimizer=None,
     ):
         self.use_litemv = use_litemv
@@ -506,11 +520,6 @@ class IndividualLITEClassifier(BaseDeepClassifier):
 
         model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
 
-        if self.metrics is None:
-            metrics = ["accuracy"]
-        else:
-            metrics = self.metrics
-
         self.optimizer_ = (
             tf.keras.optimizers.Adam() if self.optimizer is None else self.optimizer
         )
@@ -518,7 +527,7 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         model.compile(
             loss=self.loss,
             optimizer=self.optimizer_,
-            metrics=metrics,
+            metrics=self._metrics,
         )
 
         return model
@@ -545,6 +554,11 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         y_onehot = self.convert_y_to_keras(y)
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
+
+        if isinstance(self.metrics, list):
+            self._metrics = self.metrics
+        elif isinstance(self.metrics, str):
+            self._metrics = [self.metrics]
 
         # ignore the number of instances, X.shape[0],
         # just want the shape of each instance

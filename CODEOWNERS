@@ -2,7 +2,7 @@
 # Only users with write access to the repository will be automatically added as
 # reviewers and contacted.
 
-aeon/anomaly_detection/ @CodeLionX @MatthewMiddlehurst
+aeon/anomaly_detection/ @SebastianSchmidl @MatthewMiddlehurst
 
 aeon/benchmarking/ @TonyBagnall @MatthewMiddlehurst @hadifawaz1999 @dguijo
 
@@ -17,7 +17,7 @@ aeon/distances/ @chrisholder @TonyBagnall
 
 aeon/networks/ @hadifawaz1999
 
-aeon/performance_metrics/anomaly_detection/ @codelionx @MatthewMiddlehurst
+aeon/performance_metrics/anomaly_detection/ @SebastianSchmidl @MatthewMiddlehurst
 
 aeon/regression/ @MatthewMiddlehurst @TonyBagnall @dguijo
 aeon/regression/deep_learning @hadifawaz1999 @MatthewMiddlehurst @TonyBagnall @dguijo

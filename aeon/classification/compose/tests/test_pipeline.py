@@ -4,6 +4,7 @@ __maintainer__ = ["MatthewMiddlehurst"]
 
 import numpy as np
 import pytest
+from numpy.testing import assert_array_almost_equal
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import StandardScaler
 
@@ -16,13 +17,12 @@ from aeon.testing.data_generation import (
     make_example_3d_numpy_list,
 )
 from aeon.testing.mock_estimators import MockCollectionTransformer
-from aeon.testing.utils.estimator_checks import _assert_array_almost_equal
 from aeon.transformations.collection import (
     AutocorrelationFunctionTransformer,
     HOG1DTransformer,
+    Normalizer,
     Padder,
     Tabularizer,
-    TimeSeriesScaler,
 )
 from aeon.transformations.collection.feature_based import SevenNumberSummary
 
@@ -61,7 +61,7 @@ def test_classifier_pipeline(transformers):
         X_test = t.transform(X_test)
 
     c.fit(X_train, y_train)
-    _assert_array_almost_equal(y_pred, c.predict(X_test))
+    assert_array_almost_equal(y_pred, c.predict(X_test))
 
 
 @pytest.mark.parametrize(
@@ -99,7 +99,7 @@ def test_sklearn_classifier_pipeline(transformers):
         X_test = t.transform(X_test)
 
     c.fit(X_train, y_train)
-    _assert_array_almost_equal(y_pred, c.predict(X_test))
+    assert_array_almost_equal(y_pred, c.predict(X_test))
 
 
 def test_unequal_tag_inference():
@@ -110,7 +110,7 @@ def test_unequal_tag_inference():
 
     t1 = SevenNumberSummary()
     t2 = Padder()
-    t3 = TimeSeriesScaler()
+    t3 = Normalizer()
     t4 = AutocorrelationFunctionTransformer(n_lags=5)
     t5 = StandardScaler()
     t6 = Tabularizer()
@@ -181,7 +181,7 @@ def test_missing_tag_inference():
     t1 = t1.set_tags(
         **{"capability:missing_values": True, "removes_missing_values": True}
     )
-    t2 = TimeSeriesScaler()
+    t2 = Normalizer()
     t3 = StandardScaler()
     t4 = Tabularizer()
 
@@ -230,7 +230,7 @@ def test_multivariate_tag_inference():
     X, y = make_example_3d_numpy(n_cases=10, n_channels=2, n_timepoints=12)
 
     t1 = SevenNumberSummary()
-    t2 = TimeSeriesScaler()
+    t2 = Normalizer()
     t3 = HOG1DTransformer()
     t4 = StandardScaler()
 
