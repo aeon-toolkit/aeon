@@ -106,12 +106,12 @@ class Rocket(BaseCollectionTransformer):
         n_channels = X[0].shape[0]
 
         # The only use of n_timepoints is to set the maximum dilation
-        self.n_timepoints_ = X[0].shape[1]
+        self.fit_min_length_ = X[0].shape[1]
         # If unequal length, must use the shortest time series length
         if isinstance(X, list):  # Unequal length, take the min
-            self.n_timepoints_ = min(x.shape[1] for x in X)
+            self.fit_min_length_ = min(x.shape[1] for x in X)
         self.kernels = _generate_kernels(
-            self.n_timepoints_, self.n_kernels, n_channels, self._random_state
+            self.fit_min_length_, self.n_kernels, n_channels, self._random_state
         )
         return self
 
@@ -132,9 +132,9 @@ class Rocket(BaseCollectionTransformer):
             transform_min_length_ = min(x.shape[1] for x in X)
         else:
             transform_min_length_ = X.shape[2]
-        if transform_min_length_ < self.n_timepoints_:
+        if transform_min_length_ < self.fit_min_length_:
             raise ValueError(
-                f"Min length in transformer{transform_min_length_} is less "
+                f"Min length in transform = {transform_min_length_} is less "
                 f"than the minimum seen in fit {self.n_timepoints_}. , Rocket cannot "
                 f"yet handle this scenario, we suggest you pad the series so the "
                 f"shortest transform data is as long as the shortest fit data."
