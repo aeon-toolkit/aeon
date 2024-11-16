@@ -11,14 +11,15 @@ __all__ = [
     "rp_rr_auc_score",
 ]
 
+
 import warnings
 
 import numpy as np
 from sklearn.metrics import auc, f1_score, precision_recall_curve
 from sklearn.metrics import roc_auc_score as _roc_auc_score
 
-from aeon.performance_metrics.anomaly_detection._util import check_y
-from aeon.performance_metrics.anomaly_detection.thresholding import (
+from aeon.benchmarking.metrics.anomaly_detection._util import check_y
+from aeon.benchmarking.metrics.anomaly_detection.thresholding import (
     top_k_points_threshold,
     top_k_ranges_threshold,
 )
@@ -116,7 +117,7 @@ def f_score_at_k_points(
 
     See Also
     --------
-    aeon.performance_metrics.anomaly_detection.thresholding.top_k_points_threshold
+    aeon.benchmarking.metrics.anomaly_detection.thresholding.top_k_points_threshold
         Function used to find the threshold.
     """
     y_true, y_pred = check_y(y_true, y_score, force_y_pred_continuous=True)
@@ -163,7 +164,7 @@ def f_score_at_k_ranges(
 
     See Also
     --------
-    aeon.performance_metrics.anomaly_detection.thresholding.top_k_ranges_threshold
+    aeon.benchmarking.metrics.anomaly_detection.thresholding.top_k_ranges_threshold
         Function used to find the threshold.
     """
     _check_soft_dependencies(

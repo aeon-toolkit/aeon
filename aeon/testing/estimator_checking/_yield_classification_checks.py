@@ -8,6 +8,7 @@ from functools import partial
 from sys import platform
 
 import numpy as np
+from numpy.testing import assert_array_almost_equal
 from sklearn.utils._testing import set_random_state
 
 from aeon.base._base import _clone_estimator
@@ -18,7 +19,7 @@ from aeon.testing.expected_results.expected_classifier_outputs import (
     unit_test_proba,
 )
 from aeon.testing.testing_data import FULL_TEST_DATA_DICT
-from aeon.testing.utils.estimator_checks import _assert_array_almost_equal, _get_tag
+from aeon.testing.utils.estimator_checks import _get_tag
 from aeon.utils.validation import get_n_cases
 
 
@@ -31,6 +32,12 @@ def _yield_classification_checks(estimator_class, estimator_instances, datatypes
     yield partial(check_classifier_tags_consistent, estimator_class=estimator_class)
     yield partial(
         check_classifier_does_not_override_final_methods,
+        estimator_class=estimator_class,
+    )
+
+    # Algorithm_type check
+    yield partial(
+        check_algorithm_type,
         estimator_class=estimator_class,
     )
 
@@ -118,12 +125,36 @@ def check_classifier_against_expected_results(estimator_class):
         y_proba = estimator_instance.predict_proba(X_test[indices])
 
         # assert probabilities are the same
-        _assert_array_almost_equal(
+        assert_array_almost_equal(
             y_proba,
             expected_probas,
             decimal=2,
             err_msg=f"Failed to reproduce results for {class_name} on {data_name}",
         )
+
+
+def check_algorithm_type(estimator_class):
+    """Test the tag algorithm_type is classifier."""
+    valid_algorithm_types = [
+        "distance",
+        "deeplearning",
+        "convolution",
+        "dictionary",
+        "interval",
+        "feature",
+        "hybrid",
+        "shapelet",
+    ]
+    algorithm_type = estimator_class.get_class_tag("algorithm_type")
+
+    # Pass the test
+    if algorithm_type is None:
+        return
+
+    assert algorithm_type in valid_algorithm_types, (
+        f"Estimator {estimator_class.__name__} has an invalid 'algorithm_type' tag: "
+        f"'{algorithm_type}'. Valid types are {valid_algorithm_types}."
+    )
 
 
 def check_classifier_tags_consistent(estimator_class):
