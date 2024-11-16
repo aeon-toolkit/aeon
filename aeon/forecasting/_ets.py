@@ -59,7 +59,7 @@ class ETSForecaster(BaseForecaster):
     >>> y = load_airline()
     >>> forecaster = ETSForecaster(alpha=0.4, beta=0.2, gamma=0.5, phi=0.8, horizon=1)
     >>> forecaster.fit(y)
-    ETSForecaster(alpha=0.4, beta=0, gamma=0, phi=0.8)
+    ETSForecaster(alpha=0.4, beta=0.2, gamma=0.5, phi=0.8)
     >>> forecaster.predict()
     449.9435566831507
     """
