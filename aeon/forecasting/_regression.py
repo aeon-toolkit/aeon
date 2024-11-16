@@ -86,7 +86,7 @@ class RegressionForecaster(BaseForecaster):
         NOTE: deal with horizons
         """
         self.fit(y, exog)
-        return self.predict(y)
+        return self.predict()
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
