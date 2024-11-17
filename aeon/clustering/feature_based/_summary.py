@@ -121,6 +121,8 @@ class SummaryClusterer(BaseClusterer):
         X_t = self._transformer.fit_transform(X, y)
         self._estimator.fit(X_t, y)
 
+        self.labels_ = self._estimator.labels_
+
         return self
 
     def _predict(self, X) -> np.ndarray:

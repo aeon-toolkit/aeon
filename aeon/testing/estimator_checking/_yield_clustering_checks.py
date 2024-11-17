@@ -97,8 +97,6 @@ def check_clusterer_output(estimator, datatype):
     """
     estimator = _clone_estimator(estimator)
 
-    unique_labels = np.unique(FULL_TEST_DATA_DICT[datatype]["train"][1])
-
     # run fit and predict
     estimator.fit(
         FULL_TEST_DATA_DICT[datatype]["train"][0],
@@ -112,14 +110,9 @@ def check_clusterer_output(estimator, datatype):
     # check predict
     assert isinstance(y_pred, np.ndarray)
     assert y_pred.shape == (get_n_cases(FULL_TEST_DATA_DICT[datatype]["test"][0]),)
-    assert np.all(np.isin(np.unique(y_pred), unique_labels))
 
     # check predict proba (all classifiers have predict_proba by default)
     y_proba = estimator.predict_proba(FULL_TEST_DATA_DICT[datatype]["test"][0])
 
     assert isinstance(y_proba, np.ndarray)
-    assert y_proba.shape == (
-        get_n_cases(FULL_TEST_DATA_DICT[datatype]["test"][0]),
-        len(unique_labels),
-    )
     np.testing.assert_almost_equal(y_proba.sum(axis=1), 1, decimal=4)

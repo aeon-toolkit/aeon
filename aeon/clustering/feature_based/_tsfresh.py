@@ -162,6 +162,7 @@ class TSFreshClusterer(BaseClusterer):
         else:
             self._estimator.fit(X_t, y)
 
+        self.labels_ = self._estimator.labels_
         return self
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
