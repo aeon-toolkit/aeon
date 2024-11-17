@@ -118,7 +118,10 @@ class SimpleImputer(BaseCollectionTransformer):
                         x,
                     )
                 else:  # if strategy is a callable function
-                    x = np.where(np.isnan(x), self.strategy(x), x)
+                    n_channels = x.shape[0]
+                    for i in range(n_channels):
+                        nan_mask = np.isnan(x[i])
+                        x[i] = np.where(nan_mask, self.strategy(x[i][nan_mask]), x[i])
                 Xt.append(x)
 
             return Xt
