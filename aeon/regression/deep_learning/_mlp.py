@@ -83,10 +83,6 @@ class MLPRegressor(BaseDeepRegressor):
         by `np.random`.
         Seeded random number generation can only be guaranteed on CPU processing,
         GPU processing will be non-deterministic.
-    activation : string or a tf callable, default="relu"
-        Activation function used in the output linear layer.
-        List of available activation functions:
-        https://keras.io/api/layers/activations/
     output_activation : str = "linear"
         Activation for the last layer in a Regressor.
     optimizer : keras.optimizer, default = tf.keras.optimizers.Adam()
@@ -111,11 +107,11 @@ class MLPRegressor(BaseDeepRegressor):
 
     def __init__(
         self,
-        n_layers = 3,
-        n_units = 200,
-        activation = "relu",
-        dropout_rate = None,
-        dropout_last = None,
+        n_layers=3,
+        n_units=200,
+        activation="relu",
+        dropout_rate=None,
+        dropout_last=None,
         use_bias=True,
         n_epochs=2000,
         batch_size=16,
@@ -131,7 +127,6 @@ class MLPRegressor(BaseDeepRegressor):
         last_file_name="last_model",
         init_file_name="init_model",
         random_state=None,
-        activation="relu",
         output_activation="linear",
         optimizer=None,
     ):
@@ -145,7 +140,6 @@ class MLPRegressor(BaseDeepRegressor):
         self.verbose = verbose
         self.loss = loss
         self.metrics = metrics
-        self.activation = activation
         self.use_bias = use_bias
         self.file_path = file_path
         self.save_best_model = save_best_model

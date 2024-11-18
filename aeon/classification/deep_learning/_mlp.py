@@ -87,10 +87,6 @@ class MLPClassifier(BaseDeepClassifier):
         a single string metric is provided, it will be
         used as the only metric. If a list of metrics are
         provided, all will be used for evaluation.
-    activation : string or a tf callable, default="sigmoid"
-        Activation function used in the output linear layer.
-        List of available activation functions:
-        https://keras.io/api/layers/activations/
 
     Notes
     -----
@@ -115,11 +111,11 @@ class MLPClassifier(BaseDeepClassifier):
 
     def __init__(
         self,
-        n_layers = 3,
-        n_units = 200,
-        activation = "relu",
-        dropout_rate = None,
-        dropout_last = None,
+        n_layers=3,
+        n_units=200,
+        activation="relu",
+        dropout_rate=None,
+        dropout_last=None,
         use_bias=True,
         n_epochs=2000,
         batch_size=16,
@@ -150,7 +146,6 @@ class MLPClassifier(BaseDeepClassifier):
         self.loss = loss
         self.metrics = metrics
         self.use_mini_batch_size = use_mini_batch_size
-        self.activation = activation
         self.use_bias = use_bias
         self.file_path = file_path
         self.save_best_model = save_best_model
