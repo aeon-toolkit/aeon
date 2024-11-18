@@ -42,6 +42,12 @@ class MLPNetwork(BaseDeepLearningNetwork):
     networks: A strong baseline, IJCNN, 2017.
     """
 
+    _config = {
+        "python_dependencies": ["tensorflow"],
+        "python_version": "<3.13",
+        "structure": "encoder",
+    }
+
     def __init__(
         self,
         n_layers: int = 3,
@@ -51,6 +57,7 @@ class MLPNetwork(BaseDeepLearningNetwork):
         dropout_last: float = None,
         use_bias: bool = True,
     ):
+
         super().__init__()
 
         self.n_layers = n_layers

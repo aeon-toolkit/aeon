@@ -4,6 +4,7 @@ __maintainer__ = ["MatthewMiddlehurst"]
 
 import numpy as np
 import pytest
+from numpy.testing import assert_array_almost_equal
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import StandardScaler
 
@@ -16,7 +17,6 @@ from aeon.testing.data_generation import (
     make_example_3d_numpy_list,
 )
 from aeon.testing.mock_estimators import MockCollectionTransformer
-from aeon.testing.utils.estimator_checks import _assert_array_almost_equal
 from aeon.transformations.collection import (
     AutocorrelationFunctionTransformer,
     HOG1DTransformer,
@@ -61,7 +61,7 @@ def test_classifier_pipeline(transformers):
         X_test = t.transform(X_test)
 
     c.fit(X_train, y_train)
-    _assert_array_almost_equal(y_pred, c.predict(X_test))
+    assert_array_almost_equal(y_pred, c.predict(X_test))
 
 
 @pytest.mark.parametrize(
@@ -99,7 +99,7 @@ def test_sklearn_classifier_pipeline(transformers):
         X_test = t.transform(X_test)
 
     c.fit(X_train, y_train)
-    _assert_array_almost_equal(y_pred, c.predict(X_test))
+    assert_array_almost_equal(y_pred, c.predict(X_test))
 
 
 def test_unequal_tag_inference():

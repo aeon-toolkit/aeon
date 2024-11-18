@@ -21,13 +21,18 @@ class MLPClassifier(BaseDeepClassifier):
 
     Parameters
     ----------
+    use_bias : bool, default = True
+        Condition on whether or not to use bias values for dense layers.
     n_epochs : int, default = 2000
         the number of epochs to train the model
     batch_size : int, default = 16
         the number of samples per gradient update.
     use_mini_batch_size : boolean, default = False
         Condition on using the mini batch size formula
-    callbacks : callable or None, default
+    callbacks : keras callback or list of callbacks,
+        default = None
+        The default list of callbacks are set to
+        ModelCheckpoint and ReduceLROnPlateau.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -37,8 +42,8 @@ class MLPClassifier(BaseDeepClassifier):
         GPU processing will be non-deterministic.
     verbose : boolean, default = False
         whether to output extra information
-    loss : string, default="mean_squared_error"
-        fit parameter for the keras model
+    loss : str, default = "categorical_crossentropy"
+        The name of the keras training loss.
     file_path : str, default = "./"
         file_path when saving model_Checkpoint callback
     save_best_model : bool, default = False
@@ -64,14 +69,17 @@ class MLPClassifier(BaseDeepClassifier):
     init_file_name : str, default = "init_model"
         The name of the file of the init model, if save_init_model is set to False,
         this parameter is discarded.
-    optimizer : keras.optimizer, default=keras.optimizers.Adadelta(),
-    metrics : list of strings, default=["accuracy"],
+    optimizer : keras.optimizer, default = tf.keras.optimizers.Adam()
+        The keras optimizer used for training.
+    metrics : str or list[str], default="accuracy"
+        The evaluation metrics to use during training. If
+        a single string metric is provided, it will be
+        used as the only metric. If a list of metrics are
+        provided, all will be used for evaluation.
     activation : string or a tf callable, default="sigmoid"
         Activation function used in the output linear layer.
         List of available activation functions:
         https://keras.io/api/layers/activations/
-    use_bias : boolean, default = True
-        whether the layer uses a bias vector.
 
     Notes
     -----
@@ -96,13 +104,14 @@ class MLPClassifier(BaseDeepClassifier):
 
     def __init__(
         self,
+        use_bias=True,
         n_epochs=2000,
         batch_size=16,
         use_mini_batch_size=False,
         callbacks=None,
         verbose=False,
         loss="categorical_crossentropy",
-        metrics=None,
+        metrics="accuracy",
         file_path="./",
         save_best_model=False,
         save_last_model=False,
@@ -112,7 +121,6 @@ class MLPClassifier(BaseDeepClassifier):
         init_file_name="init_model",
         random_state=None,
         activation="sigmoid",
-        use_bias=True,
         optimizer=None,
     ):
         self.callbacks = callbacks
@@ -139,7 +147,7 @@ class MLPClassifier(BaseDeepClassifier):
             last_file_name=last_file_name,
         )
 
-        self._network = MLPNetwork()
+        self._network = MLPNetwork(use_bias=self.use_bias)
 
     def build_model(self, input_shape, n_classes, **kwargs):
         """Construct a compiled, un-trained, keras model that is ready for training.
@@ -164,19 +172,14 @@ class MLPClassifier(BaseDeepClassifier):
         import tensorflow as tf
         from tensorflow import keras
 
-        if self.metrics is None:
-            metrics = ["accuracy"]
-        else:
-            metrics = self.metrics
-
         rng = check_random_state(self.random_state)
         self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
         tf.keras.utils.set_random_seed(self.random_state_)
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
-        output_layer = keras.layers.Dense(
-            units=n_classes, activation="softmax", use_bias=self.use_bias
-        )(output_layer)
+        output_layer = keras.layers.Dense(units=n_classes, activation="softmax")(
+            output_layer
+        )
 
         self.optimizer_ = (
             keras.optimizers.Adadelta() if self.optimizer is None else self.optimizer
@@ -186,7 +189,7 @@ class MLPClassifier(BaseDeepClassifier):
         model.compile(
             loss=self.loss,
             optimizer=self.optimizer_,
-            metrics=metrics,
+            metrics=self._metrics,
         )
         return model
 
@@ -209,6 +212,11 @@ class MLPClassifier(BaseDeepClassifier):
         y_onehot = self.convert_y_to_keras(y)
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
+
+        if isinstance(self.metrics, list):
+            self._metrics = self.metrics
+        elif isinstance(self.metrics, str):
+            self._metrics = [self.metrics]
 
         self.input_shape = X.shape[1:]
         self.training_model_ = self.build_model(self.input_shape, self.n_classes_)

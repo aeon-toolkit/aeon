@@ -7,6 +7,7 @@ from functools import partial
 from sys import platform
 
 import numpy as np
+from numpy.testing import assert_array_almost_equal
 from sklearn.utils._testing import set_random_state
 
 from aeon.base._base import _clone_estimator
@@ -17,7 +18,6 @@ from aeon.testing.expected_results.expected_regressor_outputs import (
     covid_3month_preds,
 )
 from aeon.testing.testing_data import FULL_TEST_DATA_DICT
-from aeon.testing.utils.estimator_checks import _assert_array_almost_equal
 
 
 def _yield_regression_checks(estimator_class, estimator_instances, datatypes):
@@ -92,7 +92,7 @@ def check_regressor_against_expected_results(estimator_class):
         y_pred = estimator_instance.predict(X_test[indices_test])
 
         # assert predictions are the same
-        _assert_array_almost_equal(
+        assert_array_almost_equal(
             y_pred,
             expected_preds,
             decimal=2,
@@ -139,7 +139,6 @@ def check_regressor_saving_loading_deep_learning(estimator_class, datatype):
                 "BaseDeepRegressor",
                 "InceptionTimeRegressor",
                 "LITETimeRegressor",
-                "TapNetRegressor",
             ]
         ):
             if tmp[-1] != "/":

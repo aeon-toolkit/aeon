@@ -3,6 +3,7 @@
 __maintainer__ = ["MatthewMiddlehurst"]
 
 import pytest
+from numpy.testing import assert_array_almost_equal
 from sklearn.preprocessing import StandardScaler
 
 from aeon.testing.data_generation import (
@@ -10,7 +11,6 @@ from aeon.testing.data_generation import (
     make_example_3d_numpy_list,
 )
 from aeon.testing.mock_estimators import MockCollectionTransformer
-from aeon.testing.utils.estimator_checks import _assert_array_almost_equal
 from aeon.transformations.collection import (
     AutocorrelationFunctionTransformer,
     HOG1DTransformer,
@@ -50,7 +50,7 @@ def test_collection_transform_pipeline(transformers):
     for t in transformers:
         X = t.fit_transform(X, y)
 
-    _assert_array_almost_equal(Xt, X)
+    assert_array_almost_equal(Xt, X)
 
 
 def test_unequal_tag_inference():
