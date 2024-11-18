@@ -28,6 +28,8 @@ class MLPNetwork(BaseDeepLearningNetwork):
         Dropout rate(s) are typically a number in the interval [0, 1].
     dropout_last : float, default = 0.3
         The dropout rate of the last layer.
+    use_bias : bool, default = True
+        Condition on whether or not to use bias values for dense layers.
 
     Notes
     -----
@@ -47,6 +49,7 @@ class MLPNetwork(BaseDeepLearningNetwork):
         activation: typing.Union[str, list[str]] = "relu",
         dropout_rate: typing.Union[float, list[float]] = None,
         dropout_last: float = None,
+        use_bias: bool = True,
     ):
         super().__init__()
 
@@ -55,6 +58,7 @@ class MLPNetwork(BaseDeepLearningNetwork):
         self.activation = activation
         self.dropout_rate = dropout_rate
         self.dropout_last = dropout_last
+        self.use_bias = use_bias
 
     def build_network(self, input_shape, **kwargs):
         """Construct a network and return its input and output layers.
@@ -137,7 +141,9 @@ class MLPNetwork(BaseDeepLearningNetwork):
         for idx in range(0, self.n_layers):
             x = keras.layers.Dropout(self._dropout_rate[idx])(x)
             x = keras.layers.Dense(
-                self._n_units[idx], activation=self._activation[idx]
+                self._n_units[idx],
+                activation=self._activation[idx],
+                use_bias=self.use_bias,
             )(x)
 
         output_layer = keras.layers.Dropout(self._dropout_last)(x)
