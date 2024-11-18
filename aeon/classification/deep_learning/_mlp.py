@@ -132,7 +132,6 @@ class MLPClassifier(BaseDeepClassifier):
         last_file_name="last_model",
         init_file_name="init_model",
         random_state=None,
-        activation="sigmoid",
         optimizer=None,
     ):
         self.n_layers = n_layers
