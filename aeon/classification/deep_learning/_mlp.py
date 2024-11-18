@@ -115,11 +115,11 @@ class MLPClassifier(BaseDeepClassifier):
 
     def __init__(
         self,
-        n_layers = 3,
-        n_units = 200,
-        activation = "relu",
-        dropout_rate = None,
-        dropout_last = None,
+        n_layers=3,
+        n_units=200,
+        activation="relu",
+        dropout_rate=None,
+        dropout_last=None,
         use_bias=True,
         n_epochs=2000,
         batch_size=16,
