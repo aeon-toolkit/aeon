@@ -5,6 +5,8 @@ __maintainer__ = ["hadifawaz1999"]
 
 import typing
 
+import numpy as np
+
 from aeon.networks.base import BaseDeepLearningNetwork
 
 
@@ -21,8 +23,11 @@ class MLPNetwork(BaseDeepLearningNetwork):
         Number of units in each dense layer.
     activation : Union[str, List[str]], optional (default='relu')
         Activation function(s) for each dense layer.
-    dropout_rate : Union[int, float, List[Union[int, float]]], optional (default=None)
+    dropout_rate : Union[float, List[Union[int, float]]], optional (default=None)
         Dropout rate(s) for each dense layer. If None, a default rate of 0.2 is used.
+        Dropout rate(s) are typically a number in the interval [0, 1].
+    dropout_last : float, default = 0.3
+        The dropout rate of the last layer.
 
     Notes
     -----
@@ -40,52 +45,16 @@ class MLPNetwork(BaseDeepLearningNetwork):
         n_layers: int = 3,
         n_units: typing.Union[int, list[int]] = 200,
         activation: typing.Union[str, list[str]] = "relu",
-        dropout_rate: typing.Union[int, list[int]] = None,
+        dropout_rate: typing.Union[float, list[float]] = None,
+        dropout_last: float = None,
     ):
         super().__init__()
 
-        self._n_layers = n_layers
-
-        if isinstance(activation, str):
-            self._activation = [activation] * self._n_layers
-        elif isinstance(activation, list):
-            assert (
-                len(activation) == self._n_layers
-            ), "There should be an `activation` function associated with each layer."
-            assert all(
-                isinstance(a, str) for a in activation
-            ), "Activation must be a list of strings."
-            assert (
-                len(activation) == n_layers
-            ), "Activation list length must match number of layers."
-            self._activation = activation
-
-        if dropout_rate is None:
-            self._dropout_rate = [0.2] * self._n_layers
-        elif isinstance(dropout_rate, (int, float)):
-            self._dropout_rate = [float(dropout_rate)] * self._n_layers
-        elif isinstance(dropout_rate, list):
-            assert (
-                len(dropout_rate) == self._n_layers
-            ), "There should be a `dropout_rate` associated with each layer."
-            assert all(
-                isinstance(d, (int, float)) for d in dropout_rate
-            ), "Dropout rates must be int or float."
-            assert (
-                len(dropout_rate) == n_layers
-            ), "Dropout list length must match number of layers."
-            self._dropout_rate = [float(d) for d in dropout_rate]
-
-        if isinstance(n_units, int):
-            self._n_units = [n_units] * self._n_layers
-        elif isinstance(n_units, list):
-            assert all(
-                isinstance(u, int) for u in n_units
-            ), "`n_units` must be int for all layers."
-            assert (
-                len(n_units) == n_layers
-            ), "`n_units` length must match number of layers."
-            self._n_units = n_units
+        self.n_layers = n_layers
+        self.n_units = n_units
+        self.activation = activation
+        self.dropout_rate = dropout_rate
+        self.dropout_last = dropout_last
 
     def build_network(self, input_shape, **kwargs):
         """Construct a network and return its input and output layers.
@@ -100,20 +69,77 @@ class MLPNetwork(BaseDeepLearningNetwork):
         input_layer : a keras layer
         output_layer : a keras layer
         """
+        if isinstance(self.activation, str):
+            self._activation = [self.activation] * self.n_layers
+        elif isinstance(self.activation, list):
+            assert (
+                len(self.activation) == self.n_layers
+            ), "There should be an `activation` function associated with each layer."
+            assert all(
+                isinstance(a, str) for a in self.activation
+            ), "Activation must be a list of strings."
+            self._activation = self.activation
+
+        if self.dropout_rate is None:
+            self._dropout_rate = [0.1].extend([0.2] * self.n_layers - 1)
+            assert np.all(
+                np.array(self._dropout_rate) - 1 <= 0
+            ), "Dropout rate(s) should be in the interval [0, 1]."
+        elif isinstance(self.dropout_rate, (int, float)):
+            self._dropout_rate = [float(self.dropout_rate)] * self.n_layers
+            assert np.all(
+                np.array(self._dropout_rate) - 1 <= 0
+            ), "Dropout rate(s) should be in the interval [0, 1]."
+        elif isinstance(self.dropout_rate, list):
+            assert (
+                len(self.dropout_rate) == self.n_layers
+            ), "There should be a `dropout_rate` associated with each layer."
+            assert all(
+                isinstance(d, (int, float)) for d in self.dropout_rate
+            ), "Dropout rates must be int or float."
+            assert (
+                len(self.dropout_rate) == self.n_layers
+            ), "Dropout list length must match number of layers."
+            self._dropout_rate = [float(d) for d in self.dropout_rate]
+            assert np.all(
+                np.array(self._dropout_rate) - 1 <= 0
+            ), "Dropout rate(s) should be in the interval [0, 1]."
+
+        if isinstance(self.n_units, int):
+            self._n_units = [self.n_units] * self.n_layers
+        elif isinstance(self.n_units, list):
+            assert all(
+                isinstance(u, int) for u in self.n_units
+            ), "`n_units` must be int for all layers."
+            assert (
+                len(self.n_units) == self.n_layers
+            ), "`n_units` length must match number of layers."
+            self._n_units = self.n_units
+
+        if self.dropout_last is None:
+            self._dropout_last = 0.3
+        else:
+            assert isinstance(self.dropout_last, float) or (
+                int(self.dropout_last // 1) in [0, 1]
+            ), "a float is expected in the `dropout_last` argument."
+            assert (
+                self.dropout_last - 1 <= 0
+            ), "`dropout_last` argument must be a number in the interval [0, 1]"
+            self._dropout_last = self.dropout_last
+
         from tensorflow import keras
 
         input_layer = keras.layers.Input(input_shape)
         input_layer_flattened = keras.layers.Flatten()(input_layer)
 
-        x = keras.layers.Dropout(self._dropout_rate[0])(input_layer_flattened)
-        x = keras.layers.Dense(self._n_units[0], activation=self._activation[0])(x)
+        x = input_layer_flattened
 
-        for idx in range(1, self._n_layers):
+        for idx in range(0, self.n_layers):
             x = keras.layers.Dropout(self._dropout_rate[idx])(x)
             x = keras.layers.Dense(
                 self._n_units[idx], activation=self._activation[idx]
             )(x)
 
-        output_layer = keras.layers.Dropout(0.3)(x)
+        output_layer = keras.layers.Dropout(self._dropout_last)(x)
 
         return input_layer, output_layer
