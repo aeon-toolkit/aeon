@@ -1,7 +1,14 @@
 """Test configuration."""
 
 __maintainer__ = ["MatthewMiddlehurst"]
-__all__ = ["PR_TESTING", "EXCLUDE_ESTIMATORS", "EXCLUDED_TESTS"]
+__all__ = [
+    "PR_TESTING",
+    "EXCLUDE_ESTIMATORS",
+    "EXCLUDED_TESTS",
+    "EXCLUDED_TESTS_NO_NUMBA",
+]
+
+import os
 
 import aeon.testing._cicd_numba_caching  # noqa: F401
 
@@ -9,10 +16,13 @@ import aeon.testing._cicd_numba_caching  # noqa: F401
 # per os/version default is False, can be set to True by pytest --prtesting True flag
 PR_TESTING = False
 
+# whether numba is disabled vis environment variable
+NUMBA_DISABLED = os.environ.get("NUMBA_DISABLE_JIT") != "1"
+
 # Exclude estimators here for short term fixes
 EXCLUDE_ESTIMATORS = []
 
-
+# Exclude specific tests for estimators here
 EXCLUDED_TESTS = {
     # Early classifiers (EC) intentionally retain information from previous predict
     # calls for #1 (test_non_state_changing_method_contract).
@@ -62,6 +72,12 @@ EXCLUDED_TESTS = {
     "SeriesSearch": ["check_non_state_changing_method"],
     # Unknown issue not producing the same results for Covid3Month (other is fine)
     "RDSTRegressor": ["check_regressor_against_expected_results"],
+}
+
+# Exclude specific tests for estimators here only when numba is disabled
+EXCLUDED_TESTS_NO_NUMBA = {
+    # See issue #622
+    "HIVECOTEV2": ["check_classifier_against_expected_results"],
 }
 
 # NON_STATE_CHANGING_METHODS =

@@ -299,6 +299,14 @@ def check_has_common_interface(estimator_class):
         estimator_class.get_fitted_params
     )
 
+    # axis class parameter is for internal use only
+    assert "axis" not in estimator_class.__dict__
+
+    # Must have at least one set to True
+    multi = estimator_class.get_class_tag(tag_name="capability:multivariate")
+    uni = estimator_class.get_class_tag(tag_name="capability:univariate")
+    assert multi or uni
+
 
 def check_set_params_sklearn(estimator_class):
     """Check that set_params works correctly, mirrors sklearn check_set_params.

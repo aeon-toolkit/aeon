@@ -41,19 +41,14 @@ def _yield_classification_checks(estimator_class, estimator_instances, datatypes
             results_dict=unit_test_proba,
             resample_seed=0,
         )
-        # the test currently fails when numba is disabled. See issue #622
-        if (
-            estimator_class.__name__ != "HIVECOTEV2"
-            or os.environ.get("NUMBA_DISABLE_JIT") != "1"
-        ):
-            yield partial(
-                check_classifier_against_expected_results,
-                estimator_class=estimator_class,
-                data_name="BasicMotions",
-                data_loader=load_basic_motions,
-                results_dict=basic_motions_proba,
-                resample_seed=4,
-            )
+        yield partial(
+            check_classifier_against_expected_results,
+            estimator_class=estimator_class,
+            data_name="BasicMotions",
+            data_loader=load_basic_motions,
+            results_dict=basic_motions_proba,
+            resample_seed=4,
+        )
     yield partial(check_classifier_overrides_and_tags, estimator_class=estimator_class)
 
     # data type irrelevant
@@ -154,9 +149,6 @@ def check_classifier_overrides_and_tags(estimator_class):
                 f"Override _{method} instead."
             )
 
-    # axis class parameter is for internal use only
-    assert "axis" not in estimator_class.__dict__
-
     # Test valid tag for X_inner_type
     X_inner_type = estimator_class.get_class_tag(tag_name="X_inner_type")
     if isinstance(X_inner_type, str):
@@ -171,11 +163,6 @@ def check_classifier_overrides_and_tags(estimator_class):
             assert X_inner_type in valid_unequal_types
         else:  # must be a list
             assert any([t in valid_unequal_types for t in X_inner_type])
-
-    # Must have at least one set to True
-    multi = estimator_class.get_class_tag(tag_name="capability:multivariate")
-    uni = estimator_class.get_class_tag(tag_name="capability:univariate")
-    assert multi or uni
 
     valid_algorithm_types = [
         "distance",

@@ -106,7 +106,7 @@ class ScaledLogitSeriesTransformer(BaseSeriesTransformer):
         else:
             X_transformed = deepcopy(X)
 
-        return X_transformed.squeeze()
+        return X_transformed
 
     def _inverse_transform(self, X, y=None):
         """Inverse transform, inverse operation to transform.
@@ -134,7 +134,7 @@ class ScaledLogitSeriesTransformer(BaseSeriesTransformer):
         else:
             X_inv_transformed = deepcopy(X)
 
-        return X_inv_transformed.squeeze()
+        return X_inv_transformed
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
