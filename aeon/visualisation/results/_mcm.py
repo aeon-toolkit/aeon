@@ -300,7 +300,10 @@ def _get_analysis(
         if pvalue_test == "wilcoxon":
             _pvalue_test_params = {}
             if pvalue_test_params is None:
-                _pvalue_test_params = {"zero_method": "pratt", "alternative": "greater"}
+                _pvalue_test_params = {
+                    "zero_method": "wilcox",
+                    "alternative": "greater",
+                }
             else:
                 _pvalue_test_params = pvalue_test_params
             p_value = round(wilcoxon(x=x, y=y, **_pvalue_test_params)[1], precision)
