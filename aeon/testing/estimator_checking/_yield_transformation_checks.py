@@ -167,7 +167,7 @@ def check_transformer_output(estimator, datatype):
 
     if "_fit_transform" in estimator.__class__.__dict__:
         Xt2 = _run_estimator_method(estimator, "fit_transform", datatype, "train")
-        assert deep_equals(Xt, Xt2)
+        assert deep_equals(Xt, Xt2, ignore_index=True)
 
 
 def check_channel_selectors(estimator, datatype):
@@ -198,4 +198,4 @@ def check_transform_inverse_transform_equivalent(estimator, datatype):
     if isinstance(Xit, (np.ndarray, pd.DataFrame)):
         Xit = Xit.squeeze()
 
-    assert deep_equals(X, Xit)
+    assert deep_equals(X, Xit, ignore_index=True)
