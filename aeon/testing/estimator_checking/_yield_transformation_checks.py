@@ -16,6 +16,7 @@ from aeon.testing.expected_results.expected_transform_outputs import (
     unit_test_result,
 )
 from aeon.testing.testing_data import FULL_TEST_DATA_DICT
+from aeon.testing.utils.deep_equals import deep_equals
 from aeon.testing.utils.estimator_checks import _run_estimator_method
 from aeon.transformations.collection.channel_selection.base import BaseChannelSelector
 from aeon.transformations.series import BaseSeriesTransformer
@@ -158,6 +159,7 @@ def check_transformer_overrides_and_tags(estimator_class):
 def check_transformer_output(estimator, datatype):
     """Test transformer outputs."""
     estimator = _clone_estimator(estimator)
+    set_random_state(estimator, 0)
 
     # run fit and predict
     _run_estimator_method(estimator, "fit", datatype, "train")
@@ -165,7 +167,7 @@ def check_transformer_output(estimator, datatype):
 
     if "_fit_transform" in estimator.__class__.__dict__:
         Xt2 = _run_estimator_method(estimator, "fit_transform", datatype, "train")
-        assert_array_almost_equal(Xt, Xt2)
+        assert deep_equals(Xt, Xt2)
 
 
 def check_channel_selectors(estimator, datatype):
@@ -196,4 +198,4 @@ def check_transform_inverse_transform_equivalent(estimator, datatype):
     if isinstance(Xit, (np.ndarray, pd.DataFrame)):
         Xit = Xit.squeeze()
 
-    assert_array_almost_equal(X, Xit)
+    assert deep_equals(X, Xit)
