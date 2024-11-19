@@ -39,17 +39,28 @@ class ETSForecaster(BaseForecaster):
     seasonality_type : int, default = 0
         Either NONE (0), ADDITIVE (1) or MULTIPLICATIVE (2).
     seasonal_period : int, default=1
-        Length of seasonality period.
+        Length of seasonality period. If seasonality_type is NONE, this is assumed to
+        be 1
     alpha : float, default = 0.1
         Level smoothing parameter.
     beta : float, default = 0.01
-        Trend smoothing parameter.
+        Trend smoothing parameter. If trend_type is NONE, this is assumed to be 0.0.
     gamma : float, default = 0.01
-        Seasonal smoothing parameter.
+        Seasonal smoothing parameter. If seasonality is NONE, this is assumed to be
+        0.0.
     phi : float, default = 0.99
         Trend damping smoothing parameters
     horizon : int, default = 1
         The horizon to forecast to.
+
+    Attributes
+    ----------
+    mean_sq_err_ : float
+        Mean squared error.
+    likelihood_ : float
+        Likelihood of the fitted model based on residuals.
+    residuals_ : arraylike
+        List of train set differences between fitted and actual values.
 
     References
     ----------
@@ -84,18 +95,17 @@ class ETSForecaster(BaseForecaster):
         self.beta = beta
         self.gamma = gamma
         self.phi = phi
-        self.forecast_val_ = 0.0
         self.level = (0,)
         self.trend = (0,)
         self.seasonality = np.zeros(1, dtype=np.float64)
         self.n_timepoints = 0
-        self.avg_mean_sq_err_ = 0
-        self.likelihood_ = 0
-        self.residuals_ = []
         self.error_type = error_type
         self.trend_type = trend_type
         self.seasonality_type = seasonality_type
         self.seasonal_period = seasonal_period
+        self.mean_sq_err_ = 0
+        self.likelihood_ = 0
+        self.residuals_ = []
         super().__init__(horizon=horizon, axis=1)
 
     def _fit(self, y, exog=None):
@@ -117,15 +127,15 @@ class ETSForecaster(BaseForecaster):
         """
         if self.error_type != MULTIPLICATIVE or self.error_type != ADDITIVE:
             raise ValueError("Error must be either additive or multiplicative")
-        self.seasonal_period_ = self.seasonal_period
+        self._seasonal_period = self.seasonal_period
         if self.seasonal_period < 1 or self.seasonality_type == NONE:
-            self.seasonal_period_ = 1
-        self.beta_ = self.beta
+            self._seasonal_period = 1
+        self._beta = self.beta
         if self.trend_type == NONE:
-            self.beta_ = 0
-        self.gamma_ = self.gamma
+            self._beta = 0
+        self._gamma = self.gamma
         if self.seasonality_type == NONE:
-            self.gamma_ = 0
+            self._gamma = 0
 
         data = np.array(y.squeeze(), dtype=np.float64)
         (
@@ -133,17 +143,17 @@ class ETSForecaster(BaseForecaster):
             self.trend,
             self.seasonality,
             self.residuals_,
-            self.avg_mean_sq_err_,
+            self.mean_sq_err_,
             self.likelihood_,
         ) = _fit_numba(
             data,
             self.error_type,
             self.trend_type,
             self.seasonality_type,
-            self.seasonal_period_,
+            self._seasonal_period,
             self.alpha,
-            self.beta_,
-            self.gamma_,
+            self._beta,
+            self._gamma,
             self.phi,
         )
         return self
@@ -157,7 +167,7 @@ class ETSForecaster(BaseForecaster):
         y : np.ndarray, default = None
             A time series to predict the next horizon value for. If None,
             predict the next horizon value after series seen in fit.
-        exog : np.ndarray, default =None
+        exog : np.ndarray, default = None
             Optional exogenous time series data assumed to be aligned with y
 
         Returns
@@ -194,10 +204,10 @@ def _fit_numba(
     level, trend, seasonality = _initialise(
         trend_type, seasonality_type, seasonal_period, data
     )
-    avg_mean_sq_err_ = 0
-    likelihood_ = 0
+    mse = 0
+    lhood = 0
     mul_likelihood_pt2 = 0
-    residuals_ = np.zeros(n_timepoints)  # 1 Less residual than data points
+    res = np.zeros(n_timepoints)  # 1 Less residual than data points
     for t, data_item in enumerate(data[seasonal_period:]):
         # Calculate level, trend, and seasonal components
         fitted_value, error, level, trend, seasonality[t % seasonal_period] = (
@@ -215,15 +225,15 @@ def _fit_numba(
                 phi,
             )
         )
-        residuals_[t] = error
-        avg_mean_sq_err_ += (data_item - fitted_value) ** 2
-        likelihood_ += error * error
+        res[t] = error
+        mse += (data_item - fitted_value) ** 2
+        lhood += error * error
         mul_likelihood_pt2 += np.log(np.fabs(fitted_value))
-    avg_mean_sq_err_ /= n_timepoints - seasonal_period
-    likelihood_ = (n_timepoints - seasonal_period) * np.log(likelihood_)
+    mse /= n_timepoints - seasonal_period
+    lhood = (n_timepoints - seasonal_period) * np.log(lhood)
     if error_type == MULTIPLICATIVE:
-        likelihood_ += 2 * mul_likelihood_pt2
-    return level, trend, seasonality, residuals_, avg_mean_sq_err_, likelihood_
+        lhood += 2 * mul_likelihood_pt2
+    return level, trend, seasonality, res, mse, lhood
 
 
 def _predict_numba(
