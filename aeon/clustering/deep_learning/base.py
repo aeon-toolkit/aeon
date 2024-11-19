@@ -136,6 +136,10 @@ class BaseDeepClusterer(BaseClusterer):
 
         latent_space = self.model_.layers[1].predict(X)
         self._estimator.fit(X=latent_space)
+        if hasattr(self._estimator, "labels_"):
+            self.labels_ = self._estimator.labels_
+        else:
+            self.labels_ = self._estimator.predict(X=latent_space)
 
         return self
 

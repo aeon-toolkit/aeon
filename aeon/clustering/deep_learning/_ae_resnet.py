@@ -344,6 +344,7 @@ class AEResNetClusterer(BaseDeepClusterer):
         self._fit_clustering(X=X)
 
         gc.collect()
+
         return self
 
     def _score(self, X, y=None):
