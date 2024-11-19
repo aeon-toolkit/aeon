@@ -3,15 +3,11 @@
 An implementation of the exponential smoothing statistics forecasting algorithm.
 Implements additive and multiplicative error models,
 None, additive and multiplicative (including damped) trend and
-None, additive and mutliplicative seasonality
-
-aeon enhancement proposal
-https://github.com/aeon-toolkit/aeon/pull/2244/
-
+None, additive and multiplicative seasonality
 """
 
 __maintainer__ = []
-__all__ = ["ETSForecaster"]
+__all__ = ["ETSForecaster", "NONE", "ADDITIVE", "MULTIPLICATIVE"]
 
 import numpy as np
 from numba import njit
@@ -169,8 +165,6 @@ class ETSForecaster(BaseForecaster):
         float
             single prediction self.horizon steps ahead of y.
         """
-        y = np.array(y, dtype=np.float64)
-
         return _predict_numba(
             self.trend_type,
             self.seasonality_type,
