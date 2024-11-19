@@ -120,7 +120,7 @@ def _dataframe_equals(x, y, depth, ignore_index):
         return True, ""
     else:
         eq = (
-            np.array_equal(x.values, y.values, equal_nan=True)
+            np.allclose(x.values, y.values, equal_nan=True)
             if ignore_index
             else x.equals(y)
         )
@@ -132,13 +132,13 @@ def _numpy_equals(x, y, depth):
     if x.dtype != y.dtype:
         return False, f"x.dtype ({x.dtype}) != y.dtype ({y.dtype})"
 
-    eq = np.array_equal(x, y, equal_nan=True)
+    eq = np.allclose(x, y, equal_nan=True)
     msg = "" if eq else f"x ({x}) != y ({y}), depth={depth}"
     return eq, msg
 
 
 def _csrmatrix_equals(x, y, depth):
-    if not np.allclose(x.toarray(), y.toarray()):
+    if not np.allclose(x.toarray(), y.toarray(), equal_nan=True):
         return False, f"x ({x}) !=  y ({y}), depth={depth}"
     return True, ""
 
