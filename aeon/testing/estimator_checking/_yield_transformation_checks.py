@@ -52,14 +52,16 @@ def _yield_transformation_checks(estimator_class, estimator_instances, datatypes
                 check_transformer_output, estimator=estimator, datatype=datatype
             )
 
-            if issubclass(estimator_class, BaseChannelSelector):
+            if isinstance(estimator, BaseChannelSelector):
                 yield partial(
                     check_channel_selectors,
                     estimator=estimator,
                     datatype=datatype,
                 )
 
-            if estimator.get_class_tag("capability:inverse_transform"):
+            if estimator is not None and estimator.get_tag(
+                "capability:inverse_transform"
+            ):
                 yield partial(
                     check_transform_inverse_transform_equivalent,
                     estimator=estimator,
@@ -146,6 +148,11 @@ def check_transformer_overrides_and_tags(estimator_class):
             assert X_inner_type in valid_unequal_types
         else:  # must be a list
             assert any([t in valid_unequal_types for t in X_inner_type])
+
+    if estimator_class.get_class_tag("capability:inverse_transform"):
+        assert "_inverse_transform" in estimator_class.__dict__
+    else:
+        assert "_inverse_transform" not in estimator_class.__dict__
 
 
 def check_transformer_output(estimator, datatype):
