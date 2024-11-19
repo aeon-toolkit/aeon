@@ -43,12 +43,7 @@ class MLPNetwork(BaseDeepLearningNetwork):
     }
 
     def __init__(
-        self,
-        use_bias=True,
-        dropout_rate = 0.1,
-        units = 500,
-        activation ="relu",
-        n_layers = 3
+        self, use_bias=True, dropout_rate=0.1, units=500, activation="relu", n_layers=3
     ):
         self.use_bias = use_bias
         self.dropout_rate = dropout_rate
@@ -84,11 +79,11 @@ class MLPNetwork(BaseDeepLearningNetwork):
 
         x = input_layer_flattened
 
-
         for _ in range(self.n_layers):
             x = keras.layers.Dropout(self.dropout_rate)(x)
-            x = keras.layers.Dense(self.units, activation=activation, use_bias=self.use_bias)(x)
-
+            x = keras.layers.Dense(
+                self.units, activation=activation, use_bias=self.use_bias
+            )(x)
 
         output_layer = keras.layers.Dropout(self.dropout_rate)(x)
 
