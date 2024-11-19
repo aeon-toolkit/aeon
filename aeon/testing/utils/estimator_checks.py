@@ -5,8 +5,11 @@ __maintainer__ = ["MatthewMiddlehurst"]
 import inspect
 from inspect import isclass
 
+import numpy as np
+
 from aeon.similarity_search.base import BaseSimilaritySearch
 from aeon.testing.testing_data import FULL_TEST_DATA_DICT
+from aeon.utils.validation import get_n_cases
 
 
 def _run_estimator_method(estimator, method_name, datatype, split):
@@ -66,3 +69,34 @@ def _get_tag(estimator, tag_name, default=None, raise_error=False):
         return estimator.get_tag(
             tag_name=tag_name, raise_error=raise_error, tag_value_default=default
         )
+
+
+def _assert_predict_labels(y_pred, datatype, split="test", unique_labels=None):
+    if isinstance(datatype, str):
+        datatype = FULL_TEST_DATA_DICT[datatype][split][0]
+
+    assert isinstance(y_pred, np.ndarray)
+    assert y_pred.shape == (get_n_cases(datatype),)
+    if unique_labels is not None:
+        assert np.all(np.isin(np.unique(y_pred), unique_labels))
+
+
+def _assert_predict_probabilities(y_proba, datatype, split="test", n_classes=None):
+    if isinstance(datatype, str):
+        if n_classes is None:
+            n_classes = len(np.unique(FULL_TEST_DATA_DICT[datatype][split][1]))
+        datatype = FULL_TEST_DATA_DICT[datatype][split][0]
+
+    if n_classes is None:
+        raise ValueError(
+            "n_classes must be provided if not using a test dataset string"
+        )
+
+    assert isinstance(y_proba, np.ndarray)
+    assert y_proba.shape == (
+        get_n_cases(datatype),
+        n_classes,
+    )
+    assert np.all(y_proba >= 0)
+    assert np.all(y_proba <= 1)
+    assert np.allclose(np.sum(y_proba, axis=1), 1)

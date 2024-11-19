@@ -351,9 +351,12 @@ def _get_check_estimator_ids(obj):
         if not obj.keywords:
             return obj.func.__name__
 
-        kwstring = ",".join(
-            [f"{k}={_get_check_estimator_ids(v)}" for k, v in obj.keywords.items()]
-        )
+        kwlist = []
+        for k, v in obj.keywords.items():
+            v = _get_check_estimator_ids(v)
+            if v is not None:
+                kwlist.append(f"{k}={v}")
+        kwstring = ",".join(kwlist) if kwlist else ""
         return f"{obj.func.__name__}({kwstring})"
     elif isclass(obj):
         return obj.__name__
@@ -363,5 +366,7 @@ def _get_check_estimator_ids(obj):
             s = re.sub(r"<function[^)]*>", "func", s)
             s = re.sub(r"<boundmethodrv[^)]*>", "boundmethod", s)
             return s
-    else:
+    elif isinstance(obj, str):
         return obj
+    else:
+        return None
