@@ -15,6 +15,15 @@ class MLPNetwork(BaseDeepLearningNetwork):
     ----------
     use_bias : bool, default = True
         Condition on whether or not to use bias values for dense layers.
+    dropout_rate: int, default = 0.1
+        Randomly drops a certain percentage of neurons during training
+    units: int , default = 500
+        Number of neurons for a particular dense layer
+    activation: String or Function, default = relu
+        Specifies the activation function to use in the dense layers
+    n_layers : int , default =3
+        Specifies Number of hidden layers excluding input and output layer
+
 
     Notes
     -----
@@ -36,8 +45,16 @@ class MLPNetwork(BaseDeepLearningNetwork):
     def __init__(
         self,
         use_bias=True,
+        dropout_rate = 0.1,
+        units = 500,
+        activation ="relu",
+        n_layers = 3
     ):
         self.use_bias = use_bias
+        self.dropout_rate = dropout_rate
+        self.units = units
+        self.activation = activation
+        self.n_layers = n_layers
 
         super().__init__()
 
@@ -60,21 +77,19 @@ class MLPNetwork(BaseDeepLearningNetwork):
         input_layer = keras.layers.Input(input_shape)
         input_layer_flattened = keras.layers.Flatten()(input_layer)
 
-        layer_1 = keras.layers.Dropout(0.1)(input_layer_flattened)
-        layer_1 = keras.layers.Dense(500, activation="relu", use_bias=self.use_bias)(
-            layer_1
-        )
+        activation = getattr(keras.activations, self.activation, None)
 
-        layer_2 = keras.layers.Dropout(0.2)(layer_1)
-        layer_2 = keras.layers.Dense(500, activation="relu", use_bias=self.use_bias)(
-            layer_2
-        )
+        if activation is None:
+            raise ValueError(f"Invalid activation function name:{self.activation}")
 
-        layer_3 = keras.layers.Dropout(0.2)(layer_2)
-        layer_3 = keras.layers.Dense(500, activation="relu", use_bias=self.use_bias)(
-            layer_3
-        )
+        x = input_layer_flattened
 
-        output_layer = keras.layers.Dropout(0.3)(layer_3)
+
+        for _ in range(self.n_layers):
+            x = keras.layers.Dropout(self.dropout_rate)(x)
+            x = keras.layers.Dense(self.units, activation=activation, use_bias=self.use_bias)(x)
+
+
+        output_layer = keras.layers.Dropout(self.dropout_rate)(x)
 
         return input_layer, output_layer
