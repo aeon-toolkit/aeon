@@ -91,7 +91,8 @@ class MLPNetwork(BaseDeepLearningNetwork):
             self._activation = self.activation
 
         if self.dropout_rate is None:
-            self._dropout_rate = [0.1].extend([0.2] * (self.n_layers - 1))
+            self._dropout_rate = [0.1]
+            self._dropout_rate.extend([0.2] * (self.n_layers - 1))
             assert np.all(
                 np.array(self._dropout_rate) - 1 <= 0
             ), "Dropout rate(s) should be in the interval [0, 1]."
