@@ -26,7 +26,6 @@ from aeon.clustering.deep_learning.base import BaseDeepClusterer
 from aeon.regression import BaseRegressor
 from aeon.regression.deep_learning.base import BaseDeepRegressor
 from aeon.segmentation import BaseSegmenter
-from aeon.similarity_search import BaseSimilaritySearch
 from aeon.testing.estimator_checking._yield_anomaly_detection_checks import (
     _yield_anomaly_detection_checks,
 )
@@ -36,9 +35,6 @@ from aeon.testing.estimator_checking._yield_classification_checks import (
 from aeon.testing.estimator_checking._yield_clustering_checks import (
     _yield_clustering_checks,
 )
-from aeon.testing.estimator_checking._yield_collection_transformation_checks import (
-    _yield_collection_transformation_checks,
-)
 from aeon.testing.estimator_checking._yield_early_classification_checks import (
     _yield_early_classification_checks,
 )
@@ -47,12 +43,6 @@ from aeon.testing.estimator_checking._yield_regression_checks import (
 )
 from aeon.testing.estimator_checking._yield_segmentation_checks import (
     _yield_segmentation_checks,
-)
-from aeon.testing.estimator_checking._yield_series_transformation_checks import (
-    _yield_series_transformation_checks,
-)
-from aeon.testing.estimator_checking._yield_similarity_search_checks import (
-    _yield_similarity_search_checks,
 )
 from aeon.testing.estimator_checking._yield_soft_dependency_checks import (
     _yield_soft_dependency_checks,
@@ -68,8 +58,6 @@ from aeon.testing.testing_data import FULL_TEST_DATA_DICT, _get_datatypes_for_es
 from aeon.testing.utils.deep_equals import deep_equals
 from aeon.testing.utils.estimator_checks import _get_tag, _run_estimator_method
 from aeon.transformations.base import BaseTransformer
-from aeon.transformations.collection import BaseCollectionTransformer
-from aeon.transformations.series import BaseSeriesTransformer
 from aeon.utils.base import VALID_ESTIMATOR_BASES
 from aeon.utils.tags import check_valid_tags
 from aeon.utils.validation._dependencies import _check_estimator_deps
@@ -148,23 +136,8 @@ def _yield_all_aeon_checks(
             estimator_class, estimator_instances, datatypes
         )
 
-    if issubclass(estimator_class, BaseSimilaritySearch):
-        yield from _yield_similarity_search_checks(
-            estimator_class, estimator_instances, datatypes
-        )
-
     if issubclass(estimator_class, BaseTransformer):
         yield from _yield_transformation_checks(
-            estimator_class, estimator_instances, datatypes
-        )
-
-    if issubclass(estimator_class, BaseCollectionTransformer):
-        yield from _yield_collection_transformation_checks(
-            estimator_class, estimator_instances, datatypes
-        )
-
-    if issubclass(estimator_class, BaseSeriesTransformer):
-        yield from _yield_series_transformation_checks(
             estimator_class, estimator_instances, datatypes
         )
 

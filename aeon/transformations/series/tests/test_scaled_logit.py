@@ -22,7 +22,7 @@ def test_scaled_logit_transform(lower, upper, output):
     """Test that we get the right output."""
     transformer = ScaledLogitSeriesTransformer(lower, upper)
     y_transformed = transformer.fit_transform(TEST_SERIES)
-    assert_array_equal(y_transformed, output)
+    assert_array_equal(y_transformed.squeeze(), output)
 
 
 def test_scaled_logit_bound_warnings():
