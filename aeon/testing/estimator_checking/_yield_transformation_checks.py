@@ -177,7 +177,7 @@ def check_channel_selectors(estimator, datatype):
     Xt = _run_estimator_method(estimator, "fit_transform", datatype, "train")
 
     assert hasattr(estimator, "channels_selected_")
-    assert isinstance(estimator.channels_selected_, list)
+    assert isinstance(estimator.channels_selected_, (list, np.ndarray))
     assert len(estimator.channels_selected_) > 0
     assert isinstance(Xt, np.ndarray)
     assert Xt.ndim == 3
@@ -187,10 +187,13 @@ def check_transform_inverse_transform_equivalent(estimator, datatype):
     """Test that inverse_transform is inverse to transform."""
     estimator = _clone_estimator(estimator)
 
+    X = FULL_TEST_DATA_DICT[datatype]["train"][0]
     Xt = _run_estimator_method(estimator, "fit_transform", datatype, "train")
-
     Xit = estimator.inverse_transform(Xt)
+
+    if isinstance(X, (np.ndarray, pd.DataFrame)):
+        X = X.squeeze()
     if isinstance(Xit, (np.ndarray, pd.DataFrame)):
         Xit = Xit.squeeze()
 
-    assert_array_almost_equal(FULL_TEST_DATA_DICT[datatype]["train"][0], Xit)
+    assert_array_almost_equal(X, Xit)

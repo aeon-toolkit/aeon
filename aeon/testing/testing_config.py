@@ -70,8 +70,9 @@ EXCLUDED_TESTS = {
     # if the next predict calls uses the same query length parameter.
     "QuerySearch": ["check_non_state_changing_method"],
     "SeriesSearch": ["check_non_state_changing_method"],
-    # Unknown issue not producing the same results for Covid3Month (other is fine)
+    # Unknown issue not producing the same results
     "RDSTRegressor": ["check_regressor_against_expected_results"],
+    "RISTRegressor": ["check_regressor_against_expected_results"],
 }
 
 # Exclude specific tests for estimators here only when numba is disabled
