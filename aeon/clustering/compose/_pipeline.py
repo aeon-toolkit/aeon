@@ -86,7 +86,7 @@ class ClustererPipeline(BaseCollectionPipeline, BaseClusterer):
         )
 
     def _fit(self, X, y=None):
-        return super()._fit(X, y)
+        super()._fit(X, y)
         self.labels_ = self.clusterer.labels_
         return self
 
