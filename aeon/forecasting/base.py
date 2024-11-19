@@ -1,10 +1,6 @@
 """BaseForecaster class.
 
-A simplified first base class for foreacasting models. The focus here is on a
-specific form of forecasting: longer series, long winodws and single step forecasting.
-
-aeon enhancement proposal
-https://github.com/aeon-toolkit/aeon-admin/pull/14
+A simplified first base class for forecasting models.
 
 """
 
@@ -40,7 +36,7 @@ class BaseForecaster(BaseSeriesEstimator):
         "y_inner_type": "np.ndarray",
     }
 
-    def __init__(self, horizon=1, axis=1):
+    def __init__(self, horizon, axis):
         self.horizon = horizon
         self.meta_ = None  # Meta data related to y on the last fit
         super().__init__(axis)

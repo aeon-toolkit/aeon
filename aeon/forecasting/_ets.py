@@ -29,13 +29,21 @@ MULTIPLICATIVE = 2
 class ETSForecaster(BaseForecaster):
     """Exponential Smoothing forecaster.
 
-    An implementation of the exponential smoothing statistics forecasting algorithm.
-    Implements additive and multiplicative error models,
-    None, additive and multiplicative (including damped) trend and
-    None, additive and mutliplicative seasonality[1]_.
+    An implementation of the exponential smoothing forecasting algorithm.
+    Implements additive and multiplicative error models, None, additive and
+    multiplicative (including damped) trend and None, additive and mutliplicative
+    seasonality. See [1]_ for a description.
 
     Parameters
     ----------
+    error_type : int, default = 1
+        Either NONE (0), ADDITIVE (1) or MULTIPLICATIVE (2).
+    trend_type : int, default = 0
+        Either NONE (0), ADDITIVE (1) or MULTIPLICATIVE (2).
+    seasonality_type : int, default = 0
+        Either NONE (0), ADDITIVE (1) or MULTIPLICATIVE (2).
+    seasonal_period : int, default=1
+        Length of seasonality period.
     alpha : float, default = 0.1
         Level smoothing parameter.
     beta : float, default = 0.01
@@ -76,9 +84,6 @@ class ETSForecaster(BaseForecaster):
         phi=0.99,
         horizon=1,
     ):
-        assert error_type != NONE, "Error must be either additive or multiplicative"
-        if seasonal_period < 1 or seasonality_type == NONE:
-            seasonal_period = 1
         self.alpha = alpha
         self.beta = beta
         self.gamma = gamma
@@ -89,7 +94,7 @@ class ETSForecaster(BaseForecaster):
         self.seasonality = np.zeros(1, dtype=np.float64)
         self.n_timepoints = 0
         self.avg_mean_sq_err_ = 0
-        self.liklihood_ = 0
+        self.likelihood_ = 0
         self.residuals_ = []
         self.error_type = error_type
         self.trend_type = trend_type
@@ -114,6 +119,11 @@ class ETSForecaster(BaseForecaster):
         self
             Fitted BaseForecaster.
         """
+        if self.error_type != MULTIPLICATIVE or self.error_type != ADDITIVE:
+            raise ValueError("Error must be either additive or multiplicative")
+        self.seasonal_period_ = self.seasonal_period
+        if self.seasonal_period < 1 or self.seasonality_type == NONE:
+            self.seasonal_period_ = 1
         self.beta_ = self.beta
         if self.trend_type == NONE:
             self.beta_ = 0
@@ -128,13 +138,13 @@ class ETSForecaster(BaseForecaster):
             self.seasonality,
             self.residuals_,
             self.avg_mean_sq_err_,
-            self.liklihood_,
+            self.likelihood_,
         ) = _fit_numba(
             data,
             self.error_type,
             self.trend_type,
             self.seasonality_type,
-            self.seasonal_period,
+            self.seasonal_period_,
             self.alpha,
             self.beta_,
             self.gamma_,
@@ -187,17 +197,12 @@ def _fit_numba(
     phi,
 ):
     n_timepoints = len(data)
-    # print(typeof(self.states.level))
-    # print(typeof(data))
-    # print(typeof(self.states.seasonality))
-    # print(typeof(np.full(self.model_type.seasonal_period, self.states.level)))
-    # print(typeof(data[: self.model_type.seasonal_period]))
     level, trend, seasonality = _initialise(
         trend_type, seasonality_type, seasonal_period, data
     )
     avg_mean_sq_err_ = 0
-    liklihood_ = 0
-    mul_liklihood_pt2 = 0
+    likelihood_ = 0
+    mul_likelihood_pt2 = 0
     residuals_ = np.zeros(n_timepoints)  # 1 Less residual than data points
     for t, data_item in enumerate(data[seasonal_period:]):
         # Calculate level, trend, and seasonal components
@@ -218,13 +223,13 @@ def _fit_numba(
         )
         residuals_[t] = error
         avg_mean_sq_err_ += (data_item - fitted_value) ** 2
-        liklihood_ += error * error
-        mul_liklihood_pt2 += np.log(np.fabs(fitted_value))
+        likelihood_ += error * error
+        mul_likelihood_pt2 += np.log(np.fabs(fitted_value))
     avg_mean_sq_err_ /= n_timepoints - seasonal_period
-    liklihood_ = (n_timepoints - seasonal_period) * np.log(liklihood_)
+    likelihood_ = (n_timepoints - seasonal_period) * np.log(likelihood_)
     if error_type == MULTIPLICATIVE:
-        liklihood_ += 2 * mul_liklihood_pt2
-    return level, trend, seasonality, residuals_, avg_mean_sq_err_, liklihood_
+        likelihood_ += 2 * mul_likelihood_pt2
+    return level, trend, seasonality, residuals_, avg_mean_sq_err_, likelihood_
 
 
 def _predict_numba(
