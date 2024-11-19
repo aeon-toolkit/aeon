@@ -1154,6 +1154,10 @@ class BaseIntervalForest(ABC):
         curves : list of np.ndarray
             The temporal importance curves for each feature.
         """
+        if is_regressor(self):
+            raise NotImplementedError(
+                "Temporal importance curves are not available for regression."
+            )
         if not isinstance(self._base_estimator, ContinuousIntervalTree):
             raise ValueError(
                 "base_estimator for temporal importance curves must"
