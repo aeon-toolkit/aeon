@@ -17,7 +17,7 @@ import aeon.testing._cicd_numba_caching  # noqa: F401
 PR_TESTING = False
 
 # whether numba is disabled vis environment variable
-NUMBA_DISABLED = os.environ.get("NUMBA_DISABLE_JIT") != "1"
+NUMBA_DISABLED = os.environ.get("NUMBA_DISABLE_JIT") == "1"
 
 # Exclude estimators here for short term fixes
 EXCLUDE_ESTIMATORS = []
