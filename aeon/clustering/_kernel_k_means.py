@@ -98,7 +98,7 @@ class TimeSeriesKernelKMeans(BaseClusterer):
         tol: float = 1e-4,
         kernel_params: Union[dict, None] = None,
         verbose: bool = False,
-        n_jobs: Union[int, None] = None,
+        n_jobs: Union[int, None] = 1,
         random_state: Optional[Union[int, RandomState]] = None,
     ):
         self.kernel = kernel
