@@ -125,7 +125,7 @@ class ETSForecaster(BaseForecaster):
         self
             Fitted BaseForecaster.
         """
-        if self.error_type != MULTIPLICATIVE or self.error_type != ADDITIVE:
+        if self.error_type != MULTIPLICATIVE and self.error_type != ADDITIVE:
             raise ValueError("Error must be either additive or multiplicative")
         self._seasonal_period = self.seasonal_period
         if self.seasonal_period < 1 or self.seasonality_type == NONE:
