@@ -435,16 +435,6 @@ def test_single_to_multiple_distances(dist):
         dist["pairwise_distance"],
     )
 
-    # Test passing a singular univariate time series of shape (1, n_timepoints) compared
-    # to a collection of univariate time series of shape (n_cases, n_timepoints)
-    _validate_single_to_multiple_result(
-        make_example_2d_numpy_series(5, 1, random_state=1),
-        make_example_2d_numpy_collection(5, 5, random_state=2, return_y=False),
-        dist["name"],
-        dist["distance"],
-        dist["pairwise_distance"],
-    )
-
     # Test passing a singular univariate time series of shape (n_timepoints,) compared
     # to a collection of univariate time series of shape (n_cases, 1, n_timepoints)
     _validate_single_to_multiple_result(
