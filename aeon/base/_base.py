@@ -12,8 +12,6 @@ from sklearn.base import BaseEstimator
 from sklearn.ensemble._base import _set_random_states
 from sklearn.exceptions import NotFittedError
 
-from aeon.utils.validation._dependencies import _check_estimator_deps
-
 
 class BaseAeonEstimator(BaseEstimator, ABC):
     """
