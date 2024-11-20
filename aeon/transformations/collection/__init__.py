@@ -19,6 +19,7 @@ __all__ = [
     "PeriodogramTransformer",
     "Resizer",
     "SlopeTransformer",
+    "SimpleImputer",
     "Truncator",
     "Tabularizer",
 ]
@@ -28,6 +29,7 @@ from aeon.transformations.collection._ar_coefficient import ARCoefficientTransfo
 from aeon.transformations.collection._downsample import DownsampleTransformer
 from aeon.transformations.collection._dwt import DWTTransformer
 from aeon.transformations.collection._hog1d import HOG1DTransformer
+from aeon.transformations.collection._impute import SimpleImputer
 from aeon.transformations.collection._matrix_profile import MatrixProfile
 from aeon.transformations.collection._pad import Padder
 from aeon.transformations.collection._periodogram import PeriodogramTransformer

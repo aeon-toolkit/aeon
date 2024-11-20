@@ -152,19 +152,6 @@ class _IGTS:
        "Information gain-based metric for recognizing transitions in human activities.",
        Pervasive and Mobile Computing, 38, 92-109, (2017).
        https://www.sciencedirect.com/science/article/abs/pii/S1574119217300081
-
-    Examples
-    --------
-    >>> from aeon.testing.data_generation import piecewise_normal_multivariate
-    >>> from sklearn.preprocessing import MinMaxScaler
-    >>> from aeon.segmentation import InformationGainSegmenter
-    >>> X = piecewise_normal_multivariate(lengths=[10, 10, 10, 10],
-    ...     means=[[0.0, 1.0], [11.0, 10.0], [5.0, 3.0], [2.0, 2.0]],
-    ...     variances=0.5)
-    >>> X_scaled = MinMaxScaler(feature_range=(0, 1)).fit_transform(X)
-    >>> igts = InformationGainSegmenter(k_max=3, step=2)
-    >>> y = igts.fit_predict(X_scaled, axis=0)
-
     """
 
     # init attributes
@@ -256,7 +243,8 @@ class _IGTS:
         current_change_points = self.identity(X)
 
         for k in range(self.k_max):
-            ig_max = 0
+            best_candidate = -1
+            ig_max = -1
             # find a point which maximizes score
             for candidate in self.get_candidates(n_samples, current_change_points):
                 try_change_points = {candidate}
@@ -335,12 +323,10 @@ class InformationGainSegmenter(BaseSegmenter):
 
     Examples
     --------
-    >>> from aeon.testing.data_generation import piecewise_normal_multivariate
+    >>> from aeon.testing.data_generation import make_example_dataframe_series
     >>> from sklearn.preprocessing import MinMaxScaler
     >>> from aeon.segmentation import InformationGainSegmenter
-    >>> X = piecewise_normal_multivariate(lengths=[10, 10, 10, 10],
-    ...     means=[[0.0, 1.0], [11.0, 10.0], [5.0, 3.0], [2.0, 2.0]],
-    ...     variances=0.5)
+    >>> X = make_example_dataframe_series(n_channels=2, random_state=10)
     >>> X_scaled = MinMaxScaler(feature_range=(0, 1)).fit_transform(X)
     >>> igts = InformationGainSegmenter(k_max=3, step=2)
     >>> y = igts.fit_predict(X_scaled, axis=0)

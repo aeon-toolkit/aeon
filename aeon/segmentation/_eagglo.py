@@ -72,13 +72,11 @@ class EAggloSegmenter(BaseSegmenter):
 
     Examples
     --------
-    >>> from aeon.testing.data_generation import piecewise_normal_multivariate
+    >>> from aeon.testing.data_generation import make_example_dataframe_series
     >>> from aeon.segmentation import EAggloSegmenter
-    >>> X = piecewise_normal_multivariate(means=[[1, 3], [4, 5]], lengths=[3, 4],
-    ...     random_state = 10)
+    >>> X = make_example_dataframe_series(n_channels=2, random_state=10)
     >>> model = EAggloSegmenter()
-    >>> model.fit_predict(X, axis=0)
-    array([0, 0, 0, 1, 1, 1, 1])
+    >>> y = model.fit_predict(X, axis=0)
     """
 
     _tags = {

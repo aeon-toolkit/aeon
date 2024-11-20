@@ -18,7 +18,7 @@ from aeon.visualisation import (
 
 data_path = os.path.join(
     os.path.dirname(aeon.__file__),
-    "benchmarking/example_results/",
+    "testing/example_results_files/",
 )
 
 

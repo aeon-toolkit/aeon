@@ -193,6 +193,15 @@ class CanonicalIntervalForestRegressor(BaseIntervalForest, BaseRegressor):
         if use_pycatch22:
             self.set_tags(**{"python_dependencies": "pycatch22"})
 
+    def _fit(self, X, y):
+        return super()._fit(X, y)
+
+    def _predict(self, X) -> np.ndarray:
+        return super()._predict(X)
+
+    def _fit_predict(self, X, y) -> np.ndarray:
+        return super()._fit_predict(X, y)
+
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
