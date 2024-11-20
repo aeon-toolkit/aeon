@@ -119,8 +119,6 @@ class BaseForecaster(BaseSeriesEstimator):
         """
         self._check_X(y, self.axis)
         y = self._convert_y(y, self.axis)
-        self._check_X(y, self.axis)
-        y = self._convert_y(y, self.axis)
         return self._forecast(y, exog)
 
     def _forecast(self, y, exog=None):
