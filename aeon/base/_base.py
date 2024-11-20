@@ -51,7 +51,6 @@ class BaseAeonEstimator(BaseEstimator, ABC):
         self._tags_dynamic = dict()  # storage for dynamic tags
 
         super().__init__()
-        _check_estimator_deps(self)
 
     def reset(self, keep=None):
         """
