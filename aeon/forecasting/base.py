@@ -58,9 +58,10 @@ class BaseForecaster(BaseSeriesEstimator):
         self
             Fitted BaseForecaster.
         """
-        # Validate y
+        if self.get_tag("fit_is_empty"):
+            self.is_fitted = True
+            return self
 
-        # Convert if necessary
         self._check_X(y, self.axis)
         y = self._convert_y(y, self.axis)
         if exog is not None:
