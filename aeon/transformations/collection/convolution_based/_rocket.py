@@ -66,8 +66,7 @@ class Rocket(BaseCollectionTransformer):
         "output_data_type": "Tabular",
         "capability:multivariate": True,
         "algorithm_type": "convolution",
-        "capability:unequal_length": True,
-        "X_inner_type": ["numpy3D", "np-list"],
+        "X_inner_type": "numpy3D",
     }
 
     def __init__(
@@ -107,9 +106,6 @@ class Rocket(BaseCollectionTransformer):
 
         # The only use of n_timepoints is to set the maximum dilation
         self.fit_min_length_ = X[0].shape[1]
-        # If unequal length, must use the shortest time series length
-        if isinstance(X, list):  # Unequal length, take the min
-            self.fit_min_length_ = min(x.shape[1] for x in X)
         self.kernels = _generate_kernels(
             self.fit_min_length_, self.n_kernels, n_channels, self._random_state
         )
@@ -128,17 +124,6 @@ class Rocket(BaseCollectionTransformer):
         -------
         np.ndarray (n_cases, n_kernels), transformed features
         """
-        if isinstance(X, list):  # Unequal length, take the min
-            transform_min_length_ = min(x.shape[1] for x in X)
-        else:
-            transform_min_length_ = X.shape[2]
-        if transform_min_length_ < self.fit_min_length_:
-            raise ValueError(
-                f"Min length in transform = {transform_min_length_} is less "
-                f"than the minimum seen in fit {self.fit_min_length_}. , Rocket cannot "
-                f"yet handle this scenario, we suggest you pad the series so the "
-                f"shortest transform data is as long as the shortest fit data."
-            )
         if self.normalise:
             norm = Normalizer()
             X = norm.fit_transform(X)
