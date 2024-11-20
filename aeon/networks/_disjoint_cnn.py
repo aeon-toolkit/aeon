@@ -84,6 +84,12 @@ class DisjointCNNNetwork(BaseDeepLearningNetwork):
     (ICDMW). IEEE, 2021.
     """
 
+    _config = {
+        "python_dependencies": ["tensorflow"],
+        "python_version": "<3.13",
+        "structure": "encoder",
+    }
+
     def __init__(
         self,
         n_layers=4,

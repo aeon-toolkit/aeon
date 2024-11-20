@@ -26,7 +26,7 @@ class AEBiGRUNetwork(BaseDeepLearningNetwork):
 
     _config = {
         "python_dependencies": ["tensorflow"],
-        "python_version": "<3.12",
+        "python_version": "<3.13",
         "structure": "auto-encoder",
     }
 

@@ -10,8 +10,6 @@ from aeon.utils.validation._dependencies import (
     _check_soft_dependencies,
 )
 
-__maintainer__ = []
-
 _networks = network_classes = [
     member[1] for member in inspect.getmembers(networks, inspect.isclass)
 ]
