@@ -131,7 +131,7 @@ class TimeSeriesKShape(BaseClusterer):
 
         self._tslearn_k_shapes.fit(_X)
         self._cluster_centers = self._tslearn_k_shapes.cluster_centers_
-        self.labels_ = self._tslearn_k_shapes.labels_
+        self.labels_ = self._tslearn_k_shapes.predict(_X)
         self.inertia_ = self._tslearn_k_shapes.inertia_
         self.n_iter_ = self._tslearn_k_shapes.n_iter_
 

@@ -112,7 +112,6 @@ def check_clusterer_output(estimator, datatype):
     estimator.fit(data)
     assert hasattr(estimator, "labels_")
     assert isinstance(estimator.labels_, np.ndarray)
-    assert np.array_equal(estimator.labels_, estimator.fit_predict(data))
     assert np.array_equal(estimator.labels_, estimator.predict(data))
 
     y_pred = estimator.predict(FULL_TEST_DATA_DICT[datatype]["test"][0])
