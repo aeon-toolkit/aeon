@@ -1,6 +1,6 @@
 """Utility functions for creating and reversing sliding windows of time series data."""
 
-__maintainer__ = ["CodeLionX"]
+__maintainer__ = ["SebastianSchmidl"]
 __all__ = ["sliding_windows", "reverse_windowing"]
 
 from typing import Callable, Optional

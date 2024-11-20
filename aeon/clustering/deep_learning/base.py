@@ -3,6 +3,7 @@
 __maintainer__ = []
 
 from abc import abstractmethod
+from copy import deepcopy
 
 from aeon.base._base import _clone_estimator
 from aeon.clustering._k_means import TimeSeriesKMeans
@@ -28,7 +29,8 @@ class BaseDeepClusterer(BaseClusterer):
         training batch size for the model
     last_file_name : str, default = "last_model"
         The name of the file of the last model, used
-        only if save_last_model_to_file is used
+        only if save_last_model_to_file is used in
+        child class.
 
     """
 
@@ -48,7 +50,7 @@ class BaseDeepClusterer(BaseClusterer):
         clustering_algorithm="deprecated",
         clustering_params=None,
         batch_size=32,
-        last_file_name="last_file",
+        last_file_name="last_model",
     ):
         self.estimator = estimator
         self.n_clusters = n_clusters
@@ -157,6 +159,33 @@ class BaseDeepClusterer(BaseClusterer):
         clusters_proba = self._estimator.predict_proba(latent_space)
 
         return clusters_proba
+
+    def load_model(self, model_path, estimator):
+        """Load a pre-trained keras model instead of fitting.
+
+        When calling this function, all functionalities can be used
+        such as predict, predict_proba etc. with the loaded model.
+
+        Parameters
+        ----------
+        model_path : str (path including model name and extension)
+            The directory where the model will be saved including the model
+            name with a ".keras" extension.
+            Example: model_path="path/to/file/best_model.keras"
+        estimator : estimator : aeon clusterer
+            Pre-trained clusterer needed for loading model.
+
+        Returns
+        -------
+        None
+        """
+        import tensorflow as tf
+
+        self.model_ = tf.keras.models.load_model(model_path)
+        self.is_fitted = True
+
+        # use deep copy to preserve fit state
+        self._estimator = deepcopy(estimator)
 
     def _get_model_checkpoint_callback(self, callbacks, file_path, file_name):
         import tensorflow as tf

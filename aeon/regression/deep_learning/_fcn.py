@@ -21,25 +21,25 @@ class FCNRegressor(BaseDeepRegressor):
 
     Parameters
     ----------
-    n_layers        : int, default = 3
+    n_layers : int, default = 3
         number of convolution layers
-    n_filters       : int or list of int, default = [128,256,128]
+    n_filters : int or list of int, default = [128,256,128]
         number of filters used in convolution layers
-    kernel_size     : int or list of int, default = [8,5,3]
+    kernel_size : int or list of int, default = [8,5,3]
         size of convolution kernel
-    dilation_rate   : int or list of int, default = 1
+    dilation_rate : int or list of int, default = 1
         the dilation rate for convolution
-    strides         : int or list of int, default = 1
+    strides : int or list of int, default = 1
         the strides of the convolution filter
-    padding         : str or list of str, default = "same"
+    padding : str or list of str, default = "same"
         the type of padding used for convolution
-    activation      : str or list of str, default = "relu"
+    activation : str or list of str, default = "relu"
         activation used after the convolution
-    use_bias        : bool or list of bool, default = True
+    use_bias : bool or list of bool, default = True
         whether or not ot use bias in convolution
-    n_epochs        : int, default = 2000
+    n_epochs : int, default = 2000
         the number of epochs to train the model
-    batch_size      : int, default = 16
+    batch_size : int, default = 16
         the number of samples per gradient update.
     use_mini_batch_size : bool, default = False,
         whether or not to use the mini batch size formula
@@ -50,45 +50,48 @@ class FCNRegressor(BaseDeepRegressor):
         by `np.random`.
         Seeded random number generation can only be guaranteed on CPU processing,
         GPU processing will be non-deterministic.
-    verbose         : boolean, default = False
+    verbose : boolean, default = False
         whether to output extra information
     output_activation   : str, default = "linear",
         the output activation of the regressor
-    loss            : string, default="mean_squared_error"
-        fit parameter for the keras model
-    metrics         : list of strings, default="mean_squared_error",
+    loss : str, default = "mean_squared_error"
+        The name of the keras training loss.
+    metrics : str or list[str], default="mean_squared_error"
         The evaluation metrics to use during training. If
         a single string metric is provided, it will be
         used as the only metric. If a list of metrics are
         provided, all will be used for evaluation.
-    optimizer       : keras.optimizers object, default = Adam(lr=0.01)
-        specify the optimizer and the learning rate to be used.
-    file_path       : str, default = "./"
+    optimizer : keras.optimizer, default = tf.keras.optimizers.Adam()
+        The keras optimizer used for training.
+    file_path : str, default = "./"
         file path to save best model
-    save_best_model     : bool, default = False
+    save_best_model : bool, default = False
         Whether or not to save the best model, if the
         modelcheckpoint callback is used by default,
         this condition, if True, will prevent the
         automatic deletion of the best saved model from
         file and the user can choose the file name
-    save_last_model     : bool, default = False
+    save_last_model : bool, default = False
         Whether or not to save the last model, last
         epoch trained, using the base class method
         save_last_model_to_file
     save_init_model : bool, default = False
         Whether to save the initialization of the  model.
-    best_file_name      : str, default = "best_model"
+    best_file_name : str, default = "best_model"
         The name of the file of the best model, if
         save_best_model is set to False, this parameter
         is discarded
-    last_file_name      : str, default = "last_model"
+    last_file_name : str, default = "last_model"
         The name of the file of the last model, if
         save_last_model is set to False, this parameter
         is discarded
     init_file_name : str, default = "init_model"
         The name of the file of the init model, if save_init_model is set to False,
         this parameter is discarded.
-    callbacks       : keras.callbacks, default = None
+    callbacks : keras callback or list of callbacks,
+        default = None
+        The default list of callbacks are set to
+        ModelCheckpoint and ReduceLROnPlateau.
 
     Notes
     -----
@@ -134,7 +137,7 @@ class FCNRegressor(BaseDeepRegressor):
         callbacks=None,
         verbose=False,
         output_activation="linear",
-        loss="mse",
+        loss="mean_squared_error",
         metrics="mean_squared_error",
         random_state=None,
         use_bias=True,
@@ -240,10 +243,11 @@ class FCNRegressor(BaseDeepRegressor):
 
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
-        if isinstance(self.metrics, str):
-            self._metrics = [self.metrics]
-        else:
+
+        if isinstance(self.metrics, list):
             self._metrics = self.metrics
+        elif isinstance(self.metrics, str):
+            self._metrics = [self.metrics]
 
         self.input_shape = X.shape[1:]
         self.training_model_ = self.build_model(self.input_shape)

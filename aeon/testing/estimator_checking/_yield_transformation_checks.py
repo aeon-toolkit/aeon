@@ -5,6 +5,7 @@ from sys import platform
 
 import numpy as np
 import pandas as pd
+from numpy.testing import assert_array_almost_equal
 from sklearn.utils._testing import set_random_state
 
 from aeon.base._base import _clone_estimator
@@ -14,10 +15,7 @@ from aeon.testing.expected_results.expected_transform_outputs import (
     unit_test_result,
 )
 from aeon.testing.testing_data import FULL_TEST_DATA_DICT
-from aeon.testing.utils.estimator_checks import (
-    _assert_array_almost_equal,
-    _run_estimator_method,
-)
+from aeon.testing.utils.estimator_checks import _run_estimator_method
 
 
 def _yield_transformation_checks(estimator_class, estimator_instances, datatypes):
@@ -81,7 +79,7 @@ def check_transformer_against_expected_results(estimator_class):
         )
 
         # assert results are the same
-        _assert_array_almost_equal(
+        assert_array_almost_equal(
             results,
             expected_results,
             decimal=2,
@@ -105,6 +103,6 @@ def check_transform_inverse_transform_equivalent(estimator, datatype):
     Xit = estimator.inverse_transform(Xt)
 
     if isinstance(X, pd.DataFrame):
-        _assert_array_almost_equal(X.loc[Xit.index], Xit)
+        assert_array_almost_equal(X.loc[Xit.index], Xit)
     else:
-        _assert_array_almost_equal(X, Xit)
+        assert_array_almost_equal(X, Xit)
