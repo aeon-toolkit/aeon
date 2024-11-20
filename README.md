@@ -127,6 +127,9 @@ clu.predict(X_test)  # Assign clusters to new data
 [GitHub Discussions]: https://github.com/aeon-toolkit/aeon/discussions
 [Slack]: https://join.slack.com/t/aeon-toolkit/shared_invite/zt-22vwvut29-HDpCu~7VBUozyfL_8j3dLA
 
+For enquiries about the project or collaboration, our email is
+[contact@aeon-toolkit.org](mailto:contact@aeon-toolkit.org).
+
 ## 📚 Citation
 
 If you use `aeon` we would appreciate a citation of the following [paper](https://jmlr.org/papers/v25/23-1444.html):
