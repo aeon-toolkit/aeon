@@ -49,9 +49,9 @@ class BaseForecaster(BaseSeriesEstimator):
         Parameters
         ----------
         y : np.ndarray
-            A time series on which to learn a forecaster to predict horizon ahead
+            A time series on which to learn a forecaster to predict horizon ahead.
         exog : np.ndarray, default =None
-            Optional exogenous time series data assumed to be aligned with y
+            Optional exogenous time series data assumed to be aligned with y.
 
         Returns
         -------
@@ -81,7 +81,7 @@ class BaseForecaster(BaseSeriesEstimator):
             A time series to predict the next horizon value for. If None,
             predict the next horizon value after series seen in fit.
         exog : np.ndarray, default =None
-            Optional exogenous time series data assumed to be aligned with y
+            Optional exogenous time series data assumed to be aligned with y.
 
         Returns
         -------
@@ -100,14 +100,22 @@ class BaseForecaster(BaseSeriesEstimator):
     def _predict(self, y=None, exog=None): ...
 
     def forecast(self, y, exog=None):
-        """
+        """Forecast the next horizon steps ahead.
 
-        Forecast basically fit_predict.
+        By default this is simply fit followed by predict.
+
+        Parameters
+        ----------
+        y : np.ndarray, default = None
+            A time series to predict the next horizon value for. If None,
+            predict the next horizon value after series seen in fit.
+        exog : np.ndarray, default =None
+            Optional exogenous time series data assumed to be aligned with y.
 
         Returns
         -------
-        np.ndarray
-            single prediction directly after the last point in X.
+        float
+            single prediction self.horizon steps ahead of y.
         """
         self._check_X(y, self.axis)
         y = self._convert_y(y, self.axis)
@@ -118,7 +126,7 @@ class BaseForecaster(BaseSeriesEstimator):
     def _forecast(self, y, exog=None):
         """Forecast values for time series X."""
         self.fit(y, exog)
-        return self.predict(y, exog)
+        return self._predict(y, exog)
 
     def _convert_y(self, y: VALID_INPUT_TYPES, axis: int):
         """Convert y to self.get_tag("y_inner_type")."""
