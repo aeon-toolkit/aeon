@@ -27,7 +27,7 @@ class MiniRocketClassifier(BaseClassifier):
 
     Parameters
     ----------
-    num_kernels : int, default=10,000
+    n_kernels : int, default=10,000
         The number of kernels for the Rocket transform.
     max_dilations_per_kernel : int, default=32
         The maximum number of dilations per kernel.
@@ -75,7 +75,7 @@ class MiniRocketClassifier(BaseClassifier):
     >>> from aeon.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test = load_unit_test(split="test")
-    >>> clf = MiniRocketClassifier(num_kernels=500)
+    >>> clf = MiniRocketClassifier(n_kernels=500)
     >>> clf.fit(X_train, y_train)
     MiniRocketClassifier(...)
     >>> y_pred = clf.predict(X_test)
@@ -89,14 +89,14 @@ class MiniRocketClassifier(BaseClassifier):
 
     def __init__(
         self,
-        num_kernels=10000,
+        n_kernels=10000,
         max_dilations_per_kernel=32,
         estimator=None,
         class_weight=None,
         n_jobs=1,
         random_state=None,
     ):
-        self.num_kernels = num_kernels
+        self.n_kernels = n_kernels
         self.max_dilations_per_kernel = max_dilations_per_kernel
         self.estimator = estimator
 
@@ -129,7 +129,7 @@ class MiniRocketClassifier(BaseClassifier):
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
 
         self._transformer = MiniRocket(
-            num_kernels=self.num_kernels,
+            n_kernels=self.n_kernels,
             max_dilations_per_kernel=self.max_dilations_per_kernel,
             n_jobs=self.n_jobs,
             random_state=self.random_state,
@@ -215,6 +215,6 @@ class MiniRocketClassifier(BaseClassifier):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
         """
         if parameter_set == "results_comparison":
-            return {"num_kernels": 100}
+            return {"n_kernels": 100}
         else:
-            return {"num_kernels": 20, "max_dilations_per_kernel": 6}
+            return {"n_kernels": 20, "max_dilations_per_kernel": 6}

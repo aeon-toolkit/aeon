@@ -126,7 +126,7 @@ def test_unequal_tag_inference():
 
     # todo revisit with mock clusterer
     # c1 = DummyClassifier()
-    # c2 = RocketClassifier(num_kernels=5)
+    # c2 = RocketClassifier(n_kernels=5)
     c3 = KMeans(n_clusters=2, max_iter=3, random_state=0)
 
     # assert c1.get_tag("capability:unequal_length")
@@ -189,7 +189,7 @@ def test_missing_tag_inference():
 
     # todo revisit with mock clusterer
     # c1 = DummyClassifier()
-    # c2 = RocketClassifier(num_kernels=5)
+    # c2 = RocketClassifier(n_kernels=5)
     c3 = KMeans(n_clusters=2, max_iter=3, random_state=0)
 
     # assert c1.get_tag("capability:missing_values")

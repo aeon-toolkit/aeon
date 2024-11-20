@@ -57,14 +57,14 @@ def test_rocket_on_univariate(transform):
     if transform == "Rocket":
         rocket = Rocket(n_kernels=100, random_state=0)
     elif transform == "MiniRocket":
-        rocket = MiniRocket(num_kernels=100, random_state=0)
+        rocket = MiniRocket(n_kernels=100, random_state=0)
     elif transform == "MultiRocket":
-        rocket = MultiRocket(num_kernels=100, random_state=0)
+        rocket = MultiRocket(n_kernels=100, random_state=0)
     rocket.fit(X)
     # transform training data
     X_trans = rocket.transform(X)
     # test shape of transformed training data -> (number of training
-    # examples, num_kernels * 2)
+    # examples, n_kernels * 2)
     np.testing.assert_equal(X_trans.shape, (len(X), expected_features[transform]))
     np.testing.assert_almost_equal(
         np.array(expected_uni[transform]),
@@ -86,15 +86,15 @@ def test_rocket_on_multivariate(transform):
     if transform == "Rocket":
         rocket = Rocket(n_kernels=100, random_state=0)
     elif transform == "MiniRocket":
-        rocket = MiniRocket(num_kernels=100, random_state=0)
+        rocket = MiniRocket(n_kernels=100, random_state=0)
     else:
-        rocket = MultiRocket(num_kernels=100, random_state=0)
+        rocket = MultiRocket(n_kernels=100, random_state=0)
 
     rocket.fit(X)
     # transform training data
     X_trans = rocket.transform(X)
     # test shape of transformed training data -> (number of training
-    # examples, num_kernels * 2)
+    # examples, n_kernels * 2)
     np.testing.assert_equal(X_trans.shape, (len(X), expected_features[transform]))
     np.testing.assert_almost_equal(
         np.array(expected_multi[transform]),
@@ -113,7 +113,7 @@ def test_normalise_rocket():
     rocket = Rocket(n_kernels=200, normalise=True)
     trans = rocket.fit_transform(arr)
     assert trans.shape == (10, 400)
-    rocket = MultiRocket(num_kernels=200, normalise=True)
+    rocket = MultiRocket(n_kernels=200, normalise=True)
     trans = rocket.fit_transform(arr)
     assert trans.shape == (10, 1344)
 
@@ -159,8 +159,8 @@ expected_basic_motions["MiniRocket"] = np.array(
 )
 rockets = [
     Rocket(n_kernels=100),
-    MultiRocket(num_kernels=100),
-    MiniRocket(num_kernels=100),
+    MultiRocket(n_kernels=100),
+    MiniRocket(n_kernels=100),
 ]
 types = [np.float32, np.float64, np.int32, np.int64]
 data = [

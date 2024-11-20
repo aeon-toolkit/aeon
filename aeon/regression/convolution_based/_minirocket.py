@@ -27,7 +27,7 @@ class MiniRocketRegressor(BaseRegressor):
 
     Parameters
     ----------
-    num_kernels : int, default=10,000
+    n_kernels : int, default=10,000
         The number of kernels for the Rocket transform.
     max_dilations_per_kernel : int, default=32
         The maximum number of dilations per kernel.
@@ -55,9 +55,9 @@ class MiniRocketRegressor(BaseRegressor):
     >>> from aeon.datasets import load_covid_3month
     >>> X_train, y_train = load_covid_3month(split="train")
     >>> X_test, y_test = load_covid_3month(split="test")
-    >>> reg = MiniRocketRegressor(num_kernels=500)
+    >>> reg = MiniRocketRegressor(n_kernels=500)
     >>> reg.fit(X_train, y_train)
-    MiniRocketRegressor(num_kernels=500)
+    MiniRocketRegressor(n_kernels=500)
     >>> y_pred = reg.predict(X_test)
     """
 
@@ -69,13 +69,13 @@ class MiniRocketRegressor(BaseRegressor):
 
     def __init__(
         self,
-        num_kernels=10000,
+        n_kernels=10000,
         max_dilations_per_kernel=32,
         estimator=None,
         random_state=None,
         n_jobs=1,
     ):
-        self.num_kernels = num_kernels
+        self.n_kernels = n_kernels
         self.max_dilations_per_kernel = max_dilations_per_kernel
         self.random_state = random_state
         self.estimator = estimator
@@ -106,7 +106,7 @@ class MiniRocketRegressor(BaseRegressor):
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
 
         self._transformer = MiniRocket(
-            num_kernels=self.num_kernels,
+            n_kernels=self.n_kernels,
             max_dilations_per_kernel=self.max_dilations_per_kernel,
             n_jobs=self.n_jobs,
             random_state=self.random_state,
@@ -160,4 +160,4 @@ class MiniRocketRegressor(BaseRegressor):
         dict or list of dict
             Parameters to create testing instances of the class.
         """
-        return {"num_kernels": 20, "max_dilations_per_kernel": 6}
+        return {"n_kernels": 20, "max_dilations_per_kernel": 6}
