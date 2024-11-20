@@ -11,7 +11,6 @@ from typing import final
 import numpy as np
 
 from aeon.base import BaseCollectionEstimator
-from aeon.utils.validation._dependencies import _check_estimator_deps
 
 
 class BaseClusterer(BaseCollectionEstimator):
@@ -27,6 +26,7 @@ class BaseClusterer(BaseCollectionEstimator):
         "fit_is_empty": False,
     }
 
+    @abstractmethod
     def __init__(self, n_clusters: Optional[int] = None):
         self.n_clusters = n_clusters
         # required for compatibility with some sklearn interfaces e.g.
@@ -34,7 +34,6 @@ class BaseClusterer(BaseCollectionEstimator):
         self._estimator_type = "clusterer"
 
         super().__init__()
-        _check_estimator_deps(self)
 
     @final
     def fit(self, X, y=None) -> BaseCollectionEstimator:

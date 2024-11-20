@@ -43,6 +43,7 @@ class BaseDeepClusterer(BaseClusterer):
         "python_dependencies": "tensorflow",
     }
 
+    @abstractmethod
     def __init__(
         self,
         n_clusters=None,

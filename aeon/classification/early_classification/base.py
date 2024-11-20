@@ -58,6 +58,7 @@ class BaseEarlyClassifier(BaseCollectionEstimator):
         "fit_is_empty": False,
     }
 
+    @abstractmethod
     def __init__(self):
         self.classes_ = []
         self.n_classes_ = 0

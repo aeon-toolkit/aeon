@@ -27,6 +27,7 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer):
         "output_data_type": "Series",
     }
 
+    @abstractmethod
     def __init__(self, axis):
         super().__init__(axis=axis)
 

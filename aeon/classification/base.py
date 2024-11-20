@@ -31,7 +31,6 @@ from sklearn.model_selection import cross_val_predict
 
 from aeon.base import BaseCollectionEstimator
 from aeon.base._base import _clone_estimator
-from aeon.utils.validation._dependencies import _check_estimator_deps
 from aeon.utils.validation.collection import get_n_cases
 from aeon.utils.validation.labels import check_classification_y
 
@@ -62,13 +61,14 @@ class BaseClassifier(BaseCollectionEstimator):
         "capability:contractable": False,
     }
 
+    @abstractmethod
     def __init__(self):
         self.classes_ = []  # classes seen in y, unique labels
         self.n_classes_ = -1  # number of unique classes in y
         self._class_dictionary = {}
         self._estimator_type = "classifier"
+
         super().__init__()
-        _check_estimator_deps(self)
 
     @final
     def fit(self, X, y) -> BaseCollectionEstimator:

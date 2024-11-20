@@ -70,6 +70,7 @@ class BaseSegmenter(BaseSeriesEstimator):
         "returns_dense": True,
     }
 
+    @abstractmethod
     def __init__(self, axis, n_segments=2):
         self.n_segments = n_segments
 

@@ -44,6 +44,7 @@ class BaseCollectionTransformer(BaseCollectionEstimator, BaseTransformer):
         "removes_unequal_length": False,
     }
 
+    @abstractmethod
     def __init__(self):
         super().__init__()
 

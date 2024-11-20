@@ -52,6 +52,7 @@ class BaseRegressor(BaseCollectionEstimator):
         "capability:contractable": False,
     }
 
+    @abstractmethod
     def __init__(self):
         # required for compatibility with some sklearn interfaces
         self._estimator_type = "regressor"
