@@ -108,12 +108,11 @@ def check_clusterer_output(estimator, datatype):
     estimator = _clone_estimator(estimator)
 
     # run fit and predict
-    estimator.fit(
-        FULL_TEST_DATA_DICT[datatype]["train"][0],
-        FULL_TEST_DATA_DICT[datatype]["train"][1],
-    )
+    data = FULL_TEST_DATA_DICT[datatype]["train"][0]
+    estimator.fit(data)
     assert hasattr(estimator, "labels_")
     assert isinstance(estimator.labels_, np.ndarray)
+    assert np.array_equal(estimator.labels_, estimator.predict(data))
 
     y_pred = estimator.predict(FULL_TEST_DATA_DICT[datatype]["test"][0])
 

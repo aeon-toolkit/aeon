@@ -18,7 +18,7 @@ class DummyClusterer(BaseClusterer):
 
     Parameters
     ----------
-    strategy : str, default="random"
+    strategy : str, default="uniform"
         The strategy to use for generating cluster labels. Supported strategies are:
         - "random": Assign clusters randomly.
         - "uniform": Distribute clusters uniformly among samples.
@@ -47,14 +47,14 @@ class DummyClusterer(BaseClusterer):
     >>> X = np.array([[1, 2], [3, 4], [5, 6]])
     >>> clusterer = DummyClusterer(strategy="uniform", n_clusters=2)
     >>> clusterer.fit(X)
-    DummyClusterer(n_clusters=2, strategy='uniform')
+    DummyClusterer(n_clusters=2)
     >>> clusterer.labels_
     array([0, 1, 0])
     >>> clusterer.predict(X)
     array([0, 1, 0])
     """
 
-    def __init__(self, strategy="random", n_clusters=3, random_state=None):
+    def __init__(self, strategy="uniform", n_clusters=3, random_state=None):
         self.strategy = strategy
         self.random_state = random_state
         self.n_clusters = n_clusters

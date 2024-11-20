@@ -256,7 +256,7 @@ class TimeSeriesKMeans(BaseClusterer):
             prev_inertia = curr_inertia
             prev_labels = curr_labels
 
-            if change_in_centres < self.tol:
+            if change_in_centres < self.tol or (i + 1) == self.max_iter:
                 break
 
             # Compute new cluster centres
