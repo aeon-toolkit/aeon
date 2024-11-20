@@ -1,16 +1,14 @@
 import inspect
 from functools import partial
 
+from numpy.testing import assert_array_almost_equal
+
 from aeon.base._base import _clone_estimator
 from aeon.testing.testing_config import (
     MULTITHREAD_TESTING,
     NON_STATE_CHANGING_METHODS_ARRAYLIKE,
 )
-from aeon.testing.utils.estimator_checks import (
-    _assert_array_almost_equal,
-    _get_tag,
-    _run_estimator_method,
-)
+from aeon.testing.utils.estimator_checks import _get_tag, _run_estimator_method
 from aeon.utils.validation import check_n_jobs
 
 
@@ -108,7 +106,7 @@ def check_estimator_multithreading(estimator, datatype):
         if hasattr(estimator, method) and callable(getattr(estimator, method)):
             output = _run_estimator_method(estimator, method, datatype, "test")
 
-            _assert_array_almost_equal(
+            assert_array_almost_equal(
                 output,
                 results[i],
                 err_msg=f"Running {method} after fit twice with test "
