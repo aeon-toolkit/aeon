@@ -160,9 +160,7 @@ class BaseClusterer(BaseCollectionEstimator):
             Index of the cluster each time series in X belongs to.
         """
         self.fit(X)
-        if hasattr(self, "labels_"):
-            return self.labels_
-        return self.predict(X)
+        return self.labels_
 
     def _predict_proba(self, X) -> np.ndarray:
         """Predicts labels probabilities for sequences in X.
