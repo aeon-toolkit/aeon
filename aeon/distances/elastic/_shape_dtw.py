@@ -80,7 +80,7 @@ def _transform_subsequences(
         For now no other descriptors are implemented.
 
         If not specified then identity is used.
-    reach : int, default=30.
+    reach : int, default=15.
         Length of the sub-sequences.
 
     Returns
@@ -156,7 +156,7 @@ def shape_dtw_distance(
         For now no other descriptors are implemented.
 
         If not specified then identity is used.
-    reach : int, default=30.
+    reach : int, default=15.
         Length of the sub-sequences to consider.
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
@@ -327,7 +327,7 @@ def shape_dtw_cost_matrix(
         For now no other descriptors are implemented.
 
         If not specified then identity is used.
-    reach : int, default=30.
+    reach : int, default=15.
         Length of the sub-sequences.
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
@@ -460,7 +460,7 @@ def shape_dtw_alignment_path(
         For now no other descriptors are implemented.
 
         If not specified then identity is used.
-    reach : int, default=30.
+    reach : int, default=15.
         Length of the sub-sequences.
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
@@ -552,7 +552,7 @@ def shape_dtw_pairwise_distance(
         For now no other descriptors are implemented.
 
         If not specified then identity is used.
-    reach : int, default=30.
+    reach : int, default=15.
         Length of the sub-sequences.
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
