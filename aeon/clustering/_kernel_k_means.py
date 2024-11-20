@@ -200,10 +200,6 @@ class TimeSeriesKernelKMeans(BaseClusterer):
             "n_init": 1,
             "max_iter": 1,
             "tol": 0.0001,
-            "kernel_params": None,
-            "verbose": False,
-            "n_jobs": 1,
-            "random_state": 1,
         }
 
     def _score(self, X, y=None) -> float:
