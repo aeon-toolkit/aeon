@@ -60,7 +60,7 @@ def _identity_descriptor(x: np.ndarray) -> np.ndarray:
 
 @njit(cache=True, fastmath=True)
 def _transform_subsequences(
-    x: np.ndarray, descriptor: str = "identity", reach: int = 30
+    x: np.ndarray, descriptor: str = "identity", reach: int = 15
 ) -> np.ndarray:
     """Decompose the series into sub-sequences.
 
@@ -123,7 +123,7 @@ def shape_dtw_distance(
     y: np.ndarray,
     window: Optional[float] = None,
     descriptor: str = "identity",
-    reach: int = 30,
+    reach: int = 15,
     itakura_max_slope: Optional[float] = None,
     transformation_precomputed: bool = False,
     transformed_x: Optional[np.ndarray] = None,
@@ -237,7 +237,7 @@ def _shape_dtw_distance(
     y: np.ndarray,
     bounding_matrix: np.ndarray,
     descriptor: str = "identity",
-    reach: int = 30,
+    reach: int = 15,
     transformation_precomputed: bool = False,
     transformed_x: Optional[np.ndarray] = None,
     transformed_y: Optional[np.ndarray] = None,
@@ -297,7 +297,7 @@ def shape_dtw_cost_matrix(
     y: np.ndarray,
     window: Optional[float] = None,
     descriptor: str = "identity",
-    reach: int = 30,
+    reach: int = 15,
     itakura_max_slope: Optional[float] = None,
     transformation_precomputed: bool = False,
     transformed_x: Optional[np.ndarray] = None,
@@ -398,7 +398,7 @@ def _shape_dtw_cost_matrix(
     y: np.ndarray,
     bounding_matrix: np.ndarray,
     descriptor: str = "identity",
-    reach: int = 30,
+    reach: int = 15,
     transformation_precomputed: bool = False,
     transformed_x: Optional[np.ndarray] = None,
     transformed_y: Optional[np.ndarray] = None,
@@ -430,7 +430,7 @@ def shape_dtw_alignment_path(
     y: np.ndarray,
     window: Optional[float] = None,
     descriptor: str = "identity",
-    reach: int = 30,
+    reach: int = 15,
     itakura_max_slope: Optional[float] = None,
     transformation_precomputed: bool = False,
     transformed_x: Optional[np.ndarray] = None,
@@ -520,7 +520,7 @@ def shape_dtw_pairwise_distance(
     y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
     window: Optional[float] = None,
     descriptor: str = "identity",
-    reach: int = 30,
+    reach: int = 15,
     itakura_max_slope: Optional[float] = None,
     transformation_precomputed: bool = False,
     transformed_x: Optional[np.ndarray] = None,

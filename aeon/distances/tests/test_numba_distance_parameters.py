@@ -97,8 +97,10 @@ def _test_distance_params(
             ]
 
             if distance_str in _expected_distance_results_params:
+                res = []
                 if _expected_distance_results_params[distance_str][i][j] is not None:
                     for result in results:
+                        res.append(result)
                         assert result == pytest.approx(
                             _expected_distance_results_params[distance_str][i][j]
                         )
