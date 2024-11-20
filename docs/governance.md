@@ -1,6 +1,6 @@
 # Governance
 
-The purpose of this document is to formalize the governance process used by the `aeon`
+The purpose of this document is to formalise the governance process used by the `aeon`
 project, to clarify how decisions are made and how the various elements of our community
 interact. Our goal is to ensure a transparent, democratic, and inclusive decision-making
 process that empowers all community members to contribute to the project.
@@ -109,15 +109,15 @@ necessary.
 Decisions about the future of the project are announced publicly to allow discussion
 with all members of the community. The whole process from proposal to implementation
 is fully visible, apart from topics considered sensitive. All non-sensitive project
-management discussion takes place on the contributors channel on the project
-Slack and/or the issue tracker. Occasionally, sensitive discussion and votes such as
-appointments will occur in private Slack channels.
+management discussion takes place on the project Slack and/or the issue tracker.
+Occasionally, sensitive discussion and votes such as appointments will occur in private
+Slack channels or meetings.
 
-For most decisions a consensus seeking process of all interested contributors is used.
+For most decisions, a consensus seeking process of all interested contributors is used.
 Contributors try to find a resolution that has no open objections among core developers.
 If a reasonable amount of time (at least 7-days for non-trivial changes) has passed
 since the last change to a proposed contribution, the proposal has at least one approval
-(+1) and no rejections (-1) from core developers, it can be approved by lazy consensus.
+(+1), and no rejections (-1) from core developers, it can be approved by lazy consensus.
 If a change is rejected, it is expected that an explanation and description of
 conditions (if any) to withdraw the rejection is provided.
 
@@ -137,15 +137,15 @@ emergencies where harm will come to the project unless timely action is taken.
 ### Enhancement Proposals
 
 For contentious decision-making votes (not including appointment votes), a proposal
-must have been made public for discussion before the vote. It is recommended that this
+should be made public for discussion before the vote. It is recommended that this
 proposal is made as a consolidated document, in the form of an “aeon Enhancement
 Proposal” (AEP). The AEP template is available
 [here](https://github.com/aeon-toolkit/aeon-admin/blob/main/aep/aep_template.md), but
 the use of said template is not a requirement. A detailed issue or pull request can
-substitute an AEP if all parties believe it is sufficient, but a more formal proposal
+substitute an AEP if all parties believe it is enough, but a more formal proposal
 can be requested by any core developer.
 
-Having a rejection on a pull request does not necessitate the creation of an AEP and
+Having a rejection on a pull request does not require the creation of an AEP and
 further discussion to find consensus can be held, but one must be created prior to any
 vote to bypass a rejection.
 
@@ -155,7 +155,7 @@ submitted to the community for discussion and comment.
 
 ## Acknowledgements
 
-Substantial portions of this document were adapted from or inspired by the following
+Significant portions of this document were adapted from or inspired by the following
 projects governance documents:
 
 - [Scikit-learn](https://scikit-learn.org/stable/governance.html)
