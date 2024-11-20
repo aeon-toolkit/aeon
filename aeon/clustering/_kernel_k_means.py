@@ -205,6 +205,3 @@ class TimeSeriesKernelKMeans(BaseClusterer):
             "n_jobs": 1,
             "random_state": 1,
         }
-
-    def _score(self, X, y=None) -> float:
-        return np.abs(self.inertia_)

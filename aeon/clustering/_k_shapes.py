@@ -181,6 +181,3 @@ class TimeSeriesKShapes(BaseClusterer):
             "verbose": False,
             "random_state": 1,
         }
-
-    def _score(self, X, y=None):
-        return np.abs(self.inertia_)
