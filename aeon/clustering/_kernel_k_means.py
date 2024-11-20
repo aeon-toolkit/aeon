@@ -85,6 +85,7 @@ class TimeSeriesKernelKMeans(BaseClusterer):
 
     _tags = {
         "capability:multivariate": True,
+        "capability:multithreading": True,
         "python_dependencies": "tslearn",
     }
 
