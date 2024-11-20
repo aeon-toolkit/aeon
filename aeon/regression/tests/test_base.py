@@ -18,6 +18,9 @@ from aeon.utils import COLLECTIONS_DATA_TYPES
 class _TestRegressor(BaseRegressor):
     """Dummy regressor for testing base class fit/predict."""
 
+    def __init__(self):
+        super().__init__()
+
     def _fit(self, X, y):
         """Fit dummy."""
         return self
@@ -37,6 +40,9 @@ class _DummyHandlesAllInput(BaseRegressor):
         "X_inner_type": ["np-list", "numpy3D"],
     }
 
+    def __init__(self):
+        super().__init__()
+
     def _fit(self, X, y):
         """Fit dummy."""
         return self
@@ -55,6 +61,9 @@ class _TestHandlesAllInput(BaseRegressor):
         "capability:missing_values": True,
         "X_inner_type": ["np-list", "numpy3D"],
     }
+
+    def __init__(self):
+        super().__init__()
 
     def _fit(self, X, y):
         """Fit dummy."""
