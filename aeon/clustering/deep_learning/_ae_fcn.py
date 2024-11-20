@@ -21,12 +21,12 @@ class AEFCNClusterer(BaseDeepClusterer):
 
     Parameters
     ----------
-    n_clusters : int, default=None
-        Please use 'estimator' parameter.
     estimator : aeon clusterer, default=None
         An aeon estimator to be built using the transformed data.
         Defaults to aeon TimeSeriesKMeans() with euclidean distance
         and mean averaging method and n_clusters set to 2.
+    clustering_algorithm : str, default="deprecated"
+        Please use 'estimator' parameter.
     clustering_params : dict, default=None
         Please use 'estimator' parameter.
     latent_space_dim : int, default=128
@@ -126,8 +126,8 @@ class AEFCNClusterer(BaseDeepClusterer):
 
     def __init__(
         self,
-        n_clusters=None,
         estimator=None,
+        clustering_algorithm="deprecated",
         clustering_params=None,
         latent_space_dim=128,
         temporal_latent_space=False,
@@ -183,7 +183,7 @@ class AEFCNClusterer(BaseDeepClusterer):
 
         super().__init__(
             estimator=estimator,
-            n_clusters=n_clusters,
+            clustering_algorithm=clustering_algorithm,
             clustering_params=clustering_params,
             batch_size=batch_size,
             last_file_name=last_file_name,
@@ -347,12 +347,6 @@ class AEFCNClusterer(BaseDeepClusterer):
         gc.collect()
 
         return self
-
-    def _score(self, X, y=None):
-        # Transpose to conform to Keras input style.
-        X = X.transpose(0, 2, 1)
-        latent_space = self.model_.layers[1].predict(X)
-        return self._estimator.score(latent_space)
 
     def _fit_multi_rec_model(
         self,

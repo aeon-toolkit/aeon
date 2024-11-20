@@ -139,6 +139,7 @@ class TimeSeriesCLARA(BaseClusterer):
         self.distance_params = distance_params
         self.n_samples = n_samples
         self.n_sampling_iters = n_sampling_iters
+        self.n_clusters = n_clusters
 
         self.cluster_centers_ = None
         self.labels_ = None
@@ -148,7 +149,7 @@ class TimeSeriesCLARA(BaseClusterer):
         self._random_state = None
         self._kmedoids_instance = None
 
-        super().__init__(n_clusters)
+        super().__init__()
 
     def _predict(self, X: np.ndarray, y=None) -> np.ndarray:
         return self._kmedoids_instance.predict(X)
@@ -206,9 +207,6 @@ class TimeSeriesCLARA(BaseClusterer):
         self.cluster_centers_ = best_pam.cluster_centers_
         self.n_iter_ = best_pam.n_iter_
         self._kmedoids_instance = best_pam
-
-    def _score(self, X, y=None):
-        return -self.inertia_
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):

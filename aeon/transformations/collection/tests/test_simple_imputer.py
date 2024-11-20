@@ -116,3 +116,23 @@ def test_valid_parameters():
 
     with pytest.raises(ValueError):
         imputer.fit_transform(X)
+
+
+def test_callable():
+    """Test SimpleImputer with callable strategy."""
+    X, _ = make_example_3d_numpy(
+        n_cases=10, n_channels=2, n_timepoints=50, random_state=42
+    )
+    X[2, 1, 10] = np.nan
+    X[5, 0, 20] = np.nan
+
+    def dummy_strategy(x):
+        return 0
+
+    imputer = SimpleImputer(strategy=dummy_strategy)
+    Xt = imputer.fit_transform(X)
+
+    assert not np.isnan(Xt).any()
+    assert Xt.shape == X.shape
+    assert np.allclose(Xt[2, 1, 10], 0)
+    assert np.allclose(Xt[5, 0, 20], 0)

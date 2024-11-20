@@ -60,7 +60,7 @@ jobs:
         python-version: [ "3.9", "3.10", "3.11", "3.12" ]
         # skip python versions unless the PR has the 'full pytest actions' label
         pr-testing:
-          - ${{ (github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'full pytest actions')) }}
+          - ${{ (github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'full pytest actions')) }}
         exclude:
           - pr-testing: true
             python-version: "3.10"
@@ -94,11 +94,11 @@ jobs:
 
       - name: Run tests
         # run the full test suit if a PR has the 'full pytest actions' label
-        run: python -m pytest -n logical --prtesting ${{ github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'full pytest actions') }}
+        run: python -m pytest -n logical --prtesting ${{ github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'full pytest actions') }}
 
   codecov:
     # run the code coverage job if a PR has the 'codecov actions' label
-    if: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'codecov actions') }}
+    if: ${{ github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'codecov actions') }}
 
     runs-on: ubuntu-22.04
 
@@ -128,6 +128,6 @@ jobs:
         run: python -m pytest -n logical --cov=aeon --cov-report=xml --timeout 1800
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

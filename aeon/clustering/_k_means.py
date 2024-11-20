@@ -180,6 +180,7 @@ class TimeSeriesKMeans(BaseClusterer):
         self.distance_params = distance_params
         self.average_params = average_params
         self.averaging_method = averaging_method
+        self.n_clusters = n_clusters
 
         self.cluster_centers_ = None
         self.labels_ = None
@@ -191,7 +192,7 @@ class TimeSeriesKMeans(BaseClusterer):
         self._averaging_method = None
         self._average_params = None
 
-        super().__init__(n_clusters)
+        super().__init__()
 
     def _fit(self, X: np.ndarray, y=None):
         self._check_params(X)
@@ -268,9 +269,6 @@ class TimeSeriesKMeans(BaseClusterer):
                 print(f"Iteration {i}, inertia {prev_inertia}.")  # noqa: T001, T201
 
         return prev_labels, cluster_centres, prev_inertia, i + 1
-
-    def _score(self, X, y=None):
-        return -self.inertia_
 
     def _predict(self, X: np.ndarray, y=None) -> np.ndarray:
         if isinstance(self.distance, str):

@@ -24,8 +24,6 @@ class AEDRNNClusterer(BaseDeepClusterer):
 
     Parameters
     ----------
-    n_clusters : int, default=None
-        Number of clusters for the deep learnign model.
     clustering_algorithm : str, default="deprecated"
         Please use the 'estimator' parameter.
     estimator : aeon clusterer, default=None
@@ -120,7 +118,6 @@ class AEDRNNClusterer(BaseDeepClusterer):
 
     def __init__(
         self,
-        n_clusters=None,
         estimator=None,
         clustering_algorithm="deprecated",
         clustering_params=None,
@@ -177,7 +174,6 @@ class AEDRNNClusterer(BaseDeepClusterer):
         self.random_state = random_state
 
         super().__init__(
-            n_clusters=n_clusters,
             estimator=estimator,
             clustering_algorithm=clustering_algorithm,
             clustering_params=clustering_params,
@@ -331,12 +327,6 @@ class AEDRNNClusterer(BaseDeepClusterer):
         gc.collect()
 
         return self
-
-    def _score(self, X, y=None):
-        # Transpose to conform to Keras input style.
-        X = X.transpose(0, 2, 1)
-        latent_space = self.model_.layers[1].predict(X)
-        return self._estimator.score(latent_space)
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
