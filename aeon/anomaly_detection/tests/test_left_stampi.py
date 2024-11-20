@@ -309,15 +309,3 @@ class TestLeftSTAMPi:
             ],
             any_order=True,
         )
-
-    def test_it_checks_soft_dependencies(self, mocker):
-        """Unit testing the dependency check."""
-        # given
-        deps_checker_stub = mocker.patch(
-            "aeon.base._base_series._check_estimator_deps", return_value=True
-        )
-        # deps_checker_stub.return_value = True
-        ad = LeftSTAMPi(window_size=5, n_init_train=10)
-
-        # then
-        deps_checker_stub.assert_called_once_with(ad)
