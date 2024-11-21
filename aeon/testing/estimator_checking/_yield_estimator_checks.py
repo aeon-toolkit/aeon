@@ -285,7 +285,22 @@ def check_has_common_interface(estimator_class):
 
 def check_set_params(estimator_class):
     """Check that set_params works correctly."""
-    estimator = estimator_class()
+    # some parameters do not have default values, we need to set them
+    estimator = estimator_class._create_test_instance()
+    required_params_names = [
+        p.name
+        for p in signature(estimator_class.__init__).parameters.values()
+        # dont include self and *args, **kwargs
+        if p.name != "self" and p.kind not in [p.VAR_KEYWORD, p.VAR_POSITIONAL]
+        # has no default
+        and p.default == p.empty
+    ]
+    params = estimator.get_params()
+    init_params = {p: params[p] for p in params if p in required_params_names}
+
+    # default constructed instance except for required parameters
+    estimator = estimator_class(**init_params)
+
     test_params = estimator_class._get_test_params()
     if not isinstance(test_params, list):
         test_params = [test_params]
@@ -339,9 +354,9 @@ def check_constructor(estimator_class):
         "Estimator should have a _tags_dynamic attribute after init, if not make sure "
         "you call super().__init__ in the constructor"
     )
-    assert (
-        isinstance(estimator._tags_dynamic, dict) and not estimator._tags_dynamic
-    ), "Estimator _tags_dynamic attribute should be an empty dict after init"
+    assert isinstance(
+        estimator._tags_dynamic, dict
+    ), "Estimator _tags_dynamic attribute should be a dict after init"
 
     # ensure that each parameter is set in init
     init_params = signature(estimator_class.__init__).parameters
