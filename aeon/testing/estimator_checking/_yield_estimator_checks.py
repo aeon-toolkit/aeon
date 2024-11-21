@@ -394,7 +394,7 @@ def check_constructor(estimator_class):
             type,
             np.float64,
             np.int64,
-            np.NaN,
+            np.nan,
         }
 
         assert type(param.default) in allowed_types or callable(param.default), (
