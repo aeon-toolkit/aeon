@@ -10,7 +10,10 @@ from aeon.distances._distance import (
     DISTANCES_DICT,
     SINGLE_POINT_NOT_SUPPORTED_DISTANCES,
 )
-from aeon.testing.data_generation._legacy import make_series
+from aeon.testing.data_generation import (
+    make_example_1d_numpy,
+    make_example_2d_numpy_series,
+)
 
 
 def _validate_cost_matrix_result(
@@ -61,6 +64,8 @@ def _validate_cost_matrix_result(
                 cost_matrix_result[-1, -1] / max(x.shape[-1], y.shape[-1])
             )
             assert_almost_equal(curr_distance, distance_result)
+    elif name == "soft_dtw":
+        assert_almost_equal(abs(cost_matrix_result[-1, -1]), distance_result)
     else:
         assert_almost_equal(cost_matrix_result[-1, -1], distance_result)
 
@@ -88,8 +93,8 @@ def test_cost_matrix(dist):
     # ================== Test equal length ==================
     # Test univariate of shape (n_timepoints,)
     _validate_cost_matrix_result(
-        make_series(10, return_numpy=True, random_state=1),
-        make_series(10, return_numpy=True, random_state=2),
+        make_example_1d_numpy(10, random_state=1),
+        make_example_1d_numpy(10, random_state=2),
         dist["name"],
         dist["distance"],
         dist["cost_matrix"],
@@ -97,8 +102,8 @@ def test_cost_matrix(dist):
 
     # Test univariate of shape (1, n_timepoints)
     _validate_cost_matrix_result(
-        make_series(10, 1, return_numpy=True, random_state=1),
-        make_series(10, 1, return_numpy=True, random_state=2),
+        make_example_2d_numpy_series(10, 1, random_state=1),
+        make_example_2d_numpy_series(10, 1, random_state=2),
         dist["name"],
         dist["distance"],
         dist["cost_matrix"],
@@ -106,8 +111,8 @@ def test_cost_matrix(dist):
 
     # Test multivariate of shape (n_channels, n_timepoints)
     _validate_cost_matrix_result(
-        make_series(10, 10, return_numpy=True, random_state=1),
-        make_series(10, 10, return_numpy=True, random_state=2),
+        make_example_2d_numpy_series(10, 10, random_state=1),
+        make_example_2d_numpy_series(10, 10, random_state=2),
         dist["name"],
         dist["distance"],
         dist["cost_matrix"],
@@ -116,8 +121,8 @@ def test_cost_matrix(dist):
     # ================== Test unequal length ==================
     # Test univariate unequal length of shape (n_timepoints,)
     _validate_cost_matrix_result(
-        make_series(5, return_numpy=True, random_state=1),
-        make_series(10, return_numpy=True, random_state=2),
+        make_example_1d_numpy(5, random_state=1),
+        make_example_1d_numpy(10, random_state=2),
         dist["name"],
         dist["distance"],
         dist["cost_matrix"],
@@ -125,8 +130,8 @@ def test_cost_matrix(dist):
 
     # Test univariate unequal length of shape (1, n_timepoints)
     _validate_cost_matrix_result(
-        make_series(5, 1, return_numpy=True, random_state=1),
-        make_series(10, 1, return_numpy=True, random_state=2),
+        make_example_2d_numpy_series(5, 1, random_state=1),
+        make_example_2d_numpy_series(10, 1, random_state=2),
         dist["name"],
         dist["distance"],
         dist["cost_matrix"],
@@ -134,8 +139,8 @@ def test_cost_matrix(dist):
 
     # Test multivariate unequal length of shape (n_channels, n_timepoints)
     _validate_cost_matrix_result(
-        make_series(5, 10, return_numpy=True, random_state=1),
-        make_series(10, 10, return_numpy=True, random_state=2),
+        make_example_2d_numpy_series(5, 10, random_state=1),
+        make_example_2d_numpy_series(10, 10, random_state=2),
         dist["name"],
         dist["distance"],
         dist["cost_matrix"],
