@@ -234,3 +234,16 @@ def test_preprocess_collection(data):
     meta = cls.metadata_
     cls._preprocess_collection(data2)
     assert meta == cls.metadata_
+
+
+def test_convert_np_list():
+    """Test np-list of 1D numpy converted to 2D."""
+    x1 = np.random.random(size=(1, 10))
+    x2 = np.random.rand(20)
+    x3 = np.random.rand(30)
+    np_list = [x1, x2, x3]
+    np2 = BaseCollectionEstimator._reshape_np_list(np_list)
+    assert len(np2) == len(np_list)
+    assert np2[0].shape == (1, 10)
+    assert np2[1].shape == (1, 20)
+    assert np2[2].shape == (1, 30)
