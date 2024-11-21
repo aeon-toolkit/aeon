@@ -81,3 +81,4 @@ Detectors
     STRAY
     STOMP
     OneClassSVM
+    ROCKAD
