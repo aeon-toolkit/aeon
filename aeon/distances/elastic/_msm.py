@@ -247,7 +247,8 @@ def _msm_independent_cost_matrix(
     y_size = y.shape[1]
     cost_matrix = np.zeros((x_size, y_size))
     distance = 0
-    for i in range(x.shape[0]):
+    min_instances = min(x.shape[0], y.shape[0])
+    for i in range(min_instances):
         curr_cost_matrix = _independent_cost_matrix(x[i], y[i], bounding_matrix, c)
         cost_matrix = np.add(cost_matrix, curr_cost_matrix)
         distance += curr_cost_matrix[-1, -1]
