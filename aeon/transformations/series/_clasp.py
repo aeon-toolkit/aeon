@@ -438,7 +438,7 @@ class ClaSPTransformer(BaseSeriesTransformer):
         "X_inner_type": "np.ndarray",
         "fit_is_empty": True,
         "requires_y": False,
-        "capability:inverse_transform": False,
+        "capability:multithreading": True,
     }
 
     def __init__(

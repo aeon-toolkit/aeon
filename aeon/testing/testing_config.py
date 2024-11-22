@@ -8,8 +8,11 @@ import aeon.testing._cicd_numba_caching  # noqa: F401
 # whether to use smaller parameter matrices for test generation and subsample estimators
 # per os/version default is False, can be set to True by pytest --prtesting True flag
 PR_TESTING = False
+# whether to use multithreading in tests, can be set to True by pytest
+# --enablethreading True flag
+MULTITHREAD_TESTING = False
 
-# Exclude estimators here for short term fixes
+# exclude estimators here for short term fixes
 EXCLUDE_ESTIMATORS = [
     "ClearSkyTransformer",
     # See #2071
@@ -76,20 +79,17 @@ EXCLUDED_TESTS = {
     "RDSTRegressor": ["check_regressor_against_expected_results"],
 }
 
-# NON_STATE_CHANGING_METHODS =
-# methods that should not change the state of the estimator, that is, they should
-# not change fitted parameters or hyper-parameters. They are also the methods that
-# "apply" the fitted estimator to data and useful for checking results.
+
+# estimator methods post-fit that should not change the state of the estimator
 
 # non-state-changing methods that return an array-like output
 NON_STATE_CHANGING_METHODS_ARRAYLIKE = (
     "predict",
-    "predict_var",
     "predict_proba",
-    "decision_function",
     "transform",
 )
 
+# all non-state-changing methods
 NON_STATE_CHANGING_METHODS = NON_STATE_CHANGING_METHODS_ARRAYLIKE + (
     "get_fitted_params",
 )

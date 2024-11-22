@@ -65,6 +65,7 @@ class Rocket(BaseCollectionTransformer):
     _tags = {
         "output_data_type": "Tabular",
         "capability:multivariate": True,
+        "capability:multithreading": True,
         "algorithm_type": "convolution",
         "X_inner_type": "numpy3D",
     }

@@ -74,6 +74,7 @@ class MiniRocket(BaseCollectionTransformer):
         "output_data_type": "Tabular",
         "algorithm_type": "convolution",
         "capability:multivariate": True,
+        "capability:multithreading": True,
     }
     # indices for the 84 kernels used by MiniRocket
     _indices = np.array([_ for _ in combinations(np.arange(9), 3)], dtype=np.int32)

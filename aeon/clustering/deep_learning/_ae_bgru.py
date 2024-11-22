@@ -20,10 +20,6 @@ class AEBiGRUClusterer(BaseDeepClusterer):
 
     Parameters
     ----------
-    clustering_algorithm : str, default="deprecated"
-        Use 'estimator' parameter instead.
-    clustering_params : dict, default=None
-        Use 'estimator' parameter instead.
     estimator : aeon clusterer, default=None
         An aeon estimator to be built using the transformed data.
         Defaults to aeon TimeSeriesKMeans() with euclidean distance
@@ -103,9 +99,7 @@ class AEBiGRUClusterer(BaseDeepClusterer):
 
     def __init__(
         self,
-        clustering_algorithm="deprecated",
         estimator=None,
-        clustering_params=None,
         latent_space_dim=128,
         temporal_latent_space=False,
         n_layers=2,
@@ -149,8 +143,6 @@ class AEBiGRUClusterer(BaseDeepClusterer):
         self.random_state = random_state
 
         super().__init__(
-            clustering_algorithm=clustering_algorithm,
-            clustering_params=clustering_params,
             estimator=estimator,
             batch_size=batch_size,
             last_file_name=last_file_name,
