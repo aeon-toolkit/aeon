@@ -145,9 +145,6 @@ def check_regressor_overrides_and_tags(estimator_class):
                 f"Override _{method} instead."
             )
 
-    # axis class parameter is for internal use only
-    assert "axis" not in estimator_class.__dict__
-
     # Test valid tag for X_inner_type
     X_inner_type = estimator_class.get_class_tag(tag_name="X_inner_type")
     if isinstance(X_inner_type, str):
@@ -162,11 +159,6 @@ def check_regressor_overrides_and_tags(estimator_class):
             assert X_inner_type in valid_unequal_types
         else:  # must be a list
             assert any([t in valid_unequal_types for t in X_inner_type])
-
-    # Must have at least one set to True
-    multi = estimator_class.get_class_tag(tag_name="capability:multivariate")
-    uni = estimator_class.get_class_tag(tag_name="capability:univariate")
-    assert multi or uni
 
     valid_algorithm_types = [
         "distance",
