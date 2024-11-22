@@ -247,3 +247,11 @@ def test_convert_np_list():
     assert np2[0].shape == (1, 10)
     assert np2[1].shape == (1, 20)
     assert np2[2].shape == (1, 30)
+    dummy1 = BaseCollectionEstimator()
+    x1 = np.random.random(size=(1, 10))
+    x2 = np.random.rand(10)
+    x3 = np.random.rand(10)
+    np_list = [x1, x2, x3]
+    np3 = dummy1._preprocess_collection(np_list)
+    assert isinstance(np3, np.ndarray)
+    assert np3.shape == (3, 1, 10)
