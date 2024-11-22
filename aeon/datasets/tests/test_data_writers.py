@@ -128,7 +128,6 @@ def test_write_header():
     _write_header(
         tmp,
         problem_name,
-        suffix="_TRAIN",
         extension=".csv",
         comment="Hello",
         regression=True,
