@@ -12,7 +12,6 @@ def write_to_ts_file(
     y=None,
     problem_name="sample_data.ts",
     header=None,
-    suffix=None,
     regression=False,
 ):
     """Write an aeon collection of time series to text file in .ts format.
@@ -35,9 +34,6 @@ def write_to_ts_file(
         The file is written to <path>/<problem_name>/<problem_name>.ts
     header: string, default = None
         Optional text at the top of the file that is ignored when loading.
-    suffix: str or None, default=None
-        Addon at the end of the filename before the file extension, i.e. _TRAIN or
-        _TEST
     regression: boolean, default = False
         Indicate if this is a regression problem, so it is correcty specified in
         the header since there is no definite way of inferring this from y
@@ -53,9 +49,6 @@ def write_to_ts_file(
     problem_name, extension = os.path.splitext(problem_name)
     if extension == "":  # .ts file extension not present
         extension = ".ts"
-
-    if suffix is not None:
-        problem_name = problem_name + suffix
     if extension is not None:
         problem_name = problem_name + extension
 
@@ -90,7 +83,6 @@ def write_to_ts_file(
         class_labels=class_labels,
         comment=header,
         regression=regression,
-        suffix=suffix,
         extension=None,
     )
     missing_values = "NaN"
@@ -116,7 +108,6 @@ def _write_header(
     comment=None,
     regression=False,
     class_labels=None,
-    suffix=None,
     extension=None,
 ):
     if class_labels is not None and regression:
@@ -160,7 +151,6 @@ def write_to_arff_file(
     path,
     problem_name="sample_data",
     header=None,
-    suffix="",
 ):
     """Write an aeon collection of time series to text file in .arff format.
 
@@ -180,9 +170,6 @@ def write_to_arff_file(
         the file.
     header: string, default=None
         Optional text at the top of the file that is ignored when loading.
-    suffix: str or None, default=""
-        Addon at the end of the filename before the file extension, i.e. _TRAIN or
-        _TEST.
 
     Returns
     -------
@@ -200,7 +187,7 @@ def write_to_arff_file(
             f"received {X.shape}"
         )
 
-    file = open(f"{path}/{problem_name}{suffix}.arff", "w")
+    file = open(f"{path}/{problem_name}.arff", "w")
 
     # write comment if any as a block at start of file
     if header is not None:
