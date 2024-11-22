@@ -4,9 +4,9 @@ hide-toc: true
 
 # Welcome to __aeon__
 
-`aeon` is a scikit-learn compatible toolkit for time series machine learning tasks
-such as anomaly detection, classification, clustering, forecasting, regression,
-segmentation and similarity search.</p>
+`aeon` is a `scikit-learn` compatible toolkit for time series machine learning tasks
+such as classification, regression, clustering, anomaly detection,
+segmentation and similarity search.
 
 - We provide a broad library of time series algorithms, including the latest
   advances and state-of-the-art for many tasks.
@@ -17,22 +17,6 @@ segmentation and similarity search.</p>
 - We provide a range of tools for reproducing benchmarking results and evaluating time
   series algorithms implemented in `aeon` and other `scikit-learn` compatible packages.
 
-```{admonition} Large scale changes for aeon v1.0.0
-We are currently working on v1.0.0 of aeon, which includes a number of large changes
-to better support the maintainability of the library and the direction the developer
-community wish to take the package.
-
-This includes the removal of current modules such as forecasting (to be reintroduced
-under a different interface), datatypes and the legacy BaseTransformer interface. We
-will also be making large changes to the base class API, removing `BaseObject` various
-functions associated with the base module currently.
-
-We hope these changes and the removal of long-untouched legacy code will allow aeon to
-grow and develop in a more sustainable way without the need for such large breaking
-changes in the future. Some of these changes will not come with a deprecation warning,
-so be wary of this when updating to v1.0.0 when it is released.
-```
-
 ## Community Channels
 
 **GitHub**: [github.com/aeon-toolkit/aeon](https://github.com/aeon-toolkit/aeon)
@@ -42,6 +26,8 @@ so be wary of this when updating to v1.0.0 when it is released.
 **Twitter**: [twitter/aeon-toolkit](https://twitter.com/aeon_toolkit)
 
 **LinkedIn**: [linkedin/aeon-toolkit](https://www.linkedin.com/company/aeon-toolkit)
+
+**Email**: [contact@aeon-toolkit.org](mailto:contact@aeon-toolkit.org)
 
 ## Modules
 
@@ -129,7 +115,7 @@ Anomaly Detection
 :class-img-top: aeon-card-image
 :text-align: center
 
-Segmentation
+Get started with segmentation
 
 +++
 
@@ -186,7 +172,7 @@ Distances
 :class-img-top: aeon-card-image
 :text-align: center
 
-Similarity Search
+Get started with time series similarity search
 
 +++
 
@@ -259,6 +245,17 @@ Networks
 
 ::::
 
+## Experimental Modules
+
+Some modules of `aeon` are still experimental and may have changing interfaces.
+To support development on these modules, the [deprecation policy](developer_guide/deprecation.md)
+is relaxed, so it is suggested that you integrate these modules with care. The current
+experimental modules are:
+
+- `anomaly_detection`
+- `segmentation`
+- `similarity_search`
+- `visualisation`
 
 ```{toctree}
 :caption: Using aeon
