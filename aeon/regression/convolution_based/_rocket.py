@@ -65,7 +65,6 @@ class RocketRegressor(BaseRegressor):
     """
 
     _tags = {
-        "capability:multivariate": True,
         "capability:multithreading": True,
         "algorithm_type": "convolution",
         "capability:unequal_length": True,
