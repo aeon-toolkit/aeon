@@ -26,7 +26,7 @@ class ROCKETGPU(BaseROCKETGPU):
 
     Parameters
     ----------
-    n_filters : int, default=10000
+    n_kernels : int, default=10000
        Number of random convolutional filters.
     kernel_size : list, default = None
         The list of possible kernel sizes, default is [7, 9, 11].
@@ -53,7 +53,7 @@ class ROCKETGPU(BaseROCKETGPU):
 
     def __init__(
         self,
-        n_filters=10000,
+        n_kernels=10000,
         kernel_size=None,
         padding=None,
         use_dilation=True,
@@ -61,9 +61,9 @@ class ROCKETGPU(BaseROCKETGPU):
         batch_size=64,
         random_state=None,
     ):
-        super().__init__(n_filters)
+        super().__init__(n_kernels)
 
-        self.n_filters = n_filters
+        self.n_kernels = n_kernels
         self.kernel_size = kernel_size
         self.padding = padding
         self.use_dilation = use_dilation
@@ -80,7 +80,7 @@ class ROCKETGPU(BaseROCKETGPU):
         self._list_of_paddings = []
         self._list_of_biases = []
 
-        for _ in range(self.n_filters):
+        for _ in range(self.n_kernels):
             _kernel_size = rng.choice(self._kernel_size, size=1)[0]
             _convolution_kernel = rng.normal(size=(_kernel_size, self.n_channels, 1))
             _convolution_kernel = _convolution_kernel - _convolution_kernel.mean(
@@ -175,7 +175,7 @@ class ROCKETGPU(BaseROCKETGPU):
 
         Returns
         -------
-        output_rocket : np.ndarray [n_cases, n_filters * 2]
+        output_rocket : np.ndarray [n_cases, n_kernels * 2]
             transformed features.
         """
         import tensorflow as tf
@@ -188,7 +188,7 @@ class ROCKETGPU(BaseROCKETGPU):
 
         output_features = []
 
-        for f in range(self.n_filters):
+        for f in range(self.n_kernels):
             output_features_filter = []
 
             for batch_indices in batch_indices_list:
@@ -243,6 +243,6 @@ class ROCKETGPU(BaseROCKETGPU):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
         """
         params = {
-            "n_filters": 5,
+            "n_kernels": 5,
         }
         return params
