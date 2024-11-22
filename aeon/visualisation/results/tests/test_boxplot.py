@@ -12,7 +12,7 @@ from aeon.visualisation import plot_boxplot
 
 data_path = os.path.join(
     os.path.dirname(aeon.__file__),
-    "benchmarking/example_results/",
+    "testing/example_results_files/",
 )
 
 

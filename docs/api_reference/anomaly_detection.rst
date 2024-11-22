@@ -81,3 +81,4 @@ Detectors
     PyODAdapter
     STRAY
     STOMP
+    OneClassSVM

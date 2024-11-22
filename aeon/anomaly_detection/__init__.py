@@ -9,6 +9,7 @@ __all__ = [
     "LeftSTAMPi",
     "LOF",
     "MERLIN",
+    "OneClassSVM",
     "PyODAdapter",
     "STOMP",
     "STRAY",
@@ -22,6 +23,7 @@ from aeon.anomaly_detection._kmeans import KMeansAD
 from aeon.anomaly_detection._left_stampi import LeftSTAMPi
 from aeon.anomaly_detection._lof import LOF
 from aeon.anomaly_detection._merlin import MERLIN
+from aeon.anomaly_detection._one_class_svm import OneClassSVM
 from aeon.anomaly_detection._pyodadapter import PyODAdapter
 from aeon.anomaly_detection._stomp import STOMP
 from aeon.anomaly_detection._stray import STRAY

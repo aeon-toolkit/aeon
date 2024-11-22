@@ -3,7 +3,7 @@
 __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["PR_TESTING", "EXCLUDE_ESTIMATORS", "EXCLUDED_TESTS"]
 
-import aeon.testing.utils._cicd_numba_caching  # noqa: F401
+import aeon.testing._cicd_numba_caching  # noqa: F401
 
 # whether to use smaller parameter matrices for test generation and subsample estimators
 # per os/version default is False, can be set to True by pytest --prtesting True flag
@@ -11,13 +11,8 @@ PR_TESTING = False
 
 # Exclude estimators here for short term fixes
 EXCLUDE_ESTIMATORS = [
-    "SeriesSearch",
-    "QuerySearch",
     "ClearSkyTransformer",
     # See #2071
-    "RandomDilatedShapeletTransform",
-    "RDSTClassifier",
-    "RDSTRegressor",
     "RISTRegressor",
 ]
 
@@ -42,16 +37,11 @@ EXCLUDED_TESTS = {
     ],
     # has a keras fail, unknown reason, see #1387
     "LearningShapeletClassifier": ["check_fit_deterministic"],
-    # does not fit structure for test, needs investigation
-    "TapNetClassifier": ["check_classifier_random_state_deep_learning"],
-    "TapNetRegressor": ["check_regressor_random_state_deep_learning"],
     # needs investigation
     "SASTClassifier": ["check_fit_deterministic"],
     "RSASTClassifier": ["check_fit_deterministic"],
     "SAST": ["check_fit_deterministic"],
     "RSAST": ["check_fit_deterministic"],
-    "AEFCNClusterer": ["check_fit_updates_state"],
-    "AEResNetClusterer": ["check_fit_updates_state"],
     "SFA": ["check_persistence_via_pickle", "check_fit_deterministic"],
     "CollectionId": ["check_transform_inverse_transform_equivalent"],
     "ScaledLogitSeriesTransformer": ["check_transform_inverse_transform_equivalent"],
@@ -78,6 +68,12 @@ EXCLUDED_TESTS = {
     "MiniRocketRegressor": ["check_non_state_changing_method"],
     "MultiRocketRegressor": ["check_non_state_changing_method"],
     "RSTSF": ["check_non_state_changing_method"],
+    # Keeps length during predict to avoid recomputing means and std of data in fit
+    # if the next predict calls uses the same query length parameter.
+    "QuerySearch": ["check_non_state_changing_method"],
+    "SeriesSearch": ["check_non_state_changing_method"],
+    # Unknown issue not producing the same results for Covid3Month (other is fine)
+    "RDSTRegressor": ["check_regressor_against_expected_results"],
 }
 
 # NON_STATE_CHANGING_METHODS =

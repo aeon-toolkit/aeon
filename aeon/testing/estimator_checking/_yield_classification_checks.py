@@ -2,12 +2,13 @@
 
 import inspect
 import os
+import sys
 import tempfile
 import time
 from functools import partial
-from sys import platform
 
 import numpy as np
+from numpy.testing import assert_array_almost_equal
 from sklearn.utils._testing import set_random_state
 
 from aeon.base._base import _clone_estimator
@@ -18,21 +19,42 @@ from aeon.testing.expected_results.expected_classifier_outputs import (
     unit_test_proba,
 )
 from aeon.testing.testing_data import FULL_TEST_DATA_DICT
-from aeon.testing.utils.estimator_checks import _assert_array_almost_equal, _get_tag
+from aeon.testing.utils.estimator_checks import (
+    _assert_predict_labels,
+    _assert_predict_probabilities,
+    _get_tag,
+)
+from aeon.utils import COLLECTIONS_DATA_TYPES
 from aeon.utils.validation import get_n_cases
 
 
 def _yield_classification_checks(estimator_class, estimator_instances, datatypes):
     """Yield all classification checks for an aeon classifier."""
     # only class required
-    yield partial(
-        check_classifier_against_expected_results, estimator_class=estimator_class
-    )
-    yield partial(check_classifier_tags_consistent, estimator_class=estimator_class)
-    yield partial(
-        check_classifier_does_not_override_final_methods,
-        estimator_class=estimator_class,
-    )
+    if sys.platform != "darwin":  # We cannot guarantee same results on ARM macOS
+        # Compare against results for both UnitTest and BasicMotions if available
+        yield partial(
+            check_classifier_against_expected_results,
+            estimator_class=estimator_class,
+            data_name="UnitTest",
+            data_loader=load_unit_test,
+            results_dict=unit_test_proba,
+            resample_seed=0,
+        )
+        # the test currently fails when numba is disabled. See issue #622
+        if (
+            estimator_class.__name__ != "HIVECOTEV2"
+            or os.environ.get("NUMBA_DISABLE_JIT") != "1"
+        ):
+            yield partial(
+                check_classifier_against_expected_results,
+                estimator_class=estimator_class,
+                data_name="BasicMotions",
+                data_loader=load_basic_motions,
+                results_dict=basic_motions_proba,
+                resample_seed=4,
+            )
+    yield partial(check_classifier_overrides_and_tags, estimator_class=estimator_class)
 
     # data type irrelevant
     if _get_tag(estimator_class, "capability:contractable", raise_error=True):
@@ -73,82 +95,51 @@ def _yield_classification_checks(estimator_class, estimator_instances, datatypes
             )
 
 
-def check_classifier_against_expected_results(estimator_class):
+def check_classifier_against_expected_results(
+    estimator_class, data_name, data_loader, results_dict, resample_seed
+):
     """Test classifier against stored results."""
+    # retrieve expected predict_proba output, and skip test if not available
+    if estimator_class.__name__ in results_dict.keys():
+        expected_probas = results_dict[estimator_class.__name__]
+    else:
+        # skip test if no expected probas are registered
+        return f"No stored results for {estimator_class.__name__} on {data_name}"
+
     # we only use the first estimator instance for testing
-    class_name = estimator_class.__name__
+    estimator_instance = estimator_class._create_test_instance(
+        parameter_set="results_comparison", return_first=True
+    )
+    # set random seed if possible
+    set_random_state(estimator_instance, 0)
 
-    # We cannot guarantee same results on ARM macOS
-    if platform == "darwin":
-        return None
+    # load test data
+    X_train, y_train = data_loader(split="train")
+    X_test, y_test = data_loader(split="test")
+    # resample test data
+    indices = np.random.RandomState(resample_seed).choice(
+        len(y_train), 10, replace=False
+    )
 
-    # the test currently fails when numba is disabled. See issue #622
-    import os
+    # train classifier and predict probas
+    estimator_instance.fit(X_train[indices], y_train[indices])
+    y_proba = estimator_instance.predict_proba(X_test[indices])
 
-    if class_name == "HIVECOTEV2" and os.environ.get("NUMBA_DISABLE_JIT") == "1":
-        return None
-
-    for data_name, data_dict, data_loader, data_seed in [
-        ["UnitTest", unit_test_proba, load_unit_test, 0],
-        ["BasicMotions", basic_motions_proba, load_basic_motions, 4],
-    ]:
-        # retrieve expected predict_proba output, and skip test if not available
-        if class_name in data_dict.keys():
-            expected_probas = data_dict[class_name]
-        else:
-            # skip test if no expected probas are registered
-            continue
-
-        # we only use the first estimator instance for testing
-        estimator_instance = estimator_class._create_test_instance(
-            parameter_set="results_comparison"
-        )
-        # set random seed if possible
-        set_random_state(estimator_instance, 0)
-
-        # load test data
-        X_train, y_train = data_loader(split="train")
-        X_test, _ = data_loader(split="test")
-        indices = np.random.RandomState(data_seed).choice(
-            len(y_train), 10, replace=False
-        )
-
-        # train classifier and predict probas
-        estimator_instance.fit(X_train[indices], y_train[indices])
-        y_proba = estimator_instance.predict_proba(X_test[indices])
-
-        # assert probabilities are the same
-        _assert_array_almost_equal(
-            y_proba,
-            expected_probas,
-            decimal=2,
-            err_msg=f"Failed to reproduce results for {class_name} on {data_name}",
-        )
+    # assert probabilities are the same
+    assert_array_almost_equal(
+        y_proba,
+        expected_probas,
+        decimal=2,
+        err_msg=(
+            f"Failed to reproduce results for {estimator_class.__name__} "
+            f"on {data_name}"
+        ),
+    )
 
 
-def check_classifier_tags_consistent(estimator_class):
-    """Test the tag X_inner_type is consistent with capability:unequal_length."""
-    valid_types = {"np-list", "df-list", "pd-multiindex"}
-    unequal = estimator_class.get_class_tag("capability:unequal_length")
-    if unequal:  # one of X_inner_types must be capable of storing unequal length
-        internal_types = estimator_class.get_class_tag("X_inner_type")
-        if isinstance(internal_types, str):
-            assert internal_types in valid_types
-        else:  # must be a list
-            assert bool(set(internal_types) & valid_types)
-    # Test can actually fit/predict with multivariate if tag is set
-    multivariate = estimator_class.get_class_tag("capability:multivariate")
-    if multivariate:
-        X = np.random.random((10, 2, 20))
-        y = np.array([0, 0, 0, 0, 0, 0, 1, 1, 1, 1])
-        inst = estimator_class._create_test_instance(parameter_set="default")
-        inst.fit(X, y)
-        inst.predict(X)
-        inst.predict_proba(X)
-
-
-def check_classifier_does_not_override_final_methods(estimator_class):
-    """Test does not override final methods."""
+def check_classifier_overrides_and_tags(estimator_class):
+    """Test compliance with the classifier base class contract."""
+    # Test they don't override final methods, because Python does not enforce this
     final_methods = [
         "fit",
         "predict",
@@ -163,13 +154,52 @@ def check_classifier_does_not_override_final_methods(estimator_class):
                 f"Override _{method} instead."
             )
 
+    # axis class parameter is for internal use only
+    assert "axis" not in estimator_class.__dict__
+
+    # Test valid tag for X_inner_type
+    X_inner_type = estimator_class.get_class_tag(tag_name="X_inner_type")
+    if isinstance(X_inner_type, str):
+        assert X_inner_type in COLLECTIONS_DATA_TYPES
+    else:  # must be a list
+        assert all([t in COLLECTIONS_DATA_TYPES for t in X_inner_type])
+
+    # one of X_inner_types must be capable of storing unequal length
+    if estimator_class.get_class_tag("capability:unequal_length"):
+        valid_unequal_types = ["np-list", "df-list", "pd-multiindex"]
+        if isinstance(X_inner_type, str):
+            assert X_inner_type in valid_unequal_types
+        else:  # must be a list
+            assert any([t in valid_unequal_types for t in X_inner_type])
+
+    # Must have at least one set to True
+    multi = estimator_class.get_class_tag(tag_name="capability:multivariate")
+    uni = estimator_class.get_class_tag(tag_name="capability:univariate")
+    assert multi or uni
+
+    valid_algorithm_types = [
+        "distance",
+        "deeplearning",
+        "convolution",
+        "dictionary",
+        "interval",
+        "feature",
+        "hybrid",
+        "shapelet",
+    ]
+    algorithm_type = estimator_class.get_class_tag("algorithm_type")
+    if algorithm_type is not None:
+        assert algorithm_type in valid_algorithm_types, (
+            f"Estimator {estimator_class.__name__} has an invalid 'algorithm_type' "
+            f"tag: '{algorithm_type}'. Valid types are {valid_algorithm_types}."
+        )
+
 
 def check_contracted_classifier(estimator_class, datatype):
     """Test classifiers that can be contracted."""
     estimator_instance = estimator_class._create_test_instance(
         parameter_set="contracting"
     )
-
     default_params = inspect.signature(estimator_class.__init__).parameters
 
     # check that the classifier has a time_limit_in_minutes parameter
@@ -192,7 +222,7 @@ def check_contracted_classifier(estimator_class, datatype):
         )
 
     # too short of a contract time can lead to test failures
-    if vars(estimator_instance).get("time_limit_in_minutes", None) < 0.5:
+    if vars(estimator_instance).get("time_limit_in_minutes", 0) < 0.5:
         raise ValueError(
             "Test parameters for test_contracted_classifier must set "
             "time_limit_in_minutes to 0.5 or more. It is recommended to make "
@@ -216,68 +246,58 @@ def check_contracted_classifier(estimator_class, datatype):
 
 
 def check_classifier_saving_loading_deep_learning(estimator_class, datatype):
-    """Test Deep Classifier saving."""
+    """Test deep classifier saving."""
     with tempfile.TemporaryDirectory() as tmp:
-        if not (
-            estimator_class.__name__
-            in [
-                "BaseDeepClassifier",
-                "InceptionTimeClassifier",
-                "LITETimeClassifier",
-                "TapNetClassifier",
-            ]
-        ):
-            if tmp[-1] != "/":
-                tmp = tmp + "/"
-            curr_time = str(time.time_ns())
-            last_file_name = curr_time + "last"
-            best_file_name = curr_time + "best"
-            init_file_name = curr_time + "init"
+        if tmp[-1] != "/":
+            tmp = tmp + "/"
 
-            deep_cls_train = estimator_class(
-                n_epochs=2,
-                save_best_model=True,
-                save_last_model=True,
-                save_init_model=True,
-                best_file_name=best_file_name,
-                last_file_name=last_file_name,
-                init_file_name=init_file_name,
-                file_path=tmp,
-            )
-            deep_cls_train.fit(
-                FULL_TEST_DATA_DICT[datatype]["train"][0],
-                FULL_TEST_DATA_DICT[datatype]["train"][1],
-            )
+        curr_time = str(time.time_ns())
+        last_file_name = curr_time + "last"
+        best_file_name = curr_time + "best"
+        init_file_name = curr_time + "init"
 
-            deep_cls_best = estimator_class()
-            deep_cls_best.load_model(
-                model_path=os.path.join(tmp, best_file_name + ".keras"),
-                classes=np.unique(FULL_TEST_DATA_DICT[datatype]["train"][1]),
-            )
-            ypred_best = deep_cls_best.predict(
-                FULL_TEST_DATA_DICT[datatype]["train"][0]
-            )
-            assert len(ypred_best) == len(FULL_TEST_DATA_DICT[datatype]["train"][1])
+        deep_cls_train = estimator_class(
+            n_epochs=2,
+            save_best_model=True,
+            save_last_model=True,
+            save_init_model=True,
+            best_file_name=best_file_name,
+            last_file_name=last_file_name,
+            init_file_name=init_file_name,
+            file_path=tmp,
+        )
+        deep_cls_train.fit(
+            FULL_TEST_DATA_DICT[datatype]["train"][0],
+            FULL_TEST_DATA_DICT[datatype]["train"][1],
+        )
 
-            deep_cls_last = estimator_class()
-            deep_cls_last.load_model(
-                model_path=os.path.join(tmp, last_file_name + ".keras"),
-                classes=np.unique(FULL_TEST_DATA_DICT[datatype]["train"][1]),
-            )
-            ypred_last = deep_cls_last.predict(
-                FULL_TEST_DATA_DICT[datatype]["train"][0]
-            )
-            assert len(ypred_last) == len(FULL_TEST_DATA_DICT[datatype]["train"][1])
+        deep_cls_best = estimator_class()
+        deep_cls_best.load_model(
+            model_path=os.path.join(tmp, best_file_name + ".keras"),
+            classes=np.unique(FULL_TEST_DATA_DICT[datatype]["train"][1]),
+        )
+        ypred_best = deep_cls_best.predict(FULL_TEST_DATA_DICT[datatype]["test"][0])
+        _assert_predict_labels(ypred_best, datatype)
 
-            deep_cls_init = estimator_class()
-            deep_cls_init.load_model(
-                model_path=os.path.join(tmp, init_file_name + ".keras"),
-                classes=np.unique(FULL_TEST_DATA_DICT[datatype]["train"][1]),
-            )
-            ypred_init = deep_cls_init.predict(
-                FULL_TEST_DATA_DICT[datatype]["train"][0]
-            )
-            assert len(ypred_init) == len(FULL_TEST_DATA_DICT[datatype]["train"][1])
+        deep_cls_last = estimator_class()
+        deep_cls_last.load_model(
+            model_path=os.path.join(tmp, last_file_name + ".keras"),
+            classes=np.unique(FULL_TEST_DATA_DICT[datatype]["train"][1]),
+        )
+        ypred_last = deep_cls_last.predict(FULL_TEST_DATA_DICT[datatype]["test"][0])
+        _assert_predict_labels(ypred_last, datatype)
+
+        deep_cls_init = estimator_class()
+        deep_cls_init.load_model(
+            model_path=os.path.join(tmp, init_file_name + ".keras"),
+            classes=np.unique(FULL_TEST_DATA_DICT[datatype]["train"][1]),
+        )
+        ypred_init = deep_cls_init.predict(FULL_TEST_DATA_DICT[datatype]["test"][0])
+        _assert_predict_labels(ypred_init, datatype)
+
+        ypred = deep_cls_train.predict(FULL_TEST_DATA_DICT[datatype]["test"][0])
+        _assert_predict_labels(ypred, datatype)
+        assert_array_almost_equal(ypred, ypred_best)
 
 
 def check_classifier_train_estimate(estimator, datatype):
@@ -285,7 +305,6 @@ def check_classifier_train_estimate(estimator, datatype):
     estimator = _clone_estimator(estimator)
     estimator_class = type(estimator)
 
-    # if we have a train_estimate parameter set use it, else use default
     if (
         "_fit_predict" not in estimator_class.__dict__
         or "_fit_predict_proba" not in estimator_class.__dict__
@@ -302,27 +321,22 @@ def check_classifier_train_estimate(estimator, datatype):
         FULL_TEST_DATA_DICT[datatype]["train"][0],
         FULL_TEST_DATA_DICT[datatype]["train"][1],
     )
-    assert isinstance(train_preds, np.ndarray)
-    assert train_preds.shape == (
-        get_n_cases(FULL_TEST_DATA_DICT[datatype]["train"][0]),
+    _assert_predict_labels(
+        train_preds, datatype, split="train", unique_labels=unique_labels
     )
-    assert np.all(np.isin(np.unique(train_preds), unique_labels))
 
     # check the probabilities are valid
     train_proba = estimator.fit_predict_proba(
         FULL_TEST_DATA_DICT[datatype]["train"][0],
         FULL_TEST_DATA_DICT[datatype]["train"][1],
     )
-    assert isinstance(train_proba, np.ndarray)
-    assert train_proba.shape == (
-        get_n_cases(FULL_TEST_DATA_DICT[datatype]["train"][0]),
-        len(unique_labels),
+    _assert_predict_probabilities(
+        train_proba, datatype, split="train", n_classes=len(unique_labels)
     )
-    np.testing.assert_almost_equal(train_proba.sum(axis=1), 1, decimal=4)
 
 
 def check_classifier_random_state_deep_learning(estimator, datatype):
-    """Test Deep Classifier seeding."""
+    """Test deep classifier seeding."""
     random_state = 42
 
     deep_cls1 = _clone_estimator(estimator, random_state=random_state)
@@ -357,11 +371,7 @@ def check_classifier_random_state_deep_learning(estimator, datatype):
 
 
 def check_classifier_output(estimator, datatype):
-    """Test classifier outputs the correct data types and values.
-
-    Test predict produces a np.array or pd.Series with only values seen in the train
-    data, and that predict_proba probability estimates add up to one.
-    """
+    """Test classifier outputs the correct data types and values."""
     estimator = _clone_estimator(estimator)
 
     unique_labels = np.unique(FULL_TEST_DATA_DICT[datatype]["train"][1])
@@ -372,18 +382,8 @@ def check_classifier_output(estimator, datatype):
         FULL_TEST_DATA_DICT[datatype]["train"][1],
     )
     y_pred = estimator.predict(FULL_TEST_DATA_DICT[datatype]["test"][0])
-
-    # check predict
-    assert isinstance(y_pred, np.ndarray)
-    assert y_pred.shape == (get_n_cases(FULL_TEST_DATA_DICT[datatype]["test"][0]),)
-    assert np.all(np.isin(np.unique(y_pred), unique_labels))
+    _assert_predict_labels(y_pred, datatype, unique_labels=unique_labels)
 
     # check predict proba (all classifiers have predict_proba by default)
     y_proba = estimator.predict_proba(FULL_TEST_DATA_DICT[datatype]["test"][0])
-
-    assert isinstance(y_proba, np.ndarray)
-    assert y_proba.shape == (
-        get_n_cases(FULL_TEST_DATA_DICT[datatype]["test"][0]),
-        len(unique_labels),
-    )
-    np.testing.assert_almost_equal(y_proba.sum(axis=1), 1, decimal=4)
+    _assert_predict_probabilities(y_proba, datatype, n_classes=len(unique_labels))

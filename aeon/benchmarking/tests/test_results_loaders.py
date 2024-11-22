@@ -7,6 +7,7 @@ import pandas as pd
 import pytest
 from pytest import raises
 
+import aeon
 from aeon.benchmarking.results_loaders import (
     CONNECTION_ERRORS,
     NAME_ALIASES,
@@ -72,8 +73,10 @@ def test_get_available_estimators():
 
 cls = ["HIVECOTEV2", "FreshPRINCE", "InceptionTime"]
 data = ["Chinatown", "ItalyPowerDemand", "Tools"]
-test_path = os.path.dirname(__file__)
-data_path = os.path.join(test_path, "../example_results/")
+data_path = os.path.join(
+    os.path.dirname(aeon.__file__),
+    "testing/example_results_files/",
+)
 
 
 @pytest.mark.skipif(

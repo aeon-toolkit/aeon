@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-__maintainer__ = ["CodeLionX"]
+__maintainer__ = ["SebastianSchmidl"]
 __all__ = ["STOMP"]
 
 import numpy as np

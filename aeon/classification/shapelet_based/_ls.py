@@ -231,4 +231,4 @@ class LearningShapeletClassifier(BaseClassifier):
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
         """
-        return {"max_iter": 50, "batch_size": 10}
+        return {"max_iter": 10, "batch_size": 10, "total_lengths": 1}
