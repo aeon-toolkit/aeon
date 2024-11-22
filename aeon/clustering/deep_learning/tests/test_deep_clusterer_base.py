@@ -41,5 +41,3 @@ def test_base_deep_clusterer(estimator):
         ypred_proba = dummy_deep_clr.predict_proba(X)
         assert ypred_proba is not None
         assert len(ypred_proba[0]) == len(np.unique(y))
-        score = dummy_deep_clr.score(X)
-        assert isinstance(score, np.float64) or isinstance(score, np.float32)

@@ -24,8 +24,6 @@ class AEResNetClusterer(BaseDeepClusterer):
 
     Parameters
     ----------
-    n_clusters : int, default=None
-        Please use 'estimator' parameter.
     estimator : aeon clusterer, default=None
         An aeon estimator to be built using the transformed data.
         Defaults to aeon TimeSeriesKMeans() with euclidean distance
@@ -137,7 +135,6 @@ class AEResNetClusterer(BaseDeepClusterer):
 
     def __init__(
         self,
-        n_clusters=None,
         estimator=None,
         n_residual_blocks=3,
         clustering_algorithm="deprecated",
@@ -196,7 +193,6 @@ class AEResNetClusterer(BaseDeepClusterer):
 
         super().__init__(
             estimator=estimator,
-            n_clusters=n_clusters,
             clustering_algorithm=clustering_algorithm,
             clustering_params=clustering_params,
             batch_size=batch_size,
@@ -363,13 +359,8 @@ class AEResNetClusterer(BaseDeepClusterer):
             self.save_last_model_to_file(file_path=self.file_path)
 
         gc.collect()
-        return self
 
-    def _score(self, X, y=None):
-        # Transpose to conform to Keras input style.
-        X = X.transpose(0, 2, 1)
-        latent_space = self.model_.layers[1].predict(X)
-        return self._estimator.score(latent_space)
+        return self
 
     def _fit_multi_rec_model(
         self,

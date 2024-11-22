@@ -51,9 +51,6 @@ class _TestClusterer(BaseClusterer):
         """Predict dummy."""
         return np.zeros(shape=(len(X),), dtype=int)
 
-    def _score(self, X, y=None):
-        return 1.0
-
 
 def test_base_clusterer():
     """Test with no clusters."""

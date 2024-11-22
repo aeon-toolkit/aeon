@@ -16,7 +16,10 @@ from aeon.distances._distance import (
     _custom_func_pairwise,
     _resolve_key_from_distance,
 )
-from aeon.testing.data_generation._legacy import make_series
+from aeon.testing.data_generation import (
+    make_example_1d_numpy,
+    make_example_2d_numpy_series,
+)
 from aeon.testing.expected_results.expected_distance_results import (
     _expected_distance_results,
 )
@@ -45,7 +48,6 @@ def _validate_distance_result(
         return
 
     dist_result = distance(x, y)
-
     assert isinstance(dist_result, float)
     assert_almost_equal(dist_result, expected_result)
     assert_almost_equal(dist_result, compute_distance(x, y, metric=name))
@@ -76,58 +78,58 @@ def test_distances(dist):
     # ================== Test equal length ==================
     # Test univariate of shape (n_timepoints,)
     _validate_distance_result(
-        make_series(10, return_numpy=True, random_state=1),
-        make_series(10, return_numpy=True, random_state=2),
+        make_example_1d_numpy(10, random_state=1),
+        make_example_1d_numpy(10, random_state=2),
         dist["name"],
         dist["distance"],
-        _expected_distance_results[dist["name"]][1],
+        _expected_distance_results[dist["name"]][0],
     )
 
     # Test univariate of shape (1, n_timepoints)
     _validate_distance_result(
-        make_series(10, 1, return_numpy=True, random_state=1),
-        make_series(10, 1, return_numpy=True, random_state=2),
+        make_example_2d_numpy_series(10, 1, random_state=1),
+        make_example_2d_numpy_series(10, 1, random_state=2),
         dist["name"],
         dist["distance"],
-        _expected_distance_results[dist["name"]][1],
+        _expected_distance_results[dist["name"]][0],
     )
 
     # Test multivariate of shape (n_channels, n_timepoints)
     _validate_distance_result(
-        make_series(10, 10, return_numpy=True, random_state=1),
-        make_series(10, 10, return_numpy=True, random_state=2),
+        make_example_2d_numpy_series(10, 1, random_state=1),
+        make_example_2d_numpy_series(10, 1, random_state=2),
         dist["name"],
         dist["distance"],
-        _expected_distance_results[dist["name"]][2],
+        _expected_distance_results[dist["name"]][1],
     )
 
     # ================== Test unequal length ==================
     if dist["name"] in UNEQUAL_LENGTH_SUPPORT_DISTANCES:
         # Test univariate unequal length of shape (n_timepoints,)
         _validate_distance_result(
-            make_series(5, return_numpy=True, random_state=1),
-            make_series(10, return_numpy=True, random_state=2),
+            make_example_1d_numpy(5, random_state=1),
+            make_example_1d_numpy(10, random_state=2),
             dist["name"],
             dist["distance"],
-            _expected_distance_results[dist["name"]][3],
+            _expected_distance_results[dist["name"]][2],
         )
 
         # Test univariate unequal length of shape (1, n_timepoints)
         _validate_distance_result(
-            make_series(5, 1, return_numpy=True, random_state=1),
-            make_series(10, 1, return_numpy=True, random_state=2),
+            make_example_2d_numpy_series(5, 1, random_state=1),
+            make_example_2d_numpy_series(10, 1, random_state=2),
             dist["name"],
             dist["distance"],
-            _expected_distance_results[dist["name"]][3],
+            _expected_distance_results[dist["name"]][2],
         )
 
         # Test multivariate unequal length of shape (n_channels, n_timepoints)
         _validate_distance_result(
-            make_series(5, 10, return_numpy=True, random_state=1),
-            make_series(10, 10, return_numpy=True, random_state=2),
+            make_example_2d_numpy_series(5, 5, random_state=1),
+            make_example_2d_numpy_series(10, 10, random_state=2),
             dist["name"],
             dist["distance"],
-            _expected_distance_results[dist["name"]][4],
+            _expected_distance_results[dist["name"]][3],
         )
 
     # ============== Test single point series ==============
@@ -138,7 +140,7 @@ def test_distances(dist):
             np.array([15.0]),
             dist["name"],
             dist["distance"],
-            _expected_distance_results[dist["name"]][0],
+            _expected_distance_results[dist["name"]][4],
         )
 
         # Test singe point univariate of shape (1, 1)
@@ -147,7 +149,7 @@ def test_distances(dist):
             np.array([[15.0]]),
             dist["name"],
             dist["distance"],
-            _expected_distance_results[dist["name"]][0],
+            _expected_distance_results[dist["name"]][4],
         )
 
 

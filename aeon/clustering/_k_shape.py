@@ -89,6 +89,7 @@ class TimeSeriesKShape(BaseClusterer):
         self.tol = tol
         self.verbose = verbose
         self.random_state = random_state
+        self.n_clusters = n_clusters
 
         self.cluster_centers_ = None
         self.labels_ = None
@@ -97,7 +98,7 @@ class TimeSeriesKShape(BaseClusterer):
 
         self._tslearn_k_shapes = None
 
-        super().__init__(n_clusters=n_clusters)
+        super().__init__()
 
     def _fit(self, X, y=None):
         """Fit time series clusterer to training data.
@@ -130,7 +131,7 @@ class TimeSeriesKShape(BaseClusterer):
 
         self._tslearn_k_shapes.fit(_X)
         self._cluster_centers = self._tslearn_k_shapes.cluster_centers_
-        self.labels_ = self._tslearn_k_shapes.labels_
+        self.labels_ = self._tslearn_k_shapes.predict(_X)
         self.inertia_ = self._tslearn_k_shapes.inertia_
         self.n_iter_ = self._tslearn_k_shapes.n_iter_
 
@@ -179,6 +180,3 @@ class TimeSeriesKShape(BaseClusterer):
             "verbose": False,
             "random_state": 1,
         }
-
-    def _score(self, X, y=None):
-        return np.abs(self.inertia_)
