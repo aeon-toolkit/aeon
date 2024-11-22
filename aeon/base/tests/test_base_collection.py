@@ -248,7 +248,7 @@ def test_convert_np_list():
     assert np2[0].shape == (1, 10)
     assert np2[1].shape == (1, 20)
     assert np2[2].shape == (1, 30)
-    dummy1 = BaseCollectionEstimator()
+    dummy1 = MockClassifier()
     x1 = np.random.random(size=(1, 10))
     x2 = np.random.rand(10)
     x3 = np.random.rand(10)
