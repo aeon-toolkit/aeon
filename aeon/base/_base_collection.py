@@ -1,5 +1,7 @@
 """Base class for estimators that fit collections of time series."""
 
+import numpy as np
+
 from aeon.base._base import BaseAeonEstimator
 from aeon.utils.conversion import (
     convert_collection,
@@ -79,6 +81,8 @@ class BaseCollectionEstimator(BaseAeonEstimator):
         >>> X2.shape
         (10, 1, 20)
         """
+        if isinstance(X, list) and isinstance(X[0], np.ndarray):
+            X = self._reshape_np_list(X)
         meta = self._check_X(X)
         if len(self.metadata_) == 0 and store_metadata:
             self.metadata_ = meta
@@ -267,3 +271,20 @@ class BaseCollectionEstimator(BaseAeonEstimator):
             None if metadata["unequal_length"] else get_n_timepoints(X)
         )
         return metadata
+
+    @staticmethod
+    def _reshape_np_list(X):
+        """Reshape 1D numpy to be 2D."""
+        reshape = False
+        for x in X:
+            if x.ndim == 1:
+                reshape = True
+                break
+        if reshape:
+            X2 = []
+            for x in X:
+                if x.ndim == 1:
+                    x = x.reshape(1, -1)
+                X2.append(x)
+            return X2
+        return X
