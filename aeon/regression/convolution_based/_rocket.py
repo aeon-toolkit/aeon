@@ -67,8 +67,7 @@ class RocketRegressor(BaseRegressor):
     _tags = {
         "capability:multithreading": True,
         "algorithm_type": "convolution",
-        "capability:unequal_length": True,
-        "X_inner_type": ["numpy3D", "np-list"],
+        "X_inner_type": "numpy3D",
     }
 
     def __init__(
