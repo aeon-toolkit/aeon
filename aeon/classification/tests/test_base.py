@@ -139,7 +139,7 @@ def test_unequal_length_input(data):
 
     # Unable to handle unequal length series
     dummy = MockClassifier()
-    with pytest.raises(ValueError, match=r"cannot handle unequal length series"):
+    with pytest.raises(ValueError, match=r"has unequal length series, but"):
         dummy.fit(X, y)
 
     # Able to handle unequal length series
@@ -170,7 +170,7 @@ def test_multivariate_equal_length_input(data):
 
     # Unable to handle multivariate series
     dummy = MockClassifier()
-    with pytest.raises(ValueError, match=r"cannot handle multivariate series"):
+    with pytest.raises(ValueError, match=r"has multivariate series, but"):
         dummy.fit(X, y)
 
     # Able to handle multivariate series

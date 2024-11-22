@@ -440,7 +440,7 @@ def resolve_unequal_length_inner_type(inner_types: Sequence[str]) -> str:
         return "pd-multiindex"
     raise ValueError(
         f"Error, no valid inner types for unequal series in {inner_types} "
-        f"must be np-list or pd-multiindex"
+        f"must be np-list, df-list or pd-multiindex"
     )
 
 

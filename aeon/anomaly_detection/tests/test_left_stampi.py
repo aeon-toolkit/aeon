@@ -1,4 +1,4 @@
-"""Tests for the LaftSTAMPi class."""
+"""Tests for the LeftSTAMPi class."""
 
 __maintainer__ = ["ferewi"]
 

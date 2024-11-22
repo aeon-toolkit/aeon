@@ -43,6 +43,9 @@ def test_correct_input():
 class _TestClusterer(BaseClusterer):
     """Clusterer for testing base class fit/predict/predict_proba."""
 
+    def __init__(self):
+        super().__init__()
+
     def _fit(self, X, y=None):
         """Fit dummy."""
         return self
