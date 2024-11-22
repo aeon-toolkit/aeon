@@ -7,7 +7,10 @@ import pytest
 
 from aeon.base._base import _clone_estimator
 from aeon.base._base_series import VALID_SERIES_INNER_TYPES
-from aeon.testing.data_generation._legacy import make_series
+from aeon.testing.data_generation import (
+    make_example_1d_numpy,
+    make_example_2d_numpy_series,
+)
 
 
 def _yield_anomaly_detection_checks(estimator_class, estimator_instances, datatypes):
@@ -53,11 +56,9 @@ def check_anomaly_detector_overrides_and_tags(estimator_class):
 
 labels = np.zeros(15, dtype=np.int_)
 labels[np.random.choice(15, 5)] = 1
-uv_series = make_series(n_timepoints=15, return_numpy=True, random_state=0)
+uv_series = make_example_1d_numpy(n_timepoints=15, random_state=0)
 uv_series[labels == 1] += 1
-mv_series = make_series(
-    n_timepoints=15, n_columns=2, return_numpy=True, random_state=0
-).T
+mv_series = make_example_2d_numpy_series(n_timepoints=15, n_channels=2, random_state=0)
 mv_series[:, labels == 1] += 1
 
 
