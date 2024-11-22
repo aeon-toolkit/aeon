@@ -40,6 +40,9 @@ from aeon.testing.estimator_checking._yield_collection_transformation_checks imp
 from aeon.testing.estimator_checking._yield_early_classification_checks import (
     _yield_early_classification_checks,
 )
+from aeon.testing.estimator_checking._yield_multithreading_checks import (
+    _yield_multithreading_checks,
+)
 from aeon.testing.estimator_checking._yield_regression_checks import (
     _yield_regression_checks,
 )
@@ -113,6 +116,10 @@ def _yield_all_aeon_checks(
     yield from _yield_estimator_checks(estimator_class, estimator_instances, datatypes)
 
     yield from _yield_soft_dependency_checks(
+        estimator_class, estimator_instances, datatypes
+    )
+
+    yield from _yield_multithreading_checks(
         estimator_class, estimator_instances, datatypes
     )
 

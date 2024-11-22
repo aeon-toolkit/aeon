@@ -22,11 +22,12 @@ from aeon.utils.validation.collection import (
 
 
 class BaseCollectionEstimator(BaseAeonEstimator):
-    """Base class for estimators that use collections of time series for method fit.
+    """Base class for estimators that use collections of time series for ``fit``.
 
-    Provides functions that are common to BaseClassifier, BaseRegressor,
-    BaseClusterer and BaseCollectionTransformer for the checking and
-    conversion of input to fit, predict and predict_proba, where relevant.
+    Provides functions that are common to estimators which use colections such as
+    ``BaseClassifier``, ``BaseRegressor``, ``BaseClusterer``, ``BaseSimilaritySearch``
+    and ``BaseCollectionTransformer``. Functionality includes checking and
+    conversion of input to ``fit, predict and predict_proba, where relevant.
 
     It also stores the common default tags used by all the subclasses and meta data
     describing the characteristics of time series passed to ``fit``.
