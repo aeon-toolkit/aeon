@@ -6,6 +6,8 @@ i.e. classification, regression and clustering.
 __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["BaseCollectionPipeline"]
 
+from abc import abstractmethod
+
 import numpy as np
 from sklearn.base import BaseEstimator
 from sklearn.utils import check_random_state
@@ -59,6 +61,7 @@ class BaseCollectionPipeline(ComposableEstimatorMixin, BaseCollectionEstimator):
     # Used in get_fitted_params
     _fitted_estimators_attr = "steps_"
 
+    @abstractmethod
     def __init__(self, transformers, _estimator, random_state=None):
         self.transformers = transformers
         self._estimator = _estimator

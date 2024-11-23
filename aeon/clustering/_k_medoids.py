@@ -171,6 +171,7 @@ class TimeSeriesKMedoids(BaseClusterer):
         self.random_state = random_state
         self.distance_params = distance_params
         self.method = method
+        self.n_clusters = n_clusters
 
         self.cluster_centers_ = None
         self.labels_ = None
@@ -184,7 +185,7 @@ class TimeSeriesKMedoids(BaseClusterer):
         self._fit_method = None
 
         self._distance_params = {}
-        super().__init__(n_clusters)
+        super().__init__()
 
     def _fit(self, X: np.ndarray, y=None):
         self._check_params(X)
@@ -206,9 +207,6 @@ class TimeSeriesKMedoids(BaseClusterer):
         self.inertia_ = best_inertia
         self.cluster_centers_ = best_centers
         self.n_iter_ = best_iters
-
-    def _score(self, X, y=None):
-        return -self.inertia_
 
     def _predict(self, X: np.ndarray, y=None) -> np.ndarray:
         if isinstance(self.distance, str):

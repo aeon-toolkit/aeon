@@ -12,6 +12,9 @@ from aeon.classification import BaseClassifier
 class MockClassifier(BaseClassifier):
     """Mock classifier for testing fit/predict."""
 
+    def __init__(self):
+        super().__init__()
+
     def _fit(self, X, y):
         """Fit dummy."""
         self.foo_ = "bar"

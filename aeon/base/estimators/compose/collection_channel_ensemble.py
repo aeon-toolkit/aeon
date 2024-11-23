@@ -6,6 +6,8 @@ i.e. classification, regression and clustering.
 __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["BaseCollectionChannelEnsemble"]
 
+from abc import abstractmethod
+
 import numpy as np
 from sklearn.base import BaseEstimator
 from sklearn.utils import check_random_state
@@ -71,6 +73,7 @@ class BaseCollectionChannelEnsemble(ComposableEstimatorMixin, BaseCollectionEsti
     # Used in get_fitted_params
     _fitted_estimators_attr = "ensemble_"
 
+    @abstractmethod
     def __init__(
         self,
         _ensemble,

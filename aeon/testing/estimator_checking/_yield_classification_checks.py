@@ -69,7 +69,7 @@ def _yield_classification_checks(estimator_class, estimator_instances, datatypes
     # test class instances
     for i, estimator in enumerate(estimator_instances):
         # data type irrelevant
-        if _get_tag(estimator_class, "capability:train_estimate", raise_error=True):
+        if _get_tag(estimator, "capability:train_estimate", raise_error=True):
             yield partial(
                 check_classifier_train_estimate,
                 estimator=estimator,

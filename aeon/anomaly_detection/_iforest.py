@@ -88,6 +88,7 @@ class IsolationForest(PyODAdapter):
         "capability:multivariate": True,
         "capability:univariate": True,
         "capability:missing_values": False,
+        "capability:multithreading": True,
         "fit_is_empty": False,
         "python_dependencies": ["pyod"],
     }

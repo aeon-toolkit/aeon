@@ -189,8 +189,8 @@ def check_estimator(
     >>> results = check_estimator(MockClassifier())
 
     Running specific check for MockClassifier
-    >>> check_estimator(MockClassifier, checks_to_run="check_clone")
-    {'check_clone(estimator=MockClassifier())': 'PASSED'}
+    >>> check_estimator(MockClassifier, checks_to_run="check_get_params")
+    {'check_get_params(estimator=MockClassifier())': 'PASSED'}
     """
     # check if estimator has soft dependencies installed
     _check_estimator_deps(estimator)

@@ -206,7 +206,7 @@ class ClaSPSegmenter(BaseSegmenter):
     >>> scores = clasp.scores
     """
 
-    _tags = {"fit_is_empty": True}  # for unit test cases
+    _tags = {"capability:multithreading": True, "fit_is_empty": True}
 
     def __init__(self, period_length=10, n_cps=1, exclusion_radius=0.05, n_jobs=1):
         self.period_length = int(period_length)
