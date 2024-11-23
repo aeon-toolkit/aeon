@@ -17,7 +17,7 @@ from aeon.datasets import (
     load_classification,
     load_forecasting,
     load_from_arff_file,
-    load_from_tsfile,
+    load_from_ts_file,
     load_from_tsv_file,
     load_regression,
 )
@@ -310,7 +310,7 @@ def test_load_provided_dataset(return_type):
     PR_TESTING,
     reason="Only run on overnights because of intermittent fail for read/write",
 )
-def test_load_from_tsfile():
+def test_load_from_ts_file():
     """Test function for loading TS formats.
 
     Test
@@ -325,12 +325,12 @@ def test_load_from_tsfile():
         os.path.dirname(aeon.__file__),
         "datasets/data/UnitTest/UnitTest_TRAIN.ts",
     )
-    X, y = load_from_tsfile(data_path, return_meta_data=False)
+    X, y = load_from_ts_file(data_path, return_meta_data=False)
     assert isinstance(X, np.ndarray) and isinstance(y, np.ndarray)
     assert X.ndim == 3
     assert X.shape == (20, 1, 24) and y.shape == (20,)
     assert X[0][0][0] == 573.0
-    X, y = load_from_tsfile(data_path, return_meta_data=False, return_type="numpy2D")
+    X, y = load_from_ts_file(data_path, return_meta_data=False, return_type="numpy2D")
     assert isinstance(X, np.ndarray)
     assert X.ndim == 2
     assert X.shape == (20, 24)
@@ -342,11 +342,11 @@ def test_load_from_tsfile():
         os.path.dirname(aeon.__file__),
         "datasets/data/BasicMotions/BasicMotions_TRAIN.ts",
     )
-    X, y = load_from_tsfile(data_path, return_meta_data=False)
+    X, y = load_from_ts_file(data_path, return_meta_data=False)
     assert isinstance(X, np.ndarray) and isinstance(y, np.ndarray)
     assert X.shape == (40, 6, 100) and y.shape == (40,)
     assert X[1][2][3] == -1.898794
-    X, y = load_from_tsfile(data_path, return_meta_data=False)
+    X, y = load_from_ts_file(data_path, return_meta_data=False)
     assert isinstance(X, np.ndarray) and isinstance(y, np.ndarray)
     assert X.ndim == 3
     assert X.shape == (40, 6, 100) and y.shape == (40,)
@@ -359,7 +359,7 @@ def test_load_from_tsfile():
         "datasets/data/PLAID/PLAID_TRAIN.ts",
     )
 
-    X, y = load_from_tsfile(full_file_path_and_name=data_path, return_meta_data=False)
+    X, y = load_from_ts_file(full_file_path_and_name=data_path, return_meta_data=False)
     assert isinstance(X, list) and isinstance(y, np.ndarray)
     assert len(X) == 537 and y.shape == (537,)
     # Test 3.2: load multivariate unequal length (JapaneseVowels), should return a X
@@ -368,7 +368,7 @@ def test_load_from_tsfile():
         os.path.dirname(aeon.__file__),
         "datasets/data/JapaneseVowels/JapaneseVowels_TRAIN.ts",
     )
-    X, y = load_from_tsfile(full_file_path_and_name=data_path, return_meta_data=False)
+    X, y = load_from_ts_file(full_file_path_and_name=data_path, return_meta_data=False)
     assert isinstance(X, list) and isinstance(y, np.ndarray)
     assert len(X) == 270 and y.shape == (270,)
 

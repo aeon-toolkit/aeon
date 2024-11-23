@@ -3,7 +3,7 @@
 from typing import Optional
 
 __all__ = [  # Load functions
-    "load_from_tsfile",
+    "load_from_ts_file",
     "load_from_tsf_file",
     "load_from_arff_file",
     "load_from_tsv_file",
@@ -230,7 +230,7 @@ def _load_data(file, meta_data, replace_missing_vals_with="NaN"):
     return data, np.asarray(y_values), meta_data
 
 
-def load_from_tsfile(
+def load_from_ts_file(
     full_file_path_and_name,
     replace_missing_vals_with="NaN",
     return_meta_data=False,
@@ -347,8 +347,8 @@ def _load_saved_dataset(
     """
     if isinstance(split, str):
         split = split.upper()
-    # This is also called in load_from_tsfile, but we need the value here and it
-    # is required in load_from_tsfile since it is public
+    # This is also called in load_from_ts_file, but we need the value here and it
+    # is required in load_from_ts_file since it is public
     return_type = _alias_datatype_check(return_type)
     if dir_name is None:
         dir_name = name
@@ -357,16 +357,16 @@ def _load_saved_dataset(
     if split in ("TRAIN", "TEST"):
         fname = name + "_" + split + ".ts"
         abspath = os.path.join(local_module, dir_name, fname)
-        X, y, meta_data = load_from_tsfile(abspath, return_meta_data=True)
+        X, y, meta_data = load_from_ts_file(abspath, return_meta_data=True)
     # if split is None, load both train and test set
     elif split is None:
         fname = name + "_TRAIN.ts"
         abspath = os.path.join(local_module, dir_name, fname)
-        X_train, y_train, meta_data = load_from_tsfile(abspath, return_meta_data=True)
+        X_train, y_train, meta_data = load_from_ts_file(abspath, return_meta_data=True)
 
         fname = name + "_TEST.ts"
         abspath = os.path.join(local_module, dir_name, fname)
-        X_test, y_test, meta_data_test = load_from_tsfile(
+        X_test, y_test, meta_data_test = load_from_ts_file(
             abspath, return_meta_data=True
         )
         if meta_data["equallength"]:
@@ -1062,7 +1062,7 @@ def load_regression(
     location in ``extract_path``. This function assumes the data is stored in format
     <extract_path>/<name>/<name>_TRAIN.ts and <extract_path>/<name>/<name>_TEST.ts.
     If you want to load a file directly from a full path, use the function
-    `load_from_tsfile`` directly. If you do not specify ``extract_path``, or if the
+    `load_from_ts_file`` directly. If you do not specify ``extract_path``, or if the
     problem is not present in ``extract_path`` it will attempt to download the data
     from https://timeseriesclassification.com or, if that fails,
     http://tseregression.org/.
@@ -1244,7 +1244,7 @@ def load_classification(
     location in ``extract_path``. This function assumes the data is stored in format
     ``<extract_path>/<name>/<name>_TRAIN.ts`` and
     ``<extract_path>/<name>/<name>_TEST.ts.`` If you want to load a file directly
-    from a full path, use the function `load_from_tsfile`` directly. If you do not
+    from a full path, use the function `load_from_ts_file`` directly. If you do not
     specify ``extract_path``, it will set the path to ``aeon/datasets/local_data``. If
     the  problem is not present in ``extract_path`` it will attempt to download the data
     from https://timeseriesclassification.com/.
