@@ -455,7 +455,7 @@ class RCluster(BaseClusterer):
 
         quantiles = self.__quantiles(self.num_kernels * num_features_per_kernel)
 
-        ###MODIFICATION
+        #MODIFICATION
         quantiles = np.random.permutation(quantiles)
 
         biases = self.__fit_biases(X, dilations, num_features_per_dilation, quantiles)
