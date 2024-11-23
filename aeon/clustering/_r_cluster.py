@@ -36,7 +36,8 @@ class RCluster(BaseClusterer):
          The number of clusters used
          
     n_init : int , default = 10
-         The number of times the clustering algorithm (e.g., KMeans) will run with different centroid seeds
+         The number of times the clustering algorithm (e.g., KMeans) will run with 
+         different centroid seeds
          to avoid poor local optima
 
     max_iter: int, default=300
