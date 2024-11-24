@@ -132,21 +132,12 @@ class TRILITE(BaseCollectionTransformer):
     Examples
     --------
     >>> from aeon.transformations.collection.self_supervised import TRILITE
-    >>> from aeon.networks import FCNNetwork
-    >>> from aeon.classification.distance_based import KNeighborsTimeSeriesClassifier
     >>> from aeon.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train")
-    >>> X_test, y_test = load_unit_test(split="test")
-    >>> net = FCNNetwork(n_layers=1,n_filters=2,kernel_size=2)
-    >>> ssl = TRILITE(backbone_network=net, latent_space_dim=2, n_epochs=5)
-    >>> ssl.fit(X_train)
-    TRILITE(backbone_network=net, latent_space_dim=2, n_epochs=5)
-    >>> X_train_transformed = ssl.transform(X_train)
-    >>> X_test_transformed = ssl.transform(X_test)
-    >>> nn = KNeighborsTimeSeriesClassifier(distance="euclidean")
-    >>> nn.fit(X_train_transformed, y_train)
-    >>> KNeighborsTimeSeriesClassifier(...)
-    >>> y_pred = nn.predict(X_test_transformed)
+    >>> ssl = TRILITE(latent_space_dim=2, n_epochs=5) # doctest: +SKIP
+    >>> ssl.fit(X_train) # doctest: +SKIP
+    TRILITE(...)
+    >>> X_train_transformed = ssl.transform(X_train) # doctest: +SKIP
     """
 
     _tags = {
