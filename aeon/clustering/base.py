@@ -3,14 +3,12 @@
 __maintainer__ = []
 __all__ = ["BaseClusterer"]
 
-import time
 from abc import abstractmethod
 from typing import final
 
 import numpy as np
 
 from aeon.base import BaseCollectionEstimator
-from aeon.utils.validation._dependencies import _check_estimator_deps
 
 
 class BaseClusterer(BaseCollectionEstimator):
@@ -26,13 +24,13 @@ class BaseClusterer(BaseCollectionEstimator):
         "fit_is_empty": False,
     }
 
+    @abstractmethod
     def __init__(self):
         # required for compatibility with some sklearn interfaces e.g.
         # CalibratedClassifierCV
         self._estimator_type = "clusterer"
 
         super().__init__()
-        _check_estimator_deps(self)
 
     @final
     def fit(self, X, y=None) -> BaseCollectionEstimator:
@@ -56,10 +54,8 @@ class BaseClusterer(BaseCollectionEstimator):
             Fitted estimator.
         """
         self.reset()
-        _start_time = int(round(time.time() * 1000))
         X = self._preprocess_collection(X)
         self._fit(X)
-        self.fit_time_ = int(round(time.time() * 1000)) - _start_time
         self.is_fitted = True
         return self
 

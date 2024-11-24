@@ -41,19 +41,14 @@ def _yield_classification_checks(estimator_class, estimator_instances, datatypes
             results_dict=unit_test_proba,
             resample_seed=0,
         )
-        # the test currently fails when numba is disabled. See issue #622
-        if (
-            estimator_class.__name__ != "HIVECOTEV2"
-            or os.environ.get("NUMBA_DISABLE_JIT") != "1"
-        ):
-            yield partial(
-                check_classifier_against_expected_results,
-                estimator_class=estimator_class,
-                data_name="BasicMotions",
-                data_loader=load_basic_motions,
-                results_dict=basic_motions_proba,
-                resample_seed=4,
-            )
+        yield partial(
+            check_classifier_against_expected_results,
+            estimator_class=estimator_class,
+            data_name="BasicMotions",
+            data_loader=load_basic_motions,
+            results_dict=basic_motions_proba,
+            resample_seed=4,
+        )
     yield partial(check_classifier_overrides_and_tags, estimator_class=estimator_class)
 
     # data type irrelevant
