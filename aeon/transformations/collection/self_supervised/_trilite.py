@@ -12,6 +12,7 @@ from copy import deepcopy
 import numpy as np
 from sklearn.utils import check_random_state
 
+from aeon.networks import BaseDeepLearningNetwork, FCNNetwork
 from aeon.transformations.collection import BaseCollectionTransformer
 
 
@@ -224,8 +225,6 @@ class TRILITE(BaseCollectionTransformer):
         self : object
         """
         import tensorflow as tf
-
-        from aeon.networks import BaseDeepLearningNetwork, FCNNetwork
 
         if isinstance(self.backbone_network, BaseDeepLearningNetwork):
             self._backbone_network = self.backbone_network
@@ -634,3 +633,29 @@ class TRILITE(BaseCollectionTransformer):
             return callbacks + [model_checkpoint_]
         else:
             return [callbacks] + [model_checkpoint_]
+
+    @classmethod
+    def _get_test_params(cls, parameter_set="default"):
+        """Return testing parameter settings for the transformer.
+
+        Parameters
+        ----------
+        parameter_set : str, default="default"
+            Name of the set of test parameters to return, for use in tests. If no
+            special parameters are defined for a value, will return `"default"` set.
+
+
+        Returns
+        -------
+        params : dict or list of dict, default = {}
+            Parameters to create testing instances of the class
+            Each dict are parameters to construct an "interesting" test instance, i.e.,
+            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+        """
+        params = {
+            "latent_space_dim": 2,
+            "backbone_network": FCNNetwork(n_layers=1, n_filters=2, kernel_size=2),
+            "n_epochs": 3,
+        }
+
+        return params
