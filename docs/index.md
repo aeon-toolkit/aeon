@@ -35,7 +35,7 @@ segmentation and similarity search.
 :gutter: 3
 
 :::{grid-item-card}
-:img-top: examples/img/tsc.png
+:img-top: examples/classification/img/tsc.png
 :class-img-top: aeon-card-image
 :text-align: center
 
