@@ -61,6 +61,8 @@ class ETSForecaster(BaseForecaster):
         Likelihood of the fitted model based on residuals.
     residuals_ : arraylike
         List of train set differences between fitted and actual values.
+    n_timpoints_ : int
+        Length of the series passed to fit.
 
     References
     ----------
@@ -102,6 +104,7 @@ class ETSForecaster(BaseForecaster):
         self.mean_sq_err_ = 0
         self.likelihood_ = 0
         self.residuals_ = []
+        self.n_timpoints_ = 0
         super().__init__(horizon=horizon, axis=1)
 
     def _fit(self, y, exog=None):
@@ -121,6 +124,7 @@ class ETSForecaster(BaseForecaster):
         self
             Fitted BaseForecaster.
         """
+        self.n_timepoints_ = len(y)
         if self.error_type != MULTIPLICATIVE and self.error_type != ADDITIVE:
             raise ValueError("Error must be either additive or multiplicative")
         self._seasonal_period = self.seasonal_period
@@ -132,7 +136,6 @@ class ETSForecaster(BaseForecaster):
         self._gamma = self.gamma
         if self.seasonality_type == NONE:
             self._gamma = 0
-
         data = np.array(y.squeeze(), dtype=np.float64)
         (
             self._level,
@@ -179,7 +182,7 @@ class ETSForecaster(BaseForecaster):
             self._seasonality,
             self.phi,
             self.horizon,
-            self.n_timepoints,
+            self.n_timepoints_,
             self.seasonal_period,
         )
 
