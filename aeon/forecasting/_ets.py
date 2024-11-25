@@ -91,18 +91,14 @@ class ETSForecaster(BaseForecaster):
         phi=0.99,
         horizon=1,
     ):
-        self.alpha = alpha
-        self.beta = beta
-        self.gamma = gamma
-        self.phi = phi
-        self.level = (0,)
-        self.trend = (0,)
-        self.seasonality = np.zeros(1, dtype=np.float64)
-        self.n_timepoints = 0
         self.error_type = error_type
         self.trend_type = trend_type
         self.seasonality_type = seasonality_type
         self.seasonal_period = seasonal_period
+        self.alpha = alpha
+        self.beta = beta
+        self.gamma = gamma
+        self.phi = phi
         self.mean_sq_err_ = 0
         self.likelihood_ = 0
         self.residuals_ = []
@@ -139,9 +135,9 @@ class ETSForecaster(BaseForecaster):
 
         data = np.array(y.squeeze(), dtype=np.float64)
         (
-            self.level,
-            self.trend,
-            self.seasonality,
+            self._level,
+            self._trend,
+            self._seasonality,
             self.residuals_,
             self.mean_sq_err_,
             self.likelihood_,
@@ -178,9 +174,9 @@ class ETSForecaster(BaseForecaster):
         return _predict_numba(
             self.trend_type,
             self.seasonality_type,
-            self.level,
-            self.trend,
-            self.seasonality,
+            self._level,
+            self._trend,
+            self._seasonality,
             self.phi,
             self.horizon,
             self.n_timepoints,

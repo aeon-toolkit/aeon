@@ -5,7 +5,6 @@ __all__ = [
     "BaseForecaster",
     "RegressionForecaster",
     "ETSForecaster",
-    "ModelType",
 ]
 
 from aeon.forecasting._dummy import DummyForecaster

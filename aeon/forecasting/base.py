@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 
 from aeon.base import BaseSeriesEstimator
-from aeon.base._base_series import VALID_INPUT_TYPES
+from aeon.base._base_series import VALID_SERIES_INNER_TYPES
 
 
 class BaseForecaster(BaseSeriesEstimator):
@@ -126,7 +126,7 @@ class BaseForecaster(BaseSeriesEstimator):
         self.fit(y, exog)
         return self._predict(y, exog)
 
-    def _convert_y(self, y: VALID_INPUT_TYPES, axis: int):
+    def _convert_y(self, y: VALID_SERIES_INNER_TYPES, axis: int):
         """Convert y to self.get_tag("y_inner_type")."""
         if axis > 1 or axis < 0:
             raise ValueError(f"Input axis should be 0 or 1, saw {axis}")
