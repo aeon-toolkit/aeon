@@ -21,7 +21,6 @@ if [ "$1" = true ]; then
     "examples/classification/interval_based.ipynb"
     "examples/classification/shapelet_based.ipynb"
     "examples/classification/convolution_based.ipynb"
-
   )
 fi
 
