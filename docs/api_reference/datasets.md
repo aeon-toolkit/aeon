@@ -1,12 +1,9 @@
-.. _datasets_ref:
+# Datasets
 
-Datasets
-========
+See the [data format](data_format) page for information on the ``.ts`` file format
+used by ``aeon``.
 
-.. automodule:: aeon.datasets
-    :no-members:
-    :no-inherited-members:
-
+```{eval-rst}
 .. currentmodule:: aeon.datasets
 
 .. autosummary::
@@ -43,3 +40,10 @@ Datasets
     load_dodgers
     load_calit2
     load_rmj_2_short_2_diff_channel
+```
+
+```{toctree}
+:maxdepth: 1
+
+api_reference/data_format
+```
