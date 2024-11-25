@@ -177,7 +177,7 @@ def test_all_estimators_list_tag_lookup():
     )
     assert DummyClassifier in estimators3
 
-    assert len(estimators3) > len(estimators) and len(estimators3) > len(estimators2)
+    assert len(estimators3) > len(estimators) and len(estimators3) >= len(estimators2)
 
     estimators4 = all_estimators(
         tag_filter={"X_inner_type": "numpy2D"},

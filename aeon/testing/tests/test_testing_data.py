@@ -411,3 +411,6 @@ def test_missing_values_collection():
         assert np.issubdtype(
             MISSING_VALUES_REGRESSION[key]["test"][1].dtype, np.integer
         ) or np.issubdtype(MISSING_VALUES_REGRESSION[key]["test"][1].dtype, np.floating)
+
+
+# todo series testing data
