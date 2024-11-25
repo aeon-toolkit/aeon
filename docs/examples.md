@@ -126,7 +126,7 @@ Early TSC
 :gutter: 1
 
 :::{grid-item-card}
-:img-top: /examples/regression/img/tser.png
+:img-top: examples/regression/img/tser.png
 :class-img-top: aeon-card-image-m
 :link: /examples/regression/regression.ipynb
 :link-type: ref
