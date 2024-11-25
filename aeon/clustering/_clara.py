@@ -128,21 +128,9 @@ class TimeSeriesCLARA(BaseClusterer):
         verbose: bool = False,
         random_state: Optional[Union[int, RandomState]] = None,
         distance_params: Optional[dict] = None,
-        init_algorithm: Optional[Union[str, np.ndarray]] = None,
     ):
-        if init_algorithm is not None:
-            import warnings
-
-            warnings.warn(
-                "The 'init_algorithm' parameter is deprecated and will be "
-                "removed in version 1.1. Use 'init' instead.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-            self.init = init_algorithm
-        else:
-            self.init = init
         self.distance = distance
+        self.init = init
         self.n_init = n_init
         self.max_iter = max_iter
         self.tol = tol
@@ -152,8 +140,6 @@ class TimeSeriesCLARA(BaseClusterer):
         self.n_samples = n_samples
         self.n_sampling_iters = n_sampling_iters
         self.n_clusters = n_clusters
-        # Kept for testing will be deprecated
-        self.init_algorithm = init_algorithm
 
         self.cluster_centers_ = None
         self.labels_ = None

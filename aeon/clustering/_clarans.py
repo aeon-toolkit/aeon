@@ -111,18 +111,7 @@ class TimeSeriesCLARANS(TimeSeriesKMedoids):
         verbose: bool = False,
         random_state: Optional[Union[int, RandomState]] = None,
         distance_params: Optional[dict] = None,
-        init_algorithm: Optional[Union[str, np.ndarray]] = None,
     ):
-        if init_algorithm is not None:
-            import warnings
-
-            warnings.warn(
-                "The 'init_algorithm' parameter is deprecated and will be "
-                "removed in version 1.1. Use 'init' instead.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-
         self.max_neighbours = max_neighbours
 
         super().__init__(
