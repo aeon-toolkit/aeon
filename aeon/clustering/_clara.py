@@ -30,8 +30,8 @@ class TimeSeriesCLARA(BaseClusterer):
     n_clusters : int, default=8
         The number of clusters to form as well as the number of
         centroids to generate.
-    init_algorithm : str or np.ndarray, default='random'
-        Method for initializing cluster centers. Any of the following are valid:
+    init : str or np.ndarray, default='random'
+        Method for initialising cluster centers. Any of the following are valid:
         ['kmedoids++', 'random', 'first'].
         Random is the default as it is very fast and it was found in [2] to
         perform about as well as the other methods.
@@ -118,7 +118,7 @@ class TimeSeriesCLARA(BaseClusterer):
     def __init__(
         self,
         n_clusters: int = 8,
-        init_algorithm: Union[str, np.ndarray] = "random",
+        init: Union[str, np.ndarray] = "random",
         distance: Union[str, Callable] = "msm",
         n_samples: Optional[int] = None,
         n_sampling_iters: int = 10,
@@ -128,8 +128,20 @@ class TimeSeriesCLARA(BaseClusterer):
         verbose: bool = False,
         random_state: Optional[Union[int, RandomState]] = None,
         distance_params: Optional[dict] = None,
+        init_algorithm: Optional[Union[str, np.ndarray]] = None,
     ):
-        self.init_algorithm = init_algorithm
+        if init_algorithm is not None:
+            import warnings
+
+            warnings.warn(
+                "The 'init_algorithm' parameter is deprecated and will be "
+                "removed in version 1.1. Use 'init' instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            self.init = init_algorithm
+        else:
+            self.init = init
         self.distance = distance
         self.n_init = n_init
         self.max_iter = max_iter
@@ -140,6 +152,8 @@ class TimeSeriesCLARA(BaseClusterer):
         self.n_samples = n_samples
         self.n_sampling_iters = n_sampling_iters
         self.n_clusters = n_clusters
+        # Kept for testing will be deprecated
+        self.init_algorithm = init_algorithm
 
         self.cluster_centers_ = None
         self.labels_ = None
@@ -175,7 +189,7 @@ class TimeSeriesCLARA(BaseClusterer):
                 )
             pam = TimeSeriesKMedoids(
                 n_clusters=self.n_clusters,
-                init_algorithm=self.init_algorithm,
+                init=self.init,
                 distance=self.distance,
                 n_init=self.n_init,
                 max_iter=self.max_iter,
@@ -228,7 +242,7 @@ class TimeSeriesCLARA(BaseClusterer):
         """
         return {
             "n_clusters": 2,
-            "init_algorithm": "random",
+            "init": "random",
             "distance": "euclidean",
             "n_init": 1,
             "max_iter": 1,

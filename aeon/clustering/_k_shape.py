@@ -16,7 +16,7 @@ class TimeSeriesKShape(BaseClusterer):
     n_clusters: int, default=8
         The number of clusters to form as well as the number of
         centroids to generate.
-    init_algorithm: str or np.ndarray, default='random'
+    init: str or np.ndarray, default='random'
         Method for initializing cluster centres. Any of the following are valid:
         ['random']. Or a np.ndarray of shape (n_clusters, n_channels, n_timepoints)
         and gives the initial cluster centres.
@@ -76,20 +76,35 @@ class TimeSeriesKShape(BaseClusterer):
     def __init__(
         self,
         n_clusters: int = 8,
-        init_algorithm: Union[str, np.ndarray] = "random",
+        init: Union[str, np.ndarray] = "random",
         n_init: int = 10,
         max_iter: int = 300,
         tol: float = 1e-4,
         verbose: bool = False,
         random_state: Optional[Union[int, RandomState]] = None,
+        init_algorithm: Optional[Union[str, np.ndarray]] = None,
     ):
-        self.init_algorithm = init_algorithm
+        if init_algorithm is not None:
+            import warnings
+
+            warnings.warn(
+                "The 'init_algorithm' parameter is deprecated and will be "
+                "removed in version 1.1. Use 'init' instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            self.init = init_algorithm
+        else:
+            self.init = init
+
         self.n_init = n_init
         self.max_iter = max_iter
         self.tol = tol
         self.verbose = verbose
         self.random_state = random_state
         self.n_clusters = n_clusters
+        # Kept for testing will be deprecated
+        self.init_algorithm = init_algorithm
 
         self.cluster_centers_ = None
         self.labels_ = None
@@ -124,7 +139,7 @@ class TimeSeriesKShape(BaseClusterer):
             random_state=self.random_state,
             n_init=self.n_init,
             verbose=self.verbose,
-            init=self.init_algorithm,
+            init=self.init,
         )
 
         _X = X.swapaxes(1, 2)
@@ -173,7 +188,7 @@ class TimeSeriesKShape(BaseClusterer):
         """
         return {
             "n_clusters": 2,
-            "init_algorithm": "random",
+            "init": "random",
             "n_init": 1,
             "max_iter": 1,
             "tol": 1e-4,
