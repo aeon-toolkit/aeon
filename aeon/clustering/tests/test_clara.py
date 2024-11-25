@@ -23,7 +23,7 @@ def test_clara_uni():
         n_samples=10,
         n_init=2,
         max_iter=5,
-        init_algorithm="first",
+        init="first",
         distance="euclidean",
         n_clusters=2,
     )
@@ -68,7 +68,7 @@ def test_clara_multi():
         n_samples=10,
         n_init=2,
         max_iter=5,
-        init_algorithm="first",
+        init="first",
         distance="euclidean",
         n_clusters=2,
     )
