@@ -19,10 +19,6 @@ class AEDCNNClusterer(BaseDeepClusterer):
 
     Parameters
     ----------
-    clustering_algorithm : str, default="deprecated"
-        Use 'estimator' parameter instead.
-    clustering_params : dict, default=None
-        Use 'estimator' parameter instead.
     estimator : aeon clusterer, default=None
         An aeon estimator to be built using the transformed data.
         Defaults to aeon TimeSeriesKMeans() with euclidean distance
@@ -118,8 +114,6 @@ class AEDCNNClusterer(BaseDeepClusterer):
     def __init__(
         self,
         estimator=None,
-        clustering_algorithm="deprecated",
-        clustering_params=None,
         latent_space_dim=128,
         temporal_latent_space=False,
         n_layers=3,
@@ -171,8 +165,6 @@ class AEDCNNClusterer(BaseDeepClusterer):
         self.random_state = random_state
 
         super().__init__(
-            clustering_params=clustering_params,
-            clustering_algorithm=clustering_algorithm,
             estimator=estimator,
             batch_size=batch_size,
             last_file_name=last_file_name,

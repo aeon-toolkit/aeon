@@ -16,6 +16,9 @@ class CollectionId(BaseCollectionTransformer):
         "capability:missing_values": True,
     }
 
+    def __init__(self):
+        super().__init__()
+
     def _transform(self, X, y=None):
         return X
 

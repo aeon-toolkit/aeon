@@ -73,6 +73,9 @@ class _AddTime(BaseCollectionTransformer):
         "fit_is_empty": True,  # is fit empty and can be skipped? Yes = True
     }
 
+    def __init__(self):
+        super().__init__()
+
     def _transform(self, X, y=None):
         data = np.swapaxes(X, 1, 2)
         # Batch and length dim
@@ -97,6 +100,9 @@ class _InvisibilityReset(BaseCollectionTransformer):
         "capability:multivariate": True,
         "fit_is_empty": True,  # is fit empty and can be skipped? Yes = True
     }
+
+    def __init__(self):
+        super().__init__()
 
     def _transform(self, X, y=None):
         X = np.swapaxes(X, 1, 2)
@@ -137,6 +143,9 @@ class _LeadLag(BaseCollectionTransformer):
         "capability:multivariate": True,
         "fit_is_empty": True,
     }
+
+    def __init__(self):
+        super().__init__()
 
     def _transform(self, X, y=None):
         X = np.swapaxes(X, 1, 2)
@@ -192,6 +201,9 @@ class _BasePoint(BaseCollectionTransformer):
         "fit_is_empty": True,
         "capability:multivariate": True,
     }
+
+    def __init__(self):
+        super().__init__()
 
     def _transform(self, X, y=None):
         X = np.swapaxes(X, 1, 2)
