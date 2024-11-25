@@ -49,4 +49,3 @@ def check_forecaster_instance(estimator):
     # forecast should return a float equal to fit/predict
     p2 = estimator.forecast(y)
     assert p == p2
-    # Add other tests when
