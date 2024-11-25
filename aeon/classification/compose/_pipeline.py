@@ -68,7 +68,7 @@ class ClassifierPipeline(BaseCollectionPipeline, BaseClassifier):
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test = load_unit_test(split="test")
     >>> pipeline = ClassifierPipeline(
-    ...     Resizer(length=10), RocketClassifier(num_kernels=50)
+    ...     Resizer(length=10), RocketClassifier(n_kernels=50)
     ... )
     >>> pipeline.fit(X_train, y_train)
     ClassifierPipeline(...)
