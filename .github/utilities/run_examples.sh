@@ -9,7 +9,9 @@ excluded=()
 if [ "$1" = true ]; then
   excluded+=(
     "examples/datasets/load_data_from_web.ipynb"
+    "examples/benchmarking/published_results.ipynb"
     "examples/benchmarking/reference_results.ipynb"
+    "examples/benchmarking/bakeoff_results.ipynb"
     "examples/benchmarking/bakeoff_results.ipynb"
     "examples/benchmarking/regression.ipynb"
     "examples/clustering/partitional_clustering.ipynb"
@@ -21,6 +23,7 @@ if [ "$1" = true ]; then
     "examples/classification/interval_based.ipynb"
     "examples/classification/shapelet_based.ipynb"
     "examples/classification/convolution_based.ipynb"
+    "examples/similarity_search/code_speed.ipynb"
 
   )
 fi
