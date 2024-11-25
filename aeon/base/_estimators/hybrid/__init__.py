@@ -2,4 +2,4 @@
 
 __all__ = ["BaseRIST"]
 
-from aeon.base.estimators.hybrid.base_rist import BaseRIST
+from aeon.base._estimators.hybrid.base_rist import BaseRIST

@@ -5,7 +5,7 @@ __all__ = ["IntervalForestRegressor"]
 
 import numpy as np
 
-from aeon.base.estimators.interval_based.base_interval_forest import BaseIntervalForest
+from aeon.base._estimators.interval_based.base_interval_forest import BaseIntervalForest
 from aeon.regression.base import BaseRegressor
 
 
