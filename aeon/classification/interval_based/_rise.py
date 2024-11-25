@@ -5,7 +5,7 @@ __all__ = ["RandomIntervalSpectralEnsembleClassifier"]
 
 import numpy as np
 
-from aeon.base.estimator.interval_based.base_interval_forest import BaseIntervalForest
+from aeon.base.estimators.interval_based.base_interval_forest import BaseIntervalForest
 from aeon.classification import BaseClassifier
 from aeon.classification.sklearn import ContinuousIntervalTree
 from aeon.transformations.collection import (
@@ -193,6 +193,14 @@ class RandomIntervalSpectralEnsembleClassifier(BaseIntervalForest, BaseClassifie
 
     def _fit_predict_proba(self, X, y) -> np.ndarray:
         return super()._fit_predict_proba(X, y)
+
+    def temporal_importance_curves(
+        self, return_dict=False, normalise_time_points=False
+    ):
+        raise NotImplementedError(
+            "No temporal importance curves available for "
+            "RandomIntervalSpectralEnsemble."
+        )
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):

@@ -5,7 +5,7 @@ Interval-based CIF regressor extracting catch22 features from random intervals.
 
 import numpy as np
 
-from aeon.base.estimator.interval_based import BaseIntervalForest
+from aeon.base.estimators.interval_based import BaseIntervalForest
 from aeon.regression import BaseRegressor
 from aeon.transformations.collection.feature_based import Catch22
 from aeon.utils.numba.stats import row_mean, row_slope, row_std
@@ -192,6 +192,15 @@ class CanonicalIntervalForestRegressor(BaseIntervalForest, BaseRegressor):
 
         if use_pycatch22:
             self.set_tags(**{"python_dependencies": "pycatch22"})
+
+    def _fit(self, X, y):
+        return super()._fit(X, y)
+
+    def _predict(self, X) -> np.ndarray:
+        return super()._predict(X)
+
+    def _fit_predict(self, X, y) -> np.ndarray:
+        return super()._fit_predict(X, y)
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):

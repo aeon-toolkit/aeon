@@ -4,9 +4,10 @@ Interval-based DrCIF regressor extracting catch22 features from random intervals
 periodogram and differences representations as well as the base series.
 """
 
+import numpy as np
 from sklearn.preprocessing import FunctionTransformer
 
-from aeon.base.estimator.interval_based import BaseIntervalForest
+from aeon.base.estimators.interval_based import BaseIntervalForest
 from aeon.regression import BaseRegressor
 from aeon.transformations.collection import PeriodogramTransformer
 from aeon.transformations.collection.feature_based import Catch22
@@ -176,10 +177,7 @@ class DrCIFRegressor(BaseIntervalForest, BaseRegressor):
         n_jobs=1,
         parallel_backend=None,
     ):
-        d = []
         self.use_pycatch22 = use_pycatch22
-        if use_pycatch22:
-            d.append("pycatch22")
 
         series_transformers = [
             None,
@@ -216,8 +214,17 @@ class DrCIFRegressor(BaseIntervalForest, BaseRegressor):
             parallel_backend=parallel_backend,
         )
 
-        if d:
-            self.set_tags(**{"python_dependencies": d})
+        if use_pycatch22:
+            self.set_tags(**{"python_dependencies": "pycatch22"})
+
+    def _fit(self, X, y):
+        return super()._fit(X, y)
+
+    def _predict(self, X) -> np.ndarray:
+        return super()._predict(X)
+
+    def _fit_predict(self, X, y) -> np.ndarray:
+        return super()._fit_predict(X, y)
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):

@@ -13,7 +13,7 @@ It is expected that community members will abide by the principles of the [Pytho
 Software Foundation Code of Conduct](https://www.python.org/psf/codeofconduct/) to
 help maintain an open, considerate and respectful environment.
 
-Unacceptable behavior and code of conduct violations are determined and dealt with
+Unacceptable behaviour and code of conduct violations are determined and dealt with
 at the discretion of the `aeon` [Code of Conduct Workgroup (COCW)](./governance.md#code-of-conduct-workgroup).
 Possible actions taken include warnings, mediated meeting and/or apologies, and
 expulsion from the project depending on the severity of the breach. The COCW can edit

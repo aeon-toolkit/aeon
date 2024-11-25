@@ -10,7 +10,7 @@ __all__ = ["DrCIFClassifier"]
 import numpy as np
 from sklearn.preprocessing import FunctionTransformer
 
-from aeon.base.estimator.interval_based import BaseIntervalForest
+from aeon.base.estimators.interval_based import BaseIntervalForest
 from aeon.classification.base import BaseClassifier
 from aeon.classification.sklearn._continuous_interval_tree import ContinuousIntervalTree
 from aeon.transformations.collection import PeriodogramTransformer
@@ -196,10 +196,7 @@ class DrCIFClassifier(BaseIntervalForest, BaseClassifier):
         n_jobs=1,
         parallel_backend=None,
     ):
-        d = []
         self.use_pycatch22 = use_pycatch22
-        if use_pycatch22:
-            d.append("pycatch22")
 
         if isinstance(base_estimator, ContinuousIntervalTree):
             replace_nan = "nan"
@@ -241,8 +238,8 @@ class DrCIFClassifier(BaseIntervalForest, BaseClassifier):
             parallel_backend=parallel_backend,
         )
 
-        if d:
-            self.set_tags(**{"python_dependencies": d})
+        if use_pycatch22:
+            self.set_tags(**{"python_dependencies": "pycatch22"})
 
     def _fit(self, X, y):
         return super()._fit(X, y)

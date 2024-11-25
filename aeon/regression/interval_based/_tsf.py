@@ -8,7 +8,7 @@ __all__ = ["TimeSeriesForestRegressor"]
 
 import numpy as np
 
-from aeon.base.estimator.interval_based.base_interval_forest import BaseIntervalForest
+from aeon.base.estimators.interval_based.base_interval_forest import BaseIntervalForest
 from aeon.regression import BaseRegressor
 
 
@@ -161,6 +161,15 @@ class TimeSeriesForestRegressor(BaseIntervalForest, BaseRegressor):
             parallel_backend=parallel_backend,
         )
 
+    def _fit(self, X, y):
+        return super()._fit(X, y)
+
+    def _predict(self, X) -> np.ndarray:
+        return super()._predict(X)
+
+    def _fit_predict(self, X, y) -> np.ndarray:
+        return super()._fit_predict(X, y)
+
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
@@ -182,7 +191,14 @@ class TimeSeriesForestRegressor(BaseIntervalForest, BaseRegressor):
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
         """
-        return {
-            "n_estimators": 2,
-            "n_intervals": 2,
-        }
+        if parameter_set == "contracting":
+            return {
+                "time_limit_in_minutes": 5,
+                "contract_max_n_estimators": 2,
+                "n_intervals": 2,
+            }
+        else:
+            return {
+                "n_estimators": 2,
+                "n_intervals": 2,
+            }

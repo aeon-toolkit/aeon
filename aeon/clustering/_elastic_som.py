@@ -179,6 +179,7 @@ class ElasticSOM(BaseClusterer):
         self.init = init
         self.sigma_decay_function = sigma_decay_function
         self.custom_alignment_path = custom_alignment_path
+        self.n_clusters = n_clusters
 
         self._random_state = None
         self._alignment_path_callable = None
@@ -191,7 +192,7 @@ class ElasticSOM(BaseClusterer):
 
         self.labels_ = None
         self.cluster_centers_ = None
-        super().__init__(n_clusters=n_clusters)
+        super().__init__()
 
     def _fit(self, X, y=None):
         self._check_params(X)
@@ -218,9 +219,6 @@ class ElasticSOM(BaseClusterer):
 
     def _predict(self, X, y=None):
         return self._find_bmu(X, self.cluster_centers_)
-
-    def _score(self, X, y=None):
-        raise NotImplementedError("TimeSeriesSOM does not support scoring")
 
     def _find_bmu(self, x, weights):
         pairwise_matrix = pairwise_distance(

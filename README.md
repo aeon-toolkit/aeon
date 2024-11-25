@@ -21,14 +21,17 @@ Our webpage and documentation is available at https://aeon-toolkit.org.
 The following modules are still considered experimental, and the [deprecation policy](https://www.aeon-toolkit.org/en/stable/developer_guide/deprecation.html)
 does not apply:
 
-`anomaly_detection`, `benchmarking`, `segmentation`, `similarity_search`,
-`testing`, `transformations/series`, `visualisation`
+- `anomaly_detection`
+- `segmentation`
+- `similarity_search`
+- `visualisation`
 
-| Overview      |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-|---------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **CI/CD**     | [![github-actions-release](https://img.shields.io/github/actions/workflow/status/aeon-toolkit/aeon/release.yml?logo=github&label=build%20%28release%29)](https://github.com/aeon-toolkit/aeon/actions/workflows/release.yml) [![github-actions-main](https://img.shields.io/github/actions/workflow/status/aeon-toolkit/aeon/pr_pytest.yml?logo=github&branch=main&label=build%20%28main%29)](https://github.com/aeon-toolkit/aeon/actions/workflows/pr_pytest.yml) [![github-actions-nightly](https://img.shields.io/github/actions/workflow/status/aeon-toolkit/aeon/periodic_tests.yml?logo=github&label=build%20%28nightly%29)](https://github.com/aeon-toolkit/aeon/actions/workflows/periodic_tests.yml) [![docs-main](https://img.shields.io/readthedocs/aeon-toolkit/stable?logo=readthedocs&label=docs%20%28stable%29)](https://www.aeon-toolkit.org/en/stable/) [![docs-main](https://img.shields.io/readthedocs/aeon-toolkit/latest?logo=readthedocs&label=docs%20%28latest%29)](https://www.aeon-toolkit.org/en/latest/) [![!codecov](https://img.shields.io/codecov/c/github/aeon-toolkit/aeon?label=codecov&logo=codecov)](https://codecov.io/gh/aeon-toolkit/aeon) [![openssf-scorecard](https://api.scorecard.dev/projects/github.com/aeon-toolkit/aeon/badge)](https://img.shields.io/ossf-scorecard/github.com/aeon-toolkit/aeon?label=openssf%20scorecard&style=flat)|
-| **Code**      | [![!pypi](https://img.shields.io/pypi/v/aeon?logo=pypi&color=blue)](https://pypi.org/project/aeon/) [![!conda](https://img.shields.io/conda/vn/conda-forge/aeon?logo=anaconda&color=blue)](https://anaconda.org/conda-forge/aeon) [![!python-versions](https://img.shields.io/pypi/pyversions/aeon?logo=python)](https://www.python.org/) [![!black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black) [![license](https://img.shields.io/badge/license-BSD%203--Clause-green?logo=style)](https://github.com/aeon-toolkit/aeon/blob/main/LICENSE) [![binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/aeon-toolkit/aeon/main?filepath=examples)                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| **Community** | [![!slack](https://img.shields.io/static/v1?logo=slack&label=Slack&message=chat&color=lightgreen)](https://join.slack.com/t/aeon-toolkit/shared_invite/zt-22vwvut29-HDpCu~7VBUozyfL_8j3dLA) [![!linkedin](https://img.shields.io/static/v1?logo=linkedin&label=LinkedIn&message=news&color=lightblue)](https://www.linkedin.com/company/aeon-toolkit/) [![!twitter](https://img.shields.io/static/v1?logo=twitter&label=Twitter&message=news&color=lightblue)](https://twitter.com/aeon_toolkit)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| Overview        |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+|-----------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **CI/CD**       | [![github-actions-release](https://img.shields.io/github/actions/workflow/status/aeon-toolkit/aeon/release.yml?logo=github&label=build%20%28release%29)](https://github.com/aeon-toolkit/aeon/actions/workflows/release.yml) [![github-actions-main](https://img.shields.io/github/actions/workflow/status/aeon-toolkit/aeon/pr_pytest.yml?logo=github&branch=main&label=build%20%28main%29)](https://github.com/aeon-toolkit/aeon/actions/workflows/pr_pytest.yml) [![github-actions-nightly](https://img.shields.io/github/actions/workflow/status/aeon-toolkit/aeon/periodic_tests.yml?logo=github&label=build%20%28nightly%29)](https://github.com/aeon-toolkit/aeon/actions/workflows/periodic_tests.yml) [![docs-main](https://img.shields.io/readthedocs/aeon-toolkit/stable?logo=readthedocs&label=docs%20%28stable%29)](https://www.aeon-toolkit.org/en/stable/) [![docs-main](https://img.shields.io/readthedocs/aeon-toolkit/latest?logo=readthedocs&label=docs%20%28latest%29)](https://www.aeon-toolkit.org/en/latest/) [![!codecov](https://img.shields.io/codecov/c/github/aeon-toolkit/aeon?label=codecov&logo=codecov)](https://codecov.io/gh/aeon-toolkit/aeon) [![openssf-scorecard](https://api.scorecard.dev/projects/github.com/aeon-toolkit/aeon/badge)](https://img.shields.io/ossf-scorecard/github.com/aeon-toolkit/aeon?label=openssf%20scorecard&style=flat) |
+| **Code**        | [![!pypi](https://img.shields.io/pypi/v/aeon?logo=pypi&color=blue)](https://pypi.org/project/aeon/) [![!conda](https://img.shields.io/conda/vn/conda-forge/aeon?logo=anaconda&color=blue)](https://anaconda.org/conda-forge/aeon) [![!python-versions](https://img.shields.io/pypi/pyversions/aeon?logo=python)](https://www.python.org/) [![!black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black) [![license](https://img.shields.io/badge/license-BSD%203--Clause-green?logo=style)](https://github.com/aeon-toolkit/aeon/blob/main/LICENSE) [![binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/aeon-toolkit/aeon/main?filepath=examples)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| **Community**   | [![!slack](https://img.shields.io/static/v1?logo=slack&label=Slack&message=chat&color=lightgreen)](https://join.slack.com/t/aeon-toolkit/shared_invite/zt-22vwvut29-HDpCu~7VBUozyfL_8j3dLA) [![!linkedin](https://img.shields.io/static/v1?logo=linkedin&label=LinkedIn&message=news&color=lightblue)](https://www.linkedin.com/company/aeon-toolkit/) [![!x-twitter](https://img.shields.io/static/v1?logo=x&label=X/Twitter&message=news&color=lightblue)](https://twitter.com/aeon_toolkit)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| **Affiliation** | [![numfocus](https://img.shields.io/badge/NumFOCUS-Affiliated%20Project-orange.svg?style=flat&colorA=E1523D&colorB=007D8A)](https://numfocus.org/sponsored-projects/affiliated-projects)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 
 ## ⚙️ Installation
 
@@ -55,26 +58,22 @@ can be found [here](https://www.aeon-toolkit.org/en/stable/developer_guide/dev_i
 
 The best place to get started for all `aeon` packages is our [getting started guide](https://www.aeon-toolkit.org/en/stable/getting_started.html).
 
-Below we provide a quick example of how to use `aeon` for forecasting,
-classification and clustering.
+Below we provide a quick example of how to use `aeon` for classification and clustering.
 
-### Classification
+### Classification/Regression
 
-*It's worth mentioning that the classifier used in the example can easily be
-swapped out for a regressor, and the labels for numeric targets. This flexibility
-allowing for seamless adaptation to different tasks and datasets while preserving
-API consistency.*
+Time series classification looks to predict class labels fore unseen series using a
+model fitted from a collection of time series. The framework for regression is similar,
+replace the classifier with a regressor and the labels with continuous values.
 
 ```python
 import numpy as np
 from aeon.classification.distance_based import KNeighborsTimeSeriesClassifier
 
-X = [[[1, 2, 3, 4, 5, 5]],  # 3D array example (univariate)
-     [[1, 2, 3, 4, 4, 2]],  # Three samples, one channel, six series length,
-     [[8, 7, 6, 5, 4, 4]]]
-y = ['low', 'low', 'high']  # class labels for each sample
-X = np.array(X)
-y = np.array(y)
+X = np.array([[[1, 2, 3, 4, 5, 5]],  # 3D array example (univariate)
+             [[1, 2, 3, 4, 4, 2]],   # Three samples, one channel,
+             [[8, 7, 6, 5, 4, 4]]])  # six series length
+y = np.array(['low', 'low', 'high'])  # class labels for each sample
 
 clf = KNeighborsTimeSeriesClassifier(distance="dtw")
 clf.fit(X, y)  # fit the classifier on train data
@@ -89,13 +88,16 @@ y_pred = clf.predict(X_test)  # make class predictions on new data
 
 ### Clustering
 
+Time series clustering groups similar time series together from a collection of
+time series.
+
 ```python
 import numpy as np
 from aeon.clustering import TimeSeriesKMeans
 
 X = np.array([[[1, 2, 3, 4, 5, 5]],  # 3D array example (univariate)
-     [[1, 2, 3, 4, 4, 2]],  # Three samples, one channel, six series length,
-     [[8, 7, 6, 5, 4, 4]]])
+             [[1, 2, 3, 4, 4, 2]],   # Three samples, one channel,
+             [[8, 7, 6, 5, 4, 4]]])  # six series length
 
 clu = TimeSeriesKMeans(distance="dtw", n_clusters=2)
 clu.fit(X)  # fit the clusterer on train data
@@ -113,21 +115,24 @@ clu.predict(X_test)  # Assign clusters to new data
 
 ## 💬 Where to ask questions
 
-| Type                                | Platforms                        |
-|-------------------------------------|----------------------------------|
-| 🐛 **Bug Reports**                  | [GitHub Issue Tracker]           |
-| ✨ **Feature Requests & Ideas**      | [GitHub Issue Tracker] & [Slack] |
-| 💻 **Usage Questions**              | [GitHub Discussions] & [Slack]   |
-| 💬 **General Discussion**           | [GitHub Discussions] & [Slack]   |
-| 🏭 **Contribution & Development**   | [Slack]                          |
+| Type                               | Platforms                         |
+|------------------------------------|-----------------------------------|
+| 🐛 **Bug Reports**                 | [GitHub Issue Tracker]            |
+| ✨ **Feature Requests & Ideas**     | [GitHub Issue Tracker] & [Slack]  |
+| 💻 **Usage Questions**             | [GitHub Discussions] & [Slack]    |
+| 💬 **General Discussion**          | [GitHub Discussions] & [Slack]    |
+| 🏭 **Contribution & Development**  | [Slack]                           |
 
 [GitHub Issue Tracker]: https://github.com/aeon-toolkit/aeon/issues
 [GitHub Discussions]: https://github.com/aeon-toolkit/aeon/discussions
 [Slack]: https://join.slack.com/t/aeon-toolkit/shared_invite/zt-22vwvut29-HDpCu~7VBUozyfL_8j3dLA
 
-## Citation
+For enquiries about the project or collaboration, our email is
+[contact@aeon-toolkit.org](mailto:contact@aeon-toolkit.org).
 
-If you use aeon we would appreciate a citation of the following [paper](https://jmlr.org/papers/v25/23-1444.html)
+## 📚 Citation
+
+If you use `aeon` we would appreciate a citation of the following [paper](https://jmlr.org/papers/v25/23-1444.html):
 
 ```bibtex
 @article{aeon24jmlr,
@@ -139,5 +144,7 @@ If you use aeon we would appreciate a citation of the following [paper](https://
   number  = {289},
   pages   = {1--10},
   url     = {http://jmlr.org/papers/v25/23-1444.html}
+}
 ```
-If you let us know about your paper using aeon and we will happily list it [here](https://www.aeon-toolkit.org/en/stable/papers_using_aeon.html)
+
+If you let us know about your paper using `aeon`, we will happily list it [here](https://www.aeon-toolkit.org/en/stable/papers_using_aeon.html).

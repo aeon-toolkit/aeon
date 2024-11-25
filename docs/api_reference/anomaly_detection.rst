@@ -74,9 +74,11 @@ Detectors
     COPOD
     DWT_MLEAD
     IsolationForest
+    LOF
     KMeansAD
     LeftSTAMPi
     MERLIN
     PyODAdapter
     STRAY
     STOMP
+    OneClassSVM

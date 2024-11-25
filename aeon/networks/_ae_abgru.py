@@ -1,5 +1,7 @@
 """Implements an Auto-Encoder based on Attention Bidirectional GRUs."""
 
+__maintainer__ = ["aadya940", "hadifawaz1999"]
+
 from aeon.networks.base import BaseDeepLearningNetwork
 
 
@@ -33,12 +35,11 @@ class AEAttentionBiGRUNetwork(BaseDeepLearningNetwork):
     Discovery and Data Mining: 24th Pacific-Asia Conference, PAKDD 2020, Singapore,
     May 11-14, 2020, Proceedings, Part I 24 (pp. 318-329). Springer International
     Publishing.
-
     """
 
     _config = {
         "python_dependencies": ["tensorflow"],
-        "python_version": "<3.12",
+        "python_version": "<3.13",
         "structure": "auto-encoder",
     }
 

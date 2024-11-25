@@ -4,7 +4,7 @@ __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["ClustererPipeline"]
 
 
-from aeon.base.estimator.compose.collection_pipeline import BaseCollectionPipeline
+from aeon.base.estimators.compose.collection_pipeline import BaseCollectionPipeline
 from aeon.clustering import BaseClusterer
 
 
@@ -86,10 +86,9 @@ class ClustererPipeline(BaseCollectionPipeline, BaseClusterer):
         )
 
     def _fit(self, X, y=None):
-        return super()._fit(X, y)
-
-    def _score(self, X, y=None):
-        raise NotImplementedError("Pipeline does not support scoring.")
+        super()._fit(X, y)
+        self.labels_ = self.steps_[-1][1].labels_
+        return self
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):

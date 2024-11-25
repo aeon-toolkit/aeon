@@ -5,7 +5,7 @@ __all__ = ["IntervalForestRegressor"]
 
 import numpy as np
 
-from aeon.base.estimator.interval_based.base_interval_forest import BaseIntervalForest
+from aeon.base.estimators.interval_based.base_interval_forest import BaseIntervalForest
 from aeon.regression.base import BaseRegressor
 
 
@@ -199,6 +199,15 @@ class IntervalForestRegressor(BaseIntervalForest, BaseRegressor):
             n_jobs=n_jobs,
             parallel_backend=parallel_backend,
         )
+
+    def _fit(self, X, y):
+        return super()._fit(X, y)
+
+    def _predict(self, X) -> np.ndarray:
+        return super()._predict(X)
+
+    def _fit_predict(self, X, y) -> np.ndarray:
+        return super()._fit_predict(X, y)
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):

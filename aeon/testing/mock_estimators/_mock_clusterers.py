@@ -1,5 +1,3 @@
-from typing import Optional
-
 import numpy as np
 
 from aeon.clustering.base import BaseClusterer
@@ -9,8 +7,8 @@ from aeon.clustering.deep_learning.base import BaseDeepClusterer
 class MockCluster(BaseClusterer):
     """Mock Cluster for testing base class fit/predict."""
 
-    def __init__(self, n_clusters: Optional[int] = None):
-        super().__init__(n_clusters)
+    def __init__(self):
+        super().__init__()
 
     def _fit(self, X):
         """Mock fit."""
@@ -25,9 +23,6 @@ class MockCluster(BaseClusterer):
         y = np.random.rand(len(X))
         return y
 
-    def _score(self, X, y):
-        return np.random.randn(1)
-
 
 class MockDeepClusterer(BaseDeepClusterer):
     """Mock Deep Clusterer for testing empty base deep class save utilities."""
@@ -35,10 +30,8 @@ class MockDeepClusterer(BaseDeepClusterer):
     def __init__(self, estimator=None, last_file_name="last_file"):
         self.last_file_name = last_file_name
         super().__init__(
-            n_clusters=None,
             estimator=estimator,
             last_file_name=last_file_name,
-            clustering_params={"n_init": 1, "averaging_method": "mean"},
         )
 
     def build_model(self, input_shape):

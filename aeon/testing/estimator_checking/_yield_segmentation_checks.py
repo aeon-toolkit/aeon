@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 
 from aeon.base._base import _clone_estimator
-from aeon.base._base_series import VALID_INNER_TYPES
+from aeon.base._base_series import VALID_SERIES_INNER_TYPES
 
 
 def _yield_segmentation_checks(estimator_class, estimator_instances, datatypes):
@@ -33,7 +33,7 @@ def check_segmenter_base_functionality(estimator_class):
     assert not fit_is_empty == "_fit" not in estimator_class.__dict__
     # Test valid tag for X_inner_type
     X_inner_type = estimator_class.get_class_tag(tag_name="X_inner_type")
-    assert X_inner_type in VALID_INNER_TYPES
+    assert X_inner_type in VALID_SERIES_INNER_TYPES
     # Must have at least one set to True
     multi = estimator_class.get_class_tag(tag_name="capability:multivariate")
     uni = estimator_class.get_class_tag(tag_name="capability:univariate")
@@ -56,12 +56,12 @@ def check_segmenter_instance(estimator):
         else:  # Segment labels returned, must be same length sas series
             assert len(output) == length
 
-    multivariate = estimator.get_class_tag(tag_name="capability:multivariate")
+    multivariate = estimator.get_tag(tag_name="capability:multivariate")
     X = np.random.random(size=(5, 20))
     # Also tests does not fail if y is passed
     y = np.array([0, 0, 0, 1, 1])
     # Test that capability:multivariate is correctly set
-    dense = estimator.get_class_tag(tag_name="returns_dense")
+    dense = estimator.get_tag(tag_name="returns_dense")
     if multivariate:
         output = estimator.fit_predict(X, y, axis=1)
         _assert_output(output, dense, X.shape[1])
@@ -70,7 +70,7 @@ def check_segmenter_instance(estimator):
             estimator.fit_predict(X, y, axis=1)
     # Test that output is correct type
     X = np.random.random(size=(20))
-    uni = estimator.get_class_tag(tag_name="capability:univariate")
+    uni = estimator.get_tag(tag_name="capability:univariate")
     if uni:
         output = estimator.fit_predict(X, y=X)
         _assert_output(output, dense, len(X))
