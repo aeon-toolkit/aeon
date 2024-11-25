@@ -1,3 +1,8 @@
+"""Hydra Transformer."""
+
+__maintainer__ = ["TonyBagnall"]
+__all__ = ["HydraTransformer"]
+
 import numpy as np
 
 from aeon.transformations.collection import BaseCollectionTransformer

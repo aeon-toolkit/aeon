@@ -27,7 +27,7 @@ class RocketRegressor(BaseRegressor):
 
     Parameters
     ----------
-    num_kernels : int, default=10,000
+    n_kernels : int, default=10,000
         The number of kernels for the Rocket transform.
     estimator : sklearn compatible regressor or None, default=None
         The estimator used. If None, a RidgeCV(alphas=np.logspace(-3, 3, 10)) is used.
@@ -58,9 +58,9 @@ class RocketRegressor(BaseRegressor):
     >>> from aeon.datasets import load_covid_3month
     >>> X_train, y_train = load_covid_3month(split="train")
     >>> X_test, y_test = load_covid_3month(split="test")
-    >>> reg = RocketRegressor(num_kernels=500)
+    >>> reg = RocketRegressor(n_kernels=500)
     >>> reg.fit(X_train, y_train)
-    RocketRegressor(num_kernels=500)
+    RocketRegressor(n_kernels=500)
     >>> y_pred = reg.predict(X_test)
     """
 
@@ -72,12 +72,12 @@ class RocketRegressor(BaseRegressor):
 
     def __init__(
         self,
-        num_kernels=10000,
+        n_kernels=10000,
         estimator=None,
         random_state=None,
         n_jobs=1,
     ):
-        self.num_kernels = num_kernels
+        self.n_kernels = n_kernels
         self.random_state = random_state
         self.estimator = estimator
         self.n_jobs = n_jobs
@@ -104,10 +104,8 @@ class RocketRegressor(BaseRegressor):
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
         """
-        self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
-
         self._transformer = Rocket(
-            num_kernels=self.num_kernels,
+            n_kernels=self.n_kernels,
             n_jobs=self.n_jobs,
             random_state=self.random_state,
         )
@@ -160,4 +158,4 @@ class RocketRegressor(BaseRegressor):
         dict or list of dict
             Parameters to create testing instances of the class.
         """
-        return {"num_kernels": 20}
+        return {"n_kernels": 20}
