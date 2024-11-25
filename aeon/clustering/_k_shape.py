@@ -17,7 +17,7 @@ class TimeSeriesKShape(BaseClusterer):
         The number of clusters to form as well as the number of
         centroids to generate.
     init: str or np.ndarray, default='random'
-        Method for initializing cluster centres. Any of the following are valid:
+        Method for initialising cluster centres. Any of the following are valid:
         ['random']. Or a np.ndarray of shape (n_clusters, n_channels, n_timepoints)
         and gives the initial cluster centres.
     n_init: int, default=10

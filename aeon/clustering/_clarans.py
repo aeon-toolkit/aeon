@@ -32,7 +32,7 @@ class TimeSeriesCLARANS(TimeSeriesKMedoids):
         The number of clusters to form as well as the number of
         centroids to generate.
     init : str or np.ndarray, default='random'
-        Method for initializing cluster centers. Any of the following are valid:
+        Method for initialising cluster centers. Any of the following are valid:
         ['kmedoids++', 'random', 'first'].
         Random is the default as it is very fast and it was found in [2] to
         perform about as well as the other methods.
