@@ -1,4 +1,4 @@
-name: PR core dep module imports
+name: PR module imports
 
 on:
   push:
