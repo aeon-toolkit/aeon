@@ -16,7 +16,7 @@ from aeon.testing.data_generation import (
     make_example_3d_numpy,
     make_example_3d_numpy_list,
 )
-from aeon.testing.mock_estimators import MockCollectionTransformer
+from aeon.testing.mock_estimators import MockClassifier, MockCollectionTransformer
 from aeon.transformations.collection import (
     AutocorrelationFunctionTransformer,
     HOG1DTransformer,
@@ -126,7 +126,7 @@ def test_unequal_tag_inference():
     assert not t4.get_tag("capability:unequal_length")
 
     c1 = DummyClassifier()
-    c2 = RocketClassifier(num_kernels=5)
+    c2 = MockClassifier()
     c3 = RandomForestClassifier(n_estimators=2)
 
     assert c1.get_tag("capability:unequal_length")
@@ -190,7 +190,7 @@ def test_missing_tag_inference():
     assert not t2.get_tag("capability:missing_values")
 
     c1 = DummyClassifier()
-    c2 = RocketClassifier(num_kernels=5)
+    c2 = RocketClassifier(n_kernels=5)
     c3 = RandomForestClassifier(n_estimators=2)
 
     assert c1.get_tag("capability:missing_values")

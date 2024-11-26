@@ -45,7 +45,7 @@ def test_hc2_defaults_and_verbosity():
     hc2.fit(X, y)
     assert hc2._stc_params == {"n_shapelet_samples": 10}
     assert hc2._drcif_params == {"n_estimators": 10}
-    assert hc2._arsenal_params == {"num_kernels": 100, "n_estimators": 5}
+    assert hc2._arsenal_params == {"n_kernels": 100, "n_estimators": 5}
     assert hc2._tde_params == {
         "n_parameter_samples": 10,
         "max_ensemble_size": 5,

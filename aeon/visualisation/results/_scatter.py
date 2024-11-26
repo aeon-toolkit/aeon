@@ -107,8 +107,16 @@ def plot_pairwise_scatter(
         fig, ax = plt.subplots(figsize=figsize)
 
     results_all = np.concatenate((results_a, results_b))
-    min_value = results_all.min() * 0.97
-    max_value = results_all.max() * 1.03
+    min_value = (
+        results_all.min() * 1.05
+        if (results_all.min() < 0)
+        else results_all.min() * 0.95
+    )
+    max_value = (
+        results_all.max() * 1.05
+        if (results_all.max() > 0)
+        else results_all.max() * 0.95
+    )
 
     if any([metric.lower() == i.lower() for i in accuracy_metrics]):
         max_value = min(max_value, 1.001)

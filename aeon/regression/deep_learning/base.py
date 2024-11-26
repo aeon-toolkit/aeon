@@ -40,6 +40,7 @@ class BaseDeepRegressor(BaseRegressor):
         "python_dependencies": "tensorflow",
     }
 
+    @abstractmethod
     def __init__(self, batch_size=40, last_file_name="last_model"):
         self.batch_size = batch_size
         self.last_file_name = last_file_name

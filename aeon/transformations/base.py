@@ -19,7 +19,10 @@ class BaseTransformer(BaseAeonEstimator):
         "removes_missing_values": False,
     }
 
+    @abstractmethod
     def __init__(self):
+        self._estimator_type = "transformer"
+
         super().__init__()
 
     @abstractmethod

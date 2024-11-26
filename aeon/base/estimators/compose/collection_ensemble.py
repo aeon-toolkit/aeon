@@ -6,6 +6,8 @@ i.e. classification, regression and clustering.
 __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["BaseCollectionEnsemble"]
 
+from abc import abstractmethod
+
 import numpy as np
 from sklearn.base import BaseEstimator, is_classifier
 from sklearn.metrics import accuracy_score, mean_squared_error
@@ -78,6 +80,7 @@ class BaseCollectionEnsemble(ComposableEstimatorMixin, BaseCollectionEstimator):
     # Used in get_fitted_params
     _fitted_estimators_attr = "ensemble_"
 
+    @abstractmethod
     def __init__(
         self,
         _ensemble,

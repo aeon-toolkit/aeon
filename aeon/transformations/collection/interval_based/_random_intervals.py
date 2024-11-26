@@ -110,6 +110,7 @@ class RandomIntervals(BaseCollectionTransformer):
     _tags = {
         "output_data_type": "Tabular",
         "capability:multivariate": True,
+        "capability:multithreading": True,
         "fit_is_empty": False,
         "algorithm_type": "interval",
     }

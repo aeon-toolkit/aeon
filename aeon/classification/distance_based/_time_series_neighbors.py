@@ -67,6 +67,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
     _tags = {
         "capability:multivariate": True,
         "capability:unequal_length": True,
+        "capability:multithreading": True,
         "X_inner_type": ["np-list", "numpy3D"],
         "algorithm_type": "distance",
     }

@@ -1,1 +1,1 @@
-"""Tests for interval based classifiers."""
+"""Tests for interval-based classifiers."""

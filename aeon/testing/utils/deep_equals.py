@@ -10,7 +10,7 @@ import pandas as pd
 from scipy.sparse import csr_matrix
 
 
-def deep_equals(x, y, return_msg=False):
+def deep_equals(x, y, ignore_index=False, return_msg=False):
     """Test two objects for equality in value.
 
     Intended for:
@@ -27,6 +27,8 @@ def deep_equals(x, y, return_msg=False):
         First item to compare.
     y : object
         Second item to compare.
+    ignore_index : bool, default=False
+        If True, will ignore the index of pd.Series and pd.DataFrame.
     return_msg : bool, default=False
         Whether to return an informative message about what is not equal.
 
@@ -39,26 +41,26 @@ def deep_equals(x, y, return_msg=False):
         Only returned if return_msg is True.
         Indication of what is the reason for not being equal
     """
-    eq, msg = _deep_equals(x, y, 0)
+    eq, msg = _deep_equals(x, y, 0, ignore_index)
     return eq if not return_msg else (eq, msg)
 
 
-def _deep_equals(x, y, depth):
+def _deep_equals(x, y, depth, ignore_index):
     if x is y:
         return True, ""
     if type(x) is not type(y):
         return False, f"x.type ({type(x)}) != y.type ({type(y)}), depth={depth}"
 
     if isinstance(x, pd.Series):
-        return _series_equals(x, y, depth)
+        return _series_equals(x, y, depth, ignore_index)
     elif isinstance(x, pd.DataFrame):
-        return _dataframe_equals(x, y, depth)
+        return _dataframe_equals(x, y, depth, ignore_index)
     elif isinstance(x, np.ndarray):
         return _numpy_equals(x, y, depth)
     elif isinstance(x, (list, tuple)):
-        return _list_equals(x, y, depth)
+        return _list_equals(x, y, depth, ignore_index)
     elif isinstance(x, dict):
-        return _dict_equals(x, y, depth)
+        return _dict_equals(x, y, depth, ignore_index)
     elif isinstance(x, csr_matrix):
         return _csrmatrix_equals(x, y, depth)
     # non-iterable types
@@ -79,14 +81,16 @@ def _deep_equals(x, y, depth):
         raise ValueError(f"Unknown type: {type(x)}, depth={depth}")
 
 
-def _series_equals(x, y, depth):
+def _series_equals(x, y, depth, ignore_index):
     if x.dtype != y.dtype:
         return False, f"x.dtype ({x.dtype}) != y.dtype ({y.dtype}), depth={depth}"
 
     # if columns are object, recurse over entries and index
     if x.dtype == "object":
-        index_equal = x.index.equals(y.index)
-        values_equal, values_msg = _deep_equals(list(x.values), list(y.values), depth)
+        index_equal = ignore_index or x.index.equals(y.index)
+        values_equal, values_msg = _deep_equals(
+            list(x.values), list(y.values), depth, ignore_index
+        )
 
         if not values_equal:
             msg = values_msg
@@ -102,20 +106,24 @@ def _series_equals(x, y, depth):
         return eq, msg
 
 
-def _dataframe_equals(x, y, depth):
+def _dataframe_equals(x, y, depth, ignore_index):
     if not x.columns.equals(y.columns):
         return False, f"x.columns ({x.columns}) != y.columns ({y.columns})"
 
     # if columns are equal and at least one is object, recurse over Series
     if sum(x.dtypes == "object") > 0:
         for i, c in enumerate(x.columns):
-            eq, msg = _deep_equals(x[c], y[c], depth + 1)
+            eq, msg = _deep_equals(x[c], y[c], depth + 1, ignore_index)
 
             if not eq:
                 return False, msg + f", idx={i}"
         return True, ""
     else:
-        eq = x.equals(y)
+        eq = (
+            np.allclose(x.values, y.values, equal_nan=True)
+            if ignore_index
+            else x.equals(y)
+        )
         msg = "" if eq else f"x ({x}) != y ({y}), depth={depth}"
         return eq, msg
 
@@ -124,30 +132,30 @@ def _numpy_equals(x, y, depth):
     if x.dtype != y.dtype:
         return False, f"x.dtype ({x.dtype}) != y.dtype ({y.dtype})"
 
-    eq = np.array_equal(x, y, equal_nan=True)
+    eq = np.allclose(x, y, equal_nan=True)
     msg = "" if eq else f"x ({x}) != y ({y}), depth={depth}"
     return eq, msg
 
 
 def _csrmatrix_equals(x, y, depth):
-    if not np.allclose(x.toarray(), y.toarray()):
+    if not np.allclose(x.toarray(), y.toarray(), equal_nan=True):
         return False, f"x ({x}) !=  y ({y}), depth={depth}"
     return True, ""
 
 
-def _list_equals(x, y, depth):
+def _list_equals(x, y, depth, ignore_index):
     if len(x) != len(y):
         return False, f"x.len ({len(x)}) != y.len ({len(y)}), depth={depth}"
 
     for i in range(len(x)):
-        eq, msg = _deep_equals(x[i], y[i], depth + 1)
+        eq, msg = _deep_equals(x[i], y[i], depth + 1, ignore_index)
 
         if not eq:
             return False, msg + f", idx={i}"
     return True, ""
 
 
-def _dict_equals(x, y, depth):
+def _dict_equals(x, y, depth, ignore_index):
     xkeys = set(x.keys())
     ykeys = set(y.keys())
     if xkeys != ykeys:
@@ -164,7 +172,7 @@ def _dict_equals(x, y, depth):
 
     # we now know that xkeys == ykeys
     for i, key in enumerate(xkeys):
-        eq, msg = _deep_equals(x[key], y[key], depth + 1)
+        eq, msg = _deep_equals(x[key], y[key], depth + 1, ignore_index)
 
         if not eq:
             return False, msg + f", idx={i}"
