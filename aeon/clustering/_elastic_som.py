@@ -44,8 +44,8 @@ class ElasticSOM(BaseClusterer):
     n_clusters : int, default=8
         The number of clusters to form as well as the number of centroids to generate.
     distance : str or Callable, default='dtw'
-        Distance metric to compute similarity between time series. A list of valid
-        strings for metrics can be found in the documentation for
+        Distance measure to compute similarity between time series. A list of valid
+        strings for measures can be found in the documentation for
         :func:`aeon.distances.get_distance_function`. If a callable is passed it must be
         a function that takes two 2d numpy arrays as input and returns a float.
     init : str or np.ndarray, default='random'

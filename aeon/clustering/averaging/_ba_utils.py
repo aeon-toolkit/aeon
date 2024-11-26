@@ -155,6 +155,6 @@ def _get_alignment_path(
     elif distance == "adtw":
         return adtw_alignment_path(ts, center, window=window, warp_penalty=warp_penalty)
     else:
-        # When numba version > 0.57 add more informative error with what metric
+        # When numba version > 0.57 add more informative error with what measure
         # was passed.
         raise ValueError("Distance parameter invalid")
