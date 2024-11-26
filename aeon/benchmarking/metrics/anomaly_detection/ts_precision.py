@@ -89,33 +89,26 @@ class RangePrecision:
 
         return overlap_sets
 
-    def calculate_bias(i, length, bias_type="flat"):
-        """Calculate the bias value for a given postion in a range.
+    def calculate_bias(self, position, length, bias_type="flat"):
+        """Calculate bias value based on position and length.
 
-        Parameters
-        ----------
-        i : int
-            Position index within the range.
-
-        length : int
-            Total length of the range.
+        Args:
+            position: Current position in the range
+            length: Total length of the range
+            bias_type: Type of bias to apply (default: "flat")
         """
         if bias_type == "flat":
-            return 1
+            return 1.0
         elif bias_type == "front":
-            return length - i - 1
-        elif bias_type == "back":
-            return i
+            return 1.0 - (position - 1) / length
         elif bias_type == "middle":
-            if i <= length / 2:
-                return i
-            else:
-                return length - i - 1
-        else:
-            raise ValueError(
-                f"Invalid bias type: {bias_type}."
-                "Should be from 'flat, 'front', 'middle', 'back'."
+            return (
+                1.0 - abs(2 * (position - 1) / (length - 1) - 1) if length > 1 else 1.0
             )
+        elif bias_type == "back":
+            return position / length
+        else:
+            return 1.0
 
     def gamma_select(self, cardinality, gamma: str, udf_gamma=None) -> float:
         """Select a gamma value based on the cardinality type."""
@@ -136,9 +129,9 @@ class RangePrecision:
         else:
             raise ValueError("Invalid gamma type")
 
-    def calculate_overlap_reward(self, y_pred, overlap_set, bias_type):
+    def calculate_overlap_reward(self, pred_range, overlap_set, bias_type):
         """Overlap Reward for y_pred."""
-        start, end = y_pred
+        start, end = pred_range
         length = end - start + 1
 
         max_value = 0  # Total possible weighted value for all positions.
@@ -157,37 +150,37 @@ class RangePrecision:
     def ts_precision(
         self, y_pred, y_real, gamma="one", bias_type="flat", udf_gamma=None
     ):
-        """Precision for either a single set or the entire time series."""
-        #  Check if the input is a single set of predicted ranges or multiple sets
-        is_single_set = isinstance(y_pred[0], tuple)
-        """
+        """Precision for either a single set or the entire time series.
+
         example:
         y_pred = [(1, 3), (5, 7)]
         y_real = [(2, 6), (8, 10)]
         """
-        if is_single_set:
+        #  Check if the input is a single set of predicted ranges or multiple sets
+        if isinstance(y_pred[0], tuple):
             # y_pred is a single set of predicted ranges
             total_overlap_reward = 0.0
             total_cardinality = 0
 
             for pred_range in y_pred:
                 overlap_set = set()
+                cardinality = 0
+
                 for real_start, real_end in y_real:
-                    overlap_set.update(
-                        range(
-                            max(pred_range[0], real_start),
-                            min(pred_range[1], real_end) + 1,
-                        )
-                    )
+                    overlap_start = max(pred_range[0], real_start)
+                    overlap_end = min(pred_range[1], real_end)
+
+                    if overlap_start <= overlap_end:
+                        overlap_set.update(range(overlap_start, overlap_end + 1))
+                        cardinality += 1
 
                 overlap_reward = self.calculate_overlap_reward(
-                    y_pred, overlap_set, bias_type
+                    pred_range, overlap_set, bias_type
                 )
-                cardinality = len(overlap_set)
                 gamma_value = self.gamma_select(cardinality, gamma, udf_gamma)
 
-            total_overlap_reward += gamma_value * overlap_reward
-            total_cardinality += 1  # Count each predicted range once
+                total_overlap_reward += gamma_value * overlap_reward
+                total_cardinality += 1
 
             return (
                 total_overlap_reward / total_cardinality
@@ -209,7 +202,7 @@ class RangePrecision:
                 precision = self.ts_precision(
                     pred_ranges, y_real, gamma, bias_type, udf_gamma
                 )  # Recursive call for single sets
-                total_precision += precision
+                total_precision += precision * len(pred_ranges)
                 total_ranges += len(pred_ranges)
 
             return total_precision / total_ranges if total_ranges > 0 else 0.0
