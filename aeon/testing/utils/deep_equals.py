@@ -1,6 +1,6 @@
 """Testing utility to compare equality in value for nested objects."""
 
-__maintainer__ = []
+__maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["deep_equals"]
 
 from inspect import isclass

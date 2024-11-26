@@ -20,7 +20,6 @@ Note that the deprecation policy does not necessarily apply to modules we class 
 experimental. Currently experimental modules are:
 
 - `anomaly_detection`
-- `benchmarking`
 - `forecasting`
 - `segmentation`
 - `similarity_search`

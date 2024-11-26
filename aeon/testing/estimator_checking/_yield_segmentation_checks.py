@@ -3,7 +3,6 @@
 from functools import partial
 
 import numpy as np
-import pytest
 
 from aeon.base._base import _clone_estimator
 from aeon.base._base_series import VALID_SERIES_INNER_TYPES
@@ -42,6 +41,8 @@ def check_segmenter_base_functionality(estimator_class):
 
 def check_segmenter_instance(estimator):
     """Test segmenters."""
+    import pytest
+
     estimator = _clone_estimator(estimator)
 
     def _assert_output(output, dense, length):

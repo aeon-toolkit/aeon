@@ -19,6 +19,7 @@ api_reference/clustering
 api_reference/data_format
 api_reference/datasets
 api_reference/distances
+api_reference/forecasting
 api_reference/networks
 api_reference/regression
 api_reference/segmentation

@@ -9,7 +9,6 @@ from inspect import getfullargspec, isclass, signature
 
 import joblib
 import numpy as np
-import pytest
 from numpy.testing import assert_array_almost_equal
 from sklearn.exceptions import NotFittedError
 
@@ -596,6 +595,8 @@ def check_fit_updates_state_and_cloning(estimator, datatype):
 
 def check_raises_not_fitted_error(estimator, datatype):
     """Check exception raised for non-fit method calls to unfitted estimators."""
+    import pytest
+
     estimator = _clone_estimator(estimator)
 
     for method in NON_STATE_CHANGING_METHODS:

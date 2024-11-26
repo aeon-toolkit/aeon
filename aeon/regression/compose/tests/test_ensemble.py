@@ -14,7 +14,7 @@ from aeon.testing.data_generation import (
     make_example_3d_numpy,
     make_example_3d_numpy_list,
 )
-from aeon.testing.mock_estimators import MockHandlesAllInput, MockRegressor
+from aeon.testing.mock_estimators import MockRegressor, MockRegressorFullTags
 
 mixed_ensemble = [
     DummyRegressor(),
@@ -114,7 +114,7 @@ def test_unequal_tag_inference():
         n_cases=10, min_n_timepoints=8, max_n_timepoints=12, regression_target=True
     )
 
-    r1 = MockHandlesAllInput()
+    r1 = MockRegressorFullTags()
     r2 = MockRegressor()
 
     assert r1.get_tag("capability:unequal_length")
@@ -144,7 +144,7 @@ def test_missing_tag_inference():
     X, y = make_example_3d_numpy(n_cases=10, n_timepoints=12, regression_target=True)
     X[5, 0, 4] = np.nan
 
-    r1 = MockHandlesAllInput()
+    r1 = MockRegressorFullTags()
     r2 = MockRegressor()
 
     assert r1.get_tag("capability:missing_values")
@@ -175,7 +175,7 @@ def test_multivariate_tag_inference():
         n_cases=10, n_channels=2, n_timepoints=12, regression_target=True
     )
 
-    r1 = MockHandlesAllInput()
+    r1 = MockRegressorFullTags()
     r2 = MockRegressor()
 
     assert r1.get_tag("capability:multivariate")
