@@ -236,7 +236,7 @@ class TimeSeriesKMeans(BaseClusterer):
         prev_labels = None
         for i in range(self.max_iter):
             curr_pw = pairwise_distance(
-                X, cluster_centres, metric=self.distance, **self._distance_params
+                X, cluster_centres, measure=self.distance, **self._distance_params
             )
             curr_labels = curr_pw.argmin(axis=1)
             curr_inertia = curr_pw.min(axis=1).sum()
@@ -273,13 +273,13 @@ class TimeSeriesKMeans(BaseClusterer):
     def _predict(self, X: np.ndarray, y=None) -> np.ndarray:
         if isinstance(self.distance, str):
             pairwise_matrix = pairwise_distance(
-                X, self.cluster_centers_, metric=self.distance, **self._distance_params
+                X, self.cluster_centers_, measure=self.distance, **self._distance_params
             )
         else:
             pairwise_matrix = pairwise_distance(
                 X,
                 self.cluster_centers_,
-                metric=self.distance,
+                measure=self.distance,
                 **self._distance_params,
             )
         return pairwise_matrix.argmin(axis=1)
@@ -346,7 +346,7 @@ class TimeSeriesKMeans(BaseClusterer):
 
         for _ in range(1, self.n_clusters):
             pw_dist = pairwise_distance(
-                X, X[indexes], metric=self.distance, **self._distance_params
+                X, X[indexes], measure=self.distance, **self._distance_params
             )
             min_distances = pw_dist.min(axis=1)
             probabilities = min_distances / min_distances.sum()
@@ -381,7 +381,7 @@ class TimeSeriesKMeans(BaseClusterer):
             index_furthest_from_centre = curr_pw.min(axis=1).argmax()
             cluster_centres[current_empty_cluster_index] = X[index_furthest_from_centre]
             curr_pw = pairwise_distance(
-                X, cluster_centres, metric=self.distance, **self._distance_params
+                X, cluster_centres, measure=self.distance, **self._distance_params
             )
             curr_labels = curr_pw.argmin(axis=1)
             curr_inertia = curr_pw.min(axis=1).sum()

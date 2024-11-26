@@ -189,7 +189,7 @@ class TimeSeriesCLARA(BaseClusterer):
             curr_centers = pam.cluster_centers_
             if isinstance(pam.distance, str):
                 pairwise_matrix = pairwise_distance(
-                    X, curr_centers, metric=self.distance, **pam._distance_params
+                    X, curr_centers, measure=self.distance, **pam._distance_params
                 )
             else:
                 pairwise_matrix = pairwise_distance(

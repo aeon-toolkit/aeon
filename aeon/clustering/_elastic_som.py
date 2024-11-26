@@ -224,7 +224,7 @@ class ElasticSOM(BaseClusterer):
         pairwise_matrix = pairwise_distance(
             x,
             weights,
-            metric=self.distance,
+            measure=self.distance,
             **self._distance_params,
         )
         return pairwise_matrix.argmin(axis=1)
@@ -366,7 +366,7 @@ class ElasticSOM(BaseClusterer):
 
         for _ in range(1, self.n_clusters):
             pw_dist = pairwise_distance(
-                X, X[indexes], metric=self.distance, **self._distance_params
+                X, X[indexes], measure=self.distance, **self._distance_params
             )
             min_distances = pw_dist.min(axis=1)
             probabilities = min_distances / min_distances.sum()

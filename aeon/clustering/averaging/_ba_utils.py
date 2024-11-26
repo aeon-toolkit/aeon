@@ -31,7 +31,7 @@ def _medoids(
         return X
 
     if precomputed_pairwise_distance is None:
-        precomputed_pairwise_distance = pairwise_distance(X, metric=distance, **kwargs)
+        precomputed_pairwise_distance = pairwise_distance(X, measure=distance, **kwargs)
 
     x_size = X.shape[0]
     distance_matrix = np.zeros((x_size, x_size))
