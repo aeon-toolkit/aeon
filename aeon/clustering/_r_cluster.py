@@ -90,7 +90,8 @@ class RCluster(BaseClusterer):
 
         # equivalent to:
         # >>> from itertools import combinations
-        # >>> indices = np.array([_ for _ in combinations(np.arange(9), 3)], dtype = np.int32)
+        # >>> indices = np.array([_ for _ in combinations(np.arange(9), 3)]
+        #, dtype = np.int32)
         # MODIFICATION
         indices = np.array(
             (
