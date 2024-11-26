@@ -19,13 +19,13 @@ class RCluster(BaseClusterer):
     ----------
     num_kernels : int , default = 84
          The number of convolutional kernels used to transform the input time series
-         These kernels are fixed and pre-defined (not random) and are 
+         These kernels are fixed and pre-defined (not random) and are
          optimized for computational speed and
          feature diversity
 
     max_dilations_per_kernel : int , default = 32
          The maximum number of dilation rates applied to each kernel
-         Dilations control the spacing of the kernel's receptive 
+         Dilations control the spacing of the kernel's receptive
          field over the time series,
          capturing patterns at varying scales
 
@@ -36,7 +36,7 @@ class RCluster(BaseClusterer):
          The number of clusters used
 
     n_init : int , default = 10
-         The number of times the clustering algorithm (e.g., KMeans) 
+         The number of times the clustering algorithm (e.g., KMeans)
          will run with different centroid seeds
          to avoid poor local optima
 
@@ -91,7 +91,7 @@ class RCluster(BaseClusterer):
         # equivalent to:
         # >>> from itertools import combinations
         # >>> indices = np.array([_ for _ in combinations(np.arange(9), 3)], dtype = np.int32)
-        #MODIFICATION
+        # MODIFICATION
         indices = np.array(
             (
                 1,
@@ -456,7 +456,7 @@ class RCluster(BaseClusterer):
 
         quantiles = self.__quantiles(self.num_kernels * num_features_per_kernel)
 
-        #MODIFICATION
+        # MODIFICATION
         quantiles = np.random.permutation(quantiles)
 
         biases = self.__fit_biases(X, dilations, num_features_per_dilation, quantiles)
@@ -472,7 +472,7 @@ class RCluster(BaseClusterer):
         # equivalent to:
         # >>> from itertools import combinations
         # >>> indices = np.array([_ for _ in combinations(np.arange(9), 3)]
-        #, dtype = np.int32)
+        # , dtype = np.int32)
         indices = np.array(
             (
                 1,
