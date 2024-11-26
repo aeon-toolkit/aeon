@@ -28,7 +28,7 @@ Testing
 Data Generation
 ^^^^^^^^^^^^^^^
 
-.. currentmodule:: aeon.testing.utils.data_generation
+.. currentmodule:: aeon.testing.data_generation
 
 .. autosummary::
     :toctree: auto_generated/
@@ -49,7 +49,7 @@ Data Generation
 Estimator Checking
 ^^^^^^^^^^^^^^^^^^
 
-.. currentmodule:: aeon.testing.utils.estimator_checking
+.. currentmodule:: aeon.testing.estimator_checking
 
 .. autosummary::
     :toctree: auto_generated/
@@ -61,7 +61,7 @@ Estimator Checking
 Mock Estimators
 ^^^^^^^^^^^^^^^
 
-.. currentmodule:: aeon.testing.utils.mock_estimators
+.. currentmodule:: aeon.testing.mock_estimators
 
 .. autosummary::
     :toctree: auto_generated/
