@@ -42,7 +42,7 @@ def test_weight_norm():
     model_path = "test_weight_norm_model.h5"
     model.save(model_path)
     loaded_model = tf.keras.models.load_model(
-        model_path, custom_objects={"WeightNormalization": _WeightNormalization}
+        model_path, custom_objects={"_WeightNormalization": _WeightNormalization}
     )
     assert loaded_model is not None
     loaded_output = loaded_model.predict(X)

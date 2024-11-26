@@ -2,7 +2,7 @@
 
 import sys
 
-from aeon.testing.utils.output_supression import suppress_output
+from aeon.testing.utils.output_suppression import suppress_output
 
 
 @suppress_output()
