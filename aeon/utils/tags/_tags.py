@@ -53,6 +53,14 @@ ESTIMATOR_TAGS = {
         "description": "What data structure(s) the estimator uses internally for "
         "fit/predict.",
     },
+    "y_inner_type": {
+        "class": "forecaster",
+        "type": [
+            ("list||str", SERIES_DATA_TYPES),
+        ],
+        "description": "What data structure(s) the estimator uses internally for "
+        "fit/predict.",
+    },
     "algorithm_type": {
         "class": "estimator",
         "type": [

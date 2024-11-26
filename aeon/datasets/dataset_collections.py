@@ -13,7 +13,7 @@ Classification/Regression
 -------------------------
 Classification data available are listed in tsc_datasets.py. Regression problems
 are in tser_datasets.py. The data can be downloaded and loaded with
->>> from aeon.datasets import load_from_tsfile
+>>> from aeon.datasets import load_from_ts_file
 
 If the data is already stored on disk, you can just load it directly
 Metadata is loaded from the file header, and return is optional

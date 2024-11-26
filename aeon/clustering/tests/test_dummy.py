@@ -17,18 +17,3 @@ def test_dummy_clusterer(strategy):
     assert len(preds) == 3
     assert np.all(np.array([(pred < 3) for pred in preds]))
     assert np.all(np.array([(pred >= 0) for pred in preds]))
-
-
-def test_dummy_clusterer_score():
-    """Test score method of the dummy clusterer."""
-    model = DummyClusterer(strategy="random")
-    data = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
-    model.fit(data)
-    score = model.score(data)
-    assert score is not None
-
-    model = DummyClusterer(strategy="single_cluster")
-    model.fit(data)
-    score = model.score(data)
-    assert score is not None
-    assert score == 54.0

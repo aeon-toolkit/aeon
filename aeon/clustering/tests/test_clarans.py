@@ -24,7 +24,7 @@ def test_clarans_uni():
     clarans = TimeSeriesCLARANS(
         random_state=1,
         n_init=2,
-        init_algorithm="first",
+        init="first",
         distance="euclidean",
         n_clusters=2,
     )
@@ -67,7 +67,7 @@ def test_clara_multi():
     clarans = TimeSeriesCLARANS(
         random_state=1,
         n_init=2,
-        init_algorithm="first",
+        init="first",
         distance="euclidean",
         n_clusters=2,
     )
@@ -106,7 +106,7 @@ def test_medoids_init():
     kmedoids = TimeSeriesCLARANS(
         random_state=1,
         n_init=1,
-        init_algorithm="first",
+        init="first",
         distance="euclidean",
         n_clusters=num_clusters,
     )
@@ -131,7 +131,7 @@ def test_medoids_init():
     kmedoids = TimeSeriesCLARANS(
         random_state=1,
         n_init=1,
-        init_algorithm=custom_init_centres,
+        init=custom_init_centres,
         distance="euclidean",
         n_clusters=num_clusters,
     )

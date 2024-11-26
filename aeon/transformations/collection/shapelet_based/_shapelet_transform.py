@@ -144,6 +144,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         "output_data_type": "Tabular",
         "capability:multivariate": True,
         "capability:unequal_length": True,
+        "capability:multithreading": True,
         "X_inner_type": ["np-list", "numpy3D"],
         "requires_y": True,
         "algorithm_type": "shapelet",

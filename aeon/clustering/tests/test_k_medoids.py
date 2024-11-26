@@ -43,7 +43,7 @@ def _pam_uni_medoids(X_train, y_train, X_test, y_test):
         random_state=1,
         n_init=2,
         max_iter=5,
-        init_algorithm="first",
+        init="first",
         distance="euclidean",
         method="pam",
     )
@@ -70,7 +70,7 @@ def _alternate_uni_medoids(X_train, y_train, X_test, y_test):
         n_init=2,
         max_iter=5,
         method="alternate",
-        init_algorithm="first",
+        init="first",
         distance="euclidean",
     )
     train_medoids_result = kmedoids.fit_predict(X_train)
@@ -95,7 +95,7 @@ def _pam_multi_medoids(X_train, y_train, X_test, y_test):
         random_state=1,
         n_init=2,
         max_iter=5,
-        init_algorithm="first",
+        init="first",
         distance="euclidean",
         method="pam",
     )
@@ -121,7 +121,7 @@ def _alternate_multi_medoids(X_train, y_train, X_test, y_test):
         random_state=1,
         n_init=2,
         max_iter=5,
-        init_algorithm="first",
+        init="first",
         method="alternate",
         distance="euclidean",
     )
@@ -169,7 +169,7 @@ def test_medoids_init():
         random_state=1,
         n_init=1,
         max_iter=5,
-        init_algorithm="first",
+        init="first",
         distance="euclidean",
         n_clusters=num_clusters,
     )
@@ -194,7 +194,7 @@ def test_medoids_init():
         random_state=1,
         n_init=1,
         max_iter=5,
-        init_algorithm=custom_init_centres,
+        init=custom_init_centres,
         distance="euclidean",
         n_clusters=num_clusters,
     )
@@ -209,7 +209,7 @@ def _get_model_centres(data, distance, method="pam", distance_params=None):
         method=method,
         n_init=2,
         n_clusters=2,
-        init_algorithm="random",
+        init="random",
         distance=distance,
         distance_params=distance_params,
     )
