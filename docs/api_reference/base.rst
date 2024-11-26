@@ -17,3 +17,4 @@ Base classes
     BaseAeonEstimator
     BaseCollectionEstimator
     BaseSeriesEstimator
+    ComposableEstimatorMixin
