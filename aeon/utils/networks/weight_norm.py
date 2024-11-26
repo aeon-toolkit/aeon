@@ -5,7 +5,7 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 if _check_soft_dependencies(["tensorflow"], severity="none"):
     import tensorflow as tf
 
-    class WeightNormalization(tf.keras.layers.Wrapper):
+    class _WeightNormalization(tf.keras.layers.Wrapper):
         """Apply weight normalization to a Keras layer."""
 
         def __init__(self, layer, **kwargs):

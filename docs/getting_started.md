@@ -26,6 +26,9 @@ classical techniques for the following learning tasks:
   ([more details](examples/similarity_search/similarity_search.ipynb)).
 - [**Anomaly detection**](api_reference/anomaly_detection), where the goal is to find
   values or areas of a single time series that are not representative of the whole series.
+- [**Forecasting**](api_reference/forecasting), where the goal is to predict future values
+  of a single time series
+  ([more details](examples/forecasting/forecasting.ipynb)).
 - [**Segmentation**](api_reference/segmentation), where the goal is to split a single time
   series into regions where the series are sofind areas of a time series that are not
   representative of the whole series
@@ -37,8 +40,8 @@ classical techniques for the following learning tasks:
   transformed into a different representation or domain. ([more details](examples/transformations/transformations.ipynb)).
 - [**Distances**](api_reference/distances), which measure the dissimilarity between two time series or
   collections of series and include functions to align series ([more details](examples/distances/distances.ipynb)).
-- [**Networks**](api_reference/networks), provides core models for deep learning for all time series tasks ([more
-  details](examples/networks/deep_learning.ipynb)).
+- [**Networks**](api_reference/networks), provides core models for deep learning for all time series tasks
+- ([more details](examples/networks/deep_learning.ipynb)).
 
 There are dedicated notebooks going into more detail for each of these modules. This
 guide is meant to give you the briefest of introductions to the main concepts and
@@ -99,9 +102,9 @@ structures, see our [datasets](examples/datasets/datasets.ipynb) notebooks.
 ## Single Series Modules
 
 Different `aeon` modules work with individual series or collections of series.
-Estimators in the `anomaly detection` and `segmentation` modules use single
-series input (they inherit from `BaseSeriesEstimator`). The functions in `distances`
-take two series as arguments.
+Estimators in the `anomaly detection`, `forecasting` and `segmentation` modules use
+single series input (they inherit from `BaseSeriesEstimator`). The functions in
+`distances` take two series as arguments.
 
 ### Anomaly Detection
 

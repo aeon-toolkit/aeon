@@ -253,6 +253,7 @@ is relaxed, so it is suggested that you integrate these modules with care. The c
 experimental modules are:
 
 - `anomaly_detection`
+- `forecasting`
 - `segmentation`
 - `similarity_search`
 - `visualisation`

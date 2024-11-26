@@ -16,11 +16,11 @@ def test_weight_norm():
     import numpy as np
     import tensorflow as tf
 
-    from aeon.utils.networks.weight_norm import WeightNormalization
+    from aeon.utils.networks.weight_norm import _WeightNormalization
 
     X = np.random.random((10, 10, 5))
     _input = tf.keras.layers.Input((10, 5))
-    l1 = WeightNormalization(
+    l1 = _WeightNormalization(
         tf.keras.layers.Conv1D(filters=5, kernel_size=1, dilation_rate=4)
     )(_input)
     model = tf.keras.models.Model(inputs=_input, outputs=l1)
@@ -42,7 +42,7 @@ def test_weight_norm():
     model_path = "test_weight_norm_model.h5"
     model.save(model_path)
     loaded_model = tf.keras.models.load_model(
-        model_path, custom_objects={"WeightNormalization": WeightNormalization}
+        model_path, custom_objects={"WeightNormalization": _WeightNormalization}
     )
     assert loaded_model is not None
     loaded_output = loaded_model.predict(X)

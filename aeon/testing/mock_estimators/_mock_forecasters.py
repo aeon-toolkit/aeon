@@ -1,7 +1,10 @@
-"""Mock forecasters useful for testing and debugging.
+"""Mock forecasters useful for testing and debugging."""
 
-Used in tests for the forecasting base class.
-"""
+__maintainer__ = ["TonyBagnall"]
+__all__ = [
+    "MockForecaster",
+]
+
 
 from aeon.forecasting.base import BaseForecaster
 

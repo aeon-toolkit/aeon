@@ -22,6 +22,7 @@ The following modules are still considered experimental, and the [deprecation po
 does not apply:
 
 - `anomaly_detection`
+- `forecasting`
 - `segmentation`
 - `similarity_search`
 - `visualisation`
