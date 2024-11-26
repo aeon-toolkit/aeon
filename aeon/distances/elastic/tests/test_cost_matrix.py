@@ -30,8 +30,8 @@ def _validate_cost_matrix_result(
     ----------
     x (np.ndarray): The first input array.
     y (np.ndarray): The second input array.
-    name: The name of the distance metric.
-    distance: The distance metric function.
+    name: The name of the distance measure.
+    distance: The distance measure function.
     cost_matrix: The cost matrix function.
     """
     original_x = x.copy()
@@ -40,7 +40,7 @@ def _validate_cost_matrix_result(
     cost_matrix_callable_result = DISTANCES_DICT[name]["cost_matrix"](x, y)
 
     assert isinstance(cost_matrix_result, np.ndarray)
-    assert_almost_equal(cost_matrix_result, compute_cost_matrix(x, y, metric=name))
+    assert_almost_equal(cost_matrix_result, compute_cost_matrix(x, y, measure=name))
     assert_almost_equal(cost_matrix_callable_result, cost_matrix_result)
     if name == "ddtw" or name == "wddtw":
         assert cost_matrix_result.shape == (x.shape[-1] - 2, y.shape[-1] - 2)

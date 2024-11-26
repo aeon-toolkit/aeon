@@ -42,7 +42,7 @@ class TimeSeriesCLARA(BaseClusterer):
         If a np.ndarray provided it must be of shape (n_clusters,) and contain
         the indexes of the time series to use as centroids.
     distance : str or Callable, default='msm'
-        Distance metric to compute similarity between time series. A list of valid
+        Distance measure to compute similarity between time series. A list of valid
         strings for metrics can be found in the documentation for
         :func:`aeon.distances.get_distance_function`. If a callable is passed it must be
         a function that takes two 2d numpy arrays as input and returns a float.
@@ -73,7 +73,7 @@ class TimeSeriesCLARA(BaseClusterer):
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
     distance_params : dict, default=None
-        Dictionary containing kwargs for the distance metric being used.
+        Dictionary containing kwargs for the distance measure being used.
 
     Attributes
     ----------
@@ -189,7 +189,7 @@ class TimeSeriesCLARA(BaseClusterer):
             curr_centers = pam.cluster_centers_
             if isinstance(pam.distance, str):
                 pairwise_matrix = pairwise_distance(
-                    X, curr_centers, metric=self.distance, **pam._distance_params
+                    X, curr_centers, measure=self.distance, **pam._distance_params
                 )
             else:
                 pairwise_matrix = pairwise_distance(
