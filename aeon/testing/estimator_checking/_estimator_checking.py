@@ -15,6 +15,9 @@ from sklearn import config_context
 from sklearn.utils._testing import SkipTest
 
 from aeon.base import BaseAeonEstimator
+from aeon.testing.estimator_checking._yield_estimator_checks import (
+    _yield_all_aeon_checks,
+)
 from aeon.testing.testing_config import (
     EXCLUDE_ESTIMATORS,
     EXCLUDED_TESTS,
@@ -71,10 +74,6 @@ def parametrize_with_checks(
     _check_soft_dependencies("pytest")
 
     import pytest
-
-    from aeon.testing.estimator_checking._yield_estimator_checks import (
-        _yield_all_aeon_checks,
-    )
 
     checks = []
     for est in estimators:
@@ -196,10 +195,6 @@ def check_estimator(
     # check if estimator has soft dependencies installed
     _check_soft_dependencies("pytest")
     _check_estimator_deps(estimator)
-
-    from aeon.testing.estimator_checking._yield_estimator_checks import (
-        _yield_all_aeon_checks,
-    )
 
     checks = []
     # collect all relevant checks
