@@ -44,8 +44,8 @@ class ElasticSOM(BaseClusterer):
     n_clusters : int, default=8
         The number of clusters to form as well as the number of centroids to generate.
     distance : str or Callable, default='dtw'
-        Distance metric to compute similarity between time series. A list of valid
-        strings for metrics can be found in the documentation for
+        Distance measure to compute similarity between time series. A list of valid
+        strings for measures can be found in the documentation for
         :func:`aeon.distances.get_distance_function`. If a callable is passed it must be
         a function that takes two 2d numpy arrays as input and returns a float.
     init : str or np.ndarray, default='random'
@@ -224,7 +224,7 @@ class ElasticSOM(BaseClusterer):
         pairwise_matrix = pairwise_distance(
             x,
             weights,
-            metric=self.distance,
+            measure=self.distance,
             **self._distance_params,
         )
         return pairwise_matrix.argmin(axis=1)
@@ -366,7 +366,7 @@ class ElasticSOM(BaseClusterer):
 
         for _ in range(1, self.n_clusters):
             pw_dist = pairwise_distance(
-                X, X[indexes], metric=self.distance, **self._distance_params
+                X, X[indexes], measure=self.distance, **self._distance_params
             )
             min_distances = pw_dist.min(axis=1)
             probabilities = min_distances / min_distances.sum()

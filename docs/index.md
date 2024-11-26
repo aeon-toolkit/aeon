@@ -111,6 +111,25 @@ Anomaly Detection
 :::
 
 :::{grid-item-card}
+:img-top: examples/forecasting/img/forecasting.png
+:class-img-top: aeon-card-image
+:text-align: center
+
+Get started with forecasting
+
++++
+
+```{button-ref} /examples/forecasting/forecasting.ipynb
+:color: primary
+:click-parent:
+:expand:
+
+Forecasting
+```
+
+:::
+
+:::{grid-item-card}
 :img-top: examples/segmentation/img/segmentation.png
 :class-img-top: aeon-card-image
 :text-align: center
@@ -253,6 +272,7 @@ is relaxed, so it is suggested that you integrate these modules with care. The c
 experimental modules are:
 
 - `anomaly_detection`
+- `forecasting`
 - `segmentation`
 - `similarity_search`
 - `visualisation`

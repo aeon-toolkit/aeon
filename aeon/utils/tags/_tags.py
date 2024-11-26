@@ -17,7 +17,7 @@ sub-dictionary has the following items:
 __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["ESTIMATOR_TAGS"]
 
-from aeon.utils import COLLECTIONS_DATA_TYPES, SERIES_DATA_TYPES
+from aeon.utils.data_types import COLLECTIONS_DATA_TYPES, SERIES_DATA_TYPES
 
 ESTIMATOR_TAGS = {
     # all estimators

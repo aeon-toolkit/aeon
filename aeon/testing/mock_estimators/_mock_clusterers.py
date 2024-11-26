@@ -1,3 +1,11 @@
+"""Mock clusterers useful for testing and debugging."""
+
+__maintainer__ = []
+__all__ = [
+    "MockCluster",
+    "MockDeepClusterer",
+]
+
 import numpy as np
 
 from aeon.clustering.base import BaseClusterer

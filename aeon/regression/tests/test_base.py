@@ -12,7 +12,7 @@ from aeon.testing.testing_data import (
     EQUAL_LENGTH_UNIVARIATE_REGRESSION,
     UNEQUAL_LENGTH_UNIVARIATE_REGRESSION,
 )
-from aeon.utils import COLLECTIONS_DATA_TYPES
+from aeon.utils.data_types import COLLECTIONS_DATA_TYPES
 
 
 class _TestRegressor(BaseRegressor):
