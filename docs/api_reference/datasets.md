@@ -55,5 +55,5 @@ used by `aeon`.
 ```{toctree}
 :maxdepth: 1
 
-api_reference/data_format
+api_reference/data_format.md
 ```
