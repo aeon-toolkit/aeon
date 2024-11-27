@@ -118,7 +118,7 @@ PairwiseFunction = Callable[[np.ndarray, np.ndarray, Any], np.ndarray]
 def distance(
     x: np.ndarray,
     y: np.ndarray,
-    measure: Union[str, DistanceFunction],
+    method: Union[str, DistanceFunction],
     **kwargs: Unpack[DistanceKwargs],
 ) -> float:
     """Compute the distance between two time series.
@@ -131,13 +131,13 @@ def distance(
     y : np.ndarray
         Second time series, either univariate, shape ``(n_timepoints,)``, or
         multivariate, shape ``(n_channels, n_timepoints)``.
-    measure : str or Callable
-        The distance measure to use.
-        A list of valid distance measures can be found in the documentation for
+    method : str or Callable
+        The distance to use.
+        A list of valid distance can be found in the documentation for
         :func:`aeon.distances.get_distance_function` or by calling  the function
         :func:`aeon.distances.get_distance_function_names`.
     kwargs : Any
-        Arguments for measure. Refer to each measure documentation for a list of
+        Arguments for distance. Refer to each distance documentation for a list of
         possible arguments.
 
     Returns
@@ -149,7 +149,7 @@ def distance(
     ------
     ValueError
         If x and y are not 1D, or 2D arrays.
-        If measure is not a valid string or callable.
+        If distance is not a valid string or callable.
 
     Examples
     --------
@@ -157,21 +157,21 @@ def distance(
     >>> from aeon.distances import distance
     >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> y = np.array([[11, 12, 13, 14, 15, 16, 17, 18, 19, 20]])
-    >>> distance(x, y, measure="dtw")
+    >>> distance(x, y, method="dtw")
     768.0
     """
-    if measure in DISTANCES_DICT:
-        return DISTANCES_DICT[measure]["distance"](x, y, **kwargs)
-    elif isinstance(measure, Callable):
-        return measure(x, y, **kwargs)
+    if method in DISTANCES_DICT:
+        return DISTANCES_DICT[method]["distance"](x, y, **kwargs)
+    elif isinstance(method, Callable):
+        return method(x, y, **kwargs)
     else:
-        raise ValueError("Measure must be one of the supported strings or a callable")
+        raise ValueError("Method must be one of the supported strings or a callable")
 
 
 def pairwise_distance(
     x: np.ndarray,
     y: Optional[np.ndarray] = None,
-    measure: Union[str, DistanceFunction, None] = None,
+    method: Union[str, DistanceFunction, None] = None,
     symmetric: bool = True,
     **kwargs: Unpack[DistanceKwargs],
 ) -> np.ndarray:
@@ -185,20 +185,20 @@ def pairwise_distance(
     y : np.ndarray or None, default=None
        A single series or a collection of time series of shape ``(m_timepoints,)`` or
        ``(m_cases, m_timepoints)`` or ``(m_cases, m_channels, m_timepoints)``
-    measure : str or Callable
-        The distance measure to use.
-        A list of valid distance measure can be found in the documentation for
+    method : str or Callable
+        The distance to use.
+        A list of valid distance can be found in the documentation for
         :func:`aeon.distances.get_distance_function` or by calling  the function
         :func:`aeon.distances.get_distance_function_names`.
     symmetric : bool, default=True
-        If True and a function is provided as the "measure" paramter, then it will
+        If True and a function is provided as the "method" paramter, then it will
         compute a symmetric distance matrix where d(x, y) = d(y, x). Only the lower
         triangle is calculated, and the upper triangle is ignored. If False and a
-        function is provided as the "measure" parameter, then it will compute an
+        function is provided as the "method" parameter, then it will compute an
         asymmetric distance matrix, and the entire matrix (including both upper and
         lower triangles) is returned.
     kwargs : Any
-        Extra arguments for measure. Refer to each measure documentation for a list of
+        Extra arguments for distance. Refer to each distance documentation for a list of
         possible arguments.
 
     Returns
@@ -211,7 +211,7 @@ def pairwise_distance(
     ValueError
         If X is not 2D or 3D array when only passing X.
         If X and y are not 1D, 2D or 3D arrays when passing both X and y.
-        If measure is not a valid string or callable.
+        If distance is not a valid string or callable.
 
     Examples
     --------
@@ -219,7 +219,7 @@ def pairwise_distance(
     >>> from aeon.distances import pairwise_distance
     >>> # Distance between each time series in a collection of time series
     >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
-    >>> pairwise_distance(X, measure='dtw')
+    >>> pairwise_distance(X, method='dtw')
     array([[  0.,  26., 108.],
            [ 26.,   0.,  26.],
            [108.,  26.,   0.]])
@@ -227,26 +227,26 @@ def pairwise_distance(
     >>> # Distance between two collections of time series
     >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
     >>> y = np.array([[[11, 12, 13]],[[14, 15, 16]], [[17, 18, 19]]])
-    >>> pairwise_distance(X, y, measure='dtw')
+    >>> pairwise_distance(X, y, method='dtw')
     array([[300., 507., 768.],
            [147., 300., 507.],
            [ 48., 147., 300.]])
 
     >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
     >>> y_univariate = np.array([11, 12, 13])
-    >>> pairwise_distance(X, y_univariate, measure='dtw')
+    >>> pairwise_distance(X, y_univariate, method='dtw')
     array([[300.],
            [147.],
            [ 48.]])
     """
-    if measure in PAIRWISE_DISTANCE:
-        return DISTANCES_DICT[measure]["pairwise_distance"](x, y, **kwargs)
-    elif isinstance(measure, Callable):
+    if method in PAIRWISE_DISTANCE:
+        return DISTANCES_DICT[method]["pairwise_distance"](x, y, **kwargs)
+    elif isinstance(method, Callable):
         if y is None and not symmetric:
-            return _custom_func_pairwise(x, x, measure, **kwargs)
-        return _custom_func_pairwise(x, y, measure, **kwargs)
+            return _custom_func_pairwise(x, x, method, **kwargs)
+        return _custom_func_pairwise(x, y, method, **kwargs)
     else:
-        raise ValueError("Measure must be one of the supported strings or a callable")
+        raise ValueError("Method must be one of the supported strings or a callable")
 
 
 def _custom_func_pairwise(
@@ -302,7 +302,7 @@ def _custom_from_multiple_to_multiple_distance(
 def alignment_path(
     x: np.ndarray,
     y: np.ndarray,
-    measure: Union[str, DistanceFunction, None] = None,
+    method: Union[str, DistanceFunction, None] = None,
     **kwargs: Unpack[DistanceKwargs],
 ) -> tuple[list[tuple[int, int]], float]:
     """Compute the alignment path and distance between two time series.
@@ -313,13 +313,13 @@ def alignment_path(
         First time series.
     y : np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
         Second time series.
-    measure : str or Callable
-        The distance measure to use.
-        A list of valid distance measure can be found in the documentation for
+    method : str or Callable
+        The distance method to use.
+        A list of valid distances can be found in the documentation for
         :func:`aeon.distances.get_distance_function` or by calling  the function
         :func:`aeon.distances.get_distance_function_names`.
     kwargs : any
-        Arguments for measure. Refer to each measure documentation for a list of
+        Arguments for distance. Refer to each distance documentation for a list of
         possible arguments.
 
     Returns
@@ -335,7 +335,7 @@ def alignment_path(
     ------
     ValueError
         If x and y are not 1D, or 2D arrays.
-        If measure is not one of the supported strings or a callable.
+        If distance is not one of the supported strings or a callable.
 
     Examples
     --------
@@ -343,21 +343,21 @@ def alignment_path(
     >>> from aeon.distances import alignment_path
     >>> x = np.array([[1, 2, 3, 6]])
     >>> y = np.array([[1, 2, 3, 4]])
-    >>> alignment_path(x, y, measure='dtw')
+    >>> alignment_path(x, y, method='dtw')
     ([(0, 0), (1, 1), (2, 2), (3, 3)], 4.0)
     """
-    if measure in ALIGNMENT_PATH:
-        return DISTANCES_DICT[measure]["alignment_path"](x, y, **kwargs)
-    elif isinstance(measure, Callable):
-        return measure(x, y, **kwargs)
+    if method in ALIGNMENT_PATH:
+        return DISTANCES_DICT[method]["alignment_path"](x, y, **kwargs)
+    elif isinstance(method, Callable):
+        return method(x, y, **kwargs)
     else:
-        raise ValueError("Measure must be one of the supported strings")
+        raise ValueError("Method must be one of the supported strings")
 
 
 def cost_matrix(
     x: np.ndarray,
     y: np.ndarray,
-    measure: Union[str, DistanceFunction, None] = None,
+    method: Union[str, DistanceFunction, None] = None,
     **kwargs: Unpack[DistanceKwargs],
 ) -> np.ndarray:
     """Compute the alignment path and distance between two time series.
@@ -368,13 +368,13 @@ def cost_matrix(
         First time series.
     y : np.ndarray, of shape (m_channels, m_timepoints) or (m_timepoints,)
         Second time series.
-    measure : str or Callable
-        The distance measure to use.
-        A list of valid distance measures can be found in the documentation for
+    method : str or Callable
+        The distance to use.
+        A list of valid distances can be found in the documentation for
         :func:`aeon.distances.get_distance_function` or by calling  the function
         :func:`aeon.distances.get_distance_function_names`.
     kwargs : Any
-        Arguments for measure. Refer to each measures documentation for a list of
+        Arguments for distance. Refer to each distance documentation for a list of
         possible arguments.
 
     Returns
@@ -386,7 +386,7 @@ def cost_matrix(
     ------
     ValueError
         If x and y are not 1D, or 2D arrays.
-        If measure is not one of the supported strings or a callable.
+        If distance is not one of the supported strings or a callable.
 
     Examples
     --------
@@ -394,7 +394,7 @@ def cost_matrix(
     >>> from aeon.distances import cost_matrix
     >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> y = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
-    >>> cost_matrix(x, y, measure="dtw")
+    >>> cost_matrix(x, y, method="dtw")
     array([[  0.,   1.,   5.,  14.,  30.,  55.,  91., 140., 204., 285.],
            [  1.,   0.,   1.,   5.,  14.,  30.,  55.,  91., 140., 204.],
            [  5.,   1.,   0.,   1.,   5.,  14.,  30.,  55.,  91., 140.],
@@ -406,12 +406,12 @@ def cost_matrix(
            [204., 140.,  91.,  55.,  30.,  14.,   5.,   1.,   0.,   1.],
            [285., 204., 140.,  91.,  55.,  30.,  14.,   5.,   1.,   0.]])
     """
-    if measure in COST_MATRIX:
-        return DISTANCES_DICT[measure]["cost_matrix"](x, y, **kwargs)
-    elif isinstance(measure, Callable):
-        return measure(x, y, **kwargs)
+    if method in COST_MATRIX:
+        return DISTANCES_DICT[method]["cost_matrix"](x, y, **kwargs)
+    elif isinstance(method, Callable):
+        return method(x, y, **kwargs)
     else:
-        raise ValueError("Measure must be one of the supported strings")
+        raise ValueError("Method must be one of the supported strings")
 
 
 def get_distance_function_names() -> list[str]:
@@ -440,11 +440,11 @@ def get_distance_function_names() -> list[str]:
     return sorted(DISTANCES_DICT.keys())
 
 
-def get_distance_function(measure: Union[str, DistanceFunction]) -> DistanceFunction:
-    """Get the distance function for a given measure string or callable.
+def get_distance_function(method: Union[str, DistanceFunction]) -> DistanceFunction:
+    """Get the distance function for a given distance string or callable.
 
     =============== ========================================
-    measure         Distance Function
+    method          Distance Function
     =============== ========================================
     'dtw'           distances.dtw_distance
     'shape_dtw'     distances.shape_dtw_distance
@@ -468,8 +468,8 @@ def get_distance_function(measure: Union[str, DistanceFunction]) -> DistanceFunc
 
     Parameters
     ----------
-    measure : str or Callable
-        The distance measure to use.
+    method : str or Callable
+        The distance to use.
         If string given then it will be resolved to a alignment path function.
         If a callable is given, the value must be a function that accepts two
         numpy arrays and **kwargs returns a float.
@@ -477,12 +477,12 @@ def get_distance_function(measure: Union[str, DistanceFunction]) -> DistanceFunc
     Returns
     -------
     Callable[[np.ndarray, np.ndarray, Any], float]
-        The distance function for the given measure.
+        The distance function for the given method.
 
     Raises
     ------
     ValueError
-        If measure is not one of the supported strings or a callable.
+        If distance is not one of the supported strings or a callable.
 
     Examples
     --------
@@ -494,16 +494,16 @@ def get_distance_function(measure: Union[str, DistanceFunction]) -> DistanceFunc
     >>> dtw_dist_func(x, y, window=0.2)
     874.0
     """
-    return _resolve_key_from_distance(measure, "distance")
+    return _resolve_key_from_distance(method, "distance")
 
 
 def get_pairwise_distance_function(
-    measure: Union[str, PairwiseFunction]
+    method: Union[str, PairwiseFunction]
 ) -> PairwiseFunction:
-    """Get the pairwise distance function for a given measure string or callable.
+    """Get the pairwise distance function for a given method string or callable.
 
     =============== ========================================
-    measure         Distance Function
+    method          Distance Function
     =============== ========================================
     'dtw'           distances.dtw_pairwise_distance
     'shape_dtw'     distances.shape_dtw_pairwise_distance
@@ -527,8 +527,8 @@ def get_pairwise_distance_function(
 
     Parameters
     ----------
-    measure : str or Callable
-        The measure string to resolve to a alignment path function.
+    method : str or Callable
+        The distance string to resolve to a alignment path function.
         If string given then it will be resolved to a alignment path function.
         If a callable is given, the value must be a function that accepts two
         numpy arrays and **kwargs returns a np.ndarray that is the pairwise distance
@@ -537,12 +537,12 @@ def get_pairwise_distance_function(
     Returns
     -------
     Callable[[np.ndarray, np.ndarray, Any], np.ndarray]
-        The pairwise distance function for the given measure.
+        The pairwise distance function for the given method.
 
     Raises
     ------
     ValueError
-        If measure is not one of the supported strings or a callable.
+        If mehtod is not one of the supported strings or a callable.
 
     Examples
     --------
@@ -556,14 +556,14 @@ def get_pairwise_distance_function(
            [147., 300., 507.],
            [ 48., 147., 300.]])
     """
-    return _resolve_key_from_distance(measure, "pairwise_distance")
+    return _resolve_key_from_distance(method, "pairwise_distance")
 
 
-def get_alignment_path_function(measure: str) -> AlignmentPathFunction:
-    """Get the alignment path function for a given measure string or callable.
+def get_alignment_path_function(method: str) -> AlignmentPathFunction:
+    """Get the alignment path function for a given method string or callable.
 
     =============== ========================================
-    measure         Distance Function
+    method          Distance Function
     =============== ========================================
     'dtw'           distances.dtw_alignment_path
     'shape_dtw'     distances.shape_dtw_alignment_path
@@ -581,19 +581,19 @@ def get_alignment_path_function(measure: str) -> AlignmentPathFunction:
 
     Parameters
     ----------
-    measure : str or Callable
-        The measure string to resolve to an alignment path function.
+    method : str or Callable
+        The distance string to resolve to an alignment path function.
 
     Returns
     -------
     Callable[[np.ndarray, np.ndarray, Any], Tuple[List[Tuple[int, int]], float]]
-        The alignment path function for the given measure.
+        The alignment path function for the given distance.
 
     Raises
     ------
     ValueError
-        If measure is not one of the supported strings or a callable.
-        If the measure doesn't have an alignment path function.
+        If distance is not one of the supported strings or a callable.
+        If the distance doesn't have an alignment path function.
 
     Examples
     --------
@@ -605,14 +605,14 @@ def get_alignment_path_function(measure: str) -> AlignmentPathFunction:
     >>> dtw_alignment_path_func(x, y, window=0.2)
     ([(0, 0), (1, 1), (2, 2), (3, 3), (4, 4)], 500.0)
     """
-    return _resolve_key_from_distance(measure, "alignment_path")
+    return _resolve_key_from_distance(method, "alignment_path")
 
 
-def get_cost_matrix_function(measure: str) -> CostMatrixFunction:
-    """Get the cost matrix function for a given measure string or callable.
+def get_cost_matrix_function(method: str) -> CostMatrixFunction:
+    """Get the cost matrix function for a given distance string or callable.
 
     =============== ========================================
-    measure         Distance Function
+    method          Distance Function
     =============== ========================================
     'dtw'           distances.dtw_cost_matrix
     'shape_dtw'     distances.shape_dtw_cost_matrix
@@ -630,19 +630,19 @@ def get_cost_matrix_function(measure: str) -> CostMatrixFunction:
 
     Parameters
     ----------
-    measure : str or Callable
-        The measure string to resolve to a cost matrix function.
+    method : str or Callable
+        The distance string to resolve to a cost matrix function.
 
     Returns
     -------
     Callable[[np.ndarray, np.ndarray, Any], np.ndarray]
-        The cost matrix function for the given measure.
+        The cost matrix function for the given distance.
 
     Raises
     ------
     ValueError
-        If measure is not one of the supported strings or a callable.
-        If the measure doesn't have a cost matrix function.
+        If distance is not one of the supported strings or a callable.
+        If the distance doesn't have a cost matrix function.
 
     Examples
     --------
@@ -658,20 +658,20 @@ def get_cost_matrix_function(measure: str) -> CostMatrixFunction:
            [ inf,  inf, 343., 400., 521.],
            [ inf,  inf,  inf, 424., 500.]])
     """
-    return _resolve_key_from_distance(measure, "cost_matrix")
+    return _resolve_key_from_distance(method, "cost_matrix")
 
 
-def _resolve_key_from_distance(measure: Union[str, Callable], key: str) -> Any:
-    if isinstance(measure, Callable):
-        return measure
-    if measure == "mpdist":
+def _resolve_key_from_distance(method: Union[str, Callable], key: str) -> Any:
+    if isinstance(method, Callable):
+        return method
+    if method == "mpdist":
         return mp_distance
-    dist = DISTANCES_DICT.get(measure)
+    dist = DISTANCES_DICT.get(method)
     if dist is None:
-        raise ValueError(f"Unknown measure {measure}")
+        raise ValueError(f"Unknown method {method}")
     dist_callable = dist.get(key)
     if dist_callable is None:
-        raise ValueError(f"Measure {measure} does not have a {key} function")
+        raise ValueError(f"Method {method} does not have a {key} function")
     return dist_callable
 
 
