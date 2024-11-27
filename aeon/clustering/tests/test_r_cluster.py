@@ -18,7 +18,7 @@ expected_results = [0, 0, 0, 0, 0]
     not _check_estimator_deps(RCluster, severity="none"),
     reason="skip test if required soft dependencies not available",
 )
-def test_kernel_k_means():
+def test_r_cluster():
     """Test implementation of R cluster."""
     max_train = 5
 
