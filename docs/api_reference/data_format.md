@@ -1,7 +1,7 @@
 # `.ts` File Format
 
 This document formalises the `.ts` file format used by `aeon`.
-Encoded in `utf-8`, a `.t` file stores a time-series dataset and its corresponding
+Encoded in `utf-8`, a `.ts` file stores a time-series dataset and its corresponding
 metadata (specified via string identifiers). String identifiers refer to strings
 beginning with `@` in the file.
 
@@ -49,7 +49,7 @@ blocks:
 ...
 ```
 
-For  example files, see the files in `aeon/datasets/data/` or the
+For example files, see the files in `aeon/datasets/data/` or the
 [tsml Zenodo community](https://zenodo.org/communities/tsml/records?q=&l=list&p=1&s=10&sort=newest).
 
 ## Metadata
