@@ -57,17 +57,6 @@ EXCLUDED_TESTS = {
     "ClaSPSegmenter": ["check_non_state_changing_method"],
     "HMMSegmenter": ["check_non_state_changing_method"],
     "BinSegSegmenter": ["check_non_state_changing_method"],
-    # "QUANTTransformer": ["check_non_state_changing_method"],
-    # "MatrixProfileSeriesTransformer": ["check_non_state_changing_method"],
-    # "PLASeriesTransformer": ["check_non_state_changing_method"],
-    # "AutoCorrelationSeriesTransformer": ["check_non_state_changing_method"],
-    # "SIVSeriesTransformer": ["check_non_state_changing_method"],
-    # "RocketClassifier": ["check_non_state_changing_method"],
-    # "MiniRocketClassifier": ["check_non_state_changing_method"],
-    # "MultiRocketClassifier": ["check_non_state_changing_method"],
-    # "RocketRegressor": ["check_non_state_changing_method"],
-    # "MiniRocketRegressor": ["check_non_state_changing_method"],
-    # "MultiRocketRegressor": ["check_non_state_changing_method"],
     "RSTSF": ["check_non_state_changing_method"],
     # Keeps length during predict to avoid recomputing means and std of data in fit
     # if the next predict calls uses the same query length parameter.
