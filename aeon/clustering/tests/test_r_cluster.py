@@ -26,8 +26,8 @@ def test_r_cluster():
     X_test, y_test = load_basic_motions(split="test")
 
     r_cluster = RCluster(n_clusters=2)
-    r_cluster.fit(X_train[0:max_train])
-    test_shape_result = r_cluster.predict(X_test[0:max_train])
+    r_cluster._fit(X_train[0:max_train])
+    test_shape_result = r_cluster._predict(X_test[0:max_train])
 
     assert np.array_equal(test_shape_result, expected_results)
     assert r_cluster.n_iter_ == expected_iters
