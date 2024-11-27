@@ -4,7 +4,7 @@ __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["ClassifierPipeline"]
 
 
-from aeon.base.estimators.compose.collection_pipeline import BaseCollectionPipeline
+from aeon.base._estimators.compose.collection_pipeline import BaseCollectionPipeline
 from aeon.classification.base import BaseClassifier
 
 

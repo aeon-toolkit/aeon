@@ -35,7 +35,7 @@ segmentation and similarity search.
 :gutter: 3
 
 :::{grid-item-card}
-:img-top: examples/img/tsc.png
+:img-top: examples/classification/img/tsc.png
 :class-img-top: aeon-card-image
 :text-align: center
 
@@ -54,7 +54,7 @@ Classification
 :::
 
 :::{grid-item-card}
-:img-top: examples/img/tser.png
+:img-top: examples/regression/img/tser.png
 :class-img-top: aeon-card-image
 :text-align: center
 
@@ -73,7 +73,7 @@ Regression
 :::
 
 :::{grid-item-card}
-:img-top: examples/img/tscl.png
+:img-top: examples/clustering/img/tscl.png
 :class-img-top: aeon-card-image
 :text-align: center
 
@@ -106,6 +106,25 @@ Get started with anomaly detection.
 :expand:
 
 Anomaly Detection
+```
+
+:::
+
+:::{grid-item-card}
+:img-top: examples/forecasting/img/forecasting.png
+:class-img-top: aeon-card-image
+:text-align: center
+
+Get started with forecasting
+
++++
+
+```{button-ref} /examples/forecasting/forecasting.ipynb
+:color: primary
+:click-parent:
+:expand:
+
+Forecasting
 ```
 
 :::
@@ -253,6 +272,7 @@ is relaxed, so it is suggested that you integrate these modules with care. The c
 experimental modules are:
 
 - `anomaly_detection`
+- `forecasting`
 - `segmentation`
 - `similarity_search`
 - `visualisation`

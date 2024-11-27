@@ -14,7 +14,7 @@ from aeon.testing.testing_data import (
     UNEQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION,
     UNEQUAL_LENGTH_UNIVARIATE_CLASSIFICATION,
 )
-from aeon.utils import COLLECTIONS_DATA_TYPES
+from aeon.utils.data_types import COLLECTIONS_DATA_TYPES
 from aeon.utils.validation import get_type
 
 

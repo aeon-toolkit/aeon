@@ -56,8 +56,8 @@ class TimeSeriesKMedoids(BaseClusterer):
         If a np.ndarray provided it must be of shape (n_clusters,) and contain
         the indexes of the time series to use as centroids.
     distance : str or Callable, default='msm'
-        Distance metric to compute similarity between time series. A list of valid
-        strings for metrics can be found in the documentation for
+        Distance measure to compute similarity between time series. A list of valid
+        strings for measures can be found in the documentation for
         :func:`aeon.distances.get_distance_function`. If a callable is passed it must be
         a function that takes two 2d numpy arrays as input and returns a float.
     method : str, default='pam'
@@ -88,7 +88,7 @@ class TimeSeriesKMedoids(BaseClusterer):
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
     distance_params: dict, default=None
-        Dictionary containing kwargs for the distance metric being used.
+        Dictionary containing kwargs for the distance measure being used.
 
     Attributes
     ----------
@@ -211,7 +211,7 @@ class TimeSeriesKMedoids(BaseClusterer):
     def _predict(self, X: np.ndarray, y=None) -> np.ndarray:
         if isinstance(self.distance, str):
             pairwise_matrix = pairwise_distance(
-                X, self.cluster_centers_, metric=self.distance, **self._distance_params
+                X, self.cluster_centers_, measure=self.distance, **self._distance_params
             )
         else:
             pairwise_matrix = pairwise_distance(
@@ -456,7 +456,7 @@ class TimeSeriesKMedoids(BaseClusterer):
                 f"n_clusters ({self.n_clusters}) cannot be larger than "
                 f"n_cases ({X.shape[0]})"
             )
-        self._distance_callable = get_distance_function(metric=self.distance)
+        self._distance_callable = get_distance_function(measure=self.distance)
         self._distance_cache = np.full((X.shape[0], X.shape[0]), np.inf)
 
         if self.method == "alternate":
@@ -486,7 +486,7 @@ class TimeSeriesKMedoids(BaseClusterer):
 
         for _ in range(1, self.n_clusters):
             pw_dist = pairwise_distance(
-                X, X[indexes], metric=self.distance, **self._distance_params
+                X, X[indexes], measure=self.distance, **self._distance_params
             )
             min_distances = pw_dist.min(axis=1)
             probabilities = min_distances / min_distances.sum()

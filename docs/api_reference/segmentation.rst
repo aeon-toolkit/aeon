@@ -13,13 +13,23 @@ contains algorithms and tools for time series segmentation.
     :toctree: auto_generated/
     :template: class.rst
 
-    BaseSegmenter
     BinSegmenter
     ClaSPSegmenter
     FLUSSSegmenter
     InformationGainSegmenter
     GreedyGaussianSegmenter
-    DummySegmenter
     EAggloSegmenter
     HMMSegmenter
     HidalgoSegmenter
+    RandomSegmenter
+
+Base
+----
+
+.. currentmodule:: aeon.segmentation.base
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    BaseSegmenter

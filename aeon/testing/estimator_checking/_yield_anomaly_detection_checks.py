@@ -3,7 +3,6 @@
 from functools import partial
 
 import numpy as np
-import pytest
 
 from aeon.base._base import _clone_estimator
 from aeon.base._base_series import VALID_SERIES_INNER_TYPES
@@ -64,6 +63,8 @@ mv_series[:, labels == 1] += 1
 
 def check_anomaly_detector_univariate(estimator):
     """Test the anomaly detector on univariate data."""
+    import pytest
+
     estimator = _clone_estimator(estimator)
 
     if estimator.get_tag(tag_name="capability:univariate"):
@@ -78,6 +79,8 @@ def check_anomaly_detector_univariate(estimator):
 
 def check_anomaly_detector_multivariate(estimator):
     """Test the anomaly detector on multivariate data."""
+    import pytest
+
     estimator = _clone_estimator(estimator)
 
     if estimator.get_tag(tag_name="capability:multivariate"):

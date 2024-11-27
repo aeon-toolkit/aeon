@@ -24,7 +24,7 @@ from aeon.testing.utils.estimator_checks import (
     _assert_predict_probabilities,
     _get_tag,
 )
-from aeon.utils import COLLECTIONS_DATA_TYPES
+from aeon.utils.data_types import COLLECTIONS_DATA_TYPES
 from aeon.utils.validation import get_n_cases
 
 

@@ -9,26 +9,6 @@ All regressors in ``aeon``can be listed using the ``aeon.registry.all_estimators
 using ``estimator_types="regressor"``, optionally filtered by tags.
 Valid tags can be listed using ``aeon.registry.all_tags``.
 
-Base
-----
-
-.. currentmodule:: aeon.regression.base
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    BaseRegressor
-
-.. currentmodule:: aeon.regression.deep_learning.base
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    BaseDeepRegressor
-
-
 Convolution-based
 -----------------
 
@@ -53,7 +33,6 @@ Deep learning
     :toctree: auto_generated/
     :template: class.rst
 
-    BaseDeepRegressor
     TimeCNNRegressor
     EncoderRegressor
     FCNRegressor
@@ -75,17 +54,6 @@ Distance-based
     :template: class.rst
 
     KNeighborsTimeSeriesRegressor
-
-Dummy
------
-
-.. currentmodule:: aeon.regression
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    DummyRegressor
 
 Feature-based
 --------------
@@ -128,6 +96,7 @@ Interval-based
     RandomIntervalRegressor
     RandomIntervalSpectralEnsembleRegressor
     TimeSeriesForestRegressor
+    QUANTRegressor
 
 Shapelet-based
 --------------
@@ -151,3 +120,36 @@ sklearn
     :template: class.rst
 
     RotationForestRegressor
+    SklearnRegressorWrapper
+
+Compose
+-------
+
+.. currentmodule:: aeon.regression.compose
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    RegressorEnsemble
+    RegressorPipeline
+
+Base
+----
+
+.. currentmodule:: aeon.regression.base
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    BaseRegressor
+    DummyRegressor
+
+.. currentmodule:: aeon.regression.deep_learning.base
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    BaseDeepRegressor
