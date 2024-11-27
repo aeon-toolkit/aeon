@@ -9,7 +9,6 @@ from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 
 from aeon.clustering.base import BaseClusterer
-from aeon.datasets import load_basic_motions
 from aeon.transformations.collection.convolution_based._minirocket import (
     _fit_biases,
     _fit_dilations,
