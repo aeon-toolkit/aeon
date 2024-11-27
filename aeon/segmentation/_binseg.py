@@ -60,9 +60,9 @@ class BinSegSegmenter(BaseSegmenter):
 
     def __init__(self, n_cps=1, model="l2", min_size=2, jump=5):
         self.n_cps = n_cps
+        self.model = model
         self.min_size = min_size
         self.jump = jump
-        self.model = model
         super().__init__(n_segments=n_cps + 1, axis=1)
 
     def _predict(self, X: np.ndarray):
@@ -97,11 +97,9 @@ class BinSegSegmenter(BaseSegmenter):
         binseg = rpt.Binseg(
             model=self.model, min_size=self.min_size, jump=self.jump
         ).fit(X)
-        self.found_cps = np.array(
-            binseg.predict(n_bkps=self.n_cps)[:-1], dtype=np.int64
-        )
+        found_cps = np.array(binseg.predict(n_bkps=self.n_cps)[:-1], dtype=np.int64)
 
-        return self.found_cps
+        return found_cps
 
     def _get_interval_series(self, X, found_cps):
         """Get the segmentation results based on the found change points.
