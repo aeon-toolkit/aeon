@@ -311,9 +311,7 @@ Hidalgo segmentation
 
 :::
 
-
 ::::
-
 
 ## Distances
 
@@ -331,7 +329,6 @@ Distance functions
 
 :::
 
-
 :::{grid-item-card}
 :img-top: examples/distances/img/svm.png
 :class-img-top: aeon-card-image-m
@@ -347,7 +344,6 @@ Using aeon distances with scikit-learn
 
 ::::{grid} 2 3 4 4
 :gutter: 1
-
 
 :::{grid-item-card}
 :img-top: examples/similarity_search/img/sim_search.png
@@ -388,7 +384,6 @@ Benchmarking of similarity search speed-ups
 
 ::::{grid} 2 3 4 4
 :gutter: 1
-
 
 :::{grid-item-card}
 :img-top: images/logo/aeon-logo-blue-2-transparent.png
