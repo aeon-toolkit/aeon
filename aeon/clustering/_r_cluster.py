@@ -33,8 +33,8 @@ class RCluster(BaseClusterer):
 
     max_dilations_per_kernel : int , default = 32
          The maximum number of dilation rates applied to each kernel
-         Dilations control the spacing of the kernel's receptive field over the time series,
-         capturing patterns at varying scales
+         Dilations control the spacing of the kernel's receptive field over 
+         the time series,capturing patterns at varying scales
 
     num_features : int , default = 500
          The number of features extracted per kernel after applying the transformation
