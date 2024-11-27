@@ -38,7 +38,7 @@ def sbd_distance(x: np.ndarray, y: np.ndarray, standardize: bool = True) -> floa
             \sqrt{ (\mathbf{x} \cdot \mathbf{x}) * (\mathbf{y} \cdot \mathbf{y}) }
         }\right)
 
-    This distance measure has values between 0 and 2; 0 is perfect similarity.
+    This distance method has values between 0 and 2; 0 is perfect similarity.
 
     The computation of the cross-correlation :math:`CC(\mathbf{x}, \mathbf{y})` for
     all values of w requires :math:`O(m^2)` time, where m is the maximum time-series

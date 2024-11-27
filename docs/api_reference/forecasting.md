@@ -1,7 +1,7 @@
 # Forecasting
 
 ```{eval-rst}
-.. currentmodule:: aeon.datasets
+.. currentmodule:: aeon.forecasting
 
 .. autosummary::
     :toctree: auto_generated/

@@ -134,6 +134,17 @@ Compose
     RegressorEnsemble
     RegressorPipeline
 
+Dummy
+-----
+
+.. currentmodule:: aeon.regression
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    DummyRegressor
+
 Base
 ----
 
@@ -144,7 +155,6 @@ Base
     :template: class.rst
 
     BaseRegressor
-    DummyRegressor
 
 .. currentmodule:: aeon.regression.deep_learning.base
 
