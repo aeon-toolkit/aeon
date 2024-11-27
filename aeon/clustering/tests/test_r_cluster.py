@@ -13,8 +13,9 @@ expected_iters = 2
 
 expected_results = [0, 0, 0, 0, 0]
 
+
 @pytest.mark.skipif(
-    not _check_estimator_deps( RCluster, severity="none"),
+    not _check_estimator_deps(RCluster, severity="none"),
     reason="skip test if required soft dependencies not available",
 )
 def test_kernel_k_means():
@@ -24,11 +25,10 @@ def test_kernel_k_means():
     X_train, y_train = load_basic_motions(split="train")
     X_test, y_test = load_basic_motions(split="test")
 
-    r_cluster =  RCluster( n_clusters=2)
+    r_cluster = RCluster(n_clusters=2)
     r_cluster.fit(X_train[0:max_train])
-    test_shape_result =  r_cluster.predict(X_test[0:max_train])
-
+    test_shape_result = r_cluster.predict(X_test[0:max_train])
 
     assert np.array_equal(test_shape_result, expected_results)
     assert r_cluster.n_iter_ == expected_iters
-    assert np.array_equal( r_cluster.labels_, expected_labels)
+    assert np.array_equal(r_cluster.labels_, expected_labels)
