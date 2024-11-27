@@ -56,7 +56,7 @@ EXCLUDED_TESTS = {
     "GreedyGaussianSegmenter": ["check_non_state_changing_method"],
     "ClaSPSegmenter": ["check_non_state_changing_method"],
     "HMMSegmenter": ["check_non_state_changing_method"],
-    "BinSegSegmenter": ["check_non_state_changing_method"],
+    "BinSegmenter": ["check_non_state_changing_method"],
     "QUANTTransformer": ["check_non_state_changing_method"],
     "MatrixProfileSeriesTransformer": ["check_non_state_changing_method"],
     "PLASeriesTransformer": ["check_non_state_changing_method"],
