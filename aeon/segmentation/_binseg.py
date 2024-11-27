@@ -79,8 +79,8 @@ class BinSegSegmenter(BaseSegmenter):
             List of change points found in X.
         """
         X = X.squeeze()
-        self.found_cps = self._run_binseg(X)
-        return self.found_cps
+        found_cps = self._run_binseg(X)
+        return found_cps
 
     def get_fitted_params(self):
         """Get fitted parameters.
