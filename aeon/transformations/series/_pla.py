@@ -255,6 +255,7 @@ class PLASeriesTransformer(BaseSeriesTransformer):
             List of transformed segmented time series.
         """
         seg_ts = []
+        buffer_size = self.buffer_size
         if self.buffer_size is None:
             buffer_size = int(len(X) ** 0.5)
 
