@@ -22,7 +22,7 @@ import numpy as np
 import pandas as pd
 from numba.typed import List as NumbaList
 
-from aeon.utils._data_types import COLLECTIONS_DATA_TYPES
+from aeon.utils.data_types import COLLECTIONS_DATA_TYPES
 from aeon.utils.validation.collection import _equal_length, get_type
 
 

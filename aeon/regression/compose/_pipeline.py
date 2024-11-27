@@ -3,7 +3,7 @@
 __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["RegressorPipeline"]
 
-from aeon.base.estimators.compose.collection_pipeline import BaseCollectionPipeline
+from aeon.base._estimators.compose.collection_pipeline import BaseCollectionPipeline
 from aeon.regression.base import BaseRegressor
 
 

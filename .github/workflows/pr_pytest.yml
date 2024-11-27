@@ -48,7 +48,7 @@ jobs:
         run: python -m pip list
 
       - name: Run tests
-        run: python -m pytest -n logical -k 'not TestAll'
+        run: python -m pytest -n logical
 
   pytest:
     runs-on: ${{ matrix.os }}

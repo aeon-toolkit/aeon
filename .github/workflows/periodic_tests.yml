@@ -83,6 +83,31 @@ jobs:
           # Save cache with the current date (ENV set in numba_cache action)
           key: numba-run-notebook-examples-${{ runner.os }}-3.10-${{ env.CURRENT_DATE }}
 
+  test-core-imports:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install aeon and dependencies
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 30
+          max_attempts: 3
+          command: python -m pip install .
+
+      - name: Show dependencies
+        run: python -m pip list
+
+      - name: Run import test
+        run: python aeon/testing/tests/test_core_imports.py
+
   test-no-soft-deps:
     runs-on: ubuntu-22.04
 
