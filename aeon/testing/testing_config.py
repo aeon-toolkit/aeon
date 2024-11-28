@@ -56,7 +56,6 @@ EXCLUDED_TESTS = {
     "GreedyGaussianSegmenter": ["check_non_state_changing_method"],
     "ClaSPSegmenter": ["check_non_state_changing_method"],
     "HMMSegmenter": ["check_non_state_changing_method"],
-    "BinSegSegmenter": ["check_non_state_changing_method"],
     "RSTSF": ["check_non_state_changing_method"],
     # Keeps length during predict to avoid recomputing means and std of data in fit
     # if the next predict calls uses the same query length parameter.
