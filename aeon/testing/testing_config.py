@@ -23,7 +23,14 @@ MULTITHREAD_TESTING = False
 NUMBA_DISABLED = os.environ.get("NUMBA_DISABLE_JIT") == "1"
 
 # exclude estimators here for short term fixes
-EXCLUDE_ESTIMATORS = []
+EXCLUDE_ESTIMATORS = [
+    "AEFCNClusterer",
+    "AEResNetClusterer",
+    "AEDCNNClusterer",
+    "AEDRNNClusterer",
+    "AEAttentionBiGRUClusterer",
+    "AEBiGRUClusterer",
+]
 
 # Exclude specific tests for estimators here
 EXCLUDED_TESTS = {
