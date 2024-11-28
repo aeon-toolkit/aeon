@@ -6,7 +6,7 @@ on:
 
 jobs:
   build-project:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
 
     steps:
       - uses: actions/checkout@v4
@@ -28,7 +28,7 @@ jobs:
           retention-days: 5
 
   upload-wheels:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
 
     steps:
       - uses: actions/download-artifact@v4
