@@ -10,7 +10,7 @@ concurrency:
 
 jobs:
   remove-good-first-issue:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Create app token
