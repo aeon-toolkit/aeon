@@ -13,7 +13,7 @@ from aeon.utils.validation.collection import _is_numpy_list_multivariate
 def mp_distance(x: np.ndarray, y: np.ndarray, m: int = 0) -> float:
     r"""Matrix Profile Distance.
 
-    MPdist [2]_ is a distance measure based on the matrix profile [1]_. Given a
+    MPdist [2]_ is a distance method based on the matrix profile [1]_. Given a
     window length $m$, the matrix profile between two series $x$ and $y$, denoted
     $P_{xy}$, is a new time series where each point $i$ stores the Euclidean distance
     between `x[i:i+m]` and the nearest neighbour window to x[i:i+m]` in $y$ . MPdist
@@ -47,11 +47,11 @@ def mp_distance(x: np.ndarray, y: np.ndarray, m: int = 0) -> float:
     References
     ----------
     .. [1] S. Gharghabi, S. Imani, A. Bagnall, A. Darvishzadeh and E. Keogh,
-    "Matrix Profile XII: MPdist: A Novel Time Series Distance Measure to Allow
+    "Matrix Profile XII: MPdist: A Novel Time Series Distance Method to Allow
     Data Mining in More Challenging Scenarios", 2018 IEEE International Conference
     on Data Mining (ICDM), 2018.
     .. [2] S. Gharghabi, S. Imani, A. Bagnall, A. Darvishzadeh and E. Keogh
-    "An ultra-fast time series distancemeasure to allow data mining inmore complex
+    "An ultra-fast time series distancemethod to allow data mining inmore complex
     real-world deployments", Data Mining and Knowledge Discovery, 34(5), 2020.
 
     Examples
