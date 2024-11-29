@@ -1,1 +1,1 @@
-"""Test interval-based regression models."""
+"""Tests for interval-based regressors."""
