@@ -70,7 +70,7 @@ class RCluster(BaseClusterer):
     """
     _tags = {
         "capability:multivariate": True,
-        "capability: multithreading": True
+        "capability:multithreading": True
     }
 
     def __init__(
@@ -233,28 +233,3 @@ class RCluster(BaseClusterer):
         transformed_data_pca = pca_optimal.fit_transform(X_std)
 
         return self._r_cluster.fit_predict(transformed_data_pca)
-
-    @classmethod
-    def _get_test_params(cls, parameter_set="default"):
-        """Return testing parameter settings for the estimator.
-
-        Parameters
-        ----------
-        parameter_set : str, default="default"
-            Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
-
-
-        Returns
-        -------
-        params : dict or list of dict, default={}
-            Parameters to create testing instances of the class
-            Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-        """
-        return {
-            "n_clusters": 2,
-            "n_init": 1,
-            "max_iter": 1,
-            "random_state": 1,
-        }
