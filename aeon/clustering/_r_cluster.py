@@ -437,7 +437,7 @@ class RCluster(BaseClusterer):
             self.__optimal_dimensions, X.shape[0], X.shape[1]
         )
         if self.__optimal_dimensions == 0:
-            raise ValueError(f"Optimal dimensions must be greater than 0.")
+            raise ValueError("Optimal dimensions must be greater than 0.")
         pca_optimal = PCA(n_components=self.__optimal_dimensions)
         transformed_data_pca = pca_optimal.fit_transform(X_std)
 
