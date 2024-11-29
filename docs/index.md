@@ -310,7 +310,6 @@ code_of_conduct.md
 :caption: Other
 :hidden:
 
-glossary.md
 estimator_overview.md
 changelog.md
 papers_using_aeon.md

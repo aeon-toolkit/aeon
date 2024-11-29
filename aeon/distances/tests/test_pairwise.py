@@ -52,7 +52,7 @@ def _validate_pairwise_result(
     Parameters
     ----------
     x: Input np.ndarray.
-    name: Name of the distance measure.
+    name: Name of the distance method.
     distance: Distance function.
     pairwise_distance: Pairwise distance function.
     """
@@ -64,11 +64,11 @@ def _validate_pairwise_result(
     assert isinstance(pairwise_result, np.ndarray)
     assert pairwise_result.shape == expected_size
     assert_almost_equal(
-        pairwise_result, compute_pairwise_distance(x, measure=name, symmetric=symmetric)
+        pairwise_result, compute_pairwise_distance(x, method=name, symmetric=symmetric)
     )
     assert_almost_equal(
         pairwise_result,
-        compute_pairwise_distance(x, measure=distance, symmetric=symmetric),
+        compute_pairwise_distance(x, method=distance, symmetric=symmetric),
     )
 
     if isinstance(x, np.ndarray):
@@ -100,7 +100,7 @@ def _validate_multiple_to_multiple_result(
     ----------
     x: Input array.
     y: Input array.
-    name: Name of the distance measure.
+    name: Name of the distance method.
     distance: Distance function.
     multiple_to_multiple_distance: Mul-to-Mul distance function.
     check_xy_permuted: recursively call with swapped series
@@ -123,11 +123,11 @@ def _validate_multiple_to_multiple_result(
     assert multiple_to_multiple_result.shape == expected_size
 
     assert_almost_equal(
-        multiple_to_multiple_result, compute_pairwise_distance(x, y, measure=name)
+        multiple_to_multiple_result, compute_pairwise_distance(x, y, method=name)
     )
     assert_almost_equal(
         multiple_to_multiple_result,
-        compute_pairwise_distance(x, y, measure=distance),
+        compute_pairwise_distance(x, y, method=distance),
     )
 
     if isinstance(x, np.ndarray) and isinstance(y, np.ndarray):
@@ -168,7 +168,7 @@ def _validate_single_to_multiple_result(
     ----------
     x: Input array.
     y: Input array.
-    name: Name of the distance measure.
+    name: Name of the distance method.
     distance: Distance function.
     single_to_multiple_distance: Single to multiple distance function.
     run_inverse: Boolean that reruns the test with x and y swapped in position
@@ -198,11 +198,11 @@ def _validate_single_to_multiple_result(
         assert single_to_multiple_result.shape[1] == expected_size
     assert_almost_equal(
         single_to_multiple_result,
-        compute_pairwise_distance(x, y, measure=name, symmetric=symmetric),
+        compute_pairwise_distance(x, y, method=name, symmetric=symmetric),
     )
     assert_almost_equal(
         single_to_multiple_result,
-        compute_pairwise_distance(x, y, measure=distance, symmetric=symmetric),
+        compute_pairwise_distance(x, y, method=distance, symmetric=symmetric),
     )
 
     if len(x_shape) < len(y_shape):

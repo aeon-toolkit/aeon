@@ -83,6 +83,17 @@ Averaging
     subgradient_barycenter_average
     shift_invariant_average
 
+Dummy
+-----
+
+.. currentmodule:: aeon.clustering
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    DummyClusterer
+
 Base
 ----
 
@@ -93,7 +104,6 @@ Base
     :template: class.rst
 
     BaseClusterer
-    DummyClusterer
 
 .. currentmodule:: aeon.clustering.deep_learning
 

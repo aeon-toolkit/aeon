@@ -131,7 +131,7 @@ def shape_dtw_distance(
 ) -> float:
     """Compute the ShapeDTW distance function between two series x and y.
 
-    The ShapeDTW distance measure was proposed in [1] and used for time series
+    The ShapeDTW distance method was proposed in [1] and used for time series
     averaging in [2] as well.
 
     Parameters

@@ -1,7 +1,7 @@
 """BinSeg (Binary segmentation) Segmenter."""
 
 __maintainer__ = []
-__all__ = ["BinSegSegmenter"]
+__all__ = ["BinSegmenter"]
 
 import numpy as np
 import pandas as pd
@@ -9,7 +9,7 @@ import pandas as pd
 from aeon.segmentation.base import BaseSegmenter
 
 
-class BinSegSegmenter(BaseSegmenter):
+class BinSegmenter(BaseSegmenter):
     """BinSeg (Binary Segmentation) Segmenter.
 
     From the Ruptures documentation:
@@ -46,10 +46,10 @@ class BinSegSegmenter(BaseSegmenter):
 
     Examples
     --------
-    >>> from aeon.segmentation import BinSegSegmenter
+    >>> from aeon.segmentation import BinSegmenter
     >>> from aeon.datasets import load_gun_point_segmentation
     >>> X, true_period_size, cps = load_gun_point_segmentation()
-    >>> binseg = BinSegSegmenter(n_cps=1)  # doctest: +SKIP
+    >>> binseg = BinSegmenter(n_cps=1)  # doctest: +SKIP
     >>> found_cps = binseg.fit_predict(X)  # doctest: +SKIP
     """
 

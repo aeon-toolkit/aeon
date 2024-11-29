@@ -70,7 +70,7 @@ def subgradient_barycenter_average(
     random_state: int or None, default=None
         Random state to use for the barycenter averaging.
     **kwargs
-        Keyword arguments to pass to the distance measure.
+        Keyword arguments to pass to the distance method.
 
     Returns
     -------
