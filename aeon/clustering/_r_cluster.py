@@ -9,6 +9,7 @@ from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 
 from aeon.clustering.base import BaseClusterer
+from aeon.datasets import load_basic_motions
 from aeon.transformations.collection.convolution_based._minirocket import (
     _fit_biases,
     _fit_dilations,
@@ -33,8 +34,8 @@ class RCluster(BaseClusterer):
 
     max_dilations_per_kernel : int , default = 32
          The maximum number of dilation rates applied to each kernel
-         Dilations control the spacing of the kernel's receptive field over
-         the time series,capturing patterns at varying scales
+         Dilations control the spacing of the kernel's receptive field over the time series,
+         capturing patterns at varying scales
 
     num_features : int , default = 500
          The number of features extracted per kernel after applying the transformation
@@ -70,7 +71,7 @@ class RCluster(BaseClusterer):
 
     def __init__(
         self,
-        num_kernels=84,
+        n_kernels=84,
         max_dilations_per_kernel=32,
         n_clusters=8,
         n_init=10,
@@ -79,9 +80,9 @@ class RCluster(BaseClusterer):
         n_jobs=-1,
     ):
         self.n_jobs = n_jobs
-        self.n_kernels = num_kernels
+        self.n_kernels = n_kernels
         self.max_dilations_per_kernel = max_dilations_per_kernel
-        self.num_cluster = n_clusters
+        self.n_clusters = n_clusters
         self.n_init = n_init
         self.random_state = random_state
         self.max_iter = max_iter
@@ -345,7 +346,7 @@ class RCluster(BaseClusterer):
         self.fit = False
         super().__init__()
 
-    def __get_parameterised_data(self, X):
+    def _get_parameterised_data(self, X):
         _, n_channels, n_timepoints = X.shape
         X = X.astype(np.float32)
 
@@ -396,7 +397,7 @@ class RCluster(BaseClusterer):
             biases,
         )
 
-    def __get_transformed_data(self, X):
+    def _get_transformed_data(self, X):
         X = X.astype(np.float32)
         _, n_channels, n_timepoints = X.shape
         prev_threads = get_num_threads()
@@ -414,9 +415,9 @@ class RCluster(BaseClusterer):
         return X_
 
     def _fit(self, X, y=None):
-        self.parameters = self.__get_parameterised_data(X)
+        self.parameters = self._get_parameterised_data(X)
 
-        transformed_data = self.__get_transformed_data(X=X)
+        transformed_data = self._get_transformed_data(X=X)
 
         sc = StandardScaler()
         X_std = sc.fit_transform(transformed_data)
@@ -429,7 +430,7 @@ class RCluster(BaseClusterer):
         transformed_data_pca = pca_optimal.fit_transform(X_std)
 
         self._r_cluster = KMeans(
-            n_clusters=self.num_cluster,
+            n_clusters=self.n_clusters,
             n_init=self.n_init,
             random_state=self.random_state,
             max_iter=self.max_iter,
@@ -443,9 +444,9 @@ class RCluster(BaseClusterer):
                 "Data is not fitted. Please fit the model before using it."
             )
 
-        self.parameters = self.__get_parameterised_data(X)
+        self.parameters = self._get_parameterised_data(X)
 
-        transformed_data = self.__get_transformed_data(X=X)
+        transformed_data = self._get_transformed_data(X=X)
 
         sc = StandardScaler()
         X_std = sc.fit_transform(transformed_data)
@@ -456,9 +457,9 @@ class RCluster(BaseClusterer):
         return self._r_cluster.predict(transformed_data_pca)
 
     def _fit_predict(self, X, y=None) -> np.ndarray:
-        self.parameters = self.__get_parameterised_data(X)
+        self.parameters = self._get_parameterised_data(X)
 
-        transformed_data = self.__get_transformed_data(X=X)
+        transformed_data = self._get_transformed_data(X=X)
 
         sc = StandardScaler()
         X_std = sc.fit_transform(transformed_data)
@@ -471,7 +472,7 @@ class RCluster(BaseClusterer):
         transformed_data_pca = pca_optimal.fit_transform(X_std)
 
         self._r_cluster = KMeans(
-            n_clusters=self.num_cluster,
+            n_clusters=self.n_clusters,
             n_init=self.n_init,
             random_state=self.random_state,
             max_iter=self.max_iter,
