@@ -254,7 +254,6 @@ class RCluster(BaseClusterer):
         """
         return {
             "n_clusters": 2,
-            "init": "random",
             "n_init": 1,
             "max_iter": 1,
             "random_state": 1,
