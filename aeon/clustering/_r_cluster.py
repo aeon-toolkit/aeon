@@ -68,8 +68,12 @@ class RCluster(BaseClusterer):
     .. [1]  Time series clustering with random convolutional kernels
     https://link.springer.com/article/10.1007/s10618-024-01018-x
     """
-
-    _tags = {"capability:multivariate": True, "capability:multithreading": True}
+    _tags = {
+        "capability:multivariate": True,
+        "capability:multithreading": True,
+        "capability:unequal_length": False,
+        "capability:missing_values": False,
+    }
 
     def __init__(
         self,
@@ -88,263 +92,20 @@ class RCluster(BaseClusterer):
         self.n_init = n_init
         self.random_state = random_state
         self.max_iter = max_iter
-        self.indices = np.array(
-            (
-                1,
-                3,
-                6,
-                1,
-                2,
-                7,
-                1,
-                2,
-                3,
-                0,
-                2,
-                3,
-                1,
-                4,
-                5,
-                0,
-                1,
-                3,
-                3,
-                5,
-                6,
-                0,
-                1,
-                2,
-                2,
-                5,
-                8,
-                1,
-                3,
-                7,
-                0,
-                1,
-                8,
-                4,
-                6,
-                7,
-                0,
-                1,
-                4,
-                3,
-                4,
-                6,
-                0,
-                4,
-                5,
-                2,
-                6,
-                7,
-                5,
-                6,
-                7,
-                0,
-                1,
-                6,
-                4,
-                5,
-                7,
-                4,
-                7,
-                8,
-                1,
-                6,
-                8,
-                0,
-                2,
-                6,
-                5,
-                6,
-                8,
-                2,
-                5,
-                7,
-                0,
-                1,
-                7,
-                0,
-                7,
-                8,
-                0,
-                3,
-                5,
-                0,
-                3,
-                7,
-                2,
-                3,
-                8,
-                2,
-                3,
-                4,
-                1,
-                4,
-                6,
-                3,
-                4,
-                5,
-                0,
-                3,
-                8,
-                4,
-                5,
-                8,
-                0,
-                4,
-                6,
-                1,
-                4,
-                8,
-                6,
-                7,
-                8,
-                4,
-                6,
-                8,
-                0,
-                3,
-                4,
-                1,
-                3,
-                4,
-                1,
-                5,
-                7,
-                1,
-                4,
-                7,
-                1,
-                2,
-                8,
-                0,
-                6,
-                7,
-                1,
-                6,
-                7,
-                1,
-                3,
-                5,
-                0,
-                1,
-                5,
-                0,
-                4,
-                8,
-                4,
-                5,
-                6,
-                0,
-                2,
-                5,
-                3,
-                5,
-                7,
-                0,
-                2,
-                4,
-                2,
-                6,
-                8,
-                2,
-                3,
-                7,
-                2,
-                5,
-                6,
-                2,
-                4,
-                8,
-                0,
-                2,
-                7,
-                3,
-                6,
-                8,
-                2,
-                3,
-                6,
-                3,
-                7,
-                8,
-                0,
-                5,
-                8,
-                1,
-                2,
-                6,
-                2,
-                3,
-                5,
-                1,
-                5,
-                8,
-                3,
-                6,
-                7,
-                3,
-                4,
-                7,
-                0,
-                4,
-                7,
-                3,
-                5,
-                8,
-                2,
-                4,
-                5,
-                1,
-                2,
-                5,
-                2,
-                7,
-                8,
-                2,
-                4,
-                6,
-                0,
-                5,
-                6,
-                3,
-                4,
-                8,
-                0,
-                6,
-                8,
-                2,
-                4,
-                7,
-                0,
-                2,
-                8,
-                0,
-                3,
-                6,
-                5,
-                7,
-                8,
-                1,
-                5,
-                6,
-                1,
-                2,
-                4,
-                0,
-                5,
-                7,
-                1,
-                3,
-                8,
-                1,
-                7,
-                8,
-            ),
-            dtype=np.int32,
-        ).reshape(84, 3)
+        self.indices = np.array((
+       1, 3, 6, 1, 2, 7, 1, 2, 3, 0, 2, 3, 1, 4, 5, 0, 1, 3, 3, 5, 6, 0,
+       1, 2, 2, 5, 8, 1, 3, 7, 0, 1, 8, 4, 6, 7, 0, 1, 4, 3, 4, 6, 0, 4,
+       5, 2, 6, 7, 5, 6, 7, 0, 1, 6, 4, 5, 7, 4, 7, 8, 1, 6, 8, 0, 2, 6,
+       5, 6, 8, 2, 5, 7, 0, 1, 7, 0, 7, 8, 0, 3, 5, 0, 3, 7, 2, 3, 8, 2,
+       3, 4, 1, 4, 6, 3, 4, 5, 0, 3, 8, 4, 5, 8, 0, 4, 6, 1, 4, 8, 6, 7,
+       8, 4, 6, 8, 0, 3, 4, 1, 3, 4, 1, 5, 7, 1, 4, 7, 1, 2, 8, 0, 6, 7,
+       1, 6, 7, 1, 3, 5, 0, 1, 5, 0, 4, 8, 4, 5, 6, 0, 2, 5, 3, 5, 7, 0,
+       2, 4, 2, 6, 8, 2, 3, 7, 2, 5, 6, 2, 4, 8, 0, 2, 7, 3, 6, 8, 2, 3,
+       6, 3, 7, 8, 0, 5, 8, 1, 2, 6, 2, 3, 5, 1, 5, 8, 3, 6, 7, 3, 4, 7,
+       0, 4, 7, 3, 5, 8, 2, 4, 5, 1, 2, 5, 2, 7, 8, 2, 4, 6, 0, 5, 6, 3,
+       4, 8, 0, 6, 8, 2, 4, 7, 0, 2, 8, 0, 3, 6, 5, 7, 8, 1, 5, 6, 1, 2,
+       4, 0, 5, 7, 1, 3, 8, 1, 7, 8
+    ), dtype = np.int32).reshape(84, 3)
         self.is_fitted = False
         super().__init__()
         self._r_cluster = KMeans(
@@ -405,7 +166,7 @@ class RCluster(BaseClusterer):
             biases,
         )
 
-    def _get_transformed_data(self, X, parameters):
+    def _get_transformed_data(self, X,parameters):
         X = X.astype(np.float32)
         _, n_channels, n_timepoints = X.shape
         prev_threads = get_num_threads()
@@ -425,7 +186,7 @@ class RCluster(BaseClusterer):
     def _fit(self, X, y=None):
         parameters = self._get_parameterised_data(X)
 
-        transformed_data = self._get_transformed_data(X=X, parameters=parameters)
+        transformed_data = self._get_transformed_data(X=X,parameters=parameters)
 
         self.scaler = StandardScaler()
         X_std = self.scaler.fit_transform(transformed_data)
@@ -433,11 +194,9 @@ class RCluster(BaseClusterer):
         pca = PCA().fit(X_std)
         optimal_dimensions = np.argmax(pca.explained_variance_ratio_ < 0.01)
 
-        if np.all(pca.explained_variance_ratio_ >= 0.01):
-            optimal_dimensions = X.shape[1]
-        else:
-            optimal_dimensions = min(optimal_dimensions, X.shape[0], X.shape[1])
-        self.pca = PCA(n_components=optimal_dimensions, random_state=self.random_state)
+        optimal_dimensions = max(1, min(optimal_dimensions, X.shape[0], X.shape[1]))
+
+        self.pca = PCA(n_components=optimal_dimensions,random_state=self.random_state)
         transformed_data_pca = self.pca.fit_transform(X_std)
 
         self._r_cluster.fit(transformed_data_pca)
@@ -451,32 +210,13 @@ class RCluster(BaseClusterer):
 
         parameters = self._get_parameterised_data(X)
 
-        transformed_data = self._get_transformed_data(X=X, parameters=parameters)
+        transformed_data = self._get_transformed_data(X=X,parameters=parameters)
 
         X_std = self.scaler.fit_transform(transformed_data)
-
-        transformed_data_pca = self.pca.fit_transform(X_std)
+        transformed_data_pca = self.pca.transform(X_std)
 
         return self._r_cluster.predict(transformed_data_pca)
 
     def _fit_predict(self, X, y=None) -> np.ndarray:
-        parameters = self._get_parameterised_data(X)
-
-        transformed_data = self._get_transformed_data(X=X, parameters=parameters)
-
-        self.scaler = StandardScaler()
-        X_std = self.scaler.fit_transform(transformed_data)
-
-        pca = PCA().fit(X_std)
-        optimal_dimensions = np.argmax(pca.explained_variance_ratio_ < 0.01)
-
-        if np.all(pca.explained_variance_ratio_ >= 0.01):
-            optimal_dimensions = X.shape[1]
-        else:
-            optimal_dimensions = min(optimal_dimensions, X.shape[0], X.shape[1])
-        self.pca = PCA(n_components=optimal_dimensions, random_state=self.random_state)
-        transformed_data_pca = self.pca.fit_transform(X_std)
-
-        self._r_cluster.fit(transformed_data_pca)
-        self.is_fitted = True
-        return self._r_cluster.predict(transformed_data_pca)
+        self._fit(X, y)
+        return self._predict(X, y)
