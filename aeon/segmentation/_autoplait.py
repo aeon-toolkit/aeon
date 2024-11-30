@@ -19,14 +19,50 @@ class AutoPlaitSegmenter(BaseSegmenter):
         "returns_dense": True,
     }
 
+    _X = None
+    _autoplait_results = None
+
     def __init__(self):
         super().__init__(axis=0)
 
     def _predict(self, X) -> np.ndarray:
-        results = _autoplait(X)
-        self.n_segments = results[0]
-        cut_points = [e[1] for e in results[2]]
+        cut_points = [e[1] for e in self._autoplait_results[2]]
         return np.array(cut_points)
+
+    def complete_parameters(self):
+        if self._check_is_fitted():
+            return self._autoplait_results
+
+    def _fit(self, X, y=None):
+        t_params, f = [], []
+        d = []
+
+        q = []  # Stack
+        s = []  # Output segment set
+        m = 0  # Output number of segments
+        r = 0  # Output number of regimes
+        s.append((1, len(X)))  # 1 initial segment; the entire TS
+        m_0 = 1  # There is 1 initial segment
+
+        t0 = []  # TODO: Estimate t0 of s_0
+        q.append((m_0, s[0], t0))  # Push onto stack
+        while q:  # While the stack is not empty
+            m_i, s_i, t_i = q.pop()
+            m1, m2, s1, s2, t1, t2, d = _regime_split(X)
+            if _cost(X, t1, t2, d) < _cost(X, t_i):
+                q.append((m1, s1, t1))
+                q.append((m2, s2, t2))
+            else:
+                s.append(s_i)
+                t_params.append(t_i)
+                r += 1
+                # TODO: Update regime transitions d
+                # TODO: segment membership f
+                m += m_i
+        t_params.append(d)  # Add the regime transition matrix
+        self._X = X
+        self.is_fitted = True
+        self._autoplait_results = (m, r, s, t_params, f)
 
 def _cut_point_search(X, regime1, regime2, transition_matrix):
     m1, m2 = 0, 0
@@ -71,31 +107,4 @@ def _cost(X, regime1, regime2=None, transition_matrix=None):
         pass
     return 0
 
-def _autoplait(X):
-    t_params, f = [], []
-    d = []
 
-    q = [] # Stack
-    s = [] # Output segment set
-    m = 0 # Output number of segments
-    r = 0 # Output number of regimes
-    s.append((1,len(X))) # 1 initial segment; the entire TS
-    m_0 = 1 # There is 1 initial segment
-
-    t0 = [] # TODO: Estimate t0 of s_0
-    q.append((m_0, s[0], t0)) # Push onto stack
-    while q: # While the stack is not empty
-        m_i, s_i, t_i = q.pop()
-        m1, m2, s1, s2, t1, t2, d = _regime_split(X)
-        if _cost(X, t1, t2, d) < _cost(X, t_i):
-            q.append((m1, s1, t1))
-            q.append((m2, s2, t2))
-        else:
-            s.append(s_i)
-            t_params.append(t_i)
-            r += 1
-            # TODO: Update regime transitions d
-            # TODO: segment membership f
-            m += m_i
-    t_params.append(d) # Add the regime transition matrix
-    return m, r, s, t_params, f
