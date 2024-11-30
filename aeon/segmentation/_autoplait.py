@@ -70,7 +70,7 @@ def _cut_point_search(X, regime1, regime2, transition_matrix):
     m1, m2 = 0, 0
     s1, s2 = [], []
     l1, l2 = [], [] # Candidate cut point sets
-    for t in len(X):
+    for t in range(len(X)):
         # TODO: Compute likelihoods for all states of regime1 and regime2
         # TODO: Update candidate cut point sets for both regimes
         pass
