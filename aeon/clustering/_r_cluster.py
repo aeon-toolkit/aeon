@@ -445,6 +445,7 @@ class RCluster(BaseClusterer):
         transformed_data_pca = self.pca.fit_transform(X_std)
 
         self._r_cluster.fit(transformed_data_pca)
+        self.labels_ = self._r_cluster.labels_
         self.is_fitted = True
 
     def _predict(self, X, y=None) -> np.ndarray:
