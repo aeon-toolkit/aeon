@@ -26,6 +26,7 @@ class AutoPlaitSegmenter(BaseSegmenter):
         super().__init__(axis=0)
 
     def _predict(self, X) -> np.ndarray:
+        self._autoplait(X)
         cut_points = [e[1] for e in self._autoplait_results[2]]
         return np.array(cut_points)
 
@@ -33,7 +34,7 @@ class AutoPlaitSegmenter(BaseSegmenter):
         if self._check_is_fitted():
             return self._autoplait_results
 
-    def _fit(self, X, y=None):
+    def _autoplait(self, X):
         t_params, f = [], []
         d = []
 
@@ -63,6 +64,7 @@ class AutoPlaitSegmenter(BaseSegmenter):
         self._X = X
         self.is_fitted = True
         self._autoplait_results = (m, r, s, t_params, f)
+        return self._autoplait_results
 
 def _cut_point_search(X, regime1, regime2, transition_matrix):
     m1, m2 = 0, 0
