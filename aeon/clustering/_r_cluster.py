@@ -360,6 +360,7 @@ class RCluster(BaseClusterer):
         )
 
     def _get_parameterised_data(self, X):
+        np.random.seed(42)
         _, n_channels, n_timepoints = X.shape
         X = X.astype(np.float32)
 
