@@ -1,41 +1,34 @@
-"""Calculate the precision of a time series anomaly detection model."""
+"""Calculate the Recall metric of a time series anomaly detection model."""
 
 
-class RangePrecision:
-    """
-    Calculates Precision for time series.
+class RangeRecall:
+    """Calculates Recall for time series.
 
     Parameters
     ----------
     y_real : np.ndarray
-        set of ground truth anomaly ranges (actual anomalies).
+        Set of ground truth anomaly ranges (actual anomalies).
 
     y_pred : np.ndarray
-        set of predicted anomaly ranges.
+        Set of predicted anomaly ranges.
 
     cardinality : str, default="one"
         Number of overlaps between y_pred and y_real.
 
     gamma : float, default=1.0
-        Overlpa Cardinality Factor. Penalizes or adjusts the metric based on
+        Overlap Cardinality Factor. Penalizes or adjusts the metric based on
         the cardinality.
         Should be one of {'reciprocal', 'one', 'udf_gamma'}.
 
     alpha : float
-        Weight of the existence reward. Because precision by definition emphasizes on
-        prediction quality, there is no need for an existence reward and this value
-        should always be set to 0.
+        Weight of the existence reward. Since Recall emphasizes coverage,
+        you might adjust this value if needed.
 
     bias : str, default="flat"
-        Captures importance of positional factors within anomaly ranges.
+        Captures the importance of positional factors within anomaly ranges.
         Determines the weight given to specific portions of anomaly range
         when calculating overlap rewards.
         Should be one of {'flat', 'front', 'middle', 'back'}.
-
-        'flat' - All positions are equally important.
-        'front' - Front positions are more important.
-        'middle' - Middle positions are more important.
-        'back' - Back positions are more important.
 
     omega : float
         Measure the extent and overlap between y_pred and y_real.
@@ -43,7 +36,7 @@ class RangePrecision:
         be a float value between 0 and 1.
     """
 
-    def __init__(self, bias="flat", alpha=0.0, gamma=None):
+    def _init_(self, bias="flat", alpha=0.0, gamma="one"):
         assert gamma in ["reciprocal", "one", "udf_gamma"], "Invalid gamma type"
         assert bias in ["flat", "front", "middle", "back"], "Invalid bias type"
 
@@ -91,13 +84,13 @@ class RangePrecision:
         else:
             raise ValueError("Invalid gamma type")
 
-    def calculate_overlap_reward_precision(self, pred_range, overlap_set, bias_type):
-        """Overlap Reward for y_pred."""
-        start, end = pred_range
+    def calculate_overlap_reward_recall(self, real_range, overlap_set, bias_type):
+        """Overlap Reward for y_real."""
+        start, end = real_range
         length = end - start + 1
 
-        max_value = 0  # Total possible weighted value for all positions.
-        my_value = 0  # Weighted value for overlapping positions only.
+        max_value = 0.0  # Total possible weighted value for all positions.
+        my_value = 0.0  # Weighted value for overlapping positions only.
 
         for i in range(1, length + 1):
             global_position = start + i - 1
@@ -109,62 +102,47 @@ class RangePrecision:
 
         return my_value / max_value if max_value > 0 else 0.0
 
-    def ts_precision(
-        self, y_pred, y_real, gamma="one", bias_type="flat", udf_gamma=None
-    ):
-        """Precision for either a single set or the entire time series.
-
-        example:
-        y_pred = [(1, 3), (5, 7)]
-        y_real = [(2, 6), (8, 10)]
-        """
-        #  Check if the input is a single set of predicted ranges or multiple sets
-        if isinstance(y_pred[0], tuple):
-            # y_pred is a single set of predicted ranges
+    def ts_recall(self, y_pred, y_real, gamma="one", bias_type="flat", udf_gamma=None):
+        """Calculate Recall for time series anomaly detection."""
+        if isinstance(y_real[0], tuple):
             total_overlap_reward = 0.0
             total_cardinality = 0
 
-            for pred_range in y_pred:
+            for real_range in y_real:
                 overlap_set = set()
                 cardinality = 0
 
-                for real_start, real_end in y_real:
-                    overlap_start = max(pred_range[0], real_start)
-                    overlap_end = min(pred_range[1], real_end)
+                for pred_start, pred_end in y_pred:
+                    overlap_start = max(real_range[0], pred_start)
+                    overlap_end = min(real_range[1], pred_end)
 
                     if overlap_start <= overlap_end:
                         overlap_set.update(range(overlap_start, overlap_end + 1))
                         cardinality += 1
 
-                overlap_reward = self.calculate_overlap_reward_precision(
-                    pred_range, overlap_set, bias_type
+                if overlap_set:
+                    overlap_reward = self.calculate_overlap_reward_recall(
+                        real_range, overlap_set, bias_type
+                    )
+                    gamma_value = self.gamma_select(cardinality, gamma, udf_gamma)
+
+                    total_overlap_reward += gamma_value * overlap_reward
+                    total_cardinality += 1
+
+            return total_overlap_reward / len(y_real) if y_real else 0.0
+
+        # Handle multiple sets of y_real
+        elif (
+            isinstance(y_real, list) and len(y_real) > 0 and isinstance(y_real[0], list)
+        ):
+            total_recall = 0.0
+            total_real = 0
+
+            for real_ranges in y_pred:  # Iterate over all sets of real ranges
+                precision = self.ts_recall(
+                    real_ranges, y_real, gamma, bias_type, udf_gamma
                 )
-                gamma_value = self.gamma_select(cardinality, gamma, udf_gamma)
+                total_recall += precision * len(real_ranges)
+                total_real += len(real_ranges)
 
-                total_overlap_reward += gamma_value * overlap_reward
-                total_cardinality += 1
-
-            return (
-                total_overlap_reward / total_cardinality
-                if total_cardinality > 0
-                else 0.0
-            )
-
-        else:
-            """
-            example:
-            y_pred = [[(1, 3), (5, 7)],[(10, 12)]]
-            y_real = [(2, 6), (8, 10)]
-            """
-            # y_pred as multiple sets of predicted ranges
-            total_precision = 0.0
-            total_ranges = 0
-
-            for pred_ranges in y_pred:  # Iterate over all sets of predicted ranges
-                precision = self.ts_precision(
-                    pred_ranges, y_real, gamma, bias_type, udf_gamma
-                )  # Recursive call for single sets
-                total_precision += precision * len(pred_ranges)
-                total_ranges += len(pred_ranges)
-
-            return total_precision / total_ranges if total_ranges > 0 else 0.0
+            return total_recall / total_real if total_real > 0 else 0.0
