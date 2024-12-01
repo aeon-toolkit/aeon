@@ -2620,6 +2620,15 @@
         "code",
         "bug"
       ]
+    },
+    {
+      "login": "sumana-2705",
+      "name": "Sumana Sree Angajala",
+      "avatar_url": "https://avatars.githubusercontent.com/u/110307215?v=4",
+      "profile": "https://sumana-2705.github.io/Sumana-Portfolio/",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "commitType": "docs"
