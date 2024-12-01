@@ -348,14 +348,13 @@ class RCluster(BaseClusterer):
             dtype=np.int32,
         ).reshape(84, 3)
         self.is_fitted = False
-        super().__init__()
         self._r_cluster = KMeans(
             n_clusters=self.n_clusters,
             n_init=self.n_init,
             random_state=self.random_state,
             max_iter=self.max_iter,
         )
-
+        super().__init__()
     def _get_parameterised_data(self, X):
         np.random.seed(self.random_state)
         _, n_channels, n_timepoints = X.shape
