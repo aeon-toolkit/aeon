@@ -13,7 +13,6 @@ from aeon.transformations.collection.convolution_based._minirocket import (
     _fit_biases,
     _fit_dilations,
     _quantiles,
-    _static_transform_multi,
     _static_transform_uni,
 )
 
@@ -70,7 +69,7 @@ class RCluster(BaseClusterer):
     """
 
     _tags = {
-        "capability:multivariate": True,
+        "capability:multivariate": False,
         "capability:multithreading": True,
         "capability:unequal_length": False,
         "capability:missing_values": False,
@@ -424,7 +423,10 @@ class RCluster(BaseClusterer):
             X = X.squeeze(1)
             X_ = _static_transform_uni(X, parameters, self.indices)
         else:
-            X_ = _static_transform_multi(X, parameters, self.indices)
+            raise ValueError(
+                "RCluster is not compatible with multivariate data."
+                "Please ensure the input has only one channel.")
+
         set_num_threads(prev_threads)
         return X_
 
