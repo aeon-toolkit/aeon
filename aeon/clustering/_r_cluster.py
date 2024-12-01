@@ -425,7 +425,8 @@ class RCluster(BaseClusterer):
         else:
             raise ValueError(
                 "RCluster is not compatible with multivariate data."
-                "Please ensure the input has only one channel.")
+                "Please ensure the input has only one channel."
+            )
 
         set_num_threads(prev_threads)
         return X_
