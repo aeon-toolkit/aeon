@@ -2,7 +2,6 @@ import multiprocessing
 
 import numpy as np
 from numba import get_num_threads, set_num_threads
-
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
