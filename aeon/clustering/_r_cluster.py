@@ -355,6 +355,7 @@ class RCluster(BaseClusterer):
             max_iter=self.max_iter,
         )
         super().__init__()
+
     def _get_parameterised_data(self, X):
         np.random.seed(self.random_state)
         _, n_channels, n_timepoints = X.shape
