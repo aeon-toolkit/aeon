@@ -1,9 +1,8 @@
 import multiprocessing
-from typing import Optional, Union
 
 import numpy as np
 from numba import get_num_threads, set_num_threads
-from numpy.random import RandomState
+
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
@@ -50,7 +49,7 @@ class RCluster(BaseClusterer):
     max_iter: int, default=300
          Maximum number of iterations of the k-means algorithm for a single
          run.
-    random_state: int or np.random.RandomState instance or None, default=None
+    random_state: int or np.random.RandomState instance or None, default=42
          Determines random number generation for centroid initialization.
     n_jobs : int, default=1
          The number of jobs to run in parallel for `transform`. ``-1``
@@ -81,7 +80,7 @@ class RCluster(BaseClusterer):
         max_dilations_per_kernel=32,
         n_clusters=8,
         n_init=10,
-        random_state: Optional[Union[int, RandomState]] = None,
+        random_state=42,
         max_iter=300,
         n_jobs=1,
     ):
@@ -462,7 +461,7 @@ class RCluster(BaseClusterer):
         transformed_data = self._get_transformed_data(X=X, parameters=parameters)
 
         X_std = self.scaler.fit_transform(transformed_data)
-        transformed_data_pca = self.pca.transform(X_std)
+        transformed_data_pca = self.pca.fit_transform(X_std)
 
         return self._r_cluster.predict(transformed_data_pca)
 
