@@ -11,9 +11,14 @@ some experience with Python and be able to run tests. If the issue tackles the
 specifics of a machine learning algorithm, some relevant knowledge of machine learning
 will be required. While we want to encourage new contributors, a base level
 of knowledge is required to make a meaningful contribution to certain issues.
+ChatGPT is not a replacement for this knowledge.
+
+Pull requests from unknown contributors which do not attempt to resolve the issue being
+addressed, completely disregard the pull request template, or consist of low quality AI
+generated output may be closed without review.
 
 In the following we will give a brief overview of how to contribute to `aeon`. Making
-contributions to open source projects takes a bit of proactivity and can be daunting at
+contributions to open-source projects takes a bit of proactivity and can be daunting at
 first, but members of the community are here to help and answer questions. If you get
 stuck, please don’t hesitate to talk with us or raise an issue.
 
@@ -37,13 +42,16 @@ including '@aeon-actions-bot', the username of people to assign and the word `as
     ```python
     @aeon-actions-bot assign @MatthewMiddlehurst
     ```
-    If it is a larger issue with multiple components, indicate which part you are
-working on. A Core Developer may suggest a different issue if the one you chose is
-complex or somebody is already working on it.
+    Please ensure you understand and have a plan for resolving the issue before
+assigning yourself. Feel free to ask for clarification if you are unsure. If it is a
+larger issue with multiple components, indicate which part you are working on. A Core
+Developer may suggest a different issue if the one you chose is complex or somebody is
+already working on it.
 5. Create a [pull request (PR)](https://github.com/aeon-toolkit/aeon/compare)
 with your changes from your fork. For help, see the [GitHub documentation](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request-from-a-fork)
-or ask in Slack. Follow the PR template and checklist. Please make sure to include
-an appropriate [title tag](contributing/issues.md).
+or ask in Slack. Follow the PR template, template comments and checklist. Please make
+sure to include an appropriate [title tag](contributing/issues.md). **Do not just delete the PR template
+text.**
 6. A Core Developer will review your PR and may provide feedback, which you can then
 address. If you are unsure about any feedback, please ask for clarification. Please
 be patient, as Core Developers are volunteers and may be busy with other tasks.
