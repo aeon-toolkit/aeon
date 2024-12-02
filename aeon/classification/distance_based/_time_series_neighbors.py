@@ -67,6 +67,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
     _tags = {
         "capability:multivariate": True,
         "capability:unequal_length": True,
+        "capability:multithreading": True,
         "X_inner_type": ["np-list", "numpy3D"],
         "algorithm_type": "distance",
     }
@@ -110,7 +111,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         y : array-like, shape = (n_cases)
             The class labels.
         """
-        self.metric_ = get_distance_function(metric=self.distance)
+        self.metric_ = get_distance_function(method=self.distance)
         self.X_ = X
         self.classes_, self.y_ = np.unique(y, return_inverse=True)
         return self

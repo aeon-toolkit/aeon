@@ -27,7 +27,7 @@ class MultiRocketRegressor(BaseRegressor):
 
     Parameters
     ----------
-    num_kernels : int, default=10,000
+    n_kernels : int, default=10,000
         The number of kernels for the Rocket transform.
     max_dilations_per_kernel : int, default=32
         The maximum number of dilations per kernel.
@@ -52,13 +52,13 @@ class MultiRocketRegressor(BaseRegressor):
 
     Examples
     --------
-    >>> from aeon.regression.convolution_based import RocketRegressor
+    >>> from aeon.regression.convolution_based import MultiRocketRegressor
     >>> from aeon.datasets import load_covid_3month
     >>> X_train, y_train = load_covid_3month(split="train")
     >>> X_test, y_test = load_covid_3month(split="test")
-    >>> reg = RocketRegressor(num_kernels=500)
+    >>> reg = MultiRocketRegressor(n_kernels=500)
     >>> reg.fit(X_train, y_train)
-    RocketRegressor(num_kernels=500)
+    MultiRocketRegressor(n_kernels=500)
     >>> y_pred = reg.predict(X_test)
     """
 
@@ -70,7 +70,7 @@ class MultiRocketRegressor(BaseRegressor):
 
     def __init__(
         self,
-        num_kernels=10000,
+        n_kernels=10000,
         rocket_transform="rocket",
         max_dilations_per_kernel=32,
         n_features_per_kernel=4,
@@ -78,7 +78,7 @@ class MultiRocketRegressor(BaseRegressor):
         random_state=None,
         n_jobs=1,
     ):
-        self.num_kernels = num_kernels
+        self.n_kernels = n_kernels
         self.rocket_transform = rocket_transform
         self.max_dilations_per_kernel = max_dilations_per_kernel
         self.n_features_per_kernel = n_features_per_kernel
@@ -111,7 +111,7 @@ class MultiRocketRegressor(BaseRegressor):
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
 
         self._transformer = MultiRocket(
-            num_kernels=self.num_kernels,
+            n_kernels=self.n_kernels,
             max_dilations_per_kernel=self.max_dilations_per_kernel,
             n_features_per_kernel=self.n_features_per_kernel,
             n_jobs=self.n_jobs,
@@ -167,7 +167,7 @@ class MultiRocketRegressor(BaseRegressor):
             Parameters to create testing instances of the class.
         """
         return {
-            "num_kernels": 200,
+            "n_kernels": 200,
             "max_dilations_per_kernel": 8,
             "n_features_per_kernel": 4,
         }

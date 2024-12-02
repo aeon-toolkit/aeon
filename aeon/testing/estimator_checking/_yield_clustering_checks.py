@@ -10,6 +10,7 @@ import numpy as np
 from aeon.base._base import _clone_estimator
 from aeon.clustering.deep_learning import BaseDeepClusterer
 from aeon.testing.testing_data import FULL_TEST_DATA_DICT
+from aeon.utils.validation import get_n_cases
 
 
 def _yield_clustering_checks(estimator_class, estimator_instances, datatypes):
@@ -28,6 +29,10 @@ def _yield_clustering_checks(estimator_class, estimator_instances, datatypes):
                 check_clustering_random_state_deep_learning,
                 estimator=estimator,
                 datatype=datatypes[i][0],
+            )
+        for datatype in datatypes[i]:
+            yield partial(
+                check_clusterer_output, estimator=estimator, datatype=datatype
             )
 
         if issubclass(estimator_class, BaseDeepClusterer):
@@ -92,6 +97,34 @@ def check_clustering_random_state_deep_learning(estimator, datatype):
             _weight2 = np.asarray(weights2[j])
 
             np.testing.assert_almost_equal(_weight1, _weight2, 4)
+
+
+def check_clusterer_output(estimator, datatype):
+    """Test clusterer outputs the correct data types and values.
+
+    Test predict produces a np.array or pd.Series with only values seen in the train
+    data, and that predict_proba probability estimates add up to one.
+    """
+    estimator = _clone_estimator(estimator)
+
+    # run fit and predict
+    data = FULL_TEST_DATA_DICT[datatype]["train"][0]
+    estimator.fit(data)
+    assert hasattr(estimator, "labels_")
+    assert isinstance(estimator.labels_, np.ndarray)
+    assert np.array_equal(estimator.labels_, estimator.predict(data))
+
+    y_pred = estimator.predict(FULL_TEST_DATA_DICT[datatype]["test"][0])
+
+    # check predict
+    assert isinstance(y_pred, np.ndarray)
+    assert y_pred.shape == (get_n_cases(FULL_TEST_DATA_DICT[datatype]["test"][0]),)
+
+    # check predict proba (all classifiers have predict_proba by default)
+    y_proba = estimator.predict_proba(FULL_TEST_DATA_DICT[datatype]["test"][0])
+
+    assert isinstance(y_proba, np.ndarray)
+    np.testing.assert_almost_equal(y_proba.sum(axis=1), 1, decimal=4)
 
 
 def check_clusterer_saving_loading_deep_learning(estimator_class, datatype):

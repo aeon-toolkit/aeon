@@ -1,7 +1,13 @@
-"""Mock classifiers useful for testing and debugging.
+"""Mock classifiers useful for testing and debugging."""
 
-Used in tests for the classifier base class.
-"""
+__maintainer__ = ["MatthewMiddlehurst"]
+__all__ = [
+    "MockClassifier",
+    "MockClassifierPredictProba",
+    "MockClassifierFullTags",
+    "MockClassifierParams",
+    "MockClassifierComposite",
+]
 
 import numpy as np
 
@@ -11,6 +17,9 @@ from aeon.classification import BaseClassifier
 
 class MockClassifier(BaseClassifier):
     """Mock classifier for testing fit/predict."""
+
+    def __init__(self):
+        super().__init__()
 
     def _fit(self, X, y):
         """Fit dummy."""
