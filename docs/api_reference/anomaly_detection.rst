@@ -79,6 +79,7 @@ Detectors
     MERLIN
     OneClassSVM
     PyODAdapter
+    ROCKAD
     STOMP
     STRAY
 
@@ -92,6 +93,3 @@ Base
     :template: class.rst
 
     BaseAnomalyDetector
-    STOMP
-    OneClassSVM
-    ROCKAD
