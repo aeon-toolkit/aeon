@@ -1,9 +1,7 @@
 import multiprocessing
-from typing import Optional, Union
 
 import numpy as np
 from numba import get_num_threads, set_num_threads
-from numpy.random import RandomState
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
@@ -13,7 +11,6 @@ from aeon.transformations.collection.convolution_based._minirocket import (
     _fit_biases,
     _fit_dilations,
     _quantiles,
-    _static_transform_multi,
     _static_transform_uni,
 )
 
@@ -51,7 +48,7 @@ class RCluster(BaseClusterer):
     max_iter: int, default=300
          Maximum number of iterations of the k-means algorithm for a single
          run.
-    random_state: int or np.random.RandomState instance or None, default=None
+    random_state: int or np.random.RandomState instance or None, default=42
          Determines random number generation for centroid initialization.
     n_jobs : int, default=1
          The number of jobs to run in parallel for `transform`. ``-1``
@@ -69,7 +66,12 @@ class RCluster(BaseClusterer):
     https://link.springer.com/article/10.1007/s10618-024-01018-x
     """
 
-    _tags = {"capability:multivariate": True, "capability: multithreading": True}
+    _tags = {
+        "capability:multivariate": False,
+        "capability:multithreading": True,
+        "capability:unequal_length": False,
+        "capability:missing_values": False,
+    }
 
     def __init__(
         self,
@@ -77,9 +79,9 @@ class RCluster(BaseClusterer):
         max_dilations_per_kernel=32,
         n_clusters=8,
         n_init=10,
-        random_state: Optional[Union[int, RandomState]] = None,
+        random_state=42,
         max_iter=300,
-        n_jobs=-1,
+        n_jobs=1,
     ):
         self.n_jobs = n_jobs
         self.n_kernels = n_kernels
@@ -346,15 +348,16 @@ class RCluster(BaseClusterer):
             dtype=np.int32,
         ).reshape(84, 3)
         self.is_fitted = False
-        super().__init__()
         self._r_cluster = KMeans(
             n_clusters=self.n_clusters,
             n_init=self.n_init,
             random_state=self.random_state,
             max_iter=self.max_iter,
         )
+        super().__init__()
 
     def _get_parameterised_data(self, X):
+        np.random.seed(self.random_state)
         _, n_channels, n_timepoints = X.shape
         X = X.astype(np.float32)
 
@@ -405,7 +408,7 @@ class RCluster(BaseClusterer):
             biases,
         )
 
-    def _get_transformed_data(self, X):
+    def _get_transformed_data(self, X, parameters):
         X = X.astype(np.float32)
         _, n_channels, n_timepoints = X.shape
         prev_threads = get_num_threads()
@@ -416,28 +419,34 @@ class RCluster(BaseClusterer):
         set_num_threads(n_jobs)
         if n_channels == 1:
             X = X.squeeze(1)
-            X_ = _static_transform_uni(X, self.parameters, self.indices)
+            X_ = _static_transform_uni(X, parameters, self.indices)
         else:
-            X_ = _static_transform_multi(X, self.parameters, self.indices)
+            raise ValueError(
+                "RCluster is not compatible with multivariate data."
+                "Please ensure the input has only one channel."
+            )
+
         set_num_threads(prev_threads)
         return X_
 
     def _fit(self, X, y=None):
-        self.parameters = self._get_parameterised_data(X)
+        parameters = self._get_parameterised_data(X)
 
-        transformed_data = self._get_transformed_data(X=X)
+        transformed_data = self._get_transformed_data(X=X, parameters=parameters)
 
-        sc = StandardScaler()
-        X_std = sc.fit_transform(transformed_data)
+        self.scaler = StandardScaler()
+        X_std = self.scaler.fit_transform(transformed_data)
 
         pca = PCA().fit(X_std)
+        optimal_dimensions = np.argmax(pca.explained_variance_ratio_ < 0.01)
 
-        self.optimal_dimensions = np.argmax(pca.explained_variance_ratio_ < 0.01)
+        optimal_dimensions = max(1, min(optimal_dimensions, X.shape[0], X.shape[1]))
 
-        pca_optimal = PCA(n_components=self.optimal_dimensions)
-        transformed_data_pca = pca_optimal.fit_transform(X_std)
+        self.pca = PCA(n_components=optimal_dimensions, random_state=self.random_state)
+        transformed_data_pca = self.pca.fit_transform(X_std)
 
         self._r_cluster.fit(transformed_data_pca)
+        self.labels_ = self._r_cluster.labels_
         self.is_fitted = True
 
     def _predict(self, X, y=None) -> np.ndarray:
@@ -446,57 +455,15 @@ class RCluster(BaseClusterer):
                 "Data is not fitted. Please fit the model before using it."
             )
 
-        self.parameters = self._get_parameterised_data(X)
+        parameters = self._get_parameterised_data(X)
 
-        transformed_data = self._get_transformed_data(X=X)
+        transformed_data = self._get_transformed_data(X=X, parameters=parameters)
 
-        sc = StandardScaler()
-        X_std = sc.fit_transform(transformed_data)
-
-        pca_optimal = PCA(n_components=self.optimal_dimensions)
-        transformed_data_pca = pca_optimal.fit_transform(X_std)
+        X_std = self.scaler.fit_transform(transformed_data)
+        transformed_data_pca = self.pca.fit_transform(X_std)
 
         return self._r_cluster.predict(transformed_data_pca)
 
     def _fit_predict(self, X, y=None) -> np.ndarray:
-        self.parameters = self._get_parameterised_data(X)
-
-        transformed_data = self._get_transformed_data(X=X)
-
-        sc = StandardScaler()
-        X_std = sc.fit_transform(transformed_data)
-
-        pca = PCA().fit(X_std)
-
-        optimal_dimensions = np.argmax(pca.explained_variance_ratio_ < 0.01)
-
-        pca_optimal = PCA(n_components=optimal_dimensions)
-        transformed_data_pca = pca_optimal.fit_transform(X_std)
-
-        return self._r_cluster.fit_predict(transformed_data_pca)
-
-    @classmethod
-    def _get_test_params(cls, parameter_set="default"):
-        """Return testing parameter settings for the estimator.
-
-        Parameters
-        ----------
-        parameter_set : str, default="default"
-            Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
-
-
-        Returns
-        -------
-        params : dict or list of dict, default={}
-            Parameters to create testing instances of the class
-            Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-        """
-        return {
-            "n_clusters": 2,
-            "init": "random",
-            "n_init": 1,
-            "max_iter": 1,
-            "random_state": 1,
-        }
+        self._fit(X, y)
+        return self._predict(X, y)
