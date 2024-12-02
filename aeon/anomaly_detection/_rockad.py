@@ -128,7 +128,7 @@ class ROCKAD(BaseAnomalyDetector):
 
     def _inner_fit(self, X: np.ndarray) -> None:
         self.rocket_transformer_ = Rocket(
-            num_kernels=self.n_kernels,
+            n_kernels=self.n_kernels,
             normalise=self.normalise,
             n_jobs=self.n_jobs,
             random_state=self.random_state,
