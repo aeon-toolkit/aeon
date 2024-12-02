@@ -7,7 +7,7 @@ Type hints are a way to indicate the expected data types of variables, function 
 
 Type hints act as a form of documentation that helps developers understand the types of arguments a function expects and what it returns.
 
-Example: 
+Example:
 
 
 You can provide type hints for function parameters and return values. This helps other developers understand what types of arguments are expected by the function and what type the function returns.
@@ -43,9 +43,9 @@ Learn more about type hints [here](https://dagster.io/blog/python-type-hinting)
 
 When working with models that have soft dependencies, it is essential to incorporate type hints effectively to maintain code clarity and functionality also it improves Early error detection and consistancy of the code
 
- The typing.TYPE_CHECKING constant ensures that imports for type hints are only evaluated when type-checking is done and NOT in the runtime. This prevents errors when the soft dependancies are not available. Here is an example that demonstrates it: 
- 
- 
+ The typing.TYPE_CHECKING constant ensures that imports for type hints are only evaluated when type-checking is done and NOT in the runtime. This prevents errors when the soft dependancies are not available. Here is an example that demonstrates it:
+
+
  ```python
  from typing import TYPE_CHECKING
 
@@ -54,7 +54,7 @@ if TYPE_CHECKING:
 
 def process(data: "OptionalClass") -> None:
     pass
-```    
+```
 
 
 
