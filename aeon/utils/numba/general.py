@@ -8,7 +8,9 @@ __all__ = [
     "first_order_differences_3d",
     "z_normalise_series_with_mean",
     "z_normalise_series",
+    "z_normalise_series_with_mean_std",
     "z_normalise_series_2d",
+    "z_normalise_series_2d_with_mean_std",
     "z_normalise_series_3d",
     "set_numba_random_seed",
     "choice_log",
@@ -20,6 +22,7 @@ __all__ = [
     "slope_derivative_2d",
     "slope_derivative_3d",
     "generate_combinations",
+    "get_all_subsequences",
 ]
 
 

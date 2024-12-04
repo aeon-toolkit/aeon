@@ -1,0 +1,358 @@
+"""Base class for subsequence search."""
+
+__maintainer__ = ["baraline"]
+
+import warnings
+from abc import abstractmethod
+from typing import Optional, final
+
+import numpy as np
+from numba import get_num_threads, set_num_threads
+from numba.typed import List
+
+from aeon.similarity_search.base import BaseSimilaritySearch
+from aeon.similarity_search.subsequence_search._commons import (
+    _extract_top_k_from_dist_profile,
+    _inverse_distance_profile_list,
+)
+from aeon.utils.numba.general import sliding_mean_std_one_series
+
+
+# We can define a BaseVariableLengthSubsequenceSearch later for VALMOD and the likes.
+class BaseSubsequenceSearch(BaseSimilaritySearch):
+    """
+    Base class for similarity search on time series subsequences.
+
+    Parameters
+    ----------
+    length : int
+        The length of the subsequence to be considered.
+    normalize : bool, optional
+        Whether the inputs should be z-normalized. The default is False.
+    n_jobs : int, optional
+        Number of parallel jobs to use. The default is 1.
+    """
+
+    @abstractmethod
+    def __init__(
+        self,
+        length: int,
+        normalize: Optional[bool] = False,
+        n_jobs: Optional[int] = 1,
+    ):
+        self.length = length
+        super().__init__(n_jobs=n_jobs, normalize=normalize)
+
+    @final
+    def find_motifs(
+        self,
+        k: int,
+        threshold: float,
+        X: Optional[np.ndarray] = None,
+        allow_overlap: Optional[bool] = False,
+        exclusion_factor: Optional[float] = 2.0,
+    ):
+        """
+        Find the top-k motifs in the training data.
+
+        Given ``k`` and ``threshold`` parameters, this methods returns the top-k motif
+        sets. We define a motif set as a set of candidates which all are at a distance
+        of at most ``threshold`` from each other. The top-k motifs sets are the
+        motif sets with the most candidates.
+
+        Parameters
+        ----------
+        k : int, optional
+            Number of motifs to return
+        threshold : int, optional
+            A threshold on the similarity measure to determine which candidates will be
+            part of a motif set.
+        X : np.ndarray, 2D array of shape (n_channels, n_timestamps), optional
+            A series in which we want to indentify motifs. If provided, the motifs
+            extracted should appear in X and in the database given in fit. If not
+            provided, the motifs will be extracted only from the database given in fit.
+        allow_overlap: bool, optional
+            Wheter a candidate can be part of multiple motif sets (True), or if motif
+            sets should be mutually exclusive (False).
+        exclusion_factor : float, default=2.
+            A factor of the query length used to define the exclusion zone when
+            ``allow_overlap`` is set to False. For a given timestamp, the exclusion zone
+            starts from :math:`id_timestamp - query_length//exclusion_factor` and end at
+            :math:`id_timestamp + query_length//exclusion_factor`.
+
+        Returns
+        -------
+        list of ndarray, shape=(k,)
+            A list of at most ``k`` numpy arrays containing the indexes of the
+            candidates in each motif.
+
+        """
+        self._check_is_fitted()
+
+    @final
+    def find_neighbors(
+        self,
+        X: np.ndarray,
+        k: Optional[int] = 1,
+        threshold: Optional[float] = np.inf,
+        inverse_distance: Optional[bool] = False,
+        X_index: Optional[np.ndarray] = None,
+        allow_overlap: Optional[bool] = False,
+        exclusion_factor: Optional[float] = 2.0,
+    ):
+        """
+        Find the top-k neighbors of X in the database.
+
+        Given ``k`` and ``threshold`` parameters, this methods returns the top-k
+        neighbors of X, such as each of the ``k`` neighbors as a distance inferior or
+        equal to ``threshold``. By default, ``threshold`` is set to infinity. It is
+        possible for this method to return less than ``k`` neighbors, either if there
+        is less than ``k`` admissible candidate in the database, or if in the top-k
+        candidates, some do not meet the ``threshold`` condition.
+
+        Parameters
+        ----------
+        X : np.ndarray, 2D array of shape (n_channels, length)
+            The subsequence for which we want to identify nearest neighbors in the
+            database.
+        k : int, optional
+            Number of neighbors to return.
+        threshold : int, optional
+            A threshold on the distance to determine which candidates will be returned.
+        inverse_distance : bool, optional
+            Wheter to inverse the computed distance, meaning that the method will return
+            the k most dissimilar neighbors instead of the k most similar.
+        X_index : np.ndarray, shape=(2,), optional
+            If ``X`` is a subsequence of the database given in fit, specify its starting
+            index as (i_case, i_timestamp). If specified, this subsequence and the
+            neighboring ones (according to ``exclusion_factor``) won't be considered as
+            admissible candidates.
+        allow_overlap: bool, optional
+            Wheter the top-k candidates can be neighboring subsequences.
+        exclusion_factor : float, default=2.
+            A factor of the query length used to define the exclusion zone when
+            ``allow_overlap`` is set to False. For a given timestamp, the exclusion zone
+            starts from :math:`id_timestamp - query_length//exclusion_factor` and end at
+            :math:`id_timestamp + query_length//exclusion_factor`.
+
+        Returns
+        -------
+        ndarray, shape=(k,)
+            A numpy array of at most ``k`` elements containing the indexes of the
+            neighbors.
+        ndarray, shape=(k,)
+            A numpy array of at most ``k`` elements containing the distances of the
+            neighbors to X.
+
+        """
+        self._check_is_fitted()
+        if self.length != X.shape[1] or self.n_channels_ != X.shape[0]:
+            raise ValueError(
+                f"Expected a subsequence of shape {(self.n_channels_, self.length)} but"
+                f" got {X.shape}"
+            )
+        self._check_X_index(X_index)
+        prev_threads = get_num_threads()
+        set_num_threads(self._n_jobs)
+        neighbors, distances = self._find_neighbors(
+            X,
+            k=k,
+            threshold=threshold,
+            inverse_distance=inverse_distance,
+            X_index=X_index,
+            allow_overlap=allow_overlap,
+            exclusion_factor=exclusion_factor,
+        )
+        set_num_threads(prev_threads)
+        if len(neighbors) < k:
+            warnings.warn(
+                f"The number of admissible neighbors found is {len(neighbors)}, instead"
+                f" of {k}",
+                stacklevel=2,
+            )
+        return neighbors, distances
+
+    def _check_X_index(self, X_index: np.ndarray):
+        """
+        Check wheter the X_index parameter is correctly formated and is admissible.
+
+        Parameters
+        ----------
+        X_index : np.ndarray, 1D array of shape (2)
+            Array of integer containing the sample and timestamp identifiers of the
+            starting point of a subsequence in X_.
+
+        Returns
+        -------
+        X_index : np.ndarray, 1D array of shape (2)
+            Array of integer containing the sample and timestamp identifiers of the
+            starting point of a subsequence in X_.
+
+        """
+        if X_index is not None:
+            if (
+                isinstance(X_index, list)
+                and len(X_index) == 2
+                and isinstance(X_index[0], int)
+                and isinstance(X_index[1], int)
+            ):
+                X_index = np.asarray(X_index, dtype=int)
+            elif len(X_index) != 2:
+                raise ValueError(
+                    "Expected a numpy array or list of integers with 2 elements "
+                    f"for X_index but got {X_index}"
+                )
+            elif (
+                not (isinstance(X_index[0], int) and isinstance(X_index[1], int))
+                or X_index.dtype != int
+            ):
+                raise TypeError(
+                    "Expected a numpy array or list of integers for X_index but got "
+                    f"{X_index}"
+                )
+
+            if X_index[0] >= self.n_cases_:
+                raise ValueError(
+                    "The sample ID (first element) of X_index cannot exced the number "
+                    "of series in the collection given during fit. Expected a value "
+                    f"between [0, {self.n_cases_ - 1}] but got {X_index[0]}"
+                )
+            _max_timestamp = self.X_[X_index[0]].shape[1] - self.length + 1
+            if X_index[1] >= _max_timestamp:
+                raise ValueError(
+                    "The timestamp ID (second element) of X_index cannot exced the "
+                    "number of timestamps minus the length parameter plus one. Expected"
+                    f" a value between [0, {_max_timestamp - 1}] but got {X_index[1]}"
+                )
+        return X_index
+
+    def _compute_mean_std_from_collection(self, X: np.ndarray):
+        """
+        Compute the mean and std of each subsequence of size ``length`` in X.
+
+        Parameters
+        ----------
+        X : np.ndarray, 3D array of shape (n_cases, n_channels, n_timepoints)
+            Collection of series from which we extract mean and stds. If it is an
+            unequal length collection, it should be a list of 2d numpy arrays.
+
+        Returns
+        -------
+        Tuple(np.ndarray, np.ndarray)
+            Both array are of shape (n_cases, n_timepoints-length+1, n_channels),
+            the first contains the means and the second the stds for each subsequence
+            of size ``length`` in X.
+
+        """
+        means = []
+        stds = []
+
+        for i_x in range(len(X)):
+            _mean, _std = sliding_mean_std_one_series(X[i_x], self.length, 1)
+            stds.append(_std)
+            means.append(_mean)
+
+        if self.metadata_["unequal_length"]:
+            return List(means), List(stds)
+        else:
+            return np.asarray(means), np.asarray(stds)
+
+    @abstractmethod
+    def _fit(self, X, y=None): ...
+
+
+class BaseMatrixProfile(BaseSubsequenceSearch):
+    """Base class for Matrix Profile methods using a length parameter."""
+
+    def _fit(self, X, y=None):
+        if self.length >= self.min_timepoints_:
+            raise ValueError(
+                "The length of the query should be inferior or equal to the length of "
+                "data (X_) provided during fit, but got {} for X and {} for X_".format(
+                    self.length, self.min_timepoints_
+                )
+            )
+
+        if self.normalize:
+            self.X_means_, self.X_stds_ = self._compute_mean_std_from_collection(X)
+        self.X_ = X
+        return self
+
+    def _find_motifs():
+        raise NotImplementedError()
+
+    def _find_neighbors(
+        self,
+        X: np.ndarray,
+        k: Optional[int] = 1,
+        threshold: Optional[float] = np.inf,
+        inverse_distance: Optional[bool] = False,
+        X_index=None,
+        allow_overlap: Optional[bool] = False,
+        exclusion_factor: Optional[float] = 2.0,
+    ):
+        """
+        Find the top-k neighbors of X in the database.
+
+        Given ``k`` and ``threshold`` parameters, this methods returns the top-k
+        neighbors of X, such as each of the ``k`` neighbors as a distance inferior or
+        equal to ``threshold``. By default, ``threshold`` is set to infinity. It is
+        possible for this method to return less than ``k`` neighbors, either if there
+        is less than ``k`` admissible candidate in the database, or if in the top-k
+        candidates, some do not meet the ``threshold`` condition.
+
+        Parameters
+        ----------
+        X : np.ndarray, 2D array of shape (n_channels, length)
+            The subsequence for which we want to identify nearest neighbors in the
+            database.
+        k : int, optional
+            Number of neighbors to return.
+        threshold : int, optional
+            A threshold on the distance to determine which candidates will be returned.
+        inverse_distance : bool, optional
+            Wheter to inverse the computed distance, meaning that the method will return
+            the k most dissimilar neighbors instead of the k most similar.
+        X_index : np.ndarray, shape=(2,), optional
+            If ``X`` is a subsequence of the database given in fit, specify its starting
+            index as (i_case, i_timestamp). If specified, this subsequence and the
+            neighboring ones (according to ``exclusion_factor``) won't be considered as
+            admissible candidates.
+        allow_overlap: bool, optional
+            Wheter the top-k candidates can be neighboring subsequences.
+        exclusion_factor : float, default=2.
+            A factor of the query length used to define the exclusion zone when
+            ``allow_overlap`` is set to False. For a given timestamp, the exclusion zone
+            starts from :math:`id_timestamp - query_length//exclusion_factor` and end at
+            :math:`id_timestamp + query_length//exclusion_factor`.
+        """
+        exclusion_size = self.length // exclusion_factor
+        dist_profiles = self.compute_distance_profile(X)
+
+        if inverse_distance:
+            dist_profiles = _inverse_distance_profile_list(dist_profiles)
+
+        # Deal with self-matches
+        if X_index is not None:
+            _max_timestamp = self.X_[X_index[0]].shape[1] - self.length
+            ub = min(X_index[1] + exclusion_size, _max_timestamp)
+            lb = max(0, X_index[1] - exclusion_size)
+            dist_profiles[X_index[0]][lb:ub] = np.inf
+
+        return _extract_top_k_from_dist_profile(
+            dist_profiles,
+            k,
+            threshold,
+            allow_overlap,
+            exclusion_size,
+        )
+
+    @abstractmethod
+    def compute_matrix_profile(X: Optional[np.ndarray] = None):
+        """Compute matrix profiles between X_ and X or between all series in X_."""
+        ...
+
+    @abstractmethod
+    def compute_distance_profile(X: np.ndarray):
+        """Compute distrance profiles between X_ and X (a series of size length)."""
+        ...
