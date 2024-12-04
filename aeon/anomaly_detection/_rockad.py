@@ -68,6 +68,7 @@ class ROCKAD(BaseAnomalyDetector):
         "capability:univariate": True,
         "capability:multivariate": True,
         "capability:missing_values": False,
+        "capability:multithreading": True,
         "fit_is_empty": False,
     }
 
