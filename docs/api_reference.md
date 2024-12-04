@@ -16,11 +16,10 @@ api_reference/base
 api_reference/benchmarking
 api_reference/classification
 api_reference/clustering
-api_reference/data_format
 api_reference/datasets
 api_reference/distances
+api_reference/forecasting
 api_reference/networks
-api_reference/performance_metrics
 api_reference/regression
 api_reference/segmentation
 api_reference/similarity_search

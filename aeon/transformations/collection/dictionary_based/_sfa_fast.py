@@ -130,6 +130,7 @@ class SFAFast(BaseCollectionTransformer):
 
     _tags = {
         "requires_y": False,  # SFA is unsupervised for equi-depth and equi-width bins
+        "capability:multithreading": True,
         "algorithm_type": "dictionary",
     }
 

@@ -4,6 +4,7 @@ __maintainer__ = ["MatthewMiddlehurst"]
 
 import numpy as np
 import pytest
+from numpy.testing import assert_array_almost_equal
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
 
@@ -14,7 +15,6 @@ from aeon.testing.data_generation import (
     make_example_3d_numpy_list,
 )
 from aeon.testing.mock_estimators import MockCollectionTransformer
-from aeon.testing.utils.estimator_checks import _assert_array_almost_equal
 from aeon.transformations.collection import (
     AutocorrelationFunctionTransformer,
     HOG1DTransformer,
@@ -60,7 +60,7 @@ def test_clusterer_pipeline(transformers):
         X_test = t.transform(X_test)
 
     c.fit(X_train, y_train)
-    _assert_array_almost_equal(y_pred, c.predict(X_test))
+    assert_array_almost_equal(y_pred, c.predict(X_test))
 
 
 @pytest.mark.parametrize(
@@ -98,7 +98,7 @@ def test_sklearn_clusterer_pipeline(transformers):
         X_test = t.transform(X_test)
 
     c.fit(X_train, y_train)
-    _assert_array_almost_equal(y_pred, c.predict(X_test))
+    assert_array_almost_equal(y_pred, c.predict(X_test))
 
 
 def test_unequal_tag_inference():
@@ -126,7 +126,7 @@ def test_unequal_tag_inference():
 
     # todo revisit with mock clusterer
     # c1 = DummyClassifier()
-    # c2 = RocketClassifier(num_kernels=5)
+    # c2 = RocketClassifier(n_kernels=5)
     c3 = KMeans(n_clusters=2, max_iter=3, random_state=0)
 
     # assert c1.get_tag("capability:unequal_length")
@@ -189,7 +189,7 @@ def test_missing_tag_inference():
 
     # todo revisit with mock clusterer
     # c1 = DummyClassifier()
-    # c2 = RocketClassifier(num_kernels=5)
+    # c2 = RocketClassifier(n_kernels=5)
     c3 = KMeans(n_clusters=2, max_iter=3, random_state=0)
 
     # assert c1.get_tag("capability:missing_values")

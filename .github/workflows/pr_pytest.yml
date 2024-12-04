@@ -18,7 +18,7 @@ concurrency:
 
 jobs:
   test-no-soft-deps:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout
@@ -29,7 +29,7 @@ jobs:
         with:
           python-version: "3.10"
 
-      - if: ${{ github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'no numba cache') }}
+      - if: ${{ github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'no numba cache') }}
         name: Restore numba cache
         uses: ./.github/actions/numba_cache
         with:
@@ -48,7 +48,7 @@ jobs:
         run: python -m pip list
 
       - name: Run tests
-        run: python -m pytest -n logical -k 'not TestAll'
+        run: python -m pytest -n logical
 
   pytest:
     runs-on: ${{ matrix.os }}
@@ -56,11 +56,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-22.04, macOS-14, windows-2022 ]
+        os: [ ubuntu-24.04, macOS-14, windows-2022 ]
         python-version: [ "3.9", "3.10", "3.11", "3.12" ]
         # skip python versions unless the PR has the 'full pytest actions' label
         pr-testing:
-          - ${{ (github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'full pytest actions')) }}
+          - ${{ (github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'full pytest actions')) }}
         exclude:
           - pr-testing: true
             python-version: "3.10"
@@ -74,7 +74,13 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - if: ${{ github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'no numba cache') }}
+      - name: Set swap space
+        if: runner.os == 'Linux'
+        uses: pierotofy/set-swap-space@v1.0
+        with:
+          swap-size-gb: 10
+
+      - if: ${{ github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'no numba cache') }}
         name: Restore numba cache
         uses: ./.github/actions/numba_cache
         with:
@@ -94,13 +100,13 @@ jobs:
 
       - name: Run tests
         # run the full test suit if a PR has the 'full pytest actions' label
-        run: python -m pytest -n logical --prtesting ${{ github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'full pytest actions') }}
+        run: python -m pytest -n logical --prtesting ${{ github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'full pytest actions') }}
 
   codecov:
     # run the code coverage job if a PR has the 'codecov actions' label
-    if: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'codecov actions') }}
+    if: ${{ github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'codecov actions') }}
 
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout
@@ -128,6 +134,6 @@ jobs:
         run: python -m pytest -n logical --cov=aeon --cov-report=xml --timeout 1800
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

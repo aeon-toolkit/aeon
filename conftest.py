@@ -44,7 +44,11 @@ def pytest_configure(config):
     if config.getoption("--nonumba") in [True, "True", "true"]:
         os.environ["NUMBA_DISABLE_JIT"] = "1"
 
-    if not config.getoption("--enablethreading") in [True, "True", "true"]:
+    if config.getoption("--enablethreading") in [True, "True", "true"]:
+        from aeon.testing import testing_config
+
+        testing_config.MULTITHREAD_TESTING = True
+    else:
         # Must be called before any numpy imports
         os.environ["MKL_NUM_THREADS"] = "1"
         os.environ["NUMEXPR_NUM_THREADS"] = "1"

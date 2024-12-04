@@ -8,7 +8,6 @@ from aeon.testing.testing_data import (
     EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION,
     UNEQUAL_LENGTH_UNIVARIATE_CLASSIFICATION,
 )
-from aeon.utils import COLLECTIONS_DATA_TYPES
 from aeon.utils.conversion._convert_collection import (
     _from_numpy2d_to_df_list,
     _from_numpy2d_to_np_list,
@@ -24,6 +23,7 @@ from aeon.utils.conversion._convert_collection import (
     resolve_equal_length_inner_type,
     resolve_unequal_length_inner_type,
 )
+from aeon.utils.data_types import COLLECTIONS_DATA_TYPES
 from aeon.utils.validation.collection import (
     _equal_length,
     get_n_cases,

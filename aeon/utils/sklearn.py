@@ -1,5 +1,15 @@
 """Sklearn related typing and inheritance checking utility."""
 
+__maintainer__ = []
+__all__ = [
+    "is_sklearn_estimator",
+    "sklearn_estimator_identifier",
+    "is_sklearn_transformer",
+    "is_sklearn_classifier",
+    "is_sklearn_regressor",
+    "is_sklearn_clusterer",
+]
+
 from inspect import isclass
 
 from sklearn.base import (
@@ -11,8 +21,6 @@ from sklearn.base import (
 )
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 from sklearn.pipeline import Pipeline
-
-__maintainer__ = []
 
 from aeon.base import BaseAeonEstimator
 

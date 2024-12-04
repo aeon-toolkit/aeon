@@ -3,10 +3,12 @@
 import platform
 import sys
 
+import numpy as np
+from sklearn.utils import check_random_state
+
 from aeon.testing.estimator_checking import parametrize_with_checks
 from aeon.testing.testing_config import PR_TESTING
 from aeon.utils.discovery import all_estimators
-from aeon.utils.sampling import random_partition
 
 ALL_TEST_ESTIMATORS = all_estimators(return_names=False, include_sklearn=False)
 
@@ -15,28 +17,29 @@ ALL_TEST_ESTIMATORS = all_estimators(return_names=False, include_sklearn=False)
 # but all are tested on every OS at least once, and on every python version once
 if PR_TESTING:
     # only use 3 Python versions in PR
-    ix = sys.version_info.minor
-    if ix == 9:
-        ix = 0
-    elif ix == 11:
-        ix = 1
-    elif ix == 12:
-        ix = 2
+    i = sys.version_info.minor
+    if i == 9:
+        i = 0
+    elif i == 11:
+        i = 1
+    elif i == 12:
+        i = 2
 
     os_str = platform.system()
     if os_str == "Windows":
-        ix = ix
+        i = i
     elif os_str == "Linux":
-        ix = ix + 1
+        i = i + 1
     elif os_str == "Darwin":
-        ix = ix + 2
+        i = i + 2
 
-    ix = ix % 3
+    i = i % 3
 
-    ALL_TEST_ESTIMATORS = [
-        ALL_TEST_ESTIMATORS[i]
-        for i in random_partition(len(ALL_TEST_ESTIMATORS), 3)[ix]
-    ]
+    rng = check_random_state(42)
+    idx = np.arange(len(ALL_TEST_ESTIMATORS))
+    rng.shuffle(idx)
+
+    ALL_TEST_ESTIMATORS = [ALL_TEST_ESTIMATORS[n] for n in idx[i::3]]
 
 
 @parametrize_with_checks(ALL_TEST_ESTIMATORS)

@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 
 from aeon.base import BaseSeriesEstimator
-from aeon.base._base_series import VALID_INPUT_TYPES
+from aeon.base._base_series import VALID_SERIES_INPUT_TYPES
 
 
 class BaseSegmenter(BaseSeriesEstimator):
@@ -64,12 +64,13 @@ class BaseSegmenter(BaseSeriesEstimator):
     """
 
     _tags = {
-        "X_inner_type": "np.ndarray",  # One of VALID_INNER_TYPES
+        "X_inner_type": "np.ndarray",  # One of VALID_SERIES_INNER_TYPES
         "fit_is_empty": True,
         "requires_y": False,
         "returns_dense": True,
     }
 
+    @abstractmethod
     def __init__(self, axis, n_segments=2):
         self.n_segments = n_segments
 
@@ -86,9 +87,9 @@ class BaseSegmenter(BaseSeriesEstimator):
 
         Parameters
         ----------
-        X : One of ``VALID_INPUT_TYPES``
+        X : One of ``VALID_SERIES_INPUT_TYPES``
             Input time series to fit a segmenter.
-        y : One of ``VALID_INPUT_TYPES`` or None, default None
+        y : One of ``VALID_SERIES_INPUT_TYPES`` or None, default None
             Training time series, a labeled 1D series same length as X for supervised
             segmentation.
         axis : int, default = None
@@ -128,7 +129,7 @@ class BaseSegmenter(BaseSeriesEstimator):
 
         Parameters
         ----------
-        X : One of ``VALID_INPUT_TYPES``
+        X : One of ``VALID_SERIES_INPUT_TYPES``
             Input time series
         axis : int, default = None
             Axis along which to segment if passed a multivariate series (2D input)
@@ -168,15 +169,15 @@ class BaseSegmenter(BaseSeriesEstimator):
         """Create and return a segmentation of X."""
         ...
 
-    def _check_y(self, y: VALID_INPUT_TYPES):
+    def _check_y(self, y: VALID_SERIES_INPUT_TYPES):
         """Check y specific to segmentation.
 
         y must be a univariate series
         """
-        if type(y) not in VALID_INPUT_TYPES:
+        if type(y) not in VALID_SERIES_INPUT_TYPES:
             raise ValueError(
                 f"Error in input type for y: it should be one of "
-                f"{VALID_INPUT_TYPES}, saw {type(y)}"
+                f"{VALID_SERIES_INPUT_TYPES}, saw {type(y)}"
             )
         if isinstance(y, np.ndarray):
             # Check valid shape
