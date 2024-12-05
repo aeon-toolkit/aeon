@@ -100,7 +100,6 @@ class KASBA(BaseClusterer):
     >>> clst.fit(X)
     KASBA(n_clusters=2)
     >>> preds = clst.predict(X)
-    ""
     """
 
     _tags = {
