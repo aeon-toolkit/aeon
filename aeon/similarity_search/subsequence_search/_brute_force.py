@@ -264,13 +264,6 @@ def _naive_squared_matrix_profile(
         if inverse_distance:
             dist_profiles = _inverse_distance_profile_list(dist_profiles)
 
-        # Deal with self-matches
-        if T_index is not None:
-            _max_timestamp = X[T_index].shape[1] - L
-            ub = min(i_q + exclusion_size, _max_timestamp)
-            lb = max(0, i_q - exclusion_size)
-            dist_profiles[T_index][lb:ub] = np.inf
-
         top_dists, top_indexes = _extract_top_k_from_dist_profile(
             dist_profiles,
             k,
