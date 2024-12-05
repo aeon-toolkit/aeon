@@ -4,7 +4,7 @@ __maintainer__ = ["baraline"]
 
 import numpy as np
 from numba.typed import List
-from numpy.testing import assert_array_almost_equal
+from numpy.testing import assert_array_almost_equal, assert_array_equal
 
 from aeon.similarity_search.subsequence_search._commons import (
     _inverse_distance_profile_list,
@@ -61,4 +61,57 @@ def test__inverse_distance_profile_list():
 
 def test__extract_top_k_from_dist_profile():
     """Test method to esxtract the top k candidates from a list of distance profiles."""
-    ...
+    X = List([
+        [5,4,3,3,1,3,2,5,1,4,1,0,1,2,2,7,8,1,5],
+        [5,1,0,1,0,0,5,4,3,5,6,1,4,2],
+    ])
+
+    top_k_indexes, top_k_distances = _extract_top_k_from_dist_profile(
+        X,
+        1,
+        np.inf,
+        False,
+        3
+    )
+    assert_array_equal(top_k_indexes, [[0,11]])
+    assert_array_equal(top_k_indexes, [0])
+    
+    top_k_indexes, top_k_distances = _extract_top_k_from_dist_profile(
+        X,
+        5,
+        np.inf,
+        False,
+        3
+    )
+    assert_array_equal(top_k_indexes, [[0,11],[1,2],[0,4],[0,17],[1,11]])
+    assert_array_equal(top_k_indexes, [0,0,1,1,1])
+
+    top_k_indexes, top_k_distances = _extract_top_k_from_dist_profile(
+        X,
+        5,
+        np.inf,
+        True,
+        3
+    )
+    assert_array_equal(top_k_indexes, [[0,11],[1,2],[1,4],[1,5],[0,4]])
+    assert_array_equal(top_k_indexes, [0,0,0,0,1])
+
+    top_k_indexes, top_k_distances = _extract_top_k_from_dist_profile(
+        X,
+        5,
+        0.5,
+        True,
+        3
+    )
+    assert_array_equal(top_k_indexes, [[0,11],[1,2],[1,4],[1,5]])
+    assert_array_equal(top_k_indexes, [0,0,0,0])
+
+    top_k_indexes, top_k_distances = _extract_top_k_from_dist_profile(
+        X,
+        5,
+        0.5,
+        False,
+        3
+    )
+    assert_array_equal(top_k_indexes, [[0,11],[1,2]])
+    assert_array_equal(top_k_indexes, [0,0])
