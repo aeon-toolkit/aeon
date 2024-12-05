@@ -30,7 +30,7 @@ The finance workgroup is responsible for managing the project's finances.
 ### Infrastructure Workgroup
 
 The infrastructure workgroup is responsible for managing the project's infrastructure
-and CI. Matthew Middlehurst leads the workgroup.
+and CI. Matthew Middlehurst is the current lead of the workgroup.
 
 ```{include} about/infrastructure_workgroup.md
 ```
