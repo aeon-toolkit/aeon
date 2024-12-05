@@ -98,7 +98,7 @@ class KASBA(BaseClusterer):
     >>> X = np.random.random(size=(10,2,20))
     >>> clst= KASBA(distance="msm",n_clusters=2)
     >>> clst.fit(X)
-    KASBA(distance='msm', n_clusters=2)
+    KASBA(n_clusters=2)
     >>> preds = clst.predict(X)
     ""
     """
