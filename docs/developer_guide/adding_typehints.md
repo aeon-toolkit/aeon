@@ -2,63 +2,55 @@
 
 ## Introduction to Type Hints
 
-Type hints are a way to indicate the expected data types of variables, function parameters, and return values in Python. They enhance code readability and help with static type checking, making it easier to catch errors before runtime. For more information, refer to [PEP 563](https://www.python.org/dev/peps/pep-0563/) which discusses forward references.
+Type hints are a way to indicate the expected data types of variables, function parameters, and return values in Python. They enhance code readability and help with static type checking, making it easier to catch errors before runtime.
 
 
 Type hints act as a form of documentation that helps developers understand the types of arguments a function expects and what it returns.
 
-Example:
-
-
-You can provide type hints for function parameters and return values. This helps other developers understand what types of arguments are expected by the function and what type the function returns.
 
 ## Basic Syntax
 
-Here are some examples of basic type hinting syntax:
+For example, here is a simple function whose argument and return type are declared in the annotations:
 
 
 ```python
-age: int = 20
-name: str = "Alice"
-is_active: bool = True
-
-def greet(name: str) -> str:
-    return f"Hello, {name}!"
-
-def add_numbers(a: int, b: int) -> int:
-    return a + b
-
-def get_user_data() -> dict[str, str]:
-    return {"username": "user1", "email": "user1@example.com"}
-
-
+def greeting(name: str) -> str:
+    return 'Hello ' + name
 ```
 
-Learn more about type hints [here](https://dagster.io/blog/python-type-hinting)
+
+Learn more about type hints in [python docs](https://docs.python.org/3/library/typing.html) and [PEP 484](https://peps.python.org/pep-0484/)
 
 
 # Dealing with Soft Dependency Type Hints
 
-## Introduction
-
-When working with models that have soft dependencies, it is essential to incorporate type hints effectively to maintain code clarity and functionality also it improves Early error detection and consistancy of the code
-
- The typing.TYPE_CHECKING constant ensures that imports for type hints are only evaluated when type-checking is done and NOT in the runtime. This prevents errors when the soft dependancies are not available. Here is an example that demonstrates it:
 
 
+When working with models that have soft dependencies, additional considerations are required to ensure that your code remains robust and maintainable. Soft dependencies are optional packages or modules that your application does not require at runtime but may be used in specific situations, such as during type-checking or when certain features are enabled.
+
+ The typing.TYPE_CHECKING constant ensures that imports for type hints are only evaluated when type-checking is done and NOT in the runtime. This prevents errors when the soft dependancies are not available. Here is an example that of [PyODAdapter](https://github.com/aeon-toolkit/aeon/blob/main/aeon/anomaly_detection/_pyodadapter.py): 
+ 
+ 
  ```python
- from typing import TYPE_CHECKING
+from aeon.anomaly_detection.base import BaseAnomalyDetector
+from aeon.utils.validation._dependencies import _check_soft_dependencies
+from typing import TYPE_CHECKING, Any
+
 
 if TYPE_CHECKING:
-    from optional_library import OptionalClass
-
-def process(data: "OptionalClass") -> None:
-    pass
-```
+    from pyod.models.base import BaseDetector
 
 
+class PyODAdapter(BaseAnomalyDetector):
+    ...
+    
+    def _is_pyod_model(model: Any) -> bool:
+        """Check if the provided model is a PyOD model."""
+        from pyod.models.base import BaseDetector
+
+        return isinstance(model, BaseDetector)
+   ...
+```    
 
 
-## Conclusion
 
-By following these best practices for using type hints in Python, developers can create clearer and more maintainable code. Implementing straightforward annotations and utilizing tools like `TYPE_CHECKING` will help manage dependencies effectively while enhancing overall code quality.
