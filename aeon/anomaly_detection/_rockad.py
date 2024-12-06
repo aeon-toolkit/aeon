@@ -2,6 +2,7 @@
 
 __all__ = ["ROCKAD"]
 
+import warnings
 from typing import Optional
 
 import numpy as np
@@ -141,7 +142,17 @@ class ROCKAD(BaseAnomalyDetector):
 
         if self.power_transform is True:
             self.power_transformer_ = PowerTransformer(standardize=False)
-            Xtp = self.power_transformer_.fit_transform(Xt)
+            try:
+                Xtp = self.power_transformer_.fit_transform(Xt)
+            except Exception as e:
+                warnings.warn(
+                    "Power Transform failed and thus has been disabled. "
+                    "Consider adjusting window_size and/or stride and retrying. "
+                    f"PowerTransformer failed: {e}. ",
+                    UserWarning,
+                    stacklevel=2,
+                )
+                Xtp = Xt  # Fallback to raw data
 
             self.Xtp = pd.DataFrame(Xtp)
 
