@@ -1,9 +1,11 @@
 <!--
 Thanks for contributing a pull request! Please ensure you have taken a look at our
-contribution guide: https://www.aeon-toolkit.org/en/stable/contributing.html
+contribution guide: https://www.aeon-toolkit.org/en/stable/contributing.html.
 
 Feel free to delete sections of this template if they do not apply to your PR,
 avoid submitting a blank template or empty sections.
+If you are a new contributor, do not delete this template without a suitable
+replacement or reason. If in doubt, ask for help. We're here to help!
 -->
 
 #### Reference Issues/PRs
@@ -32,18 +34,17 @@ to a minimum.
 #### Any other comments?
 
 <!--
-Please be aware that we are a loose team of volunteers so patience is
-necessary; assistance handling other issues is very welcome. We value all
-user contributions, no matter how minor they are. If we are slow to
-review, either the pull request needs some benchmarking, tinkering,
-convincing, etc. or more likely the reviewers are simply busy. In either
-case, we ask for your understanding during the review process.
+Please be aware that we are a team of volunteers so patience is
+necessary when waiting for a review or reply. While we value all contributions big or
+small, pull requests which do not follow our guidelines may be closed.
 -->
 
 ### PR checklist
 
 <!--
-Please go through the checklist below. Please feel free to remove points if they are not applicable.
+Please go through the checklist below. Please feel free to remove points if they are
+not applicable. To check a box, replace the space inside the square brackets with an
+'x' i.e. [x].
 -->
 
 ##### For all contributions
@@ -51,7 +52,7 @@ Please go through the checklist below. Please feel free to remove points if they
 - [ ] The PR title starts with either [ENH], [MNT], [DOC], [BUG], [REF], [DEP] or [GOV] indicating whether the PR topic is related to enhancement, maintenance, documentation, bugs, refactoring, deprecation or governance.
 
 ##### For new estimators and functions
-- [ ] I've added the estimator to the online [API documentation](https://www.aeon-toolkit.org/en/latest/api_reference.html).
+- [ ] I've added the estimator/function to the online [API documentation](https://www.aeon-toolkit.org/en/latest/api_reference.html).
 - [ ] (OPTIONAL) I've added myself as a `__maintainer__` at the top of relevant files and want to be contacted regarding its maintenance. Unmaintained files may be removed. This is for the full file, and you should not add yourself if you are just making minor changes or do not want to help maintain its contents.
 
 ##### For developers with write access
