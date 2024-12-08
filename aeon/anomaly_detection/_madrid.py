@@ -23,7 +23,7 @@ class MADRID(BaseAnomalyDetector):
         step_size=1,
         split_psn=None,
         look_ahead=None,
-        enable_output=False
+        enable_output=False,
     ):
         self.min_length = min_length
         self.max_length = max_length
@@ -57,13 +57,13 @@ class MADRID(BaseAnomalyDetector):
     def _check_params(self, X: np.ndarray) -> None:
         if self.step_size <= 0:
             raise ValueError("step_size must be greater than 0")
-        
+
         if X.shape[0] < self.min_length:
             raise ValueError(
                 f"Series length of X {X.shape[0]} is less than min_length "
                 f"{self.min_length}"
             )
-        
+
         if self._contains_constant_regions(X, self.min_length):
             error_message = (
                 "BREAK: There is at least one region of length min_length that is constant, or near constant.\n\n"
@@ -77,7 +77,6 @@ class MADRID(BaseAnomalyDetector):
 
         if not isinstance(self.enable_output, bool):
             raise ValueError(f"{self.enable_output} should be a boolean")
-
 
     def _inner_fit(self, X: np.ndarray) -> None:
         len_x = len(X)
@@ -223,7 +222,9 @@ class MADRID(BaseAnomalyDetector):
             execution_times.sort(key=lambda x: x[0])
 
             for _, factor in execution_times:
-                if (self.min_length + factor - 1) // factor >= 2 and (self.max_length + factor - 1) // factor >= 2:
+                if (self.min_length + factor - 1) // factor >= 2 and (
+                    self.max_length + factor - 1
+                ) // factor >= 2:
                     self.factor = factor
                     break
             else:
@@ -280,19 +281,175 @@ class MADRID(BaseAnomalyDetector):
 
         return bool_vec
 
-    def _dump_2_0(
-        self,
-        X,
-        subsequence_length,
-        *args
-    ):
+    def _dump_2_0(self, X, subsequence_length, *args):
         if self.look_ahead is None:
             self.look_ahead = 2 ** np.ceil(np.log2(16 * subsequence_length))
         left_mp = -np.inf * np.ones_like(X)
-        left_mp[:self.split_psn] = np.nan
+        left_mp[: self.split_psn] = np.nan
 
         best_so_far = -np.inf
         bool_vec = np.ones(len(X), dtype=bool)
+
+        for i in range(self.split_psn, self.split_psn + (16 * subsequence_length) + 1):
+            if not bool_vec[i]:
+                left_mp[i] = left_mp[i - 1] - 0.00001
+                continue
+            if i + subsequence_length - 1 > len(X):
+                break
+            query = X[i : i + subsequence_length]
+            left_mp[i] = np.min(np.real(self._mass_v2(X[:i], query)))
+
+            best_so_far = np.max(left_mp)
+
+            # If lookahead is 0, then it is a pure online algorithm with no pruning
+            if self.look_ahead != 0:
+                # Perform forward MASS for pruning
+                # The index at the beginning of the forward mass should be avoided in the exclusion zone
+                start_of_mass = min(i + subsequence_length, len(X))
+                end_of_mass = min(start_of_mass + self.look_ahead - 1, len(X))
+
+                # The length of lookahead should be longer than that of the query
+                if (end_of_mass - start_of_mass + 1) > subsequence_length:
+                    distance_profile = np.real(
+                        self._mass_v2(X[start_of_mass:end_of_mass], query)
+                    )
+
+                    # Find the subsequence indices less than the best so far discord score
+                    dp_index_less_than_BSF = np.where(distance_profile < best_so_far)[0]
+
+                    # Converting indexes on distance profile to indexes on time series
+                    ts_index_less_than_BSF = dp_index_less_than_BSF + start_of_mass - 1
+
+                    # Update the Boolean vector
+                    bool_vec[ts_index_less_than_BSF] = 0
+
+        # Remaining test data except for the prefix
+        for i in range(
+            self.split_psn + (16 * subsequence_length) + 1,
+            len(X) - subsequence_length + 1,
+        ):
+            if not bool_vec[i]:
+                left_mp[i] = left_mp[i - 1] - 0.00001
+                continue
+
+            # Initialization for classic DAMP
+            # Approximate leftMP value for the current subsequence
+            approximate_distance = float("inf")
+
+            # X indicates how long a time series to look backwards
+            X = 2 ** (8 * subsequence_length).bit_length()
+
+            # flag indicates if it is the first iteration of DAMP
+            flag = 1
+
+            # expansion_num indicates how many times the search has been expanded backward
+            expansion_num = 0
+
+            if i + subsequence_length - 1 > len(X):
+                break
+
+            # Extract the current subsequence from T
+            query = X[i : i + subsequence_length]
+
+            # Classic DAMP
+            while approximate_distance >= best_so_far:
+                # Case 1: Execute the algorithm on the time series segment farthest from the current subsequence
+                # Arrived at the beginning of the time series
+                if i - X + 1 + (expansion_num * subsequence_length) < 1:
+                    approximate_distance = min(np.real(self._mass_v2(X[:i], query)))
+                    left_mp[i] = approximate_distance
+                    # Update the best discord so far
+                    if approximate_distance > best_so_far:
+                        # The current subsequence is the best discord so far
+                        best_so_far = approximate_distance
+                    break
+                else:
+                    if flag == 1:
+                        # Case 2: Execute the algorithm on the time series segment closest to the current subsequence
+                        flag = 0
+                        approximate_distance = min(
+                            np.real(self._mass_v2(X[i - X + 1 : i], query))
+                        )
+                    else:
+                        # Case 3: All other cases
+                        X_start = i - X + 1 + (expansion_num * subsequence_length)
+                        X_end = i - (X // 2) + (expansion_num * subsequence_length)
+                        approximate_distance = min(
+                            np.real(self._mass_v2(X[X_start:X_end], query))
+                        )
+
+                    if approximate_distance < best_so_far:
+                        # If a value less than the current best discord score exists on the distance profile, stop searching
+                        left_mp[i] = approximate_distance
+                        break
+                    else:
+                        # Otherwise expand the search
+                        X *= 2
+                        expansion_num += 1
+
+            # If lookahead is 0, then it is a pure online algorithm with no pruning
+            if self.look_ahead  != 0:
+                # Perform forward MASS for pruning
+                # The index at the beginning of the forward MASS should be avoided in the exclusion zone
+                start_of_mass = min(i + subsequence_length, len(X))
+                end_of_mass = min(start_of_mass + self.look_ahead - 1, len(X))
+                
+                # The length of lookahead should be longer than that of the query
+                if (end_of_mass - start_of_mass + 1) > subsequence_length:
+                    distance_profile = np.real(self._mass_v2(X[start_of_mass:end_of_mass], query))
+                    
+                    # Find the subsequence indices less than the best so far discord score
+                    dp_index_less_than_BSF = np.where(distance_profile < best_so_far)[0]
+                    
+                    # Converting indexes on distance profile to indexes on time series
+                    ts_index_less_than_BSF = dp_index_less_than_BSF + start_of_mass - 1
+                    
+                    # Update the Boolean vector
+                    bool_vec[ts_index_less_than_BSF] = 0# Get pruning rate
+
+        PV = bool_vec[self.split_psn : (len(X) - subsequence_length + 1)]
+        PR = (len(PV) - sum(PV)) / len(PV)
+
+        # Get top discord
+        discord_score = max(left_mp)
+        position = left_mp.index(discord_score)
+
+            
+
+           
+
+    def _mass_v2(self, x, y):
+        # x is the data, y is the query
+        m = len(y)
+        n = len(x)
+
+        # Compute y stats -- O(n)
+        meany = np.mean(y)
+        sigmay = np.std(y, ddof=1)  # Use ddof=1 for sample standard deviation
+
+        # Compute x stats -- O(n)
+        meanx = np.convolve(x, np.ones(m) / m, mode="valid")  # Moving average
+        sigmax = np.sqrt(
+            np.convolve((x - np.mean(x)) ** 2, np.ones(m) / m, mode="valid")
+        )  # Moving std dev
+
+        y_reversed = y[::-1]  # Reverse the query
+        y_padded = np.pad(
+            y_reversed, (0, n - m), mode="constant", constant_values=0
+        )  # Append zeros
+
+        # The main trick of getting dot products in O(n log n) time
+        X = np.fft.fft(x)
+        Y = np.fft.fft(y_padded)
+        Z = X * Y
+        z = np.fft.ifft(Z).real  # Take the real part of the inverse FFT
+
+        dist = 2 * (
+            m - (z[m - 1 : n] - m * meanx[m - 1 :] * meany) / (sigmax[m - 1 :] * sigmay)
+        )
+        dist = np.sqrt(dist)
+
+        return dist
 
     def _test_data_madrid(self):
         np.random.seed(123456789)
