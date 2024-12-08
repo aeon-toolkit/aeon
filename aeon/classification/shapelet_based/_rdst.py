@@ -92,8 +92,6 @@ class RDSTClassifier(BaseClassifier):
         The unique class labels in the training set.
     n_classes_ : int
         The number of unique classes in the training set.
-    fit_time_  : int
-        The time (in milliseconds) for ``fit`` to run.
     transformed_data_ : list of shape (n_estimators) of ndarray
         The transformed training dataset for all classifiers. Only saved when
         ``save_transformed_data`` is `True`.
@@ -132,7 +130,6 @@ class RDSTClassifier(BaseClassifier):
         "capability:unequal_length": True,
         "capability:multithreading": True,
         "X_inner_type": ["np-list", "numpy3D"],
-        "non_deterministic": True,  # due to random_state bug in MacOS #324
         "algorithm_type": "shapelet",
     }
 

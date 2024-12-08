@@ -4,7 +4,7 @@ __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["ClassifierPipeline"]
 
 
-from aeon.base.estimator.compose.collection_pipeline import BaseCollectionPipeline
+from aeon.base._estimators.compose.collection_pipeline import BaseCollectionPipeline
 from aeon.classification.base import BaseClassifier
 
 
@@ -42,7 +42,7 @@ class ClassifierPipeline(BaseCollectionPipeline, BaseClassifier):
         the str is used to name the transformer.
         The objecst are cloned prior, as such the state of the input will not be
         modified by fitting the pipeline.
-    classifier : aeon or sklearn classifier
+    estimator : aeon or sklearn classifier
         A classifier to use at the end of the pipeline.
         The object is cloned prior, as such the state of the input will not be modified
         by fitting the pipeline.
@@ -68,7 +68,7 @@ class ClassifierPipeline(BaseCollectionPipeline, BaseClassifier):
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test = load_unit_test(split="test")
     >>> pipeline = ClassifierPipeline(
-    ...     Resizer(length=10), RocketClassifier(num_kernels=50)
+    ...     Resizer(length=10), RocketClassifier(n_kernels=50)
     ... )
     >>> pipeline.fit(X_train, y_train)
     ClassifierPipeline(...)

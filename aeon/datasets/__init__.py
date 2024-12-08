@@ -2,7 +2,7 @@
 
 __all__ = [
     # Load/download functions
-    "load_from_tsfile",
+    "load_from_ts_file",
     "load_from_tsf_file",
     "load_from_arff_file",
     "load_from_tsv_file",
@@ -15,7 +15,7 @@ __all__ = [
     "load_time_series_segmentation_benchmark",
     "load_human_activity_segmentation_datasets",
     # Write functions
-    "write_to_tsfile",
+    "write_to_ts_file",
     "write_to_arff_file",
     # Single problem loaders
     "load_airline",
@@ -36,7 +36,6 @@ __all__ = [
     "load_gun_point_segmentation",
     "load_electric_devices_segmentation",
     "load_acsf1",
-    "load_macroeconomic",
     "load_unit_test_tsf",
     "load_solar",
     "load_cardano_sentiment",
@@ -53,12 +52,12 @@ from aeon.datasets._data_loaders import (
     load_classification,
     load_forecasting,
     load_from_arff_file,
+    load_from_ts_file,
     load_from_tsf_file,
-    load_from_tsfile,
     load_from_tsv_file,
     load_regression,
 )
-from aeon.datasets._data_writers import write_to_arff_file, write_to_tsfile
+from aeon.datasets._data_writers import write_to_arff_file, write_to_ts_file
 from aeon.datasets._single_problem_loaders import (
     load_acsf1,
     load_airline,
@@ -73,7 +72,6 @@ from aeon.datasets._single_problem_loaders import (
     load_japanese_vowels,
     load_longley,
     load_lynx,
-    load_macroeconomic,
     load_osuleaf,
     load_PBS_dataset,
     load_plaid,

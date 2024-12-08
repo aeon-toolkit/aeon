@@ -7,7 +7,7 @@ __all__ = ["ClassifierEnsemble"]
 import numpy as np
 from sklearn.utils import check_random_state
 
-from aeon.base.estimator.compose.collection_ensemble import BaseCollectionEnsemble
+from aeon.base._estimators.compose.collection_ensemble import BaseCollectionEnsemble
 from aeon.classification.base import BaseClassifier
 from aeon.classification.sklearn._wrapper import SklearnClassifierWrapper
 from aeon.utils.sklearn import is_sklearn_classifier

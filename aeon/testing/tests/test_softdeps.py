@@ -1,23 +1,14 @@
 """Tests that soft dependencies are handled correctly in modules."""
 
-__maintainer__ = []
-
-import pkgutil
 import re
 from importlib import import_module
 
 import pytest
 
-import aeon
 from aeon.testing.testing_config import PR_TESTING
+from aeon.testing.tests import ALL_AEON_MODULES, ALL_AEON_MODULES_NO_TESTS
 
-# collect all modules
-modules = pkgutil.walk_packages(aeon.__path__, aeon.__name__ + ".")
-modules = [x[1] for x in modules]
-
-if PR_TESTING:  # pragma: no cover
-    # exclude test modules
-    modules = [x for x in modules if not any(part == "tests" for part in x.split("."))]
+modules = ALL_AEON_MODULES_NO_TESTS if PR_TESTING else ALL_AEON_MODULES
 
 
 def test_module_crawl():

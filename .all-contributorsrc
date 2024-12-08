@@ -2357,10 +2357,10 @@
       ]
     },
     {
-      "login": "codelionx",
+      "login": "SebastianSchmidl",
       "name": "Sebastian Schmidl",
       "avatar_url": "https://avatars.githubusercontent.com/u/10573700?v=4",
-      "profile": "https://github.com/codelionx",
+      "profile": "https://github.com/SebastianSchmidl",
       "contributions": [
         "bug",
         "code",
@@ -2598,6 +2598,34 @@
       "name": "Emmanuel Ferdman",
       "avatar_url": "https://avatars.githubusercontent.com/u/35470921?v=4",
       "profile": "https://github.com/emmanuel-ferdman",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "pattplatt",
+      "name": "Patrick Müller",
+      "avatar_url": "https://avatars.githubusercontent.com/u/55019140?v=4",
+      "profile": "https://github.com/pattplatt",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "ferewi",
+      "name": "Ferdinand Rewicki",
+      "avatar_url": "https://avatars.githubusercontent.com/u/3592978?v=4",
+      "profile": "https://github.com/ferewi",
+      "contributions": [
+        "code",
+        "bug"
+      ]
+    },
+    {
+      "login": "vedpawar2254",
+      "name": "ved pawar",
+      "avatar_url": "https://avatars.githubusercontent.com/u/85354558?v=4",
+      "profile": "https://github.com/vedpawar2254",
       "contributions": [
         "doc"
       ]

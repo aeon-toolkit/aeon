@@ -1,4 +1,10 @@
-"""Mock segmenters for testing."""
+"""Mock segmenters useful for testing and debugging."""
+
+__maintainer__ = []
+__all__ = [
+    "MockSegmenter",
+    "MockSegmenterRequiresY",
+]
 
 import numpy as np
 
@@ -42,7 +48,7 @@ class MockSegmenter(BaseSegmenter):
         return {}
 
 
-class SupervisedMockSegmenter(MockSegmenter):
+class MockSegmenterRequiresY(MockSegmenter):
     """Mock segmenter for testing."""
 
     _tags = {

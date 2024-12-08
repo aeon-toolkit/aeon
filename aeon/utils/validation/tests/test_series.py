@@ -2,161 +2,176 @@
 
 __maintainer__ = ["TonyBagnall"]
 
+from typing import Optional, Union
+
 import numpy as np
 import pandas as pd
 import pytest
 
+from aeon.testing.data_generation import (
+    make_example_1d_numpy,
+    make_example_2d_numpy_series,
+    make_example_3d_numpy,
+    make_example_3d_numpy_list,
+    make_example_dataframe_series,
+    make_example_pandas_series,
+)
 from aeon.utils.validation.series import (
-    _check_is_multivariate,
-    _check_pd_dataframe,
-    _common_checks,
-    check_consistent_index_type,
-    check_is_univariate,
     check_series,
-    check_time_index,
-    get_index_for_series,
-    is_pdmultiindex_hierarchical,
-    is_pred_interval_proba,
-    is_pred_quantiles_proba,
+    is_hierarchical,
+    is_single_series,
     is_univariate_series,
 )
 
 
 def test_is_univariate_series():
-    """Test Univariate Series."""
+    """Test is_univariate_series."""
     assert not is_univariate_series(None)
-    assert is_univariate_series(pd.Series([1, 2, 3, 4, 5]))
-    assert is_univariate_series(np.array([1, 2, 3, 4, 5]))
-    assert is_univariate_series(pd.DataFrame({"A": [1, 2, 3, 4, 5]}))
-    assert not is_univariate_series(
-        pd.DataFrame({"A": [1, 2, 3, 4, 5], "B": [6, 7, 8, 9, 10]})
-    )
-    assert not is_univariate_series(np.array([[1, 2, 3, 4, 5], [6, 7, 8, 9, 10]]))
+    assert is_univariate_series(make_example_pandas_series())
+    assert is_univariate_series(make_example_1d_numpy())
+    assert is_univariate_series(make_example_dataframe_series(n_channels=1))
+    assert not is_univariate_series(make_example_dataframe_series(n_channels=2))
+    assert not is_univariate_series(make_example_2d_numpy_series())
+    assert not is_univariate_series(make_example_3d_numpy())
+    assert not is_univariate_series(make_example_3d_numpy_list())
 
 
-def test__check_is_univariate():
-    """Test check_is_univariate."""
-    X = np.random.random(size=(10, 1, 20))
-    check_is_univariate(X)
-    X = np.random.random(size=(10, 3, 20))
-    with pytest.raises(ValueError, match="must be univariate"):
-        check_is_univariate(X)
+def test_is_hierarchical():
+    """Test is_hierarchical."""
+    assert is_hierarchical(_make_hierarchical())
+    assert not is_hierarchical(make_example_dataframe_series(n_channels=2))
+    assert not is_hierarchical(make_example_1d_numpy())
+    assert not is_hierarchical(make_example_2d_numpy_series())
+    assert not is_hierarchical(make_example_3d_numpy_list())
 
 
-def test__check_is_multivariate():
-    """Test _check_is_multivariate.
-
-    This function assumes ndarrays are in (n_timepoints, n_channels) shape.
-    """
-    X = pd.Series([1, 2, 3, 4, 5])
-    with pytest.raises(ValueError, match=" must have 2 or more variables, but found 1"):
-        _check_is_multivariate(X)
+def test_is_single_series():
+    """Test is_single_series."""
+    assert not is_single_series(None)
+    assert is_single_series(make_example_pandas_series())
+    assert is_single_series(make_example_1d_numpy())
+    assert is_univariate_series(make_example_dataframe_series(n_channels=1))
+    assert is_single_series(make_example_dataframe_series(n_channels=2))
+    assert is_single_series(make_example_2d_numpy_series())
+    assert not is_univariate_series(make_example_3d_numpy())
+    assert not is_univariate_series(make_example_3d_numpy_list())
 
 
 def test_check_series():
     """Test check_series."""
-    check_series(None)
-    with pytest.raises(ValueError, match="cannot be None"):
-        check_series(None, allow_None=False)
+    assert isinstance(make_example_pandas_series(), pd.Series)
+    assert isinstance(make_example_1d_numpy(), np.ndarray)
+    assert isinstance(make_example_dataframe_series(n_channels=2), pd.DataFrame)
+    with pytest.raises(ValueError, match="Input type of y should be one "):
+        check_series(None)
+    # check
 
 
-def test_check_time_index():
-    """Test check_time_index."""
-    x = np.array([1, 2, 3, 4, 5])
-    with pytest.raises(NotImplementedError, match="is not supported"):
-        check_time_index("HELLO")
-    with pytest.raises(NotImplementedError, match="is not supported"):
-        check_time_index(x, enforce_index_type=pd.Series)
-    x = np.array([1, 2, 3, 5, 4])
-    with pytest.raises(ValueError, match="must be sorted monotonically increasing"):
-        check_time_index(x)
-    x = pd.RangeIndex(0)
-    with pytest.raises(ValueError, match="must contain at least some values"):
-        check_time_index(x)
+def _make_hierarchical(
+    hierarchy_levels: tuple = (2, 4),
+    max_timepoints: int = 12,
+    min_timepoints: int = 12,
+    same_cutoff: bool = True,
+    n_columns: int = 1,
+    all_positive: bool = True,
+    index_type: Optional[str] = None,
+    random_state: Optional[Union[int, np.random.RandomState]] = None,
+    add_nan: bool = False,
+) -> pd.DataFrame:
+    """Generate hierarchical multiindex type for testing.
 
+    Parameters
+    ----------
+    hierarchy_levels : Tuple, optional
+        the number of groups at each hierarchy level, by default (2, 4)
+    max_timepoints : int, optional
+        maximum time points a series can have, by default 12
+    min_timepoints : int, optional
+        minimum time points a seires can have, by default 12
+    same_cutoff : bool, optional
+        If it's True all series will end at the same date, by default True
+    n_columns : int, optional
+        number of columns in the output dataframe, by default 1
+    all_positive : bool, optional
+        If True the time series will be , by default True
+    index_type : str, optional
+        type of index, by default None
+        Supported types are "period", "datetime", "range" or "int".
+        If it's not provided, "datetime" is selected.
+    random_state : int, np.random.RandomState or None
+        Controls the randomness of the estimator, by default None
+    add_nan : bool, optional
+        If it's true the series will contain NaNs, by default False
 
-def test_check_consistent_index_type():
-    """Test check_consistent_index_type."""
-    index1 = pd.RangeIndex(start=0, stop=5)
-    index2 = pd.Index(["A", "B", "C", "D", "E"])
+    Returns
+    -------
+    pd.DataFrame
+        hierarchical dataframe
+    """
+    from itertools import product
 
-    # An exception should be raised because index types are inconsistent
-    with pytest.raises(TypeError):
-        check_consistent_index_type(index1, index2)
+    from sklearn.utils import check_random_state
 
+    def _make_index(n_timepoints, index_type=None):
+        """Make indices for unit testing."""
+        if index_type == "period":
+            start = "2000-01"
+            freq = "M"
+            return pd.period_range(start=start, periods=n_timepoints, freq=freq)
 
-def test_df_checks():
-    """Test check_pd_dataframe function."""
-    data = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
-    df = pd.DataFrame(data)
-    n1 = np.random.random(size=(10, 10))
-    _check_pd_dataframe(df)
-    assert _common_checks(df)
-    assert not _common_checks(n1)
-    assert not is_pred_interval_proba(n1)
-    assert not is_pred_quantiles_proba(n1)
-    assert not is_pdmultiindex_hierarchical(n1)
-    assert isinstance(get_index_for_series(n1), pd.RangeIndex)
-    assert isinstance(get_index_for_series(df), pd.RangeIndex)
+        elif index_type == "datetime" or index_type is None:
+            start = "2000-01-01"
+            freq = "D"
+            return pd.date_range(start=start, periods=n_timepoints, freq=freq)
 
-    columns = ["A", "B", "B"]  # Notice the duplicate column name 'B'
-    df = pd.DataFrame(data, columns=columns)
-    assert not _common_checks(df)
-    with pytest.raises(ValueError, match="must have unique column indices"):
-        _check_pd_dataframe(df)
+        elif index_type == "range":
+            start = 3  # check non-zero based indices
+            return pd.RangeIndex(start=start, stop=start + n_timepoints)
 
-    index_strings = ["a", "b", "c"]
-    # Creating the DataFrame
-    df = pd.DataFrame(data, index=index_strings)
-    with pytest.raises(ValueError, match="is not supported for series"):
-        _check_pd_dataframe(df)
-    data = {
-        "Column1": [1, 2, {"a": 1, "b": 2}],
-        # The third entry is a dictionary, which is an object
-        "Column2": ["A", "B", "C"],
-    }
-    # Creating the DataFrame
-    df = pd.DataFrame(data)
-    with pytest.raises(ValueError, match="should not have column of 'object' dtype"):
-        _check_pd_dataframe(df)
-    assert not _common_checks(df)
-    index_non_monotonic = [1, 3, 2, 5, 4]  # This index is not monotonic increasing
-    data = {"Column1": [10, 20, 30, 40, 50], "Column2": ["A", "B", "C", "D", "E"]}
+        elif index_type == "int":
+            start = 3
+            return pd.Index(np.arange(start, start + n_timepoints), dtype=int)
 
-    # Creating the DataFrame
-    df = pd.DataFrame(data, index=index_non_monotonic)
-    assert not _common_checks(df)
+        else:
+            raise ValueError(f"index_class: {index_type} is not supported")
 
+    levels = [
+        [f"h{i}_{j}" for j in range(hierarchy_levels[i])]
+        for i in range(len(hierarchy_levels))
+    ]
+    level_names = [f"h{i}" for i in range(len(hierarchy_levels))]
+    rng = check_random_state(random_state)
+    if min_timepoints == max_timepoints:
+        time_index = _make_index(max_timepoints, index_type)
+        index = pd.MultiIndex.from_product(
+            levels + [time_index], names=level_names + ["time"]
+        )
+    else:
+        df_list = []
+        for levels_tuple in product(*levels):
+            n_timepoints = rng.randint(low=min_timepoints, high=max_timepoints)
+            if same_cutoff:
+                time_index = _make_index(max_timepoints, index_type)[-n_timepoints:]
+            else:
+                time_index = _make_index(n_timepoints, index_type)
+            d = dict(zip(level_names, levels_tuple))
+            d["time"] = time_index
+            df_list.append(pd.DataFrame(d))
+        index = pd.MultiIndex.from_frame(
+            pd.concat(df_list), names=level_names + ["time"]
+        )
 
-def test_is_pred_interval_proba():
-    """Test is_pred_interval_proba."""
-    # Create a correct MultiIndex DataFrame
-    idx = pd.MultiIndex.from_tuples(
-        [(1, 0.9, "upper"), (1, 0.9, "lower")], names=["level_0", "coverage", "bound"]
+    total_time_points = len(index)
+    data = rng.normal(size=(total_time_points, n_columns))
+    if add_nan:
+        # add some nan values
+        data[int(len(data) / 2)] = np.nan
+        data[0] = np.nan
+        data[-1] = np.nan
+    if all_positive:
+        data -= np.min(data, axis=0) - 1
+    df = pd.DataFrame(
+        data=data, index=index, columns=[f"c{i}" for i in range(n_columns)]
     )
-    df_correct = pd.DataFrame([[0.1, 0.2]], columns=idx)
 
-    # Create a DataFrame with incorrect MultiIndex levels
-    idx_wrong_levels = pd.MultiIndex.from_tuples(
-        [(1, "upper"), (1, "lower")], names=["level_0", "bound"]
-    )
-    df_wrong_levels = pd.DataFrame([[0.1, 0.2]], columns=idx_wrong_levels)
-
-    # Create a DataFrame with incorrect data type in coverage level
-    idx_wrong_dtype = pd.MultiIndex.from_tuples(
-        [(1, "0.9", "upper"), (1, "0.9", "lower")],
-        names=["level_0", "coverage", "bound"],
-    )
-    df_wrong_dtype = pd.DataFrame([[0.1, 0.2]], columns=idx_wrong_dtype)
-
-    # Create a DataFrame with incorrect coverage values
-    idx_wrong_values = pd.MultiIndex.from_tuples(
-        [(1, 1.5, "upper"), (1, -0.1, "lower")], names=["level_0", "coverage", "bound"]
-    )
-    df_wrong_values = pd.DataFrame([[0.1, 0.2]], columns=idx_wrong_values)
-
-    # Assertions
-    assert is_pred_interval_proba(df_correct)
-    assert not is_pred_interval_proba(df_wrong_levels)
-    assert not is_pred_interval_proba(df_wrong_dtype)
-    assert not is_pred_interval_proba(df_wrong_values)
+    return df

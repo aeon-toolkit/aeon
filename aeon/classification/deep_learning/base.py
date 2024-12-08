@@ -47,6 +47,7 @@ class BaseDeepClassifier(BaseClassifier):
         "python_dependencies": "tensorflow",
     }
 
+    @abstractmethod
     def __init__(
         self,
         batch_size=40,

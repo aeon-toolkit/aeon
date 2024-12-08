@@ -12,11 +12,14 @@ from aeon.testing.testing_data import (
     EQUAL_LENGTH_UNIVARIATE_REGRESSION,
     UNEQUAL_LENGTH_UNIVARIATE_REGRESSION,
 )
-from aeon.utils import COLLECTIONS_DATA_TYPES
+from aeon.utils.data_types import COLLECTIONS_DATA_TYPES
 
 
 class _TestRegressor(BaseRegressor):
     """Dummy regressor for testing base class fit/predict."""
+
+    def __init__(self):
+        super().__init__()
 
     def _fit(self, X, y):
         """Fit dummy."""
@@ -37,6 +40,9 @@ class _DummyHandlesAllInput(BaseRegressor):
         "X_inner_type": ["np-list", "numpy3D"],
     }
 
+    def __init__(self):
+        super().__init__()
+
     def _fit(self, X, y):
         """Fit dummy."""
         return self
@@ -55,6 +61,9 @@ class _TestHandlesAllInput(BaseRegressor):
         "capability:missing_values": True,
         "X_inner_type": ["np-list", "numpy3D"],
     }
+
+    def __init__(self):
+        super().__init__()
 
     def _fit(self, X, y):
         """Fit dummy."""
@@ -114,7 +123,7 @@ def test_unequal_length_input(data):
         dummy = _TestRegressor()
         X = UNEQUAL_LENGTH_UNIVARIATE_REGRESSION[data]["train"][0]
         y = np.random.random(size=10)
-        with pytest.raises(ValueError, match=r"cannot handle unequal length series"):
+        with pytest.raises(ValueError, match=r"has unequal length series, but"):
             dummy.fit(X, y)
         dummy = _TestHandlesAllInput()
         _assert_fit_predict(dummy, X, y)

@@ -142,4 +142,4 @@ def _print_results_for_regressor(regressor_name, dataset_name):
 
 if __name__ == "__main__":
     # change as required when adding new classifiers, datasets or updating results
-    _print_results_for_regressor("RISTRegressor", "Covid3Month")
+    _print_results_for_regressor("RDSTRegressor", "Covid3Month")

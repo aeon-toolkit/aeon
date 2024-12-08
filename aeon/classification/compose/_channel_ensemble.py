@@ -10,7 +10,7 @@ __all__ = ["ClassifierChannelEnsemble"]
 import numpy as np
 from sklearn.utils import check_random_state
 
-from aeon.base.estimator.compose.collection_channel_ensemble import (
+from aeon.base._estimators.compose.collection_channel_ensemble import (
     BaseCollectionChannelEnsemble,
 )
 from aeon.classification.base import BaseClassifier

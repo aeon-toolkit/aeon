@@ -1,6 +1,6 @@
 """k-Means anomaly detector."""
 
-__maintainer__ = ["CodeLionX"]
+__maintainer__ = ["SebastianSchmidl"]
 __all__ = ["KMeansAD"]
 
 from typing import Optional
