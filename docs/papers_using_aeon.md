@@ -37,6 +37,10 @@ the paper and a link to the code in your personal GitHub or other repository.
   with k-medoids based algorithms. In International Workshop on Advanced Analytics and
   Learning on Temporal Data (pp. 39-55).
   [Paper](https://link.springer.com/chapter/10.1007/978-3-031-49896-1_4)
+- Holder, Christopher & Bagnall, Anthony. (2024).
+  Rock the KASBA: Blazingly Fast and Accurate Time Series Clustering.
+  10.48550/arXiv.2411.17838.
+[Paper](https://arxiv.org/abs/2411.17838)
 
 ## Regression
 

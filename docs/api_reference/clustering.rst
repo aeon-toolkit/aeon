@@ -18,6 +18,7 @@ Clustering Algorithms
     :toctree: auto_generated/
     :template: class.rst
 
+    KASBA
     TimeSeriesKMeans
     TimeSeriesKMedoids
     TimeSeriesKShape
@@ -76,6 +77,7 @@ Averaging
     :toctree: auto_generated/
     :template: function.rst
 
+    kasba_average
     elastic_barycenter_average
     mean_average
     petitjean_barycenter_average
