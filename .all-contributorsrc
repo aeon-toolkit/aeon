@@ -2620,6 +2620,15 @@
         "code",
         "bug"
       ]
+    },
+    {
+      "login": "vedpawar2254",
+      "name": "ved pawar",
+      "avatar_url": "https://avatars.githubusercontent.com/u/85354558?v=4",
+      "profile": "https://github.com/vedpawar2254",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "commitType": "docs"
