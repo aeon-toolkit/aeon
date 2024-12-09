@@ -32,6 +32,8 @@ When working with models that have soft dependencies, additional considerations 
 
 
  ```python
+from __future__ import annotations
+
 from aeon.anomaly_detection.base import BaseAnomalyDetector
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 from typing import TYPE_CHECKING, Any
