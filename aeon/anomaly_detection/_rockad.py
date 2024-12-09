@@ -132,7 +132,7 @@ class ROCKAD(BaseAnomalyDetector):
             )
 
     def _inner_fit(self, X: np.ndarray) -> None:
-
+        self._use_power_transform = self.power_transform
         if X.shape[0] < self.n_neighbors:
             raise ValueError(
                 f"Window count ({X.shape[0]}) has to be larger than "
@@ -153,7 +153,7 @@ class ROCKAD(BaseAnomalyDetector):
         Xt = Xt.astype("float64")
         self.Xtp = None  # X: values, t: (rocket) transformed, p: power transformed
 
-        if self.power_transform is True:
+        if self._use_power_transform is True:
             self.power_transformer_ = PowerTransformer(standardize=False)
             try:
                 self.Xtp = self.power_transformer_.fit_transform(Xt)
@@ -166,7 +166,7 @@ class ROCKAD(BaseAnomalyDetector):
                     stacklevel=2,
                 )
                 self.Xtp = Xt  # Fallback to raw data
-                self.power_transform = False
+                self._use_power_transform = False
             self.Xtp_df = pd.DataFrame(self.Xtp)
 
         else:
@@ -174,7 +174,7 @@ class ROCKAD(BaseAnomalyDetector):
 
         Xtp_scaled = None
 
-        if self.power_transform is True:
+        if self._use_power_transform is True:
 
             inf_columns = self.Xtp_df.columns[np.isinf(self.Xtp_df).any(axis=0)]
             self.Xtp_df = self.Xtp_df.drop(columns=inf_columns)
@@ -261,7 +261,7 @@ class ROCKAD(BaseAnomalyDetector):
         Xt = self.rocket_transformer_.transform(X)
         Xtp_scaled = None
 
-        if self.power_transform is True:
+        if self._use_power_transform is True:
             # Power Transform using yeo-johnson
             Xtp = self.power_transformer_.transform(Xt)
             Xtp_df = pd.DataFrame(Xtp)
