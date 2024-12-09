@@ -23,6 +23,9 @@ class ROCKAD(BaseAnomalyDetector):
     ROCKAD leverages the ROCKET transformation for feature extraction from
     time series data and applies the scikit learn k-nearest neighbors (k-NN)
     approach with bootstrap aggregation for robust anomaly detection.
+    After windowing the data, the data gets transformed into the ROCKET feature space.
+    Then the windows are compared based on the feature space by
+    finding the nearest neighbours.
 
     This class supports both univariate and multivariate time series and
     provides options for normalizing features, applying power transformations,
@@ -103,7 +106,7 @@ class ROCKAD(BaseAnomalyDetector):
         self.estimator_: Optional[NearestNeighbors] = None
         self.scaler_: Optional[StandardScaler] = None
         self.power_transformer_: Optional[PowerTransformer] = None
-        self.n_inf_cols_: Optional[list] = None
+        self.inf_columns_ = None
 
     def _fit(self, X: np.ndarray, y: Optional[np.ndarray] = None) -> "ROCKAD":
         self._check_params(X)
@@ -129,6 +132,15 @@ class ROCKAD(BaseAnomalyDetector):
             )
 
     def _inner_fit(self, X: np.ndarray) -> None:
+
+        if X.shape[0] < self.n_neighbors:
+            raise ValueError(
+                f"Window count ({X.shape[0]}) has to be larger than "
+                f"n_neighbors ({self.n_neighbors})."
+                "Please choose a smaller n_neighbors value or increase window count "
+                "by choosing a smaller window size or larger stride."
+            )
+
         self.rocket_transformer_ = Rocket(
             n_kernels=self.n_kernels,
             normalise=self.normalise,
@@ -137,13 +149,14 @@ class ROCKAD(BaseAnomalyDetector):
         )
 
         Xt = self.rocket_transformer_.fit_transform(X)
+
         Xt = Xt.astype("float64")
         self.Xtp = None  # X: values, t: (rocket) transformed, p: power transformed
 
         if self.power_transform is True:
             self.power_transformer_ = PowerTransformer(standardize=False)
             try:
-                Xtp = self.power_transformer_.fit_transform(Xt)
+                self.Xtp = self.power_transformer_.fit_transform(Xt)
             except Exception as e:
                 warnings.warn(
                     "Power Transform failed and thus has been disabled. "
@@ -152,36 +165,24 @@ class ROCKAD(BaseAnomalyDetector):
                     UserWarning,
                     stacklevel=2,
                 )
-                Xtp = Xt  # Fallback to raw data
-
-            self.Xtp = pd.DataFrame(Xtp)
+                self.Xtp = Xt  # Fallback to raw data
+                self.power_transform = False
+            self.Xtp_df = pd.DataFrame(self.Xtp)
 
         else:
-            self.Xtp = pd.DataFrame(Xt)
+            self.Xtp_df = pd.DataFrame(Xt)
 
         Xtp_scaled = None
 
         if self.power_transform is True:
-            # Check for infinite columns and get indices
-            self.n_inf_cols_ = []
-            self._check_inf_values(self.Xtp)
-            # Remove infinite columns
-            self.Xtp = self.Xtp[
-                self.Xtp.columns[~self.Xtp.columns.isin(self.n_inf_cols_)]
-            ]
 
-            # Fit Scaler
+            inf_columns = self.Xtp_df.columns[np.isinf(self.Xtp_df).any(axis=0)]
+            self.Xtp_df = self.Xtp_df.drop(columns=inf_columns)
+            self.inf_columns_ = inf_columns
             self.scaler_ = StandardScaler()
-            Xtp_scaled = self.scaler_.fit_transform(self.Xtp)
-
-            Xtp_scaled = pd.DataFrame(Xtp_scaled, columns=self.Xtp.columns)
-
-            self._check_inf_values(Xtp_scaled)
-
-            Xtp_scaled = Xtp_scaled.astype(np.float64).to_numpy()
-
+            Xtp_scaled = self.scaler_.fit_transform(self.Xtp_df)
         else:
-            Xtp_scaled = self.Xtp.astype(np.float64).to_numpy()
+            Xtp_scaled = self.Xtp_df.astype(np.float64)
 
         self.list_baggers = []
 
@@ -201,6 +202,8 @@ class ROCKAD(BaseAnomalyDetector):
                 random_state=self.random_state + idx_estimator,
                 stratify=None,
             )
+
+            Xtp_scaled_sample = Xtp_scaled_sample
 
             # Fit estimator and append to estimator list
             self.estimator.fit(Xtp_scaled_sample)
@@ -261,22 +264,17 @@ class ROCKAD(BaseAnomalyDetector):
         if self.power_transform is True:
             # Power Transform using yeo-johnson
             Xtp = self.power_transformer_.transform(Xt)
-            Xtp = pd.DataFrame(Xtp)
+            Xtp_df = pd.DataFrame(Xtp)
 
-            # Check for infinite columns and remove them
-            self._check_inf_values(Xtp)
-            Xtp = Xtp[Xtp.columns[~Xtp.columns.isin(self.n_inf_cols_)]]
-            Xtp_temp = Xtp.copy()
+            Xtp_df = Xtp_df.drop(columns=self.inf_columns_, errors="ignore")
 
-            # Scale the data
-            Xtp_scaled = self.scaler_.transform(Xtp_temp)
-            Xtp_scaled = pd.DataFrame(Xtp_scaled, columns=Xtp_temp.columns)
+            Xtp_df = replace_inf_and_nan(Xtp_df)
 
-            # Check for infinite columns and remove them
-            self._check_inf_values(Xtp_scaled)
-            Xtp_scaled = Xtp_scaled[
-                Xtp_scaled.columns[~Xtp_scaled.columns.isin(self.n_inf_cols_)]
-            ]
+            Xtp_scaled = self.scaler_.transform(Xtp_df)
+            Xtp_scaled = pd.DataFrame(Xtp_scaled, columns=Xtp_df.columns)
+
+            Xtp_scaled = replace_inf_and_nan(Xtp_scaled)
+
             Xtp_scaled = Xtp_scaled.astype(np.float64).to_numpy()
 
         else:
@@ -285,29 +283,44 @@ class ROCKAD(BaseAnomalyDetector):
         for idx, bagger in enumerate(self.list_baggers):
             # Get scores from each estimator
             distances, _ = bagger.kneighbors(Xtp_scaled)
+
             # Compute mean distance of nearest points in window
             scores = distances.mean(axis=1).reshape(-1, 1)
             scores = scores.squeeze()
+
             y_scores[:, idx] = scores
 
         # Average the scores to get the final score for each time series
         y_scores = y_scores.mean(axis=1)
+
         return y_scores
 
-    def _check_inf_values(self, X):
-        """
-        Check for infinite values in X and update the infinite columns list.
 
-        Parameters
-        ----------
-            X (array-like): The input data.
+def replace_inf_and_nan(df, inf_replacement=0.0, nan_replacement=0.0):
+    """
+    Replace infinite and NaN values in the given DataFrame with specified values.
 
-        Returns
-        -------
-            bool: True if there are infinite values, False otherwise.
+    Parameters
+    ----------
+    df : pd.DataFrame
+        The input DataFrame to process.
+    inf_replacement : float or int, optional
+        The value to replace infinite values with. Default is 0.0.
+    nan_replacement : float or int, optional
+        The value to replace NaN values with. Default is 0.0.
 
-        """
-        if np.isinf(X[X.columns[~X.columns.isin(self.n_inf_cols_)]]).any(axis=0).any():
-            self.n_inf_cols_.extend(X.columns.to_series()[np.isinf(X).any()])
-            self.fit_estimators()
-            return True
+    Returns
+    -------
+    pd.DataFrame
+        The modified DataFrame with no infinite or NaN values.
+    """
+    # Replace infinite values
+    infinite_mask = np.isinf(df)
+    if infinite_mask.any().any():
+        df[infinite_mask] = inf_replacement
+
+    # Replace NaN values
+    if df.isna().any().any():
+        df = df.fillna(nan_replacement)
+
+    return df
