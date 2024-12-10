@@ -79,6 +79,7 @@ Detectors
     MERLIN
     OneClassSVM
     PyODAdapter
+    ROCKAD
     STOMP
     STRAY
 
