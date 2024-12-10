@@ -4,6 +4,7 @@ import numpy as np
 from numpy.random import RandomState
 from sklearn.utils.random import check_random_state
 
+from aeon.clustering._clustering_tags import ClusteringAlgorithmType
 from aeon.clustering.base import BaseClusterer
 from aeon.distances import get_alignment_path_function, pairwise_distance
 
@@ -148,7 +149,7 @@ class ElasticSOM(BaseClusterer):
 
     _tags = {
         "capability:multivariate": True,
-        "algorithm_type": "distance",
+        "algorithm_type": ClusteringAlgorithmType.DISTANCE,
     }
 
     def __init__(

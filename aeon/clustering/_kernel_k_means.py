@@ -5,6 +5,7 @@ from typing import Optional, Union
 import numpy as np
 from numpy.random import RandomState
 
+from aeon.clustering._clustering_tags import ClusteringAlgorithmType
 from aeon.clustering.base import BaseClusterer
 
 
@@ -86,7 +87,7 @@ class TimeSeriesKernelKMeans(BaseClusterer):
     _tags = {
         "capability:multivariate": True,
         "capability:multithreading": True,
-        "python_dependencies": "tslearn",
+        "python_dependencies": ClusteringAlgorithmType.TSLEARN.value,
     }
 
     def __init__(
