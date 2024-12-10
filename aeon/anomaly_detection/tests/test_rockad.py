@@ -16,7 +16,6 @@ def test_rockad_univariate():
     ad = ROCKAD(
         n_estimators=100,
         n_kernels=10,
-        normalise=True,
         n_neighbors=9,
         power_transform=True,
         window_size=20,
@@ -40,7 +39,6 @@ def test_rockad_multivariate():
     ad = ROCKAD(
         n_estimators=1000,
         n_kernels=100,
-        normalise=True,
         n_neighbors=20,
         power_transform=True,
         window_size=10,
@@ -64,4 +62,9 @@ def test_rockad_incorrect_input():
         ad.fit_predict(series)
     with pytest.raises(ValueError, match="The stride must be at least 1"):
         ad = ROCKAD(stride=0)
+        ad.fit_predict(series)
+    with pytest.raises(
+        ValueError, match=r"Window count .* has to be larger than n_neighbors .*"
+    ):
+        ad = ROCKAD(stride=1, window_size=100)
         ad.fit_predict(series)
