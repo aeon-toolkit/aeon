@@ -91,13 +91,14 @@ class ETSForecaster(BaseForecaster):
         if seasonality_type == NONE:
             self.gamma = 0
         self.forecast_val_ = 0.0
-        self.level = (0,)
-        self.trend = (0,)
+        self.level = 0
+        self.trend = 0
         self.seasonality = np.zeros(1, dtype=np.float64)
         self.n_timepoints = 0
         self.avg_mean_sq_err_ = 0
         self.liklihood_ = 0
         self.residuals_ = []
+        self.fitted_values_ = []
         self.error_type = error_type
         self.trend_type = trend_type
         self.seasonality_type = seasonality_type
@@ -127,6 +128,7 @@ class ETSForecaster(BaseForecaster):
             self.trend,
             self.seasonality,
             self.residuals_,
+            self.fitted_values_,
             self.avg_mean_sq_err_,
             self.liklihood_,
         ) = _fit(
@@ -186,12 +188,9 @@ def _fit(
     gamma,
     phi,
 ):
+    if seasonality_type == NONE:
+        seasonal_period = 1
     n_timepoints = len(data)
-    # print(typeof(self.states.level))
-    # print(typeof(data))
-    # print(typeof(self.states.seasonality))
-    # print(typeof(np.full(self.model_type.seasonal_period, self.states.level)))
-    # print(typeof(data[: self.model_type.seasonal_period]))
     level, trend, seasonality = _initialise(
         trend_type, seasonality_type, seasonal_period, data
     )
@@ -199,6 +198,7 @@ def _fit(
     liklihood_ = 0
     mul_liklihood_pt2 = 0
     residuals_ = np.zeros(n_timepoints)  # 1 Less residual than data points
+    fitted_values_ = np.zeros(n_timepoints)
     for t, data_item in enumerate(data[seasonal_period:]):
         # Calculate level, trend, and seasonal components
         fitted_value, error, level, trend, seasonality[t % seasonal_period] = (
@@ -216,7 +216,8 @@ def _fit(
                 phi,
             )
         )
-        residuals_[t] = error
+        residuals_[t + seasonal_period] = error
+        fitted_values_[t + seasonal_period] = fitted_value
         avg_mean_sq_err_ += (data_item - fitted_value) ** 2
         liklihood_ += error * error
         mul_liklihood_pt2 += np.log(np.fabs(fitted_value))
@@ -224,7 +225,15 @@ def _fit(
     liklihood_ = (n_timepoints - seasonal_period) * np.log(liklihood_)
     if error_type == MULTIPLICATIVE:
         liklihood_ += 2 * mul_liklihood_pt2
-    return level, trend, seasonality, residuals_, avg_mean_sq_err_, liklihood_
+    return (
+        level,
+        trend,
+        seasonality,
+        residuals_,
+        fitted_values_,
+        avg_mean_sq_err_,
+        liklihood_,
+    )
 
 
 def _predict(

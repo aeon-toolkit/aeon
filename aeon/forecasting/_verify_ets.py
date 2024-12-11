@@ -1,3 +1,5 @@
+"""Script to test ETS implementation against ETS implementations from other modules."""
+
 import random
 import time
 import timeit
@@ -51,7 +53,7 @@ def obscure_statsforecast_version(
     nmse: int,
 ):
     """Hide the differences between different statsforecast versions."""
-    amse, e, x, lik = pegelsresid_C(
+    amse, e, _x, lik = pegelsresid_C(
         y[m:],
         m,
         init_state,
@@ -115,7 +117,9 @@ def test_ets_comparison(setup_func, random_seed, catch_errors):
     amse_fitets = f1.avg_mean_sq_err_
     lik_fitets = f1.liklihood_
     f1 = ETSForecaster(ModelType(error, trend, season, m), alpha, beta, gamma, phi, 1)
+    # pylint: disable=W0212
     f1._initialise(y)
+    # pylint: enable=W0212
     init_states_etscalc = np.zeros(len(y) * (1 + (trend > 0) + m * (season > 0) + 1))
     init_states_etscalc[0] = f1.level_
     init_states_etscalc[1] = f1.trend_
@@ -191,10 +195,18 @@ def time_etsnoopt():
 def time_etsfast_noclass():
     """Test function for optimised ets algorithm without the class based structure."""
     data = np.array(ap.squeeze(), dtype=np.float64)
-    (level, trend, seasonality, residuals_, avg_mean_sq_err_, liklihood_) = (
-        etsfast._fit(data, 2, 2, 2, 4, 0.1, 0.01, 0.01, 0.99)
-    )
+    # pylint: disable=W0212
+    (
+        level,
+        trend,
+        seasonality,
+        _residuals,
+        _fitted_values,
+        _avg_mean_sq_err,
+        _liklihood,
+    ) = etsfast._fit(data, 2, 2, 2, 4, 0.1, 0.01, 0.01, 0.99)
     etsfast._predict(2, 2, level, trend, seasonality, 0.99, 1, 144, 4)
+    # pylint: enable=W0212
 
 
 def time_sf():
