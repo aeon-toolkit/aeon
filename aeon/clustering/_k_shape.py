@@ -5,6 +5,7 @@ from typing import Optional, Union
 import numpy as np
 from numpy.random import RandomState
 
+from aeon.clustering._clustering_tags import ClusteringAlgorithmType
 from aeon.clustering.base import BaseClusterer
 
 
@@ -69,8 +70,8 @@ class TimeSeriesKShape(BaseClusterer):
 
     _tags = {
         "capability:multivariate": True,
-        "python_dependencies": "tslearn",
-        "algorithm_type": "distance",
+        "python_dependencies": ClusteringAlgorithmType.TSLEARN.value,
+        "algorithm_type": ClusteringAlgorithmType.DISTANCE,
     }
 
     def __init__(

@@ -2,6 +2,8 @@
 
 from typing import Optional
 
+from aeon.clustering._clustering_tags import ClusteringAlgorithmType
+
 __maintainer__ = []
 
 import warnings
@@ -146,7 +148,7 @@ class TimeSeriesKMedoids(BaseClusterer):
 
     _tags = {
         "capability:multivariate": True,
-        "algorithm_type": "distance",
+        "algorithm_type": ClusteringAlgorithmType.DISTANCE,
     }
 
     def __init__(

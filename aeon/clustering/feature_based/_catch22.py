@@ -11,6 +11,7 @@ from sklearn.cluster import KMeans
 
 from aeon.base._base import _clone_estimator
 from aeon.clustering import BaseClusterer
+from aeon.clustering._clustering_tags import ClusteringAlgorithmType
 from aeon.transformations.collection.feature_based import Catch22
 
 
@@ -92,11 +93,14 @@ class Catch22Clusterer(BaseClusterer):
     """
 
     _tags = {
-        "X_inner_type": ["np-list", "numpy3D"],
+        "X_inner_type": [
+            ClusteringAlgorithmType.NP_LIST.value,
+            ClusteringAlgorithmType.NUMPY3D.value,
+        ],
         "capability:multivariate": True,
         "capability:unequal_length": True,
         "capability:multithreading": True,
-        "algorithm_type": "feature",
+        "algorithm_type": ClusteringAlgorithmType.FEATURE,
     }
 
     def __init__(

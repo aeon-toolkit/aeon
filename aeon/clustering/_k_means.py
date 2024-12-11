@@ -2,6 +2,8 @@
 
 from typing import Optional
 
+from aeon.clustering._clustering_tags import ClusteringAlgorithmType
+
 __maintainer__ = []
 
 from typing import Callable, Union
@@ -153,7 +155,7 @@ class TimeSeriesKMeans(BaseClusterer):
 
     _tags = {
         "capability:multivariate": True,
-        "algorithm_type": "distance",
+        "algorithm_type": ClusteringAlgorithmType.DISTANCE,
     }
 
     def __init__(
