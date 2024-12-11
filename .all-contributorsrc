@@ -2629,6 +2629,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "adilsonmedronha",
+      "name": "Adilson",
+      "avatar_url": "https://avatars.githubusercontent.com/u/52141524?v=4",
+      "profile": "https://github.com/adilsonmedronha",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "commitType": "docs"
