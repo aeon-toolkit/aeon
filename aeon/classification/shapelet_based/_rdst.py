@@ -162,7 +162,7 @@ class RDSTClassifier(BaseClassifier):
         self.transformed_data_ = []
 
         self._transformer = None
-        self._estimator = None
+        self.estimator_ = None
 
         super().__init__()
 
@@ -197,7 +197,7 @@ class RDSTClassifier(BaseClassifier):
             random_state=self.random_state,
         )
         if self.estimator is None:
-            self._estimator = make_pipeline(
+            self.estimator_ = make_pipeline(
                 StandardScaler(with_mean=True),
                 RidgeClassifierCV(
                     alphas=np.logspace(-4, 4, 20),
@@ -205,17 +205,17 @@ class RDSTClassifier(BaseClassifier):
                 ),
             )
         else:
-            self._estimator = _clone_estimator(self.estimator, self.random_state)
-            m = getattr(self._estimator, "n_jobs", None)
+            self.estimator_ = _clone_estimator(self.estimator, self.random_state)
+            m = getattr(self.estimator_, "n_jobs", None)
             if m is not None:
-                self._estimator.n_jobs = self.n_jobs
+                self.estimator_.n_jobs = self.n_jobs
 
         X_t = self._transformer.fit_transform(X, y)
 
         if self.save_transformed_data:
             self.transformed_data_ = X_t
 
-        self._estimator.fit(X_t, y)
+        self.estimator_.fit(X_t, y)
 
         return self
 
@@ -251,12 +251,12 @@ class RDSTClassifier(BaseClassifier):
         """
         X_t = self._transformer.transform(X)
 
-        m = getattr(self._estimator, "predict_proba", None)
+        m = getattr(self.estimator_, "predict_proba", None)
         if callable(m):
-            return self._estimator.predict_proba(X_t)
+            return self.estimator_.predict_proba(X_t)
         else:
             dists = np.zeros((len(X), self.n_classes_))
-            preds = self._estimator.predict(X_t)
+            preds = self.estimator_.predict(X_t)
             for i in range(0, len(X)):
                 dists[i, np.where(self.classes_ == preds[i])] = 1
             return dists

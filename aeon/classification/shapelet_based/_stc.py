@@ -160,7 +160,7 @@ class ShapeletTransformClassifier(BaseClassifier):
         self.n_timepoints_ = 0
 
         self._transformer = None
-        self._estimator = estimator
+        self.estimator_ = estimator
         self._transform_limit_in_minutes = 0
         self._classifier_limit_in_minutes = 0
 
@@ -187,7 +187,7 @@ class ShapeletTransformClassifier(BaseClassifier):
         ending in "_".
         """
         X_t = self._fit_stc_shared(X, y)
-        self._estimator.fit(X_t, y)
+        self.estimator_.fit(X_t, y)
         return self
 
     def _predict(self, X) -> np.ndarray:
@@ -205,7 +205,7 @@ class ShapeletTransformClassifier(BaseClassifier):
         """
         X_t = self._transformer.transform(X)
 
-        return self._estimator.predict(X_t)
+        return self.estimator_.predict(X_t)
 
     def _predict_proba(self, X) -> np.ndarray:
         """Predicts labels probabilities for sequences in X.
@@ -222,12 +222,12 @@ class ShapeletTransformClassifier(BaseClassifier):
         """
         X_t = self._transformer.transform(X)
 
-        m = getattr(self._estimator, "predict_proba", None)
+        m = getattr(self.estimator_, "predict_proba", None)
         if callable(m):
-            return self._estimator.predict_proba(X_t)
+            return self.estimator_.predict_proba(X_t)
         else:
             dists = np.zeros((X.shape[0], self.n_classes_))
-            preds = self._estimator.predict(X_t)
+            preds = self.estimator_.predict(X_t)
             for i in range(0, X.shape[0]):
                 dists[i, np.where(self.classes_ == preds[i])] = 1
             return dists
@@ -247,11 +247,11 @@ class ShapeletTransformClassifier(BaseClassifier):
         if (isinstance(self.estimator, RotationForestClassifier)) or (
             self.estimator is None
         ):
-            return self._estimator.fit_predict_proba(X_t, y)
+            return self.estimator_.fit_predict_proba(X_t, y)
         else:
-            self._estimator.fit(X_t, y)
+            self.estimator_.fit(X_t, y)
 
-            m = getattr(self._estimator, "predict_proba", None)
+            m = getattr(self.estimator_, "predict_proba", None)
             if not callable(m):
                 raise ValueError("Estimator must have a predict_proba method.")
 
@@ -300,18 +300,18 @@ class ShapeletTransformClassifier(BaseClassifier):
             random_state=self.random_state,
         )
 
-        self._estimator = _clone_estimator(
+        self.estimator_ = _clone_estimator(
             RotationForestClassifier() if self.estimator is None else self.estimator,
             self.random_state,
         )
 
-        m = getattr(self._estimator, "n_jobs", None)
+        m = getattr(self.estimator_, "n_jobs", None)
         if m is not None:
-            self._estimator.n_jobs = self._n_jobs
+            self.estimator_.n_jobs = self._n_jobs
 
-        m = getattr(self._estimator, "time_limit_in_minutes", None)
+        m = getattr(self.estimator_, "time_limit_in_minutes", None)
         if m is not None and self.time_limit_in_minutes > 0:
-            self._estimator.time_limit_in_minutes = self._classifier_limit_in_minutes
+            self.estimator_.time_limit_in_minutes = self._classifier_limit_in_minutes
 
         return self._transformer.fit_transform(X, y)
 

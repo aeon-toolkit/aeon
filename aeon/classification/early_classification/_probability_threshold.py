@@ -116,7 +116,7 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
         self.n_jobs = n_jobs
         self.random_state = random_state
 
-        self._estimators = []
+        self.estimators_ = []
         self._classification_points = []
 
         self.n_cases_ = 0
@@ -128,11 +128,11 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
     def _fit(self, X, y):
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
 
-        self._estimator = (
+        self.estimator_ = (
             DrCIFClassifier() if self.estimator is None else self.estimator
         )
 
-        m = getattr(self._estimator, "predict_proba", None)
+        m = getattr(self.estimator_, "predict_proba", None)
         if not callable(m):
             raise ValueError("Base estimator must have a predict_proba method.")
 
@@ -155,12 +155,12 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
             self._classification_point_dictionary[classification_point] = index
 
         # avoid nested parallelism
-        m = getattr(self._estimator, "n_jobs", None)
+        m = getattr(self.estimator_, "n_jobs", None)
         threads = self._n_jobs if m is None else 1
 
         rng = check_random_state(self.random_state)
 
-        self._estimators = Parallel(n_jobs=threads, prefer="threads")(
+        self.estimators_ = Parallel(n_jobs=threads, prefer="threads")(
             delayed(self._fit_estimator)(
                 X,
                 y,
@@ -195,7 +195,7 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
             )
 
         # avoid nested parallelism
-        m = getattr(self._estimator, "n_jobs", None)
+        m = getattr(self.estimator_, "n_jobs", None)
         threads = self._n_jobs if m is None else 1
 
         rng = check_random_state(self.random_state)
@@ -262,7 +262,7 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
             )
 
         # avoid nested parallelism
-        m = getattr(self._estimator, "n_jobs", None)
+        m = getattr(self.estimator_, "n_jobs", None)
         threads = self._n_jobs if m is None else 1
 
         rng = check_random_state(self.random_state)
@@ -352,7 +352,7 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
 
     def _fit_estimator(self, X, y, i, rng):
         estimator = _clone_estimator(
-            self._estimator,
+            self.estimator_,
             rng,
         )
 

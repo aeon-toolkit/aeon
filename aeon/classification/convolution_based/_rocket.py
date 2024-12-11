@@ -128,13 +128,13 @@ class RocketClassifier(BaseClassifier):
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
         """
-        self._transformer = Rocket(
+        self.transformer_ = Rocket(
             n_kernels=self.n_kernels,
             n_jobs=self.n_jobs,
             random_state=self.random_state,
         )
-        self._scaler = StandardScaler(with_mean=False)
-        self._estimator = _clone_estimator(
+        self.scaler_ = StandardScaler(with_mean=False)
+        self.estimator_ = _clone_estimator(
             (
                 RidgeClassifierCV(
                     alphas=np.logspace(-3, 3, 10), class_weight=self.class_weight
@@ -146,9 +146,9 @@ class RocketClassifier(BaseClassifier):
         )
 
         self.pipeline_ = make_pipeline(
-            self._transformer,
-            self._scaler,
-            self._estimator,
+            self.transformer_,
+            self.scaler_,
+            self.estimator_,
         )
         self.pipeline_.fit(X, y)
 
@@ -182,7 +182,7 @@ class RocketClassifier(BaseClassifier):
         y : array-like, shape = (n_cases, n_classes_)
             Predicted probabilities using the ordering in classes_.
         """
-        m = getattr(self._estimator, "predict_proba", None)
+        m = getattr(self.estimator_, "predict_proba", None)
         if callable(m):
             return self.pipeline_.predict_proba(X)
         else:
