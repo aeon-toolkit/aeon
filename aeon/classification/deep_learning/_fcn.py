@@ -99,8 +99,8 @@ class FCNClassifier(BaseDeepClassifier):
 
     References
     ----------
-    .. [1] Z. Wang, W. Yan and T. Oates, "Time series classification from scratch 
-    with deep neural networks: A strong baseline," 2017 International Joint Conference 
+    .. [1] Z. Wang, W. Yan and T. Oates, "Time series classification from scratch
+    with deep neural networks: A strong baseline," 2017 International Joint Conference
     on Neural Networks (IJCNN), Anchorage, AK, USA, 2017, pp. 1578-1585.
 
     Examples
