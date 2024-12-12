@@ -1,11 +1,17 @@
 <!--
 Thanks for contributing a pull request! Please ensure you have taken a look at our
-contribution guide: https://www.aeon-toolkit.org/en/stable/contributing.html.
+contribution guide: https://www.aeon-toolkit.org/en/latest/contributing.html.
 
 Feel free to delete sections of this template if they do not apply to your PR,
 avoid submitting a blank template or empty sections.
 If you are a new contributor, do not delete this template without a suitable
 replacement or reason. If in doubt, ask for help. We're here to help!
+
+Please be aware that we are a team of volunteers so patience is
+necessary when waiting for a review or reply. A quick turnaround for reviews should not
+be expected, and you may wait multiple weeks or longer until someone has the time to
+view your changes. While we value all contributions big or small, pull requests which
+do not follow our guidelines may be closed.
 -->
 
 #### Reference Issues/PRs
@@ -34,9 +40,7 @@ to a minimum.
 #### Any other comments?
 
 <!--
-Please be aware that we are a team of volunteers so patience is
-necessary when waiting for a review or reply. While we value all contributions big or
-small, pull requests which do not follow our guidelines may be closed.
+Any other information that is important to this PR or helpful for reviewers.
 -->
 
 ### PR checklist
