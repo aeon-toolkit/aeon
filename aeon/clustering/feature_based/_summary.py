@@ -65,7 +65,7 @@ class SummaryClusterer(BaseClusterer):
     _tags = {
         "capability:multivariate": True,
         "capability:multithreading": True,
-        "algorithm_type": ClusteringAlgorithmType.FEATURE,
+        "algorithm_type": ClusteringAlgorithmType.FEATURE.value,
     }
 
     def __init__(
