@@ -100,7 +100,7 @@ class Catch22Clusterer(BaseClusterer):
         "capability:multivariate": True,
         "capability:unequal_length": True,
         "capability:multithreading": True,
-        "algorithm_type": ClusteringAlgorithmType.FEATURE.value,
+        "algorithm_type": ClusteringAlgorithmType.FEATURE,
     }
 
     def __init__(

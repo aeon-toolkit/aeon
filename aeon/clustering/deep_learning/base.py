@@ -32,7 +32,7 @@ class BaseDeepClusterer(BaseClusterer):
     _tags = {
         "X_inner_type": ClusteringAlgorithmType.NUMPY3D.value,
         "capability:multivariate": True,
-        "algorithm_type": ClusteringAlgorithmType.DEEPLEARNING.value,
+        "algorithm_type": ClusteringAlgorithmType.DEEPLEARNING,
         "non_deterministic": True,
         "cant_pickle": True,
         "python_dependencies": ClusteringAlgorithmType.TENSORFLOW.value,

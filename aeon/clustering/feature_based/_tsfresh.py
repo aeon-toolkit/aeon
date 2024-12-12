@@ -75,7 +75,7 @@ class TSFreshClusterer(BaseClusterer):
     _tags = {
         "capability:multivariate": True,
         "capability:multithreading": True,
-        "algorithm_type": ClusteringAlgorithmType.FEATURE.value,
+        "algorithm_type": ClusteringAlgorithmType.FEATURE,
         "python_dependencies": ClusteringAlgorithmType.TSFRESH.value,
     }
 

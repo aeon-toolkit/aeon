@@ -71,7 +71,7 @@ class TimeSeriesKShape(BaseClusterer):
     _tags = {
         "capability:multivariate": True,
         "python_dependencies": ClusteringAlgorithmType.TSLEARN.value,
-        "algorithm_type": ClusteringAlgorithmType.DISTANCE.value,
+        "algorithm_type": ClusteringAlgorithmType.DISTANCE,
     }
 
     def __init__(

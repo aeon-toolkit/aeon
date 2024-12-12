@@ -149,7 +149,7 @@ class ElasticSOM(BaseClusterer):
 
     _tags = {
         "capability:multivariate": True,
-        "algorithm_type": ClusteringAlgorithmType.DISTANCE.value,
+        "algorithm_type": ClusteringAlgorithmType.DISTANCE,
     }
 
     def __init__(
