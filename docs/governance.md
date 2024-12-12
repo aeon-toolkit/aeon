@@ -32,7 +32,7 @@ on all project decisions. They are expected to review code contributions
 and engage with topics or code they are knowledgeable about.
 
 New core developers are nominated by existing core developers and are subject to a
-two-thirds majority vote of existing core developers. Core developers are expected to
+two-thirds majority vote of voting core developers. Core developers are expected to
 maintain a reasonable amount of engagement with the project. Developing code,
 interacting with contributions and engaging with the broader community are all valid
 contributions for core developers.
@@ -126,7 +126,8 @@ for a vote, which will conclude two weeks from the call for the vote. Any vote t
 bypass a rejection from a core developer must be backed by an AEP (see the following
 section). For major contributions (such as a new module or major framework redesigns)
 an AEP may be requested without a rejection or vote. In the event a vote is called,
-the proposal must receive a two-thirds majority of core developers to be approved.
+the proposal must receive a two-thirds majority of voting core developers to be
+approved.
 
 All changes to the `aeon` code or documentation should be done via Pull Request.
 By default, push rights to the `main` GitHub branch are restricted for all core developers.

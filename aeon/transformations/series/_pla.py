@@ -62,8 +62,8 @@ class PLASeriesTransformer(BaseSeriesTransformer):
     }
 
     def __init__(self, max_error=20, transformer="swab", buffer_size=None):
-        self.transformer = transformer
         self.max_error = max_error
+        self.transformer = transformer
         self.buffer_size = buffer_size
         super().__init__(axis=0)
 
@@ -255,11 +255,12 @@ class PLASeriesTransformer(BaseSeriesTransformer):
             List of transformed segmented time series.
         """
         seg_ts = []
+        buffer_size = self.buffer_size
         if self.buffer_size is None:
-            self.buffer_size = int(len(X) ** 0.5)
+            buffer_size = int(len(X) ** 0.5)
 
-        lower_boundary_window = int(self.buffer_size / 2)
-        upper_boundary_window = int(self.buffer_size * 2)
+        lower_boundary_window = int(buffer_size / 2)
+        upper_boundary_window = int(buffer_size * 2)
 
         seg = self._best_line(X, 0, lower_boundary_window, upper_boundary_window)
         current_data_point = len(seg)
