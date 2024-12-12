@@ -2,7 +2,7 @@
 
 from typing import Optional
 
-__maintainer__ = []
+__maintainer__ = ["chrisholder"]
 
 from typing import Callable, Union
 
@@ -21,7 +21,7 @@ class KASBA(BaseClusterer):
     """KASBA clusterer [1]_.
 
     KASBA is a $k$-means clustering algorithm designed for use with the MSM distance
-    metric [2]_ however, can be used with any elastic distance that is a metric.
+    metric [2]_ however, it can be used with any elastic distance that is a metric.
     KASBA finds initial clusters using an adapted form of kmeans++ to use
     elastic distances, a fast assignment step that exploits the metric property
     to avoid distance calculations in assignment, and an adapted elastic barycentre
