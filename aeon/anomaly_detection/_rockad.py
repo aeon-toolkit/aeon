@@ -2,6 +2,7 @@
 
 __all__ = ["ROCKAD"]
 
+import warnings
 from typing import Optional
 
 import numpy as np
@@ -21,7 +22,7 @@ class ROCKAD(BaseAnomalyDetector):
     ROCKAD leverages the ROCKET transformation for feature extraction from
     time series data and applies the scikit learn k-nearest neighbors (k-NN)
     approach with bootstrap aggregation for robust anomaly detection.
-    After windowing the data, the data gets transformed into the ROCKET feature space.
+    After windowing, the data gets transformed into the ROCKET feature space.
     Then the windows are compared based on the feature space by
     finding the nearest neighbours.
 
@@ -44,7 +45,7 @@ class ROCKAD(BaseAnomalyDetector):
     metric : str, default="euclidean"
         Distance metric to use for the k-NN algorithm.
     power_transform : bool, default=True
-        Whether to apply a power transformation (e.g., Yeo-Johnson) to the features.
+        Whether to apply a power transformation (Yeo-Johnson) to the features.
     window_size : int, default=10
         Size of the sliding window for segmenting input time series data.
     stride : int, default=1
@@ -56,8 +57,8 @@ class ROCKAD(BaseAnomalyDetector):
     ----------
     rocket_transformer_ : Optional[Rocket]
         Instance of the ROCKET transformer used to extract features, set after fitting.
-    estimator_ : Optional[NearestNeighbors]
-        k-NN estimator used for anomaly scoring, set after fitting.
+    list_baggers_ : Optional[list[NearestNeighbors]]
+        List containing k-NN estimators used for anomaly scoring, set after fitting.
     power_transformer_ : PowerTransformer
         Transformer used to apply power transformation to the features.
     n_inf_cols_ : list
@@ -99,20 +100,17 @@ class ROCKAD(BaseAnomalyDetector):
         self.random_state = random_state
 
         self.rocket_transformer_: Optional[Rocket] = None
-        self.estimator_: Optional[NearestNeighbors] = None
+        self.list_baggers_: Optional[list[NearestNeighbors]] = None
         self.power_transformer_: Optional[PowerTransformer] = None
         self.inf_columns_: Optional[np.ndarray] = None
 
-        if power_transform:
-            self.power_transformer_ = PowerTransformer()
-
     def _fit(self, X: np.ndarray, y: Optional[np.ndarray] = None) -> "ROCKAD":
         self._check_params(X)
-
+        # X: (n_timepoints, 1) because __init__(axis==0)
         _X, _ = sliding_windows(
             X, window_size=self.window_size, stride=self.stride, axis=0
         )
-
+        # _X: (n_windows, window_size)
         self._inner_fit(_X)
 
         return self
@@ -129,15 +127,15 @@ class ROCKAD(BaseAnomalyDetector):
                 "The stride must be at least 1 and at most the window size."
             )
 
-    def _inner_fit(self, X: np.ndarray) -> None:
-
-        if X.shape[0] < self.n_neighbors:
+        if int((X.shape[0] - self.window_size) / self.stride + 1) < self.n_neighbors:
             raise ValueError(
-                f"Window count ({X.shape[0]}) has to be larger than "
-                f"n_neighbors ({self.n_neighbors})."
+                f"Window count ({int((X.shape[0]-self.window_size)/self.stride+1)}) "
+                f"has to be larger than n_neighbors ({self.n_neighbors})."
                 "Please choose a smaller n_neighbors value or increase window count "
                 "by choosing a smaller window size or larger stride."
             )
+
+    def _inner_fit(self, X: np.ndarray) -> None:
 
         self.rocket_transformer_ = Rocket(
             n_kernels=self.n_kernels,
@@ -145,21 +143,31 @@ class ROCKAD(BaseAnomalyDetector):
             n_jobs=self.n_jobs,
             random_state=self.random_state,
         )
-
+        # X: (n_windows, window_size)
         Xt = self.rocket_transformer_.fit_transform(X)
+        # XT: (n_cases, n_kernels*2)
+        Xt = Xt.astype(np.float64)
 
-        Xt = Xt.astype("float64")
+        if self.power_transform:
+            self.power_transformer_ = PowerTransformer()
+            try:
+                Xtp = self.power_transformer_.fit_transform(Xt)
 
-        if self.power_transformer_ is not None:
-            Xtp = self.power_transformer_.fit_transform(Xt.T)
-            Xtp = Xtp.T
+                inf_mask = np.isinf(Xtp).any(axis=0)
+                inf_columns = np.where(inf_mask)[0]
 
-            inf_mask = np.isinf(Xtp).any(axis=0)
-            inf_columns = np.where(inf_mask)[0]
+                Xtp = Xtp[:, ~inf_mask]
 
-            Xtp = Xtp[:, ~inf_mask]
-
-            self.inf_columns_ = inf_columns
+                self.inf_columns_ = inf_columns
+            except Exception:
+                warnings.warn(
+                    "Power Transform failed and thus has been disabled. "
+                    "Try increasing the window size.",
+                    UserWarning,
+                    stacklevel=2,
+                )
+                self.power_transformer_ = None
+                Xtp = Xt
         else:
             Xtp = Xt
             self.inf_columns_ = None
@@ -240,23 +248,23 @@ class ROCKAD(BaseAnomalyDetector):
         # Transform into rocket feature space
         Xt = self.rocket_transformer_.transform(X)
 
+        Xt = Xt.astype(np.float64)
+
         if self.power_transformer_ is not None:
             # Power Transform using yeo-johnson
-            Xtp = self.power_transformer_.transform(Xt.T)
-            Xtp = Xtp.T
 
-        # Drop columns identified by self.inf_columns_
-        if self.inf_columns_ is not None and len(self.inf_columns_) > 0:
-            mask = np.ones(Xtp.shape[1], dtype=bool)
-            mask[self.inf_columns_] = False
-            Xtp = Xtp[:, mask]
+            Xtp = self.power_transformer_.transform(Xt)
 
-            Xtp[~np.isfinite(Xtp)] = 0.0
+            # Drop columns identified by self.inf_columns_
+            if self.inf_columns_ is not None and len(self.inf_columns_) > 0:
+                mask = np.ones(Xtp.shape[1], dtype=bool)
+                mask[self.inf_columns_] = False
+                Xtp = Xtp[:, mask]
 
-            Xtp = Xtp.astype(np.float64).to_numpy()
+                Xtp[~np.isfinite(Xtp)] = 0.0
 
         else:
-            Xtp = Xt.astype(np.float64)
+            Xtp = Xt
 
         for idx, bagger in enumerate(self.list_baggers_):
             # Get scores from each estimator
