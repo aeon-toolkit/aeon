@@ -148,7 +148,7 @@ class TimeSeriesKMedoids(BaseClusterer):
 
     _tags = {
         "capability:multivariate": True,
-        "algorithm_type": ClusteringAlgorithmType.DISTANCE,
+        "algorithm_type": ClusteringAlgorithmType.DISTANCE.value,
     }
 
     def __init__(
