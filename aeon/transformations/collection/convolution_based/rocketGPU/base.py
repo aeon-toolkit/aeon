@@ -12,7 +12,7 @@ class BaseROCKETGPU(BaseCollectionTransformer):
 
     Parameters
     ----------
-    nb_filters : int, default = 1000
+    n_kernels : int, default = 10000
         Number of random convolutional kernels.
     """
 
@@ -28,10 +28,10 @@ class BaseROCKETGPU(BaseCollectionTransformer):
 
     def __init__(
         self,
-        n_filters=10000,
+        n_kernels=10000,
     ):
         super().__init__()
-        self.n_filters = n_filters
+        self.n_kernels = n_kernels
 
     def _get_ppv(self, x):
         import tensorflow as tf

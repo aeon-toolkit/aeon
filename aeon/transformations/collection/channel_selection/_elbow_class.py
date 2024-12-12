@@ -90,7 +90,7 @@ def _create_distance_matrix(
                     lambda row: aeon_distance(
                         row[: row.shape[0] // 2],
                         row[row.shape[0] // 2 :],
-                        metric="dtw",
+                        method="dtw",
                     ),
                     axis=1,
                     arr=np.concatenate((cls1_ch, cls2_ch), axis=1),

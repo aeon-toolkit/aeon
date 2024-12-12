@@ -93,7 +93,7 @@ def _test_distance_params(
                     del param_dict["g"]
             results = [
                 distance_func(x, y, **param_dict.copy()),
-                distance(x, y, metric=distance_str, **param_dict.copy()),
+                distance(x, y, method=distance_str, **param_dict.copy()),
             ]
 
             if distance_str in _expected_distance_results_params:

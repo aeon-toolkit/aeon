@@ -20,7 +20,7 @@ from aeon.testing.expected_results.expected_regressor_outputs import (
 )
 from aeon.testing.testing_data import FULL_TEST_DATA_DICT
 from aeon.testing.utils.estimator_checks import _assert_predict_labels, _get_tag
-from aeon.utils import COLLECTIONS_DATA_TYPES
+from aeon.utils.data_types import COLLECTIONS_DATA_TYPES
 
 
 def _yield_regression_checks(estimator_class, estimator_instances, datatypes):

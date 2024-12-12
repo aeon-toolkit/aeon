@@ -8,7 +8,7 @@ import math
 import numpy as np
 
 from aeon.transformations.collection.base import BaseCollectionTransformer
-from aeon.utils import split_series
+from aeon.utils.split import split_series
 
 
 class SlopeTransformer(BaseCollectionTransformer):
