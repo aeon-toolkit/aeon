@@ -79,8 +79,8 @@ recognise various types of contributions. Take a look at our past and current
 If you are a new contributor, make sure we add you to our list of contributors. All
 contributions are recorded in [.all-contributorsrc](https://github.com/aeon-toolkit/aeon/blob/main/.all-contributorsrc).
 Alternatively, you can use the [@all-contributors](https://allcontributors.org/docs/en/bot/usage)
-bot to do this for you. If the contribution is related to a PR, please only create this
-when the PR has merged. A list of relevant tags can be found [here](https://allcontributors.org/docs/en/emoji-key).
+bot to do this for you. If the contribution is contained in a PR, please only @ the bot
+when the PR has been merged. A list of relevant tags can be found [here](https://allcontributors.org/docs/en/emoji-key).
 
 ## Further Reading
 
