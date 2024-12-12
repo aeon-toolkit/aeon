@@ -37,5 +37,5 @@ class ClusteringAlgorithmType(Enum):
     TSFRESH = "tsfresh"
 
     # Data structure types for clustering input
-    NP_LIST = "np_list"
+    NP_LIST = "np-list"
     NUMPY3D = "numpy3D"
