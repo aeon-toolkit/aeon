@@ -26,28 +26,42 @@ Learn more about type hints in [python docs](https://docs.python.org/3/library/t
 
 
 
-When working with models that have soft dependencies, additional considerations are required to ensure that your code remains robust and maintainable. Soft dependencies are optional packages or modules that your application does not require at runtime but may be used in specific situations, such as during type-checking or when certain features are enabled.
+When working with soft dependencies (optional packages that are used for specific purposes like type-checking or additional features), special care must be taken to ensure that these dependencies don't interfere with runtime execution. A soft dependency might be unavailable during runtime but necessary for type annotations or certain features.
 
- The typing.TYPE_CHECKING constant ensures that imports for type hints are only evaluated when type-checking is done and NOT in the runtime. This prevents errors when the soft dependancies are not available. Here is an example that of [PyODAdapter](https://github.com/aeon-toolkit/aeon/blob/main/aeon/anomaly_detection/_pyodadapter.py):
+### Using TYPE_CHECKING for Conditional Imports
 
+To ensure that soft dependencies are imported only during type-checking and not at runtime, the TYPE_CHECKING constant from typing can be used. This allows type hints to be safely referenced without causing errors if the dependency is not installed at runtime.
 
- ```python
-from aeon.anomaly_detection.base import BaseAnomalyDetector
-from aeon.utils.validation._dependencies import _check_soft_dependencies
+Example:
+
+```
+from __future__ import annotations
 from typing import TYPE_CHECKING, Any
-
+import numpy as np
 
 if TYPE_CHECKING:
     from pyod.models.base import BaseDetector
-
-
-class PyODAdapter(BaseAnomalyDetector):
-    ...
-
-    def _is_pyod_model(model: Any) -> bool:
-        """Check if the provided model is a PyOD model."""
-        from pyod.models.base import BaseDetector
-
-        return isinstance(model, BaseDetector)
-   ...
+    
 ```
+
+In this code, the BaseDetector class is conditionally imported only when type-checking is performed. This prevents errors during runtime if the pyod package is not installed, making the code safe even when the soft dependency is not available.
+ 
+ ### Future Annotations for Forward References
+
+Using ```from __future__ import annotations``` enables type hints to reference classes that might not yet be defined or to use string-literal annotations. This feature ensures that type annotations can still be written safely and allows forward references in cases where classes or functions are not defined at the time of the annotation.
+
+```python
+from __future__ import annotations
+```
+
+This import ensures that all annotations are stored as string literals, allowing forward references and improving the flexibility of type hints.
+ 
+ 
+ 
+
+#### Static Type Checking Tools  
+
+- **mypy**: A popular static type checker for Python.  
+  - **Install**: `pip install mypy`  
+  - **Run**: `mypy your_file.py`  
+
