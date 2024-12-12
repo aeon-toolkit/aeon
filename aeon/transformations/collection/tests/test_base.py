@@ -4,14 +4,13 @@ __maintainer__ = []
 
 import numpy as np
 import pytest
-from numpy.testing import assert_almost_equal
 
 from aeon.testing.data_generation import (
     make_example_2d_numpy_collection,
     make_example_3d_numpy,
     make_example_3d_numpy_list,
+    make_example_pandas_series,
 )
-from aeon.testing.data_generation._legacy import make_series
 from aeon.transformations.collection import BaseCollectionTransformer
 
 
@@ -39,28 +38,21 @@ def test_collection_transformer_valid_input(data_gen):
 @pytest.mark.parametrize("dtype", ["pd.Series"])
 def test_collection_transformer_invalid_input(dtype):
     """Test that BaseCollectionTransformer fails with series input."""
-    y = (make_series(),)
+    y = (make_example_pandas_series(),)
     t = _Dummy()
     with pytest.raises(TypeError):
         t.fit_transform(y)
 
 
-def test_inverse_transform():
-    """Test inverse transform."""
+def test_raise_inverse_transform():
+    """Test that inverse transform raises NotImplementedError."""
     d = _Dummy()
     x, _ = make_example_3d_numpy()
     d.fit(x)
-    d.set_tags(**{"skip-inverse-transform": True})
-    x2 = d.inverse_transform(x)
-    assert_almost_equal(x, x2)
-    d.set_tags(**{"skip-inverse-transform": False})
     with pytest.raises(
         NotImplementedError, match="does not implement " "inverse_transform"
     ):
         d.inverse_transform(x)
-    d.set_tags(**{"capability:inverse_transform": True})
-    x2 = d.inverse_transform(x)
-    assert_almost_equal(x, x2)
 
 
 class _Dummy(BaseCollectionTransformer):

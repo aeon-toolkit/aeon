@@ -9,16 +9,21 @@ __all__ = [
 import re
 from functools import partial, wraps
 from inspect import isclass
-from typing import Callable, Union
+from typing import Callable, Optional, Union
 
 from sklearn import config_context
 from sklearn.utils._testing import SkipTest
 
-from aeon.base import BaseEstimator
+from aeon.base import BaseAeonEstimator
 from aeon.testing.estimator_checking._yield_estimator_checks import (
     _yield_all_aeon_checks,
 )
-from aeon.testing.testing_config import EXCLUDE_ESTIMATORS, EXCLUDED_TESTS
+from aeon.testing.testing_config import (
+    EXCLUDE_ESTIMATORS,
+    EXCLUDED_TESTS,
+    EXCLUDED_TESTS_NO_NUMBA,
+    NUMBA_DISABLED,
+)
 from aeon.utils.validation._dependencies import (
     _check_estimator_deps,
     _check_soft_dependencies,
@@ -26,7 +31,7 @@ from aeon.utils.validation._dependencies import (
 
 
 def parametrize_with_checks(
-    estimators: list[Union[BaseEstimator, type[BaseEstimator]]],
+    estimators: list[Union[BaseAeonEstimator, type[BaseAeonEstimator]]],
     use_first_parameter_set: bool = False,
 ) -> Callable:
     """Pytest specific decorator for parametrizing aeon estimator checks.
@@ -41,11 +46,11 @@ def parametrize_with_checks(
 
     Parameters
     ----------
-    estimators : list of aeon BaseEstimator instances or classes
+    estimators : list of aeon BaseAeonEstimator instances or classes
         Estimators to generate checks for. If an item is a class, an instance will
-        be created using BaseEstimator.create_test_instance().
+        be created using BaseAeonEstimator._create_test_instance().
     use_first_parameter_set : bool, default=False
-        If True, only the first parameter set from get_test_params will be used if a
+        If True, only the first parameter set from _get_test_params will be used if a
         class is passed.
 
     Returns
@@ -72,15 +77,20 @@ def parametrize_with_checks(
 
     checks = []
     for est in estimators:
+        # check if estimator has soft dependencies installed
         has_dependencies = _check_estimator_deps(est, severity="none")
 
+        # collect all relevant checks
         for check in _yield_all_aeon_checks(
             est,
             use_first_parameter_set=use_first_parameter_set,
             has_dependencies=has_dependencies,
         ):
+            # wrap check to skip if necessary (missing dependencies, on an exclude list
+            # etc.)
             checks.append(_check_if_xfail(est, check, has_dependencies))
 
+    # return a pytest parametrize decorator with custom ids
     return pytest.mark.parametrize(
         "check",
         checks,
@@ -89,13 +99,13 @@ def parametrize_with_checks(
 
 
 def check_estimator(
-    estimator: Union[BaseEstimator, type[BaseEstimator]],
+    estimator: Union[BaseAeonEstimator, type[BaseAeonEstimator]],
     raise_exceptions: bool = False,
     use_first_parameter_set: bool = False,
-    checks_to_run: Union[str, list[str]] = None,
-    checks_to_exclude: Union[str, list[str]] = None,
-    full_checks_to_run: Union[str, list[str]] = None,
-    full_checks_to_exclude: Union[str, list[str]] = None,
+    checks_to_run: Optional[Union[str, list[str]]] = None,
+    checks_to_exclude: Optional[Union[str, list[str]]] = None,
+    full_checks_to_run: Optional[Union[str, list[str]]] = None,
+    full_checks_to_exclude: Optional[Union[str, list[str]]] = None,
     verbose: bool = False,
 ):
     """Check if estimator adheres to `aeon` conventions.
@@ -106,19 +116,19 @@ def check_estimator(
     general checks for all estimators, and module-specific tests for classifiers,
     anomaly detectors, transformer, etc.
     Some checks may be skipped if the estimator has certain tags i.e.
-    `non-deterministic`.
+    `non_deterministic`.
 
     Parameters
     ----------
-    estimator : aeon BaseEstimator instance or class
+    estimator : aeon BaseAeonEstimator instance or class
         Estimator to run checks on. If estimator is a class, an instance will
-        be created using BaseEstimator.create_test_instance().
+        be created using BaseAeonEstimator._create_test_instance().
     raise_exceptions : bool, optional, default=False
         Whether to return exceptions/failures in the results dict, or raise them
             if False: returns exceptions in returned `results` dict
             if True: raises exceptions as they occur
     use_first_parameter_set : bool, default=False
-        If True, only the first parameter set from get_test_params will be used if a
+        If True, only the first parameter set from _get_test_params will be used if a
         class is passed.
     checks_to_run : str or list of str, default=None
         Name(s) of checks to run. This should include the function name of the check to
@@ -179,19 +189,24 @@ def check_estimator(
     >>> results = check_estimator(MockClassifier())
 
     Running specific check for MockClassifier
-    >>> check_estimator(MockClassifier, checks_to_run="check_clone")
-    {'check_clone(estimator=MockClassifier())': 'PASSED'}
+    >>> check_estimator(MockClassifier, checks_to_run="check_get_params")
+    {'check_get_params(estimator=MockClassifier())': 'PASSED'}
     """
+    # check if estimator has soft dependencies installed
+    _check_soft_dependencies("pytest")
     _check_estimator_deps(estimator)
 
     checks = []
+    # collect all relevant checks
     for check in _yield_all_aeon_checks(
         estimator,
         use_first_parameter_set=use_first_parameter_set,
         has_dependencies=True,
     ):
+        # wrap check to skip if necessary (on an exclude list etc.)
         checks.append(_check_if_skip(estimator, check, True))
 
+    # process run/exclude lists to filter checks
     if not isinstance(checks_to_run, (list, tuple)) and checks_to_run is not None:
         checks_to_run = [checks_to_run]
     if (
@@ -214,9 +229,11 @@ def check_estimator(
     skipped = 0
     failed = 0
     results = {}
+    # run all checks
     for check in checks:
         check_name = _get_check_estimator_ids(check)
 
+        # ignore check if filtered
         if checks_to_run is not None and check_name.split("(")[0] not in checks_to_run:
             continue
         if (
@@ -229,6 +246,7 @@ def check_estimator(
         if full_checks_to_exclude is not None and check_name in full_checks_to_exclude:
             continue
 
+        # run the check and process output/errors
         try:
             check()
             if verbose:
@@ -301,6 +319,8 @@ def _should_be_skipped(estimator, check, has_dependencies):
         return True, "In aeon estimator exclude list", check_name
     elif check_name in EXCLUDED_TESTS.get(est_name, []):
         return True, "In aeon test exclude list for estimator", check_name
+    elif NUMBA_DISABLED and check_name in EXCLUDED_TESTS_NO_NUMBA.get(est_name, []):
+        return True, "In aeon no numba test exclude list for estimator", check_name
 
     return False, "", check_name
 
@@ -315,6 +335,10 @@ def _get_check_estimator_ids(obj):
     `_get_check_estimator_ids` is designed to be used as the `id` in
     `pytest.mark.parametrize` where `checks_generator` is yielding estimators and
     checks.
+
+    Some parameters which contain functions or methods will be obfuscated to
+    allow for compatability with `pytest-xdist`. This requires that IDs on each thread
+    be the same, and functions can generate different IDs.
 
     Based on the `scikit-learn` `_get_check_estimator_ids` function.
 
@@ -335,9 +359,12 @@ def _get_check_estimator_ids(obj):
         if not obj.keywords:
             return obj.func.__name__
 
-        kwstring = ",".join(
-            [f"{k}={_get_check_estimator_ids(v)}" for k, v in obj.keywords.items()]
-        )
+        kwlist = []
+        for k, v in obj.keywords.items():
+            v = _get_check_estimator_ids(v)
+            if v is not None:
+                kwlist.append(f"{k}={v}")
+        kwstring = ",".join(kwlist) if kwlist else ""
         return f"{obj.func.__name__}({kwstring})"
     elif isclass(obj):
         return obj.__name__
@@ -347,5 +374,7 @@ def _get_check_estimator_ids(obj):
             s = re.sub(r"<function[^)]*>", "func", s)
             s = re.sub(r"<boundmethodrv[^)]*>", "boundmethod", s)
             return s
-    else:
+    elif isinstance(obj, str):
         return obj
+    else:
+        return None

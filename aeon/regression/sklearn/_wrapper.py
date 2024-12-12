@@ -26,7 +26,7 @@ class SklearnRegressorWrapper(BaseRegressor):
     """
 
     _tags = {
-        "X_inner_type": ["np-list", "numpy3D"],
+        "X_inner_type": "numpy2D",
     }
 
     def __init__(self, regressor, random_state=None):
@@ -35,7 +35,7 @@ class SklearnRegressorWrapper(BaseRegressor):
 
         super().__init__()
 
-    def _fit(self, X, y=None):
+    def _fit(self, X, y):
         self.regressor_ = _clone_estimator(self.regressor, self.random_state)
         self.regressor_.fit(X, y)
         return self
@@ -44,7 +44,7 @@ class SklearnRegressorWrapper(BaseRegressor):
         return self.regressor_.predict(X)
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -59,7 +59,6 @@ class SklearnRegressorWrapper(BaseRegressor):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         return {
             "regressor": RandomForestRegressor(n_estimators=5),

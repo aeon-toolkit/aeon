@@ -1,12 +1,11 @@
 """Time series kernel kmeans."""
 
-from typing import Union
+from typing import Optional, Union
 
 import numpy as np
 from numpy.random import RandomState
 
 from aeon.clustering.base import BaseClusterer
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class TimeSeriesKernelKMeans(BaseClusterer):
@@ -86,6 +85,7 @@ class TimeSeriesKernelKMeans(BaseClusterer):
 
     _tags = {
         "capability:multivariate": True,
+        "capability:multithreading": True,
         "python_dependencies": "tslearn",
     }
 
@@ -98,8 +98,8 @@ class TimeSeriesKernelKMeans(BaseClusterer):
         tol: float = 1e-4,
         kernel_params: Union[dict, None] = None,
         verbose: bool = False,
-        n_jobs: Union[int, None] = None,
-        random_state: Union[int, RandomState] = None,
+        n_jobs: Union[int, None] = 1,
+        random_state: Optional[Union[int, RandomState]] = None,
     ):
         self.kernel = kernel
         self.n_init = n_init
@@ -109,6 +109,7 @@ class TimeSeriesKernelKMeans(BaseClusterer):
         self.verbose = verbose
         self.n_jobs = n_jobs
         self.random_state = random_state
+        self.n_clusters = n_clusters
 
         self.cluster_centers_ = None
         self.labels_ = None
@@ -117,7 +118,7 @@ class TimeSeriesKernelKMeans(BaseClusterer):
 
         self._tslearn_kernel_k_means = None
 
-        super().__init__(n_clusters=n_clusters)
+        super().__init__()
 
     def _fit(self, X, y=None):
         """Fit time series clusterer to training data.
@@ -134,7 +135,6 @@ class TimeSeriesKernelKMeans(BaseClusterer):
         self:
             Fitted estimator.
         """
-        _check_soft_dependencies("tslearn", severity="error")
         from tslearn.clustering import KernelKMeans as TsLearnKernelKMeans
 
         verbose = 0
@@ -178,7 +178,7 @@ class TimeSeriesKernelKMeans(BaseClusterer):
         return self._tslearn_kernel_k_means.predict(_X)
 
     @classmethod
-    def get_test_params(cls, parameter_set="default") -> dict:
+    def _get_test_params(cls, parameter_set="default") -> dict:
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -194,7 +194,6 @@ class TimeSeriesKernelKMeans(BaseClusterer):
             Parameters to create testing instances of the class
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`
         """
         return {
             "n_clusters": 2,
@@ -202,11 +201,4 @@ class TimeSeriesKernelKMeans(BaseClusterer):
             "n_init": 1,
             "max_iter": 1,
             "tol": 0.0001,
-            "kernel_params": None,
-            "verbose": False,
-            "n_jobs": 1,
-            "random_state": 1,
         }
-
-    def _score(self, X, y=None) -> float:
-        return np.abs(self.inertia_)

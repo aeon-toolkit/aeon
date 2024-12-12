@@ -21,13 +21,10 @@ State:
     streaming decision info - state_info attribute
 """
 
-__all__ = [
-    "BaseEarlyClassifier",
-]
-__maintainer__ = []
+__maintainer__ = ["MatthewMiddlehurst"]
+__all__ = ["BaseEarlyClassifier"]
 
-import time
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 
 import numpy as np
 
@@ -35,7 +32,7 @@ from aeon.base import BaseCollectionEstimator
 from aeon.classification import BaseClassifier
 
 
-class BaseEarlyClassifier(BaseCollectionEstimator, ABC):
+class BaseEarlyClassifier(BaseCollectionEstimator):
     """
     Abstract base class for early time series classifiers.
 
@@ -49,8 +46,6 @@ class BaseEarlyClassifier(BaseCollectionEstimator, ABC):
         Class labels, possibly strings.
     n_classes_ : int
         Number of classes (length of classes_).
-    fit_time_ : int
-        Time (in milliseconds) for fit to run.
     _class_dictionary : dict
         dictionary mapping classes_ onto integers 0...n_classes_-1.
     _n_jobs : int, default=1
@@ -60,19 +55,14 @@ class BaseEarlyClassifier(BaseCollectionEstimator, ABC):
     """
 
     _tags = {
-        "X_inner_type": "numpy3D",
-        "capability:multivariate": False,
-        "capability:unequal_length": False,
-        "capability:missing_values": False,
-        "capability:multithreading": False,
+        "fit_is_empty": False,
     }
 
+    @abstractmethod
     def __init__(self):
         self.classes_ = []
         self.n_classes_ = 0
-        self.fit_time_ = 0
         self._class_dictionary = {}
-        self._n_jobs = 1
 
         """
         An array containing the state info for each decision in X from update and
@@ -118,13 +108,11 @@ class BaseEarlyClassifier(BaseCollectionEstimator, ABC):
         self.reset()
 
         # All of this can move up to BaseCollection
-        start = int(round(time.time() * 1000))
         X = self._preprocess_collection(X)
         y = BaseClassifier._check_y(self, y, self.metadata_["n_cases"])
         self._fit(X, y)
-        self.fit_time_ = int(round(time.time() * 1000)) - start
         # this should happen last
-        self._is_fitted = True
+        self.is_fitted = True
         return self
 
     def predict(self, X) -> tuple[np.ndarray, np.ndarray]:
@@ -157,7 +145,7 @@ class BaseEarlyClassifier(BaseCollectionEstimator, ABC):
             safe to use or not.
             i-th entry is the classifier decision that i-th instance safe to use.
         """
-        self.check_is_fitted()
+        self._check_is_fitted()
         X = self._preprocess_collection(X)
         return self._predict(X)
 
@@ -196,7 +184,7 @@ class BaseEarlyClassifier(BaseCollectionEstimator, ABC):
             safe to use or not.
             i-th entry is the classifier decision that i-th instance safe to use
         """
-        self.check_is_fitted()
+        self._check_is_fitted()
 
         # boilerplate input checks for predict-like methods
         X = self._preprocess_collection(X)
@@ -239,7 +227,7 @@ class BaseEarlyClassifier(BaseCollectionEstimator, ABC):
             safe to use or not.
             i-th entry is the classifier decision that i-th instance safe to use
         """
-        self.check_is_fitted()
+        self._check_is_fitted()
         X = self._preprocess_collection(X)
 
         return self._predict_proba(X)
@@ -281,7 +269,7 @@ class BaseEarlyClassifier(BaseCollectionEstimator, ABC):
             safe to use or not.
             i-th entry is the classifier decision that i-th instance safe to use
         """
-        self.check_is_fitted()
+        self._check_is_fitted()
         X = self._preprocess_collection(X)
         if self.state_info is None:
             return self._predict_proba(X)
@@ -309,7 +297,7 @@ class BaseEarlyClassifier(BaseCollectionEstimator, ABC):
         -------
         Tuple of floats, harmonic mean, accuracy and earliness scores of predict(X) vs y
         """
-        self.check_is_fitted()
+        self._check_is_fitted()
         X = self._preprocess_collection(X)
 
         return self._score(X, y)

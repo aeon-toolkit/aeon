@@ -1,5 +1,7 @@
 """Time series kmedoids."""
 
+from typing import Optional
+
 __maintainer__ = []
 
 from typing import Callable, Union
@@ -28,8 +30,8 @@ class TimeSeriesCLARA(BaseClusterer):
     n_clusters : int, default=8
         The number of clusters to form as well as the number of
         centroids to generate.
-    init_algorithm : str or np.ndarray, default='random'
-        Method for initializing cluster centers. Any of the following are valid:
+    init : str or np.ndarray, default='random'
+        Method for initialising cluster centers. Any of the following are valid:
         ['kmedoids++', 'random', 'first'].
         Random is the default as it is very fast and it was found in [2] to
         perform about as well as the other methods.
@@ -40,7 +42,7 @@ class TimeSeriesCLARA(BaseClusterer):
         If a np.ndarray provided it must be of shape (n_clusters,) and contain
         the indexes of the time series to use as centroids.
     distance : str or Callable, default='msm'
-        Distance metric to compute similarity between time series. A list of valid
+        Distance method to compute similarity between time series. A list of valid
         strings for metrics can be found in the documentation for
         :func:`aeon.distances.get_distance_function`. If a callable is passed it must be
         a function that takes two 2d numpy arrays as input and returns a float.
@@ -71,7 +73,7 @@ class TimeSeriesCLARA(BaseClusterer):
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
     distance_params : dict, default=None
-        Dictionary containing kwargs for the distance metric being used.
+        Dictionary containing kwargs for the distance method being used.
 
     Attributes
     ----------
@@ -116,19 +118,19 @@ class TimeSeriesCLARA(BaseClusterer):
     def __init__(
         self,
         n_clusters: int = 8,
-        init_algorithm: Union[str, np.ndarray] = "random",
+        init: Union[str, np.ndarray] = "random",
         distance: Union[str, Callable] = "msm",
-        n_samples: int = None,
+        n_samples: Optional[int] = None,
         n_sampling_iters: int = 10,
         n_init: int = 1,
         max_iter: int = 300,
         tol: float = 1e-6,
         verbose: bool = False,
-        random_state: Union[int, RandomState] = None,
-        distance_params: dict = None,
+        random_state: Optional[Union[int, RandomState]] = None,
+        distance_params: Optional[dict] = None,
     ):
-        self.init_algorithm = init_algorithm
         self.distance = distance
+        self.init = init
         self.n_init = n_init
         self.max_iter = max_iter
         self.tol = tol
@@ -137,6 +139,7 @@ class TimeSeriesCLARA(BaseClusterer):
         self.distance_params = distance_params
         self.n_samples = n_samples
         self.n_sampling_iters = n_sampling_iters
+        self.n_clusters = n_clusters
 
         self.cluster_centers_ = None
         self.labels_ = None
@@ -146,7 +149,7 @@ class TimeSeriesCLARA(BaseClusterer):
         self._random_state = None
         self._kmedoids_instance = None
 
-        super().__init__(n_clusters)
+        super().__init__()
 
     def _predict(self, X: np.ndarray, y=None) -> np.ndarray:
         return self._kmedoids_instance.predict(X)
@@ -172,7 +175,7 @@ class TimeSeriesCLARA(BaseClusterer):
                 )
             pam = TimeSeriesKMedoids(
                 n_clusters=self.n_clusters,
-                init_algorithm=self.init_algorithm,
+                init=self.init,
                 distance=self.distance,
                 n_init=self.n_init,
                 max_iter=self.max_iter,
@@ -186,7 +189,7 @@ class TimeSeriesCLARA(BaseClusterer):
             curr_centers = pam.cluster_centers_
             if isinstance(pam.distance, str):
                 pairwise_matrix = pairwise_distance(
-                    X, curr_centers, metric=self.distance, **pam._distance_params
+                    X, curr_centers, method=self.distance, **pam._distance_params
                 )
             else:
                 pairwise_matrix = pairwise_distance(
@@ -205,11 +208,8 @@ class TimeSeriesCLARA(BaseClusterer):
         self.n_iter_ = best_pam.n_iter_
         self._kmedoids_instance = best_pam
 
-    def _score(self, X, y=None):
-        return -self.inertia_
-
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -225,11 +225,10 @@ class TimeSeriesCLARA(BaseClusterer):
             Parameters to create testing instances of the class
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`
         """
         return {
             "n_clusters": 2,
-            "init_algorithm": "random",
+            "init": "random",
             "distance": "euclidean",
             "n_init": 1,
             "max_iter": 1,

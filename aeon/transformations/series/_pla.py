@@ -43,8 +43,9 @@ class PLASeriesTransformer(BaseSeriesTransformer):
 
     References
     ----------
-    .. [1] Keogh, E., Chu, S., Hart, D. and Pazzani, M., 2001, November.
-    An online algorithm for segmenting time series. (pp. 289-296).
+    .. [1] E. Keogh, S. Chu, D. Hart and M. Pazzani, "An online algorithm for
+    segmenting time series," Proceedings 2001 IEEE International Conference on
+    Data Mining, San Jose, CA, USA, 2001, pp. 289-296, doi: 10.1109/ICDM.2001.989531.
 
     Examples
     --------
@@ -54,12 +55,6 @@ class PLASeriesTransformer(BaseSeriesTransformer):
     >>> ts = ts.values
     >>> pla = PLASeriesTransformer(max_error = 0.001, transformer="bottom up")
     >>> transformed_x = pla.fit_transform(ts)
-
-    References
-    ----------
-    .. [1] E. Keogh, S. Chu, D. Hart and M. Pazzani, "An online algorithm for
-    segmenting time series," Proceedings 2001 IEEE International Conference on
-    Data Mining, San Jose, CA, USA, 2001, pp. 289-296, doi: 10.1109/ICDM.2001.989531.
     """
 
     _tags = {
@@ -67,8 +62,8 @@ class PLASeriesTransformer(BaseSeriesTransformer):
     }
 
     def __init__(self, max_error=20, transformer="swab", buffer_size=None):
-        self.transformer = transformer
         self.max_error = max_error
+        self.transformer = transformer
         self.buffer_size = buffer_size
         super().__init__(axis=0)
 
@@ -260,11 +255,12 @@ class PLASeriesTransformer(BaseSeriesTransformer):
             List of transformed segmented time series.
         """
         seg_ts = []
+        buffer_size = self.buffer_size
         if self.buffer_size is None:
-            self.buffer_size = int(len(X) ** 0.5)
+            buffer_size = int(len(X) ** 0.5)
 
-        lower_boundary_window = int(self.buffer_size / 2)
-        upper_boundary_window = int(self.buffer_size * 2)
+        lower_boundary_window = int(buffer_size / 2)
+        upper_boundary_window = int(buffer_size * 2)
 
         seg = self._best_line(X, 0, lower_boundary_window, upper_boundary_window)
         current_data_point = len(seg)

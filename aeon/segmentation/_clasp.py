@@ -206,7 +206,7 @@ class ClaSPSegmenter(BaseSegmenter):
     >>> scores = clasp.scores
     """
 
-    _tags = {"fit_is_empty": True}  # for unit test cases
+    _tags = {"capability:multithreading": True, "fit_is_empty": True}
 
     def __init__(self, period_length=10, n_cps=1, exclusion_radius=0.05, n_jobs=1):
         self.period_length = int(period_length)
@@ -301,7 +301,7 @@ class ClaSPSegmenter(BaseSegmenter):
         return pd.IntervalIndex.from_arrays(start, end)
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -316,6 +316,5 @@ class ClaSPSegmenter(BaseSegmenter):
             Parameters to create testing instances of the class
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`
         """
         return {"period_length": 5, "n_cps": 1}

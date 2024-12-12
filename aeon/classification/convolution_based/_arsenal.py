@@ -3,7 +3,7 @@
 kernel based ensemble of ROCKET classifiers.
 """
 
-__maintainer__ = []
+__maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["Arsenal"]
 
 import time
@@ -35,7 +35,7 @@ class Arsenal(BaseClassifier):
 
     Parameters
     ----------
-    num_kernels : int, default=2,000
+    n_kernels : int, default=2,000
         Number of kernels for each ROCKET transform.
     n_estimators : int, default=25
         Number of estimators to build for the ensemble.
@@ -114,7 +114,7 @@ class Arsenal(BaseClassifier):
     >>> from aeon.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test =load_unit_test(split="test")
-    >>> clf = Arsenal(num_kernels=100, n_estimators=5)
+    >>> clf = Arsenal(n_kernels=100, n_estimators=5)
     >>> clf.fit(X_train, y_train)
     Arsenal(...)
     >>> y_pred = clf.predict(X_test)
@@ -130,7 +130,7 @@ class Arsenal(BaseClassifier):
 
     def __init__(
         self,
-        num_kernels=2000,
+        n_kernels=2000,
         n_estimators=25,
         rocket_transform="rocket",
         max_dilations_per_kernel=32,
@@ -141,7 +141,7 @@ class Arsenal(BaseClassifier):
         n_jobs=1,
         random_state=None,
     ):
-        self.num_kernels = num_kernels
+        self.n_kernels = n_kernels
         self.n_estimators = n_estimators
         self.rocket_transform = rocket_transform
         self.max_dilations_per_kernel = max_dilations_per_kernel
@@ -281,15 +281,15 @@ class Arsenal(BaseClassifier):
         train_time = 0
 
         if self.rocket_transform == "rocket":
-            base_rocket = Rocket(num_kernels=self.num_kernels)
+            base_rocket = Rocket(n_kernels=self.n_kernels)
         elif self.rocket_transform == "minirocket":
             base_rocket = MiniRocket(
-                num_kernels=self.num_kernels,
+                n_kernels=self.n_kernels,
                 max_dilations_per_kernel=self.max_dilations_per_kernel,
             )
         elif self.rocket_transform == "multirocket":
             base_rocket = MultiRocket(
-                num_kernels=self.num_kernels,
+                n_kernels=self.n_kernels,
                 max_dilations_per_kernel=self.max_dilations_per_kernel,
                 n_features_per_kernel=self.n_features_per_kernel,
             )
@@ -395,7 +395,7 @@ class Arsenal(BaseClassifier):
         return results, weight, oob
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -417,15 +417,14 @@ class Arsenal(BaseClassifier):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         if parameter_set == "results_comparison":
-            return {"num_kernels": 20, "n_estimators": 5}
+            return {"n_kernels": 20, "n_estimators": 5}
         elif parameter_set == "contracting":
             return {
                 "time_limit_in_minutes": 5,
-                "num_kernels": 10,
+                "n_kernels": 10,
                 "contract_max_n_estimators": 2,
             }
         else:
-            return {"num_kernels": 10, "n_estimators": 2}
+            return {"n_kernels": 10, "n_estimators": 2}

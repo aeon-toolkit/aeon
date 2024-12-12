@@ -66,13 +66,10 @@ class STRAY(BaseAnomalyDetector):
     --------
     >>> from aeon.anomaly_detection import STRAY
     >>> from aeon.datasets import load_airline
-    >>> from sklearn.preprocessing import MinMaxScaler
     >>> import numpy as np
-    >>> X = load_airline().to_frame().to_numpy()
-    >>> scaler = MinMaxScaler()
-    >>> X = scaler.fit_transform(X)
+    >>> X = load_airline()
     >>> detector = STRAY(k=3)
-    >>> y = detector.fit_predict(X, axis=0)
+    >>> y = detector.fit_predict(X)
     >>> y[:5]
     array([False, False, False, False, False])
     """
@@ -177,7 +174,7 @@ class STRAY(BaseAnomalyDetector):
         ]
 
         log_alpha = np.log(1 / self.alpha)
-        bound = np.Inf
+        bound = np.inf
 
         for i in range(start, n):
             if gaps[i] > log_alpha * ghat[i]:

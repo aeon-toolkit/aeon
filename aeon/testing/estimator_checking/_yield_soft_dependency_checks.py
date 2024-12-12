@@ -6,8 +6,6 @@ required package or version is missing. Other tests will be automatically skippe
 
 from functools import partial
 
-import pytest
-
 from aeon.utils.validation._dependencies import (
     _check_python_version,
     _check_soft_dependencies,
@@ -23,6 +21,8 @@ def _yield_soft_dependency_checks(estimator_class, estimator_instances, datatype
 
 def check_python_version_softdep(estimator_class):
     """Test that estimators raise error if python version is wrong."""
+    import pytest
+
     # if dependencies are incompatible skip
     softdeps = estimator_class.get_class_tag("python_dependencies", None)
     if softdeps is not None and not _check_soft_dependencies(softdeps, severity="none"):
@@ -30,12 +30,12 @@ def check_python_version_softdep(estimator_class):
 
     # should be compatible with python version and able to construct
     if _check_python_version(estimator_class, severity="none"):
-        estimator_class.create_test_instance()
+        estimator_class._create_test_instance()
     # should raise a specific error if python version is incompatible
     else:
         pyspec = estimator_class.get_class_tag("python_version", None)
         with pytest.raises(ModuleNotFoundError) as ex_info:
-            estimator_class.create_test_instance()
+            estimator_class._create_test_instance()
         assert "requires python version to be" in str(ex_info.value), (
             f"Estimator {estimator_class.__name__} has python version bound "
             f"{pyspec} according to tags, but does not raise an appropriate "
@@ -46,6 +46,8 @@ def check_python_version_softdep(estimator_class):
 
 def check_python_dependency_softdep(estimator_class):
     """Test that estimators raise error if required soft dependencies are missing."""
+    import pytest
+
     # if python version is incompatible skip
     if not _check_python_version(estimator_class, severity="none"):
         return
@@ -54,11 +56,11 @@ def check_python_dependency_softdep(estimator_class):
 
     # should be compatible with installed dependencies and able to construct
     if softdeps is None or _check_soft_dependencies(softdeps, severity="none"):
-        estimator_class.create_test_instance()
+        estimator_class._create_test_instance()
     # should raise a specific error if any soft dependencies are missing
     else:
         with pytest.raises(ModuleNotFoundError) as ex_info:
-            estimator_class.create_test_instance()
+            estimator_class._create_test_instance()
         assert (
             "is a soft dependency and not included in the base aeon installation"
             in str(ex_info.value)

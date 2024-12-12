@@ -181,7 +181,7 @@ class HIVECOTEV2(BaseClassifier):
             self._drcif_params = {"n_estimators": HIVECOTEV2._DEFAULT_N_TREES}
         if self.arsenal_params is None:
             self._arsenal_params = {
-                "num_kernels": HIVECOTEV2._DEFAULT_N_KERNELS,
+                "n_kernels": HIVECOTEV2._DEFAULT_N_KERNELS,
                 "n_estimators": HIVECOTEV2._DEFAULT_N_ESTIMATORS,
             }
         if self.tde_params is None:
@@ -325,7 +325,7 @@ class HIVECOTEV2(BaseClassifier):
         return dists / dists.sum(axis=1, keepdims=True)
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -347,7 +347,6 @@ class HIVECOTEV2(BaseClassifier):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         from sklearn.ensemble import RandomForestClassifier
 
@@ -366,7 +365,7 @@ class HIVECOTEV2(BaseClassifier):
                     "n_intervals": 2,
                     "att_subsample_size": 2,
                 },
-                "arsenal_params": {"num_kernels": 50, "n_estimators": 3},
+                "arsenal_params": {"n_kernels": 50, "n_estimators": 3},
                 "tde_params": {
                     "n_parameter_samples": 5,
                     "max_ensemble_size": 3,
@@ -387,7 +386,7 @@ class HIVECOTEV2(BaseClassifier):
                     "n_intervals": 2,
                     "att_subsample_size": 2,
                 },
-                "arsenal_params": {"num_kernels": 5, "contract_max_n_estimators": 1},
+                "arsenal_params": {"n_kernels": 5, "contract_max_n_estimators": 1},
                 "tde_params": {
                     "contract_max_n_parameter_samples": 1,
                     "max_ensemble_size": 1,
@@ -407,7 +406,7 @@ class HIVECOTEV2(BaseClassifier):
                     "n_intervals": 2,
                     "att_subsample_size": 2,
                 },
-                "arsenal_params": {"num_kernels": 5, "n_estimators": 1},
+                "arsenal_params": {"n_kernels": 5, "n_estimators": 1},
                 "tde_params": {
                     "n_parameter_samples": 1,
                     "max_ensemble_size": 1,

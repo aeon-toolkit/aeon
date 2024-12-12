@@ -18,12 +18,9 @@ State:
 """
 
 __maintainer__ = []
-__all__ = [
-    "BaseRegressor",
-]
+__all__ = ["BaseRegressor"]
 
-import time
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from typing import final
 
 import numpy as np
@@ -36,7 +33,7 @@ from aeon.base import BaseCollectionEstimator
 from aeon.base._base import _clone_estimator
 
 
-class BaseRegressor(BaseCollectionEstimator, ABC):
+class BaseRegressor(BaseCollectionEstimator):
     """Abstract base class for time series regressors.
 
     The base regressor specifies the methods and method signatures that all
@@ -45,30 +42,18 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
 
     Attributes
     ----------
-    fit_time_ : int
-        Time (in milliseconds) for fit to run.
-    _n_jobs : int
-        Number of threads to use in fit as determined by n_jobs.
-
-    fit_time_ : int
-        Time (in milliseconds) for ``fit`` to run.
-    _n_jobs : int
-        Number of threads to use in estimator methods such as ``fit`` and ``predict``.
-        Determined by the ``n_jobs`` parameter if present.
     _estimator_type : string
         The type of estimator. Required by some ``sklearn`` tools, set to "regressor".
     """
 
     _tags = {
+        "fit_is_empty": False,
         "capability:train_estimate": False,
         "capability:contractable": False,
     }
 
+    @abstractmethod
     def __init__(self):
-        # reserved attributes written to in fit
-        self.fit_time_ = -1
-        self._n_jobs = 1
-
         # required for compatibility with some sklearn interfaces
         self._estimator_type = "regressor"
 
@@ -112,14 +97,12 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
         """
-        start = int(round(time.time() * 1000))
         X, y = self._fit_setup(X, y)
 
         self._fit(X, y)
 
-        self.fit_time_ = int(round(time.time() * 1000)) - start
         # this should happen last
-        self._is_fitted = True
+        self.is_fitted = True
         return self
 
     @final
@@ -153,7 +136,7 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
             1D np.array of float, of shape (n_cases) - predicted regression labels
             indices correspond to instance indices in X
         """
-        self.check_is_fitted()
+        self._check_is_fitted()
         X = self._preprocess_collection(X, store_metadata=False)
         self._check_shape(X)
         return self._predict(X)
@@ -208,7 +191,7 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
         y_pred = self._fit_predict(X, y)
 
         # this should happen last
-        self._is_fitted = True
+        self.is_fitted = True
         return y_pred
 
     def score(self, X, y, metric="r2", metric_params=None) -> float:
@@ -249,7 +232,7 @@ class BaseRegressor(BaseCollectionEstimator, ABC):
         score : float
             MSE score of predict(X) vs y
         """
-        self.check_is_fitted()
+        self._check_is_fitted()
         y = self._check_y(y, len(X))
         _metric_params = metric_params
         if metric_params is None:

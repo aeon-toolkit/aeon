@@ -2,32 +2,29 @@
 
 __maintainer__ = []
 
-from abc import ABC, abstractmethod
+from abc import abstractmethod
+from copy import deepcopy
 
+from aeon.base._base import _clone_estimator
 from aeon.clustering._k_means import TimeSeriesKMeans
 from aeon.clustering.base import BaseClusterer
 
 
-class BaseDeepClusterer(BaseClusterer, ABC):
+class BaseDeepClusterer(BaseClusterer):
     """Abstract base class for deep learning time series clusterers.
 
     Parameters
     ----------
-    n_clusters : int, default=None
-        Please use 'estimator' parameter.
     estimator : aeon clusterer, default=None
         An aeon estimator to be built using the transformed data.
         Defaults to aeon TimeSeriesKMeans() with euclidean distance
         and mean averaging method and n_clusters set to 2.
-    clustering_algorithm : str, default="deprecated"
-        Please use 'estimator' parameter.
-    clustering_params : dict, default=None
-        Please use 'estimator' parameter.
     batch_size : int, default = 40
         training batch size for the model
     last_file_name : str, default = "last_model"
         The name of the file of the last model, used
-        only if save_last_model_to_file is used
+        only if save_last_model_to_file is used in
+        child class.
 
     """
 
@@ -35,30 +32,25 @@ class BaseDeepClusterer(BaseClusterer, ABC):
         "X_inner_type": "numpy3D",
         "capability:multivariate": True,
         "algorithm_type": "deeplearning",
-        "non-deterministic": True,
-        "cant-pickle": True,
+        "non_deterministic": True,
+        "cant_pickle": True,
         "python_dependencies": "tensorflow",
     }
 
+    @abstractmethod
     def __init__(
         self,
-        n_clusters=None,
         estimator=None,
-        clustering_algorithm="deprecated",
-        clustering_params=None,
         batch_size=32,
-        last_file_name="last_file",
+        last_file_name="last_model",
     ):
         self.estimator = estimator
-        self.n_clusters = n_clusters
-        self.clustering_algorithm = clustering_algorithm
-        self.clustering_params = clustering_params
         self.batch_size = batch_size
         self.last_file_name = last_file_name
 
         self.model_ = None
 
-        super().__init__(n_clusters=n_clusters)
+        super().__init__()
 
     @abstractmethod
     def build_model(self, input_shape):
@@ -109,35 +101,20 @@ class BaseDeepClusterer(BaseClusterer, ABC):
         X : np.ndarray, shape=(n_cases, n_timepoints, n_channels)
             The input time series.
         """
-        import warnings
-
         self._estimator = (
             TimeSeriesKMeans(
                 n_clusters=2, distance="euclidean", averaging_method="mean"
             )
             if self.estimator is None
-            else self.estimator
+            else _clone_estimator(self.estimator)
         )
-
-        # to be removed in 1.0.0
-        if (
-            self.clustering_algorithm != "deprecated"
-            or self.clustering_params is not None
-            or self.n_clusters is not None
-        ):
-            warnings.warn(
-                "The 'n_clusters' 'clustering_algorithm' and "
-                "'clustering_params' parameters "
-                "will be removed in v1.0.0. "
-                "Their usage will not have an effect, "
-                "please use the new 'estimator' parameter to directly "
-                "give an aeon clusterer as input.",
-                FutureWarning,
-                stacklevel=2,
-            )
 
         latent_space = self.model_.layers[1].predict(X)
         self._estimator.fit(X=latent_space)
+        if hasattr(self._estimator, "labels_"):
+            self.labels_ = self._estimator.labels_
+        else:
+            self.labels_ = self._estimator.predict(X=latent_space)
 
         return self
 
@@ -156,6 +133,33 @@ class BaseDeepClusterer(BaseClusterer, ABC):
         clusters_proba = self._estimator.predict_proba(latent_space)
 
         return clusters_proba
+
+    def load_model(self, model_path, estimator):
+        """Load a pre-trained keras model instead of fitting.
+
+        When calling this function, all functionalities can be used
+        such as predict, predict_proba etc. with the loaded model.
+
+        Parameters
+        ----------
+        model_path : str (path including model name and extension)
+            The directory where the model will be saved including the model
+            name with a ".keras" extension.
+            Example: model_path="path/to/file/best_model.keras"
+        estimator : estimator : aeon clusterer
+            Pre-trained clusterer needed for loading model.
+
+        Returns
+        -------
+        None
+        """
+        import tensorflow as tf
+
+        self.model_ = tf.keras.models.load_model(model_path)
+        self.is_fitted = True
+
+        # use deep copy to preserve fit state
+        self._estimator = deepcopy(estimator)
 
     def _get_model_checkpoint_callback(self, callbacks, file_path, file_name):
         import tensorflow as tf

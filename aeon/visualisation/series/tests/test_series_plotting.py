@@ -1,15 +1,16 @@
 """Test functionality of time series plotting functions."""
 
-import re
-
 import numpy as np
 import pandas as pd
 import pytest
 
 from aeon.datasets import load_airline
-from aeon.testing.data_generation._legacy import make_series
+from aeon.testing.data_generation import (
+    make_example_1d_numpy,
+    make_example_2d_numpy_series,
+    make_example_pandas_series,
+)
 from aeon.utils.validation._dependencies import _check_soft_dependencies
-from aeon.utils.validation.series import VALID_DATA_TYPES
 from aeon.visualisation import (
     plot_correlations,
     plot_lags,
@@ -17,61 +18,42 @@ from aeon.visualisation import (
     plot_spectrogram,
 )
 
-y_airline = load_airline()
-y_airline_true = y_airline.iloc[y_airline.index < "1960-01"]
+y_np_array = make_example_1d_numpy()
+y_pd_series = make_example_pandas_series()
+y_airline = load_airline(return_array=False)
+y_airline_train = y_airline.iloc[y_airline.index < "1960-01"]
 y_airline_test = y_airline.iloc[y_airline.index >= "1960-01"]
-series_to_test = [y_airline, (y_airline_true, y_airline_test)]
-invalid_input_types = [
-    y_airline.values,
-    pd.DataFrame({"y1": y_airline, "y2": y_airline}),
-    "this_is_a_string",
-]
+y_dataframe = pd.DataFrame(
+    {y_airline_train.name: y_airline_train, y_airline_test.name: y_airline_test}
+)
+series_to_test = [y_np_array, y_pd_series, y_dataframe]
+
 
 # can be used with pytest.mark.parametrize to check plots that accept
 # univariate series
 univariate_plots = [plot_correlations, plot_lags]
 
-
-# Need to use _plot_series to make it easy for test cases to pass either a
-# single series or a tuple of multiple series to be unpacked as argss
-def _plot_series(series, ax=None, **kwargs):
-    if isinstance(series, (tuple, list)):
-        return plot_series(*series, ax=ax, **kwargs)
-    else:
-        return plot_series(series, ax=ax, **kwargs)
-
-
-@pytest.fixture
-def valid_data_types():
-    """Filter valid data types for those that work with plotting functions."""
-    valid_data_types = tuple(filter(lambda x: x is not np.ndarray, VALID_DATA_TYPES))
-    return valid_data_types
+longer_series = [np.random.random(100), pd.Series(np.random.random(100))]
+bad_series = [
+    "This is a string",
+    (pd.DataFrame({"y1": y_airline, "y2": y_airline}),),
+    np.random.random((4, 1, 50)),
+]
 
 
 @pytest.mark.skipif(
     not _check_soft_dependencies(["matplotlib", "seaborn"], severity="none"),
     reason="skip test if required soft dependency not available",
 )
-def test_plot_series():
+@pytest.mark.parametrize("series", series_to_test)
+def test_plot_series(series):
     """Test whether plot_series runs without error."""
     import matplotlib
     import matplotlib.pyplot as plt
 
     matplotlib.use("Agg")
-
-    series = make_series()
-
-    fig, ax = _plot_series(series)
-    plt.gcf().canvas.draw_idle()
-
+    fig, ax = plot_series(series)
     assert isinstance(fig, plt.Figure) and isinstance(ax, plt.Axes)
-
-    # Test with labels specified
-    fig, ax = _plot_series(series, labels=["Series 1"])
-    plt.gcf().canvas.draw_idle()
-
-    assert isinstance(fig, plt.Figure) and isinstance(ax, plt.Axes)
-
     plt.close()
 
 
@@ -79,26 +61,19 @@ def test_plot_series():
     not _check_soft_dependencies(["matplotlib", "seaborn"], severity="none"),
     reason="skip test if required soft dependency not available",
 )
-def test_plot_series_multiple_series():
-    """Test whether plot_series runs without error with multiple series."""
-    import matplotlib
+def test_plot_series_with_arguments():
+    """Test whether plot_series runs with additional arguments."""
     import matplotlib.pyplot as plt
 
-    matplotlib.use("Agg")
-
-    series = [make_series() for _ in range(3)]
-
-    fig, ax = _plot_series(series)
-    plt.gcf().canvas.draw_idle()
-
-    assert isinstance(fig, plt.Figure) and isinstance(ax, plt.Axes)
-
-    # Test with labels specified
-    fig, ax = _plot_series(series, labels=[f"Series {i}" for i in range(3)])
-    plt.gcf().canvas.draw_idle()
-
-    assert isinstance(fig, plt.Figure) and isinstance(ax, plt.Axes)
-
+    series = make_example_1d_numpy()
+    fig, ax = plot_series(
+        series,
+        labels=["Series 1"],
+        markers=["x"],
+        title="FOOBAR",
+        x_label="FOO",
+        y_label="BAR",
+    )
     plt.close()
 
 
@@ -106,83 +81,61 @@ def test_plot_series_multiple_series():
     not _check_soft_dependencies(["matplotlib", "seaborn"], severity="none"),
     reason="skip test if required soft dependency not available",
 )
-@pytest.mark.parametrize("series_to_plot", invalid_input_types)
-def test_plot_series_invalid_input_type_raises_error(series_to_plot):
+@pytest.mark.parametrize("bad_series", bad_series)
+def test_plot_series_invalid_input_type_raises_error(bad_series):
     """Tests whether plot_series raises error for invalid input types."""
-    series_type = type(series_to_plot)
-
-    if not isinstance(series_to_plot, (pd.Series, pd.DataFrame)):
-        with pytest.raises((TypeError), match=f"found type: {series_type}"):
-            _plot_series(series_to_plot)
-    else:
-        with pytest.raises(ValueError, match="input must be univariate"):
-            _plot_series(series_to_plot)
+    with pytest.raises((ValueError), match="series must be a single time series"):
+        plot_series(bad_series)
 
 
 @pytest.mark.skipif(
     not _check_soft_dependencies(["matplotlib", "seaborn"], severity="none"),
     reason="skip test if required soft dependency not available",
 )
-@pytest.mark.parametrize(
-    "series_to_plot", [(y_airline_true, y_airline_test.reset_index(drop=True))]
-)
-def test_plot_series_with_unequal_index_type_raises_error(
-    series_to_plot, valid_data_types
-):
-    """Tests whether plot_series raises error for series with unequal index."""
-    match = "Found series with inconsistent index types"
-    with pytest.raises(TypeError, match=match):
-        _plot_series(series_to_plot)
-
-
-@pytest.mark.skipif(
-    not _check_soft_dependencies(["matplotlib", "seaborn"], severity="none"),
-    reason="skip test if required soft dependency not available",
-)
-@pytest.mark.parametrize("series_to_plot", series_to_test)
-def test_plot_series_invalid_marker_kwarg_len_raises_error(series_to_plot):
+def test_plot_series_invalid_marker():
     """Tests whether plot_series raises error for inconsistent series/markers."""
     match = """There must be one marker for each time series,
                 but found inconsistent numbers of series and
                 markers."""
+    series = make_example_1d_numpy()
     with pytest.raises(ValueError, match=match):
         # Generate error by creating list of markers with length that does
         # not match input number of input series
-        if isinstance(series_to_plot, pd.Series):
-            markers = ["o", "o"]
-        elif isinstance(series_to_plot, tuple):
-            markers = ["o" for _ in range(len(series_to_plot) - 1)]
-
-        _plot_series(series_to_plot, markers=markers)
+        markers = ["o", "o"]
+        plot_series(series, markers=markers)
+    series = make_example_2d_numpy_series(n_channels=2)
+    with pytest.raises(ValueError, match=match):
+        # Generate error by creating list of markers with length that does
+        # not match input number of input series
+        markers = ["o"]
+        plot_series(series, markers=markers)
 
 
 @pytest.mark.skipif(
     not _check_soft_dependencies(["matplotlib", "seaborn"], severity="none"),
     reason="skip test if required soft dependency not available",
 )
-@pytest.mark.parametrize("series_to_plot", series_to_test)
-def test_plot_series_invalid_label_kwarg_len_raises_error(series_to_plot):
+def test_plot_series_invalid_label():
     """Tests whether plot_series raises error for inconsistent series/labels."""
     match = """There must be one label for each time series,
                 but found inconsistent numbers of series and
                 labels."""
     with pytest.raises(ValueError, match=match):
-        # Generate error by creating list of labels with length that does
-        # not match input number of input series
-        if isinstance(series_to_plot, pd.Series):
-            labels = ["Series 1", "Series 2"]
-        elif isinstance(series_to_plot, tuple):
-            labels = [f"Series {i}" for i in range(len(series_to_plot) - 1)]
+        series = make_example_1d_numpy()
+        labels = ["Series 1", "Series 2"]
+        plot_series(series, labels=labels)
 
-        _plot_series(series_to_plot, labels=labels)
+    with pytest.raises(ValueError, match=match):
+        series = make_example_2d_numpy_series(n_channels=2)
+        labels = ["Series 1"]
+        plot_series(series, labels=labels)
 
 
 @pytest.mark.skipif(
     not _check_soft_dependencies(["matplotlib", "seaborn"], severity="none"),
     reason="skip test if required soft dependency not available",
 )
-@pytest.mark.parametrize("series_to_plot", series_to_test)
-def test_plot_series_existing_axes(series_to_plot):
+def test_plot_series_existing_axes():
     """Tests whether plot_series works with existing axes as input."""
     import matplotlib
     import matplotlib.pyplot as plt
@@ -190,32 +143,10 @@ def test_plot_series_existing_axes(series_to_plot):
     matplotlib.use("Agg")
 
     # Test output case where an existing plt.Axes object is passed to kwarg ax
+    series = make_example_1d_numpy()
     fig, ax = plt.subplots(1, figsize=plt.figaspect(0.25))
-    ax = _plot_series(series_to_plot, ax=ax)
-
+    ax = plot_series(series, ax=ax)
     assert isinstance(ax, plt.Axes)
-
-
-@pytest.mark.skipif(
-    not _check_soft_dependencies(["matplotlib", "seaborn"], severity="none"),
-    reason="skip test if required soft dependency not available",
-)
-def test_plot_series_uniform_treatment_of_int64_range_index_types():
-    """Verify that plot_series treats Int64 and Range indices equally."""
-    # We test that int64 and range indices are treated uniformly and do not raise an
-    # error of inconsistent index types
-    import matplotlib
-    import matplotlib.pyplot as plt
-
-    matplotlib.use("Agg")
-
-    y1 = pd.Series(np.arange(10))
-    y2 = pd.Series(np.random.normal(size=10))
-    y1.index = pd.Index(y1.index, dtype=int)
-    y2.index = pd.RangeIndex(y2.index)
-
-    plot_series(y1, y2)
-    plt.gcf().canvas.draw_idle()
     plt.close()
 
 
@@ -223,7 +154,7 @@ def test_plot_series_uniform_treatment_of_int64_range_index_types():
     not _check_soft_dependencies(["matplotlib", "seaborn"], severity="none"),
     reason="skip test if required soft dependency not available",
 )
-@pytest.mark.parametrize("series_to_plot", [y_airline])
+@pytest.mark.parametrize("series_to_plot", longer_series)
 @pytest.mark.parametrize("plot_func", univariate_plots)
 def test_univariate_plots_run_without_error(series_to_plot, plot_func):
     """Tests whether plots that accept univariate series run without error.
@@ -252,10 +183,11 @@ def test_univariate_plots_run_without_error(series_to_plot, plot_func):
     not _check_soft_dependencies(["matplotlib", "seaborn"], severity="none"),
     reason="skip test if required soft dependency not available",
 )
-@pytest.mark.parametrize("series_to_plot", invalid_input_types)
+@pytest.mark.parametrize("series_to_plot", bad_series + [y_dataframe])
 @pytest.mark.parametrize("plot_func", univariate_plots)
 def test_univariate_plots_invalid_input_type_raises_error(
-    series_to_plot, plot_func, valid_data_types
+    series_to_plot,
+    plot_func,
 ):
     """Tests whether plots that accept univariate series run without error.
 
@@ -263,17 +195,11 @@ def test_univariate_plots_invalid_input_type_raises_error(
     invalid input type is found. Currently only plot_lags and plot_correlations are
     tested.
     """
-    if not isinstance(series_to_plot, (pd.Series, pd.DataFrame)):
-        series_type = type(series_to_plot)
-        match = (
-            rf"input must be a one of {valid_data_types}, but found type: {series_type}"
-        )
-        with pytest.raises(TypeError, match=re.escape(match)):
-            plot_func(series_to_plot)
-    else:
-        match = "input must be univariate, but found 2 variables."
-        with pytest.raises(ValueError, match=match):
-            plot_func(series_to_plot)
+
+    def test_plot_series_invalid_input_type_raises_error(bad_series):
+        """Tests whether plot_series raises error for invalid input types."""
+        with pytest.raises((ValueError), match="series must be a single time series"):
+            plot_func(bad_series)
 
 
 # For plots that only accept univariate input, from here onwards are
@@ -282,13 +208,13 @@ def test_univariate_plots_invalid_input_type_raises_error(
     not _check_soft_dependencies(["matplotlib", "seaborn"], severity="none"),
     reason="skip test if required soft dependency not available",
 )
-@pytest.mark.parametrize("series_to_plot", [y_airline])
 @pytest.mark.parametrize("lags", [2, (1, 2, 3)])
-def test_plot_lags_arguments(series_to_plot, lags):
+def test_plot_lags_arguments(lags):
     """Tests whether plot_lags run with different input arguments."""
     import matplotlib
     import matplotlib.pyplot as plt
 
+    series_to_plot = make_example_1d_numpy(n_timepoints=100)
     matplotlib.use("Agg")
 
     plot_lags(series_to_plot, lags=lags, suptitle="Lag Plot")
@@ -300,12 +226,13 @@ def test_plot_lags_arguments(series_to_plot, lags):
     not _check_soft_dependencies(["matplotlib", "seaborn"], severity="none"),
     reason="skip test if required soft dependency not available",
 )
-@pytest.mark.parametrize("series_to_plot", [y_airline])
 @pytest.mark.parametrize("lags", [6, 24])
-def test_plot_correlations_arguments(series_to_plot, lags):
+def test_plot_correlations_arguments(lags):
     """Tests whether plot_correlations run with different input arguments."""
     import matplotlib
     import matplotlib.pyplot as plt
+
+    series_to_plot = make_example_1d_numpy(n_timepoints=100)
 
     matplotlib.use("Agg")
 
@@ -328,8 +255,10 @@ def test_plot_spectrogram():
     import matplotlib
     import matplotlib.pyplot as plt
 
+    series_to_plot = make_example_1d_numpy(n_timepoints=100)
+
     matplotlib.use("Agg")
-    fig, ax = plot_spectrogram(y_airline, fs=1)
+    fig, ax = plot_spectrogram(series_to_plot, fs=1)
     plt.gcf().canvas.draw_idle()
     plt.close()
 

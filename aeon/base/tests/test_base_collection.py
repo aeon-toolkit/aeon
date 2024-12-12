@@ -6,6 +6,7 @@ import numpy as np
 import pytest
 
 from aeon.base import BaseCollectionEstimator
+from aeon.testing.mock_estimators import MockClassifier
 from aeon.testing.testing_data import (
     EQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION,
     EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION,
@@ -13,7 +14,7 @@ from aeon.testing.testing_data import (
     UNEQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION,
     UNEQUAL_LENGTH_UNIVARIATE_CLASSIFICATION,
 )
-from aeon.utils import COLLECTIONS_DATA_TYPES
+from aeon.utils.data_types import COLLECTIONS_DATA_TYPES
 from aeon.utils.validation import get_type
 
 
@@ -83,8 +84,8 @@ def test_get_metadata(data):
 
 def test_check_X():
     """Test if capabilities correctly tested."""
-    dummy1 = BaseCollectionEstimator()
-    dummy2 = BaseCollectionEstimator()
+    dummy1 = MockClassifier()
+    dummy2 = MockClassifier()
     all_tags = {
         "capability:multivariate": True,
         "capability:unequal_length": True,
@@ -97,36 +98,36 @@ def test_check_X():
     assert dummy1._check_X(X) and dummy2._check_X(X)
 
     # univariate missing values
-    X[3][0][6] = np.NAN
+    X[3][0][6] = np.nan
     assert dummy2._check_X(X)
-    with pytest.raises(ValueError, match=r"cannot handle missing values"):
+    with pytest.raises(ValueError, match=r"has missing values, but"):
         dummy1._check_X(X)
 
     # multivariate equal length
     X = EQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION["numpy3D"]["train"][0].copy()
     assert dummy2._check_X(X)
-    with pytest.raises(ValueError, match=r"cannot handle multivariate"):
+    with pytest.raises(ValueError, match=r"has multivariate series, but"):
         dummy1._check_X(X)
 
     # multivariate missing values
-    X[2][1][5] = np.NAN
+    X[2][1][5] = np.nan
     assert dummy2._check_X(X)
     with pytest.raises(
-        ValueError, match=r"cannot handle missing values or multivariate"
+        ValueError, match=r"has missing values and multivariate series, but"
     ):
         dummy1._check_X(X)
 
     # univariate equal length
     X = UNEQUAL_LENGTH_UNIVARIATE_CLASSIFICATION["np-list"]["train"][0]
     assert dummy2._check_X(X)
-    with pytest.raises(ValueError, match=r"cannot handle unequal length series"):
+    with pytest.raises(ValueError, match=r"has unequal length series, but"):
         dummy1._check_X(X)
 
     # multivariate unequal length
     X = UNEQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION["np-list"]["train"][0]
     assert dummy2._check_X(X)
     with pytest.raises(
-        ValueError, match=r"cannot handle multivariate series or unequal length"
+        ValueError, match=r"has multivariate series and unequal length series, but"
     ):
         dummy1._check_X(X)
 
@@ -141,7 +142,7 @@ def test_check_X():
         dummy1._check_X(X)
 
     # invalid type
-    X = BaseCollectionEstimator()
+    X = MockClassifier()
     with pytest.raises(
         TypeError,
         match="must be of type np.ndarray, pd.DataFrame or list of"
@@ -159,7 +160,7 @@ def test_convert_X(internal_type, data):
     This test runs a subset of these but also checks classifiers with multiple
     internal types.
     """
-    cls = BaseCollectionEstimator()
+    cls = MockClassifier()
 
     # Equal length should default to numpy3D
     X = EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[data]["train"][0]
@@ -215,7 +216,7 @@ def test_preprocess_collection(data):
     """Test the functionality for preprocessing fit."""
     data = EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[data]["train"][0]
     data2 = np.random.random(size=(11, 1, 30))
-    cls = BaseCollectionEstimator()
+    cls = MockClassifier()
 
     X = cls._preprocess_collection(data)
     assert cls._n_jobs == 1
@@ -223,14 +224,35 @@ def test_preprocess_collection(data):
     assert get_type(X) == "numpy3D"
 
     tags = {"capability:multithreading": True}
-    cls = BaseCollectionEstimator()
+    cls = MockClassifier()
     cls.set_tags(**tags)
     with pytest.raises(AttributeError, match="self.n_jobs must be set"):
         cls._preprocess_collection(data)
 
     # Test two calls do not overwrite metadata (predict should not reset fit meta)
-    cls = BaseCollectionEstimator()
+    cls = MockClassifier()
     cls._preprocess_collection(data)
     meta = cls.metadata_
     cls._preprocess_collection(data2)
     assert meta == cls.metadata_
+
+
+def test_convert_np_list():
+    """Test np-list of 1D numpy converted to 2D."""
+    x1 = np.random.random(size=(1, 10))
+    x2 = np.random.rand(20)
+    x3 = np.random.rand(30)
+    np_list = [x1, x2, x3]
+    np2 = BaseCollectionEstimator._reshape_np_list(np_list)
+    assert len(np2) == len(np_list)
+    assert np2[0].shape == (1, 10)
+    assert np2[1].shape == (1, 20)
+    assert np2[2].shape == (1, 30)
+    dummy1 = MockClassifier()
+    x1 = np.random.random(size=(1, 10))
+    x2 = np.random.rand(10)
+    x3 = np.random.rand(10)
+    np_list = [x1, x2, x3]
+    np3 = dummy1._preprocess_collection(np_list)
+    assert isinstance(np3, np.ndarray)
+    assert np3.shape == (3, 1, 10)

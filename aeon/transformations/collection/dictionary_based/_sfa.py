@@ -110,6 +110,7 @@ class SFA(BaseCollectionTransformer):
 
     _tags = {
         "requires_y": False,  # SFA is unsupervised for equi-depth and equi-width bins
+        "capability:multithreading": True,
         "algorithm_type": "dictionary",
     }
 
@@ -261,7 +262,6 @@ class SFA(BaseCollectionTransformer):
         self.n_cases, self.n_timepoints = X.shape
         self.breakpoints = self._binning(X, y)
 
-        self._is_fitted = True
         return self
 
     def _transform(self, X, y=None):
@@ -1152,7 +1152,7 @@ class SFA(BaseCollectionTransformer):
         return letters
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -1168,7 +1168,6 @@ class SFA(BaseCollectionTransformer):
             Parameters to create testing instances of the class
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`
         """
         # small window size for testing
         params = {"window_size": 4}
