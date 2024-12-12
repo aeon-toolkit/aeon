@@ -68,3 +68,8 @@ def test_rockad_incorrect_input():
     ):
         ad = ROCKAD(stride=1, window_size=100)
         ad.fit_predict(series)
+    with pytest.warns(
+        UserWarning, match=r"Power Transform failed and thus has been disabled."
+    ):
+        ad = ROCKAD(stride=1, window_size=5)
+        ad.fit_predict(series)
