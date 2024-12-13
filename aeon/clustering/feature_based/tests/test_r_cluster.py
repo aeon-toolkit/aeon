@@ -1,8 +1,9 @@
 """Test For RCluster."""
 
-from aeon.datasets import load_gunpoint
 import numpy as np
+
 from aeon.clustering.feature_based._r_cluster import RCluster
+from aeon.datasets import load_gunpoint
 
 
 def test_r_cluster():
