@@ -20,7 +20,7 @@ from aeon.testing.utils.deep_equals import deep_equals
 from aeon.testing.utils.estimator_checks import _run_estimator_method
 from aeon.transformations.collection.channel_selection.base import BaseChannelSelector
 from aeon.transformations.series import BaseSeriesTransformer
-from aeon.utils import COLLECTIONS_DATA_TYPES
+from aeon.utils.data_types import COLLECTIONS_DATA_TYPES
 
 
 def _yield_transformation_checks(estimator_class, estimator_instances, datatypes):

@@ -16,11 +16,19 @@ def _run_estimator_method(estimator, method_name, datatype, split):
     method = getattr(estimator, method_name)
     args = inspect.getfullargspec(method)[0]
     try:
-        if "X" in args and "length" in args:  # SeriesSearch
+        # forecasting
+        if "y" in args and "exog" in args:
+            return method(
+                y=FULL_TEST_DATA_DICT[datatype][split][0],
+                exog=FULL_TEST_DATA_DICT[datatype][split][1],
+            )
+        # similarity search
+        elif "X" in args and "length" in args:
             value = method(
                 X=FULL_TEST_DATA_DICT[datatype][split][0],
                 length=3,
             )
+        # general use
         elif "X" in args and "y" in args:
             value = method(
                 X=FULL_TEST_DATA_DICT[datatype][split][0],

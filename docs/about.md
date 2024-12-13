@@ -30,7 +30,7 @@ The finance workgroup is responsible for managing the project's finances.
 ### Infrastructure Workgroup
 
 The infrastructure workgroup is responsible for managing the project's infrastructure
-and CI.
+and CI. Matthew Middlehurst is the current lead of the workgroup.
 
 ```{include} about/infrastructure_workgroup.md
 ```
@@ -53,7 +53,7 @@ The core developers push forward `aeon`'s development and maintain the package.
 
 `aeon` is an affiliated project of [NumFOCUS](https://numfocus.org/).
 
-![https://numfocus.org/](images/other_logos/numfocus-logo.png){w=300px}
+![https://numfocus.org/](images/other_logos/numfocus-logo.png){w=400px}
 
 ## History
 
@@ -134,7 +134,7 @@ and documentation hosting.
 
 ## Pre-fork Acknowledgements
 
-<details><summary>`sktime` v0.16.0 core developers</summary>
+<details><summary>sktime v0.16.0 core developers</summary>
 <p>
 
 The following listed contributors were part of the `sktime` core developer team at some
@@ -164,7 +164,7 @@ point prior to the split of the project.
 </p>
 </details>
 
-<details><summary>`sktime` v0.16.0 funders</summary>
+<details><summary>sktime v0.16.0 funders</summary>
 <p>
 
 As a fork of the `sktime` project, `aeon` has benefited from funding given to `sktime`

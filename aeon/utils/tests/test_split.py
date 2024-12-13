@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from aeon.utils import split_series
+from aeon.utils.split import split_series
 
 X = np.arange(10)
 testdata = [

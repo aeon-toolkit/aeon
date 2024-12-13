@@ -32,7 +32,7 @@ def _validate_alignment_path_result(
     assert isinstance(alignment_path_result, tuple)
     assert isinstance(alignment_path_result[0], list)
     assert isinstance(alignment_path_result[1], float)
-    assert compute_alignment_path(x, y, metric=name) == alignment_path_result
+    assert compute_alignment_path(x, y, method=name) == alignment_path_result
     # Test a callable being passed
     assert callable_alignment_path == alignment_path_result
 

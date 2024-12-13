@@ -8,8 +8,6 @@ __all__ = [
     "ARCoefficientTransformer",
     "Centerer",
     "DownsampleTransformer",
-    "ElbowClassSum",
-    "ElbowClassPairwise",
     "DWTTransformer",
     "HOG1DTransformer",
     "MatrixProfile",
@@ -39,7 +37,3 @@ from aeon.transformations.collection._resize import Resizer
 from aeon.transformations.collection._slope import SlopeTransformer
 from aeon.transformations.collection._truncate import Truncator
 from aeon.transformations.collection.base import BaseCollectionTransformer
-from aeon.transformations.collection.channel_selection import (
-    ElbowClassPairwise,
-    ElbowClassSum,
-)

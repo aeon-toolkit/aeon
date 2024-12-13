@@ -22,7 +22,7 @@ class MiniRocket(BaseCollectionTransformer):
 
     Parameters
     ----------
-     num_kernels : int, default=10,000
+     n_kernels : int, default=10,000
         Number of random convolutional kernels. The number of kernels used is rounded
         down to the nearest multiple of 84, unless a value of less than 84 is passec,
         in which case it is set to 84.
@@ -63,9 +63,9 @@ class MiniRocket(BaseCollectionTransformer):
      >>> from aeon.datasets import load_unit_test
      >>> X_train, y_train = load_unit_test(split="train")
      >>> X_test, y_test = load_unit_test(split="test")
-     >>> trf = MiniRocket(num_kernels=512)
+     >>> trf = MiniRocket(n_kernels=512)
      >>> trf.fit(X_train)
-     MiniRocket(num_kernels=512)
+     MiniRocket(n_kernels=512)
      >>> X_train = trf.transform(X_train)
      >>> X_test = trf.transform(X_test)
     """
@@ -81,12 +81,12 @@ class MiniRocket(BaseCollectionTransformer):
 
     def __init__(
         self,
-        num_kernels=10_000,
+        n_kernels=10_000,
         max_dilations_per_kernel=32,
         n_jobs=1,
         random_state=None,
     ):
-        self.num_kernels = num_kernels
+        self.n_kernels = n_kernels
         self.max_dilations_per_kernel = max_dilations_per_kernel
         self.n_jobs = n_jobs
         self.random_state = random_state
@@ -115,12 +115,12 @@ class MiniRocket(BaseCollectionTransformer):
                 " zero pad shorter series so that n_timepoints == 9"
             )
         X = X.astype(np.float32)
-        if self.num_kernels < 84:
-            self.num_kernels_ = 84
+        if self.n_kernels < 84:
+            self.n_kernels_ = 84
         else:
-            self.num_kernels_ = self.num_kernels
+            self.n_kernels_ = self.n_kernels
         self.parameters = _static_fit(
-            X, self.num_kernels_, self.max_dilations_per_kernel, random_state
+            X, self.n_kernels_, self.max_dilations_per_kernel, random_state
         )
         return self
 
