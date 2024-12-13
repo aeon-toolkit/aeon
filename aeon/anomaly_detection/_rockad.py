@@ -191,8 +191,6 @@ class ROCKAD(BaseAnomalyDetector):
                 stratify=None,
             )
 
-            Xtp_scaled_sample = Xtp_scaled_sample
-
             # Fit estimator and append to estimator list
             estimator.fit(Xtp_scaled_sample)
             self.list_baggers_.append(estimator)
