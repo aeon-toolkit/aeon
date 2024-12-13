@@ -150,6 +150,5 @@ If you use `aeon` we would appreciate a citation of the following [paper](https:
 
 If you let us know about your paper using `aeon`, we will happily list it [here](https://www.aeon-toolkit.org/en/stable/papers_using_aeon.html).
 
-The `aeon` project used to be called `sktime`. In 2022, the large majority of active
-`sktime` core developers forked version 0.16 of the `sktime` github repository and
-rebranded as `aeon`. To find out why, go [here](https://github.com/aeon-toolkit/aeon/issues/456).
+`aeon` was forked from `sktime` `v0.16.0` by an initial group of 8 core developers.
+To find out why, go [here](https://github.com/aeon-toolkit/aeon/issues/456).
