@@ -71,7 +71,7 @@ class RCluster(BaseClusterer):
         max_dilations_per_kernel=32,
         n_clusters=8,
         estimator=None,
-        random_state=None,
+        random_state=42,
         n_jobs=1,
     ):
         self.n_jobs = n_jobs
@@ -342,7 +342,7 @@ class RCluster(BaseClusterer):
         super().__init__()
 
     def _get_parameterised_data(self, X):
-
+        X = X.astype(np.float32)
         self._random_state = check_random_state(self.random_state)
         _, n_channels, n_timepoints = X.shape
         X = X.astype(np.float32)
