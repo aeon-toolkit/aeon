@@ -134,8 +134,11 @@ from aeon.distances.elastic import (
     shape_dtw_cost_matrix,
     shape_dtw_distance,
     shape_dtw_pairwise_distance,
+    soft_dtw_alignment_path,
+    soft_dtw_cost_matrix,
+    soft_dtw_distance,
+    soft_dtw_pairwise_distance,
 )
-from aeon.distances._squared import squared_distance, squared_pairwise_distance
 from aeon.distances._swale import swale_distance, swale_pairwise_distance
 from aeon.distances._twe import (
     twe_alignment_path,
