@@ -902,6 +902,9 @@ DISTANCES = [
         "name": "swale",
         "distance": swale_distance,
         "pairwise_distance": swale_pairwise_distance,
+        "type": DistanceType.ELASTIC,
+        "symmetric": True,
+        "unequal_support": True,
     },
 ]
 
