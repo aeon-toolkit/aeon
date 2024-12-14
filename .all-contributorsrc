@@ -2120,7 +2120,22 @@
         "bug",
         "doc",
         "test",
-        "maintenance"
+        "maintenance",
+        "review",
+        "talk",
+        "tutorial",
+        "mentoring",
+        "example"
+      ]
+    },
+    {
+      "login": "maxwell1503",
+      "name": " Maxime Devanne",
+      "avatar_url": "https://avatars.githubusercontent.com/u/28450447",
+      "profile": "https://github.com/maxwell1503",
+      "contributions": [
+        "code",
+        "bug"
       ]
     },
     {
@@ -2342,10 +2357,10 @@
       ]
     },
     {
-      "login": "codelionx",
+      "login": "SebastianSchmidl",
       "name": "Sebastian Schmidl",
       "avatar_url": "https://avatars.githubusercontent.com/u/10573700?v=4",
-      "profile": "https://github.com/codelionx",
+      "profile": "https://github.com/SebastianSchmidl",
       "contributions": [
         "bug",
         "code",
@@ -2527,7 +2542,8 @@
       "avatar_url": "https://avatars.githubusercontent.com/u/98093778?v=4",
       "profile": "https://github.com/aryanpola",
       "contributions": [
-        "code"
+        "code",
+        "doc"
       ]
     },
     {
@@ -2537,6 +2553,72 @@
       "profile": "https://github.com/danielroberts20",
       "contributions": [
         "doc"
+      ]
+    },
+    {
+      "login": "LinGinQiu",
+      "name": "Chuanhang Qiu ",
+      "avatar_url": "https://avatars.githubusercontent.com/u/80885865?v=4",
+      "profile": "https://github.com/LinGinQiu",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "georgejl7",
+      "name": "George Langley",
+      "avatar_url": "https://avatars.githubusercontent.com/u/134635414?v=4",
+      "profile": "https://github.com/georgejl7",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "alexbanwell1",
+      "name": "alexbanwell1",
+      "avatar_url": "https://avatars.githubusercontent.com/u/31886108?v=4",
+      "profile": "https://github.com/alexbanwell1",
+      "contributions": [
+        "code",
+        "design",
+        "doc"
+      ]
+    },
+    {
+      "login": "fspinna",
+      "name": "Francesco Spinnato",
+      "avatar_url": "https://avatars.githubusercontent.com/u/35352023?v=4",
+      "profile": "https://github.com/fspinna",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "emmanuel-ferdman",
+      "name": "Emmanuel Ferdman",
+      "avatar_url": "https://avatars.githubusercontent.com/u/35470921?v=4",
+      "profile": "https://github.com/emmanuel-ferdman",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "pattplatt",
+      "name": "Patrick Müller",
+      "avatar_url": "https://avatars.githubusercontent.com/u/55019140?v=4",
+      "profile": "https://github.com/pattplatt",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "ferewi",
+      "name": "Ferdinand Rewicki",
+      "avatar_url": "https://avatars.githubusercontent.com/u/3592978?v=4",
+      "profile": "https://github.com/ferewi",
+      "contributions": [
+        "code",
+        "bug"
       ]
     }
   ],

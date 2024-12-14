@@ -7,7 +7,7 @@ import numpy as np
 import pytest
 
 import aeon
-from aeon.benchmarking import get_estimator_results_as_array
+from aeon.benchmarking.results_loaders import get_estimator_results_as_array
 from aeon.datasets.tsc_datasets import univariate_equal_length
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 from aeon.visualisation import (
@@ -18,7 +18,7 @@ from aeon.visualisation import (
 
 data_path = os.path.join(
     os.path.dirname(aeon.__file__),
-    "benchmarking/example_results/",
+    "testing/example_results_files/",
 )
 
 
@@ -36,7 +36,7 @@ def test_plot_pairwise_scatter():
     cls = ["HC2", "FreshPRINCE"]
 
     data = univariate_equal_length
-    res = get_estimator_results_as_array(
+    res, _ = get_estimator_results_as_array(
         estimators=cls, datasets=data, path=data_path, include_missing=True
     )
     fig, ax = plot_pairwise_scatter(
@@ -49,7 +49,7 @@ def test_plot_pairwise_scatter():
     cls = ["InceptionTime", "WEASEL-D"]
 
     data = univariate_equal_length
-    res = get_estimator_results_as_array(
+    res, _ = get_estimator_results_as_array(
         estimators=cls, datasets=data, path=data_path, include_missing=True
     )
     fig, ax = plot_pairwise_scatter(
@@ -62,7 +62,7 @@ def test_plot_pairwise_scatter():
     cls = ["InceptionTime", "WEASEL-D"]
 
     data = univariate_equal_length
-    res = get_estimator_results_as_array(
+    res, _ = get_estimator_results_as_array(
         estimators=cls, datasets=data, path=data_path, include_missing=True
     )
     fig, ax = plot_pairwise_scatter(

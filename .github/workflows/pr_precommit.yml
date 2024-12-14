@@ -44,12 +44,12 @@ jobs:
         run: echo '${{ steps.changed-files.outputs.all_changed_files }}'
 
       # only check the full repository if PR and correctly labelled
-      - if: ${{ github.event_name == 'pull_request_target' && contains(github.event.pull_request.labels.*.name, 'full pre-commit') }}
+      - if: ${{ github.event_name != 'pull_request_target' || contains(github.event.pull_request.labels.*.name, 'full pre-commit') }}
         name: Full pre-commit
         uses: pre-commit/action@v3.0.1
         with:
           extra_args: --all-files
-      - if: ${{ github.event_name != 'pull_request_target' || !contains(github.event.pull_request.labels.*.name, 'full pre-commit') }}
+      - if: ${{ github.event_name == 'pull_request_target' && !contains(github.event.pull_request.labels.*.name, 'full pre-commit') }}
         name: Local pre-commit
         uses: pre-commit/action@v3.0.1
         with:

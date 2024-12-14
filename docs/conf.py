@@ -2,6 +2,7 @@
 
 import os
 import sys
+from pathlib import Path
 
 import aeon
 
@@ -17,6 +18,8 @@ release = aeon.__version__
 github_tag = f"v{version}"
 
 # -- Path setup --------------------------------------------------------------
+
+sys.path.append(str(Path(__file__).parent / "_sphinxext"))
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here.
@@ -43,9 +46,10 @@ extensions = [
     "sphinx_design",
     "sphinx_issues",
     "sphinx_copybutton",
-    "sphinx_remove_toctrees",
     "versionwarning.extension",
     "myst_parser",
+    # local extensions
+    "sphinx_remove_toctrees",
 ]
 
 # Notebook thumbnails
@@ -124,8 +128,10 @@ issues_github_path = "aeon-toolkit/aeon"
 # sphinx-copybutton configuration
 copybutton_exclude = ".linenos, .gp, .go"
 
-# sphinx-remove-toctrees configuration
+# sphinx-remove-toctrees (and in-built alternative) configuration
 # see https://github.com/pradyunsg/furo/pull/674
+# we use an in-built alternative currently due to a bug. See sphinx_remove_toctrees.py
+# extension issue https://github.com/executablebooks/sphinx-remove-toctrees/issues/9
 remove_from_toctrees = ["api_reference/auto_generated/*"]
 
 # MyST Parser configuration
@@ -333,7 +339,7 @@ def _make_estimator_overview(app):
     """Make estimator overview table."""
     import pandas as pd
 
-    from aeon.registry import all_estimators
+    from aeon.utils.discovery import all_estimators
 
     def _does_not_start_with_underscore(input_string):
         return not input_string.startswith("_")
@@ -352,7 +358,7 @@ def _make_estimator_overview(app):
 
     data = {k: [] for k in COLNAMES}
 
-    for estimator_name, estimator_class in all_estimators():
+    for estimator_name, estimator_class in all_estimators(include_sklearn=False):
         algorithm_type = "::".join(str(estimator_class).split(".")[1:-2])
         # fetch tags
         tag_dict = estimator_class.get_class_tags()

@@ -36,6 +36,7 @@ References
 import logging
 import math
 from dataclasses import dataclass, field
+from typing import Optional
 
 import numpy as np
 import numpy.typing as npt
@@ -434,12 +435,10 @@ class GreedyGaussianSegmenter(BaseSegmenter):
 
     Examples
     --------
-    >>> from aeon.testing.data_generation import piecewise_normal_multivariate
+    >>> from aeon.testing.data_generation import make_example_dataframe_series
     >>> from sklearn.preprocessing import MinMaxScaler
     >>> from aeon.segmentation import GreedyGaussianSegmenter
-    >>> X = piecewise_normal_multivariate(lengths=[10, 10, 10, 10],
-    ...     means=[[0.0, 1.0], [11.0, 10.0], [5.0, 3.0], [2.0, 2.0]],
-    ...     variances=0.5)
+    >>> X = make_example_dataframe_series(n_channels=2, random_state=10)
     >>> X_scaled = MinMaxScaler(feature_range=(0, 1)).fit_transform(X)
     >>> ggs = GreedyGaussianSegmenter(k_max=3, max_shuffles=5)
     >>> y = ggs.fit_predict(X_scaled, axis=0)
@@ -457,7 +456,7 @@ class GreedyGaussianSegmenter(BaseSegmenter):
         lamb: float = 1.0,
         max_shuffles: int = 250,
         verbose: bool = False,
-        random_state: int = None,
+        random_state: Optional[int] = None,
     ):
         self.k_max = k_max
         self.lamb = lamb
@@ -513,7 +512,7 @@ class GreedyGaussianSegmenter(BaseSegmenter):
         return labels
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """
         Return testing parameter settings for the estimator.
 

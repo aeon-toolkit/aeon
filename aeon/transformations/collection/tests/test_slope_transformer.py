@@ -5,7 +5,7 @@ import math
 import numpy as np
 import pytest
 
-from aeon.transformations.collection.slope import SlopeTransformer
+from aeon.transformations.collection import SlopeTransformer
 
 
 @pytest.mark.parametrize("bad_num_intervals", ["str", 1.2, -1.2, -1, {}, 0])

@@ -1,6 +1,6 @@
 recursive-include aeon *.py
-recursive-include aeon/benchmarking/example_results *.csv
 recursive-include aeon/datasets *.csv *.arff *.txt *.ts *.tsv *.tsf
+recursive-include aeon/testing/example_results_files *.csv
 include aeon/registry/README.md
 include .coveragerc
 include conftest.py
@@ -11,7 +11,6 @@ include README.md
 
 recursive-exclude .binder *
 recursive-exclude .github *
-recursive-exclude build_tools *
 recursive-exclude docs *
 recursive-exclude examples *
 exclude .all-contributorsrc

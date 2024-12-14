@@ -8,6 +8,7 @@ from functools import partial
 from sys import platform
 
 import numpy as np
+from numpy.testing import assert_array_almost_equal
 from sklearn.utils._testing import set_random_state
 
 from aeon.base._base import _clone_estimator
@@ -18,7 +19,7 @@ from aeon.testing.expected_results.expected_classifier_outputs import (
     unit_test_proba,
 )
 from aeon.testing.testing_data import FULL_TEST_DATA_DICT
-from aeon.testing.utils.estimator_checks import _assert_array_almost_equal, _get_tag
+from aeon.testing.utils.estimator_checks import _get_tag
 from aeon.utils.validation import get_n_cases
 
 
@@ -31,6 +32,12 @@ def _yield_classification_checks(estimator_class, estimator_instances, datatypes
     yield partial(check_classifier_tags_consistent, estimator_class=estimator_class)
     yield partial(
         check_classifier_does_not_override_final_methods,
+        estimator_class=estimator_class,
+    )
+
+    # Algorithm_type check
+    yield partial(
+        check_algorithm_type,
         estimator_class=estimator_class,
     )
 
@@ -100,7 +107,7 @@ def check_classifier_against_expected_results(estimator_class):
             continue
 
         # we only use the first estimator instance for testing
-        estimator_instance = estimator_class.create_test_instance(
+        estimator_instance = estimator_class._create_test_instance(
             parameter_set="results_comparison"
         )
         # set random seed if possible
@@ -118,7 +125,7 @@ def check_classifier_against_expected_results(estimator_class):
         y_proba = estimator_instance.predict_proba(X_test[indices])
 
         # assert probabilities are the same
-        _assert_array_almost_equal(
+        assert_array_almost_equal(
             y_proba,
             expected_probas,
             decimal=2,
@@ -126,9 +133,33 @@ def check_classifier_against_expected_results(estimator_class):
         )
 
 
+def check_algorithm_type(estimator_class):
+    """Test the tag algorithm_type is classifier."""
+    valid_algorithm_types = [
+        "distance",
+        "deeplearning",
+        "convolution",
+        "dictionary",
+        "interval",
+        "feature",
+        "hybrid",
+        "shapelet",
+    ]
+    algorithm_type = estimator_class.get_class_tag("algorithm_type")
+
+    # Pass the test
+    if algorithm_type is None:
+        return
+
+    assert algorithm_type in valid_algorithm_types, (
+        f"Estimator {estimator_class.__name__} has an invalid 'algorithm_type' tag: "
+        f"'{algorithm_type}'. Valid types are {valid_algorithm_types}."
+    )
+
+
 def check_classifier_tags_consistent(estimator_class):
     """Test the tag X_inner_type is consistent with capability:unequal_length."""
-    valid_types = {"np-list", "df-list", "pd-multivariate", "nested_univ"}
+    valid_types = {"np-list", "df-list", "pd-multiindex"}
     unequal = estimator_class.get_class_tag("capability:unequal_length")
     if unequal:  # one of X_inner_types must be capable of storing unequal length
         internal_types = estimator_class.get_class_tag("X_inner_type")
@@ -141,7 +172,7 @@ def check_classifier_tags_consistent(estimator_class):
     if multivariate:
         X = np.random.random((10, 2, 20))
         y = np.array([0, 0, 0, 0, 0, 0, 1, 1, 1, 1])
-        inst = estimator_class.create_test_instance(parameter_set="default")
+        inst = estimator_class._create_test_instance(parameter_set="default")
         inst.fit(X, y)
         inst.predict(X)
         inst.predict_proba(X)
@@ -166,7 +197,7 @@ def check_classifier_does_not_override_final_methods(estimator_class):
 
 def check_contracted_classifier(estimator_class, datatype):
     """Test classifiers that can be contracted."""
-    estimator_instance = estimator_class.create_test_instance(
+    estimator_instance = estimator_class._create_test_instance(
         parameter_set="contracting"
     )
 
@@ -224,7 +255,6 @@ def check_classifier_saving_loading_deep_learning(estimator_class, datatype):
                 "BaseDeepClassifier",
                 "InceptionTimeClassifier",
                 "LITETimeClassifier",
-                "TapNetClassifier",
             ]
         ):
             if tmp[-1] != "/":

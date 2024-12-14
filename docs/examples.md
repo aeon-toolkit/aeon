@@ -108,7 +108,7 @@ Shapelet based TSC
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top: examples/classification/img/early_classification.png
 :class-img-top: aeon-card-image-m
 :link: /examples/classification/early_classification.ipynb
 :link-type: ref
@@ -155,7 +155,7 @@ Overview of Time Series Clustering (TSCL)
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top: examples/clustering/img/partitional.png
 :class-img-top: aeon-card-image-m
 :link: /examples/clustering/partitional_clustering.ipynb
 :link-type: ref
@@ -184,9 +184,20 @@ Overview of Transformations
 :::
 
 :::{grid-item-card}
+:img-top: examples/transformations/img/preprocessing.png
+:class-img-top: aeon-card-image-m
+:link: /examples/transformations/preprocessing.ipynb
+:link-type: ref
+:text-align: center
+
+Preprocessing time series
+
+:::
+
+:::{grid-item-card}
 :img-top: examples/transformations/img/tsfresh.png
 :class-img-top: aeon-card-image-m
-:link: /examples/transformations/feature_extraction_with_tsfresh.ipynb
+:link: /examples/transformations/tsfresh.ipynb
 :link-type: ref
 :text-align: center
 
@@ -239,17 +250,6 @@ SAST transform
 :::
 
 :::{grid-item-card}
-:img-top: examples/transformations/img/interpolation.png
-:class-img-top: aeon-card-image-m
-:link: /examples/transformations/interpolation.ipynb
-:link-type: ref
-:text-align: center
-
-Interpolation
-
-:::
-
-:::{grid-item-card}
 :img-top: examples/transformations/img/signature.png
 :class-img-top: aeon-card-image-m
 :link: /examples/transformations/signature_method.ipynb
@@ -257,17 +257,6 @@ Interpolation
 :text-align: center
 
 Signature method
-
-:::
-
-:::{grid-item-card}
-:img-top: examples/transformations/img/theta.png
-:class-img-top: aeon-card-image-m
-:link: /examples/transformations/theta_transform.ipynb
-:link-type: ref
-:text-align: center
-
-Theta transform
 
 :::
 
@@ -301,7 +290,7 @@ ClaSP segmentation
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top: examples/segmentation/img/hidalgo.png
 :class-img-top: aeon-card-image-m
 :link: /examples/segmentation/hidalgo_segmentation.ipynb
 :link-type: ref
@@ -343,14 +332,14 @@ Using aeon distances with scikit-learn
 
 ::::
 
-## Similarity search
+## Similarity Search
 
 ::::{grid} 2 3 4 4
 :gutter: 1
 
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top: examples/similarity_search/img/sim_search.png
 :class-img-top: aeon-card-image-m
 :link: /examples/similarity_search/similarity_search.ipynb
 :link-type: ref
@@ -361,7 +350,7 @@ Intro to similarity search
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top: examples/similarity_search/img/distance_profile.png
 :class-img-top: aeon-card-image-m
 :link: /examples/similarity_search/distance_profiles.ipynb
 :link-type: ref
@@ -372,7 +361,7 @@ Deep dive into distance profiles
 :::
 
 :::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:img-top: examples/similarity_search/img/code_speed.png
 :class-img-top: aeon-card-image-m
 :link: /examples/similarity_search/code_speed.ipynb
 :link-type: ref
@@ -492,22 +481,11 @@ Benchmarking algorithms
 :::{grid-item-card}
 :img-top: images/logo/aeon-logo-blue-2-transparent.png
 :class-img-top: aeon-card-image-m
-:link: /examples/benchmarking/regression.ipynb
+:link: /examples/benchmarking/published_results.ipynb
 :link-type: ref
 :text-align: center
 
-Benchmarking extrinsic regression algorithms
-
-:::
-
-:::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
-:class-img-top: aeon-card-image-m
-:link: /examples/benchmarking/regression_results_per_dataset.ipynb
-:link-type: ref
-:text-align: center
-
-Compare regression algorithms on a single dataset
+Loading published results
 
 :::
 
@@ -519,6 +497,17 @@ Compare regression algorithms on a single dataset
 :text-align: center
 
 Getting estimator reference results
+
+:::
+
+:::{grid-item-card}
+:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:class-img-top: aeon-card-image-m
+:link: /examples/benchmarking/regression.ipynb
+:link-type: ref
+:text-align: center
+
+Benchmarking extrinsic regression algorithms
 
 :::
 

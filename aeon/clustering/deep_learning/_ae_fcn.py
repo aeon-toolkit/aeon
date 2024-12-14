@@ -5,6 +5,7 @@ __all__ = ["AEFCNClusterer"]
 
 import gc
 import os
+import sys
 import time
 from copy import deepcopy
 
@@ -66,6 +67,10 @@ class AEFCNClusterer(BaseDeepClusterer):
     verbose : boolean, default = False
         Whether to output extra information.
     loss : string, default="mean_squared_error"
+        Fit parameter for the keras model. "multi_rec" for multiple mse loss.
+        Multiple mse loss computes mean squared error between all embeddings
+        of encoder layers with the corresponding reconstructions of the
+        decoder layers.
         Fit parameter for the keras model.
     metrics : keras metrics, default = ["mean_squared_error"]
         will be set to mean_squared_error as default if None
@@ -83,6 +88,8 @@ class AEFCNClusterer(BaseDeepClusterer):
         Whether or not to save the last model, last
         epoch trained, using the base class method
         save_last_model_to_file.
+    save_init_model : bool, default = False
+        Whether to save the initialization of the  model.
     best_file_name : str, default = "best_model"
         The name of the file of the best model, if
         save_best_model is set to False, this parameter
@@ -91,6 +98,10 @@ class AEFCNClusterer(BaseDeepClusterer):
         The name of the file of the last model, if
         save_last_model is set to False, this parameter
         is discarded.
+    init_file_name : str, default = "init_model"
+        The name of the file of the init model, if
+        save_init_model is set to False,
+        this parameter is discarded.
     callbacks : keras.callbacks, default = None
         List of keras callbacks.
 
@@ -108,8 +119,8 @@ class AEFCNClusterer(BaseDeepClusterer):
     --------
     >>> from aeon.clustering.deep_learning import AEFCNClusterer
     >>> from aeon.datasets import load_unit_test
-    >>> X_train, y_train = load_unit_test(split="train", return_X_y=True)
-    >>> X_test, y_test = load_unit_test(split="test", return_X_y=True)
+    >>> X_train, y_train = load_unit_test(split="train")
+    >>> X_test, y_test = load_unit_test(split="test")
     >>> aefcn = AEFCNClusterer(n_epochs=5,batch_size=4)  # doctest: +SKIP
     >>> aefcn.fit(X_train)  # doctest: +SKIP
     AEFCNClusterer(...)
@@ -142,8 +153,10 @@ class AEFCNClusterer(BaseDeepClusterer):
         file_path="./",
         save_best_model=False,
         save_last_model=False,
+        save_init_model=False,
         best_file_name="best_model",
-        last_file_name="last_file",
+        last_file_name="last_model",
+        init_file_name="init_model",
         callbacks=None,
     ):
         self.latent_space_dim = latent_space_dim
@@ -166,7 +179,9 @@ class AEFCNClusterer(BaseDeepClusterer):
         self.n_epochs = n_epochs
         self.save_best_model = save_best_model
         self.save_last_model = save_last_model
+        self.save_init_model = save_init_model
         self.best_file_name = best_file_name
+        self.init_file_name = init_file_name
         self.random_state = random_state
 
         super().__init__(
@@ -266,6 +281,9 @@ class AEFCNClusterer(BaseDeepClusterer):
         self.input_shape = X.shape[1:]
         self.training_model_ = self.build_model(self.input_shape)
 
+        if self.save_init_model:
+            self.training_model_.save(self.file_path + self.init_file_name + ".keras")
+
         if self.verbose:
             self.training_model_.summary()
 
@@ -296,18 +314,29 @@ class AEFCNClusterer(BaseDeepClusterer):
                 file_name=self.file_name_,
             )
 
-        self.history = self.training_model_.fit(
-            X,
-            X,
-            batch_size=mini_batch_size,
-            epochs=self.n_epochs,
-            verbose=self.verbose,
-            callbacks=self.callbacks_,
-        )
+        if not self.loss == "multi_rec":
+            self.history = self.training_model_.fit(
+                X,
+                X,
+                batch_size=mini_batch_size,
+                epochs=self.n_epochs,
+                verbose=self.verbose,
+                callbacks=self.callbacks_,
+            )
+
+        elif self.loss == "multi_rec":
+            self.history = self._fit_multi_rec_model(
+                autoencoder=self.training_model_,
+                inputs=X,
+                outputs=X,
+                batch_size=mini_batch_size,
+                epochs=self.n_epochs,
+            )
 
         try:
             self.model_ = tf.keras.models.load_model(
-                self.file_path + self.file_name_ + ".keras", compile=False
+                self.file_path + self.file_name_ + ".keras",
+                compile=False,
             )
             if not self.save_best_model:
                 os.remove(self.file_path + self.file_name_ + ".keras")
@@ -315,6 +344,9 @@ class AEFCNClusterer(BaseDeepClusterer):
             self.model_ = deepcopy(self.training_model_)
 
         self._fit_clustering(X=X)
+
+        if self.save_last_model:
+            self.save_last_model_to_file(file_path=self.file_path)
 
         gc.collect()
 
@@ -326,8 +358,134 @@ class AEFCNClusterer(BaseDeepClusterer):
         latent_space = self.model_.layers[1].predict(X)
         return self._estimator.score(latent_space)
 
+    def _fit_multi_rec_model(
+        self,
+        autoencoder,
+        inputs,
+        outputs,
+        batch_size,
+        epochs,
+    ):
+        import tensorflow as tf
+
+        train_dataset = tf.data.Dataset.from_tensor_slices((inputs, outputs))
+        train_dataset = train_dataset.shuffle(buffer_size=1024).batch(batch_size)
+
+        if isinstance(self.optimizer_, str):
+            self.optimizer_ = tf.keras.optimizers.get(self.optimizer_)
+
+        history = {"loss": []}
+
+        def layerwise_mse_loss(autoencoder, inputs, outputs):
+            def loss(y_true, y_pred):
+                # Calculate MSE for each layer in the encoder and decoder
+                mse = 0
+
+                _encoder_intermediate_outputs = (
+                    []
+                )  # Store embeddings of each layer in the Encoder
+                _decoder_intermediate_outputs = (
+                    []
+                )  # Store embeddings of each layer in the Decoder
+
+                encoder = autoencoder.layers[1]  # Returns Functional API Models.
+                decoder = autoencoder.layers[2]  # Returns Functional API Models.
+
+                # Run the models since the below given loop misses the latent space
+                # layer which doesn't contribute to the loss.
+                logits = encoder(inputs)
+                __dec_outputs = decoder(logits)
+
+                # Encoder
+                for i in range(self.n_layers):
+                    _activation_layer = encoder.get_layer(f"__act_encoder_block{i}")
+                    _model = tf.keras.models.Model(
+                        inputs=encoder.input, outputs=_activation_layer.output
+                    )
+                    __output = _model(inputs, training=True)
+                    _encoder_intermediate_outputs.append(__output)
+
+                # Decoder
+                for i in range(self.n_layers):
+                    _activation_layer = decoder.get_layer(f"__act_decoder_block{i}")
+                    _model = tf.keras.models.Model(
+                        inputs=decoder.input, outputs=_activation_layer.output
+                    )
+                    __output = _model(logits, training=True)
+                    _decoder_intermediate_outputs.append(__output)
+
+                if not (
+                    len(_encoder_intermediate_outputs)
+                    == len(_decoder_intermediate_outputs)
+                ):
+                    raise ValueError("The Auto-Encoder must be symmetric in nature.")
+
+                # # Append normal mean_squared_error
+
+                for enc_output, dec_output in zip(
+                    _encoder_intermediate_outputs, _decoder_intermediate_outputs
+                ):
+                    mse += tf.keras.backend.mean(
+                        tf.keras.backend.square(enc_output - dec_output)
+                    )
+
+                inputs_casted = tf.cast(inputs, dtype=tf.float64)
+                __dec_outputs_casted = tf.cast(__dec_outputs, dtype=tf.float64)
+                return tf.cast(mse, dtype=tf.float64) + tf.cast(
+                    tf.reduce_mean(tf.square(inputs_casted - __dec_outputs_casted)),
+                    dtype=tf.float64,
+                )
+
+            return loss
+
+        # Initialize callbacks
+        for callback in self.callbacks_:
+            callback.set_model(autoencoder)
+            callback.on_train_begin()
+
+        for epoch in range(epochs):
+            epoch_loss = 0
+            num_batches = 0
+            for step, (x_batch_train, y_batch_train) in enumerate(train_dataset):
+                with tf.GradientTape() as tape:
+                    # Calculate the actual loss by calling the loss function
+                    loss_func = layerwise_mse_loss(
+                        autoencoder=autoencoder,
+                        inputs=x_batch_train,
+                        outputs=y_batch_train,
+                    )
+                    loss_value = loss_func(y_batch_train, autoencoder(x_batch_train))
+
+                grads = tape.gradient(loss_value, autoencoder.trainable_weights)
+                self.optimizer_.apply_gradients(
+                    zip(grads, autoencoder.trainable_weights)
+                )
+
+                epoch_loss += float(loss_value)
+                num_batches += 1
+
+                # Update callbacks on batch end
+                for callback in self.callbacks_:
+                    callback.on_batch_end(step, {"loss": float(loss_value)})
+
+            epoch_loss /= num_batches
+            history["loss"].append(epoch_loss)
+
+            sys.stdout.write(
+                "Training loss at epoch %d: %.4f\n" % (epoch, float(epoch_loss))
+            )
+
+            for callback in self.callbacks_:
+                callback.on_epoch_end(epoch, {"loss": float(epoch_loss)})
+
+        # Finalize callbacks
+        for callback in self.callbacks_:
+            callback.on_train_end()
+
+        return history
+
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -346,19 +504,18 @@ class AEFCNClusterer(BaseDeepClusterer):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
-        param1 = {
-            "n_epochs": 1,
+        param = {
+            "n_epochs": 2,
             "batch_size": 4,
             "use_bias": False,
-            "n_layers": 1,
-            "n_filters": 4,
-            "kernel_size": 2,
+            "n_layers": 2,
+            "n_filters": [2, 2],
+            "kernel_size": [2, 2],
             "padding": "same",
             "strides": 1,
-            "latent_space_dim": 4,
+            "latent_space_dim": 2,
             "estimator": DummyClusterer(n_clusters=2),
         }
 
-        return [param1]
+        return [param]

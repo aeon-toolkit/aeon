@@ -28,21 +28,6 @@ covid_3month_preds["Catch22Regressor"] = np.array(
     [0.0310, 0.0555, 0.0193, 0.0359, 0.0261, 0.0361, 0.0387, 0.0835, 0.0827, 0.0414]
 )
 
-covid_3month_preds["RandomForestRegressor"] = np.array(
-    [
-        0.0319,
-        0.0505,
-        0.0082,
-        0.0291,
-        0.028,
-        0.0266,
-        0.0239,
-        0.0946,
-        0.0946,
-        0.0251,
-    ]
-)
-
 covid_3month_preds["TSFreshRegressor"] = np.array(
     [
         0.0106,
@@ -189,16 +174,16 @@ covid_3month_preds["TimeSeriesForestRegressor"] = np.array(
 
 covid_3month_preds["RDSTRegressor"] = np.array(
     [
-        0.0368,
-        0.0368,
-        0.0368,
-        0.0369,
-        0.0369,
-        0.0368,
-        0.0368,
-        0.0369,
-        0.0369,
-        0.0368,
+        0.0687,
+        0.071,
+        0.0227,
+        0.0425,
+        0.0834,
+        0.0251,
+        0.0064,
+        0.1398,
+        0.0667,
+        0.031,
     ]
 )
 
@@ -403,15 +388,15 @@ cardano_sentiment_preds["TimeSeriesForestRegressor"] = np.array(
 
 cardano_sentiment_preds["RDSTRegressor"] = np.array(
     [
-        0.1816,
-        0.1706,
-        0.1993,
-        0.2251,
-        0.1606,
-        0.1682,
-        0.1815,
-        0.1829,
-        0.1578,
-        0.2048,
+        0.1851,
+        0.1864,
+        0.1882,
+        0.1875,
+        0.1866,
+        0.1862,
+        0.1859,
+        0.1857,
+        0.1851,
+        0.1878,
     ]
 )

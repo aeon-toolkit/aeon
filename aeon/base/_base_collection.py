@@ -1,6 +1,6 @@
 """Base class for estimators that fit collections of time series."""
 
-from aeon.base._base import BaseEstimator
+from aeon.base._base import BaseAeonEstimator
 from aeon.utils.conversion import (
     convert_collection,
     resolve_equal_length_inner_type,
@@ -19,7 +19,7 @@ from aeon.utils.validation.collection import (
 )
 
 
-class BaseCollectionEstimator(BaseEstimator):
+class BaseCollectionEstimator(BaseAeonEstimator):
     """Base class for estimators that use collections of time series for method fit.
 
     Provides functions that are common to BaseClassifier, BaseRegressor,
@@ -31,12 +31,10 @@ class BaseCollectionEstimator(BaseEstimator):
     """
 
     _tags = {
+        "capability:univariate": True,
         "capability:multivariate": False,
         "capability:unequal_length": False,
-        "capability:missing_values": False,
-        "capability:multithreading": False,
         "X_inner_type": "numpy3D",
-        "python_version": None,
     }
 
     def __init__(self):
@@ -57,7 +55,7 @@ class BaseCollectionEstimator(BaseEstimator):
         Parameters
         ----------
         X : collection
-            See aeon.utils.registry.COLLECTIONS_DATA_TYPES for details
+            See aeon.utils.COLLECTIONS_DATA_TYPES for details
             on aeon supported data structures.
         store_metadata : bool, default=True
             Whether to store metadata about X in self.metadata_.
@@ -109,7 +107,7 @@ class BaseCollectionEstimator(BaseEstimator):
         Parameters
         ----------
         X : data structure
-           See aeon.utils.registry.COLLECTIONS_DATA_TYPES for details
+           See aeon.utils.COLLECTIONS_DATA_TYPES for details
            on aeon supported data structures.
 
         Returns
@@ -176,7 +174,7 @@ class BaseCollectionEstimator(BaseEstimator):
         Parameters
         ----------
         X : data structure
-            Must be of type aeon.utils.registry.COLLECTIONS_DATA_TYPES.
+            Must be of type aeon.utils.COLLECTIONS_DATA_TYPES.
 
         Returns
         -------

@@ -6,7 +6,7 @@ periodogram and differences representations as well as the base series.
 
 from sklearn.preprocessing import FunctionTransformer
 
-from aeon.base.estimator.interval_based import BaseIntervalForest
+from aeon.base.estimators.interval_based import BaseIntervalForest
 from aeon.regression import BaseRegressor
 from aeon.transformations.collection import PeriodogramTransformer
 from aeon.transformations.collection.feature_based import Catch22
@@ -98,9 +98,6 @@ class DrCIFRegressor(BaseIntervalForest, BaseRegressor):
         Wraps the C based pycatch22 implementation for aeon.
         (https://github.com/DynamicsAndNeuralSystems/pycatch22). This requires the
         ``pycatch22`` package to be installed if True.
-    use_pyfftw : bool, default=False
-        Whether to use the pyfftw library for FFT calculations. Requires the pyfftw
-        package to be installed.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -175,7 +172,6 @@ class DrCIFRegressor(BaseIntervalForest, BaseRegressor):
         time_limit_in_minutes=None,
         contract_max_n_estimators=500,
         use_pycatch22=False,
-        use_pyfftw=False,
         random_state=None,
         n_jobs=1,
         parallel_backend=None,
@@ -184,14 +180,11 @@ class DrCIFRegressor(BaseIntervalForest, BaseRegressor):
         self.use_pycatch22 = use_pycatch22
         if use_pycatch22:
             d.append("pycatch22")
-        self.use_pyfftw = use_pyfftw
-        if use_pyfftw:
-            d.append("pyfftw")
 
         series_transformers = [
             None,
             FunctionTransformer(func=first_order_differences_3d, validate=False),
-            PeriodogramTransformer(use_pyfftw=use_pyfftw),
+            PeriodogramTransformer(),
         ]
 
         interval_features = [
@@ -227,7 +220,7 @@ class DrCIFRegressor(BaseIntervalForest, BaseRegressor):
             self.set_tags(**{"python_dependencies": d})
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -249,7 +242,6 @@ class DrCIFRegressor(BaseIntervalForest, BaseRegressor):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         if parameter_set == "results_comparison":
             return {"n_estimators": 10, "n_intervals": 2, "att_subsample_size": 4}
