@@ -50,6 +50,8 @@ __all__ = [
     "soft_dtw_pairwise_distance",
     "soft_dtw_alignment_path",
     "soft_dtw_cost_matrix",
+    "swale_distance",
+    "swale_pairwise_distance",
 ]
 
 from aeon.distances.elastic._adtw import (
@@ -125,3 +127,4 @@ from aeon.distances.elastic._wdtw import (
     wdtw_distance,
     wdtw_pairwise_distance,
 )
+from aeon.distances._swale import swale_distance, swale_pairwise_distance
