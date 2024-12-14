@@ -18,17 +18,25 @@ __all__ = [
     "plot_scatter_predictions",
     "plot_pairwise_scatter",
     "plot_score_vs_time_scatter",
+    "create_multi_comparison_matrix",
     # Estimator plotting
     "plot_series_with_profiles",
     "plot_cluster_algorithm",
     "plot_temporal_importance_curves",
+    "plot_network",
     "ShapeletVisualizer",
     "ShapeletTransformerVisualizer",
     "ShapeletClassifierVisualizer",
+    # Distance plotting
+    "plot_pairwise_distance_matrix",
 ]
 
+from aeon.visualisation.distances._pairwise_distance_matrix import (
+    plot_pairwise_distance_matrix,
+)
 from aeon.visualisation.estimator._clasp import plot_series_with_profiles
 from aeon.visualisation.estimator._clustering import plot_cluster_algorithm
+from aeon.visualisation.estimator._network_plot import plot_network
 from aeon.visualisation.estimator._shapelets import (
     ShapeletClassifierVisualizer,
     ShapeletTransformerVisualizer,
@@ -43,6 +51,7 @@ from aeon.visualisation.learning_task._segmentation import (
 )
 from aeon.visualisation.results._boxplot import plot_boxplot
 from aeon.visualisation.results._critical_difference import plot_critical_difference
+from aeon.visualisation.results._mcm import create_multi_comparison_matrix
 from aeon.visualisation.results._scatter import (
     plot_pairwise_scatter,
     plot_scatter_predictions,

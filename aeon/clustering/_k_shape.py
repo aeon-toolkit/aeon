@@ -16,8 +16,8 @@ class TimeSeriesKShape(BaseClusterer):
     n_clusters: int, default=8
         The number of clusters to form as well as the number of
         centroids to generate.
-    init_algorithm: str or np.ndarray, default='random'
-        Method for initializing cluster centres. Any of the following are valid:
+    init: str or np.ndarray, default='random'
+        Method for initialising cluster centres. Any of the following are valid:
         ['random']. Or a np.ndarray of shape (n_clusters, n_channels, n_timepoints)
         and gives the initial cluster centres.
     n_init: int, default=10
@@ -76,19 +76,20 @@ class TimeSeriesKShape(BaseClusterer):
     def __init__(
         self,
         n_clusters: int = 8,
-        init_algorithm: Union[str, np.ndarray] = "random",
+        init: Union[str, np.ndarray] = "random",
         n_init: int = 10,
         max_iter: int = 300,
         tol: float = 1e-4,
         verbose: bool = False,
         random_state: Optional[Union[int, RandomState]] = None,
     ):
-        self.init_algorithm = init_algorithm
         self.n_init = n_init
+        self.init = init
         self.max_iter = max_iter
         self.tol = tol
         self.verbose = verbose
         self.random_state = random_state
+        self.n_clusters = n_clusters
 
         self.cluster_centers_ = None
         self.labels_ = None
@@ -97,7 +98,7 @@ class TimeSeriesKShape(BaseClusterer):
 
         self._tslearn_k_shapes = None
 
-        super().__init__(n_clusters=n_clusters)
+        super().__init__()
 
     def _fit(self, X, y=None):
         """Fit time series clusterer to training data.
@@ -123,14 +124,14 @@ class TimeSeriesKShape(BaseClusterer):
             random_state=self.random_state,
             n_init=self.n_init,
             verbose=self.verbose,
-            init=self.init_algorithm,
+            init=self.init,
         )
 
         _X = X.swapaxes(1, 2)
 
         self._tslearn_k_shapes.fit(_X)
         self._cluster_centers = self._tslearn_k_shapes.cluster_centers_
-        self.labels_ = self._tslearn_k_shapes.labels_
+        self.labels_ = self._tslearn_k_shapes.predict(_X)
         self.inertia_ = self._tslearn_k_shapes.inertia_
         self.n_iter_ = self._tslearn_k_shapes.n_iter_
 
@@ -172,13 +173,10 @@ class TimeSeriesKShape(BaseClusterer):
         """
         return {
             "n_clusters": 2,
-            "init_algorithm": "random",
+            "init": "random",
             "n_init": 1,
             "max_iter": 1,
             "tol": 1e-4,
             "verbose": False,
             "random_state": 1,
         }
-
-    def _score(self, X, y=None):
-        return np.abs(self.inertia_)

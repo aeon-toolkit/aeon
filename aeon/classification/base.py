@@ -18,12 +18,9 @@ State:
     fitted state inspection - check_is_fitted()
 """
 
-__all__ = [
-    "BaseClassifier",
-]
 __maintainer__ = ["TonyBagnall", "MatthewMiddlehurst"]
+__all__ = ["BaseClassifier"]
 
-import time
 from abc import abstractmethod
 from typing import final
 
@@ -34,7 +31,6 @@ from sklearn.model_selection import cross_val_predict
 
 from aeon.base import BaseCollectionEstimator
 from aeon.base._base import _clone_estimator
-from aeon.utils.validation._dependencies import _check_estimator_deps
 from aeon.utils.validation.collection import get_n_cases
 from aeon.utils.validation.labels import check_classification_y
 
@@ -65,13 +61,14 @@ class BaseClassifier(BaseCollectionEstimator):
         "capability:contractable": False,
     }
 
+    @abstractmethod
     def __init__(self):
         self.classes_ = []  # classes seen in y, unique labels
         self.n_classes_ = -1  # number of unique classes in y
         self._class_dictionary = {}
         self._estimator_type = "classifier"
+
         super().__init__()
-        _check_estimator_deps(self)
 
     @final
     def fit(self, X, y) -> BaseCollectionEstimator:
@@ -111,13 +108,11 @@ class BaseClassifier(BaseCollectionEstimator):
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
         """
-        start = int(round(time.time() * 1000))
         X, y, single_class = self._fit_setup(X, y)
 
         if not single_class:
             self._fit(X, y)
 
-        self.fit_time_ = int(round(time.time() * 1000)) - start
         # this should happen last
         self.is_fitted = True
         return self

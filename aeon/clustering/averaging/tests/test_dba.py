@@ -10,8 +10,11 @@ from aeon.clustering.averaging import (
     petitjean_barycenter_average,
     subgradient_barycenter_average,
 )
-from aeon.testing.data_generation import make_example_3d_numpy
-from aeon.testing.data_generation._legacy import make_series
+from aeon.testing.data_generation import (
+    make_example_1d_numpy,
+    make_example_2d_numpy_series,
+    make_example_3d_numpy,
+)
 
 expected_petitjean_dba_univariate = np.array(
     [
@@ -231,10 +234,8 @@ def test_elastic_dba_variations(distance):
         "medoids",
         "random",
         (
-            make_series(10, 1, return_numpy=True, random_state=1),
-            make_series(
-                n_timepoints=4, n_columns=10, return_numpy=True, random_state=1
-            ),
+            make_example_1d_numpy(10, random_state=1),
+            make_example_2d_numpy_series(n_timepoints=10, n_channels=4, random_state=1),
         ),
     ],
 )
@@ -303,7 +304,7 @@ def test_incorrect_input():
             "init_barycenter shape is invalid. Expected (1, 10) but " "got (1, 9)"
         ),
     ):
-        elastic_barycenter_average(X, init_barycenter=make_series(9, return_numpy=True))
+        elastic_barycenter_average(X, init_barycenter=make_example_1d_numpy(9))
 
     # Test invalid berycenter method
     with pytest.raises(
