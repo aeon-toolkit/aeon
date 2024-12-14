@@ -1,3 +1,5 @@
+"""Apply Enumeration in module."""
+
 from enum import Enum
 
 

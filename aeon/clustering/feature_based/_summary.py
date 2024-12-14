@@ -12,7 +12,7 @@ from sklearn.cluster import KMeans
 from aeon.base._base import _clone_estimator
 from aeon.clustering import BaseClusterer
 from aeon.transformations.collection.feature_based import SevenNumberSummary
-from aeon.utils.tags._enum_tags import AlgorithmType
+from aeon.utils.tags.enum_tags import AlgorithmType
 
 
 class SummaryClusterer(BaseClusterer):

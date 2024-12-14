@@ -6,7 +6,7 @@ __all__ = ["ClustererPipeline"]
 
 from aeon.base._estimators.compose.collection_pipeline import BaseCollectionPipeline
 from aeon.clustering import BaseClusterer
-from aeon.utils.tags._enum_tags import AlgorithmType
+from aeon.utils.tags.enum_tags import AlgorithmType
 
 
 class ClustererPipeline(BaseCollectionPipeline, BaseClusterer):

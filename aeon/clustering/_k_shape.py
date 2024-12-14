@@ -6,7 +6,7 @@ import numpy as np
 from numpy.random import RandomState
 
 from aeon.clustering.base import BaseClusterer
-from aeon.utils.tags._enum_tags import AlgorithmType
+from aeon.utils.tags.enum_tags import AlgorithmType
 
 
 class TimeSeriesKShape(BaseClusterer):

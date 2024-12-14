@@ -6,7 +6,7 @@ import numpy as np
 from numpy.random import RandomState
 
 from aeon.clustering import TimeSeriesKMeans
-from aeon.utils.tags._enum_tags import AlgorithmType
+from aeon.utils.tags.enum_tags import AlgorithmType
 
 
 class KSpectralCentroid(TimeSeriesKMeans):

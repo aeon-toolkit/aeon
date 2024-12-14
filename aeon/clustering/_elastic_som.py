@@ -6,7 +6,7 @@ from sklearn.utils.random import check_random_state
 
 from aeon.clustering.base import BaseClusterer
 from aeon.distances import get_alignment_path_function, pairwise_distance
-from aeon.utils.tags._enum_tags import AlgorithmType
+from aeon.utils.tags.enum_tags import AlgorithmType
 
 VALID_ELASTIC_SOM_METRICS = [
     "dtw",

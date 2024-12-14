@@ -8,7 +8,7 @@ from copy import deepcopy
 from aeon.base._base import _clone_estimator
 from aeon.clustering._k_means import TimeSeriesKMeans
 from aeon.clustering.base import BaseClusterer
-from aeon.utils.tags._enum_tags import AlgorithmType
+from aeon.utils.tags.enum_tags import AlgorithmType
 
 
 class BaseDeepClusterer(BaseClusterer):

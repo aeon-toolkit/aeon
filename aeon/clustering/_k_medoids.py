@@ -2,7 +2,7 @@
 
 from typing import Optional
 
-from aeon.utils.tags._enum_tags import AlgorithmType
+from aeon.utils.tags.enum_tags import AlgorithmType
 
 __maintainer__ = []
 
