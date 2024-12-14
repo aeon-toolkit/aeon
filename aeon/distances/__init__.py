@@ -100,20 +100,6 @@ from aeon.distances._shift_scale_invariant import (
     shift_scale_invariant_distance,
     shift_scale_invariant_pairwise_distance,
 )
-from aeon.distances._twe import (
-    twe_alignment_path,
-    twe_cost_matrix,
-    twe_distance,
-    twe_pairwise_distance,
-    wddtw_alignment_path,
-    wddtw_cost_matrix,
-    wddtw_distance,
-    wddtw_pairwise_distance,
-    wdtw_alignment_path,
-    wdtw_cost_matrix,
-    wdtw_distance,
-    wdtw_pairwise_distance,
-)
 from aeon.distances.elastic import (
     adtw_alignment_path,
     adtw_cost_matrix,
