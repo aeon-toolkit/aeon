@@ -6,7 +6,7 @@ __all__ = ["ClustererPipeline"]
 
 from aeon.base._estimators.compose.collection_pipeline import BaseCollectionPipeline
 from aeon.clustering import BaseClusterer
-from aeon.clustering._clustering_tags import ClusteringAlgorithmType
+from aeon.utils.tags._enum_tags import AlgorithmType
 
 
 class ClustererPipeline(BaseCollectionPipeline, BaseClusterer):
@@ -77,8 +77,8 @@ class ClustererPipeline(BaseCollectionPipeline, BaseClusterer):
 
     _tags = {
         "X_inner_type": [
-            ClusteringAlgorithmType.NP_LIST.value,
-            ClusteringAlgorithmType.NUMPY3D.value,
+            AlgorithmType.NP_LIST.value,
+            AlgorithmType.NUMPY3D.value,
         ],
     }
 

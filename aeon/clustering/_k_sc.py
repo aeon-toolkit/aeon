@@ -6,7 +6,7 @@ import numpy as np
 from numpy.random import RandomState
 
 from aeon.clustering import TimeSeriesKMeans
-from aeon.clustering._clustering_tags import ClusteringAlgorithmType
+from aeon.utils.tags._enum_tags import AlgorithmType
 
 
 class KSpectralCentroid(TimeSeriesKMeans):
@@ -93,7 +93,7 @@ class KSpectralCentroid(TimeSeriesKMeans):
 
     _tags = {
         "capability:multivariate": True,
-        "algorithm_type": ClusteringAlgorithmType.DISTANCE.value,
+        "algorithm_type": AlgorithmType.DISTANCE.value,
     }
 
     def __init__(

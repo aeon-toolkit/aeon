@@ -6,9 +6,9 @@ from abc import abstractmethod
 from copy import deepcopy
 
 from aeon.base._base import _clone_estimator
-from aeon.clustering._clustering_tags import ClusteringAlgorithmType
 from aeon.clustering._k_means import TimeSeriesKMeans
 from aeon.clustering.base import BaseClusterer
+from aeon.utils.tags._enum_tags import AlgorithmType
 
 
 class BaseDeepClusterer(BaseClusterer):
@@ -30,12 +30,12 @@ class BaseDeepClusterer(BaseClusterer):
     """
 
     _tags = {
-        "X_inner_type": ClusteringAlgorithmType.NUMPY3D.value,
+        "X_inner_type": AlgorithmType.NUMPY3D.value,
         "capability:multivariate": True,
-        "algorithm_type": ClusteringAlgorithmType.DEEPLEARNING.value,
+        "algorithm_type": AlgorithmType.DEEPLEARNING.value,
         "non_deterministic": True,
         "cant_pickle": True,
-        "python_dependencies": ClusteringAlgorithmType.TENSORFLOW.value,
+        "python_dependencies": "tensorflow",
     }
 
     @abstractmethod
