@@ -153,6 +153,6 @@ If you let us know about your paper using `aeon`, we will happily list it [here]
 ## 💬 Further information
 
 `aeon` was forked from `sktime` `v0.16.0` in 2022 by an initial group of eight core
-developers. To find out why, go [here](https://github.
-com/aeon-toolkit/aeon/issues/456). Since then we have grown and established our
-unique identity encapsulated in our first major release.
+developers. To find out why, go [here](https://github.com/aeon-toolkit/aeon/issues/456).
+Since then we have grown and established our unique identity encapsulated in our
+first major release.
