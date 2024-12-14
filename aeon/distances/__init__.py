@@ -140,6 +140,18 @@ from aeon.distances.elastic import (
     soft_dtw_pairwise_distance,
     swale_distance,
     swale_pairwise_distance,
+    twe_alignment_path,
+    twe_cost_matrix,
+    twe_distance,
+    twe_pairwise_distance,
+    wddtw_alignment_path,
+    wddtw_cost_matrix,
+    wddtw_distance,
+    wddtw_pairwise_distance,
+    wdtw_alignment_path,
+    wdtw_cost_matrix,
+    wdtw_distance,
+    wdtw_pairwise_distance,
 )
 from aeon.distances.mindist._dft_sfa import mindist_dft_sfa_distance
 from aeon.distances.mindist._paa_sax import mindist_paa_sax_distance
