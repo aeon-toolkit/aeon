@@ -450,7 +450,7 @@ class RCluster(BaseClusterer):
     def _fit_predict(self, X, y=None) -> np.ndarray:
         self._fit(X, y)
         return self._predict(X, y)
-    
+
     @classmethod
     def _get_test_params(cls, parameter_set="default") -> dict:
         """Return testing parameter settings for the estimator.
