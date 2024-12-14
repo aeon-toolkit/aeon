@@ -70,7 +70,7 @@ class BaseCollectionTransformer(BaseCollectionEstimator, BaseTransformer):
             allowed and converted into one of the above.
 
             Different estimators have different capabilities to handle different
-            types of input. If `self.get_tag("capability:multivariate")`` is False,
+            types of input. If ``self.get_tag("capability:multivariate")`` is False,
             they cannot handle multivariate series. If ``self.get_tag(
             "capability:unequal_length")`` is False, they cannot handle unequal
             length input. In both situations, a ``ValueError`` is raised if X has a
@@ -125,7 +125,7 @@ class BaseCollectionTransformer(BaseCollectionEstimator, BaseTransformer):
             allowed and converted into one of the above.
 
             Different estimators have different capabilities to handle different
-            types of input. If `self.get_tag("capability:multivariate")`` is False,
+            types of input. If ``self.get_tag("capability:multivariate")`` is False,
             they cannot handle multivariate series. If ``self.get_tag(
             "capability:unequal_length")`` is False, they cannot handle unequal
             length input. In both situations, a ``ValueError`` is raised if X has a
@@ -230,7 +230,7 @@ class BaseCollectionTransformer(BaseCollectionEstimator, BaseTransformer):
             allowed and converted into one of the above.
 
             Different estimators have different capabilities to handle different
-            types of input. If `self.get_tag("capability:multivariate")`` is False,
+            types of input. If ``self.get_tag("capability:multivariate")`` is False,
             they cannot handle multivariate series. If ``self.get_tag(
             "capability:unequal_length")`` is False, they cannot handle unequal
             length input. In both situations, a ``ValueError`` is raised if X has a
