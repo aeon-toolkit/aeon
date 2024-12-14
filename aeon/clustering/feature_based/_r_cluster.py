@@ -71,7 +71,7 @@ class RCluster(BaseClusterer):
         max_dilations_per_kernel=32,
         n_clusters=8,
         estimator=None,
-        random_state=42,
+        random_state=None,
         n_jobs=1,
     ):
         self.n_jobs = n_jobs
