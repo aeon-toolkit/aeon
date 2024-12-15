@@ -410,6 +410,7 @@ class RCluster(BaseClusterer):
         return X_
 
     def _fit(self, X, y=None):
+        _random_state = check_random_state(self.random_state)
         parameters = self._get_parameterised_data(X)
 
         transformed_data = self._get_transformed_data(X=X, parameters=parameters)
@@ -422,11 +423,11 @@ class RCluster(BaseClusterer):
 
         optimal_dimensions = max(1, min(optimal_dimensions, X.shape[0], X.shape[1]))
 
-        self.pca = PCA(n_components=optimal_dimensions, random_state=self.random_state)
+        self.pca = PCA(n_components=optimal_dimensions, random_state=_random_state)
         transformed_data_pca = self.pca.fit_transform(X_std)
         self._estimator = _clone_estimator(
             (KMeans() if self.estimator is None else self.estimator),
-            self.random_state,
+            _random_state,
         )
         self._estimator.fit(transformed_data_pca)
         self.labels_ = self._estimator.labels_
