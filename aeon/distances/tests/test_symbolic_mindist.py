@@ -8,7 +8,7 @@ from aeon.distances.mindist._dft_sfa import mindist_dft_sfa_distance
 from aeon.distances.mindist._paa_sax import mindist_paa_sax_distance
 from aeon.distances.mindist._sax import mindist_sax_distance
 from aeon.distances.mindist._sfa import mindist_sfa_distance
-from aeon.transformations.collection.dictionary_based import SAX, SFA, SFAFast
+from aeon.transformations.collection.dictionary_based import SAX, SFA, SFAFast, SFAWhole
 
 
 def test_sax_mindist():
@@ -81,7 +81,16 @@ def test_sfa_mindist():
         norm=True,
         lower_bounding_distances=True,  # This must be set!
     )
-    transforms = [sfa_old, sfa_fast]
+
+    sfa_whole = SFAWhole(
+        word_length=n_segments,
+        alphabet_size=alphabet_size,
+        series_length=X_train.shape[-1],
+        binning_method=histogram_type,
+        norm=True,
+    )
+
+    transforms = [sfa_old, sfa_fast, sfa_whole]
 
     for sfa in transforms:
         sfa.fit(X_train)
