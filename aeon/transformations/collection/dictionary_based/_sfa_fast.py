@@ -185,12 +185,6 @@ class SFAFast(BaseCollectionTransformer):
         self.lower_bounding = lower_bounding
         self.lower_bounding_distances = lower_bounding_distances
 
-        self.inverse_sqrt_win_size = (
-            1.0 / math.sqrt(window_size)
-            if (not lower_bounding or lower_bounding_distances)
-            else 1.0
-        )
-
         self.remove_repeat_words = remove_repeat_words
 
         self.save_words = save_words
@@ -251,6 +245,10 @@ class SFAFast(BaseCollectionTransformer):
         if self.binning_method not in binning_methods:
             raise TypeError("binning_method must be one of: ", binning_methods)
 
+        # If window_size was not set, assume whole series matching
+        if self.window_size is None:
+            self.window_size = X.shape[-1]
+
         offset = 2 if self.norm else 0
         self.word_length_actual = min(self.window_size - offset, self.word_length)
 
@@ -265,6 +263,12 @@ class SFAFast(BaseCollectionTransformer):
                 "Please set the sampling_factor to a value smaller than or equal to "
                 "1 (equals 100%)."
             )
+
+        self.inverse_sqrt_win_size = (
+            1.0 / math.sqrt(self.window_size)
+            if (not self.lower_bounding or self.lower_bounding_distances)
+            else 1.0
+        )
 
         self.dft_length = (
             self.window_size - offset

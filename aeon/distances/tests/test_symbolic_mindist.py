@@ -85,7 +85,6 @@ def test_sfa_mindist():
     sfa_whole = SFAWhole(
         word_length=n_segments,
         alphabet_size=alphabet_size,
-        series_length=X_train.shape[-1],
         binning_method=histogram_type,
         norm=True,
     )

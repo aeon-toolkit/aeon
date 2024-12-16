@@ -33,8 +33,6 @@ class SFAWhole(SFAFast):
 
     Parameters
     ----------
-    series_length: int,
-        Length of the series to be transformed
     word_length : int, default = 8
         Length of word to shorten window to (using DFT).
     alphabet_size : int, default = 4
@@ -75,7 +73,6 @@ class SFAWhole(SFAFast):
 
     def __init__(
         self,
-        series_length,
         word_length=8,
         alphabet_size=4,
         norm=True,
@@ -88,7 +85,6 @@ class SFAWhole(SFAFast):
         super().__init__(
             word_length=word_length,
             alphabet_size=alphabet_size,
-            window_size=series_length,
             norm=norm,
             binning_method=binning_method,
             variance=variance,
@@ -96,6 +92,7 @@ class SFAWhole(SFAFast):
             random_state=random_state,
             n_jobs=n_jobs,
             # Default values for other parameters
+            window_size=None,
             lower_bounding_distances=True,
             feature_selection="none",
             anova=False,
@@ -137,3 +134,28 @@ class SFAWhole(SFAFast):
         List of dictionaries containing SFA words
         """
         return super()._transform(X, y)
+
+    @classmethod
+    def get_test_params(cls, parameter_set="default"):
+        """Return testing parameter settings for the estimator.
+
+        Parameters
+        ----------
+        parameter_set : str, default="default"
+            Name of the set of test parameters to return, for use in tests. If no
+            special parameters are defined for a value, will return `"default"` set.
+
+        Returns
+        -------
+        params : dict or list of dict, default = {}
+            Parameters to create testing instances of the class
+            Each dict are parameters to construct an "interesting" test instance, i.e.,
+            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            `create_test_instance` uses the first (or only) dictionary in `params`
+        """
+        # small window size for testing
+        params = {
+            "word_length": 4,
+            "alphabet_size": 4,
+        }
+        return params
