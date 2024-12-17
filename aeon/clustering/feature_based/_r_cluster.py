@@ -391,7 +391,7 @@ class RCluster(BaseClusterer):
             num_features_per_dilation,
             biases,
         )
-        
+
     def check_params(self, X):
         X = X.astype(np.float32)
         if self.n_jobs < 1 or self.n_jobs > multiprocessing.cpu_count():
