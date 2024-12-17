@@ -46,6 +46,9 @@ class SFAWhole(SFAFast):
         If True, the Fourier coefficient selection is done via the largest variance.
         If False, the first Fourier coefficients are selected. Only applicable if
         labels are given.
+    window_size : int, default = None
+        Size of window. Must be set to the series length for whole series transform.
+        If set to None, it will be automatically set in fit to the series length.
     sampling_factor : float, default = None
        If set to a value <1.0, this percentage of samples are used to learn MCB bins.
     n_jobs : int, default = 1
@@ -75,6 +78,7 @@ class SFAWhole(SFAFast):
         self,
         word_length=8,
         alphabet_size=4,
+        window_size=None,
         norm=True,
         binning_method="equi-depth",
         variance=False,
@@ -100,7 +104,7 @@ class SFAWhole(SFAFast):
             bigrams=False,
             skip_grams=False,
             remove_repeat_words=False,
-            window_size=None,  # set in fit
+            window_size=window_size,  # set in fit
         )
 
     def _fit_transform(self, X, y=None, return_bag_of_words=True):
@@ -156,5 +160,6 @@ class SFAWhole(SFAFast):
         params = {
             "word_length": 4,
             "alphabet_size": 4,
+            "window_size": 12,
         }
         return params
