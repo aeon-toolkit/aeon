@@ -117,7 +117,7 @@ class SFAWhole(SFAFast):
         -------
         self: object
         """
-        self._fit_transform(X, y)
+        self._fit_transform(X, y, return_bag_of_words=False)
         return self
 
     def _transform(self, X, y=None):
