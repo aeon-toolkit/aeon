@@ -34,13 +34,7 @@ class RCluster(BaseClusterer):
          over the time series,capturing patterns at varying scales
     num_cluster : int , default = 8
          The number of clusters used
-    estimator : sklearn clusterer, default=None
-          An sklearn estimator to be built using the transformed data.
-    random_state : int, RandomState instance or None, default=None
-        If `int`, random_state is the seed used by the random number generator;
-        If `RandomState` instance, random_state is the random number generator;
-        If `None`, the random number generator is the `RandomState` instance used
-        by `np.random`.
+    random_state : int, Random state or None, default=None
     n_jobs : int, default=1
          The number of jobs to run in parallel for `transform`. ``-1``
          means using all
