@@ -68,6 +68,7 @@ class SFAWhole(SFAFast):
 
     _tags = {
         "requires_y": False,  # SFA is unsupervised for equi-depth and equi-width bins
+        "capability:multithreading": True,
         "algorithm_type": "dictionary",
     }
 
@@ -100,6 +101,7 @@ class SFAWhole(SFAFast):
             bigrams=False,
             skip_grams=False,
             remove_repeat_words=False,
+            return_sparse=False,
             window_size=None,  # set in fit
         )
 
@@ -130,9 +132,9 @@ class SFAWhole(SFAFast):
 
         Returns
         -------
-        List of dictionaries containing SFA words
+        List of words containing SFA words
         """
-        return super()._transform(X, y)
+        return self.transform_words(X)
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
