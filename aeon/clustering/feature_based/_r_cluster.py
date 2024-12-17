@@ -6,6 +6,7 @@ from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 from sklearn.utils import check_random_state
+
 from aeon.clustering.base import BaseClusterer
 from aeon.transformations.collection.convolution_based._minirocket import (
     _fit_biases,
