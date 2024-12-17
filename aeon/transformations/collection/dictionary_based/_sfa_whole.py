@@ -103,7 +103,7 @@ class SFAWhole(SFAFast):
         )
 
     def _fit_transform(self, X, y=None, return_bag_of_words=True):
-        super()._fit_transform(X, y, return_bag_of_words=False)
+        super()._fit_transform(X, y, return_bag_of_words=return_bag_of_words)
 
     def _fit(self, X, y=None):
         """Calculate word breakpoints.
