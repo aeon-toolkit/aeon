@@ -342,10 +342,10 @@ class RCluster(BaseClusterer):
         super().__init__()
 
     def _get_parameterised_data(self, X):
+        np.random.seed(self.random_state)
         X = X.astype(np.float32)
-        self._random_state = check_random_state(self.random_state)
+
         _, n_channels, n_timepoints = X.shape
-        X = X.astype(np.float32)
 
         dilations, num_features_per_dilation = _fit_dilations(
             n_timepoints, self.n_kernels, self.max_dilations_per_kernel
@@ -355,14 +355,14 @@ class RCluster(BaseClusterer):
 
         quantiles = _quantiles(self.n_kernels * num_features_per_kernel)
 
-        quantiles = self._random_state.permutation(quantiles)
+        quantiles = np.random.permutation(quantiles)
 
         n_dilations = len(dilations)
         n_combinations = self.n_kernels * n_dilations
         max_n_channels = min(n_channels, 9)
         max_exponent = np.log2(max_n_channels + 1)
         n_channels_per_combination = (
-            2 ** self._random_state.uniform(0, max_exponent, n_combinations)
+            2 ** np.random.uniform(0, max_exponent, n_combinations)
         ).astype(np.int32)
         channel_indices = np.zeros(n_channels_per_combination.sum(), dtype=np.int32)
         n_channels_start = 0
@@ -391,7 +391,7 @@ class RCluster(BaseClusterer):
             num_features_per_dilation,
             biases,
         )
-
+        
     def check_params(self, X):
         X = X.astype(np.float32)
         if self.n_jobs < 1 or self.n_jobs > multiprocessing.cpu_count():
