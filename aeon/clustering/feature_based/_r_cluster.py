@@ -336,7 +336,9 @@ class RCluster(BaseClusterer):
             dtype=np.int32,
         ).reshape(84, 3)
         self.is_fitted = False
-        self.estimator = KMeans(n_clusters=self.n_clusters,random_state=self.random_state)
+        self.estimator = KMeans(
+            n_clusters=self.n_clusters, random_state=self.random_state
+        )
         super().__init__()
 
     def _get_parameterised_data(self, X):
@@ -360,7 +362,7 @@ class RCluster(BaseClusterer):
         max_n_channels = min(n_channels, 9)
         max_exponent = np.log2(max_n_channels + 1)
         n_channels_per_combination = (
-                2 ** np.random.uniform(0, max_exponent, n_combinations)
+            2 ** np.random.uniform(0, max_exponent, n_combinations)
         ).astype(np.int32)
         channel_indices = np.zeros(n_channels_per_combination.sum(), dtype=np.int32)
         n_channels_start = 0
