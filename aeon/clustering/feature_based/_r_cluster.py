@@ -70,7 +70,6 @@ class RCluster(BaseClusterer):
         n_kernels=84,
         max_dilations_per_kernel=32,
         n_clusters=8,
-        estimator=None,
         random_state=None,
         n_jobs=1,
     ):
@@ -78,8 +77,6 @@ class RCluster(BaseClusterer):
         self.n_kernels = n_kernels
         self.max_dilations_per_kernel = max_dilations_per_kernel
         self.n_clusters = n_clusters
-        self.estimator = estimator
-        self._estimator = None
         self.random_state = random_state
         self.indices = np.array(
             (
@@ -339,6 +336,7 @@ class RCluster(BaseClusterer):
             dtype=np.int32,
         ).reshape(84, 3)
         self.is_fitted = False
+        self.estimator = KMeans(n_clusters=self.n_clusters,random_state=self.random_state)
         super().__init__()
 
     def _get_parameterised_data(self, X):
@@ -362,7 +360,7 @@ class RCluster(BaseClusterer):
         max_n_channels = min(n_channels, 9)
         max_exponent = np.log2(max_n_channels + 1)
         n_channels_per_combination = (
-            2 ** np.random.uniform(0, max_exponent, n_combinations)
+                2 ** np.random.uniform(0, max_exponent, n_combinations)
         ).astype(np.int32)
         channel_indices = np.zeros(n_channels_per_combination.sum(), dtype=np.int32)
         n_channels_start = 0
@@ -425,12 +423,8 @@ class RCluster(BaseClusterer):
 
         self.pca = PCA(n_components=optimal_dimensions, random_state=_random_state)
         transformed_data_pca = self.pca.fit_transform(X_std)
-        self._estimator = _clone_estimator(
-            (KMeans() if self.estimator is None else self.estimator),
-            _random_state,
-        )
-        self._estimator.fit(transformed_data_pca)
-        self.labels_ = self._estimator.labels_
+        self.estimator.fit(transformed_data_pca)
+        self.labels_ = self.estimator.labels_
         self.is_fitted = True
 
     def _predict(self, X, y=None) -> np.ndarray:
@@ -446,7 +440,7 @@ class RCluster(BaseClusterer):
         X_std = self.scaler.fit_transform(transformed_data)
         transformed_data_pca = self.pca.fit_transform(X_std)
 
-        return self._estimator.predict(transformed_data_pca)
+        return self.estimator.predict(transformed_data_pca)
 
     def _fit_predict(self, X, y=None) -> np.ndarray:
         self._fit(X, y)
