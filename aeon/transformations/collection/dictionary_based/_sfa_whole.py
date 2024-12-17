@@ -92,7 +92,6 @@ class SFAWhole(SFAFast):
             random_state=random_state,
             n_jobs=n_jobs,
             # Default values for other parameters
-            window_size=None,
             lower_bounding_distances=True,
             feature_selection="none",
             anova=False,
@@ -101,7 +100,6 @@ class SFAWhole(SFAFast):
             bigrams=False,
             skip_grams=False,
             remove_repeat_words=False,
-            return_pandas_data_series=False,
         )
 
     def _fit_transform(self, X, y=None, return_bag_of_words=True):
