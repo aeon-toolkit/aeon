@@ -1,5 +1,7 @@
 """Apply Enumeration in module."""
 
+__all__ = ["AlgorithmType"]
+
 from enum import Enum
 
 
