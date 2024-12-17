@@ -100,6 +100,7 @@ class SFAWhole(SFAFast):
             bigrams=False,
             skip_grams=False,
             remove_repeat_words=False,
+            window_size=None,  # set in fit
         )
 
     def _fit_transform(self, X, y=None, return_bag_of_words=True):
