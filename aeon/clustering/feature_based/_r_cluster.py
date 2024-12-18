@@ -5,7 +5,6 @@ from numba import get_num_threads, set_num_threads
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
-from sklearn.utils import check_random_state
 
 from aeon.clustering.base import BaseClusterer
 from aeon.transformations.collection.convolution_based._minirocket import (
@@ -421,7 +420,7 @@ class RCluster(BaseClusterer):
 
         optimal_dimensions = max(1, min(optimal_dimensions, X.shape[0], X.shape[1]))
 
-        self.pca = PCA(n_components=optimal_dimensions, random_state=_random_state)
+        self.pca = PCA(n_components=optimal_dimensions, random_state=self.random_state)
         transformed_data_pca = self.pca.fit_transform(X_std)
         self.estimator.fit(transformed_data_pca)
         self.labels_ = self.estimator.labels_
