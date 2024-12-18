@@ -105,8 +105,9 @@ class SFAWhole(SFAFast):
             window_size=None,  # set in fit
         )
 
-    def _fit_transform(self, X, y=None, return_bag_of_words=True):
-        super()._fit_transform(X, y, return_bag_of_words=return_bag_of_words)
+    def _fit_transform(self, X, y=None):
+        super()._fit_transform(X, y, return_bag_of_words=False)
+        return self.transform_words(X)
 
     def _fit(self, X, y=None):
         """Calculate word breakpoints.
@@ -120,7 +121,7 @@ class SFAWhole(SFAFast):
         -------
         self: object
         """
-        self._fit_transform(X, y, return_bag_of_words=False)
+        super()._fit_transform(X, y, return_bag_of_words=False)
         return self
 
     def _transform(self, X, y=None):
