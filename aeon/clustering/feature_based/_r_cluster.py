@@ -38,6 +38,12 @@ class RCluster(BaseClusterer):
          The number of jobs to run in parallel for `transform`. ``-1``
          means using all
          processors.
+    num_features : int, default=500
+        Number of features need for fit_dilations method.
+    n_init : int, default=10
+        Number of times the R-Cluster algorithm will be run with different
+        centroid seeds. The final result will be the best output of n_init
+        consecutive runs in terms of inertia.
 
     Notes
     -----
