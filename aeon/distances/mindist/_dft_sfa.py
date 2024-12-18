@@ -56,9 +56,8 @@ def mindist_dft_sfa_distance(
     ... )
     >>> transform.fit(x)
     SFAFast(...)
-    >>> x_sfa = transform.transform_words(x).squeeze()
-    >>> y_sfa = transform.transform_words(y).squeeze()
-    >>> x_dft = transform.transform_mft(x).squeeze()
+    >>> x_sfa, x_dft = transform.transform_words(x)
+    >>> y_sfa, _ = transform.transform_words(y)
     >>> dist = mindist_dft_sfa_distance(x_dft, y_sfa, transform.breakpoints)
     """
     if x_dft.ndim == 1 and y_sfa.ndim == 1:
