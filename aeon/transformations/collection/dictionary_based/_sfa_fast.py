@@ -697,7 +697,7 @@ class SFAFast(BaseCollectionTransformer):
         )
 
     def transform_words(self, X):
-        """Return the words generated for each series.
+        """Return the words and dft coefficients generated for each series.
 
         Parameters
         ----------
@@ -710,7 +710,7 @@ class SFAFast(BaseCollectionTransformer):
         if X.ndim == 3:
             X = X.squeeze(1)
 
-        return _transform_words_case(
+        words, dfts = _transform_words_case(
             X,
             self.window_size,
             self.dft_length,
@@ -724,6 +724,8 @@ class SFAFast(BaseCollectionTransformer):
             self.alphabet_size,
             self.breakpoints,
         )
+
+        return words.squeeze(), dfts.squeeze()
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
@@ -1312,4 +1314,4 @@ def _transform_words_case(
                         words[x, window, i] = bp
                         break
 
-    return words
+    return words, dfts

@@ -89,14 +89,12 @@ def test_sfa_mindist():
         norm=True,
     )
 
-    transforms = [sfa_old, sfa_fast, sfa_whole]
+    transforms = [sfa_fast, sfa_old, sfa_whole]
 
     for sfa in transforms:
         sfa.fit(X_train)
-        X_train_words = sfa.transform_words(X_train).squeeze()
-        Y_train_words = sfa.transform_words(X_test).squeeze()
-
-        SFA_train_dfts = sfa.transform_mft(X_train).squeeze()
+        X_train_words, X_train_dfts = sfa.transform_words(X_train)
+        X_test_words, _ = sfa.transform_words(X_test)
 
         for i in range(min(X_train.shape[0], X_test.shape[0])):
             X = X_train[i].reshape(1, -1)
@@ -104,12 +102,12 @@ def test_sfa_mindist():
 
             # SFA Min-Distance
             mindist_sfa = mindist_sfa_distance(
-                X_train_words[i], Y_train_words[i], sfa.breakpoints
+                X_train_words[i], X_test_words[i], sfa.breakpoints
             )
 
             # DFT-SFA Min-Distance
             mindist_dft_sfa = mindist_dft_sfa_distance(
-                SFA_train_dfts[i], Y_train_words[i], sfa.breakpoints
+                X_train_dfts[i], X_test_words[i], sfa.breakpoints
             )
 
             # Euclidean Distance
@@ -118,3 +116,48 @@ def test_sfa_mindist():
             assert mindist_sfa <= ed
             assert mindist_dft_sfa >= mindist_sfa  # a tighter lower bound
             assert mindist_dft_sfa <= ed
+
+
+def test_sfa_whole_mindist():
+    """Test the SFA Min-Distance function."""
+    n_segments = 16
+    alphabet_size = 8
+
+    X_train, _ = load_unit_test("TRAIN")
+    X_test, _ = load_unit_test("TEST")
+
+    X_train = zscore(X_train.squeeze(), axis=1)
+    X_test = zscore(X_test.squeeze(), axis=1)
+
+    histogram_type = "equi-width"
+
+    sfa = SFAWhole(
+        word_length=n_segments,
+        alphabet_size=alphabet_size,
+        binning_method=histogram_type,
+        norm=True,
+    )
+
+    X_train_words, X_train_dfts = sfa.fit_transform(X_train)
+    X_test_words, _ = sfa.transform(X_test)
+
+    for i in range(min(X_train.shape[0], X_test.shape[0])):
+        X = X_train[i].reshape(1, -1)
+        Y = X_test[i].reshape(1, -1)
+
+        # SFA Min-Distance
+        mindist_sfa = mindist_sfa_distance(
+            X_train_words[i], X_test_words[i], sfa.breakpoints
+        )
+
+        # DFT-SFA Min-Distance
+        mindist_dft_sfa = mindist_dft_sfa_distance(
+            X_train_dfts[i], X_test_words[i], sfa.breakpoints
+        )
+
+        # Euclidean Distance
+        ed = np.linalg.norm(X[0] - Y[0])
+
+        assert mindist_sfa <= ed
+        assert mindist_dft_sfa >= mindist_sfa  # a tighter lower bound
+        assert mindist_dft_sfa <= ed
