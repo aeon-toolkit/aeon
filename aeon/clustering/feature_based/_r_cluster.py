@@ -65,11 +65,11 @@ class RCluster(BaseClusterer):
         n_clusters=8,
         random_state=None,
         n_jobs=1,
-        n_init = 10,
+        n_init=10,
         num_features=500,
     ):
         self.num_features = num_features
-        self.n_init=n_init
+        self.n_init = n_init
         self.n_jobs = n_jobs
         self.n_kernels = n_kernels
         self.max_dilations_per_kernel = max_dilations_per_kernel
@@ -334,8 +334,9 @@ class RCluster(BaseClusterer):
         ).reshape(84, 3)
         self.is_fitted = False
         self.estimator = KMeans(
-            n_clusters=self.n_clusters, random_state=self.random_state,
-            n_init= self.n_init
+            n_clusters=self.n_clusters,
+            random_state=self.random_state,
+            n_init=self.n_init,
         )
         super().__init__()
 
