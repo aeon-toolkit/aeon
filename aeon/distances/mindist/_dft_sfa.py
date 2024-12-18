@@ -54,11 +54,9 @@ def mindist_dft_sfa_distance(
     ...    norm=True,
     ...    lower_bounding_distances=True   # This must be set!
     ... )
-    >>> transform.fit(x)
-    SFAFast(...)
-    >>> x_sfa, x_dft = transform.transform_words(x)
-    >>> y_sfa, _ = transform.transform_words(y)
-    >>> dist = mindist_dft_sfa_distance(x_dft, y_sfa, transform.breakpoints)
+    >>> x_sfa, _ = transform.fit_transform(x)
+    >>> _, y_dft = transform.transform(y)
+    >>> dist = mindist_dft_sfa_distance(y_dft, x_sfa, transform.breakpoints)
     """
     if x_dft.ndim == 1 and y_sfa.ndim == 1:
         return _univariate_dft_sfa_distance(x_dft, y_sfa, breakpoints)
