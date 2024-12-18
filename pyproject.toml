@@ -58,7 +58,7 @@ dependencies = [
 [project.optional-dependencies]
 # soft dependencies
 all_extras = [
-    "esig>=0.9.7,<=1.0.0; platform_system != 'Darwin' and python_version < '3.11'",
+    "esig>=0.9.7,<1.0.0; platform_system != 'Darwin' and python_version < '3.11'",
     "imbalanced-learn",
     # Upper bound set as 3.10 dropped support for python 3.9. We will remove the
     # upper bound once we also drop support for python 3.9 later in 2025.
