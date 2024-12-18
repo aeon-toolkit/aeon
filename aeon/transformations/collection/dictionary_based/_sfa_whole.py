@@ -9,16 +9,6 @@ __all__ = ["SFAWhole"]
 
 from aeon.transformations.collection.dictionary_based import SFAFast
 
-# The binning methods to use: equi-depth, equi-width, information gain or kmeans
-binning_methods = {
-    "equi-depth",
-    "equi-width",
-    "information-gain",
-    "information-gain-mae",
-    "kmeans",
-    "quantile",
-}
-
 
 class SFAWhole(SFAFast):
     """Symbolic Fourier Approximation (SFA) Transformer.
