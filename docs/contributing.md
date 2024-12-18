@@ -55,8 +55,8 @@ text.**
 6. A Core Developer will review your PR and may provide feedback, which you can then
 address. If you are unsure about any feedback, please ask for clarification. Please
 be patient, as Core Developers are volunteers and may be busy with other tasks or life
-outside the package. It can potentially take weeks or longer to get a review during
-slow times, so please do not rush to @ developers or repeatedly ask for a review.
+outside the package. It could take a while to get a review during
+slow periods, so please do not rush to @ developers or repeatedly ask for a review.
 7. Once your PR is approved, it will be merged into the `aeon` repository. Thanks for
 making a contribution! Make sure you are included in the [list of contributors](contributors.md).
 
