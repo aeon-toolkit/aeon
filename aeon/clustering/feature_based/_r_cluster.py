@@ -65,7 +65,11 @@ class RCluster(BaseClusterer):
         n_clusters=8,
         random_state=None,
         n_jobs=1,
+        n_init = 10,
+        num_features=500,
     ):
+        self.num_features = num_features
+        self.n_init=n_init
         self.n_jobs = n_jobs
         self.n_kernels = n_kernels
         self.max_dilations_per_kernel = max_dilations_per_kernel
@@ -330,7 +334,8 @@ class RCluster(BaseClusterer):
         ).reshape(84, 3)
         self.is_fitted = False
         self.estimator = KMeans(
-            n_clusters=self.n_clusters, random_state=self.random_state
+            n_clusters=self.n_clusters, random_state=self.random_state,
+            n_init= self.n_init
         )
         super().__init__()
 
@@ -341,7 +346,7 @@ class RCluster(BaseClusterer):
         _, n_channels, n_timepoints = X.shape
 
         dilations, num_features_per_dilation = _fit_dilations(
-            n_timepoints, self.n_kernels, self.max_dilations_per_kernel
+            n_timepoints, self.num_features, self.max_dilations_per_kernel
         )
 
         num_features_per_kernel = np.sum(num_features_per_dilation)
@@ -403,7 +408,6 @@ class RCluster(BaseClusterer):
         return X_
 
     def _fit(self, X, y=None):
-        _random_state = check_random_state(self.random_state)
         parameters = self._get_parameterised_data(X)
 
         transformed_data = self._get_transformed_data(X=X, parameters=parameters)
@@ -438,8 +442,17 @@ class RCluster(BaseClusterer):
         return self.estimator.predict(transformed_data_pca)
 
     def _fit_predict(self, X, y=None) -> np.ndarray:
-        self._fit(X, y)
-        return self._predict(X, y)
+        parameters = self._get_parameterised_data(X)
+        transformed_data = self._get_transformed_data(X=X, parameters=parameters)
+        self.scaler = StandardScaler()
+        X_std = self.scaler.fit_transform(transformed_data)
+
+        pca = PCA().fit(X_std)
+        optimal_dimensions = np.argmax(pca.explained_variance_ratio_ < 0.01)
+
+        self.pca = PCA(n_components=optimal_dimensions, random_state=self.random_state)
+        transformed_data_pca = self.pca.fit_transform(X_std)
+        return self.estimator.fit_predict(transformed_data_pca)
 
     @classmethod
     def _get_test_params(cls, parameter_set="default") -> dict:
