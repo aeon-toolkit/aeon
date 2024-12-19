@@ -61,8 +61,6 @@ class ROCKAD(BaseAnomalyDetector):
         List containing k-NN estimators used for anomaly scoring, set after fitting.
     power_transformer_ : PowerTransformer
         Transformer used to apply power transformation to the features.
-    n_inf_cols_ : list
-        List of feature columns containing infinite values, identified during fitting.
     """
 
     _tags = {
@@ -102,7 +100,6 @@ class ROCKAD(BaseAnomalyDetector):
         self.rocket_transformer_: Optional[Rocket] = None
         self.list_baggers_: Optional[list[NearestNeighbors]] = None
         self.power_transformer_: Optional[PowerTransformer] = None
-        self.inf_columns_: Optional[np.ndarray] = None
 
     def _fit(self, X: np.ndarray, y: Optional[np.ndarray] = None) -> "ROCKAD":
         self._check_params(X)
@@ -153,12 +150,6 @@ class ROCKAD(BaseAnomalyDetector):
             try:
                 Xtp = self.power_transformer_.fit_transform(Xt)
 
-                inf_mask = np.isinf(Xtp).any(axis=0)
-                inf_columns = np.where(inf_mask)[0]
-
-                Xtp = Xtp[:, ~inf_mask]
-
-                self.inf_columns_ = inf_columns
             except Exception:
                 warnings.warn(
                     "Power Transform failed and thus has been disabled. "
@@ -170,7 +161,6 @@ class ROCKAD(BaseAnomalyDetector):
                 Xtp = Xt
         else:
             Xtp = Xt
-            self.inf_columns_ = None
 
         self.list_baggers_ = []
 
@@ -250,16 +240,7 @@ class ROCKAD(BaseAnomalyDetector):
 
         if self.power_transformer_ is not None:
             # Power Transform using yeo-johnson
-
             Xtp = self.power_transformer_.transform(Xt)
-
-            # Drop columns identified by self.inf_columns_
-            if self.inf_columns_ is not None and len(self.inf_columns_) > 0:
-                mask = np.ones(Xtp.shape[1], dtype=bool)
-                mask[self.inf_columns_] = False
-                Xtp = Xtp[:, mask]
-
-                Xtp[~np.isfinite(Xtp)] = 0.0
 
         else:
             Xtp = Xt
