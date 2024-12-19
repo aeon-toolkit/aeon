@@ -59,7 +59,7 @@ class IDK(BaseAnomalyDetector):
     """
 
     _tags = {
-        "capability:univariate": True,
+        "capability:univariate": False,
         "capability:multivariate": True,
         "capability:missing_values": False,
     }
