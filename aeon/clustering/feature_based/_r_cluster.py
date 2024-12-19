@@ -422,7 +422,7 @@ class RClusterer(BaseClusterer):
             1, min(optimal_dimensions, X_std.shape[0], X_std.shape[1])
         )
 
-        self.pca = PCA(n_components=optimal_dimensions, random_state=self.random_state)
+        self.__pca = PCA(n_components=optimal_dimensions, random_state=self.random_state)
         transformed_data_pca = self.pca.fit_transform(X_std)
         self.estimator = KMeans(
             n_clusters=self.n_clusters,
@@ -443,7 +443,7 @@ class RClusterer(BaseClusterer):
         transformed_data = self._get_transformed_data(X=X, parameters=parameters)
 
         X_std = self.scaler.fit_transform(transformed_data)
-        transformed_data_pca = self.pca.fit_transform(X_std)
+        transformed_data_pca = self.__pca.fit_transform(X_std)
 
         return self.estimator.predict(transformed_data_pca)
 
@@ -460,8 +460,8 @@ class RClusterer(BaseClusterer):
             1, min(optimal_dimensions, X_std.shape[0], X_std.shape[1])
         )
 
-        self.pca = PCA(n_components=optimal_dimensions, random_state=self.random_state)
-        transformed_data_pca = self.pca.fit_transform(X_std)
+        self.__pca = PCA(n_components=optimal_dimensions, random_state=self.random_state)
+        transformed_data_pca = self.__pca.fit_transform(X_std)
         self.estimator = KMeans(
             n_clusters=self.n_clusters,
             random_state=self.random_state,
