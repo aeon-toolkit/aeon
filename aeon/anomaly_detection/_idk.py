@@ -191,7 +191,7 @@ class IDK(BaseAnomalyDetector):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
         """
         return {
-            "psi1": 2,
-            "psi2": 1,
+            "psi1": 4,
+            "psi2": 2,
             "width": 1,
         }
