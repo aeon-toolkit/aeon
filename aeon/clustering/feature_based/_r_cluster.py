@@ -425,7 +425,7 @@ class RClusterer(BaseClusterer):
         self.__pca = PCA(
             n_components=optimal_dimensions, random_state=self.random_state
         )
-        transformed_data_pca = self.pca.fit_transform(X_std)
+        transformed_data_pca = self.__pca.fit_transform(X_std)
         self.estimator = KMeans(
             n_clusters=self.n_clusters,
             random_state=self.random_state,
