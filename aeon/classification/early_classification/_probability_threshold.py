@@ -102,10 +102,10 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
     def __init__(
         self,
         estimator=None,
-        probability_threshold=0.85,
-        consecutive_predictions=1,
+        probability_threshold: float = 0.85,
+        consecutive_predictions: int = 1,
         classification_points=None,
-        n_jobs=1,
+        n_jobs: int = 1,
         random_state=None,
     ):
         self.estimator = estimator
