@@ -62,7 +62,6 @@ class IDK(BaseAnomalyDetector):
         "capability:univariate": True,
         "capability:multivariate": False,
         "capability:missing_values": False,
-        "fit_is_empty": False,
     }
 
     def __init__(
@@ -192,7 +191,7 @@ class IDK(BaseAnomalyDetector):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
         """
         return {
-            "psi1": 16,
-            "psi2": 2,
-            "width": 100,
+            "psi1": 2,
+            "psi2": 1,
+            "width": 10,
         }
