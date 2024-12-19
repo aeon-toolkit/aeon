@@ -66,19 +66,19 @@ class IDK(BaseAnomalyDetector):
     }
 
     def __init__(
-            self,
-            psi1,
-            psi2,
-            width,
-            t=100,
-            sliding = False,
-            random_state=None,
+        self,
+        psi1,
+        psi2,
+        width,
+        t=100,
+        sliding=False,
+        random_state=None,
     ):
         self.psi1 = psi1
         self.psi2 = psi2
         self.width = width
         self.t = t
-        self.sliding  = sliding
+        self.sliding = sliding
         self.random_state = random_state
         super().__init__(axis=0)
 
