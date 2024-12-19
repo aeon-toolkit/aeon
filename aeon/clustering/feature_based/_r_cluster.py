@@ -16,7 +16,7 @@ from aeon.transformations.collection.convolution_based._minirocket import (
 
 
 class RClusterer(BaseClusterer):
-    """Implementation of Time Series R Cluster
+    """Implementation of Time Series R Cluster.
 
     Adapted from the implementation used in [1]_
 
