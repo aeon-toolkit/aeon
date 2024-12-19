@@ -54,8 +54,11 @@ sure to include an appropriate [title tag](contributing/issues.md). **Do not jus
 text.**
 6. A Core Developer will review your PR and may provide feedback, which you can then
 address. If you are unsure about any feedback, please ask for clarification. Please
-be patient, as Core Developers are volunteers and may be busy with other tasks.
-7. Once your PR is approved, it will be merged into the `aeon` repository. Thanks for
+be patient, as Core Developers are volunteers and may be busy with other tasks or life
+outside the package. It could take a while to get a review during
+slow periods, so please do not rush to @ developers or repeatedly ask for a review.
+Consider opening the PR as a draft until it is ready for review and passing tests.
+8. Once your PR is approved, it will be merged into the `aeon` repository. Thanks for
 making a contribution! Make sure you are included in the [list of contributors](contributors.md).
 
 Further guidance for contributing to `aeon` via GitHub can be found on the
@@ -77,8 +80,8 @@ recognise various types of contributions. Take a look at our past and current
 If you are a new contributor, make sure we add you to our list of contributors. All
 contributions are recorded in [.all-contributorsrc](https://github.com/aeon-toolkit/aeon/blob/main/.all-contributorsrc).
 Alternatively, you can use the [@all-contributors](https://allcontributors.org/docs/en/bot/usage)
-bot to do this for you. If the contribution is related to a PR, please only create this
-when the PR has merged. A list of relevant tags can be found [here](https://allcontributors.org/docs/en/emoji-key).
+bot to do this for you. If the contribution is contained in a PR, please only @ the bot
+when the PR has been merged. A list of relevant tags can be found [here](https://allcontributors.org/docs/en/emoji-key).
 
 ## Further Reading
 
