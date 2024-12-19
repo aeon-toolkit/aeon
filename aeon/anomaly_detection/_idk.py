@@ -193,5 +193,5 @@ class IDK(BaseAnomalyDetector):
         return {
             "psi1": 2,
             "psi2": 1,
-            "width": 10,
+            "width": 1,
         }
