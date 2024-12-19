@@ -428,6 +428,7 @@ class RClusterer(BaseClusterer):
             n_init=self.n_init,
         )
         self.estimator.fit(transformed_data_pca)
+        self.labels_ = self.estimator.labels_
 
     def _predict(self, X, y=None) -> np.ndarray:
         if not self.is_fitted:
@@ -462,6 +463,7 @@ class RClusterer(BaseClusterer):
             random_state=self.random_state,
             n_init=self.n_init,
         )
+        self.labels_ = self.estimator.labels_
         return self.estimator.fit_predict(transformed_data_pca)
 
     @classmethod
