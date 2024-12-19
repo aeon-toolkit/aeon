@@ -201,5 +201,5 @@ class IDK(BaseAnomalyDetector):
             "psi1": 4,
             "psi2": 2,
             "width": 1,
-            "random_state":1,
+            "random_state": 1,
         }
