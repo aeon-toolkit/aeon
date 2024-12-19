@@ -428,6 +428,7 @@ class RClusterer(BaseClusterer):
             n_init=self.n_init,
         )
         self.estimator.fit(transformed_data_pca)
+
     def _predict(self, X, y=None) -> np.ndarray:
         if not self.is_fitted:
             raise ValueError(
@@ -451,7 +452,7 @@ class RClusterer(BaseClusterer):
 
         pca = PCA().fit(X_std)
         optimal_dimensions = np.argmax(pca.explained_variance_ratio_ < 0.01)
-        
+
         optimal_dimensions = max(1, min(optimal_dimensions, X.shape[0], X.shape[2]))
 
         self.pca = PCA(n_components=optimal_dimensions, random_state=self.random_state)
