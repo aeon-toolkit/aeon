@@ -15,8 +15,8 @@ from aeon.transformations.collection.convolution_based._minirocket import (
 )
 
 
-class RCluster(BaseClusterer):
-    """Time series R Clustering implementation .
+class RClusterer(BaseClusterer):
+    """Implementation of Time Series R Cluster
 
     Adapted from the implementation used in [1]_
 
@@ -68,10 +68,10 @@ class RCluster(BaseClusterer):
         n_kernels=84,
         max_dilations_per_kernel=32,
         n_clusters=8,
-        random_state=None,
-        n_jobs=1,
         n_init=10,
         num_features=500,
+        random_state=None,
+        n_jobs=1,
     ):
         self.num_features = num_features
         self.n_init = n_init
@@ -337,16 +337,10 @@ class RCluster(BaseClusterer):
             ),
             dtype=np.int32,
         ).reshape(84, 3)
-        self.is_fitted = False
-        self.estimator = KMeans(
-            n_clusters=self.n_clusters,
-            random_state=self.random_state,
-            n_init=self.n_init,
-        )
         super().__init__()
 
     def _get_parameterised_data(self, X):
-        np.random.seed(self.random_state)
+        random_state = np.random.RandomState(self.random_state)
         X = X.astype(np.float32)
 
         _, n_channels, n_timepoints = X.shape
@@ -359,7 +353,7 @@ class RCluster(BaseClusterer):
 
         quantiles = _quantiles(self.n_kernels * num_features_per_kernel)
 
-        quantiles = np.random.permutation(quantiles)
+        quantiles = random_state.permutation(quantiles)
 
         n_dilations = len(dilations)
         n_combinations = self.n_kernels * n_dilations
@@ -424,14 +418,16 @@ class RCluster(BaseClusterer):
         pca = PCA().fit(X_std)
         optimal_dimensions = np.argmax(pca.explained_variance_ratio_ < 0.01)
 
-        optimal_dimensions = max(1, min(optimal_dimensions, X.shape[0], X.shape[1]))
+        optimal_dimensions = max(1, min(optimal_dimensions, X.shape[0], X.shape[2]))
 
         self.pca = PCA(n_components=optimal_dimensions, random_state=self.random_state)
         transformed_data_pca = self.pca.fit_transform(X_std)
+        self.estimator = KMeans(
+            n_clusters=self.n_clusters,
+            random_state=self.random_state,
+            n_init=self.n_init,
+        )
         self.estimator.fit(transformed_data_pca)
-        self.labels_ = self.estimator.labels_
-        self.is_fitted = True
-
     def _predict(self, X, y=None) -> np.ndarray:
         if not self.is_fitted:
             raise ValueError(
@@ -455,9 +451,16 @@ class RCluster(BaseClusterer):
 
         pca = PCA().fit(X_std)
         optimal_dimensions = np.argmax(pca.explained_variance_ratio_ < 0.01)
+        
+        optimal_dimensions = max(1, min(optimal_dimensions, X.shape[0], X.shape[2]))
 
         self.pca = PCA(n_components=optimal_dimensions, random_state=self.random_state)
         transformed_data_pca = self.pca.fit_transform(X_std)
+        self.estimator = KMeans(
+            n_clusters=self.n_clusters,
+            random_state=self.random_state,
+            n_init=self.n_init,
+        )
         return self.estimator.fit_predict(transformed_data_pca)
 
     @classmethod
