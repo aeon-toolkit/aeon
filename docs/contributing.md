@@ -57,7 +57,8 @@ address. If you are unsure about any feedback, please ask for clarification. Ple
 be patient, as Core Developers are volunteers and may be busy with other tasks or life
 outside the package. It could take a while to get a review during
 slow periods, so please do not rush to @ developers or repeatedly ask for a review.
-7. Once your PR is approved, it will be merged into the `aeon` repository. Thanks for
+Consider opening the PR as a draft until it is ready for review and passing tests.
+8. Once your PR is approved, it will be merged into the `aeon` repository. Thanks for
 making a contribution! Make sure you are included in the [list of contributors](contributors.md).
 
 Further guidance for contributing to `aeon` via GitHub can be found on the
