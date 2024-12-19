@@ -13,6 +13,7 @@ __all__ = [
     "PyODAdapter",
     "STOMP",
     "STRAY",
+    "IDK",
 ]
 
 from aeon.anomaly_detection._cblof import CBLOF
@@ -27,3 +28,4 @@ from aeon.anomaly_detection._one_class_svm import OneClassSVM
 from aeon.anomaly_detection._pyodadapter import PyODAdapter
 from aeon.anomaly_detection._stomp import STOMP
 from aeon.anomaly_detection._stray import STRAY
+from aeon.anomaly_detection._idk import IDK
