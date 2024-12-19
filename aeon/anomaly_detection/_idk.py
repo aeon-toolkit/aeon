@@ -59,9 +59,10 @@ class IDK(BaseAnomalyDetector):
     """
 
     _tags = {
-        "capability:univariate": False,
-        "capability:multivariate": True,
+        "capability:univariate": True,
+        "capability:multivariate": False,
         "capability:missing_values": False,
+        "fit_is_empty": False,
     }
 
     def __init__(
@@ -77,7 +78,7 @@ class IDK(BaseAnomalyDetector):
         self.width = width
         self.t = t
         self.sliding = sliding
-        super().__init__(axis=1)
+        super().__init__(axis=0)
 
     def __IK_inne_fm(self, X, psi, t=100):
         onepoint_matrix = np.zeros((X.shape[0], (int)(t * psi)), dtype=int)
