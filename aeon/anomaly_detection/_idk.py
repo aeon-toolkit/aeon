@@ -28,15 +28,18 @@ class IDK(BaseAnomalyDetector):
     Parameters
     ----------
     psi1 : int
-         Number of samples randomly selected in each iteration for the feature map matrix.
+         Number of samples randomly selected in each iteration for the feature 
+         map matrix.
     psi2 : int
          Number of samples used for the second-stage feature map embedding.
     width : int
          Size of the sliding or fixed-width window for anomaly detection.
     t : int, default=100
-         Number of iterations (time steps) for random sampling to construct feature maps.
+         Number of iterations (time steps) for random sampling to construct 
+         feature maps.
     sliding : bool, default=False
-         Whether to use a sliding window approach. If True, computes scores for sliding windows;
+         Whether to use a sliding window approach. If True, computes scores 
+         for sliding windows;
          otherwise, processes fixed-width segments.
 
     Notes
