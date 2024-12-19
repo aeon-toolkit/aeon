@@ -41,6 +41,7 @@ class IDK(BaseAnomalyDetector):
          Whether to use a sliding window approach. If True, computes scores
          for sliding windows;
          otherwise, processes fixed-width segments.
+    random_state : int, Random state or None, default=None
 
     Notes
     -----
@@ -65,21 +66,25 @@ class IDK(BaseAnomalyDetector):
     }
 
     def __init__(
-        self,
-        psi1,
-        psi2,
-        width,
-        t=100,
-        sliding=False,
+            self,
+            psi1,
+            psi2,
+            width,
+            t=100,
+            sliding = False,
+            random_state=None,
     ):
         self.psi1 = psi1
         self.psi2 = psi2
         self.width = width
         self.t = t
-        self.sliding = sliding
+        self.sliding  = sliding
+        self.random_state = random_state
         super().__init__(axis=0)
 
     def __IK_inne_fm(self, X, psi, t=100):
+        np.random.seed(self.random_state)
+        random.seed(self.random_state)
         onepoint_matrix = np.zeros((X.shape[0], (int)(t * psi)), dtype=int)
         for time in range(t):
             sample_num = psi  #
@@ -112,6 +117,8 @@ class IDK(BaseAnomalyDetector):
         return np.dot(point_fm_list, feature_mean_map) / t
 
     def _IDK_T(self, X):
+        np.random.seed(self.random_state)
+        random.seed(self.random_state)
         window_num = int(np.ceil(X.shape[0] / self.width))
         featuremap_count = np.zeros((window_num, self.t * self.psi1))
         onepoint_matrix = np.full((X.shape[0], self.t), -1)
