@@ -422,10 +422,10 @@ class RClusterer(BaseClusterer):
             1, min(optimal_dimensions, X_std.shape[0], X_std.shape[1])
         )
 
-        self.__pca = PCA(
+        self.pca = PCA(
             n_components=optimal_dimensions, random_state=self.random_state
         )
-        transformed_data_pca = self.__pca.fit_transform(X_std)
+        transformed_data_pca = self.pca.fit_transform(X_std)
         self.estimator = KMeans(
             n_clusters=self.n_clusters,
             random_state=self.random_state,
@@ -445,9 +445,27 @@ class RClusterer(BaseClusterer):
         transformed_data = self._get_transformed_data(X=X, parameters=parameters)
 
         X_std = self.scaler.fit_transform(transformed_data)
-        transformed_data_pca = self.__pca.fit_transform(X_std)
+        n_samples, n_features = X_std.shape
+        if self.pca.n_components != min(self.pca.n_components,n_samples,n_features):
+            pca = PCA().fit(X_std)
+            optimal_dimensions = np.argmax(pca.explained_variance_ratio_ < 0.01)
 
-        return self.estimator.predict(transformed_data_pca)
+            optimal_dimensions = max(
+                1, min(optimal_dimensions, X_std.shape[0], X_std.shape[1])
+            )
+            pca = PCA(
+                n_components=optimal_dimensions, random_state=self.random_state
+            )
+            transformed_data_pca = pca.fit_transform(X_std)
+            estimator = KMeans(
+                n_clusters=self.n_clusters,
+                random_state=self.random_state,
+                n_init=self.n_init,
+            )
+            return  estimator.fit_predict(transformed_data_pca)
+        else:
+            transformed_data_pca = self.pca.fit_transform(X_std)
+            return self.estimator.predict(transformed_data_pca)
 
     def _fit_predict(self, X, y=None) -> np.ndarray:
         parameters = self._get_parameterised_data(X)
@@ -461,11 +479,10 @@ class RClusterer(BaseClusterer):
         optimal_dimensions = max(
             1, min(optimal_dimensions, X_std.shape[0], X_std.shape[1])
         )
-
-        self.__pca = PCA(
+        self.pca = PCA(
             n_components=optimal_dimensions, random_state=self.random_state
         )
-        transformed_data_pca = self.__pca.fit_transform(X_std)
+        transformed_data_pca = self.pca.fit_transform(X_std)
         self.estimator = KMeans(
             n_clusters=self.n_clusters,
             random_state=self.random_state,
@@ -493,8 +510,5 @@ class RClusterer(BaseClusterer):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
         """
         return {
-            "n_kernels": 84,
-            "max_dilations_per_kernel": 32,
-            "n_clusters": 8,
             "random_state": 1,
         }
