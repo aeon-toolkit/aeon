@@ -77,14 +77,13 @@ class ROCKAD(BaseAnomalyDetector):
         n_kernels=100,
         normalise=False,
         n_neighbors=5,
-        n_jobs=1,
         metric="euclidean",
         power_transform=True,
         window_size: int = 10,
         stride: int = 1,
+        n_jobs=1,
         random_state=42,
     ):
-        super().__init__(axis=0)
 
         self.n_estimators = n_estimators
         self.n_kernels = n_kernels
@@ -100,6 +99,8 @@ class ROCKAD(BaseAnomalyDetector):
         self.rocket_transformer_: Optional[Rocket] = None
         self.list_baggers_: Optional[list[NearestNeighbors]] = None
         self.power_transformer_: Optional[PowerTransformer] = None
+
+        super().__init__(axis=0)
 
     def _fit(self, X: np.ndarray, y: Optional[np.ndarray] = None) -> "ROCKAD":
         self._check_params(X)
