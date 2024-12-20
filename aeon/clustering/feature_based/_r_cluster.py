@@ -422,9 +422,7 @@ class RClusterer(BaseClusterer):
             1, min(optimal_dimensions, X_std.shape[0], X_std.shape[1])
         )
 
-        self.pca = PCA(
-            n_components=optimal_dimensions, random_state=self.random_state
-        )
+        self.pca = PCA(n_components=optimal_dimensions, random_state=self.random_state)
         transformed_data_pca = self.pca.fit_transform(X_std)
         self.estimator = KMeans(
             n_clusters=self.n_clusters,
@@ -446,23 +444,21 @@ class RClusterer(BaseClusterer):
 
         X_std = self.scaler.fit_transform(transformed_data)
         n_samples, n_features = X_std.shape
-        if self.pca.n_components != min(self.pca.n_components,n_samples,n_features):
+        if self.pca.n_components != min(self.pca.n_components, n_samples, n_features):
             pca = PCA().fit(X_std)
             optimal_dimensions = np.argmax(pca.explained_variance_ratio_ < 0.01)
 
             optimal_dimensions = max(
                 1, min(optimal_dimensions, X_std.shape[0], X_std.shape[1])
             )
-            pca = PCA(
-                n_components=optimal_dimensions, random_state=self.random_state
-            )
+            pca = PCA(n_components=optimal_dimensions, random_state=self.random_state)
             transformed_data_pca = pca.fit_transform(X_std)
             estimator = KMeans(
                 n_clusters=self.n_clusters,
                 random_state=self.random_state,
                 n_init=self.n_init,
             )
-            return  estimator.fit_predict(transformed_data_pca)
+            return estimator.fit_predict(transformed_data_pca)
         else:
             transformed_data_pca = self.pca.fit_transform(X_std)
             return self.estimator.predict(transformed_data_pca)
@@ -479,9 +475,7 @@ class RClusterer(BaseClusterer):
         optimal_dimensions = max(
             1, min(optimal_dimensions, X_std.shape[0], X_std.shape[1])
         )
-        self.pca = PCA(
-            n_components=optimal_dimensions, random_state=self.random_state
-        )
+        self.pca = PCA(n_components=optimal_dimensions, random_state=self.random_state)
         transformed_data_pca = self.pca.fit_transform(X_std)
         self.estimator = KMeans(
             n_clusters=self.n_clusters,
