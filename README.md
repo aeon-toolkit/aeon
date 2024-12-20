@@ -13,7 +13,7 @@ We strive to provide a broad library of time series algorithms including the
 latest advances, offer efficient implementations using numba, and interfaces with other
 time series packages to provide a single framework for algorithm comparison.
 
-The latest `aeon` release is `v0.11.1`. You can view the full changelog
+The latest `aeon` release is `v1.0.0`. You can view the full changelog
 [here](https://www.aeon-toolkit.org/en/stable/changelog.html).
 
 Our webpage and documentation is available at https://aeon-toolkit.org.
@@ -22,6 +22,7 @@ The following modules are still considered experimental, and the [deprecation po
 does not apply:
 
 - `anomaly_detection`
+- `forecasting`
 - `segmentation`
 - `similarity_search`
 - `visualisation`
@@ -148,3 +149,8 @@ If you use `aeon` we would appreciate a citation of the following [paper](https:
 ```
 
 If you let us know about your paper using `aeon`, we will happily list it [here](https://www.aeon-toolkit.org/en/stable/papers_using_aeon.html).
+
+## 💬 Further information
+
+`aeon` was forked from `sktime` `v0.16.0` in 2022 by an initial group of eight core
+developers.

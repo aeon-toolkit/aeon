@@ -193,6 +193,7 @@ def check_estimator(
     {'check_get_params(estimator=MockClassifier())': 'PASSED'}
     """
     # check if estimator has soft dependencies installed
+    _check_soft_dependencies("pytest")
     _check_estimator_deps(estimator)
 
     checks = []

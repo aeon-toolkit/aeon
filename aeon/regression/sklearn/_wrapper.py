@@ -26,7 +26,7 @@ class SklearnRegressorWrapper(BaseRegressor):
     """
 
     _tags = {
-        "X_inner_type": ["np-list", "numpy3D"],
+        "X_inner_type": "numpy2D",
     }
 
     def __init__(self, regressor, random_state=None):
@@ -35,7 +35,7 @@ class SklearnRegressorWrapper(BaseRegressor):
 
         super().__init__()
 
-    def _fit(self, X, y=None):
+    def _fit(self, X, y):
         self.regressor_ = _clone_estimator(self.regressor, self.random_state)
         self.regressor_.fit(X, y)
         return self
