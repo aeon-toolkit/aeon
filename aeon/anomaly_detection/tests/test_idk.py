@@ -1,3 +1,4 @@
+"""Tests for the IDK class."""
 import numpy as np
 from sklearn.utils import check_random_state
 
