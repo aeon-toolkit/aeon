@@ -504,5 +504,6 @@ class RClusterer(BaseClusterer):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
         """
         return {
+            "n_clusters": 2,
             "random_state": 1,
         }
