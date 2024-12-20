@@ -209,8 +209,8 @@ class IDK(BaseAnomalyDetector):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
         """
         return {
-            "psi1":8,
-            "psi2":2,
-            "width":1,
+            "psi1": 8,
+            "psi2": 2,
+            "width": 1,
             "rng": np.random.RandomState(seed=42),
         }
