@@ -149,3 +149,8 @@ If you use `aeon` we would appreciate a citation of the following [paper](https:
 ```
 
 If you let us know about your paper using `aeon`, we will happily list it [here](https://www.aeon-toolkit.org/en/stable/papers_using_aeon.html).
+
+## 💬 Further information
+
+`aeon` was forked from `sktime` `v0.16.0` in 2022 by an initial group of eight core
+developers.
