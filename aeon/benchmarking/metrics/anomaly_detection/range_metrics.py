@@ -1,6 +1,6 @@
 """Calculate Precision, Recall, and F1-Score for time series anomaly detection."""
 
-__all__ = ["ts_precision", "ts_recall"]
+__all__ = ["ts_precision", "ts_recall", "ts_fscore"]
 
 
 def __init__(self, bias="flat", alpha=0.0, gamma=None):
@@ -198,14 +198,14 @@ def ts_precision(y_pred, y_real, gamma="one", bias_type="flat", udf_gamma=None):
         return total_precision / total_ranges if total_ranges > 0 else 0.0
 
 
-def ts_recall(y_pred, y_real, gamma="one", bias_type="flat", udf_gamma=None):
+def ts_recall(y_pred, y_real, gamma="one", bias_type="flat", alpha=0.0, udf_gamma=None):
     """Calculate Recall for time series anomaly detection.
 
     Parameters
     ----------
     y_pred : list of tuples or list of list of tuples
         The predicted ranges.
-    y_real : list of tuples
+    y_real : list of tuples or list of list of tuples
         The real ranges.
     gamma : str
         Cardinality type. Should be one of ["reciprocal", "one", "udf_gamma"].
@@ -213,6 +213,8 @@ def ts_recall(y_pred, y_real, gamma="one", bias_type="flat", udf_gamma=None):
     bias_type : str
         Type of bias to apply. Should be one of ["flat", "front", "middle", "back"].
         (default: "flat")
+    alpha : float
+        Weight for existence reward in recall calculation. (default: 0.0)
     udf_gamma : int or None
         User-defined gamma value. (default: None)
 
@@ -221,41 +223,59 @@ def ts_recall(y_pred, y_real, gamma="one", bias_type="flat", udf_gamma=None):
     float
         Range-based recall
     """
-    if isinstance(y_real[0], tuple):
+    if isinstance(y_real[0], tuple):  # Single set of real ranges
         total_overlap_reward = 0.0
-        total_cardinality = 0
 
         for real_range in y_real:
             overlap_set = set()
             cardinality = 0
 
-            for pred_start, pred_end in y_pred:
-                overlap_start = max(real_range[0], pred_start)
-                overlap_end = min(real_range[1], pred_end)
+            for pred_range in y_pred:
+                overlap_start = max(real_range[0], pred_range[0])
+                overlap_end = min(real_range[1], pred_range[1])
 
                 if overlap_start <= overlap_end:
                     overlap_set.update(range(overlap_start, overlap_end + 1))
                     cardinality += 1
+
+            # Existence Reward
+            existence_reward = 1.0 if overlap_set else 0.0
 
             if overlap_set:
                 overlap_reward = calculate_overlap_reward_recall(
                     real_range, overlap_set, bias_type
                 )
                 gamma_value = gamma_select(cardinality, gamma, udf_gamma)
+                overlap_reward *= gamma_value
+            else:
+                overlap_reward = 0.0
 
-                total_overlap_reward += gamma_value * overlap_reward
-                total_cardinality += 1
+            # Total Recall Score
+            recall_score = alpha * existence_reward + (1 - alpha) * overlap_reward
+            total_overlap_reward += recall_score
 
         return total_overlap_reward / len(y_real) if y_real else 0.0
 
-    # Handle multiple sets of y_real
-    elif isinstance(y_real, list) and len(y_real) > 0 and isinstance(y_real[0], list):
+    elif isinstance(y_real[0], list):  # Multiple sets of real ranges
         total_recall = 0.0
         total_real = 0
 
-        for real_ranges in y_pred:  # Iterate over all sets of real ranges
-            precision = ts_recall(real_ranges, y_real, gamma, bias_type, udf_gamma)
-            total_recall += precision * len(real_ranges)
+        for real_ranges in y_real:  # Iterate over all sets of real ranges
+            recall = ts_recall(y_pred, real_ranges, gamma, bias_type, alpha, udf_gamma)
+            total_recall += recall * len(real_ranges)
             total_real += len(real_ranges)
 
         return total_recall / total_real if total_real > 0 else 0.0
+
+
+def ts_fscore(y_pred, y_real, gamma="one", bias_type="flat", alpha=0.0, udf_gamma=None):
+    """Calculate F1-Score for time series anomaly detection."""
+    precision = ts_precision(y_pred, y_real, gamma, bias_type, udf_gamma)
+    recall = ts_recall(y_pred, y_real, gamma, bias_type, alpha, udf_gamma)
+
+    if precision + recall > 0:
+        fscore = 2 * (precision * recall) / (precision + recall)
+    else:
+        fscore = 0.0
+
+    return fscore
