@@ -139,9 +139,8 @@ Y = ["22", "28", "21", "15", "2", "18", "21", "36", "11", "21"]
 def test_r_cluster():
     """Test implementation of RCluster."""
     X_train = np.array(X_)
-    num_clusters = len(np.unique(Y))
     X = np.expand_dims(X_train, axis=1)
-    Rcluster = RClusterer(n_clusters=num_clusters, n_init=10)
+    Rcluster = RClusterer(n_clusters=8, n_init=10,random_state=1)
     labels_pred1 = Rcluster.fit_predict(X)
     score = metrics.adjusted_rand_score(labels_true=Y, labels_pred=labels_pred1)
     assert score > 0.36
