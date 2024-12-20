@@ -188,6 +188,7 @@ class IDK(BaseAnomalyDetector):
         if self.sliding:
             return self._idk_square_sliding(X)
         return self._idk_t(X)
+
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
