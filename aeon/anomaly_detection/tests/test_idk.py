@@ -1,7 +1,7 @@
 import numpy as np
+from sklearn.utils import check_random_state
 
 from aeon.anomaly_detection import IDK
-from sklearn.utils import check_random_state
 
 
 def test_idk_univariate():
@@ -15,6 +15,8 @@ def test_idk_univariate():
     assert pred.shape == (100,)
     assert pred.dtype == np.float64
     assert 50 <= np.argmax(pred) <= 58
+
+
 def test_idk_univariate_sliding():
     """Test IDK with sliding on univariate data."""
     rng = check_random_state(seed=2)
