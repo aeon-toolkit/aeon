@@ -40,21 +40,28 @@ class IDK(BaseAnomalyDetector):
     width : int
          The size of the sliding or fixed-width window used for anomaly detection.
          For fixed-width processing, this defines the length of each segment analyzed.
-         In sliding window mode, it specifies the length of the window moving across the data.
-         Smaller values lead to more localized anomaly detection, while larger values capture
+         In sliding window mode, it specifies the length of the window moving 
+         across the data.
+         Smaller values lead to more localized anomaly detection, while 
+         larger values capture
          broader trends.
     t : int, default=100
-         The number of iterations (time steps) for random sampling to construct the feature
+         The number of iterations (time steps) for random sampling to 
+         construct the feature
          maps. Each iteration generates a set of random samples, which contribute to the
          feature map matrix. Larger values improve the robustness of the feature maps
          but increase the runtime.
     sliding : bool, default=False
          Determines whether a sliding window approach is used for anomaly detection.
-         If True, the model computes scores for overlapping windows across the time series,
-          providing more detailed anomaly scores at each step. If False, the model processes
-          the data in fixed-width segments, offering faster computation at the cost of granularity.
+         If True, the model computes scores for overlapping windows across the 
+         time series,
+         providing more detailed anomaly scores at each step. If False, the 
+         model processes
+         the data in fixed-width segments, offering faster computation at the 
+         cost of granularity.
     rng : np.random.Generator
-         A NumPy random generator instance to ensure reproducibility and avoid global RNG state changes.
+         A NumPy random generator instance to ensure reproducibility and avoid
+         global RNG state changes.
 
     Notes
     -----
