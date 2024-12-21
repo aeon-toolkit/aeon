@@ -1,4 +1,5 @@
 """Tests for the IDK Class."""
+
 import numpy as np
 import pytest
 from sklearn.utils import check_random_state
