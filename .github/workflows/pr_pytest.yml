@@ -88,12 +88,9 @@ jobs:
           runner_os: ${{ runner.os }}
           python_version: ${{ matrix.python-version }}
 
-      - name: Install aeon and dependencies
-        uses: nick-fields/retry@v3
+      - uses: ./.github/actions/cpu_all_extras
         with:
-          timeout_minutes: 30
-          max_attempts: 3
-          command: python -m pip install .[all_extras,dev]
+          additional_extras: "dev"
 
       - name: Show dependencies
         run: python -m pip list
@@ -120,12 +117,9 @@ jobs:
       - name: Disable Numba JIT
         run: echo "NUMBA_DISABLE_JIT=1" >> $GITHUB_ENV
 
-      - name: Install aeon and dependencies
-        uses: nick-fields/retry@v3
+      - uses: ./.github/actions/cpu_all_extras
         with:
-          timeout_minutes: 30
-          max_attempts: 3
-          command: python -m pip install .[all_extras,unstable_extras,dev]
+          additional_extras: "unstable_extras,dev"
 
       - name: Show dependencies
         run: python -m pip list
