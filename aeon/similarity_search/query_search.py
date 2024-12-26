@@ -34,6 +34,17 @@ class QuerySearch(BaseSimilaritySearch):
     `threshold` will be returned. If both are used, the `k` best matches to the query
     with distance inferior to `threshold` will be returned.
 
+    Examples
+    --------
+    >>> from aeon.similarity_search import QuerySearch
+    >>> import numpy as np
+    >>> X = np.random.rand(10, 3, 100)  # 10 samples, 3 channels, 100 timepoints
+    >>> query = np.random.rand(3, 20)  # 3 channels, 20 timepoints
+    >>> qs = QuerySearch(k=3, distance="euclidean")
+    >>> qs.fit(X)
+    >>> distances, indices = qs.predict(query)
+    >>> print(distances)
+    >>> print(indices)
 
     Parameters
     ----------
