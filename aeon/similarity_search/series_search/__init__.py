@@ -1,7 +1,5 @@
-"""Similarity search module."""
+"""Series search module."""
 
-__all__ = ["BaseSimilaritySearch", "QuerySearch", "SeriesSearch"]
+__all__ = ["BaseSeriesSearch", "BaseIndexSearch"]
 
-from aeon.similarity_search.base import BaseSimilaritySearch
-from aeon.similarity_search.query_search import QuerySearch
-from aeon.similarity_search.series_search import SeriesSearch
+from aeon.similarity_search.series_search.base import BaseIndexSearch, BaseSeriesSearch

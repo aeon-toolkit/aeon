@@ -25,6 +25,10 @@ from aeon.forecasting.base import BaseForecaster
 from aeon.regression.base import BaseRegressor
 from aeon.segmentation.base import BaseSegmenter
 from aeon.similarity_search.base import BaseSimilaritySearch
+from aeon.similarity_search.subsequence_search.base import (
+    BaseMatrixProfile,
+    BaseSubsequenceSearch,
+)
 from aeon.transformations.base import BaseTransformer
 from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.transformations.series import BaseSeriesTransformer
@@ -45,6 +49,8 @@ BASE_CLASS_REGISTER = {
     "regressor": BaseRegressor,
     "segmenter": BaseSegmenter,
     "similarity_searcher": BaseSimilaritySearch,
+    "subsequence_searcher": BaseSubsequenceSearch,
+    "matrixprofile_searcher": BaseMatrixProfile,
     "series-transformer": BaseSeriesTransformer,
     "forecaster": BaseForecaster,
 }
@@ -53,5 +59,11 @@ BASE_CLASS_REGISTER = {
 VALID_ESTIMATOR_BASES = {
     k: BASE_CLASS_REGISTER[k]
     for k in BASE_CLASS_REGISTER.keys()
-    - {"estimator", "collection-estimator", "series-estimator", "transformer"}
+    - {
+        "estimator",
+        "collection-estimator",
+        "series-estimator",
+        "transformer",
+        "similarity_searcher",
+    }
 }

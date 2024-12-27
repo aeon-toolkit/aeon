@@ -17,8 +17,9 @@ from aeon.similarity_search.subsequence_search._commons import (
 )
 from aeon.utils.numba.general import sliding_mean_std_one_series
 
-
 # We can define a BaseVariableLengthSubsequenceSearch later for VALMOD and the likes.
+
+
 class BaseSubsequenceSearch(BaseSimilaritySearch):
     """
     Base class for similarity search on time series subsequences.
@@ -27,8 +28,8 @@ class BaseSubsequenceSearch(BaseSimilaritySearch):
     ----------
     length : int
         The length of the subsequence to be considered.
-    normalize : bool, optional
-        Whether the inputs should be z-normalized. The default is False.
+    normalise : bool, optional
+        Whether the inputs should be z-normalised. The default is False.
     n_jobs : int, optional
         Number of parallel jobs to use. The default is 1.
     """
@@ -37,19 +38,21 @@ class BaseSubsequenceSearch(BaseSimilaritySearch):
     def __init__(
         self,
         length: int,
-        normalize: Optional[bool] = False,
+        normalise: Optional[bool] = False,
         n_jobs: Optional[int] = 1,
     ):
         self.length = length
-        super().__init__(n_jobs=n_jobs, normalize=normalize)
+        super().__init__(n_jobs=n_jobs, normalise=normalise)
 
     @final
     def find_motifs(
         self,
-        k: int,
-        threshold: float,
+        k: Optional[int] = 1,
+        threshold: Optional[float] = np.inf,
         X: Optional[np.ndarray] = None,
-        allow_overlap: Optional[bool] = False,
+        X_index: Optional[int] = None,
+        inverse_distance: Optional[bool] = False,
+        allow_neighboring_matches: Optional[bool] = False,
         exclusion_factor: Optional[float] = 2.0,
     ):
         """
@@ -71,13 +74,21 @@ class BaseSubsequenceSearch(BaseSimilaritySearch):
             A series in which we want to indentify motifs. If provided, the motifs
             extracted should appear in X and in the database given in fit. If not
             provided, the motifs will be extracted only from the database given in fit.
-        allow_overlap: bool, optional
+        X_index : Optional[int], optional
+            If ``X`` is a series of the database given in fit, specify its index in
+            ``X_``. If specified, each query of this series won't be able to match with
+            its neighboring subsequences.
+        inverse_distance : bool, optional
+            Wheter to inverse the computed distance, meaning that the method will return
+            the anomalies instead of motifs.
+        allow_neighboring_matches: bool, optional
             Wheter a candidate can be part of multiple motif sets (True), or if motif
             sets should be mutually exclusive (False).
         exclusion_factor : float, default=2.
             A factor of the query length used to define the exclusion zone when
-            ``allow_overlap`` is set to False. For a given timestamp, the exclusion zone
-            starts from :math:`id_timestamp - query_length//exclusion_factor` and end at
+            ``allow_neighboring_matches`` is set to False. For a given timestamp,
+            the exclusion zone starts from
+            :math:`id_timestamp - query_length//exclusion_factor` and end at
             :math:`id_timestamp + query_length//exclusion_factor`.
 
         Returns
@@ -88,6 +99,19 @@ class BaseSubsequenceSearch(BaseSimilaritySearch):
 
         """
         self._check_is_fitted()
+        prev_threads = get_num_threads()
+        X_index = self._check_X_index_int(X_index)
+        motifs = self._find_motifs(
+            k=k,
+            threshold=threshold,
+            exclusion_factor=exclusion_factor,
+            inverse_distance=inverse_distance,
+            allow_neighboring_matches=allow_neighboring_matches,
+            X=X,
+            X_index=X_index,
+        )
+        set_num_threads(prev_threads)
+        return motifs
 
     @final
     def find_neighbors(
@@ -97,7 +121,7 @@ class BaseSubsequenceSearch(BaseSimilaritySearch):
         threshold: Optional[float] = np.inf,
         inverse_distance: Optional[bool] = False,
         X_index: Optional[np.ndarray] = None,
-        allow_overlap: Optional[bool] = False,
+        allow_neighboring_matches: Optional[bool] = False,
         exclusion_factor: Optional[float] = 2.0,
     ):
         """
@@ -127,12 +151,13 @@ class BaseSubsequenceSearch(BaseSimilaritySearch):
             index as (i_case, i_timestamp). If specified, this subsequence and the
             neighboring ones (according to ``exclusion_factor``) won't be considered as
             admissible candidates.
-        allow_overlap: bool, optional
+        allow_neighboring_matches: bool, optional
             Wheter the top-k candidates can be neighboring subsequences.
         exclusion_factor : float, default=2.
             A factor of the query length used to define the exclusion zone when
-            ``allow_overlap`` is set to False. For a given timestamp, the exclusion zone
-            starts from :math:`id_timestamp - query_length//exclusion_factor` and end at
+            ``allow_neighboring_matches`` is set to False. For a given timestamp,
+            the exclusion zone starts from
+            :math:`id_timestamp - query_length//exclusion_factor` and end at
             :math:`id_timestamp + query_length//exclusion_factor`.
 
         Returns
@@ -151,7 +176,7 @@ class BaseSubsequenceSearch(BaseSimilaritySearch):
                 f"Expected a subsequence of shape {(self.n_channels_, self.length)} but"
                 f" got {X.shape}"
             )
-        self._check_X_index(X_index)
+        X_index = self._check_X_index_array(X_index)
         prev_threads = get_num_threads()
         set_num_threads(self._n_jobs)
         neighbors, distances = self._find_neighbors(
@@ -160,7 +185,7 @@ class BaseSubsequenceSearch(BaseSimilaritySearch):
             threshold=threshold,
             inverse_distance=inverse_distance,
             X_index=X_index,
-            allow_overlap=allow_overlap,
+            allow_neighboring_matches=allow_neighboring_matches,
             exclusion_factor=exclusion_factor,
         )
         set_num_threads(prev_threads)
@@ -172,9 +197,40 @@ class BaseSubsequenceSearch(BaseSimilaritySearch):
             )
         return neighbors, distances
 
-    def _check_X_index(self, X_index: np.ndarray):
+    def _check_X_index_int(self, X_index: int):
         """
         Check wheter the X_index parameter is correctly formated and is admissible.
+
+        This check is made for motif search functions.
+
+        Parameters
+        ----------
+        X_index : int
+            Index of a series in X_.
+
+        Returns
+        -------
+        X_index : int
+            Index of a series in X_
+
+        """
+        if X_index is not None:
+            if not isinstance(X_index, int):
+                raise TypeError("Expected an integer for X_index but got {X_index}")
+
+            if X_index >= self.n_cases_ or X_index < 0:
+                raise ValueError(
+                    "The value of X_index cannot exced the number "
+                    "of series in the collection given during fit. Expected a value "
+                    f"between [0, {self.n_cases_ - 1}] but got {X_index}"
+                )
+        return X_index
+
+    def _check_X_index_array(self, X_index: np.ndarray):
+        """
+        Check wheter the X_index parameter is correctly formated and is admissible.
+
+        This check is made for neighbour search functions.
 
         Parameters
         ----------
@@ -198,12 +254,12 @@ class BaseSubsequenceSearch(BaseSimilaritySearch):
             ):
                 X_index = np.asarray(X_index, dtype=int)
             elif len(X_index) != 2:
-                raise ValueError(
+                raise TypeError(
                     "Expected a numpy array or list of integers with 2 elements "
                     f"for X_index but got {X_index}"
                 )
             elif (
-                not (isinstance(X_index[0], int) and isinstance(X_index[1], int))
+                not (isinstance(X_index[0], int) or not isinstance(X_index[1], int))
                 or X_index.dtype != int
             ):
                 raise TypeError(
@@ -211,7 +267,7 @@ class BaseSubsequenceSearch(BaseSimilaritySearch):
                     f"{X_index}"
                 )
 
-            if X_index[0] >= self.n_cases_:
+            if X_index[0] >= self.n_cases_ or X_index[0] < 0:
                 raise ValueError(
                     "The sample ID (first element) of X_index cannot exced the number "
                     "of series in the collection given during fit. Expected a value "
@@ -260,6 +316,30 @@ class BaseSubsequenceSearch(BaseSimilaritySearch):
     @abstractmethod
     def _fit(self, X, y=None): ...
 
+    @abstractmethod
+    def _find_motifs(
+        self,
+        X: np.ndarray,
+        k: Optional[int] = 1,
+        threshold: Optional[float] = np.inf,
+        inverse_distance: Optional[bool] = False,
+        X_index=None,
+        allow_neighboring_matches: Optional[bool] = False,
+        exclusion_factor: Optional[float] = 2.0,
+    ): ...
+
+    @abstractmethod
+    def _find_neighbors(
+        self,
+        X: np.ndarray,
+        k: Optional[int] = 1,
+        threshold: Optional[float] = np.inf,
+        inverse_distance: Optional[bool] = False,
+        X_index=None,
+        allow_neighboring_matches: Optional[bool] = False,
+        exclusion_factor: Optional[float] = 2.0,
+    ): ...
+
 
 class BaseMatrixProfile(BaseSubsequenceSearch):
     """Base class for Matrix Profile methods using a length parameter."""
@@ -273,13 +353,33 @@ class BaseMatrixProfile(BaseSubsequenceSearch):
                 )
             )
 
-        if self.normalize:
+        if self.normalise:
             self.X_means_, self.X_stds_ = self._compute_mean_std_from_collection(X)
         self.X_ = X
         return self
 
-    def _find_motifs():
-        raise NotImplementedError()
+    def _find_motifs(
+        self,
+        X: np.ndarray,
+        k: Optional[int] = 1,
+        threshold: Optional[float] = np.inf,
+        inverse_distance: Optional[bool] = False,
+        X_index=None,
+        allow_neighboring_matches: Optional[bool] = False,
+        exclusion_factor: Optional[float] = 2.0,
+    ):
+        exclusion_size = self.length // exclusion_factor
+
+        MP, IP = self.compute_matrix_profile(
+            k,
+            threshold,
+            exclusion_size,
+            inverse_distance,
+            allow_neighboring_matches,
+            X=X,
+            X_index=X_index,
+        )
+        # TODO : implement logic here
 
     def _find_neighbors(
         self,
@@ -288,7 +388,7 @@ class BaseMatrixProfile(BaseSubsequenceSearch):
         threshold: Optional[float] = np.inf,
         inverse_distance: Optional[bool] = False,
         X_index=None,
-        allow_overlap: Optional[bool] = False,
+        allow_neighboring_matches: Optional[bool] = False,
         exclusion_factor: Optional[float] = 2.0,
     ):
         """
@@ -318,12 +418,13 @@ class BaseMatrixProfile(BaseSubsequenceSearch):
             index as (i_case, i_timestamp). If specified, this subsequence and the
             neighboring ones (according to ``exclusion_factor``) won't be considered as
             admissible candidates.
-        allow_overlap: bool, optional
+        allow_neighboring_matches: bool, optional
             Wheter the top-k candidates can be neighboring subsequences.
         exclusion_factor : float, default=2.
             A factor of the query length used to define the exclusion zone when
-            ``allow_overlap`` is set to False. For a given timestamp, the exclusion zone
-            starts from :math:`id_timestamp - query_length//exclusion_factor` and end at
+            ``allow_neighboring_matches`` is set to False. For a given timestamp, the
+            exclusion zone starts from
+            :math:`id_timestamp - query_length//exclusion_factor` and end at
             :math:`id_timestamp + query_length//exclusion_factor`.
         """
         exclusion_size = self.length // exclusion_factor
@@ -343,16 +444,25 @@ class BaseMatrixProfile(BaseSubsequenceSearch):
             dist_profiles,
             k,
             threshold,
-            allow_overlap,
+            allow_neighboring_matches,
             exclusion_size,
         )
 
     @abstractmethod
-    def compute_matrix_profile(X: Optional[np.ndarray] = None):
+    def compute_matrix_profile(
+        self,
+        k,
+        threshold,
+        exclusion_size,
+        inverse_distance,
+        allow_neighboring_matches,
+        X: Optional[np.ndarray] = None,
+        X_index: Optional[int] = None,
+    ):
         """Compute matrix profiles between X_ and X or between all series in X_."""
         ...
 
     @abstractmethod
-    def compute_distance_profile(X: np.ndarray):
+    def compute_distance_profile(self, X: np.ndarray):
         """Compute distrance profiles between X_ and X (a series of size length)."""
         ...

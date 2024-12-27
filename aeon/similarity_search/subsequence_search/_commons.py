@@ -73,29 +73,61 @@ def _extract_top_k_from_dist_profile(
     dist_profiles,
     k,
     threshold,
-    allow_overlap,
+    allow_neighboring_matches,
     exclusion_size,
 ):
+    """
+    Given an array (or list) of distance profiles, extract the top k lower distances.
+
+    Parameters
+    ----------
+    dist_profiles : np.ndarray, shape = (n_samples, n_timepoints - length + 1)
+        A collection of distance profiles computed from ``n_samples`` time series of
+        size ``n_timepoints``, giving distance profiles of length
+        ``n_timepoints - length + 1``, with ``length`` the size of the query used to
+        compute the distance profiles.
+    k : int
+        Number of best matches to return
+    threshold : float
+        A threshold on the distances of the best matches. To be returned, a candidate
+        must have a distance bellow this threshold. This can reduce the number of
+        returned matches to be bellow ``k``
+    allow_neighboring_matches : bool
+        Wheter to allow returning matches that are in the same neighborhood.
+    exclusion_size : int
+        The size of the exlusion size to apply when ``allow_neighboring_matches`` is
+        False. It is applied on both side of existing matches (+/- their indexes).
+
+    Returns
+    -------
+    top_k_indexes : np.ndarray, shape = (k, 2)
+        The indexes of the best matches in ``distance_profiles``.
+    top_k_distances : np.ndarray, shape = (k)
+        The distances of the best matches.
+
+    """
     top_k_indexes = np.zeros((2 * k, 2), dtype=np.int64) - 1
     top_k_distances = np.full(2 * k, np.inf)
     for i_profile in range(len(dist_profiles)):
         # Extract top-k without neighboring matches
-        if not allow_overlap:
+        if not allow_neighboring_matches:
             _sorted_indexes = np.argsort(dist_profiles[i_profile])
             _top_k_indexes = np.zeros(k, dtype=np.int64) - 1
-            _current_k = 1
-            _top_k_indexes[0] = _sorted_indexes[0]
-            _current_j = 1
+            _current_k = 0
+            _current_j = 0
             # Until we extract k value or explore all the array
             while _current_k < k and _current_j < len(_sorted_indexes):
                 _insert = True
                 # Check for validity with each previously inserted
                 for i_k in range(_current_k):
-                    ub = min(_top_k_indexes[i_k] + exclusion_size, len(dist_profiles))
+                    ub = min(
+                        _top_k_indexes[i_k] + exclusion_size,
+                        len(dist_profiles[i_profile]),
+                    )
                     lb = max(_top_k_indexes[i_k] - exclusion_size, 0)
                     if (
-                        _sorted_indexes[_current_j] < lb
-                        or _sorted_indexes[_current_j] > ub
+                        _sorted_indexes[_current_j] >= lb
+                        and _sorted_indexes[_current_j] <= ub
                     ):
                         _insert = False
                         break

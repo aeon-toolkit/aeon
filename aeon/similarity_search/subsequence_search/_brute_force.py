@@ -16,8 +16,8 @@ from aeon.similarity_search.subsequence_search._commons import (
 from aeon.similarity_search.subsequence_search.base import BaseMatrixProfile
 from aeon.utils.numba.general import (
     get_all_subsequences,
+    z_normalise_series_2d,
     z_normalise_series_3d,
-    z_normalize_series_2d,
 )
 
 # TODO : check function params and make docstrings
@@ -25,7 +25,7 @@ from aeon.utils.numba.general import (
 
 
 class BruteForceMatrixProfile(BaseMatrixProfile):
-    """."""
+    """Estimator to compute matrix profile and distance profile using brute force."""
 
     def compute_matrix_profile(
         self,
@@ -33,37 +33,51 @@ class BruteForceMatrixProfile(BaseMatrixProfile):
         threshold,
         exclusion_size,
         inverse_distance,
-        allow_overlap,
+        allow_neighboring_matches,
         X: Optional[np.ndarray] = None,
         X_index: Optional[int] = None,
     ):
         """
-        .
+        Compute matrix profiles.
+
+        The matrix profiles are computed on the collection given in fit. If ``X`` is
+        not given, computes the matrix profile of each series in the collection. If it
+        is given, only computes it for ``X``.
 
         Parameters
         ----------
-        k : TYPE
-            DESCRIPTION.
-        threshold : TYPE
-            DESCRIPTION.
-        exclusion_size : TYPE
-            DESCRIPTION.
-        inverse_distance : TYPE
-            DESCRIPTION.
+        k : int
+            The number of best matches to return during predict for each subsequence.
+        threshold : float
+            The number of best matches to return during predict for each subsequence.
+        inverse_distance : bool
+            If True, the matching will be made on the inverse of the distance, and thus,
+            the worst matches to the query will be returned instead of the best ones.
+        exclusion_size : int
+            The size of the exclusion zone used to prevent returning as top k candidates
+            the ones that are close to each other (for example i and i+1).
+            It is used to define a region between
+            :math:`id_timestomp - exclusion_size` and
+            :math:`id_timestomp + exclusion_size` which cannot be returned
+            as best match if :math:`id_timestomp` was already selected. By default,
+            the value None means that this is not used.
         X : Optional[np.ndarray], optional
-            DESCRIPTION. The default is None.
+            The time series on which the matrix profile will be compute.
+            The default is None, meaning that the series in the collection given in fit
+            will be used instead.
         X_index : Optional[int], optional
-            DESCRIPTION. The default is None.
-         : TYPE
-            DESCRIPTION.
+            If ``X`` is a series of the database given in fit, specify its index in
+            ``X_``. If specified, each query of this series won't be able to match with
+            its neighboring subsequences.
 
         Returns
         -------
-        MP : TYPE
-            DESCRIPTION.
-        IP : TYPE
-            DESCRIPTION.
-
+        MP : array of shape (series_length - L + 1,)
+            Matrix profile distances for each query subsequence. If X is none, this
+            will be a list of MP for each series in X_.
+        IP : array of shape (series_length - L + 1,)
+            Indexes of the top matches for each query subsequence. If X is none, this
+            will be a list of MP for each series in X_.
         """
         # pairwise if none
         if X is None:
@@ -87,11 +101,11 @@ class BruteForceMatrixProfile(BaseMatrixProfile):
                 self.length,
                 X_index,
                 k,
-                allow_overlap,
                 threshold,
+                allow_neighboring_matches,
                 exclusion_size,
                 inverse_distance,
-                normalize=self.normalize,
+                normalise=self.normalise,
             )
 
         return MP, IP
@@ -114,7 +128,7 @@ class BruteForceMatrixProfile(BaseMatrixProfile):
 
         """
         distance_profiles = _naive_squared_distance_profile(
-            self.X_, X, normalize=self.normalize
+            self.X_, X, normalise=self.normalise
         )
 
         if not self.metadata_["unequal_length"]:
@@ -153,7 +167,7 @@ def _compute_dist_profile(X_subs, q):
 def _naive_squared_distance_profile(
     X,
     Q,
-    normalize=False,
+    normalise=False,
 ):
     """
     Compute a squared euclidean distance profile.
@@ -164,8 +178,8 @@ def _naive_squared_distance_profile(
         Input time series dataset to search in.
     Q : array, shape=(n_channels, query_length)
         Query used during the search.
-    normalize : bool
-        Wheter to use a z-normalized distance.
+    normalise : bool
+        Wheter to use a z-normalised distance.
 
     Returns
     -------
@@ -178,14 +192,16 @@ def _naive_squared_distance_profile(
     # Init distance profile array with unequal length support
     for i in range(len(X)):
         dist_profiles.append(np.zeros(X[i].shape[1] - query_length + 1))
-    if normalize:
-        Q = z_normalize_series_2d(Q)
+    if normalise:
+        Q = z_normalise_series_2d(Q)
     else:
         Q = Q.astype(np.float64)
 
-    for i in prange(len(X)):
+    for _i in prange(len(X)):
+        # cast uint64 due to parallel prange
+        i = np.int64(_i)
         X_subs = get_all_subsequences(X[i], query_length, 1)
-        if normalize:
+        if normalise:
             X_subs = z_normalise_series_3d(X_subs)
 
         dist_profile = _compute_dist_profile(X_subs, Q)
@@ -198,32 +214,50 @@ def _naive_squared_matrix_profile(
     X,
     T,
     L,
-    k,
     T_index,
+    k,
     threshold,
-    inverse_distance,
-    allow_overlap,
+    allow_neighboring_matches,
     exclusion_size,
-    normalize=False,
+    inverse_distance,
+    normalise=False,
 ):
     """
     Compute a squared euclidean matrix profile.
 
     Parameters
     ----------
-    X : array, shape=(n_samples, n_channels, n_timepoints_x)
-        Input time series dataset to search in.
-    T : array, shape=(n_channels, n_timepoints_t)
-        Time series from which queries are extracted.
-    query_length : int
-        Length of the queries to extract from T.
+    X:  np.ndarray, 3D array of shape (n_cases, n_channels, n_timepoints)
+        The input samples. If X is an unquel length collection, expect a TypedList
+        of 2D arrays of shape (n_channels, n_timepoints)
+    T : np.ndarray, 2D array of shape (n_channels, series_length)
+        The series used for similarity search. Note that series_length can be equal,
+        superior or inferior to n_timepoints, it doesn't matter.
+    L : int
+        Length of the subsequences used for the distance computation.
     T_index : int,
-        If ``X`` is a subsequence of the database given in fit, specify its starting
-        index as (i_case, i_timestamp). If specified, this subsequence and the
-        neighboring ones (according to ``exclusion_factor``) won't be considered as
-        admissible candidates.
-    normalize : bool
-        Wheter to use a z-normalized distance.
+        If ``T`` is a series of ``X``, specify its index
+        in ``X``. If specified, each query of this series won't be able to
+        match with its neighboring subsequences.
+    k : int
+        The number of best matches to return during predict for each subsequence.
+    threshold : float
+        The number of best matches to return during predict for each subsequence.
+    allow_neighboring_matches : bool
+        Wheter the top-k candidates can be neighboring subsequences.
+    exclusion_size : int
+        The size of the exclusion zone used to prevent returning as top k candidates
+        the ones that are close to each other (for example i and i+1).
+        It is used to define a region between
+        :math:`id_timestomp - exclusion_size` and
+        :math:`id_timestomp + exclusion_size` which cannot be returned
+        as best match if :math:`id_timestomp` was already selected. By default,
+        the value None means that this is not used.
+    inverse_distance : bool
+        If True, the matching will be made on the inverse of the distance, and thus, the
+        worst matches to the query will be returned instead of the best ones.
+    normalise : bool
+        Wheter to use a z-normalised distance.
 
     Returns
     -------
@@ -242,14 +276,14 @@ def _naive_squared_matrix_profile(
     X_subs = List()
     for i in range(len(X)):
         i_subs = get_all_subsequences(X[i], L, 1)
-        if normalize:
-            i_subs = z_normalise_series_3d(X_subs)
+        if normalise:
+            i_subs = z_normalise_series_3d(i_subs)
         X_subs.append(i_subs)
 
     for i_q in range(n_queries):
         Q = T[:, i : i + L]
-        if normalize:
-            Q = z_normalize_series_2d(Q)
+        if normalise:
+            Q = z_normalise_series_2d(Q)
         for i_x in prange(len(X)):
             dist_profiles[i_x][0 : X[i_x].shape[1] - L + 1] = _compute_dist_profile(
                 X_subs[i_x], Q
@@ -264,11 +298,11 @@ def _naive_squared_matrix_profile(
         if inverse_distance:
             dist_profiles = _inverse_distance_profile_list(dist_profiles)
 
-        top_dists, top_indexes = _extract_top_k_from_dist_profile(
+        top_indexes, top_dists = _extract_top_k_from_dist_profile(
             dist_profiles,
             k,
             threshold,
-            allow_overlap,
+            allow_neighboring_matches,
             exclusion_size,
         )
 

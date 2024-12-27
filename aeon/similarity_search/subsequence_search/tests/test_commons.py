@@ -1,12 +1,13 @@
 """Test _commons.py functions."""
 
 __maintainer__ = ["baraline"]
-
 import numpy as np
+import pytest
 from numba.typed import List
-from numpy.testing import assert_array_almost_equal, assert_array_equal
+from numpy.testing import assert_, assert_array_almost_equal
 
 from aeon.similarity_search.subsequence_search._commons import (
+    _extract_top_k_from_dist_profile,
     _inverse_distance_profile_list,
     fft_sliding_dot_product,
     get_ith_products,
@@ -59,59 +60,38 @@ def test__inverse_distance_profile_list():
     assert_array_almost_equal(1 / (X[1] + 1e-8), T[1])
 
 
-def test__extract_top_k_from_dist_profile():
+K_VALUES = [1, 3, 5]
+THRESHOLDS = [np.inf, 0.7]
+NN_MATCHES = [False, True]
+
+
+@pytest.mark.parametrize(
+    [("k", K_VALUES), ("threshold", THRESHOLDS), ("allow_nn_matches", NN_MATCHES)]
+)
+def test__extract_top_k_from_dist_profile(k, threshold, allow_nn_matches):
     """Test method to esxtract the top k candidates from a list of distance profiles."""
-    X = List([
-        [5,4,3,3,1,3,2,5,1,4,1,0,1,2,2,7,8,1,5],
-        [5,1,0,1,0,0,5,4,3,5,6,1,4,2],
-    ])
+    X = make_example_2d_numpy_list(
+        n_cases=2, min_n_timepoints=5, max_n_timepoints=7, return_y=False
+    )
+    X_sort = [X[i][np.argsort(X[i])] for i in range(len(X))]
 
     top_k_indexes, top_k_distances = _extract_top_k_from_dist_profile(
-        X,
-        1,
-        np.inf,
-        False,
-        3
+        X, k, threshold, allow_nn_matches, 3
     )
-    assert_array_equal(top_k_indexes, [[0,11]])
-    assert_array_equal(top_k_indexes, [0])
-    
-    top_k_indexes, top_k_distances = _extract_top_k_from_dist_profile(
-        X,
-        5,
-        np.inf,
-        False,
-        3
-    )
-    assert_array_equal(top_k_indexes, [[0,11],[1,2],[0,4],[0,17],[1,11]])
-    assert_array_equal(top_k_indexes, [0,0,1,1,1])
-
-    top_k_indexes, top_k_distances = _extract_top_k_from_dist_profile(
-        X,
-        5,
-        np.inf,
-        True,
-        3
-    )
-    assert_array_equal(top_k_indexes, [[0,11],[1,2],[1,4],[1,5],[0,4]])
-    assert_array_equal(top_k_indexes, [0,0,0,0,1])
-
-    top_k_indexes, top_k_distances = _extract_top_k_from_dist_profile(
-        X,
-        5,
-        0.5,
-        True,
-        3
-    )
-    assert_array_equal(top_k_indexes, [[0,11],[1,2],[1,4],[1,5]])
-    assert_array_equal(top_k_indexes, [0,0,0,0])
-
-    top_k_indexes, top_k_distances = _extract_top_k_from_dist_profile(
-        X,
-        5,
-        0.5,
-        False,
-        3
-    )
-    assert_array_equal(top_k_indexes, [[0,11],[1,2]])
-    assert_array_equal(top_k_indexes, [0,0])
+    for i, index in enumerate(top_k_indexes):
+        assert_(X[index[0]][index[1]] == top_k_distances[i])
+    assert_(np.all(top_k_distances <= threshold))
+    if allow_nn_matches:
+        for i in range(len(X)):
+            assert_(np.all(top_k_distances <= X_sort[i][k - 1]))
+    if not allow_nn_matches:
+        for i_x in range(len(X)):
+            # test same index X respect exclusion
+            same_X = [
+                top_k_indexes[i][1]
+                for i in range(len(top_k_indexes))
+                if top_k_indexes[i][0] == i_x
+            ]
+            same_X = np.sort(same_X)
+            if len(same_X) > 1:
+                assert_(np.all(np.diff(same_X) >= 3))

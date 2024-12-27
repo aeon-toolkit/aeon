@@ -1,9 +1,9 @@
 """Implementation of STOMP with squared euclidean distance."""
 
-from typing import Optional
-
 __maintainer__ = ["baraline"]
 
+
+from typing import Optional
 
 import numpy as np
 from numba import njit, prange
@@ -16,15 +16,14 @@ from aeon.similarity_search.subsequence_search._commons import (
     get_ith_products,
 )
 from aeon.similarity_search.subsequence_search.base import BaseMatrixProfile
-from aeon.utils.numba.general import AEON_NUMBA_STD_THRESHOLD
-
-# TODO : check and order parameters of functions in base and here
-# TODO : check function params and make docstrings to be consistent with brute force
-# TODO : validate tests
+from aeon.utils.numba.general import (
+    AEON_NUMBA_STD_THRESHOLD,
+    sliding_mean_std_one_series,
+)
 
 
 class StompMatrixProfile(BaseMatrixProfile):
-    """."""
+    """Estimator to compute matrix profile and distance profile using STOMP."""
 
     def compute_matrix_profile(
         self,
@@ -32,41 +31,53 @@ class StompMatrixProfile(BaseMatrixProfile):
         threshold,
         exclusion_size,
         inverse_distance,
-        allow_overlap,
+        allow_neighboring_matches,
         X: Optional[np.ndarray] = None,
         X_index: Optional[int] = None,
     ):
         """
-        .
+        Compute matrix profiles.
+
+        The matrix profiles are computed on the collection given in fit. If ``X`` is
+        not given, computes the matrix profile of each series in the collection. If it
+        is given, only computes it for ``X``.
 
         Parameters
         ----------
-        k : TYPE
-            DESCRIPTION.
-        threshold : TYPE
-            DESCRIPTION.
-        exclusion_size : TYPE
-            DESCRIPTION.
-        inverse_distance : TYPE
-            DESCRIPTION.
+        k : int
+            The number of best matches to return during predict for each subsequence.
+        threshold : float
+            The number of best matches to return during predict for each subsequence.
+        inverse_distance : bool
+            If True, the matching will be made on the inverse of the distance, and thus,
+            the worst matches to the query will be returned instead of the best ones.
+        exclusion_size : int
+            The size of the exclusion zone used to prevent returning as top k candidates
+            the ones that are close to each other (for example i and i+1).
+            It is used to define a region between
+            :math:`id_timestomp - exclusion_size` and
+            :math:`id_timestomp + exclusion_size` which cannot be returned
+            as best match if :math:`id_timestomp` was already selected. By default,
+            the value None means that this is not used.
         X : Optional[np.ndarray], optional
-            DESCRIPTION. The default is None.
+            The time series on which the matrix profile will be compute.
+            The default is None, meaning that the series in the collection given in fit
+            will be used instead.
         X_index : Optional[int], optional
             If ``X`` is a series of the database given in fit, specify its index in
             ``X_``. If specified, each query of this series won't be able to match with
             its neighboring subsequences.
-         : TYPE
-            DESCRIPTION.
 
         Returns
         -------
-        MP : TYPE
-            DESCRIPTION.
-        IP : TYPE
-            DESCRIPTION.
-
+        MP : array of shape (series_length - L + 1,)
+            Matrix profile distances for each query subsequence. If X is none, this
+            will be a list of MP for each series in X_.
+        IP : array of shape (series_length - L + 1,)
+            Indexes of the top matches for each query subsequence. If X is none, this
+            will be a list of MP for each series in X_.
         """
-        # pairwise if none
+        # If we compute matrix profiles for each series in X_
         if X is None:
             MP = []
             IP = []
@@ -81,6 +92,7 @@ class StompMatrixProfile(BaseMatrixProfile):
                 )
                 MP.append(_MP)
                 IP.append(_IP)
+        # else we compute matrix profiles using X on the series in X_
         else:
             XdotT = [
                 get_ith_products(self.X[i], X, self.length, 0)
@@ -90,12 +102,13 @@ class StompMatrixProfile(BaseMatrixProfile):
                 XdotT = np.asarray(XdotT)
             elif isinstance(X, List):
                 XdotT = List(XdotT)
+
             if X_index is None:
-                X_means, X_stds = 0
+                X_means, X_stds = sliding_mean_std_one_series(X, self.length, 1)
             else:
                 X_means, X_stds = self.X_means_[i], self.X_stds_[i]
-            if self.normalize:
-                MP, IP = _stomp_normalized(
+            if self.normalise:
+                MP, IP = _stomp_normalised(
                     self.X_,
                     X,
                     XdotT,
@@ -107,11 +120,10 @@ class StompMatrixProfile(BaseMatrixProfile):
                     X_index,
                     k,
                     threshold,
-                    allow_overlap,
+                    allow_neighboring_matches,
                     exclusion_size,
                     inverse_distance,
                 )
-
             else:
                 MP, IP = _stomp(
                     self.X_,
@@ -120,12 +132,11 @@ class StompMatrixProfile(BaseMatrixProfile):
                     self.length,
                     X_index,
                     k,
-                    allow_overlap,
                     threshold,
+                    allow_neighboring_matches,
                     exclusion_size,
                     inverse_distance,
                 )
-
         return MP, IP
 
     def compute_distance_profile(self, X: np.ndarray):
@@ -151,8 +162,8 @@ class StompMatrixProfile(BaseMatrixProfile):
         else:
             QX = np.asarray(QX)
 
-        if self.normalize:
-            distance_profiles = _normalized_squared_distance_profile(
+        if self.normalise:
+            distance_profiles = _normalised_squared_distance_profile(
                 QX,
                 self.X_means_,
                 self.X_stds_,
@@ -172,8 +183,8 @@ class StompMatrixProfile(BaseMatrixProfile):
         return distance_profiles
 
 
-@njit(cache=True, parallel=True, fastmath=True)
-def _stomp_normalized(
+@njit(cache=True, fastmath=True)
+def _stomp_normalised(
     X,
     T,
     XdotT,
@@ -185,12 +196,12 @@ def _stomp_normalized(
     T_index,
     k,
     threshold,
-    allow_overlap,
+    allow_neighboring_matches,
     exclusion_size,
     inverse_distance,
 ):
     """
-    Compute the Matrix Profile using the STOMP algorithm with normalized distances.
+    Compute the Matrix Profile using the STOMP algorithm with normalised distances.
 
     X:  np.ndarray, 3D array of shape (n_cases, n_channels, n_timepoints)
         The input samples. If X is an unquel length collection, expect a TypedList
@@ -198,8 +209,6 @@ def _stomp_normalized(
     T : np.ndarray, 2D array of shape (n_channels, series_length)
         The series used for similarity search. Note that series_length can be equal,
         superior or inferior to n_timepoints, it doesn't matter.
-    L : int
-        Length of the subsequences used for the distance computation.
     XdotT : np.ndarray, 3D array of shape (n_cases, n_channels, n_timepoints - L + 1)
         Precomputed dot products between each time series in X and the query series T.
     X_means : np.ndarray, 3D array of shape (n_cases, n_channels, n_timepoints - L + 1)
@@ -212,18 +221,19 @@ def _stomp_normalized(
         Means of each subsequences of T of size L.
     T_stds : np.ndarray, 2D array of shape (n_channels, n_timepoints - L + 1)
         Stds of each subsequences of T of size L.
+    L : int
+        Length of the subsequences used for the distance computation.
     T_index : int,
         If ``T`` is a series of the database given in fit, specify its index
         in ``X_``. If specified, each query of this series won't be able to
         match with its neighboring subsequences.
-    k : int, default=1
+    k : int,
         The number of best matches to return during predict for each subsequence.
-    threshold : float, default=np.inf
+    threshold : float
         The number of best matches to return during predict for each subsequence.
-    inverse_distance : bool, default=False
-        If True, the matching will be made on the inverse of the distance, and thus, the
-        worst matches to the query will be returned instead of the best ones.
-    exclusion_size : int, optional
+    allow_neighboring_matches : bool
+        Wheter the top-k candidates can be neighboring subsequences.
+    exclusion_size : int
         The size of the exclusion zone used to prevent returning as top k candidates
         the ones that are close to each other (for example i and i+1).
         It is used to define a region between
@@ -231,6 +241,9 @@ def _stomp_normalized(
         :math:`id_timestomp + exclusion_size` which cannot be returned
         as best match if :math:`id_timestomp` was already selected. By default,
         the value None means that this is not used.
+    inverse_distance : bool
+        If True, the matching will be made on the inverse of the distance, and thus, the
+        worst matches to the query will be returned instead of the best ones.
 
     Returns
     -------
@@ -244,25 +257,12 @@ def _stomp_normalized(
     MP = List()
     IP = List()
 
-    # Init List to allow parallel, we'll re-use it for all dist profiles
-    dist_profiles = List()
-    for i_x in range(len(X)):
-        dist_profiles.append(np.zeros(X[i_x].shape[1] - L + 1))
-
     for i_q in range(n_queries):
-        for i_x in prange(len(X)):
-            dist_profiles[i_x][0 : X[i_x].shape[1] - L + 1] = (
-                _normalized_squared_dist_profile_one_series(
-                    XdotT[i_x],
-                    X_means[i_x],
-                    X_stds[i_x],
-                    T_means[:, i_q],
-                    T_stds[:, i_q],
-                    L,
-                    T_stds[:, i_q] <= AEON_NUMBA_STD_THRESHOLD,
-                )
-            )
-            if i_q + 1 < n_queries:
+        dist_profiles = _normalised_squared_distance_profile(
+            XdotT, X_means, X_stds, T_means[:, i_q], T_stds[:, i_q], L
+        )
+        if i_q + 1 < n_queries:
+            for i_x in range(len(X)):
                 XdotT[i_x] = _update_dot_products_one_series(
                     X[i_x], T, XdotT[i_x], L, i_q + 1
                 )
@@ -281,7 +281,7 @@ def _stomp_normalized(
             dist_profiles,
             k,
             threshold,
-            allow_overlap,
+            allow_neighboring_matches,
             exclusion_size,
         )
 
@@ -291,7 +291,7 @@ def _stomp_normalized(
     return MP, IP
 
 
-@njit(cache=True, parallel=True, fastmath=True)
+@njit(cache=True, fastmath=True)
 def _stomp(
     X,
     T,
@@ -299,28 +299,65 @@ def _stomp(
     L,
     T_index,
     k,
-    allow_overlap,
     threshold,
+    allow_neighboring_matches,
     exclusion_size,
     inverse_distance,
 ):
+    """
+    Compute the Matrix Profile using the STOMP algorithm with non-normalised distances.
+
+    X:  np.ndarray, 3D array of shape (n_cases, n_channels, n_timepoints)
+        The input samples. If X is an unquel length collection, expect a TypedList
+        of 2D arrays of shape (n_channels, n_timepoints)
+    T : np.ndarray, 2D array of shape (n_channels, series_length)
+        The series used for similarity search. Note that series_length can be equal,
+        superior or inferior to n_timepoints, it doesn't matter.
+    XdotT : np.ndarray, 3D array of shape (n_cases, n_channels, n_timepoints - L + 1)
+        Precomputed dot products between each time series in X and the query series T.
+    L : int
+        Length of the subsequences used for the distance computation.
+    T_index : int,
+        If ``T`` is a series of the database given in fit, specify its index
+        in ``X_``. If specified, each query of this series won't be able to
+        match with its neighboring subsequences.
+    k : int,
+        The number of best matches to return during predict for each subsequence.
+    threshold : float
+        The number of best matches to return during predict for each subsequence.
+    allow_neighboring_matches : bool
+        Wheter the top-k candidates can be neighboring subsequences.
+    exclusion_size : int
+        The size of the exclusion zone used to prevent returning as top k candidates
+        the ones that are close to each other (for example i and i+1).
+        It is used to define a region between
+        :math:`id_timestomp - exclusion_size` and
+        :math:`id_timestomp + exclusion_size` which cannot be returned
+        as best match if :math:`id_timestomp` was already selected. By default,
+        the value None means that this is not used.
+    inverse_distance : bool
+        If True, the matching will be made on the inverse of the distance, and thus, the
+        worst matches to the query will be returned instead of the best ones.
+
+    Returns
+    -------
+    tuple of np.ndarray
+        - MP : array of shape (series_length - L + 1,)
+          Matrix profile distances for each query subsequence.
+        - IP : array of shape (series_length - L + 1,)
+          Indexes of the top matches for each query subsequence.
+    """
     n_queries = T.shape[1] - L + 1
     MP = List()
     IP = List()
 
-    # Init List to allow parallel, we'll re-use it for all dist profiles
-    dist_profiles = List()
-    for i_x in range(len(X)):
-        dist_profiles.append(np.zeros(X[i_x].shape[1] - L + 1))
     # For each query of size L in T
     for i_q in range(n_queries):
         Q = T[:, i_q : i_q + L]
+        dist_profiles = _squared_distance_profile(XdotT, X, Q)
         # For each series in X compute distance profile to the query
-        for i_x in prange(len(X)):
-            dist_profiles[i_x][0 : X[i_x].shape[1] - L + 1] = (
-                _squared_dist_profile_one_series(XdotT[i_x], X[i_x], Q)
-            )
-            if i_q + 1 < n_queries:
+        if i_q + 1 < n_queries:
+            for i_x in range(len(X)):
                 XdotT[i_x] = _update_dot_products_one_series(
                     X[i_x], T, XdotT[i_x], L, i_q + 1
                 )
@@ -339,7 +376,7 @@ def _stomp(
             dist_profiles,
             k,
             threshold,
-            allow_overlap,
+            allow_neighboring_matches,
             exclusion_size,
         )
 
@@ -486,11 +523,11 @@ def _squared_dist_profile_one_series(QT, T, Q):
 
 
 @njit(cache=True, fastmath=True, parallel=True)
-def _normalized_squared_distance_profile(
+def _normalised_squared_distance_profile(
     QX, X_means, X_stds, Q_means, Q_stds, query_length
 ):
     """
-    Compute the normalized squared distance profiles between query subsequence and input time series.
+    Compute the normalised squared distance profiles between query subsequence and input time series.
 
     Parameters
     ----------
@@ -513,7 +550,7 @@ def _normalized_squared_distance_profile(
     -------
     List of np.ndarray
         List of 2D arrays, each of shape (n_channels, n_timepoints - query_length + 1).
-        Each array contains the normalized squared distance profile between the query subsequence and the corresponding time series.
+        Each array contains the normalised squared distance profile between the query subsequence and the corresponding time series.
         Entries in the array are set to infinity where the mask is False.
     """
     distance_profiles = List()
@@ -526,7 +563,7 @@ def _normalized_squared_distance_profile(
     for _i_instance in prange(len(QX)):
         # iterator is uint64 with prange and parallel so cast to int to avoid warnings
         i_instance = np.int64(_i_instance)
-        distance_profiles[i_instance] = _normalized_squared_dist_profile_one_series(
+        distance_profiles[i_instance] = _normalised_squared_dist_profile_one_series(
             QX[i_instance],
             X_means[i_instance],
             X_stds[i_instance],
@@ -539,11 +576,11 @@ def _normalized_squared_distance_profile(
 
 
 @njit(cache=True, fastmath=True)
-def _normalized_squared_dist_profile_one_series(
+def _normalised_squared_dist_profile_one_series(
     QT, T_means, T_stds, Q_means, Q_stds, query_length, Q_is_constant
 ):
     """
-    Compute the z-normalized squared Euclidean distance profile for one time series.
+    Compute the z-normalised squared Euclidean distance profile for one time series.
 
     Parameters
     ----------
@@ -568,8 +605,8 @@ def _normalized_squared_dist_profile_one_series(
     -------
     np.ndarray
         2D array of shape (n_channels, n_timepoints - query_length + 1) containing the
-        z-normalized squared distance profile between the query subsequence and the time
-        series. Entries are computed based on the z-normalized values, with special
+        z-normalised squared distance profile between the query subsequence and the time
+        series. Entries are computed based on the z-normalised values, with special
         handling for constant values.
     """
     n_channels, profile_length = QT.shape
