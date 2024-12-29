@@ -6,9 +6,12 @@ import numpy as np
 from numpy.testing import assert_array_almost_equal
 
 from aeon.similarity_search._commons import (
+    extract_top_k_and_threshold_from_distance_profiles,
     fft_sliding_dot_product,
     naive_squared_distance_profile,
     naive_squared_matrix_profile,
+    numba_roll_1D_no_warparound,
+    numba_roll_2D_no_warparound,
 )
 
 
@@ -47,3 +50,47 @@ def test_naive_squared_matrix_profile():
     mask = np.ones((X.shape[0], X.shape[2] - query_length + 1), dtype=bool)
     matrix_profile = naive_squared_matrix_profile(X, Q, query_length, mask)
     assert_array_almost_equal(matrix_profile, np.array([27.0, 48.0, 75.0, 108.0]))
+
+
+def test_extract_top_k_and_threshold_from_distance_profiles():
+    """Test the extract_top_k_and_threshold_from_distance_profiles function."""
+    k = 2
+    X = np.array(
+        [
+            [0.48656398, 0.42053769, 0.67763485, 0.80750033],
+            [0.29294077, 0.85502115, 0.17414422, 0.87988586],
+            [0.02714461, 0.57553083, 0.53823929, 0.08922194],
+        ]
+    )
+
+    p, q = extract_top_k_and_threshold_from_distance_profiles(X, k)
+    assert_array_almost_equal(p, np.array([0.02714461, 0.08922194]))
+
+
+# has bugs
+# def test_extract_top_k_and_threshold_from_distance_profiles_one_series():
+#     pass
+
+
+def test_numba_roll_2D_no_warparound():
+    """Test the numba_roll_2D_no_warparound function."""
+    shift = 2
+    warparound = 14
+    X = np.array(
+        [[0.93306621, 0.46541855, 0.80534776], [0.86205769, 0.07086389, 0.38304427]]
+    )
+    result = numba_roll_2D_no_warparound(X, shift, warparound)
+    assert_array_almost_equal(
+        result, np.array([[14.0, 14.0, 0.93306621], [14.0, 14.0, 0.86205769]])
+    )
+
+
+def test_numba_roll_1D_no_warpaorund():
+    """Test the numba_roll_1D_no_warparound function."""
+    shift = 2
+    warparound = 23
+    X = np.array([0.73828259, 0.6035077, 0.31581101, 0.03536085, 0.22670591])
+    result = numba_roll_1D_no_warparound(X, shift, warparound)
+    assert_array_almost_equal(
+        result, np.array([23.0, 23.0, 0.73828259, 0.6035077, 0.31581101])
+    )

@@ -174,3 +174,44 @@ def test_QuerySearch_speedup(dtype):
     q = np.asarray([[8, 8, 10]], dtype=dtype)
     _, idx = search.predict(q)
     assert_array_equal(idx, [(1, 2)])
+
+
+@pytest.mark.parametrize("dtype", DATATYPES)
+def test_QuerySearch_apply_exclusion(dtype):
+    """Test the apply_exclusion_to_result parameter of QuerySearch."""
+    X = np.asarray(
+        [[[1, 2, 3, 4, 5, 6, 7, 8]], [[1, 2, 4, 4, 5, 6, 5, 4]]], dtype=dtype
+    )
+    q = np.asarray([[3, 4, 5]], dtype=dtype)
+
+    search = QuerySearch(k=2)
+    search.fit(X)
+    _, idx_no_exclusion = search.predict(q)
+    _, idx_with_exclusion = search.predict(q, apply_exclusion_to_result=True)
+    assert len(idx_no_exclusion) >= len(idx_with_exclusion)
+
+    search = QuerySearch(k=3, normalise=True, threshold=2.0)
+    search.fit(X)
+    _, idx_no_exclusion = search.predict(q)
+    _, idx_with_exclusion = search.predict(q, apply_exclusion_to_result=True)
+    assert len(idx_no_exclusion) >= len(idx_with_exclusion)
+
+    search = QuerySearch(k=np.inf, threshold=1.0, inverse_distance=True)
+    search.fit(X)
+    _, idx_no_exclusion = search.predict(q)
+    _, idx_with_exclusion = search.predict(q, apply_exclusion_to_result=True)
+    assert len(idx_no_exclusion) >= len(idx_with_exclusion)
+
+    search = QuerySearch(k=3)
+    search.fit(X)
+    _, idx_default = search.predict(q, apply_exclusion_to_result=True)
+    _, idx_custom = search.predict(
+        q, apply_exclusion_to_result=True, exclusion_factor=1.5
+    )
+    assert len(idx_default) >= len(idx_custom)
+
+    search = QuerySearch(k=2, distance="squared", normalise=True)
+    search.fit(X)
+    _, idx_no_exclusion = search.predict(q)
+    _, idx_with_exclusion = search.predict(q, apply_exclusion_to_result=True)
+    assert len(idx_no_exclusion) >= len(idx_with_exclusion)
