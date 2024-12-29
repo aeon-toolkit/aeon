@@ -97,7 +97,6 @@ def test_SeriesSearch_process_equal_length(dtype):
     assert_almost_equal(mp[0][0], 0.0)
 
 
-# apply_exclusion_throwing_error
 # @pytest.mark.parametrize("dtype", DATATYPES)
 # @pytest.mark.parametrize("apply_exclusion_to_result", [True, False])
 # def test_SeriesSearch_apply_exclusion(dtype, apply_exclusion_to_result):
@@ -112,7 +111,9 @@ def test_SeriesSearch_process_equal_length(dtype):
 #     search.fit(X)
 #     mp, ip = search.predict(S, L,apply_exclusion_to_result=apply_exclusion_to_result)
 
-#     assert len(mp) == len(ip) == S.shape[1] - L + 1
+
+#     assert_array_equal(ip[0],np.array([[0,2]]))
+#     assert_array_equal(mp[0],np.array([0]))
 
 
 @pytest.mark.parametrize("dtype", DATATYPES)
