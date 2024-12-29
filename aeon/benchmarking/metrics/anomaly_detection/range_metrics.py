@@ -1,15 +1,7 @@
 """Calculate Precision, Recall, and F1-Score for time series anomaly detection."""
 
+maintainer = []
 __all__ = ["ts_precision", "ts_recall", "ts_fscore"]
-
-
-def __init__(self, bias="flat", alpha=0.0, gamma=None):
-    assert gamma in ["reciprocal", "one", "udf_gamma"], "Invalid gamma type"
-    assert bias in ["flat", "front", "middle", "back"], "Invalid bias type"
-
-    self.bias = bias
-    self.alpha = alpha
-    self.gamma = gamma
 
 
 def calculate_bias(position, length, bias_type="flat"):
