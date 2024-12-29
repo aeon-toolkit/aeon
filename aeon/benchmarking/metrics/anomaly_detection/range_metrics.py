@@ -223,12 +223,22 @@ def ts_recall(y_pred, y_real, gamma="one", bias_type="flat", alpha=0.0, udf_gamm
             cardinality = 0
 
             for pred_range in y_pred:
-                overlap_start = max(real_range[0], pred_range[0])
-                overlap_end = min(real_range[1], pred_range[1])
+                # Handle nested lists in y_pred
+                if isinstance(pred_range, list):
+                    for sub_pred_range in pred_range:
+                        overlap_start = max(real_range[0], sub_pred_range[0])
+                        overlap_end = min(real_range[1], sub_pred_range[1])
 
-                if overlap_start <= overlap_end:
-                    overlap_set.update(range(overlap_start, overlap_end + 1))
-                    cardinality += 1
+                        if overlap_start <= overlap_end:
+                            overlap_set.update(range(overlap_start, overlap_end + 1))
+                            cardinality += 1
+                else:  # Handle flat list of tuples
+                    overlap_start = max(real_range[0], pred_range[0])
+                    overlap_end = min(real_range[1], pred_range[1])
+
+                    if overlap_start <= overlap_end:
+                        overlap_set.update(range(overlap_start, overlap_end + 1))
+                        cardinality += 1
 
             # Existence Reward
             existence_reward = 1.0 if overlap_set else 0.0
