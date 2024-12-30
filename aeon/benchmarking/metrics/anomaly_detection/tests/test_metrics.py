@@ -25,15 +25,15 @@ from aeon.benchmarking.metrics.anomaly_detection.range_metrics import (
         (
             [(1, 3), (5, 7)],
             [(2, 6), (8, 10)],
-            0.5,
             0.666667,
+            0.500000,
             0.571429,
         ),  # Multiple Overlapping Ranges
         (
             [[(1, 3), (5, 7)], [(10, 12)]],
             [(2, 6), (8, 10)],
-            0.625,
             0.555556,
+            0.625000,
             0.588235,
         ),  # Nested Lists of Predictions
         (
