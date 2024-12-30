@@ -1,5 +1,3 @@
-"""IDK² and s-IDK² anomaly detector."""
-
 import numpy as np
 
 from aeon.anomaly_detection.base import BaseAnomalyDetector
@@ -59,9 +57,7 @@ class IDK(BaseAnomalyDetector):
          model processes
          the data in fixed-width segments, offering faster computation at the
          cost of granularity.
-    rng : np.random.Generator
-         A NumPy random generator instance to ensure reproducibility and avoid
-         global RNG state changes.
+    random_state : int, Random state or None, default=None
 
     Notes
     -----
@@ -92,20 +88,20 @@ class IDK(BaseAnomalyDetector):
         width: int,
         t: int = 100,
         sliding: bool = False,
-        rng: np.random.Generator = None,
+        random_state: int = None,
     ) -> None:
         self.psi1 = psi1
         self.psi2 = psi2
         self.width = width
         self.t = t
         self.sliding = sliding
-        self.rng = rng or np.random.default_rng()
+        self.random_state = np.random.default_rng(random_state)
         super().__init__(axis=0)
 
     def _ik_inne_fm(self, X, psi, t=100):
         onepoint_matrix = np.zeros((X.shape[0], t * psi), dtype=int)
         for time in range(t):
-            sample_indices = self.rng.choice(len(X), size=psi, replace=False)
+            sample_indices = self.random_state.choice(len(X), size=psi, replace=False)
             sample = X[sample_indices, :]
 
             tem1 = np.dot(np.square(X), np.ones(sample.T.shape))
@@ -138,7 +134,7 @@ class IDK(BaseAnomalyDetector):
         onepoint_matrix = np.full((X.shape[0], self.t), -1)
 
         for time in range(self.t):
-            sample_indices = self.rng.choice(X.shape[0], size=self.psi1, replace=False)
+            sample_indices = self.random_state.choice(X.shape[0], size=self.psi1, replace=False)
             sample = X[sample_indices, :]
             tem1 = np.dot(np.square(X), np.ones(sample.T.shape))
             tem2 = np.dot(np.ones(X.shape), np.square(sample.T))
@@ -212,5 +208,5 @@ class IDK(BaseAnomalyDetector):
             "psi1": 8,
             "psi2": 2,
             "width": 1,
-            "rng": np.random.RandomState(seed=42),
+            "random_state": 42,
         }
