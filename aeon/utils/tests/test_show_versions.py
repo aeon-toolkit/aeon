@@ -1,6 +1,6 @@
 """Test the show versions function."""
 
-from aeon.testing.utils.output_supression import suppress_output
+from aeon.testing.utils.output_suppression import suppress_output
 from aeon.utils.show_versions import show_versions
 
 

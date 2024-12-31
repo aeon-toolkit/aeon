@@ -22,6 +22,9 @@ class Tabularizer(BaseCollectionTransformer):
         "capability:multivariate": True,
     }
 
+    def __init__(self):
+        super().__init__()
+
     def _transform(self, X, y=None):
         """Transform collection into tabular dataframe.
 

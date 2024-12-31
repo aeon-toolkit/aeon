@@ -20,12 +20,6 @@ class AEBiGRUClusterer(BaseDeepClusterer):
 
     Parameters
     ----------
-    n_clusters : int, default=None
-        Number of clusters for the deep learnign model.
-    clustering_algorithm : str, default="deprecated"
-        Use 'estimator' parameter instead.
-    clustering_params : dict, default=None
-        Use 'estimator' parameter instead.
     estimator : aeon clusterer, default=None
         An aeon estimator to be built using the transformed data.
         Defaults to aeon TimeSeriesKMeans() with euclidean distance
@@ -105,10 +99,7 @@ class AEBiGRUClusterer(BaseDeepClusterer):
 
     def __init__(
         self,
-        n_clusters=None,
-        clustering_algorithm="deprecated",
         estimator=None,
-        clustering_params=None,
         latent_space_dim=128,
         temporal_latent_space=False,
         n_layers=2,
@@ -152,9 +143,6 @@ class AEBiGRUClusterer(BaseDeepClusterer):
         self.random_state = random_state
 
         super().__init__(
-            n_clusters=n_clusters,
-            clustering_algorithm=clustering_algorithm,
-            clustering_params=clustering_params,
             estimator=estimator,
             batch_size=batch_size,
             last_file_name=last_file_name,
@@ -299,12 +287,6 @@ class AEBiGRUClusterer(BaseDeepClusterer):
         gc.collect()
 
         return self
-
-    def _score(self, X, y=None):
-        # Transpose to conform to Keras input style.
-        X = X.transpose(0, 2, 1)
-        latent_space = self.model_.layers[1].predict(X)
-        return self._estimator.score(latent_space)
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):

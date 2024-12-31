@@ -20,7 +20,7 @@ from aeon.testing.testing_data import (
     UNEQUAL_LENGTH_UNIVARIATE_REGRESSION,
     UNEQUAL_LENGTH_UNIVARIATE_SIMILARITY_SEARCH,
 )
-from aeon.utils import COLLECTIONS_DATA_TYPES
+from aeon.utils.data_types import COLLECTIONS_DATA_TYPES
 from aeon.utils.validation import (
     has_missing,
     is_collection,
@@ -411,3 +411,6 @@ def test_missing_values_collection():
         assert np.issubdtype(
             MISSING_VALUES_REGRESSION[key]["test"][1].dtype, np.integer
         ) or np.issubdtype(MISSING_VALUES_REGRESSION[key]["test"][1].dtype, np.floating)
+
+
+# todo series testing data

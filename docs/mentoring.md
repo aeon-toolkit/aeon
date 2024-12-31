@@ -1,6 +1,4 @@
 
-[//]: # (Try to put references in harvard style for consistency.)
-
 # Mentoring and Projects
 
 `aeon` runs a range of short to medium duration projects interacting with the community
