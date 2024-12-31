@@ -2,12 +2,16 @@
 
 import numpy as np
 import pytest
-from aeon.anomaly_detection import IDK
-from aeon.utils.validation._dependencies import _check_estimator_deps
 from sklearn.utils import check_random_state
 
+from aeon.anomaly_detection import IDK
+from aeon.utils.validation._dependencies import _check_estimator_deps
+
+
 @pytest.mark.skipif(
-    not _check_estimator_deps(IDK(psi1=8, psi2=2, width=1, random_state=42), severity="none"),
+    not _check_estimator_deps(
+        IDK(psi1=8, psi2=2, width=1, random_state=42), severity="none"
+    ),
     reason="skip test if required soft dependencies not available",
 )
 def test_idk_univariate():
