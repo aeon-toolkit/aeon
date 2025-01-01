@@ -18,8 +18,8 @@ class BaseSimilaritySearch(BaseCollectionEstimator):
 
     Parameters
     ----------
-    normalize : bool, optional
-        Whether the inputs should be z-normalized. The default is False.
+    normalise : bool, optional
+        Whether the inputs should be z-normalised. The default is False.
     n_jobs : int, optional
         Number of parallel jobs to use. The default is 1.
     """
@@ -35,11 +35,11 @@ class BaseSimilaritySearch(BaseCollectionEstimator):
     @abstractmethod
     def __init__(
         self,
-        normalize: Optional[bool] = False,
+        normalise: Optional[bool] = False,
         n_jobs: Optional[int] = 1,
     ):
         self.n_jobs = n_jobs
-        self.normalize = normalize
+        self.normalise = normalise
         super().__init__()
 
     @final
@@ -68,7 +68,9 @@ class BaseSimilaritySearch(BaseCollectionEstimator):
         -------
         self
         """
+        self.reset()
         prev_threads = get_num_threads()
+        self._check_fit_format(X)
         X = self._preprocess_collection(X)
         # Store minimum number of n_timepoints for unequal length collections
         self.min_timepoints_ = min([X[i].shape[-1] for i in range(len(X))])
@@ -85,9 +87,9 @@ class BaseSimilaritySearch(BaseCollectionEstimator):
     @abstractmethod
     def find_motifs(
         self,
+        X: np.ndarray,
         k: int,
         threshold: float,
-        X: Optional[np.ndarray] = None,
         allow_overlap: Optional[bool] = True,
     ):
         """
@@ -100,10 +102,8 @@ class BaseSimilaritySearch(BaseCollectionEstimator):
 
         Parameters
         ----------
-        X : np.ndarray, optional
-            The query in which we want to indentify motifs. If provided, the motifs
-            extracted should appear in X and in the database given in fit. If not
-            provided, the motifs will be extracted only from the database given in fit.
+        X : np.ndarray,
+            A series in which we want to indentify motifs.
         k : int, optional
             Number of motifs to return
         threshold : int, optional
@@ -115,9 +115,12 @@ class BaseSimilaritySearch(BaseCollectionEstimator):
 
         Returns
         -------
-        list of ndarray, shape=(k,)
-            A list of at most ``k`` numpy arrays containing the indexes of the
-            candidates in each motif.
+        ndarray, shape=(k,)
+            A numpy array of at most ``k`` elements containing the indexes of the
+            motifs.
+        ndarray, shape=(k,)
+            A numpy array of at most ``k`` elements containing the distances of the
+            motifs to .
 
         """
         ...
@@ -156,6 +159,38 @@ class BaseSimilaritySearch(BaseCollectionEstimator):
 
         """
         ...
+
+    def _check_fit_format(self, X):
+        if isinstance(X, np.ndarray):  # "numpy3D" or numpy2D
+            if X.ndim != 3:
+                raise TypeError(
+                    f"A np.ndarray given in fit must be 3D but found {X.ndim}D"
+                )
+        elif isinstance(X, list):  # np-list or df-list
+            if isinstance(X[0], np.ndarray):  # if one a numpy they must all be 2D numpy
+                for a in X:
+                    if not (isinstance(a, np.ndarray) and a.ndim == 2):
+                        raise TypeError(
+                            "A np-list given in fit must contain 2D np.ndarray but"
+                            f" found {a.ndim}D"
+                        )
+
+    def _check_find_neighbors_motif_format(self, X):
+        if isinstance(X, np.ndarray):
+            if X.ndim != 2:
+                raise TypeError(
+                    "A np.ndarray given in find_neighbors must be 2D"
+                    f"(n_channels, n_timepoints) but found {X.ndim}D."
+                )
+        else:
+            raise TypeError(
+                "Expected a 2D np.ndarray in find_neighbors but found" f" {type(X)}."
+            )
+        if self.n_channels_ != X.shape[0]:
+            raise ValueError(
+                f"Expected X to have {self.n_channels_} channels but"
+                f" got {X.shape[0]} channels."
+            )
 
     @abstractmethod
     def _fit(self, X, y=None): ...

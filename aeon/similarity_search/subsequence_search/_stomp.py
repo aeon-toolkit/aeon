@@ -2,9 +2,6 @@
 
 __maintainer__ = ["baraline"]
 
-
-from typing import Optional
-
 import numpy as np
 from numba import njit, prange
 from numba.typed import List
@@ -27,13 +24,13 @@ class StompMatrixProfile(BaseMatrixProfile):
 
     def compute_matrix_profile(
         self,
-        k,
-        threshold,
-        exclusion_size,
-        inverse_distance,
-        allow_neighboring_matches,
-        X: Optional[np.ndarray] = None,
-        X_index: Optional[int] = None,
+        X: np.ndarray,
+        k: int,
+        threshold: float,
+        exclusion_size: int,
+        inverse_distance: bool,
+        allow_neighboring_matches: bool,
+        X_index=None,
     ):
         """
         Compute matrix profiles.
@@ -44,6 +41,8 @@ class StompMatrixProfile(BaseMatrixProfile):
 
         Parameters
         ----------
+        X : np.ndarray, shape = (n_channels, n_timepoints)
+            A 2D array time series on which the matrix profile will be computed.
         k : int
             The number of best matches to return during predict for each subsequence.
         threshold : float
@@ -55,14 +54,10 @@ class StompMatrixProfile(BaseMatrixProfile):
             The size of the exclusion zone used to prevent returning as top k candidates
             the ones that are close to each other (for example i and i+1).
             It is used to define a region between
-            :math:`id_timestomp - exclusion_size` and
-            :math:`id_timestomp + exclusion_size` which cannot be returned
-            as best match if :math:`id_timestomp` was already selected. By default,
+            :math:`id_timestamp - exclusion_size` and
+            :math:`id_timestamp + exclusion_size` which cannot be returned
+            as best match if :math:`id_timestamp` was already selected. By default,
             the value None means that this is not used.
-        X : Optional[np.ndarray], optional
-            The time series on which the matrix profile will be compute.
-            The default is None, meaning that the series in the collection given in fit
-            will be used instead.
         X_index : Optional[int], optional
             If ``X`` is a series of the database given in fit, specify its index in
             ``X_``. If specified, each query of this series won't be able to match with
@@ -70,73 +65,55 @@ class StompMatrixProfile(BaseMatrixProfile):
 
         Returns
         -------
-        MP : array of shape (series_length - L + 1,)
+        MP : array of shape (n_timepoints - L + 1,)
             Matrix profile distances for each query subsequence. If X is none, this
             will be a list of MP for each series in X_.
-        IP : array of shape (series_length - L + 1,)
+        IP : array of shape (n_timepoints - L + 1,)
             Indexes of the top matches for each query subsequence. If X is none, this
             will be a list of MP for each series in X_.
         """
-        # If we compute matrix profiles for each series in X_
-        if X is None:
-            MP = []
-            IP = []
-            for i in range(len(self.X_)):
-                _MP, _IP = self.compute_matrix_profile(
-                    k,
-                    threshold,
-                    exclusion_size,
-                    inverse_distance,
-                    X=self.X_[i],
-                    X_index=i,
-                )
-                MP.append(_MP)
-                IP.append(_IP)
-        # else we compute matrix profiles using X on the series in X_
-        else:
-            XdotT = [
-                get_ith_products(self.X[i], X, self.length, 0)
-                for i in range(len(self.X_))
-            ]
-            if isinstance(X, np.ndarray):
-                XdotT = np.asarray(XdotT)
-            elif isinstance(X, List):
-                XdotT = List(XdotT)
+        XdotT = [
+            get_ith_products(self.X[i], X, self.length, 0) for i in range(len(self.X_))
+        ]
+        if isinstance(X, np.ndarray):
+            XdotT = np.asarray(XdotT)
+        elif isinstance(X, List):
+            XdotT = List(XdotT)
 
-            if X_index is None:
-                X_means, X_stds = sliding_mean_std_one_series(X, self.length, 1)
-            else:
-                X_means, X_stds = self.X_means_[i], self.X_stds_[i]
-            if self.normalise:
-                MP, IP = _stomp_normalised(
-                    self.X_,
-                    X,
-                    XdotT,
-                    self.X_means_,
-                    self.X_stds_,
-                    X_means,
-                    X_stds,
-                    self.length,
-                    X_index,
-                    k,
-                    threshold,
-                    allow_neighboring_matches,
-                    exclusion_size,
-                    inverse_distance,
-                )
-            else:
-                MP, IP = _stomp(
-                    self.X_,
-                    X,
-                    XdotT,
-                    self.length,
-                    X_index,
-                    k,
-                    threshold,
-                    allow_neighboring_matches,
-                    exclusion_size,
-                    inverse_distance,
-                )
+        if X_index is None:
+            X_means, X_stds = sliding_mean_std_one_series(X, self.length, 1)
+        else:
+            X_means, X_stds = self.X_means_[X_index], self.X_stds_[X_index]
+        if self.normalise:
+            MP, IP = _stomp_normalised(
+                self.X_,
+                X,
+                XdotT,
+                self.X_means_,
+                self.X_stds_,
+                X_means,
+                X_stds,
+                self.length,
+                X_index,
+                k,
+                threshold,
+                allow_neighboring_matches,
+                exclusion_size,
+                inverse_distance,
+            )
+        else:
+            MP, IP = _stomp(
+                self.X_,
+                X,
+                XdotT,
+                self.length,
+                X_index,
+                k,
+                threshold,
+                allow_neighboring_matches,
+                exclusion_size,
+                inverse_distance,
+            )
         return MP, IP
 
     def compute_distance_profile(self, X: np.ndarray):
@@ -237,9 +214,9 @@ def _stomp_normalised(
         The size of the exclusion zone used to prevent returning as top k candidates
         the ones that are close to each other (for example i and i+1).
         It is used to define a region between
-        :math:`id_timestomp - exclusion_size` and
-        :math:`id_timestomp + exclusion_size` which cannot be returned
-        as best match if :math:`id_timestomp` was already selected. By default,
+        :math:`id_timestamp - exclusion_size` and
+        :math:`id_timestamp + exclusion_size` which cannot be returned
+        as best match if :math:`id_timestamp` was already selected. By default,
         the value None means that this is not used.
     inverse_distance : bool
         If True, the matching will be made on the inverse of the distance, and thus, the
@@ -331,9 +308,9 @@ def _stomp(
         The size of the exclusion zone used to prevent returning as top k candidates
         the ones that are close to each other (for example i and i+1).
         It is used to define a region between
-        :math:`id_timestomp - exclusion_size` and
-        :math:`id_timestomp + exclusion_size` which cannot be returned
-        as best match if :math:`id_timestomp` was already selected. By default,
+        :math:`id_timestamp - exclusion_size` and
+        :math:`id_timestamp + exclusion_size` which cannot be returned
+        as best match if :math:`id_timestamp` was already selected. By default,
         the value None means that this is not used.
     inverse_distance : bool
         If True, the matching will be made on the inverse of the distance, and thus, the

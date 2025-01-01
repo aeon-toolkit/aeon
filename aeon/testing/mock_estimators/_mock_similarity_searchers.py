@@ -15,6 +15,8 @@ from aeon.similarity_search.subsequence_search.base import (
 
 
 class MockMatrixProfile(BaseMatrixProfile):
+    """Mock estimator for BaseMatrixProfile."""
+
     def __init__(self, length=3):
         super().__init__(length=length)
 
@@ -35,25 +37,24 @@ class MockMatrixProfile(BaseMatrixProfile):
 
     def compute_distance_profile(self, X):
         """Compute distrance profiles between X_ and X (a series of size length)."""
-        return np.zeros(X.shape[1] - self.length + 1)
+        return [
+            np.zeros(self.X_[i].shape[1] - self.length + 1) for i in range(len(self.X_))
+        ]
 
 
 class MockSubsequenceSearch(BaseSubsequenceSearch):
-    """MockSeriesTransformer to set tags."""
+    """Mock estimator for BaseSubsequenceSearch."""
 
     def __init__(self, length=3):
         super().__init__(length=length)
 
-    def _fit(self, X, y=None):
-        return self
-
     def _find_motifs(
         self,
-        X,
         k=1,
         threshold=np.inf,
-        inverse_distance=False,
+        X=None,
         X_index=None,
+        inverse_distance=False,
         allow_neighboring_matches=False,
         exclusion_factor=2.0,
     ):

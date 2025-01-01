@@ -47,9 +47,9 @@ class BaseSubsequenceSearch(BaseSimilaritySearch):
     @final
     def find_motifs(
         self,
+        X: np.ndarray,
         k: Optional[int] = 1,
         threshold: Optional[float] = np.inf,
-        X: Optional[np.ndarray] = None,
         X_index: Optional[int] = None,
         inverse_distance: Optional[bool] = False,
         allow_neighboring_matches: Optional[bool] = False,
@@ -65,15 +65,13 @@ class BaseSubsequenceSearch(BaseSimilaritySearch):
 
         Parameters
         ----------
+        X : np.ndarray, 2D array of shape (n_channels, n_timestamps)
+            A series in which we want to indentify motifs.
         k : int, optional
             Number of motifs to return
         threshold : int, optional
             A threshold on the similarity measure to determine which candidates will be
             part of a motif set.
-        X : np.ndarray, 2D array of shape (n_channels, n_timestamps), optional
-            A series in which we want to indentify motifs. If provided, the motifs
-            extracted should appear in X and in the database given in fit. If not
-            provided, the motifs will be extracted only from the database given in fit.
         X_index : Optional[int], optional
             If ``X`` is a series of the database given in fit, specify its index in
             ``X_``. If specified, each query of this series won't be able to match with
@@ -93,25 +91,30 @@ class BaseSubsequenceSearch(BaseSimilaritySearch):
 
         Returns
         -------
-        list of ndarray, shape=(k,)
-            A list of at most ``k`` numpy arrays containing the indexes of the
-            candidates in each motif.
+        ndarray, shape=(k,)
+            A numpy array of at most ``k`` elements containing the indexes of the
+            motifs in X.
+        ndarray, shape=(k,)
+            A numpy array of at most ``k`` elements containing the distances of the
+            motifs macthes to the motif in X.
 
         """
         self._check_is_fitted()
+        if X is not None:
+            self._check_find_neighbors_motif_format(X)
         prev_threads = get_num_threads()
         X_index = self._check_X_index_int(X_index)
-        motifs = self._find_motifs(
+        motifs_indexes, distances = self._find_motifs(
+            X,
             k=k,
             threshold=threshold,
             exclusion_factor=exclusion_factor,
             inverse_distance=inverse_distance,
             allow_neighboring_matches=allow_neighboring_matches,
-            X=X,
             X_index=X_index,
         )
         set_num_threads(prev_threads)
-        return motifs
+        return motifs_indexes, distances
 
     @final
     def find_neighbors(
@@ -171,11 +174,14 @@ class BaseSubsequenceSearch(BaseSimilaritySearch):
 
         """
         self._check_is_fitted()
-        if self.length != X.shape[1] or self.n_channels_ != X.shape[0]:
+
+        self._check_find_neighbors_motif_format(X)
+        if self.length != X.shape[1]:
             raise ValueError(
-                f"Expected a subsequence of shape {(self.n_channels_, self.length)} but"
-                f" got {X.shape}"
+                f"Expected X to be of shape {(self.n_channels_, self.length)} but"
+                f" got {X.shape} in find_neighbors."
             )
+
         X_index = self._check_X_index_array(X_index)
         prev_threads = get_num_threads()
         set_num_threads(self._n_jobs)
@@ -313,8 +319,19 @@ class BaseSubsequenceSearch(BaseSimilaritySearch):
         else:
             return np.asarray(means), np.asarray(stds)
 
-    @abstractmethod
-    def _fit(self, X, y=None): ...
+    def _fit(self, X, y=None):
+        if self.length >= self.min_timepoints_ or self.length < 1:
+            raise ValueError(
+                "The length of the query should be inferior or equal to the length of "
+                "data (X_) provided during fit, but got {} for X and {} for X_".format(
+                    self.length, self.min_timepoints_
+                )
+            )
+
+        if self.normalise:
+            self.X_means_, self.X_stds_ = self._compute_mean_std_from_collection(X)
+        self.X_ = X
+        return self
 
     @abstractmethod
     def _find_motifs(
@@ -322,8 +339,8 @@ class BaseSubsequenceSearch(BaseSimilaritySearch):
         X: np.ndarray,
         k: Optional[int] = 1,
         threshold: Optional[float] = np.inf,
+        X_index: Optional[int] = None,
         inverse_distance: Optional[bool] = False,
-        X_index=None,
         allow_neighboring_matches: Optional[bool] = False,
         exclusion_factor: Optional[float] = 2.0,
     ): ...
@@ -344,27 +361,13 @@ class BaseSubsequenceSearch(BaseSimilaritySearch):
 class BaseMatrixProfile(BaseSubsequenceSearch):
     """Base class for Matrix Profile methods using a length parameter."""
 
-    def _fit(self, X, y=None):
-        if self.length >= self.min_timepoints_:
-            raise ValueError(
-                "The length of the query should be inferior or equal to the length of "
-                "data (X_) provided during fit, but got {} for X and {} for X_".format(
-                    self.length, self.min_timepoints_
-                )
-            )
-
-        if self.normalise:
-            self.X_means_, self.X_stds_ = self._compute_mean_std_from_collection(X)
-        self.X_ = X
-        return self
-
     def _find_motifs(
         self,
         X: np.ndarray,
         k: Optional[int] = 1,
         threshold: Optional[float] = np.inf,
+        X_index: Optional[int] = None,
         inverse_distance: Optional[bool] = False,
-        X_index=None,
         allow_neighboring_matches: Optional[bool] = False,
         exclusion_factor: Optional[float] = 2.0,
     ):
@@ -379,7 +382,15 @@ class BaseMatrixProfile(BaseSubsequenceSearch):
             X=X,
             X_index=X_index,
         )
-        # TODO : implement logic here
+        # TODO check motif extraction logic, sure its not this one
+        MP_avg = np.array([np.mean(MP[i]) for i in range(len(MP))])
+        return _extract_top_k_from_dist_profile(
+            MP_avg,
+            k,
+            threshold,
+            allow_neighboring_matches,
+            exclusion_size,
+        )
 
     def _find_neighbors(
         self,
@@ -451,12 +462,12 @@ class BaseMatrixProfile(BaseSubsequenceSearch):
     @abstractmethod
     def compute_matrix_profile(
         self,
-        k,
-        threshold,
-        exclusion_size,
-        inverse_distance,
-        allow_neighboring_matches,
-        X: Optional[np.ndarray] = None,
+        X: np.ndarray,
+        k: int,
+        threshold: float,
+        exclusion_size: int,
+        inverse_distance: bool,
+        allow_neighboring_matches: bool,
         X_index: Optional[int] = None,
     ):
         """Compute matrix profiles between X_ and X or between all series in X_."""
