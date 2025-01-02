@@ -270,11 +270,8 @@ class SFAFast(BaseCollectionTransformer):
 
         # subsample the samples
         if self.sampling_factor:
-
-            if self.random_state is not None:
-                np.random.seed(self.random_state)
-
-            sampled_indices = np.random.choice(
+            rng = check_random_state(self.random_state)
+            sampled_indices = rng.choice(
                 X.shape[0],
                 size=min(np.int32(X.shape[0] * self.sampling_factor), X.shape[0]),
                 replace=False,
