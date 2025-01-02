@@ -29,6 +29,7 @@ from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from sklearn.utils import check_random_state
 
 from aeon.transformations.collection import BaseCollectionTransformer
+from aeon.utils.numba.general import AEON_NUMBA_STD_THRESHOLD
 
 # The binning methods to use: equi-depth, equi-width, information gain or kmeans
 binning_methods = {
@@ -269,6 +270,10 @@ class SFAFast(BaseCollectionTransformer):
 
         # subsample the samples
         if self.sampling_factor:
+
+            if self.random_state is not None:
+                np.random.seed(self.random_state)
+
             sampled_indices = np.random.choice(
                 X.shape[0],
                 size=min(np.int32(X.shape[0] * self.sampling_factor), X.shape[0]),
@@ -870,7 +875,7 @@ def _fast_fourier_transform(X, norm, dft_length, inverse_sqrt_win_size, norm_std
         for i in range(len(stds)):
             stds[i] = np.std(X[i])
         # stds = np.std(X, axis=1)  # not available in numba
-        stds = np.where(stds < 1e-8, 1, stds)
+        stds = np.where(stds < AEON_NUMBA_STD_THRESHOLD, 1, stds)
         dft /= stds.reshape(-1, 1)
 
     return dft[:, start:]
@@ -946,7 +951,7 @@ def _calc_incremental_mean_std(series, end, window_size):
     r_window_length = 1.0 / window_size
     mean = series_sum * r_window_length
     buf = math.sqrt(max(square_sum * r_window_length - mean * mean, 0.0))
-    stds[0] = buf if buf > 1e-8 else 1
+    stds[0] = buf if buf > AEON_NUMBA_STD_THRESHOLD else 1
 
     for w in range(1, end):
         series_sum += series[w + window_size - 1] - series[w - 1]
@@ -956,7 +961,7 @@ def _calc_incremental_mean_std(series, end, window_size):
             - series[w - 1] * series[w - 1]
         )
         buf = math.sqrt(max(square_sum * r_window_length - mean * mean, 0.0))
-        stds[w] = buf if buf > 1e-8 else 1
+        stds[w] = buf if buf > AEON_NUMBA_STD_THRESHOLD else 1
 
     return stds
 

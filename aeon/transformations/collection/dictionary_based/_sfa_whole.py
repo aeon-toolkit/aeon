@@ -96,6 +96,12 @@ class SFAWhole(SFAFast):
         )
 
     def _fit_transform(self, X, y=None):
+        if self.word_length > X.shape[-1] / 2:
+            raise ValueError(
+                "Please set the word-length to a value smaller than or equal to "
+                "the time series length divided by two."
+            )
+
         super()._fit_transform(X, y, return_bag_of_words=False)
         return self.transform_words(X)
 
