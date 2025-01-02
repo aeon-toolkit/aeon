@@ -11,7 +11,11 @@ __maintainer__ = ["baraline"]
 import numpy as np
 import pytest
 from numba.typed import List
-from numpy.testing import assert_almost_equal, assert_array_almost_equal
+from numpy.testing import (
+    assert_almost_equal,
+    assert_array_almost_equal,
+    assert_array_equal,
+)
 
 from aeon.similarity_search.subsequence_search._brute_force import (
     _compute_dist_profile,
@@ -27,7 +31,11 @@ from aeon.testing.data_generation import (
     make_example_3d_numpy,
     make_example_3d_numpy_list,
 )
-from aeon.utils.numba.general import sliding_mean_std_one_series, z_normalise_series_2d
+from aeon.utils.numba.general import (
+    get_all_subsequences,
+    sliding_mean_std_one_series,
+    z_normalise_series_2d,
+)
 
 K_VALUES = [1, 3, 5]
 NN_MATCHES = [True, False]
@@ -51,18 +59,18 @@ def _get_mean_sdts_inputs(X, Q, L):
 
 
 def test__compute_dist_profile():
-    """Test Euclidean distance."""
+    """Test Euclidean distance with brute force."""
     L = 3
     X = make_example_2d_numpy_series(n_channels=1, n_timepoints=10)
     Q = make_example_2d_numpy_series(n_channels=1, n_timepoints=L)
-    dist_profile = _compute_dist_profile(X, Q)
+    dist_profile = _compute_dist_profile(get_all_subsequences(X, L, 1), Q)
     for i_t in range(X.shape[1] - L + 1):
         assert_almost_equal(dist_profile[i_t], np.sum((X[:, i_t : i_t + L] - Q) ** 2))
 
 
 @pytest.mark.parametrize("normalise", NORMALISE)
 def test__naive_squared_distance_profile(normalise):
-    """Test Euclidean distance profile calculation."""
+    """Test Euclidean distance profile calculation with brute force."""
     L = 3
     X = make_example_3d_numpy(n_cases=3, n_channels=1, n_timepoints=10, return_y=False)
     Q = make_example_2d_numpy_series(n_channels=1, n_timepoints=L)
@@ -107,18 +115,20 @@ def test__naive_squared_distance_profile(normalise):
 def test__naive_squared_matrix_profile(
     k, allow_neighboring_matches, inverse_distance, normalise
 ):
-    """Test STOMP method."""
+    """Test brute force matrix profile method."""
     L = 3
-
-    X = make_example_3d_numpy_list(
-        n_cases=3,
-        n_channels=2,
-        min_n_timepoints=6,
-        max_n_timepoints=8,
-        return_y=False,
+    X = List(
+        make_example_3d_numpy_list(
+            n_cases=3,
+            n_channels=2,
+            min_n_timepoints=6,
+            max_n_timepoints=8,
+            return_y=False,
+        )
     )
+    X_copy = X.copy()
     T = make_example_2d_numpy_series(n_channels=2, n_timepoints=5)
-
+    T_copy = T.copy()
     T_index = None
     threshold = np.inf
     exclusion_size = L
@@ -136,6 +146,9 @@ def test__naive_squared_matrix_profile(
         inverse_distance,
         normalise=normalise,
     )
+    assert_array_equal(T, T_copy)
+    for i in range(len(X)):
+        assert_array_equal(X[i], X_copy[i])
     # For each query of size L in T
     for i in range(T.shape[1] - L + 1):
         dist_profiles = _naive_squared_distance_profile(

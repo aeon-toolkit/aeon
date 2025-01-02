@@ -141,7 +141,7 @@ def _extract_top_k_from_dist_profile(
             _top_k_distances = dist_profiles[i_profile][_top_k_indexes]
         # Extract top-k with neighboring matches
         else:
-            _top_k_indexes = np.argpartition(dist_profiles[i_profile], k)[:k]
+            _top_k_indexes = np.argsort(dist_profiles[i_profile])[:k]
             _top_k_distances = dist_profiles[i_profile][_top_k_indexes]
 
         # Select overall top k by using the buffer array of size 2*k

@@ -281,7 +281,7 @@ def _naive_squared_matrix_profile(
         X_subs.append(i_subs)
 
     for i_q in range(n_queries):
-        Q = T[:, i : i + L]
+        Q = T[:, i_q : i_q + L]
         if normalise:
             Q = z_normalise_series_2d(Q)
         for i_x in prange(len(X)):
