@@ -34,6 +34,7 @@ class BaseSubsequenceSearch(BaseSimilaritySearch):
         Number of parallel jobs to use. The default is 1.
     """
 
+    @abstractmethod
     def __init__(
         self,
         length: int,

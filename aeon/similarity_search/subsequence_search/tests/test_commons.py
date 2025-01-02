@@ -24,14 +24,15 @@ NN_MATCHES = [False, True]
 
 def test_fft_sliding_dot_product():
     """Test the fft_sliding_dot_product function."""
+    L = 4
     X = make_example_2d_numpy_series(n_channels=1, n_timepoints=10)
-    Q = make_example_2d_numpy_series(n_channels=1, n_timepoints=4)
+    Q = make_example_2d_numpy_series(n_channels=1, n_timepoints=L)
 
     values = fft_sliding_dot_product(X, Q)
     # Compare values[0] only as input is univariate
     assert_array_almost_equal(
         values[0],
-        [np.dot(Q[0], X[0, i : i + 5]) for i in range(X.shape[1] - 5 + 1)],
+        [np.dot(Q[0], X[0, i : i + L]) for i in range(X.shape[1] - L + 1)],
     )
 
 

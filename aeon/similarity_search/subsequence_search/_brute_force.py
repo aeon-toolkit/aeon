@@ -27,6 +27,14 @@ from aeon.utils.numba.general import (
 class BruteForceMatrixProfile(BaseMatrixProfile):
     """Estimator to compute matrix profile and distance profile using brute force."""
 
+    def __init__(
+        self,
+        length: int,
+        normalise: Optional[bool] = False,
+        n_jobs: Optional[int] = 1,
+    ):
+        super().__init__(length=length, n_jobs=n_jobs, normalise=normalise)
+
     def compute_matrix_profile(
         self,
         k,

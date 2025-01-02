@@ -90,7 +90,6 @@ class BaseSimilaritySearch(BaseCollectionEstimator):
         X: np.ndarray,
         k: int,
         threshold: float,
-        allow_overlap: Optional[bool] = True,
     ):
         """
         Find the top-k motifs in the training data.
@@ -109,9 +108,6 @@ class BaseSimilaritySearch(BaseCollectionEstimator):
         threshold : int, optional
             A threshold on the similarity measure to determine which candidates will be
             part of a motif set.
-        allow_overlap: bool, optional
-            Wheter a candidate can be part of multiple motif sets (True), or if motif
-            sets should be mutually exclusive (False).
 
         Returns
         -------
@@ -194,3 +190,88 @@ class BaseSimilaritySearch(BaseCollectionEstimator):
 
     @abstractmethod
     def _fit(self, X, y=None): ...
+
+    def _check_X_index_int(self, X_index: int):
+        """
+        Check wheter the X_index parameter is correctly formated and is admissible.
+
+        This check is made for motif search functions.
+
+        Parameters
+        ----------
+        X_index : int
+            Index of a series in X_.
+
+        Returns
+        -------
+        X_index : int
+            Index of a series in X_
+
+        """
+        if X_index is not None:
+            if not isinstance(X_index, int):
+                raise TypeError("Expected an integer for X_index but got {X_index}")
+
+            if X_index >= self.n_cases_ or X_index < 0:
+                raise ValueError(
+                    "The value of X_index cannot exced the number "
+                    "of series in the collection given during fit. Expected a value "
+                    f"between [0, {self.n_cases_ - 1}] but got {X_index}"
+                )
+        return X_index
+
+    def _check_X_index_array(self, X_index: np.ndarray):
+        """
+        Check wheter the X_index parameter is correctly formated and is admissible.
+
+        This check is made for neighbour search functions.
+
+        Parameters
+        ----------
+        X_index : np.ndarray, 1D array of shape (2)
+            Array of integer containing the sample and timestamp identifiers of the
+            starting point of a subsequence in X_.
+
+        Returns
+        -------
+        X_index : np.ndarray, 1D array of shape (2)
+            Array of integer containing the sample and timestamp identifiers of the
+            starting point of a subsequence in X_.
+
+        """
+        if X_index is not None:
+            if (
+                isinstance(X_index, list)
+                and len(X_index) == 2
+                and isinstance(X_index[0], int)
+                and isinstance(X_index[1], int)
+            ):
+                X_index = np.asarray(X_index, dtype=int)
+            elif len(X_index) != 2:
+                raise TypeError(
+                    "Expected a numpy array or list of integers with 2 elements "
+                    f"for X_index but got {X_index}"
+                )
+            elif (
+                not (isinstance(X_index[0], int) or not isinstance(X_index[1], int))
+                or X_index.dtype != int
+            ):
+                raise TypeError(
+                    "Expected a numpy array or list of integers for X_index but got "
+                    f"{X_index}"
+                )
+
+            if X_index[0] >= self.n_cases_ or X_index[0] < 0:
+                raise ValueError(
+                    "The sample ID (first element) of X_index cannot exced the number "
+                    "of series in the collection given during fit. Expected a value "
+                    f"between [0, {self.n_cases_ - 1}] but got {X_index[0]}"
+                )
+            _max_timestamp = self.X_[X_index[0]].shape[1] - self.length + 1
+            if X_index[1] >= _max_timestamp:
+                raise ValueError(
+                    "The timestamp ID (second element) of X_index cannot exced the "
+                    "number of timestamps minus the length parameter plus one. Expected"
+                    f" a value between [0, {_max_timestamp - 1}] but got {X_index[1]}"
+                )
+        return X_index

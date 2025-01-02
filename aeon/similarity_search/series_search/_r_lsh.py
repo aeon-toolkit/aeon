@@ -3,7 +3,7 @@
 import numpy as np
 from numba import njit, prange
 
-TPB = 16
+# TPB = 16
 
 
 @njit(cache=True)

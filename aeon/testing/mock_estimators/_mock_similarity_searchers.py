@@ -17,8 +17,13 @@ from aeon.similarity_search.subsequence_search.base import (
 class MockMatrixProfile(BaseMatrixProfile):
     """Mock estimator for BaseMatrixProfile."""
 
-    def __init__(self, length=3):
-        super().__init__(length=length)
+    def __init__(
+        self,
+        length=3,
+        normalise=False,
+        n_jobs=1,
+    ):
+        super().__init__(length=length, n_jobs=n_jobs, normalise=normalise)
 
     def compute_matrix_profile(
         self,
@@ -45,8 +50,13 @@ class MockMatrixProfile(BaseMatrixProfile):
 class MockSubsequenceSearch(BaseSubsequenceSearch):
     """Mock estimator for BaseSubsequenceSearch."""
 
-    def __init__(self, length=3):
-        super().__init__(length=length)
+    def __init__(
+        self,
+        length=3,
+        normalise=False,
+        n_jobs=1,
+    ):
+        super().__init__(length=length, n_jobs=n_jobs, normalise=normalise)
 
     def _find_motifs(
         self,

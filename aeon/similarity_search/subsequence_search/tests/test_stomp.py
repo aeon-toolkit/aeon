@@ -265,13 +265,9 @@ def test__stomp(k, allow_neighboring_matches, inverse_distance):
             assert_almost_equal(MP[i][j], dist_profiles[index[0]][index[1]])
 
 
-@pytest.mark.parametrize(
-    [
-        ("k", K_VALUES),
-        ("allow_neighboring_matches", NN_MATCHES),
-        ("inverse_distance", INVERSE),
-    ]
-)
+@pytest.mark.parametrize("k", K_VALUES)
+@pytest.mark.parametrize("allow_neighboring_matches", NN_MATCHES)
+@pytest.mark.parametrize("inverse_distance", INVERSE)
 def test__stomp_normalised(k, allow_neighboring_matches, inverse_distance):
     """Test STOMP normalised method."""
     L = 3

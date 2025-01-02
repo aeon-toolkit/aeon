@@ -1,6 +1,7 @@
 """Implementation of STOMP with squared euclidean distance."""
 
 __maintainer__ = ["baraline"]
+from typing import Optional
 
 import numpy as np
 from numba import njit, prange
@@ -21,6 +22,14 @@ from aeon.utils.numba.general import (
 
 class StompMatrixProfile(BaseMatrixProfile):
     """Estimator to compute matrix profile and distance profile using STOMP."""
+
+    def __init__(
+        self,
+        length: int,
+        normalise: Optional[bool] = False,
+        n_jobs: Optional[int] = 1,
+    ):
+        super().__init__(length=length, n_jobs=n_jobs, normalise=normalise)
 
     def compute_matrix_profile(
         self,
