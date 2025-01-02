@@ -206,13 +206,9 @@ def test__normalised_squared_distance_profile():
             )
 
 
-@pytest.mark.parametrize(
-    [
-        ("k", K_VALUES),
-        ("allow_neighboring_matches", NN_MATCHES),
-        ("inverse_distance", INVERSE),
-    ]
-)
+@pytest.mark.parametrize("k", K_VALUES)
+@pytest.mark.parametrize("allow_neighboring_matches", NN_MATCHES)
+@pytest.mark.parametrize("inverse_distance", INVERSE)
 def test__stomp(k, allow_neighboring_matches, inverse_distance):
     """Test STOMP method."""
     L = 3

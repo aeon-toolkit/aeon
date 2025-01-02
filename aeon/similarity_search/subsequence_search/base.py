@@ -10,7 +10,7 @@ import numpy as np
 from numba import get_num_threads, set_num_threads
 from numba.typed import List
 
-from aeon.similarity_search.base import BaseSimilaritySearch
+from aeon.similarity_search._base import BaseSimilaritySearch
 from aeon.similarity_search.subsequence_search._commons import (
     _extract_top_k_from_dist_profile,
     _inverse_distance_profile_list,
@@ -34,7 +34,6 @@ class BaseSubsequenceSearch(BaseSimilaritySearch):
         Number of parallel jobs to use. The default is 1.
     """
 
-    @abstractmethod
     def __init__(
         self,
         length: int,
@@ -383,7 +382,8 @@ class BaseMatrixProfile(BaseSubsequenceSearch):
             X_index=X_index,
         )
         # TODO check motif extraction logic, sure its not this one
-        MP_avg = np.array([np.mean(MP[i]) for i in range(len(MP))])
+        MP_avg = np.array([[np.mean(MP[i]) for i in range(len(MP))]])
+        # TODO: appening IP of identified motifs to return to get motifs matches in X_
         return _extract_top_k_from_dist_profile(
             MP_avg,
             k,

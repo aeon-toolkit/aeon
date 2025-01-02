@@ -27,7 +27,7 @@ from aeon.testing.data_generation import (
     make_example_3d_numpy,
     make_example_3d_numpy_list,
 )
-from aeon.utils.numba.general import sliding_mean_std_one_series
+from aeon.utils.numba.general import sliding_mean_std_one_series, z_normalise_series_2d
 
 K_VALUES = [1, 3, 5]
 NN_MATCHES = [True, False]
@@ -60,17 +60,22 @@ def test__compute_dist_profile():
         assert_almost_equal(dist_profile[i_t], np.sum((X[:, i_t : i_t + L] - Q) ** 2))
 
 
+@pytest.mark.parametrize("normalise", NORMALISE)
 def test__naive_squared_distance_profile(normalise):
     """Test Euclidean distance profile calculation."""
     L = 3
     X = make_example_3d_numpy(n_cases=3, n_channels=1, n_timepoints=10, return_y=False)
     Q = make_example_2d_numpy_series(n_channels=1, n_timepoints=L)
-    dist_profiles = _naive_squared_distance_profile(X, Q)
+    dist_profiles = _naive_squared_distance_profile(X, Q, normalise=normalise)
+
+    if normalise:
+        Q = z_normalise_series_2d(Q)
     for i_x in range(len(X)):
         for i_t in range(X[i_x].shape[1] - L + 1):
-            assert_almost_equal(
-                dist_profiles[i_x][i_t], np.sum((X[i_x, :, i_t : i_t + L] - Q) ** 2)
-            )
+            _x = X[i_x, :, i_t : i_t + L]
+            if normalise:
+                _x = z_normalise_series_2d(_x)
+            assert_almost_equal(dist_profiles[i_x][i_t], np.sum((_x - Q) ** 2))
 
     # test unequal length and multivariate
     X = List(
@@ -84,22 +89,21 @@ def test__naive_squared_distance_profile(normalise):
     )
 
     Q = make_example_2d_numpy_series(n_channels=2, n_timepoints=L)
-    dist_profiles = _naive_squared_distance_profile(X, Q)
+    dist_profiles = _naive_squared_distance_profile(X, Q, normalise=normalise)
+    if normalise:
+        Q = z_normalise_series_2d(Q)
     for i_x in range(len(X)):
         for i_t in range(X[i_x].shape[1] - L + 1):
-            assert_almost_equal(
-                dist_profiles[i_x][i_t], np.sum((X[i_x][:, i_t : i_t + L] - Q) ** 2)
-            )
+            _x = X[i_x][:, i_t : i_t + L]
+            if normalise:
+                _x = z_normalise_series_2d(_x)
+            assert_almost_equal(dist_profiles[i_x][i_t], np.sum((_x - Q) ** 2))
 
 
-@pytest.mark.parametrize(
-    [
-        ("k", K_VALUES),
-        ("allow_neighboring_matches", NN_MATCHES),
-        ("inverse_distance", INVERSE),
-        ("normalise", NORMALISE),
-    ]
-)
+@pytest.mark.parametrize("k", K_VALUES)
+@pytest.mark.parametrize("allow_neighboring_matches", NN_MATCHES)
+@pytest.mark.parametrize("inverse_distance", INVERSE)
+@pytest.mark.parametrize("normalise", NORMALISE)
 def test__naive_squared_matrix_profile(
     k, allow_neighboring_matches, inverse_distance, normalise
 ):

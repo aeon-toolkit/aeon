@@ -1,1 +1,1 @@
-"""Tests for series methods."""
+"""Tests for subsequence search methods."""

@@ -55,24 +55,32 @@ def test_input_shape_fit_neighbord_motifs(base):
 
     for _input in valid_inputs_neighboord_motifs_uni:
         estimator_uni.find_neighbors(_input[:, :L])
-        estimator_uni.find_motifs(X=_input)
+        estimator_uni.find_motifs(_input)
         with pytest.raises(ValueError):
             # Wrong number of channels
             estimator_multi.find_neighbors(_input)
-            estimator_multi.find_motifs(X=_input)
-            # X length not of size L
-            estimator_uni.find_neighbors(X=_input[:, : L + 2])
+        with pytest.raises(ValueError):
+            estimator_multi.find_motifs(_input)
+        # X length not of size L
+        with pytest.raises(ValueError):
+            estimator_uni.find_neighbors(_input[:, : L + 2])
 
     for _input in invalid_inputs_neighboord_motifs_uni:
         with pytest.raises(TypeError):
             estimator_uni.find_neighbors(_input)
-            estimator_uni.find_motifs(X=_input)
+        with pytest.raises(TypeError):
+            estimator_uni.find_motifs(_input)
+        with pytest.raises(TypeError):
             estimator_multi.find_neighbors(_input)
-            estimator_multi.find_motifs(X=_input)
+        with pytest.raises(TypeError):
+            estimator_multi.find_motifs(_input)
 
     for _input in invalid_inputs_neighboord_motifs_multi:
         with pytest.raises(TypeError):
             estimator_uni.find_neighbors(_input)
-            estimator_uni.find_motifs(X=_input)
+        with pytest.raises(TypeError):
+            estimator_uni.find_motifs(_input)
+        with pytest.raises(TypeError):
             estimator_multi.find_neighbors(_input)
-            estimator_multi.find_motifs(X=_input)
+        with pytest.raises(TypeError):
+            estimator_multi.find_motifs(_input)

@@ -2,7 +2,7 @@
 
 __maintainer__ = ["baraline"]
 
-from aeon.similarity_search.base import BaseSimilaritySearch
+from aeon.similarity_search._base import BaseSimilaritySearch
 
 
 class BaseSeriesSearch(BaseSimilaritySearch):

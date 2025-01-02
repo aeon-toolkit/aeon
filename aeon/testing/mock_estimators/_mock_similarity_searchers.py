@@ -32,7 +32,7 @@ class MockMatrixProfile(BaseMatrixProfile):
     ):
         """Compute matrix profiles between X_ and X or between all series in X_."""
         return np.zeros((X.shape[1] - self.length + 1, k)), np.zeros(
-            (X.shape[1] - self.length + 1, k, 2)
+            (X.shape[1] - self.length + 1, k, 2), dtype=np.int64
         )
 
     def compute_distance_profile(self, X):
@@ -50,9 +50,9 @@ class MockSubsequenceSearch(BaseSubsequenceSearch):
 
     def _find_motifs(
         self,
+        X,
         k=1,
         threshold=np.inf,
-        X=None,
         X_index=None,
         inverse_distance=False,
         allow_neighboring_matches=False,

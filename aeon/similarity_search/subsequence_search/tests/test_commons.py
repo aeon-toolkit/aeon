@@ -17,6 +17,10 @@ from aeon.testing.data_generation import (
     make_example_2d_numpy_series,
 )
 
+K_VALUES = [1, 3, 5]
+THRESHOLDS = [np.inf, 0.7]
+NN_MATCHES = [False, True]
+
 
 def test_fft_sliding_dot_product():
     """Test the fft_sliding_dot_product function."""
@@ -60,14 +64,9 @@ def test__inverse_distance_profile_list():
     assert_array_almost_equal(1 / (X[1] + 1e-8), T[1])
 
 
-K_VALUES = [1, 3, 5]
-THRESHOLDS = [np.inf, 0.7]
-NN_MATCHES = [False, True]
-
-
-@pytest.mark.parametrize(
-    [("k", K_VALUES), ("threshold", THRESHOLDS), ("allow_nn_matches", NN_MATCHES)]
-)
+@pytest.mark.parametrize("k", K_VALUES)
+@pytest.mark.parametrize("threshold", THRESHOLDS)
+@pytest.mark.parametrize("allow_nn_matches", NN_MATCHES)
 def test__extract_top_k_from_dist_profile(k, threshold, allow_nn_matches):
     """Test method to esxtract the top k candidates from a list of distance profiles."""
     X = make_example_2d_numpy_list(

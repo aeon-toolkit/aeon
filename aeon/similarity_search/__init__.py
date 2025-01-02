@@ -2,4 +2,4 @@
 
 __all__ = ["BaseSimilaritySearch"]
 
-from aeon.similarity_search.base import BaseSimilaritySearch
+from aeon.similarity_search._base import BaseSimilaritySearch
