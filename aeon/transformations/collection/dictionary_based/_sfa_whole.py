@@ -68,7 +68,7 @@ class SFAWhole(SFAFast):
         alphabet_size=4,
         norm=True,
         binning_method="equi-depth",
-        variance=False,
+        variance=True,
         sampling_factor=None,
         random_state=None,
         n_jobs=1,
@@ -149,5 +149,6 @@ class SFAWhole(SFAFast):
         params = {
             "word_length": 4,
             "alphabet_size": 4,
+            "variance": False,
         }
         return params

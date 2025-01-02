@@ -69,7 +69,7 @@ def test_sfa_mindist():
         window_size=n,
         binning_method=histogram_type,
         norm=True,
-        variance=True,
+        variance=False,  # True gives a tighter lower bound
         lower_bounding_distances=True,  # This must be set!
     )
 
@@ -86,12 +86,16 @@ def test_sfa_mindist():
         word_length=n_segments,
         alphabet_size=alphabet_size,
         binning_method=histogram_type,
+        variance=False,  # True gives a tighter lower bound
         norm=True,
     )
 
     transforms = [sfa_fast, sfa_old, sfa_whole]
+    dists = np.zeros(
+        (min(X_train.shape[0], X_test.shape[0]), len(transforms)), dtype=np.float32
+    )
 
-    for sfa in transforms:
+    for j, sfa in enumerate(transforms):
         sfa.fit(X_train)
         X_train_words, X_train_dfts = sfa.transform_words(X_train)
         X_test_words, _ = sfa.transform_words(X_test)
@@ -105,6 +109,8 @@ def test_sfa_mindist():
                 X_train_words[i], X_test_words[i], sfa.breakpoints
             )
 
+            dists[i, j] = mindist_sfa
+
             # DFT-SFA Min-Distance
             mindist_dft_sfa = mindist_dft_sfa_distance(
                 X_train_dfts[i], X_test_words[i], sfa.breakpoints
@@ -116,6 +122,9 @@ def test_sfa_mindist():
             assert mindist_sfa <= ed
             assert mindist_dft_sfa >= mindist_sfa  # a tighter lower bound
             assert mindist_dft_sfa <= ed
+
+    for i in range(min(X_train.shape[0], X_test.shape[0])):
+        assert np.allclose(*dists[i])
 
 
 def test_sfa_whole_mindist():
