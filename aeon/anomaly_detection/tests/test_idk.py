@@ -4,9 +4,10 @@ import numpy as np
 
 from aeon.anomaly_detection import IDK
 
+
 def test_idk_univariate():
     """Test IDK on univariate data."""
-    rng = np.random.default_rng(seed=2)  
+    rng = np.random.default_rng(seed=2)
     series = rng.normal(size=(100,))
     series[50:58] -= 5
 
