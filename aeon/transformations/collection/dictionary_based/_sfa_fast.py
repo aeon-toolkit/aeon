@@ -146,8 +146,6 @@ class SFAFast(BaseCollectionTransformer):
         word_length=8,
         alphabet_size=4,
         alphabet_sizes=None,
-        learn_alphabet_sizes=False,
-        learn_alphabet_lambda=0.5,
         window_size=12,
         norm=False,
         binning_method="equi-depth",
@@ -178,7 +176,6 @@ class SFAFast(BaseCollectionTransformer):
 
         self.alphabet_size = alphabet_size
         self.alphabet_sizes = alphabet_sizes
-        self.learn_alphabet_lambda = learn_alphabet_lambda
         self.window_size = window_size
 
         self.norm = norm
@@ -210,7 +207,6 @@ class SFAFast(BaseCollectionTransformer):
         self.dilation = dilation
         self.first_difference = first_difference
         self.sampling_factor = sampling_factor
-        self.learn_alphabet_sizes = learn_alphabet_sizes
 
         # Feature selection part
         self.feature_selection = feature_selection
@@ -294,14 +290,6 @@ class SFAFast(BaseCollectionTransformer):
             X2, self.X_index = _dilation(X, self.dilation, self.first_difference)
         else:
             X2, self.X_index = X, np.arange(X.shape[-1])
-
-        if self.learn_alphabet_sizes:
-            self.bit_budget = int(np.log2(self.alphabet_size) * self.word_length)
-
-            DP_reward, bit_arr = SFAFast.dynamic_alphabet_allocation(
-                bits=self.bit_budget, X=X2, lamda=self.learn_alphabet_lambda
-            )
-            self.alphabet_size = [int(2 ** bit_arr[i]) for i in range(len(bit_arr))]
 
         self.n_cases, self.n_timepoints = X2.shape
         self.breakpoints = self._binning(X2, y)
@@ -758,59 +746,6 @@ class SFAFast(BaseCollectionTransformer):
             self.alphabet_size,
             self.breakpoints,
         )
-
-    @staticmethod
-    def dynamic_alphabet_allocation(bits, X, lamda=0.5):
-        # From the SPARTAN code
-        n = len(X)
-        A = int(bits / n)
-        DP = np.zeros((n + 1, bits + 1))
-        min_bit = 1
-        max_bit = int(np.max(X) * bits)
-        alloc = (
-            np.zeros_like(DP).astype(np.int32) + bits
-        )  # store the num of bits for each component
-
-        # init
-        for i in range(0, n + 1):
-            for j in range(0, bits + 1):
-                DP[i][j] = -1e9
-        DP[0][0] = 0
-
-        # non-recursive
-        for i in range(1, n + 1):
-            for j in range(0, bits + 1):
-                max_reward = -1e9
-                for x in range(min_bit, max_bit + 1):
-                    if j - x >= 0 and x <= alloc[i - 1][j - x]:
-                        current_reward = (
-                            DP[i - 1][j - x]
-                            + x * X[i - 1]
-                            + SFAFast.regularization_term(x, X[i - 1], A, lamda)
-                        )
-
-                        if current_reward > max_reward:
-                            alloc[i][j] = x
-                            max_reward = current_reward
-                            DP[i][j] = current_reward
-
-        bit_arr = SFAFast.print_sol(alloc, n, bits)
-        assert np.sum(bit_arr) == bits
-        return DP[n][bits], bit_arr[::-1]
-
-    @staticmethod
-    def regularization_term(x, ev_value, avg_bit, lamda=0.5):
-        return -lamda * (x - avg_bit) ** 2 * ev_value
-
-    @staticmethod
-    def print_sol(alloc, K, N):
-        bit_arr = []
-        unused_bit = N
-        for i in range(K, 1, -1):
-            bit_arr.append(alloc[i][unused_bit])
-            unused_bit -= alloc[i][unused_bit]
-        bit_arr.append(unused_bit)
-        return bit_arr
 
     @classmethod
     def get_test_params(cls, parameter_set="default"):
