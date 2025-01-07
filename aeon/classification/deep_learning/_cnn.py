@@ -125,6 +125,7 @@ class TimeCNNClassifier(BaseDeepClassifier):
         activation="sigmoid",
         padding="valid",
         strides=1,
+        strides_pooling=None,
         dilation_rate=1,
         n_epochs=2000,
         batch_size=16,
@@ -148,6 +149,7 @@ class TimeCNNClassifier(BaseDeepClassifier):
         self.n_filters = n_filters
         self.padding = padding
         self.strides = strides
+        self.strides_pooling = strides_pooling
         self.dilation_rate = dilation_rate
         self.avg_pool_size = avg_pool_size
         self.activation = activation
@@ -182,6 +184,7 @@ class TimeCNNClassifier(BaseDeepClassifier):
             activation=self.activation,
             padding=self.padding,
             strides=self.strides,
+            strides_pooling=self.strides_pooling,
             dilation_rate=self.dilation_rate,
             use_bias=self.use_bias,
         )
