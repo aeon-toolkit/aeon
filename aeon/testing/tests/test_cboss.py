@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from ._cboss import ContractableBOSS
+from aeon.classification.dictionary_based._cboss import ContractableBOSS
 
 
 def test_invalid_window_size():
