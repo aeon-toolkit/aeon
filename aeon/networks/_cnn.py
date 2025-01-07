@@ -65,6 +65,7 @@ class TimeCNNNetwork(BaseDeepLearningNetwork):
         activation="sigmoid",
         padding="valid",
         strides=1,
+        strides_pooling=None,
         dilation_rate=1,
         use_bias=True,
     ):
@@ -75,6 +76,7 @@ class TimeCNNNetwork(BaseDeepLearningNetwork):
         self.activation = activation
         self.padding = padding
         self.strides = strides
+        self.strides_pooling = strides_pooling
         self.dilation_rate = dilation_rate
         self.use_bias = use_bias
 
@@ -130,6 +132,19 @@ class TimeCNNNetwork(BaseDeepLearningNetwork):
             self._avg_pool_size = self.avg_pool_size
         else:
             self._avg_pool_size = [self.avg_pool_size] * self.n_layers
+
+        if self.strides_pooling is None:
+            self._strides_pooling = self._avg_pool_size
+        elif isinstance(self.strides_pooling, list):
+            if len(self.strides_pooling) != self.n_layers:
+                raise ValueError(
+                    f"Number of strides for pooling {len(self.strides_pooling)} should be"
+                    f" the same as number of layers but is"
+                    f" not: {self.n_layers}"
+                )
+            self._strides_pooling = self.strides_pooling
+        else:
+            self._strides_pooling = [self.strides_pooling] * self.n_layers
 
         if isinstance(self.activation, list):
             if len(self.activation) != self.n_layers:
@@ -204,9 +219,10 @@ class TimeCNNNetwork(BaseDeepLearningNetwork):
                 use_bias=self._use_bias[i],
             )(x)
 
-            conv = tf.keras.layers.AveragePooling1D(pool_size=self._avg_pool_size[i])(
-                conv
-            )
+            conv = tf.keras.layers.AveragePooling1D(
+                pool_size=self._avg_pool_size[i],
+                strides=self._strides_pooling[i],
+                )(conv)
 
             x = conv
 
