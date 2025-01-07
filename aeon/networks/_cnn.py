@@ -141,8 +141,8 @@ class TimeCNNNetwork(BaseDeepLearningNetwork):
         elif isinstance(self.strides_pooling, list):
             if len(self.strides_pooling) != self.n_layers:
                 raise ValueError(
-                    f"Number of strides for pooling {len(self.strides_pooling)} should be"
-                    f" the same as number of layers but is"
+                    f"Number of strides for pooling {len(self.strides_pooling)}"
+                    f" should be the same as number of layers but is"
                     f" not: {self.n_layers}"
                 )
             self._strides_pooling = self.strides_pooling
