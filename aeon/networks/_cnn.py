@@ -32,6 +32,9 @@ class TimeCNNNetwork(BaseDeepLearningNetwork):
     strides : int or list of int, default = 1
         The strides of kernels in the convolution and max pooling layers, if not a list,
         the same strides are used for all layers.
+    strides_pooling : int or list of int, default = None
+        Strides for the pooling layers. If None, defaults to pool_size.
+        If not a list, the same strides are used for all pooling layers.
     dilation_rate : int or list of int, default = 1
         The dilation rate of the convolution layers, if not a list, the same dilation
         rate is used all over the network.
