@@ -225,7 +225,7 @@ class TimeCNNNetwork(BaseDeepLearningNetwork):
             conv = tf.keras.layers.AveragePooling1D(
                 pool_size=self._avg_pool_size[i],
                 strides=self._strides_pooling[i],
-                )(conv)
+            )(conv)
 
             x = conv
 
