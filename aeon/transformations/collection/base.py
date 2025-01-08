@@ -62,20 +62,19 @@ class BaseCollectionTransformer(BaseCollectionEstimator, BaseTransformer):
         Parameters
         ----------
         X : np.ndarray or list
-            Input data, any number of channels, equal length series of shape ``(
-            n_cases, n_channels, n_timepoints)``
-            or list of numpy arrays (any number of channels, unequal length series)
-            of shape ``[n_cases]``, 2D np.array ``(n_channels, n_timepoints_i)``,
-            where ``n_timepoints_i`` is length of series ``i``. Other types are
-            allowed and converted into one of the above.
+            Data to fit transform to, of valid collection type. Input data,
+            any number of channels, equal length series of shape ``(
+            n_cases, n_channels, n_timepoints)`` or list of numpy arrays (any number
+            of channels, unequal length series) of shape ``[n_cases]``, 2D np.array
+            ``(n_channels, n_timepoints_i)``, where ``n_timepoints_i`` is length of
+            series ``i``. Other types are allowed and converted into one of the above.
 
             Different estimators have different capabilities to handle different
-            types of input. If `self.get_tag("capability:multivariate")`` is False,
+            types of input. If ``self.get_tag("capability:multivariate")`` is False,
             they cannot handle multivariate series. If ``self.get_tag(
             "capability:unequal_length")`` is False, they cannot handle unequal
             length input. In both situations, a ``ValueError`` is raised if X has a
             characteristic that the estimator does not have the capability to handle.
-              Data to fit transform to, of valid collection type.
         y : np.ndarray, default=None
             1D np.array of float or str, of shape ``(n_cases)`` - class labels
             (ground truth) for fitting indices corresponding to instance indices in X.
@@ -117,20 +116,20 @@ class BaseCollectionTransformer(BaseCollectionEstimator, BaseTransformer):
         Parameters
         ----------
         X : np.ndarray or list
-            Input data, any number of channels, equal length series of shape ``(
-            n_cases, n_channels, n_timepoints)``
-            or list of numpy arrays (any number of channels, unequal length series)
-            of shape ``[n_cases]``, 2D np.array ``(n_channels, n_timepoints_i)``,
-            where ``n_timepoints_i`` is length of series ``i``. Other types are
-            allowed and converted into one of the above.
+            Data to fit transform to, of valid collection type. Input data,
+            any number of channels, equal length series of shape ``(
+            n_cases, n_channels, n_timepoints)`` or list of numpy arrays (any number
+            of channels, unequal length series) of shape ``[n_cases]``, 2D np.array
+            ``(n_channels, n_timepoints_i)``, where ``n_timepoints_i`` is length of
+            series ``i``. Other types are allowed and converted into one of the above.
 
             Different estimators have different capabilities to handle different
-            types of input. If `self.get_tag("capability:multivariate")`` is False,
+            types of input. If ``self.get_tag("capability:multivariate")`` is False,
             they cannot handle multivariate series. If ``self.get_tag(
             "capability:unequal_length")`` is False, they cannot handle unequal
             length input. In both situations, a ``ValueError`` is raised if X has a
             characteristic that the estimator does not have the capability to handle.
-              Data to fit transform to, of valid collection type.
+
         y : np.ndarray, default=None
             1D np.array of float or str, of shape ``(n_cases)`` - class labels
             (ground truth) for fitting indices corresponding to instance indices in X.
@@ -171,20 +170,19 @@ class BaseCollectionTransformer(BaseCollectionEstimator, BaseTransformer):
         Parameters
         ----------
         X : np.ndarray or list
-            Input data, any number of channels, equal length series of shape ``(
-            n_cases, n_channels, n_timepoints)``
-            or list of numpy arrays (any number of channels, unequal length series)
-            of shape ``[n_cases]``, 2D np.array ``(n_channels, n_timepoints_i)``,
-            where ``n_timepoints_i`` is length of series ``i``. Other types are
-            allowed and converted into one of the above.
+            Data to fit transform to, of valid collection type. Input data,
+            any number of channels, equal length series of shape ``(n_cases,
+            n_channels, n_timepoints)`` or list of numpy arrays (any number of
+            channels, unequal length series) of shape ``[n_cases]``, 2D np.array ``(
+            n_channels, n_timepoints_i)``, where ``n_timepoints_i`` is length of
+            series ``i``. Other types are allowed and converted into one of the above.
 
             Different estimators have different capabilities to handle different
-            types of input. If `self.get_tag("capability:multivariate")`` is False,
+            types of input. If ``self.get_tag("capability:multivariate")`` is False,
             they cannot handle multivariate series. If ``self.get_tag(
             "capability:unequal_length")`` is False, they cannot handle unequal
             length input. In both situations, a ``ValueError`` is raised if X has a
             characteristic that the estimator does not have the capability to handle.
-              Data to fit transform to, of valid collection type.
         y : np.ndarray, default=None
             1D np.array of float or str, of shape ``(n_cases)`` - class labels
             (ground truth) for fitting indices corresponding to instance indices in X.
@@ -222,20 +220,19 @@ class BaseCollectionTransformer(BaseCollectionEstimator, BaseTransformer):
         Parameters
         ----------
         X : np.ndarray or list
-            Input data, any number of channels, equal length series of shape ``(
-            n_cases, n_channels, n_timepoints)``
-            or list of numpy arrays (any number of channels, unequal length series)
-            of shape ``[n_cases]``, 2D np.array ``(n_channels, n_timepoints_i)``,
-            where ``n_timepoints_i`` is length of series ``i``. Other types are
-            allowed and converted into one of the above.
+            Data to fit transform to, of valid collection type. Input data,
+            any number of channels, equal length series of shape ``(
+            n_cases, n_channels, n_timepoints)`` or list of numpy arrays (any number
+            of channels, unequal length series)  of shape ``[n_cases]``, 2D np.array
+            ``(n_channels, n_timepoints_i)``, where ``n_timepoints_i`` is length of
+            series ``i``. Other types are allowed and converted into one of the above.
 
             Different estimators have different capabilities to handle different
-            types of input. If `self.get_tag("capability:multivariate")`` is False,
+            types of input. If ``self.get_tag("capability:multivariate")`` is False,
             they cannot handle multivariate series. If ``self.get_tag(
             "capability:unequal_length")`` is False, they cannot handle unequal
             length input. In both situations, a ``ValueError`` is raised if X has a
             characteristic that the estimator does not have the capability to handle.
-              Data to fit transform to, of valid collection type.
         y : np.ndarray, default=None
             1D np.array of float or str, of shape ``(n_cases)`` - class labels
             (ground truth) for fitting indices corresponding to instance indices in X.
