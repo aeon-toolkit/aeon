@@ -83,9 +83,9 @@ class IDK(BaseAnomalyDetector):
 
     def __init__(
         self,
-        psi1: int=8,
-        psi2: int=2,
-        width: int=1,
+        psi1: int = 8,
+        psi2: int = 2,
+        width: int = 1,
         t: int = 100,
         sliding: bool = False,
         random_state: int = None,
@@ -135,9 +135,7 @@ class IDK(BaseAnomalyDetector):
         onepoint_matrix = np.full((X.shape[0], self.t), -1)
 
         for time in range(self.t):
-            sample_indices = self.rng.choice(
-                X.shape[0], size=self.psi1, replace=False
-            )
+            sample_indices = self.rng.choice(X.shape[0], size=self.psi1, replace=False)
             sample = X[sample_indices, :]
             tem1 = np.dot(np.square(X), np.ones(sample.T.shape))
             tem2 = np.dot(np.ones(X.shape), np.square(sample.T))
