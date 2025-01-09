@@ -33,17 +33,17 @@ class RClusterer(BaseClusterer):
          over the time series,capturing patterns at varying scales
     num_cluster : int , default = 8
          The number of clusters used
-    random_state : int, Random state or None, default=None
-    n_jobs : int, default=1
-         The number of jobs to run in parallel for `transform`. ``-1``
-         means using all
-         processors.
     num_features : int, default=500
         Number of features need for fit_dilations method.
     n_init : int, default=10
         Number of times the R-Cluster algorithm will be run with different
         centroid seeds. The final result will be the best output of n_init
         consecutive runs in terms of inertia.
+    random_state : int, Random state or None, default=None
+    n_jobs : int, default=1
+         The number of jobs to run in parallel for `transform`. ``-1``
+         means using all
+         processors.
 
     Notes
     -----
