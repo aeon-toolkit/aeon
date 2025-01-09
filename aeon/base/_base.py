@@ -415,6 +415,11 @@ class BaseAeonEstimator(BaseEstimator, ABC):
         """Check fitted status and return a Boolean value."""
         return self.is_fitted
 
+    def __sklearn_tags__(self):
+        """Return sklearn style tags for the estimator."""
+        tags = super().__sklearn_tags__()
+        return tags
+
     def _validate_data(self, **kwargs):
         """Sklearn data validation."""
         raise NotImplementedError(
