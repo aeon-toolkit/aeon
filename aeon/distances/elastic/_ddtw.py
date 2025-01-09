@@ -29,11 +29,11 @@ def ddtw_distance(
 
     Derivative dynamic time warping (DDTW) is an adaptation of DTW originally proposed
     in [1]_. DDTW takes a version of the first derivatives of the series
-    prior to performing standard DTW. The derivative function, defined in [
-    1]_, is:
+    prior to performing standard DTW. The derivative function, defined in [1]_,
+    is:
 
     .. math::
-        d_{i}(x) = \frac{{}(x_{i} - x_{i-1} + ((x_{i+1} - x_{i-1}/2)}{2}
+        d_{i}(x) = \frac{{}(x_{i} - x_{i-1} + (x_{i+1} - x_{i-1})/2)}{2}
 
     where :math:`x` is the original time series and :math:`d_x` is the derived time
     series.
