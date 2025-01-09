@@ -5,7 +5,7 @@ __all__ = ["AutoPlaitSegmenter"]
 
 import numpy as np
 
-from aeon.segmentation import BaseSegmenter
+from aeon.segmentation.base import BaseSegmenter
 
 
 class _AutoPlait:
