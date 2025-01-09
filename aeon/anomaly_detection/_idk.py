@@ -83,9 +83,9 @@ class IDK(BaseAnomalyDetector):
 
     def __init__(
         self,
-        psi1: int,
-        psi2: int,
-        width: int,
+        psi1: int=8,
+        psi2: int=2,
+        width: int=1,
         t: int = 100,
         sliding: bool = False,
         random_state: int = None,
@@ -95,13 +95,14 @@ class IDK(BaseAnomalyDetector):
         self.width = width
         self.t = t
         self.sliding = sliding
-        self.random_state = np.random.default_rng(random_state)
+        self.random_state = random_state
+        self.rng = np.random.default_rng(random_state)
         super().__init__(axis=0)
 
     def _ik_inne_fm(self, X, psi, t=100):
         onepoint_matrix = np.zeros((X.shape[0], t * psi), dtype=int)
         for time in range(t):
-            sample_indices = self.random_state.choice(len(X), size=psi, replace=False)
+            sample_indices = self.rng.choice(len(X), size=psi, replace=False)
             sample = X[sample_indices, :]
 
             tem1 = np.dot(np.square(X), np.ones(sample.T.shape))
@@ -134,7 +135,7 @@ class IDK(BaseAnomalyDetector):
         onepoint_matrix = np.full((X.shape[0], self.t), -1)
 
         for time in range(self.t):
-            sample_indices = self.random_state.choice(
+            sample_indices = self.rng.choice(
                 X.shape[0], size=self.psi1, replace=False
             )
             sample = X[sample_indices, :]
@@ -210,5 +211,4 @@ class IDK(BaseAnomalyDetector):
             "psi1": 8,
             "psi2": 2,
             "width": 1,
-            "random_state": 42,
         }
