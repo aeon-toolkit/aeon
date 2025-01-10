@@ -7,13 +7,13 @@ import numpy as np
 from numba import njit, prange
 from numba.typed import List
 
+from aeon.similarity_search.subsequence_search._base import BaseMatrixProfile
 from aeon.similarity_search.subsequence_search._commons import (
     _extract_top_k_from_dist_profile,
     _inverse_distance_profile_list,
     fft_sliding_dot_product,
     get_ith_products,
 )
-from aeon.similarity_search.subsequence_search.base import BaseMatrixProfile
 from aeon.utils.numba.general import (
     AEON_NUMBA_STD_THRESHOLD,
     sliding_mean_std_one_series,

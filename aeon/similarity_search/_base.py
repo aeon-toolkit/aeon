@@ -26,7 +26,6 @@ class BaseSimilaritySearch(BaseCollectionEstimator):
 
     _tags = {
         "capability:multivariate": True,
-        "capability:unequal_length": True,
         "capability:multithreading": True,
         "fit_is_empty": False,
         "X_inner_type": ["np-list", "numpy3D"],

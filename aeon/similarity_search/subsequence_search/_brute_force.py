@@ -9,11 +9,11 @@ import numpy as np
 from numba import njit, prange
 from numba.typed import List
 
+from aeon.similarity_search.subsequence_search._base import BaseMatrixProfile
 from aeon.similarity_search.subsequence_search._commons import (
     _extract_top_k_from_dist_profile,
     _inverse_distance_profile_list,
 )
-from aeon.similarity_search.subsequence_search.base import BaseMatrixProfile
 from aeon.utils.numba.general import (
     get_all_subsequences,
     z_normalise_series_2d,

@@ -24,12 +24,11 @@ from aeon.clustering.base import BaseClusterer
 from aeon.forecasting.base import BaseForecaster
 from aeon.regression.base import BaseRegressor
 from aeon.segmentation.base import BaseSegmenter
-from aeon.similarity_search.subsequence_search.base import BaseSubsequenceSearch
+from aeon.similarity_search.series_search._base import BaseSeriesSearch
+from aeon.similarity_search.subsequence_search._base import BaseSubsequenceSearch
 from aeon.transformations.base import BaseTransformer
 from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.transformations.series import BaseSeriesTransformer
-
-# from aeon.similarity_search.series_search.base import BaseSeriesSearch
 
 # all base classes
 BASE_CLASS_REGISTER = {
@@ -49,7 +48,7 @@ BASE_CLASS_REGISTER = {
     "series-transformer": BaseSeriesTransformer,
     "forecaster": BaseForecaster,
     "subsequence_searcher": BaseSubsequenceSearch,
-    # "series_searcher": BaseSeriesSearch,
+    "series_searcher": BaseSeriesSearch,
 }
 
 # base classes which are valid for estimator to directly inherit from

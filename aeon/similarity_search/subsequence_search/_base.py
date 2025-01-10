@@ -44,6 +44,10 @@ class BaseSubsequenceSearch(BaseSimilaritySearch):
         self.length = length
         super().__init__(n_jobs=n_jobs, normalise=normalise)
 
+    _tags = {
+        "capability:unequal_length": True,
+    }
+
     @final
     def find_motifs(
         self,

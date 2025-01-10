@@ -8,7 +8,7 @@ __all__ = [
 
 import numpy as np
 
-from aeon.similarity_search.subsequence_search.base import (
+from aeon.similarity_search.subsequence_search._base import (
     BaseMatrixProfile,
     BaseSubsequenceSearch,
 )

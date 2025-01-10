@@ -132,11 +132,6 @@ class BaseSeriesSearch(BaseSimilaritySearch):
         self._check_is_fitted()
 
         self._check_find_neighbors_motif_format(X)
-        if self.length != X.shape[1]:
-            raise ValueError(
-                f"Expected X to be of shape {(self.n_channels_, self.length)} but"
-                f" got {X.shape} in find_neighbors."
-            )
 
         X_index = self._check_X_index_int(X_index)
         prev_threads = get_num_threads()
@@ -178,14 +173,6 @@ class BaseSeriesSearch(BaseSimilaritySearch):
         return means, stds
 
     def _fit(self, X, y=None):
-        if self.length >= self.min_timepoints_ or self.length < 1:
-            raise ValueError(
-                "The length of the query should be inferior or equal to the length of "
-                "data (X_) provided during fit, but got {} for X and {} for X_".format(
-                    self.length, self.min_timepoints_
-                )
-            )
-
         if self.normalise:
             self.X_means_, self.X_stds_ = self._compute_mean_std_from_collection(X)
         self.X_ = X
@@ -199,8 +186,6 @@ class BaseSeriesSearch(BaseSimilaritySearch):
         threshold: Optional[float] = np.inf,
         X_index: Optional[int] = None,
         inverse_distance: Optional[bool] = False,
-        allow_neighboring_matches: Optional[bool] = False,
-        exclusion_factor: Optional[float] = 2.0,
     ): ...
 
     @abstractmethod
@@ -211,17 +196,69 @@ class BaseSeriesSearch(BaseSimilaritySearch):
         threshold: Optional[float] = np.inf,
         inverse_distance: Optional[bool] = False,
         X_index=None,
-        allow_neighboring_matches: Optional[bool] = False,
-        exclusion_factor: Optional[float] = 2.0,
     ): ...
 
 
-class BaseIndexSearch(BaseSimilaritySearch):
-    """."""
+# TODO : Add an update method to add series to the index
+class BaseIndexSearch(BaseSeriesSearch):
+    """
+    Base class for similarity search on whole time series using indexes.
 
-    ...
+    Parameters
+    ----------
+    normalise : bool, optional
+        Whether the inputs should be z-normalised. The default is False.
+    n_jobs : int, optional
+        Number of parallel jobs to use. The default is 1.
+    """
 
-    def batch_fit(sourcefiles, batch_size):
-        """."""
-        # fit
-        # and then update
+    def _fit(self, X, y=None):
+        super()._fit(X)
+        self._build_index()
+        return self
+
+    @abstractmethod
+    def _build_index(self): ...
+
+    @abstractmethod
+    def _query_index(
+        self,
+        X,
+        k=1,
+        inverse_distance=False,
+        threshold=np.inf,
+    ): ...
+
+    @abstractmethod
+    def _get_bucket_sizes(self): ...
+
+    @abstractmethod
+    def _get_bucket_content(self, key): ...
+
+    def _find_motifs(
+        self,
+        X: np.ndarray,
+        k: Optional[int] = 1,
+        threshold: Optional[float] = np.inf,
+        X_index: Optional[int] = None,
+        inverse_distance: Optional[bool] = False,
+    ):
+        bucket_sizes = self._get_bucket_sizes()
+        idx_motifs = np.argsort(list(bucket_sizes.values()))[::-1][:, k]
+        # TODO : review distance return on motif for whole series and buckets
+        return [self._get_bucket_content(idx_motif) for idx_motif in idx_motifs], [
+            0 for _ in idx_motifs
+        ]
+
+    def _find_neighbors(
+        self,
+        X: np.ndarray,
+        k: Optional[int] = 1,
+        threshold: Optional[float] = np.inf,
+        inverse_distance: Optional[bool] = False,
+        X_index=None,
+    ):
+        top_k, top_k_dist = self._query_index(
+            X, k=k, inverse_distance=inverse_distance, threshold=threshold
+        )
+        return top_k, top_k_dist
