@@ -433,35 +433,14 @@ class RClusterer(BaseClusterer):
         self.labels_ = self.estimator.labels_
 
     def _predict(self, X, y=None) -> np.ndarray:
-        if not self.is_fitted:
-            raise ValueError(
-                "Data is not fitted. Please fit the model before using it."
-            )
-
         parameters = self._get_parameterised_data(X)
 
         transformed_data = self._get_transformed_data(X=X, parameters=parameters)
 
         X_std = self.scaler.fit_transform(transformed_data)
-        n_samples, n_features = X_std.shape
-        if self.pca.n_components != min(self.pca.n_components, n_samples, n_features):
-            pca = PCA().fit(X_std)
-            optimal_dimensions = np.argmax(pca.explained_variance_ratio_ < 0.01)
 
-            optimal_dimensions = max(
-                1, min(optimal_dimensions, X_std.shape[0], X_std.shape[1])
-            )
-            pca = PCA(n_components=optimal_dimensions, random_state=self.random_state)
-            transformed_data_pca = pca.fit_transform(X_std)
-            estimator = KMeans(
-                n_clusters=self.n_clusters,
-                random_state=self.random_state,
-                n_init=self.n_init,
-            )
-            return estimator.fit_predict(transformed_data_pca)
-        else:
-            transformed_data_pca = self.pca.fit_transform(X_std)
-            return self.estimator.predict(transformed_data_pca)
+        transformed_data_pca = self.pca.fit_transform(X_std)
+        return self.estimator.predict(transformed_data_pca)
 
     def _fit_predict(self, X, y=None) -> np.ndarray:
         parameters = self._get_parameterised_data(X)
