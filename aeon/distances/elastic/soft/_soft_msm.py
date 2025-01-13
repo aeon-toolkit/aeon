@@ -1,10 +1,11 @@
 r"""Soft move-split-merge (soft-MSM) distance between two time series."""
 
 __maintainer__ = []
-from typing import Optional
+from typing import Optional, Union
 
 import numpy as np
 from numba import njit
+from numba.typed import List as NumbaList
 
 from aeon.distances.elastic._alignment_paths import compute_min_return_path
 from aeon.distances.elastic._bounding_matrix import create_bounding_matrix
@@ -12,6 +13,8 @@ from aeon.distances.elastic.soft._soft_distance_utils import (
     _compute_soft_gradient,
     _softmin3,
 )
+from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
+from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
 @njit(cache=True, fastmath=True)
@@ -202,6 +205,167 @@ def _cost_dependent(x: np.ndarray, y: np.ndarray, z: np.ndarray, c: float) -> fl
         dist_xy = np.sum(np.abs(x - y))
         dist_xz = np.sum(np.abs(x - z))
         return c + min(dist_xy, dist_xz)
+
+
+def soft_msm_pairwise_distance(
+    X: Union[np.ndarray, list[np.ndarray]],
+    y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
+    window: Optional[float] = None,
+    independent: bool = True,
+    c: float = 1.0,
+    itakura_max_slope: Optional[float] = None,
+    gamma: float = 1.0,
+) -> np.ndarray:
+    """Compute the soft msm pairwise distance between a set of time series.
+
+    Parameters
+    ----------
+    X : np.ndarray or List of np.ndarray
+        A collection of time series instances  of shape ``(n_cases, n_timepoints)``
+        or ``(n_cases, n_channels, n_timepoints)``.
+    y : np.ndarray or List of np.ndarray or None, default=None
+        A single series or a collection of time series of shape ``(m_timepoints,)`` or
+        ``(m_cases, m_timepoints)`` or ``(m_cases, m_channels, m_timepoints)``.
+        If None, then the msm pairwise distance between the instances of X is
+        calculated.
+    window : float, default=None
+        The window to use for the bounding matrix. If None, no bounding matrix
+        is used.
+    independent : bool, default=True
+        Whether to use the independent or dependent MSM distance. The
+        default is True (to use independent).
+    c : float, default=1.
+        Cost for split or merge operation. Default is 1.
+    itakura_max_slope : float, default=None
+        Maximum slope as a proportion of the number of time points used to create
+        Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
+
+    Returns
+    -------
+    np.ndarray (n_cases, n_cases)
+        msm pairwise matrix between the instances of X.
+
+    Raises
+    ------
+    ValueError
+        If X is not 2D or 3D array when only passing X.
+        If X and y are not 1D, 2D or 3D arrays when passing both X and y.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.distances import msm_pairwise_distance
+    >>> # Distance between each time series in a collection of time series
+    >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
+    >>> msm_pairwise_distance(X)
+    array([[ 0.,  8., 12.],
+           [ 8.,  0.,  8.],
+           [12.,  8.,  0.]])
+
+    >>> # Distance between two collections of time series
+    >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
+    >>> y = np.array([[[11, 12, 13]],[[14, 15, 16]], [[17, 18, 19]]])
+    >>> msm_pairwise_distance(X, y)
+    array([[16., 19., 22.],
+           [13., 16., 19.],
+           [10., 13., 16.]])
+
+    >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
+    >>> y_univariate = np.array([11, 12, 13])
+    >>> msm_pairwise_distance(X, y_univariate)
+    array([[16.],
+           [13.],
+           [10.]])
+
+    >>> # Distance between each TS in a collection of unequal-length time series
+    >>> X = [np.array([1, 2, 3]), np.array([4, 5, 6, 7]), np.array([8, 9, 10, 11, 12])]
+    >>> msm_pairwise_distance(X)
+    array([[ 0., 10., 17.],
+           [10.,  0., 14.],
+           [17., 14.,  0.]])
+    """
+    multivariate_conversion = _is_numpy_list_multivariate(X, y)
+    _X, unequal_length = _convert_collection_to_numba_list(
+        X, "X", multivariate_conversion
+    )
+
+    if y is None:
+        # To self
+        return _soft_msm_pairwise_distance(
+            _X, window, independent, c, itakura_max_slope, gamma, unequal_length
+        )
+
+    _y, unequal_length = _convert_collection_to_numba_list(
+        y, "y", multivariate_conversion
+    )
+    return _soft_msm_from_multiple_to_multiple_distance(
+        _X, _y, window, independent, c, itakura_max_slope, gamma, unequal_length
+    )
+
+
+@njit(cache=True, fastmath=True)
+def _soft_msm_pairwise_distance(
+    X: NumbaList[np.ndarray],
+    window: Optional[float],
+    independent: bool,
+    c: float,
+    itakura_max_slope: Optional[float],
+    gamma: float,
+    unequal_length: bool,
+) -> np.ndarray:
+    n_cases = len(X)
+    distances = np.zeros((n_cases, n_cases))
+
+    if not unequal_length:
+        n_timepoints = X[0].shape[1]
+        bounding_matrix = create_bounding_matrix(
+            n_timepoints, n_timepoints, window, itakura_max_slope
+        )
+    for i in range(n_cases):
+        for j in range(i + 1, n_cases):
+            x1, x2 = X[i], X[j]
+            if unequal_length:
+                bounding_matrix = create_bounding_matrix(
+                    x1.shape[1], x2.shape[1], window, itakura_max_slope
+                )
+            distances[i, j] = _soft_msm_distance(
+                x1, x2, bounding_matrix, independent, c, gamma
+            )
+            distances[j, i] = distances[i, j]
+
+    return distances
+
+
+@njit(cache=True, fastmath=True)
+def _soft_msm_from_multiple_to_multiple_distance(
+    x: NumbaList[np.ndarray],
+    y: NumbaList[np.ndarray],
+    window: Optional[float],
+    independent: bool,
+    c: float,
+    itakura_max_slope: Optional[float],
+    gamma: float,
+    unequal_length: bool,
+) -> np.ndarray:
+    n_cases = len(x)
+    m_cases = len(y)
+    distances = np.zeros((n_cases, m_cases))
+
+    if not unequal_length:
+        bounding_matrix = create_bounding_matrix(
+            x[0].shape[1], y[0].shape[1], window, itakura_max_slope
+        )
+    for i in range(n_cases):
+        for j in range(m_cases):
+            x1, y1 = x[i], y[j]
+            if unequal_length:
+                bounding_matrix = create_bounding_matrix(
+                    x1.shape[1], y1.shape[1], window, itakura_max_slope
+                )
+            distances[i, j] = _soft_msm_distance(
+                x1, y1, bounding_matrix, independent, c, gamma
+            )
+    return distances
 
 
 @njit(cache=True, fastmath=True)

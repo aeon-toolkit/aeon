@@ -2,21 +2,21 @@ import numpy as np
 from scipy.optimize import minimize
 
 from aeon.clustering.averaging._ba_utils import _get_init_barycenter
+from aeon.distances._distance import DISTANCES, ELASTIC_DISTANCE_GRADIENT
 from aeon.distances.elastic.soft._soft_distance_utils import (
     _jacobian_product_squared_euclidean,
 )
-from aeon.distances.elastic.soft._soft_msm import soft_msm_gradient
 
 
 def _get_soft_gradient_function(distance):
-    if distance == "dtw":
-        return soft_dtw_gradient
-    elif distance == "twe":
-        return soft_twe_gradient
-    elif distance == "msm":
-        return soft_msm_gradient
-    else:
-        raise ValueError("Invalid distance")
+    if distance in ELASTIC_DISTANCE_GRADIENT:
+        for dist in DISTANCES:
+            if dist["name"] == distance:
+                return dist["gradient"]
+
+    raise ValueError(
+        f"Invalid distance: {distance}. Must be one " f"{ELASTIC_DISTANCE_GRADIENT}"
+    )
 
 
 def soft_barycenter(
@@ -27,7 +27,7 @@ def soft_barycenter(
     tol=1e-3,
     max_iters=50,
     init_barycenter="mean",
-    distance="dtw",
+    distance="soft_dtw",
     random_state=None,
     verbose=False,
     **kwargs,
@@ -83,11 +83,8 @@ if __name__ == "__main__":
     import time
 
     from aeon.datasets import load_gunpoint
-    from aeon.distances.elastic.soft._soft_dtw import soft_dtw_gradient
-    from aeon.distances.elastic.soft._soft_twe import soft_twe_gradient
 
     gamma = 0.01
-
     X, y = load_gunpoint()
     X = X[y == "1"]
     aeon_start = time.time()
@@ -97,14 +94,16 @@ if __name__ == "__main__":
     dtw_ba = dtw_ba.swapaxes(0, 1)
 
     twe_aeon_start = time.time()
-    twe_ba = soft_barycenter(X, max_iters=50, gamma=gamma, distance="twe", verbose=True)
+    twe_ba = soft_barycenter(
+        X, max_iters=50, gamma=gamma, distance="soft_twe", verbose=False
+    )
     twe_aeon_end = time.time()
     twe_ba = twe_ba.swapaxes(0, 1)
     print(f"Aeon twe time: {twe_aeon_end - twe_aeon_start}")  # noqa: T201
 
     msm_aeon_start = time.time()
     msm_ba = soft_barycenter(
-        X, max_iters=50, gamma=gamma, distance="msm", verbose=False
+        X, max_iters=50, gamma=gamma, distance="soft_dtw", verbose=False
     )
     msm_aeon_end = time.time()
     print(f"Aeon msm time: {msm_aeon_end - msm_aeon_start}")  # noqa: T201

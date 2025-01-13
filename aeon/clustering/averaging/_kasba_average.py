@@ -81,6 +81,8 @@ def kasba_average(
        10.48550/arXiv.2411.17838.
     """
     if len(X) <= 1:
+        if X.ndim == 3:
+            return X[0], np.zeros(X.shape[0])
         return X, np.zeros(X.shape[0])
 
     if X.ndim == 3:
