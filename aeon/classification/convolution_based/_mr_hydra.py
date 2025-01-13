@@ -88,7 +88,7 @@ class MultiRocketHydraClassifier(BaseClassifier):
     }
 
     def __init__(
-        self, 
+        self,
         n_kernels: int = 8,
         n_groups: int = 64,
         class_weight=None,
