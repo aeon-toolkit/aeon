@@ -389,7 +389,7 @@ def _make_estimator_overview(app):
 
             # For case where tag is not included output as not supported.
             if not _val or _val is None:
-                data[f"Supports {_str}"].append("\u274C")
+                data[f"Supports {_str}"].append("\u274c")
             else:
                 data[f"Supports {_str}"].append("\u2705")
 
@@ -458,51 +458,44 @@ def _add_estimator_capabilities_table(app, pagename, templatename, context, doct
             </div>
             """
 
-            body = context["body"]
+            html_content = context["body"]
 
-            def _insert_table(html_content, table_markup):
-                """Insert table into HTML content."""
-                # Look for existing NOTES section outside methods
-                start_methods = html_content.find('<dl class="py method">')
-                section_before_methods = html_content[:start_methods]
+            # Function to insert table into HTML content
+            # Look for existing NOTES section outside methods
+            start_methods = html_content.find('<dl class="py method">')
+            section_before_methods = html_content[:start_methods]
 
-                # Look for Notes section
-                notes_heading = '<p class="rubric">Notes</p>'
-                notes_pos = section_before_methods.find(notes_heading)
+            # Look for Notes section
+            notes_heading = '<p class="rubric">Notes</p>'
+            notes_pos = section_before_methods.find(notes_heading)
 
-                if notes_pos != -1:
-                    # Notes exists, insert table after it
-                    insert_pos = notes_pos + len(notes_heading)
-                    return (
-                        html_content[:insert_pos]
-                        + "\n"
-                        + table_markup
-                        + html_content[insert_pos:]
-                    )
-                else:
-                    # Need to create Notes section
-                    # Find position before References or Examples or Methods
-                    # whichever comes first
-                    ref_pos = section_before_methods.find(
-                        '<p class="rubric">References</p>'
-                    )
-                    ex_pos = section_before_methods.find(
-                        '<p class="rubric">Examples</p>'
-                    )
+            if notes_pos != -1:
+                # Notes exists, insert table after it
+                insert_pos = notes_pos + len(notes_heading)
+                context["body"] = (
+                    html_content[:insert_pos]
+                    + "\n"
+                    + html_output
+                    + html_content[insert_pos:]
+                )
+            else:
+                # Need to create Notes section
+                # Find position before References or Examples or Methods
+                # whichever comes first
+                ref_pos = section_before_methods.find(
+                    '<p class="rubric">References</p>'
+                )
+                ex_pos = section_before_methods.find('<p class="rubric">Examples</p>')
 
-                    positions = [
-                        pos for pos in [ref_pos, ex_pos, start_methods] if pos != -1
-                    ]
-                    insert_pos = min(positions) if positions else start_methods
+                positions = [
+                    pos for pos in [ref_pos, ex_pos, start_methods] if pos != -1
+                ]
+                insert_pos = min(positions) if positions else start_methods
 
-                    new_section = f'\n<p class="rubric">Notes</p>\n{table_markup}\n'
-                    return (
-                        html_content[:insert_pos]
-                        + new_section
-                        + html_content[insert_pos:]
-                    )
-
-            context["body"] = _insert_table(body, html_output)
+                new_section = f'\n<p class="rubric">Notes</p>\n{html_output}\n'
+                context["body"] = (
+                    html_content[:insert_pos] + new_section + html_content[insert_pos:]
+                )
 
 
 def setup(app):
