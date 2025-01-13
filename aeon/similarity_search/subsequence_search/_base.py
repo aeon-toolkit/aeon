@@ -19,6 +19,8 @@ from aeon.utils.numba.general import sliding_mean_std_one_series
 
 # We can define a BaseVariableLengthSubsequenceSearch later for VALMOD and the likes.
 
+# BaseSubSeries 'replace sub by series'
+
 
 class BaseSubsequenceSearch(BaseSimilaritySearch):
     """
