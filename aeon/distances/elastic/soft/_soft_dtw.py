@@ -7,43 +7,15 @@ from typing import Optional, Union
 import numpy as np
 from numba import njit
 from numba.typed import List as NumbaList
+from sklearn.metrics import pairwise_distances
 
 from aeon.distances.elastic._alignment_paths import compute_min_return_path
 from aeon.distances.elastic._bounding_matrix import create_bounding_matrix
 from aeon.distances.elastic._dtw import _dtw_cost_matrix
+from aeon.distances.elastic.soft._soft_distance_utils import _soft_gradient, _softmin3
 from aeon.distances.pointwise._squared import _univariate_squared_distance
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
-
-
-@njit(fastmath=True, cache=True)
-def _softmin3(a, b, c, gamma):
-    r"""Compute softmin of 3 input variables with parameter gamma.
-
-    This code is adapted from tslearn.
-
-    Parameters
-    ----------
-    a : float
-        First input variable.
-    b : float
-        Second input variable.
-    c : float
-        Third input variable.
-    gamma : float
-        Softmin parameter.
-
-    Returns
-    -------
-    float
-        Softmin of a, b, c.
-    """
-    a /= -gamma
-    b /= -gamma
-    c /= -gamma
-    max_val = max(a, b, c)
-    tmp = np.exp(a - max_val) + np.exp(b - max_val) + np.exp(c - max_val)
-    return -gamma * (np.log(tmp) + max_val)
 
 
 @njit(cache=True, fastmath=True)
@@ -444,3 +416,37 @@ def soft_dtw_alignment_path(
         compute_min_return_path(cost_matrix),
         abs(cost_matrix[x.shape[-1] - 1, y.shape[-1] - 1]),
     )
+
+
+def soft_dtw_gradient(
+    x: np.ndarray,
+    y: np.ndarray,
+    gamma: float = 1.0,
+    window: Optional[float] = None,
+    itakura_max_slope: Optional[float] = None,
+) -> tuple[np.ndarray, float]:
+    if x.ndim == 1 or y.ndim == 1:
+        _x = x.reshape((1, x.shape[0]))
+        _y = y.reshape((1, y.shape[0]))
+    else:
+        _x = x
+        _y = y
+    bounding_matrix = create_bounding_matrix(
+        _x.shape[1], _y.shape[1], window, itakura_max_slope
+    )
+    cost_matrix = _soft_dtw_cost_matrix(_x, _y, bounding_matrix, gamma)
+
+    if _x.shape[0] == 1:
+        distance_matrix = pairwise_distances(
+            _x.reshape(-1, 1), _y.reshape(-1, 1), metric="sqeuclidean"
+        )
+    else:
+        distance_matrix = np.zeros((_x.shape[1], _y.shape[1]))
+        for dim in range(_x.shape[0]):
+            distance_matrix += pairwise_distances(
+                _x[dim, :].reshape(-1, 1),
+                _y[dim, :].reshape(-1, 1),
+                metric="sqeuclidean",
+            )
+
+    return _soft_gradient(distance_matrix, cost_matrix, gamma), cost_matrix[-1, -1]
