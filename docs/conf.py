@@ -396,9 +396,9 @@ def _make_estimator_overview(app):
     df = pd.DataFrame.from_dict(data).sort_values(
         by=["Module", "Method family", "Estimator name"]
     )
-    
+
     df_str = """
-    <link rel="stylesheet" type="text/css" 
+    <link rel="stylesheet" type="text/css"
         href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
 
     <style>
@@ -407,13 +407,13 @@ def _make_estimator_overview(app):
     }
     </style>
     """
-    
+
     df_str += df.to_markdown(index=False, tablefmt="github")
     df_str += """
-    <script type="text/javascript" 
+    <script type="text/javascript"
         src="https://code.jquery.com/jquery-3.7.0.min.js">
     </script>
-    <script type="text/javascript" 
+    <script type="text/javascript"
         src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js">
     </script>
 
@@ -430,7 +430,7 @@ def _make_estimator_overview(app):
     });
     </script>
     """
-    
+
     with open("estimator_overview_table.md", "w", encoding="utf-8") as file:
         file.write(df_str)
 
