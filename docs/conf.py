@@ -431,9 +431,10 @@ $(document).ready(function() {
 });
 </script>
 """
-    
+
     with open("estimator_overview_table.md", "w", encoding="utf-8") as file:
         file.write(df_str)
+
 
 def _add_estimator_capabilities_table(app, pagename, templatename, context, doctree):
     """Add estimator capabilities table to HTML page."""
