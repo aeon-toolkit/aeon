@@ -10,6 +10,7 @@ from aeon.clustering.averaging._barycenter_averaging import elastic_barycenter_a
 from aeon.clustering.averaging._shift_scale_invariant_averaging import (
     shift_invariant_average,
 )
+from aeon.clustering.averaging._soft_barycentre import soft_barycenter_average
 
 
 def mean_average(X: np.ndarray, **kwargs) -> np.ndarray:
@@ -34,6 +35,7 @@ _AVERAGE_DICT = {
     "mean": mean_average,
     "ba": elastic_barycenter_average,
     "shift_scale": shift_invariant_average,
+    "soft_ba": soft_barycenter_average,
 }
 
 

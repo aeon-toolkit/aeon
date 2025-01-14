@@ -95,6 +95,32 @@ def _jacobian_product_squared_euclidean(X, Y, E):
     return product
 
 
+@njit(cache=True, fastmath=True)
+def _jacobian_product_absolute_distance(
+    X: np.ndarray, Y: np.ndarray, E: np.ndarray
+) -> np.ndarray:
+    d, m = X.shape[0], X.shape[1]
+    n = Y.shape[1]
+
+    product = np.zeros((d, m), dtype=np.float64)
+
+    for i in range(m):
+        for j in range(n):
+            e_ij = E[i, j]
+            if e_ij != 0.0:
+                for k in range(d):
+                    diff = X[k, i] - Y[k, j]
+                    if diff > 0:
+                        sign_val = 1.0
+                    elif diff < 0:
+                        sign_val = -1.0
+                    else:
+                        sign_val = 0.0
+                    product[k, i] += e_ij * sign_val
+
+    return product
+
+
 def _compute_soft_gradient(
     x: np.ndarray,
     y: np.ndarray,

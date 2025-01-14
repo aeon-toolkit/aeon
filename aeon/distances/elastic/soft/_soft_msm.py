@@ -119,7 +119,7 @@ def _soft_msm_univariate_cost_matrix(
     x_size = x.shape[0]
     y_size = y.shape[0]
     cost_matrix = np.full((x_size, y_size), np.inf)
-    cost_matrix[0, 0] = abs(x[0] - y[0])
+    cost_matrix[0, 0] = (x[0] - y[0]) ** 2
 
     for i in range(1, x_size):
         if bounding_matrix[i, 0]:
@@ -136,7 +136,7 @@ def _soft_msm_univariate_cost_matrix(
     for i in range(1, x_size):
         for j in range(1, y_size):
             if bounding_matrix[i, j]:
-                move_val = cost_matrix[i - 1, j - 1] + abs(x[i] - y[j])
+                move_val = cost_matrix[i - 1, j - 1] + (x[i] - y[j]) ** 2
                 split_val = cost_matrix[i - 1, j] + _cost_independent(
                     x[i], x[i - 1], y[j], c
                 )
@@ -155,7 +155,7 @@ def _soft_msm_dependent_cost_matrix(
     x_size = x.shape[1]
     y_size = y.shape[1]
     cost_matrix = np.full((x_size, y_size), np.inf)
-    cost_matrix[0, 0] = np.sum(np.abs(x[:, 0] - y[:, 0]))
+    cost_matrix[0, 0] = np.sum((x[:, 0] - y[:, 0]) ** 2)
 
     for i in range(1, x_size):
         if bounding_matrix[i, 0]:
@@ -172,7 +172,7 @@ def _soft_msm_dependent_cost_matrix(
     for i in range(1, x_size):
         for j in range(1, y_size):
             if bounding_matrix[i, j]:
-                move_val = cost_matrix[i - 1, j - 1] + np.sum(np.abs(x[:, i] - y[:, j]))
+                move_val = cost_matrix[i - 1, j - 1] + np.sum((x[:, i] - y[:, j]) ** 2)
                 split_val = cost_matrix[i - 1, j] + _cost_dependent(
                     x[:, i], x[:, i - 1], y[:, j], c
                 )
@@ -189,7 +189,7 @@ def _cost_independent(x_val: float, y_val: float, z_val: float, c: float) -> flo
     if (y_val <= x_val <= z_val) or (y_val >= x_val >= z_val):
         return c
     else:
-        return c + min(abs(x_val - y_val), abs(x_val - z_val))
+        return c + min((x_val - y_val) ** 2, (x_val - z_val) ** 2)
 
 
 @njit(cache=True, fastmath=True)
@@ -202,8 +202,8 @@ def _cost_dependent(x: np.ndarray, y: np.ndarray, z: np.ndarray, c: float) -> fl
     if in_between:
         return c
     else:
-        dist_xy = np.sum(np.abs(x - y))
-        dist_xz = np.sum(np.abs(x - z))
+        dist_xy = np.sum((x - y) ** 2)
+        dist_xz = np.sum((x - z) ** 2)
         return c + min(dist_xy, dist_xz)
 
 
@@ -436,7 +436,7 @@ def _soft_msm_univariate_cost_matrix_with_arr(
     x_size = x.shape[0]
     y_size = y.shape[0]
 
-    cost_matrix[0, 0] += abs(x[0] - y[0])
+    cost_matrix[0, 0] += (x[0] - y[0]) ** 2
 
     for i in range(1, x_size):
         if bounding_matrix[i, 0]:
@@ -456,7 +456,7 @@ def _soft_msm_univariate_cost_matrix_with_arr(
     for i in range(1, x_size):
         for j in range(1, y_size):
             if bounding_matrix[i, j]:
-                mv = cost_matrix[i - 1, j - 1] + abs(x[i] - y[j])
+                mv = cost_matrix[i - 1, j - 1] + (x[i] - y[j]) ** 2
                 move_arr[i, j] += mv
 
                 sp = cost_matrix[i - 1, j] + _cost_independent(x[i], x[i - 1], y[j], c)

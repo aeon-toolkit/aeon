@@ -11,7 +11,9 @@ from aeon.distances.elastic.soft._soft_distance_utils import (
     _compute_soft_gradient,
     _softmin3,
 )
-from aeon.distances.pointwise._euclidean import _univariate_euclidean_distance
+
+# from aeon.distances.pointwise._euclidean import _univariate_euclidean_distance
+from aeon.distances.pointwise._squared import _univariate_squared_distance
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
@@ -169,20 +171,13 @@ def _soft_twe_cost_matrix(
     for i in range(1, x_size):
         for j in range(1, y_size):
             if bounding_matrix[i - 1, j - 1]:
-                # Deletion in x
-                del_x_squared_dist = _univariate_euclidean_distance(
-                    x[:, i - 1], x[:, i]
-                )
+                del_x_squared_dist = _univariate_squared_distance(x[:, i - 1], x[:, i])
                 del_x = cost_matrix[i - 1, j] + del_x_squared_dist + del_add
-                # Deletion in y
-                del_y_squared_dist = _univariate_euclidean_distance(
-                    y[:, j - 1], y[:, j]
-                )
+                del_y_squared_dist = _univariate_squared_distance(y[:, j - 1], y[:, j])
                 del_y = cost_matrix[i, j - 1] + del_y_squared_dist + del_add
 
-                # Match
-                match_same_squared_d = _univariate_euclidean_distance(x[:, i], y[:, j])
-                match_prev_squared_d = _univariate_euclidean_distance(
+                match_same_squared_d = _univariate_squared_distance(x[:, i], y[:, j])
+                match_prev_squared_d = _univariate_squared_distance(
                     x[:, i - 1], y[:, j - 1]
                 )
                 match = (
@@ -207,7 +202,6 @@ def _pad_arrs(x: np.ndarray) -> np.ndarray:
     return padded_x
 
 
-@njit(cache=True, fastmath=True)
 def soft_twe_pairwise_distance(
     X: Union[np.ndarray, list[np.ndarray]],
     y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
@@ -256,7 +250,6 @@ def soft_twe_pairwise_distance(
         X, "X", multivariate_conversion
     )
     if y is None:
-        # Compute distances within the collection X
         return _soft_twe_pairwise_distance(
             _X, window, nu, lmbda, gamma, itakura_max_slope, unequal_length
         )
@@ -287,7 +280,6 @@ def _soft_twe_pairwise_distance(
             n_timepoints, n_timepoints, window, itakura_max_slope
         )
 
-    # Pre-pad arrays to optimize the computation
     padded_X = NumbaList()
     for i in range(n_cases):
         padded_X.append(_pad_arrs(X[i]))
@@ -327,7 +319,6 @@ def _soft_twe_multiple_to_multiple_distance(
             x[0].shape[1], y[0].shape[1], window, itakura_max_slope
         )
 
-    # Pre-pad arrays to optimize the computation
     padded_x = NumbaList()
     for i in range(n_cases):
         padded_x.append(_pad_arrs(x[i]))
@@ -440,41 +431,30 @@ def _soft_twe_cost_matrix_with_arr(
     x_size = x.shape[1]
     y_size = y.shape[1]
 
-    # Initialize DP matrix
     cost_matrix = np.full((x_size, y_size), np.inf)
     cost_matrix[0, 0] = 0.0
 
-    # We'll store the raw transition costs here
     del_x_arr = np.full((x_size, y_size), np.inf)
     del_y_arr = np.full((x_size, y_size), np.inf)
     match_arr = np.full((x_size, y_size), np.inf)
 
-    # Precompute the constant
     del_add = nu + lmbda
 
     for i in range(1, x_size):
         for j in range(1, y_size):
             if bounding_matrix[i - 1, j - 1]:
-                # -- Deletion in x
-                del_x_squared_dist = _univariate_euclidean_distance(
-                    x[:, i - 1], x[:, i]
-                )
+                del_x_squared_dist = _univariate_squared_distance(x[:, i - 1], x[:, i])
                 del_x = cost_matrix[i - 1, j] + del_x_squared_dist + del_add
                 del_x_arr[i, j] = del_x
 
-                # -- Deletion in y
-                del_y_squared_dist = _univariate_euclidean_distance(
-                    y[:, j - 1], y[:, j]
-                )
+                del_y_squared_dist = _univariate_squared_distance(y[:, j - 1], y[:, j])
                 del_y = cost_matrix[i, j - 1] + del_y_squared_dist + del_add
                 del_y_arr[i, j] = del_y
 
-                # -- Match
-                match_same_squared_d = _univariate_euclidean_distance(x[:, i], y[:, j])
-                match_prev_squared_d = _univariate_euclidean_distance(
+                match_same_squared_d = _univariate_squared_distance(x[:, i], y[:, j])
+                match_prev_squared_d = _univariate_squared_distance(
                     x[:, i - 1], y[:, j - 1]
                 )
-                # TWE match includes an additional 'nu * (|i-j| + ...)' term
                 match_cost = (
                     cost_matrix[i - 1, j - 1]
                     + match_same_squared_d
@@ -483,7 +463,6 @@ def _soft_twe_cost_matrix_with_arr(
                 )
                 match_arr[i, j] = match_cost
 
-                # -- Soft-min among the three
                 cost_matrix[i, j] = _softmin3(del_x, del_y, match_cost, gamma)
 
     return cost_matrix, del_y_arr, del_x_arr, match_arr
@@ -499,23 +478,20 @@ def _compute_gradient(
 ) -> np.ndarray:
     m, n = cost_matrix.shape
     E = np.zeros((m, n), dtype=np.float64)
-    E[m - 1, n - 1] = 1.0  # derivative of final cost w.r.t. cost_matrix[m-1,n-1] is 1
+    E[m - 1, n - 1] = 1.0
     inv_gamma = 1.0 / gamma
 
     for i in range(m - 1, -1, -1):
         for j in range(n - 1, -1, -1):
             e_ij = E[i, j]
             if e_ij == 0.0:
-                continue  # no partial to propagate
+                continue
 
-            c_ij = cost_matrix[i, j]  # the "soft-min" cell value
-
-            # Raw transition costs at (i,j)
+            c_ij = cost_matrix[i, j]
             dx = del_x_arr[i, j]
             dy = del_y_arr[i, j]
             mt = match_arr[i, j]
 
-            # Soft weights for each transition
             w_dx = 0.0
             w_dy = 0.0
             w_mt = 0.0
@@ -530,19 +506,15 @@ def _compute_gradient(
             if denom < 1e-15:
                 continue
 
-            alpha_dx = w_dx / denom  # fraction for "delete in x"
-            alpha_dy = w_dy / denom  # fraction for "delete in y"
-            alpha_mt = w_mt / denom  # fraction for "match"
+            alpha_dx = w_dx / denom
+            alpha_dy = w_dy / denom
+            alpha_mt = w_mt / denom
 
-            # Distribute partial derivatives to parent cells
             if i > 0:
-                # parent (i-1, j) => "delete in x"
                 E[i - 1, j] += e_ij * alpha_dx
             if j > 0:
-                # parent (i, j-1) => "delete in y"
                 E[i, j - 1] += e_ij * alpha_dy
             if i > 0 and j > 0:
-                # parent (i-1, j-1) => "match"
                 E[i - 1, j - 1] += e_ij * alpha_mt
 
     return E
