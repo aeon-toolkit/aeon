@@ -344,14 +344,23 @@ class TimeSeriesKMeans(BaseClusterer):
         initial_center_idx = self._random_state.randint(X.shape[0])
         indexes = [initial_center_idx]
 
-        for _ in range(1, self.n_clusters):
-            pw_dist = pairwise_distance(
-                X, X[indexes], method=self.distance, **self._distance_params
-            )
-            min_distances = pw_dist.min(axis=1)
+        min_distances = pairwise_distance(
+            X, X[initial_center_idx], method=self.distance, **self._distance_params
+        ).flatten()
+        labels = np.zeros(X.shape[0], dtype=int)
+
+        for i in range(1, self.n_clusters):
             probabilities = min_distances / min_distances.sum()
             next_center_idx = self._random_state.choice(X.shape[0], p=probabilities)
             indexes.append(next_center_idx)
+
+            new_distances = pairwise_distance(
+                X, X[next_center_idx], method=self.distance, **self._distance_params
+            ).flatten()
+
+            closer_points = new_distances < min_distances
+            min_distances[closer_points] = new_distances[closer_points]
+            labels[closer_points] = i
 
         centers = X[indexes]
         return centers

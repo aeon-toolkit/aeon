@@ -103,6 +103,9 @@ VALID_BA_METRICS = [
     "twe",
     "msm",
     "shape_dtw",
+    "soft_dtw",
+    "soft_twe",
+    "soft_msm",
 ]
 
 
