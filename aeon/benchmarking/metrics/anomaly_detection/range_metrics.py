@@ -4,7 +4,7 @@ __maintainer__ = []
 __all__ = ["ts_precision", "ts_recall", "ts_fscore"]
 
 
-def flatten_ranges(ranges):
+def _flatten_ranges(ranges):
     """
     If the input is a list of lists, it flattens it into a single list.
 
@@ -29,7 +29,7 @@ def flatten_ranges(ranges):
     return ranges
 
 
-def calculate_bias(position, length, bias_type="flat"):
+def _calculate_bias(position, length, bias_type="flat"):
     """Calculate bias value based on position and length.
 
     Parameters
@@ -54,7 +54,7 @@ def calculate_bias(position, length, bias_type="flat"):
         raise ValueError(f"Invalid bias type: {bias_type}")
 
 
-def gamma_select(cardinality, gamma, udf_gamma=None):
+def _gamma_select(cardinality, gamma, udf_gamma=None):
     """Select a gamma value based on the cardinality type."""
     if gamma == "one":
         return 1.0
@@ -94,8 +94,8 @@ def ts_precision(y_pred, y_real, gamma="one", bias_type="flat", udf_gamma=None):
         Global Precision
     """
     # Flattening y_pred and y_real to resolve nested lists
-    flat_y_pred = flatten_ranges(y_pred)
-    flat_y_real = flatten_ranges(y_real)
+    flat_y_pred = _flatten_ranges(y_pred)
+    flat_y_real = _flatten_ranges(y_real)
 
     overlapping_weighted_positions = 0.0
     total_pred_weight = 0.0
@@ -106,7 +106,7 @@ def ts_precision(y_pred, y_real, gamma="one", bias_type="flat", udf_gamma=None):
 
         for i in range(1, length_pred + 1):
             pos = start_pred + i - 1
-            bias = calculate_bias(i, length_pred, bias_type)
+            bias = _calculate_bias(i, length_pred, bias_type)
 
             # Check if the position is in any real range
             in_real = any(
@@ -114,7 +114,7 @@ def ts_precision(y_pred, y_real, gamma="one", bias_type="flat", udf_gamma=None):
             )
 
             if in_real:
-                gamma_value = gamma_select(1, gamma, udf_gamma)
+                gamma_value = _gamma_select(1, gamma, udf_gamma)
                 overlapping_weighted_positions += bias * gamma_value
 
             total_pred_weight += bias
@@ -154,8 +154,8 @@ def ts_recall(y_pred, y_real, gamma="one", bias_type="flat", alpha=0.0, udf_gamm
         Global Recall
     """
     # Flattening y_pred and y_real
-    flat_y_pred = flatten_ranges(y_pred)
-    flat_y_real = flatten_ranges(y_real)
+    flat_y_pred = _flatten_ranges(y_pred)
+    flat_y_real = _flatten_ranges(y_real)
 
     overlapping_weighted_positions = 0.0
     total_real_weight = 0.0
@@ -166,7 +166,7 @@ def ts_recall(y_pred, y_real, gamma="one", bias_type="flat", alpha=0.0, udf_gamm
 
         for i in range(1, length_real + 1):
             pos = start_real + i - 1
-            bias = calculate_bias(i, length_real, bias_type)
+            bias = _calculate_bias(i, length_real, bias_type)
 
             # Check if the position is in any predicted range
             in_pred = any(
@@ -174,7 +174,7 @@ def ts_recall(y_pred, y_real, gamma="one", bias_type="flat", alpha=0.0, udf_gamm
             )
 
             if in_pred:
-                gamma_value = gamma_select(1, gamma, udf_gamma)
+                gamma_value = _gamma_select(1, gamma, udf_gamma)
                 overlapping_weighted_positions += bias * gamma_value
 
             total_real_weight += bias
