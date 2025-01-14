@@ -1,6 +1,6 @@
 """Calculate Precision, Recall, and F1-Score for time series anomaly detection."""
 
-maintainer = []
+__maintainer__ = []
 __all__ = ["ts_precision", "ts_recall", "ts_fscore"]
 
 
