@@ -54,7 +54,7 @@ from aeon.benchmarking.metrics.anomaly_detection.range_metrics import (
 )
 def test_metrics(y_pred, y_real, expected_precision, expected_recall, expected_f1):
     """Test the range-based anomaly detection metrics."""
-    precision = ts_precision(y_pred, y_real, gamma="one", bias_type="flat")
+    precision = ts_precision(y_pred, y_real, bias_type="flat")
     recall = ts_recall(y_pred, y_real, gamma="one", bias_type="flat", alpha=0.0)
     f1_score = ts_fscore(y_pred, y_real, gamma="one", bias_type="flat", alpha=0.0)
 

@@ -11,12 +11,17 @@ def _flatten_ranges(ranges):
     Parameters
     ----------
     ranges : list of tuples or list of lists of tuples
-        The ranges to flatten.
+        The ranges to flatten. each tuple shoulod be in the format of (start, end).
 
     Returns
     -------
     list of tuples
         A flattened list of ranges.
+
+    Examples
+    --------
+    >>> _flatten_ranges([[(1, 5), (10, 15)], [(20, 25)]])
+    [(1, 5), (10, 15), (20, 25)]
     """
     if not ranges:
         return []
@@ -55,7 +60,29 @@ def _calculate_bias(position, length, bias_type="flat"):
 
 
 def _gamma_select(cardinality, gamma, udf_gamma=None):
-    """Select a gamma value based on the cardinality type."""
+    """Select a gamma value based on the cardinality type.
+
+    Parameters
+    ----------
+    cardinality : int
+        The number of overlapping ranges.
+    gamma : str
+        Gamma to use. Should be one of ["one", "reciprocal", "udf_gamma"].
+    udf_gamma : float or None, optional
+        The user-defined gamma value to use when `gamma` is set to "udf_gamma".
+        Required if `gamma` is "udf_gamma".
+
+    Returns
+    -------
+    float
+        The selected gamma value.
+
+    Raises
+    ------
+    ValueError
+        If an invalid `gamma` type is provided or if `udf_gamma` is required
+        but not provided.
+    """
     if gamma == "one":
         return 1.0
     elif gamma == "reciprocal":
@@ -66,32 +93,48 @@ def _gamma_select(cardinality, gamma, udf_gamma=None):
         else:
             raise ValueError("udf_gamma must be provided for 'udf_gamma' gamma type.")
     else:
-        raise ValueError("Invalid gamma type.")
+        raise ValueError(
+            "Invalid gamma type. Choose from ['one', 'reciprocal', 'udf_gamma']."
+        )
 
 
-def ts_precision(y_pred, y_real, gamma="one", bias_type="flat", udf_gamma=None):
+def ts_precision(y_pred, y_real, bias_type="flat"):
     """
     Calculate Global Precision for time series anomaly detection.
+
+    Global Precision measures the proportion of correctly predicted anomaly positions
+    out of all all the predicted anomaly positions, aggregated across the entire time
+    series.
 
     Parameters
     ----------
     y_pred : list of tuples or list of lists of tuples
-        The predicted ranges.
+        The predicted anomaly ranges.
+        - Each tuple represents a range (start, end) of the anomaly where
+          start is starting index (inclusive) and end is ending index (inclusive).
+        - If y_pred is in the format of list of lists, they will be flattened into a \
+          single list of tuples bringing it to the above format.
     y_real : list of tuples or list of lists of tuples
-        The real (actual) ranges.
-    gamma : str
-        Cardinality type. Should be one of ["reciprocal", "one", "udf_gamma"].
-        (default: "one")
+        The real/actual (ground truth) ranges.
+        - Each tuple represents a range (start, end) of the anomaly where
+          start is starting index (inclusive) and end is ending index (inclusive).
+        - If y_real is in the format of list of lists, they will be flattened into a
+          single list of tuples bringing it to the above format.
     bias_type : str
         Type of bias to apply. Should be one of ["flat", "front", "middle", "back"].
         (default: "flat")
-    udf_gamma : int or None
-        User-defined gamma value. (default: None)
 
     Returns
     -------
     float
         Global Precision
+
+    References
+    ----------
+    .. [1] Tatbul, Nesime, Tae Jun Lee, Stan Zdonik, Mejbah Alam,and Justin Gottschlich.
+       "Precision and Recall for Time Series." 32nd Conference on Neural Information
+       Processing Systems (NeurIPS 2018), Montréal, Canada.
+       http://papers.nips.cc/paper/7462-precision-and-recall-for-time-series.pdf
     """
     # Flattening y_pred and y_real to resolve nested lists
     flat_y_pred = _flatten_ranges(y_pred)
@@ -114,7 +157,8 @@ def ts_precision(y_pred, y_real, gamma="one", bias_type="flat", udf_gamma=None):
             )
 
             if in_real:
-                gamma_value = _gamma_select(1, gamma, udf_gamma)
+                # For precision, gamma is fixed to "one"
+                gamma_value = 1.0
                 overlapping_weighted_positions += bias * gamma_value
 
             total_pred_weight += bias
@@ -131,12 +175,24 @@ def ts_recall(y_pred, y_real, gamma="one", bias_type="flat", alpha=0.0, udf_gamm
     """
     Calculate Global Recall for time series anomaly detection.
 
+    Global Recall measures the proportion of correctly predicted anomaly positions
+    out of all the real/actual (ground truth) anomaly positions, aggregated across the
+    entire time series.
+
     Parameters
     ----------
     y_pred : list of tuples or list of lists of tuples
-        The predicted ranges.
+        The predicted anomaly ranges.
+        - Each tuple represents a range (start, end) of the anomaly where
+          start is starting index (inclusive) and end is ending index (inclusive).
+        - If y_pred is in the format of list of lists, they will be flattened into a
+          single list of tuples bringing it to the above format.
     y_real : list of tuples or list of lists of tuples
-        The real (actual) ranges.
+        The real/actual (ground truth) ranges.
+        - Each tuple represents a range (start, end) of the anomaly where
+          start is starting index (inclusive) and end is ending index (inclusive).
+        - If y_real is in the format of list of lists, they will be flattened into a
+          single list of tuples bringing it to the above format.
     gamma : str
         Cardinality type. Should be one of ["reciprocal", "one", "udf_gamma"].
         (default: "one")
@@ -152,6 +208,13 @@ def ts_recall(y_pred, y_real, gamma="one", bias_type="flat", alpha=0.0, udf_gamm
     -------
     float
         Global Recall
+
+    References
+    ----------
+    .. [1] Tatbul, Nesime, Tae Jun Lee, Stan Zdonik, Mejbah Alam,and Justin Gottschlich.
+       "Precision and Recall for Time Series." 32nd Conference on Neural Information
+       Processing Systems (NeurIPS 2018), Montréal, Canada.
+       http://papers.nips.cc/paper/7462-precision-and-recall-for-time-series.pdf
     """
     # Flattening y_pred and y_real
     flat_y_pred = _flatten_ranges(y_pred)
@@ -191,12 +254,23 @@ def ts_fscore(y_pred, y_real, gamma="one", bias_type="flat", alpha=0.0, udf_gamm
     """
     Calculate F1-Score for time series anomaly detection.
 
+    F-1 Score is the harmonic mean of Global Precision and Gloval recall, providing
+    a single metric to evaluate the performance of an anomaly detection model.
+
     Parameters
     ----------
     y_pred : list of tuples or list of lists of tuples
-        The predicted ranges.
+        The predicted anomaly ranges.
+        - Each tuple represents a range (start, end) of the anomaly where
+          start is starting index (inclusive) and end is ending index (inclusive).
+        - If y_pred is in the format of list of lists, they will be flattened into a
+          single list of tuples bringing it to the above format.
     y_real : list of tuples or list of lists of tuples
-        The real (actual) ranges.
+        The real/actual (ground truth) ranges.
+        - Each tuple represents a range (start, end) of the anomaly where
+          start is starting index (inclusive) and end is ending index (inclusive).
+        - If y_real is in the format of list of lists, they will be flattened into a
+          single list of tuples bringing it to the above format.
     gamma : str
         Cardinality type. Should be one of ["reciprocal", "one", "udf_gamma"].
         (default: "one")
@@ -210,8 +284,15 @@ def ts_fscore(y_pred, y_real, gamma="one", bias_type="flat", alpha=0.0, udf_gamm
     -------
     float
         F1-Score
+
+    References
+    ----------
+    .. [1] Tatbul, Nesime, Tae Jun Lee, Stan Zdonik, Mejbah Alam,and Justin Gottschlich.
+       "Precision and Recall for Time Series." 32nd Conference on Neural Information
+       Processing Systems (NeurIPS 2018), Montréal, Canada.
+       http://papers.nips.cc/paper/7462-precision-and-recall-for-time-series.pdf
     """
-    precision = ts_precision(y_pred, y_real, gamma, bias_type, udf_gamma=udf_gamma)
+    precision = ts_precision(y_pred, y_real, bias_type)
     recall = ts_recall(y_pred, y_real, gamma, bias_type, alpha, udf_gamma=udf_gamma)
 
     if precision + recall > 0:
