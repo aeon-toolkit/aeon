@@ -399,12 +399,49 @@ def _make_estimator_overview(app):
 
     df_str = """
 <!-- DataTables CSS -->
-<link rel="stylesheet" type="text/css" 
+<link rel="stylesheet" type="text/css"
 href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
 
 <style>
 .dataTables_wrapper {
     padding: 10px 0;
+}
+
+.dataTables_wrapper table.dataTable tbody tr {
+    background-color: var(--color-background-primary);
+    color: var(--color-foreground-primary);
+}
+
+.dataTables_wrapper table.dataTable tbody tr.odd {
+    background-color: var(--color-background-secondary);
+}
+
+.dataTables_wrapper table.dataTable tbody tr:hover {
+    background-color: var(--color-background-hover);
+}
+
+.dataTables_wrapper table.dataTable a {
+    color: var(--color-brand-content);
+}
+
+.dataTables_length select {
+    background-color: var(--color-background-primary) !important;
+    color: var(--color-foreground-primary) !important;
+    border: 1px solid var(--color-background-border) !important;
+}
+
+.dataTables_length select option {
+    background-color: var(--color-background-primary);
+    color: var(--color-foreground-primary);
+}
+
+.dataTables_length select option:checked {
+    background-color: var(--color-background-hover);
+    color: var(--color-foreground-primary);
+}
+
+.dataTables_length select:focus {
+    outline-color: var(--color-background-border);
 }
 </style>
 """
@@ -588,5 +625,12 @@ intersphinx_mapping = {
     "statsmodels": ("https://www.statsmodels.org/stable/", None),
 }
 
+
+# -- Options for _todo extension ----------------------------------------------
+todo_include_todos = False  # -- Options for _todo extension -------------------------
+todo_include_todos = False  # -- Options for _todo extension -------------------------
+todo_include_todos = False
+todo_include_todos = False
+todo_include_todos = False
 # -- Options for _todo extension ----------------------------------------------
 todo_include_todos = False
