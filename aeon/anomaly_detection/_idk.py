@@ -107,8 +107,8 @@ class IDK(BaseAnomalyDetector):
         onepoint_matrix = np.zeros((X.shape[0], t * psi), dtype=int)
         for time in range(t):
             sample_indices = self.rng.choice(len(X), size=psi, replace=False)
-            point2sample, radius_list, min_dist_point2sample = self._compute_point_to_sample(
-                X, sample_indices
+            point2sample, radius_list, min_dist_point2sample = (
+                self._compute_point_to_sample(X, sample_indices)
             )
 
             min_point2sample_index = np.argmin(point2sample, axis=1)
@@ -133,8 +133,8 @@ class IDK(BaseAnomalyDetector):
 
         for time in range(self.t):
             sample_indices = self.rng.choice(X.shape[0], size=self.psi1, replace=False)
-            point2sample, radius_list, min_dist_point2sample = self._compute_point_to_sample(
-                X, sample_indices
+            point2sample, radius_list, min_dist_point2sample = (
+                self._compute_point_to_sample(X, sample_indices)
             )
 
             for i in range(X.shape[0]):
