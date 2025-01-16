@@ -103,12 +103,12 @@ class IDK(BaseAnomalyDetector):
 
         return point2sample, radius_list, min_dist_point2sample
 
-    def _ik_inne_fm(self, X, psi, t=100):
+    def _ik_inne_fm(self, X, psi, t, rng):
         onepoint_matrix = np.zeros((X.shape[0], t * psi), dtype=int)
         for time in range(t):
-            sample_indices = self.rng.choice(len(X), size=psi, replace=False)
-            point2sample, radius_list, min_dist_point2sample = (
-                self._compute_point_to_sample(X, sample_indices)
+            sample_indices = rng.choice(len(X), size=psi, replace=False)
+            point2sample, radius_list, min_dist_point2sample = self._compute_point_to_sample(
+                X, sample_indices
             )
 
             min_point2sample_index = np.argmin(point2sample, axis=1)
@@ -121,20 +121,20 @@ class IDK(BaseAnomalyDetector):
 
         return onepoint_matrix
 
-    def _idk(self, X, psi, t=100):
-        point_fm_list = self._ik_inne_fm(X=X, psi=psi, t=t)
+    def _idk(self, X, psi, t, rng):
+        point_fm_list = self._ik_inne_fm(X=X, psi=psi, t=t, rng=rng)
         feature_mean_map = np.mean(point_fm_list, axis=0)
         return np.dot(point_fm_list, feature_mean_map) / t
 
-    def _idk_t(self, X):
+    def _idk_t(self, X, rng):
         window_num = int(np.ceil(X.shape[0] / self.width))
         featuremap_count = np.zeros((window_num, self.t * self.psi1))
         onepoint_matrix = np.full((X.shape[0], self.t), -1)
 
         for time in range(self.t):
-            sample_indices = self.rng.choice(X.shape[0], size=self.psi1, replace=False)
-            point2sample, radius_list, min_dist_point2sample = (
-                self._compute_point_to_sample(X, sample_indices)
+            sample_indices = rng.choice(X.shape[0], size=self.psi1, replace=False)
+            point2sample, radius_list, min_dist_point2sample = self._compute_point_to_sample(
+                X, sample_indices
             )
 
             for i in range(X.shape[0]):
@@ -159,10 +159,10 @@ class IDK(BaseAnomalyDetector):
                 featuremap_count, [featuremap_count.shape[0] - 1], axis=0
             )
 
-        return self._idk(featuremap_count, psi=self.psi2, t=self.t)
+        return self._idk(featuremap_count, psi=self.psi2, t=self.t, rng=rng)
 
-    def _idk_square_sliding(self, X):
-        point_fm_list = self._ik_inne_fm(X=X, psi=self.psi1, t=self.t)
+    def _idk_square_sliding(self, X, rng):
+        point_fm_list = self._ik_inne_fm(X=X, psi=self.psi1, t=self.t, rng=rng)
         point_fm_list = np.insert(point_fm_list, 0, 0, axis=0)
         cumsum = np.cumsum(point_fm_list, axis=0)
 
@@ -170,13 +170,13 @@ class IDK(BaseAnomalyDetector):
             self.width
         )
 
-        return self._idk(X=subsequence_fm_list, psi=self.psi2, t=self.t)
+        return self._idk(X=subsequence_fm_list, psi=self.psi2, t=self.t, rng=rng)
 
     def _predict(self, X):
-        self.rng = np.random.default_rng(self.random_state)
+        rng = np.random.default_rng(self.random_state)
         if self.sliding:
-            return self._idk_square_sliding(X)
-        return self._idk_t(X)
+            return self._idk_square_sliding(X, rng)
+        return self._idk_t(X, rng)
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
