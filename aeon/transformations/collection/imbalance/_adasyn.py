@@ -4,7 +4,7 @@ from imblearn.over_sampling import ADASYN as adasyn
 import numpy as np
 from aeon.transformations.collection import BaseCollectionTransformer
 
-__maintainer__ = ["TonyBagnall"]
+__maintainer__ = ["TonyBagnall, Chris Qiu"]
 __all__ = ["ADASYN"]
 
 
