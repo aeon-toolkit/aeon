@@ -20,7 +20,6 @@ class BaseSimilaritySearch(BaseAeonEstimator):
 
     _tags = {
         "requires_y": False,
-        "capability:multivariate": True,
         "fit_is_empty": False,
     }
 
@@ -85,12 +84,12 @@ class BaseSimilaritySearch(BaseAeonEstimator):
         if isinstance(X, np.ndarray):
             if X.ndim != 2:
                 raise TypeError(
-                    "A np.ndarray given in find_neighbors must be 2D"
+                    "A np.ndarray given in predict must be 2D"
                     f"(n_channels, n_timepoints) but found {X.ndim}D."
                 )
         else:
             raise TypeError(
-                "Expected a 2D np.ndarray in find_neighbors but found" f" {type(X)}."
+                "Expected a 2D np.ndarray in predict but found" f" {type(X)}."
             )
         if self.n_channels_ != X.shape[0]:
             raise ValueError(

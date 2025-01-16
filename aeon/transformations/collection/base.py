@@ -31,10 +31,10 @@ import numpy as np
 import pandas as pd
 
 from aeon.base import BaseCollectionEstimator
-from aeon.similarity_search._base import BaseSimilaritySearch
+from aeon.transformations.base import BaseTransformer
 
 
-class BaseCollectionTransformer(BaseCollectionEstimator, BaseSimilaritySearch):
+class BaseCollectionTransformer(BaseCollectionEstimator, BaseTransformer):
     """Transformer base class for collections."""
 
     # tag values specific to CollectionTransformers

@@ -3,9 +3,8 @@
 import numpy as np
 from numba import njit, prange
 
-from aeon.similarity_search.series_search._base import BaseIndexSearch
-
-# TPB = 16
+from aeon.similarity_search.collection._base import BaseCollectionSimilaritySearch
+from aeon.utils.numba.general import z_normalise_series_2d, z_normalise_series_3d
 
 
 @njit(cache=True)
@@ -17,12 +16,11 @@ def _hamming_dist(X, Y):
 
 
 @njit(cache=True, parallel=True)
-def _hamming_dist_matrix(bool_hashes_value_list, bool_hashes):
-    n_hash_funcs = bool_hashes.shape[0]
-    res = np.zeros((n_hash_funcs, bool_hashes_value_list.shape[0]), dtype=np.int64)
-    for i in prange(n_hash_funcs):
-        for j in range(bool_hashes_value_list.shape[0]):
-            res[i, j] = _hamming_dist(bool_hashes_value_list[j], bool_hashes[i])
+def _hamming_dist_series_to_collection(X_bool, collection_bool):
+    n_buckets = collection_bool.shape[0]
+    res = np.zeros(n_buckets, dtype=np.int64)
+    for i in prange(n_buckets):
+        res[i] = _hamming_dist(collection_bool[i], X_bool)
     return res
 
 
@@ -32,7 +30,7 @@ def _series_to_bool(X, hash_funcs, start_points, length):
     res = np.empty(n_hash_funcs, dtype=np.bool_)
     for j in prange(n_hash_funcs):
         res[j] = _nb_flat_dot(
-            X[start_points[j] : start_points[j] + length], hash_funcs[j]
+            X[:, start_points[j] : start_points[j] + length], hash_funcs[j]
         )
     return res
 
@@ -57,13 +55,12 @@ def _collection_to_bool(X, hash_funcs, start_points, length):
             res[i, j] = _nb_flat_dot(
                 X[i, :, start_points[j] : start_points[j] + length], hash_funcs[j]
             )
-
     return res
 
 
-class RP_LSH_Cosine(BaseIndexSearch):
+class RandomProjectionIndexANN(BaseCollectionSimilaritySearch):
     """
-    Random Projection Locality Sensitive Hashing index for cosine similarity.
+    Random Projection Locality Sensitive Hashing index with cosine similarity.
 
     In this method based on SimHash, we define a hash function as a boolean operation
     such as, given a random vector ``V`` of shape ``(n_channels, L)`` and a time series
@@ -74,8 +71,8 @@ class RP_LSH_Cosine(BaseIndexSearch):
     as ``X[:, s:s+L].V``
 
     Note that this method will not provide exact results, but will perform approximate
-    searchs. This also ignore any temporal correlation and treat series as
-    high dimensional points.
+    searchs. This also ignore any temporal correlation and consider series as
+    high dimensional points due to the cosine similarity distance.
 
     Parameters
     ----------
@@ -93,15 +90,16 @@ class RP_LSH_Cosine(BaseIndexSearch):
     Example
     -------
     >>> from aeon.datasets import load_classification
-    >>> from aeon.similarity_search.series_search import RP_LSH_Cosine
-    >>> index = RP_LSH_Cosine()
+    >>> from aeon.similarity_search.collection.neighbors import RandomProjectionIndexANN
+    >>> index = RandomProjectionIndexANN()
     >>> X, y = load_classification("ArrowHead")
     >>> index.fit(X[:200])
-    >>> r = index.find_neighbors(X[201])
+    >>> r = index.predict(X[201])
     """
 
     _tags = {
         "capability:unequal_length": False,
+        "capability:multithreading": True,
     }
 
     def __init__(
@@ -110,18 +108,26 @@ class RP_LSH_Cosine(BaseIndexSearch):
         hash_func_coverage=0.25,
         use_discrete_vectors=True,
         random_state=None,
-        normalise=False,
+        normalize=True,
         n_jobs=1,
     ):
         self.n_hash_funcs = n_hash_funcs
         self.hash_func_coverage = hash_func_coverage
         self.use_discrete_vectors = use_discrete_vectors
         self.random_state = random_state
-        super().__init__(normalise=normalise, n_jobs=n_jobs)
+        self.normalize = normalize
+        super().__init__(n_jobs=n_jobs)
 
-    def _build_index(self):
+    def _fit(self, X, y=None):
         """
-        Build the index based on the data stored in X_.
+        Build the index based on the X.
+
+        Parameters
+        ----------
+        X : np.ndarray, 3D array of shape (n_cases, n_channels, n_timepoints)
+            Input array to be used to build the index.
+        y : optional
+            Not used.
 
         Returns
         -------
@@ -129,8 +135,10 @@ class RP_LSH_Cosine(BaseIndexSearch):
 
         """
         rng = np.random.default_rng(self.random_state)
-        n_timepoints = self.X_.shape[2]
-        self.window_length_ = max(1, int(n_timepoints * self.hash_func_coverage))
+        if self.normalize:
+            X = z_normalise_series_3d(X)
+        self.n_timepoints_ = X.shape[2]
+        self.window_length_ = max(1, int(self.n_timepoints_ * self.hash_func_coverage))
 
         if self.use_discrete_vectors:
             self.hash_funcs_ = rng.choice(
@@ -143,13 +151,12 @@ class RP_LSH_Cosine(BaseIndexSearch):
                 size=(self.n_hash_funcs, self.n_channels_, self.window_length_),
             )
         self.start_points_ = rng.choice(
-            n_timepoints - self.window_length_ + 1,
+            self.n_timepoints_ - self.window_length_ + 1,
             size=self.n_hash_funcs,
             replace=True,
         )
-
         bool_hashes = _collection_to_bool(
-            self.X_, self.hash_funcs_, self.start_points_, self.window_length_
+            X, self.hash_funcs_, self.start_points_, self.window_length_
         )
 
         str_hashes = [hash(bool_hashes[i].tobytes()) for i in range(len(bool_hashes))]
@@ -174,20 +181,6 @@ class RP_LSH_Cosine(BaseIndexSearch):
         return {key: len(self.dict_X_index_[key]) for key in self.dict_X_index_}
 
     def _get_series_bucket(self, X):
-        """
-        Get the matching bucket of a single series X if it exists in the index.
-
-        Parameters
-        ----------
-        X : TYPE
-            DESCRIPTION.
-
-        Returns
-        -------
-        TYPE
-            DESCRIPTION.
-
-        """
         bool_hash = _series_to_bool(
             X, self.hash_funcs_, self.start_points_, self.window_length_
         )
@@ -197,7 +190,7 @@ class RP_LSH_Cosine(BaseIndexSearch):
         else:
             return None
 
-    def _query_index(
+    def predict(
         self,
         X,
         k=1,
@@ -222,19 +215,26 @@ class RP_LSH_Cosine(BaseIndexSearch):
         Returns
         -------
         top_k : np.ndarray, shape = (n_cases, k)
-            Indexes of k series in X_ (the index) that are close to each series in X.
+            Indexes of k series in the index that are similar to X.
         top_k_dist : np.ndarray, shape = (n_cases, k)
-            Distance of k series in X_ (the index) to each series in X. The distance
+            Distance of k series in the index to X. The distance
             is the hamming distance between the result of each hash function.
         """
-        bool_hashes = _series_to_bool(
+        X = self._pre_predict(X)
+        if X.shape[1] != self.n_timepoints_:
+            raise ValueError(
+                f"Expected a series with {self.n_timepoints_} but got {X.shape[1]}."
+                "Unequal length is not supported by this estimator."
+            )
+        if self.normalize:
+            X = z_normalise_series_2d(X)
+
+        X_bool = _series_to_bool(
             X, self.hash_funcs_, self.start_points_, self.window_length_
         )
         top_k = np.zeros(k, dtype=int)
         top_k_dist = np.zeros(k, dtype=float)
-        dists = _hamming_dist_matrix(
-            self.bool_hashes_value_list_, bool_hashes[np.newaxis, :]
-        )[0]
+        dists = _hamming_dist_series_to_collection(X_bool, self.bool_hashes_value_list_)
         if inverse_distance:
             dists = 1 / (dists + 1e-8)
         # Get top k buckets

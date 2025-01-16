@@ -11,11 +11,12 @@ from aeon.similarity_search._base import BaseSimilaritySearch
 from aeon.utils.validation import check_n_jobs
 
 
-class BaseSeriesSimilaritySearch(BaseSeriesEstimator, BaseSimilaritySearch):
+class BaseSeriesSimilaritySearch(BaseSimilaritySearch, BaseSeriesEstimator):
     """Base class for similarity search applications on single series."""
 
     _tags = {
         "input_data_type": "Series",
+        "capability:multivariate": True,
     }
 
     @abstractmethod
@@ -87,7 +88,7 @@ class BaseSeriesSimilaritySearch(BaseSeriesEstimator, BaseSimilaritySearch):
         self._check_is_fitted()
         if X is not None:
             X = self._preprocess_series(X, self.axis, False)
-            self._check_predict_format(X)
+            self._check_predict_series_format(X)
         return X
 
     def _check_X_index(self, X_index: int):
