@@ -11,16 +11,6 @@ class IDK(BaseAnomalyDetector):
     IDK², simplifies group anomaly detection, outperforming traditional methods in
     speed and effectiveness.
 
-    .. list-table:: Capabilities
-       :stub-columns: 1
-
-       * - Input data format
-         - univariate
-       * - Output data format
-         - anomaly scores
-       * - Learning Type
-         - unsupervised
-
     Parameters
     ----------
     psi1 : int
@@ -96,23 +86,30 @@ class IDK(BaseAnomalyDetector):
         self.t = t
         self.sliding = sliding
         self.random_state = random_state
-        self.rng = np.random.default_rng(random_state)
         super().__init__(axis=0)
+
+    def _compute_point_to_sample(self, X, sample_indices):
+        sample = X[sample_indices, :]
+        tem1 = np.dot(np.square(X), np.ones(sample.T.shape))
+        tem2 = np.dot(np.ones(X.shape), np.square(sample.T))
+        point2sample = tem1 + tem2 - 2 * np.dot(X, sample.T)
+
+        sample2sample = point2sample[sample_indices, :]
+        row, col = np.diag_indices_from(sample2sample)
+        sample2sample[row, col] = np.nan
+
+        radius_list = np.nanmin(sample2sample, axis=1)
+        min_dist_point2sample = np.argmin(point2sample, axis=1)
+
+        return point2sample, radius_list, min_dist_point2sample
 
     def _ik_inne_fm(self, X, psi, t=100):
         onepoint_matrix = np.zeros((X.shape[0], t * psi), dtype=int)
         for time in range(t):
             sample_indices = self.rng.choice(len(X), size=psi, replace=False)
-            sample = X[sample_indices, :]
-
-            tem1 = np.dot(np.square(X), np.ones(sample.T.shape))
-            tem2 = np.dot(np.ones(X.shape), np.square(sample.T))
-            point2sample = tem1 + tem2 - 2 * np.dot(X, sample.T)
-
-            sample2sample = point2sample[sample_indices, :]
-            row, col = np.diag_indices_from(sample2sample)
-            sample2sample[row, col] = 99999999
-            radius_list = np.min(sample2sample, axis=1)
+            point2sample, radius_list, min_dist_point2sample = self._compute_point_to_sample(
+                X, sample_indices
+            )
 
             min_point2sample_index = np.argmin(point2sample, axis=1)
             min_dist_point2sample = min_point2sample_index + time * psi
@@ -136,17 +133,9 @@ class IDK(BaseAnomalyDetector):
 
         for time in range(self.t):
             sample_indices = self.rng.choice(X.shape[0], size=self.psi1, replace=False)
-            sample = X[sample_indices, :]
-            tem1 = np.dot(np.square(X), np.ones(sample.T.shape))
-            tem2 = np.dot(np.ones(X.shape), np.square(sample.T))
-            point2sample = tem1 + tem2 - 2 * np.dot(X, sample.T)
-
-            sample2sample = point2sample[sample_indices, :]
-            row, col = np.diag_indices_from(sample2sample)
-            sample2sample[row, col] = 99999999
-
-            radius_list = np.min(sample2sample, axis=1)
-            min_dist_point2sample = np.argmin(point2sample, axis=1)
+            point2sample, radius_list, min_dist_point2sample = self._compute_point_to_sample(
+                X, sample_indices
+            )
 
             for i in range(X.shape[0]):
                 if (
@@ -184,6 +173,7 @@ class IDK(BaseAnomalyDetector):
         return self._idk(X=subsequence_fm_list, psi=self.psi2, t=self.t)
 
     def _predict(self, X):
+        self.rng = np.random.default_rng(self.random_state)
         if self.sliding:
             return self._idk_square_sliding(X)
         return self._idk_t(X)
