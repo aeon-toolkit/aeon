@@ -345,18 +345,18 @@ def _make_estimator_overview(app):
         return not input_string.startswith("_")
 
     # Columns for the output table
-    COLNAMES = ["Estimator name", "Module", "Method family"]
-    capabilities_to_include = [
-        "multivariate",
-        "unequal_length",
-        "missing_values",
-    ]
+    base_columns = ["Estimator name", "Module", "Method family"]
 
-    for capability_name in capabilities_to_include:
-        _str = capability_name.replace("_", " ")
-        COLNAMES.append(f"Supports {_str}")
+    capabilities_to_include = {
+        "multivariate": "Mult.",
+        "unequal_length": "Uneq.",
+        "missing_values": "Miss.",
+    }
 
-    data = {k: [] for k in COLNAMES}
+    # Initialize data dictionary with base columns
+    data = {col: [] for col in base_columns}
+    # Add abbreviated columns
+    data.update({abbrevation: [] for abbrevation in capabilities_to_include.values()})
 
     for estimator_name, estimator_class in all_estimators(include_sklearn=False):
         algorithm_type = "::".join(str(estimator_class).split(".")[1:-2])
@@ -383,20 +383,91 @@ def _make_estimator_overview(app):
             data["Method family"].append("/".join(algorithm_type[1:]))
         else:
             data["Method family"].append("N/A")
-        for capability_name in capabilities_to_include:
+        for capability_name, abbrevation in capabilities_to_include.items():
             _val = tag_dict.get(f"capability:{capability_name}")
-            _str = capability_name.replace("_", " ")
 
-            # For case where tag is not included output as not supported.
+            # For case where tag is not included output as not supported
             if not _val or _val is None:
-                data[f"Supports {_str}"].append("\u274c")
+                data[abbrevation].append("\u274C")
             else:
-                data[f"Supports {_str}"].append("\u2705")
+                data[abbrevation].append("\u2705")
 
-    df = pd.DataFrame.from_dict(data).sort_values(
+    df = pd.DataFrame(data).sort_values(
         by=["Module", "Method family", "Estimator name"]
     )
-    df_str = df.to_markdown(index=False, tablefmt="github")
+
+    df_str = """
+<!-- DataTables CSS -->
+<link rel="stylesheet" type="text/css"
+href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+
+<style>
+.dataTables_wrapper {
+    padding: 10px 0;
+}
+
+.dataTables_wrapper table.dataTable tbody tr {
+    background-color: var(--color-background-primary);
+    color: var(--color-foreground-primary);
+}
+
+.dataTables_wrapper table.dataTable tbody tr.odd {
+    background-color: var(--color-background-secondary);
+}
+
+.dataTables_wrapper table.dataTable tbody tr:hover {
+    background-color: var(--color-background-hover);
+}
+
+.dataTables_wrapper table.dataTable a {
+    color: var(--color-brand-content);
+}
+
+.dataTables_length select {
+    background-color: var(--color-background-primary) !important;
+    color: var(--color-foreground-primary) !important;
+    border: 1px solid var(--color-background-border) !important;
+}
+
+.dataTables_length select option {
+    background-color: var(--color-background-primary);
+    color: var(--color-foreground-primary);
+}
+
+.dataTables_length select option:checked {
+    background-color: var(--color-background-hover);
+    color: var(--color-foreground-primary);
+}
+
+.dataTables_length select:focus {
+    outline-color: var(--color-background-border);
+}
+</style>
+"""
+
+    df_str += df.to_markdown(index=False, tablefmt="github")
+
+    df_str += """
+<!-- DataTables JS -->
+<script type="text/javascript"
+ src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script type="text/javascript"
+ src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+
+<script>
+$(document).ready(function() {
+    $('table').DataTable({
+        pageLength: 10,
+        order: [[1, 'asc'], [2, 'asc'], [0, 'asc']],
+        language: {
+            search: 'Search:',
+            lengthMenu: 'Show _MENU_ entries'
+        }
+    });
+});
+</script>
+"""
+
     with open("estimator_overview_table.md", "w", encoding="utf-8") as file:
         file.write(df_str)
 
@@ -552,6 +623,7 @@ intersphinx_mapping = {
     "scikit-learn": ("https://scikit-learn.org/stable/", None),
     "statsmodels": ("https://www.statsmodels.org/stable/", None),
 }
+
 
 # -- Options for _todo extension ----------------------------------------------
 todo_include_todos = False
