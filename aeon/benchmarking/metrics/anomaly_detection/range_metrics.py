@@ -171,7 +171,7 @@ def calculate_overlap_reward_recall(real_range, overlap_set, bias_type):
     return my_value / max_value if max_value > 0 else 0.0
 
 
-def ts_precision(y_pred, y_real, gamma="one", bias_type="flat"):
+def ts_precision(y_pred, y_real, gamma="one", bias_type="flat", udf_gamma=None):
     """
     Calculate Precision for time series anomaly detection.
 
@@ -205,6 +205,11 @@ def ts_precision(y_pred, y_real, gamma="one", bias_type="flat"):
     float
         Precision
 
+    Raises
+    ------
+    ValueError
+        If an invalid `gamma` type is provided.
+
     References
     ----------
     .. [1] Tatbul, Nesime, Tae Jun Lee, Stan Zdonik, Mejbah Alam,and Justin Gottschlich.
@@ -212,6 +217,11 @@ def ts_precision(y_pred, y_real, gamma="one", bias_type="flat"):
        Processing Systems (NeurIPS 2018), Montréal, Canada.
        http://papers.nips.cc/paper/7462-precision-and-recall-for-time-series.pdf
     """
+    if gamma not in ["reciprocal", "one"]:
+        raise ValueError("Invalid gamma type for precision. Use 'reciprocal' or 'one'.")
+    if udf_gamma is not None:
+        raise ValueError("`udf_gamma` is not applicable for precision calculations.")
+
     # Flattening y_pred and y_real to resolve nested lists
     flat_y_pred = _flatten_ranges(y_pred)
     flat_y_real = _flatten_ranges(y_real)
@@ -234,7 +244,7 @@ def ts_precision(y_pred, y_real, gamma="one", bias_type="flat"):
         overlap_reward = calculate_overlap_reward_precision(
             pred_range, overlap_set, bias_type
         )
-        gamma_value = _gamma_select(cardinality, gamma)
+        gamma_value = _gamma_select(cardinality, gamma, udf_gamma)
 
         total_overlap_reward += gamma_value * overlap_reward
         total_cardinality += 1
