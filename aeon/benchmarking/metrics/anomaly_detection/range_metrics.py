@@ -171,7 +171,7 @@ def calculate_overlap_reward_recall(real_range, overlap_set, bias_type):
     return my_value / max_value if max_value > 0 else 0.0
 
 
-def ts_precision(y_pred, y_real, gamma="one", bias_type="flat", udf_gamma=None):
+def ts_precision(y_pred, y_real, gamma="one", bias_type="flat"):
     """
     Calculate Precision for time series anomaly detection.
 
@@ -199,8 +199,6 @@ def ts_precision(y_pred, y_real, gamma="one", bias_type="flat", udf_gamma=None):
     gamma : str
         Cardinality type. Should be one of ["reciprocal", "one", "udf_gamma"].
         (default: "one")
-    udf_gamma : int or None
-        User-defined gamma value. (default: None)
 
     Returns
     -------
@@ -236,7 +234,7 @@ def ts_precision(y_pred, y_real, gamma="one", bias_type="flat", udf_gamma=None):
         overlap_reward = calculate_overlap_reward_precision(
             pred_range, overlap_set, bias_type
         )
-        gamma_value = _gamma_select(cardinality, gamma, udf_gamma)
+        gamma_value = _gamma_select(cardinality, gamma)
 
         total_overlap_reward += gamma_value * overlap_reward
         total_cardinality += 1
