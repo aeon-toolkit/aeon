@@ -52,7 +52,12 @@ def _calculate_bias(position, length, bias_type="flat"):
     elif bias_type == "front":
         return 1.0 - (position - 1) / length
     elif bias_type == "middle":
-        return 1.0 - abs(2 * (position - 1) / (length - 1) - 1) if length > 1 else 1.0
+        if length / 2 == 0:
+            return 1.0
+        if position <= length / 2:
+            return position / (length / 2)
+        else:
+            return (length - position + 1) / (length / 2)
     elif bias_type == "back":
         return position / length
     else:
@@ -98,11 +103,79 @@ def _gamma_select(cardinality, gamma, udf_gamma=None):
         )
 
 
-def ts_precision(y_pred, y_real, bias_type="flat"):
-    """
-    Calculate Global Precision for time series anomaly detection.
+def calculate_overlap_reward_precision(pred_range, overlap_set, bias_type):
+    """Overlap Reward for y_pred.
 
-    Global Precision measures the proportion of correctly predicted anomaly positions
+    Parameters
+    ----------
+    pred_range : tuple
+        The predicted range.
+    overlap_set : set
+        The set of overlapping positions.
+    bias_type : str
+        Type of bias to apply, Should be one of ["flat", "front", "middle", "back"].
+
+    Returns
+    -------
+    float
+        The weighted value for overlapping positions only.
+    """
+    start, end = pred_range
+    length = end - start + 1
+
+    max_value = 0  # Total possible weighted value for all positions.
+    my_value = 0  # Weighted value for overlapping positions only.
+
+    for i in range(1, length + 1):
+        global_position = start + i - 1
+        bias_value = _calculate_bias(i, length, bias_type)
+        max_value += bias_value
+
+        if global_position in overlap_set:
+            my_value += bias_value
+
+    return my_value / max_value if max_value > 0 else 0.0
+
+
+def calculate_overlap_reward_recall(real_range, overlap_set, bias_type):
+    """Overlap Reward for y_real.
+
+    Parameters
+    ----------
+    real_range : tuple
+        The real range.
+    overlap_set : set
+        The set of overlapping positions.
+    bias_type : str
+        Type of bias to apply, Should be one of ["flat", "front", "middle", "back"].
+
+    Returns
+    -------
+    float
+        The weighted value for overlapping positions only.
+    """
+    start, end = real_range
+    length = end - start + 1
+
+    max_value = 0.0  # Total possible weighted value for all positions.
+    my_value = 0.0  # Weighted value for overlapping positions only.
+
+    for i in range(1, length + 1):
+        global_position = start + i - 1
+        bias_value = _calculate_bias(i, length, bias_type)
+        max_value += bias_value
+
+        if global_position in overlap_set:
+            my_value += bias_value
+
+    return my_value / max_value if max_value > 0 else 0.0
+
+
+def ts_precision(y_pred, y_real, gamma="one", bias_type="flat", udf_gamma=None):
+    """
+    Calculate Precision for time series anomaly detection.
+
+    Precision measures the proportion of correctly predicted anomaly positions
     out of all all the predicted anomaly positions, aggregated across the entire time
     series.
 
@@ -123,11 +196,16 @@ def ts_precision(y_pred, y_real, bias_type="flat"):
     bias_type : str
         Type of bias to apply. Should be one of ["flat", "front", "middle", "back"].
         (default: "flat")
+    gamma : str
+        Cardinality type. Should be one of ["reciprocal", "one", "udf_gamma"].
+        (default: "one")
+    udf_gamma : int or None
+        User-defined gamma value. (default: None)
 
     Returns
     -------
     float
-        Global Precision
+        Precision
 
     References
     ----------
@@ -140,42 +218,40 @@ def ts_precision(y_pred, y_real, bias_type="flat"):
     flat_y_pred = _flatten_ranges(y_pred)
     flat_y_real = _flatten_ranges(y_real)
 
-    overlapping_weighted_positions = 0.0
-    total_pred_weight = 0.0
+    total_overlap_reward = 0.0
+    total_cardinality = 0
 
     for pred_range in flat_y_pred:
-        start_pred, end_pred = pred_range
-        length_pred = end_pred - start_pred + 1
+        overlap_set = set()
+        cardinality = 0
 
-        for i in range(1, length_pred + 1):
-            pos = start_pred + i - 1
-            bias = _calculate_bias(i, length_pred, bias_type)
+        for real_start, real_end in flat_y_real:
+            overlap_start = max(pred_range[0], real_start)
+            overlap_end = min(pred_range[1], real_end)
 
-            # Check if the position is in any real range
-            in_real = any(
-                real_start <= pos <= real_end for real_start, real_end in flat_y_real
-            )
+            if overlap_start <= overlap_end:
+                overlap_set.update(range(overlap_start, overlap_end + 1))
+                cardinality += 1
 
-            if in_real:
-                # For precision, gamma is fixed to "one"
-                gamma_value = 1.0
-                overlapping_weighted_positions += bias * gamma_value
+        overlap_reward = calculate_overlap_reward_precision(
+            pred_range, overlap_set, bias_type
+        )
+        gamma_value = _gamma_select(cardinality, gamma, udf_gamma)
 
-            total_pred_weight += bias
+        total_overlap_reward += gamma_value * overlap_reward
+        total_cardinality += 1
 
     precision = (
-        overlapping_weighted_positions / total_pred_weight
-        if total_pred_weight > 0
-        else 0.0
+        total_overlap_reward / total_cardinality if total_cardinality > 0 else 0.0
     )
     return precision
 
 
 def ts_recall(y_pred, y_real, gamma="one", bias_type="flat", alpha=0.0, udf_gamma=None):
     """
-    Calculate Global Recall for time series anomaly detection.
+    Calculate Recall for time series anomaly detection.
 
-    Global Recall measures the proportion of correctly predicted anomaly positions
+    Recall measures the proportion of correctly predicted anomaly positions
     out of all the real/actual (ground truth) anomaly positions, aggregated across the
     entire time series.
 
@@ -207,7 +283,7 @@ def ts_recall(y_pred, y_real, gamma="one", bias_type="flat", alpha=0.0, udf_gamm
     Returns
     -------
     float
-        Global Recall
+        Recall
 
     References
     ----------
@@ -216,37 +292,41 @@ def ts_recall(y_pred, y_real, gamma="one", bias_type="flat", alpha=0.0, udf_gamm
        Processing Systems (NeurIPS 2018), Montréal, Canada.
        http://papers.nips.cc/paper/7462-precision-and-recall-for-time-series.pdf
     """
-    # Flattening y_pred and y_real
+    # Flattening y_pred and y_real to resolve nested lists
     flat_y_pred = _flatten_ranges(y_pred)
     flat_y_real = _flatten_ranges(y_real)
 
-    overlapping_weighted_positions = 0.0
-    total_real_weight = 0.0
+    total_overlap_reward = 0.0
 
     for real_range in flat_y_real:
-        start_real, end_real = real_range
-        length_real = end_real - start_real + 1
+        overlap_set = set()
+        cardinality = 0
 
-        for i in range(1, length_real + 1):
-            pos = start_real + i - 1
-            bias = _calculate_bias(i, length_real, bias_type)
+        for pred_range in flat_y_pred:
+            overlap_start = max(real_range[0], pred_range[0])
+            overlap_end = min(real_range[1], pred_range[1])
 
-            # Check if the position is in any predicted range
-            in_pred = any(
-                pred_start <= pos <= pred_end for pred_start, pred_end in flat_y_pred
+            if overlap_start <= overlap_end:
+                overlap_set.update(range(overlap_start, overlap_end + 1))
+                cardinality += 1
+
+        # Existence Reward
+        existence_reward = 1.0 if overlap_set else 0.0
+
+        if overlap_set:
+            overlap_reward = calculate_overlap_reward_recall(
+                real_range, overlap_set, bias_type
             )
+            gamma_value = _gamma_select(cardinality, gamma, udf_gamma)
+            overlap_reward *= gamma_value
+        else:
+            overlap_reward = 0.0
 
-            if in_pred:
-                gamma_value = _gamma_select(1, gamma, udf_gamma)
-                overlapping_weighted_positions += bias * gamma_value
+        # Total Recall Score
+        recall_score = alpha * existence_reward + (1 - alpha) * overlap_reward
+        total_overlap_reward += recall_score
 
-            total_real_weight += bias
-
-    recall = (
-        overlapping_weighted_positions / total_real_weight
-        if total_real_weight > 0
-        else 0.0
-    )
+    recall = total_overlap_reward / len(flat_y_real) if flat_y_real else 0.0
     return recall
 
 
@@ -254,7 +334,7 @@ def ts_fscore(y_pred, y_real, gamma="one", bias_type="flat", alpha=0.0, udf_gamm
     """
     Calculate F1-Score for time series anomaly detection.
 
-    F-1 Score is the harmonic mean of Global Precision and Gloval recall, providing
+    F-1 Score is the harmonic mean of Precision and Recall, providing
     a single metric to evaluate the performance of an anomaly detection model.
 
     Parameters
@@ -292,8 +372,8 @@ def ts_fscore(y_pred, y_real, gamma="one", bias_type="flat", alpha=0.0, udf_gamm
        Processing Systems (NeurIPS 2018), Montréal, Canada.
        http://papers.nips.cc/paper/7462-precision-and-recall-for-time-series.pdf
     """
-    precision = ts_precision(y_pred, y_real, bias_type)
-    recall = ts_recall(y_pred, y_real, gamma, bias_type, alpha, udf_gamma=udf_gamma)
+    precision = ts_precision(y_pred, y_real, gamma, bias_type, udf_gamma)
+    recall = ts_recall(y_pred, y_real, gamma, bias_type, alpha, udf_gamma)
 
     if precision + recall > 0:
         fscore = 2 * (precision * recall) / (precision + recall)
