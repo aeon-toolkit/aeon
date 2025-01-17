@@ -1,8 +1,11 @@
+from typing import Optional
+
 import numpy as np
 
 from aeon.anomaly_detection.base import BaseAnomalyDetector
 from aeon.utils.windowing import reverse_windowing
-from typing import Optional
+
+
 class IDK(BaseAnomalyDetector):
     """IDK² and s-IDK² anomaly detector.
 
@@ -185,6 +188,7 @@ class IDK(BaseAnomalyDetector):
             return reversed_output
         else:
             return self._idk_t(X, rng)
+
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
