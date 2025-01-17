@@ -377,7 +377,7 @@ def test_multiple_overlapping_ranges_with_bias_middle_gamma_reciprocal():
     expected_recall = 0.166667
     expected_f1 = 0.272727
 
-    precision = ts_precision(y_pred, y_real, gamma="reciprocal", bias_type="middle")
+    precision = ts_precision(y_pred, y_real, bias_type="middle")
     recall = ts_recall(
         y_pred,
         y_real,

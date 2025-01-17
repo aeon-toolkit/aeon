@@ -197,7 +197,7 @@ def ts_precision(y_pred, y_real, gamma="one", bias_type="flat", udf_gamma=None):
         Type of bias to apply. Should be one of ["flat", "front", "middle", "back"].
         (default: "flat")
     gamma : str
-        Cardinality type. Should be one of ["reciprocal", "one", "udf_gamma"].
+        Cardinality type. Should be one of ["reciprocal", "one"].
         (default: "one")
 
     Returns
@@ -217,10 +217,10 @@ def ts_precision(y_pred, y_real, gamma="one", bias_type="flat", udf_gamma=None):
        Processing Systems (NeurIPS 2018), Montréal, Canada.
        http://papers.nips.cc/paper/7462-precision-and-recall-for-time-series.pdf
     """
-    if gamma not in ["reciprocal", "one"]:
-        raise ValueError("Invalid gamma type for precision. Use 'reciprocal' or 'one'.")
     if udf_gamma is not None:
         raise ValueError("`udf_gamma` is not applicable for precision calculations.")
+    if gamma not in ["reciprocal", "one"]:
+        raise ValueError("Invalid gamma type for precision. Use 'reciprocal' or 'one'.")
 
     # Flattening y_pred and y_real to resolve nested lists
     flat_y_pred = _flatten_ranges(y_pred)
@@ -244,8 +244,7 @@ def ts_precision(y_pred, y_real, gamma="one", bias_type="flat", udf_gamma=None):
         overlap_reward = calculate_overlap_reward_precision(
             pred_range, overlap_set, bias_type
         )
-        gamma_value = _gamma_select(cardinality, gamma, udf_gamma)
-
+        gamma_value = _gamma_select(cardinality, gamma)
         total_overlap_reward += gamma_value * overlap_reward
         total_cardinality += 1
 
