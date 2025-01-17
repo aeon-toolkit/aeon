@@ -626,10 +626,4 @@ intersphinx_mapping = {
 
 
 # -- Options for _todo extension ----------------------------------------------
-todo_include_todos = False  # -- Options for _todo extension -------------------------
-todo_include_todos = False  # -- Options for _todo extension -------------------------
-todo_include_todos = False
-todo_include_todos = False
-todo_include_todos = False
-# -- Options for _todo extension ----------------------------------------------
 todo_include_todos = False
