@@ -2638,6 +2638,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "kavya-r30",
+      "name": "Kavya Rambhia",
+      "avatar_url": "https://avatars.githubusercontent.com/u/161142013?v=4",
+      "profile": "https://github.com/kavya-r30",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "commitType": "docs"
