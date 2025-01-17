@@ -21,7 +21,22 @@ from aeon.utils.numba.general import (
 
 
 class MassSNN(BaseSeriesSimilaritySearch):
-    """Estimator to compute the on profile and distance profile using MASS."""
+    """
+    Estimator to compute the subsequences nearest neighbors using MASS _[1].
+
+    Parameters
+    ----------
+    length : int
+        The length of the subsequences to use for the search.
+    normalize : bool
+        Wheter the subsequences should be z-normalized.
+
+    References
+    ----------
+    .. [1] Abdullah Mueen, Yan Zhu, Michael Yeh, Kaveh Kamgar, Krishnamurthy
+    Viswanathan, Chetan Kumar Gupta and Eamonn Keogh (2015), The Fastest Similarity
+    Search Algorithm for Time Series Subsequences under Euclidean Distance.
+    """
 
     def __init__(
         self,
@@ -38,7 +53,7 @@ class MassSNN(BaseSeriesSimilaritySearch):
         y=None,
     ):
         if self.normalize:
-            self.X_means_, X_stds_ = sliding_mean_std_one_series(X, self.length, 1)
+            self.X_means_, self.X_stds_ = sliding_mean_std_one_series(X, self.length, 1)
         return self
 
     def predict(
@@ -76,7 +91,7 @@ class MassSNN(BaseSeriesSimilaritySearch):
             the exclusion zone starts from
             :math:`id_timestamp - length//exclusion_factor` and end at
             :math:`id_timestamp + length//exclusion_factor`.
-        X_index : Optional[int], optional
+        X_index : int, optional
             If ``X`` is a subsequence of X_, specify its starting timestamp in ``X_``.
             If specified, neighboring subsequences of X won't be able to match as
             neighbors.
@@ -89,18 +104,21 @@ class MassSNN(BaseSeriesSimilaritySearch):
             The distances of the best matches.
 
         """
-        X = self._pre_predict(X)
+        X = self._pre_predict(X, length=self.length)
         X_index = self._check_X_index(X_index)
         dist_profile = self.compute_distance_profile(X)
         if inverse_distance:
             dist_profile = _inverse_distance_profile(dist_profile)
 
+        exclusion_size = self.length // exclusion_factor
         if X_index is not None:
-            exclusion_size = self.length // exclusion_factor
             _max_timestamp = self.n_timepoints_ - self.length
             ub = min(X_index + exclusion_size, _max_timestamp)
             lb = max(0, X_index - exclusion_size)
             dist_profile[lb:ub] = np.inf
+
+        if k == np.inf:
+            k = len(dist_profile)
 
         return _extract_top_k_from_dist_profile(
             dist_profile,

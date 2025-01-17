@@ -47,7 +47,7 @@ class DummySNN(BaseSeriesSimilaritySearch):
         self,
         X: np.ndarray,
         k: Optional[int] = 1,
-        threshold: Optional[float] = np.inf,
+        dist_threshold: Optional[float] = np.inf,
         exclusion_factor: Optional[float] = 2,
         inverse_distance: Optional[bool] = False,
         allow_neighboring_matches: Optional[bool] = False,
@@ -62,7 +62,7 @@ class DummySNN(BaseSeriesSimilaritySearch):
             Subsequence we want to find neighbors for.
         k : int
             The number of neighbors to return.
-        threshold : float
+        dist_threshold : float
             The maximum distance of neighbors to X.
         inverse_distance : bool
             If True, the matching will be made on the inverse of the distance, and thus,
@@ -73,7 +73,7 @@ class DummySNN(BaseSeriesSimilaritySearch):
             the exclusion zone starts from
             :math:`id_timestamp - length//exclusion_factor` and end at
             :math:`id_timestamp + length//exclusion_factor`.
-        X_index : Optional[int], optional
+        X_index : int, optional
             If ``X`` is a subsequence of X_, specify its starting timestamp in ``X_``.
             If specified, neighboring subsequences of X won't be able to match as
             neighbors.
@@ -86,12 +86,13 @@ class DummySNN(BaseSeriesSimilaritySearch):
             The distances of the best matches.
 
         """
-        X = self._pre_predict(X)
+        X = self._pre_predict(X, length=self.length)
         X_index = self._check_X_index(X_index)
         dist_profile = self.compute_distance_profile(X)
         if inverse_distance:
             dist_profile = _inverse_distance_profile(dist_profile)
 
+        exclusion_size = self.length // exclusion_factor
         if X_index is not None:
             exclusion_size = self.length // exclusion_factor
             _max_timestamp = self.n_timepoints_ - self.length
@@ -99,10 +100,13 @@ class DummySNN(BaseSeriesSimilaritySearch):
             lb = max(0, X_index - exclusion_size)
             dist_profile[lb:ub] = np.inf
 
+        if k == np.inf:
+            k = len(dist_profile)
+
         return _extract_top_k_from_dist_profile(
             dist_profile,
             k,
-            threshold,
+            dist_threshold,
             allow_neighboring_matches,
             exclusion_size,
         )

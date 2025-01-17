@@ -72,7 +72,7 @@ class BaseSimilaritySearch(BaseAeonEstimator):
         """
         ...
 
-    def _check_predict_series_format(self, X):
+    def _check_predict_series_format(self, X, length=None):
         """
         Check wheter a series X in predict is correctly formated.
 
@@ -96,8 +96,8 @@ class BaseSimilaritySearch(BaseAeonEstimator):
                 f"Expected X to have {self.n_channels_} channels but"
                 f" got {X.shape[0]} channels."
             )
-        if hasattr(self, "length") and X.shape[1] != self.length:
+        if length is not None and X.shape[1] != length:
             raise ValueError(
-                f"Expected X to have {self.length} timepoints but"
+                f"Expected X to have {length} timepoints but"
                 f" got {X.shape[1]} timepoints."
             )

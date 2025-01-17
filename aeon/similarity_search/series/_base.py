@@ -11,7 +11,7 @@ from aeon.similarity_search._base import BaseSimilaritySearch
 from aeon.utils.validation import check_n_jobs
 
 
-class BaseSeriesSimilaritySearch(BaseSimilaritySearch, BaseSeriesEstimator):
+class BaseSeriesSimilaritySearch(BaseSeriesEstimator, BaseSimilaritySearch):
     """Base class for similarity search applications on single series."""
 
     _tags = {
@@ -75,6 +75,7 @@ class BaseSeriesSimilaritySearch(BaseSimilaritySearch, BaseSeriesEstimator):
     def _pre_predict(
         self,
         X: Union[np.ndarray, None] = None,
+        length: int = None,
     ):
         """
         Predict method.
@@ -83,12 +84,14 @@ class BaseSeriesSimilaritySearch(BaseSimilaritySearch, BaseSeriesEstimator):
         ----------
         X : Union[np.ndarray, None], optional
             Optional data to use for predict.. The default is None.
+        length: int, optional
+            If not None, the number of timepoint of X should be equal to length.
 
         """
         self._check_is_fitted()
         if X is not None:
             X = self._preprocess_series(X, self.axis, False)
-            self._check_predict_series_format(X)
+            self._check_predict_series_format(X, length=length)
         return X
 
     def _check_X_index(self, X_index: int):

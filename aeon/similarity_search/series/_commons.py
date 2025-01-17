@@ -61,6 +61,7 @@ def get_ith_products(X, T, L, ith):
     return fft_sliding_dot_product(X, T[:, ith : ith + L])
 
 
+@njit(cache=True, fastmath=True)
 def _inverse_distance_profile(dist_profile):
     return 1 / (dist_profile + 1e-8)
 
@@ -101,9 +102,7 @@ def _extract_top_k_from_dist_profile(
         The distances of the best matches.
 
     """
-    if k == np.inf:
-        k = dist_profile.shape[0]
-    top_k_indexes = np.zeros((k), dtype=np.int64) - 1
+    top_k_indexes = np.zeros(k, dtype=np.int64) - 1
     top_k_distances = np.full(k, np.inf, dtype=np.float64)
     ub = np.full(k, np.inf)
     lb = np.full(k, -1.0)

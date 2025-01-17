@@ -15,7 +15,7 @@ from aeon.base import BaseCollectionEstimator
 from aeon.similarity_search._base import BaseSimilaritySearch
 
 
-class BaseCollectionSimilaritySearch(BaseSimilaritySearch, BaseCollectionEstimator):
+class BaseCollectionSimilaritySearch(BaseCollectionEstimator, BaseSimilaritySearch):
     """Similarity search base class for collections."""
 
     # tag values specific to CollectionTransformers
@@ -81,6 +81,7 @@ class BaseCollectionSimilaritySearch(BaseSimilaritySearch, BaseCollectionEstimat
     def _pre_predict(
         self,
         X: Union[np.ndarray, None] = None,
+        length: int = None,
     ):
         """
         Predict method.
@@ -89,10 +90,12 @@ class BaseCollectionSimilaritySearch(BaseSimilaritySearch, BaseCollectionEstimat
         ----------
         X : Union[np.ndarray, None], optional
             Optional data to use for predict.. The default is None.
+        length: int, optional
+            If not None, the number of timepoint of X should be equal to length.
 
         """
         self._check_is_fitted()
         if X is not None:
             # Could we call somehow _preprocess_series from a BaseCollectionEstimator ?
-            self._check_predict_series_format(X)
+            self._check_predict_series_format(X, length=length)
         return X

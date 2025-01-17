@@ -220,12 +220,8 @@ class RandomProjectionIndexANN(BaseCollectionSimilaritySearch):
             Distance of k series in the index to X. The distance
             is the hamming distance between the result of each hash function.
         """
-        X = self._pre_predict(X)
-        if X.shape[1] != self.n_timepoints_:
-            raise ValueError(
-                f"Expected a series with {self.n_timepoints_} but got {X.shape[1]}."
-                "Unequal length is not supported by this estimator."
-            )
+        X = self._pre_predict(X, length=self.n_timepoints_)
+
         if self.normalize:
             X = z_normalise_series_2d(X)
 

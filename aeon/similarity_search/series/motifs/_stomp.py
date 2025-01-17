@@ -154,13 +154,13 @@ class StompMotif(BaseSeriesSimilaritySearch):
                 "Expected motif_extraction_method to be either 'k_motifs' or 'r_motifs'"
                 f"but got {motif_extraction_method}"
             )
-        exclusion_size = self.length // exclusion_factor
+
         MP, IP = self.compute_matrix_profile(
             X,
             motif_size=motif_size,
             dist_threshold=dist_threshold,
             allow_trivial_matches=allow_trivial_matches,
-            exclusion_size=exclusion_size,
+            exclusion_factor=exclusion_factor,
             inverse_distance=inverse_distance,
         )
         if motif_extraction_method == "k_motifs":
@@ -170,11 +170,11 @@ class StompMotif(BaseSeriesSimilaritySearch):
 
     def compute_matrix_profile(
         self,
-        X: np.ndarray,
+        X: np.ndarray = None,
         motif_size: Optional[int] = 1,
         dist_threshold: Optional[float] = np.inf,
         allow_trivial_matches: Optional[bool] = False,
-        exclusion_size: Optional[float] = 2,
+        exclusion_factor: Optional[float] = 2,
         inverse_distance: Optional[bool] = False,
     ):
         """
@@ -198,14 +198,12 @@ class StompMotif(BaseSeriesSimilaritySearch):
         inverse_distance : bool
             If True, the matching will be made on the inverse of the distance, and thus,
             the worst matches to the query will be returned instead of the best ones.
-        exclusion_size : int
-            The size of the exclusion zone used to prevent returning as top k candidates
-            the ones that are close to each other (for example i and i+1).
-            It is used to define a region between
-            :math:`id_timestamp - exclusion_size` and
-            :math:`id_timestamp + exclusion_size` which cannot be returned
-            as best match if :math:`id_timestamp` was already selected. By default,
-            the value None means that this is not used.
+        exclusion_factor : float, default=1.
+            A factor of the query length used to define the exclusion zone when
+            ``allow_trivial_matches`` is set to False. For a given timestamp,
+            the exclusion zone starts from
+            :math:`id_timestamp - length//exclusion_factor` and end at
+            :math:`id_timestamp + length//exclusion_factor`.
 
         Returns
         -------
@@ -229,7 +227,7 @@ class StompMotif(BaseSeriesSimilaritySearch):
                 X_means, X_stds = sliding_mean_std_one_series(X, self.length, 1)
 
         X_dotX = get_ith_products(X, self.X_, self.length, 0)
-
+        exclusion_size = self.length // exclusion_factor
         if self.normalize:
             MP, IP = _stomp_normalized(
                 self.X_,
@@ -353,14 +351,17 @@ def _stomp_normalized(
             lb = max(0, i_q - exclusion_size)
             dist_profile[lb:ub] = np.inf
 
-        top_indexes, top_dists = _extract_top_k_from_dist_profile(
+        _top_indexes, top_dists = _extract_top_k_from_dist_profile(
             dist_profile,
             motif_size,
             dist_threshold,
             allow_trivial_matches,
             exclusion_size,
         )
-
+        top_indexes = np.zeros((len(_top_indexes), 2), dtype=np.int64)
+        for i_idx in range(len(_top_indexes)):
+            top_indexes[i_idx, 0] = i_q
+            top_indexes[i_idx, 1] = _top_indexes[i_idx]
         MP.append(top_dists)
         IP.append(top_indexes)
 
@@ -443,14 +444,17 @@ def _stomp(
             lb = max(0, i_q - exclusion_size)
             dist_profile[lb:ub] = np.inf
 
-        top_indexes, top_dists = _extract_top_k_from_dist_profile(
+        _top_indexes, top_dists = _extract_top_k_from_dist_profile(
             dist_profile,
             motif_size,
             dist_threshold,
             allow_trivial_matches,
             exclusion_size,
         )
-
+        top_indexes = np.zeros((len(_top_indexes), 2), dtype=np.int64)
+        for i_idx in range(len(_top_indexes)):
+            top_indexes[i_idx, 0] = i_q
+            top_indexes[i_idx, 1] = _top_indexes[i_idx]
         MP.append(top_dists)
         IP.append(top_indexes)
 
