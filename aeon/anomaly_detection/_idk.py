@@ -1,8 +1,8 @@
 import numpy as np
 
 from aeon.anomaly_detection.base import BaseAnomalyDetector
-
-
+from aeon.utils.windowing import reverse_windowing
+from typing import Optional
 class IDK(BaseAnomalyDetector):
     """IDK² and s-IDK² anomaly detector.
 
@@ -78,7 +78,7 @@ class IDK(BaseAnomalyDetector):
         width: int = 1,
         t: int = 100,
         sliding: bool = False,
-        random_state: int = None,
+        random_state: Optional[int] = None,
     ) -> None:
         self.psi1 = psi1
         self.psi2 = psi2
@@ -175,9 +175,16 @@ class IDK(BaseAnomalyDetector):
     def _predict(self, X):
         rng = np.random.default_rng(self.random_state)
         if self.sliding:
-            return self._idk_square_sliding(X, rng)
-        return self._idk_t(X, rng)
-
+            sliding_output = self._idk_square_sliding(X, rng)
+            reversed_output = reverse_windowing(
+                y=sliding_output,
+                window_size=self.width,
+                stride=1,
+                reduction=np.nanmean,
+            )
+            return reversed_output
+        else:
+            return self._idk_t(X, rng)
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
