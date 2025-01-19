@@ -132,6 +132,32 @@ class DummySNN(BaseSeriesSimilaritySearch):
             X = z_normalise_series_2d(X)
         return _naive_squared_distance_profile(self.X_subs, X)
 
+    @classmethod
+    def _get_test_params(cls, parameter_set: str = "default"):
+        """Return testing parameter settings for the estimator.
+
+        Parameters
+        ----------
+        parameter_set : str, default="default"
+            Name of the set of test parameters to return, for use in tests. If no
+            special parameters are defined for a value, will return `"default"` set.
+            There are currently no reserved values for transformers.
+
+        Returns
+        -------
+        params : dict or list of dict, default = {}
+            Parameters to create testing instances of the class
+            Each dict are parameters to construct an "interesting" test instance, i.e.,
+            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+        """
+        if parameter_set == "default":
+            params = {"length": 3}
+        else:
+            raise NotImplementedError(
+                f"The parameter set {parameter_set} is not yet implemented"
+            )
+        return params
+
 
 @njit(cache=True, fastmath=True, parallel=True)
 def _naive_squared_distance_profile(

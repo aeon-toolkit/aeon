@@ -87,7 +87,7 @@ class StompMotif(BaseSeriesSimilaritySearch):
         y=None,
     ):
         if self.normalize:
-            self.X_means_, X_stds_ = sliding_mean_std_one_series(X, self.length, 1)
+            self.X_means_, self.X_stds_ = sliding_mean_std_one_series(X, self.length, 1)
         return self
 
     def predict(
@@ -164,9 +164,13 @@ class StompMotif(BaseSeriesSimilaritySearch):
             inverse_distance=inverse_distance,
         )
         if motif_extraction_method == "k_motifs":
-            return _extract_top_k_motifs(MP, IP, k)
+            return _extract_top_k_motifs(
+                MP, IP, k, allow_trivial_matches, self.length // exclusion_factor
+            )
         elif motif_extraction_method == "r_motifs":
-            return _extract_top_r_motifs(MP, IP, k)
+            return _extract_top_r_motifs(
+                MP, IP, k, allow_trivial_matches, self.length // exclusion_factor
+            )
 
     def compute_matrix_profile(
         self,
@@ -225,9 +229,12 @@ class StompMotif(BaseSeriesSimilaritySearch):
             is_self_mp = False
             if self.normalize:
                 X_means, X_stds = sliding_mean_std_one_series(X, self.length, 1)
-
         X_dotX = get_ith_products(X, self.X_, self.length, 0)
         exclusion_size = self.length // exclusion_factor
+
+        if motif_size == np.inf:
+            motif_size = X.shape[1] - self.length + 1
+
         if self.normalize:
             MP, IP = _stomp_normalized(
                 self.X_,
@@ -259,6 +266,32 @@ class StompMotif(BaseSeriesSimilaritySearch):
                 is_self_mp,
             )
         return MP, IP
+
+    @classmethod
+    def _get_test_params(cls, parameter_set: str = "default"):
+        """Return testing parameter settings for the estimator.
+
+        Parameters
+        ----------
+        parameter_set : str, default="default"
+            Name of the set of test parameters to return, for use in tests. If no
+            special parameters are defined for a value, will return `"default"` set.
+            There are currently no reserved values for transformers.
+
+        Returns
+        -------
+        params : dict or list of dict, default = {}
+            Parameters to create testing instances of the class
+            Each dict are parameters to construct an "interesting" test instance, i.e.,
+            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+        """
+        if parameter_set == "default":
+            params = {"length": 3}
+        else:
+            raise NotImplementedError(
+                f"The parameter set {parameter_set} is not yet implemented"
+            )
+        return params
 
 
 @njit(cache=True, fastmath=True)
@@ -330,7 +363,7 @@ def _stomp_normalized(
         variable size.
     """
     n_queries = X_A.shape[1] - L + 1
-    _max_timestamp = X_B.shape[1] - L
+    _max_timestamp = X_B.shape[1] - L + 1
     MP = List()
     IP = List()
 
@@ -347,7 +380,7 @@ def _stomp_normalized(
             dist_profile = _inverse_distance_profile(dist_profile)
 
         if is_self_mp:
-            ub = min(i_q + exclusion_size, _max_timestamp)
+            ub = min(i_q + exclusion_size, _max_timestamp + 1)
             lb = max(0, i_q - exclusion_size)
             dist_profile[lb:ub] = np.inf
 
@@ -425,7 +458,7 @@ def _stomp(
         variable size.
     """
     n_queries = X_A.shape[1] - L + 1
-    _max_timestamp = X_B.shape[1] - L
+    _max_timestamp = X_B.shape[1] - L + 1
     MP = List()
     IP = List()
 
@@ -440,7 +473,7 @@ def _stomp(
             dist_profile = _inverse_distance_profile(dist_profile)
 
         if is_self_mp:
-            ub = min(i_q + exclusion_size, _max_timestamp)
+            ub = min(i_q + exclusion_size, _max_timestamp + 1)
             lb = max(0, i_q - exclusion_size)
             dist_profile[lb:ub] = np.inf
 

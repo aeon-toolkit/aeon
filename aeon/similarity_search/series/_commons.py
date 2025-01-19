@@ -146,20 +146,32 @@ def _extract_top_k_from_dist_profile(
 
 
 # Could add aggregation function as parameter instead of just max
-def _extract_top_k_motifs(MP, IP, k):
+def _extract_top_k_motifs(MP, IP, k, allow_trivial_matches, exclusion_size):
     criterion = np.zeros(len(MP))
     for i in range(len(MP)):
-        criterion[i] = max(MP[i])
-    idx = np.argsort(criterion)
-    return [MP[i] for i in idx[:k]], [IP[i] for i in idx[:k]]
+        if len(MP[i]) > 0:
+            criterion[i] = max(MP[i])
+        else:
+            criterion[i] = np.inf
+
+    idx, _ = _extract_top_k_from_dist_profile(
+        criterion, k, np.inf, allow_trivial_matches, exclusion_size
+    )
+    return [MP[i] for i in idx], [IP[i] for i in idx]
 
 
-def _extract_top_r_motifs(MP, IP, k):
+def _extract_top_r_motifs(MP, IP, k, allow_trivial_matches, exclusion_size):
     criterion = np.zeros(len(MP))
     for i in range(len(MP)):
         criterion[i] = len(MP[i])
-    idx = np.argsort(criterion)[::-1]
-    return [MP[i] for i in idx[:k]], [IP[i] for i in idx[:k]]
+    idx, _ = _extract_top_k_from_dist_profile(
+        _inverse_distance_profile(criterion),
+        k,
+        np.inf,
+        allow_trivial_matches,
+        exclusion_size,
+    )
+    return [MP[i] for i in idx], [IP[i] for i in idx]
 
 
 @njit(cache=True, fastmath=True)
