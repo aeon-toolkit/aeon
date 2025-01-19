@@ -217,6 +217,7 @@ class LITETimeClassifier(BaseClassifier):
                 use_litemv=self.use_litemv,
                 n_filters=self.n_filters,
                 kernel_size=self.kernel_size,
+                strides=self.strides,
                 file_path=self.file_path,
                 save_best_model=self.save_best_model,
                 save_last_model=self.save_last_model,
