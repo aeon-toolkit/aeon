@@ -39,7 +39,8 @@ class MultiRocketHydraClassifier(BaseClassifier):
         A dictionary can also be provided to specify weights for each class manually.
         Note that these weights will be multiplied with sample_weight (passed through
         the fit method) if sample_weight is specified.
-        Note:"balanced_subsample" isn't supported as RidgeClassifierCV isn't an ensemble model.
+        Note: "balanced_subsample" is not supported as RidgeClassifierCV 
+        is not an ensemble model.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
