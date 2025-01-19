@@ -4,7 +4,6 @@ from abc import abstractmethod
 from typing import Union, final
 
 import numpy as np
-from numba import get_num_threads, set_num_threads
 
 from aeon.base import BaseSeriesEstimator
 from aeon.similarity_search._base import BaseSimilaritySearch
@@ -20,8 +19,7 @@ class BaseSeriesSimilaritySearch(BaseSeriesEstimator, BaseSimilaritySearch):
     }
 
     @abstractmethod
-    def __init__(self, axis=1, n_jobs=1):
-        self.n_jobs = n_jobs
+    def __init__(self, axis=1):
         super().__init__(axis=axis)
 
     @final
@@ -56,12 +54,7 @@ class BaseSeriesSimilaritySearch(BaseSeriesEstimator, BaseSimilaritySearch):
         self.n_channels_ = X.shape[0]
         self.n_timepoints_ = X.shape[1]
         self.X_ = X
-
-        prev_threads = get_num_threads()
-        set_num_threads(self._n_jobs)
         self._fit(X, y=y)
-        set_num_threads(prev_threads)
-
         self.is_fitted = True
         return self
 

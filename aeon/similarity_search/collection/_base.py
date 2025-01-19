@@ -9,7 +9,6 @@ from abc import abstractmethod
 from typing import Union, final
 
 import numpy as np
-from numba import get_num_threads, set_num_threads
 
 from aeon.base import BaseCollectionEstimator
 from aeon.similarity_search._base import BaseSimilaritySearch
@@ -22,15 +21,8 @@ class BaseCollectionSimilaritySearch(BaseCollectionEstimator, BaseSimilaritySear
     _tags = {
         "input_data_type": "Collection",
         "capability:multivariate": True,
-        "capability:unequal_length": True,
-        "capability:multithreading": True,
-        "X_inner_type": ["np-list", "numpy3D"],
+        "X_inner_type": ["numpy3D"],
     }
-
-    @abstractmethod
-    def __init__(self, n_jobs=1):
-        self.n_jobs = n_jobs
-        super().__init__()
 
     @final
     def fit(
@@ -63,11 +55,7 @@ class BaseCollectionSimilaritySearch(BaseCollectionEstimator, BaseSimilaritySear
         # Store minimum number of n_timepoints for unequal length collections
         self.n_channels_ = X[0].shape[0]
         self.n_cases_ = len(X)
-        prev_threads = get_num_threads()
-        set_num_threads(self._n_jobs)
         self._fit(X, y=y)
-        set_num_threads(prev_threads)
-
         self.is_fitted = True
         return self
 

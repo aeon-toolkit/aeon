@@ -1,7 +1,7 @@
 """Random projection LSH index."""
 
 import numpy as np
-from numba import njit, prange
+from numba import get_num_threads, njit, prange, set_num_threads
 
 from aeon.similarity_search.collection._base import BaseCollectionSimilaritySearch
 from aeon.utils.numba.general import z_normalise_series_2d, z_normalise_series_3d
@@ -134,6 +134,8 @@ class RandomProjectionIndexANN(BaseCollectionSimilaritySearch):
         self
 
         """
+        prev_threads = get_num_threads()
+        set_num_threads(self._n_jobs)
         rng = np.random.default_rng(self.random_state)
         if self.normalize:
             X = z_normalise_series_3d(X)
@@ -171,7 +173,7 @@ class RandomProjectionIndexANN(BaseCollectionSimilaritySearch):
 
         self.bool_hashes_value_list_ = np.asarray(list(self.dict_bool_hashes_.values()))
         self.bool_hashes_key_list_ = np.asarray(list(self.dict_bool_hashes_.keys()))
-
+        set_num_threads(prev_threads)
         return self
 
     def _get_bucket_content(self, key):

@@ -233,6 +233,7 @@ class StompMotif(BaseSeriesSimilaritySearch):
         exclusion_size = self.length // exclusion_factor
 
         if motif_size == np.inf:
+            # convert infs here as numba seem to not be able to do == np.inf ?
             motif_size = X.shape[1] - self.length + 1
 
         if self.normalize:

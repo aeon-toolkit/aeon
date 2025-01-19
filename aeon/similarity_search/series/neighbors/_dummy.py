@@ -6,7 +6,7 @@ __maintainer__ = ["baraline"]
 __all__ = ["DummySNN"]
 
 import numpy as np
-from numba import njit, prange
+from numba import get_num_threads, njit, prange, set_num_threads
 
 from aeon.similarity_search.series._base import BaseSeriesSimilaritySearch
 from aeon.similarity_search.series._commons import (
@@ -23,6 +23,8 @@ from aeon.utils.numba.general import (
 class DummySNN(BaseSeriesSimilaritySearch):
     """Estimator to compute the on profile and distance profile using brute force."""
 
+    _tags = {"capability:multithreading": True}
+
     def __init__(
         self,
         length: int,
@@ -31,16 +33,21 @@ class DummySNN(BaseSeriesSimilaritySearch):
     ):
         self.length = length
         self.normalize = normalize
-        super().__init__(n_jobs=n_jobs)
+        self.n_jobs = n_jobs
+        super().__init__()
 
     def _fit(
         self,
         X: np.ndarray,
         y=None,
     ):
+        prev_threads = get_num_threads()
+        set_num_threads(self._n_jobs)
+
         self.X_subs = get_all_subsequences(self.X_, self.length, 1)
         if self.normalize:
             self.X_subs = z_normalise_series_3d(self.X_subs)
+        set_num_threads(prev_threads)
         return self
 
     def predict(
@@ -128,9 +135,13 @@ class DummySNN(BaseSeriesSimilaritySearch):
             length of X_.
 
         """
+        prev_threads = get_num_threads()
+        set_num_threads(self._n_jobs)
         if self.normalize:
             X = z_normalise_series_2d(X)
-        return _naive_squared_distance_profile(self.X_subs, X)
+        distance_profile = _naive_squared_distance_profile(self.X_subs, X)
+        set_num_threads(prev_threads)
+        return distance_profile
 
     @classmethod
     def _get_test_params(cls, parameter_set: str = "default"):

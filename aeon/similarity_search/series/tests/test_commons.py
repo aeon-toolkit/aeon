@@ -20,8 +20,8 @@ from aeon.testing.data_generation import (
     make_example_2d_numpy_series,
 )
 
-K_VALUES = [1, 3, np.inf]
-THRESHOLDS = [np.inf, 0.7]
+K_VALUES = [1, 3, 5]
+THRESHOLDS = [np.inf, 1.5]
 NN_MATCHES = [False, True]
 EXCLUSION_SIZE = [3, 5]
 
