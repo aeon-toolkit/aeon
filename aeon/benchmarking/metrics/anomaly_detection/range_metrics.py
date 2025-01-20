@@ -43,9 +43,8 @@ def _calculate_bias(position, length, bias_type="flat"):
         Current position in the range
     length : int
         Total length of the range
-    bias_type : str
+    bias_type : str, default="flat"
         Type of bias to apply, Should be one of ["flat", "front", "middle", "back"].
-        (default: "flat")
     """
     if bias_type == "flat":
         return 1.0
@@ -103,7 +102,7 @@ def _gamma_select(cardinality, gamma, udf_gamma=None):
         )
 
 
-def calculate_overlap_reward_precision(pred_range, overlap_set, bias_type):
+def _calculate_overlap_reward_precision(pred_range, overlap_set, bias_type):
     """Overlap Reward for y_pred.
 
     Parameters
@@ -137,7 +136,7 @@ def calculate_overlap_reward_precision(pred_range, overlap_set, bias_type):
     return my_value / max_value if max_value > 0 else 0.0
 
 
-def calculate_overlap_reward_recall(real_range, overlap_set, bias_type):
+def _calculate_overlap_reward_recall(real_range, overlap_set, bias_type):
     """Overlap Reward for y_real.
 
     Parameters
@@ -185,20 +184,16 @@ def ts_precision(y_pred, y_real, gamma="one", bias_type="flat", udf_gamma=None):
         The predicted anomaly ranges.
         - Each tuple represents a range (start, end) of the anomaly where
           start is starting index (inclusive) and end is ending index (inclusive).
-        - If y_pred is in the format of list of lists, they will be flattened into a \
-          single list of tuples bringing it to the above format.
     y_real : list of tuples or list of lists of tuples
         The real/actual (ground truth) ranges.
         - Each tuple represents a range (start, end) of the anomaly where
           start is starting index (inclusive) and end is ending index (inclusive).
         - If y_real is in the format of list of lists, they will be flattened into a
           single list of tuples bringing it to the above format.
-    bias_type : str
+    bias_type : str, default="flat"
         Type of bias to apply. Should be one of ["flat", "front", "middle", "back"].
-        (default: "flat")
-    gamma : str
+    gamma : str, default="one"
         Cardinality type. Should be one of ["reciprocal", "one"].
-        (default: "one")
 
     Returns
     -------
@@ -207,6 +202,8 @@ def ts_precision(y_pred, y_real, gamma="one", bias_type="flat", udf_gamma=None):
 
     Raises
     ------
+    ValueError
+        If `udf_gamma` is provided.
     ValueError
         If an invalid `gamma` type is provided.
 
@@ -241,7 +238,7 @@ def ts_precision(y_pred, y_real, gamma="one", bias_type="flat", udf_gamma=None):
                 overlap_set.update(range(overlap_start, overlap_end + 1))
                 cardinality += 1
 
-        overlap_reward = calculate_overlap_reward_precision(
+        overlap_reward = _calculate_overlap_reward_precision(
             pred_range, overlap_set, bias_type
         )
         gamma_value = _gamma_select(cardinality, gamma)
@@ -268,24 +265,20 @@ def ts_recall(y_pred, y_real, gamma="one", bias_type="flat", alpha=0.0, udf_gamm
         The predicted anomaly ranges.
         - Each tuple represents a range (start, end) of the anomaly where
           start is starting index (inclusive) and end is ending index (inclusive).
-        - If y_pred is in the format of list of lists, they will be flattened into a
-          single list of tuples bringing it to the above format.
     y_real : list of tuples or list of lists of tuples
         The real/actual (ground truth) ranges.
         - Each tuple represents a range (start, end) of the anomaly where
           start is starting index (inclusive) and end is ending index (inclusive).
         - If y_real is in the format of list of lists, they will be flattened into a
           single list of tuples bringing it to the above format.
-    gamma : str
+    gamma : str, default="one"
         Cardinality type. Should be one of ["reciprocal", "one", "udf_gamma"].
-        (default: "one")
-    bias_type : str
+    bias_type : str, default="flat"
         Type of bias to apply. Should be one of ["flat", "front", "middle", "back"].
-        (default: "flat")
     alpha : float
         Weight for existence reward in recall calculation. (default: 0.0)
-    udf_gamma : int or None
-        User-defined gamma value. (default: None)
+    udf_gamma : int or None, default=None
+        User-defined gamma value.
 
     Returns
     -------
@@ -321,7 +314,7 @@ def ts_recall(y_pred, y_real, gamma="one", bias_type="flat", alpha=0.0, udf_gamm
         existence_reward = 1.0 if overlap_set else 0.0
 
         if overlap_set:
-            overlap_reward = calculate_overlap_reward_recall(
+            overlap_reward = _calculate_overlap_reward_recall(
                 real_range, overlap_set, bias_type
             )
             gamma_value = _gamma_select(cardinality, gamma, udf_gamma)
@@ -350,22 +343,18 @@ def ts_fscore(y_pred, y_real, gamma="one", bias_type="flat", alpha=0.0, udf_gamm
         The predicted anomaly ranges.
         - Each tuple represents a range (start, end) of the anomaly where
           start is starting index (inclusive) and end is ending index (inclusive).
-        - If y_pred is in the format of list of lists, they will be flattened into a
-          single list of tuples bringing it to the above format.
     y_real : list of tuples or list of lists of tuples
         The real/actual (ground truth) ranges.
         - Each tuple represents a range (start, end) of the anomaly where
           start is starting index (inclusive) and end is ending index (inclusive).
         - If y_real is in the format of list of lists, they will be flattened into a
           single list of tuples bringing it to the above format.
-    gamma : str
+    gamma : str, default="one"
         Cardinality type. Should be one of ["reciprocal", "one", "udf_gamma"].
-        (default: "one")
-    bias_type : str
+    bias_type : str, default="flat"
         Type of bias to apply. Should be one of ["flat", "front", "middle", "back"].
-        (default: "flat")
-    udf_gamma : int or None
-        User-defined gamma value. (default: None)
+    udf_gamma : int or None, default=None
+        User-defined gamma value.
 
     Returns
     -------
