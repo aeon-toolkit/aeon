@@ -116,7 +116,8 @@ class RandomProjectionIndexANN(BaseCollectionSimilaritySearch):
         self.use_discrete_vectors = use_discrete_vectors
         self.random_state = random_state
         self.normalize = normalize
-        super().__init__(n_jobs=n_jobs)
+        self.n_jobs = n_jobs
+        super().__init__()
 
     def _fit(self, X, y=None):
         """

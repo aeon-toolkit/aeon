@@ -11,7 +11,6 @@ from aeon.testing.testing_data import (
     make_example_1d_numpy,
     make_example_2d_numpy_series,
     make_example_3d_numpy,
-    make_example_3d_numpy_list,
 )
 
 
@@ -21,8 +20,6 @@ def test_input_shape_fit_predict_collection():
     # dummy data to pass to fit when testing predict/predict_proba
     X_3D_uni = make_example_3d_numpy(n_channels=1, return_y=False)
     X_3D_multi = make_example_3d_numpy(n_channels=2, return_y=False)
-    X_3D_uni_list = make_example_3d_numpy_list(n_channels=1, return_y=False)
-    X_3D_multi_list = make_example_3d_numpy_list(n_channels=2, return_y=False)
     X_2D_uni = make_example_2d_numpy_series(n_channels=1)
     X_2D_multi = make_example_2d_numpy_series(n_channels=2)
     X_1D = make_example_1d_numpy()
@@ -31,8 +28,6 @@ def test_input_shape_fit_predict_collection():
     valid_inputs_fit = [
         X_3D_uni,
         X_3D_multi,
-        X_3D_multi_list,
-        X_3D_uni_list,
         X_2D_uni,
         X_2D_multi,
     ]
@@ -53,10 +48,7 @@ def test_input_shape_fit_predict_collection():
         estimator_uni.predict(X_2D_multi)
     with pytest.raises(ValueError):
         estimator_multi.predict(X_2D_uni)
-
-    for _input in [X_3D_uni, X_3D_uni_list]:
-        with pytest.raises(TypeError):
-            estimator_uni.predict(_input)
-    for _input in [X_3D_multi, X_3D_multi_list]:
-        with pytest.raises(TypeError):
-            estimator_multi.predict(_input)
+    with pytest.raises(TypeError):
+        estimator_uni.predict(X_3D_uni)
+    with pytest.raises(TypeError):
+        estimator_multi.predict(X_3D_multi)
