@@ -40,3 +40,19 @@ img.avatar {
 .autosummary table {
   margin: 0;
 }
+
+/* For some reason, Sphinx alwawys considers the default property for odd */
+/* hence adding !important */
+.dataframe>tbody>tr:nth-child(odd) {
+  background-color: #1e1e1e !important;
+  color: white !important;
+}
+
+.dataframe>tbody>tr:nth-child(even) {
+  background-color: #2e2e2e;
+  color: white;
+}
+
+.dataframe > thead {
+  color: white !important
+}
