@@ -1,16 +1,15 @@
 """
-Wrapper for imblearn minority class rebalancer ADASYN.
+implement for imblearn minority class rebalancer ADASYN.
+see more in imblearn.over_sampling.ADASYN
 original authors:
 #          Guillaume Lemaitre <g.lemaitre58@gmail.com>
 #          Christos Aridas
 # License: MIT
 """
-
-from imblearn.over_sampling import ADASYN as adasyn
 import numpy as np
 from aeon.transformations.collection import BaseCollectionTransformer
 from sklearn.neighbors import NearestNeighbors
-from sklearn.utils import check_random_state, _safe_indexing
+from sklearn.utils import check_random_state
 from scipy import sparse
 from collections import OrderedDict
 
@@ -19,7 +18,23 @@ __all__ = ["ADASYN"]
 
 
 class ADASYN(BaseCollectionTransformer):
-    """Wrapper for ADASYN transform."""
+    """
+    Class to perform over-sampling using ADASYN .
+
+    This object is a simplified implementation of ADASYN - Adaptive
+    Synthetic (ADASYN) algorithm as presented in imblearn.over_sampling.ADASYN
+    This method is similar to SMOTE, but it generates different number of
+    samples depending on an estimate of the local distribution of the class
+    to be oversampled.
+    Parameters
+    ----------
+    {random_state}
+
+    k_neighbors : int or object, default=5
+        The nearest neighbors used to define the neighborhood of samples to use
+        to generate the synthetic samples. `~sklearn.neighbors.NearestNeighbors`
+        instance will be fitted in this case.
+    """
 
     _tags = {
         "capability:multivariate": True,
@@ -27,8 +42,7 @@ class ADASYN(BaseCollectionTransformer):
         "requires_y": True,
     }
 
-    def __init__(self, sampling_strategy="auto", random_state=None, k_neighbors=5):
-        self.sampling_strategy = sampling_strategy
+    def __init__(self, random_state=None, k_neighbors=5):
         self.random_state = random_state
         self.k_neighbors = k_neighbors
         super().__init__()
@@ -61,11 +75,12 @@ class ADASYN(BaseCollectionTransformer):
         X_resampled = [X.copy()]
         y_resampled = [y.copy()]
 
+        # got the minority class label and the number needs to be generated i.e. num_majority - num_minority
         for class_sample, n_samples in self.sampling_strategy_.items():
             if n_samples == 0:
                 continue
             target_class_indices = np.flatnonzero(y == class_sample)
-            X_class = _safe_indexing(X, target_class_indices)
+            X_class = X[target_class_indices]
 
             self.nn_.fit(X)
             nns = self.nn_.kneighbors(X_class, return_distance=False)[:, 1:]
@@ -123,21 +138,3 @@ class ADASYN(BaseCollectionTransformer):
         if shape_recover:
             X_resampled = X_resampled[:, np.newaxis, :]
         return X_resampled, y_resampled
-
-
-if __name__ == "__main__":
-    # Example usage
-    n_samples = 100  # Total number of labels
-    imbalance_ratio = 0.9  # Proportion of majority class
-
-    X = np.random.rand(n_samples, 1, 10)
-    y = np.random.choice([0, 1], size=n_samples, p=[imbalance_ratio, 1 - imbalance_ratio])
-
-    _, count = np.unique(y, return_counts=True)
-    print(count)
-    transformer = ADASYN()
-    res_X, res_y = transformer.fit_transform(X, y)
-    print(res_X.shape, res_y.shape)
-
-    _, res_count = np.unique(res_y, return_counts=True)
-    print(res_count)

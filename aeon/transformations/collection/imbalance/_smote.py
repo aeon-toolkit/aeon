@@ -1,5 +1,6 @@
 """
-Wrapper for imblearn minority class rebalancer SMOTE.
+implement for imblearn minority class rebalancer SMOTE.
+see more in imblearn.over_sampling.SMOTE
 original authors:
 #          Guillaume Lemaitre <g.lemaitre58@gmail.com>
 #          Fernando Nogueira
@@ -11,16 +12,31 @@ original authors:
 import numpy as np
 from aeon.transformations.collection import BaseCollectionTransformer
 from sklearn.neighbors import NearestNeighbors
-from sklearn.utils import check_random_state, _safe_indexing
+from sklearn.utils import check_random_state
 from scipy import sparse
 from collections import OrderedDict
 
-__maintainer__ = ["TonyBagnall"]
+__maintainer__ = ["TonyBagnall, Chris Qiu"]
 __all__ = ["SMOTE"]
 
 
 class SMOTE(BaseCollectionTransformer):
-    """Wrapper for SMOTE transform."""
+    """
+    Class to perform over-sampling using SMOTE.
+
+    This object is a simplified implementation of SMOTE - Synthetic Minority
+    Over-sampling Technique as presented in imblearn.over_sampling.SMOTE
+    sampling_strategy is sampling target by targeting all classes but not the
+    majority, which directly expressed in _fit.sampling_strategy.
+    Parameters
+    ----------
+    {random_state}
+
+    k_neighbors : int or object, default=5
+        The nearest neighbors used to define the neighborhood of samples to use
+        to generate the synthetic samples. `~sklearn.neighbors.NearestNeighbors`
+        instance will be fitted in this case.
+    """
 
     _tags = {
         "capability:multivariate": True,
@@ -28,8 +44,7 @@ class SMOTE(BaseCollectionTransformer):
         "requires_y": True,
     }
 
-    def __init__(self, sampling_strategy="auto", random_state=None, k_neighbors=5):
-        self.sampling_strategy = sampling_strategy
+    def __init__(self, random_state=None, k_neighbors=5):
         self.random_state = random_state
         self.k_neighbors = k_neighbors
         super().__init__()
@@ -60,12 +75,14 @@ class SMOTE(BaseCollectionTransformer):
             shape_recover = True
         X_resampled = [X.copy()]
         y_resampled = [y.copy()]
+
+        # got the minority class label and the number needs to be generated i.e. num_majority - num_minority
         for class_sample, n_samples in self.sampling_strategy_.items():
             if n_samples == 0:
                 continue
             target_class_indices = np.flatnonzero(y == class_sample)
-            # access to sklearn's _safe_indexing which needs to be modified
-            X_class = _safe_indexing(X, target_class_indices)
+            X_class = X[target_class_indices]
+
             self.nn_.fit(X_class)
             nns = self.nn_.kneighbors(X_class, return_distance=False)[:, 1:]
             X_new, y_new = self._make_samples(
@@ -206,19 +223,4 @@ class SMOTE(BaseCollectionTransformer):
         return X_new.astype(X.dtype)
 
 
-if __name__ == "__main__":
-    # Example usage
-    n_samples = 100  # Total number of labels
-    imbalance_ratio = 0.9  # Proportion of majority class
-    X = np.random.rand(n_samples, 1, 10)
-    y = np.random.choice([0, 1], size=n_samples, p=[imbalance_ratio, 1 - imbalance_ratio])
-    _, count = np.unique(y, return_counts=True)
-    print(count)
 
-    transformer = SMOTE()
-    transformer.fit(X, y)
-    res_X, res_y = transformer.transform(X, y)
-    print(res_X.shape, res_y.shape)
-
-    _, res_count = np.unique(res_y, return_counts=True)
-    print(res_count)
