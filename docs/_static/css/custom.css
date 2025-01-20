@@ -42,6 +42,9 @@ img.avatar {
 }
 
 /* DataFrame Color Variables */
+/* The following variables are defined only here, */
+/* meaning they are new variables. */
+/* They are used for displaying pandas dataframes in the rendered notebooks. */
 
 @media (prefers-color-scheme: dark) {
   body:not([data-theme="light"]) {
