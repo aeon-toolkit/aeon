@@ -180,7 +180,7 @@ def ts_precision(y_pred, y_real, gamma="one", bias_type="flat", udf_gamma=None):
 
     Parameters
     ----------
-    y_pred : list of tuples or list of lists of tuples
+    y_pred : list of tuples
         The predicted anomaly ranges.
         - Each tuple represents a range (start, end) of the anomaly where
           start is starting index (inclusive) and end is ending index (inclusive).
@@ -261,7 +261,7 @@ def ts_recall(y_pred, y_real, gamma="one", bias_type="flat", alpha=0.0, udf_gamm
 
     Parameters
     ----------
-    y_pred : list of tuples or list of lists of tuples
+    y_pred : list of tuples
         The predicted anomaly ranges.
         - Each tuple represents a range (start, end) of the anomaly where
           start is starting index (inclusive) and end is ending index (inclusive).
@@ -339,7 +339,7 @@ def ts_fscore(y_pred, y_real, gamma="one", bias_type="flat", alpha=0.0, udf_gamm
 
     Parameters
     ----------
-    y_pred : list of tuples or list of lists of tuples
+    y_pred : list of tuples
         The predicted anomaly ranges.
         - Each tuple represents a range (start, end) of the anomaly where
           start is starting index (inclusive) and end is ending index (inclusive).
