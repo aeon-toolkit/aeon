@@ -96,11 +96,13 @@ class LITETimeClassifier(BaseClassifier):
         The keras optimizer used for training.
     loss : str, default = "categorical_crossentropy"
         The name of the keras training loss.
-    metrics : str or list[str], default="accuracy"
-        The evaluation metrics to use during training. If
-        a single string metric is provided, it will be
-        used as the only metric. If a list of metrics are
-        provided, all will be used for evaluation.
+    metrics : str or list[str|function|keras.metrics.Metric], default="accuracy"
+        the evaluation metrics to use during training. each of this can be a
+        string, function or a keras.metrics.metric instance (for details, see
+        https://keras.io/api/metrics/).
+        if a single string metric is provided, it will be used as the only
+        metric. if a list of metrics are provided, all will be used for
+        evaluation.
 
     References
     ----------
@@ -215,6 +217,7 @@ class LITETimeClassifier(BaseClassifier):
                 use_litemv=self.use_litemv,
                 n_filters=self.n_filters,
                 kernel_size=self.kernel_size,
+                strides=self.strides,
                 file_path=self.file_path,
                 save_best_model=self.save_best_model,
                 save_last_model=self.save_last_model,
@@ -398,11 +401,13 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         The keras optimizer used for training.
     loss : str, default = "categorical_crossentropy"
         The name of the keras training loss.
-    metrics : str or list[str], default="accuracy"
-        The evaluation metrics to use during training. If
-        a single string metric is provided, it will be
-        used as the only metric. If a list of metrics are
-        provided, all will be used for evaluation.
+    metrics : str or list[str|function|keras.metrics.Metric], default="accuracy"
+        the evaluation metrics to use during training. each of this can be a
+        string, function or a keras.metrics.metric instance (for details, see
+        https://keras.io/api/metrics/).
+        if a single string metric is provided, it will be used as the only
+        metric. if a list of metrics are provided, all will be used for
+        evaluation.
 
     References
     ----------
