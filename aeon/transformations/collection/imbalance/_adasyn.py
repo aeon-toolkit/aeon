@@ -1,80 +1,34 @@
-"""ADASYN over sampling algorithm.
-
-see more in imblearn.over_sampling.ADASYN
-original authors:
-#          Guillaume Lemaitre <g.lemaitre58@gmail.com>
-#          Christos Aridas
-# License: MIT
-"""
-
-from collections import OrderedDict
+"""ADASYN over sampling algorithm."""
 
 import numpy as np
 from scipy import sparse
-from sklearn.neighbors import NearestNeighbors
 from sklearn.utils import check_random_state
 
-from aeon.transformations.collection import BaseCollectionTransformer
+from aeon.transformations.collection.imbalance import SMOTE
 
-__maintainer__ = ["TonyBagnall, Chris Qiu"]
+__maintainer__ = ["TonyBagnall"]
 __all__ = ["ADASYN"]
 
 
-class ADASYN(BaseCollectionTransformer):
+class ADASYN(SMOTE):
     """
-    Class to perform over-sampling using ADASYN .
+    Over-sampling using Adaptive Synthetic Sampling (ADASYN).
 
-    This object is a simplified implementation of ADASYN - Adaptive
-    Synthetic (ADASYN) algorithm as presented in imblearn.over_sampling.ADASYN
-    This method is similar to SMOTE, but it generates different number of
+    Adaptation of imblearn.over_sampling.ADASYN
+    original authors:
+    #          Guillaume Lemaitre <g.lemaitre58@gmail.com>
+    #          Christos Aridas
+    # License: MIT
+
+    This transformer extends SMOTE, but it generates different number of
     samples depending on an estimate of the local distribution of the class
     to be oversampled.
-
-    Currently only works with two class problems.
-
-    Parameters
-    ----------
-    k_neighbors : int or object, default=5
-        The nearest neighbors used to define the neighborhood of samples to use
-        to generate the synthetic samples. `~sklearn.neighbors.NearestNeighbors`
-        instance will be fitted in this case.
-    random_state : int, RandomState instance or None, default=None
-        If `int`, random_state is the seed used by the random number generator;
-        If `RandomState` instance, random_state is the random number generator;
-        If `None`, the random number generator is the `RandomState` instance used
-        by `np.random`.
     """
 
-    _tags = {
-        "capability:multivariate": False,
-        "capability:unequal_length": False,
-        "requires_y": True,
-        "python_dependencies": "imbalanced-learn",
-    }
-
-    def __init__(self, random_state=None, k_neighbors=5):
-        self.random_state = random_state
-        self.k_neighbors = k_neighbors
-        super().__init__()
-
-    def _fit(self, X, y=None):
-        # set the additional_neighbor=1
-        self.nn_ = NearestNeighbors(n_neighbors=self.k_neighbors + 1)
-
-        # resamples all classes except the majority.
-        unique, counts = np.unique(y, return_counts=True)
-        target_stats = dict(zip(unique, counts))
-        # If two or more classes are equal largest, the majority is assumed to be the
-        # one with the largest index.
-        n_sample_majority = max(target_stats.values())
-        class_majority = max(target_stats, key=target_stats.get)
-        sampling_strategy = {
-            key: n_sample_majority - value
-            for (key, value) in target_stats.items()
-            if key != class_majority
-        }
-        self.sampling_strategy_ = OrderedDict(sorted(sampling_strategy.items()))
-        return self
+    def __init__(
+        self,
+    ):
+        super().__init__(random_state=None, k_neighbors=5)
 
     def _transform(self, X, y=None):
         X = np.squeeze(X, axis=1)
