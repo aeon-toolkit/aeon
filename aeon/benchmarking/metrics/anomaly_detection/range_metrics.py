@@ -275,8 +275,8 @@ def ts_recall(y_pred, y_real, gamma="one", bias_type="flat", alpha=0.0, udf_gamm
         Cardinality type. Should be one of ["reciprocal", "one", "udf_gamma"].
     bias_type : str, default="flat"
         Type of bias to apply. Should be one of ["flat", "front", "middle", "back"].
-    alpha : float
-        Weight for existence reward in recall calculation. (default: 0.0)
+    alpha : float, default: 0.0
+        Weight for existence reward in recall calculation.
     udf_gamma : int or None, default=None
         User-defined gamma value.
 
@@ -330,7 +330,16 @@ def ts_recall(y_pred, y_real, gamma="one", bias_type="flat", alpha=0.0, udf_gamm
     return recall
 
 
-def ts_fscore(y_pred, y_real, gamma="one", bias_type="flat", alpha=0.0, udf_gamma=None):
+def ts_fscore(
+    y_pred,
+    y_real,
+    gamma="one",
+    p_bias="flat",
+    r_bias="flat",
+    p_alpha=0.0,
+    r_alpha=0.0,
+    udf_gamma=None,
+):
     """
     Calculate F1-Score for time series anomaly detection.
 
@@ -351,8 +360,16 @@ def ts_fscore(y_pred, y_real, gamma="one", bias_type="flat", alpha=0.0, udf_gamm
           single list of tuples bringing it to the above format.
     gamma : str, default="one"
         Cardinality type. Should be one of ["reciprocal", "one", "udf_gamma"].
-    bias_type : str, default="flat"
-        Type of bias to apply. Should be one of ["flat", "front", "middle", "back"].
+    p_bias : str, default="flat"
+        Type of bias to apply for precision.
+        Should be one of ["flat", "front", "middle", "back"].
+    r_bias : str, default="flat"
+        Type of bias to apply for recall.
+        Should be one of ["flat", "front", "middle", "back"].
+    p_alpha : float, default=0.0
+        Weight for existence reward in Precision calculation.
+    r_alpha : float, default=0.0
+        Weight for existence reward in Recall calculation.
     udf_gamma : int or None, default=None
         User-defined gamma value.
 
@@ -368,8 +385,8 @@ def ts_fscore(y_pred, y_real, gamma="one", bias_type="flat", alpha=0.0, udf_gamm
        Processing Systems (NeurIPS 2018), Montréal, Canada.
        http://papers.nips.cc/paper/7462-precision-and-recall-for-time-series.pdf
     """
-    precision = ts_precision(y_pred, y_real, gamma, bias_type, udf_gamma)
-    recall = ts_recall(y_pred, y_real, gamma, bias_type, alpha, udf_gamma)
+    precision = ts_precision(y_pred, y_real, gamma, p_bias, udf_gamma)
+    recall = ts_recall(y_pred, y_real, gamma, r_bias, r_alpha, udf_gamma)
 
     if precision + recall > 0:
         fscore = 2 * (precision * recall) / (precision + recall)

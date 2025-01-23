@@ -22,7 +22,14 @@ def test_single_overlapping_range():
         y_pred, y_real, gamma="one", bias_type="flat", alpha=0.0, udf_gamma=None
     )
     f1_score = ts_fscore(
-        y_pred, y_real, gamma="one", bias_type="flat", alpha=0.0, udf_gamma=None
+        y_pred,
+        y_real,
+        gamma="one",
+        p_bias="flat",
+        r_bias="flat",
+        p_alpha=0.0,
+        r_alpha=0.0,
+        udf_gamma=None,
     )
 
     np.testing.assert_almost_equal(
@@ -67,7 +74,14 @@ def test_multiple_non_overlapping_ranges():
         y_pred, y_real, gamma="one", bias_type="flat", alpha=0.0, udf_gamma=None
     )
     f1_score = ts_fscore(
-        y_pred, y_real, gamma="one", bias_type="flat", alpha=0.0, udf_gamma=None
+        y_pred,
+        y_real,
+        gamma="one",
+        p_bias="flat",
+        r_bias="flat",
+        p_alpha=0.0,
+        r_alpha=0.0,
+        udf_gamma=None,
     )
 
     np.testing.assert_almost_equal(
@@ -112,7 +126,14 @@ def test_multiple_overlapping_ranges():
         y_pred, y_real, gamma="one", bias_type="flat", alpha=0.0, udf_gamma=None
     )
     f1_score = ts_fscore(
-        y_pred, y_real, gamma="one", bias_type="flat", alpha=0.0, udf_gamma=None
+        y_pred,
+        y_real,
+        gamma="one",
+        p_bias="flat",
+        r_bias="flat",
+        p_alpha=0.0,
+        r_alpha=0.0,
+        udf_gamma=None,
     )
 
     np.testing.assert_almost_equal(
@@ -157,7 +178,14 @@ def test_nested_lists_of_predictions():
         y_pred, y_real, gamma="one", bias_type="flat", alpha=0.0, udf_gamma=None
     )
     f1_score = ts_fscore(
-        y_pred, y_real, gamma="one", bias_type="flat", alpha=0.0, udf_gamma=None
+        y_pred,
+        y_real,
+        gamma="one",
+        p_bias="flat",
+        r_bias="flat",
+        p_alpha=0.0,
+        r_alpha=0.0,
+        udf_gamma=None,
     )
 
     np.testing.assert_almost_equal(
@@ -202,7 +230,14 @@ def test_all_encompassing_range():
         y_pred, y_real, gamma="one", bias_type="flat", alpha=0.0, udf_gamma=None
     )
     f1_score = ts_fscore(
-        y_pred, y_real, gamma="one", bias_type="flat", alpha=0.0, udf_gamma=None
+        y_pred,
+        y_real,
+        gamma="one",
+        p_bias="flat",
+        r_bias="flat",
+        p_alpha=0.0,
+        r_alpha=0.0,
+        udf_gamma=None,
     )
 
     np.testing.assert_almost_equal(
@@ -242,12 +277,19 @@ def test_converted_binary_to_range_based():
     expected_recall = 1.000000
     expected_f1 = 0.666667
 
-    precision = ts_precision(y_pred, y_real, gamma="one", bias_type="flat")
+    precision = ts_precision(y_pred, y_real, gamma="reciprocal", bias_type="flat")
     recall = ts_recall(
-        y_pred, y_real, gamma="one", bias_type="flat", alpha=0.0, udf_gamma=None
+        y_pred, y_real, gamma="reciprocal", bias_type="flat", alpha=0.0, udf_gamma=None
     )
     f1_score = ts_fscore(
-        y_pred, y_real, gamma="one", bias_type="flat", alpha=0.0, udf_gamma=None
+        y_pred,
+        y_real,
+        gamma="reciprocal",
+        p_bias="flat",
+        r_bias="flat",
+        p_alpha=0.0,
+        r_alpha=0.5,
+        udf_gamma=None,
     )
 
     np.testing.assert_almost_equal(
@@ -292,7 +334,14 @@ def test_multiple_overlapping_ranges_with_gamma_reciprocal():
         y_pred, y_real, gamma="reciprocal", bias_type="flat", alpha=0.0, udf_gamma=None
     )
     f1_score = ts_fscore(
-        y_pred, y_real, gamma="reciprocal", bias_type="flat", alpha=0.0, udf_gamma=None
+        y_pred,
+        y_real,
+        gamma="reciprocal",
+        p_bias="flat",
+        r_bias="flat",
+        p_alpha=0.0,
+        r_alpha=0.0,
+        udf_gamma=None,
     )
 
     np.testing.assert_almost_equal(
@@ -337,7 +386,14 @@ def test_multiple_overlapping_ranges_with_bias_middle():
         y_pred, y_real, gamma="one", bias_type="middle", alpha=0.0, udf_gamma=None
     )
     f1_score = ts_fscore(
-        y_pred, y_real, gamma="one", bias_type="middle", alpha=0.0, udf_gamma=None
+        y_pred,
+        y_real,
+        gamma="one",
+        p_bias="middle",
+        r_bias="middle",
+        p_alpha=0.0,
+        r_alpha=0.0,
+        udf_gamma=None,
     )
 
     np.testing.assert_almost_equal(
@@ -390,8 +446,10 @@ def test_multiple_overlapping_ranges_with_bias_middle_gamma_reciprocal():
         y_pred,
         y_real,
         gamma="reciprocal",
-        bias_type="middle",
-        alpha=0.0,
+        p_bias="middle",
+        r_bias="middle",
+        p_alpha=0.0,
+        r_alpha=0.0,
         udf_gamma=None,
     )
 
