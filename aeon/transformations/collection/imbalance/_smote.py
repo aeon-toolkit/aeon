@@ -1,6 +1,6 @@
-"""
-implement for imblearn minority class rebalancer SMOTE.
-see more in imblearn.over_sampling.SMOTE
+"""SMOTE over sampling algorithm.
+
+See more in imblearn.over_sampling.SMOTE
 original authors:
 #          Guillaume Lemaitre <g.lemaitre58@gmail.com>
 #          Fernando Nogueira
@@ -9,42 +9,58 @@ original authors:
 # License: MIT
 """
 
-import numpy as np
-from aeon.transformations.collection import BaseCollectionTransformer
-from sklearn.neighbors import NearestNeighbors
-from sklearn.utils import check_random_state
-from scipy import sparse
 from collections import OrderedDict
 
-__maintainer__ = ["TonyBagnall, Chris Qiu"]
+import numpy as np
+from scipy import sparse
+from sklearn.neighbors import NearestNeighbors
+from sklearn.utils import check_random_state
+
+from aeon.transformations.collection import BaseCollectionTransformer
+
+__maintainer__ = ["TonyBagnall"]
 __all__ = ["SMOTE"]
 
 
 class SMOTE(BaseCollectionTransformer):
     """
-    Class to perform over-sampling using SMOTE.
+    Over-sampling using the Synthetic Minority Over-sampling TEchnique (SMOTE)[1]_.
 
-    This object is a simplified implementation of SMOTE - Synthetic Minority
-    Over-sampling Technique as presented in imblearn.over_sampling.SMOTE
-    sampling_strategy is sampling target by targeting all classes but not the
-    majority, which directly expressed in _fit.sampling_strategy.
+    An adaptation of the imbalance-learn implementation of SMOTE in
+    imblearn.over_sampling.SMOTE. sampling_strategy is sampling target by
+    targeting all classes but not the majority, which is directly expressed in
+    _fit.sampling_strategy.
+
     Parameters
     ----------
-    {random_state}
-
     k_neighbors : int or object, default=5
         The nearest neighbors used to define the neighborhood of samples to use
         to generate the synthetic samples. `~sklearn.neighbors.NearestNeighbors`
         instance will be fitted in this case.
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
+
+    See Also
+    --------
+    ADASYN
+
+    References
+    ----------
+    .. [1] Chawla et al. SMOTE: synthetic minority over-sampling technique, Journal
+    of Artificial Intelligence Research 16(1): 321–357, 2002.
+        https://dl.acm.org/doi/10.5555/1622407.1622416
     """
 
     _tags = {
-        "capability:multivariate": True,
-        "capability:unequal_length": True,
+        "capability:multivariate": False,
+        "capability:unequal_length": False,
         "requires_y": True,
     }
 
-    def __init__(self, random_state=None, k_neighbors=5):
+    def __init__(self, k_neighbors=5, random_state=None):
         self.random_state = random_state
         self.k_neighbors = k_neighbors
         super().__init__()
@@ -63,20 +79,16 @@ class SMOTE(BaseCollectionTransformer):
             for (key, value) in target_stats.items()
             if key != class_majority
         }
-        self.sampling_strategy_ = OrderedDict(
-            sorted(sampling_strategy.items())
-        )
+        self.sampling_strategy_ = OrderedDict(sorted(sampling_strategy.items()))
         return self
 
     def _transform(self, X, y=None):
-        shape_recover = False   # use to recover the shape of X
-        if X.ndim == 3 and X.shape[1] == 1:
-            X = np.squeeze(X, axis=1)  # remove the middle dimension to be compatible with sklearn
-            shape_recover = True
+        # remove the channel dimension to be compatible with sklearn
+        X = np.squeeze(X, axis=1)
         X_resampled = [X.copy()]
         y_resampled = [y.copy()]
 
-        # got the minority class label and the number needs to be generated i.e. num_majority - num_minority
+        # got the minority class label and the number needs to be generated
         for class_sample, n_samples in self.sampling_strategy_.items():
             if n_samples == 0:
                 continue
@@ -96,15 +108,13 @@ class SMOTE(BaseCollectionTransformer):
         else:
             X_resampled = np.vstack(X_resampled)
         y_resampled = np.hstack(y_resampled)
-        if shape_recover:
-            X_resampled = X_resampled[:, np.newaxis, :]
+        X_resampled = X_resampled[:, np.newaxis, :]
         return X_resampled, y_resampled
 
     def _make_samples(
-            self, X, y_dtype, y_type, nn_data, nn_num, n_samples, step_size=1.0, y=None
+        self, X, y_dtype, y_type, nn_data, nn_num, n_samples, step_size=1.0, y=None
     ):
-        """A support function that returns artificial samples constructed along
-        the line connecting nearest neighbours.
+        """Make artificial samples constructed based on nearest neighbours.
 
         Parameters
         ----------
@@ -156,7 +166,7 @@ class SMOTE(BaseCollectionTransformer):
         return X_new, y_new
 
     def _generate_samples(
-            self, X, nn_data, nn_num, rows, cols, steps, y_type=None, y=None
+        self, X, nn_data, nn_num, rows, cols, steps, y_type=None, y=None
     ):
         r"""Generate a synthetic sample.
 
@@ -221,6 +231,3 @@ class SMOTE(BaseCollectionTransformer):
             X_new = X[rows] + steps * diffs
 
         return X_new.astype(X.dtype)
-
-
-

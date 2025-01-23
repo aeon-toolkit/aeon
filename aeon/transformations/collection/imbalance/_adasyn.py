@@ -1,17 +1,20 @@
-"""
-implement for imblearn minority class rebalancer ADASYN.
+"""ADASYN over sampling algorithm.
+
 see more in imblearn.over_sampling.ADASYN
 original authors:
 #          Guillaume Lemaitre <g.lemaitre58@gmail.com>
 #          Christos Aridas
 # License: MIT
 """
+
+from collections import OrderedDict
+
 import numpy as np
-from aeon.transformations.collection import BaseCollectionTransformer
+from scipy import sparse
 from sklearn.neighbors import NearestNeighbors
 from sklearn.utils import check_random_state
-from scipy import sparse
-from collections import OrderedDict
+
+from aeon.transformations.collection import BaseCollectionTransformer
 
 __maintainer__ = ["TonyBagnall, Chris Qiu"]
 __all__ = ["ADASYN"]
@@ -26,20 +29,27 @@ class ADASYN(BaseCollectionTransformer):
     This method is similar to SMOTE, but it generates different number of
     samples depending on an estimate of the local distribution of the class
     to be oversampled.
+
+    Currently only works with two class problems.
+
     Parameters
     ----------
-    {random_state}
-
     k_neighbors : int or object, default=5
         The nearest neighbors used to define the neighborhood of samples to use
         to generate the synthetic samples. `~sklearn.neighbors.NearestNeighbors`
         instance will be fitted in this case.
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
     """
 
     _tags = {
-        "capability:multivariate": True,
-        "capability:unequal_length": True,
+        "capability:multivariate": False,
+        "capability:unequal_length": False,
         "requires_y": True,
+        "python_dependencies": "imbalanced-learn",
     }
 
     def __init__(self, random_state=None, k_neighbors=5):
@@ -51,9 +61,11 @@ class ADASYN(BaseCollectionTransformer):
         # set the additional_neighbor=1
         self.nn_ = NearestNeighbors(n_neighbors=self.k_neighbors + 1)
 
-        # generate sampling target by targeting all classes but not the majority
+        # resamples all classes except the majority.
         unique, counts = np.unique(y, return_counts=True)
         target_stats = dict(zip(unique, counts))
+        # If two or more classes are equal largest, the majority is assumed to be the
+        # one with the largest index.
         n_sample_majority = max(target_stats.values())
         class_majority = max(target_stats, key=target_stats.get)
         sampling_strategy = {
@@ -61,21 +73,16 @@ class ADASYN(BaseCollectionTransformer):
             for (key, value) in target_stats.items()
             if key != class_majority
         }
-        self.sampling_strategy_ = OrderedDict(
-            sorted(sampling_strategy.items())
-        )
+        self.sampling_strategy_ = OrderedDict(sorted(sampling_strategy.items()))
         return self
 
     def _transform(self, X, y=None):
-        shape_recover = False  # use to recover the shape of X
-        if X.ndim == 3 and X.shape[1] == 1:
-            X = np.squeeze(X, axis=1)  # remove the middle dimension to be compatible with sklearn
-            shape_recover = True
+        X = np.squeeze(X, axis=1)
         random_state = check_random_state(self.random_state)
         X_resampled = [X.copy()]
         y_resampled = [y.copy()]
 
-        # got the minority class label and the number needs to be generated i.e. num_majority - num_minority
+        # got the minority class label and the number needs to be generated
         for class_sample, n_samples in self.sampling_strategy_.items():
             if n_samples == 0:
                 continue
@@ -135,6 +142,5 @@ class ADASYN(BaseCollectionTransformer):
             X_resampled = np.vstack(X_resampled)
         y_resampled = np.hstack(y_resampled)
 
-        if shape_recover:
-            X_resampled = X_resampled[:, np.newaxis, :]
+        X_resampled = X_resampled[:, np.newaxis, :]
         return X_resampled, y_resampled
