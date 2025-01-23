@@ -26,28 +26,22 @@ class ContractableBOSS(BaseClassifier):
     Implementation of BOSS Ensemble from [1]_ with refinements
     described in [2]_.
 
-    Overview: Input ``n`` series of length ``m`` and cBOSS randomly samples
-    ``n_parameter_samples`` parameter sets, evaluting each with LOOCV. It then
-    retains ``max_ensemble_size`` classifiers with the highest accuracy
-    Overview: Input ``n`` series of length ``m`` and cBOSS randomly samples
-    ``n_parameter_samples`` parameter sets, evaluting each with LOOCV. It then
-    retains ``max_ensemble_size`` classifiers with the highest accuracy
+    Overview: Input "n" series of length "m" and cBOSS randomly samples
+    `n_parameter_samples` parameter sets, evaluting each with LOOCV. It then
+    retains `max_ensemble_size` classifiers with the highest accuracy
     There are three primary parameters:
-        - ``alpha``: alphabet size
-        - ``w``: window length
-        - ``l``: word length.
-        - ``alpha``: alphabet size
-        - ``w``: window length
-        - ``l``: word length.
+        - alpha: alphabet size
+        - w: window length
+        - l: word length.
 
-    For any combination, a single BOSS slides a window length ``w`` along the
-    series. The ``w`` length window is shortened to an ``l`` length word by
-    taking a Fourier transform and keeping the first ``l/2`` complex coefficients.
-    These ``l`` coefficients are then discretised into ``alpha`` possible values,
-    to form a word length ``l``. A histogram of words for each
+    For any combination, a single BOSS slides a window length "w" along the
+    series. The "w" length window is shortened to an "l" length word by
+    taking a Fourier transform and keeping the first l/2 complex coefficients.
+    These "l" coefficients are then discretised into "alpha" possible values,
+    to form a word length "l". A histogram of words for each
     series is formed and stored.
 
-    Fit involves finding ``n`` histograms.
+    Fit involves finding "n" histograms.
 
     Predict uses 1 nearest neighbor with a bespoke BOSS distance function.
 
@@ -57,7 +51,7 @@ class ContractableBOSS(BaseClassifier):
         If search is randomised, number of parameter combos to try.
     max_ensemble_size : int or None, default = 50
         Maximum number of classifiers to retain. Will limit number of retained
-        classifiers even if more than ``max_ensemble_size`` are within threshold.
+        classifiers even if more than `max_ensemble_size` are within threshold.
     max_win_len_prop : int or float, default = 1
         Maximum window length as a proportion of the series length.
     min_window : int, default = 10
@@ -65,10 +59,10 @@ class ContractableBOSS(BaseClassifier):
     time_limit_in_minutes : int, default = 0
         Time contract to limit build time in minutes. Default of 0 means no limit.
     contract_max_n_parameter_samples : int, default=np.inf
-    Max number of parameter combinations to consider when ``time_limit_in_minutes``
-    is set.
+        Max number of parameter combinations to consider when time_limit_in_minutes is
+        set.
     n_jobs : int, default = 1
-        The number of jobs to run in parallel for both ``fit`` and ``predict``.
+        The number of jobs to run in parallel for both `fit` and `predict`.
         ``-1`` means using all processors.
     feature_selection : str, default = "none"
         Sets the feature selections strategy to be used. One of {"chi2", "none",
@@ -77,14 +71,10 @@ class ContractableBOSS(BaseClassifier):
         applies not feature selectiona and yields large bag of words, e.g. much
         memory may be needed.
     random_state : int, RandomState instance or None, default=None
-        If ``int``, ``random_state`` is the seed used by the random number generator;
-        If ``RandomState`` instance, ``random_state`` is the random number generator;
-        If ``None``, the random number generator is the ``RandomState`` instance used
-        by ``np.random``.
-        If ``int``, ``random_state`` is the seed used by the random number generator;
-        If ``RandomState`` instance, ``random_state`` is the random number generator;
-        If ``None``, the random number generator is the ``RandomState`` instance used
-        by ``np.random``.
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
 
     Attributes
     ----------
@@ -103,14 +93,12 @@ class ContractableBOSS(BaseClassifier):
     weights_ :
         Weight of each classifier in the ensemble.
 
-
     Raises
     ------
     ValueError
     Raised when ``min_window`` is greater than ``max_window + 1``.
     This ensures that ``min_window`` does not exceed ``max_window``,
     preventing invalid window size configurations.
-
 
     See Also
     --------
@@ -227,10 +215,10 @@ class ContractableBOSS(BaseClassifier):
         win_inc = max(win_inc, 1)
         if self.min_window > max_window + 1:
             raise ValueError(
-                f"Error in ContractableBOSS, ``min_window`` ="
+                f"Error in ContractableBOSS, min_window ="
                 f"{self.min_window} is bigger"
                 f" than max_window ={max_window}."
-                f" Try set ``min_window`` to be smaller than series length in "
+                f" Try set min_window to be smaller than series length in "
                 f"the constructor, but the classifier may not work at "
                 f"all with very short series"
             )
