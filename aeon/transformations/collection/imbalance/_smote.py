@@ -66,10 +66,10 @@ class SMOTE(BaseCollectionTransformer):
         super().__init__()
 
     def _fit(self, X, y=None):
-        # set the additional_neighbor=1
+        # set the additional_neighbor required by SMOTE
         self.nn_ = NearestNeighbors(n_neighbors=self.k_neighbors + 1)
 
-        # generate sampling target by targeting all classes but not the majority
+        # generate sampling target by targeting all classes except the majority
         unique, counts = np.unique(y, return_counts=True)
         target_stats = dict(zip(unique, counts))
         n_sample_majority = max(target_stats.values())

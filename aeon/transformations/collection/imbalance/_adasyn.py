@@ -25,10 +25,8 @@ class ADASYN(SMOTE):
     to be oversampled.
     """
 
-    def __init__(
-        self,
-    ):
-        super().__init__(random_state=None, k_neighbors=5)
+    def __init__(self, random_state=None, k_neighbors=5):
+        super().__init__(random_state=random_state, k_neighbors=k_neighbors)
 
     def _transform(self, X, y=None):
         X = np.squeeze(X, axis=1)
