@@ -637,7 +637,10 @@ def check_persistence_via_pickle(estimator, datatype):
 def check_fit_deterministic(estimator, datatype):
     """Test that fit is deterministic.
 
-    Check that calling fit twice is equivalent to calling it once.
+    Check that calling fit twice is equivalent to calling it once, in terms of the
+    output of non-state changing methods such as predict and transform. Calls
+    fit, then calls all non-state changing methods, then calls fit and non-state
+    changing methods again, checking the output is the same.
     """
     estimator = _clone_estimator(estimator, random_state=0)
     _run_estimator_method(estimator, "fit", datatype, "train")

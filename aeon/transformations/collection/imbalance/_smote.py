@@ -54,8 +54,6 @@ class SMOTE(BaseCollectionTransformer):
     """
 
     _tags = {
-        "capability:multivariate": False,
-        "capability:unequal_length": False,
         "requires_y": True,
     }
 
@@ -143,11 +141,11 @@ class SMOTE(BaseCollectionTransformer):
 
         Returns
         -------
-        X_new : {ndarray, sparse matrix} of shape (n_samples_new, n_features)
-            Synthetically generated samples.
+        X_new : ndarray
+            Synthetically generated samples of shape (n_samples_new, n_timepoints).
 
-        y_new : ndarray of shape (n_samples_new,)
-            Target values for synthetic samples.
+        y_new : ndarray
+            Target values for synthetic samples of shape (n_samples_new,).
         """
         random_state = check_random_state(self.random_state)
         samples_indices = random_state.randint(low=0, high=nn_num.size, size=n_samples)
@@ -178,8 +176,9 @@ class SMOTE(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : {array-like, sparse matrix} of shape (n_samples, n_features)
-            Points from which the points will be created.
+        X : np.ndarray
+            Series from which the points will be created of shape (n_cases,
+            n_timepoints).
 
         nn_data : ndarray of shape (n_samples_all, n_features)
             Data set carrying all the neighbours to be used.
@@ -220,3 +219,26 @@ class SMOTE(BaseCollectionTransformer):
             )
         X_new = X[rows] + steps * diffs
         return X_new.astype(X.dtype)
+
+    @classmethod
+    def _get_test_params(cls, parameter_set="default"):
+        """Return testing parameter settings for the estimator.
+
+        Parameters
+        ----------
+        parameter_set : str, default="default"
+            Name of the set of test parameters to return, for use in tests. If no
+            special parameters are defined for a value, will return `"default"` set.
+            ClassifierChannelEnsemble provides the following special sets:
+            - "results_comparison" - used in some classifiers to compare against
+              previously generated results where the default set of parameters
+              cannot produce suitable probability estimates
+
+        Returns
+        -------
+        params : dict or list of dict, default={}
+            Parameters to create testing instances of the class.
+            Each dict are parameters to construct an "interesting" test instance, i.e.,
+            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+        """
+        return {"k_neighbors": 1}
