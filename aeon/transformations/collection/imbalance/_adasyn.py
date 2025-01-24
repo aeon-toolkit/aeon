@@ -1,10 +1,9 @@
 """ADASYN over sampling algorithm."""
 
 import numpy as np
-from scipy import sparse
 from sklearn.utils import check_random_state
 
-from aeon.transformations.collection.imbalance import SMOTE
+from aeon.transformations.collection.imbalance._smote import SMOTE
 
 __maintainer__ = ["TonyBagnall"]
 __all__ = ["ADASYN"]
@@ -75,23 +74,13 @@ class ADASYN(SMOTE):
             cols = random_state.choice(n_neighbors, size=n_samples)
             diffs = X_class[nns[rows, cols]] - X_class[rows]
             steps = random_state.uniform(size=(n_samples, 1))
-
-            if sparse.issparse(X):
-                sparse_func = type(X).__name__
-                steps = getattr(sparse, sparse_func)(steps)
-                X_new = X_class[rows] + steps.multiply(diffs)
-            else:
-                X_new = X_class[rows] + steps * diffs
+            X_new = X_class[rows] + steps * diffs
 
             X_new = X_new.astype(X.dtype)
             y_new = np.full(n_samples, fill_value=class_sample, dtype=y.dtype)
             X_resampled.append(X_new)
             y_resampled.append(y_new)
-
-        if sparse.issparse(X):
-            X_resampled = sparse.vstack(X_resampled, format=X.format)
-        else:
-            X_resampled = np.vstack(X_resampled)
+        X_resampled = np.vstack(X_resampled)
         y_resampled = np.hstack(y_resampled)
 
         X_resampled = X_resampled[:, np.newaxis, :]

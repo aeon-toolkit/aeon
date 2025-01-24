@@ -12,7 +12,6 @@ original authors:
 from collections import OrderedDict
 
 import numpy as np
-from scipy import sparse
 from sklearn.neighbors import NearestNeighbors
 from sklearn.utils import check_random_state
 
@@ -33,10 +32,10 @@ class SMOTE(BaseCollectionTransformer):
 
     Parameters
     ----------
-    k_neighbors : int or object, default=5
-        The nearest neighbors used to define the neighborhood of samples to use
-        to generate the synthetic samples. `~sklearn.neighbors.NearestNeighbors`
-        instance will be fitted in this case.
+    k_neighbors : int, default=5
+        The number  of nearest neighbors used to define the neighborhood of samples
+        to use to generate the synthetic time series.
+        `~sklearn.neighbors.NearestNeighbors` instance will be fitted in this case.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -102,11 +101,7 @@ class SMOTE(BaseCollectionTransformer):
             )
             X_resampled.append(X_new)
             y_resampled.append(y_new)
-
-        if sparse.issparse(X):
-            X_resampled = sparse.vstack(X_resampled, format=X.format)
-        else:
-            X_resampled = np.vstack(X_resampled)
+        X_resampled = np.vstack(X_resampled)
         y_resampled = np.hstack(y_resampled)
         X_resampled = X_resampled[:, np.newaxis, :]
         return X_resampled, y_resampled
@@ -118,8 +113,9 @@ class SMOTE(BaseCollectionTransformer):
 
         Parameters
         ----------
-        X : {array-like, sparse matrix} of shape (n_samples, n_features)
-            Points from which the points will be created.
+        X : np.ndarray
+            Shape (n_cases, n_timepoints), time series from which the new series will
+            be created.
 
         y_dtype : dtype
             The data type of the targets.
@@ -222,12 +218,5 @@ class SMOTE(BaseCollectionTransformer):
             diffs[mask_pair_samples] *= random_state.uniform(
                 low=0.0, high=0.5, size=(mask_pair_samples.sum(), 1)
             )
-
-        if sparse.issparse(X):
-            sparse_func = type(X).__name__
-            steps = getattr(sparse, sparse_func)(steps)
-            X_new = X[rows] + steps.multiply(diffs)
-        else:
-            X_new = X[rows] + steps * diffs
-
+        X_new = X[rows] + steps * diffs
         return X_new.astype(X.dtype)
