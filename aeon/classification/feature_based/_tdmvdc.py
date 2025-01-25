@@ -38,7 +38,11 @@ class TDMVDCClassifier(BaseClassifier):
         "algorithm_type": "feature",
         "python_dependencies": "tsfresh",
     }
-    def __init__(self):
+    def __init__(self,
+                 default_fc_parameters="efficient",
+                 k1=2,
+                 k2=2,
+                 feature_store_ratios=[0.1, 0.2, 0.3, 0.4, 0.5]):
         pass
 
     def _fit(self, X, y):
