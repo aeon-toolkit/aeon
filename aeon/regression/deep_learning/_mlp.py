@@ -28,8 +28,9 @@ class MLPRegressor(BaseDeepRegressor):
     activation : Union[str, List[str]], optional (default='relu')
         Activation function(s) for each dense layer.
     dropout_rate : Union[float, List[Union[int, float]]], optional (default=None)
-        Dropout rate(s) for each dense layer. If None, a default rate of 0.2 is used.
-        Dropout rate(s) are typically a number in the interval [0, 1].
+        Dropout rate(s) for each dense layer. If None, a default rate of 0.2 is used,
+        except the first element, being 0.1. Dropout rate(s) are typically a number
+        in the interval [0, 1].
     dropout_last : float, default = 0.3
         The dropout rate of the last layer.
     use_bias : bool, default = True
