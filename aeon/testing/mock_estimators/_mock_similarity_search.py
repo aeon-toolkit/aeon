@@ -1,12 +1,14 @@
-"""Mock similarity search useful for testing and debugging.
+"""Mock similarity searchers useful for testing and debugging."""
 
-Used in tests for the query search base class.
-"""
+__maintainer__ = ["baraline"]
+__all__ = [
+    "MockSimilaritySearch",
+]
 
 from aeon.similarity_search.base import BaseSimilaritySearch
 
 
-class MocksimilaritySearch(BaseSimilaritySearch):
+class MockSimilaritySearch(BaseSimilaritySearch):
     """Mock similarity search for testing base class predict."""
 
     def _fit(self, X, y=None):

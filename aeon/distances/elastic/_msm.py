@@ -26,7 +26,7 @@ def msm_distance(
 ) -> float:
     r"""Compute the MSM distance between two time series.
 
-    Move-Split-Merge (MSM) [1]_ is a distance measure that is conceptually similar to
+    Move-Split-Merge (MSM) [1]_ is a distance method that is conceptually similar to
     other edit distance-based approaches, where similarity is calculated by using a
     set of operations to transform one series into another. Each operation has an
     associated cost, and three operations are defined for MSM: move, split, and merge.
@@ -102,7 +102,7 @@ def msm_distance(
     series. IEEE Transactions on Knowledge and Data Engineering 25(6), 2013.
 
     .. [2] A. Shifaz, C. Pelletier, F. Petitjean, G. Webb: Elastic similarity and
-    distance measures for multivariate time series. Knowl. Inf. Syst. 65(6), 2023.
+    distance methods for multivariate time series. Knowl. Inf. Syst. 65(6), 2023.
 
     Examples
     --------
@@ -247,7 +247,8 @@ def _msm_independent_cost_matrix(
     y_size = y.shape[1]
     cost_matrix = np.zeros((x_size, y_size))
     distance = 0
-    for i in range(x.shape[0]):
+    min_instances = min(x.shape[0], y.shape[0])
+    for i in range(min_instances):
         curr_cost_matrix = _independent_cost_matrix(x[i], y[i], bounding_matrix, c)
         cost_matrix = np.add(cost_matrix, curr_cost_matrix)
         distance += curr_cost_matrix[-1, -1]

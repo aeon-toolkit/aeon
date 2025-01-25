@@ -126,7 +126,7 @@ Early TSC
 :gutter: 1
 
 :::{grid-item-card}
-:img-top: /examples/regression/img/tser.png
+:img-top: examples/regression/img/tser.png
 :class-img-top: aeon-card-image-m
 :link: /examples/regression/regression.ipynb
 :link-type: ref
@@ -260,6 +260,17 @@ Signature method
 
 :::
 
+:::{grid-item-card}
+:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:class-img-top: aeon-card-image-m
+:link: /examples/transformations/channel_selection.ipynb
+:link-type: ref
+:text-align: center
+
+Channel selection
+
+:::
+
 ::::
 
 ## Segmentation
@@ -300,9 +311,7 @@ Hidalgo segmentation
 
 :::
 
-
 ::::
-
 
 ## Distances
 
@@ -320,7 +329,6 @@ Distance functions
 
 :::
 
-
 :::{grid-item-card}
 :img-top: examples/distances/img/svm.png
 :class-img-top: aeon-card-image-m
@@ -336,7 +344,6 @@ Using aeon distances with scikit-learn
 
 ::::{grid} 2 3 4 4
 :gutter: 1
-
 
 :::{grid-item-card}
 :img-top: examples/similarity_search/img/sim_search.png
@@ -371,9 +378,25 @@ Benchmarking of similarity search speed-ups
 
 :::
 
-
 ::::
 
+## Forecasting
+
+::::{grid} 2 3 4 4
+:gutter: 1
+
+:::{grid-item-card}
+:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:class-img-top: aeon-card-image-m
+:link: /examples/forecasting/forecasting.ipynb
+:link-type: ref
+:text-align: center
+
+Forecasting
+
+:::
+
+::::
 
 ## Data Formatting and Loading
 
@@ -388,28 +411,6 @@ Benchmarking of similarity search speed-ups
 :text-align: center
 
 Data in aeon
-
-:::
-
-:::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
-:class-img-top: aeon-card-image-m
-:link: /examples/datasets/data_structures.ipynb
-:link-type: ref
-:text-align: center
-
-Data structures and containers used in aeon
-
-:::
-
-:::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
-:class-img-top: aeon-card-image-m
-:link: /examples/datasets/data_conversions.ipynb
-:link-type: ref
-:text-align: center
-
-Conversions between data structures
 
 :::
 
@@ -458,7 +459,6 @@ Loading data from the web
 Unequal length series
 
 :::
-
 
 ::::
 
@@ -511,17 +511,6 @@ Benchmarking extrinsic regression algorithms
 
 :::
 
-:::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
-:class-img-top: aeon-card-image-m
-:link: /examples/benchmarking/bakeoff_results.ipynb
-:link-type: ref
-:text-align: center
-
-Getting published bakeoff results
-
-:::
-
 ::::
 
 ## Base
@@ -553,7 +542,7 @@ Series base classes
 
 ::::
 
-## Utils
+## Visualisation
 
 ::::{grid} 2 3 4 4
 :gutter: 1
@@ -561,11 +550,33 @@ Series base classes
 :::{grid-item-card}
 :img-top: images/logo/aeon-logo-blue-2-transparent.png
 :class-img-top: aeon-card-image-m
-:link: /examples/utils/preprocessing.ipynb
+:link: /examples/visualisation/plotting_series.ipynb
 :link-type: ref
 :text-align: center
 
-Preprocessing collections of time series
+Plotting time series
+
+:::
+
+:::{grid-item-card}
+:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:class-img-top: aeon-card-image-m
+:link: /examples/visualisation/plotting_results.ipynb
+:link-type: ref
+:text-align: center
+
+Plotting results
+
+:::
+
+:::{grid-item-card}
+:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:class-img-top: aeon-card-image-m
+:link: /examples/visualisation/plotting_series.ipynb
+:link-type: ref
+:text-align: center
+
+Plotting for specific learning tasks
 
 :::
 

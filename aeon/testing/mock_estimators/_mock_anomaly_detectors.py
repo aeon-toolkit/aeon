@@ -1,4 +1,4 @@
-"""Mock anomaly detectors for testing."""
+"""Mock anomaly detectorsuseful for testing and debugging."""
 
 __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = [

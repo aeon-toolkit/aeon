@@ -60,7 +60,7 @@ def _identity_descriptor(x: np.ndarray) -> np.ndarray:
 
 @njit(cache=True, fastmath=True)
 def _transform_subsequences(
-    x: np.ndarray, descriptor: str = "identity", reach: int = 30
+    x: np.ndarray, descriptor: str = "identity", reach: int = 15
 ) -> np.ndarray:
     """Decompose the series into sub-sequences.
 
@@ -80,7 +80,7 @@ def _transform_subsequences(
         For now no other descriptors are implemented.
 
         If not specified then identity is used.
-    reach : int, default=30.
+    reach : int, default=15.
         Length of the sub-sequences.
 
     Returns
@@ -123,7 +123,7 @@ def shape_dtw_distance(
     y: np.ndarray,
     window: Optional[float] = None,
     descriptor: str = "identity",
-    reach: int = 30,
+    reach: int = 15,
     itakura_max_slope: Optional[float] = None,
     transformation_precomputed: bool = False,
     transformed_x: Optional[np.ndarray] = None,
@@ -131,7 +131,7 @@ def shape_dtw_distance(
 ) -> float:
     """Compute the ShapeDTW distance function between two series x and y.
 
-    The ShapeDTW distance measure was proposed in [1] and used for time series
+    The ShapeDTW distance method was proposed in [1] and used for time series
     averaging in [2] as well.
 
     Parameters
@@ -156,7 +156,7 @@ def shape_dtw_distance(
         For now no other descriptors are implemented.
 
         If not specified then identity is used.
-    reach : int, default=30.
+    reach : int, default=15.
         Length of the sub-sequences to consider.
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
@@ -237,7 +237,7 @@ def _shape_dtw_distance(
     y: np.ndarray,
     bounding_matrix: np.ndarray,
     descriptor: str = "identity",
-    reach: int = 30,
+    reach: int = 15,
     transformation_precomputed: bool = False,
     transformed_x: Optional[np.ndarray] = None,
     transformed_y: Optional[np.ndarray] = None,
@@ -297,7 +297,7 @@ def shape_dtw_cost_matrix(
     y: np.ndarray,
     window: Optional[float] = None,
     descriptor: str = "identity",
-    reach: int = 30,
+    reach: int = 15,
     itakura_max_slope: Optional[float] = None,
     transformation_precomputed: bool = False,
     transformed_x: Optional[np.ndarray] = None,
@@ -327,7 +327,7 @@ def shape_dtw_cost_matrix(
         For now no other descriptors are implemented.
 
         If not specified then identity is used.
-    reach : int, default=30.
+    reach : int, default=15.
         Length of the sub-sequences.
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
@@ -398,7 +398,7 @@ def _shape_dtw_cost_matrix(
     y: np.ndarray,
     bounding_matrix: np.ndarray,
     descriptor: str = "identity",
-    reach: int = 30,
+    reach: int = 15,
     transformation_precomputed: bool = False,
     transformed_x: Optional[np.ndarray] = None,
     transformed_y: Optional[np.ndarray] = None,
@@ -430,7 +430,7 @@ def shape_dtw_alignment_path(
     y: np.ndarray,
     window: Optional[float] = None,
     descriptor: str = "identity",
-    reach: int = 30,
+    reach: int = 15,
     itakura_max_slope: Optional[float] = None,
     transformation_precomputed: bool = False,
     transformed_x: Optional[np.ndarray] = None,
@@ -460,7 +460,7 @@ def shape_dtw_alignment_path(
         For now no other descriptors are implemented.
 
         If not specified then identity is used.
-    reach : int, default=30.
+    reach : int, default=15.
         Length of the sub-sequences.
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
@@ -520,7 +520,7 @@ def shape_dtw_pairwise_distance(
     y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
     window: Optional[float] = None,
     descriptor: str = "identity",
-    reach: int = 30,
+    reach: int = 15,
     itakura_max_slope: Optional[float] = None,
     transformation_precomputed: bool = False,
     transformed_x: Optional[np.ndarray] = None,
@@ -552,7 +552,7 @@ def shape_dtw_pairwise_distance(
         For now no other descriptors are implemented.
 
         If not specified then identity is used.
-    reach : int, default=30.
+    reach : int, default=15.
         Length of the sub-sequences.
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create

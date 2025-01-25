@@ -18,11 +18,8 @@ State:
 """
 
 __maintainer__ = []
-__all__ = [
-    "BaseRegressor",
-]
+__all__ = ["BaseRegressor"]
 
-import time
 from abc import abstractmethod
 from typing import final
 
@@ -45,16 +42,6 @@ class BaseRegressor(BaseCollectionEstimator):
 
     Attributes
     ----------
-    fit_time_ : int
-        Time (in milliseconds) for fit to run.
-    _n_jobs : int
-        Number of threads to use in fit as determined by n_jobs.
-
-    fit_time_ : int
-        Time (in milliseconds) for ``fit`` to run.
-    _n_jobs : int
-        Number of threads to use in estimator methods such as ``fit`` and ``predict``.
-        Determined by the ``n_jobs`` parameter if present.
     _estimator_type : string
         The type of estimator. Required by some ``sklearn`` tools, set to "regressor".
     """
@@ -65,11 +52,8 @@ class BaseRegressor(BaseCollectionEstimator):
         "capability:contractable": False,
     }
 
+    @abstractmethod
     def __init__(self):
-        # reserved attributes written to in fit
-        self.fit_time_ = -1
-        self._n_jobs = 1
-
         # required for compatibility with some sklearn interfaces
         self._estimator_type = "regressor"
 
@@ -92,7 +76,7 @@ class BaseRegressor(BaseCollectionEstimator):
             allowed and converted into one of the above.
 
             Different estimators have different capabilities to handle different
-            types of input. If `self.get_tag("capability:multivariate")`` is False,
+            types of input. If ``self.get_tag("capability:multivariate")`` is False,
             they cannot handle multivariate series, so either ``n_channels == 1`` is
             true or X is 2D of shape ``(n_cases, n_timepoints)``. If ``self.get_tag(
             "capability:unequal_length")`` is False, they cannot handle unequal
@@ -113,12 +97,10 @@ class BaseRegressor(BaseCollectionEstimator):
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
         """
-        start = int(round(time.time() * 1000))
         X, y = self._fit_setup(X, y)
 
         self._fit(X, y)
 
-        self.fit_time_ = int(round(time.time() * 1000)) - start
         # this should happen last
         self.is_fitted = True
         return self
@@ -140,7 +122,7 @@ class BaseRegressor(BaseCollectionEstimator):
             other types are allowed and converted into one of the above.
 
             Different estimators have different capabilities to handle different
-            types of input. If `self.get_tag("capability:multivariate")`` is False,
+            types of input. If ``self.get_tag("capability:multivariate")`` is False,
             they cannot handle multivariate series, so either ``n_channels == 1`` is
             true or X is 2D of shape ``(n_cases, n_timepoints)``. If ``self.get_tag(
             "capability:unequal_length")`` is False, they cannot handle unequal

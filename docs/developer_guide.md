@@ -20,9 +20,6 @@ their [developer's guide](https://scikit-learn.org/stable/developers/index.html)
 :::{grid-item-card}
 :text-align: center
 
-:::{grid-item-card}
-:text-align: center
-
 AEP's
 
 ^^^

@@ -60,6 +60,7 @@ class BaseSimilaritySearch(BaseCollectionEstimator):
         "X_inner_type": ["np-list", "numpy3D"],
     }
 
+    @abstractmethod
     def __init__(
         self,
         distance: str = "euclidean",
