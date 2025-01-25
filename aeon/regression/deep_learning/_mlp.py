@@ -23,7 +23,7 @@ class MLPRegressor(BaseDeepRegressor):
     ----------
     n_layers : int, optional (default=3)
         The number of dense layers in the MLP.
-    n_units : Union[int, List[int]], optional (default=200)
+    n_units : Union[int, List[int]], optional (default=500)
         Number of units in each dense layer.
     activation : Union[str, List[str]], optional (default='relu')
         Activation function(s) for each dense layer.
@@ -108,7 +108,7 @@ class MLPRegressor(BaseDeepRegressor):
     def __init__(
         self,
         n_layers=3,
-        n_units=200,
+        n_units=500,
         activation="relu",
         dropout_rate=None,
         dropout_last=None,

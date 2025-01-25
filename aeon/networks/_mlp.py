@@ -19,7 +19,7 @@ class MLPNetwork(BaseDeepLearningNetwork):
     ----------
     n_layers : int, optional (default=3)
         The number of dense layers in the MLP.
-    n_units : Union[int, List[int]], optional (default=200)
+    n_units : Union[int, List[int]], optional (default=500)
         Number of units in each dense layer.
     activation : Union[str, List[str]], optional (default='relu')
         Activation function(s) for each dense layer.
@@ -51,7 +51,7 @@ class MLPNetwork(BaseDeepLearningNetwork):
     def __init__(
         self,
         n_layers: int = 3,
-        n_units: typing.Union[int, list[int]] = 200,
+        n_units: typing.Union[int, list[int]] = 500,
         activation: typing.Union[str, list[str]] = "relu",
         dropout_rate: typing.Union[float, list[float]] = None,
         dropout_last: float = None,
