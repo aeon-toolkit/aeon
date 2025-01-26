@@ -96,9 +96,9 @@ class ContractableBOSS(BaseClassifier):
     Raises
     ------
     ValueError
-    Raised when ``min_window`` is greater than ``max_window + 1``.
-    This ensures that ``min_window`` does not exceed ``max_window``,
-    preventing invalid window size configurations.
+        Raised when ``min_window`` is greater than ``max_window + 1``.
+        This ensures that ``min_window`` does not exceed ``max_window``,
+        preventing invalid window size configurations.
 
     See Also
     --------
@@ -312,7 +312,6 @@ class ContractableBOSS(BaseClassifier):
         -------
         1D np.ndarray
             Predicted class labels shape = (n_cases).
-
         """
         rng = check_random_state(self.random_state)
         return np.array(
@@ -335,7 +334,6 @@ class ContractableBOSS(BaseClassifier):
         -------
         2D np.ndarray
             Predicted class labels shape = (n_cases).
-
         """
         sums = np.zeros((X.shape[0], self.n_classes_))
 
