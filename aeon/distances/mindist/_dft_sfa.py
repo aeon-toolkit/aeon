@@ -11,7 +11,10 @@ from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 @njit(cache=True, fastmath=True)
 def mindist_dft_sfa_distance(
-    x_dft: np.ndarray, y_sfa: np.ndarray, breakpoints: np.ndarray
+    x_dft: np.ndarray,
+    y_sfa: np.ndarray,
+    breakpoints: np.ndarray,
+    squared_lower_bound: float = np.inf,
 ) -> float:
     r"""Compute the DFT-SFA lower bounding distance between DFT and SFA representation.
 
@@ -23,6 +26,10 @@ def mindist_dft_sfa_distance(
         Second SFA transform of the time series, univariate, shape ``(n_timepoints,)``
     breakpoints: np.ndarray
         The breakpoints of the SFA transformation
+    squared_lower_bound : float
+        Used for early stopping distance computations. Once the distance exceeds the
+        squared lower bound, infinity is returned. Commonly used when searching
+        for epsilon-range or k-nearest neighbors.
 
     Returns
     -------
@@ -57,13 +64,18 @@ def mindist_dft_sfa_distance(
     >>> dist = mindist_dft_sfa_distance(y_dft, x_sfa, transform.breakpoints)
     """
     if x_dft.ndim == 1 and y_sfa.ndim == 1:
-        return _univariate_dft_sfa_distance(x_dft, y_sfa, breakpoints)
+        return _univariate_dft_sfa_distance(
+            x_dft, y_sfa, breakpoints, squared_lower_bound
+        )
     raise ValueError("x and y must be 1D")
 
 
 @njit(cache=True, fastmath=True)
 def _univariate_dft_sfa_distance(
-    x_dft: np.ndarray, y_sfa: np.ndarray, breakpoints: np.ndarray
+    x_dft: np.ndarray,
+    y_sfa: np.ndarray,
+    breakpoints: np.ndarray,
+    squared_lower_bound: float = np.inf,
 ) -> float:
     dist = 0.0
     for i in range(x_dft.shape[0]):
@@ -81,6 +93,9 @@ def _univariate_dft_sfa_distance(
             dist += (br_lower - x_dft[i]) ** 2
         elif br_upper < x_dft[i]:
             dist += (x_dft[i] - br_upper) ** 2
+
+        if dist > squared_lower_bound:
+            return np.inf
 
     return np.sqrt(2 * dist)
 

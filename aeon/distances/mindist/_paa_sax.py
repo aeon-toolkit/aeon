@@ -9,7 +9,11 @@ from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 @njit(cache=True, fastmath=True)
 def mindist_paa_sax_distance(
-    x_paa: np.ndarray, y_sax: np.ndarray, breakpoints: np.ndarray, n: int
+    x_paa: np.ndarray,
+    y_sax: np.ndarray,
+    breakpoints: np.ndarray,
+    n: int,
+    squared_lower_bound: float = np.inf,
 ) -> float:
     r"""Compute the PAA-SAX lower bounding distance between PAA and SAX representation.
 
@@ -23,6 +27,10 @@ def mindist_paa_sax_distance(
         The breakpoints of the SAX transformation
     n : int
         The original size of the time series
+    squared_lower_bound : float
+        Used for early stopping distance computations. Once the distance exceeds the
+        squared lower bound, infinity is returned. Commonly used when searching
+        for epsilon-range or k-nearest neighbors.
 
     Returns
     -------
@@ -55,13 +63,19 @@ def mindist_paa_sax_distance(
     ... )
     """
     if x_paa.ndim == 1 and y_sax.ndim == 1:
-        return _univariate_paa_sax_distance(x_paa, y_sax, breakpoints, n)
+        return _univariate_paa_sax_distance(
+            x_paa, y_sax, breakpoints, n, squared_lower_bound
+        )
     raise ValueError("x and y must be 1D")
 
 
 @njit(cache=True, fastmath=True)
 def _univariate_paa_sax_distance(
-    x_paa: np.ndarray, y_sax: np.ndarray, breakpoints: np.ndarray, n: int
+    x_paa: np.ndarray,
+    y_sax: np.ndarray,
+    breakpoints: np.ndarray,
+    n: int,
+    squared_lower_bound: float = np.inf,
 ) -> float:
     dist = 0.0
 
@@ -86,6 +100,9 @@ def _univariate_paa_sax_distance(
             dist += n_split[i].shape[0] * (br_lower - x_paa[i]) ** 2
         elif br_upper < x_paa[i]:
             dist += n_split[i].shape[0] * (x_paa[i] - br_upper) ** 2
+
+        if dist > squared_lower_bound:
+            return np.inf
 
     return np.sqrt(dist)
 

@@ -193,12 +193,19 @@ def load_from_ucr_tsv_to_dataframe_plain(full_file_path_and_name):
     return df, y
 
 
+# configuration
+all_threads = 128
+n_segments = 16
+alphabet_sizes = [256, 128, 64, 32, 16, 8, 4, 2]
+
 DATA_PATH = "/Users/bzcschae/workspace/UCRArchive_2018/"
 server = False
 
 if os.path.exists(DATA_PATH):
     DATA_PATH = "/Users/bzcschae/workspace/UCRArchive_2018/"
     used_dataset = dataset_names
+    alphabet_sizes = [256]
+    all_threads = 8
 # server
 else:
     DATA_PATH = "/vol/fob-wbib-vol2/wbi/schaefpa/sktime/datasets/UCRArchive_2018"
@@ -213,64 +220,57 @@ def compute_distances(
     PAA_queries,
     SAX_samples,
     SAX_breakpoints,
+    # sfa_transforms,
     all_breakpoints,
     all_dfts,
     all_words,
     method_names,
 ):
     """Compute lower bounding distances."""
-    pruning_power = np.zeros((queries.shape[0], len(method_names)), dtype=np.float64)
-
+    tighness = np.zeros((queries.shape[0], len(method_names)), dtype=np.float64)
     for i in prange(queries.shape[0]):
-        # ED first
-        nn_dist = np.inf
-        for j in range(samples.shape[0]):
-            ed = np.linalg.norm(queries[i] - samples[j])
-            if ed != 0:
-                nn_dist = min(nn_dist, ed)
 
-        # used for pruning
-        squared_lower_bound = nn_dist**2
-
+        eds = np.zeros((samples.shape[0]), dtype=np.float32)
         for j in range(samples.shape[0]):
-            # SAX-PAA Min-Distance
-            min_dist = mindist_paa_sax_distance(
+            eds[j] = np.linalg.norm(queries[i] - samples[j])
+
+        # SAX-PAA Min-Distance
+        for j in range(samples.shape[0]):
+            md = mindist_paa_sax_distance(
                 PAA_queries[i],
                 SAX_samples[j],
                 SAX_breakpoints,
                 samples.shape[-1],
-                squared_lower_bound=squared_lower_bound,
             )
-            if min_dist > nn_dist:
-                pruning_power[i][0] += 1
+            if eds[j] > 0:
+                tighness[i][0] += md / eds[j] / samples.shape[0]
 
+        # DFT-SFA Min-Distance variants
         for a in range(all_dfts.shape[0]):
             for j in range(samples.shape[0]):
-                # DFT-SFA Min-Distance variants
-                min_dist = mindist_dft_sfa_distance(
+                md = mindist_dft_sfa_distance(
                     all_dfts[a][i],
                     all_words[a][j],
                     all_breakpoints[a],
-                    squared_lower_bound=squared_lower_bound,
                 )
+                if eds[j] > 0:
+                    tighness[i][a + 1] += md / eds[j] / samples.shape[0]
 
-                if min_dist > nn_dist:
-                    pruning_power[i][a + 1] += 1
+                # if md > eds[j]:
+                #     print(f"mindist {method_names[a]} is:\t {md} but ED is:
+                #     \t {eds[j]} \t Pos: {i}, {j}")
+                #     print(f"Query std/mean: \t {np.std(queries[i])},
+                #     {np.mean(queries[i])}")
+                #     print(f"Sample std/mean:\t {np.std(samples[j])},
+                #     {np.mean(samples[j])}")
 
-        # for i, mind in enumerate(mindist):
-        #    if mind > ed:
-        #        #print(f"mindist {method_names[i]} is:\t {mind} but ED is: \t {ed}")
+    tighness = np.sum(tighness, axis=0)
+    for i in range(len(tighness)):
+        tighness[i] /= queries.shape[0]
 
-    pruning_power = np.sum(pruning_power, axis=0)
-    for i in range(len(pruning_power)):
-        pruning_power[i] /= samples.shape[0] * queries.shape[0]
-
-    return pruning_power
+    return tighness
 
 
-all_threads = 128
-n_segments = 16
-alphabet_sizes = [256, 128, 64, 32, 16, 8, 4, 2]
 all_csv_scores = {}
 set_num_threads(all_threads)
 
@@ -392,5 +392,5 @@ for dataset_name in used_dataset:
                 "TLB",
             ],
         ).to_csv(
-            f"logs/tlb_all_ucr_{n_segments}_{alphabet_size}-07-11-24.csv", index=None
+            f"logs/tlb_all_ucr_{n_segments}_{alphabet_size}-30-01-25.csv", index=None
         )
