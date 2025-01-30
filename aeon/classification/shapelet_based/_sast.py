@@ -34,7 +34,7 @@ class SASTClassifier(BaseClassifier):
         the number of reference time series to select per class
     seed : int, default = None
         the seed of the random generator
-    classifier : sklearn compatible classifier, default = None
+    estimator : sklearn compatible classifier, default = None
         if None, a RidgeClassifierCV(alphas=np.logspace(-3, 3, 10)) is used.
     n_jobs : int, default -1
         Number of threads to use for the transform.
@@ -73,7 +73,7 @@ class SASTClassifier(BaseClassifier):
         nb_inst_per_class: int = 1,
         seed: Optional[int] = None,
         classifier=None,
-        n_jobs: int = -1,
+        n_jobs: int = 1,
     ) -> None:
         super().__init__()
         self.length_list = length_list
@@ -179,6 +179,9 @@ class SASTClassifier(BaseClassifier):
             The figure
         """
         import matplotlib.pyplot as plt
+
+        # get overall importance irrespective of class
+        feature_importance = [abs(x) for x in feature_importance]
 
         features = zip(self._transformer._kernel_orig, feature_importance)
         sorted_features = sorted(features, key=itemgetter(1), reverse=True)

@@ -1,7 +1,5 @@
 """Interface compliance checkers for aeon estimators."""
 
-from typing import Optional
-
 __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = [
     "parametrize_with_checks",
@@ -11,7 +9,7 @@ __all__ = [
 import re
 from functools import partial, wraps
 from inspect import isclass
-from typing import Callable, Union
+from typing import Callable, Optional, Union
 
 from sklearn import config_context
 from sklearn.utils._testing import SkipTest
@@ -20,7 +18,12 @@ from aeon.base import BaseAeonEstimator
 from aeon.testing.estimator_checking._yield_estimator_checks import (
     _yield_all_aeon_checks,
 )
-from aeon.testing.testing_config import EXCLUDE_ESTIMATORS, EXCLUDED_TESTS
+from aeon.testing.testing_config import (
+    EXCLUDE_ESTIMATORS,
+    EXCLUDED_TESTS,
+    EXCLUDED_TESTS_NO_NUMBA,
+    NUMBA_DISABLED,
+)
 from aeon.utils.validation._dependencies import (
     _check_estimator_deps,
     _check_soft_dependencies,
@@ -45,9 +48,9 @@ def parametrize_with_checks(
     ----------
     estimators : list of aeon BaseAeonEstimator instances or classes
         Estimators to generate checks for. If an item is a class, an instance will
-        be created using BaseAeonEstimator.create_test_instance().
+        be created using BaseAeonEstimator._create_test_instance().
     use_first_parameter_set : bool, default=False
-        If True, only the first parameter set from get_test_params will be used if a
+        If True, only the first parameter set from _get_test_params will be used if a
         class is passed.
 
     Returns
@@ -119,13 +122,13 @@ def check_estimator(
     ----------
     estimator : aeon BaseAeonEstimator instance or class
         Estimator to run checks on. If estimator is a class, an instance will
-        be created using BaseAeonEstimator.create_test_instance().
+        be created using BaseAeonEstimator._create_test_instance().
     raise_exceptions : bool, optional, default=False
         Whether to return exceptions/failures in the results dict, or raise them
             if False: returns exceptions in returned `results` dict
             if True: raises exceptions as they occur
     use_first_parameter_set : bool, default=False
-        If True, only the first parameter set from get_test_params will be used if a
+        If True, only the first parameter set from _get_test_params will be used if a
         class is passed.
     checks_to_run : str or list of str, default=None
         Name(s) of checks to run. This should include the function name of the check to
@@ -186,10 +189,11 @@ def check_estimator(
     >>> results = check_estimator(MockClassifier())
 
     Running specific check for MockClassifier
-    >>> check_estimator(MockClassifier, checks_to_run="check_clone")
-    {'check_clone(estimator=MockClassifier())': 'PASSED'}
+    >>> check_estimator(MockClassifier, checks_to_run="check_get_params")
+    {'check_get_params(estimator=MockClassifier())': 'PASSED'}
     """
     # check if estimator has soft dependencies installed
+    _check_soft_dependencies("pytest")
     _check_estimator_deps(estimator)
 
     checks = []
@@ -315,6 +319,8 @@ def _should_be_skipped(estimator, check, has_dependencies):
         return True, "In aeon estimator exclude list", check_name
     elif check_name in EXCLUDED_TESTS.get(est_name, []):
         return True, "In aeon test exclude list for estimator", check_name
+    elif NUMBA_DISABLED and check_name in EXCLUDED_TESTS_NO_NUMBA.get(est_name, []):
+        return True, "In aeon no numba test exclude list for estimator", check_name
 
     return False, "", check_name
 
@@ -353,9 +359,12 @@ def _get_check_estimator_ids(obj):
         if not obj.keywords:
             return obj.func.__name__
 
-        kwstring = ",".join(
-            [f"{k}={_get_check_estimator_ids(v)}" for k, v in obj.keywords.items()]
-        )
+        kwlist = []
+        for k, v in obj.keywords.items():
+            v = _get_check_estimator_ids(v)
+            if v is not None:
+                kwlist.append(f"{k}={v}")
+        kwstring = ",".join(kwlist) if kwlist else ""
         return f"{obj.func.__name__}({kwstring})"
     elif isclass(obj):
         return obj.__name__
@@ -365,5 +374,7 @@ def _get_check_estimator_ids(obj):
             s = re.sub(r"<function[^)]*>", "func", s)
             s = re.sub(r"<boundmethodrv[^)]*>", "boundmethod", s)
             return s
-    else:
+    elif isinstance(obj, str):
         return obj
+    else:
+        return None

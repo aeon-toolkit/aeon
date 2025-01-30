@@ -6,7 +6,7 @@ import numbers
 import numpy as np
 
 from aeon.transformations.collection.base import BaseCollectionTransformer
-from aeon.utils import split_series
+from aeon.utils.split import split_series
 
 
 class HOG1DTransformer(BaseCollectionTransformer):
@@ -25,8 +25,8 @@ class HOG1DTransformer(BaseCollectionTransformer):
     scaling_factor : float
         A constant that is multiplied to modify the distribution.
 
-    Notes
-    -----
+    References
+    ----------
     [1] J. Zhao and L. Itti "Classifying time series using local descriptors with
     hybrid sampling", IEEE Transactions on Knowledge and Data Engineering 28(3), 2015.
 

@@ -15,14 +15,6 @@ All transformers in `aeon` can be listed using the `aeon.registry
 Collection transformers
 -----------------------
 
-.. currentmodule:: aeon.transformations.collection.base
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    BaseCollectionTransformer
-
 .. currentmodule:: aeon.transformations.collection
 
 .. autosummary::
@@ -31,18 +23,20 @@ Collection transformers
 
     AutocorrelationFunctionTransformer
     ARCoefficientTransformer
+    Centerer
     DownsampleTransformer
     DWTTransformer
     HOG1DTransformer
     MatrixProfile
-    Normalise
+    MinMaxScaler
+    Normalizer
     Padder
     PeriodogramTransformer
-    Tabularizer
     Resizer
-    TimeSeriesScaler
     SlopeTransformer
+    SimpleImputer
     Truncator
+    Tabularizer
 
 
 Channel selection
@@ -70,6 +64,7 @@ Compose
     :template: class.rst
 
     CollectionTransformerPipeline
+    CollectionId
 
 
 Convolution based
@@ -83,7 +78,6 @@ Convolution based
 
     Rocket
     MiniRocket
-    MiniRocketMultivariateVariable
     MultiRocket
     HydraTransformer
 
@@ -101,6 +95,7 @@ Dictionary-based features
     PAA
     SFA
     SFAFast
+    BORF
 
 
 Feature based
@@ -112,10 +107,10 @@ Feature based
     :toctree: auto_generated/
     :template: class.rst
 
-    TSFreshRelevantFeatureExtractor
-    TSFreshFeatureExtractor
     Catch22
-    SevenNumberSummaryTransformer
+    TSFresh
+    TSFreshRelevant
+    SevenNumberSummary
 
 
 Interval based
@@ -145,8 +140,6 @@ Shapelet based
     SAST
     RSAST
 
-
-
 Signature based
 ~~~~~~~~~~~~~~~
 
@@ -162,15 +155,6 @@ Signature based
 Series transforms
 -----------------
 
-.. currentmodule:: aeon.transformations.series.base
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    BaseSeriesTransformer
-
-
 .. currentmodule:: aeon.transformations.series
 
 .. autosummary::
@@ -178,10 +162,10 @@ Series transforms
     :template: class.rst
 
     AutoCorrelationSeriesTransformer
-    ClearSkyTransformer
     ClaSPTransformer
     DFTSeriesTransformer
     Dobin
+    GaussSeriesTransformer
     MatrixProfileSeriesTransformer
     PLASeriesTransformer
     SGSeriesTransformer
@@ -189,9 +173,28 @@ Series transforms
     StatsModelsPACF
     BKFilter
     BoxCoxTransformer
-    YeoJohnsonTransformer
-    Dobin
     ScaledLogitSeriesTransformer
     SIVSeriesTransformer
     PCASeriesTransformer
     WarpingSeriesTransformer
+
+
+Base
+----
+
+.. currentmodule:: aeon.transformations.collection.base
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    BaseCollectionTransformer
+
+
+.. currentmodule:: aeon.transformations.series.base
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    BaseSeriesTransformer

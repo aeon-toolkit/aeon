@@ -7,12 +7,21 @@ from aeon.networks.base import BaseDeepLearningNetwork
 
 
 class LITENetwork(BaseDeepLearningNetwork):
-    """LITE Network.
+    """LITE and LITE Multivariate (LITEMV) Networks.
 
-    LITE deep neural network architecture from [1]_.
+    LITE deep neural network architecture from [1]_ and its
+    multivariate adaptation LITEMV from [2]_. For using
+    LITEMV, simply set the `use_litemv` bool parameter to
+    True.
 
     Parameters
     ----------
+    use_litemv : bool, default = False
+        The boolean value to control which version of the
+        network to use. If set to `False`, then LITE is used,
+        if set to `True` then LITEMV is used. LITEMV is the
+        same architecture as LITE but specifically designed
+        to better handle multivariate time series.
     n_filters : int or list of int32, default = 32
         The number of filters used in one lite layer, if not a list, the same
         number of filters is used in all lite layers.
@@ -28,22 +37,36 @@ class LITENetwork(BaseDeepLearningNetwork):
 
     Notes
     -----
+    Adapted from the implementation from Ismail-Fawaz et. al
+
+    https://github.com/MSD-IRIMAS/LITE
+
+    References
+    ----------
     ..[1] Ismail-Fawaz et al. LITE: Light Inception with boosTing
     tEchniques for Time Series Classificaion, IEEE International
     Conference on Data Science and Advanced Analytics, 2023.
 
-    Adapted from the implementation from Ismail-Fawaz et. al
-
-    https://github.com/MSD-IRIMAS/LITE
+    ..[2] Ismail-Fawaz, Ali, et al. "Look Into the LITE
+    in Deep Learning for Time Series Classification."
+    arXiv preprint arXiv:2409.02869 (2024).
     """
+
+    _config = {
+        "python_dependencies": ["tensorflow"],
+        "python_version": "<3.13",
+        "structure": "encoder",
+    }
 
     def __init__(
         self,
+        use_litemv=False,
         n_filters=32,
         kernel_size=40,
         strides=1,
         activation="relu",
     ):
+        self.use_litemv = use_litemv
         self.n_filters = n_filters
         self.kernel_size = kernel_size
         self.activation = activation
@@ -97,22 +120,41 @@ class LITENetwork(BaseDeepLearningNetwork):
 
             filter_[indices_ % 2 == 0] *= -1  # formula of increasing detection filter
 
-            # Create a Conv1D layer with non trainable option and no
-            # biases and set the filter weights that were calculated in the
-            # line above as the initialization
+            if not self.use_litemv:
+                # Create a Conv1D layer with non trainable option and no
+                # biases and set the filter weights that were calculated in the
+                # line above as the initialization
 
-            conv = tf.keras.layers.Conv1D(
-                filters=1,
-                kernel_size=kernel_size,
-                padding="same",
-                use_bias=False,
-                kernel_initializer=tf.keras.initializers.Constant(filter_.tolist()),
-                trainable=False,
-                name="hybrid-increasse-"
-                + str(self.keep_track)
-                + "-"
-                + str(kernel_size),
-            )(input_tensor)
+                conv = tf.keras.layers.Conv1D(
+                    filters=1,
+                    kernel_size=kernel_size,
+                    padding="same",
+                    use_bias=False,
+                    kernel_initializer=tf.keras.initializers.Constant(filter_.tolist()),
+                    trainable=False,
+                    name="hybrid-increasse-"
+                    + str(self.keep_track)
+                    + "-"
+                    + str(kernel_size),
+                )(input_tensor)
+            else:
+                # Create a DepthwiseConv1D layer with non trainable option and no
+                # biases and set the filter weights that were calculated in the
+                # line above as the initialization
+
+                conv = tf.keras.layers.DepthwiseConv1D(
+                    kernel_size=kernel_size,
+                    padding="same",
+                    use_bias=False,
+                    depthwise_initializer=tf.keras.initializers.Constant(
+                        filter_.tolist()
+                    ),
+                    trainable=False,
+                    name="hybrid-increasse-"
+                    + str(self.keep_track)
+                    + "-"
+                    + str(kernel_size),
+                )(input_tensor)
 
             conv_list.append(conv)  # add the conv layer to the list
 
@@ -130,19 +172,41 @@ class LITENetwork(BaseDeepLearningNetwork):
 
             filter_[indices_ % 2 > 0] *= -1  # formula of decreasing detection filter
 
-            # Create a Conv1D layer with non trainable option
-            # and no biases and set the filter weights that were
-            # calculated in the line above as the initialization
+            if not self.use_litemv:
+                # Create a Conv1D layer with non trainable option
+                # and no biases and set the filter weights that were
+                # calculated in the line above as the initialization
 
-            conv = tf.keras.layers.Conv1D(
-                filters=1,
-                kernel_size=kernel_size,
-                padding="same",
-                use_bias=False,
-                kernel_initializer=tf.keras.initializers.Constant(filter_.tolist()),
-                trainable=False,
-                name="hybrid-decrease-" + str(self.keep_track) + "-" + str(kernel_size),
-            )(input_tensor)
+                conv = tf.keras.layers.Conv1D(
+                    filters=1,
+                    kernel_size=kernel_size,
+                    padding="same",
+                    use_bias=False,
+                    kernel_initializer=tf.keras.initializers.Constant(filter_.tolist()),
+                    trainable=False,
+                    name="hybrid-decrease-"
+                    + str(self.keep_track)
+                    + "-"
+                    + str(kernel_size),
+                )(input_tensor)
+            else:
+                # Create a DepthwiseConv1D layer with non trainable option
+                # and no biases and set the filter weights that were
+                # calculated in the line above as the initialization
+
+                conv = tf.keras.layers.DepthwiseConv1D(
+                    kernel_size=kernel_size,
+                    padding="same",
+                    use_bias=False,
+                    depthwise_initializer=tf.keras.initializers.Constant(
+                        filter_.tolist()
+                    ),
+                    trainable=False,
+                    name="hybrid-decrease-"
+                    + str(self.keep_track)
+                    + "-"
+                    + str(kernel_size),
+                )(input_tensor)
 
             conv_list.append(conv)  # add the conv layer to the list
 
@@ -171,19 +235,41 @@ class LITENetwork(BaseDeepLearningNetwork):
             filter_[kernel_size : 5 * kernel_size // 4] = -filter_left
             filter_[5 * kernel_size // 4 :] = -filter_right
 
-            # Create a Conv1D layer with non trainable option and
-            # no biases and set the filter weights that were
-            # calculated in the line above as the initialization
+            if not self.use_litemv:
+                # Create a Conv1D layer with non trainable option and
+                # no biases and set the filter weights that were
+                # calculated in the line above as the initialization
 
-            conv = tf.keras.layers.Conv1D(
-                filters=1,
-                kernel_size=kernel_size + kernel_size // 2,
-                padding="same",
-                use_bias=False,
-                kernel_initializer=tf.keras.initializers.Constant(filter_.tolist()),
-                trainable=False,
-                name="hybrid-peeks-" + str(self.keep_track) + "-" + str(kernel_size),
-            )(input_tensor)
+                conv = tf.keras.layers.Conv1D(
+                    filters=1,
+                    kernel_size=kernel_size + kernel_size // 2,
+                    padding="same",
+                    use_bias=False,
+                    kernel_initializer=tf.keras.initializers.Constant(filter_.tolist()),
+                    trainable=False,
+                    name="hybrid-peeks-"
+                    + str(self.keep_track)
+                    + "-"
+                    + str(kernel_size),
+                )(input_tensor)
+            else:
+                # Create a DepthwiseConv1D layer with non trainable option and
+                # no biases and set the filter weights that were
+                # calculated in the line above as the initialization
+
+                conv = tf.keras.layers.DepthwiseConv1D(
+                    kernel_size=kernel_size + kernel_size // 2,
+                    padding="same",
+                    use_bias=False,
+                    depthwise_initializer=tf.keras.initializers.Constant(
+                        filter_.tolist()
+                    ),
+                    trainable=False,
+                    name="hybrid-peeks-"
+                    + str(self.keep_track)
+                    + "-"
+                    + str(kernel_size),
+                )(input_tensor)
 
             conv_list.append(conv)  # add the conv layer to the list
 
@@ -224,17 +310,30 @@ class LITENetwork(BaseDeepLearningNetwork):
         conv_list = []
 
         for i in range(len(kernel_size_s)):
-            conv_list.append(
-                tf.keras.layers.Conv1D(
-                    filters=n_filters,
-                    kernel_size=kernel_size_s[i],
-                    strides=stride,
-                    padding="same",
-                    dilation_rate=dilation_rate,
-                    activation=activation,
-                    use_bias=False,
-                )(input_inception)
-            )
+            if not self.use_litemv:
+                conv_list.append(
+                    tf.keras.layers.Conv1D(
+                        filters=n_filters,
+                        kernel_size=kernel_size_s[i],
+                        strides=stride,
+                        padding="same",
+                        dilation_rate=dilation_rate,
+                        activation=activation,
+                        use_bias=False,
+                    )(input_inception)
+                )
+            else:
+                conv_list.append(
+                    tf.keras.layers.SeparableConv1D(
+                        filters=n_filters,
+                        kernel_size=kernel_size_s[i],
+                        strides=stride,
+                        padding="same",
+                        dilation_rate=dilation_rate,
+                        activation=activation,
+                        use_bias=False,
+                    )(input_inception)
+                )
 
         if use_custom_filters:
             hybrid_layer = self.hybrid_layer(

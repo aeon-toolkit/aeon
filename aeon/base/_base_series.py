@@ -7,32 +7,35 @@ contain missing values.
 __maintainer__ = ["TonyBagnall", "MatthewMiddlehurst"]
 __all__ = ["BaseSeriesEstimator"]
 
+from abc import abstractmethod
+
 import numpy as np
 import pandas as pd
 
 from aeon.base._base import BaseAeonEstimator
-from aeon.utils.validation._dependencies import _check_estimator_deps
 
 # allowed input and internal data types for Series
-VALID_INNER_TYPES = [
+VALID_SERIES_INNER_TYPES = [
     "np.ndarray",
     "pd.DataFrame",
 ]
-VALID_INPUT_TYPES = [pd.DataFrame, pd.Series, np.ndarray]
+VALID_SERIES_INPUT_TYPES = [pd.DataFrame, pd.Series, np.ndarray]
 
 
 class BaseSeriesEstimator(BaseAeonEstimator):
-    """Base class for estimators that use single (possibly multivariate) time series.
+    """
+    Base class for estimators that use single (possibly multivariate) time series.
 
-    Provides functions that are common to BaseSeriesEstimator objects for the checking
-    and conversion of input to fit, predict and transform, where relevant.
+    Provides functions that are common to estimators which use single series such as
+    ``BaseAnomalyDetector``, ``BaseSegmenter``, ``BaseForecaster``,
+    and ``BaseSeriesTransformer``. Functionality includes checking and
+    conversion of input to ``fit``, ``predict`` and ``predict_proba``, where relevant.
 
-    It also stores the common default tags used by all the subclasses and metadata
-    describing the characteristics of time series passed to ``fit`` (or another method
-    if fit does not exist).
+    It also stores the common default tags used by all the subclasses and meta data
+    describing the characteristics of time series passed to ``fit``.
 
-    Input and internal data format (where m is the number of time points and d is the
-    number of channels):
+    Input and internal data format (where ``m`` is the number of time points and ``d``
+    is the number of channels):
         Univariate series:
             np.ndarray, shape ``(m,)``, ``(m, 1)`` or ``(1, m)`` depending on axis.
             This is converted to a 2D np.ndarray internally.
@@ -56,15 +59,45 @@ class BaseSeriesEstimator(BaseAeonEstimator):
     _tags = {
         "capability:univariate": True,
         "capability:multivariate": False,
-        "X_inner_type": "np.ndarray",  # one of VALID_INNER_TYPES
+        "X_inner_type": "np.ndarray",  # one of VALID_SERIES_INNER_TYPES
     }
 
+    @abstractmethod
     def __init__(self, axis):
         self.axis = axis
-        self.metadata_ = {}  # metadata/properties of data seen in fit/predict/transform
+        self.metadata_ = {}  # metadata/properties of data seen in fit
 
         super().__init__()
-        _check_estimator_deps(self)
+
+    def _preprocess_series(self, X, axis, store_metadata):
+        """Preprocess input X prior to call to fit.
+
+        Checks the characteristics of X, store metadata, checks self can handle
+        the data then convert X to X_inner_type
+
+        Parameters
+        ----------
+        X: one of aeon.base._base_series.VALID_SERIES_INPUT_TYPES
+            A valid aeon time series data structure. See
+            aeon.base._base_series.VALID_SERIES_INPUT_TYPES for aeon supported types.
+        axis: int
+            The time point axis of the input series if it is 2D. If ``axis==0``, it is
+            assumed each column is a time series and each row is a time point. i.e. the
+            shape of the data is ``(n_timepoints, n_channels)``. ``axis==1`` indicates
+            the time series are in rows, i.e. the shape of the data is
+            ``(n_channels, n_timepoints)``.
+        store_metadata: bool
+            If True, overwrite metadata with the new metadata from X.
+
+        Returns
+        -------
+        X: one of aeon.base._base_series.VALID_SERIES_INPUT_TYPES
+            Input time series with data structure of type self.get_tag("X_inner_type").
+        """
+        meta = self._check_X(X, axis)
+        if store_metadata:
+            self.metadata_ = meta
+        return self._convert_X(X, axis)
 
     def _check_X(self, X, axis):
         """Check input X is valid.
@@ -76,9 +109,9 @@ class BaseSeriesEstimator(BaseAeonEstimator):
 
         Parameters
         ----------
-        X: one of aeon.base._base_series.VALID_INPUT_TYPES
+        X: one of aeon.base._base_series.VALID_SERIES_INPUT_TYPES
             A valid aeon time series data structure. See
-            aeon.base._base_series.VALID_INPUT_TYPES for aeon supported types.
+            aeon.base._base_series.VALID_SERIES_INPUT_TYPES for aeon supported types.
         axis: int
             The time point axis of the input series if it is 2D. If ``axis==0``, it is
             assumed each column is a time series and each row is a time point. i.e. the
@@ -112,7 +145,8 @@ class BaseSeriesEstimator(BaseAeonEstimator):
                 raise ValueError("pd.DataFrame dtype must be numeric")
         else:
             raise ValueError(
-                f"Input type of X should be one of {VALID_INNER_TYPES}, saw {type(X)}"
+                f"Input type of X should be one of {VALID_SERIES_INNER_TYPES}, "
+                f"saw {type(X)}"
             )
 
         metadata = {}
@@ -170,9 +204,9 @@ class BaseSeriesEstimator(BaseAeonEstimator):
 
         Parameters
         ----------
-        X: one of aeon.base._base_series.VALID_INPUT_TYPES
+        X: one of aeon.base._base_series.VALID_SERIES_INPUT_TYPES
             A valid aeon time series data structure. See
-            aeon.base._base_series.VALID_INPUT_TYPES for aeon supported types.
+            aeon.base._base_series.VALID_SERIES_INPUT_TYPES for aeon supported types.
         axis: int
             The time point axis of the input series if it is 2D. If ``axis==0``, it is
             assumed each column is a time series and each row is a time point. i.e. the
@@ -182,7 +216,7 @@ class BaseSeriesEstimator(BaseAeonEstimator):
 
         Returns
         -------
-        X: one of aeon.base._base_series.VALID_INPUT_TYPES
+        X: one of aeon.base._base_series.VALID_SERIES_INPUT_TYPES
             Input time series with data structure of type self.get_tag("X_inner_type").
         """
         if axis > 1 or axis < 0:
@@ -216,38 +250,3 @@ class BaseSeriesEstimator(BaseAeonEstimator):
             X = X[np.newaxis, :] if self.axis == 1 else X[:, np.newaxis]
 
         return X
-
-    def _preprocess_series(self, X, axis, store_metadata):
-        """Preprocess input X prior to call to fit.
-
-        Checks the characteristics of X, store metadata, checks self can handle
-        the data then convert X to X_inner_type
-
-        Parameters
-        ----------
-        X: one of aeon.base._base_series.VALID_INPUT_TYPES
-            A valid aeon time series data structure. See
-            aeon.base._base_series.VALID_INPUT_TYPES for aeon supported types.
-        axis: int or None
-            The time point axis of the input series if it is 2D. If ``axis==0``, it is
-            assumed each column is a time series and each row is a time point. i.e. the
-            shape of the data is ``(n_timepoints, n_channels)``. ``axis==1`` indicates
-            the time series are in rows, i.e. the shape of the data is
-            ``(n_channels, n_timepoints)``.
-            If None, the default class axis is used.
-        store_metadata: bool
-            If True, overwrite metadata with the new metadata from X.
-
-        Returns
-        -------
-        X: one of aeon.base._base_series.VALID_INPUT_TYPES
-            Input time series with data structure of type self.get_tag("X_inner_type").
-        """
-        if axis is None:
-            axis = self.axis
-
-        meta = self._check_X(X, axis)
-        if store_metadata:
-            self.metadata_ = meta
-
-        return self._convert_X(X, axis)

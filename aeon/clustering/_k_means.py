@@ -54,8 +54,8 @@ class TimeSeriesKMeans(BaseClusterer):
         n_timepoints)
         and contains the time series to use as centroids.
     distance : str or Callable, default='msm'
-        Distance metric to compute similarity between time series. A list of valid
-        strings for metrics can be found in the documentation for
+        Distance method to compute similarity between time series. A list of valid
+        strings for measures can be found in the documentation for
         :func:`aeon.distances.get_distance_function`. If a callable is passed it must be
         a function that takes two 2d numpy arrays as input and returns a float.
     n_init : int, default=10
@@ -82,9 +82,9 @@ class TimeSeriesKMeans(BaseClusterer):
         Averaging method to compute the average of a cluster. Any of the following
         strings are valid: ['mean', 'ba']. If a Callable is provided must take the form
         Callable[[np.ndarray], np.ndarray].
-        If you specify 'ba' then by default the distance measure used will be the same
-        as the distance measure used for clustering. If you wish to use a different
-        distance measure you can specify it by passing {"distance": "dtw"} as
+        If you specify 'ba' then by default the distance method used will be the same
+        as the distance method used for clustering. If you wish to use a different
+        distance method you can specify it by passing {"distance": "dtw"} as
         averaging_params. BA yields 'better' clustering results but is very
         computationally expensive so you may want to consider setting a bounding window
         or using a different averaging method if time complexity is a concern.
@@ -169,20 +169,8 @@ class TimeSeriesKMeans(BaseClusterer):
         averaging_method: Union[str, Callable[[np.ndarray], np.ndarray]] = "ba",
         distance_params: Optional[dict] = None,
         average_params: Optional[dict] = None,
-        init_algorithm: Optional[Union[str, np.ndarray]] = None,
     ):
         self.init = init
-        self.init_algorithm = init_algorithm
-        if init_algorithm is not None:
-            import warnings
-
-            warnings.warn(
-                "The 'init_algorithm' parameter is deprecated and will be "
-                "removed in a future. Version Use 'init' instead.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-            self.init = self.init_algorithm
         self.distance = distance
         self.n_init = n_init
         self.max_iter = max_iter
@@ -192,6 +180,7 @@ class TimeSeriesKMeans(BaseClusterer):
         self.distance_params = distance_params
         self.average_params = average_params
         self.averaging_method = averaging_method
+        self.n_clusters = n_clusters
 
         self.cluster_centers_ = None
         self.labels_ = None
@@ -203,7 +192,7 @@ class TimeSeriesKMeans(BaseClusterer):
         self._averaging_method = None
         self._average_params = None
 
-        super().__init__(n_clusters)
+        super().__init__()
 
     def _fit(self, X: np.ndarray, y=None):
         self._check_params(X)
@@ -247,7 +236,7 @@ class TimeSeriesKMeans(BaseClusterer):
         prev_labels = None
         for i in range(self.max_iter):
             curr_pw = pairwise_distance(
-                X, cluster_centres, metric=self.distance, **self._distance_params
+                X, cluster_centres, method=self.distance, **self._distance_params
             )
             curr_labels = curr_pw.argmin(axis=1)
             curr_inertia = curr_pw.min(axis=1).sum()
@@ -267,7 +256,7 @@ class TimeSeriesKMeans(BaseClusterer):
             prev_inertia = curr_inertia
             prev_labels = curr_labels
 
-            if change_in_centres < self.tol:
+            if change_in_centres < self.tol or (i + 1) == self.max_iter:
                 break
 
             # Compute new cluster centres
@@ -281,19 +270,16 @@ class TimeSeriesKMeans(BaseClusterer):
 
         return prev_labels, cluster_centres, prev_inertia, i + 1
 
-    def _score(self, X, y=None):
-        return -self.inertia_
-
     def _predict(self, X: np.ndarray, y=None) -> np.ndarray:
         if isinstance(self.distance, str):
             pairwise_matrix = pairwise_distance(
-                X, self.cluster_centers_, metric=self.distance, **self._distance_params
+                X, self.cluster_centers_, method=self.distance, **self._distance_params
             )
         else:
             pairwise_matrix = pairwise_distance(
                 X,
                 self.cluster_centers_,
-                metric=self.distance,
+                method=self.distance,
                 **self._distance_params,
             )
         return pairwise_matrix.argmin(axis=1)
@@ -360,7 +346,7 @@ class TimeSeriesKMeans(BaseClusterer):
 
         for _ in range(1, self.n_clusters):
             pw_dist = pairwise_distance(
-                X, X[indexes], metric=self.distance, **self._distance_params
+                X, X[indexes], method=self.distance, **self._distance_params
             )
             min_distances = pw_dist.min(axis=1)
             probabilities = min_distances / min_distances.sum()
@@ -395,7 +381,7 @@ class TimeSeriesKMeans(BaseClusterer):
             index_furthest_from_centre = curr_pw.min(axis=1).argmax()
             cluster_centres[current_empty_cluster_index] = X[index_furthest_from_centre]
             curr_pw = pairwise_distance(
-                X, cluster_centres, metric=self.distance, **self._distance_params
+                X, cluster_centres, method=self.distance, **self._distance_params
             )
             curr_labels = curr_pw.argmin(axis=1)
             curr_inertia = curr_pw.min(axis=1).sum()
@@ -408,7 +394,7 @@ class TimeSeriesKMeans(BaseClusterer):
         return curr_pw, curr_labels, curr_inertia, cluster_centres
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -424,7 +410,6 @@ class TimeSeriesKMeans(BaseClusterer):
             Parameters to create testing instances of the class
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`
         """
         return {
             "n_clusters": 2,

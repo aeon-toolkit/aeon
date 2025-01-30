@@ -9,11 +9,12 @@ __all__ = [
     "IndividualInceptionClassifier",
     "MLPClassifier",
     "ResNetClassifier",
-    "TapNetClassifier",
     "LITETimeClassifier",
     "IndividualLITEClassifier",
+    "DisjointCNNClassifier",
 ]
 from aeon.classification.deep_learning._cnn import TimeCNNClassifier
+from aeon.classification.deep_learning._disjoint_cnn import DisjointCNNClassifier
 from aeon.classification.deep_learning._encoder import EncoderClassifier
 from aeon.classification.deep_learning._fcn import FCNClassifier
 from aeon.classification.deep_learning._inception_time import (
@@ -26,5 +27,4 @@ from aeon.classification.deep_learning._lite_time import (
 )
 from aeon.classification.deep_learning._mlp import MLPClassifier
 from aeon.classification.deep_learning._resnet import ResNetClassifier
-from aeon.classification.deep_learning._tapnet import TapNetClassifier
 from aeon.classification.deep_learning.base import BaseDeepClassifier

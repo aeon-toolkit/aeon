@@ -4,7 +4,7 @@ __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["ClassifierPipeline"]
 
 
-from aeon.base.estimator.compose.collection_pipeline import BaseCollectionPipeline
+from aeon.base._estimators.compose.collection_pipeline import BaseCollectionPipeline
 from aeon.classification.base import BaseClassifier
 
 
@@ -42,7 +42,7 @@ class ClassifierPipeline(BaseCollectionPipeline, BaseClassifier):
         the str is used to name the transformer.
         The objecst are cloned prior, as such the state of the input will not be
         modified by fitting the pipeline.
-    classifier : aeon or sklearn classifier
+    estimator : aeon or sklearn classifier
         A classifier to use at the end of the pipeline.
         The object is cloned prior, as such the state of the input will not be modified
         by fitting the pipeline.
@@ -68,7 +68,7 @@ class ClassifierPipeline(BaseCollectionPipeline, BaseClassifier):
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test = load_unit_test(split="test")
     >>> pipeline = ClassifierPipeline(
-    ...     Resizer(length=10), RocketClassifier(num_kernels=50)
+    ...     Resizer(length=10), RocketClassifier(n_kernels=50)
     ... )
     >>> pipeline.fit(X_train, y_train)
     ClassifierPipeline(...)
@@ -87,7 +87,7 @@ class ClassifierPipeline(BaseCollectionPipeline, BaseClassifier):
         )
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -102,18 +102,15 @@ class ClassifierPipeline(BaseCollectionPipeline, BaseClassifier):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         from aeon.classification.distance_based import KNeighborsTimeSeriesClassifier
         from aeon.transformations.collection import Truncator
-        from aeon.transformations.collection.feature_based import (
-            SevenNumberSummaryTransformer,
-        )
+        from aeon.transformations.collection.feature_based import SevenNumberSummary
 
         return {
             "transformers": [
                 Truncator(truncated_length=5),
-                SevenNumberSummaryTransformer(),
+                SevenNumberSummary(),
             ],
             "classifier": KNeighborsTimeSeriesClassifier(distance="euclidean"),
         }

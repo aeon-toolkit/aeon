@@ -320,9 +320,14 @@ class TemporalDictionaryEnsemble(BaseClassifier):
                     rng.choice(np.flatnonzero(preds == preds.max()))
                 )
 
-            subsample = rng.choice(self.n_cases_, size=subsample_size, replace=False)
-            X_subsample = X[subsample]
-            y_subsample = y[subsample]
+            while True:
+                subsample = rng.choice(
+                    self.n_cases_, size=subsample_size, replace=False
+                )
+                X_subsample = X[subsample]
+                y_subsample = y[subsample]
+                if len(np.unique(y_subsample)) > 1:
+                    break
 
             tde = IndividualTDE(
                 *parameters,
@@ -530,7 +535,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         return correct / train_size
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -555,7 +560,6 @@ class TemporalDictionaryEnsemble(BaseClassifier):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         if parameter_set == "results_comparison":
             return {

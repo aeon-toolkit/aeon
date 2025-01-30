@@ -49,7 +49,7 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
     n_jobs : int, default = None
         The number of parallel jobs to run for neighbors search.
         ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.
-        ``-1`` means using all processors. See :term:`Glossary <n_jobs>`
+        ``-1`` means using all processors.
         for more details. Parameter for compatibility purposes, still unimplemented.
 
     Examples
@@ -67,6 +67,7 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
     _tags = {
         "capability:multivariate": True,
         "capability:unequal_length": True,
+        "capability:multithreading": True,
         "X_inner_type": ["np-list", "numpy3D"],
         "algorithm_type": "distance",
     }
@@ -110,7 +111,7 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
         y : array-like, shape = (n_cases)
             The output value.
         """
-        self.metric_ = get_distance_function(metric=self.distance)
+        self.metric_ = get_distance_function(method=self.distance)
         self.X_ = X
         self.y_ = y
         return self
@@ -131,8 +132,6 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
         y : array of shape (n_cases)
             Output values for each data sample.
         """
-        self.check_is_fitted()
-
         preds = np.empty(len(X))
         for i in range(len(X)):
             idx, weights = self._kneighbors(X[i])
@@ -185,7 +184,9 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
         return closest_idx, ws
 
     @classmethod
-    def get_test_params(cls, parameter_set: str = "default") -> Union[dict, list[dict]]:
+    def _get_test_params(
+        cls, parameter_set: str = "default"
+    ) -> Union[dict, list[dict]]:
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -200,7 +201,6 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         # non-default distance and algorithm
         params1 = {"distance": "euclidean"}

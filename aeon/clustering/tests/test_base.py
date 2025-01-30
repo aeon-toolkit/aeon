@@ -12,7 +12,6 @@ def test_correct_input():
     """Tests errors raised with wrong inputs: X and/or y."""
     dummy = MockCluster()
 
-    # list of strings X
     X = ["list", "of", "invalid", "test", "strings"]
     msg1 = r"ERROR passed a list containing <class 'str'>"
     with pytest.raises(TypeError, match=msg1):
@@ -44,6 +43,9 @@ def test_correct_input():
 class _TestClusterer(BaseClusterer):
     """Clusterer for testing base class fit/predict/predict_proba."""
 
+    def __init__(self):
+        super().__init__()
+
     def _fit(self, X, y=None):
         """Fit dummy."""
         return self
@@ -51,9 +53,6 @@ class _TestClusterer(BaseClusterer):
     def _predict(self, X):
         """Predict dummy."""
         return np.zeros(shape=(len(X),), dtype=int)
-
-    def _score(self, X, y=None):
-        return 1.0
 
 
 def test_base_clusterer():

@@ -88,10 +88,15 @@ class ResNetClassifier(BaseDeepClassifier):
         this parameter is discarded.
     verbose : boolean, default = False
         whether to output extra information
-    loss : string, default = "mean_squared_error"
-        fit parameter for the keras model.
-    optimizer : keras.optimizer, default = keras.optimizers.Adam()
-    metrics : list of strings, default = ["accuracy"]
+    loss : str, default = "categorical_crossentropy"
+        The name of the keras training loss.
+    optimizer : keras.optimizer, default = tf.keras.optimizers.Adam()
+        The keras optimizer used for training.
+    metrics : str or list[str], default="accuracy"
+        The evaluation metrics to use during training. If
+        a single string metric is provided, it will be
+        used as the only metric. If a list of metrics are
+        provided, all will be used for evaluation.
 
     Notes
     -----
@@ -129,7 +134,7 @@ class ResNetClassifier(BaseDeepClassifier):
         callbacks=None,
         verbose=False,
         loss="categorical_crossentropy",
-        metrics=None,
+        metrics="accuracy",
         batch_size=64,
         use_mini_batch_size=False,
         random_state=None,
@@ -213,25 +218,20 @@ class ResNetClassifier(BaseDeepClassifier):
             else self.optimizer
         )
 
-        if self.metrics is None:
-            metrics = ["accuracy"]
-        else:
-            metrics = self.metrics
-
         rng = check_random_state(self.random_state)
         self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
         tf.keras.utils.set_random_seed(self.random_state_)
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
-        output_layer = tf.keras.layers.Dense(
-            units=n_classes, activation="softmax", use_bias=self.use_bias
-        )(output_layer)
+        output_layer = tf.keras.layers.Dense(units=n_classes, activation="softmax")(
+            output_layer
+        )
 
         model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
         model.compile(
             loss=self.loss,
             optimizer=self.optimizer_,
-            metrics=metrics,
+            metrics=self._metrics,
         )
 
         return model
@@ -255,6 +255,11 @@ class ResNetClassifier(BaseDeepClassifier):
         y_onehot = self.convert_y_to_keras(y)
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
+
+        if isinstance(self.metrics, list):
+            self._metrics = self.metrics
+        elif isinstance(self.metrics, str):
+            self._metrics = [self.metrics]
 
         self.input_shape = X.shape[1:]
         self.training_model_ = self.build_model(self.input_shape, self.n_classes_)
@@ -317,7 +322,7 @@ class ResNetClassifier(BaseDeepClassifier):
         return self
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -336,7 +341,6 @@ class ResNetClassifier(BaseDeepClassifier):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         param = {
             "n_epochs": 10,

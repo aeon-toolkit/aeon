@@ -1,3 +1,12 @@
+"""MultiRocketHydra regressor.
+
+Pipeline regressor concatenating the MultiRocket and Hydra transformers with a RidgeCV
+estimator.
+"""
+
+__maintainer__ = ["MatthewMiddlehurst"]
+__all__ = ["MultiRocketHydraRegressor"]
+
 import numpy as np
 from sklearn.linear_model import RidgeCV
 from sklearn.preprocessing import StandardScaler

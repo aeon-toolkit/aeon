@@ -144,6 +144,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         "output_data_type": "Tabular",
         "capability:multivariate": True,
         "capability:unequal_length": True,
+        "capability:multithreading": True,
         "X_inner_type": ["np-list", "numpy3D"],
         "requires_y": True,
         "algorithm_type": "shapelet",
@@ -395,7 +396,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         return output
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -410,7 +411,6 @@ class RandomShapeletTransform(BaseCollectionTransformer):
             Parameters to create testing instances of the class
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`
         """
         if parameter_set == "results_comparison":
             return {"max_shapelets": 10, "n_shapelet_samples": 500}

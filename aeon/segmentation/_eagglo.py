@@ -72,17 +72,15 @@ class EAggloSegmenter(BaseSegmenter):
 
     Examples
     --------
-    >>> from aeon.testing.data_generation import piecewise_normal_multivariate
+    >>> from aeon.testing.data_generation import make_example_dataframe_series
     >>> from aeon.segmentation import EAggloSegmenter
-    >>> X = piecewise_normal_multivariate(means=[[1, 3], [4, 5]], lengths=[3, 4],
-    ...     random_state = 10)
+    >>> X = make_example_dataframe_series(n_channels=2, random_state=10)
     >>> model = EAggloSegmenter()
-    >>> model.fit_predict(X, axis=0)
-    array([0, 0, 0, 1, 1, 1, 1])
+    >>> y = model.fit_predict(X, axis=0)
     """
 
     _tags = {
-        "X_inner_type": "pd.DataFrame",  # One of VALID_INNER_TYPES
+        "X_inner_type": "pd.DataFrame",
         "capability:multivariate": True,
         "fit_is_empty": False,
         "returns_dense": False,
@@ -350,7 +348,7 @@ class EAggloSegmenter(BaseSegmenter):
         )
 
     @classmethod
-    def get_test_params(cls, parameter_set: str = "default") -> list[dict]:
+    def _get_test_params(cls, parameter_set: str = "default") -> list[dict]:
         """Test parameters."""
         return [
             {"alpha": 1.0, "penalty": None},

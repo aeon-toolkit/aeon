@@ -4,6 +4,7 @@ __maintainer__ = ["MatthewMiddlehurst", "TonyBagnall"]
 __all__ = ["BaseAeonEstimator"]
 
 import inspect
+from abc import ABC, abstractmethod
 from copy import deepcopy
 
 from sklearn import clone
@@ -11,25 +12,28 @@ from sklearn.base import BaseEstimator
 from sklearn.ensemble._base import _set_random_states
 from sklearn.exceptions import NotFittedError
 
+from aeon.utils.validation._dependencies import _check_estimator_deps
 
-class BaseAeonEstimator(BaseEstimator):
+
+class BaseAeonEstimator(BaseEstimator, ABC):
     """
     Base class for defining estimators in aeon.
 
     Contains the following methods:
 
-    reset estimator to post-init  - reset(keep)
-    clonee stimator (copy)        - clone(random_state)
-    inspect tags (class method)   - get_class_tags()
-    inspect tags (one tag, class) - get_class_tag(tag_name, tag_value_default,
+    - reset estimator to post-init  - reset(keep)
+    - clone stimator (copy)         - clone(random_state)
+    - inspect tags (class method)   - get_class_tags()
+    - inspect tags (one tag, class) - get_class_tag(tag_name, tag_value_default,
                                                                     raise_error)
-    inspect tags (all)            - get_tags()
-    inspect tags (one tag)        - get_tag(tag_name, tag_value_default, raise_error)
-    setting dynamic tags          - set_tags(**tag_dict)
+    - inspect tags (all)            - get_tags()
+    - inspect tags (one tag)        - get_tag(tag_name, tag_value_default, raise_error)
+    - setting dynamic tags          - set_tags(**tag_dict)
+    - get fitted parameters         - get_fitted_params(deep)
 
     All estimators have the attribute:
 
-    fitted state flag             - is_fitted
+    - fitted state flag             - is_fitted
     """
 
     _tags = {
@@ -42,11 +46,14 @@ class BaseAeonEstimator(BaseEstimator):
         "capability:multithreading": False,
     }
 
+    @abstractmethod
     def __init__(self):
         self.is_fitted = False  # flag to indicate if fit has been called
         self._tags_dynamic = dict()  # storage for dynamic tags
 
         super().__init__()
+
+        _check_estimator_deps(self)
 
     def reset(self, keep=None):
         """
@@ -61,7 +68,7 @@ class BaseAeonEstimator(BaseEstimator):
                 hyper-parameters (arguments of ``__init__``)
                 object attributes containing double-underscores, i.e., the string "__"
             runs ``__init__`` with current values of hyperparameters (result of
-            get_params)
+            ``get_params``)
 
         Not affected by the reset are:
             object attributes containing double-underscores
@@ -71,13 +78,13 @@ class BaseAeonEstimator(BaseEstimator):
         Parameters
         ----------
         keep : None, str, or list of str, default=None
-            If None, all attributes are removed except hyper-parameters.
+            If None, all attributes are removed except hyperparameters.
             If str, only the attribute with this name is kept.
             If list of str, only the attributes with these names are kept.
 
         Returns
         -------
-        self
+        self : object
             Reference to self.
         """
         # retrieve parameters to copy them later
@@ -161,7 +168,12 @@ class BaseAeonEstimator(BaseEstimator):
         return deepcopy(collected_tags)
 
     @classmethod
-    def get_class_tag(cls, tag_name, tag_value_default=None, raise_error=False):
+    def get_class_tag(
+        cls,
+        tag_name,
+        raise_error=True,
+        tag_value_default=None,
+    ):
         """
         Get tag value from estimator class (only class tags).
 
@@ -169,22 +181,22 @@ class BaseAeonEstimator(BaseEstimator):
         ----------
         tag_name : str
             Name of tag value.
-        tag_value_default : any type
-            Default/fallback value if tag is not found.
-        raise_error : bool
+        raise_error : bool, default=True
             Whether a ValueError is raised when the tag is not found.
+        tag_value_default : any type, default=None
+            Default/fallback value if tag is not found and error is not raised.
 
         Returns
         -------
         tag_value
-            Value of the ``tag_name`` tag in self.
-            If not found, returns an error if raise_error is True, otherwise it
-            returns `tag_value_default`.
+            Value of the ``tag_name`` tag in cls.
+            If not found, returns an error if ``raise_error`` is True, otherwise it
+            returns ``tag_value_default``.
 
         Raises
         ------
         ValueError
-            if raise_error is ``True`` and ``tag_name`` is not in
+            if ``raise_error`` is True and ``tag_name`` is not in
             ``self.get_tags().keys()``
 
         Examples
@@ -219,7 +231,7 @@ class BaseAeonEstimator(BaseEstimator):
         collected_tags.update(self._tags_dynamic)
         return deepcopy(collected_tags)
 
-    def get_tag(self, tag_name, tag_value_default=None, raise_error=True):
+    def get_tag(self, tag_name, raise_error=True, tag_value_default=None):
         """
         Get tag value from estimator class.
 
@@ -229,17 +241,17 @@ class BaseAeonEstimator(BaseEstimator):
         ----------
         tag_name : str
             Name of tag to be retrieved.
-        tag_value_default : any type, default=None
-            Default/fallback value if tag is not found.
-        raise_error : bool
+        raise_error : bool, default=True
             Whether a ValueError is raised when the tag is not found.
+        tag_value_default : any type, default=None
+            Default/fallback value if tag is not found and error is not raised.
 
         Returns
         -------
         tag_value
             Value of the ``tag_name`` tag in self.
-            If not found, returns an error if raise_error is True, otherwise it
-            returns `tag_value_default`.
+            If not found, returns an error if ``raise_error`` is True, otherwise it
+            returns ``tag_value_default``.
 
         Raises
         ------
@@ -274,15 +286,74 @@ class BaseAeonEstimator(BaseEstimator):
 
         Returns
         -------
-        self
+        self : object
             Reference to self.
         """
         tag_update = deepcopy(tag_dict)
         self._tags_dynamic.update(tag_update)
         return self
 
+    def get_fitted_params(self, deep=True):
+        """Get fitted parameters.
+
+        State required:
+            Requires state to be "fitted".
+
+        Parameters
+        ----------
+        deep : bool, default=True
+            If True, will return the fitted parameters for this estimator and
+            contained subobjects that are estimators.
+
+        Returns
+        -------
+        fitted_params : dict
+            Fitted parameter names mapped to their values.
+        """
+        self._check_is_fitted()
+        return self._get_fitted_params(self, deep)
+
+    def _get_fitted_params(self, est, deep):
+        """Recursive function to get fitted parameters."""
+        # retrieves all self attributes ending in "_"
+        fitted_params = [
+            attr for attr in dir(est) if attr.endswith("_") and not attr.startswith("_")
+        ]
+
+        out = dict()
+        for key in fitted_params:
+            # some of these can be properties and can make assumptions which may not be
+            # true in aeon i.e. sklearn Pipeline feature_names_in_
+            try:
+                value = getattr(est, key)
+            except AttributeError:
+                continue
+
+            if deep and isinstance(value, BaseEstimator):
+                deep_items = self._get_fitted_params(value, deep).items()
+                out.update((key + "__" + k, val) for k, val in deep_items)
+            out[key] = value
+        return out
+
+    # private functions to help testing
+
+    def _check_is_fitted(self):
+        """
+        Check if the estimator has been fitted.
+
+        Raises
+        ------
+        NotFittedError
+            If the estimator has not been fitted yet.
+        """
+        if not self.is_fitted:
+            raise NotFittedError(
+                f"This instance of {self.__class__.__name__} has not "
+                f"been fitted yet; please call `fit` first."
+            )
+
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """
         Return testing parameter settings for the estimator.
 
@@ -298,17 +369,16 @@ class BaseAeonEstimator(BaseEstimator):
             Parameters to create testing instances of the class. Each dict are
             parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         # default parameters = empty dict
         return {}
 
     @classmethod
-    def create_test_instance(cls, parameter_set="default", return_first=True):
+    def _create_test_instance(cls, parameter_set="default", return_first=True):
         """
         Construct Estimator instance if possible.
 
-        Calls the `get_test_params` method and returns an instance or list of instances
+        Calls the `_get_test_params` method and returns an instance or list of instances
         using the returned dict or list of dict.
 
         Parameters
@@ -326,7 +396,7 @@ class BaseAeonEstimator(BaseEstimator):
             Instance of the class with default parameters. If return_first
             is False, returns list of instances.
         """
-        params = cls.get_test_params(parameter_set=parameter_set)
+        params = cls._get_test_params(parameter_set=parameter_set)
 
         if isinstance(params, list):
             if return_first:
@@ -339,270 +409,6 @@ class BaseAeonEstimator(BaseEstimator):
             else:
                 return [cls(**params)]
 
-    def _components(self, base_class=None):
-        """
-        Return references to all state changing BaseAeonEstimator type attributes.
-
-        This *excludes* the blue-print-like components passed in the __init__.
-
-        Caution: this method returns *references* and not *copies*.
-            Writing to the reference will change the respective attribute of self.
-
-        Parameters
-        ----------
-        base_class : subclass of BaseAeonEstimator, default=None
-            if None, behaves the same as `base_class=BaseAeonEstimator`
-            if not None, return dict collects descendants of `base_class`.
-
-        Returns
-        -------
-        dict with key = attribute name, value = reference to attribute.
-        dict contains all attributes of `self` that inherit from `base_class`, and:
-            whose names do not contain the string "__", e.g., hidden attributes
-            are not class attributes, and are not hyper-parameters (`__init__` args).
-        """
-        if base_class is None:
-            base_class = BaseAeonEstimator
-        if base_class is not None and not inspect.isclass(base_class):
-            raise TypeError(f"base_class must be a class, but found {type(base_class)}")
-        # if base_class is not None and not issubclass(base_class, BaseAeonEstimator):
-        #     raise TypeError("base_class must be a subclass of BaseAeonEstimator")
-
-        # retrieve parameter names to exclude them later
-        param_names = self.get_params(deep=False).keys()
-
-        # retrieve all attributes that are BaseAeonEstimator descendants
-        attrs = [attr for attr in dir(self) if "__" not in attr]
-        cls_attrs = [attr for attr in dir(type(self))]
-        self_attrs = set(attrs).difference(cls_attrs).difference(param_names)
-
-        comp_dict = {x: getattr(self, x) for x in self_attrs}
-        comp_dict = {x: y for (x, y) in comp_dict.items() if isinstance(y, base_class)}
-
-        return comp_dict
-
-    def save(self, path=None):
-        """
-        Save serialized self to bytes-like object or to (.zip) file.
-
-        Behaviour:
-        if `path` is None, returns an in-memory serialized self
-        if `path` is a file location, stores self at that location as a zip file
-
-        saved files are zip files with following contents:
-        _metadata - contains class of self, i.e., type(self)
-        _obj - serialized self. This class uses the default serialization (pickle).
-
-        Parameters
-        ----------
-        path : None or file location (str or Path).
-            if None, self is saved to an in-memory object
-            if file location, self is saved to that file location. If:
-                path="estimator" then a zip file `estimator.zip` will be made at cwd.
-                path="/home/stored/estimator" then a zip file `estimator.zip` will be
-                stored in `/home/stored/`.
-
-        Returns
-        -------
-        if `path` is None - in-memory serialized self
-        if `path` is file location - ZipFile with reference to the file.
-        """
-        import pickle
-        import shutil
-        from pathlib import Path
-        from zipfile import ZipFile
-
-        if path is None:
-            return (type(self), pickle.dumps(self))
-        if not isinstance(path, (str, Path)):
-            raise TypeError(
-                "`path` is expected to either be a string or a Path object "
-                f"but found of type:{type(path)}."
-            )
-
-        path = Path(path) if isinstance(path, str) else path
-        path.mkdir()
-
-        pickle.dump(type(self), open(path / "_metadata", "wb"))
-        pickle.dump(self, open(path / "_obj", "wb"))
-
-        shutil.make_archive(base_name=path, format="zip", root_dir=path)
-        shutil.rmtree(path)
-        return ZipFile(path.with_name(f"{path.stem}.zip"))
-
-    @classmethod
-    def load_from_serial(cls, serial):
-        """
-        Load object from serialized memory container.
-
-        Parameters
-        ----------
-        serial : object
-            First element of output of `cls.save(None)`.
-
-        Returns
-        -------
-        deserialized self resulting in output `serial`, of `cls.save(None)`.
-        """
-        import pickle
-
-        return pickle.loads(serial)
-
-    @classmethod
-    def load_from_path(cls, serial):
-        """
-        Load object from file location.
-
-        Parameters
-        ----------
-        serial : object
-            Result of ZipFile(path).open("object).
-
-        Returns
-        -------
-        deserialized self resulting in output at `path`, of `cls.save(path)`
-        """
-        import pickle
-        from zipfile import ZipFile
-
-        with ZipFile(serial, "r") as file:
-            return pickle.loads(file.open("_obj").read())
-
-    def check_is_fitted(self):
-        """
-        Check if the estimator has been fitted.
-
-        Raises
-        ------
-        NotFittedError
-            If the estimator has not been fitted yet.
-        """
-        if not self.is_fitted:
-            raise NotFittedError(
-                f"This instance of {self.__class__.__name__} has not "
-                f"been fitted yet; please call `fit` first."
-            )
-
-    def get_fitted_params(self, deep=True):
-        """Get fitted parameters.
-
-        State required:
-            Requires state to be "fitted".
-
-        Parameters
-        ----------
-        deep : bool, default=True
-            Whether to return fitted parameters of components.
-
-            * If True, will return a dict of parameter name : value for this object,
-              including fitted parameters of fittable components
-              (= BaseAeonEstimator-valued parameters).
-            * If False, will return a dict of parameter name : value for this object,
-              but not include fitted parameters of components.
-
-        Returns
-        -------
-        fitted_params : dict with str-valued keys
-            Dictionary of fitted parameters, paramname : paramvalue
-            keys-value pairs include:
-
-            * always: all fitted parameters of this object
-            * if ``deep=True``, also contains keys/value pairs of component parameters
-              parameters of components are indexed as ``[componentname]__[paramname]``
-              all parameters of ``componentname`` appear as ``paramname`` with its value
-            * if ``deep=True``, also contains arbitrary levels of component recursion,
-              e.g., ``[componentname]__[componentcomponentname]__[paramname]``, etc.
-        """
-        if not self.is_fitted:
-            raise NotFittedError(
-                f"estimator of type {type(self).__name__} has not been "
-                "fitted yet, please call fit on data before get_fitted_params"
-            )
-
-        # collect non-nested fitted params of self
-        fitted_params = self._get_fitted_params()
-
-        # the rest is only for nested parameters
-        # so, if deep=False, we simply return here
-        if not deep:
-            return fitted_params
-
-        def sh(x):
-            """Shorthand to remove all underscores at end of a string."""
-            if x.endswith("_"):
-                return sh(x[:-1])
-            else:
-                return x
-
-        # add all nested parameters from components that are aeon BaseAeonEstimator
-        c_dict = self._components()
-        for c, comp in c_dict.items():
-            if isinstance(comp, BaseAeonEstimator) and comp.is_fitted:
-                c_f_params = comp.get_fitted_params()
-                c_f_params = {f"{sh(c)}__{k}": v for k, v in c_f_params.items()}
-                fitted_params.update(c_f_params)
-
-        # add all nested parameters from components that are sklearn estimators
-        # we do this recursively as we have to reach into nested sklearn estimators
-        n_new_params = 42
-        old_new_params = fitted_params
-        while n_new_params > 0:
-            new_params = dict()
-            for c, comp in old_new_params.items():
-                if isinstance(comp, BaseEstimator):
-                    c_f_params = self._get_fitted_params_default(comp)
-                    c_f_params = {f"{sh(c)}__{k}": v for k, v in c_f_params.items()}
-                    new_params.update(c_f_params)
-            fitted_params.update(new_params)
-            old_new_params = new_params.copy()
-            n_new_params = len(new_params)
-
-        return fitted_params
-
-    def _get_fitted_params_default(self, obj=None):
-        """Obtain fitted params of object, per sklearn convention.
-
-        Extracts a dict with {paramstr : paramvalue} contents,
-        where paramstr are all string names of "fitted parameters".
-
-        A "fitted attribute" of obj is one that ends in "_" but does not start with "_".
-        "fitted parameters" are names of fitted attributes, minus the "_" at the end.
-
-        Parameters
-        ----------
-        obj : any object, optional, default=self.
-
-        Returns
-        -------
-        fitted_params : dict with str keys
-            fitted parameters, keyed by names of fitted parameter.
-        """
-        obj = obj if obj else self
-
-        # default retrieves all self attributes ending in "_"
-        # and returns them with keys that have the "_" removed
-        fitted_params = [attr for attr in dir(obj) if attr.endswith("_")]
-        fitted_params = [x for x in fitted_params if not x.startswith("_")]
-        fitted_params = [x for x in fitted_params if hasattr(obj, x)]
-        fitted_param_dict = {p[:-1]: getattr(obj, p) for p in fitted_params}
-
-        return fitted_param_dict
-
-    def _get_fitted_params(self):
-        """Get fitted parameters.
-
-        private _get_fitted_params, called from get_fitted_params
-
-        State required:
-            Requires state to be "fitted".
-
-        Returns
-        -------
-        fitted_params : dict with str keys
-            fitted parameters, keyed by names of fitted parameter.
-        """
-        return self._get_fitted_params_default()
-
     # override some sklearn private methods
 
     def __sklearn_is_fitted__(self):
@@ -614,6 +420,22 @@ class BaseAeonEstimator(BaseEstimator):
         raise NotImplementedError(
             "aeon estimators do not have a _validate_data method."
         )
+
+    def get_metadata_routing(self):
+        """Sklearn metadata routing.
+
+        Not supported by ``aeon`` estimators.
+        """
+        raise NotImplementedError(
+            "aeon estimators do not have a get_metadata_routing method."
+        )
+
+    @classmethod
+    def _get_default_requests(cls):
+        """Sklearn metadata request defaults."""
+        from sklearn.utils._metadata_requests import MetadataRequest
+
+        return MetadataRequest(None)
 
 
 def _clone_estimator(base_estimator, random_state=None):

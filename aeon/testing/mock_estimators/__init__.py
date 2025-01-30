@@ -1,41 +1,62 @@
 """Mock estimators for testing and debugging."""
 
 __all__ = [
-    "make_mock_estimator",
+    # anomaly detection
+    "MockAnomalyDetector",
+    "MockAnomalyDetectorRequiresFit",
+    "MockAnomalyDetectorRequiresY",
+    # classification
     "MockClassifier",
     "MockClassifierPredictProba",
     "MockClassifierFullTags",
-    "MockClassifierMultiTestParams",
+    "MockClassifierParams",
+    "MockClassifierComposite",
+    # clustering
     "MockCluster",
     "MockDeepClusterer",
-    "MockSegmenter",
-    "SupervisedMockSegmenter",
-    "MockHandlesAllInput",
+    # collection transformation
+    "MockCollectionTransformer",
+    # forecasting
+    "MockForecaster",
+    # regression
     "MockRegressor",
+    "MockRegressorFullTags",
+    # segmentation
+    "MockSegmenter",
+    "MockSegmenterRequiresY",
+    # series transformation
+    "MockSeriesTransformer",
+    "MockUnivariateSeriesTransformer",
     "MockMultivariateSeriesTransformer",
     "MockSeriesTransformerNoFit",
-    "MockUnivariateSeriesTransformer",
-    "MockCollectionTransformer",
-    "MockSeriesTransformer",
+    # similarity search
+    "MockSimilaritySearch",
 ]
 
+from aeon.testing.mock_estimators._mock_anomaly_detectors import (
+    MockAnomalyDetector,
+    MockAnomalyDetectorRequiresFit,
+    MockAnomalyDetectorRequiresY,
+)
 from aeon.testing.mock_estimators._mock_classifiers import (
     MockClassifier,
+    MockClassifierComposite,
     MockClassifierFullTags,
-    MockClassifierMultiTestParams,
+    MockClassifierParams,
     MockClassifierPredictProba,
 )
 from aeon.testing.mock_estimators._mock_clusterers import MockCluster, MockDeepClusterer
 from aeon.testing.mock_estimators._mock_collection_transformers import (
     MockCollectionTransformer,
 )
+from aeon.testing.mock_estimators._mock_forecasters import MockForecaster
 from aeon.testing.mock_estimators._mock_regressors import (
-    MockHandlesAllInput,
     MockRegressor,
+    MockRegressorFullTags,
 )
 from aeon.testing.mock_estimators._mock_segmenters import (
     MockSegmenter,
-    SupervisedMockSegmenter,
+    MockSegmenterRequiresY,
 )
 from aeon.testing.mock_estimators._mock_series_transformers import (
     MockMultivariateSeriesTransformer,
@@ -43,3 +64,4 @@ from aeon.testing.mock_estimators._mock_series_transformers import (
     MockSeriesTransformerNoFit,
     MockUnivariateSeriesTransformer,
 )
+from aeon.testing.mock_estimators._mock_similarity_search import MockSimilaritySearch

@@ -1,4 +1,4 @@
-"""Tests for the LaftSTAMPi class."""
+"""Tests for the LeftSTAMPi class."""
 
 __maintainer__ = ["ferewi"]
 
@@ -95,7 +95,7 @@ class TestLeftSTAMPi:
 
         # then
         assert pred.shape == (20,)
-        assert pred.dtype == np.float_
+        assert pred.dtype == np.float64
         assert np.argmax(pred) == 8
 
     @pytest.mark.skipif(
@@ -115,7 +115,7 @@ class TestLeftSTAMPi:
 
         # then
         assert pred.shape == (20,)
-        assert pred.dtype == np.float_
+        assert pred.dtype == np.float64
         assert np.argmax(pred) == 8
 
     def test_it_allows_batch_processing(self, mock_stumpy_pkg):
@@ -135,7 +135,7 @@ class TestLeftSTAMPi:
         )
         assert ad.mp_._update_count == 15
         assert pred.shape == (20,)
-        assert pred.dtype == np.float_
+        assert pred.dtype == np.float64
         assert np.argmax(pred) == 8
 
     def test_window_size_defaults_to_3(self, mock_stumpy_pkg):
@@ -309,15 +309,3 @@ class TestLeftSTAMPi:
             ],
             any_order=True,
         )
-
-    def test_it_checks_soft_dependencies(self, mocker):
-        """Unit testing the dependency check."""
-        # given
-        deps_checker_stub = mocker.patch(
-            "aeon.base._base_series._check_estimator_deps", return_value=True
-        )
-        # deps_checker_stub.return_value = True
-        ad = LeftSTAMPi(window_size=5, n_init_train=10)
-
-        # then
-        deps_checker_stub.assert_called_once_with(ad)

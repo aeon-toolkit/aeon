@@ -1,6 +1,6 @@
 """DWT-MLEAD anomaly detector."""
 
-__maintainer__ = ["CodeLionX"]
+__maintainer__ = ["SebastianSchmidl"]
 __all__ = ["DWT_MLEAD"]
 
 import warnings
@@ -89,7 +89,7 @@ class DWT_MLEAD(BaseAnomalyDetector):
     --------
     >>> import numpy as np
     >>> from aeon.anomaly_detection import DWT_MLEAD
-    >>> X = np.array([1, 2, 3, 4, 1, 2, 3, 3, 2, 8, 9, 8, 1, 2, 3, 4], dtype=np.float_)
+    >>> X = np.array([1, 2, 3, 4, 1, 2, 3, 3, 2, 8, 9, 8, 1, 2, 3, 4], dtype=np.float64)
     >>> detector = DWT_MLEAD(
     ...    start_level=1, quantile_boundary_type='percentile', quantile_epsilon=0.01
     ... )
@@ -236,7 +236,7 @@ class DWT_MLEAD(BaseAnomalyDetector):
         return counter[:n]
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Only supports 'default'-parameter set.
@@ -253,7 +253,6 @@ class DWT_MLEAD(BaseAnomalyDetector):
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
         """
         return {
             "start_level": 2,

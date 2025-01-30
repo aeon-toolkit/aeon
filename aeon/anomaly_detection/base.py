@@ -3,17 +3,17 @@
 __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["BaseAnomalyDetector"]
 
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from typing import final
 
 import numpy as np
 import pandas as pd
 
 from aeon.base import BaseSeriesEstimator
-from aeon.base._base_series import VALID_INPUT_TYPES
+from aeon.base._base_series import VALID_SERIES_INPUT_TYPES
 
 
-class BaseAnomalyDetector(BaseSeriesEstimator, ABC):
+class BaseAnomalyDetector(BaseSeriesEstimator):
     """Base class for anomaly detection algorithms.
 
     Anomaly detection algorithms are used to identify anomalous subsequences in time
@@ -76,7 +76,7 @@ class BaseAnomalyDetector(BaseSeriesEstimator, ABC):
     """
 
     _tags = {
-        "X_inner_type": "np.ndarray",  # One of VALID_INNER_TYPES
+        "X_inner_type": "np.ndarray",  # One of VALID_SERIES_INNER_TYPES
         "fit_is_empty": True,
         "requires_y": False,
     }
@@ -95,14 +95,14 @@ class BaseAnomalyDetector(BaseSeriesEstimator, ABC):
 
         Parameters
         ----------
-        X : one of aeon.base._base_series.VALID_INPUT_TYPES
+        X : one of aeon.base._base_series.VALID_SERIES_INPUT_TYPES
             The time series to fit the model to.
             A valid aeon time series data structure. See
-            aeon.base._base_series.VALID_INPUT_TYPES for aeon supported types.
-        y : one of aeon.base._base_series.VALID_INPUT_TYPES, default=None
+            aeon.base._base_series.VALID_SERIES_INPUT_TYPES for aeon supported types.
+        y : one of aeon.base._base_series.VALID_SERIES_INPUT_TYPES, default=None
             The target values for the time series.
             A valid aeon time series data structure. See
-            aeon.base._base_series.VALID_INPUT_TYPES for aeon supported types.
+            aeon.base._base_series.VALID_SERIES_INPUT_TYPES for aeon supported types.
         axis : int
             The time point axis of the input series if it is 2D. If ``axis==0``, it is
             assumed each column is a time series and each row is a time point. i.e. the
@@ -115,11 +115,11 @@ class BaseAnomalyDetector(BaseSeriesEstimator, ABC):
         BaseAnomalyDetector
             The fitted estimator, reference to self.
         """
-        if self.get_class_tag("fit_is_empty"):
+        if self.get_tag("fit_is_empty"):
             self.is_fitted = True
             return self
 
-        if self.get_class_tag("requires_y"):
+        if self.get_tag("requires_y"):
             if y is None:
                 raise ValueError("Tag requires_y is true, but fit called with y=None")
 
@@ -142,10 +142,10 @@ class BaseAnomalyDetector(BaseSeriesEstimator, ABC):
 
         Parameters
         ----------
-        X : one of aeon.base._base_series.VALID_INPUT_TYPES
+        X : one of aeon.base._base_series.VALID_SERIES_INPUT_TYPES
             The time series to fit the model to.
             A valid aeon time series data structure. See
-            aeon.base._base_series.VALID_INPUT_TYPES for aeon supported types.
+            aeon.base._base_series.VALID_SERIES_INPUT_TYPES for aeon supported types.
         axis : int, default=1
             The time point axis of the input series if it is 2D. If ``axis==0``, it is
             assumed each column is a time series and each row is a time point. i.e. the
@@ -159,9 +159,9 @@ class BaseAnomalyDetector(BaseSeriesEstimator, ABC):
             A boolean, int or float array of length len(X), where each element indicates
             whether the corresponding subsequence is anomalous or its anomaly score.
         """
-        fit_empty = self.get_class_tag("fit_is_empty")
+        fit_empty = self.get_tag("fit_is_empty")
         if not fit_empty:
-            self.check_is_fitted()
+            self._check_is_fitted()
 
         X = self._preprocess_series(X, axis, False)
 
@@ -173,14 +173,14 @@ class BaseAnomalyDetector(BaseSeriesEstimator, ABC):
 
         Parameters
         ----------
-        X : one of aeon.base._base_series.VALID_INPUT_TYPES
+        X : one of aeon.base._base_series.VALID_SERIES_INPUT_TYPES
             The time series to fit the model to.
             A valid aeon time series data structure. See
             aeon.base._base_series.VALID_INPUT_TYPES for aeon supported types.
-        y : one of aeon.base._base_series.VALID_INPUT_TYPES, default=None
+        y : one of aeon.base._base_series.VALID_SERIES_INPUT_TYPES, default=None
             The target values for the time series.
             A valid aeon time series data structure. See
-            aeon.base._base_series.VALID_INPUT_TYPES for aeon supported types.
+            aeon.base._base_series.VALID_SERIES_INPUT_TYPES for aeon supported types.
         axis : int, default=1
             The time point axis of the input series if it is 2D. If ``axis==0``, it is
             assumed each column is a time series and each row is a time point. i.e. the
@@ -194,7 +194,7 @@ class BaseAnomalyDetector(BaseSeriesEstimator, ABC):
             A boolean, int or float array of length len(X), where each element indicates
             whether the corresponding subsequence is anomalous or its anomaly score.
         """
-        if self.get_class_tag("requires_y"):
+        if self.get_tag("requires_y"):
             if y is None:
                 raise ValueError("Tag requires_y is true, but fit called with y=None")
 
@@ -203,7 +203,7 @@ class BaseAnomalyDetector(BaseSeriesEstimator, ABC):
 
         X = self._preprocess_series(X, axis, True)
 
-        if self.get_class_tag("fit_is_empty"):
+        if self.get_tag("fit_is_empty"):
             self.is_fitted = True
             return self._predict(X)
 
@@ -226,16 +226,17 @@ class BaseAnomalyDetector(BaseSeriesEstimator, ABC):
         self._fit(X, y)
         return self._predict(X)
 
-    def _check_y(self, y: VALID_INPUT_TYPES) -> np.ndarray:
+    def _check_y(self, y: VALID_SERIES_INPUT_TYPES) -> np.ndarray:
         # Remind user if y is not required for this estimator on failure
         req_msg = (
             f"{self.__class__.__name__} does not require a y input."
-            if self.get_class_tag("requires_y")
+            if self.get_tag("requires_y")
             else ""
         )
         new_y = y
 
-        # must be a valid input type, see VALID_INPUT_TYPES in BaseSeriesEstimator
+        # must be a valid input type, see VALID_SERIES_INPUT_TYPES in
+        # BaseSeriesEstimator
         if isinstance(y, np.ndarray):
             # check valid shape
             if y.ndim > 1:
@@ -284,8 +285,8 @@ class BaseAnomalyDetector(BaseSeriesEstimator, ABC):
             new_y = y.squeeze().values
         else:
             raise ValueError(
-                f"Error in input type for y: it should be one of {VALID_INPUT_TYPES}, "
-                f"saw {type(y)}"
+                f"Error in input type for y: it should be one of "
+                f"{VALID_SERIES_INPUT_TYPES}, saw {type(y)}"
             )
 
         new_y = new_y.astype(bool)

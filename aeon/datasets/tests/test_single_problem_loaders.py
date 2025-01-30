@@ -9,20 +9,24 @@ import pytest
 import aeon
 from aeon.datasets import (  # Univariate; Unequal length; Multivariate
     load_acsf1,
+    load_airline,
     load_arrow_head,
     load_basic_motions,
     load_covid_3month,
     load_from_tsf_file,
     load_italy_power_demand,
     load_japanese_vowels,
-    load_macroeconomic,
+    load_longley,
+    load_lynx,
     load_osuleaf,
+    load_PBS_dataset,
     load_plaid,
+    load_shampoo_sales,
     load_solar,
     load_unit_test,
     load_unit_test_tsf,
+    load_uschange,
 )
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 UNIVARIATE_PROBLEMS = [
     load_acsf1,
@@ -41,7 +45,7 @@ UNEQUAL_LENGTH_PROBLEMS = [
 
 
 @pytest.mark.parametrize("loader", UNEQUAL_LENGTH_PROBLEMS)
-def test_load_dataframe(loader):
+def test_load_unequal_length(loader):
     """Test unequal length baked in TSC problems load into List of numpy."""
     # should work for all
     X, y = loader()
@@ -63,7 +67,7 @@ def test_load_numpy3d(loader):
 
 @pytest.mark.parametrize("loader", UNIVARIATE_PROBLEMS)
 def test_load_numpy2d_uni(loader):
-    """Test equal length TSC problems load into numpy3d."""
+    """Test equal length univariate TSC problems can be loaded into numpy2d."""
     X, y = loader(return_type="numpy2d")
     assert isinstance(X, np.ndarray)
     assert isinstance(y, np.ndarray)
@@ -98,24 +102,6 @@ def test_basic_load_tsf_to_dataframe():
     assert metadata["contain_equal_length"] is False
 
 
-def test_load_solar():
-    """Test function to load solar data."""
-    solar = load_solar()
-    assert type(solar) is pd.Series
-    assert solar.shape == (289,)
-
-
-@pytest.mark.skipif(
-    not _check_soft_dependencies("statsmodels", severity="none"),
-    reason="skip test if required soft dependency statsmodels not available",
-)
-def test_load_macroeconomic():
-    """Test load macroeconomic."""
-    y = load_macroeconomic()
-    assert isinstance(y, pd.DataFrame)
-    assert y.shape == (203, 12)
-
-
 def test_load_covid_3month():
     """Test load covid 3 month."""
     X, y = load_covid_3month()
@@ -123,3 +109,44 @@ def test_load_covid_3month():
     assert len(X) == len(y)
     assert X.shape == (201, 1, 84)
     assert isinstance(y, np.ndarray)
+
+
+FORECASTING_DATA = {
+    "shampoo_sales": [load_shampoo_sales, (36,)],
+    "lynx": [load_lynx, (114,)],
+    "airline": [load_airline, (144,)],
+    "solar": [load_solar, (289,)],
+    "PBS": [load_PBS_dataset, (204,)],
+}
+
+
+@pytest.mark.parametrize("data", FORECASTING_DATA.keys())
+def test_univariate_forecasting_loaders(data):
+    """Test baked in loaders of univariate forecasting data."""
+    y = FORECASTING_DATA[data][0]()
+    assert isinstance(y, np.ndarray)
+    y2 = FORECASTING_DATA[data][0](return_array=False)
+    assert isinstance(y2, pd.Series)
+    assert y2.shape == FORECASTING_DATA[data][1]
+    assert y.shape == y2.shape
+
+
+def test_uschange():
+    """Test if multivariate uschange dataset is loaded correctly."""
+    data = load_uschange()
+    assert isinstance(data, np.ndarray)
+    assert data.shape == (5, 187)
+    X = load_uschange(return_array=False)
+    assert isinstance(X, pd.DataFrame)
+    assert X.shape == data.shape
+
+
+def test_longley():
+    """Test if multivariate longley dataset is loaded correctly."""
+    data = load_longley()
+    assert isinstance(data, np.ndarray)
+    assert data.shape == (6, 16)
+    X = load_longley(return_array=False)
+
+    assert isinstance(X, pd.DataFrame)
+    assert X.shape == data.shape

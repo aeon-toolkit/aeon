@@ -6,6 +6,8 @@ selected indexes.
 
 __maintainer__ = ["TonyBagnall"]
 
+from abc import abstractmethod
+
 from aeon.transformations.collection.base import BaseCollectionTransformer
 
 
@@ -21,9 +23,8 @@ class BaseChannelSelector(BaseCollectionTransformer):
         List of channels selected in fit.
     """
 
-    def __init__(
-        self,
-    ):
+    @abstractmethod
+    def __init__(self):
         self.channels_selected_ = []
         super().__init__()
 

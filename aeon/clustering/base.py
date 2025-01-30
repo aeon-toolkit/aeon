@@ -1,21 +1,17 @@
 """Base class for clustering."""
 
-from typing import Optional
-
 __maintainer__ = []
 __all__ = ["BaseClusterer"]
 
-import time
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from typing import final
 
 import numpy as np
 
 from aeon.base import BaseCollectionEstimator
-from aeon.utils.validation._dependencies import _check_estimator_deps
 
 
-class BaseClusterer(BaseCollectionEstimator, ABC):
+class BaseClusterer(BaseCollectionEstimator):
     """Abstract base class for time series clusterers.
 
     Parameters
@@ -28,14 +24,13 @@ class BaseClusterer(BaseCollectionEstimator, ABC):
         "fit_is_empty": False,
     }
 
-    def __init__(self, n_clusters: Optional[int] = None):
-        self.n_clusters = n_clusters
+    @abstractmethod
+    def __init__(self):
         # required for compatibility with some sklearn interfaces e.g.
         # CalibratedClassifierCV
         self._estimator_type = "clusterer"
 
         super().__init__()
-        _check_estimator_deps(self)
 
     @final
     def fit(self, X, y=None) -> BaseCollectionEstimator:
@@ -59,15 +54,13 @@ class BaseClusterer(BaseCollectionEstimator, ABC):
             Fitted estimator.
         """
         self.reset()
-        _start_time = int(round(time.time() * 1000))
         X = self._preprocess_collection(X)
         self._fit(X)
-        self.fit_time_ = int(round(time.time() * 1000)) - _start_time
         self.is_fitted = True
         return self
 
     @final
-    def predict(self, X, y=None) -> np.ndarray:
+    def predict(self, X) -> np.ndarray:
         """Predict the closest cluster each sample in X belongs to.
 
         Parameters
@@ -81,7 +74,6 @@ class BaseClusterer(BaseCollectionEstimator, ABC):
             of shape ``[n_cases]``, 2D np.array ``(n_channels, n_timepoints_i)``,
             where ``n_timepoints_i`` is length of series ``i``. Other types are
             allowed and converted into one of the above.
-        y: ignored, exists for API consistency reasons.
 
         Returns
         -------
@@ -89,7 +81,7 @@ class BaseClusterer(BaseCollectionEstimator, ABC):
             shape ``(n_cases)`, index of the cluster each time series in X.
             belongs to.
         """
-        self.check_is_fitted()
+        self._check_is_fitted()
         X = self._preprocess_collection(X, store_metadata=False)
         self._check_shape(X)
         return self._predict(X)
@@ -121,11 +113,12 @@ class BaseClusterer(BaseCollectionEstimator, ABC):
             2nd dimension indices correspond to possible labels (integers)
             (i, j)-th entry is predictive probability that i-th instance is of class j
         """
-        self.check_is_fitted()
+        self._check_is_fitted()
         X = self._preprocess_collection(X, store_metadata=False)
         self._check_shape(X)
         return self._predict_proba(X)
 
+    @final
     def fit_predict(self, X, y=None) -> np.ndarray:
         """Compute cluster centers and predict cluster index for each time series.
 
@@ -144,11 +137,10 @@ class BaseClusterer(BaseCollectionEstimator, ABC):
         np.ndarray (1d array of shape (n_cases,))
             Index of the cluster each time series in X belongs to.
         """
-        self.fit(X)
-        return self.predict(X)
+        return self._fit_predict(X, y)
 
-    def score(self, X, y=None) -> float:
-        """Score the quality of the clusterer.
+    def _fit_predict(self, X, y=None) -> np.ndarray:
+        """Fit predict using base methods.
 
         Parameters
         ----------
@@ -160,13 +152,11 @@ class BaseClusterer(BaseCollectionEstimator, ABC):
 
         Returns
         -------
-        score : float
-            Score of the clusterer.
+        np.ndarray (1d array of shape (n_cases,))
+            Index of the cluster each time series in X belongs to.
         """
-        self.check_is_fitted()
-        X = self._preprocess_collection(X, store_metadata=False)
-        self._check_shape(X)
-        return self._score(X, y)
+        self.fit(X)
+        return self.labels_
 
     def _predict_proba(self, X) -> np.ndarray:
         """Predicts labels probabilities for sequences in X.
@@ -199,19 +189,19 @@ class BaseClusterer(BaseCollectionEstimator, ABC):
         for i, u in enumerate(unique):
             preds[preds == u] = i
         n_cases = len(preds)
-        n_clusters = self.n_clusters
+        if hasattr(self, "n_clusters"):
+            n_clusters = self.n_clusters
+        else:
+            n_clusters = len(np.unique(preds))
         if n_clusters is None:
             n_clusters = int(max(preds)) + 1
-        dists = np.zeros((X.shape[0], n_clusters))
+        dists = np.zeros((len(X), n_clusters))
         for i in range(n_cases):
             dists[i, preds[i]] = 1
         return dists
 
     @abstractmethod
-    def _score(self, X, y=None): ...
-
-    @abstractmethod
-    def _predict(self, X, y=None) -> np.ndarray:
+    def _predict(self, X) -> np.ndarray:
         """Predict the closest cluster each sample in X belongs to.
 
         Parameters
@@ -219,7 +209,6 @@ class BaseClusterer(BaseCollectionEstimator, ABC):
         X : np.ndarray (2d or 3d array of shape (n_cases, n_timepoints) or shape
             (n_cases,n_channels,n_timepoints)).
             Time series instances to predict their cluster indexes.
-        y: ignored, exists for API consistency reasons.
 
         Returns
         -------

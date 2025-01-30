@@ -9,8 +9,8 @@ from aeon.testing.data_generation import (
     make_example_2d_numpy_collection,
     make_example_3d_numpy,
     make_example_3d_numpy_list,
+    make_example_pandas_series,
 )
-from aeon.testing.data_generation._legacy import make_series
 from aeon.transformations.collection import BaseCollectionTransformer
 
 
@@ -38,7 +38,7 @@ def test_collection_transformer_valid_input(data_gen):
 @pytest.mark.parametrize("dtype", ["pd.Series"])
 def test_collection_transformer_invalid_input(dtype):
     """Test that BaseCollectionTransformer fails with series input."""
-    y = (make_series(),)
+    y = (make_example_pandas_series(),)
     t = _Dummy()
     with pytest.raises(TypeError):
         t.fit_transform(y)

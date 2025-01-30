@@ -234,8 +234,8 @@ class ProximityTree(BaseClassifier):
                     dist = distance(
                         X[j],
                         splitter[0][labels[k]],
-                        metric=measure,
-                        kwargs=splitter[1][measure],
+                        method=measure,
+                        **splitter[1][measure],
                     )
                     if dist < min_dist:
                         min_dist = dist
@@ -320,8 +320,8 @@ class ProximityTree(BaseClassifier):
                 dist = distance(
                     X[i],
                     splitter[0][labels[j]],
-                    metric=measure,
-                    kwargs=splitter[1][measure],
+                    method=measure,
+                    **splitter[1][measure],
                 )
                 if dist < min_dist:
                     min_dist = dist
@@ -404,8 +404,8 @@ class ProximityTree(BaseClassifier):
                 dist = distance(
                     x,
                     treenode.splitter[0][branches[i]],
-                    metric=measure,
-                    kwargs=treenode.splitter[1][measure],
+                    method=measure,
+                    **treenode.splitter[1][measure],
                 )
                 if dist < min_dist:
                     min_dist = dist

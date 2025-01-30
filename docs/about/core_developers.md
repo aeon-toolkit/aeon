@@ -37,8 +37,8 @@
 <p><a href='https://github.com/MatthewMiddlehurst'>Matthew Middlehurst</a></p>
 </div>
 <div>
-<a href='https://github.com/CodeLionX'><img src='https://avatars.githubusercontent.com/u/10573700?v=4' class='avatar' /></a> <br />
-<p><a href='https://github.com/CodeLionX'>Sebastian Schmidl</a></p>
+<a href='https://github.com/SebastianSchmidl'><img src='https://avatars.githubusercontent.com/u/10573700?v=4' class='avatar' /></a> <br />
+<p><a href='https://github.com/SebastianSchmidl'>Sebastian Schmidl</a></p>
 </div>
 <div>
 <a href='https://github.com/patrickzib'><img src='https://avatars.githubusercontent.com/u/7783034?v=4' class='avatar' /></a> <br />

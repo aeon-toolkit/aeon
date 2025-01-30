@@ -67,18 +67,18 @@ class AutoCorrelationSeriesTransformer(BaseSeriesTransformer):
         """
         # statsmodels acf function uses min(10 * np.log10(nobs), nobs - 1)
         if self.n_lags is None:
-            self._n_lags = int(max(1, X.shape[1] / 4))
+            n_lags = int(max(1, X.shape[1] / 4))
         else:
-            self._n_lags = int(self.n_lags)
-        if self._n_lags < 1:
-            self._n_lags = 1
-        if X.shape[1] - self._n_lags < 3:
+            n_lags = int(self.n_lags)
+        if n_lags < 1:
+            n_lags = 1
+        if X.shape[1] - n_lags < 3:
             raise ValueError(
                 f"The number of lags is too large for the length of the "
                 f"series, autocorrelation would be calculated with just"
                 f"{X.shape[1]-self._n_lags} observations."
             )
-        return self._acf(X, max_lag=self._n_lags)
+        return self._acf(X, max_lag=n_lags)
 
     @staticmethod
     @njit(cache=True, fastmath=True)
@@ -111,7 +111,7 @@ class AutoCorrelationSeriesTransformer(BaseSeriesTransformer):
         return X_t
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -127,7 +127,6 @@ class AutoCorrelationSeriesTransformer(BaseSeriesTransformer):
             Parameters to create testing instances of the class
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`
         """
         return [{}, {"n_lags": 1}]
 
@@ -235,7 +234,7 @@ class StatsModelsACF(BaseSeriesTransformer):
         return Xt
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -251,7 +250,6 @@ class StatsModelsACF(BaseSeriesTransformer):
             Parameters to create testing instances of the class
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`
         """
         return [{}, {"n_lags": 1}]
 
@@ -350,7 +348,7 @@ class StatsModelsPACF(BaseSeriesTransformer):
         return Xt
 
     @classmethod
-    def get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -366,6 +364,5 @@ class StatsModelsPACF(BaseSeriesTransformer):
             Parameters to create testing instances of the class
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`
         """
         return [{}, {"n_lags": 1}]
