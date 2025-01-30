@@ -264,7 +264,7 @@ def ts_precision(y_pred, y_real, gamma="one", bias_type="flat"):
         ):
             raise ValueError(
                 "For binary inputs, y_pred and y_real should be list or tuple, "
-                "or numpy array of integers.."
+                "or numpy array of integers."
             )
         if len(y_pred) != len(y_real):
             raise ValueError(
