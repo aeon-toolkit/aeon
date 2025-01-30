@@ -145,7 +145,7 @@ dataset_names_full = [
 ]
 
 dataset_names = [
-    # "Chinatown"
+    # "Chinatown",
     "ArrowHead",
     "Beef",
     "BeetleFly",
@@ -227,12 +227,14 @@ def compute_distances(
     method_names,
 ):
     """Compute lower bounding distances."""
-    tighness = np.zeros((queries.shape[0], len(method_names)), dtype=np.float64)
+    p = 2
+
+    tightness = np.zeros((queries.shape[0], len(method_names)), dtype=np.float64)
     for i in prange(queries.shape[0]):
 
         eds = np.zeros((samples.shape[0]), dtype=np.float32)
         for j in range(samples.shape[0]):
-            eds[j] = np.linalg.norm(queries[i] - samples[j])
+            eds[j] = np.linalg.norm(queries[i] - samples[j], ord=p)
 
         # SAX-PAA Min-Distance
         for j in range(samples.shape[0]):
@@ -241,11 +243,18 @@ def compute_distances(
                 SAX_samples[j],
                 SAX_breakpoints,
                 samples.shape[-1],
+                p=p,
             )
             if eds[j] > 0:
-                tighness[i][0] += md / eds[j] / samples.shape[0]
+                tightness[i][0] += md / eds[j] / samples.shape[0]
 
-        # DFT-SFA Min-Distance variants
+            # if md > eds[j]:
+            #     print(
+            #         f"mindist {method_names[a]} is:\t {md} "
+            #         f"but ED is:\t {eds[j]} \t Pos: {i}, {j}"
+            #     )
+
+            # DFT-SFA Min-Distance variants
         for a in range(all_dfts.shape[0]):
             for j in range(samples.shape[0]):
                 md = mindist_dft_sfa_distance(
@@ -254,21 +263,18 @@ def compute_distances(
                     all_breakpoints[a],
                 )
                 if eds[j] > 0:
-                    tighness[i][a + 1] += md / eds[j] / samples.shape[0]
+                    tightness[i][a + 1] += md / eds[j] / samples.shape[0]
 
                 # if md > eds[j]:
-                #     print(f"mindist {method_names[a]} is:\t {md} but ED is:
-                #     \t {eds[j]} \t Pos: {i}, {j}")
-                #     print(f"Query std/mean: \t {np.std(queries[i])},
-                #     {np.mean(queries[i])}")
-                #     print(f"Sample std/mean:\t {np.std(samples[j])},
-                #     {np.mean(samples[j])}")
+                #    print(f"mindist {method_names[a]} is:\t {md} "
+                #          f"but ED is:\t {eds[j]} \t Pos: {i}, {j}")
+                #     assert False
 
-    tighness = np.sum(tighness, axis=0)
-    for i in range(len(tighness)):
-        tighness[i] /= queries.shape[0]
+    tightness = np.sum(tightness, axis=0)
+    for i in range(len(tightness)):
+        tightness[i] /= queries.shape[0]
 
-    return tighness
+    return tightness
 
 
 all_csv_scores = {}

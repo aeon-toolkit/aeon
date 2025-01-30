@@ -13,6 +13,7 @@ def mindist_paa_sax_distance(
     y_sax: np.ndarray,
     breakpoints: np.ndarray,
     n: int,
+    p: int = 2,
     squared_lower_bound: float = np.inf,
 ) -> float:
     r"""Compute the PAA-SAX lower bounding distance between PAA and SAX representation.
@@ -27,6 +28,10 @@ def mindist_paa_sax_distance(
         The breakpoints of the SAX transformation
     n : int
         The original size of the time series
+    p : int
+        The norm to be used in the distance computation. Default is 2.
+        p=2 corresponds to the Euclidean distance.
+        p=1 corresponds to the Manhattan distance.
     squared_lower_bound : float
         Used for early stopping distance computations. Once the distance exceeds the
         squared lower bound, infinity is returned. Commonly used when searching
@@ -64,7 +69,7 @@ def mindist_paa_sax_distance(
     """
     if x_paa.ndim == 1 and y_sax.ndim == 1:
         return _univariate_paa_sax_distance(
-            x_paa, y_sax, breakpoints, n, squared_lower_bound
+            x_paa, y_sax, breakpoints, n, p, squared_lower_bound
         )
     raise ValueError("x and y must be 1D")
 
@@ -75,6 +80,7 @@ def _univariate_paa_sax_distance(
     y_sax: np.ndarray,
     breakpoints: np.ndarray,
     n: int,
+    p: int = 2,
     squared_lower_bound: float = np.inf,
 ) -> float:
     dist = 0.0
@@ -97,14 +103,14 @@ def _univariate_paa_sax_distance(
             br_lower = breakpoints[y_sax[i] - 1]
 
         if br_lower > x_paa[i]:
-            dist += n_split[i].shape[0] * (br_lower - x_paa[i]) ** 2
+            dist += n_split[i].shape[0] * np.abs(br_lower - x_paa[i]) ** p
         elif br_upper < x_paa[i]:
-            dist += n_split[i].shape[0] * (x_paa[i] - br_upper) ** 2
+            dist += n_split[i].shape[0] * np.abs(x_paa[i] - br_upper) ** p
 
         if dist > squared_lower_bound:
             return np.inf
 
-    return np.sqrt(dist)
+    return np.power(dist, 1 / p)
 
 
 def mindist_paa_sax_pairwise_distance(

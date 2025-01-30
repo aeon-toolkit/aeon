@@ -46,7 +46,7 @@ def compute_distances(
     method_names,
 ):
     """Compute lower bounding distances."""
-    tighness = np.zeros((queries.shape[0], len(method_names)), dtype=np.float64)
+    tightness = np.zeros((queries.shape[0], len(method_names)), dtype=np.float64)
     for i in prange(queries.shape[0]):
 
         eds = np.zeros((samples.shape[0]), dtype=np.float32)
@@ -62,7 +62,7 @@ def compute_distances(
                 samples.shape[-1],
             )
             if eds[j] > 0:
-                tighness[i][0] += md / eds[j] / samples.shape[0]
+                tightness[i][0] += md / eds[j] / samples.shape[0]
 
         # DFT-SFA Min-Distance variants
         for a in range(all_dfts.shape[0]):
@@ -73,7 +73,7 @@ def compute_distances(
                     all_breakpoints[a],
                 )
                 if eds[j] > 0:
-                    tighness[i][a + 1] += md / eds[j] / samples.shape[0]
+                    tightness[i][a + 1] += md / eds[j] / samples.shape[0]
 
             # for a, mind in enumerate(mindist):
             #    if mind > ed:
@@ -84,11 +84,11 @@ def compute_distances(
             #        # #print(f"Sample std/mean:\t {np.std(samples[j])},
             #        {np.mean(samples[j])}")
 
-    tighness = np.sum(tighness, axis=0)
-    for i in range(len(tighness)):
-        tighness[i] /= queries.shape[0]
+    tightness = np.sum(tightness, axis=0)
+    for i in range(len(tightness)):
+        tightness[i] /= queries.shape[0]
 
-    return tighness
+    return tightness
 
 
 NORMAL_PATH = "/vol/tmp/schaefpa/messi_datasets/"
