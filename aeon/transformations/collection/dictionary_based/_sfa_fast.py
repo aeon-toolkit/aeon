@@ -29,6 +29,7 @@ from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
 from sklearn.utils import check_random_state
 
 from aeon.transformations.collection import BaseCollectionTransformer
+from aeon.utils.numba.general import AEON_NUMBA_STD_THRESHOLD
 
 # The binning methods to use: equi-depth, equi-width, information gain or kmeans
 binning_methods = {
@@ -177,11 +178,7 @@ class SFAFast(BaseCollectionTransformer):
         self.lower_bounding = lower_bounding
         self.lower_bounding_distances = lower_bounding_distances
 
-        self.inverse_sqrt_win_size = (
-            1.0 / math.sqrt(window_size)
-            if (not lower_bounding or lower_bounding_distances)
-            else 1.0
-        )
+        self.inverse_sqrt_win_size = self.initialize_inverse_sqrt_win_size()
 
         self.remove_repeat_words = remove_repeat_words
 
@@ -238,6 +235,10 @@ class SFAFast(BaseCollectionTransformer):
         if self.binning_method not in binning_methods:
             raise TypeError("binning_method must be one of: ", binning_methods)
 
+        # If window_size was not set, assume whole series matching
+        if self.window_size is None:
+            self.window_size = X.shape[-1]
+
         offset = 2 if self.norm else 0
         self.word_length_actual = min(self.window_size - offset, self.word_length)
 
@@ -247,11 +248,13 @@ class SFAFast(BaseCollectionTransformer):
                 "the time series length and window-length."
             )
 
-        if self.sampling_factor > 1.0:
+        if self.sampling_factor and self.sampling_factor > 1.0:
             raise ValueError(
                 "Please set the sampling_factor to a value smaller than or equal to "
                 "1 (equals 100%)."
             )
+
+        self.inverse_sqrt_win_size = self.initialize_inverse_sqrt_win_size()
 
         self.dft_length = (
             self.window_size - offset
@@ -270,7 +273,8 @@ class SFAFast(BaseCollectionTransformer):
 
         # subsample the samples
         if self.sampling_factor:
-            sampled_indices = np.random.choice(
+            rng = check_random_state(self.random_state)
+            sampled_indices = rng.choice(
                 X.shape[0],
                 size=min(np.int32(X.shape[0] * self.sampling_factor), X.shape[0]),
                 replace=False,
@@ -390,6 +394,16 @@ class SFAFast(BaseCollectionTransformer):
         if self.return_sparse:
             bags = csr_matrix(bags, dtype=np.uint32)
         return bags
+
+    def initialize_inverse_sqrt_win_size(self):
+        """Initialize the inverse square root constant."""
+        if self.window_size:
+            return (
+                1.0 / math.sqrt(self.window_size)
+                if (not self.lower_bounding or self.lower_bounding_distances)
+                else 1.0
+            )
+        return 1
 
     def transform_mft(self, X):
         """Transform data using the Fourier transform.
@@ -586,42 +600,29 @@ class SFAFast(BaseCollectionTransformer):
         return breakpoints
 
     def _mcb(self, dft):
-        max_alphabet_size = self.alphabet_size
-        if self.alphabet_sizes:
-            max_alphabet_size = np.max(self.alphabet_sizes)
-
-        breakpoints = np.zeros((self.word_length_actual, max_alphabet_size))
-        breakpoints[:, :] = sys.float_info.max
+        breakpoints = np.zeros((self.word_length_actual, self.alphabet_size))
 
         dft = np.round(dft, 2)
         for letter in range(self.word_length_actual):
-            if self.alphabet_sizes:
-                # Variable-length alphabet sizes
-                curr_alphabet_size = self.alphabet_sizes[letter]
-            else:
-                # Fixed-length alphabet sizes
-                curr_alphabet_size = self.alphabet_size
-
             column = np.sort(dft[:, letter])
             bin_index = 0
 
             # use equi-depth binning
             if self.binning_method == "equi-depth":
-                target_bin_depth = len(dft) / curr_alphabet_size
+                target_bin_depth = len(dft) / self.alphabet_size
 
-                for bp in range(curr_alphabet_size - 1):
+                for bp in range(self.alphabet_size - 1):
                     bin_index += target_bin_depth
                     breakpoints[letter, bp] = column[int(bin_index)]
 
             # use equi-width binning aka equi-frequency binning
             elif self.binning_method == "equi-width":
-                target_bin_width = (column[-1] - column[0]) / curr_alphabet_size
+                target_bin_width = (column[-1] - column[0]) / self.alphabet_size
 
-                for bp in range(curr_alphabet_size - 1):
+                for bp in range(self.alphabet_size - 1):
                     breakpoints[letter, bp] = (bp + 1) * target_bin_width + column[0]
 
-        # TODO needed???
-        breakpoints[:, curr_alphabet_size - 1] = sys.float_info.max
+        breakpoints[:, self.alphabet_size - 1] = sys.float_info.max
         return breakpoints
 
     def _igb(self, dft, y):
@@ -701,7 +702,7 @@ class SFAFast(BaseCollectionTransformer):
         )
 
     def transform_words(self, X):
-        """Return the words generated for each series.
+        """Return the words and dft coefficients generated for each series.
 
         Parameters
         ----------
@@ -714,7 +715,7 @@ class SFAFast(BaseCollectionTransformer):
         if X.ndim == 3:
             X = X.squeeze(1)
 
-        return _transform_words_case(
+        words, dfts = _transform_words_case(
             X,
             self.window_size,
             self.dft_length,
@@ -728,6 +729,8 @@ class SFAFast(BaseCollectionTransformer):
             self.alphabet_size,
             self.breakpoints,
         )
+
+        return words.squeeze(), dfts.squeeze()
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
@@ -806,7 +809,7 @@ def _binning_dft(
     if num_windows_per_inst > 1:
         # Splits individual time series into windows and returns the DFT for each
         data = np.zeros((len(X), num_windows_per_inst, window_size))
-        for i in range(len(X)):
+        for i in prange(len(X)):
             for j in range(num_windows_per_inst - 1):
                 data[i, j] = X[i, window_size * j : window_size * (j + 1)]
 
@@ -814,7 +817,7 @@ def _binning_dft(
             data[i, -1] = X[i, start:n_timepoints]
 
         dft = np.zeros((len(X), num_windows_per_inst, dft_length))
-        for i in range(len(X)):
+        for i in prange(len(X)):
             return_val = _fast_fourier_transform(
                 data[i], norm, dft_length, inverse_sqrt_win_size, True
             )
@@ -822,6 +825,7 @@ def _binning_dft(
 
         if lower_bounding:
             dft[:, :, 1::2] = dft[:, :, 1::2] * -1  # lower bounding
+
         return dft.reshape(dft.shape[0] * dft.shape[1], dft_length)
 
     # No Windowing (Whole Series)
@@ -834,8 +838,8 @@ def _binning_dft(
         return dft
 
 
-@njit(fastmath=True, cache=True, parallel=True)
-def _fast_fourier_transform(X, norm, dft_length, inverse_sqrt_win_size, norm_std):
+@njit(fastmath=True, cache=True)
+def _fast_fourier_transform(X, norm, dft_length, inverse_sqrt_win_size, norm_std=True):
     """Perform a discrete fourier transform using the fast fourier transform.
 
     if self.norm is True, then the first term of the DFT is ignored
@@ -856,8 +860,8 @@ def _fast_fourier_transform(X, norm, dft_length, inverse_sqrt_win_size, norm_std
     length = start + dft_length
     dft = np.zeros((len(X), length))  # , dtype=np.float64
 
-    with objmode(X_ffts="complex64[:,:]"):
-        X_ffts = scipy.fft.rfft(X, axis=1, workers=-1).astype(np.complex64)
+    with objmode(X_ffts="complex128[:,:]"):
+        X_ffts = scipy.fft.rfft(X, axis=1, workers=-1).astype(np.complex128)
 
     reals = np.real(X_ffts)  # float64[]
     imags = np.imag(X_ffts)  # float64[]
@@ -871,7 +875,7 @@ def _fast_fourier_transform(X, norm, dft_length, inverse_sqrt_win_size, norm_std
         for i in range(len(stds)):
             stds[i] = np.std(X[i])
         # stds = np.std(X, axis=1)  # not available in numba
-        stds = np.where(stds < 1e-8, 1, stds)
+        stds = np.where(stds < AEON_NUMBA_STD_THRESHOLD, 1, stds)
         dft /= stds.reshape(-1, 1)
 
     return dft[:, start:]
@@ -947,7 +951,7 @@ def _calc_incremental_mean_std(series, end, window_size):
     r_window_length = 1.0 / window_size
     mean = series_sum * r_window_length
     buf = math.sqrt(max(square_sum * r_window_length - mean * mean, 0.0))
-    stds[0] = buf if buf > 1e-8 else 1
+    stds[0] = buf if buf > AEON_NUMBA_STD_THRESHOLD else 1
 
     for w in range(1, end):
         series_sum += series[w + window_size - 1] - series[w - 1]
@@ -957,7 +961,7 @@ def _calc_incremental_mean_std(series, end, window_size):
             - series[w - 1] * series[w - 1]
         )
         buf = math.sqrt(max(square_sum * r_window_length - mean * mean, 0.0))
-        stds[w] = buf if buf > 1e-8 else 1
+        stds[w] = buf if buf > AEON_NUMBA_STD_THRESHOLD else 1
 
     return stds
 
@@ -1061,9 +1065,9 @@ def _mft(
     transformed = np.zeros((X.shape[0], end, length))
 
     # 1. First run using DFT
-    with objmode(X_ffts="complex64[:, :]"):
+    with objmode(X_ffts="complex128[:, :]"):
         X_ffts = scipy.fft.rfft(X[:, :window_size], axis=1, workers=-1).astype(
-            np.complex64
+            np.complex128
         )
 
     reals = np.real(X_ffts)  # float64[]
@@ -1314,4 +1318,4 @@ def _transform_words_case(
                         words[x, window, i] = bp
                         break
 
-    return words
+    return words, dfts

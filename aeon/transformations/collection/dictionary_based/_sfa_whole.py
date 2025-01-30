@@ -9,16 +9,6 @@ __all__ = ["SFAWhole"]
 
 from aeon.transformations.collection.dictionary_based import SFAFast
 
-# The binning methods to use: equi-depth, equi-width, information gain or kmeans
-binning_methods = {
-    "equi-depth",
-    "equi-width",
-    "information-gain",
-    "information-gain-mae",
-    "kmeans",
-    "quantile",
-}
-
 
 class SFAWhole(SFAFast):
     """Symbolic Fourier Approximation (SFA) Transformer.
@@ -33,8 +23,6 @@ class SFAWhole(SFAFast):
 
     Parameters
     ----------
-    series_length: int,
-        Length of the series to be transformed
     word_length : int, default = 8
         Length of word to shorten window to (using DFT).
     alphabet_size : int, default = 4
@@ -70,17 +58,17 @@ class SFAWhole(SFAFast):
 
     _tags = {
         "requires_y": False,  # SFA is unsupervised for equi-depth and equi-width bins
+        "capability:multithreading": True,
         "algorithm_type": "dictionary",
     }
 
     def __init__(
         self,
-        series_length,
         word_length=8,
         alphabet_size=4,
         norm=True,
         binning_method="equi-depth",
-        variance=False,
+        variance=True,
         sampling_factor=None,
         random_state=None,
         n_jobs=1,
@@ -88,7 +76,6 @@ class SFAWhole(SFAFast):
         super().__init__(
             word_length=word_length,
             alphabet_size=alphabet_size,
-            window_size=series_length,
             norm=norm,
             binning_method=binning_method,
             variance=variance,
@@ -104,11 +91,13 @@ class SFAWhole(SFAFast):
             bigrams=False,
             skip_grams=False,
             remove_repeat_words=False,
-            return_pandas_data_series=False,
+            return_sparse=False,
+            window_size=None,  # set in fit
         )
 
-    def _fit_transform(self, X, y=None, return_bag_of_words=True):
+    def _fit_transform(self, X, y=None):
         super()._fit_transform(X, y, return_bag_of_words=False)
+        return self.transform_words(X)
 
     def _fit(self, X, y=None):
         """Calculate word breakpoints.
@@ -122,7 +111,7 @@ class SFAWhole(SFAFast):
         -------
         self: object
         """
-        self._fit_transform(X, y)
+        super()._fit_transform(X, y, return_bag_of_words=False)
         return self
 
     def _transform(self, X, y=None):
@@ -134,6 +123,32 @@ class SFAWhole(SFAFast):
 
         Returns
         -------
-        List of dictionaries containing SFA words
+        List of words containing SFA words
         """
-        return super()._transform(X, y)
+        return self.transform_words(X)
+
+    @classmethod
+    def _get_test_params(cls, parameter_set="default"):
+        """Return testing parameter settings for the estimator.
+
+        Parameters
+        ----------
+        parameter_set : str, default="default"
+            Name of the set of test parameters to return, for use in tests. If no
+            special parameters are defined for a value, will return `"default"` set.
+
+        Returns
+        -------
+        params : dict or list of dict, default = {}
+            Parameters to create testing instances of the class
+            Each dict are parameters to construct an "interesting" test instance, i.e.,
+            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            `create_test_instance` uses the first (or only) dictionary in `params`
+        """
+        # small window size for testing
+        params = {
+            "word_length": 4,
+            "alphabet_size": 4,
+            "variance": False,
+        }
+        return params
