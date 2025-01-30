@@ -269,26 +269,33 @@ def test_all_encompassing_range():
     )
 
 
-def test_converted_binary_to_range_based():
-    """Test for converted binary to range-based (existing example)."""
-    y_pred = [(1, 2)]
-    y_real = [(1, 1)]
+def test_binary_input_example():
+    """Test for binary input sequences (existing example)."""
+    y_pred_binary = np.array([0, 1, 1, 0])
+    y_true_binary = np.array([0, 1, 0, 0])
     expected_precision = 0.500000
     expected_recall = 1.000000
     expected_f1 = 0.666667
 
-    precision = ts_precision(y_pred, y_real, gamma="reciprocal", bias_type="flat")
+    precision = ts_precision(
+        y_pred_binary, y_true_binary, gamma="reciprocal", bias_type="flat"
+    )
     recall = ts_recall(
-        y_pred, y_real, gamma="reciprocal", bias_type="flat", alpha=0.0, udf_gamma=None
+        y_pred_binary,
+        y_true_binary,
+        gamma="reciprocal",
+        bias_type="flat",
+        alpha=0.0,
+        udf_gamma=None,
     )
     f1_score = ts_fscore(
-        y_pred,
-        y_real,
+        y_pred_binary,
+        y_true_binary,
         gamma="reciprocal",
         p_bias="flat",
         r_bias="flat",
         p_alpha=0.0,
-        r_alpha=0.5,
+        r_alpha=0.0,
         udf_gamma=None,
     )
 
@@ -297,7 +304,7 @@ def test_converted_binary_to_range_based():
         expected_precision,
         decimal=6,
         err_msg=(
-            f"Precision failed for converted binary to range-based! "
+            f"Precision failed for binary input example! "
             f"Expected={expected_precision}, Got={precision}"
         ),
     )
@@ -306,7 +313,7 @@ def test_converted_binary_to_range_based():
         expected_recall,
         decimal=6,
         err_msg=(
-            f"Recall failed for converted binary to range-based! "
+            f"Recall failed for binary input example! "
             f"Expected={expected_recall}, Got={recall}"
         ),
     )
@@ -315,7 +322,7 @@ def test_converted_binary_to_range_based():
         expected_f1,
         decimal=6,
         err_msg=(
-            f"F1-Score failed for converted binary to range-based! "
+            f"F1-Score failed for binary input example! "
             f"Expected={expected_f1}, Got={f1_score}"
         ),
     )

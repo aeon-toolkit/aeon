@@ -3,6 +3,8 @@
 __maintainer__ = []
 __all__ = ["ts_precision", "ts_recall", "ts_fscore"]
 
+import numpy as np
+
 
 def _flatten_ranges(ranges):
     """
@@ -170,6 +172,37 @@ def _calculate_overlap_reward_recall(real_range, overlap_set, bias_type):
     return my_value / max_value if max_value > 0 else 0.0
 
 
+def _binary_to_ranges(binary_sequence):
+    """
+    Convert a binary sequence to a list of anomaly ranges.
+
+    Parameters
+    ----------
+    binary_sequence : list
+        Binary sequence where 1 indicates anomaly and 0 indicates normal.
+
+    Returns
+    -------
+    list of tuples
+        List of anomaly ranges as (start, end) tuples.
+
+    """
+    ranges = []
+    start = None
+
+    for i, val in enumerate(binary_sequence):
+        if val and start is None:
+            start = i
+        elif not val and start is not None:
+            ranges.append((start, i - 1))
+            start = None
+
+    if start is not None:
+        ranges.append((start, len(binary_sequence) - 1))
+
+    return ranges
+
+
 def ts_precision(y_pred, y_real, gamma="one", bias_type="flat"):
     """
     Calculate Precision for time series anomaly detection.
@@ -204,6 +237,8 @@ def ts_precision(y_pred, y_real, gamma="one", bias_type="flat"):
     ------
     ValueError
         If an invalid `gamma` type is provided.
+    ValueError
+        If input sequence is binary and y_real and y_pred are of different lengths.
 
     References
     ----------
@@ -212,12 +247,42 @@ def ts_precision(y_pred, y_real, gamma="one", bias_type="flat"):
        Processing Systems (NeurIPS 2018), Montréal, Canada.
        http://papers.nips.cc/paper/7462-precision-and-recall-for-time-series.pdf
     """
+    # Check if inputs are binary or range-based
+    is_binary = False
+    if isinstance(y_pred, (list, tuple, np.ndarray)) and isinstance(
+        y_pred[0], (int, np.integer)
+    ):
+        is_binary = True
+    elif isinstance(y_real, (list, tuple, np.ndarray)) and isinstance(
+        y_real[0], (int, np.integer)
+    ):
+        is_binary = True
+
+    if is_binary:
+        if not isinstance(y_pred, (list, tuple, np.ndarray)) or not isinstance(
+            y_real, (list, tuple, np.ndarray)
+        ):
+            raise ValueError(
+                "For binary inputs, y_pred and y_real should be list or tuple, "
+                "or numpy array of integers.."
+            )
+        if len(y_pred) != len(y_real):
+            raise ValueError(
+                "For binary inputs, y_pred and y_real must be of the same length."
+            )
+
+        y_pred_ranges = _binary_to_ranges(y_pred)
+        y_real_ranges = _binary_to_ranges(y_real)
+    else:
+        y_pred_ranges = y_pred
+        y_real_ranges = y_real
+
     if gamma not in ["reciprocal", "one"]:
         raise ValueError("Invalid gamma type for precision. Use 'reciprocal' or 'one'.")
 
     # Flattening y_pred and y_real to resolve nested lists
-    flat_y_pred = _flatten_ranges(y_pred)
-    flat_y_real = _flatten_ranges(y_real)
+    flat_y_pred = _flatten_ranges(y_pred_ranges)
+    flat_y_real = _flatten_ranges(y_real_ranges)
 
     total_overlap_reward = 0.0
     total_cardinality = 0
@@ -281,6 +346,11 @@ def ts_recall(y_pred, y_real, gamma="one", bias_type="flat", alpha=0.0, udf_gamm
     float
         Recall
 
+    Raises
+    ------
+    ValueError
+        If input sequence is binary and y_real and y_pred are of different lengths.
+
     References
     ----------
     .. [1] Tatbul, Nesime, Tae Jun Lee, Stan Zdonik, Mejbah Alam,and Justin Gottschlich.
@@ -288,9 +358,38 @@ def ts_recall(y_pred, y_real, gamma="one", bias_type="flat", alpha=0.0, udf_gamm
        Processing Systems (NeurIPS 2018), Montréal, Canada.
        http://papers.nips.cc/paper/7462-precision-and-recall-for-time-series.pdf
     """
+    is_binary = False
+    if isinstance(y_pred, (list, tuple, np.ndarray)) and isinstance(
+        y_pred[0], (int, np.integer)
+    ):
+        is_binary = True
+    elif isinstance(y_real, (list, tuple, np.ndarray)) and isinstance(
+        y_real[0], (int, np.integer)
+    ):
+        is_binary = True
+
+    if is_binary:
+        if not isinstance(y_pred, (list, tuple, np.ndarray)) or not isinstance(
+            y_real, (list, tuple, np.ndarray)
+        ):
+            raise ValueError(
+                "For binary inputs, y_pred and y_real should be list or tuple, "
+                "or numpy array of integers."
+            )
+        if len(y_pred) != len(y_real):
+            raise ValueError(
+                "For binary inputs, y_pred and y_real must be of the same length."
+            )
+
+        y_pred_ranges = _binary_to_ranges(y_pred)
+        y_real_ranges = _binary_to_ranges(y_real)
+    else:
+        y_pred_ranges = y_pred
+        y_real_ranges = y_real
+
     # Flattening y_pred and y_real to resolve nested lists
-    flat_y_pred = _flatten_ranges(y_pred)
-    flat_y_real = _flatten_ranges(y_real)
+    flat_y_pred = _flatten_ranges(y_pred_ranges)
+    flat_y_real = _flatten_ranges(y_real_ranges)
 
     total_overlap_reward = 0.0
 
