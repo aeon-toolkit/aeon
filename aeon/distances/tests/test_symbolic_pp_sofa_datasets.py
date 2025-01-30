@@ -8,9 +8,9 @@ import numpy as np
 import pandas as pd
 from numba import njit, prange, set_num_threads
 
-from aeon.distances._dft_sfa_mindist import dft_sfa_mindist
-from aeon.distances._paa_sax_mindist import paa_sax_mindist
-from aeon.transformations.collection.dictionary_based import SAX, SFAFast
+from aeon.distances.mindist._dft_sfa import mindist_dft_sfa_distance
+from aeon.distances.mindist._paa_sax import mindist_paa_sax_distance
+from aeon.transformations.collection.dictionary_based import SAX, SFAWhole
 
 matplotlib.rcParams["pdf.fonttype"] = 42
 matplotlib.rcParams["ps.fonttype"] = 42
@@ -60,7 +60,7 @@ def compute_distances(
 
         for j in range(samples.shape[0]):
             # SAX-PAA Min-Distance
-            min_dist = paa_sax_mindist(
+            min_dist = mindist_paa_sax_distance(
                 PAA_queries[i],
                 SAX_samples[j],
                 SAX_breakpoints,
@@ -73,7 +73,7 @@ def compute_distances(
         for a in range(all_dfts.shape[0]):
             for j in range(samples.shape[0]):
                 # DFT-SFA Min-Distance variants
-                min_dist = dft_sfa_mindist(
+                min_dist = mindist_dft_sfa_distance(
                     all_dfts[a][i],
                     all_words[a][j],
                     all_breakpoints[a],
@@ -190,22 +190,36 @@ for alphabet_size in alphabet_sizes:
         all_words = []
 
         for histogram, variance in itertools.product(histograms, variances):
-            sfa = SFAFast(
+            # sfa = SFAFast(
+            #     word_length=n_segments,
+            #     alphabet_size=alphabet_size,
+            #     window_size=samples.shape[-1],
+            #     binning_method=histogram,
+            #     norm=True,
+            #     variance=variance,
+            #     lower_bounding_distances=True,
+            #     sampling_factor=0.1,  # 10% used for learning bins
+            #     random_state=43,  # for reproducible sampling
+            #     n_jobs=all_threads,
+            # )
+
+            sfa = SFAWhole(
                 word_length=n_segments,
                 alphabet_size=alphabet_size,
-                window_size=samples.shape[-1],
                 binning_method=histogram,
-                norm=True,
                 variance=variance,
-                lower_bounding_distances=True,
                 sampling_factor=0.1,  # 10% used for learning bins
                 random_state=43,  # for reproducible sampling
                 n_jobs=all_threads,
+                norm=True,
             )
 
             sfa.fit(samples)
-            X_dfts = sfa.transform_mft(queries).squeeze()
-            Y_words = sfa.transform_words(samples).squeeze()
+            # X_dfts = sfa.transform_mft(queries).squeeze()
+            # Y_words = sfa.transform_words(samples).squeeze()
+
+            _, X_dfts = sfa.transform_words(queries)
+            Y_words, _ = sfa.transform_words(samples)
             all_breakpoints.append(sfa.breakpoints.astype(np.float64))
             all_dfts.append(X_dfts.astype(np.float64))
             all_words.append(Y_words.astype(np.int32))
