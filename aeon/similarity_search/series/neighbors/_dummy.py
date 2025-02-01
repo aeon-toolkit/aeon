@@ -18,6 +18,7 @@ from aeon.utils.numba.general import (
     z_normalise_series_2d,
     z_normalise_series_3d,
 )
+from aeon.utils.validation import check_n_jobs
 
 
 class DummySNN(BaseSeriesSimilaritySearch):
@@ -42,7 +43,8 @@ class DummySNN(BaseSeriesSimilaritySearch):
         y=None,
     ):
         prev_threads = get_num_threads()
-        set_num_threads(self._n_jobs)
+
+        set_num_threads(check_n_jobs(self.n_jobs))
 
         self.X_subs = get_all_subsequences(self.X_, self.length, 1)
         if self.normalize:
@@ -136,7 +138,7 @@ class DummySNN(BaseSeriesSimilaritySearch):
 
         """
         prev_threads = get_num_threads()
-        set_num_threads(self._n_jobs)
+        set_num_threads(check_n_jobs(self.n_jobs))
         if self.normalize:
             X = z_normalise_series_2d(X)
         distance_profile = _naive_squared_distance_profile(self.X_subs, X)

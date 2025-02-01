@@ -233,30 +233,46 @@ class RandomProjectionIndexANN(BaseCollectionSimilaritySearch):
         )
         top_k = np.zeros(k, dtype=int)
         top_k_dist = np.zeros(k, dtype=float)
-        dists = _hamming_dist_series_to_collection(X_bool, self.bool_hashes_value_list_)
-        if inverse_distance:
-            dists = 1 / (dists + 1e-8)
-        # Get top k buckets
-        ids = np.argpartition(dists, kth=k)[:k]
-        # and reoder them
-        ids = ids[np.argsort(dists[ids])]
+        X_hash = hash(X_bool.tobytes())
+        remove_X_hash = False
+        if not inverse_distance and X_hash in self.dict_X_index_:
+            current_k = min(len(self.dict_X_index_[X_hash]), k)
+            top_k[:current_k] = self.dict_X_index_[X_hash][:current_k]
+            remove_X_hash = True
+        else:
+            current_k = 0
 
-        _i_bucket = 0
-        current_k = 0
-        while current_k < k:
-            if dists[ids[_i_bucket]] <= threshold:
-                candidates = self.dict_X_index_[
-                    self.bool_hashes_key_list_[ids[_i_bucket]]
-                ]
-                # Can do exact search by computing distances here
-                if len(candidates) > k - current_k:
-                    candidates = candidates[: k - current_k]
-                top_k[current_k : current_k + len(candidates)] = candidates
-                top_k_dist[current_k : current_k + len(candidates)] = dists[
-                    ids[_i_bucket]
-                ]
-                current_k += len(candidates)
-            else:
-                break
-            _i_bucket += 1
+        if current_k < k:
+            dists = _hamming_dist_series_to_collection(
+                X_bool, self.bool_hashes_value_list_
+            )
+
+            if inverse_distance:
+                dists = 1 / (dists + 1e-8)
+            if remove_X_hash:
+                dists[np.where(self.bool_hashes_value_list_ == X_hash)[0]] = np.iinfo(
+                    dists.dtype
+                ).max
+            # Get top k buckets
+            ids = np.argpartition(dists, kth=k)[:k]
+            # and reoder them
+            ids = ids[np.argsort(dists[ids])]
+
+            _i_bucket = 0
+            while current_k < k:
+                if dists[ids[_i_bucket]] <= threshold:
+                    candidates = self.dict_X_index_[
+                        self.bool_hashes_key_list_[ids[_i_bucket]]
+                    ]
+                    # Can do exact search by computing distances here
+                    if len(candidates) > k - current_k:
+                        candidates = candidates[: k - current_k]
+                    top_k[current_k : current_k + len(candidates)] = candidates
+                    top_k_dist[current_k : current_k + len(candidates)] = dists[
+                        ids[_i_bucket]
+                    ]
+                    current_k += len(candidates)
+                else:
+                    break
+                _i_bucket += 1
         return top_k[:current_k], top_k_dist[:current_k]

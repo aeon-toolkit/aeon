@@ -31,15 +31,19 @@ class StompMotif(BaseSeriesSimilaritySearch):
 
     This estimators allows to perform multiple type of motif search operations by using
     different parameterization. We base oursleves on Figure 3 of [2]_ to establish the
-    following list, we do not yet support "Learning" and "Valmod" motifs :
+    following list, but modify the confusing naming for some of them. We do not yet
+    support "Learning" and "Valmod" motifs :
 
-        - for "Pair Motifs" : This is the default configuration
+        - for "Pair Motifs" : This is the default configuration: {
+            "motif_size": 1,
+        }
 
-        - for "k-Motiflets" : {
+        - for "k-motifs" : the extension of pair motifs: {
             "motif_size": k,
         }
 
-        - for "k-motifs" (naming is confusing here, it is a range based motif): {
+        - for "r-motifs" (originaly named k-motifs, which was confusing as it is a range
+        based motif): {
             "motif_size":np.inf,
             "dist_threshold":r,
             "motif_extraction_method":"r_motifs"

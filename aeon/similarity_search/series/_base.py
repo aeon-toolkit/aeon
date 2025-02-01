@@ -7,7 +7,6 @@ import numpy as np
 
 from aeon.base import BaseSeriesEstimator
 from aeon.similarity_search._base import BaseSimilaritySearch
-from aeon.utils.validation import check_n_jobs
 
 
 class BaseSeriesSimilaritySearch(BaseSeriesEstimator, BaseSimilaritySearch):
@@ -48,7 +47,6 @@ class BaseSeriesSimilaritySearch(BaseSeriesEstimator, BaseSimilaritySearch):
         self
         """
         self.reset()
-        self._n_jobs = check_n_jobs(self.n_jobs)
         X = self._preprocess_series(X, self.axis, True)
         # Store minimum number of n_timepoints for unequal length collections
         self.n_channels_ = X.shape[0]
