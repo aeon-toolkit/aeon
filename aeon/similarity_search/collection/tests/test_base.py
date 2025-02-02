@@ -42,13 +42,15 @@ def test_input_shape_fit_predict_collection():
     estimator_uni = MockCollectionSimilaritySearch().fit(X_3D_uni)
 
     estimator_uni.predict(X_2D_uni)
+    estimator_uni.predict(X_3D_uni)
     estimator_multi.predict(X_2D_multi)
+    estimator_multi.predict(X_3D_multi)
 
     with pytest.raises(ValueError):
         estimator_uni.predict(X_2D_multi)
     with pytest.raises(ValueError):
         estimator_multi.predict(X_2D_uni)
-    with pytest.raises(TypeError):
-        estimator_uni.predict(X_3D_uni)
-    with pytest.raises(TypeError):
-        estimator_multi.predict(X_3D_multi)
+    with pytest.raises(ValueError):
+        estimator_multi.predict(X_3D_uni)
+    with pytest.raises(ValueError):
+        estimator_uni.predict(X_3D_multi)

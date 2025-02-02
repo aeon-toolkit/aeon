@@ -163,7 +163,7 @@ def test__extract_top_k_from_dist_profile(
     assert_(np.all(top_k_distances <= threshold))
 
     if allow_nn_matches:
-        assert_(np.all(top_k_distances <= X_sort[len(top_k_indexes) - 1]))
+        assert_(np.all(top_k_distances <= X[X_sort[len(top_k_indexes) - 1]]))
 
     if not allow_nn_matches:
         same_X = np.sort(top_k_indexes)
