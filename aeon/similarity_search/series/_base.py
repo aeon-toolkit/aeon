@@ -1,7 +1,7 @@
 """Base similiarity search for series."""
 
 from abc import abstractmethod
-from typing import Union, final
+from typing import final
 
 import numpy as np
 
@@ -18,7 +18,8 @@ class BaseSeriesSimilaritySearch(BaseSeriesEstimator, BaseSimilaritySearch):
     }
 
     @abstractmethod
-    def __init__(self, axis=1):
+    def __init__(self, length, axis=1):
+        self.length = length
         super().__init__(axis=axis)
 
     @final
@@ -63,27 +64,38 @@ class BaseSeriesSimilaritySearch(BaseSeriesEstimator, BaseSimilaritySearch):
         y=None,
     ): ...
 
-    def _pre_predict(
-        self,
-        X: Union[np.ndarray, None] = None,
-        length: int = None,
-    ):
+    @final
+    def predict(self, X=None, **kwargs):
         """
-        Predict method.
+        Predict function.
 
         Parameters
         ----------
-        X : Union[np.ndarray, None], optional
-            Optional data to use for predict.. The default is None.
-        length: int, optional
-            If not None, the number of timepoint of X should be equal to length.
+        X : np.ndarray, shape = (n_channels, n_tiempoints)
+            Series to predict on.
+        kwargs : dict, optional
+            Additional keyword argument as dict or individual keywords args
+            to pass to use.
+
+        Returns
+        -------
+        indexes : np.ndarray, shape = (k)
+            Indexes of series in the that are similar to X.
+        distances : np.ndarray, shape = (k)
+            Distance of the matches to each series
 
         """
         self._check_is_fitted()
         if X is not None:
             X = self._preprocess_series(X, self.axis, False)
-            self._check_predict_series_format(X, length=length)
-        return X
+            self._check_predict_series_format(X)
+        else:
+            X = self.X_
+        indexes, distances = self._predict(X, **kwargs)
+        return indexes, distances
+
+    @abstractmethod
+    def _predict(self, X, **kwargs): ...
 
     def _check_X_index(self, X_index: int):
         """
@@ -108,3 +120,28 @@ class BaseSeriesSimilaritySearch(BaseSeriesEstimator, BaseSimilaritySearch):
                     "of timepoint in series given during fit. Expected a value "
                     f"between [0, {max_timepoints - 1}] but got {X_index}"
                 )
+
+    def _check_predict_series_format(self, X):
+        """
+        Check wheter a series X in predict is correctly formated.
+
+        Parameters
+        ----------
+        X : np.ndarray, shape = (n_channels, n_timepoints)
+            A series to be used in predict.
+        """
+        if isinstance(X, np.ndarray):
+            if X.ndim != 2:
+                raise TypeError(
+                    "A np.ndarray given in predict must be 2D"
+                    f"(n_channels, n_timepoints) but found {X.ndim}D."
+                )
+        else:
+            raise TypeError(
+                "Expected a 2D np.ndarray in predict but found" f" {type(X)}."
+            )
+        if self.n_channels_ != X.shape[0]:
+            raise ValueError(
+                f"Expected X to have {self.n_channels_} channels but"
+                f" got {X.shape[0]} channels."
+            )

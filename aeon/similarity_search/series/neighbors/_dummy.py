@@ -32,10 +32,9 @@ class DummySNN(BaseSeriesSimilaritySearch):
         normalize: Optional[bool] = False,
         n_jobs: Optional[int] = 1,
     ):
-        self.length = length
         self.normalize = normalize
         self.n_jobs = n_jobs
-        super().__init__()
+        super().__init__(length)
 
     def _fit(
         self,
@@ -52,7 +51,7 @@ class DummySNN(BaseSeriesSimilaritySearch):
         set_num_threads(prev_threads)
         return self
 
-    def predict(
+    def _predict(
         self,
         X: np.ndarray,
         k: Optional[int] = 1,
@@ -95,7 +94,12 @@ class DummySNN(BaseSeriesSimilaritySearch):
             The distances of the best matches.
 
         """
-        X = self._pre_predict(X, length=self.length)
+        if X.shape[1] != self.length:
+            raise ValueError(
+                f"Expected X to have {self.length} timepoints but"
+                f" got {X.shape[1]} timepoints."
+            )
+
         X_index = self._check_X_index(X_index)
         dist_profile = self.compute_distance_profile(X)
         if inverse_distance:

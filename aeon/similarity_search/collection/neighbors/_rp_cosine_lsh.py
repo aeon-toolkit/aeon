@@ -87,14 +87,6 @@ class RandomProjectionIndexANN(BaseCollectionSimilaritySearch):
     random_state: int, optional
         A random seed to seed the index building. The default is None.
 
-    Example
-    -------
-    >>> from aeon.datasets import load_classification
-    >>> from aeon.similarity_search.collection.neighbors import RandomProjectionIndexANN
-    >>> index = RandomProjectionIndexANN()
-    >>> X, y = load_classification("ArrowHead")
-    >>> index.fit(X[:200])
-    >>> r = index.predict(X[201])
     """
 
     _tags = {

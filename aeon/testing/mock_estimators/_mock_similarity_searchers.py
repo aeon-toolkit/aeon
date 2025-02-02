@@ -16,9 +16,8 @@ class MockSeriesSimilaritySearch(BaseSeriesSimilaritySearch):
     def _fit(self, X, y=None):
         return self
 
-    def predict(self, X):
+    def _predict(self, X):
         """Compute matrix profiles between X_ and X or between all series in X_."""
-        X = self._pre_predict(X)
         return [0], [0.1]
 
 
@@ -31,7 +30,6 @@ class MockCollectionSimilaritySearch(BaseCollectionSimilaritySearch):
     def _fit(self, X, y=None):
         return self
 
-    def predict(self, X):
+    def _predict(self, X):
         """Compute matrix profiles between X_ and X or between all series in X_."""
-        X = self._pre_predict(X)
-        return [0], [0.1]
+        return [0 for _ in range(len(X))], [0.1 for _ in range(len(X))]

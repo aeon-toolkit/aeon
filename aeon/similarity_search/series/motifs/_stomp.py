@@ -81,9 +81,8 @@ class StompMotif(BaseSeriesSimilaritySearch):
         length: int,
         normalize: Optional[bool] = False,
     ):
-        self.length = length
         self.normalize = normalize
-        super().__init__()
+        super().__init__(length)
 
     def _fit(
         self,
@@ -94,7 +93,7 @@ class StompMotif(BaseSeriesSimilaritySearch):
             self.X_means_, self.X_stds_ = sliding_mean_std_one_series(X, self.length, 1)
         return self
 
-    def predict(
+    def _predict(
         self,
         X: np.ndarray = None,
         k: Optional[int] = 1,
@@ -152,7 +151,6 @@ class StompMotif(BaseSeriesSimilaritySearch):
             The distances of the best matches.
 
         """
-        X = self._pre_predict(X)
         if motif_extraction_method not in ["k_motifs", "r_motifs"]:
             raise ValueError(
                 "Expected motif_extraction_method to be either 'k_motifs' or 'r_motifs'"

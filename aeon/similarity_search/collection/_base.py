@@ -71,6 +71,9 @@ class BaseCollectionSimilaritySearch(BaseCollectionEstimator, BaseSimilaritySear
         ----------
         X : np.ndarray, shape = (n_cases, n_channels, n_tiempoints)
             Collections of series to predict on.
+        kwargs : dict, optional
+            Additional keyword argument as dict or individual keywords args
+            to pass to use.
 
         Returns
         -------
@@ -86,4 +89,4 @@ class BaseCollectionSimilaritySearch(BaseCollectionEstimator, BaseSimilaritySear
         return indexes, distances
 
     @abstractmethod
-    def _predict(self, X: np.ndarray): ...
+    def _predict(self, X, **kwargs): ...

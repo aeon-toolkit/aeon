@@ -71,33 +71,3 @@ class BaseSimilaritySearch(BaseAeonEstimator):
             Optional data to use for predict.
         """
         ...
-
-    def _check_predict_series_format(self, X, length=None):
-        """
-        Check wheter a series X in predict is correctly formated.
-
-        Parameters
-        ----------
-        X : np.ndarray, shape = (n_channels, n_timepoints)
-            A series to be used in predict.
-        """
-        if isinstance(X, np.ndarray):
-            if X.ndim != 2:
-                raise TypeError(
-                    "A np.ndarray given in predict must be 2D"
-                    f"(n_channels, n_timepoints) but found {X.ndim}D."
-                )
-        else:
-            raise TypeError(
-                "Expected a 2D np.ndarray in predict but found" f" {type(X)}."
-            )
-        if self.n_channels_ != X.shape[0]:
-            raise ValueError(
-                f"Expected X to have {self.n_channels_} channels but"
-                f" got {X.shape[0]} channels."
-            )
-        if length is not None and X.shape[1] != length:
-            raise ValueError(
-                f"Expected X to have {length} timepoints but"
-                f" got {X.shape[1]} timepoints."
-            )

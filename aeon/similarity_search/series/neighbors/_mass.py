@@ -43,9 +43,8 @@ class MassSNN(BaseSeriesSimilaritySearch):
         length: int,
         normalize: Optional[bool] = False,
     ):
-        self.length = length
         self.normalize = normalize
-        super().__init__()
+        super().__init__(length)
 
     def _fit(
         self,
@@ -56,7 +55,7 @@ class MassSNN(BaseSeriesSimilaritySearch):
             self.X_means_, self.X_stds_ = sliding_mean_std_one_series(X, self.length, 1)
         return self
 
-    def predict(
+    def _predict(
         self,
         X: np.ndarray,
         k: Optional[int] = 1,
@@ -104,7 +103,12 @@ class MassSNN(BaseSeriesSimilaritySearch):
             The distances of the best matches.
 
         """
-        X = self._pre_predict(X, length=self.length)
+        if X.shape[1] != self.length:
+            raise ValueError(
+                f"Expected X to have {self.length} timepoints but"
+                f" got {X.shape[1]} timepoints."
+            )
+
         X_index = self._check_X_index(X_index)
         dist_profile = self.compute_distance_profile(X)
         if inverse_distance:
