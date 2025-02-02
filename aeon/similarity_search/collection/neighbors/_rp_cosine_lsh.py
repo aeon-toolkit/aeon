@@ -4,7 +4,7 @@ import numpy as np
 from numba import get_num_threads, njit, prange, set_num_threads
 
 from aeon.similarity_search.collection._base import BaseCollectionSimilaritySearch
-from aeon.utils.numba.general import z_normalise_series_2d, z_normalise_series_3d
+from aeon.utils.numba.general import z_normalise_series_3d
 
 
 @njit(cache=True)
@@ -158,42 +158,22 @@ class RandomProjectionIndexANN(BaseCollectionSimilaritySearch):
             size=self.n_hash_funcs,
             replace=True,
         )
-        bool_hashes = _collection_to_bool(
-            X, self.hash_funcs_, self.start_points_, self.window_length_
-        )
-
-        str_hashes = [hash(bool_hashes[i].tobytes()) for i in range(len(bool_hashes))]
+        X_bools, X_hashes = self._collection_to_hashes(X)
         self.dict_X_index_ = {}
         self.dict_bool_hashes_ = {}
-        for i in range(len(str_hashes)):
-            if str_hashes[i] in self.dict_X_index_:
-                self.dict_X_index_[str_hashes[i]].append(i)
+        for i in range(len(X_hashes)):
+            if X_hashes[i] in self.dict_X_index_:
+                self.dict_X_index_[X_hashes[i]].append(i)
             else:
-                self.dict_X_index_[str_hashes[i]] = [i]
-                self.dict_bool_hashes_[str_hashes[i]] = bool_hashes[i]
+                self.dict_X_index_[X_hashes[i]] = [i]
+                self.dict_bool_hashes_[X_hashes[i]] = X_bools[i]
 
         self.bool_hashes_value_list_ = np.asarray(list(self.dict_bool_hashes_.values()))
         self.bool_hashes_key_list_ = np.asarray(list(self.dict_bool_hashes_.keys()))
         set_num_threads(prev_threads)
         return self
 
-    def _get_bucket_content(self, key):
-        return self.dict_X_index_[key]
-
-    def _get_bucket_sizes(self):
-        return {key: len(self.dict_X_index_[key]) for key in self.dict_X_index_}
-
-    def _get_series_bucket(self, X):
-        bool_hash = _series_to_bool(
-            X, self.hash_funcs_, self.start_points_, self.window_length_
-        )
-        str_hash = hash(bool_hash.tobytes())
-        if str_hash in self.dict_X_index_:
-            return str_hash
-        else:
-            return None
-
-    def predict(
+    def _predict(
         self,
         X,
         k=1,
@@ -205,8 +185,8 @@ class RandomProjectionIndexANN(BaseCollectionSimilaritySearch):
 
         Parameters
         ----------
-        X : np.ndarray, shape = (n_channels, n_tiempoints)
-            Series for which we want to find neighbors.
+        X : np.ndarray, shape = (n_cases, n_channels, n_tiempoints)
+            Collections of series for which we want to find neighbors.
         k : int, optional
             Number of neighbors to return for each series. The default is 1.
         threshold : int, optional
@@ -223,17 +203,47 @@ class RandomProjectionIndexANN(BaseCollectionSimilaritySearch):
             Distance of k series in the index to X. The distance
             is the hamming distance between the result of each hash function.
         """
-        X = self._pre_predict(X, length=self.n_timepoints_)
+        if X[0].shape[1] != self.n_timepoints_:
+            raise ValueError(
+                "Expected series of the same length as the series given in fit, but got"
+                f"{X[0].shape[1]} instead of {self.n_timepoints_}"
+            )
 
+        prev_threads = get_num_threads()
+        set_num_threads(self._n_jobs)
         if self.normalize:
-            X = z_normalise_series_2d(X)
+            X = z_normalise_series_3d(X)
 
-        X_bool = _series_to_bool(
+        X_bools = _collection_to_bool(
             X, self.hash_funcs_, self.start_points_, self.window_length_
         )
+        X_bools, X_hashes = self._collection_to_hashes(X)
+        top_k = []
+        top_k_dist = []
+        for i in range(len(X_bools)):
+            idx, dists = self._extract_neighors_one_series(
+                X_bools[i],
+                X_hashes[i],
+                k=k,
+                threshold=threshold,
+                inverse_distance=inverse_distance,
+            )
+            top_k.append(idx)
+            top_k_dist.append(dists)
+
+        set_num_threads(prev_threads)
+        return top_k, top_k_dist
+
+    def _extract_neighors_one_series(
+        self,
+        X_bool,
+        X_hash,
+        k=1,
+        threshold=np.inf,
+        inverse_distance=False,
+    ):
         top_k = np.zeros(k, dtype=int)
         top_k_dist = np.zeros(k, dtype=float)
-        X_hash = hash(X_bool.tobytes())
         remove_X_hash = False
         if not inverse_distance and X_hash in self.dict_X_index_:
             current_k = min(len(self.dict_X_index_[X_hash]), k)
@@ -275,4 +285,13 @@ class RandomProjectionIndexANN(BaseCollectionSimilaritySearch):
                 else:
                     break
                 _i_bucket += 1
+
         return top_k[:current_k], top_k_dist[:current_k]
+
+    def _collection_to_hashes(self, X):
+        bool_hashes = _collection_to_bool(
+            X, self.hash_funcs_, self.start_points_, self.window_length_
+        )
+        return bool_hashes, [
+            hash(bool_hashes[i].tobytes()) for i in range(len(bool_hashes))
+        ]

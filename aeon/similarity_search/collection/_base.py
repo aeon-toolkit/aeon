@@ -6,7 +6,7 @@ __all__ = [
 ]
 
 from abc import abstractmethod
-from typing import Union, final
+from typing import final
 
 import numpy as np
 
@@ -60,30 +60,30 @@ class BaseCollectionSimilaritySearch(BaseCollectionEstimator, BaseSimilaritySear
         return self
 
     @abstractmethod
-    def _fit(
-        self,
-        X: np.ndarray,
-        y=None,
-    ): ...
+    def _fit(self, X: np.ndarray, y=None): ...
 
-    def _pre_predict(
-        self,
-        X: Union[np.ndarray, None] = None,
-        length: int = None,
-    ):
+    @final
+    def predict(self, X, **kwargs):
         """
-        Predict method.
+        Predict function.
 
         Parameters
         ----------
-        X : Union[np.ndarray, None], optional
-            Optional data to use for predict.. The default is None.
-        length: int, optional
-            If not None, the number of timepoint of X should be equal to length.
+        X : np.ndarray, shape = (n_cases, n_channels, n_tiempoints)
+            Collections of series to predict on.
+
+        Returns
+        -------
+        indexes : np.ndarray, shape = (n_cases, k)
+            Indexes of series in the that are similar to X.
+        distances : np.ndarray, shape = (n_cases, k)
+            Distance of the matches to each series
 
         """
         self._check_is_fitted()
-        if X is not None:
-            # Could we call somehow _preprocess_series from a BaseCollectionEstimator ?
-            self._check_predict_series_format(X, length=length)
-        return X
+        X = self._preprocess_collection(X)
+        indexes, distances = self._predict(X, **kwargs)
+        return indexes, distances
+
+    @abstractmethod
+    def _predict(self, X: np.ndarray): ...

@@ -4,7 +4,7 @@ __maintainer__ = ["baraline"]
 import numpy as np
 import pytest
 from numba.typed import List
-from numpy.testing import assert_, assert_array_almost_equal
+from numpy.testing import assert_, assert_array_almost_equal, assert_array_equal
 
 from aeon.similarity_search.series._commons import (
     _extract_top_k_from_dist_profile,
@@ -93,7 +93,7 @@ def test__inverse_distance_profile():
 
 def test__extract_top_k_motifs():
     """Test motif extraction based on max distance."""
-    MP = List(
+    MP = np.array(
         [
             [1.0, 2.0],
             [1.0, 4.0],
@@ -101,7 +101,8 @@ def test__extract_top_k_motifs():
             [0.6, 0.7],
         ]
     )
-    IP = List(
+
+    IP = np.array(
         [
             [1, 2],
             [1, 4],
@@ -111,36 +112,32 @@ def test__extract_top_k_motifs():
     )
     MP_k, IP_k = _extract_top_k_motifs(MP, IP, 2, True, 0)
     assert_(len(MP_k) == 2)
-    assert_(MP_k[0] == [0.6, 0.7])
-    assert_(IP_k[0] == [0, 7])
-    assert_(MP_k[1] == [0.5, 0.9])
-    assert_(IP_k[1] == [0, 3])
+    assert_array_equal(MP_k[0], [0.6, 0.7])
+    assert_array_equal(IP_k[0], [0, 7])
+    assert_array_equal(MP_k[1], [0.5, 0.9])
+    assert_array_equal(IP_k[1], [0, 3])
 
 
 def test__extract_top_r_motifs():
     """Test motif extraction based on motif set cardinality."""
-    MP = List(
-        [
-            [1.0, 1.5, 2.0, 1.5],
-            [1.0, 4.0],
-            [0.5, 0.9, 1.0],
-            [0.6, 0.7],
-        ]
-    )
-    IP = List(
-        [
-            [1, 2, 3, 4],
-            [1, 4],
-            [0, 3, 6],
-            [0, 7],
-        ]
-    )
+    MP = List()
+    MP.append(List([1.0, 1.5, 2.0, 1.5]))
+    MP.append(List([1.0, 4.0]))
+    MP.append(List([0.5, 0.9, 1.0]))
+    MP.append(List([0.6, 0.7]))
+
+    IP = List()
+    IP.append(List([1, 2, 3, 4]))
+    IP.append(List([1, 4]))
+    IP.append(List([0, 3, 6]))
+    IP.append(List([0, 7]))
+
     MP_k, IP_k = _extract_top_r_motifs(MP, IP, 2, True, 0)
     assert_(len(MP_k) == 2)
-    assert_(MP_k[0] == [1.0, 1.5, 2.0, 1.5])
-    assert_(IP_k[0] == [1, 2, 3, 4])
-    assert_(MP_k[1] == [0.5, 0.9, 1.0])
-    assert_(IP_k[1] == [0, 3, 6])
+    assert_array_equal(MP_k[0], [1.0, 1.5, 2.0, 1.5])
+    assert_array_equal(IP_k[0], [1, 2, 3, 4])
+    assert_array_equal(MP_k[1], [0.5, 0.9, 1.0])
+    assert_array_equal(IP_k[1], [0, 3, 6])
 
 
 @pytest.mark.parametrize("k", K_VALUES)

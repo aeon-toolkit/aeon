@@ -148,12 +148,12 @@ def _extract_top_k_from_dist_profile(
 # Could add aggregation function as parameter instead of just max
 def _extract_top_k_motifs(MP, IP, k, allow_trivial_matches, exclusion_size):
     criterion = np.zeros(len(MP))
+
     for i in range(len(MP)):
         if len(MP[i]) > 0:
             criterion[i] = max(MP[i])
         else:
             criterion[i] = np.inf
-
     idx, _ = _extract_top_k_from_dist_profile(
         criterion, k, np.inf, allow_trivial_matches, exclusion_size
     )

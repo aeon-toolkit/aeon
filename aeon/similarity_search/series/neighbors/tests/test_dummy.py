@@ -12,7 +12,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_almost_equal
 
-from aeon.similarity_search.series.neighbors._brute_force import (
+from aeon.similarity_search.series.neighbors._dummy import (
     _naive_squared_distance_profile,
 )
 from aeon.testing.data_generation import make_example_2d_numpy_series
