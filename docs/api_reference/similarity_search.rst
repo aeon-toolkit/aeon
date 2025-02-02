@@ -46,7 +46,7 @@ Collection Similarity search estimators
 Base Estimators
 ---------------
 
-.. currentmodule:: aeon.similarity_search.base
+.. currentmodule:: aeon.similarity_search._base
 
 .. autosummary::
     :toctree: auto_generated/
@@ -55,7 +55,7 @@ Base Estimators
     BaseSimilaritySearch
 
 
-.. currentmodule:: aeon.similarity_search.series.base
+.. currentmodule:: aeon.similarity_search.series._base
 
 .. autosummary::
     :toctree: auto_generated/
@@ -63,7 +63,7 @@ Base Estimators
 
     BaseSeriesSimilaritySearch
 
-.. currentmodule:: aeon.similarity_search.collection.base
+.. currentmodule:: aeon.similarity_search.collection._base
 
 .. autosummary::
     :toctree: auto_generated/
