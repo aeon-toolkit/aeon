@@ -44,7 +44,8 @@ class MassSNN(BaseSeriesSimilaritySearch):
         normalize: Optional[bool] = False,
     ):
         self.normalize = normalize
-        super().__init__(length)
+        self.length = length
+        super().__init__()
 
     def _fit(
         self,
@@ -108,7 +109,6 @@ class MassSNN(BaseSeriesSimilaritySearch):
                 f"Expected X to have {self.length} timepoints but"
                 f" got {X.shape[1]} timepoints."
             )
-
         X_index = self._check_X_index(X_index)
         dist_profile = self.compute_distance_profile(X)
         if inverse_distance:
@@ -188,7 +188,7 @@ class MassSNN(BaseSeriesSimilaritySearch):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
         """
         if parameter_set == "default":
-            params = {"length": 3}
+            params = {"length": 20}
         else:
             raise NotImplementedError(
                 f"The parameter set {parameter_set} is not yet implemented"

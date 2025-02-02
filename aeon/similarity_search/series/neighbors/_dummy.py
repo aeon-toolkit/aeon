@@ -34,7 +34,8 @@ class DummySNN(BaseSeriesSimilaritySearch):
     ):
         self.normalize = normalize
         self.n_jobs = n_jobs
-        super().__init__(length)
+        self.length = length
+        super().__init__()
 
     def _fit(
         self,
@@ -168,7 +169,7 @@ class DummySNN(BaseSeriesSimilaritySearch):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
         """
         if parameter_set == "default":
-            params = {"length": 3}
+            params = {"length": 20}
         else:
             raise NotImplementedError(
                 f"The parameter set {parameter_set} is not yet implemented"

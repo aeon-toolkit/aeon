@@ -18,8 +18,7 @@ class BaseSeriesSimilaritySearch(BaseSeriesEstimator, BaseSimilaritySearch):
     }
 
     @abstractmethod
-    def __init__(self, length, axis=1):
-        self.length = length
+    def __init__(self, axis=1):
         super().__init__(axis=axis)
 
     @final

@@ -82,7 +82,8 @@ class StompMotif(BaseSeriesSimilaritySearch):
         normalize: Optional[bool] = False,
     ):
         self.normalize = normalize
-        super().__init__(length)
+        self.length = length
+        super().__init__()
 
     def _fit(
         self,
