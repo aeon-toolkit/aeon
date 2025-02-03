@@ -206,7 +206,10 @@ class ClaSPSegmenter(BaseSegmenter):
     >>> scores = clasp.scores
     """
 
-    _tags = {"capability:multithreading": True, "fit_is_empty": True}
+    _tags = {
+        "fit_is_empty": False,
+        "capability:multithreading": True,
+    }
 
     def __init__(self, period_length=10, n_cps=1, exclusion_radius=0.05, n_jobs=1):
         self.period_length = int(period_length)
@@ -214,6 +217,17 @@ class ClaSPSegmenter(BaseSegmenter):
         self.exclusion_radius = exclusion_radius
         self.n_jobs = n_jobs
         super().__init__(axis=1, n_segments=n_cps + 1)
+
+    def _fit(self, X, y=None):
+        X = X.squeeze()
+        if len(X) - self.period_length < 2 * self.exclusion_radius * len(X):
+            warnings.warn(
+                "Period-Length is larger than size of the time series", stacklevel=1
+            )
+
+            self.found_cps_, self.profiles_, self.scores_ = [], [], []
+        else:
+            self.found_cps_, self.profiles_, self.scores_ = self._run_clasp(X)
 
     def _predict(self, X: np.ndarray):
         """Create annotations on test/deployment data.
@@ -228,16 +242,7 @@ class ClaSPSegmenter(BaseSegmenter):
         list
             List of change points found in X.
         """
-        X = X.squeeze()
-        if len(X) - self.period_length < 2 * self.exclusion_radius * len(X):
-            warnings.warn(
-                "Period-Length is larger than size of the time series", stacklevel=1
-            )
-
-            self.found_cps, self.profiles, self.scores = [], [], []
-        else:
-            self.found_cps, self.profiles, self.scores = self._run_clasp(X)
-            return self.found_cps
+        return self.found_cps_
 
     def predict_scores(self, X):
         """Return scores in ClaSP's profile for each annotation.
@@ -252,8 +257,9 @@ class ClaSPSegmenter(BaseSegmenter):
         np.ndarray
             Scores for sequence X
         """
-        self.found_cps, self.profiles, self.scores = self._run_clasp(X)
-        return self.scores
+        if not self.is_fitted:
+            raise ValueError("predict_scores called without a call to fit().")
+        return self.scores_
 
     def get_fitted_params(self):
         """Get fitted parameters.
@@ -262,7 +268,7 @@ class ClaSPSegmenter(BaseSegmenter):
         -------
         fitted_params : dict
         """
-        return {"profiles": self.profiles, "scores": self.scores}
+        return {"profiles_": self.profiles_, "scores_": self.scores_}
 
     def _run_clasp(self, X):
         clasp_transformer = ClaSPTransformer(
@@ -271,14 +277,14 @@ class ClaSPSegmenter(BaseSegmenter):
             n_jobs=self.n_jobs,
         ).fit(X)
 
-        self.found_cps, self.profiles, self.scores = _segmentation(
+        found_cps, profiles, scores = _segmentation(
             X,
             clasp_transformer,
             n_change_points=self.n_cps,
             exclusion_radius=self.exclusion_radius,
         )
 
-        return self.found_cps, self.profiles, self.scores
+        return found_cps, profiles, scores
 
     def _get_interval_series(self, X, found_cps):
         """Get the segmentation results based on the found change points.

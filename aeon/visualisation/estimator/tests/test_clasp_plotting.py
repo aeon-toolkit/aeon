@@ -25,7 +25,7 @@ def test_plot_series_with_profiles():
     clasp.fit_predict(series)
 
     fig, ax = plot_series_with_profiles(
-        series, clasp.profiles, true_cps=[25], found_cps=clasp.found_cps
+        series, clasp.profiles, true_cps=[25], found_cps=clasp.found_cps_
     )
     plt.gcf().canvas.draw_idle()
 
