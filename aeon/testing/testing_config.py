@@ -51,7 +51,6 @@ EXCLUDED_TESTS = {
     "RSAST": ["check_fit_deterministic"],
     "SFA": ["check_persistence_via_pickle", "check_fit_deterministic"],
     # missed in legacy testing, changes state in predict/transform
-    "FLUSSSegmenter": ["check_non_state_changing_method"],
     "ClaSPSegmenter": ["check_non_state_changing_method"],
     "HMMSegmenter": ["check_non_state_changing_method"],
     "RSTSF": ["check_non_state_changing_method"],
