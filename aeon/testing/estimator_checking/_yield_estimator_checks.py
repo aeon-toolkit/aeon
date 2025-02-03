@@ -9,6 +9,7 @@ from inspect import getfullargspec, isclass, signature
 
 import joblib
 import numpy as np
+import pandas as pd
 from numpy.testing import assert_array_almost_equal
 from sklearn.exceptions import NotFittedError
 
@@ -606,10 +607,30 @@ def check_raises_not_fitted_error(estimator, datatype):
 
 
 def _equal_outputs(output1, output2):
+    """Test whether two outputs from an estimator are logically identical.
+
+    Valid data strutures are:
+    1. numpy array: stores an equal length collection or series
+    2. dict: a histogram of counts, usually of discrete series
+    3. pd.DataFrame: series stored in dataframe
+    4. list: stores unequal length series in a format 1-3
+    5. tuple: stores two or more series/collections in a format 1-3
+
+    """
     if type(output1) is not type(output2):
         return False
-    if isinstance(output1, np.ndarray):  # X an equal length collection or series
+    if isinstance(output1, np.ndarray):  # 1. X an equal length collection or series
         return np.allclose(output1, output2)
+    if isinstance(output1, dict):  # 2. X a dictionary, dense collection or series
+        if output1.keys() != output2.keys():
+            return False
+        for k in output1.keys():
+            if not _equal_outputs(output1[k], output2[k]):
+                return False
+        return True
+    if isinstance(output1, pd.DataFrame) or isinstance(output1, pd.Series):
+        # 3. X a dataframe
+        return np.allclose(output1.values, output2.values)
     if isinstance(output1, list):  # X a possibly unequal length collection
         if len(output1) != len(output2):
             return False
@@ -617,13 +638,6 @@ def _equal_outputs(output1, output2):
             if not _equal_outputs(output1[i], output2[i]):
                 return False
         return False
-    if isinstance(output1, dict):  # X a dictionary, dense collection or series
-        if output1.keys() != output2.keys():
-            return False
-        for k in output1.keys():
-            if not _equal_outputs(output1[k], output2[k]):
-                return False
-        return True
     if isinstance(output1, tuple):  # returns (X,y)
         if len(output1) != len(output2):
             return False
