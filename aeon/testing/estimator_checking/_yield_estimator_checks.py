@@ -680,7 +680,7 @@ def check_persistence_via_pickle(estimator, datatype):
     for method in NON_STATE_CHANGING_METHODS_ARRAYLIKE:
         if hasattr(estimator, method) and callable(getattr(estimator, method)):
             output = _run_estimator_method(estimator, method, datatype, "test")
-            same, msg = deep_equals(output, results[i], msg=True)
+            same, msg = deep_equals(output, results[i], return_msg=True)
             if not same:
                 raise ValueError(
                     f"Running {method} after serialisation parameters gives "
@@ -710,7 +710,7 @@ def check_fit_deterministic(estimator, datatype):
     for method in NON_STATE_CHANGING_METHODS_ARRAYLIKE:
         if hasattr(estimator, method) and callable(getattr(estimator, method)):
             output = _run_estimator_method(estimator, method, datatype, "test")
-            same, msg = deep_equals(output, results[i], msg=True)
+            same, msg = deep_equals(output, results[i], return_msg=True)
             if not same:
                 raise ValueError(
                     f"Running {method} with test parameters after two calls to fit "
