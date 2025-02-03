@@ -142,14 +142,16 @@ class _SparseScaler:
         self.exponent = exponent
 
     def fit(self, X, y=None):
-        X = np.sqrt(np.clip(X, 0, None))  # Clamps negative values to 0 and takes sqrt
-        self.epsilon = (X == 0).astype(float).mean(axis=0) ** self.exponent + 1e-8
-        self.mu = X.mean(axis=0)
-        self.sigma = X.std(axis=0) + self.epsilon
+        X = X.clamp(0).sqrt()
+
+        self.epsilon = (X == 0).float().mean(0) ** self.exponent + 1e-8
+
+        self.mu = X.mean(0)
+        self.sigma = X.std(0) + self.epsilon
 
     def transform(self, X, y=None):
-        # Clamps negative values to 0 and takes sqrt()
-        X = np.sqrt(np.clip(X, 0, None))
+        X = X.clamp(0).sqrt()
+
         if self.mask:
             return ((X - self.mu) * (X != 0)) / self.sigma
         else:
