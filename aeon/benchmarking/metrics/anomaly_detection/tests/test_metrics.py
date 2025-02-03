@@ -1,12 +1,19 @@
 """Test cases for the range-based anomaly detection metrics."""
 
 import numpy as np
+import pytest
 
+from aeon.benchmarking.metrics.anomaly_detection import (
+    range_f_score,
+    range_precision,
+    range_recall,
+)
 from aeon.benchmarking.metrics.anomaly_detection.range_metrics import (
     ts_fscore,
     ts_precision,
     ts_recall,
 )
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 def test_single_overlapping_range():
@@ -269,13 +276,20 @@ def test_all_encompassing_range():
     )
 
 
+@pytest.mark.skipif(
+    not _check_soft_dependencies("prts", severity="none"),
+    reason="required soft dependency prts not available",
+)
 def test_binary_input_example():
-    """Test for binary input sequences (existing example)."""
+    """Comparing prts package(_binary.py) and range-based metrics(range_metrics.py).
+
+    Expected results:
+      - Precision: 0.5
+      - Recall: 1.0
+      - F1-Score: ~0.666667
+    """
     y_pred_binary = np.array([0, 1, 1, 0])
     y_true_binary = np.array([0, 1, 0, 0])
-    expected_precision = 0.500000
-    expected_recall = 1.000000
-    expected_f1 = 0.666667
 
     precision = ts_precision(
         y_pred_binary, y_true_binary, gamma="reciprocal", bias_type="flat"
@@ -299,31 +313,39 @@ def test_binary_input_example():
         udf_gamma=None,
     )
 
+    rb_prec = range_precision(
+        y_true_binary, y_pred_binary
+    )  # gamma = reciprocal, bias = flat
+    rb_rec = range_recall(
+        y_true_binary, y_pred_binary
+    )  # gamma = reciprocal, bias = flat
+    rb_fsc = range_f_score(
+        y_true_binary, y_pred_binary
+    )  # gamma = reciprocal, bias = flat
+
     np.testing.assert_almost_equal(
         precision,
-        expected_precision,
+        rb_prec,
         decimal=6,
         err_msg=(
-            f"Precision failed for binary input example! "
-            f"Expected={expected_precision}, Got={precision}"
+            f"Precision mismatch: "
+            f"ts_precision={precision} vs range_precision_prts={rb_prec}"
         ),
     )
     np.testing.assert_almost_equal(
         recall,
-        expected_recall,
+        rb_rec,
         decimal=6,
         err_msg=(
-            f"Recall failed for binary input example! "
-            f"Expected={expected_recall}, Got={recall}"
+            f"Recall mismatch: " f"ts_recall={recall} vs range_recall_prts={rb_rec}"
         ),
     )
     np.testing.assert_almost_equal(
         f1_score,
-        expected_f1,
+        rb_fsc,
         decimal=6,
         err_msg=(
-            f"F1-Score failed for binary input example! "
-            f"Expected={expected_f1}, Got={f1_score}"
+            f"F1-Score mismatch: " f"ts_fscore={f1_score} vs range_f_score={rb_fsc}"
         ),
     )
 
