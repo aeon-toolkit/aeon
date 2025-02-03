@@ -53,6 +53,7 @@ EXCLUDED_TESTS = {
     # missed in legacy testing, changes state in predict/transform
     "HMMSegmenter": ["check_non_state_changing_method"],
     "RSTSF": ["check_non_state_changing_method"],
+    "ClaSPSegmenter": ["check_non_state_changing_method"],
     # Keeps length during predict to avoid recomputing means and std of data in fit
     # if the next predict calls uses the same query length parameter.
     "QuerySearch": ["check_non_state_changing_method"],
