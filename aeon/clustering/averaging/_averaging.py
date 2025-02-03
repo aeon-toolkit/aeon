@@ -38,7 +38,7 @@ _AVERAGE_DICT = {
 
 
 def _resolve_average_callable(
-    averaging_method: Union[str, Callable[[np.ndarray, dict], np.ndarray]]
+    averaging_method: Union[str, Callable[[np.ndarray, dict], np.ndarray]],
 ) -> Callable[[np.ndarray, dict], np.ndarray]:
     """Resolve a string or callable to a averaging callable.
 

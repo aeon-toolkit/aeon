@@ -498,7 +498,7 @@ def get_distance_function(method: Union[str, DistanceFunction]) -> DistanceFunct
 
 
 def get_pairwise_distance_function(
-    method: Union[str, PairwiseFunction]
+    method: Union[str, PairwiseFunction],
 ) -> PairwiseFunction:
     """Get the pairwise distance function for a given method string or callable.
 
