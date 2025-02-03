@@ -131,9 +131,11 @@ def _dataframe_equals(x, y, depth, ignore_index):
 def _numpy_equals(x, y, depth):
     if x.dtype != y.dtype:
         return False, f"x.dtype ({x.dtype}) != y.dtype ({y.dtype})"
-
-    eq = np.allclose(x, y, equal_nan=True)
-    msg = "" if eq else f"x ({x}) != y ({y}), depth={depth}"
+    if x.dtype == "object":
+        eq, msg = _deep_equals(x.tolist(), y.tolist(), depth, ignore_index=True)
+    else:
+        eq = np.allclose(x, y, equal_nan=True)
+        msg = "" if eq else f"x ({x}) != y ({y}), depth={depth}"
     return eq, msg
 
 

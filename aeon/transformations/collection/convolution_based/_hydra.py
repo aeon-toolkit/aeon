@@ -104,7 +104,7 @@ class HydraTransformer(BaseCollectionTransformer):
         )
 
     def _transform(self, X, y=None):
-        return self._hydra(torch.tensor(X).float())
+        return self._hydra(torch.tensor(X).float()).numpy()
 
 
 if _check_soft_dependencies("torch", severity="none"):
