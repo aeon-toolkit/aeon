@@ -269,7 +269,7 @@ def load_from_timeeval_csv_file(path: Path) -> tuple[np.ndarray, np.ndarray]:
 
 
 def load_kdd_tsad_135(
-    split: Literal["train", "test"] = "test"
+    split: Literal["train", "test"] = "test",
 ) -> tuple[np.ndarray, np.ndarray]:
     """Load the KDD-TSAD 135 UCR_Anomaly_Internal_Bleeding16 univariate dataset.
 
@@ -363,7 +363,7 @@ def load_daphnet_s06r02e0() -> tuple[np.ndarray, np.ndarray]:
 def load_ecg_diff_count_3(
     learning_type: Literal[
         "unsupervised", "semi-supervised", "supervised"
-    ] = "unsupervised"
+    ] = "unsupervised",
 ) -> Union[
     tuple[np.ndarray, np.ndarray], tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]
 ]:
