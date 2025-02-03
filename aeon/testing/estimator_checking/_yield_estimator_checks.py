@@ -624,6 +624,8 @@ def _equal_outputs(output1, output2):
         return False
     if np.issubdtype(type(output1), np.floating):
         return np.isclose(output1, output2)
+    if np.issubdtype(type(output1), np.bool_):
+        return output1 == output2
     if isinstance(output1, np.ndarray):  # 1. X an equal length collection or series
         if np.isscalar(output1):
             return np.allclose(output1, output2, equal_nan=True)
