@@ -623,8 +623,12 @@ def _equal_outputs(output1, output2):
     if np.issubdtype(type(output1), np.floating):
         return np.isclose(output1, output2)
     if isinstance(output1, np.ndarray):  # 1. X an equal length collection or series
-        test = np.allclose(output1, output2, equal_nan=True)
-        return test
+        if np.isscalar(output1):
+            return np.allclose(output1, output2, equal_nan=True)
+        for i in range(len(output1)):
+            if not _equal_outputs(output1[i], output2[i]):
+                return False
+            return True
     if isinstance(output1, dict):  # 2. X a dictionary, dense collection or series
         if output1.keys() != output2.keys():
             return False
