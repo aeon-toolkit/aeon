@@ -10,7 +10,6 @@ from inspect import getfullargspec, isclass, signature
 import joblib
 import numpy as np
 import pandas as pd
-from numpy.testing import assert_array_almost_equal
 from sklearn.exceptions import NotFittedError
 
 from aeon.anomaly_detection.base import BaseAnomalyDetector
@@ -668,12 +667,11 @@ def check_persistence_via_pickle(estimator, datatype):
     for method in NON_STATE_CHANGING_METHODS_ARRAYLIKE:
         if hasattr(estimator, method) and callable(getattr(estimator, method)):
             output = _run_estimator_method(estimator, method, datatype, "test")
-            assert_array_almost_equal(
-                output,
-                results[i],
-                err_msg=f"Running {method} after fit twice with test "
-                f"parameters gives different results.",
-            )
+            if not _equal_outputs(output, results[i]):
+                raise ValueError(
+                    f"Running {method} after serialisation parameters gives "
+                    f"different results."
+                )
             i += 1
 
 
