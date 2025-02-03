@@ -44,7 +44,7 @@ class FLUSSSegmenter(BaseSegmenter):
     """
 
     _tags = {
-        "fit_is_empty": True,
+        "fit_is_empty": False,
         "python_dependencies": "stumpy",
     }
 
@@ -53,6 +53,15 @@ class FLUSSSegmenter(BaseSegmenter):
         self.n_regimes = n_regimes
         self.exclusion_factor = exclusion_factor
         super().__init__(n_segments=n_regimes, axis=1)
+
+    def _fit(self, X, y=None):
+        if self.n_regimes < 2:
+            raise ValueError(
+                "The number of regimes must be set to an integer greater than 1"
+            )
+
+        X = X.squeeze()
+        self.found_cps, self.profiles, self.scores = self._run_fluss(X)
 
     def _predict(self, X: np.ndarray):
         """Create annotations on test/deployment data.
@@ -67,13 +76,6 @@ class FLUSSSegmenter(BaseSegmenter):
         list
             List of change points found in X.
         """
-        if self.n_regimes < 2:
-            raise ValueError(
-                "The number of regimes must be set to an integer greater than 1"
-            )
-
-        X = X.squeeze()
-        self.found_cps, self.profiles, self.scores = self._run_fluss(X)
         return self.found_cps
 
     def predict_scores(self, X):
