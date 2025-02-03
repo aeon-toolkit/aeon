@@ -609,12 +609,13 @@ def _equal_outputs(output1, output2):
     """Test whether two outputs from an estimator are logically identical.
 
     Valid data structures are:
-    1. float
-    2. numpy array: stores an equal length collection or series
-    2. dict: a histogram of counts, usually of discrete series
-    3. pd.DataFrame: series stored in dataframe
-    4. list: stores unequal length series in a format 1-3
-    5. tuple: stores two or more series/collections in a format 1-3
+    1. float: returns a single value (e.g. forecasting)
+    2. numpy array: stores an equal length collection or series (default)
+    3. dict: a histogram of counts, usually of discretised sub-series (e.g. SFA)
+    4. pd.DataFrame: series stored in dataframe (e.g. Dobin)
+    5. list: stores possibly unequal length series in a format 2-4
+    6. tuple: stores two or more series/collections in a format 2-4 (e.g. imbalance
+    transformers)
 
     """
     if type(output1) is not type(output2):
@@ -622,7 +623,8 @@ def _equal_outputs(output1, output2):
     if np.issubdtype(type(output1), np.floating):
         return np.isclose(output1, output2)
     if isinstance(output1, np.ndarray):  # 1. X an equal length collection or series
-        return np.allclose(output1, output2, equal_nan=True)
+        test = np.allclose(output1, output2, equal_nan=True)
+        return test
     if isinstance(output1, dict):  # 2. X a dictionary, dense collection or series
         if output1.keys() != output2.keys():
             return False
@@ -639,7 +641,7 @@ def _equal_outputs(output1, output2):
         for i in range(len(output1)):
             if not _equal_outputs(output1[i], output2[i]):
                 return False
-        return False
+        return True
     if isinstance(output1, tuple):  # returns (X,y)
         if len(output1) != len(output2):
             return False
