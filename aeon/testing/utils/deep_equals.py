@@ -72,7 +72,7 @@ def _deep_equals(x, y, depth, ignore_index):
         eq = np.isnan(y)
         msg = "" if eq else f"x ({x}) != y ({y}), depth={depth}"
         return eq, msg
-    elif isinstance(x == y, bool):
+    elif isinstance(x == y, (bool, np.bool_)):
         eq = x == y
         msg = "" if eq else f"x ({x}) != y ({y}), depth={depth}"
         return eq, msg
