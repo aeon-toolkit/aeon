@@ -610,7 +610,9 @@ def _equal_outputs(output1, output2):
 
     Valid data structures are:
     1. float: returns a single value (e.g. forecasting)
-    2. numpy array: stores an equal length collection or series (default)
+    2. numpy array:
+        scalars: stores an equal length collection or series (default)
+        objects: an array of arrays stored as objects (e.g. SimilaritySearch)
     3. dict: a histogram of counts, usually of discretised sub-series (e.g. SFA)
     4. pd.DataFrame: series stored in dataframe (e.g. Dobin)
     5. list: stores possibly unequal length series in a format 2-4

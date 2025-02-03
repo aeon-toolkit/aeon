@@ -5,8 +5,23 @@ import numpy as np
 from aeon.testing.estimator_checking._yield_estimator_checks import _equal_outputs
 
 
-def test_compare_outputs():
-    """Test compare outputs for array, divct and tuple."""
+def test_equal_outputs():
+    """Test compare outputs for estimators.
+
+    Valid data structures are:
+    1. float: returns a single value (e.g. forecasting)
+    2. numpy array: stores an equal length collection or series (default)
+    3. dict: a histogram of counts, usually of discretised sub-series (e.g. SFA)
+    4. pd.DataFrame: series stored in dataframe (e.g. Dobin)
+    5. list: stores possibly unequal length series in a format 2-4
+    6. tuple: stores two or more series/collections in a format 2-4 (e.g. imbalance
+    transformers)
+
+    """
+    v1 = 10.00
+    v2 = 15.00
+    assert _equal_outputs(v1, v1)
+    assert not _equal_outputs(v1, v2)
     a1 = np.random.random((5, 1, 10))
     a2 = np.random.random((5, 10))
     assert _equal_outputs(a1, a1)
