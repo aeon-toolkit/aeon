@@ -23,7 +23,8 @@ MULTITHREAD_TESTING = False
 NUMBA_DISABLED = os.environ.get("NUMBA_DISABLE_JIT") == "1"
 
 # exclude estimators here for short term fixes
-EXCLUDE_ESTIMATORS = []
+# Hydra excluded because it returns a pytorch Tensor
+EXCLUDE_ESTIMATORS = ["REDCOMETS", "HydraTransformer"]
 
 # Exclude specific tests for estimators here
 EXCLUDED_TESTS = {
@@ -49,25 +50,12 @@ EXCLUDED_TESTS = {
     "RSASTClassifier": ["check_fit_deterministic"],
     "SAST": ["check_fit_deterministic"],
     "RSAST": ["check_fit_deterministic"],
-    "SFA": ["check_persistence_via_pickle", "check_fit_deterministic"],
     # missed in legacy testing, changes state in predict/transform
     "FLUSSSegmenter": ["check_non_state_changing_method"],
     "InformationGainSegmenter": ["check_non_state_changing_method"],
     "GreedyGaussianSegmenter": ["check_non_state_changing_method"],
     "ClaSPSegmenter": ["check_non_state_changing_method"],
     "HMMSegmenter": ["check_non_state_changing_method"],
-    "BinSegSegmenter": ["check_non_state_changing_method"],
-    "QUANTTransformer": ["check_non_state_changing_method"],
-    "MatrixProfileSeriesTransformer": ["check_non_state_changing_method"],
-    "PLASeriesTransformer": ["check_non_state_changing_method"],
-    "AutoCorrelationSeriesTransformer": ["check_non_state_changing_method"],
-    "SIVSeriesTransformer": ["check_non_state_changing_method"],
-    "RocketClassifier": ["check_non_state_changing_method"],
-    "MiniRocketClassifier": ["check_non_state_changing_method"],
-    "MultiRocketClassifier": ["check_non_state_changing_method"],
-    "RocketRegressor": ["check_non_state_changing_method"],
-    "MiniRocketRegressor": ["check_non_state_changing_method"],
-    "MultiRocketRegressor": ["check_non_state_changing_method"],
     "RSTSF": ["check_non_state_changing_method"],
     # Keeps length during predict to avoid recomputing means and std of data in fit
     # if the next predict calls uses the same query length parameter.

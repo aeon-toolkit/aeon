@@ -18,7 +18,7 @@ concurrency:
 
 jobs:
   test-no-soft-deps:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout
@@ -29,7 +29,7 @@ jobs:
         with:
           python-version: "3.10"
 
-      - if: ${{ github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'no numba cache') }}
+      - if: ${{ github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'no numba cache') }}
         name: Restore numba cache
         uses: ./.github/actions/numba_cache
         with:
@@ -56,7 +56,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-22.04, macOS-14, windows-2022 ]
+        os: [ ubuntu-24.04, macOS-14, windows-2022 ]
         python-version: [ "3.9", "3.10", "3.11", "3.12" ]
         # skip python versions unless the PR has the 'full pytest actions' label
         pr-testing:
@@ -74,7 +74,13 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - if: ${{ github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'no numba cache') }}
+      - name: Set swap space
+        if: runner.os == 'Linux'
+        uses: pierotofy/set-swap-space@v1.0
+        with:
+          swap-size-gb: 10
+
+      - if: ${{ github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'no numba cache') }}
         name: Restore numba cache
         uses: ./.github/actions/numba_cache
         with:
@@ -82,12 +88,9 @@ jobs:
           runner_os: ${{ runner.os }}
           python_version: ${{ matrix.python-version }}
 
-      - name: Install aeon and dependencies
-        uses: nick-fields/retry@v3
+      - uses: ./.github/actions/cpu_all_extras
         with:
-          timeout_minutes: 30
-          max_attempts: 3
-          command: python -m pip install .[all_extras,dev]
+          additional_extras: "dev"
 
       - name: Show dependencies
         run: python -m pip list
@@ -100,7 +103,7 @@ jobs:
     # run the code coverage job if a PR has the 'codecov actions' label
     if: ${{ github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'codecov actions') }}
 
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout
@@ -114,12 +117,9 @@ jobs:
       - name: Disable Numba JIT
         run: echo "NUMBA_DISABLE_JIT=1" >> $GITHUB_ENV
 
-      - name: Install aeon and dependencies
-        uses: nick-fields/retry@v3
+      - uses: ./.github/actions/cpu_all_extras
         with:
-          timeout_minutes: 30
-          max_attempts: 3
-          command: python -m pip install .[all_extras,unstable_extras,dev]
+          additional_extras: "unstable_extras,dev"
 
       - name: Show dependencies
         run: python -m pip list

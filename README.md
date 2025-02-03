@@ -13,7 +13,7 @@ We strive to provide a broad library of time series algorithms including the
 latest advances, offer efficient implementations using numba, and interfaces with other
 time series packages to provide a single framework for algorithm comparison.
 
-The latest `aeon` release is `v0.11.1`. You can view the full changelog
+The latest `aeon` release is `v1.0.0`. You can view the full changelog
 [here](https://www.aeon-toolkit.org/en/stable/changelog.html).
 
 Our webpage and documentation is available at https://aeon-toolkit.org.
@@ -131,6 +131,17 @@ clu.predict(X_test)  # Assign clusters to new data
 For enquiries about the project or collaboration, our email is
 [contact@aeon-toolkit.org](mailto:contact@aeon-toolkit.org).
 
+## 🔨 Contributing to aeon
+
+If you are interested in contributing to `aeon`, please see our [contributing guide](https://www.aeon-toolkit.org/en/latest/contributing.html)
+and have a read through before assigning an issue and creating a pull request. Be
+aware that the `latest` version of the docs is the development version, and the `stable`
+version is the latest release.
+
+The `aeon` developers are volunteers so please be patient with responses to comments and
+pull request reviews. If you have any questions, feel free to ask using the above
+mediums.
+
 ## 📚 Citation
 
 If you use `aeon` we would appreciate a citation of the following [paper](https://jmlr.org/papers/v25/23-1444.html):
@@ -149,3 +160,8 @@ If you use `aeon` we would appreciate a citation of the following [paper](https:
 ```
 
 If you let us know about your paper using `aeon`, we will happily list it [here](https://www.aeon-toolkit.org/en/stable/papers_using_aeon.html).
+
+## 💬 Further information
+
+`aeon` was forked from `sktime` `v0.16.0` in 2022 by an initial group of eight core
+developers.

@@ -71,16 +71,17 @@ class SIVSeriesTransformer(BaseSeriesTransformer):
         -------
         transformed version of X
         """
-        if self.window_length is None:
-            self.window_length = [3, 5, 7]
-        if not isinstance(self.window_length, list):
-            self.window_length = [self.window_length]
+        window_length = self.window_length
+        if window_length is None:
+            window_length = [3, 5, 7]
+        if not isinstance(window_length, list):
+            window_length = [window_length]
 
         # Compute SIV
         X_ = X
 
-        for window_length in self.window_length:
-            footprint = np.ones((1, window_length))
+        for w in window_length:
+            footprint = np.ones((1, w))
             X_ = median_filter(X_, footprint=footprint)
 
         return X_
