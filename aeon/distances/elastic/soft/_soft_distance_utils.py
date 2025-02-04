@@ -39,43 +39,40 @@ def _softmin3(a, b, c, gamma):
     return -gamma * (np.log(tmp) + max_val)
 
 
-@njit(cache=True, fastmath=True)
+# @njit(cache=True, fastmath=True)
 def _soft_gradient(
     distance_matrix: np.ndarray, cost_matrix: np.ndarray, gamma: float
 ) -> np.ndarray:
     m, n = distance_matrix.shape
     E = np.zeros((m, n), dtype=float)
 
-    inv_gamma = 1.0 / gamma
-
     E[m - 1, n - 1] = 1.0
 
     for i in range(m - 1, -1, -1):
-        rowE = E[i]
-        rowC = cost_matrix[i]
         for j in range(n - 1, -1, -1):
-            r_ij = rowC[j]
-            E_ij = rowE[j]
+            r_ij = cost_matrix[i, j]
+            E_ij = E[i, j]
 
             if i + 1 < m:
-                r_down = cost_matrix[i + 1, j]
-                d_down = distance_matrix[i + 1, j]
-                w_down = np.exp((r_down - r_ij - d_down) * inv_gamma)
-                E_ij += E[i + 1, j] * w_down
+                w_horizontal = np.exp(
+                    (cost_matrix[i + 1, j] - r_ij - distance_matrix[i + 1, j]) / gamma
+                )
+                E_ij += E[i + 1, j] * w_horizontal
 
             if j + 1 < n:
-                r_right = cost_matrix[i, j + 1]
-                d_right = distance_matrix[i, j + 1]
-                w_right = np.exp((r_right - r_ij - d_right) * inv_gamma)
-                E_ij += E[i, j + 1] * w_right
+                w_vertical = np.exp(
+                    (cost_matrix[i, j + 1] - r_ij - distance_matrix[i, j + 1]) / gamma
+                )
+                E_ij += E[i, j + 1] * w_vertical
 
             if (i + 1 < m) and (j + 1 < n):
-                r_diag = cost_matrix[i + 1, j + 1]
-                d_diag = distance_matrix[i + 1, j + 1]
-                w_diag = np.exp((r_diag - r_ij - d_diag) * inv_gamma)
+                w_diag = np.exp(
+                    (cost_matrix[i + 1, j + 1] - r_ij - distance_matrix[i + 1, j + 1])
+                    / gamma
+                )
                 E_ij += E[i + 1, j + 1] * w_diag
 
-            rowE[j] = E_ij
+            E[i, j] = E_ij
 
     return E
 

@@ -7,7 +7,6 @@ from typing import Optional, Union
 import numpy as np
 from numba import njit
 from numba.typed import List as NumbaList
-from sklearn.metrics import pairwise_distances
 
 from aeon.distances.elastic._alignment_paths import compute_min_return_path
 from aeon.distances.elastic._bounding_matrix import create_bounding_matrix
@@ -418,6 +417,30 @@ def soft_dtw_alignment_path(
     )
 
 
+@njit(cache=True, fastmath=True)
+def _soft_dtw_cost_matrix_return_dist_matrix(
+    x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, gamma: float
+) -> tuple[np.ndarray, np.ndarray]:
+    x_size = x.shape[1]
+    y_size = y.shape[1]
+    cost_matrix = np.full((x_size + 1, y_size + 1), np.inf)
+    cost_matrix[0, 0] = 0.0
+    dist_matrix = np.zeros((x_size, y_size))
+
+    for i in range(1, x_size + 1):
+        for j in range(1, y_size + 1):
+            if bounding_matrix[i - 1, j - 1]:
+                dist = _univariate_squared_distance(x[:, i - 1], y[:, j - 1])
+                dist_matrix[i - 1, j - 1] = dist
+                cost_matrix[i, j] = dist + _softmin3(
+                    cost_matrix[i - 1, j],
+                    cost_matrix[i - 1, j - 1],
+                    cost_matrix[i, j - 1],
+                    gamma,
+                )
+    return cost_matrix[1:, 1:], dist_matrix
+
+
 def soft_dtw_gradient(
     x: np.ndarray,
     y: np.ndarray,
@@ -425,6 +448,8 @@ def soft_dtw_gradient(
     window: Optional[float] = None,
     itakura_max_slope: Optional[float] = None,
 ) -> tuple[np.ndarray, float]:
+    if gamma <= 0.0:
+        raise ValueError("gamma must be greater than 0 for this method.")
     if x.ndim == 1 or y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
         _y = y.reshape((1, y.shape[0]))
@@ -434,19 +459,8 @@ def soft_dtw_gradient(
     bounding_matrix = create_bounding_matrix(
         _x.shape[1], _y.shape[1], window, itakura_max_slope
     )
-    cost_matrix = _soft_dtw_cost_matrix(_x, _y, bounding_matrix, gamma)
-
-    if _x.shape[0] == 1:
-        distance_matrix = pairwise_distances(
-            _x.reshape(-1, 1), _y.reshape(-1, 1), metric="sqeuclidean"
-        )
-    else:
-        distance_matrix = np.zeros((_x.shape[1], _y.shape[1]))
-        for dim in range(_x.shape[0]):
-            distance_matrix += pairwise_distances(
-                _x[dim, :].reshape(-1, 1),
-                _y[dim, :].reshape(-1, 1),
-                metric="sqeuclidean",
-            )
+    cost_matrix, distance_matrix = _soft_dtw_cost_matrix_return_dist_matrix(
+        _x, _y, bounding_matrix, gamma
+    )
 
     return _soft_gradient(distance_matrix, cost_matrix, gamma), cost_matrix[-1, -1]
