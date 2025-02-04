@@ -1,11 +1,16 @@
 <!--
 Thanks for contributing a pull request! Please ensure you have taken a look at our
-contribution guide: https://www.aeon-toolkit.org/en/stable/contributing.html.
+contribution guide: https://www.aeon-toolkit.org/en/latest/contributing.html.
 
 Feel free to delete sections of this template if they do not apply to your PR,
 avoid submitting a blank template or empty sections.
 If you are a new contributor, do not delete this template without a suitable
 replacement or reason. If in doubt, ask for help. We're here to help!
+
+Please be aware that we are a team of volunteers so patience is
+necessary when waiting for a review or reply. There may not be a quick turnaround for
+reviews during slow periods. While we value all contributions big or small, pull
+requests which do not follow our guidelines may be closed.
 -->
 
 #### Reference Issues/PRs
@@ -34,9 +39,7 @@ to a minimum.
 #### Any other comments?
 
 <!--
-Please be aware that we are a team of volunteers so patience is
-necessary when waiting for a review or reply. While we value all contributions big or
-small, pull requests which do not follow our guidelines may be closed.
+Any other information that is important to this PR or helpful for reviewers.
 -->
 
 ### PR checklist
@@ -48,7 +51,7 @@ not applicable. To check a box, replace the space inside the square brackets wit
 -->
 
 ##### For all contributions
-- [ ] I've added myself to the [list of contributors](https://github.com/aeon-toolkit/aeon/blob/main/.all-contributorsrc). Alternatively, you can use the [@all-contributors](https://allcontributors.org/docs/en/bot/usage) bot to do this for you.
+- [ ] I've added myself to the [list of contributors](https://github.com/aeon-toolkit/aeon/blob/main/.all-contributorsrc). Alternatively, you can use the [@all-contributors](https://allcontributors.org/docs/en/bot/usage) bot to do this for you after the PR has been merged.
 - [ ] The PR title starts with either [ENH], [MNT], [DOC], [BUG], [REF], [DEP] or [GOV] indicating whether the PR topic is related to enhancement, maintenance, documentation, bugs, refactoring, deprecation or governance.
 
 ##### For new estimators and functions
