@@ -443,7 +443,7 @@ class SFA(BaseCollectionTransformer):
                 self.letter_bits,
             )
 
-        return words
+        return words, dfts
 
     def transform_words(self, X):
         """Return the words generated for each series.
@@ -463,8 +463,8 @@ class SFA(BaseCollectionTransformer):
             delayed(self._transform_words_case)(X[i, :]) for i in range(X.shape[0])
         )
 
-        words = zip(*transform)
-        return np.array(list(words))
+        words = list(zip(*transform))  # words and dfts
+        return np.array(words[0]).squeeze(), np.array(words[1]).squeeze()
 
     def get_words(self):
         """Return the words generated for each series.

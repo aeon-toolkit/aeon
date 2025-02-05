@@ -35,12 +35,10 @@ class LITETimeClassifier(BaseClassifier):
         if set to `True` then LITEMV is used. LITEMV is the
         same architecture as LITE but specifically designed
         to better handle multivariate time series.
-    n_filters : int or list of int32, default = 32
-        The number of filters used in one lite layer, if not a list, the same
-        number of filters is used in all lite layers.
-    kernel_size : int or list of int, default = 40
-        The head kernel size used for each lite layer, if not a list, the same
-        is used in all lite module.
+    n_filters : int, default = 32
+        The number of filters used in one lite layer.
+    kernel_size : int, default = 40
+        The head kernel size used for each lite layer.
     strides : int or list of int, default = 1
         The strides of kernels in convolution layers for each lite layer,
         if not a list, the same is used in all lite layers.
@@ -96,11 +94,13 @@ class LITETimeClassifier(BaseClassifier):
         The keras optimizer used for training.
     loss : str, default = "categorical_crossentropy"
         The name of the keras training loss.
-    metrics : str or list[str], default="accuracy"
-        The evaluation metrics to use during training. If
-        a single string metric is provided, it will be
-        used as the only metric. If a list of metrics are
-        provided, all will be used for evaluation.
+    metrics : str or list[str|function|keras.metrics.Metric], default="accuracy"
+        the evaluation metrics to use during training. each of this can be a
+        string, function or a keras.metrics.metric instance (for details, see
+        https://keras.io/api/metrics/).
+        if a single string metric is provided, it will be used as the only
+        metric. if a list of metrics are provided, all will be used for
+        evaluation.
 
     References
     ----------
@@ -215,6 +215,7 @@ class LITETimeClassifier(BaseClassifier):
                 use_litemv=self.use_litemv,
                 n_filters=self.n_filters,
                 kernel_size=self.kernel_size,
+                strides=self.strides,
                 file_path=self.file_path,
                 save_best_model=self.save_best_model,
                 save_last_model=self.save_last_model,
@@ -337,12 +338,10 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         if set to `True` then LITEMV is used. LITEMV is the
         same architecture as LITE but specifically designed
         to better handle multivariate time series.
-    n_filters : int or list of int32, default = 32
-        The number of filters used in one lite layer, if not a list, the same
-        number of filters is used in all lite layers.
-    kernel_size : int or list of int, default = 40
-        The head kernel size used for each lite layer, if not a list, the same
-        is used in all lite layers.
+    n_filters : int, default = 32
+        The number of filters used in one lite layer.
+    kernel_size : int, default = 40
+        The head kernel size used for each lite layer.
     strides : int or list of int, default = 1
         The strides of kernels in convolution layers for each lite layer,
         if not a list, the same is used in all lite layers.
@@ -398,11 +397,13 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         The keras optimizer used for training.
     loss : str, default = "categorical_crossentropy"
         The name of the keras training loss.
-    metrics : str or list[str], default="accuracy"
-        The evaluation metrics to use during training. If
-        a single string metric is provided, it will be
-        used as the only metric. If a list of metrics are
-        provided, all will be used for evaluation.
+    metrics : str or list[str|function|keras.metrics.Metric], default="accuracy"
+        the evaluation metrics to use during training. each of this can be a
+        string, function or a keras.metrics.metric instance (for details, see
+        https://keras.io/api/metrics/).
+        if a single string metric is provided, it will be used as the only
+        metric. if a list of metrics are provided, all will be used for
+        evaluation.
 
     References
     ----------
