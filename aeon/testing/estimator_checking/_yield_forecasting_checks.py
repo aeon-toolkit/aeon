@@ -5,7 +5,7 @@ from functools import partial
 import numpy as np
 
 from aeon.base._base import _clone_estimator
-from aeon.base._base_series import VALID_INNER_TYPES
+from aeon.base._base_series import VALID_SERIES_INPUT_TYPES
 
 
 def _yield_forecasting_checks(estimator_class, estimator_instances, datatypes):
@@ -29,7 +29,7 @@ def check_forecasting_base_functionality(estimator_class):
     assert not fit_is_empty == "_fit" not in estimator_class.__dict__
     # Test valid tag for X_inner_type
     X_inner_type = estimator_class.get_class_tag(tag_name="X_inner_type")
-    assert X_inner_type in VALID_INNER_TYPES
+    assert X_inner_type in VALID_SERIES_INPUT_TYPES
     # Must have at least one set to True
     multi = estimator_class.get_class_tag(tag_name="capability:multivariate")
     uni = estimator_class.get_class_tag(tag_name="capability:univariate")
@@ -49,4 +49,3 @@ def check_forecaster_instance(estimator):
     # forecast should return a float equal to fit/predict
     p2 = estimator.forecast(y)
     assert p == p2
-    # Add other tests when

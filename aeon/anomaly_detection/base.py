@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 
 from aeon.base import BaseSeriesEstimator
-from aeon.base._base_series import VALID_INPUT_TYPES
+from aeon.base._base_series import VALID_SERIES_INPUT_TYPES
 
 
 class BaseAnomalyDetector(BaseSeriesEstimator):
@@ -76,7 +76,7 @@ class BaseAnomalyDetector(BaseSeriesEstimator):
     """
 
     _tags = {
-        "X_inner_type": "np.ndarray",  # One of VALID_INNER_TYPES
+        "X_inner_type": "np.ndarray",  # One of VALID_SERIES_INNER_TYPES
         "fit_is_empty": True,
         "requires_y": False,
     }
@@ -95,14 +95,14 @@ class BaseAnomalyDetector(BaseSeriesEstimator):
 
         Parameters
         ----------
-        X : one of aeon.base._base_series.VALID_INPUT_TYPES
+        X : one of aeon.base._base_series.VALID_SERIES_INPUT_TYPES
             The time series to fit the model to.
             A valid aeon time series data structure. See
-            aeon.base._base_series.VALID_INPUT_TYPES for aeon supported types.
-        y : one of aeon.base._base_series.VALID_INPUT_TYPES, default=None
+            aeon.base._base_series.VALID_SERIES_INPUT_TYPES for aeon supported types.
+        y : one of aeon.base._base_series.VALID_SERIES_INPUT_TYPES, default=None
             The target values for the time series.
             A valid aeon time series data structure. See
-            aeon.base._base_series.VALID_INPUT_TYPES for aeon supported types.
+            aeon.base._base_series.VALID_SERIES_INPUT_TYPES for aeon supported types.
         axis : int
             The time point axis of the input series if it is 2D. If ``axis==0``, it is
             assumed each column is a time series and each row is a time point. i.e. the
@@ -142,10 +142,10 @@ class BaseAnomalyDetector(BaseSeriesEstimator):
 
         Parameters
         ----------
-        X : one of aeon.base._base_series.VALID_INPUT_TYPES
+        X : one of aeon.base._base_series.VALID_SERIES_INPUT_TYPES
             The time series to fit the model to.
             A valid aeon time series data structure. See
-            aeon.base._base_series.VALID_INPUT_TYPES for aeon supported types.
+            aeon.base._base_series.VALID_SERIES_INPUT_TYPES for aeon supported types.
         axis : int, default=1
             The time point axis of the input series if it is 2D. If ``axis==0``, it is
             assumed each column is a time series and each row is a time point. i.e. the
@@ -173,14 +173,14 @@ class BaseAnomalyDetector(BaseSeriesEstimator):
 
         Parameters
         ----------
-        X : one of aeon.base._base_series.VALID_INPUT_TYPES
+        X : one of aeon.base._base_series.VALID_SERIES_INPUT_TYPES
             The time series to fit the model to.
             A valid aeon time series data structure. See
             aeon.base._base_series.VALID_INPUT_TYPES for aeon supported types.
-        y : one of aeon.base._base_series.VALID_INPUT_TYPES, default=None
+        y : one of aeon.base._base_series.VALID_SERIES_INPUT_TYPES, default=None
             The target values for the time series.
             A valid aeon time series data structure. See
-            aeon.base._base_series.VALID_INPUT_TYPES for aeon supported types.
+            aeon.base._base_series.VALID_SERIES_INPUT_TYPES for aeon supported types.
         axis : int, default=1
             The time point axis of the input series if it is 2D. If ``axis==0``, it is
             assumed each column is a time series and each row is a time point. i.e. the
@@ -226,7 +226,7 @@ class BaseAnomalyDetector(BaseSeriesEstimator):
         self._fit(X, y)
         return self._predict(X)
 
-    def _check_y(self, y: VALID_INPUT_TYPES) -> np.ndarray:
+    def _check_y(self, y: VALID_SERIES_INPUT_TYPES) -> np.ndarray:
         # Remind user if y is not required for this estimator on failure
         req_msg = (
             f"{self.__class__.__name__} does not require a y input."
@@ -235,7 +235,8 @@ class BaseAnomalyDetector(BaseSeriesEstimator):
         )
         new_y = y
 
-        # must be a valid input type, see VALID_INPUT_TYPES in BaseSeriesEstimator
+        # must be a valid input type, see VALID_SERIES_INPUT_TYPES in
+        # BaseSeriesEstimator
         if isinstance(y, np.ndarray):
             # check valid shape
             if y.ndim > 1:
@@ -284,8 +285,8 @@ class BaseAnomalyDetector(BaseSeriesEstimator):
             new_y = y.squeeze().values
         else:
             raise ValueError(
-                f"Error in input type for y: it should be one of {VALID_INPUT_TYPES}, "
-                f"saw {type(y)}"
+                f"Error in input type for y: it should be one of "
+                f"{VALID_SERIES_INPUT_TYPES}, saw {type(y)}"
             )
 
         new_y = new_y.astype(bool)

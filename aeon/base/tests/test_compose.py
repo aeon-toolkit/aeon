@@ -74,7 +74,6 @@ def test_get_fitted_params():
     expected = {
         "classes_",
         "ensemble_",
-        "fit_time_",
         "metadata_",
         "n_classes_",
         "weights_",
@@ -90,13 +89,11 @@ def test_get_fitted_params():
         {
             "clf1",
             "clf1__classes_",
-            "clf1__fit_time_",
             "clf1__foo_",
             "clf1__metadata_",
             "clf1__n_classes_",
             "clf2",
             "clf2__classes_",
-            "clf2__fit_time_",
             "clf2__foo_",
             "clf2__metadata_",
             "clf2__n_classes_",

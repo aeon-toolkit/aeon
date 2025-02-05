@@ -7,8 +7,8 @@ __all__ = [
     "TimeSeriesCLARANS",
     "TimeSeriesKMeans",
     "TimeSeriesKShape",
-    "TimeSeriesKShapes",
     "TimeSeriesKernelKMeans",
+    "KASBA",
     "ElasticSOM",
     "KSpectralCentroid",
     "DummyClusterer",
@@ -21,7 +21,7 @@ from aeon.clustering._k_means import TimeSeriesKMeans
 from aeon.clustering._k_medoids import TimeSeriesKMedoids
 from aeon.clustering._k_sc import KSpectralCentroid
 from aeon.clustering._k_shape import TimeSeriesKShape
-from aeon.clustering._k_shapes import TimeSeriesKShapes
+from aeon.clustering._kasba import KASBA
 from aeon.clustering._kernel_k_means import TimeSeriesKernelKMeans
 from aeon.clustering.base import BaseClusterer
 from aeon.clustering.dummy import DummyClusterer

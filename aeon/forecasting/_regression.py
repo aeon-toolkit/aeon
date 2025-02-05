@@ -40,7 +40,7 @@ class RegressionForecaster(BaseForecaster):
     def __init__(self, window, horizon=1, regressor=None):
         self.window = window
         self.regressor = regressor
-        super().__init__(horizon, axis=1)
+        super().__init__(horizon=horizon, axis=1)
 
     def _fit(self, y, exog=None):
         """Fit forecaster to time series.
@@ -86,7 +86,7 @@ class RegressionForecaster(BaseForecaster):
         NOTE: deal with horizons
         """
         self.fit(y, exog)
-        return self.predict(y)
+        return self.predict()
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):

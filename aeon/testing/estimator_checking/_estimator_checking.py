@@ -18,7 +18,12 @@ from aeon.base import BaseAeonEstimator
 from aeon.testing.estimator_checking._yield_estimator_checks import (
     _yield_all_aeon_checks,
 )
-from aeon.testing.testing_config import EXCLUDE_ESTIMATORS, EXCLUDED_TESTS
+from aeon.testing.testing_config import (
+    EXCLUDE_ESTIMATORS,
+    EXCLUDED_TESTS,
+    EXCLUDED_TESTS_NO_NUMBA,
+    NUMBA_DISABLED,
+)
 from aeon.utils.validation._dependencies import (
     _check_estimator_deps,
     _check_soft_dependencies,
@@ -184,10 +189,11 @@ def check_estimator(
     >>> results = check_estimator(MockClassifier())
 
     Running specific check for MockClassifier
-    >>> check_estimator(MockClassifier, checks_to_run="check_clone")
-    {'check_clone(estimator=MockClassifier())': 'PASSED'}
+    >>> check_estimator(MockClassifier, checks_to_run="check_get_params")
+    {'check_get_params(estimator=MockClassifier())': 'PASSED'}
     """
     # check if estimator has soft dependencies installed
+    _check_soft_dependencies("pytest")
     _check_estimator_deps(estimator)
 
     checks = []
@@ -313,6 +319,8 @@ def _should_be_skipped(estimator, check, has_dependencies):
         return True, "In aeon estimator exclude list", check_name
     elif check_name in EXCLUDED_TESTS.get(est_name, []):
         return True, "In aeon test exclude list for estimator", check_name
+    elif NUMBA_DISABLED and check_name in EXCLUDED_TESTS_NO_NUMBA.get(est_name, []):
+        return True, "In aeon no numba test exclude list for estimator", check_name
 
     return False, "", check_name
 

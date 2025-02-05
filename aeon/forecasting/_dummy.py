@@ -9,7 +9,7 @@ class DummyForecaster(BaseForecaster):
     def __init__(self):
         """Initialize DummyForecaster."""
         self.last_value_ = None
-        super().__init__()
+        super().__init__(horizon=1, axis=1)
 
     def _fit(self, y, exog=None):
         """Fit dummy forecaster."""
