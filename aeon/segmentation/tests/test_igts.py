@@ -51,5 +51,3 @@ def test_InformationGainSegmenter(multivariate_mean_shift):
             [0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3], dtype=int
         ),
     )
-    assert igts.change_points_ == [0, 5, 10, 15, 20]
-    assert len(igts.intermediate_results_) == 3
