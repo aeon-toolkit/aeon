@@ -29,8 +29,9 @@ Here is an example snippet taken from [PyODAdapter](https://www.aeon-toolkit.org
 It uses the `pyod` library, which is a soft dependency. The `TYPE_CHECKING` constant
 is used to ensure that the `pyod` library is only imported at the top level while type
 checking is performed. `from __future__ import annotations` is used to allow forward
-references  in type hints. See [PEP 563](https://peps.python.org/pep-0563/) for more
-information. The `pyod` `BaseDetector` class can now be used in type hints.
+references in type hints. See [PEP 563](https://peps.python.org/pep-0563/) for more
+information. The `pyod` `BaseDetector` class can now be used in type hints with
+these additions.
 
  ```python
 from __future__ import annotations
