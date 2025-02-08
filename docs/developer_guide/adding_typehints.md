@@ -50,11 +50,4 @@ class PyODAdapter(BaseAnomalyDetector):
         self.stride = stride
 
         super().__init__(axis=0)
-
-    @staticmethod
-    def _is_pyod_model(model: BaseDetector) -> bool:
-        """Check if the provided model is a PyOD model."""
-        from pyod.models.base import BaseDetector
-
-        return isinstance(model, BaseDetector)
 ```
