@@ -5,7 +5,7 @@ from __future__ import annotations
 __maintainer__ = ["SebastianSchmidl"]
 __all__ = ["PyODAdapter"]
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 import numpy as np
 from sklearn import clone
@@ -85,7 +85,7 @@ class PyODAdapter(BaseAnomalyDetector):
         super().__init__(axis=0)
 
     @staticmethod
-    def _is_pyod_model(model: Any) -> bool:
+    def _is_pyod_model(model: BaseDetector) -> bool:
         """Check if the provided model is a PyOD model."""
         from pyod.models.base import BaseDetector
 
