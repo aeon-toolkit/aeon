@@ -37,3 +37,20 @@ def test_tsfresh_classifier():
         assert cls._majority_class in [0, 1]
     cls.verbose = 1
     cls.fit(X, y)
+
+
+@pytest.mark.parametrize("class_weight", ["balanced", "balanced_subsample"])
+def test_tsfresh_classifier_with_class_weight(class_weight):
+    """Test tsfresh classifier with class weight."""
+    X, y = make_example_3d_numpy(
+        n_cases=10, n_channels=1, n_timepoints=12, return_y=True, random_state=0
+    )
+    clf = TSFreshClassifier(
+        estimator=RandomForestClassifier(n_estimators=5),
+        random_state=0,
+        class_weight=class_weight,
+    )
+    clf.fit(X, y)
+    predictions = clf.predict(X)
+    assert len(predictions) == len(y)
+    assert set(predictions).issubset(set(y))
