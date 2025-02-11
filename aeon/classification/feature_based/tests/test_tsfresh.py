@@ -39,6 +39,10 @@ def test_tsfresh_classifier():
     cls.fit(X, y)
 
 
+@pytest.mark.skipif(
+    not _check_soft_dependencies("tsfresh", severity="none"),
+    reason="skip test if required soft dependency tsfresh not available",
+)
 @pytest.mark.parametrize("class_weight", ["balanced", "balanced_subsample"])
 def test_tsfresh_classifier_with_class_weight(class_weight):
     """Test tsfresh classifier with class weight."""
