@@ -1,8 +1,10 @@
 """Tests for the MLPNetwork Model."""
 
 import pytest
+
 from aeon.networks import MLPNetwork
 from aeon.utils.validation._dependencies import _check_soft_dependencies
+
 
 @pytest.mark.skipif(
     not _check_soft_dependencies(["tensorflow"], severity="none"),
@@ -11,9 +13,9 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 @pytest.mark.parametrize(
     "n_layers, n_units, activation",
     [
-        (3, 500, "relu"),  
-        (5, [256, 128, 128, 64, 32], "sigmoid"),  
-        (2, 128, ["tanh", "relu"]),  
+        (3, 500, "relu"),
+        (5, [256, 128, 128, 64, 32], "sigmoid"),
+        (2, 128, ["tanh", "relu"]),
     ],
 )
 def test_mlp_initialization(n_layers, n_units, activation):
@@ -23,6 +25,7 @@ def test_mlp_initialization(n_layers, n_units, activation):
     assert input_layer is not None
     assert output_layer is not None
 
+
 @pytest.mark.skipif(
     not _check_soft_dependencies(["tensorflow"], severity="none"),
     reason="Tensorflow soft dependency unavailable.",
@@ -30,9 +33,11 @@ def test_mlp_initialization(n_layers, n_units, activation):
 @pytest.mark.parametrize(
     "dropout_rate, n_layers",
     [
-        (0.2, 3),  
+        (0.2, 3),
         ([0.1, 0.2, 0.3], 3),
-        pytest.param([0.1, 0.2], 3, marks=pytest.mark.xfail(raises=AssertionError)),  # Mismatch
+        pytest.param(
+            [0.1, 0.2], 3, marks=pytest.mark.xfail(raises=AssertionError)
+        ),  # Mismatch
     ],
 )
 def test_dropout_rate(dropout_rate, n_layers):
@@ -42,6 +47,7 @@ def test_dropout_rate(dropout_rate, n_layers):
     assert input_layer is not None
     assert output_layer is not None
 
+
 @pytest.mark.skipif(
     not _check_soft_dependencies(["tensorflow"], severity="none"),
     reason="Tensorflow soft dependency unavailable.",
@@ -49,9 +55,11 @@ def test_dropout_rate(dropout_rate, n_layers):
 @pytest.mark.parametrize(
     "dropout_last",
     [
-        (0.3),  
-        (0.5),  
-        pytest.param(1.2, marks=pytest.mark.xfail(raises=AssertionError)),  # Invalid case
+        (0.3),
+        (0.5),
+        pytest.param(
+            1.2, marks=pytest.mark.xfail(raises=AssertionError)
+        ),  # Invalid case
     ],
 )
 def test_dropout_last(dropout_last):
@@ -61,6 +69,7 @@ def test_dropout_last(dropout_last):
     assert input_layer is not None
     assert output_layer is not None
 
+
 @pytest.mark.skipif(
     not _check_soft_dependencies(["tensorflow"], severity="none"),
     reason="Tensorflow soft dependency unavailable.",
@@ -68,8 +77,8 @@ def test_dropout_last(dropout_last):
 @pytest.mark.parametrize(
     "use_bias",
     [
-        (True),  
-        (False), 
+        (True),
+        (False),
     ],
 )
 def test_use_bias(use_bias):
@@ -78,4 +87,3 @@ def test_use_bias(use_bias):
     input_layer, output_layer = mlp.build_network((1000, 5))
     assert input_layer is not None
     assert output_layer is not None
-
