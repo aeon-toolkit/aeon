@@ -53,7 +53,8 @@ class ModelType:
         seasonality_type=NONE,
         seasonal_period=1,
     ):
-        assert error_type != NONE, "Error must be either additive or multiplicative"
+        if error_type == NONE:
+            raise ValueError("Error must be either additive or multiplicative")
         if seasonal_period < 1 or seasonality_type == NONE:
             seasonal_period = 1
         self.error_type = error_type
@@ -146,17 +147,6 @@ class ETSForecaster(BaseForecaster):
     ----------
     .. [1] R. J. Hyndman and G. Athanasopoulos,
         Forecasting: Principles and Practice. Melbourne, Australia: OTexts, 2014.
-
-    Examples
-    --------
-    >>> from aeon.forecasting import ETSForecaster, ModelType
-    >>> from aeon.datasets import load_airline
-    >>> y = load_airline()
-    >>> forecaster = ETSForecaster(alpha=0.4, beta=0.2, gamma=0.5, phi=0.8, horizon=1,
-                               model_type=ModelType(1,2,2,4))
-    >>> forecaster.fit(y)
-    >>> forecaster.predict()
-    366.90200486015596
     """
 
     default_model_type = ModelType()

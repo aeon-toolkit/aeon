@@ -10,7 +10,7 @@ from statsforecast.utils import AirPassengers as ap
 
 import aeon.forecasting._ets_fast as etsfast
 import aeon.forecasting._ets_fast_structtest as ets_structtest
-from aeon.forecasting import ETSForecaster, ModelType
+from aeon.forecasting import ETSForecaster
 
 NA = -99999.0
 MAX_NMSE = 30
@@ -103,7 +103,10 @@ def test_ets_comparison(setup_func, random_seed, catch_errors):
     # tsml-eval implementation
     start = time.perf_counter()
     f1 = ETSForecaster(
-        ModelType(error, trend, season, m),
+        error,
+        trend,
+        season,
+        m,
         alpha,
         beta,
         gamma,
@@ -114,16 +117,16 @@ def test_ets_comparison(setup_func, random_seed, catch_errors):
     end = time.perf_counter()
     time_fitets = end - start
     e_fitets = f1.residuals_
-    amse_fitets = f1.avg_mean_sq_err_
-    lik_fitets = f1.liklihood_
-    f1 = ETSForecaster(ModelType(error, trend, season, m), alpha, beta, gamma, phi, 1)
+    amse_fitets = f1.mean_sq_err_
+    lik_fitets = f1.likelihood_
+    f1 = ETSForecaster(error, trend, season, m, alpha, beta, gamma, phi, 1)
     # pylint: disable=W0212
-    f1._initialise(y)
+    f1._fit(y)
     # pylint: enable=W0212
     init_states_etscalc = np.zeros(len(y) * (1 + (trend > 0) + m * (season > 0) + 1))
-    init_states_etscalc[0] = f1.level_
-    init_states_etscalc[1] = f1.trend_
-    init_states_etscalc[1 + (trend != 0) : m + 1 + (trend != 0)] = f1.season_[::-1]
+    init_states_etscalc[0] = f1._level
+    init_states_etscalc[1] = f1._trend
+    init_states_etscalc[1 + (trend != 0) : m + 1 + (trend != 0)] = f1._seasonality[::-1]
     if season == 0:
         m = 1
     # Nixtla/statsforcast implementation
@@ -189,7 +192,7 @@ def time_ets_structtest():
 
 def time_etsnoopt():
     """Test function for non-optimised ets algorithm."""
-    ETSForecaster(ModelType(2, 2, 2, 4)).fit(ap).predict()
+    ETSForecaster(2, 2, 2, 4).fit(ap).predict()
 
 
 def time_etsfast_noclass():
@@ -271,16 +274,16 @@ def time_compare(random_seed):
     ets_structtest_time = end - start
     # _ets implementation
     start = time.perf_counter()
-    f1 = ETSForecaster(ModelType(error, trend, season, m), alpha, beta, gamma, phi, 1)
+    f1 = ETSForecaster(error, trend, season, m, alpha, beta, gamma, phi, 1)
     f1.fit(y)
     end = time.perf_counter()
     etsnoopt_time = end - start
     assert np.allclose(f1.residuals_, f2.residuals_)
-    assert np.allclose(f1.avg_mean_sq_err_, f2.avg_mean_sq_err_)
-    assert np.isclose(f1.liklihood_, f2.liklihood_)
+    assert np.allclose(f1.mean_sq_err_, f2.avg_mean_sq_err_)
+    assert np.isclose(f1.likelihood_, f2.liklihood_)
     assert np.allclose(f1.residuals_, f3.residuals_)
-    assert np.allclose(f1.avg_mean_sq_err_, f3.avg_mean_sq_err_)
-    assert np.isclose(f1.liklihood_, f3.liklihood_)
+    assert np.allclose(f1.mean_sq_err_, f3.avg_mean_sq_err_)
+    assert np.isclose(f1.likelihood_, f3.liklihood_)
     print(  # noqa
         f"ETS No-optimisation Time: {etsnoopt_time},\
         Fast Structtest time: {ets_structtest_time},\

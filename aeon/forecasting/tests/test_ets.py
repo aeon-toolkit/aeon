@@ -5,7 +5,7 @@ __all__ = []
 
 import numpy as np
 
-from aeon.forecasting import ETSForecaster, ModelType
+from aeon.forecasting import ETSForecaster
 
 
 def test_ets_forecaster_additive():
@@ -19,7 +19,10 @@ def test_ets_forecaster_additive():
         gamma=0.4,
         phi=1,
         horizon=1,
-        model_type=ModelType(1, 1, 1, 4),
+        error_type=1,
+        trend_type=1,
+        seasonality_type=1,
+        seasonal_period=4,
     )
     forecaster.fit(data)
     p = forecaster.predict()
@@ -37,7 +40,10 @@ def test_ets_forecaster_mult_error():
         gamma=0.1,
         phi=0.97,
         horizon=1,
-        model_type=ModelType(2, 1, 1, 4),
+        error_type=2,
+        trend_type=1,
+        seasonality_type=1,
+        seasonal_period=4,
     )
     forecaster.fit(data)
     p = forecaster.predict()
@@ -55,7 +61,10 @@ def test_ets_forecaster_mult_compnents():
         gamma=0.5,
         phi=0.8,
         horizon=1,
-        model_type=ModelType(1, 2, 2, 4),
+        error_type=1,
+        trend_type=2,
+        seasonality_type=2,
+        seasonal_period=4,
     )
     forecaster.fit(data)
     p = forecaster.predict()
@@ -73,7 +82,10 @@ def test_ets_forecaster_multiplicative():
         gamma=0.2,
         phi=0.85,
         horizon=1,
-        model_type=ModelType(2, 2, 2, 4),
+        error_type=2,
+        trend_type=2,
+        seasonality_type=2,
+        seasonal_period=4,
     )
     forecaster.fit(data)
     p = forecaster.predict()

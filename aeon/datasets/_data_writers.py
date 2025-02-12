@@ -246,7 +246,7 @@ def create_windowed_series(series, window_width=100):
     """
     windowed_series = []
     indices = []
-    for i in range(len(series) - window_width):
+    for i in range(len(series) - window_width + 1):
         windowed_series.append(
             series[i : i + window_width]
         )  # Create a view from current index onward
