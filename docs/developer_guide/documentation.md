@@ -154,7 +154,7 @@ Here are a few examples of `aeon` code with good documentation.
 
 ### Estimators
 
-[BOSSEnsemble](https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.classification.dictionary_based.BOSSEnsemble.html#aeon.classification.dictionary_based.BOSSEnsemble)
+[BOSSEnsemble](https://www.aeon-toolkit.org/en/stable/api_reference/auto_generated/aeon.classification.dictionary_based.BOSSEnsemble.html#aeon.classification.dictionary_based.BOSSEnsemble)
 
 ### Functions
 
