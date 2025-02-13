@@ -26,7 +26,11 @@ def test_single_overlapping_range():
 
     precision = ts_precision(y_pred, y_real, gamma="one", bias_type="flat")
     recall = ts_recall(
-        y_pred, y_real, gamma="one", bias_type="flat", alpha=0.0, udf_gamma=None
+        y_pred,
+        y_real,
+        gamma="one",
+        bias_type="flat",
+        alpha=0.0,
     )
     f1_score = ts_fscore(
         y_pred,
@@ -36,7 +40,6 @@ def test_single_overlapping_range():
         r_bias="flat",
         p_alpha=0.0,
         r_alpha=0.0,
-        udf_gamma=None,
     )
 
     np.testing.assert_almost_equal(
@@ -78,7 +81,11 @@ def test_multiple_non_overlapping_ranges():
 
     precision = ts_precision(y_pred, y_real, gamma="one", bias_type="flat")
     recall = ts_recall(
-        y_pred, y_real, gamma="one", bias_type="flat", alpha=0.0, udf_gamma=None
+        y_pred,
+        y_real,
+        gamma="one",
+        bias_type="flat",
+        alpha=0.0,
     )
     f1_score = ts_fscore(
         y_pred,
@@ -88,7 +95,6 @@ def test_multiple_non_overlapping_ranges():
         r_bias="flat",
         p_alpha=0.0,
         r_alpha=0.0,
-        udf_gamma=None,
     )
 
     np.testing.assert_almost_equal(
@@ -130,7 +136,11 @@ def test_multiple_overlapping_ranges():
 
     precision = ts_precision(y_pred, y_real, gamma="one", bias_type="flat")
     recall = ts_recall(
-        y_pred, y_real, gamma="one", bias_type="flat", alpha=0.0, udf_gamma=None
+        y_pred,
+        y_real,
+        gamma="one",
+        bias_type="flat",
+        alpha=0.0,
     )
     f1_score = ts_fscore(
         y_pred,
@@ -140,7 +150,6 @@ def test_multiple_overlapping_ranges():
         r_bias="flat",
         p_alpha=0.0,
         r_alpha=0.0,
-        udf_gamma=None,
     )
 
     np.testing.assert_almost_equal(
@@ -182,7 +191,11 @@ def test_nested_lists_of_predictions():
 
     precision = ts_precision(y_pred, y_real, gamma="one", bias_type="flat")
     recall = ts_recall(
-        y_pred, y_real, gamma="one", bias_type="flat", alpha=0.0, udf_gamma=None
+        y_pred,
+        y_real,
+        gamma="one",
+        bias_type="flat",
+        alpha=0.0,
     )
     f1_score = ts_fscore(
         y_pred,
@@ -192,7 +205,6 @@ def test_nested_lists_of_predictions():
         r_bias="flat",
         p_alpha=0.0,
         r_alpha=0.0,
-        udf_gamma=None,
     )
 
     np.testing.assert_almost_equal(
@@ -234,7 +246,11 @@ def test_all_encompassing_range():
 
     precision = ts_precision(y_pred, y_real, gamma="one", bias_type="flat")
     recall = ts_recall(
-        y_pred, y_real, gamma="one", bias_type="flat", alpha=0.0, udf_gamma=None
+        y_pred,
+        y_real,
+        gamma="one",
+        bias_type="flat",
+        alpha=0.0,
     )
     f1_score = ts_fscore(
         y_pred,
@@ -244,7 +260,6 @@ def test_all_encompassing_range():
         r_bias="flat",
         p_alpha=0.0,
         r_alpha=0.0,
-        udf_gamma=None,
     )
 
     np.testing.assert_almost_equal(
@@ -300,7 +315,6 @@ def test_binary_input_example():
         gamma="reciprocal",
         bias_type="flat",
         alpha=0.0,
-        udf_gamma=None,
     )
     f1_score = ts_fscore(
         y_pred_binary,
@@ -310,7 +324,6 @@ def test_binary_input_example():
         r_bias="flat",
         p_alpha=0.0,
         r_alpha=0.0,
-        udf_gamma=None,
     )
 
     rb_prec = range_precision(
@@ -360,7 +373,11 @@ def test_multiple_overlapping_ranges_with_gamma_reciprocal():
 
     precision = ts_precision(y_pred, y_real, gamma="reciprocal", bias_type="flat")
     recall = ts_recall(
-        y_pred, y_real, gamma="reciprocal", bias_type="flat", alpha=0.0, udf_gamma=None
+        y_pred,
+        y_real,
+        gamma="reciprocal",
+        bias_type="flat",
+        alpha=0.0,
     )
     f1_score = ts_fscore(
         y_pred,
@@ -370,7 +387,6 @@ def test_multiple_overlapping_ranges_with_gamma_reciprocal():
         r_bias="flat",
         p_alpha=0.0,
         r_alpha=0.0,
-        udf_gamma=None,
     )
 
     np.testing.assert_almost_equal(
@@ -412,7 +428,11 @@ def test_multiple_overlapping_ranges_with_bias_middle():
 
     precision = ts_precision(y_pred, y_real, gamma="one", bias_type="middle")
     recall = ts_recall(
-        y_pred, y_real, gamma="one", bias_type="middle", alpha=0.0, udf_gamma=None
+        y_pred,
+        y_real,
+        gamma="one",
+        bias_type="middle",
+        alpha=0.0,
     )
     f1_score = ts_fscore(
         y_pred,
@@ -422,7 +442,6 @@ def test_multiple_overlapping_ranges_with_bias_middle():
         r_bias="middle",
         p_alpha=0.0,
         r_alpha=0.0,
-        udf_gamma=None,
     )
 
     np.testing.assert_almost_equal(
@@ -469,7 +488,6 @@ def test_multiple_overlapping_ranges_with_bias_middle_gamma_reciprocal():
         gamma="reciprocal",
         bias_type="middle",
         alpha=0.0,
-        udf_gamma=None,
     )
     f1_score = ts_fscore(
         y_pred,
@@ -479,7 +497,6 @@ def test_multiple_overlapping_ranges_with_bias_middle_gamma_reciprocal():
         r_bias="middle",
         p_alpha=0.0,
         r_alpha=0.0,
-        udf_gamma=None,
     )
 
     np.testing.assert_almost_equal(

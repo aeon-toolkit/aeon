@@ -36,6 +36,24 @@ def _flatten_ranges(ranges):
     return ranges
 
 
+def udf_gamma_def(overlap_count):
+    """User-defined gamma function. Should return a gamma value > 1.
+
+    Parameters
+    ----------
+    overlap_count : int
+        The number of overlapping ranges.
+
+    Returns
+    -------
+    float
+        The user-defined gamma value (>1).
+    """
+    return_val = 1 + 0.1 * overlap_count  # modify this function as needed
+
+    return return_val
+
+
 def _calculate_bias(position, length, bias_type="flat"):
     """Calculate bias value based on position and length.
 
@@ -65,7 +83,7 @@ def _calculate_bias(position, length, bias_type="flat"):
         raise ValueError(f"Invalid bias type: {bias_type}")
 
 
-def _gamma_select(cardinality, gamma, udf_gamma=None):
+def _gamma_select(cardinality, gamma):
     """Select a gamma value based on the cardinality type.
 
     Parameters
@@ -74,9 +92,6 @@ def _gamma_select(cardinality, gamma, udf_gamma=None):
         The number of overlapping ranges.
     gamma : str
         Gamma to use. Should be one of ["one", "reciprocal", "udf_gamma"].
-    udf_gamma : float or None, optional
-        The user-defined gamma value to use when `gamma` is set to "udf_gamma".
-        Required if `gamma` is "udf_gamma".
 
     Returns
     -------
@@ -94,8 +109,8 @@ def _gamma_select(cardinality, gamma, udf_gamma=None):
     elif gamma == "reciprocal":
         return 1 / cardinality if cardinality > 1 else 1.0
     elif gamma == "udf_gamma":
-        if udf_gamma is not None:
-            return 1.0 / udf_gamma
+        if udf_gamma_def(cardinality) is not None:
+            return 1.0 / udf_gamma_def(cardinality)
         else:
             raise ValueError("udf_gamma must be provided for 'udf_gamma' gamma type.")
     else:
@@ -312,7 +327,7 @@ def ts_precision(y_pred, y_real, gamma="one", bias_type="flat"):
     return precision
 
 
-def ts_recall(y_pred, y_real, gamma="one", bias_type="flat", alpha=0.0, udf_gamma=None):
+def ts_recall(y_pred, y_real, gamma="one", bias_type="flat", alpha=0.0):
     """
     Calculate Recall for time series anomaly detection.
 
@@ -338,8 +353,6 @@ def ts_recall(y_pred, y_real, gamma="one", bias_type="flat", alpha=0.0, udf_gamm
         Type of bias to apply. Should be one of ["flat", "front", "middle", "back"].
     alpha : float, default: 0.0
         Weight for existence reward in recall calculation.
-    udf_gamma : int or None, default=None
-        User-defined gamma value.
 
     Returns
     -------
@@ -411,7 +424,7 @@ def ts_recall(y_pred, y_real, gamma="one", bias_type="flat", alpha=0.0, udf_gamm
             overlap_reward = _calculate_overlap_reward_recall(
                 real_range, overlap_set, bias_type
             )
-            gamma_value = _gamma_select(cardinality, gamma, udf_gamma)
+            gamma_value = _gamma_select(cardinality, gamma)
             overlap_reward *= gamma_value
         else:
             overlap_reward = 0.0
@@ -432,7 +445,6 @@ def ts_fscore(
     p_alpha=0.0,
     r_alpha=0.0,
     beta=1.0,
-    udf_gamma=None,
 ):
     """
     Calculate F1-Score for time series anomaly detection.
@@ -467,8 +479,6 @@ def ts_fscore(
     beta : float, default=1.0
         F-score beta determines the weight of recall in the combined score.
         beta < 1 lends more weight to precision, while beta > 1 favors recall.
-    udf_gamma : int or None, default=None
-        User-defined gamma value.
 
     Returns
     -------
@@ -483,7 +493,7 @@ def ts_fscore(
        http://papers.nips.cc/paper/7462-precision-and-recall-for-time-series.pdf
     """
     precision = ts_precision(y_pred, y_real, gamma, p_bias)
-    recall = ts_recall(y_pred, y_real, gamma, r_bias, r_alpha, udf_gamma)
+    recall = ts_recall(y_pred, y_real, gamma, r_bias, r_alpha)
 
     if precision + recall > 0:
         fscore = ((1 + beta**2) * (precision * recall)) / (beta**2 * precision + recall)
