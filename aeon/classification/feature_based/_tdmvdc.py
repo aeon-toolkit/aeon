@@ -6,7 +6,7 @@ from sklearn.preprocessing import StandardScaler
 
 from aeon.classification.base import BaseClassifier
 from aeon.transformations.collection.feature_based import (
-    TSFreshRelevant,
+    TSFresh,
     hard_voting,
     series_set_dilation,
     series_transform,
@@ -47,7 +47,7 @@ class TDMVDCClassifier(BaseClassifier):
 
     _tags = {
         "capability:multivariate": False,
-        "capability:multithreading": True,
+        "capability:multithreading": False,
         "capability:train_estimate": False,
         "algorithm_type": "feature",
         "python_dependencies": "tsfresh",
@@ -138,21 +138,15 @@ class TDMVDCClassifier(BaseClassifier):
             )  # Dilated Second-order differential series set
 
             # Extracting the TSFresh features for each dilated series set
-            tsFreshR = TSFreshRelevant(
-                default_fc_parameters="efficient", n_jobs=self.n_jobs
-            )
+            tsFreshR = TSFresh(default_fc_parameters="efficient", n_jobs=self.n_jobs)
             tsFreshR.fit(trainSignalRX_E, trainY)
             trainRX = np.array(tsFreshR.transform(trainSignalRX_E))
 
-            tsFreshF = TSFreshRelevant(
-                default_fc_parameters="efficient", n_jobs=self.n_jobs
-            )
+            tsFreshF = TSFresh(default_fc_parameters="efficient", n_jobs=self.n_jobs)
             tsFreshF.fit(trainSignalFX_E, trainY)
             trainFX = np.array(tsFreshF.transform(trainSignalFX_E))
 
-            tsFreshS = TSFreshRelevant(
-                default_fc_parameters="efficient", n_jobs=self.n_jobs
-            )
+            tsFreshS = TSFresh(default_fc_parameters="efficient", n_jobs=self.n_jobs)
             tsFreshS.fit(trainSignalSX_E, trainY)
             trainSX = np.array(tsFreshS.transform(trainSignalSX_E))
 
