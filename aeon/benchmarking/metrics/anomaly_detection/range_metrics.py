@@ -431,6 +431,7 @@ def ts_fscore(
     r_bias="flat",
     p_alpha=0.0,
     r_alpha=0.0,
+    beta=1.0,
     udf_gamma=None,
 ):
     """
@@ -463,6 +464,9 @@ def ts_fscore(
         Weight for existence reward in Precision calculation.
     r_alpha : float, default=0.0
         Weight for existence reward in Recall calculation.
+    beta : float, default=1.0
+        F-score beta determines the weight of recall in the combined score.
+        beta < 1 lends more weight to precision, while beta > 1 favors recall.
     udf_gamma : int or None, default=None
         User-defined gamma value.
 
@@ -482,7 +486,7 @@ def ts_fscore(
     recall = ts_recall(y_pred, y_real, gamma, r_bias, r_alpha, udf_gamma)
 
     if precision + recall > 0:
-        fscore = 2 * (precision * recall) / (precision + recall)
+        fscore = ((1 + beta**2) * (precision * recall)) / (beta**2 * precision + recall)
     else:
         fscore = 0.0
 
