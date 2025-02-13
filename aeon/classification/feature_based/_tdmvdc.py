@@ -290,4 +290,4 @@ class TDMVDCClassifier(BaseClassifier):
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator."""
-        return {"k1": 1, "k2": 1, "feature_store_ratios": [0.1], "n_jobs": 1}
+        return {"k1": 1, "k2": 1, "feature_store_ratios": [0.1]}
