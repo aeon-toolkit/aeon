@@ -307,11 +307,12 @@ def write_windowed_split_series(
     # Extract time series and start timestamp
     series_values = df[value_column_name].iloc[0]  # Assume only one series in DataFrame
     # Compute split index
-    train_test_split_location = math.ceil(len(series_values) * train_proportion)
+    end_location = len(series_values) if len(series_values) < 10000 else 10000
+    train_test_split_location = math.ceil(end_location * train_proportion)
 
     # Split into train and test sets
     train_series = series_values[:train_test_split_location]
-    test_series = series_values[train_test_split_location:]
+    test_series = series_values[train_test_split_location:end_location]
 
     # Generate windowed versions of train and test sets
     train_windows, train_indices = create_windowed_series(train_series)
