@@ -29,7 +29,7 @@ repos:
         args: [ "--create", "--python-folders", "aeon" ]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.9.2
+    rev: v0.9.5
     hooks:
       - id: ruff
         args: [ "--fix"]
@@ -41,7 +41,7 @@ repos:
         args: [ "--py39-plus" ]
 
   - repo: https://github.com/pycqa/isort
-    rev: 5.13.2
+    rev: 6.0.0
     hooks:
       - id: isort
         name: isort
@@ -55,7 +55,7 @@ repos:
         args: [ "--max-line-length=88", "--extend-ignore=E203" ]
 
   - repo: https://github.com/psf/black
-    rev: 24.10.0
+    rev: 25.1.0
     hooks:
       - id: black
         language_version: python3
