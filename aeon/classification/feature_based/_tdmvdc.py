@@ -59,15 +59,18 @@ class TDMVDCClassifier(BaseClassifier):
         k1=2,
         k2=2,
         feature_store_ratios=None,
-        n_jobs=1,
+        # n_jobs=1,
     ):  # Remove **kwargs from parameters
         self.default_fc_parameters = default_fc_parameters
         self.k1 = k1
         self.k2 = k2
-        if feature_store_ratios is None:
-            feature_store_ratios = [0.1, 0.2, 0.3, 0.4, 0.5]
+        self.feature_store_ratios = (
+            feature_store_ratios
+            if feature_store_ratios is not None
+            else [0.1, 0.2, 0.3, 0.4, 0.5]
+        )
         self.feature_store_ratios = feature_store_ratios
-        self.n_jobs = n_jobs
+        # self.n_jobs = n_jobs
 
         super().__init__()  # Remove **kwargs passthrough
 
