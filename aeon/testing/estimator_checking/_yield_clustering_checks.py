@@ -77,18 +77,33 @@ def check_clustering_random_state_deep_learning(estimator, datatype):
     deep_clr1 = _clone_estimator(estimator, random_state=random_state)
     deep_clr1.fit(FULL_TEST_DATA_DICT[datatype]["train"][0])
 
-    layers1 = deep_clr1.training_model_.layers[1:]
+    encoder_layers1 = deep_clr1.training_model_.layers[1].layers[1:]
+    decoder_layers1 = deep_clr1.training_model_.layers[2].layers[1:]
 
     deep_clr2 = _clone_estimator(estimator, random_state=random_state)
     deep_clr2.fit(FULL_TEST_DATA_DICT[datatype]["train"][0])
 
-    layers2 = deep_clr2.training_model_.layers[1:]
+    encoder_layers2 = deep_clr2.training_model_.layers[1].layers[1:]
+    decoder_layers2 = deep_clr2.training_model_.layers[2].layers[1:]
 
-    assert len(layers1) == len(layers2)
+    assert len(encoder_layers1) == len(encoder_layers2)
+    assert len(decoder_layers1) == len(decoder_layers2)
 
-    for i in range(len(layers1)):
-        weights1 = layers1[i].get_weights()
-        weights2 = layers2[i].get_weights()
+    for i in range(len(encoder_layers1)):
+        weights1 = encoder_layers1[i].get_weights()
+        weights2 = encoder_layers2[i].get_weights()
+
+        assert len(weights1) == len(weights2)
+
+        for j in range(len(weights1)):
+            _weight1 = np.asarray(weights1[j])
+            _weight2 = np.asarray(weights2[j])
+
+            np.testing.assert_almost_equal(_weight1, _weight2, 4)
+
+    for i in range(len(decoder_layers1)):
+        weights1 = decoder_layers1[i].get_weights()
+        weights2 = decoder_layers2[i].get_weights()
 
         assert len(weights1) == len(weights2)
 
