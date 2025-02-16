@@ -1,7 +1,6 @@
 """Tests for the Attention Bidirectional Network."""
 
 import pytest
-import tensorflow as tf
 
 from aeon.networks import AEAttentionBiGRUNetwork
 from aeon.utils.validation._dependencies import _check_soft_dependencies
@@ -14,6 +13,8 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 @pytest.mark.parametrize("latent_space_dim", [64, 128, 256])
 def test_aeattentionbigrunetwork_latent_space(latent_space_dim):
     """Test AEAttentionBiGRUNetwork with different latent space dimensions."""
+    import tensorflow as tf
+
     aeattentionbigru = AEAttentionBiGRUNetwork(latent_space_dim=latent_space_dim)
     encoder, decoder = aeattentionbigru.build_network((1000, 5))
     assert isinstance(encoder, tf.keras.models.Model)
@@ -27,6 +28,8 @@ def test_aeattentionbigrunetwork_latent_space(latent_space_dim):
 @pytest.mark.parametrize("n_layers_decoder", [1, 2, 3, 2.5, "1"])
 def test_aeattentionbigrunetwork_n_layers_decoder(n_layers_decoder):
     """Test AEAttentionBiGRUNetwork with different number of decoder layers."""
+    import tensorflow as tf
+
     if not isinstance(n_layers_decoder, int):
         with pytest.raises(TypeError):
             aeattentionbigru = AEAttentionBiGRUNetwork(
@@ -47,6 +50,8 @@ def test_aeattentionbigrunetwork_n_layers_decoder(n_layers_decoder):
 @pytest.mark.parametrize("n_layers_encoder", [1, 2, 3, 3.5, "2"])
 def test_aeattentionbigrunetwork_n_layers_encoder(n_layers_encoder):
     """Test AEAttentionBiGRUNetwork with different number of encoder layers."""
+    import tensorflow as tf
+
     if not isinstance(n_layers_encoder, int):
         with pytest.raises(TypeError):
             aeattentionbigru = AEAttentionBiGRUNetwork(
@@ -70,6 +75,8 @@ def test_aeattentionbigrunetwork_n_layers_encoder(n_layers_encoder):
 )
 def test_aeattentionbigrunetwork_activation_decoder(activation_decoder):
     """Test AEAttentionBiGRUNetwork with different decoder activations."""
+    import tensorflow as tf
+
     if isinstance(activation_decoder, list) and len(activation_decoder) != 3:
         with pytest.raises(ValueError):
             aeattentionbigru = AEAttentionBiGRUNetwork(
@@ -99,6 +106,8 @@ def test_aeattentionbigrunetwork_activation_decoder(activation_decoder):
 )
 def test_aeattentionbigrunetwork_activation_encoder(activation_encoder):
     """Test AEAttentionBiGRUNetwork with different encoder activations."""
+    import tensorflow as tf
+
     if isinstance(activation_encoder, list) and len(activation_encoder) != 3:
         with pytest.raises(ValueError):
             aeattentionbigru = AEAttentionBiGRUNetwork(
@@ -127,6 +136,8 @@ def test_aeattentionbigrunetwork_activation_encoder(activation_encoder):
 )  # fails if set to True  -> issue raised
 def test_aeattentionbigrunetwork_temporal_latent_space(temporal_latent_space):
     """Test AEAttentionBiGRUNetwork with temporal latent space enabled/disabled."""
+    import tensorflow as tf
+
     aeattentionbigru = AEAttentionBiGRUNetwork(
         temporal_latent_space=temporal_latent_space
     )
