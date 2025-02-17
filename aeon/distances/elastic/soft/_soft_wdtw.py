@@ -1,4 +1,4 @@
-r"""Soft dynamic time warping (soft-DTW) between two time series."""
+r"""Weighted dynamic time warping (WDTW) distance between two time series."""
 
 __maintainer__ = []
 
@@ -20,15 +20,14 @@ from aeon.distances.pointwise._squared import _univariate_squared_distance
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
-MAX_FLOAT = np.finfo(np.float64).max
-
 
 @njit(cache=True, fastmath=True)
-def soft_dtw_distance(
+def soft_wdtw_distance(
     x: np.ndarray,
     y: np.ndarray,
-    gamma: float = 1.0,
     window: Optional[float] = None,
+    g: float = 0.05,
+    gamma: float = 1.0,
     itakura_max_slope: Optional[float] = None,
 ) -> float:
     if x.ndim == 1 and y.ndim == 1:
@@ -37,21 +36,22 @@ def soft_dtw_distance(
         bounding_matrix = create_bounding_matrix(
             _x.shape[1], _y.shape[1], window, itakura_max_slope
         )
-        return _soft_dtw_distance(_x, _y, bounding_matrix, gamma)
+        return _soft_wdtw_distance(_x, _y, bounding_matrix, g, gamma)
     if x.ndim == 2 and y.ndim == 2:
         bounding_matrix = create_bounding_matrix(
             x.shape[1], y.shape[1], window, itakura_max_slope
         )
-        return _soft_dtw_distance(x, y, bounding_matrix, gamma)
+        return _soft_wdtw_distance(x, y, bounding_matrix, g, gamma)
     raise ValueError("x and y must be 1D or 2D")
 
 
 @njit(cache=True, fastmath=True)
-def soft_dtw_cost_matrix(
+def soft_wdtw_cost_matrix(
     x: np.ndarray,
     y: np.ndarray,
-    gamma: float = 1.0,
     window: Optional[float] = None,
+    g: float = 0.05,
+    gamma: float = 1.0,
     itakura_max_slope: Optional[float] = None,
 ) -> np.ndarray:
     if x.ndim == 1 and y.ndim == 1:
@@ -60,55 +60,61 @@ def soft_dtw_cost_matrix(
         bounding_matrix = create_bounding_matrix(
             _x.shape[1], _y.shape[1], window, itakura_max_slope
         )
-        return _soft_dtw_cost_matrix(_x, _y, bounding_matrix, gamma)
+        return _soft_wdtw_cost_matrix(_x, _y, bounding_matrix, g, gamma)
     if x.ndim == 2 and y.ndim == 2:
         bounding_matrix = create_bounding_matrix(
             x.shape[1], y.shape[1], window, itakura_max_slope
         )
-        return _soft_dtw_cost_matrix(x, y, bounding_matrix, gamma)
+        return _soft_wdtw_cost_matrix(x, y, bounding_matrix, g, gamma)
     raise ValueError("x and y must be 1D or 2D")
 
 
 @njit(cache=True, fastmath=True)
-def _soft_dtw_distance(
-    x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, gamma: float
+def _soft_wdtw_distance(
+    x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, g: float, gamma: float
 ) -> float:
     return abs(
-        _soft_dtw_cost_matrix(x, y, bounding_matrix, gamma)[
+        _soft_wdtw_cost_matrix(x, y, bounding_matrix, g, gamma)[
             x.shape[1] - 1, y.shape[1] - 1
         ]
     )
 
 
 @njit(cache=True, fastmath=True)
-def _soft_dtw_cost_matrix(
-    x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, gamma: float
+def _soft_wdtw_cost_matrix(
+    x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, g: float, gamma: float
 ) -> np.ndarray:
     x_size = x.shape[1]
     y_size = y.shape[1]
     cost_matrix = np.full((x_size + 1, y_size + 1), np.inf)
     cost_matrix[0, 0] = 0.0
 
-    # Now iterate like DTW - over original time series indices
+    max_size = max(x_size, y_size)
+    weight_vector = np.array(
+        [1 / (1 + np.exp(-g * (i - max_size / 2))) for i in range(0, max_size)]
+    )
+
     for i in range(x_size):
         for j in range(y_size):
             if bounding_matrix[i, j]:
                 cost_matrix[i + 1, j + 1] = _univariate_squared_distance(
                     x[:, i], y[:, j]
-                ) + _soft_min(
+                ) * weight_vector[abs(i - j)] + _soft_min(
                     cost_matrix[i, j + 1],
-                    cost_matrix[i, j],
                     cost_matrix[i + 1, j],
+                    cost_matrix[i, j],
                     gamma,
                 )
+
     return cost_matrix[1:, 1:]
 
 
-def soft_dtw_pairwise_distance(
+def soft_wdtw_pairwise_distance(
     X: Union[np.ndarray, list[np.ndarray]],
     y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
-    gamma: float = 1.0,
     window: Optional[float] = None,
+    g: float = 0.05,
+    gamma: float = 1.0,
     itakura_max_slope: Optional[float] = None,
 ) -> np.ndarray:
     multivariate_conversion = _is_numpy_list_multivariate(X, y)
@@ -118,21 +124,22 @@ def soft_dtw_pairwise_distance(
 
     if y is None:
         # To self
-        return _soft_dtw_pairwise_distance(
-            _X, window, itakura_max_slope, unequal_length, gamma
+        return _soft_wdtw_pairwise_distance(
+            _X, window, g, itakura_max_slope, unequal_length, gamma
         )
     _y, unequal_length = _convert_collection_to_numba_list(
         y, "y", multivariate_conversion
     )
-    return _soft_dtw_from_multiple_to_multiple_distance(
-        _X, _y, window, itakura_max_slope, unequal_length, gamma
+    return _soft_wdtw_from_multiple_to_multiple_distance(
+        _X, _y, window, g, itakura_max_slope, unequal_length, gamma
     )
 
 
 @njit(cache=True, fastmath=True)
-def _soft_dtw_pairwise_distance(
+def _soft_wdtw_pairwise_distance(
     X: NumbaList[np.ndarray],
     window: Optional[float],
+    g: float,
     itakura_max_slope: Optional[float],
     unequal_length: bool,
     gamma: float,
@@ -152,17 +159,18 @@ def _soft_dtw_pairwise_distance(
                 bounding_matrix = create_bounding_matrix(
                     x1.shape[1], x2.shape[1], window, itakura_max_slope
                 )
-            distances[i, j] = _soft_dtw_distance(x1, x2, bounding_matrix, gamma)
+            distances[i, j] = _soft_wdtw_distance(x1, x2, bounding_matrix, g, gamma)
             distances[j, i] = distances[i, j]
 
     return distances
 
 
 @njit(cache=True, fastmath=True)
-def _soft_dtw_from_multiple_to_multiple_distance(
+def _soft_wdtw_from_multiple_to_multiple_distance(
     x: NumbaList[np.ndarray],
     y: NumbaList[np.ndarray],
     window: Optional[float],
+    g: float,
     itakura_max_slope: Optional[float],
     unequal_length: bool,
     gamma: float,
@@ -182,19 +190,22 @@ def _soft_dtw_from_multiple_to_multiple_distance(
                 bounding_matrix = create_bounding_matrix(
                     x1.shape[1], y1.shape[1], window, itakura_max_slope
                 )
-            distances[i, j] = _soft_dtw_distance(x1, y1, bounding_matrix, gamma)
+            distances[i, j] = _soft_wdtw_distance(x1, y1, bounding_matrix, g, gamma)
     return distances
 
 
 @njit(cache=True, fastmath=True)
-def soft_dtw_alignment_path(
+def soft_wdtw_alignment_path(
     x: np.ndarray,
     y: np.ndarray,
-    gamma: float = 1.0,
     window: Optional[float] = None,
+    g: float = 0.05,
+    gamma: float = 1.0,
     itakura_max_slope: Optional[float] = None,
 ) -> tuple[list[tuple[int, int]], float]:
-    cost_matrix = soft_dtw_cost_matrix(x, y, gamma, window, itakura_max_slope)
+    cost_matrix = soft_wdtw_cost_matrix(
+        x, y, window=window, g=g, itakura_max_slope=itakura_max_slope, gamma=gamma
+    )
     return (
         compute_min_return_path(cost_matrix),
         abs(cost_matrix[x.shape[-1] - 1, y.shape[-1] - 1]),
@@ -202,11 +213,12 @@ def soft_dtw_alignment_path(
 
 
 @njit(cache=True, fastmath=True)
-def _soft_dtw_cost_matrix_with_arrs(
+def _soft_wdtw_cost_matrix_with_arrs(
     x: np.ndarray,
     y: np.ndarray,
     bounding_matrix: np.ndarray,
     gamma: float,
+    g: float = 0.05,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     x_size = x.shape[1]
     y_size = y.shape[1]
@@ -219,7 +231,11 @@ def _soft_dtw_cost_matrix_with_arrs(
 
     diff_dist_matrix = np.zeros((x_size, y_size))
 
-    # Match DTW iteration pattern
+    max_size = max(x_size, y_size)
+    weight_vector = np.array(
+        [1 / (1 + np.exp(-g * (i - max_size / 2))) for i in range(0, max_size)]
+    )
+
     for i in range(x_size):
         for j in range(y_size):
             if bounding_matrix[i, j]:
@@ -227,10 +243,12 @@ def _soft_dtw_cost_matrix_with_arrs(
                     x[:, i], y[:, j]
                 )
                 diff_dist_matrix[i, j] = difference
-                cost_matrix[i + 1, j + 1] = current_dist + _soft_min_with_arrs(
-                    cost_matrix[i, j],
-                    cost_matrix[i, j + 1],
-                    cost_matrix[i + 1, j],
+                # Apply the weight to the current distance using original indices i,j
+                weighted_dist = current_dist * weight_vector[abs(i - j)]
+                cost_matrix[i + 1, j + 1] = weighted_dist + _soft_min_with_arrs(
+                    cost_matrix[i, j],  # diagonal
+                    cost_matrix[i, j + 1],  # vertical
+                    cost_matrix[i + 1, j],  # horizontal
                     gamma,
                     diagonal_arr,
                     vertical_arr,
@@ -248,9 +266,10 @@ def _soft_dtw_cost_matrix_with_arrs(
     )
 
 
-def soft_dtw_gradient(
+def soft_wdtw_gradient(
     x: np.ndarray,
     y: np.ndarray,
+    g: float = 0.05,
     gamma: float = 1.0,
     window: Optional[float] = None,
     itakura_max_slope: Optional[float] = None,
@@ -258,8 +277,9 @@ def soft_dtw_gradient(
     return _compute_soft_gradient(
         x,
         y,
-        _soft_dtw_cost_matrix_with_arrs,
+        _soft_wdtw_cost_matrix_with_arrs,
         gamma=gamma,
         window=window,
         itakura_max_slope=itakura_max_slope,
+        g=g,
     )[0:2]

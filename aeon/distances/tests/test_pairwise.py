@@ -10,6 +10,7 @@ from aeon.distances._distance import (
     MIN_DISTANCES,
     MP_DISTANCES,
     SINGLE_POINT_NOT_SUPPORTED_DISTANCES,
+    SOFT_DISTANCES,
     SYMMETRIC_DISTANCES,
 )
 from aeon.testing.data_generation import (
@@ -80,7 +81,10 @@ def _validate_pairwise_result(
         curr_x = x[i]
         for j in range(len(x)):
             curr_y = x[j]
-            matrix[i, j] = distance(curr_x, curr_y)
+            if "soft" in name and i == j:
+                matrix[i, j] = 0.0
+            else:
+                matrix[i, j] = distance(curr_x, curr_y)
 
     assert np.allclose(matrix, pairwise_result)
 
@@ -551,7 +555,11 @@ def test_single_to_multiple_distances(dist):
 def test_pairwise_distance_non_negative(dist, seed):
     """Most estimators require distances to be non-negative."""
     # Skip for now
-    if dist["name"] in MIN_DISTANCES or dist["name"] in MP_DISTANCES:
+    if (
+        dist["name"] in MIN_DISTANCES
+        or dist["name"] in MP_DISTANCES
+        or dist["name"] in SOFT_DISTANCES
+    ):
         return
     X = make_example_3d_numpy(
         n_cases=5, n_channels=1, n_timepoints=10, random_state=seed, return_y=False

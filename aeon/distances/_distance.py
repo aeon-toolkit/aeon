@@ -45,21 +45,41 @@ from aeon.distances.elastic import (
     shape_dtw_cost_matrix,
     shape_dtw_distance,
     shape_dtw_pairwise_distance,
+    soft_adtw_alignment_path,
+    soft_adtw_cost_matrix,
+    soft_adtw_distance,
+    soft_adtw_gradient,
+    soft_adtw_pairwise_distance,
     soft_dtw_alignment_path,
     soft_dtw_cost_matrix,
     soft_dtw_distance,
     soft_dtw_gradient,
     soft_dtw_pairwise_distance,
+    soft_erp_alignment_path,
+    soft_erp_cost_matrix,
+    soft_erp_distance,
+    soft_erp_gradient,
+    soft_erp_pairwise_distance,
     soft_msm_alignment_path,
     soft_msm_cost_matrix,
     soft_msm_distance,
     soft_msm_gradient,
     soft_msm_pairwise_distance,
+    soft_shape_dtw_alignment_path,
+    soft_shape_dtw_cost_matrix,
+    soft_shape_dtw_distance,
+    soft_shape_dtw_gradient,
+    soft_shape_dtw_pairwise_distance,
     soft_twe_alignment_path,
     soft_twe_cost_matrix,
     soft_twe_distance,
     soft_twe_gradient,
     soft_twe_pairwise_distance,
+    soft_wdtw_alignment_path,
+    soft_wdtw_cost_matrix,
+    soft_wdtw_distance,
+    soft_wdtw_gradient,
+    soft_wdtw_pairwise_distance,
     twe_alignment_path,
     twe_cost_matrix,
     twe_distance,
@@ -873,6 +893,50 @@ DISTANCES = [
         "unequal_support": True,
     },
     {
+        "name": "soft_adtw",
+        "distance": soft_adtw_distance,
+        "pairwise_distance": soft_adtw_pairwise_distance,
+        "cost_matrix": soft_adtw_cost_matrix,
+        "alignment_path": soft_adtw_alignment_path,
+        "gradient": soft_adtw_gradient,
+        "type": DistanceType.ELASTIC,
+        "symmetric": True,
+        "unequal_support": True,
+    },
+    {
+        "name": "soft_shape_dtw",
+        "distance": soft_shape_dtw_distance,
+        "pairwise_distance": soft_shape_dtw_pairwise_distance,
+        "cost_matrix": soft_shape_dtw_cost_matrix,
+        "alignment_path": soft_shape_dtw_alignment_path,
+        "gradient": soft_shape_dtw_gradient,
+        "type": DistanceType.ELASTIC,
+        "symmetric": True,
+        "unequal_support": True,
+    },
+    {
+        "name": "soft_erp",
+        "distance": soft_erp_distance,
+        "pairwise_distance": soft_erp_pairwise_distance,
+        "cost_matrix": soft_erp_cost_matrix,
+        "alignment_path": soft_erp_alignment_path,
+        "gradient": soft_erp_gradient,
+        "type": DistanceType.ELASTIC,
+        "symmetric": True,
+        "unequal_support": True,
+    },
+    {
+        "name": "soft_wdtw",
+        "distance": soft_wdtw_distance,
+        "pairwise_distance": soft_wdtw_pairwise_distance,
+        "cost_matrix": soft_wdtw_cost_matrix,
+        "alignment_path": soft_wdtw_alignment_path,
+        "gradient": soft_wdtw_gradient,
+        "type": DistanceType.ELASTIC,
+        "symmetric": True,
+        "unequal_support": True,
+    },
+    {
         "name": "sbd",
         "distance": sbd_distance,
         "pairwise_distance": sbd_pairwise_distance,
@@ -946,6 +1010,11 @@ ELASTIC_DISTANCE_GRADIENT = [
     for d in DISTANCES
     if "gradient" in d and d["type"] == DistanceType.ELASTIC
 ]
+ELASTIC_DISTANCE_GRADIENT_WITH_ARRS = [
+    d["name"]
+    for d in DISTANCES
+    if "gradient_with_arrs" in d and d["type"] == DistanceType.ELASTIC
+]
 POINTWISE_DISTANCES = [
     d["name"] for d in DISTANCES if d["type"] == DistanceType.POINTWISE
 ]
@@ -953,6 +1022,7 @@ MP_DISTANCES = [
     d["name"] for d in DISTANCES if d["type"] == DistanceType.MATRIX_PROFILE
 ]
 MIN_DISTANCES = [d["name"] for d in DISTANCES if d["type"] == DistanceType.MIN_DISTANCE]
+SOFT_DISTANCES = [d["name"] for d in DISTANCES if "soft" in d["name"]]
 
 # This is a very specific list for testing where a time series of length 1 is not
 # supported

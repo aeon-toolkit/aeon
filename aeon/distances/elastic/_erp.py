@@ -460,7 +460,7 @@ def erp_alignment_path(
     >>> erp_alignment_path(x, y)
     ([(0, 0), (1, 1), (2, 2), (3, 3)], 2.0)
     """
-    cost_matrix = erp_cost_matrix(x, y, window, g, g_arr)
+    cost_matrix = erp_cost_matrix(x, y, window, g, g_arr, itakura_max_slope)
     return (
         compute_min_return_path(cost_matrix),
         cost_matrix[x.shape[-1] - 1, y.shape[-1] - 1],
