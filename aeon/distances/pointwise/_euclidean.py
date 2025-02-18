@@ -141,7 +141,7 @@ def euclidean_pairwise_distance(
     if n_jobs > 1:
         warnings.warn(
             "You have set n_jobs > 1. For this distance function "
-            "unless your data is very large (> 10000 time series), it is "
+            "unless your data has a large number of time points, it is "
             "recommended to use n_jobs=1. If this function is slower than "
             "expected try setting n_jobs=1.",
             UserWarning,
