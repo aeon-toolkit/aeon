@@ -3,9 +3,10 @@ __maintainer__ = []
 from typing import Union
 
 import numpy as np
-from numba import njit, prange
+from numba import njit, prange, set_num_threads
 
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
+from aeon.utils.validation import check_n_jobs
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
@@ -44,20 +45,16 @@ def mindist_sfa_distance(
     --------
     >>> import numpy as np
     >>> from aeon.distances import mindist_sfa_distance
-    >>> from aeon.transformations.collection.dictionary_based import SFAFast
+    >>> from aeon.transformations.collection.dictionary_based import SFAWhole
     >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> y = np.array([[11, 12, 13, 14, 15, 16, 17, 18, 19, 20]])
-    >>> transform = SFAFast(
+    >>> transform = SFAWhole(
     ...    word_length=8,
     ...    alphabet_size=8,
-    ...    window_size=x.shape[-1],
-    ...    norm=True,
-    ...    lower_bounding_distances=True   # This must be set!
+    ...    norm=True
     ... )
-    >>> transform.fit(x)
-    SFAFast(...)
-    >>> x_sfa = transform.transform_words(x).squeeze()
-    >>> y_sfa = transform.transform_words(y).squeeze()
+    >>> x_sfa, _ = transform.fit_transform(x)
+    >>> y_sfa, _ = transform.transform(y)
     >>> dist = mindist_sfa_distance(x_sfa, y_sfa, transform.breakpoints)
     """
     if x.ndim == 1 and y.ndim == 1:
@@ -82,7 +79,7 @@ def _univariate_sfa_distance(
 
 
 def mindist_sfa_pairwise_distance(
-    X: np.ndarray, y: np.ndarray, breakpoints: np.ndarray
+    X: np.ndarray, y: np.ndarray, breakpoints: np.ndarray, n_jobs: int = 1, **kwargs
 ) -> np.ndarray:
     """Compute the SFA mindist pairwise distance between a set of SFA representations.
 
@@ -94,6 +91,10 @@ def mindist_sfa_pairwise_distance(
         A collection of SFA instances  of shape ``(n_instances, n_timepoints)``.
     breakpoints: np.ndarray
         The breakpoints of the SAX transformation
+    n_jobs : int, default=1
+        The number of jobs to run in parallel. If -1, then the number of jobs is set
+        to the number of CPU cores. If 1, then the function is executed in a single
+        thread. If greater than 1, then the function is executed in parallel.
 
     Returns
     -------
@@ -107,6 +108,8 @@ def mindist_sfa_pairwise_distance(
         If X and y are not 1D, 2D arrays when passing both X and y.
 
     """
+    n_jobs = check_n_jobs(n_jobs)
+    set_num_threads(n_jobs)
     multivariate_conversion = _is_numpy_list_multivariate(X, y)
     _X, unequal_length = _convert_collection_to_numba_list(
         X, "X", multivariate_conversion
@@ -129,7 +132,7 @@ def _sfa_from_multiple_to_multiple_distance(
         distances = np.zeros((n_instances, n_instances))
 
         for i in prange(n_instances):
-            for j in prange(i + 1, n_instances):
+            for j in range(i + 1, n_instances):
                 distances[i, j] = _univariate_sfa_distance(X[i], X[j], breakpoints)
                 distances[j, i] = distances[i, j]
     else:
@@ -138,7 +141,7 @@ def _sfa_from_multiple_to_multiple_distance(
         distances = np.zeros((n_instances, m_instances))
 
         for i in prange(n_instances):
-            for j in prange(m_instances):
+            for j in range(m_instances):
                 distances[i, j] = _univariate_sfa_distance(X[i], y[j], breakpoints)
 
     return distances
