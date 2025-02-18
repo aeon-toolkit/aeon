@@ -3,10 +3,11 @@
 from typing import Optional, Union
 
 import numpy as np
-from numba import njit
+from numba import njit, prange, set_num_threads
 from numba.typed import List as NumbaList
 
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
+from aeon.utils.validation import check_n_jobs
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
@@ -160,6 +161,8 @@ def shift_scale_invariant_pairwise_distance(
     X: Union[np.ndarray, list[np.ndarray]],
     y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
     max_shift: Optional[int] = None,
+    n_jobs: int = 1,
+    **kwargs,
 ) -> np.ndarray:
     r"""Compute the shift-scale invariant pairwise distance between time series.
 
@@ -193,6 +196,10 @@ def shift_scale_invariant_pairwise_distance(
         Maximum shift allowed in the alignment path. If None, then max_shift is set
         to min(X.shape[-1], y.shape[-1]) or if y is None, max_shift is set to
         X.shape[-1].
+    n_jobs : int, default=1
+        The number of jobs to run in parallel. If -1, then the number of jobs is set
+        to the number of CPU cores. If 1, then the function is executed in a single
+        thread. If greater than 1, then the function is executed in parallel.
 
     Returns
     -------
@@ -223,6 +230,8 @@ def shift_scale_invariant_pairwise_distance(
     >>> y_univariate = np.array([11., 12., 13.])
     >>> single_pw =shift_scale_invariant_pairwise_distance(X, y_univariate)
     """
+    n_jobs = check_n_jobs(n_jobs)
+    set_num_threads(n_jobs)
     if max_shift is None:
         if y is None:
             max_shift = X.shape[-1]
@@ -308,7 +317,7 @@ def shift_scale_invariant_best_shift(
     raise ValueError("x and y must be 1D or 2D")
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath=True, parallel=True)
 def _shift_invariant_pairwise_distance(
     x: NumbaList[np.ndarray], y: NumbaList[np.ndarray], max_shift: int
 ) -> np.ndarray:
@@ -316,7 +325,7 @@ def _shift_invariant_pairwise_distance(
     m_cases = len(y)
     distances = np.zeros((n_cases, m_cases))
 
-    for i in range(n_cases):
+    for i in prange(n_cases):
         for j in range(m_cases):
             distances[i, j] = shift_scale_invariant_distance(x[i], y[j], max_shift)
     return distances

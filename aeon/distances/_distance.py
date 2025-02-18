@@ -1,5 +1,6 @@
 __maintainer__ = []
 
+import warnings
 from enum import Enum
 from typing import Any, Callable, Optional, TypedDict, Union
 
@@ -173,6 +174,7 @@ def pairwise_distance(
     y: Optional[np.ndarray] = None,
     method: Union[str, DistanceFunction, None] = None,
     symmetric: bool = True,
+    n_jobs: int = 1,
     **kwargs: Unpack[DistanceKwargs],
 ) -> np.ndarray:
     """Compute the pairwise distance matrix between two time series.
@@ -197,6 +199,10 @@ def pairwise_distance(
         function is provided as the "method" parameter, then it will compute an
         asymmetric distance matrix, and the entire matrix (including both upper and
         lower triangles) is returned.
+    n_jobs : int, default=1
+        The number of jobs to run in parallel. If -1, then the number of jobs is set
+        to the number of CPU cores. If 1, then the function is executed in a single
+        thread. If greater than 1, then the function is executed in parallel.
     kwargs : Any
         Extra arguments for distance. Refer to each distance documentation for a list of
         possible arguments.
@@ -240,11 +246,13 @@ def pairwise_distance(
            [ 48.]])
     """
     if method in PAIRWISE_DISTANCE:
-        return DISTANCES_DICT[method]["pairwise_distance"](x, y, **kwargs)
+        return DISTANCES_DICT[method]["pairwise_distance"](
+            x, y, n_jobs=n_jobs, **kwargs
+        )
     elif isinstance(method, Callable):
         if y is None and not symmetric:
-            return _custom_func_pairwise(x, x, method, **kwargs)
-        return _custom_func_pairwise(x, y, method, **kwargs)
+            return _custom_func_pairwise(x, x, method, n_jobs=n_jobs, **kwargs)
+        return _custom_func_pairwise(x, y, method, n_jobs=n_jobs, **kwargs)
     else:
         raise ValueError("Method must be one of the supported strings or a callable")
 
@@ -253,10 +261,21 @@ def _custom_func_pairwise(
     X: Optional[Union[np.ndarray, list[np.ndarray]]],
     y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
     dist_func: Union[DistanceFunction, None] = None,
+    n_jobs: int = 1,
     **kwargs: Unpack[DistanceKwargs],
 ) -> np.ndarray:
     if dist_func is None:
         raise ValueError("dist_func must be a callable")
+
+    if n_jobs != 1:
+        warnings.warn(
+            "You are using a custom distance function with n_jobs > 1. "
+            "Aeon does not support parallelization for custom distance "
+            "functions. If it is an existing aeon distance try using the "
+            "string name instead.",
+            UserWarning,
+            stacklevel=2,
+        )
 
     multivariate_conversion = _is_numpy_list_multivariate(X, y)
     X, _ = _convert_collection_to_numba_list(X, "X", multivariate_conversion)

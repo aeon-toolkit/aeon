@@ -1,5 +1,6 @@
 """Matrix Profile Distances."""
 
+import warnings
 from typing import Optional, Union
 
 import numpy as np
@@ -287,6 +288,7 @@ def mp_pairwise_distance(
     X: Union[np.ndarray, list[np.ndarray]],
     y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
     m: int = 0,
+    **kwargs,
 ) -> np.ndarray:
     """Compute the mpdist pairwise distance between a set of time series.
 
@@ -339,13 +341,19 @@ def mp_pairwise_distance(
            [2.82842712],
            [2.82842712]])
     """
+    if "n_jobs" in kwargs:
+        warnings.warn(
+            "n_jobs is not supported for the mpdist distance method and will be "
+            "ignored.",
+            UserWarning,
+            stacklevel=2,
+        )
+    if m == 0:
+        m = int(X.shape[2] / 4)
     multivariate_conversion = _is_numpy_list_multivariate(X, y)
     _X, unequal_length = _convert_collection_to_numba_list(
         X, "X", multivariate_conversion
     )
-
-    if m == 0:
-        m = int(_X.shape[2] / 4)
 
     if y is None:
         return _mpdist_pairwise_distance_single(_X, m)
