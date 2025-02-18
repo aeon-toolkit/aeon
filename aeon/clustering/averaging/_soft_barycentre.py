@@ -1,4 +1,5 @@
 import numpy as np
+from numba import set_num_threads
 from scipy.optimize import minimize
 
 from aeon.clustering.averaging._ba_utils import _get_init_barycenter
@@ -22,6 +23,7 @@ from aeon.distances.elastic.soft._soft_shape_dtw import (
 from aeon.distances.elastic.soft._soft_twe import _soft_twe_cost_matrix_with_arrs
 from aeon.distances.elastic.soft._soft_wdtw import _soft_wdtw_cost_matrix_with_arrs
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
+from aeon.utils.validation import check_n_jobs
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
@@ -96,8 +98,11 @@ def soft_barycenter_average(
     distance="soft_dtw",
     random_state=None,
     verbose=False,
+    n_jobs=1,
     **kwargs,
 ):
+    n_jobs = check_n_jobs(n_jobs)
+    set_num_threads(n_jobs)
     if len(X) <= 1:
         return X
 
