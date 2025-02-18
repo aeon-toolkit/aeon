@@ -5,7 +5,7 @@ __maintainer__ = []
 from typing import Optional, Union
 
 import numpy as np
-from numba import njit
+from numba import njit, prange, set_num_threads
 from numba.typed import List as NumbaList
 
 from aeon.distances.elastic._alignment_paths import compute_min_return_path
@@ -18,6 +18,7 @@ from aeon.distances.elastic.soft._soft_distance_utils import (
 )
 from aeon.distances.pointwise._squared import _univariate_squared_distance
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
+from aeon.utils.validation import check_n_jobs
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
@@ -116,7 +117,11 @@ def soft_wdtw_pairwise_distance(
     g: float = 0.05,
     gamma: float = 1.0,
     itakura_max_slope: Optional[float] = None,
+    n_jobs: int = 1,
+    **kwargs,
 ) -> np.ndarray:
+    n_jobs = check_n_jobs(n_jobs)
+    set_num_threads(n_jobs)
     multivariate_conversion = _is_numpy_list_multivariate(X, y)
     _X, unequal_length = _convert_collection_to_numba_list(
         X, "X", multivariate_conversion
@@ -135,7 +140,7 @@ def soft_wdtw_pairwise_distance(
     )
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath=True, parallel=True)
 def _soft_wdtw_pairwise_distance(
     X: NumbaList[np.ndarray],
     window: Optional[float],
@@ -152,7 +157,7 @@ def _soft_wdtw_pairwise_distance(
         bounding_matrix = create_bounding_matrix(
             n_timepoints, n_timepoints, window, itakura_max_slope
         )
-    for i in range(n_cases):
+    for i in prange(n_cases):
         for j in range(i + 1, n_cases):
             x1, x2 = X[i], X[j]
             if unequal_length:
@@ -165,7 +170,7 @@ def _soft_wdtw_pairwise_distance(
     return distances
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath=True, parallel=True)
 def _soft_wdtw_from_multiple_to_multiple_distance(
     x: NumbaList[np.ndarray],
     y: NumbaList[np.ndarray],
@@ -183,7 +188,7 @@ def _soft_wdtw_from_multiple_to_multiple_distance(
         bounding_matrix = create_bounding_matrix(
             x[0].shape[1], y[0].shape[1], window, itakura_max_slope
         )
-    for i in range(n_cases):
+    for i in prange(n_cases):
         for j in range(m_cases):
             x1, y1 = x[i], y[j]
             if unequal_length:
