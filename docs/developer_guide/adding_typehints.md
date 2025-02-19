@@ -1,53 +1,54 @@
 # Adding Type Hints
 
-## Introduction to Type Hints
+Type hints are a way to indicate the expected data types of variables, function
+parameters, and return values. They enhance code readability and help with static
+type checking, making it easier to catch errors.
 
-Type hints are a way to indicate the expected data types of variables, function parameters, and return values in Python. They enhance code readability and help with static type checking, making it easier to catch errors before runtime.
-
-
-Type hints act as a form of documentation that helps developers understand the types of arguments a function expects and what it returns.
-
-
-## Basic Syntax
-
-For example, here is a simple function whose argument and return type are declared in the annotations:
-
+For example, here is a simple function whose argument and return type are declared
+in the annotations:
 
 ```python
-def greeting(name: str) -> str:
-    return 'Hello ' + name
+from typing import List
+
+def sum_ints_return_str(int_list: List[int]) -> str:
+    return str(sum(int_list))
 ```
 
+Type hints are not currently mandatory in `aeon`, but we aim to progressively integrate
+them into the code base. Learn more about type hints in the
+[Python documentation](https://docs.python.org/3/library/typing.html)
+and [PEP 484](https://peps.python.org/pep-0484/).
 
-Learn more about type hints in [python docs](https://docs.python.org/3/library/typing.html) and [PEP 484](https://peps.python.org/pep-0484/)
+## Soft Dependency Type Hints
 
+When working with modules that use soft dependencies, additional considerations are
+required to ensure that your code can still run even without these dependencies
+installed.
 
-# Dealing with Soft Dependency Type Hints
-
-
-
-When working with models that have soft dependencies, additional considerations are required to ensure that your code remains robust and maintainable. Soft dependencies are optional packages or modules that your application does not require at runtime but may be used in specific situations, such as during type-checking or when certain features are enabled.
-
- The typing.TYPE_CHECKING constant ensures that imports for type hints are only evaluated when type-checking is done and NOT in the runtime. This prevents errors when the soft dependancies are not available. Here is an example that of [PyODAdapter](https://github.com/aeon-toolkit/aeon/blob/main/aeon/anomaly_detection/_pyodadapter.py):
-
+Here is an example snippet taken from [PyODAdapter](https://www.aeon-toolkit.org/en/stable/api_reference/auto_generated/aeon.anomaly_detection.PyODAdapter.html).
+It uses the `pyod` library, which is a soft dependency. The `TYPE_CHECKING` constant
+is used to ensure that the `pyod` library is only imported at the top level while type
+checking is performed. `from __future__ import annotations` is used to allow forward
+references in type hints. See [PEP 563](https://peps.python.org/pep-0563/) for more
+information. The `pyod` `BaseDetector` class can now be used in type hints with
+these additions.
 
  ```python
-from aeon.anomaly_detection.base import BaseAnomalyDetector
-from aeon.utils.validation._dependencies import _check_soft_dependencies
-from typing import TYPE_CHECKING, Any
+from __future__ import annotations
 
+from aeon.anomaly_detection.base import BaseAnomalyDetector
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from pyod.models.base import BaseDetector
 
-
 class PyODAdapter(BaseAnomalyDetector):
-    ...
+    def __init__(
+        self, pyod_model: BaseDetector, window_size: int = 10, stride: int = 1
+    ):
+        self.pyod_model = pyod_model
+        self.window_size = window_size
+        self.stride = stride
 
-    def _is_pyod_model(model: Any) -> bool:
-        """Check if the provided model is a PyOD model."""
-        from pyod.models.base import BaseDetector
-
-        return isinstance(model, BaseDetector)
-   ...
+        super().__init__(axis=0)
 ```

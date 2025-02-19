@@ -329,6 +329,7 @@ class AEResNetClusterer(BaseDeepClusterer):
                 outputs=X,
                 batch_size=mini_batch_size,
                 epochs=self.n_epochs,
+                verbose=self.verbose,
             )
 
         try:
@@ -359,6 +360,7 @@ class AEResNetClusterer(BaseDeepClusterer):
         outputs,
         batch_size,
         epochs,
+        verbose,
     ):
         import tensorflow as tf
 
@@ -463,9 +465,10 @@ class AEResNetClusterer(BaseDeepClusterer):
             epoch_loss /= num_batches
             history["loss"].append(epoch_loss)
 
-            sys.stdout.write(
-                "Training loss at epoch %d: %.4f\n" % (epoch, float(epoch_loss))
-            )
+            if verbose:
+                sys.stdout.write(
+                    "Training loss at epoch %d: %.4f\n" % (epoch, float(epoch_loss))
+                )
 
             for callback in self.callbacks_:
                 callback.on_epoch_end(epoch, {"loss": float(epoch_loss)})

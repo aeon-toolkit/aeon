@@ -388,7 +388,7 @@ def _make_estimator_overview(app):
 
             # For case where tag is not included output as not supported
             if not _val or _val is None:
-                data[abbrevation].append("\u274C")
+                data[abbrevation].append("\u274c")
             else:
                 data[abbrevation].append("\u2705")
 
