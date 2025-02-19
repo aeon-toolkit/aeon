@@ -4,7 +4,10 @@ import numpy as np
 from numba import njit, prange
 from scipy.optimize import minimize
 
-from aeon.clustering.averaging._ba_utils import _ba_setup
+from aeon.clustering.averaging._ba_utils import (
+    VALID_SOFT_BA_DISTANCE_METHODS,
+    _ba_setup,
+)
 from aeon.distances import create_bounding_matrix
 from aeon.distances.elastic.soft._soft_adtw import _soft_adtw_cost_matrix_with_arrs
 from aeon.distances.elastic.soft._soft_distance_utils import (
@@ -82,6 +85,12 @@ def soft_barycenter_average(
         if X.ndim == 3:
             return X[0], np.zeros(X.shape[0]), 0.0
         return X, np.zeros(X.shape[0]), 0.0
+
+    if distance not in VALID_SOFT_BA_DISTANCE_METHODS:
+        raise ValueError(
+            f"Invalid distance method: {distance}. Valid method are: "
+            f"{VALID_SOFT_BA_DISTANCE_METHODS}"
+        )
 
     (
         _X,

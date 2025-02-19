@@ -6,9 +6,14 @@ import numpy as np
 import pytest
 
 from aeon.clustering.averaging import (
+    VALID_BA_DISTANCE_METHODS,
     elastic_barycenter_average,
     petitjean_barycenter_average,
     subgradient_barycenter_average,
+)
+from aeon.clustering.averaging._ba_utils import (
+    VALID_BA_METHODS,
+    VALID_SOFT_BA_DISTANCE_METHODS,
 )
 from aeon.testing.data_generation import (
     make_example_1d_numpy,
@@ -77,16 +82,16 @@ expected_petitjean_dba_multivariate = np.array(
 expected_subgradient_dba_univariate = np.array(
     [
         [
-            1.51074199,
-            2.15864417,
-            1.00234603,
-            2.35561396,
-            0.63780835,
-            1.40458666,
-            1.51369944,
-            1.2566171,
-            1.18067802,
-            1.8077327,
+            1.41407718,
+            2.3853317,
+            1.1053108,
+            2.61742756,
+            0.52514241,
+            1.43345624,
+            1.62528607,
+            1.20858298,
+            1.19486152,
+            2.00012166,
         ]
     ]
 )
@@ -94,40 +99,40 @@ expected_subgradient_dba_univariate = np.array(
 expected_subgradient_dba_multivariate = np.array(
     [
         [
-            0.74762929,
-            1.27990802,
-            1.39635383,
-            0.77782365,
-            0.96456039,
-            1.33559105,
-            0.71501953,
-            1.68703826,
-            1.03765683,
-            1.59958969,
+            0.72672971,
+            1.35712568,
+            1.44705437,
+            0.59577843,
+            0.9983526,
+            1.32662778,
+            0.76720059,
+            1.9544489,
+            1.05880533,
+            1.59060957,
         ],
         [
-            1.28770927,
-            1.23770584,
-            1.20206139,
-            1.78964445,
-            0.89355146,
-            1.6961715,
-            1.00333335,
-            1.23876289,
-            1.38498497,
-            1.55936623,
+            1.26548219,
+            1.20874097,
+            1.22115724,
+            1.78080724,
+            0.67422215,
+            1.82385172,
+            0.95377178,
+            1.29132481,
+            1.41357039,
+            1.52462354,
         ],
         [
-            1.34461418,
-            1.50480679,
-            1.55114792,
-            1.18503368,
-            1.04103323,
-            0.90804179,
-            1.04520108,
-            1.07537586,
-            1.57586214,
-            1.34801647,
+            1.30399182,
+            1.54077047,
+            1.62669316,
+            1.03863603,
+            1.24830036,
+            0.76358139,
+            0.78148561,
+            1.20772336,
+            1.61686826,
+            1.32841044,
         ],
     ]
 )
@@ -194,21 +199,7 @@ def test_subgradient_dba():
     assert np.allclose(average_ts_multi, call_directly_average_ts_multi)
 
 
-@pytest.mark.parametrize(
-    "distance",
-    [
-        "dtw",
-        "ddtw",
-        "wdtw",
-        "wddtw",
-        "erp",
-        "edr",
-        "twe",
-        "msm",
-        "shape_dtw",
-        "adtw",
-    ],
-)
+@pytest.mark.parametrize("distance", VALID_BA_DISTANCE_METHODS)
 def test_elastic_dba_variations(distance):
     """Test dba functionality with different distance measures."""
     X_train = make_example_3d_numpy(4, 2, 10, random_state=1, return_y=False)
@@ -274,12 +265,23 @@ def test_dba_init(init_barycenter):
     assert isinstance(subgradient_ts_multi, np.ndarray)
 
 
-def test_incorrect_input():
+@pytest.mark.parametrize("method", VALID_BA_METHODS)
+def test_incorrect_input(method):
     """Test dba incorrect input."""
     # Test invalid distance
     X = make_example_3d_numpy(10, 1, 10, return_y=False)
     with pytest.raises(ValueError, match="Distance parameter invalid"):
-        elastic_barycenter_average(X, distance="Distance parameter invalid")
+        invalid_dist = "Distance parameter invalid"
+        err_str = (
+            f"Invalid distance metric: {invalid_dist}. Valid metrics are: "
+            f"{VALID_BA_DISTANCE_METHODS}"
+        )
+        if method == "soft":
+            err_str = (
+                f"Invalid distance metric: {invalid_dist}. Valid metrics are: "
+                f"{VALID_SOFT_BA_DISTANCE_METHODS}"
+            )
+        elastic_barycenter_average(X, method=method, distance=err_str)
 
     # Test invalid init barycenter string
     with pytest.raises(
@@ -287,7 +289,9 @@ def test_incorrect_input():
         match="init_barycenter string is invalid. Please use one of the "
         "following: 'mean', 'medoids', 'random'",
     ):
-        elastic_barycenter_average(X, init_barycenter="init parameter invalid")
+        elastic_barycenter_average(
+            X, method=method, init_barycenter="init parameter invalid"
+        )
 
     # Test invalid init barycenter type
     with pytest.raises(
@@ -295,7 +299,7 @@ def test_incorrect_input():
         match="init_barycenter parameter is invalid. It must either be a "
         "str or a np.ndarray",
     ):
-        elastic_barycenter_average(X, init_barycenter=[[1, 2, 3]])
+        elastic_barycenter_average(X, method=method, init_barycenter=[[1, 2, 3]])
 
     # Test invalid init barycenter with wrong shape
     with pytest.raises(
@@ -304,14 +308,16 @@ def test_incorrect_input():
             "init_barycenter shape is invalid. Expected (1, 10) but " "got (1, 9)"
         ),
     ):
-        elastic_barycenter_average(X, init_barycenter=make_example_1d_numpy(9))
+        elastic_barycenter_average(
+            X, method=method, init_barycenter=make_example_1d_numpy(9)
+        )
 
     # Test invalid berycenter method
     with pytest.raises(
         ValueError,
         match=re.escape(
             "Invalid method: Not a real method. Please use one of the "
-            "following: ['petitjean', 'subgradient']"
+            "following: ['petitjean', 'subgradient', 'kasba', 'soft']"
         ),
     ):
         elastic_barycenter_average(X, method="Not a real method")

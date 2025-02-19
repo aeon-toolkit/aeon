@@ -51,7 +51,7 @@ def _medoids(
 
 def _get_init_barycenter(
     X: np.ndarray,
-    init_barycenter: Union[np.ndarray, str],
+    init_barycenter: Optional[Union[np.ndarray, str]],
     distance: str,
     precomputed_medoids_pw: Optional[np.ndarray] = None,
     random_state: Optional[int] = None,
@@ -134,7 +134,7 @@ def _ba_setup(
     ):
         init_barycenter = _get_init_barycenter(
             _X,
-            "mean",
+            init_barycenter=init_barycenter,
             distance=distance,
             random_state=random_state,
             precomputed_medoids_pairwise_distance=precomputed_medoids_pairwise_distance,
@@ -165,7 +165,25 @@ def _ba_setup(
     )
 
 
-VALID_BA_METRICS = [
+VALID_BA_METHODS = [
+    "subgradient",
+    "kasba",
+    "soft",
+    "petitjean",
+]
+
+
+VALID_SOFT_BA_DISTANCE_METHODS = [
+    "soft_dtw",
+    "soft_twe",
+    "soft_msm",
+    "soft_wdtw",
+    "soft_erp",
+    "soft_shape_dtw",
+]
+
+
+VALID_BA_DISTANCE_METHODS = [
     "adtw",
     "dtw",
     "ddtw",
@@ -176,13 +194,7 @@ VALID_BA_METRICS = [
     "twe",
     "msm",
     "shape_dtw",
-    "soft_dtw",
-    "soft_twe",
-    "soft_msm",
-    "soft_wdtw",
-    "soft_erp",
-    "soft_shape_dtw",
-]
+] + VALID_SOFT_BA_DISTANCE_METHODS
 
 
 @njit(cache=True, fastmath=True)

@@ -6,6 +6,7 @@ from numpy import dtype, floating, ndarray
 from numpy._typing import _64Bit
 
 from aeon.clustering.averaging._ba_utils import (
+    VALID_BA_DISTANCE_METHODS,
     _ba_setup,
     _get_alignment_path,
 )
@@ -110,6 +111,12 @@ def petitjean_barycenter_average(
         if X.ndim == 3:
             return X[0], np.zeros(X.shape[0]), 0.0
         return X, np.zeros(X.shape[0]), 0.0
+
+    if distance not in VALID_BA_DISTANCE_METHODS:
+        raise ValueError(
+            f"Invalid distance metric: {distance}. Valid metrics are: "
+            f"{VALID_BA_DISTANCE_METHODS}"
+        )
 
     (
         _X,

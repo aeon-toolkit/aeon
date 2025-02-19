@@ -13,7 +13,7 @@ from aeon.clustering.averaging._soft_barycentre import soft_barycenter_average
 
 def elastic_barycenter_average(
     X: np.ndarray,
-    distance: str = "dtw",
+    distance: Optional[str] = None,
     max_iters: int = 30,
     tol: float = 1e-5,
     init_barycenter: Union[np.ndarray, str] = "mean",
@@ -60,11 +60,13 @@ def elastic_barycenter_average(
     X: np.ndarray, of shape (n_cases, n_channels, n_timepoints) or
             (n_cases, n_timepoints)
         A collection of time series instances to take the average from.
-    distance: str, default='dtw'
+    distance: str, default=None
         String defining the distance to use for averaging. Distance to
         compute similarity between time series. A list of valid strings for metrics
         can be found in the documentation form
-        :func:`aeon.distances.get_distance_function`.
+        :func:`aeon.distances.get_distance_function`. If None is specified then
+        'dtw' will be used for all averaging methods except for the 'soft' method
+        where 'soft_dtw' will be used.
     max_iters: int, default=30
         Maximum number iterations for dba to update over.
     tol : float (default: 1e-5)
@@ -134,6 +136,9 @@ def elastic_barycenter_average(
        Rock the KASBA: Blazingly Fast and Accurate Time Series Clustering.
        10.48550/arXiv.2411.17838.
     """
+    if distance is None:
+        distance = "dtw" if method != "soft" else "soft_dtw"
+
     if method == "petitjean":
         return petitjean_barycenter_average(
             X,
