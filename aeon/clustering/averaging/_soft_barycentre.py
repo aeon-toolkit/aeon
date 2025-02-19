@@ -1,16 +1,17 @@
+from typing import Optional, Union
+
 import numpy as np
-from numba import set_num_threads
+from numba import njit, prange
 from scipy.optimize import minimize
 
-from aeon.clustering.averaging._ba_utils import _get_init_barycenter
+from aeon.clustering.averaging._ba_utils import _ba_setup
 from aeon.distances import create_bounding_matrix
-from aeon.distances._distance import ELASTIC_DISTANCE_GRADIENT
 from aeon.distances.elastic.soft._soft_adtw import _soft_adtw_cost_matrix_with_arrs
 from aeon.distances.elastic.soft._soft_distance_utils import (
-    _compute_soft_gradient_with_diff_dist_matrix,
     _jacobian_product_absolute_distance,
     _jacobian_product_euclidean,
     _jacobian_product_squared_euclidean,
+    _soft_gradient_with_arrs,
 )
 from aeon.distances.elastic.soft._soft_dtw import _soft_dtw_cost_matrix_with_arrs
 from aeon.distances.elastic.soft._soft_erp import _soft_erp_cost_matrix_with_arrs
@@ -23,35 +24,7 @@ from aeon.distances.elastic.soft._soft_shape_dtw import (
 from aeon.distances.elastic.soft._soft_twe import _soft_twe_cost_matrix_with_arrs
 from aeon.distances.elastic.soft._soft_wdtw import _soft_wdtw_cost_matrix_with_arrs
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
-from aeon.utils.validation import check_n_jobs
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
-
-
-def _get_soft_distance_cm_with_arrs_function(distance):
-    if distance == "soft_dtw":
-        return _soft_dtw_cost_matrix_with_arrs, _jacobian_product_squared_euclidean
-    if distance == "soft_msm":
-        return (
-            _soft_msm_cost_matrix_with_arr_independent,
-            _jacobian_product_absolute_distance,
-        )
-    if distance == "soft_twe":
-        return _soft_twe_cost_matrix_with_arrs, _jacobian_product_euclidean
-    if distance == "soft_adtw":
-        return _soft_adtw_cost_matrix_with_arrs, _jacobian_product_squared_euclidean
-    if distance == "soft_shape_dtw":
-        return (
-            _soft_shape_dtw_cost_matrix_with_arrs,
-            _jacobian_product_squared_euclidean,
-        )
-    if distance == "soft_wdtw":
-        return _soft_wdtw_cost_matrix_with_arrs, _jacobian_product_squared_euclidean
-    if distance == "soft_erp":
-        return _soft_erp_cost_matrix_with_arrs, _jacobian_product_euclidean
-
-    raise ValueError(
-        f"Invalid distance: {distance}. Must be one " f"{ELASTIC_DISTANCE_GRADIENT}"
-    )
 
 
 def _preprocess_arrays_and_kwargs(X, distance, barycenter, **kwargs):
@@ -92,74 +65,70 @@ def soft_barycenter_average(
     gamma=1.0,
     weights=None,
     method="L-BFGS-B",
-    tol=1e-3,
-    max_iters=50,
+    tol=1e-5,
+    max_iters=30,
     init_barycenter="mean",
+    previous_cost: Optional[float] = None,
+    previous_distance_to_center: Optional[np.ndarray] = None,
     distance="soft_dtw",
     random_state=None,
     verbose=False,
     n_jobs=1,
+    return_distances_to_center: bool = False,
+    return_cost: bool = False,
     **kwargs,
 ):
-    n_jobs = check_n_jobs(n_jobs)
-    set_num_threads(n_jobs)
     if len(X) <= 1:
-        return X
+        if X.ndim == 3:
+            return X[0], np.zeros(X.shape[0]), 0.0
+        return X, np.zeros(X.shape[0]), 0.0
 
-    if X.ndim == 3:
-        _X = X
-    elif X.ndim == 2:
-        _X = X.reshape((X.shape[0], 1, X.shape[1]))
-    else:
-        raise ValueError("X must be a 2D or 3D array")
-
-    barycenter = _get_init_barycenter(
+    (
         _X,
-        init_barycenter,
-        distance,
+        barycenter,
+        prev_barycenter,
+        cost,
+        previous_cost,
+        distances_to_center,
+        previous_distance_to_center,
+        random_state,
+        n_jobs,
+    ) = _ba_setup(
+        X,
+        distance=distance,
+        init_barycenter=init_barycenter,
+        previous_cost=previous_cost,
+        previous_distance_to_center=previous_distance_to_center,
+        precomputed_medoids_pairwise_distance=None,
+        n_jobs=n_jobs,
         random_state=random_state,
-        **kwargs,
     )
     _X, unequal_length, bounding_matrix, barycenter, kwargs = (
         _preprocess_arrays_and_kwargs(_X, distance, barycenter, **kwargs)
     )
-
-    soft_cm_with_arrs_func, jacobian_function = (
-        _get_soft_distance_cm_with_arrs_function(distance)
-    )
+    if weights is None:
+        weights = np.ones(len(_X))
 
     n_timepoints = barycenter.shape[1]
+    bounding_matrix = create_bounding_matrix(
+        n_timepoints, n_timepoints, window=kwargs.get("window")
+    )
+    distances_to_center = None
 
     def _func(Z):
-        G = np.zeros_like(barycenter)
-        total_distance = 0
-        _Z = Z.reshape(1, n_timepoints)
-
-        for i in range(len(_X)):
-            _bounding_matrix = bounding_matrix
-            if unequal_length:
-                _bounding_matrix = create_bounding_matrix(
-                    _X[i].shape[1], n_timepoints, **kwargs
-                )
-            # grad, value, diff_dist_matrix = soft_gradient_func(
-            #       _Z, _X[i], gamma=gamma, **kwargs
-            #   )
-            grad, value, diff_dist_matrix = (
-                _compute_soft_gradient_with_diff_dist_matrix(
-                    _Z,
-                    _X[i],
-                    cost_matrix_with_arrs_func=soft_cm_with_arrs_func,
-                    gamma=gamma,
-                    bounding_matrix=_bounding_matrix,
-                    **kwargs,
-                )
+        total_distance, jacobian_product, distances_to_center = (
+            _soft_barycenter_one_iter(
+                barycenter=Z.reshape(*barycenter.shape),
+                X=_X,
+                bounding_matrix=bounding_matrix,
+                unequal_length=unequal_length,
+                n_timepoints=n_timepoints,
+                distance=distance,
+                gamma=gamma,
+                **kwargs,
             )
-
-            jacobian_product = jacobian_function(_Z, _X[i], grad, diff_dist_matrix)
-            G += jacobian_product
-            total_distance += value
-
-        return total_distance, G
+        )
+        return total_distance, jacobian_product
 
     res = minimize(
         _func,
@@ -174,7 +143,159 @@ def soft_barycenter_average(
     if distance == "soft_twe":
         return res.x.reshape(*barycenter.shape)[:, 1:]
 
+    if return_distances_to_center and return_cost:
+        return res.x.reshape(*barycenter.shape), distances_to_center, res.fun
+    elif return_distances_to_center:
+        return res.x.reshape(*barycenter.shape), distances_to_center
+    elif return_cost:
+        return res.x.reshape(*barycenter.shape), res.fun
     return res.x.reshape(*barycenter.shape)
+
+
+@njit(cache=True, fastmath=True, parallel=True)
+def _soft_barycenter_one_iter(
+    barycenter: np.ndarray,
+    X: np.ndarray,
+    bounding_matrix: np.ndarray,
+    unequal_length: bool,
+    n_timepoints: int,
+    distance: str = "msm",
+    window: Union[float, None] = None,
+    g: float = 0.0,
+    nu: float = 0.001,
+    lmbda: float = 1.0,
+    c: float = 1.0,
+    descriptor: str = "identity",
+    reach: int = 15,
+    warp_penalty: float = 1.0,
+    transformation_precomputed: bool = False,
+    transformed_x: Optional[np.ndarray] = None,
+    transformed_y: Optional[np.ndarray] = None,
+    gamma: float = 1.0,
+):
+    jacobian_product = np.zeros_like(barycenter)
+    distances_to_center = np.zeros(len(X))
+    total_distance = 0
+
+    for i in prange(len(X)):
+        _bounding_matrix = bounding_matrix
+        curr_ts = X[i]
+        if unequal_length:
+            _bounding_matrix = create_bounding_matrix(
+                curr_ts.shape[1], n_timepoints, window=window
+            )
+        if distance == "soft_dtw":
+            (
+                cost_matrix,
+                diagonal_arr,
+                vertical_arr,
+                horizontal_arr,
+                diff_dist_matrix,
+            ) = _soft_dtw_cost_matrix_with_arrs(
+                barycenter,
+                curr_ts,
+                bounding_matrix=_bounding_matrix,
+                gamma=gamma,
+            )
+        elif distance == "soft_wdtw":
+            (
+                cost_matrix,
+                diagonal_arr,
+                vertical_arr,
+                horizontal_arr,
+                diff_dist_matrix,
+            ) = _soft_wdtw_cost_matrix_with_arrs(
+                barycenter, curr_ts, bounding_matrix=bounding_matrix, gamma=gamma, g=g
+            )
+        elif distance == "soft_erp":
+            (
+                cost_matrix,
+                diagonal_arr,
+                vertical_arr,
+                horizontal_arr,
+                diff_dist_matrix,
+            ) = _soft_erp_cost_matrix_with_arrs(
+                barycenter, curr_ts, bounding_matrix=bounding_matrix, gamma=gamma, g=g
+            )
+        elif distance == "soft_twe":
+            (
+                cost_matrix,
+                diagonal_arr,
+                vertical_arr,
+                horizontal_arr,
+                diff_dist_matrix,
+            ) = _soft_twe_cost_matrix_with_arrs(
+                barycenter,
+                curr_ts,
+                bounding_matrix=bounding_matrix,
+                gamma=gamma,
+                nu=nu,
+                lmbda=lmbda,
+            )
+        elif distance == "soft_msm":
+            (
+                cost_matrix,
+                diagonal_arr,
+                vertical_arr,
+                horizontal_arr,
+                diff_dist_matrix,
+            ) = _soft_msm_cost_matrix_with_arr_independent(
+                barycenter, curr_ts, bounding_matrix=bounding_matrix, gamma=gamma, c=c
+            )
+        elif distance == "soft_shape_dtw":
+            (
+                cost_matrix,
+                diagonal_arr,
+                vertical_arr,
+                horizontal_arr,
+                diff_dist_matrix,
+            ) = _soft_shape_dtw_cost_matrix_with_arrs(
+                barycenter,
+                curr_ts,
+                bounding_matrix=bounding_matrix,
+                gamma=gamma,
+                descriptor=descriptor,
+                reach=reach,
+                transformed_x=transformed_x,
+                transformed_y=transformed_y,
+                transformation_precomputed=transformation_precomputed,
+            )
+        elif distance == "soft_adtw":
+            (
+                cost_matrix,
+                diagonal_arr,
+                vertical_arr,
+                horizontal_arr,
+                diff_dist_matrix,
+            ) = _soft_adtw_cost_matrix_with_arrs(
+                barycenter,
+                curr_ts,
+                bounding_matrix=bounding_matrix,
+                gamma=gamma,
+                warp_penalty=warp_penalty,
+            )
+
+        grad = _soft_gradient_with_arrs(
+            cost_matrix, diagonal_arr, vertical_arr, horizontal_arr
+        )
+        curr_dist = cost_matrix[-1, -1]
+        total_distance += curr_dist
+        distances_to_center[i] = curr_dist
+
+        if distance == "soft_msm":
+            jacobian_product += _jacobian_product_absolute_distance(
+                barycenter, curr_ts, grad, diff_dist_matrix
+            )
+        elif distance == "soft_twe":
+            jacobian_product += _jacobian_product_euclidean(
+                barycenter, curr_ts, grad, diff_dist_matrix
+            )
+        else:
+            jacobian_product += _jacobian_product_squared_euclidean(
+                barycenter, curr_ts, grad, diff_dist_matrix
+            )
+
+    return total_distance, jacobian_product, distances_to_center
 
 
 if __name__ == "__main__":

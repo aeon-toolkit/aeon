@@ -232,8 +232,8 @@ def soft_msm_alignment_path(
     x: np.ndarray,
     y: np.ndarray,
     window: Optional[float] = None,
-    c: float = 1.0,
     gamma: float = 1.0,
+    c: float = 1.0,
     itakura_max_slope: Optional[float] = None,
 ) -> tuple[list[tuple[int, int]], float]:
     cm = soft_msm_cost_matrix(x, y, window, c, gamma, itakura_max_slope)

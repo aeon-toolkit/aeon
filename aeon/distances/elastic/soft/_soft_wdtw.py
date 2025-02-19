@@ -204,8 +204,8 @@ def soft_wdtw_alignment_path(
     x: np.ndarray,
     y: np.ndarray,
     window: Optional[float] = None,
-    g: float = 0.05,
     gamma: float = 1.0,
+    g: float = 0.05,
     itakura_max_slope: Optional[float] = None,
 ) -> tuple[list[tuple[int, int]], float]:
     cost_matrix = soft_wdtw_cost_matrix(

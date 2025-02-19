@@ -280,7 +280,7 @@ class KASBA(BaseClusterer):
                 X=X[current_cluster_indices],
                 init_barycenter=cluster_centres[j],
                 previous_cost=previous_cost,
-                previous_distance_to_centre=previous_distance_to_centre,
+                previous_distance_to_center=previous_distance_to_centre,
                 distance=self.distance,
                 max_iters=50,
                 tol=self.tol,
@@ -289,6 +289,7 @@ class KASBA(BaseClusterer):
                 ba_subset_size=self.ba_subset_size,
                 initial_step_size=self.initial_step_size,
                 decay_rate=self.decay_rate,
+                return_distances_to_center=True,
                 **self._distance_params,
             )
 
