@@ -131,10 +131,10 @@ class ETSForecaster(BaseForecaster):
         if self.seasonal_period < 1 or self.seasonality_type == NONE:
             self._seasonal_period = 1
         self._beta = self.beta
-        if self.trend_type == NONE:
+        if self.trend_type == NONE or self.trend_type is None:
             self._beta = 0
         self._gamma = self.gamma
-        if self.seasonality_type == NONE:
+        if self.seasonality_type == NONE or self.trend_type is None:
             self._gamma = 0
         data = np.array(y.squeeze(), dtype=np.float64)
         (
