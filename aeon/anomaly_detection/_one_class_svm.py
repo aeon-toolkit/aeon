@@ -16,14 +16,14 @@ class OneClassSVM(BaseAnomalyDetector):
 
     This class implements the OneClassSVM algorithm for anomaly detection
     from sklearn to be used in the aeon framework. All parameters are passed to
-    the sklearn ``OneClassSVM`` except for `window_size` and `stride`, which are used to
+    the sklearn `OneClassSVM` except for `window_size` and `stride`, which are used to
     construct the sliding windows.
 
     The documentation for parameters has been adapted from
     (https://scikit-learn.org/dev/modules/generated/sklearn.svm.OneClassSVM.html).
     Here, `X` refers to the set of sliding windows extracted from the time series
     using :func:`aeon.utils.windowing.sliding_windows` with the parameters
-    ``window_size`` and ``stride``. The internal `X` has the shape
+    `window_size` and `stride`. The internal `X` has the shape
     `(n_windows, window_size * n_channels)`.
 
     Parameters
@@ -41,13 +41,13 @@ class OneClassSVM(BaseAnomalyDetector):
     gamma : {'scale', 'auto'} or float, default='scale'
         Kernel coefficient for 'rbf', 'poly' and 'sigmoid'.
 
-        - if ``gamma='scale'`` (default) is passed then it uses
+        - if `gamma='scale'` (default) is passed then it uses
           1 / (n_features * X.var()) as value of gamma,
         - if 'auto', uses 1 / n_features
         - if float, must be non-negative.
 
         .. versionchanged:: 0.22
-           The default value of ``gamma`` changed from 'auto' to 'scale'.
+           The default value of `gamma` changed from 'auto' to 'scale'.
 
     coef0 : float, default=0.0
         Independent term in kernel function.

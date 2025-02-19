@@ -21,7 +21,7 @@ class LOF(PyODAdapter):
     [PyOD documentation](https://pyod.readthedocs.io/en/latest/pyod.models.html#id586).
     Here, `X` refers to the set of sliding windows extracted from the time series
     using :func:`aeon.utils.windowing.sliding_windows` with the parameters
-    ``window_size`` and ``stride``. The internal `X` has the shape
+    `window_size` and `stride`. The internal `X` has the shape
     `(n_windows, window_size * n_channels)`.
 
     Parameters
@@ -58,7 +58,7 @@ class LOF(PyODAdapter):
         Additional keyword arguments for the metric function.
     n_jobs : int, optional (default = 1)
         The number of parallel jobs to run for neighbors search.
-        If ``-1``, then the number of jobs is set to the number of CPU cores.
+        If `-1`, then the number of jobs is set to the number of CPU cores.
         Affects only kneighbors and kneighbors_graph methods.
     novelty : bool (default=False)
         By default, LocalOutlierFactor is only meant to be used for outlier

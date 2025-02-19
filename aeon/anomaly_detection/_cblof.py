@@ -16,14 +16,14 @@ class CBLOF(PyODAdapter):
 
     This class implements the CBLOF algorithm for anomaly detection
     using PyODAdadpter to be used in the aeon framework. All parameters are passed to
-    the PyOD model ``CBLOF`` except for `window_size` and `stride`, which are used to
+    the PyOD model `CBLOF` except for `window_size` and `stride`, which are used to
     construct the sliding windows.
 
     The documentation for parameters has been adapted from the
     [PyOD documentation](https://pyod.readthedocs.io/en/latest/pyod.models.html#id117).
     Here, `X` refers to the set of sliding windows extracted from the time series
     using :func:`aeon.utils.windowing.sliding_windows` with the parameters
-    ``window_size`` and ``stride``. The internal `X` has the shape
+    `window_size` and `stride`. The internal `X` has the shape
     `(n_windows, window_size * n_channels)`.
 
     Parameters
@@ -36,8 +36,8 @@ class CBLOF(PyODAdapter):
         The base clustering algorithm for performing data clustering.
         A valid clustering algorithm should be passed in. The estimator should
         have standard sklearn APIs, fit() and predict(). The estimator should
-        have attributes ``labels_`` and ``cluster_centers_``.
-        If ``cluster_centers_`` is not in the attributes once the model is fit,
+        have attributes `labels_` and `cluster_centers_`.
+        If `cluster_centers_` is not in the attributes once the model is fit,
         it is calculated as the mean of the samples in a cluster.
 
         If not set, CBLOF uses KMeans for scalability. See

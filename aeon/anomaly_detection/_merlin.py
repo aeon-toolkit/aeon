@@ -31,7 +31,7 @@ class MERLIN(BaseAnomalyDetector):
     max_iterations : int, default=500
         Maximum number of DRAG iterations to find an anomalous sequence for each
         length. If no anomaly is found, the algorithm will move to the next length
-        and reset ``r``.
+        and reset `r`.
 
     References
     ----------
