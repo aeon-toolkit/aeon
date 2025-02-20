@@ -36,7 +36,8 @@ list may be a good place to start.
 it. **First ensure that the issue is not already being worked on. Look if there are any
 linked PRs and search the issue number in the pull requests list.**
 To assign yourself an **Issue/Pull Request**, please post a comment in the issue
-including '@aeon-actions-bot', the username of people to assign and the word `assign`:
+including '@aeon-actions-bot', the username of people to assign and the word `assign`
+(Please nore that anyone @'ed in the comment will be assigned to the issue):
 
     For example:
     ```python
@@ -82,6 +83,17 @@ contributions are recorded in [.all-contributorsrc](https://github.com/aeon-tool
 Alternatively, you can use the [@all-contributors](https://allcontributors.org/docs/en/bot/usage)
 bot to do this for you. If the contribution is contained in a PR, please only @ the bot
 when the PR has been merged. A list of relevant tags can be found [here](https://allcontributors.org/docs/en/emoji-key).
+
+## Joining `aeon` as a Core Developer
+
+`aeon` Core Developers have write access to the repository and the ability to vote on
+community decisions. For more details on this role, please refer to the
+[about](about.md) and [governance](governance.md) pages.
+
+If you would like to become a Core Developer, the best way is to reach out and express
+your interest. We are particularly open to dedicated contributors who have made
+high-quality contributions to the project, as well as time series researchers and
+industry professionals.
 
 ## Further Reading
 
