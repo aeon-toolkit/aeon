@@ -18,8 +18,8 @@ def test_cnn_input_shape_padding():
     network = TimeCNNNetwork()
     input_layer, output_layer = network.build_network(input_shape=input_shape)
 
-    assert input_layer is not None
-    assert output_layer is not None
+    assert hasattr(input_layer, "shape")
+    assert hasattr(output_layer, "shape")
 
 
 @pytest.mark.skipif(
@@ -33,8 +33,8 @@ def test_cnn_activation(activation):
     network = TimeCNNNetwork(activation=activation)
     input_layer, output_layer = network.build_network(input_shape=input_shape)
 
-    assert input_layer is not None
-    assert output_layer is not None
+    assert hasattr(input_layer, "shape")
+    assert hasattr(output_layer, "shape")
 
 
 @pytest.mark.skipif(
@@ -48,8 +48,8 @@ def test_cnn_kernel_size(kernel_size, n_layers):
     network = TimeCNNNetwork(n_layers=n_layers, kernel_size=kernel_size)
     input_layer, output_layer = network.build_network(input_shape=input_shape)
 
-    assert input_layer is not None
-    assert output_layer is not None
+    assert hasattr(input_layer, "shape")
+    assert hasattr(output_layer, "shape")
 
 
 @pytest.mark.skipif(
@@ -63,8 +63,8 @@ def test_cnn_n_filters(n_layers, n_filters):
     network = TimeCNNNetwork(n_layers=n_layers, n_filters=n_filters)
     input_layer, output_layer = network.build_network(input_shape=input_shape)
 
-    assert input_layer is not None
-    assert output_layer is not None
+    assert hasattr(input_layer, "shape")
+    assert hasattr(output_layer, "shape")
 
 
 @pytest.mark.skipif(
@@ -80,8 +80,8 @@ def test_pooling(pool_size, pool_strides):
     network = TimeCNNNetwork(avg_pool_size=pool_size, strides_pooling=pool_strides)
     input_layer, output_layer = network.build_network(input_shape=input_shape)
 
-    assert input_layer is not None
-    assert output_layer is not None
+    assert hasattr(input_layer, "shape")
+    assert hasattr(output_layer, "shape")
 
 
 @pytest.mark.skipif(
@@ -93,14 +93,16 @@ def test_cnn_padding():
     # Test automatic padding override
     small_input = (50, 3)
     network = TimeCNNNetwork(padding="valid")
-    input_layer, _ = network.build_network(input_shape=small_input)
-    assert input_layer is not None
+    input_layer, output_layer = network.build_network(input_shape=small_input)
+    assert hasattr(input_layer, "shape")
+    assert hasattr(output_layer, "shape")
 
     # Test explicit padding
     large_input = (100, 3)
     network = TimeCNNNetwork(padding=["same", "valid"])
-    input_layer, _ = network.build_network(input_shape=large_input)
-    assert input_layer is not None
+    input_layer, output_layer = network.build_network(input_shape=large_input)
+    assert hasattr(input_layer, "shape")
+    assert hasattr(output_layer, "shape")
 
 
 @pytest.mark.skipif(
@@ -114,8 +116,8 @@ def test_dilation_rate(dilation):
     network = TimeCNNNetwork(dilation_rate=dilation)
     input_layer, output_layer = network.build_network(input_shape=input_shape)
 
-    assert input_layer is not None
-    assert output_layer is not None
+    assert hasattr(input_layer, "shape")
+    assert hasattr(output_layer, "shape")
 
 
 @pytest.mark.skipif(
@@ -129,8 +131,8 @@ def test_use_bias(use_bias):
     network = TimeCNNNetwork(use_bias=use_bias)
     input_layer, output_layer = network.build_network(input_shape=input_shape)
 
-    assert input_layer is not None
-    assert output_layer is not None
+    assert hasattr(input_layer, "shape")
+    assert hasattr(output_layer, "shape")
 
 
 # Error case tests
