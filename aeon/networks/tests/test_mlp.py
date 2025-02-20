@@ -30,10 +30,8 @@ def test_mlp_initialization(n_layers, n_units, activation):
     model = Model(inputs=input_layer, outputs=output_layer)
     layers = model.layers
 
-    # Check the first layer is an InputLayer
     assert isinstance(layers[0], InputLayer), "Expected first layer to be InputLayer"
 
-    # Check the second layer is a Flatten layer
     assert isinstance(layers[1], Flatten), "Expected second layer to be Flatten"
 
     # Check dropout and dense layers ordering
