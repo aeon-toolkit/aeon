@@ -150,7 +150,7 @@ def soft_barycenter_average(
         method=method,
         jac=True,
         tol=tol,
-        options=dict(maxiter=max_iters, disp=True),
+        options=dict(maxiter=max_iters, disp=verbose),
     )
 
     # TWE is padded with a 0 at the start so remove first element
