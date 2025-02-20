@@ -119,7 +119,6 @@ class KASBA(BaseClusterer):
         decay_rate: float = 0.1,
         verbose: bool = False,
         random_state: Optional[Union[int, RandomState]] = None,
-        use_soft_ba=False,
     ):
         self.distance = distance
         self.max_iter = max_iter
