@@ -1,6 +1,6 @@
 """Summary feature transformer."""
 
-__maintainer__ = []
+__maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["SevenNumberSummary"]
 
 import numpy as np
