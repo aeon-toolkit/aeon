@@ -6,6 +6,10 @@ from aeon.networks import AEFCNNetwork
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
+@pytest.mark.skipif(
+    not _check_soft_dependencies(["tensorflow"], severity="none"),
+    reason="Tensorflow soft dependency unavailable.",
+)
 def test_aefcn_default():
     """Default testing for aefcn."""
     model = AEFCNNetwork()
