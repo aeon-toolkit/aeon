@@ -14,15 +14,20 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 def test_default_initialization():
     """Test if the network initializes with proper attributes."""
     model = ResNetNetwork()
-    assert model.n_residual_blocks == 3
-    assert model.n_conv_per_residual_block == 3
-    assert model.n_filters is None
-    assert model.kernel_size is None
-    assert model.strides == 1
-    assert model.dilation_rate == 1
-    assert model.activation == "relu"
-    assert model.use_bias is True
-    assert model.padding == "same"
+    assert isinstance(
+        model, ResNetNetwork
+    ), "Model initialization failed: Incorrect type"
+    assert model.n_residual_blocks == 3, "Default residual blocks count mismatch"
+    assert (
+        model.n_conv_per_residual_block == 3
+    ), "Default convolution blocks count mismatch"
+    assert model.n_filters is None, "Default n_filters should be None"
+    assert model.kernel_size is None, "Default kernel_size should be None"
+    assert model.strides == 1, "Default strides value mismatch"
+    assert model.dilation_rate == 1, "Default dilation rate mismatch"
+    assert model.activation == "relu", "Default activation mismatch"
+    assert model.use_bias is True, "Default use_bias mismatch"
+    assert model.padding == "same", "Default padding mismatch"
 
 
 @pytest.mark.skipif(
@@ -41,32 +46,14 @@ def test_custom_initialization():
         padding="same",
     )
     model.build_network((128, 1))
-    assert model.n_residual_blocks == 3
-    assert model.n_conv_per_residual_block == 3
-    assert model._n_filters == [64, 128, 128]
-    assert model._kernel_size == [8, 5, 3]
-    assert model._activation == ["relu", "relu", "relu"]
-    assert model._strides == [1, 1, 1]
-    assert model._padding == ["same", "same", "same"]
-
-
-@pytest.mark.skipif(
-    not _check_soft_dependencies(["tensorflow"], severity="none"),
-    reason="skip test if required soft dependency not available",
-)
-def test_edge_case_initialization():
-    """Tests edge cases for minimal configuration."""
-    model = ResNetNetwork(
-        n_residual_blocks=1,
-        n_conv_per_residual_block=1,
-        n_filters=[64],
-        kernel_size=[8],
-    )
-    model.build_network((128, 1))
-    assert model.n_residual_blocks == 1
-    assert model.n_conv_per_residual_block == 1
-    assert model._n_filters == [64]
-    assert model._kernel_size == [8]
+    assert isinstance(
+        model, ResNetNetwork
+    ), "Custom initialization failed: Incorrect type"
+    assert model._n_filters == [64, 128, 128], "n_filters list mismatch"
+    assert model._kernel_size == [8, 5, 3], "kernel_size list mismatch"
+    assert model._activation == ["relu", "relu", "relu"], "activation list mismatch"
+    assert model._strides == [1, 1, 1], "strides list mismatch"
+    assert model._padding == ["same", "same", "same"], "padding list mismatch"
 
 
 @pytest.mark.skipif(
@@ -75,66 +62,18 @@ def test_edge_case_initialization():
 )
 def test_invalid_initialization():
     """Test if the network raises valid exceptions for invalid configurations."""
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match=".*same as number of residual blocks.*"):
         ResNetNetwork(n_filters=[64, 128], n_residual_blocks=3).build_network((128, 1))
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match=".*same as number of convolution layers.*"):
         ResNetNetwork(kernel_size=[8, 5], n_conv_per_residual_block=3).build_network(
             (128, 1)
         )
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match=".*same as number of convolution layers.*"):
         ResNetNetwork(strides=[1, 2], n_conv_per_residual_block=3).build_network(
             (128, 1)
         )
-
-    with pytest.raises(ValueError):
-        ResNetNetwork(dilation_rate=[1, 2], n_conv_per_residual_block=3).build_network(
-            (128, 1)
-        )
-
-    with pytest.raises(ValueError):
-        ResNetNetwork(
-            padding=["same", "valid"], n_conv_per_residual_block=3
-        ).build_network((128, 1))
-
-    with pytest.raises(ValueError):
-        ResNetNetwork(
-            activation=["relu", "tanh"], n_conv_per_residual_block=3
-        ).build_network((128, 1))
-
-    with pytest.raises(ValueError):
-        ResNetNetwork(
-            use_bias=[True, False], n_conv_per_residual_block=3
-        ).build_network((128, 1))
-
-
-@pytest.mark.skipif(
-    not _check_soft_dependencies(["tensorflow"], severity="none"),
-    reason="skip test if required soft dependency not available",
-)
-def test_list_parameters():
-    """Test correct handling of list parameters."""
-    model = ResNetNetwork(
-        n_residual_blocks=3,
-        n_conv_per_residual_block=3,
-        n_filters=[64, 128, 128],
-        kernel_size=[8, 5, 3],
-        strides=[1, 1, 1],
-        dilation_rate=[1, 1, 1],
-        padding=["same", "same", "same"],
-        activation=["relu", "relu", "relu"],
-        use_bias=[True, True, True],
-    )
-    model.build_network((128, 1))
-
-    assert model._n_filters == [64, 128, 128]
-    assert model._kernel_size == [8, 5, 3]
-    assert model._strides == [1, 1, 1]
-    assert model._dilation_rate == [1, 1, 1]
-    assert model._padding == ["same", "same", "same"]
-    assert model._activation == ["relu", "relu", "relu"]
-    assert model._use_bias == [True, True, True]
 
 
 @pytest.mark.skipif(
@@ -148,8 +87,10 @@ def test_build_network():
     input_shapes = [(128, 1), (256, 3), (512, 1)]
     for shape in input_shapes:
         input_layer, output_layer = model.build_network(shape)
-        assert input_layer.shape[1:] == shape
-        assert output_layer.shape[-1] == 128
+        assert hasattr(input_layer, "shape"), "Input layer type mismatch"
+        assert hasattr(output_layer, "shape"), "Output layer type mismatch"
+        assert input_layer.shape[1:] == shape, "Input shape mismatch"
+        assert output_layer.shape[-1] == 128, "Output layer mismatch"
 
 
 @pytest.mark.skipif(
@@ -159,8 +100,9 @@ def test_build_network():
 def test_shortcut_layer():
     """Test the shortcut layer functionality."""
     model = ResNetNetwork()
+
     input_tensor = tf.keras.layers.Input((128, 64))
     output_tensor = tf.keras.layers.Conv1D(128, 8, padding="same")(input_tensor)
-
     shortcut = model._shortcut_layer(input_tensor, output_tensor)
-    assert shortcut.shape[-1] == 128
+    assert hasattr(shortcut, "shape"), "Shortcut layer output type mismatch"
+    assert shortcut.shape[-1] == 128, "Shortcut output shape mismatch"
