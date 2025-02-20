@@ -154,16 +154,17 @@ def soft_barycenter_average(
     )
 
     # TWE is padded with a 0 at the start so remove first element
+    final_barycenter = res.x.reshape(*barycenter.shape)
     if distance == "soft_twe":
-        return res.x.reshape(*barycenter.shape)[:, 1:]
+        final_barycenter = final_barycenter[:, 1:]
 
     if return_distances_to_center and return_cost:
-        return res.x.reshape(*barycenter.shape), distances_to_center, res.fun
+        return final_barycenter, distances_to_center, res.fun
     elif return_distances_to_center:
-        return res.x.reshape(*barycenter.shape), distances_to_center
+        return final_barycenter, distances_to_center
     elif return_cost:
-        return res.x.reshape(*barycenter.shape), res.fun
-    return res.x.reshape(*barycenter.shape)
+        return final_barycenter, res.fun
+    return final_barycenter
 
 
 @njit(cache=True, fastmath=True, parallel=True)
