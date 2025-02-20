@@ -244,6 +244,8 @@ class TimeSeriesKMeans(BaseClusterer):
                 **self._distance_params,
             )
             labels = pw.argmin(axis=1)
+            if self.verbose:
+                print("Starting inertia", pw.min(axis=1).sum())  # noqa: T001, T201
 
         subgradient_average_method = (
             self.averaging_method == "subgradient_ba"
@@ -403,7 +405,8 @@ class TimeSeriesKMeans(BaseClusterer):
             **self._distance_params,
         )
         labels = pw.argmin(axis=1)
-        print("Starting inertia", pw.min(axis=1).sum())  # noqa: T001, T201
+        if self.verbose:
+            print("Starting inertia", pw.min(axis=1).sum())  # noqa: T001, T201
         return cluster_centers, labels
 
     def _first_center_initializer(self, X: np.ndarray):
@@ -416,7 +419,8 @@ class TimeSeriesKMeans(BaseClusterer):
             **self._distance_params,
         )
         labels = pw.argmin(axis=1)
-        print("Starting inertia", pw.min(axis=1).sum())  # noqa: T001, T201
+        if self.verbose:
+            print("Starting inertia", pw.min(axis=1).sum())  # noqa: T001, T201
         return cluster_centers, labels
 
     def _elastic_kmeans_plus_plus(
@@ -453,10 +457,10 @@ class TimeSeriesKMeans(BaseClusterer):
             labels[closer_points] = i
 
         centers = X[indexes]
-        print("Starting inertia", min_distances.sum())  # noqa: T001, T201
+        if self.verbose:
+            print("Starting inertia", min_distances.sum())  # noqa: T001, T201
         return centers, labels
 
-    # Something is happening in the handle empty cluster function that is different
     def _handle_empty_cluster(
         self,
         X: np.ndarray,
@@ -485,7 +489,8 @@ class TimeSeriesKMeans(BaseClusterer):
             if j > self.n_clusters:
                 raise EmptyClusterError
 
-        print(f"Handled empty cluster, inertia: {inertia}")  # noqa: T001, T201
+        if self.verbose:
+            print(f"Handled empty cluster, inertia: {inertia}")  # noqa: T001, T201
         return labels, cluster_centres, inertia
 
     @classmethod
