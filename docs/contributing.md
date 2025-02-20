@@ -17,8 +17,8 @@ Pull requests from unknown contributors which do not attempt to resolve the issu
 addressed, completely disregard the pull request template, or consist of low quality AI
 generated output may be closed without review.
 
-When implementing new algorithms, developers may require some evaluation form of
-evaluation against alternative implementations or published results. This is likely to
+When implementing new algorithms, developers may require some benchmarking
+against alternative implementations or published results. This is likely to
 be the case for complex published algorithms which are not contributed by trusted
 developers or the original authors. A developer may eventually do this themselves if the
 contributor is unable to, but this is a time-consuming process and may delay the
@@ -45,7 +45,7 @@ it. **First ensure that the issue is not already being worked on. Look if there 
 linked PRs and search the issue number in the pull requests list.**
 To assign yourself an **Issue/Pull Request**, please post a comment in the issue
 including '@aeon-actions-bot', the username of people to assign and the word `assign`
-(Please nore that anyone @'ed in the comment will be assigned to the issue):
+(Please note that anyone @'ed in the comment will be assigned to the issue):
 
     For example:
     ```python
