@@ -201,10 +201,14 @@ def elastic_barycenter_average(
             tol=tol,
             max_iters=max_iters,
             init_barycenter=init_barycenter,
+            previous_cost=previous_cost,
+            previous_distance_to_center=previous_distance_to_centre,
             distance=distance,
             random_state=random_state,
             verbose=verbose,
             n_jobs=n_jobs,
+            return_cost=return_cost,
+            return_distances_to_center=return_distances_to_center,
             **kwargs,
         )
     raise ValueError(
