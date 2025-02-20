@@ -82,9 +82,14 @@ def soft_barycenter_average(
     **kwargs,
 ):
     if len(X) <= 1:
-        if X.ndim == 3:
-            return X[0], np.zeros(X.shape[0]), 0.0
-        return X, np.zeros(X.shape[0]), 0.0
+        center = X[0] if X.ndim == 3 else X
+        if return_distances_to_center and return_cost:
+            return center, np.zeros(X.shape[0]), 0.0
+        elif return_distances_to_center:
+            return center, np.zeros(X.shape[0])
+        elif return_cost:
+            return center, 0.0
+        return center
 
     if distance not in VALID_SOFT_BA_DISTANCE_METHODS:
         raise ValueError(
@@ -182,11 +187,14 @@ def _soft_barycenter_one_iter(
     transformed_y: Optional[np.ndarray] = None,
     gamma: float = 1.0,
 ):
-    jacobian_product = np.zeros_like(barycenter)
-    distances_to_center = np.zeros(len(X))
-    total_distance = 0
+    X_size = len(X)
+    local_jacobian_products = np.zeros(
+        (X_size, barycenter.shape[0], barycenter.shape[1])
+    )
+    local_distances = np.zeros(X_size)
+    distances_to_center = np.zeros(X_size)
 
-    for i in prange(len(X)):
+    for i in prange(X_size):
         _bounding_matrix = bounding_matrix
         curr_ts = X[i]
         if unequal_length:
@@ -288,21 +296,28 @@ def _soft_barycenter_one_iter(
             cost_matrix, diagonal_arr, vertical_arr, horizontal_arr
         )
         curr_dist = cost_matrix[-1, -1]
-        total_distance += curr_dist
+        local_distances[i] = curr_dist
         distances_to_center[i] = curr_dist
 
         if distance == "soft_msm":
-            jacobian_product += _jacobian_product_absolute_distance(
+            local_jacobian_products[i] = _jacobian_product_absolute_distance(
                 barycenter, curr_ts, grad, diff_dist_matrix
             )
         elif distance == "soft_twe":
-            jacobian_product += _jacobian_product_euclidean(
+            local_jacobian_products[i] = _jacobian_product_euclidean(
                 barycenter, curr_ts, grad, diff_dist_matrix
             )
         else:
-            jacobian_product += _jacobian_product_squared_euclidean(
+            local_jacobian_products[i] = _jacobian_product_squared_euclidean(
                 barycenter, curr_ts, grad, diff_dist_matrix
             )
+
+    # Combine results after parallel section
+    jacobian_product = np.zeros_like(barycenter)
+    total_distance = 0.0
+    for i in range(X_size):
+        jacobian_product += local_jacobian_products[i]
+        total_distance += local_distances[i]
 
     return total_distance, jacobian_product, distances_to_center
 

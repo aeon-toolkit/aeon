@@ -108,9 +108,14 @@ def petitjean_barycenter_average(
        Recognition, Elsevier, 2011, Vol. 44, Num. 3, pp. 678-693
     """
     if len(X) <= 1:
-        if X.ndim == 3:
-            return X[0], np.zeros(X.shape[0]), 0.0
-        return X, np.zeros(X.shape[0]), 0.0
+        center = X[0] if X.ndim == 3 else X
+        if return_distances_to_center and return_cost:
+            return center, np.zeros(X.shape[0]), 0.0
+        elif return_distances_to_center:
+            return center, np.zeros(X.shape[0])
+        elif return_cost:
+            return center, 0.0
+        return center
 
     if distance not in VALID_BA_DISTANCE_METHODS:
         raise ValueError(
@@ -194,8 +199,9 @@ def _ba_one_iter_petitjean(
     transformed_y: Optional[np.ndarray] = None,
 ) -> np.ndarray:
     X_size, X_dims, X_timepoints = X.shape
-    sum = np.zeros(X_timepoints)
-    alignment = np.zeros((X_dims, X_timepoints))
+    # Create a separate alignment array for each parallel task
+    local_alignments = np.zeros((X_size, X_dims, X_timepoints))
+    local_sums = np.zeros((X_size, X_timepoints))
 
     for i in prange(X_size):
         curr_ts = X[i]
@@ -220,7 +226,14 @@ def _ba_one_iter_petitjean(
         )
 
         for j, k in curr_alignment:
-            alignment[:, k] += curr_ts[:, j] * weights[i]
-            sum[k] += 1 * weights[i]
+            local_alignments[i, :, k] += curr_ts[:, j] * weights[i]
+            local_sums[i, k] += weights[i]
+
+    # Combine results after parallel section
+    alignment = np.zeros((X_dims, X_timepoints))
+    sum = np.zeros(X_timepoints)
+    for i in range(X_size):
+        alignment += local_alignments[i]
+        sum += local_sums[i]
 
     return alignment / sum

@@ -2,6 +2,8 @@
 
 import time
 
+import numpy as np
+
 from aeon.clustering.averaging import elastic_barycenter_average
 from aeon.testing.data_generation import make_example_3d_numpy
 
@@ -34,9 +36,19 @@ if __name__ == "__main__":
         random_state=2,
         **kwargs,
     )
-    kasba_avg = kasba_avg.swapaxes(0, 1)
     end = time.time()
     print(f"KASBA Time taken: {end - start}")  # noqa: T001, T201
+
+    kasba_1_job = elastic_barycenter_average(
+        X,
+        method="kasba",
+        verbose=verbose,
+        distance=distance,
+        n_jobs=1,
+        random_state=2,
+        **kwargs,
+    )
+    print(f"KASBA Equal: {np.allclose(kasba_avg, kasba_1_job)}")  # noqa: T001 T201
 
     start = time.time()
     subgradient_avg = elastic_barycenter_average(
@@ -48,9 +60,22 @@ if __name__ == "__main__":
         random_state=1,
         **kwargs,
     )
-    subgradient_avg = subgradient_avg.swapaxes(0, 1)
     end = time.time()
     print(f"Subgradient Time taken: {end - start}")  # noqa: T001, T201
+
+    subgradient_1_job = elastic_barycenter_average(
+        X,
+        method="subgradient",
+        verbose=verbose,
+        distance=distance,
+        n_jobs=1,
+        random_state=1,
+        **kwargs,
+    )
+    print(  # noqa: T001 T201
+        f"Subgradient Equal: "  # noqa: T001 T201
+        f"{np.allclose(subgradient_avg, subgradient_1_job)}"  # noqa: T001 T201
+    )  # noqa: T001 T201
 
     start = time.time()
     petitjean_avg = elastic_barycenter_average(
@@ -62,9 +87,22 @@ if __name__ == "__main__":
         random_state=1,
         **kwargs,
     )
-    petitjean_avg = petitjean_avg.swapaxes(0, 1)
     end = time.time()
     print(f"Petitjean Time taken: {end - start}")  # noqa: T001, T201
+
+    petitjean_1_job = elastic_barycenter_average(
+        X,
+        method="petitjean",
+        verbose=verbose,
+        distance=distance,
+        n_jobs=1,
+        random_state=1,
+        **kwargs,
+    )
+    print(  # noqa: T001 T201
+        f"Petitjean Equal: "  # noqa: T001 T201
+        f"{np.allclose(petitjean_avg, petitjean_1_job)}"  # noqa: T001 T201
+    )  # noqa: T001 T201
 
     start = time.time()
     soft_avg = elastic_barycenter_average(
@@ -79,7 +117,17 @@ if __name__ == "__main__":
     )
     end = time.time()
     print(f"Soft Time taken: {end - start}")  # noqa: T001, T201
-    soft_avg = soft_avg.swapaxes(0, 1)
+    soft_1_job = elastic_barycenter_average(
+        X,
+        method="soft",
+        gamma=1.0,
+        verbose=verbose,
+        distance=f"soft_{distance}",
+        n_jobs=1,
+        random_state=1,
+        **kwargs,
+    )
+    print(f"Soft Equal: {np.allclose(soft_avg, soft_1_job)}")  # noqa: T001 T201
 
     # _X = X.swapaxes(1, 2)
     # start = time.time()

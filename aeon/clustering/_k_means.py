@@ -7,13 +7,14 @@ __maintainer__ = []
 from typing import Callable, Union
 
 import numpy as np
+from numba import set_num_threads
 from numpy.random import RandomState
 from sklearn.utils import check_random_state
 
-from aeon.clustering.averaging import VALID_BA_DISTANCE_METHODS
 from aeon.clustering.averaging._averaging import _resolve_average_callable
 from aeon.clustering.base import BaseClusterer
 from aeon.distances import pairwise_distance
+from aeon.utils.validation import check_n_jobs
 
 
 class EmptyClusterError(Exception):
@@ -159,9 +160,9 @@ class TimeSeriesKMeans(BaseClusterer):
     def __init__(
         self,
         n_clusters: int = 8,
-        init: Union[str, np.ndarray] = "random",
+        init: Union[str, np.ndarray] = "kmeans++",
         distance: Union[str, Callable] = "msm",
-        n_init: int = 10,
+        n_init: int = 1,
         max_iter: int = 300,
         tol: float = 1e-6,
         verbose: bool = False,
@@ -169,6 +170,7 @@ class TimeSeriesKMeans(BaseClusterer):
         averaging_method: Union[str, Callable[[np.ndarray], np.ndarray]] = "ba",
         distance_params: Optional[dict] = None,
         average_params: Optional[dict] = None,
+        n_jobs: int = 1,
     ):
         self.init = init
         self.distance = distance
@@ -181,6 +183,7 @@ class TimeSeriesKMeans(BaseClusterer):
         self.average_params = average_params
         self.averaging_method = averaging_method
         self.n_clusters = n_clusters
+        self.n_jobs = n_jobs
 
         self.cluster_centers_ = None
         self.labels_ = None
@@ -191,6 +194,7 @@ class TimeSeriesKMeans(BaseClusterer):
         self._init = None
         self._averaging_method = None
         self._average_params = None
+        self._n_jobs = None
 
         super().__init__()
 
@@ -229,69 +233,125 @@ class TimeSeriesKMeans(BaseClusterer):
 
     def _fit_one_init(self, X: np.ndarray) -> tuple:
         if isinstance(self._init, Callable):
-            cluster_centres = self._init(X)
+            cluster_centres, labels = self._init(X)
         else:
             cluster_centres = self._init.copy()
+            pw = pairwise_distance(
+                X,
+                cluster_centres,
+                method=self.distance,
+                n_jobs=self._n_jobs,
+                **self._distance_params,
+            )
+            labels = pw.argmin(axis=1)
+
+        subgradient_average_method = (
+            self.averaging_method == "subgradient_ba"
+            or self.averaging_method == "kasba"
+        )
+
+        inertia = np.inf
         prev_inertia = np.inf
         prev_labels = None
+        prev_cluster_centres = None
         for i in range(self.max_iter):
-            curr_pw = pairwise_distance(
-                X, cluster_centres, method=self.distance, **self._distance_params
+            cluster_centres = self._recalculate_centroids(
+                X,
+                cluster_centres,
+                labels,
             )
-            curr_labels = curr_pw.argmin(axis=1)
-            curr_inertia = curr_pw.min(axis=1).sum()
 
-            # If an empty cluster is encountered
-            if np.unique(curr_labels).size < self.n_clusters:
-                curr_pw, curr_labels, curr_inertia, cluster_centres = (
-                    self._handle_empty_cluster(
-                        X, cluster_centres, curr_pw, curr_labels, curr_inertia
-                    )
-                )
+            pw = pairwise_distance(
+                X,
+                cluster_centres,
+                method=self.distance,
+                n_jobs=self._n_jobs,
+                **self._distance_params,
+            )
+            labels = pw.argmin(axis=1)
+            inertia = pw.min(axis=1).sum()
 
             if self.verbose:
-                print("%.3f" % curr_inertia, end=" --> ")  # noqa: T001, T201
+                print(f"{inertia:.5f}", end=" --> ")  # noqa: T001, T201
 
-            change_in_centres = np.abs(prev_inertia - curr_inertia)
-            prev_inertia = curr_inertia
-            prev_labels = curr_labels
+            labels, cluster_centres, inertia = self._handle_empty_cluster(
+                X,
+                cluster_centres,
+                pw,
+                labels,
+                inertia,
+            )
 
-            if change_in_centres < self.tol or (i + 1) == self.max_iter:
+            if (
+                np.abs(prev_inertia - inertia) < self.tol
+                or (i + 1) == self.max_iter
+                or (subgradient_average_method and np.array_equal(prev_labels, labels))
+            ):
+                if self.verbose:
+                    print(  # noqa: T001, T201
+                        f"Converged at iteration {i}, "  # noqa: T001, T201
+                        f"inertia {inertia:.5f}."  # noqa: T001, T201
+                    )  # noqa: T001, T201
                 break
 
-            # Compute new cluster centres
-            for j in range(self.n_clusters):
-                cluster_centres[j] = self._averaging_method(
-                    X[curr_labels == j], **self._average_params
-                )
+            prev_inertia = inertia
+            prev_labels = labels.copy()
+            prev_cluster_centres = cluster_centres.copy()
 
             if self.verbose is True:
                 print(f"Iteration {i}, inertia {prev_inertia}.")  # noqa: T001, T201
 
-        return prev_labels, cluster_centres, prev_inertia, i + 1
+        if prev_inertia < inertia:
+            return prev_labels, prev_cluster_centres, prev_inertia, i + 1
+        return labels, cluster_centres, inertia, i + 1
 
     def _predict(self, X: np.ndarray, y=None) -> np.ndarray:
         if isinstance(self.distance, str):
             pairwise_matrix = pairwise_distance(
-                X, self.cluster_centers_, method=self.distance, **self._distance_params
+                X,
+                self.cluster_centers_,
+                method=self.distance,
+                n_jobs=self._n_jobs,
+                **self._distance_params,
             )
         else:
             pairwise_matrix = pairwise_distance(
                 X,
                 self.cluster_centers_,
                 method=self.distance,
+                n_jobs=self._n_jobs,
                 **self._distance_params,
             )
         return pairwise_matrix.argmin(axis=1)
 
+    def _recalculate_centroids(
+        self,
+        X,
+        cluster_centres,
+        labels,
+    ):
+        for j in range(self.n_clusters):
+            current_cluster_indices = labels == j
+
+            curr_centre = self._averaging_method(
+                X=X[current_cluster_indices], **self._average_params
+            )
+
+            cluster_centres[j] = curr_centre
+
+        return cluster_centres
+
     def _check_params(self, X: np.ndarray) -> None:
         self._random_state = check_random_state(self.random_state)
+
+        self._n_jobs = check_n_jobs(self.n_jobs)
+        set_num_threads(self._n_jobs)
 
         if isinstance(self.init, str):
             if self.init == "random":
                 self._init = self._random_center_initializer
             elif self.init == "kmeans++":
-                self._init = self._kmeans_plus_plus_center_initializer
+                self._init = self._elastic_kmeans_plus_plus
             elif self.init == "first":
                 self._init = self._first_center_initializer
         else:
@@ -314,20 +374,13 @@ class TimeSeriesKMeans(BaseClusterer):
         else:
             self._average_params = self.average_params
 
-        # Add the distance to average params
-        if "distance" not in self._average_params:
-            # Must be a str and a valid distance for ba averaging
-            if (
-                isinstance(self.distance, str)
-                and self.distance in VALID_BA_DISTANCE_METHODS
-            ):
-                self._average_params["distance"] = self.distance
-            else:
-                # Invalid distance passed for ba so default to dba
-                self._average_params["distance"] = "dtw"
-
-        if "random_state" not in self._average_params:
-            self._average_params["random_state"] = self._random_state
+        self._average_params = {
+            "n_jobs": self._n_jobs,
+            "random_state": self._random_state,
+            "distance": self.distance,
+            **self._average_params,
+            **self._distance_params,
+        }
 
         self._averaging_method = _resolve_average_callable(self.averaging_method)
 
@@ -337,18 +390,47 @@ class TimeSeriesKMeans(BaseClusterer):
                 f"n_cases ({X.shape[0]})"
             )
 
-    def _random_center_initializer(self, X: np.ndarray) -> np.ndarray:
-        return X[self._random_state.choice(X.shape[0], self.n_clusters, replace=False)]
+    def _random_center_initializer(self, X: np.ndarray):
+        cluster_centers = X[
+            self._random_state.choice(X.shape[0], self.n_clusters, replace=False)
+        ]
+        pw = pairwise_distance(
+            X,
+            cluster_centers,
+            method=self.distance,
+            n_jobs=self._n_jobs,
+            **self._distance_params,
+        )
+        labels = pw.argmin(axis=1)
+        print("Starting inertia", pw.min(axis=1).sum())  # noqa: T001, T201
+        return cluster_centers, labels
 
-    def _first_center_initializer(self, X: np.ndarray) -> np.ndarray:
-        return X[list(range(self.n_clusters))]
+    def _first_center_initializer(self, X: np.ndarray):
+        cluster_centers = X[list(range(self.n_clusters))]
+        pw = pairwise_distance(
+            X,
+            cluster_centers,
+            method=self.distance,
+            n_jobs=self._n_jobs,
+            **self._distance_params,
+        )
+        labels = pw.argmin(axis=1)
+        print("Starting inertia", pw.min(axis=1).sum())  # noqa: T001, T201
+        return cluster_centers, labels
 
-    def _kmeans_plus_plus_center_initializer(self, X: np.ndarray):
+    def _elastic_kmeans_plus_plus(
+        self,
+        X,
+    ):
         initial_center_idx = self._random_state.randint(X.shape[0])
         indexes = [initial_center_idx]
 
         min_distances = pairwise_distance(
-            X, X[initial_center_idx], method=self.distance, **self._distance_params
+            X,
+            X[initial_center_idx],
+            method=self.distance,
+            n_jobs=self._n_jobs,
+            **self._distance_params,
         ).flatten()
         labels = np.zeros(X.shape[0], dtype=int)
 
@@ -358,7 +440,11 @@ class TimeSeriesKMeans(BaseClusterer):
             indexes.append(next_center_idx)
 
             new_distances = pairwise_distance(
-                X, X[next_center_idx], method=self.distance, **self._distance_params
+                X,
+                X[next_center_idx],
+                method=self.distance,
+                n_jobs=self._n_jobs,
+                **self._distance_params,
             ).flatten()
 
             closer_points = new_distances < min_distances
@@ -366,44 +452,40 @@ class TimeSeriesKMeans(BaseClusterer):
             labels[closer_points] = i
 
         centers = X[indexes]
-        return centers
+        print("Starting inertia", min_distances.sum())  # noqa: T001, T201
+        return centers, labels
 
+    # Something is happening in the handle empty cluster function that is different
     def _handle_empty_cluster(
         self,
         X: np.ndarray,
         cluster_centres: np.ndarray,
-        curr_pw: np.ndarray,
-        curr_labels: np.ndarray,
-        curr_inertia: float,
+        pw: np.ndarray,
+        labels: np.ndarray,
+        inertia: float,
     ):
-        """Handle an empty cluster.
-
-        This functions finds the time series that is furthest from its assigned centre
-        and then uses that as the new centre for the empty cluster. In terms of
-        optimisation this means it selects the time series that will reduce inertia
-        by the most.
-        """
-        empty_clusters = np.setdiff1d(np.arange(self.n_clusters), curr_labels)
+        empty_clusters = np.setdiff1d(np.arange(self.n_clusters), labels)
         j = 0
-
         while empty_clusters.size > 0:
-            # Assign each time series to the cluster that is closest to it
-            # and then find the time series that is furthest from its assigned centre
             current_empty_cluster_index = empty_clusters[0]
-            index_furthest_from_centre = curr_pw.min(axis=1).argmax()
+            index_furthest_from_centre = pw.min(axis=1).argmax()
             cluster_centres[current_empty_cluster_index] = X[index_furthest_from_centre]
-            curr_pw = pairwise_distance(
-                X, cluster_centres, method=self.distance, **self._distance_params
+            pw = pairwise_distance(
+                X,
+                cluster_centres,
+                method=self.distance,
+                n_jobs=self._n_jobs,
+                **self._distance_params,
             )
-            curr_labels = curr_pw.argmin(axis=1)
-            curr_inertia = curr_pw.min(axis=1).sum()
-            empty_clusters = np.setdiff1d(np.arange(self.n_clusters), curr_labels)
+            labels = pw.argmin(axis=1)
+            inertia = pw.min(axis=1).sum()
+            empty_clusters = np.setdiff1d(np.arange(self.n_clusters), labels)
             j += 1
             if j > self.n_clusters:
-                # This should be unreachable but just a safety check to stop it looping
-                # forever
                 raise EmptyClusterError
-        return curr_pw, curr_labels, curr_inertia, cluster_centres
+
+        print(f"Handled empty cluster, inertia: {inertia}")  # noqa: T001, T201
+        return labels, cluster_centres, inertia
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):

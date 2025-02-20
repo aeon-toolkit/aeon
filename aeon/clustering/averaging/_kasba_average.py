@@ -120,9 +120,14 @@ def kasba_average(
        10.48550/arXiv.2411.17838.
     """
     if len(X) <= 1:
-        if X.ndim == 3:
-            return X[0], np.zeros(X.shape[0]), 0.0
-        return X, np.zeros(X.shape[0]), 0.0
+        center = X[0] if X.ndim == 3 else X
+        if return_distances_to_center and return_cost:
+            return center, np.zeros(X.shape[0]), 0.0
+        elif return_distances_to_center:
+            return center, np.zeros(X.shape[0])
+        elif return_cost:
+            return center, 0.0
+        return center
 
     if distance not in VALID_BA_DISTANCE_METHODS:
         raise ValueError(

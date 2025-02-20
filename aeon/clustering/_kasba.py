@@ -219,13 +219,13 @@ class KASBA(BaseClusterer):
             if self.verbose is True:
                 print(f"Iteration {i}, inertia {prev_inertia}.")  # noqa: T001, T201
 
-        if inertia < prev_inertia:
+        if prev_inertia < inertia:
             return prev_labels, prev_cluster_centres, prev_inertia, i + 1
         return labels, cluster_centres, inertia, i + 1
 
     def _fast_assign(
         self,
-        X,
+        x,
         cluster_centres,
         distances_to_centres,
         labels,
@@ -236,7 +236,7 @@ class KASBA(BaseClusterer):
             method=self.distance,
             **self._distance_params,
         )
-        for i in range(X.shape[0]):
+        for i in range(x.shape[0]):
             min_dist = distances_to_centres[i]
             closest = labels[i]
             for j in range(self.n_clusters):
@@ -247,7 +247,7 @@ class KASBA(BaseClusterer):
                     continue
 
                 dist = distance_func(
-                    X[i],
+                    x[i],
                     cluster_centres[j],
                     method=self.distance,
                     **self._distance_params,

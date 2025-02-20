@@ -76,6 +76,8 @@ def _get_init_barycenter(
             rng = check_random_state(random_state)
             return X[rng.choice(X.shape[0])]
     else:
+        if init_barycenter is None:
+            return X.mean(axis=0)
         if not isinstance(init_barycenter, np.ndarray):
             raise ValueError(
                 "init_barycenter parameter is invalid. It must either be "
