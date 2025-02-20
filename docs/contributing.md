@@ -17,6 +17,14 @@ Pull requests from unknown contributors which do not attempt to resolve the issu
 addressed, completely disregard the pull request template, or consist of low quality AI
 generated output may be closed without review.
 
+When implementing new algorithms, developers may require some evaluation form of
+evaluation against alternative implementations or published results. This is likely to
+be the case for complex published algorithms which are not contributed by trusted
+developers or the original authors. A developer may eventually do this themselves if the
+contributor is unable to, but this is a time-consuming process and may delay the
+merging of the pull request significantly. Please be aware of this when assigning
+yourself to an issue for such algorithms.
+
 In the following we will give a brief overview of how to contribute to `aeon`. Making
 contributions to open-source projects takes a bit of proactivity and can be daunting at
 first, but members of the community are here to help and answer questions. If you get
