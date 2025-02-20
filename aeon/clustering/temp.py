@@ -28,14 +28,14 @@ if __name__ == "__main__":
         "random_state": 1,
         "init": "kmeans++",
         "tol": 1e-6,
-        "distance": "msm",
-        "averaging_method": "kasba",
+        "distance": "soft_msm",
+        "averaging_method": "soft_ba",
         "average_params": averaging_params,
         "n_init": 1,
         "distance_params": {"gamma": 1.0},
     }
 
-    cluster_arguments["n_jobs"] = 1
+    cluster_arguments["n_jobs"] = -1
 
     kmeans = TimeSeriesKMeans(**cluster_arguments)
     start = time.time()

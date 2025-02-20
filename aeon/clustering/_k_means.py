@@ -378,6 +378,7 @@ class TimeSeriesKMeans(BaseClusterer):
             "n_jobs": self._n_jobs,
             "random_state": self._random_state,
             "distance": self.distance,
+            "verbose": self.verbose,
             **self._average_params,
             **self._distance_params,
         }
