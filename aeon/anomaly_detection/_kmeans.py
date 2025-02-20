@@ -21,7 +21,7 @@ class KMeansAD(BaseAnomalyDetector):
     the average Euclidean distance between the time point's windows and the windows'
     corresponding cluster centers.
 
-    `k-MeansAD` supports univariate and multivariate time series. It can also be
+    ``k-MeansAD`` supports univariate and multivariate time series. It can also be
     fitted on a clean reference time series and used to detect anomalies in a different
     target time series with the same number of dimensions.
 
@@ -37,7 +37,7 @@ class KMeansAD(BaseAnomalyDetector):
         bigger the window size, the bigger the anomaly context is. If it is too big,
         however, the detector marks points anomalous that are not. If it is too small,
         the detector might not detect larger anomalies or contextual anomalies at all.
-        If `window_size` is smaller than the anomaly, the detector might detect only
+        If ``window_size`` is smaller than the anomaly, the detector might detect only
         the transitions between normal data and the anomalous subsequence.
 
     stride : int, default=1
@@ -168,14 +168,14 @@ class KMeansAD(BaseAnomalyDetector):
         ----------
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return ``"default"`` set.
 
         Returns
         -------
         dict or list of dict, default={}
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test instance.
         """
         return {
             "n_clusters": 5,

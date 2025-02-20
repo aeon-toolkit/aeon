@@ -19,15 +19,15 @@ class LOF(PyODAdapter):
 
     The documentation for parameters has been adapted from the
     [PyOD documentation](https://pyod.readthedocs.io/en/latest/pyod.models.html#id586).
-    Here, `X` refers to the set of sliding windows extracted from the time series
-    using :func:`aeon.utils.windowing.sliding_windows` with the parameters
-    `window_size` and `stride`. The internal `X` has the shape
-    `(n_windows, window_size * n_channels)`.
+    Here, ``X`` refers to the set of sliding windows extracted from the time series
+    using :func:``aeon.utils.windowing.sliding_windows`` with the parameters
+    ``window_size`` and ``stride``. The internal ``X`` has the shape
+    ``(n_windows, window_size * n_channels)``.
 
     Parameters
     ----------
     n_neighbors : int, optional (default=20)
-        Number of neighbors to use by default for `kneighbors` queries.
+        Number of neighbors to use by default for ``kneighbors`` queries.
         If n_neighbors is larger than the number of samples provided,
         all samples will be used.
     algorithm : {'auto', 'ball_tree', 'kd_tree', 'brute'}, optional
@@ -36,11 +36,11 @@ class LOF(PyODAdapter):
         - 'kd_tree' will use KDTree
         - 'brute' will use a brute-force search.
         - 'auto' will attempt to decide the most appropriate algorithm
-          based on the values passed to :meth:`fit` method.
+          based on the values passed to :meth:``fit`` method.
         Note: fitting on sparse input will override the setting of
         this parameter, using brute force.
     leaf_size : int, optional (default=30)
-        Leaf size passed to `BallTree` or `KDTree`. This can
+        Leaf size passed to ``BallTree`` or ``KDTree``. This can
         affect the speed of the construction and query, as well as the memory
         required to store the tree. The optimal value depends on the
         nature of the problem.
@@ -58,7 +58,7 @@ class LOF(PyODAdapter):
         Additional keyword arguments for the metric function.
     n_jobs : int, optional (default = 1)
         The number of parallel jobs to run for neighbors search.
-        If `-1`, then the number of jobs is set to the number of CPU cores.
+        If ``-1``, then the number of jobs is set to the number of CPU cores.
         Affects only kneighbors and kneighbors_graph methods.
     novelty : bool (default=False)
         By default, LocalOutlierFactor is only meant to be used for outlier
