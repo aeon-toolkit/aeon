@@ -1,7 +1,6 @@
 """Tests for the ResNet Model."""
 
 import pytest
-import tensorflow as tf
 
 from aeon.networks import ResNetNetwork
 from aeon.utils.validation._dependencies import _check_soft_dependencies
@@ -101,8 +100,10 @@ def test_shortcut_layer():
     """Test the shortcut layer functionality."""
     model = ResNetNetwork()
 
-    input_tensor = tf.keras.layers.Input((128, 64))
-    output_tensor = tf.keras.layers.Conv1D(128, 8, padding="same")(input_tensor)
-    shortcut = model._shortcut_layer(input_tensor, output_tensor)
+    input_shape = (128, 64)
+    input_layer, output_layer = model.build_network(input_shape)
+
+    shortcut = model._shortcut_layer(input_layer, output_layer)
+
     assert hasattr(shortcut, "shape"), "Shortcut layer output type mismatch"
     assert shortcut.shape[-1] == 128, "Shortcut output shape mismatch"
