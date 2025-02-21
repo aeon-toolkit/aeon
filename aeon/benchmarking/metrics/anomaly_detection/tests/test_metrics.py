@@ -9,6 +9,7 @@ from aeon.benchmarking.metrics.anomaly_detection import (
     range_recall,
 )
 from aeon.benchmarking.metrics.anomaly_detection.range_metrics import (
+    _binary_to_ranges,
     ts_fscore,
     ts_precision,
     ts_recall,
@@ -389,17 +390,21 @@ def test_multiple_overlapping_ranges_with_gamma_reciprocal():
 
 
 def test_multiple_overlapping_ranges_with_bias_middle():
-    """Test for multiple overlapping ranges with bias_type=middle."""
+    """Test for multiple overlapping ranges with bias_type=middle using range-binary conversion."""  # noqa E501
     y_pred_bin = np.array([0, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0])
     y_real_bin = np.array([0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1])
 
-    precision = ts_precision(y_pred_bin, y_real_bin, gamma="one", bias_type="middle")
-    recall = ts_recall(
-        y_pred_bin, y_real_bin, gamma="one", bias_type="middle", alpha=0.0
-    )
+    # metric functions can also handle range-based input (internal binary conversion)
+    y_pred = _binary_to_ranges(
+        y_pred_bin
+    )  # Convert binary to range to show compatibility
+    y_real = _binary_to_ranges(y_real_bin)
+
+    precision = ts_precision(y_pred, y_real, gamma="one", bias_type="middle")
+    recall = ts_recall(y_pred, y_real, gamma="one", bias_type="middle", alpha=0.0)
     f1_score = ts_fscore(
-        y_pred_bin,
-        y_real_bin,
+        y_pred,
+        y_real,
         gamma="one",
         beta=1,
         p_bias="middle",
