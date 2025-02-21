@@ -175,7 +175,7 @@ class KMeansAD(BaseAnomalyDetector):
         dict or list of dict, default={}
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid 
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid
             test instance.
         """
         return {
