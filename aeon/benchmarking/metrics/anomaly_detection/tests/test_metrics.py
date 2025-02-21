@@ -17,6 +17,10 @@ from aeon.benchmarking.metrics.anomaly_detection.range_metrics import (
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
+@pytest.mark.skipif(
+    not _check_soft_dependencies("prts", severity="none"),
+    reason="required soft dependency prts not available",
+)
 def test_single_overlapping_range():
     """Test for single overlapping range."""
     y_pred_bin = np.array([0, 1, 1, 1, 1, 0, 0])
@@ -67,6 +71,10 @@ def test_single_overlapping_range():
     )
 
 
+@pytest.mark.skipif(
+    not _check_soft_dependencies("prts", severity="none"),
+    reason="required soft dependency prts not available",
+)
 def test_multiple_non_overlapping_ranges():
     """Test for multiple non-overlapping ranges."""
     y_pred_bin = np.array([0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0])
@@ -118,6 +126,10 @@ def test_multiple_non_overlapping_ranges():
     )
 
 
+@pytest.mark.skipif(
+    not _check_soft_dependencies("prts", severity="none"),
+    reason="required soft dependency prts not available",
+)
 def test_multiple_overlapping_ranges():
     """Test for multiple overlapping ranges."""
     y_pred_bin = np.array([0, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0])
@@ -169,6 +181,10 @@ def test_multiple_overlapping_ranges():
     )
 
 
+@pytest.mark.skipif(
+    not _check_soft_dependencies("prts", severity="none"),
+    reason="required soft dependency prts not available",
+)
 def test_nested_lists_of_predictions():
     """Test for nested lists of predictions."""
     y_pred_bin = np.array([0, 1, 1, 1, 0, 1, 1, 1, 0, 0, 1, 1, 1])
@@ -220,6 +236,10 @@ def test_nested_lists_of_predictions():
     )
 
 
+@pytest.mark.skipif(
+    not _check_soft_dependencies("prts", severity="none"),
+    reason="required soft dependency prts not available",
+)
 def test_all_encompassing_range():
     """Test for all encompassing range."""
     y_pred_bin = np.array([0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
@@ -332,6 +352,10 @@ def test_binary_input_example():
     )
 
 
+@pytest.mark.skipif(
+    not _check_soft_dependencies("prts", severity="none"),
+    reason="required soft dependency prts not available",
+)
 def test_multiple_overlapping_ranges_with_gamma_reciprocal():
     """Test for multiple overlapping ranges with gamma=reciprocal."""
     y_pred_bin = np.array([0, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0])
@@ -389,6 +413,10 @@ def test_multiple_overlapping_ranges_with_gamma_reciprocal():
     )
 
 
+@pytest.mark.skipif(
+    not _check_soft_dependencies("prts", severity="none"),
+    reason="required soft dependency prts not available",
+)
 def test_multiple_overlapping_ranges_with_bias_middle():
     """Test for multiple overlapping ranges with bias_type=middle using range-binary conversion."""  # noqa E501
     y_pred_bin = np.array([0, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0])
@@ -446,6 +474,10 @@ def test_multiple_overlapping_ranges_with_bias_middle():
     )
 
 
+@pytest.mark.skipif(
+    not _check_soft_dependencies("prts", severity="none"),
+    reason="required soft dependency prts not available",
+)
 def test_multiple_overlapping_ranges_with_bias_middle_gamma_reciprocal():
     """Test for multiple overlapping ranges with bias_type=middle, gamma=reciprocal."""
     y_pred_bin = np.array([0, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0])
