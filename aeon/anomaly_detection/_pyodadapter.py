@@ -162,7 +162,8 @@ class PyODAdapter(BaseAnomalyDetector):
         params : dict or list of dict, default={}
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test instance.
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid 
+            test instance.
         """
         _check_soft_dependencies(*cls._tags["python_dependencies"])
 
