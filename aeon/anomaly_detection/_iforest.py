@@ -16,8 +16,8 @@ class IsolationForest(PyODAdapter):
 
     This class implements the Isolation Forest algorithm for anomaly detection
     using PyODAdadpter to be used in the aeon framework. All parameters are passed to
-    the PyOD model ``IForest`` except for ``window_size`` and ``stride``, which are used to
-    construct the sliding windows.
+    the PyOD model ``IForest`` except for ``window_size`` and ``stride``, 
+    which are used to construct the sliding windows.
 
     The documentation for parameters has been adapted from the
     [PyOD documentation](https://pyod.readthedocs.io/en/latest/pyod.models.html#id405).
