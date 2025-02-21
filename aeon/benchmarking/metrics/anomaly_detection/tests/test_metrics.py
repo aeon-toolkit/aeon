@@ -450,7 +450,7 @@ def test_multiple_overlapping_ranges_with_bias_middle_gamma_reciprocal():
         y_pred_bin, y_real_bin, gamma="reciprocal", bias_type="middle"
     )
     recall = ts_recall(
-        y_pred_bin, y_real_bin, gamma="reciprocal", bias_type="middle", alpha=0.0
+        y_pred_bin, y_real_bin, gamma="reciprocal", bias_type="middle", alpha=1.0
     )
     f1_score = ts_fscore(
         y_pred_bin,
@@ -460,14 +460,14 @@ def test_multiple_overlapping_ranges_with_bias_middle_gamma_reciprocal():
         p_bias="middle",
         r_bias="middle",
         p_alpha=0.0,
-        r_alpha=0.0,
+        r_alpha=1.0,
     )
 
     rb_prec = range_precision(
         y_real_bin, y_pred_bin, cardinality="reciprocal", bias="middle"
     )
     rb_rec = range_recall(
-        y_real_bin, y_pred_bin, cardinality="reciprocal", bias="middle"
+        y_real_bin, y_pred_bin, cardinality="reciprocal", bias="middle", alpha=1.0
     )
     rb_fsc = range_f_score(
         y_real_bin,
@@ -477,7 +477,7 @@ def test_multiple_overlapping_ranges_with_bias_middle_gamma_reciprocal():
         p_bias="middle",
         r_bias="middle",
         p_alpha=0.0,
-        r_alpha=0.0,
+        r_alpha=1.0,
     )
 
     np.testing.assert_almost_equal(
