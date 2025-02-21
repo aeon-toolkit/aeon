@@ -138,7 +138,7 @@ ESTIMATOR_TAGS = {
         "point belongs to.",
     },
     "requires_y": {
-        "class": ["transformer", "anomaly-detector", "segmenter"],
+        "class": ["transformer", "anomaly-detector", "segmenter", "similarity-search"],
         "type": "bool",
         "description": "Does this estimator require y to be passed in its methods?",
     },
@@ -155,7 +155,7 @@ ESTIMATOR_TAGS = {
         "values?",
     },
     "input_data_type": {
-        "class": "transformer",
+        "class": ["transformer", "similarity-search"],
         "type": ("str", ["Series", "Collection"]),
         "description": "The input abstract data type of the transformer, input X. "
         "Series indicates a single series input, Collection indicates a collection of "
