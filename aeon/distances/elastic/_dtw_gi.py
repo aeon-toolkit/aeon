@@ -5,11 +5,12 @@ __maintainer__ = []
 from typing import Optional
 
 import numpy as np
-import scipy.linalg
+from numba import njit
 
 from aeon.distances.elastic._dtw import dtw_alignment_path
 
 
+@njit(cache=True, fastmath=True)
 def _path2mat(path, x_ntimepoints, y_ntimepoints):
     r"""Convert a warping alignment path to a binary warping matrix."""
     w = np.zeros((x_ntimepoints, y_ntimepoints))
@@ -18,6 +19,7 @@ def _path2mat(path, x_ntimepoints, y_ntimepoints):
     return w
 
 
+@njit(cache=True, fastmath=True)
 def dtw_gi(
     x: np.ndarray,
     y: np.ndarray,
@@ -81,14 +83,20 @@ def dtw_gi(
     x_nchannels, x_ntimepoints = x_.shape
     y_nchannels, y_ntimepoints = y_.shape
 
-    x_m = x_.mean(axis=1, keepdims=True)
-    y_m = y_.mean(axis=1, keepdims=True)
+    x_m = np.sum(x_, axis=1) / x_.shape[1]
+    x_m = x_m.reshape((-1, 1))
+    y_m = np.sum(y_, axis=1) / y_.shape[1]
+    y_m = y_m.reshape((-1, 1))
 
     w_pi = np.zeros((x_ntimepoints, y_ntimepoints))
     if init_p is None:
-        p = np.eye(x_nchannels, y_nchannels)
+        p = np.eye(x_nchannels, y_nchannels, dtype=np.float64)
     else:
         p = init_p
+
+    y_ = y_.astype(np.float64)
+    x_ = x_.astype(np.float64)
+
     bias = np.zeros((x_nchannels, 1))
 
     for _ in range(1, max_iter + 1):
@@ -106,7 +114,7 @@ def dtw_gi(
         else:
             m = x_.dot(w_pi).dot(y_.T)
 
-        u, sigma, vt = scipy.linalg.svd(m, full_matrices=False)
+        u, sigma, vt = np.linalg.svd(m, full_matrices=False)
         p = u.dot(vt)
         if use_bias:
             bias = x_m - p.dot(y_m)
@@ -117,4 +125,5 @@ def dtw_gi(
     if use_bias:
         return w_pi, p, bias, cost
     else:
-        return w_pi, p, cost
+        dummy_bias = np.zeros((x_nchannels, 1), dtype=np.float64)
+        return w_pi, p, dummy_bias, cost
