@@ -90,7 +90,7 @@ class RegressionForecaster(BaseForecaster):
 
         Returns
         -------
-        float
+        np.ndarray
             single prediction self.horizon steps ahead of y.
         """
         if y is None:
@@ -100,7 +100,7 @@ class RegressionForecaster(BaseForecaster):
 
     def _forecast(self, y, exog=None):
         """
-        Predict the next horizon steps ahead.
+        Forecast the next horizon steps ahead.
 
         Parameters
         ----------
@@ -111,7 +111,7 @@ class RegressionForecaster(BaseForecaster):
 
         Returns
         -------
-        float
+        np.ndarray
             single prediction self.horizon steps ahead of y.
 
         NOTE: deal with horizons
