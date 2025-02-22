@@ -189,7 +189,7 @@ covid_3month_preds["RDSTRegressor"] = np.array(
 
 cardano_sentiment_preds["FreshPRINCERegressor"] = np.array(
     [
-        0.3185,
+        0.3653,
         0.1087,
         0.3604,
         0.0821,
@@ -293,7 +293,18 @@ cardano_sentiment_preds["KNeighborsTimeSeriesRegressor"] = np.array(
 )
 
 cardano_sentiment_preds["RISTRegressor"] = np.array(
-    [0.0825, 0.1924, 0.7180, 0.0413, 0.4840, 0.0825, 0.2336, 0.0000, 0.0413, 0.2814]
+    [
+        0.0745,
+        0.0745,
+        0.448,
+        0.0413,
+        0.484,
+        0.0825,
+        0.0413,
+        0.1419,
+        -0.101,
+        0.2814,
+    ]
 )
 
 cardano_sentiment_preds["CanonicalIntervalForestRegressor"] = np.array(
