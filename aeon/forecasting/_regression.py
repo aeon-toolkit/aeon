@@ -50,7 +50,10 @@ class RegressionForecaster(BaseForecaster):
 
         Parameters
         ----------
-        X : Time series on which to learn a forecaster
+        y : np.ndarray
+            A time series on which to learn a forecaster to predict horizon ahead.
+        exog : np.ndarray, default =None
+            Optional exogenous time series data assumed to be aligned with y.
 
         Returns
         -------
@@ -74,14 +77,42 @@ class RegressionForecaster(BaseForecaster):
         return self
 
     def _predict(self, y=None, exog=None):
-        """Predict values for time series X."""
+        """
+        Predict the next horizon steps ahead.
+
+        Parameters
+        ----------
+        y : np.ndarray, default = None
+            A time series to predict the next horizon value for. If None,
+            predict the next horizon value after series seen in fit.
+        exog : np.ndarray, default = None
+            Optional exogenous time series data assumed to be aligned with y
+
+        Returns
+        -------
+        float
+            single prediction self.horizon steps ahead of y.
+        """
         if y is None:
             return self.regressor_.predict(self.last_)
         last = y[:, -self.window :]
         return self.regressor_.predict(last)
 
     def _forecast(self, y, exog=None):
-        """Forecast values for time series X.
+        """
+        Predict the next horizon steps ahead.
+
+        Parameters
+        ----------
+        y : np.ndarray
+            A time series to predict the next horizon value for.
+        exog : np.ndarray, default = None
+            Optional exogenous time series data assumed to be aligned with y
+
+        Returns
+        -------
+        float
+            single prediction self.horizon steps ahead of y.
 
         NOTE: deal with horizons
         """
