@@ -157,10 +157,10 @@ class AEAttentionBiGRUNetwork(BaseDeepLearningNetwork):
             x = x * attention_layer
 
         if not self.temporal_latent_space:
-            shape_before_flatten = x.shape[1:]
             x = tf.keras.layers.Flatten()(x)
             x = tf.keras.layers.Dense(self.latent_space_dim)(x)
         elif self.temporal_latent_space:
+            shape_before_flatten = x.shape[1:]
             x = tf.keras.layers.Conv1D(filters=self.latent_space_dim, kernel_size=1)(x)
 
         encoder = tf.keras.models.Model(inputs=input_layer, outputs=x, name="encoder")
