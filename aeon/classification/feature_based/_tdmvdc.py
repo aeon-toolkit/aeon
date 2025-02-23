@@ -46,9 +46,6 @@ class TDMVDCClassifier(BaseClassifier):
     """
 
     _tags = {
-        "capability:multivariate": False,
-        "capability:multithreading": False,
-        "capability:train_estimate": False,
         "algorithm_type": "feature",
         "python_dependencies": "tsfresh",
     }
@@ -59,7 +56,6 @@ class TDMVDCClassifier(BaseClassifier):
         k1=2,
         k2=2,
         feature_store_ratios=None,
-        # n_jobs=1,
     ):  # Remove **kwargs from parameters
         self.default_fc_parameters = default_fc_parameters
         self.k1 = k1
@@ -70,9 +66,8 @@ class TDMVDCClassifier(BaseClassifier):
             else [0.1, 0.2, 0.3, 0.4, 0.5]
         )
         self.feature_store_ratios = feature_store_ratios
-        # self.n_jobs = n_jobs
 
-        super().__init__()  # Remove **kwargs passthrough
+        super().__init__()
 
     def _fit(self, trainSignalX, trainY):
         """Fit a pipeline on cases (trainSignalX, trainY).
