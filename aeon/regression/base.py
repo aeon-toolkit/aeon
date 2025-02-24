@@ -34,7 +34,7 @@ from aeon.base import BaseCollectionEstimator
 from aeon.base._base import _clone_estimator
 
 
-class BaseRegressor(BaseCollectionEstimator):
+class BaseRegressor(RegressorMixin, BaseCollectionEstimator):
     """Abstract base class for time series regressors.
 
     The base regressor specifies the methods and method signatures that all

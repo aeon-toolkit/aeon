@@ -36,7 +36,7 @@ from aeon.utils.validation.collection import get_n_cases
 from aeon.utils.validation.labels import check_classification_y
 
 
-class BaseClassifier(BaseCollectionEstimator):
+class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
     """
     Abstract base class for time series classifiers.
 
