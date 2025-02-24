@@ -627,10 +627,9 @@ def check_persistence_via_pickle(estimator, datatype):
             same, msg = deep_equals(output, results[i], return_msg=True)
             if not same:
                 raise ValueError(
-                    f"Running {method} after serialisation parameters gives "
-                    f"different results. "
-                    f"{type(estimator)} returns data as {type(output)}: test "
-                    f"equivalence message: {msg}"
+                    f"Running {type(estimator)} {method} with test parameters after "
+                    f"serialisation gives different results. "
+                    f"Check equivalence message: {msg}"
                 )
             i += 1
 
@@ -657,9 +656,8 @@ def check_fit_deterministic(estimator, datatype):
             same, msg = deep_equals(output, results[i], return_msg=True)
             if not same:
                 raise ValueError(
-                    f"Running {method} with test parameters after two calls to fit "
-                    f"gives different results."
-                    f"{type(estimator)} returns data as {type(output)}: test "
-                    f"equivalence message: {msg}"
+                    f"Running {type(estimator)} {method} with test parameters after "
+                    f"two calls to fit gives different results."
+                    f"Check equivalence message: {msg}"
                 )
             i += 1
