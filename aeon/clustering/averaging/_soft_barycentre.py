@@ -162,12 +162,11 @@ def soft_barycenter_average(
             RuntimeWarning,
             stacklevel=2,
         )
-        if verbose:
-            print(  # noqa: T201
-                f"Failed to converge for {distance} barycenter "  # noqa: T201
-                f"averaging. With gamma = {gamma}. The reason given is: "  # noqa: T201
-                f"{res.message}"  # noqa: T201
-            )  # noqa: T201
+        print(  # noqa: T201
+            f"Failed to converge for {distance} barycenter "  # noqa: T201
+            f"averaging. With gamma = {gamma}. The reason given is: "  # noqa: T201
+            f"{res.message}"  # noqa: T201
+        )  # noqa: T201
 
     # TWE is padded with a 0 at the start so remove first element
     final_barycenter = res.x.reshape(*barycenter.shape)
