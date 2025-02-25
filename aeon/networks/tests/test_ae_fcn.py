@@ -30,12 +30,12 @@ def test_aefcn_default():
     reason="Tensorflow soft dependency unavailable.",
 )
 @pytest.mark.parametrize("latent_space_dim", [64, 128, 256])
-def test_aeattentionbigrunetwork_latent_space(latent_space_dim):
+def test_aefcn_latent_space(latent_space_dim):
     """Test AEFCNNetwork with different latent space dimensions."""
     import tensorflow as tf
 
-    aeattentionbigru = AEFCNNetwork(latent_space_dim=latent_space_dim)
-    encoder, decoder = aeattentionbigru.build_network((1000, 5))
+    aefcn = AEFCNNetwork(latent_space_dim=latent_space_dim)
+    encoder, decoder = aefcn.build_network((1000, 5))
     assert isinstance(encoder, tf.keras.models.Model)
     assert isinstance(decoder, tf.keras.models.Model)
 
