@@ -19,8 +19,9 @@ class CBLOF(PyODAdapter):
     the PyOD model ``CBLOF`` except for ``window_size`` and ``stride``, which are used
     to construct the sliding windows.
 
-    The documentation for parameters has been adapted from the
-    [PyOD documentation](https://pyod.readthedocs.io/en/latest/pyod.models.html#id117).
+    The documentation for parameters has been adapted from the `PyOD documentation`_.
+    .. _pyod_docs: https://pyod.readthedocs.io/en/latest/pyod.models.html#id117
+
     Here, ``X`` refers to the set of sliding windows extracted from the time series
     using :func:`aeon.utils.windowing.sliding_windows` with the parameters
     ``window_size`` and ``stride``. The internal ``X`` has the shape
@@ -63,7 +64,7 @@ class CBLOF(PyODAdapter):
         sklearn standard.
 
     random_state : int, np.RandomState or None, default=None
-        If int, random_state is the seed used by the random
+        If ``int``, random_state is the seed used by the random
         number generator; If RandomState instance, random_state is the random
         number generator; If None, the random number generator is the
         RandomState instance used by ``np.random``.

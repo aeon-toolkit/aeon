@@ -34,9 +34,9 @@ class IsolationForest(PyODAdapter):
     max_samples : int, float or "auto", default="auto"
         The number of samples to draw from X to train each base estimator.
 
-            - If int, then draw ``max_samples`` samples.
-            - If float, then draw ``max_samples * X.shape[0]`` samples.
-            - If "auto", then ``max_samples=min(256, n_samples)``.
+            - If ``int``, then draw ``max_samples`` samples.
+            - If ``float``, then draw ``max_samples * X.shape[0]`` samples.
+            - If ``auto``, then ``max_samples=min(256, n_samples)``.
 
         If max_samples is larger than the number of samples provided,
         all samples will be used for all trees (no sampling).
@@ -44,8 +44,8 @@ class IsolationForest(PyODAdapter):
     max_features : int or float, default=1.0
         The number of features to draw from X to train each base estimator.
 
-            - If int, then draw ``max_features`` features.
-            - If float, then draw ``max_features * X.shape[1]`` features.
+            - If ``int``, then draw ``max_features`` features.
+            - If ``float``, then draw ``max_features * X.shape[1]`` features.
 
     bootstrap : bool, default=False
         If True, individual trees are fit on random subsets of the training
@@ -54,11 +54,11 @@ class IsolationForest(PyODAdapter):
 
     n_jobs : int, default=1
         The number of jobs to run in parallel for both ``fit`` and ``predict``.
-        If -1, then the number of jobs is set to the number of cores.
+        If ``-1``, then the number of jobs is set to the number of cores.
 
 
     random_state : int, np.RandomState or None, default=None
-        If int, random_state is the seed used by the random number generator;
+        If ``int``, random_state is the seed used by the random number generator;
         If RandomState instance, random_state is the random number generator;
         If None, the random number generator is the RandomState instance used
         by ``np.random``.

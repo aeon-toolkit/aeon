@@ -37,6 +37,6 @@ def test_STOMP_incorrect_input():
     with pytest.raises(ValueError, match="The window size must be at least 1"):
         ad = STOMP(window_size=0)
         ad.fit_predict(series)
-    with pytest.raises(ValueError, match="The top ``k`` distances must be at least 1"):
+    with pytest.raises(ValueError, match="The top `k` distances must be at least 1"):
         ad = STOMP(k=0)
         ad.fit_predict(series)

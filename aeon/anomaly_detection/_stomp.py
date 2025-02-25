@@ -103,7 +103,7 @@ class STOMP(BaseAnomalyDetector):
 
         if self.k < 1 or self.k > X.shape[0] - self.window_size:
             raise ValueError(
-                "The top ``k`` distances must be at least 1 and at most the length of "
+                "The top `k` distances must be at least 1 and at most the length of "
                 "the time series minus the window size."
             )
 
@@ -122,7 +122,8 @@ class STOMP(BaseAnomalyDetector):
         params : dict or list of dict, default={}
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test instance.
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid
+            test instance.
         """
         return {
             "window_size": 10,
