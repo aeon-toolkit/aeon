@@ -19,6 +19,8 @@ from aeon.utils.conversion._convert_collection import _convert_collection_to_num
 from aeon.utils.validation import check_n_jobs
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
+MAX_NP_FLOAT = np.finfo(np.float64).max
+
 
 @njit(cache=True, fastmath=True)
 def soft_msm_distance(
@@ -115,12 +117,12 @@ def _soft_msm_univariate_cost_matrix(
     for i in range(1, x_size):
         if bounding_matrix[i, 0]:
             split = cost_matrix[i - 1, 0] + _cost_independent(x[i], x[i - 1], y[0], c)
-            cost_matrix[i, 0] = _soft_min(np.inf, split, np.inf, gamma)
+            cost_matrix[i, 0] = _soft_min(MAX_NP_FLOAT, split, MAX_NP_FLOAT, gamma)
 
     for i in range(1, y_size):
         if bounding_matrix[0, i]:
             merge = cost_matrix[0, i - 1] + _cost_independent(y[i], x[0], y[i - 1], c)
-            cost_matrix[0, i] = _soft_min(np.inf, np.inf, merge, gamma)
+            cost_matrix[0, i] = _soft_min(MAX_NP_FLOAT, MAX_NP_FLOAT, merge, gamma)
 
     for i in range(1, x_size):
         for j in range(1, y_size):
@@ -324,7 +326,15 @@ def _soft_msm_univariate_cost_matrix_with_arr(
             split = cost_matrix[i - 1, 0] + _cost_independent(x[i], x[i - 1], y[0], c)
             diff_dist_matrix[i, 0] += x[i] - y[0]
             cost_matrix[i, 0] = _soft_min_with_arrs(
-                np.inf, split, np.inf, gamma, move_arr, split_arr, merge_arr, i, 0
+                MAX_NP_FLOAT,
+                split,
+                MAX_NP_FLOAT,
+                gamma,
+                move_arr,
+                split_arr,
+                merge_arr,
+                i,
+                0,
             )
 
     for j in range(1, y_size):
@@ -332,7 +342,15 @@ def _soft_msm_univariate_cost_matrix_with_arr(
             merge = cost_matrix[0, j - 1] + _cost_independent(y[j], x[0], y[j - 1], c)
             diff_dist_matrix[0, j] += x[0] - y[j]
             cost_matrix[0, j] = _soft_min_with_arrs(
-                np.inf, np.inf, merge, gamma, move_arr, split_arr, merge_arr, 0, j
+                MAX_NP_FLOAT,
+                MAX_NP_FLOAT,
+                merge,
+                gamma,
+                move_arr,
+                split_arr,
+                merge_arr,
+                0,
+                j,
             )
 
     for i in range(1, x_size):
