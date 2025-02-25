@@ -69,6 +69,10 @@ class BaseCollectionTransformer(BaseCollectionEstimator, BaseTransformer):
             ``(n_channels, n_timepoints_i)``, where ``n_timepoints_i`` is length of
             series ``i``. Other types are allowed and converted into one of the above.
 
+            **Note:** While a list of numpy arrays for unequal length series is accepted
+            as input, it cannot be processed and will raise a `ValueError`.
+            Ensure all time series have the same length before using the transformer.
+
             Different estimators have different capabilities to handle different
             types of input. If ``self.get_tag("capability:multivariate")`` is False,
             they cannot handle multivariate series. If ``self.get_tag(
@@ -122,6 +126,10 @@ class BaseCollectionTransformer(BaseCollectionEstimator, BaseTransformer):
             of channels, unequal length series) of shape ``[n_cases]``, 2D np.array
             ``(n_channels, n_timepoints_i)``, where ``n_timepoints_i`` is length of
             series ``i``. Other types are allowed and converted into one of the above.
+
+            **Note:** While a list of numpy arrays for unequal length series is accepted
+            as input, it cannot be processed and will raise a `ValueError`.
+            Ensure all time series have the same length before using the transformer.
 
             Different estimators have different capabilities to handle different
             types of input. If ``self.get_tag("capability:multivariate")`` is False,
@@ -177,6 +185,10 @@ class BaseCollectionTransformer(BaseCollectionEstimator, BaseTransformer):
             n_channels, n_timepoints_i)``, where ``n_timepoints_i`` is length of
             series ``i``. Other types are allowed and converted into one of the above.
 
+            **Note:** While a list of numpy arrays for unequal length series is accepted
+            as input, it cannot be processed and will raise a `ValueError`.
+            Ensure all time series have the same length before using the transformer.
+
             Different estimators have different capabilities to handle different
             types of input. If ``self.get_tag("capability:multivariate")`` is False,
             they cannot handle multivariate series. If ``self.get_tag(
@@ -226,6 +238,10 @@ class BaseCollectionTransformer(BaseCollectionEstimator, BaseTransformer):
             of channels, unequal length series)  of shape ``[n_cases]``, 2D np.array
             ``(n_channels, n_timepoints_i)``, where ``n_timepoints_i`` is length of
             series ``i``. Other types are allowed and converted into one of the above.
+
+            **Note:** While a list of numpy arrays for unequal length series is accepted
+            as input, it cannot be processed and will raise a `ValueError`.
+            Ensure all time series have the same length before using the transformer.
 
             Different estimators have different capabilities to handle different
             types of input. If ``self.get_tag("capability:multivariate")`` is False,
