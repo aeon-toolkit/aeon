@@ -228,16 +228,22 @@ def ts_precision(y_pred, y_real, gamma="one", bias_type="flat"):
 
     Parameters
     ----------
-    y_pred : list of tuples
+    y_pred : list of tuples or binary sequence
         The predicted anomaly ranges.
-        - Each tuple represents a range (start, end) of the anomaly where
-          start is starting index (inclusive) and end is ending index (inclusive).
-    y_real : list of tuples or list of lists of tuples
+        - For range-based input, each tuple represents a range (start, end) of the
+          anomaly where start is starting index (inclusive) and end is ending index
+          (inclusive).
+        - For binary inputs, the sequence should contain integers (0 or 1), where 1
+          indicates an anomaly. In this case, y_pred and y_real must be of same length.
+    y_real : list of tuples, list of lists of tuples or binary sequence
         The real/actual (ground truth) ranges.
-        - Each tuple represents a range (start, end) of the anomaly where
-          start is starting index (inclusive) and end is ending index (inclusive).
+        - For range-based input, each tuple represents a range (start, end) of the
+          anomaly where start is starting index (inclusive) and end is ending index
+          (inclusive).
         - If y_real is in the format of list of lists, they will be flattened into a
           single list of tuples bringing it to the above format.
+        - For binary inputs, the sequence should contain integers (0 or 1), where 1
+          indicates an anomaly. In this case, y_pred and y_real must be of same length.
     bias_type : str, default="flat"
         Type of bias to apply. Should be one of ["flat", "front", "middle", "back"].
     gamma : str, default="one"
@@ -337,16 +343,22 @@ def ts_recall(y_pred, y_real, gamma="one", bias_type="flat", alpha=0.0):
 
     Parameters
     ----------
-    y_pred : list of tuples
+    y_pred : list of tuples or binary sequence
         The predicted anomaly ranges.
-        - Each tuple represents a range (start, end) of the anomaly where
-          start is starting index (inclusive) and end is ending index (inclusive).
-    y_real : list of tuples or list of lists of tuples
+        - For range-based input, each tuple represents a range (start, end) of the
+          anomaly where start is starting index (inclusive) and end is ending index
+          (inclusive).
+        - For binary inputs, the sequence should contain integers (0 or 1), where 1
+          indicates an anomaly. In this case, y_pred and y_real must be of same length.
+    y_real : list of tuples, list of lists of tuples or binary sequence
         The real/actual (ground truth) ranges.
-        - Each tuple represents a range (start, end) of the anomaly where
-          start is starting index (inclusive) and end is ending index (inclusive).
+        - For range-based input, each tuple represents a range (start, end) of the
+          anomaly where start is starting index (inclusive) and end is ending index
+          (inclusive).
         - If y_real is in the format of list of lists, they will be flattened into a
           single list of tuples bringing it to the above format.
+        - For binary inputs, the sequence should contain integers (0 or 1), where 1
+          indicates an anomaly. In this case, y_pred and y_real must be of same length.
     gamma : str, default="one"
         Cardinality type. Should be one of ["reciprocal", "one", "udf_gamma"].
     bias_type : str, default="flat"
@@ -454,16 +466,22 @@ def ts_fscore(
 
     Parameters
     ----------
-    y_pred : list of tuples
+    y_pred : list of tuples or binary sequence
         The predicted anomaly ranges.
-        - Each tuple represents a range (start, end) of the anomaly where
-          start is starting index (inclusive) and end is ending index (inclusive).
-    y_real : list of tuples or list of lists of tuples
+        - For range-based input, each tuple represents a range (start, end) of the
+          anomaly where start is starting index (inclusive) and end is ending index
+          (inclusive).
+        - For binary inputs, the sequence should contain integers (0 or 1), where 1
+          indicates an anomaly. In this case, y_pred and y_real must be of same length.
+    y_real : list of tuples, list of lists of tuples or binary sequence
         The real/actual (ground truth) ranges.
-        - Each tuple represents a range (start, end) of the anomaly where
-          start is starting index (inclusive) and end is ending index (inclusive).
+        - For range-based input, each tuple represents a range (start, end) of the
+          anomaly where start is starting index (inclusive) and end is ending index
+          (inclusive).
         - If y_real is in the format of list of lists, they will be flattened into a
           single list of tuples bringing it to the above format.
+        - For binary inputs, the sequence should contain integers (0 or 1), where 1
+          indicates an anomaly. In this case, y_pred and y_real must be of same length.
     gamma : str, default="one"
         Cardinality type. Should be one of ["reciprocal", "one", "udf_gamma"].
     p_bias : str, default="flat"
