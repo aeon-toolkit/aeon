@@ -1,6 +1,6 @@
 """Hydra regressor.
 
-Pipeline regressor using the Hydra transformer and RidgeCV estimator.
+Pipeline regressor using the ``HydraTransformer`` and ``RidgeCV`` estimator.
 """
 
 __maintainer__ = ["MatthewMiddlehurst"]
@@ -15,41 +15,41 @@ from aeon.transformations.collection.convolution_based._hydra import HydraTransf
 
 
 class HydraRegressor(BaseRegressor):
-    """Hydra Regressor.
+    """Hydra regressor.
 
-    The algorithm utilises convolutional kernels grouped into ``g`` groups per dilation
+    The algorithm utilizes convolutional kernels grouped into ``g`` groups per dilation
     with ``k`` kernels per group. It transforms input time series using these kernels
     and counts the kernels representing the closest match to the input at each time
-    point. This counts for each group are then concatenated and used to train a linear
+    point. These counts for each group are then concatenated and used to train a linear
     regressor.
 
-    The algorithm combines aspects of both Rocket (convolutional approach)
-    and traditional dictionary methods (pattern counting), It extracts features from
+    The algorithm combines aspects of both ``Rocket`` (convolutional approach)
+    and traditional dictionary methods (pattern counting). It extracts features from
     both the base series and first-order differences of the series.
 
     Parameters
     ----------
-    n_kernels : int, default=8
+    n_kernels : ``int``, default=``8``
         Number of kernels per group.
-    n_groups : int, default=64
+    n_groups : ``int``, default=``64``
         Number of groups per dilation.
-    n_jobs : int, default=1
-        The number of jobs to run in parallel for both `fit` and `predict`.
+    n_jobs : ``int``, default=``1``
+        The number of jobs to run in parallel for both ``fit`` and ``predict``.
         ``-1`` means using all processors.
-    random_state : int, RandomState instance or None, default=None
-        If `int`, random_state is the seed used by the random number generator;
-        If `RandomState` instance, random_state is the random number generator;
-        If `None`, the random number generator is the `RandomState` instance used
-        by `np.random`.
+    random_state : ``int``, ``RandomState`` instance or ``None``, default=``None``
+        If ``int``, ``random_state`` is the seed used by the random number generator.
+        If ``RandomState`` instance, ``random_state`` is the random number generator.
+        If ``None``, the random number generator is the ``RandomState`` instance used
+        by ``np.random``.
 
     See Also
     --------
-    HydraTransformer
-    MultiRocketHydraRegressor
+    ``HydraTransformer``
+    ``MultiRocketHydraRegressor``
 
     Notes
     -----
-    Original code: https://github.com/angus924/hydra
+    Original implementation available at: [GitHub Repository](https://github.com/angus924/hydra)
 
     References
     ----------
@@ -107,7 +107,7 @@ class HydraRegressor(BaseRegressor):
 
 
 class _SparseScaler:
-    """Sparse Scaler for hydra transform."""
+    """Sparse scaler for Hydra transform."""
 
     def __init__(self, mask=True, exponent=4):
         self.mask = mask

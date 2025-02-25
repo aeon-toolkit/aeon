@@ -19,16 +19,16 @@ class BaseDeepRegressor(BaseRegressor):
     """Abstract base class for deep learning time series regression.
 
     The base classifier provides a deep learning default method for
-    _predict, and provides a new abstract method for building a
+    ``_predict``, and provides a new abstract method for building a
     model.
 
     Parameters
     ----------
-    batch_size : int, default = 40
+    batch_size : ``int``, default = ``40``
         training batch size for the model
-    last_file_name      : str, default = "last_model"
+    last_file_name : ``str``, default = ``"last_model"``
         The name of the file of the last model, used
-        only if save_last_model_to_file is used
+        only if ``save_last_model_to_file`` is used
     """
 
     _tags = {
@@ -56,7 +56,7 @@ class BaseDeepRegressor(BaseRegressor):
 
         Parameters
         ----------
-        input_shape : tuple
+        input_shape : ``tuple``
             The shape of the data fed into the input layer
 
         Returns
@@ -71,7 +71,7 @@ class BaseDeepRegressor(BaseRegressor):
 
         Returns
         -------
-        history: dict or None,
+        history: ``dict`` or ``None``,
             Dictionary containing model's train/validation losses and metrics
 
         """
@@ -79,11 +79,11 @@ class BaseDeepRegressor(BaseRegressor):
 
     def _predict(self, X):
         """
-        Find regression estimate for all cases in X.
+        Find regression estimate for all cases in ``X``.
 
         Parameters
         ----------
-        X : an np.ndarray of shape = (n_cases, n_channels, n_timepoints)
+        X : an np.ndarray of shape = ``(n_cases, n_channels, n_timepoints)``
             The training input samples.
 
         Returns
@@ -101,7 +101,7 @@ class BaseDeepRegressor(BaseRegressor):
 
         Parameters
         ----------
-        file_path : str, default = "./"
+        file_path : ``str``, default = ``"./"``
             The directory where the model will be saved
 
         Returns
@@ -114,14 +114,14 @@ class BaseDeepRegressor(BaseRegressor):
         """Load a pre-trained keras model instead of fitting.
 
         When calling this function, all functionalities can be used
-        such as predict etc. with the loaded model.
+        such as ``predict`` etc. with the loaded model.
 
         Parameters
         ----------
-        model_path : str (path including model name and extension)
+        model_path : ``str`` (path including model name and extension)
             The directory where the model will be saved including the model
-            name with a ".keras" extension.
-            Example: model_path="path/to/file/best_model.keras"
+            name with a ``".keras"`` extension.
+            Example: ``model_path="path/to/file/best_model.keras"``
 
         Returns
         -------

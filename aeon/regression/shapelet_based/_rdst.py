@@ -20,67 +20,67 @@ from aeon.transformations.collection.shapelet_based import (
 
 
 class RDSTRegressor(BaseRegressor):
-    """
+     """
     A random dilated shapelet transform (RDST) regressor.
 
     Implementation of the random dilated shapelet transform regressor pipeline
     along the lines of [1]_, [2]_. Transforms the data using the
-    `RandomDilatedShapeletTransform` and then builds a `RidgeCV` regressor
-    with standard scalling.
+    ``RandomDilatedShapeletTransform`` and then builds a ``RidgeCV`` regressor
+    with standard scaling.
 
     Parameters
     ----------
-    max_shapelets : int, default=10000
-        The maximum number of shapelet to keep for the final transformation.
-        A lower number of shapelets can be kept if alpha similarity have discarded the
+    max_shapelets : ``int``, default=``10000``
+        The maximum number of shapelets to keep for the final transformation.
+        A lower number of shapelets can be kept if ``alpha_similarity`` has discarded the
         whole dataset.
-    shapelet_lengths : array, default=None
-        The set of possible length for shapelets. Each shapelet length is uniformly
-        drawn from this set. If None, the shapelets length will be equal to
-        min(max(2,n_timepoints//2),11).
-    proba_normalization : float, default=0.8
-        This probability (between 0 and 1) indicate the chance of each shapelet to be
-        initialized such as it will use a z-normalized distance, inducing either scale
-        sensitivity or invariance. A value of 1 would mean that all shapelets will use
-        a z-normalized distance.
-    threshold_percentiles : array, default=None
-        The two perceniles used to select the threshold used to compute the Shapelet
-        Occurrence feature. If None, the 5th and the 10th percentiles (i.e. [5,10])
+    shapelet_lengths : ``array``, default=``None``
+        The set of possible lengths for shapelets. Each shapelet length is uniformly
+        drawn from this set. If ``None``, the shapelet lengths will be equal to
+        ``min(max(2, n_timepoints // 2), 11)``.
+    proba_normalization : ``float``, default=``0.8``
+        This probability (between ``0`` and ``1``) indicates the chance of each shapelet to be
+        initialized such that it will use a ``z-normalized`` distance, inducing either scale
+        sensitivity or invariance. A value of ``1`` means that all shapelets will use
+        a ``z-normalized`` distance.
+    threshold_percentiles : ``array``, default=``None``
+        The two percentiles used to select the threshold used to compute the Shapelet
+        Occurrence feature. If ``None``, the ``5th`` and the ``10th`` percentiles (i.e., ``[5, 10]``)
         will be used.
-    alpha_similarity : float, default=0.5
-        The strenght of the alpha similarity pruning. The higher the value, the lower
+    alpha_similarity : ``float``, default=``0.5``
+        The strength of the ``alpha_similarity`` pruning. The higher the value, the lower
         the allowed number of common indexes with previously sampled shapelets
         when sampling a new candidate with the same dilation parameter.
-        It can cause the number of sampled shapelets to be lower than max_shapelets if
-        the whole search space has been covered. The default is 0.5, and the maximum is
-        1. Value above it have no effect for now.
-    use_prime_dilations : bool, default=False
-        If True, restrict the value of the shapelet dilation parameter to be prime
-        values. This can greatly speed-up the algorithm for long time series and/or
+        It can cause the number of sampled shapelets to be lower than ``max_shapelets`` if
+        the whole search space has been covered. The default is ``0.5``, and the maximum is
+        ``1``. Values above it have no effect for now.
+    use_prime_dilations : ``bool``, default=``False``
+        If ``True``, restricts the value of the shapelet dilation parameter to be prime
+        values. This can greatly speed up the algorithm for long time series and/or
         short shapelet length, possibly at the cost of some accuracy.
-    estimator : BaseEstimator or None, default=None
-        Base estimator for the ensemble, can be supplied a sklearn `BaseEstimator`. If
-        `None` a default `RidgeClassifierCV` classifier is used with standard scalling.
-    save_transformed_data : bool, default=False
-        If True, the transformed training dataset for all classifiers will be saved.
-    n_jobs : int, default=1
+    estimator : ``BaseEstimator`` or ``None``, default=``None``
+        Base estimator for the ensemble, can be supplied as a ``sklearn`` ``BaseEstimator``. If
+        ``None``, a default ``RidgeClassifierCV`` classifier is used with standard scaling.
+    save_transformed_data : ``bool``, default=``False``
+        If ``True``, the transformed training dataset for all classifiers will be saved.
+    n_jobs : ``int``, default=``1``
         The number of jobs to run in parallel for both ``fit`` and ``predict``.
-        `-1` means using all processors.
-    random_state : int, RandomState instance or None, default=None
-        If `int`, random_state is the seed used by the random number generator;
-        If `RandomState` instance, random_state is the random number generator;
-        If `None`, the random number generator is the `RandomState` instance used
-        by `np.random`.
+        ``-1`` means using all processors.
+    random_state : ``int``, ``RandomState`` instance, or ``None``, default=``None``
+        If ``int``, ``random_state`` is the seed used by the random number generator;
+        If ``RandomState`` instance, ``random_state`` is the random number generator;
+        If ``None``, the random number generator is the ``RandomState`` instance used
+        by ``np.random``.
 
     Attributes
     ----------
-    transformed_data_ : list of shape (n_estimators) of ndarray
+    transformed_data_ : ``list`` of shape (``n_estimators``) of ``ndarray``
         The transformed training dataset for all classifiers. Only saved when
-        ``save_transformed_data`` is `True`.
+        ``save_transformed_data`` is ``True``.
 
     See Also
     --------
-    RandomDilatedShapeletTransform : The randomly dilated shapelet transform.
+    ``RandomDilatedShapeletTransform`` : The randomly dilated shapelet transform.
 
     References
     ----------
@@ -90,7 +90,6 @@ class RDSTRegressor(BaseRegressor):
     .. [2] Antoine Guillaume, "Time series classification with shapelets: Application
        to predictive maintenance on event logs", PhD Thesis, University of Orléans,
        2023.
-
 
     Examples
     --------
@@ -150,10 +149,10 @@ class RDSTRegressor(BaseRegressor):
 
         Parameters
         ----------
-        X: np.ndarray shape (n_cases, n_channels, n_timepoints)
+        X: ``np.ndarray` shape ``(n_cases, n_channels, n_timepoints)``
             The training input samples.
-        y: array-like or list
-            The target labels for samples in X.
+        y: array-like or ``list``
+            The target labels for samples in ``X``.
 
         Returns
         -------
@@ -163,7 +162,7 @@ class RDSTRegressor(BaseRegressor):
         Notes
         -----
         Changes state by creating a fitted model that updates attributes
-        ending in "_".
+        ending in ``"_"``.
         """
         self._transformer = RandomDilatedShapeletTransform(
             max_shapelets=self.max_shapelets,
@@ -198,16 +197,16 @@ class RDSTRegressor(BaseRegressor):
         return self
 
     def _predict(self, X) -> np.ndarray:
-        """Predicts labels for sequences in X.
+        """Predicts labels for sequences in ``X``.
 
         Parameters
         ----------
-        X: np.ndarray shape (n_cases, n_channels, n_timepoints)
+        X: ``np.ndarray`` shape ``(n_cases, n_channels, n_timepoints)``
             The data to make prediction for.
 
         Returns
         -------
-        y : array-like, shape = [n_cases]
+        y : array-like, shape = ``[n_cases]``
             Predicted class labels.
         """
         X_t = self._transformer.transform(X)
@@ -220,19 +219,19 @@ class RDSTRegressor(BaseRegressor):
 
         Parameters
         ----------
-        parameter_set : str, default="default"
+        parameter_set : ``str``, default=``"default"``
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
-            For regressor, a "default" set of parameters should be provided for
-            general testing, and a "results_comparison" set for comparing against
+            special parameters are defined for a value, will return ``"default"`` set.
+            For regressor, a ``"default"`` set of parameters should be provided for
+            general testing, and a ``"results_comparison"`` set for comparing against
             previously recorded results if the general set does not produce suitable
             probabilities to compare against.
 
         Returns
         -------
-        params : dict or list of dict, default={}
+        params : ``dict`` or list of ``dict``, default=``{}``
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test instance.
         """
         return {"max_shapelets": 20}

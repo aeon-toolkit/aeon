@@ -16,43 +16,43 @@ from aeon.transformations.collection.feature_based import TSFresh
 
 
 class FreshPRINCERegressor(BaseRegressor):
-    """
+     """
     Fresh Pipeline with RotatIoN forest Regressor.
 
-    This regressor simply transforms the input data using the TSFresh [1]_
-    transformer with comprehensive features and builds a RotationForestRegressor
+    This regressor simply transforms the input data using the ``TSFresh`` [1]_
+    transformer with comprehensive features and builds a ``RotationForestRegressor``
     estimator using the transformed data.
 
     Parameters
     ----------
-    default_fc_parameters : str, default="comprehensive"
-        Set of TSFresh features to be extracted, options are "minimal", "efficient" or
-        "comprehensive".
-    n_estimators : int, default=200
-        Number of estimators for the RotationForestRegressor ensemble.
-    base_estimator : BaseEstimator or None, default="None"
-        Base estimator for the ensemble. By default, uses the sklearn
-        `DecisionTreeRegressor` using MSE as a splitting measure.
-    pca_solver : str, default="auto"
-        Solver to use for the PCA ``svd_solver`` parameter in rotation forest. See the
-        scikit-learn PCA implementation for options.
-    verbose : int, default=0
-        Level of output printed to the console (for information only)
-    n_jobs : int, default=1
-        The number of jobs to run in parallel for both `fit` and `predict`.
+    default_fc_parameters : ``str``, default=``"comprehensive"``
+        Set of ``TSFresh`` features to be extracted, options are ``"minimal"``, ``"efficient"`` or
+        ``"comprehensive"``.
+    n_estimators : ``int``, default=``200``
+        Number of estimators for the ``RotationForestRegressor`` ensemble.
+    base_estimator : ``BaseEstimator`` or ``None``, default=``None``
+        Base estimator for the ensemble. By default, uses the ``sklearn``
+        ``DecisionTreeRegressor`` using ``MSE`` as a splitting measure.
+    pca_solver : ``str``, default=``"auto"``
+        Solver to use for the ``PCA`` ``svd_solver`` parameter in rotation forest. See the
+        ``scikit-learn`` ``PCA`` implementation for options.
+    verbose : ``int``, default=``0``
+        Level of output printed to the console (for information only).
+    n_jobs : ``int``, default=``1``
+        The number of jobs to run in parallel for both ``fit`` and ``predict``.
         ``-1`` means using all processors.
-    chunksize : int or None, default=None
-        Number of series processed in each parallel TSFresh job, should be optimised
-        for efficient parallelisation.
-    random_state : int, RandomState instance or None, default=None
-        If `int`, random_state is the seed used by the random number generator;
-        If `RandomState` instance, random_state is the random number generator;
-        If `None`, the random number generator is the `RandomState` instance used
-        by `np.random`.
+    chunksize : ``int`` or ``None``, default=``None``
+        Number of series processed in each parallel ``TSFresh`` job, should be optimized
+        for efficient parallelization.
+    random_state : ``int``, ``RandomState`` instance or ``None``, default=``None``
+        If ``int``, ``random_state`` is the seed used by the random number generator;  
+        If ``RandomState`` instance, ``random_state`` is the random number generator;  
+        If ``None``, the random number generator is the ``RandomState`` instance used
+        by ``np.random``.
 
     See Also
     --------
-    TSFresh, TSFreshRegressor, RotationForestRegressor
+    ``TSFresh``, ``TSFreshRegressor``, ``RotationForestRegressor``
 
     References
     ----------
@@ -73,8 +73,8 @@ class FreshPRINCERegressor(BaseRegressor):
     >>> from aeon.datasets import load_covid_3month
     >>> X_train, y_train = load_covid_3month(split="train")
     >>> X_test, y_test = load_covid_3month(split="test")
-    >>> fp = FreshPRINCERegressor(n_estimators=10) # doctest: +SKIP
-    >>> fp.fit(X_train, y_train) # doctest: +SKIP
+    >>> fp = FreshPRINCERegressor(n_estimators=10)  # doctest: +SKIP
+    >>> fp.fit(X_train, y_train)  # doctest: +SKIP
     >>> y_pred = fp.predict(X_test)  # doctest: +SKIP
     """
 
@@ -117,13 +117,13 @@ class FreshPRINCERegressor(BaseRegressor):
         super().__init__()
 
     def _fit(self, X, y):
-        """Fit a pipeline on cases (X,y), where y is the target variable.
+        """Fit a pipeline on cases ``(X,y)``, where ``y`` is the target variable.
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
+        X : 3D ``np.ndarray`` of shape = ``[n_cases, n_channels, n_timepoints]``
             The training data.
-        y : array-like, shape = [n_cases]
+        y : ``array-like``, shape = ``[n_cases]``
             The class labels.
 
         Returns
@@ -134,23 +134,23 @@ class FreshPRINCERegressor(BaseRegressor):
         Notes
         -----
         Changes state by creating a fitted model that updates attributes
-        ending in "_" and sets is_fitted flag to True.
+        ending in ``"_"`` and sets ``is_fitted`` flag to ``True``.
         """
         X_t = self._fit_fp_shared(X, y)
         self._rotf.fit(X_t, y)
         return self
 
     def _predict(self, X) -> np.ndarray:
-        """Predict class values of n instances in X.
+        """Predict class values of n instances in ``X``.
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
+        X : 3D ``np.ndarray``of shape = ``[n_cases, n_channels, n_timepoints]``
             The data to make predictions for.
 
         Returns
         -------
-        y : array-like, shape = [n_cases]
+        y : array-like, shape = ``[n_cases]``
             Predicted output values.
         """
         return self._rotf.predict(self._tsfresh.transform(X))
@@ -185,23 +185,23 @@ class FreshPRINCERegressor(BaseRegressor):
 
         Parameters
         ----------
-        parameter_set : str, default="default"
+        parameter_set : ``str``, default=``"default"``
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return``"default"`` set.
             FreshPRINCERegressor provides the following special sets:
-                 "results_comparison" - used in some regressors to compare against
+                 ``"results_comparison"`` - used in some regressors to compare against
                     previously generated results where the default set of parameters
                     cannot produce suitable probability estimates
-                "train_estimate" - used in some regressors that set the
-                    "capability:train_estimate" tag to True to allow for more efficient
+                 ``"train_estimate"`` - used in some regressors that set the
+                    ``"capability:train_estimate"`` tag to ``True`` to allow for more efficient
                     testing when relevant parameters are available
 
         Returns
         -------
-        params : dict or list of dict, default={}
+        params : ``dict`` or list of ``dict``, default=``{}``
             Parameters to create testing instances of the class.
-            Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            Each ``dict`` are parameters to construct an "interesting" test instance, i.e.,
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test instance.
         """
         if parameter_set == "results_comparison":
             return {

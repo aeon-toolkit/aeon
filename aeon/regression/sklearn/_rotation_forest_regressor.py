@@ -25,55 +25,55 @@ from aeon.utils.validation import check_n_jobs
 
 
 class RotationForestRegressor(RegressorMixin, BaseEstimator):
-    """
+     """
     A Rotation Forest (RotF) vector regressor.
 
     Implementation of the Rotation Forest regressor described in Rodriguez et al
-    (2013) [1]. Builds a forest of trees build on random portions of the data
+    (2013) [1]. Builds a forest of trees built on random portions of the data
     transformed using PCA.
 
     Intended as a benchmark for time series data and a base regressor for
-    transformation based appraoches such as FreshPRINCERegressor, this aeon
+    transformation-based approaches such as ``FreshPRINCERegressor``, this ``aeon``
     implementation only works with continuous attributes.
 
     Parameters
     ----------
-    n_estimators : int, default=200
+    n_estimators : ``int``, default=``200``
         Number of estimators to build for the ensemble.
-    min_group : int, default=3
+    min_group : ``int``, default=``3``
         The minimum size of an attribute subsample group.
-    max_group : int, default=3
+    max_group : ``int``, default=``3``
         The maximum size of an attribute subsample group.
-    remove_proportion : float, default=0.5
+    remove_proportion : ``float``, default=``0.5``
         The proportion of cases to be removed per group.
-    base_estimator : BaseEstimator or None, default="None"
-        Base estimator for the ensemble. By default, uses the sklearn
-        `DecisionTreeRegressor` using MSE as a splitting measure.
-    pca_solver : str, default="auto"
-        Solver to use for the PCA ``svd_solver`` parameter. See the scikit-learn PCA
+    base_estimator : ``BaseEstimator`` or ``None``, default=``None``
+        Base estimator for the ensemble. By default, uses the ``sklearn``
+        ``DecisionTreeRegressor`` using MSE as a splitting measure.
+    pca_solver : ``str``, default=``"auto"``
+        Solver to use for the PCA ``svd_solver`` parameter. See the ``scikit-learn PCA``
         implementation for options.
-    time_limit_in_minutes : int, default=0
+    time_limit_in_minutes : ``int``, default=``0``
         Time contract to limit build time in minutes, overriding ``n_estimators``.
-        Default of `0` means ``n_estimators`` is used.
-    contract_max_n_estimators : int, default=500
+        Default of ``0`` means ``n_estimators`` is used.
+    contract_max_n_estimators : ``int``, default=``500``
         Max number of estimators to build when ``time_limit_in_minutes`` is set.
-    n_jobs : int, default=1
+    n_jobs : ``int``, default=``1``
         The number of jobs to run in parallel for both ``fit`` and ``predict``.
-        `-1` means using all processors.
-    random_state : int, RandomState instance or None, default=None
-        If `int`, random_state is the seed used by the random number generator;
-        If `RandomState` instance, random_state is the random number generator;
-        If `None`, the random number generator is the `RandomState` instance used
-        by `np.random`.
+        ``-1`` means using all processors.
+    random_state : ``int``, ``RandomState`` instance or ``None``, default=``None``
+        If ``int``, ``random_state`` is the seed used by the random number generator;
+        If ``RandomState`` instance, ``random_state`` is the random number generator;
+        If ``None``, the random number generator is the ``RandomState`` instance used
+        by ``np.random``.
 
     Attributes
     ----------
-    n_cases_ : int
+    n_cases_ : ``int``
         The number of train cases in the training set.
-    n_atts_ : int
+    n_atts_ : ``int``
         The number of attributes in the training set.
-    estimators_ : list of shape (n_estimators) of BaseEstimator
-        The collections of estimators trained in fit.
+    estimators_ : ``list`` of shape (``n_estimators``) of ``BaseEstimator``
+        The collection of estimators trained in ``fit``.
 
     References
     ----------
@@ -125,13 +125,13 @@ class RotationForestRegressor(RegressorMixin, BaseEstimator):
         super().__init__()
 
     def fit(self, X, y):
-        """Fit a forest of trees on cases (X,y), where y is the target variable.
+        """Fit a forest of trees on cases ``(X,y)``, where ``y`` is the target variable.
 
         Parameters
         ----------
-        X : 2d ndarray or DataFrame of shape = [n_cases, n_attributes]
+        X : ``2d ndarray`` or ``DataFrame`` of shape = ``[n_cases, n_attributes]``
             The training data.
-        y : array-like, shape = [n_cases]
+        y : array-like, shape = ``[n_cases]``
             The output values.
 
         Returns
@@ -142,22 +142,22 @@ class RotationForestRegressor(RegressorMixin, BaseEstimator):
         Notes
         -----
         Changes state by creating a fitted model that updates attributes
-        ending in "_".
+        ending in ``"_"``.
         """
         self._fit_rotf(X, y)
         return self
 
     def predict(self, X) -> np.ndarray:
-        """Predict for all cases in X.
+        """Predict for all cases in ``X``.
 
         Parameters
         ----------
-        X : 2d ndarray or DataFrame of shape = [n_cases, n_attributes]
+        X :``2d ndarray`` or ``DataFrame`` of shape = ``[n_cases, n_attributes]``
             The data to make predictions for.
 
         Returns
         -------
-        y : array-like, shape = [n_cases]
+        y : array-like, shape = ``[n_cases]``
             Predicted output values.
         """
         if not hasattr(self, "_is_fitted") or not self._is_fitted:

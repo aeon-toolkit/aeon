@@ -15,115 +15,102 @@ from aeon.regression.deep_learning.base import BaseDeepRegressor
 
 
 class TimeCNNRegressor(BaseDeepRegressor):
-    """Time Series Convolutional Neural Network (CNN).
+   """Time Series Convolutional Neural Network (CNN).
 
     Adapted from the implementation used in [1]_.
 
     Parameters
     ----------
-    n_layers : int, default = 2,
-        the number of convolution layers in the network
-    kernel_size : int or list of int, default = 7,
-        kernel size of convolution layers, if not a list, the same kernel size
-        is used for all layer, len(list) should be n_layers
-    n_filters : int or list of int, default = [6, 12],
-        number of filters for each convolution layer, if not a list, the same n_filters
-        is used in all layers.
-    avg_pool_size : int or list of int, default = 3,
-        the size of the average pooling layer, if not a list, the same
-        max pooling size is used
-        for all convolution layer
-    output_activation : str, default = "linear",
-        the output activation for the regressor
-    activation : str or list of str, default = "sigmoid",
-        keras activation function used in the model for each layer,
-        if not a list, the same
-        activation is used for all layers
-    padding : str or list of str, default = 'valid',
-        the method of padding in convolution layers, if not a list,
-        the same padding used
-        for all convolution layers
-    strides : int or list of int, default = 1,
-        the strides of kernels in the convolution and max pooling layers,
-        if not a list, the same strides are used for all layers
-    dilation_rate : int or list of int, default = 1,
-        the dilation rate of the convolution layers, if not a list,
-        the same dilation rate is used all over the network
-    use_bias : bool or list of bool, default = True,
-        condition on whether or not to use bias values for convolution layers,
-        if not a list, the same condition is used for all layers
-    random_state : int, RandomState instance or None, default=None
-        If `int`, random_state is the seed used by the random number generator;
-        If `RandomState` instance, random_state is the random number generator;
-        If `None`, the random number generator is the `RandomState` instance used
-        by `np.random`.
-        Seeded random number generation can only be guaranteed on CPU processing,
-        GPU processing will be non-deterministic.
-    n_epochs : int, default = 2000
-        the number of epochs to train the model
-    batch_size : int, default = 16
-        the number of samples per gradient update.
-    verbose : boolean, default = False
-        whether to output extra information
-    loss : str, default = "mean_squared_error"
-        The name of the keras training loss.
-    optimizer : keras.optimizer, default = tf.keras.optimizers.Adam()
-        The keras optimizer used for training.
-    metrics : str or list[str], default="mean_squared_error"
-        The evaluation metrics to use during training. If
-        a single string metric is provided, it will be
-        used as the only metric. If a list of metrics are
-        provided, all will be used for evaluation.
-    callbacks : keras callback or list of callbacks,
-        default = None
-        The default list of callbacks are set to
-        ModelCheckpoint.
-    file_path : file_path for the best model (if checkpoint is used as callback)
-    save_best_model : bool, default = False
-        Whether or not to save the best model, if the
-        modelcheckpoint callback is used by default,
-        this condition, if True, will prevent the
-        automatic deletion of the best saved model from
-        file and the user can choose the file name
-    save_last_model : bool, default = False
-        Whether or not to save the last model, last
-        epoch trained, using the base class method
-        save_last_model_to_file
-    save_init_model : bool, default = False
-        Whether to save the initialization of the  model.
-    best_file_name : str, default = "best_model"
-        The name of the file of the best model, if
-        save_best_model is set to False, this parameter
-        is discarded
-    last_file_name : str, default = "last_model"
-        The name of the file of the last model, if
-        save_last_model is set to False, this parameter
-        is discarded
-    init_file_name : str, default = "init_model"
-        The name of the file of the init model, if save_init_model is set to False,
-        this parameter is discarded.
+n_layers : ``int``, default = ``2``
+    The number of convolution layers in the network.
+kernel_size : ``int`` or ``list`` of ``int``, default = ``7``
+    Kernel size of convolution layers. If not a list, the same kernel size
+    is used for all layers. ``len(list)`` should be ``n_layers``.
+n_filters : ``int`` or ``list`` of ``int``, default = ``[6, 12]``
+    Number of filters for each convolution layer. If not a list, the same ``n_filters``
+    is used in all layers.
+avg_pool_size : ``int`` or ``list`` of ``int``, default = ``3``
+    The size of the average pooling layer. If not a list, the same
+    max pooling size is used for all convolution layers.
+output_activation : ``str``, default = ``"linear"``
+    The output activation for the regressor.
+activation : ``str`` or ``list`` of ``str``, default = ``"sigmoid"``
+    Keras activation function used in the model for each layer.
+    If not a list, the same activation is used for all layers.
+padding : ``str`` or ``list`` of ``str``, default = ``"valid"``
+    The method of padding in convolution layers. If not a list,
+    the same padding is used for all convolution layers.
+strides : ``int`` or ``list`` of ``int``, default = ``1``
+    The strides of kernels in the convolution and max pooling layers.
+    If not a list, the same strides are used for all layers.
+dilation_rate : ``int`` or ``list`` of ``int``, default = ``1``
+    The dilation rate of the convolution layers. If not a list,
+    the same dilation rate is used across the network.
+use_bias : ``bool`` or ``list`` of ``bool``, default = ``True``
+    Condition on whether or not to use bias values for convolution layers.
+    If not a list, the same condition is used for all layers.
+random_state : ``int``, ``RandomState`` instance, or ``None``, default = ``None``
+    If ``int``, ``random_state`` is the seed used by the random number generator.
+    If ``RandomState`` instance, ``random_state`` is the random number generator.
+    If ``None``, the random number generator is the ``RandomState`` instance used
+    by ``np.random``.
+    Seeded random number generation can only be guaranteed on CPU processing.
+    GPU processing will be non-deterministic.
+n_epochs : ``int``, default = ``2000``
+    The number of epochs to train the model.
+batch_size : ``int``, default = ``16``
+    The number of samples per gradient update.
+verbose : ``bool``, default = ``False``
+    Whether to output extra information.
+loss : ``str``, default = ``"mean_squared_error"``
+    The name of the Keras training loss.
+optimizer : ``keras.optimizer``, default = ``tf.keras.optimizers.Adam()``
+    The Keras optimizer used for training.
+metrics : ``str`` or ``list`` of ``str``, default = ``"mean_squared_error"``
+    The evaluation metrics to use during training. If a single string metric is provided,  
+    it will be used as the only metric. If a list of metrics is provided, all will be used for evaluation.
+callbacks : ``keras.callbacks.Callback`` or ``list`` of ``keras.callbacks.Callback``, default = ``None``
+    The default list of callbacks includes ``ModelCheckpoint``.
+file_path : ``str``
+    File path for saving the best model (if checkpointing is used as a callback).
+save_best_model : ``bool``, default = ``False``
+    Whether or not to save the best model. If the ``ModelCheckpoint`` callback is used  
+    by default, setting this to ``True`` prevents the automatic deletion of the best  
+    saved model, allowing the user to choose the file name.
+save_last_model : ``bool``, default = ``False``
+    Whether or not to save the last trained model using the base class method  
+    ``save_last_model_to_file``.
+save_init_model : ``bool``, default = ``False``
+    Whether to save the initial model.
+best_file_name : ``str``, default = ``"best_model"``
+    The filename for saving the best model. If ``save_best_model`` is ``False``, this parameter is ignored.
+last_file_name : ``str``, default = ``"last_model"``
+    The filename for saving the last model. If ``save_last_model`` is ``False``, this parameter is ignored.
+init_file_name : ``str``, default = ``"init_model"``
+    The filename for saving the initialized model. If ``save_init_model`` is ``False``, this parameter is ignored.
 
-    Notes
-    -----
-    Adapted from the implementation from Fawaz et. al
-    https://github.com/hfawaz/dl-4-tsc/blob/master/classifiers/cnn.py
+Notes
+-----
+Adapted from the implementation by Fawaz et al.  
+Source: `https://github.com/hfawaz/dl-4-tsc/blob/master/classifiers/cnn.py`
 
-    References
-    ----------
-    .. [1] Zhao et. al, Convolutional neural networks for time series classification,
-    Journal of Systems Engineering and Electronics, 28(1):2017.
+References
+----------
+.. [1] Zhao et al., "Convolutional Neural Networks for Time Series Classification,"  
+   *Journal of Systems Engineering and Electronics*, 28(1), 2017.
 
-    Examples
-    --------
-    >>> from aeon.regression.deep_learning import TimeCNNRegressor
-    >>> from aeon.testing.data_generation import make_example_3d_numpy
-    >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
-    ...                              return_y=True, regression_target=True,
-    ...                              random_state=0)
-    >>> rgs = TimeCNNRegressor(n_epochs=20, bacth_size=4) # doctest: +SKIP
-    >>> rgs.fit(X, y) # doctest: +SKIP
-    TimeCNNRegressor(...)
-    """
+Examples
+--------
+>>> from aeon.regression.deep_learning import TimeCNNRegressor
+>>> from aeon.testing.data_generation import make_example_3d_numpy
+>>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
+...                              return_y=True, regression_target=True,
+...                              random_state=0)
+>>> rgs = TimeCNNRegressor(n_epochs=20, batch_size=4)  # doctest: +SKIP
+>>> rgs.fit(X, y)  # doctest: +SKIP
+TimeCNNRegressor(...)
+"""
+
 
     def __init__(
         self,
@@ -199,15 +186,15 @@ class TimeCNNRegressor(BaseDeepRegressor):
     def build_model(self, input_shape, **kwargs):
         """Construct a compiled, un-trained, keras model that is ready for training.
 
-        In aeon, time series are stored in numpy arrays of shape (d,m), where d
-        is the number of dimensions, m is the series length. Keras/tensorflow assume
-        data is in shape (m,d). This method also assumes (m,d). Transpose should
+        In aeon, time series are stored in numpy arrays of shape ``(d,m)``, where ``d``
+        is the number of dimensions, ``m`` is the series length. Keras/tensorflow assume
+        data is in shape ``(m,d)``. This method also assumes ``(m,d)``. Transpose should
         happen in fit.
 
         Parameters
         ----------
-        input_shape : tuple
-            The shape of the data fed into the input layer, should be (m,d)
+        input_shape : ``tuple``
+            The shape of the data fed into the input layer, should be ``(m,d)``
 
         Returns
         -------
@@ -240,14 +227,14 @@ class TimeCNNRegressor(BaseDeepRegressor):
         return model
 
     def _fit(self, X, y):
-        """Fit the regressor on the training set (X, y).
+        """Fit the regressor on the training set ``(X, y)``.
 
         Parameters
         ----------
-        X : np.ndarray
-            The training input samples of shape (n_cases, n_channels, n_timepoints).
-        y : np.ndarray
-            The training data target values of shape (n_cases,).
+        X : ``np.ndarray``
+            The training input samples of shape ``(n_cases, n_channels, n_timepoints)``.
+        y : ``np.ndarray``
+            The training data target values of shape ``(n_cases,)``.
 
         Returns
         -------
@@ -321,20 +308,20 @@ class TimeCNNRegressor(BaseDeepRegressor):
 
         Parameters
         ----------
-        parameter_set : str, default="default"
+        parameter_set : ``str``, default=``"default"``
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
-            For regressors, a "default" set of parameters should be provided for
-            general testing, and a "results_comparison" set for comparing against
+            special parameters are defined for a value, will return ``"default"`` set.
+            For regressors, a ``"default"`` set of parameters should be provided for
+            general testing, and a ``"results_comparison"`` set for comparing against
             previously recorded results if the general set does not produce suitable
             probabilities to compare against.
 
         Returns
         -------
-        params : dict or list of dict, default={}
+        params : ``dict`` or list of ``dict``, default=````{}
             Parameters to create testing instances of the class.
-            Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            Each ``dict`` are parameters to construct an "interesting" test instance, i.e.,
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test instance.
         """
         param = {
             "n_epochs": 10,

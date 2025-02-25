@@ -22,79 +22,79 @@ class EncoderRegressor(BaseDeepRegressor):
 
     Parameters
     ----------
-    kernel_size : array of int, default = [5, 11, 21]
+    kernel_size : array of ``int``, default = ``[5, 11, 21]``
         Specifying the length of the 1D convolution windows.
-    n_filters : array of int, default = [128, 256, 512]
+    n_filters : array of ``int``, default = ``[128, 256, 512]``
         Specifying the number of 1D convolution filters used for each layer,
-        the shape of this array should be the same as kernel_size.
-    max_pool_size : int, default = 2
+        the shape of this array should be the same as ``kernel_size``.
+    max_pool_size : ``int``, default = ``2``
         Size of the max pooling windows.
-    activation : string, default = sigmoid
+    activation : ``str``, default = ``sigmoid``
         Keras activation function.
-    output_activation   : str, default = "linear",
-        the output activation of the regressor
-    dropout_proba : float, default = 0.2
+    output_activation : ``str``, default = ``"linear"``
+        The output activation of the regressor.
+    dropout_proba : ``float``, default = ``0.2``
         Specifying the dropout layer probability.
-    padding : string, default = same
+    padding : ``str``, default = ``same``
         Specifying the type of padding used for the 1D convolution.
-    strides : int, default = 1
+    strides : ``int``, default = ``1``
         Specifying the sliding rate of the 1D convolution filter.
-    fc_units : int, default = 256
+    fc_units : ``int``, default = ``256``
         Specifying the number of units in the hidden fully
-        connected layer used in the EncoderNetwork.
-    file_path : str, default = "./"
-        File path when saving model_Checkpoint callback.
-    save_best_model : bool, default = False
-        Whether or not to save the best model, if the
-        modelcheckpoint callback is used by default,
-        this condition, if True, will prevent the
+        connected layer used in the ``EncoderNetwork``.
+    file_path : ``str``, default = ``"./"``
+        File path when saving ``model_Checkpoint`` callback.
+    save_best_model : ``bool``, default = ``False``
+        Whether or not to save the best model. If the
+        ``modelcheckpoint`` callback is used by default,
+        this condition, if ``True``, will prevent the
         automatic deletion of the best saved model from
         file and the user can choose the file name.
-    save_last_model : bool, default = False
+    save_last_model : ``bool``, default = ``False``
         Whether or not to save the last model, last
         epoch trained, using the base class method
-        save_last_model_to_file.
-    save_init_model : bool, default = False
-        Whether to save the initialization of the  model.
-    best_file_name : str, default = "best_model"
-        The name of the file of the best model, if
-        save_best_model is set to False, this parameter
+        ``save_last_model_to_file``.
+    save_init_model : ``bool``, default = ``False``
+        Whether to save the initialization of the model.
+    best_file_name : ``str``, default = ``"best_model"``
+        The name of the file of the best model. If
+        ``save_best_model`` is set to ``False``, this parameter
         is discarded.
-    last_file_name : str, default = "last_model"
-        The name of the file of the last model, if
-        save_last_model is set to False, this parameter
+    last_file_name : ``str``, default = ``"last_model"``
+        The name of the file of the last model. If
+        ``save_last_model`` is set to ``False``, this parameter
         is discarded.
-    init_file_name : str, default = "init_model"
-        The name of the file of the init model, if save_init_model is set to False,
+    init_file_name : ``str``, default = ``"init_model"``
+        The name of the file of the init model. If ``save_init_model`` is set to ``False``,
         this parameter is discarded.
-    n_epochs:
+    n_epochs : ``int``
         The number of times the entire training dataset
         will be passed forward and backward
         through the neural network.
-    random_state : int, RandomState instance or None, default=None
-        If `int`, random_state is the seed used by the random number generator;
-        If `RandomState` instance, random_state is the random number generator;
-        If `None`, the random number generator is the `RandomState` instance used
-        by `np.random`.
+    random_state : ``int``, ``RandomState`` instance or ``None``, default=``None``
+        If ``int``, ``random_state`` is the seed used by the random number generator.
+        If ``RandomState`` instance, ``random_state`` is the random number generator.
+        If ``None``, the random number generator is the ``RandomState`` instance used
+        by ``np.random``.
         Seeded random number generation can only be guaranteed on CPU processing,
         GPU processing will be non-deterministic.
-    loss : str, default = "mean_squared_error"
+    loss : ``str``, default = ``"mean_squared_error"``
         The name of the keras training loss.
-    metrics : str or list[str], default="mean_squared_error"
+    metrics : ``str`` or ``list[str]``, default=``"mean_squared_error"``
         The evaluation metrics to use during training. If
         a single string metric is provided, it will be
         used as the only metric. If a list of metrics are
         provided, all will be used for evaluation.
-    use_bias:
+    use_bias : ``bool``
         Whether to use bias in the dense layers.
-    optimizer : keras.optimizer, default = tf.keras.optimizers.Adam()
+    optimizer : ``keras.optimizer``, default = ``tf.keras.optimizers.Adam()``
         The keras optimizer used for training.
-    verbose:
+    verbose : ``bool``
         Whether to print progress messages during training.
-    callbacks : keras callback or list of callbacks,
-        default = None
+    callbacks : ``keras callback`` or ``list`` of ``callbacks``,
+        default = ``None``
         The default list of callbacks are set to
-        ModelCheckpoint.
+        ``ModelCheckpoint``.
 
     Notes
     -----
@@ -108,7 +108,6 @@ class EncoderRegressor(BaseDeepRegressor):
     for Artificial Intelligence, 120--129 2018.
 
     """
-
     def __init__(
         self,
         n_epochs=100,
@@ -182,15 +181,15 @@ class EncoderRegressor(BaseDeepRegressor):
     def build_model(self, input_shape, **kwargs):
         """Construct a compiled, un-trained, keras model that is ready for training.
 
-        In aeon, time series are stored in numpy arrays of shape (d, m), where d
-        is the number of dimensions, m is the series length. Keras/tensorflow assume
-        data is in shape (m, d). This method also assumes (m, d). Transpose should
+        In aeon, time series are stored in numpy arrays of shape ``(d, m)``, where ``d``
+        is the number of dimensions, ``m`` is the series length. Keras/tensorflow assume
+        data is in shape ``(m, d)``. This method also assumes ``(m, d)``. Transpose should
         happen in fit.
 
         Parameters
         ----------
-        input_shape : tuple
-        The shape of the data fed into the input layer, should be (m, d).
+        input_shape : ``tuple``
+        The shape of the data fed into the input layer, should be ``(m, d)``.
         Gives
         -------
         output : a compiled Keras Model
@@ -223,13 +222,13 @@ class EncoderRegressor(BaseDeepRegressor):
         return model
 
     def _fit(self, X, y):
-        """Fit the classifier on the training set (X, y).
+        """Fit the classifier on the training set ``(X, y)``.
 
         Parameters
         ----------
-        X : np.ndarray of shape = (n_cases, n_channels, n_timepoints)
+        X : ``np.ndarray`` of shape = ``(n_cases, n_channels, n_timepoints)``
             The training input samples.
-        y : np.ndarray of shape n
+        y : ``np.ndarray`` of shape n
             The training data Target Values.
 
         Gives
@@ -304,20 +303,20 @@ class EncoderRegressor(BaseDeepRegressor):
 
         Parameters
         ----------
-        parameter_set : str, default = "default"
+        parameter_set : ``str``, default = ``"default"``
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return "default" set.
-            For regressors, a "default" set of parameters should be provided for
-            general testing, and a "results_comparison" set for comparing against
+            special parameters are defined for a value, will return ``"default"`` set.
+            For regressors, a ``"default"`` set of parameters should be provided for
+            general testing, and a ``"results_comparison"`` set for comparing against
             previously recorded results if the general set does not produce suitable
             predictions to compare against.
 
         Returns
         -------
-        params : dict or list of dict, default = {}
+        params : ``dict`` or list of ``dict``, default = ``{}``
             Parameters to create testing instances of the class.
-            Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            Each ``dict`` are parameters to construct an "interesting" test instance, i.e.,
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test instance.
         """
         param1 = {
             "n_epochs": 8,

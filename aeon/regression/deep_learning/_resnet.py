@@ -22,102 +22,71 @@ class ResNetRegressor(BaseDeepRegressor):
 
     Parameters
     ----------
-        n_residual_blocks : int, default = 3
-            the number of residual blocks of ResNet's model
-        n_conv_per_residual_block : int, default = 3,
-            the number of convolution blocks in each residual block
-        n_filters : int or list of int, default = [128, 64, 64],
-            the number of convolution filters for all the convolution layers in the same
-            residual block, if not a list, the same number of filters is used in all
-            convolutions of all residual blocks.
-        kernel_sizes : int or list of int, default = [8, 5, 3],
-            the kernel size of all the convolution layers in one residual block, if not
-            a list, the same kernel size is used in all convolution layers
-        strides : int or list of int, default = 1,
-            the strides of convolution kernels in each of the
-            convolution layers in one residual block, if not
-            a list, the same kernel size is used in all convolution layers
-        dilation_rate : int or list of int, default = 1,
-            the dilation rate of the convolution layers in one residual block, if not
-            a list, the same kernel size is used in all convolution layers
-        padding : str or list of str, default = 'padding',
-            the type of padding used in the convolution layers
-            in one residual block, if not
-            a list, the same kernel size is used in all convolution layers
-        activation : str or list of str, default = 'relu',
-            keras activation used in the convolution layers
-            in one residual block, if not
-            a list, the same kernel size is used in all convolution layers
-        output_activation : str, default = "linear",
-            the output activation for the regressor
-        use_bias : bool or list of bool, default = True,
-            condition on whether or not to use bias values in
-            the convolution layers in one residual block, if not
-            a list, the same kernel size is used in all convolution layers
-        n_epochs : int, default = 1500
-            the number of epochs to train the model
-        batch_size : int, default = 16
-            the number of samples per gradient update.
-        use_mini_batch_size : bool, default = False
-            condition on using the mini batch size formula Wang et al.
-        callbacks : keras callback or list of callbacks,
-            default = None
-            The default list of callbacks are set to
-            ModelCheckpoint and ReduceLROnPlateau.
-        random_state : int, RandomState instance or None, default=None
-            If `int`, random_state is the seed used by the random number generator;
-            If `RandomState` instance, random_state is the random number generator;
-            If `None`, the random number generator is the `RandomState` instance used
-            by `np.random`.
-            Seeded random number generation can only be guaranteed on CPU processing,
-            GPU processing will be non-deterministic.
-        file_path : str, default = './'
-            file_path when saving model_Checkpoint callback
-        save_best_model : bool, default = False
-            Whether or not to save the best model, if the
-            modelcheckpoint callback is used by default,
-            this condition, if True, will prevent the
-            automatic deletion of the best saved model from
-            file and the user can choose the file name
-        save_last_model : bool, default = False
-            Whether or not to save the last model, last
-            epoch trained, using the base class method
-            save_last_model_to_file
-        save_init_model : bool, default = False
-            Whether to save the initialization of the  model.
-        best_file_name : str, default = "best_model"
-            The name of the file of the best model, if
-            save_best_model is set to False, this parameter
-            is discarded
-        last_file_name : str, default = "last_model"
-            The name of the file of the last model, if
-            save_last_model is set to False, this parameter
-            is discarded
-        init_file_name : str, default = "init_model"
-            The name of the file of the init model, if save_init_model is set to False,
-            this parameter is discarded.
-        verbose : boolean, default = False
-            whether to output extra information
-        loss : str, default = "mean_squared_error"
-            The name of the keras training loss.
-        optimizer : keras.optimizer, default = tf.keras.optimizers.Adam()
-            The keras optimizer used for training.
-        metrics : str or list[str], default="mean_squared_error"
-            The evaluation metrics to use during training. If
-            a single string metric is provided, it will be
-            used as the only metric. If a list of metrics are
-            provided, all will be used for evaluation.
+    n_residual_blocks : ``int``, default = ``3``
+        The number of residual blocks of ``ResNet's`` model.
+    n_conv_per_residual_block : ``int``, default = ``3``
+        The number of convolution blocks in each residual block.
+    n_filters : ``int`` or ``list`` of ``int``, default = ``[128, 64, 64]``
+        The number of convolution filters for all the convolution layers in the same
+        residual block. If not a list, the same number of filters is used in all
+        convolutions of all residual blocks.
+    kernel_sizes : ``int`` or ``list`` of ``int``, default = ``[8, 5, 3]``
+        The kernel size of all the convolution layers in one residual block.
+    strides : ``int`` or ``list`` of ``int``, default = ``1``
+        The strides of convolution kernels in each of the convolution layers.
+    dilation_rate : ``int`` or ``list`` of ``int``, default = ``1``
+        The dilation rate of the convolution layers in one residual block.
+    padding : ``str`` or ``list`` of ``str``, default = ``'same'``
+        The type of padding used in the convolution layers.
+    activation : ``str`` or ``list`` of ``str``, default = ``'relu'``
+        The activation function used in the convolution layers.
+    output_activation : ``str``, default = ``'linear'``
+        The output activation for the regressor.
+    use_bias : ``bool`` or ``list`` of ``bool``, default = ``True``
+        Whether to use bias values in the convolution layers.
+    n_epochs : ``int``, default = ``1500``
+        The number of epochs to train the model.
+    batch_size : ``int``, default = ``16``
+        The number of samples per gradient update.
+    use_mini_batch_size : ``bool``, default = ``False``
+        Whether to use the mini batch size formula from Wang et al.
+    callbacks : ``keras.callbacks.Callback`` or ``list`` of ``keras.callbacks.Callback``, default = ``None``
+        The list of callbacks, defaulting to ``ModelCheckpoint`` and ``ReduceLROnPlateau``.
+    random_state : ``int``, ``RandomState`` instance, or ``None``, default = ``None``
+        Seed for reproducibility.
+    file_path : ``str``, default = ``'./'``
+        File path for saving model checkpoint callback.
+    save_best_model : ``bool``, default = ``False``
+        Whether to save the best model. If ``True``, prevents automatic deletion.
+    save_last_model : ``bool``, default = ``False``
+        Whether to save the last trained model using ``save_last_model_to_file``.
+    save_init_model : ``bool``, default = ``False``
+        Whether to save the model initialization.
+    best_file_name : ``str``, default = ``'best_model'``
+        Filename for the best saved model. Ignored if ``save_best_model=False``.
+    last_file_name : ``str``, default = ``'last_model'``
+        Filename for the last saved model. Ignored if ``save_last_model=False``.
+    init_file_name : ``str``, default = ``'init_model'``
+        Filename for the init model. Ignored if ``save_init_model=False``.
+    verbose : ``bool``, default = ``False``
+        Whether to output additional training information.
+    loss : ``str``, default = ``'mean_squared_error'``
+        The loss function used for training.
+    optimizer : ``keras.optimizers.Optimizer``, default = ``tf.keras.optimizers.Adam()``
+        The optimizer used for training.
+    metrics : ``str`` or ``list`` of ``str``, default = ``'mean_squared_error'``
+        The evaluation metrics used during training.
 
     Notes
     -----
-    Adapted from the implementation from source code
-    https://github.com/hfawaz/dl-4-tsc/blob/master/classifiers/resnet.py
+    Adapted from the implementation from source code  
+    ``https://github.com/hfawaz/dl-4-tsc/blob/master/classifiers/resnet.py``
 
     References
     ----------
-        .. [1] Wang et. al, Time series classification from
-    scratch with deep neural networks: A strong baseline,
-    International joint conference on neural networks (IJCNN), 2017.
+    .. [1] Wang et al., "Time series classification from  
+       scratch with deep neural networks: A strong baseline,"  
+       International Joint Conference on Neural Networks (IJCNN), 2017.
 
     Examples
     --------
@@ -126,8 +95,8 @@ class ResNetRegressor(BaseDeepRegressor):
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
     ...                              return_y=True, regression_target=True,
     ...                              random_state=0)
-    >>> rgs = ResNetRegressor(n_epochs=20, bacth_size=4) # doctest: +SKIP
-    >>> rgs.fit(X, y) # doctest: +SKIP
+    >>> rgs = ResNetRegressor(n_epochs=20, batch_size=4)  # doctest: +SKIP
+    >>> rgs.fit(X, y)  # doctest: +SKIP
     ResNetRegressor(...)
     """
 
@@ -204,15 +173,15 @@ class ResNetRegressor(BaseDeepRegressor):
     def build_model(self, input_shape, **kwargs):
         """Construct a compiled, un-trained, keras model that is ready for training.
 
-        In aeon, time series are stored in numpy arrays of shape (d,m), where d
-        is the number of dimensions, m is the series length. Keras/tensorflow assume
-        data is in shape (m,d). This method also assumes (m,d). Transpose should
+        In aeon, time series are stored in numpy arrays of shape ``(d,m)``, where ``d``
+        is the number of dimensions, ``m`` is the series length. Keras/tensorflow assume
+        data is in shape ``(m,d)``. This method also assumes ``(m,d)``. Transpose should
         happen in fit.
 
         Parameters
         ----------
-        input_shape : tuple
-            The shape of the data fed into the input layer, should be (m,d)
+        input_shape : ``tuple``
+            The shape of the data fed into the input layer, should be ``(m,d)``
 
         Returns
         -------
@@ -247,14 +216,14 @@ class ResNetRegressor(BaseDeepRegressor):
         return model
 
     def _fit(self, X, y):
-        """Fit the regressor on the training set (X, y).
+        """Fit the regressor on the training set ``(X, y)``.
 
         Parameters
         ----------
-        X : np.ndarray
-            The training input samples of shape (n_cases, n_channels, n_timepoints).
-        y : np.ndarray
-            The training data target values of shape (n_cases,).
+        X : ``np.ndarray``
+            The training input samples of shape ``(n_cases, n_channels, n_timepoints)``.
+        y : ``np.ndarray``
+            The training data target values of shape ``(n_cases,)``.
 
         Returns
         -------
@@ -336,20 +305,20 @@ class ResNetRegressor(BaseDeepRegressor):
 
         Parameters
         ----------
-        parameter_set : str, default="default"
+        parameter_set : ``str``, default=``"default"``
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
-            For regressors, a "default" set of parameters should be provided for
-            general testing, and a "results_comparison" set for comparing against
+            special parameters are defined for a value, will return ``"default"`` set.
+            For regressors, a ``"default"`` set of parameters should be provided for
+            general testing, and a ``"results_comparison"`` set for comparing against
             previously recorded results if the general set does not produce suitable
             probabilities to compare against.
 
         Returns
         -------
-        params : dict or list of dict, default={}
+        params : ``dict`` or list of ``dict``, default=``{}``
             Parameters to create testing instances of the class.
-            Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            Each ``dict`` are parameters to construct an "interesting" test instance, i.e.,
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test instance.
         """
         param = {
             "n_epochs": 10,

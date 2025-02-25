@@ -21,36 +21,35 @@ WEIGHTS_SUPPORTED = ["uniform", "distance"]
 
 
 class KNeighborsTimeSeriesRegressor(BaseRegressor):
-    """
+   """
     K-Nearest Neighbour Time Series Regressor.
 
     A KNN classifier which supports time series distance measures.
     It determines distance function through string references to numba
-    based distances in aeon.distances, and can also be used with callables.
+    based distances in ``aeon.distances``, and can also be used with callables.
 
     Parameters
     ----------
-    n_neighbors : int, default = 1
-        Set k for knn.
-    weights : str or callable, default = 'uniform'
-        Mechanism for weighting a vote one of: 'uniform', 'distance', or a callable
-        function.
-    distance : str or callable, default ='dtw'
+    n_neighbors : ``int``, default = ``1``
+        Set ``k`` for KNN.
+    weights : ``str`` or ``callable``, default = ``'uniform'``
+        Mechanism for weighting a vote one of: ``'uniform'``, ``'distance'``, 
+        or a callable function.
+    distance : ``str`` or ``callable``, default = ``'dtw'``
         Distance measure between time series.
         Distance metric to compute similarity between time series. A list of valid
         strings for metrics can be found in the documentation for
         :func:`aeon.distances.get_distance_function` or through calling
         :func:`aeon.distances.get_distance_function_names`. If a
-        callable is passed it must be
-        a function that takes two 2d numpy arrays of shape ``(n_channels,
-        n_timepoints)`` as input and returns a float.
-    distance_params : dict, default = None
-        Dictionary for metric parameters for the case that distance is a str.
-    n_jobs : int, default = None
+        callable is passed, it must be
+        a function that takes two 2D numpy arrays of shape ``(n_channels,
+        n_timepoints)`` as input and returns a ``float``.
+    distance_params : ``dict``, default = ``None``
+        Dictionary for metric parameters for the case that ``distance`` is a ``str``.
+    n_jobs : ``int``, default = ``None``
         The number of parallel jobs to run for neighbors search.
-        ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.
+        ``None`` means ``1`` unless in a :obj:`joblib.parallel_backend` context.
         ``-1`` means using all processors.
-        for more details. Parameter for compatibility purposes, still unimplemented.
 
     Examples
     --------
@@ -100,17 +99,20 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
 
     def _fit(self, X, y):
         """
-        Fit the model using X as training data and y as target values.
+        Fit the model using ``X`` as training data and ``y`` as target values.
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = (n_cases, n_channels, n_timepoints) or list of
-        shape[n_cases] of 2D arrays shape (n_channels,n_timepoints_i)
-        If the series are all equal length, a numpy3D will be passed. If unequal, a list
-        of 2D numpy arrays is passed, which may have different lengths.
-        y : array-like, shape = (n_cases)
+        X : ``3D np.ndarray`` of shape = ``(n_cases, n_channels, n_timepoints)`` 
+            or ``list`` of shape ``[n_cases]`` of ``2D`` arrays with shape 
+            ``(n_channels, n_timepoints_i)``  
+            If the series are all equal length, a ``numpy 3D`` array will be passed. 
+            If unequal, a ``list`` of ``2D`` numpy arrays is passed, which may have 
+            different lengths.
+        y : ``array-like``, shape = ``(n_cases)``
             The output value.
         """
+
         self.metric_ = get_distance_function(method=self.distance)
         self.X_ = X
         self.y_ = y
@@ -122,16 +124,19 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = (n_cases, n_channels, n_timepoints) or list of
-        shape[n_cases] of 2D arrays shape (n_channels,n_timepoints_i)
-        If the series are all equal length, a numpy3D will be passed. If unequal, a list
-        of 2D numpy arrays is passed, which may have different lengths.
+        X : ``3D np.ndarray`` of shape = ``(n_cases, n_channels, n_timepoints)``  
+            or ``list`` of shape ``[n_cases]`` of ``2D`` arrays with shape  
+            ``(n_channels, n_timepoints_i)``  
+            If the series are all equal length, a ``numpy 3D`` array will be passed.  
+            If unequal, a ``list`` of ``2D`` numpy arrays is passed, which may have  
+            different lengths.
 
         Returns
         -------
-        y : array of shape (n_cases)
+        y : ``array`` of shape ``(n_cases)``
             Output values for each data sample.
         """
+
         preds = np.empty(len(X))
         for i in range(len(X)):
             idx, weights = self._kneighbors(X[i])
@@ -147,16 +152,17 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
 
         Parameters
         ----------
-        X : np.ndarray
-            A single time series instance if shape = (n_channels, n_timepoints)
+        X : ``np.ndarray``
+            A single time series instance of shape ``(n_channels, n_timepoints)``.
 
         Returns
         -------
-        ind : array
+        ind : ``array``
             Indices of the nearest points in the population matrix.
-        ws : array
+        ws : ``array``
             Array representing the weights of each neighbor.
         """
+
         distances = np.array(
             [
                 self.metric_(X, self.X_[j], **self._distance_params)
@@ -191,16 +197,16 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
 
         Parameters
         ----------
-        parameter_set : str, default="default"
+        parameter_set : ``str``, default=``"default"``
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return ``"default"`` set.
 
         Returns
         -------
-        params : dict or list of dict, default={}
+        params : ``dict`` or list of ``dict``, default=``{}``
             Parameters to create testing instances of the class.
-            Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            Each ``dict`` are parameters to construct an "interesting" test instance, i.e.,
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test instance.
         """
         # non-default distance and algorithm
         params1 = {"distance": "euclidean"}

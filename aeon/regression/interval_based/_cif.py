@@ -12,118 +12,99 @@ from aeon.utils.numba.stats import row_mean, row_slope, row_std
 
 
 class CanonicalIntervalForestRegressor(BaseIntervalForest, BaseRegressor):
-    """Canonical Interval Forest (CIF) Regressor.
+     """Canonical Interval Forest (CIF) Regressor.
 
-    Implementation of the interval-based forest making use of the catch22 feature set
+    Implementation of the interval-based forest making use of the ``catch22`` feature set
     on randomly selected intervals described in Middlehurst et al. (2020). [1]_
 
-    Overview: Input "n" series with "d" dimensions of length "m".
-    For each tree
-        - Sample n_intervals intervals of random position and length
-        - Subsample att_subsample_size catch22 or summary statistic attributes randomly
-        - Randomly select dimension for each interval
-        - Calculate attributes for each interval, concatenate to form new
-          data set
-        - Build a decision tree on new data set
-    ensemble the trees with averaged label estimates
+    Overview: Input ``n`` series with ``d`` dimensions of length ``m``.
+    For each tree:
+        - Sample ``n_intervals`` intervals of random position and length.
+        - Subsample ``att_subsample_size`` ``catch22`` or summary statistic attributes randomly.
+        - Randomly select a dimension for each interval.
+        - Calculate attributes for each interval and concatenate to form a new dataset.
+        - Build a decision tree on the new dataset.
+    Ensemble the trees with averaged label estimates.
 
     Parameters
     ----------
-    base_estimator : BaseEstimator or None, default=None
-        scikit-learn BaseEstimator used to build the interval ensemble. If None, use a
-        simple decision tree.
-    n_estimators : int, default=200
+    base_estimator : ``BaseEstimator`` or ``None``, default=``None``
+        ``scikit-learn`` ``BaseEstimator`` used to build the interval ensemble.
+        If ``None``, a simple decision tree is used.
+    n_estimators : ``int``, default=``200``
         Number of estimators to build for the ensemble.
-    n_intervals : int, str, list or tuple, default="sqrt"
-        Number of intervals to extract per tree for each series_transformers series.
+    n_intervals : ``int``, ``str``, ``list`` or ``tuple``, default=``"sqrt"``
+        Number of intervals to extract per tree for each ``series_transformers`` series.
 
-        An int input will extract that number of intervals from the series, while a str
-        input will return a function of the series length (may differ per
-        series_transformers output) to extract that number of intervals.
-        Valid str inputs are:
-            - "sqrt": square root of the series length.
-            - "sqrt-div": sqrt of series length divided by the number
-                of series_transformers.
+        - If ``int``, extracts that number of intervals from the series.
+        - If ``str``, uses a function of the series length:
+          - ``"sqrt"``: Square root of the series length.
+          - ``"sqrt-div"``: Square root of series length divided by the number of ``series_transformers``.
+        - If ``list`` or ``tuple`` (containing ``int`` and/or ``str``), sums results
+          from the above rules (e.g., ``[4, "sqrt"]`` extracts ``sqrt(n_timepoints) + 4`` intervals).
+        - For different ``n_intervals`` per ``series_transformers`` series, use a nested list/tuple.
 
-        A list or tuple of ints and/or strs will extract the number of intervals using
-        the above rules and sum the results for the final n_intervals. i.e. [4, "sqrt"]
-        will extract sqrt(n_timepoints) + 4 intervals.
-
-        Different number of intervals for each series_transformers series can be
-        specified using a nested list or tuple. Any list or tuple input containing
-        another list or tuple must be the same length as the number of
-        series_transformers.
-    min_interval_length : int, float, list, or tuple, default=3
-        Minimum length of intervals to extract from series. float inputs take a
-        proportion of the series length to use as the minimum interval length.
-
-        Different minimum interval lengths for each series_transformers series can be
-        specified using a list or tuple. Any list or tuple input must be the same length
-        as the number of series_transformers.
-    max_interval_length : int, float, list, or tuple, default=np.inf
-        Maximum length of intervals to extract from series. float inputs take a
-        proportion of the series length to use as the maximum interval length.
-
-        Different maximum interval lengths for each series_transformers series can be
-        specified using a list or tuple. Any list or tuple input must be the same length
-        as the number of series_transformers.
-    att_subsample_size : int, float, list, tuple or None, default=None
-        The number of attributes to subsample for each estimator. If None, use all
-
-        If int, use that number of attributes for all estimators. If float, use that
-        proportion of attributes for all estimators.
-
-        Different subsample sizes for each series_transformers series can be specified
-        using a list or tuple. Any list or tuple input must be the same length as the
-        number of series_transformers.
-    time_limit_in_minutes : int, default=0
-        Time contract to limit build time in minutes, overriding n_estimators.
-        Default of 0 means n_estimators are used.
-    contract_max_n_estimators : int, default=500
-        Max number of estimators when time_limit_in_minutes is set.
-    use_pycatch22 : bool, optional, default=False
-        Wraps the C based pycatch22 implementation for aeon.
-        (https://github.com/DynamicsAndNeuralSystems/pycatch22). This requires the
-        ``pycatch22`` package to be installed if True.
-    random_state : int, RandomState instance or None, default=None
-        If `int`, random_state is the seed used by the random number generator;
-        If `RandomState` instance, random_state is the random number generator;
-        If `None`, the random number generator is the `RandomState` instance used
-        by `np.random`.
-    n_jobs : int, default=1
-        The number of jobs to run in parallel for both `fit` and `predict`.
-        ``-1`` means using all processors.
-    parallel_backend : str, ParallelBackendBase instance or None, default=None
-        Specify the parallelisation backend implementation in joblib, if None a 'prefer'
-        value of "threads" is used by default.
-        Valid options are "loky", "multiprocessing", "threading" or a custom backend.
-        See the joblib Parallel documentation for more details.
+    min_interval_length : ``int``, ``float``, ``list``, or ``tuple``, default=``3``
+        Minimum interval length to extract.
+        - If ``float``, interpreted as a proportion of series length.
+        - If ``list`` or ``tuple``, must match the number of ``series_transformers``.
+    max_interval_length : ``int``, ``float``, ``list``, or ``tuple``, default=``np.inf``
+        Maximum interval length to extract.
+        - If ``float``, interpreted as a proportion of series length.
+        - If ``list`` or ``tuple``, must match the number of ``series_transformers``.
+    att_subsample_size : ``int``, ``float``, ``list``, ``tuple`` or ``None``, default=``None``
+        The number of attributes to subsample for each estimator.
+        - If ``None``, all attributes are used.
+        - If ``int``, uses that many attributes.
+        - If ``float``, uses that proportion of attributes.
+        - If ``list`` or ``tuple``, must match the number of ``series_transformers``.
+    time_limit_in_minutes : ``int``, default=``0``
+        Time contract to limit build time in minutes, overriding ``n_estimators``.
+        Default ``0`` means ``n_estimators`` are used.
+    contract_max_n_estimators : ``int``, default=``500``
+        Maximum number of estimators when ``time_limit_in_minutes`` is set.
+    use_pycatch22 : ``bool``, default=``False``
+        Wraps the C-based ``pycatch22`` implementation for ``aeon``.
+        Requires the ``pycatch22`` package if ``True``.
+        (https://github.com/DynamicsAndNeuralSystems/pycatch22).
+    random_state : ``int``, ``RandomState`` instance, or ``None``, default=``None``
+        - If ``int``, sets the seed for the random number generator.
+        - If ``RandomState`` instance, uses that generator.
+        - If ``None``, uses ``np.random.RandomState``.
+    n_jobs : ``int``, default=``1``
+        Number of jobs to run in parallel for ``fit`` and ``predict``.
+        ``-1`` uses all processors.
+    parallel_backend : ``str``, ``ParallelBackendBase`` instance, or ``None``, default=``None``
+        Parallelization backend implementation in ``joblib``.
+        - If ``None``, uses ``"threads"`` by default.
+        - Valid options: ``"loky"``, ``"multiprocessing"``, ``"threading"``, or a custom backend.
+        - See ``joblib.Parallel`` documentation for details.
 
     Attributes
     ----------
-    n_cases_ : int
-        The number of train cases in the training set.
-    n_channels_ : int
-        The number of dimensions per case in the training set.
-    n_timepoints_ : int
-        The length of each series in the training set.
-    total_intervals_ : int
+    n_cases_ : ``int``
+        Number of train cases in the training set.
+    n_channels_ : ``int``
+        Number of dimensions per case in the training set.
+    n_timepoints_ : ``int``
+        Length of each series in the training set.
+    total_intervals_ : ``int``
         Total number of intervals per tree from all representations.
-    estimators_ : list of shape (n_estimators) of BaseEstimator
-        The collections of estimators trained in fit.
-    intervals_ : list of shape (n_estimators) of TransformerMixin
-        Stores the interval extraction transformer for all estimators.
+    estimators_ : ``list`` of shape (``n_estimators``) of ``BaseEstimator``
+        Collection of estimators trained in ``fit``.
+    intervals_ : ``list`` of shape (``n_estimators``) of ``TransformerMixin``
+        Stores interval extraction transformers for all estimators.
 
     See Also
     --------
-    CanonicalIntervalForestClassifier
-    DrCIFRegressor
+    ``CanonicalIntervalForestClassifier``
+    ``DrCIFRegressor``
 
     References
     ----------
-    .. [1] Matthew Middlehurst and James Large and Anthony Bagnall. "The Canonical
-       Interval Forest (CIF) Classifier for Time Series Classification."
-       IEEE International Conference on Big Data 2020
+    .. [1] Matthew Middlehurst, James Large, and Anthony Bagnall.
+       "The Canonical Interval Forest (CIF) Classifier for Time Series Classification."
+       IEEE International Conference on Big Data, 2020.
 
     Examples
     --------
@@ -208,23 +189,23 @@ class CanonicalIntervalForestRegressor(BaseIntervalForest, BaseRegressor):
 
         Parameters
         ----------
-        parameter_set : str, default="default"
+        parameter_set : ``str``, default=``"default"``
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return ``"default"`` set.
             CanonicalIntervalForestRegressor provides the following special sets:
-                 "results_comparison" - used in some classifiers to compare against
+                 ``"results_comparison"`` - used in some classifiers to compare against
                     previously generated results where the default set of parameters
                     cannot produce suitable probability estimates
-                "contracting" - used in classifiers that set the
-                    "capability:contractable" tag to True to test contacting
+                 ``"contracting"`` - used in classifiers that set the
+                    ``"capability:contractable"`` tag to ``True`` to test contacting
                     functionality
 
         Returns
         -------
-        params : dict or list of dict, default={}
+        params : ``dict`` or list of ``dict``, default=``{}``
             Parameters to create testing instances of the class.
-            Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            Each ``dict`` are parameters to construct an "interesting" test instance, i.e.,
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test instance.
         """
         if parameter_set == "results_comparison":
             return {"n_estimators": 10, "n_intervals": 2, "att_subsample_size": 4}

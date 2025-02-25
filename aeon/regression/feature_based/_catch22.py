@@ -15,19 +15,20 @@ from aeon.transformations.collection.feature_based import Catch22
 
 
 class Catch22Regressor(BaseRegressor):
-    """Canonical Time-series Characteristics (catch22) regressor.
+    """
+    Canonical Time-series Characteristics (catch22) regressor.
 
-    This regressor simply transforms the input data using the Catch22 [1]
+    This regressor simply transforms the input data using the ``Catch22`` [1]
     transformer and builds a provided estimator using the transformed data.
 
     Parameters
     ----------
-    features : int/str or List of int/str, optional, default="all"
-        The Catch22 features to extract by feature index, feature name as a str or as a
-        list of names or indices for multiple features. If "all", all features are
-        extracted.
+    features : ``int``/``str`` or ``List`` of ``int``/``str``, optional, default=``"all"``
+        The ``Catch22`` features to extract by feature index, feature name as a ``str`` 
+        or as a ``list`` of names or indices for multiple features. If ``"all"``, all 
+        features are extracted.
         Valid features are as follows:
-            ["DN_HistogramMode_5", "DN_HistogramMode_10",
+            ``["DN_HistogramMode_5", "DN_HistogramMode_10",
             "SB_BinaryStats_diff_longstretch0", "DN_OutlierInclude_p_001_mdrmd",
             "DN_OutlierInclude_n_001_mdrmd", "CO_f1ecac", "CO_FirstMin_ac",
             "SP_Summaries_welch_rect_area_5_1", "SP_Summaries_welch_rect_centroid",
@@ -37,40 +38,40 @@ class Catch22Regressor(BaseRegressor):
             "FC_LocalSimple_mean1_tauresrat", "CO_Embed2_Dist_tau_d_expfit_meandiff",
             "SC_FluctAnal_2_dfa_50_1_2_logi_prop_r1",
             "SC_FluctAnal_2_rsrangefit_50_1_logi_prop_r1",
-            "SB_TransitionMatrix_3ac_sumdiagcov", "PD_PeriodicityWang_th0_01"]
-    catch24 : bool, optional, default=True
-        Extract the mean and standard deviation as well as the 22 Catch22 features if
-        True. If a List of specific features to extract is provided, "Mean" and/or
-        "StandardDeviation" must be added to the List to extract these features.
-    outlier_norm : bool, optional, default=False
-        Normalise each series during the two outlier Catch22 features, which can take a
+            "SB_TransitionMatrix_3ac_sumdiagcov", "PD_PeriodicityWang_th0_01"]``
+    catch24 : ``bool``, optional, default=``True``
+        Extract the mean and standard deviation as well as the 22 ``Catch22`` features 
+        if ``True``. If a ``List`` of specific features to extract is provided, 
+        ``"Mean"`` and/or ``"StandardDeviation"`` must be added to the ``List`` to extract these features.
+    outlier_norm : ``bool``, optional, default=``False``
+        Normalise each series during the two outlier ``Catch22`` features, which can take a
         while to process for large values.
-    replace_nans : bool, optional, default=True
-        Replace NaN or inf values from the Catch22 transform with 0.
-    use_pycatch22 : bool, optional, default=False
-        Wraps the C based pycatch22 implementation for aeon.
+    replace_nans : ``bool``, optional, default=``True``
+        Replace ``NaN`` or ``inf`` values from the ``Catch22`` transform with ``0``.
+    use_pycatch22 : ``bool``, optional, default=``False``
+        Wraps the C-based ``pycatch22`` implementation for ``aeon``.
         (https://github.com/DynamicsAndNeuralSystems/pycatch22). This requires the
-        ``pycatch22`` package to be installed if True.
-    estimator : sklearn regressor, optional, default=None
-        An sklearn estimator to be built using the transformed data.
-        Defaults to sklearn RandomForestRegressor(n_estimators=200)
-    random_state : int, RandomState instance or None, default=None
-        If `int`, random_state is the seed used by the random number generator;
-        If `RandomState` instance, random_state is the random number generator;
-        If `None`, the random number generator is the `RandomState` instance used
-        by `np.random`.
-    n_jobs : int, default=1
-        The number of jobs to run in parallel for both `fit` and `predict`.
+        ``pycatch22`` package to be installed if ``True``.
+    estimator : ``sklearn`` regressor, optional, default=``None``
+        An ``sklearn`` estimator to be built using the transformed data.
+        Defaults to ``sklearn.RandomForestRegressor(n_estimators=200)``.
+    random_state : ``int``, ``RandomState`` instance or ``None``, default=``None``
+        If ``int``, ``random_state`` is the seed used by the random number generator;
+        If ``RandomState`` instance, ``random_state`` is the random number generator;
+        If ``None``, the random number generator is the ``RandomState`` instance used
+        by ``np.random``.
+    n_jobs : ``int``, default=``1``
+        The number of jobs to run in parallel for both ``fit`` and ``predict``.
         ``-1`` means using all processors.
-    parallel_backend : str, ParallelBackendBase instance or None, default=None
-        Specify the parallelisation backend implementation in joblib for Catch22,
-        if None a 'prefer' value of "threads" is used by default.
-        Valid options are "loky", "multiprocessing", "threading" or a custom backend.
-        See the joblib Parallel documentation for more details.
+    parallel_backend : ``str``, ``ParallelBackendBase`` instance or ``None``, default=``None``
+        Specify the parallelisation backend implementation in ``joblib`` for ``Catch22``,
+        if ``None`` a ``'prefer'`` value of ``"threads"`` is used by default.
+        Valid options are ``"loky"``, ``"multiprocessing"``, ``"threading"`` or a custom backend.
+        See the ``joblib.Parallel`` documentation for more details.
 
     See Also
     --------
-    Catch22
+    ``Catch22``
 
     References
     ----------
@@ -135,13 +136,13 @@ class Catch22Regressor(BaseRegressor):
 
         Parameters
         ----------
-        X : 3D np.ndarray (any number of channels, equal length series)
-                of shape (n_cases, n_channels, n_timepoints)
+        X : 3D ``np.ndarray`` (any number of channels, equal length series)
+                of shape ``(n_cases, n_channels, n_timepoints)``
             or list of numpy arrays (any number of channels, unequal length series)
-                of shape [n_cases], 2D np.array (n_channels, n_timepoints_i), where
-                n_timepoints_i is length of series i
-        y : 1D np.array, of shape [n_cases] - target labels for fitting
-            indices correspond to instance indices in X
+                of shape ``[n_cases]``, 2D ``np.array`` ``(n_channels, n_timepoints_i)``, where
+                ``n_timepoints_i`` is length of series i
+        y : 1D ``np.array``, of shape ``[n_cases]`` - target labels for fitting
+            indices correspond to instance indices in ``X``
 
         Returns
         -------
@@ -177,19 +178,19 @@ class Catch22Regressor(BaseRegressor):
         return self
 
     def _predict(self, X) -> np.ndarray:
-        """Predicts labels for sequences in X.
+        """Predicts labels for sequences in ``X``.
 
         Parameters
         ----------
-        X : 3D np.ndarray (any number of channels, equal length series)
-                of shape (n_cases, n_channels, n_timepoints)
+        X : 3D ``np.ndarray`` (any number of channels, equal length series)
+                of shape ``(n_cases, n_channels, n_timepoints)``
             or list of numpy arrays (any number of channels, unequal length series)
-                of shape [n_cases], 2D np.array (n_channels, n_timepoints_i), where
-                n_timepoints_i is length of series i
+                of shape ``[n_cases]``, 2D ``np.array`` ``(n_channels, n_timepoints_i)``, where
+                ``n_timepoints_i`` is length of series ``i``
 
         Returns
         -------
-        y : array-like, shape = [n_cases]
+        y : array-like, shape = ``[n_cases]``
             Predicted target labels.
         """
         return self._estimator.predict(self._transformer.transform(X))
@@ -200,20 +201,20 @@ class Catch22Regressor(BaseRegressor):
 
         Parameters
         ----------
-        parameter_set : str, default="default"
+        parameter_set : ``str``, default=``"default"``
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return ``"default"` `set.
             Catch22Regressor provides the following special sets:
-                 "results_comparison" - used in some classifiers to compare against
+                 ``"results_comparison"`` - used in some classifiers to compare against
                     previously generated results where the default set of parameters
                     cannot produce suitable probability estimates
 
         Returns
         -------
-        params : dict or list of dict, default={}
+        params : ``dict`` or list of ``dict``, default=``{}``
             Parameters to create testing instances of the class.
-            Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            Each ``dict`` are parameters to construct an "interesting" test instance, i.e.,
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test instance.
         """
         if parameter_set == "results_comparison":
             return {

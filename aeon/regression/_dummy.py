@@ -10,35 +10,35 @@ from aeon.regression.base import BaseRegressor
 
 
 class DummyRegressor(BaseRegressor):
-    """
-    DummyRegressor makes predictions that ignore the input features.
+        """
+    ``DummyRegressor`` makes predictions that ignore the input features.
 
-    This regressor is a wrapper for the scikit-learn DummyClassifier that serves as a
+    This regressor is a wrapper for the ``scikit-learn DummyClassifier`` that serves as a
     simple baseline to compare against other more complex regressors.
-    The specific behaviour of the baseline is selected with the `strategy` parameter.
+    The specific behaviour of the baseline is selected with the ``strategy`` parameter.
 
     All strategies make predictions that ignore the input feature values passed
-    as the `X` argument to `fit` and `predict`. The predictions, however,
-    typically depend on values observed in the `y` parameter passed to `fit`.
+    as the ``X`` argument to ``fit`` and ``predict``. The predictions, however,
+    typically depend on values observed in the ``y`` parameter passed to ``fit``.
 
-    Function-identical to `sklearn.dummy.DummyRegressor`, which is called inside.
+    Function-identical to ``sklearn.dummy.DummyRegressor``, which is called inside.
 
     Parameters
     ----------
-    strategy : {"mean", "median", "quantile", "constant"}, default="mean"
+    strategy : {"mean", "median", "quantile", "constant"}, default=``"mean"``
         Strategy to use to generate predictions.
-        * "mean": always predicts the mean of the training set
-        * "median": always predicts the median of the training set
-        * "quantile": always predicts a specified quantile of the training set,
-        provided with the quantile parameter.
-        * "constant": always predicts a constant value that is provided by
+        * ``"mean"``: always predicts the mean of the training set
+        * ``"median"``: always predicts the median of the training set
+        * ``"quantile"``: always predicts a specified quantile of the training set,
+        provided with the ``quantile`` parameter.
+        * ``"constant"``: always predicts a constant value that is provided by
         the user.
-    constant : int or float or array-like of shape (n_outputs,), default=None
-        The explicit constant as predicted by the "constant" strategy. This
-        parameter is useful only for the "constant" strategy.
-    quantile : float in [0.0, 1.0], default=None
-        The quantile to predict using the "quantile" strategy. A quantile of
-        0.5 corresponds to the median, while 0.0 to the minimum and 1.0 to the
+    constant : ``int`` or ``float`` or array-like of shape ``(n_outputs,)``, default=``None``
+        The explicit constant as predicted by the ``"constant"`` strategy. This
+        parameter is useful only for the ``"constant"`` strategy.
+    quantile : ``float`` in ``[0.0, 1.0]``, default=``None``
+        The quantile to predict using the ``"quantile"`` strategy. A quantile of
+        ``0.5`` corresponds to the median, while ``0.0`` to the minimum and ``1.0`` to the
         maximum.
 
     Examples
@@ -66,7 +66,7 @@ class DummyRegressor(BaseRegressor):
     >>> reg.predict(X_test)[:5]
     array([0.5, 0.5, 0.5, 0.5, 0.5])
     """
-
+    
     _tags = {
         "X_inner_type": ["np-list", "numpy3D"],
         "capability:missing_values": True,
@@ -90,8 +90,8 @@ class DummyRegressor(BaseRegressor):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape [n_cases, n_channels, n_timepoints]
-        y : array-like, shape = [n_cases] - the target values
+        X : ``3D np.ndarray`` of shape ``[n_cases, n_channels, n_timepoints]``
+        y : array-like, shape = ``[n_cases]`` - the target values
 
         Returns
         -------
@@ -101,14 +101,14 @@ class DummyRegressor(BaseRegressor):
         return self
 
     def _predict(self, X) -> np.ndarray:
-        """Perform regression on test vectors X.
+        """Perform regression on test vectors ``X``.
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape [n_cases, n_channels, n_timepoints]
+        X : ``3D np.ndarray`` of shape ``[n_cases, n_channels, n_timepoints]``
 
         Returns
         -------
-        y : predictions of target values for X, np.ndarray
+        y : predictions of target values for ``X``, ``np.ndarray``
         """
         return self.sklearn_dummy_regressor.predict(X)
