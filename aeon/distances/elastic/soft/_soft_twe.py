@@ -116,30 +116,26 @@ def _soft_twe_cost_matrix(
     for i in range(1, x_size):
         for j in range(1, y_size):
             if bounding_matrix[i - 1, j - 1]:
-                # Deletion in x
-                del_x_squared_dist = _univariate_euclidean_distance(
-                    x[:, i - 1], x[:, i]
-                )
-                del_x = cost_matrix[i - 1, j] + del_x_squared_dist + del_add
-                # Deletion in y
-                del_y_squared_dist = _univariate_euclidean_distance(
-                    y[:, j - 1], y[:, j]
-                )
-                del_y = cost_matrix[i, j - 1] + del_y_squared_dist + del_add
+                current_dist = _univariate_euclidean_distance(x[:, i], y[:, j])
 
-                # Match
-                match_same_squared_d = _univariate_euclidean_distance(x[:, i], y[:, j])
-                match_prev_squared_d = _univariate_euclidean_distance(
-                    x[:, i - 1], y[:, j - 1]
-                )
+                del_x_dist = _univariate_euclidean_distance(x[:, i - 1], x[:, i])
+                del_y_dist = _univariate_euclidean_distance(y[:, j - 1], y[:, j])
+
+                del_x = cost_matrix[i - 1, j] + del_x_dist + del_add
+                del_y = cost_matrix[i, j - 1] + del_y_dist + del_add
+
+                match_prev = _univariate_euclidean_distance(x[:, i - 1], y[:, j - 1])
+                time_penalty = nu * (abs(i - j) + abs((i - 1) - (j - 1)))
                 match = (
-                    cost_matrix[i - 1, j - 1]
-                    + match_same_squared_d
-                    + match_prev_squared_d
-                    + nu * (abs(i - j) + abs((i - 1) - (j - 1)))
+                    cost_matrix[i - 1, j - 1] + current_dist + match_prev + time_penalty
                 )
 
-                cost_matrix[i, j] = _soft_min(del_x, del_y, match, gamma)
+                cost_matrix[i, j] = _soft_min(
+                    match,
+                    del_x,
+                    del_y,
+                    gamma,
+                )
 
     return cost_matrix[1:, 1:]
 
@@ -288,15 +284,14 @@ def _soft_twe_cost_matrix_with_arrs(
     nu: float = 0.001,
     lmbda: float = 1.0,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    # This method assumes arrays are already padded
     x_size = x.shape[1]
     y_size = y.shape[1]
     cost_matrix = np.full((x_size, y_size), np.inf)
     cost_matrix[0, 0] = 0.0
 
-    diagonal_arr = np.full((x_size, y_size), np.inf)
-    vertical_arr = np.full((x_size, y_size), np.inf)
-    horizontal_arr = np.full((x_size, y_size), np.inf)
+    diagonal_arr = np.zeros((x_size, y_size))
+    vertical_arr = np.zeros((x_size, y_size))
+    horizontal_arr = np.zeros((x_size, y_size))
     diff_dist_matrix = np.zeros((x_size, y_size))
 
     del_add = nu + lmbda
@@ -304,36 +299,22 @@ def _soft_twe_cost_matrix_with_arrs(
     for i in range(1, x_size):
         for j in range(1, y_size):
             if bounding_matrix[i - 1, j - 1]:
-                # Deletion in x
-                del_x_squared_dist = _univariate_euclidean_distance(
-                    x[:, i - 1], x[:, i]
-                )
-                del_x = cost_matrix[i - 1, j] + del_x_squared_dist + del_add
-                # Deletion in y
-                del_y_squared_dist = _univariate_euclidean_distance(
-                    y[:, j - 1], y[:, j]
-                )
-                del_y = cost_matrix[i, j - 1] + del_y_squared_dist + del_add
-
-                # Match
                 current_dist, difference = (
-                    _univariate_euclidean_distance_with_difference(
-                        x[:, i - 1], y[:, j - 1]
-                    )
+                    _univariate_euclidean_distance_with_difference(x[:, i], y[:, j])
                 )
-                diff_dist_matrix[i - 1, j - 1] = difference
-                # match_same_squared_d = _univariate_euclidean_distance(
-                #       x[:, i], y[:, j]
-                # )
-                match_same_squared_d = current_dist
-                match_prev_squared_d = _univariate_euclidean_distance(
-                    x[:, i - 1], y[:, j - 1]
-                )
+
+                diff_dist_matrix[i, j] = difference
+
+                del_x_dist = _univariate_euclidean_distance(x[:, i - 1], x[:, i])
+                del_y_dist = _univariate_euclidean_distance(y[:, j - 1], y[:, j])
+
+                del_x = cost_matrix[i - 1, j] + del_x_dist + del_add
+                del_y = cost_matrix[i, j - 1] + del_y_dist + del_add
+
+                match_prev = _univariate_euclidean_distance(x[:, i - 1], y[:, j - 1])
+                time_penalty = nu * (abs(i - j) + abs((i - 1) - (j - 1)))
                 match = (
-                    cost_matrix[i - 1, j - 1]
-                    + match_same_squared_d
-                    + match_prev_squared_d
-                    + nu * (abs(i - j) + abs((i - 1) - (j - 1)))
+                    cost_matrix[i - 1, j - 1] + current_dist + match_prev + time_penalty
                 )
 
                 cost_matrix[i, j] = _soft_min_with_arrs(
@@ -344,11 +325,12 @@ def _soft_twe_cost_matrix_with_arrs(
                     diagonal_arr,
                     vertical_arr,
                     horizontal_arr,
-                    i - 1,
-                    j - 1,
+                    i,
+                    j,
                 )
+
     return (
-        cost_matrix[1:, 1:],
+        cost_matrix,
         diagonal_arr,
         vertical_arr,
         horizontal_arr,
@@ -365,9 +347,9 @@ def soft_twe_gradient(
     lmbda: float = 1.0,
     itakura_max_slope: Optional[float] = None,
 ) -> tuple[np.ndarray, float]:
-    return _compute_soft_gradient(
-        x,
-        y,
+    grad, dist = _compute_soft_gradient(
+        _pad_arrs(x),
+        _pad_arrs(y),
         _soft_twe_cost_matrix_with_arrs,
         gamma=gamma,
         window=window,
@@ -375,3 +357,4 @@ def soft_twe_gradient(
         nu=nu,
         lmbda=lmbda,
     )
+    return grad[1:, 1:], dist

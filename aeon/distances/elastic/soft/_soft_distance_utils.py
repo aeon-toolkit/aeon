@@ -128,6 +128,9 @@ def _jacobian_product_absolute_distance(
     return product
 
 
+FLOAT_EPS = np.finfo(np.float64).eps
+
+
 @njit(cache=True, fastmath=True)
 def _jacobian_product_euclidean(
     X: np.ndarray, Y: np.ndarray, E: np.ndarray, diff_matrix: np.ndarray
@@ -140,10 +143,9 @@ def _jacobian_product_euclidean(
     for i in range(m):
         for j in range(n):
             e_ij = E[i, j]
-            if e_ij != 0.0:
+            if e_ij > FLOAT_EPS:
                 dist_squared = diff_matrix[i, j] * diff_matrix[i, j]
-
-                if dist_squared > 1e-16:
+                if dist_squared > FLOAT_EPS:
                     inv_dist = 1.0 / np.sqrt(dist_squared)
                     for k in range(d):
                         product[k, i] += e_ij * diff_matrix[i, j] * inv_dist

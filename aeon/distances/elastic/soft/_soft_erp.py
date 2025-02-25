@@ -235,6 +235,9 @@ def _soft_erp_from_multiple_to_multiple_distance(
     return distances
 
 
+MAX_NP_FLOAT = np.finfo(np.float64).max
+
+
 @njit(cache=True, fastmath=True)
 def soft_erp_alignment_path(
     x: np.ndarray,
@@ -280,9 +283,9 @@ def _soft_erp_cost_matrix_with_arrs(
     cost_matrix[0, 1:] = y_sum
     cost_matrix[0, 0] = 0.0
 
-    diagonal_arr = np.full((x_size, y_size), np.inf)
-    vertical_arr = np.full((x_size, y_size), np.inf)
-    horizontal_arr = np.full((x_size, y_size), np.inf)
+    diagonal_arr = np.zeros((x_size, y_size))
+    vertical_arr = np.zeros((x_size, y_size))
+    horizontal_arr = np.zeros((x_size, y_size))
 
     diff_dist_matrix = np.zeros((x_size, y_size))
 
@@ -292,7 +295,7 @@ def _soft_erp_cost_matrix_with_arrs(
                 current_dist, difference = (
                     _univariate_euclidean_distance_with_difference(x[:, i], y[:, j])
                 )
-                diff_dist_matrix[i, j] = difference
+                diff_dist_matrix[i, j] = difference + gx_distance[i] + gy_distance[j]
 
                 cost_matrix[i + 1, j + 1] = _soft_min_with_arrs(
                     cost_matrix[i, j] + current_dist,

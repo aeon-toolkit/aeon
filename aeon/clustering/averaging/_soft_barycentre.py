@@ -1,3 +1,4 @@
+import warnings
 from typing import Optional, Union
 
 import numpy as np
@@ -69,7 +70,7 @@ def soft_barycenter_average(
     weights=None,
     method="L-BFGS-B",
     tol=1e-5,
-    max_iters=30,
+    max_iters=50,
     init_barycenter="mean",
     previous_cost: Optional[float] = None,
     previous_distance_to_center: Optional[np.ndarray] = None,
@@ -150,8 +151,17 @@ def soft_barycenter_average(
         method=method,
         jac=True,
         tol=tol,
-        options=dict(maxiter=max_iters, disp=verbose),
+        options=dict(maxiter=max_iters, disp=verbose, maxls=30),
     )
+
+    if res.success is False:
+        warnings.warn(
+            f"Optimisation failed to converge."
+            f"Reason given by method: {res.message}. For more detail set "
+            f"verbose=True.",
+            RuntimeWarning,
+            stacklevel=2,
+        )
 
     # TWE is padded with a 0 at the start so remove first element
     final_barycenter = res.x.reshape(*barycenter.shape)
@@ -304,7 +314,7 @@ def _soft_barycenter_one_iter(
             local_jacobian_products[i] = _jacobian_product_absolute_distance(
                 barycenter, curr_ts, grad, diff_dist_matrix
             )
-        elif distance == "soft_twe":
+        elif distance == "soft_twe" or distance == "soft_erp":
             local_jacobian_products[i] = _jacobian_product_euclidean(
                 barycenter, curr_ts, grad, diff_dist_matrix
             )

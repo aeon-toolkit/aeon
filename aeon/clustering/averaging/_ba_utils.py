@@ -176,6 +176,7 @@ VALID_BA_METHODS = [
 
 
 VALID_SOFT_BA_DISTANCE_METHODS = [
+    "soft_adtw",
     "soft_dtw",
     "soft_twe",
     "soft_msm",

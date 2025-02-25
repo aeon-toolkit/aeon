@@ -463,8 +463,6 @@ def _soft_shape_dtw_cost_matrix_with_arrs(
             )
         )
 
-    # We need to recompute this since the return of the soft_dtw_cost_matrix_with_arrs
-    # is the diff matrix of the transformed subsequences
     diff_dist_matrix = np.zeros((x.shape[1], y.shape[1]))
     for i in range(x.shape[1]):
         for j in range(y.shape[1]):
@@ -486,7 +484,7 @@ def soft_shape_dtw_gradient(
     transformed_x: Optional[np.ndarray] = None,
     transformed_y: Optional[np.ndarray] = None,
 ) -> tuple[np.ndarray, float]:
-    return _compute_soft_gradient(
+    gradient = _compute_soft_gradient(
         x,
         y,
         _soft_shape_dtw_cost_matrix_with_arrs,
@@ -498,4 +496,19 @@ def soft_shape_dtw_gradient(
         transformation_precomputed=transformation_precomputed,
         transformed_x=transformed_x,
         transformed_y=transformed_y,
-    )[0:2]
+    )[0]
+
+    dist = soft_shape_dtw_distance(
+        x=x,
+        y=y,
+        gamma=gamma,
+        window=window,
+        descriptor=descriptor,
+        reach=reach,
+        itakura_max_slope=itakura_max_slope,
+        transformation_precomputed=transformation_precomputed,
+        transformed_x=transformed_x,
+        transformed_y=transformed_y,
+    )
+
+    return gradient, dist

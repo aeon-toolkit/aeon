@@ -252,12 +252,17 @@ def _soft_msm_cost_matrix_with_arr_independent(
     y_size = y.shape[1]
 
     cost_matrix = np.zeros((x_size, y_size))
-    move_arr = np.full((x_size, y_size), np.inf)
-    split_arr = np.full((x_size, y_size), np.inf)
-    merge_arr = np.full((x_size, y_size), np.inf)
+    move_arr = np.zeros((x_size, y_size))
+    split_arr = np.zeros((x_size, y_size))
+    merge_arr = np.zeros((x_size, y_size))
     diff_dist_matrix = np.zeros((x_size, y_size))
 
     for ch in range(x.shape[0]):
+        ind_cost_matrix = np.zeros((x_size, y_size))
+        ind_move_arr = np.zeros((x_size, y_size))
+        ind_split_arr = np.zeros((x_size, y_size))
+        ind_merge_arr = np.zeros((x_size, y_size))
+        ind_diff_dist_matrix = np.zeros((x_size, y_size))
 
         _soft_msm_univariate_cost_matrix_with_arr(
             x[ch],
@@ -265,12 +270,18 @@ def _soft_msm_cost_matrix_with_arr_independent(
             bounding_matrix,
             gamma,
             c,
-            cost_matrix,
-            move_arr,
-            split_arr,
-            merge_arr,
-            diff_dist_matrix,
+            ind_cost_matrix,
+            ind_move_arr,
+            ind_split_arr,
+            ind_merge_arr,
+            ind_diff_dist_matrix,
         )
+
+        cost_matrix = np.add(cost_matrix, ind_cost_matrix)
+        move_arr = np.add(move_arr, ind_move_arr)
+        split_arr = np.add(split_arr, ind_split_arr)
+        merge_arr = np.add(merge_arr, ind_merge_arr)
+        diff_dist_matrix = np.add(diff_dist_matrix, ind_diff_dist_matrix)
 
     return cost_matrix, move_arr, split_arr, merge_arr, diff_dist_matrix
 
@@ -306,7 +317,7 @@ def _soft_msm_univariate_cost_matrix_with_arr(
     x_size = x.shape[0]
     y_size = y.shape[0]
 
-    cost_matrix[0, 0] += x[0] - y[0]
+    cost_matrix[0, 0] = np.abs(x[0] - y[0])
 
     for i in range(1, x_size):
         if bounding_matrix[i, 0]:
