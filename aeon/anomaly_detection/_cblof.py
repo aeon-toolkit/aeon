@@ -16,8 +16,8 @@ class CBLOF(PyODAdapter):
 
     This class implements the CBLOF algorithm for anomaly detection
     using PyODAdadpter to be used in the aeon framework. All parameters are passed to
-    the PyOD model ``CBLOF`` except for ``window_size`` and ``stride``, which are used
-    to construct the sliding windows.
+    the PyOD model ``CBLOF`` except for ``window_size`` and ``stride``,
+    which are used to construct the sliding windows.
 
     The documentation for parameters has been adapted from the `PyOD documentation`_.
     .. _pyod_docs: https://pyod.readthedocs.io/en/latest/pyod.models.html#id117
@@ -143,9 +143,9 @@ class CBLOF(PyODAdapter):
         params : dict
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid
-            test instance.
-            ``create_test_instance`` uses the first (or only) dictionary in ``params``.
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test
+            instance. ``create_test_instance`` uses the first (or only) dictionary
+            in ``params``.
         """
         return {
             "n_clusters": 4,
