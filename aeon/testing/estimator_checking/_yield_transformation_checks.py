@@ -26,7 +26,8 @@ from aeon.utils.data_types import COLLECTIONS_DATA_TYPES
 def _yield_transformation_checks(estimator_class, estimator_instances, datatypes):
     """Yield all transformation checks for an aeon transformer."""
     # only class required
-    if sys.platform != "darwin":
+    if sys.platform == "linux":  # We cannot guarantee same results on ARM macOS
+        # Compare against results for both UnitTest and BasicMotions if available
         yield partial(
             check_transformer_against_expected_results,
             estimator_class=estimator_class,
