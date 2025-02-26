@@ -11,7 +11,7 @@ from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 @njit(cache=True, fastmath=True)
 def mindist_sax_distance(
-    x: np.ndarray, y: np.ndarray, breakpoints: np.ndarray, n: int
+    x: np.ndarray, y: np.ndarray, breakpoints: np.ndarray, n: int, p: int = 2
 ) -> float:
     r"""Compute the SAX lower bounding distance between two SAX representations.
 
@@ -25,6 +25,10 @@ def mindist_sax_distance(
         The breakpoints of the SAX transformation
     n : int
         The original size of the time series
+    p : int
+        The norm to be used in the distance computation. Default is 2.
+        p=2 corresponds to the Euclidean distance.
+        p=1 corresponds to the Manhattan distance.
 
     Returns
     -------
@@ -56,13 +60,13 @@ def mindist_sax_distance(
     ... )
     """
     if x.ndim == 1 and y.ndim == 1:
-        return _univariate_sax_distance(x, y, breakpoints, n)
+        return _univariate_sax_distance(x, y, breakpoints, n, p)
     raise ValueError("x and y must be 1D")
 
 
 @njit(cache=True, fastmath=True)
 def _univariate_sax_distance(
-    x: np.ndarray, y: np.ndarray, breakpoints: np.ndarray, n: int
+    x: np.ndarray, y: np.ndarray, breakpoints: np.ndarray, n: int, p: int = 2
 ) -> float:
     dist = 0.0
 
@@ -78,10 +82,10 @@ def _univariate_sax_distance(
         else:
             dist += (
                 n_split[i].shape[0]
-                * (breakpoints[max(x[i], y[i]) - 1] - breakpoints[min(x[i], y[i])]) ** 2
+                * (breakpoints[max(x[i], y[i]) - 1] - breakpoints[min(x[i], y[i])]) ** p
             )
 
-    return np.sqrt(dist)
+    return np.power(dist, 1 / p)
 
 
 def mindist_sax_pairwise_distance(
