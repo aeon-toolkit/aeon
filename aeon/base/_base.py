@@ -444,5 +444,7 @@ def _clone_estimator(base_estimator, random_state=None):
 
     if random_state is not None:
         _set_random_states(estimator, random_state)
+        if hasattr(estimator, "seed"):
+            estimator.seed = random_state
 
     return estimator
