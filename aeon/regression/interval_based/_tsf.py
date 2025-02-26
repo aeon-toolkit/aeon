@@ -121,6 +121,7 @@ class TimeSeriesForestRegressor(BaseIntervalForest, BaseRegressor):
     array([0.7252543 , 1.50132442, 0.95608366, 1.64399016, 0.42385504,
            0.60639322, 1.01919317, 1.30157483, 1.66017354, 0.2900776 ])
     """
+
     _tags = {
         "capability:multivariate": True,
         "capability:train_estimate": True,
