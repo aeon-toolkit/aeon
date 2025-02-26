@@ -12,7 +12,7 @@ from scipy.stats import zscore
 
 from aeon.distances.mindist._dft_sfa import mindist_dft_sfa_distance
 from aeon.distances.mindist._paa_sax import mindist_paa_sax_distance
-from aeon.transformations.collection.dictionary_based import SAX, SFAWhole
+from aeon.transformations.collection.dictionary_based import SAX, SFAFast
 
 matplotlib.rcParams["pdf.fonttype"] = 42
 matplotlib.rcParams["ps.fonttype"] = 42
@@ -204,7 +204,7 @@ server = False
 if os.path.exists(DATA_PATH):
     DATA_PATH = "/Users/bzcschae/workspace/UCRArchive_2018/"
     used_dataset = dataset_names
-    alphabet_sizes = [256]
+    alphabet_sizes = [16]
     all_threads = 8
 # server
 else:
@@ -254,7 +254,7 @@ def compute_distances(
             #         f"but ED is:\t {eds[j]} \t Pos: {i}, {j}"
             #     )
 
-            # DFT-SFA Min-Distance variants
+        # DFT-SFA Min-Distance variants
         for a in range(all_dfts.shape[0]):
             for j in range(samples.shape[0]):
                 md = mindist_dft_sfa_distance(
@@ -266,8 +266,8 @@ def compute_distances(
                     tightness[i][a + 1] += md / eds[j] / samples.shape[0]
 
                 # if md > eds[j]:
-                #    print(f"mindist {method_names[a]} is:\t {md} "
-                #          f"but ED is:\t {eds[j]} \t Pos: {i}, {j}")
+                #     print(f"mindist {method_names[a+1]} is:\t "+str(md)+" "
+                #          f"but ED is:\t "+str(eds[j])+f" \t Pos: {i}, {j}")
                 #     assert False
 
     tightness = np.sum(tightness, axis=0)
@@ -314,34 +314,40 @@ for dataset_name in used_dataset:
         PAA_test = SAX_transform._get_paa(X_test).squeeze()
         # print("\tSAX done.")
 
-        histograms = ["equi-width", "equi-depth"]
-        variances = [True, False]
+        histograms = ["equi-width"]  # , "equi-depth"
+        variances = [True]  # , False
+        dyn_alphabets = [True]  # , False
+        lambdas = [0.3, 0.4, 0.5, 0.6]
 
         method_names = ["isax"]
         all_breakpoints = []
         all_dfts = []
         all_words = []
 
-        for histogram, variance in itertools.product(histograms, variances):
-            # sfa = SFAFast(
-            #     word_length=n_segments,
-            #     alphabet_size=alphabet_size,
-            #     window_size=X_train.shape[-1],
-            #     binning_method=histogram,
-            #     norm=True,
-            #     variance=variance,
-            #     lower_bounding_distances=True,
-            #     n_jobs=all_threads,
-            # )
-
-            sfa = SFAWhole(
+        for histogram, variance, dyn_alphabet, lambda_ in itertools.product(
+            histograms, variances, dyn_alphabets, lambdas
+        ):
+            sfa = SFAFast(
                 word_length=n_segments,
                 alphabet_size=alphabet_size,
+                window_size=X_train.shape[-1],
                 binning_method=histogram,
-                variance=variance,
                 norm=True,
+                variance=variance,
+                lower_bounding_distances=True,
+                learn_alphabet_sizes=dyn_alphabet,
+                learn_alphabet_lambda=lambda_,
                 n_jobs=all_threads,
             )
+
+            # sfa = SFAWhole(
+            #     word_length=n_segments,
+            #     alphabet_size=alphabet_size,
+            #     binning_method=histogram,
+            #     variance=variance,
+            #     norm=True,
+            #     n_jobs=all_threads,
+            # )
 
             sfa.fit(X_train)
             # X_dfts = sfa.transform_mft(X_test).squeeze()
@@ -353,7 +359,7 @@ for dataset_name in used_dataset:
             all_dfts.append(X_dfts.astype(np.float64))
             all_words.append(Y_words.astype(np.int32))
 
-            method_names.append(f"sfa_{histogram}_{variance}")
+            method_names.append(f"sfa_{histogram}_{variance}_{dyn_alphabet}_{lambda_}")
             # print(f"\tSFA {histogram} {variance} done.")
 
         sum_scores = {}
@@ -371,7 +377,7 @@ for dataset_name in used_dataset:
             PAA_test,
             SAX_train,
             SAX_transform.breakpoints,
-            np.array(all_breakpoints),
+            all_breakpoints,
             np.array(all_dfts),
             np.array(all_words),
             np.array(method_names),
@@ -384,9 +390,9 @@ for dataset_name in used_dataset:
 
         # print(f"\n\n---- Results using {alphabet_size}-----")
         # for name, _ in sum_scores.items():
-        #    #print(
-        #        f"---- Name {name}, \t tlb: {
-        #          np.round(sum_scores[name]['tightness'], 3)}"
+        #    print(
+        #        f"---- Name {name}, \t tlb:
+        #        {np.round(sum_scores[name]['tightness'], 3)}"
         #    )
 
         # if server:
@@ -398,5 +404,5 @@ for dataset_name in used_dataset:
                 "TLB",
             ],
         ).to_csv(
-            f"logs/tlb_all_ucr_{n_segments}_{alphabet_size}-30-01-25.csv", index=None
+            f"logs/tlb_all_ucr_{n_segments}_{alphabet_size}-26_02_25.csv", index=None
         )

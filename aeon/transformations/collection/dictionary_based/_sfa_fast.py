@@ -144,6 +144,8 @@ class SFAFast(BaseCollectionTransformer):
         alphabet_size=4,
         alphabet_sizes=None,
         window_size=12,
+        learn_alphabet_sizes=False,
+        learn_alphabet_lambda=0.5,
         norm=False,
         binning_method="equi-depth",
         anova=False,
@@ -199,6 +201,8 @@ class SFAFast(BaseCollectionTransformer):
         self.dilation = dilation
         self.first_difference = first_difference
         self.sampling_factor = sampling_factor
+        self.learn_alphabet_sizes = learn_alphabet_sizes
+        self.learn_alphabet_lambda = learn_alphabet_lambda
 
         # Feature selection part
         self.feature_selection = feature_selection
@@ -230,6 +234,12 @@ class SFAFast(BaseCollectionTransformer):
         if self.variance and self.anova:
             raise ValueError(
                 "Please set either variance or anova Fourier coefficient selection"
+            )
+
+        if self.learn_alphabet_sizes and not self.variance:
+            raise ValueError(
+                "Learn Alphabet Sizes must be set in conjunction with variance-based"
+                "feature selection."
             )
 
         if self.binning_method not in binning_methods:
@@ -541,10 +551,10 @@ class SFAFast(BaseCollectionTransformer):
 
         if self.variance:
             # determine variance
-            dft_variance = np.var(dft, axis=0)
+            self.dft_variance = np.var(dft, axis=0)
 
             # select word-length-many indices with the largest variance
-            self.support = np.argsort(-dft_variance)[: self.word_length_actual]
+            self.support = np.argsort(-self.dft_variance)[: self.word_length_actual]
 
             # sort remaining indices
             self.support = np.sort(self.support)
@@ -571,6 +581,19 @@ class SFAFast(BaseCollectionTransformer):
             dft = dft[:, self.support]
             self.dft_length = np.max(self.support) + 1
             self.dft_length = self.dft_length + self.dft_length % 2  # even
+
+        # learn alphabet sizes
+        if self.learn_alphabet_sizes and self.variance:
+            self.bit_budget = int(np.log2(self.alphabet_size) * self.word_length)
+
+            bit_arr = _dynamic_alphabet_allocation(
+                bits=self.bit_budget,
+                var=self.dft_variance[self.support],
+                lamda=self.learn_alphabet_lambda,
+            )
+            self.alphabet_sizes = [int(2 ** bit_arr[i]) for i in range(len(bit_arr))]
+            self.alphabet_sizes = np.array(self.alphabet_sizes)
+            self.letter_bits = np.max(bit_arr)  # TODO !!!
 
         if self.binning_method == "information-gain":
             return self._igb(dft, y)
@@ -600,29 +623,41 @@ class SFAFast(BaseCollectionTransformer):
         return breakpoints
 
     def _mcb(self, dft):
-        breakpoints = np.zeros((self.word_length_actual, self.alphabet_size))
+        max_alphabet_size = self.alphabet_size
+        if self.alphabet_sizes is not None:
+            max_alphabet_size = np.max(self.alphabet_sizes)
+
+        breakpoints = np.zeros((self.word_length_actual, max_alphabet_size))
+        breakpoints[:, :] = sys.float_info.max
 
         dft = np.round(dft, 2)
+        # TODO in parallel??
         for letter in range(self.word_length_actual):
+            if self.alphabet_sizes is not None:
+                # Variable-length alphabet sizes
+                curr_alphabet_size = self.alphabet_sizes[letter]
+            else:
+                # Fixed-length alphabet sizes
+                curr_alphabet_size = self.alphabet_size
+
             column = np.sort(dft[:, letter])
             bin_index = 0
 
             # use equi-depth binning
             if self.binning_method == "equi-depth":
-                target_bin_depth = len(dft) / self.alphabet_size
+                target_bin_depth = len(dft) / curr_alphabet_size
 
-                for bp in range(self.alphabet_size - 1):
+                for bp in range(curr_alphabet_size - 1):
                     bin_index += target_bin_depth
                     breakpoints[letter, bp] = column[int(bin_index)]
 
             # use equi-width binning aka equi-frequency binning
             elif self.binning_method == "equi-width":
-                target_bin_width = (column[-1] - column[0]) / self.alphabet_size
+                target_bin_width = (column[-1] - column[0]) / curr_alphabet_size
 
-                for bp in range(self.alphabet_size - 1):
+                for bp in range(curr_alphabet_size - 1):
                     breakpoints[letter, bp] = (bp + 1) * target_bin_width + column[0]
 
-        breakpoints[:, self.alphabet_size - 1] = sys.float_info.max
         return breakpoints
 
     def _igb(self, dft, y):
@@ -726,7 +761,6 @@ class SFAFast(BaseCollectionTransformer):
             self.inverse_sqrt_win_size,
             self.lower_bounding or self.lower_bounding_distances,
             self.word_length,
-            self.alphabet_size,
             self.breakpoints,
         )
 
@@ -1293,7 +1327,6 @@ def _transform_words_case(
     inverse_sqrt_win_size,
     lower_bounding,
     word_length,
-    alphabet_size,
     breakpoints,
 ):
     dfts = _mft(
@@ -1313,9 +1346,72 @@ def _transform_words_case(
     for x in prange(dfts.shape[0]):
         for window in prange(dfts.shape[1]):
             for i in prange(word_length):
-                for bp in range(alphabet_size):
+                for bp in range(breakpoints.shape[1]):
                     if dfts[x, window, i] <= breakpoints[i][bp]:
                         words[x, window, i] = bp
                         break
 
     return words, dfts
+
+
+@njit(cache=True, fastmath=True)
+def _dynamic_alphabet_allocation(bits, var, lamda=0.5):
+    # normalize to 1
+    var = var / np.sum(var)
+    order = np.argsort(var)[::-1]  # reverse order
+    var_sorted = var[order]
+
+    # From the SPARTAN code
+    n = len(var_sorted)
+    A = int(bits / n)
+    DP = np.zeros((n + 1, bits + 1))
+    min_bit = 1
+    max_bit = int(np.max(var_sorted) * bits)
+    alloc = (
+        np.zeros_like(DP).astype(np.int32) + bits
+    )  # store the num of bits for each component
+
+    # init
+    for i in range(0, n + 1):
+        for j in range(0, bits + 1):
+            DP[i][j] = -1e9
+    DP[0][0] = 0
+
+    # non-recursive
+    for i in range(1, n + 1):
+        for j in range(0, bits + 1):
+            max_reward = -1e9
+            for x in range(min_bit, max_bit + 1):
+                if j - x >= 0 and x <= alloc[i - 1][j - x]:
+                    current_reward = (
+                        DP[i - 1][j - x]
+                        + x * var_sorted[i - 1]
+                        + regularization_term(x, var_sorted[i - 1], A, lamda)
+                    )
+
+                    if current_reward > max_reward:
+                        alloc[i][j] = x
+                        max_reward = current_reward
+                        DP[i][j] = current_reward
+
+    bit_arr = np.zeros(n, dtype=np.uint32)
+    bit_arr[order] = print_sol(alloc, n, bits)[::-1]
+    assert np.sum(bit_arr) == bits
+    # return DP[n][bits], bit_arr[::-1]
+    return bit_arr
+
+
+@njit(fastmath=True, cache=True)
+def regularization_term(x, ev_value, avg_bit, lamda=0.5):
+    return -lamda * (x - avg_bit) ** 2 * ev_value
+
+
+@njit(fastmath=True, cache=True)
+def print_sol(alloc, K, N):
+    bit_arr = []
+    unused_bit = N
+    for i in range(K, 1, -1):
+        bit_arr.append(alloc[i][unused_bit])
+        unused_bit -= alloc[i][unused_bit]
+    bit_arr.append(unused_bit)
+    return bit_arr
