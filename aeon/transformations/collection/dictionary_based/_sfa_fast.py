@@ -65,6 +65,11 @@ class SFAFast(BaseCollectionTransformer):
         Number of values to discretise each value to.
     window_size : int, default = 12
         Size of window for sliding. Input series length for whole series transform.
+    learn_alphabet_sizes : boolean, default = False
+        If True, dynamic alphabet sizes are learned based on the variance of the Fourier
+        coefficients.
+    learn_alphabet_lambda : float, default = 0.5
+        The regularization parameter for dynamic alphabet size learning.
     norm : boolean, default = False
         Mean normalise words by dropping first fourier coefficient.
     binning_method : str, default="equi-depth"
@@ -142,7 +147,6 @@ class SFAFast(BaseCollectionTransformer):
         self,
         word_length=8,
         alphabet_size=4,
-        alphabet_sizes=None,
         window_size=12,
         learn_alphabet_sizes=False,
         learn_alphabet_lambda=0.5,
@@ -173,7 +177,7 @@ class SFAFast(BaseCollectionTransformer):
         self.word_length = word_length
 
         self.alphabet_size = alphabet_size
-        self.alphabet_sizes = alphabet_sizes
+        self.alphabet_sizes = None
         self.window_size = window_size
 
         self.norm = norm
@@ -592,8 +596,14 @@ class SFAFast(BaseCollectionTransformer):
                 lamda=self.learn_alphabet_lambda,
             )
             self.alphabet_sizes = [int(2 ** bit_arr[i]) for i in range(len(bit_arr))]
-            self.alphabet_sizes = np.array(self.alphabet_sizes)
-            self.letter_bits = np.max(bit_arr)  # TODO !!!
+            # FIXME: Use the correct letter bits per offset!!!
+            #        Requires changing the code to an array of letter bits
+            self.letter_bits = np.max(bit_arr)
+        else:
+            # use the same alphabet size for all positions
+            self.alphabet_sizes = [self.alphabet_size for _ in range(self.word_length)]
+
+        self.alphabet_sizes = np.array(self.alphabet_sizes)
 
         if self.binning_method == "information-gain":
             return self._igb(dft, y)
@@ -623,9 +633,7 @@ class SFAFast(BaseCollectionTransformer):
         return breakpoints
 
     def _mcb(self, dft):
-        max_alphabet_size = self.alphabet_size
-        if self.alphabet_sizes is not None:
-            max_alphabet_size = np.max(self.alphabet_sizes)
+        max_alphabet_size = np.max(self.alphabet_sizes)
 
         breakpoints = np.zeros((self.word_length_actual, max_alphabet_size))
         breakpoints[:, :] = sys.float_info.max
@@ -633,13 +641,7 @@ class SFAFast(BaseCollectionTransformer):
         dft = np.round(dft, 2)
         # TODO in parallel??
         for letter in range(self.word_length_actual):
-            if self.alphabet_sizes is not None:
-                # Variable-length alphabet sizes
-                curr_alphabet_size = self.alphabet_sizes[letter]
-            else:
-                # Fixed-length alphabet sizes
-                curr_alphabet_size = self.alphabet_size
-
+            curr_alphabet_size = self.alphabet_sizes[letter]
             column = np.sort(dft[:, letter])
             bin_index = 0
 
@@ -1372,32 +1374,28 @@ def _dynamic_alphabet_allocation(bits, var, lamda=0.5):
     )  # store the num of bits for each component
 
     # init
-    for i in range(0, n + 1):
-        for j in range(0, bits + 1):
-            DP[i][j] = -1e9
-    DP[0][0] = 0
+    DP[:, :] = -np.inf
+    DP[0, 0] = 0
 
     # non-recursive
     for i in range(1, n + 1):
         for j in range(0, bits + 1):
-            max_reward = -1e9
+            max_reward = -np.inf
             for x in range(min_bit, max_bit + 1):
-                if j - x >= 0 and x <= alloc[i - 1][j - x]:
+                if j - x >= 0 and x <= alloc[i - 1, j - x]:
                     current_reward = (
-                        DP[i - 1][j - x]
+                        DP[i - 1, j - x]
                         + x * var_sorted[i - 1]
                         + regularization_term(x, var_sorted[i - 1], A, lamda)
                     )
-
                     if current_reward > max_reward:
-                        alloc[i][j] = x
+                        alloc[i, j] = x
                         max_reward = current_reward
-                        DP[i][j] = current_reward
+                        DP[i, j] = current_reward
 
     bit_arr = np.zeros(n, dtype=np.uint32)
-    bit_arr[order] = print_sol(alloc, n, bits)[::-1]
+    bit_arr[order] = get_solution(alloc, n, bits)[::-1]
     assert np.sum(bit_arr) == bits
-    # return DP[n][bits], bit_arr[::-1]
     return bit_arr
 
 
@@ -1407,11 +1405,11 @@ def regularization_term(x, ev_value, avg_bit, lamda=0.5):
 
 
 @njit(fastmath=True, cache=True)
-def print_sol(alloc, K, N):
+def get_solution(alloc, K, N):
     bit_arr = []
     unused_bit = N
     for i in range(K, 1, -1):
-        bit_arr.append(alloc[i][unused_bit])
-        unused_bit -= alloc[i][unused_bit]
+        bit_arr.append(alloc[i, unused_bit])
+        unused_bit -= alloc[i, unused_bit]
     bit_arr.append(unused_bit)
     return bit_arr

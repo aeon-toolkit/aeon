@@ -27,6 +27,11 @@ class SFAWhole(SFAFast):
         Length of word to shorten window to (using DFT).
     alphabet_size : int, default = 4
         Number of values to discretise each value to.
+    learn_alphabet_sizes : boolean, default = False
+        If True, dynamic alphabet sizes are learned based on the variance of the Fourier
+        coefficients.
+    learn_alphabet_lambda : float, default = 0.5
+        The regularization parameter for dynamic alphabet size learning.
     norm : boolean, default = False
         Mean normalise words by dropping first fourier coefficient.
     binning_method : str, default="equi-depth"
@@ -66,6 +71,8 @@ class SFAWhole(SFAFast):
         self,
         word_length=8,
         alphabet_size=4,
+        learn_alphabet_sizes=False,
+        learn_alphabet_lambda=0.5,
         norm=True,
         binning_method="equi-depth",
         variance=True,
@@ -77,6 +84,8 @@ class SFAWhole(SFAFast):
             word_length=word_length,
             alphabet_size=alphabet_size,
             norm=norm,
+            learn_alphabet_sizes=learn_alphabet_sizes,
+            learn_alphabet_lambda=learn_alphabet_lambda,
             binning_method=binning_method,
             variance=variance,
             sampling_factor=sampling_factor,
@@ -92,7 +101,7 @@ class SFAWhole(SFAFast):
             skip_grams=False,
             remove_repeat_words=False,
             return_sparse=False,
-            window_size=None,  # set in fit
+            window_size=None,  # set in fit - do not remove
         )
 
     def _fit_transform(self, X, y=None):
