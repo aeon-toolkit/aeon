@@ -45,8 +45,8 @@ class FreshPRINCERegressor(BaseRegressor):
         Number of series processed in each parallel ``TSFresh`` job, should be optimized
         for efficient parallelization.
     random_state : ``int``, ``RandomState`` instance or ``None``, default=``None``
-        If ``int``, ``random_state`` is the seed used by the random number generator;  
-        If ``RandomState`` instance, ``random_state`` is the random number generator;  
+        If ``int``, ``random_state`` is the seed used by the random number generator;
+        If ``RandomState`` instance, ``random_state`` is the random number generator;
         If ``None``, the random number generator is the ``RandomState`` instance used
         by ``np.random``.
 

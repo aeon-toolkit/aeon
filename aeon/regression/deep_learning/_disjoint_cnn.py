@@ -1,4 +1,4 @@
-"""""DisjointCNN regressor."""
+""" ""DisjointCNN regressor."""
 
 __maintainer__ = ["hadifawaz1999"]
 __all__ = ["DisjointCNNRegressor"]
@@ -108,7 +108,7 @@ class DisjointCNNRegressor(BaseDeepRegressor):
         The name of the file of the init model.
     callbacks : keras callback or list of callbacks, default=``None``
         The default list of callbacks are set to ``ModelCheckpoint`` and ``ReduceLROnPlateau``.
-    
+
     Notes
     -----
     Adapted from the implementation from:
@@ -371,8 +371,7 @@ class DisjointCNNRegressor(BaseDeepRegressor):
             Parameters to create testing instances of the class.
             Each ``dict`` contains parameters to construct an "interesting" test instance, i.e.,
             ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test instance.
-            """
-
+        """
         param1 = {
             "n_epochs": 3,
             "batch_size": 4,

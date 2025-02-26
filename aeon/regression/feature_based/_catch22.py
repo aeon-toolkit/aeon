@@ -24,8 +24,8 @@ class Catch22Regressor(BaseRegressor):
     Parameters
     ----------
     features : ``int``/``str`` or ``List`` of ``int``/``str``, optional, default=``"all"``
-        The ``Catch22`` features to extract by feature index, feature name as a ``str`` 
-        or as a ``list`` of names or indices for multiple features. If ``"all"``, all 
+        The ``Catch22`` features to extract by feature index, feature name as a ``str``
+        or as a ``list`` of names or indices for multiple features. If ``"all"``, all
         features are extracted.
         Valid features are as follows:
             ``["DN_HistogramMode_5", "DN_HistogramMode_10",
@@ -40,8 +40,8 @@ class Catch22Regressor(BaseRegressor):
             "SC_FluctAnal_2_rsrangefit_50_1_logi_prop_r1",
             "SB_TransitionMatrix_3ac_sumdiagcov", "PD_PeriodicityWang_th0_01"]``
     catch24 : ``bool``, optional, default=``True``
-        Extract the mean and standard deviation as well as the 22 ``Catch22`` features 
-        if ``True``. If a ``List`` of specific features to extract is provided, 
+        Extract the mean and standard deviation as well as the 22 ``Catch22`` features
+        if ``True``. If a ``List`` of specific features to extract is provided,
         ``"Mean"`` and/or ``"StandardDeviation"`` must be added to the ``List`` to extract these features.
     outlier_norm : ``bool``, optional, default=``False``
         Normalise each series during the two outlier ``Catch22`` features, which can take a

@@ -108,6 +108,7 @@ class EncoderRegressor(BaseDeepRegressor):
     for Artificial Intelligence, 120--129 2018.
 
     """
+
     def __init__(
         self,
         n_epochs=100,

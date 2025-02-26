@@ -30,7 +30,7 @@ class RegressorEnsemble(BaseCollectionEnsemble, BaseRegressor):
         If ``None``, all estimators have equal weight.
     cv : ``None``, ``int``, or ``sklearn`` cross-validation object, default=``None``
         Only used if ``weights`` is a ``float``. Specifies the cross-validation strategy
-        to estimate model performance. 
+        to estimate model performance.
         If ``None``, predictions are obtained using each estimator's ``fit_predict`` method.
         If ``int`` or ``sklearn`` object, it is passed directly to ``cross_val_predict`` from ``sklearn``.
     metric : ``sklearn`` performance metric function, default=``None``

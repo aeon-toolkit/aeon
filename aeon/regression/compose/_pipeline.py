@@ -14,18 +14,18 @@ class RegressorPipeline(BaseCollectionPipeline, BaseRegressor):
     The ``RegressorPipeline`` compositor chains transformers and a single regressor.
     The pipeline is constructed with a list of ``aeon`` transformers and a regressor,
     i.e., estimators following the ``BaseTransformer`` and ``BaseRegressor`` interface.
-    
+
     The transformer list can be either unnamed (a simple list of transformers) or named
     (a list of ``(str, estimator)`` pairs).
 
     For a list of transformers ``trafo1``, ``trafo2``, ..., ``trafoN`` and a regressor ``reg``,
     the pipeline behaves as follows:
-    
+
     - ``fit(X, y)``: Runs ``trafo1.fit_transform(X)``, then sequentially applies
       ``trafo2.fit_transform()`` to the output of ``trafo1``, and so on.
       Finally, ``reg.fit()`` is run with ``X`` being the output of ``trafoN.fit_transform()``,
       while ``y`` remains unchanged.
-    
+
     - ``predict(X)``: Sequentially applies ``trafo1.transform()``, then ``trafo2.transform()``, etc.
       The final transformed ``X`` is passed to ``reg.predict()``, and the output is returned.
 
@@ -67,8 +67,7 @@ class RegressorPipeline(BaseCollectionPipeline, BaseRegressor):
     RegressorPipeline(regressor=DummyRegressor(),
                       transformers=[AutocorrelationFunctionTransformer(n_lags=10)])
     >>> y_pred = pipeline.predict(X_test)
-   """
-
+    """
 
     _tags = {
         "X_inner_type": ["numpy3D", "np-list"],

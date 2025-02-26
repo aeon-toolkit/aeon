@@ -26,7 +26,7 @@ class RandomIntervalSpectralEnsembleRegressor(BaseIntervalForest, BaseRegressor)
     Parameters
     ----------
     base_estimator : ``BaseEstimator`` or ``None``, default=``None``
-        ``scikit-learn`` ``BaseEstimator`` used to build the interval ensemble. 
+        ``scikit-learn`` ``BaseEstimator`` used to build the interval ensemble.
         If ``None``, use a simple decision tree.
     n_estimators : ``int``, default=``200``
         Number of estimators to build for the ensemble.
@@ -65,7 +65,7 @@ class RandomIntervalSpectralEnsembleRegressor(BaseIntervalForest, BaseRegressor)
         The number of jobs to run in parallel for both ``fit`` and ``predict``.
         ``-1`` means using all processors.
     parallel_backend : ``str``, ``ParallelBackendBase`` instance or ``None``, default=``None``
-        Specify the parallelisation backend implementation in ``joblib``. If ``None``, 
+        Specify the parallelisation backend implementation in ``joblib``. If ``None``,
         a ``'prefer'`` value of ``"threads"`` is used by default.
         Valid options are ``"loky"``, ``"multiprocessing"``, ``"threading"`` or a custom backend.
         See the ``joblib`` ``Parallel`` documentation for more details.

@@ -32,8 +32,8 @@ class DrCIFRegressor(BaseIntervalForest, BaseRegressor):
     intervals on the base series, periodogram representation, and differences
     representation, as described in the ``HIVE-COTE 2.0`` paper by Middlehurst et al. (2021). [1]_
 
-    **Overview:**  
-    Input ``n`` series with ``d`` dimensions of length ``m``.  
+    **Overview:**
+    Input ``n`` series with ``d`` dimensions of length ``m``.
     For each tree:
         - Sample ``n_intervals`` intervals per representation of random position and length.
         - Subsample ``att_subsample_size`` ``catch22`` or summary statistic attributes randomly.
@@ -55,7 +55,7 @@ class DrCIFRegressor(BaseIntervalForest, BaseRegressor):
 
         - ``int``: Extracts that number of intervals from the series.
         - ``str``: Extracts a function of the series length (may differ per
-          ``series_transformers`` output).  
+          ``series_transformers`` output).
           Valid ``str`` inputs:
             - ``"sqrt"``: Square root of the series length.
             - ``"sqrt-div"``: Square root of series length divided by the number of ``series_transformers``.
@@ -63,18 +63,18 @@ class DrCIFRegressor(BaseIntervalForest, BaseRegressor):
           Example: ``[4, "sqrt"]`` extracts ``sqrt(n_timepoints) + 4`` intervals.
         - ``nested list`` or ``tuple``: Specifies different ``n_intervals`` per ``series_transformers`` series.
     min_interval_length : ``int``, ``float``, ``list``, or ``tuple``, default=``3``
-        Minimum length of intervals to extract.  
-        - ``float``: Uses a proportion of the series length.  
+        Minimum length of intervals to extract.
+        - ``float``: Uses a proportion of the series length.
         - ``list`` or ``tuple``: Specifies different values per ``series_transformers`` series.
     max_interval_length : ``int``, ``float``, ``list``, or ``tuple``, default=``np.inf``
-        Maximum length of intervals to extract.  
-        - ``float``: Uses a proportion of the series length.  
+        Maximum length of intervals to extract.
+        - ``float``: Uses a proportion of the series length.
         - ``list`` or ``tuple``: Specifies different values per ``series_transformers`` series.
     att_subsample_size : ``int``, ``float``, ``list``, ``tuple``, or ``None``, default=``None``
-        Number of attributes to subsample for each estimator.  
-        - ``None``: Uses all attributes.  
-        - ``int``: Uses that many attributes for all estimators.  
-        - ``float``: Uses that proportion of attributes.  
+        Number of attributes to subsample for each estimator.
+        - ``None``: Uses all attributes.
+        - ``int``: Uses that many attributes for all estimators.
+        - ``float``: Uses that proportion of attributes.
         - ``list`` or ``tuple``: Specifies different values per ``series_transformers`` series.
     time_limit_in_minutes : ``int``, default=``0``
         Time contract to limit build time in minutes, overriding ``n_estimators``.
@@ -83,14 +83,14 @@ class DrCIFRegressor(BaseIntervalForest, BaseRegressor):
         Maximum number of estimators when ``time_limit_in_minutes`` is set.
     use_pycatch22 : ``bool``, default=``False``
         Wraps the ``C``-based ``pycatch22`` implementation for ``aeon``.
-        (https://github.com/DynamicsAndNeuralSystems/pycatch22).  
+        (https://github.com/DynamicsAndNeuralSystems/pycatch22).
         The ``pycatch22`` package must be installed if ``True``.
     random_state : ``int``, ``RandomState`` instance, or ``None``, default=``None``
         - If ``int``, used as a seed for random number generation.
         - If ``RandomState`` instance, acts as the random number generator.
         - If ``None``, the ``RandomState`` instance from ``np.random`` is used.
     n_jobs : ``int``, default=``1``
-        Number of jobs for parallel execution in ``fit`` and ``predict``.  
+        Number of jobs for parallel execution in ``fit`` and ``predict``.
         ``-1`` uses all processors.
     parallel_backend : ``str``, ``ParallelBackendBase`` instance, or ``None``, default=``None``
         Specifies the parallelization backend for ``joblib``.

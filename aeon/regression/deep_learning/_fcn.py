@@ -57,26 +57,26 @@ class FCNRegressor(BaseDeepRegressor):
     loss : ``str``, default = ``"mean_squared_error"``
         The name of the Keras training loss.
     metrics : ``str`` or ``list`` of ``str``, default = ``"mean_squared_error"``
-        The evaluation metrics to use during training. If a single string metric is provided,  
+        The evaluation metrics to use during training. If a single string metric is provided,
         it will be used as the only metric. If a list of metrics is provided, all will be used for evaluation.
     optimizer : ``keras.optimizer``, default = ``tf.keras.optimizers.Adam()``
         The Keras optimizer used for training.
     file_path : ``str``, default = ``"./"``
         File path to save the best model.
     save_best_model : ``bool``, default = ``False``
-        Whether or not to save the best model. If the ``ModelCheckpoint`` callback is used by default,  
-        this condition, if ``True``, will prevent the automatic deletion of the best saved model from  
+        Whether or not to save the best model. If the ``ModelCheckpoint`` callback is used by default,
+        this condition, if ``True``, will prevent the automatic deletion of the best saved model from
         file and the user can choose the file name.
     save_last_model : ``bool``, default = ``False``
-        Whether or not to save the last model, last epoch trained, using the base class method  
+        Whether or not to save the last model, last epoch trained, using the base class method
         ``save_last_model_to_file``.
     save_init_model : ``bool``, default = ``False``
         Whether to save the initialization of the model.
     best_file_name : ``str``, default = ``"best_model"``
-        The name of the file of the best model. If ``save_best_model`` is set to ``False``, this parameter  
+        The name of the file of the best model. If ``save_best_model`` is set to ``False``, this parameter
         is discarded.
     last_file_name : ``str``, default = ``"last_model"``
-        The name of the file of the last model. If ``save_last_model`` is set to ``False``, this parameter  
+        The name of the file of the last model. If ``save_last_model`` is set to ``False``, this parameter
         is discarded.
     init_file_name : ``str``, default = ``"init_model"``
         The name of the file of the initial model. If ``save_init_model`` is set to ``False``, this parameter is discarded.
@@ -85,12 +85,12 @@ class FCNRegressor(BaseDeepRegressor):
 
     Notes
     -----
-    Adapted from the implementation by Fawaz et al.  
+    Adapted from the implementation by Fawaz et al.
     Source: `https://github.com/hfawaz/dl-4-tsc/blob/master/classifiers/fcn.py`
 
     References
     ----------
-    .. [1] Zhao et al., "Convolutional Neural Networks for Time Series Classification,"  
+    .. [1] Zhao et al., "Convolutional Neural Networks for Time Series Classification,"
        *Journal of Systems Engineering and Electronics*, 28(1), 2017.
 
     Examples
@@ -104,6 +104,7 @@ class FCNRegressor(BaseDeepRegressor):
     >>> rgs.fit(X, y)  # doctest: +SKIP
     FCNRegressor(...)
     """
+
     def __init__(
         self,
         n_layers=3,
@@ -302,8 +303,8 @@ class FCNRegressor(BaseDeepRegressor):
     def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
-         Parameters
-         ----------
+        Parameters
+        ----------
         parameter_set : ``str``, default=``"default"``
         Name of the set of test parameters to return, for use in tests. If no
         special parameters are defined for a value, will return ``"default"`` set.
@@ -312,15 +313,13 @@ class FCNRegressor(BaseDeepRegressor):
         previously recorded results if the general set does not produce suitable
         probabilities to compare against.
 
-         Returns
-         -------
+        Returns
+        -------
          params : ``dict`` or list of ``dict``, default=``{}``
          Parameters to create testing instances of the class.
          Each ``dict`` are parameters to construct an "interesting" test instance, i.e.,
         ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test instance.
-         """
-
-
+        """
         param = {
             "n_epochs": 10,
             "batch_size": 4,

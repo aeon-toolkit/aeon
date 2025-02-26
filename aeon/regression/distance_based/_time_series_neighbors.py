@@ -33,7 +33,7 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
     n_neighbors : ``int``, default = ``1``
         Set ``k`` for KNN.
     weights : ``str`` or ``callable``, default = ``'uniform'``
-        Mechanism for weighting a vote one of: ``'uniform'``, ``'distance'``, 
+        Mechanism for weighting a vote one of: ``'uniform'``, ``'distance'``,
         or a callable function.
     distance : ``str`` or ``callable``, default = ``'dtw'``
         Distance measure between time series.
@@ -103,11 +103,11 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
 
         Parameters
         ----------
-        X : ``3D np.ndarray`` of shape = ``(n_cases, n_channels, n_timepoints)`` 
-            or ``list`` of shape ``[n_cases]`` of ``2D`` arrays with shape 
-            ``(n_channels, n_timepoints_i)``  
-            If the series are all equal length, a ``numpy 3D`` array will be passed. 
-            If unequal, a ``list`` of ``2D`` numpy arrays is passed, which may have 
+        X : ``3D np.ndarray`` of shape = ``(n_cases, n_channels, n_timepoints)``
+            or ``list`` of shape ``[n_cases]`` of ``2D`` arrays with shape
+            ``(n_channels, n_timepoints_i)``
+            If the series are all equal length, a ``numpy 3D`` array will be passed.
+            If unequal, a ``list`` of ``2D`` numpy arrays is passed, which may have
             different lengths.
         y : ``array-like``, shape = ``(n_cases)``
             The output value.
@@ -124,11 +124,11 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
 
         Parameters
         ----------
-        X : ``3D np.ndarray`` of shape = ``(n_cases, n_channels, n_timepoints)``  
-            or ``list`` of shape ``[n_cases]`` of ``2D`` arrays with shape  
-            ``(n_channels, n_timepoints_i)``  
-            If the series are all equal length, a ``numpy 3D`` array will be passed.  
-            If unequal, a ``list`` of ``2D`` numpy arrays is passed, which may have  
+        X : ``3D np.ndarray`` of shape = ``(n_cases, n_channels, n_timepoints)``
+            or ``list`` of shape ``[n_cases]`` of ``2D`` arrays with shape
+            ``(n_channels, n_timepoints_i)``
+            If the series are all equal length, a ``numpy 3D`` array will be passed.
+            If unequal, a ``list`` of ``2D`` numpy arrays is passed, which may have
             different lengths.
 
         Returns

@@ -79,13 +79,13 @@ class ResNetRegressor(BaseDeepRegressor):
 
     Notes
     -----
-    Adapted from the implementation from source code  
+    Adapted from the implementation from source code
     ``https://github.com/hfawaz/dl-4-tsc/blob/master/classifiers/resnet.py``
 
     References
     ----------
-    .. [1] Wang et al., "Time series classification from  
-       scratch with deep neural networks: A strong baseline,"  
+    .. [1] Wang et al., "Time series classification from
+       scratch with deep neural networks: A strong baseline,"
        International Joint Conference on Neural Networks (IJCNN), 2017.
 
     Examples
