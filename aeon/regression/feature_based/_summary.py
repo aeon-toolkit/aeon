@@ -15,7 +15,7 @@ from aeon.transformations.collection.feature_based import SevenNumberSummary
 
 
 class SummaryRegressor(BaseRegressor):
-      """
+    """
     Summary statistic regressor.
 
     This regressor simply transforms the input data using the
@@ -120,7 +120,7 @@ class SummaryRegressor(BaseRegressor):
 
         m = getattr(self._estimator, "n_jobs", None)
         if m is not None:
-            self._estimator.n_jobs = self._n_jobs
+            self._estimator.n_jobs = self.n_jobs
 
         X_t = self._transformer.fit_transform(X, y)
         self._estimator.fit(X_t, y)

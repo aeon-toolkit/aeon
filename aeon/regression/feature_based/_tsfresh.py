@@ -17,7 +17,7 @@ from aeon.transformations.collection.feature_based import TSFresh, TSFreshReleva
 
 
 class TSFreshRegressor(BaseRegressor):
-      """
+    """
     Time Series Feature Extraction based on Scalable Hypothesis Tests regressor.
 
     This regressor simply transforms the input data using the ``TSFresh`` [1]_
@@ -115,13 +115,13 @@ class TSFreshRegressor(BaseRegressor):
         self._transformer = (
             TSFreshRelevant(
                 default_fc_parameters=self.default_fc_parameters,
-                n_jobs=self._n_jobs,
+                n_jobs=self.n_jobs,
                 chunksize=self.chunksize,
             )
             if self.relevant_feature_extractor
             else TSFresh(
                 default_fc_parameters=self.default_fc_parameters,
-                n_jobs=self._n_jobs,
+                n_jobs=self.n_jobs,
                 chunksize=self.chunksize,
             )
         )
@@ -141,7 +141,7 @@ class TSFreshRegressor(BaseRegressor):
 
         m = getattr(self._estimator, "n_jobs", None)
         if m is not None:
-            self._estimator.n_jobs = self._n_jobs
+            self._estimator.n_jobs = self.n_jobs
 
         X_t = self._transformer.fit_transform(X, y)
 

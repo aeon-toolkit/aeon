@@ -16,7 +16,7 @@ from aeon.transformations.collection.feature_based import TSFresh
 
 
 class FreshPRINCERegressor(BaseRegressor):
-     """
+    """
     Fresh Pipeline with RotatIoN forest Regressor.
 
     This regressor simply transforms the input data using the ``TSFresh`` [1]_
@@ -145,7 +145,7 @@ class FreshPRINCERegressor(BaseRegressor):
 
         Parameters
         ----------
-        X : 3D ``np.ndarray``of shape = ``[n_cases, n_channels, n_timepoints]``
+        X : 3D ``np.ndarray`` of shape = ``[n_cases, n_channels, n_timepoints]``
             The data to make predictions for.
 
         Returns
@@ -166,12 +166,12 @@ class FreshPRINCERegressor(BaseRegressor):
             n_estimators=self.n_estimators,
             base_estimator=self.base_estimator,
             pca_solver=self.pca_solver,
-            n_jobs=self._n_jobs,
+            n_jobs=self.n_jobs,
             random_state=self.random_state,
         )
         self._tsfresh = TSFresh(
             default_fc_parameters=self.default_fc_parameters,
-            n_jobs=self._n_jobs,
+            n_jobs=self.n_jobs,
             chunksize=self.chunksize,
             show_warnings=self.verbose > 1,
             disable_progressbar=self.verbose < 1,
