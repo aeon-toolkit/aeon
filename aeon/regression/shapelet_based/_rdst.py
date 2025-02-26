@@ -20,7 +20,7 @@ from aeon.transformations.collection.shapelet_based import (
 
 
 class RDSTRegressor(BaseRegressor):
-     """
+    """
     A random dilated shapelet transform (RDST) regressor.
 
     Implementation of the random dilated shapelet transform regressor pipeline
@@ -149,7 +149,7 @@ class RDSTRegressor(BaseRegressor):
 
         Parameters
         ----------
-        X: ``np.ndarray` shape ``(n_cases, n_channels, n_timepoints)``
+        X: ``np.ndarray`` shape ``(n_cases, n_channels, n_timepoints)``
             The training input samples.
         y: array-like or ``list``
             The target labels for samples in ``X``.
