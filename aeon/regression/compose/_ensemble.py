@@ -3,7 +3,6 @@
 __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["RegressorEnsemble"]
 
-
 import numpy as np
 
 from aeon.base._estimators.compose.collection_ensemble import BaseCollectionEnsemble
@@ -13,49 +12,46 @@ from aeon.utils.sklearn import is_sklearn_regressor
 
 
 class RegressorEnsemble(BaseCollectionEnsemble, BaseRegressor):
-    """Weighted ensemble of regressors with fittable ensemble weight.
+    """Weighted ensemble of regressors with configurable ensemble weight.
 
     Parameters
     ----------
-    regressors : list of aeon and/or sklearn regressors or list of tuples
+    regressors : list of ``aeon`` and/or ``sklearn`` regressors or list of tuples
         Estimators to be used in the ensemble.
-        A list of tuples (str, estimator) can also be passed, where the str is used to
+        A list of tuples (``str``, estimator) can also be passed, where the ``str`` is used to
         name the estimator.
-        The objects are cloned prior. As such, the state of the input will not be
+        The objects are cloned prior to training. As such, the state of the input will not be
         modified by fitting the ensemble.
-    weights : float, or iterable of float, default=None
-        If float, ensemble weight for estimator i will be train score to this power.
-        If iterable of float, must be equal length as _estimators. Ensemble weight for
-            _estimator i will be weights[i]. A dict containing members of _estimators
-            and weights is also acceptable.
-        If None, all estimators have equal weight.
-    cv : None, int, or sklearn cross-validation object, default=None
-        Only used if weights is a float. The method used to generate a performance
-        estimation from the training data set i.e. cross-validation.
-        If None, predictions are made using that estimators fit_predict or
-            fit_predict_proba methods. These are somtimes overridden for efficient
-            performance evaluations, i.e. out-of-bag predictions.
-        If int or sklearn object input, the parameter is passed directly to the cv
-            parameter of the cross_val_predict function from sklearn.
-    metric : sklearn performance metric function, default=accuracy_score
-        Only used if weights is a float. The metric used to evaluate the estimators.
-    random_state : int, RandomState instance or None, default=None
-        Random state used to fit the estimators. If None, no random state is set for
+    weights : ``float``, iterable of ``float``, or ``dict``, default=``None``
+        If ``float``, ensemble weight for estimator ``i`` will be train score to this power.
+        If iterable of ``float``, must be of equal length as ``regressors``. The weight for
+        each estimator will be taken from the corresponding position.
+        If ``dict``, must map estimator names (as defined in ``ensemble_``) to their weights.
+        If ``None``, all estimators have equal weight.
+    cv : ``None``, ``int``, or ``sklearn`` cross-validation object, default=``None``
+        Only used if ``weights`` is a ``float``. Specifies the cross-validation strategy
+        to estimate model performance.
+        If ``None``, predictions are obtained using each estimator's ``fit_predict`` method.
+        If ``int`` or ``sklearn`` object, it is passed directly to ``cross_val_predict`` from ``sklearn``.
+    metric : ``sklearn`` performance metric function, default=``None``
+        Only used if ``weights`` is a ``float``. The metric used to evaluate the estimators.
+    random_state : ``int``, ``RandomState`` instance, or ``None``, default=``None``
+        Random state used to fit the estimators. If ``None``, no random state is set for
         ensemble members (but they may still be seeded prior to input).
-        If `int`, random_state is the seed used by the random number generator;
-        If `RandomState` instance, random_state is the random number generator;
+        If ``int``, ``random_state`` is the seed used by the random number generator.
+        If ``RandomState`` instance, ``random_state`` is the random number generator.
 
     Attributes
     ----------
-    ensemble_ : list of tuples (str, estimator) of estimators
-        Clones of estimators in regressors which are fitted in the ensemble.
-        Will always be in (str, estimator) format regardless of regressors input.
-    weights_ : dict
-        Weights of estimators using the str names as keys.
+    ensemble_ : list of tuples (``str``, estimator)
+        Cloned estimators fitted in the ensemble. Always in (``str``, estimator) format,
+        regardless of the input format in ``regressors``.
+    weights_ : ``dict``
+        Dictionary mapping estimator names to their assigned weights.
 
     See Also
     --------
-    ClassifierEnsemble : An ensemble for classification tasks.
+    ``ClassifierEnsemble`` : An ensemble for classification tasks.
     """
 
     _tags = {
@@ -85,7 +81,7 @@ class RegressorEnsemble(BaseCollectionEnsemble, BaseRegressor):
         )
 
     def _predict(self, X) -> np.ndarray:
-        """Predicts labels for sequences in X."""
+        """Predicts labels for sequences in ``X``."""
         preds = np.zeros(len(X))
 
         for reg_name, reg in self.ensemble_:
@@ -111,16 +107,16 @@ class RegressorEnsemble(BaseCollectionEnsemble, BaseRegressor):
 
         Parameters
         ----------
-        parameter_set : str, default="default"
+        parameter_set : ``str``, default=``"default"``
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return ``"default"`` set.
 
         Returns
         -------
-        params : dict or list of dict, default={}
+        params : ``dict`` or list of ``dict``, default=``{}``
             Parameters to create testing instances of the class.
-            Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            Each ``dict`` are parameters to construct an "interesting" test instance, i.e.,
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test instance.
         """
         from aeon.regression import DummyRegressor
         from aeon.regression.distance_based import KNeighborsTimeSeriesRegressor
