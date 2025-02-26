@@ -7,7 +7,7 @@ from aeon.regression import BaseRegressor
 
 
 class SklearnRegressorWrapper(BaseRegressor):
-        """
+    """
     Wrapper for ``scikit-learn`` regressors to use the ``aeon`` framework.
 
     Parameters
@@ -25,7 +25,6 @@ class SklearnRegressorWrapper(BaseRegressor):
     regressor_ : ``object``
         The cloned ``scikit-learn`` regressor object.
     """
-
 
     _tags = {
         "X_inner_type": "numpy2D",

@@ -25,7 +25,7 @@ from aeon.utils.validation import check_n_jobs
 
 
 class RotationForestRegressor(RegressorMixin, BaseEstimator):
-     """
+    """
     A Rotation Forest (RotF) vector regressor.
 
     Implementation of the Rotation Forest regressor described in Rodriguez et al
@@ -141,8 +141,7 @@ class RotationForestRegressor(RegressorMixin, BaseEstimator):
 
         Notes
         -----
-        Changes state by creating a fitted model that updates attributes
-        ending in ``"_"``.
+        Changes state by creating a fitted model that updates attributes ending in ``"_"``.
         """
         self._fit_rotf(X, y)
         return self
@@ -152,7 +151,7 @@ class RotationForestRegressor(RegressorMixin, BaseEstimator):
 
         Parameters
         ----------
-        X :``2d ndarray`` or ``DataFrame`` of shape = ``[n_cases, n_attributes]``
+        X : ``2d ndarray`` or ``DataFrame`` of shape = ``[n_cases, n_attributes]``
             The data to make predictions for.
 
         Returns
