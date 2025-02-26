@@ -10,7 +10,7 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
     not _check_soft_dependencies(["tensorflow"], severity="none"),
     reason="skip test if required soft dependency not available",
 )
-def test_default_initialization():
+def test_resnet_default_initialization():
     """Test if the network initializes with proper attributes."""
     model = ResNetNetwork()
     assert isinstance(
@@ -33,7 +33,7 @@ def test_default_initialization():
     not _check_soft_dependencies(["tensorflow"], severity="none"),
     reason="skip test if required soft dependency not available",
 )
-def test_custom_initialization():
+def test_resnet_custom_initialization():
     """Test whether custom kwargs are correctly set."""
     model = ResNetNetwork(
         n_residual_blocks=3,
@@ -59,7 +59,7 @@ def test_custom_initialization():
     not _check_soft_dependencies(["tensorflow"], severity="none"),
     reason="skip test if required soft dependency not available",
 )
-def test_invalid_initialization():
+def test_resnet_invalid_initialization():
     """Test if the network raises valid exceptions for invalid configurations."""
     with pytest.raises(ValueError, match=".*same as number of residual blocks.*"):
         ResNetNetwork(n_filters=[64, 128], n_residual_blocks=3).build_network((128, 1))
@@ -79,7 +79,7 @@ def test_invalid_initialization():
     not _check_soft_dependencies(["tensorflow"], severity="none"),
     reason="skip test if required soft dependency not available",
 )
-def test_build_network():
+def test_resnet_build_network():
     """Test network building with various input shapes."""
     model = ResNetNetwork()
 
@@ -96,7 +96,7 @@ def test_build_network():
     not _check_soft_dependencies(["tensorflow"], severity="none"),
     reason="skip test if required soft dependency not available",
 )
-def test_shortcut_layer():
+def test_resnet_shortcut_layer():
     """Test the shortcut layer functionality."""
     model = ResNetNetwork()
 
