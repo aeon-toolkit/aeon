@@ -165,8 +165,10 @@ Series transforms
     ClaSPTransformer
     DFTSeriesTransformer
     Dobin
+    ExpSmoothingSeriesTransformer
     GaussSeriesTransformer
     MatrixProfileSeriesTransformer
+    MovingAverageSeriesTransformer
     PLASeriesTransformer
     SGSeriesTransformer
     StatsModelsACF
