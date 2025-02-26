@@ -10,7 +10,7 @@ from aeon.regression.base import BaseRegressor
 
 
 class DummyRegressor(BaseRegressor):
-        """
+    """
     ``DummyRegressor`` makes predictions that ignore the input features.
 
     This regressor is a wrapper for the ``scikit-learn DummyClassifier`` that serves as a
@@ -30,9 +30,9 @@ class DummyRegressor(BaseRegressor):
         * ``"mean"``: always predicts the mean of the training set
         * ``"median"``: always predicts the median of the training set
         * ``"quantile"``: always predicts a specified quantile of the training set,
-        provided with the ``quantile`` parameter.
+          provided with the ``quantile`` parameter.
         * ``"constant"``: always predicts a constant value that is provided by
-        the user.
+          the user.
     constant : ``int`` or ``float`` or array-like of shape ``(n_outputs,)``, default=``None``
         The explicit constant as predicted by the ``"constant"`` strategy. This
         parameter is useful only for the ``"constant"`` strategy.
@@ -66,7 +66,7 @@ class DummyRegressor(BaseRegressor):
     >>> reg.predict(X_test)[:5]
     array([0.5, 0.5, 0.5, 0.5, 0.5])
     """
-    
+
     _tags = {
         "X_inner_type": ["np-list", "numpy3D"],
         "capability:missing_values": True,
