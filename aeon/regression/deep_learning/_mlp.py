@@ -15,7 +15,7 @@ from aeon.regression.deep_learning.base import BaseDeepRegressor
 
 
 class MLPRegressor(BaseDeepRegressor):
-     """Multi Layer Perceptron Network (MLP).
+    """Multi Layer Perceptron Network (MLP).
 
     Adapted from the implementation used in [1]_.
 
@@ -132,7 +132,7 @@ class MLPRegressor(BaseDeepRegressor):
         self.loss = loss
         self.metrics = metrics
         self.use_bias = use_bias
-        self.file_path = file_path
+        self.file _path = file_path
         self.save_best_model = save_best_model
         self.save_last_model = save_last_model
         self.save_init_model = save_init_model
@@ -287,7 +287,7 @@ class MLPRegressor(BaseDeepRegressor):
 
         Parameters
         ----------
-        parameter_set : ``str``, default=``"default"``
+        parameter_set : ``str ``, default=``"default"``
             Name of the set of test parameters to return, for use in tests. If no
             special parameters are defined for a value, will return ``"default"`` set.
             For Regressors, a ``"default"`` set of parameters should be provided for
