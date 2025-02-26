@@ -66,7 +66,7 @@ class DummyRegressor(BaseRegressor):
     >>> reg.predict(X_test)[:5]
     array([0.5, 0.5, 0.5, 0.5, 0.5])
     """
-    
+
     _tags = {
         "X_inner_type": ["np-list", "numpy3D"],
         "capability:missing_values": True,

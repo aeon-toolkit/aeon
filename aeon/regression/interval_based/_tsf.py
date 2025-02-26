@@ -31,7 +31,7 @@ class TimeSeriesForestRegressor(BaseIntervalForest, BaseRegressor):
     Parameters
     ----------
     base_estimator : ``BaseEstimator`` or ``None``, default=``None``
-        ``scikit-learn`` ``BaseEstimator`` used to build the interval ensemble. If ``None``, 
+        ``scikit-learn`` ``BaseEstimator`` used to build the interval ensemble. If ``None``,
         uses a simple decision tree.
     n_estimators : ``int``, default=``200``
         Number of estimators to build for the ensemble.
@@ -46,8 +46,8 @@ class TimeSeriesForestRegressor(BaseIntervalForest, BaseRegressor):
             - ``"sqrt-div"``: ``sqrt`` of series length divided by the number
               of ``series_transformers``.
 
-        A ``list`` or ``tuple`` of ``int`` and/or ``str`` will extract the number of intervals 
-        using the above rules and sum the results for the final ``n_intervals``. 
+        A ``list`` or ``tuple`` of ``int`` and/or ``str`` will extract the number of intervals
+        using the above rules and sum the results for the final ``n_intervals``.
         For example, ``[4, "sqrt"]`` will extract ``sqrt(n_timepoints) + 4`` intervals.
 
         Different numbers of intervals for each ``series_transformers`` series can be

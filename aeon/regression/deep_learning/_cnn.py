@@ -67,18 +67,18 @@ loss : ``str``, default = ``"mean_squared_error"``
 optimizer : ``keras.optimizer``, default = ``tf.keras.optimizers.Adam()``
     The Keras optimizer used for training.
 metrics : ``str`` or ``list`` of ``str``, default = ``"mean_squared_error"``
-    The evaluation metrics to use during training. If a single string metric is provided,  
+    The evaluation metrics to use during training. If a single string metric is provided,
     it will be used as the only metric. If a list of metrics is provided, all will be used for evaluation.
 callbacks : ``keras.callbacks.Callback`` or ``list`` of ``keras.callbacks.Callback``, default = ``None``
     The default list of callbacks includes ``ModelCheckpoint``.
 file_path : ``str``
     File path for saving the best model (if checkpointing is used as a callback).
 save_best_model : ``bool``, default = ``False``
-    Whether or not to save the best model. If the ``ModelCheckpoint`` callback is used  
-    by default, setting this to ``True`` prevents the automatic deletion of the best  
+    Whether or not to save the best model. If the ``ModelCheckpoint`` callback is used
+    by default, setting this to ``True`` prevents the automatic deletion of the best
     saved model, allowing the user to choose the file name.
 save_last_model : ``bool``, default = ``False``
-    Whether or not to save the last trained model using the base class method  
+    Whether or not to save the last trained model using the base class method
     ``save_last_model_to_file``.
 save_init_model : ``bool``, default = ``False``
     Whether to save the initial model.
@@ -91,12 +91,12 @@ init_file_name : ``str``, default = ``"init_model"``
 
 Notes
 -----
-Adapted from the implementation by Fawaz et al.  
+Adapted from the implementation by Fawaz et al.
 Source: `https://github.com/hfawaz/dl-4-tsc/blob/master/classifiers/cnn.py`
 
 References
 ----------
-.. [1] Zhao et al., "Convolutional Neural Networks for Time Series Classification,"  
+.. [1] Zhao et al., "Convolutional Neural Networks for Time Series Classification,"
    *Journal of Systems Engineering and Electronics*, 28(1), 2017.
 
 Examples

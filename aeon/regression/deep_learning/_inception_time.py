@@ -167,7 +167,7 @@ class InceptionTimeRegressor(BaseRegressor):
     >>> inctime = InceptionTimeRegressor(n_epochs=20, batch_size=4)  # doctest: +SKIP
     >>> inctime.fit(X, y)  # doctest: +SKIP
     InceptionTimeRegressor(...)
-"""
+    """
 
     _tags = {
         "python_dependencies": "tensorflow",
@@ -478,11 +478,11 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
 
     Notes
     -----
-    Adapted from the implementation from Fawaz et. al  
-    https://github.com/hfawaz/InceptionTime/blob/master/regressors/inception.py  
+    Adapted from the implementation from Fawaz et. al
+    https://github.com/hfawaz/InceptionTime/blob/master/regressors/inception.py
 
-    and Ismail-Fawaz et al.  
-    https://github.com/MSD-IRIMAS/CF-4-TSC  
+    and Ismail-Fawaz et al.
+    https://github.com/MSD-IRIMAS/CF-4-TSC
 
     References
     ----------
@@ -503,6 +503,7 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
     >>> inc.fit(X, y)  # doctest: +SKIP
     IndividualInceptionRegressor(...)
     """
+
     def __init__(
         self,
         n_filters=32,
