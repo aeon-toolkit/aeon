@@ -12,7 +12,7 @@ from aeon.utils.numba.stats import row_mean, row_slope, row_std
 
 
 class CanonicalIntervalForestRegressor(BaseIntervalForest, BaseRegressor):
-     """Canonical Interval Forest (CIF) Regressor.
+    """Canonical Interval Forest (CIF) Regressor.
 
     Implementation of the interval-based forest making use of the ``catch22`` feature set
     on randomly selected intervals described in Middlehurst et al. (2020). [1]_
@@ -110,7 +110,7 @@ class CanonicalIntervalForestRegressor(BaseIntervalForest, BaseRegressor):
     --------
     >>> from aeon.regression.interval_based import CanonicalIntervalForestRegressor
     >>> from aeon.testing.data_generation import make_example_3d_numpy
-    >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
+    >>> X, y = make_example_3d_numpy(n_cases= 10, n_channels=1, n_timepoints=12,
     ...                              return_y=True, regression_target=True,
     ...                              random_state=0)
     >>> reg = CanonicalIntervalForestRegressor(n_estimators=10, random_state=0)

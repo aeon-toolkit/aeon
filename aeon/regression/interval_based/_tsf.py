@@ -13,7 +13,7 @@ from aeon.regression import BaseRegressor
 
 
 class TimeSeriesForestRegressor(BaseIntervalForest, BaseRegressor):
-     """Time series forest (TSF) regressor.
+    """Time series forest (TSF) regressor.
 
     A time series forest is an ensemble of decision trees built on random intervals.
     Overview: Input ``n`` series length ``m``.
@@ -111,7 +111,7 @@ class TimeSeriesForestRegressor(BaseIntervalForest, BaseRegressor):
     --------
     >>> from aeon.regression.interval_based import TimeSeriesForestRegressor
     >>> from aeon.testing.data_generation import make_example_3d_numpy
-    >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
+    >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_time points=12,
     ...                              return_y=True, regression_target=True,
     ...                              random_state=0)
     >>> reg = TimeSeriesForestRegressor(n_estimators=10, random_state=0)
