@@ -200,7 +200,7 @@ class SFAFast(BaseCollectionTransformer):
 
         self.n_cases = 0
         self.n_timepoints = 0
-        self.letter_bits = 0
+        self.letter_bits = None
 
         self.dilation = dilation
         self.first_difference = first_difference
@@ -281,8 +281,9 @@ class SFAFast(BaseCollectionTransformer):
         self.word_length_actual = self.word_length_actual + self.word_length_actual % 2
 
         self.support = np.arange(self.word_length_actual)
-        self.letter_bits = np.uint32(math.ceil(math.log2(self.alphabet_size)))
-        # self.word_bits = self.word_length_actual * self.letter_bits
+        self.letter_bits = np.zeros(self.word_length_actual, dtype=np.uint32)
+        self.letter_bits[:] = np.uint32(math.ceil(math.log2(self.alphabet_size)))
+
         X = X.squeeze(1)
 
         # subsample the samples
@@ -596,9 +597,7 @@ class SFAFast(BaseCollectionTransformer):
                 lamda=self.learn_alphabet_lambda,
             )
             self.alphabet_sizes = [int(2 ** bit_arr[i]) for i in range(len(bit_arr))]
-            # FIXME: Use the correct letter bits per offset!!!
-            #        Requires changing the code to an array of letter bits
-            self.letter_bits = np.max(bit_arr)
+            self.letter_bits = np.array(bit_arr, dtype=np.uint32)
         else:
             # use the same alphabet size for all positions
             self.alphabet_sizes = [self.alphabet_size for _ in range(self.word_length)]
@@ -735,7 +734,7 @@ class SFAFast(BaseCollectionTransformer):
         """
         words = np.squeeze(self.words)
         return np.array(
-            [_get_chars(word, self.word_length, self.alphabet_size) for word in words]
+            [_get_chars(word, self.word_length, self.letter_bits) for word in words]
         )
 
     def transform_words(self, X):
@@ -814,17 +813,16 @@ class SFAFast(BaseCollectionTransformer):
 
 
 @njit(cache=True, fastmath=True)
-def _get_chars(word, word_length, alphabet_size):
+def _get_chars(word, word_length, letter_bits):
     chars = np.zeros(word_length, dtype=np.uint32)
-    letter_bits = int(np.log2(alphabet_size))
-    mask = (1 << letter_bits) - 1
     for i in range(word_length):
         # Extract the last bits
+        mask = (1 << letter_bits[i]) - 1
         char = word & mask
         chars[-i - 1] = char
 
         # Right shift by to move to the next group of bits
-        word >>= letter_bits
+        word >>= letter_bits[i]
 
     return chars
 
@@ -1025,9 +1023,7 @@ def generate_words(
         needed_size += max(0, 2 * dfts.shape[1] - 5 * window_size)
 
     words = np.zeros((dfts.shape[0], needed_size), dtype=np.uint32)
-
-    letter_bits = np.uint32(letter_bits)
-    word_bits = word_length * letter_bits  # dfts.shape[2] * letter_bits
+    word_bits = np.uint32(np.sum(letter_bits))
 
     # special case: binary breakpoints
     if breakpoints.shape[1] == 2:
@@ -1044,7 +1040,7 @@ def generate_words(
         for a in prange(dfts.shape[0]):
             for i in range(word_length):  # range(dfts.shape[2]):
                 words[a, : dfts.shape[1]] = (
-                    words[a, : dfts.shape[1]] << letter_bits
+                    words[a, : dfts.shape[1]] << letter_bits[a]
                 ) | np.digitize(dfts[a, :, i], breakpoints[i], right=True)
 
     # add bigrams
@@ -1302,7 +1298,9 @@ def shorten_words(words, amount, letter_bits):
     new_words = np.zeros((words.shape[0], words.shape[1]), dtype=np.uint32)
 
     # Unigrams
-    shift_len = amount * letter_bits
+    shift_len = np.sum(
+        letter_bits[:amount]
+    )  # this does not work for variable-alphabet size
     for j in prange(words.shape[1]):
         # shorten a word by set amount of letters
         new_words[:, j] = words[:, j] >> shift_len
