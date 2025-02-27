@@ -281,6 +281,8 @@ class SFAFast(BaseCollectionTransformer):
         self.word_length_actual = self.word_length_actual + self.word_length_actual % 2
 
         self.support = np.arange(self.word_length_actual)
+
+        # TODO the use of letter_bins as an array has to be tested
         self.letter_bits = np.zeros(self.word_length_actual, dtype=np.uint32)
         self.letter_bits[:] = np.uint32(math.ceil(math.log2(self.alphabet_size)))
 
@@ -632,34 +634,9 @@ class SFAFast(BaseCollectionTransformer):
         return breakpoints
 
     def _mcb(self, dft):
-        max_alphabet_size = np.max(self.alphabet_sizes)
-
-        breakpoints = np.zeros((self.word_length_actual, max_alphabet_size))
-        breakpoints[:, :] = sys.float_info.max
-
-        dft = np.round(dft, 2)
-        # TODO in parallel??
-        for letter in range(self.word_length_actual):
-            curr_alphabet_size = self.alphabet_sizes[letter]
-            column = np.sort(dft[:, letter])
-            bin_index = 0
-
-            # use equi-depth binning
-            if self.binning_method == "equi-depth":
-                target_bin_depth = len(dft) / curr_alphabet_size
-
-                for bp in range(curr_alphabet_size - 1):
-                    bin_index += target_bin_depth
-                    breakpoints[letter, bp] = column[int(bin_index)]
-
-            # use equi-width binning aka equi-frequency binning
-            elif self.binning_method == "equi-width":
-                target_bin_width = (column[-1] - column[0]) / curr_alphabet_size
-
-                for bp in range(curr_alphabet_size - 1):
-                    breakpoints[letter, bp] = (bp + 1) * target_bin_width + column[0]
-
-        return breakpoints
+        return mcb(
+            dft, self.alphabet_sizes, self.word_length_actual, self.binning_method
+        )
 
     def _igb(self, dft, y):
         breakpoints = np.zeros((self.word_length_actual, self.alphabet_size))
@@ -1293,6 +1270,37 @@ def create_dict(feature_names, features_idx):
     return relevant_features
 
 
+@njit(fastmath=True, cache=True, parallel=True)
+def mcb(dft, alphabet_sizes, word_length_actual, binning_method):
+    max_alphabet_size = np.max(alphabet_sizes)
+
+    breakpoints = np.zeros((word_length_actual, max_alphabet_size), dtype=np.float32)
+    breakpoints[:, :] = np.finfo(np.float32).max
+    dft = np.round(dft, 2)
+
+    for letter in prange(word_length_actual):
+        curr_alphabet_size = alphabet_sizes[letter]
+        column = np.sort(dft[:, letter])
+        bin_index = 0
+
+        # use equi-depth binning
+        if binning_method == "equi-depth":
+            target_bin_depth = len(dft) / curr_alphabet_size
+
+            for bp in range(curr_alphabet_size - 1):
+                bin_index += target_bin_depth
+                breakpoints[letter, bp] = column[int(bin_index)]
+
+        # use equi-width binning aka equi-frequency binning
+        elif binning_method == "equi-width":
+            target_bin_width = (column[-1] - column[0]) / curr_alphabet_size
+
+            for bp in range(curr_alphabet_size - 1):
+                breakpoints[letter, bp] = (bp + 1) * target_bin_width + column[0]
+
+    return breakpoints
+
+
 @njit(fastmath=True, cache=True)
 def shorten_words(words, amount, letter_bits):
     new_words = np.zeros((words.shape[0], words.shape[1]), dtype=np.uint32)
@@ -1358,7 +1366,7 @@ def _transform_words_case(
 def _dynamic_alphabet_allocation(bits, var, lamda=0.5):
     # normalize to 1
     var = var / np.sum(var)
-    order = np.argsort(var)[::-1]  # reverse order
+    order = np.argsort(var)[::-1]  # descending order
     var_sorted = var[order]
 
     # From the SPARTAN code
@@ -1392,7 +1400,7 @@ def _dynamic_alphabet_allocation(bits, var, lamda=0.5):
                         DP[i, j] = current_reward
 
     bit_arr = np.zeros(n, dtype=np.uint32)
-    bit_arr[order] = get_solution(alloc, n, bits)[::-1]
+    bit_arr[order] = trace_backwards(alloc, n, bits)[::-1]
     assert np.sum(bit_arr) == bits
     return bit_arr
 
@@ -1403,7 +1411,7 @@ def regularization_term(x, ev_value, avg_bit, lamda=0.5):
 
 
 @njit(fastmath=True, cache=True)
-def get_solution(alloc, K, N):
+def trace_backwards(alloc, K, N):
     bit_arr = []
     unused_bit = N
     for i in range(K, 1, -1):
