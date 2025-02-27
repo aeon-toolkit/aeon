@@ -43,7 +43,7 @@ class OneClassSVM(BaseAnomalyDetector):
 
         - if ``gamma='scale'`` (default) is passed then it uses
           1 / (n_features * X.var()) as value of gamma,
-        - if ``'auto'``, uses 1 / n_features
+        - if ``"auto"``, uses 1 / n_features
         - if ``float``, must be non-negative.
 
         .. versionchanged:: 0.22

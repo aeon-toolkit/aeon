@@ -19,8 +19,8 @@ class CBLOF(PyODAdapter):
     the PyOD model ``CBLOF`` except for ``window_size`` and ``stride``,
     which are used to construct the sliding windows.
 
-    The documentation for parameters has been adapted from the `PyOD documentation`_.
-    .. _pyod_docs: https://pyod.readthedocs.io/en/latest/pyod.models.html#id117
+    The documentation for parameters has been adapted from the
+    `PyOD documentation <https://pyod.readthedocs.io/en/latest/pyod.models.html#id117>`_
 
     Here, ``X`` refers to the set of sliding windows extracted from the time series
     using :func:`aeon.utils.windowing.sliding_windows` with the parameters
@@ -56,17 +56,17 @@ class CBLOF(PyODAdapter):
         sorted clusters by size ``|C1|, |C2|, ..., |Cn|, beta = |Ck|/|Ck-1|``
 
     use_weights : bool, default=False
-        If set to True, the size of clusters are used as weights in
+        If set to ``True``, the size of clusters are used as weights in
         outlier score calculation.
 
     check_estimator : bool, default=False
-        If set to True, check whether the base estimator is consistent with
+        If set to ``True``, check whether the base estimator is consistent with
         sklearn standard.
 
     random_state : int, np.RandomState or None, default=None
         If ``int``, random_state is the seed used by the random
         number generator; If RandomState instance, random_state is the random
-        number generator; If None, the random number generator is the
+        number generator; If ``None``, the random number generator is the
         RandomState instance used by ``np.random``.
 
     window_size : int, default=10

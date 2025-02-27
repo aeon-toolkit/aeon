@@ -36,7 +36,7 @@ class IsolationForest(PyODAdapter):
 
             - If ``int``, then draw ``max_samples`` samples.
             - If ``float``, then draw ``max_samples * X.shape[0]`` samples.
-            - If ``auto``, then ``max_samples=min(256, n_samples)``.
+            - If ``"auto"``, then ``max_samples=min(256, n_samples)``.
 
         If max_samples is larger than the number of samples provided,
         all samples will be used for all trees (no sampling).
@@ -48,7 +48,7 @@ class IsolationForest(PyODAdapter):
             - If ``float``, then draw ``max_features * X.shape[1]`` features.
 
     bootstrap : bool, default=False
-        If True, individual trees are fit on random subsets of the training
+        If ``True``, individual trees are fit on random subsets of the training
         data sampled with replacement. If False, sampling without replacement
         is performed.
 
@@ -60,7 +60,7 @@ class IsolationForest(PyODAdapter):
     random_state : int, np.RandomState or None, default=None
         If ``int``, random_state is the seed used by the random number generator;
         If RandomState instance, random_state is the random number generator;
-        If None, the random number generator is the RandomState instance used
+        If ``None``, the random number generator is the RandomState instance used
         by ``np.random``.
 
     verbose : int, default=0
