@@ -12,7 +12,7 @@ from scipy.stats import zscore
 
 from aeon.distances.mindist._dft_sfa import mindist_dft_sfa_distance
 from aeon.distances.mindist._paa_sax import mindist_paa_sax_distance
-from aeon.transformations.collection.dictionary_based import SAX, SFAFast
+from aeon.transformations.collection.dictionary_based import SAX, SFAWhole
 
 matplotlib.rcParams["pdf.fonttype"] = 42
 matplotlib.rcParams["ps.fonttype"] = 42
@@ -317,37 +317,36 @@ for dataset_name in used_dataset:
         histograms = ["equi-width"]  # , "equi-depth"
         variances = [True]  # , False
         dyn_alphabets = [True]  # , False
-        lambdas = [0.3, 0.4, 0.5, 0.6]
 
         method_names = ["isax"]
         all_breakpoints = []
         all_dfts = []
         all_words = []
 
-        for histogram, variance, dyn_alphabet, lambda_ in itertools.product(
-            histograms, variances, dyn_alphabets, lambdas
+        for histogram, variance, dyn_alphabet in itertools.product(
+            histograms, variances, dyn_alphabets
         ):
-            sfa = SFAFast(
-                word_length=n_segments,
-                alphabet_size=alphabet_size,
-                window_size=X_train.shape[-1],
-                binning_method=histogram,
-                norm=True,
-                variance=variance,
-                lower_bounding_distances=True,
-                learn_alphabet_sizes=dyn_alphabet,
-                learn_alphabet_lambda=lambda_,
-                n_jobs=all_threads,
-            )
-
-            # sfa = SFAWhole(
+            # sfa = SFAFast(
             #     word_length=n_segments,
             #     alphabet_size=alphabet_size,
+            #     window_size=X_train.shape[-1],
             #     binning_method=histogram,
-            #     variance=variance,
             #     norm=True,
+            #     variance=variance,
+            #     lower_bounding_distances=True,
+            #     learn_alphabet_sizes=dyn_alphabet,
             #     n_jobs=all_threads,
             # )
+
+            sfa = SFAWhole(
+                word_length=n_segments,
+                alphabet_size=alphabet_size,
+                binning_method=histogram,
+                variance=variance,
+                norm=True,
+                learn_alphabet_sizes=dyn_alphabet,
+                n_jobs=all_threads,
+            )
 
             sfa.fit(X_train)
             # X_dfts = sfa.transform_mft(X_test).squeeze()
@@ -359,7 +358,7 @@ for dataset_name in used_dataset:
             all_dfts.append(X_dfts.astype(np.float64))
             all_words.append(Y_words.astype(np.int32))
 
-            method_names.append(f"sfa_{histogram}_{variance}_{dyn_alphabet}_{lambda_}")
+            method_names.append(f"sfa_{histogram}_{variance}_{dyn_alphabet}")
             # print(f"\tSFA {histogram} {variance} done.")
 
         sum_scores = {}
