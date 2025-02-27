@@ -34,13 +34,13 @@ class BaseAnomalyDetector(BaseSeriesEstimator):
 
     Output data format (one of the following):
         Anomaly scores (default):
-            np.ndarray, shape ``(m,)`` of type float. For each point of the input time
-            series, the anomaly score is a float value indicating the degree of
-            anomalousness. The higher the score, the more anomalous the point.
+            np.ndarray, shape ``(m,)`` of type ``float``. For each point of the
+            input time series, the anomaly score is a ``float`` value indicating the
+            degree of anomalousness. The higher the score, the more anomalous the point.
         Binary classification:
-            np.ndarray, shape ``(m,)`` of type bool or int. For each point of the input
-            time series, the output is a boolean or integer value indicating whether the
-            point is anomalous (``True``/``1``) or not (``False``/``0``).
+            np.ndarray, shape ``(m,)`` of type bool or ``int``. For each point of the
+            input time series, the output is a boolean or integer value indicating
+            whether the point is anomalous (``True``/``1``) or not (``False``/``0``).
 
     Detector learning types:
         Unsupervised (default):
@@ -156,8 +156,9 @@ class BaseAnomalyDetector(BaseSeriesEstimator):
         Returns
         -------
         np.ndarray
-            A boolean, int or float array of length len(X), where each element indicates
-            whether the corresponding subsequence is anomalous or its anomaly score.
+            A boolean, ``int`` or ``float`` array of length len(X), where each element
+            indicates whether the corresponding subsequence is anomalous or its
+            anomaly score.
         """
         fit_empty = self.get_tag("fit_is_empty")
         if not fit_empty:
@@ -191,8 +192,9 @@ class BaseAnomalyDetector(BaseSeriesEstimator):
         Returns
         -------
         np.ndarray
-            A boolean, int or float array of length len(X), where each element indicates
-            whether the corresponding subsequence is anomalous or its anomaly score.
+            A boolean, ``int`` or ``float`` array of length len(X), where each element
+            indicates whether the corresponding subsequence is anomalous or
+            its anomaly score.
         """
         if self.get_tag("requires_y"):
             if y is None:
