@@ -64,7 +64,7 @@ class RSAST(BaseCollectionTransformer):
 
     nb_inst_per_class : int default = 10
         the number of reference time series to select per class
-    seed : int, default = None
+    random_state : int, default = None
         the seed of the random generator
     n_jobs : int, default -1
         Number of threads to use for the transform.
@@ -103,14 +103,14 @@ class RSAST(BaseCollectionTransformer):
         n_random_points: int = 10,
         len_method: str = "both",
         nb_inst_per_class: int = 10,
-        seed: Optional[int] = None,
+        random_state: Optional[int] = None,
         n_jobs: int = 1,  # Parllel Processing
     ):
         self.n_random_points = n_random_points
         self.len_method = len_method
         self.nb_inst_per_class = nb_inst_per_class
         self.n_jobs = n_jobs
-        self.seed = seed
+        self.random_state = random_state
         self._kernels = None  # z-normalized subsequences
         self._cand_length_list = {}
         self._kernel_orig = []
@@ -144,9 +144,9 @@ class RSAST(BaseCollectionTransformer):
         X_ = np.reshape(X, (X.shape[0], X.shape[-1]))
 
         self._random_state = (
-            np.random.RandomState(self.seed)
-            if not isinstance(self.seed, np.random.RandomState)
-            else self.seed
+            np.random.RandomState(self.random_state)
+            if not isinstance(self.random_state, np.random.RandomState)
+            else self.random_state
         )
 
         classes = np.unique(y)

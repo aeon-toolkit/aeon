@@ -56,7 +56,7 @@ class SAST(BaseCollectionTransformer):
         the stride used when generating subsequences
     nb_inst_per_class : int, default = 1
         the number of reference time series to select per class
-    seed : int, default = None
+    random_state : int, default = None
         the seed of the random generator
     n_jobs : int, default -1
         Number of threads to use for the transform.
@@ -97,7 +97,7 @@ class SAST(BaseCollectionTransformer):
         lengths: Optional[np.ndarray] = None,
         stride: int = 1,
         nb_inst_per_class: int = 1,
-        seed: Optional[int] = None,
+        random_state: Optional[int] = None,
         n_jobs: int = 1,  # Parallel processing
     ):
         super().__init__()
@@ -111,7 +111,7 @@ class SAST(BaseCollectionTransformer):
         self._source_series = []  # To store the index of the original time series
         self.kernels_generators_ = {}  # Reference time series
         self.n_jobs = n_jobs
-        self.seed = seed
+        self.random_state = random_state
 
     def _fit(self, X: np.ndarray, y: Union[np.ndarray, list]) -> "SAST":
         """Select reference time series and generate subsequences from them.
@@ -135,9 +135,9 @@ class SAST(BaseCollectionTransformer):
         )
 
         self._random_state = (
-            np.random.RandomState(self.seed)
-            if not isinstance(self.seed, np.random.RandomState)
-            else self.seed
+            np.random.RandomState(self.random_state)
+            if not isinstance(self.random_state, np.random.RandomState)
+            else self.random_state
         )
 
         classes = np.unique(y)

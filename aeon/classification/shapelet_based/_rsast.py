@@ -30,7 +30,7 @@ class RSASTClassifier(BaseClassifier):
     "None"=Extract randomly any length from the TS
     nb_inst_per_class : int default = 10
         the number of reference time series to select per class
-    seed : int, default = None
+    random_state : int, default = None
         the seed of the random generator
     estimator : sklearn compatible classifier, default = None
         if None, a RidgeClassifierCV(alphas=np.logspace(-3, 3, 10)) is used.
@@ -68,7 +68,7 @@ class RSASTClassifier(BaseClassifier):
         n_random_points=10,
         len_method="both",
         nb_inst_per_class=10,
-        seed=None,
+        random_state=None,
         classifier=None,
         n_jobs=1,
     ):
@@ -77,7 +77,7 @@ class RSASTClassifier(BaseClassifier):
         self.len_method = len_method
         self.nb_inst_per_class = nb_inst_per_class
         self.n_jobs = n_jobs
-        self.seed = seed
+        self.random_state = random_state
         self.classifier = classifier
 
     def _fit(self, X, y):
@@ -100,7 +100,7 @@ class RSASTClassifier(BaseClassifier):
             self.n_random_points,
             self.len_method,
             self.nb_inst_per_class,
-            self.seed,
+            self.random_state,
             self.n_jobs,
         )
 
@@ -110,7 +110,7 @@ class RSASTClassifier(BaseClassifier):
                 if self.classifier is None
                 else self.classifier
             ),
-            self.seed,
+            self.random_state,
         )
 
         self._pipeline = make_pipeline(self._transformer, self._classifier)
