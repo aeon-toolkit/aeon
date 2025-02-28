@@ -66,6 +66,6 @@ def test_idk_univariate_custom_series():
     ad_2 = IDK(psi1=4, psi2=2, width=3, t=10, random_state=2)
     pred2 = ad_2.fit_predict(series1)
 
-    assert pred2.shape == (3,)
+    assert pred2.shape == (10,)
     assert pred2.dtype == np.float64
     assert_allclose(pred2, expected, atol=0.01)
