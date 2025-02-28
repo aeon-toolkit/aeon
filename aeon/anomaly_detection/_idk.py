@@ -177,7 +177,7 @@ class IDK(BaseAnomalyDetector):
 
     def _predict(self, X):
         rng = np.random.default_rng(self.random_state)
-        if self.sliding:
+        if self.sliding or self.width>1:
             sliding_output = self._idk_square_sliding(X, rng)
             reversed_output = reverse_windowing(
                 y=sliding_output,
