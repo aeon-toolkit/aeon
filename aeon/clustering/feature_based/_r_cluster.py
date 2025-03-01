@@ -439,8 +439,10 @@ class RClusterer(BaseClusterer):
 
         X_std = self.scaler.fit_transform(transformed_data)
 
-        if(self.pca.n_components != self.optimal_dimensions):
-            pca = PCA(n_components=self.optimal_dimensions, random_state=self.random_state)
+        if self.pca.n_components != self.optimal_dimensions:
+            pca = PCA(
+                n_components=self.optimal_dimensions, random_state=self.random_state
+            )
             transformed_data_pca = pca.fit_transform(X_std)
         else:
             transformed_data_pca = self.pca.fit_transform(X_std)
