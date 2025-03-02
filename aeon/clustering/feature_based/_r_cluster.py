@@ -417,12 +417,10 @@ class RClusterer(BaseClusterer):
         pca = PCA().fit(X_std)
         optimal_dimensions = np.argmax(pca.explained_variance_ratio_ < 0.01)
 
-        self.optimal_dimensions = max(
-            1, min(optimal_dimensions, X_std.shape[0], X_std.shape[1])
-        )
-        self.x_test = X
-        pca = PCA(n_components=optimal_dimensions, random_state=self.random_state)
-        transformed_data_pca = pca.fit_transform(X_std)
+        self.pca = PCA(n_components=optimal_dimensions, random_state=self.random_state)
+        self.pca.fit(X_std)
+        transformed_data_pca = self.pca.transform(X_std)
+
         self.estimator = KMeans(
             n_clusters=self.n_clusters,
             random_state=self.random_state,
@@ -436,12 +434,7 @@ class RClusterer(BaseClusterer):
 
         transformed_data = self._get_transformed_data(X=X, parameters=parameters)
         X_std = self.scaler.fit_transform(transformed_data)
-        if self.optimal_dimensions > max(1, min(X_std.shape[0], X_std.shape[1])):
-            raise ValueError(
-                f"fitted x={self.x_test} must be between 0 and " f"sample x ={X}"
-            )
-        pca = PCA(n_components=self.optimal_dimensions, random_state=self.random_state)
-        transformed_data_pca = pca.fit_transform(X_std)
+        transformed_data_pca = self.pca.transform(X_std)
 
         return self.estimator.predict(transformed_data_pca)
 
@@ -454,9 +447,6 @@ class RClusterer(BaseClusterer):
         pca = PCA().fit(X_std)
         optimal_dimensions = np.argmax(pca.explained_variance_ratio_ < 0.01)
 
-        optimal_dimensions = max(
-            1, min(optimal_dimensions, X_std.shape[0], X_std.shape[1])
-        )
         pca = PCA(n_components=optimal_dimensions, random_state=self.random_state)
         transformed_data_pca = pca.fit_transform(X_std)
         self.estimator = KMeans(
