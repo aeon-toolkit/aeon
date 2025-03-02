@@ -478,4 +478,5 @@ class RClusterer(BaseClusterer):
         """
         return {
             "n_clusters": 2,
+            "random_state": 1,
         }
