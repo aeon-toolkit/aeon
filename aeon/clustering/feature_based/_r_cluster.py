@@ -438,7 +438,7 @@ class RClusterer(BaseClusterer):
         transformed_data = self._get_transformed_data(X=X, parameters=parameters)
 
         X_std = self.scaler.fit_transform(transformed_data)
-        if (self.optimal_dimensions > max(1, min(X_std.shape[0], X_std.shape[1]))):
+        if self.optimal_dimensions > max(1, min(X_std.shape[0], X_std.shape[1])):
             raise ValueError(
                 f"optimal dimensions={self.optimal_dimensions} must be between 0 and "
                 f"min(n_samples, n_features)={min(X_std.shape[0], X_std.shape[1])}"
