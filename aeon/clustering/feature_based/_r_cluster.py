@@ -438,8 +438,7 @@ class RClusterer(BaseClusterer):
         X_std = self.scaler.fit_transform(transformed_data)
         if self.optimal_dimensions > max(1, min(X_std.shape[0], X_std.shape[1])):
             raise ValueError(
-                f"fitted x={self.x_test} must be between 0 and "
-                f"sample x ={X}"
+                f"fitted x={self.x_test} must be between 0 and " f"sample x ={X}"
             )
         pca = PCA(n_components=self.optimal_dimensions, random_state=self.random_state)
         transformed_data_pca = pca.fit_transform(X_std)
