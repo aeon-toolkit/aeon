@@ -411,7 +411,6 @@ class RClusterer(BaseClusterer):
         parameters = self._get_parameterised_data(X)
 
         transformed_data = self._get_transformed_data(X=X, parameters=parameters)
-
         self.scaler = StandardScaler()
         X_std = self.scaler.fit_transform(transformed_data)
 
@@ -421,7 +420,7 @@ class RClusterer(BaseClusterer):
         self.optimal_dimensions = max(
             1, min(optimal_dimensions, X_std.shape[0], X_std.shape[1])
         )
-
+        self.x_test = X
         pca = PCA(n_components=optimal_dimensions, random_state=self.random_state)
         transformed_data_pca = pca.fit_transform(X_std)
         self.estimator = KMeans(
@@ -436,12 +435,11 @@ class RClusterer(BaseClusterer):
         parameters = self._get_parameterised_data(X)
 
         transformed_data = self._get_transformed_data(X=X, parameters=parameters)
-
         X_std = self.scaler.fit_transform(transformed_data)
         if self.optimal_dimensions > max(1, min(X_std.shape[0], X_std.shape[1])):
             raise ValueError(
-                f"optimal dimensions={self.optimal_dimensions} must be between 0 and "
-                f"min(n_samples, n_features)={min(X_std.shape[0], X_std.shape[1])}"
+                f"fitted x={self.x_test} must be between 0 and "
+                f"sample x ={X}"
             )
         pca = PCA(n_components=self.optimal_dimensions, random_state=self.random_state)
         transformed_data_pca = pca.fit_transform(X_std)
