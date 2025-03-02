@@ -434,7 +434,8 @@ class RClusterer(BaseClusterer):
 
         transformed_data = self._get_transformed_data(X=X, parameters=parameters)
         X_std = self.scaler.fit_transform(transformed_data)
-        transformed_data_pca = self.pca.transform(X_std)
+        pca = self.pca
+        transformed_data_pca = pca.transform(X_std)
 
         return self.estimator.predict(transformed_data_pca)
 
