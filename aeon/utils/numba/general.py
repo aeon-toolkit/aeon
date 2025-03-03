@@ -772,29 +772,3 @@ def get_all_subsequences(X: np.ndarray, length: int, dilation: int) -> np.ndarra
     out_shape = (n_timestamps - (length - 1) * dilation, n_features, np.int64(length))
     strides = (s1, s0, s1 * dilation)
     return np.lib.stride_tricks.as_strided(X, shape=out_shape, strides=strides)
-
-
-def is_numba_function(func) -> bool:
-    """Determine if a function is compiled with Numba.
-
-    Parameters
-    ----------
-    func : callable
-        The function to check.
-
-    Returns
-    -------
-    bool
-        True if the function is compiled with Numba.
-    """
-    if hasattr(func, "nopython_signatures") or hasattr(func, "__numba__"):
-        return True
-
-    if hasattr(func, "_numba_type_"):
-        return True
-
-    module_name = getattr(func, "__module__", "")
-    if module_name and module_name.startswith("numba."):
-        return True
-
-    return False
