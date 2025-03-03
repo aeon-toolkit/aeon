@@ -21,80 +21,70 @@ class MLPRegressor(BaseDeepRegressor):
 
     Parameters
     ----------
-    n_layers : int, optional (default=3)
-        The number of dense layers in the MLP.
-    n_units : Union[int, List[int]], optional (default=500)
+    n_layers : ``int``, optional (default=3)
+        The number of dense layers in the ``MLP``.
+    n_units : ``Union[int, List[int]]``, optional (default=500)
         Number of units in each dense layer.
-    activation : Union[str, List[str]], optional (default='relu')
+    activation : ``Union[str, List[str]]``, optional (default='relu')
         Activation function(s) for each dense layer.
-    dropout_rate : Union[float, List[Union[int, float]]], optional (default=None)
-        Dropout rate(s) for each dense layer. If None, a default rate of 0.2 is used,
+    dropout_rate : ``Union[float, List[Union[int, float]]]``, optional (default=None)
+        Dropout rate(s) for each dense layer. If ``None``, a default rate of 0.2 is used,
         except the first element, being 0.1. Dropout rate(s) are typically a number
-        in the interval [0, 1].
-    dropout_last : float, default = 0.3
+        in the interval ``[0, 1]``.
+    dropout_last : ``float``, default = 0.3
         The dropout rate of the last layer.
-    use_bias : bool, default = True
+    use_bias : ``bool``, default = ``True``
         Condition on whether or not to use bias values for dense layers.
-    n_epochs : int, default = 2000
-        the number of epochs to train the model
-    batch_size : int, default = 16
-        the number of samples per gradient update.
-    callbacks : keras callback or list of callbacks,
-        default = None
-        The default list of callbacks are set to
-        ModelCheckpoint and ReduceLROnPlateau.
-    verbose : boolean, default = False
-        whether to output extra information
-    loss : str, default = "mean_squared_error"
-        The name of the keras training loss.
-    metrics : str or list[str], default="mean_squared_error"
-        The evaluation metrics to use during training. If
-        a single string metric is provided, it will be
-        used as the only metric. If a list of metrics are
-        provided, all will be used for evaluation.
-    file_path : str, default = "./"
-        file_path when saving model_Checkpoint callback
-    save_best_model : bool, default = False
-        Whether or not to save the best model, if the
-        modelcheckpoint callback is used by default,
-        this condition, if True, will prevent the
-        automatic deletion of the best saved model from
-        file and the user can choose the file name
-    save_last_model : bool, default = False
-        Whether or not to save the last model, last
-        epoch trained, using the base class method
-        save_last_model_to_file
-    save_init_model : bool, default = False
-        Whether to save the initialization of the  model.
-    best_file_name : str, default = "best_model"
-        The name of the file of the best model, if
-        save_best_model is set to False, this parameter
-        is discarded
-    last_file_name : str, default = "last_model"
-        The name of the file of the last model, if
-        save_last_model is set to False, this parameter
-        is discarded
-    init_file_name : str, default = "init_model"
-        The name of the file of the init model, if save_init_model is set to False,
-        this parameter is discarded.
-    random_state : int, RandomState instance or None, default=None
-        If `int`, random_state is the seed used by the random number generator;
-        If `RandomState` instance, random_state is the random number generator;
-        If `None`, the random number generator is the `RandomState` instance used
-        by `np.random`.
+    n_epochs : ``int``, default = 2000
+        The number of epochs to train the model.
+    batch_size : ``int``, default = 16
+        The number of samples per gradient update.
+    callbacks : ``keras.callbacks.Callback`` or ``List[keras.callbacks.Callback]``, default = ``None``
+        The default list of callbacks is set to ``ModelCheckpoint`` and ``ReduceLROnPlateau``.
+    verbose : ``bool``, default = ``False``
+        Whether to output extra information.
+    loss : ``str``, default = ``"mean_squared_error"``
+        The name of the ``keras`` training loss.
+    metrics : ``Union[str, List[str]]``, default = ``"mean_squared_error"``
+        The evaluation metrics to use during training. If a single string metric is provided, it will be
+        used as the only metric. If a list of metrics is provided, all will be used for evaluation.
+    file_path : ``str``, default = ``"./"``
+        File path when saving ``ModelCheckpoint`` callback.
+    save_best_model : ``bool``, default = ``False``
+        Whether or not to save the best model. If the ``ModelCheckpoint`` callback is used by default,
+        this condition, if ``True``, will prevent the automatic deletion of the best saved model from
+        the file, and the user can choose the file name.
+    save_last_model : ``bool``, default = ``False``
+        Whether or not to save the last model, last epoch trained, using the base class method
+        ``save_last_model_to_file``.
+    save_init_model : ``bool``, default = ``False``
+        Whether to save the initialization of the model.
+    best_file_name : ``str``, default = ``"best_model"``
+        The name of the file of the best model. If ``save_best_model`` is set to ``False``, this parameter
+        is discarded.
+    last_file_name : ``str``, default = ``"last_model"``
+        The name of the file of the last model. If ``save_last_model`` is set to ``False``, this parameter
+        is discarded.
+    init_file_name : ``str``, default = ``"init_model"``
+        The name of the file of the initial model. If ``save_init_model`` is set to ``False``, this parameter
+        is discarded.
+    random_state : ``Union[int, np.random.RandomState, None]``, default = ``None``
+        If ``int``, ``random_state`` is the seed used by the random number generator.
+        If ``RandomState`` instance, ``random_state`` is the random number generator.
+        If ``None``, the random number generator is the ``RandomState`` instance used
+        by ``np.random``.
         Seeded random number generation can only be guaranteed on CPU processing,
         GPU processing will be non-deterministic.
-    output_activation : str = "linear"
+    output_activation : ``str``, default = ``"linear"``
         Activation for the last layer in a Regressor.
-    optimizer : keras.optimizer, default = tf.keras.optimizers.Adam()
-        The keras optimizer used for training.
-
+    optimizer : ``keras.optimizers.Optimizer``, default = ``tf.keras.optimizers.Adam()``
+        The ``keras`` optimizer used for training.
 
     References
     ----------
-    .. [1] Wang et. al, Time series classification from
-    scratch with deep neural networks: A strong baseline,
-    International joint conference on neural networks (IJCNN), 2017.
+    .. [1] Wang et. al, "Time series classification from
+    scratch with deep neural networks: A strong baseline,"
+    International Joint Conference on Neural Networks (I JCNN), 2017.
 
     Examples
     --------
@@ -142,7 +132,7 @@ class MLPRegressor(BaseDeepRegressor):
         self.loss = loss
         self.metrics = metrics
         self.use_bias = use_bias
-        self.file_path = file_path
+        self.file _path = file_path
         self.save_best_model = save_best_model
         self.save_last_model = save_last_model
         self.save_init_model = save_init_model
@@ -171,15 +161,15 @@ class MLPRegressor(BaseDeepRegressor):
     def build_model(self, input_shape, **kwargs):
         """Construct a compiled, un-trained, keras model that is ready for training.
 
-        In aeon, time series are stored in numpy arrays of shape (d,m), where d
-        is the number of dimensions, m is the series length. Keras/tensorflow assume
-        data is in shape (m,d). This method also assumes (m,d). Transpose should
+        In aeon, time series are stored in numpy arrays of shape ``(d,m)``, where ``d``
+        is the number of dimensions, ``m`` is the series length. Keras/tensorflow assume
+        data is in shape ``(m,d)``. This method also assumes ``(m,d)``. Transpose should
         happen in fit.
 
         Parameters
         ----------
-        input_shape : tuple
-            The shape of the data fed into the input layer, should be (m,d)
+        input_shape : ``tuple``
+            The shape of the data fed into the input layer, should be ``(m,d)``
 
         Returns
         -------
@@ -212,13 +202,13 @@ class MLPRegressor(BaseDeepRegressor):
         return model
 
     def _fit(self, X, y):
-        """Fit the Regressor on the training set (X, y).
+        """Fit the Regressor on the training set ``(X, y)``.
 
         Parameters
         ----------
-        X : np.ndarray of shape = (n_cases, n_channels, n_timepoints)
+        X : ``np.ndarray`` of shape = ``(n_cases, n_channels, n_timepoints)``
             The training input samples.
-        y : np.ndarray of shape n
+        y : ``np.ndarray`` of shape n
             The training data target values.
 
         Returns
@@ -297,20 +287,20 @@ class MLPRegressor(BaseDeepRegressor):
 
         Parameters
         ----------
-        parameter_set : str, default="default"
+        parameter_set : ``str ``, default=``"default"``
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
-            For Regressors, a "default" set of parameters should be provided for
-            general testing, and a "results_comparison" set for comparing against
+            special parameters are defined for a value, will return ``"default"`` set.
+            For Regressors, a ``"default"`` set of parameters should be provided for
+            general testing, and a ``"results_comparison"`` set for comparing against
             previously recorded results if the general set does not produce suitable
             probabilities to compare against.
 
         Returns
         -------
-        params : dict or list of dict, default={}
+        params : ``dict`` or list of ``dict``, default=``{}``
             Parameters to create testing instances of the class.
-            Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            Each ``dict`` are parameters to construct an "interesting" test instance, i.e.,
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test instance.
         """
         param = {
             "n_epochs": 10,
