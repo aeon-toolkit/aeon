@@ -1,11 +1,9 @@
 """Test For RCluster."""
 
 import numpy as np
-import pytest
 from sklearn import metrics
-
+from aeon.datasets import load_gunpoint
 from aeon.clustering.feature_based._r_cluster import RClusterer
-from aeon.utils.validation._dependencies import _check_estimator_deps
 
 X_ = [
     [
@@ -132,11 +130,7 @@ X_ = [
 Y = ["22", "28", "21", "15", "2", "18", "21", "36", "11", "21"]
 
 
-@pytest.mark.skipif(
-    not _check_estimator_deps(RClusterer, severity="none"),
-    reason="skip test if required soft dependencies not available",
-)
-def test_r_cluster():
+def test_r_cluster_custom_dataset():
     """Test implementation of RCluster."""
     X_train = np.array(X_)
     X = np.expand_dims(X_train, axis=1)
@@ -144,3 +138,39 @@ def test_r_cluster():
     labels_pred1 = Rcluster.fit_predict(X)
     score = metrics.adjusted_rand_score(labels_true=Y, labels_pred=labels_pred1)
     assert score > 0.36
+
+def test_r_cluster_dataset():
+    """Test implementation of RCluster using aeon dataset."""
+
+    X_train, y_train = load_gunpoint(split="train")
+    X_test, y_test = load_gunpoint(split="test")
+    num_points = 20
+
+    X_train = X_train[:num_points]
+    y_train = y_train[:num_points]
+    X_test = X_test[:num_points]
+    y_test = y_test[:num_points]
+
+    rcluster = RClusterer(
+        random_state=1,
+        n_init=2,
+        n_clusters=2,
+    )
+    train_result = rcluster.fit_predict(X_train)
+    train_score = metrics.rand_score(y_train, train_result)
+    test_result = rcluster.predict(X_test)
+    test_score = metrics.rand_score(y_test, test_result)
+    assert np.array_equal(
+        test_result,
+        [1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    )
+    assert np.array_equal(
+        train_result,
+        [1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0],
+    )
+    assert test_score == 0.5210526315789473
+    assert train_score == 0.5210526315789473
+    assert rcluster.estimator.n_iter_ == 3
+    assert np.array_equal(
+        rcluster.labels_, [1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0]
+    )

@@ -448,8 +448,9 @@ class RClusterer(BaseClusterer):
         pca = PCA().fit(X_std)
         optimal_dimensions = np.argmax(pca.explained_variance_ratio_ < 0.01)
 
-        pca = PCA(n_components=optimal_dimensions, random_state=self.random_state)
-        transformed_data_pca = pca.fit_transform(X_std)
+        self.pca = PCA(n_components=optimal_dimensions, random_state=self.random_state)
+        self.pca.fit(X_std)
+        transformed_data_pca = self.pca.transform(X_std)
         self.estimator = KMeans(
             n_clusters=self.n_clusters,
             random_state=self.random_state,
@@ -457,6 +458,7 @@ class RClusterer(BaseClusterer):
         )
         Y = self.estimator.fit_predict(transformed_data_pca)
         self.labels_ = self.estimator.labels_
+        self.is_fitted = True
         return Y
 
     @classmethod
