@@ -2,8 +2,9 @@
 
 import numpy as np
 from sklearn import metrics
-from aeon.datasets import load_gunpoint
+
 from aeon.clustering.feature_based._r_cluster import RClusterer
+from aeon.datasets import load_gunpoint
 
 X_ = [
     [
@@ -139,9 +140,9 @@ def test_r_cluster_custom_dataset():
     score = metrics.adjusted_rand_score(labels_true=Y, labels_pred=labels_pred1)
     assert score > 0.36
 
+
 def test_r_cluster_dataset():
     """Test implementation of RCluster using aeon dataset."""
-
     X_train, y_train = load_gunpoint(split="train")
     X_test, y_test = load_gunpoint(split="test")
     num_points = 20
