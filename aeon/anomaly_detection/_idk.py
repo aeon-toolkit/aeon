@@ -1,4 +1,5 @@
 """IDK2 anomaly detector."""
+
 from typing import Optional
 
 import numpy as np
@@ -169,10 +170,14 @@ class IDK2(BaseAnomalyDetector):
                 featuremap_count, [featuremap_count.shape[0] - 1], axis=0
             )
 
-        return self._compute_idk_score(featuremap_count, psi=self.psi2, t=self.t, rng=rng)
+        return self._compute_idk_score(
+            featuremap_count, psi=self.psi2, t=self.t, rng=rng
+        )
 
     def _idk_square_sliding(self, X, rng):
-        point_fm_list = self._generate_feature_map(X=X, psi=self.psi1, t=self.t, rng=rng)
+        point_fm_list = self._generate_feature_map(
+            X=X, psi=self.psi1, t=self.t, rng=rng
+        )
         point_fm_list = np.insert(point_fm_list, 0, 0, axis=0)
         cumsum = np.cumsum(point_fm_list, axis=0)
 
@@ -180,11 +185,13 @@ class IDK2(BaseAnomalyDetector):
             self.width
         )
 
-        return self._compute_idk_score(X=subsequence_fm_list, psi=self.psi2, t=self.t, rng=rng)
+        return self._compute_idk_score(
+            X=subsequence_fm_list, psi=self.psi2, t=self.t, rng=rng
+        )
 
     def _predict(self, X):
         rng = np.random.default_rng(self.random_state)
-        if self.sliding :
+        if self.sliding:
             sliding_output = self._idk_square_sliding(X, rng)
             reversed_output = reverse_windowing(
                 y=sliding_output,
