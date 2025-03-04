@@ -1,4 +1,4 @@
-"""Test threading decorator."""
+"""Test threading util decorator."""
 
 import os
 from unittest.mock import MagicMock, patch
