@@ -52,8 +52,9 @@ class RegressionForecaster(BaseForecaster):
         ----------
         y : np.ndarray
             A time series on which to learn a forecaster to predict horizon ahead.
-        exog : np.ndarray, default =None
-            Optional exogenous time series data assumed to be aligned with y.
+        exog : np.ndarray, default=None
+            Optional exogenous time series data. Included for interface
+            compatibility but ignored in this estimator.
 
         Returns
         -------
@@ -85,8 +86,9 @@ class RegressionForecaster(BaseForecaster):
         y : np.ndarray, default = None
             A time series to predict the next horizon value for. If None,
             predict the next horizon value after series seen in fit.
-        exog : np.ndarray, default = None
-            Optional exogenous time series data assumed to be aligned with y
+        exog : np.ndarray, default=None
+            Optional exogenous time series data. Included for interface
+            compatibility but ignored in this estimator.
 
         Returns
         -------
@@ -106,8 +108,9 @@ class RegressionForecaster(BaseForecaster):
         ----------
         y : np.ndarray
             A time series to predict the next horizon value for.
-        exog : np.ndarray, default = None
-            Optional exogenous time series data assumed to be aligned with y
+        exog : np.ndarray, default=None
+            Optional exogenous time series data. Included for interface
+            compatibility but ignored in this estimator.
 
         Returns
         -------
