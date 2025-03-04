@@ -134,7 +134,7 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
         """
         preds = np.empty(len(X))
         for i in range(len(X)):
-            idx, weights = self._kneighbors(X[i])
+            idx, weights = self.kneighbors(X[i])
             preds[i] = np.average(self.y_[idx], weights=weights)
 
         return preds

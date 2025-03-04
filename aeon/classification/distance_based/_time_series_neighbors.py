@@ -137,7 +137,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         """
         preds = np.zeros((len(X), len(self.classes_)))
         for i in range(len(X)):
-            idx, weights = self._kneighbors(X[i])
+            idx, weights = self.kneighbors(X[i])
             for id, w in zip(idx, weights):
                 predicted_class = self.y_[id]
                 preds[i, predicted_class] += w
