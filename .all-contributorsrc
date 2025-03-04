@@ -2656,6 +2656,24 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "shinymack",
+      "name": "Akash Kawle",
+      "avatar_url": "https://avatars.githubusercontent.com/u/128881349?v=4",
+      "profile": "https://github.com/shinymack",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "kevinzb56",
+      "name": "Kevin Shah",
+      "avatar_url": "https://avatars.githubusercontent.com/u/161136814?v=4",
+      "profile": "https://github.com/kevinzb56",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "commitType": "docs"
