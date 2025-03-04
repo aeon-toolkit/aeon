@@ -34,7 +34,7 @@ Detectors
     PyODAdapter
     STOMP
     STRAY
-    IDK
+    IDK2
 
 Base
 ----
