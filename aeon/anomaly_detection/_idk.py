@@ -71,7 +71,8 @@ class IDK2(BaseAnomalyDetector):
     References
     ----------
     [1]_ Kai Ming Ting, Bi-Cun Xu, Takashi Washio, Zhi-Hua Zhou (2020)
-         'Isolation Distributional Kernel: A New Tool for Kernel-Based Anomaly Detection',
+         'Isolation Distributional Kernel: A New Tool for Kernel-Based 
+          Anomaly Detection',
           DOI: https://dl.acm.org/doi/10.1145/3394486.3403062
 
     """
