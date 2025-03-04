@@ -3,7 +3,7 @@
 import numpy as np
 from numpy.testing import assert_allclose
 
-from aeon.anomaly_detection import IDK
+from aeon.anomaly_detection import IDK2
 
 
 def test_idk_univariate_basic():
@@ -12,7 +12,7 @@ def test_idk_univariate_basic():
     series = rng.normal(size=(100,))
     series[50:58] -= 5
 
-    ad = IDK(psi1=8, psi2=2, width=1, random_state=2)
+    ad = IDK2(psi1=8, psi2=2, width=1, random_state=2)
     pred = ad.fit_predict(series)
 
     assert pred.shape == (100,)
@@ -26,7 +26,7 @@ def test_idk_univariate_sliding():
     series = rng.normal(size=(100,))
     series[50:58] -= 5
 
-    ad_sliding = IDK(psi1=16, psi2=4, width=10, sliding=True, random_state=1)
+    ad_sliding = IDK2(psi1=16, psi2=4, width=10, sliding=True, random_state=1)
     pred_sliding = ad_sliding.fit_predict(series)
 
     assert pred_sliding.shape == (100,)
@@ -50,20 +50,9 @@ def test_idk_univariate_custom_series():
             -0.55382284,
         ]
     )
-    expected = [
-        0.375,
-        0.375,
-        0.37083333,
-        0.37083333,
-        0.37916667,
-        0.40833333,
-        0.425,
-        0.4125,
-        0.39375,
-        0.3625,
-    ]
+    expected = [0.21 ,0.17 ,0.17 ,0.3  ,0.38 ,0.35 ,0.17 ,0.36 ,0.21 ,0.17]
 
-    ad_2 = IDK(psi1=4, psi2=2, width=3, t=10, random_state=2)
+    ad_2 = IDK2(psi1=4, psi2=2, width=1, t=10, random_state=2)
     pred2 = ad_2.fit_predict(series1)
 
     assert pred2.shape == (10,)

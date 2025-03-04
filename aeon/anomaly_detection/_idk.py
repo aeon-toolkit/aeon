@@ -1,3 +1,4 @@
+"""IDK2 anomaly detector."""
 from typing import Optional
 
 import numpy as np
@@ -6,29 +7,31 @@ from aeon.anomaly_detection.base import BaseAnomalyDetector
 from aeon.utils.windowing import reverse_windowing
 
 
-class IDK(BaseAnomalyDetector):
+class IDK2(BaseAnomalyDetector):
     """IDK² and s-IDK² anomaly detector.
 
     The Isolation Distributional Kernel (IDK) is a data-dependent kernel for efficient
     anomaly detection, improving accuracy without explicit learning. Its extension,
     IDK², simplifies group anomaly detection, outperforming traditional methods in
-    speed and effectiveness.
+    speed and effectiveness.This implementation is inspired by the Isolation
+    Distributional Kernel (IDK) approach as detailed in Kai Ming Ting, Bi-Cun Xu,
+    Takashi Washio, Zhi-Hua Zhou (2020) [1]_.
 
     Parameters
     ----------
-    psi1 : int
+    psi1 : int, default=8
          The number of samples randomly selected in each iteration to construct the
          feature map matrix during the first stage. This parameter determines the
          granularity of the first-stage feature representation. Higher values allow
          the model to capture more detailed data characteristics but
          increase computational complexity.
-    psi2 : int
+    psi2 : int, default=2
          The number of samples randomly selected in each iteration to construct
          the feature map matrix during the second stage. This parameter
          determines the granularity of the second-stage feature representation.
          Higher values allow the model to capture more detailed
          data characteristics but increase computational complexity.
-    width : int
+    width : int, default=1
          The size of the sliding or fixed-width window used for anomaly detection.
          For fixed-width processing, this defines the length of each segment analyzed.
          In sliding window mode, it specifies the length of the window moving
@@ -50,22 +53,26 @@ class IDK(BaseAnomalyDetector):
          model processes
          the data in fixed-width segments, offering faster computation at the
          cost of granularity.
-    random_state : int, Random state or None, default=None
+    random_state : int, np.random.RandomState instance or None, default=None
+        Determines random number generation for centroid initialization.
+        If `int`, random_state is the seed used by the random number generator;
+        If `np.random.RandomState` instance,
+        random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
 
     Notes
     -----
-    This implementation is inspired by the Isolation Distributional Kernel (IDK)
-    approach as detailed in [1]_.
-    The code is adapted from the open-source repository [2]_.
+    GitHub Repository:
+         IsolationKernel/Codes: IDK Implementation for Time Series Data
+         URL: https://github.com/IsolationKernel/Codes/tree/main/IDK/TS
 
     References
     ----------
-    [1] Isolation Distributional Kernel: A New Tool for Kernel-Based Anomaly Detection.
-         DOI: https://dl.acm.org/doi/10.1145/3394486.3403062
+    [1]_ Kai Ming Ting, Bi-Cun Xu, Takashi Washio, Zhi-Hua Zhou (2020)
+         'Isolation Distributional Kernel: A New Tool for Kernel-Based Anomaly Detection',
+          DOI: https://dl.acm.org/doi/10.1145/3394486.3403062
 
-    [2] GitHub Repository:
-         IsolationKernel/Codes: IDK Implementation for Time Series Data
-         URL: https://github.com/IsolationKernel/Codes/tree/main/IDK/TS
     """
 
     _tags = {
@@ -106,8 +113,8 @@ class IDK(BaseAnomalyDetector):
 
         return point2sample, radius_list, min_dist_point2sample
 
-    def _ik_inne_fm(self, X, psi, t, rng):
-        onepoint_matrix = np.zeros((X.shape[0], t * psi), dtype=int)
+    def _generate_feature_map(self, X, psi, t, rng):
+        feature_matrix = np.zeros((X.shape[0], t * psi), dtype=int)
         for time in range(t):
             sample_indices = rng.choice(len(X), size=psi, replace=False)
             point2sample, radius_list, min_dist_point2sample = (
@@ -117,19 +124,19 @@ class IDK(BaseAnomalyDetector):
             min_point2sample_index = np.argmin(point2sample, axis=1)
             min_dist_point2sample = min_point2sample_index + time * psi
             point2sample_value = point2sample[
-                range(len(onepoint_matrix)), min_point2sample_index
+                range(len(feature_matrix)), min_point2sample_index
             ]
             ind = point2sample_value < radius_list[min_point2sample_index]
-            onepoint_matrix[ind, min_dist_point2sample[ind]] = 1
+            feature_matrix[ind, min_dist_point2sample[ind]] = 1
 
-        return onepoint_matrix
+        return feature_matrix
 
-    def _idk(self, X, psi, t, rng):
-        point_fm_list = self._ik_inne_fm(X=X, psi=psi, t=t, rng=rng)
+    def _compute_idk_score(self, X, psi, t, rng):
+        point_fm_list = self._generate_feature_map(X=X, psi=psi, t=t, rng=rng)
         feature_mean_map = np.mean(point_fm_list, axis=0)
         return np.dot(point_fm_list, feature_mean_map) / t
 
-    def _idk_t(self, X, rng):
+    def _idk_fixed_window(self, X, rng):
         window_num = int(np.ceil(X.shape[0] / self.width))
         featuremap_count = np.zeros((window_num, self.t * self.psi1))
         onepoint_matrix = np.full((X.shape[0], self.t), -1)
@@ -162,10 +169,10 @@ class IDK(BaseAnomalyDetector):
                 featuremap_count, [featuremap_count.shape[0] - 1], axis=0
             )
 
-        return self._idk(featuremap_count, psi=self.psi2, t=self.t, rng=rng)
+        return self._compute_idk_score(featuremap_count, psi=self.psi2, t=self.t, rng=rng)
 
     def _idk_square_sliding(self, X, rng):
-        point_fm_list = self._ik_inne_fm(X=X, psi=self.psi1, t=self.t, rng=rng)
+        point_fm_list = self._generate_feature_map(X=X, psi=self.psi1, t=self.t, rng=rng)
         point_fm_list = np.insert(point_fm_list, 0, 0, axis=0)
         cumsum = np.cumsum(point_fm_list, axis=0)
 
@@ -173,11 +180,11 @@ class IDK(BaseAnomalyDetector):
             self.width
         )
 
-        return self._idk(X=subsequence_fm_list, psi=self.psi2, t=self.t, rng=rng)
+        return self._compute_idk_score(X=subsequence_fm_list, psi=self.psi2, t=self.t, rng=rng)
 
     def _predict(self, X):
         rng = np.random.default_rng(self.random_state)
-        if self.sliding or self.width > 1:
+        if self.sliding :
             sliding_output = self._idk_square_sliding(X, rng)
             reversed_output = reverse_windowing(
                 y=sliding_output,
@@ -187,7 +194,7 @@ class IDK(BaseAnomalyDetector):
             )
             return reversed_output
         else:
-            return self._idk_t(X, rng)
+            return self._idk_fixed_window(X, rng)
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
