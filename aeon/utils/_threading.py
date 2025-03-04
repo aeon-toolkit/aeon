@@ -25,7 +25,11 @@ def threaded(func: Callable) -> Callable:
         if numba_env_threads is not None and numba_env_threads.isdigit():
             original_thread_count = int(numba_env_threads)
         else:
-            original_thread_count = threading.active_count()
+            active_count = threading.active_count()
+            if isinstance(active_count, int):
+                original_thread_count = threading.active_count()
+            else:
+                original_thread_count = 1
 
         if "n_jobs" in kwargs:
             n_jobs = kwargs["n_jobs"]
