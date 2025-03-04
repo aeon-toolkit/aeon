@@ -5,7 +5,6 @@ from typing import Any, Callable, Optional, TypedDict, Union
 
 import numpy as np
 from joblib import Parallel, delayed
-from numba import set_num_threads
 from typing_extensions import Unpack
 
 from aeon.distances._mpdist import mp_distance, mp_pairwise_distance
@@ -84,8 +83,8 @@ from aeon.distances.pointwise import (
     squared_distance,
     squared_pairwise_distance,
 )
+from aeon.utils._threading import threaded
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
-from aeon.utils.validation import check_n_jobs
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
@@ -259,6 +258,7 @@ def pairwise_distance(
         raise ValueError("Method must be one of the supported strings or a callable")
 
 
+@threaded
 def _custom_func_pairwise(
     X: Optional[Union[np.ndarray, list[np.ndarray]]],
     y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
@@ -266,8 +266,6 @@ def _custom_func_pairwise(
     n_jobs: int = 1,
     **kwargs: Unpack[DistanceKwargs],
 ) -> np.ndarray:
-    n_jobs = check_n_jobs(n_jobs)
-    set_num_threads(n_jobs)
     if dist_func is None:
         raise ValueError("dist_func must be a callable")
 

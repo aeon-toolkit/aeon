@@ -5,15 +5,15 @@ __maintainer__ = []
 from typing import Optional, Union
 
 import numpy as np
-from numba import njit, prange, set_num_threads
+from numba import njit, prange
 from numba.typed import List as NumbaList
 
 from aeon.distances.elastic._alignment_paths import compute_min_return_path
 from aeon.distances.elastic._bounding_matrix import create_bounding_matrix
 from aeon.distances.elastic._ddtw import average_of_slope
 from aeon.distances.elastic._wdtw import _wdtw_cost_matrix, _wdtw_distance
+from aeon.utils._threading import threaded
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
-from aeon.utils.validation import check_n_jobs
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
@@ -172,6 +172,7 @@ def wddtw_cost_matrix(
     raise ValueError("x and y must be 1D or 2D")
 
 
+@threaded
 def wddtw_pairwise_distance(
     X: Union[np.ndarray, list[np.ndarray]],
     y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
@@ -247,8 +248,6 @@ def wddtw_pairwise_distance(
            [0., 0., 0.],
            [0., 0., 0.]])
     """
-    n_jobs = check_n_jobs(n_jobs)
-    set_num_threads(n_jobs)
     multivariate_conversion = _is_numpy_list_multivariate(X, y)
     _X, unequal_length = _convert_collection_to_numba_list(
         X, "X", multivariate_conversion

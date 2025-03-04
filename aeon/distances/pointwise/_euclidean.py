@@ -4,15 +4,15 @@ import warnings
 from typing import Optional, Union
 
 import numpy as np
-from numba import njit, prange, set_num_threads
+from numba import njit, prange
 from numba.typed import List as NumbaList
 
 from aeon.distances.pointwise._squared import (
     _univariate_squared_distance,
     squared_distance,
 )
+from aeon.utils._threading import threaded
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
-from aeon.utils.validation import check_n_jobs
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
@@ -71,6 +71,7 @@ def _univariate_euclidean_distance(x: np.ndarray, y: np.ndarray) -> float:
     return np.sqrt(_univariate_squared_distance(x, y))
 
 
+@threaded
 def euclidean_pairwise_distance(
     X: Union[np.ndarray, list[np.ndarray]],
     y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
@@ -136,8 +137,6 @@ def euclidean_pairwise_distance(
            [ 5.19615242,  0.        ,  8.        ],
            [12.12435565,  8.        ,  0.        ]])
     """
-    n_jobs = check_n_jobs(n_jobs)
-    set_num_threads(n_jobs)
     if n_jobs > 1:
         warnings.warn(
             "You have set n_jobs > 1. For this distance function "
