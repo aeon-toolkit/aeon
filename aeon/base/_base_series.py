@@ -24,9 +24,7 @@ State Attributes:
     - metadata_: Stores metadata about input time series.
     - axis: Determines the time point axis for input data.
     - _tags: Dictionary defining estimator capabilities (e.g., univariate, multivariate support).
-
 """
-
 
 __maintainer__ = ["TonyBagnall", "MatthewMiddlehurst"]
 __all__ = ["BaseSeriesEstimator"]
