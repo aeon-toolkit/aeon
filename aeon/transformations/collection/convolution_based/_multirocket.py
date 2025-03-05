@@ -49,6 +49,19 @@ class MultiRocket(BaseCollectionTransformer):
     --------
     MiniRocket, Rocket
 
+    Notes
+    -----
+     - MultiRocket requires **equal-length** time series input.
+
+     - Input must be in shape **(n_cases, n_channels, n_timepoints)**,
+       where **n_timepoints** is the same for all cases.
+
+     - Lists of numpy arrays with **unequal-length series** are **not supported**.
+
+     - This behavior is controlled by `self.get_tag("capability:unequal_length")`.
+       Since this tag is **False** for MultiRocket, a `ValueError` will be raised
+       if unequal-length input is provided.
+
     References
     ----------
     .. [1] Tan, Chang Wei and Dempster, Angus and Bergmeir, Christoph and
