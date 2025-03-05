@@ -16,7 +16,8 @@ Key Methods:
 - `_check_is_fitted()`: Ensures the estimator is fitted before use.
 - `_create_test_instance()`: Generates test instances for validation.
 
-Attributes:
+Attributes
+----------
 - `is_fitted`: Boolean flag indicating if `fit()` has been called.
 - `_tags`: Dictionary containing static metadata about the estimator.
 - `_tags_dynamic`: Dictionary for dynamic metadata modifications.
@@ -28,7 +29,6 @@ Sklearn Compatibility:
 Helper Functions:
 - `_clone_estimator(base_estimator, random_state)`: Clones an estimator.
 """
-
 
 __maintainer__ = ["MatthewMiddlehurst", "TonyBagnall"]
 __all__ = ["BaseAeonEstimator"]

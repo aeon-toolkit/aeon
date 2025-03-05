@@ -9,10 +9,10 @@ Class Name:
 Defining Methods:
     - _preprocess_series(self, X, axis, store_metadata)
       Preprocesses input X before calling fit, ensuring it is in a valid format.
-    
+
     - _check_X(self, X, axis)
       Validates input X, checking type, multivariate/univariate structure, and missing values.
-    
+
     - _convert_X(self, X, axis)
       Converts input X to the required internal format based on estimator tags.
 
@@ -26,7 +26,6 @@ State Attributes:
     - _tags: Dictionary defining estimator capabilities (e.g., univariate, multivariate support).
 
 """
-
 
 __maintainer__ = ["TonyBagnall", "MatthewMiddlehurst"]
 __all__ = ["BaseSeriesEstimator"]
