@@ -19,7 +19,6 @@ class MiniRocket(BaseCollectionTransformer):
      convolutions of length 9 with weights restricted to two values, and uses 84 fixed
      convolutions with six of one weight, three of the second weight to seed dilations.
 
-
     Parameters
     ----------
      n_kernels : int, default=10,000
@@ -54,8 +53,19 @@ class MiniRocket(BaseCollectionTransformer):
 
     Notes
     -----
-     Directly adapted from the original implementation
-     https://github.com/angus924/minirocket.
+     - MiniRocket requires **equal-length** time series input.
+
+     - Input must be in shape **(n_cases, n_channels, n_timepoints)**,
+       where **n_timepoints** is the same for all cases.
+
+     - Lists of numpy arrays with **unequal-length series** are **not supported**.
+
+     - This behavior is controlled by `self.get_tag("capability:unequal_length")`.
+       Since this tag is **False** for MiniRocket, a `ValueError` will be raised
+       if unequal-length input is provided.
+
+     - Directly adapted from the original implementation
+       https://github.com/angus924/minirocket.
 
     Examples
     --------
