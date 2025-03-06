@@ -55,7 +55,7 @@ class IDK2(BaseAnomalyDetector):
          the data in fixed-width segments, offering faster computation at the
          cost of granularity.
     random_state : int, np.random.RandomState instance or None, default=None
-        Determines random number generation for random sample.
+        Determines random number for generation of random sample.
         If `int`, random_state is the seed used by the random number generator;
         If `np.random.RandomState` instance,
         random_state is the random number generator;
