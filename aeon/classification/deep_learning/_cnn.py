@@ -213,10 +213,11 @@ class TimeCNNClassifier(BaseDeepClassifier):
         """
         import numpy as np
         import tensorflow as tf
+
         # Change activation to softmax only if it's a multi-class problem and no activation is provided.
         if self.activation is None:
             self.activation = "softmax" if n_classes > 2 else "sigmoid"
-        print("activation:",self.activation,flush=True)
+        print("activation:", self.activation, flush=True)
         rng = check_random_state(self.random_state)
         self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
         tf.keras.utils.set_random_seed(self.random_state_)
