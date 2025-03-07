@@ -17,7 +17,7 @@ import numpy as np
 
 from aeon.classification.base import BaseClassifier
 from aeon.distances import pairwise_distance
-from aeon.utils.validation import check_n_jobs
+from aeon.utils._threading import threaded
 
 WEIGHTS_SUPPORTED = ["uniform", "distance"]
 
@@ -48,11 +48,10 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         n_timepoints)`` as input and returns a float.
     distance_params : dict, default = None
         Dictionary for metric parameters for the case that distance is a str.
-    n_jobs : int, default = None
-        The number of parallel jobs to run for neighbors search.
-        ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.
-        ``-1`` means using all processors.
-        for more details. Parameter for compatibility purposes, still unimplemented.
+    n_jobs : int, default=1
+        The number of jobs to run in parallel. If -1, then the number of jobs is set
+        to the number of CPU cores. If 1, then the function is executed in a single
+        thread. If greater than 1, then the function is executed in parallel.
 
     Examples
     --------
@@ -164,10 +163,11 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         """
         self._check_is_fitted()
 
-        indexes = self.kneighbors(X, return_distance=False)[:, 0]
+        indexes = self.kneighbors(X, return_distance=False, n_jobs=self.n_jobs)[:, 0]
         return self.classes_[self.y_[indexes]]
 
-    def kneighbors(self, X=None, n_neighbors=None, return_distance=True):
+    @threaded
+    def kneighbors(self, X=None, n_neighbors=None, return_distance=True, n_jobs=1):
         """Find the K-neighbors of a point.
 
         Returns indices of and distances to the neighbors of each point.
@@ -184,6 +184,10 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
             passed to the constructor.
         return_distance : bool, default=True
             Whether or not to return the distances.
+        n_jobs : int, default=1
+            The number of jobs to run in parallel. If -1, then the number of jobs is set
+            to the number of CPU cores. If 1, then the function is executed in a single
+            thread. If greater than 1, then the function is executed in parallel.
 
         Returns
         -------
@@ -194,8 +198,6 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
             Indices of the nearest points in the population matrix.
         """
         self._check_is_fitted()
-        n_jobs = check_n_jobs(self.n_jobs)
-
         if n_neighbors is None:
             n_neighbors = self.n_neighbors
         elif n_neighbors <= 0:
