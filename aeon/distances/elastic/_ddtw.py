@@ -5,7 +5,7 @@ __maintainer__ = []
 from typing import Optional, Union
 
 import numpy as np
-from numba import njit
+from numba import njit, prange
 from numba.typed import List as NumbaList
 
 from aeon.distances.elastic._alignment_paths import compute_min_return_path
@@ -14,6 +14,7 @@ from aeon.distances.elastic._dtw import (
     _dtw_distance,
     create_bounding_matrix,
 )
+from aeon.utils._threading import threaded
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
@@ -167,11 +168,14 @@ def ddtw_cost_matrix(
     raise ValueError("x and y must be 1D or 2D")
 
 
+@threaded
 def ddtw_pairwise_distance(
     X: Union[np.ndarray, list[np.ndarray]],
     y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
     window: Optional[float] = None,
     itakura_max_slope: Optional[float] = None,
+    n_jobs: int = 1,
+    **kwargs,
 ) -> np.ndarray:
     """Compute the DDTW pairwise distance between a set of time series.
 
@@ -191,6 +195,10 @@ def ddtw_pairwise_distance(
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
+    n_jobs : int, default=1
+        The number of jobs to run in parallel. If -1, then the number of jobs is set
+        to the number of CPU cores. If 1, then the function is executed in a single
+        thread. If greater than 1, then the function is executed in parallel.
 
     Returns
     -------
@@ -254,7 +262,7 @@ def ddtw_pairwise_distance(
     )
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath=True, parallel=True)
 def _ddtw_pairwise_distance(
     X: NumbaList[np.ndarray],
     window: Optional[float],
@@ -274,7 +282,7 @@ def _ddtw_pairwise_distance(
     for i in range(n_cases):
         X_average_of_slope.append(average_of_slope(X[i]))
 
-    for i in range(n_cases):
+    for i in prange(n_cases):
         for j in range(i + 1, n_cases):
             x1, x2 = X_average_of_slope[i], X_average_of_slope[j]
             if unequal_length:
@@ -287,7 +295,7 @@ def _ddtw_pairwise_distance(
     return distances
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath=True, parallel=True)
 def _ddtw_from_multiple_to_multiple_distance(
     x: NumbaList[np.ndarray],
     y: NumbaList[np.ndarray],
@@ -313,7 +321,7 @@ def _ddtw_from_multiple_to_multiple_distance(
     for i in range(m_cases):
         y_average_of_slope.append(average_of_slope(y[i]))
 
-    for i in range(n_cases):
+    for i in prange(n_cases):
         for j in range(m_cases):
             x1, y1 = x_average_of_slope[i], y_average_of_slope[j]
             if unequal_length:
