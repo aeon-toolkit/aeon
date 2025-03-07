@@ -43,7 +43,6 @@ expected_correct_window = {
 @pytest.mark.parametrize("distance_key", distance_functions)
 def test_knn_on_unit_test(distance_key):
     """Test function for elastic knn, to be reinstated soon."""
-    # load arrowhead data for unit tests
     X_train, y_train = load_unit_test(split="train")
     X_test, y_test = load_unit_test(split="test")
     knn = KNeighborsTimeSeriesClassifier(distance=distance_key)
