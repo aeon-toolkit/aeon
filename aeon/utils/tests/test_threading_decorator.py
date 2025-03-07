@@ -187,3 +187,96 @@ def test_exception_handling():
                 sample_func(n_jobs=4)
 
             assert set_threads_mock.call_count == 2
+
+
+def test_class_attribute():
+    """
+    Test the extraction of n_jobs from a class attribute.
+
+    The threaded decorator should be able to extract the n_jobs value from
+    the first argument (typically 'self' in class methods) when it has an
+    n_jobs attribute. This test verifies that the decorator correctly identifies
+    and uses this attribute when the n_jobs parameter is not explicitly passed.
+    """
+    check_jobs_mock = MagicMock(side_effect=lambda x: x if x is not None else 1)
+    set_threads_mock = MagicMock()
+
+    with patch("aeon.utils._threading.check_n_jobs", check_jobs_mock):
+        with patch("aeon.utils._threading.set_num_threads", set_threads_mock):
+
+            class TestClass:
+                def __init__(self, n_jobs):
+                    self.n_jobs = n_jobs
+
+                @threaded
+                def process_data(self, data):
+                    return data
+
+            test_instance = TestClass(n_jobs=5)
+
+            test_instance.process_data("test_data")
+
+            check_jobs_mock.assert_called_once_with(5)
+            assert set_threads_mock.call_count == 2
+
+
+def test_parameter_precedence_over_attribute():
+    """
+    Test that n_jobs parameter takes precedence over class attribute.
+
+    When both a class attribute and a method parameter for n_jobs exist,
+    the parameter value should take precedence. This test verifies this
+    precedence rule, ensuring that explicit parameter values override
+    attribute values.
+    """
+    check_jobs_mock = MagicMock(side_effect=lambda x: x if x is not None else 1)
+    set_threads_mock = MagicMock()
+
+    with patch("aeon.utils._threading.check_n_jobs", check_jobs_mock):
+        with patch("aeon.utils._threading.set_num_threads", set_threads_mock):
+
+            class TestClass:
+                def __init__(self, n_jobs):
+                    self.n_jobs = n_jobs
+
+                @threaded
+                def process_data(self, data, n_jobs=None):
+                    return data
+
+            test_instance = TestClass(n_jobs=5)
+
+            test_instance.process_data("test_data", n_jobs=7)
+
+            check_jobs_mock.assert_called_once_with(7)
+            assert set_threads_mock.call_count == 2
+
+
+def test_fallback_when_no_attribute():
+    """
+    Test fallback behavior when neither parameter nor attribute is available.
+
+    When a class doesn't have an n_jobs attribute and the method doesn't
+    have an n_jobs parameter, the decorator should fall back to using None,
+    which will be converted to 1 by check_n_jobs. This test verifies this
+    fallback behavior.
+    """
+    check_jobs_mock = MagicMock(side_effect=lambda x: x if x is not None else 1)
+    set_threads_mock = MagicMock()
+
+    with patch("aeon.utils._threading.check_n_jobs", check_jobs_mock):
+        with patch("aeon.utils._threading.set_num_threads", set_threads_mock):
+
+            class TestClass:
+                # No n_jobs attribute
+                pass
+
+                @threaded
+                def process_data(self, data):
+                    return data
+
+            test_instance = TestClass()
+
+            test_instance.process_data("test_data")
+
+            check_jobs_mock.assert_called_once_with(None)
+            assert set_threads_mock.call_count == 2
