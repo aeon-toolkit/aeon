@@ -1,5 +1,6 @@
 """Tests for KNeighborsTimeSeriesClassifier."""
 
+import numpy as np
 import pytest
 
 from aeon.classification.distance_based import KNeighborsTimeSeriesClassifier
@@ -45,7 +46,7 @@ def test_knn_on_unit_test(distance_key):
     # load arrowhead data for unit tests
     X_train, y_train = load_unit_test(split="train")
     X_test, y_test = load_unit_test(split="test")
-    knn = KNeighborsTimeSeriesClassifier(distance=distance_key, n_jobs=7)
+    knn = KNeighborsTimeSeriesClassifier(distance=distance_key)
     knn.fit(X_train, y_train)
     pred = knn.predict(X_test)
     correct = 0
@@ -70,6 +71,29 @@ def test_knn_bounding_matrix(distance_key):
     )
     knn.fit(X_train, y_train)
     pred = knn.predict(X_test)
+    correct = 0
+    for j in range(0, len(pred)):
+        if pred[j] == y_test[j]:
+            correct = correct + 1
+    assert correct == expected_correct_window[distance_key]
+
+
+@pytest.mark.parametrize("distance_key", distance_functions)
+def test_knn_kneighbors(distance_key):
+    """Test knn kneighbors."""
+    X_train, y_train = load_unit_test(split="train")
+    X_test, y_test = load_unit_test(split="test")
+
+    knn = KNeighborsTimeSeriesClassifier(distance=distance_key)
+    knn.fit(X_train, y_train)
+    dists, ind = knn.kneighbors(X_test, n_neighbors=3)
+    assert isinstance(dists, np.ndarray)
+    assert isinstance(ind, np.ndarray)
+    assert dists.shape == (X_test.shape[0], 3)
+    assert ind.shape == (X_test.shape[0], 3)
+    indexes = ind[:, 0]
+    classes, y = np.unique(y_train, return_inverse=True)
+    pred = classes[y[indexes]]
     correct = 0
     for j in range(0, len(pred)):
         if pred[j] == y_test[j]:
