@@ -31,18 +31,24 @@ def threaded(func: Callable) -> Callable:
             else:
                 original_thread_count = 1
 
+        n_jobs = None
         if "n_jobs" in kwargs:
             n_jobs = kwargs["n_jobs"]
         else:
             sig = inspect.signature(func)
             param_names = list(sig.parameters.keys())
 
-            n_jobs_index = param_names.index("n_jobs")
-            if n_jobs_index < len(args):
-                n_jobs = args[n_jobs_index]
-            else:
-                default = sig.parameters["n_jobs"].default
-                n_jobs = default if default is not inspect.Parameter.empty else None
+            if "n_jobs" in param_names:
+                n_jobs_index = param_names.index("n_jobs")
+                if n_jobs_index < len(args):
+                    n_jobs = args[n_jobs_index]
+                else:
+                    default = sig.parameters["n_jobs"].default
+                    n_jobs = default if default is not inspect.Parameter.empty else None
+
+            if n_jobs is None and args and hasattr(args[0], "n_jobs"):
+                # This gets n_jobs if it belongs to a object (i.e. self.n_jobs)
+                n_jobs = args[0]["n_jobs"]
 
         adjusted_n_jobs = check_n_jobs(n_jobs)
         set_num_threads(adjusted_n_jobs)
