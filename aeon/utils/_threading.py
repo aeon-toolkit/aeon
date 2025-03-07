@@ -48,7 +48,7 @@ def threaded(func: Callable) -> Callable:
 
             if n_jobs is None and args and hasattr(args[0], "n_jobs"):
                 # This gets n_jobs if it belongs to a object (i.e. self.n_jobs)
-                n_jobs = args[0]["n_jobs"]
+                n_jobs = args[0].n_jobs
 
         adjusted_n_jobs = check_n_jobs(n_jobs)
         set_num_threads(adjusted_n_jobs)
