@@ -45,7 +45,7 @@ def test_knn_on_unit_test(distance_key):
     # load arrowhead data for unit tests
     X_train, y_train = load_unit_test(split="train")
     X_test, y_test = load_unit_test(split="test")
-    knn = KNeighborsTimeSeriesClassifier(distance=distance_key)
+    knn = KNeighborsTimeSeriesClassifier(distance=distance_key, n_jobs=7)
     knn.fit(X_train, y_train)
     pred = knn.predict(X_test)
     correct = 0
