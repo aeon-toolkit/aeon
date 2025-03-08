@@ -78,6 +78,7 @@ __all__ = [
     "soft_dtw_pairwise_distance",
     "soft_dtw_alignment_path",
     "soft_dtw_cost_matrix",
+    "dtw_gi",
 ]
 
 from aeon.distances._distance import (
@@ -111,6 +112,7 @@ from aeon.distances.elastic import (
     dtw_alignment_path,
     dtw_cost_matrix,
     dtw_distance,
+    dtw_gi,
     dtw_pairwise_distance,
     edr_alignment_path,
     edr_cost_matrix,
