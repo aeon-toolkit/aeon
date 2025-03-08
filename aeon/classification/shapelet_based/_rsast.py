@@ -79,8 +79,8 @@ class RSASTClassifier(BaseClassifier):
         nb_inst_per_class=10,
         random_state=None,
         classifier=None,
-        seed=None,
         n_jobs=1,
+        seed=None,
     ):
         super().__init__()
         self.n_random_points = n_random_points

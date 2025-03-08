@@ -82,8 +82,8 @@ class SASTClassifier(BaseClassifier):
         nb_inst_per_class: int = 1,
         random_state: Optional[int] = None,
         classifier=None,
-        seed: int = None,
         n_jobs: int = 1,
+        seed: int = None,
     ) -> None:
         super().__init__()
         self.length_list = length_list

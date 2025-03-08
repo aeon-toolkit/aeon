@@ -107,8 +107,8 @@ class SAST(BaseCollectionTransformer):
         stride: int = 1,
         nb_inst_per_class: int = 1,
         random_state: Optional[int] = None,
-        seed: int = None,
         n_jobs: int = 1,  # Parallel processing
+        seed: int = None,
     ):
         super().__init__()
         self.lengths = lengths
