@@ -7,6 +7,7 @@ __maintainer__ = ["nirojasva"]
 __all__ = ["RSASTClassifier"]
 
 import numpy as np
+from deprecated.sphinx import deprecated
 from sklearn.linear_model import RidgeClassifierCV
 from sklearn.pipeline import make_pipeline
 
@@ -32,6 +33,8 @@ class RSASTClassifier(BaseClassifier):
         the number of reference time series to select per class
     random_state : int, default = None
         the seed of the random generator
+    seed : int, default= None
+        Deprecated and will be removed in v1.2. Use `random_state` instead.
     estimator : sklearn compatible classifier, default = None
         if None, a RidgeClassifierCV(alphas=np.logspace(-3, 3, 10)) is used.
     n_jobs : int, default -1
@@ -63,6 +66,12 @@ class RSASTClassifier(BaseClassifier):
         "python_dependencies": "statsmodels",
     }
 
+    # TODO: remove 'seed' in v1.2
+    @deprecated(
+        version="1.1",
+        reason="The 'seed' parameter will be removed in v1.2.",
+        category=FutureWarning,
+    )
     def __init__(
         self,
         n_random_points=10,
@@ -70,6 +79,7 @@ class RSASTClassifier(BaseClassifier):
         nb_inst_per_class=10,
         random_state=None,
         classifier=None,
+        seed=None,
         n_jobs=1,
     ):
         super().__init__()
@@ -77,6 +87,8 @@ class RSASTClassifier(BaseClassifier):
         self.len_method = len_method
         self.nb_inst_per_class = nb_inst_per_class
         self.n_jobs = n_jobs
+        if seed is not None:
+            random_state = seed
         self.random_state = random_state
         self.classifier = classifier
 

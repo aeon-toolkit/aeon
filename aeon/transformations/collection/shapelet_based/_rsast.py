@@ -4,6 +4,7 @@ from typing import Optional, Union
 
 import numpy as np
 import pandas as pd
+from deprecated.sphinx import deprecated
 from numba import get_num_threads, njit, prange, set_num_threads
 
 from aeon.transformations.collection import BaseCollectionTransformer
@@ -66,6 +67,8 @@ class RSAST(BaseCollectionTransformer):
         the number of reference time series to select per class
     random_state : int, default = None
         the seed of the random generator
+    seed : int, default= None
+        Deprecated and will be removed in v1.2. Use `random_state` instead.
     n_jobs : int, default -1
         Number of threads to use for the transform.
 
@@ -98,11 +101,18 @@ class RSAST(BaseCollectionTransformer):
         "python_dependencies": "statsmodels",
     }
 
+    # TODO: remove 'seed' in v1.2
+    @deprecated(
+        version="1.1",
+        reason="The 'seed' parameter will be removed in v1.2.",
+        category=FutureWarning,
+    )
     def __init__(
         self,
         n_random_points: int = 10,
         len_method: str = "both",
         nb_inst_per_class: int = 10,
+        seed=None,
         random_state: Optional[int] = None,
         n_jobs: int = 1,  # Parllel Processing
     ):
@@ -110,6 +120,8 @@ class RSAST(BaseCollectionTransformer):
         self.len_method = len_method
         self.nb_inst_per_class = nb_inst_per_class
         self.n_jobs = n_jobs
+        if seed is not None:
+            random_state = seed
         self.random_state = random_state
         self._kernels = None  # z-normalized subsequences
         self._cand_length_list = {}

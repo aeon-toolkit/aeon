@@ -11,6 +11,7 @@ __all__ = ["SASTClassifier"]
 from operator import itemgetter
 
 import numpy as np
+from deprecated.sphinx import deprecated
 from sklearn.linear_model import RidgeClassifierCV
 from sklearn.pipeline import make_pipeline
 
@@ -34,6 +35,8 @@ class SASTClassifier(BaseClassifier):
         the number of reference time series to select per class
     random_state : int, default = None
         the seed of the random generator
+    seed : int, default=None
+        Deprecated and will be removed in v1.2. Use `random_state` instead.
     estimator : sklearn compatible classifier, default = None
         if None, a RidgeClassifierCV(alphas=np.logspace(-3, 3, 10)) is used.
     n_jobs : int, default -1
@@ -66,6 +69,12 @@ class SASTClassifier(BaseClassifier):
         "algorithm_type": "shapelet",
     }
 
+    # TODO: remove 'seed' in v1.2
+    @deprecated(
+        version="1.1",
+        reason="The 'seed' parameter will be removed in v1.2.",
+        category=FutureWarning,
+    )
     def __init__(
         self,
         length_list=None,
@@ -73,6 +82,7 @@ class SASTClassifier(BaseClassifier):
         nb_inst_per_class: int = 1,
         random_state: Optional[int] = None,
         classifier=None,
+        seed: int = None,
         n_jobs: int = 1,
     ) -> None:
         super().__init__()
@@ -80,6 +90,8 @@ class SASTClassifier(BaseClassifier):
         self.stride = stride
         self.nb_inst_per_class = nb_inst_per_class
         self.n_jobs = n_jobs
+        if seed is not None:
+            random_state = seed
         self.random_state = random_state
 
         self.classifier = classifier
