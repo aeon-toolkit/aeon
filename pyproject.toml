@@ -51,7 +51,7 @@ dependencies = [
     "packaging>=20.0",
     "pandas>=2.0.0,<2.3.0",
     "scikit-learn>=1.0.0,<1.7.0",
-    "scipy>=1.9.0,<1.15.0",
+    "scipy>=1.9.0,<1.16.0",
     "typing-extensions>=4.6.0",
 ]
 
@@ -104,7 +104,7 @@ binder = [
     "jupyterlab",
 ]
 docs = [
-    "sphinx<8.2.0",
+    "sphinx<8.3.0",
     "sphinx-design",
     "sphinx-version-warning",
     "sphinx_issues",
