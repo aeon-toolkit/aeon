@@ -1,20 +1,20 @@
 """
 Abstract base class for time series regressors.
 
-    class name: BaseRegressor
+Class Name: ``BaseRegressor``
 
-Defining methods:
-    fitting         - fit(self, X, y)
-    predicting      - predict(self, X)
+Defining Methods:
+    - **Fitting**: ``fit(self, X, y)``
+    - **Predicting**: ``predict(self, X)``
 
-Inherited inspection methods:
-    hyper-parameter inspection  - get_params()
-    fitted parameter inspection - get_fitted_params()
+Inherited Inspection Methods:
+    - **Hyper-parameter inspection**: ``get_params()``
+    - **Fitted parameter inspection**: ``get_fitted_params()``
 
 State:
-    fitted model/strategy   - by convention, any attributes ending in "_"
-    fitted state flag       - is_fitted (property)
-    fitted state inspection - check_is_fitted()
+    - **Fitted model/strategy**: By convention, any attributes ending in ``"_"``
+    - **Fitted state flag**: ``is_fitted`` (property)
+    - **Fitted state inspection**: ``check_is_fitted()``
 """
 
 __maintainer__ = []
@@ -43,7 +43,7 @@ class BaseRegressor(RegressorMixin, BaseCollectionEstimator):
 
     Attributes
     ----------
-    _estimator_type : string
+    _estimator_type : ``string``
         The type of estimator. Required by some ``sklearn`` tools, set to "regressor".
     """
 
@@ -63,37 +63,37 @@ class BaseRegressor(RegressorMixin, BaseCollectionEstimator):
 
         Parameters
         ----------
-        X : np.ndarray or list
+        X : ``np.ndarray`` or ``list``
             Input data, any number of channels, equal length series of shape ``(
             n_cases, n_channels, n_timepoints)``
-            or 2D np.array (univariate, equal length series) of shape
+            or 2D ``np.array`` (univariate, equal length series) of shape
             ``(n_cases, n_timepoints)``
-            or list of numpy arrays (any number of channels, unequal length series)
+            or list of ``numpy`` arrays (any number of channels, unequal length series)
             of shape ``[n_cases]``, 2D np.array ``(n_channels, n_timepoints_i)``,
             where ``n_timepoints_i`` is length of series ``i``. Other types are
             allowed and converted into one of the above.
 
             Different estimators have different capabilities to handle different
-            types of input. If ``self.get_tag("capability:multivariate")`` is False,
+            types of input. If ``self.get_tag("capability:multivariate")`` is ``False``,
             they cannot handle multivariate series, so either ``n_channels == 1`` is
-            true or X is 2D of shape ``(n_cases, n_timepoints)``. If ``self.get_tag(
-            "capability:unequal_length")`` is False, they cannot handle unequal
-            length input. In both situations, a ``ValueError`` is raised if X has a
+            ``True`` or ``X`` is 2D of shape ``(n_cases, n_timepoints)``. If ``self.get_tag(
+            "capability:unequal_length")`` is ``False``, they cannot handle unequal
+            length input. In both situations, a ``ValueError`` is raised if ``X`` has a
             characteristic that the estimator does not have the capability for is
             passed.
-        y : np.ndarray
-            1D np.array of float, of shape ``(n_cases)`` - regression targets
-            (ground truth) for fitting indices corresponding to instance indices in X.
+        y : ``np.ndarray``
+            ``1D np.array`` of ``float``, of shape ``(n_cases)`` - regression targets
+            (ground truth) for fitting indices corresponding to instance indices in ``X``.
 
         Returns
         -------
-        self : BaseRegressor
+        self : ``BaseRegressor``
             Reference to self.
 
         Notes
         -----
         Changes state by creating a fitted model that updates attributes
-        ending in "_" and sets is_fitted flag to True.
+        ending in ``"_"`` and sets ``is_fitted`` flag to ``True``.
         """
         X, y = self._fit_setup(X, y)
 
@@ -105,34 +105,36 @@ class BaseRegressor(RegressorMixin, BaseCollectionEstimator):
 
     @final
     def predict(self, X) -> np.ndarray:
-        """Predicts target variable for time series in X.
+        """
+        ``Predicts`` target variable for time series in ``X``.
 
         Parameters
         ----------
-        X : np.ndarray or list
-            Input data, any number of channels, equal length series of shape ``(
-            n_cases, n_channels, n_timepoints)``
-            or 2D np.array (univariate, equal length series) of shape
+        X : ``np.ndarray`` or ``list``
+            Input data, any number of channels, equal length series of shape
+            ``(n_cases, n_channels, n_timepoints)``
+            or 2D ``np.array`` (univariate, equal length series) of shape
             ``(n_cases, n_timepoints)``
-            or list of numpy arrays (any number of channels, unequal length series)
-            of shape ``[n_cases]``, 2D np.array ``(n_channels, n_timepoints_i)``,
-            where ``n_timepoints_i`` is length of series ``i``
-            other types are allowed and converted into one of the above.
+            or list of ``numpy`` arrays (any number of channels, unequal length series)
+            of shape ``[n_cases]``, 2D ``np.array`` ``(n_channels, n_timepoints_i)``,
+            where ``n_timepoints_i`` is length of series ``i``. Other types are
+            allowed and converted into one of the above.
 
             Different estimators have different capabilities to handle different
-            types of input. If ``self.get_tag("capability:multivariate")`` is False,
+            types of input. If ``self.get_tag("capability:multivariate")`` is ``False``,
             they cannot handle multivariate series, so either ``n_channels == 1`` is
-            true or X is 2D of shape ``(n_cases, n_timepoints)``. If ``self.get_tag(
-            "capability:unequal_length")`` is False, they cannot handle unequal
-            length input. In both situations, a ``ValueError`` is raised if X has a
-            characteristic that the estimator does not have the capability for is
-            passed.
+            ``True`` or ``X`` is 2D of shape ``(n_cases, n_timepoints)``.
+
+            If ``self.get_tag("capability:unequal_length")`` is ``False``,
+            they cannot handle unequal length input. In both situations,
+            a ``ValueError`` is raised if ``X`` has a characteristic
+            that the estimator does not support.
 
         Returns
         -------
-        predictions : np.ndarray
-            1D np.array of float, of shape (n_cases) - predicted regression labels
-            indices correspond to instance indices in X
+        predictions : ``np.ndarray``
+            1D ``np.array`` of ``float``, of shape ``(n_cases)`` - predicted regression labels.
+            Indices correspond to instance indices in ``X``.
         """
         self._check_is_fitted()
         X = self._preprocess_collection(X, store_metadata=False)
@@ -141,48 +143,50 @@ class BaseRegressor(RegressorMixin, BaseCollectionEstimator):
 
     @final
     def fit_predict(self, X, y) -> np.ndarray:
-        """Fits the regressor and predicts class labels for X.
+        """
+        ``Fits`` the regressor and ``predicts`` class labels for ``X``.
 
-        fit_predict produces prediction estimates using just the train data.
-        By default, this is through 10x cross validation, although some estimators may
-        utilise specialist techniques such as out-of-bag estimates or leave-one-out
+        ``fit_predict`` produces prediction estimates using just the train data.
+        By default, this is through ``10x`` cross-validation, although some estimators
+        may utilize specialist techniques such as out-of-bag estimates or leave-one-out
         cross-validation.
 
-        Regressors which override _fit_predict will have the
-        ``capability:train_estimate`` tag set to True.
+        Regressors that override ``_fit_predict`` will have the
+        ``capability:train_estimate`` tag set to ``True``.
 
-        Generally, this will not be the same as fitting on the whole train data
-        then making train predictions. To do this, you should call fit(X,y).predict(X)
+        Generally, this will not be the same as fitting on the whole train data and then making train predictions. To do this, you should call ``fit(X, y).predict(X)``.
 
         Parameters
         ----------
-        X : np.ndarray or list
-            Input data, any number of channels, equal length series of shape ``(
-            n_cases, n_channels, n_timepoints)``
-            or 2D np.array (univariate, equal length series) of shape
+        X : ``np.ndarray`` or ``list``
+            Input data, any number of channels, equal length series of shape
+            ``(n_cases, n_channels, n_timepoints)``
+            or 2D ``np.array`` (univariate, equal length series) of shape
             ``(n_cases, n_timepoints)``
-            or list of numpy arrays (any number of channels, unequal length series)
-            of shape ``[n_cases]``, 2D np.array ``(n_channels, n_timepoints_i)``,
-            where ``n_timepoints_i`` is length of series ``i``. other types are
+            or list of ``numpy`` arrays (any number of channels, unequal length series)
+            of shape ``[n_cases]``, 2D ``np.array`` ``(n_channels, n_timepoints_i)``,
+            where ``n_timepoints_i`` is length of series ``i``. Other types are
             allowed and converted into one of the above.
 
             Different estimators have different capabilities to handle different
-            types of input. If `self.get_tag("capability:multivariate")`` is False,
+            types of input. If ``self.get_tag("capability:multivariate")`` is ``False``,
             they cannot handle multivariate series, so either ``n_channels == 1`` is
-            true or X is 2D of shape ``(n_cases, n_timepoints)``. If ``self.get_tag(
-            "capability:unequal_length")`` is False, they cannot handle unequal
-            length input. In both situations, a ``ValueError`` is raised if X has a
-            characteristic that the estimator does not have the capability for is
-            passed.
-        y : np.ndarray
-            1D np.array of float, of shape ``(n_cases)`` - regression targets
-            (ground truth) for fitting indices corresponding to instance indices in X.
+            ``True`` or ``X`` is 2D of shape ``(n_cases, n_timepoints)``.
+
+            If ``self.get_tag("capability:unequal_length")`` is ``False``,
+            they cannot handle unequal length input. In both situations,
+            a ``ValueError`` is raised if ``X`` has a characteristic
+            that the estimator does not support.
+
+        y : ``np.ndarray``
+            1D ``np.array`` of ``float``, of shape ``(n_cases)`` - regression targets
+            (ground truth) for fitting. Indices correspond to instance indices in ``X``.
 
         Returns
         -------
-        predictions : np.ndarray
-            1D np.array of float, of shape (n_cases) - predicted regression labels
-            indices correspond to instance indices in X
+        predictions : ``np.ndarray``
+            1D ``np.array`` of ``float``, of shape ``(n_cases)`` - predicted regression labels.
+            Indices correspond to instance indices in ``X``.
         """
         X, y = self._fit_setup(X, y)
 
@@ -193,42 +197,47 @@ class BaseRegressor(RegressorMixin, BaseCollectionEstimator):
         return y_pred
 
     def score(self, X, y, metric="r2", metric_params=None) -> float:
-        """Scores predicted labels against ground truth labels on X.
+        """
+        ``Scores`` predicted labels against ground truth labels on ``X``.
 
         Parameters
         ----------
-        X : np.ndarray or list
-            Input data, any number of channels, equal length series of shape ``(
-            n_cases, n_channels, n_timepoints)``
-            or 2D np.array (univariate, equal length series) of shape
+        X : ``np.ndarray`` or ``list``
+            Input data, any number of channels, equal length series of shape
+            ``(n_cases, n_channels, n_timepoints)``
+            or 2D ``np.array`` (univariate, equal length series) of shape
             ``(n_cases, n_timepoints)``
-            or list of numpy arrays (any number of channels, unequal length series)
-            of shape ``[n_cases]``, 2D np.array ``(n_channels, n_timepoints_i)``,
-            where ``n_timepoints_i`` is length of series ``i``. other types are
+            or list of ``numpy`` arrays (any number of channels, unequal length series)
+            of shape ``[n_cases]``, 2D ``np.array`` ``(n_channels, n_timepoints_i)``,
+            where ``n_timepoints_i`` is length of series ``i``. Other types are
             allowed and converted into one of the above.
 
             Different estimators have different capabilities to handle different
-            types of input. If `self.get_tag("capability:multivariate")`` is False,
+            types of input. If ``self.get_tag("capability:multivariate")`` is ``False``,
             they cannot handle multivariate series, so either ``n_channels == 1`` is
-            true or X is 2D of shape ``(n_cases, n_timepoints)``. If ``self.get_tag(
-            "capability:unequal_length")`` is False, they cannot handle unequal
-            length input. In both situations, a ``ValueError`` is raised if X has a
-            characteristic that the estimator does not have the capability for is
-            passed.
-        y : np.ndarray
-            1D np.array of float, of shape ``(n_cases)`` - regression targets
-            (ground truth) for fitting indices corresponding to instance indices in X.
-        metric : Union[str, callable], default="r2",
-            Defines the scoring metric to test the fit of the model. For supported
-            strings arguments, check `sklearn.metrics.get_scorer_names`.
-        metric_params : dict, default=None,
-            Contains parameters to be passed to the scoring function. If None, no
-            parameters are passed.
+            ``True`` or ``X`` is 2D of shape ``(n_cases, n_timepoints)``.
+
+            If ``self.get_tag("capability:unequal_length")`` is ``False``,
+            they cannot handle unequal length input. In both situations,
+            a ``ValueError`` is raised if ``X`` has a characteristic
+            that the estimator does not have the capability for.
+
+        y : ``np.ndarray``
+            1D ``np.array`` of ``float``, of shape ``(n_cases)`` - regression targets
+            (ground truth) for fitting. Indices correspond to instance indices in ``X``.
+
+        metric : ``Union[str, callable]``, default=``"r2"``
+            Defines the scoring metric to test the fit of the model.
+            For supported string arguments, check ``sklearn.metrics.get_scorer_names``.
+
+        metric_params : ``dict``, default=``None``
+            Contains parameters to be passed to the scoring function.
+            If ``None``, no parameters are passed.
 
         Returns
         -------
-        score : float
-            MSE score of predict(X) vs y
+        score : ``float``
+            ``MSE`` score of ``predict(X)`` vs ``y``.
         """
         self._check_is_fitted()
         y = self._check_y(y, len(X))
@@ -255,76 +264,81 @@ class BaseRegressor(RegressorMixin, BaseCollectionEstimator):
 
     @abstractmethod
     def _fit(self, X, y):
-        """Fit time series regressor to training data.
+        """
+        ``Fit`` time series regressor to training data.
 
         Abstract method, must be implemented.
 
         Parameters
         ----------
-        X : Train data
-            guaranteed to be of a type in self.get_tag("X_inner_type")
-            if ``self.get_tag("X_inner_type")`` equals "numpy3D":
-                3D np.ndarray of shape ``(n_cases, n_channels, n_timepoints)``
-            if ``self.get_tag("X_inner_type")`` equals "np-list":
-                list of 2D np.ndarray of shape ``(n_cases)``
-        y : np.ndarray
-            1D np.array of float, of shape ``(n_cases)`` - regression targets for
-            fitting indices corresponding to instance indices in X.
+        X : ``Train data``
+            Guaranteed to be of a type in ``self.get_tag("X_inner_type")``.
+            - If ``self.get_tag("X_inner_type")`` equals ``"numpy3D"``:
+               3D ``np.ndarray`` of shape ``(n_cases, n_channels, n_timepoints)``.
+            - If ``self.get_tag("X_inner_type")`` equals ``"np-list"``:
+               List of 2D ``np.ndarray`` of shape ``(n_cases)``.
+
+        y : ``np.ndarray``
+            1D ``np.array`` of ``float``, of shape ``(n_cases)`` - regression targets
+            for fitting. Indices correspond to instance indices in ``X``.
 
         Returns
         -------
-        self : BaseRegressor
+        self : ``BaseRegressor``
             Reference to self.
 
         Notes
         -----
-        Changes state by creating a fitted model that updates attributes ending in "_"
+        Changes state by creating a fitted model that updates attributes ending in ``"_"``.
         """
         ...
 
     @abstractmethod
     def _predict(self, X) -> np.ndarray:
-        """Predicts labels for sequences in X.
+        """
+        ``Predicts`` labels for sequences in ``X``.
 
         Abstract method, must be implemented.
 
         Parameters
         ----------
-        X : Train data
-            guaranteed to be of a type in self.get_tag("X_inner_type")
-            if ``self.get_tag("X_inner_type")`` equals "numpy3D":
-                3D np.ndarray of shape ``(n_cases, n_channels, n_timepoints)``
-            if ``self.get_tag("X_inner_type")`` equals "np-list":
-                list of 2D np.ndarray of shape ``(n_cases)``
+        X : ``Train data``
+            Guaranteed to be of a type in ``self.get_tag("X_inner_type")``.
+            - If ``self.get_tag("X_inner_type")`` equals ``"numpy3D"``:
+              3D ``np.ndarray`` of shape ``(n_cases, n_channels, n_timepoints)``.
+            - If ``self.get_tag("X_inner_type")`` equals ``"np-list"``:
+              List of 2D ``np.ndarray`` of shape ``(n_cases)``.
 
         Returns
         -------
-        predictions : np.ndarray
-            1D np.array of float, of shape (n_cases) - predicted regression labels
-            indices correspond to instance indices in X
+        predictions : ``np.ndarray``
+            1D ``np.array`` of ``float``, of shape ``(n_cases)`` - predicted regression labels.
+            Indices correspond to instance indices in ``X``.
         """
         ...
 
     def _fit_predict(self, X, y) -> np.ndarray:
-        """Fits and predicts labels for sequences in X.
+        """
+        ``Fits and predicts`` labels for sequences in ``X``.
 
         Parameters
         ----------
-        X : Train data
-            guaranteed to be of a type in self.get_tag("X_inner_type")
-            if ``self.get_tag("X_inner_type")`` equals "numpy3D":
-                3D np.ndarray of shape ``(n_cases, n_channels, n_timepoints)``
-            if ``self.get_tag("X_inner_type")`` equals "np-list":
-                list of 2D np.ndarray of shape ``(n_cases)``
-        y : np.ndarray
-            1D np.array of float, of shape ``(n_cases)`` - regression targets
-            (ground truth) for fitting indices corresponding to instance indices in X.
+        X : ``Train data``
+            Guaranteed to be of a type in ``self.get_tag("X_inner_type")``.
+            - If ``self.get_tag("X_inner_type")`` equals ``"numpy3D"``:
+              3D ``np.ndarray`` of shape ``(n_cases, n_channels, n_timepoints)``.
+            - If ``self.get_tag("X_inner_type")`` equals ``"np-list"``:
+              List of 2D ``np.ndarray`` of shape ``(n_cases)``.
+
+        y : ``np.ndarray``
+            1D ``np.array`` of ``float``, of shape ``(n_cases)`` - regression targets
+            (ground truth) for fitting, with indices corresponding to instance indices in ``X``.
 
         Returns
         -------
-        predictions : np.ndarray
-            1D np.array of float, of shape (n_cases) - predicted regression labels
-            indices correspond to instance indices in X
+        predictions : ``np.ndarray``
+            1D ``np.array`` of ``float``, of shape ``(n_cases)`` - predicted regression labels.
+            Indices correspond to instance indices in ``X``.
         """
         # fit the regressor
         self._fit(X, y)

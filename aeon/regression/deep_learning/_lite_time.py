@@ -18,88 +18,88 @@ from aeon.regression.deep_learning.base import BaseDeepRegressor, BaseRegressor
 class LITETimeRegressor(BaseRegressor):
     """LITETime or LITEMVTime ensemble Regressor.
 
-    Ensemble of IndividualLITETimeRegressor objects, as described in [1]_
-    and [2]_. For using LITEMV, simply set the `use_litemv`
-    bool parameter to True.
+    Ensemble of ``IndividualLITETimeRegressor`` objects, as described in [1]_
+    and [2]_. For using LITEMV, simply set the ``use_litemv``
+    bool parameter to ``True``.
 
     Parameters
     ----------
-    n_regressors : int, default = 5,
+    n_regressors : ``int``, default = ``5``
         the number of LITE or LITEMV models used for the
         Ensemble in order to create
         LITETime or LITEMVTime.
-    use_litemv : bool, default = False
+    use_litemv : ``bool``, default = ``False``
         The boolean value to control which version of the
-        network to use. If set to `False`, then LITE is used,
-        if set to `True` then LITEMV is used. LITEMV is the
+        network to use. If set to ``False``, then LITE is used,
+        if set to ``True`` then LITEMV is used. LITEMV is the
         same architecture as LITE but specifically designed
         to better handle multivariate time series.
-    n_filters : int, default = 32
+    n_filters : ``int``, default = ``32``
         The number of filters used in one lite layer.
-    kernel_size : int, default = 40
+    kernel_size : ``int``, default = ``40``
         The head kernel size used for each lite layer.
-    strides : int or list of int, default = 1
+    strides : ``int`` or ``list`` of ``int``, default = ``1``
         The strides of kernels in convolution layers for each lite layer,
         if not a list, the same is used in all lite layers.
-    activation : str or list of str, default = 'relu'
+    activation : ``str`` or ``list`` of ``str``, default = ``'relu'``
         The activation function used in each lite layer, if not a list,
         the same is used in all lite layers.
-    output_activation   : str, default = "linear",
+    output_activation : ``str``, default = ``"linear"``
         the output activation for the regressor.
-    batch_size : int, default = 64
+    batch_size : ``int``, default = ``64``
         the number of samples per gradient update.
-    use_mini_batch_size : bool, default = False
+    use_mini_batch_size : ``bool``, default = ``False``
         condition on using the mini batch size
         formula Wang et al.
-    n_epochs : int, default = 1500
+    n_epochs : ``int``, default = ``1500``
         the number of epochs to train the model.
-    callbacks : keras callback or list of callbacks,
-        default = None
+    callbacks : ``keras`` callback or ``list`` of callbacks,
+        default = ``None``
         The default list of callbacks are set to
-        ModelCheckpoint and ReduceLROnPlateau.
-    file_path : str, default = "./"
-        file_path when saving model_Checkpoint callback
-    save_best_model : bool, default = False
+        ``ModelCheckpoint`` and ``ReduceLROnPlateau``.
+    file_path : ``str``, default = ``"./"``
+        file_path when saving ``ModelCheckpoint`` callback.
+    save_best_model : ``bool``, default = ``False``
         Whether or not to save the best model, if the
         model checkpoint callback is used by default,
-        this condition, if True, will prevent the
+        this condition, if ``True``, will prevent the
         automatic deletion of the best saved model from
-        file and the user can choose the file name
-    save_last_model : bool, default = False
+        file and the user can choose the file name.
+    save_last_model : ``bool``, default = ``False``
         Whether or not to save the last model, last
         epoch trained, using the base class method
-        save_last_model_to_file
-    save_init_model : bool, default = False
-        Whether to save the initialization of the  model.
-    best_file_name : str, default = "best_model"
+        ``save_last_model_to_file``.
+    save_init_model : ``bool``, default = ``False``
+        Whether to save the initialization of the model.
+    best_file_name : ``str``, default = ``"best_model"``
         The name of the file of the best model, if
-        save_best_model is set to False, this parameter
-        is discarded
-    last_file_name : str, default = "last_model"
+        ``save_best_model`` is set to ``False``, this parameter
+        is discarded.
+    last_file_name : ``str``, default = ``"last_model"``
         The name of the file of the last model, if
-        save_last_model is set to False, this parameter
-        is discarded
-    init_file_name : str, default = "init_model"
-        The name of the file of the init model, if save_init_model is set to False,
+        ``save_last_model`` is set to ``False``, this parameter
+        is discarded.
+    init_file_name : ``str``, default = ``"init_model"``
+        The name of the file of the init model, if ``save_init_model`` is set to ``False``,
         this parameter is discarded.
-    random_state : int, RandomState instance or None, default=None
-        If `int`, random_state is the seed used by the random number generator;
-        If `RandomState` instance, random_state is the random number generator;
-        If `None`, the random number generator is the `RandomState` instance used
-        by `np.random`.
+    random_state : ``int``, ``RandomState`` instance or ``None``, default=``None``
+        If ``int``, ``random_state`` is the seed used by the random number generator;
+        If ``RandomState`` instance, ``random_state`` is the random number generator;
+        If ``None``, the random number generator is the ``RandomState`` instance used
+        by ``np.random``.
         Seeded random number generation can only be guaranteed on CPU processing,
         GPU processing will be non-deterministic.
-    verbose : boolean, default = False
-        whether to output extra information
-    loss : str, default = "mean_squared_error"
-        The name of the keras training loss.
-    metrics : str or list[str], default="mean_squared_error"
+    verbose : ``bool``, default = ``False``
+        whether to output extra information.
+    loss : ``str``, default = ``"mean_squared_error"``
+        The name of the ``keras`` training loss.
+    metrics : ``str`` or ``list[str]``, default=``"mean_squared_error"``
         The evaluation metrics to use during training. If
         a single string metric is provided, it will be
         used as the only metric. If a list of metrics are
         provided, all will be used for evaluation.
-    optimizer : keras.optimizer, default = tf.keras.optimizers.Adam()
-        The keras optimizer used for training.
+    optimizer : ``keras.optimizer``, default = ``tf.keras.optimizers.Adam()``
+        The ``keras`` optimizer used for training.
 
     Notes
     -----
@@ -121,11 +121,10 @@ class LITETimeRegressor(BaseRegressor):
     >>> from aeon.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test = load_unit_test(split="test")
-    >>> ltime = LITETimeRegressor(n_epochs=20,batch_size=4)  # doctest: +SKIP
+    >>> ltime = LITETimeRegressor(n_epochs=20, batch_size=4)  # doctest: +SKIP
     >>> ltime.fit(X_train, y_train)  # doctest: +SKIP
     LITETimeRegressor(...)
     """
-
     _tags = {
         "python_dependencies": "tensorflow",
         "capability:multivariate": True,
@@ -195,7 +194,7 @@ class LITETimeRegressor(BaseRegressor):
         super().__init__()
 
     def _fit(self, X, y):
-        """Fit the ensemble of IndividualLITERegressor models.
+        """Fit the ensemble of ``IndividualLITERegressor`` models.
 
         Parameters
         ----------
@@ -240,7 +239,7 @@ class LITETimeRegressor(BaseRegressor):
         return self
 
     def _predict(self, X) -> np.ndarray:
-        """Predict the values of the test set using LITETime.
+        """Predict the values of the test set using ``LITETime``.
 
         Parameters
         ----------
@@ -267,20 +266,20 @@ class LITETimeRegressor(BaseRegressor):
 
         Parameters
         ----------
-        parameter_set : str, default="default"
+        parameter_set : ``str``, default=``"default"``
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
-            For Regressors, a "default" set of parameters should be provided for
-            general testing, and a "results_comparison" set for comparing against
+            special parameters are defined for a value, will return ``"default"`` set.
+            For Regressors, a ``"default"``set of parameters should be provided for
+            general testing, and a ``"results_comparison"`` set for comparing against
             previously recorded results if the general set does not produce suitable
             probabilities to compare against.
 
         Returns
         -------
-        params : dict or list of dict, default={}
+        params : ``dict`` or list of ``dict``, default=``{}``
             Parameters to create testing instances of the class.
-            Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            Each ``dict`` are parameters to construct an "interesting" test instance, i.e.,
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test instance.
         """
         param1 = {
             "n_regressors": 1,
@@ -303,97 +302,98 @@ class LITETimeRegressor(BaseRegressor):
 
 
 class IndividualLITERegressor(BaseDeepRegressor):
+    class IndividualLITERegressor(BaseRegressor):
     """Single LITE or LITEMV Regressor.
 
     One LITE or LITEMV deep model, as described in [1]_
-    and [2]_. For using LITEMV, simply set the `use_litemv`
-    bool parameter to True.
+    and [2]_. For using LITEMV, simply set the ``use_litemv``
+    bool parameter to ``True``.
 
     Parameters
     ----------
-    use_litemv : bool, default = False
+    use_litemv : ``bool``, default = ``False``
         The boolean value to control which version of the
-        network to use. If set to `False`, then LITE is used,
-        if set to `True` then LITEMV is used. LITEMV is the
+        network to use. If set to ``False``, then LITE is used,
+        if set to ``True`` then LITEMV is used. LITEMV is the
         same architecture as LITE but specifically designed
         to better handle multivariate time series.
-    n_filters : int, default = 32
+    n_filters : ``int``, default = ``32``
         The number of filters used in one lite layer.
-    kernel_size : int, default = 40
+    kernel_size : ``int``, default = ``40``
         The head kernel size used for each lite layer.
-    strides : int or list of int, default = 1
+    strides : ``int`` or ``list`` of ``int``, default = ``1``
         The strides of kernels in convolution layers for each lite layer,
         if not a list, the same is used in all lite layers.
-    activation : str or list of str, default = 'relu'
+    activation : ``str`` or ``list`` of ``str``, default = ``'relu'``
         The activation function used in each lite layer, if not a list,
         the same is used in all lite layers.
-    output_activation : str, default = 'linear'
-        The activation function used in the output layer
-    batch_size : int, default = 64
-        the number of samples per gradient update.
-    use_mini_batch_size : bool, default = False
-        condition on using the mini batch size
+    output_activation : ``str``, default = ``'linear'``
+        The activation function used in the output layer.
+    batch_size : ``int``, default = ``64``
+        The number of samples per gradient update.
+    use_mini_batch_size : ``bool``, default = ``False``
+        Condition on using the mini batch size
         formula Wang et al.
-    n_epochs : int, default = 1500
-        the number of epochs to train the model.
-    callbacks : keras callback or list of callbacks,
-        default = None
+    n_epochs : ``int``, default = ``1500``
+        The number of epochs to train the model.
+    callbacks : ``keras`` callback or ``list`` of callbacks,
+        default = ``None``
         The default list of callbacks are set to
-        ModelCheckpoint and ReduceLROnPlateau.
-    file_path : str, default = "./"
-        file_path when saving model_Checkpoint callback
-    save_best_model : bool, default = False
+        ``ModelCheckpoint`` and ``ReduceLROnPlateau``.
+    file_path : ``str``, default = ``"./"``
+        File path when saving ``ModelCheckpoint`` callback.
+    save_best_model : ``bool``, default = ``False``
         Whether or not to save the best model, if the
         model checkpoint callback is used by default,
-        this condition, if True, will prevent the
+        this condition, if ``True``, will prevent the
         automatic deletion of the best saved model from
-        file and the user can choose the file name
-    save_last_model     : bool, default = False
+        file and the user can choose the file name.
+    save_last_model : ``bool``, default = ``False``
         Whether or not to save the last model, last
         epoch trained, using the base class method
-        save_last_model_to_file
-    save_init_model : bool, default = False
-        Whether to save the initialization of the  model.
-    best_file_name      : str, default = "best_model"
+        ``save_last_model_to_file``.
+    save_init_model : ``bool``, default = ``False``
+        Whether to save the initialization of the model.
+    best_file_name : ``str``, default = ``"best_model"``
         The name of the file of the best model, if
-        save_best_model is set to False, this parameter
-        is discarded
-    last_file_name      : str, default = "last_model"
+        ``save_best_model`` is set to ``False``, this parameter
+        is discarded.
+    last_file_name : ``str``, default = ``"last_model"``
         The name of the file of the last model, if
-        save_last_model is set to False, this parameter
-        is discarded
-    init_file_name : str, default = "init_model"
-        The name of the file of the init model, if save_init_model is set to False,
+        ``save_last_model`` is set to ``False``, this parameter
+        is discarded.
+    init_file_name : ``str``, default = ``"init_model"``
+        The name of the file of the init model, if ``save_init_model`` is set to ``False``,
         this parameter is discarded.
-    random_state : int, RandomState instance or None, default=None
-        If `int`, random_state is the seed used by the random number generator;
-        If `RandomState` instance, random_state is the random number generator;
-        If `None`, the random number generator is the `RandomState` instance used
-        by `np.random`.
+    random_state : ``int``, ``RandomState`` instance or ``None``, default=``None``
+        If ``int``, ``random_state`` is the seed used by the random number generator;
+        If ``RandomState`` instance, ``random_state`` is the random number generator;
+        If ``None``, the random number generator is the ``RandomState`` instance used
+        by ``np.random``.
         Seeded random number generation can only be guaranteed on CPU processing,
         GPU processing will be non-deterministic.
-    verbose : boolean, default = False
-        whether to output extra information
-    loss : str, default = "mean_squared_error"
-        The name of the keras training loss.
-    metrics : str or list[str], default="mean_squared_error"
+    verbose : ``bool``, default = ``False``
+        Whether to output extra information.
+    loss : ``str``, default = ``"mean_squared_error"``
+        The name of the ``keras`` training loss.
+    metrics : ``str`` or ``list`` of ``str``, default=``"mean_squared_error"``
         The evaluation metrics to use during training. If
         a single string metric is provided, it will be
         used as the only metric. If a list of metrics are
         provided, all will be used for evaluation.
-    optimizer : keras.optimizer, default = tf.keras.optimizers.Adam()
-        The keras optimizer used for training.
+    optimizer : ``keras.optimizer``, default = ``tf.keras.optimizers.Adam()``
+        The ``keras`` optimizer used for training.
 
     Notes
     -----
     Adapted from the implementation from Ismail-Fawaz et. al
-    https://github.com/MSD-IRIMAS/LITE
+    `https://github.com/MSD-IRIMAS/LITE`
 
     References
     ----------
     ..[1] Ismail-Fawaz et al. LITE: Light Inception with boosTing
-    tEchniques for Time Series Classificaion, IEEE International
-    Conference on Data Science and Advanced Analytics, 2023.
+    tEchniques for Time Series Classification, IEEE International
+    Conference on Data Science and Advanced Analytics,  2023.
     ..[2] Ismail-Fawaz, Ali, et al. "Look Into the LITE
     in Deep Learning for Time Series Classification."
     arXiv preprint arXiv:2409.02869 (2024).
@@ -404,7 +404,7 @@ class IndividualLITERegressor(BaseDeepRegressor):
     >>> from aeon.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test = load_unit_test(split="test")
-    >>> lite = IndividualLITERegressor(n_epochs=20,batch_size=4)  # doctest: +SKIP
+    >>> lite = IndividualLITERegressor(n_epochs=20, batch_size=4)  # doctest: +SKIP
     >>> lite.fit(X_train, y_train)  # doctest: +SKIP
     IndividualLITERegressor(...)
     """
@@ -478,7 +478,7 @@ class IndividualLITERegressor(BaseDeepRegressor):
 
         Parameters
         ----------
-        input_shape : tuple
+        input_shape : ``tuple``
             The shape of the data fed into the input layer
 
         Returns
@@ -513,14 +513,14 @@ class IndividualLITERegressor(BaseDeepRegressor):
 
     def _fit(self, X, y):
         """
-        Fit the Regressor on the training set (X, y).
+        Fit the Regressor on the training set ``(X, y)``.
 
         Parameters
         ----------
-        X : array-like of shape = (n_instances, n_channels, n_timepoints)
+        X : array-like of shape = ``(n_instances, n_channels, n_timepoints)``
             The training input samples. If a 2D array-like is passed,
             n_channels is assumed to be 1.
-        y : array-like, shape = (n_instances)
+        y : array-like, shape = ``(n_instances)``
             The training data target values.
 
         Returns
@@ -605,20 +605,20 @@ class IndividualLITERegressor(BaseDeepRegressor):
 
         Parameters
         ----------
-        parameter_set : str, default="default"
+        parameter_set : ``str``, default=``"default"``
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
-            For Regressors, a "default" set of parameters should be provided for
+            special parameters are defined for a value, will return ``"default"`` set.
+            For Regressors, a ``"default"`` set of parameters should be provided for
             general testing, and a "results_comparison" set for comparing against
             previously recorded results if the general set does not produce suitable
             values to compare against.
 
         Returns
         -------
-        params : dict or list of dict, default={}
+        params : ``dict`` or list of ``dict``, default=``{}``
             Parameters to create testing instances of the class.
-            Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            Each ``dict`` are parameters to construct an "interesting" test instance, i.e.,
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test instance.
         """
         param1 = {
             "n_epochs": 2,

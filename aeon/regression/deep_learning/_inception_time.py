@@ -19,122 +19,122 @@ from aeon.regression.deep_learning.base import BaseDeepRegressor
 class InceptionTimeRegressor(BaseRegressor):
     """InceptionTime ensemble regressor.
 
-    Ensemble of IndividualInceptionRegressor, as described in [1]_.
-    This ensemble regressor is adapted from the classier InceptionTime
+    Ensemble of ``IndividualInceptionRegressor``, as described in [1]_.
+    This ensemble regressor is adapted from the classifier ``InceptionTime``.
 
     Parameters
     ----------
-        n_regressors : int, default = 5,
+        n_regressors : ``int``, default = ``5``,
             the number of Inception models used for the
-            Ensemble in order to create
-            InceptionTime.
-        depth : int, default = 6,
-            the number of inception modules used
-        n_filters : int or list of int32, default = 32,
+            ensemble in order to create
+            ``InceptionTime``.
+        depth : ``int``, default = ``6``,
+            the number of inception modules used.
+        n_filters : ``int`` or ``list`` of ``int32``, default = ``32``,
             the number of filters used in one inception
-            module, if not a list,
+            module. If not a list,
             the same number of filters is used in
-            all inception modules
-        n_conv_per_layer : int or list of int, default = 3,
+            all inception modules.
+        n_conv_per_layer : ``int`` or ``list`` of ``int``, default = ``3``,
             the number of convolution layers in each inception
-            module, if not a list,
+            module. If not a list,
             the same number of convolution layers is used
-            in all inception modules
-        kernel_size : int or list of int, default = 40,
+            in all inception modules.
+        kernel_size : ``int`` or ``list`` of ``int``, default = ``40``,
             the head kernel size used for each inception
-            module, if not a list,
-            the same is used in all inception modules
-        use_max_pooling : bool or list of bool, default = True,
-            conditioning whether or not to use max pooling layer
-            in inception modules,if not a list,
-            the same is used in all inception modules
-        max_pool_size : int or list of int, default = 3,
-            the size of the max pooling layer, if not a list,
-            the same is used in all inception modules
-        strides : int or list of int, default = 1,
+            module. If not a list,
+            the same is used in all inception modules.
+        use_max_pooling : ``bool`` or ``list`` of ``bool``, default = ``True``,
+            conditioning whether or not to use a max pooling layer
+            in inception modules. If not a list,
+            the same is used in all inception modules.
+        max_pool_size : ``int`` or ``list`` of ``int``, default = ``3``,
+            the size of the max pooling layer. If not a list,
+            the same is used in all inception modules.
+        strides : ``int`` or ``list`` of ``int``, default = ``1``,
             the strides of kernels in convolution layers for each
-            inception module, if not a list,
-            the same is used in all inception modules
-        dilation_rate : int or list of int, default = 1,
+            inception module. If not a list,
+            the same is used in all inception modules.
+        dilation_rate : ``int`` or ``list`` of ``int``, default = ``1``,
             the dilation rate of convolutions in each inception
-            module, if not a list,
-            the same is used in all inception modules
-        padding : str or list of str, default = "same",
-            the type of padding used for convoltuon for each
-            inception module, if not a list,
-            the same is used in all inception modules
-        activation : str or list of str, default = "relu",
+            module. If not a list,
+            the same is used in all inception modules.
+        padding : ``str`` or ``list`` of ``str``, default = ``"same"``,
+            the type of padding used for convolution for each
+            inception module. If not a list,
+            the same is used in all inception modules.
+        activation : ``str`` or ``list`` of ``str``, default = ``"relu"``,
             the activation function used in each inception
-            module, if not a list,
-            the same is used in all inception modules
-        use_bias : bool or list of bool, default = False,
+            module. If not a list,
+            the same is used in all inception modules.
+        use_bias : ``bool`` or ``list`` of ``bool``, default = ``False``,
             condition whether or not convolutions should
             use bias values in each inception
-            module, if not a list,
-            the same is used in all inception modules
-        use_residual : bool, default = True,
+            module. If not a list,
+            the same is used in all inception modules.
+        use_residual : ``bool``, default = ``True``,
             condition whether or not to use residual
-            connections all over Inception
-        use_bottleneck : bool, default = True,
+            connections all over Inception.
+        use_bottleneck : ``bool``, default = ``True``,
             condition whether or not to use bottlenecks
-            all over Inception
-        bottleneck_size : int, default = 32,
-            the bottleneck size in case use_bottleneck = True
-        use_custom_filters : bool, default = False,
+            all over Inception.
+        bottleneck_size : ``int``, default = ``32``,
+            the bottleneck size in case ``use_bottleneck = True``.
+        use_custom_filters : ``bool``, default = ``False``,
             condition on whether or not to use custom
-            filters in the first inception module
-        output_activation : str, default = "linear",
-            the output activation for the regressor
-        batch_size : int, default = 64
+            filters in the first inception module.
+        output_activation : ``str``, default = ``"linear"``,
+            the output activation for the regressor.
+        batch_size : ``int``, default = ``64``
             the number of samples per gradient update.
-        use_mini_batch_size : bool, default = False
-            condition on using the mini batch size
+        use_mini_batch_size : ``bool``, default = ``False``
+            condition on using the mini-batch size
             formula Wang et al.
-        n_epochs : int, default = 1500
+        n_epochs : ``int``, default = ``1500``
             the number of epochs to train the model.
-        callbacks : keras callback or list of callbacks,
-            default = None
+        callbacks : ``keras`` callback or ``list`` of callbacks,
+            default = ``None``
             The default list of callbacks are set to
-            ModelCheckpoint and ReduceLROnPlateau.
-        file_path : str, default = './'
-            file_path when saving model_Checkpoint callback
-        save_best_model : bool, default = False
-            Whether or not to save the best model, if the
-            modelcheckpoint callback is used by default,
-            this condition, if True, will prevent the
+            ``ModelCheckpoint`` and ``ReduceLROnPlateau``.
+        file_path : ``str``, default = ``'./'``
+            file_path when saving ``model_Checkpoint`` callback.
+        save_best_model : ``bool``, default = ``False``
+            Whether or not to save the best model. If the
+            ``modelcheckpoint`` callback is used by default,
+            this condition, if ``True``, will prevent the
             automatic deletion of the best saved model from
-            file and the user can choose the file name
-        save_last_model : bool, default = False
-            Whether or not to save the last model, last
-            epoch trained, using the base class method
-            save_last_model_to_file
-        save_init_model : bool, default = False
-            Whether to save the initialization of the  model.
-        best_file_name : str, default = "best_model"
-            The name of the file of the best model, if
-            save_best_model is set to False, this parameter
-            is discarded
-        last_file_name : str, default = "last_model"
-            The name of the file of the last model, if
-            save_last_model is set to False, this parameter
-            is discarded
-        init_file_name : str, default = "init_model"
-            The name of the file of the init model, if save_init_model is set to False,
+            file and the user can choose the file name.
+        save_last_model : ``bool``, default = ``False``
+            Whether or not to save the last model (last
+            epoch trained) using the base class method
+            ``save_last_model_to_file``.
+        save_init_model : ``bool``, default = ``False``
+            Whether to save the initialization of the model.
+        best_file_name : ``str``, default = ``"best_model"``
+            The name of the file of the best model. If
+            ``save_best_model`` is set to ``False``, this parameter
+            is discarded.
+        last_file_name : ``str``, default = ``"last_model"``
+            The name of the file of the last model. If
+            ``save_last_model`` is set to ``False``, this parameter
+            is discarded.
+        init_file_name : ``str``, default = ``"init_model"``
+            The name of the file of the init model. If ``save_init_model`` is set to ``False``,
             this parameter is discarded.
-        random_state : int, RandomState instance or None, default=None
-            If `int`, random_state is the seed used by the random number generator;
-            If `RandomState` instance, random_state is the random number generator;
-            If `None`, the random number generator is the `RandomState` instance used
-            by `np.random`.
-            Seeded random number generation can only be guaranteed on CPU processing,
+        random_state : ``int``, ``RandomState`` instance or ``None``, default=``None``
+            If ``int``, ``random_state`` is the seed used by the random number generator;
+            If ``RandomState`` instance, ``random_state`` is the random number generator;
+            If ``None``, the random number generator is the ``RandomState`` instance used
+            by ``np.random``.
+            Seeded random number generation can only be guaranteed on CPU processing;
             GPU processing will be non-deterministic.
-        verbose : boolean, default = False
-            whether to output extra information
-        optimizer : keras.optimizer, default = tf.keras.optimizers.Adam()
-            The keras optimizer used for training.
-        loss : str, default = "mean_squared_error"
-            The name of the keras training loss.
-        metrics : str or list[str], default="mean_squared_error"
+        verbose : ``bool``, default = ``False``
+            whether to output extra information.
+        optimizer : ``keras.optimizer``, default = ``tf.keras.optimizers.Adam()``
+            The ``keras`` optimizer used for training.
+        loss : ``str``, default = ``"mean_squared_error"``
+            The name of the ``keras`` training loss.
+        metrics : ``str`` or ``list[str]``, default=``"mean_squared_error"``
             The evaluation metrics to use during training. If
             a single string metric is provided, it will be
             used as the only metric. If a list of metrics are
@@ -142,7 +142,7 @@ class InceptionTimeRegressor(BaseRegressor):
 
     Notes
     -----
-    Adapted from the implementation from Fawaz et. al ..[1]
+    Adapted from the implementation from Fawaz et al. [1]_.
 
     and Ismail-Fawaz et al.
     https://github.com/MSD-IRIMAS/CF-4-TSC
@@ -150,7 +150,7 @@ class InceptionTimeRegressor(BaseRegressor):
     References
     ----------
     ..[1] Fawaz et al. InceptionTime: Finding AlexNet for Time Series
-    regression, Data Mining and Knowledge Discovery, 34, 2020
+    regression, Data Mining and Knowledge Discovery, 34, 2020.
 
     ..[2] Ismail-Fawaz et al. Deep Learning For Time Series
     regression Using New
@@ -164,7 +164,7 @@ class InceptionTimeRegressor(BaseRegressor):
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
     ...                              return_y=True, regression_target=True,
     ...                              random_state=0)
-    >>> inctime = InceptionTimeRegressor(n_epochs=20,batch_size=4)  # doctest: +SKIP
+    >>> inctime = InceptionTimeRegressor(n_epochs=20, batch_size=4)  # doctest: +SKIP
     >>> inctime.fit(X, y)  # doctest: +SKIP
     InceptionTimeRegressor(...)
     """
@@ -342,20 +342,20 @@ class InceptionTimeRegressor(BaseRegressor):
 
         Parameters
         ----------
-        parameter_set : str, default="default"
+        parameter_set : ``str``, default=``"default"``
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
-            For regressors, a "default" set of parameters should be provided for
-            general testing, and a "results_comparison" set for comparing against
+            special parameters are defined for a value, will return ``"default"`` set.
+            For regressors, a ``"default"`` set of parameters should be provided for
+            general testing, and a ``"results_comparison"`` set for comparing against
             previously recorded results if the general set does not produce suitable
             probabilities to compare against.
 
         Returns
         -------
-        params : dict or list of dict, default=[None]
+        params : ``dict`` or list of ``dict``, default=``[None]``
             Parameters to create testing instances of the class.
-            Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            Each ``dict`` are parameters to construct an "interesting" test instance, i.e.,
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test instance.
         """
         param1 = {
             "n_regressors": 1,
@@ -375,107 +375,106 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
 
     Parameters
     ----------
-        depth : int, default = 6,
-            the number of inception modules used
-        n_filters : int or list of int32, default = 32,
-            the number of filters used in one inception module, if not a list,
-            the same number of filters is used in all inception modules
-        n_conv_per_layer : int or list of int, default = 3,
-            the number of convolution layers in each inception module, if not a list,
-            the same number of convolution layers is used in all inception modules
-        kernel_size : int or list of int, default = 40,
-            the head kernel size used for each inception module, if not a list,
-            the same is used in all inception modules
-        use_max_pooling : bool or list of bool, default = True,
-            condition whether or not to use max pooling layer
-            in inception modules,if not a list,
-            the same is used in all inception modules
-        max_pool_size : int or list of int, default = 3,
-            the size of the max pooling layer, if not a list,
-            the same is used in all inception modules
-        strides : int or list of int, default = 1,
-            the strides of kernels in convolution layers for
-            each inception module, if not a list,
-            the same is used in all inception modules
-        dilation_rate : int or list of int, default = 1,
-            the dilation rate of convolutions in each inception module, if not a list,
-            the same is used in all inception modules
-        padding : str or list of str, default = "same",
-            the type of padding used for convoltuon for each
-            inception module, if not a list,
-            the same is used in all inception modules
-        activation : str or list of str, default = "relu",
-            the activation function used in each inception module, if not a list,
-            the same is used in all inception modules
-        use_bias : bool or list of bool, default = False,
-            condition whether or not convolutions should
-            use bias values in each inception
-            module, if not a list,
-            the same is used in all inception modules
-        use_residual : bool, default = True,
-            condition whether or not to use residual connections all over Inception
-        use_bottleneck : bool, default = True,
-            condition whether or not to use bottlesnecks all over Inception
-        bottleneck_size : int, default = 32,
-            the bottleneck size in case use_bottleneck = True
-        use_custom_filters : bool, default = False,
-            condition on whether or not to use custom filters
-            in the first inception module
-        output_activation : str, default = "linear",
-            the output activation of the regressor
-        batch_size : int, default = 64
-            the number of samples per gradient update.
-        use_mini_batch_size : bool, default = False
-            condition on using the mini batch size formula Wang et al.
-        n_epochs : int, default = 1500
-            the number of epochs to train the model.
-        callbacks : keras callback or list of callbacks,
-            default = None
-            The default list of callbacks are set to
-            ModelCheckpoint and ReduceLROnPlateau.
-        file_path : str, default = './'
-            file_path when saving model_Checkpoint callback
-        save_best_model : bool, default = False
-            Whether or not to save the best model, if the
-            modelcheckpoint callback is used by default,
-            this condition, if True, will prevent the
-            automatic deletion of the best saved model from
-            file and the user can choose the file name
-        save_last_model : bool, default = False
-            Whether or not to save the last model, last
-            epoch trained, using the base class method
-            save_last_model_to_file
-        save_init_model : bool, default = False
-            Whether to save the initialization of the  model.
-        best_file_name : str, default = "best_model"
-            The name of the file of the best model, if
-            save_best_model is set to False, this parameter
-            is discarded
-        last_file_name : str, default = "last_model"
-            The name of the file of the last model, if
-            save_last_model is set to False, this parameter
-            is discarded
-        init_file_name : str, default = "init_model"
-            The name of the file of the init model, if save_init_model is set to False,
-            this parameter is discarded.
-        random_state : int, RandomState instance or None, default=None
-            If `int`, random_state is the seed used by the random number generator;
-            If `RandomState` instance, random_state is the random number generator;
-            If `None`, the random number generator is the `RandomState` instance used
-            by `np.random`.
-            Seeded random number generation can only be guaranteed on CPU processing,
-            GPU processing will be non-deterministic.
-        verbose : boolean, default = False
-            whether to output extra information
-        optimizer : keras.optimizer, default = tf.keras.optimizers.Adam()
-            The keras optimizer used for training.
-        loss : str, default = "mean_squared_error"
-            The name of the keras training loss.
-        metrics : str or list[str], default="mean_squared_error"
-            The evaluation metrics to use during training. If
-            a single string metric is provided, it will be
-            used as the only metric. If a list of metrics are
-            provided, all will be used for evaluation.
+    depth : ``int``, default = ``6``
+        the number of inception modules used
+    n_filters : ``int`` or ``list`` of ``int32``, default = ``32``
+        the number of filters used in one inception module, if not a list,
+        the same number of filters is used in all inception modules
+    n_conv_per_layer : ``int`` or ``list`` of ``int``, default = ``3``
+        the number of convolution layers in each inception module, if not a list,
+        the same number of convolution layers is used in all inception modules
+    kernel_size : ``int`` or ``list`` of ``int``, default = ``40``
+        the head kernel size used for each inception module, if not a list,
+        the same is used in all inception modules
+    use_max_pooling : ``bool`` or ``list`` of ``bool``, default = ``True``
+        condition whether or not to use max pooling layer
+        in inception modules, if not a list,
+        the same is used in all inception modules
+    max_pool_size : ``int`` or ``list`` of ``int``, default = ``3``
+        the size of the max pooling layer, if not a list,
+        the same is used in all inception modules
+    strides : ``int`` or ``list`` of ``int``, default = ``1``
+        the strides of kernels in convolution layers for
+        each inception module, if not a list,
+        the same is used in all inception modules
+    dilation_rate : ``int`` or ``list`` of ``int``, default = ``1``
+        the dilation rate of convolutions in each inception module, if not a list,
+        the same is used in all inception modules
+    padding : ``str`` or ``list`` of ``str``, default = ``"same"``
+        the type of padding used for convolution for each
+        inception module, if not a list,
+        the same is used in all inception modules
+    activation : ``str`` or ``list`` of ``str``, default = ``"relu"``
+        the activation function used in each inception module, if not a list,
+        the same is used in all inception modules
+    use_bias : ``bool`` or ``list`` of ``bool``, default = ``False``
+        condition whether or not convolutions should
+        use bias values in each inception
+        module, if not a list,
+        the same is used in all inception modules
+    use_residual : ``bool``, default = ``True``
+        condition whether or not to use residual connections all over Inception
+    use_bottleneck : ``bool``, default = ``True``
+        condition whether or not to use bottlenecks all over Inception
+    bottleneck_size : ``int``, default = ``32``
+        the bottleneck size in case ``use_bottleneck = True``
+    use_custom_filters : ``bool``, default = ``False``
+        condition on whether or not to use custom filters
+        in the first inception module
+    output_activation : ``str``, default = ``"linear"``
+        the output activation of the regressor
+    batch_size : ``int``, default = ``64``
+        the number of samples per gradient update.
+    use_mini_batch_size : ``bool``, default = ``False``
+        condition on using the mini batch size formula Wang et al.
+    n_epochs : ``int``, default = ``1500``
+        the number of epochs to train the model.
+    callbacks : ``keras`` callback or ``list`` of ``callbacks``, default = ``None``
+        The default list of callbacks are set to
+        ``ModelCheckpoint`` and ``ReduceLROnPlateau``.
+    file_path : ``str``, default = ``'./'``
+        file_path when saving ``ModelCheckpoint`` callback
+    save_best_model : ``bool``, default = ``False``
+        Whether or not to save the best model, if the
+        ``ModelCheckpoint`` callback is used by default,
+        this condition, if ``True``, will prevent the
+        automatic deletion of the best saved model from
+        file and the user can choose the file name
+    save_last_model : ``bool``, default = ``False``
+        Whether or not to save the last model, last
+        epoch trained, using the base class method
+        ``save_last_model_to_file``
+    save_init_model : ``bool`` , default = ``False``
+        Whether to save the initialization of the model.
+    best_file_name : ``str``, default = ``"best_model"``
+        The name of the file of the best model, if
+        ``save_best_model`` is set to ``False``, this parameter
+        is discarded
+    last_file_name : ``str``, default = ``"last_model"``
+        The name of the file of the last model, if
+        ``save_last_model`` is set to ``False``, this parameter
+        is discarded
+    init_file_name : ``str``, default = ``"init_model"``
+        The name of the file of the init model, if ``save_init_model`` is set to ``False``,
+        this parameter is discarded.
+    random_state : ``int``, ``RandomState`` instance or ``None``, default=``None``
+        If ``int``, ``random_state`` is the seed used by the random number generator;
+        If ``RandomState`` instance, ``random_state`` is the random number generator;
+        If ``None``, the random number generator is the ``RandomState`` instance used
+        by ``np.random``.
+        Seeded random number generation can only be guaranteed on CPU processing,
+        GPU processing will be non-deterministic.
+    verbose : ``bool``, default = ``False``
+        whether to output extra information
+    optimizer : ``keras.optimizer``, default = ``tf.keras.optimizers.Adam()``
+        The keras optimizer used for training.
+    loss : ``str``, default = ``"mean_squared_error"``
+        The name of the keras training loss.
+    metrics : ``str`` or ``list`` of ``str``, default=``"mean_squared_error"``
+        The evaluation metrics to use during training. If
+        a single string metric is provided, it will be
+        used as the only metric. If a list of metrics are
+        provided, all will be used for evaluation.
 
     Notes
     -----
@@ -487,11 +486,11 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
 
     References
     ----------
-    ..[1] Fawaz et al. InceptionTime: Finding AlexNet for Time Series
-    regression, Data Mining and Knowledge Discovery, 34, 2020
+    .. [1] Fawaz et al. *InceptionTime: Finding AlexNet for Time Series
+    Regression*, Data Mining and Knowledge Discovery, 34, 2020.
 
-    ..[2] Ismail-Fawaz et al. Deep Learning For Time Series regression Using New
-    Hand-Crafted Convolution Filters, 2022 IEEE International Conference on Big Data.
+    .. [2] Ismail-Fawaz et al. *Deep Learning For Time Series Regression Using New
+    Hand-Crafted Convolution Filters*, 2022 IEEE International Conference on Big Data.
 
     Examples
     --------
@@ -500,7 +499,7 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
     ...                              return_y=True, regression_target=True,
     ...                              random_state=0)
-    >>> inc = IndividualInceptionRegressor(n_epochs=20,batch_size=4)  # doctest: +SKIP
+    >>> inc = IndividualInceptionRegressor(n_epochs=20, batch_size=4)  # doctest: +SKIP
     >>> inc.fit(X, y)  # doctest: +SKIP
     IndividualInceptionRegressor(...)
     """
@@ -601,12 +600,12 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
 
         Parameters
         ----------
-        input_shape : tuple
+        input_shape : ``tuple``
             The shape of the data fed into the input layer
 
         Returns
         -------
-        tf.keras.models.Model
+        ``tf.keras.models.Model``
             A compiled Keras Model
         """
         import numpy as np
@@ -633,16 +632,16 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
 
     def _fit(self, X, y):
         """
-        Fit the regressor on the training set (X, y).
+        Fit the regressor on the training set ``(X, y)``.
 
         Parameters
         ----------
-        X : np.ndarray
+        X : ``np.ndarray``
             The training input samples of,
-            shape (n_cases, n_channels, n_timepoints).
+            shape ``(n_cases, n_channels, n_timepoints)``.
             If a 2D array-like is passed, n_channels is assumed to be 1.
-        y : np.ndarray
-            The training data target values of shape (n_cases,).
+        y : ``np.ndarray``
+            The training data target values of shape ``(n_cases,)``.
 
         Returns
         -------
@@ -726,20 +725,20 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
 
         Parameters
         ----------
-        parameter_set : str, default="default"
+        parameter_set : ``str``, default=``"default"``
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
-            For regressors, a "default" set of parameters should be provided for
-            general testing, and a "results_comparison" set for comparing against
+            special parameters are defined for a value, will return ``"default"`` set.
+            For regressors, a ``"default"`` set of parameters should be provided for
+            general testing, and a ``"results_comparison"`` set for comparing against
             previously recorded results if the general set does not produce suitable
             probabilities to compare against.
 
         Returns
         -------
-        params : dict or list of dict, default=[None]
+        params : ``dict`` or list of ``dict``, default=``[None]``
             Parameters to create testing instances of the class.
-            Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            Each ``dict`` are parameters to construct an "interesting" test instance, i.e.,
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test instance.
         """
         param1 = {
             "n_epochs": 10,
