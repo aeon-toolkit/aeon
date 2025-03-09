@@ -165,6 +165,17 @@ Partitional TSCL
 
 :::
 
+:::{grid-item-card}
+:img-top: examples/clustering/img/sklearn_clustering.png
+:class-img-top: aeon-card-image-m
+:link: /examples/clustering/sklearn_clustering_with_aeon_distances.ipynb
+:link-type: ref
+:text-align: center
+
+Using aeon Distances with sklearn Clusterers
+
+:::
+
 ::::
 
 ## Transformation
