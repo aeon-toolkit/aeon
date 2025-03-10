@@ -63,7 +63,9 @@ jobs:
           - ${{ (github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'full pytest actions')) }}
         exclude:
           - pr-testing: true
-            python-version: ["3.10", "3.12"]
+            python-version: "3.10"
+          - pr-testing: true
+            python-version: "3.12"
 
     steps:
       - name: Checkout
@@ -90,6 +92,7 @@ jobs:
 
       - uses: ./.github/actions/cpu_all_extras
         with:
+          python_version: ${{ matrix.python-version }}
           additional_extras: "dev"
 
       - name: Show dependencies

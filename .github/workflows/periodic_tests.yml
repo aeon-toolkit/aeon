@@ -179,6 +179,7 @@ jobs:
 
       - uses: ./.github/actions/cpu_all_extras
         with:
+          python_version: ${{ matrix.python-version }}
           additional_extras: "dev"
 
       - name: Show dependencies
