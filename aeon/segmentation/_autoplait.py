@@ -62,8 +62,30 @@ class _AutoPlait:
 
 
 class AutoPlaitSegmenter(BaseSegmenter):
-    """
-    DOCSTRING
+    """AutoPlait Segmentation.
+
+    Using ClaSP [1]_, [2]_ for the CPD problem is straightforward: We first compute the
+    profile and then choose its global maximum as the change point. The following CPDs
+    are obtained using a bespoke recursive split segmentation algorithm.
+
+    Parameters
+    ----------
+    param_name : param_type, default = NONE
+        Param desc.
+
+    References
+    ----------
+    .. [1] AUTOPLAIT REFERENCE.
+    .. [2] Schafer, Patrick and Ermshaus, Arik and Leser, Ulf. "ClaSP - Time Series
+    Segmentation", CIKM, 2021.
+
+    Examples
+    --------
+    >>> from aeon.segmentation import AutoPlaitSegmenter
+    >>> from aeon.datasets import load_gun_point_segmentation
+    >>> X, _, cps = load_gun_point_segmentation()
+    >>> autoplait = AutoPlaitSegmenter()
+    >>> found_cps = autoplait.fit_predict(X)
     """
 
     _tags = {
