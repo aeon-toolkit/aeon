@@ -162,7 +162,68 @@ def _regime_split(X):
 def _cost(X, regime1, regime2=None, transition_matrix=None):
     if regime2 is not None:
         # TODO: Cost of regime pair
-        pass
+        return 0
     else:
         # TODO: Cost of single regime
-        pass
+        return 0
+
+def _log_star(x):
+    count = 0
+    while x > 1:
+        x = math.log2(x)  # Apply base-2 logarithm
+        count += 1
+    return count
+
+def _new_cost(X, S, regimes):
+    n, d = X.shape
+    m = len(S)
+    r = len(regimes[:-1])
+    log_star_values = (_log_star(n), _log_star(d), _log_star(m), _log_star(r))
+    log_star_sum = sum(log_star_values)
+
+    segment_cost = _segment_length_cost(S)
+    cost_m_value = _cost_m(regimes)
+    cost_e_value = _cost_e(X, regimes)
+
+    return log_star_sum + m * log_star_values[3] + segment_cost + cost_m_value + cost_e_value
+
+def _segment_length_cost(S):
+    total = 0
+    for s in S:
+        total += _log_star(abs(s[1] - s[0]))
+    return total
+
+def _cost_m(regimes):
+    total = 0
+    cf = 4 * 8
+    d = 1
+    for regime in regimes[:-1]:
+        k = regime.hidden_states
+        total += _log_star(k) + cf * (k + k**2 + 2*k*d)
+    return total + cf * len(regimes[:-1])**2
+
+def _cost_e(X, regime):
+    return 1
+
+def _score_segmentation(pred_regimes, true_regimes, n):
+    sum_diff = 0
+    num_regimes = len(true_regimes)
+    for i in range(num_regimes):
+        current = pred_regimes[i]
+        closest = min(true_regimes, key=lambda x: abs(x - current))
+        diff = abs(closest - current)
+        sum_diff += diff
+    return sum_diff/n
+
+def equation_7(X, regime1:_HiddenMarkovModel, regime2:_HiddenMarkovModel, rtm):
+    if rtm.shape != (2, 2):
+        raise ValueError("Regime transition matrix shape must be (2,2)")
+    max_reg1 = max([handle_regime_1(X, regime1, regime2, rtm, i, len(X)) for i in range(regime1.hidden_states)])
+    max_reg2 = max([handle_regime_2(X, regime1, regime2, rtm, u, len(X)) for u in range(regime2.hidden_states)])
+    return max(max_reg1, max_reg2)
+
+def handle_regime_1(X, regime1:_HiddenMarkovModel, regime2:_HiddenMarkovModel, rtm, state, t):
+    if t < 0:
+        raise ValueError("Undefined for time t < 0")
+    if t == 0:
+        return rtm[0][0] * regime1.initial_probs[state] * regime1.output_probabilities[state](X[0])
