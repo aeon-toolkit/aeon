@@ -24,10 +24,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Python 3.10
+      - name: Setup Python 3.11
         uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: "3.11"
 
       - if: ${{ github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'no numba cache') }}
         name: Restore numba cache
@@ -35,7 +35,7 @@ jobs:
         with:
           cache_name: "test-no-soft-deps"
           runner_os: ${{ runner.os }}
-          python_version: "3.10"
+          python_version: "3.11"
 
       - name: Install aeon and dependencies
         uses: nick-fields/retry@v3
@@ -57,13 +57,13 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-24.04, macOS-14, windows-2022 ]
-        python-version: [ "3.9", "3.10", "3.11", "3.12" ]
+        python-version: [ "3.9", "3.10", "3.11", "3.12", "3.13" ]
         # skip python versions unless the PR has the 'full pytest actions' label
         pr-testing:
           - ${{ (github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'full pytest actions')) }}
         exclude:
           - pr-testing: true
-            python-version: "3.10"
+            python-version: ["3.10", "3.12"]
 
     steps:
       - name: Checkout
@@ -109,10 +109,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Python 3.10
+      - name: Setup Python 3.11
         uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: "3.11"
 
       - name: Disable Numba JIT
         run: echo "NUMBA_DISABLE_JIT=1" >> $GITHUB_ENV
