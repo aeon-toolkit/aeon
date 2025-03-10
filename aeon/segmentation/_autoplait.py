@@ -19,38 +19,38 @@ class _AutoPlait:
         self._complete_parameters = self._autoplait(X)
 
     def _autoplait(self, X):
-        t_params, f = [], []
-        d = []
+        regime_parameters, segment_membership = [], []
+        transition_matrix = []
 
-        q = []  # Stack
-        s = []  # Output segment set
-        m = 0  # Output number of segments
-        r = 0  # Output number of regimes
-        s.append((1, len(X)))  # 1 initial segment; the entire TS
-        m_0 = 1  # There is 1 initial segment
+        regime_stack = []  # Stack
+        segment_set = []  # Output segment set
+        num_segments = 0  # Output number of segments
+        num_regimes = 0  # Output number of regimes
+        segment_set.append((1, len(X)))  # 1 initial segment; the entire TS
+        num_segments_0 = 1  # There is 1 initial segment
 
         t0 = []  # TODO: Estimate t0 of s_0
-        q.append((m_0, s[0], t0))  # Push onto stack
-        while q:  # While the stack is not empty
-            m_i, s_i, t_i = q.pop()
-            m1, m2, s1, s2, t1, t2, d = _regime_split(X)
-            if _cost(X, t1, t2, d) < _cost(X, t_i):
-                q.append((m1, s1, t1))
-                q.append((m2, s2, t2))
+        regime_stack.append((num_segments_0, segment_set[0], t0))  # Push onto stack
+        while regime_stack:  # While the stack is not empty
+            current_num_segments, current_segment_set, t_i = regime_stack.pop()
+            m1, m2, s1, s2, t1, t2, transition_matrix = _regime_split(X)
+            if _cost(X, t1, t2, transition_matrix) < _cost(X, t_i):
+                regime_stack.append((m1, s1, t1))
+                regime_stack.append((m2, s2, t2))
             else:
-                s.append(s_i)
-                t_params.append(t_i)
-                r += 1
+                segment_set.append(current_segment_set)
+                regime_parameters.append(t_i)
+                num_regimes += 1
                 # TODO: Update regime transitions d
                 # TODO: segment membership f
-                m += m_i
-        t_params.append(d)  # Add the regime transition matrix
+                num_segments += current_num_segments
+        regime_parameters.append(transition_matrix)  # Add the regime transition matrix
         results = {
-            "num_segments":m,
-            "num_regimes":r,
-            "segment_set":s,
-            "regime_parameters":t_params,
-            "segment_memberships":f,
+            "num_segments":num_segments,
+            "num_regimes":num_regimes,
+            "segment_set":segment_set,
+            "regime_parameters":regime_parameters,
+            "segment_memberships":segment_membership,
         }
         return results
 
