@@ -3,10 +3,19 @@
 __maintainer__ = []
 __all__ = ["AutoPlaitSegmenter"]
 
+import math
+
 import numpy as np
 
 from aeon.segmentation.base import BaseSegmenter
 
+class _HiddenMarkovModel:
+
+    def __init__(self, hidden_states:int):
+        self.hidden_states = hidden_states
+        self.initial_probs = [1 for _ in range(hidden_states)]
+        self.transition_probabilites = np.zeros((hidden_states, hidden_states))
+        self.output_probabilities = [(lambda x: x + 1) for _ in range(hidden_states)]
 
 class _AutoPlait:
 
@@ -123,14 +132,17 @@ class AutoPlaitSegmenter(BaseSegmenter):
         self._check_is_fitted()
         return self._autoplait.complete_parameters(as_list)
 
-def _cut_point_search(X, regime1, regime2, transition_matrix):
+def _cut_point_search(X, regime1:_HiddenMarkovModel, regime2:_HiddenMarkovModel, transition_matrix):
     m1, m2 = 0, 0
     s1, s2 = [], []
     l1, l2 = [], [] # Candidate cut point sets
     for t in range(len(X)):
         # TODO: Compute likelihoods for all states of regime1 and regime2
+        regime_1_likelihoods = [handle_regime_1(X, regime1, regime2, transition_matrix, i, t) for i in range(regime1.hidden_states)]
+        regime_2_likelihoods = [handle_regime_2(X, regime1, regime2, transition_matrix, u, t) for u in range(regime2.hidden_states)]
+
         # TODO: Update candidate cut point sets for both regimes
-        pass
+
     l_best = best_cut_point_set(l1, l2)
     t_s = 1
     for idx, l_i in enumerate(l_best):
@@ -227,3 +239,43 @@ def handle_regime_1(X, regime1:_HiddenMarkovModel, regime2:_HiddenMarkovModel, r
         raise ValueError("Undefined for time t < 0")
     if t == 0:
         return rtm[0][0] * regime1.initial_probs[state] * regime1.output_probabilities[state](X[0])
+
+    # Probability of the best state in regime2 at time t-1
+    recursive_switch = max(
+        [handle_regime_2(X, regime1, regime2, rtm, v, t-1)] for v in range(regime2.hidden_states)
+    )
+
+    # Probability of the best state in the current regime (1) at the previous time step to get to this current state
+    recursive_stay = max(
+        [handle_regime_1(X, regime1, regime2, rtm, j, t-1) * regime1.transition_probabilites[j][state] for j in range(regime1.hidden_states)]
+    )
+
+    return max(rtm[1][0] * recursive_switch * regime1.initial_probs[state] * regime1.output_probabilities[state](X[t]), # Regime switch 2 -> 1
+               rtm[0][0] * recursive_stay * regime1.output_probabilities[state](X[t])) # Stay in regime 1
+
+def handle_regime_2(X, regime1:_HiddenMarkovModel, regime2:_HiddenMarkovModel, rtm, state, t):
+    if t < 0:
+        raise ValueError("Undefined for time t < 0")
+    if t == 0:
+        return rtm[1][1] * regime2.initial_probs[state] * regime2.output_probabilities[state](X[0])
+
+    # Probability of the best state in regime1 at time t-1
+    recursive_switch = max(
+        [handle_regime_1(X, regime1, regime2, rtm, j, t-1)] for j in range(regime1.hidden_states)
+    )
+
+    # Probability of the best state in the current regime (2) at the previous time step to get to this current state
+    recursive_stay = max(
+        [handle_regime_2(X, regime1, regime2, rtm, v, t-1) * regime2.transition_probabilites[v][state] for v in range(regime2.hidden_states)]
+    )
+
+    return max(rtm[0][1] * recursive_switch * regime2.initial_probs[state] * regime2.output_probabilities[state](X[t]),  # Regime switch 1 -> 2
+               rtm[1][1] * recursive_stay * regime2.output_probabilities[state](X[t]))  # Stay in regime 2
+
+def likelihood(X, regime:_HiddenMarkovModel):
+    return max([regime_state_probability(X, regime, s, len(X)) for s in range(regime.hidden_states)])
+
+def regime_state_probability(X, regime, state, t):
+    if t == 1:
+        return regime.initial_probs[state] * regime.output_probabilities[state](X[0])
+    return max([regime_state_probability(X, regime, j, t-1) * regime.transition_probabilites[j][state] for j in range(regime.hidden_states)]) * regime.output_probabilities[state](X[t])
