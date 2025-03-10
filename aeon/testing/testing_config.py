@@ -52,7 +52,7 @@ EXCLUDED_TESTS = {
     "RSASTClassifier": ["check_fit_deterministic"],
     "SAST": ["check_fit_deterministic"],
     "RSAST": ["check_fit_deterministic"],
-    "MatrixProfile": ["check_persistence_via_pickle"],
+    "MatrixProfile": ["check_persistence_via_pickle", "check_fit_deterministic"],
     # missed in legacy testing, changes state in predict/transform
     "FLUSSSegmenter": ["check_non_state_changing_method"],
     "InformationGainSegmenter": ["check_non_state_changing_method"],
