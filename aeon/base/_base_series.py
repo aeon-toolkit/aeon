@@ -26,7 +26,6 @@ State Attributes:
     - _tags: Dictionary defining estimator capabilities (e.g., univariate, multivariate support).
 """
 
-
 __maintainer__ = ["TonyBagnall", "MatthewMiddlehurst"]
 __all__ = ["BaseSeriesEstimator"]
 
