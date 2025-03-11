@@ -57,15 +57,29 @@ def _validate_distance_result(
     assert isinstance(dist_result_to_self, float)
 
     # If unequal length swap where x and y are to ensure it works both ways around
-    if original_x.shape[-1] != original_y.shape[-1] and check_xy_permuted:
+    if (
+        name == "dtw_gi"
+        and original_x.shape[-1] != original_y.shape[-1]
+        and check_xy_permuted
+    ):
         _validate_distance_result(
-            original_y,
             original_x,
+            original_y,
             name,
             distance,
             expected_result,
             check_xy_permuted=False,
         )
+    else:
+        if original_x.shape[-1] != original_y.shape[-1] and check_xy_permuted:
+            _validate_distance_result(
+                original_y,
+                original_x,
+                name,
+                distance,
+                expected_result,
+                check_xy_permuted=False,
+            )
 
 
 @pytest.mark.parametrize("dist", DISTANCES)
