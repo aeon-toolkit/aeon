@@ -90,11 +90,11 @@ class AutoPlaitSegmenter(BaseSegmenter):
 
     Examples
     --------
-    >>> from aeon.segmentation import AutoPlaitSegmenter
-    >>> from aeon.datasets import load_gun_point_segmentation
-    >>> X, _, cps = load_gun_point_segmentation()
-    >>> autoplait = AutoPlaitSegmenter()
-    >>> found_cps = autoplait.fit_predict(X)
+    >> from aeon.segmentation import AutoPlaitSegmenter
+    >> from aeon.datasets import load_gun_point_segmentation
+    >> X, _, cps = load_gun_point_segmentation()
+    >> autoplait = AutoPlaitSegmenter()
+    >> found_cps = autoplait.fit_predict(X)
     """
 
     _tags = {
