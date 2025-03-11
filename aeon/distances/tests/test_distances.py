@@ -69,7 +69,7 @@ def _validate_distance_result(
             check_xy_permuted=False,
         )
 
-        
+
 @pytest.mark.parametrize("dist", DISTANCES)
 def test_distances(dist):
     """Test distance functions."""
