@@ -2674,6 +2674,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "tanishy7777",
+      "name": "Tanish Yelgoe",
+      "avatar_url": "https://avatars.githubusercontent.com/u/143334319?v=4",
+      "profile": "https://www.tanishyelgoe.tech/",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "commitType": "docs"

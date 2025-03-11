@@ -28,7 +28,7 @@ UNEQUAL_LENGTH_NOT_SUPPORTED_DISTANCES = ["shift_scale"]
 
 
 def _validate_distance_result(
-    x, y, name, distance, expected_result=10, check_xy_permuted=True
+    x, y, name, distance, symmetric, expected_result=10, check_xy_permuted=True
 ):
     """
     Validate the distance result by comparing it with the expected result.
@@ -57,31 +57,19 @@ def _validate_distance_result(
     assert isinstance(dist_result_to_self, float)
 
     # If unequal length swap where x and y are to ensure it works both ways around
-    if (
-        name == "dtw_gi"
-        and original_x.shape[-1] != original_y.shape[-1]
-        and check_xy_permuted
-    ):
+
+    if symmetric and original_x.shape[-1] != original_y.shape[-1] and check_xy_permuted:
         _validate_distance_result(
-            original_x,
             original_y,
+            original_x,
             name,
             distance,
+            symmetric,
             expected_result,
             check_xy_permuted=False,
         )
-    else:
-        if original_x.shape[-1] != original_y.shape[-1] and check_xy_permuted:
-            _validate_distance_result(
-                original_y,
-                original_x,
-                name,
-                distance,
-                expected_result,
-                check_xy_permuted=False,
-            )
 
-
+        
 @pytest.mark.parametrize("dist", DISTANCES)
 def test_distances(dist):
     """Test distance functions."""
@@ -96,6 +84,7 @@ def test_distances(dist):
         make_example_1d_numpy(10, random_state=2),
         dist["name"],
         dist["distance"],
+        dist["symmetric"],
         _expected_distance_results[dist["name"]][0],
     )
 
@@ -105,6 +94,7 @@ def test_distances(dist):
         make_example_2d_numpy_series(10, 1, random_state=2),
         dist["name"],
         dist["distance"],
+        dist["symmetric"],
         _expected_distance_results[dist["name"]][0],
     )
 
@@ -114,6 +104,7 @@ def test_distances(dist):
         make_example_2d_numpy_series(10, 1, random_state=2),
         dist["name"],
         dist["distance"],
+        dist["symmetric"],
         _expected_distance_results[dist["name"]][1],
     )
 
@@ -125,6 +116,7 @@ def test_distances(dist):
             make_example_1d_numpy(10, random_state=2),
             dist["name"],
             dist["distance"],
+            dist["symmetric"],
             _expected_distance_results[dist["name"]][2],
         )
 
@@ -134,6 +126,7 @@ def test_distances(dist):
             make_example_2d_numpy_series(10, 1, random_state=2),
             dist["name"],
             dist["distance"],
+            dist["symmetric"],
             _expected_distance_results[dist["name"]][2],
         )
 
@@ -143,6 +136,7 @@ def test_distances(dist):
             make_example_2d_numpy_series(10, 10, random_state=2),
             dist["name"],
             dist["distance"],
+            dist["symmetric"],
             _expected_distance_results[dist["name"]][3],
         )
 
@@ -154,6 +148,7 @@ def test_distances(dist):
             np.array([15.0]),
             dist["name"],
             dist["distance"],
+            dist["symmetric"],
             _expected_distance_results[dist["name"]][4],
         )
 
@@ -163,6 +158,7 @@ def test_distances(dist):
             np.array([[15.0]]),
             dist["name"],
             dist["distance"],
+            dist["symmetric"],
             _expected_distance_results[dist["name"]][4],
         )
 
