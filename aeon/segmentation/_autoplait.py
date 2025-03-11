@@ -135,16 +135,23 @@ class AutoPlaitSegmenter(BaseSegmenter):
 def _cut_point_search(X, regime1:_HiddenMarkovModel, regime2:_HiddenMarkovModel, transition_matrix):
     m1, m2 = 0, 0
     s1, s2 = [], []
-    l1, l2 = [], [] # Candidate cut point sets
+    l1 = [[] for _ in range(regime1.hidden_states)] # Candidate cut point sets
+    l2 = [[] for _ in range(regime2.hidden_states)]
     for t in range(len(X)):
         # TODO: Compute likelihoods for all states of regime1 and regime2
-        regime_1_likelihoods = [handle_regime_1(X, regime1, regime2, transition_matrix, i, t) for i in range(regime1.hidden_states)]
-        regime_2_likelihoods = [handle_regime_2(X, regime1, regime2, transition_matrix, u, t) for u in range(regime2.hidden_states)]
+        regime_1_likelihoods = [handle_regime_1(X, regime1, regime2, transition_matrix, i, t, return_switch=True) for i in range(regime1.hidden_states)]
+        regime_2_likelihoods = [handle_regime_2(X, regime1, regime2, transition_matrix, u, t, return_switch=True) for u in range(regime2.hidden_states)]
 
         # TODO: Update candidate cut point sets for both regimes
+        for state, (state_likely, has_switched) in enumerate(regime_1_likelihoods):
+            if has_switched:
+                l1[state].append(t)
+        for state, (state_likely, has_switched) in enumerate(regime_2_likelihoods):
+            if has_switched:
+                l2[state].append(t)
 
-    l_best = best_cut_point_set(l1, l2)
-    t_s = 1
+    l_best = best_cut_point_set(X, regime1, regime2, l1, l2)
+    t_s = 0 # Starting position of first segment
     for idx, l_i in enumerate(l_best):
         s_i = (t_s, l_i)
         if idx % 2 == 1:
@@ -156,9 +163,10 @@ def _cut_point_search(X, regime1:_HiddenMarkovModel, regime2:_HiddenMarkovModel,
         t_s = l_i
     return m1, m2, s1, s2
 
-def best_cut_point_set(cut_set1, cut_set2):
+def best_cut_point_set(X, regime1, regime2, cut_set1, cut_set2):
     # TODO: best_cut_point_set(l1, l2)
-    return cut_set1
+    current_best = None
+    return cut_set1[0]
 
 def _regime_split(X):
     m1, m2, s1, s2 = 0, 0, [], [] # Initialise outputs
