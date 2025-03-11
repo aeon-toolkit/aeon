@@ -227,14 +227,14 @@ def _score_segmentation(pred_regimes, true_regimes, n):
         sum_diff += diff
     return sum_diff/n
 
-def equation_7(X, regime1:_HiddenMarkovModel, regime2:_HiddenMarkovModel, rtm):
+def model_likelihood(X, regime1:_HiddenMarkovModel, regime2:_HiddenMarkovModel, rtm):
     if rtm.shape != (2, 2):
         raise ValueError("Regime transition matrix shape must be (2,2)")
     max_reg1 = max([handle_regime_1(X, regime1, regime2, rtm, i, len(X)) for i in range(regime1.hidden_states)])
     max_reg2 = max([handle_regime_2(X, regime1, regime2, rtm, u, len(X)) for u in range(regime2.hidden_states)])
     return max(max_reg1, max_reg2)
 
-def handle_regime_1(X, regime1:_HiddenMarkovModel, regime2:_HiddenMarkovModel, rtm, state, t):
+def handle_regime_1(X, regime1:_HiddenMarkovModel, regime2:_HiddenMarkovModel, rtm, state, t, return_switch=False):
     if t < 0:
         raise ValueError("Undefined for time t < 0")
     if t == 0:
@@ -250,10 +250,23 @@ def handle_regime_1(X, regime1:_HiddenMarkovModel, regime2:_HiddenMarkovModel, r
         [handle_regime_1(X, regime1, regime2, rtm, j, t-1) * regime1.transition_probabilites[j][state] for j in range(regime1.hidden_states)]
     )
 
-    return max(rtm[1][0] * recursive_switch * regime1.initial_probs[state] * regime1.output_probabilities[state](X[t]), # Regime switch 2 -> 1
-               rtm[0][0] * recursive_stay * regime1.output_probabilities[state](X[t])) # Stay in regime 1
+    prob_switch = rtm[1][0] * recursive_switch * regime1.initial_probs[state] * regime1.output_probabilities[state](X[t])
+    prob_stay = rtm[0][0] * recursive_stay * regime1.output_probabilities[state](X[t])
 
-def handle_regime_2(X, regime1:_HiddenMarkovModel, regime2:_HiddenMarkovModel, rtm, state, t):
+    if prob_switch >= prob_stay:
+        # Switching regimes
+        if return_switch:
+            return prob_switch, True
+        else:
+            return prob_switch
+    else:
+        # Staying in current regime
+        if return_switch:
+            return prob_stay, False
+        else:
+            return prob_stay
+
+def handle_regime_2(X, regime1:_HiddenMarkovModel, regime2:_HiddenMarkovModel, rtm, state, t, return_switch=False):
     if t < 0:
         raise ValueError("Undefined for time t < 0")
     if t == 0:
@@ -269,8 +282,21 @@ def handle_regime_2(X, regime1:_HiddenMarkovModel, regime2:_HiddenMarkovModel, r
         [handle_regime_2(X, regime1, regime2, rtm, v, t-1) * regime2.transition_probabilites[v][state] for v in range(regime2.hidden_states)]
     )
 
-    return max(rtm[0][1] * recursive_switch * regime2.initial_probs[state] * regime2.output_probabilities[state](X[t]),  # Regime switch 1 -> 2
-               rtm[1][1] * recursive_stay * regime2.output_probabilities[state](X[t]))  # Stay in regime 2
+    prob_switch = rtm[0][1] * recursive_switch * regime2.initial_probs[state] * regime2.output_probabilities[state](X[t])
+    prob_stay = rtm[1][1] * recursive_stay * regime2.output_probabilities[state](X[t])
+
+    if prob_switch >= prob_stay:
+        # Switching regimes
+        if return_switch:
+            return prob_switch, True
+        else:
+            return prob_switch
+    else:
+        # Staying in current regime
+        if return_switch:
+            return prob_stay, False
+        else:
+            return prob_stay
 
 def likelihood(X, regime:_HiddenMarkovModel):
     return max([regime_state_probability(X, regime, s, len(X)) for s in range(regime.hidden_states)])
