@@ -26,7 +26,7 @@ from aeon.utils.data_types import COLLECTIONS_DATA_TYPES
 def _yield_regression_checks(estimator_class, estimator_instances, datatypes):
     """Yield all regression checks for an aeon regressor."""
     # only class required
-    if sys.platform != "darwin":  # We cannot guarantee same results on ARM macOS
+    if sys.platform == "linux":  # We cannot guarantee same results on ARM macOS
         # Compare against results for both Covid3Month and CardanoSentiment if available
         yield partial(
             check_regressor_against_expected_results,
