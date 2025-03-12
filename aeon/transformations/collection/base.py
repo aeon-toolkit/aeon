@@ -64,10 +64,13 @@ class BaseCollectionTransformer(BaseCollectionEstimator, BaseTransformer):
         X : np.ndarray or list
             Data to fit transform to, of valid collection type. Input data,
             any number of channels, equal length series of shape ``(
-            n_cases, n_channels, n_timepoints)`` or list of numpy arrays (any number
-            of channels, unequal length series) of shape ``[n_cases]``, 2D np.array
-            ``(n_channels, n_timepoints_i)``, where ``n_timepoints_i`` is length of
-            series ``i``. Other types are allowed and converted into one of the above.
+            n_cases, n_channels, n_timepoints)``.
+            A list of numpy arrays of shape ``[n_cases]``, where each element is a
+            2D array ``(n_channels, n_timepoints_i)``, where ``n_timepoints_i``
+            represents the length of series ``i``. This format is primarily used
+            for handling unequal-length series, but support for it depends on the
+            estimator's capabilities. Other input types are allowed and converted
+            into one of the above.
 
             Different estimators have different capabilities to handle different
             types of input. If ``self.get_tag("capability:multivariate")`` is False,
@@ -118,10 +121,13 @@ class BaseCollectionTransformer(BaseCollectionEstimator, BaseTransformer):
         X : np.ndarray or list
             Data to fit transform to, of valid collection type. Input data,
             any number of channels, equal length series of shape ``(
-            n_cases, n_channels, n_timepoints)`` or list of numpy arrays (any number
-            of channels, unequal length series) of shape ``[n_cases]``, 2D np.array
-            ``(n_channels, n_timepoints_i)``, where ``n_timepoints_i`` is length of
-            series ``i``. Other types are allowed and converted into one of the above.
+            n_cases, n_channels, n_timepoints)``.
+            A list of numpy arrays of shape ``[n_cases]``, where each element is a
+            2D array ``(n_channels, n_timepoints_i)``, where ``n_timepoints_i``
+            represents the length of series ``i``. This format is primarily used
+            for handling unequal-length series, but support for it depends on the
+            estimator's capabilities. Other input types are allowed and converted
+            into one of the above.
 
             Different estimators have different capabilities to handle different
             types of input. If ``self.get_tag("capability:multivariate")`` is False,
@@ -172,10 +178,13 @@ class BaseCollectionTransformer(BaseCollectionEstimator, BaseTransformer):
         X : np.ndarray or list
             Data to fit transform to, of valid collection type. Input data,
             any number of channels, equal length series of shape ``(n_cases,
-            n_channels, n_timepoints)`` or list of numpy arrays (any number of
-            channels, unequal length series) of shape ``[n_cases]``, 2D np.array ``(
-            n_channels, n_timepoints_i)``, where ``n_timepoints_i`` is length of
-            series ``i``. Other types are allowed and converted into one of the above.
+            n_channels, n_timepoints)``.
+            A list of numpy arrays of shape ``[n_cases]``, where each element is a
+            2D array ``(n_channels, n_timepoints_i)``, where ``n_timepoints_i``
+            represents the length of series ``i``. This format is primarily used
+            for handling unequal-length series, but support for it depends on the
+            estimator's capabilities. Other input types are allowed and converted
+            into one of the above.
 
             Different estimators have different capabilities to handle different
             types of input. If ``self.get_tag("capability:multivariate")`` is False,
@@ -222,10 +231,13 @@ class BaseCollectionTransformer(BaseCollectionEstimator, BaseTransformer):
         X : np.ndarray or list
             Data to fit transform to, of valid collection type. Input data,
             any number of channels, equal length series of shape ``(
-            n_cases, n_channels, n_timepoints)`` or list of numpy arrays (any number
-            of channels, unequal length series)  of shape ``[n_cases]``, 2D np.array
-            ``(n_channels, n_timepoints_i)``, where ``n_timepoints_i`` is length of
-            series ``i``. Other types are allowed and converted into one of the above.
+            n_cases, n_channels, n_timepoints)``.
+            A list of numpy arrays of shape ``[n_cases]``, where each element is a
+            2D array ``(n_channels, n_timepoints_i)``, where ``n_timepoints_i``
+            represents the length of series ``i``. This format is primarily used
+            for handling unequal-length series, but support for it depends on the
+            estimator's capabilities. Other input types are allowed and converted
+            into one of the above.
 
             Different estimators have different capabilities to handle different
             types of input. If ``self.get_tag("capability:multivariate")`` is False,
