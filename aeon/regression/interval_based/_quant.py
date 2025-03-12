@@ -15,39 +15,39 @@ class QUANTRegressor(BaseRegressor):
     intervals extracted, the window is shifted by half the interval length to extract
     more intervals.
 
-    The feature extraction is performed on the first order differences, second order
+    The feature extraction is performed on the first-order differences, second-order
     differences, and a Fourier transform of the input series along with the original
     series.
 
-    The transform output is then used to train an extra trees regressor by default.
+    The transform output is then used to train an ``ExtraTreesRegressor`` by default.
 
     Parameters
     ----------
-    interval_depth : int, default=6
+    interval_depth : ``int``, default=``6``
         The depth to stop extracting intervals at. Starting with the full series, the
         number of intervals extracted is ``2 ** depth`` (starting at 0) for each level.
         The features from all intervals extracted at each level are concatenated
         together for the transform output.
-    quantile_divisor : int, default=4
+    quantile_divisor : ``int``, default=``4``
         The divisor to find the number of quantiles to extract from intervals. The
         number of quantiles per interval is
         ``1 + (interval_length - 1) // quantile_divisor``.
-    estimator : sklearn estimator, default=None
-        The estimator to use for regression. If None, an ExtraTreesRegressor
+    estimator : ``sklearn`` estimator, default=``None``
+        The estimator to use for regression. If ``None``, an ``ExtraTreesRegressor``
         with 200 estimators is used.
-    random_state : int, RandomState instance or None, default=None
-        If `int`, random_state is the seed used by the random number generator;
-        If `RandomState` instance, random_state is the random number generator;
-        If `None`, the random number generator is the `RandomState` instance used
-        by `np.random`.
+    random_state : ``int``, ``RandomState`` instance or ``None``, default=``None``
+        If ``int``, ``random_state`` is the seed used by the random number generator;
+        If ``RandomState`` instance, ``random_state`` is the random number generator;
+        If ``None``, the random number generator is the ``RandomState`` instance used
+        by ``np.random``.
 
     See Also
     --------
-    QUANTTransformer
+    ``QUANTTransformer``
 
     Notes
     -----
-    Original code: https://github.com/angus924/quant
+    Original code: `https://github.com/angus924/quant`
 
     References
     ----------

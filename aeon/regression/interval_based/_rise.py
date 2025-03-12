@@ -16,78 +16,78 @@ from aeon.transformations.collection import (
 class RandomIntervalSpectralEnsembleRegressor(BaseIntervalForest, BaseRegressor):
     """Random Interval Spectral Ensemble (RISE) regressor.
 
-    Input: n series length m
-    For each tree
-        - sample a random intervals
-        - take the ACF and PS over this interval, and concatenate features
-        - build a tree on new features
+    Input: ``n`` series length ``m``
+    For each tree:
+        - Sample a random interval
+        - Take the ``ACF`` and ``PS`` over this interval, and concatenate features
+        - Build a tree on new features
     Ensemble the trees through averaging predictions.
 
     Parameters
     ----------
-    base_estimator : BaseEstimator or None, default=None
-        scikit-learn BaseEstimator used to build the interval ensemble. If None, use a
-        simple decision tree.
-    n_estimators : int, default=200
+    base_estimator : ``BaseEstimator`` or ``None``, default=``None``
+        ``scikit-learn`` ``BaseEstimator`` used to build the interval ensemble.
+        If ``None``, use a simple decision tree.
+    n_estimators : ``int``, default=``200``
         Number of estimators to build for the ensemble.
-    min_interval_length : int, float, list, or tuple, default=3
-        Minimum length of intervals to extract from series. float inputs take a
+    min_interval_length : ``int``, ``float``, ``list``, or ``tuple``, default=``3``
+        Minimum length of intervals to extract from series. ``float`` inputs take a
         proportion of the series length to use as the minimum interval length.
 
-        Different minimum interval lengths for each series_transformers series can be
-        specified using a list or tuple. Any list or tuple input must be the same length
-        as the number of series_transformers.
-    max_interval_length : int, float, list, or tuple, default=np.inf
-        Maximum length of intervals to extract from series. float inputs take a
+        Different minimum interval lengths for each ``series_transformers`` series can be
+        specified using a ``list`` or ``tuple``. Any ``list`` or ``tuple`` input must be the same length
+        as the number of ``series_transformers``.
+    max_interval_length : ``int``, ``float``, ``list``, or ``tuple``, default=``np.inf``
+        Maximum length of intervals to extract from series. ``float`` inputs take a
         proportion of the series length to use as the maximum interval length.
 
-        Different maximum interval lengths for each series_transformers series can be
-        specified using a list or tuple. Any list or tuple input must be the same length
-        as the number of series_transformers.
-    acf_lag : int or callable, default=100
-        The maximum number of autocorrelation terms to use. If callable, the function
-        should take a 3D numpy array of shape (n_cases, n_channels, n_timepoints)
-        and return an integer.
-    acf_min_values : int, default=0
+        Different maximum interval lengths for each ``series_transformers`` series can be
+        specified using a ``list`` or ``tuple``. Any ``list`` or ``tuple`` input must be the same length
+        as the number of ``series_transformers``.
+    acf_lag : ``int`` or ``callable``, default=``100``
+        The maximum number of autocorrelation terms to use. If ``callable``, the function
+        should take a ``3D`` numpy array of shape ``(n_cases, n_channels, n_timepoints)``
+        and return an ``integer``.
+    acf_min_values : ``int``, default=``0``
         Never use fewer than this number of terms to find a correlation unless the
-        series length is too short. This will reduce n_lags if needed.
-    time_limit_in_minutes : int, default=0
-        Time contract to limit build time in minutes, overriding n_estimators.
-        Default of 0 means n_estimators are used.
-    contract_max_n_estimators : int, default=500
-        Max number of estimators when time_limit_in_minutes is set.
-    random_state : int, RandomState instance or None, default=None
-        If `int`, random_state is the seed used by the random number generator;
-        If `RandomState` instance, random_state is the random number generator;
-        If `None`, the random number generator is the `RandomState` instance used
-        by `np.random`.
-    n_jobs : int, default=1
-        The number of jobs to run in parallel for both `fit` and `predict`.
+        series length is too short. This will reduce ``n_lags`` if needed.
+    time_limit_in_minutes : ``int``, default=``0``
+        Time contract to limit build time in minutes, overriding ``n_estimators``.
+        Default of ``0`` means ``n_estimators`` are used.
+    contract_max_n_estimators : ``int``, default=``500``
+        Max number of estimators when ``time_limit_in_minutes`` is set.
+    random_state : ``int``, ``RandomState`` instance or ``None``, default=``None``
+        If ``int``, ``random_state`` is the seed used by the random number generator;
+        If ``RandomState`` instance, ``random_state`` is the random number generator;
+        If ``None``, the random number generator is the ``RandomState`` instance used
+        by ``np.random``.
+    n_jobs : ``int``, default=``1``
+        The number of jobs to run in parallel for both ``fit`` and ``predict``.
         ``-1`` means using all processors.
-    parallel_backend : str, ParallelBackendBase instance or None, default=None
-        Specify the parallelisation backend implementation in joblib, if None a 'prefer'
-        value of "threads" is used by default.
-        Valid options are "loky", "multiprocessing", "threading" or a custom backend.
-        See the joblib Parallel documentation for more details.
+    parallel_backend : ``str``, ``ParallelBackendBase`` instance or ``None``, default=``None``
+        Specify the parallelisation backend implementation in ``joblib``. If ``None``,
+        a ``'prefer'`` value of ``"threads"`` is used by default.
+        Valid options are ``"loky"``, ``"multiprocessing"``, ``"threading"`` or a custom backend.
+        See the ``joblib`` ``Parallel`` documentation for more details.
 
     Attributes
     ----------
-    n_cases_ : int
+    n_cases_ : ``int``
         The number of train cases in the training set.
-    n_channels_ : int
+    n_channels_ : ``int``
         The number of dimensions per case in the training set.
-    n_timepoints_ : int
+    n_timepoints_ : ``int``
         The length of each series in the training set.
-    total_intervals_ : int
+    total_intervals_ : ``int``
         Total number of intervals per tree from all representations.
-    estimators_ : list of shape (n_estimators) of BaseEstimator
-        The collections of estimators trained in fit.
-    intervals_ : list of shape (n_estimators) of TransformerMixin
+    estimators_ : ``list`` of shape ``(n_estimators)`` of ``BaseEstimator``
+        The collections of estimators trained in ``fit``.
+    intervals_ : ``list`` of shape ``(n_estimators)`` of ``TransformerMixin``
         Stores the interval extraction transformer for all estimators.
 
     See Also
     --------
-    RandomIntervalSpectralEnsembleClassifier
+    ``RandomIntervalSpectralEnsembleClassifier``
 
     References
     ----------
@@ -176,24 +176,24 @@ class RandomIntervalSpectralEnsembleRegressor(BaseIntervalForest, BaseRegressor)
 
         Parameters
         ----------
-        parameter_set : str, default="default"
+        parameter_set : ``str``, default=``"default"``
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return ``"default"`` set.
             RandomIntervalSpectralEnsembleRegressor provides the following special
             sets:
-                "results_comparison" - used in some classifiers to compare against
+                ``"results_comparison"`` - used in some classifiers to compare against
                     previously generated results where the default set of parameters
                     cannot produce suitable probability estimates
-                "contracting" - used in classifiers that set the
+                ``"contracting"`` - used in classifiers that set the
                     "capability:contractable" tag to True to test contacting
                     functionality
 
         Returns
         -------
-        params : dict or list of dict, default={}
+        params : ``dict`` or list of ``dict``, default=``{}``
             Parameters to create testing instances of the class.
-            Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            Each ``dict`` are parameters to construct an "interesting" test instance, i.e.,
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test instance.
         """
         if parameter_set == "results_comparison":
             return {"n_estimators": 10}

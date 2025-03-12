@@ -1,6 +1,6 @@
 """MiniRocket regressor.
 
-Pipeline regressor using the MiniRocket transformer and RidgeCV estimator.
+Pipeline regressor using the ``MiniRocket`` transformer and ``RidgeCV`` estimator.
 """
 
 __maintainer__ = ["MatthewMiddlehurst"]
@@ -18,33 +18,33 @@ from aeon.transformations.collection.convolution_based import MiniRocket
 
 class MiniRocketRegressor(BaseRegressor):
     """
-    MiniRocket transformer using RidgeCV regressor.
+    ``MiniRocket`` transformer using ``RidgeCV`` regressor.
 
-    This regressor transforms the input data using the MiniRocket [1]_ transformer
-    extracting features from randomly generated kernels, performs a Standard scaling
-    and fits a sklearn regressor using the transformed data (default regressor is
-    RidgeCV).
+    This regressor transforms the input data using the ``MiniRocket`` [1]_ transformer
+    extracting features from randomly generated kernels, performs a ``StandardScaler``
+    scaling and fits a ``sklearn`` regressor using the transformed data (default regressor is
+    ``RidgeCV``).
 
     Parameters
     ----------
-    n_kernels : int, default=10,000
-        The number of kernels for the Rocket transform.
-    max_dilations_per_kernel : int, default=32
+    n_kernels : ``int``, default=``10,000``
+        The number of kernels for the ``Rocket`` transform.
+    max_dilations_per_kernel : ``int``, default=``32``
         The maximum number of dilations per kernel.
-    estimator : sklearn compatible regressor or None, default=None
-        The estimator used. If None, a RidgeCV(alphas=np.logspace(-3, 3, 10)) is used.
-    random_state : int, RandomState instance or None, default=None
-        If `int`, random_state is the seed used by the random number generator;
-        If `RandomState` instance, random_state is the random number generator;
-        If `None`, the random number generator is the `RandomState` instance used
-        by `np.random`.
-    n_jobs : int, default=1
-        The number of jobs to run in parallel for both `fit` and `predict`.
+    estimator : ``sklearn`` compatible regressor or ``None``, default=``None``
+        The estimator used. If None, a ``RidgeCV(alphas=np.logspace(-3, 3, 10))`` is used.
+    random_state : ``int``, ``RandomState`` instance or ``None``, default=``None``
+        If `int`, ``random_state`` is the seed used by the random number generator;
+        If ``RandomState`` instance, ``random_state`` is the random number generator;
+        If ``None``, the random number generator is the ``RandomState`` instance used
+        by ``np.random``.
+    n_jobs : ``int``, default=``1``
+        The number of jobs to run in parallel for both ``fit`` and ``predict``.
         ``-1`` means using all processors.
 
     References
     ----------
-    .. [1] Dempster, A., Schmidt, D.F. and Webb, G.I., 2021, August. Minirocket: A very
+    .. [1] Dempster, A., Schmidt, D.F. and Webb, G.I., 2021, August. ``Minirocket``: A very
         fast (almost) deterministic transform for time series classification. In
         Proceedings of the 27th ACM SIGKDD conference on knowledge discovery & data
         mining (pp. 248-257).
@@ -84,14 +84,14 @@ class MiniRocketRegressor(BaseRegressor):
         super().__init__()
 
     def _fit(self, X, y):
-        """Fit Rocket variant to training data.
+        """Fit ``Rocket`` variant to training data.
 
         Parameters
         ----------
-        X : 3D np.ndarray
-            The training data of shape = (n_cases, n_channels, n_timepoints).
-        y : 3D np.ndarray
-            The target variable values, shape = (n_cases,).
+        X : 3D ``np.ndarray``
+            The training data of shape = ``(n_cases, n_channels, n_timepoints)``.
+        y : 3D ``np.ndarray``
+            The target variable values, shape = ``(n_cases,)``.
 
         Returns
         -------
@@ -101,7 +101,7 @@ class MiniRocketRegressor(BaseRegressor):
         Notes
         -----
         Changes state by creating a fitted model that updates attributes
-        ending in "_" and sets is_fitted flag to True.
+        ending in ``"_"`` and sets ``is_fitted`` flag to ``True``.
         """
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
 
@@ -131,16 +131,16 @@ class MiniRocketRegressor(BaseRegressor):
         return self
 
     def _predict(self, X) -> np.ndarray:
-        """Predicts labels for sequences in X.
+        """Predicts labels for sequences in ``X``.
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = (n_cases, n_channels, n_timepoints)
+        X : 3D ``np.ndarray`` of shape = ``(n_cases, n_channels, n_timepoints)``
             The data to make predictions for.
 
         Returns
         -------
-        y : array-like, shape = (n_cases,)
+        y : array-like, shape = ``(n_cases,)``
             Predicted class labels.
         """
         return self.pipeline_.predict(X)
@@ -151,13 +151,13 @@ class MiniRocketRegressor(BaseRegressor):
 
         Parameters
         ----------
-        parameter_set : str, default="default"
+        parameter_set : ``str``, default=``"default"``
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return ``"default"`` set.
 
         Returns
         -------
-        dict or list of dict
+        ``dict`` or list of ``dict``
             Parameters to create testing instances of the class.
         """
         return {"n_kernels": 20, "max_dilations_per_kernel": 6}

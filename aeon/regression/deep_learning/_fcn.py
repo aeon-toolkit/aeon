@@ -21,87 +21,77 @@ class FCNRegressor(BaseDeepRegressor):
 
     Parameters
     ----------
-    n_layers : int, default = 3
-        number of convolution layers
-    n_filters : int or list of int, default = [128,256,128]
-        number of filters used in convolution layers
-    kernel_size : int or list of int, default = [8,5,3]
-        size of convolution kernel
-    dilation_rate : int or list of int, default = 1
-        the dilation rate for convolution
-    strides : int or list of int, default = 1
-        the strides of the convolution filter
-    padding : str or list of str, default = "same"
-        the type of padding used for convolution
-    activation : str or list of str, default = "relu"
-        activation used after the convolution
-    use_bias : bool or list of bool, default = True
-        whether or not ot use bias in convolution
-    n_epochs : int, default = 2000
-        the number of epochs to train the model
-    batch_size : int, default = 16
-        the number of samples per gradient update.
-    use_mini_batch_size : bool, default = False,
-        whether or not to use the mini batch size formula
-    random_state : int, RandomState instance or None, default=None
-        If `int`, random_state is the seed used by the random number generator;
-        If `RandomState` instance, random_state is the random number generator;
-        If `None`, the random number generator is the `RandomState` instance used
-        by `np.random`.
-        Seeded random number generation can only be guaranteed on CPU processing,
+    n_layers : ``int``, default = ``3``
+        Number of convolution layers.
+    n_filters : ``int`` or ``list`` of ``int``, default = ``[128, 256, 128]``
+        Number of filters used in convolution layers.
+    kernel_size : ``int`` or ``list`` of ``int``, default = ``[8, 5, 3]``
+        Size of convolution kernel.
+    dilation_rate : ``int`` or ``list`` of ``int``, default = ``1``
+        The dilation rate for convolution.
+    strides : ``int`` or ``list`` of ``int``, default = ``1``
+        The strides of the convolution filter.
+    padding : ``str`` or ``list`` of ``str``, default = ``"same"``
+        The type of padding used for convolution.
+    activation : ``str`` or ``list`` of ``str``, default = ``"relu"``
+        Activation used after the convolution.
+    use_bias : ``bool`` or ``list`` of ``bool``, default = ``True``
+        Whether or not to use bias in convolution.
+    n_epochs : ``int``, default = ``2000``
+        The number of epochs to train the model.
+    batch_size : ``int``, default = ``16``
+        The number of samples per gradient update.
+    use_mini_batch_size : ``bool``, default = ``False``
+        Whether or not to use the mini batch size formula.
+    random_state : ``int``, ``RandomState`` instance, or ``None``, default = ``None``
+        If ``int``, ``random_state`` is the seed used by the random number generator.
+        If ``RandomState`` instance, ``random_state`` is the random number generator.
+        If ``None``, the random number generator is the ``RandomState`` instance used
+        by ``np.random``.
+        Seeded random number generation can only be guaranteed on CPU processing.
         GPU processing will be non-deterministic.
-    verbose : boolean, default = False
-        whether to output extra information
-    output_activation   : str, default = "linear",
-        the output activation of the regressor
-    loss : str, default = "mean_squared_error"
-        The name of the keras training loss.
-    metrics : str or list[str], default="mean_squared_error"
-        The evaluation metrics to use during training. If
-        a single string metric is provided, it will be
-        used as the only metric. If a list of metrics are
-        provided, all will be used for evaluation.
-    optimizer : keras.optimizer, default = tf.keras.optimizers.Adam()
-        The keras optimizer used for training.
-    file_path : str, default = "./"
-        file path to save best model
-    save_best_model : bool, default = False
-        Whether or not to save the best model, if the
-        modelcheckpoint callback is used by default,
-        this condition, if True, will prevent the
-        automatic deletion of the best saved model from
-        file and the user can choose the file name
-    save_last_model : bool, default = False
-        Whether or not to save the last model, last
-        epoch trained, using the base class method
-        save_last_model_to_file
-    save_init_model : bool, default = False
-        Whether to save the initialization of the  model.
-    best_file_name : str, default = "best_model"
-        The name of the file of the best model, if
-        save_best_model is set to False, this parameter
-        is discarded
-    last_file_name : str, default = "last_model"
-        The name of the file of the last model, if
-        save_last_model is set to False, this parameter
-        is discarded
-    init_file_name : str, default = "init_model"
-        The name of the file of the init model, if save_init_model is set to False,
-        this parameter is discarded.
-    callbacks : keras callback or list of callbacks,
-        default = None
-        The default list of callbacks are set to
-        ModelCheckpoint and ReduceLROnPlateau.
+    verbose : ``bool``, default = ``False``
+        Whether to output extra information.
+    output_activation : ``str``, default = ``"linear"``
+        The output activation of the regressor.
+    loss : ``str``, default = ``"mean_squared_error"``
+        The name of the Keras training loss.
+    metrics : ``str`` or ``list`` of ``str``, default = ``"mean_squared_error"``
+        The evaluation metrics to use during training. If a single string metric is provided,
+        it will be used as the only metric. If a list of metrics is provided, all will be used for evaluation.
+    optimizer : ``keras.optimizer``, default = ``tf.keras.optimizers.Adam()``
+        The Keras optimizer used for training.
+    file_path : ``str``, default = ``"./"``
+        File path to save the best model.
+    save_best_model : ``bool``, default = ``False``
+        Whether or not to save the best model. If the ``ModelCheckpoint`` callback is used by default,
+        this condition, if ``True``, will prevent the automatic deletion of the best saved model from
+        file and the user can choose the file name.
+    save_last_model : ``bool``, default = ``False``
+        Whether or not to save the last model, last epoch trained, using the base class method
+        ``save_last_model_to_file``.
+    save_init_model : ``bool``, default = ``False``
+        Whether to save the initialization of the model.
+    best_file_name : ``str``, default = ``"best_model"``
+        The name of the file of the best model. If ``save_best_model`` is set to ``False``, this parameter
+        is discarded.
+    last_file_name : ``str``, default = ``"last_model"``
+        The name of the file of the last model. If ``save_last_model`` is set to ``False``, this parameter
+        is discarded.
+    init_file_name : ``str``, default = ``"init_model"``
+        The name of the file of the initial model. If ``save_init_model`` is set to ``False``, this parameter is discarded.
+    callbacks : ``keras.callbacks.Callback`` or ``list`` of ``keras.callbacks.Callback``, default = ``None``
+        The default list of callbacks includes ``ModelCheckpoint`` and ``ReduceLROnPlateau``.
 
     Notes
     -----
-    Adapted from the implementation from Fawaz et. al
-    https://github.com/hfawaz/dl-4-tsc/blob/master/classifiers/fcn.py
+    Adapted from the implementation by Fawaz et al.
+    Source: `https://github.com/hfawaz/dl-4-tsc/blob/master/classifiers/fcn.py`
 
     References
     ----------
-    .. [1] Zhao et. al, Convolutional neural networks for time series classification,
-    Journal of Systems Engineering and Electronics, 28(1):2017.
+    .. [1] Zhao et al., "Convolutional Neural Networks for Time Series Classification,"
+       *Journal of Systems Engineering and Electronics*, 28(1), 2017.
 
     Examples
     --------
@@ -110,7 +100,7 @@ class FCNRegressor(BaseDeepRegressor):
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
     ...                              return_y=True, regression_target=True,
     ...                              random_state=0)
-    >>> rgs = FCNRegressor(n_epochs=20,batch_size=4)  # doctest: +SKIP
+    >>> rgs = FCNRegressor(n_epochs=20, batch_size=4)  # doctest: +SKIP
     >>> rgs.fit(X, y)  # doctest: +SKIP
     FCNRegressor(...)
     """
@@ -185,15 +175,15 @@ class FCNRegressor(BaseDeepRegressor):
     def build_model(self, input_shape, **kwargs):
         """Construct a compiled, un-trained, keras model that is ready for training.
 
-        In aeon, time series are stored in numpy arrays of shape (d,m), where d
-        is the number of dimensions, m is the series length. Keras/tensorflow assume
-        data is in shape (m,d). This method also assumes (m,d). Transpose should
+        In aeon, time series are stored in numpy arrays of shape ``(d,m)``, where ``d``
+        is the number of dimensions, ``m`` is the series length. Keras/tensorflow assume
+        data is in shape ``(m,d)``. This method also assumes ``(m,d)``. Transpose should
         happen in fit.
 
         Parameters
         ----------
-        input_shape : tuple
-            The shape of the data fed into the input layer, should be (m,d)
+        input_shape : ``tuple``
+            The shape of the data fed into the input layer, should be ``(m,d)``
 
         Returns
         -------
@@ -226,14 +216,14 @@ class FCNRegressor(BaseDeepRegressor):
         return model
 
     def _fit(self, X, y):
-        """Fit the regressor on the training set (X, y).
+        """Fit the regressor on the training set ``(X, y)``.
 
         Parameters
         ----------
-        X : np.ndarray
-            The training input samples of shape (n_cases, n_channels, n_timepoints).
-        y : np.ndarray
-            The training data target values of shape (n_cases,).
+        X : ``np.ndarray``
+            The training input samples of shape ``(n_cases, n_channels, n_timepoints)``.
+        y : ``np.ndarray``
+            The training data target values of shape ``(n_cases,)``.
 
         Returns
         -------
@@ -315,20 +305,20 @@ class FCNRegressor(BaseDeepRegressor):
 
         Parameters
         ----------
-        parameter_set : str, default="default"
-            Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
-            For Regressors, a "default" set of parameters should be provided for
-            general testing, and a "results_comparison" set for comparing against
-            previously recorded results if the general set does not produce suitable
-            probabilities to compare against.
+        parameter_set : ``str``, default=``"default"``
+        Name of the set of test parameters to return, for use in tests. If no
+        special parameters are defined for a value, will return ``"default"`` set.
+        For Regressors, a ``"default"`` set of parameters should be provided for
+        general testing, and a ``"results_comparison"`` set for comparing against
+        previously recorded results if the general set does not produce suitable
+        probabilities to compare against.
 
         Returns
         -------
-        params : dict or list of dict, default={}
-            Parameters to create testing instances of the class.
-            Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+         params : ``dict`` or list of ``dict``, default=``{}``
+         Parameters to create testing instances of the class.
+         Each ``dict`` are parameters to construct an "interesting" test instance, i.e.,
+        ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test instance.
         """
         param = {
             "n_epochs": 10,
