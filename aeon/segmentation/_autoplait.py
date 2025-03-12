@@ -136,6 +136,17 @@ class AutoPlaitSegmenter(BaseSegmenter):
         self._check_is_fitted()
         return self._autoplait.complete_parameters(as_list)
 
+def _score_segmentation(pred_regimes, true_regimes, n):
+    sum_diff = 0
+    num_regimes = len(true_regimes)
+    for i in range(num_regimes):
+        current = pred_regimes[i]
+        closest = min(true_regimes, key=lambda x: abs(x - current))
+        diff = abs(closest - current)
+        sum_diff += diff
+    return sum_diff/n
+
+
 def _cut_point_search(X, regime1:_HiddenMarkovModel, regime2:_HiddenMarkovModel, transition_matrix):
     m1, m2 = 0, 0 # Number of segments in each regime
     s1, s2 = [], [] # Segment sets of each regime
@@ -183,6 +194,11 @@ def _regime_split(X):
         # TODO: Update regime transitions d
     return m1, m2, s1, s2, t1, t2, d
 
+
+# --------------------------------------------------------------------------------
+#                                 COST FUNCTIONS
+# --------------------------------------------------------------------------------
+
 def _cost(X, regime1, regime2=None, transition_matrix=None):
     if regime2 is not None:
         # TODO: Cost of regime pair
@@ -229,15 +245,9 @@ def _cost_m(regimes):
 def _cost_e(X, regime):
     return 1
 
-def _score_segmentation(pred_regimes, true_regimes, n):
-    sum_diff = 0
-    num_regimes = len(true_regimes)
-    for i in range(num_regimes):
-        current = pred_regimes[i]
-        closest = min(true_regimes, key=lambda x: abs(x - current))
-        diff = abs(closest - current)
-        sum_diff += diff
-    return sum_diff/n
+# --------------------------------------------------------------------------------
+#                             HMM PROBABILITIES
+# --------------------------------------------------------------------------------
 
 def model_likelihood(X, regime1:_HiddenMarkovModel, regime2:_HiddenMarkovModel, rtm):
     if rtm.shape != (2, 2):
