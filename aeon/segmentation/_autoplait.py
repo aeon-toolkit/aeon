@@ -35,20 +35,24 @@ class _AutoPlait:
         segment_set = []  # Output segment set
         num_segments = 0  # Output number of segments
         num_regimes = 0  # Output number of regimes
-        segment_set.append((1, len(X)))  # 1 initial segment; the entire TS
+        segment_set.append((0, len(X)-1))  # 1 initial segment; the entire TS
         num_segments_0 = 1  # There is 1 initial segment
 
         t0 = []  # TODO: Estimate t0 of s_0
         regime_stack.append((num_segments_0, segment_set[0], t0))  # Push onto stack
         while regime_stack:  # While the stack is not empty
-            current_num_segments, current_segment_set, t_i = regime_stack.pop()
-            m1, m2, s1, s2, t1, t2, transition_matrix = _regime_split(X)
-            if _cost(X, t1, t2, transition_matrix) < _cost(X, t_i):
-                regime_stack.append((m1, s1, t1))
-                regime_stack.append((m2, s2, t2))
+            current_num_segments, current_segment_set, current_regime = regime_stack.pop()
+            (new_num_segments_1, new_num_segments_2,
+             new_segment_set_1, new_segment_set_2,
+             new_regime_1, new_regime_2,
+             transition_matrix) = _regime_split(X)
+
+            if _cost(X, new_regime_1, new_regime_2, transition_matrix) < _cost(X, current_regime):
+                regime_stack.append((new_num_segments_1, new_segment_set_1, new_regime_1)) # Push new entries to stack
+                regime_stack.append((new_num_segments_2, new_segment_set_2, new_regime_2))
             else:
-                segment_set.append(current_segment_set)
-                regime_parameters.append(t_i)
+                segment_set.append(current_segment_set) # Put current entry to final output, remove from stack
+                regime_parameters.append(current_regime)
                 num_regimes += 1
                 # TODO: Update regime transitions d
                 # TODO: segment membership f
@@ -125,7 +129,7 @@ class AutoPlaitSegmenter(BaseSegmenter):
         self._autoplait.predict(X)
         self.is_fitted = True
         params = self._autoplait.complete_parameters()
-        cut_points = [e[1] for e in params["segment_set"]]
+        cut_points = [segment[1] for segment in params["segment_set"]]
         return np.array(cut_points)
 
     def complete_parameters(self, as_list:bool = False):
@@ -133,20 +137,20 @@ class AutoPlaitSegmenter(BaseSegmenter):
         return self._autoplait.complete_parameters(as_list)
 
 def _cut_point_search(X, regime1:_HiddenMarkovModel, regime2:_HiddenMarkovModel, transition_matrix):
-    m1, m2 = 0, 0
-    s1, s2 = [], []
+    m1, m2 = 0, 0 # Number of segments in each regime
+    s1, s2 = [], [] # Segment sets of each regime
     l1 = [[] for _ in range(regime1.hidden_states)] # Candidate cut point sets
     l2 = [[] for _ in range(regime2.hidden_states)]
     for t in range(len(X)):
-        # TODO: Compute likelihoods for all states of regime1 and regime2
+        # TODO: Equations 8, 9, 10
         regime_1_likelihoods = [handle_regime_1(X, regime1, regime2, transition_matrix, i, t, return_switch=True) for i in range(regime1.hidden_states)]
         regime_2_likelihoods = [handle_regime_2(X, regime1, regime2, transition_matrix, u, t, return_switch=True) for u in range(regime2.hidden_states)]
 
-        # TODO: Update candidate cut point sets for both regimes
-        for state, (state_likely, has_switched) in enumerate(regime_1_likelihoods):
+        # TODO: Equations 11 & 12
+        for state, (_, has_switched) in enumerate(regime_1_likelihoods):
             if has_switched:
                 l1[state].append(t)
-        for state, (state_likely, has_switched) in enumerate(regime_2_likelihoods):
+        for state, (_, has_switched) in enumerate(regime_2_likelihoods):
             if has_switched:
                 l2[state].append(t)
 
