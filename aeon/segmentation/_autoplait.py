@@ -180,8 +180,16 @@ def _cut_point_search(X, regime1:_HiddenMarkovModel, regime2:_HiddenMarkovModel,
 
 def best_cut_point_set(X, regime1, regime2, cut_set1, cut_set2):
     # TODO: best_cut_point_set(l1, l2)
-    current_best = None
-    return cut_set1[0]
+    current_best = []
+    for state_cut_point_set in cut_set1:
+        # if state_cut_point_set is better than current_best
+            # Update current_best
+        pass
+    for state_cut_point_set in cut_set2:
+        # if state_cut_point_set is better than current_best
+            # Update current_best
+        pass
+    return current_best
 
 def _regime_split(X):
     m1, m2, s1, s2 = 0, 0, [], [] # Initialise outputs
