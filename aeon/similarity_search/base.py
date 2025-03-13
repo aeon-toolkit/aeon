@@ -21,35 +21,35 @@ class BaseSimilaritySearch(BaseCollectionEstimator):
     Parameters
     ----------
     distance : str, default="euclidean"
-        Name of the distance function to use. A list of valid strings can be found in
-        the documentation for :func:`aeon.distances.get_distance_function`.
-        If a callable is passed it must either be a python function or numba function
-        with nopython=True, that takes two 1d numpy arrays as input and returns a float.
+        The name of the distance function to use. A list of valid strings can be found in
+        the documentation for ``aeon.distances.get_distance_function``.
+        If a callable is passed, it must be either a Python function or a Numba function
+        with ``nopython=True`` that takes two 1D numpy arrays as input and returns a float.
     distance_args : dict, default=None
         Optional keyword arguments for the distance function.
     inverse_distance : bool, default=False
-        If True, the matching will be made on the inverse of the distance, and thus, the
-        worst matches to the query will be returned instead of the best ones.
+        If ``True``, the matching will be based on the inverse of the distance,
+        returning the worst matches instead of the best ones.
     normalise : bool, default=False
-        Whether the distance function should be z-normalised.
-    speed_up : str, default='fastest'
-        Which speed up technique to use with for the selected distance
-        function. By default, the fastest algorithm is used. A list of available
-        algorithm for each distance can be obtained by calling the
-        `get_speedup_function_names` function of the child classes.
+        Whether the distance function should be z-normalized.
+    speed_up : str, default="fastest"
+        Which speed-up technique to use for the selected distance function.
+        By default, the fastest algorithm is used. A list of available algorithms
+        for each distance can be obtained by calling the
+        ``get_speedup_function_names`` method of the child classes.
     n_jobs : int, default=1
-        Number of parallel jobs to use.
+        The number of parallel jobs to use.
 
     Attributes
     ----------
-    X_ : np.ndarray, 3D array of shape (n_cases, n_channels, n_timepoints)
-        The input time series stored during the fit method.
+    X_ : np.ndarray
+        A 3D array of shape ``(n_cases, n_channels, n_timepoints)`` storing the
+        input time series during the fit method.
 
     Notes
     -----
-    For now, the multivariate case is only treated as independent.
-    Distances are computed for each channel independently and then
-    summed together.
+    Currently, the multivariate case is treated independently.
+    Distances are computed for each channel separately and then summed together.
     """
 
     _tags = {

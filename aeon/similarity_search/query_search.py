@@ -25,54 +25,54 @@ class QuerySearch(BaseSimilaritySearch):
     """
     Query search estimator.
 
-    The query search estimator will return a set of matches of a query in a search space
-    , which is defined by a time series dataset given during fit. Depending on the `k`
-    and/or `threshold` parameters, which condition what is considered a valid match
-    during the search, the number of matches will vary. If `k` is used, at most `k`
-    matches (the `k` best) will be returned, if `threshold` is used and `k` is set to
-    `np.inf`, all the candidates which distance to the query is inferior or equal to
-    `threshold` will be returned. If both are used, the `k` best matches to the query
-    with distance inferior to `threshold` will be returned.
-
+    The query search estimator will return a set of matches of a query in a search space, 
+    which is defined by a time series dataset given during `fit`. Depending on the ``k``
+    and/or ``threshold`` parameters, which condition what is considered a valid match
+    during the search, the number of matches will vary. If ``k`` is used, at most ``k``
+    matches (the ``k`` best) will be returned. If ``threshold`` is used and ``k`` is set to
+    ``np.inf``, all the candidates whose distance to the query is less than or equal to
+    ``threshold`` will be returned. If both are used, the ``k`` best matches to the query
+    with distance less than or equal to ``threshold`` will be returned.
 
     Parameters
     ----------
     k : int, default=1
-        The number of best matches to return during predict for a given query.
+        The number of best matches to return during `predict` for a given query.
     threshold : float, default=np.inf
-        The number of best matches to return during predict for a given query.
+        The maximum distance a match can have to be considered valid. Matches with 
+        distances greater than ``threshold`` are ignored.
     distance : str, default="euclidean"
         Name of the distance function to use. A list of valid strings can be found in
         the documentation for :func:`aeon.distances.get_distance_function`.
-        If a callable is passed it must either be a python function or numba function
-        with nopython=True, that takes two 1d numpy arrays as input and returns a float.
+        If a callable is passed, it must either be a Python function or a Numba function
+        with ``nopython=True`` that takes two 1D numpy arrays as input and returns a float.
     distance_args : dict, default=None
         Optional keyword arguments for the distance function.
     normalise : bool, default=False
         Whether the distance function should be z-normalised.
-    speed_up : str, default='fastest'
-        Which speed up technique to use with for the selected distance
+    speed_up : str, default="fastest"
+        Which speed-up technique to use for the selected distance
         function. By default, the fastest algorithm is used. A list of available
-        algorithm for each distance can be obtained by calling the
-        `get_speedup_function_names` function.
+        algorithms for each distance can be obtained by calling the
+        ``get_speedup_function_names`` function.
     inverse_distance : bool, default=False
-        If True, the matching will be made on the inverse of the distance, and thus, the
+        If ``True``, the matching will be made on the inverse of the distance, and thus, the
         worst matches to the query will be returned instead of the best ones.
     n_jobs : int, default=1
         Number of parallel jobs to use.
-    store_distance_profiles : bool, default=False.
+    store_distance_profiles : bool, default=False
         Whether to store the computed distance profiles in the attribute
-        "distance_profiles_" after calling the predict method. It will store the raw
+        ``distance_profiles_`` after calling the `predict` method. It will store the raw
         distance profile, meaning without potential inversion or thresholding applied.
 
     Attributes
     ----------
     X_ : np.ndarray, 3D array of shape (n_cases, n_channels, n_timepoints)
-        The input time series stored during the fit method. This is the
+        The input time series stored during the `fit` method. This is the
         database we search in when given a query.
     distance_profile_function : function
         The function used to compute the distance profile. This is determined
-        during the fit method based on the distance and normalise
+        during the `fit` method based on the ``distance`` and ``normalise``
         parameters.
 
     Notes
@@ -111,25 +111,25 @@ class QuerySearch(BaseSimilaritySearch):
 
     def _fit(self, X: np.ndarray, y=None):
         """
-        Check input format and store it to be used as search space during predict.
+        Check input format and store it to be used as the search space during `predict`.
 
         Parameters
         ----------
         X : np.ndarray, 3D array of shape (n_cases, n_channels, n_timepoints)
-            Input array to used as database for the similarity search
+            Input array to be used as the database for the similarity search.
         y : optional
             Not used.
 
         Raises
         ------
         TypeError
-            If the input X array is not 3D raise an error.
+            If the input ``X`` array is not 3D, raises an error.
 
         Returns
         -------
         self
-
         """
+
         self.X_ = X
         self.distance_profile_function_ = self._get_distance_profile_function()
         return self
@@ -144,62 +144,62 @@ class QuerySearch(BaseSimilaritySearch):
         apply_exclusion_to_result=False,
     ) -> np.ndarray:
         """
-        Predict method : Check the shape of X and call _predict to perform the search.
+        Predict method: Check the shape of `X` and call `_predict` to perform the search.
 
-        If the distance profile function is normalised, it stores the mean and stds
-        from X and X_, with X_ the training data.
+        If the distance profile function is normalised, it stores the mean and standard
+        deviations from `X` and `X_`, with `X_` being the training data.
 
         Parameters
         ----------
-        X : np.ndarray, 2D array of shape (n_channels, query_length)
+        X : np.ndarray, 2D array of shape `(n_channels, query_length)`
             Input query used for similarity search.
         axis : int
-            The time point axis of the input series if it is 2D. If ``axis==0``, it is
-            assumed each column is a time series and each row is a time point. i.e. the
-            shape of the data is ``(n_timepoints,n_channels)``. ``axis==1`` indicates
-            the time series are in rows, i.e. the shape of the data is
-            ``(n_channels,n_timepoints)``.
+            The time point axis of the input series if it is 2D. If ``axis == 0``, it is
+            assumed each column is a time series and each row is a time point, i.e., the
+            shape of the data is ``(n_timepoints, n_channels)``. ``axis == 1`` indicates
+            that the time series are in rows, i.e., the shape of the data is
+            ``(n_channels, n_timepoints)``.
         X_index : Iterable
-            An Interable (tuple, list, array) of length two used to specify the index of
-            the query X if it was extracted from the input data X given during the fit
-            method. Given the tuple (id_sample, id_timestamp), the similarity search
-            will define an exclusion zone around the X_index in order to avoid matching
-            X with itself. If None, it is considered that the query is not extracted
-            from X_.
-        exclusion_factor : float, default=2.
+            An iterable (tuple, list, array) of length two used to specify the index of
+            the query `X` if it was extracted from the input data `X` given during the
+            `fit` method. Given the tuple `(id_sample, id_timestamp)`, the similarity search
+            will define an exclusion zone around `X_index` in order to avoid matching
+            `X` with itself. If `None`, it is considered that the query is not extracted
+            from `X_`.
+        exclusion_factor : float, default=2.0
             The factor to apply to the query length to define the exclusion zone. The
-            exclusion zone is define from
-            :math:`id_timestamp - query_length//exclusion_factor` to
-            :math:`id_timestamp + query_length//exclusion_factor`. This also applies to
+            exclusion zone is defined from
+            :math:`id_timestamp - query_length // exclusion_factor` to
+            :math:`id_timestamp + query_length // exclusion_factor`. This also applies to
             the matching conditions defined by child classes. For example, with
-            TopKSimilaritySearch, the k best matches are also subject to the exclusion
-            zone, but with :math:`id_timestamp` the index of one of the k matches.
+            `TopKSimilaritySearch`, the `k` best matches are also subject to the exclusion
+            zone, but with :math:`id_timestamp` as the index of one of the `k` matches.
         apply_exclusion_to_result : bool, default=False
-            Wheter to apply the exclusion factor to the output of the similarity search.
+            Whether to apply the exclusion factor to the output of the similarity search.
             This means that two matches of the query from the same sample must be at
-            least spaced by +/- :math:`query_length//exclusion_factor`.
-            This can avoid pathological matching where, for example if we extract the
+            least spaced by :math:`query_length // exclusion_factor`.
+            This can avoid pathological matching where, for example, if we extract the
             best two matches, there is a high chance that if the best match is located
             at :math:`id_timestamp`, the second best match will be located at
-            :math:`id_timestamp` +/- 1, as they both share all their values except one.
+            :math:`id_timestamp ± 1`, as they both share all their values except one.
 
         Raises
         ------
         TypeError
-            If the input X array is not 2D raise an error.
+            If the input `X` array is not 2D, raises an error.
         ValueError
-            If the length of the query is greater
+            If the length of the query is greater than the available data, raises an error.
 
         Returns
         -------
-        Tuple(ndarray, ndarray)
-            The first array, of shape ``(n_matches)``, contains the distance between
-            the query and its best matches in X_. The second array, of shape
-            ``(n_matches, 2)``, contains the indexes of these matches as
-            ``(id_sample, id_timepoint)``. The corresponding match can be
+        Tuple[np.ndarray, np.ndarray]
+            The first array, of shape `(n_matches,)`, contains the distance between
+            the query and its best matches in `X_`. The second array, of shape
+            `(n_matches, 2)`, contains the indexes of these matches as
+            `(id_sample, id_timepoint)`. The corresponding match can be
             retrieved as ``X_[id_sample, :, id_timepoint : id_timepoint + length]``.
+    """
 
-        """
         self._check_is_fitted()
         prev_threads = get_num_threads()
         set_num_threads(self._n_jobs)
@@ -236,34 +236,32 @@ class QuerySearch(BaseSimilaritySearch):
         self, distance_profiles: np.ndarray, exclusion_size: Optional[int] = None
     ) -> np.ndarray:
         """
-        Private predict method for QuerySearch.
+        Private predict method for `QuerySearch`.
 
-        It takes the distance profiles and apply the `k` and `threshold` conditions to
+        It takes the distance profiles and applies the `k` and `threshold` conditions to
         return the set of best matches.
 
         Parameters
         ----------
-        distance_profiles : np.ndarray, 2D array of shape (n_cases, n_timepoints - query_length + 1)  # noqa: E501
+        distance_profiles : np.ndarray, 2D array of shape `(n_cases, n_timepoints - query_length + 1)`  # noqa: E501
             Precomputed distance profile.
         exclusion_size : int, optional
-            The size of the exclusion zone used to prevent returning as top k candidates
-            the ones that are close to each other (for example i and i+1).
+            The size of the exclusion zone used to prevent returning as top `k` candidates
+            the ones that are close to each other (for example, `i` and `i+1`).
             It is used to define a region between
             :math:`id_timestamp - exclusion_size` and
             :math:`id_timestamp + exclusion_size` which cannot be returned
-            as best match if :math:`id_timestamp` was already selected. By default,
-            the value None means that this is not used.
+            as the best match if :math:`id_timestamp` was already selected. By default,
+            the value `None` means that this is not used.
 
         Returns
         -------
-        Tuple(ndarray, ndarray)
-            The first array, of shape ``(n_matches)``, contains the distance between
-            the query and its best matches in X_. The second array, of shape
-            ``(n_matches, 2)``, contains the indexes of these matches as
-            ``(id_sample, id_timepoint)``. The corresponding match can be
-            retrieved as ``X_[id_sample, :, id_timepoint : id_timepoint + length]``.
-
-
+        Tuple[np.ndarray, np.ndarray]
+            The first array, of shape `(n_matches,)`, contains the distance between
+            the query and its best matches in `X_`. The second array, of shape
+            `(n_matches, 2)`, contains the indexes of these matches as
+            `(id_sample, id_timepoint)`. The corresponding match can be
+            retrieved as `X_[id_sample, :, id_timepoint : id_timepoint + length]`.
         """
         if self.store_distance_profiles:
             self.distance_profiles_ = distance_profiles
@@ -307,20 +305,19 @@ class QuerySearch(BaseSimilaritySearch):
 
     def _get_distance_profile_function(self):
         """
-        Given distance and speed_up parameters, return the distance profile function.
+        Given `distance` and `speed_up` parameters, return the distance profile function.
 
         Raises
         ------
         ValueError
-            If the distance parameter given at initialization is not a string nor a
-            numba function or a callable, or if the speedup parameter is unknow or
-            unsupported, raisea ValueError.
+            If the `distance` parameter given at initialization is not a string, a
+            `numba` function, or a callable, or if the `speed_up` parameter is unknown or
+            unsupported, raises a `ValueError`.
 
         Returns
         -------
         function
-            The distance profile function matching the distance argument.
-
+            The distance profile function matching the `distance` argument.
         """
         if isinstance(self.distance, str):
             distance_dict = _QUERY_SEARCH_SPEED_UP_DICT.get(self.distance)
@@ -345,21 +342,20 @@ class QuerySearch(BaseSimilaritySearch):
 
     def _call_distance_profile(self, X: np.ndarray, mask: np.ndarray) -> np.ndarray:
         """
-        Obtain the distance profile function and call it with the query and the mask.
+        Obtain the distance profile function and call it with the `query` and the `mask`.
 
         Parameters
         ----------
-        X : np.ndarray, 2D array of shape (n_channels, query_length)
+        X : ``np.ndarray``, 2D array of shape ``(n_channels, query_length)``
             Input query used for similarity search.
-        mask : np.ndarray, 2D array of shape (n_cases, n_timepoints - query_length + 1)
-            Boolean array which indicates the candidates that should be evaluated in
+        mask : ``np.ndarray``, 2D array of shape ``(n_cases, n_timepoints - query_length + 1)``
+            Boolean array that indicates the candidates that should be evaluated in
             the similarity search.
 
         Returns
         -------
-        distance_profiles : np.ndarray, 2D array of shape (n_cases, n_timepoints - query_length + 1)  # noqa: E501
-            The distance profiles between the input time series and the query.
-
+        distance_profiles : ``np.ndarray``, 2D array of shape ``(n_cases, n_timepoints - query_length + 1)``  # noqa: E501
+        The distance profiles between the input time series and the query.
         """
         if self.normalise:
             distance_profiles = self.distance_profile_function_(
@@ -379,16 +375,16 @@ class QuerySearch(BaseSimilaritySearch):
     @classmethod
     def get_speedup_function_names(self) -> dict:
         """
-        Get available speedup for query search in aeon.
+         Get available speedup methods for query search in `aeon`.
 
-        The returned structure is a dictionnary that contains the names of all
-        avaialble speedups for normalised and non-normalised distance functions.
+        The returned structure is a dictionary that contains the names of all
+        available speedups for normalised and non-normalised distance functions.
 
         Returns
         -------
         dict
-            The available speedups name that can be used as parameters in
-            similarity search classes.
+            The available speedup names that can be used as parameters in
+            similarity search classes
 
         """
         speedups = {}

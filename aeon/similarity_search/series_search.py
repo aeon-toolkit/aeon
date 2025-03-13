@@ -23,51 +23,50 @@ class SeriesSearch(BaseSimilaritySearch):
 
     The series search estimator will return a set of matches for each subsequence of
     size L in a time series given during predict. The matching of each subsequence will
-    be made against all subsequence of size L inside the time series given during fit,
+    be made against all subsequences of size L inside the time series given during fit,
     which will represent the search space.
 
-    Depending on the `k` and/or `threshold` parameters, which condition what is
-    considered a valid match during the search, the number of matches will vary. If `k`
-    is used, at most `k` matches (the `k` best) will be returned, if `threshold` is used
-    and `k` is set to `np.inf`, all the candidates which distance to the query is
-    inferior or equal to `threshold` will be returned. If both are used, the `k` best
-    matches to the query with distance inferior to `threshold` will be returned.
-
+    Depending on the ``k`` and/or ``threshold`` parameters, which condition what is
+    considered a valid match during the search, the number of matches will vary. If ``k``
+    is used, at most ``k`` matches (the ``k`` best) will be returned. If ``threshold`` is
+    used and ``k`` is set to ``np.inf``, all candidates whose distance to the query is
+    less than or equal to ``threshold`` will be returned. If both are used, the ``k`` best
+    matches to the query with a distance less than ``threshold`` will be returned.
 
     Parameters
     ----------
     k : int, default=1
         The number of best matches to return during predict for each subsequence.
     threshold : float, default=np.inf
-        The number of best matches to return during predict for each subsequence.
+        The maximum allowable distance for a valid match.
     distance : str, default="euclidean"
         Name of the distance function to use. A list of valid strings can be found in
         the documentation for :func:`aeon.distances.get_distance_function`.
-        If a callable is passed it must either be a python function or numba function
-        with nopython=True, that takes two 1d numpy arrays as input and returns a float.
+        If a callable is passed, it must either be a Python function or a Numba function
+        with ``nopython=True`` that takes two 1D NumPy arrays as input and returns a float.
     distance_args : dict, default=None
         Optional keyword arguments for the distance function.
     normalise : bool, default=False
         Whether the distance function should be z-normalised.
     speed_up : str, default='fastest'
-        Which speed up technique to use with for the selected distance
+        Which speed-up technique to use for the selected distance
         function. By default, the fastest algorithm is used. A list of available
-        algorithm for each distance can be obtained by calling the
-        `get_speedup_function_names` function.
+        algorithms for each distance can be obtained by calling the
+        ``get_speedup_function_names`` function.
     inverse_distance : bool, default=False
-        If True, the matching will be made on the inverse of the distance, and thus, the
-        worst matches to the query will be returned instead of the best ones.
+        If ``True``, the matching will be based on the inverse of the distance, meaning
+        the worst matches to the query will be returned instead of the best ones.
     n_jobs : int, default=1
         Number of parallel jobs to use.
 
     Attributes
     ----------
-    X_ : array, shape (n_cases, n_channels, n_timepoints)
-        The input time series stored during the fit method. This is the
+    X_ : np.ndarray, shape (n_cases, n_channels, n_timepoints)
+        The input time series stored during the ``fit`` method. This is the
         database we search in when given a query.
     distance_profile_function : function
         The function used to compute the distance profile. This is determined
-        during the fit method based on the distance and normalise
+        during the ``fit`` method based on the ``distance`` and ``normalise``
         parameters.
 
     Notes
@@ -104,19 +103,19 @@ class SeriesSearch(BaseSimilaritySearch):
 
     def _fit(self, X, y=None):
         """
-        Check input format and store it to be used as search space during predict.
+        Check input format and store it to be used as a search space during prediction.
 
         Parameters
         ----------
-        X : array, shape (n_cases, n_channels, n_timepoints)
-            Input array to used as database for the similarity search
+        X : np.ndarray, shape (n_cases, n_channels, n_timepoints)
+            Input array to be used as the database for the similarity search.
         y : optional
             Not used.
 
         Raises
         ------
         TypeError
-            If the input X array is not 3D raise an error.
+            If the input ``X`` array is not 3D, an error is raised.
 
         Returns
         -------
@@ -138,62 +137,62 @@ class SeriesSearch(BaseSimilaritySearch):
         apply_exclusion_to_result=False,
     ):
         """
-        Predict method : Check the shape of X and call _predict to perform the search.
+        Predict method: Checks the shape of X and calls `_predict` to perform the search.
 
-        If the distance profile function is normalised, it stores the mean and stds
-        from X and X_, with X_ the training data.
+        If the distance profile function is normalized, it stores the mean and standard
+        deviations from `X` and `X_`, where `X_` is the training data.
 
         Parameters
         ----------
-        X : np.ndarray, 2D array of shape (n_channels, series_length)
+        X : np.ndarray, shape (n_channels, series_length)
             Input time series used for the search.
         length : int
-            The length parameter that will be used to extract queries from X.
+            The length parameter that will be used to extract queries from `X`.
         axis : int
-            The time point axis of the input series if it is 2D. If ``axis==0``, it is
-            assumed each column is a time series and each row is a time point. i.e. the
-            shape of the data is ``(n_timepoints,n_channels)``. ``axis==1`` indicates
-            the time series are in rows, i.e. the shape of the data is
-            ``(n_channels,n_timepoints)``.
-        X_index : int
-            An integer indicating if X was extracted is part of the dataset that was
-            given during the fit method. If so, this integer should be the sample id.
-            The search will define an exclusion zone for the queries extarcted from X
-            in order to avoid matching with themself. If None, it is considered that
-            the query is not extracted from X_.
-        exclusion_factor : float, default=2.
-            The factor to apply to the query length to define the exclusion zone. The
-            exclusion zone is define from
-            ``id_timestamp - query_length//exclusion_factor`` to
-            ``id_timestamp + query_length//exclusion_factor``. This also applies to
-            the matching conditions defined by child classes. For example, with
-            TopKSimilaritySearch, the k best matches are also subject to the exclusion
-            zone, but with :math:`id_timestamp` the index of one of the k matches.
+            The time point axis of the input series if it is 2D. If ``axis == 0``, it is
+            assumed each column is a time series and each row is a time point, i.e., the
+            shape of the data is ``(n_timepoints, n_channels)``. If ``axis == 1``, the time
+            series are in rows, i.e., the shape of the data is ``(n_channels, n_timepoints)``.
+        X_index : int, optional
+            An integer indicating whether `X` was extracted from the dataset given during
+            the `fit` method. If so, this integer should be the sample ID.
+            The search will define an exclusion zone for the queries extracted from `X`
+            to avoid self-matching. If `None`, it is assumed that the query is not extracted
+            from `X_`.
+        exclusion_factor : float, default=2.0
+            The factor used to define the exclusion zone relative to `query_length`. The
+            exclusion zone is defined from
+            ``id_timestamp - query_length // exclusion_factor`` to
+            ``id_timestamp + query_length // exclusion_factor``.
+            This also applies to the matching conditions defined by child classes.
+            For example, in `TopKSimilaritySearch`, the `k` best matches are also subject
+            to the exclusion zone, but with ``id_timestamp`` being the index of one of
+            the `k` matches.
         apply_exclusion_to_result : bool, default=False
-            Wheter to apply the exclusion factor to the output of the similarity search.
-            This means that two matches of the query from the same sample must be at
-            least spaced by +/- ``query_length//exclusion_factor``.
-            This can avoid pathological matching where, for example if we extract the
-            best two matches, there is a high chance that if the best match is located
-            at ``id_timestamp``, the second best match will be located at
-            ``id_timestamp`` +/- 1, as they both share all their values except one.
+            Whether to apply the exclusion factor to the similarity search output.
+            This ensures that two matches of the query from the same sample must be at
+            least ``query_length // exclusion_factor`` apart.
+            This prevents pathological matching cases where, for example, if we extract
+            the top two matches, the second best match is likely to be located at
+            ``id_timestamp ± 1``, as they share all but one value.
 
         Raises
         ------
         TypeError
-            If the input X array is not 2D raise an error.
+            If the input `X` array is not 2D, an error is raised.
         ValueError
-            If the length of the query is greater
+            If the length of the query is greater than `series_length`.
 
         Returns
         -------
-        Tuple(ndarray, ndarray)
-            The first array, of shape ``(series_length - length + 1, n_matches)``,
-            contains the distance between all the queries of size length and their best
-            matches in X_. The second array, of shape
-            ``(series_length - L + 1, n_matches, 2)``, contains the indexes of these
-            matches as ``(id_sample, id_timepoint)``. The corresponding match can be
-            retrieved as ``X_[id_sample, :, id_timepoint : id_timepoint + length]``.
+        Tuple[np.ndarray, np.ndarray]
+            - The first array, of shape ``(series_length - length + 1, n_matches)``,
+              contains the distances between all queries of size `length` and their best
+              matches in `X_`.
+            - The second array, of shape ``(series_length - length + 1, n_matches, 2)``,
+              contains the indexes of these matches as ``(id_sample, id_timepoint)``.
+              The corresponding match can be retrieved as:
+              ``X_[id_sample, :, id_timepoint : id_timepoint + length]``.
 
         """
         self._check_is_fitted()
@@ -244,7 +243,7 @@ class SeriesSearch(BaseSimilaritySearch):
         apply_exclusion_to_result,
     ):
         """
-        Private predict method for SeriesSearch.
+        Private `_predict` method for `SeriesSearch`.
 
         This method calculates the matrix profile for a given time series dataset by
         comparing all possible subsequences of a specified length against a reference
@@ -253,39 +252,38 @@ class SeriesSearch(BaseSimilaritySearch):
 
         Parameters
         ----------
-        X : np.ndarray, 2D array of shape (n_channels, series_length)
+        X : np.ndarray, shape (n_channels, series_length)
             Input time series used for the search.
         length : int
-            The length parameter that will be used to extract queries from X.
+            The length parameter used to extract queries from `X`.
         axis : int
-            The time point axis of the input series if it is 2D. If ``axis==0``, it is
-            assumed each column is a time series and each row is a time point. i.e. the
-            shape of the data is ``(n_timepoints,n_channels)``. ``axis==1`` indicates
-            the time series are in rows, i.e. the shape of the data is
-            ``(n_channels,n_timepoints)``.
-        mask : np.ndarray, 2D array of shape (n_cases, n_timepoints - length + 1)
-            Boolean mask of the shape of the distance profiles indicating for which part
-            of it the distance should be computed. In this context, it is the mask for
-            the first query of size L in T. This mask will be updated during the
-            algorithm.
+            The time point axis of the input series if it is 2D.
+            - If ``axis == 0``, each column is a time series and each row is a time point, 
+              i.e., the shape of the data is ``(n_timepoints, n_channels)``.
+            - If ``axis == 1``, the time series are in rows, i.e., the shape is 
+              ``(n_channels, n_timepoints)``.
+        mask : np.ndarray, shape (n_cases, n_timepoints - length + 1)
+            Boolean mask of the distance profiles, indicating where the distance 
+            should be computed. Initially, it is the mask for the first query of size 
+            `length` in `X`. This mask will be updated during the algorithm.
         exclusion_size : int, optional
-            The size of the exclusion zone used to prevent returning as top k candidates
-            the ones that are close to each other (for example i and i+1).
-            It is used to define a region between
-            :math:`id_timestamp - exclusion_size` and
-            :math:`id_timestamp + exclusion_size` which cannot be returned
-            as best match if :math:`id_timestamp` was already selected. By default,
-            the value None means that this is not used.
+            The size of the exclusion zone used to prevent returning consecutive 
+            top `k` candidates that are too close to each other (e.g., `i` and `i+1`).
+            It defines a region between
+            ``id_timestamp - exclusion_size`` and ``id_timestamp + exclusion_size``,
+            which cannot be returned as the best match if ``id_timestamp`` was 
+            already selected. If `None`, no exclusion zone is used.
 
         Returns
         -------
-        Tuple(ndarray, ndarray)
-            The first array, of shape ``(series_length - length + 1, n_matches)``,
-            contains the distance between all the queries of size length and their best
-            matches in X_. The second array, of shape
-            ``(series_length - L + 1, n_matches, 2)``, contains the indexes of these
-            matches as ``(id_sample, id_timepoint)``. The corresponding match can be
-            retrieved as ``X_[id_sample, :, id_timepoint : id_timepoint + length]``.
+        Tuple[np.ndarray, np.ndarray]
+            - The first array, of shape ``(series_length - length + 1, n_matches)``, 
+              contains the distances between all queries of size `length` and their 
+              best matches in `X_`.
+            - The second array, of shape ``(series_length - length + 1, n_matches, 2)``, 
+              contains the indexes of these matches as ``(id_sample, id_timepoint)``.
+              The corresponding match can be retrieved as:
+              ``X_[id_sample, :, id_timepoint : id_timepoint + length]``.
 
         """
         if self.normalise:
@@ -346,19 +344,19 @@ class SeriesSearch(BaseSimilaritySearch):
 
     def _get_series_method_function(self):
         """
-        Given distance and speed_up parameters, return the series method function.
+        Given `distance` and `speed_up` parameters, return the corresponding series method function.
 
         Raises
         ------
         ValueError
-            If the distance parameter given at initialization is not a string nor a
-            numba function or a callable, or if the speedup parameter is unknow or
-            unsupported, raisea ValueError.
+            - If the `distance` parameter provided at initialization is neither a string, 
+              a Numba function, nor a callable.
+            - If the `speed_up` parameter is unknown or unsupported.
 
         Returns
         -------
         function
-            The series method function matching the distance argument.
+            The series method function that corresponds to the given `distance` argument.
 
         """
         if isinstance(self.distance, str):
@@ -387,16 +385,17 @@ class SeriesSearch(BaseSimilaritySearch):
     @classmethod
     def get_speedup_function_names(self):
         """
-        Get available speedup for series search in aeon.
+        Get available speedup options for series search in Aeon.
 
-        The returned structure is a dictionnary that contains the names of all
-        avaialble speedups for normalised and non-normalised distance functions.
+        The returned structure is a dictionary containing the names of all 
+        available speedup techniques for both normalized and non-normalized 
+        distance functions.
 
         Returns
         -------
         dict
-            The available speedups name that can be used as parameters in
-            similarity search classes.
+            A dictionary of available speedup options that can be used as 
+            parameters in similarity search classes.
 
         """
         speedups = {}
