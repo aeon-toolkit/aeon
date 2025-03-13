@@ -24,6 +24,10 @@ from aeon.distances.elastic import (
     dtw_alignment_path,
     dtw_cost_matrix,
     dtw_distance,
+    dtw_gi_alignment_path,
+    dtw_gi_cost_matrix,
+    dtw_gi_distance,
+    dtw_gi_pairwise_distance,
     dtw_pairwise_distance,
     edr_alignment_path,
     edr_cost_matrix,
@@ -447,6 +451,7 @@ def get_distance_function(method: Union[str, DistanceFunction]) -> DistanceFunct
     method          Distance Function
     =============== ========================================
     'dtw'           distances.dtw_distance
+    'dtw_gi'        distances.dtw_gi_distance
     'shape_dtw'     distances.shape_dtw_distance
     'ddtw'          distances.ddtw_distance
     'wdtw'          distances.wdtw_distance
@@ -726,6 +731,16 @@ DISTANCES = [
         "alignment_path": dtw_alignment_path,
         "type": DistanceType.ELASTIC,
         "symmetric": True,
+        "unequal_support": True,
+    },
+    {
+        "name": "dtw_gi",
+        "distance": dtw_gi_distance,
+        "pairwise_distance": dtw_gi_pairwise_distance,
+        "cost_matrix": dtw_gi_cost_matrix,
+        "alignment_path": dtw_gi_alignment_path,
+        "type": DistanceType.ELASTIC,
+        "symmetric": False,
         "unequal_support": True,
     },
     {
