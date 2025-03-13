@@ -5,9 +5,11 @@ __all__ = [
     "BaseForecaster",
     "RegressionForecaster",
     "ETSForecaster",
+    "NaiveForecaster",
 ]
 
 from aeon.forecasting._dummy import DummyForecaster
 from aeon.forecasting._ets import ETSForecaster
+from aeon.forecasting._naive import NaiveForecaster
 from aeon.forecasting._regression import RegressionForecaster
 from aeon.forecasting.base import BaseForecaster
