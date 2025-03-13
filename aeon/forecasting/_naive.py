@@ -68,7 +68,7 @@ class NaiveForecaster(BaseForecaster):
         self
             Fitted NaiveForecaster.
         """
-        self.last_value_ = y[-1]
+        self.last_value_ = y[0][-1]
         return self
 
     def _predict(self, y=None, exog=None):
