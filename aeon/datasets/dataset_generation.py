@@ -1,12 +1,17 @@
 """Code to select datasets for regression-based forecasting experiments."""
 
 import gc
+import os
 import tempfile
 import time
 
 import pandas as pd
 
-from aeon.datasets import load_forecasting, write_windowed_split_series
+from aeon.datasets import load_forecasting
+from aeon.datasets._data_writers import (
+    write_forecasting_dataset,
+    write_regression_dataset,
+)
 
 filtered_datasets = [
     "nn5_daily_dataset_without_missing_values",
@@ -166,7 +171,7 @@ def filter_and_categorise_m4(frequency_type):
 # filter_and_categorise_m4('hourly')
 
 
-def gen_datasets():
+def gen_datasets(problem_type):
     """
     Generate windowed train/test split of datasets.
 
@@ -180,24 +185,35 @@ def gen_datasets():
     -----
     - Requires a CSV file containing a list of the series to process.
     """
-    series = pd.read_csv("./aeon/datasets/forecasting/Final Dataset Selection.csv")
+    final_series_selection = pd.read_csv(
+        "./aeon/datasets/forecasting/Final Dataset Selection.csv"
+    )
     current_dataset = ""
     dataset = pd.DataFrame()
-    metadata = []
     tmpdir = tempfile.mkdtemp()
-    for item in series.to_records(index=False):
-        if current_dataset != item[0]:
-            (dataset, metadata) = load_forecasting(item[0], tmpdir, True)
-            current_dataset = item[0]
-            print(item[0])  # noqa
-        print(item[1])  # noqa
-        series = dataset[dataset["series_name"] == item[1]]
-        write_windowed_split_series(
-            series,
-            "./aeon/datasets/forecasting/windowed_series",
-            f"{item[0]}_{item[1]}",
-            metadata,
-        )
+    location_of_datasets = f"./aeon/datasets/local_data/{problem_type}"
+    if not os.path.exists(location_of_datasets):
+        os.makedirs(location_of_datasets)
+    with open(f"{location_of_datasets}/windowed_series.txt", "w") as f:
+        for item in final_series_selection.to_records(index=False):
+            if current_dataset != item[0]:
+                dataset = load_forecasting(item[0], tmpdir)
+                current_dataset = item[0]
+                print(f"Current Dataset: {current_dataset}")  # noqa
+            f.write(f"{item[0]}_{item[1]}\n")
+            series = (
+                dataset[dataset["series_name"] == item[1]]["series_value"]
+                .iloc[0]
+                .to_numpy()
+            )
+            dataset_name = f"{item[0]}_{item[1]}"
+            full_file_path = f"{location_of_datasets}/{dataset_name}"
+            if not os.path.exists(full_file_path):
+                os.makedirs(full_file_path)
+            if problem_type == "regression":
+                write_regression_dataset(series, full_file_path, dataset_name)
+            elif problem_type == "forecasting":
+                write_forecasting_dataset(series, full_file_path, dataset_name)
 
 
-gen_datasets()
+gen_datasets("regression")

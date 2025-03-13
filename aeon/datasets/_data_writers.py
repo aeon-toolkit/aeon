@@ -1,6 +1,5 @@
 """Dataset wrting functions."""
 
-import math
 import os
 import textwrap
 from datetime import datetime
@@ -8,11 +7,11 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 
+from aeon.transformations.format import SlidingWindowTransformer, TrainTestTransformer
+
 __all__ = [
     "write_to_ts_file",
     "write_to_tsf_file",
-    "write_train_test_split",
-    "write_windowed_split_series",
     "write_to_arff_file",
 ]
 
@@ -107,238 +106,6 @@ def write_to_ts_file(
             file.write(str(y[i]))
         file.write("\n")
     file.close()
-
-
-def write_train_test_split(
-    df: pd.DataFrame,
-    full_file_path,
-    dataset_name,
-    metadata,
-    train_proportion=0.7,
-    value_column_name="series_value",
-    attributes_types=None,
-    missing_val_symbol="?",
-):
-    """
-    Split a dataset into training and testing subsets and write them to TSF files.
-
-    This function takes an input dataset (as a pandas DataFrame) that contains
-    time series data along with their associated attributes. It splits each time
-    series (found in the column defined by `value_column_name`) into two parts:
-    the first portion (determined by `train_proportion`) is used as the training
-    set and the remaining portion is used as the testing set.
-
-    The resulting training and testing DataFrames are then saved as TSF-formatted
-    files using the `write_to_tsf_file` function. The output files are named using
-    the provided `dataset_name` with suffixes "_TRAIN.tsf" and "_TEST.tsf",
-    respectively, and are written to the directory specified by `full_file_path`.
-
-    Parameters
-    ----------
-    df : pandas.DataFrame
-        The input DataFrame containing the time series data and any associated
-        attributes. It must include a column (default name "series_value") where
-        each entry is an iterable (e.g., list) of numeric values representing a
-        time series.
-    full_file_path : str
-        The directory path where the output TSF files will be saved.
-    dataset_name : str
-        The base name for the dataset. The output files will be named as
-        "{dataset_name}_TRAIN.tsf" and "{dataset_name}_TEST.tsf".
-    metadata : dict
-        A dictionary containing metadata for the dataset. This metadata (which
-        should include keys like "frequency", "forecast_horizon",
-        "contain_missing_values", and "contain_equal_length") is passed to the
-        TSF writing function.
-    train_proportion : float, optional (default=0.7)
-        The proportion of each series to include in the training set. The remainder
-        of the series is assigned to the testing set.
-    value_column_name : str, optional (default="series_value")
-        The name of the column in `df` that contains the time series values.
-    attributes_types : dict, optional
-        An optional dictionary mapping attribute column names (all columns other
-        than the series column) to their TSF data types (e.g., "numeric", "string",
-        or "date"). This is passed to the TSF writing function if provided.
-    missing_val_symbol : str, optional (default="?")
-        The symbol used to represent missing values in the time series. This is
-        passed to the TSF writing function.
-
-    Returns
-    -------
-    None
-
-    Side Effects
-    ------------
-    Creates two TSF files in the directory specified by `full_file_path`:
-      - A training file named "{dataset_name}_TRAIN.tsf"
-      - A testing file named "{dataset_name}_TEST.tsf"
-
-    Raises
-    ------
-    Any exceptions raised by the underlying `write_to_tsf_file` function or
-    during the splitting process will propagate.
-    """
-    df_test = df.copy()
-    df_test[value_column_name] = [
-        df_test[value_column_name][i][
-            math.ceil(len(df_test[value_column_name][i]) * train_proportion) :
-        ]
-        for i in range(len(df_test[value_column_name]))
-    ]
-    df[value_column_name] = [
-        df[value_column_name][i][
-            : math.ceil(len(df[value_column_name][i]) * train_proportion)
-        ]
-        for i in range(len(df[value_column_name]))
-    ]
-    write_to_tsf_file(
-        df,
-        f"{full_file_path}/{dataset_name}_TRAIN.tsf",
-        metadata,
-        value_column_name,
-        attributes_types,
-        missing_val_symbol,
-    )
-    write_to_tsf_file(
-        df_test,
-        f"{full_file_path}/{dataset_name}_TEST.tsf",
-        metadata,
-        value_column_name,
-        attributes_types,
-        missing_val_symbol,
-    )
-
-
-# Helper function to create windowed views of a series
-def create_windowed_series(series, window_width=100):
-    """
-    Create windowed views of a series by extracting fixed-length overlapping segments.
-
-    This function generates multiple subsequences (windows) of a specified width from
-    the input time series. Each window represents a shifted view of the series, moving
-    forward by one time step.
-
-    Parameters
-    ----------
-    series : list or array-like
-        The input time series from which windows will be created.
-    window_width : int, optional (default=100)
-        The number of consecutive time points in each window.
-
-    Returns
-    -------
-    windowed_series : list of lists
-        A list where each element is a window (subsequence) of length `window_width`
-        from the original series.
-    indices : list of int
-        A list of starting indices corresponding to each extracted window.
-
-    Notes
-    -----
-    - The function assumes that `window_width` is smaller than the length of `series`.
-
-    Example
-    -------
-    >>> series = [1, 2, 3, 4, 5, 6]
-    >>> create_windowed_series(series, window_width=3)
-    ([[1, 2, 3], [2, 3, 4], [3, 4, 5], [4, 5, 6]], [0, 1, 2, 3])
-
-    """
-    windowed_series = []
-    indices = []
-    for i in range(len(series) - window_width + 1):
-        windowed_series.append(
-            series[i : i + window_width]
-        )  # Create a view from current index onward
-        indices.append(i)
-    return windowed_series, indices
-
-
-def write_windowed_split_series(
-    df: pd.DataFrame,
-    full_file_path,
-    dataset_name,
-    metadata,
-    train_proportion=0.7,
-    value_column_name="series_value",
-    attributes_types=None,
-    missing_val_symbol="?",
-):
-    """
-    Format a single time series into a windowed train/test set in .tsf files.
-
-    This function assumes that the input DataFrame contains only one time series.
-    It first splits the series into training and testing sets based on
-    the specified proportion. Then, it applies windowing to create multiple
-    shifted views of the series. Finally, it writes the windowed train and test
-    sets to separate .tsf files.
-
-    Parameters
-    ----------
-    df : pd.DataFrame
-        A DataFrame containing a single time series.
-    full_file_path : str
-        The directory path where the output .tsf files should be saved.
-    dataset_name : str
-        The name of the time series. This is used as the base name for the output files.
-    metadata : dict
-        Metadata associated with the dataset (e.g., frequency, missing value info).
-    train_proportion : float, optional (default=0.7)
-        The proportion of the time series to use for training,
-        with the remaining used for test.
-    value_column_name : str, optional (default="series_value")
-        The name of the column containing the time series values.
-    attributes_types : list, optional
-        A list specifying attribute types (e.g., numeric, string) for the dataset.
-    missing_val_symbol : str, optional (default="?")
-        The symbol used to represent missing values in the dataset.
-
-    Notes
-    -----
-    - The function creates the output directory if it does not exist.
-
-    Returns
-    -------
-    None
-        The function does not return anything but writes .tsf files to the
-        specified path.
-
-    """
-    # Extract time series and start timestamp
-    series_values = df[value_column_name].iloc[0]  # Assume only one series in DataFrame
-    # Compute split index
-    end_location = len(series_values) if len(series_values) < 10000 else 10000
-    train_test_split_location = math.ceil(end_location * train_proportion)
-
-    # Split into train and test sets
-    train_series = series_values[:train_test_split_location]
-    test_series = series_values[train_test_split_location:end_location]
-
-    # Generate windowed versions of train and test sets
-    train_windows, train_indices = create_windowed_series(train_series)
-    test_windows, test_indices = create_windowed_series(test_series)
-
-    # Create new DataFrames for train and test
-    train_df = pd.DataFrame({"index": train_indices, value_column_name: train_windows})
-    test_df = pd.DataFrame({"index": test_indices, value_column_name: test_windows})
-    if not os.path.exists(full_file_path):
-        os.makedirs(full_file_path)
-    write_to_tsf_file(
-        train_df,
-        f"{full_file_path}/{dataset_name}_TRAIN.tsf",
-        metadata,
-        value_column_name,
-        attributes_types,
-        missing_val_symbol,
-    )
-    write_to_tsf_file(
-        test_df,
-        f"{full_file_path}/{dataset_name}_TEST.tsf",
-        metadata,
-        value_column_name,
-        attributes_types,
-        missing_val_symbol,
-    )
 
 
 def write_to_tsf_file(
@@ -634,3 +401,37 @@ def write_to_arff_file(
             file.write(str(atts))
             file.write(f",{target}")
             file.write("\n")  # open a new line
+
+
+def write_regression_dataset(series, full_file_path, dataset_name):
+    """Write a regression dataset to file."""
+    train_series, test_series = TrainTestTransformer().fit_transform(series)
+    X_train, Y_train, train_indices = SlidingWindowTransformer().fit_transform(
+        train_series
+    )
+    X_test, Y_test, test_indices = SlidingWindowTransformer().fit_transform(test_series)
+    write_to_ts_file(
+        [[item] for item in X_train],
+        full_file_path,
+        Y_train,
+        f"{dataset_name}_TRAIN",
+        None,
+        True,
+    )
+    write_to_ts_file(
+        [[item] for item in X_test],
+        full_file_path,
+        Y_test,
+        f"{dataset_name}_TEST",
+        None,
+        True,
+    )
+
+
+def write_forecasting_dataset(series, full_file_path, dataset_name):
+    """Write a regression dataset to file."""
+    train_series, test_series = TrainTestTransformer().fit_transform(series)
+    train_df = pd.DataFrame(train_series)
+    train_df.to_csv(f"{full_file_path}/{dataset_name}_TRAIN.csv", index=False)
+    test_df = pd.DataFrame(test_series)
+    test_df.to_csv(f"{full_file_path}/{dataset_name}_TEST.csv", index=False)
