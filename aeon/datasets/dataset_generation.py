@@ -185,9 +185,7 @@ def gen_datasets(problem_type):
     -----
     - Requires a CSV file containing a list of the series to process.
     """
-    final_series_selection = pd.read_csv(
-        "./aeon/datasets/forecasting/Final Dataset Selection.csv"
-    )
+    final_series_selection = pd.read_csv("./aeon/datasets/Final Dataset Selection.csv")
     current_dataset = ""
     dataset = pd.DataFrame()
     tmpdir = tempfile.mkdtemp()

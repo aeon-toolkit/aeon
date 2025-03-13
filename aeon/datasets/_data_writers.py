@@ -432,6 +432,6 @@ def write_forecasting_dataset(series, full_file_path, dataset_name):
     """Write a regression dataset to file."""
     train_series, test_series = TrainTestTransformer().fit_transform(series)
     train_df = pd.DataFrame(train_series)
-    train_df.to_csv(f"{full_file_path}/{dataset_name}_TRAIN.csv", index=False)
+    train_df.to_csv(f"{full_file_path}/{dataset_name}_TRAIN.csv")
     test_df = pd.DataFrame(test_series)
-    test_df.to_csv(f"{full_file_path}/{dataset_name}_TEST.csv", index=False)
+    test_df.to_csv(f"{full_file_path}/{dataset_name}_TEST.csv")
