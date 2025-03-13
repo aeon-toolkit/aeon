@@ -56,7 +56,7 @@ def _deep_equals(x, y, depth, ignore_index):
     elif isinstance(x, pd.DataFrame):
         return _dataframe_equals(x, y, depth, ignore_index)
     elif isinstance(x, np.ndarray):
-        return _numpy_equals(x, y, depth)
+        return _numpy_equals(x, y, depth, ignore_index)
     elif isinstance(x, (list, tuple)):
         return _list_equals(x, y, depth, ignore_index)
     elif isinstance(x, dict):
@@ -128,15 +128,21 @@ def _dataframe_equals(x, y, depth, ignore_index):
         return eq, msg
 
 
-def _numpy_equals(x, y, depth):
+def _numpy_equals(x, y, depth, ignore_index):
     if x.dtype != y.dtype:
         return False, f"x.dtype ({x.dtype}) != y.dtype ({y.dtype})"
+
     if x.dtype == "object":
-        eq, msg = _deep_equals(x.tolist(), y.tolist(), depth, ignore_index=True)
+        for i in range(len(x)):
+            eq, msg = _deep_equals(x[i], y[i], depth + 1, ignore_index)
+
+            if not eq:
+                return False, msg + f", idx={i}"
     else:
         eq = np.allclose(x, y, equal_nan=True)
         msg = "" if eq else f"x ({x}) != y ({y}), depth={depth}"
-    return eq, msg
+        return eq, msg
+    return True, ""
 
 
 def _csrmatrix_equals(x, y, depth):
