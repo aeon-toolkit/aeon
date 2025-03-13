@@ -120,10 +120,10 @@ def _dtw_gi(
     path, cost = dtw_alignment_path(x_, y_trans, window, itakura_max_slope)
 
     if use_bias:
-        return w_pi, p, bias, cost, x, y_trans
+        return w_pi, p, bias, cost, x_, y_trans
     else:
         dummy_bias = np.zeros((x_channels, 1), dtype=np.float64)
-        return w_pi, p, dummy_bias, cost, x, y_trans
+        return w_pi, p, dummy_bias, cost, x_, y_trans
 
 
 @njit(cache=True, fastmath=True)
@@ -324,6 +324,7 @@ def dtw_gi_pairwise_distance(
     y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
     window: Optional[float] = None,
     itakura_max_slope: Optional[float] = None,
+    unequal_length: bool = None,
     init_p=None,
     max_iter=20,
     use_bias=False,
@@ -421,12 +422,14 @@ def dtw_gi_pairwise_distance(
 
     if y is None:
         # To self
-        return _dtw_gi_pairwise_distance(_X, window, itakura_max_slope, unequal_length)
+        return _dtw_gi_pairwise_distance(
+            _X, window, itakura_max_slope, unequal_length, init_p, max_iter, use_bias
+        )
     _y, unequal_length = _convert_collection_to_numba_list(
         y, "y", multivariate_conversion
     )
     return _dtw_gi_from_multiple_to_multiple_distance(
-        _X, _y, window, itakura_max_slope, unequal_length
+        _X, _y, window, itakura_max_slope, unequal_length, init_p, max_iter, use_bias
     )
 
 
@@ -434,9 +437,9 @@ def dtw_gi_pairwise_distance(
 def _dtw_gi_from_multiple_to_multiple_distance(
     x: NumbaList[np.ndarray],
     y: NumbaList[np.ndarray],
-    window: Optional[float],
-    itakura_max_slope: Optional[float],
-    unequal_length: bool,
+    window: Optional[float] = None,
+    itakura_max_slope: Optional[float] = None,
+    unequal_length: bool = None,
     init_p=None,
     max_iter=20,
     use_bias=False,
@@ -457,9 +460,9 @@ def _dtw_gi_from_multiple_to_multiple_distance(
 @njit(cache=True, fastmath=True)
 def _dtw_gi_pairwise_distance(
     X: NumbaList[np.ndarray],
-    window: Optional[float],
-    itakura_max_slope: Optional[float],
-    unequal_length: bool,
+    window: Optional[float] = None,
+    itakura_max_slope: Optional[float] = None,
+    unequal_length: bool = None,
     init_p=None,
     max_iter=20,
     use_bias=False,
@@ -533,7 +536,7 @@ def dtw_gi_alignment_path(
     ([(0, 0), (1, 1), (2, 2), (3, 3)], 4.0)
     """
     w_pi, _, _, cost, _, _ = _dtw_gi(
-        x, y, window, itakura_max_slope, init_p=None, max_iter=20, use_bias=False
+        x, y, window, itakura_max_slope, init_p, max_iter, use_bias
     )
     min_alignment_path = []
     for i in range(len(w_pi)):
