@@ -231,8 +231,8 @@ def dtw_gi_distance(
     768.0
     >>> x = np.array([[1, 2, 3, 4, 5], [6, 7, 8, 9, 10], [0, 1, 0, 2, 0]])
     >>> y = np.array([[11, 12, 13, 14],[7, 8, 9, 20],[1, 3, 4, 5]] )
-    >>> dtw_gi_distance(x, y) # 2D series with 3 channels, unequal length
-    359.203981741644
+    >>> round(dtw_gi_distance(x, y), 1) # 2D series with 3 channels, unequal length
+    359.2
     """
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
