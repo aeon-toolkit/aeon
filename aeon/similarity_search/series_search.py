@@ -258,29 +258,29 @@ class SeriesSearch(BaseSimilaritySearch):
             The length parameter used to extract queries from `X`.
         axis : int
             The time point axis of the input series if it is 2D.
-            - If ``axis == 0``, each column is a time series and each row is a time point, 
+            - If ``axis == 0``, each column is a time series and each row is a time point,
               i.e., the shape of the data is ``(n_timepoints, n_channels)``.
-            - If ``axis == 1``, the time series are in rows, i.e., the shape is 
+            - If ``axis == 1``, the time series are in rows, i.e., the shape is
               ``(n_channels, n_timepoints)``.
         mask : np.ndarray, shape (n_cases, n_timepoints - length + 1)
-            Boolean mask of the distance profiles, indicating where the distance 
-            should be computed. Initially, it is the mask for the first query of size 
+            Boolean mask of the distance profiles, indicating where the distance
+            should be computed. Initially, it is the mask for the first query of size
             `length` in `X`. This mask will be updated during the algorithm.
         exclusion_size : int, optional
-            The size of the exclusion zone used to prevent returning consecutive 
+            The size of the exclusion zone used to prevent returning consecutive
             top `k` candidates that are too close to each other (e.g., `i` and `i+1`).
             It defines a region between
             ``id_timestamp - exclusion_size`` and ``id_timestamp + exclusion_size``,
-            which cannot be returned as the best match if ``id_timestamp`` was 
+            which cannot be returned as the best match if ``id_timestamp`` was
             already selected. If `None`, no exclusion zone is used.
 
         Returns
         -------
         Tuple[np.ndarray, np.ndarray]
-            - The first array, of shape ``(series_length - length + 1, n_matches)``, 
-              contains the distances between all queries of size `length` and their 
+            - The first array, of shape ``(series_length - length + 1, n_matches)``,
+              contains the distances between all queries of size `length` and their
               best matches in `X_`.
-            - The second array, of shape ``(series_length - length + 1, n_matches, 2)``, 
+            - The second array, of shape ``(series_length - length + 1, n_matches, 2)``,
               contains the indexes of these matches as ``(id_sample, id_timepoint)``.
               The corresponding match can be retrieved as:
               ``X_[id_sample, :, id_timepoint : id_timepoint + length]``.
@@ -349,7 +349,7 @@ class SeriesSearch(BaseSimilaritySearch):
         Raises
         ------
         ValueError
-            - If the `distance` parameter provided at initialization is neither a string, 
+            - If the `distance` parameter provided at initialization is neither a string,
               a Numba function, nor a callable.
             - If the `speed_up` parameter is unknown or unsupported.
 
@@ -387,14 +387,14 @@ class SeriesSearch(BaseSimilaritySearch):
         """
         Get available speedup options for series search in Aeon.
 
-        The returned structure is a dictionary containing the names of all 
-        available speedup techniques for both normalized and non-normalized 
+        The returned structure is a dictionary containing the names of all
+        available speedup techniques for both normalized and non-normalized
         distance functions.
 
         Returns
         -------
         dict
-            A dictionary of available speedup options that can be used as 
+            A dictionary of available speedup options that can be used as
             parameters in similarity search classes.
 
         """

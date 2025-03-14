@@ -25,7 +25,7 @@ class QuerySearch(BaseSimilaritySearch):
     """
     Query search estimator.
 
-    The query search estimator will return a set of matches of a query in a search space, 
+    The query search estimator will return a set of matches of a query in a search space,
     which is defined by a time series dataset given during `fit`. Depending on the ``k``
     and/or ``threshold`` parameters, which condition what is considered a valid match
     during the search, the number of matches will vary. If ``k`` is used, at most ``k``
@@ -39,7 +39,7 @@ class QuerySearch(BaseSimilaritySearch):
     k : int, default=1
         The number of best matches to return during `predict` for a given query.
     threshold : float, default=np.inf
-        The maximum distance a match can have to be considered valid. Matches with 
+        The maximum distance a match can have to be considered valid. Matches with
         distances greater than ``threshold`` are ignored.
     distance : str, default="euclidean"
         Name of the distance function to use. A list of valid strings can be found in
@@ -129,7 +129,6 @@ class QuerySearch(BaseSimilaritySearch):
         -------
         self
         """
-
         self.X_ = X
         self.distance_profile_function_ = self._get_distance_profile_function()
         return self
@@ -198,8 +197,7 @@ class QuerySearch(BaseSimilaritySearch):
             `(n_matches, 2)`, contains the indexes of these matches as
             `(id_sample, id_timepoint)`. The corresponding match can be
             retrieved as ``X_[id_sample, :, id_timepoint : id_timepoint + length]``.
-    """
-
+        """
         self._check_is_fitted()
         prev_threads = get_num_threads()
         set_num_threads(self._n_jobs)

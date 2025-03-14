@@ -27,12 +27,12 @@ def squared_distance_profile(
     Parameters
     ----------
     X : np.ndarray, 3D array of shape ``(n_cases, n_channels, n_timepoints)``
-        The input samples. If ``X`` is an **unequal** length collection, expect a numba 
+        The input samples. If ``X`` is an **unequal** length collection, expect a numba
         ``TypedList`` of 2D arrays of shape ``(n_channels, n_timepoints)``.
     q : np.ndarray, 2D array of shape ``(n_channels, query_length)``
         The query used for similarity search.
     mask : np.ndarray, 3D array of shape ``(n_cases, n_channels, n_timepoints - query_length + 1)``
-        Boolean mask indicating for which part of the distance profile the computation 
+        Boolean mask indicating for which part of the distance profile the computation
         should be performed.
 
     Returns
@@ -64,14 +64,14 @@ def normalised_squared_distance_profile(
     """
     Compute a distance profile in a brute force way.
 
-    This function computes the distance profiles between the input time series and 
-    the query using the specified distance. The search is performed in a brute force 
+    This function computes the distance profiles between the input time series and
+    the query using the specified distance. The search is performed in a brute force
     manner without any optimizations, which may be slow.
 
     Parameters
     ----------
     X : np.ndarray, 3D array of shape ``(n_cases, n_channels, n_timepoints)``
-        The input samples. If ``X`` is an **unequal** length collection, expect a numba 
+        The input samples. If ``X`` is an **unequal** length collection, expect a numba
         ``TypedList`` of 2D arrays of shape ``(n_channels, n_timepoints)``.
     q : np.ndarray, 2D array of shape ``(n_channels, query_length)``
         The query used for similarity search.
@@ -115,11 +115,11 @@ def _squared_distance_profile(QX, X, q, mask):
     Parameters
     ----------
     QX : list of np.ndarray
-        List of precomputed dot products between queries and time series. 
+        List of precomputed dot products between queries and time series.
         Each element corresponds to a different time series.
         Each array has shape ``(n_channels, n_timepoints - query_length + 1)``.
     X : np.ndarray, shape ``(n_cases, n_channels, n_timepoints)``
-        The input samples. If ``X`` is an **unequal** length collection, expect a numba 
+        The input samples. If ``X`` is an **unequal** length collection, expect a numba
         ``TypedList`` of 2D arrays, each of shape ``(n_channels, n_timepoints)``.
     q : np.ndarray, shape ``(n_channels, query_length)``
         The query used for similarity search.
@@ -155,7 +155,7 @@ def _squared_distance_profile(QX, X, q, mask):
 @njit(cache=True, fastmath=True)
 def _squared_dist_profile_one_series(QT, T, Q):
     """
-   Compute squared distance profile between a query subsequence and a single time series.
+    Compute squared distance profile between a query subsequence and a single time series.
 
     This function calculates the squared distance profile for a single time series by
     leveraging the dot product of the query and time series, as well as precomputed sums
@@ -166,7 +166,7 @@ def _squared_dist_profile_one_series(QT, T, Q):
     QT : np.ndarray, shape ``(n_channels, n_timepoints - query_length + 1)``
         The dot product between the query and the time series.
     T : np.ndarray, shape ``(n_channels, series_length)``
-        The time series used for similarity search. 
+        The time series used for similarity search.
         ``series_length`` may be greater, smaller, or equal to ``n_timepoints`` without restriction.
     Q : np.ndarray, shape ``(n_channels, query_length)``
         The query subsequence used for computing the squared distance profile.
@@ -202,7 +202,7 @@ def _normalised_squared_distance_profile(
     """
     Compute the normalised squared distance profiles between a query subsequence and input time series.
 
-    This function calculates the normalised squared distance profile using precomputed 
+    This function calculates the normalised squared distance profile using precomputed
     dot products, mean, and standard deviation values for efficient computation.
 
     Parameters
@@ -228,7 +228,7 @@ def _normalised_squared_distance_profile(
     -------
     List[np.ndarray]
         A list of 2D arrays, each of shape ``(n_channels, n_timepoints - query_length + 1)``.
-        Each array represents the normalised squared distance profile between the query 
+        Each array represents the normalised squared distance profile between the query
         subsequence and the corresponding time series.
         Entries in the array are set to infinity where the mask is ``False``.
     """
@@ -282,14 +282,14 @@ def _normalised_squared_dist_profile_one_series(
     query_length : int
         The length of the query subsequence used for the distance profile computation.
     Q_is_constant : np.ndarray, shape (n_channels,)
-        Boolean array indicating whether the query standard deviation for each channel is 
+        Boolean array indicating whether the query standard deviation for each channel is
         less than or equal to a specified threshold, identifying constant queries.
 
     Returns
     -------
     np.ndarray
-        A 2D array of shape (n_channels, n_timepoints - query_length + 1) containing the 
-        z-normalised squared distance profile between the query subsequence and the time series. 
+        A 2D array of shape (n_channels, n_timepoints - query_length + 1) containing the
+        z-normalised squared distance profile between the query subsequence and the time series.
         Entries are computed based on the z-normalised values, with special handling for constant queries.
     """
     n_channels, profile_length = QT.shape

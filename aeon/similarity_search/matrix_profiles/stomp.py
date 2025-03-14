@@ -220,10 +220,10 @@ def stomp_normalised_euclidean_matrix_profile(
         The length of the subsequences considered during the search. This parameter
         cannot be larger than ``n_timepoints`` and ``series_length``.
     X_means : ``np.ndarray``, 3D array of shape ``(n_cases, n_channels, n_timepoints - L + 1)``
-        Means of each subsequence of ``X`` of size ``L``. Should be a ``numba.TypedList`` 
+        Means of each subsequence of ``X`` of size ``L``. Should be a ``numba.TypedList``
         if ``X`` is of unequal length.
     X_stds : ``np.ndarray``, 3D array of shape ``(n_cases, n_channels, n_timepoints - L + 1)``
-        Standard deviations of each subsequence of ``X`` of size ``L``. Should be a 
+        Standard deviations of each subsequence of ``X`` of size ``L``. Should be a
         ``numba.TypedList`` if ``X`` is of unequal length.
     T_means : ``np.ndarray``, 2D array of shape ``(n_channels, series_length - L + 1)``
         Means of each subsequence of ``T`` of size ``L``.
@@ -239,7 +239,7 @@ def stomp_normalised_euclidean_matrix_profile(
         The maximum allowable distance for considering a match. Any match with a distance
         greater than this value will be ignored.
     inverse_distance : ``bool``, default=``False``
-        If ``True``, the matching will be made on the inverse of the distance, and thus, 
+        If ``True``, the matching will be made on the inverse of the distance, and thus,
         the worst matches to the query will be returned instead of the best ones.
     exclusion_size : ``int``, optional
         The size of the exclusion zone used to prevent returning as top ``k`` candidates
@@ -261,10 +261,10 @@ def stomp_normalised_euclidean_matrix_profile(
     -------
     Tuple (``np.ndarray``, ``np.ndarray``)
         - The first array, of shape ``(series_length - L + 1, k)``,
-        contains the Euclidean distances between all the queries of size ``L`` and 
+        contains the Euclidean distances between all the queries of size ``L`` and
         their best matches in ``X_``.
-        - The second array, of shape ``(series_length - L + 1, k, 2)``, contains the indexes 
-        of these matches as ``(id_sample, id_timepoint)``. The corresponding match can be 
+        - The second array, of shape ``(series_length - L + 1, k, 2)``, contains the indexes
+        of these matches as ``(id_sample, id_timepoint)``. The corresponding match can be
         retrieved as ``X_[id_sample, :, id_timepoint : id_timepoint + L]``.
     """
     MP, IP = stomp_normalised_squared_matrix_profile(
@@ -318,10 +318,10 @@ def stomp_normalised_squared_matrix_profile(
         The length of the subsequences considered during the search. This parameter
         cannot be larger than ``n_timepoints`` and ``series_length``.
     X_means : ``np.ndarray``, 3D array of shape ``(n_cases, n_channels, n_timepoints - L + 1)``
-        Means of each subsequence of ``X`` of size ``L``. Should be a ``numba.TypedList`` 
+        Means of each subsequence of ``X`` of size ``L``. Should be a ``numba.TypedList``
         if ``X`` is of unequal length.
     X_stds : ``np.ndarray``, 3D array of shape ``(n_cases, n_channels, n_timepoints - L + 1)``
-        Standard deviations of each subsequence of ``X`` of size ``L``. Should be a 
+        Standard deviations of each subsequence of ``X`` of size ``L``. Should be a
         ``numba.TypedList`` if ``X`` is of unequal length.
     T_means : ``np.ndarray``, 2D array of shape ``(n_channels, series_length - L + 1)``
         Means of each subsequence of ``T`` of size ``L``.
@@ -334,10 +334,10 @@ def stomp_normalised_squared_matrix_profile(
     k : ``int``, default=1
         The number of best matches to return during prediction for each subsequence.
     threshold : ``float``, default=``np.inf``
-        The maximum allowable squared Euclidean distance for considering a match. Any 
+        The maximum allowable squared Euclidean distance for considering a match. Any
         match with a distance greater than this value will be ignored.
     inverse_distance : ``bool``, default=``False``
-        If ``True``, the matching will be based on the inverse of the distance, and thus, 
+        If ``True``, the matching will be based on the inverse of the distance, and thus,
         the worst matches to the query will be returned instead of the best ones.
     exclusion_size : ``int``, optional
         The size of the exclusion zone used to prevent returning as top ``k`` candidates
@@ -359,10 +359,10 @@ def stomp_normalised_squared_matrix_profile(
     -------
     Tuple (``np.ndarray``, ``np.ndarray``)
         - The first array, of shape ``(series_length - L + 1, k)``,
-        contains the squared Euclidean distances between all the queries of size ``L`` 
+        contains the squared Euclidean distances between all the queries of size ``L``
         and their best matches in ``X_``.
-        - The second array, of shape ``(series_length - L + 1, k, 2)``, contains the indexes 
-        of these matches as ``(id_sample, id_timepoint)``. The corresponding match can be 
+        - The second array, of shape ``(series_length - L + 1, k, 2)``, contains the indexes
+        of these matches as ``(id_sample, id_timepoint)``. The corresponding match can be
         retrieved as ``X_[id_sample, :, id_timepoint : id_timepoint + L]``.
     """
     XdotT = [get_ith_products(X[i], T, L, 0) for i in range(len(X))]
@@ -420,10 +420,10 @@ def _stomp_normalised(
     XdotT : ``np.ndarray``, 3D array of shape ``(n_cases, n_channels, n_timepoints - L + 1)``
         Precomputed dot products between each time series in ``X`` and the query series ``T``.
     X_means : ``np.ndarray``, 3D array of shape ``(n_cases, n_channels, n_timepoints - L + 1)``
-        Means of each subsequence of ``X`` of size ``L``. Should be a ``numba.TypedList`` 
+        Means of each subsequence of ``X`` of size ``L``. Should be a ``numba.TypedList``
         if ``X`` is of unequal length.
     X_stds : ``np.ndarray``, 3D array of shape ``(n_cases, n_channels, n_timepoints - L + 1)``
-        Standard deviations of each subsequence of ``X`` of size ``L``. Should be a 
+        Standard deviations of each subsequence of ``X`` of size ``L``. Should be a
         ``numba.TypedList`` if ``X`` is of unequal length.
     T_means : ``np.ndarray``, 2D array of shape ``(n_channels, series_length - L + 1)``
         Means of each subsequence of ``T`` of size ``L``.
@@ -436,10 +436,10 @@ def _stomp_normalised(
     k : ``int``, default=1
         The number of best matches to return during prediction for each subsequence.
     threshold : ``float``, default=``np.inf``
-        The maximum allowable normalized distance for considering a match. Any 
+        The maximum allowable normalized distance for considering a match. Any
         match with a distance greater than this value will be ignored.
     inverse_distance : ``bool``, default=``False``
-        If ``True``, the matching will be based on the inverse of the distance, and thus, 
+        If ``True``, the matching will be based on the inverse of the distance, and thus,
         the worst matches to the query will be returned instead of the best ones.
     exclusion_size : ``int``, optional
         The size of the exclusion zone used to prevent returning as top ``k`` candidates
@@ -453,9 +453,9 @@ def _stomp_normalised(
     Returns
     -------
     tuple of ``np.ndarray``
-        - **MP** : ``np.ndarray`` of shape ``(n_queries,)``  
+        - **MP** : ``np.ndarray`` of shape ``(n_queries,)``
         Matrix profile distances for each query subsequence.
-        - **IP** : ``np.ndarray`` of shape ``(n_queries,)``  
+        - **IP** : ``np.ndarray`` of shape ``(n_queries,)``
         Indexes of the top matches for each query subsequence.
     """
     n_queries = T.shape[1] - L + 1
@@ -595,7 +595,7 @@ def _update_dot_products_one_series(
     i_query,
 ):
     """
-    Update dot products of the i-th query subsequence of length L in T 
+    Update dot products of the i-th query subsequence of length L in T
     from the dot products of the (i-1)-th query.
 
     Parameters
@@ -603,10 +603,10 @@ def _update_dot_products_one_series(
     X : ``np.ndarray``, shape ``(n_cases, n_channels, n_timepoints)``
         Input time series for which the sliding dot product is computed.
     T : ``np.ndarray``, shape ``(n_channels, series_length)``
-        The series used for similarity search. The length of T (`series_length`) 
+        The series used for similarity search. The length of T (`series_length`)
         can be equal to, greater than, or smaller than `n_timepoints`.
     L : ``int``
-        Length of the subsequences considered during the search. 
+        Length of the subsequences considered during the search.
         Must satisfy ``L ≤ min(n_timepoints, series_length)``.
     i_query : ``int``
         Starting index of the query subsequence in T.
