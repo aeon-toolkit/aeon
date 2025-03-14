@@ -5,7 +5,8 @@ __maintainer__ = []
 from typing import Optional, Union
 
 import numpy as np
-from numba import njit
+
+# from numba import njit
 from numba.typed import List as NumbaList
 
 from aeon.distances.pointwise._squared import _univariate_squared_distance
@@ -13,7 +14,6 @@ from aeon.utils.conversion._convert_collection import _convert_collection_to_num
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
-@njit(cache=True, fastmath=True)
 def dtw_arow_distance(x: np.ndarray, y: np.ndarray) -> float:
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
@@ -24,7 +24,6 @@ def dtw_arow_distance(x: np.ndarray, y: np.ndarray) -> float:
     raise ValueError("x and y must be 1D or 2D")
 
 
-@njit(cache=True, fastmath=True)
 def dtw_arow_cost_matrix(x: np.ndarray, y: np.ndarray) -> np.ndarray:
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
@@ -35,7 +34,6 @@ def dtw_arow_cost_matrix(x: np.ndarray, y: np.ndarray) -> np.ndarray:
     raise ValueError("x and y must be 1D or 2D")
 
 
-@njit(cache=True, fastmath=True)
 def _dtw_arow_distance(x: np.ndarray, y: np.ndarray) -> float:
     M1av = _total_non_nan(x)
     M2av = _total_non_nan(y)
@@ -121,12 +119,11 @@ def _dtw_arow_cost_path_helper(
     return cost_matrix, phi
 
 
-@njit(cache=True, fastmath=True)
 def _dtw_arow_cost_matrix(x: np.ndarray, y: np.ndarray) -> np.ndarray:
     return _dtw_arow_cost_path_helper(x, y)[0]
 
 
-def dtw_pairwise_distance(
+def dtw_arow_pairwise_distance(
     X: Union[np.ndarray, list[np.ndarray]],
     y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
 ) -> np.ndarray:
@@ -135,13 +132,12 @@ def dtw_pairwise_distance(
 
     if y is None:
         # To self
-        return _dtw_pairwise_distance(_X)
+        return _dtw_arow_pairwise_distance(_X)
     _y, _ = _convert_collection_to_numba_list(y, "y", multivariate_conversion)
-    return _dtw_from_multiple_to_multiple_distance(_X, _y)
+    return _dtw_arow_from_multiple_to_multiple_distance(_X, _y)
 
 
-@njit(cache=True, fastmath=True)
-def _dtw_pairwise_distance(X: NumbaList[np.ndarray]) -> np.ndarray:
+def _dtw_arow_pairwise_distance(X: NumbaList[np.ndarray]) -> np.ndarray:
     n_cases = len(X)
     distances = np.zeros((n_cases, n_cases))
     for i in range(n_cases):
@@ -153,8 +149,7 @@ def _dtw_pairwise_distance(X: NumbaList[np.ndarray]) -> np.ndarray:
     return distances
 
 
-@njit(cache=True, fastmath=True)
-def _dtw_from_multiple_to_multiple_distance(
+def _dtw_arow_from_multiple_to_multiple_distance(
     x: NumbaList[np.ndarray], y: NumbaList[np.ndarray]
 ) -> np.ndarray:
     n_cases = len(x)
@@ -168,8 +163,7 @@ def _dtw_from_multiple_to_multiple_distance(
     return distances
 
 
-@njit(cache=True, fastmath=True)
-def dtw_alignment_path(
+def dtw_arow_alignment_path(
     x: np.ndarray,
     y: np.ndarray,
 ) -> tuple[list[tuple[int, int]], float]:
@@ -182,7 +176,6 @@ def dtw_alignment_path(
     raise ValueError("x and y must be 1D or 2D")
 
 
-@njit(cache=True, fastmath=True)
 def _dtw_arow_alignment_path(
     x: np.ndarray, y: np.ndarray
 ) -> tuple[list[tuple[int, int]], float]:
