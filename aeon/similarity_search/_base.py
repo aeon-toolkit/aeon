@@ -40,7 +40,7 @@ class BaseSimilaritySearch(BaseAeonEstimator):
             Changes state to "fitted".
 
         Writes to self:
-        _is_fitted : flag is set to True.
+            _is_fitted : flag is set to True.
 
         Parameters
         ----------
@@ -65,9 +65,17 @@ class BaseSimilaritySearch(BaseAeonEstimator):
         """
         Predict method.
 
+        Can either work with new series or with None (for case when predict can be made
+        using the data given in fit against itself) depending on the estimator.
+
         Parameters
         ----------
-        X : 2D np.array of shape ``(n_cases, n_timepoints)``
-            Optional data to use for predict.
+        X : Series or Collection, any supported type
+            Data to fit transform to, of python type as follows:
+                Series: 2D np.ndarray shape (n_channels, n_timepoints)
+                Collection: 3D np.ndarray shape (n_cases, n_channels, n_timepoints)
+                or list of 2D np.ndarray, case i has shape (n_channels, n_timepoints_i
+                None : If None type is accepted, it means that the predict function will
+                work only with the data given in fit. (e.g. self matrix profile instead)
         """
         ...

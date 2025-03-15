@@ -1,4 +1,4 @@
-"""Subsequence Neighbor search for series."""
+"""Motif discovery for single series."""
 
 __all__ = [
     "StompMotif",

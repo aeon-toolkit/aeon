@@ -4,34 +4,58 @@ import numpy as np
 from numba import get_num_threads, njit, prange, set_num_threads
 
 from aeon.similarity_search.collection._base import BaseCollectionSimilaritySearch
-from aeon.utils.numba.general import z_normalise_series_3d
+from aeon.utils.numba.general import AEON_NUMBA_STD_THRESHOLD, z_normalise_series_3d
 
 
 @njit(cache=True)
-def _hamming_dist(X, Y):
-    d = 0
-    for i in prange(X.shape[0]):
+def _bool_hamming_dist(X, Y):
+    """
+    Compute a hamming distance on boolean arrays.
+
+    Parameters
+    ----------
+    X : np.ndarray of shape (n_timepoints)
+        A boolean array
+
+    Y : np.ndarray of shape (n_timepoints)
+        A boolean array
+
+    Returns
+    -------
+    d : int
+        The hamming distance between X and Y.
+
+    """
+    d = np.uint64(0)
+    for i in range(X.shape[0]):
         d += X[i] ^ Y[i]
     return d
 
 
 @njit(cache=True, parallel=True)
-def _hamming_dist_series_to_collection(X_bool, collection_bool):
+def _bool_hamming_dist_matrix(X_bool, collection_bool):
+    """
+    Compute the distances between X_bool and each boolean array of collection_bool.
+
+    Each array of collection_bool represent the hash value of a bucket in the index.
+
+    Parameters
+    ----------
+    X_bool : np.ndarray of shape (n_timepoints)
+        A 1D boolean array
+    collection_bool : np.ndarray of shape (n_cases, n_timepoints)
+        A 2D boolean array
+
+    Returns
+    -------
+    res : np.ndarray of shape (n_cases)
+        The distance of X_bool to all buckets in the index
+
+    """
     n_buckets = collection_bool.shape[0]
-    res = np.zeros(n_buckets, dtype=np.int64)
+    res = np.zeros(n_buckets, dtype=np.uint64)
     for i in prange(n_buckets):
-        res[i] = _hamming_dist(collection_bool[i], X_bool)
-    return res
-
-
-@njit(cache=True, fastmath=True, parallel=True)
-def _series_to_bool(X, hash_funcs, start_points, length):
-    n_hash_funcs = hash_funcs.shape[0]
-    res = np.empty(n_hash_funcs, dtype=np.bool_)
-    for j in prange(n_hash_funcs):
-        res[j] = _nb_flat_dot(
-            X[:, start_points[j] : start_points[j] + length], hash_funcs[j]
-        )
+        res[i] = _bool_hamming_dist(collection_bool[i], X_bool)
     return res
 
 
@@ -47,6 +71,27 @@ def _nb_flat_dot(X, Y):
 
 @njit(cache=True, parallel=True)
 def _collection_to_bool(X, hash_funcs, start_points, length):
+    """
+    Transform a collection of time series X to their boolean hash representation.
+
+    Parameters
+    ----------
+    X : np.ndarray of shape (n_cases, n_channels, n_timepoints)
+        Time series collection to transform.
+    hash_funcs : np.ndarray of shape (n_hash, n_channels, length)
+        The random projection vectors used to compute the boolean hash
+    start_points : np.ndarray of shape (n_hash)
+        The starting index where the random vector should be applied when computing
+        the distance to the input series.
+    length : int
+        Length of the random vectors.
+
+    Returns
+    -------
+    res : np.ndarray of shape (n_cases, n_hash)
+        The boolean representation of all series in X.
+
+    """
     n_hash_funcs = hash_funcs.shape[0]
     n_samples = X.shape[0]
     res = np.empty((n_samples, n_hash_funcs), dtype=np.bool_)
@@ -71,7 +116,7 @@ class RandomProjectionIndexANN(BaseCollectionSimilaritySearch):
     as ``X[:, s:s+L].V``
 
     Note that this method will not provide exact results, but will perform approximate
-    searchs. This also ignore any temporal correlation and consider series as
+    searches. This also ignore any temporal correlation and consider series as
     high dimensional points due to the cosine similarity distance.
 
     Parameters
@@ -80,13 +125,17 @@ class RandomProjectionIndexANN(BaseCollectionSimilaritySearch):
         Number of random hashing function to use to index series. The default is 128.
     hash_func_coverage : float, optional
         A value in the interval ]0,1] which defines the size L fo the random vectors
-        relative to the size of the input time series. The default is 1.0.
+        relative to the size of the input time series. The default is 0.25.
     use_discrete_vectors: bool, optional,
         Wheter to use dicrete vectors with values -1 or 1 as random vector. If false,
         the values of the random vectors are drawn uniformly between [-1,1].
     random_state: int, optional
         A random seed to seed the index building. The default is None.
-
+    normalize: bool, optional
+        Wheter to z-normalize the input the series during fit and predict before
+        indexing them.
+    n_jobs: int, optional
+        Number of parallel threads to use when computing boolean hashes.
     """
 
     _tags = {
@@ -237,6 +286,7 @@ class RandomProjectionIndexANN(BaseCollectionSimilaritySearch):
         top_k = np.zeros(k, dtype=int)
         top_k_dist = np.zeros(k, dtype=float)
         remove_X_hash = False
+        # Case where X_hash is an existing bucket of the index
         if not inverse_distance and X_hash in self.dict_X_index_:
             current_k = min(len(self.dict_X_index_[X_hash]), k)
             top_k[:current_k] = self.dict_X_index_[X_hash][:current_k]
@@ -244,13 +294,12 @@ class RandomProjectionIndexANN(BaseCollectionSimilaritySearch):
         else:
             current_k = 0
 
+        # Case where we want to find more neighboors in buckets with similar hash
         if current_k < k:
-            dists = _hamming_dist_series_to_collection(
-                X_bool, self.bool_hashes_value_list_
-            )
+            dists = _bool_hamming_dist_matrix(X_bool, self.bool_hashes_value_list_)
 
             if inverse_distance:
-                dists = 1 / (dists + 1e-8)
+                dists = 1 / (dists + AEON_NUMBA_STD_THRESHOLD)
             if remove_X_hash:
                 dists[np.where(self.bool_hashes_value_list_ == X_hash)[0]] = np.iinfo(
                     dists.dtype

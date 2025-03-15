@@ -122,23 +122,14 @@ class BaseSeriesSimilaritySearch(BaseSeriesEstimator, BaseSimilaritySearch):
 
     def _check_predict_series_format(self, X):
         """
-        Check wheter a series X in predict is correctly formated.
+        Check wheter a series X is correctly formated regarding series given in fit.
 
         Parameters
         ----------
         X : np.ndarray, shape = (n_channels, n_timepoints)
             A series to be used in predict.
+
         """
-        if isinstance(X, np.ndarray):
-            if X.ndim != 2:
-                raise TypeError(
-                    "A np.ndarray given in predict must be 2D"
-                    f"(n_channels, n_timepoints) but found {X.ndim}D."
-                )
-        else:
-            raise TypeError(
-                "Expected a 2D np.ndarray in predict but found" f" {type(X)}."
-            )
         if self.n_channels_ != X.shape[0]:
             raise ValueError(
                 f"Expected X to have {self.n_channels_} channels but"
