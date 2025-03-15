@@ -279,7 +279,7 @@ class InformationGainSegmenter(BaseSegmenter):
 
     GTS uses top-down search method to greedily find the next change point
     location that creates the maximum information gain. Once this is found, it
-    repeats the process until it finds `k_max` splits of the time series.
+    repeats the process until it finds ``k_max`` splits of the time series.
 
     .. note::
 
@@ -295,8 +295,8 @@ class InformationGainSegmenter(BaseSegmenter):
 
     step: : int, default=5
         Step size, or stride for selecting candidate locations of change points.
-        Fox example a `step=5` would produce candidates [0, 5, 10, ...]. Has the same
-        meaning as `step` in `range` function.
+        Fox example a ``step=5`` would produce candidates [0, 5, 10, ...]. Has the same
+        meaning as ``step`` in ``range`` function.
 
     Attributes
     ----------
@@ -304,7 +304,7 @@ class InformationGainSegmenter(BaseSegmenter):
         Locations of change points as integer indexes. By convention change points
         include the identity segmentation, i.e. first and last index + 1 values.
 
-    intermediate_results_: list of `ChangePointResult`
+    intermediate_results_: list of ``ChangePointResult``
         Intermediate segmentation results for each k value, where k=1, 2, ..., k_max
 
     Notes
