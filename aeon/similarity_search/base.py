@@ -21,10 +21,11 @@ class BaseSimilaritySearch(BaseCollectionEstimator):
     Parameters
     ----------
     distance : str, default="euclidean"
-        The name of the distance function to use. A list of valid strings can be found in
-        the documentation for ``aeon.distances.get_distance_function``.
+        The name of the distance function to use. A list of valid strings can be found
+        in the documentation for ``aeon.distances.get_distance_function``.
         If a callable is passed, it must be either a Python function or a Numba function
-        with ``nopython=True`` that takes two 1D numpy arrays as input and returns a float.
+        with ``nopython=True`` that takes two 1D numpy arrays as input and
+        returns a float.
     distance_args : dict, default=None
         Optional keyword arguments for the distance function.
     inverse_distance : bool, default=False

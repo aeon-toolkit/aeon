@@ -25,27 +25,29 @@ class QuerySearch(BaseSimilaritySearch):
     """
     Query search estimator.
 
-    The query search estimator will return a set of matches of a query in a search space,
-    which is defined by a time series dataset given during `fit`. Depending on the ``k``
-    and/or ``threshold`` parameters, which condition what is considered a valid match
-    during the search, the number of matches will vary. If ``k`` is used, at most ``k``
-    matches (the ``k`` best) will be returned. If ``threshold`` is used and ``k`` is set to
-    ``np.inf``, all the candidates whose distance to the query is less than or equal to
-    ``threshold`` will be returned. If both are used, the ``k`` best matches to the query
-    with distance less than or equal to ``threshold`` will be returned.
+    The query search estimator will return a set of matches of a query in
+    a search space,which is defined by a time series dataset given during `fit`.
+    Depending on the ``k`` and/or ``threshold`` parameters, which condition
+    what is considered a valid match during the search, the number of matches will vary.
+    If ``k`` is used, at most ``k``matches (the ``k`` best) will be returned.
+    If ``threshold`` is used and ``k`` is set to``np.inf``,
+    all the candidates whose distance to the query is less than or equal
+    to ``threshold`` will be returned.If both are used, the ``k`` best matches
+    to the query with distance less than or equal to ``threshold`` will be returned.
 
     Parameters
     ----------
     k : int, default=1
         The number of best matches to return during `predict` for a given query.
-    threshold : float, default=np.inf
+        threshold : float, default=np.inf
         The maximum distance a match can have to be considered valid. Matches with
         distances greater than ``threshold`` are ignored.
     distance : str, default="euclidean"
         Name of the distance function to use. A list of valid strings can be found in
         the documentation for :func:`aeon.distances.get_distance_function`.
-        If a callable is passed, it must either be a Python function or a Numba function
-        with ``nopython=True`` that takes two 1D numpy arrays as input and returns a float.
+        If a callable is passed, it must either be a Python function or
+        a Numba function with ``nopython=True`` that takes two 1D numpy arrays
+        as input and returns a float.
     distance_args : dict, default=None
         Optional keyword arguments for the distance function.
     normalise : bool, default=False
@@ -53,11 +55,12 @@ class QuerySearch(BaseSimilaritySearch):
     speed_up : str, default="fastest"
         Which speed-up technique to use for the selected distance
         function. By default, the fastest algorithm is used. A list of available
-        algorithms for each distance can be obtained by calling the
-        ``get_speedup_function_names`` function.
+        algorithms for each distance can be obtained by calling
+        the ``get_speedup_function_names`` function.
     inverse_distance : bool, default=False
-        If ``True``, the matching will be made on the inverse of the distance, and thus, the
-        worst matches to the query will be returned instead of the best ones.
+        If ``True``, the matching will be made on the inverse of the distance,
+        and thus, the worst matches to the query will be returned
+        instead of the best ones.
     n_jobs : int, default=1
         Number of parallel jobs to use.
     store_distance_profiles : bool, default=False
@@ -143,10 +146,10 @@ class QuerySearch(BaseSimilaritySearch):
         apply_exclusion_to_result=False,
     ) -> np.ndarray:
         """
-        Predict method: Check the shape of `X` and call `_predict` to perform the search.
+        Predict method : Check the shape of X and call _predict to perform the search.
 
-        If the distance profile function is normalised, it stores the mean and standard
-        deviations from `X` and `X_`, with `X_` being the training data.
+        If the distance profile function is normalised, it stores the mean and stds
+        from X and X_, with X_ the training data.
 
         Parameters
         ----------
@@ -161,20 +164,22 @@ class QuerySearch(BaseSimilaritySearch):
         X_index : Iterable
             An iterable (tuple, list, array) of length two used to specify the index of
             the query `X` if it was extracted from the input data `X` given during the
-            `fit` method. Given the tuple `(id_sample, id_timestamp)`, the similarity search
-            will define an exclusion zone around `X_index` in order to avoid matching
-            `X` with itself. If `None`, it is considered that the query is not extracted
-            from `X_`.
+            `fit` method. Given the tuple `(id_sample, id_timestamp)`,
+            the similarity search will define an exclusion zone around `X_index`
+            in order to avoid matching `X` with itself. If `None`,
+            it is considered that the query is not extracted from `X_`.
         exclusion_factor : float, default=2.0
             The factor to apply to the query length to define the exclusion zone. The
             exclusion zone is defined from
             :math:`id_timestamp - query_length // exclusion_factor` to
-            :math:`id_timestamp + query_length // exclusion_factor`. This also applies to
-            the matching conditions defined by child classes. For example, with
-            `TopKSimilaritySearch`, the `k` best matches are also subject to the exclusion
-            zone, but with :math:`id_timestamp` as the index of one of the `k` matches.
+            :math:`id_timestamp + query_length // exclusion_factor`.
+            This also applies to the matching conditions defined by child classes.
+            For example, with`TopKSimilaritySearch`, the `k` best matches
+            are also subject to the exclusion zone, but with :math:`id_timestamp`
+            as the index of one of the `k` matches.
         apply_exclusion_to_result : bool, default=False
-            Whether to apply the exclusion factor to the output of the similarity search.
+            Whether to apply the exclusion factor to the output of
+            the similarity search.
             This means that two matches of the query from the same sample must be at
             least spaced by :math:`query_length // exclusion_factor`.
             This can avoid pathological matching where, for example, if we extract the
@@ -187,7 +192,8 @@ class QuerySearch(BaseSimilaritySearch):
         TypeError
             If the input `X` array is not 2D, raises an error.
         ValueError
-            If the length of the query is greater than the available data, raises an error.
+            If the length of the query is greater than the available data,
+            raises an error.
 
         Returns
         -------
@@ -303,14 +309,14 @@ class QuerySearch(BaseSimilaritySearch):
 
     def _get_distance_profile_function(self):
         """
-        Given `distance` and `speed_up` parameters, return the distance profile function.
+        Given distance and speed_up parameters, return the distance profile function.
 
         Raises
         ------
         ValueError
-            If the `distance` parameter given at initialization is not a string, a
-            `numba` function, or a callable, or if the `speed_up` parameter is unknown or
-            unsupported, raises a `ValueError`.
+            If the `distance` parameter given at initialization is not a string,
+            a `numba` function, or a callable, or if the `speed_up` parameter
+            is unknown or unsupported, raises a `ValueError`.
 
         Returns
         -------

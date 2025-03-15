@@ -27,11 +27,12 @@ class SeriesSearch(BaseSimilaritySearch):
     which will represent the search space.
 
     Depending on the ``k`` and/or ``threshold`` parameters, which condition what is
-    considered a valid match during the search, the number of matches will vary. If ``k``
-    is used, at most ``k`` matches (the ``k`` best) will be returned. If ``threshold`` is
-    used and ``k`` is set to ``np.inf``, all candidates whose distance to the query is
-    less than or equal to ``threshold`` will be returned. If both are used, the ``k`` best
-    matches to the query with a distance less than ``threshold`` will be returned.
+    considered a valid match during the search, the number of matches will vary.
+    If ``k`` is used, at most ``k`` matches (the ``k`` best) will be returned.
+    If ``threshold`` is used and ``k`` is set to ``np.inf``, all candidates whose
+    distance to the query is less than or equal to ``threshold`` will be returned.
+    If both are used, the ``k`` best matches to the query with a distance less than
+    ``threshold`` will be returned.
 
     Parameters
     ----------
@@ -43,7 +44,8 @@ class SeriesSearch(BaseSimilaritySearch):
         Name of the distance function to use. A list of valid strings can be found in
         the documentation for :func:`aeon.distances.get_distance_function`.
         If a callable is passed, it must either be a Python function or a Numba function
-        with ``nopython=True`` that takes two 1D NumPy arrays as input and returns a float.
+        with ``nopython=True`` that takes two 1D NumPy arrays as input and
+        returns a float.
     distance_args : dict, default=None
         Optional keyword arguments for the distance function.
     normalise : bool, default=False
@@ -137,10 +139,10 @@ class SeriesSearch(BaseSimilaritySearch):
         apply_exclusion_to_result=False,
     ):
         """
-        Predict method: Checks the shape of X and calls `_predict` to perform the search.
+        Predict method : Check the shape of X and call _predict to perform the search.
 
-        If the distance profile function is normalized, it stores the mean and standard
-        deviations from `X` and `X_`, where `X_` is the training data.
+        If the distance profile function is normalised, it stores the mean and stds
+        from X and X_, with X_ the training data.
 
         Parameters
         ----------
@@ -151,23 +153,24 @@ class SeriesSearch(BaseSimilaritySearch):
         axis : int
             The time point axis of the input series if it is 2D. If ``axis == 0``, it is
             assumed each column is a time series and each row is a time point, i.e., the
-            shape of the data is ``(n_timepoints, n_channels)``. If ``axis == 1``, the time
-            series are in rows, i.e., the shape of the data is ``(n_channels, n_timepoints)``.
+            shape of the data is ``(n_timepoints, n_channels)``. If ``axis == 1``,
+            the time series are in rows, i.e.,
+            the shape of the data is ``(n_channels, n_timepoints)``.
         X_index : int, optional
-            An integer indicating whether `X` was extracted from the dataset given during
-            the `fit` method. If so, this integer should be the sample ID.
+            An integer indicating whether `X` was extracted from the dataset given
+            during the `fit` method. If so, this integer should be the sample ID.
             The search will define an exclusion zone for the queries extracted from `X`
-            to avoid self-matching. If `None`, it is assumed that the query is not extracted
-            from `X_`.
+            to avoid self-matching. If `None`, it is assumed that the query
+            is not extracted from `X_`.
         exclusion_factor : float, default=2.0
             The factor used to define the exclusion zone relative to `query_length`. The
             exclusion zone is defined from
             ``id_timestamp - query_length // exclusion_factor`` to
             ``id_timestamp + query_length // exclusion_factor``.
             This also applies to the matching conditions defined by child classes.
-            For example, in `TopKSimilaritySearch`, the `k` best matches are also subject
-            to the exclusion zone, but with ``id_timestamp`` being the index of one of
-            the `k` matches.
+            For example, in `TopKSimilaritySearch`, the `k` best matches are also
+            subject to the exclusion zone, but with ``id_timestamp`` being
+            the index of one of the `k` matches.
         apply_exclusion_to_result : bool, default=False
             Whether to apply the exclusion factor to the similarity search output.
             This ensures that two matches of the query from the same sample must be at
@@ -258,8 +261,9 @@ class SeriesSearch(BaseSimilaritySearch):
             The length parameter used to extract queries from `X`.
         axis : int
             The time point axis of the input series if it is 2D.
-            - If ``axis == 0``, each column is a time series and each row is a time point,
-              i.e., the shape of the data is ``(n_timepoints, n_channels)``.
+            - If ``axis == 0``, each column is a time series and each row is
+            a time point, i.e., the shape of the data is
+            ``(n_timepoints, n_channels)``.
             - If ``axis == 1``, the time series are in rows, i.e., the shape is
               ``(n_channels, n_timepoints)``.
         mask : np.ndarray, shape (n_cases, n_timepoints - length + 1)
@@ -344,19 +348,20 @@ class SeriesSearch(BaseSimilaritySearch):
 
     def _get_series_method_function(self):
         """
-        Given `distance` and `speed_up` parameters, return the corresponding series method function.
+        Given distance and speed_up parameters, return the series method function.
 
         Raises
         ------
         ValueError
-            - If the `distance` parameter provided at initialization is neither a string,
-              a Numba function, nor a callable.
+            - If the `distance` parameter provided at initialization is neither
+            a string,a Numba function, nor a callable.
             - If the `speed_up` parameter is unknown or unsupported.
 
         Returns
         -------
         function
-            The series method function that corresponds to the given `distance` argument.
+            The series method function that corresponds to the given
+            `distance` argument.
 
         """
         if isinstance(self.distance, str):
