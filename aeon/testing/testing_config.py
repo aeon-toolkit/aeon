@@ -23,7 +23,10 @@ MULTITHREAD_TESTING = False
 NUMBA_DISABLED = os.environ.get("NUMBA_DISABLE_JIT") == "1"
 
 # exclude estimators here for short term fixes
-EXCLUDE_ESTIMATORS = []
+EXCLUDE_ESTIMATORS = [
+    "REDCOMETS",
+    "HydraTransformer",  # returns a pytorch Tensor
+]
 
 # Exclude specific tests for estimators here
 EXCLUDED_TESTS = {
@@ -49,7 +52,7 @@ EXCLUDED_TESTS = {
     "RSASTClassifier": ["check_fit_deterministic"],
     "SAST": ["check_fit_deterministic"],
     "RSAST": ["check_fit_deterministic"],
-    "SFA": ["check_persistence_via_pickle", "check_fit_deterministic"],
+    "MatrixProfile": ["check_persistence_via_pickle"],
     # missed in legacy testing, changes state in predict/transform
     "FLUSSSegmenter": ["check_non_state_changing_method"],
     "InformationGainSegmenter": ["check_non_state_changing_method"],

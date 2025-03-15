@@ -154,7 +154,7 @@ Here are a few examples of `aeon` code with good documentation.
 
 ### Estimators
 
-[BOSSEnsemble](https://www.aeon-toolkit.org/en/latest/api_reference/auto_generated/aeon.classification.dictionary_based.BOSSEnsemble.html#aeon.classification.dictionary_based.BOSSEnsemble)
+[BOSSEnsemble](https://www.aeon-toolkit.org/en/stable/api_reference/auto_generated/aeon.classification.dictionary_based.BOSSEnsemble.html#aeon.classification.dictionary_based.BOSSEnsemble)
 
 ### Functions
 
@@ -186,6 +186,21 @@ pip install --editable .[docs]
 ```powershell
 cd docs
 ```
+
+> **Note:** If you are using Linux or MacOS, you'll have to install [**Pandoc**](https://pandoc.org/) as a dependency. Install it using the following command:
+>
+> If you're using any Debian based system, you can use the following command to install Pandoc:
+> ```bash
+> sudo apt install pandoc
+> ```
+>
+> If you're using MacOS, you can use the following command to install Pandoc:
+> ```bash
+> brew install pandoc
+> ```
+>
+> For all other operating systems, please checkout the [Pandoc installation guide](https://pandoc.org/installing.html).
+>
 
 3. To build the website locally, run:
 
