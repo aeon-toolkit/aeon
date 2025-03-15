@@ -100,8 +100,10 @@ class TimeCNNClassifier(BaseDeepClassifier):
 
     Notes
     -----
-    Adapted from the implementation from Fawaz et. al
-    https://github.com/hfawaz/dl-4-tsc/blob/master/classifiers/cnn.py
+    - This model uses **sigmoid** activation and **mean squared error (MSE)** as the loss function.
+    - Adapted from the implementation from Fawaz et. al
+      https://github.com/hfawaz/dl-4-tsc/blob/master/classifiers/cnn.py
+
 
     References
     ----------
