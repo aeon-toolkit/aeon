@@ -344,7 +344,7 @@ class ElasticEnsemble(BaseClassifier):
         Returns
         -------
         y : array-like, shape = (n_cases, n_classes_)
-            Predicted probabilities using the ordering in `classes_`.
+            Predicted probabilities using the ordering in ``classes_``.
         """
         if self._distance_measures.__contains__(
             "ddtw"
@@ -380,7 +380,7 @@ class ElasticEnsemble(BaseClassifier):
         return output_probas
 
     def _predict(self, X) -> np.ndarray:
-        """Predict class values of n instances in X.
+        """Predict class values of `n` instances in `X`.
 
         Parameters
         ----------

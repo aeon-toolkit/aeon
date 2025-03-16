@@ -33,7 +33,8 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
     n_neighbors : int, default = 1
         Set `k` for knn.
     weights : str or callable, default = 'uniform'
-        Mechanism for weighting a vote one of: 'uniform', 'distance', or a callable
+        Mechanism for weighting a vote one of: ``'uniform'``, ``'distance'``,
+        or a callable
         function.
     distance : str or callable, default ='dtw'
         Distance measure between time series.
@@ -42,8 +43,8 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         :func:`aeon.distances.get_distance_function` or through calling
         :func:`aeon.distances.get_distance_function_names`. If a
         ``callable`` is passed it must be
-        a function that takes two 2d numpy arrays of shape `(n_channels,
-        n_timepoints)` as input and returns a ``float``.
+        a function that takes two 2d numpy arrays of shape ``(n_channels,
+        n_timepoints)`` as input and returns a ``float``.
     distance_params : dict, default = None
         Dictionary for metric parameters for the case that distance is a ``str``.
     n_jobs : int, default = None
@@ -185,7 +186,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         Parameters
         ----------
         X : np.ndarray
-            A `single time series` instance if shape = `(n_channels, n_timepoints)`
+            A `single time series` instance if shape = ``(n_channels, n_timepoints)``
 
         Returns
         -------

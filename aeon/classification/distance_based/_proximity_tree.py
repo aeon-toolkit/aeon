@@ -220,7 +220,7 @@ class ProximityTree(BaseClassifier):
         return splitter
 
     def _get_best_splitter(self, X, y):
-        """Get the splitter for a node which maximizes the gini gain."""
+        """Get the splitter for a node which maximizes the ``gini`` gain."""
         max_gain = float("-inf")
         best_splitter = None
         for _ in range(self.n_splitters):
@@ -421,13 +421,13 @@ def gini(y) -> float:
     Parameters
     ----------
     y : 1d numpy array
-        ``array`` of class labels
+        ``array`` of class ``labels``
 
     Returns
     -------
     score : float
-        gini score for the set of class labels (i.e. how pure they are). A
-        larger score means more impurity. `Zero` means
+        ``gini`` score for the set of class labels (i.e. how pure they are). A
+        larger score means more impurity. ``Zero`` means
         pure.
     """
     # get number instances at node
@@ -467,9 +467,8 @@ def gini_gain(y, y_subs) -> float:
     Returns
     -------
     score : float
-        gini score of the split from parent class labels to children. Note a
-        higher score means better gain,
-        i.e. a better split
+        ``gini`` score of the split from parent class labels to children. Note a
+        higher score means better gain, i.e. a better split
     """
     # find number of instances overall
     parent_n_instances = y.shape[0]
