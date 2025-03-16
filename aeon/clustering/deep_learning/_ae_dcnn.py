@@ -245,7 +245,6 @@ class AEDCNNClusterer(BaseDeepClusterer):
         self : object
         """
         import tensorflow as tf
-        from aeon.utils.networks.weight_norm import _WeightNormalization
 
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
@@ -299,7 +298,6 @@ class AEDCNNClusterer(BaseDeepClusterer):
             self.model_ = tf.keras.models.load_model(
                 self.file_path + self.file_name_ + ".keras",
                 compile=False,
-                custom_objects={"_WeightNormalization": _WeightNormalization},
             )
             if not self.save_best_model:
                 os.remove(self.file_path + self.file_name_ + ".keras")
