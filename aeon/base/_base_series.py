@@ -1,29 +1,31 @@
 """
 Base class for single time series estimators (univariate/multivariate).
 
-Class Name:
-    BaseSeriesEstimator
+Class Name: BaseSeriesEstimator
 
 Methods
 -------
-    - _preprocess_series(X, axis, store_metadata):
+    - _preprocess_series(X, axis, store_metadata)
       Validates and converts input `X` before fitting.
-
-    - _check_X(X, axis):
+    - _check_X(X, axis)
       Ensures `X` is a valid type and format.
-
-    - _convert_X(X, axis):
+    - _convert_X(X, axis)
       Converts `X` to the required internal format.
 
 Attributes
 ----------
-    - metadata_: Stores input series metadata.
-    - axis: Defines time axis for input data.
-    - _tags: Specifies estimator capabilities (e.g., univariate, multivariate).
+    - metadata_
+      Stores input series metadata.
+    - axis
+      Defines time axis for input data.
+    - _tags
+      Specifies estimator capabilities (e.g., univariate, multivariate).
 
 Inherited Methods:
-    - get_params(): Returns hyperparameters.
-    - get_fitted_params(): Returns learned parameters.
+    - get_params()
+      Returns hyperparameters.
+    - get_fitted_params()
+      Returns learned parameters.
 """
 
 __maintainer__ = ["TonyBagnall", "MatthewMiddlehurst"]
