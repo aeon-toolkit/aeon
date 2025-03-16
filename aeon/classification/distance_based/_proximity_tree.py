@@ -21,11 +21,11 @@ class _Node:
     Parameters
     ----------
     node_id: str
-        The id of node, root node has id 0.
+        The id of node, root node has id `0`.
     _is_leaf: bool
         To identify leaf nodes.
     label: int, str or None
-        Contains the class label of leaf node, None otherwise.
+        Contains the class label of leaf node, ``None`` otherwise.
     splitter: dict
         The splitter used to split the node.
     class_distribution: dict
@@ -73,15 +73,16 @@ class ProximityTree(BaseClassifier):
     n_splitters: int, default = 5
         The number of candidate splitters to be evaluated at each node.
     max_depth: int, default = None
-        The maximum depth of the tree. If None, then nodes are expanded until all
-        leaves are pure or until all leaves contain less than min_samples_split samples.
+        The maximum depth of the tree. If ``None``, then nodes are expanded until all
+        leaves are pure or until all leaves contain less than ``min_samples_split``
+        samples.
     min_samples_split: int, default = 2
         The minimum number of samples required to split an internal node.
     random_state : int, RandomState instance or None, default=None
-        If `int`, random_state is the seed used by the random number generator;
-        If `RandomState` instance, random_state is the random number generator;
-        If `None`, the random number generator is the `RandomState` instance used
-        by `np.random`.
+        If ``int``, `random_state` is the seed used by the random number generator;
+        If ``RandomState`` instance, `random_state` is the random number generator;
+        If ``None``, the random number generator is the ``RandomState`` instance used
+        by ``np.random``.
 
     Notes
     -----
@@ -420,13 +421,13 @@ def gini(y) -> float:
     Parameters
     ----------
     y : 1d numpy array
-        array of class labels
+        ``array`` of class labels
 
     Returns
     -------
     score : float
         gini score for the set of class labels (i.e. how pure they are). A
-        larger score means more impurity. Zero means
+        larger score means more impurity. `Zero` means
         pure.
     """
     # get number instances at node
@@ -459,9 +460,9 @@ def gini_gain(y, y_subs) -> float:
     Parameters
     ----------
     y : 1d array
-        array of class labels at parent
+        ``array`` of class labels at parent
     y_subs : list of 1d array like
-        list of array of class labels, one array per child
+        ``list`` of array of class labels, one ``array`` per child
 
     Returns
     -------

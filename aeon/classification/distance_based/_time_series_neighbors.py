@@ -31,25 +31,25 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
     Parameters
     ----------
     n_neighbors : int, default = 1
-        Set k for knn.
+        Set `k` for knn.
     weights : str or callable, default = 'uniform'
         Mechanism for weighting a vote one of: 'uniform', 'distance', or a callable
         function.
     distance : str or callable, default ='dtw'
         Distance measure between time series.
-        Distance metric to compute similarity between time series. A list of valid
+        Distance metric to compute similarity between time series. A ``list`` of valid
         strings for metrics can be found in the documentation for
         :func:`aeon.distances.get_distance_function` or through calling
         :func:`aeon.distances.get_distance_function_names`. If a
-        callable is passed it must be
-        a function that takes two 2d numpy arrays of shape ``(n_channels,
-        n_timepoints)`` as input and returns a float.
+        ``callable`` is passed it must be
+        a function that takes two 2d numpy arrays of shape `(n_channels,
+        n_timepoints)` as input and returns a ``float``.
     distance_params : dict, default = None
-        Dictionary for metric parameters for the case that distance is a str.
+        Dictionary for metric parameters for the case that distance is a ``str``.
     n_jobs : int, default = None
         The number of parallel jobs to run for neighbors search.
-        ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.
-        ``-1`` means using all processors.
+        ``None`` means `1` unless in a :obj:`joblib.parallel_backend` context.
+        `-1` means using all processors.
         for more details. Parameter for compatibility purposes, still unimplemented.
 
     Examples
@@ -106,8 +106,8 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         ----------
         X : 3D np.ndarray of shape = (n_cases, n_channels, n_timepoints) or list of
         shape [n_cases] of 2D arrays shape (n_channels,n_timepoints_i)
-        If the series are all equal length, a numpy3D will be passed. If unequal,
-        a list of 2D numpy arrays is passed, which may have different lengths.
+        If the series are all equal length, a ``numpy3D`` will be passed. If unequal,
+        a ``list`` of 2D numpy arrays is passed, which may have different lengths.
         y : array-like, shape = (n_cases)
             The class labels.
         """
@@ -124,8 +124,8 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         ----------
         X : 3D np.ndarray of shape = (n_cases, n_channels, n_timepoints) or list of
         shape[n_cases] of 2D arrays shape (n_channels,n_timepoints_i)
-                If the series are all equal length, a numpy3D will be passed. If
-                unequal, a list of 2D numpy arrays is passed, which may have
+                If the series are all equal length, a ``numpy3D`` will be passed. If
+                unequal, a ``list`` of 2D numpy arrays is passed, which may have
                 different lengths.
 
         Returns
@@ -153,7 +153,8 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         ----------
         X : 3D np.ndarray of shape = (n_cases, n_channels, n_timepoints) or list of
         shape[n_cases] of 2D arrays shape (n_channels,n_timepoints_i)
-        If the series are all equal length, a numpy3D will be passed. If unequal, a list
+        If the series are all equal length, a ``numpy3D`` will be passed. If unequal,
+        a ``list``
         of 2D numpy arrays is passed, which may have different lengths.
 
         Returns
@@ -184,14 +185,14 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         Parameters
         ----------
         X : np.ndarray
-            A single time series instance if shape = (n_channels, n_timepoints)
+            A `single time series` instance if shape = `(n_channels, n_timepoints)`
 
         Returns
         -------
         ind : array
             Indices of the nearest points in the population matrix.
         ws : array
-            Array representing the weights of each neighbor.
+            ``Array`` representing the weights of each neighbor.
         """
         distances = np.array(
             [
@@ -229,14 +230,16 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         ----------
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return ``"default"`` set.
 
         Returns
         -------
         params : dict or list of dict, default={}
             Parameters to create testing instances of the class.
-            Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            Each ``dict`` are parameters to construct an `"interesting"` test instance,
+            i.e.,
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test
+            instance.
         """
         # non-default distance and algorithm
         params1 = {"distance": "euclidean"}

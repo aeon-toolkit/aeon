@@ -32,14 +32,14 @@ class ElasticEnsemble(BaseClassifier):
     """The Elastic Ensemble (EE) of time series distance measures.
 
     The Elastic Ensemble [1]_ is an ensemble of 1-NN classifiers using elastic
-    distances (as defined in aeon.distances). By default, each 1-NN classifier
-    is tuned over 100 parameter values and the ensemble vote is weighted by
+    distances (as defined in `aeon.distances`). By default, each 1-NN classifier
+    is tuned over `100` parameter values and the ensemble vote is weighted by
     an estimate of accuracy formed on the train set.
 
     Parameters
     ----------
     distance_measures : str or list of str, default="all"
-      A list of strings identifying which distance measures to include. Valid values
+      A ``list`` of strings identifying which distance measures to include. Valid values
       are one or more of: ``euclidean``, ``dtw``, ``wdtw``, ``ddtw``, ``wddtw``,
       ``lcss``, ``erp``, ``msm``, ``twe``. The default value ``all`` means that all
       the previously listed distances are used.
@@ -50,19 +50,19 @@ class ElasticEnsemble(BaseClassifier):
     proportion_train_for_test : float, default=1
       The proportion of the train set to use in classifying new cases optional.
     n_jobs : int, default=1
-      The number of jobs to run in parallel for both `fit` and `predict`.
-      ``-1`` means using all processors.
+      The number of jobs to run in parallel for both ``fit`` and ``predict``.
+      `-1` means using all processors.
     random_state : int, default=0
-        If `int`, random_state is the seed used by the random number generator;
+        If ``int``, `random_state` is the seed used by the random number generator;
     verbose : int, default=0
-      If ``>0``, then prints out debug information.
+      If `>0`, then prints out debug information.
     majority_vote: boolean, default = False
       Whether to use majority vote or weighted vote.
 
     Attributes
     ----------
     estimators_ : list
-      A list storing all classifiers.
+      A ``list`` storing all classifiers.
     train_accs_by_classifier_ : np.ndarray
       Store the train accuracies of the classifiers.
     constituent_build_times_ : array of float
@@ -125,7 +125,7 @@ class ElasticEnsemble(BaseClassifier):
         super().__init__()
 
     def _fit(self, X, y):
-        """Build an ensemble of 1-NN classifiers from the training set (X, y).
+        """Build an ensemble of 1-NN classifiers from the training set `(X, y)`.
 
         Parameters
         ----------
@@ -334,7 +334,7 @@ class ElasticEnsemble(BaseClassifier):
         return self
 
     def _predict_proba(self, X) -> np.ndarray:
-        """Predict class probabilities for n instances in X.
+        """Predict class probabilities for `n` instances in `X`.
 
         Parameters
         ----------
@@ -344,7 +344,7 @@ class ElasticEnsemble(BaseClassifier):
         Returns
         -------
         y : array-like, shape = (n_cases, n_classes_)
-            Predicted probabilities using the ordering in classes_.
+            Predicted probabilities using the ordering in `classes_`.
         """
         if self._distance_measures.__contains__(
             "ddtw"
@@ -404,7 +404,7 @@ class ElasticEnsemble(BaseClassifier):
         Returns
         -------
         params : dict
-            The distance measures and the list of their parameter values.
+            The distance measures and the ``list`` of their parameter values.
         """
         return {
             self._distance_measures[dm]: str(self.estimators_[dm]._distance_params)
@@ -413,7 +413,7 @@ class ElasticEnsemble(BaseClassifier):
 
     @staticmethod
     def _get_100_param_options(distance_measure: str, train_x=None):
-        """Generate 100 parameter values for each classifier.
+        """Generate `100` parameter values for each classifier.
 
         Parameters
         ----------
@@ -500,9 +500,9 @@ class ElasticEnsemble(BaseClassifier):
         ----------
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return ``"default"`` set.
             ElasticEnsemble provides the following special sets:
-                 "results_comparison" - used in some classifiers to compare against
+                 ``"results_comparison"`` - used in some classifiers to compare against
                     previously generated results where the default set of parameters
                     cannot produce suitable probability estimates
 
@@ -510,8 +510,10 @@ class ElasticEnsemble(BaseClassifier):
         -------
         params : dict or list of dict, default={}
             Parameters to create testing instances of the class.
-            Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            Each ``dict`` are parameters to construct an ``"interesting"`` test instance
+            , i.e.,
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test
+            instance.
         """
         if parameter_set == "results_comparison":
             return {
