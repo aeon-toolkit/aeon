@@ -145,6 +145,7 @@ class DCNNNetwork(BaseDeepLearningNetwork):
         self, _inputs, _n_filters, _dilation_rate, _activation, _kernel_size, _padding
     ):
         import tensorflow as tf
+
         from aeon.utils.networks.weight_norm import _WeightNormalization
 
         _add = tf.keras.layers.Conv1D(_n_filters, kernel_size=1)(_inputs)
