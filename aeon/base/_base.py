@@ -34,11 +34,6 @@ class BaseAeonEstimator(BaseEstimator, ABC):
     All estimators have the attribute:
 
     - fitted state flag             - is_fitted
-
-    Raises
-    ------
-    TypeError
-        If 'keep' is not a string or a list of strings.
     """
 
     _tags = {
@@ -91,6 +86,10 @@ class BaseAeonEstimator(BaseEstimator, ABC):
         -------
         self : object
             Reference to self.
+        Raises
+        ------
+        TypeError
+            If 'keep' is not a string or a list of strings.
         """
         # retrieve parameters to copy them later
         params = self.get_params(deep=False)
