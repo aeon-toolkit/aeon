@@ -240,6 +240,7 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
         _padding_encoder,
     ):
         import tensorflow as tf
+
         from aeon.utils.networks.weight_norm import _WeightNormalization
 
         _add = tf.keras.layers.Conv1D(_num_filters, kernel_size=1)(_inputs)
