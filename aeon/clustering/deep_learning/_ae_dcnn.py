@@ -245,6 +245,7 @@ class AEDCNNClusterer(BaseDeepClusterer):
         self : object
         """
         import tensorflow as tf
+
         from aeon.utils.networks.weight_norm import _WeightNormalization
 
         # Transpose to conform to Keras input style.
