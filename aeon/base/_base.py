@@ -86,6 +86,7 @@ class BaseAeonEstimator(BaseEstimator, ABC):
         -------
         self : object
             Reference to self.
+
         Raises
         ------
         TypeError
