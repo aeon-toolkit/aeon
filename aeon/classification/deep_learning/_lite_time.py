@@ -282,6 +282,40 @@ class LITETimeClassifier(BaseClassifier):
 
         return probs
 
+    def load_model(self, model_path, classes):
+        """Load pre-trained classifiers instead of fitting.
+
+        When calling this function, all funcationalities can be used
+        such as predict, predict_proba, etc. with the loaded models.
+
+        Parameters
+        ----------
+        model_path : list of str (list of paths including the model names and extension)
+            The director where the models will be saved including the model
+            names with a ".keras" extension.
+        classes : np.ndarray
+            The set of unique classes the pre-trained loaded model is trained
+            to predict during the classification task.
+
+        Returns
+        -------
+        None
+        """
+        assert (
+            type(model_path) is list
+        ), "model_path should be a list of paths to the models"
+
+        for i in range(len(model_path)):
+            clf = IndividualLITEClassifier()
+            clf.load_model(model_path=model_path[i], classes=classes)
+            self.classifiers_.append(clf)
+
+        self.n_classifiers = len(self.classifiers_)
+
+        self.classes_ = classes
+        self.n_classes_ = len(classes)
+        self.is_fitted = True
+
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
