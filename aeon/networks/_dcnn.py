@@ -145,22 +145,25 @@ class DCNNNetwork(BaseDeepLearningNetwork):
         self, _inputs, _n_filters, _dilation_rate, _activation, _kernel_size, _padding
     ):
         import tensorflow as tf
+        from aeon.utils.networks.weight_norm import _WeightNormalization
 
         _add = tf.keras.layers.Conv1D(_n_filters, kernel_size=1)(_inputs)
-        x = tf.keras.layers.Conv1D(
-            _n_filters,
-            kernel_size=_kernel_size,
-            dilation_rate=_dilation_rate,
-            padding=_padding,
-            kernel_regularizer="l2",
+        x = _WeightNormalization(
+            tf.keras.layers.Conv1D(
+                _n_filters,
+                kernel_size=_kernel_size,
+                dilation_rate=_dilation_rate,
+                padding=_padding,
+            )
         )(_inputs)
-        x = tf.keras.layers.Conv1D(
-            _n_filters,
-            kernel_size=_kernel_size,
-            dilation_rate=_dilation_rate,
-            padding="causal",
-            kernel_regularizer="l2",
-            activation=_activation,
+        x = _WeightNormalization(
+            tf.keras.layers.Conv1D(
+                _n_filters,
+                kernel_size=_kernel_size,
+                dilation_rate=_dilation_rate,
+                padding=_padding,
+                activation=_activation,
+            )
         )(x)
         output = tf.keras.layers.Add()([x, _add])
         output = tf.keras.layers.Activation(_activation)(output)
