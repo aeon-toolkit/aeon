@@ -18,9 +18,8 @@ from aeon.regression.deep_learning.base import BaseDeepRegressor
 
 if TYPE_CHECKING:
     import numpy as np
+    import tensorflow as tf
     from tensorflow.keras.callbacks import Callback
-    from tensorflow.keras.models import Model
-    from tensorflow.keras.optimizers import Optimizer
 
 
 class TimeCNNRegressor(BaseDeepRegressor):
@@ -160,7 +159,7 @@ class TimeCNNRegressor(BaseDeepRegressor):
         metrics: str | list[str] = "mean_squared_error",
         random_state: int | np.random.RandomState | None = None,
         use_bias: bool | list[bool] = True,
-        optimizer: Optimizer | None = None,
+        optimizer: tf.keras.optimizers.Optimizer | None = None,
     ) -> None:
         self.n_layers = n_layers
         self.avg_pool_size = avg_pool_size
@@ -205,7 +204,9 @@ class TimeCNNRegressor(BaseDeepRegressor):
             use_bias=self.use_bias,
         )
 
-    def build_model(self, input_shape: tuple[int, int], **kwargs: Any) -> Model:
+    def build_model(
+        self, input_shape: tuple[int, int], **kwargs: Any
+    ) -> tf.keras.Model:
         """Construct a compiled, un-trained, keras model that is ready for training.
 
         In aeon, time series are stored in numpy arrays of shape (d,m), where d
