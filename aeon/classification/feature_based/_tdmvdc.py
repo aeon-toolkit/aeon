@@ -106,24 +106,13 @@ class TDMVDCClassifier(BaseClassifier):
 
         # Feature extraction
         self.tsFreshListR = []
-        # List of feature extractors corresponding
-        # to the original series set
         self.tsFreshListF = []
-        # List of feature extractors corresponding
-        # to the First-order differential series set
         self.tsFreshListS = []
-        # List of feature extractors corresponding
-        # to the Second-order differential series set
 
-        trainRXList = []
-        # List of train feature sets corresponding
-        # to the original series set
-        trainFXList = []
-        # List of train feature sets corresponding
-        # to the First-order differential series set
-        trainSXList = []
-        # List of train feature sets corresponding
-        # to the Second-order differential series set
+        # Train feature sets
+        trainRXList = []  # original series
+        trainFXList = []  # first-order differential series
+        trainSXList = []  # second-order differential series
 
         for i in range(len(self.dList)):  # For each dilation rate
             # Dilation Mapping
