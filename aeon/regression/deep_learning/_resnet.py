@@ -1,5 +1,9 @@
 """Residual Network (ResNet) regressor."""
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any
+
 __maintainer__ = ["hadifawaz1999"]
 __all__ = ["ResNetRegressor"]
 
@@ -7,6 +11,11 @@ import gc
 import os
 import time
 from copy import deepcopy
+
+if TYPE_CHECKING:
+    import numpy as np
+    import tensorflow as tf
+    from tensorflow.keras.callbacks import Callback
 
 from sklearn.utils import check_random_state
 
@@ -133,32 +142,32 @@ class ResNetRegressor(BaseDeepRegressor):
 
     def __init__(
         self,
-        n_residual_blocks=3,
-        n_conv_per_residual_block=3,
-        n_filters=None,
-        kernel_size=None,
-        strides=1,
-        dilation_rate=1,
-        padding="same",
-        activation="relu",
-        use_bias=True,
-        n_epochs=1500,
-        callbacks=None,
-        verbose=False,
-        loss="mean_squared_error",
-        output_activation="linear",
-        metrics="mean_squared_error",
-        batch_size=64,
-        use_mini_batch_size=False,
-        random_state=None,
-        file_path="./",
-        save_best_model=False,
-        save_last_model=False,
-        save_init_model=False,
-        best_file_name="best_model",
-        last_file_name="last_model",
-        init_file_name="init_model",
-        optimizer=None,
+        n_residual_blocks: int = 3,
+        n_conv_per_residual_block: int = 3,
+        n_filters: int | list[int] | None = None,
+        kernel_size: int | list[int] | None = None,
+        strides: int | list[int] = 1,
+        dilation_rate: int | list[int] = 1,
+        padding: str | list[str] = "same",
+        activation: str | list[str] = "relu",
+        use_bias: bool | list[bool] = True,
+        n_epochs: int = 1500,
+        callbacks: Callback | list[Callback] | None = None,
+        verbose: bool = False,
+        loss: str = "mean_squared_error",
+        output_activation: str = "linear",
+        metrics: str | list[str] = "mean_squared_error",
+        batch_size: int = 64,
+        use_mini_batch_size: bool = False,
+        random_state: int | np.random.RandomState | None = None,
+        file_path: str = "./",
+        save_best_model: bool = False,
+        save_last_model: bool = False,
+        save_init_model: bool = False,
+        best_file_name: str = "best_model",
+        last_file_name: str = "last_model",
+        init_file_name: str = "init_model",
+        optimizer: tf.keras.optimizers.Optimizer | None = None,
     ):
         self.n_residual_blocks = n_residual_blocks
         self.n_conv_per_residual_block = n_conv_per_residual_block
@@ -201,7 +210,9 @@ class ResNetRegressor(BaseDeepRegressor):
             padding=self.padding,
         )
 
-    def build_model(self, input_shape, **kwargs):
+    def build_model(
+        self, input_shape: tuple[int, int], **kwargs: Any
+    ) -> tf.keras.Model:
         """Construct a compiled, un-trained, keras model that is ready for training.
 
         In aeon, time series are stored in numpy arrays of shape (d,m), where d
@@ -246,7 +257,7 @@ class ResNetRegressor(BaseDeepRegressor):
 
         return model
 
-    def _fit(self, X, y):
+    def _fit(self, X: np.ndarray, y: np.ndarray) -> ResNetRegressor:
         """Fit the regressor on the training set (X, y).
 
         Parameters
@@ -331,7 +342,9 @@ class ResNetRegressor(BaseDeepRegressor):
         return self
 
     @classmethod
-    def _get_test_params(cls, parameter_set="default"):
+    def _get_test_params(
+        cls, parameter_set: str = "default"
+    ) -> dict[str, Any] | list[dict[str, Any]]:
         """Return testing parameter settings for the estimator.
 
         Parameters
