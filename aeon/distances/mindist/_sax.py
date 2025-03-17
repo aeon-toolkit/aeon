@@ -5,6 +5,7 @@ from typing import Union
 import numpy as np
 from numba import njit, prange
 
+from aeon.utils._threading import threaded
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
@@ -84,8 +85,14 @@ def _univariate_sax_distance(
     return np.sqrt(dist)
 
 
+@threaded
 def mindist_sax_pairwise_distance(
-    X: np.ndarray, y: np.ndarray, breakpoints: np.ndarray, n: int
+    X: np.ndarray,
+    y: np.ndarray,
+    breakpoints: np.ndarray,
+    n: int,
+    n_jobs: int = 1,
+    **kwargs,
 ) -> np.ndarray:
     """Compute the SAX pairwise distance between a set of SAX representations.
 
@@ -99,6 +106,10 @@ def mindist_sax_pairwise_distance(
         The breakpoints of the SAX transformation
     n : int
         The original size of the time series
+    n_jobs : int, default=1
+        The number of jobs to run in parallel. If -1, then the number of jobs is set
+        to the number of CPU cores. If 1, then the function is executed in a single
+        thread. If greater than 1, then the function is executed in parallel.
 
     Returns
     -------
@@ -134,7 +145,7 @@ def _sax_from_multiple_to_multiple_distance(
         distances = np.zeros((n_instances, n_instances))
 
         for i in prange(n_instances):
-            for j in prange(i + 1, n_instances):
+            for j in range(i + 1, n_instances):
                 distances[i, j] = _univariate_sax_distance(X[i], X[j], breakpoints, n)
                 distances[j, i] = distances[i, j]
     else:
@@ -143,7 +154,7 @@ def _sax_from_multiple_to_multiple_distance(
         distances = np.zeros((n_instances, m_instances))
 
         for i in prange(n_instances):
-            for j in prange(m_instances):
+            for j in range(m_instances):
                 distances[i, j] = _univariate_sax_distance(X[i], y[j], breakpoints, n)
 
     return distances
