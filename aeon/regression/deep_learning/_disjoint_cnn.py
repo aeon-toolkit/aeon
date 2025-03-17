@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     import numpy as np
@@ -256,7 +256,9 @@ class DisjointCNNRegressor(BaseDeepRegressor):
             activation_fc=self.activation_fc,
         )
 
-    def build_model(self, input_shape: tuple[int, int], **kwargs) -> tf.keras.Model:
+    def build_model(
+        self, input_shape: tuple[int, int], **kwargs: Any
+    ) -> tf.keras.Model:
         """Construct a compiled, un-trained, keras model that is ready for training.
 
         In aeon, time series are stored in numpy arrays of shape (d,m), where d
@@ -387,7 +389,7 @@ class DisjointCNNRegressor(BaseDeepRegressor):
     @classmethod
     def _get_test_params(
         cls, parameter_set: str = "default"
-    ) -> list[dict[str, int | bool | list[int] | str]]:
+    ) -> dict[str, Any] | list[dict[str, Any]]:
         """Return testing parameter settings for the estimator.
 
         Parameters
