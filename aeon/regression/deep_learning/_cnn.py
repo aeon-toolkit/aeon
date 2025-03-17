@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, Any
+
 __maintainer__ = ["hadifawaz1999"]
 __all__ = ["TimeCNNRegressor"]
 
@@ -9,7 +11,6 @@ import gc
 import os
 import time
 from copy import deepcopy
-from typing import TYPE_CHECKING, Any
 
 from sklearn.utils import check_random_state
 
