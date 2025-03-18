@@ -61,6 +61,9 @@ class STOMP(BaseAnomalyDetector):
         "capability:missing_values": False,
         "fit_is_empty": True,
         "python_dependencies": ["stumpy"],
+        "output_data_format": "anomaly_scores",
+        "learning_type:unsupervised": True,
+        "learning_type:semi_supervised": False,
     }
 
     def __init__(
