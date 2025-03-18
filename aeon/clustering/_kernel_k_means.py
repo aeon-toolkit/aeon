@@ -203,7 +203,7 @@ class TimeSeriesKernelKMeans(BaseClusterer):
         n_jobs: Union[int, None] = 1,
         random_state: Optional[Union[int, RandomState]] = None,
     ):
-        self.kernel = self._get_kernel_str(kernel)
+        self.kernel = kernel
         self.n_init = n_init
         self.max_iter = max_iter
         self.tol = tol
@@ -221,13 +221,6 @@ class TimeSeriesKernelKMeans(BaseClusterer):
         self._tslearn_kernel_k_means = None
 
         super().__init__()
-
-    def _get_kernel_str(self, kernel: str):
-        """Return the kernel function."""
-        if kernel == "kdtw":
-            return "kdtw"
-        else:
-            return kernel
 
     def _fit(self, X, y=None):
         """Fit time series clusterer to training data.
