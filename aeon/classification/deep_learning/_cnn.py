@@ -345,6 +345,3 @@ class TimeCNNClassifier(BaseDeepClassifier):
         test_params = [param1]
 
         return test_params
-
-
-
