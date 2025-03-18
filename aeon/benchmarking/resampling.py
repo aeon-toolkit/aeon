@@ -23,29 +23,29 @@ def resample_data(X_train, y_train, X_test, y_test, random_state=None):
 
     Parameters
     ----------
-    X_train : np.ndarray or list of np.ndarray
-        Train data in a 2d or 3d ndarray or list of arrays.
-    y_train : np.ndarray
+    X_train : ``np.ndarray`` or ``list`` of ``np.ndarray``
+        Train data in a 2d or ``3d ndarray`` or list of arrays.
+    y_train : ``np.ndarray``
         Train data labels.
-    X_test : np.ndarray or list of np.ndarray
-        Test data in a 2d or 3d ndarray or list of arrays.
-    y_test : np.ndarray
+    X_test : ``np.ndarray`` or ``list`` of ``np.ndarray``
+        Test data in a 2d or 3d ``ndarray`` or list of arrays.
+    y_test : ``np.ndarray``
         Test data labels.
-    random_state : int, RandomState instance or None, default=None
-        If `int`, random_state is the seed used by the random number generator;
-        If `RandomState` instance, random_state is the random number generator;
-        If `None`, the random number generator is the `RandomState` instance used
-        by `np.random`.
+    random_state : ``int``, ``RandomState`` instance or ``None``, default=``None``
+        If ``int``, ``random_state`` is the seed used by the random number generator;
+        If ``RandomState`` instance, random_state is the random number generator;
+        If `None`, the random number generator is the ``RandomState`` instance used
+        by ``np.random``.
 
     Returns
     -------
-    train_X : np.ndarray or list of np.ndarray
+    train_X : ``np.ndarray`` or ``list`` of ``np.ndarray``
         New train data.
-    train_y : np.ndarray
+    train_y : ``np.ndarray``
         New train labels.
-    test_X : np.ndarray or list of np.ndarray
+    test_X : ``np.ndarray`` or ``list`` of ``np.ndarray``
         New test data.
-    test_y : np.ndarray
+    test_y : ``np.ndarray``
         New test labels.
     """
     if isinstance(X_train, np.ndarray):
@@ -88,22 +88,22 @@ def resample_data_indices(y_train, y_test, random_state=None):
 
     Parameters
     ----------
-    y_train : np.ndarray
+    y_train : ``np.ndarray``
         Train data labels.
-    y_test : np.ndarray
+    y_test : ``np.ndarray``
         Test data labels.
-    random_state : int, RandomState instance or None, default=None
-        If `int`, random_state is the seed used by the random number generator;
-        If `RandomState` instance, random_state is the random number generator;
-        If `None`, the random number generator is the `RandomState` instance used
-        by `np.random`.
+    random_state : ``int``, ``RandomState`` instance or ``None``, default=``None``
+        If ``int``, ``random_state`` is the seed used by the random number generator;
+        If ``RandomState`` instance, ``random_state`` is the random number generator;
+        If ``None``, the random number generator is the ``RandomState`` instance used
+        by ``np.random``.
 
     Returns
     -------
-    train_indices : np.ndarray
+    train_indices : ``np.ndarray``
         The index of cases to use in the train set from the combined train and test
         data.
-    test_indices : np.ndarray
+    test_indices : ``np.ndarray``
         The index of cases to use in the test set from the combined train and test data.
     """
     # shuffle data indices
@@ -127,29 +127,29 @@ def stratified_resample_data(X_train, y_train, X_test, y_test, random_state=None
 
     Parameters
     ----------
-    X_train : np.ndarray or list of np.ndarray
-        Train data in a 2d or 3d ndarray or list of arrays.
-    y_train : np.ndarray
+    X_train : ``np.ndarray`` or ``list`` of ``np.ndarray``
+        Train data in a 2d or 3d ``ndarray`` or list of arrays.
+    y_train : ``np.ndarray``
         Train data labels.
-    X_test : np.ndarray or list of np.ndarray
+    X_test : ``np.ndarray`` or ``list`` of ``np.ndarray``
         Test data in a 2d or 3d ndarray or list of arrays.
-    y_test : np.ndarray
+    y_test : ``np.ndarray``
         Test data labels.
-    random_state : int, RandomState instance or None, default=None
-        If `int`, random_state is the seed used by the random number generator;
-        If `RandomState` instance, random_state is the random number generator;
-        If `None`, the random number generator is the `RandomState` instance used
-        by `np.random`.
+    random_state : ``int``, ``RandomState`` instance or ``None``, default=``None``
+        If ``int``, ``random_state`` is the seed used by the random number generator;
+        If ``RandomState`` instance, ``random_state`` is the random number generator;
+        If ``None``, the random number generator is the ``RandomState`` instance used
+        by ``np.random``.
 
     Returns
     -------
-    train_X : np.ndarray or list of np.ndarray
+    train_X : ``np.ndarray`` or ``list`` of ``np.ndarray``
         New train data.
-    train_y : np.ndarray
+    train_y : ``np.ndarray``
         New train labels.
-    test_X : np.ndarray or list of np.ndarray
+    test_X : ``np.ndarray`` or ``list`` of ``np.ndarray``
         New test data.
-    test_y : np.ndarray
+    test_y : ``np.ndarray``
         New test labels.
     """
     if isinstance(X_train, np.ndarray):
@@ -195,22 +195,22 @@ def stratified_resample_data_indices(y_train, y_test, random_state=None):
 
     Parameters
     ----------
-    y_train : np.ndarray
+    y_train : ``np.ndarray``
         Train data labels.
-    y_test : np.ndarray
+    y_test : ``np.ndarray``
         Test data labels.
-    random_state : int, RandomState instance or None, default=None
-        If `int`, random_state is the seed used by the random number generator;
-        If `RandomState` instance, random_state is the random number generator;
-        If `None`, the random number generator is the `RandomState` instance used
-        by `np.random`.
+    random_state : ``int``, ``RandomState`` instance or ``None``, default=``None``
+        If ``int``, ``random_state`` is the seed used by the random number generator;
+        If ``RandomState`` instance, ``random_state`` is the random number generator;
+        If ``None``, the random number generator is the ``RandomState`` instance used
+        by ``np.random``.
 
     Returns
     -------
-    train_indices : np.ndarray
+    train_indices : ``np.ndarray``
         The index of cases to use in the train set from the combined train and test
         data.
-    test_indices : np.ndarray
+    test_indices : ``np.ndarray``
         The index of cases to use in the test set from the combined train and test data.
     """
     # only classification is supported
