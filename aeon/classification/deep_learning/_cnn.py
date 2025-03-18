@@ -104,7 +104,6 @@ class TimeCNNClassifier(BaseDeepClassifier):
     - Adapted from the implementation from Fawaz et. al
       https://github.com/hfawaz/dl-4-tsc/blob/master/classifiers/cnn.py
 
-
     References
     ----------
     .. [1] Zhao et. al, Convolutional neural networks for time series classification,
@@ -127,7 +126,7 @@ class TimeCNNClassifier(BaseDeepClassifier):
         kernel_size=7,
         n_filters=None,
         avg_pool_size=3,
-        activation=None,
+        activation="sigmoid",
         padding="valid",
         strides=1,
         strides_pooling=None,
@@ -189,7 +188,7 @@ class TimeCNNClassifier(BaseDeepClassifier):
             activation=self.activation,
             padding=self.padding,
             strides=self.strides,
-            # strides_pooling=self.strides_pooling,
+            strides_pooling=self.strides_pooling,
             dilation_rate=self.dilation_rate,
             use_bias=self.use_bias,
         )
@@ -216,10 +215,6 @@ class TimeCNNClassifier(BaseDeepClassifier):
         import numpy as np
         import tensorflow as tf
 
-        # Change activation to softmax only if it's a multi-class problem and no activation is provided.
-        if self.activation is None:
-            self.activation = "softmax" if n_classes > 2 else "sigmoid"
-        print("activation:", self.activation, flush=True)
         rng = check_random_state(self.random_state)
         self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
         tf.keras.utils.set_random_seed(self.random_state_)
@@ -350,3 +345,6 @@ class TimeCNNClassifier(BaseDeepClassifier):
         test_params = [param1]
 
         return test_params
+
+
+
