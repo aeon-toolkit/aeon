@@ -169,4 +169,19 @@ ESTIMATOR_TAGS = {
         "unordered attributes are columns. Series indicates a single series output "
         "and collection indicates output is a collection of time series.",
     },
+    "output_data_format": {
+        "class": "estimator",
+        "type": ("str", ["anomaly_scores", "binary_classification"]),
+        "description": "The format of the output data from the estimator.",
+    },
+    "learning_type:unsupervised": {
+        "class": "estimator",
+        "type": "bool",
+        "description": "Does the estimator support unsupervised learning tasks?",
+    },
+    "learning_type:semi_supervised": {
+        "class": "estimator",
+        "type": "bool",
+        "description": "Does the estimator support semi-supervised learning tasks?",
+    },
 }
