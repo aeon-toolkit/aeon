@@ -4,8 +4,110 @@ from typing import Optional, Union
 
 import numpy as np
 from numpy.random import RandomState
+from scipy.spatial.distance import cdist
 
 from aeon.clustering.base import BaseClusterer
+
+
+def _kdtw_lk(A, B, local_kernel):
+    d = np.shape(A)[1]
+    Z = np.zeros((1, d))
+    A = np.concatenate((Z, A), axis=0)
+    B = np.concatenate((Z, B), axis=0)
+    la, d = np.shape(A)
+    lb, d = np.shape(B)
+    DP = np.zeros((la, lb))
+    DP1 = np.zeros((la, lb))
+    DP2 = np.zeros(max(la, lb))
+    min_l = min(la, lb)
+    DP2[1] = 1.0
+    for i in range(1, min_l):
+        DP2[i] = local_kernel[i - 1, i - 1]
+
+    DP[0, 0] = 1
+    DP1[0, 0] = 1
+    n = len(A)
+    m = len(B)
+
+    for i in range(1, n):
+        DP[i, 1] = DP[i - 1, 1] * local_kernel[i - 1, 2]
+        DP1[i, 1] = DP1[i - 1, 1] * DP2[i]
+
+    for j in range(1, m):
+        DP[1, j] = DP[1, j - 1] * local_kernel[2, j - 1]
+        DP1[1, j] = DP1[1, j - 1] * DP2[j]
+
+    for i in range(1, n):
+        for j in range(1, m):
+            lcost = local_kernel[i - 1, j - 1]
+            DP[i, j] = (DP[i - 1, j] + DP[i, j - 1] + DP[i - 1, j - 1]) * lcost
+            if i == j:
+                DP1[i, j] = (
+                    DP1[i - 1, j - 1] * lcost
+                    + DP1[i - 1, j] * DP2[i]
+                    + DP1[i, j - 1] * DP2[j]
+                )
+            else:
+                DP1[i, j] = DP1[i - 1, j] * DP2[i] + DP1[i, j - 1] * DP2[j]
+    DP = DP + DP1
+    return DP[n - 1, m - 1]
+
+
+def kdtw(x, y, sigma=1.0, epsilon=1e-3):
+    """
+    Callable kernel function for KernelKMeans.
+
+    Parameters
+    ----------
+    X: np.ndarray, of shape (n_timepoints, n_channels)
+            First time series sample.
+    y: np.ndarray, of shape (n_timepoints, n_channels)
+            Second time series sample.
+    sigma : float, default=1.0
+        Parameter controlling the width of the exponential local kernel. Smaller sigma
+        values lead to a sharper decay of similarity with increasing distance.
+    epsilon : float, default=1e-3
+        A small constant added for numerical stability to avoid zero values in the
+        local kernel matrix.
+
+    Returns
+    -------
+    similarity : float
+        A scalar value representing the computed KDTW similarity between the two time
+        series. Higher values indicate greater similarity.
+    """
+    distance = cdist(x, y, "sqeuclidean")
+    local_kernel = (np.exp(-distance / sigma) + epsilon) / (3 * (1 + epsilon))
+    return _kdtw_lk(x, y, local_kernel)
+
+
+def factory_kdtw_kernel(d):
+    """
+    Return a kdtw kernel callable function that reshapes flattened samples to (T, d).
+
+    Parameters
+    ----------
+        d: int
+            Number of channels per timepoint.
+
+    Returns
+    -------
+    kdtw_kernel : callable
+        A callable kernel function that computes the KDTW similarity between two
+        time series samples. The function signature is the same as the kdtw
+        function.
+    """
+
+    def kdtw_kernel(x, y, sigma=1.0, epsilon=1e-3):
+        if x.ndim == 1:
+            T = x.size // d
+            x = x.reshape(T, d)
+        if y.ndim == 1:
+            T = y.size // d
+            y = y.reshape(T, d)
+        return kdtw(x, y, sigma=sigma, epsilon=epsilon)
+
+    return kdtw_kernel
 
 
 class TimeSeriesKernelKMeans(BaseClusterer):
@@ -101,7 +203,7 @@ class TimeSeriesKernelKMeans(BaseClusterer):
         n_jobs: Union[int, None] = 1,
         random_state: Optional[Union[int, RandomState]] = None,
     ):
-        self.kernel = kernel
+        self.kernel = self._get_kernel_str(kernel)
         self.n_init = n_init
         self.max_iter = max_iter
         self.tol = tol
@@ -119,6 +221,13 @@ class TimeSeriesKernelKMeans(BaseClusterer):
         self._tslearn_kernel_k_means = None
 
         super().__init__()
+
+    def _get_kernel_str(self, kernel: str):
+        """Return the kernel function."""
+        if kernel == "kdtw":
+            return "kdtw"
+        else:
+            return kernel
 
     def _fit(self, X, y=None):
         """Fit time series clusterer to training data.
@@ -140,6 +249,9 @@ class TimeSeriesKernelKMeans(BaseClusterer):
         verbose = 0
         if self.verbose is True:
             verbose = 1
+
+        if self.kernel == "kdtw":
+            self.kernel = factory_kdtw_kernel(d=X.shape[1])
 
         self._tslearn_kernel_k_means = TsLearnKernelKMeans(
             n_clusters=self.n_clusters,
