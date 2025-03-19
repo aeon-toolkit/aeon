@@ -118,9 +118,6 @@ def test_multivariate_correctness():
         assert_almost_equal(d, basic_motions_distances["msm_dep"][j], 4)
 
 
-test_multivariate_correctness()
-
-
 def test_univariate_correctness():
     """Test dtw correctness on UnitTest: univariate, equal length."""
     trainX, trainy = load_unit_test(return_type="numpy3D")

@@ -14,7 +14,11 @@ from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
 @njit(cache=True, fastmath=True)
-def _path2mat(path, x_timepoints, y_timepoints):
+def _path2mat(
+    path: list[tuple[int, int]],
+    x_timepoints: int,
+    y_timepoints: int,
+):
     r"""Convert a warping alignment path to a binary warping matrix."""
     w = np.zeros((x_timepoints, y_timepoints))
     for i, j in path:
@@ -28,9 +32,9 @@ def _dtw_gi(
     y: np.ndarray,
     window: Optional[float] = None,
     itakura_max_slope: Optional[float] = None,
-    init_p=None,
-    max_iter=20,
-    use_bias=False,
+    init_p: np.ndarray = None,
+    max_iter: int = 20,
+    use_bias: bool = False,
 ):
     r"""
     Compute Dynamic Time Warping with Global Invariance between the two time series.
@@ -132,11 +136,11 @@ def dtw_gi_distance(
     y: np.ndarray,
     window: Optional[float] = None,
     itakura_max_slope: Optional[float] = None,
-    init_p=None,
-    max_iter=20,
-    use_bias=False,
+    init_p: np.ndarray = None,
+    max_iter: int = 20,
+    use_bias: bool = False,
 ) -> float:
-    r"""Compute the DTW_GI distance between two time series.
+    r"""Compute the DTW_GI distance between two time series x and y.
 
     The DTW_gi distance between 2 timeseries x and y is the similarity
     measure that estimates both temporal alignment and does feature space
@@ -249,9 +253,9 @@ def dtw_gi_cost_matrix(
     y: np.ndarray,
     window: Optional[float] = None,
     itakura_max_slope: Optional[float] = None,
-    init_p=None,
-    max_iter=20,
-    use_bias=False,
+    init_p: np.ndarray = None,
+    max_iter: int = 20,
+    use_bias: bool = False,
 ) -> np.ndarray:
     r"""Compute the DTW_GI cost matrix between two time series.
 
@@ -325,9 +329,9 @@ def dtw_gi_pairwise_distance(
     window: Optional[float] = None,
     itakura_max_slope: Optional[float] = None,
     unequal_length: bool = None,
-    init_p=None,
-    max_iter=20,
-    use_bias=False,
+    init_p: np.ndarray = None,
+    max_iter: int = 20,
+    use_bias: bool = False,
 ) -> np.ndarray:
     r"""Compute the DTW_GI pairwise distance between a set of time series.
 
@@ -440,9 +444,9 @@ def _dtw_gi_from_multiple_to_multiple_distance(
     window: Optional[float] = None,
     itakura_max_slope: Optional[float] = None,
     unequal_length: bool = None,
-    init_p=None,
-    max_iter=20,
-    use_bias=False,
+    init_p: np.ndarray = None,
+    max_iter: int = 20,
+    use_bias: bool = False,
 ) -> np.ndarray:
     n_cases = len(x)
     m_cases = len(y)
@@ -463,9 +467,9 @@ def _dtw_gi_pairwise_distance(
     window: Optional[float] = None,
     itakura_max_slope: Optional[float] = None,
     unequal_length: bool = None,
-    init_p=None,
-    max_iter=20,
-    use_bias=False,
+    init_p: np.ndarray = None,
+    max_iter: int = 20,
+    use_bias: bool = False,
 ) -> np.ndarray:
     n_cases = len(X)
     distances = np.zeros((n_cases, n_cases))
@@ -487,9 +491,9 @@ def dtw_gi_alignment_path(
     y: np.ndarray,
     window: Optional[float] = None,
     itakura_max_slope: Optional[float] = None,
-    init_p=None,
-    max_iter=20,
-    use_bias=False,
+    init_p: np.ndarray = None,
+    max_iter: int = 20,
+    use_bias: bool = False,
 ) -> tuple[list[tuple[int, int]], float]:
     """Compute the DTW_GI alignment path between two time series.
 
