@@ -186,7 +186,7 @@ filterwarnings = '''
 
 [tool.codespell]
 # Ref: https://github.com/codespell-project/codespell#using-a-config-file
-skip = '.git*,*.pdf,*.css'
+skip = '.git*,*.pdf,*.css,*.tsf,data'
 check-hidden = true
-ignore-regex = '^\s*"image/\S+": ".*'
-# ignore-words-list = ''
+ignore-regex = '(^\s*"image/\S+": ".*|Binay|Lamba|SOM|Hart|COO)'
+ignore-words-list = 'anc,fpr,mape,aer,smape,strat'
