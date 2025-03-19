@@ -3,12 +3,14 @@
 from typing import Optional, Union
 
 import numpy as np
+from numba import njit
 from numpy.random import RandomState
-from scipy.spatial.distance import cdist
 
 from aeon.clustering.base import BaseClusterer
+from aeon.distances.pointwise._squared import squared_pairwise_distance
 
 
+@njit(cache=True, fastmath=True)
 def _kdtw_lk(A, B, local_kernel):
     d = np.shape(A)[1]
     Z = np.zeros((1, d))
@@ -76,19 +78,19 @@ def kdtw(x, y, sigma=1.0, epsilon=1e-3):
         A scalar value representing the computed KDTW similarity between the two time
         series. Higher values indicate greater similarity.
     """
-    distance = cdist(x, y, "sqeuclidean")
+    distance = squared_pairwise_distance(x, y)
     local_kernel = (np.exp(-distance / sigma) + epsilon) / (3 * (1 + epsilon))
     return _kdtw_lk(x, y, local_kernel)
 
 
-def factory_kdtw_kernel(d):
+def factory_kdtw_kernel(channels: int):
     """
-    Return a kdtw kernel callable function that reshapes flattened samples to (T, d).
+    Return a kdtw kernel callable function that flattened samples to (T, channels).
 
     Parameters
     ----------
-        d: int
-            Number of channels per timepoint.
+    channels: int
+        Number of channels per timepoint.
 
     Returns
     -------
@@ -100,11 +102,11 @@ def factory_kdtw_kernel(d):
 
     def kdtw_kernel(x, y, sigma=1.0, epsilon=1e-3):
         if x.ndim == 1:
-            T = x.size // d
-            x = x.reshape(T, d)
+            T = x.size // channels
+            x = x.reshape(T, channels)
         if y.ndim == 1:
-            T = y.size // d
-            y = y.reshape(T, d)
+            T = y.size // channels
+            y = y.reshape(T, channels)
         return kdtw(x, y, sigma=sigma, epsilon=epsilon)
 
     return kdtw_kernel
@@ -244,7 +246,7 @@ class TimeSeriesKernelKMeans(BaseClusterer):
             verbose = 1
 
         if self.kernel == "kdtw":
-            self.kernel = factory_kdtw_kernel(d=X.shape[1])
+            self.kernel = factory_kdtw_kernel(channels=X.shape[1])
 
         self._tslearn_kernel_k_means = TsLearnKernelKMeans(
             n_clusters=self.n_clusters,
