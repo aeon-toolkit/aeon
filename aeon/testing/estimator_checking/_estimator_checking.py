@@ -337,7 +337,7 @@ def _get_check_estimator_ids(obj):
     checks.
 
     Some parameters which contain functions or methods will be obfuscated to
-    allow for compatability with `pytest-xdist`. This requires that IDs on each thread
+    allow for compatibility with `pytest-xdist`. This requires that IDs on each thread
     be the same, and functions can generate different IDs.
 
     Based on the `scikit-learn` `_get_check_estimator_ids` function.

@@ -126,7 +126,7 @@ implementation for the shapelet transform that gets accepted into the toolkit.
 
 ##### References
 
-1. Hills, J., Lines, J., Baranauskas, E., Mapp, J. and Bagnall, A., 2014.
+1. Hills, J., Lines, J., Baranauskas, E., Map, J. and Bagnall, A., 2014.
 Classification of time series by shapelet transformation. Data mining and knowledge
 discovery, 28, pp.851-881.
 2. Bostrom, A. and Bagnall, A., 2017. Binary shapelet transform for multiclass time
@@ -527,7 +527,7 @@ original implementations or other anomaly detection algorithms.
 ##### Project Outcome
 
 As the anomaly detection is a new module in `aeon`, there is very little existing code
-to compare against and little infrastructure to evluate anomaly detection algorithms.
+to compare against and little infrastructure to evaluate anomaly detection algorithms.
 The success of the project will be evaluated by the quality of the code produced and
 engagement with the project and the `aeon` community.
 
@@ -571,7 +571,7 @@ https://github.com/aeon-toolkit/aeon/issues/948
 ##### Project Outcome
 
 As with all research programming based projects, progress can be hindered by many
-unforseen circumstances. Success will be measured by engagement, effort and
+unforeseen circumstances. Success will be measured by engagement, effort and
 willingness to join the community rather than performance of the algorithms.
 
 ##### References
@@ -615,7 +615,7 @@ other time series tasks.
 `aeon` has implementations of the ROCKET transformation and its variants, including
 MiniROCKET [2] and MultiROCKET [3]. However, these implementations have room for
 improvement ([#208](https://github.com/aeon-toolkit/aeon/issues/208)). There is scope
-to speed up the implementations, and the amount of varients is likely unnecessary and
+to speed up the implementations, and the amount of variants is likely unnecessary and
 could be condensed into higher quality estimators.
 
 This projects involves improving the existing ROCKET implementations in `aeon` or
@@ -702,7 +702,7 @@ themselves need to be fast.
 Currently we have the channel selection algorithms describe in [1,2] in aeon. It would
 be great to include those in [3] and further work. This project will involve
 experimental evaluation in addition to implementing
-algorithms. We can co-ordinate the experiments with the candidate through our HPC
+algorithms. We can coordinate the experiments with the candidate through our HPC
 facilities.
 
 1. Implement a channel selection wrapper for the aeon toolkit (see [#1270](https://github.com/aeon-toolkit/aeon/issues/1270))

@@ -26,7 +26,7 @@ def sbd_distance(x: np.ndarray, y: np.ndarray, standardize: bool = True) -> floa
     x_n\}` and :math:`\mathbf{y}=\{y_1,y_2, \ldots,y_m\}`, SBD works by (optionally)
     first standardizing both time series using the z-score
     (:math:`x' = \frac{x - \mu}{\sigma}`), then computing the cross-correlation
-    between x and y (:math:`CC(\mathbf{x}, \mathbf{y})`), then deviding it by the
+    between x and y (:math:`CC(\mathbf{x}, \mathbf{y})`), then dividing it by the
     geometric mean of both autocorrelations of the individual sequences to normalize
     it to :math:`[-1, 1]` (coefficient normalization), and finally detecting the
     position with the maximum normalized cross-correlation:

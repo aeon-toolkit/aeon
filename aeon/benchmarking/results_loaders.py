@@ -21,7 +21,7 @@ VALID_TASK_TYPES = ["classification", "clustering", "regression"]
 VALID_RESULT_MEASURES = {
     "classification": ["accuracy", "auroc", "balacc", "f1", "logloss"],
     "clustering": ["clacc", "ami", "ari", "mi"],
-    "regression": ["mse", "mae", "r2", "mape", "rmse"],
+    "regression": ["mse", "mae", "r2", "map", "rmse"],
 }
 
 NAME_ALIASES = {
@@ -201,7 +201,7 @@ def estimator_alias(name: str) -> str:
 def get_available_estimators(
     task: str = "classification", as_list: bool = False
 ) -> Union[pd.DataFrame, list]:
-    """Get a DataFrame of estimators avialable for a specific learning task.
+    """Get a DataFrame of estimators available for a specific learning task.
 
     Parameters
     ----------
