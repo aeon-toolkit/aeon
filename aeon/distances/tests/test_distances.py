@@ -57,6 +57,7 @@ def _validate_distance_result(
     assert isinstance(dist_result_to_self, float)
 
     # If unequal length swap where x and y are to ensure it works both ways around
+
     if symmetric and original_x.shape[-1] != original_y.shape[-1] and check_xy_permuted:
         _validate_distance_result(
             original_y,
