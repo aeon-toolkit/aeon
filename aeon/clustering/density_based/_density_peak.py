@@ -3,6 +3,7 @@
 __maintainer__ = []
 __all__ = ["DensityPeakClusterer"]
 
+import matplotlib.pyplot as plt
 import numpy as np
 
 from aeon.distances import get_distance_function, pairwise_distance
@@ -22,17 +23,23 @@ class DensityPeakClusterer:
     delta : np.ndarray
         For each point, the minimum distance to any point with higher density.
     gauss_cutoff : bool, default=True
-        Whether to use Gaussian cutoff for density estimation.
-    cutoff_distance : float, optional
-        Distance cutoff for Gaussian kernel.
+        Whether to use a Gaussian kernel for density estimation.
+    cutoff_distance : float or str, optional
+        Distance cutoff for the Gaussian kernel. If set to "auto", the cutoff is
+        automatically selected.
     distance_metric : str, default="euclidean"
-        Distance metric to use for clustering.
+        The distance metric to use for clustering.
     n_jobs : int, default=1
         Number of parallel jobs to run.
     density_threshold : float, optional
-        Density threshold to select cluster centers. If None, will use midpoint.
+        Density threshold for selecting cluster centers. If None, the midpoint of min
+        and max density is used.
     distance_threshold : float, optional
-        Distance threshold to select cluster centers. If None, will use midpoint.
+        Distance threshold for selecting cluster centers. If None, the midpoint of min
+        and max delta is used.
+    anormal : bool, default=False
+        If True, points in the halo region (border points) are marked with a label
+        of -1.
     """
 
     def __init__(
@@ -44,6 +51,7 @@ class DensityPeakClusterer:
         n_jobs: int = 1,
         density_threshold: float = None,
         distance_threshold: float = None,
+        anormal: bool = False,
     ):
         self.rho = rho
         self.gauss_cutoff = gauss_cutoff
@@ -52,6 +60,7 @@ class DensityPeakClusterer:
         self.n_jobs = n_jobs
         self.density_threshold = density_threshold
         self.distance_threshold = distance_threshold
+        self.anormal = anormal
 
     def _build_distance(self):
         """
@@ -60,36 +69,37 @@ class DensityPeakClusterer:
         Returns
         -------
         distance_matrix : np.ndarray
-            A matrix of symmetric pairwise distances.
+            A symmetric matrix of pairwise distances.
         """
         dist_func = get_distance_function(self.distance_metric)
         distance_matrix = pairwise_distance(self.data, method=dist_func)
         return distance_matrix
 
     def _auto_select_dc(self):
-        """Auto-select cutoff distance (dc) so that the fraction of pairwise distances less than dc is within a target range (e.g: 1-2%)."""  # noqa
-        tri_indices = np.triu_indices(
-            self.n, k=1
-        )  # k=1 to ignore diagonal as it has 0's
+        """
+        Auto-select cutoff distance (dc).
+
+        The fraction of pairwise distances less than dc
+        is within a target range (approximately 0.2% to 1%).
+        Intended target range: 0.01 <= nneighs <= 0.002.
+        """
+        tri_indices = np.triu_indices(self.n, k=1)  # ignore diagonal (self-distances)
         distances = self.distance_matrix[tri_indices]
         max_distance = np.max(distances)
         min_distance = np.min(distances)
         dc = (max_distance + min_distance) / 2
 
-        lower_bound = 0.002
-        upper_bound = 0.01  # 1-2% range
+        lower_bound = 0.01  # 0.002
+        upper_bound = 0.002  # 0.01  # target range: 0.2% to 1%
 
-        # recursively setting the value of dc
         while True:
-            nneighs = np.sum(distances < dc) / (self.n**2)  # nearest neighbors
-
-            if lower_bound < nneighs < upper_bound:  # case 1 : dc is in range
+            nneighs = np.sum(distances < dc) / (self.n**2)
+            if lower_bound <= nneighs <= upper_bound:
                 break
-            if nneighs < lower_bound:  # case 2 : increase dc (too few neighbors)
+            if nneighs < lower_bound:  # too few neighbors => increase dc
                 min_distance = dc
-            if nneighs > upper_bound:  # case 3 : decrease dc (too many neighbors)
+            elif nneighs > upper_bound:  # too many neighbors => decrease dc
                 max_distance = dc
-
             dc = (max_distance + min_distance) / 2
             if max_distance - min_distance < 1e-6:
                 break
@@ -103,20 +113,33 @@ class DensityPeakClusterer:
         Returns
         -------
         dc : float
-            The cutoff distance.
+            The chosen cutoff distance.
         """
         if self.cutoff_distance == "auto":
             return self._auto_select_dc()
+        elif self.cutoff_distance is None:
+            n = self.data.shape[0]
+            self.distances = {}
+            for i in range(n):
+                for j in range(i + 1, n):
+                    self.distances[(i, j)] = self.distance_matrix[i, j]
+                    self.distances[(j, i)] = self.distance_matrix[i, j]
+            percent = 2.0
+            position = int(self.n * (self.n + 1) / 2 * percent / 100)
+            sorted_vals = np.sort(list(self.distances.values()))
+            dc = sorted_vals[position * 2 + self.n]
+            return dc
         else:
             return self.cutoff_distance
 
     def _fit(self, X: np.ndarray, y: np.ndarray = None):
-        """Fit time series clusterer to training data.
+        """
+        Fit the density peak clusterer to the training data.
 
         Parameters
         ----------
         X : array-like
-            Time series data to cluster.
+            Time series (or 2D) data to cluster.
         y : array-like, optional
             Labels for the data (unused in clustering).
 
@@ -126,36 +149,32 @@ class DensityPeakClusterer:
             The fitted clusterer.
         """
         self.data = X
-        self.n = X.shape[0]  # total no. of time points
+        self.n = X.shape[0]  # total number of data points
 
-        self.distance_matrix = self._build_distance()  # pairwise distance matrix
+        self.distance_matrix = self._build_distance()
+        self.dc = self.select_dc()
 
-        self.dc = self.select_dc()  # selecting cutoff distance
-
-        self.rho = np.zeros(self.n)  # local density
-
+        # Compute local density, excluding self-distance
+        self.rho = np.zeros(self.n)
         if self.gauss_cutoff:
-            # Gaussian kernel: weight = exp(- (d / self.dc) ** 2)
             for i in range(self.n):
-                self.rho[i] = np.sum(
-                    np.exp(-((self.distance_matrix[i] / self.dc) ** 2))
-                )
+                self.rho[i] = (
+                    np.sum(np.exp(-((self.distance_matrix[i] / self.dc) ** 2))) - 1
+                )  # -1 to exclude self (diagonal)
         else:
-            # Hard cutoff: weight = 1 if d < dc, 0 otherwise
+            # Count neighbors using a hard cutoff, subtracting the self-count
             for i in range(self.n):
-                self.rho[i] = np.sum(self.distance_matrix[i] < self.dc)
+                self.rho[i] = np.sum(self.distance_matrix[i] < self.dc) - 1
 
+        # computing delta and nearest higher-density neighbor
         self.delta = np.full(self.n, np.inf)
         self.nneigh = np.zeros(self.n, dtype=int)
-        sorted_indices = np.argsort(
-            -self.rho
-        )  # decending order of local density indices
+        sorted_indices = np.argsort(-self.rho)  # indices in descending order of density
         self.sorted_indices = sorted_indices
 
         highest_index = sorted_indices[0]
-        self.delta[highest_index] = np.max(
-            self.distance_matrix
-        )  # distance to highest density point
+        # For the highest-density point, set delta to the maximum distance in the matrix
+        self.delta[highest_index] = np.max(self.distance_matrix)
         self.nneigh[highest_index] = highest_index
 
         for i in range(1, self.n):
@@ -167,7 +186,7 @@ class DensityPeakClusterer:
                     self.delta[current_index] = d
                     self.nneigh[current_index] = higher_index
 
-        # If thresholds are not provided, use the midpoint rule
+        # midpoint rule if thresholds are not provided
         if self.density_threshold is None:
             rho_threshold = 0.5 * (self.rho.min() + self.rho.max())
         else:
@@ -178,33 +197,69 @@ class DensityPeakClusterer:
         else:
             delta_threshold = self.distance_threshold
 
-        # Initialize cluster labels to -1 and assign centers based on the thresholds
+        # Initial cluster assignment:
+        # marking points as centers,they exceed both density and delta thresholds
         self.labels_ = -np.ones(self.n, dtype=int)
         for idx in range(self.n):
             if (self.rho[idx] >= rho_threshold) and (
                 self.delta[idx] >= delta_threshold
             ):
-                self.labels_[idx] = (
-                    idx  # mark as cluster center (label equals its own index)
-                )
+                self.labels_[idx] = idx
 
-        # descending-density assignment for non-center points
+        # labels for non-center points based on the nearest higher-density neighbor.
         for idx in sorted_indices:
             if self.labels_[idx] == -1:
                 self.labels_[idx] = self.labels_[self.nneigh[idx]]
 
-        # store the final center indices for reference.
+        # Create a copy for halo assignment.
+        halo = self.labels_.copy()
+        # Identify unique cluster centers.
+        unique_centers = [i for i in range(self.n) if self.labels_[i] == i]
+        # Initialize border density for each cluster.
+        bord_rho = {center: 0.0 for center in unique_centers}
+
+        # For every pair of points in clusters within dc, update border density
+        for i in range(self.n):
+            for j in range(i + 1, self.n):
+                if (
+                    self.labels_[i] != self.labels_[j]
+                    and self.distance_matrix[i, j] <= self.dc
+                ):
+                    rho_avg = (self.rho[i] + self.rho[j]) / 2.0
+                    if (
+                        self.labels_[i] in bord_rho
+                        and rho_avg > bord_rho[self.labels_[i]]
+                    ):
+                        bord_rho[self.labels_[i]] = rho_avg
+                    if (
+                        self.labels_[j] in bord_rho
+                        and rho_avg > bord_rho[self.labels_[j]]
+                    ):
+                        bord_rho[self.labels_[j]] = rho_avg
+
+        # points falling in halo region (density lower than cluster's border density)
+        for i in range(self.n):
+            if self.labels_[i] in bord_rho and self.rho[i] < bord_rho[self.labels_[i]]:
+                halo[i] = 0
+
+        # if anormal flag is True, assign halo points a label of -1
+        if self.anormal:
+            for i in range(self.n):
+                if halo[i] == 0:
+                    self.labels_[i] = -1
+
+        # Final cluster centers: points whose label equals their own index.
         self.cluster_centers = [i for i in range(self.n) if self.labels_[i] == i]
 
     def fit(self, X: np.ndarray, y: np.ndarray = None):
         """
-        Fit time series clusterer to training data.
+        Fit the clusterer to the training data.
 
         Parameters
         ----------
         X : array-like, shape=(n_samples, n_timepoints) or
             (n_samples, n_channels, n_timepoints)
-            Time series data to cluster.
+            Data to cluster.
         y : array-like, optional
             Labels for the data (unused in clustering).
 
@@ -219,20 +274,18 @@ class DensityPeakClusterer:
 
     def plot(self, mode="all", title="", **kwargs):
         """
-        Plot clustering results and/or the decision graph.
+        Plot the clustering results and/or the decision graph.
 
         Parameters
         ----------
         mode : str, default="all"
-            One of "decision" (plot decision graph), "label" (plot clustered data),
-            or "all" (plot both).
+            One of "decision" (to plot the decision graph),
+            "label" (to plot cluster labels), or "all" (to plot both).
         title : str, optional
             Title for the plots.
         kwargs : dict
             Additional keyword arguments passed to plotting functions.
         """
-        import matplotlib.pyplot as plt
-
         if mode in {"decision", "all"}:
             plt.figure()
             plt.scatter(self.rho, self.delta, c=self.labels_, cmap="viridis")

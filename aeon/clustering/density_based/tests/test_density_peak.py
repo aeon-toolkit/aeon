@@ -354,18 +354,16 @@ def test_density_peak_clusterer(dataset):
         distance_metric="euclidean",
         density_threshold=8,
         distance_threshold=5,
+        anormal=False,
     )
 
-    # Fit the clusterer on the dataset
     clusterer.fit(dataset)
 
-    # Print cluster labels and cluster centers
     print("Cluster Labels:")  # noqa
     print(clusterer.labels_)  # noqa
     print("\nCluster Centers:")  # noqa
     print(clusterer.cluster_centers)  # noqa
 
-    # Assertions to verify the clustering results
     assert clusterer.labels_ is not None, "Cluster labels should not be None"
     assert len(clusterer.labels_) == len(
         dataset
@@ -375,7 +373,6 @@ def test_density_peak_clusterer(dataset):
         len(clusterer.cluster_centers) > 0
     ), "There should be at least one cluster center"
 
-    # Optional: Plot decision graph and clustering results
     clusterer.plot(mode="all", title="Density Peak Clustering")
 
 
