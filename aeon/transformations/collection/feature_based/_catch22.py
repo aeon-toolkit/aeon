@@ -181,7 +181,7 @@ class Catch22(BaseCollectionTransformer):
         self,
         features="all",
         catch24=False,
-        outlier_norm=False,
+        outlier_norm=True,
         replace_nans=False,
         use_pycatch22=False,
         n_jobs=1,
