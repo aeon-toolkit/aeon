@@ -1,8 +1,5 @@
 """Functions to load published results."""
 
-from typing import Optional, Union, Dict, Tuple, List
-import numpy as np
-
 __maintainer__ = ["TonyBagnall", "MatthewMiddlehurst"]
 __all__ = [
     "load_classification_bake_off_2017_results",
@@ -10,6 +7,8 @@ __all__ = [
     "load_classification_bake_off_2023_results",
 ]
 
+from typing import Optional, Union, Dict, Tuple, List
+import numpy as np
 from aeon.benchmarking.results_loaders import _load_to_dict, _results_dict_to_array
 from aeon.datasets.tsc_datasets import (
     multivariate_equal_length,
