@@ -67,6 +67,9 @@ be patient, as Core Developers are volunteers and may be busy with other tasks o
 outside the package. It could take a while to get a review during
 slow periods, so please do not rush to @ developers or repeatedly ask for a review.
 Consider opening the PR as a draft until it is ready for review and passing tests.
+7. Respond to reviews if applicable. If you disagree with a change, discuss with the reviewer
+Push code as required. Please avoid force-pushing code unless necessary, as this can make
+reviewing more difficult and interacts poorly with some CI elements.
 8. Once your PR is approved, it will be merged into the `aeon` repository. Thanks for
 making a contribution! Make sure you are included in the [list of contributors](contributors.md).
 
