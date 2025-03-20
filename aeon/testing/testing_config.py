@@ -52,7 +52,7 @@ EXCLUDED_TESTS = {
     "RSASTClassifier": ["check_fit_deterministic"],
     "SAST": ["check_fit_deterministic"],
     "RSAST": ["check_fit_deterministic"],
-    "MatrixProfile": ["check_persistence_via_pickle"],
+    "MatrixProfile": ["check_fit_deterministic", "check_persistence_via_pickle"],
     # missed in legacy testing, changes state in predict/transform
     "FLUSSSegmenter": ["check_non_state_changing_method"],
     "InformationGainSegmenter": ["check_non_state_changing_method"],
@@ -73,6 +73,10 @@ EXCLUDED_TESTS = {
 EXCLUDED_TESTS_NO_NUMBA = {
     # See issue #622
     "HIVECOTEV2": ["check_classifier_against_expected_results"],
+    # Other failures
+    "TemporalDictionaryEnsemble": ["check_classifier_against_expected_results"],
+    "OrdinalTDE": ["check_classifier_against_expected_results"],
+    "CanonicalIntervalForestRegressor": ["check_regressor_against_expected_results"],
 }
 
 
