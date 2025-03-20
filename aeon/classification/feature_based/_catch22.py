@@ -125,7 +125,7 @@ class Catch22Classifier(BaseClassifier):
         self,
         features="all",
         catch24=True,
-        outlier_norm=False,
+        outlier_norm=True,
         replace_nans=True,
         use_pycatch22=False,
         estimator=None,
