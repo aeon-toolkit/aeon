@@ -318,7 +318,7 @@ def get_type(X, raise_error=True):
         )
 
     if raise_error and msg is not None:
-        raise ValueError(msg)
+        raise TypeError(msg)
     return None
 
 

@@ -63,7 +63,7 @@ def test_get_type():
         "String_Column": ["Apple", "Banana", "Cherry", "Date", "Elderberry"],
     }
     df = pd.DataFrame(data)
-    with pytest.raises(TypeError, match="contains non float values"):
+    with pytest.raises(TypeError, match="contain numeric values only"):
         get_type(df)
 
 
