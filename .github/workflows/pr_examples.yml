@@ -46,6 +46,9 @@ jobs:
       - uses: ./.github/actions/cpu_all_extras
         with:
           additional_extras: "dev,binder"
+          
+      - name: Install esig on macOS
+        run: pip install "esig>=0.9.7,<1.0.0"
 
       - name: Run example notebooks
         run: .github/utilities/run_examples.sh ${{ github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'full examples run') }}
