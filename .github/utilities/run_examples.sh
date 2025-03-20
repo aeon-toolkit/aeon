@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/opt/homebrew/bin/bash
 
 # Script to run all example notebooks.
 set -euxo pipefail
