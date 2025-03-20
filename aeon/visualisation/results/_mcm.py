@@ -6,51 +6,52 @@ __all__ = ["create_multi_comparison_matrix"]
 
 import json
 import os
-
+from typing import Dict, List, Optional, Union
+import logging
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from scipy.stats import wilcoxon
 
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 def create_multi_comparison_matrix(
-    df_results,
-    output_dir="./",
-    pdf_savename=None,
-    png_savename=None,
-    csv_savename=None,
-    tex_savename=None,
-    used_statistic="Accuracy",
-    save_as_json=False,
-    plot_1v1_comparisons=False,
-    order_win_tie_loss="higher",
-    include_pvalue=True,
-    pvalue_test="wilcoxon",
-    pvalue_test_params=None,
-    pvalue_correction=None,
-    pvalue_threshold=0.05,
-    use_mean="mean-difference",
-    order_stats="average-statistic",
-    order_better="decreasing",
-    dataset_column=None,
-    precision=4,
-    load_analysis=False,
-    row_comparates=None,
-    col_comparates=None,
-    excluded_row_comparates=None,
-    excluded_col_comparates=None,
-    colormap="coolwarm",
-    fig_size="auto",
-    font_size="auto",
-    colorbar_orientation="vertical",
-    colorbar_value=None,
-    win_label="r>c",
-    tie_label="r=c",
-    loss_label="r<c",
-    include_legend=True,
-    show_symetry=True,
-):
+   df_results: Union[str, pd.DataFrame],
+    output_dir: str = "./",
+    save_files: Optional[Dict[str, str]] = None,
+    used_statistic: str = "Accuracy",
+    save_as_json: bool = True,
+    plot_1v1_comparisons: bool = False,
+    order_settings: Dict[str, str] = {"win_tie_loss": "higher", "better": "decreasing"},
+    include_pvalue: bool = True,
+    pvalue_test: str = "wilcoxon",
+    pvalue_test_params: Optional[Dict[str, str]] = None,
+    pvalue_correction: Optional[str] = None,
+    pvalue_threshold: float = 0.05,
+    use_mean: str = "mean-difference",
+    order_stats: str = "average-statistic",
+    dataset_column: Optional[str] = None,
+    precision: int = 4,
+    load_analysis: bool = False,
+    row_comparates: Optional[List[str]] = None,
+    col_comparates: Optional[List[str]] = None,
+    excluded_row_comparates: Optional[List[str]] = None,
+    excluded_col_comparates: Optional[List[str]] = None,
+    colormap: str = "coolwarm",
+    fig_size: Union[str, tuple] = "auto",
+    font_size: Union[str, int] = "auto",
+    colorbar_orientation: str = "vertical",
+    colorbar_value: Optional[str] = None,
+    win_label: str = "r>c",
+    tie_label: str = "r=c",
+    loss_label: str = "r<c",
+    include_legend: bool = True,
+    show_symmetry: bool = True,
+) -> plt.Figure:
     """Generate the Multi-Comparison Matrix (MCM) [1]_.
 
     MCM summarises a set of results for multiple estimators evaluated on multiple
@@ -64,27 +65,15 @@ def create_multi_comparison_matrix(
         row should contain the names of the estimators and the first column can
         contain the names of the problems if `dataset_column` is true.
     output_dir: str, default = './'
-        The output directory for the results.
-    pdf_savename: str, default = None
-        The name of the saved file into pdf format. if None, it will not be saved into
-        this format.
-    png_savename: str, default = None
-        The name of the saved file into png format, if None, it will not be saved
-        into this format.
-    csv_savename: str, default = None
-        The name of the saved file into csv format, if None, will not be saved into
-        this format.
-    tex_savename: str, default = None
-        The name of the saved file into tex format, if None, will not be saved into
-        this format.
+        The output directory for the results.        
+    save_files: dict, default = None
+        Dictionary to handle all save options (e.g., {"pdf": "output.pdf", "png": "output.png"}).        
     used_statistic: str, default = 'Score'
         Name of the metric being assesses (e.g. accuracy, error, mse).
     save_as_json: bool, default = True
         Whether or not to save the python analysis dict into a json file format.
     plot_1v1_comparisons: bool, default = True
         Whether or not to plot the 1v1 scatter results.
-    order_win_tie_loss: str, default = 'higher'
-        The order on considering a win or a loss for a given statistics.
     include_pvalue bool, default = True
         Condition whether or not include a pvalue stats.
     pvalue_test: str, default = 'wilcoxon'
@@ -117,8 +106,8 @@ def create_multi_comparison_matrix(
         amean-amean            average over difference of use_mean
         pvalue                 average pvalue over all comparates
         ================================================================
-    order_better: str, default = 'decreasing'
-        By which order to sort stats, from best to worse.
+    order_settings: dict, default = {"win_tie_loss": "higher", "better": "decreasing"}
+        Settings for ordering the results.
     dataset_column: str, default = 'dataset_name'
         The name of the datasets column in the csv file.
     precision: int, default = 4
@@ -178,45 +167,46 @@ def create_multi_comparison_matrix(
     Evaluations That Is Stable Under Manipulation Of The Comparate Set
     arXiv preprint arXiv:2305.11921, 2023.
     """
+    
+    logger.info("Starting MCM creation...")
+    
     if isinstance(df_results, str):
         try:
             df_results = pd.read_csv(df_results)
+        except FileNotFoundError:
+            raise FileNotFoundError(f"The file {df_results} was not found.")
+        except pd.errors.EmptyDataError:
+            raise ValueError(f"The file {df_results} is empty.")
         except Exception as e:
-            raise ValueError(f"No dataframe or valid path is given: Exception {e}")
-
+            raise ValueError(f"An error occurred while reading the file: {e}")
+    
     analysis = _get_analysis(
         df_results,
         output_dir=output_dir,
         used_statistic=used_statistic,
         save_as_json=save_as_json,
         plot_1v1_comparisons=plot_1v1_comparisons,
-        order_win_tie_loss=order_win_tie_loss,
+        order_win_tie_loss=order_settings["win_tie_loss"],
         include_pvalue=include_pvalue,
         pvalue_test=pvalue_test,
         pvalue_test_params=pvalue_test_params,
         pvalue_correction=pvalue_correction,
-        pvalue_threshhold=pvalue_threshold,
+        pvalue_threshold=pvalue_threshold,
         use_mean=use_mean,
         order_stats=order_stats,
-        order_better=order_better,
+        order_better=order_settings["better"],
         dataset_column=dataset_column,
         precision=precision,
         load_analysis=load_analysis,
-    )
-
-    # start drawing heatmap
-    temp = _draw(
-        analysis,
-        pdf_savename=pdf_savename,
-        png_savename=png_savename,
-        tex_savename=tex_savename,
-        csv_savename=csv_savename,
-        output_dir=output_dir,
         row_comparates=row_comparates,
         col_comparates=col_comparates,
         excluded_row_comparates=excluded_row_comparates,
         excluded_col_comparates=excluded_col_comparates,
-        precision=precision,
+    )
+    
+    # Generate figure
+    fig = _draw(
+        analysis,
         colormap=colormap,
         fig_size=fig_size,
         font_size=font_size,
@@ -226,9 +216,28 @@ def create_multi_comparison_matrix(
         tie_label=tie_label,
         loss_label=loss_label,
         include_legend=include_legend,
-        show_symetry=show_symetry,
+        show_symmetry=show_symmetry,
     )
-    return temp
+    
+
+    # start drawing heatmap
+    if save_files:
+        for file_type, file_name in save_files.items():
+            if file_name:
+                save_path = os.path.join(output_dir, file_name)
+                if file_type == "pdf":
+                    fig.savefig(save_path, format="pdf", bbox_inches="tight")
+                elif file_type == "png":
+                    fig.savefig(save_path, format="png", dpi=300)
+                elif file_type == "csv":
+                    df_results.to_csv(save_path, index=False)
+                elif file_type == "tex":
+                    with open(save_path, "w") as f:
+                        f.write(analysis.to_latex())
+
+    logger.info("MCM creation completed.")
+    return fig
+
 
 
 def _get_analysis(
@@ -242,7 +251,7 @@ def _get_analysis(
     pvalue_test="wilcoxon",
     pvalue_test_params=None,
     pvalue_correction=None,
-    pvalue_threshhold=0.05,
+    pvalue_threshold=0.05,
     use_mean="mean-difference",
     order_stats="average-statistic",
     order_better="decreasing",
@@ -357,7 +366,7 @@ def _get_analysis(
         "order-win_tie_loss": order_win_tie_loss,
         "include-pvalue": include_pvalue,
         "pvalue-test": pvalue_test,
-        "pvalue-threshold": pvalue_threshhold,
+        "pvalue-threshold": pvalue_threshold,
         "pvalue-correction": pvalue_correction,
     }
 
@@ -390,7 +399,7 @@ def _get_analysis(
                     include_pvalue=include_pvalue,
                     pvalue_test=pvalue_test,
                     pvalue_test_params=pvalue_test_params,
-                    pvalue_threshhold=pvalue_threshhold,
+                    pvalue_threshhold=pvalue_threshold,
                     use_mean=use_mean,
                 )
 
