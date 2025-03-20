@@ -840,14 +840,6 @@ def _draw(
         plt.savefig(
             os.path.join(output_dir, f"{png_savename}.png"), bbox_inches="tight"
         )
-    if tex_savename is not None:
-        with open(
-            os.path.join(output_dir, f"{tex_savename}.tex"),
-            "w",
-            encoding="utf8",
-            newline="\n",
-        ) as file:
-            file.writelines(latex_string)
 
     latex_string += (
         f"\\begin{{tabular}}{{{'c' * (len(latex_table[0]) + 1)}}}\n"  # +1 for labels
