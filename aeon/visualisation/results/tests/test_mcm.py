@@ -1,5 +1,6 @@
 """Test the multi-comparison-matrix visualisation."""
 
+import os
 import tempfile
 
 import numpy as np
@@ -15,7 +16,7 @@ from aeon.visualisation.results._mcm import create_multi_comparison_matrix
     reason="skip test if required soft dependency not available",
 )
 def test_mcm():
-    """Test the multi-comparison-matrix visualisation."""
+    """Test the multi-comparison-matrix visualisation returns a Matplotlib figure."""
     import matplotlib.pyplot as plt
 
     df = pd.DataFrame(
@@ -31,24 +32,30 @@ def test_mcm():
     reason="skip test if required soft dependency not available",
 )
 def test_mcm_file_save():
-    """Test file save  in different formats."""
+    """Test that the MCM outputs files in the configured formats."""
     import matplotlib.pyplot as plt
 
     df = pd.DataFrame(
-        np.random.rand(10, 3),  # 10 rows, 3 columns of random numbers
+        np.random.rand(10, 3),
         columns=["Classifier1", "Classifier2", "Classifier3"],
     )
     with tempfile.TemporaryDirectory() as tmp:
         fig = create_multi_comparison_matrix(
             df,
-            output_dir=tmp,
-            pdf_savename="test1",
-            png_savename="test",
-            tex_savename="test",
+            output_config={
+                "dir": tmp,
+                "base_name": "test",
+                "formats": ["pdf", "png", "tex"],
+            },
             save_as_json=True,
             pvalue_correction="Holm",
         )
         assert isinstance(fig, plt.Figure)
 
+        pdf_path = os.path.join(tmp, "test.pdf")
+        png_path = os.path.join(tmp, "test.png")
+        tex_path = os.path.join(tmp, "test.tex")
 
-#        assert os.path.isfile(os.path.join(tmp, "test1.pdf"))
+        assert os.path.isfile(pdf_path), f"PDF file not found at {pdf_path}"
+        assert os.path.isfile(png_path), f"PNG file not found at {png_path}"
+        assert os.path.isfile(tex_path), f"TeX file not found at {tex_path}"
