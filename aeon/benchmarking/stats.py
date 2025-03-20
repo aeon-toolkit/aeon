@@ -4,10 +4,10 @@ __maintainer__ = []
 __all__ = ["check_friedman", "nemenyi_test", "wilcoxon_test"]
 
 import warnings
+from typing import Any, List, Optional
 
-from typing import Any, Optional, List
-from numpy.typing import ArrayLike
 import numpy as np
+from numpy.typing import ArrayLike
 from scipy.stats import distributions, find_repeats, wilcoxon
 
 
@@ -50,7 +50,9 @@ def check_friedman(ranks: np.ndarray) -> float:
     return p_value
 
 
-def nemenyi_test(ordered_avg_ranks: np.ndarray, n_datasets: int, alpha: float) -> List[List]:
+def nemenyi_test(
+    ordered_avg_ranks: np.ndarray, n_datasets: int, alpha: float
+) -> list[list]:
     """
     Find cliques using post hoc Nemenyi test.
 
@@ -85,7 +87,7 @@ def nemenyi_test(ordered_avg_ranks: np.ndarray, n_datasets: int, alpha: float) -
     return cliques
 
 
-def _get_qalpha(alpha: float) -> List[float]:
+def _get_qalpha(alpha: float) -> list[float]:
     """Get the alpha value for post hoc Nemenyi."""
     if alpha == 0.01:
         qalpha = [
@@ -273,7 +275,9 @@ def _get_qalpha(alpha: float) -> List[float]:
     return qalpha
 
 
-def wilcoxon_test(results: np.ndarray, labels: Any, lower_better: bool=False) -> np.ndarray:
+def wilcoxon_test(
+    results: np.ndarray, labels: Any, lower_better: bool = False
+) -> np.ndarray:
     """
     Perform Wilcoxon test.
 

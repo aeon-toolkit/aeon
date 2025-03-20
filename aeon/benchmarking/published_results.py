@@ -7,8 +7,10 @@ __all__ = [
     "load_classification_bake_off_2023_results",
 ]
 
-from typing import Optional, Union, Dict, Tuple, List
+from typing import Dict, List, Optional, Tuple, Union
+
 import numpy as np
+
 from aeon.benchmarking.results_loaders import _load_to_dict, _results_dict_to_array
 from aeon.datasets.tsc_datasets import (
     multivariate_equal_length,
@@ -18,12 +20,10 @@ from aeon.datasets.tsc_datasets import (
 
 
 def load_classification_bake_off_2017_results(
-    num_resamples: Optional[int]=100, 
-    as_array: bool=False, 
-    ignore_nan: bool=False
+    num_resamples: Optional[int] = 100, as_array: bool = False, ignore_nan: bool = False
 ) -> Union[
-    Dict[str, Dict[str, float]],
-    Tuple[np.ndarray, List[str], List[str]] # When as_array=False, return tuple
+    dict[str, dict[str, float]],
+    tuple[np.ndarray, list[str], list[str]],  # When as_array=False, return tuple
 ]:
     """Fetch all the results of the 2017 univariate TSC bake off.
 
@@ -130,10 +130,9 @@ def load_classification_bake_off_2017_results(
     return res
 
 
-def load_classification_bake_off_2021_results(num_resamples: Optional[int]=30, as_array: bool=False) -> Union[
-    Dict[str, Dict[str, float]],
-    Tuple[np.ndarray, List[str], List[str]]
-]:
+def load_classification_bake_off_2021_results(
+    num_resamples: Optional[int] = 30, as_array: bool = False
+) -> Union[dict[str, dict[str, float]], tuple[np.ndarray, list[str], list[str]]]:
     """Pull down all the results of the 2021 multivariate bake off.
 
     Basic utility function to recover legacy results from [1]_. Loads results for 26
@@ -219,10 +218,9 @@ def load_classification_bake_off_2021_results(num_resamples: Optional[int]=30, a
     return res
 
 
-def load_classification_bake_off_2023_results(num_resamples: Optional[int]=30, as_array: bool=False) -> Union[
-    Dict[str, Dict[str, float]],
-    Tuple[np.ndarray, List[str], List[str]]
-]:
+def load_classification_bake_off_2023_results(
+    num_resamples: Optional[int] = 30, as_array: bool = False
+) -> Union[dict[str, dict[str, float]], tuple[np.ndarray, list[str], list[str]]]:
     """Pull down all the results of the 2023 univariate bake off.
 
     Basic utility function to recover legacy results from [1]_. Loads results for 112
