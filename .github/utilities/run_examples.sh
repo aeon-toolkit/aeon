@@ -32,7 +32,7 @@ notebooks=()
 runtimes=()
 
 # Loop over all notebooks in the examples directory.
-find "examples/" -name "*.ipynb" -print0 |
+find "examples" -name "*.ipynb" -print0 |
   while IFS= read -r -d "" notebook; do
     # Skip notebooks in the excluded list.
     if printf "%s\0" "${excluded[@]}" | grep -Fxqz -- "$notebook"; then
