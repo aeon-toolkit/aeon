@@ -428,14 +428,14 @@ def make_example_dataframe_list(
 
     for i in range(n_cases):
         n_timepoints = rng.randint(min_n_timepoints, max_n_timepoints + 1)
-        x = n_labels * rng.uniform(size=(n_timepoints, n_channels))
+        x = n_labels * rng.uniform(size=(n_channels, n_timepoints))
         label = x[0, 0].astype(int)
         if i < n_labels and n_cases > i:
             x[0, 0] = i
             label = i
         x = x * (label + 1)
 
-        X.append(pd.DataFrame(x, index=range(n_timepoints), columns=range(n_channels)))
+        X.append(pd.DataFrame(x, index=range(n_channels), columns=range(n_timepoints)))
         y[i] = label
 
     if regression_target:
@@ -616,8 +616,7 @@ def make_example_multi_index_dataframe(
         y[i] = label
 
     X = X.reset_index(drop=True)
-    X = X.set_index(["case", "timepoint"]).pivot(columns="channel")
-    X.columns = [f"channel_{i}" for i in range(n_channels)]
+    X = X.pivot(index=["case", "timepoint"], columns=["channel"], values="value")
 
     if regression_target:
         y = y.astype(np.float32)
