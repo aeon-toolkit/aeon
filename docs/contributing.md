@@ -5,7 +5,7 @@ kinds of contributions, not just code. Improvements to docs, bug reports, and ta
 on communications or code of conduct responsibilities are all examples of valuable
 contributions beyond code which help make `aeon` a great package.
 
-Please consider whether you will be able to tackle and issue or pull request before
+Please consider whether you will be able to tackle and issue or pull request (PR) before
 assigning yourself to it. If the issue requires editing Python code, you should have
 some experience with Python and be able to run tests. If the issue tackles the
 specifics of a machine learning algorithm, some relevant knowledge of machine learning
@@ -14,8 +14,21 @@ of knowledge is required to make a meaningful contribution to certain issues.
 ChatGPT is not a replacement for this knowledge.
 
 Pull requests from unknown contributors which do not attempt to resolve the issue being
-addressed, completely disregard the pull request template, or consist of low quality AI
+addressed, completely disregard the PR template, or consist of low quality AI
 generated output may be closed without review.
+
+When implementing new algorithms, developers may require some benchmarking
+against alternative implementations or published results. This is likely to
+be the case for complex published algorithms which are not contributed by trusted
+developers or the original authors. A developer may eventually do this themselves if the
+contributor is unable to, but this is a time-consuming process and may delay the
+merging of the PR significantly. Please be aware of this when assigning
+yourself to an issue for such algorithms.
+
+When using code from another package or writing code inspired from another implementation,
+please mention this in your PR. At the very least credit must be given where
+applicable. If the package has a different license, using the code as is may not be
+acceptable. Using others code without credit will like result in your PR being closed.
 
 In the following we will give a brief overview of how to contribute to `aeon`. Making
 contributions to open-source projects takes a bit of proactivity and can be daunting at
@@ -36,7 +49,8 @@ list may be a good place to start.
 it. **First ensure that the issue is not already being worked on. Look if there are any
 linked PRs and search the issue number in the pull requests list.**
 To assign yourself an **Issue/Pull Request**, please post a comment in the issue
-including '@aeon-actions-bot', the username of people to assign and the word `assign`:
+including '@aeon-actions-bot', the username of people to assign and the word `assign`
+(Please note that anyone @'ed in the comment will be assigned to the issue):
 
     For example:
     ```python
@@ -58,6 +72,9 @@ be patient, as Core Developers are volunteers and may be busy with other tasks o
 outside the package. It could take a while to get a review during
 slow periods, so please do not rush to @ developers or repeatedly ask for a review.
 Consider opening the PR as a draft until it is ready for review and passing tests.
+7. Respond to reviews if applicable. If you disagree with a change, discuss with the reviewer
+Push code as required. Please avoid force-pushing code unless necessary, as this can make
+reviewing more difficult and interacts poorly with some CI elements.
 8. Once your PR is approved, it will be merged into the `aeon` repository. Thanks for
 making a contribution! Make sure you are included in the [list of contributors](contributors.md).
 
@@ -82,6 +99,17 @@ contributions are recorded in [.all-contributorsrc](https://github.com/aeon-tool
 Alternatively, you can use the [@all-contributors](https://allcontributors.org/docs/en/bot/usage)
 bot to do this for you. If the contribution is contained in a PR, please only @ the bot
 when the PR has been merged. A list of relevant tags can be found [here](https://allcontributors.org/docs/en/emoji-key).
+
+## Joining `aeon` as a Core Developer
+
+`aeon` Core Developers have write access to the repository and the ability to vote on
+community decisions. For more details on this role, please refer to the
+[about](about.md) and [governance](governance.md) pages.
+
+If you would like to become a Core Developer, the best way is to reach out and express
+your interest. We are particularly open to dedicated contributors who have made
+high-quality contributions to the project, as well as time series researchers and
+industry professionals.
 
 ## Further Reading
 
