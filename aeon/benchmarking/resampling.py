@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Utility functions for data resampling."""
 
 __maintainer__ = ["TonyBagnall", "MatthewMiddlehurst"]
@@ -19,9 +20,12 @@ from sklearn.utils import check_random_state
 from aeon.utils.validation.labels import check_classification_y
 
 
-def resample_data(X_train: ArrayLike, y_train: ArrayLike,
-                  X_test: ArrayLike, y_test: ArrayLike,
-                  random_state: int | np.random.RandomState | np.random.Generator | None=None
+def resample_data(
+    X_train: ArrayLike,
+    y_train: ArrayLike,
+    X_test: ArrayLike,
+    y_test: ArrayLike,
+    random_state: int | np.random.RandomState | np.random.Generator | None = None,
 ) -> tuple[ArrayLike, np.ndarray, ArrayLike, np.ndarray]:
     """Resample data without replacement using a random state.
 
@@ -86,9 +90,10 @@ def resample_data(X_train: ArrayLike, y_train: ArrayLike,
     return X_train, y_train, X_test, y_test
 
 
-def resample_data_indices(y_train: np.ndarray,
-                          y_test: np.ndarray,
-                          random_state: int | np.random.RandomState | np.random.Generator | None=None
+def resample_data_indices(
+    y_train: np.ndarray,
+    y_test: np.ndarray,
+    random_state: int | np.random.RandomState | np.random.Generator | None = None,
 ) -> tuple[np.ndarray, np.ndarray]:
     """Return data resample indices without replacement using a random state.
 
@@ -127,11 +132,12 @@ def resample_data_indices(y_train: np.ndarray,
     return train_indices, test_indices
 
 
-def stratified_resample_data(X_train: ArrayLike,
-                             y_train: ArrayLike,
-                             X_test: ArrayLike,
-                             y_test: ArrayLike,
-                             random_state: int | np.random.RandomState | np.random.Generator | None=None
+def stratified_resample_data(
+    X_train: ArrayLike,
+    y_train: ArrayLike,
+    X_test: ArrayLike,
+    y_test: ArrayLike,
+    random_state: int | np.random.RandomState | np.random.Generator | None = None,
 ) -> tuple[ArrayLike, np.ndarray, ArrayLike, np.ndarray]:
     """Stratified resample data without replacement using a random state.
 
@@ -198,8 +204,10 @@ def stratified_resample_data(X_train: ArrayLike,
     return X_train, y_train, X_test, y_test
 
 
-def stratified_resample_data_indices(y_train: ArrayLike, y_test: ArrayLike,
-                                     random_state: int | np.random.RandomState | np.random.Generator | None=None
+def stratified_resample_data_indices(
+    y_train: ArrayLike,
+    y_test: ArrayLike,
+    random_state: int | np.random.RandomState | np.random.Generator | None = None,
 ) -> tuple[np.ndarray, np.ndarray]:
     """Return stratified data resample indices without replacement using a random state.
 

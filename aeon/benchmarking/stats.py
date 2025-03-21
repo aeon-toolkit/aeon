@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Functions to compute stats and get p-values."""
 
 __maintainer__ = []
@@ -10,7 +11,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from typing import Any
     from numpy.typing import ArrayLike
-    
+
 import numpy as np
 from scipy.stats import distributions, find_repeats, wilcoxon
 

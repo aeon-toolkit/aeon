@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 """Functions to load published results."""
 
 __maintainer__ = ["TonyBagnall", "MatthewMiddlehurst"]
@@ -19,9 +20,7 @@ from aeon.datasets.tsc_datasets import (
 
 
 def load_classification_bake_off_2017_results(
-    num_resamples: int | None=100, 
-    as_array: bool=False, 
-    ignore_nan: bool=False
+    num_resamples: int | None = 100, as_array: bool = False, ignore_nan: bool = False
 ) -> dict[str, dict[str, float]] | tuple[np.ndarray, list[str], list[str]]:
     """Fetch all the results of the 2017 univariate TSC bake off.
 
@@ -128,8 +127,8 @@ def load_classification_bake_off_2017_results(
     return res
 
 
-def load_classification_bake_off_2021_results(num_resamples: int | None=30,
-                                              as_array: bool=False
+def load_classification_bake_off_2021_results(
+    num_resamples: int | None = 30, as_array: bool = False
 ) -> dict[str, dict[str, float]] | tuple[np.ndarray, list[str], list[str]]:
     """Pull down all the results of the 2021 multivariate bake off.
 
@@ -216,8 +215,8 @@ def load_classification_bake_off_2021_results(num_resamples: int | None=30,
     return res
 
 
-def load_classification_bake_off_2023_results(num_resamples: int | None=30,
-                                              as_array: bool=False
+def load_classification_bake_off_2023_results(
+    num_resamples: int | None = 30, as_array: bool = False
 ) -> dict[str, dict[str, float]] | tuple[np.ndarray, list[str], list[str]]:
     """Pull down all the results of the 2023 univariate bake off.
 
