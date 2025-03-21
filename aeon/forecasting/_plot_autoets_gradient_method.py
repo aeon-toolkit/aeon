@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from statsforecast.utils import AirPassengers as ap
 from statsforecast.utils import AirPassengersDF
 
-from aeon.forecasting._autoets_algorithms import auto_ets
+from aeon.forecasting._autoets import auto_ets
 from aeon.forecasting._ets_fast import ETSForecaster
 
 plt.rcParams["figure.figsize"] = (12, 8)

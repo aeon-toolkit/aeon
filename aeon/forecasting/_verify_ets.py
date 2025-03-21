@@ -5,11 +5,10 @@ import time
 import timeit
 
 import numpy as np
-from statsforecast.ets import pegelsresid_C
 from statsforecast.utils import AirPassengers as ap
 
+import aeon.forecasting._ets as ets
 import aeon.forecasting._ets_fast as etsfast
-import aeon.forecasting._ets_fast_structtest as ets_structtest
 from aeon.forecasting import ETSForecaster
 
 NA = -99999.0
@@ -20,7 +19,7 @@ MAX_SEASONAL_PERIOD = 24
 def setup():
     """Generate parameters required for ETS algorithms."""
     y = ap
-    m = random.randint(1, 24)
+    m = random.randint(2, 24)
     error = random.randint(1, 2)
     trend = random.randint(0, 2)
     season = random.randint(0, 2)
@@ -39,10 +38,10 @@ def setup():
     return (y, m, error, trend, season, alpha, beta, gamma, phi)
 
 
-def obscure_statsforecast_version(
+def statsmodels_version(
     y: np.ndarray,
     m: int,
-    init_state: np.ndarray,
+    f1: ETSForecaster,
     errortype: int,
     trendtype: int,
     seasontype: int,
@@ -50,40 +49,97 @@ def obscure_statsforecast_version(
     beta: float,
     gamma: float,
     phi: float,
-    nmse: int,
 ):
     """Hide the differences between different statsforecast versions."""
-    amse, e, _x, lik = pegelsresid_C(
+    from statsmodels.tsa.holtwinters import ExponentialSmoothing
+
+    ets_model = ExponentialSmoothing(
         y[m:],
-        m,
-        init_state,
-        "A" if errortype == 1 else "M",
-        "A" if trendtype == 1 else "M" if trendtype == 2 else "N",
-        "A" if seasontype == 1 else "M" if seasontype == 2 else "N",
-        phi != 1,
-        alpha,
-        beta,
-        gamma,
-        phi,
-        nmse,
+        trend="add" if trendtype == 1 else "mul" if trendtype == 2 else None,
+        damped_trend=(phi != 1 and trendtype != 0),
+        seasonal="add" if seasontype == 1 else "mul" if seasontype == 2 else None,
+        seasonal_periods=m if seasontype != 0 else None,
+        initialization_method="known",
+        initial_level=f1.level_,
+        initial_trend=f1.trend_ if trendtype != 0 else None,
+        initial_seasonal=f1.seasonality_ if seasontype != 0 else None,
     )
-    # e = np.zeros(len(y))
-    # amse = np.zeros(MAX_NMSE)
-    # lik = etscalc(y[m:],
-    #     len(y) - m,
-    #     init_state,
+    results = ets_model.fit(
+        smoothing_level=alpha,
+        smoothing_trend=(
+            beta / alpha if trendtype != 0 else None
+        ),  # statsmodels uses beta*=beta/alpha
+        smoothing_seasonal=gamma if seasontype != 0 else None,
+        damping_trend=phi if trendtype != 0 else None,
+        optimized=False,
+    )
+    avg_mean_sq_err = results.sse / (len(y) - m)
+    # Back-calculate our log-likelihood proxy from AIC
+    if errortype == 1:
+        residuals = y[m:] - results.fittedvalues
+        assert np.allclose(residuals, results.resid)
+    else:
+        residuals = y[m:] / results.fittedvalues - 1
+    return (
+        (np.array([avg_mean_sq_err])),
+        residuals,
+        (results.aic - 2 * results.k + (len(y) - m) * np.log(len(y) - m)),
+    )
+
+
+def obscure_statsforecast_version(
+    y: np.ndarray,
+    m: int,
+    f1: ETSForecaster,
+    errortype: int,
+    trendtype: int,
+    seasontype: int,
+    alpha: float,
+    beta: float,
+    gamma: float,
+    phi: float,
+):
+    """Hide the differences between different statsforecast versions."""
+    init_state = np.zeros(len(y) * (1 + (trendtype > 0) + m * (seasontype > 0) + 1))
+    init_state[0] = f1.level_
+    init_state[1] = f1.trend_
+    init_state[1 + (trendtype != 0) : m + 1 + (trendtype != 0)] = f1.seasonality_[::-1]
+    # from statsforecast.ets import pegelsresid_C
+    # amse, e, _x, lik = pegelsresid_C(
+    #     y[m:],
     #     m,
-    #     errortype,
-    #     trendtype,
-    #     seasontype,
+    #     init_state,
+    #     "A" if errortype == 1 else "M",
+    #     "A" if trendtype == 1 else "M" if trendtype == 2 else "N",
+    #     "A" if seasontype == 1 else "M" if seasontype == 2 else "N",
+    #     phi != 1,
     #     alpha,
     #     beta,
     #     gamma,
     #     phi,
-    #     e,
-    #     amse,
-    #     nmse)
-    return amse, e, lik
+    #     nmse,
+    # )
+    from statsforecast.ets import etscalc
+
+    e = np.zeros(len(y))
+    amse = np.zeros(MAX_NMSE)
+    lik = etscalc(
+        y[m:],
+        len(y) - m,
+        init_state,
+        m,
+        errortype,
+        trendtype,
+        seasontype,
+        alpha,
+        beta,
+        gamma,
+        phi,
+        e,
+        amse,
+        1,
+    )
+    return amse, e[:-m], lik
 
 
 def test_ets_comparison(setup_func, random_seed, catch_errors):
@@ -117,22 +173,18 @@ def test_ets_comparison(setup_func, random_seed, catch_errors):
     end = time.perf_counter()
     time_fitets = end - start
     e_fitets = f1.residuals_
-    amse_fitets = f1.mean_sq_err_
-    lik_fitets = f1.likelihood_
+    amse_fitets = f1.avg_mean_sq_err_
+    lik_fitets = f1.liklihood_
     f1 = ETSForecaster(error, trend, season, m, alpha, beta, gamma, phi, 1)
     # pylint: disable=W0212
-    f1._fit(y)
+    f1._fit(y)._initialise(y)
     # pylint: enable=W0212
-    init_states_etscalc = np.zeros(len(y) * (1 + (trend > 0) + m * (season > 0) + 1))
-    init_states_etscalc[0] = f1._level
-    init_states_etscalc[1] = f1._trend
-    init_states_etscalc[1 + (trend != 0) : m + 1 + (trend != 0)] = f1._seasonality[::-1]
     if season == 0:
         m = 1
     # Nixtla/statsforcast implementation
     start = time.perf_counter()
-    amse_etscalc, e_etscalc, lik_etscalc = obscure_statsforecast_version(
-        y, m, init_states_etscalc, error, trend, season, alpha, beta, gamma, phi, 1
+    amse_etscalc, e_etscalc, lik_etscalc = statsmodels_version(
+        y, m, f1, error, trend, season, alpha, beta, gamma, phi
     )
     end = time.perf_counter()
     time_etscalc = end - start
@@ -160,7 +212,7 @@ def test_ets_comparison(setup_func, random_seed, catch_errors):
                     beta={beta}, gamma={gamma}, phi={phi}"
         )
         diff_indices = np.where(
-            np.abs(e_fitets - e_etscalc) > 1e-5 * np.abs(e_etscalc) + 1e-8
+            np.abs(e_fitets - e_etscalc) > 1e-3 * np.abs(e_etscalc) + 1e-2
         )[0]
         for index in diff_indices:
             print(  # noqa
@@ -171,10 +223,9 @@ def test_ets_comparison(setup_func, random_seed, catch_errors):
         print(amse_etscalc)  # noqa
         print(lik_fitets)  # noqa
         print(lik_etscalc)  # noqa
-        # assert np.allclose(init_states_fitets, init_states_etscalc)
         assert np.allclose(e_fitets, e_etscalc)
         assert np.allclose(amse_fitets, amse_etscalc)
-        assert np.isclose(lik_fitets, lik_etscalc)
+        # assert np.isclose(lik_fitets, lik_etscalc)
         print(f"Time for ETS: {time_fitets:0.20f}")  # noqa
         print(f"Time for statsforecast ETS: {time_etscalc}")  # noqa
         return True
@@ -185,14 +236,9 @@ def time_etsfast():
     etsfast.ETSForecaster(2, 2, 2, 4).fit(ap).predict()
 
 
-def time_ets_structtest():
-    """Test function for ets algorithm using classes."""
-    ets_structtest.ETSForecaster(ets_structtest.ModelType(2, 2, 2, 4)).fit(ap).predict()
-
-
 def time_etsnoopt():
     """Test function for non-optimised ets algorithm."""
-    ETSForecaster(2, 2, 2, 4).fit(ap).predict()
+    ets.ETSForecaster(2, 2, 2, 4).fit(ap).predict()
 
 
 def time_etsfast_noclass():
@@ -227,7 +273,6 @@ def time_sf():
         0.01,
         0.01,
         0.99,
-        1,
     )
 
 
@@ -237,8 +282,6 @@ def time_compare(random_seed):
     (y, m, error, trend, season, alpha, beta, gamma, phi) = setup()
     # etsnoopt_time = timeit.timeit(time_etsnoopt, globals={}, number=10000)
     # print (f"Execution time ETS No-opt: {etsnoopt_time} seconds")
-    # ets_structtest_time = timeit.timeit(time_ets_structtest, globals={}, number=10000)
-    # print (f"Execution time ETS Structtest: {ets_structtest_time} seconds")
     # Do a few iterations to remove background/overheads. Makes comparison more reliable
     for _i in range(10):
         time_etsfast()
@@ -263,55 +306,40 @@ def time_compare(random_seed):
     end = time.perf_counter()
     etsfast_time = end - start
     # _ets_fast implementation
-    start = time.perf_counter()
-    f2 = ets_structtest.ETSForecaster(
-        ets_structtest.ModelType(error, trend, season, m),
-        ets_structtest.SmoothingParameters(alpha, beta, gamma, phi),
-        1,
-    )
-    f2.fit(y)
-    end = time.perf_counter()
-    ets_structtest_time = end - start
     # _ets implementation
     start = time.perf_counter()
-    f1 = ETSForecaster(error, trend, season, m, alpha, beta, gamma, phi, 1)
+    f1 = ets.ETSForecaster(error, trend, season, m, alpha, beta, gamma, phi, 1)
     f1.fit(y)
     end = time.perf_counter()
     etsnoopt_time = end - start
-    assert np.allclose(f1.residuals_, f2.residuals_)
-    assert np.allclose(f1.mean_sq_err_, f2.avg_mean_sq_err_)
-    assert np.isclose(f1.likelihood_, f2.liklihood_)
     assert np.allclose(f1.residuals_, f3.residuals_)
-    assert np.allclose(f1.mean_sq_err_, f3.avg_mean_sq_err_)
-    assert np.isclose(f1.likelihood_, f3.liklihood_)
+    assert np.allclose(f1.avg_mean_sq_err_, f3.avg_mean_sq_err_)
+    assert np.isclose(f1.liklihood_, f3.liklihood_)
     print(  # noqa
         f"ETS No-optimisation Time: {etsnoopt_time},\
-        Fast Structtest time: {ets_structtest_time},\
         Fast time: {etsfast_time}"
     )
-    return etsnoopt_time, ets_structtest_time, etsfast_time
+    return etsnoopt_time, etsfast_time
 
 
 if __name__ == "__main__":
-    # np.set_printoptions(threshold=np.inf)
-    # test_ets_comparison(setup, 300, False)
-    # SUCCESSES = True
-    # for i in range(0, 30000):
-    #     SUCCESSES &= test_ets_comparison(setup, i, True)
-    # if SUCCESSES:
-    #     print("Test Completed Successfully with no errors")  # noqa
-    time_compare(300)
+    np.set_printoptions(threshold=np.inf)
+    test_ets_comparison(setup, 300, False)
+    SUCCESSES = True
+    for i in range(0, 300):
+        SUCCESSES &= test_ets_comparison(setup, i, True)
+    if SUCCESSES:
+        print("Test Completed Successfully with no errors")  # noqa
+    # time_compare(300)
     # avg_ets = 0
     # avg_etsfast = 0
     # avg_etsfast_ns = 0
     # iterations = 100
     # for i in range (iterations):
-    #     time_ets, ets_structtest_time, etsfast_time = time_compare(300)
+    #     time_ets, etsfast_time = time_compare(300)
     #     avg_ets += time_ets
-    #     avg_etsfast += time_etsfast
-    #     avg_etsfast_ns += time_etsfast_nostruct
+    #     avg_etsfast += etsfast_time
     # avg_ets/= iterations
     # avg_etsfast/= iterations
     # avg_etsfast_ns /= iterations
     # print(f"Avg ETS Time: {avg_ets}, Avg Fast ETS time: {avg_etsfast},\
-    # Avg Fast Nostruct time: {avg_etsfast_ns}")

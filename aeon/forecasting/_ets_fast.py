@@ -46,14 +46,32 @@ class ETSForecaster(BaseForecaster):
         Trend damping smoothing parameters
     horizon : int, default = 1
         The horizon to forecast to.
-    model_type : ModelType, default = ModelType()
-        A object of type ModelType, describing the error,
-        trend and seasonality type of this ETS model.
+    error_type : int
+        The type of error model; either Additive(1) or Multiplicative(2)
+    trend_type : int
+        The type of trend model; one of None(0), additive(1) or multiplicative(2).
+    seasonality_type : int
+        The type of seasonality model; one of None(0), additive(1) or multiplicative(2).
+    seasonal_period : int
+        The period of the seasonality (m) (e.g., for quaterly data seasonal_period = 4).
 
     References
     ----------
     .. [1] R. J. Hyndman and G. Athanasopoulos,
         Forecasting: Principles and Practice. Melbourne, Australia: OTexts, 2014.
+
+    Examples
+    --------
+    >>> from aeon.forecasting import ETSForecaster
+    >>> from aeon.datasets import load_airline
+    >>> y = load_airline()
+    >>> forecaster = ETSForecaster(alpha=0.4, beta=0.2, gamma=0.5, phi=0.8, horizon=1,
+        error_type=1, trend_type=2, seasonality_type=2, seasonal_period=4)
+    >>> forecaster.fit(y)
+    ETSForecaster(alpha=0.4, beta=0.2, gamma=0.5, phi=0.8, seasonal_period=4,
+                  seasonality_type=2, trend_type=2)
+    >>> forecaster.predict()
+    366.90200486015596
     """
 
     def __init__(
@@ -68,30 +86,28 @@ class ETSForecaster(BaseForecaster):
         phi=0.99,
         horizon=1,
     ):
-        assert error_type != NONE, "Error must be either additive or multiplicative"
-        if seasonal_period < 1 or seasonality_type == NONE:
-            seasonal_period = 1
         self.alpha = alpha
         self.beta = beta
         self.gamma = gamma
         self.phi = phi
-        if trend_type == NONE:
-            self.beta = 0
-        if seasonality_type == NONE:
-            self.gamma = 0
         self.forecast_val_ = 0.0
-        self.level = 0
-        self.trend = 0
-        self.seasonality = np.zeros(1, dtype=np.float64)
-        self.n_timepoints = 0
-        self.avg_mean_sq_err_ = 0
-        self.liklihood_ = 0
-        self.residuals_ = []
-        self.fitted_values_ = []
+        self.level_ = 0.0
+        self.trend_ = 0.0
+        self.seasonality_ = None
+        self._beta = beta
+        self._gamma = gamma
         self.error_type = error_type
         self.trend_type = trend_type
         self.seasonality_type = seasonality_type
         self.seasonal_period = seasonal_period
+        self._seasonal_period = seasonal_period
+        self.n_timepoints_ = 0
+        self.avg_mean_sq_err_ = 0
+        self.liklihood_ = 0
+        self.k_ = 0
+        self.aic_ = 0
+        self.residuals_ = []
+        self.fitted_values_ = []
         super().__init__(horizon=horizon, axis=1)
 
     def _fit(self, y, exog=None):
@@ -109,26 +125,41 @@ class ETSForecaster(BaseForecaster):
         Returns
         -------
         self
-            Fitted BaseForecaster.
+            Fitted ETSForecaster.
         """
-        data = np.array(y.squeeze(), dtype=np.float64)
+        assert (
+            self.error_type != NONE
+        ), "Error must be either additive or multiplicative"
+        if self._seasonal_period < 1 or self.seasonality_type == NONE:
+            self._seasonal_period = 1
+
+        if self.trend_type == NONE:
+            # Required for the equations in _update_states to work correctly
+            self._beta = 0
+        if self.seasonality_type == NONE:
+            # Required for the equations in _update_states to work correctly
+            self._gamma = 0
+        data = y.squeeze()
         (
-            self.level,
-            self.trend,
-            self.seasonality,
+            self.level_,
+            self.trend_,
+            self.seasonality_,
+            self.n_timepoints_,
             self.residuals_,
             self.fitted_values_,
             self.avg_mean_sq_err_,
             self.liklihood_,
+            self.k_,
+            self.aic_,
         ) = _fit(
             data,
             self.error_type,
             self.trend_type,
             self.seasonality_type,
-            self.seasonal_period,
+            self._seasonal_period,
             self.alpha,
-            self.beta,
-            self.gamma,
+            self._beta,
+            self._gamma,
             self.phi,
         )
         return self
@@ -150,18 +181,30 @@ class ETSForecaster(BaseForecaster):
         float
             single prediction self.horizon steps ahead of y.
         """
-        y = np.array(y, dtype=np.float64)
-
         return _predict(
             self.trend_type,
             self.seasonality_type,
-            self.level,
-            self.trend,
-            self.seasonality,
+            self.level_,
+            self.trend_,
+            self.seasonality_,
             self.phi,
             self.horizon,
-            self.n_timepoints,
-            self.seasonal_period,
+            self.n_timepoints_,
+            self._seasonal_period,
+        )
+
+    def _initialise(self, data):
+        """
+        Initialize level, trend, and seasonality values for the ETS model.
+
+        Parameters
+        ----------
+        data : array-like
+            The time series data
+            (should contain at least two full seasons if seasonality is specified)
+        """
+        self.level_, self.trend_, self.seasonality_ = _initialise(
+            self.trend_type, self.seasonality_type, self._seasonal_period, data
         )
 
 
@@ -177,15 +220,21 @@ def _fit(
     gamma,
     phi,
 ):
-    if seasonality_type == NONE:
+    assert error_type != NONE, "Error must be either additive or multiplicative"
+    if seasonal_period < 1 or seasonality_type == NONE:
         seasonal_period = 1
-    n_timepoints = len(data)
+    if trend_type == NONE:
+        # Required for the equations in _update_states to work correctly
+        beta = 0
+    if seasonality_type == NONE:
+        # Required for the equations in _update_states to work correctly
+        gamma = 0
+    n_timepoints = len(data) - seasonal_period
     level, trend, seasonality = _initialise(
         trend_type, seasonality_type, seasonal_period, data
     )
     avg_mean_sq_err_ = 0
     liklihood_ = 0
-    mul_liklihood_pt2 = 0
     residuals_ = np.zeros(n_timepoints)  # 1 Less residual than data points
     fitted_values_ = np.zeros(n_timepoints)
     for t, data_item in enumerate(data[seasonal_period:]):
@@ -205,26 +254,37 @@ def _fit(
                 phi,
             )
         )
-        residuals_[t + seasonal_period] = error
-        fitted_values_[t + seasonal_period] = fitted_value
+        residuals_[t] = error
+        fitted_values_[t] = fitted_value
         avg_mean_sq_err_ += (data_item - fitted_value) ** 2
-        liklihood_ += error * error
-        mul_liklihood_pt2 += np.log(np.fabs(fitted_value))
-    avg_mean_sq_err_ /= n_timepoints - seasonal_period
-    liklihood_ = (n_timepoints - seasonal_period) * np.log(liklihood_)
-    if error_type == MULTIPLICATIVE:
-        liklihood_ += 2 * mul_liklihood_pt2
+        liklihood_error = error
+        if error_type == MULTIPLICATIVE:
+            liklihood_error *= fitted_value
+        liklihood_ += liklihood_error**2
+    avg_mean_sq_err_ /= n_timepoints
+    liklihood_ = n_timepoints * np.log(liklihood_)
+    k_ = (
+        seasonal_period * (seasonality_type != 0)
+        + 2 * (trend_type != 0)
+        + 2
+        + 1 * (phi != 1)
+    )
+    aic_ = liklihood_ + 2 * k_ - n_timepoints * np.log(n_timepoints)
     return (
         level,
         trend,
         seasonality,
+        n_timepoints,
         residuals_,
         fitted_values_,
         avg_mean_sq_err_,
         liklihood_,
+        k_,
+        aic_,
     )
 
 
+@njit(nogil=NOGIL, cache=CACHE)
 def _predict(
     trend_type,
     seasonality_type,
@@ -291,7 +351,7 @@ def _initialise(trend_type, seasonality_type, seasonal_period, data):
         seasonality = data[:seasonal_period] / level
     else:
         # No seasonality
-        seasonality = np.zeros(1)
+        seasonality = np.zeros(1, dtype=np.float64)
     return level, trend, seasonality
 
 

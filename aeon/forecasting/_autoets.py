@@ -10,9 +10,152 @@ import numpy as np
 from numba import njit
 from scipy.optimize import minimize
 
+from aeon.forecasting import BaseForecaster
 from aeon.forecasting._autoets_gradient_params import _calc_model_liklihood
-from aeon.forecasting._ets_fast import _fit
+from aeon.forecasting._ets_fast import _fit, _predict
 from aeon.forecasting._utils import calc_seasonal_period
+
+NOGIL = False
+CACHE = True
+
+
+class AutoETSForecaster(BaseForecaster):
+    """Automatic Exponential Smoothing forecaster.
+
+    An implementation of the exponential smoothing statistics forecasting algorithm.
+    Chooses betweek additive and multiplicative error models,
+    None, additive and multiplicative (including damped) trend and
+    None, additive and mutliplicative seasonality[1]_.
+
+    Parameters
+    ----------
+    horizon : int, default = 1
+        The horizon to forecast to.
+
+    References
+    ----------
+    .. [1] R. J. Hyndman and G. Athanasopoulos,
+        Forecasting: Principles and Practice. Melbourne, Australia: OTexts, 2014.
+
+    Examples
+    --------
+    >>> from aeon.forecasting import AutoETSForecaster
+    >>> from aeon.datasets import load_airline
+    >>> y = load_airline()
+    >>> forecaster = AutoETSForecaster()
+    >>> forecaster.fit(y)
+    AutoETSForecaster()
+    >>> forecaster.predict()
+    366.90200486015596
+    """
+
+    def __init__(
+        self,
+        method="internal_nelder_mead",
+        horizon=1,
+    ):
+        self.method = method
+        self.forecast_val_ = 0.0
+        self.level_ = 0.0
+        self.trend_ = 0.0
+        self.seasonality_ = None
+        self.alpha_ = 0
+        self.beta_ = 0
+        self.gamma_ = 0
+        self.phi_ = 0
+        self.error_type_ = 0
+        self.trend_type_ = 0
+        self.seasonality_type_ = 0
+        self.seasonal_period_ = 0
+        self.n_timepoints_ = 0
+        self.avg_mean_sq_err_ = 0
+        self.liklihood_ = 0
+        self.k_ = 0
+        self.aic_ = 0
+        self.residuals_ = []
+        self.fitted_values_ = []
+        super().__init__(horizon=horizon, axis=1)
+
+    def _fit(self, y, exog=None):
+        """Fit Auto Exponential Smoothing forecaster to series y.
+
+        Fit a forecaster to predict self.horizon steps ahead using y.
+
+        Parameters
+        ----------
+        y : np.ndarray
+            A time series on which to learn a forecaster to predict horizon ahead
+        exog : np.ndarray, default =None
+            Optional exogenous time series data assumed to be aligned with y
+
+        Returns
+        -------
+        self
+            Fitted AutoETSForecaster.
+        """
+        data = y.squeeze()
+        (
+            self.error_type_,
+            self.trend_type_,
+            self.seasonality_type_,
+            self.seasonal_period_,
+            self.alpha_,
+            self.beta_,
+            self.gamma_,
+            self.phi_,
+        ) = auto_ets(data, self.method)
+        (
+            self.level_,
+            self.trend_,
+            self.seasonality_,
+            self.n_timepoints_,
+            self.residuals_,
+            self.fitted_values_,
+            self.avg_mean_sq_err_,
+            self.liklihood_,
+            self.k_,
+            self.aic_,
+        ) = _fit(
+            y,
+            self.error_type_,
+            self.trend_type_,
+            self.seasonality_type_,
+            self.seasonal_period_,
+            self.alpha_,
+            self.beta_,
+            self.gamma_,
+            self.phi_,
+        )
+        return self
+
+    def _predict(self, y=None, exog=None):
+        """
+        Predict the next horizon steps ahead.
+
+        Parameters
+        ----------
+        y : np.ndarray, default = None
+            A time series to predict the next horizon value for. If None,
+            predict the next horizon value after series seen in fit.
+        exog : np.ndarray, default =None
+            Optional exogenous time series data assumed to be aligned with y
+
+        Returns
+        -------
+        float
+            single prediction self.horizon steps ahead of y.
+        """
+        return _predict(
+            self.trend_type_,
+            self.seasonality_type_,
+            self.level_,
+            self.trend_,
+            self.seasonality_,
+            self.phi_,
+            self.horizon,
+            self.n_timepoints_,
+            self.seasonal_period_,
+        )
 
 
 def auto_ets(data, method="internal_nelder_mead"):
@@ -92,7 +235,7 @@ def auto_ets_gradient(data):
     return best_model
 
 
-@njit(cache=True)
+@njit(nogil=NOGIL, cache=CACHE)
 def auto_ets_nelder_mead(data):
     """Calculate model parameters based on the internal nelder-mead implementation."""
     seasonal_period = calc_seasonal_period(data)
@@ -101,16 +244,11 @@ def auto_ets_nelder_mead(data):
     for error_type in range(1, 3):
         for trend_type in range(0, 3):
             for seasonality_type in range(0, 3 * (seasonal_period != 1)):
-                ([alpha, beta, gamma, phi], liklihood_) = nelder_mead(
+                ([alpha, beta, gamma, phi], aic) = nelder_mead(
                     data, error_type, trend_type, seasonality_type, seasonal_period
                 )
                 if trend_type == 0:
                     phi = 1
-                aic = liklihood_ + 2
-                if trend_type != 0:
-                    aic += 2
-                if seasonality_type != 0:
-                    aic += 1 + seasonal_period
                 if lowest_aic == -1 or lowest_aic > aic:
                     lowest_aic = aic
                     best_model = (
@@ -132,17 +270,22 @@ def optimise_params_scipy(
     """Optimise the ETS model parameters using the scipy algorithms."""
 
     def run_ets_scipy(parameters):
-        alpha, beta, gamma = parameters
-        if not (0 <= alpha <= 1 and 0 <= beta <= 1 and 0 <= gamma <= 1):
+        alpha, beta, gamma, phi = parameters
+        if not (
+            0 <= alpha <= 1 and 0 <= beta <= 1 and 0 <= gamma <= 1 and 0 <= phi <= 1
+        ):
             return float("inf")
         (
             _level,
             _trend,
             _seasonality,
+            _n_timepoints,
             _residuals,
             _fitted_values,
             _avg_mean_sq_err,
-            liklihood_,
+            _liklihood,
+            _k,
+            aic_,
         ) = _fit(
             data,
             error_type,
@@ -152,17 +295,17 @@ def optimise_params_scipy(
             alpha,
             beta,
             gamma,
-            0.98,
+            phi,
         )
-        return liklihood_
+        return aic_
 
-    initial_points = [0.5, 0.5, 0.5]
+    initial_points = [0.5, 0.5, 0.5, 0.5]
     return minimize(
         run_ets_scipy, initial_points, bounds=[[0, 1] for i in range(3)], method=method
     )
 
 
-@njit(cache=True)
+@njit(nogil=NOGIL, cache=CACHE)
 def run_ets(
     parameters, data, error_type, trend_type, seasonality_type, seasonal_period
 ):
@@ -174,10 +317,13 @@ def run_ets(
         _level,
         _trend,
         _seasonality,
+        _n_timepoints,
         _residuals,
         _fitted_values,
         _avg_mean_sq_err,
-        liklihood_,
+        _liklihood,
+        _k,
+        aic_,
     ) = _fit(
         data,
         error_type,
@@ -189,10 +335,10 @@ def run_ets(
         gamma,
         phi,
     )
-    return liklihood_
+    return aic_
 
 
-@njit(cache=True)
+@njit(nogil=NOGIL, cache=CACHE)
 def nelder_mead(
     data,
     error_type,

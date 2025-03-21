@@ -7,7 +7,7 @@ import timeit
 
 from statsforecast.utils import AirPassengers as ap
 
-from aeon.forecasting._autoets_algorithms import nelder_mead, optimise_params_scipy
+from aeon.forecasting._autoets import nelder_mead, optimise_params_scipy
 
 
 def test_optimise_params():

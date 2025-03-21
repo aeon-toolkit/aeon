@@ -89,7 +89,7 @@ class ETSForecaster(BaseForecaster):
         self.forecast_val_ = 0.0
         self.level_ = 0.0
         self.trend_ = 0.0
-        self.season_ = None
+        self.seasonality_ = None
         self._beta = beta
         self._gamma = gamma
         self.error_type = error_type
@@ -100,6 +100,8 @@ class ETSForecaster(BaseForecaster):
         self.n_timepoints = 0
         self.avg_mean_sq_err_ = 0
         self.liklihood_ = 0
+        self.k_ = 0
+        self.aic_ = 0
         self.residuals_ = []
         super().__init__(horizon=horizon, axis=1)
 
@@ -136,12 +138,11 @@ class ETSForecaster(BaseForecaster):
         data = y.squeeze()
         self.n_timepoints = len(data)
         self._initialise(data)
+        num_vals = self.n_timepoints - self._seasonal_period
         self.avg_mean_sq_err_ = 0
         self.liklihood_ = 0
-        mul_liklihood_pt2 = 0
-        self.residuals_ = np.zeros(
-            self.n_timepoints
-        )  # 1 Less residual than data points
+        # 1 Less residual than data points
+        self.residuals_ = np.zeros(num_vals)
         for t, data_item in enumerate(data[self._seasonal_period :]):
             # Calculate level, trend, and seasonal components
             fitted_value, error = self._update_states(
@@ -149,14 +150,19 @@ class ETSForecaster(BaseForecaster):
             )
             self.residuals_[t] = error
             self.avg_mean_sq_err_ += (data_item - fitted_value) ** 2
-            self.liklihood_ += error * error
-            mul_liklihood_pt2 += np.log(np.fabs(fitted_value))
-        self.avg_mean_sq_err_ /= self.n_timepoints - self._seasonal_period
-        self.liklihood_ = (self.n_timepoints - self._seasonal_period) * np.log(
-            self.liklihood_
+            liklihood_error = error
+            if self.error_type == MULTIPLICATIVE:
+                liklihood_error *= fitted_value
+            self.liklihood_ += liklihood_error**2
+        self.avg_mean_sq_err_ /= num_vals
+        self.liklihood_ = num_vals * np.log(self.liklihood_)
+        self.k_ = (
+            self.seasonal_period * (self.seasonality_type != 0)
+            + 2 * (self.trend_type != 0)
+            + 2
+            + 1 * (self.phi != 1)
         )
-        if self.error_type == MULTIPLICATIVE:
-            self.liklihood_ += 2 * mul_liklihood_pt2
+        self.aic_ = self.liklihood_ + 2 * self.k_ - num_vals * np.log(num_vals)
         return self
 
     def _update_states(self, data_item, seasonal_index):
@@ -175,9 +181,9 @@ class ETSForecaster(BaseForecaster):
         # Retrieve the current state values
         level = self.level_
         trend = self.trend_
-        seasonality = self.season_[seasonal_index]
+        seasonality = self.seasonality_[seasonal_index]
         fitted_value, damped_trend, trend_level_combination = self._predict_value(
-            trend, level, seasonality, self.phi
+            level, trend, seasonality, self.phi
         )
         # Calculate the error term (observed value - fitted value)
         if self.error_type == MULTIPLICATIVE:
@@ -188,12 +194,12 @@ class ETSForecaster(BaseForecaster):
         if self.error_type == MULTIPLICATIVE:
             self.level_ = trend_level_combination * (1 + self.alpha * error)
             self.trend_ = damped_trend * (1 + self._beta * error)
-            self.season_[seasonal_index] = seasonality * (1 + self._gamma * error)
+            self.seasonality_[seasonal_index] = seasonality * (1 + self._gamma * error)
             if self.seasonality_type == ADDITIVE:
                 self.level_ += (
                     self.alpha * error * seasonality
                 )  # Add seasonality correction
-                self.season_[seasonal_index] += (
+                self.seasonality_[seasonal_index] += (
                     self._gamma * error * trend_level_combination
                 )
                 if self.trend_type == ADDITIVE:
@@ -217,7 +223,7 @@ class ETSForecaster(BaseForecaster):
                 trend_level_combination + self.alpha * error / level_correction
             )
             self.trend_ = damped_trend + self._beta * error / trend_correction
-            self.season_[seasonal_index] = (
+            self.seasonality_[seasonal_index] = (
                 seasonality + self._gamma * error / seasonality_correction
             )
         return (fitted_value, error)
@@ -254,14 +260,14 @@ class ETSForecaster(BaseForecaster):
         if self.seasonality_type == ADDITIVE:
             # Seasonal component is the difference
             # from the initial level for each point in the first season
-            self.season_ = data[: self._seasonal_period] - self.level_
+            self.seasonality_ = data[: self._seasonal_period] - self.level_
         elif self.seasonality_type == MULTIPLICATIVE:
             # Seasonal component is the ratio of each point in the first season
             # to the initial level
-            self.season_ = data[: self._seasonal_period] / self.level_
+            self.seasonality_ = data[: self._seasonal_period] / self.level_
         else:
             # No seasonality
-            self.season_ = [0]
+            self.seasonality_ = [0]
 
     def _predict(self, y=None, exog=None):
         """
@@ -286,15 +292,15 @@ class ETSForecaster(BaseForecaster):
         else:
             # Geometric series formula for calculating phi + phi^2 + ... + phi^h
             phi_h = self.phi * (1 - self.phi**self.horizon) / (1 - self.phi)
-        seasonality = self.season_[
+        seasonality = self.seasonality_[
             (self.n_timepoints + self.horizon) % self._seasonal_period
         ]
         fitted_value = self._predict_value(
-            self.trend_, self.level_, seasonality, phi_h
+            self.level_, self.trend_, seasonality, phi_h
         )[0]
         return fitted_value
 
-    def _predict_value(self, trend, level, seasonality, phi):
+    def _predict_value(self, level, trend, seasonality, phi):
         """
 
         Generate various useful values, including the next fitted value.
