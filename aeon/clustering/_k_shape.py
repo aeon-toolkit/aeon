@@ -143,15 +143,7 @@ class TimeSeriesKShape(BaseClusterer):
                 raise EmptyClusterError
 
     def _compute_inertia(self, distances, assignments, squared=True):
-        """Derive inertia from pre-computed distances and assignments.
-
-        Examples
-        --------
-        >>> dists = numpy.array([[1., 2., 0.5], [0., 3., 1.]])
-        >>> assign = numpy.array([2, 0])
-        >>> _compute_inertia(dists, assign)
-        0.125
-        """
+        """Derive inertia from pre-computed distances and assignments."""
         n_ts = distances.shape[0]
         if squared:
             return np.sum(distances[np.arange(n_ts), assignments] ** 2) / n_ts
