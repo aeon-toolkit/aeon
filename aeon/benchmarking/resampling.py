@@ -1,3 +1,4 @@
+from __future__ import annotations
 """Utility functions for data resampling."""
 
 __maintainer__ = ["TonyBagnall", "MatthewMiddlehurst"]
@@ -7,7 +8,6 @@ __all__ = [
     "stratified_resample_data",
     "stratified_resample_data_indices",
 ]
-from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:

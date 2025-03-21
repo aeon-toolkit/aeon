@@ -1,10 +1,10 @@
+from __future__ import annotations
 """Functions to compute stats and get p-values."""
 
 __maintainer__ = []
 __all__ = ["check_friedman", "nemenyi_test", "wilcoxon_test"]
 
 import warnings
-from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:

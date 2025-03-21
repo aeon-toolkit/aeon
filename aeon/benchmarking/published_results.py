@@ -1,3 +1,4 @@
+from __future__ import annotations
 """Functions to load published results."""
 
 __maintainer__ = ["TonyBagnall", "MatthewMiddlehurst"]
@@ -6,7 +7,6 @@ __all__ = [
     "load_classification_bake_off_2021_results",
     "load_classification_bake_off_2023_results",
 ]
-from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
