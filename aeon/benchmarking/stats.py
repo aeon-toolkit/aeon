@@ -4,8 +4,12 @@ __maintainer__ = []
 __all__ = ["check_friedman", "nemenyi_test", "wilcoxon_test"]
 
 import warnings
-from typing import Any, List, Optional
+from __future__ import annotations
+from typing import TYPE_CHECKING
 
+if TYPE_CHECKING:
+    from typing import Any, List
+    
 import numpy as np
 from numpy.typing import ArrayLike
 from scipy.stats import distributions, find_repeats, wilcoxon
