@@ -1,6 +1,5 @@
-from __future__ import annotations
-
 """Functions to compute stats and get p-values."""
+from __future__ import annotations
 
 __maintainer__ = []
 __all__ = ["check_friedman", "nemenyi_test", "wilcoxon_test"]
