@@ -46,11 +46,16 @@ jobs:
           extra_args: --all-files
 
   run-notebook-examples:
-    runs-on: ubuntu-24.04
+    runs-on: macos-14
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Install bash 5.x
+        run: |
+          brew install bash
+          /opt/homebrew/bin/bash --version
 
       - name: Setup Python 3.10
         uses: actions/setup-python@v5
@@ -68,6 +73,9 @@ jobs:
       - uses: ./.github/actions/cpu_all_extras
         with:
           additional_extras: "dev,binder"
+
+      - name: Install esig on macOS
+        run: brew install boost && pip install "esig>=0.9.7,<1.0.0"
 
       - name: Run example notebooks
         run: .github/utilities/run_examples.sh false
