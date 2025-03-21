@@ -27,7 +27,7 @@ yourself to an issue for such algorithms.
 
 When using code from another package or writing code inspired from another implementation,
 please mention this in your PR. At the very least credit must be given where
-applicable. IF the package has a different license, using the code as is may not be
+applicable. If the package has a different license, using the code as is may not be
 acceptable. Using others code without credit will like result in your PR being closed.
 
 In the following we will give a brief overview of how to contribute to `aeon`. Making
