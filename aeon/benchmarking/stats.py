@@ -10,7 +10,6 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from typing import Any
-    from numpy.typing import ArrayLike
 
 import numpy as np
 from scipy.stats import distributions, find_repeats, wilcoxon
