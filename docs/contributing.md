@@ -25,8 +25,8 @@ contributor is unable to, but this is a time-consuming process and may delay the
 merging of the PR significantly. Please be aware of this when assigning
 yourself to an issue for such algorithms.
 
-When using code from another package or writing code inspired from another implementation, 
-please mention this in your PR. At the very least credit must be given where 
+When using code from another package or writing code inspired from another implementation,
+please mention this in your PR. At the very least credit must be given where
 applicable. IF the package has a different license, using the code as is may not be
 acceptable. Using others code without credit will like result in your PR being closed.
 
