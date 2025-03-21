@@ -181,7 +181,7 @@ class ETSForecaster(BaseForecaster):
         float
             single prediction self.horizon steps ahead of y.
         """
-        return _predict(
+        fitted_value = _predict(
             self.trend_type,
             self.seasonality_type,
             self.level_,
@@ -192,6 +192,10 @@ class ETSForecaster(BaseForecaster):
             self.n_timepoints_,
             self._seasonal_period,
         )
+        if y is None:
+            return np.array([fitted_value])
+        else:
+            return np.insert(y, 0, fitted_value)[:-1]
 
     def _initialise(self, data):
         """
@@ -298,7 +302,7 @@ def _predict(
 ):
     # Generate forecasts based on the final values of level, trend, and seasonals
     if phi == 1:  # No damping case
-        phi_h = float(horizon)
+        phi_h = 1
     else:
         # Geometric series formula for calculating phi + phi^2 + ... + phi^h
         phi_h = phi * (1 - phi**horizon) / (1 - phi)

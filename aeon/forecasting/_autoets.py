@@ -5,15 +5,15 @@ Extends the ETSForecaster to automatically calculate the smoothing parameters
 """
 
 __maintainer__ = []
-# __all__ = ["AutoETSForecaster"]
+__all__ = ["AutoETSForecaster"]
 import numpy as np
 from numba import njit
 from scipy.optimize import minimize
 
-from aeon.forecasting import BaseForecaster
 from aeon.forecasting._autoets_gradient_params import _calc_model_liklihood
 from aeon.forecasting._ets_fast import _fit, _predict
 from aeon.forecasting._utils import calc_seasonal_period
+from aeon.forecasting.base import BaseForecaster
 
 NOGIL = False
 CACHE = True
@@ -116,7 +116,7 @@ class AutoETSForecaster(BaseForecaster):
             self.k_,
             self.aic_,
         ) = _fit(
-            y,
+            data,
             self.error_type_,
             self.trend_type_,
             self.seasonality_type_,
@@ -145,7 +145,7 @@ class AutoETSForecaster(BaseForecaster):
         float
             single prediction self.horizon steps ahead of y.
         """
-        return _predict(
+        fitted_value = _predict(
             self.trend_type_,
             self.seasonality_type_,
             self.level_,
@@ -156,6 +156,10 @@ class AutoETSForecaster(BaseForecaster):
             self.n_timepoints_,
             self.seasonal_period_,
         )
+        if y is None:
+            return np.array([fitted_value])
+        else:
+            return np.insert(y, 0, fitted_value)[:-1]
 
 
 def auto_ets(data, method="internal_nelder_mead"):
@@ -175,7 +179,7 @@ def auto_ets_scipy(data, method):
     best_model = None
     for error_type in range(1, 3):
         for trend_type in range(0, 3):
-            for seasonality_type in range(0, 3 * (seasonal_period != 1)):
+            for seasonality_type in range(0, 2 * (seasonal_period != 1) + 1):
                 optimise_result = optimise_params_scipy(
                     data,
                     error_type,
@@ -214,7 +218,7 @@ def auto_ets_gradient(data):
     best_model = None
     for error_type in range(1, 3):
         for trend_type in range(0, 3):
-            for seasonality_type in range(0, 3 * (seasonal_period != 1)):
+            for seasonality_type in range(0, 2 * (seasonal_period != 1) + 1):
                 (alpha, beta, gamma, phi, _residuals, liklihood_) = (
                     _calc_model_liklihood(
                         data, error_type, trend_type, seasonality_type, seasonal_period
@@ -243,7 +247,7 @@ def auto_ets_nelder_mead(data):
     best_model = None
     for error_type in range(1, 3):
         for trend_type in range(0, 3):
-            for seasonality_type in range(0, 3 * (seasonal_period != 1)):
+            for seasonality_type in range(0, 2 * (seasonal_period != 1) + 1):
                 ([alpha, beta, gamma, phi], aic) = nelder_mead(
                     data, error_type, trend_type, seasonality_type, seasonal_period
                 )
