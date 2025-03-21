@@ -7,7 +7,7 @@
 %Train size: 537
 %Test size: 537
 %Missing value: No
-%Number of classses: 11
+%Number of classes: 11
 %Time series length: Vary
 %
 %We pad NaN to the end of each time series to the length of the longest time series for ARFF format, leave as it is for TS.

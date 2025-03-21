@@ -96,7 +96,7 @@ class _Global(_Window):
 
 class _ExpandingSliding(_Window):
     def __init__(self, initial_length, start_step, end_step):
-        """Initilize the class.
+        """Initialize the class.
 
         Parameters
         ----------

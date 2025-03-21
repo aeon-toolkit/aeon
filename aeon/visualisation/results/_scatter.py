@@ -27,7 +27,7 @@ accuracy_metrics = [
     "Kappa",
     "AUPRC",
 ]
-error_metrics = ["error", "LogLoss", "RMSE", "MSE", "MAE", "AMAE", "MAPE", "SMAPE"]
+error_metrics = ["error", "LogLoss", "RMSE", "MSE", "MAE", "AMAE", "MAP", "SMAPE"]
 
 
 def plot_pairwise_scatter(

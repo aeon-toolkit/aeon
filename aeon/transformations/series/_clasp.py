@@ -6,7 +6,7 @@ Notes
 As described in
 @inproceedings{clasp2021,
   title={ClaSP - Time Series Segmentation},
-  author={Sch"afer, Patrick and Ermshaus, Arik and Leser, Ulf},
+  author={Sch"after, Patrick and Ermshaus, Arik and Leser, Ulf},
   booktitle={CIKM},
   year={2021}
 }
@@ -416,7 +416,7 @@ class ClaSPTransformer(BaseSeriesTransformer):
     As described in
     @inproceedings{clasp2021,
       title={ClaSP - Time Series Segmentation},
-      author={Sch"afer, Patrick and Ermshaus, Arik and Leser, Ulf},
+      author={Sch"after, Patrick and Ermshaus, Arik and Leser, Ulf},
       booktitle={CIKM},
       year={2021}
     }

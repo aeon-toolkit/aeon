@@ -11,7 +11,7 @@
 #Train size: 537
 #Test size: 537
 #Missing value: No
-#Number of classses: 11
+#Number of classes: 11
 #Time series length: Vary
 #Data created by Gao, Jingkun, et al. (see [1], [2], [3]). Data edited by Patrick Schafer and Ulf Leser (see [4]).
 #

@@ -66,7 +66,7 @@ def naive_squared_distance_profile(
         Boolean mask indicating candidates for which the distance
         profiles computed for each query should be set to infinity.
     normalise : bool
-        Wheter to use a z-normalised distance.
+        Whether to use a z-normalised distance.
     X_means : array, shape=(n_samples, n_channels, n_timepoints - query_length + 1)
         Mean of each candidate (subsequence) of length query_length in X. The
         default is None, meaning that these values will be computed if normalise
@@ -124,7 +124,7 @@ def naive_squared_matrix_profile(X, T, query_length, mask, normalise=False):
         Boolean mask indicating candidates for which the distance
         profiles computed for each query should be set to infinity.
     normalise : bool
-        Wheter to use a z-normalised distance.
+        Whether to use a z-normalised distance.
 
     Returns
     -------
@@ -212,7 +212,7 @@ def numba_roll_1D_no_warparound(array, shift, warparound_value):
     """
     Roll the rows of an array.
 
-    Wheter to allow values at the end of the array to appear at the start after
+    Whether to allow values at the end of the array to appear at the start after
     being rolled out of the array length.
 
     Parameters
@@ -245,7 +245,7 @@ def numba_roll_2D_no_warparound(array, shift, warparound_value):
     """
     Roll the rows of an array.
 
-    Wheter to allow values at the end of the array to appear at the start after
+    Whether to allow values at the end of the array to appear at the start after
     being rolled out of the array length.
 
     Parameters
@@ -310,7 +310,7 @@ def extract_top_k_and_threshold_from_distance_profiles_one_series(
         avoiding trivial matches in time series data. If set to `None`, no
         exclusion zone is applied.
     inverse_distance : bool, optional
-        Wheter to return the worst matches instead of the bests. The default is False.
+        Whether to return the worst matches instead of the bests. The default is False.
 
     Returns
     -------
@@ -406,7 +406,7 @@ def extract_top_k_and_threshold_from_distance_profiles(
         as best match if :math:`id_timestamp` was already selected. By default,
         the value None means that this is not used.
     inverse_distance : bool, optional
-        Wheter to return the worst matches instead of the bests. The default is False.
+        Whether to return the worst matches instead of the bests. The default is False.
 
     Returns
     -------
@@ -454,7 +454,7 @@ def extract_top_k_and_threshold_from_distance_profiles(
     if distance_profiles[distance_profiles <= threshold].shape[0] < k:
         _k = distance_profiles[distance_profiles <= threshold].shape[0]
         warnings.warn(
-            f"Only {_k} matches are bellow the threshold of {threshold}, while"
+            f"Only {_k} matches are below the threshold of {threshold}, while"
             f" k={k}. The number of returned match will be {_k}.",
             stacklevel=2,
         )

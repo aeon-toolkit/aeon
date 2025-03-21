@@ -42,7 +42,7 @@ def load_time_series_segmentation_benchmark(
     from one of the UEA & UCR time series classification datasets. TS are grouped by
     label and concatenated to create segments with distinctive temporal patterns and
     statistical properties. Offsets at which segments change are annotated as CPs.
-    Addtionally, resampling  is applied to control the data resolution. Approximate,
+    Additionally, resampling  is applied to control the data resolution. Approximate,
     hand-selected window sizes are provided that capture temporal patterns.
 
     If you do not specify ``extract_path``, it will set the path to

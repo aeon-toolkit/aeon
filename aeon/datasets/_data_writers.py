@@ -35,7 +35,7 @@ def write_to_ts_file(
     header: string, default = None
         Optional text at the top of the file that is ignored when loading.
     regression: boolean, default = False
-        Indicate if this is a regression problem, so it is correcty specified in
+        Indicate if this is a regression problem, so it is correctly specified in
         the header since there is no definite way of inferring this from y
     """
     if not (isinstance(X, np.ndarray) or isinstance(X, list)):
@@ -139,7 +139,7 @@ def _write_header(
         file.write(f"@classLabel true {space_separated_class_label}\n")
     else:
         file.write("@classLabel false\n")
-        if regression:  # or if a regresssion problem, write target label
+        if regression:  # or if a regression problem, write target label
             file.write("@targetlabel true\n")
     file.write("@data\n")
     return file
