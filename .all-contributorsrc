@@ -2683,6 +2683,16 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "KowshikB03",
+      "name": "Kowshik B",
+      "avatar_url": "https://avatars.githubusercontent.com/u/200238038?v=4",
+      "profile": "https://github.com/KowshikB03",
+      "contributions": [
+        "code",
+        "doc"
+      ]
     }
   ],
   "commitType": "docs"
