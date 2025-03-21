@@ -5,7 +5,7 @@ kinds of contributions, not just code. Improvements to docs, bug reports, and ta
 on communications or code of conduct responsibilities are all examples of valuable
 contributions beyond code which help make `aeon` a great package.
 
-Please consider whether you will be able to tackle and issue or pull request before
+Please consider whether you will be able to tackle and issue or pull request (PR) before
 assigning yourself to it. If the issue requires editing Python code, you should have
 some experience with Python and be able to run tests. If the issue tackles the
 specifics of a machine learning algorithm, some relevant knowledge of machine learning
@@ -14,7 +14,7 @@ of knowledge is required to make a meaningful contribution to certain issues.
 ChatGPT is not a replacement for this knowledge.
 
 Pull requests from unknown contributors which do not attempt to resolve the issue being
-addressed, completely disregard the pull request template, or consist of low quality AI
+addressed, completely disregard the PR template, or consist of low quality AI
 generated output may be closed without review.
 
 When implementing new algorithms, developers may require some benchmarking
@@ -22,8 +22,13 @@ against alternative implementations or published results. This is likely to
 be the case for complex published algorithms which are not contributed by trusted
 developers or the original authors. A developer may eventually do this themselves if the
 contributor is unable to, but this is a time-consuming process and may delay the
-merging of the pull request significantly. Please be aware of this when assigning
+merging of the PR significantly. Please be aware of this when assigning
 yourself to an issue for such algorithms.
+
+When using code from another package or writing code inspired from another implementation, 
+please mention this in your PR. At the very least credit must be given where 
+applicable. IF the package has a different license, using the code as is may not be
+acceptable. Using others code without credit will like result in your PR being closed.
 
 In the following we will give a brief overview of how to contribute to `aeon`. Making
 contributions to open-source projects takes a bit of proactivity and can be daunting at
