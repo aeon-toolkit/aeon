@@ -8,10 +8,10 @@ import warnings
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from typing import Any, List
+    from typing import Any
+    from numpy.typing import ArrayLike
     
 import numpy as np
-from numpy.typing import ArrayLike
 from scipy.stats import distributions, find_repeats, wilcoxon
 
 

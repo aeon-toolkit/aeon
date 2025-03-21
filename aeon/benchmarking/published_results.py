@@ -7,10 +7,6 @@ __all__ = [
     "load_classification_bake_off_2021_results",
     "load_classification_bake_off_2023_results",
 ]
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from typing import Dict, Tuple, List
 
 import numpy as np
 
@@ -26,7 +22,7 @@ def load_classification_bake_off_2017_results(
     num_resamples: int | None=100, 
     as_array: bool=False, 
     ignore_nan: bool=False
-) -> Dict[str, Dict[str, float]] | Tuple[np.ndarray, List[str], List[str]]:
+) -> dict[str, dict[str, float]] | tuple[np.ndarray, list[str], list[str]]:
     """Fetch all the results of the 2017 univariate TSC bake off.
 
     Basic utility function to recover legacy results from [1]_. Loads results for 85
@@ -134,7 +130,7 @@ def load_classification_bake_off_2017_results(
 
 def load_classification_bake_off_2021_results(num_resamples: int | None=30,
                                               as_array: bool=False
-) -> Dict[str, Dict[str, float]] | Tuple[np.ndarray, List[str], List[str]]:
+) -> dict[str, dict[str, float]] | tuple[np.ndarray, list[str], list[str]]:
     """Pull down all the results of the 2021 multivariate bake off.
 
     Basic utility function to recover legacy results from [1]_. Loads results for 26
@@ -222,7 +218,7 @@ def load_classification_bake_off_2021_results(num_resamples: int | None=30,
 
 def load_classification_bake_off_2023_results(num_resamples: int | None=30,
                                               as_array: bool=False
-) -> Dict[str, Dict[str, float]] | Tuple[np.ndarray, List[str], List[str]]:
+) -> dict[str, dict[str, float]] | tuple[np.ndarray, list[str], list[str]]:
     """Pull down all the results of the 2023 univariate bake off.
 
     Basic utility function to recover legacy results from [1]_. Loads results for 112
