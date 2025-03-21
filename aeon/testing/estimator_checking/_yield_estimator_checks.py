@@ -35,7 +35,6 @@ from aeon.testing.estimator_checking._yield_clustering_checks import (
 from aeon.testing.estimator_checking._yield_collection_anomaly_detection_checks import (
     _yield_collection_anomaly_detection_checks,
 )
-
 from aeon.testing.estimator_checking._yield_early_classification_checks import (
     _yield_early_classification_checks,
 )
