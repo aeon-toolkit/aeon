@@ -1,4 +1,5 @@
 """Utility functions for data resampling."""
+
 from __future__ import annotations
 
 __maintainer__ = ["TonyBagnall", "MatthewMiddlehurst"]

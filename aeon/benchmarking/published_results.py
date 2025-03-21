@@ -1,4 +1,5 @@
 """Functions to load published results."""
+
 from __future__ import annotations
 
 __maintainer__ = ["TonyBagnall", "MatthewMiddlehurst"]
