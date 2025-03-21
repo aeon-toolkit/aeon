@@ -19,7 +19,7 @@ concurrency:
 
 jobs:
   run-notebook-examples:
-    runs-on: macos-latest
+    runs-on: macos-14
 
     steps:
       - name: Checkout
@@ -46,7 +46,7 @@ jobs:
       - uses: ./.github/actions/cpu_all_extras
         with:
           additional_extras: "dev,binder"
-          
+
       - name: Install esig on macOS
         run: brew install boost && pip install "esig>=0.9.7,<1.0.0"
 
