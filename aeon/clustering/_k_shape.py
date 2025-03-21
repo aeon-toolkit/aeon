@@ -1,11 +1,21 @@
 """Time series kshapes."""
 
-from typing import Optional, Union
+from typing import Callable, Optional, Union
 
 import numpy as np
 from numpy.random import RandomState
+from sklearn.utils import check_random_state
+from tslearn.metrics import cdist_normalized_cc
+from tslearn.metrics.cycc import normalized_cc
 
 from aeon.clustering.base import BaseClusterer
+from aeon.transformations.collection import Normalizer
+
+
+class EmptyClusterError(Exception):
+    """Error raised when an empty cluster is encountered."""
+
+    pass
 
 
 class TimeSeriesKShape(BaseClusterer):
@@ -100,40 +110,210 @@ class TimeSeriesKShape(BaseClusterer):
 
         super().__init__()
 
-    def _fit(self, X, y=None):
-        """Fit time series clusterer to training data.
+    def _check_params(self, X: np.ndarray) -> None:
+        self._random_state = check_random_state(self.random_state)
 
-        Parameters
-        ----------
-        X: np.ndarray, of shape (n_cases, n_channels, n_timepoints) or
-                (n_cases, n_timepoints)
-            A collection of time series instances.
-        y: ignored, exists for API consistency reasons.
+        if isinstance(self.init, str):
+            if self.init == "random":
+                self._init = self._random_center_initializer
+        else:
+            if isinstance(self.init, np.ndarray) and len(self.init) == self.n_clusters:
+                self._init = self.init.copy()
+            else:
+                raise ValueError(
+                    f"The value provided for init: {self.init} is "
+                    f"invalid. The following are a list of valid init algorithms "
+                    f"strings: random, kmedoids++, first. You can also pass a"
+                    f"np.ndarray of size (n_clusters, n_channels, n_timepoints)"
+                )
 
-        Returns
-        -------
-        self:
-            Fitted estimator.
+        if self.n_clusters > X.shape[0]:
+            raise ValueError(
+                f"n_clusters ({self.n_clusters}) cannot be larger than "
+                f"n_cases ({X.shape[0]})"
+            )
+
+    def _random_center_initializer(self, X: np.ndarray) -> np.ndarray:
+        return X[self._random_state.choice(X.shape[0], self.n_clusters)]
+
+    def _check_no_empty_cluster(self, labels, n_clusters):
+        """Check that all clusters have at least one sample assigned."""
+        for k in range(n_clusters):
+            if np.sum(labels == k) == 0:
+                raise EmptyClusterError
+
+    def _compute_inertia(self, distances, assignments, squared=True):
+        """Derive inertia from pre-computed distances and assignments.
+
+        Examples
+        --------
+        >>> dists = numpy.array([[1., 2., 0.5], [0., 3., 1.]])
+        >>> assign = numpy.array([2, 0])
+        >>> _compute_inertia(dists, assign)
+        0.125
         """
-        from tslearn.clustering import KShape
+        n_ts = distances.shape[0]
+        if squared:
+            return np.sum(distances[np.arange(n_ts), assignments] ** 2) / n_ts
+        else:
+            return np.sum(distances[np.arange(n_ts), assignments]) / n_ts
 
-        self._tslearn_k_shapes = KShape(
-            n_clusters=self.n_clusters,
-            max_iter=self.max_iter,
-            tol=self.tol,
-            random_state=self.random_state,
-            n_init=self.n_init,
-            verbose=self.verbose,
-            init=self.init,
+    def _assign(self, X):
+        X_temp = np.transpose(X, (0, 2, 1))
+        cluster_temp = np.transpose(self.cluster_centers_, (0, 2, 1))
+        dists = 1.0 - cdist_normalized_cc(
+            X_temp, cluster_temp, self.norms_, self.norms_centroids_, False
         )
+        self.labels_ = dists.argmin(axis=1)
+        self._check_no_empty_cluster(self.labels_, self.n_clusters)
+        self.inertia_ = self._compute_inertia(dists, self.labels_)
 
-        _X = X.swapaxes(1, 2)
+    def y_shifted_sbd_vec(self, ref_ts, dataset, norm_ref, norms_dataset):
+        n_ts = dataset.shape[0]
+        d = dataset.shape[1]
+        sz = dataset.shape[2]
+        assert sz == ref_ts.shape[1] and d == ref_ts.shape[0]
+        dataset_shifted = np.zeros((n_ts, d, sz))
 
-        self._tslearn_k_shapes.fit(_X)
-        self._cluster_centers = self._tslearn_k_shapes.cluster_centers_
-        self.labels_ = self._tslearn_k_shapes.predict(_X)
-        self.inertia_ = self._tslearn_k_shapes.inertia_
-        self.n_iter_ = self._tslearn_k_shapes.n_iter_
+        if norm_ref < 0:
+            norm_ref = np.linalg.norm(ref_ts)
+        if (norms_dataset < 0.0).any():
+            for i_ts in range(n_ts):
+                norms_dataset[i_ts] = np.linalg.norm(dataset[i_ts, ...])
+
+        for i in range(n_ts):
+            # TODO: remove dependency on normalized_cc
+            ref_ts_temp = ref_ts.T
+            dataset_temp = np.transpose(dataset, (0, 2, 1))
+            cc = normalized_cc(
+                ref_ts_temp, dataset_temp[i], norm1=norm_ref, norm2=norms_dataset[i]
+            )
+            idx = np.argmax(cc)
+            shift = idx - sz
+            if shift > 0:
+                dataset_shifted[i, :, shift:] = dataset[i, :, : sz - shift]
+            elif shift < 0:
+                dataset_shifted[i, :, : sz + shift] = dataset[i, :, -shift:]
+            else:
+                dataset_shifted[i] = dataset[i]
+
+        return dataset_shifted
+
+    def _shape_extraction(self, X, k):
+        # X is of dim (n_ts, d, sz)
+        sz = X.shape[2]
+        d = X.shape[1]
+        Xp = self.y_shifted_sbd_vec(
+            self.cluster_centers_[k],
+            X[self.labels_ == k],
+            -1,
+            self.norms_[self.labels_ == k],
+        )
+        # Xp is of dim (n_ts, d, sz)
+        S = np.dot(Xp[:, 0, :].T, Xp[:, 0, :])
+        Q = np.eye(sz) - np.ones((sz, sz)) / sz
+        M = np.dot(Q.T, np.dot(S, Q))
+
+        _, vec = np.linalg.eigh(M)
+        mu_k = vec[:, -1].reshape((sz, 1))
+
+        mu_k_broadcast = mu_k.reshape((1, 1, sz))
+        dist_plus_mu = np.sum(np.linalg.norm(Xp - mu_k_broadcast, axis=(1, 2)))
+        dist_minus_mu = np.sum(np.linalg.norm(Xp + mu_k_broadcast, axis=(1, 2)))
+
+        if dist_minus_mu < dist_plus_mu:
+            mu_k *= -1
+
+        d = Xp.shape[1]
+        mu_k = np.tile(mu_k.T, (d, 1))
+        return mu_k
+
+    def _update_centroids(self, X):
+        # X is (n, d, sz)
+        for k in range(self.n_clusters):
+            self.cluster_centers_[k] = self._shape_extraction(X, k)
+
+        normaliser = Normalizer()
+        self.cluster_centers_ = normaliser.fit_transform(self.cluster_centers_)
+        self.norms_centroids_ = np.linalg.norm(self.cluster_centers_, axis=(1, 2))
+
+    def _fit_one_init(self, X):
+        if isinstance(self._init, Callable):
+            self.cluster_centers_ = self._init(X)
+        else:
+            self.cluster_centers_ = self._init.copy()
+
+        self.norms_centroids_ = np.linalg.norm(self.cluster_centers_, axis=(1, 2))
+        self._assign(X)
+        old_inertia = np.inf
+
+        it = 0
+        for it in range(self.max_iter):  # noqa: B007
+            old_cluster_centers = self.cluster_centers_.copy()
+            self._update_centroids(X)
+            self._assign(X)
+            if self.verbose:
+                print("%.3f" % self.inertia_, end=" --> ")  # noqa: T001, T201
+
+            if np.abs(old_inertia - self.inertia_) < self.tol or (
+                old_inertia - self.inertia_ < 0
+            ):
+                self.cluster_centers_ = old_cluster_centers
+                self._assign(X)
+                break
+
+            old_inertia = self.inertia_
+        if self.verbose:
+            print("")  # noqa: T001, T201
+
+        self._iter = it + 1
+
+        return self
+
+    def _fit(self, X, y=None):
+        # X = check_array(X, allow_nd=True) add aeon version
+        self._check_params(X)
+
+        max_attempts = max(self.n_init, 10)
+
+        self.inertia_ = np.inf
+
+        self.norms_ = 0.0
+        self.norms_centroids_ = 0.0
+
+        self._X_fit = X
+        self.norms_ = np.linalg.norm(X, axis=(1, 2))
+
+        best_correct_centroids = None
+        min_inertia = np.inf
+        n_successful = 0
+        n_attempts = 0
+        while n_successful < self.n_init and n_attempts < max_attempts:
+            try:
+                if self.verbose and self.n_init > 1:
+                    print("Init %d" % (n_successful + 1))  # noqa: T001, T201
+                n_attempts += 1
+                self._fit_one_init(X)
+                if self.inertia_ < min_inertia:
+                    best_correct_centroids = self.cluster_centers_.copy()
+                    min_inertia = self.inertia_
+                    self.n_iter_ = self._iter
+                n_successful += 1
+            except EmptyClusterError:
+                if self.verbose:
+                    print("Resumed because of empty cluster")  # noqa: T001, T201
+        self.norms_centroids_ = np.linalg.norm(self.cluster_centers_, axis=(1, 2))
+        self._post_fit(X, best_correct_centroids, min_inertia)
+        return self
+
+    def _post_fit(self, X_fitted, centroids, inertia):
+        if np.isfinite(inertia) and (centroids is not None):
+            self.cluster_centers_ = centroids
+            self._assign(X_fitted)
+            self._X_fit = X_fitted
+            self.inertia_ = inertia
+        else:
+            self._X_fit = None
 
     def _predict(self, X, y=None) -> np.ndarray:
         """Predict the closest cluster each sample in X belongs to.
@@ -150,8 +330,37 @@ class TimeSeriesKShape(BaseClusterer):
         np.ndarray (1d array of shape (n_cases,))
             Index of the cluster each time series in X belongs to.
         """
-        _X = X.swapaxes(1, 2)
-        return self._tslearn_k_shapes.predict(_X)
+        # TODO remove dependence on cdist_normalized_cc
+        normaliser = Normalizer()
+        X_ = X.copy()
+        X_ = normaliser.fit_transform(X_)
+        X_temp = np.transpose(X_, (0, 2, 1))
+        cluster_temp = np.transpose(self.cluster_centers_, (0, 2, 1))
+        n1 = np.linalg.norm(X_temp, axis=(1, 2))
+        n2 = np.linalg.norm(cluster_temp, axis=(1, 2))
+        dists = 1.0 - cdist_normalized_cc(X_temp, cluster_temp, n1, n2, False)
+        return dists.argmin(axis=1)
+
+    def fit_predict(self, X, y=None):
+        """Fit X using k-Shape clustering then predict the closest clusters.
+
+        It is more efficient to use this method than to sequentially call fit
+        and predict.
+
+        Parameters
+        ----------
+        X : array-like of shape=(n_ts, sz, d)
+            Time series dataset to predict.
+
+        y
+            Ignored
+
+        Returns
+        -------
+        labels : array of shape=(n_ts, )
+            Index of the cluster each sample belongs to.
+        """
+        return self._fit(X, y).labels_
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
