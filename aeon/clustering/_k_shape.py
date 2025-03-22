@@ -248,13 +248,6 @@ class TimeSeriesKShape(BaseClusterer):
         centroid = np.tile(centroid.T, (n_channels, 1))
         return centroid
 
-    def _update_centroids(self, X, cluster_centers, labels):
-        for k in range(self.n_clusters):
-            cluster_centers[k] = self._shape_extraction(X, k, cluster_centers, labels)
-
-        normaliser = Normalizer()
-        return normaliser.fit_transform(cluster_centers)
-
     def _assign(self, X, cluster_centers):
         dists = self._sbd_pairwise(X, cluster_centers)
         labels = dists.argmin(axis=1)
@@ -274,7 +267,15 @@ class TimeSeriesKShape(BaseClusterer):
         it = 0
         for it in range(self.max_iter):  # noqa: B007
             prev_centers = cluster_centers
-            cluster_centers = self._update_centroids(X, prev_centers, cur_labels)
+
+            # Refinement step
+            for k in range(self.n_clusters):
+                cluster_centers[k] = self._shape_extraction(
+                    X, k, cluster_centers, cur_labels
+                )
+            cluster_centers = Normalizer().fit_transform(cluster_centers)
+
+            # Assignment step
             cur_labels, cur_inertia = self._assign(X, cluster_centers)
 
             if self.verbose:
