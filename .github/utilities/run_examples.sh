@@ -23,6 +23,7 @@ if [ "$1" = true ]; then
     "examples/classification/shapelet_based.ipynb"
     "examples/classification/convolution_based.ipynb"
     "examples/similarity_search/code_speed.ipynb"
+    "examples/transformations/signature_method.ipynb"
 
   )
 fi
