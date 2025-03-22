@@ -10,6 +10,8 @@ from sklearn.utils import check_random_state
 from aeon.clustering.base import BaseClusterer
 from aeon.transformations.collection import Normalizer
 
+# from aeon.distances._distance import sbd_pairwise_distance
+
 
 @njit(fastmath=True)
 def normalized_cc(s1, s2, norm1=-1.0, norm2=-1.0):
@@ -245,6 +247,7 @@ class TimeSeriesKShape(BaseClusterer):
         dists = 1.0 - cdist_normalized_cc(
             X_temp, cluster_temp, self.norms_, self.norms_centroids_, False
         )
+        # dists = sbd_pairwise_distance(X, self.cluster_centers_)
         self.labels_ = dists.argmin(axis=1)
         self._check_no_empty_cluster(self.labels_, self.n_clusters)
         self.inertia_ = self._compute_inertia(dists, self.labels_)
@@ -397,50 +400,19 @@ class TimeSeriesKShape(BaseClusterer):
             self._X_fit = None
 
     def _predict(self, X, y=None) -> np.ndarray:
-        """Predict the closest cluster each sample in X belongs to.
-
-        Parameters
-        ----------
-        X: np.ndarray, of shape (n_cases, n_channels, n_timepoints) or
-                (n_cases, n_timepoints)
-            A collection of time series instances.
-        y: ignored, exists for API consistency reasons.
-
-        Returns
-        -------
-        np.ndarray (1d array of shape (n_cases,))
-            Index of the cluster each time series in X belongs to.
-        """
         # TODO remove dependence on cdist_normalized_cc
-        normaliser = Normalizer()
+        # normaliser = Normalizer()
         X_ = X.copy()
-        X_ = normaliser.fit_transform(X_)
+        # X_ = normaliser.fit_transform(X_)
         X_temp = np.transpose(X_, (0, 2, 1))
         cluster_temp = np.transpose(self.cluster_centers_, (0, 2, 1))
         n1 = np.linalg.norm(X_temp, axis=(1, 2))
         n2 = np.linalg.norm(cluster_temp, axis=(1, 2))
         dists = 1.0 - cdist_normalized_cc(X_temp, cluster_temp, n1, n2, False)
+        # dists = sbd_pairwise_distance(X_, self.cluster_centers_, standardize=False)
         return dists.argmin(axis=1)
 
     def fit_predict(self, X, y=None):
-        """Fit X using k-Shape clustering then predict the closest clusters.
-
-        It is more efficient to use this method than to sequentially call fit
-        and predict.
-
-        Parameters
-        ----------
-        X : array-like of shape=(n_ts, sz, d)
-            Time series dataset to predict.
-
-        y
-            Ignored
-
-        Returns
-        -------
-        labels : array of shape=(n_ts, )
-            Index of the cluster each sample belongs to.
-        """
         return self._fit(X, y).labels_
 
     @classmethod
