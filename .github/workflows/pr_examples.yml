@@ -29,8 +29,6 @@ jobs:
         run: |
           brew install bash
           /opt/homebrew/bin/bash --version
-          sudo ln -sf /opt/homebrew/bin/bash /bin/bash
-          bash --version
 
       - name: Setup Python 3.10
         uses: actions/setup-python@v5
