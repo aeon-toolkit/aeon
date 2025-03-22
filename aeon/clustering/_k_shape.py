@@ -303,6 +303,20 @@ class TimeSeriesKShape(BaseClusterer):
         return prev_labels, cluster_centers, prev_inertia, it + 1
 
     def _fit(self, X, y=None):
+        """Fit time series clusterer to training data.
+
+        Parameters
+        ----------
+        X: np.ndarray, of shape (n_cases, n_channels, n_timepoints) or
+                (n_cases, n_timepoints)
+            A collection of time series instances.
+        y: ignored, exists for API consistency reasons.
+
+        Returns
+        -------
+        self:
+            Fitted estimator.
+        """
         self._check_params(X)
 
         best_centroids = None
@@ -329,11 +343,22 @@ class TimeSeriesKShape(BaseClusterer):
         return self
 
     def _predict(self, X, y=None) -> np.ndarray:
+        """Predict the closest cluster each sample in X belongs to.
+
+        Parameters
+        ----------
+        X: np.ndarray, of shape (n_cases, n_channels, n_timepoints) or
+                (n_cases, n_timepoints)
+            A collection of time series instances.
+        y: ignored, exists for API consistency reasons.
+
+        Returns
+        -------
+        np.ndarray (1d array of shape (n_cases,))
+            Index of the cluster each time series in X belongs to.
+        """
         dists = self._sbd_pairwise(X, self.cluster_centers_)
         return dists.argmin(axis=1)
-
-    def fit_predict(self, X, y=None):
-        return self._fit(X, y).labels_
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
