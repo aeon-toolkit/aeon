@@ -8,7 +8,7 @@ import numpy as np
 import numpy.typing as npt
 from sklearn.neighbors import NearestNeighbors
 
-from aeon.anomaly_detection.base import BaseAnomalyDetector
+from aeon.anomaly_detection.estimators.base import BaseAnomalyDetector
 
 
 class STRAY(BaseAnomalyDetector):

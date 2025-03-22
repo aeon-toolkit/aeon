@@ -11,7 +11,7 @@ import numpy as np
 from numpy.lib.stride_tricks import sliding_window_view
 from sklearn.covariance import EmpiricalCovariance
 
-from aeon.anomaly_detection.base import BaseAnomalyDetector
+from aeon.anomaly_detection.estimators.base import BaseAnomalyDetector
 from aeon.utils.numba.wavelets import multilevel_haar_transform
 
 
