@@ -192,7 +192,6 @@ class TimeSeriesKShape(BaseClusterer):
         return X[self._random_state.choice(X.shape[0], self.n_clusters)]
 
     def _check_no_empty_cluster(self, labels, n_clusters):
-        """Check that all clusters have at least one sample assigned."""
         for k in range(n_clusters):
             if np.sum(labels == k) == 0:
                 raise EmptyClusterError
@@ -252,7 +251,11 @@ class TimeSeriesKShape(BaseClusterer):
         dists = self._sbd_pairwise(X, cluster_centers)
         labels = dists.argmin(axis=1)
         inertia = dists.min(axis=0).sum()
-        self._check_no_empty_cluster(labels, self.n_clusters)
+
+        for i in range(self.n_clusters):
+            if np.sum(labels == i) == 0:
+                raise EmptyClusterError
+
         return labels, inertia
 
     def _fit_one_init(self, X):
