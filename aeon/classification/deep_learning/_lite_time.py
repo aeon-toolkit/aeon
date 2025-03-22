@@ -35,12 +35,10 @@ class LITETimeClassifier(BaseClassifier):
         if set to `True` then LITEMV is used. LITEMV is the
         same architecture as LITE but specifically designed
         to better handle multivariate time series.
-    n_filters : int or list of int32, default = 32
-        The number of filters used in one lite layer, if not a list, the same
-        number of filters is used in all lite layers.
-    kernel_size : int or list of int, default = 40
-        The head kernel size used for each lite layer, if not a list, the same
-        is used in all lite module.
+    n_filters : int, default = 32
+        The number of filters used in one lite layer.
+    kernel_size : int, default = 40
+        The head kernel size used for each lite layer.
     strides : int or list of int, default = 1
         The strides of kernels in convolution layers for each lite layer,
         if not a list, the same is used in all lite layers.
@@ -217,6 +215,7 @@ class LITETimeClassifier(BaseClassifier):
                 use_litemv=self.use_litemv,
                 n_filters=self.n_filters,
                 kernel_size=self.kernel_size,
+                strides=self.strides,
                 file_path=self.file_path,
                 save_best_model=self.save_best_model,
                 save_last_model=self.save_last_model,
@@ -339,12 +338,10 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         if set to `True` then LITEMV is used. LITEMV is the
         same architecture as LITE but specifically designed
         to better handle multivariate time series.
-    n_filters : int or list of int32, default = 32
-        The number of filters used in one lite layer, if not a list, the same
-        number of filters is used in all lite layers.
-    kernel_size : int or list of int, default = 40
-        The head kernel size used for each lite layer, if not a list, the same
-        is used in all lite layers.
+    n_filters : int, default = 32
+        The number of filters used in one lite layer.
+    kernel_size : int, default = 40
+        The head kernel size used for each lite layer.
     strides : int or list of int, default = 1
         The strides of kernels in convolution layers for each lite layer,
         if not a list, the same is used in all lite layers.
