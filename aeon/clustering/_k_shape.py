@@ -71,6 +71,10 @@ class EmptyClusterError(Exception):
 class TimeSeriesKShape(BaseClusterer):
     """Kshape algorithm: inspired by ``tslearn`` implementation.
 
+    Implementation References:
+    1. https://github.com/tslearn-team/tslearn/blob/9937946/tslearn/clustering/kshape.py#L21-L291    # noqa: E501
+    2. https://github.com/TheDatumOrg/kshape-python
+
     Parameters
     ----------
     n_clusters: int, default=8
