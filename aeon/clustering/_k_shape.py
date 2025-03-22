@@ -14,31 +14,14 @@ from aeon.transformations.collection import Normalizer
 
 
 @njit(fastmath=True)
-def normalized_cc(s1, s2, norm1=-1.0, norm2=-1.0):
-    """Normalize cc.
-
-    Parameters
-    ----------
-    s1 : array-like, shape=(sz, d), dtype=float64
-        A time series.
-    s2 : array-like, shape=(sz, d), dtype=float64
-        Another time series.
-    norm1 : float64, default=-1.0
-    norm2 : float64, default=-1.0
-
-    Returns
-    -------
-    norm_cc : array-like, shape=(2 * sz - 1), dtype=float64
-    """
+def normalized_cc(s1, s2):
     assert s1.shape[1] == s2.shape[1]
-    sz = s1.shape[0]
-    n_bits = 1 + int(np.log2(2 * sz - 1))
+    n_timepoints = s1.shape[0]
+    n_bits = 1 + int(np.log2(2 * n_timepoints - 1))
     fft_sz = 2**n_bits
 
-    if norm1 < 0.0:
-        norm1 = np.linalg.norm(s1)
-    if norm2 < 0.0:
-        norm2 = np.linalg.norm(s2)
+    norm1 = np.linalg.norm(s1)
+    norm2 = np.linalg.norm(s2)
 
     denom = norm1 * norm2
     if denom < 1e-9:  # To avoid NaNs
@@ -53,53 +36,29 @@ def normalized_cc(s1, s2, norm1=-1.0, norm2=-1.0):
             )
         )
 
-    cc = np.vstack((cc[-(sz - 1) :], cc[:sz]))
+    cc = np.vstack((cc[-(n_timepoints - 1) :], cc[:n_timepoints]))
     norm_cc = np.real(cc).sum(axis=-1) / denom
     return norm_cc
 
 
 @njit(parallel=True, fastmath=True)
-def cdist_normalized_cc(dataset1, dataset2, norms1, norms2, self_similarity):
-    """Compute the distance matrix between two time series dataset.
-
-    Parameters
-    ----------
-    dataset1 : array-like, shape=(n_ts1, sz, d), dtype=float64
-        A dataset of time series.
-    dataset2 : array-like, shape=(n_ts2, sz, d), dtype=float64
-        Another dataset of time series.
-    norms1 : array-like, shape=(n_ts1,), dtype=float64
-    norms2 : array-like, shape=(n_ts2,), dtype=float64
-    self_similarity : bool
-
-    Returns
-    -------
-    dists : array-like, shape=(n_ts1, n_ts2), dtype=float64
-    """
-    n_ts1, sz, d = dataset1.shape
+def cdist_normalized_cc(dataset1, dataset2):
+    n_ts1, n_timepoints, n_channels = dataset1.shape
     n_ts2 = dataset2.shape[0]
-    assert d == dataset2.shape[2]
+    assert n_channels == dataset2.shape[2]
     dists = np.zeros((n_ts1, n_ts2))
 
-    if (norms1 < 0.0).any():
-        for i_ts1 in prange(n_ts1):
-            norms1[i_ts1] = np.linalg.norm(dataset1[i_ts1, ...])
-    if (norms2 < 0.0).any():
-        for i_ts2 in prange(n_ts2):
-            norms2[i_ts2] = np.linalg.norm(dataset2[i_ts2, ...])
-    if self_similarity:
-        for i in prange(1, n_ts1):
-            for j in range(i):
-                dists[i, j] = normalized_cc(
-                    dataset1[i], dataset2[j], norm1=norms1[i], norm2=norms2[j]
-                ).max()
-        dists += dists.T
-    else:
-        for i in prange(n_ts1):
-            for j in range(n_ts2):
-                dists[i, j] = normalized_cc(
-                    dataset1[i], dataset2[j], norm1=norms1[i], norm2=norms2[j]
-                ).max()
+    norms1 = np.zeros(n_ts1)
+    norms2 = np.zeros(n_ts2)
+    for i_ts1 in prange(n_ts1):
+        norms1[i_ts1] = np.linalg.norm(dataset1[i_ts1, ...])
+
+    for i_ts2 in prange(n_ts2):
+        norms2[i_ts2] = np.linalg.norm(dataset2[i_ts2, ...])
+
+    for i in prange(n_ts1):
+        for j in range(n_ts2):
+            dists[i, j] = normalized_cc(dataset1[i], dataset2[j]).max()
     return dists
 
 
@@ -235,85 +194,72 @@ class TimeSeriesKShape(BaseClusterer):
 
     def _compute_inertia(self, distances, assignments, squared=True):
         """Derive inertia from pre-computed distances and assignments."""
-        n_ts = distances.shape[0]
+        n_cases = distances.shape[0]
         if squared:
-            return np.sum(distances[np.arange(n_ts), assignments] ** 2) / n_ts
+            return np.sum(distances[np.arange(n_cases), assignments] ** 2) / n_cases
         else:
-            return np.sum(distances[np.arange(n_ts), assignments]) / n_ts
+            return np.sum(distances[np.arange(n_cases), assignments]) / n_cases
+
+    def _sbd_pairwise(self, X, Y):
+        # TODO remove dependence on cdist_normalized_cc
+        return 1.0 - cdist_normalized_cc(
+            np.transpose(X, (0, 2, 1)),
+            np.transpose(Y, (0, 2, 1)),
+        )
 
     def _assign(self, X):
-        X_temp = np.transpose(X, (0, 2, 1))
-        cluster_temp = np.transpose(self.cluster_centers_, (0, 2, 1))
-        dists = 1.0 - cdist_normalized_cc(
-            X_temp, cluster_temp, self.norms_, self.norms_centroids_, False
-        )
-        # dists = sbd_pairwise_distance(X, self.cluster_centers_)
+        dists = self._sbd_pairwise(X, self.cluster_centers_)
         self.labels_ = dists.argmin(axis=1)
         self._check_no_empty_cluster(self.labels_, self.n_clusters)
         self.inertia_ = self._compute_inertia(dists, self.labels_)
 
-    def y_shifted_sbd_vec(self, ref_ts, dataset, norm_ref, norms_dataset):
-        n_ts = dataset.shape[0]
-        d = dataset.shape[1]
-        sz = dataset.shape[2]
-        assert sz == ref_ts.shape[1] and d == ref_ts.shape[0]
-        dataset_shifted = np.zeros((n_ts, d, sz))
+    def _sbd_dist(self, X, Y):
+        return 1.0 - normalized_cc(np.transpose(X, (1, 0)), np.transpose(Y, (1, 0)))
 
-        if norm_ref < 0:
-            norm_ref = np.linalg.norm(ref_ts)
-        if (norms_dataset < 0.0).any():
-            for i_ts in range(n_ts):
-                norms_dataset[i_ts] = np.linalg.norm(dataset[i_ts, ...])
-
-        for i in range(n_ts):
+    def _align_data_to_reference(self, partition_centroid, X_partition):
+        n_cases, n_channels, n_timepoints = X_partition.shape
+        aligned_X_to_centroid = np.zeros((n_cases, n_channels, n_timepoints))
+        for i in range(n_cases):
             # TODO: remove dependency on normalized_cc
-            ref_ts_temp = ref_ts.T
-            dataset_temp = np.transpose(dataset, (0, 2, 1))
-            cc = normalized_cc(
-                ref_ts_temp, dataset_temp[i], norm1=norm_ref, norm2=norms_dataset[i]
-            )
+            cc = self._sbd_dist(partition_centroid, X_partition[i])
             idx = np.argmax(cc)
-            shift = idx - sz
-            if shift > 0:
-                dataset_shifted[i, :, shift:] = dataset[i, :, : sz - shift]
+            shift = idx - n_timepoints
+            if shift >= 0:
+                aligned_X_to_centroid[i, :, shift:] = X_partition[
+                    i, :, : n_timepoints - shift
+                ]
             elif shift < 0:
-                dataset_shifted[i, :, : sz + shift] = dataset[i, :, -shift:]
-            else:
-                dataset_shifted[i] = dataset[i]
+                aligned_X_to_centroid[i, :, : n_timepoints + shift] = X_partition[
+                    i, :, -shift:
+                ]
 
-        return dataset_shifted
+        return aligned_X_to_centroid
 
     def _shape_extraction(self, X, k):
-        # X is of dim (n_ts, d, sz)
-        sz = X.shape[2]
-        d = X.shape[1]
-        Xp = self.y_shifted_sbd_vec(
-            self.cluster_centers_[k],
-            X[self.labels_ == k],
-            -1,
-            self.norms_[self.labels_ == k],
+        n_timepoints = X.shape[2]
+        n_channels = X.shape[1]
+        _X = self._align_data_to_reference(
+            self.cluster_centers_[k], X[self.labels_ == k]
         )
-        # Xp is of dim (n_ts, d, sz)
-        S = np.dot(Xp[:, 0, :].T, Xp[:, 0, :])
-        Q = np.eye(sz) - np.ones((sz, sz)) / sz
+        S = np.dot(_X[:, 0, :].T, _X[:, 0, :])
+        Q = np.eye(n_timepoints) - np.ones((n_timepoints, n_timepoints)) / n_timepoints
         M = np.dot(Q.T, np.dot(S, Q))
 
         _, vec = np.linalg.eigh(M)
-        mu_k = vec[:, -1].reshape((sz, 1))
+        centroid = vec[:, -1].reshape((n_timepoints, 1))
 
-        mu_k_broadcast = mu_k.reshape((1, 1, sz))
-        dist_plus_mu = np.sum(np.linalg.norm(Xp - mu_k_broadcast, axis=(1, 2)))
-        dist_minus_mu = np.sum(np.linalg.norm(Xp + mu_k_broadcast, axis=(1, 2)))
+        mu_k_broadcast = centroid.reshape((1, 1, n_timepoints))
+        dist_plus_mu = np.sum(np.linalg.norm(_X - mu_k_broadcast, axis=(1, 2)))
+        dist_minus_mu = np.sum(np.linalg.norm(_X + mu_k_broadcast, axis=(1, 2)))
 
         if dist_minus_mu < dist_plus_mu:
-            mu_k *= -1
+            centroid *= -1
 
-        d = Xp.shape[1]
-        mu_k = np.tile(mu_k.T, (d, 1))
-        return mu_k
+        n_channels = _X.shape[1]
+        centroid = np.tile(centroid.T, (n_channels, 1))
+        return centroid
 
     def _update_centroids(self, X):
-        # X is (n, d, sz)
         for k in range(self.n_clusters):
             self.cluster_centers_[k] = self._shape_extraction(X, k)
 
@@ -400,16 +346,7 @@ class TimeSeriesKShape(BaseClusterer):
             self._X_fit = None
 
     def _predict(self, X, y=None) -> np.ndarray:
-        # TODO remove dependence on cdist_normalized_cc
-        # normaliser = Normalizer()
-        X_ = X.copy()
-        # X_ = normaliser.fit_transform(X_)
-        X_temp = np.transpose(X_, (0, 2, 1))
-        cluster_temp = np.transpose(self.cluster_centers_, (0, 2, 1))
-        n1 = np.linalg.norm(X_temp, axis=(1, 2))
-        n2 = np.linalg.norm(cluster_temp, axis=(1, 2))
-        dists = 1.0 - cdist_normalized_cc(X_temp, cluster_temp, n1, n2, False)
-        # dists = sbd_pairwise_distance(X_, self.cluster_centers_, standardize=False)
+        dists = self._sbd_pairwise(X, self.cluster_centers_)
         return dists.argmin(axis=1)
 
     def fit_predict(self, X, y=None):
