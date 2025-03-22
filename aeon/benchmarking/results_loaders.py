@@ -171,13 +171,13 @@ def estimator_alias(name: str) -> str:
 
     Parameters
     ----------
-    name: str
+    `name`: str
         Name of an estimator. Not case-sensitive.
 
     Returns
     -------
-    name: str
-        Standardised name as defined by NAME_ALIASES.
+    `name`: str
+        Standardised name as defined by ``NAME_ALIASES``.
 
     Examples
     --------
@@ -205,16 +205,16 @@ def get_available_estimators(
 
     Parameters
     ----------
-    task: str, default="classification"
-        A learning task contained within VALID_TASK_TYPES i.e. "classification",
-        "clustering", "regression". Not case-sensitive.
-    as_list: boolean, default=False
-        If True, returns a list instead of a dataframe.
+    `task`: str, default="classification"
+        A learning task contained within ``VALID_TASK_TYPES`` i.e. ``"classification"``,
+        ``"clustering"``, ``"regression"``. Not case-sensitive.
+    `as_list`: boolean, default=False
+        If ``True``, returns a list instead of a dataframe.
 
     Returns
     -------
-    data: pd.DataFrame or list
-        Standardised name as defined by NAME_ALIASES.
+    `data`: pd.DataFrame or list
+        Standardised name as defined by ``NAME_ALIASES``.
 
     Examples
     --------
@@ -251,39 +251,43 @@ def get_estimator_results(
 
     Parameters
     ----------
-    estimators : str ot list of str
+    `estimators` : str ot list of str
         Estimator name or list of estimator names to search for. See
-        get_available_estimators, aeon.benchmarking.results_loading.NAME_ALIASES or
-        the directory at path for valid options.
-    datasets : list of str or None, default=None
+        ``get_available_estimators``, ``aeon.benchmarking.results_loading.NAME_ALIASES``
+        or the directory at ``path`` for valid options.
+    `datasets` : list of str or None, default=None
         List of problem names to search for. If the dataset is not present in the
         results, it is ignored.
-        If None, all datasets the estimator has results for is returned.
-    num_resamples : int or None, default=1
+        If ``None``, all datasets the estimator has results for is returned.
+    `num_resamples` : int or None, default=1
         The number of data resamples to return scores for. The first resample
         is the default train/test split for the dataset.
-        For 1, only the score for the default train/test split of the dataset is
+        For ``1``, only the score for the default train/test split of the dataset is
         returned.
-        For 2 or more, a np.ndarray of scores for all resamples up to num_resamples are
-        returned.
-        If None, the scores of all resamples are returned.
-    task : str, default="classification"
-        Should be one of aeon.benchmarking.results_loading.VALID_TASK_TYPES. i.e.
-        "classification", "clustering", "regression".
-    measure : str, default="accuracy"
-        Should be one of aeon.benchmarking.results_loading.VALID_RESULT_MEASURES[task].
+        For ``2`` or more, a ``np.ndarray`` of scores for all resamples up to
+        ``num_resamples`` are returned.
+        If ``None``, the scores of all resamples are returned.
+    `task` : str, default="classification"
+        Should be one of ``aeon.benchmarking.results_loading.VALID_TASK_TYPES``.
+        i.e. "classification", "clustering", "regression".
+    `measure` : str, default="accuracy"
+        Should be one of
+        `aeon.benchmarking.results_loading.VALID_RESULT_MEASURES[task]`.
         Dependent on the task, i.e. for classification, "accuracy", "auroc", "balacc",
-        and regression, "mse", "mae", "r2".
-    remove_dataset_modifiers: bool, default=False
-        If True, will remove any dataset modifier (anything after the first underscore)
+        and regression, `"mse"`, `"mae"`, `"r2"`.
+    `remove_dataset_modifiers`: bool, default=False
+        If ``True``, will remove any dataset modifier
+        (anything after the first underscore)
         from the dataset names in the loaded results file.
-        i.e. a loaded result row for "Dataset_eq" will be converted to just "Dataset".
-    path : str, default="https://timeseriesclassification.com/results/ReferenceResults/"
+        i.e. a loaded result row for `"Dataset_eq"` will be converted to
+        just `"Dataset"`.
+    `path` : str,
+        default="https://timeseriesclassification.com/results/ReferenceResults/"
         Path where to read results from. Defaults to timeseriesclassification.com.
 
     Returns
     -------
-    results: dict
+    `results`: dict
         Dictionary with estimator name keys containing another dictionary.
         Sub-dictionary consists of dataset name keys and contains of scores for each
         dataset.
@@ -337,46 +341,51 @@ def get_estimator_results_as_array(
 
     Parameters
     ----------
-    estimators : list of str
+    `estimators` : list of str
         Estimator name or list of estimator names to search for. See
-        get_available_estimators, aeon.benchmarking.results_loading.NAME_ALIASES or
-        the directory at path for valid options.
-    datasets : list of or None, default=1
+        ``get_available_estimators``, ``aeon.benchmarking.results_loading.NAME_ALIASES``
+        or the directory at path for valid options.
+    `datasets` : list of or None, default=1
         List of problem names to search for.
-        If None, all datasets the estimator has results for is returned.
+        If ``None``, all datasets the estimator has results for is returned.
         If the dataset is not present in any of the results, it is ignored unless
-        include_missing is true.
-    num_resamples : int or None, default=None
+        ``include_missing`` is ``true``.
+    `num_resamples` : int or None, default=None
         The number of data resamples to average over for all scores. The first resample
         is the default train/test split for the dataset.
-        For 1, only the score for the default train/test split of the dataset is
+        For ``1``, only the score for the default train/test split of the dataset is
         returned.
-        For 2 or more, the scores of all resamples up to num_resamples are averaged and
-        returned.
-        If None, the scores of all resamples are averaged and returned.
-    task : str, default="classification"
-        Should be one of aeon.benchmarking.results_loading.VALID_TASK_TYPES. i.e.
-        "classification", "clustering", "regression".
-    measure : str, default="accuracy"
-        Should be one of aeon.benchmarking.results_loading.VALID_RESULT_MEASURES[task].
-        Dependent on the task, i.e. for classification, "accuracy", "auroc", "balacc",
-        and regression, "mse", "mae", "r2".
-    remove_dataset_modifiers: bool, default=False
-        If True, will remove any dataset modifier (anything after the first underscore)
+        For ``2`` or more, the scores of all resamples up to ``num_resamples`` are
+        averaged and returned.
+        If ``None``, the scores of all resamples are averaged and returned.
+    `task` : str, default="classification"
+        Should be one of ``aeon.benchmarking.results_loading.VALID_TASK_TYPES``. i.e.
+        `"classification"`, `"clustering"`, `"regression"`.
+    `measure` : str, default="accuracy"
+        Should be one of
+        `aeon.benchmarking.results_loading.VALID_RESULT_MEASURES[task]`.
+        Dependent on the task, i.e. for classification, `"accuracy"`, `"auroc"`,
+        `"balacc"` and regression, `"mse"`, `"mae"`, `"r2"`.
+    `remove_dataset_modifiers`: bool, default=False
+        If ``True``, will remove any dataset modifier
+        (anything after the first underscore)
         from the dataset names in the loaded results file.
-        i.e. a loaded result row for "Dataset_eq" will be converted to just "Dataset".
-    path : str, default="https://timeseriesclassification.com/results/ReferenceResults/"
+        i.e. a loaded result row for `"Dataset_eq"` will be converted to
+        just `"Dataset"`.
+    `path` : str,
+        default="https://timeseriesclassification.com/results/ReferenceResults/"
         Path where to read results from. Defaults to timeseriesclassification.com.
-    include_missing : bool, default=False
+    `include_missing` : bool, default=False
         Whether to include datasets with missing results in the output.
-        If False, the whole problem is ignored if any estimator is missing results it.
-        If True, NaN is returned instead of a score in missing cases.
+        If ``False``, the whole problem is ignored if any estimator is missing
+        results it.
+        If ``True``, ``NaN`` is returned instead of a score in missing cases.
 
     Returns
     -------
-    results: 2D numpy array
+    `results`: 2D numpy array
         Array of scores. Each column is a results for a classifier, each row a dataset.
-    names: list of str
+    `names`: list of str
         List of dataset names that were retained.
 
     Examples
