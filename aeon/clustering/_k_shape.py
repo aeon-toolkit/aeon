@@ -197,23 +197,12 @@ class TimeSeriesKShape(BaseClusterer):
             if np.sum(labels == k) == 0:
                 raise EmptyClusterError
 
-    def _compute_inertia(self, distances, labels):
-        """Find inertia based on distances and labels."""
-        n_cases = distances.shape[0]
-        return np.sum(distances[np.arange(n_cases), labels] ** 2) / n_cases
-
     def _sbd_pairwise(self, X, Y):
         # TODO remove dependence on cdist_normalized_cc
         return 1.0 - cdist_normalized_cc(
             np.transpose(X, (0, 2, 1)),
             np.transpose(Y, (0, 2, 1)),
         )
-
-    def _assign(self, X):
-        dists = self._sbd_pairwise(X, self.cluster_centers_)
-        self.labels_ = dists.argmin(axis=1)
-        self._check_no_empty_cluster(self.labels_, self.n_clusters)
-        self.inertia_ = self._compute_inertia(dists, self.labels_)
 
     def _sbd_dist(self, X, Y):
         return 1.0 - normalized_cc(np.transpose(X, (1, 0)), np.transpose(Y, (1, 0)))
@@ -237,15 +226,13 @@ class TimeSeriesKShape(BaseClusterer):
 
         return aligned_X_to_centroid
 
-    def _shape_extraction(self, X, k):
+    def _shape_extraction(self, X, k, cluster_centers, labels):
         n_timepoints = X.shape[2]
         n_channels = X.shape[1]
-        _X = self._align_data_to_reference(
-            self.cluster_centers_[k], X[self.labels_ == k]
-        )
-        S = np.dot(_X[:, 0, :].T, _X[:, 0, :])
+        _X = self._align_data_to_reference(cluster_centers[k], X[labels == k])
+        S = _X[:, 0, :].T @ _X[:, 0, :]
         Q = np.eye(n_timepoints) - np.ones((n_timepoints, n_timepoints)) / n_timepoints
-        M = np.dot(Q.T, np.dot(S, Q))
+        M = Q.T @ S @ Q
 
         _, vec = np.linalg.eigh(M)
         centroid = vec[:, -1].reshape((n_timepoints, 1))
@@ -261,66 +248,76 @@ class TimeSeriesKShape(BaseClusterer):
         centroid = np.tile(centroid.T, (n_channels, 1))
         return centroid
 
-    def _update_centroids(self, X):
+    def _update_centroids(self, X, cluster_centers, labels):
         for k in range(self.n_clusters):
-            self.cluster_centers_[k] = self._shape_extraction(X, k)
+            cluster_centers[k] = self._shape_extraction(X, k, cluster_centers, labels)
 
         normaliser = Normalizer()
-        self.cluster_centers_ = normaliser.fit_transform(self.cluster_centers_)
+        return normaliser.fit_transform(cluster_centers)
+
+    def _assign(self, X, cluster_centers):
+        dists = self._sbd_pairwise(X, cluster_centers)
+        labels = dists.argmin(axis=1)
+        inertia = dists.min(axis=0).sum()
+        self._check_no_empty_cluster(labels, self.n_clusters)
+        return labels, inertia
 
     def _fit_one_init(self, X):
         if isinstance(self._init, Callable):
-            self.cluster_centers_ = self._init(X)
+            cluster_centers = self._init(X)
         else:
-            self.cluster_centers_ = self._init.copy()
+            cluster_centers = self._init.copy()
 
-        self._assign(X)
-        old_inertia = np.inf
-
+        cur_labels, _ = self._assign(X, cluster_centers)
+        prev_inertia = np.inf
+        prev_labels = None
         it = 0
         for it in range(self.max_iter):  # noqa: B007
-            old_cluster_centers = self.cluster_centers_.copy()
-            self._update_centroids(X)
-            self._assign(X)
-            if self.verbose:
-                print("%.3f" % self.inertia_, end=" --> ")  # noqa: T001, T201
+            prev_centers = cluster_centers
+            cluster_centers = self._update_centroids(X, prev_centers, cur_labels)
+            cur_labels, cur_inertia = self._assign(X, cluster_centers)
 
-            if np.abs(old_inertia - self.inertia_) < self.tol or (
-                old_inertia - self.inertia_ < 0
+            if self.verbose:
+                print("%.3f" % cur_inertia, end=" --> ")  # noqa: T001, T201
+
+            if np.abs(prev_inertia - cur_inertia) < self.tol or (
+                prev_inertia - cur_inertia < 0
             ):
-                self.cluster_centers_ = old_cluster_centers
-                self._assign(X)
+                cluster_centers = prev_centers
+                cur_labels, cur_inertia = self._assign(X, cluster_centers)
                 break
 
-            old_inertia = self.inertia_
+            prev_inertia = cur_inertia
+            prev_labels = cur_labels
         if self.verbose:
             print("")  # noqa: T001, T201
 
-        self._iter = it + 1
-
-        return self
+        return prev_labels, cluster_centers, prev_inertia, it + 1
 
     def _fit(self, X, y=None):
         self._check_params(X)
 
-        self.inertia_ = np.inf
-        best_correct_centroids = None
-        min_inertia = np.inf
+        best_centroids = None
+        best_inertia = np.inf
+        best_labels = None
+        best_iters = self.max_iter
 
         for _ in range(self.n_init):
             try:
-                self._fit_one_init(X)
-                if self.inertia_ < min_inertia:
-                    best_correct_centroids = self.cluster_centers_.copy()
-                    min_inertia = self.inertia_
-                    self.n_iter_ = self._iter
+                labels, centers, inertia, n_iters = self._fit_one_init(X)
+                if inertia < best_inertia:
+                    best_centroids = centers
+                    best_labels = labels
+                    best_iters = n_iters
+                    best_inertia = inertia
             except EmptyClusterError:
                 if self.verbose:
                     print("Resumed because of empty cluster")  # noqa: T001, T201
 
-        self.cluster_centers_ = best_correct_centroids
-        self._assign(X)
-        self.inertia_ = min_inertia
+        self.cluster_centers_ = best_centroids
+        self.inertia_ = best_inertia
+        self.labels_ = best_labels
+        self.n_iter_ = best_iters
         return self
 
     def _predict(self, X, y=None) -> np.ndarray:
