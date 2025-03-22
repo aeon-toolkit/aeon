@@ -160,22 +160,27 @@ class TimeSeriesKShape(BaseClusterer):
 
         super().__init__()
 
+    def _incorrect_params_print(self):
+        return (
+            f"The value provided for init: {self.init} is "
+            f"invalid. The following are a list of valid init algorithms "
+            f"strings: random. You can also pass a"
+            f"np.ndarray of size (n_clusters, n_channels, n_timepoints)"
+        )
+
     def _check_params(self, X: np.ndarray) -> None:
         self._random_state = check_random_state(self.random_state)
 
         if isinstance(self.init, str):
             if self.init == "random":
                 self._init = self._random_center_initializer
+            else:
+                self._incorrect_params_print()
         else:
             if isinstance(self.init, np.ndarray) and len(self.init) == self.n_clusters:
                 self._init = self.init.copy()
             else:
-                raise ValueError(
-                    f"The value provided for init: {self.init} is "
-                    f"invalid. The following are a list of valid init algorithms "
-                    f"strings: random, kmedoids++, first. You can also pass a"
-                    f"np.ndarray of size (n_clusters, n_channels, n_timepoints)"
-                )
+                self._incorrect_params_print()
 
         if self.n_clusters > X.shape[0]:
             raise ValueError(
@@ -192,13 +197,10 @@ class TimeSeriesKShape(BaseClusterer):
             if np.sum(labels == k) == 0:
                 raise EmptyClusterError
 
-    def _compute_inertia(self, distances, assignments, squared=True):
-        """Derive inertia from pre-computed distances and assignments."""
+    def _compute_inertia(self, distances, labels):
+        """Find inertia based on distances and labels."""
         n_cases = distances.shape[0]
-        if squared:
-            return np.sum(distances[np.arange(n_cases), assignments] ** 2) / n_cases
-        else:
-            return np.sum(distances[np.arange(n_cases), assignments]) / n_cases
+        return np.sum(distances[np.arange(n_cases), labels] ** 2) / n_cases
 
     def _sbd_pairwise(self, X, Y):
         # TODO remove dependence on cdist_normalized_cc
@@ -265,7 +267,6 @@ class TimeSeriesKShape(BaseClusterer):
 
         normaliser = Normalizer()
         self.cluster_centers_ = normaliser.fit_transform(self.cluster_centers_)
-        self.norms_centroids_ = np.linalg.norm(self.cluster_centers_, axis=(1, 2))
 
     def _fit_one_init(self, X):
         if isinstance(self._init, Callable):
@@ -273,7 +274,6 @@ class TimeSeriesKShape(BaseClusterer):
         else:
             self.cluster_centers_ = self._init.copy()
 
-        self.norms_centroids_ = np.linalg.norm(self.cluster_centers_, axis=(1, 2))
         self._assign(X)
         old_inertia = np.inf
 
@@ -301,49 +301,27 @@ class TimeSeriesKShape(BaseClusterer):
         return self
 
     def _fit(self, X, y=None):
-        # X = check_array(X, allow_nd=True) add aeon version
         self._check_params(X)
 
-        max_attempts = max(self.n_init, 10)
-
         self.inertia_ = np.inf
-
-        self.norms_ = 0.0
-        self.norms_centroids_ = 0.0
-
-        self._X_fit = X
-        self.norms_ = np.linalg.norm(X, axis=(1, 2))
-
         best_correct_centroids = None
         min_inertia = np.inf
-        n_successful = 0
-        n_attempts = 0
-        while n_successful < self.n_init and n_attempts < max_attempts:
+
+        for _ in range(self.n_init):
             try:
-                if self.verbose and self.n_init > 1:
-                    print("Init %d" % (n_successful + 1))  # noqa: T001, T201
-                n_attempts += 1
                 self._fit_one_init(X)
                 if self.inertia_ < min_inertia:
                     best_correct_centroids = self.cluster_centers_.copy()
                     min_inertia = self.inertia_
                     self.n_iter_ = self._iter
-                n_successful += 1
             except EmptyClusterError:
                 if self.verbose:
                     print("Resumed because of empty cluster")  # noqa: T001, T201
-        self.norms_centroids_ = np.linalg.norm(self.cluster_centers_, axis=(1, 2))
-        self._post_fit(X, best_correct_centroids, min_inertia)
-        return self
 
-    def _post_fit(self, X_fitted, centroids, inertia):
-        if np.isfinite(inertia) and (centroids is not None):
-            self.cluster_centers_ = centroids
-            self._assign(X_fitted)
-            self._X_fit = X_fitted
-            self.inertia_ = inertia
-        else:
-            self._X_fit = None
+        self.cluster_centers_ = best_correct_centroids
+        self._assign(X)
+        self.inertia_ = min_inertia
+        return self
 
     def _predict(self, X, y=None) -> np.ndarray:
         dists = self._sbd_pairwise(X, self.cluster_centers_)
