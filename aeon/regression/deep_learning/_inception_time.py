@@ -369,6 +369,57 @@ class InceptionTimeRegressor(BaseRegressor):
 
         return [param1]
 
+    @classmethod
+    def load_model(cls, file_path, load_best=True):
+        """
+        Load a saved InceptionTime regressor from file.
+
+        Parameters
+        ----------
+        file_path : str
+            The path to the directory containing the saved model files
+        load_best : bool, default = True
+            Whether to load the best model (if save_best_model was True during training)
+            or the last model (if save_last_model was True during training)
+
+        Returns
+        -------
+        InceptionTimeRegressor
+            Loaded regressor
+        """
+        import tensorflow as tf
+        from os.path import exists
+
+        regressor = cls()
+        regressor.regressors_ = []
+
+        # Try to load each regressor model
+        i = 0
+        while True:
+            if load_best:
+                model_path = file_path + "best_model" + str(i) + ".keras"
+            else:
+                model_path = file_path + "last_model" + str(i) + ".keras"
+
+            if not exists(model_path):
+                break
+
+            rgs = IndividualInceptionRegressor()
+            rgs.model_ = tf.keras.models.load_model(model_path, compile=False)
+            rgs.is_fitted = True
+            regressor.regressors_.append(rgs)
+            i += 1
+
+        if len(regressor.regressors_) == 0:
+            raise FileNotFoundError(
+                f"No valid model files found in {file_path} with prefix "
+                f"{'best_model' if load_best else 'last_model'}"
+            )
+
+        regressor.n_regressors = len(regressor.regressors_)
+        regressor.is_fitted = True
+        return regressor
+
 
 class IndividualInceptionRegressor(BaseDeepRegressor):
     """Single Inception regressor.
