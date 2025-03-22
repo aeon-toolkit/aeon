@@ -1,4 +1,5 @@
 """Test load_model functionality for deep learning regression ensemble models."""
+
 import os
 import tempfile
 

@@ -319,8 +319,9 @@ class LITETimeRegressor(BaseRegressor):
         LITETimeRegressor
             Loaded regressor
         """
-        import tensorflow as tf
         from os.path import exists
+
+        import tensorflow as tf
 
         regressor = cls()
         regressor.regressors_ = []
