@@ -201,7 +201,6 @@ class TimeSeriesKShape(BaseClusterer):
                 raise EmptyClusterError
 
     def _sbd_pairwise(self, X, Y):
-        # TODO remove dependence on cdist_normalized_cc
         return 1.0 - cdist_normalized_cc(
             np.transpose(X, (0, 2, 1)),
             np.transpose(Y, (0, 2, 1)),
@@ -214,7 +213,6 @@ class TimeSeriesKShape(BaseClusterer):
         n_cases, n_channels, n_timepoints = X_partition.shape
         aligned_X_to_centroid = np.zeros((n_cases, n_channels, n_timepoints))
         for i in range(n_cases):
-            # TODO: remove dependency on normalized_cc
             cc = self._sbd_dist(partition_centroid, X_partition[i])
             idx = np.argmax(cc)
             shift = idx - n_timepoints
