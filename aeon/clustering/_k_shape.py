@@ -254,7 +254,7 @@ class TimeSeriesKShape(BaseClusterer):
     def _assign(self, X, cluster_centers):
         dists = self._sbd_pairwise(X, cluster_centers)
         labels = dists.argmin(axis=1)
-        inertia = dists.min(axis=0).sum()
+        inertia = dists.min(axis=1).sum()
 
         for i in range(self.n_clusters):
             if np.sum(labels == i) == 0:
