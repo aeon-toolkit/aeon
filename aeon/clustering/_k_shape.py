@@ -69,7 +69,7 @@ class EmptyClusterError(Exception):
 
 
 class TimeSeriesKShape(BaseClusterer):
-    """Kshape algorithm: wrapper of the ``tslearn`` implementation.
+    """Kshape algorithm: inspired by ``tslearn`` implementation.
 
     Parameters
     ----------
