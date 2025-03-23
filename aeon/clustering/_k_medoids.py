@@ -46,13 +46,17 @@ class TimeSeriesKMedoids(BaseClusterer):
         The number of clusters to form as well as the number of centroids to generate.
     init : str or np.ndarray, default='random'
         Method for initialising cluster centers. Any of the following are valid:
-        ['kmedoids++', 'random', 'first'].
+        ['kmedoids++', 'random', 'first', 'build'].
         Random is the default as it is very fast and it was found in [2] to
         perform about as well as the other methods.
         Kmedoids++ is a variant of kmeans++ [4] and is slower but often more
         accurate than random. It works by choosing centroids that are distant
         from one another. First is the fastest method and simply chooses the
-        first k time series as centroids.
+        first k time series as centroids. Build [1] greedily selects the k medoids
+        by first selecting the medoid that minimizes the sum of distances
+        to all other points(this point is the most centrally located) and then
+        iteratively selects the next k-1 medoids that maximizes the decrease in sum
+        of distances of all other points to their respective medoids selected so far.
         If a np.ndarray provided it must be of shape (n_clusters,) and contain
         the indexes of the time series to use as centroids.
     distance : str or Callable, default='msm'
@@ -425,6 +429,14 @@ class TimeSeriesKMedoids(BaseClusterer):
         pairwise_matrix = self._compute_pairwise(X, X_indexes, cluster_center_indexes)
         return pairwise_matrix.argmin(axis=1), pairwise_matrix.min(axis=1).sum()
 
+    def _incorrect_params(self) -> str:
+        return (
+            f"The value provided for init: {self.init} is "
+            f"invalid. The following are a list of valid init algorithms "
+            f"strings: random, kmedoids++, first, build. You can also pass a "
+            f"np.ndarray of size (n_clusters, n_channels, n_timepoints)"
+        )
+
     def _check_params(self, X: np.ndarray) -> None:
         self._random_state = check_random_state(self.random_state)
 
@@ -437,16 +449,13 @@ class TimeSeriesKMedoids(BaseClusterer):
                 self._init = self._first_center_initializer
             elif self.init == "build":
                 self._init = self._pam_build_center_initializer
+            else:
+                raise ValueError(self._incorrect_params())
         else:
             if isinstance(self.init, np.ndarray) and len(self.init) == self.n_clusters:
                 self._init = self.init
             else:
-                raise ValueError(
-                    f"The value provided for init: {self.init} is "
-                    f"invalid. The following are a list of valid init algorithms "
-                    f"strings: random, kmedoids++, first. You can also pass a"
-                    f"np.ndarray of size (n_clusters, n_channels, n_timepoints)"
-                )
+                raise ValueError(self._incorrect_params())
 
         if self.distance_params is not None:
             self._distance_params = self.distance_params
