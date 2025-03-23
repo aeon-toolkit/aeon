@@ -714,6 +714,8 @@ class ShapeletClassifierVisualizer:
         # classification for the given class_id
         if isinstance(classifier, LinearClassifierMixin):
             coefs = classifier.coef_
+            if coefs.ndim == 1:
+                coefs = coefs[np.newaxis, :]
             n_classes = coefs.shape[0]
             if n_classes == 1:
                 if isinstance(self.estimator, RDSTClassifier):
