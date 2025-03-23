@@ -1,6 +1,6 @@
 """EIF(Extended Isolation Forest) anomaly detector."""
 
-__maintainer__ = [""]
+__maintainer__ = ["Akhil-Jasson"]
 __all__ = ["EIF"]
 
 import numpy as np
@@ -11,7 +11,7 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class EIF(BaseAnomalyDetector):
-    """Extended Isolation Forest (EIF) for anomaly detection using h2o.ai implementation.
+    """Extended Isolation Forest (EIF) for anomaly detection using h2o.ai.
 
     Parameters
     ----------
