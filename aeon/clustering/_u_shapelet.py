@@ -33,6 +33,20 @@ class UShapeletClusterer(BaseClusterer):
         If None, it is set based on the number of time series.
     random_state : int or np.random.RandomState, optional, default=None
         Seed or random number generator for reproducibility.
+
+    References
+    ----------
+    ..[1] Ulanova, L., Begum, N., & Keogh, E. (2015). Scalable Clustering of
+      Time Series with U‐Shapelets. In Proceedings of the 2015 SIAM International
+      Conference on Data Mining (SDM) (pp. 900–908).
+
+    ..[2] Zakaria, J., Mueen, A., & Keogh, E. (2012). Clustering Time Series
+      Using Unsupervised‐Shapelets. In 2012 IEEE 12th International Conference
+      on Data Mining (ICDM) (pp. 785–794).
+
+    ..[3] Zakaria, J., Mueen, A., Keogh, E., & Young, N. (2016). Accelerating the
+      Discovery of Unsupervised‐Shapelets. Data Mining and Knowledge Discovery,
+      30(2), 243–281.
     """
 
     _tags = {
