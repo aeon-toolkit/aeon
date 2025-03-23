@@ -34,7 +34,7 @@ def test_ushapelet_clusterer():
         projections=5,
         lb=1,
         ub=4,
-        random_state=42,
+        random_state=18,
     )
 
     ushapelet.fit(data)
@@ -45,6 +45,7 @@ def test_ushapelet_clusterer():
     assert ushapelet.best_gap_ != -float("inf"), "Best gap should be finite."
 
     labels = ushapelet.predict(data)
+
     assert isinstance(labels, np.ndarray), "Predictions should be a numpy array."
     assert labels.shape[0] == len(data), "There should be one label per series."
     unique_labels = np.unique(labels)

@@ -20,7 +20,7 @@ class UShapeletClusterer(BaseClusterer):
     ----------
     subseq_length : int, default=10
         Length of the subsequences to consider as candidate shapelets.
-    sax_length : int, default=8
+    sax_length : int, default=16
         Length of the PAA transformation used in the SAX representation.
     projections : int, default=10
         Number of random projections used in collision counting.
@@ -43,7 +43,7 @@ class UShapeletClusterer(BaseClusterer):
     def __init__(
         self,
         subseq_length: int = 10,
-        sax_length: int = 8,
+        sax_length: int = 16,
         projections: int = 10,
         lb: int = 2,
         ub: int = None,
@@ -66,7 +66,7 @@ class UShapeletClusterer(BaseClusterer):
 
         super().__init__()
 
-    def _fit(self, X, y=None):
+    def _fit(self, X: np.ndarray, y=None) -> "UShapeletClusterer":
         """
         Fit the UShapeletClusterer to the provided time series data.
 
@@ -75,10 +75,10 @@ class UShapeletClusterer(BaseClusterer):
 
         Parameters
         ----------
-        X : list of array-like
+        X : np.ndarray or list of arrays
             List of univariate time series.
         y : None
-            Ignored. This parameter exists for compatibility with the scikit-learn API.
+            Ignored.
 
         Returns
         -------
@@ -107,10 +107,10 @@ class UShapeletClusterer(BaseClusterer):
 
         Parameters
         ----------
-        X : list of array-like
+        X : np.ndarray or list of arrays
             List of univariate time series.
         y : None
-            Ignored. This parameter exists for compatibility with the scikit-learn API.
+            Ignored.
 
         Returns
         -------
@@ -133,7 +133,7 @@ class UShapeletClusterer(BaseClusterer):
 
     def z_normalize(self, X: np.ndarray) -> np.ndarray:
         """
-        Z-normalize a time series.
+        Z-normalize a time series (1D array).
 
         Parameters
         ----------
@@ -220,6 +220,10 @@ class UShapeletClusterer(BaseClusterer):
                 subseq = series[start : start + subseq_length]
                 norm_subseq = self.z_normalize(subseq)
                 paa = self.paa_transform(norm_subseq, sax_length)
+                # 0 for normlized value below -0.6745 (from brakpoints)
+                # 1 for value between -0.6745 and 0.6745
+                # 2 for values that are 0
+                # 3 for values above 0.6745
                 symbols = np.digitize(paa, self.sax_breakpoints)
                 sax_word = tuple(int(sym) for sym in symbols)
                 candidates.append((series_idx, start, sax_word))
@@ -261,7 +265,7 @@ class UShapeletClusterer(BaseClusterer):
                 np.arange(sax_length), size=mask_size, replace=False
             )
             mask_positions = set(mask_positions)
-            masked_map = defaultdict(set)
+            masked_map = defaultdict(set)  # automatic new key creation
 
             for idx, word in enumerate(sax_words):
                 masked_key = tuple(
@@ -285,7 +289,7 @@ class UShapeletClusterer(BaseClusterer):
 
         The gap score evaluates the separation between two groups of time series based
         on their distance to the shapelet. It computes the difference between the lower
-        group’s (DA) upper bound and the upper group’s (DB) lower bound, defined by
+        group's (DA) upper bound and the upper group's (DB) lower bound, defined by
         their means and standard deviations.
 
         Parameters
@@ -410,7 +414,7 @@ class UShapeletClusterer(BaseClusterer):
         collision_var = np.std(np.array(collision_counts)[filtered_indices], axis=1)
         sorted_order = filtered_indices[np.argsort(collision_var)]
 
-        top_count = len(sorted_order)  # Evaluate all
+        top_count = len(sorted_order)  # evaluate all
         top_indices = sorted_order[:top_count]
 
         best_gap = -float("inf")
@@ -453,5 +457,5 @@ class UShapeletClusterer(BaseClusterer):
             "projections": 5,
             "lb": 1,
             "ub": 4,
-            "random_state": 42,
+            "random_state": 18,
         }
