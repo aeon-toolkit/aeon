@@ -336,7 +336,8 @@ class TimeSeriesKShape(BaseClusterer):
                 if self.verbose:
                     print("Resumed because of empty cluster")  # noqa: T001, T201
 
-        self.cluster_centers_ = best_centroids
+        if best_centroids is not None:
+            self.cluster_centers_ = best_centroids
         self.inertia_ = best_inertia
         self.labels_ = best_labels
         self.n_iter_ = best_iters
