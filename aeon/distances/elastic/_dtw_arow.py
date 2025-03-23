@@ -37,7 +37,7 @@ def dtw_arow_cost_matrix(x: np.ndarray, y: np.ndarray) -> np.ndarray:
 def _dtw_arow_distance(x: np.ndarray, y: np.ndarray) -> float:
     M1av = _total_non_nan(x)
     M2av = _total_non_nan(y)
-    gamma = (x.shape[1] + y.shape[1]) / (M1av + M2av) if (M1av + M2av) > 0 else 1
+    gamma = (x.shape[1] + y.shape[1]) / (M1av + M2av)
     return np.sqrt(gamma * _dtw_arow_cost_matrix(x, y)[x.shape[1], y.shape[1]])
 
 
@@ -55,7 +55,7 @@ def _total_non_nan(x: np.ndarray) -> float:
     if x.shape[0] == 1:
         return np.sum(~np.isnan(x[0]))
     else:
-        return np.sum(~np.all(np.isnan(x), axis=0))
+        return np.sum(~np.isnan(x).any(axis=0))
 
 
 def _dtw_arow_cost_path_helper(
@@ -66,55 +66,54 @@ def _dtw_arow_cost_path_helper(
     cost_matrix = np.full((n + 1, m + 1), np.inf)
     phi = np.full((n + 1, m + 1), -1)
 
-    cost_matrix[0, :] = 0
-    cost_matrix[:, :] = 0
-
-    for i in range(1, n + 1):
-        for j in range(1, m + 1):
+    # cost_matrix[0, :] = 0
+    # cost_matrix[:, 0] = 0
+    cost_matrix[0, 0] = 0
+    for i in range(1, n + 1):  # i from 1 to N
+        for j in range(1, m + 1):  # j from 1 to M
             if j > 1:
                 if (
-                    _check_nan(x[:, i - 1])
-                    or _check_nan(y[:, j - 1])
-                    or _check_nan(y[:, j - 2])
+                    _check_nan(x[:, i - 1])  # Xi is NaN
+                    or _check_nan(y[:, j - 1])  # Yj is NaN
+                    or _check_nan(y[:, j - 2])  # Yj-1 is NaN
                 ):
                     eh = np.inf
                 else:
                     eh = 0
             else:
                 if _check_nan(x[:, i - 1]) or _check_nan(y[:, j - 1]):
+                    # Xi is NaN or Yj is NaN
                     eh = np.inf
                 else:
                     eh = 0
 
             if i > 1:
                 if (
-                    _check_nan(x[:, i - 1])
-                    or _check_nan(x[:, i - 2])
-                    or _check_nan(y[:, j - 1])
+                    _check_nan(x[:, i - 1])  # Xi is NaN
+                    or _check_nan(x[:, i - 2])  # Xi-1 is NaN
+                    or _check_nan(y[:, j - 1])  # Yj is NaN
                 ):
                     ev = np.inf
                 else:
                     ev = 0
             else:
                 if _check_nan(x[:, i - 1]) or _check_nan(y[:, j - 1]):
+                    # Xi is NaN or Yj is NaN
                     ev = np.inf
                 else:
                     ev = 0
 
+            # costfunc(Xi, Yj)
             current_cost = _cost_function(x[:, i - 1], y[:, j - 1])
-            cost_diag = cost_matrix[i - 1, j - 1]
+            cost_diag = cost_matrix[i - 1, j - 1]  # 1 indexed
             cost_horiz = cost_matrix[i, j - 1] + eh
             cost_vert = cost_matrix[i - 1, j] + ev
 
             best_prev = min(cost_diag, cost_horiz, cost_vert)
             cost_matrix[i, j] = current_cost + best_prev
+            phi[i, j] = np.argmin([cost_diag, cost_horiz, cost_vert])
 
-            if best_prev == cost_diag:
-                phi[i, j] = 0
-            elif best_prev == cost_horiz:
-                phi[i, j] = 1
-            else:
-                phi[i, j] = 2
+    # print(cost_matrix, phi)
 
     return cost_matrix, phi
 
