@@ -266,6 +266,8 @@ class TimeSeriesKShape(BaseClusterer):
         else:
             cluster_centers = self._init.copy()
 
+        self.cluster_centers_ = cluster_centers
+
         cur_labels, _ = self._assign(X, cluster_centers)
         prev_inertia = np.inf
         prev_labels = None
