@@ -4,6 +4,7 @@ from sklearn import metrics
 from aeon.clustering.feature_based import Catch22Clusterer
 from aeon.datasets import load_basic_motions, load_gunpoint
 
+
 def test_catch22_multivariate():
     """Test Catch22 Clusterer with univariate data."""
     X_train, y_train = load_basic_motions(split="train")
@@ -17,7 +18,6 @@ def test_catch22_multivariate():
 
     catach22 = Catch22Clusterer(
         random_state=1,
-
     )
     train_result = catach22.fit_predict(X_train)
     train_score = metrics.rand_score(y_train, train_result)
@@ -69,5 +69,3 @@ def test_catch22_univariate():
     assert test_score == 0.531578947368421
     assert test_result.shape == (20,)
     assert train_result.shape == (20,)
-
-

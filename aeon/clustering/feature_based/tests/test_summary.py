@@ -4,6 +4,7 @@ from sklearn import metrics
 from aeon.clustering.feature_based import SummaryClusterer
 from aeon.datasets import load_basic_motions, load_gunpoint
 
+
 def test_summary_univariate():
     """Test Summary Clusterer with univariate data."""
     X_train, y_train = load_gunpoint(split="train")
@@ -68,5 +69,3 @@ def test_summary_multivariate():
     assert test_score == 0.7263157894736842
     assert test_result.shape == (20,)
     assert train_result.shape == (20,)
-
-
