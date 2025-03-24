@@ -1,12 +1,13 @@
 """Tests for TSFresh Clusterer."""
 
 import numpy as np
-from sklearn import metrics
 import pytest
+from sklearn import metrics
+
 from aeon.clustering.feature_based import TSFreshClusterer
 from aeon.datasets import load_basic_motions, load_gunpoint
-
 from aeon.utils.validation._dependencies import _check_soft_dependencies
+
 
 @pytest.mark.skipif(
     not _check_soft_dependencies(["tsfresh"], severity="none"),
@@ -44,6 +45,7 @@ def test_tsfresh_univariate():
     assert test_score == 0.4789473684210526
     assert test_result.shape == (20,)
     assert train_result.shape == (20,)
+
 
 @pytest.mark.skipif(
     not _check_soft_dependencies(["tsfresh"], severity="none"),
