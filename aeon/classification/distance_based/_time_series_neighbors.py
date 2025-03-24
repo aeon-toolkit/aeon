@@ -5,6 +5,7 @@ The class can take callables or uses string references to utilise the numba base
 distances in aeon.distances.
 """
 
+import numbers
 from typing import Optional
 
 __maintainer__ = []
@@ -15,7 +16,8 @@ from typing import Callable, Union
 import numpy as np
 
 from aeon.classification.base import BaseClassifier
-from aeon.distances import get_distance_function
+from aeon.distances import pairwise_distance
+from aeon.utils._threading import threaded
 
 WEIGHTS_SUPPORTED = ["uniform", "distance"]
 
@@ -46,11 +48,10 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         n_timepoints)`` as input and returns a float.
     distance_params : dict, default = None
         Dictionary for metric parameters for the case that distance is a str.
-    n_jobs : int, default = None
-        The number of parallel jobs to run for neighbors search.
-        ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.
-        ``-1`` means using all processors.
-        for more details. Parameter for compatibility purposes, still unimplemented.
+    n_jobs : int, default=1
+        The number of jobs to run in parallel. If -1, then the number of jobs is set
+        to the number of CPU cores. If 1, then the function is executed in a single
+        thread. If greater than 1, then the function is executed in parallel.
 
     Examples
     --------
@@ -111,7 +112,6 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         y : array-like, shape = (n_cases)
             The class labels.
         """
-        self.metric_ = get_distance_function(method=self.distance)
         self.X_ = X
         self.classes_, self.y_ = np.unique(y, return_inverse=True)
         return self
@@ -136,7 +136,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         """
         preds = np.zeros((len(X), len(self.classes_)))
         for i in range(len(X)):
-            idx, weights = self._kneighbors(X[i])
+            idx, weights = self.kneighbors(X[i])
             for id, w in zip(idx, weights):
                 predicted_class = self.y_[id]
                 preds[i, predicted_class] += w
@@ -163,61 +163,80 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         """
         self._check_is_fitted()
 
-        preds = np.empty(len(X), dtype=self.classes_.dtype)
-        for i in range(len(X)):
-            scores = np.zeros(len(self.classes_))
-            idx, weights = self._kneighbors(X[i])
-            for id, w in zip(idx, weights):
-                predicted_class = self.y_[id]
-                scores[predicted_class] += w
+        indexes = self.kneighbors(X, return_distance=False)[:, 0]
+        return self.classes_[self.y_[indexes]]
 
-            preds[i] = self.classes_[np.argmax(scores)]
+    @threaded
+    def kneighbors(self, X=None, n_neighbors=None, return_distance=True):
+        """Find the K-neighbors of a point.
 
-        return preds
-
-    def _kneighbors(self, X):
-        """
-        Find the K-neighbors of a point.
-
-        Returns indices and weights of each point.
+        Returns indices of and distances to the neighbors of each point.
 
         Parameters
         ----------
-        X : np.ndarray
-            A single time series instance if shape = (n_channels, n_timepoints)
+        X : 3D np.ndarray of shape = (n_cases, n_channels, n_timepoints) or list of
+        shape [n_cases] of 2D arrays shape (n_channels,n_timepoints_i)
+            The query point or points.
+            If not provided, neighbors of each indexed point are returned.
+            In this case, the query point is not considered its own neighbor.
+        n_neighbors : int, default=None
+            Number of neighbors required for each sample. The default is the value
+            passed to the constructor.
+        return_distance : bool, default=True
+            Whether or not to return the distances.
 
         Returns
         -------
-        ind : array
+        neigh_dist : ndarray of shape (n_queries, n_neighbors)
+            Array representing the distances to points, only present if
+            return_distance=True.
+        neigh_ind : ndarray of shape (n_queries, n_neighbors)
             Indices of the nearest points in the population matrix.
-        ws : array
-            Array representing the weights of each neighbor.
         """
-        distances = np.array(
-            [
-                self.metric_(X, self.X_[j], **self._distance_params)
-                for j in range(len(self.X_))
-            ]
+        self._check_is_fitted()
+        if n_neighbors is None:
+            n_neighbors = self.n_neighbors
+        elif n_neighbors <= 0:
+            raise ValueError(f"Expected n_neighbors > 0. Got {n_neighbors}")
+        elif not isinstance(n_neighbors, numbers.Integral):
+            raise TypeError(
+                f"n_neighbors does not take {type(n_neighbors)} value, "
+                "enter integer value"
+            )
+
+        query_is_train = X is None
+        if query_is_train:
+            X = self.X_
+            n_neighbors += 1
+        else:
+            X = self._preprocess_collection(X, store_metadata=False)
+            self._check_shape(X)
+
+        distances = pairwise_distance(
+            X,
+            self.X_ if not query_is_train else None,
+            method=self.distance,
+            n_jobs=self.n_jobs,
+            **self._distance_params,
         )
 
-        # Find indices of k nearest neighbors using partitioning:
-        # [0..k-1], [k], [k+1..n-1]
-        # They might not be ordered within themselves,
-        # but it is not necessary and partitioning is
-        # O(n) while sorting is O(nlogn)
-        closest_idx = np.argpartition(distances, self.n_neighbors)
-        closest_idx = closest_idx[: self.n_neighbors]
+        sample_range = np.arange(distances.shape[0])[:, None]
+        neigh_ind = np.argpartition(distances, n_neighbors - 1, axis=1)
+        neigh_ind = neigh_ind[:, :n_neighbors]
+        neigh_ind = neigh_ind[
+            sample_range, np.argsort(distances[sample_range, neigh_ind])
+        ]
 
-        if self.weights == "distance":
-            ws = distances[closest_idx]
-            # Using epsilon ~= 0 to avoid division by zero
-            ws = 1 / (ws + np.finfo(float).eps)
-        elif self.weights == "uniform":
-            ws = np.repeat(1.0, self.n_neighbors)
-        else:
-            raise Exception(f"Invalid kNN weights: {self.weights}")
+        if query_is_train:
+            neigh_ind = neigh_ind[:, 1:]
 
-        return closest_idx, ws
+        if return_distance:
+            if query_is_train:
+                neigh_dist = distances[sample_range, neigh_ind]
+                return neigh_dist, neigh_ind
+            return distances[sample_range, neigh_ind], neigh_ind
+
+        return neigh_ind
 
     @classmethod
     def _get_test_params(
