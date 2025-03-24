@@ -20,6 +20,27 @@ their [developer's guide](https://scikit-learn.org/stable/developers/index.html)
 :::{grid-item-card}
 :text-align: center
 
+Type Hints
+
+^^^
+
+Adding type hints to `aeon` code.
+
++++
+
+```{button-ref} developer_guide/adding_typehints
+:color: primary
+:click-parent:
+:expand:
+
+Type Hints
+```
+
+:::
+
+:::{grid-item-card}
+:text-align: center
+
 AEP's
 
 ^^^
@@ -190,6 +211,7 @@ Testing
 ```{toctree}
 :hidden:
 
+developer_guide/adding_typehints.md
 developer_guide/aep.md
 developer_guide/coding_standards.md
 developer_guide/dependencies.md
