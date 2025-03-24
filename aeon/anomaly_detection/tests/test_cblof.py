@@ -21,7 +21,7 @@ def test_cblof_default():
     pred = cblof.fit_predict(series, axis=0)
 
     assert pred.shape == (80,)
-    assert pred.dtype == np.float_
+    assert np.issubdtype(pred.dtype, np.floating)
     assert 50 <= np.argmax(pred) <= 60
 
 
