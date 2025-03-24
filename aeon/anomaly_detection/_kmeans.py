@@ -42,7 +42,7 @@ class KMeansAD(BaseAnomalyDetector):
 
     stride : int, default=1
         The stride of the sliding window. The stride determines how many time points
-        the windows are spaced appart. A stride of 1 means that the window is moved one
+        the windows are spaced apart. A stride of 1 means that the window is moved one
         time point forward compared to the previous window. The larger the stride, the
         fewer windows are created, which leads to noisier anomaly scores.
 

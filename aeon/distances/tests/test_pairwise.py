@@ -298,7 +298,7 @@ def test_pairwise_distance(dist):
 
     # ============== Test single point series ==============
     if dist["name"] not in SINGLE_POINT_NOT_SUPPORTED_DISTANCES:
-        # Test singe point univariate of shape (1, 1)
+        # Test single point univariate of shape (1, 1)
         _validate_pairwise_result(
             np.array([[10.0]]),
             dist["name"],
@@ -399,7 +399,7 @@ def test_multiple_to_multiple_distances(dist):
 
     # ============== Test single point series ==============
     if dist["name"] not in SINGLE_POINT_NOT_SUPPORTED_DISTANCES:
-        # Test singe point univariate of shape (1,)
+        # Test single point univariate of shape (1,)
         _validate_multiple_to_multiple_result(
             np.array([10.0]),
             np.array([15.0]),
@@ -408,7 +408,7 @@ def test_multiple_to_multiple_distances(dist):
             dist["pairwise_distance"],
         )
 
-        # Test singe point univariate of shape (1, 1)
+        # Test single point univariate of shape (1, 1)
         _validate_multiple_to_multiple_result(
             np.array([[10.0]]),
             np.array([[15.0]]),
@@ -514,7 +514,7 @@ def test_single_to_multiple_distances(dist):
 
     # ============== Test single point series ==============
     if dist["name"] not in SINGLE_POINT_NOT_SUPPORTED_DISTANCES:
-        # Test singe point univariate of shape (1,) compared to a collection of a
+        # Test single point univariate of shape (1,) compared to a collection of a
         # single univariate time series in the shape (n_cases, 1)
         _validate_single_to_multiple_result(
             np.array([10.0]),
@@ -524,7 +524,7 @@ def test_single_to_multiple_distances(dist):
             dist["pairwise_distance"],
         )
 
-        # Test singe point univariate of shape (1, 1) compared to a collection of a
+        # Test single point univariate of shape (1, 1) compared to a collection of a
         # single univariate time series in the shape (n_cases, 1, 1)
         _validate_single_to_multiple_result(
             np.array([[10.0]]),
