@@ -50,6 +50,10 @@ def test_dcnnnetwork_activations(activation):
     assert isinstance(model, object)
 
 
+@pytest.mark.skipif(
+    not _check_soft_dependencies(["tensorflow"], severity="none"),
+    reason="Tensorflow soft dependency unavailable.",
+)
 @pytest.mark.parametrize(
     "dilation_rate,kernel_size,activation,padding,n_filters",
     [
@@ -73,6 +77,10 @@ def test_dcnnnetwork_params(dilation_rate, kernel_size, activation, padding, n_f
     assert isinstance(model, object)
 
 
+@pytest.mark.skipif(
+    not _check_soft_dependencies(["tensorflow"], severity="none"),
+    reason="Tensorflow soft dependency unavailable.",
+)
 @pytest.mark.parametrize(
     "dilation_rate,kernel_size,activation,padding,n_filters",
     [
