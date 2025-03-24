@@ -1,4 +1,5 @@
-"""Tests for Summary Clusterer."""
+"""Tests for Summary Clusterer"""
+
 import numpy as np
 from sklearn import metrics
 

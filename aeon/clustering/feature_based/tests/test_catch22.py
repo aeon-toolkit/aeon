@@ -1,4 +1,5 @@
-"""Tests for Catch22 Clusterer."""
+"""Tests for Catch22 Clusterer"""
+
 import numpy as np
 from sklearn import metrics
 
