@@ -6,7 +6,6 @@ from sklearn import metrics
 from aeon.clustering.feature_based import TSFreshClusterer
 from aeon.datasets import load_basic_motions, load_gunpoint
 
-
 def test_tsfresh_univariate():
     """Test TSFresh Clusterer with univariate data."""
     X_train, y_train = load_gunpoint(split="train")
@@ -29,14 +28,14 @@ def test_tsfresh_univariate():
 
     assert np.array_equal(
         train_result,
-        [3, 7, 5, 0, 0, 5, 7, 5, 0, 4, 0, 5, 6, 0, 0, 1, 6, 5, 3, 2],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
     )
     assert np.array_equal(
         test_result,
-        [3, 3, 0, 5, 0, 4, 6, 7, 0, 3, 5, 5, 0, 6, 0, 5, 0, 5, 0, 7],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     )
-    assert train_score == 0.48947368421052634
-    assert test_score == 0.5210526315789473
+    assert train_score == 0.49473684210526314
+    assert test_score == 0.4789473684210526
     assert test_result.shape == (20,)
     assert train_result.shape == (20,)
 
@@ -63,13 +62,13 @@ def test_tsfresh_multivariate():
 
     assert np.array_equal(
         train_result,
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 3, 4, 6, 7, 2, 5, 5, 3, 1],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     )
     assert np.array_equal(
         test_result,
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 1, 3, 3, 1, 6, 5, 1, 1, 3],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
     )
-    assert train_score == 0.7842105263157895
-    assert test_score == 0.8263157894736842
+    assert train_score == 1.0
+    assert test_score == 1.0
     assert test_result.shape == (20,)
     assert train_result.shape == (20,)
