@@ -10,6 +10,7 @@ import numpy as np
 from aeon.base._base import _clone_estimator
 from aeon.clustering.deep_learning import BaseDeepClusterer
 from aeon.testing.testing_data import FULL_TEST_DATA_DICT
+from aeon.utils.validation import get_n_cases
 
 
 def _yield_clustering_checks(estimator_class, estimator_instances, datatypes):
@@ -28,6 +29,10 @@ def _yield_clustering_checks(estimator_class, estimator_instances, datatypes):
                 check_clustering_random_state_deep_learning,
                 estimator=estimator,
                 datatype=datatypes[i][0],
+            )
+        for datatype in datatypes[i]:
+            yield partial(
+                check_clusterer_output, estimator=estimator, datatype=datatype
             )
 
         if issubclass(estimator_class, BaseDeepClusterer):
@@ -72,18 +77,21 @@ def check_clustering_random_state_deep_learning(estimator, datatype):
     deep_clr1 = _clone_estimator(estimator, random_state=random_state)
     deep_clr1.fit(FULL_TEST_DATA_DICT[datatype]["train"][0])
 
-    layers1 = deep_clr1.training_model_.layers[1:]
+    encoder_layers1 = deep_clr1.training_model_.layers[1].layers[1:]
+    decoder_layers1 = deep_clr1.training_model_.layers[2].layers[1:]
 
     deep_clr2 = _clone_estimator(estimator, random_state=random_state)
     deep_clr2.fit(FULL_TEST_DATA_DICT[datatype]["train"][0])
 
-    layers2 = deep_clr2.training_model_.layers[1:]
+    encoder_layers2 = deep_clr2.training_model_.layers[1].layers[1:]
+    decoder_layers2 = deep_clr2.training_model_.layers[2].layers[1:]
 
-    assert len(layers1) == len(layers2)
+    assert len(encoder_layers1) == len(encoder_layers2)
+    assert len(decoder_layers1) == len(decoder_layers2)
 
-    for i in range(len(layers1)):
-        weights1 = layers1[i].get_weights()
-        weights2 = layers2[i].get_weights()
+    for i in range(len(encoder_layers1)):
+        weights1 = encoder_layers1[i].get_weights()
+        weights2 = encoder_layers2[i].get_weights()
 
         assert len(weights1) == len(weights2)
 
@@ -92,6 +100,46 @@ def check_clustering_random_state_deep_learning(estimator, datatype):
             _weight2 = np.asarray(weights2[j])
 
             np.testing.assert_almost_equal(_weight1, _weight2, 4)
+
+    for i in range(len(decoder_layers1)):
+        weights1 = decoder_layers1[i].get_weights()
+        weights2 = decoder_layers2[i].get_weights()
+
+        assert len(weights1) == len(weights2)
+
+        for j in range(len(weights1)):
+            _weight1 = np.asarray(weights1[j])
+            _weight2 = np.asarray(weights2[j])
+
+            np.testing.assert_almost_equal(_weight1, _weight2, 4)
+
+
+def check_clusterer_output(estimator, datatype):
+    """Test clusterer outputs the correct data types and values.
+
+    Test predict produces a np.array or pd.Series with only values seen in the train
+    data, and that predict_proba probability estimates add up to one.
+    """
+    estimator = _clone_estimator(estimator)
+
+    # run fit and predict
+    data = FULL_TEST_DATA_DICT[datatype]["train"][0]
+    estimator.fit(data)
+    assert hasattr(estimator, "labels_")
+    assert isinstance(estimator.labels_, np.ndarray)
+    assert np.array_equal(estimator.labels_, estimator.predict(data))
+
+    y_pred = estimator.predict(FULL_TEST_DATA_DICT[datatype]["test"][0])
+
+    # check predict
+    assert isinstance(y_pred, np.ndarray)
+    assert y_pred.shape == (get_n_cases(FULL_TEST_DATA_DICT[datatype]["test"][0]),)
+
+    # check predict proba (all classifiers have predict_proba by default)
+    y_proba = estimator.predict_proba(FULL_TEST_DATA_DICT[datatype]["test"][0])
+
+    assert isinstance(y_proba, np.ndarray)
+    np.testing.assert_almost_equal(y_proba.sum(axis=1), 1, decimal=4)
 
 
 def check_clusterer_saving_loading_deep_learning(estimator_class, datatype):

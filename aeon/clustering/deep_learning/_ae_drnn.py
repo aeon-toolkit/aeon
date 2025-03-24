@@ -24,16 +24,10 @@ class AEDRNNClusterer(BaseDeepClusterer):
 
     Parameters
     ----------
-    n_clusters : int, default=None
-        Number of clusters for the deep learnign model.
-    clustering_algorithm : str, default="deprecated"
-        Please use the 'estimator' parameter.
     estimator : aeon clusterer, default=None
         An aeon estimator to be built using the transformed data.
         Defaults to aeon TimeSeriesKMeans() with euclidean distance
         and mean averaging method and n_clusters set to 2.
-    clustering_params : dict, default=None
-        Please use 'estimator' parameter.
     latent_space_dim : int, default=128
         Dimension of the latent space of the auto-encoder.
     temporal_latent_space : bool, default = False
@@ -120,10 +114,7 @@ class AEDRNNClusterer(BaseDeepClusterer):
 
     def __init__(
         self,
-        n_clusters=None,
         estimator=None,
-        clustering_algorithm="deprecated",
-        clustering_params=None,
         latent_space_dim=128,
         temporal_latent_space=False,
         n_layers_encoder=3,
@@ -177,10 +168,7 @@ class AEDRNNClusterer(BaseDeepClusterer):
         self.random_state = random_state
 
         super().__init__(
-            n_clusters=n_clusters,
             estimator=estimator,
-            clustering_algorithm=clustering_algorithm,
-            clustering_params=clustering_params,
             batch_size=batch_size,
             last_file_name=last_file_name,
         )
@@ -227,9 +215,7 @@ class AEDRNNClusterer(BaseDeepClusterer):
         input_layer = tf.keras.layers.Input(input_shape, name="input layer")
         encoder_output = encoder(input_layer)
         decoder_output = decoder(encoder_output)
-        output_layer = tf.keras.layers.Reshape(
-            target_shape=input_shape, name="outputlayer"
-        )(decoder_output)
+        output_layer = decoder_output
 
         model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
 
@@ -331,12 +317,6 @@ class AEDRNNClusterer(BaseDeepClusterer):
         gc.collect()
 
         return self
-
-    def _score(self, X, y=None):
-        # Transpose to conform to Keras input style.
-        X = X.transpose(0, 2, 1)
-        latent_space = self.model_.layers[1].predict(X)
-        return self._estimator.score(latent_space)
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):

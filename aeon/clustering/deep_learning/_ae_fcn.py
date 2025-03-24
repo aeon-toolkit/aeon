@@ -21,16 +21,10 @@ class AEFCNClusterer(BaseDeepClusterer):
 
     Parameters
     ----------
-    n_clusters : int, default=None
-        Please use 'estimator' parameter.
     estimator : aeon clusterer, default=None
         An aeon estimator to be built using the transformed data.
         Defaults to aeon TimeSeriesKMeans() with euclidean distance
         and mean averaging method and n_clusters set to 2.
-    clustering_algorithm : str, default="deprecated"
-        Please use 'estimator' parameter.
-    clustering_params : dict, default=None
-        Please use 'estimator' parameter.
     latent_space_dim : int, default=128
         Dimension of the latent space of the auto-encoder.
     temporal_latent_space : bool, default = False
@@ -128,10 +122,7 @@ class AEFCNClusterer(BaseDeepClusterer):
 
     def __init__(
         self,
-        n_clusters=None,
         estimator=None,
-        clustering_algorithm="deprecated",
-        clustering_params=None,
         latent_space_dim=128,
         temporal_latent_space=False,
         n_layers=3,
@@ -186,9 +177,6 @@ class AEFCNClusterer(BaseDeepClusterer):
 
         super().__init__(
             estimator=estimator,
-            n_clusters=n_clusters,
-            clustering_algorithm=clustering_algorithm,
-            clustering_params=clustering_params,
             batch_size=batch_size,
             last_file_name=last_file_name,
         )
@@ -244,9 +232,7 @@ class AEFCNClusterer(BaseDeepClusterer):
         input_layer = tf.keras.layers.Input(input_shape, name="input layer")
         encoder_output = encoder(input_layer)
         decoder_output = decoder(encoder_output)
-        output_layer = tf.keras.layers.Reshape(
-            target_shape=input_shape, name="outputlayer"
-        )(decoder_output)
+        output_layer = decoder_output
 
         model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
 
@@ -331,6 +317,7 @@ class AEFCNClusterer(BaseDeepClusterer):
                 outputs=X,
                 batch_size=mini_batch_size,
                 epochs=self.n_epochs,
+                verbose=self.verbose,
             )
 
         try:
@@ -352,12 +339,6 @@ class AEFCNClusterer(BaseDeepClusterer):
 
         return self
 
-    def _score(self, X, y=None):
-        # Transpose to conform to Keras input style.
-        X = X.transpose(0, 2, 1)
-        latent_space = self.model_.layers[1].predict(X)
-        return self._estimator.score(latent_space)
-
     def _fit_multi_rec_model(
         self,
         autoencoder,
@@ -365,6 +346,7 @@ class AEFCNClusterer(BaseDeepClusterer):
         outputs,
         batch_size,
         epochs,
+        verbose,
     ):
         import tensorflow as tf
 
@@ -471,9 +453,10 @@ class AEFCNClusterer(BaseDeepClusterer):
             epoch_loss /= num_batches
             history["loss"].append(epoch_loss)
 
-            sys.stdout.write(
-                "Training loss at epoch %d: %.4f\n" % (epoch, float(epoch_loss))
-            )
+            if verbose:
+                sys.stdout.write(
+                    "Training loss at epoch %d: %.4f\n" % (epoch, float(epoch_loss))
+                )
 
             for callback in self.callbacks_:
                 callback.on_epoch_end(epoch, {"loss": float(epoch_loss)})

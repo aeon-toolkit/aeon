@@ -74,8 +74,6 @@ class RDSTRegressor(BaseRegressor):
 
     Attributes
     ----------
-    fit_time_  : int
-        The time (in milliseconds) for ``fit`` to run.
     transformed_data_ : list of shape (n_estimators) of ndarray
         The transformed training dataset for all classifiers. Only saved when
         ``save_transformed_data`` is `True`.

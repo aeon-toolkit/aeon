@@ -3,10 +3,9 @@
 from functools import partial
 
 import numpy as np
-import pytest
 
 from aeon.base._base import _clone_estimator
-from aeon.base._base_series import VALID_INNER_TYPES
+from aeon.base._base_series import VALID_SERIES_INNER_TYPES
 
 
 def _yield_segmentation_checks(estimator_class, estimator_instances, datatypes):
@@ -33,7 +32,7 @@ def check_segmenter_base_functionality(estimator_class):
     assert not fit_is_empty == "_fit" not in estimator_class.__dict__
     # Test valid tag for X_inner_type
     X_inner_type = estimator_class.get_class_tag(tag_name="X_inner_type")
-    assert X_inner_type in VALID_INNER_TYPES
+    assert X_inner_type in VALID_SERIES_INNER_TYPES
     # Must have at least one set to True
     multi = estimator_class.get_class_tag(tag_name="capability:multivariate")
     uni = estimator_class.get_class_tag(tag_name="capability:univariate")
@@ -42,6 +41,8 @@ def check_segmenter_base_functionality(estimator_class):
 
 def check_segmenter_instance(estimator):
     """Test segmenters."""
+    import pytest
+
     estimator = _clone_estimator(estimator)
 
     def _assert_output(output, dense, length):

@@ -162,6 +162,7 @@ class TSFreshClusterer(BaseClusterer):
         else:
             self._estimator.fit(X_t, y)
 
+        self.labels_ = self._estimator.labels_
         return self
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
@@ -198,21 +199,7 @@ class TSFreshClusterer(BaseClusterer):
         if callable(m):
             return self._estimator.predict_proba(self._transformer.transform(X))
         else:
-            preds = self._estimator.predict(self._transformer.transform(X))
-            unique = np.unique(preds)
-            for i, u in enumerate(unique):
-                preds[preds == u] = i
-            n_cases = len(preds)
-            n_clusters = self.n_clusters
-            if n_clusters is None:
-                n_clusters = int(max(preds)) + 1
-            dists = np.zeros((X.shape[0], n_clusters))
-            for i in range(n_cases):
-                dists[i, preds[i]] = 1
-            return dists
-
-    def _score(self, X: np.ndarray, y: Optional[np.ndarray] = None):
-        raise NotImplementedError("TSFreshClusterer does not support scoring.")
+            return super()._predict_proba(X)
 
     @classmethod
     def _get_test_params(cls, parameter_set: str = "default"):

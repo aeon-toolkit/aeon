@@ -4,13 +4,15 @@ __maintainer__ = ["MatthewMiddlehurst", "TonyBagnall"]
 __all__ = ["BaseAeonEstimator"]
 
 import inspect
-from abc import ABC
+from abc import ABC, abstractmethod
 from copy import deepcopy
 
 from sklearn import clone
 from sklearn.base import BaseEstimator
 from sklearn.ensemble._base import _set_random_states
 from sklearn.exceptions import NotFittedError
+
+from aeon.utils.validation._dependencies import _check_estimator_deps
 
 
 class BaseAeonEstimator(BaseEstimator, ABC):
@@ -44,11 +46,14 @@ class BaseAeonEstimator(BaseEstimator, ABC):
         "capability:multithreading": False,
     }
 
+    @abstractmethod
     def __init__(self):
         self.is_fitted = False  # flag to indicate if fit has been called
         self._tags_dynamic = dict()  # storage for dynamic tags
 
         super().__init__()
+
+        _check_estimator_deps(self)
 
     def reset(self, keep=None):
         """
@@ -409,6 +414,18 @@ class BaseAeonEstimator(BaseEstimator, ABC):
     def __sklearn_is_fitted__(self):
         """Check fitted status and return a Boolean value."""
         return self.is_fitted
+
+    def __sklearn_tags__(self):
+        """Return sklearn style tags for the estimator."""
+        aeon_tags = self.get_tags()
+        sklearn_tags = super().__sklearn_tags__()
+        sklearn_tags.non_deterministic = aeon_tags.get("non_deterministic", False)
+        sklearn_tags.target_tags.one_d_labels = True
+        sklearn_tags.input_tags.three_d_array = True
+        sklearn_tags.input_tags.allow_nan = aeon_tags.get(
+            "capability:missing_values", False
+        )
+        return sklearn_tags
 
     def _validate_data(self, **kwargs):
         """Sklearn data validation."""

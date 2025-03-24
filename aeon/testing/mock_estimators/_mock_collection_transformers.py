@@ -1,4 +1,9 @@
-"""Mock collection transformers."""
+"""Mock collection transformers useful for testing and debugging."""
+
+__maintainer__ = []
+__all__ = [
+    "MockCollectionTransformer",
+]
 
 from aeon.transformations.collection import BaseCollectionTransformer
 

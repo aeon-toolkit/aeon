@@ -14,7 +14,6 @@ inertia = 0.5645477840468736
 expected_iters = 2
 
 expected_labels = [0, 2, 1, 1, 1]
-expected_score = 0.5645477840468736
 
 
 @pytest.mark.skipif(
@@ -31,10 +30,8 @@ def test_kshapes():
     kshapes = TimeSeriesKShape(random_state=1, n_clusters=3)
     kshapes.fit(X_train[0:max_train])
     test_shape_result = kshapes.predict(X_test[0:max_train])
-    score = kshapes.score(X_test[0:max_train])
     proba = kshapes.predict_proba(X_test[0:max_train])
     assert np.array_equal(test_shape_result, expected_results)
-    np.testing.assert_almost_equal(score, expected_score)
     assert kshapes.n_iter_ == expected_iters
     assert np.array_equal(kshapes.labels_, expected_labels)
     assert proba.shape == (max_train, 3)
