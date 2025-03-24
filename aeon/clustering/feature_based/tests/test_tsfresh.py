@@ -1,3 +1,4 @@
+"""Tests for TSFresh Clusterer"""
 import numpy as np
 from sklearn import metrics
 
