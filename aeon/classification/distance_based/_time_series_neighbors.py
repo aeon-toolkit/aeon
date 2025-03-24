@@ -13,6 +13,7 @@ __all__ = ["KNeighborsTimeSeriesClassifier"]
 from typing import Callable, Union
 
 import numpy as np
+from joblib import Parallel, delayed
 
 from aeon.classification.base import BaseClassifier
 from aeon.distances import get_distance_function
@@ -134,16 +135,9 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
             The class probabilities of the input samples. Classes are ordered
             by lexicographic order.
         """
-        preds = np.zeros((len(X), len(self.classes_)))
-        for i in range(len(X)):
-            idx, weights = self._kneighbors(X[i])
-            for id, w in zip(idx, weights):
-                predicted_class = self.y_[id]
-                preds[i, predicted_class] += w
-
-            preds[i] = preds[i] / np.sum(preds[i])
-
-        return preds
+        self._check_is_fitted()
+        preds = Parallel(n_jobs=self.n_jobs)(delayed(self._proba_row)(x) for x in X)
+        return np.array(preds, dtype=self.classes_.dtype)
 
     def _predict(self, X):
         """
@@ -162,18 +156,24 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
             Class labels for each data sample.
         """
         self._check_is_fitted()
+        preds = Parallel(n_jobs=self.n_jobs)(delayed(self._predict_row)(x) for x in X)
+        return np.array(preds, dtype=self.classes_.dtype)
 
-        preds = np.empty(len(X), dtype=self.classes_.dtype)
-        for i in range(len(X)):
-            scores = np.zeros(len(self.classes_))
-            idx, weights = self._kneighbors(X[i])
-            for id, w in zip(idx, weights):
-                predicted_class = self.y_[id]
-                scores[predicted_class] += w
+    def _proba_row(self, x):
+        scores = self._predict_scores(x)
+        return scores / np.sum(scores)
 
-            preds[i] = self.classes_[np.argmax(scores)]
+    def _predict_row(self, x):
+        scores = self._predict_scores(x)
+        return self.classes_[np.argmax(scores)]
 
-        return preds
+    def _predict_scores(self, x):
+        scores = np.zeros(len(self.classes_))
+        idx, weights = self._kneighbors(x)
+        for id, weight in zip(idx, weights):
+            predicted_class = self.y_[id]
+            scores[predicted_class] += weight
+        return scores
 
     def _kneighbors(self, X):
         """
