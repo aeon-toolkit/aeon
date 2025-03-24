@@ -137,7 +137,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         """
         self._check_is_fitted()
         preds = Parallel(n_jobs=self.n_jobs)(delayed(self._proba_row)(x) for x in X)
-        return np.array(preds, dtype=self.classes_.dtype)
+        return np.array(preds)
 
     def _predict(self, X):
         """
