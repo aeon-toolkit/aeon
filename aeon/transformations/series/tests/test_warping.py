@@ -16,7 +16,7 @@ def test_warping_path_transformer(distance):
     x = make_example_2d_numpy_series(n_timepoints=20, n_channels=2)
     y = make_example_2d_numpy_series(n_timepoints=20, n_channels=2)
 
-    alignment_path_function = get_alignment_path_function(metric=distance)
+    alignment_path_function = get_alignment_path_function(method=distance)
 
     warping_path = alignment_path_function(x, y)[0]
 

@@ -15,16 +15,10 @@ class BaseDeepClusterer(BaseClusterer):
 
     Parameters
     ----------
-    n_clusters : int, default=None
-        Please use 'estimator' parameter.
     estimator : aeon clusterer, default=None
         An aeon estimator to be built using the transformed data.
         Defaults to aeon TimeSeriesKMeans() with euclidean distance
         and mean averaging method and n_clusters set to 2.
-    clustering_algorithm : str, default="deprecated"
-        Please use 'estimator' parameter.
-    clustering_params : dict, default=None
-        Please use 'estimator' parameter.
     batch_size : int, default = 40
         training batch size for the model
     last_file_name : str, default = "last_model"
@@ -43,25 +37,20 @@ class BaseDeepClusterer(BaseClusterer):
         "python_dependencies": "tensorflow",
     }
 
+    @abstractmethod
     def __init__(
         self,
-        n_clusters=None,
         estimator=None,
-        clustering_algorithm="deprecated",
-        clustering_params=None,
         batch_size=32,
         last_file_name="last_model",
     ):
         self.estimator = estimator
-        self.n_clusters = n_clusters
-        self.clustering_algorithm = clustering_algorithm
-        self.clustering_params = clustering_params
         self.batch_size = batch_size
         self.last_file_name = last_file_name
 
         self.model_ = None
 
-        super().__init__(n_clusters=n_clusters)
+        super().__init__()
 
     @abstractmethod
     def build_model(self, input_shape):
@@ -112,8 +101,6 @@ class BaseDeepClusterer(BaseClusterer):
         X : np.ndarray, shape=(n_cases, n_timepoints, n_channels)
             The input time series.
         """
-        import warnings
-
         self._estimator = (
             TimeSeriesKMeans(
                 n_clusters=2, distance="euclidean", averaging_method="mean"
@@ -122,25 +109,12 @@ class BaseDeepClusterer(BaseClusterer):
             else _clone_estimator(self.estimator)
         )
 
-        # to be removed in 1.0.0
-        if (
-            self.clustering_algorithm != "deprecated"
-            or self.clustering_params is not None
-            or self.n_clusters is not None
-        ):
-            warnings.warn(
-                "The 'n_clusters' 'clustering_algorithm' and "
-                "'clustering_params' parameters "
-                "will be removed in v1.0.0. "
-                "Their usage will not have an effect, "
-                "please use the new 'estimator' parameter to directly "
-                "give an aeon clusterer as input.",
-                FutureWarning,
-                stacklevel=2,
-            )
-
         latent_space = self.model_.layers[1].predict(X)
         self._estimator.fit(X=latent_space)
+        if hasattr(self._estimator, "labels_"):
+            self.labels_ = self._estimator.labels_
+        else:
+            self.labels_ = self._estimator.predict(X=latent_space)
 
         return self
 

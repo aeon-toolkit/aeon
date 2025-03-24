@@ -25,3 +25,7 @@ Deep learning networks
     LITENetwork
     AEBiGRUNetwork
     DisjointCNNNetwork
+    DCNNNetwork
+    AEDCNNNetwork
+    AEAttentionBiGRUNetwork
+    AEDRNNNetwork

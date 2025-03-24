@@ -1,4 +1,12 @@
-"""Mock series transformers."""
+"""Mock series transformers useful for testing and debugging."""
+
+__maintainer__ = []
+__all__ = [
+    "MockSeriesTransformer",
+    "MockUnivariateSeriesTransformer",
+    "MockMultivariateSeriesTransformer",
+    "MockSeriesTransformerNoFit",
+]
 
 import numpy as np
 

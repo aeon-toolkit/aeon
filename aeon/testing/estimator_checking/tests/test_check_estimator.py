@@ -104,13 +104,13 @@ def test_check_estimator_subset_tests():
     tests_to_run = [
         "check_get_params",
         "check_set_params",
-        "check_clone",
+        "check_inheritance",
     ]
     tests_to_exclude = ["check_set_params"]
 
     expected_tests = [
+        "check_inheritance(estimator_class=MockClassifier)",
         "check_get_params(estimator=MockClassifier())",
-        "check_clone(estimator=MockClassifier())",
     ]
 
     results = check_estimator(

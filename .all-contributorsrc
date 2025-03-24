@@ -2620,6 +2620,69 @@
         "code",
         "bug"
       ]
+    },
+    {
+      "login": "vedpawar2254",
+      "name": "ved pawar",
+      "avatar_url": "https://avatars.githubusercontent.com/u/85354558?v=4",
+      "profile": "https://github.com/vedpawar2254",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "adilsonmedronha",
+      "name": "Adilson",
+      "avatar_url": "https://avatars.githubusercontent.com/u/52141524?v=4",
+      "profile": "https://github.com/adilsonmedronha",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "kavya-r30",
+      "name": "Kavya Rambhia",
+      "avatar_url": "https://avatars.githubusercontent.com/u/161142013?v=4",
+      "profile": "https://github.com/kavya-r30",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "Akhil-Jasson",
+      "name": "Akhil Jasson",
+      "avatar_url": "https://avatars.githubusercontent.com/u/114808672?v=4",
+      "profile": "https://react-portfolio-git-main-akhil-jassons-projects.vercel.app/",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "shinymack",
+      "name": "Akash Kawle",
+      "avatar_url": "https://avatars.githubusercontent.com/u/128881349?v=4",
+      "profile": "https://github.com/shinymack",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "kevinzb56",
+      "name": "Kevin Shah",
+      "avatar_url": "https://avatars.githubusercontent.com/u/161136814?v=4",
+      "profile": "https://github.com/kevinzb56",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "tanishy7777",
+      "name": "Tanish Yelgoe",
+      "avatar_url": "https://avatars.githubusercontent.com/u/143334319?v=4",
+      "profile": "https://www.tanishyelgoe.tech/",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "commitType": "docs"

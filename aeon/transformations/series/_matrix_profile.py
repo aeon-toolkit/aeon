@@ -68,5 +68,5 @@ class MatrixProfileSeriesTransformer(BaseSeriesTransformer):
 
         X = X.squeeze()
 
-        self.matrix_profile_ = stumpy.stump(X, self.window_length)
-        return self.matrix_profile_[:, 0].astype("float")
+        matrix_profile = stumpy.stump(X, self.window_length)
+        return matrix_profile[:, 0].astype("float")

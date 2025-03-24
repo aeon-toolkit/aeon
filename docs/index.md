@@ -4,9 +4,9 @@ hide-toc: true
 
 # Welcome to __aeon__
 
-`aeon` is a scikit-learn compatible toolkit for time series machine learning tasks
-such as anomaly detection, classification, clustering, forecasting, regression,
-segmentation and similarity search.</p>
+`aeon` is a `scikit-learn` compatible toolkit for time series machine learning tasks
+such as classification, regression, clustering, anomaly detection,
+segmentation and similarity search.
 
 - We provide a broad library of time series algorithms, including the latest
   advances and state-of-the-art for many tasks.
@@ -17,20 +17,13 @@ segmentation and similarity search.</p>
 - We provide a range of tools for reproducing benchmarking results and evaluating time
   series algorithms implemented in `aeon` and other `scikit-learn` compatible packages.
 
-```{admonition} Large scale changes for aeon v1.0.0
-We are currently working on v1.0.0 of aeon, which includes a number of large changes
-to better support the maintainability of the library and the direction the developer
-community wish to take the package.
-
-This includes the removal of current modules such as forecasting (to be reintroduced
-under a different interface), datatypes and the legacy BaseTransformer interface. We
-will also be making large changes to the base class API, removing `BaseObject` various
-functions associated with the base module currently.
-
-We hope these changes and the removal of long-untouched legacy code will allow aeon to
-grow and develop in a more sustainable way without the need for such large breaking
-changes in the future. Some of these changes will not come with a deprecation warning,
-so be wary of this when updating to v1.0.0 when it is released.
+```{admonition} GSoC 2025
+`aeon` is participating in Google Summer of Code 2025 under the NumFOCUS umbrella. If
+you are interested in participating, please see our [GSoC 2025 project page](https://github.com/aeon-toolkit/aeon-admin/blob/main/gsoc/gsoc-2025-projects.md).
+Feel free to ask questions on the dedicated [GitHub discussion](https://github.com/aeon-toolkit/aeon/discussions/2530)
+or our [Slack channel](https://join.slack.com/t/aeon-toolkit/shared_invite/zt-22vwvut29-HDpCu~7VBUozyfL_8j3dLA).
+If you are interested in contributing, click on the "Contributing to aeon" link in the
+sidebar for a contribution guide. Applications close April 8th.
 ```
 
 ## Community Channels
@@ -43,13 +36,15 @@ so be wary of this when updating to v1.0.0 when it is released.
 
 **LinkedIn**: [linkedin/aeon-toolkit](https://www.linkedin.com/company/aeon-toolkit)
 
+**Email**: [contact@aeon-toolkit.org](mailto:contact@aeon-toolkit.org)
+
 ## Modules
 
 ::::{grid} 1 2 2 2
 :gutter: 3
 
 :::{grid-item-card}
-:img-top: examples/img/tsc.png
+:img-top: examples/classification/img/tsc.png
 :class-img-top: aeon-card-image
 :text-align: center
 
@@ -68,7 +63,7 @@ Classification
 :::
 
 :::{grid-item-card}
-:img-top: examples/img/tser.png
+:img-top: examples/regression/img/tser.png
 :class-img-top: aeon-card-image
 :text-align: center
 
@@ -87,7 +82,7 @@ Regression
 :::
 
 :::{grid-item-card}
-:img-top: examples/img/tscl.png
+:img-top: examples/clustering/img/tscl.png
 :class-img-top: aeon-card-image
 :text-align: center
 
@@ -125,11 +120,30 @@ Anomaly Detection
 :::
 
 :::{grid-item-card}
+:img-top: examples/forecasting/img/forecasting.png
+:class-img-top: aeon-card-image
+:text-align: center
+
+Get started with forecasting
+
++++
+
+```{button-ref} /examples/forecasting/forecasting.ipynb
+:color: primary
+:click-parent:
+:expand:
+
+Forecasting
+```
+
+:::
+
+:::{grid-item-card}
 :img-top: examples/segmentation/img/segmentation.png
 :class-img-top: aeon-card-image
 :text-align: center
 
-Segmentation
+Get started with segmentation
 
 +++
 
@@ -186,7 +200,7 @@ Distances
 :class-img-top: aeon-card-image
 :text-align: center
 
-Similarity Search
+Get started with time series similarity search
 
 +++
 
@@ -259,6 +273,18 @@ Networks
 
 ::::
 
+## Experimental Modules
+
+Some modules of `aeon` are still experimental and may have changing interfaces.
+To support development on these modules, the [deprecation policy](developer_guide/deprecation.md)
+is relaxed, so it is suggested that you integrate these modules with care. The current
+experimental modules are:
+
+- `anomaly_detection`
+- `forecasting`
+- `segmentation`
+- `similarity_search`
+- `visualisation`
 
 ```{toctree}
 :caption: Using aeon
@@ -293,7 +319,6 @@ code_of_conduct.md
 :caption: Other
 :hidden:
 
-glossary.md
 estimator_overview.md
 changelog.md
 papers_using_aeon.md

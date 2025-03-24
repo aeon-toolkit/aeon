@@ -6,7 +6,7 @@ __all__ = []
 import pytest
 
 from aeon.datasets import load_gun_point_segmentation
-from aeon.segmentation import BinSegSegmenter
+from aeon.segmentation import BinSegmenter
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
@@ -23,7 +23,7 @@ def test_binseg_sparse():
     ts, _, cps = load_gun_point_segmentation()
 
     # compute a BinSeg segmentation
-    binseg = BinSegSegmenter(n_cps=1)
+    binseg = BinSegmenter(n_cps=1)
     found_cps = binseg.fit_predict(ts)
 
     assert len(found_cps) == 1 and found_cps[0] == 1870

@@ -6,7 +6,7 @@ __all__ = ["RegressorEnsemble"]
 
 import numpy as np
 
-from aeon.base.estimators.compose.collection_ensemble import BaseCollectionEnsemble
+from aeon.base._estimators.compose.collection_ensemble import BaseCollectionEnsemble
 from aeon.regression import BaseRegressor
 from aeon.regression.sklearn._wrapper import SklearnRegressorWrapper
 from aeon.utils.sklearn import is_sklearn_regressor

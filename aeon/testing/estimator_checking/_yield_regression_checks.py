@@ -20,13 +20,13 @@ from aeon.testing.expected_results.expected_regressor_outputs import (
 )
 from aeon.testing.testing_data import FULL_TEST_DATA_DICT
 from aeon.testing.utils.estimator_checks import _assert_predict_labels, _get_tag
-from aeon.utils import COLLECTIONS_DATA_TYPES
+from aeon.utils.data_types import COLLECTIONS_DATA_TYPES
 
 
 def _yield_regression_checks(estimator_class, estimator_instances, datatypes):
     """Yield all regression checks for an aeon regressor."""
     # only class required
-    if sys.platform != "darwin":  # We cannot guarantee same results on ARM macOS
+    if sys.platform == "linux":  # We cannot guarantee same results on ARM macOS
         # Compare against results for both Covid3Month and CardanoSentiment if available
         yield partial(
             check_regressor_against_expected_results,
@@ -145,9 +145,6 @@ def check_regressor_overrides_and_tags(estimator_class):
                 f"Override _{method} instead."
             )
 
-    # axis class parameter is for internal use only
-    assert "axis" not in estimator_class.__dict__
-
     # Test valid tag for X_inner_type
     X_inner_type = estimator_class.get_class_tag(tag_name="X_inner_type")
     if isinstance(X_inner_type, str):
@@ -162,11 +159,6 @@ def check_regressor_overrides_and_tags(estimator_class):
             assert X_inner_type in valid_unequal_types
         else:  # must be a list
             assert any([t in valid_unequal_types for t in X_inner_type])
-
-    # Must have at least one set to True
-    multi = estimator_class.get_class_tag(tag_name="capability:multivariate")
-    uni = estimator_class.get_class_tag(tag_name="capability:univariate")
-    assert multi or uni
 
     valid_algorithm_types = [
         "distance",
