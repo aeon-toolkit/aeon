@@ -6,6 +6,7 @@ from sklearn import metrics
 from aeon.clustering.feature_based import TSFreshClusterer
 from aeon.datasets import load_basic_motions, load_gunpoint
 
+
 def test_tsfresh_univariate():
     """Test TSFresh Clusterer with univariate data."""
     X_train, y_train = load_gunpoint(split="train")
