@@ -180,6 +180,7 @@ addopts = '''
     --reruns 2
     --only-rerun "crashed while running"
     --only-rerun "zipfile.BadZipFile"
+    --only-rerun "accessible `.keras` zip file."
 '''
 filterwarnings = '''
     ignore::UserWarning
