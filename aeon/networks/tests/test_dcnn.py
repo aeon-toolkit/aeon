@@ -51,14 +51,14 @@ def test_dcnnnetwork_activations(activation):
 
 
 @pytest.mark.parametrize(
-    "dilation_rate,kernel_size,activation,padding",
+    "dilation_rate,kernel_size,activation,padding,n_filters",
     [
-        (None, None, None, None),
-        (2, 5, "relu", "causal"),
-        ([1, 2], [3, 5], ["relu", "tanh"], ["causal", "same"]),
+        (None, None, None, None, None),
+        (2, 5, "relu", "causal", 50),
+        ([1, 2], [3, 5], ["relu", "tanh"], ["causal", "same"], [25, 50]),
     ],
 )
-def test_dcnnnetwork_params(dilation_rate, kernel_size, activation, padding):
+def test_dcnnnetwork_params(dilation_rate, kernel_size, activation, padding, n_filters):
     """Test DCNNNetwork initialization with different parameters."""
     dcnnnet = DCNNNetwork(
         latent_space_dim=64,
@@ -67,21 +67,29 @@ def test_dcnnnetwork_params(dilation_rate, kernel_size, activation, padding):
         kernel_size=kernel_size,
         activation=activation,
         padding=padding,
-        n_filters=[50, 50],
+        n_filters=n_filters,
     )
     model = dcnnnet.build_network((150, 5))
     assert isinstance(model, object)
 
 
 @pytest.mark.parametrize(
-    "dilation_rate,kernel_size,activation,padding",
+    "dilation_rate,kernel_size,activation,padding,n_filters",
     [
-        (None, None, None, None),
-        (1, 3, "relu", "causal"),
-        ([1, 2, 1], [3, 5, 3], ["relu", "tanh", "relu"], ["causal", "same", "causal"]),
+        (None, None, None, None, None),
+        (1, 3, "relu", "causal", 50),
+        (
+            [1, 2, 1],
+            [3, 5, 3],
+            ["relu", "tanh", "relu"],
+            ["causal", "same", "causal"],
+            [25, 50, 100],
+        ),
     ],
 )
-def test_dcnnnetwork_varied_layers(dilation_rate, kernel_size, activation, padding):
+def test_dcnnnetwork_varied_layers(
+    dilation_rate, kernel_size, activation, padding, n_filters
+):
     """Test DCNNNetwork with varied layers and parameters."""
     dcnnnet = DCNNNetwork(
         latent_space_dim=128,
@@ -90,7 +98,7 @@ def test_dcnnnetwork_varied_layers(dilation_rate, kernel_size, activation, paddi
         kernel_size=kernel_size,
         activation=activation,
         padding=padding,
-        n_filters=[25, 50, 100],
+        n_filters=n_filters,
     )
     model = dcnnnet.build_network((200, 10))
     assert isinstance(model, object)
