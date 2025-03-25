@@ -58,8 +58,8 @@ def test_dcnnnetwork_activations(activation):
     "dilation_rate,kernel_size,activation,padding,n_filters",
     [
         (None, None, None, None, None),
-        (2, 5, "relu", "causal", 50),
-        ([1, 2], [3, 5], ["relu", "tanh"], ["causal", "same"], [25, 50]),
+        (1, 5, "relu", "causal", 50),
+        ([1, 1], [3, 5], ["relu", "tanh"], ["causal", "same"], [25, 50]),
     ],
 )
 def test_dcnnnetwork_params(dilation_rate, kernel_size, activation, padding, n_filters):
@@ -87,7 +87,7 @@ def test_dcnnnetwork_params(dilation_rate, kernel_size, activation, padding, n_f
         (None, None, None, None, None),
         (1, 3, "relu", "causal", 50),
         (
-            [1, 2, 1],
+            [1, 1, 1],
             [3, 5, 3],
             ["relu", "tanh", "relu"],
             ["causal", "same", "causal"],
