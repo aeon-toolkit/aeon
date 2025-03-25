@@ -34,7 +34,7 @@ class WEASEL_V2(BaseClassifier):
     """
     Word Extraction for Time Series Classification (WEASEL) v2.0.
 
-    Overview: Input 'n' series length 'm'
+    Overview: Input ``n`` series length ``m``
     WEASEL is a dictionary classifier that builds a bag-of-patterns using SFA
     for different window lengths and learns a logistic regression classifier
     on this bag.
@@ -72,11 +72,11 @@ class WEASEL_V2(BaseClassifier):
         Sets the feature selections strategy to be used. Options from {"chi2_top_k",
         "none", "random"}. Large amounts of memory may be needed depending on the
         setting of bigrams (true is more) or alpha (larger is more).
-        'chi2_top_k' reduces the number of words to at most 'max_feature_count',
+        ``chi2_top_k`` reduces the number of words to at most 'max_feature_count',
         dropping values based on p-value.
-        'random' reduces the number to at most 'max_feature_count', by randomly
+        ``random`` reduces the number to at most ``max_feature_count``, by randomly
         selecting features.
-        'none' does not apply any feature selection and yields large bag of words
+        ``none`` does not apply any feature selection and yields large bag of words
     max_feature_count : int, default=30_000
        size of the dictionary - number of words to use - if feature_selection set to
        "chi2" or "random". Else ignored.

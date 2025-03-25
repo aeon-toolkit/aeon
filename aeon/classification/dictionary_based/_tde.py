@@ -32,9 +32,9 @@ class TemporalDictionaryEnsemble(BaseClassifier):
     Implementation of the dictionary based Temporal Dictionary Ensemble as described
     in [1]_.
 
-    Overview: Input 'n' series length 'm' with 'd' dimensions
-    TDE searches 'k' parameter values selected using a Gaussian processes
-    regressor, evaluating each with a LOOCV. It then retains 's'
+    Overview: Input ``n`` series length ``m`` with ``d`` dimensions
+    TDE searches ``k`` parameter values selected using a Gaussian processes
+    regressor, evaluating each with a LOOCV. It then retains ``s``
     ensemble members.
     There are six primary parameters for individual classifiers:
             - alpha: alphabet size
