@@ -6,6 +6,8 @@ from aeon.datasets import load_unit_test
 from aeon.datasets import load_basic_motions
 
 def test_rocket_univariate():
+    """Test of Rocket on univariate."""
+
     X_train, y_train = load_unit_test(split="train")
     X_test, y_test = load_unit_test(split="test")
 
@@ -22,6 +24,8 @@ def test_rocket_univariate():
     assert np.all(y_proba >= 0) and np.all(y_proba <= 1)
 
 def test_rocket_multivariate():
+    """Test of Rocket on multivariate."""
+
     X_train, y_train = load_basic_motions(split="train")
     X_test, y_test = load_basic_motions(split="test")
 

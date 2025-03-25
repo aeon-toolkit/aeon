@@ -12,6 +12,8 @@ import pytest
     reason="pytorch soft dependency not found.",
 )
 def test_mr_hydra_univariate():
+    """Test of MultiRocketHydra classifier on univariate."""
+
     X_train, y_train = load_unit_test(split="train")
     X_test, y_test = load_unit_test(split="test")
 
@@ -32,6 +34,8 @@ def test_mr_hydra_univariate():
     reason="pytorch soft dependency not found.",
 )
 def test_mr_hydra_multivariate():
+    """Test of MultiRocketHydra classifier on multivariate."""
+
     X_train, y_train = load_basic_motions(split="train")
     X_test, y_test = load_basic_motions(split="test")
 
