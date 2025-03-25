@@ -12,7 +12,7 @@ def test_minirocket_univariate():
     X_train, y_train = load_unit_test(split="train")
     X_test, y_test = load_unit_test(split="test")
 
-    clf = MiniRocketClassifier(num_kernels=20, max_dilations_per_kernel=6)
+    clf = MiniRocketClassifier(random_state=0)
 
     clf.fit(X_train, y_train)
     y_pred = clf.predict(X_test)
@@ -31,7 +31,7 @@ def test_minirocket_multivariate():
     X_train, y_train = load_basic_motions(split="train")
     X_test, y_test = load_basic_motions(split="test")
 
-    clf = MiniRocketClassifier(num_kernels=20, max_dilations_per_kernel=6)
+    clf = MiniRocketClassifier(random_state=0)
 
     clf.fit(X_train, y_train)
     y_pred = clf.predict(X_test)
