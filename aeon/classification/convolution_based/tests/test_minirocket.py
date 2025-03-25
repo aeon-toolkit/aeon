@@ -8,7 +8,6 @@ from aeon.datasets import load_basic_motions, load_unit_test
 
 def test_minirocket_univariate():
     """Test of MiniRocket classifier on univariate."""
-
     X_train, y_train = load_unit_test(split="train")
     X_test, y_test = load_unit_test(split="test")
 
@@ -27,7 +26,6 @@ def test_minirocket_univariate():
 
 def test_minirocket_multivariate():
     """Test of MiniRocket classifier on multivariate."""
-
     X_train, y_train = load_basic_motions(split="train")
     X_test, y_test = load_basic_motions(split="test")
 

@@ -14,7 +14,6 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 )
 def test_hydra_univariate():
     """Test of Hydra classifier on univariate."""
-
     X_train, y_train = load_unit_test(split="train")
     X_test, y_test = load_unit_test(split="test")
 
@@ -37,7 +36,6 @@ def test_hydra_univariate():
 )
 def test_hydra_multivariate():
     """Test of Hydra classifier on multivariate."""
-
     X_train, y_train = load_basic_motions(split="train")
     X_test, y_test = load_basic_motions(split="test")
 
