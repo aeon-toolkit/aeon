@@ -1,11 +1,12 @@
 """Hydra classifier test code."""
 
 import numpy as np
-from aeon.classification.convolution_based import HydraClassifier
 import pytest
+
+from aeon.classification.convolution_based import HydraClassifier
+from aeon.datasets import load_basic_motions, load_unit_test
 from aeon.utils.validation._dependencies import _check_soft_dependencies
-from aeon.datasets import load_unit_test
-from aeon.datasets import load_basic_motions
+
 
 @pytest.mark.skipif(
     not _check_soft_dependencies(["torch"], severity="none"),
@@ -26,6 +27,7 @@ def test_hydra_univariate():
     assert set(y_pred).issubset(set(y_train))
     assert y_proba.shape == (X_test.shape[0], len(np.unique(y_train)))
     assert np.all(y_proba >= 0) and np.all(y_proba <= 1)
+
 
 @pytest.mark.skipif(
     not _check_soft_dependencies(["torch"], severity="none"),
