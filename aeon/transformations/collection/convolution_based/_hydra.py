@@ -4,6 +4,7 @@ __maintainer__ = ["TonyBagnall"]
 __all__ = ["HydraTransformer"]
 
 import numpy as np
+import pandas as pd
 
 from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.utils.validation import check_n_jobs
@@ -38,6 +39,11 @@ class HydraTransformer(BaseCollectionTransformer):
         If `RandomState` instance, random_state is the random number generator;
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
+    output_type : str, default='tensor'
+        The output type of the transformer. Can be either 'tensor' or 'numpy'.
+        If 'tensor', the output will be a PyTorch tensor. If 'numpy', the output
+        will be a NumPy array. If 'dataframe', the output will be a pandas DataFrame.
+
 
     See Also
     --------
@@ -76,13 +82,20 @@ class HydraTransformer(BaseCollectionTransformer):
     }
 
     def __init__(
-        self, n_kernels=8, n_groups=64, max_num_channels=8, n_jobs=1, random_state=None
+        self,
+        n_kernels=8,
+        n_groups=64,
+        max_num_channels=8,
+        n_jobs=1,
+        random_state=None,
+        output_type="tensor",
     ):
         self.n_kernels = n_kernels
         self.n_groups = n_groups
         self.max_num_channels = max_num_channels
         self.n_jobs = n_jobs
         self.random_state = random_state
+        self.output_type = output_type
 
         super().__init__()
 
@@ -104,7 +117,12 @@ class HydraTransformer(BaseCollectionTransformer):
         )
 
     def _transform(self, X, y=None):
-        return self._hydra(torch.tensor(X).float())
+        transformed = self._hydra(torch.tensor(X).float())
+        if (self.output_type == "numpy") or (self.output_type == "dataframe"):
+            transformed = transformed.detach().numpy()
+        if self.output_type == "dataframe":
+            transformed = pd.DataFrame(transformed)
+        return transformed
 
 
 if _check_soft_dependencies("torch", severity="none"):
