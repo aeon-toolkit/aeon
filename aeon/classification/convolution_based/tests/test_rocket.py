@@ -1,9 +1,10 @@
 """RandOm Convolutional KErnel Transform (Rocket) classifier test code."""
 
 import numpy as np
+
 from aeon.classification.convolution_based import RocketClassifier
-from aeon.datasets import load_unit_test
-from aeon.datasets import load_basic_motions
+from aeon.datasets import load_basic_motions, load_unit_test
+
 
 def test_rocket_univariate():
     """Test of Rocket on univariate."""
@@ -22,6 +23,7 @@ def test_rocket_univariate():
     assert set(y_pred).issubset(set(y_train))
     assert y_proba.shape == (X_test.shape[0], len(np.unique(y_train)))
     assert np.all(y_proba >= 0) and np.all(y_proba <= 1)
+
 
 def test_rocket_multivariate():
     """Test of Rocket on multivariate."""

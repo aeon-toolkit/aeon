@@ -1,9 +1,10 @@
 """MiniRocket classifier test code."""
 
 import numpy as np
-from aeon.datasets import load_unit_test
+
 from aeon.classification.convolution_based import MiniRocketClassifier
-from aeon.datasets import load_basic_motions
+from aeon.datasets import load_basic_motions, load_unit_test
+
 
 def test_minirocket_univariate():
     """Test of MiniRocket classifier on univariate."""
@@ -23,6 +24,7 @@ def test_minirocket_univariate():
     assert y_proba.shape == (X_test.shape[0], len(np.unique(y_train)))
     assert np.all(y_proba >= 0) and np.all(y_proba <= 1)
 
+
 def test_minirocket_multivariate():
     """Test of MiniRocket classifier on multivariate."""
 
@@ -40,4 +42,3 @@ def test_minirocket_multivariate():
     assert set(y_pred).issubset(set(y_train))
     assert y_proba.shape == (X_test.shape[0], len(np.unique(y_train)))
     assert np.all(y_proba >= 0) and np.all(y_proba <= 1)
-
