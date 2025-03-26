@@ -1,8 +1,9 @@
 """Tests for RIST Regressor."""
 
 import numpy as np
-from sklearn.metrics import mean_squared_error
 import pytest
+from sklearn.metrics import mean_squared_error
+
 from aeon.datasets import load_covid_3month
 from aeon.regression.hybrid import RISTRegressor
 from aeon.utils.validation._dependencies import _check_soft_dependencies

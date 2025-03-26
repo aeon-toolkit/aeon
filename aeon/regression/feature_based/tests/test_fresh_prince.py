@@ -1,11 +1,13 @@
 """Tests for Fresh Prince Regressor."""
 
 import numpy as np
-from sklearn.metrics import mean_squared_error
 import pytest
-from aeon.utils.validation._dependencies import _check_soft_dependencies
+from sklearn.metrics import mean_squared_error
+
 from aeon.datasets import load_covid_3month
 from aeon.regression.feature_based import FreshPRINCERegressor
+from aeon.utils.validation._dependencies import _check_soft_dependencies
+
 
 @pytest.mark.skipif(
     not _check_soft_dependencies(["tsfresh"], severity="none"),
