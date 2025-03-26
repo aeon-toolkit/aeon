@@ -1,11 +1,13 @@
 """Tests for MultiRocketHydra Regressor."""
 
-import pytest
 import numpy as np
-from aeon.regression.convolution_based import MultiRocketHydraRegressor
-from aeon.datasets import load_covid_3month
+import pytest
 from sklearn.metrics import mean_squared_error
+
+from aeon.datasets import load_covid_3month
+from aeon.regression.convolution_based import MultiRocketHydraRegressor
 from aeon.utils.validation._dependencies import _check_soft_dependencies
+
 
 @pytest.mark.skipif(
     not _check_soft_dependencies(["torch"], severity="none"),
@@ -13,7 +15,6 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 )
 def test_mr_rocket_hydra_regressor():
     """Test MultiRocketHydraRegressor on covid 3-month data."""
-
     X, y = load_covid_3month()
 
     n = int(0.8 * len(X))

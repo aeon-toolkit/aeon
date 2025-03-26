@@ -1,14 +1,14 @@
 """Tests for RIST Regressor."""
 
 import numpy as np
-from aeon.regression.hybrid import RISTRegressor
-from aeon.datasets import load_covid_3month
 from sklearn.metrics import mean_squared_error
+
+from aeon.datasets import load_covid_3month
+from aeon.regression.hybrid import RISTRegressor
 
 
 def test_rist_regressor():
     """Test RIST Regressor on covid 3-month data."""
-
     X, y = load_covid_3month()
     X, y = X[:10], y[:10]
     n = int(0.8 * len(X))

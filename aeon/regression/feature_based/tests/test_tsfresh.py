@@ -1,14 +1,14 @@
 """Tests for TSFresh Regressor."""
 
 import numpy as np
-from aeon.regression.feature_based import TSFreshRegressor
-from aeon.datasets import load_covid_3month
 from sklearn.metrics import mean_squared_error
+
+from aeon.datasets import load_covid_3month
+from aeon.regression.feature_based import TSFreshRegressor
 
 
 def test_tsfresh_regressor():
     """Test TSFresh Regressor on covid 3-month data."""
-
     X, y = load_covid_3month()
 
     n = int(0.8 * len(X))

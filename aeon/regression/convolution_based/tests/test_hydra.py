@@ -1,10 +1,11 @@
 """tests for Hydra Regressor."""
 
-import pytest
 import numpy as np
-from aeon.regression.convolution_based import HydraRegressor
-from aeon.datasets import load_covid_3month
+import pytest
 from sklearn.metrics import mean_squared_error
+
+from aeon.datasets import load_covid_3month
+from aeon.regression.convolution_based import HydraRegressor
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 

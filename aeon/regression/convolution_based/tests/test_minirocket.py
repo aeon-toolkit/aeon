@@ -1,16 +1,17 @@
 """tests for MiniRocket Regressor."""
 
 import numpy as np
-from aeon.regression.convolution_based import MiniRocketRegressor
-from aeon.datasets import load_covid_3month
 from sklearn.metrics import mean_squared_error
+
+from aeon.datasets import load_covid_3month
+from aeon.regression.convolution_based import MiniRocketRegressor
+
 
 def test_minirocket_regressor():
     """Test MiniRocket Regressor on covid 3 month data."""
-
     X, y = load_covid_3month()
 
-    n= int(0.8 * len(X))
+    n = int(0.8 * len(X))
     X_train, X_test = X[:n], X[n:]
     y_train, y_test = y[:n], y[n:]
 
