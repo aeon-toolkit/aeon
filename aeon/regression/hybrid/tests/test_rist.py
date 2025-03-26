@@ -2,11 +2,16 @@
 
 import numpy as np
 from sklearn.metrics import mean_squared_error
-
+import pytest
 from aeon.datasets import load_covid_3month
 from aeon.regression.hybrid import RISTRegressor
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
+@pytest.mark.skipif(
+    not _check_soft_dependencies(["statsmodels"], severity="none"),
+    reason="statsmodels soft dependency not found.",
+)
 def test_rist_regressor():
     """Test RIST Regressor on covid 3-month data."""
     X, y = load_covid_3month()

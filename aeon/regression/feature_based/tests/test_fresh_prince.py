@@ -2,11 +2,15 @@
 
 import numpy as np
 from sklearn.metrics import mean_squared_error
-
+import pytest
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 from aeon.datasets import load_covid_3month
 from aeon.regression.feature_based import FreshPRINCERegressor
 
-
+@pytest.mark.skipif(
+    not _check_soft_dependencies(["tsfresh"], severity="none"),
+    reason="tsfresh soft dependency not found.",
+)
 def test_fresh_prince_regressor():
     """Test Fresh Prince Regressor on covid 3-month data."""
     X, y = load_covid_3month()
