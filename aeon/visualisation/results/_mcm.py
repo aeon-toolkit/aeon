@@ -211,6 +211,19 @@ def create_multi_comparison_matrix(
         include_legend=include_legend,
         show_symetry=show_symetry,
     )
+    
+    def dict_to_latex(data_dict):
+        lines = []
+        lines.append(r"\begin{tabular}{|l|l|l|l|l|}")
+        lines.append(r"\hline")
+        lines.append(r"Comparison & Significant & Loss & Mean & p-value \\")
+        lines.append(r"\hline")
+        for key, values in data_dict.items():
+            line = f"{key} & {values['is-significant']} & {values['loss']} & {values['mean']:.4f} & {values['pvalue']:.4f} \\\\"
+            lines.append(line)
+        lines.append(r"\hline")
+        lines.append(r"\end{tabular}")
+        return "\n".join(lines)
 
     # Handle saving files if save_files dictionary is provided
     if save_files:
@@ -225,8 +238,8 @@ def create_multi_comparison_matrix(
                     df_results.to_csv(save_path, index=False)
                 elif file_type == "tex":
                     with open(save_path, "w") as f:
-                        f.write(analysis.to_latex())
-
+                        f.write(dict_to_latex(analysis))
+ 
     return fig
 
 
