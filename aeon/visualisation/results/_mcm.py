@@ -6,52 +6,46 @@ __all__ = ["create_multi_comparison_matrix"]
 
 import json
 import os
-from typing import Dict, List, Optional, Union
-import logging
-import matplotlib.pyplot as plt
+from typing import Dict, Optional
 import numpy as np
 import pandas as pd
 from scipy.stats import wilcoxon
 
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
-# Set up logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-
 def create_multi_comparison_matrix(
-   df_results: Union[str, pd.DataFrame],
-    output_dir: str = "./",
-    save_files: Optional[Dict[str, str]] = None,
-    used_statistic: str = "Accuracy",
-    save_as_json: bool = True,
-    plot_1v1_comparisons: bool = False,
-    order_settings: Dict[str, str] = {"win_tie_loss": "higher", "better": "decreasing"},
-    include_pvalue: bool = True,
-    pvalue_test: str = "wilcoxon",
-    pvalue_test_params: Optional[Dict[str, str]] = None,
-    pvalue_correction: Optional[str] = None,
-    pvalue_threshold: float = 0.05,
-    use_mean: str = "mean-difference",
-    order_stats: str = "average-statistic",
-    dataset_column: Optional[str] = None,
-    precision: int = 4,
-    load_analysis: bool = False,
-    row_comparates: Optional[List[str]] = None,
-    col_comparates: Optional[List[str]] = None,
-    excluded_row_comparates: Optional[List[str]] = None,
-    excluded_col_comparates: Optional[List[str]] = None,
-    colormap: str = "coolwarm",
-    fig_size: Union[str, tuple] = "auto",
-    font_size: Union[str, int] = "auto",
-    colorbar_orientation: str = "vertical",
-    colorbar_value: Optional[str] = None,
-    win_label: str = "r>c",
-    tie_label: str = "r=c",
-    loss_label: str = "r<c",
-    include_legend: bool = True,
-    show_symmetry: bool = True,
-) -> plt.Figure:
+    df_results,
+    output_dir="./",
+    save_files: Optional[Dict[str, str]] = None,  # Changed to dictionary
+    used_statistic="Accuracy",
+    save_as_json=False,
+    plot_1v1_comparisons=False,
+    order_settings: Dict[str, str] = {"win_tie_loss": "higher", "better": "decreasing"},  # Combined order settings
+    include_pvalue=True,
+    pvalue_test="wilcoxon",
+    pvalue_test_params=None,
+    pvalue_correction=None,
+    pvalue_threshold=0.05,
+    use_mean="mean-difference",
+    order_stats="average-statistic",
+    dataset_column=None,
+    precision=4,
+    load_analysis=False,
+    row_comparates=None,
+    col_comparates=None,
+    excluded_row_comparates=None,
+    excluded_col_comparates=None,
+    colormap="coolwarm",
+    fig_size="auto",
+    font_size="auto",
+    colorbar_orientation="vertical",
+    colorbar_value=None,
+    win_label="r>c",
+    tie_label="r=c",
+    loss_label="r<c",
+    include_legend=True,
+    show_symetry=True,
+):
     """Generate the Multi-Comparison Matrix (MCM) [1]_.
 
     MCM summarises a set of results for multiple estimators evaluated on multiple
@@ -65,15 +59,17 @@ def create_multi_comparison_matrix(
         row should contain the names of the estimators and the first column can
         contain the names of the problems if `dataset_column` is true.
     output_dir: str, default = './'
-        The output directory for the results.        
+        The output directory for the results.
     save_files: dict, default = None
-        Dictionary to handle all save options (e.g., {"pdf": "output.pdf", "png": "output.png"}).        
+        Dictionary to handle all save options (e.g., {"pdf": "output.pdf", "png": "output.png"}).
     used_statistic: str, default = 'Score'
         Name of the metric being assesses (e.g. accuracy, error, mse).
     save_as_json: bool, default = True
         Whether or not to save the python analysis dict into a json file format.
     plot_1v1_comparisons: bool, default = True
         Whether or not to plot the 1v1 scatter results.
+    order_settings: dict, default = {"win_tie_loss": "higher", "better": "decreasing"}
+        Settings for ordering the results.
     include_pvalue bool, default = True
         Condition whether or not include a pvalue stats.
     pvalue_test: str, default = 'wilcoxon'
@@ -106,8 +102,6 @@ def create_multi_comparison_matrix(
         amean-amean            average over difference of use_mean
         pvalue                 average pvalue over all comparates
         ================================================================
-    order_settings: dict, default = {"win_tie_loss": "higher", "better": "decreasing"}
-        Settings for ordering the results.
     dataset_column: str, default = 'dataset_name'
         The name of the datasets column in the csv file.
     precision: int, default = 4
@@ -155,7 +149,11 @@ def create_multi_comparison_matrix(
     Example
     -------
     >>> from aeon.visualisation import create_multi_comparison_matrix # doctest: +SKIP
-    >>> create_multi_comparison_matrix(df_results='results.csv') # doctest: +SKIP
+    >>> create_multi_comparison_matrix(
+    ...     df_results='results.csv',
+    ...     save_files={"pdf": "output.pdf", "png": "output.png"},
+    ...     order_settings={"win_tie_loss": "higher", "better": "decreasing"}
+    ... ) # doctest: +SKIP
 
     Notes
     -----
@@ -167,19 +165,12 @@ def create_multi_comparison_matrix(
     Evaluations That Is Stable Under Manipulation Of The Comparate Set
     arXiv preprint arXiv:2305.11921, 2023.
     """
-    
-    logger.info("Starting MCM creation...")
-    
     if isinstance(df_results, str):
         try:
             df_results = pd.read_csv(df_results)
-        except FileNotFoundError:
-            raise FileNotFoundError(f"The file {df_results} was not found.")
-        except pd.errors.EmptyDataError:
-            raise ValueError(f"The file {df_results} is empty.")
         except Exception as e:
-            raise ValueError(f"An error occurred while reading the file: {e}")
-    
+            raise ValueError(f"No dataframe or valid path is given: Exception {e}")
+
     analysis = _get_analysis(
         df_results,
         output_dir=output_dir,
@@ -191,22 +182,24 @@ def create_multi_comparison_matrix(
         pvalue_test=pvalue_test,
         pvalue_test_params=pvalue_test_params,
         pvalue_correction=pvalue_correction,
-        pvalue_threshold=pvalue_threshold,
+        pvalue_threshhold=pvalue_threshold,
         use_mean=use_mean,
         order_stats=order_stats,
         order_better=order_settings["better"],
         dataset_column=dataset_column,
         precision=precision,
         load_analysis=load_analysis,
+    )
+
+    # start drawing heatmap
+    fig = _draw(
+        analysis,
+        output_dir=output_dir,
         row_comparates=row_comparates,
         col_comparates=col_comparates,
         excluded_row_comparates=excluded_row_comparates,
         excluded_col_comparates=excluded_col_comparates,
-    )
-    
-    # Generate figure
-    fig = _draw(
-        analysis,
+        precision=precision,
         colormap=colormap,
         fig_size=fig_size,
         font_size=font_size,
@@ -216,14 +209,13 @@ def create_multi_comparison_matrix(
         tie_label=tie_label,
         loss_label=loss_label,
         include_legend=include_legend,
-        show_symmetry=show_symmetry,
+        show_symetry=show_symetry,
     )
-    
 
-    # start drawing heatmap
+    # Handle saving files if save_files dictionary is provided
     if save_files:
         for file_type, file_name in save_files.items():
-            if file_name:
+            if file_name:  # Only save if filename is not None or empty
                 save_path = os.path.join(output_dir, file_name)
                 if file_type == "pdf":
                     fig.savefig(save_path, format="pdf", bbox_inches="tight")
@@ -235,9 +227,7 @@ def create_multi_comparison_matrix(
                     with open(save_path, "w") as f:
                         f.write(analysis.to_latex())
 
-    logger.info("MCM creation completed.")
     return fig
-
 
 
 def _get_analysis(
