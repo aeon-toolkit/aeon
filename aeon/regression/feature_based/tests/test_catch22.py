@@ -1,14 +1,14 @@
 """Tests for Catch22 Regressor."""
 
 import numpy as np
-from aeon.regression.feature_based import Catch22Regressor
-from aeon.datasets import load_covid_3month
 from sklearn.metrics import mean_squared_error
+
+from aeon.datasets import load_covid_3month
+from aeon.regression.feature_based import Catch22Regressor
 
 
 def test_Catch22_regressor():
     """Test Catch22 Regressor on covid 3-month data."""
-
     X, y = load_covid_3month()
     X, y = X[:10], y[:10]
     n = int(0.8 * len(X))

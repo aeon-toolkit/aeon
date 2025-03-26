@@ -1,13 +1,14 @@
 """Tests for MultiRocket Regressor."""
 
 import numpy as np
-from aeon.regression.convolution_based import MultiRocketRegressor
-from aeon.datasets import load_covid_3month
 from sklearn.metrics import mean_squared_error
+
+from aeon.datasets import load_covid_3month
+from aeon.regression.convolution_based import MultiRocketRegressor
+
 
 def test_multirocket_regressor():
     """Test MultiRocketRegressor on covid 3-month data."""
-
     X, y = load_covid_3month()
     n = int(0.8 * len(X))
     X_train, X_test = X[:n], X[n:]
