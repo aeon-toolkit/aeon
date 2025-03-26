@@ -182,7 +182,7 @@ def create_multi_comparison_matrix(
         pvalue_test=pvalue_test,
         pvalue_test_params=pvalue_test_params,
         pvalue_correction=pvalue_correction,
-        pvalue_threshhold=pvalue_threshold,
+        pvalue_threshold=pvalue_threshold,
         use_mean=use_mean,
         order_stats=order_stats,
         order_better=order_settings["better"],
@@ -434,10 +434,7 @@ def _get_analysis(
 def _draw(
     analysis,
     output_dir="./",
-    pdf_savename=None,
-    png_savename=None,
-    csv_savename=None,
-    tex_savename=None,
+    save_files: Optional[Dict[str, str]] = None,  # Changed to dictionary
     row_comparates=None,
     col_comparates=None,
     excluded_row_comparates=None,
@@ -580,9 +577,11 @@ def _draw(
 
     longest_string = max(annot_out["longest_string"], longest_string)
 
-    if csv_savename is not None:
-        # todo: can add a argument to save or not
-        df_annotations.to_csv(output_dir + f"{csv_savename}.csv", index=False)
+    if save_files and "csv" in save_files and save_files["csv"]:
+        df_annotations.to_csv(
+            os.path.join(output_dir, f"{save_files['csv']}.csv"), 
+            index=False
+        )
 
     df_annotations.drop("comparates", inplace=True, axis=1)
     df_annotations_np = np.asarray(df_annotations)
@@ -812,20 +811,6 @@ def _draw(
             verticalalignment="center",
         )
 
-    if pdf_savename is not None:
-        plt.savefig(
-            os.path.join(output_dir + f"{pdf_savename}.pdf"), bbox_inches="tight"
-        )
-        plt.cla()
-        plt.clf()
-        plt.close()
-    elif png_savename is not None:
-        plt.savefig(
-            os.path.join(output_dir + f"{png_savename}.png"), bbox_inches="tight"
-        )
-        plt.cla()
-        plt.clf()
-
     latex_string += (
         f"\\begin{{tabular}}{{{'c' * (len(latex_table[0]) + 1)}}}\n"  # +1 for labels
     )
@@ -890,17 +875,32 @@ def _draw(
     latex_string = latex_string.replace(">", "$>$")
     latex_string = latex_string.replace("<", "$<$")
 
-    if tex_savename is not None:
-        with open(
-            f"{output_dir}/{tex_savename}.tex", "w", encoding="utf8", newline="\n"
-        ) as file:
-            file.writelines(latex_string)
+    
 
     # latex references:
     # * https://tex.stackexchange.com/a/120187
     # * https://tex.stackexchange.com/a/334293
     # * https://tex.stackexchange.com/a/592942
     # * https://tex.stackexchange.com/a/304215
+    if save_files:
+        for file_type, file_name in save_files.items():
+            if not file_name:  # Skip if filename is empty
+                continue
+                
+            save_path = os.path.join(output_dir, file_name)
+            if file_type == "pdf":
+                plt.savefig(save_path, format="pdf", bbox_inches="tight")
+                plt.cla()
+                plt.clf()
+                plt.close()
+            elif file_type == "png":
+                plt.savefig(save_path, format="png", dpi=300, bbox_inches="tight")
+                plt.cla()
+                plt.clf()
+            elif file_type == "tex":
+                with open(save_path, "w", encoding="utf8", newline="\n") as file:
+                    file.writelines(latex_string)
+
     return plt.Figure()
 
 
