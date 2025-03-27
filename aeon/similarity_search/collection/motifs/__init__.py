@@ -1,1 +1,1 @@
-"""Motif search for time series collection."""
+"""Motif discovery for time series collection."""

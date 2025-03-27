@@ -6,6 +6,8 @@ import numpy as np
 from numba import njit
 from scipy.signal import convolve
 
+from aeon.utils.numba.general import AEON_NUMBA_STD_THRESHOLD
+
 
 def fft_sliding_dot_product(X, q):
     """
@@ -63,7 +65,7 @@ def get_ith_products(X, T, L, ith):
 
 @njit(cache=True, fastmath=True)
 def _inverse_distance_profile(dist_profile):
-    return 1 / (dist_profile + 1e-8)
+    return 1 / (dist_profile + AEON_NUMBA_STD_THRESHOLD)
 
 
 @njit(cache=True)
@@ -75,7 +77,7 @@ def _extract_top_k_from_dist_profile(
     exclusion_size,
 ):
     """
-    Given a distance profiles, extract the top k lower distances.
+    Given a distance profile, extract the top k lowest distances.
 
     Parameters
     ----------
@@ -86,10 +88,12 @@ def _extract_top_k_from_dist_profile(
         Number of best matches to return
     threshold : float
         A threshold on the distances of the best matches. To be returned, a candidate
-        must have a distance bellow this threshold. This can reduce the number of
-        returned matches to be bellow ``k``
+        must have a distance below this threshold. This can reduce the number of
+        returned matches to be below ``k``
     allow_trivial_matches : bool
-        Wheter to allow returning matches that are in the same neighborhood.
+        Whether to allow returning matches that are in the same neighborhood by
+        ignoring the exclusion zone defined by the ``exclusion_size`` parameter.
+        If False, the exclusion zone is applied.
     exclusion_size : int
         The size of the exlusion size to apply when ``allow_trivial_matches`` is
         False. It is applied on both side of existing matches (+/- their indexes).

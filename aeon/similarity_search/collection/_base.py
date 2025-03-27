@@ -69,11 +69,11 @@ class BaseCollectionSimilaritySearch(BaseCollectionEstimator, BaseSimilaritySear
 
         Parameters
         ----------
-        X : np.ndarray, shape = (n_cases, n_channels, n_tiempoints)
+        X : np.ndarray, shape = (n_cases, n_channels, n_timepoints)
             Collections of series to predict on.
         kwargs : dict, optional
-            Additional keyword argument as dict or individual keywords args
-            to pass to use.
+            Additional keyword arguments to be passed to the _predict function of the
+            estimator.
 
         Returns
         -------
@@ -93,7 +93,7 @@ class BaseCollectionSimilaritySearch(BaseCollectionEstimator, BaseSimilaritySear
 
     def _check_predict_series_format(self, X):
         """
-        Check wheter a series X in predict is correctly formated.
+        Check whether a series X in predict is correctly formated.
 
         Parameters
         ----------
