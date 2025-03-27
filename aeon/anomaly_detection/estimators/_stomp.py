@@ -7,7 +7,7 @@ __all__ = ["STOMP"]
 
 import numpy as np
 
-from aeon.anomaly_detection.base import BaseAnomalyDetector
+from aeon.anomaly_detection.estimators.base import BaseAnomalyDetector
 from aeon.utils.windowing import reverse_windowing
 
 

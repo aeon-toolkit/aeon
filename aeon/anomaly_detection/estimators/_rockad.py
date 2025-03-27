@@ -10,7 +10,7 @@ from sklearn.neighbors import NearestNeighbors
 from sklearn.preprocessing import PowerTransformer
 from sklearn.utils import resample
 
-from aeon.anomaly_detection.base import BaseAnomalyDetector
+from aeon.anomaly_detection.estimators.base import BaseAnomalyDetector
 from aeon.transformations.collection.convolution_based import Rocket
 from aeon.utils.windowing import reverse_windowing, sliding_windows
 

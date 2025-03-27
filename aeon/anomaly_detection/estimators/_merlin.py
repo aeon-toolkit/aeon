@@ -8,7 +8,7 @@ import warnings
 import numpy as np
 from numba import njit
 
-from aeon.anomaly_detection.base import BaseAnomalyDetector
+from aeon.anomaly_detection.estimators.base import BaseAnomalyDetector
 from aeon.distances import squared_distance
 from aeon.utils.numba.general import AEON_NUMBA_STD_THRESHOLD
 from aeon.utils.numba.stats import mean, std
