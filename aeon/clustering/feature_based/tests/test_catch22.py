@@ -81,6 +81,7 @@ def test_catch24_univariate():
     assert test_result.shape == (20,)
     assert train_result.shape == (20,)
 
+
 def test_catch22_multivariate():
     """Test Catch22 Clusterer with univariate data."""
     X_train, y_train = load_basic_motions(split="train")

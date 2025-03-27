@@ -84,6 +84,7 @@ def test_summary_multivariate():
     assert test_result.shape == (20,)
     assert train_result.shape == (20,)
 
+
 def test_all_summary_stat():
     X_train, y_train = load_basic_motions(split="train")
     X_test, y_test = load_basic_motions(split="test")
@@ -93,10 +94,7 @@ def test_all_summary_stat():
     X_test = X_test[:num_points]
     summary_stats_options = ["default", "percentiles", "bowley", "tukey"]
     for summary_stat in summary_stats_options:
-        summary = SummaryClusterer(
-            random_state=1,
-            summary_stats=summary_stat
-        )
+        summary = SummaryClusterer(random_state=1, summary_stats=summary_stat)
         train_result = summary.fit_predict(X_train)
         test_result = summary.predict(X_test)
         predict_proba = summary.predict_proba(X_test)
