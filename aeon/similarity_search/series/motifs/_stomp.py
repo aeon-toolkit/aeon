@@ -43,7 +43,7 @@ class StompMotif(BaseSeriesSimilaritySearch):
         }
 
         - for "r-motifs" (originaly named k-motifs, which was confusing as it is a range
-        based motif): {
+                          based motif): {
             "motif_size":np.inf,
             "dist_threshold":r,
             "motif_extraction_method":"r_motifs"

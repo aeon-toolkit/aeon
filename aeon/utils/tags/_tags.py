@@ -157,7 +157,7 @@ ESTIMATOR_TAGS = {
     "input_data_type": {
         "class": ["transformer", "similarity-search"],
         "type": ("str", ["Series", "Collection"]),
-        "description": "The input abstract data type of the transformer, input X. "
+        "description": "The input abstract data type of the estimator, input X. "
         "Series indicates a single series input, Collection indicates a collection of "
         "time series.",
     },

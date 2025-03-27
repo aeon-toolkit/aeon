@@ -310,45 +310,38 @@ new data.
 
 ### Similarity Search
 
-The similarity search module in `aeon` offers a set of functions and estimators to solve
-tasks related to time series similarity search. The estimators can be used standalone
-or as parts of pipelines, while the functions give you the tools to build your own
-estimators that would rely on similarity search at some point.
+The similarity search module in `aeon` offers a set of estimators to solve tasks
+related to time series similarity search. The estimators can be used standalone for
+data analysis purposes or as parts of pipelines, to perform other tasks such as
+classification or clustering.
 
-The estimators are inheriting from the [BaseSimiliaritySearch](similarity_search.base.BaseSimiliaritySearch)
-class accepts as inputs 3D time series (n_cases, n_channels, n_timepoints) for the
-fit method. Univariate and single series can still be used, but will need to be reshaped
-to this format.
+Similarly to the transformation module, similarity search estimators are either defined
+for single series or for collection of series. The estimators are inheriting from the
+[BaseSimiliaritySearch](similarity_search._base.BaseSimiliaritySearch) class, which
+both [BaseSeriesSimiliaritySearch](similarity_search.series._base.BaseSeriesSimiliaritySearch)
+and [BaseCollectionSimiliaritySearch](similarity_search.collection._base.BaseCollectionSimiliaritySearch)
+inherit from.
 
-This collection, asked for the fit method, is stored as a database. It will be used in
-the predict method, which expects a single 2D time series as input
-(n_channels, query_length). This 2D time series will be used as a query to search for in
-the 3D database.
-
-The result of the predict method will then depends on wheter you use the [QuerySearch](similarity_search.query_search.QuerySearch)
-and the [SeriesSearch](similarity_search.series_search.SeriesSearch) estimator. In [QuerySearch](similarity_search.query_search.QuerySearch), the 2D series is a subsequence
-for which we want to indentify the best (or worst !) matches in the 3D database.
-For [SeriesSearch](similarity_search.series_search.SeriesSearch), we require a `length` parmater, and we will search for the best
-matches of all subsequences of size `length` in the 2D series inside the 3D database.
-By default, these estimators will use the Euclidean (or squared Euclidean) distance,
-but more distance will be added in the future.
-
+All estimators use a `fit` `predict` interface, where `predict` outputs both the
+indexes of the neighbors or motifs and a distance or similarity measure linked to them.
+For example, using `StompMotif` to compute the matrix profile between two series :
 ```{code-block} python
 >>> import numpy as np
->>> from aeon.similarity_search import QuerySearch
->>> X = [[[1, 2, 3, 4, 5, 6, 7]],  # 3D array example (univariate)
-...      [[4, 4, 4, 5, 6, 7, 3]]]  # Two samples, one channel, seven series length
->>> X = np.array(X) # X is of shape (2, 1, 7) : (n_cases, n_channels, n_timepoints)
->>> top_k = QuerySearch(k=2)
->>> top_k.fit(X)  # fit the estimator on train data
-...
->>> q = np.array([[4, 5, 6]]) # q is of shape (1,3) :
->>> top_k.predict(q)  # Identify the two (k=2) most similar subsequences of length 3 in X
-[(0, 3), (1, 2)]
+>>> from aeon.similarity_search.series import StompMotif
+>>> X1 = np.array([1, 1, 2, 4, 6, 6, 7])  # single series (univariate)
+>>> X2 = np.array([0, 1, 2, 2, 4, 5, 7, 9, 4, 6])  # single series (univariate)
+>>> top_k = StompMotif(4).fit(X1) # 4 is length of the motif to search
+>>> distances, indexes = top_k.predict(X2, k=1)
 ```
-The output of predict gives a list of size `k`, where each element is a set indicating
-the location of the best matches in X as `(id_sample, id_timestamp)`. This is equivalent
-to the subsequence `X[id_sample, :, id_timestamps:id_timestamp + q.shape[0]]`.
+Some things to note on this example :
+
+- We defined `1D` series of shape `(n_timepoints)`, but internally, series estimator
+will use a `2D` representation as `(n_channels, n_timepoints)`.
+- The output of predict gives a two lists of size `k` (the number of motifs to extract)
+which can be read as follows : `distances[i] = d(X1[:, indexes[i][0]],X2[:, indexes[i][1]])`
+
+For more examples and use cases you can check the example section of the module,
+starting with the general [similarity search notebook](examples/similarity_search/similarity_search.ipynb)
 
 ## Transformers
 

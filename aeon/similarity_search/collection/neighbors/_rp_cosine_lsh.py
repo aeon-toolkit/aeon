@@ -4,7 +4,7 @@ import numpy as np
 from numba import get_num_threads, njit, prange, set_num_threads
 
 from aeon.similarity_search.collection._base import BaseCollectionSimilaritySearch
-from aeon.utils.numba.general import z_normalise_series_3d
+from aeon.utils.numba.general import AEON_NUMBA_STD_THRESHOLD, z_normalise_series_3d
 
 
 @njit(cache=True)
@@ -17,7 +17,7 @@ def _hamming_dist(X, Y):
 
 @njit(cache=True, parallel=True)
 def _hamming_dist_series_to_collection(X_bool, collection_bool):
-    n_buckets = collection_bool.shape[0]
+    n_buckets = len(collection_bool)
     res = np.zeros(n_buckets, dtype=np.int64)
     for i in prange(n_buckets):
         res[i] = _hamming_dist(collection_bool[i], X_bool)
@@ -150,18 +150,15 @@ class RandomProjectionIndexANN(BaseCollectionSimilaritySearch):
             size=self.n_hash_funcs,
             replace=True,
         )
-        X_bools, X_hashes = self._collection_to_hashes(X)
-        self.dict_X_index_ = {}
-        self.dict_bool_hashes_ = {}
-        for i in range(len(X_hashes)):
-            if X_hashes[i] in self.dict_X_index_:
-                self.dict_X_index_[X_hashes[i]].append(i)
+        X_bools = self._collection_to_hashes(X)
+        self.index_ = {}
+        self._raw_index_bool_arrays = np.unique(X_bools, axis=0)
+        for i in range(len(X_bools)):
+            key = X_bools[i].tostring()
+            if key in self.index_:
+                self.index_[key].append(i)
             else:
-                self.dict_X_index_[X_hashes[i]] = [i]
-                self.dict_bool_hashes_[X_hashes[i]] = X_bools[i]
-
-        self.bool_hashes_value_list_ = np.asarray(list(self.dict_bool_hashes_.values()))
-        self.bool_hashes_key_list_ = np.asarray(list(self.dict_bool_hashes_.keys()))
+                self.index_[key] = [i]
         set_num_threads(prev_threads)
         return self
 
@@ -169,7 +166,6 @@ class RandomProjectionIndexANN(BaseCollectionSimilaritySearch):
         self,
         X,
         k=1,
-        threshold=np.inf,
         inverse_distance=False,
     ):
         """
@@ -181,8 +177,6 @@ class RandomProjectionIndexANN(BaseCollectionSimilaritySearch):
             Collections of series for which we want to find neighbors.
         k : int, optional
             Number of neighbors to return for each series. The default is 1.
-        threshold : int, optional
-            A threshold on the distance to determine which candidates will be returned.
         inverse_distance : bool, optional
             Wheter to inverse the computed distance, meaning that the method will return
             the k most dissimilar neighbors instead of the k most similar.
@@ -206,18 +200,14 @@ class RandomProjectionIndexANN(BaseCollectionSimilaritySearch):
         if self.normalize:
             X = z_normalise_series_3d(X)
 
-        X_bools = _collection_to_bool(
-            X, self.hash_funcs_, self.start_points_, self.window_length_
-        )
-        X_bools, X_hashes = self._collection_to_hashes(X)
+        X_bools = self._collection_to_hashes(X)
         top_k = []
         top_k_dist = []
+
         for i in range(len(X_bools)):
             idx, dists = self._extract_neighors_one_series(
                 X_bools[i],
-                X_hashes[i],
                 k=k,
-                threshold=threshold,
                 inverse_distance=inverse_distance,
             )
             top_k.append(idx)
@@ -229,61 +219,53 @@ class RandomProjectionIndexANN(BaseCollectionSimilaritySearch):
     def _extract_neighors_one_series(
         self,
         X_bool,
-        X_hash,
         k=1,
-        threshold=np.inf,
         inverse_distance=False,
     ):
+        key = X_bool.tostring()
         top_k = np.zeros(k, dtype=int)
         top_k_dist = np.zeros(k, dtype=float)
         remove_X_hash = False
-        if not inverse_distance and X_hash in self.dict_X_index_:
-            current_k = min(len(self.dict_X_index_[X_hash]), k)
-            top_k[:current_k] = self.dict_X_index_[X_hash][:current_k]
+        if not inverse_distance and key in self.index_:
+            current_k = min(len(self.index_[key]), k)
+            top_k[:current_k] = self.index_[key][:current_k]
             remove_X_hash = True
         else:
             current_k = 0
 
         if current_k < k:
             dists = _hamming_dist_series_to_collection(
-                X_bool, self.bool_hashes_value_list_
+                X_bool, self._raw_index_bool_arrays
             )
 
             if inverse_distance:
-                dists = 1 / (dists + 1e-8)
+                dists = 1 / (dists + AEON_NUMBA_STD_THRESHOLD)  # to avoid div 0
             if remove_X_hash:
-                dists[np.where(self.bool_hashes_value_list_ == X_hash)[0]] = np.iinfo(
+                dists[np.where(self._raw_index_bool_arrays == key)[0]] = np.iinfo(
                     dists.dtype
                 ).max
-            # Get top k buckets
+            # Get top k index of keys
             ids = np.argpartition(dists, kth=k)[:k]
             # and reoder them
             ids = ids[np.argsort(dists[ids])]
 
             _i_bucket = 0
             while current_k < k:
-                if dists[ids[_i_bucket]] <= threshold:
-                    candidates = self.dict_X_index_[
-                        self.bool_hashes_key_list_[ids[_i_bucket]]
-                    ]
-                    # Can do exact search by computing distances here
-                    if len(candidates) > k - current_k:
-                        candidates = candidates[: k - current_k]
-                    top_k[current_k : current_k + len(candidates)] = candidates
-                    top_k_dist[current_k : current_k + len(candidates)] = dists[
-                        ids[_i_bucket]
-                    ]
-                    current_k += len(candidates)
-                else:
-                    break
+                key_index = self._raw_index_bool_arrays[ids[_i_bucket]].tostring()
+                candidates = self.index_[key_index]
+                # Can do exact search by computing distances here
+                if len(candidates) > k - current_k:
+                    candidates = candidates[: k - current_k]
+                top_k[current_k : current_k + len(candidates)] = candidates
+                top_k_dist[current_k : current_k + len(candidates)] = dists[
+                    ids[_i_bucket]
+                ]
+                current_k += len(candidates)
                 _i_bucket += 1
 
         return top_k[:current_k], top_k_dist[:current_k]
 
     def _collection_to_hashes(self, X):
-        bool_hashes = _collection_to_bool(
+        return _collection_to_bool(
             X, self.hash_funcs_, self.start_points_, self.window_length_
         )
-        return bool_hashes, [
-            hash(bool_hashes[i].tobytes()) for i in range(len(bool_hashes))
-        ]
