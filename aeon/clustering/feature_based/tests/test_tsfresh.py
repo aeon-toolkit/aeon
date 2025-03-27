@@ -98,6 +98,7 @@ def test_tsfresh_multivariate():
 
 
 def test_all_fc_parameters():
+    """Test TSFresh Clusterer with all fc parameters."""
     X_train, y_train = load_basic_motions(split="train")
     X_test, y_test = load_basic_motions(split="test")
     num_points = 20
