@@ -85,6 +85,7 @@ def test_summary_multivariate():
     assert train_result.shape == (20,)
 
 def test_all_summary_stat():
+    """Test Summary Clusterer with all summary stat."""
     X_train, y_train = load_basic_motions(split="train")
     X_test, y_test = load_basic_motions(split="test")
     num_points = 20
