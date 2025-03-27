@@ -9,7 +9,6 @@ from aeon.datasets import load_basic_motions, load_gunpoint
 
 def test_catch24_multivariate():
     """Test Catch24 Clusterer with univariate data."""
-
     X_train, y_train = load_basic_motions(split="train")
     X_test, y_test = load_basic_motions(split="test")
     num_points = 20
@@ -46,7 +45,6 @@ def test_catch24_multivariate():
 
 def test_catch24_univariate():
     """Test Catch24 Clusterer with multivariate data."""
-
     X_train, y_train = load_gunpoint(split="train")
     X_test, y_test = load_gunpoint(split="test")
     num_points = 20
@@ -86,7 +84,6 @@ def test_catch24_univariate():
 
 def test_catch22_multivariate():
     """Test Catch22 Clusterer with univariate data."""
-
     X_train, y_train = load_basic_motions(split="train")
     X_test, y_test = load_basic_motions(split="test")
     num_points = 20
@@ -123,7 +120,6 @@ def test_catch22_multivariate():
 
 def test_catch22_univariate():
     """Test Catch22 Clusterer with multivariate data."""
-
     X_train, y_train = load_gunpoint(split="train")
     X_test, y_test = load_gunpoint(split="test")
     num_points = 20

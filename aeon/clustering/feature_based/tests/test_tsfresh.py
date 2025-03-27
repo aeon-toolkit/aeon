@@ -15,7 +15,6 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 )
 def test_tsfresh_univariate():
     """Test TSFresh Clusterer with univariate data."""
-
     X_train, y_train = load_gunpoint(split="train")
     X_test, y_test = load_gunpoint(split="test")
     num_points = 20
@@ -60,7 +59,6 @@ def test_tsfresh_univariate():
 )
 def test_tsfresh_multivariate():
     """Test TSFresh Clusterer with multivariate data."""
-
     X_train, y_train = load_basic_motions(split="train")
     X_test, y_test = load_basic_motions(split="test")
     num_points = 20
@@ -105,7 +103,6 @@ def test_tsfresh_multivariate():
 )
 def test_all_fc_parameters():
     """Test TSFresh Clusterer with all FC parameters."""
-
     X_train, y_train = load_basic_motions(split="train")
     X_test, y_test = load_basic_motions(split="test")
     num_points = 20
