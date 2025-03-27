@@ -96,13 +96,8 @@ def test_tsfresh_multivariate():
     assert test_result.shape == (20,)
     assert train_result.shape == (20,)
 
-@pytest.mark.skipif(
-    not _check_soft_dependencies(["tsfresh"], severity="none"),
-    reason="TSFresh soft dependency unavailable.",
-)
-def test_all_fc_parameters():
-    """Test TSFresh Clusterer with all fc parameters."""
 
+def test_all_fc_parameters():
     X_train, y_train = load_basic_motions(split="train")
     X_test, y_test = load_basic_motions(split="test")
     num_points = 20
@@ -112,9 +107,7 @@ def test_all_fc_parameters():
     fc_parameters = ["minimal", "efficient", "comprehensive"]
     for fc in fc_parameters:
         tsfresh = TSFreshClusterer(
-            n_clusters=2,
-            random_state=1,
-            default_fc_parameters=fc
+            n_clusters=2, random_state=1, default_fc_parameters=fc
         )
 
         train_result = tsfresh.fit_predict(X_train)
