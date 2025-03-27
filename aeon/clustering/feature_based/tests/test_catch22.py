@@ -104,8 +104,13 @@ def test_catch22_multivariate():
     train_score = metrics.rand_score(y_train, train_result)
     test_result = catach22.predict(X_test)
     test_score = metrics.rand_score(y_test, test_result)
+    ari_test = metrics.adjusted_rand_score(y_test, test_result)
+    ari_train = metrics.adjusted_rand_score(y_train, train_result)
     predict_proba = catach22.predict_proba(X_test)
 
+    assert len(predict_proba) == 20
+    assert ari_test == 0.6451612903225806
+    assert ari_train == 0.32639279684862127
     assert len(predict_proba) == 20
     assert np.array_equal(
         test_result,
