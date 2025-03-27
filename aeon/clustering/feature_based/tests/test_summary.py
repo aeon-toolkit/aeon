@@ -9,6 +9,7 @@ from aeon.datasets import load_basic_motions, load_gunpoint
 
 def test_summary_univariate():
     """Test Summary Clusterer with univariate data."""
+
     X_train, y_train = load_gunpoint(split="train")
     X_test, y_test = load_gunpoint(split="test")
     num_points = 20
@@ -48,6 +49,7 @@ def test_summary_univariate():
 
 def test_summary_multivariate():
     """Test Summary Clusterer with multivariate data."""
+
     X_train, y_train = load_basic_motions(split="train")
     X_test, y_test = load_basic_motions(split="test")
     num_points = 20
@@ -87,6 +89,7 @@ def test_summary_multivariate():
 
 def test_all_summary_stat():
     """Test Summary Clusterer with all summary stat."""
+
     X_train, y_train = load_basic_motions(split="train")
     X_test, y_test = load_basic_motions(split="test")
     num_points = 20
