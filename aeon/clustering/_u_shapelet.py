@@ -76,7 +76,6 @@ class UShapeletClusterer(BaseClusterer):
         self.lb = lb
         self.ub = ub
         self.n_clusters = n_clusters
-        # Store the random_state parameter as provided.
         self.random_state = random_state
 
         self.best_shapelet_ = None
@@ -155,6 +154,7 @@ class UShapeletClusterer(BaseClusterer):
             self._kmeans_model.fit(dist_map)
             self._kmeans_labels = self._kmeans_model.labels_
 
+        self.labels_ = self._predict(X, y=None)
         return self
 
     def _predict(self, X, y=None):
