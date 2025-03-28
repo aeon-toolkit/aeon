@@ -1,9 +1,8 @@
-"""Unsupervised Shapelet Clustering Algorithm."""
-
 from collections import defaultdict
 from typing import Optional, Union
 
 import numpy as np
+from sklearn.utils import check_random_state
 
 from aeon.clustering._k_means import TimeSeriesKMeans
 from aeon.clustering.base import BaseClusterer
@@ -77,11 +76,8 @@ class UShapeletClusterer(BaseClusterer):
         self.lb = lb
         self.ub = ub
         self.n_clusters = n_clusters
-
-        if isinstance(random_state, np.random.RandomState):
-            self.random_state = random_state
-        else:
-            self.random_state = np.random.RandomState(random_state)
+        # Store the random_state parameter as provided.
+        self.random_state = random_state
 
         self.best_shapelet_ = None
         self.best_gap_ = None
@@ -328,8 +324,11 @@ class UShapeletClusterer(BaseClusterer):
         num_candidates = len(candidates)
         collision_counts = [[0] * projections for _ in range(num_candidates)]
 
+        # input random_state to a proper random state object.
+        rs = check_random_state(self.random_state)
+
         for p in range(projections):
-            mask_positions = self.random_state.choice(
+            mask_positions = rs.choice(
                 np.arange(sax_length), size=mask_size, replace=False
             )
             mask_positions = set(mask_positions)
@@ -343,8 +342,7 @@ class UShapeletClusterer(BaseClusterer):
                 )
                 masked_map[masked_key].add(series_ids[idx])
 
-            # For each candidate, record how many distinct series share
-            # its masked_key
+            # For each candidate, record how many distinct series share its masked_key
             for idx, word in enumerate(sax_words):
                 masked_key = tuple(
                     word[i] if i not in mask_positions else "*"
@@ -474,9 +472,8 @@ class UShapeletClusterer(BaseClusterer):
             avg_colls <= (self.ub if self.ub > 0 else N)
         )
         filtered_indices = np.nonzero(valid_mask)[0]
-
         if len(filtered_indices) == 0:
-            return []
+            filtered_indices = np.arange(total_candidates)
 
         colls_var = np.std(np.array(collisions)[filtered_indices], axis=1)
         sorted_order = filtered_indices[np.argsort(colls_var)]
