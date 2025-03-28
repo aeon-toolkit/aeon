@@ -83,7 +83,7 @@ def test_proportion_train_in_param_finding():
 
 
 def test_all_distance_measures():
-    """Test the 'all' option of the distance_measures parameter."""
+    """Test the ``all`` option of the distance_measures parameter."""
     X = np.random.random(size=(10, 1, 10))
     y = np.array([0, 0, 0, 0, 0, 1, 1, 1, 1, 1])
     ee = ElasticEnsemble(distance_measures="all", proportion_train_in_param_finding=0.2)
