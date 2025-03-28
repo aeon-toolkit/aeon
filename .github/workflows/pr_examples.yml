@@ -19,11 +19,16 @@ concurrency:
 
 jobs:
   run-notebook-examples:
-    runs-on: ubuntu-24.04
+    runs-on: macos-14
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Install latest version of bash
+        run: |
+          brew install bash
+          /opt/homebrew/bin/bash --version
 
       - name: Setup Python 3.10
         uses: actions/setup-python@v5

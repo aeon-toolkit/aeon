@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/opt/homebrew/bin/bash
 
 # Script to run all example notebooks.
 set -euxo pipefail
@@ -23,6 +23,7 @@ if [ "$1" = true ]; then
     "examples/classification/shapelet_based.ipynb"
     "examples/classification/convolution_based.ipynb"
     "examples/similarity_search/code_speed.ipynb"
+    "examples/transformations/signature_method.ipynb"
 
   )
 fi
@@ -32,7 +33,7 @@ notebooks=()
 runtimes=()
 
 # Loop over all notebooks in the examples directory.
-find "examples/" -name "*.ipynb" -print0 |
+find "examples" -name "*.ipynb" -print0 |
   while IFS= read -r -d "" notebook; do
     # Skip notebooks in the excluded list.
     if printf "%s\0" "${excluded[@]}" | grep -Fxqz -- "$notebook"; then
