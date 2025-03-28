@@ -4,10 +4,6 @@ from typing import Optional, Union
 
 import numpy as np
 from numba import njit
-from numba.typed import List as NumbaList
-
-from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
-from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
 def mp_distance(x: np.ndarray, y: np.ndarray, m: int = 0) -> float:
@@ -287,6 +283,8 @@ def mp_pairwise_distance(
     X: Union[np.ndarray, list[np.ndarray]],
     y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
     m: int = 0,
+    n_jobs: int = 1,
+    **kwargs,
 ) -> np.ndarray:
     """Compute the mpdist pairwise distance between a set of time series.
 
@@ -339,45 +337,8 @@ def mp_pairwise_distance(
            [2.82842712],
            [2.82842712]])
     """
-    multivariate_conversion = _is_numpy_list_multivariate(X, y)
-    _X, unequal_length = _convert_collection_to_numba_list(
-        X, "X", multivariate_conversion
-    )
-
     if m == 0:
-        m = int(_X.shape[2] / 4)
+        m = int(X.shape[2] / 4)
+    from aeon.distances._distance import pairwise_distance
 
-    if y is None:
-        return _mpdist_pairwise_distance_single(_X, m)
-
-    _y, unequal_length = _convert_collection_to_numba_list(
-        y, "y", multivariate_conversion
-    )
-
-    return _mpdist_pairwise_distance(_X, _y, m)
-
-
-def _mpdist_pairwise_distance_single(x: NumbaList[np.ndarray], m: int) -> np.ndarray:
-    n_cases = len(x)
-    distances = np.zeros((n_cases, n_cases))
-
-    for i in range(n_cases):
-        for j in range(i + 1, n_cases):
-            distances[i, j] = mp_distance(x[i], x[j], m)
-            distances[j, i] = distances[i, j]
-
-    return distances
-
-
-def _mpdist_pairwise_distance(
-    x: NumbaList[np.ndarray], y: NumbaList[np.ndarray], m: int
-) -> np.ndarray:
-    n_cases = len(x)
-    m_cases = len(y)
-
-    distances = np.zeros((n_cases, m_cases))
-
-    for i in range(n_cases):
-        for j in range(m_cases):
-            distances[i, j] = mp_distance(x[i], y[j], m)
-    return distances
+    return pairwise_distance(X, y, method=mp_distance, m=m, n_jobs=n_jobs, **kwargs)
