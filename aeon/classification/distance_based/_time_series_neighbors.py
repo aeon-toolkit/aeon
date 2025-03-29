@@ -47,11 +47,10 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         n_timepoints)`` as input and returns a float.
     distance_params : dict, default = None
         Dictionary for metric parameters for the case that distance is a str.
-    n_jobs : int, default = None
+    n_jobs : int, default = 1
         The number of parallel jobs to run for neighbors search.
         ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.
         ``-1`` means using all processors.
-        for more details. Parameter for compatibility purposes, still unimplemented.
 
     Examples
     --------
@@ -135,7 +134,6 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
             The class probabilities of the input samples. Classes are ordered
             by lexicographic order.
         """
-        self._check_is_fitted()
         preds = Parallel(n_jobs=self.n_jobs)(delayed(self._proba_row)(x) for x in X)
         return np.array(preds)
 
@@ -155,7 +153,6 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         y : array of shape (n_cases)
             Class labels for each data sample.
         """
-        self._check_is_fitted()
         preds = Parallel(n_jobs=self.n_jobs)(delayed(self._predict_row)(x) for x in X)
         return np.array(preds, dtype=self.classes_.dtype)
 
