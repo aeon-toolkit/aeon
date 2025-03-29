@@ -141,7 +141,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
             The class probabilities of the input samples. Classes are ordered
             by lexicographic order.
         """
-        preds = Parallel(n_jobs=self.n_jobs, parallel_backend=self.parallel_backend)(
+        preds = Parallel(n_jobs=self.n_jobs, backend=self.parallel_backend)(
             delayed(self._proba_row)(x) for x in X
         )
         return np.array(preds)
@@ -162,7 +162,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         y : array of shape (n_cases)
             Class labels for each data sample.
         """
-        preds = Parallel(n_jobs=self.n_jobs, parallel_backend=self.parallel_backend)(
+        preds = Parallel(n_jobs=self.n_jobs, backend=self.parallel_backend)(
             delayed(self._predict_row)(x) for x in X
         )
         return np.array(preds, dtype=self.classes_.dtype)
