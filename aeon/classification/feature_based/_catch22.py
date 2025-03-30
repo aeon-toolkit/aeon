@@ -43,8 +43,11 @@ class Catch22Classifier(BaseClassifier):
         true. If a List of specific features to extract is provided, "Mean" and/or
         "StandardDeviation" must be added to the List to extract these features.
     outlier_norm : bool, optional, default=False
-        Normalise each series during the two outlier Catch22 features, which can take a
-        while to process for large values.
+        If True, each time series is normalized during the computation of the two
+        outlier Catch22 features, which can take a while to process for large values
+        as it depends on the max value in the timseries. Note that this parameter
+        did not exist in the original publication/implementation as they used time
+        series that were already normalized.
     replace_nans : bool, default=True
         Replace NaN or inf values from the Catch22 transform with 0.
     use_pycatch22 : bool, default=False
@@ -136,7 +139,7 @@ class Catch22Classifier(BaseClassifier):
         self,
         features="all",
         catch24=True,
-        outlier_norm=False,
+        outlier_norm=True,
         replace_nans=True,
         use_pycatch22=False,
         estimator=None,
