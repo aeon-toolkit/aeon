@@ -84,10 +84,10 @@ class EIF(BaseAnomalyDetector):
         self : object
             Fitted estimator.
         """
+        from h2o.estimators.isolation_forest import H2OExtendedIsolationForestEstimator
+        from h2o.frame import H2OFrame
         from h2o.init import init
         from h2o.is_initialized import is_initialized
-        from h2o.frame import H2OFrame
-        from h2o.estimators.isolation_forest import H2OExtendedIsolationForestEstimator
 
         # Initialize h2o if not already initialized
         if not is_initialized():
