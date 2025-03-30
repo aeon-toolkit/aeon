@@ -84,20 +84,21 @@ class EIF(BaseAnomalyDetector):
         self : object
             Fitted estimator.
         """
-        # Import h2o here to ensure it's only imported when needed
-        import h2o
-        from h2o.estimators import H2OExtendedIsolationForestEstimator
+        from h2o.init import init
+        from h2o.is_initialized import is_initialized
+        from h2o.frame import H2OFrame
+        from h2o.estimators.isolation_forest import H2OExtendedIsolationForestEstimator
 
         # Initialize h2o if not already initialized
-        if not h2o.is_initialized():
-            h2o.init(silent=True)
+        if not is_initialized():
+            init(silent=True)
 
         # Fit the scaler
         self.scaler.fit(X)
         X_scaled = self.scaler.transform(X)
 
         # Convert to h2o frame
-        train_df = h2o.H2OFrame(X_scaled)
+        train_df = H2OFrame(X_scaled)
 
         # Set up the model parameters
         sample_size_param = self.sample_size
@@ -140,13 +141,13 @@ class EIF(BaseAnomalyDetector):
             The anomaly scores of the input samples.
             The higher, the more abnormal.
         """
-        import h2o
+        from h2o.frame import H2OFrame
 
         # Transform the data using the fitted scaler
         X_scaled = self.scaler.transform(X)
 
         # Convert to h2o frame
-        test_df = h2o.H2OFrame(X_scaled)
+        test_df = H2OFrame(X_scaled)
 
         # Get anomaly scores
         preds = self.eif.predict(test_df)
