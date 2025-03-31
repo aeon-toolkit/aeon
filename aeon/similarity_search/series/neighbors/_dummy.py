@@ -106,8 +106,8 @@ class DummySNN(BaseSeriesSimilaritySearch):
         if inverse_distance:
             dist_profile = _inverse_distance_profile(dist_profile)
 
+        exclusion_size = int(self.length * exclusion_factor)
         if X_index is not None:
-            exclusion_size = int(self.length * exclusion_factor)
             _max_timestamp = self.n_timepoints_ - self.length
             ub = min(X_index + exclusion_size, _max_timestamp)
             lb = max(0, X_index - exclusion_size)
