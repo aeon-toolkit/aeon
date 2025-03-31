@@ -340,6 +340,19 @@ class RClusterer(BaseClusterer):
         super().__init__()
 
     def _get_parameterised_data(self, X):
+        """Generate parameterized data for transformation
+        using minirocket's _fit_biases.
+
+        Parameters
+        ----------
+        X : np.ndarray
+            Input data of shape (n_samples, n_channels, n_timepoints).
+
+        Returns
+        -------
+        tuple
+            Contains processed parameters including dilations, features, and biases.
+        """
         random_state = np.random.RandomState(self.random_state)
         X = X.astype(np.float32)
 
@@ -391,6 +404,18 @@ class RClusterer(BaseClusterer):
         )
 
     def check_params(self, X):
+        """Check and adjust parameters related to multiprocessing.
+
+        Parameters
+        ----------
+        X : np.ndarray
+            Input data.
+
+        Returns
+        -------
+        np.ndarray
+            Processed input data with float32 type.
+        """
         X = X.astype(np.float32)
         if self.n_jobs < 1 or self.n_jobs > multiprocessing.cpu_count():
             n_jobs = multiprocessing.cpu_count()
@@ -400,6 +425,20 @@ class RClusterer(BaseClusterer):
         return X
 
     def _get_transformed_data(self, X, parameters):
+        """Transform input data using extracted parameters.
+
+        Parameters
+        ----------
+        X : np.ndarray
+            Input data.
+        parameters : tuple
+            Precomputed parameters for transformation.
+
+        Returns
+        -------
+        np.ndarray
+            Transformed data.
+        """
         prev_threads = get_num_threads()
         X = self.check_params(X)
         X = X.squeeze(1)
@@ -408,6 +447,15 @@ class RClusterer(BaseClusterer):
         return X_
 
     def _fit(self, X, y=None):
+        """Fit the clustering model using transformed PCA-reduced data.
+
+        Parameters
+        ----------
+        X : np.ndarray
+            Input data.
+        y : None
+            Ignored.
+        """
         parameters = self._get_parameterised_data(X)
 
         transformed_data = self._get_transformed_data(X=X, parameters=parameters)
@@ -430,16 +478,46 @@ class RClusterer(BaseClusterer):
         self.labels_ = self.estimator.labels_
 
     def _predict(self, X, y=None) -> np.ndarray:
+        """
+        Predict cluster labels for new data.
+
+        Parameters
+        ----------
+        X : np.ndarray
+            Input data.
+        y : None
+            Ignored.
+
+        Returns
+        -------
+        labels : np.ndarray
+            Array of cluster labels for each time series.
+        """
         parameters = self._get_parameterised_data(X)
 
         transformed_data = self._get_transformed_data(X=X, parameters=parameters)
-        X_std = self.scaler.fit_transform(transformed_data)
+        X_std = self.scaler.transform(transformed_data)
         pca = self.pca
         transformed_data_pca = pca.transform(X_std)
 
         return self.estimator.predict(transformed_data_pca)
 
     def _fit_predict(self, X, y=None) -> np.ndarray:
+        """
+        Fit and predict cluster labels for the input data.
+
+        Parameters
+        ----------
+        X : np.ndarray
+            Input data.
+        y : None
+            Ignored.
+
+        Returns
+        -------
+        labels : np.ndarray
+            Array of cluster labels for each time series.
+        """
         parameters = self._get_parameterised_data(X)
         transformed_data = self._get_transformed_data(X=X, parameters=parameters)
         self.scaler = StandardScaler()
