@@ -407,7 +407,8 @@ class RClusterer(BaseClusterer):
         )
 
     def check_params(self, X):
-        """Check and adjust parameters related to multiprocessing.
+        """
+        Check and adjust parameters related to multiprocessing.
 
         Parameters
         ----------
@@ -428,7 +429,8 @@ class RClusterer(BaseClusterer):
         return X
 
     def _get_transformed_data(self, X, parameters):
-        """Transform input data using extracted parameters.
+        """
+        Transform input data using extracted parameters.
 
         Parameters
         ----------
@@ -450,7 +452,8 @@ class RClusterer(BaseClusterer):
         return X_
 
     def _fit(self, X, y=None):
-        """Fit the clustering model using transformed PCA-reduced data.
+        """
+        Fit the clustering model using transformed PCA-reduced data.
 
         Parameters
         ----------
