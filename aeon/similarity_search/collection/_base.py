@@ -15,7 +15,12 @@ from aeon.similarity_search._base import BaseSimilaritySearch
 
 
 class BaseCollectionSimilaritySearch(BaseCollectionEstimator, BaseSimilaritySearch):
-    """Similarity search base class for collections."""
+    """
+    Similarity search base class for collections.
+
+    Such estimators include nearest neighbors on whole series or subsequences with
+    indexing or concenssus motifs search over a collection.
+    """
 
     # tag values specific to CollectionTransformers
     _tags = {
@@ -69,7 +74,7 @@ class BaseCollectionSimilaritySearch(BaseCollectionEstimator, BaseSimilaritySear
 
         Parameters
         ----------
-        X : np.ndarray, shape = (n_cases, n_channels, n_timepoints)
+        X : np.ndarray, 3D array of shape = (n_cases, n_channels, n_timepoints)
             Collections of series to predict on.
         kwargs : dict, optional
             Additional keyword arguments to be passed to the _predict function of the

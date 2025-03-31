@@ -59,8 +59,8 @@ class StompMotif(BaseSeriesSimilaritySearch):
 
     Notes
     -----
-    This estimator only provide exact computation method, faster approximate methods
-    also exists in the litterature. We use a squared euclidean distance instead of the
+    This estimator only provides an exact computation method, faster approximate methods
+    also exist in the litterature. We use a squared euclidean distance instead of the
     euclidean distance, if you want euclidean distance results, you should square root
     the obtained results.
 
@@ -101,7 +101,7 @@ class StompMotif(BaseSeriesSimilaritySearch):
         motif_size: Optional[int] = 1,
         dist_threshold: Optional[float] = np.inf,
         allow_trivial_matches: Optional[bool] = False,
-        exclusion_factor: Optional[float] = 2,
+        exclusion_factor: Optional[float] = 0.5,
         inverse_distance: Optional[bool] = False,
         motif_extraction_method: Optional[str] = "k_motifs",
     ):
@@ -120,29 +120,35 @@ class StompMotif(BaseSeriesSimilaritySearch):
             The number of motifs to return. The default is 1, meaning we return only
             the motif set with the minimal sum of distances to its query.
         motif_size : int
-            The number of subsequences in a motif. Default is 1, meaning we extract
-            motif pairs (the query and its best match)
+            The number of subsequences in a motif excluding the motif candidate. This
+            means that the number of subsequences in the returned motifs will be
+            ``motif_size + 1``. For example, with the default is 1, this means that we
+            extract motif pairs (the motif candidate from X and its best match in X_)
         dist_threshold : float
             The maximum allowed distance of a candidate subsequence of X to a query
             subsequence from X_ for the candidate to be considered as a neighbor.
         allow_trivial_matches: bool, optional
-            Wheter a neighbors of a match to a query can be also considered as matches
+            Whether a neighbor of a match to a query can also be considered as matches
             (True), or if an exclusion zone is applied around each match to avoid
             trivial matches with their direct neighbors (False).
-        exclusion_factor : float, default=1.
+        exclusion_factor : float, default=0.5.
             A factor of the query length used to define the exclusion zone when
             ``allow_trivial_matches`` is set to False. For a given timestamp,
             the exclusion zone starts from
-            :math:`id_timestamp - length//exclusion_factor` and end at
-            :math:`id_timestamp + length//exclusion_factor`.
+            :math:`id_timestamp - floor(length*exclusion_factor)` and end at
+            :math:`id_timestamp + floor(length*exclusion_factor)`.
         inverse_distance : bool
             If True, the matching will be made on the inverse of the distance, and thus,
             the farther neighbors will be returned instead of the closest ones.
         motif_extraction_method : str
-            A string indicating the methodology to use to extract the top motifs.
-            Available methods are "r_motifs" and "k_motifs". "r_motifs" means we rank
-            motif set by their cardinality, with higher is better. "k_motifs" means
-            we rank motif set by their maximum distance to their query
+            A string indicating the methodology to use to extract the top k motifs from
+            the matrix profile. Available methods are "r_motifs" and "k_motifs":
+            - "r_motifs" means we rank motif set by their cardinality (number of matches
+            with a distance at most dist_threshold to the candidate motif), with higher
+            is better.
+            - "k_motifs" means rank motifs by their maximum distance to their matches.
+            For example, if a 3-motif has distances to its matches equal to
+            ``[0.1,0.2,0.5]`` will have a score of ``max([0.1,0.2,0.5])=0.5``.
 
         Returns
         -------
@@ -168,11 +174,11 @@ class StompMotif(BaseSeriesSimilaritySearch):
         )
         if motif_extraction_method == "k_motifs":
             return _extract_top_k_motifs(
-                MP, IP, k, allow_trivial_matches, self.length // exclusion_factor
+                MP, IP, k, allow_trivial_matches, int(self.length * exclusion_factor)
             )
         elif motif_extraction_method == "r_motifs":
             return _extract_top_r_motifs(
-                MP, IP, k, allow_trivial_matches, self.length // exclusion_factor
+                MP, IP, k, allow_trivial_matches, int(self.length * exclusion_factor)
             )
 
     def compute_matrix_profile(
@@ -181,7 +187,7 @@ class StompMotif(BaseSeriesSimilaritySearch):
         motif_size: Optional[int] = 1,
         dist_threshold: Optional[float] = np.inf,
         allow_trivial_matches: Optional[bool] = False,
-        exclusion_factor: Optional[float] = 2,
+        exclusion_factor: Optional[float] = 0.5,
         inverse_distance: Optional[bool] = False,
     ):
         """
@@ -194,7 +200,7 @@ class StompMotif(BaseSeriesSimilaritySearch):
         Parameters
         ----------
         X : np.ndarray, shape = (n_channels, n_timepoints)
-            A 2D array time series on against which the matrix profile of X_ will be
+            A 2D array time series against which the matrix profile of X_ will be
             computed.
         motif_size : int
             The number of subsequences in a motif. Default is 1, meaning we extract
@@ -205,12 +211,12 @@ class StompMotif(BaseSeriesSimilaritySearch):
         inverse_distance : bool
             If True, the matching will be made on the inverse of the distance, and thus,
             the worst matches to the query will be returned instead of the best ones.
-        exclusion_factor : float, default=1.
+        exclusion_factor : float, default=0.5
             A factor of the query length used to define the exclusion zone when
             ``allow_trivial_matches`` is set to False. For a given timestamp,
             the exclusion zone starts from
-            :math:`id_timestamp - length//exclusion_factor` and end at
-            :math:`id_timestamp + length//exclusion_factor`.
+            :math:`id_timestamp - floor(length * exclusion_factor)` and end at
+            :math:`id_timestamp + floor(length * exclusion_factor)`.
 
         Returns
         -------
@@ -233,9 +239,9 @@ class StompMotif(BaseSeriesSimilaritySearch):
             if self.normalize:
                 X_means, X_stds = sliding_mean_std_one_series(X, self.length, 1)
         X_dotX = get_ith_products(X, self.X_, self.length, 0)
-        exclusion_size = self.length // exclusion_factor
+        exclusion_size = int(self.length * exclusion_factor)
 
-        if motif_size == np.inf:
+        if np.isinf(motif_size):
             # convert infs here as numba seem to not be able to do == np.inf ?
             motif_size = X.shape[1] - self.length + 1
 
@@ -340,7 +346,7 @@ def _stomp_normalized(
        The maximum allowed distance of a candidate subsequence of X to a query
        subsequence from X_ for the candidate to be considered as a neighbor.
     allow_trivial_matches : bool
-        Wheter the top-k candidates can be neighboring subsequences.
+        Whether the top-k candidates can be neighboring subsequences.
     exclusion_size : int
         The size of the exclusion zone used to prevent returning as top k candidates
         the ones that are close to each other (for example i and i+1).
@@ -353,7 +359,7 @@ def _stomp_normalized(
         If True, the matching will be made on the inverse of the distance, and thus, the
         worst matches to the query will be returned instead of the best ones.
     is_self_mp : bool
-        Wheter X_A == X_B.
+        Whether X_A == X_B.
 
     Returns
     -------

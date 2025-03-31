@@ -10,7 +10,12 @@ from aeon.similarity_search._base import BaseSimilaritySearch
 
 
 class BaseSeriesSimilaritySearch(BaseSeriesEstimator, BaseSimilaritySearch):
-    """Base class for similarity search applications on single series."""
+    """
+    Base class for similarity search applications on single series.
+
+    Such estimators include nearest neighbors on subsequences extracted from a series
+    or motif discovery on single series.
+    """
 
     _tags = {
         "input_data_type": "Series",

@@ -62,7 +62,7 @@ class MassSNN(BaseSeriesSimilaritySearch):
         k: Optional[int] = 1,
         dist_threshold: Optional[float] = np.inf,
         allow_trivial_matches: Optional[bool] = False,
-        exclusion_factor: Optional[float] = 2,
+        exclusion_factor: Optional[float] = 0.5,
         inverse_distance: Optional[bool] = False,
         X_index: Optional[int] = None,
     ):
@@ -89,8 +89,8 @@ class MassSNN(BaseSeriesSimilaritySearch):
             A factor of the query length used to define the exclusion zone when
             ``allow_trivial_matches`` is set to False. For a given timestamp,
             the exclusion zone starts from
-            :math:`id_timestamp - length//exclusion_factor` and end at
-            :math:`id_timestamp + length//exclusion_factor`.
+            :math:`id_timestamp - floor(length * exclusion_factor)` and end at
+            :math:`id_timestamp + floor(length * exclusion_factor)`.
         X_index : int, optional
             If ``X`` is a subsequence of X_, specify its starting timestamp in ``X_``.
             If specified, neighboring subsequences of X won't be able to match as
@@ -114,7 +114,7 @@ class MassSNN(BaseSeriesSimilaritySearch):
         if inverse_distance:
             dist_profile = _inverse_distance_profile(dist_profile)
 
-        exclusion_size = self.length // exclusion_factor
+        exclusion_size = int(self.length * exclusion_factor)
         if X_index is not None:
             _max_timestamp = self.n_timepoints_ - self.length
             ub = min(X_index + exclusion_size, _max_timestamp)
