@@ -236,8 +236,11 @@ def _univariate_sbd_distance(x: np.ndarray, y: np.ndarray, standardize: bool) ->
     b = np.sqrt(np.dot(x, x) * np.dot(y, y))
     return np.abs(1.0 - np.max(a / b))
 
+
 @njit(cache=True, fastmath=True)
-def _multivariate_sbd_distance(x: np.ndarray, y: np.ndarray, standardize: bool) -> float:
+def _multivariate_sbd_distance(
+    x: np.ndarray, y: np.ndarray, standardize: bool
+) -> float:
     x = x.astype(np.float64)
     y = y.astype(np.float64)
 
@@ -253,16 +256,21 @@ def _multivariate_sbd_distance(x: np.ndarray, y: np.ndarray, standardize: bool) 
 
     norm1 = np.linalg.norm(x)
     norm2 = np.linalg.norm(y)
-    
+
     denom = norm1 * norm2
     if denom < 1e-9:  # Avoid NaNs
         denom = np.inf
 
     with objmode(cc="float64[:, :]"):
-        cc = np.array([correlate(x[:, i], y[:, i], mode="full", method="fft") for i in range(x.shape[1])]).T
+        cc = np.array(
+            [
+                correlate(x[:, i], y[:, i], mode="full", method="fft")
+                for i in range(x.shape[1])
+            ]
+        ).T
 
     sz = x.shape[0]
-    cc = np.vstack((cc[-(sz - 1):], cc[:sz]))
+    cc = np.vstack((cc[-(sz - 1) :], cc[:sz]))
     norm_cc = np.real(cc).sum(axis=-1) / denom
 
     return np.abs(1.0 - np.max(norm_cc))
