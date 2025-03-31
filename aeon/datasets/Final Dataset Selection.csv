@@ -1,0 +1,101 @@
+Dataset,Series,Category
+weather_dataset,T1,Weather
+weather_dataset,T2,Weather
+weather_dataset,T3,Weather
+weather_dataset,T4,Weather
+weather_dataset,T5,Weather
+solar_10_minutes_dataset,T1,Energy Production
+solar_10_minutes_dataset,T2,Energy Production
+solar_10_minutes_dataset,T3,Energy Production
+solar_10_minutes_dataset,T4,Energy Production
+solar_10_minutes_dataset,T5,Energy Production
+sunspot_dataset_without_missing_values,T1,Other
+wind_farms_minutely_dataset_without_missing_values,T1,Energy Production
+wind_farms_minutely_dataset_without_missing_values,T2,Energy Production
+wind_farms_minutely_dataset_without_missing_values,T3,Energy Production
+wind_farms_minutely_dataset_without_missing_values,T4,Energy Production
+wind_farms_minutely_dataset_without_missing_values,T5,Energy Production
+elecdemand_dataset,T1,Energy Demand
+us_births_dataset,T1,Demographic
+saugeenday_dataset,T1,Weather
+london_smart_meters_dataset_without_missing_values,T1,Energy Demand
+london_smart_meters_dataset_without_missing_values,T2,Energy Demand
+london_smart_meters_dataset_without_missing_values,T3,Energy Demand
+traffic_hourly_dataset,T1,Transportation
+traffic_hourly_dataset,T2,Transportation
+traffic_hourly_dataset,T3,Transportation
+traffic_hourly_dataset,T4,Transportation
+traffic_hourly_dataset,T5,Transportation
+electricity_hourly_dataset,T1,Energy Demand
+electricity_hourly_dataset,T2,Energy Demand
+electricity_hourly_dataset,T3,Energy Demand
+pedestrian_counts_dataset,T1,Transportation
+pedestrian_counts_dataset,T2,Transportation
+pedestrian_counts_dataset,T3,Transportation
+pedestrian_counts_dataset,T4,Transportation
+pedestrian_counts_dataset,T5,Transportation
+kdd_cup_2018_dataset_without_missing_values,T1,Other
+australian_electricity_demand_dataset,T1,Energy Demand
+australian_electricity_demand_dataset,T2,Energy Demand
+australian_electricity_demand_dataset,T3,Energy Demand
+oikolab_weather_dataset,T1,Weather
+oikolab_weather_dataset,T2,Weather
+oikolab_weather_dataset,T3,Weather
+oikolab_weather_dataset,T4,Weather
+m4_monthly_dataset,T122,Macro
+m4_monthly_dataset,T145,Macro
+m4_monthly_dataset,T180,Macro
+m4_monthly_dataset,T186,Macro
+m4_monthly_dataset,T17051,Micro
+m4_monthly_dataset,T17088,Micro
+m4_monthly_dataset,T17132,Micro
+m4_monthly_dataset,T17146,Micro
+m4_monthly_dataset,T26710,Demographic
+m4_monthly_dataset,T27138,Industry
+m4_monthly_dataset,T27170,Industry
+m4_monthly_dataset,T27175,Industry
+m4_monthly_dataset,T27186,Industry
+m4_monthly_dataset,T37009,Finance
+m4_monthly_dataset,T37070,Finance
+m4_monthly_dataset,T37238,Finance
+m4_monthly_dataset,T37248,Finance
+m4_monthly_dataset,T47915,Other
+m4_weekly_dataset,T1,Other
+m4_weekly_dataset,T2,Other
+m4_weekly_dataset,T19,Macro
+m4_weekly_dataset,T20,Macro
+m4_weekly_dataset,T21,Macro
+m4_weekly_dataset,T55,Industry
+m4_weekly_dataset,T56,Industry
+m4_weekly_dataset,T60,Finance
+m4_weekly_dataset,T61,Finance
+m4_weekly_dataset,T62,Finance
+m4_weekly_dataset,T224,Demographic
+m4_weekly_dataset,T225,Demographic
+m4_weekly_dataset,T226,Demographic
+m4_weekly_dataset,T227,Demographic
+m4_weekly_dataset,T248,Micro
+m4_weekly_dataset,T249,Micro
+m4_weekly_dataset,T250,Micro
+m4_daily_dataset,T1,Macro
+m4_daily_dataset,T2,Macro
+m4_daily_dataset,T6,Macro
+m4_daily_dataset,T130,Micro
+m4_daily_dataset,T131,Micro
+m4_daily_dataset,T145,Micro
+m4_daily_dataset,T1604,Demographic
+m4_daily_dataset,T1605,Demographic
+m4_daily_dataset,T1606,Demographic
+m4_daily_dataset,T1607,Demographic
+m4_daily_dataset,T1614,Industry
+m4_daily_dataset,T1615,Industry
+m4_daily_dataset,T1634,Industry
+m4_daily_dataset,T1650,Industry
+m4_daily_dataset,T2036,Finance
+m4_daily_dataset,T2037,Finance
+m4_daily_dataset,T2041,Finance
+m4_daily_dataset,T3595,Other
+m4_daily_dataset,T3597,Other
+m4_hourly_dataset,T170,Other
+m4_hourly_dataset,T171,Other
+m4_hourly_dataset,T172,Other
