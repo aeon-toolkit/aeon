@@ -340,8 +340,11 @@ class RClusterer(BaseClusterer):
         super().__init__()
 
     def _get_parameterised_data(self, X):
-        """Generate parameterized data for transformation
-        using minirocket's _fit_biases.
+        """
+        Generate parameterized data for transformation.
+
+        This method prepares the required parameters for transforming
+        time-series data using MiniRocket.
 
         Parameters
         ----------
