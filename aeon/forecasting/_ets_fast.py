@@ -225,6 +225,9 @@ def _fit(
     phi,
 ):
     assert error_type != NONE, "Error must be either additive or multiplicative"
+    assert (
+        error_type != MULTIPLICATIVE or data.min() > 0
+    ), "Data must be positive with multiplicative errors"
     if seasonal_period < 1 or seasonality_type == NONE:
         seasonal_period = 1
     if trend_type == NONE:
