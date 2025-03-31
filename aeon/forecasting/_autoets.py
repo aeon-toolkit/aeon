@@ -320,7 +320,10 @@ def run_ets(
         and 0 <= beta <= 1
         and 0 <= gamma <= 1
         and 0.8 <= phi <= 1
-        and (data.min() > 0 or error_type != 2)
+        and (
+            data.min() > 0
+            or (error_type != 2 and trend_type != 2 and seasonality_type != 2)
+        )
     ):
         return np.finfo(np.float64).max
     (

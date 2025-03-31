@@ -226,8 +226,11 @@ def _fit(
 ):
     assert error_type != NONE, "Error must be either additive or multiplicative"
     assert (
-        error_type != MULTIPLICATIVE or data.min() > 0
-    ), "Data must be positive with multiplicative errors"
+        error_type != MULTIPLICATIVE
+        and trend_type != MULTIPLICATIVE
+        and seasonality_type != MULTIPLICATIVE
+        or data.min() > 0
+    ), "Data must be positive with multiplicative components"
     if seasonal_period < 1 or seasonality_type == NONE:
         seasonal_period = 1
     if trend_type == NONE:
