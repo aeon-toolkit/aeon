@@ -30,23 +30,23 @@ def suppress_output(suppress_stdout=True, suppress_stderr=True):
     Suppressing both stdout and stderr:
 
     >>> with suppress_output():
-    >>>     print("This will not be displayed")
-    >>>     import warnings
-    >>>     warnings.warn("This warning will be hidden", UserWarning)
+    ...     print("This will not be displayed")
+    ...     import warnings
+    ...     warnings.warn("This warning will be hidden", UserWarning)
 
     Suppressing only stdout:
 
     >>> with suppress_output(suppress_stdout=True, suppress_stderr=False):
-    >>>     print("This will not be shown")
-    >>>     import sys
-    >>>     sys.stderr.write("Error messages will still be visible")
+    ...     print("This will not be shown")
+    ...     import sys
+    ...     sys.stderr.write("Error messages will still be visible")
 
     Suppressing only stderr:
 
     >>> with suppress_output(suppress_stdout=False, suppress_stderr=True):
-    >>>     print("This will be shown")
-    >>>     import sys
-    >>>     sys.stderr.write("This error message will be hidden")
+    ...     print("This will be shown")
+    ...     import sys
+    ...     sys.stderr.write("This error message will be hidden")
     """
     with open(devnull, "w") as null:
         stdout = sys.stdout
