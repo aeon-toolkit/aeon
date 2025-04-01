@@ -81,90 +81,6 @@ class ETSForecaster(BaseForecaster):
     449.9435566831507
     """
 
-
-"""ETSForecaster class.
-
-An implementation of the exponential smoothing statistics forecasting algorithm.
-Implements additive and multiplicative error models,
-``None``, additive and multiplicative (including damped) trend and
-``None``, additive and multiplicative seasonality
-"""
-
-__maintainer__ = []
-__all__ = ["ETSForecaster", "NONE", "ADDITIVE", "MULTIPLICATIVE"]
-
-import numpy as np
-from numba import njit
-
-from aeon.forecasting.base import BaseForecaster
-
-NOGIL = False
-CACHE = True
-
-NONE = 0
-ADDITIVE = 1
-MULTIPLICATIVE = 2
-
-
-class ETSForecaster(BaseForecaster):
-    """Exponential Smoothing forecaster.
-
-    An implementation of the exponential smoothing forecasting algorithm.
-    Implements additive and multiplicative error models, ``None``, additive and
-    multiplicative (including damped) trend and ``None``, additive and multiplicative
-    seasonality. See [1]_ for a description.
-
-    Parameters
-    ----------
-    error_type : ``int``, default = ``1``
-        Either ``NONE`` (``0``), ``ADDITIVE`` (``1``) or ``MULTIPLICATIVE`` (``2``).
-    trend_type : ``int``, default = ``0``
-        Either ``NONE`` (``0``), ``ADDITIVE`` (``1``) or ``MULTIPLICATIVE`` (``2``).
-    seasonality_type : ``int``, default = ``0``
-        Either ``NONE`` (``0``), ``ADDITIVE`` (``1``) or ``MULTIPLICATIVE`` (``2``).
-    seasonal_period : ``int``, default=``1``
-        Length of seasonality period. If ``seasonality_type`` is ``NONE``, this is assumed to
-        be ``1``
-    alpha : ``float``, default = ``0.1``
-        Level smoothing parameter.
-    beta : ``float``, default = ``0.01``
-        Trend smoothing parameter. If ``trend_type`` is ``NONE``, this is assumed to be ``0.0``.
-    gamma : ``float``, default = ``0.01``
-        Seasonal smoothing parameter. If ``seasonality`` is ``NONE``, this is assumed to be
-        ``0.0``.
-    phi : ``float``, default = ``0.99``
-        Trend damping smoothing parameters
-    horizon : ``int``, default = ``1``
-        The horizon to forecast to.
-
-    Attributes
-    ----------
-    mean_sq_err_ : ``float``
-        Mean squared error.
-    likelihood_ : ``float``
-        Likelihood of the fitted model based on residuals.
-    residuals_ : ``arraylike``
-        List of train set differences between fitted and actual values.
-    n_timpoints_ : ``int``
-        Length of the series passed to fit.
-
-    References
-    ----------
-    .. [1] R. J. Hyndman and G. Athanasopoulos,
-        Forecasting: Principles and Practice. Melbourne, Australia: OTexts, 2014.
-
-    Examples
-    --------
-    >>> from aeon.forecasting import ETSForecaster
-    >>> from aeon.datasets import load_airline
-    >>> y = load_airline()
-    >>> forecaster = ETSForecaster(alpha=0.4, beta=0.2, gamma=0.5, phi=0.8, horizon=1)
-    >>> forecaster.fit(y)
-    ETSForecaster(alpha=0.4, beta=0.2, gamma=0.5, phi=0.8)
-    >>> forecaster.predict()
-    449.9435566831507
-    """
-
     def __init__(
         self,
         error_type=ADDITIVE,
@@ -269,8 +185,7 @@ class ETSForecaster(BaseForecaster):
             self.n_timepoints_,
             self.seasonal_period,
         )
-
-
+        
 @njit(nogil=NOGIL, cache=CACHE)
 def _fit_numba(
     data,
@@ -318,7 +233,6 @@ def _fit_numba(
         lhood += 2 * mul_likelihood_pt2
     return level, trend, seasonality, res, mse, lhood
 
-
 def _predict_numba(
     trend_type,
     seasonality_type,
@@ -345,7 +259,6 @@ def _predict_numba(
         seasonality[seasonal_index],
         phi_h,
     )[0]
-
 
 @njit(nogil=NOGIL, cache=CACHE)
 def _initialise(trend_type, seasonality_type, seasonal_period, data):
@@ -387,7 +300,6 @@ def _initialise(trend_type, seasonality_type, seasonal_period, data):
         # No seasonality
         seasonality = np.zeros(1)
     return level, trend, seasonality
-
 
 @njit(nogil=NOGIL, cache=CACHE)
 def _update_states(
