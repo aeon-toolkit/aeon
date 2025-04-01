@@ -2,8 +2,8 @@
 
 An implementation of the exponential smoothing statistics forecasting algorithm.
 Implements additive and multiplicative error models,
-`None`, additive and multiplicative (including damped) trend and
-`None`, additive and multiplicative seasonality
+None, additive and multiplicative (including damped) trend and
+None, additive and multiplicative seasonality
 """
 
 __maintainer__ = []
@@ -26,42 +26,42 @@ class ETSForecaster(BaseForecaster):
     """Exponential Smoothing forecaster.
 
     An implementation of the exponential smoothing forecasting algorithm.
-    Implements additive and multiplicative error models, `None`, additive and
-    multiplicative (including damped) trend and `None`, additive and multiplicative
+    Implements additive and multiplicative error models, None, additive and
+    multiplicative (including damped) trend and None, additive and mutliplicative
     seasonality. See [1]_ for a description.
 
     Parameters
     ----------
-    error_type : `int`, default = `1`
-        Either `NONE` (`0`), `ADDITIVE` (`1`) or `MULTIPLICATIVE` (`2`).
-    trend_type : `int`, default = `0`
-        Either `NONE` (`0`), `ADDITIVE` (`1`) or `MULTIPLICATIVE` (`2`).
-    seasonality_type : `int`, default = `0`
-        Either `NONE` (`0`), `ADDITIVE` (`1`) or `MULTIPLICATIVE` (`2`).
-    seasonal_period : `int`, default=`1`
-        Length of seasonality period. If `seasonality_type` is `NONE`, this is assumed to
-        be `1`
-    alpha : `float`, default = `0.1`
+    error_type : int, default = 1
+        Either NONE (0), ADDITIVE (1) or MULTIPLICATIVE (2).
+    trend_type : int, default = 0
+        Either NONE (0), ADDITIVE (1) or MULTIPLICATIVE (2).
+    seasonality_type : int, default = 0
+        Either NONE (0), ADDITIVE (1) or MULTIPLICATIVE (2).
+    seasonal_period : int, default=1
+        Length of seasonality period. If seasonality_type is NONE, this is assumed to
+        be 1
+    alpha : float, default = 0.1
         Level smoothing parameter.
-    beta : `float`, default = `0.01`
-        Trend smoothing parameter. If `trend_type` is `NONE`, this is assumed to be `0.0`.
-    gamma : `float`, default = `0.01`
-        Seasonal smoothing parameter. If `seasonality` is `NONE`, this is assumed to be
-        `0.0`.
-    phi : `float`, default = `0.99`
+    beta : float, default = 0.01
+        Trend smoothing parameter. If trend_type is NONE, this is assumed to be 0.0.
+    gamma : float, default = 0.01
+        Seasonal smoothing parameter. If seasonality is NONE, this is assumed to be
+        0.0.
+    phi : float, default = 0.99
         Trend damping smoothing parameters
-    horizon : `int`, default = `1`
+    horizon : int, default = 1
         The horizon to forecast to.
 
     Attributes
     ----------
-    mean_sq_err_ : `float`
+    mean_sq_err_ : float
         Mean squared error.
-    likelihood_ : `float`
+    likelihood_ : float
         Likelihood of the fitted model based on residuals.
-    residuals_ : `arraylike`
+    residuals_ : arraylike
         List of train set differences between fitted and actual values.
-    n_timpoints_ : `int`
+    n_timpoints_ : int
         Length of the series passed to fit.
 
     References
@@ -108,25 +108,25 @@ class ETSForecaster(BaseForecaster):
         super().__init__(horizon=horizon, axis=1)
 
     def _fit(self, y, exog=None):
-        """Fit Exponential Smoothing forecaster to series ``y``.
+        """Fit Exponential Smoothing forecaster to series y.
 
-        Fit a forecaster to predict ``self.horizon`` steps ahead using ``y``.
+        Fit a forecaster to predict self.horizon steps ahead using y.
 
         Parameters
         ----------
-        y : ``np.ndarray``
-            A time series on which to learn a forecaster to predict ``horizon`` ahead
-        exog : ``np.ndarray``, default =``None``
-            Optional exogenous time series data assumed to be aligned with ``y``
+        y : np.ndarray
+            A time series on which to learn a forecaster to predict horizon ahead
+        exog : np.ndarray, default =None
+            Optional exogenous time series data assumed to be aligned with y
 
         Returns
         -------
         self
-            Fitted ``BaseForecaster``.
+            Fitted BaseForecaster.
         """
         self.n_timepoints_ = len(y)
         if self.error_type != MULTIPLICATIVE and self.error_type != ADDITIVE:
-            raise ValueError("Error must be either `additive` or `multiplicative`")
+            raise ValueError("Error must be either additive or multiplicative")
         self._seasonal_period = self.seasonal_period
         if self.seasonal_period < 1 or self.seasonality_type == NONE:
             self._seasonal_period = 1
@@ -159,20 +159,20 @@ class ETSForecaster(BaseForecaster):
 
     def _predict(self, y=None, exog=None):
         """
-        Predict the next ``horizon`` steps ahead.
+        Predict the next horizon steps ahead.
 
         Parameters
         ----------
-        y : ``np.ndarray``, default = ``None``
-            A time series to predict the next ``horizon`` value for. If ``None``,
-            predict the next ``horizon`` value after series seen in ``fit``.
-        exog : ``np.ndarray``, default = ``None``
-            Optional exogenous time series data assumed to be aligned with ``y``
+        y : np.ndarray, default = None
+            A time series to predict the next horizon value for. If None,
+            predict the next horizon value after series seen in fit.
+        exog : np.ndarray, default = None
+            Optional exogenous time series data assumed to be aligned with y
 
         Returns
         -------
-        ``float``
-            single prediction ``self.horizon`` steps ahead of ``y``.
+        float
+            single prediction self.horizon steps ahead of y.
         """
         return _predict_numba(
             self.trend_type,
@@ -185,7 +185,8 @@ class ETSForecaster(BaseForecaster):
             self.n_timepoints_,
             self.seasonal_period,
         )
-        
+
+
 @njit(nogil=NOGIL, cache=CACHE)
 def _fit_numba(
     data,
@@ -205,7 +206,7 @@ def _fit_numba(
     mse = 0
     lhood = 0
     mul_likelihood_pt2 = 0
-    res = np.zeros(n_timepoints)  # `1` Less residual than data points
+    res = np.zeros(n_timepoints)  # 1 Less residual than data points
     for t, data_item in enumerate(data[seasonal_period:]):
         # Calculate level, trend, and seasonal components
         fitted_value, error, level, trend, seasonality[t % seasonal_period] = (
@@ -233,6 +234,7 @@ def _fit_numba(
         lhood += 2 * mul_likelihood_pt2
     return level, trend, seasonality, res, mse, lhood
 
+
 def _predict_numba(
     trend_type,
     seasonality_type,
@@ -248,7 +250,7 @@ def _predict_numba(
     if phi == 1:  # No damping case
         phi_h = float(horizon)
     else:
-        # Geometric series formula for calculating `phi + phi^2 + ... + phi^h`
+        # Geometric series formula for calculating phi + phi^2 + ... + phi^h
         phi_h = phi * (1 - phi**horizon) / (1 - phi)
     seasonal_index = (n_timepoints + horizon) % seasonal_period
     return _predict_value(
@@ -259,6 +261,7 @@ def _predict_numba(
         seasonality[seasonal_index],
         phi_h,
     )[0]
+
 
 @njit(nogil=NOGIL, cache=CACHE)
 def _initialise(trend_type, seasonality_type, seasonal_period, data):
@@ -301,6 +304,7 @@ def _initialise(trend_type, seasonality_type, seasonal_period, data):
         seasonality = np.zeros(1)
     return level, trend, seasonality
 
+
 @njit(nogil=NOGIL, cache=CACHE)
 def _update_states(
     error_type,
@@ -322,9 +326,9 @@ def _update_states(
 
     Parameters
     ----------
-    data_item: `float`
+    data_item: float
         The current value of the time series.
-    seasonal_index: `int`
+    seasonal_index: int
         The index to update the seasonal component.
     """
     # Retrieve the current state values
@@ -372,26 +376,27 @@ def _update_states(
 @njit(nogil=NOGIL, cache=CACHE)
 def _predict_value(trend_type, seasonality_type, level, trend, seasonality, phi):
     """
+
     Generate various useful values, including the next fitted value.
 
     Parameters
     ----------
-    trend : `float`
+    trend : float
         The current trend value for the model
-    level : `float`
+    level : float
         The current level value for the model
-    seasonality : `float`
+    seasonality : float
         The current seasonality value for the model
-    phi : `float`
+    phi : float
         The damping parameter for the model
 
     Returns
     -------
-    fitted_value : `float`
+    fitted_value : float
         single prediction based on the current state variables.
-    damped_trend : `float`
+    damped_trend : float
         The damping parameter combined with the trend dependant on the model type
-    trend_level_combination : `float`
+    trend_level_combination : float
         Combination of the trend and level based on the model type.
     """
     # Apply damping parameter and
