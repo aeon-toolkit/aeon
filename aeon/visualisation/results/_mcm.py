@@ -6,7 +6,6 @@ __all__ = ["create_multi_comparison_matrix"]
 
 import json
 import os
-from typing import Dict, Optional
 import numpy as np
 import pandas as pd
 from scipy.stats import wilcoxon
@@ -16,11 +15,11 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 def create_multi_comparison_matrix(
     df_results,
     output_dir="./",
-    save_files: Optional[Dict[str, str]] = None,  # Changed to dictionary
+    save_files = None,  # Changed to dictionary
     used_statistic="Accuracy",
     save_as_json=False,
     plot_1v1_comparisons=False,
-    order_settings: Dict[str, str] = {"win_tie_loss": "higher", "better": "decreasing"},  # Combined order settings
+    order_settings = {"win_tie_loss": "higher", "better": "decreasing"},  # Combined order settings
     include_pvalue=True,
     pvalue_test="wilcoxon",
     pvalue_test_params=None,
@@ -447,7 +446,7 @@ def _get_analysis(
 def _draw(
     analysis,
     output_dir="./",
-    save_files: Optional[Dict[str, str]] = None,  # Changed to dictionary
+    save_files = None,  # Changed to dictionary
     row_comparates=None,
     col_comparates=None,
     excluded_row_comparates=None,
