@@ -19,12 +19,12 @@ class BaseForecaster(BaseSeriesEstimator):
 
     The base forecaster specifies the methods and method signatures that all
     forecasters have to implement. Attributes with an underscore suffix are set in the
-    method fit.
+    method `fit`.
 
     Parameters
     ----------
-    horizon : int, default =1
-        The number of time steps ahead to forecast. If horizon is one, the forecaster
+    horizon : `int`, default =`1`
+        The number of time steps ahead to forecast. If `horizon` is `1`, the forecaster
         will learn to predict one point ahead.
     """
 
@@ -42,21 +42,21 @@ class BaseForecaster(BaseSeriesEstimator):
         super().__init__(axis)
 
     def fit(self, y, exog=None):
-        """Fit forecaster to series y.
+        """Fit forecaster to series `y`.
 
-        Fit a forecaster to predict self.horizon steps ahead using y.
+        Fit a forecaster to predict `self.horizon` steps ahead using `y`.
 
         Parameters
         ----------
-        y : np.ndarray
-            A time series on which to learn a forecaster to predict horizon ahead.
-        exog : np.ndarray, default =None
-            Optional exogenous time series data assumed to be aligned with y.
+        y : `np.ndarray`
+            A time series on which to learn a forecaster to predict `horizon` ahead.
+        exog : `np.ndarray`, default =`None`
+            Optional exogenous time series data assumed to be aligned with `y`.
 
         Returns
         -------
         self
-            Fitted BaseForecaster.
+            Fitted `BaseForecaster`.
         """
         if self.get_tag("fit_is_empty"):
             self.is_fitted = True
@@ -73,20 +73,20 @@ class BaseForecaster(BaseSeriesEstimator):
     def _fit(self, y, exog=None): ...
 
     def predict(self, y=None, exog=None):
-        """Predict the next horizon steps ahead.
+        """Predict the next `horizon` steps ahead.
 
         Parameters
         ----------
-        y : np.ndarray, default = None
-            A time series to predict the next horizon value for. If None,
-            predict the next horizon value after series seen in fit.
-        exog : np.ndarray, default =None
-            Optional exogenous time series data assumed to be aligned with y.
+        y : `np.ndarray`, default = `None`
+            A time series to predict the next `horizon` value for. If `None`,
+            predict the next `horizon` value after series seen in `fit`.
+        exog : `np.ndarray`, default =`None`
+            Optional exogenous time series data assumed to be aligned with `y`.
 
         Returns
         -------
-        float
-            single prediction self.horizon steps ahead of y.
+        `float`
+            single prediction `self.horizon` steps ahead of `y`.
         """
         self._check_is_fitted()
         if y is not None:
@@ -100,36 +100,36 @@ class BaseForecaster(BaseSeriesEstimator):
     def _predict(self, y=None, exog=None): ...
 
     def forecast(self, y, exog=None):
-        """Forecast the next horizon steps ahead.
+        """Forecast the next `horizon` steps ahead.
 
-        By default this is simply fit followed by predict.
+        By default this is simply `fit` followed by `predict`.
 
         Parameters
         ----------
-        y : np.ndarray, default = None
-            A time series to predict the next horizon value for. If None,
-            predict the next horizon value after series seen in fit.
-        exog : np.ndarray, default =None
-            Optional exogenous time series data assumed to be aligned with y.
+        y : `np.ndarray`, default = `None`
+            A time series to predict the next `horizon` value for. If `None`,
+            predict the next `horizon` value after series seen in `fit`.
+        exog : `np.ndarray`, default =`None`
+            Optional exogenous time series data assumed to be aligned with `y`.
 
         Returns
         -------
-        float
-            single prediction self.horizon steps ahead of y.
+        `float`
+            single prediction `self.horizon` steps ahead of `y`.
         """
         self._check_X(y, self.axis)
         y = self._convert_y(y, self.axis)
         return self._forecast(y, exog)
 
     def _forecast(self, y, exog=None):
-        """Forecast values for time series X."""
+        """Forecast values for time series `X`."""
         self.fit(y, exog)
         return self._predict(y, exog)
 
     def _convert_y(self, y: VALID_SERIES_INNER_TYPES, axis: int):
-        """Convert y to self.get_tag("y_inner_type")."""
+        """Convert `y` to `self.get_tag("y_inner_type")`."""
         if axis > 1 or axis < 0:
-            raise ValueError(f"Input axis should be 0 or 1, saw {axis}")
+            raise ValueError(f"Input axis should be `0` or `1`, saw {axis}")
 
         inner_type = self.get_tag("y_inner_type")
         if not isinstance(inner_type, list):
@@ -150,7 +150,7 @@ class BaseForecaster(BaseSeriesEstimator):
                     y = y.T
             else:
                 raise ValueError(
-                    f"Unsupported inner type {inner_names[0]} derived from {inner_type}"
+                    f"Unsupported inner type `{inner_names[0]}` derived from `{inner_type}`"
                 )
         if y.ndim > 1 and self.axis != axis:
             y = y.T
