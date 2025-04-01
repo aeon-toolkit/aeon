@@ -31,7 +31,6 @@ def gradient_weighted_distance(
     gamma: float = 1.0,
     window: Optional[float] = None,
     itakura_max_slope: Optional[float] = None,
-    nu: float = 0.001,
     **kwargs,
 ) -> float:
     if x.ndim == 1 and y.ndim == 1:
@@ -52,7 +51,6 @@ def gradient_weighted_distance(
         bounding_matrix,
         method,
         gamma,
-        nu,
         **kwargs,
     )
 
@@ -369,7 +367,7 @@ def _gradient_weighted_from_multiple_to_multiple_distance(
 #                                                           f"{DATASET_NAME}_TEST.ts")
 #
 #     classifier = KNeighborsTimeSeriesClassifier(
-#         n_neighbors=len(set(y)), distance="gradient_weighted", n_jobs=-1,
+#         n_neighbors=1, distance="gradient_weighted", n_jobs=-1,
 #         distance_params={"gamma": 1.0, "method": "soft_dtw"})
 #     classifier.fit(X, y)
 #
@@ -385,7 +383,7 @@ def _gradient_weighted_from_multiple_to_multiple_distance(
 #     accuracy = accuracy_score(y_test, y_pred)
 #     print(f"Accuracy: {accuracy}")
 #
-#     classifier = KNeighborsTimeSeriesClassifier(n_neighbors=len(set(y)),
+#     classifier = KNeighborsTimeSeriesClassifier(n_neighbors=1,
 #                                                 distance="dtw", n_jobs=-1)
 #     classifier.fit(X, y)
 #     y_pred = classifier.predict(X_test)
@@ -393,7 +391,7 @@ def _gradient_weighted_from_multiple_to_multiple_distance(
 #     print(f"DTW Accuracy: {accuracy}")
 #     print(f"DTW Accuracy: {accuracy}")
 #
-#     classifier = KNeighborsTimeSeriesClassifier(n_neighbors=len(set(y)),
+#     classifier = KNeighborsTimeSeriesClassifier(n_neighbors=1,
 #                                                 distance="euclidean", n_jobs=-1)
 #     classifier.fit(X, y)
 #     y_pred = classifier.predict(X_test)
