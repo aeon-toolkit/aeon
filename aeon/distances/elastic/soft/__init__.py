@@ -36,6 +36,8 @@ __all__ = [
     "soft_erp_alignment_path",
     "soft_erp_gradient",
     "soft_erp_pairwise_distance",
+    "gradient_weighted_distance",
+    "gradient_weighted_pairwise_distance",
 ]
 
 from aeon.distances.elastic.soft._soft_adtw import (
@@ -86,4 +88,8 @@ from aeon.distances.elastic.soft._soft_wdtw import (
     soft_wdtw_distance,
     soft_wdtw_gradient,
     soft_wdtw_pairwise_distance,
+)
+from aeon.distances.elastic.soft._soft_weighted_gradient import (
+    gradient_weighted_distance,
+    gradient_weighted_pairwise_distance,
 )
