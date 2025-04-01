@@ -6,20 +6,25 @@ __all__ = ["create_multi_comparison_matrix"]
 
 import json
 import os
+
 import numpy as np
 import pandas as pd
 from scipy.stats import wilcoxon
 
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
+
 def create_multi_comparison_matrix(
     df_results,
     output_dir="./",
-    save_files = None,  # Changed to dictionary
+    save_files=None,  # Changed to dictionary
     used_statistic="Accuracy",
     save_as_json=False,
     plot_1v1_comparisons=False,
-    order_settings = {"win_tie_loss": "higher", "better": "decreasing"},  # Combined order settings
+    order_settings={
+        "win_tie_loss": "higher",
+        "better": "decreasing",
+    },  # Combined order settings
     include_pvalue=True,
     pvalue_test="wilcoxon",
     pvalue_test_params=None,
@@ -210,7 +215,7 @@ def create_multi_comparison_matrix(
         include_legend=include_legend,
         show_symetry=show_symetry,
     )
-    
+
     def dict_to_latex(data_dict):
         lines = []
         lines.append(r"\begin{tabular}{|l|l|l|l|l|}")
@@ -238,7 +243,7 @@ def create_multi_comparison_matrix(
                 elif file_type == "tex":
                     with open(save_path, "w") as f:
                         f.write(dict_to_latex(analysis))
- 
+
     return fig
 
 
@@ -446,7 +451,7 @@ def _get_analysis(
 def _draw(
     analysis,
     output_dir="./",
-    save_files = None,  # Changed to dictionary
+    save_files=None,  # Changed to dictionary
     row_comparates=None,
     col_comparates=None,
     excluded_row_comparates=None,
@@ -591,8 +596,7 @@ def _draw(
 
     if save_files and "csv" in save_files and save_files["csv"]:
         df_annotations.to_csv(
-            os.path.join(output_dir, f"{save_files['csv']}.csv"), 
-            index=False
+            os.path.join(output_dir, f"{save_files['csv']}.csv"), index=False
         )
 
     df_annotations.drop("comparates", inplace=True, axis=1)
@@ -887,8 +891,6 @@ def _draw(
     latex_string = latex_string.replace(">", "$>$")
     latex_string = latex_string.replace("<", "$<$")
 
-    
-
     # latex references:
     # * https://tex.stackexchange.com/a/120187
     # * https://tex.stackexchange.com/a/334293
@@ -898,7 +900,7 @@ def _draw(
         for file_type, file_name in save_files.items():
             if not file_name:  # Skip if filename is empty
                 continue
-                
+
             save_path = os.path.join(output_dir, file_name)
             if file_type == "pdf":
                 plt.savefig(save_path, format="pdf", bbox_inches="tight")

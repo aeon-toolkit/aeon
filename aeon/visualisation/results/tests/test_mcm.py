@@ -40,11 +40,11 @@ def test_mcm_file_save():
     )
     with tempfile.TemporaryDirectory() as tmp:
         fig = create_multi_comparison_matrix(
-             df,
-        output_dir=tmp,
-        save_files={"pdf": "test1", "png": "test", "tex": "test"},  # New way
-        save_as_json=True,
-        pvalue_correction="Holm",
+            df,
+            output_dir=tmp,
+            save_files={"pdf": "test1", "png": "test", "tex": "test"},  # New way
+            save_as_json=True,
+            pvalue_correction="Holm",
         )
         assert isinstance(fig, plt.Figure)
 
