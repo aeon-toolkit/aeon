@@ -80,6 +80,8 @@ class ETSForecaster(BaseForecaster):
     >>> forecaster.predict()
     449.9435566831507
     """
+
+
 """ETSForecaster class.
 
 An implementation of the exponential smoothing statistics forecasting algorithm.
@@ -267,7 +269,8 @@ class ETSForecaster(BaseForecaster):
             self.n_timepoints_,
             self.seasonal_period,
         )
-        
+
+
 @njit(nogil=NOGIL, cache=CACHE)
 def _fit_numba(
     data,
@@ -315,6 +318,7 @@ def _fit_numba(
         lhood += 2 * mul_likelihood_pt2
     return level, trend, seasonality, res, mse, lhood
 
+
 def _predict_numba(
     trend_type,
     seasonality_type,
@@ -341,6 +345,7 @@ def _predict_numba(
         seasonality[seasonal_index],
         phi_h,
     )[0]
+
 
 @njit(nogil=NOGIL, cache=CACHE)
 def _initialise(trend_type, seasonality_type, seasonal_period, data):
@@ -382,6 +387,7 @@ def _initialise(trend_type, seasonality_type, seasonal_period, data):
         # No seasonality
         seasonality = np.zeros(1)
     return level, trend, seasonality
+
 
 @njit(nogil=NOGIL, cache=CACHE)
 def _update_states(

@@ -13,7 +13,7 @@ class DummyForecaster(BaseForecaster):
 
     def _fit(self, y, exog=None):
         """Fit ``DummyForecaster``.
-        
+
         Parameters
         ----------
         y : array-like
@@ -27,7 +27,7 @@ class DummyForecaster(BaseForecaster):
 
     def _predict(self, y=None, exog=None):
         """Predict using ``DummyForecaster``.
-        
+
         Parameters
         ----------
         y : array-like, optional
@@ -44,7 +44,7 @@ class DummyForecaster(BaseForecaster):
 
     def _forecast(self, y, exog=None):
         """Forecast using ``DummyForecaster``.
-        
+
         Parameters
         ----------
         y : array-like
