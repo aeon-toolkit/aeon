@@ -27,7 +27,7 @@ MAX_FLOAT = np.finfo(np.float64).max
 def gradient_weighted_distance(
     x: np.ndarray,
     y: np.ndarray,
-    method: str = "soft_dtw",
+    soft_method: str = "soft_dtw",
     gamma: float = 1.0,
     window: Optional[float] = None,
     itakura_max_slope: Optional[float] = None,
@@ -49,7 +49,7 @@ def gradient_weighted_distance(
         _x,
         _y,
         bounding_matrix,
-        method,
+        soft_method,
         gamma,
         **kwargs,
     )
@@ -60,7 +60,7 @@ def _gradient_weighted_distance(
     x: np.ndarray,
     y: np.ndarray,
     bounding_matrix: np.ndarray,
-    method: str,
+    soft_method: str,
     gamma: float = 1.0,
     g: float = 0.0,
     nu: float = 0.001,
@@ -76,7 +76,7 @@ def _gradient_weighted_distance(
     x_size = x.shape[1]
     y_size = y.shape[1]
 
-    if method == "soft_dtw":
+    if soft_method == "soft_dtw":
         (
             cost_matrix,
             diagonal_arr,
@@ -89,7 +89,7 @@ def _gradient_weighted_distance(
             bounding_matrix=bounding_matrix,
             gamma=gamma,
         )
-    elif method == "soft_wdtw":
+    elif soft_method == "soft_wdtw":
         (
             cost_matrix,
             diagonal_arr,
@@ -100,7 +100,7 @@ def _gradient_weighted_distance(
             x, y, bounding_matrix=bounding_matrix, gamma=gamma, g=g
         )
 
-    elif method == "soft_erp":
+    elif soft_method == "soft_erp":
         (
             cost_matrix,
             diagonal_arr,
@@ -110,7 +110,7 @@ def _gradient_weighted_distance(
         ) = _soft_erp_cost_matrix_with_arrs(
             x, y, bounding_matrix=bounding_matrix, gamma=gamma, g=g
         )
-    elif method == "soft_twe":
+    elif soft_method == "soft_twe":
         (
             cost_matrix,
             diagonal_arr,
@@ -125,7 +125,7 @@ def _gradient_weighted_distance(
             nu=nu,
             lmbda=lmbda,
         )
-    elif method == "soft_msm":
+    elif soft_method == "soft_msm":
         (
             cost_matrix,
             diagonal_arr,
@@ -135,7 +135,7 @@ def _gradient_weighted_distance(
         ) = _soft_msm_cost_matrix_with_arr_independent(
             x, y, bounding_matrix=bounding_matrix, gamma=gamma, c=c
         )
-    elif method == "soft_shape_dtw":
+    elif soft_method == "soft_shape_dtw":
         (
             cost_matrix,
             diagonal_arr,
@@ -153,7 +153,7 @@ def _gradient_weighted_distance(
             transformed_y=transformed_y,
             transformation_precomputed=transformation_precomputed,
         )
-    elif method == "soft_adtw":
+    elif soft_method == "soft_adtw":
         (
             cost_matrix,
             diagonal_arr,
@@ -168,7 +168,7 @@ def _gradient_weighted_distance(
             warp_penalty=warp_penalty,
         )
     else:
-        raise ValueError(f"Unknown method: {method}")
+        raise ValueError(f"Unknown method: {soft_method}")
 
     grad = _soft_gradient_with_arrs(
         cost_matrix, diagonal_arr, vertical_arr, horizontal_arr
@@ -188,7 +188,7 @@ def _gradient_weighted_distance(
 def gradient_weighted_pairwise_distance(
     X: Union[np.ndarray, list[np.ndarray]],
     y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
-    method: str = "soft_dtw",
+    soft_method: str = "soft_dtw",
     gamma: float = 1.0,
     window: Optional[float] = None,
     itakura_max_slope: Optional[float] = None,
@@ -203,7 +203,7 @@ def gradient_weighted_pairwise_distance(
     if y is None:
         return _gradient_weighted_pairwise_distance(
             _X,
-            method,
+            soft_method,
             gamma,
             window,
             itakura_max_slope,
@@ -218,7 +218,7 @@ def gradient_weighted_pairwise_distance(
     return _gradient_weighted_from_multiple_to_multiple_distance(
         _X,
         _y,
-        method,
+        soft_method,
         gamma,
         window,
         itakura_max_slope,
@@ -230,7 +230,7 @@ def gradient_weighted_pairwise_distance(
 @njit(cache=True, fastmath=True, parallel=True)
 def _gradient_weighted_pairwise_distance(
     X: NumbaList[np.ndarray],
-    method: str,
+    soft_method: str,
     gamma: float,
     window: Optional[float],
     itakura_max_slope: Optional[float],
@@ -270,7 +270,7 @@ def _gradient_weighted_pairwise_distance(
                 x1,
                 x2,
                 _bounding_matrix,
-                method,
+                soft_method,
                 gamma,
                 g,
                 nu,
@@ -293,7 +293,7 @@ def _gradient_weighted_pairwise_distance(
 def _gradient_weighted_from_multiple_to_multiple_distance(
     x: NumbaList[np.ndarray],
     y: NumbaList[np.ndarray],
-    method: str,
+    soft_method: str,
     gamma: float,
     window: Optional[float],
     itakura_max_slope: Optional[float],
@@ -333,7 +333,7 @@ def _gradient_weighted_from_multiple_to_multiple_distance(
                 x1,
                 y1,
                 _bounding_matrix,
-                method,
+                soft_method,
                 gamma,
                 g,
                 nu,
@@ -366,7 +366,7 @@ def _gradient_weighted_from_multiple_to_multiple_distance(
 #
 #     classifier = KNeighborsTimeSeriesClassifier(
 #         n_neighbors=1, distance="gradient_weighted", n_jobs=-1,
-#         distance_params={"gamma": 1.0, "method": "soft_dtw"})
+#         distance_params={"gamma": 1.0, "soft_method": "soft_dtw"})
 #     classifier.fit(X, y)
 #
 #     print("Fitting the classifier")
