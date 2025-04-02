@@ -402,6 +402,7 @@ if __name__ == "__main__":
     )
     classifier.fit(X, y)
     y_pred = classifier.predict(X_test)
+    proba = classifier.predict_proba(X_test)
     accuracy = accuracy_score(y_test, y_pred)
     print(f"DTW Accuracy: {accuracy}")
     print(f"DTW Accuracy: {accuracy}")
