@@ -36,8 +36,8 @@ class ChannelScorer(BaseChannelSelector):
     scoring_function : Callable, optional (default=None)
         Scoring function used to evaluate the performance of each channel.
         Defaults to:
-        - `accuracy_score` if using a classifier.
-        - `mean_squared_error` if using a regressor.
+        - ``accuracy_score`` if using a classifier.
+        - ``mean_squared_error`` if using a regressor.
 
     score_sign : float, optional (default=None)
         The sign used to determine whether higher or lower scores are better.

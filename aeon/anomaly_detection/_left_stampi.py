@@ -103,7 +103,7 @@ class LeftSTAMPi(BaseAnomalyDetector):
 
         if self.k < 1 or self.k > len(X) - self.window_size + 1:
             raise ValueError(
-                "The top `k` distances must be at least 1 and at most the length of "
+                "The top ``k`` distances must be at least 1 and at most the length of "
                 "the time series minus the window size."
             )
 

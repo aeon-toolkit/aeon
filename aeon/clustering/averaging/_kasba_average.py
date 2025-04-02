@@ -46,7 +46,7 @@ def kasba_average(
         String defining the distance to use for averaging. Distance to
         compute similarity between time series. A list of valid strings for metrics
         can be found in the documentation form
-        :func:`aeon.distances.get_distance_function`.
+        :func:``aeon.distances.get_distance_function``.
     max_iters: int, default=30
         Maximum number iterations for dba to update over.
     tol : float (default: 1e-5)

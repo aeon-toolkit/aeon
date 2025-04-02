@@ -29,7 +29,7 @@ class MiniRocket(BaseCollectionTransformer):
      max_dilations_per_kernel : int, default=32
          Maximum number of dilations per kernel.
      n_jobs : int, default=1
-         The number of jobs to run in parallel for `transform`. ``-1`` means using all
+         The number of jobs to run in parallel for ``transform``. ``-1`` means using all
          processors.
      random_state : None or int, default = None
          Seed for random number generation.

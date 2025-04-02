@@ -85,7 +85,7 @@ class MLPNetwork(BaseDeepLearningNetwork):
         elif isinstance(self.activation, list):
             assert (
                 len(self.activation) == self.n_layers
-            ), "There should be an `activation` function associated with each layer."
+            ), "There should be an ``activation`` function associated with each layer."
             assert all(
                 isinstance(a, str) for a in self.activation
             ), "Activation must be a list of strings."
@@ -105,7 +105,7 @@ class MLPNetwork(BaseDeepLearningNetwork):
         elif isinstance(self.dropout_rate, list):
             assert (
                 len(self.dropout_rate) == self.n_layers
-            ), "There should be a `dropout_rate` associated with each layer."
+            ), "There should be a ``dropout_rate`` associated with each layer."
             assert all(
                 isinstance(d, (int, float)) for d in self.dropout_rate
             ), "Dropout rates must be int or float."
@@ -122,10 +122,10 @@ class MLPNetwork(BaseDeepLearningNetwork):
         elif isinstance(self.n_units, list):
             assert all(
                 isinstance(u, int) for u in self.n_units
-            ), "`n_units` must be int for all layers."
+            ), "``n_units`` must be int for all layers."
             assert (
                 len(self.n_units) == self.n_layers
-            ), "`n_units` length must match number of layers."
+            ), "``n_units`` length must match number of layers."
             self._n_units = self.n_units
 
         if self.dropout_last is None:
@@ -133,10 +133,10 @@ class MLPNetwork(BaseDeepLearningNetwork):
         else:
             assert isinstance(self.dropout_last, float) or (
                 int(self.dropout_last // 1) in [0, 1]
-            ), "a float is expected in the `dropout_last` argument."
+            ), "a float is expected in the ``dropout_last`` argument."
             assert (
                 self.dropout_last - 1 <= 0
-            ), "`dropout_last` argument must be a number in the interval [0, 1]"
+            ), "``dropout_last`` argument must be a number in the interval [0, 1]"
             self._dropout_last = self.dropout_last
 
         from tensorflow import keras

@@ -220,7 +220,7 @@ class BaseRegressor(RegressorMixin, BaseCollectionEstimator):
             (ground truth) for fitting indices corresponding to instance indices in X.
         metric : Union[str, callable], default="r2",
             Defines the scoring metric to test the fit of the model. For supported
-            strings arguments, check `sklearn.metrics.get_scorer_names`.
+            strings arguments, check ``sklearn.metrics.get_scorer_names``.
         metric_params : dict, default=None,
             Contains parameters to be passed to the scoring function. If None, no
             parameters are passed.
@@ -239,9 +239,9 @@ class BaseRegressor(RegressorMixin, BaseCollectionEstimator):
             __names = get_scorer_names()
             if metric not in __names:
                 raise ValueError(
-                    f"Metric {metric} is incompatible with `sklearn.metrics.get_scorer`"
+                    f"Metric {metric} is incompatible with ``sklearn.metrics.get_scorer``"
                     "function. Valid list of metrics can be obtained using "
-                    "the `sklearn.metrics.get_scorer_names` function."
+                    "the ``sklearn.metrics.get_scorer_names`` function."
                 )
             scorer = get_scorer(metric)
             return scorer._score_func(y, self.predict(X), **_metric_params)

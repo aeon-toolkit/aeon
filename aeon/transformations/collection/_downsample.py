@@ -18,13 +18,13 @@ class DownsampleTransformer(BaseCollectionTransformer):
         by default "frequency".
     source_sfreq : int or float, optional
         The source sampling frequency in Hz.
-        Required if `downsample_by = "frequency"`, by default 2.0.
+        Required if ``downsample_by = "frequency"``, by default 2.0.
     target_sfreq : int or float, optional
         The target sampling frequency in Hz.
-        Required if `downsample_by = "frequency"`, by default 1.0.
+        Required if ``downsample_by = "frequency"``, by default 1.0.
     proportion : float, optional
         The proportion between 0-1 to downsample by.
-        Required if `downsample_by = "proportion"`, by default None.
+        Required if ``downsample_by = "proportion"``, by default None.
 
     Examples
     --------
@@ -106,9 +106,9 @@ class DownsampleTransformer(BaseCollectionTransformer):
         Raises
         ------
         ValueError
-            If `downsample_by` is not "frequency" or "proportion".
-            If `source_sfreq` < `target_sfreq` when `downsample_by = "frequency"`.
-            If `proportion` is not between 0-1 when `downsample_by = "proportion"`.
+            If ``downsample_by`` is not "frequency" or "proportion".
+            If ``source_sfreq`` < ``target_sfreq`` when ``downsample_by = "frequency"``.
+            If ``proportion`` is not between 0-1 when ``downsample_by = "proportion"``.
         """
         if self.downsample_by not in ["frequency", "proportion"]:
             raise ValueError('downsample_by must be either "frequency" or "proportion"')

@@ -47,9 +47,9 @@ class BoxCoxTransformer(BaseSeriesTransformer):
     on the hyperparameter lambda. [1]_
 
     The _BoxCoxTransformer solves for the lambda parameter used in the Box-Cox
-    transformation given `method`, the optimization approach, and input
-    data provided to `fit`. The use of Guerrero's method for solving for lambda
-    requires the seasonal periodicity, `sp` be provided. [2]_
+    transformation given ``method``, the optimization approach, and input
+    data provided to ``fit``. The use of Guerrero's method for solving for lambda
+    requires the seasonal periodicity, ``sp`` be provided. [2]_
 
     Parameters
     ----------
@@ -75,13 +75,13 @@ class BoxCoxTransformer(BaseSeriesTransformer):
         Seasonal periodicity of the data in integer form.
     lambda_ : float
         The Box-Cox lambda parameter that was solved for based on the supplied
-        `method` and data provided in `fit`.
+        ``method`` and data provided in ``fit``.
 
 
     Notes
     -----
-    The Box-Cox transformation is defined as :math:`\frac{y^{\lambda}-1}{\lambda},
-    \lambda \ne 0 \text{ or } ln(y), \lambda = 0`.
+    The Box-Cox transformation is defined as :math:``\frac{y^{\lambda}-1}{\lambda},
+    \lambda \ne 0 \text{ or } ln(y), \lambda = 0``.
 
     Therefore, the input data must be positive. In some implementations, a positive
     constant is added to the series prior to applying the transformation. But
@@ -202,7 +202,7 @@ class LogTransformer(BaseSeriesTransformer):
 
     Notes
     -----
-    The log transformation is applied as :math:`ln(y)`.
+    The log transformation is applied as :math:``ln(y)``.
 
     Examples
     --------
@@ -280,7 +280,7 @@ def _make_boxcox_optimizer(bounds=None, brack=(-2.0, 2.0)):
         # input checks on bounds
         if not isinstance(bounds, tuple) or len(bounds) != 2:
             raise ValueError(
-                f"`bounds` must be a tuple of length 2, but found: {bounds}"
+                f"``bounds`` must be a tuple of length 2, but found: {bounds}"
             )
 
         def optimizer(func, args):
@@ -386,8 +386,8 @@ def _boxcox(x, lmbda=None, bounds=None):
     x : ndarray
         Input array.  Must be positive 1-dimensional.  Must not be constant.
     lmbda : {None, scalar}, optional
-        If `lmbda` is not None, do the transformation for that value.
-        If `lmbda` is None, find the lambda that maximizes the log-likelihood
+        If ``lmbda`` is not None, do the transformation for that value.
+        If ``lmbda`` is None, find the lambda that maximizes the log-likelihood
         function and return it as the second output argument.
 
     Returns
@@ -395,7 +395,7 @@ def _boxcox(x, lmbda=None, bounds=None):
     boxcox : ndarray
         Box-Cox power transformed array.
     maxlog : float, optional
-        If the `lmbda` parameter is None, the second returned argument is
+        If the ``lmbda`` parameter is None, the second returned argument is
         the lambda that maximizes the log-likelihood function.
 
     See Also
@@ -407,17 +407,17 @@ def _boxcox(x, lmbda=None, bounds=None):
     The Box-Cox transform is given by::
         y = (x**lmbda - 1) / lmbda,  for lmbda > 0
             log(x),                  for lmbda = 0
-    `boxcox` requires the input data to be positive.  Sometimes a Box-Cox
-    transformation provides a shift parameter to achieve this; `boxcox` does
+    ``boxcox`` requires the input data to be positive.  Sometimes a Box-Cox
+    transformation provides a shift parameter to achieve this; ``boxcox`` does
     not.  Such a shift parameter is equivalent to adding a positive constant to
-    `x` before calling `boxcox`.
+    ``x`` before calling ``boxcox``.
     The confidence limits returned when ``alpha`` is provided give the interval
     where:
 
     .. math::
 
         llf(\hat{\lambda}) - llf(\lambda) < \frac{1}{2}\chi^2(1 - \alpha, 1),
-    with ``llf`` the log-likelihood function and :math:`\chi^2` the chi-squared
+    with ``llf`` the log-likelihood function and :math:``\chi^2`` the chi-squared
     function.
 
     References

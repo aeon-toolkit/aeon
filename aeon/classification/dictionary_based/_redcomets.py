@@ -45,7 +45,7 @@ class REDCOMETS(BaseClassifier):
         If ``None``, the random number generator is the ``RandomState`` instance used
         by ``np.random``.
     n_jobs : int, default=1
-        The number of jobs to run in parallel for both `fit` and `predict`.
+        The number of jobs to run in parallel for both ``fit`` and ``predict``.
         ``-1`` means using all processors.
     parallel_backend : str, ParallelBackendBase instance or None, default=None
         Specify the parallelisation backend implementation in joblib,
@@ -184,12 +184,12 @@ class REDCOMETS(BaseClassifier):
         sfa_transforms :
             List of ``SFAFast()`` instances with random word length and alpabet size
         sfa_clfs :
-            List of ``(RandomForestClassifier(), weight)`` tuples fitted on `SFAFast`
+            List of ``(RandomForestClassifier(), weight)`` tuples fitted on ``SFAFast``
             transformed training data
         sax_transforms :
             List of ``SAX()`` instances with random word length and alpabet size
         sax_clfs :
-            List of ``(RandomForestClassifier(), weight)`` tuples fitted on `SAX`
+            List of ``(RandomForestClassifier(), weight)`` tuples fitted on ``SAX``
             transformed training data
         """
         _check_soft_dependencies(
@@ -322,12 +322,12 @@ class REDCOMETS(BaseClassifier):
             size
         sfa_clfs : list
             List of lists of ``(RandomForestClassifier(), weight)`` tuples fitted on
-            `SFAFast` transformed training data
+            ``SFAFast`` transformed training data
         sax_transforms : list
             List of lists of ``SAX()`` instances with random word length and alpabet
             size
         sax_clfs : list
-            List of lists ``(RandomForestClassifier(), weight)`` tuples fitted on `SAX`
+            List of lists ``(RandomForestClassifier(), weight)`` tuples fitted on ``SAX``
             transformed training data
         """
         sfa_transforms = []
@@ -600,14 +600,14 @@ class REDCOMETS(BaseClassifier):
         ----------
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return ``"default"`` set.
 
         Returns
         -------
         dict
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test instance.
         """
         return {
             "variant": 3,

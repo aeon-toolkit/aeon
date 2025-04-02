@@ -502,7 +502,7 @@ class ClaSPTransformer(BaseSeriesTransformer):
 
         Returns
         -------
-        scoring_metric_call : a callable, keyed by the `scoring_metric` input
+        scoring_metric_call : a callable, keyed by the ``scoring_metric`` input
             _roc_auc_score, if scoring_metric = "ROC_AUC"
             _binary_f1_score, if scoring_metric = "F1"
         """

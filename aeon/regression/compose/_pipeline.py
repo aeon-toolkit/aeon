@@ -10,23 +10,23 @@ from aeon.regression.base import BaseRegressor
 class RegressorPipeline(BaseCollectionPipeline, BaseRegressor):
     """Pipeline of transformers and a regressor.
 
-    The `RegressorPipeline` compositor chains transformers and a single regressor.
+    The ``RegressorPipeline`` compositor chains transformers and a single regressor.
     The pipeline is constructed with a list of aeon transformers, plus a regressor,
         i.e., estimators following the BaseTransformer amd BaseRegressor interface.
     The transformer list can be unnamed - a simple list of transformers -
         or string named - a list of pairs of string, estimator.
 
-    For a list of transformers `trafo1`, `trafo2`, ..., `trafoN` and a regressor `reg`,
+    For a list of transformers ``trafo1``, ``trafo2``, ..., ``trafoN`` and a regressor ``reg``,
         the pipeline behaves as follows:
-    `fit(X, y)` - changes styte by running `trafo1.fit_transform` on `X`,
-        them `trafo2.fit_transform` on the output of `trafo1.fit_transform`, etc
-        sequentially, with `trafo[i]` receiving the output of `trafo[i-1]`,
-        and then running `reg.fit` with `X` being the output of `trafo[N]`,
-        and `y` identical with the input to `self.fit`
-    `predict(X)` - result is of executing `trafo1.transform`, `trafo2.transform`, etc
-        with `trafo[i].transform` input = output of `trafo[i-1].transform`,
-        then running `reg.predict` on the output of `trafoN.transform`,
-        and returning the output of `reg.predict`
+    ``fit(X, y)`` - changes styte by running ``trafo1.fit_transform`` on ``X``,
+        them ``trafo2.fit_transform`` on the output of ``trafo1.fit_transform``, etc
+        sequentially, with ``trafo[i]`` receiving the output of ``trafo[i-1]``,
+        and then running ``reg.fit`` with ``X`` being the output of ``trafo[N]``,
+        and ``y`` identical with the input to ``self.fit``
+    ``predict(X)`` - result is of executing ``trafo1.transform``, ``trafo2.transform``, etc
+        with ``trafo[i].transform`` input = output of ``trafo[i-1].transform``,
+        then running ``reg.predict`` on the output of ``trafoN.transform``,
+        and returning the output of ``reg.predict``
 
     Parameters
     ----------
@@ -43,8 +43,8 @@ class RegressorPipeline(BaseCollectionPipeline, BaseRegressor):
     random_state : int, RandomState instance or None, default=None
         Random state used to fit the estimators. If None, no random state is set for
         pipeline components (but they may still be seeded prior to input).
-        If `int`, random_state is the seed used by the random number generator;
-        If `RandomState` instance, random_state is the random number generator;
+        If ``int``, random_state is the seed used by the random number generator;
+        If ``RandomState`` instance, random_state is the random number generator;
 
     Attributes
     ----------
@@ -89,14 +89,14 @@ class RegressorPipeline(BaseCollectionPipeline, BaseRegressor):
         ----------
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return ``"default"`` set.
 
         Returns
         -------
         params : dict or list of dict, default={}
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test instance.
         """
         from aeon.regression.distance_based import KNeighborsTimeSeriesRegressor
         from aeon.transformations.collection import Truncator

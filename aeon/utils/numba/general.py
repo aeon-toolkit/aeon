@@ -338,8 +338,8 @@ def set_numba_random_seed(seed: int) -> None:
 def choice_log(n_choice: int, n_sample: int, random_generator: Generator) -> np.ndarray:
     """Random choice function with log probability rather than uniform.
 
-    To seed the function the `np.random.seed` must be set in a numba function prior to
-    calling this i.e. using `set_numba_random_seed`.
+    To seed the function the ``np.random.seed`` must be set in a numba function prior to
+    calling this i.e. using ``set_numba_random_seed``.
 
     Parameters
     ----------

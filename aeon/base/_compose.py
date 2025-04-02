@@ -96,7 +96,7 @@ class ComposableEstimatorMixin(ABC):
         return self
 
     def _replace_estimator(self, attr, name, new_val):
-        # assumes `name` is a valid estimator name
+        # assumes ``name`` is a valid estimator name
         new_estimators = list(getattr(self, attr))
         for i, (estimator_name, _) in enumerate(new_estimators):
             if estimator_name == name:
@@ -163,7 +163,7 @@ class ComposableEstimatorMixin(ABC):
         allow_single_estimators : boolean, default=True.
             Whether non-tuple estimator classes are allowed in ``estimators``.
         unique_names : boolean, default=True.
-            Whether to check that all tuple strings in `estimators` are unique.
+            Whether to check that all tuple strings in ``estimators`` are unique.
         invalid_names : str, list of str or None, default=None.
             Names that are invalid for estimators in ``estimators``.
 

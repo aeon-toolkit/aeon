@@ -11,15 +11,15 @@ class LITENetwork(BaseDeepLearningNetwork):
 
     LITE deep neural network architecture from [1]_ and its
     multivariate adaptation LITEMV from [2]_. For using
-    LITEMV, simply set the `use_litemv` bool parameter to
+    LITEMV, simply set the ``use_litemv`` bool parameter to
     True.
 
     Parameters
     ----------
     use_litemv : bool, default = False
         The boolean value to control which version of the
-        network to use. If set to `False`, then LITE is used,
-        if set to `True` then LITEMV is used. LITEMV is the
+        network to use. If set to ``False``, then LITE is used,
+        if set to ``True`` then LITEMV is used. LITEMV is the
         same architecture as LITE but specifically designed
         to better handle multivariate time series.
     n_filters : int, default = 32

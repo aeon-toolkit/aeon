@@ -53,7 +53,7 @@ def load_time_series_segmentation_benchmark(
     ----------
     extract_path : str, default=None
         The path to look for the data. If no path is provided, the function
-        looks in `aeon/datasets/local_data/`. If a path is given, it can be an absolute,
+        looks in ``aeon/datasets/local_data/``. If a path is given, it can be an absolute,
         e.g., C:/Temp/ or relative, e.g. Temp/ or ./Temp/, path to an existing CSV-file.
     return_metadata : boolean, default = False
         If True, returns a tuple (X, y, metadata).
@@ -151,7 +151,7 @@ def load_human_activity_segmentation_datasets(
     ----------
     extract_path : str, default=None
         The path to look for the data. If no path is provided, the function
-        looks in `aeon/datasets/local_data/`. If a path is given, it can be an absolute,
+        looks in ``aeon/datasets/local_data/``. If a path is given, it can be an absolute,
         e.g., C:/Temp/ or relative, e.g. Temp/ or ./Temp/, path to an existing CSV-file.
     return_metadata : boolean, default = False
         If True, returns a tuple (X, y, metadata).

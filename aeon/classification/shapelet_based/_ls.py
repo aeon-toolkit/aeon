@@ -25,7 +25,7 @@ class LearningShapeletClassifier(BaseClassifier):
     """
     Learning Shapelet classifier.
 
-    This is a wrapper for the `LearningShapelet` class of `tslearn`.
+    This is a wrapper for the ``LearningShapelet`` class of ``tslearn``.
     Learning Shapelet classifier, presented in [1]_, operates by
     identifying discriminative subsequences, called shapelets, within
     the input time series data. These shapelets are representative patterns
@@ -37,7 +37,7 @@ class LearningShapeletClassifier(BaseClassifier):
     n_shapelets_per_size: dict, default=None
         Dictionary giving, for each shapelet size (key),
         the number of such shapelets to be trained (value).
-        If None, `grabocka_params_to_shapelet_size_dict` is used and the
+        If None, ``grabocka_params_to_shapelet_size_dict`` is used and the
         size used to compute is that of the shortest time series passed at fit
         time.
     max_iter: int, default=10000
@@ -45,32 +45,32 @@ class LearningShapeletClassifier(BaseClassifier):
     batch_size: int, default=256
         Batch size to be used.
     verbose: {0, 1, 2}, default=0
-        `keras` verbose level.
+        ``keras`` verbose level.
     optimizer: str or keras.optimizers.Optimizer, default="sgd"
-        `keras` optimizer to use for training.
+        ``keras`` optimizer to use for training.
     weight_regularizer: float or None, default=0.0
         Strength of the L2 regularizer to use for training the classification
         (softmax) layer. If 0, no regularization is performed.
     shapelet_length: float, default=0.15
         The length of the shapelets, expressed as a fraction of the time
         series length.
-        Used only if `n_shapelets_per_size` is None.
+        Used only if ``n_shapelets_per_size`` is None.
     total_lengths: int, default=3
         The number of different shapelet lengths. Will extract shapelets of
         length i * shapelet_length for i in [1, total_lengths]
-        Used only if `n_shapelets_per_size` is None.
+        Used only if ``n_shapelets_per_size`` is None.
     max_size: int or None, default=None
         Maximum size for time series to be fed to the model. If None, it is
         set to the size (number of timestamps) of the training time series.
     scale: bool, default=False
         Whether input data should be scaled for each feature of each time
         series to lie in the [0-1] interval. Default for this parameter is set to
-        `False`.
+        ``False``.
     random_state : int or None, default=None
         The seed of the pseudo random number generator to use when shuffling
         the data.  If int, random_state is the seed used by the random number
         generator; If None, the random number generator is the RandomState
-        instance used by `np.random`.
+        instance used by ``np.random``.
     save_transformed_data: bool = False,
         Whether to save the transformed data for later use in the internal variable
         ``self.transformed_data_``.
@@ -218,7 +218,7 @@ class LearningShapeletClassifier(BaseClassifier):
         ----------
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return ``"default"`` set.
             For classifiers, a "default" set of parameters should be provided for
             general testing, and a "results_comparison" set for comparing against
             previously recorded results if the general set does not produce suitable
@@ -229,6 +229,6 @@ class LearningShapeletClassifier(BaseClassifier):
         params : dict or list of dict, default={}
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test instance.
         """
         return {"max_iter": 10, "batch_size": 10, "total_lengths": 1}

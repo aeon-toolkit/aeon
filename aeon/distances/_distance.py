@@ -138,8 +138,8 @@ def distance(
     method : str or Callable
         The distance to use.
         A list of valid distance can be found in the documentation for
-        :func:`aeon.distances.get_distance_function` or by calling  the function
-        :func:`aeon.distances.get_distance_function_names`.
+        :func:``aeon.distances.get_distance_function`` or by calling  the function
+        :func:``aeon.distances.get_distance_function_names``.
     kwargs : Any
         Arguments for distance. Refer to each distance documentation for a list of
         possible arguments.
@@ -192,8 +192,8 @@ def pairwise_distance(
     method : str or Callable
         The distance to use.
         A list of valid distance can be found in the documentation for
-        :func:`aeon.distances.get_distance_function` or by calling  the function
-        :func:`aeon.distances.get_distance_function_names`.
+        :func:``aeon.distances.get_distance_function`` or by calling  the function
+        :func:``aeon.distances.get_distance_function_names``.
     symmetric : bool, default=True
         If True and a function is provided as the "method" paramter, then it will
         compute a symmetric distance matrix where d(x, y) = d(y, x). Only the lower
@@ -320,8 +320,8 @@ def alignment_path(
     method : str or Callable
         The distance method to use.
         A list of valid distances can be found in the documentation for
-        :func:`aeon.distances.get_distance_function` or by calling  the function
-        :func:`aeon.distances.get_distance_function_names`.
+        :func:``aeon.distances.get_distance_function`` or by calling  the function
+        :func:``aeon.distances.get_distance_function_names``.
     kwargs : any
         Arguments for distance. Refer to each distance documentation for a list of
         possible arguments.
@@ -375,8 +375,8 @@ def cost_matrix(
     method : str or Callable
         The distance to use.
         A list of valid distances can be found in the documentation for
-        :func:`aeon.distances.get_distance_function` or by calling  the function
-        :func:`aeon.distances.get_distance_function_names`.
+        :func:``aeon.distances.get_distance_function`` or by calling  the function
+        :func:``aeon.distances.get_distance_function_names``.
     kwargs : Any
         Arguments for distance. Refer to each distance documentation for a list of
         possible arguments.

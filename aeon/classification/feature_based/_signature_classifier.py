@@ -28,8 +28,8 @@ class SignatureClassifier(BaseClassifier):
 
     Note that the final classifier used on the UEA datasets involved tuning
     the hyper-parameters:
-        - `depth` over [1, 2, 3, 4, 5, 6]
-        - `window_depth` over [2, 3, 4]
+        - ``depth`` over [1, 2, 3, 4, 5, 6]
+        - ``window_depth`` over [2, 3, 4]
         - RandomForestClassifier hyper-parameters.
     as these were found to be the most dataset dependent hyper-parameters.
 
@@ -45,12 +45,12 @@ class SignatureClassifier(BaseClassifier):
     window_name : str, default="dyadic"
         The name of the window transform to apply.
     window_depth : int, default=3
-        The depth of the dyadic window. (Active only if `window_name == 'dyadic']`.
+        The depth of the dyadic window. (Active only if ``window_name == 'dyadic']``.
     window_length : int, default=None
-        The length of the sliding/expanding window. (Active only if `window_name in
+        The length of the sliding/expanding window. (Active only if ``window_name in
         ['sliding, 'expanding'].
     window_step : int, default=None
-        The step of the sliding/expanding window. (Active only if `window_name in
+        The step of the sliding/expanding window. (Active only if ``window_name in
         ['sliding, 'expanding'].
     rescaling : str, default=None
         The method of signature rescaling.
@@ -60,7 +60,7 @@ class SignatureClassifier(BaseClassifier):
     depth : int, default=4
         Signature truncation depth.
     random_state : int, default=None
-        If `int`, random_state is the seed used by the random number generator;
+        If ``int``, random_state is the seed used by the random number generator;
     class_weight{“balanced”, “balanced_subsample”}, dict or list of dicts, default=None
         From sklearn documentation:
         If not given, all classes are supposed to have weight one.
@@ -78,7 +78,7 @@ class SignatureClassifier(BaseClassifier):
     signature_method : sklearn.Pipeline
         An sklearn pipeline that performs the signature feature extraction step.
     pipeline : sklearn.Pipeline
-        The classifier appended to the `signature_method` pipeline to make a
+        The classifier appended to the ``signature_method`` pipeline to make a
         classification pipeline.
     n_classes_ : int
         Number of classes. Extracted from the data.
@@ -214,7 +214,7 @@ class SignatureClassifier(BaseClassifier):
         ----------
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return ``"default"`` set.
             SignatureClassifier provides the following special sets:
                  "results_comparison" - used in some classifiers to compare against
                     previously generated results where the default set of parameters
@@ -225,7 +225,7 @@ class SignatureClassifier(BaseClassifier):
         params : dict or list of dict, default={}
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test instance.
         """
         if parameter_set == "results_comparison":
             return {"estimator": RandomForestClassifier(n_estimators=10)}

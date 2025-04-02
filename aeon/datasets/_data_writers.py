@@ -23,8 +23,8 @@ def write_to_ts_file(
     ----------
     X : Union[list, np.ndarray]
         Collection of time series, either equal length shape
-        `(n_cases, n_channels, n_timepoints)` or unequal length as a list of
-        np.ndarray, each of shape `(n_channels,n_timepoints_i)`.
+        ``(n_cases, n_channels, n_timepoints)`` or unequal length as a list of
+        np.ndarray, each of shape ``(n_channels,n_timepoints_i)``.
     path : string
         Location of the directory to write file
     y: None or np.ndarray, default = None

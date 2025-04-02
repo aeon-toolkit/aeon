@@ -28,35 +28,35 @@ def dtw_distance(
     distortions in the time axis by realligning (warping) the series to best match
     each other. A good background into DTW can be found in [1]_. For two series,
     possibly of unequal length,
-    :math:`\mathbf{x}=\{x_1,x_2,\ldots,x_n\}` and
-    :math:`\mathbf{y}=\{y_1,y_2, \ldots,y_m\}` DTW first calculates
-    :math:`M(\mathbf{x},\mathbf{y})`, the :math:`n \times m`
-    pointwise distance matrix between series :math:`\mathbf{x}` and :math:`\mathbf{y}`,
-    where :math:`M_{i,j}=   (x_i-y_j)^2`.
+    :math:``\mathbf{x}=\{x_1,x_2,\ldots,x_n\}`` and
+    :math:``\mathbf{y}=\{y_1,y_2, \ldots,y_m\}`` DTW first calculates
+    :math:``M(\mathbf{x},\mathbf{y})``, the :math:``n \times m``
+    pointwise distance matrix between series :math:``\mathbf{x}`` and :math:``\mathbf{y}``,
+    where :math:``M_{i,j}=   (x_i-y_j)^2``.
 
     A warping path
 
     .. math::
         P = <(e_1, f_1), (e_2, f_2), \ldots, (e_s, f_s)>
 
-    is a set of pairs of indices that  define a traversal of matrix :math:`M`. A
-    valid warping path must start at location :math:`(1,1)` and end at point :math:`(
-    n,m)` and not backtrack, i.e. :math:`0 \leq e_{i+1}-e_{i} \leq 1` and :math:`0
-    \leq f_{i+1}- f_i \leq 1` for all :math:`1< i < m`.
+    is a set of pairs of indices that  define a traversal of matrix :math:``M``. A
+    valid warping path must start at location :math:``(1,1)`` and end at point :math:``(
+    n,m)`` and not backtrack, i.e. :math:``0 \leq e_{i+1}-e_{i} \leq 1`` and :math:``0
+    \leq f_{i+1}- f_i \leq 1`` for all :math:``1< i < m``.
 
-    The DTW distance between series is the path through :math:`M` that minimizes the
-    total distance. The distance for any path :math:`P` of length :math:`s` is
+    The DTW distance between series is the path through :math:``M`` that minimizes the
+    total distance. The distance for any path :math:``P`` of length :math:``s`` is
 
     .. math::
         D_P(\mathbf{x},\mathbf{y}, M) =\sum_{i=1}^s M_{e_i,f_i}
 
-    If :math:`\mathcal{P}` is the space of all possible paths, the DTW path :math:`P^*`
+    If :math:``\mathcal{P}`` is the space of all possible paths, the DTW path :math:``P^*``
     is the path that has the minimum distance, hence the DTW distance between series is
 
     .. math::
         d_{dtw}(\mathbf{x}, \mathbf{x}) =D_{P*}(\mathbf{x},\mathbf{x}, M).
 
-    The optimal warping path :math:`P^*` can be found exactly through a dynamic
+    The optimal warping path :math:``P^*`` can be found exactly through a dynamic
     programming formulation. This can be a time consuming operation, and it is common to
     put a restriction on the amount of warping allowed. This is implemented through
     the bounding_matrix structure, that supplies a mask for allowable warpings.
@@ -138,7 +138,7 @@ def dtw_cost_matrix(
     r"""Compute the DTW cost matrix between two time series.
 
     The cost matrix is the pairwise Euclidean distance between all points
-    :math:`M_{i,j}=(x_i-x_j)^2`. It is used in the DTW path calculations.
+    :math:``M_{i,j}=(x_i-x_j)^2``. It is used in the DTW path calculations.
 
     Parameters
     ----------
@@ -236,17 +236,17 @@ def dtw_pairwise_distance(
 ) -> np.ndarray:
     r"""Compute the DTW pairwise distance between a set of time series.
 
-    By default, this takes a collection of :math:`n` time series :math:`X` and returns a
+    By default, this takes a collection of :math:``n`` time series :math:``X`` and returns a
     matrix
-    :math:`D` where :math:`D_{i,j}` is the DTW distance between the :math:`i^{th}`
-    and the :math:`j^{th}` series in :math:`X`. If :math:`X` is 2 dimensional,
+    :math:``D`` where :math:``D_{i,j}`` is the DTW distance between the :math:``i^{th}``
+    and the :math:``j^{th}`` series in :math:``X``. If :math:``X`` is 2 dimensional,
     it is assumed to be a collection of univariate series with shape ``(n_cases,
     n_timepoints)``. If it is 3 dimensional, it is assumed to be shape ``(n_cases,
     n_channels, n_timepoints)``.
 
-    This function has an optional argument, :math:`y`, to allow calculation of the
-    distance matrix between :math:`X` and one or more series stored in :math:`y`. If
-    :math:`y` is 1 dimensional, we assume it is a single univariate series and the
+    This function has an optional argument, :math:``y``, to allow calculation of the
+    distance matrix between :math:``X`` and one or more series stored in :math:``y``. If
+    :math:``y`` is 1 dimensional, we assume it is a single univariate series and the
     distance matrix returned is shape ``(n_cases,1)``. If it is 2D, we assume it
     is a collection of univariate series with shape ``(m_cases, m_timepoints)``
     and the distance ``(n_cases,m_cases)``. If it is 3 dimensional,

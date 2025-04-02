@@ -356,7 +356,7 @@ convert_dictionary[("pd-multiindex", "numpy2D")] = _from_pd_multiindex_to_numpy2
 def convert_collection(X, output_type):
     """Convert from one of collections compatible data structure to another.
 
-    See :obj:`aeon.utils.conversion.COLLECTIONS_DATA_TYPE` for the list.
+    See :obj:``aeon.utils.conversion.COLLECTIONS_DATA_TYPE`` for the list.
 
     Parameters
     ----------
@@ -368,7 +368,7 @@ def convert_collection(X, output_type):
     Returns
     -------
     X : collection
-        Data structure conforming to `output_type`.
+        Data structure conforming to ``output_type``.
 
     Raises
     ------

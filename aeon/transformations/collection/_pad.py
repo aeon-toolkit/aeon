@@ -124,7 +124,7 @@ class Padder(BaseCollectionTransformer):
                 raise ValueError(
                     """The fill_value argument must be
                                 a 2D Numpy array, containing values for
-                                each `n_channel` for `n_cases` series."""
+                                each ``n_channel`` for ``n_cases`` series."""
                 )
         else:
             self.fill_value_ = self.fill_value * np.ones((len(X), X[0].shape[0]))

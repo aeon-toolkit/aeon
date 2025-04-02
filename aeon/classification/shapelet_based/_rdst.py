@@ -27,7 +27,7 @@ class RDSTClassifier(BaseClassifier):
 
     Implementation of the random dilated shapelet transform classifier pipeline
     along the lines of [1]_, [2]_. Transforms the data using the
-    `RandomDilatedShapeletTransform` and then builds a `RidgeClassifierCV` classifier
+    ``RandomDilatedShapeletTransform`` and then builds a ``RidgeClassifierCV`` classifier
     with standard scaling.
 
     Parameters
@@ -61,8 +61,8 @@ class RDSTClassifier(BaseClassifier):
         values. This can greatly speed-up the algorithm for long time series and/or
         short shapelet lengths, possibly at the cost of some accuracy.
     estimator : BaseEstimator or None, default=None
-        Base estimator for the ensemble, can be supplied a sklearn `BaseEstimator`. If
-        `None` a default `RidgeClassifierCV` classifier is used with standard scaling.
+        Base estimator for the ensemble, can be supplied a sklearn ``BaseEstimator``. If
+        ``None`` a default ``RidgeClassifierCV`` classifier is used with standard scaling.
     save_transformed_data : bool, default=False
         If True, the transformed training dataset for all classifiers will be saved.
     class_weight{“balanced”, “balanced_subsample”}, dict or list of dicts, default=None
@@ -79,12 +79,12 @@ class RDSTClassifier(BaseClassifier):
         the fit method) if sample_weight is specified.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both ``fit`` and ``predict``.
-        `-1` means using all processors.
+        ``-1`` means using all processors.
     random_state : int, RandomState instance or None, default=None
-        If `int`, random_state is the seed used by the random number generator;
-        If `RandomState` instance, random_state is the random number generator;
-        If `None`, the random number generator is the `RandomState` instance used
-        by `np.random`.
+        If ``int``, random_state is the seed used by the random number generator;
+        If ``RandomState`` instance, random_state is the random number generator;
+        If ``None``, the random number generator is the ``RandomState`` instance used
+        by ``np.random``.
 
     Attributes
     ----------
@@ -94,7 +94,7 @@ class RDSTClassifier(BaseClassifier):
         The number of unique classes in the training set.
     transformed_data_ : list of shape (n_estimators) of ndarray
         The transformed training dataset for all classifiers. Only saved when
-        ``save_transformed_data`` is `True`.
+        ``save_transformed_data`` is ``True``.
 
     See Also
     --------
@@ -271,7 +271,7 @@ class RDSTClassifier(BaseClassifier):
         ----------
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return ``"default"`` set.
             For classifiers, a "default" set of parameters should be provided for
             general testing, and a "results_comparison" set for comparing against
             previously recorded results if the general set does not produce suitable
@@ -282,6 +282,6 @@ class RDSTClassifier(BaseClassifier):
         params : dict or list of dict, default={}
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test instance.
         """
         return {"max_shapelets": 20}

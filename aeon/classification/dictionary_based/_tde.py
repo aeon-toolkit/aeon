@@ -88,17 +88,17 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         will be some overhead converting it to a python dict with multiple threads and
         pickling.
     train_estimate_method : str, default="loocv"
-        Method used to generate train estimates in `fit_predict` and
-        `fit_predict_proba`. Options are "loocv" for leave one out cross validation and
+        Method used to generate train estimates in ``fit_predict`` and
+        ``fit_predict_proba``. Options are "loocv" for leave one out cross validation and
         "oob" for out of bag estimates.
     n_jobs : int, default=1
-        The number of jobs to run in parallel for both `fit` and `predict`.
+        The number of jobs to run in parallel for both ``fit`` and ``predict``.
         ``-1`` means using all processors.
     random_state : int, RandomState instance or None, default=None
-        If `int`, random_state is the seed used by the random number generator;
-        If `RandomState` instance, random_state is the random number generator;
-        If `None`, the random number generator is the `RandomState` instance used
-        by `np.random`.
+        If ``int``, random_state is the seed used by the random number generator;
+        If ``RandomState`` instance, random_state is the random number generator;
+        If ``None``, the random number generator is the ``RandomState`` instance used
+        by ``np.random``.
 
     Attributes
     ----------
@@ -115,7 +115,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
     estimators_ : list of shape (n_estimators) of IndividualTDE
         The collections of estimators trained in fit.
     n_estimators_ : int
-        The final number of classifiers used. Will be <= `max_ensemble_size`.
+        The final number of classifiers used. Will be <= ``max_ensemble_size``.
     weights_ : list of shape (n_estimators) of float
         Weight of each estimator in the ensemble.
 
@@ -127,8 +127,8 @@ class TemporalDictionaryEnsemble(BaseClassifier):
     Notes
     -----
     For the Java version, see
-    `TSML <https://github.com/uea-machine-learning/tsml/blob/master/src/main/java/
-    tsml/classifiers/dictionary_based/TDE.java>`_.
+    ``TSML <https://github.com/uea-machine-learning/tsml/blob/master/src/main/java/
+    tsml/classifiers/dictionary_based/TDE.java>``_.
 
     References
     ----------
@@ -542,7 +542,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         ----------
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return ``"default"`` set.
             TemporalDictionaryEnsemble provides the following special sets:
                  "results_comparison" - used in some classifiers to compare against
                     previously generated results where the default set of parameters
@@ -559,7 +559,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
         dict or list of dict, default={}
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test instance.
         """
         if parameter_set == "results_comparison":
             return {
@@ -625,7 +625,7 @@ class IndividualTDE(BaseClassifier):
         Use a numba TypedDict to store word counts. May increase memory usage, but will
         be faster for larger datasets.
     n_jobs : int, default=1
-        The number of jobs to run in parallel for both `fit` and `predict`.
+        The number of jobs to run in parallel for both ``fit`` and ``predict``.
         ``-1`` means using all processors.
     random_state : int or None, default=None
         Seed for random, integer.
@@ -651,8 +651,8 @@ class IndividualTDE(BaseClassifier):
     Notes
     -----
     For the Java version, see
-    `TSML <https://github.com/uea-machine-learning/tsml/blob/master/src/main/java/
-    tsml/classifiers/dictionary_based/IndividualTDE.java>`_.
+    ``TSML <https://github.com/uea-machine-learning/tsml/blob/master/src/main/java/
+    tsml/classifiers/dictionary_based/IndividualTDE.java>``_.
 
     References
     ----------
@@ -1007,7 +1007,7 @@ def histogram_intersection(first, second):
     first : dict, numba.Dict or 1 D array of integers
         First histogram used in distance measurement.
     second : dict, numba.Dict or 1 D array of integers
-        Second histogram that will be used to measure distance from `first`.
+        Second histogram that will be used to measure distance from ``first``.
 
     Returns
     -------

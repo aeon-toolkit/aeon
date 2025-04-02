@@ -37,13 +37,13 @@ class ProximityForest(BaseClassifier):
     min_samples_split: int, default = 2
         The minimum number of samples required to split an internal node.
     random_state : int, RandomState instance or None, default=None
-        If `int`, random_state is the seed used by the random number generator;
-        If `RandomState` instance, random_state is the random number generator;
-        If `None`, the random number generator is the `RandomState` instance used
-        by `np.random`.
+        If ``int``, random_state is the seed used by the random number generator;
+        If ``RandomState`` instance, random_state is the random number generator;
+        If ``None``, the random number generator is the ``RandomState`` instance used
+        by ``np.random``.
     n_jobs : int, default = 1
         The number of parallel jobs to run for neighbors search.
-        ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.
+        ``None`` means 1 unless in a :obj:``joblib.parallel_backend`` context.
         ``-1`` means using all processors.
         for more details. Parameter for compatibility purposes, still unimplemented.
     parallel_backend : str, ParallelBackendBase instance or None, default=None
@@ -55,8 +55,8 @@ class ProximityForest(BaseClassifier):
     Notes
     -----
     For the Java version, see
-    `ProximityForest
-    <https://github.com/fpetitjean/ProximityForest>`_.
+    ``ProximityForest
+    <https://github.com/fpetitjean/ProximityForest>``_.
 
     References
     ----------

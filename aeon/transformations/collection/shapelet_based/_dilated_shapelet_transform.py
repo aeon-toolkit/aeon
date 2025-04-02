@@ -88,7 +88,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
         values. This can greatly speed up the algorithm for long time series and/or
         short shapelet lengths, possibly at the cost of some accuracy.
     n_jobs : int, default=1
-        The number of threads used for both `fit` and `transform`.
+        The number of threads used for both ``fit`` and ``transform``.
     random_state : int or None, default=None
         Seed for random number generation.
 
@@ -114,8 +114,8 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
     -----
     This implementation uses all the features for multivariate shapelets, without
     affecting a random feature subset to each shapelet as done in the original
-    implementation. See `convst
-    https://github.com/baraline/convst/blob/main/convst/transformers/rdst.py`_.
+    implementation. See ``convst
+    https://github.com/baraline/convst/blob/main/convst/transformers/rdst.py``_.
 
     References
     ----------
@@ -358,7 +358,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
         ----------
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return ``"default"`` set.
             There are currently no reserved values for transformers.
 
         Returns
@@ -366,7 +366,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
         params : dict or list of dict, default = {}
             Parameters to create testing instances of the class
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test instance.
         """
         if parameter_set == "default":
             params = {"max_shapelets": 10}

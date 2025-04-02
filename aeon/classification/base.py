@@ -368,7 +368,7 @@ class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
             (ground truth) for fitting indices corresponding to instance indices in X.
         metric : Union[str, callable], default="accuracy",
             Defines the scoring metric to test the fit of the model. For supported
-            strings arguments, check `sklearn.metrics.get_scorer_names`.
+            strings arguments, check ``sklearn.metrics.get_scorer_names``.
         use_proba : bool, default=False,
             Argument to check if scorer works on probability estimates or not.
         metric_params : dict, default=None,
@@ -389,9 +389,9 @@ class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
             __names = get_scorer_names()
             if metric not in __names:
                 raise ValueError(
-                    f"Metric {metric} is incompatible with `sklearn.metrics.get_scorer`"
+                    f"Metric {metric} is incompatible with ``sklearn.metrics.get_scorer``"
                     "function. Valid list of metrics can be obtained using "
-                    "the `sklearn.metrics.get_scorer_names` function."
+                    "the ``sklearn.metrics.get_scorer_names`` function."
                 )
             scorer = get_scorer(metric)
             if use_proba:

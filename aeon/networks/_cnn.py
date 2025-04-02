@@ -19,7 +19,7 @@ class TimeCNNNetwork(BaseDeepLearningNetwork):
         used for all layer, len(list) should be n_layers.
     n_filters : int or list of int, default = [6, 12]
         Number of filters for each convolution layer, if not a list, the same
-        `n_filters` is used in all layers.
+        ``n_filters`` is used in all layers.
     avg_pool_size : int or list of int, default = 3
         The size of the average pooling layer, if not a list, the same max pooling
         size is used for all convolution layer.

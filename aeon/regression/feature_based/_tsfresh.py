@@ -36,16 +36,16 @@ class TSFreshRegressor(BaseRegressor):
     verbose : int, default=0
         Level of output printed to the console (for information only).
     n_jobs : int, default=1
-        The number of jobs to run in parallel for both `fit` and `predict`.
+        The number of jobs to run in parallel for both ``fit`` and ``predict``.
         ``-1`` means using all processors.
     chunksize : int or None, default=None
         Number of series processed in each parallel TSFresh job, should be optimised
         for efficient parallelisation.
     random_state : int, RandomState instance or None, default=None
-        If `int`, random_state is the seed used by the random number generator;
-        If `RandomState` instance, random_state is the random number generator;
-        If `None`, the random number generator is the `RandomState` instance used
-        by `np.random`.
+        If ``int``, random_state is the seed used by the random number generator;
+        If ``RandomState`` instance, random_state is the random number generator;
+        If ``None``, the random number generator is the ``RandomState`` instance used
+        by ``np.random``.
 
 
     See Also
@@ -190,7 +190,7 @@ class TSFreshRegressor(BaseRegressor):
         ----------
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return ``"default"`` set.
             TSFreshRegressor provides the following special sets:
                  "results_comparison" - used in some regressor to compare against
                     previously generated results where the default set of parameters
@@ -201,7 +201,7 @@ class TSFreshRegressor(BaseRegressor):
         params : dict or list of dict, default={}
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test instance.
         """
         if parameter_set == "results_comparison":
             return {

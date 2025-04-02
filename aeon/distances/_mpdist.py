@@ -16,7 +16,7 @@ def mp_distance(x: np.ndarray, y: np.ndarray, m: int = 0) -> float:
     MPdist [2]_ is a distance method based on the matrix profile [1]_. Given a
     window length $m$, the matrix profile between two series $x$ and $y$, denoted
     $P_{xy}$, is a new time series where each point $i$ stores the Euclidean distance
-    between `x[i:i+m]` and the nearest neighbour window to x[i:i+m]` in $y$ . MPdist
+    between ``x[i:i+m]`` and the nearest neighbour window to x[i:i+m]` in $y$ . MPdist
     is found by concatenating $P_{xy}$ and $P_{yx}$, sorting the distances
     into ascending order then taking the $k^{th}$ smallest as the distance. $k$ is
     set to 5% of the sum of the lengths of the two time series.

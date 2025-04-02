@@ -153,7 +153,7 @@ def all_inputs_are_time_like(args: list) -> bool:
 
 
 def check_n_jobs(n_jobs: int) -> int:
-    """Check `n_jobs` parameter according to the scikit-learn convention.
+    """Check ``n_jobs`` parameter according to the scikit-learn convention.
 
     https://scikit-learn.org/stable/glossary.html#term-n_jobs
 
@@ -174,7 +174,7 @@ def check_n_jobs(n_jobs: int) -> int:
     if n_jobs is None or n_jobs == 0:
         return 1
     elif not is_int(n_jobs):
-        raise ValueError(f"`n_jobs` must be None or an integer, but found: {n_jobs}")
+        raise ValueError(f"``n_jobs`` must be None or an integer, but found: {n_jobs}")
     elif n_jobs < 0:
         return max(1, os.cpu_count() + 1 + n_jobs)
     else:
@@ -194,12 +194,12 @@ def check_window_length(
         positive pd.DateOffset, or None
         The window length:
         - If int, the total number of time points.
-        - If float, the fraction of time points relative to `n_timepoints`.
+        - If float, the fraction of time points relative to ``n_timepoints``.
         - If timedelta, length in corresponding time units
         - If pd.DateOffset, length in corresponding time units following calendar rules
     n_timepoints: positive int, default=None
-        The number of time points to which to apply `window_length` when
-        passed as a float (fraction). Will be ignored if `window_length` is
+        The number of time points to which to apply ``window_length`` when
+        passed as a float (fraction). Will be ignored if ``window_length`` is
         an integer.
     name: str
         Name of argument for error messages.
@@ -215,14 +215,14 @@ def check_window_length(
         return window_length
 
     elif is_float(window_length) and 0 < window_length < 1:
-        # Check `n_timepoints`.
+        # Check ``n_timepoints``.
         if not is_int(n_timepoints) or n_timepoints < 2:
             raise ValueError(
-                f"`n_timepoints` must be a positive integer, but found:"
+                f"``n_timepoints`` must be a positive integer, but found:"
                 f" {n_timepoints}."
             )
 
-        # Compute fraction relative to `n_timepoints`.
+        # Compute fraction relative to ``n_timepoints``.
         return int(np.ceil(window_length * n_timepoints))
 
     elif is_timedelta(window_length) and window_length > timedelta(0):
@@ -235,6 +235,6 @@ def check_window_length(
 
     else:
         raise ValueError(
-            f"`{name}` must be a positive integer >= 0, or "
+            f"``{name}`` must be a positive integer >= 0, or "
             f"float in (0, 1) or None, but found: {window_length}."
         )

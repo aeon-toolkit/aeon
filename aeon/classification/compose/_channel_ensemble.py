@@ -38,7 +38,7 @@ class ClassifierChannelEnsemble(BaseCollectionChannelEnsemble, BaseClassifier):
         By default, only the specified channels in ``channels`` are
         used and combined in the output, and the non-specified
         channels are dropped.
-        By setting `remainder` to be an estimator, the remaining
+        By setting ``remainder`` to be an estimator, the remaining
         non-specified columns will use the ``remainder`` estimator. The
         estimator must support ``fit`` and ``predict``.
     majority_vote : bool, default=False
@@ -49,8 +49,8 @@ class ClassifierChannelEnsemble(BaseCollectionChannelEnsemble, BaseClassifier):
     random_state : int, RandomState instance or None, default=None
         Random state used to fit the estimators. If None, no random state is set for
         ensemble members (but they may still be seeded prior to input).
-        If `int`, random_state is the seed used by the random number generator;
-        If `RandomState` instance, random_state is the random number generator;
+        If ``int``, random_state is the seed used by the random number generator;
+        If ``RandomState`` instance, random_state is the random number generator;
 
     Attributes
     ----------
@@ -136,7 +136,7 @@ class ClassifierChannelEnsemble(BaseCollectionChannelEnsemble, BaseClassifier):
         ----------
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return ``"default"`` set.
             ClassifierChannelEnsemble provides the following special sets:
             - "results_comparison" - used in some classifiers to compare against
               previously generated results where the default set of parameters
@@ -147,7 +147,7 @@ class ClassifierChannelEnsemble(BaseCollectionChannelEnsemble, BaseClassifier):
         params : dict or list of dict, default={}
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test instance.
         """
         from aeon.classification.dictionary_based import ContractableBOSS
         from aeon.classification.interval_based import (

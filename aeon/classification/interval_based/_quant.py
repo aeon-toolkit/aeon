@@ -49,10 +49,10 @@ class QUANTClassifier(BaseClassifier):
         Note that these weights will be multiplied with sample_weight (passed through
         the fit method) if sample_weight is specified.
     random_state : int, RandomState instance or None, default=None
-        If `int`, random_state is the seed used by the random number generator;
-        If `RandomState` instance, random_state is the random number generator;
-        If `None`, the random number generator is the `RandomState` instance used
-        by `np.random`.
+        If ``int``, random_state is the seed used by the random number generator;
+        If ``RandomState`` instance, random_state is the random number generator;
+        If ``None``, the random number generator is the ``RandomState`` instance used
+        by ``np.random``.
 
     See Also
     --------

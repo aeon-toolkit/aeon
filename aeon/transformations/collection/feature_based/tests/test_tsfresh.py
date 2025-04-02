@@ -57,7 +57,7 @@ def test_kind_tsfresh_extractor():
 )
 def test_tsfresh_inputs():
     """Test incorrect input errors."""
-    with pytest.raises(ValueError, match="If `default_fc_parameters` is passed"):
+    with pytest.raises(ValueError, match="If ``default_fc_parameters`` is passed"):
         TSFresh(default_fc_parameters="wrong_input")
     ts = TSFreshRelevant()
     X, y = make_example_3d_numpy()

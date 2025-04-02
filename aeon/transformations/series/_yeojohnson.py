@@ -19,9 +19,9 @@ class YeoJohnsonTransformer(BaseSeriesTransformer):
 
     The YeoJohnsonTransformer solves for the lambda parameter used in the
     Yeo-Johnson transformation using maximum likelihood estimation,
-    on input data provided to `fit`.
+    on input data provided to ``fit``.
 
-    The Yeo-Johnson transformation is defined as :math:`\[
+    The Yeo-Johnson transformation is defined as :math:``\[
         \phi(\lambda,y) =
         \begin{cases}
         log(y+1) & \text{if $\lambda=0, y\geq0$} \\
@@ -29,7 +29,7 @@ class YeoJohnsonTransformer(BaseSeriesTransformer):
         -log(1-y) & \text{if $\lambda=2, y<0$} \\
         -\frac{(1-y)^{2-\lambda}-1)}{2-\lambda} & \text{if $\lambda\neq2, y<0$}
         \end{cases}
-    \]`.
+    \]``.
 
     Parameters
     ----------
@@ -38,7 +38,7 @@ class YeoJohnsonTransformer(BaseSeriesTransformer):
         when solving for the value of lambda.
     lambda_ : float
         The Yeo-Johnson lambda parameter. If not supplied, it is solved for based
-        on the data provided in `fit`.
+        on the data provided in ``fit``.
 
     See Also
     --------

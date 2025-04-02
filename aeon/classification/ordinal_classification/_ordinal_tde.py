@@ -82,17 +82,17 @@ class OrdinalTDE(BaseClassifier):
         will be some overhead converting it to a python dict with multiple threads and
         pickling.
     train_estimate_method : str, default="loocv"
-        Method used to generate train estimates in `fit_predict` and
-        `fit_predict_proba`. Options are "loocv" for leave one out cross validation and
+        Method used to generate train estimates in ``fit_predict`` and
+        ``fit_predict_proba``. Options are "loocv" for leave one out cross validation and
         "oob" for out of bag estimates.
     n_jobs : int, default=1
-        The number of jobs to run in parallel for both `fit` and `predict`.
+        The number of jobs to run in parallel for both ``fit`` and ``predict``.
         ``-1`` means using all processors.
     random_state : int, RandomState instance or None, default=None
-        If `int`, random_state is the seed used by the random number generator;
-        If `RandomState` instance, random_state is the random number generator;
-        If `None`, the random number generator is the `RandomState` instance used
-        by `np.random`.
+        If ``int``, random_state is the seed used by the random number generator;
+        If ``RandomState`` instance, random_state is the random number generator;
+        If ``None``, the random number generator is the ``RandomState`` instance used
+        by ``np.random``.
 
     Attributes
     ----------
@@ -109,7 +109,7 @@ class OrdinalTDE(BaseClassifier):
     estimators_ : list of shape (n_estimators) of IndividualOrdinalTDE
         The collections of estimators trained in fit.
     n_estimators_ : int
-        The final number of classifiers used. Will be <= `max_ensemble_size`.
+        The final number of classifiers used. Will be <= ``max_ensemble_size``.
     weights_ : list of shape (n_estimators) of float
         Weight of each estimator in the ensemble.
 
@@ -521,7 +521,7 @@ class OrdinalTDE(BaseClassifier):
         ----------
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return ``"default"`` set.
             For classifiers, a "default" set of parameters should be provided for
             general testing, and a "results_comparison" set for comparing against
             previously recorded results if the general set does not produce suitable
@@ -532,7 +532,7 @@ class OrdinalTDE(BaseClassifier):
         params : dict or list of dict, default={}
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test instance.
         """
         if parameter_set == "results_comparison":
             return {
@@ -599,7 +599,7 @@ class IndividualOrdinalTDE(BaseClassifier):
         Use a numba TypedDict to store word counts. May increase memory usage, but will
         be faster for larger datasets.
     n_jobs : int, default=1
-        The number of jobs to run in parallel for both `fit` and `predict`.
+        The number of jobs to run in parallel for both ``fit`` and ``predict``.
         ``-1`` means using all processors.
     random_state : int or None, default=None
         Seed for random, integer.
@@ -624,8 +624,8 @@ class IndividualOrdinalTDE(BaseClassifier):
     Notes
     -----
     For the Java version, see
-    `TSML <https://github.com/uea-machine-learning/tsml/blob/master/src/main/java/
-    tsml/classifiers/dictionary_based/IndividualOrdinalTDE.java>`_.
+    ``TSML <https://github.com/uea-machine-learning/tsml/blob/master/src/main/java/
+    tsml/classifiers/dictionary_based/IndividualOrdinalTDE.java>``_.
 
     References
     ----------

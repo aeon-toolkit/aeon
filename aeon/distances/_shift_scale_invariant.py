@@ -163,17 +163,17 @@ def shift_scale_invariant_pairwise_distance(
 ) -> np.ndarray:
     r"""Compute the shift-scale invariant pairwise distance between time series.
 
-    By default, this takes a collection of :math:`n` time series :math:`X` and returns a
+    By default, this takes a collection of :math:``n`` time series :math:``X`` and returns a
     matrix
-    :math:`D` where :math:`D_{i,j}` is the shift-scale distance between the
-    :math:`i^{th}` and the :math:`j^{th}` series in :math:`X`. If :math:`X` is 2
+    :math:``D`` where :math:``D_{i,j}`` is the shift-scale distance between the
+    :math:``i^{th}`` and the :math:``j^{th}`` series in :math:``X``. If :math:``X`` is 2
     dimensional, it is assumed to be a collection of univariate series with shape
     ``(n_cases, n_timepoints)``. If it is 3 dimensional, it is assumed to be shape
     ``(n_cases, n_channels, n_timepoints)``.
 
-    This function has an optional argument, :math:`y`, to allow calculation of the
-    distance matrix between :math:`X` and one or more series stored in :math:`y`. If
-    :math:`y` is 1 dimensional, we assume it is a single univariate series and the
+    This function has an optional argument, :math:``y``, to allow calculation of the
+    distance matrix between :math:``X`` and one or more series stored in :math:``y``. If
+    :math:``y`` is 1 dimensional, we assume it is a single univariate series and the
     distance matrix returned is shape ``(n_cases,1)``. If it is 2D, we assume it
     is a collection of univariate series with shape ``(m_cases, m_timepoints)``
     and the distance ``(n_cases,m_cases)``. If it is 3 dimensional,

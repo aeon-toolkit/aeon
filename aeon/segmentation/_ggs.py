@@ -83,10 +83,10 @@ class _GGS:
     verbose: bool, default=False
         If ``True`` verbose output is enabled.
     random_state : int, RandomState instance or None, default=None
-        If `int`, random_state is the seed used by the random number generator;
-        If `RandomState` instance, random_state is the random number generator;
-        If `None`, the random number generator is the `RandomState` instance used
-        by `np.random`.
+        If ``int``, random_state is the seed used by the random number generator;
+        If ``RandomState`` instance, random_state is the random number generator;
+        If ``None``, the random number generator is the ``RandomState`` instance used
+        by ``np.random``.
 
     Attributes
     ----------
@@ -137,7 +137,7 @@ class _GGS:
         Parameters
         ----------
         data: array_like
-            2D `array_like` representing time series with sequence index along
+            2D ``array_like`` representing time series with sequence index along
             the first dimension and value series as columns.
 
         Returns
@@ -163,7 +163,7 @@ class _GGS:
         Parameters
         ----------
         data: array_like
-            2D `array_like` representing time series with sequence index along
+            2D ``array_like`` representing time series with sequence index along
             the first dimension and value series as columns.
         change_points: list of ints
             Locations of change points as integer indexes. By convention change points
@@ -190,7 +190,7 @@ class _GGS:
         Parameters
         ----------
         data: array_like
-            2D `array_like` representing time series with sequence index along
+            2D ``array_like`` representing time series with sequence index along
             the first dimension and value series as columns.
 
         Returns
@@ -256,7 +256,7 @@ class _GGS:
         Parameters
         ----------
         data: array_like
-            2D `array_like` representing time series with sequence index along
+            2D ``array_like`` representing time series with sequence index along
             the first dimension and value series as columns.
         change_points: list of ints
             Locations of change points as integer indexes. By convention change points
@@ -325,7 +325,7 @@ class _GGS:
         Parameters
         ----------
         data: array_like
-            2D `array_like` representing time series with sequence index along
+            2D ``array_like`` representing time series with sequence index along
             the first dimension and value series as columns.
 
         Returns

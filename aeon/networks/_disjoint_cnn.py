@@ -20,43 +20,43 @@ class DisjointCNNNetwork(BaseDeepLearningNetwork):
     n_filters : int or list of int, default = 64
         Number of filters used in convolution layers. If
         input is set to a list, the lenght should be the same
-        as `n_layers`, if input is int the a list of the same
-        element is created of length `n_layers`.
+        as ``n_layers``, if input is int the a list of the same
+        element is created of length ``n_layers``.
     kernel_size : int or list of int, default = [8, 5, 5, 3]
         Size of convolution kernel. If
         input is set to a list, the lenght should be the same
-        as `n_layers`, if input is int the a list of the same
-        element is created of length `n_layers`.
+        as ``n_layers``, if input is int the a list of the same
+        element is created of length ``n_layers``.
     dilation_rate : int or list of int, default = 1
         The dilation rate for convolution. If
         input is set to a list, the lenght should be the same
-        as `n_layers`, if input is int the a list of the same
-        element is created of length `n_layers`.
+        as ``n_layers``, if input is int the a list of the same
+        element is created of length ``n_layers``.
     strides : int or list of int, default = 1
         The strides of the convolution filter. If
         input is set to a list, the lenght should be the same
-        as `n_layers`, if input is int the a list of the same
-        element is created of length `n_layers`.
+        as ``n_layers``, if input is int the a list of the same
+        element is created of length ``n_layers``.
     padding : str or list of str, default = "same"
         The type of padding used for convolution. If
         input is set to a list, the lenght should be the same
-        as `n_layers`, if input is int the a list of the same
-        element is created of length `n_layers`.
+        as ``n_layers``, if input is int the a list of the same
+        element is created of length ``n_layers``.
     activation : str or list of str, default = "elu"
         Activation used after the convolution. If
         input is set to a list, the lenght should be the same
-        as `n_layers`, if input is int the a list of the same
-        element is created of length `n_layers`.
+        as ``n_layers``, if input is int the a list of the same
+        element is created of length ``n_layers``.
     use_bias : bool or list of bool, default = True
         Whether or not ot use bias in convolution. If
         input is set to a list, the lenght should be the same
-        as `n_layers`, if input is int the a list of the same
-        element is created of length `n_layers`.
+        as ``n_layers``, if input is int the a list of the same
+        element is created of length ``n_layers``.
     kernel_initializer: str or list of str, default = "he_uniform"
         The initialization method of convolution layers. If
         input is set to a list, the lenght should be the same
-        as `n_layers`, if input is int the a list of the same
-        element is created of length `n_layers`.
+        as ``n_layers``, if input is int the a list of the same
+        element is created of length ``n_layers``.
     pool_size: int, default = 5
         The size of the one max pool layer at the end of
         the model, default = 5.

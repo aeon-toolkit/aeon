@@ -22,13 +22,13 @@ def sbd_distance(x: np.ndarray, y: np.ndarray, standardize: bool = True) -> floa
     cross-correlation (CC) that is shifting and scaling (if standardization
     is used) invariant.
 
-    For two series, possibly of unequal length, :math:`\mathbf{x}=\{x_1,x_2,\ldots,
-    x_n\}` and :math:`\mathbf{y}=\{y_1,y_2, \ldots,y_m\}`, SBD works by (optionally)
+    For two series, possibly of unequal length, :math:``\mathbf{x}=\{x_1,x_2,\ldots,
+    x_n\}`` and :math:``\mathbf{y}=\{y_1,y_2, \ldots,y_m\}``, SBD works by (optionally)
     first standardizing both time series using the z-score
-    (:math:`x' = \frac{x - \mu}{\sigma}`), then computing the cross-correlation
-    between x and y (:math:`CC(\mathbf{x}, \mathbf{y})`), then deviding it by the
+    (:math:``x' = \frac{x - \mu}{\sigma}``), then computing the cross-correlation
+    between x and y (:math:``CC(\mathbf{x}, \mathbf{y})``), then deviding it by the
     geometric mean of both autocorrelations of the individual sequences to normalize
-    it to :math:`[-1, 1]` (coefficient normalization), and finally detecting the
+    it to :math:``[-1, 1]`` (coefficient normalization), and finally detecting the
     position with the maximum normalized cross-correlation:
 
     .. math::
@@ -40,11 +40,11 @@ def sbd_distance(x: np.ndarray, y: np.ndarray, standardize: bool = True) -> floa
 
     This distance method has values between 0 and 2; 0 is perfect similarity.
 
-    The computation of the cross-correlation :math:`CC(\mathbf{x}, \mathbf{y})` for
-    all values of w requires :math:`O(m^2)` time, where m is the maximum time-series
+    The computation of the cross-correlation :math:``CC(\mathbf{x}, \mathbf{y})`` for
+    all values of w requires :math:``O(m^2)`` time, where m is the maximum time-series
     length. We can however use the convolution theorem to our advantage, and use the
     fast (inverse) fourier transform (FFT) to perform the computation of
-    :math:`CC(\mathbf{x}, \mathbf{y})` in :math:`O(m \cdot log(m))`:
+    :math:``CC(\mathbf{x}, \mathbf{y})`` in :math:``O(m \cdot log(m))``:
 
     .. math::
         CC(x, y) = \mathcal{F}^{-1}\{
@@ -78,7 +78,7 @@ def sbd_distance(x: np.ndarray, y: np.ndarray, standardize: bool = True) -> floa
 
     See Also
     --------
-    :func:`~aeon.distances.sbd_pairwise_distance` : Compute the shape-based
+    :func:``~aeon.distances.sbd_pairwise_distance`` : Compute the shape-based
         distance (SBD) between all pairs of time series.
 
     References
@@ -152,7 +152,7 @@ def sbd_pairwise_distance(
 
     See Also
     --------
-    :func:`~aeon.distances.sbd_distance` : Compute the shape-based distance between
+    :func:``~aeon.distances.sbd_distance`` : Compute the shape-based distance between
         two time series.
 
     Examples

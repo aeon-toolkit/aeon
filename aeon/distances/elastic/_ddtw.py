@@ -35,7 +35,7 @@ def ddtw_distance(
     .. math::
         d_{i}(x) = \frac{{}(x_{i} - x_{i-1} + (x_{i+1} - x_{i-1})/2)}{2}
 
-    where :math:`x` is the original time series and :math:`d_x` is the derived time
+    where :math:``x`` is the original time series and :math:``d_x`` is the derived time
     series.
 
     Parameters

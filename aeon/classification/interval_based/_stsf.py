@@ -61,12 +61,12 @@ class SupervisedTimeSeriesForest(BaseIntervalForest, BaseClassifier):
     contract_max_n_estimators : int, default=500
         Max number of estimators when time_limit_in_minutes is set.
     random_state : int, RandomState instance or None, default=None
-        If `int`, random_state is the seed used by the random number generator;
-        If `RandomState` instance, random_state is the random number generator;
-        If `None`, the random number generator is the `RandomState` instance used
-        by `np.random`.
+        If ``int``, random_state is the seed used by the random number generator;
+        If ``RandomState`` instance, random_state is the random number generator;
+        If ``None``, the random number generator is the ``RandomState`` instance used
+        by ``np.random``.
     n_jobs : int, default=1
-        The number of jobs to run in parallel for both `fit` and `predict`.
+        The number of jobs to run in parallel for both ``fit`` and ``predict``.
         ``-1`` means using all processors.
     parallel_backend : str, ParallelBackendBase instance or None, default=None
         Specify the parallelisation backend implementation in joblib, if None a 'prefer'
@@ -96,8 +96,8 @@ class SupervisedTimeSeriesForest(BaseIntervalForest, BaseClassifier):
     Notes
     -----
     For the Java version, see
-    `TSML <https://github.com/uea-machine-learning/tsml/blob/master/src/main/
-     java/tsml/classifiers/interval_based/STSF.java>`_.
+    ``TSML <https://github.com/uea-machine-learning/tsml/blob/master/src/main/
+     java/tsml/classifiers/interval_based/STSF.java>``_.
 
     References
     ----------
@@ -193,7 +193,7 @@ class SupervisedTimeSeriesForest(BaseIntervalForest, BaseClassifier):
         ----------
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return ``"default"`` set.
             SupervisedTimeSeriesForest provides the following special sets:
                 "results_comparison" - used in some classifiers to compare against
                     previously generated results where the default set of parameters
@@ -210,7 +210,7 @@ class SupervisedTimeSeriesForest(BaseIntervalForest, BaseClassifier):
         params : dict or list of dict, default={}
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test instance.
         """
         if parameter_set == "results_comparison":
             return {"n_estimators": 10}

@@ -347,7 +347,7 @@ def check_constructor(estimator_class):
     assert not invalid_attr, (
         "Estimator %s should store all parameters"
         " as an attribute during init. Did not find "
-        "attributes `%s`." % (estimator.__class__.__name__, sorted(invalid_attr))
+        "attributes ``%s``." % (estimator.__class__.__name__, sorted(invalid_attr))
     )
 
     param_values = [

@@ -38,7 +38,7 @@ ESTIMATOR_TAGS = {
         "class": "estimator",
         "type": "bool",
         "description": "The estimator is non-deterministic, and multiple runs will "
-        "not produce the same output even if a `random_state` is set.",
+        "not produce the same output even if a ``random_state`` is set.",
     },
     "cant_pickle": {
         "class": "estimator",
@@ -111,7 +111,7 @@ ESTIMATOR_TAGS = {
     "capability:multithreading": {
         "class": "estimator",
         "type": "bool",
-        "description": "Can the estimator set `n_jobs` to use multiple threads?",
+        "description": "Can the estimator set ``n_jobs`` to use multiple threads?",
     },
     "capability:train_estimate": {
         "class": ["classifier", "regressor"],

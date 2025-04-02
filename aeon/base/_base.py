@@ -349,7 +349,7 @@ class BaseAeonEstimator(BaseEstimator, ABC):
         if not self.is_fitted:
             raise NotFittedError(
                 f"This instance of {self.__class__.__name__} has not "
-                f"been fitted yet; please call `fit` first."
+                f"been fitted yet; please call ``fit`` first."
             )
 
     @classmethod
@@ -361,14 +361,14 @@ class BaseAeonEstimator(BaseEstimator, ABC):
         ----------
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return ``"default"`` set.
 
         Returns
         -------
         params : dict or list of dict, default = {}
             Parameters to create testing instances of the class. Each dict are
             parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test instance.
         """
         # default parameters = empty dict
         return {}
@@ -378,14 +378,14 @@ class BaseAeonEstimator(BaseEstimator, ABC):
         """
         Construct Estimator instance if possible.
 
-        Calls the `_get_test_params` method and returns an instance or list of instances
+        Calls the ``_get_test_params`` method and returns an instance or list of instances
         using the returned dict or list of dict.
 
         Parameters
         ----------
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return ``"default"`` set.
         return_first : bool, default=True
             If True, return the first instance of the list of instances.
             If False, return the list of instances.

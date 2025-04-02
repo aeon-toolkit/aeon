@@ -26,12 +26,12 @@ class SeriesSearch(BaseSimilaritySearch):
     be made against all subsequence of size L inside the time series given during fit,
     which will represent the search space.
 
-    Depending on the `k` and/or `threshold` parameters, which condition what is
-    considered a valid match during the search, the number of matches will vary. If `k`
-    is used, at most `k` matches (the `k` best) will be returned, if `threshold` is used
-    and `k` is set to `np.inf`, all the candidates which distance to the query is
-    inferior or equal to `threshold` will be returned. If both are used, the `k` best
-    matches to the query with distance inferior to `threshold` will be returned.
+    Depending on the ``k`` and/or ``threshold`` parameters, which condition what is
+    considered a valid match during the search, the number of matches will vary. If ``k``
+    is used, at most ``k`` matches (the ``k`` best) will be returned, if ``threshold`` is used
+    and ``k`` is set to ``np.inf``, all the candidates which distance to the query is
+    inferior or equal to ``threshold`` will be returned. If both are used, the ``k`` best
+    matches to the query with distance inferior to ``threshold`` will be returned.
 
 
     Parameters
@@ -42,7 +42,7 @@ class SeriesSearch(BaseSimilaritySearch):
         The number of best matches to return during predict for each subsequence.
     distance : str, default="euclidean"
         Name of the distance function to use. A list of valid strings can be found in
-        the documentation for :func:`aeon.distances.get_distance_function`.
+        the documentation for :func:``aeon.distances.get_distance_function``.
         If a callable is passed it must either be a python function or numba function
         with nopython=True, that takes two 1d numpy arrays as input and returns a float.
     distance_args : dict, default=None
@@ -53,7 +53,7 @@ class SeriesSearch(BaseSimilaritySearch):
         Which speed up technique to use with for the selected distance
         function. By default, the fastest algorithm is used. A list of available
         algorithm for each distance can be obtained by calling the
-        `get_speedup_function_names` function.
+        ``get_speedup_function_names`` function.
     inverse_distance : bool, default=False
         If True, the matching will be made on the inverse of the distance, and thus, the
         worst matches to the query will be returned instead of the best ones.
@@ -168,7 +168,7 @@ class SeriesSearch(BaseSimilaritySearch):
             ``id_timestamp + query_length//exclusion_factor``. This also applies to
             the matching conditions defined by child classes. For example, with
             TopKSimilaritySearch, the k best matches are also subject to the exclusion
-            zone, but with :math:`id_timestamp` the index of one of the k matches.
+            zone, but with :math:``id_timestamp`` the index of one of the k matches.
         apply_exclusion_to_result : bool, default=False
             Wheter to apply the exclusion factor to the output of the similarity search.
             This means that two matches of the query from the same sample must be at
@@ -272,9 +272,9 @@ class SeriesSearch(BaseSimilaritySearch):
             The size of the exclusion zone used to prevent returning as top k candidates
             the ones that are close to each other (for example i and i+1).
             It is used to define a region between
-            :math:`id_timestamp - exclusion_size` and
-            :math:`id_timestamp + exclusion_size` which cannot be returned
-            as best match if :math:`id_timestamp` was already selected. By default,
+            :math:``id_timestamp - exclusion_size`` and
+            :math:``id_timestamp + exclusion_size`` which cannot be returned
+            as best match if :math:``id_timestamp`` was already selected. By default,
             the value None means that this is not used.
 
         Returns

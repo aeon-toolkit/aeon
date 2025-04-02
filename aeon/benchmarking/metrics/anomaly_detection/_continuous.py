@@ -96,8 +96,8 @@ def f_score_at_k_points(
 
     This metric only considers the top-k predicted anomalous points within the scoring
     by finding a threshold on the scoring that produces at least k anomalous points. If
-    `k` is not specified, the number of anomalies within the ground truth is used as
-    `k`.
+    ``k`` is not specified, the number of anomalies within the ground truth is used as
+    ``k``.
 
     Parameters
     ----------
@@ -106,8 +106,8 @@ def f_score_at_k_points(
     y_score : np.ndarray
         Anomaly scores for each point of the time series of shape (n_instances,).
     k : int (optional)
-        Number of top anomalies used to calculate precision. If `k` is not specified
-        (`None`) the number of true anomalies (based on the ground truth values) is
+        Number of top anomalies used to calculate precision. If ``k`` is not specified
+        (``None``) the number of true anomalies (based on the ground truth values) is
         used.
 
     Returns
@@ -139,11 +139,11 @@ def f_score_at_k_ranges(
     """Compute the range-based F-score at k based on anomaly ranges.
 
     This metric only considers the top-k predicted anomaly ranges within the scoring by
-    finding a threshold on the scoring that produces at least k anomalous ranges. If `k`
-    is not specified, the number of anomalies within the ground truth is used as `k`.
+    finding a threshold on the scoring that produces at least k anomalous ranges. If ``k``
+    is not specified, the number of anomalies within the ground truth is used as ``k``.
 
     This implementation uses the community package
-    `prts <https://pypi.org/project/prts/>`_ as a soft-dependency to compute the
+    ``prts <https://pypi.org/project/prts/>``_ as a soft-dependency to compute the
     range-based F-score.
 
     Parameters
@@ -153,8 +153,8 @@ def f_score_at_k_ranges(
     y_score : np.ndarray
         Anomaly scores for each point of the time series of shape (n_instances,).
     k : int (optional)
-        Number of top anomalies used to calculate precision. If `k` is not specified
-        (`None`) the number of true anomalies (based on the ground truth values) is
+        Number of top anomalies used to calculate precision. If ``k`` is not specified
+        (``None``) the number of true anomalies (based on the ground truth values) is
         used.
 
     Returns
@@ -200,11 +200,11 @@ def rp_rr_auc_score(
     Computes the area under the precision recall curve when using the range-based
     precision and range-based recall metric introduced by Tatbul et al. at NeurIPS 2018
     [1]_. This implementation uses the community package
-    `prts <https://pypi.org/project/prts/>`_ as a soft-dependency.
+    ``prts <https://pypi.org/project/prts/>``_ as a soft-dependency.
 
     This metric only considers the top-k predicted anomaly ranges within the scoring by
-    finding a threshold on the scoring that produces at least k anomalous ranges. If `k`
-    is not specified, the number of anomalies within the ground truth is used as `k`.
+    finding a threshold on the scoring that produces at least k anomalous ranges. If ``k``
+    is not specified, the number of anomalies within the ground truth is used as ``k``.
 
     Parameters
     ----------
@@ -223,7 +223,7 @@ def rp_rr_auc_score(
         Weight of the existence reward for the range-based recall.
     p_alpha : float
         Weight of the existence reward for the range-based precision. For most - when
-        not all - cases, `p_alpha` should be set to 0.
+        not all - cases, ``p_alpha`` should be set to 0.
     cardinality : {'reciprocal', 'one', 'udf_gamma'}
         Cardinality type.
     bias : {'flat', 'front', 'middle', 'back'}

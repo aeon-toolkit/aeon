@@ -120,7 +120,7 @@ class Catch22(BaseCollectionTransformer):
         (https://github.com/DynamicsAndNeuralSystems/pycatch22). This requires the
         ``pycatch22`` package to be installed if True.
     n_jobs : int, default=1
-        The number of jobs to run in parallel for `transform`. Requires multiple input
+        The number of jobs to run in parallel for ``transform``. Requires multiple input
         cases. ``-1`` means using all processors.
     parallel_backend : str, ParallelBackendBase instance or None, default=None
         Specify the parallelisation backend implementation in joblib, if None a 'prefer'

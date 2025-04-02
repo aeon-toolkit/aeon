@@ -50,10 +50,10 @@ class ElasticEnsemble(BaseClassifier):
     proportion_train_for_test : float, default=1
       The proportion of the train set to use in classifying new cases optional.
     n_jobs : int, default=1
-      The number of jobs to run in parallel for both `fit` and `predict`.
+      The number of jobs to run in parallel for both ``fit`` and ``predict``.
       ``-1`` means using all processors.
     random_state : int, default=0
-        If `int`, random_state is the seed used by the random number generator;
+        If ``int``, random_state is the seed used by the random number generator;
     verbose : int, default=0
       If ``>0``, then prints out debug information.
     majority_vote: boolean, default = False
@@ -500,7 +500,7 @@ class ElasticEnsemble(BaseClassifier):
         ----------
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return ``"default"`` set.
             ElasticEnsemble provides the following special sets:
                  "results_comparison" - used in some classifiers to compare against
                     previously generated results where the default set of parameters
@@ -511,7 +511,7 @@ class ElasticEnsemble(BaseClassifier):
         params : dict or list of dict, default={}
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test instance.
         """
         if parameter_set == "results_comparison":
             return {

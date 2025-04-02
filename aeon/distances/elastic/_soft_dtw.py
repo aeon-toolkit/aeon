@@ -65,10 +65,10 @@ def soft_dtw_distance(
         \text{soft-DTW}_{\gamma}(X, Y) =
             \min_{\pi}{}^\gamma \sum_{(i, j) \in \pi} \|X_i, Y_j\|^2
 
-    where :math:`\min^\gamma` is the soft-min operator of parameter
-    :math:`\gamma`.
+    where :math:``\min^\gamma`` is the soft-min operator of parameter
+    :math:``\gamma``.
 
-    When :math:`\gamma = 0`, :math:`\min^\gamma` this is equivalent to the
+    When :math:``\gamma = 0``, :math:``\min^\gamma`` this is equivalent to the
     hard-min operator and therefore the DTW distance is returned.
 
 

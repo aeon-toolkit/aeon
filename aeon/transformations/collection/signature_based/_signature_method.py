@@ -23,11 +23,11 @@ class SignatureTransformer(BaseCollectionTransformer):
         applied before application of the signature transform.
     window_name: str, The name of the window transform to apply.
     window_depth: int, The depth of the dyadic window. (Active only if
-        `window_name == 'dyadic'`).
+        ``window_name == 'dyadic'``).
     window_length: int, The length of the sliding/expanding window. (Active
-        only if `window_name in ['sliding, 'expanding']`.
+        only if ``window_name in ['sliding, 'expanding']``.
     window_step: int, The step of the sliding/expanding window. (Active
-        only if `window_name in ['sliding, 'expanding']`.
+        only if ``window_name in ['sliding, 'expanding']``.
     rescaling: str or None, The method of signature rescaling.
     sig_tfm: str, String to specify the type of signature transform. One of:
         ['signature', 'logsignature']).
@@ -105,7 +105,7 @@ class SignatureTransformer(BaseCollectionTransformer):
         ----------
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return ``"default"`` set.
 
 
         Returns
@@ -113,7 +113,7 @@ class SignatureTransformer(BaseCollectionTransformer):
         params : dict or list of dict, default = {}
             Parameters to create testing instances of the class
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test instance.
         """
         params = {
             "augmentation_list": ("basepoint", "addtime"),

@@ -46,7 +46,7 @@ class ElasticSOM(BaseClusterer):
     distance : str or Callable, default='dtw'
         Distance method to compute similarity between time series. A list of valid
         strings for measures can be found in the documentation for
-        :func:`aeon.distances.get_distance_function`. If a callable is passed it must be
+        :func:``aeon.distances.get_distance_function``. If a callable is passed it must be
         a function that takes two 2d numpy arrays as input and returns a float.
     init : str or np.ndarray, default='random'
         Random is the default and simply chooses k time series at random as
@@ -98,11 +98,11 @@ class ElasticSOM(BaseClusterer):
         details.
     random_state : int, np.random.RandomState instance or None, default=None
         Determines random number generation for centroid initialization.
-        If `int`, random_state is the seed used by the random number generator;
-        If `np.random.RandomState` instance,
+        If ``int``, random_state is the seed used by the random number generator;
+        If ``np.random.RandomState`` instance,
         random_state is the random number generator;
-        If `None`, the random number generator is the `RandomState` instance used
-        by `np.random`.
+        If ``None``, the random number generator is the ``RandomState`` instance used
+        by ``np.random``.
     custom_alignment_path : Callable, default=None
         Custom alignment path function to use for the distance. If None, the default
         alignment path function for the distance will be used. If the distance method
@@ -387,7 +387,7 @@ class ElasticSOM(BaseClusterer):
         ----------
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return ``"default"`` set.
 
 
         Returns
@@ -395,7 +395,7 @@ class ElasticSOM(BaseClusterer):
         params : dict or list of dict, default={}
             Parameters to create testing instances of the class
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test instance.
         """
         return {
             "n_clusters": 2,

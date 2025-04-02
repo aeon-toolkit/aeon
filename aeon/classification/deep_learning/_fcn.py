@@ -44,10 +44,10 @@ class FCNClassifier(BaseDeepClassifier):
     use_mini_batch_size : bool, default = False
         Whether or not to use the mini batch size formula.
     random_state : int, RandomState instance or None, default=None
-        If `int`, random_state is the seed used by the random number generator;
-        If `RandomState` instance, random_state is the random number generator;
-        If `None`, the random number generator is the `RandomState` instance used
-        by `np.random`.
+        If ``int``, random_state is the seed used by the random number generator;
+        If ``RandomState`` instance, random_state is the random number generator;
+        If ``None``, the random number generator is the ``RandomState`` instance used
+        by ``np.random``.
         Seeded random number generation can only be guaranteed on CPU processing,
         GPU processing will be non-deterministic.
     verbose : boolean, default = False
@@ -332,7 +332,7 @@ class FCNClassifier(BaseDeepClassifier):
         params : dict or list of dict, default = {}
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test instance.
         """
         param1 = {
             "n_epochs": 10,

@@ -29,17 +29,17 @@ def _check_soft_dependencies(
         For instance, the PEP 440 compatible package name such as "pandas";
         or a package requirement specifier string such as "pandas>1.2.3".
         arg can be str, kwargs tuple, or tuple/list of str, following calls are valid:
-        `_check_soft_dependencies("package1")`
-        `_check_soft_dependencies("package1", "package2")`
-        `_check_soft_dependencies(("package1", "package2"))`
-        `_check_soft_dependencies(["package1", "package2"])`
+        ``_check_soft_dependencies("package1")``
+        ``_check_soft_dependencies("package1", "package2")``
+        ``_check_soft_dependencies(("package1", "package2"))``
+        ``_check_soft_dependencies(["package1", "package2"])``
     package_import_alias : dict with str keys and values, optional, default=empty
         key-value pairs are package name, import name
         import name is str used in python import, i.e., from import_name import ...
         should be provided if import name differs from package name
     severity : str, "error" (default), "warning", "none"
         behaviour for raising errors or warnings
-        "error" - raises a `ModuleNotFoundException` if one of packages is not installed
+        "error" - raises a ``ModuleNotFoundException`` if one of packages is not installed
         "warning" - raises a warning if one of packages is not installed
             function returns False if one of packages is not installed, otherwise True
         "none" - does not raise exception or warning
@@ -118,20 +118,20 @@ def _check_soft_dependencies(
             if obj is None:
                 msg = (
                     f"{e}. '{package}' is a soft dependency and not included in the "
-                    f"base aeon installation. Please run: `pip install {package}` to "
+                    f"base aeon installation. Please run: ``pip install {package}`` to "
                     f"install the {package} package. "
-                    f"To install all soft dependencies, run: `pip install "
-                    f"aeon[all_extras]`"
+                    f"To install all soft dependencies, run: ``pip install "
+                    f"aeon[all_extras]``"
                 )
             else:
                 msg = (
                     f"{class_name} requires package '{package}' to be present "
                     f"in the python environment, but '{package}' was not found. "
                     f"'{package}' is a soft dependency and not included in the base "
-                    f"aeon installation. Please run: `pip install {package}` to "
+                    f"aeon installation. Please run: ``pip install {package}`` to "
                     f"install the {package} package. "
-                    f"To install all soft dependencies, run: `pip install "
-                    f"aeon[all_extras]`"
+                    f"To install all soft dependencies, run: ``pip install "
+                    f"aeon[all_extras]``"
                 )
             if severity == "error":
                 raise ModuleNotFoundError(msg) from e
@@ -188,7 +188,7 @@ def _check_dl_dependencies(msg=None, severity="error"):
     Parameters
     ----------
     msg : str, optional, default= default message (msg below)
-        error message to be returned in the `ModuleNotFoundError`, overrides default
+        error message to be returned in the ``ModuleNotFoundError``, overrides default
     severity : str, "error" (default), "warning", "none"
         behaviour for raising errors or warnings
         "error" - raises a ModuleNotFoundException if one of packages is not installed
@@ -208,8 +208,8 @@ def _check_dl_dependencies(msg=None, severity="error"):
     """
     if not isinstance(msg, str):
         msg = (
-            "tensorflow is required for deep learning in `aeon`. "
-            "To install this dependency, run: `pip install aeon[dl]`"
+            "tensorflow is required for deep learning in ``aeon``. "
+            "To install this dependency, run: ``pip install aeon[dl]``"
         )
     try:
         import_module("tensorflow")
@@ -239,7 +239,7 @@ def _check_python_version(obj, package=None, msg=None, severity="error"):
     package : str, default = None
         if given, will be used in error message as package name
     msg : str, optional, default = default message (msg below)
-        error message to be returned in the `ModuleNotFoundError`, overrides default
+        error message to be returned in the ``ModuleNotFoundError``, overrides default
     severity : str, "error" (default), "warning", or "none"
         whether the check should raise an error, a warning, or nothing
 
@@ -309,18 +309,18 @@ def _check_python_version(obj, package=None, msg=None, severity="error"):
 def _check_estimator_deps(obj, msg=None, severity="error"):
     """Check if object/estimator's package & python requirements are met by python env.
 
-    Convenience wrapper around `_check_python_version` and `_check_soft_dependencies`,
-    checking against estimator tags `"python_version"`, `"python_dependencies"`.
+    Convenience wrapper around ``_check_python_version`` and ``_check_soft_dependencies``,
+    checking against estimator tags ``"python_version"``, ``"python_dependencies"``.
 
-    Checks whether dependency requirements of `BaseAeonEstimator`-s in `obj`
+    Checks whether dependency requirements of ``BaseAeonEstimator``-s in ``obj``
     are satisfied by the current python environment.
 
     Parameters
     ----------
-    obj : `aeon` object, `BaseAeonEstimator` descendant, or list/tuple thereof
+    obj : ``aeon`` object, ``BaseAeonEstimator`` descendant, or list/tuple thereof
         object(s) that this function checks compatibility of, with the python env
     msg : str, optional, default = default message (msg below)
-        error message to be returned in the `ModuleNotFoundError`, overrides default
+        error message to be returned in the ``ModuleNotFoundError``, overrides default
     severity : str, "error" (default), "warning", or "none"
         behaviour for raising errors or warnings
         "error" - raises a ModuleNotFoundException if environment is incompatible
@@ -331,11 +331,11 @@ def _check_estimator_deps(obj, msg=None, severity="error"):
 
     Returns
     -------
-    compatible : bool, whether `obj` is compatible with python environment
+    compatible : bool, whether ``obj`` is compatible with python environment
         False is returned only if no exception is raised by the function
         checks for python version using the python_version tag of obj
         checks for soft dependencies present using the python_dependencies tag of obj
-        if `obj` contains multiple `BaseAeonEstimator`-s, checks whether all are
+        if ``obj`` contains multiple ``BaseAeonEstimator``-s, checks whether all are
         compatible
 
     Raises

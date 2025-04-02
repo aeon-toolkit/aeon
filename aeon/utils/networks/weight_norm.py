@@ -16,14 +16,14 @@ if _check_soft_dependencies(["tensorflow"], severity="none"):
                     The Keras layer to apply weight normalization to.
             """
             if not isinstance(layer, tf.keras.layers.Layer):
-                raise ValueError("The `layer` argument should be a Keras layer.")
+                raise ValueError("The ``layer`` argument should be a Keras layer.")
 
             super().__init__(layer, **kwargs)
 
         def build(self, input_shape):
             """Build the weight normalization layer.
 
-            This method initializes weights `v` and `g` for weight normalization.
+            This method initializes weights ``v`` and ``g`` for weight normalization.
             """
             if not self.layer.built:
                 self.layer.build(input_shape)

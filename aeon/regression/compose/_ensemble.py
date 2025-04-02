@@ -42,8 +42,8 @@ class RegressorEnsemble(BaseCollectionEnsemble, BaseRegressor):
     random_state : int, RandomState instance or None, default=None
         Random state used to fit the estimators. If None, no random state is set for
         ensemble members (but they may still be seeded prior to input).
-        If `int`, random_state is the seed used by the random number generator;
-        If `RandomState` instance, random_state is the random number generator;
+        If ``int``, random_state is the seed used by the random number generator;
+        If ``RandomState`` instance, random_state is the random number generator;
 
     Attributes
     ----------
@@ -113,14 +113,14 @@ class RegressorEnsemble(BaseCollectionEnsemble, BaseRegressor):
         ----------
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return ``"default"`` set.
 
         Returns
         -------
         params : dict or list of dict, default={}
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test instance.
         """
         from aeon.regression import DummyRegressor
         from aeon.regression.distance_based import KNeighborsTimeSeriesRegressor

@@ -54,8 +54,8 @@ class BaseCollectionEnsemble(ComposableEstimatorMixin, BaseCollectionEstimator):
     random_state : int, RandomState instance or None, default=None
         Random state used to fit the estimators. If None, no random state is set for
         ensemble members (but they may still be seeded prior to input).
-        If `int`, random_state is the seed used by the random number generator;
-        If `RandomState` instance, random_state is the random number generator;
+        If ``int``, random_state is the seed used by the random number generator;
+        If ``RandomState`` instance, random_state is the random number generator;
     _ensemble_input_name : str, default="estimators"
         Name of the input parameter for the ensemble of estimators.
 

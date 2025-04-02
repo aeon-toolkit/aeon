@@ -31,7 +31,7 @@ def erp_distance(
     cost matrix. Usually in the dtw cost matrix, if an alignment cannot be found the
     previous value is carried forward in  the move off the diagonal. ERP instead
     proposes the idea of gaps or sequences of points that have no matches. These
-    gaps are then penalised based on their distance from the parameter :math:`g`.
+    gaps are then penalised based on their distance from the parameter :math:``g``.
 
     .. math::
         match  &=  D_{i-1,j-1}+ d({x_{i},y_{j}})\\
@@ -39,14 +39,14 @@ def erp_distance(
         insert &=  D_{i,j-1}+ d({g,y_{j}})\\
         D_{i,j} &= min(match,insert, delete)
 
-    Where :math:`D_{0,j}` and :math:`D_{i,0}` are initialised to the sum of
+    Where :math:``D_{0,j}`` and :math:``D_{i,0}`` are initialised to the sum of
     distances to $g$ for each series.
 
-    The value of :math:`g` is by default 0 in ``aeon``, but in [1]_ it is data dependent
-    , selected from the range :math:`[\sigma/5, \sigma]`, where :math:`\sigma` is the
+    The value of :math:``g`` is by default 0 in ``aeon``, but in [1]_ it is data dependent
+    , selected from the range :math:``[\sigma/5, \sigma]``, where :math:``\sigma`` is the
     average standard deviation of the training time series. When a
-    series is multivariate (more than one channel), :math:`g` is an array where the
-    :math:`j^{th}` value is the standard deviation of the :math:`j^{th}` channel.
+    series is multivariate (more than one channel), :math:``g`` is an array where the
+    :math:``j^{th}`` value is the standard deviation of the :math:``j^{th}`` channel.
 
     Parameters
     ----------

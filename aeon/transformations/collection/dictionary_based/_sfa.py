@@ -86,7 +86,7 @@ class SFA(BaseCollectionTransformer):
         whether to save the words generated for each series (default False)
 
     n_jobs:              int, optional, default = 1
-        The number of jobs to run in parallel for both `transform`.
+        The number of jobs to run in parallel for both ``transform``.
         ``-1`` means using all processors.
 
     Attributes
@@ -95,7 +95,7 @@ class SFA(BaseCollectionTransformer):
         words is a list of arrays of integers, one for each case. Each array is
         length ``(n_timepoints - window_size+1)``. Each integer is a birt
         representation of a word. So, for example if ``word_length=6`` and
-        ``alphabet_size=4`, integer 3235 is bit string 11 00 10 10 00 11,
+        ``alphabet_size=4``, integer 3235 is bit string 11 00 10 10 00 11,
         representing word daccad.
     breakpoints: = []
     num_insts = 0
@@ -1159,7 +1159,7 @@ class SFA(BaseCollectionTransformer):
         ----------
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return ``"default"`` set.
 
 
         Returns
@@ -1167,7 +1167,7 @@ class SFA(BaseCollectionTransformer):
         params : dict or list of dict, default = {}
             Parameters to create testing instances of the class
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            ``MyClass(**params)`` or ``MyClass(**params[i])` creates a valid test instance.
         """
         # small window size for testing
         params = {"window_size": 4}

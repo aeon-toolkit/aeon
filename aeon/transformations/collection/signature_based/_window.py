@@ -30,11 +30,11 @@ def _window_getter(
     window_name: str, String from ['global', 'sliding', 'expanding', 'dyadic']
         used to access the window method.
     window_depth: int, The depth of the dyadic window. (Active only if
-        `window_name == 'dyadic']`).
+        ``window_name == 'dyadic']``).
     window_length: int, The length of the sliding/expanding window. (Active
-        only if `window_name in ['sliding, 'expanding']`).
+        only if ``window_name in ['sliding, 'expanding']``).
     window_step: int, The step of the sliding/expanding window. (Active
-        only if `window_name in ['sliding, 'expanding']`).
+        only if ``window_name in ['sliding, 'expanding']``).
 
     Returns
     -------

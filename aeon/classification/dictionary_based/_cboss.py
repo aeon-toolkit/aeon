@@ -27,8 +27,8 @@ class ContractableBOSS(BaseClassifier):
     described in [2]_.
 
     Overview: Input "n" series of length "m" and cBOSS randomly samples
-    `n_parameter_samples` parameter sets, evaluting each with LOOCV. It then
-    retains `max_ensemble_size` classifiers with the highest accuracy
+    ``n_parameter_samples`` parameter sets, evaluting each with LOOCV. It then
+    retains ``max_ensemble_size`` classifiers with the highest accuracy
     There are three primary parameters:
         - alpha: alphabet size
         - w: window length
@@ -51,7 +51,7 @@ class ContractableBOSS(BaseClassifier):
         If search is randomised, number of parameter combos to try.
     max_ensemble_size : int or None, default = 50
         Maximum number of classifiers to retain. Will limit number of retained
-        classifiers even if more than `max_ensemble_size` are within threshold.
+        classifiers even if more than ``max_ensemble_size`` are within threshold.
     max_win_len_prop : int or float, default = 1
         Maximum window length as a proportion of the series length.
     min_window : int, default = 10
@@ -62,7 +62,7 @@ class ContractableBOSS(BaseClassifier):
         Max number of parameter combinations to consider when time_limit_in_minutes is
         set.
     n_jobs : int, default = 1
-        The number of jobs to run in parallel for both `fit` and `predict`.
+        The number of jobs to run in parallel for both ``fit`` and ``predict``.
         ``-1`` means using all processors.
     feature_selection : str, default = "none"
         Sets the feature selections strategy to be used. One of {"chi2", "none",
@@ -71,10 +71,10 @@ class ContractableBOSS(BaseClassifier):
         applies not feature selectiona and yields large bag of words, e.g. much
         memory may be needed.
     random_state : int, RandomState instance or None, default=None
-        If `int`, random_state is the seed used by the random number generator;
-        If `RandomState` instance, random_state is the random number generator;
-        If `None`, the random number generator is the `RandomState` instance used
-        by `np.random`.
+        If ``int``, random_state is the seed used by the random number generator;
+        If ``RandomState`` instance, random_state is the random number generator;
+        If ``None``, the random number generator is the ``RandomState`` instance used
+        by ``np.random``.
 
     Attributes
     ----------
@@ -89,7 +89,7 @@ class ContractableBOSS(BaseClassifier):
     estimators_ : list
        List of DecisionTree classifiers.
     n_estimators_ : int
-        The final number of classifiers used. Will be <= `max_ensemble_size`.
+        The final number of classifiers used. Will be <= ``max_ensemble_size``.
     weights_ :
         Weight of each classifier in the ensemble.
 
@@ -108,8 +108,8 @@ class ContractableBOSS(BaseClassifier):
     Notes
     -----
     For the Java version, see
-    `TSML <https://github.com/uea-machine-learning/tsml/blob/master/src/main/java/
-    tsml/classifiers/dictionary_based/cBOSS.java>`_.
+    ``TSML <https://github.com/uea-machine-learning/tsml/blob/master/src/main/java/
+    tsml/classifiers/dictionary_based/cBOSS.java>``_.
 
     References
     ----------
@@ -433,7 +433,7 @@ class ContractableBOSS(BaseClassifier):
         ----------
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return ``"default"`` set.
             ContractableBOSS provides the following special sets:
                  "results_comparison" - used in some classifiers to compare against
                     previously generated results where the default set of parameters
@@ -450,7 +450,7 @@ class ContractableBOSS(BaseClassifier):
         params : dict or list of dict, default={}
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test instance.
         """
         if parameter_set == "results_comparison":
             return {"n_parameter_samples": 10, "max_ensemble_size": 5}

@@ -25,24 +25,24 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
         Number of convolution layers in the autoencoder.
     kernel_size: Union[int, List[int]], default=3
         Size of the 1D Convolutional Kernel of the encoder. Defaults to a
-        list of length `n_layers` with `kernel_size` value.
+        list of length ``n_layers`` with ``kernel_size`` value.
     activation: Union[str, List[str]], default="relu"
         The activation function used by convolution layers of the encoder.
-        Defaults to a list of "relu" for `n_layers` elements.
+        Defaults to a list of "relu" for ``n_layers`` elements.
     n_filters: Union[int, List[int]], default=None
         Number of filters used in convolution layers of the encoder. Defaults
-        to a list of multiples of `32` for `n_layers` elements.
+        to a list of multiples of ``32`` for ``n_layers`` elements.
     dilation_rate: Union[int, List[int]], default=1
         The dilation rate for convolution of the encoder. Defaults to a list
-        of powers of `2` for `n_layers` elements. `dilation_rate` greater than
-        `1` is not supported on `Conv1DTranspose` for some devices/OS.
+        of powers of ``2`` for ``n_layers`` elements. ``dilation_rate`` greater than
+        ``1`` is not supported on ``Conv1DTranspose`` for some devices/OS.
     padding_encoder: Union[str, List[str]], default="same"
         The padding string for the encoder layers. Defaults to a list of "same"
-        for `n_layers` elements. Valid strings are "causal", "valid", "same" or
+        for ``n_layers`` elements. Valid strings are "causal", "valid", "same" or
         any other Keras compatible string.
     padding_decoder: Union[str, List[str]], default="same"
         The padding string for the decoder layers. Defaults to a list of "same"
-        for `n_layers` elements.
+        for ``n_layers`` elements.
 
     References
     ----------
@@ -153,21 +153,21 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
             np.array(self._dilation_rate_encoder) == 1
         ):
             warnings.warn(
-                """Currently, the dilation rate has been set to `1` which is
-            different from the original paper of the `AEDCNNNetwork` due to CPU
-            Implementation issues with `tensorflow.keras.layers.Conv1DTranspose`
-            & `dilation_rate` > 1 on some Hardwares & OS combinations. You
+                """Currently, the dilation rate has been set to ``1`` which is
+            different from the original paper of the ``AEDCNNNetwork`` due to CPU
+            Implementation issues with ``tensorflow.keras.layers.Conv1DTranspose``
+            & ``dilation_rate`` > 1 on some Hardwares & OS combinations. You
             can use the dilation rates as specified in the paper by passing
-            `dilation_rate=None` to the Network/Clusterer.""",
+            ``dilation_rate=None`` to the Network/Clusterer.""",
                 UserWarning,
                 stacklevel=2,
             )
 
         if np.any(np.array(self._dilation_rate_encoder) > 1):
             warnings.warn(
-                """Current network configuration contains `dilation_rate`
+                """Current network configuration contains ``dilation_rate``
                 more than 1, which is not supported by
-                `tensorflow.keras.layers.Conv1DTranspose` layer for certain
+                ``tensorflow.keras.layers.Conv1DTranspose`` layer for certain
                 hardware architectures and/or Operating Systems.""",
                 UserWarning,
                 stacklevel=2,

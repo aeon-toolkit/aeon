@@ -60,9 +60,9 @@ def create_multi_comparison_matrix(
     Parameters
     ----------
     df_results: str or pd.DataFrame
-        A csv file containing results in `n_problems,n_estimators` format. The first
+        A csv file containing results in ``n_problems,n_estimators`` format. The first
         row should contain the names of the estimators and the first column can
-        contain the names of the problems if `dataset_column` is true.
+        contain the names of the problems if ``dataset_column`` is true.
     output_dir: str, default = './'
         The output directory for the results.
     pdf_savename: str, default = None

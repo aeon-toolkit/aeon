@@ -65,9 +65,9 @@ def stomp_euclidean_matrix_profile(
         The size of the exclusion zone used to prevent returning as top k candidates
         the ones that are close to each other (for example i and i+1).
         It is used to define a region between
-        :math:`id_timestomp - exclusion_size` and
-        :math:`id_timestomp + exclusion_size` which cannot be returned
-        as best match if :math:`id_timestomp` was already selected. By default,
+        :math:``id_timestomp - exclusion_size`` and
+        :math:``id_timestomp + exclusion_size`` which cannot be returned
+        as best match if :math:``id_timestomp`` was already selected. By default,
         the value None means that this is not used.
 
     References
@@ -145,9 +145,9 @@ def stomp_squared_matrix_profile(
         The size of the exclusion zone used to prevent returning as top k candidates
         the ones that are close to each other (for example i and i+1).
         It is used to define a region between
-        :math:`id_timestomp - exclusion_size` and
-        :math:`id_timestomp + exclusion_size` which cannot be returned
-        as best match if :math:`id_timestomp` was already selected. By default,
+        :math:``id_timestomp - exclusion_size`` and
+        :math:``id_timestomp + exclusion_size`` which cannot be returned
+        as best match if :math:``id_timestomp`` was already selected. By default,
         the value None means that this is not used.
 
     References
@@ -244,9 +244,9 @@ def stomp_normalised_euclidean_matrix_profile(
         The size of the exclusion zone used to prevent returning as top k candidates
         the ones that are close to each other (for example i and i+1).
         It is used to define a region between
-        :math:`id_timestomp - exclusion_size` and
-        :math:`id_timestomp + exclusion_size` which cannot be returned
-        as best match if :math:`id_timestomp` was already selected. By default,
+        :math:``id_timestomp - exclusion_size`` and
+        :math:``id_timestomp + exclusion_size`` which cannot be returned
+        as best match if :math:``id_timestomp`` was already selected. By default,
         the value None means that this is not used.
 
     References
@@ -342,9 +342,9 @@ def stomp_normalised_squared_matrix_profile(
         The size of the exclusion zone used to prevent returning as top k candidates
         the ones that are close to each other (for example i and i+1).
         It is used to define a region between
-        :math:`id_timestomp - exclusion_size` and
-        :math:`id_timestomp + exclusion_size` which cannot be returned
-        as best match if :math:`id_timestomp` was already selected. By default,
+        :math:``id_timestomp - exclusion_size`` and
+        :math:``id_timestomp + exclusion_size`` which cannot be returned
+        as best match if :math:``id_timestomp`` was already selected. By default,
         the value None means that this is not used.
 
     References
@@ -442,9 +442,9 @@ def _stomp_normalised(
         The size of the exclusion zone used to prevent returning as top k candidates
         the ones that are close to each other (for example i and i+1).
         It is used to define a region between
-        :math:`id_timestomp - exclusion_size` and
-        :math:`id_timestomp + exclusion_size` which cannot be returned
-        as best match if :math:`id_timestomp` was already selected. By default,
+        :math:``id_timestomp - exclusion_size`` and
+        :math:``id_timestomp + exclusion_size`` which cannot be returned
+        as best match if :math:``id_timestomp`` was already selected. By default,
         the value None means that this is not used.
 
     Returns

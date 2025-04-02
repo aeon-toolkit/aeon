@@ -279,12 +279,12 @@ class _TreeNode:
 class ContinuousIntervalTree(ClassifierMixin, BaseEstimator):
     """Continuous interval tree (CIT) vector classifier (aka Time Series Tree).
 
-    The `Time Series Tree` described in the Time Series Forest (TSF) [1]_. A simple
+    The ``Time Series Tree`` described in the Time Series Forest (TSF) [1]_. A simple
     information gain based tree for continuous attributes using a bespoke margin gain
     metric for tie breaking.
 
     Implemented as a bade classifier for interval based time series classifiers such as
-    `CanonicalIntervalForest` and `DrCIF`.
+    ``CanonicalIntervalForest`` and ``DrCIF``.
 
     Parameters
     ----------
@@ -293,10 +293,10 @@ class ContinuousIntervalTree(ClassifierMixin, BaseEstimator):
     thresholds : int, default=20
         Number of thresholds to split continous attributes on at tree nodes.
     random_state : int, RandomState instance or None, default=None
-        If `int`, random_state is the seed used by the random number generator;
-        If `RandomState` instance, random_state is the random number generator;
-        If `None`, the random number generator is the `RandomState` instance used
-        by `np.random`.
+        If ``int``, random_state is the seed used by the random number generator;
+        If ``RandomState`` instance, random_state is the random number generator;
+        If ``None``, the random number generator is the ``RandomState`` instance used
+        by ``np.random``.
 
     Attributes
     ----------
@@ -317,8 +317,8 @@ class ContinuousIntervalTree(ClassifierMixin, BaseEstimator):
     Notes
     -----
     For the Java version, see
-    `tsml <https://github.com/uea-machine-learning/tsml/blob/master/src/main/java/
-    machine_learning/classifiers/ContinuousIntervalTree.java>`_.
+    ``tsml <https://github.com/uea-machine-learning/tsml/blob/master/src/main/java/
+    machine_learning/classifiers/ContinuousIntervalTree.java>``_.
 
     References
     ----------
@@ -455,7 +455,7 @@ class ContinuousIntervalTree(ClassifierMixin, BaseEstimator):
         if not hasattr(self, "_is_fitted") or not self._is_fitted:
             raise NotFittedError(
                 f"This instance of {self.__class__.__name__} has not "
-                f"been fitted yet; please call `fit` first."
+                f"been fitted yet; please call ``fit`` first."
             )
 
         # treat case of single class seen in fit

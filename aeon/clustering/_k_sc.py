@@ -54,11 +54,11 @@ class KSpectralCentroid(TimeSeriesKMeans):
         Verbosity mode.
     random_state : int, np.random.RandomState instance or None, default=None
         Determines random number generation for centroid initialization.
-        If `int`, random_state is the seed used by the random number generator;
-        If `np.random.RandomState` instance,
+        If ``int``, random_state is the seed used by the random number generator;
+        If ``np.random.RandomState`` instance,
         random_state is the random number generator;
-        If `None`, the random number generator is the `RandomState` instance used
-        by `np.random`.
+        If ``None``, the random number generator is the ``RandomState`` instance used
+        by ``np.random``.
 
     Attributes
     ----------
@@ -137,7 +137,7 @@ class KSpectralCentroid(TimeSeriesKMeans):
         ----------
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return ``"default"`` set.
 
 
         Returns
@@ -145,7 +145,7 @@ class KSpectralCentroid(TimeSeriesKMeans):
         params : dict or list of dict, default={}
             Parameters to create testing instances of the class
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test instance.
         """
         return {
             "n_clusters": 2,

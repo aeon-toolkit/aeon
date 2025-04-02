@@ -49,10 +49,10 @@ class BOSSEnsemble(BaseClassifier):
     ----------
     threshold : float, default=0.92
         Threshold used to determine which classifiers to retain. All classifiers
-        within percentage `threshold` of the best one are retained.
+        within percentage ``threshold`` of the best one are retained.
     max_ensemble_size : int or None, default=500
         Maximum number of classifiers to retain. Will limit number of retained
-        classifiers even if more than `max_ensemble_size` are within threshold.
+        classifiers even if more than ``max_ensemble_size`` are within threshold.
     max_win_len_prop : int or float, default=1
         Maximum window length as a proportion of the series length.
     min_window : int, default=10
@@ -69,13 +69,13 @@ class BOSSEnsemble(BaseClassifier):
         The Boss-distance is an asymmetric distance measure. It provides higher
         accuracy, yet is signifaicantly slower to compute.
     n_jobs : int, default=1
-        The number of jobs to run in parallel for both `fit` and `predict`.
+        The number of jobs to run in parallel for both ``fit`` and ``predict``.
         ``-1`` means using all processors.
     random_state : int, RandomState instance or None, default=None
-        If `int`, random_state is the seed used by the random number generator;
-        If `RandomState` instance, random_state is the random number generator;
-        If `None`, the random number generator is the `RandomState` instance used
-        by `np.random`.
+        If ``int``, random_state is the seed used by the random number generator;
+        If ``RandomState`` instance, random_state is the random number generator;
+        If ``None``, the random number generator is the ``RandomState`` instance used
+        by ``np.random``.
 
     Attributes
     ----------
@@ -84,8 +84,8 @@ class BOSSEnsemble(BaseClassifier):
     n_timepoints_ : int
         Length of all series (assumed equal).
     n_estimators_ : int
-        The final number of classifiers used. Will be <= `max_ensemble_size` if
-        `max_ensemble_size` has been specified.
+        The final number of classifiers used. Will be <= ``max_ensemble_size`` if
+        ``max_ensemble_size`` has been specified.
     estimators_ : list
        List of DecisionTree classifiers size n_estimators_.
 
@@ -97,9 +97,9 @@ class BOSSEnsemble(BaseClassifier):
     Notes
     -----
     For the Java version, see
-    - `Original Publication <https://github.com/patrickzib/SFA>`_.
-    - `TSML <https://github.com/uea-machine-learning/tsml/blob/master/src/main/java/
-    tsml/classifiers/dictionary_based/BOSS.java>`_.
+    - ``Original Publication <https://github.com/patrickzib/SFA>``_.
+    - ``TSML <https://github.com/uea-machine-learning/tsml/blob/master/src/main/java/
+    tsml/classifiers/dictionary_based/BOSS.java>``_.
 
     References
     ----------
@@ -403,7 +403,7 @@ class BOSSEnsemble(BaseClassifier):
         ----------
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return ``"default"`` set.
             BOSSEnsemble provides the following special sets:
                  "results_comparison" - used in some classifiers to compare against
                     previously generated results where the default set of parameters
@@ -417,7 +417,7 @@ class BOSSEnsemble(BaseClassifier):
         params : dict or list of dict, default={}
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test instance.
         """
         if parameter_set == "results_comparison":
             return {
@@ -467,7 +467,7 @@ class IndividualBOSS(BaseClassifier):
         Whether to keep NumPy array of words in SFA transformation even after
         the dictionary of words is returned. If True, the array is saved, which
         can shorten the time to calculate dictionaries using a shorter
-        `word_length` (since the last "n" letters can be removed).
+        ``word_length`` (since the last "n" letters can be removed).
     feature_selection : str, default: "none"
         Sets the feature selections strategy to be usedfrom  {"chi2", "none",
         "random"}. Chi2 reduces the number of words significantly and is thus much
@@ -480,7 +480,7 @@ class IndividualBOSS(BaseClassifier):
          The Boss-distance is an asymmetric distance measure. It provides higher
          accuracy, yet is signifaicantly slower to compute.
     n_jobs : int, default=1
-         The number of jobs to run in parallel for both `fit` and `predict`.
+         The number of jobs to run in parallel for both ``fit`` and ``predict``.
          ``-1`` means using all processors.
     random_state : int or None, default=None
         Seed for random, integer.
@@ -500,8 +500,8 @@ class IndividualBOSS(BaseClassifier):
     Notes
     -----
     For the Java version, see
-    `TSML <https://github.com/uea-machine-learning/tsml/blob/master/src/main/java/
-    tsml/classifiers/dictionary_based/IndividualBOSS.java>`_.
+    ``TSML <https://github.com/uea-machine-learning/tsml/blob/master/src/main/java/
+    tsml/classifiers/dictionary_based/IndividualBOSS.java>``_.
 
     References
     ----------
@@ -729,7 +729,7 @@ def boss_distance(X, Y, i, XX_all=None, XY_all=None):
     X : sparse matrix
         Base dictionary used in distance measurement.
     Y : sparse matrix
-        Second dictionary that will be used to measure distance from `first`.
+        Second dictionary that will be used to measure distance from ``first``.
     i : int
         index of current element
 

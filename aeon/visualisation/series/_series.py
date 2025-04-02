@@ -31,7 +31,7 @@ def plot_series(
     Parameters
     ----------
     series : np.ndarray, pd.Series or pd.DataFrame
-        One or more time series stored in `(n_channels, n_timepoints)` format.
+        One or more time series stored in ``(n_channels, n_timepoints)`` format.
     labels : list, default = None
         Names of series, will be displayed in figure legend.
     markers : list, default = None
@@ -193,7 +193,7 @@ def _check_colors(colors, n_series):
     if n_series == len(colors) and all([is_color_like(c) for c in colors]):
         return True
     warn(
-        "Color list must be same length as `series` and contain only matplotlib colors"
+        "Color list must be same length as ``series`` and contain only matplotlib colors"
     )
     return False
 

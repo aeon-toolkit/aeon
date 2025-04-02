@@ -11,28 +11,28 @@ from aeon.classification.base import BaseClassifier
 class ClassifierPipeline(BaseCollectionPipeline, BaseClassifier):
     """Pipeline of transformers and a classifier.
 
-    The `ClassifierPipeline` compositor chains transformers and a single classifier.
+    The ``ClassifierPipeline`` compositor chains transformers and a single classifier.
     The pipeline is constructed with a list of aeon transformers, plus a classifier,
         i.e., estimators following the BaseCollectionTransformer and BaseClassifier
         interface.
     The transformer list can be unnamed - a simple list of transformers -
         or string named - a list of pairs of string, estimator.
 
-    For a list of transformers `trafo1`, `trafo2`, ..., `trafoN` and a classifier `clf`,
+    For a list of transformers ``trafo1``, ``trafo2``, ..., ``trafoN`` and a classifier ``clf``,
         the pipeline behaves as follows:
-    `fit(X, y)` - changes state by running `trafo1.fit_transform` on `X`,
-        them `trafo2.fit_transform` on the output of `trafo1.fit_transform`, etc
-        sequentially, with `trafo[i]` receiving the output of `trafo[i-1]`,
-        and then running `clf.fit` with `X` being the output of `trafo[N]`,
-        and `y` identical with the input to `self.fit`
-    `predict(X)` - result is of executing `trafo1.transform`, `trafo2.transform`, etc
-        with `trafo[i].transform` input = output of `trafo[i-1].transform`,
-        then running `clf.predict` on the output of `trafoN.transform`,
-        and returning the output of `clf.predict`
-    `predict_proba(X)` - result is of executing `trafo1.transform`, `trafo2.transform`,
-        etc, with `trafo[i].transform` input = output of `trafo[i-1].transform`,
-        then running `clf.predict_proba` on the output of `trafoN.transform`,
-        and returning the output of `clf.predict_proba`
+    ``fit(X, y)`` - changes state by running ``trafo1.fit_transform`` on ``X``,
+        them ``trafo2.fit_transform`` on the output of ``trafo1.fit_transform``, etc
+        sequentially, with ``trafo[i]`` receiving the output of ``trafo[i-1]``,
+        and then running ``clf.fit`` with ``X`` being the output of ``trafo[N]``,
+        and ``y`` identical with the input to ``self.fit``
+    ``predict(X)`` - result is of executing ``trafo1.transform``, ``trafo2.transform``, etc
+        with ``trafo[i].transform`` input = output of ``trafo[i-1].transform``,
+        then running ``clf.predict`` on the output of ``trafoN.transform``,
+        and returning the output of ``clf.predict``
+    ``predict_proba(X)`` - result is of executing ``trafo1.transform``, ``trafo2.transform``,
+        etc, with ``trafo[i].transform`` input = output of ``trafo[i-1].transform``,
+        then running ``clf.predict_proba`` on the output of ``trafoN.transform``,
+        and returning the output of ``clf.predict_proba``
 
     Parameters
     ----------
@@ -49,8 +49,8 @@ class ClassifierPipeline(BaseCollectionPipeline, BaseClassifier):
     random_state : int, RandomState instance or None, default=None
         Random state used to fit the estimators. If None, no random state is set for
         pipeline components (but they may still be seeded prior to input).
-        If `int`, random_state is the seed used by the random number generator;
-        If `RandomState` instance, random_state is the random number generator;
+        If ``int``, random_state is the seed used by the random number generator;
+        If ``RandomState`` instance, random_state is the random number generator;
 
     Attributes
     ----------
@@ -94,14 +94,14 @@ class ClassifierPipeline(BaseCollectionPipeline, BaseClassifier):
         ----------
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return ``"default"`` set.
 
         Returns
         -------
         params : dict or list of dict, default={}
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test instance.
         """
         from aeon.classification.distance_based import KNeighborsTimeSeriesClassifier
         from aeon.transformations.collection import Truncator

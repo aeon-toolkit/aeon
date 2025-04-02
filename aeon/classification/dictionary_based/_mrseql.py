@@ -34,7 +34,7 @@ class MrSEQLClassifier(BaseClassifier):
     """
     Multiple Representations Sequence Learning (MrSEQL) Classifier.
 
-    This is a wrapper for the MrSEQLClassifier algorithm from the `mrseql` package.
+    This is a wrapper for the MrSEQLClassifier algorithm from the ``mrseql`` package.
     MrSEQL is not included in ``all_extras`` as it requires gcc and fftw
     (http://www.fftw.org/index.html) to be installed for Windows and some Linux OS.
 
@@ -115,7 +115,7 @@ class MrSEQLClassifier(BaseClassifier):
         ----------
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return ``"default"`` set.
             For classifiers, a "default" set of parameters should be provided for
             general testing, and a "results_comparison" set for comparing against
             previously recorded results if the general set does not produce suitable
@@ -126,6 +126,6 @@ class MrSEQLClassifier(BaseClassifier):
         params : dict or list of dict, default={}
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test instance.
         """
         return {}

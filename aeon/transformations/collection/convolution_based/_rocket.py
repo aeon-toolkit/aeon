@@ -31,7 +31,7 @@ class Rocket(BaseCollectionTransformer):
     normalise : bool, default True
        Whether or not to normalise the input time series per instance.
     n_jobs : int, default=1
-       The number of jobs to run in parallel for `transform`. ``-1`` means using all
+       The number of jobs to run in parallel for ``transform``. ``-1`` means using all
        processors.
     random_state : None or int, optional, default = None
         Seed for random number generation.

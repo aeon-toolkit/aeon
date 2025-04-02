@@ -126,7 +126,7 @@ class _TSFresh(BaseCollectionTransformer):
         if isinstance(self.default_fc_parameters, str):
             if self.default_fc_parameters not in fc_param_lookup:
                 raise ValueError(
-                    f"If `default_fc_parameters` is passed as a "
+                    f"If ``default_fc_parameters`` is passed as a "
                     f"string, "
                     f"it must be one of"
                     f" {fc_param_lookup.keys()}, but found: "
@@ -149,9 +149,9 @@ class _TSFresh(BaseCollectionTransformer):
 
 
 class TSFresh(_TSFresh):
-    """Transformer for extracting time series features via `tsfresh.extract_features`.
+    """Transformer for extracting time series features via ``tsfresh.extract_features``.
 
-    Direct interface to `tsfresh.extract_features` [1] as an `aeon` transformer.
+    Direct interface to ``tsfresh.extract_features`` [1] as an ``aeon`` transformer.
 
     Parameters
     ----------
@@ -310,7 +310,7 @@ class TSFresh(_TSFresh):
         ----------
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return ``"default"`` set.
 
 
         Returns
@@ -318,7 +318,7 @@ class TSFresh(_TSFresh):
         params : dict or list of dict, default = {}
             Parameters to create testing instances of the class
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test instance.
         """
         features_to_calc = [
             "dim_0__quantile__q_0.6",
@@ -358,10 +358,10 @@ class TSFresh(_TSFresh):
 
 
 class TSFreshRelevant(_TSFresh):
-    """Transformer for extracting time series features via `tsfresh.extract_features`.
+    """Transformer for extracting time series features via ``tsfresh.extract_features``.
 
-    Direct interface to `tsfresh.extract_features` [1] followed by the tsfresh
-    FeatureSelector class as an `aeon` transformer.
+    Direct interface to ``tsfresh.extract_features`` [1] followed by the tsfresh
+    FeatureSelector class as an ``aeon`` transformer.
 
     Parameters
     ----------
@@ -430,10 +430,10 @@ class TSFreshRelevant(_TSFresh):
         this should be set to False as the features are never independent (e.g. mean
         and median)
     ml_task: sre, default="auto"
-        The intended machine learning task. Either `'classification'`, `'regression'`
-        or `'auto'`.
-        Defaults to `'auto'`, meaning the intended task is inferred from `y`.
-        If `y` has a boolean, integer or object dtype, the task is assumed to be
+        The intended machine learning task. Either ``'classification'``, ``'regression'``
+        or ``'auto'``.
+        Defaults to ``'auto'``, meaning the intended task is inferred from ``y``.
+        If ``y`` has a boolean, integer or object dtype, the task is assumed to be
         classification, else regression.
 
     References
@@ -672,7 +672,7 @@ class TSFreshRelevant(_TSFresh):
         ----------
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return ``"default"`` set.
 
 
         Returns
@@ -680,7 +680,7 @@ class TSFreshRelevant(_TSFresh):
         params : dict or list of dict, default = {}
             Parameters to create testing instances of the class
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test instance.
         """
         params = {
             "default_fc_parameters": "efficient",

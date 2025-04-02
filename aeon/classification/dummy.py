@@ -15,46 +15,46 @@ class DummyClassifier(BaseClassifier):
 
     This classifier is a wrapper for the scikit-learn DummyClassifier that serves as a
     simple baseline to compare against other more complex classifiers.
-    The specific behavior of the baseline is selected with the `strategy` parameter.
+    The specific behavior of the baseline is selected with the ``strategy`` parameter.
 
     All strategies make predictions that ignore the input feature values passed
-    as the `X` argument to `fit` and `predict`. The predictions, however,
-    typically depend on values observed in the `y` parameter passed to `fit`.
+    as the ``X`` argument to ``fit`` and ``predict``. The predictions, however,
+    typically depend on values observed in the ``y`` parameter passed to ``fit``.
 
-    Function-identical to `sklearn.dummy.DummyClassifier`, which is called inside.
+    Function-identical to ``sklearn.dummy.DummyClassifier``, which is called inside.
 
     Parameters
     ----------
     strategy : {"most_frequent", "prior", "stratified", "uniform", \
             "constant"}, default="prior"
         Strategy to use to generate predictions.
-        * "most_frequent": the `predict` method always returns the most
-          frequent class label in the observed `y` argument passed to `fit`.
-          The `predict_proba` method returns the matching one-hot encoded
+        * "most_frequent": the ``predict`` method always returns the most
+          frequent class label in the observed ``y`` argument passed to ``fit``.
+          The ``predict_proba`` method returns the matching one-hot encoded
           vector.
-        * "prior": the `predict` method always returns the most frequent
-          class label in the observed `y` argument passed to `fit` (like
+        * "prior": the ``predict`` method always returns the most frequent
+          class label in the observed ``y`` argument passed to ``fit`` (like
           "most_frequent"). ``predict_proba`` always returns the empirical
-          class distribution of `y` also known as the empirical class prior
+          class distribution of ``y`` also known as the empirical class prior
           distribution.
-        * "stratified": the `predict_proba` method randomly samples one-hot
+        * "stratified": the ``predict_proba`` method randomly samples one-hot
           vectors from a multinomial distribution parametrized by the empirical
           class prior probabilities.
-          The `predict` method returns the class label which got probability
-          one in the one-hot vector of `predict_proba`.
+          The ``predict`` method returns the class label which got probability
+          one in the one-hot vector of ``predict_proba``.
           Each sampled row of both methods is therefore independent and
           identically distributed.
         * "uniform": generates predictions uniformly at random from the list
-          of unique classes observed in `y`, i.e. each class has equal
+          of unique classes observed in ``y``, i.e. each class has equal
           probability.
         * "constant": always predicts a constant label that is provided by
           the user. This is useful for metrics that evaluate a non-majority
           class.
     random_state : int, RandomState instance or None, default=None
-        If `int`, random_state is the seed used by the random number generator;
-        If `RandomState` instance, random_state is the random number generator;
-        If `None`, the random number generator is the `RandomState` instance used
-        by `np.random`.
+        If ``int``, random_state is the seed used by the random number generator;
+        If ``RandomState`` instance, random_state is the random number generator;
+        If ``None``, the random number generator is the ``RandomState`` instance used
+        by ``np.random``.
     constant : int or str or array-like of shape (n_outputs,), default=None
         The explicit constant as predicted by the "constant" strategy. This
         parameter is useful only for the "constant" strategy.

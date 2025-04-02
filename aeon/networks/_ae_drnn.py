@@ -39,7 +39,7 @@ class AEDRNNNetwork(BaseDeepLearningNetwork):
         Number of GRU layers in the decoder.
     dilation_rate_encoder : Union[int, List[int]], default = None
         List of dilation rates for each layer of the encoder.
-        If None, default = powers of 2 up to `n_stacked`.
+        If None, default = powers of 2 up to ``n_stacked``.
     dilation_rate_decoder : Union[int, List[int]], default = None
         List of dilation rates for each layer of the decoder.
         If None, default to a list of ones.

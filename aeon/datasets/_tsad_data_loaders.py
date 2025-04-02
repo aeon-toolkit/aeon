@@ -67,8 +67,8 @@ def load_anomaly_detection(
     the data is not available at the specified ``extract_path``. If you want to load a
     problem from a local file, specify the location in ``extract_path``. This function
     assumes the data is stored in the
-    `TimeEval format <https://timeeval.readthedocs.io/en/latest/concepts/datasets.html
-    #canonical-file-format>`_.
+    ``TimeEval format <https://timeeval.readthedocs.io/en/latest/concepts/datasets.html
+    #canonical-file-format>``_.
 
     If you do not specify ``extract_path``, it will set the path to
     ``aeon/datasets/local_data``. If the problem is not present in ``extract_path``, it
@@ -90,7 +90,7 @@ def load_anomaly_detection(
         loads the test partition.
     extract_path : str, default=None
         The path to look for the data. If no path is provided, the function
-        looks in `aeon/datasets/local_data/`. If a path is given, it can be an absolute,
+        looks in ``aeon/datasets/local_data/``. If a path is given, it can be an absolute,
         e.g., C:/Temp/ or relative, e.g. Temp/ or ./Temp/, path to an existing CSV-file.
     return_metadata : boolean, default = False
         If True, returns a tuple (X, y, metadata).
@@ -151,7 +151,7 @@ def load_anomaly_detection(
         if train_path is None or pd.isnull(train_path):
             raise ValueError(
                 f"Dataset {name} does not have a training partition. Only "
-                "`split='test'` is supported."
+                "``split='test'`` is supported."
             )
         dataset_path = data_folder / train_path
     else:
@@ -370,7 +370,7 @@ def load_ecg_diff_count_3(
     """Load the synthetic ECG dataset 'ecg-diff-count-3'.
 
     The dataset contains three different kind of anomalies. The dataset was generated
-    using `GutenTAG <https://github.com/TimeEval/gutentag>`_ [1]
+    using ``GutenTAG <https://github.com/TimeEval/gutentag>``_ [1]
 
     Parameters
     ----------

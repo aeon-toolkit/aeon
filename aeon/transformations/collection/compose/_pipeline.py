@@ -12,22 +12,22 @@ from aeon.transformations.collection.compose import CollectionId
 class CollectionTransformerPipeline(BaseCollectionPipeline, BaseCollectionTransformer):
     """Pipeline of collection transformers.
 
-    The `CollectionTransformerPipeline` compositor chains transformers.
+    The ``CollectionTransformerPipeline`` compositor chains transformers.
     The pipeline is constructed with a list of aeon transformers,
         i.e., estimators following the BaseTransformer interface.
     The transformer list can be unnamed - a simple list of transformers -
         or string named - a list of pairs of string, estimator.
 
-    For a list of transformers `trafo1`, `trafo2`, ..., `trafoN`,
+    For a list of transformers ``trafo1``, ``trafo2``, ..., ``trafoN``,
         the pipeline behaves as follows:
-    `fit(X, y)` - changes state by running `trafo1.fit_transform` on `X`,
-        them `trafo2.fit_transform` on the output of `trafo1.fit_transform`, etc
-        sequentially, with `trafo[i]` receiving the output of `trafo[i-1]`,
-        and then running `trafo[N].fit` with `X` being the output of `trafo[N-1]`,
-        and `y` identical with the input to `self.fit`
-    `transform(X, y)` - result is of executing `trafo1.transform`, `trafo2.transform`,
-        etc with `trafo[i].transform` input = output of `trafo[i-1].transform`,
-        then running `trafo[N].transform` on the output of `trafo[N-1].transform`,
+    ``fit(X, y)`` - changes state by running ``trafo1.fit_transform`` on ``X``,
+        them ``trafo2.fit_transform`` on the output of ``trafo1.fit_transform``, etc
+        sequentially, with ``trafo[i]`` receiving the output of ``trafo[i-1]``,
+        and then running ``trafo[N].fit`` with ``X`` being the output of ``trafo[N-1]``,
+        and ``y`` identical with the input to ``self.fit``
+    ``transform(X, y)`` - result is of executing ``trafo1.transform``, ``trafo2.transform``,
+        etc with ``trafo[i].transform`` input = output of ``trafo[i-1].transform``,
+        then running ``trafo[N].transform`` on the output of ``trafo[N-1].transform``,
         and returning the output.
 
     Parameters
@@ -83,14 +83,14 @@ class CollectionTransformerPipeline(BaseCollectionPipeline, BaseCollectionTransf
         ----------
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return ``"default"`` set.
 
         Returns
         -------
         params : dict or list of dict, default={}
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test instance.
         """
         from aeon.transformations.collection import Truncator
         from aeon.transformations.collection.feature_based import SevenNumberSummary

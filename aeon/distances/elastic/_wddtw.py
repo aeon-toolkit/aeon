@@ -27,7 +27,7 @@ def wddtw_distance(
     r"""Compute the WDDTW distance between two time series.
 
     Weighted derivative dynamic time warping (WDDTW) Takes the first order derivative,
-    then applies `_weighted_cost_matrix` to find WDTW distance. WDDTW was first
+    then applies ``_weighted_cost_matrix`` to find WDTW distance. WDDTW was first
     proposed in [1]_ as an extension of DDTW. By adding a weight to the derivative it
     means the alignment isn't only considering the shape of the time series, but also
     the phase.
@@ -37,7 +37,7 @@ def wddtw_distance(
     .. math::
         d_{i}(x) = \frac{{}(x_{i} - x_{i-1} + ((x_{i+1} - x_{i-1}/2)}{2}
 
-    where :math:`x` is the original time series and :math:`d_x` is the derived time
+    where :math:``x`` is the original time series and :math:``d_x`` is the derived time
     series.
 
     Parameters

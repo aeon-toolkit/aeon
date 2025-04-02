@@ -151,8 +151,8 @@ def dtw_gi_distance(
 
     For example, if we have two time series x and y of lengths n and m
     respectively, and we assume that the time series do not lie in the
-    same ambient space. Lets assume that features of x lie in :math:`\mathbb{R}^p`
-    and features of y lie in :math:`\mathbb{R}^q`. To compare the two time series,
+    same ambient space. Lets assume that features of x lie in :math:``\mathbb{R}^p``
+    and features of y lie in :math:``\mathbb{R}^q``. To compare the two time series,
     we need to find an optimum mapping from the feature space of y to the feature space
     where features of x lie. So think of it as optimizing on a family of functions F
     that map features from y onto the feature space in which features of x
@@ -162,16 +162,16 @@ def dtw_gi_distance(
     More formally, we define Dynamic Time Warping with Global Invariances (DTW-GI)
     as the solution of the following joint optimization problem:
 
-    :math:`\text{DTW-GI}(\mathbf{x}, \mathbf{y}) =
+    :math:``\text{DTW-GI}(\mathbf{x}, \mathbf{y}) =
     \min_{f \in \mathcal{F}, \pi \in \mathcal{A}(\mathbf{x}, \mathbf{y})}
-    \sqrt{\sum_{(i,j) \in \pi} d(x_i, f(y_j))^2},`
+    \sqrt{\sum_{(i,j) \in \pi} d(x_i, f(y_j))^2},``
 
     This similarity measure estimates temporal alignment
     with feature space transformation between time series
     allowing the alignment of time series that do not exist in the
     same ambient space.
 
-    Note: The optimal warping path :math:`P^*` for a given cost matrix can be found
+    Note: The optimal warping path :math:``P^*`` for a given cost matrix can be found
     exactly through a dynamic programming formulation. This can be a time consuming
     operation, and it is common to put a restriction on the amount of warping allowed.
     This is implemented through the bounding_matrix structure, that supplies a mask for
@@ -260,7 +260,7 @@ def dtw_gi_cost_matrix(
     r"""Compute the DTW_GI cost matrix between two time series.
 
     The cost matrix is the pairwise Euclidean distance between all points
-    :math:`M_{i,j}=(x_i-y_{\text{trans},j})^2`. Where `y_trans` is the time
+    :math:``M_{i,j}=(x_i-y_{\text{trans},j})^2``. Where ``y_trans`` is the time
     series we get by finding the optimal mapping from feature space of y
     to feature space where features of x lie. It is used in the DTW GI
     path calculations.
@@ -335,17 +335,17 @@ def dtw_gi_pairwise_distance(
 ) -> np.ndarray:
     r"""Compute the DTW_GI pairwise distance between a set of time series.
 
-    By default, this takes a collection of :math:`n` time series :math:`X` and returns a
+    By default, this takes a collection of :math:``n`` time series :math:``X`` and returns a
     matrix
-    :math:`D` where :math:`D_{i,j}` is the DTW_GI distance between the :math:`i^{th}`
-    and the :math:`j^{th}` series in :math:`X`. If :math:`X` is 2 dimensional,
+    :math:``D`` where :math:``D_{i,j}`` is the DTW_GI distance between the :math:``i^{th}``
+    and the :math:``j^{th}`` series in :math:``X``. If :math:``X`` is 2 dimensional,
     it is assumed to be a collection of univariate series with shape ``(n_cases,
     n_timepoints)``. If it is 3 dimensional, it is assumed to be shape ``(n_cases,
     n_channels, n_timepoints)``.
 
-    This function has an optional argument, :math:`y`, to allow calculation of the
-    distance matrix between :math:`X` and one or more series stored in :math:`y`. If
-    :math:`y` is 1 dimensional, we assume it is a single univariate series and the
+    This function has an optional argument, :math:``y``, to allow calculation of the
+    distance matrix between :math:``X`` and one or more series stored in :math:``y``. If
+    :math:``y`` is 1 dimensional, we assume it is a single univariate series and the
     distance matrix returned is shape ``(n_cases,1)``. If it is 2D, we assume it
     is a collection of univariate series with shape ``(m_cases, m_timepoints)``
     and the distance ``(n_cases,m_cases)``. If it is 3 dimensional,

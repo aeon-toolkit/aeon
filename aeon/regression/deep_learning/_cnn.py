@@ -53,10 +53,10 @@ class TimeCNNRegressor(BaseDeepRegressor):
         condition on whether or not to use bias values for convolution layers,
         if not a list, the same condition is used for all layers
     random_state : int, RandomState instance or None, default=None
-        If `int`, random_state is the seed used by the random number generator;
-        If `RandomState` instance, random_state is the random number generator;
-        If `None`, the random number generator is the `RandomState` instance used
-        by `np.random`.
+        If ``int``, random_state is the seed used by the random number generator;
+        If ``RandomState`` instance, random_state is the random number generator;
+        If ``None``, the random number generator is the ``RandomState`` instance used
+        by ``np.random``.
         Seeded random number generation can only be guaranteed on CPU processing,
         GPU processing will be non-deterministic.
     n_epochs : int, default = 2000
@@ -323,7 +323,7 @@ class TimeCNNRegressor(BaseDeepRegressor):
         ----------
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return ``"default"`` set.
             For regressors, a "default" set of parameters should be provided for
             general testing, and a "results_comparison" set for comparing against
             previously recorded results if the general set does not produce suitable
@@ -334,7 +334,7 @@ class TimeCNNRegressor(BaseDeepRegressor):
         params : dict or list of dict, default={}
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test instance.
         """
         param = {
             "n_epochs": 10,

@@ -14,7 +14,7 @@ class MrSQMClassifier(BaseClassifier):
     """
     Multiple Representations Sequence Miner (MrSQM) classifier.
 
-    This is a wrapper for the MrSQMClassifier algorithm from the `mrsqm` package.
+    This is a wrapper for the MrSQMClassifier algorithm from the ``mrsqm`` package.
     MrSQM is not included in ``all_extras`` as it requires gcc and fftw
     (http://www.fftw.org/index.html) to be installed for Windows and some Linux OS.
 
@@ -43,13 +43,13 @@ class MrSQMClassifier(BaseClassifier):
     custom_config : dict, default=None
         Customized parameters for the symbolic transformation.
     random_state : int, default=None
-        If `int`, random_state is the seed used by the random number generator;
+        If ``int``, random_state is the seed used by the random number generator;
     sfa_norm : bool, default=True
         Time series normalisation (standardisation).
 
     Notes
     -----
-    The `mrsqm` package uses a different license (GPL-3.0) from the aeon BSD3 license
+    The ``mrsqm`` package uses a different license (GPL-3.0) from the aeon BSD3 license
     covering this interface wrapper.
     See https://github.com/mlgig/mrsqm for the original implementation.
 
@@ -132,7 +132,7 @@ class MrSQMClassifier(BaseClassifier):
         ----------
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return ``"default"`` set.
             For classifiers, a "default" set of parameters should be provided for
             general testing, and a "results_comparison" set for comparing against
             previously recorded results if the general set does not produce suitable
@@ -143,7 +143,7 @@ class MrSQMClassifier(BaseClassifier):
         params : dict or list of dict, default={}
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test instance.
         """
         return {
             "features_per_rep": 50,

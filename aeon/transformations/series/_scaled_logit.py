@@ -32,15 +32,15 @@ class ScaledLogitSeriesTransformer(BaseSeriesTransformer):
     -----
     | The scaled logit transform is applied if both upper_bound and lower_bound are
     | not None:
-    |   :math:`log(\frac{x - a}{b - x})`, where a is the lower and b is the upper bound.
+    |   :math:``log(\frac{x - a}{b - x})``, where a is the lower and b is the upper bound.
 
     | If upper_bound is None and lower_bound is not None the transform applied is
     | a log transform of the form:
-    |   :math:`log(x - a)`
+    |   :math:``log(x - a)``
 
     | If lower_bound is None and upper_bound is not None the transform applied is
     | a log transform of the form:
-    |   :math:`- log(b - x)`
+    |   :math:``- log(b - x)``
 
     | The transform is independent of the axis, so the data can be shape
     | `` (n_timepoints, n_channels)`` (axis == 0) or
@@ -144,13 +144,13 @@ class ScaledLogitSeriesTransformer(BaseSeriesTransformer):
         ----------
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return ``"default"`` set.
 
         Returns
         -------
         params : dict or list of dict, default = {}
             Parameters to create testing instances of the class
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test instance.
         """
         return {"lower_bound": -(10**6), "upper_bound": 10**6}

@@ -132,9 +132,9 @@ class TimeSeriesKernelKMeans(BaseClusterer):
     kernel : string, or callable (default: "gak")
         The kernel should either be "gak", in which case the Global Alignment
         Kernel from [1]_ is used, or a value that is accepted as a metric
-        by `scikit-learn's pairwise_kernels
+        by ``scikit-learn's pairwise_kernels
         <https://scikit-learn.org/stable/modules/generated/\
-        sklearn.metrics.pairwise.pairwise_kernels.html>`_
+        sklearn.metrics.pairwise.pairwise_kernels.html>``_
     n_init: int, default=10
         Number of times the k-means algorithm will be run with different
         centroid seeds. The final result will be the best output of ``n_init``
@@ -145,7 +145,7 @@ class TimeSeriesKernelKMeans(BaseClusterer):
         For Global Alignment Kernel, the only parameter of interest is ``sigma``.
         If set to 'auto', it is computed based on a sampling of the training
         set
-        (cf :ref:`tslearn.metrics.sigma_gak <fun-tslearn.metrics.sigma_gak>`).
+        (cf :ref:``tslearn.metrics.sigma_gak <fun-tslearn.metrics.sigma_gak>``).
         If no specific value is set for ``sigma``, its default to 1.
     max_iter: int, default=300
         Maximum number of iterations of the k-means algorithm for a single
@@ -159,9 +159,9 @@ class TimeSeriesKernelKMeans(BaseClusterer):
     n_jobs : int or None, default=None
         The number of jobs to run in parallel for GAK cross-similarity matrix
         computations.
-        ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.
+        ``None`` means 1 unless in a :obj:``joblib.parallel_backend`` context.
         ``-1`` means using all processors. See scikit-learns'
-        `Glossary <https://scikit-learn.org/stable/glossary.html#term-n-jobs>`_
+        ``Glossary <https://scikit-learn.org/stable/glossary.html#term-n-jobs>``_
         for more details.
     random_state: int or np.random.RandomState instance or None, default=None
         Determines random number generation for centroid initialization.
@@ -301,7 +301,7 @@ class TimeSeriesKernelKMeans(BaseClusterer):
         ----------
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return ``"default"`` set.
 
 
         Returns
@@ -309,7 +309,7 @@ class TimeSeriesKernelKMeans(BaseClusterer):
         params : dict or list of dict, default={}
             Parameters to create testing instances of the class
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test instance.
         """
         return {
             "n_clusters": 2,

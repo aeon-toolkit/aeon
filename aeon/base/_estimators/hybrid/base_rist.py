@@ -47,15 +47,15 @@ class BaseRIST(ABC):
         The number of intervals of random length, position and dimension to be
         extracted for the interval portion of the pipeline. Input should be an int or
         a function that takes a 3D np.ndarray input and returns an int. Functions may
-        extract a different number of intervals per `series_transformer` output.
-        If None, extracts `int(np.sqrt(X.shape[2]) * np.sqrt(X.shape[1]) * 15 + 5)`
-        intervals where `Xt` is the series representation data.
+        extract a different number of intervals per ``series_transformer`` output.
+        If None, extracts ``int(np.sqrt(X.shape[2]) * np.sqrt(X.shape[1]) * 15 + 5)``
+        intervals where ``Xt`` is the series representation data.
     n_shapelets : int, callable or None, default=None,
         The number of shapelets of random dilation and position to be extracted for the
         shapelet portion of the pipeline. Input should be an int or
         a function that takes a 3D np.ndarray input and returns an int. Functions may
-        extract a different number of shapelets per `series_transformer` output.
-        If None, extracts `int(np.sqrt(Xt.shape[2]) * 200 + 5)` shapelets where `Xt` is
+        extract a different number of shapelets per ``series_transformer`` output.
+        If None, extracts ``int(np.sqrt(Xt.shape[2]) * 200 + 5)`` shapelets where ``Xt`` is
         the series representation data.
     series_transformers : TransformerMixin, list, tuple, or None, default=None
         The transformers to apply to the series before extracting intervals and
@@ -73,12 +73,12 @@ class BaseRIST(ABC):
         An sklearn estimator to be built using the transformed data. Defaults to an
         extra trees forest with 200 trees.
     random_state : int, RandomState instance or None, default=None
-        If `int`, random_state is the seed used by the random number generator;
-        If `RandomState` instance, random_state is the random number generator;
-        If `None`, the random number generator is the `RandomState` instance used
-        by `np.random`.
+        If ``int``, random_state is the seed used by the random number generator;
+        If ``RandomState`` instance, random_state is the random number generator;
+        If ``None``, the random number generator is the ``RandomState`` instance used
+        by ``np.random``.
     n_jobs : int, default=1
-        The number of jobs to run in parallel for both `fit` and `predict`.
+        The number of jobs to run in parallel for both ``fit`` and ``predict``.
         ``-1`` means using all processors.
 
     Attributes

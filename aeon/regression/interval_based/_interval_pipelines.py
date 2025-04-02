@@ -50,8 +50,8 @@ class RandomIntervalRegressor(BaseRegressor):
         If random_state is None, use the RandomState singleton used by np.random.
         If random_state is an int, use a new RandomState instance seeded with seed.
     n_jobs : int, default=1
-        The number of jobs to run in parallel for both `fit` and `transform` functions.
-        `-1` means using all processors.
+        The number of jobs to run in parallel for both ``fit`` and ``transform`` functions.
+        ``-1`` means using all processors.
     parallel_backend : str, ParallelBackendBase instance or None, default=None
         Specify the parallelisation backend implementation in joblib, if None a 'prefer'
         value of "threads" is used by default.
@@ -190,7 +190,7 @@ class RandomIntervalRegressor(BaseRegressor):
         ----------
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return ``"default"`` set.
             RandomIntervalRegressor provides the following special sets:
                  "results_comparison" - used in some classifiers to compare against
                     previously generated results where the default set of parameters
@@ -201,7 +201,7 @@ class RandomIntervalRegressor(BaseRegressor):
         params : dict or list of dict, default={}
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test instance.
         """
         from aeon.utils.numba.stats import row_mean, row_numba_min
 

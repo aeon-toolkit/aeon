@@ -50,7 +50,7 @@ def test_cit_edge_cases():
     """Test ContinuousIntervalTree edge cases."""
     X, y = make_example_2d_numpy_collection(n_cases=5, n_labels=1)
     cit = ContinuousIntervalTree(max_depth=1)
-    with pytest.raises(NotFittedError, match="please call `fit` first"):
+    with pytest.raises(NotFittedError, match="please call ``fit`` first"):
         cit.predict_proba(X)
     model = cit.fit(X, y)
     assert isinstance(model, ContinuousIntervalTree)

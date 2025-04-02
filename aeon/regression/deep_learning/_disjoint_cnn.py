@@ -26,43 +26,43 @@ class DisjointCNNRegressor(BaseDeepRegressor):
     n_filters : int or list of int, default = 64
         Number of filters used in convolution layers. If
         input is set to a list, the lenght should be the same
-        as `n_layers`, if input is int the a list of the same
-        element is created of length `n_layers`.
+        as ``n_layers``, if input is int the a list of the same
+        element is created of length ``n_layers``.
     kernel_size : int or list of int, default = [8, 5, 5, 3]
         Size of convolution kernel. If
         input is set to a list, the lenght should be the same
-        as `n_layers`, if input is int the a list of the same
-        element is created of length `n_layers`.
+        as ``n_layers``, if input is int the a list of the same
+        element is created of length ``n_layers``.
     dilation_rate : int or list of int, default = 1
         The dilation rate for convolution. If
         input is set to a list, the lenght should be the same
-        as `n_layers`, if input is int the a list of the same
-        element is created of length `n_layers`.
+        as ``n_layers``, if input is int the a list of the same
+        element is created of length ``n_layers``.
     strides : int or list of int, default = 1
         The strides of the convolution filter. If
         input is set to a list, the lenght should be the same
-        as `n_layers`, if input is int the a list of the same
-        element is created of length `n_layers`.
+        as ``n_layers``, if input is int the a list of the same
+        element is created of length ``n_layers``.
     padding : str or list of str, default = "same"
         The type of padding used for convolution. If
         input is set to a list, the lenght should be the same
-        as `n_layers`, if input is int the a list of the same
-        element is created of length `n_layers`.
+        as ``n_layers``, if input is int the a list of the same
+        element is created of length ``n_layers``.
     activation : str or list of str, default = "elu"
         Activation used after the convolution. If
         input is set to a list, the lenght should be the same
-        as `n_layers`, if input is int the a list of the same
-        element is created of length `n_layers`.
+        as ``n_layers``, if input is int the a list of the same
+        element is created of length ``n_layers``.
     use_bias : bool or list of bool, default = True
         Whether or not ot use bias in convolution. If
         input is set to a list, the lenght should be the same
-        as `n_layers`, if input is int the a list of the same
-        element is created of length `n_layers`.
+        as ``n_layers``, if input is int the a list of the same
+        element is created of length ``n_layers``.
     kernel_initializer: str or list of str, default = "he_uniform"
         The initialization method of convolution layers. If
         input is set to a list, the lenght should be the same
-        as `n_layers`, if input is int the a list of the same
-        element is created of length `n_layers`.
+        as ``n_layers``, if input is int the a list of the same
+        element is created of length ``n_layers``.
     pool_size: int, default = 5
         The size of the one max pool layer at the end of
         the model, default = 5.
@@ -83,10 +83,10 @@ class DisjointCNNRegressor(BaseDeepRegressor):
     use_mini_batch_size : bool, default = False
         Whether or not to use the mini batch size formula.
     random_state : int, RandomState instance or None, default=None
-        If `int`, random_state is the seed used by the random number generator;
-        If `RandomState` instance, random_state is the random number generator;
-        If `None`, the random number generator is the `RandomState` instance used
-        by `np.random`.
+        If ``int``, random_state is the seed used by the random number generator;
+        If ``RandomState`` instance, random_state is the random number generator;
+        If ``None``, the random number generator is the ``RandomState`` instance used
+        by ``np.random``.
         Seeded random number generation can only be guaranteed on CPU processing,
         GPU processing will be non-deterministic.
     verbose : boolean, default = False
@@ -394,7 +394,7 @@ class DisjointCNNRegressor(BaseDeepRegressor):
         params : dict or list of dict, default = {}
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test instance.
         """
         param1 = {
             "n_epochs": 3,

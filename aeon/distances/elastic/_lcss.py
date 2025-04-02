@@ -32,11 +32,11 @@ def lcss_distance(
     by using a distance threshold epsilon, which defines the maximum difference
     between a pair of values that is allowed for them to be considered a match.
     LCSS finds the optimal alignment between two series by find the greatest number
-    of matching pairs. The LCSS distance uses a matrix :math:`L` that records the
-    sequence of matches over valid warpings. For two series :math:`a = a_1,... a_n`
-    and :math:`b = b_1,... b_m, L'` is found by iterating over all valid windows (i.e.
+    of matching pairs. The LCSS distance uses a matrix :math:``L`` that records the
+    sequence of matches over valid warpings. For two series :math:``a = a_1,... a_n``
+    and :math:``b = b_1,... b_m, L'`` is found by iterating over all valid windows (i.e.
     where bounding_matrix is not infinity, which by default is the constant band
-    :math:`|i-j|<w*m`, where :math:`w` is the window parameter value and :math:`m` is
+    :math:``|i-j|<w*m``, where :math:``w`` is the window parameter value and :math:``m`` is
     series length), then calculating
 
     :: math..
@@ -46,7 +46,7 @@ def lcss_distance(
             &L_{i,j} = \max(L_{i,j-1}, L_{i-1,j})\\
 
     The distance is an inverse function of the longest common subsequence
-    length, :math:`L_{n,m}`.
+    length, :math:``L_{n,m}``.
 
     :: math..
         d_{LCSS}({\bfx,by}) = 1- \frac{L_{n,m}.

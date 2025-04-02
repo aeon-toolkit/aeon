@@ -29,7 +29,7 @@ def range_precision(
     """Compute the range-based precision metric.
 
     Range-based metrics were introduced by Tatbul et al. at NeurIPS 2018 [1]_. This
-    implementation uses the community package `prts <https://pypi.org/project/prts/>`_
+    implementation uses the community package ``prts <https://pypi.org/project/prts/>``_
     as a soft-dependency.
 
     Range precision is the average precision of each predicted anomaly range. For each
@@ -95,7 +95,7 @@ def range_recall(
     """Compute the range-based recall metric.
 
     Range-based metrics were introduced by Tatbul et al. at NeurIPS 2018 [1]_. This
-    implementation uses the community package `prts <https://pypi.org/project/prts/>`_
+    implementation uses the community package ``prts <https://pypi.org/project/prts/>``_
     as a soft-dependency.
 
     Range recall is the average recall of each real anomaly range. For each real
@@ -166,7 +166,7 @@ def range_f_score(
     """Compute the F-score using the range-based recall and precision metrics.
 
     Range-based metrics were introduced by Tatbul et al. at NeurIPS 2018 [1]_. This
-    implementation uses the community package `prts <https://pypi.org/project/prts/>`_
+    implementation uses the community package ``prts <https://pypi.org/project/prts/>``_
     as a soft-dependency.
 
     The F-beta score is the weighted harmonic mean of precision and recall, reaching
@@ -184,7 +184,7 @@ def range_f_score(
         beta < 1 lends more weight to precision, while beta > 1 favors recall.
     p_alpha : float
         Weight of the existence reward for the range-based precision. For most - when
-        not all - cases, `p_alpha` should be set to 0.
+        not all - cases, ``p_alpha`` should be set to 0.
     r_alpha : float
         Weight of the existence reward. If 0: no existence reward, if 1: only
         existence reward.

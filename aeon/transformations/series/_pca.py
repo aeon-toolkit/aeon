@@ -35,7 +35,7 @@ class PCASeriesTransformer(BaseSeriesTransformer):
         fit(X).transform(X) will not yield the expected results,
         use fit_transform(X) instead.
     whiten : bool, default=False
-        When True (False by default) the `components_` vectors are multiplied
+        When True (False by default) the ``components_`` vectors are multiplied
         by the square root of n_samples and then divided by the singular values
         to ensure uncorrelated outputs with unit component-wise variances.
         Whitening will remove some information from the transformed signal
@@ -44,18 +44,18 @@ class PCASeriesTransformer(BaseSeriesTransformer):
         making their data respect some hard-wired assumptions.
     svd_solver : {'auto', 'full', 'arpack', 'randomized'}, default='auto'
         If auto :
-            The solver is selected by a default policy based on `X.shape` and
-            `n_components`: if the input data is larger than 500x500 and the
+            The solver is selected by a default policy based on ``X.shape`` and
+            ``n_components``: if the input data is larger than 500x500 and the
             number of components to extract is lower than 80% of the smallest
             dimension of the data, then the more efficient 'randomized'
             method is enabled. Otherwise the exact full SVD is computed and
             optionally truncated afterwards.
         If full :
             run exact full SVD calling the standard LAPACK solver via
-            `scipy.linalg.svd` and select the components by postprocessing
+            ``scipy.linalg.svd`` and select the components by postprocessing
         If arpack :
             run SVD truncated to n_components calling ARPACK solver via
-            `scipy.sparse.linalg.svds`. It requires strictly
+            ``scipy.sparse.linalg.svds``. It requires strictly
             0 < n_components < min(X.shape)
         If randomized :
             run randomized SVD by the method of Halko et al.
@@ -67,13 +67,13 @@ class PCASeriesTransformer(BaseSeriesTransformer):
         svd_solver == 'randomized'.
         Must be of range [0, infinity).
     n_oversamples : int, default=10
-        This parameter is only relevant when `svd_solver="randomized"`.
+        This parameter is only relevant when ``svd_solver="randomized"``.
         It corresponds to the additional number of random vectors to sample the
-        range of `X` so as to ensure proper conditioning. See
-        :func:`~sklearn.utils.extmath.randomized_svd` for more details.
+        range of ``X`` so as to ensure proper conditioning. See
+        :func:``~sklearn.utils.extmath.randomized_svd`` for more details.
     power_iteration_normalizer : {'auto', 'QR', 'LU', 'none'}, default='auto'
         Power iteration normalizer for randomized SVD solver.
-        Not used by ARPACK. See :func:`~sklearn.utils.extmath.randomized_svd`
+        Not used by ARPACK. See :func:``~sklearn.utils.extmath.randomized_svd``
         for more details.
     random_state : int, RandomState instance or None, default=None
         Used when the 'arpack' or 'randomized' solvers are used. Pass an int

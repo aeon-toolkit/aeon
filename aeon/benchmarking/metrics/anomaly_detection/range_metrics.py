@@ -101,7 +101,7 @@ def _gamma_select(cardinality, gamma):
     Raises
     ------
     ValueError
-        If an invalid `gamma` type is provided or if `udf_gamma` is required
+        If an invalid ``gamma`` type is provided or if ``udf_gamma`` is required
         but not provided.
     """
     if gamma == "one":
@@ -257,7 +257,7 @@ def ts_precision(y_pred, y_real, gamma="one", bias_type="flat"):
     Raises
     ------
     ValueError
-        If an invalid `gamma` type is provided.
+        If an invalid ``gamma`` type is provided.
     ValueError
         If input sequence is binary and y_real and y_pred are of different lengths.
 

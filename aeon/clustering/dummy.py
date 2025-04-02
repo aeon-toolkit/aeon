@@ -28,12 +28,12 @@ class DummyClusterer(BaseClusterer):
         and "uniform" strategies.
     random_state : int, np.random.RandomState instance or None, default=None
         Determines random number generation for centroid initialization.
-        Only used when `strategy` is "random".
-        If `int`, random_state is the seed used by the random number generator;
-        If `np.random.RandomState` instance,
+        Only used when ``strategy`` is "random".
+        If ``int``, random_state is the seed used by the random number generator;
+        If ``np.random.RandomState`` instance,
         random_state is the random number generator;
-        If `None`, the random number generator is the `RandomState` instance used
-        by `np.random`.
+        If ``None``, the random number generator is the ``RandomState`` instance used
+        by ``np.random``.
 
     Attributes
     ----------

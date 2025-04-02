@@ -26,13 +26,13 @@ class QuerySearch(BaseSimilaritySearch):
     Query search estimator.
 
     The query search estimator will return a set of matches of a query in a search space
-    , which is defined by a time series dataset given during fit. Depending on the `k`
-    and/or `threshold` parameters, which condition what is considered a valid match
-    during the search, the number of matches will vary. If `k` is used, at most `k`
-    matches (the `k` best) will be returned, if `threshold` is used and `k` is set to
-    `np.inf`, all the candidates which distance to the query is inferior or equal to
-    `threshold` will be returned. If both are used, the `k` best matches to the query
-    with distance inferior to `threshold` will be returned.
+    , which is defined by a time series dataset given during fit. Depending on the ``k``
+    and/or ``threshold`` parameters, which condition what is considered a valid match
+    during the search, the number of matches will vary. If ``k`` is used, at most ``k``
+    matches (the ``k`` best) will be returned, if ``threshold`` is used and ``k`` is set to
+    ``np.inf``, all the candidates which distance to the query is inferior or equal to
+    ``threshold`` will be returned. If both are used, the ``k`` best matches to the query
+    with distance inferior to ``threshold`` will be returned.
 
 
     Parameters
@@ -43,7 +43,7 @@ class QuerySearch(BaseSimilaritySearch):
         The number of best matches to return during predict for a given query.
     distance : str, default="euclidean"
         Name of the distance function to use. A list of valid strings can be found in
-        the documentation for :func:`aeon.distances.get_distance_function`.
+        the documentation for :func:``aeon.distances.get_distance_function``.
         If a callable is passed it must either be a python function or numba function
         with nopython=True, that takes two 1d numpy arrays as input and returns a float.
     distance_args : dict, default=None
@@ -54,7 +54,7 @@ class QuerySearch(BaseSimilaritySearch):
         Which speed up technique to use with for the selected distance
         function. By default, the fastest algorithm is used. A list of available
         algorithm for each distance can be obtained by calling the
-        `get_speedup_function_names` function.
+        ``get_speedup_function_names`` function.
     inverse_distance : bool, default=False
         If True, the matching will be made on the inverse of the distance, and thus, the
         worst matches to the query will be returned instead of the best ones.
@@ -169,19 +169,19 @@ class QuerySearch(BaseSimilaritySearch):
         exclusion_factor : float, default=2.
             The factor to apply to the query length to define the exclusion zone. The
             exclusion zone is define from
-            :math:`id_timestamp - query_length//exclusion_factor` to
-            :math:`id_timestamp + query_length//exclusion_factor`. This also applies to
+            :math:``id_timestamp - query_length//exclusion_factor`` to
+            :math:``id_timestamp + query_length//exclusion_factor``. This also applies to
             the matching conditions defined by child classes. For example, with
             TopKSimilaritySearch, the k best matches are also subject to the exclusion
-            zone, but with :math:`id_timestamp` the index of one of the k matches.
+            zone, but with :math:``id_timestamp`` the index of one of the k matches.
         apply_exclusion_to_result : bool, default=False
             Wheter to apply the exclusion factor to the output of the similarity search.
             This means that two matches of the query from the same sample must be at
-            least spaced by +/- :math:`query_length//exclusion_factor`.
+            least spaced by +/- :math:``query_length//exclusion_factor``.
             This can avoid pathological matching where, for example if we extract the
             best two matches, there is a high chance that if the best match is located
-            at :math:`id_timestamp`, the second best match will be located at
-            :math:`id_timestamp` +/- 1, as they both share all their values except one.
+            at :math:``id_timestamp``, the second best match will be located at
+            :math:``id_timestamp`` +/- 1, as they both share all their values except one.
 
         Raises
         ------
@@ -238,7 +238,7 @@ class QuerySearch(BaseSimilaritySearch):
         """
         Private predict method for QuerySearch.
 
-        It takes the distance profiles and apply the `k` and `threshold` conditions to
+        It takes the distance profiles and apply the ``k`` and ``threshold`` conditions to
         return the set of best matches.
 
         Parameters
@@ -249,9 +249,9 @@ class QuerySearch(BaseSimilaritySearch):
             The size of the exclusion zone used to prevent returning as top k candidates
             the ones that are close to each other (for example i and i+1).
             It is used to define a region between
-            :math:`id_timestamp - exclusion_size` and
-            :math:`id_timestamp + exclusion_size` which cannot be returned
-            as best match if :math:`id_timestamp` was already selected. By default,
+            :math:``id_timestamp - exclusion_size`` and
+            :math:``id_timestamp + exclusion_size`` which cannot be returned
+            as best match if :math:``id_timestamp`` was already selected. By default,
             the value None means that this is not used.
 
         Returns

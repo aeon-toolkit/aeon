@@ -6,8 +6,8 @@ Identifiers relate to single series (SERIES_DATA_TYPES), collections of series
 since there are internal constraints on some representations, for example in terms of
 the index.
 
-Checks of input data are handled in the `aeon.utils.validation` module,
-and conversion  is handled in the `aeon.utils.conversion` module.
+Checks of input data are handled in the ``aeon.utils.validation`` module,
+and conversion  is handled in the ``aeon.utils.conversion`` module.
 """
 
 SERIES_DATA_TYPES = [

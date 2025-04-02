@@ -25,7 +25,7 @@ class ShapeletTransformClassifier(BaseClassifier):
 
     Implementation of the binary shapelet transform classifier pipeline along the lines
     of [1]_, [2]_, but with random shapelet sampling. Transforms the data using the
-    configurable `RandomShapeletTransform` and then builds a `RotationForestClassifier`
+    configurable ``RandomShapeletTransform`` and then builds a ``RotationForestClassifier``
     classifier.
 
     As some implementations and applications contract the transformation solely,
@@ -39,37 +39,37 @@ class ShapeletTransformClassifier(BaseClassifier):
         information gain.
     max_shapelets : int or None, default=None
         Max number of shapelets to keep for the final transform. Each class value will
-        have its own max, set to ``n_classes_ / max_shapelets``. If `None`, uses the
-        minimum between ``10 * n_cases_`` and `1000`.
+        have its own max, set to ``n_classes_ / max_shapelets``. If ``None``, uses the
+        minimum between ``10 * n_cases_`` and ``1000``.
     max_shapelet_length : int or None, default=None
         Lower bound on candidate shapelet lengths for the transform. If ``None``, no
         max length is used
     estimator : BaseEstimator or None, default=None
-        Base estimator for the ensemble, can be supplied a sklearn `BaseEstimator`. If
-        `None` a default `RotationForestClassifier` classifier is used.
+        Base estimator for the ensemble, can be supplied a sklearn ``BaseEstimator``. If
+        ``None`` a default ``RotationForestClassifier`` classifier is used.
     transform_limit_in_minutes : int, default=0
         Time contract to limit transform time in minutes for the shapelet transform,
-        overriding `n_shapelet_samples`. A value of `0` means ``n_shapelet_samples``
+        overriding ``n_shapelet_samples``. A value of ``0`` means ``n_shapelet_samples``
         is used.
     time_limit_in_minutes : int, default=0
         Time contract to limit build time in minutes, overriding ``n_shapelet_samples``
         and ``transform_limit_in_minutes``. The ``estimator`` will only be contracted if
-        a ``time_limit_in_minutes parameter`` is present. Default of `0` means
+        a ``time_limit_in_minutes parameter`` is present. Default of ``0`` means
         ``n_shapelet_samples`` or ``transform_limit_in_minutes`` is used.
     contract_max_n_shapelet_samples : int, default=np.inf
         Max number of shapelets to extract when contracting the transform with
         ``transform_limit_in_minutes`` or ``time_limit_in_minutes``.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both ``fit`` and ``predict``.
-        `-1` means using all processors.
+        ``-1`` means using all processors.
     batch_size : int or None, default=100
         Number of shapelet candidates processed before being merged into the set of best
         shapelets in the transform.
     random_state : int, RandomState instance or None, default=None
-        If `int`, random_state is the seed used by the random number generator;
-        If `RandomState` instance, random_state is the random number generator;
-        If `None`, the random number generator is the `RandomState` instance used
-        by `np.random`.
+        If ``int``, random_state is the seed used by the random number generator;
+        If ``RandomState`` instance, random_state is the random number generator;
+        If ``None``, the random number generator is the ``RandomState`` instance used
+        by ``np.random``.
 
     Attributes
     ----------
@@ -92,8 +92,8 @@ class ShapeletTransformClassifier(BaseClassifier):
     Notes
     -----
     For the Java version, see
-    `tsml <https://github.com/uea-machine-learning/tsml/blob/master/src/main/
-    java/tsml/classifiers/shapelet_based/ShapeletTransformClassifier.java>`_.
+    ``tsml <https://github.com/uea-machine-learning/tsml/blob/master/src/main/
+    java/tsml/classifiers/shapelet_based/ShapeletTransformClassifier.java>``_.
 
     References
     ----------
@@ -325,7 +325,7 @@ class ShapeletTransformClassifier(BaseClassifier):
         ----------
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return ``"default"`` set.
             ShapeletTransformClassifier provides the following special sets:
                  "results_comparison" - used in some classifiers to compare against
                     previously generated results where the default set of parameters
@@ -342,7 +342,7 @@ class ShapeletTransformClassifier(BaseClassifier):
         params : dict or list of dict, default={}
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test instance.
         """
         from sklearn.ensemble import RandomForestClassifier
 

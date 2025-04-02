@@ -42,14 +42,14 @@ class BaseCollectionChannelEnsemble(ComposableEstimatorMixin, BaseCollectionEsti
         By default, only the specified channels in ``channels`` are
         used and combined in the output, and the non-specified
         channels are dropped.
-        By setting `remainder` to be an estimator, the remaining
+        By setting ``remainder`` to be an estimator, the remaining
         non-specified columns will use the ``remainder`` estimator. The
         estimator must support ``fit`` and ``predict``.
     random_state : int, RandomState instance or None, default=None
         Random state used to fit the estimators. If None, no random state is set for
         ensemble members (but they may still be seeded prior to input).
-        If `int`, random_state is the seed used by the random number generator;
-        If `RandomState` instance, random_state is the random number generator;
+        If ``int``, random_state is the seed used by the random number generator;
+        If ``RandomState`` instance, random_state is the random number generator;
     _ensemble_input_name : str, default="estimators"
         Name of the input parameter for the ensemble of estimators.
 

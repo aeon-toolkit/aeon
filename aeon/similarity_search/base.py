@@ -22,7 +22,7 @@ class BaseSimilaritySearch(BaseCollectionEstimator):
     ----------
     distance : str, default="euclidean"
         Name of the distance function to use. A list of valid strings can be found in
-        the documentation for :func:`aeon.distances.get_distance_function`.
+        the documentation for :func:``aeon.distances.get_distance_function``.
         If a callable is passed it must either be a python function or numba function
         with nopython=True, that takes two 1d numpy arrays as input and returns a float.
     distance_args : dict, default=None
@@ -36,7 +36,7 @@ class BaseSimilaritySearch(BaseCollectionEstimator):
         Which speed up technique to use with for the selected distance
         function. By default, the fastest algorithm is used. A list of available
         algorithm for each distance can be obtained by calling the
-        `get_speedup_function_names` function of the child classes.
+        ``get_speedup_function_names`` function of the child classes.
     n_jobs : int, default=1
         Number of parallel jobs to use.
 
@@ -162,8 +162,8 @@ class BaseSimilaritySearch(BaseCollectionEstimator):
         exclusion_factor : float, optional
             The exclusion factor is used to prevent candidates close or equal to the
             query sample point to be returned as best matches. It is used to define a
-            region between :math:`id_timestamp - query_length//exclusion_factor` and
-            :math:`id_timestamp + query_length//exclusion_factor` which cannot be used
+            region between :math:``id_timestamp - query_length//exclusion_factor`` and
+            :math:``id_timestamp + query_length//exclusion_factor`` which cannot be used
             in the search. The default is 2.0.
 
         Raises

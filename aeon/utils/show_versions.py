@@ -35,7 +35,7 @@ def show_versions(as_str: bool = False) -> Union[str, None]:
     Returns
     -------
     str or None
-        The output string if `as_str` is True, otherwise None.
+        The output string if ``as_str`` is True, otherwise None.
 
     Examples
     --------

@@ -49,7 +49,7 @@ class TEASER(BaseEarlyClassifier):
         safe. Defaults to a tuned one-class SVM classifier.
     one_class_param_grid : dict or list of dict, default=None
         The hyper-parameters for the one-class classifier to learn using grid-search.
-        Dictionary with parameters names (`str`) as keys and lists of parameter settings
+        Dictionary with parameters names (``str``) as keys and lists of parameter settings
         to try as values, or a list of such dictionaries.
     classification_points : List or None, default=None
         List of integer time series time stamps to build classifiers and allow
@@ -58,13 +58,13 @@ class TEASER(BaseEarlyClassifier):
         full series length will be appeneded if not present.
         If None, will use 20 thresholds linearly spaces from 0 to the series length.
     n_jobs : int, default=1
-        The number of jobs to run in parallel for both `fit` and `predict`.
+        The number of jobs to run in parallel for both ``fit`` and ``predict``.
         ``-1`` means using all processors.
     random_state : int, RandomState instance or None, default=None
-        If `int`, random_state is the seed used by the random number generator;
-        If `RandomState` instance, random_state is the random number generator;
-        If `None`, the random number generator is the `RandomState` instance used
-        by `np.random`.
+        If ``int``, random_state is the seed used by the random number generator;
+        If ``RandomState`` instance, random_state is the random number generator;
+        If ``None``, the random number generator is the ``RandomState`` instance used
+        by ``np.random``.
 
     Attributes
     ----------
@@ -629,7 +629,7 @@ class TEASER(BaseEarlyClassifier):
         ----------
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return ``"default"`` set.
             TEASER provides the following special sets:
                  "results_comparison" - used in some classifiers to compare against
                     previously generated results where the default set of parameters
@@ -640,7 +640,7 @@ class TEASER(BaseEarlyClassifier):
         params : dict or list of dict, default={}
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test instance.
         """
         from aeon.classification.feature_based import SummaryClassifier
         from aeon.classification.interval_based import TimeSeriesForestClassifier

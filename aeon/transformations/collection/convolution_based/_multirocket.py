@@ -30,7 +30,7 @@ class MultiRocket(BaseCollectionTransformer):
     normalise : bool, default False
         Whether or not to normalise the input time series per instance.
     n_jobs : int, default=1
-        The number of jobs to run in parallel for `transform`. ``-1`` means using all
+        The number of jobs to run in parallel for ``transform``. ``-1`` means using all
         processors.
     random_state : None or int, default = None
         Seed for random number generation.
@@ -39,7 +39,7 @@ class MultiRocket(BaseCollectionTransformer):
     ----------
     parameter : tuple
         Parameter (dilations, n_features_per_dilation, biases) for
-        transformation of input `X`.
+        transformation of input ``X``.
     parameter1 : tuple
         Parameter (dilations, n_features_per_dilation, biases) for
         transformation of input ``X1 = np.diff(X, 1)``.

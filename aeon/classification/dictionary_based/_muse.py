@@ -85,12 +85,12 @@ class MUSE(BaseClassifier):
         Note that these weights will be multiplied with sample_weight (passed through
         the fit method) if sample_weight is specified.
     n_jobs : int, default=1
-        The number of jobs to run in parallel for both `fit` and `predict`.
+        The number of jobs to run in parallel for both ``fit`` and ``predict``.
         ``-1`` means using all processors.
     random_state : int or None, default=None
-        If `int`, random_state is the seed used by the random number generator;
-        If `None`, the random number generator is the `RandomState` instance used
-        by `np.random`.
+        If ``int``, random_state is the seed used by the random number generator;
+        If ``None``, the random number generator is the ``RandomState`` instance used
+        by ``np.random``.
 
     Attributes
     ----------
@@ -113,10 +113,10 @@ class MUSE(BaseClassifier):
     Notes
     -----
     For the Java version, see
-    - `Original Publication <https://github.com/patrickzib/SFA>`_.
-    - `MUSE
+    - ``Original Publication <https://github.com/patrickzib/SFA>``_.
+    - ``MUSE
         <https://github.com/uea-machine-learning/tsml/blob/master/src/main/java/tsml/
-    classifiers/multivariate/WEASEL_MUSE.java>`_.
+    classifiers/multivariate/WEASEL_MUSE.java>``_.
 
     Examples
     --------
@@ -352,14 +352,14 @@ class MUSE(BaseClassifier):
         ----------
         parameter_set : str, default = "default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return ``"default"`` set.
 
         Returns
         -------
         dict or list of dict
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test instance.
         """
         return {
             "window_inc": 4,

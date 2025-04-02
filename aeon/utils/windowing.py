@@ -135,7 +135,7 @@ def reverse_windowing(
 
     For a time series of length 10, a window size of 3, and a stride of 2, there are
     four windows. Assuming the following result as input to this function
-    `y = np.array([1, 4, 8, 2])`, the example shows the aggregation of the windowed
+    ``y = np.array([1, 4, 8, 2])``, the example shows the aggregation of the windowed
     results using the np.nanmean reduction function:
 
         mapped = 1 1 2.5 4 6 8 5 2 2 0

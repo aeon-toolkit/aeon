@@ -39,8 +39,8 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         Distance measure between time series.
         Distance metric to compute similarity between time series. A list of valid
         strings for metrics can be found in the documentation for
-        :func:`aeon.distances.get_distance_function` or through calling
-        :func:`aeon.distances.get_distance_function_names`. If a
+        :func:``aeon.distances.get_distance_function`` or through calling
+        :func:``aeon.distances.get_distance_function_names``. If a
         callable is passed it must be
         a function that takes two 2d numpy arrays of shape ``(n_channels,
         n_timepoints)`` as input and returns a float.
@@ -48,7 +48,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         Dictionary for metric parameters for the case that distance is a str.
     n_jobs : int, default = None
         The number of parallel jobs to run for neighbors search.
-        ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.
+        ``None`` means 1 unless in a :obj:``joblib.parallel_backend`` context.
         ``-1`` means using all processors.
         for more details. Parameter for compatibility purposes, still unimplemented.
 
@@ -229,14 +229,14 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         ----------
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return ``"default"`` set.
 
         Returns
         -------
         params : dict or list of dict, default={}
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test instance.
         """
         # non-default distance and algorithm
         params1 = {"distance": "euclidean"}

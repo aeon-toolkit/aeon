@@ -70,7 +70,7 @@ class AEAttentionBiGRUNetwork(BaseDeepLearningNetwork):
             The shape of the data fed into the input layer.
         kwargs : dict
             Contains additional keyword arguments to be passed to the
-            `build_network` method like `num_input_samples`.
+            ``build_network`` method like ``num_input_samples``.
 
         Returns
         -------

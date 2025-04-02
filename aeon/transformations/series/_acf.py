@@ -14,7 +14,7 @@ class AutoCorrelationSeriesTransformer(BaseSeriesTransformer):
 
     The autocorrelation function (ACF) measures how correlated a time series is
     with itself at different lags. The AutocorrelationTransformer returns
-    these values as a series for each lag up to the `n_lags` specified. This transformer
+    these values as a series for each lag up to the ``n_lags`` specified. This transformer
     intentionally uses a simple implementation without use of FFT and makes minimal
     adjustments to the ACF. It does not adjust for the mean or variance or trend.
 
@@ -118,7 +118,7 @@ class AutoCorrelationSeriesTransformer(BaseSeriesTransformer):
         ----------
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return ``"default"`` set.
 
 
         Returns
@@ -126,7 +126,7 @@ class AutoCorrelationSeriesTransformer(BaseSeriesTransformer):
         params : dict or list of dict, default = {}
             Parameters to create testing instances of the class
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test instance.
         """
         return [{}, {"n_lags": 1}]
 
@@ -136,7 +136,7 @@ class StatsModelsACF(BaseSeriesTransformer):
 
     The autocorrelation function measures how correlated a timeseries is
     with itself at different lags. The StatsModelsACF returns
-    these values as a series for each lag up to the `n_lags` specified.
+    these values as a series for each lag up to the ``n_lags`` specified.
 
     Parameters
     ----------
@@ -170,8 +170,8 @@ class StatsModelsACF(BaseSeriesTransformer):
     Notes
     -----
     Provides wrapper around statsmodels
-    `acf <https://www.statsmodels.org/devel/generated/
-    statsmodels.tsa.stattools.acf.html>`_ function.
+    ``acf <https://www.statsmodels.org/devel/generated/
+    statsmodels.tsa.stattools.acf.html>``_ function.
 
     Examples
     --------
@@ -241,7 +241,7 @@ class StatsModelsACF(BaseSeriesTransformer):
         ----------
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return ``"default"`` set.
 
 
         Returns
@@ -249,7 +249,7 @@ class StatsModelsACF(BaseSeriesTransformer):
         params : dict or list of dict, default = {}
             Parameters to create testing instances of the class
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test instance.
         """
         return [{}, {"n_lags": 1}]
 
@@ -263,7 +263,7 @@ class StatsModelsPACF(BaseSeriesTransformer):
     on all the points between the time period and the lag.
 
     The PartialAutoCorrelationTransformer returns
-    these values as a series for each lag up to the `n_lags` specified.
+    these values as a series for each lag up to the ``n_lags`` specified.
 
     Parameters
     ----------
@@ -294,8 +294,8 @@ class StatsModelsPACF(BaseSeriesTransformer):
     Notes
     -----
     Provides wrapper around statsmodels
-    `pacf <https://www.statsmodels.org/devel/generated/
-    statsmodels.tsa.stattools.pacf.html>`_ function.
+    ``pacf <https://www.statsmodels.org/devel/generated/
+    statsmodels.tsa.stattools.pacf.html>``_ function.
 
 
     Examples
@@ -355,7 +355,7 @@ class StatsModelsPACF(BaseSeriesTransformer):
         ----------
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return ``"default"`` set.
 
 
         Returns
@@ -363,6 +363,6 @@ class StatsModelsPACF(BaseSeriesTransformer):
         params : dict or list of dict, default = {}
             Parameters to create testing instances of the class
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test instance.
         """
         return [{}, {"n_lags": 1}]

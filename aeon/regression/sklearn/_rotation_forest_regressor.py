@@ -48,23 +48,23 @@ class RotationForestRegressor(RegressorMixin, BaseEstimator):
         The proportion of cases to be removed per group.
     base_estimator : BaseEstimator or None, default="None"
         Base estimator for the ensemble. By default, uses the sklearn
-        `DecisionTreeRegressor` using MSE as a splitting measure.
+        ``DecisionTreeRegressor`` using MSE as a splitting measure.
     pca_solver : str, default="auto"
         Solver to use for the PCA ``svd_solver`` parameter. See the scikit-learn PCA
         implementation for options.
     time_limit_in_minutes : int, default=0
         Time contract to limit build time in minutes, overriding ``n_estimators``.
-        Default of `0` means ``n_estimators`` is used.
+        Default of ``0`` means ``n_estimators`` is used.
     contract_max_n_estimators : int, default=500
         Max number of estimators to build when ``time_limit_in_minutes`` is set.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both ``fit`` and ``predict``.
-        `-1` means using all processors.
+        ``-1`` means using all processors.
     random_state : int, RandomState instance or None, default=None
-        If `int`, random_state is the seed used by the random number generator;
-        If `RandomState` instance, random_state is the random number generator;
-        If `None`, the random number generator is the `RandomState` instance used
-        by `np.random`.
+        If ``int``, random_state is the seed used by the random number generator;
+        If ``RandomState`` instance, random_state is the random number generator;
+        If ``None``, the random number generator is the ``RandomState`` instance used
+        by ``np.random``.
 
     Attributes
     ----------
@@ -163,7 +163,7 @@ class RotationForestRegressor(RegressorMixin, BaseEstimator):
         if not hasattr(self, "_is_fitted") or not self._is_fitted:
             raise NotFittedError(
                 f"This instance of {self.__class__.__name__} has not "
-                f"been fitted yet; please call `fit` first."
+                f"been fitted yet; please call ``fit`` first."
             )
 
         # data processing

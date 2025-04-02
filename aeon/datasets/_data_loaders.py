@@ -331,7 +331,7 @@ def _load_saved_dataset(
 
     Returns
     -------
-    X: Data stored in specified `return_type`
+    X: Data stored in specified ``return_type``
         The time series collection for the problem.
     y: 1D numpy array of length len(X)
      The class labels for each time series instance in X.
@@ -375,7 +375,7 @@ def _load_saved_dataset(
             X = X_train + X_test
         y = np.concatenate([y_train, y_test])
     else:
-        raise ValueError("Invalid `split` value =", split)
+        raise ValueError("Invalid ``split`` value =", split)
     if return_type is not None:
         X = convert_collection(X, return_type)
     if return_meta:
@@ -506,7 +506,7 @@ def _load_tsc_dataset(
 
     Returns
     -------
-    X: Data stored in specified `return_type`
+    X: Data stored in specified ``return_type``
         The time series data for the problem, with n instances.
     y: 1D numpy array of length len(X)
         The class labels for each time series instance in X.
@@ -1078,7 +1078,7 @@ def load_regression(
     aeon.datasets.data.Covid3Month. Some of the original problems are unequal length
     and have missing values. By default, this function loads equal length no
     missing value versions of the files that have been used in experimental studies.
-    These have suffixes `_eq` or `_nmv` after the name.
+    These have suffixes ``_eq`` or ``_nmv`` after the name.
     If you want to load a different version, set the flags load_equal_length and/or
     load_no_missing to true. If present, the function will then load these versions
     if it can. aeon supports loading series with missing values and or unequal
@@ -1272,7 +1272,7 @@ def load_classification(
         format <name>_TRAIN.ts or <name>_TEST.ts.
     extract_path : str, default=None
         the path to look for the data. If no path is provided, the function
-        looks in `aeon/datasets/local_data/`. If a path is given, it can be absolute,
+        looks in ``aeon/datasets/local_data/``. If a path is given, it can be absolute,
         e.g. C:/Temp/ or relative, e.g. Temp/ or ./Temp/.
     return_metadata : boolean, default = True
         If True, returns a tuple (X, y, metadata)

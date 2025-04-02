@@ -55,16 +55,16 @@ class BORF(BaseCollectionTransformer):
         If the window standard deviation is lower than this ratio,
         the window is considered "flat" and set to all zeros to avoid amplifying noise.
     n_jobs : int, default=1
-        The number of `IndividualBORF` instances to run in parallel.
+        The number of ``IndividualBORF`` instances to run in parallel.
     n_jobs_numba : int, default=1
         The number of threads used for parallelizing each
-        configuration inside each `IndividualBORF`.
+        configuration inside each ``IndividualBORF``.
     transformer_weights : array-like or None, default=None
         Weights applied to each transformer in the pipeline.
     complexity : {'quadratic', 'linear'}, default='quadratic'
         The computational complexity mode:
-        - `'quadratic'`: Higher accuracy with more computational cost.
-        - `'linear'`: Faster computations with potentially lower accuracy.
+        - ``'quadratic'``: Higher accuracy with more computational cost.
+        - ``'linear'``: Faster computations with potentially lower accuracy.
     densify : bool, default=False
         If True, converts the output to a dense array.
         By default, the output is returned as a scipy sparse matrix.
@@ -196,9 +196,9 @@ class BORF(BaseCollectionTransformer):
         dict or list of dict
             Parameters to create testing instances of the class.
             Each dict contains parameters to construct an "interesting" test instance,
-            i.e., `MyClass(**params)` or `MyClass(**params[i])` creates a valid test
-            instance. `create_test_instance` uses the first (or only) dictionary in
-            `params`.
+            i.e., ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test
+            instance. ``create_test_instance`` uses the first (or only) dictionary in
+            ``params``.
         """
         params = [{"densify": False}, {"densify": True}]
         return params

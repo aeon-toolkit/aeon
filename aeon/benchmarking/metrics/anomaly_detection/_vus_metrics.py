@@ -120,7 +120,7 @@ def range_pr_roc_auc_support(
        Aaron Elmore, and Michael J. Franklin. Volume Under the Surface: A New Accuracy
        Evaluation Measure for Time-Series Anomaly Detection. PVLDB, 15(11):
        2774 - 2787, 2022.
-       doi:`10.14778/3551793.3551830 <https://doi.org/10.14778/3551793.3551830>`_
+       doi:``10.14778/3551793.3551830 <https://doi.org/10.14778/3551793.3551830>``_
     """
     if not skip_check:
         y_true, y_pred = check_y(y_true, y_score, force_y_pred_continuous=True)
@@ -200,7 +200,7 @@ def range_roc_auc_score(
        Aaron Elmore, and Michael J. Franklin. Volume Under the Surface: A New Accuracy
        Evaluation Measure for Time-Series Anomaly Detection. PVLDB, 15(11):
        2774 - 2787, 2022.
-       doi:`10.14778/3551793.3551830 <https://doi.org/10.14778/3551793.3551830>`_
+       doi:``10.14778/3551793.3551830 <https://doi.org/10.14778/3551793.3551830>``_
     """
     y_true, y_pred = check_y(y_true, y_score, force_y_pred_continuous=True)
     if np.unique(y_score).shape[0] == 1:
@@ -255,7 +255,7 @@ def range_pr_auc_score(
        Aaron Elmore, and Michael J. Franklin. Volume Under the Surface: A New Accuracy
        Evaluation Measure for Time-Series Anomaly Detection. PVLDB, 15(11):
        2774 - 2787, 2022.
-       doi:`10.14778/3551793.3551830 <https://doi.org/10.14778/3551793.3551830>`_
+       doi:``10.14778/3551793.3551830 <https://doi.org/10.14778/3551793.3551830>``_
     """
     y_true, y_pred = check_y(y_true, y_score, force_y_pred_continuous=True)
     if np.unique(y_score).shape[0] == 1:
@@ -307,7 +307,7 @@ def range_pr_vus_score(
        Aaron Elmore, and Michael J. Franklin. Volume Under the Surface: A New Accuracy
        Evaluation Measure for Time-Series Anomaly Detection. PVLDB, 15(11):
        2774 - 2787, 2022.
-       doi:`10.14778/3551793.3551830 <https://doi.org/10.14778/3551793.3551830>`_
+       doi:``10.14778/3551793.3551830 <https://doi.org/10.14778/3551793.3551830>``_
     """
     y_true, y_pred = check_y(y_true, y_score, force_y_pred_continuous=True)
     if np.unique(y_score).shape[0] == 1:
@@ -363,7 +363,7 @@ def range_roc_vus_score(
        Aaron Elmore, and Michael J. Franklin. Volume Under the Surface: A New Accuracy
        Evaluation Measure for Time-Series Anomaly Detection. PVLDB, 15(11):
        2774 - 2787, 2022.
-       doi:`10.14778/3551793.3551830 <https://doi.org/10.14778/3551793.3551830>`_
+       doi:``10.14778/3551793.3551830 <https://doi.org/10.14778/3551793.3551830>``_
     """
     y_true, y_pred = check_y(y_true, y_score, force_y_pred_continuous=True)
     if np.unique(y_score).shape[0] == 1:

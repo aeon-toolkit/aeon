@@ -19,19 +19,19 @@ class DCNNNetwork(BaseDeepLearningNetwork):
         Number of convolution layers.
     kernel_size: Union[int, List[int]], default=3
         Size of the 1D Convolutional Kernel. Defaults
-        to a list of three's for `n_layers` elements.
+        to a list of three's for ``n_layers`` elements.
     activation: Union[str, List[str]], default="relu"
         The activation function used by convolution layers.
-        Defaults to a list of "relu" for `n_layers` elements.
+        Defaults to a list of "relu" for ``n_layers`` elements.
     n_filters: Union[int, List[int]], default=None
         Number of filters used in convolution layers. Defaults
-        to a list of multiple's of 32 for `n_layers` elements.
+        to a list of multiple's of 32 for ``n_layers`` elements.
     dilation_rate: Union[int, List[int]], default=None
         The dilation rate for convolution. Defaults to a list of
-        powers of 2 for `n_layers` elements.
+        powers of 2 for ``n_layers`` elements.
     padding: Union[str, List[str]], default="causal"
         Padding to be used in each DCNN Layer. Defaults to a list
-        of causal paddings for `n_layers` elements.
+        of causal paddings for ``n_layers`` elements.
 
     References
     ----------
