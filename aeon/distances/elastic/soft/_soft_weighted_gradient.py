@@ -227,7 +227,7 @@ def gradient_weighted_pairwise_distance(
     )
 
 
-@njit(cache=True, fastmath=True, parallel=True)
+# @njit(cache=True, fastmath=True, parallel=True)
 def _gradient_weighted_pairwise_distance(
     X: NumbaList[np.ndarray],
     soft_method: str,
@@ -249,22 +249,27 @@ def _gradient_weighted_pairwise_distance(
     n_cases = len(X)
     distances = np.zeros((n_cases, n_cases))
 
-    bounding_matrix = None
-    if not unequal_length:
-        n_timepoints = X[0].shape[1]
-        bounding_matrix = create_bounding_matrix(
-            n_timepoints, n_timepoints, window, itakura_max_slope
-        )
+    # bounding_matrix = None
+    # if not unequal_length:
+    #     n_timepoints = X[0].shape[1]
+    #     bounding_matrix = create_bounding_matrix(
+    #         n_timepoints, n_timepoints, window, itakura_max_slope
+    #     )
+
+    n_timepoints = X[0].shape[1]
+    _bounding_matrix = create_bounding_matrix(
+        n_timepoints, n_timepoints, window, itakura_max_slope
+    )
 
     for i in prange(n_cases):
         for j in range(i + 1, n_cases):
             x1, x2 = X[i], X[j]
-            if unequal_length:
-                _bounding_matrix = create_bounding_matrix(
-                    x1.shape[1], x2.shape[1], window, itakura_max_slope
-                )
-            else:
-                _bounding_matrix = bounding_matrix
+            # if unequal_length:
+            #     _bounding_matrix = create_bounding_matrix(
+            #         x1.shape[1], x2.shape[1], window, itakura_max_slope
+            #     )
+            # else:
+            #     _bounding_matrix = bounding_matrix
 
             dist = _gradient_weighted_distance(
                 x1,
@@ -312,22 +317,25 @@ def _gradient_weighted_from_multiple_to_multiple_distance(
     n_cases_x = len(x)
     n_cases_y = len(y)
     distances = np.zeros((n_cases_x, n_cases_y))
+    # bounding_matrix = None
+    # if not unequal_length:
+    #     bounding_matrix = create_bounding_matrix(
+    #         x[0].shape[1], y[0].shape[1], window, itakura_max_slope
+    #     )
 
-    bounding_matrix = None
-    if not unequal_length:
-        bounding_matrix = create_bounding_matrix(
-            x[0].shape[1], y[0].shape[1], window, itakura_max_slope
-        )
+    _bounding_matrix = create_bounding_matrix(
+        x[0].shape[1], y[0].shape[1], window, itakura_max_slope
+    )
 
     for i in prange(n_cases_x):
         for j in range(n_cases_y):
             x1, y1 = x[i], y[j]
-            if unequal_length:
-                _bounding_matrix = create_bounding_matrix(
-                    x1.shape[1], y1.shape[1], window, itakura_max_slope
-                )
-            else:
-                _bounding_matrix = bounding_matrix
+            # if unequal_length:
+            #     _bounding_matrix = create_bounding_matrix(
+            #         x1.shape[1], y1.shape[1], window, itakura_max_slope
+            #     )
+            # else:
+            #     _bounding_matrix = bounding_matrix
 
             distances[i, j] = _gradient_weighted_distance(
                 x1,
@@ -349,50 +357,60 @@ def _gradient_weighted_from_multiple_to_multiple_distance(
     return distances
 
 
-# if __name__ == "__main__":
-#     # Create example time series
-#     from aeon.datasets import load_from_ts_file as load_dataset
-#     from aeon.classification.distance_based import KNeighborsTimeSeriesClassifier
-#     from sklearn.metrics import accuracy_score
-#
-#     DATASET_PATH = "/Users/chrisholder/Documents/Research/datasets/UCR/Univariate_ts"
-#     DATASET_NAME = "GunPoint"
-#
-#     X, y = load_dataset(full_file_path_and_name=f"{DATASET_PATH}/{DATASET_NAME}/"
-#                                                 f"{DATASET_NAME}_TRAIN.ts")
-#     X_test, y_test = load_dataset(full_file_path_and_name=f"{DATASET_PATH}/"
-#                                                           f"{DATASET_NAME}/"
-#                                                           f"{DATASET_NAME}_TEST.ts")
-#
-#     classifier = KNeighborsTimeSeriesClassifier(
-#         n_neighbors=1, distance="gradient_weighted", n_jobs=-1,
-#         distance_params={"gamma": 1.0, "soft_method": "soft_dtw"})
-#     classifier.fit(X, y)
-#
-#     print("Fitting the classifier")
-#     # Fit the classifier
-#     classifier.fit(X, y)
-#
-#     print("Predicting the labels")
-#
-#     # Predict the labels
-#     y_pred = classifier.predict(X_test)
-#     # Calculate the accuracy
-#     accuracy = accuracy_score(y_test, y_pred)
-#     print(f"Accuracy: {accuracy}")
-#
-#     classifier = KNeighborsTimeSeriesClassifier(n_neighbors=1,
-#                                                 distance="dtw", n_jobs=-1)
-#     classifier.fit(X, y)
-#     y_pred = classifier.predict(X_test)
-#     accuracy = accuracy_score(y_test, y_pred)
-#     print(f"DTW Accuracy: {accuracy}")
-#     print(f"DTW Accuracy: {accuracy}")
-#
-#     classifier = KNeighborsTimeSeriesClassifier(n_neighbors=1,
-#                                                 distance="euclidean", n_jobs=-1)
-#     classifier.fit(X, y)
-#     y_pred = classifier.predict(X_test)
-#     accuracy = accuracy_score(y_test, y_pred)
-#     print(f"Euclidean Accuracy: {accuracy}")
-#     print(f"Euclidean Accuracy: {accuracy}")
+if __name__ == "__main__":
+    # Create example time series
+    from sklearn.metrics import accuracy_score
+
+    from aeon.classification.distance_based import KNeighborsTimeSeriesClassifier
+    from aeon.datasets import load_from_ts_file as load_dataset
+
+    DATASET_PATH = "/Users/chrisholder/Documents/Research/datasets/UCR/Univariate_ts"
+    DATASET_NAME = "GunPoint"
+
+    X, y = load_dataset(
+        full_file_path_and_name=f"{DATASET_PATH}/{DATASET_NAME}/"
+        f"{DATASET_NAME}_TRAIN.ts"
+    )
+    X_test, y_test = load_dataset(
+        full_file_path_and_name=f"{DATASET_PATH}/"
+        f"{DATASET_NAME}/"
+        f"{DATASET_NAME}_TEST.ts"
+    )
+
+    classifier = KNeighborsTimeSeriesClassifier(
+        n_neighbors=1,
+        distance="gradient_weighted",
+        n_jobs=-1,
+        distance_params={"gamma": 1.0, "soft_method": "soft_dtw"},
+    )
+    classifier.fit(X, y)
+
+    print("Fitting the classifier")
+    # Fit the classifier
+    classifier.fit(X, y)
+
+    print("Predicting the labels")
+
+    # Predict the labels
+    y_pred = classifier.predict(X_test)
+    # Calculate the accuracy
+    accuracy = accuracy_score(y_test, y_pred)
+    print(f"Accuracy: {accuracy}")
+
+    classifier = KNeighborsTimeSeriesClassifier(
+        n_neighbors=1, distance="dtw", n_jobs=-1
+    )
+    classifier.fit(X, y)
+    y_pred = classifier.predict(X_test)
+    accuracy = accuracy_score(y_test, y_pred)
+    print(f"DTW Accuracy: {accuracy}")
+    print(f"DTW Accuracy: {accuracy}")
+
+    classifier = KNeighborsTimeSeriesClassifier(
+        n_neighbors=1, distance="euclidean", n_jobs=-1
+    )
+    classifier.fit(X, y)
+    y_pred = classifier.predict(X_test)
+    accuracy = accuracy_score(y_test, y_pred)
+    print(f"Euclidean Accuracy: {accuracy}")
+    print(f"Euclidean Accuracy: {accuracy}")
