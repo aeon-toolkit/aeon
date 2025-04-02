@@ -5,7 +5,6 @@ regressor. Simply forms a collection of windows from the time series and trains 
 predict the next.
 """
 
-
 import numpy as np
 from sklearn.linear_model import LinearRegression
 
@@ -38,7 +37,6 @@ class RegressionForecaster(BaseForecaster):
         with ``scikit-learn`` regressors.
     """
 
-
     def __init__(self, window, horizon=1, regressor=None):
         self.window = window
         self.regressor = regressor
@@ -63,7 +61,6 @@ class RegressionForecaster(BaseForecaster):
         self
             Fitted estimator.
         """
-
         # Window data
         if self.regressor is None:
             self.regressor_ = LinearRegression()
@@ -98,7 +95,6 @@ class RegressionForecaster(BaseForecaster):
         ``np.ndarray``
             Single prediction ``self.horizon`` steps ahead of ``y``.
         """
-
         if y is None:
             return self.regressor_.predict(self.last_)
         last = y[:, -self.window :]
@@ -123,7 +119,6 @@ class RegressionForecaster(BaseForecaster):
 
         NOTE: Deal with ``horizon`` values properly.
         """
-
         self.fit(y, exog)
         return self.predict()
 
@@ -142,5 +137,4 @@ class RegressionForecaster(BaseForecaster):
         ``dict``
             Dictionary of testing parameter settings.
         """
-
         return {"window": 4}

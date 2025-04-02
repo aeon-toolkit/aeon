@@ -1,12 +1,11 @@
 """
 ETSForecaster class.
 
-An implementation of the Exponential Smoothing (ETS) statistical forecasting algorithm.  
-Supports additive and multiplicative error models,  
-as well as ``None``, additive, and multiplicative (including damped) trend,  
+An implementation of the Exponential Smoothing (ETS) statistical forecasting algorithm.
+Supports additive and multiplicative error models,
+as well as ``None``, additive, and multiplicative (including damped) trend,
 and ``None``, additive, and multiplicative seasonality.
 """
-
 
 __maintainer__ = []
 __all__ = ["ETSForecaster", "NONE", "ADDITIVE", "MULTIPLICATIVE"]
@@ -28,8 +27,8 @@ class ETSForecaster(BaseForecaster):
     """
     Exponential Smoothing forecaster.
 
-    An implementation of the Exponential Smoothing (ETS) forecasting algorithm.  
-    Supports additive and multiplicative error models, as well as ``None``, additive,  
+    An implementation of the Exponential Smoothing (ETS) forecasting algorithm.
+    Supports additive and multiplicative error models, as well as ``None``, additive,
     and multiplicative (including damped) trend and seasonality. See [1]_ for a detailed description.
 
     Parameters
@@ -81,7 +80,6 @@ class ETSForecaster(BaseForecaster):
     449.9435566831507
     """
 
-
     def __init__(
         self,
         error_type=ADDITIVE,
@@ -126,7 +124,6 @@ class ETSForecaster(BaseForecaster):
         self
             Fitted ``BaseForecaster`` instance.
         """
-
         self.n_timepoints_ = len(y)
         if self.error_type != MULTIPLICATIVE and self.error_type != ADDITIVE:
             raise ValueError("Error must be either additive or multiplicative")
@@ -167,7 +164,7 @@ class ETSForecaster(BaseForecaster):
         Parameters
         ----------
         y : ``np.ndarray``, default=``None``
-            A time series used to predict the next ``horizon`` value.  
+            A time series used to predict the next ``horizon`` value.
             If ``None``, predicts the next ``horizon`` value after the series seen in ``fit``.
         exog : ``np.ndarray``, default=``None``
             Optional exogenous time series data, assumed to be aligned with ``y``.
@@ -177,7 +174,6 @@ class ETSForecaster(BaseForecaster):
         ``float``
             Single prediction ``self.horizon`` steps ahead of ``y``.
         """
-
         return _predict_numba(
             self.trend_type,
             self.seasonality_type,
@@ -275,10 +271,9 @@ def _initialise(trend_type, seasonality_type, seasonal_period, data):
     Parameters
     ----------
     data : ``array-like``
-        The time series data.  
+        The time series data.
         Should contain at least two full seasons if seasonality is specified.
     """
-
     # Initial Level: Mean of the first season
     level = np.mean(data[:seasonal_period])
     # Initial Trend
@@ -334,7 +329,6 @@ def _update_states(
     seasonal_index : ``int``
         The index to update the seasonal component.
     """
-
     # Retrieve the current state values
     curr_level = level
     curr_seasonality = seasonality
@@ -402,8 +396,6 @@ def _predict_value(trend_type, seasonality_type, level, trend, seasonality, phi)
     trend_level_combination : ``float``
         Combination of the trend and level based on the model type.
     """
-
-
     # Apply damping parameter and
     # calculate commonly used combination of trend and level components
     if trend_type == MULTIPLICATIVE:
