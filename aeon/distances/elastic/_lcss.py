@@ -5,14 +5,14 @@ __maintainer__ = []
 from typing import Optional, Union
 
 import numpy as np
-from numba import njit, prange, set_num_threads
+from numba import njit, prange
 from numba.typed import List as NumbaList
 
 from aeon.distances.elastic._alignment_paths import compute_lcss_return_path
 from aeon.distances.elastic._bounding_matrix import create_bounding_matrix
 from aeon.distances.pointwise._euclidean import _univariate_euclidean_distance
+from aeon.utils._threading import threaded
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
-from aeon.utils.validation import check_n_jobs
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
@@ -223,6 +223,7 @@ def _lcss_cost_matrix(
     return cost_matrix
 
 
+@threaded
 def lcss_pairwise_distance(
     X: Union[np.ndarray, list[np.ndarray]],
     y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
@@ -302,8 +303,6 @@ def lcss_pairwise_distance(
            [0.66666667, 0.        , 0.75      ],
            [1.        , 0.75      , 0.        ]])
     """
-    n_jobs = check_n_jobs(n_jobs)
-    set_num_threads(n_jobs)
     multivariate_conversion = _is_numpy_list_multivariate(X, y)
     _X, unequal_length = _convert_collection_to_numba_list(
         X, "X", multivariate_conversion

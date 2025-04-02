@@ -4,7 +4,7 @@ __maintainer__ = []
 from typing import Optional, Union
 
 import numpy as np
-from numba import njit, prange, set_num_threads
+from numba import njit, prange
 from numba.typed import List as NumbaList
 
 from aeon.distances.elastic._alignment_paths import compute_min_return_path
@@ -15,8 +15,8 @@ from aeon.distances.elastic.soft._soft_distance_utils import (
     _soft_min,
     _soft_min_with_arrs,
 )
+from aeon.utils._threading import threaded
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
-from aeon.utils.validation import check_n_jobs
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 MAX_NP_FLOAT = np.finfo(np.float64).max
@@ -139,6 +139,7 @@ def _soft_msm_univariate_cost_matrix(
     return cost_matrix
 
 
+@threaded
 def soft_msm_pairwise_distance(
     X: Union[np.ndarray, list[np.ndarray]],
     y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
@@ -149,8 +150,6 @@ def soft_msm_pairwise_distance(
     n_jobs: int = 1,
     **kwargs,
 ) -> np.ndarray:
-    n_jobs = check_n_jobs(n_jobs)
-    set_num_threads(n_jobs)
     multivariate_conversion = _is_numpy_list_multivariate(X, y)
     _X, unequal_length = _convert_collection_to_numba_list(
         X, "X", multivariate_conversion

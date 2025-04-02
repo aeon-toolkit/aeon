@@ -3,10 +3,10 @@ __maintainer__ = []
 from typing import Union
 
 import numpy as np
-from numba import njit, prange, set_num_threads
+from numba import njit, prange
 
+from aeon.utils._threading import threaded
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
-from aeon.utils.validation import check_n_jobs
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
@@ -85,6 +85,7 @@ def _univariate_sax_distance(
     return np.sqrt(dist)
 
 
+@threaded
 def mindist_sax_pairwise_distance(
     X: np.ndarray,
     y: np.ndarray,
@@ -122,8 +123,6 @@ def mindist_sax_pairwise_distance(
         If X and y are not 1D, 2D arrays when passing both X and y.
 
     """
-    n_jobs = check_n_jobs(n_jobs)
-    set_num_threads(n_jobs)
     multivariate_conversion = _is_numpy_list_multivariate(X, y)
     _X, unequal_length = _convert_collection_to_numba_list(
         X, "X", multivariate_conversion

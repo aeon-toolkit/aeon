@@ -6,12 +6,12 @@ import warnings
 from typing import Optional, Union
 
 import numpy as np
-from numba import njit, objmode, prange, set_num_threads
+from numba import njit, objmode, prange
 from numba.typed import List as NumbaList
 from scipy.signal import correlate
 
+from aeon.utils._threading import threaded
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
-from aeon.utils.validation import check_n_jobs
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
@@ -115,6 +115,7 @@ def sbd_distance(x: np.ndarray, y: np.ndarray, standardize: bool = True) -> floa
     raise ValueError("x and y must be 1D or 2D")
 
 
+@threaded
 def sbd_pairwise_distance(
     X: Union[np.ndarray, list[np.ndarray]],
     y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
@@ -196,8 +197,6 @@ def sbd_pairwise_distance(
            [0.36754447, 0.        , 0.29289322],
            [0.5527864 , 0.29289322, 0.        ]])
     """
-    n_jobs = check_n_jobs(n_jobs)
-    set_num_threads(n_jobs)
     if n_jobs > 1:
         warnings.warn(
             "You have set n_jobs > 1. For this distance function "

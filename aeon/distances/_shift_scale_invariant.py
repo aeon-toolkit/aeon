@@ -3,11 +3,11 @@
 from typing import Optional, Union
 
 import numpy as np
-from numba import njit, prange, set_num_threads
+from numba import njit, prange
 from numba.typed import List as NumbaList
 
+from aeon.utils._threading import threaded
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
-from aeon.utils.validation import check_n_jobs
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
@@ -157,6 +157,7 @@ def _univariate_shift_scale_invariant_distance(
     return min_dist, best_shifted_y
 
 
+@threaded
 def shift_scale_invariant_pairwise_distance(
     X: Union[np.ndarray, list[np.ndarray]],
     y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
@@ -230,8 +231,6 @@ def shift_scale_invariant_pairwise_distance(
     >>> y_univariate = np.array([11., 12., 13.])
     >>> single_pw =shift_scale_invariant_pairwise_distance(X, y_univariate)
     """
-    n_jobs = check_n_jobs(n_jobs)
-    set_num_threads(n_jobs)
     if max_shift is None:
         if y is None:
             max_shift = X.shape[-1]
