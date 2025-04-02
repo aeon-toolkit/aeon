@@ -227,7 +227,7 @@ def gradient_weighted_pairwise_distance(
     )
 
 
-# @njit(cache=True, fastmath=True, parallel=True)
+@njit(cache=True, fastmath=True, parallel=True)
 def _gradient_weighted_pairwise_distance(
     X: NumbaList[np.ndarray],
     soft_method: str,
