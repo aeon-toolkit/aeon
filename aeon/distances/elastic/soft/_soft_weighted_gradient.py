@@ -1,7 +1,6 @@
 from typing import Optional, Union
 
 import numpy as np
-from jupyter_client import threaded
 from numba import njit, prange
 from numba.typed import List as NumbaList
 
@@ -18,6 +17,7 @@ from aeon.distances.elastic.soft._soft_shape_dtw import (
 )
 from aeon.distances.elastic.soft._soft_twe import _soft_twe_cost_matrix_with_arrs
 from aeon.distances.elastic.soft._soft_wdtw import _soft_wdtw_cost_matrix_with_arrs
+from aeon.utils._threading import threaded
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
