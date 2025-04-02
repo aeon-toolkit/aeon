@@ -13,28 +13,68 @@ Each detector in this module specifies its supported input data format, output d
 format, and learning type as an overview table in its documentation. Some detectors
 support multiple learning types.
 
-Detectors
----------
+Distance-based
+--------------
 
-.. currentmodule:: aeon.anomaly_detection
+.. currentmodule:: aeon.anomaly_detection.distance_based
 
 .. autosummary::
     :toctree: auto_generated/
     :template: class.rst
 
     CBLOF
-    COPOD
-    DWT_MLEAD
-    IsolationForest
     KMeansAD
     LeftSTAMPi
     LOF
     MERLIN
-    OneClassSVM
-    PyODAdapter
-    ROCKAD
     STOMP
+
+Distributin-based
+-----------------
+
+.. currentmodule:: aeon.anomaly_detection.distribution_based
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    COPOD
+    DWT_MLEAD
+
+Outlier-Detection
+-----------------
+
+.. currentmodule:: aeon.anomaly_detection.outlier_detection
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    IsolationForest
+    PyODAdapter
     STRAY
+
+Sklearn-based
+-------------
+
+.. currentmodule:: aeon.anomaly_detection.sklearn_based
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    OneClassSVM
+
+Whole-Series
+------------
+
+.. currentmodule:: aeon.anomaly_detection.whole_series
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    ROCKAD
 
 Base
 ----
