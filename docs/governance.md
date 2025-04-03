@@ -100,7 +100,7 @@ CoCW members are expected to review reports of CoC violations, contact and discu
 involved individuals and make recommendations on actions to take.
 
 Any CoCW members involved in a CoC report or CoCW members which have a conflict of
-interest regarding the report are expected to recuse themselves from the process. The
+interest regarding the report are expected to recurse themselves from the process. The
 CoCW is given triage access to the `aeon` GitHub repository to moderate discussions if
 necessary.
 

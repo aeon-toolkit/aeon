@@ -201,7 +201,7 @@ def estimator_alias(name: str) -> str:
 def get_available_estimators(
     task: str = "classification", as_list: bool = False
 ) -> Union[pd.DataFrame, list]:
-    """Get a DataFrame of estimators avialable for a specific learning task.
+    """Get a DataFrame of estimators available for a specific learning task.
 
     Parameters
     ----------

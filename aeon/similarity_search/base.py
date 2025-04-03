@@ -146,7 +146,7 @@ class BaseSimilaritySearch(BaseCollectionEstimator):
         exclusion_factor: Optional[float] = 2.0,
     ) -> np.ndarray:
         """
-        Initiliaze the mask indicating the candidates to be evaluated in the search.
+        Initialize the mask indicating the candidates to be evaluated in the search.
 
         Parameters
         ----------
@@ -228,5 +228,5 @@ class BaseSimilaritySearch(BaseCollectionEstimator):
 
     @abstractmethod
     def get_speedup_function_names(self):
-        """Return a dictionnary containing the name of the speedup functions."""
+        """Return a dictionary containing the name of the speedup functions."""
         ...

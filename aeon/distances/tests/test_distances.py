@@ -141,7 +141,7 @@ def test_distances(dist):
 
     # ============== Test single point series ==============
     if dist["name"] not in SINGLE_POINT_NOT_SUPPORTED_DISTANCES:
-        # Test singe point univariate of shape (1,)
+        # Test single point univariate of shape (1,)
         _validate_distance_result(
             np.array([10.0]),
             np.array([15.0]),
@@ -151,7 +151,7 @@ def test_distances(dist):
             _expected_distance_results[dist["name"]][4],
         )
 
-        # Test singe point univariate of shape (1, 1)
+        # Test single point univariate of shape (1, 1)
         _validate_distance_result(
             np.array([[10.0]]),
             np.array([[15.0]]),

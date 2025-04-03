@@ -47,7 +47,7 @@ def plot_critical_difference(
     averaging ranks over ties), then sorts estimators on average rank. It then forms
     cliques. The original critical difference diagrams [1]_ use the post hoc Neymeni
     test [4]_ to find a critical difference. However, as discussed [3]_,this post hoc
-    test is senstive to the estimators included in the test: "For instance the
+    test is sensitive to the estimators included in the test: "For instance the
     difference between A and B could be declared significant if the pool comprises
     algorithms C, D, E and not significant if the pool comprises algorithms
     F, G, H.". Our default option is to base cliques finding on pairwise Wilcoxon sign

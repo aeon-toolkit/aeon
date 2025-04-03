@@ -75,7 +75,7 @@ international airline passengers, 1949 to 1960, in thousands.
 A multivariate time series is made up of multiple series or channels, where each
 observation is a vector of related recordings in the same time index. An example
 would be a motion trace from a smartwatch with at least three dimensions (X,Y,Z
-co-ordinates), or multiple financial statistics recorded over time. Single
+coordinates), or multiple financial statistics recorded over time. Single
 multivariate series input typically follows the shape `(n_channels, n_timepoints)` by
 default. Algorithms may have an `axis` parameter to change this, where `axis=1` assumes
 the default shape and is the default setting, and `axis=0` assumes the shape
@@ -324,10 +324,10 @@ the predict method, which expects a single 2D time series as input
 (n_channels, query_length). This 2D time series will be used as a query to search for in
 the 3D database.
 
-The result of the predict method will then depends on wheter you use the [QuerySearch](similarity_search.query_search.QuerySearch)
+The result of the predict method will then depends on whether you use the [QuerySearch](similarity_search.query_search.QuerySearch)
 and the [SeriesSearch](similarity_search.series_search.SeriesSearch) estimator. In [QuerySearch](similarity_search.query_search.QuerySearch), the 2D series is a subsequence
-for which we want to indentify the best (or worst !) matches in the 3D database.
-For [SeriesSearch](similarity_search.series_search.SeriesSearch), we require a `length` parmater, and we will search for the best
+for which we want to identify the best (or worst !) matches in the 3D database.
+For [SeriesSearch](similarity_search.series_search.SeriesSearch), we require a `length` parameter, and we will search for the best
 matches of all subsequences of size `length` in the 2D series inside the 3D database.
 By default, these estimators will use the Euclidean (or squared Euclidean) distance,
 but more distance will be added in the future.

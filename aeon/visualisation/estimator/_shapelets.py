@@ -45,7 +45,7 @@ def compute_shapelet_dist_vector(
     distance vector:
         - min
         - argmin
-        - Shapelet Occurence : number of point in the distance vector inferior to the
+        - Shapelet Occurrence : number of point in the distance vector inferior to the
         threshold parameter
 
     Parameters
@@ -75,14 +75,14 @@ def compute_shapelet_dist_vector(
 
 class ShapeletVisualizer:
     """
-    A Shapelet object to use for ploting operations.
+    A Shapelet object to use for plotting operations.
 
     Parameters
     ----------
     values : array, shape=(n_channels, length)
         Values of the shapelet.
     normalise : bool
-        Wheter the shapelet use a normalised distance.
+        Whether the shapelet use a normalised distance.
     dilation : int
         Dilation of the shapelet. The default is 1, which is equivalent to no
         dilation.
@@ -90,7 +90,7 @@ class ShapeletVisualizer:
         Lambda threshold for Shapelet Occurrence feature. The default value is None
         if it is not used (used in RDST).
     length : int
-        Length of the shapelet. The default values is None, meaning length is infered
+        Length of the shapelet. The default values is None, meaning length is inferred
         from the values array. Otherwise, the values array 2nd axis will be set to this
         length.
 
@@ -153,15 +153,15 @@ class ShapeletVisualizer:
         scatter_options : dict
             Options to apply to scatter plot of the shapelet values.
         figure_options : dict
-            Dictionnary of options passed to plt.figure. Only used if ax is None.
+            Dictionary of options passed to plt.figure. Only used if ax is None.
         rc_Params_options: dict
-            Dictionnary of options passed to plt.rcParams.update. Only used if ax is
+            Dictionary of options passed to plt.rcParams.update. Only used if ax is
             None.
         matplotlib_style: str
             Matplotlib style to be used. Only used if ax is None.
         custom_title_string : str
             If not None, use this string as title for the plot instead of the default
-            one based on the shapelet parametres.
+            one based on the shapelet parameters.
 
         Returns
         -------
@@ -244,13 +244,13 @@ class ShapeletVisualizer:
             A matplotlib axe on which to plot the figure. The default is None
             and will create a new figure of size figsize.
         scatter_options : dict
-            Dictionnary of options passed to the scatter plot of the shapelet values.
+            Dictionary of options passed to the scatter plot of the shapelet values.
         line_options : dict
-            Dictionnary of options passed to the plot of the time series values.
+            Dictionary of options passed to the plot of the time series values.
         figure_options : dict
-            Dictionnary of options passed to plt.figure. Only used if ax is None.
+            Dictionary of options passed to plt.figure. Only used if ax is None.
         rc_Params_options: dict
-            Dictionnary of options passed to plt.rcParams.update. Only used if ax is
+            Dictionary of options passed to plt.rcParams.update. Only used if ax is
             None.
         matplotlib_style: str
             Matplotlib style to be used. Only used if ax is None.
@@ -259,7 +259,7 @@ class ShapeletVisualizer:
         -------
         fig : matplotlib figure
             The resulting figure with S on its best match on X. A normalised
-            shapelet will be scalled to macth the scale of X.
+            shapelet will be scaled to macth the scale of X.
 
         """
         _check_soft_dependencies("matplotlib")
@@ -358,17 +358,17 @@ class ShapeletVisualizer:
             A matplotlib axe on which to plot the figure. The default is None
             and will create a new figure of size figsize.
         show_legend : bool, optional
-            Wheter to show legend. Default is True
+            Whether to show legend. Default is True
         show_threshold: bool, optional
-            Wheter to show threshold (if it is not set to None). Default is True.
+            Whether to show threshold (if it is not set to None). Default is True.
         threshold_options : dict
-            Dictionnary of options passed to the line plot of the threshold.
+            Dictionary of options passed to the line plot of the threshold.
         line_options : dict
-            Dictionnary of options passed to the plot of the distance vector values.
+            Dictionary of options passed to the plot of the distance vector values.
         figure_options : dict
-            Dictionnary of options passed to plt.figure. Only used if ax is None.
+            Dictionary of options passed to plt.figure. Only used if ax is None.
         rc_Params_options: dict
-            Dictionnary of options passed to plt.rcParams.update. Only used if ax is
+            Dictionary of options passed to plt.rcParams.update. Only used if ax is
             None.
         matplotlib_style: str
             Matplotlib style to be used. Only used if ax is None.
@@ -497,13 +497,13 @@ class ShapeletTransformerVisualizer:
             A matplotlib axe on which to plot the figure. The default is None
             and will create a new figure of size figsize.
         scatter_options : dict
-            Dictionnary of options passed to the scatter plot of the shapelet values.
+            Dictionary of options passed to the scatter plot of the shapelet values.
         line_options : dict
-            Dictionnary of options passed to the plot of the time series values.
+            Dictionary of options passed to the plot of the time series values.
         figure_options : dict
-            Dictionnary of options passed to plt.figure. Only used if ax is None.
+            Dictionary of options passed to plt.figure. Only used if ax is None.
         rc_Params_options: dict
-            Dictionnary of options passed to plt.rcParams.update. Only used if ax is
+            Dictionary of options passed to plt.rcParams.update. Only used if ax is
             None.
         matplotlib_style: str
             Matplotlib style to be used. Only used if ax is None.
@@ -512,7 +512,7 @@ class ShapeletTransformerVisualizer:
         -------
         fig : matplotlib figure
             The resulting figure with S on its best match on X. A normalised
-            shapelet will be scalled to macth the scale of X.
+            shapelet will be scaled to macth the scale of X.
 
         """
         return self._get_shapelet(id_shapelet).plot_on_X(
@@ -559,17 +559,17 @@ class ShapeletTransformerVisualizer:
             A matplotlib axe on which to plot the figure. The default is None
             and will create a new figure of size figsize.
         show_legend : bool, optional
-            Wheter to show legend. Default is True
+            Whether to show legend. Default is True
         show_threshold: bool, optional
-            Wheter to show threshold (if it is not set to None). Default is True.
+            Whether to show threshold (if it is not set to None). Default is True.
         threshold_options : dict
-            Dictionnary of options passed to the line plot of the threshold.
+            Dictionary of options passed to the line plot of the threshold.
         line_options : dict
-            Dictionnary of options passed to the plot of the distance vector values.
+            Dictionary of options passed to the plot of the distance vector values.
         figure_options : dict
-            Dictionnary of options passed to plt.figure. Only used if ax is None.
+            Dictionary of options passed to plt.figure. Only used if ax is None.
         rc_Params_options: dict
-            Dictionnary of options passed to plt.rcParams.update. Only used if ax is
+            Dictionary of options passed to plt.rcParams.update. Only used if ax is
             None.
         matplotlib_style: str
             Matplotlib style to be used. Only used if ax is None.
@@ -629,17 +629,17 @@ class ShapeletTransformerVisualizer:
         scatter_options : dict
              Options to apply to scatter plot of the shapelet values.
         line_options : dict
-             Dictionnary of options passed to plt.plot. Only used if ax is None.
+             Dictionary of options passed to plt.plot. Only used if ax is None.
         figure_options : dict
-            Dictionnary of options passed to plt.figure. Only used if ax is None.
+            Dictionary of options passed to plt.figure. Only used if ax is None.
         rc_Params_options: dict
-            Dictionnary of options passed to plt.rcParams.update. Only used if ax is
+            Dictionary of options passed to plt.rcParams.update. Only used if ax is
             None.
         matplotlib_style: str
             Matplotlib style to be used. Only used if ax is None.
         custom_title_string : str
             If not None, use this string as title for the plot instead of the default
-            one based on the shapelet parametres.
+            one based on the shapelet parameters.
 
         Returns
         -------
@@ -781,7 +781,7 @@ class ShapeletClassifierVisualizer:
             titles = [
                 "Boxplot of min",
                 "Boxplot of argmin",
-                "Boxplot of Shapelet Occurence",
+                "Boxplot of Shapelet Occurrence",
             ]
             for i in range(3):
                 box_data = [
@@ -896,21 +896,21 @@ class ShapeletClassifierVisualizer:
             Sample ID to use for sample of class_id.If None, a random one from that
             class is selected.
         scatter_options : dict
-            Dictionnary of options passed to the scatter plot of the shapelet values.
+            Dictionary of options passed to the scatter plot of the shapelet values.
         x_plot_options : dict
-            Dictionnary of options passed to the plot of the time series values.
+            Dictionary of options passed to the plot of the time series values.
         shp_plot_options : dict
-            Dictionnary of options passed to the plot of the shapelet values.
+            Dictionary of options passed to the plot of the shapelet values.
         threshold_plot_options : dict
-            Dictionnary of options passed to the line plot of the threshold.
+            Dictionary of options passed to the line plot of the threshold.
         dist_plot_options : dict
-            Dictionnary of options passed to the plot of the distance vector values.
+            Dictionary of options passed to the plot of the distance vector values.
         figure_options : dict
-            Dictionnary of options passed to plt.figure.
+            Dictionary of options passed to plt.figure.
         boxplot_options : dict
-            Dictionnary of options passed to features boxplot.
+            Dictionary of options passed to features boxplot.
         rc_Params_options: dict
-            Dictionnary of options passed to plt.rcParams.update.
+            Dictionary of options passed to plt.rcParams.update.
         matplotlib_style: str
             Matplotlib style to be used.
 
@@ -1099,13 +1099,13 @@ class ShapeletClassifierVisualizer:
             A matplotlib axe on which to plot the figure. The default is None
             and will create a new figure of size figsize.
         scatter_options : dict
-            Dictionnary of options passed to the scatter plot of the shapelet values.
+            Dictionary of options passed to the scatter plot of the shapelet values.
         line_options : dict
-            Dictionnary of options passed to the plot of the time series values.
+            Dictionary of options passed to the plot of the time series values.
         figure_options : dict
-            Dictionnary of options passed to plt.figure. Only used if ax is None.
+            Dictionary of options passed to plt.figure. Only used if ax is None.
         rc_Params_options: dict
-            Dictionnary of options passed to plt.rcParams.update. Only used if ax is
+            Dictionary of options passed to plt.rcParams.update. Only used if ax is
             None.
         matplotlib_style: str
             Matplotlib style to be used. Only used if ax is None.
@@ -1114,7 +1114,7 @@ class ShapeletClassifierVisualizer:
         -------
         fig : matplotlib figure
             The resulting figure with S on its best match on X. A normalised
-            shapelet will be scalled to macth the scale of X.
+            shapelet will be scaled to macth the scale of X.
 
         """
         return self.transformer_vis.plot_on_X(
@@ -1162,17 +1162,17 @@ class ShapeletClassifierVisualizer:
             A matplotlib axe on which to plot the figure. The default is None
             and will create a new figure of size figsize.
         show_legend : bool, optional
-            Wheter to show legend. Default is True
+            Whether to show legend. Default is True
         show_threshold: bool, optional
-            Wheter to show threshold (if it is not set to None). Default is True.
+            Whether to show threshold (if it is not set to None). Default is True.
         threshold_plot_options : dict
-            Dictionnary of options passed to the line plot of the threshold.
+            Dictionary of options passed to the line plot of the threshold.
         dist_plot_options : dict
-            Dictionnary of options passed to the plot of the distance vector values.
+            Dictionary of options passed to the plot of the distance vector values.
         figure_options : dict
-            Dictionnary of options passed to plt.figure. Only used if ax is None.
+            Dictionary of options passed to plt.figure. Only used if ax is None.
         rc_Params_options: dict
-            Dictionnary of options passed to plt.rcParams.update. Only used if ax is
+            Dictionary of options passed to plt.rcParams.update. Only used if ax is
             None.
         matplotlib_style: str
             Matplotlib style to be used. Only used if ax is None.
@@ -1233,17 +1233,17 @@ class ShapeletClassifierVisualizer:
         scatter_options : dict
              Options to apply to scatter plot of the shapelet values.
         line_options : dict
-             Dictionnary of options passed to plt.plot. Only used if ax is None.
+             Dictionary of options passed to plt.plot. Only used if ax is None.
         figure_options : dict
-            Dictionnary of options passed to plt.figure. Only used if ax is None.
+            Dictionary of options passed to plt.figure. Only used if ax is None.
         rc_Params_options: dict
-            Dictionnary of options passed to plt.rcParams.update. Only used if ax is
+            Dictionary of options passed to plt.rcParams.update. Only used if ax is
             None.
         matplotlib_style: str
             Matplotlib style to be used. Only used if ax is None.
         custom_title_string : str
             If not None, use this string as title for the plot instead of the default
-            one based on the shapelet parametres.
+            one based on the shapelet parameters.
 
         Returns
         -------

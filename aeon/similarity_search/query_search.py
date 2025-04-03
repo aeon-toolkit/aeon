@@ -175,7 +175,7 @@ class QuerySearch(BaseSimilaritySearch):
             TopKSimilaritySearch, the k best matches are also subject to the exclusion
             zone, but with :math:`id_timestamp` the index of one of the k matches.
         apply_exclusion_to_result : bool, default=False
-            Wheter to apply the exclusion factor to the output of the similarity search.
+            Whether to apply the exclusion factor to the output of the similarity search.
             This means that two matches of the query from the same sample must be at
             least spaced by +/- :math:`query_length//exclusion_factor`.
             This can avoid pathological matching where, for example if we extract the
@@ -313,7 +313,7 @@ class QuerySearch(BaseSimilaritySearch):
         ------
         ValueError
             If the distance parameter given at initialization is not a string nor a
-            numba function or a callable, or if the speedup parameter is unknow or
+            numba function or a callable, or if the speedup parameter is unknown or
             unsupported, raisea ValueError.
 
         Returns
@@ -381,8 +381,8 @@ class QuerySearch(BaseSimilaritySearch):
         """
         Get available speedup for query search in aeon.
 
-        The returned structure is a dictionnary that contains the names of all
-        avaialble speedups for normalised and non-normalised distance functions.
+        The returned structure is a dictionary that contains the names of all
+        available speedups for normalised and non-normalised distance functions.
 
         Returns
         -------

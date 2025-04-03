@@ -156,7 +156,7 @@ def create_multi_comparison_matrix(
     include_legend: bool, default = True
         Whether or not to show the legend on the MCM.
     show_symetry: bool, default = True
-        Whether or not to show the symetrical part of the heatmap.
+        Whether or not to show the symmetrical part of the heatmap.
 
     Returns
     -------
