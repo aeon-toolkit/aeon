@@ -1,11 +1,17 @@
 import timeit
+
 from joblib import Parallel, delayed
+
 
 def single_threaded_task(n):
     return sum(i * i for i in range(n))
 
+
 def multi_threaded_task(n, n_jobs=4):
-    return Parallel(n_jobs=n_jobs)(delayed(single_threaded_task)(n//n_jobs) for _ in range(n_jobs))
+    return Parallel(n_jobs=n_jobs)(
+        delayed(single_threaded_task)(n // n_jobs) for _ in range(n_jobs)
+    )
+
 
 # Benchmarking
 n = 10**6
