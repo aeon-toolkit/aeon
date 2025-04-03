@@ -179,6 +179,8 @@ def _gradient_weighted_distance(
         for j in range(y_size):
             if bounding_matrix[i, j] and grad[i, j] > 0:
                 sq_dist = diff_dist_matrix[i, j] ** 2
+                if sq_dist == 0:
+                    break
                 weighted_dist += sq_dist * grad[i, j]
 
     return weighted_dist
@@ -359,6 +361,8 @@ def _gradient_weighted_from_multiple_to_multiple_distance(
 
 if __name__ == "__main__":
     # Create example time series
+    import time
+
     from sklearn.metrics import accuracy_score
 
     from aeon.classification.distance_based import KNeighborsTimeSeriesClassifier
@@ -381,18 +385,20 @@ if __name__ == "__main__":
         n_neighbors=1,
         distance="gradient_weighted",
         n_jobs=-1,
-        distance_params={"gamma": 1.0, "soft_method": "soft_dtw"},
+        distance_params={"gamma": 0.1, "soft_method": "soft_msm"},
     )
-    classifier.fit(X, y)
 
     print("Fitting the classifier")
     # Fit the classifier
+    start = time.time()
     classifier.fit(X, y)
 
     print("Predicting the labels")
 
     # Predict the labels
     y_pred = classifier.predict(X_test)
+    end = time.time()
+    print(f"Training took {end - start} seconds")
     # Calculate the accuracy
     accuracy = accuracy_score(y_test, y_pred)
     print(f"Accuracy: {accuracy}")
