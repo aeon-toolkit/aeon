@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal
 
 if TYPE_CHECKING:
     import numpy as np
     import tensorflow as tf
-    from tensorflow.keras.callbacks import Callback
+    from tensorflow.keras.callbacks import Callback, History
 
 __maintainer__ = ["hadifawaz1999"]
 __all__ = ["DisjointCNNRegressor"]
@@ -98,7 +98,7 @@ class DisjointCNNRegressor(BaseDeepRegressor):
         by `np.random`.
         Seeded random number generation can only be guaranteed on CPU processing,
         GPU processing will be non-deterministic.
-    verbose : boolean, default = False
+    verbose : Literal["auto", 0, 1, 2], default = 0
         Whether to output extra information.
     output_activation : str, default = "linear",
         the output activation of the regressor.
@@ -186,7 +186,7 @@ class DisjointCNNRegressor(BaseDeepRegressor):
         batch_size: int = 16,
         use_mini_batch_size: bool = False,
         random_state: int | np.random.RandomState | None = None,
-        verbose: bool = False,
+        verbose: Literal["auto", 0, 1, 2] = 0,
         output_activation: str = "linear",
         loss: str = "mean_squared_error",
         metrics: str | list[str] = "mean_squared_error",
@@ -232,7 +232,7 @@ class DisjointCNNRegressor(BaseDeepRegressor):
         self.best_file_name = best_file_name
         self.init_file_name = init_file_name
 
-        self.history = None
+        self.history: History | None = None
 
         super().__init__(
             batch_size=batch_size,
@@ -257,7 +257,7 @@ class DisjointCNNRegressor(BaseDeepRegressor):
         )
 
     def build_model(
-        self, input_shape: tuple[int, int], **kwargs: Any
+        self, input_shape: tuple[int, ...], **kwargs: Any
     ) -> tf.keras.Model:
         """Construct a compiled, un-trained, keras model that is ready for training.
 
@@ -293,7 +293,9 @@ class DisjointCNNRegressor(BaseDeepRegressor):
             tf.keras.optimizers.Adam() if self.optimizer is None else self.optimizer
         )
 
-        model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
+        model: tf.keras.Model = tf.keras.models.Model(
+            inputs=input_layer, outputs=output_layer
+        )
         model.compile(
             loss=self.loss,
             optimizer=self.optimizer_,
