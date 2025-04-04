@@ -73,13 +73,187 @@ class RClusterer(BaseClusterer):
         random_state=None,
         n_jobs=1,
     ):
-        self.num_features = num_features
-        self.n_init = n_init
-        self.n_jobs = n_jobs
+
         self.n_kernels = n_kernels
         self.max_dilations_per_kernel = max_dilations_per_kernel
         self.n_clusters = n_clusters
+        self.num_features = num_features
+        self.n_init = n_init
         self.random_state = random_state
+        self.n_jobs = n_jobs
+        super().__init__()
+
+    def _get_parameterised_data(self, X):
+        """
+        Generate parameterized data for transformation.
+
+        This method prepares the required parameters for transforming
+        time-series data using MiniRocket.
+
+        Parameters
+        ----------
+        X : np.ndarray
+            Input data of shape (n_samples, n_channels, n_timepoints).
+
+        Returns
+        -------
+        tuple
+            Contains processed parameters including dilations, features, and biases.
+        """
+        random_state = np.random.RandomState(self.random_state)
+        X = X.astype(np.float32)
+
+        _, n_channels, n_timepoints = X.shape
+
+        dilations, num_features_per_dilation = _fit_dilations(
+            n_timepoints, self.num_features, self.max_dilations_per_kernel
+        )
+
+        num_features_per_kernel = np.sum(num_features_per_dilation)
+
+        quantiles = _quantiles(self.n_kernels * num_features_per_kernel)
+
+        quantiles = random_state.permutation(quantiles)
+
+        n_dilations = len(dilations)
+        n_combinations = self.n_kernels * n_dilations
+        max_n_channels = min(n_channels, 9)
+        max_exponent = np.log2(max_n_channels + 1)
+        n_channels_per_combination = (
+            2 ** np.random.uniform(0, max_exponent, n_combinations)
+        ).astype(np.int32)
+        channel_indices = np.zeros(n_channels_per_combination.sum(), dtype=np.int32)
+        n_channels_start = 0
+        for combination_index in range(n_combinations):
+            n_channels_this_combination = n_channels_per_combination[combination_index]
+            n_channels_end = n_channels_start + n_channels_this_combination
+            channel_indices[n_channels_start:n_channels_end] = np.random.choice(
+                n_channels, n_channels_this_combination, replace=False
+            )
+            n_channels_start = n_channels_end
+        biases = _fit_biases(
+            X,
+            n_channels_per_combination,
+            channel_indices,
+            dilations,
+            num_features_per_dilation,
+            quantiles,
+            self.indices,
+            self.random_state,
+        )
+
+        return (
+            np.array([_], dtype=np.int32),
+            np.array([_], dtype=np.int32),
+            dilations,
+            num_features_per_dilation,
+            biases,
+        )
+
+    def check_params(self, X):
+        """
+        Check and adjust parameters related to multiprocessing.
+
+        Parameters
+        ----------
+        X : np.ndarray
+            Input data.
+
+        Returns
+        -------
+        np.ndarray
+            Processed input data with float32 type.
+        """
+        X = X.astype(np.float32)
+        if self.n_jobs < 1 or self.n_jobs > multiprocessing.cpu_count():
+            n_jobs = multiprocessing.cpu_count()
+        else:
+            n_jobs = self.n_jobs
+        set_num_threads(n_jobs)
+        return X
+
+    def _get_transformed_data(self, X, parameters):
+        """
+        Transform input data using extracted parameters.
+
+        Parameters
+        ----------
+        X : np.ndarray
+            Input data.
+        parameters : tuple
+            Precomputed parameters for transformation.
+
+        Returns
+        -------
+        np.ndarray
+            Transformed data.
+        """
+        prev_threads = get_num_threads()
+        X = self.check_params(X)
+        X = X.squeeze(1)
+        X_ = _static_transform_uni(X, parameters, self.indices)
+        set_num_threads(prev_threads)
+        return X_
+
+    def _fit(self, X, y=None):
+        """
+        Fit the clustering model using transformed PCA-reduced data.
+
+        Parameters
+        ----------
+        X : np.ndarray
+            Input data.
+        y : None
+            Ignored.
+        """
+        self.set_indices()
+        parameters = self._get_parameterised_data(X)
+
+        transformed_data = self._get_transformed_data(X=X, parameters=parameters)
+        self.scaler = StandardScaler()
+        X_std = self.scaler.fit_transform(transformed_data)
+
+        pca = PCA().fit(X_std)
+        optimal_dimensions = np.argmax(pca.explained_variance_ratio_ < 0.01)
+
+        self.pca = PCA(n_components=optimal_dimensions, random_state=self.random_state)
+        self.pca.fit(X_std)
+        transformed_data_pca = self.pca.transform(X_std)
+
+        self.estimator = KMeans(
+            n_clusters=self.n_clusters,
+            random_state=self.random_state,
+            n_init=self.n_init,
+        )
+        self.estimator.fit(transformed_data_pca)
+        self.labels_ = self.estimator.labels_
+
+    def _predict(self, X, y=None) -> np.ndarray:
+        """
+        Predict cluster labels for new data.
+
+        Parameters
+        ----------
+        X : np.ndarray
+            Input data.
+        y : None
+            Ignored.
+
+        Returns
+        -------
+        labels : np.ndarray
+            Array of cluster labels for each time series.
+        """
+        parameters = self._get_parameterised_data(X)
+
+        transformed_data = self._get_transformed_data(X=X, parameters=parameters)
+        X_std = self.scaler.transform(transformed_data)
+        pca = self.pca
+        transformed_data_pca = pca.transform(X_std)
+
+        return self.estimator.predict(transformed_data_pca)
+
+    def set_indices(self):
         self.indices = np.array(
             (
                 1,
@@ -337,213 +511,6 @@ class RClusterer(BaseClusterer):
             ),
             dtype=np.int32,
         ).reshape(84, 3)
-        super().__init__()
-
-    def _get_parameterised_data(self, X):
-        """
-        Generate parameterized data for transformation.
-
-        This method prepares the required parameters for transforming
-        time-series data using MiniRocket.
-
-        Parameters
-        ----------
-        X : np.ndarray
-            Input data of shape (n_samples, n_channels, n_timepoints).
-
-        Returns
-        -------
-        tuple
-            Contains processed parameters including dilations, features, and biases.
-        """
-        random_state = np.random.RandomState(self.random_state)
-        X = X.astype(np.float32)
-
-        _, n_channels, n_timepoints = X.shape
-
-        dilations, num_features_per_dilation = _fit_dilations(
-            n_timepoints, self.num_features, self.max_dilations_per_kernel
-        )
-
-        num_features_per_kernel = np.sum(num_features_per_dilation)
-
-        quantiles = _quantiles(self.n_kernels * num_features_per_kernel)
-
-        quantiles = random_state.permutation(quantiles)
-
-        n_dilations = len(dilations)
-        n_combinations = self.n_kernels * n_dilations
-        max_n_channels = min(n_channels, 9)
-        max_exponent = np.log2(max_n_channels + 1)
-        n_channels_per_combination = (
-            2 ** np.random.uniform(0, max_exponent, n_combinations)
-        ).astype(np.int32)
-        channel_indices = np.zeros(n_channels_per_combination.sum(), dtype=np.int32)
-        n_channels_start = 0
-        for combination_index in range(n_combinations):
-            n_channels_this_combination = n_channels_per_combination[combination_index]
-            n_channels_end = n_channels_start + n_channels_this_combination
-            channel_indices[n_channels_start:n_channels_end] = np.random.choice(
-                n_channels, n_channels_this_combination, replace=False
-            )
-            n_channels_start = n_channels_end
-        biases = _fit_biases(
-            X,
-            n_channels_per_combination,
-            channel_indices,
-            dilations,
-            num_features_per_dilation,
-            quantiles,
-            self.indices,
-            self.random_state,
-        )
-
-        return (
-            np.array([_], dtype=np.int32),
-            np.array([_], dtype=np.int32),
-            dilations,
-            num_features_per_dilation,
-            biases,
-        )
-
-    def check_params(self, X):
-        """
-        Check and adjust parameters related to multiprocessing.
-
-        Parameters
-        ----------
-        X : np.ndarray
-            Input data.
-
-        Returns
-        -------
-        np.ndarray
-            Processed input data with float32 type.
-        """
-        X = X.astype(np.float32)
-        if self.n_jobs < 1 or self.n_jobs > multiprocessing.cpu_count():
-            n_jobs = multiprocessing.cpu_count()
-        else:
-            n_jobs = self.n_jobs
-        set_num_threads(n_jobs)
-        return X
-
-    def _get_transformed_data(self, X, parameters):
-        """
-        Transform input data using extracted parameters.
-
-        Parameters
-        ----------
-        X : np.ndarray
-            Input data.
-        parameters : tuple
-            Precomputed parameters for transformation.
-
-        Returns
-        -------
-        np.ndarray
-            Transformed data.
-        """
-        prev_threads = get_num_threads()
-        X = self.check_params(X)
-        X = X.squeeze(1)
-        X_ = _static_transform_uni(X, parameters, self.indices)
-        set_num_threads(prev_threads)
-        return X_
-
-    def _fit(self, X, y=None):
-        """
-        Fit the clustering model using transformed PCA-reduced data.
-
-        Parameters
-        ----------
-        X : np.ndarray
-            Input data.
-        y : None
-            Ignored.
-        """
-        parameters = self._get_parameterised_data(X)
-
-        transformed_data = self._get_transformed_data(X=X, parameters=parameters)
-        self.scaler = StandardScaler()
-        X_std = self.scaler.fit_transform(transformed_data)
-
-        pca = PCA().fit(X_std)
-        optimal_dimensions = np.argmax(pca.explained_variance_ratio_ < 0.01)
-
-        self.pca = PCA(n_components=optimal_dimensions, random_state=self.random_state)
-        self.pca.fit(X_std)
-        transformed_data_pca = self.pca.transform(X_std)
-
-        self.estimator = KMeans(
-            n_clusters=self.n_clusters,
-            random_state=self.random_state,
-            n_init=self.n_init,
-        )
-        self.estimator.fit(transformed_data_pca)
-        self.labels_ = self.estimator.labels_
-
-    def _predict(self, X, y=None) -> np.ndarray:
-        """
-        Predict cluster labels for new data.
-
-        Parameters
-        ----------
-        X : np.ndarray
-            Input data.
-        y : None
-            Ignored.
-
-        Returns
-        -------
-        labels : np.ndarray
-            Array of cluster labels for each time series.
-        """
-        parameters = self._get_parameterised_data(X)
-
-        transformed_data = self._get_transformed_data(X=X, parameters=parameters)
-        X_std = self.scaler.transform(transformed_data)
-        pca = self.pca
-        transformed_data_pca = pca.transform(X_std)
-
-        return self.estimator.predict(transformed_data_pca)
-
-    def _fit_predict(self, X, y=None) -> np.ndarray:
-        """
-        Fit and predict cluster labels for the input data.
-
-        Parameters
-        ----------
-        X : np.ndarray
-            Input data.
-        y : None
-            Ignored.
-
-        Returns
-        -------
-        labels : np.ndarray
-            Array of cluster labels for each time series.
-        """
-        parameters = self._get_parameterised_data(X)
-        transformed_data = self._get_transformed_data(X=X, parameters=parameters)
-        self.scaler = StandardScaler()
-        X_std = self.scaler.fit_transform(transformed_data)
-
-        pca = PCA().fit(X_std)
-        optimal_dimensions = np.argmax(pca.explained_variance_ratio_ < 0.01)
-
-        self.pca = PCA(n_components=optimal_dimensions, random_state=self.random_state)
-        self.pca.fit(X_std)
-        transformed_data_pca = self.pca.transform(X_std)
-        self.estimator = KMeans(
-            n_clusters=self.n_clusters,
-            random_state=self.random_state,
-            n_init=self.n_init,
-        )
-        Y = self.estimator.fit_predict(transformed_data_pca)
-        self.labels_ = self.estimator.labels_
-        self.is_fitted = True
-        return Y
 
     @classmethod
     def _get_test_params(cls, parameter_set="default") -> dict:
@@ -564,5 +531,4 @@ class RClusterer(BaseClusterer):
         """
         return {
             "n_clusters": 2,
-            "random_state": 1,
         }
