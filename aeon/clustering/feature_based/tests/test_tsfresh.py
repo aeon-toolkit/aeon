@@ -7,6 +7,7 @@ from aeon.clustering.feature_based import TSFreshClusterer
 from aeon.datasets import load_basic_motions, load_gunpoint
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
+
 @pytest.mark.skipif(
     not _check_soft_dependencies(["tsfresh"], severity="none"),
     reason="TSFresh soft dependency unavailable.",

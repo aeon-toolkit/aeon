@@ -5,6 +5,7 @@ import numpy as np
 from aeon.clustering.feature_based import SummaryClusterer
 from aeon.datasets import load_basic_motions, load_gunpoint
 
+
 def test_all_summary_stat_uni():
     """Test Summary Clusterer with all summary stat."""
     X_train, y_train = load_gunpoint(split="train")
@@ -24,6 +25,7 @@ def test_all_summary_stat_uni():
         assert not np.isnan(test_result).any()
         assert test_result.shape == (8,)
         assert train_result.shape == (8,)
+
 
 def test_all_summary_stat_multi():
     """Test Summary Clusterer with all summary stat."""
