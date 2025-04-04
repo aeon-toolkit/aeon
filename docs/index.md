@@ -285,6 +285,7 @@ experimental modules are:
 - `segmentation`
 - `similarity_search`
 - `visualisation`
+- `transformations.collection.imbalance`
 
 ```{toctree}
 :caption: Using aeon
