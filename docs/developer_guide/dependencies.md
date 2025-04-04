@@ -15,7 +15,7 @@ We are unlikely to add new core dependencies, without a strong reason. Soft depe
 should be the first choice for new dependencies, but ideally the code should be written
 in `aeon` itself if possible.
 
-Al dependencies are managed in the [`pyproject.toml`](https://github.com/aeon-toolkit/aeon/blob/main/pyproject.toml)
+All dependencies are managed in the [`pyproject.toml`](https://github.com/aeon-toolkit/aeon/blob/main/pyproject.toml)
 file following the [PEP 621](https://www.python.org/dev/peps/pep-0621/) convention.
 Core dependencies are listed in the `dependencies` dependency set and
 developer dependencies are listed in the `dev` and `docs` dependency sets.
