@@ -35,7 +35,6 @@ if "@aeon-actions-bot" in body:
     # Assign commenter if comment includes any phrase that is in ASSIGNMENT_PHRASES
     if any(phrase in body for phrase in ASSIGNMENT_PHRASES):
         issue.add_to_assignees(commenter)
-
     # Assign tagged used to the issue if the comment includes the trigger phrase
     elif "assign" in body:
         mentioned_users = re.findall(r"@[a-zA-Z0-9_-]+", comment_body)
