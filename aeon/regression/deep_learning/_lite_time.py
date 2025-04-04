@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal
 
 __author__ = ["aadya940", "hadifawaz1999"]
 __all__ = ["IndividualLITERegressor", "LITETimeRegressor"]
@@ -97,7 +97,7 @@ class LITETimeRegressor(BaseRegressor):
         by `np.random`.
         Seeded random number generation can only be guaranteed on CPU processing,
         GPU processing will be non-deterministic.
-    verbose : boolean, default = False
+    verbose : Literal["auto", 0, 1, 2], default = 0
         whether to output extra information
     loss : str, default = "mean_squared_error"
         The name of the keras training loss.
@@ -163,7 +163,7 @@ class LITETimeRegressor(BaseRegressor):
         n_epochs: int = 1500,
         callbacks: Callback | list[Callback] | None = None,
         random_state: int | np.random.RandomState | None = None,
-        verbose: bool = False,
+        verbose: Literal["auto", 0, 1, 2] = 0,
         loss: str = "mean_squared_error",
         metrics: str | list[str] = "mean_squared_error",
         optimizer: tf.keras.optimizers.Optimizer | None = None,
@@ -198,7 +198,7 @@ class LITETimeRegressor(BaseRegressor):
         self.metrics = metrics
         self.optimizer = optimizer
 
-        self.regressors_ = []
+        self.regressors_: list[IndividualLITERegressor] = []
 
         super().__init__()
 
@@ -380,7 +380,7 @@ class IndividualLITERegressor(BaseDeepRegressor):
         by `np.random`.
         Seeded random number generation can only be guaranteed on CPU processing,
         GPU processing will be non-deterministic.
-    verbose : boolean, default = False
+    verbose : Literal["auto", 0, 1, 2], default = 0
         whether to output extra information
     loss : str, default = "mean_squared_error"
         The name of the keras training loss.
@@ -437,7 +437,7 @@ class IndividualLITERegressor(BaseDeepRegressor):
         n_epochs: int = 1500,
         callbacks: Callback | list[Callback] | None = None,
         random_state: int | np.random.RandomState | None = None,
-        verbose: bool = False,
+        verbose: Literal["auto", 0, 1, 2] = 0,
         loss: str = "mean_squared_error",
         metrics: str | list[str] = "mean_squared_error",
         optimizer: tf.keras.optimizers.Optimizer | None = None,
@@ -480,7 +480,9 @@ class IndividualLITERegressor(BaseDeepRegressor):
             activation=self.activation,
         )
 
-    def build_model(self, input_shape: tuple, **kwargs: Any) -> tf.keras.Model:
+    def build_model(
+        self, input_shape: tuple[int, ...], **kwargs: Any
+    ) -> tf.keras.Model:
         """
         Construct a compiled, un-trained, keras model that is ready for training.
 
@@ -505,7 +507,9 @@ class IndividualLITERegressor(BaseDeepRegressor):
             output_layer
         )
 
-        model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
+        model: tf.keras.Model = tf.keras.models.Model(
+            inputs=input_layer, outputs=output_layer
+        )
 
         self.optimizer_ = (
             tf.keras.optimizers.Adam() if self.optimizer is None else self.optimizer

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal
 
 __maintainer__ = ["hadifawaz1999"]
 __all__ = ["TimeCNNRegressor"]
@@ -20,7 +20,7 @@ from aeon.regression.deep_learning.base import BaseDeepRegressor
 if TYPE_CHECKING:
     import numpy as np
     import tensorflow as tf
-    from tensorflow.keras.callbacks import Callback
+    from tensorflow.keras.callbacks import Callback, History
 
 
 class TimeCNNRegressor(BaseDeepRegressor):
@@ -72,7 +72,7 @@ class TimeCNNRegressor(BaseDeepRegressor):
         the number of epochs to train the model
     batch_size : int, default = 16
         the number of samples per gradient update.
-    verbose : boolean, default = False
+    verbose : Literal["auto", 0, 1, 2], default = 0
         whether to output extra information
     loss : str, default = "mean_squared_error"
         The name of the keras training loss.
@@ -129,7 +129,7 @@ class TimeCNNRegressor(BaseDeepRegressor):
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
     ...                              return_y=True, regression_target=True,
     ...                              random_state=0)
-    >>> rgs = TimeCNNRegressor(n_epochs=20, bacth_size=4) # doctest: +SKIP
+    >>> rgs = TimeCNNRegressor(n_epochs=20, batch_size=4) # doctest: +SKIP
     >>> rgs.fit(X, y) # doctest: +SKIP
     TimeCNNRegressor(...)
     """
@@ -154,7 +154,7 @@ class TimeCNNRegressor(BaseDeepRegressor):
         best_file_name: str = "best_model",
         last_file_name: str = "last_model",
         init_file_name: str = "init_model",
-        verbose: bool = False,
+        verbose: Literal["auto", 0, 1, 2] = 0,
         loss: str = "mean_squared_error",
         output_activation: str = "linear",
         metrics: str | list[str] = "mean_squared_error",
@@ -186,7 +186,7 @@ class TimeCNNRegressor(BaseDeepRegressor):
         self.use_bias = use_bias
         self.optimizer = optimizer
 
-        self.history = None
+        self.history: History | None = None
 
         super().__init__(
             batch_size=batch_size,
@@ -206,7 +206,7 @@ class TimeCNNRegressor(BaseDeepRegressor):
         )
 
     def build_model(
-        self, input_shape: tuple[int, int], **kwargs: Any
+        self, input_shape: tuple[int, ...], **kwargs: Any
     ) -> tf.keras.Model:
         """Construct a compiled, un-trained, keras model that is ready for training.
 
@@ -241,7 +241,9 @@ class TimeCNNRegressor(BaseDeepRegressor):
             keras.optimizers.Adam() if self.optimizer is None else self.optimizer
         )
 
-        model = keras.models.Model(inputs=input_layer, outputs=output_layer)
+        model: tf.keras.Model = keras.models.Model(
+            inputs=input_layer, outputs=output_layer
+        )
 
         model.compile(
             loss=self.loss,

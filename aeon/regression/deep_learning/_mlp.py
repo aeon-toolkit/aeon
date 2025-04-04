@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal
 
 __author__ = ["Aadya-Chinubhai", "hadifawaz1999"]
 __all__ = ["MLPRegressor"]
@@ -15,7 +15,7 @@ from copy import deepcopy
 if TYPE_CHECKING:
     import numpy as np
     import tensorflow as tf
-    from tensorflow.keras.callbacks import Callback
+    from tensorflow.keras.callbacks import Callback, History
 
 from sklearn.utils import check_random_state
 
@@ -52,7 +52,7 @@ class MLPRegressor(BaseDeepRegressor):
         default = None
         The default list of callbacks are set to
         ModelCheckpoint and ReduceLROnPlateau.
-    verbose : boolean, default = False
+    verbose : Literal["auto", 0, 1, 2], default = 0
         whether to output extra information
     loss : str, default = "mean_squared_error"
         The name of the keras training loss.
@@ -121,12 +121,12 @@ class MLPRegressor(BaseDeepRegressor):
         n_units: int | list[int] = 500,
         activation: str | list[str] = "relu",
         dropout_rate: float | list[float] | None = None,
-        dropout_last: float | None = None,
+        dropout_last: float = 0.3,
         use_bias: bool = True,
         n_epochs: int = 2000,
         batch_size: int = 16,
         callbacks: Callback | list[Callback] | None = None,
-        verbose: bool = False,
+        verbose: Literal["auto", 0, 1, 2] = 0,
         loss: str = "mean_squared_error",
         metrics: str | list[str] = "mean_squared_error",
         file_path: str = "./",
@@ -161,7 +161,7 @@ class MLPRegressor(BaseDeepRegressor):
         self.random_state = random_state
         self.output_activation = output_activation
 
-        self.history = None
+        self.history: History | None = None
 
         super().__init__(
             batch_size=batch_size,
@@ -178,7 +178,7 @@ class MLPRegressor(BaseDeepRegressor):
         )
 
     def build_model(
-        self, input_shape: tuple[int, int], **kwargs: Any
+        self, input_shape: tuple[int, ...], **kwargs: Any
     ) -> tf.keras.Model:
         """Construct a compiled, un-trained, keras model that is ready for training.
 
@@ -214,7 +214,9 @@ class MLPRegressor(BaseDeepRegressor):
             keras.optimizers.Adadelta() if self.optimizer is None else self.optimizer
         )
 
-        model = keras.models.Model(inputs=input_layer, outputs=output_layer)
+        model: tf.keras.Model = keras.models.Model(
+            inputs=input_layer, outputs=output_layer
+        )
         model.compile(
             loss=self.loss,
             optimizer=self.optimizer_,

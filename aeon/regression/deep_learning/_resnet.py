@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal
 
 __maintainer__ = ["hadifawaz1999"]
 __all__ = ["ResNetRegressor"]
@@ -15,7 +15,7 @@ from copy import deepcopy
 if TYPE_CHECKING:
     import numpy as np
     import tensorflow as tf
-    from tensorflow.keras.callbacks import Callback
+    from tensorflow.keras.callbacks import Callback, History
 
 from sklearn.utils import check_random_state
 
@@ -105,7 +105,7 @@ class ResNetRegressor(BaseDeepRegressor):
         init_file_name : str, default = "init_model"
             The name of the file of the init model, if save_init_model is set to False,
             this parameter is discarded.
-        verbose : boolean, default = False
+        verbose : Literal["auto", 0, 1, 2], default = False
             whether to output extra information
         loss : str, default = "mean_squared_error"
             The name of the keras training loss.
@@ -135,7 +135,7 @@ class ResNetRegressor(BaseDeepRegressor):
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
     ...                              return_y=True, regression_target=True,
     ...                              random_state=0)
-    >>> rgs = ResNetRegressor(n_epochs=20, bacth_size=4) # doctest: +SKIP
+    >>> rgs = ResNetRegressor(n_epochs=20, batch_size=4) # doctest: +SKIP
     >>> rgs.fit(X, y) # doctest: +SKIP
     ResNetRegressor(...)
     """
@@ -153,7 +153,7 @@ class ResNetRegressor(BaseDeepRegressor):
         use_bias: bool | list[bool] = True,
         n_epochs: int = 1500,
         callbacks: Callback | list[Callback] | None = None,
-        verbose: bool = False,
+        verbose: Literal["auto", 0, 1, 2] = 0,
         loss: str = "mean_squared_error",
         output_activation: str = "linear",
         metrics: str | list[str] = "mean_squared_error",
@@ -194,7 +194,7 @@ class ResNetRegressor(BaseDeepRegressor):
         self.init_file_name = init_file_name
         self.optimizer = optimizer
 
-        self.history = None
+        self.history: History | None = None
 
         super().__init__(batch_size=batch_size, last_file_name=last_file_name)
 
@@ -211,7 +211,7 @@ class ResNetRegressor(BaseDeepRegressor):
         )
 
     def build_model(
-        self, input_shape: tuple[int, int], **kwargs: Any
+        self, input_shape: tuple[int, ...], **kwargs: Any
     ) -> tf.keras.Model:
         """Construct a compiled, un-trained, keras model that is ready for training.
 
@@ -248,7 +248,9 @@ class ResNetRegressor(BaseDeepRegressor):
             activation=self.output_activation,
         )(output_layer)
 
-        model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
+        model: tf.keras.Model = tf.keras.models.Model(
+            inputs=input_layer, outputs=output_layer
+        )
         model.compile(
             loss=self.loss,
             optimizer=self.optimizer_,

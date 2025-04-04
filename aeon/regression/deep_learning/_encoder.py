@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal
 
 __author__ = ["AnonymousCodes911", "hadifawaz1999"]
 __all__ = ["EncoderRegressor"]
@@ -16,7 +16,7 @@ from copy import deepcopy
 if TYPE_CHECKING:
     import numpy as np
     import tensorflow as tf
-    from tensorflow.keras.callbacks import Callback
+    from tensorflow.keras.callbacks import Callback, History
 
 from sklearn.utils import check_random_state
 
@@ -140,7 +140,7 @@ class EncoderRegressor(BaseDeepRegressor):
         best_file_name: str = "best_model",
         last_file_name: str = "last_model",
         init_file_name: str = "init_model",
-        verbose: bool = False,
+        verbose: Literal["auto", 0, 1, 2] = 0,
         loss: str = "mean_squared_error",
         metrics: str | list[str] = "mean_squared_error",
         use_bias: bool = True,
@@ -171,7 +171,7 @@ class EncoderRegressor(BaseDeepRegressor):
         self.use_bias = use_bias
         self.optimizer = optimizer
 
-        self.history = None
+        self.history: History | None = None
 
         super().__init__(
             batch_size=batch_size,
@@ -190,7 +190,7 @@ class EncoderRegressor(BaseDeepRegressor):
         )
 
     def build_model(
-        self, input_shape: tuple[int, int], **kwargs: Any
+        self, input_shape: tuple[int, ...], **kwargs: Any
     ) -> tf.keras.Model:
         """Construct a compiled, un-trained, keras model that is ready for training.
 
@@ -225,7 +225,9 @@ class EncoderRegressor(BaseDeepRegressor):
             else self.optimizer
         )
 
-        model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
+        model: tf.keras.Model = tf.keras.models.Model(
+            inputs=input_layer, outputs=output_layer
+        )
         model.compile(
             loss=self.loss,
             optimizer=self.optimizer_,
