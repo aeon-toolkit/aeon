@@ -26,7 +26,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
 
     A KNN classifier which supports time series distance measures.
     It determines distance function through string references to numba
-    based distances in aeon.distances, and can also be used with callables.
+    based distances in ``aeon.distances``, and can also be used with callables.
 
     Parameters
     ----------
@@ -40,16 +40,16 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         Distance measure between time series.
         Distance metric to compute similarity between time series. A ``list`` of valid
         strings for metrics can be found in the documentation for
-        :func:`aeon.distances.get_distance_function` or through calling
-        :func:`aeon.distances.get_distance_function_names`. If a
+        :func:``aeon.distances.get_distance_function`` or through calling
+        :func:``aeon.distances.get_distance_function_names``. If a
         ``callable`` is passed it must be
-        a function that takes two 2d numpy arrays of shape ``(n_channels,
-        n_timepoints)`` as input and returns a ``float``.
+        a function that takes two 2d numpy arrays of shape `(n_channels,
+        n_timepoints)` as input and returns a ``float``.
     distance_params : dict, default = None
         Dictionary for metric parameters for the case that distance is a ``str``.
     n_jobs : int, default = None
         The number of parallel jobs to run for neighbors search.
-        ``None`` means `1` unless in a :obj:`joblib.parallel_backend` context.
+        ``None`` means `1` unless in a :obj:``joblib.parallel_backend`` context.
         `-1` means using all processors.
         for more details. Parameter for compatibility purposes, still unimplemented.
 
@@ -101,7 +101,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
 
     def _fit(self, X, y):
         """
-        Fit the model using X as training data and y as target values.
+        Fit the model using `X` as training data and `y` as target values.
 
         Parameters
         ----------
@@ -186,7 +186,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         Parameters
         ----------
         X : np.ndarray
-            A `single time series` instance if shape = ``(n_channels, n_timepoints)``
+            A `single time series` instance if shape = `(n_channels, n_timepoints)`
 
         Returns
         -------

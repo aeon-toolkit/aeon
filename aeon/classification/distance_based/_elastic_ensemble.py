@@ -32,7 +32,7 @@ class ElasticEnsemble(BaseClassifier):
     """The Elastic Ensemble (EE) of time series distance measures.
 
     The Elastic Ensemble [1]_ is an ensemble of 1-NN classifiers using elastic
-    distances (as defined in `aeon.distances`). By default, each 1-NN classifier
+    distances (as defined in ``aeon.distances``). By default, each 1-NN classifier
     is tuned over `100` parameter values and the ensemble vote is weighted by
     an estimate of accuracy formed on the train set.
 
