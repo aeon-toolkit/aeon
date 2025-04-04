@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING
 
 __maintainer__ = ["hadifawaz1999"]
 __all__ = ["InceptionTimeRegressor"]
@@ -13,6 +13,7 @@ import time
 from copy import deepcopy
 
 if TYPE_CHECKING:
+    from typing import Any
     import tensorflow as tf
     from tensorflow.keras.callbacks import Callback
 
@@ -136,7 +137,7 @@ class InceptionTimeRegressor(BaseRegressor):
             by `np.random`.
             Seeded random number generation can only be guaranteed on CPU processing,
             GPU processing will be non-deterministic.
-        verbose : Literal["auto", 0, 1, 2], default = 0
+        verbose : boolean, default = False
             whether to output extra information
         optimizer : keras.optimizer, default = tf.keras.optimizers.Adam()
             The keras optimizer used for training.
@@ -216,7 +217,7 @@ class InceptionTimeRegressor(BaseRegressor):
         n_epochs: int = 1500,
         callbacks: Callback | list[Callback] | None = None,
         random_state: int | np.random.RandomState | None = None,
-        verbose: Literal["auto", 0, 1, 2] = 0,
+        verbose: bool = False,
         loss: str = "mean_squared_error",
         metrics: str | list[str] = "mean_squared_error",
         optimizer: tf.keras.optimizers.Optimizer | None = None,
@@ -475,7 +476,7 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
             by `np.random`.
             Seeded random number generation can only be guaranteed on CPU processing,
             GPU processing will be non-deterministic.
-        verbose : Literal["auto", 0, 1, 2], default = 0
+        verbose : boolean, default = False
             whether to output extra information
         optimizer : keras.optimizer, default = tf.keras.optimizers.Adam()
             The keras optimizer used for training.
@@ -545,7 +546,7 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
         n_epochs: int = 1500,
         callbacks: Callback | list[Callback] | None = None,
         random_state: int | np.random.RandomState | None = None,
-        verbose: Literal["auto", 0, 1, 2] = 0,
+        verbose: bool = False,
         loss: str = "mean_squared_error",
         metrics: str | list[str] = "mean_squared_error",
         optimizer: tf.keras.optimizers.Optimizer | None = None,
@@ -621,7 +622,6 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
         tf.keras.models.Model
             A compiled Keras Model
         """
-        import numpy as np
         import tensorflow as tf
 
         rng = check_random_state(self.random_state)
@@ -633,9 +633,7 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
             output_layer
         )
 
-        model: tf.keras.Model = tf.keras.models.Model(
-            inputs=input_layer, outputs=output_layer
-        )
+        model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
 
         self.optimizer_ = (
             tf.keras.optimizers.Adam() if self.optimizer is None else self.optimizer

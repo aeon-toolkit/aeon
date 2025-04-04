@@ -7,14 +7,15 @@ because we can generalise tags and _predict
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
-__maintainer__: list[str] = []
+__maintainer__ = []
 __all__ = ["BaseDeepRegressor"]
 
 from abc import abstractmethod
 
 if TYPE_CHECKING:
+    from typing import Any
     import tensorflow as tf
     from tensorflow.keras.callbacks import Callback
 
@@ -53,7 +54,7 @@ class BaseDeepRegressor(BaseRegressor):
         self.batch_size = batch_size
         self.last_file_name = last_file_name
 
-        self.model_: tf.keras.Model | None = None
+        self.model_ = None
 
         super().__init__()
 
@@ -99,8 +100,6 @@ class BaseDeepRegressor(BaseRegressor):
         predictions : 1d numpy array
             array of predictions of each instance
         """
-        if self.model_ is None:
-            raise ValueError("Model has not been fitted. Call fit before predict.")
         X = X.transpose((0, 2, 1))
         y_pred = self.model_.predict(X, self.batch_size)
         y_pred = np.squeeze(y_pred, axis=-1)
@@ -118,8 +117,6 @@ class BaseDeepRegressor(BaseRegressor):
         -------
         None
         """
-        if self.model_ is None:
-            raise ValueError("Cannot save model: model has not been fitted.")
         self.model_.save(file_path + self.last_file_name + ".keras")
 
     def load_model(self, model_path: str) -> None:
