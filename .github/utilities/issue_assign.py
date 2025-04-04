@@ -29,16 +29,18 @@ ASSIGNMENT_PHRASES = [
     "give me this issue",
 ]
 
-# Assign commenter if comment includes any phrase that is in ASSIGNMENT_PHRASES
+
 body = comment_body.lower()
-if "@aeon-actions-bot" in body and any(phrase in body for phrase in ASSIGNMENT_PHRASES):
-    issue.add_to_assignees(commenter)
+if "@aeon-actions-bot" in body:
+    # Assign commenter if comment includes any phrase that is in ASSIGNMENT_PHRASES
+    if any(phrase in body for phrase in ASSIGNMENT_PHRASES):
+        issue.add_to_assignees(commenter)
 
-# Assign tagged used to the issue if the comment includes the trigger phrase
-elif "@aeon-actions-bot" in body and "assign" in body:
-    mentioned_users = re.findall(r"@[a-zA-Z0-9_-]+", comment_body)
-    mentioned_users = [user[1:] for user in mentioned_users]
-    mentioned_users.remove("aeon-actions-bot")
+    # Assign tagged used to the issue if the comment includes the trigger phrase
+    elif "assign" in body:
+        mentioned_users = re.findall(r"@[a-zA-Z0-9_-]+", comment_body)
+        mentioned_users = [user[1:] for user in mentioned_users]
+        mentioned_users.remove("aeon-actions-bot")
 
-    for user in mentioned_users:
-        issue.add_to_assignees(user)
+        for user in mentioned_users:
+            issue.add_to_assignees(user)
