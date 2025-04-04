@@ -186,7 +186,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         Parameters
         ----------
         X : np.ndarray
-            A single time series instance if shape = `(n_channels, n_timepoints)`
+            A `single time series` instance if shape = `(n_channels, n_timepoints)`
 
         Returns
         -------
