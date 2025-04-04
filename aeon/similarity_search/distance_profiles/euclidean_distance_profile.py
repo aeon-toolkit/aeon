@@ -22,7 +22,7 @@ def euclidean_distance_profile(
 
     It computes the distance profiles between the input time series and the query using
     the squared Euclidean distance. The distance between the query and a candidate is
-    comptued using a dot product and a rolling sum to avoid recomputing parts of the
+    computed using a dot product and a rolling sum to avoid recomputing parts of the
     operation.
 
     Parameters

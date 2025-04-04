@@ -17,7 +17,7 @@ class RegressionForecaster(BaseForecaster):
 
     Container for forecaster that reduces forecasting to regression through a
     window. Form a collection of sub series of length `window` through a sliding
-    winodw to form X, take `horizon` points ahead to form `y`, then apply an aeon or
+    window to form X, take `horizon` points ahead to form `y`, then apply an aeon or
     sklearn regressor.
 
 
