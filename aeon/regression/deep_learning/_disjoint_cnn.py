@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    import numpy as np
+    from typing import Any
+
     import tensorflow as tf
-    from tensorflow.keras.callbacks import Callback, History
+    from tensorflow.keras.callbacks import Callback
 
 __maintainer__ = ["hadifawaz1999"]
 __all__ = ["DisjointCNNRegressor"]
@@ -17,6 +18,7 @@ import os
 import time
 from copy import deepcopy
 
+import numpy as np
 from sklearn.utils import check_random_state
 
 from aeon.networks import DisjointCNNNetwork
@@ -98,7 +100,7 @@ class DisjointCNNRegressor(BaseDeepRegressor):
         by `np.random`.
         Seeded random number generation can only be guaranteed on CPU processing,
         GPU processing will be non-deterministic.
-    verbose : Literal["auto", 0, 1, 2], default = 0
+    verbose : boolean, default = False
         Whether to output extra information.
     output_activation : str, default = "linear",
         the output activation of the regressor.
@@ -186,7 +188,7 @@ class DisjointCNNRegressor(BaseDeepRegressor):
         batch_size: int = 16,
         use_mini_batch_size: bool = False,
         random_state: int | np.random.RandomState | None = None,
-        verbose: Literal["auto", 0, 1, 2] = 0,
+        verbose: bool = False,
         output_activation: str = "linear",
         loss: str = "mean_squared_error",
         metrics: str | list[str] = "mean_squared_error",
@@ -232,7 +234,7 @@ class DisjointCNNRegressor(BaseDeepRegressor):
         self.best_file_name = best_file_name
         self.init_file_name = init_file_name
 
-        self.history: History | None = None
+        self.history = None
 
         super().__init__(
             batch_size=batch_size,
@@ -277,7 +279,6 @@ class DisjointCNNRegressor(BaseDeepRegressor):
         -------
         output : a compiled Keras Model
         """
-        import numpy as np
         import tensorflow as tf
 
         rng = check_random_state(self.random_state)
@@ -293,9 +294,7 @@ class DisjointCNNRegressor(BaseDeepRegressor):
             tf.keras.optimizers.Adam() if self.optimizer is None else self.optimizer
         )
 
-        model: tf.keras.Model = tf.keras.models.Model(
-            inputs=input_layer, outputs=output_layer
-        )
+        model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
         model.compile(
             loss=self.loss,
             optimizer=self.optimizer_,

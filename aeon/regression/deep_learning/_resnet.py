@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING
 
 __maintainer__ = ["hadifawaz1999"]
 __all__ = ["ResNetRegressor"]
@@ -13,10 +13,11 @@ import time
 from copy import deepcopy
 
 if TYPE_CHECKING:
-    import numpy as np
+    from typing import Any
     import tensorflow as tf
-    from tensorflow.keras.callbacks import Callback, History
+    from tensorflow.keras.callbacks import Callback
 
+import numpy as np
 from sklearn.utils import check_random_state
 
 from aeon.networks import ResNetNetwork
@@ -105,7 +106,7 @@ class ResNetRegressor(BaseDeepRegressor):
         init_file_name : str, default = "init_model"
             The name of the file of the init model, if save_init_model is set to False,
             this parameter is discarded.
-        verbose : Literal["auto", 0, 1, 2], default = False
+        verbose : boolean, default = False
             whether to output extra information
         loss : str, default = "mean_squared_error"
             The name of the keras training loss.
@@ -153,7 +154,7 @@ class ResNetRegressor(BaseDeepRegressor):
         use_bias: bool | list[bool] = True,
         n_epochs: int = 1500,
         callbacks: Callback | list[Callback] | None = None,
-        verbose: Literal["auto", 0, 1, 2] = 0,
+        verbose: bool = False,
         loss: str = "mean_squared_error",
         output_activation: str = "linear",
         metrics: str | list[str] = "mean_squared_error",
@@ -194,7 +195,7 @@ class ResNetRegressor(BaseDeepRegressor):
         self.init_file_name = init_file_name
         self.optimizer = optimizer
 
-        self.history: History | None = None
+        self.history = None
 
         super().__init__(batch_size=batch_size, last_file_name=last_file_name)
 
@@ -229,7 +230,6 @@ class ResNetRegressor(BaseDeepRegressor):
         -------
         output : a compiled Keras Model
         """
-        import numpy as np
         import tensorflow as tf
 
         self.optimizer_ = (
@@ -248,9 +248,7 @@ class ResNetRegressor(BaseDeepRegressor):
             activation=self.output_activation,
         )(output_layer)
 
-        model: tf.keras.Model = tf.keras.models.Model(
-            inputs=input_layer, outputs=output_layer
-        )
+        model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
         model.compile(
             loss=self.loss,
             optimizer=self.optimizer_,

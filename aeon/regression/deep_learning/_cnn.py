@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING
 
 __maintainer__ = ["hadifawaz1999"]
 __all__ = ["TimeCNNRegressor"]
@@ -12,15 +12,17 @@ import os
 import time
 from copy import deepcopy
 
+import numpy as np
 from sklearn.utils import check_random_state
 
 from aeon.networks import TimeCNNNetwork
 from aeon.regression.deep_learning.base import BaseDeepRegressor
 
 if TYPE_CHECKING:
-    import numpy as np
+    from typing import Any
+
     import tensorflow as tf
-    from tensorflow.keras.callbacks import Callback, History
+    from tensorflow.keras.callbacks import Callback
 
 
 class TimeCNNRegressor(BaseDeepRegressor):
@@ -72,7 +74,7 @@ class TimeCNNRegressor(BaseDeepRegressor):
         the number of epochs to train the model
     batch_size : int, default = 16
         the number of samples per gradient update.
-    verbose : Literal["auto", 0, 1, 2], default = 0
+    verbose : boolean, default = False
         whether to output extra information
     loss : str, default = "mean_squared_error"
         The name of the keras training loss.
@@ -154,7 +156,7 @@ class TimeCNNRegressor(BaseDeepRegressor):
         best_file_name: str = "best_model",
         last_file_name: str = "last_model",
         init_file_name: str = "init_model",
-        verbose: Literal["auto", 0, 1, 2] = 0,
+        verbose: bool = False,
         loss: str = "mean_squared_error",
         output_activation: str = "linear",
         metrics: str | list[str] = "mean_squared_error",
@@ -186,7 +188,7 @@ class TimeCNNRegressor(BaseDeepRegressor):
         self.use_bias = use_bias
         self.optimizer = optimizer
 
-        self.history: History | None = None
+        self.history = None
 
         super().__init__(
             batch_size=batch_size,
@@ -224,7 +226,6 @@ class TimeCNNRegressor(BaseDeepRegressor):
         -------
         output : a compiled Keras Model
         """
-        import numpy as np
         import tensorflow as tf
         from tensorflow import keras
 
@@ -241,9 +242,7 @@ class TimeCNNRegressor(BaseDeepRegressor):
             keras.optimizers.Adam() if self.optimizer is None else self.optimizer
         )
 
-        model: tf.keras.Model = keras.models.Model(
-            inputs=input_layer, outputs=output_layer
-        )
+        model = keras.models.Model(inputs=input_layer, outputs=output_layer)
 
         model.compile(
             loss=self.loss,
