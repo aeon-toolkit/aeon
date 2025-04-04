@@ -310,7 +310,7 @@ class LITETimeRegressor(BaseRegressor):
         ----------
         file_path : str
             The path to the directory containing the saved model files
-        load_best : bool, default = True
+        load_best : bool, default=True
             Whether to load the best model (if save_best_model was True during training)
             or the last model (if save_last_model was True during training)
 
@@ -319,9 +319,14 @@ class LITETimeRegressor(BaseRegressor):
         LITETimeRegressor
             Loaded regressor
         """
-        from os.path import exists
+        import os
+        from os.path import exists, join
 
         import tensorflow as tf
+
+        # Ensure file_path ends with a separator
+        if not file_path.endswith(os.sep):
+            file_path = file_path + os.sep
 
         regressor = cls()
         regressor.regressors_ = []
@@ -330,9 +335,9 @@ class LITETimeRegressor(BaseRegressor):
         i = 0
         while True:
             if load_best:
-                model_path = file_path + "best_model" + str(i) + ".keras"
+                model_path = join(file_path, f"best_model{i}.keras")
             else:
-                model_path = file_path + "last_model" + str(i) + ".keras"
+                model_path = join(file_path, f"last_model{i}.keras")
 
             if not exists(model_path):
                 break
