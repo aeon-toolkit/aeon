@@ -301,6 +301,63 @@ class LITETimeRegressor(BaseRegressor):
 
         return [param1, param2]
 
+    @classmethod
+    def load_model(cls, file_path, load_best=True):
+        """
+        Load a saved LITETime regressor from file.
+
+        Parameters
+        ----------
+        file_path : str
+            The path to the directory containing the saved model files
+        load_best : bool, default=True
+            Whether to load the best model (if save_best_model was True during training)
+            or the last model (if save_last_model was True during training)
+
+        Returns
+        -------
+        LITETimeRegressor
+            Loaded regressor
+        """
+        import os
+        from os.path import exists, join
+
+        import tensorflow as tf
+
+        # Ensure file_path ends with a separator
+        if not file_path.endswith(os.sep):
+            file_path = file_path + os.sep
+
+        regressor = cls()
+        regressor.regressors_ = []
+
+        # Try to load each regressor model
+        i = 0
+        while True:
+            if load_best:
+                model_path = join(file_path, f"best_model{i}.keras")
+            else:
+                model_path = join(file_path, f"last_model{i}.keras")
+
+            if not exists(model_path):
+                break
+
+            rgs = IndividualLITERegressor()
+            rgs.model_ = tf.keras.models.load_model(model_path, compile=False)
+            rgs.is_fitted = True
+            regressor.regressors_.append(rgs)
+            i += 1
+
+        if len(regressor.regressors_) == 0:
+            raise FileNotFoundError(
+                f"No valid model files found in {file_path} with prefix "
+                f"{'best_model' if load_best else 'last_model'}"
+            )
+
+        regressor.n_regressors = len(regressor.regressors_)
+        regressor.is_fitted = True
+        return regressor
+
 
 class IndividualLITERegressor(BaseDeepRegressor):
     """Single LITE or LITEMV Regressor.
