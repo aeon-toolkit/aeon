@@ -293,25 +293,78 @@ def test_all_encompassing_range():
 
 
 def test_range_based_input():
-    """Range based input."""
-    y_pred_binary = [(1, 2)]
-    y_true_binary = [(1, 1)]
+    """Test with input being range-based or bianry-based."""
+    y_pred_range = [(1, 2)]
+    y_true_range = [(1, 1)]
+    y_pred_binary = np.array([0, 1, 1, 0])
+    y_true_binary = np.array([0, 1, 0, 0])
 
     expected_precision = 0.5
     expected_recall = 1.000000
     expected_f1 = 0.666667
 
-    precision = ts_precision(
+    # for range-based input
+    precision_range = ts_precision(
+        y_pred_range, y_true_range, gamma="reciprocal", bias_type="flat"
+    )
+    recall_range = ts_recall(
+        y_pred_range,
+        y_true_range,
+        gamma="reciprocal",
+        bias_type="flat",
+        alpha=0.0,
+    )
+    f1_score_range = ts_fscore(
+        y_pred_range,
+        y_true_range,
+        gamma="reciprocal",
+        p_bias="flat",
+        r_bias="flat",
+        p_alpha=0.0,
+        r_alpha=0.0,
+    )
+
+    np.testing.assert_almost_equal(
+        precision_range,
+        expected_precision,
+        decimal=6,
+        err_msg=(
+            f"Precision mismatch: "
+            f"ts_precision={precision_range} vs"
+            f"expected_precision_range={expected_precision}"
+        ),
+    )
+    np.testing.assert_almost_equal(
+        recall_range,
+        expected_recall,
+        decimal=6,
+        err_msg=(
+            f"Recall mismatch: "
+            f"ts_recall={recall_range} vs expected_recall_range={expected_recall}"
+        ),
+    )
+    np.testing.assert_almost_equal(
+        f1_score_range,
+        expected_f1,
+        decimal=6,
+        err_msg=(
+            f"F1-Score mismatch: "
+            f"ts_fscore={f1_score_range} vs expected_f_score_range={expected_f1}"
+        ),
+    )
+
+    # for binary input
+    precision_binary = ts_precision(
         y_pred_binary, y_true_binary, gamma="reciprocal", bias_type="flat"
     )
-    recall = ts_recall(
+    recall_binary = ts_recall(
         y_pred_binary,
         y_true_binary,
         gamma="reciprocal",
         bias_type="flat",
         alpha=0.0,
     )
-    f1_score = ts_fscore(
+    f1_score_binary = ts_fscore(
         y_pred_binary,
         y_true_binary,
         gamma="reciprocal",
@@ -322,30 +375,31 @@ def test_range_based_input():
     )
 
     np.testing.assert_almost_equal(
-        precision,
+        precision_binary,
         expected_precision,
         decimal=6,
         err_msg=(
             f"Precision mismatch: "
-            f"ts_precision={precision} vs range_precision_prts={expected_precision}"
+            f"ts_precision={precision_range} vs "
+            f"expected_precision_binary={expected_precision}"
         ),
     )
     np.testing.assert_almost_equal(
-        recall,
+        recall_binary,
         expected_recall,
         decimal=6,
         err_msg=(
             f"Recall mismatch: "
-            f"ts_recall={recall} vs range_recall_prts={expected_recall}"
+            f"ts_recall={recall_range} vs expected_recall_binary={expected_recall}"
         ),
     )
     np.testing.assert_almost_equal(
-        f1_score,
+        f1_score_binary,
         expected_f1,
         decimal=6,
         err_msg=(
             f"F1-Score mismatch: "
-            f"ts_fscore={f1_score} vs range_f_score={expected_f1}"
+            f"ts_fscore={f1_score_range} vs expected_f_score_binary={expected_f1}"
         ),
     )
 
