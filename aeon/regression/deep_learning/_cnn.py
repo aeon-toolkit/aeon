@@ -226,7 +226,6 @@ class TimeCNNRegressor(BaseDeepRegressor):
         -------
         output : a compiled Keras Model
         """
-        import numpy as np
         import tensorflow as tf
         from tensorflow import keras
 
