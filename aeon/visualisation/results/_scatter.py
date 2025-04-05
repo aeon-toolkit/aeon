@@ -41,7 +41,7 @@ def plot_pairwise_scatter(
     title=None,
     figsize=(8, 8),
     color_palette="tab10",
-    best_on_top=True,  # default behavior
+    best_on_top=True,
 ):
     """Plot a scatter that compares datasets' results achieved by two methods.
 
@@ -133,34 +133,24 @@ def plot_pairwise_scatter(
     x, y = [min_value, max_value], [min_value, max_value]
     ax.plot(x, y, color="black", alpha=0.5, zorder=1)
 
-    if best_on_top is True:
-        # Default behavior: better estimator on top (y-axis)
-        if (results_a.mean() <= results_b.mean() and not lower_better) or (
-            results_a.mean() >= results_b.mean() and lower_better
-        ):
-            first = results_b
-            first_method = method_b
-            second = results_a
-            second_method = method_a
-        else:
-            first = results_a
-            first_method = method_a
-            second = results_b
-            second_method = method_b
+    # better estimator on top (y-axis)
+    if (results_a.mean() <= results_b.mean() and not lower_better) or (
+        results_a.mean() >= results_b.mean() and lower_better
+    ):
+        first = results_b
+        first_method = method_b
+        second = results_a
+        second_method = method_a
     else:
-        # Reversed ordering: the estimator with worse performance on top (y-axis)
-        if (results_a.mean() <= results_b.mean() and not lower_better) or (
-            results_a.mean() >= results_b.mean() and lower_better
-        ):
-            first = results_a
-            first_method = method_a
-            second = results_b
-            second_method = method_b
-        else:
-            first = results_b
-            first_method = method_b
-            second = results_a
-            second_method = method_a
+        first = results_a
+        first_method = method_a
+        second = results_b
+        second_method = method_b
+
+    # if best_on_top is False, swap the ordering
+    if not best_on_top:
+        first, second = second, first
+        first_method, second_method = second_method, first_method
 
     differences = [
         0 if i - j == 0 else (1 if i - j > 0 else -1) for i, j in zip(first, second)

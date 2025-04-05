@@ -92,12 +92,7 @@ def test_plot_pairwise_scatter():
     assert isinstance(fig, plt.Figure) and isinstance(ax, plt.Axes)
 
     # best_on_top = False (reversed ordering)
-    cls = ["InceptionTime", "WEASEL-D"]
-    data = univariate_equal_length
-    res, _ = get_estimator_results_as_array(
-        estimators=cls, datasets=data, path=data_path, include_missing=True
-    )
-    fig, ax = plot_pairwise_scatter(
+    fig_false, ax_false = plot_pairwise_scatter(
         res[0],
         res[1],
         cls[0],
@@ -107,7 +102,7 @@ def test_plot_pairwise_scatter():
         best_on_top=False,
     )
     plt.gcf().canvas.draw_idle()
-    assert isinstance(fig, plt.Figure) and isinstance(ax, plt.Axes)
+    assert isinstance(fig_false, plt.Figure) and isinstance(ax_false, plt.Axes)
 
     # Test error handling for metrics
     with pytest.raises(ValueError):
