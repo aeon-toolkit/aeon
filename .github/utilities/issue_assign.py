@@ -2,7 +2,7 @@
 
 It checks if a comment on an issue or PR includes the trigger
 phrase (as defined) and a mentioned user.
-If it does, it assigns the issue/PR to the mentioned user.
+If it does, it assigns the issue to the mentioned user.
 """
 
 import json
@@ -19,13 +19,14 @@ repo = g.get_repo(repo)
 issue_number = context_dict["event"]["issue"]["number"]
 issue = repo.get_issue(number=issue_number)
 comment_body = context_dict["event"]["comment"]["body"]
+pr = context_dict["event"]["issue"].get("pull_request")
 issue_labels = {label.name.lower() for label in issue.labels}
 
 restricted_labels = {"meta-issue"}
 
 # Assign tagged used to the issue if the comment includes the trigger phrase
 body = comment_body.lower()
-if "@aeon-actions-bot" in body and "assign" in body:
+if "@aeon-actions-bot" in body and "assign" in body and not pr:
     if issue_labels & restricted_labels:
         restricted = restricted_labels & issue_labels
         issue.create_comment(
