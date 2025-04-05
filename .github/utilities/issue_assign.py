@@ -6,7 +6,7 @@ If it does, it assigns the issue/PR to the mentioned user.
 Users without write access can only have up to 2 open issues assigned.
 Users with write access (or admin) are exempt from this limit.
 If a non-write user already has 2 or more open issues, the bot
-comments on the issue with links to the currently assigned issues.
+comments on the issue with links to the currently assigned open issues.
 """
 
 import json
@@ -38,7 +38,11 @@ if "@aeon-actions-bot" in body and "assign" in body:
         if permission in ["admin", "write"]:
             issue.add_to_assignees(user)
         else:
-            # search for open issues
+            # First check if the user is already assigned to this issue
+            if user in [assignee.login for assignee in issue.assignees]:
+                continue
+
+            # search for open issues only
             query = f"repo:{repo.full_name} is:issue is:open assignee:{user}"
             issues_assigned_to_user = g.search_issues(query)
             assigned_count = issues_assigned_to_user.totalCount
@@ -52,8 +56,8 @@ if "@aeon-actions-bot" in body and "assign" in body:
 
                 comment_message = (
                     f"@{user}, you already have {assigned_count} open issues assigned. "
-                    "Please complete them before taking on a new issue.\n\n"
-                    "Here are the issues currently assigned to you:\n"
+                    "Users without write access are limited to 2 open issues.\n\n"
+                    "Here are the open issues assigned to you:\n"
                     + "\n".join(
                         f"- {issue_link}" for issue_link in assigned_issues_list
                     )
