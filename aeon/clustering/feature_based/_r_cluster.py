@@ -206,27 +206,27 @@ class RClusterer(BaseClusterer):
         y : None
             Ignored.
         """
-        self.set_indices()
+        self.indices = _get_indices()
         parameters = self._get_parameterised_data(X)
 
         transformed_data = self._get_transformed_data(X=X, parameters=parameters)
-        self.scaler = StandardScaler()
-        X_std = self.scaler.fit_transform(transformed_data)
+        self._scaler = StandardScaler()
+        X_std = self._scaler.fit_transform(transformed_data)
 
         pca = PCA().fit(X_std)
         optimal_dimensions = np.argmax(pca.explained_variance_ratio_ < 0.01)
 
-        self.pca = PCA(n_components=optimal_dimensions, random_state=self.random_state)
-        self.pca.fit(X_std)
-        transformed_data_pca = self.pca.transform(X_std)
+        self._pca = PCA(n_components=optimal_dimensions, random_state=self.random_state)
+        self._pca.fit(X_std)
+        transformed_data_pca = self._pca.transform(X_std)
 
-        self.estimator = KMeans(
+        self._estimator = KMeans(
             n_clusters=self.n_clusters,
             random_state=self.random_state,
             n_init=self.n_init,
         )
-        self.estimator.fit(transformed_data_pca)
-        self.labels_ = self.estimator.labels_
+        self._estimator.fit(transformed_data_pca)
+        self.labels_ = self._estimator.labels_
 
     def _predict(self, X, y=None) -> np.ndarray:
         """
@@ -247,14 +247,34 @@ class RClusterer(BaseClusterer):
         parameters = self._get_parameterised_data(X)
 
         transformed_data = self._get_transformed_data(X=X, parameters=parameters)
-        X_std = self.scaler.transform(transformed_data)
-        pca = self.pca
-        transformed_data_pca = pca.transform(X_std)
+        X_std = self._scaler.transform(transformed_data)
+        transformed_data_pca = self._pca.transform(X_std)
 
-        return self.estimator.predict(transformed_data_pca)
+        return self._estimator.predict(transformed_data_pca)
 
-    def set_indices(self):
-        self.indices = np.array(
+    @classmethod
+    def _get_test_params(cls, parameter_set="default") -> dict:
+        """Return testing parameter settings for the estimator.
+
+        Parameters
+        ----------
+        parameter_set : str, default="default"
+            Name of the set of test parameters to return, for use in tests. If no
+            special parameters are defined for a value, will return `"default"` set.
+
+        Returns
+        -------
+        params : dict or list of dict, default={}
+            Parameters to create testing instances of the class
+            Each dict are parameters to construct an "interesting" test instance, i.e.,
+            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+        """
+        return {
+            "n_clusters": 2,
+        }
+
+def _get_indices():
+    return np.array(
             (
                 1,
                 3,
@@ -511,24 +531,3 @@ class RClusterer(BaseClusterer):
             ),
             dtype=np.int32,
         ).reshape(84, 3)
-
-    @classmethod
-    def _get_test_params(cls, parameter_set="default") -> dict:
-        """Return testing parameter settings for the estimator.
-
-        Parameters
-        ----------
-        parameter_set : str, default="default"
-            Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
-
-        Returns
-        -------
-        params : dict or list of dict, default={}
-            Parameters to create testing instances of the class
-            Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-        """
-        return {
-            "n_clusters": 2,
-        }

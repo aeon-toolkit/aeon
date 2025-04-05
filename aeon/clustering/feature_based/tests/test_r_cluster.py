@@ -171,7 +171,7 @@ def test_r_cluster_dataset():
     )
     assert test_score == 0.5210526315789473
     assert train_score == 0.5210526315789473
-    assert rcluster.estimator.n_iter_ == 3
+    assert rcluster._estimator.n_iter_ == 3
     assert np.array_equal(
         rcluster.labels_, [1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0]
     )
