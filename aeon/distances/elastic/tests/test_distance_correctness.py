@@ -10,6 +10,7 @@ from aeon.datasets import load_basic_motions, load_unit_test
 from aeon.distances import (
     ddtw_distance,
     dtw_distance,
+    dtw_gi_distance,
     edr_distance,
     erp_distance,
     euclidean_distance,
@@ -23,6 +24,7 @@ from aeon.distances import (
 
 distances = [
     "dtw",
+    "dtw_gi",
     "wdtw",
     "lcss",
     "msm",
@@ -36,6 +38,7 @@ distances = [
 
 distance_parameters = {
     "dtw": [0.0, 0.1, 1.0],  # window
+    "dtw_gi": [0.0, 0.1, 1.0],  # window
     "wdtw": [0.0, 0.1, 1.0],  # parameter g
     "wddtw": [0.0, 0.1, 1.0],  # parameter g
     "erp": [0.0, 0.1, 1.0],  # window
@@ -63,6 +66,7 @@ basic_motions_distances = {
     "euclidean": 27.51835240,
     "squared": 757.25971908652,
     "dtw": [757.259719, 330.834497, 330.834497],
+    "dtw_gi": [259.5333502342899, 310.10738471013804, 310.10738471013804],
     "wdtw": [165.41724, 3.308425, 0],
     "msm": [70.014828, 89.814828, 268.014828],
     "erp": [169.3715, 102.0979, 102.097904],
@@ -90,6 +94,8 @@ def test_multivariate_correctness():
     for j in range(0, 3):
         d = dtw_distance(case1, case2, window=distance_parameters["dtw"][j])
         assert_almost_equal(d, basic_motions_distances["dtw"][j], 4)
+        d = dtw_gi_distance(case1, case2, window=distance_parameters["dtw_gi"][j])
+        assert_almost_equal(d, basic_motions_distances["dtw_gi"][j], 4)
         d = wdtw_distance(case1, case2, g=distance_parameters["wdtw"][j])
         assert_almost_equal(d, basic_motions_distances["wdtw"][j], 4)
         d = lcss_distance(case1, case2, epsilon=distance_parameters["lcss"][j] / 50.0)
