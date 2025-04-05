@@ -15,7 +15,24 @@ def plot_pairwise_distance_matrix(
     b,
     path,
 ):
+    """Plot a pairwise distance matrix between two time series.
 
+    Parameters
+    ----------
+    distance_matrix : np.ndarray
+        The pairwise distance matrix to plot.
+    a : np.ndarray
+        The first time series.
+    b : np.ndarray
+        The second time series.
+    path : list of tuple
+        The path of the minimum distances.
+
+    Returns
+    -------
+    ax : matplotlib.axes.Axes
+        The Axes object with the plot.
+    """
     # Checks availability of plotting libraries
     _check_soft_dependencies("matplotlib", "seaborn")
     import matplotlib.pyplot as plt
