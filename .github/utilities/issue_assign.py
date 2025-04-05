@@ -27,7 +27,7 @@ restricted_labels = {"meta-issue"}
 body = comment_body.lower()
 if "@aeon-actions-bot" in body and "assign" in body:
     if issue_labels & restricted_labels:
-        restricted = {restricted_labels & issue_labels}
+        restricted = restricted_labels & issue_labels
         issue.create_comment(
             f"This issue contains the following restricted label(s): "
             f"{', '.join(restricted)}. Assignment is skipped."
