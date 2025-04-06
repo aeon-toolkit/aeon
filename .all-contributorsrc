@@ -2683,6 +2683,16 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "TinaJin0228",
+      "name": "Tina Jin",
+      "avatar_url": "https://avatars.githubusercontent.com/TinaJin0228",
+      "profile": "https://github.com/TinaJin0228",
+      "contributions": [
+        "code",
+        "doc"
+      ]
     }
   ],
   "commitType": "docs"
