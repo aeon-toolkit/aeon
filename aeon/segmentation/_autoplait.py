@@ -108,7 +108,7 @@ class AutoPlaitSegmenter(BaseSegmenter):
         self.n, self.d = self.X.shape
         reg = _Regime(self.max_seg, self.min_k, self.max_k, self.random_seed)
         reg.add_segment(0, self.n)
-        reg._estimate_hmm(self.X)
+        reg.estimate_hmm(self.X)
         candidates = [reg]
 
         while candidates:
@@ -151,8 +151,8 @@ class AutoPlaitSegmenter(BaseSegmenter):
         for i in range(INFER_ITER_MAX):
             select_largest(s0)
             select_largest(s1)
-            s0._estimate_hmm(X)
-            s1._estimate_hmm(X)
+            s0.estimate_hmm(X)
+            s1.estimate_hmm(X)
             self._cut_point_search(X, sx, s0, s1, RM=RM)
             if not s0.n_seg or not s1.n_seg:
                 break
@@ -167,29 +167,29 @@ class AutoPlaitSegmenter(BaseSegmenter):
         del opt0, opt1
         if not s0.n_seg or not s1.n_seg:
             return s0, s1
-        s0._estimate_hmm(X)
-        s1._estimate_hmm(X)
+        s0.estimate_hmm(X)
+        s1.estimate_hmm(X)
         return s0, s1
 
-    def _cut_point_search(self, X, sx, s0, s1, RM=True):
+    def _cut_point_search(self, X, sx, s0, s1, remove_noise=True):
         s0.initialize()
         s1.initialize()
         lh = 0.
         for i in range(sx.n_seg):
             lh += _search_aux(X, sx.subs[i, 0], sx.subs[i, 1], s0, s1)
-        if RM: self._remove_noise(X, sx, s0, s1)
-        s0._compute_lh_mdl(X)
-        s1._compute_lh_mdl(X)
+        if remove_noise: self._remove_noise(X, sx, s0, s1)
+        s0.compute_lh_mdl(X)
+        s1.compute_lh_mdl(X)
         return lh
 
     def _find_centroid_wrap(self, X, Sx, seedlen, idx0, idx1, u):
-        s0, s1 = self._uniform_sampling(X, Sx, seedlen, idx0, idx1, u)
+        s0, s1 = self._uniform_sampling(seedlen, idx0, idx1, u)
         if not s0.n_seg or not s1.n_seg:
             return np.inf, None, None
         subs0 = s0.subs[0]
         subs1 = s1.subs[0]
-        s0._estimate_hmm_k(X, self.min_k)
-        s1._estimate_hmm_k(X, self.min_k)
+        s0.estimate_hmm_k(X, self.min_k)
+        s1.estimate_hmm_k(X, self.min_k)
         self._cut_point_search(X, Sx, s0, s1, False)
         if not s0.n_seg or not s1.n_seg:
             return np.inf, None, None
@@ -197,7 +197,7 @@ class AutoPlaitSegmenter(BaseSegmenter):
         return costT_s01, subs0, subs1
 
     def _find_centroid(self, X, Sx, n_samples, seedlen):
-        u = self._uniformset(X, Sx, n_samples, seedlen)
+        u = self._uniformset(Sx, n_samples, seedlen)
         # print(u.subs[:u.n_seg], u.n_seg)
 
         if self.parallel:
@@ -212,7 +212,7 @@ class AutoPlaitSegmenter(BaseSegmenter):
         # pp.pprint(results)
         if not results:
             print('fixed sampling')
-            s0, s1 = self._fixed_sampling(X, Sx, seedlen)
+            s0, s1 = self._fixed_sampling(Sx, seedlen)
             return s0, s1
         centroid = np.argmin([res[0] for res in results])
         # print(results[centroid])
@@ -245,8 +245,8 @@ class AutoPlaitSegmenter(BaseSegmenter):
         tmp0.add_segment(st, ln)
         st, ln = s1.subs[loc1]
         tmp1.add_segment(st, ln)
-        tmp0._estimate_hmm_k(X, self.min_k)
-        tmp1._estimate_hmm_k(X, self.min_k)
+        tmp0.estimate_hmm_k(X, self.min_k)
+        tmp1.estimate_hmm_k(X, self.min_k)
         costC = self._cut_point_search(X, Sx, tmp0, tmp1, False)
         del tmp0, tmp1
         return costC
@@ -282,7 +282,7 @@ class AutoPlaitSegmenter(BaseSegmenter):
         # _estimate_hmm(X, s1)
         del opt0, opt1
 
-    def _uniformset(self, X, Sx, n_samples, seedlen):
+    def _uniformset(self, Sx, n_samples, seedlen):
         u = _Regime(self.max_seg, self.min_k, self.max_k, self.random_seed)
         w = int((Sx.len - seedlen) / n_samples)
         for i in range(Sx.n_seg):
@@ -300,7 +300,7 @@ class AutoPlaitSegmenter(BaseSegmenter):
                 u.add_segment_ex(nxt, seedlen)
         return u
 
-    def _fixed_sampling(self, X, Sx, seedlen):
+    def _fixed_sampling(self, Sx, seedlen):
         # print('nseg', Sx.n_seg)
         s0, s1 = (_Regime(self.max_seg,
                          self.min_k,
@@ -326,7 +326,7 @@ class AutoPlaitSegmenter(BaseSegmenter):
         s1.add_segment(r, seedlen)
         return s0, s1
 
-    def _uniform_sampling(self, X, Sx, length, n1, n2, u):
+    def _uniform_sampling(self, length, n1, n2, u):
         s0, s1 = (_Regime(self.max_seg,
                          self.min_k,
                          self.max_k,
@@ -417,7 +417,7 @@ class _Regime(object):
         self.delta = self.n_seg / self.len if self.len > 0 else ZERO
         return seg
 
-    def _estimate_hmm_k(self, X, k=1):
+    def estimate_hmm_k(self, X, k=1):
         from hmmlearn.hmm import GaussianHMM
         X_, lengths = self._parse_input(X)
         self.model = GaussianHMM(n_components=k,
@@ -445,30 +445,30 @@ class _Regime(object):
         m = self.n_seg
         k = self.model.n_components
         d = self.model.n_features
-        costT = costLen = 0.
+        costLen = 0.
         costC = self.costC
-        costM = costHMM(k, d)
+        costM = cost_hmm(k, d)
         for i in range(m):
             costLen += np.log2(self.subs[i, 1])
         costLen += m * np.log2(k)
         return costC + costM + costLen
 
-    def _estimate_hmm(self, X):
+    def estimate_hmm(self, X):
         self.costT = np.inf
         opt_k = self.min_k
         for k in range(self.min_k, self.max_k):
             prev = self.costT
-            self._estimate_hmm_k(X, k)
-            self._compute_lh_mdl(X)
+            self.estimate_hmm_k(X, k)
+            self.compute_lh_mdl(X)
             if self.costT > prev:
                 opt_k = k - 1
                 break
         if opt_k < self.min_k: opt_k = self.min_k
         if opt_k > self.max_k: opt_k = self.max_k
-        self._estimate_hmm_k(X, opt_k)
-        self._compute_lh_mdl(X)
+        self.estimate_hmm_k(X, opt_k)
+        self.compute_lh_mdl(X)
 
-    def _compute_lh_mdl(self, X):
+    def compute_lh_mdl(self, X):
         if self.n_seg == 0:
             self.costT = self.costC = np.inf
             return
@@ -484,7 +484,7 @@ def _mdl_total(stack0, stack1):
     r = len(stack0) + len(stack1)
     m = sum([regime.n_seg for regime in stack0])
     m += sum([regime.n_seg for regime in stack1])
-    costT = MDLsegment(stack0) + MDLsegment(stack1)
+    costT = mdl_segment(stack0) + mdl_segment(stack1)
     costT += log_s(r) + log_s(m) + m * np.log2(r) + FB * r ** 2
     # print(f'[r, m, total_cost] = {r}, {m}, {costT:.6}')
     print('====================')
@@ -586,10 +586,10 @@ def _viterbi(X, hmm, delta):
 def log_s(x):
     return 2. * np.log2(x) + 1.
 
-def costHMM(k, d):
+def cost_hmm(k, d):
     return FB * (k + k ** 2 + 2 * k * d) + 2. * np.log(k) / np.log(2.) + 1.
 
-def MDLsegment(stack):
+def mdl_segment(stack):
     return np.sum([regime.costT for regime in stack])
 
 def gaussian_pdfl(x, means, covars):
