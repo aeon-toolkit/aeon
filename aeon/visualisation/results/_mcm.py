@@ -17,14 +17,14 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 def create_multi_comparison_matrix(
     df_results,
     output_dir="./",
-    pdf_savename=None,
-    png_savename=None,
-    csv_savename=None,
-    tex_savename=None,
+    save_files=None,  # Changed to dictionary
     used_statistic="Accuracy",
     save_as_json=False,
     plot_1v1_comparisons=False,
-    order_win_tie_loss="higher",
+    order_settings={
+        "win_tie_loss": "higher",
+        "better": "decreasing",
+    },  # Combined order settings
     include_pvalue=True,
     pvalue_test="wilcoxon",
     pvalue_test_params=None,
@@ -32,7 +32,6 @@ def create_multi_comparison_matrix(
     pvalue_threshold=0.05,
     use_mean="mean-difference",
     order_stats="average-statistic",
-    order_better="decreasing",
     dataset_column=None,
     precision=4,
     load_analysis=False,
@@ -65,26 +64,16 @@ def create_multi_comparison_matrix(
         contain the names of the problems if `dataset_column` is true.
     output_dir: str, default = './'
         The output directory for the results.
-    pdf_savename: str, default = None
-        The name of the saved file into pdf format. if None, it will not be saved into
-        this format.
-    png_savename: str, default = None
-        The name of the saved file into png format, if None, it will not be saved
-        into this format.
-    csv_savename: str, default = None
-        The name of the saved file into csv format, if None, will not be saved into
-        this format.
-    tex_savename: str, default = None
-        The name of the saved file into tex format, if None, will not be saved into
-        this format.
+    save_files: dict, default = None
+        Dictionary to handle all save options (e.g., {"pdf": "output.pdf", "png": "output.png"}).
     used_statistic: str, default = 'Score'
         Name of the metric being assesses (e.g. accuracy, error, mse).
     save_as_json: bool, default = True
         Whether or not to save the python analysis dict into a json file format.
     plot_1v1_comparisons: bool, default = True
         Whether or not to plot the 1v1 scatter results.
-    order_win_tie_loss: str, default = 'higher'
-        The order on considering a win or a loss for a given statistics.
+    order_settings: dict, default = {"win_tie_loss": "higher", "better": "decreasing"}
+        Settings for ordering the results.
     include_pvalue bool, default = True
         Condition whether or not include a pvalue stats.
     pvalue_test: str, default = 'wilcoxon'
@@ -117,8 +106,6 @@ def create_multi_comparison_matrix(
         amean-amean            average over difference of use_mean
         pvalue                 average pvalue over all comparates
         ================================================================
-    order_better: str, default = 'decreasing'
-        By which order to sort stats, from best to worse.
     dataset_column: str, default = 'dataset_name'
         The name of the datasets column in the csv file.
     precision: int, default = 4
@@ -166,7 +153,11 @@ def create_multi_comparison_matrix(
     Example
     -------
     >>> from aeon.visualisation import create_multi_comparison_matrix # doctest: +SKIP
-    >>> create_multi_comparison_matrix(df_results='results.csv') # doctest: +SKIP
+    >>> create_multi_comparison_matrix(
+    ...     df_results='results.csv',
+    ...     save_files={"pdf": "output.pdf", "png": "output.png"},
+    ...     order_settings={"win_tie_loss": "higher", "better": "decreasing"}
+    ... ) # doctest: +SKIP
 
     Notes
     -----
@@ -190,27 +181,23 @@ def create_multi_comparison_matrix(
         used_statistic=used_statistic,
         save_as_json=save_as_json,
         plot_1v1_comparisons=plot_1v1_comparisons,
-        order_win_tie_loss=order_win_tie_loss,
+        order_win_tie_loss=order_settings["win_tie_loss"],
         include_pvalue=include_pvalue,
         pvalue_test=pvalue_test,
         pvalue_test_params=pvalue_test_params,
         pvalue_correction=pvalue_correction,
-        pvalue_threshhold=pvalue_threshold,
+        pvalue_threshold=pvalue_threshold,
         use_mean=use_mean,
         order_stats=order_stats,
-        order_better=order_better,
+        order_better=order_settings["better"],
         dataset_column=dataset_column,
         precision=precision,
         load_analysis=load_analysis,
     )
 
     # start drawing heatmap
-    temp = _draw(
+    fig = _draw(
         analysis,
-        pdf_savename=pdf_savename,
-        png_savename=png_savename,
-        tex_savename=tex_savename,
-        csv_savename=csv_savename,
         output_dir=output_dir,
         row_comparates=row_comparates,
         col_comparates=col_comparates,
@@ -228,7 +215,36 @@ def create_multi_comparison_matrix(
         include_legend=include_legend,
         show_symetry=show_symetry,
     )
-    return temp
+
+    def dict_to_latex(data_dict):
+        lines = []
+        lines.append(r"\begin{tabular}{|l|l|l|l|l|}")
+        lines.append(r"\hline")
+        lines.append(r"Comparison & Significant & Loss & Mean & p-value \\")
+        lines.append(r"\hline")
+        for key, values in data_dict.items():
+            line = f"{key} & {values['is-significant']} & {values['loss']} & {values['mean']:.4f} & {values['pvalue']:.4f} \\\\"
+            lines.append(line)
+        lines.append(r"\hline")
+        lines.append(r"\end{tabular}")
+        return "\n".join(lines)
+
+    # Handle saving files if save_files dictionary is provided
+    if save_files:
+        for file_type, file_name in save_files.items():
+            if file_name:  # Only save if filename is not None or empty
+                save_path = os.path.join(output_dir, file_name)
+                if file_type == "pdf":
+                    fig.savefig(save_path, format="pdf", bbox_inches="tight")
+                elif file_type == "png":
+                    fig.savefig(save_path, format="png", dpi=300)
+                elif file_type == "csv":
+                    df_results.to_csv(save_path, index=False)
+                elif file_type == "tex":
+                    with open(save_path, "w") as f:
+                        f.write(dict_to_latex(analysis))
+
+    return fig
 
 
 def _get_analysis(
@@ -242,7 +258,7 @@ def _get_analysis(
     pvalue_test="wilcoxon",
     pvalue_test_params=None,
     pvalue_correction=None,
-    pvalue_threshhold=0.05,
+    pvalue_threshold=0.05,
     use_mean="mean-difference",
     order_stats="average-statistic",
     order_better="decreasing",
@@ -357,7 +373,7 @@ def _get_analysis(
         "order-win_tie_loss": order_win_tie_loss,
         "include-pvalue": include_pvalue,
         "pvalue-test": pvalue_test,
-        "pvalue-threshold": pvalue_threshhold,
+        "pvalue-threshold": pvalue_threshold,
         "pvalue-correction": pvalue_correction,
     }
 
@@ -390,7 +406,7 @@ def _get_analysis(
                     include_pvalue=include_pvalue,
                     pvalue_test=pvalue_test,
                     pvalue_test_params=pvalue_test_params,
-                    pvalue_threshhold=pvalue_threshhold,
+                    pvalue_threshhold=pvalue_threshold,
                     use_mean=use_mean,
                 )
 
@@ -435,10 +451,7 @@ def _get_analysis(
 def _draw(
     analysis,
     output_dir="./",
-    pdf_savename=None,
-    png_savename=None,
-    csv_savename=None,
-    tex_savename=None,
+    save_files=None,  # Changed to dictionary
     row_comparates=None,
     col_comparates=None,
     excluded_row_comparates=None,
@@ -581,9 +594,10 @@ def _draw(
 
     longest_string = max(annot_out["longest_string"], longest_string)
 
-    if csv_savename is not None:
-        # todo: can add a argument to save or not
-        df_annotations.to_csv(output_dir + f"{csv_savename}.csv", index=False)
+    if save_files and "csv" in save_files and save_files["csv"]:
+        df_annotations.to_csv(
+            os.path.join(output_dir, f"{save_files['csv']}.csv"), index=False
+        )
 
     df_annotations.drop("comparates", inplace=True, axis=1)
     df_annotations_np = np.asarray(df_annotations)
@@ -813,20 +827,6 @@ def _draw(
             verticalalignment="center",
         )
 
-    if pdf_savename is not None:
-        plt.savefig(
-            os.path.join(output_dir + f"{pdf_savename}.pdf"), bbox_inches="tight"
-        )
-        plt.cla()
-        plt.clf()
-        plt.close()
-    elif png_savename is not None:
-        plt.savefig(
-            os.path.join(output_dir + f"{png_savename}.png"), bbox_inches="tight"
-        )
-        plt.cla()
-        plt.clf()
-
     latex_string += (
         f"\\begin{{tabular}}{{{'c' * (len(latex_table[0]) + 1)}}}\n"  # +1 for labels
     )
@@ -891,17 +891,30 @@ def _draw(
     latex_string = latex_string.replace(">", "$>$")
     latex_string = latex_string.replace("<", "$<$")
 
-    if tex_savename is not None:
-        with open(
-            f"{output_dir}/{tex_savename}.tex", "w", encoding="utf8", newline="\n"
-        ) as file:
-            file.writelines(latex_string)
-
     # latex references:
     # * https://tex.stackexchange.com/a/120187
     # * https://tex.stackexchange.com/a/334293
     # * https://tex.stackexchange.com/a/592942
     # * https://tex.stackexchange.com/a/304215
+    if save_files:
+        for file_type, file_name in save_files.items():
+            if not file_name:  # Skip if filename is empty
+                continue
+
+            save_path = os.path.join(output_dir, file_name)
+            if file_type == "pdf":
+                plt.savefig(save_path, format="pdf", bbox_inches="tight")
+                plt.cla()
+                plt.clf()
+                plt.close()
+            elif file_type == "png":
+                plt.savefig(save_path, format="png", dpi=300, bbox_inches="tight")
+                plt.cla()
+                plt.clf()
+            elif file_type == "tex":
+                with open(save_path, "w", encoding="utf8", newline="\n") as file:
+                    file.writelines(latex_string)
+
     return plt.Figure()
 
 
