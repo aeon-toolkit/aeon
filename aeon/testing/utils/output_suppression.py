@@ -40,6 +40,7 @@ def suppress_output(suppress_stdout=True, suppress_stderr=True):
     ...     print("This will not be shown")
     ...     import sys
     ...     print("Error messages will still be visible", file=sys.stderr)
+    Error messages will still be visible
 
     Suppressing only stderr:
 
@@ -47,6 +48,28 @@ def suppress_output(suppress_stdout=True, suppress_stderr=True):
     ...     print("This will be shown")
     ...     import sys
     ...     print("Error messages will be hidden", file=sys.stderr)
+    This will be shown
+
+    Using as a function wrapper:
+
+    Suppressing both stdout and stderr:
+
+    >>> @suppress_output()
+    ... def noisy_function():
+    ...     print("Noisy output")
+    ...     import sys
+    ...     print("Noisy error", file=sys.stderr)
+    >>> noisy_function()
+
+    Suppressing only stdout
+
+    >>> @suppress_output(suppress_stderr=False)
+    ... def noisy_function():
+    ...     print("Noisy output")
+    ...     import sys
+    ...     print("Noisy error", file=sys.stderr)
+    >>> noisy_function()
+    Noisy error
     """
     with open(devnull, "w") as null:
         stdout = sys.stdout
