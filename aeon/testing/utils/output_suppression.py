@@ -36,9 +36,10 @@ def suppress_output(suppress_stdout=True, suppress_stderr=True):
 
     Suppressing only stdout:
 
+    >>> import sys
+    >>> sys.stderr = sys.stdout # Needed so doctest can capture stderr
     >>> with suppress_output(suppress_stdout=True, suppress_stderr=False):
     ...     print("This will not be shown")
-    ...     import sys
     ...     print("Error messages will still be visible", file=sys.stderr)
     Error messages will still be visible
 
@@ -61,12 +62,13 @@ def suppress_output(suppress_stdout=True, suppress_stderr=True):
     ...     print("Noisy error", file=sys.stderr)
     >>> noisy_function()
 
-    Suppressing only stdout
+    Suppressing only stdout:
 
+    >>> import sys
+    >>> sys.stderr = sys.stdout # Needed so doctest can capture stderr
     >>> @suppress_output(suppress_stderr=False)
     ... def noisy_function():
     ...     print("Noisy output")
-    ...     import sys
     ...     print("Noisy error", file=sys.stderr)
     >>> noisy_function()
     Noisy error
