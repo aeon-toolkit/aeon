@@ -79,14 +79,14 @@ class BaseAeonEstimator(BaseEstimator, ABC):
         Parameters
         ----------
         keep : None, str, or list of str, default=None
-            If ``None``, all attributes are removed except hyperparameters.
-            If ``str``, only the attribute with this name is kept.
-            If ``list`` of ``str``, only the attributes with these names are kept.
+             If ``None``, all attributes are removed except hyperparameters.
+             If ``str``, only the attribute with this name is kept.
+             If ``list`` of ``str``, only the attributes with these names are kept.
 
         Returns
         -------
         self : object
-            Reference to `self`.
+            Reference to self.
         """
         # retrieve parameters to copy them later
         params = self.get_params(deep=False)
