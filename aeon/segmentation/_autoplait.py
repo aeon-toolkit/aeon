@@ -1,25 +1,15 @@
 import pprint
-import time
 from copy import deepcopy
 from itertools import combinations
-from warnings import filterwarnings
 
 import numpy as np
-from hmmlearn.hmm import GaussianHMM
 from joblib import Parallel, delayed
-from sklearn.preprocessing import scale
-from tqdm import tqdm
 
 from aeon.segmentation.base import BaseSegmenter
 
-filterwarnings('ignore')
 pp = pprint.PrettyPrinter(indent=4)
-parallel = True
 ZERO = 1.e-10
 INF = 1.e+10
-MINK = 1
-MAXK = 8
-MAXSEG = 100
 N_INFER_ITER_HMM = 1
 INFER_ITER_MIN = 2
 INFER_ITER_MAX = 10
@@ -30,7 +20,6 @@ MAXBAUMN = 3
 FB = 4 * 8
 LM = .1
 RM = True
-NSAMPLE = 10
 
 class AutoPlaitSegmenter(BaseSegmenter):
     """AutoPlait Segmentation.
@@ -41,8 +30,22 @@ class AutoPlaitSegmenter(BaseSegmenter):
 
         Parameters
         ----------
-        param_name : param_type, default = NONE
+        parallel : bool, default = True
             Param desc.
+        min_k : int, default = 1
+            Param desc.
+        max_k : int, default = 8
+            Param desc.
+        max_seg : int, default = 100
+            Param desc.
+        n_sample : int, default = 10
+            Param desc.
+        infer_iter_min : int, default = 2
+            Param desc.
+        infer_iter_max : int, default = 10
+            Param desc.
+        random_seed : int, default = 41
+            Seed to use for HMM initialisation.
 
         References
         ----------
@@ -55,6 +58,7 @@ class AutoPlaitSegmenter(BaseSegmenter):
         >> from aeon.segmentation import AutoPlaitSegmenter
         >> from aeon.datasets import load_gun_point_segmentation
         >> X, _, cps = load_gun_point_segmentation()
+        >> X = np.array(X)
         >> autoplait = AutoPlaitSegmenter()
         >> found_cps = autoplait.fit_predict(X)
         """
@@ -63,9 +67,26 @@ class AutoPlaitSegmenter(BaseSegmenter):
         "returns_dense": True,
         "fit_is_empty": True,
         "capability:multivariate": True,
+        "python_dependencies": "hmmlearn"
     }
-    def __init__(self, random_seed=41):
+    def __init__(self,
+                 parallel = True,
+                 min_k = 1,
+                 max_k = 8,
+                 max_seg = 100,
+                 n_sample = 10,
+                 infer_iter_min = 2,
+                 infer_iter_max = 10,
+                 random_seed=41):
+        self.parallel = parallel
+        self.min_k = min_k
+        self.max_k = max_k
+        self.max_seg = max_seg
+        self.n_sample = n_sample
+        self.infer_iter_min = infer_iter_min
+        self.infer_iter_max = infer_iter_max
         self.random_seed = random_seed
+
         self.costT = np.inf
         self.regimes = []
         super().__init__(axis=0)
@@ -83,10 +104,9 @@ class AutoPlaitSegmenter(BaseSegmenter):
         y_pred : np.ndarray
             DESC
         """
-        print(X, X.shape)
         self.X = X
         self.n, self.d = self.X.shape
-        reg = _Regime(self.random_seed)
+        reg = _Regime(self.max_seg, self.min_k, self.max_k, self.random_seed)
         reg.add_segment(0, self.n)
         reg._estimate_hmm(self.X)
         candidates = [reg]
@@ -121,10 +141,11 @@ class AutoPlaitSegmenter(BaseSegmenter):
 
 
     def _regime_split(self, X, sx):
-        opt0, opt1 = _Regime(self.random_seed), _Regime(self.random_seed)
+        opt0, opt1 = (_Regime(self.max_seg, self.min_k, self.max_k, self.random_seed),
+                      _Regime(self.max_seg, self.min_k, self.max_k, self.random_seed))
         n, d = X.shape
         seedlen = int(n * LM)
-        s0, s1 = self._find_centroid(X, sx, NSAMPLE, seedlen)
+        s0, s1 = self._find_centroid(X, sx, self.n_sample, seedlen)
         if not s0.n_seg or not s1.n_seg:
             return opt0, opt1
         for i in range(INFER_ITER_MAX):
@@ -167,8 +188,8 @@ class AutoPlaitSegmenter(BaseSegmenter):
             return np.inf, None, None
         subs0 = s0.subs[0]
         subs1 = s1.subs[0]
-        s0._estimate_hmm_k(X, MINK)
-        s1._estimate_hmm_k(X, MINK)
+        s0._estimate_hmm_k(X, self.min_k)
+        s1._estimate_hmm_k(X, self.min_k)
         self._cut_point_search(X, Sx, s0, s1, False)
         if not s0.n_seg or not s1.n_seg:
             return np.inf, None, None
@@ -179,13 +200,13 @@ class AutoPlaitSegmenter(BaseSegmenter):
         u = self._uniformset(X, Sx, n_samples, seedlen)
         # print(u.subs[:u.n_seg], u.n_seg)
 
-        if parallel is True:
+        if self.parallel:
             results = Parallel(n_jobs=4)(
                 [delayed(self._find_centroid_wrap)(X, Sx, seedlen, iter1, iter2, u)
                  for iter1, iter2 in combinations(range(u.n_seg), 2)])
         else:
             results = []
-            for iter1, iter2 in tqdm(combinations(range(u.n_seg), 2), desc='SearchCentroid'):
+            for iter1, iter2 in combinations(range(u.n_seg), 2):
                 results.append(self._find_centroid_wrap(X, Sx, seedlen, iter1, iter2, u))
 
         # pp.pprint(results)
@@ -200,8 +221,10 @@ class AutoPlaitSegmenter(BaseSegmenter):
             print('!! --- centroid not found')
             # s0, s1 = fixed_sampling(X, Sx, seedlen)
             # print('fixed_sampling', s0.subs, s1.subs)
-            return _Regime(self.random_seed), _Regime(self.random_seed)
-        s0, s1 = _Regime(self.random_seed), _Regime(self.random_seed)
+            return (_Regime(self.max_seg, self.min_k, self.max_k, self.random_seed),
+                    _Regime(self.max_seg, self.min_k, self.max_k, self.random_seed))
+        s0, s1 = (_Regime(self.max_seg, self.min_k, self.max_k, self.random_seed),
+                  _Regime(self.max_seg, self.min_k, self.max_k, self.random_seed))
         s0.add_segment(seg0[0], seg0[1])
         s1.add_segment(seg1[0], seg1[1])
         # print(s0.n_seg, s1.n_seg)
@@ -216,14 +239,14 @@ class AutoPlaitSegmenter(BaseSegmenter):
                 or s0.subs[loc0, 1] < 2
                 or s1.subs[loc1, 1] < 2):
             return np.inf
-        tmp0 = _Regime(self.random_seed)
-        tmp1 = _Regime(self.random_seed)
+        tmp0 = _Regime(self.max_seg, self.min_k, self.max_k, self.random_seed)
+        tmp1 = _Regime(self.max_seg, self.min_k, self.max_k, self.random_seed)
         st, ln = s0.subs[loc0]
         tmp0.add_segment(st, ln)
         st, ln = s1.subs[loc1]
         tmp1.add_segment(st, ln)
-        tmp0._estimate_hmm_k(X, MINK)
-        tmp1._estimate_hmm_k(X, MINK)
+        tmp0._estimate_hmm_k(X, self.min_k)
+        tmp1._estimate_hmm_k(X, self.min_k)
         costC = self._cut_point_search(X, Sx, tmp0, tmp1, False)
         del tmp0, tmp1
         return costC
@@ -234,8 +257,8 @@ class AutoPlaitSegmenter(BaseSegmenter):
         per = SEGMENT_R
         remove_noise_aux(X, Sx, s0, s1, per)
         costC = self._scan_mindiff(X, Sx, s0, s1)
-        opt0 = _Regime(self.random_seed)
-        opt1 = _Regime(self.random_seed)
+        opt0 = _Regime(self.max_seg, self.min_k, self.max_k, self.random_seed)
+        opt1 = _Regime(self.max_seg, self.min_k, self.max_k, self.random_seed)
         copy_segments(s0, opt0)
         copy_segments(s1, opt1)
         prev = np.inf
@@ -260,7 +283,7 @@ class AutoPlaitSegmenter(BaseSegmenter):
         del opt0, opt1
 
     def _uniformset(self, X, Sx, n_samples, seedlen):
-        u = _Regime(self.random_seed)
+        u = _Regime(self.max_seg, self.min_k, self.max_k, self.random_seed)
         w = int((Sx.len - seedlen) / n_samples)
         for i in range(Sx.n_seg):
             if u.n_seg >= n_samples:
@@ -279,7 +302,14 @@ class AutoPlaitSegmenter(BaseSegmenter):
 
     def _fixed_sampling(self, X, Sx, seedlen):
         # print('nseg', Sx.n_seg)
-        s0, s1 = _Regime(self.random_seed), _Regime(self.random_seed)
+        s0, s1 = (_Regime(self.max_seg,
+                         self.min_k,
+                         self.max_k,
+                         self.random_seed),
+                  _Regime(self.max_seg,
+                          self.min_k,
+                          self.max_k,
+                          self.random_seed))
         loc = 0 % Sx.n_seg
         r = Sx.subs[loc, 0]
         if Sx.n_seg == 1:
@@ -297,7 +327,14 @@ class AutoPlaitSegmenter(BaseSegmenter):
         return s0, s1
 
     def _uniform_sampling(self, X, Sx, length, n1, n2, u):
-        s0, s1 = _Regime(self.random_seed), _Regime(self.random_seed)
+        s0, s1 = (_Regime(self.max_seg,
+                         self.min_k,
+                         self.max_k,
+                         self.random_seed),
+                  _Regime(self.max_seg,
+                          self.min_k,
+                          self.max_k,
+                          self.random_seed))
         i, j = int(n1 % u.n_seg), int(n2 % u.n_seg)
         # print(i, j)
         st0, st1 = u.subs[i, 0], u.subs[j, 0]
@@ -308,9 +345,16 @@ class AutoPlaitSegmenter(BaseSegmenter):
         return s0, s1
 
 class _Regime(object):
-    def __init__(self, random_seed):
+    def __init__(self,
+                 max_seg,
+                 min_k,
+                 max_k,
+                 random_seed):
+        self.max_seg = max_seg
+        self.min_k = min_k
+        self.max_k = max_k
         self.random_seed = random_seed
-        self.subs = np.zeros((MAXSEG, 2), dtype=np.int16)
+        self.subs = np.zeros((self.max_seg, 2), dtype=np.int16)
         self.model = None
         self.delta = 1.
         self.initialize()
@@ -325,7 +369,7 @@ class _Regime(object):
         if dt <= 0: return
         st = 0 if st < 0 else st
         n_seg = self.n_seg
-        if n_seg == MAXSEG:
+        if n_seg == self.max_seg:
             raise ValueError(" ")
         elif n_seg == 0:
             self.subs[0, :] = (st, dt)
@@ -374,6 +418,7 @@ class _Regime(object):
         return seg
 
     def _estimate_hmm_k(self, X, k=1):
+        from hmmlearn.hmm import GaussianHMM
         X_, lengths = self._parse_input(X)
         self.model = GaussianHMM(n_components=k,
                                    covariance_type='diag',
@@ -410,16 +455,16 @@ class _Regime(object):
 
     def _estimate_hmm(self, X):
         self.costT = np.inf
-        opt_k = MINK
-        for k in range(MINK, MAXK):
+        opt_k = self.min_k
+        for k in range(self.min_k, self.max_k):
             prev = self.costT
             self._estimate_hmm_k(X, k)
             self._compute_lh_mdl(X)
             if self.costT > prev:
                 opt_k = k - 1
                 break
-        if opt_k < MINK: opt_k = MINK
-        if opt_k > MAXK: opt_k = MAXK
+        if opt_k < self.min_k: opt_k = self.min_k
+        if opt_k > self.max_k: opt_k = self.max_k
         self._estimate_hmm_k(X, opt_k)
         self._compute_lh_mdl(X)
 
