@@ -1,4 +1,3 @@
-import pprint
 from copy import deepcopy
 from itertools import combinations
 
@@ -7,16 +6,11 @@ from joblib import Parallel, delayed
 
 from aeon.segmentation.base import BaseSegmenter
 
-pp = pprint.PrettyPrinter(indent=4)
 ZERO = 1.e-10
-INF = 1.e+10
 N_INFER_ITER_HMM = 1
-INFER_ITER_MIN = 2
-INFER_ITER_MAX = 10
 SEGMENT_R = 1.e-2
 REGIME_R = 3.e-2
-BIAS = 1.e+5
-MAXBAUMN = 3
+MAXBAUMN = 100
 FB = 4 * 8
 LM = .1
 RM = True
@@ -69,6 +63,7 @@ class AutoPlaitSegmenter(BaseSegmenter):
         "capability:multivariate": True,
         "python_dependencies": "hmmlearn"
     }
+
     def __init__(self,
                  parallel = True,
                  min_k = 1,
@@ -102,7 +97,7 @@ class AutoPlaitSegmenter(BaseSegmenter):
         Returns
         -------
         y_pred : np.ndarray
-            DESC
+            Predicted change points of the time series
         """
         self.X = X
         self.n, self.d = self.X.shape
@@ -129,14 +124,28 @@ class AutoPlaitSegmenter(BaseSegmenter):
             else:
                 self.regimes.append(reg)
 
+        m = 0
+        for i in range(len(self.regimes)):
+            m += self.regimes[i].n_seg
+        self.m = m
+
         return self._regimes_to_change_points()
 
+    def complete_parameters(self):
+        return {'m': self.m,
+                'n': self.n,
+                'd': self.d}
+
     def _regimes_to_change_points(self):
+        """
+        Convert the list [_Regime] into a list of change points
+        @return: A list of change points
+        """
         cps = []
         for i in range(len(self.regimes)):
             for j in range(len(self.regimes[i].subs[:self.regimes[i].n_seg])):
                 cps.append(self.regimes[i].subs[:self.regimes[i].n_seg][j][0])
-        if cps == [0]: cps = []
+        if cps == [0]: cps = [] # The only segment start is 0, means no segments (the entire TS is a single segment)
         return np.array(sorted(cps))
 
 
@@ -148,19 +157,19 @@ class AutoPlaitSegmenter(BaseSegmenter):
         s0, s1 = self._find_centroid(X, sx, self.n_sample, seedlen)
         if not s0.n_seg or not s1.n_seg:
             return opt0, opt1
-        for i in range(INFER_ITER_MAX):
+        for i in range(self.infer_iter_max):
             select_largest(s0)
             select_largest(s1)
             s0.estimate_hmm(X)
             s1.estimate_hmm(X)
-            self._cut_point_search(X, sx, s0, s1, RM=RM)
+            self._cut_point_search(X, sx, s0, s1, remove_noise=RM)
             if not s0.n_seg or not s1.n_seg:
                 break
             diff = (opt0.costT + opt1.costT) - (s0.costT + s1.costT)
             if diff > 0:
                 copy_segments(s0, opt0)
                 copy_segments(s1, opt1)
-            elif i >= INFER_ITER_MIN:
+            elif i >= self.infer_iter_min:
                 break
         copy_segments(opt0, s0)
         copy_segments(opt1, s1)
@@ -344,7 +353,7 @@ class AutoPlaitSegmenter(BaseSegmenter):
         s1.add_segment(st1, length)
         return s0, s1
 
-class _Regime(object):
+class _Regime:
     def __init__(self,
                  max_seg,
                  min_k,
