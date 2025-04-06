@@ -10,13 +10,13 @@ Defining methods:
     shape checking        - ``_check_shape(self, X)``
 
 Inherited inspection methods:
-    hyper-parameter inspection  - `get_params()`
-    fitted parameter inspection - `get_fitted_params()`
+    hyper-parameter inspection  - ``get_params()``
+    fitted parameter inspection - ``get_fitted_params()``
 
 State:
     fitted model/strategy   - by convention, any attributes ending in `"_"`
-    fitted state flag       - `is_fitted` (property)
-    fitted state inspection - `check_is_fitted()`
+    fitted state flag       - ``is_fitted (property)``
+    fitted state inspection - ``check_is_fitted()``
 
 """
 
