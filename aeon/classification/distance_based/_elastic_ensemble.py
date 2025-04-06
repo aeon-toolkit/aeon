@@ -500,9 +500,9 @@ class ElasticEnsemble(BaseClassifier):
         ----------
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return ``"default"`` set.
+            special parameters are defined for a value, will return `"default"` set.
             ElasticEnsemble provides the following special sets:
-                 ``"results_comparison"`` - used in some classifiers to compare against
+                 `"results_comparison"` - used in some classifiers to compare against
                     previously generated results where the default set of parameters
                     cannot produce suitable probability estimates
 
@@ -510,7 +510,7 @@ class ElasticEnsemble(BaseClassifier):
         -------
         params : dict or list of dict, default={}
             Parameters to create testing instances of the class.
-            Each ``dict`` are parameters to construct an ``"interesting"`` test instance
+            Each ``dict`` are parameters to construct an `"interesting"` test instance
             , i.e.,
             ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test
             instance.

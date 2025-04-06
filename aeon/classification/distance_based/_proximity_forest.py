@@ -49,10 +49,10 @@ class ProximityForest(BaseClassifier):
         for more details. Parameter for compatibility purposes, still unimplemented.
     parallel_backend : str, ParallelBackendBase instance or None, default=None
         Specify the parallelisation backend implementation in ``joblib``, if ``None``
-        a ``prefer`` value of ``"threads"`` is used by default.
-        Valid options are ``"loky"``, ``"multiprocessing"``, ``"threading"`` or a
+        a `prefer` value of `"threads"` is used by default.
+        Valid options are `"loky"`, `"multiprocessing"`, `"threading"` or a
         custom backend.
-        See the joblib Parallel documentation for more details.
+        See the ``joblib`` Parallel documentation for more details.
 
     Notes
     -----
