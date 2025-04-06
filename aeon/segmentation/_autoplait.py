@@ -1,3 +1,4 @@
+import logging
 from copy import deepcopy
 from itertools import combinations
 
@@ -14,6 +15,8 @@ MAXBAUMN = 100
 FB = 4 * 8
 LM = .1
 RM = True
+
+LOGGER = logging.getLogger(__name__)
 
 class AutoPlaitSegmenter(BaseSegmenter):
     """AutoPlait Segmentation.
@@ -115,7 +118,7 @@ class AutoPlaitSegmenter(BaseSegmenter):
             # print(reg0.subs[:reg0.n_seg], '0')
             # print(reg1.subs[:reg1.n_seg], '1')
             costT_s01 = reg0.costT + reg1.costT + REGIME_R * reg.costT
-            print(f'\t-- try to split: {costT_s01:.6} vs {reg.costT:.6}')
+            LOGGER.info(f'\t-- try to split: {costT_s01:.6} vs {reg.costT:.6}')
             # print(s0.costT, s1.costT)
 
             if costT_s01 < reg.costT:
@@ -194,6 +197,7 @@ class AutoPlaitSegmenter(BaseSegmenter):
     def _find_centroid_wrap(self, X, Sx, seedlen, idx0, idx1, u):
         s0, s1 = self._uniform_sampling(seedlen, idx0, idx1, u)
         if not s0.n_seg or not s1.n_seg:
+            LOGGER.info(f"Returned on first centroid wrap. s0: {s0.n_seg}, s1: {s1.n_seg}")
             return np.inf, None, None
         subs0 = s0.subs[0]
         subs1 = s1.subs[0]
@@ -201,6 +205,7 @@ class AutoPlaitSegmenter(BaseSegmenter):
         s1.estimate_hmm_k(X, self.min_k)
         self._cut_point_search(X, Sx, s0, s1, False)
         if not s0.n_seg or not s1.n_seg:
+            LOGGER.info(f"Returned on second centroid wrap. s0: {s0.n_seg}, s1: {s1.n_seg}")
             return np.inf, None, None
         costT_s01 = s0.costT + s1.costT
         return costT_s01, subs0, subs1
@@ -220,14 +225,14 @@ class AutoPlaitSegmenter(BaseSegmenter):
 
         # pp.pprint(results)
         if not results:
-            print('fixed sampling')
+            LOGGER.info('fixed sampling')
             s0, s1 = self._fixed_sampling(Sx, seedlen)
             return s0, s1
         centroid = np.argmin([res[0] for res in results])
         # print(results[centroid])
         costMin, seg0, seg1 = results[centroid]
         if costMin == np.inf:
-            print('!! --- centroid not found')
+            LOGGER.info('!! --- centroid not found')
             # s0, s1 = fixed_sampling(X, Sx, seedlen)
             # print('fixed_sampling', s0.subs, s1.subs)
             return (_Regime(self.max_seg, self.min_k, self.max_k, self.random_seed),
@@ -236,7 +241,7 @@ class AutoPlaitSegmenter(BaseSegmenter):
                   _Regime(self.max_seg, self.min_k, self.max_k, self.random_seed))
         s0.add_segment(seg0[0], seg0[1])
         s1.add_segment(seg1[0], seg1[1])
-        # print(s0.n_seg, s1.n_seg)
+        #print(s0.n_seg, s1.n_seg)
         # time.sleep(3)
         return s0, s1
 
@@ -345,7 +350,7 @@ class AutoPlaitSegmenter(BaseSegmenter):
                           self.max_k,
                           self.random_seed))
         i, j = int(n1 % u.n_seg), int(n2 % u.n_seg)
-        # print(i, j)
+        #print(i, j)
         st0, st1 = u.subs[i, 0], u.subs[j, 0]
         if abs(st0 - st1) < length:
             return s0, s1
@@ -496,11 +501,11 @@ def _mdl_total(stack0, stack1):
     costT = mdl_segment(stack0) + mdl_segment(stack1)
     costT += log_s(r) + log_s(m) + m * np.log2(r) + FB * r ** 2
     # print(f'[r, m, total_cost] = {r}, {m}, {costT:.6}')
-    print('====================')
-    print(' r:\t', r)
-    print(' m:\t', m)
-    print(f' costT:\t{costT:.6}')
-    print('====================')
+    LOGGER.info('====================\n'+
+                f' r:\t {r}\n'+
+                f' m:\t {m}\n'+
+                f' r:\t {costT:.6}\n'+
+                '====================')
     return costT
 
 def _search_aux(X, st, dt, s0, s1):
