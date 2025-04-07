@@ -1,6 +1,6 @@
 """Summary feature transformer."""
 
-__maintainer__ = []
+__maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["SevenNumberSummary"]
 
 import numpy as np
@@ -22,12 +22,12 @@ class SevenNumberSummary(BaseCollectionTransformer):
 
     Parameters
     ----------
-    summary_stats : ["default", "percentiles", "bowley", "tukey"], default="default"
+    summary_stats : ["default", "quantiles", "bowley", "tukey"], default="default"
         The summary statistics to compute.
         The options are as follows, with float denoting the percentile value extracted
         from the series:
             - "default": mean, std, min, max, 0.25, 0.5, 0.75
-            - "percentiles": 0.215, 0.887, 0.25, 0.5, 0.75, 0.9113, 0.9785
+            - "quantiles": 0.0215, 0.0887, 0.25, 0.5, 0.75, 0.9113, 0.9785
             - "bowley": min, max, 0.1, 0.25, 0.5, 0.75, 0.9
             - "tukey": min, max, 0.125, 0.25, 0.5, 0.75, 0.875
 
@@ -89,10 +89,10 @@ class SevenNumberSummary(BaseCollectionTransformer):
                 0.5,
                 0.75,
             ]
-        elif self.summary_stats == "percentiles":
+        elif self.summary_stats == "quantiles":
             return [
-                0.215,
-                0.887,
+                0.0215,
+                0.0887,
                 0.25,
                 0.5,
                 0.75,
