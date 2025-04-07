@@ -95,7 +95,7 @@ def resample_data_indices(y_train, y_test, random_state=None):
     random_state : int, RandomState instance or None, default=None
         If ``int``, random_state is the seed used by the random number generator;
         If ``RandomState`` instance, random_state is the random number generator;
-        If ``None``, the random number generator is the ``RandomState`` instance 
+        If ``None``, the random number generator is the ``RandomState`` instance
         used by ``np.random``.
 
     Returns
@@ -138,7 +138,7 @@ def stratified_resample_data(X_train, y_train, X_test, y_test, random_state=None
     random_state : int, RandomState instance or None, default=None
         If ``int``, random_state is the seed used by the random number generator;
         If ``RandomState`` instance, random_state is the random number generator;
-        If ``None``, the random number generator is the ``RandomState`` instance 
+        If ``None``, the random number generator is the ``RandomState`` instance
         used by ``np.random``.
 
     Returns
@@ -202,7 +202,7 @@ def stratified_resample_data_indices(y_train, y_test, random_state=None):
     random_state : int, RandomState instance or None, default=None
         If ``int``, random_state is the seed used by the random number generator;
         If ``RandomState`` instance, random_state is the random number generator;
-        If ``None``, the random number generator is the ``RandomState`` instance 
+        If ``None``, the random number generator is the ``RandomState`` instance
         used by ``np.random``.
 
     Returns

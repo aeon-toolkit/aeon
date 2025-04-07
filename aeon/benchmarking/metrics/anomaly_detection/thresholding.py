@@ -69,7 +69,7 @@ def top_k_points_threshold(
     Computes a threshold based on the number of expected anomalies (number of
     anomalies). This method iterates over all possible thresholds from high to low to
     find the first threshold that yields ``k`` or more anomalous points. If ``k``
-    is ``None``,the ground truth data is used to calculate the real number of 
+    is ``None``,the ground truth data is used to calculate the real number of
     anomalies.
 
     Parameters
@@ -79,7 +79,7 @@ def top_k_points_threshold(
     y_score : np.ndarray
         Anomaly scores for each point of the time series of shape (n_instances,).
     k : optional int
-        Number of expected anomalies. If ``k`` is ``None``, the ground truth data 
+        Number of expected anomalies. If ``k`` is ``None``, the ground truth data
         is used to calculate the real number of anomalies.
 
     Returns
@@ -103,7 +103,7 @@ def top_k_ranges_threshold(
     Computes a threshold based on the number of expected anomalous subsequences /
     ranges (number of anomalies). This method iterates over all possible thresholds
     from high to low to find the first threshold that yields `k` or more continuous
-    anomalous ranges. If ``k`` is ``None``, the ground truth data is used to 
+    anomalous ranges. If ``k`` is ``None``, the ground truth data is used to
     calculate the real number of anomalies (anomalous ranges).
 
     Parameters
@@ -113,8 +113,8 @@ def top_k_ranges_threshold(
     y_score : np.ndarray
         Anomaly scores for each point of the time series of shape (n_instances,).
     k : optional int
-        Number of expected anomalies. If ``k`` is ``None``, the ground truth data is used
-        to calculate the real number of anomalies.
+        Number of expected anomalies. If ``k`` is ``None``, the ground truth data
+        is used to calculate the real number of anomalies.
 
     Returns
     -------
