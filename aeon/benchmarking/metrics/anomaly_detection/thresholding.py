@@ -22,14 +22,14 @@ def percentile_threshold(y_score: np.ndarray, percentile: int) -> float:
 
     Parameters
     ----------
-    y_score : ``np.ndarray``
-        Anomaly scores for each point of the time series of shape ``(n_instances,)``.
-    percentile : ``int``
-        Percentile to use as threshold between ``0`` and ``100.``
+    y_score : np.ndarray
+        Anomaly scores for each point of the time series of shape (n_instances,).
+    percentile : int
+        Percentile to use as threshold between 0 and 100.
 
     Returns
     -------
-    ``float``
+    float
         Threshold based on the percentile.
     """
     return np.nanpercentile(y_score, percentile)
@@ -38,18 +38,18 @@ def percentile_threshold(y_score: np.ndarray, percentile: int) -> float:
 def sigma_threshold(y_score: np.ndarray, factor: float = 2) -> float:
     r"""Calculate a threshold based on the standard deviation of the anomaly scores.
 
-    Computes a threshold :math:`\theta` based on the anomaly scoring's mean
-    :math:`\mu_s` and the standard deviation :math:`\sigma_s`, ignoring NaNs:
+    Computes a threshold :math:``\theta`` based on the anomaly scoring's mean
+    :math:``\mu_s`` and the standard deviation :math:``\sigma_s``, ignoring NaNs:
 
     .. math::
        \theta = \mu_{s} + x \cdot \sigma_{s}
 
     Parameters
     ----------
-    y_score : ``np.ndarray``
-        Anomaly scores for each point of the time series of shape ``(n_instances,)``.
-    factor : ``float``
-        Number of standard deviations to use as threshold (:math:`x`).
+    y_score : np.ndarray
+        Anomaly scores for each point of the time series of shape (n_instances,).
+    factor : float
+        Number of standard deviations to use as threshold (:math:``x``).
 
     Returns
     -------
@@ -69,22 +69,22 @@ def top_k_points_threshold(
     Computes a threshold based on the number of expected anomalies (number of
     anomalies). This method iterates over all possible thresholds from high to low to
     find the first threshold that yields ``k`` or more anomalous points. If ``k``
-    is ``None``, the ground truth data is used to calculate the real number of
+    is ``None``,the ground truth data is used to calculate the real number of 
     anomalies.
 
     Parameters
     ----------
-    y_true : ``np.ndarray``
-        True binary labels of shape ``(n_instances,)``.
-    y_score : ``np.ndarray``
-        Anomaly scores for each point of the time series of shape ``(n_instances,)``.
-    k : optional ``int``
-        Number of expected anomalies. If ``k`` is ``None``, the ground truth data
+    y_true : np.ndarray
+        True binary labels of shape (n_instances,).
+    y_score : np.ndarray
+        Anomaly scores for each point of the time series of shape (n_instances,).
+    k : optional int
+        Number of expected anomalies. If ``k`` is ``None``, the ground truth data 
         is used to calculate the real number of anomalies.
 
     Returns
     -------
-    ``float``
+    float
         Threshold such that there are at least ``k`` anomalous points.
     """
     if k is None:
@@ -102,24 +102,24 @@ def top_k_ranges_threshold(
 
     Computes a threshold based on the number of expected anomalous subsequences /
     ranges (number of anomalies). This method iterates over all possible thresholds
-    from high to low to find the first threshold that yields ``k`` or more continuous
-    anomalous ranges. If ``k`` is ``None``, the ground truth data is used to calculate
-    the real number of anomalies (anomalous ranges).
+    from high to low to find the first threshold that yields `k` or more continuous
+    anomalous ranges. If ``k`` is ``None``, the ground truth data is used to 
+    calculate the real number of anomalies (anomalous ranges).
 
     Parameters
     ----------
-    y_true : ``np.ndarray``
-        True binary labels of shape ``(n_instances,)``.
-    y_score : ``np.ndarray``
-        Anomaly scores for each point of the time series of shape ``(n_instances,)``.
-    k : optional ``int``
-        Number of expected anomalies. If ``k`` is ``None``, the ground truth data
-        is used to calculate the real number of anomalies.
+    y_true : np.ndarray
+        True binary labels of shape (n_instances,).
+    y_score : np.ndarray
+        Anomaly scores for each point of the time series of shape (n_instances,).
+    k : optional int
+        Number of expected anomalies. If ``k`` is ``None``, the ground truth data is used
+        to calculate the real number of anomalies.
 
     Returns
     -------
-    ``float``
-        Threshold such that there are at least `k` anomalous ranges.
+    float
+        Threshold such that there are at least ``k`` anomalous ranges.
     """
     if k is None:
         k = _count_anomaly_ranges(y_true)
@@ -138,12 +138,12 @@ def _count_anomaly_ranges(y: np.ndarray) -> int:
 
     Parameters
     ----------
-    y : ``np.ndarray``
-        Binary sequence of shape ``(n_instances,)``.
+    y : np.ndarray
+        Binary sequence of shape (n_instances,).
 
     Returns
     -------
-    ``int``
+    int
         Number of continuous anomalous ranges.
     """
     return int(np.sum(np.diff(np.r_[0, y, 0]) == 1))

@@ -15,12 +15,12 @@ def check_friedman(ranks):
 
     Parameters
     ----------
-    ranks : ``np.array``
-        Rank of estimators on datasets, shape ``(n_estimators, n_datasets)``.
+    ranks : np.array
+        Rank of estimators on datasets, shape (n_estimators, n_datasets).
 
     Returns
     -------
-    ``float``
+    float
       p-value of the test.
     """
     n_datasets, n_estimators = ranks.shape
@@ -54,16 +54,16 @@ def nemenyi_test(ordered_avg_ranks, n_datasets, alpha):
 
     Parameters
     ----------
-    ordered_avg_ranks : ``np.array``
+    ordered_avg_ranks : np.array
         Average ranks of estimators.
-    n_datasets : ``int``
-        Number of datasets.
-    alpha : ``float``
+    n_datasets : int
+        Mumber of datasets.
+    alpha : float
         alpha level for Nemenyi test.
 
     Returns
     -------
-    ``list`` of ``lists``
+    list of lists
         List of cliques. A clique is a group of estimators within which there is no
         significant difference.
     """
@@ -277,16 +277,16 @@ def wilcoxon_test(results, labels, lower_better=False):
 
     Parameters
     ----------
-    results : ``np.array``
+    results : np.array
         Results of estimators on datasets
 
-    lower_better : ``bool``, default = ``False``
+    lower_better : bool, default = False
         Indicates whether smaller is better for the results in scores. For example,
         if errors are passed instead of accuracies, set ``lower_better`` to ``True``.
 
     Returns
     -------
-    ``np.array``
+    np.array
         p-values of Wilcoxon sign rank test.
     """
     n_estimators = results.shape[1]

@@ -26,34 +26,34 @@ def load_classification_bake_off_2017_results(
 
     Parameters
     ----------
-    num_resamples : ``int`` or ``None``, default=1
+    num_resamples : int or None, default=1
         The number of data resamples to return scores for. The first resample
         is the default train/test split for the dataset.
-        For ``1``, only the score for the default train/test split of the dataset is
+        For 1, only the score for the default train/test split of the dataset is
         returned.
-        For ``2`` or more, a ``np.ndarray`` of scores for all resamples up to
-        num_resamples are returned.
-        If ``None``, the scores of all resamples are returned.
+        For 2 or more, a np.ndarray of scores for all resamples up to num_resamples are
+        returned.
+        If None, the scores of all resamples are returned.
 
-        If ``as_array`` is true, the scores are averaged instead of being returned as a
-        ``np.ndarray``.
-    as_array :  ``bool``, default=False
-        If ``True``, return the results as a tuple containing a ``np.ndarray`` of
-        (averaged) scores for each classifier. Also returns a list of dataset names
-        for each row of the ``np.ndarray``, and classifier names for each column.
-    ignore_nan : ``bool``, default=False
+        If as_array is true, the scores are averaged instead of being returned as a
+        np.ndarray.
+    as_array : bool, default=False
+        If True, return the results as a tuple containing a np.ndarray of (averaged)
+        scores for each classifier. Also returns a list of dataset names for each
+        row of the np.ndarray, and classifier names for each column.
+    ignore_nan : bool, default=False
         Ignore the error raised when NaN values are present in the results. Ignores
-        NaN values when averaging when ``as_array`` is  ``True``.
+        NaN values when averaging when as_array is True.
 
     Returns
     -------
-    results: ``dict`` or ``tuple``
+    results: dict or tuple
         Dictionary with estimator name keys containing another dictionary.
         Sub-dictionary consists of dataset name keys and contains of scores for each
         dataset.
-        If ``as_array`` is ``true``, instead returns a tuple of: An array of scores.
-        Each column is a results for a classifier, each row a dataset. A list of
-        dataset names for each row. A list of classifier names for each column.
+        If as_array is true, instead returns a tuple of: An array of scores. Each
+        column is a results for a classifier, each row a dataset. A list of dataset
+        names for each row. A list of classifier names for each column.
 
     References
     ----------
@@ -127,36 +127,36 @@ def load_classification_bake_off_2021_results(num_resamples=30, as_array=False):
     """Pull down all the results of the 2021 multivariate bake off.
 
     Basic utility function to recover legacy results from [1]_. Loads results for 26
-    ``tsml`` data sets for classifiers used in the publication. Can load either
+    tsml data sets for classifiers used in the publication. Can load either
     the default train/test split, or the resampled results up to 30 resamples.
 
     Parameters
     ----------
-    num_resamples : ``int`` or ``None``, default=1
+    num_resamples : int or None, default=1
         The number of data resamples to return scores for. The first resample
         is the default train/test split for the dataset.
-        For ``1``, only the score for the default train/test split of the dataset is
+        For 1, only the score for the default train/test split of the dataset is
         returned.
-        For ``2`` or more, a ``np.ndarray`` of scores for all resamples up to
-        ``num_resamples`` are returned.
-        If ``None``, the scores of all resamples are returned.
+        For 2 or more, a np.ndarray of scores for all resamples up to num_resamples are
+        returned.
+        If None, the scores of all resamples are returned.
 
-        If ``as_array`` is true, the scores are averaged instead of being returned
-        as a ``np.ndarray``.
-    as_array : ``bool``, default=False
-        If ``True``, return the results as a tuple containing a ``np.ndarray` of
-        (averaged) scores for each classifier. Also returns a list of dataset names
-        for each row of the np.ndarray, and classifier names for each column.
+        If as_array is true, the scores are averaged instead of being returned as a
+        np.ndarray.
+    as_array : bool, default=False
+        If True, return the results as a tuple containing a np.ndarray of (averaged)
+        scores for each classifier. Also returns a list of dataset names for each
+        row of the np.ndarray, and classifier names for each column.
 
     Returns
     -------
-    results: ``dict`` or ``tuple``
+    results: dict or tuple
         Dictionary with estimator name keys containing another dictionary.
         Sub-dictionary consists of dataset name keys and contains of scores for each
         dataset.
-        If ``as_array`` is ``true``, instead returns a tuple of: An array of scores.
-        Each column is a results for a classifier, each row a dataset. A list of
-        dataset names for each row. A list of classifier names for each column.
+        If as_array is true, instead returns a tuple of: An array of scores. Each
+        column is a results for a classifier, each row a dataset. A list of dataset
+        names for each row. A list of classifier names for each column.
 
     References
     ----------
@@ -218,31 +218,31 @@ def load_classification_bake_off_2023_results(num_resamples=30, as_array=False):
 
     Parameters
     ----------
-    num_resamples : ``int`` or ``None``, default=1
+    num_resamples : int or None, default=1
         The number of data resamples to return scores for. The first resample
         is the default train/test split for the dataset.
-        For ``1``, only the score for the default train/test split of the dataset
-        is returned.
-        For ``2`` or more, a ``np.ndarray`` of scores for all resamples up to
-        ``num_resamples`` are returned.
-        If ``None``, the scores of all resamples are returned.
+        For 1, only the score for the default train/test split of the dataset is
+        returned.
+        For 2 or more, a np.ndarray of scores for all resamples up to num_resamples are
+        returned.
+        If None, the scores of all resamples are returned.
 
-        If ``as_array`` is true, the scores are averaged instead of being returned
-        as a ``np.ndarray``.
-    as_array : ``bool``, default=False
-        If ``True``, return the results as a tuple containing a ``np.ndarray`` of
-        (averaged) scores for each classifier. Also returns a list of dataset names
-        for each row of the ``np.ndarray``, and classifier names for each column.
+        If as_array is true, the scores are averaged instead of being returned as a
+        np.ndarray.
+    as_array : bool, default=False
+        If True, return the results as a tuple containing a np.ndarray of (averaged)
+        scores for each classifier. Also returns a list of dataset names for each
+        row of the np.ndarray, and classifier names for each column.
 
     Returns
     -------
-    results: ``dict`` or ``tuple``
+    results: dict or tuple
         Dictionary with estimator name keys containing another dictionary.
-        Sub-dictionary consists of dataset name keys and contains of scores for
-        each dataset.
-        If ``as_array`` is ``true``, instead returns a tuple of: An array of scores.
-        Each column is a results for a classifier, each row a dataset. A list of
-        dataset names for each row. A list of classifier names for each column.
+        Sub-dictionary consists of dataset name keys and contains of scores for each
+        dataset.
+        If as_array is true, instead returns a tuple of: An array of scores. Each
+        column is a results for a classifier, each row a dataset. A list of dataset
+        names for each row. A list of classifier names for each column.
 
     References
     ----------

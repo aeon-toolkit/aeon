@@ -47,19 +47,19 @@ def hausdorff_error(
 
     .. seealso::
 
-       This function wraps :py:func:`scipy.spatial.distance.directed_hausdorff`
+       This function wraps :py:func:``scipy.spatial.distance.directed_hausdorff``
 
     Parameters
     ----------
-    true_change_points: ``array_like``
+    true_change_points: array_like
         Integer indexes (positions) of true change points
-    pred_change_points: ``array_like``
+    pred_change_points: array_like
         Integer indexes (positions) of predicted change points
-    symmetric: ``bool``
+    symmetric: bool
         If ``True`` symmetric Hausdorff distance will be used
-    seed: ``int``, default=0
-        Local ``numpy.random.RandomState`` seed. Default is ``0``, a random
-        shuffling of ``u`` and ``v`` that guarantees reproducibility.
+    seed: int, default=0
+        Local numpy.random.RandomState seed. Default is 0, a random
+        shuffling of u and v that guarantees reproducibility.
 
     Returns
     -------
@@ -84,14 +84,14 @@ def prediction_ratio(
 
     Parameters
     ----------
-    true_change_points: ``array_like``
+    true_change_points: array_like
         Integer indexes (positions) of true change points
-    pred_change_points: ``array_like``
+    pred_change_points: array_like
         Integer indexes (positions) of predicted change points
 
     Returns
     -------
-        ``prediction_ratio``
+        prediction_ratio
     """
     true_change_points = check_array(true_change_points, ensure_2d=False)
     pred_change_points = check_array(pred_change_points, ensure_2d=False)

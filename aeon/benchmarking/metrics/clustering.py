@@ -17,14 +17,14 @@ def clustering_accuracy_score(y_true, y_pred):
 
     Parameters
     ----------
-    `y_true` : array-like of shape (n_samples,)
+    y_true : array-like of shape (n_samples,)
         Ground truth target labels.
-    `y_pred` : array-like of shape (n_samples,)
+    y_pred : array-like of shape (n_samples,)
         Cluster labels to evaluate.
 
     Returns
     -------
-    `score` : float
+    score : float
         The clustering accuracy.
 
     Examples
