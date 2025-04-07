@@ -27,9 +27,10 @@ Distance-based
     LeftSTAMPi
     LOF
     MERLIN
+    OneCLassSVM
     STOMP
 
-Distributin-based
+Distribution-based
 -----------------
 
 .. currentmodule:: aeon.anomaly_detection.distribution_based
@@ -53,17 +54,6 @@ Outlier-Detection
     IsolationForest
     PyODAdapter
     STRAY
-
-Sklearn-based
--------------
-
-.. currentmodule:: aeon.anomaly_detection.sklearn_based
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    OneClassSVM
 
 Whole-Series
 ------------
