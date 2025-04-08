@@ -152,12 +152,12 @@ class SAST(BaseCollectionTransformer):
             # convert to int because if self.
             # nb_inst_per_class is float, the result of np.min() will be float
             cnt = np.min([self.nb_inst_per_class, X_c.shape[0]]).astype(int)
-            choosen = self._random_state.permutation(X_c.shape[0])[:cnt]
-            candidates_ts.append(X_c[choosen])
-            self.kernels_generators_[c] = X_c[choosen]
+            chosen = self._random_state.permutation(X_c.shape[0])[:cnt]
+            candidates_ts.append(X_c[chosen])
+            self.kernels_generators_[c] = X_c[chosen]
             class_values_of_candidates.extend([c] * cnt)
             source_series_indices.extend(
-                np.where(y == c)[0][choosen]
+                np.where(y == c)[0][chosen]
             )  # Record the original indices
 
         candidates_ts = np.concatenate(candidates_ts, axis=0)

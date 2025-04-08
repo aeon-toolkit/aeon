@@ -37,7 +37,7 @@ def stomp_euclidean_matrix_profile(
     Compute a euclidean euclidean matrix profile using STOMP [1]_.
 
     This improves on the naive matrix profile by updating the dot products for each
-    sucessive query in T instead of recomputing them.
+    successive query in T instead of recomputing them.
 
     Parameters
     ----------
@@ -117,7 +117,7 @@ def stomp_squared_matrix_profile(
     Compute a squared euclidean matrix profile using STOMP [1]_.
 
     This improves on the naive matrix profile by updating the dot products for each
-    sucessive query in T instead of recomputing them.
+    successive query in T instead of recomputing them.
 
     Parameters
     ----------
@@ -206,7 +206,7 @@ def stomp_normalised_euclidean_matrix_profile(
     Compute a euclidean matrix profile using STOMP [1]_.
 
     This improves on the naive matrix profile by updating the dot products for each
-    sucessive query in T instead of recomputing them.
+    successive query in T instead of recomputing them.
 
     Parameters
     ----------
@@ -304,7 +304,7 @@ def stomp_normalised_squared_matrix_profile(
     Compute a squared euclidean matrix profile using STOMP [1]_.
 
     This improves on the naive matrix profile by updating the dot products for each
-    sucessive query in T instead of recomputing them.
+    successive query in T instead of recomputing them.
 
     Parameters
     ----------

@@ -87,7 +87,7 @@ def _make_hierarchical(
     max_timepoints : int, optional
         maximum time points a series can have, by default 12
     min_timepoints : int, optional
-        minimum time points a seires can have, by default 12
+        minimum time points a series can have, by default 12
     same_cutoff : bool, optional
         If it's True all series will end at the same date, by default True
     n_columns : int, optional

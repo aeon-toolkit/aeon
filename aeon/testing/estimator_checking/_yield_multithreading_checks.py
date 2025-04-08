@@ -62,7 +62,7 @@ def check_multithreading_param(estimator_class):
 
 
 def check_no_multithreading_param(estimator_class):
-    """Test that estimators that cant multithread have no n_jobs parameter."""
+    """Test that estimators that can't multithread have no n_jobs parameter."""
     default_params = inspect.signature(estimator_class.__init__).parameters
 
     # check that the estimator does not have a n_jobs parameter
