@@ -87,7 +87,7 @@ class ETSForecaster(BaseForecaster):
         trend_type=NONE,
         seasonality_type=NONE,
         seasonal_period=1,
-        alpha=0.1,
+        alpha: float = 0.1,
         beta=0.01,
         gamma=0.01,
         phi=0.99,
