@@ -27,7 +27,7 @@ Distance-based
     LeftSTAMPi
     LOF
     MERLIN
-    OneCLassSVM
+    OneClassSVM
     STOMP
 
 Distribution-based
