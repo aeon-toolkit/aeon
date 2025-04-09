@@ -2,7 +2,8 @@
 
 It checks if a comment on an issue or PR includes the trigger
 phrase (as defined) and a mentioned user.
-If it does, it assigns the issue to the mentioned user.
+If it does, it assigns the issue to the mentioned user and
+only users with write access can assign other users.
 """
 
 import json
@@ -20,6 +21,7 @@ issue_number = context_dict["event"]["issue"]["number"]
 issue = repo.get_issue(number=issue_number)
 comment_body = context_dict["event"]["comment"]["body"]
 pr = context_dict["event"]["issue"].get("pull_request")
+commenter = context_dict["event"]["comment"]["user"]["login"]
 
 # Assign tagged used to the issue if the comment includes the trigger phrase
 body = comment_body.lower()
@@ -28,5 +30,13 @@ if "@aeon-actions-bot" in body and "assign" in body and not pr:
     mentioned_users = [user[1:] for user in mentioned_users]
     mentioned_users.remove("aeon-actions-bot")
 
+    permission = repo.get_collaborator_permission(commenter)
+ 
     for user in mentioned_users:
-        issue.add_to_assignees(user)
+        
+        if (user == commenter) or (permission in ["admin", "write"]):
+            issue.add_to_assignees(user)
+        else:
+            comment_msg = f"""@{commenter}, you cannot assign @{user} because you lack write access. 
+            Only users with write access can assign others."""
+            issue.create_comment(comment_msg)
