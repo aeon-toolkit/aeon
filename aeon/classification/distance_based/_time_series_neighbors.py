@@ -17,6 +17,7 @@ from joblib import Parallel, delayed
 
 from aeon.classification.base import BaseClassifier
 from aeon.distances import get_distance_function
+from aeon.utils.validation import check_n_jobs
 
 WEIGHTS_SUPPORTED = ["uniform", "distance"]
 
@@ -141,7 +142,8 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
             The class probabilities of the input samples. Classes are ordered
             by lexicographic order.
         """
-        preds = Parallel(n_jobs=self.n_jobs, backend=self.parallel_backend)(
+        n_jobs = check_n_jobs(self.n_jobs)
+        preds = Parallel(n_jobs=n_jobs, backend=self.parallel_backend)(
             delayed(self._proba_row)(x) for x in X
         )
         return np.array(preds)
@@ -162,7 +164,8 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         y : array of shape (n_cases)
             Class labels for each data sample.
         """
-        preds = Parallel(n_jobs=self.n_jobs, backend=self.parallel_backend)(
+        n_jobs = check_n_jobs(self.n_jobs)
+        preds = Parallel(n_jobs=n_jobs, backend=self.parallel_backend)(
             delayed(self._predict_row)(x) for x in X
         )
         return np.array(preds, dtype=self.classes_.dtype)
