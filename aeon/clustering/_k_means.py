@@ -284,9 +284,6 @@ class TimeSeriesKMeans(BaseClusterer):
             )
         return pairwise_matrix.argmin(axis=1)
 
-    def _incorrect_params(self) -> str:
-        return ()
-
     def _check_params(self, X: np.ndarray) -> None:
         self._random_state = check_random_state(self.random_state)
 
