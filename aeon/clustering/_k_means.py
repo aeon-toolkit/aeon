@@ -285,15 +285,17 @@ class TimeSeriesKMeans(BaseClusterer):
         return pairwise_matrix.argmin(axis=1)
 
     def _incorrect_params(self) -> str:
-        return (
+        return ()
+
+    def _check_params(self, X: np.ndarray) -> None:
+        self._random_state = check_random_state(self.random_state)
+
+        _incorrect_params = (
             f"The value provided for init: {self.init} is "
             f"invalid. The following are a list of valid init algorithms "
             f"strings: random, kmeans++, first. You can also pass a "
             f"np.ndarray of size (n_clusters, n_channels, n_timepoints)"
         )
-
-    def _check_params(self, X: np.ndarray) -> None:
-        self._random_state = check_random_state(self.random_state)
 
         if isinstance(self.init, str):
             if self.init == "random":
@@ -303,12 +305,12 @@ class TimeSeriesKMeans(BaseClusterer):
             elif self.init == "first":
                 self._init = self._first_center_initializer
             else:
-                raise ValueError(self._incorrect_params())
+                raise ValueError(_incorrect_params)
         else:
             if isinstance(self.init, np.ndarray) and len(self.init) == self.n_clusters:
                 self._init = self.init.copy()
             else:
-                raise ValueError(self._incorrect_params())
+                raise ValueError(_incorrect_params)
 
         if self.distance_params is None:
             self._distance_params = {}
