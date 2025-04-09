@@ -31,12 +31,15 @@ if "@aeon-actions-bot" in body and "assign" in body and not pr:
     mentioned_users.remove("aeon-actions-bot")
 
     permission = repo.get_collaborator_permission(commenter)
- 
+
     for user in mentioned_users:
-        
+
         if (user == commenter) or (permission in ["admin", "write"]):
             issue.add_to_assignees(user)
         else:
-            comment_msg = f"""@{commenter}, you cannot assign @{user} because you lack write access. 
-            Only users with write access can assign others."""
+            comment_msg = (
+                f"@{commenter}, you cannot assign @{user}"
+                " because you lack write access.\n"
+                "Only users with write access can assign others."
+            )
             issue.create_comment(comment_msg)
