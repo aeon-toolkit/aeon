@@ -21,19 +21,10 @@ issue = repo.get_issue(number=issue_number)
 comment_body = context_dict["event"]["comment"]["body"]
 commenter = context_dict["event"]["comment"]["user"]["login"]
 
-ASSIGNMENT_PHRASES = [
-    "assign me",
-    "please assign me",
-    "can you assign this to me",
-    "i want to work on this",
-    "give me this issue",
-]
-
-
 body = comment_body.lower()
 if "@aeon-actions-bot" in body:
-    # Assign commenter if comment includes any phrase that is in ASSIGNMENT_PHRASES
-    if any(phrase in body for phrase in ASSIGNMENT_PHRASES):
+    # Assign commenter if comment includes "assign me"
+    if "assign me" in body:
         issue.add_to_assignees(commenter)
     # Assign tagged used to the issue if the comment includes the trigger phrase
     elif "assign" in body:
