@@ -6,7 +6,8 @@ set -euxo pipefail
 CMD="jupyter nbconvert --to notebook --inplace --execute --ExecutePreprocessor.timeout=600"
 
 excluded=(
-    "examples/transformations/signature_method.ipynb"
+  # try removing when 3.9 is dropped
+  "examples/transformations/signature_method.ipynb"
 )
 if [ "$1" = true ]; then
   excluded+=(
