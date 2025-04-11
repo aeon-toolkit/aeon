@@ -24,7 +24,6 @@ NUMBA_DISABLED = os.environ.get("NUMBA_DISABLE_JIT") == "1"
 
 # exclude estimators here for short term fixes
 EXCLUDE_ESTIMATORS = [
-    "REDCOMETS",
     "HydraTransformer",  # returns a pytorch Tensor
 ]
 
