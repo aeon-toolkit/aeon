@@ -24,51 +24,46 @@ issue_number = context_dict["event"]["issue"]["number"]
 issue = repo.get_issue(number=issue_number)
 comment_body = context_dict["event"]["comment"]["body"]
 pr = context_dict["event"]["issue"].get("pull_request")
-commenter = context_dict["event"]["comment"]["user"]["login"]
 
+# Assign tagged used to the issue if the comment includes the trigger phrase
 body = comment_body.lower()
-if "@aeon-actions-bot" in body and not pr:
-    # Assign commenter if comment includes "assign me"
-    if "assign me" in body:
-        issue.add_to_assignees(commenter)
-    # Assign tagged used to the issue if the comment includes the trigger phrase
-    elif "assign" in body:
-        mentioned_users = re.findall(r"@[a-zA-Z0-9_-]+", comment_body)
-        mentioned_users = [user[1:] for user in mentioned_users]
-        mentioned_users.remove("aeon-actions-bot")
+if "@aeon-actions-bot" in body and "assign" in body and not pr:
+    mentioned_users = re.findall(r"@[a-zA-Z0-9_-]+", comment_body)
+    mentioned_users = [user[1:] for user in mentioned_users]
+    mentioned_users.remove("aeon-actions-bot")
 
-        for user in mentioned_users:
-            user_obj = g.get_user(user)
-            permission = repo.get_collaborator_permission(user_obj)
+    for user in mentioned_users:
+        user_obj = g.get_user(user)
+        permission = repo.get_collaborator_permission(user_obj)
 
-            if permission in ["admin", "write"]:
-                issue.add_to_assignees(user)
-            else:
-                # First check if the user is already assigned to this issue
-                if user in [assignee.login for assignee in issue.assignees]:
-                    continue
+        if permission in ["admin", "write"]:
+            issue.add_to_assignees(user)
+        else:
+            # First check if the user is already assigned to this issue
+            if user in [assignee.login for assignee in issue.assignees]:
+                continue
 
-                # search for open issues only
-                query = f"repo:{repo.full_name} is:issue is:open assignee:{user}"
-                issues_assigned_to_user = g.search_issues(query)
-                assigned_count = issues_assigned_to_user.totalCount
+            # search for open issues only
+            query = f"repo:{repo.full_name} is:issue is:open assignee:{user}"
+            issues_assigned_to_user = g.search_issues(query)
+            assigned_count = issues_assigned_to_user.totalCount
 
-                if assigned_count >= 2:
-                    # link to issue
-                    assigned_issues_list = [
-                        f"[#{assigned_issue.number}]({assigned_issue.html_url})"
-                        for assigned_issue in issues_assigned_to_user
-                    ]
+            if assigned_count >= 2:
+                # link to issue
+                assigned_issues_list = [
+                    f"[#{assigned_issue.number}]({assigned_issue.html_url})"
+                    for assigned_issue in issues_assigned_to_user
+                ]
 
-                    comment_message = (
-                            f"@{user}, you already have {assigned_count} open issues assigned. "
-                            "Users without write access are limited to self-assigning two"
-                            "issues.\n\n"
-                            "Here are the open issues assigned to you:\n"
-                            + "\n".join(
+                comment_message = (
+                    f"@{user}, you already have {assigned_count} open issues assigned. "
+                    "Users without write access are limited to self-assigning two"
+                    "issues.\n\n"
+                    "Here are the open issues assigned to you:\n"
+                    + "\n".join(
                         f"- {issue_link}" for issue_link in assigned_issues_list
                     )
-                    )
-                    issue.create_comment(comment_message)
-                else:
-                    issue.add_to_assignees(user)
+                )
+                issue.create_comment(comment_message)
+            else:
+                issue.add_to_assignees(user)
