@@ -2,8 +2,13 @@
 
 It checks if a comment on an issue or PR includes the trigger
 phrase (as defined) and a mentioned user.
+
 If it does, it assigns the issue to the mentioned user and
 only users with write access can assign other users.
+Users without write access can only have up to 2 open issues assigned.
+Users with write access (or admin) are exempt from this limit.
+If a non-write user already has 2 or more open issues, the bot
+comments on the issue with links to the currently assigned open issues.
 """
 
 import json
@@ -29,17 +34,53 @@ if "@aeon-actions-bot" in body and "assign" in body and not pr:
     mentioned_users = re.findall(r"@[a-zA-Z0-9_-]+", comment_body)
     mentioned_users = [user[1:] for user in mentioned_users]
     mentioned_users.remove("aeon-actions-bot")
-
+    
+    # Get permission of the commenter
     permission = repo.get_collaborator_permission(commenter)
 
     for user in mentioned_users:
 
-        if (user == commenter) or (permission in ["admin", "write"]):
-            issue.add_to_assignees(user)
-        else:
+        # Checking if the mentioned user is the commenter or admin
+        if not((user == commenter) or (permission in ["admin", "write"]):
             comment_msg = (
                 f"@{commenter}, you cannot assign @{user}"
                 " because you lack write access.\n"
                 "Only users with write access can assign others."
             )
             issue.create_comment(comment_msg)
+            continue
+                  
+        user_obj = g.get_user(user)
+        permission = repo.get_collaborator_permission(user_obj)
+
+        if permission in ["admin", "write"]:
+            issue.add_to_assignees(user)
+        else:
+            # First check if the user is already assigned to this issue
+            if user in [assignee.login for assignee in issue.assignees]:
+                continue
+
+            # search for open issues only
+            query = f"repo:{repo.full_name} is:issue is:open assignee:{user}"
+            issues_assigned_to_user = g.search_issues(query)
+            assigned_count = issues_assigned_to_user.totalCount
+
+            if assigned_count >= 2:
+                # link to issue
+                assigned_issues_list = [
+                    f"[#{assigned_issue.number}]({assigned_issue.html_url})"
+                    for assigned_issue in issues_assigned_to_user
+                ]
+
+                comment_message = (
+                    f"@{user}, you already have {assigned_count} open issues assigned. "
+                    "Users without write access are limited to self-assigning two"
+                    "issues.\n\n"
+                    "Here are the open issues assigned to you:\n"
+                    + "\n".join(
+                        f"- {issue_link}" for issue_link in assigned_issues_list
+                    )
+                )
+                issue.create_comment(comment_message)
+            else:
+                issue.add_to_assignees(user)
