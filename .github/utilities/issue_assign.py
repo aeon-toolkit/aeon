@@ -35,13 +35,15 @@ if "@aeon-actions-bot" in body and "assign" in body and not pr:
     mentioned_users = [user[1:] for user in mentioned_users]
     mentioned_users.remove("aeon-actions-bot")
 
-    # Get permission of the commenter
+    # Get permissions of the commenter
     permission = repo.get_collaborator_permission(commenter)
 
     for user in mentioned_users:
 
         # Checking if the mentioned user is the commenter or admin
-        if not ((user == commenter) or (permission in ["admin", "write"])):
+        if (user == commenter) or (permission in ["admin", "write"]):
+            pass
+        else:
             comment_msg = (
                 f"@{commenter}, you cannot assign @{user}"
                 " because you lack write access.\n"
