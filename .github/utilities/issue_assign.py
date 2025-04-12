@@ -41,7 +41,7 @@ if "@aeon-actions-bot" in body and "assign" in body and not pr:
     for user in mentioned_users:
 
         # Checking if the mentioned user is the commenter or admin
-        if not((user == commenter) or (permission in ["admin", "write"])):
+        if not ((user == commenter) or (permission in ["admin", "write"])):
             comment_msg = (
                 f"@{commenter}, you cannot assign @{user}"
                 " because you lack write access.\n"
