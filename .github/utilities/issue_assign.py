@@ -57,7 +57,8 @@ if "@aeon-actions-bot" in body and "assign" in body and not pr:
 
                 comment_message = (
                     f"@{user}, you already have {assigned_count} open issues assigned. "
-                    "Users without write access are limited to 2 open issues.\n\n"
+                    "Users without write access are limited to self-assigning two"
+                    "issues.\n\n"
                     "Here are the open issues assigned to you:\n"
                     + "\n".join(
                         f"- {issue_link}" for issue_link in assigned_issues_list
