@@ -41,15 +41,16 @@ if "@aeon-actions-bot" in body and not pr:
         commenter_permission = repo.get_collaborator_permission(commenter)
 
         for user in mentioned_users:
-            if (user == commenter) or (commenter_permission in ["admin", "write"]):
-                pass
-            else:
+            if user != commenter and commenter_permission not in ["admin", "write"]:
                 comment_msg = (
                     f"@{commenter}, you cannot assign @{user}"
                     " because you lack write access.\n"
                     "Only users with write access can assign others."
                 )
                 issue.create_comment(comment_msg)
+                continue
+            elif user != commenter and commenter_permission in ["admin", "write"]:
+                issue.add_to_assignees(user)
                 continue
 
             user_obj = g.get_user(user)
@@ -73,7 +74,7 @@ if "@aeon-actions-bot" in body and not pr:
                         f"[#{assigned_issue.number}]({assigned_issue.html_url})"
                         for assigned_issue in issues_assigned_to_user
                     ]
-                    
+
                     comment_message = (
                         f"@{user}, you already have {assigned_count} "
                         f"open issues assigned."
