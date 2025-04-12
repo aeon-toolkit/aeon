@@ -207,9 +207,9 @@ class RClusterer(BaseClusterer):
             Ignored.
         """
         self.indices = _get_indices()
-        parameters = self._get_parameterised_data(X)
+        self.parameters = self._get_parameterised_data(X)
 
-        transformed_data = self._get_transformed_data(X=X, parameters=parameters)
+        transformed_data = self._get_transformed_data(X=X, parameters=self.parameters)
         self._scaler = StandardScaler()
         X_std = self._scaler.fit_transform(transformed_data)
 
@@ -244,9 +244,8 @@ class RClusterer(BaseClusterer):
         labels : np.ndarray
             Array of cluster labels for each time series.
         """
-        parameters = self._get_parameterised_data(X)
 
-        transformed_data = self._get_transformed_data(X=X, parameters=parameters)
+        transformed_data = self._get_transformed_data(X=X, parameters=self.parameters)
         X_std = self._scaler.transform(transformed_data)
         transformed_data_pca = self._pca.transform(X_std)
 
