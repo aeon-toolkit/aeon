@@ -85,10 +85,10 @@ class RClusterer(BaseClusterer):
 
     def _get_parameterised_data(self, X):
         """
-        Generate parameterized data for transformation.
+        Generate parameters for transformation.
 
         This method prepares the required parameters for transforming
-        time-series data using MiniRocket.
+        time-series data using MiniRocket's _fit_biases.
 
         Parameters
         ----------
@@ -197,7 +197,7 @@ class RClusterer(BaseClusterer):
 
     def _fit(self, X, y=None):
         """
-        Fit the clustering model using transformed PCA-reduced data.
+        Fit the clustering model.
 
         Parameters
         ----------
@@ -230,7 +230,7 @@ class RClusterer(BaseClusterer):
 
     def _predict(self, X, y=None) -> np.ndarray:
         """
-        Predict cluster labels for new data.
+        Predict cluster labels for the input data.
 
         Parameters
         ----------
