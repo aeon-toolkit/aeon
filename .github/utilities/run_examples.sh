@@ -1,11 +1,14 @@
-#!/bin/bash
+#!/opt/homebrew/bin/bash
 
 # Script to run all example notebooks.
 set -euxo pipefail
 
 CMD="jupyter nbconvert --to notebook --inplace --execute --ExecutePreprocessor.timeout=600"
 
-excluded=()
+excluded=(
+  # try removing when 3.9 is dropped
+  "examples/transformations/signature_method.ipynb"
+)
 if [ "$1" = true ]; then
   excluded+=(
     "examples/datasets/load_data_from_web.ipynb"
@@ -23,7 +26,6 @@ if [ "$1" = true ]; then
     "examples/classification/shapelet_based.ipynb"
     "examples/classification/convolution_based.ipynb"
     "examples/similarity_search/code_speed.ipynb"
-
   )
 fi
 
@@ -32,7 +34,7 @@ notebooks=()
 runtimes=()
 
 # Loop over all notebooks in the examples directory.
-find "examples/" -name "*.ipynb" -print0 |
+find "examples" -name "*.ipynb" -print0 |
   while IFS= read -r -d "" notebook; do
     # Skip notebooks in the excluded list.
     if printf "%s\0" "${excluded[@]}" | grep -Fxqz -- "$notebook"; then

@@ -22,7 +22,7 @@ if PR_TESTING:
         i = 0
     elif i == 11:
         i = 1
-    elif i == 12:
+    elif i == 13:
         i = 2
 
     os_str = platform.system()

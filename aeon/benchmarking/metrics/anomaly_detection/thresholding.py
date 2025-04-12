@@ -38,8 +38,8 @@ def percentile_threshold(y_score: np.ndarray, percentile: int) -> float:
 def sigma_threshold(y_score: np.ndarray, factor: float = 2) -> float:
     r"""Calculate a threshold based on the standard deviation of the anomaly scores.
 
-    Computes a threshold :math:`\theta` based on the anomaly scoring's mean
-    :math:`\mu_s` and the standard deviation :math:`\sigma_s`, ignoring NaNs:
+    Computes a threshold :math:``\theta`` based on the anomaly scoring's mean
+    :math:``\mu_s`` and the standard deviation :math:``\sigma_s``, ignoring NaNs:
 
     .. math::
        \theta = \mu_{s} + x \cdot \sigma_{s}
@@ -49,7 +49,7 @@ def sigma_threshold(y_score: np.ndarray, factor: float = 2) -> float:
     y_score : np.ndarray
         Anomaly scores for each point of the time series of shape (n_instances,).
     factor : float
-        Number of standard deviations to use as threshold (:math:`x`).
+        Number of standard deviations to use as threshold (:math:``x``).
 
     Returns
     -------
@@ -62,14 +62,15 @@ def sigma_threshold(y_score: np.ndarray, factor: float = 2) -> float:
 def top_k_points_threshold(
     y_true: np.ndarray, y_score: np.ndarray, k: int | None = None
 ) -> float:
-    """Calculate a threshold such that at least `k` anomalous points are found.
+    """Calculate a threshold such that at least ``k`` anomalous points are found.
 
     The anomalies are single-point anomalies.
 
     Computes a threshold based on the number of expected anomalies (number of
     anomalies). This method iterates over all possible thresholds from high to low to
-    find the first threshold that yields `k` or more anomalous points. If `k` is `None`,
-    the ground truth data is used to calculate the real number of anomalies.
+    find the first threshold that yields ``k`` or more anomalous points. If ``k``
+    is ``None``,the ground truth data is used to calculate the real number of
+    anomalies.
 
     Parameters
     ----------
@@ -78,13 +79,13 @@ def top_k_points_threshold(
     y_score : np.ndarray
         Anomaly scores for each point of the time series of shape (n_instances,).
     k : optional int
-        Number of expected anomalies. If `k` is `None`, the ground truth data is used
-        to calculate the real number of anomalies.
+        Number of expected anomalies. If ``k`` is ``None``, the ground truth data
+        is used to calculate the real number of anomalies.
 
     Returns
     -------
     float
-        Threshold such that there are at least `k` anomalous points.
+        Threshold such that there are at least ``k`` anomalous points.
     """
     if k is None:
         return np.nanpercentile(y_score, (1 - y_true.sum() / y_true.shape[0]) * 100)
@@ -95,15 +96,15 @@ def top_k_points_threshold(
 def top_k_ranges_threshold(
     y_true: np.ndarray, y_score: np.ndarray, k: int | None = None
 ) -> float:
-    """Calculate a threshold such that at least `k` anomalies are found.
+    """Calculate a threshold such that at least ``k`` anomalies are found.
 
     The anomalies are either single-points anomalies or continuous anomalous ranges.
 
     Computes a threshold based on the number of expected anomalous subsequences /
     ranges (number of anomalies). This method iterates over all possible thresholds
     from high to low to find the first threshold that yields `k` or more continuous
-    anomalous ranges. If `k` is `None`, the ground truth data is used to calculate the
-    real number of anomalies (anomalous ranges).
+    anomalous ranges. If ``k`` is ``None``, the ground truth data is used to
+    calculate the real number of anomalies (anomalous ranges).
 
     Parameters
     ----------
@@ -112,13 +113,13 @@ def top_k_ranges_threshold(
     y_score : np.ndarray
         Anomaly scores for each point of the time series of shape (n_instances,).
     k : optional int
-        Number of expected anomalies. If `k` is `None`, the ground truth data is used
-        to calculate the real number of anomalies.
+        Number of expected anomalies. If ``k`` is ``None``, the ground truth data
+        is used to calculate the real number of anomalies.
 
     Returns
     -------
     float
-        Threshold such that there are at least `k` anomalous ranges.
+        Threshold such that there are at least ``k`` anomalous ranges.
     """
     if k is None:
         k = _count_anomaly_ranges(y_true)

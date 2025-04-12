@@ -2683,6 +2683,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "HaroonAzamFiza",
+      "name": "HaroonAzamFiza",
+      "avatar_url": "https://avatars.githubusercontent.com/u/183639840?v=4",
+      "profile": "https://github.com/HaroonAzamFiza",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "commitType": "docs"
