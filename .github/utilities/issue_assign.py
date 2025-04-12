@@ -73,7 +73,7 @@ if "@aeon-actions-bot" in body and not pr:
                         f"[#{assigned_issue.number}]({assigned_issue.html_url})"
                         for assigned_issue in issues_assigned_to_user
                     ]
-                    
+
                     comment_message = (
                         f"@{user}, you already have {assigned_count} "
                         f"open issues assigned."
