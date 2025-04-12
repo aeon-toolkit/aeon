@@ -34,7 +34,7 @@ if "@aeon-actions-bot" in body and "assign" in body and not pr:
     mentioned_users = re.findall(r"@[a-zA-Z0-9_-]+", comment_body)
     mentioned_users = [user[1:] for user in mentioned_users]
     mentioned_users.remove("aeon-actions-bot")
-    
+
     # Get permission of the commenter
     permission = repo.get_collaborator_permission(commenter)
 
@@ -49,7 +49,7 @@ if "@aeon-actions-bot" in body and "assign" in body and not pr:
             )
             issue.create_comment(comment_msg)
             continue
-                  
+
         user_obj = g.get_user(user)
         permission = repo.get_collaborator_permission(user_obj)
 
