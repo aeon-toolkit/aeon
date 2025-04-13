@@ -107,7 +107,9 @@ def sbd_distance(x: np.ndarray, y: np.ndarray, standardize: bool = True) -> floa
             if x.shape[0] != y.shape[0]:
                 raise ValueError("x and y must have the same number of channels ")
             nchannels = x.shape[0]  # both x and y have the same number of channels
-            norm = np.linalg.norm(x) * np.linalg.norm(y)
+            norm = np.linalg.norm(x.astype(np.float64)) * np.linalg.norm(
+                y.astype(np.float64)
+            )
             distance = np.zeros((2 * x.shape[1] - 1,))
             for i in range(nchannels):
                 distance += _helper_sbd(x[i], y[i], standardize)
