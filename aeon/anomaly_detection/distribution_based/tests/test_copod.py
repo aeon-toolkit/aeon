@@ -21,7 +21,7 @@ def test_copod_default():
     pred = copod.fit_predict(series, axis=0)
 
     assert pred.shape == (80,)
-    assert pred.dtype == np.float_
+    assert np.issubdtype(pred.dtype, np.floating)
     assert 50 <= np.argmax(pred) <= 60
 
 
