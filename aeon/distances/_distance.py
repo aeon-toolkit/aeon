@@ -859,7 +859,7 @@ DISTANCES = [
         "pairwise_distance": sbd_pairwise_distance,
         "type": DistanceType.CROSS_CORRELATION,
         "symmetric": True,
-        "unequal_support": True,
+        "unequal_support": False,
     },
     {
         "name": "shift_scale",

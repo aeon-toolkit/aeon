@@ -104,11 +104,14 @@ def sbd_distance(x: np.ndarray, y: np.ndarray, standardize: bool = True) -> floa
             return _univariate_sbd_distance(_x, _y, standardize)
         else:
             # independent (time series should have the same number of channels!)
-            nchannels = min(x.shape[0], y.shape[0])
-            distance = 0.0
+            if x.shape[0] != y.shape[0]:
+                raise ValueError("x and y must have the same number of channels ")
+            nchannels = x.shape[0]  # both x and y have the same number of channels
+            norm = np.linalg.norm(x) * np.linalg.norm(y)
+            distance = np.zeros((2 * x.shape[1] - 1,))
             for i in range(nchannels):
-                distance += _univariate_sbd_distance(x[i], y[i], standardize)
-            return distance / nchannels
+                distance += _helper_sbd(x[i], y[i], standardize)
+            return np.abs(1 - np.max(distance) / norm)
 
     raise ValueError("x and y must be 1D or 2D")
 
@@ -240,8 +243,16 @@ def _univariate_sbd_distance(x: np.ndarray, y: np.ndarray, standardize: bool) ->
         x = (x - np.mean(x)) / np.std(x)
         y = (y - np.mean(y)) / np.std(y)
 
-    with objmode(a="float64[:]"):
-        a = correlate(x, y, method="fft")
+    a = _helper_sbd(x, y, standardize)
 
     b = np.sqrt(np.dot(x, x) * np.dot(y, y))
     return np.abs(1.0 - np.max(a / b))
+
+
+@njit(cache=True, fastmath=True)
+def _helper_sbd(x, y, standardize):
+
+    with objmode(a="float64[:]"):
+        a = correlate(x, y, method="fft")
+
+    return a
