@@ -13,6 +13,11 @@ Each detector in this module specifies its supported input data format, output d
 format, and learning type as an overview table in its documentation. Some detectors
 support multiple learning types.
 
+.. note::
+
+    Not all algorithm families are currently implemented. The documentation includes
+    placeholders for planned categories which will be supported in future.
+
 Distance-based
 --------------
 
@@ -42,6 +47,16 @@ Distribution-based
     COPOD
     DWT_MLEAD
 
+Encoding-based
+--------------
+
+The algorithms for this family are not implemented yet.
+
+Forecasting-based
+-----------------
+
+The algorithms for this family are not implemented yet.
+
 Outlier-Detection
 -----------------
 
@@ -54,6 +69,16 @@ Outlier-Detection
     IsolationForest
     PyODAdapter
     STRAY
+
+Reconstruction-based
+--------------------
+
+The algorithms for this family are not implemented yet.
+
+Trees-based
+-----------
+
+The algorithms for this family are not implemented yet.
 
 Whole-Series
 ------------
