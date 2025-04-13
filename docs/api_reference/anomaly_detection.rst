@@ -75,11 +75,6 @@ Reconstruction-based
 
 The algorithms for this family are not implemented yet.
 
-Trees-based
------------
-
-The algorithms for this family are not implemented yet.
-
 Whole-Series
 ------------
 
