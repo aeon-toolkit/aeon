@@ -19,8 +19,8 @@ label_name = context_dict["event"]["label"]["name"]
 
 if label_name == 'AI Spam':
     comment_body = (
-    f"This pull request has been flagged with the **AI Spam** label.\n\n"
-    f"This PR is being closed."
+    "This pull request has been flagged with the **AI Spam** label.\n\n"
+    "This PR is being closed."
     )
     pr.create_issue_comment(comment_body)
     pr.edit(state="closed")
