@@ -63,8 +63,12 @@ def create_bounding_matrix(
 def _itakura_parallelogram(x_size: int, y_size: int, max_slope_percent: float):
     """Itakura parallelogram bounding matrix.
 
-    This code was adapted from pyts. This link to the original code:
+    This code was adapted from the tslearn and pyts functions.
+
+    pyts code:
     https://pyts.readthedocs.io/en/latest/_modules/pyts/metrics/dtw.html#itakura_parallelogram
+    tslearn code (line 974):
+    https://github.com/tslearn-team/tslearn/blob/main/tslearn/metrics/dtw_variants.py
     """
     one_percent = min(x_size, y_size) / 100
     max_slope = math.floor((max_slope_percent * one_percent) * 100)
