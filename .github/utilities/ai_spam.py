@@ -6,6 +6,7 @@ it adds a comment and closes the PR.
 
 import json
 import os
+
 from github import Github
 
 context_dict = json.loads(os.getenv("CONTEXT_GITHUB"))
@@ -17,12 +18,10 @@ pr_number = context_dict["event"]["pull_request"]["number"]
 pr = repo.get_pull(pr_number)
 label_name = context_dict["event"]["label"]["name"]
 
-if label_name == 'AI Spam':
+if label_name == "AI Spam":
     comment_body = (
-    "This pull request has been flagged with the **AI Spam** label.\n\n"
-    "This PR is being closed."
+        f"This pull request has been flagged with the **AI Spam** label.\n\n"
+        f"This PR is being closed."
     )
     pr.create_issue_comment(comment_body)
     pr.edit(state="closed")
-
-
