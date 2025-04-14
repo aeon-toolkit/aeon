@@ -43,8 +43,11 @@ class Catch22Classifier(BaseClassifier):
         true. If a List of specific features to extract is provided, "Mean" and/or
         "StandardDeviation" must be added to the List to extract these features.
     outlier_norm : bool, optional, default=False
-        Normalise each series during the two outlier Catch22 features, which can take a
-        while to process for large values.
+        If True, each time series is normalized during the computation of the two
+        outlier Catch22 features, which can take a while to process for large values
+        as it depends on the max value in the timseries. Note that this parameter
+        did not exist in the original publication/implementation as they used time
+        series that were already normalized.
     replace_nans : bool, default=True
         Replace NaN or inf values from the Catch22 transform with 0.
     use_pycatch22 : bool, default=False
@@ -67,6 +70,17 @@ class Catch22Classifier(BaseClassifier):
         if None a 'prefer' value of "threads" is used by default.
         Valid options are "loky", "multiprocessing", "threading" or a custom backend.
         See the joblib Parallel documentation for more details.
+    class_weight{“balanced”, “balanced_subsample”}, dict or list of dicts, default=None
+        From sklearn documentation:
+        If not given, all classes are supposed to have weight one.
+        The “balanced” mode uses the values of y to automatically adjust weights
+        inversely proportional to class frequencies in the input data as
+        n_samples / (n_classes * np.bincount(y))
+        The “balanced_subsample” mode is the same as “balanced” except that weights
+        are computed based on the bootstrap sample for every tree grown.
+        For multi-output, the weights of each column of y will be multiplied.
+        Note that these weights will be multiplied with sample_weight (passed through
+        the fit method) if sample_weight is specified.
 
     Attributes
     ----------
@@ -74,6 +88,8 @@ class Catch22Classifier(BaseClassifier):
         Number of classes. Extracted from the data.
     classes_ : ndarray of shape (n_classes_)
         Holds the label for each class.
+    estimator_ : sklearn classifier
+        The fitted estimator.
 
     See Also
     --------
@@ -123,13 +139,14 @@ class Catch22Classifier(BaseClassifier):
         self,
         features="all",
         catch24=True,
-        outlier_norm=False,
+        outlier_norm=True,
         replace_nans=True,
         use_pycatch22=False,
         estimator=None,
         random_state=None,
         n_jobs=1,
         parallel_backend=None,
+        class_weight=None,
     ):
         self.features = features
         self.catch24 = catch24
@@ -140,6 +157,7 @@ class Catch22Classifier(BaseClassifier):
         self.random_state = random_state
         self.n_jobs = n_jobs
         self.parallel_backend = parallel_backend
+        self.class_weight = class_weight
 
         super().__init__()
 
@@ -171,21 +189,21 @@ class Catch22Classifier(BaseClassifier):
             parallel_backend=self.parallel_backend,
         )
 
-        self._estimator = _clone_estimator(
+        self.estimator_ = _clone_estimator(
             (
-                RandomForestClassifier(n_estimators=200)
+                RandomForestClassifier(n_estimators=200, class_weight=self.class_weight)
                 if self.estimator is None
                 else self.estimator
             ),
             self.random_state,
         )
 
-        m = getattr(self._estimator, "n_jobs", None)
+        m = getattr(self.estimator_, "n_jobs", None)
         if m is not None:
-            self._estimator.n_jobs = self._n_jobs
+            self.estimator_.n_jobs = self._n_jobs
 
         X_t = self._transformer.fit_transform(X, y)
-        self._estimator.fit(X_t, y)
+        self.estimator_.fit(X_t, y)
 
         return self
 
@@ -205,7 +223,7 @@ class Catch22Classifier(BaseClassifier):
         y : array-like, shape = [n_cases]
             Predicted class labels.
         """
-        return self._estimator.predict(self._transformer.transform(X))
+        return self.estimator_.predict(self._transformer.transform(X))
 
     def _predict_proba(self, X) -> np.ndarray:
         """Predicts labels probabilities for sequences in X.
@@ -223,12 +241,12 @@ class Catch22Classifier(BaseClassifier):
         y : array-like, shape = [n_cases, n_classes_]
             Predicted probabilities using the ordering in classes_.
         """
-        m = getattr(self._estimator, "predict_proba", None)
+        m = getattr(self.estimator_, "predict_proba", None)
         if callable(m):
-            return self._estimator.predict_proba(self._transformer.transform(X))
+            return self.estimator_.predict_proba(self._transformer.transform(X))
         else:
             dists = np.zeros((X.shape[0], self.n_classes_))
-            preds = self._estimator.predict(self._transformer.transform(X))
+            preds = self.estimator_.predict(self._transformer.transform(X))
             for i in range(0, X.shape[0]):
                 dists[i, self._class_dictionary[preds[i]]] = 1
             return dists

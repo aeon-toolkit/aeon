@@ -35,12 +35,10 @@ class LITETimeClassifier(BaseClassifier):
         if set to `True` then LITEMV is used. LITEMV is the
         same architecture as LITE but specifically designed
         to better handle multivariate time series.
-    n_filters : int or list of int32, default = 32
-        The number of filters used in one lite layer, if not a list, the same
-        number of filters is used in all lite layers.
-    kernel_size : int or list of int, default = 40
-        The head kernel size used for each lite layer, if not a list, the same
-        is used in all lite module.
+    n_filters : int, default = 32
+        The number of filters used in one lite layer.
+    kernel_size : int, default = 40
+        The head kernel size used for each lite layer.
     strides : int or list of int, default = 1
         The strides of kernels in convolution layers for each lite layer,
         if not a list, the same is used in all lite layers.
@@ -54,8 +52,10 @@ class LITETimeClassifier(BaseClassifier):
         formula Wang et al.
     n_epochs : int, default = 1500
         the number of epochs to train the model.
-    callbacks : callable or None, default = ReduceOnPlateau and ModelCheckpoint
-        list of tf.keras.callbacks.Callback objects.
+    callbacks : keras callback or list of callbacks,
+        default = None
+        The default list of callbacks are set to
+        ModelCheckpoint and ReduceLROnPlateau.
     file_path : str, default = "./"
         file_path when saving model_Checkpoint callback
     save_best_model : bool, default = False
@@ -90,10 +90,17 @@ class LITETimeClassifier(BaseClassifier):
         GPU processing will be non-deterministic.
     verbose : boolean, default = False
         whether to output extra information
-    optimizer : keras optimizer, default = Adam
-    loss : keras loss, default = categorical_crossentropy
-    metrics : keras metrics, default = None,
-        will be set to accuracy as default if None
+    optimizer : keras.optimizer, default = tf.keras.optimizers.Adam()
+        The keras optimizer used for training.
+    loss : str, default = "categorical_crossentropy"
+        The name of the keras training loss.
+    metrics : str or list[str|function|keras.metrics.Metric], default="accuracy"
+        the evaluation metrics to use during training. each of this can be a
+        string, function or a keras.metrics.metric instance (for details, see
+        https://keras.io/api/metrics/).
+        if a single string metric is provided, it will be used as the only
+        metric. if a list of metrics are provided, all will be used for
+        evaluation.
 
     References
     ----------
@@ -150,7 +157,7 @@ class LITETimeClassifier(BaseClassifier):
         random_state=None,
         verbose=False,
         loss="categorical_crossentropy",
-        metrics=None,
+        metrics="accuracy",
         optimizer=None,
     ):
         self.n_classifiers = n_classifiers
@@ -208,6 +215,7 @@ class LITETimeClassifier(BaseClassifier):
                 use_litemv=self.use_litemv,
                 n_filters=self.n_filters,
                 kernel_size=self.kernel_size,
+                strides=self.strides,
                 file_path=self.file_path,
                 save_best_model=self.save_best_model,
                 save_last_model=self.save_last_model,
@@ -330,12 +338,10 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         if set to `True` then LITEMV is used. LITEMV is the
         same architecture as LITE but specifically designed
         to better handle multivariate time series.
-    n_filters : int or list of int32, default = 32
-        The number of filters used in one lite layer, if not a list, the same
-        number of filters is used in all lite layers.
-    kernel_size : int or list of int, default = 40
-        The head kernel size used for each lite layer, if not a list, the same
-        is used in all lite layers.
+    n_filters : int, default = 32
+        The number of filters used in one lite layer.
+    kernel_size : int, default = 40
+        The head kernel size used for each lite layer.
     strides : int or list of int, default = 1
         The strides of kernels in convolution layers for each lite layer,
         if not a list, the same is used in all lite layers.
@@ -349,8 +355,10 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         formula Wang et al.
     n_epochs : int, default = 1500
         the number of epochs to train the model.
-    callbacks : callable or None, default = ReduceOnPlateau and ModelCheckpoint
-        list of tf.keras.callbacks.Callback objects.
+    callbacks : keras callback or list of callbacks,
+        default = None
+        The default list of callbacks are set to
+        ModelCheckpoint and ReduceLROnPlateau.
     file_path : str, default = "./"
         file_path when saving model_Checkpoint callback
     save_best_model : bool, default = False
@@ -385,10 +393,17 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         GPU processing will be non-deterministic.
     verbose : boolean, default = False
         whether to output extra information
-    optimizer : keras optimizer, default = Adam
-    loss : keras loss, default = categorical_crossentropy
-    metrics : keras metrics, default = None,
-        will be set to accuracy as default if None
+    optimizer : keras.optimizer, default = tf.keras.optimizers.Adam()
+        The keras optimizer used for training.
+    loss : str, default = "categorical_crossentropy"
+        The name of the keras training loss.
+    metrics : str or list[str|function|keras.metrics.Metric], default="accuracy"
+        the evaluation metrics to use during training. each of this can be a
+        string, function or a keras.metrics.metric instance (for details, see
+        https://keras.io/api/metrics/).
+        if a single string metric is provided, it will be used as the only
+        metric. if a list of metrics are provided, all will be used for
+        evaluation.
 
     References
     ----------
@@ -436,7 +451,7 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         random_state=None,
         verbose=False,
         loss="categorical_crossentropy",
-        metrics=None,
+        metrics="accuracy",
         optimizer=None,
     ):
         self.use_litemv = use_litemv
@@ -506,11 +521,6 @@ class IndividualLITEClassifier(BaseDeepClassifier):
 
         model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
 
-        if self.metrics is None:
-            metrics = ["accuracy"]
-        else:
-            metrics = self.metrics
-
         self.optimizer_ = (
             tf.keras.optimizers.Adam() if self.optimizer is None else self.optimizer
         )
@@ -518,7 +528,7 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         model.compile(
             loss=self.loss,
             optimizer=self.optimizer_,
-            metrics=metrics,
+            metrics=self._metrics,
         )
 
         return model
@@ -545,6 +555,11 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         y_onehot = self.convert_y_to_keras(y)
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
+
+        if isinstance(self.metrics, list):
+            self._metrics = self.metrics
+        elif isinstance(self.metrics, str):
+            self._metrics = [self.metrics]
 
         # ignore the number of instances, X.shape[0],
         # just want the shape of each instance

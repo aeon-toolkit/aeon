@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-__maintainer__ = ["CodeLionX"]
+__maintainer__ = ["SebastianSchmidl"]
 __all__ = ["STOMP"]
 
 import numpy as np
@@ -20,16 +20,6 @@ class STOMP(BaseAnomalyDetector):
     the nearest neighbor, the more anomalous the time point is.
 
     STOMP supports univariate time series only.
-
-    .. list-table:: Capabilities
-       :stub-columns: 1
-
-       * - Input data format
-         - univariate
-       * - Output data format
-         - anomaly scores
-       * - Learning Type
-         - unsupervised
 
 
     Parameters

@@ -136,6 +136,7 @@ class SupervisedIntervals(BaseCollectionTransformer):
     _tags = {
         "output_data_type": "Tabular",
         "capability:multivariate": True,
+        "capability:multithreading": True,
         "requires_y": True,
         "algorithm_type": "interval",
     }

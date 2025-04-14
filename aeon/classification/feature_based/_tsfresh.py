@@ -46,6 +46,17 @@ class TSFreshClassifier(BaseClassifier):
         If `RandomState` instance, random_state is the random number generator;
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
+    class_weight{“balanced”, “balanced_subsample”}, dict or list of dicts, default=None
+        From sklearn documentation:
+        If not given, all classes are supposed to have weight one.
+        The “balanced” mode uses the values of y to automatically adjust weights
+        inversely proportional to class frequencies in the input data as
+        n_samples / (n_classes * np.bincount(y))
+        The “balanced_subsample” mode is the same as “balanced” except that weights
+        are computed based on the bootstrap sample for every tree grown.
+        For multi-output, the weights of each column of y will be multiplied.
+        Note that these weights will be multiplied with sample_weight (passed through
+        the fit method) if sample_weight is specified.
 
     Attributes
     ----------
@@ -53,6 +64,8 @@ class TSFreshClassifier(BaseClassifier):
         Number of classes. Extracted from the data.
     classes_ : ndarray of shape (n_classes_)
         Holds the label for each class.
+    estimator_ : sklearn classifier
+        The fitted estimator.
 
     See Also
     --------
@@ -84,6 +97,7 @@ class TSFreshClassifier(BaseClassifier):
         n_jobs=1,
         chunksize=None,
         random_state=None,
+        class_weight=None,
     ):
         self.default_fc_parameters = default_fc_parameters
         self.relevant_feature_extractor = relevant_feature_extractor
@@ -95,9 +109,9 @@ class TSFreshClassifier(BaseClassifier):
         self.random_state = random_state
 
         self._transformer = None
-        self._estimator = None
         self._return_majority_class = False
         self._majority_class = 0
+        self.class_weight = class_weight
 
         super().__init__()
 
@@ -134,9 +148,9 @@ class TSFreshClassifier(BaseClassifier):
                 chunksize=self.chunksize,
             )
         )
-        self._estimator = _clone_estimator(
+        self.estimator_ = _clone_estimator(
             (
-                RandomForestClassifier(n_estimators=200)
+                RandomForestClassifier(n_estimators=200, class_weight=self.class_weight)
                 if self.estimator is None
                 else self.estimator
             ),
@@ -148,9 +162,9 @@ class TSFreshClassifier(BaseClassifier):
             if self.verbose < 1:
                 self._transformer.disable_progressbar = True
 
-        m = getattr(self._estimator, "n_jobs", None)
+        m = getattr(self.estimator_, "n_jobs", None)
         if m is not None:
-            self._estimator.n_jobs = self._n_jobs
+            self.estimator_.n_jobs = self._n_jobs
 
         X_t = self._transformer.fit_transform(X, y)
 
@@ -166,7 +180,7 @@ class TSFreshClassifier(BaseClassifier):
             self._return_majority_class = True
             self._majority_class = np.argmax(np.unique(y, return_counts=True)[1])
         else:
-            self._estimator.fit(X_t, y)
+            self.estimator_.fit(X_t, y)
 
         return self
 
@@ -186,7 +200,7 @@ class TSFreshClassifier(BaseClassifier):
         if self._return_majority_class:
             return np.full(X.shape[0], self.classes_[self._majority_class])
 
-        return self._estimator.predict(self._transformer.transform(X))
+        return self.estimator_.predict(self._transformer.transform(X))
 
     def _predict_proba(self, X) -> np.ndarray:
         """Predict class probabilities for n instances in X.
@@ -206,12 +220,12 @@ class TSFreshClassifier(BaseClassifier):
             dists[:, self._majority_class] = 1
             return dists
 
-        m = getattr(self._estimator, "predict_proba", None)
+        m = getattr(self.estimator_, "predict_proba", None)
         if callable(m):
-            return self._estimator.predict_proba(self._transformer.transform(X))
+            return self.estimator_.predict_proba(self._transformer.transform(X))
         else:
             dists = np.zeros((X.shape[0], self.n_classes_))
-            preds = self._estimator.predict(self._transformer.transform(X))
+            preds = self.estimator_.predict(self._transformer.transform(X))
             for i in range(0, X.shape[0]):
                 dists[i, self._class_dictionary[preds[i]]] = 1
             return dists

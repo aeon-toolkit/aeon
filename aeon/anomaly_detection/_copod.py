@@ -18,15 +18,6 @@ class COPOD(PyODAdapter):
     The parameter `n_jobs` is passed to COPOD model from PyOD, `window_size` and
     `stride` are used to construct the sliding windows.
 
-    .. list-table:: Capabilities
-       :stub-columns: 1
-       * - Input data format
-         - univariate and multivariate
-       * - Output data format
-         - anomaly scores
-       * - Learning Type
-         - unsupervised or semi-supervised
-
     Parameters
     ----------
     n_jobs : int, default=1
@@ -43,6 +34,7 @@ class COPOD(PyODAdapter):
         "capability:multivariate": True,
         "capability:univariate": True,
         "capability:missing_values": False,
+        "capability:multithreading": True,
         "fit_is_empty": False,
         "python_dependencies": ["pyod"],
     }

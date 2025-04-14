@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-__maintainer__ = ["CodeLionX"]
+__maintainer__ = ["SebastianSchmidl"]
 __all__ = ["PyODAdapter"]
 
 from typing import TYPE_CHECKING, Any
@@ -44,16 +44,6 @@ class PyODAdapter(BaseAnomalyDetector):
     reference time series and `predict` to detect anomalies in the target time series.
     For unsupervised anomaly detection, use `fit_predict` directly on the target time
     series.
-
-    .. list-table:: Capabilities
-       :stub-columns: 1
-
-       * - Input data format
-         - univariate and multivariate
-       * - Output data format
-         - anomaly scores
-       * - Learning Type
-         - unsupervised or semi-supervised
 
 
     Parameters

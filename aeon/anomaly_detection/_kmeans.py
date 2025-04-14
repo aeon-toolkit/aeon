@@ -1,6 +1,6 @@
 """k-Means anomaly detector."""
 
-__maintainer__ = ["CodeLionX"]
+__maintainer__ = ["SebastianSchmidl"]
 __all__ = ["KMeansAD"]
 
 from typing import Optional
@@ -24,16 +24,6 @@ class KMeansAD(BaseAnomalyDetector):
     ``k-MeansAD`` supports univariate and multivariate time series. It can also be
     fitted on a clean reference time series and used to detect anomalies in a different
     target time series with the same number of dimensions.
-
-    .. list-table:: Capabilities
-       :stub-columns: 1
-
-       * - Input data format
-         - univariate and multivariate
-       * - Output data format
-         - anomaly scores
-       * - Learning Type
-         - unsupervised or semi-superivsed
 
     Parameters
     ----------

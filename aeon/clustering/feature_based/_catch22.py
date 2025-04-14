@@ -42,9 +42,12 @@ class Catch22Clusterer(BaseClusterer):
         Extract the mean and standard deviation as well as the 22 Catch22 features if
         true. If a List of specific features to extract is provided, "Mean" and/or
         "StandardDeviation" must be added to the List to extract these features.
-    outlier_norm : bool, optional, default=False
-        Normalise each series during the two outlier Catch22 features, which can take a
-        while to process for large values.
+        outlier_norm : bool, optional, default=False
+            If True, each time series is normalized during the computation of the two
+            outlier Catch22 features, which can take a while to process for large values
+            as it depends on the max value in the timseries. Note that this parameter
+            did not exist in the original publication/implementation as they used
+            time series that were already normalized.
     replace_nans : bool, default=True
         Replace NaN or inf values from the Catch22 transform with 0.
     use_pycatch22 : bool, default=False
@@ -103,7 +106,7 @@ class Catch22Clusterer(BaseClusterer):
         self,
         features="all",
         catch24=True,
-        outlier_norm=False,
+        outlier_norm=True,
         replace_nans=True,
         use_pycatch22=False,
         estimator=None,
@@ -164,6 +167,7 @@ class Catch22Clusterer(BaseClusterer):
 
         X_t = self._transformer.fit_transform(X, y)
         self._estimator.fit(X_t, y)
+        self.labels_ = self._estimator.labels_
 
         return self
 
@@ -201,21 +205,7 @@ class Catch22Clusterer(BaseClusterer):
         if callable(m):
             return self._estimator.predict_proba(self._transformer.transform(X))
         else:
-            preds = self._estimator.predict(self._transformer.transform(X))
-            unique = np.unique(preds)
-            for i, u in enumerate(unique):
-                preds[preds == u] = i
-            n_cases = len(preds)
-            n_clusters = self.n_clusters
-            if n_clusters is None:
-                n_clusters = int(max(preds)) + 1
-            dists = np.zeros((len(X), n_clusters))
-            for i in range(n_cases):
-                dists[i, preds[i]] = 1
-            return dists
-
-    def _score(self, X, y=None):
-        raise NotImplementedError("Catch22Clusterer does not support scoring.")
+            return super()._predict_proba(X)
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):

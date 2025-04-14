@@ -8,14 +8,15 @@ on:
 
 jobs:
   check-manifest:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: "3.11"
 
       - uses: pre-commit/action@v3.0.1
         with:
@@ -23,14 +24,15 @@ jobs:
 
   build-project:
     needs: check-manifest
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: "3.11"
 
       - name: Build project
         run: |
@@ -51,8 +53,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ ubuntu-22.04, macOS-14, windows-2022 ]
-        python-version: [ "3.9", "3.10", "3.11", "3.12" ]
+        os: [ ubuntu-24.04, macOS-14, windows-2022 ]
+        python-version: [ "3.9", "3.10", "3.11", "3.12", "3.13" ]
 
     steps:
       - uses: actions/checkout@v4
@@ -60,6 +62,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+
+      - name: Set swap space
+        if: runner.os == 'Linux'
+        uses: pierotofy/set-swap-space@v1.0
+        with:
+          swap-size-gb: 10
 
       - uses: actions/download-artifact@v4
         with:
@@ -93,7 +101,13 @@ jobs:
 
   upload-wheels:
     needs: test-wheels
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
+
+    environment:
+      name: release
+      url: https://pypi.org/p/aeon/
+    permissions:
+      id-token: write
 
     steps:
       - uses: actions/download-artifact@v4
@@ -103,5 +117,3 @@ jobs:
 
       - name: Publish package to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          password: ${{ secrets.PYPI_TOKEN }}

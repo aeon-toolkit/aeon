@@ -1,6 +1,6 @@
 """DWT-MLEAD anomaly detector."""
 
-__maintainer__ = ["CodeLionX"]
+__maintainer__ = ["SebastianSchmidl"]
 __all__ = ["DWT_MLEAD"]
 
 import warnings
@@ -42,16 +42,6 @@ class DWT_MLEAD(BaseAnomalyDetector):
     individual time points, which we use as anomaly scores. The original paper [1]_
     subsequently clusters the anomalies to determine the anomaly centers. This step is
     not implemented in this version.
-
-    .. list-table:: Capabilities
-       :stub-columns: 1
-
-       * - Input data format
-         - univariate
-       * - Output data format
-         - anomaly scores
-       * - Learning Type
-         - unsupervised
 
     Parameters
     ----------

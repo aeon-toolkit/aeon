@@ -24,16 +24,10 @@ class AEResNetClusterer(BaseDeepClusterer):
 
     Parameters
     ----------
-    n_clusters : int, default=None
-        Please use 'estimator' parameter.
     estimator : aeon clusterer, default=None
         An aeon estimator to be built using the transformed data.
         Defaults to aeon TimeSeriesKMeans() with euclidean distance
         and mean averaging method and n_clusters set to 2.
-    clustering_algorithm : str, default="deprecated"
-        Please use 'estimator' parameter.
-    clustering_params : dict, default=None
-        Please use 'estimator' parameter.
     latent_space_dim : int, default=128
         Dimension of the latent space of the auto-encoder.
     temporal_latent_space : bool, default = False
@@ -91,12 +85,18 @@ class AEResNetClusterer(BaseDeepClusterer):
     save_last_model : bool, default = False
         Whether or not to save the last model, last epoch trained, using the base
         class method save_last_model_to_file.
+    save_init_model : bool, default = False
+        Whether to save the initialization of the  model.
     best_file_name : str, default = "best_model"
         The name of the file of the best model, if save_best_model is set to
         False, this parameter is discarded.
     last_file_name : str, default = "last_model"
         The name of the file of the last model, if save_last_model is set to
         False, this parameter is discarded.
+    init_file_name : str, default = "init_model"
+        The name of the file of the init model, if
+        save_init_model is set to False,
+        this parameter is discarded.
     verbose : boolean, default = False
         whether to output extra information
     loss : string, default = "mean_squared_error"
@@ -131,11 +131,8 @@ class AEResNetClusterer(BaseDeepClusterer):
 
     def __init__(
         self,
-        n_clusters=None,
         estimator=None,
         n_residual_blocks=3,
-        clustering_algorithm="deprecated",
-        clustering_params=None,
         n_conv_per_residual_block=3,
         n_filters=None,
         kernel_size=None,
@@ -155,8 +152,10 @@ class AEResNetClusterer(BaseDeepClusterer):
         file_path="./",
         save_best_model=False,
         save_last_model=False,
+        save_init_model=False,
         best_file_name="best_model",
-        last_file_name="last_file",
+        last_file_name="last_model",
+        init_file_name="init_model",
         optimizer="Adam",
     ):
         self.n_residual_blocks = n_residual_blocks
@@ -179,17 +178,15 @@ class AEResNetClusterer(BaseDeepClusterer):
         self.file_path = file_path
         self.save_best_model = save_best_model
         self.save_last_model = save_last_model
+        self.save_init_model = save_init_model
         self.best_file_name = best_file_name
-        self.last_file_name = last_file_name
+        self.init_file_name = init_file_name
         self.optimizer = optimizer
 
         self.history = None
 
         super().__init__(
             estimator=estimator,
-            n_clusters=n_clusters,
-            clustering_algorithm=clustering_algorithm,
-            clustering_params=clustering_params,
             batch_size=batch_size,
             last_file_name=last_file_name,
         )
@@ -250,9 +247,7 @@ class AEResNetClusterer(BaseDeepClusterer):
         input_layer = tf.keras.layers.Input(input_shape, name="input layer")
         encoder_output = encoder(input_layer)
         decoder_output = decoder(encoder_output)
-        output_layer = tf.keras.layers.Reshape(
-            target_shape=input_shape, name="outputlayer"
-        )(decoder_output)
+        output_layer = decoder_output
 
         model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
 
@@ -283,6 +278,9 @@ class AEResNetClusterer(BaseDeepClusterer):
 
         self.input_shape = X.shape[1:]
         self.training_model_ = self.build_model(self.input_shape)
+
+        if self.save_init_model:
+            self.training_model_.save(self.file_path + self.init_file_name + ".keras")
 
         if self.verbose:
             self.training_model_.summary()
@@ -331,6 +329,7 @@ class AEResNetClusterer(BaseDeepClusterer):
                 outputs=X,
                 batch_size=mini_batch_size,
                 epochs=self.n_epochs,
+                verbose=self.verbose,
             )
 
         try:
@@ -347,14 +346,12 @@ class AEResNetClusterer(BaseDeepClusterer):
 
         self._fit_clustering(X=X)
 
-        gc.collect()
-        return self
+        if self.save_last_model:
+            self.save_last_model_to_file(file_path=self.file_path)
 
-    def _score(self, X, y=None):
-        # Transpose to conform to Keras input style.
-        X = X.transpose(0, 2, 1)
-        latent_space = self.model_.layers[1].predict(X)
-        return self._estimator.score(latent_space)
+        gc.collect()
+
+        return self
 
     def _fit_multi_rec_model(
         self,
@@ -363,6 +360,7 @@ class AEResNetClusterer(BaseDeepClusterer):
         outputs,
         batch_size,
         epochs,
+        verbose,
     ):
         import tensorflow as tf
 
@@ -467,9 +465,10 @@ class AEResNetClusterer(BaseDeepClusterer):
             epoch_loss /= num_batches
             history["loss"].append(epoch_loss)
 
-            sys.stdout.write(
-                "Training loss at epoch %d: %.4f\n" % (epoch, float(epoch_loss))
-            )
+            if verbose:
+                sys.stdout.write(
+                    "Training loss at epoch %d: %.4f\n" % (epoch, float(epoch_loss))
+                )
 
             for callback in self.callbacks_:
                 callback.on_epoch_end(epoch, {"loss": float(epoch_loss)})

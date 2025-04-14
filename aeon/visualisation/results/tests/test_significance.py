@@ -13,7 +13,7 @@ from aeon.visualisation.results._significance import _build_cliques, plot_signif
 
 data_path = os.path.join(
     os.path.dirname(aeon.__file__),
-    "benchmarking/example_results/",
+    "testing/example_results_files/",
 )
 
 

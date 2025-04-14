@@ -27,7 +27,7 @@ class MultiRocketClassifier(BaseClassifier):
 
     Parameters
     ----------
-    num_kernels : int, default=10,000
+    n_kernels : int, default=10,000
         The number of kernels for the Rocket transform.
     max_dilations_per_kernel : int, default=32
         The maximum number of dilations per kernel.
@@ -72,13 +72,13 @@ class MultiRocketClassifier(BaseClassifier):
 
     Examples
     --------
-    >>> from aeon.classification.convolution_based import RocketClassifier
+    >>> from aeon.classification.convolution_based import MultiRocketClassifier
     >>> from aeon.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test = load_unit_test(split="test")
-    >>> clf = RocketClassifier(num_kernels=500)
+    >>> clf = MultiRocketClassifier(n_kernels=500)
     >>> clf.fit(X_train, y_train)
-    RocketClassifier(...)
+    MultiRocketClassifier(...)
     >>> y_pred = clf.predict(X_test)
     """
 
@@ -90,15 +90,15 @@ class MultiRocketClassifier(BaseClassifier):
 
     def __init__(
         self,
-        num_kernels=10000,
-        max_dilations_per_kernel=32,
-        n_features_per_kernel=4,
+        n_kernels: int = 10000,
+        max_dilations_per_kernel: int = 32,
+        n_features_per_kernel: int = 4,
         estimator=None,
         class_weight=None,
-        n_jobs=1,
+        n_jobs: int = 1,
         random_state=None,
     ):
-        self.num_kernels = num_kernels
+        self.n_kernels = n_kernels
         self.max_dilations_per_kernel = max_dilations_per_kernel
         self.n_features_per_kernel = n_features_per_kernel
         self.estimator = estimator
@@ -132,7 +132,7 @@ class MultiRocketClassifier(BaseClassifier):
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
 
         self._transformer = MultiRocket(
-            num_kernels=self.num_kernels,
+            n_kernels=self.n_kernels,
             max_dilations_per_kernel=self.max_dilations_per_kernel,
             n_features_per_kernel=self.n_features_per_kernel,
             n_jobs=self.n_jobs,
@@ -219,10 +219,10 @@ class MultiRocketClassifier(BaseClassifier):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
         """
         if parameter_set == "results_comparison":
-            return {"num_kernels": 100}
+            return {"n_kernels": 100}
         else:
             return {
-                "num_kernels": 200,
+                "n_kernels": 200,
                 "max_dilations_per_kernel": 8,
                 "n_features_per_kernel": 4,
             }

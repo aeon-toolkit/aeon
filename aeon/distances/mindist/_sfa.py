@@ -44,20 +44,16 @@ def mindist_sfa_distance(
     --------
     >>> import numpy as np
     >>> from aeon.distances import mindist_sfa_distance
-    >>> from aeon.transformations.collection.dictionary_based import SFAFast
+    >>> from aeon.transformations.collection.dictionary_based import SFAWhole
     >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> y = np.array([[11, 12, 13, 14, 15, 16, 17, 18, 19, 20]])
-    >>> transform = SFAFast(
+    >>> transform = SFAWhole(
     ...    word_length=8,
     ...    alphabet_size=8,
-    ...    window_size=x.shape[-1],
-    ...    norm=True,
-    ...    lower_bounding_distances=True   # This must be set!
+    ...    norm=True
     ... )
-    >>> transform.fit(x)
-    SFAFast(...)
-    >>> x_sfa = transform.transform_words(x).squeeze()
-    >>> y_sfa = transform.transform_words(y).squeeze()
+    >>> x_sfa, _ = transform.fit_transform(x)
+    >>> y_sfa, _ = transform.transform(y)
     >>> dist = mindist_sfa_distance(x_sfa, y_sfa, transform.breakpoints)
     """
     if x.ndim == 1 and y.ndim == 1:
