@@ -1,0 +1,42 @@
+name: AI Spam Detection On PR
+
+on:
+  pull_request:
+    types: [labeled]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  ai-spam-present:
+    if: ${{ github.event.label.name == 'AI Spam' }}
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Create app token
+        uses: actions/create-github-app-token@v1
+        id: app-token
+        with:
+          app-id: ${{ vars.PR_APP_ID }}
+          private-key: ${{ secrets.PR_APP_KEY }}
+
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/utilities
+
+      - name: Setup Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install PyGithub
+        run: pip install -Uq PyGithub
+
+      - name: Process AI Spam
+        id: handle_spam
+        run: python .github/utilities/ai_spam.py
+        env:
+          CONTEXT_GITHUB: ${{ toJson(github) }}
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
