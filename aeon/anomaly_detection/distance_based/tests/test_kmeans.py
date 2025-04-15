@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 from sklearn.utils import check_random_state
 
-from aeon.anomaly_detection import KMeansAD
+from aeon.anomaly_detection.distance_based import KMeansAD
 
 
 def test_kmeansad_univariate():

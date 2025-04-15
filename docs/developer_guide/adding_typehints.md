@@ -25,7 +25,7 @@ When working with modules that use soft dependencies, additional considerations 
 required to ensure that your code can still run even without these dependencies
 installed.
 
-Here is an example snippet taken from [PyODAdapter](https://www.aeon-toolkit.org/en/stable/api_reference/auto_generated/aeon.anomaly_detection.PyODAdapter.html).
+Here is an example snippet taken from [PyODAdapter](https://www.aeon-toolkit.org/en/stable/api_reference/auto_generated/aeon.anomaly_detection.outlier_detection.PyODAdapter.html).
 It uses the `pyod` library, which is a soft dependency. The `TYPE_CHECKING` constant
 is used to ensure that the `pyod` library is only imported at the top level while type
 checking is performed. `from __future__ import annotations` is used to allow forward

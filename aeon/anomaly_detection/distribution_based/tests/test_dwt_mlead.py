@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 from sklearn.utils import check_random_state
 
-from aeon.anomaly_detection import DWT_MLEAD
+from aeon.anomaly_detection.distribution_based import DWT_MLEAD
 
 
 def test_dwt_mlead_output():

@@ -4,7 +4,7 @@ __maintainer__ = ["MatthewMiddlehurst"]
 
 import numpy as np
 
-from aeon.anomaly_detection import MERLIN
+from aeon.anomaly_detection.distance_based import MERLIN
 
 TEST_DATA = np.array(
     [

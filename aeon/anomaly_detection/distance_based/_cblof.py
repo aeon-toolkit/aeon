@@ -7,7 +7,7 @@ from typing import Optional, Union
 
 import numpy as np
 
-from aeon.anomaly_detection._pyodadapter import PyODAdapter
+from aeon.anomaly_detection.outlier_detection._pyodadapter import PyODAdapter
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 

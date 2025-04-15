@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 from sklearn.utils import check_random_state
 
-from aeon.anomaly_detection import IsolationForest
+from aeon.anomaly_detection.outlier_detection import IsolationForest
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
