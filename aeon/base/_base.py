@@ -1,4 +1,4 @@
-"""Base class template for aeon estimators."""
+"""Base class template for ``aeon`` estimators."""
 
 __maintainer__ = ["MatthewMiddlehurst", "TonyBagnall"]
 __all__ = ["BaseAeonEstimator"]
@@ -17,7 +17,7 @@ from aeon.utils.validation._dependencies import _check_estimator_deps
 
 class BaseAeonEstimator(BaseEstimator, ABC):
     """
-    Base class for defining estimators in aeon.
+    Base class for defining estimators in ``aeon``.
 
     Contains the following methods:
 
@@ -25,16 +25,16 @@ class BaseAeonEstimator(BaseEstimator, ABC):
     - clone stimator (copy)         - ``clone(random_state)``
     - inspect tags (class method)   - ``get_class_tags()``
     - inspect tags (one tag, class) - ``get_class_tag(tag_name, tag_value_default
-                                      , raise_error)``
+    , raise_error)``
     - inspect tags (all)            - ``get_tags()``
     - inspect tags (one tag)        - ``get_tag(tag_name, tag_value_default
-                                     , raise_error)``
+    , raise_error)``
     - setting dynamic tags          - ``set_tags(**tag_dict)``
     - get fitted parameters         - ``get_fitted_params(deep)``
 
     All estimators have the attribute:
 
-    - fitted state flag             - ``is_fitted``
+    - fitted state flag             - `is_fitted`
     """
 
     _tags = {
@@ -60,21 +60,21 @@ class BaseAeonEstimator(BaseEstimator, ABC):
         """
         Reset the object to a clean post-init state.
 
-        After a ``self.reset()`` call, ``self`` is equal or similar in value to
+        After a ``self.reset()`` call, `self` is equal or similar in value to
         ``type(self)(**self.get_params(deep=False))``, assuming no other attributes
-        were kept using ``keep``.
+        were kept using `keep`.
 
         Detailed behaviour:
             removes any object attributes, except:
                 hyper-parameters (arguments of ``__init__``)
-                object attributes containing double-underscores, i.e., the string ``__``
+                object attributes containing double-underscores, i.e., the string `"__"`
             runs ``__init__`` with current values of hyperparameters (result of
             ``get_params``)
 
         Not affected by the reset are:
             object attributes containing double-underscores
             class and object methods, class attributes
-            any attributes specified in the ``keep`` argument
+            any attributes specified in the `keep` argument
 
         Parameters
         ----------
@@ -126,7 +126,7 @@ class BaseAeonEstimator(BaseEstimator, ABC):
         Obtain a clone of the object with the same hyperparameters.
 
         A clone is a different object without shared references, in post-init state.
-        This function is equivalent to returning ``sklearn.clone`` of ``self``.
+        This function is equivalent to returning ``sklearn.clone`` of `self`.
         Equal in value to ``type(self)(**self.get_params(deep=False))``.
 
         Parameters
@@ -134,10 +134,8 @@ class BaseAeonEstimator(BaseEstimator, ABC):
         random_state : int, RandomState instance, or None, default=None
             Sets the random state of the clone. If ``None``, the random state is not
             set.
-            If ``int``, ``random_state`` is the seed used by the random number
-            generator.
-            If ``RandomState`` instance, ``random_state`` is the random number
-            generator.
+            If ``int``, `random_state` is the seed used by the random number generator.
+            If ``RandomState`` instance, `random_state` is the random number generator.
 
         Returns
         -------
@@ -296,7 +294,7 @@ class BaseAeonEstimator(BaseEstimator, ABC):
         Returns
         -------
         self : object
-            Reference to ``self``.
+            Reference to `self`.
         """
         tag_update = deepcopy(tag_dict)
         self._tags_dynamic.update(tag_update)
@@ -358,7 +356,7 @@ class BaseAeonEstimator(BaseEstimator, ABC):
         if not self.is_fitted:
             raise NotFittedError(
                 f"This instance of {self.__class__.__name__} has not "
-                f"been fitted yet; please call ``fit`` first."
+                f"been fitted yet; please call `fit` first."
             )
 
     @classmethod
@@ -370,13 +368,13 @@ class BaseAeonEstimator(BaseEstimator, ABC):
         ----------
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return ``default`` set.
+            special parameters are defined for a value, will return `"default"` set.
 
         Returns
         -------
         params : dict or list of dict, default = {}
             Parameters to create testing instances of the class. Each ``dict`` are
-            parameters to construct an ``interesting`` test instance, i.e.,
+            parameters to construct an `"interesting"` test instance, i.e.,
             ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test
             instance.
         """
@@ -395,7 +393,7 @@ class BaseAeonEstimator(BaseEstimator, ABC):
         ----------
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return ``default`` set.
+            special parameters are defined for a value, will return `"default"` set.
         return_first : bool, default=True
             If ``True``, return the first instance of the list of instances.
             If ``False``, return the list of instances.
@@ -403,7 +401,7 @@ class BaseAeonEstimator(BaseEstimator, ABC):
         Returns
         -------
         instance : BaseAeonEstimator or list of BaseAeonEstimator
-            Instance of the class with default parameters. If ``return_first``
+            Instance of the class with default parameters. If `return_first`
             is ``False``, returns list of instances.
         """
         params = cls._get_test_params(parameter_set=parameter_set)
@@ -438,15 +436,15 @@ class BaseAeonEstimator(BaseEstimator, ABC):
         return sklearn_tags
 
     def _validate_data(self, **kwargs):
-        """Sklearn data validation."""
+        """``Sklearn`` data validation."""
         raise NotImplementedError(
             "aeon estimators do not have a _validate_data method."
         )
 
     def get_metadata_routing(self):
-        """Sklearn metadata routing.
+        """``Sklearn`` metadata routing.
 
-        Not supported by aeon estimators.
+        Not supported by ``aeon`` estimators.
         """
         raise NotImplementedError(
             "aeon estimators do not have a get_metadata_routing method."
@@ -454,7 +452,7 @@ class BaseAeonEstimator(BaseEstimator, ABC):
 
     @classmethod
     def _get_default_requests(cls):
-        """Sklearn metadata request defaults."""
+        """``Sklearn`` metadata request defaults."""
         from sklearn.utils._metadata_requests import MetadataRequest
 
         return MetadataRequest(None)

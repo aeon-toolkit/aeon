@@ -150,22 +150,22 @@ class ComposableEstimatorMixin(ABC):
         Parameters
         ----------
         estimators : list
-            A ``list`` of estimators or ``list`` of (``str``, ``estimator``) tuples.
+            A ``list`` of estimators or ``list`` of (``str``, `estimator`) tuples.
         attr_name : str, optional. Default = "steps"
             Name of checked attribute in error messages
         class_type : class, tuple of class or None, default=BaseAeonEstimator.
-            Class(es) that all estimators in ``estimators`` are checked to be an
+            Class(es) that all estimators in `estimators` are checked to be an
             instance of.
         allow_tuples : boolean, default=True.
-            Whether tuples of (str, estimator) are allowed in ``estimators``.
+            Whether tuples of (str, estimator) are allowed in `estimators`.
             Generally, the end-state we want is a ``list`` of tuples, so this should be
             ``True`` in most cases.
         allow_single_estimators : boolean, default=True.
-            Whether non-tuple estimator classes are allowed in ``estimators``.
+            Whether non-tuple estimator classes are allowed in `estimators`.
         unique_names : boolean, default=True.
-            Whether to check that all tuple strings in ``estimators`` are unique.
+            Whether to check that all tuple strings in `estimators` are unique.
         invalid_names : str, list of str or None, default=None.
-            Names that are invalid for estimators in ``estimators``.
+            Names that are invalid for estimators in `estimators`.
 
         Raises
         ------
@@ -233,23 +233,24 @@ class ComposableEstimatorMixin(ABC):
     def _convert_estimators(self, estimators, clone_estimators=True):
         """Convert estimators to list of (str, estimator) tuples.
 
-        Assumes ``_check_estimators`` has already been called on ``estimators``.
+        Assumes ``_check_estimators`` has already been called on `estimators`.
 
         Parameters
         ----------
         estimators : list of estimators, or list of (str, estimator) tuples.
-            A ``list`` of estimators or ``list`` of (``str``, ``estimator``) tuples
+            A ``list`` of estimators or ``list`` of (``str``, `estimator`) tuples
             to be converted.
         clone_estimators : boolean, default=True.
-            Whether to return clone of estimators in ``estimators`` (``True``) or
+            Whether to return clone of estimators in `estimators` (``True``) or
             references (``False``).
 
         Returns
         -------
         estimator_tuples : list of (str, estimator) tuples
-            If ``estimators`` was a ``list`` of (``str``, ``estimator``) tuples, then
-            identical/cloned to ``estimators``.
-            if was a ``list`` of ``estimators`` or mixed, then unique ``str``
+            If `estimators` was a ``list`` of (``str``, `estimator`) tuples, then
+            identical/cloned
+            to `estimators`.
+            if was a ``list`` of `estimators` or mixed, then unique ``str``
             are generated to
             create tuples.
         """
