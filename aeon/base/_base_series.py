@@ -34,25 +34,25 @@ class BaseSeriesEstimator(BaseAeonEstimator):
     It also stores the common default tags used by all the subclasses and meta data
     describing the characteristics of time series passed to ``fit``.
 
-    Input and internal data format (where `m` is the number of time points and `d`
+    Input and internal data format (where ``m`` is the number of time points and ``d``
     is the number of channels):
         Univariate series:
-            np.ndarray, shape `(m,)`, `(m, 1)` or `(1, m)` depending on axis.
+            np.ndarray, shape ``(m,)``, ``(m, 1)`` or ``(1, m)`` depending on axis.
             This is converted to a 2D ``np.ndarray`` internally.
-            pd.DataFrame, shape `(m, 1)` or `(1, m)` depending on axis.
-            pd.Series, shape `(m,)` is converted to a ``pd.DataFrame``.
+            pd.DataFrame, shape ``(m, 1)`` or ``(1, m)`` depending on axis.
+            pd.Series, shape ``(m,)`` is converted to a ``pd.DataFrame``.
         Multivariate series:
-            ``np.ndarray`` array, shape `(m, d)` or `(d, m)` depending on axis.
-            ``pd.DataFrame`` `(m, d)` or `(d, m)` depending on axis.
+            ``np.ndarray`` array, shape ``(m, d)`` or ``(d, m)`` depending on axis.
+            ``pd.DataFrame`` ``(m, d)`` or ``(d, m)`` depending on axis.
 
     Parameters
     ----------
     axis : int
         The time point axis of the input series if it is 2D. If ``axis==0``, it is
         assumed each column is a time series and each row is a time point. i.e. the
-        shape of the data is `(n_timepoints, n_channels)`. ``axis==1`` indicates
+        shape of the data is ``(n_timepoints, n_channels)``. ``axis==1`` indicates
         the time series are in rows, i.e. the shape of the data is
-        `(n_channels, n_timepoints)`.
+        ``(n_channels, n_timepoints)``.
         Setting this class variable will convert the input data to the chosen axis.
     """
 
@@ -70,10 +70,10 @@ class BaseSeriesEstimator(BaseAeonEstimator):
         super().__init__()
 
     def _preprocess_series(self, X, axis, store_metadata):
-        """Preprocess input `X` prior to call to fit.
+        """Preprocess input ``X`` prior to call to fit.
 
-        Checks the characteristics of `X`, store metadata, checks self can handle
-        the data then convert `X` to X_inner_type
+        Checks the characteristics of ``X``, store metadata, checks self can handle
+        the data then convert ``X`` to X_inner_type
 
         Parameters
         ----------
@@ -84,9 +84,9 @@ class BaseSeriesEstimator(BaseAeonEstimator):
         axis: int
             The time point axis of the input series if it is 2D. If ``axis==0``, it is
             assumed each column is a time series and each row is a time point. i.e. the
-            shape of the data is `(n_timepoints, n_channels)`. ``axis==1`` indicates
+            shape of the data is ``(n_timepoints, n_channels)``. ``axis==1`` indicates
             the time series are in rows, i.e. the shape of the data is
-            `(n_channels, n_timepoints)`.
+            ``(n_channels, n_timepoints)``.
         store_metadata: bool
             If ``True``, overwrite metadata with the new metadata from X.
 
@@ -106,7 +106,7 @@ class BaseSeriesEstimator(BaseAeonEstimator):
 
         Check if the input data is a compatible type, and that this estimator is
         able to handle the data characteristics. This is done by matching the
-        capabilities of the estimator against the metadata for `X` for
+        capabilities of the estimator against the metadata for ``X`` for
         univariate/multivariate and no missing values/missing values.
 
         Parameters
@@ -116,19 +116,19 @@ class BaseSeriesEstimator(BaseAeonEstimator):
             ``aeon.base._base_series.VALID_SERIES_INPUT_TYPES``
             for aeon supported types.
         axis: int
-            The time point axis of the input series if it is `2D`. If ``axis==0``, it is
+            The time point axis of the input series if it is 2D. If ``axis==0``, it is
             assumed each column is a time series and each row is a time point. i.e. the
-            shape of the data is `(n_timepoints,n_channels)`. ``axis==1`` indicates
+            shape of the data is ``(n_timepoints,n_channels)``. ``axis==1`` indicates
             the time series are in rows, i.e. the shape of the data is
-            `(n_channels,n_timepoints)`.
+            ``(n_channels,n_timepoints)``.
 
         Returns
         -------
         metadata: dict
-            Metadata about `X`, with flags:
-            ``metadata["multivariate"]``: whether `X` has more than one channel or not
-            ``metadata["n_channels"]``: number of channels in `X`
-            ``metadata["missing_values"]``: whether `X` has missing values or not
+            Metadata about ``X``, with flags:
+            ``metadata["multivariate"]``: whether ``X`` has more than one channel or not
+            ``metadata["n_channels"]``: number of channels in ``X``
+            ``metadata["missing_values"]``: whether ``X`` has missing values or not
         """
         if axis > 1 or axis < 0:
             raise ValueError(f"Input axis should be 0 or 1, saw {axis}")
@@ -195,9 +195,9 @@ class BaseSeriesEstimator(BaseAeonEstimator):
         return metadata
 
     def _convert_X(self, X, axis):
-        """Convert input `X` to internal estimator datatype.
+        """Convert input ``X`` to internal estimator datatype.
 
-        Converts input `X` to the internal data type of the estimator using
+        Converts input ``X`` to the internal data type of the estimator using
         ``self.get_tag("X_inner_type")``. 1D numpy arrays are converted to 2D,
         and the data will be transposed if the input axis does not match that of the
         estimator.
@@ -214,9 +214,9 @@ class BaseSeriesEstimator(BaseAeonEstimator):
         axis: int
             The time point axis of the input series if it is 2D. If ``axis==0``, it is
             assumed each column is a time series and each row is a time point. i.e. the
-            shape of the data is `(n_timepoints, n_channels)`. ``axis==1`` indicates
+            shape of the data is ``(n_timepoints, n_channels)``. ``axis==1`` indicates
             the time series are in rows, i.e. the shape of the data is
-            `(n_channels, n_timepoints)`.
+            ``(n_channels, n_timepoints)``.
 
         Returns
         -------
