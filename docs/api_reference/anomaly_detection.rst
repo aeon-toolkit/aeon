@@ -25,6 +25,7 @@ Detectors
     CBLOF
     COPOD
     DWT_MLEAD
+    EIF
     IsolationForest
     KMeansAD
     LeftSTAMPi
