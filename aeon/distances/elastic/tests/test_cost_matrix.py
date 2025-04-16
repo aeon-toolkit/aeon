@@ -44,7 +44,7 @@ def _validate_cost_matrix_result(
     assert_almost_equal(cost_matrix_callable_result, cost_matrix_result)
     if name == "ddtw" or name == "wddtw":
         assert cost_matrix_result.shape == (x.shape[-1] - 2, y.shape[-1] - 2)
-    elif name == "lcss":
+    elif name == "lcss" or name == "dtw_arow":
         # lcss cm is one larger than the input
         assert cost_matrix_result.shape == (x.shape[-1] + 1, y.shape[-1] + 1)
     else:
