@@ -140,6 +140,7 @@ class RandomProjectionIndexANN(BaseCollectionSimilaritySearch):
 
     _tags = {
         "capability:unequal_length": False,
+        "capability:multivariate": True,
         "capability:multithreading": True,
     }
 

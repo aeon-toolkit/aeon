@@ -57,9 +57,8 @@ class BaseCollectionSimilaritySearch(BaseCollectionEstimator, BaseSimilaritySear
         """
         self.reset()
         X = self._preprocess_collection(X)
-        # Store minimum number of n_timepoints for unequal length collections
-        self.n_channels_ = X[0].shape[0]
-        self.n_cases_ = len(X)
+        self.n_channels_ = self.metadata_["n_channels"]
+        self.n_cases_ = self.metadata_["n_cases"]
         self._fit(X, y=y)
         self.is_fitted = True
         return self
@@ -89,9 +88,7 @@ class BaseCollectionSimilaritySearch(BaseCollectionEstimator, BaseSimilaritySear
 
         """
         self._check_is_fitted()
-        if X[0].ndim == 1:
-            X = X[np.newaxis, :, :]
-        X = self._preprocess_collection(X)
+        X = self._preprocess_collection(X, store_metadata=False)
         self._check_predict_series_format(X)
         indexes, distances = self._predict(X, **kwargs)
         return indexes, distances
@@ -105,16 +102,6 @@ class BaseCollectionSimilaritySearch(BaseCollectionEstimator, BaseSimilaritySear
         X : np.ndarray, shape = (n_channels, n_timepoints)
             A series to be used in predict.
         """
-        if isinstance(X, np.ndarray):
-            if X[0].ndim != 2:
-                raise TypeError(
-                    "A np.ndarray given in predict must be 3D"
-                    f"(n_channels, n_timepoints) but found {X.ndim}D."
-                )
-        else:
-            raise TypeError(
-                "Expected a 3D np.ndarray in predict but found" f" {type(X)}."
-            )
         if self.n_channels_ != X[0].shape[0]:
             raise ValueError(
                 f"Expected X to have {self.n_channels_} channels but"

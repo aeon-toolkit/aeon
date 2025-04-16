@@ -53,9 +53,10 @@ class BaseSeriesSimilaritySearch(BaseSeriesEstimator, BaseSimilaritySearch):
         """
         self.reset()
         X = self._preprocess_series(X, self.axis, True)
-        # Store minimum number of n_timepoints for unequal length collections
-        self.n_channels_ = X.shape[0]
-        self.n_timepoints_ = X.shape[1]
+
+        self.n_channels_ = self.metadata_["n_channels"]
+        timepoint_idx = 1 if self.axis == 1 else 0
+        self.n_timepoints_ = X.shape[timepoint_idx]
         self.X_ = X
         self._fit(X, y=y)
         self.is_fitted = True
@@ -69,7 +70,7 @@ class BaseSeriesSimilaritySearch(BaseSeriesEstimator, BaseSimilaritySearch):
     ): ...
 
     @final
-    def predict(self, X=None, **kwargs):
+    def predict(self, X, **kwargs):
         """
         Predict function.
 
@@ -79,7 +80,7 @@ class BaseSeriesSimilaritySearch(BaseSeriesEstimator, BaseSimilaritySearch):
             Series to predict on.
         kwargs : dict, optional
             Additional keyword argument as dict or individual keywords args
-            to pass to use.
+            to pass to the estimator.
 
         Returns
         -------
@@ -90,11 +91,8 @@ class BaseSeriesSimilaritySearch(BaseSeriesEstimator, BaseSimilaritySearch):
 
         """
         self._check_is_fitted()
-        if X is not None:
-            X = self._preprocess_series(X, self.axis, False)
-            self._check_predict_series_format(X)
-        else:
-            X = self.X_
+        X = self._preprocess_series(X, self.axis, False)
+        self._check_predict_series_format(X)
         indexes, distances = self._predict(X, **kwargs)
         return indexes, distances
 
@@ -135,8 +133,15 @@ class BaseSeriesSimilaritySearch(BaseSeriesEstimator, BaseSimilaritySearch):
             A series to be used in predict.
 
         """
-        if self.n_channels_ != X.shape[0]:
+        channel_idx = 0 if self.axis == 1 else 1
+        if self.n_channels_ != X.shape[channel_idx]:
             raise ValueError(
                 f"Expected X to have {self.n_channels_} channels but"
-                f" got {X.shape[0]} channels."
+                f" got {X.shape[channel_idx]} channels."
             )
+
+
+# class BaseSeriesNeighbors(BaseSeriesSimilaritySearch): ...
+
+
+# class BaseSeroesMotifs(BaseSeriesSimilaritySearch): ...
