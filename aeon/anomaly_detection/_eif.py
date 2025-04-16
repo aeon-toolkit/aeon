@@ -1,6 +1,6 @@
 """EIF(Extended Isolation Forest) anomaly detector."""
 
-__maintainer__ = [""]
+__maintainer__ = ["Akhil-Jasson"]
 __all__ = ["EIF"]
 
 import numpy as np
