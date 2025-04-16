@@ -31,7 +31,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
     Parameters
     ----------
     n_neighbors : int, default = 1
-        Set `k` for knn.
+        Set ``k`` for knn.
     weights : str or callable, default = 'uniform'
         Mechanism for weighting a vote one of: ``'uniform'``, ``'distance'``,
         or a callable
@@ -49,8 +49,8 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         Dictionary for metric parameters for the case that distance is a ``str``.
     n_jobs : int, default = None
         The number of parallel jobs to run for neighbors search.
-        ``None`` means `1` unless in a :obj:``joblib.parallel_backend`` context.
-        `-1` means using all processors.
+        ``None`` means ``1`` unless in a :obj:``joblib.parallel_backend`` context.
+        ``-1`` means using all processors.
         for more details. Parameter for compatibility purposes, still unimplemented.
 
     Examples
@@ -101,7 +101,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
 
     def _fit(self, X, y):
         """
-        Fit the model using `X` as training data and `y` as target values.
+        Fit the model using ``X`` as training data and ``y`` as target values.
 
         Parameters
         ----------
@@ -186,7 +186,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         Parameters
         ----------
         X : np.ndarray
-            A single time series instance if shape = `(n_channels, n_timepoints)`
+            A single time series instance if shape = ``(n_channels, n_timepoints)``
 
         Returns
         -------
@@ -237,7 +237,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         -------
         params : dict or list of dict, default={}
             Parameters to create testing instances of the class.
-            Each ``dict`` are parameters to construct an `"interesting"` test instance,
+            Each ``dict`` are parameters to construct an ``interesting`` test instance,
             i.e.,
             ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test
             instance.

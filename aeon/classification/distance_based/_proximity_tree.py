@@ -21,7 +21,7 @@ class _Node:
     Parameters
     ----------
     node_id: str
-        The id of node, root node has id `0`.
+        The id of node, root node has id ``0``.
     _is_leaf: bool
         To identify leaf nodes.
     label: int, str or None
@@ -79,8 +79,8 @@ class ProximityTree(BaseClassifier):
     min_samples_split: int, default = 2
         The minimum number of samples required to split an internal node.
     random_state : int, RandomState instance or None, default=None
-        If ``int``, `random_state` is the seed used by the random number generator;
-        If ``RandomState`` instance, `random_state` is the random number generator;
+        If ``int``, ``random_state`` is the seed used by the random number generator;
+        If ``RandomState`` instance, ``random_state`` is the random number generator;
         If ``None``, the random number generator is the ``RandomState`` instance used
         by ``np.random``.
 
