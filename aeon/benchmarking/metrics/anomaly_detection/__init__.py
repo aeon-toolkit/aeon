@@ -19,11 +19,6 @@ __all__ = [
     "ts_fscore",
 ]
 
-from aeon.benchmarking.metrics.anomaly_detection._binary import (
-    range_f_score,
-    range_precision,
-    range_recall,
-)
 from aeon.benchmarking.metrics.anomaly_detection._continuous import (
     f_score_at_k_points,
     f_score_at_k_ranges,
