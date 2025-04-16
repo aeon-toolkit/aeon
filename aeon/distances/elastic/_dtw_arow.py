@@ -116,7 +116,6 @@ def _dtw_arow_cost_matrix(x: np.ndarray, y: np.ndarray) -> np.ndarray:
     return _dtw_arow_cost_path_helper(x, y)[0]
 
 
-@njit(cache=True)
 def dtw_arow_pairwise_distance(
     X: Union[np.ndarray, list[np.ndarray]],
     y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
