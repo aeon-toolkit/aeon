@@ -9,6 +9,7 @@ a copy for use in the aeon documentation.
 
 https://github.com/mne-tools/mne-lsl
 https://github.com/mne-tools/mne-lsl/blob/main/doc/_sphinxext/sphinx_remove_toctrees.py
+Copyright © 2023-2024, authors of MNE-LSL, BSD-3
 """
 
 from pathlib import Path

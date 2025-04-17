@@ -23,6 +23,7 @@ Notes
 Based on the work from [1]_.
 
 - source code adapted based on: https://github.com/cvxgrp/GGS
+  Copyright (c) 2018, Stanford University Convex Optimization Group, BSD-2
 - paper available at: https://stanford.edu/~boyd/papers/pdf/ggs.pdf
 
 References

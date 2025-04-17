@@ -66,7 +66,8 @@ class REDCOMETS(BaseClassifier):
 
     Notes
     -----
-    Adapted from the implementation at https://github.com/zy18811/RED-CoMETS
+    Adapted from the implementation at https://github.com/zy18811/RED-CoMETS by
+    the code owner.
 
     References
     ----------
