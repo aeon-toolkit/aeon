@@ -83,8 +83,9 @@ def _kdtw(x, y, sigma=1.0, epsilon=1e-3):
 
     Notes
     -----
-    Inspired by the original implementation which uses the the MIT license.
+    Inspired by the original implementation
     https://github.com/pfmarteau/KDTW/tree/master
+    Copyright (c) 2020 Pierre-François Marteau, MIT License
 
     Returns
     -------
