@@ -3,6 +3,7 @@
 import numpy as np
 
 from aeon.anomaly_detection.base import BaseAnomalyDetector
+from aeon.anomaly_detection.whole_series.base import BaseCollectionAnomalyDetector
 from aeon.base import BaseCollectionEstimator, BaseSeriesEstimator
 from aeon.classification import BaseClassifier
 from aeon.classification.early_classification import BaseEarlyClassifier
@@ -1012,6 +1013,7 @@ def _get_task_for_estimator(estimator):
         or isinstance(estimator, BaseEarlyClassifier)
         or isinstance(estimator, BaseClusterer)
         or isinstance(estimator, BaseCollectionTransformer)
+        or isinstance(estimator, BaseCollectionAnomalyDetector)
     ):
         data_label = "Classification"
     # collection data with continuous target labels
