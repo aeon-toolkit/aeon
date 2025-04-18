@@ -2,10 +2,12 @@
 
 __all__ = [
     "BaseCollectionAnomalyDetector",
-    "OutlierDetectionClassifier",
+    "ClassificationAdapter",
+    "OutlierDetectionAdapter",
 ]
 
+from aeon.anomaly_detection.whole_series._classification import ClassificationAdapter
 from aeon.anomaly_detection.whole_series._outlier_detection import (
-    OutlierDetectionClassifier,
+    OutlierDetectionAdapter,
 )
 from aeon.anomaly_detection.whole_series.base import BaseCollectionAnomalyDetector

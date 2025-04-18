@@ -36,6 +36,19 @@ Detectors
     STOMP
     STRAY
 
+Whole-series
+------------
+
+.. currentmodule:: aeon.anomaly_detection.whole_series
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    BaseCollectionAnomalyDetector
+    ClassificationAdapter
+    OutlierDetectionAdapter
+
 Base
 ----
 
