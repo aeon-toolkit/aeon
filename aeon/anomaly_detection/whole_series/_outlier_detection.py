@@ -55,4 +55,4 @@ class OutlierDetectionAdapter(BaseCollectionAnomalyDetector):
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
-        return {"estimator": IsolationForest(n_estimators=3)}
+        return {"detector": IsolationForest(n_estimators=3)}

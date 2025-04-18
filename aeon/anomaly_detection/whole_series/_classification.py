@@ -59,7 +59,7 @@ class ClassificationAdapter(BaseCollectionAnomalyDetector):
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
         return {
-            "estimator": SummaryClassifier(
+            "classifier": SummaryClassifier(
                 estimator=RandomForestClassifier(n_estimators=5)
             )
         }
