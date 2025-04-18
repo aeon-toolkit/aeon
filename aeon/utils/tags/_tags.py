@@ -141,7 +141,7 @@ ESTIMATOR_TAGS = {
         "class": [
             "transformer",
             "anomaly-detector",
-            "collection_anomaly_detector",
+            "collection-anomaly-detector",
             "segmenter",
         ],
         "type": "bool",
