@@ -219,6 +219,23 @@ class BaseAeonEstimator(BaseEstimator, ABC):
 
         return tag_value
 
+    def get_params(self, deep=True):
+        """
+        Get parameters for this estimator.
+
+        Parameters
+        ----------
+        deep : bool, default=True
+            If True, will return the parameters for this estimator and
+            contained subobjects that are estimators.
+
+        Returns
+        -------
+        params : dict
+            Parameter names mapped to their values.
+        """
+        return super().get_params(deep=deep)
+
     def get_tags(self):
         """
         Get tags from estimator.
@@ -279,6 +296,26 @@ class BaseAeonEstimator(BaseEstimator, ABC):
             raise ValueError(f"Tag with name {tag_name} could not be found.")
 
         return tag_value
+
+    def set_params(self, **params):
+        """Set the parameters of this estimator.
+
+        The method works on simple estimators as well as on nested objects
+        (such as :class:`~sklearn.pipeline.Pipeline`). The latter have
+        parameters of the form ``<component>__<parameter>`` so that it's
+        possible to update each component of a nested object.
+
+        Parameters
+        ----------
+        **params : dict
+            Estimator parameters.
+
+        Returns
+        -------
+        self : estimator instance
+            Estimator instance.
+        """
+        super().set_params(**params)
 
     def set_tags(self, **tag_dict):
         """
