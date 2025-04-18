@@ -84,6 +84,8 @@ def _deep_equals(x, y, depth, ignore_index):
 def _series_equals(x, y, depth, ignore_index):
     if x.dtype != y.dtype:
         return False, f"x.dtype ({x.dtype}) != y.dtype ({y.dtype}), depth={depth}"
+    if x.shape != y.shape:
+        return False, f"x.shape ({x.shape}) != y.shape ({y.shape}), depth={depth}"
 
     # if columns are object, recurse over entries and index
     if x.dtype == "object":
@@ -108,7 +110,12 @@ def _series_equals(x, y, depth, ignore_index):
 
 def _dataframe_equals(x, y, depth, ignore_index):
     if not x.columns.equals(y.columns):
-        return False, f"x.columns ({x.columns}) != y.columns ({y.columns})"
+        return (
+            False,
+            f"x.columns ({x.columns}) != y.columns ({y.columns}), depth={depth}",
+        )
+    if x.shape != y.shape:
+        return False, f"x.shape ({x.shape}) != y.shape ({y.shape}), depth={depth}"
 
     # if columns are equal and at least one is object, recurse over Series
     if sum(x.dtypes == "object") > 0:
@@ -130,7 +137,9 @@ def _dataframe_equals(x, y, depth, ignore_index):
 
 def _numpy_equals(x, y, depth, ignore_index):
     if x.dtype != y.dtype:
-        return False, f"x.dtype ({x.dtype}) != y.dtype ({y.dtype})"
+        return False, f"x.dtype ({x.dtype}) != y.dtype ({y.dtype}), depth={depth}"
+    if x.shape != y.shape:
+        return False, f"x.shape ({x.shape}) != y.shape ({y.shape}), depth={depth}"
 
     if x.dtype == "object":
         for i in range(len(x)):
