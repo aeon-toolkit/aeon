@@ -37,7 +37,7 @@ class RegressionForecaster(BaseForecaster):
         with sklearn regressors.
     """
 
-    def __init__(self, window, horizon=1, regressor=None):
+    def __init__(self, window: int, horizon: int = 1, regressor=None):
         self.window = window
         self.regressor = regressor
         super().__init__(horizon=horizon, axis=1)
@@ -123,7 +123,7 @@ class RegressionForecaster(BaseForecaster):
         return self.predict()
 
     @classmethod
-    def _get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set: str = "default"):
         """Return testing parameter settings for the estimator.
 
         Parameters

@@ -36,7 +36,7 @@ class BaseForecaster(BaseSeriesEstimator):
         "y_inner_type": "np.ndarray",
     }
 
-    def __init__(self, horizon, axis):
+    def __init__(self, horizon: int, axis: int):
         self.horizon = horizon
         self.meta_ = None  # Meta data related to y on the last fit
         super().__init__(axis)

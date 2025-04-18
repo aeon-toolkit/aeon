@@ -83,15 +83,15 @@ class ETSForecaster(BaseForecaster):
 
     def __init__(
         self,
-        error_type=ADDITIVE,
-        trend_type=NONE,
-        seasonality_type=NONE,
-        seasonal_period=1,
-        alpha=0.1,
-        beta=0.01,
-        gamma=0.01,
-        phi=0.99,
-        horizon=1,
+        error_type: int = ADDITIVE,
+        trend_type: int = NONE,
+        seasonality_type: int = NONE,
+        seasonal_period: int = 1,
+        alpha: float = 0.1,
+        beta: float = 0.01,
+        gamma: float = 0.01,
+        phi: float = 0.99,
+        horizon: int = 1,
     ):
         self.error_type = error_type
         self.trend_type = trend_type
@@ -190,14 +190,14 @@ class ETSForecaster(BaseForecaster):
 @njit(nogil=NOGIL, cache=CACHE)
 def _fit_numba(
     data,
-    error_type,
-    trend_type,
-    seasonality_type,
-    seasonal_period,
-    alpha,
-    beta,
-    gamma,
-    phi,
+    error_type: int,
+    trend_type: int,
+    seasonality_type: int,
+    seasonal_period: int,
+    alpha: float,
+    beta: float,
+    gamma: float,
+    phi: float,
 ):
     n_timepoints = len(data)
     level, trend, seasonality = _initialise(
@@ -236,15 +236,15 @@ def _fit_numba(
 
 
 def _predict_numba(
-    trend_type,
-    seasonality_type,
-    level,
-    trend,
-    seasonality,
-    phi,
-    horizon,
-    n_timepoints,
-    seasonal_period,
+    trend_type: int,
+    seasonality_type: int,
+    level: float,
+    trend: float,
+    seasonality: float,
+    phi: float,
+    horizon: int,
+    n_timepoints: int,
+    seasonal_period: int,
 ):
     # Generate forecasts based on the final values of level, trend, and seasonals
     if phi == 1:  # No damping case
@@ -264,7 +264,7 @@ def _predict_numba(
 
 
 @njit(nogil=NOGIL, cache=CACHE)
-def _initialise(trend_type, seasonality_type, seasonal_period, data):
+def _initialise(trend_type: int, seasonality_type: int, seasonal_period: int, data):
     """
     Initialize level, trend, and seasonality values for the ETS model.
 
@@ -307,17 +307,17 @@ def _initialise(trend_type, seasonality_type, seasonal_period, data):
 
 @njit(nogil=NOGIL, cache=CACHE)
 def _update_states(
-    error_type,
-    trend_type,
-    seasonality_type,
-    level,
-    trend,
-    seasonality,
+    error_type: int,
+    trend_type: int,
+    seasonality_type: int,
+    level: float,
+    trend: float,
+    seasonality: float,
     data_item: int,
-    alpha,
-    beta,
-    gamma,
-    phi,
+    alpha: float,
+    beta: float,
+    gamma: float,
+    phi: float,
 ):
     """
     Update level, trend, and seasonality components.
@@ -374,7 +374,14 @@ def _update_states(
 
 
 @njit(nogil=NOGIL, cache=CACHE)
-def _predict_value(trend_type, seasonality_type, level, trend, seasonality, phi):
+def _predict_value(
+    trend_type: int,
+    seasonality_type: int,
+    level: float,
+    trend: float,
+    seasonality: float,
+    phi: float,
+):
     """
 
     Generate various useful values, including the next fitted value.
