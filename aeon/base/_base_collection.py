@@ -69,7 +69,7 @@ class BaseCollectionEstimator(BaseAeonEstimator):
 
         super().__init__()
 
-    def _preprocess_collection(self, X, store_metadata: bool = True):
+    def _preprocess_collection(self, X, store_metadata=True):
         """
         Preprocess input X prior to calling fit.
 
