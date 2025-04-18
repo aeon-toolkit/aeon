@@ -27,7 +27,7 @@ class ComposableEstimatorMixin(ABC):
     def __init__(self):
         super().__init__()
 
-    def get_params(self, deep=True):
+    def get_params(self, deep: bool = True):
         """Get parameters for this estimator.
 
         Returns the parameters given in the constructor as well as the
@@ -104,7 +104,7 @@ class ComposableEstimatorMixin(ABC):
                 break
         setattr(self, attr, new_estimators)
 
-    def get_fitted_params(self, deep=True):
+    def get_fitted_params(self, deep: bool = True):
         """Get fitted parameters.
 
         State required:
@@ -138,11 +138,11 @@ class ComposableEstimatorMixin(ABC):
     def _check_estimators(
         self,
         estimators,
-        attr_name="estimators",
+        attr_name: str = "estimators",
         class_type=BaseAeonEstimator,
-        allow_tuples=True,
-        allow_single_estimators=True,
-        unique_names=True,
+        allow_tuples: bool = True,
+        allow_single_estimators: bool = True,
+        unique_names: bool = True,
         invalid_names=None,
     ):
         """Check that estimators is a list of estimators or list of str/est tuples.
@@ -230,7 +230,7 @@ class ComposableEstimatorMixin(ABC):
                     f"estimator type of {class_type}."
                 )
 
-    def _convert_estimators(self, estimators, clone_estimators=True):
+    def _convert_estimators(self, estimators, clone_estimators: bool = True):
         """Convert estimators to list of (str, estimator) tuples.
 
         Assumes ``_check_estimators`` has already been called on ``estimators``.

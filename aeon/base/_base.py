@@ -236,7 +236,7 @@ class BaseAeonEstimator(BaseEstimator, ABC):
         collected_tags.update(self._tags_dynamic)
         return deepcopy(collected_tags)
 
-    def get_tag(self, tag_name, raise_error=True, tag_value_default=None):
+    def get_tag(self, tag_name: str, raise_error: bool = True, tag_value_default=None):
         """
         Get tag value from estimator class.
 
@@ -298,7 +298,7 @@ class BaseAeonEstimator(BaseEstimator, ABC):
         self._tags_dynamic.update(tag_update)
         return self
 
-    def get_fitted_params(self, deep=True):
+    def get_fitted_params(self, deep: bool = True):
         """Get fitted parameters.
 
         State required:
@@ -318,7 +318,7 @@ class BaseAeonEstimator(BaseEstimator, ABC):
         self._check_is_fitted()
         return self._get_fitted_params(self, deep)
 
-    def _get_fitted_params(self, est, deep):
+    def _get_fitted_params(self, est, deep: bool):
         """Recursive function to get fitted parameters."""
         # retrieves all self attributes ending in "_"
         fitted_params = [
@@ -358,7 +358,7 @@ class BaseAeonEstimator(BaseEstimator, ABC):
             )
 
     @classmethod
-    def _get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set: str = "default"):
         """
         Return testing parameter settings for the estimator.
 
@@ -379,7 +379,9 @@ class BaseAeonEstimator(BaseEstimator, ABC):
         return {}
 
     @classmethod
-    def _create_test_instance(cls, parameter_set="default", return_first=True):
+    def _create_test_instance(
+        cls, parameter_set: str = "default", return_first: bool = True
+    ):
         """
         Construct Estimator instance if possible.
 

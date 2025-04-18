@@ -63,13 +63,13 @@ class BaseSeriesEstimator(BaseAeonEstimator):
     }
 
     @abstractmethod
-    def __init__(self, axis):
+    def __init__(self, axis: int):
         self.axis = axis
         self.metadata_ = {}  # metadata/properties of data seen in fit
 
         super().__init__()
 
-    def _preprocess_series(self, X, axis, store_metadata):
+    def _preprocess_series(self, X, axis: int, store_metadata: bool):
         """Preprocess input X prior to call to fit.
 
         Checks the characteristics of X, store metadata, checks self can handle
@@ -191,7 +191,7 @@ class BaseSeriesEstimator(BaseAeonEstimator):
 
         return metadata
 
-    def _convert_X(self, X, axis):
+    def _convert_X(self, X, axis: int):
         """Convert input X to internal estimator datatype.
 
         Converts input X to the internal data type of the estimator using
