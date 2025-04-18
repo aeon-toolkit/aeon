@@ -408,11 +408,15 @@ def make_example_dataframe_list(
     ...     random_state=0,
     ... )
     >>> print(data)
-    [          0         1         2         3
-    0  0.000000  1.688531  1.715891  1.694503
-    1  1.247127  0.768763  0.595069  0.113426,           0         1         2         3
-    0  2.000000  3.166900  2.115580  2.272178
-    1  3.702387  0.284144  0.348517  0.080874]
+    [          0         1
+    0  0.000000  1.688531
+    1  1.715891  1.694503
+    2  1.247127  0.768763
+    3  0.595069  0.113426,           0         1
+    0  2.000000  3.166900
+    1  2.115580  2.272178
+    2  3.702387  0.284144
+    3  0.348517  0.080874]
     >>> print(labels)
     [0 1]
     >>> get_type(data)
@@ -424,14 +428,14 @@ def make_example_dataframe_list(
 
     for i in range(n_cases):
         n_timepoints = rng.randint(min_n_timepoints, max_n_timepoints + 1)
-        x = n_labels * rng.uniform(size=(n_channels, n_timepoints))
+        x = n_labels * rng.uniform(size=(n_timepoints, n_channels))
         label = x[0, 0].astype(int)
         if i < n_labels and n_cases > i:
             x[0, 0] = i
             label = i
         x = x * (label + 1)
 
-        X.append(pd.DataFrame(x, index=range(n_channels), columns=range(n_timepoints)))
+        X.append(pd.DataFrame(x, index=range(n_timepoints), columns=range(n_channels)))
         y[i] = label
 
     if regression_target:
@@ -570,16 +574,16 @@ def make_example_multi_index_dataframe(
     ...     random_state=0,
     ... )
     >>> print(data)  # doctest: +NORMALIZE_WHITESPACE
-    channel                0         1
+                    channel_0  channel_1
     case timepoint
-    0    0          0.000000  1.247127
-         1          1.688531  0.768763
-         2          1.715891  0.595069
-         3          1.694503  0.113426
-    1    0          2.000000  3.702387
-         1          3.166900  0.284144
-         2          2.115580  0.348517
-         3          2.272178  0.080874
+    0    0           0.000000   1.247127
+         1           1.688531   0.768763
+         2           1.715891   0.595069
+         3           1.694503   0.113426
+    1    0           2.000000   3.702387
+         1           3.166900   0.284144
+         2           2.115580   0.348517
+         3           2.272178   0.080874
     >>> print(labels)
     [0 1]
     >>> get_type(data)
@@ -612,7 +616,8 @@ def make_example_multi_index_dataframe(
         y[i] = label
 
     X = X.reset_index(drop=True)
-    X = X.pivot(index=["case", "timepoint"], columns=["channel"], values="value")
+    X = X.set_index(["case", "timepoint"]).pivot(columns="channel")
+    X.columns = [f"channel_{i}" for i in range(n_channels)]
 
     if regression_target:
         y = y.astype(np.float32)

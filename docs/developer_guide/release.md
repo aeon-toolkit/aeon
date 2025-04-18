@@ -41,11 +41,7 @@ The release process is as follows, on high-level:
 
 Creation of the GitHub release trigger the `pypi` release workflow.
 
-5. **Approve the release workflow.**
-   The release workflow will be automatically created in the GitHub Actions tab. This
-   must be approved by a member of the release management workgroup before it will run.
-
-6. **Wait for the ``pypi`` release CI/CD to finish.**
+5. **Wait for the ``pypi`` release CI/CD to finish.**
   If tests fail due to sporadic unrelated failure, restart. If tests fail genuinely,
   something went wrong in the above steps, investigate, fix, and repeat. If the bug
   is known and sporadic (i.e. failure to read data from an external source), the release
@@ -53,7 +49,7 @@ Creation of the GitHub release trigger the `pypi` release workflow.
   the workflow can be manually run from the GitHub Actions tab if more PRs are
   required.
 
-7. **Release workflow completion tasks.**
+6. **Release workflow completion tasks.**
   Once the release workflow has passed, check `aeon` version on `pypi`, this should be
   the new version. A validatory installation of `aeon` in a new Python environment
   should be carried out according to the installation instructions. If the installation
@@ -62,7 +58,7 @@ Creation of the GitHub release trigger the `pypi` release workflow.
 
 ## `conda-forge` release and release validation
 
-8. **Merge the ``conda-forge`` release PR.**
+7. **Merge the ``conda-forge`` release PR.**
   After some time a PR will be automatically created in the [aeon conda-forge feedstock](https://github.com/conda-forge/aeon-feedstock).
   Follow the instructions in the PR to merge it, making sure to update any dependencies
   that have changed and dependency version bounds.

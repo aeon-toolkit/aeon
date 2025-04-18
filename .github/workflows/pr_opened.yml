@@ -20,16 +20,16 @@ jobs:
         with:
           sparse-checkout: .github/utilities
 
-      - name: Setup Python 3.11
+      - name: Setup Python 3.10
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.10"
 
       - name: Install PyGithub
         run: pip install -Uq PyGithub
 
       - name: Create app token
-        uses: actions/create-github-app-token@v2
+        uses: actions/create-github-app-token@v1
         id: app-token
         with:
           app-id: ${{ vars.PR_APP_ID }}

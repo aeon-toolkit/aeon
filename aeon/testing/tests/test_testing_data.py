@@ -122,9 +122,10 @@ def test_equal_length_univariate_collection():
         assert not is_collection(
             EQUAL_LENGTH_UNIVARIATE_SIMILARITY_SEARCH[key]["test"][0]
         )
-        # assert is_univariate(
-        #     EQUAL_LENGTH_UNIVARIATE_SIMILARITY_SEARCH[key]["test"][0],
-        # )
+        assert is_univariate(
+            EQUAL_LENGTH_UNIVARIATE_SIMILARITY_SEARCH[key]["test"][0],
+            is_collection=False,
+        )
         assert is_equal_length(
             EQUAL_LENGTH_UNIVARIATE_SIMILARITY_SEARCH[key]["test"][0]
         )
@@ -198,9 +199,10 @@ def test_unequal_length_univariate_collection():
         assert not is_collection(
             UNEQUAL_LENGTH_UNIVARIATE_SIMILARITY_SEARCH[key]["test"][0]
         )
-        # assert is_univariate(
-        #     UNEQUAL_LENGTH_UNIVARIATE_SIMILARITY_SEARCH[key]["test"][0],
-        # )
+        assert is_univariate(
+            UNEQUAL_LENGTH_UNIVARIATE_SIMILARITY_SEARCH[key]["test"][0],
+            is_collection=False,
+        )
         assert is_equal_length(
             UNEQUAL_LENGTH_UNIVARIATE_SIMILARITY_SEARCH[key]["test"][0]
         )
@@ -274,9 +276,10 @@ def test_equal_length_multivariate_collection():
         assert not is_collection(
             EQUAL_LENGTH_MULTIVARIATE_SIMILARITY_SEARCH[key]["test"][0]
         )
-        # assert not is_univariate(
-        #     EQUAL_LENGTH_MULTIVARIATE_SIMILARITY_SEARCH[key]["test"][0],
-        # )
+        assert not is_univariate(
+            EQUAL_LENGTH_MULTIVARIATE_SIMILARITY_SEARCH[key]["test"][0],
+            is_collection=False,
+        )
         assert is_equal_length(
             EQUAL_LENGTH_MULTIVARIATE_SIMILARITY_SEARCH[key]["test"][0]
         )
@@ -362,9 +365,10 @@ def test_unequal_length_multivariate_collection():
         assert not is_collection(
             UNEQUAL_LENGTH_MULTIVARIATE_SIMILARITY_SEARCH[key]["test"][0]
         )
-        # assert not is_univariate(
-        #     UNEQUAL_LENGTH_MULTIVARIATE_SIMILARITY_SEARCH[key]["test"][0],
-        # )
+        assert not is_univariate(
+            UNEQUAL_LENGTH_MULTIVARIATE_SIMILARITY_SEARCH[key]["test"][0],
+            is_collection=False,
+        )
         assert is_equal_length(
             UNEQUAL_LENGTH_MULTIVARIATE_SIMILARITY_SEARCH[key]["test"][0]
         )
