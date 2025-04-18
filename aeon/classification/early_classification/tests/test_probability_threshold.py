@@ -32,7 +32,7 @@ def test_early_prob_threshold_near_classification_points():
         X = X_test[:, :, :i]
 
         if i == 20:
-            with pytest.raises(IndexError):
+            with pytest.raises(ValueError):
                 pt.update_predict_proba(X)
         else:
             _, decisions = pt.update_predict_proba(X)

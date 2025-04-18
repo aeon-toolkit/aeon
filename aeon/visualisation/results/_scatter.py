@@ -41,7 +41,6 @@ def plot_pairwise_scatter(
     title=None,
     figsize=(8, 8),
     color_palette="tab10",
-    best_on_top=True,
 ):
     """Plot a scatter that compares datasets' results achieved by two methods.
 
@@ -67,9 +66,6 @@ def plot_pairwise_scatter(
         Size of the figure.
     color_palette : str, default = "tab10"
         Color palette to be used for the plot.
-    best_on_top : bool, default=True
-        If True, the estimator with better performance is placed on the y-axis (top).
-        If False, the ordering is reversed.
 
     Returns
     -------
@@ -133,7 +129,7 @@ def plot_pairwise_scatter(
     x, y = [min_value, max_value], [min_value, max_value]
     ax.plot(x, y, color="black", alpha=0.5, zorder=1)
 
-    # better estimator on top (y-axis)
+    # Choose the appropriate order for the methods. Best method is shown in the y-axis.
     if (results_a.mean() <= results_b.mean() and not lower_better) or (
         results_a.mean() >= results_b.mean() and lower_better
     ):
@@ -146,11 +142,6 @@ def plot_pairwise_scatter(
         first_method = method_a
         second = results_b
         second_method = method_b
-
-    # if best_on_top is False, swap the ordering
-    if not best_on_top:
-        first, second = second, first
-        first_method, second_method = second_method, first_method
 
     differences = [
         0 if i - j == 0 else (1 if i - j > 0 else -1) for i, j in zip(first, second)

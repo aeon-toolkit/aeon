@@ -167,7 +167,7 @@ class BaseRegressor(RegressorMixin, BaseCollectionEstimator):
             allowed and converted into one of the above.
 
             Different estimators have different capabilities to handle different
-            types of input. If ``self.get_tag("capability:multivariate")`` is False,
+            types of input. If `self.get_tag("capability:multivariate")`` is False,
             they cannot handle multivariate series, so either ``n_channels == 1`` is
             true or X is 2D of shape ``(n_cases, n_timepoints)``. If ``self.get_tag(
             "capability:unequal_length")`` is False, they cannot handle unequal
@@ -208,7 +208,7 @@ class BaseRegressor(RegressorMixin, BaseCollectionEstimator):
             allowed and converted into one of the above.
 
             Different estimators have different capabilities to handle different
-            types of input. If ``self.get_tag("capability:multivariate")`` is False,
+            types of input. If `self.get_tag("capability:multivariate")`` is False,
             they cannot handle multivariate series, so either ``n_channels == 1`` is
             true or X is 2D of shape ``(n_cases, n_timepoints)``. If ``self.get_tag(
             "capability:unequal_length")`` is False, they cannot handle unequal
@@ -220,7 +220,7 @@ class BaseRegressor(RegressorMixin, BaseCollectionEstimator):
             (ground truth) for fitting indices corresponding to instance indices in X.
         metric : Union[str, callable], default="r2",
             Defines the scoring metric to test the fit of the model. For supported
-            strings arguments, check ``sklearn.metrics.get_scorer_names``.
+            strings arguments, check `sklearn.metrics.get_scorer_names`.
         metric_params : dict, default=None,
             Contains parameters to be passed to the scoring function. If None, no
             parameters are passed.
