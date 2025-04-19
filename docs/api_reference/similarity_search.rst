@@ -62,6 +62,8 @@ Base Estimators
     :template: class.rst
 
     BaseSeriesSimilaritySearch
+    BaseSeriesNeighbors
+    BaseSeriesMotifs
 
 .. currentmodule:: aeon.similarity_search.collection._base
 
@@ -70,3 +72,5 @@ Base Estimators
     :template: class.rst
 
     BaseCollectionSimilaritySearch
+    BaseCollectionNeighbors
+    BaseCollectionMotifs

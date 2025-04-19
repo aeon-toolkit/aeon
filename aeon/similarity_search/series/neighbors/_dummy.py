@@ -8,7 +8,7 @@ __all__ = ["DummySNN"]
 import numpy as np
 from numba import get_num_threads, njit, prange, set_num_threads
 
-from aeon.similarity_search.series._base import BaseSeriesSimilaritySearch
+from aeon.similarity_search.series._base import BaseSeriesNeighbors
 from aeon.similarity_search.series._commons import (
     _extract_top_k_from_dist_profile,
     _inverse_distance_profile,
@@ -21,7 +21,7 @@ from aeon.utils.numba.general import (
 from aeon.utils.validation import check_n_jobs
 
 
-class DummySNN(BaseSeriesSimilaritySearch):
+class DummySNN(BaseSeriesNeighbors):
     """Estimator to compute the on profile and distance profile using brute force."""
 
     _tags = {"capability:multithreading": True}

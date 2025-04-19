@@ -8,7 +8,7 @@ __all__ = ["MassSNN"]
 import numpy as np
 from numba import njit
 
-from aeon.similarity_search.series._base import BaseSeriesSimilaritySearch
+from aeon.similarity_search.series._base import BaseSeriesNeighbors
 from aeon.similarity_search.series._commons import (
     _extract_top_k_from_dist_profile,
     _inverse_distance_profile,
@@ -20,7 +20,7 @@ from aeon.utils.numba.general import (
 )
 
 
-class MassSNN(BaseSeriesSimilaritySearch):
+class MassSNN(BaseSeriesNeighbors):
     """
     Estimator to compute the subsequences nearest neighbors using MASS _[1].
 

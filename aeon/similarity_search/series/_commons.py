@@ -161,7 +161,10 @@ def _extract_top_k_motifs(MP, IP, k, allow_trivial_matches, exclusion_size):
     idx, _ = _extract_top_k_from_dist_profile(
         criterion, k, np.inf, allow_trivial_matches, exclusion_size
     )
-    return [MP[i] for i in idx], [IP[i] for i in idx]
+    return (
+        [IP[i] for i in idx],
+        [MP[i] for i in idx],
+    )
 
 
 def _extract_top_r_motifs(MP, IP, k, allow_trivial_matches, exclusion_size):
@@ -175,7 +178,7 @@ def _extract_top_r_motifs(MP, IP, k, allow_trivial_matches, exclusion_size):
         allow_trivial_matches,
         exclusion_size,
     )
-    return [MP[i] for i in idx], [IP[i] for i in idx]
+    return [IP[i] for i in idx], [MP[i] for i in idx]
 
 
 @njit(cache=True, fastmath=True)

@@ -110,7 +110,7 @@ def test__extract_top_k_motifs():
             [0, 7],
         ]
     )
-    MP_k, IP_k = _extract_top_k_motifs(MP, IP, 2, True, 0)
+    IP_k, MP_k = _extract_top_k_motifs(MP, IP, 2, True, 0)
     assert_(len(MP_k) == 2)
     assert_array_equal(MP_k[0], [0.6, 0.7])
     assert_array_equal(IP_k[0], [0, 7])
@@ -132,7 +132,7 @@ def test__extract_top_r_motifs():
     IP.append(List([0, 3, 6]))
     IP.append(List([0, 7]))
 
-    MP_k, IP_k = _extract_top_r_motifs(MP, IP, 2, True, 0)
+    IP_k, MP_k = _extract_top_r_motifs(MP, IP, 2, True, 0)
     assert_(len(MP_k) == 2)
     assert_array_equal(MP_k[0], [1.0, 1.5, 2.0, 1.5])
     assert_array_equal(IP_k[0], [1, 2, 3, 4])

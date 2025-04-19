@@ -25,8 +25,16 @@ from aeon.forecasting.base import BaseForecaster
 from aeon.regression.base import BaseRegressor
 from aeon.segmentation.base import BaseSegmenter
 from aeon.similarity_search._base import BaseSimilaritySearch
-from aeon.similarity_search.collection import BaseCollectionSimilaritySearch
-from aeon.similarity_search.series import BaseSeriesSimilaritySearch
+from aeon.similarity_search.collection import (
+    BaseCollecionNeighbors,
+    BaseCollectionSimilaritySearch,
+    BaseColletionMotifs,
+)
+from aeon.similarity_search.series import (
+    BaseSeriesMotifs,
+    BaseSeriesNeighbors,
+    BaseSeriesSimilaritySearch,
+)
 from aeon.transformations.base import BaseTransformer
 from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.transformations.series import BaseSeriesTransformer
@@ -39,6 +47,8 @@ BASE_CLASS_REGISTER = {
     "series-estimator": BaseSeriesEstimator,
     "transformer": BaseTransformer,
     "similarity-search": BaseSimilaritySearch,
+    "series-similarity-search": BaseSeriesSimilaritySearch,
+    "collection-similarity-search": BaseCollectionSimilaritySearch,
     # estimator types
     "anomaly-detector": BaseAnomalyDetector,
     "collection-transformer": BaseCollectionTransformer,
@@ -49,8 +59,10 @@ BASE_CLASS_REGISTER = {
     "segmenter": BaseSegmenter,
     "series-transformer": BaseSeriesTransformer,
     "forecaster": BaseForecaster,
-    "series-similarity-search": BaseSeriesSimilaritySearch,
-    "collection-similarity-search": BaseCollectionSimilaritySearch,
+    "series-motifs-search": BaseSeriesMotifs,
+    "series-neighbors-search": BaseSeriesNeighbors,
+    "collection-motifs-search": BaseColletionMotifs,
+    "collection-neighbors-search": BaseCollecionNeighbors,
 }
 
 # base classes which are valid for estimator to directly inherit from

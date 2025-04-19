@@ -9,7 +9,7 @@ import numpy as np
 from numba import njit
 from numba.typed import List
 
-from aeon.similarity_search.series._base import BaseSeriesSimilaritySearch
+from aeon.similarity_search.series._base import BaseSeriesMotifs
 from aeon.similarity_search.series._commons import (
     _extract_top_k_from_dist_profile,
     _extract_top_k_motifs,
@@ -25,7 +25,7 @@ from aeon.similarity_search.series.neighbors._mass import (
 from aeon.utils.numba.general import sliding_mean_std_one_series
 
 
-class StompMotif(BaseSeriesSimilaritySearch):
+class StompMotif(BaseSeriesMotifs):
     """
     Estimator to extract top k motifs using STOMP, descibed in [1]_.
 
@@ -96,7 +96,7 @@ class StompMotif(BaseSeriesSimilaritySearch):
 
     def _predict(
         self,
-        X: np.ndarray = None,
+        X: np.ndarray,
         k: Optional[int] = 1,
         motif_size: Optional[int] = 1,
         dist_threshold: Optional[float] = np.inf,
@@ -104,6 +104,7 @@ class StompMotif(BaseSeriesSimilaritySearch):
         exclusion_factor: Optional[float] = 0.5,
         inverse_distance: Optional[bool] = False,
         motif_extraction_method: Optional[str] = "k_motifs",
+        is_self_computation: Optional[bool] = False,
     ):
         """
         Exctract the motifs of X_ relative to a series X using STOMP matrix prfoile.
@@ -113,9 +114,8 @@ class StompMotif(BaseSeriesSimilaritySearch):
         Parameters
         ----------
         X : np.ndarray, shape=(n_channels, n_timepoint)
-            Series to use to compute the matrix profile against X_. If None, will
-            compute the self matrix profile of X_. Motifs will then be extracted from
-            the matrix profile.
+            Series to use to compute the matrix profile against X_. Motifs will then be
+            extracted from the matrix profile.
         k : int
             The number of motifs to return. The default is 1, meaning we return only
             the motif set with the minimal sum of distances to its query.
@@ -149,6 +149,8 @@ class StompMotif(BaseSeriesSimilaritySearch):
             - "k_motifs" means rank motifs by their maximum distance to their matches.
             For example, if a 3-motif has distances to its matches equal to
             ``[0.1,0.2,0.5]`` will have a score of ``max([0.1,0.2,0.5])=0.5``.
+        is_self_computation : bool
+            Wheter X is equal to the series X_ given during fit.
 
         Returns
         -------
@@ -171,6 +173,7 @@ class StompMotif(BaseSeriesSimilaritySearch):
             allow_trivial_matches=allow_trivial_matches,
             exclusion_factor=exclusion_factor,
             inverse_distance=inverse_distance,
+            is_self_computation=is_self_computation,
         )
         if motif_extraction_method == "k_motifs":
             return _extract_top_k_motifs(
@@ -183,12 +186,13 @@ class StompMotif(BaseSeriesSimilaritySearch):
 
     def compute_matrix_profile(
         self,
-        X: np.ndarray = None,
+        X: np.ndarray,
         motif_size: Optional[int] = 1,
         dist_threshold: Optional[float] = np.inf,
         allow_trivial_matches: Optional[bool] = False,
         exclusion_factor: Optional[float] = 0.5,
         inverse_distance: Optional[bool] = False,
+        is_self_computation: Optional[bool] = False,
     ):
         """
         Compute matrix profile.
@@ -217,6 +221,8 @@ class StompMotif(BaseSeriesSimilaritySearch):
             the exclusion zone starts from
             :math:`id_timestamp - floor(length * exclusion_factor)` and end at
             :math:`id_timestamp + floor(length * exclusion_factor)`.
+        is_self_computation : bool
+            Wheter X is equal to the series X_ given during fit.
 
         Returns
         -------
@@ -229,15 +235,11 @@ class StompMotif(BaseSeriesSimilaritySearch):
             number of timepoint of X_. Each element of the list contains array of
             variable size.
         """
-        if X is None:
-            is_self_mp = True
-            X = self.X_
-            if self.normalize:
-                X_means, X_stds = self.X_means_, self.X_stds_
-        else:
-            is_self_mp = False
-            if self.normalize:
-                X_means, X_stds = sliding_mean_std_one_series(X, self.length, 1)
+        if is_self_computation and self.normalize:
+            X_means, X_stds = self.X_means_, self.X_stds_
+        elif not is_self_computation and self.normalize:
+            X_means, X_stds = sliding_mean_std_one_series(X, self.length, 1)
+
         X_dotX = get_ith_products(X, self.X_, self.length, 0)
         exclusion_size = int(self.length * exclusion_factor)
 
@@ -260,7 +262,7 @@ class StompMotif(BaseSeriesSimilaritySearch):
                 allow_trivial_matches,
                 exclusion_size,
                 inverse_distance,
-                is_self_mp,
+                is_self_computation,
             )
         else:
             MP, IP = _stomp(
@@ -273,7 +275,7 @@ class StompMotif(BaseSeriesSimilaritySearch):
                 allow_trivial_matches,
                 exclusion_size,
                 inverse_distance,
-                is_self_mp,
+                is_self_computation,
             )
         return MP, IP
 
