@@ -26,9 +26,9 @@ from aeon.regression.base import BaseRegressor
 from aeon.segmentation.base import BaseSegmenter
 from aeon.similarity_search._base import BaseSimilaritySearch
 from aeon.similarity_search.collection import (
+    BaseCollectionMotifs,
     BaseCollectionNeighbors,
     BaseCollectionSimilaritySearch,
-    BaseColletionMotifs,
 )
 from aeon.similarity_search.series import (
     BaseSeriesMotifs,
@@ -61,7 +61,7 @@ BASE_CLASS_REGISTER = {
     "forecaster": BaseForecaster,
     "series-motifs-search": BaseSeriesMotifs,
     "series-neighbors-search": BaseSeriesNeighbors,
-    "collection-motifs-search": BaseColletionMotifs,
+    "collection-motifs-search": BaseCollectionMotifs,
     "collection-neighbors-search": BaseCollectionNeighbors,
 }
 
