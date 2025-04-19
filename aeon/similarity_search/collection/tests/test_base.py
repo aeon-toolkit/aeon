@@ -3,14 +3,14 @@
 __maintainer__ = ["baraline"]
 
 from aeon.testing.mock_estimators._mock_similarity_searchers import (
-    BaseCollectionSimilaritySearch,
+    MockCollectionSimilaritySearch,
 )
 from aeon.testing.testing_data import FULL_TEST_DATA_DICT, _get_datatypes_for_estimator
 
 
 def test_input_shape_fit_predict_collection():
     """Test input shapes."""
-    estimator = BaseCollectionSimilaritySearch()
+    estimator = MockCollectionSimilaritySearch()
     datatypes = _get_datatypes_for_estimator(estimator)
     # dummy data to pass to fit when testing predict/predict_proba
     for datatype in datatypes:

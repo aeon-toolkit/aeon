@@ -9,6 +9,33 @@ from scipy.signal import convolve
 from aeon.utils.numba.general import AEON_NUMBA_STD_THRESHOLD
 
 
+def _check_X_index(X_index: int, n_timepoints: int, length: int):
+    """
+    Check wheter a X_index parameter is correctly formated and is admissible.
+
+    Parameters
+    ----------
+    X_index : int
+        Index of a timestamp in X_.
+     n_timepoints: int
+         Number of timepoints in the serie X_
+     length: int
+         Length parameter of the estimator
+
+    """
+    if X_index is not None:
+        if not isinstance(X_index, int):
+            raise TypeError("Expected an integer for X_index but got {X_index}")
+
+        max_timepoints = n_timepoints - length
+        if X_index >= max_timepoints or X_index < 0:
+            raise ValueError(
+                "The value of X_index cannot exced the number "
+                "of timepoint in series given during fit. Expected a value "
+                f"between [0, {max_timepoints - 1}] but got {X_index}"
+            )
+
+
 def fft_sliding_dot_product(X, q):
     """
     Use FFT convolution to calculate the sliding window dot product.
