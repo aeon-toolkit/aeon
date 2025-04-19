@@ -3,6 +3,8 @@
 __maintainer__ = ["baraline"]
 __all__ = [
     "BaseCollectionSimilaritySearch",
+    "BaseCollectionMotifs",
+    "BaseCollectionNeighbors",
 ]
 
 from abc import abstractmethod

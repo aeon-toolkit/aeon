@@ -26,7 +26,7 @@ from aeon.regression.base import BaseRegressor
 from aeon.segmentation.base import BaseSegmenter
 from aeon.similarity_search._base import BaseSimilaritySearch
 from aeon.similarity_search.collection import (
-    BaseCollecionNeighbors,
+    BaseCollectionNeighbors,
     BaseCollectionSimilaritySearch,
     BaseColletionMotifs,
 )
@@ -62,7 +62,7 @@ BASE_CLASS_REGISTER = {
     "series-motifs-search": BaseSeriesMotifs,
     "series-neighbors-search": BaseSeriesNeighbors,
     "collection-motifs-search": BaseColletionMotifs,
-    "collection-neighbors-search": BaseCollecionNeighbors,
+    "collection-neighbors-search": BaseCollectionNeighbors,
 }
 
 # base classes which are valid for estimator to directly inherit from

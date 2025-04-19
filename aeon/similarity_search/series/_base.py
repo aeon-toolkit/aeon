@@ -1,5 +1,8 @@
 """Base similiarity search for series."""
 
+__maintainer__ = ["baraline"]
+__all__ = ["BaseSeriesSimilaritySearch", "BaseSeriesNeighbors", "BaseSeriesMotifs"]
+
 from abc import abstractmethod
 from typing import final
 
