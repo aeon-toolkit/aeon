@@ -24,7 +24,17 @@ from aeon.clustering.base import BaseClusterer
 from aeon.forecasting.base import BaseForecaster
 from aeon.regression.base import BaseRegressor
 from aeon.segmentation.base import BaseSegmenter
-from aeon.similarity_search.base import BaseSimilaritySearch
+from aeon.similarity_search._base import BaseSimilaritySearch
+from aeon.similarity_search.collection import (
+    BaseCollectionNeighbors,
+    BaseCollectionSimilaritySearch,
+    BaseColletionMotifs,
+)
+from aeon.similarity_search.series import (
+    BaseSeriesMotifs,
+    BaseSeriesNeighbors,
+    BaseSeriesSimilaritySearch,
+)
 from aeon.transformations.base import BaseTransformer
 from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.transformations.series import BaseSeriesTransformer
@@ -36,6 +46,9 @@ BASE_CLASS_REGISTER = {
     "estimator": BaseAeonEstimator,
     "series-estimator": BaseSeriesEstimator,
     "transformer": BaseTransformer,
+    "similarity-search": BaseSimilaritySearch,
+    "series-similarity-search": BaseSeriesSimilaritySearch,
+    "collection-similarity-search": BaseCollectionSimilaritySearch,
     # estimator types
     "anomaly-detector": BaseAnomalyDetector,
     "collection-transformer": BaseCollectionTransformer,
@@ -44,14 +57,23 @@ BASE_CLASS_REGISTER = {
     "early_classifier": BaseEarlyClassifier,
     "regressor": BaseRegressor,
     "segmenter": BaseSegmenter,
-    "similarity_searcher": BaseSimilaritySearch,
     "series-transformer": BaseSeriesTransformer,
     "forecaster": BaseForecaster,
+    "series-motifs-search": BaseSeriesMotifs,
+    "series-neighbors-search": BaseSeriesNeighbors,
+    "collection-motifs-search": BaseColletionMotifs,
+    "collection-neighbors-search": BaseCollectionNeighbors,
 }
 
 # base classes which are valid for estimator to directly inherit from
 VALID_ESTIMATOR_BASES = {
     k: BASE_CLASS_REGISTER[k]
     for k in BASE_CLASS_REGISTER.keys()
-    - {"estimator", "collection-estimator", "series-estimator", "transformer"}
+    - {
+        "estimator",
+        "collection-estimator",
+        "series-estimator",
+        "transformer",
+        "similarity-search",
+    }
 }
