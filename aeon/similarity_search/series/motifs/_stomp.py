@@ -9,7 +9,7 @@ import numpy as np
 from numba import njit
 from numba.typed import List
 
-from aeon.similarity_search.series._base import BaseSeriesMotifs
+from aeon.similarity_search.series._base import BaseSeriesSimilaritySearch
 from aeon.similarity_search.series._commons import (
     _extract_top_k_from_dist_profile,
     _extract_top_k_motifs,
@@ -25,7 +25,7 @@ from aeon.similarity_search.series.neighbors._mass import (
 from aeon.utils.numba.general import sliding_mean_std_one_series
 
 
-class StompMotif(BaseSeriesMotifs):
+class StompMotif(BaseSeriesSimilaritySearch):
     """
     Estimator to extract top k motifs using STOMP, descibed in [1]_.
 
@@ -93,6 +93,28 @@ class StompMotif(BaseSeriesMotifs):
         if self.normalize:
             self.X_means_, self.X_stds_ = sliding_mean_std_one_series(X, self.length, 1)
         return self
+
+    def fit_predict(self, X, **kwargs):
+        """
+        Fit and predict on a single series X in order to compute self-motifs.
+
+        Parameters
+        ----------
+        X : np.ndarray, shape = (n_channels, n_tiempoints)
+            Series to fit and predict on.
+        kwargs : dict, optional
+            Additional keyword argument as dict or individual keywords args
+            to pass to the estimator during predict.
+
+        Returns
+        -------
+        indexes : np.ndarray
+            Indexes of series in the that are similar to X.
+        distances : np.ndarray
+            Distance of the matches to each series
+        """
+        self.fit(X)
+        return self.predict(X, is_self_computation=True, **kwargs)
 
     def _predict(
         self,

@@ -2,16 +2,12 @@
 
 __all__ = [
     "BaseSeriesSimilaritySearch",
-    "BaseSeriesMotifs",
-    "BaseSeriesNeighbors",
     "MassSNN",
     "StompMotif",
     "DummySNN",
 ]
 
 from aeon.similarity_search.series._base import (
-    BaseSeriesMotifs,
-    BaseSeriesNeighbors,
     BaseSeriesSimilaritySearch,
 )
 from aeon.similarity_search.series.motifs._stomp import StompMotif

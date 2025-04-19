@@ -3,7 +3,7 @@
 import numpy as np
 from numba import get_num_threads, njit, prange, set_num_threads
 
-from aeon.similarity_search.collection._base import BaseCollectionNeighbors
+from aeon.similarity_search.collection._base import BaseCollectionSimilaritySearch
 from aeon.utils.numba.general import AEON_NUMBA_STD_THRESHOLD, z_normalise_series_3d
 
 
@@ -103,7 +103,7 @@ def _collection_to_bool(X, hash_funcs, start_points, length):
     return res
 
 
-class RandomProjectionIndexANN(BaseCollectionNeighbors):
+class RandomProjectionIndexANN(BaseCollectionSimilaritySearch):
     """
     Random Projection Locality Sensitive Hashing index with cosine similarity.
 

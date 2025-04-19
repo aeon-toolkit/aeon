@@ -8,7 +8,7 @@ __all__ = ["MassSNN"]
 import numpy as np
 from numba import njit
 
-from aeon.similarity_search.series._base import BaseSeriesNeighbors
+from aeon.similarity_search.series._base import BaseSeriesSimilaritySearch
 from aeon.similarity_search.series._commons import (
     _extract_top_k_from_dist_profile,
     _inverse_distance_profile,
@@ -20,7 +20,7 @@ from aeon.utils.numba.general import (
 )
 
 
-class MassSNN(BaseSeriesNeighbors):
+class MassSNN(BaseSeriesSimilaritySearch):
     """
     Estimator to compute the subsequences nearest neighbors using MASS _[1].
 
@@ -168,6 +168,30 @@ class MassSNN(BaseSeriesNeighbors):
             )
 
         return distance_profile
+
+    def _check_X_index(self, X_index: int):
+        """
+        Check wheter a X_index parameter is correctly formated and is admissible.
+
+        Parameters
+        ----------
+        X_index : int
+            Index of a timestamp in X_.
+
+        """
+        if X_index is not None:
+            if not isinstance(X_index, int):
+                raise TypeError("Expected an integer for X_index but got {X_index}")
+
+            max_timepoints = self.n_timepoints_
+            if hasattr(self, "length"):
+                max_timepoints -= self.length
+            if X_index >= max_timepoints or X_index < 0:
+                raise ValueError(
+                    "The value of X_index cannot exced the number "
+                    "of timepoint in series given during fit. Expected a value "
+                    f"between [0, {max_timepoints - 1}] but got {X_index}"
+                )
 
     @classmethod
     def _get_test_params(cls, parameter_set: str = "default"):

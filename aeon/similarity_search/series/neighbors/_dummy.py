@@ -8,7 +8,7 @@ __all__ = ["DummySNN"]
 import numpy as np
 from numba import get_num_threads, njit, prange, set_num_threads
 
-from aeon.similarity_search.series._base import BaseSeriesNeighbors
+from aeon.similarity_search.series._base import BaseSeriesSimilaritySearch
 from aeon.similarity_search.series._commons import (
     _extract_top_k_from_dist_profile,
     _inverse_distance_profile,
@@ -21,7 +21,7 @@ from aeon.utils.numba.general import (
 from aeon.utils.validation import check_n_jobs
 
 
-class DummySNN(BaseSeriesNeighbors):
+class DummySNN(BaseSeriesSimilaritySearch):
     """Estimator to compute the on profile and distance profile using brute force."""
 
     _tags = {"capability:multithreading": True}
@@ -174,6 +174,30 @@ class DummySNN(BaseSeriesNeighbors):
                 f"The parameter set {parameter_set} is not yet implemented"
             )
         return params
+
+    def _check_X_index(self, X_index: int):
+        """
+        Check wheter a X_index parameter is correctly formated and is admissible.
+
+        Parameters
+        ----------
+        X_index : int
+            Index of a timestamp in X_.
+
+        """
+        if X_index is not None:
+            if not isinstance(X_index, int):
+                raise TypeError("Expected an integer for X_index but got {X_index}")
+
+            max_timepoints = self.n_timepoints_
+            if hasattr(self, "length"):
+                max_timepoints -= self.length
+            if X_index >= max_timepoints or X_index < 0:
+                raise ValueError(
+                    "The value of X_index cannot exced the number "
+                    "of timepoint in series given during fit. Expected a value "
+                    f"between [0, {max_timepoints - 1}] but got {X_index}"
+                )
 
 
 @njit(cache=True, fastmath=True, parallel=True)

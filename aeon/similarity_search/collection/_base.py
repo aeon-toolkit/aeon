@@ -3,8 +3,6 @@
 __maintainer__ = ["baraline"]
 __all__ = [
     "BaseCollectionSimilaritySearch",
-    "BaseCollectionMotifs",
-    "BaseCollectionNeighbors",
 ]
 
 from abc import abstractmethod
@@ -112,15 +110,3 @@ class BaseCollectionSimilaritySearch(BaseCollectionEstimator, BaseSimilaritySear
 
     @abstractmethod
     def _predict(self, X, **kwargs): ...
-
-
-class BaseCollectionMotifs(BaseCollectionSimilaritySearch):
-    """Base class for motif search on collections."""
-
-    ...
-
-
-class BaseCollectionNeighbors(BaseCollectionSimilaritySearch):
-    """Base class for neighbors search on collections."""
-
-    ...

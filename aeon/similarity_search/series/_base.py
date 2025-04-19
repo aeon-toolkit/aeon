@@ -1,7 +1,7 @@
 """Base similiarity search for series."""
 
 __maintainer__ = ["baraline"]
-__all__ = ["BaseSeriesSimilaritySearch", "BaseSeriesNeighbors", "BaseSeriesMotifs"]
+__all__ = ["BaseSeriesSimilaritySearch"]
 
 from abc import abstractmethod
 from typing import final
@@ -117,67 +117,3 @@ class BaseSeriesSimilaritySearch(BaseSeriesEstimator, BaseSimilaritySearch):
                 f"Expected X to have {self.n_channels_} channels but"
                 f" got {X.shape[channel_idx]} channels."
             )
-
-
-class BaseSeriesNeighbors(BaseSeriesSimilaritySearch):
-    """
-    Base class for neighbor search estimators.
-
-    The goal of this base class is to define a fit_predict method to, for example,
-    compute self matrix profiles.
-    """
-
-    def _check_X_index(self, X_index: int):
-        """
-        Check wheter a X_index parameter is correctly formated and is admissible.
-
-        Parameters
-        ----------
-        X_index : int
-            Index of a timestamp in X_.
-
-        """
-        if X_index is not None:
-            if not isinstance(X_index, int):
-                raise TypeError("Expected an integer for X_index but got {X_index}")
-
-            max_timepoints = self.n_timepoints_
-            if hasattr(self, "length"):
-                max_timepoints -= self.length
-            if X_index >= max_timepoints or X_index < 0:
-                raise ValueError(
-                    "The value of X_index cannot exced the number "
-                    "of timepoint in series given during fit. Expected a value "
-                    f"between [0, {max_timepoints - 1}] but got {X_index}"
-                )
-
-
-class BaseSeriesMotifs(BaseSeriesSimilaritySearch):
-    """
-    Base class for motif search estimators.
-
-    The goal of this base class is to define a fit_predict method to, for example,
-    compute self matrix profiles.
-    """
-
-    def fit_predict(self, X, **kwargs):
-        """
-        Fit and predict on a single series X in order to compute self-motifs.
-
-        Parameters
-        ----------
-        X : np.ndarray, shape = (n_channels, n_tiempoints)
-            Series to fit and predict on.
-        kwargs : dict, optional
-            Additional keyword argument as dict or individual keywords args
-            to pass to the estimator during predict.
-
-        Returns
-        -------
-        indexes : np.ndarray
-            Indexes of series in the that are similar to X.
-        distances : np.ndarray
-            Distance of the matches to each series
-        """
-        self.fit(X)
-        return self.predict(X, is_self_computation=True, **kwargs)
