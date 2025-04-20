@@ -5,7 +5,7 @@ __maintainer__ = []
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 
-from aeon.anomaly_detection import STRAY
+from aeon.anomaly_detection.outlier_detection import STRAY
 
 
 def test_default_1D():

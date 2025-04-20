@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 from sklearn.utils import check_random_state
 
-from aeon.anomaly_detection import OneClassSVM
+from aeon.anomaly_detection.distance_based import OneClassSVM
 
 
 def test_one_class_svm_univariate():
