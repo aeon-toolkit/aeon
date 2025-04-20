@@ -359,7 +359,7 @@ class InceptionTimeClassifier(BaseClassifier):
         Parameters
         ----------
         model_path : list of str (list of paths including the model names and extension)
-            The director where the models will be saved including the model
+            The directory where the models will be saved including the model
             names with a ".keras" extension.
         classes : np.ndarray
             The set of unique classes the pre-trained loaded model is trained
