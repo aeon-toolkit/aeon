@@ -8,7 +8,7 @@ from unittest.mock import ANY, call
 import numpy as np
 import pytest
 
-from aeon.anomaly_detection._left_stampi import LeftSTAMPi
+from aeon.anomaly_detection.distance_based._left_stampi import LeftSTAMPi
 from aeon.testing.data_generation import make_example_1d_numpy
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
