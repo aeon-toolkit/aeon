@@ -178,13 +178,13 @@ def test_make_example_dataframe_list(
     assert all(isinstance(x, pd.DataFrame) for x in X)
     assert isinstance(y, np.ndarray)
     assert len(X) == n_cases
-    assert all([x.shape[1] == n_channels for x in X])
+    assert all([x.shape[0] == n_channels for x in X])
     if min_n_timepoints == max_n_timepoints:
-        assert all([x.shape[0] == min_n_timepoints for x in X])
+        assert all([x.shape[1] == min_n_timepoints for x in X])
     else:
         assert all(
             [
-                x.shape[0] >= min_n_timepoints and x.shape[0] <= max_n_timepoints
+                x.shape[1] >= min_n_timepoints and x.shape[1] <= max_n_timepoints
                 for x in X
             ]
         )

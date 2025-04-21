@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from aeon.anomaly_detection import COPOD
+from aeon.anomaly_detection.distribution_based import COPOD
 from aeon.testing.data_generation import make_example_1d_numpy
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
@@ -21,7 +21,7 @@ def test_copod_default():
     pred = copod.fit_predict(series, axis=0)
 
     assert pred.shape == (80,)
-    assert pred.dtype == np.float_
+    assert np.issubdtype(pred.dtype, np.floating)
     assert 50 <= np.argmax(pred) <= 60
 
 

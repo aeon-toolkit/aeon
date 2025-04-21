@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from aeon.anomaly_detection import CBLOF
+from aeon.anomaly_detection.distance_based import CBLOF
 from aeon.testing.data_generation import make_example_1d_numpy
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
@@ -21,7 +21,7 @@ def test_cblof_default():
     pred = cblof.fit_predict(series, axis=0)
 
     assert pred.shape == (80,)
-    assert pred.dtype == np.float_
+    assert np.issubdtype(pred.dtype, np.floating)
     assert 50 <= np.argmax(pred) <= 60
 
 
