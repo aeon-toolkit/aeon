@@ -2701,6 +2701,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "ItxJack",
+      "name": "Rahul Ranjan",
+      "avatar_url": "https://avatars.githubusercontent.com/u/202484568?v=4",
+      "profile": "https://github.com/ItxJack",
+      "contributions": [
+        "bug"
+      ]
     }
   ],
   "commitType": "docs"
