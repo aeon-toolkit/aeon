@@ -473,13 +473,12 @@ def _download_and_extract(url, extract_path=None):
         zipfile.ZipFile(zip_file_name, "r").extractall(extract_path)
         shutil.rmtree(dl_dir)
         return extract_path
-    except zipfile.BadZipFile:
-        shutil.rmtree(dl_dir)
-        if os.path.exists(extract_path):
-            shutil.rmtree(extract_path)
-        raise zipfile.BadZipFile(
-            "Could not unzip dataset. Please make sure the URL is valid."
-        )
+    
+    except zipfile.BadZipFile as e:
+        shutil.rmtree(dl_dir, ignore_errors=True)
+        print(f"[load_classification] Failed to unzip. Preserved path: {extract_path}")
+        raise zipfile.BadZipFile("Could not unzip dataset. Please make sure the URL is valid.")
+
 
 
 def _load_tsc_dataset(
