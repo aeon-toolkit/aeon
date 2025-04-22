@@ -350,6 +350,7 @@ class InceptionTimeClassifier(BaseClassifier):
 
         return probs
 
+    @classmethod
     def load_model(self, model_path, classes):
         """Load pre-trained classifiers instead of fitting.
 
@@ -369,20 +370,25 @@ class InceptionTimeClassifier(BaseClassifier):
         -------
         None
         """
-        assert (
-            type(model_path) is list
-        ), "model_path should be a list of paths to the models"
+        assert type(model_path) is list, (
+            "model_path should be a list of paths to the models"
+        )
+
+        classifier = self()
+        classifier.classifiers_ = []
 
         for i in range(len(model_path)):
             clf = IndividualInceptionClassifier()
             clf.load_model(model_path[i], classes)
-            self.classifiers_.append(clf)
+            classifier.classifiers_.append(clf)
 
-        self.n_classifiers = len(self.classifiers_)
+        classifier.n_classifiers = len(classifier.classifiers_)
 
-        self.classes_ = classes
-        self.n_classes_ = len(classes)
-        self.is_fitted = True
+        classifier.classes_ = classes
+        classifier.n_classes_ = len(classes)
+        classifier.is_fitted = True
+
+        return classifier
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
