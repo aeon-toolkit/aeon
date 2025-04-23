@@ -70,9 +70,15 @@ jobs:
           python_version: "3.11"
           restore_cache: "false"
 
-      - uses: ./.github/actions/cpu_all_extras
+      - name: Install dependencies
+        uses: nick-fields/retry@v3
         with:
-          additional_extras: "dev,binder"
+          timeout_minutes: 30
+          max_attempts: 3
+          command: python -m pip install .[all_extras,binder,dev]
+
+      - name: Show dependencies
+        run: python -m pip list
 
       - name: Run example notebooks
         run: .github/utilities/run_examples.sh false
@@ -182,10 +188,12 @@ jobs:
           python_version: ${{ matrix.python-version }}
           restore_cache: "false"
 
-      - uses: ./.github/actions/cpu_all_extras
+      - name: Install aeon and dependencies
+        uses: nick-fields/retry@v3
         with:
-          python_version: ${{ matrix.python-version }}
-          additional_extras: "dev"
+          timeout_minutes: 30
+          max_attempts: 3
+          command: python -m pip install .[all_extras,dev]
 
       - name: Show dependencies
         run: python -m pip list
@@ -215,9 +223,12 @@ jobs:
       - name: Disable Numba JIT
         run: echo "NUMBA_DISABLE_JIT=1" >> $GITHUB_ENV
 
-      - uses: ./.github/actions/cpu_all_extras
+      - name: Install aeon and dependencies
+        uses: nick-fields/retry@v3
         with:
-          additional_extras: "unstable_extras,dev"
+          timeout_minutes: 30
+          max_attempts: 3
+          command: python -m pip install .[all_extras,unstable_extras,dev]
 
       - name: Show dependencies
         run: python -m pip list
