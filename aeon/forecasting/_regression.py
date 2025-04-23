@@ -1,9 +1,10 @@
 """Window-based regression forecaster.
 
-General purpose forecaster to use with any scikit learn or aeon compatible
+General-purpose forecaster to use with any ``scikit-learn`` or ``aeon`` compatible
 regressor. Simply forms a collection of windows from the time series and trains to
-predict the next
+predict the next.
 """
+
 
 import numpy as np
 from sklearn.linear_model import LinearRegression
@@ -13,29 +14,29 @@ from aeon.forecasting.base import BaseForecaster
 
 class RegressionForecaster(BaseForecaster):
     """
-    Regression based forecasting.
+    Regression-based forecasting.
 
-    Container for forecaster that reduces forecasting to regression through a
-    window. Form a collection of sub series of length `window` through a sliding
-    winodw to form X, take `horizon` points ahead to form `y`, then apply an aeon or
-    sklearn regressor.
-
+    Container for a forecaster that reduces forecasting to regression through a
+    window. Forms a collection of sub-series of length ``window`` through a sliding
+    window to form ``X``, takes ``horizon`` points ahead to form ``y``, then applies an ``aeon`` or
+    ``scikit-learn`` regressor.
 
     Parameters
     ----------
-    window : int
+    window : ``int``
         The window prior to the current time point to use in forecasting. So if
-        horizon is one, forecaster will train using points $i$ to $window+i-1$ to
-        predict value $window+i$. If horizon is 4, forecaster will used points $i$
-        to $window+i-1$ to predict value $window+i+3$. If None, the algorithm will
-        internally determine what data to use to predict `horizon` steps ahead.
-    horizon : int, default =1
-        The number of time steps ahead to forecast. If horizon is one, the forecaster
-        will learn to predict one point ahead
-    regressor : object, default =None
-        Regression estimator that implements BaseRegressor or is otherwise compatible
-        with sklearn regressors.
+        ``horizon`` is one, the forecaster will train using points ``i`` to ``window + i - 1`` to
+        predict value ``window + i``. If ``horizon`` is 4, the forecaster will use points ``i``
+        to ``window + i - 1`` to predict value ``window + i + 3``. If ``None``, the algorithm will
+        internally determine what data to use to predict ``horizon`` steps ahead.
+    horizon : ``int``, default = ``1``
+        The number of time steps ahead to forecast. If ``horizon`` is one, the forecaster
+        will learn to predict one point ahead.
+    regressor : ``object``, default = ``None``
+        Regression estimator that implements ``BaseRegressor`` or is otherwise compatible
+        with ``scikit-learn`` regressors.
     """
+
 
     def __init__(self, window, horizon=1, regressor=None):
         self.window = window
@@ -45,22 +46,23 @@ class RegressionForecaster(BaseForecaster):
     def _fit(self, y, exog=None):
         """Fit forecaster to time series.
 
-        Split X into windows of length window and train the forecaster on each window
-        to predict the horizon ahead.
+        Split ``X`` into windows of length ``window`` and train the forecaster on each window
+        to predict the ``horizon`` ahead.
 
         Parameters
         ----------
-        y : np.ndarray
-            A time series on which to learn a forecaster to predict horizon ahead.
-        exog : np.ndarray, default=None
+        y : ``np.ndarray``
+            A time series on which to learn a forecaster to predict ``horizon`` ahead.
+        exog : ``np.ndarray``, default=``None``
             Optional exogenous time series data. Included for interface
             compatibility but ignored in this estimator.
 
         Returns
         -------
         self
-            Fitted estimator
-        """
+            Fitted estimator.
+    """
+
         # Window data
         if self.regressor is None:
             self.regressor_ = LinearRegression()
@@ -79,22 +81,23 @@ class RegressionForecaster(BaseForecaster):
 
     def _predict(self, y=None, exog=None):
         """
-        Predict the next horizon steps ahead.
+        Predict the next ``horizon`` steps ahead.
 
         Parameters
         ----------
-        y : np.ndarray, default = None
-            A time series to predict the next horizon value for. If None,
-            predict the next horizon value after series seen in fit.
-        exog : np.ndarray, default=None
+        y : ``np.ndarray``, default=``None``
+            A time series to predict the next ``horizon`` value for. If ``None``,
+            predict the next ``horizon`` value after the series seen in ``fit``.
+        exog : ``np.ndarray``, default=``None``
             Optional exogenous time series data. Included for interface
             compatibility but ignored in this estimator.
 
         Returns
         -------
-        np.ndarray
-            single prediction self.horizon steps ahead of y.
+        ``np.ndarray``
+            Single prediction ``self.horizon`` steps ahead of ``y``.
         """
+
         if y is None:
             return self.regressor_.predict(self.last_)
         last = y[:, -self.window :]
@@ -102,38 +105,43 @@ class RegressionForecaster(BaseForecaster):
 
     def _forecast(self, y, exog=None):
         """
-        Forecast the next horizon steps ahead.
+        Forecast the next ``horizon`` steps ahead.
 
         Parameters
         ----------
-        y : np.ndarray
-            A time series to predict the next horizon value for.
-        exog : np.ndarray, default=None
+        y : ``np.ndarray``
+            A time series to predict the next ``horizon`` value for.
+        exog : ``np.ndarray``, default=``None``
             Optional exogenous time series data. Included for interface
             compatibility but ignored in this estimator.
 
         Returns
         -------
-        np.ndarray
-            single prediction self.horizon steps ahead of y.
+        ``np.ndarray``
+            Single prediction ``self.horizon`` steps ahead of ``y``.
 
-        NOTE: deal with horizons
-        """
+        Note
+        ----
+        Ensure proper handling of different ``horizon`` values.
+    """
+
         self.fit(y, exog)
         return self.predict()
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
-        """Return testing parameter settings for the estimator.
+        """
+        Return testing parameter settings for the estimator.
 
         Parameters
         ----------
-        parameter_set : str, default='default'
+        parameter_set : ``str``, default=``'default'``
             Name of the parameter set to return.
 
         Returns
         -------
-        dict
+        ``dict``
             Dictionary of testing parameter settings.
         """
+
         return {"window": 4}
