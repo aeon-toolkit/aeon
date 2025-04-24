@@ -314,7 +314,7 @@ tasks related to time series similarity search. The estimators can be used stand
 or as parts of pipelines, while the functions give you the tools to build your own
 estimators that would rely on similarity search at some point.
 
-The estimators are inheriting from the [BaseSimiliaritySearch](similarity_search.base.BaseSimilaritySearch)
+The estimators are inheriting from the [BaseSimilaritySearch](similarity_search.base.BaseSimilaritySearch)
 class accepts as inputs 3D time series (n_cases, n_channels, n_timepoints) for the
 fit method. Univariate and single series can still be used, but will need to be reshaped
 to this format.
