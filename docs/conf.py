@@ -184,7 +184,7 @@ def linkcode_resolve(domain, info):
     except Exception:
         filename = info["module"].replace(".", "/") + ".py"
 
-    if filename.split("/")[0] == "aeon":
+    if filename.split("/")[0] != "aeon":
         return None
 
     return "https://github.com/aeon-toolkit/aeon/blob/{}/{}".format(
