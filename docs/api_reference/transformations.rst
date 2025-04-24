@@ -200,3 +200,15 @@ Base
     :template: class.rst
 
     BaseSeriesTransformer
+
+
+RocketGPU based
+~~~~~~~~~~~~~~~~~
+
+.. currentmodule:: aeon.transformations.collection.convolution_based.rocketGPU
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    ROCKETGPU
