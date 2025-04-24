@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 from sklearn.utils import check_random_state
 
-from aeon.anomaly_detection import STOMP
+from aeon.anomaly_detection.distance_based import STOMP
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
