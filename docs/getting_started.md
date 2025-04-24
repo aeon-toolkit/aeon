@@ -314,7 +314,7 @@ tasks related to time series similarity search. The estimators can be used stand
 or as parts of pipelines, while the functions give you the tools to build your own
 estimators that would rely on similarity search at some point.
 
-The estimators are inheriting from the [BaseSimiliaritySearch](similarity_search.base.BaseSimiliaritySearch)
+The estimators are inheriting from the [BaseSimiliaritySearch](similarity_search.base.BaseSimilaritySearch)
 class accepts as inputs 3D time series (n_cases, n_channels, n_timepoints) for the
 fit method. Univariate and single series can still be used, but will need to be reshaped
 to this format.
@@ -356,7 +356,7 @@ and those that transform a collection.
 
 ### Transformers for Single Time Series
 
-Transformers inheriting from the [BaseSeriesTransformer](transformations.base.BaseSeriesTransformer)
+Transformers inheriting from the [BaseSeriesTransformer](transformations.series.base.BaseSeriesTransformer)
 in the `aeon.transformations.series` package transform a single (possibly multivariate)
 time series into a different time series or a feature vector. More info to follow.
 
@@ -385,7 +385,7 @@ Most time series classification and regression algorithms are based on some form
 transformation into an alternative feature space. For example, we might extract some
 summary time series features from each series, and fit a traditional classifier or
 regressor on these features. For example, we could use
-[Catch22](transformations.collection.feauture_based), which calculates 22 summary
+[Catch22](transformations.collection.feature_based.Catch22), which calculates 22 summary
 statistics for each series.
 
 ```{code-block} python
@@ -403,7 +403,7 @@ statistics for each series.
 ```
 
 There are also series-to-series transformations, such as the
-[Padder](transformations.collection) to lengthen
+[Padder](transformations.collection.Padder) to lengthen
 series and process unequal length collections.
 
 ```{code-block} python
@@ -438,7 +438,7 @@ For machine learning tasks such as classification, regression and clustering, th
 `scikit-learn` `make_pipeline` functionality can be used if the transformer outputs
 a valid input type.
 
-The following example uses the [Catch22](transformations.collection.catch22.Catch22)
+The following example uses the [Catch22](transformations.collection.feature_based.Catch22)
 feature extraction transformer and a random forest classifier to classify.
 
 ```{code-block} python
