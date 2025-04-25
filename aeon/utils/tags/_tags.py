@@ -170,17 +170,17 @@ ESTIMATOR_TAGS = {
         "and collection indicates output is a collection of time series.",
     },
     "output_data_format": {
-        "class": "estimator",
+        "class": "anomaly-detector",
         "type": ("str", ["anomaly_scores", "binary_classification"]),
         "description": "The format of the output data from the estimator.",
     },
     "learning_type:unsupervised": {
-        "class": "estimator",
+        "class": "anomaly-detector",
         "type": "bool",
         "description": "Does the estimator support unsupervised learning tasks?",
     },
     "learning_type:semi_supervised": {
-        "class": "estimator",
+        "class": "anomaly-detector",
         "type": "bool",
         "description": "Does the estimator support semi-supervised learning tasks?",
     },
