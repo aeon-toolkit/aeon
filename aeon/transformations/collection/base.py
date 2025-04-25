@@ -64,8 +64,8 @@ class BaseCollectionTransformer(BaseCollectionEstimator, BaseTransformer):
         X : np.ndarray or list
             Data to fit transform to, of valid collection type. Input data,
             any number of channels, equal length series of shape ``(
-            n_cases, n_channels, n_timepoints)`` or list of numpy arrays (any number
-            of channels, unequal length series) of shape ``[n_cases]``, 2D np.array
+            n_cases, n_channels, n_timepoints)`` or list of numpy arrays (number
+            of channels, series length) of shape ``[n_cases]``, 2D np.array
             ``(n_channels, n_timepoints_i)``, where ``n_timepoints_i`` is length of
             series ``i``. Other types are allowed and converted into one of the above.
 
@@ -118,8 +118,8 @@ class BaseCollectionTransformer(BaseCollectionEstimator, BaseTransformer):
         X : np.ndarray or list
             Data to fit transform to, of valid collection type. Input data,
             any number of channels, equal length series of shape ``(
-            n_cases, n_channels, n_timepoints)`` or list of numpy arrays (any number
-            of channels, unequal length series) of shape ``[n_cases]``, 2D np.array
+            n_cases, n_channels, n_timepoints)`` or list of numpy arrays (number
+            of channels, series length) of shape ``[n_cases]``, 2D np.array
             ``(n_channels, n_timepoints_i)``, where ``n_timepoints_i`` is length of
             series ``i``. Other types are allowed and converted into one of the above.
 
@@ -171,10 +171,10 @@ class BaseCollectionTransformer(BaseCollectionEstimator, BaseTransformer):
         ----------
         X : np.ndarray or list
             Data to fit transform to, of valid collection type. Input data,
-            any number of channels, equal length series of shape ``(n_cases,
-            n_channels, n_timepoints)`` or list of numpy arrays (any number of
-            channels, unequal length series) of shape ``[n_cases]``, 2D np.array ``(
-            n_channels, n_timepoints_i)``, where ``n_timepoints_i`` is length of
+            any number of channels, equal length series of shape ``(
+            n_cases, n_channels, n_timepoints)`` or list of numpy arrays (number
+            of channels, series length) of shape ``[n_cases]``, 2D np.array
+            ``(n_channels, n_timepoints_i)``, where ``n_timepoints_i`` is length of
             series ``i``. Other types are allowed and converted into one of the above.
 
             Different estimators have different capabilities to handle different
@@ -222,8 +222,8 @@ class BaseCollectionTransformer(BaseCollectionEstimator, BaseTransformer):
         X : np.ndarray or list
             Data to fit transform to, of valid collection type. Input data,
             any number of channels, equal length series of shape ``(
-            n_cases, n_channels, n_timepoints)`` or list of numpy arrays (any number
-            of channels, unequal length series)  of shape ``[n_cases]``, 2D np.array
+            n_cases, n_channels, n_timepoints)`` or list of numpy arrays (number
+            of channels, series length) of shape ``[n_cases]``, 2D np.array
             ``(n_channels, n_timepoints_i)``, where ``n_timepoints_i`` is length of
             series ``i``. Other types are allowed and converted into one of the above.
 
