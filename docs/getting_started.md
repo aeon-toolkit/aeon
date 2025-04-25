@@ -114,7 +114,7 @@ written the notebook.
 
 ```{code-block} python
 >>> from aeon.datasets import load_airline
->>> from aeon.anomaly_detection import STOMP
+>>> from aeon.anomaly_detection.distance_based import STOMP
 >>> stomp = STOMP(window_size=200)
 >>> scores = est.fit_predict(X) # Get the anomaly scores
 ```
