@@ -47,6 +47,9 @@ jobs:
         with:
           additional_extras: "dev,binder"
 
+      - name: Show dependencies
+        run: python -m pip list
+
       - name: Run example notebooks
         run: .github/utilities/run_examples.sh ${{ github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'full examples run') }}
         shell: bash
