@@ -69,7 +69,7 @@ class EIF(BaseAnomalyDetector):
         random_state=None,
         window_size=1,
         stride=1,
-        axis=1,
+        axis=0,
     ):
         super().__init__(axis=axis)
 
@@ -80,8 +80,6 @@ class EIF(BaseAnomalyDetector):
         self.random_state = random_state
         self.window_size = window_size
         self.stride = stride
-        self.forest = []
-        self.is_semi_supervised = False
 
     def _fit(self, X, y=None):
         """Fit the model using X as training data.
@@ -103,74 +101,65 @@ class EIF(BaseAnomalyDetector):
         if X.ndim == 1:
             X = X.reshape(-1, 1)
 
+        # Store original shape for later use
+        self._n_samples_orig = X.shape[0]
+
         # Apply sliding window if window_size > 1
         if self.window_size > 1:
-            X, _ = sliding_windows(
+            X_windowed, _ = sliding_windows(
                 X, window_size=self.window_size, stride=self.stride, axis=self.axis
             )
-            if y is not None:
-                y = y.reshape(-1, 1)  # Ensure y is 2D
-                y, _ = sliding_windows(
-                    y, window_size=self.window_size, stride=self.stride, axis=self.axis
-                )
-                y = y.max(axis=1)  # Window is anomalous if any point is anomalous
+        else:
+            X_windowed = X
 
         # Set random state
         rng = np.random.RandomState(self.random_state)
 
-        # Determine if we're in semi-supervised mode
-        self.is_semi_supervised = y is not None
-        if self.is_semi_supervised:
-            # Only use normal data for training
-            normal_mask = y == 0
-            X = X[normal_mask]
-            if len(X) == 0:
-                raise ValueError("No normal samples found in the training data")
-
         # Determine sample size
-        n_samples = X.shape[0]
-        if isinstance(self.sample_size, str) and self.sample_size == "auto":
-            sample_size = min(256, n_samples)
+        n_samples = X_windowed.shape[0]
+        if isinstance(self.sample_size, str):
+            if self.sample_size != "auto":
+                raise ValueError("sample_size must be 'auto', int or float")
+            self.sample_size_ = min(256, n_samples)
         elif isinstance(self.sample_size, float):
-            sample_size = int(self.sample_size * n_samples)
+            self.sample_size_ = int(self.sample_size * n_samples)
         else:
-            sample_size = int(self.sample_size)
+            self.sample_size_ = min(self.sample_size, n_samples)
 
-        # Determine extension level
-        if self.extension_level is None:
-            self.extension_level = min(X.shape[1], 8)
+        # Store extension level as fitted parameter
+        self.extension_level_ = (
+            min(X_windowed.shape[1], 8) if self.extension_level is None 
+            else self.extension_level
+        )
 
         # Build the forest
-        self.forest = []
+        self.forest_ = []
         for _ in range(self.n_estimators):
             # Sample data
-            sample_indices = rng.choice(n_samples, size=sample_size, replace=False)
-            X_sample = X[sample_indices]
+            if n_samples > self.sample_size_:
+                sample_indices = rng.choice(
+                    n_samples, size=self.sample_size_, replace=False
+                )
+                X_sample = X_windowed[sample_indices]
+            else:
+                X_sample = X_windowed
 
             # Build tree
             tree = self._build_tree(X_sample, rng)
-            self.forest.append(tree)
+            self.forest_.append(tree)
 
-        # Calculate threshold based on contamination or labeled data
-        if self.is_semi_supervised:
-            # Use labeled anomalies to set threshold
-            scores = self._predict(X)
-            if np.any(y == 1):
-                anomaly_scores = self._predict(X[y == 1])
-                self.threshold_ = np.min(anomaly_scores)
-            else:
-                # If no anomalies in training, use contamination
-                self.threshold_ = np.percentile(scores, 100 * (1 - self.contamination))
-        elif self.contamination > 0:
-            scores = self._predict(X)
-            self.threshold_ = np.percentile(scores, 100 * (1 - self.contamination))
-        else:
-            self.threshold_ = 0
+        # Calculate anomaly scores
+        scores = self._predict(X)
+        
+        # Set threshold
+        self.threshold_ = float(
+            np.percentile(scores, 100 * (1 - self.contamination))
+        )
 
         return self
 
-    def _build_tree(self, X, rng, max_depth=None):
-        """Build an isolation tree recursively.
+    def _build_tree(self, X, rng, depth=0):
+         """Build an isolation tree recursively.
 
         Parameters
         ----------
@@ -187,38 +176,37 @@ class EIF(BaseAnomalyDetector):
         dict
             The tree structure
         """
-        if max_depth is None:
-            max_depth = int(np.ceil(np.log2(len(X))))
-
-        if len(X) <= 1 or max_depth <= 0:
-            return {"size": len(X)}
+         n_samples = X.shape[0]
+        
+         if n_samples <= 1 or depth >= int(np.ceil(np.log2(self.sample_size_))):
+            return {"size": n_samples}
 
         # Generate random hyperplane
-        n_features = X.shape[1]
-        normal = rng.normal(size=n_features)
-        normal /= np.linalg.norm(normal)
-        intercept = rng.uniform(X.min(), X.max())
+         n_features = X.shape[1]
+         normal = rng.normal(size=n_features)
+         normal /= np.linalg.norm(normal)
+         intercept = rng.uniform(X.min(), X.max())
 
         # Split data
-        projections = X @ normal
-        left_mask = projections < intercept
-        right_mask = ~left_mask
+         projections = X @ normal
+         left_mask = projections < intercept
+         right_mask = ~left_mask
 
-        if left_mask.sum() == 0 or right_mask.sum() == 0:
-            return {"size": len(X)}
+         if not np.any(left_mask) or not np.any(right_mask):
+            return {"size": n_samples}
 
         # Build subtrees
-        left_tree = self._build_tree(X[left_mask], rng, max_depth - 1)
-        right_tree = self._build_tree(X[right_mask], rng, max_depth - 1)
+         left_tree = self._build_tree(X[left_mask], rng, depth + 1)
+         right_tree = self._build_tree(X[right_mask], rng, depth + 1)
 
-        return {
+         return {
             "normal": normal,
             "intercept": intercept,
             "left": left_tree,
             "right": right_tree,
         }
 
-    def _path_length(self, x, tree, current_length=0):
+    def _path_length(self, X, tree, current_length=0):
         """Calculate the path length for a single point.
 
         Parameters
@@ -236,15 +224,21 @@ class EIF(BaseAnomalyDetector):
             The path length
         """
         if "size" in tree:
-            if tree["size"] <= 1:
-                return current_length
             return current_length + self._c(tree["size"])
 
-        projection = x @ tree["normal"]
-        if projection < tree["intercept"]:
-            return self._path_length(x, tree["left"], current_length + 1)
-        else:
-            return self._path_length(x, tree["right"], current_length + 1)
+        projections = X @ tree["normal"]
+        left_mask = projections < tree["intercept"]
+        
+        lengths = np.zeros(len(X))
+        if np.any(left_mask):
+            lengths[left_mask] = self._path_length(
+                X[left_mask], tree["left"], current_length + 1
+            )
+        if np.any(~left_mask):
+            lengths[~left_mask] = self._path_length(
+                X[~left_mask], tree["right"], current_length + 1
+            )
+        return lengths
 
     def _c(self, n):
         """Average path length of unsuccessful search in BST.
@@ -285,28 +279,29 @@ class EIF(BaseAnomalyDetector):
 
         # Apply sliding window if window_size > 1
         if self.window_size > 1:
-            X, padding = sliding_windows(
+            X, _ = sliding_windows(
                 X, window_size=self.window_size, stride=self.stride, axis=self.axis
             )
 
-        n_samples = X.shape[0]
-        scores = np.zeros(n_samples)
+        # Calculate anomaly scores
+        scores = np.zeros(len(X))
+        for tree in self.forest_:
+            scores += self._path_length(X, tree)
+        scores = scores / len(self.forest_)
+        
+        # Convert to anomaly scores
+        scores = 2 ** (-scores / self._c(self.sample_size_))
 
-        for tree in self.forest:
-            for i in range(n_samples):
-                path_length = self._path_length(X[i], tree)
-                scores[i] += path_length
-
-        scores /= len(self.forest)
-        anomaly_scores = 2 ** (-scores / self._c(self.sample_size))
-
-        # Convert window scores back to point scores if using sliding window
+        # If windowing was applied, we need to map scores back to original samples
         if self.window_size > 1:
-            anomaly_scores = reverse_windowing(
-                anomaly_scores, self.window_size, np.nanmean, self.stride, padding
+            scores = reverse_windowing(
+                scores, 
+                window_size=self.window_size,
+                stride=self.stride,
+                n_timepoints=self._n_samples_orig
             )
 
-        return anomaly_scores
+        return scores
 
     def predict_labels(self, X, axis=1) -> np.ndarray:
         """Predict if points are anomalies or not.
