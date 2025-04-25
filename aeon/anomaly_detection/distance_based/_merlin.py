@@ -43,7 +43,7 @@ class MERLIN(BaseAnomalyDetector):
     Examples
     --------
     >>> import numpy as np
-    >>> from aeon.anomaly_detection import MERLIN
+    >>> from aeon.anomaly_detection.distance_based import MERLIN
     >>> X = np.array([1, 2, 3, 4, 1, 2, 3, 4, 2, 3, 4, 5, 1, 2, 3, 4])
     >>> detector = MERLIN(min_length=4, max_length=5)
     >>> detector.fit_predict(X)
