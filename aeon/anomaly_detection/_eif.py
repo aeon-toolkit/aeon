@@ -128,7 +128,8 @@ class EIF(BaseAnomalyDetector):
 
         # Store extension level as fitted parameter
         self.extension_level_ = (
-            min(X_windowed.shape[1], 8) if self.extension_level is None 
+            min(X_windowed.shape[1], 8)
+            if self.extension_level is None
             else self.extension_level
         )
 
@@ -150,56 +151,54 @@ class EIF(BaseAnomalyDetector):
 
         # Calculate anomaly scores
         scores = self._predict(X)
-        
+
         # Set threshold
-        self.threshold_ = float(
-            np.percentile(scores, 100 * (1 - self.contamination))
-        )
+        self.threshold_ = float(np.percentile(scores, 100 * (1 - self.contamination)))
 
         return self
 
     def _build_tree(self, X, rng, depth=0):
-         """Build an isolation tree recursively.
+        """Build an isolation tree recursively.
 
         Parameters
         ----------
         X : np.ndarray
-            The data to build the tree on
+           The data to build the tree on
         rng : RandomState
-            Random number generator
+           Random number generator
         max_depth : int, optional
-            Maximum depth of the tree. If None, it will be set to
-            log2(len(X))
+           Maximum depth of the tree. If None, it will be set to
+           log2(len(X))
 
         Returns
         -------
         dict
-            The tree structure
+           The tree structure
         """
-         n_samples = X.shape[0]
-        
-         if n_samples <= 1 or depth >= int(np.ceil(np.log2(self.sample_size_))):
+        n_samples = X.shape[0]
+
+        if n_samples <= 1 or depth >= int(np.ceil(np.log2(self.sample_size_))):
             return {"size": n_samples}
 
         # Generate random hyperplane
-         n_features = X.shape[1]
-         normal = rng.normal(size=n_features)
-         normal /= np.linalg.norm(normal)
-         intercept = rng.uniform(X.min(), X.max())
+        n_features = X.shape[1]
+        normal = rng.normal(size=n_features)
+        normal /= np.linalg.norm(normal)
+        intercept = rng.uniform(X.min(), X.max())
 
         # Split data
-         projections = X @ normal
-         left_mask = projections < intercept
-         right_mask = ~left_mask
+        projections = X @ normal
+        left_mask = projections < intercept
+        right_mask = ~left_mask
 
-         if not np.any(left_mask) or not np.any(right_mask):
+        if not np.any(left_mask) or not np.any(right_mask):
             return {"size": n_samples}
 
         # Build subtrees
-         left_tree = self._build_tree(X[left_mask], rng, depth + 1)
-         right_tree = self._build_tree(X[right_mask], rng, depth + 1)
+        left_tree = self._build_tree(X[left_mask], rng, depth + 1)
+        right_tree = self._build_tree(X[right_mask], rng, depth + 1)
 
-         return {
+        return {
             "normal": normal,
             "intercept": intercept,
             "left": left_tree,
@@ -228,7 +227,7 @@ class EIF(BaseAnomalyDetector):
 
         projections = X @ tree["normal"]
         left_mask = projections < tree["intercept"]
-        
+
         lengths = np.zeros(len(X))
         if np.any(left_mask):
             lengths[left_mask] = self._path_length(
@@ -288,17 +287,17 @@ class EIF(BaseAnomalyDetector):
         for tree in self.forest_:
             scores += self._path_length(X, tree)
         scores = scores / len(self.forest_)
-        
+
         # Convert to anomaly scores
         scores = 2 ** (-scores / self._c(self.sample_size_))
 
         # If windowing was applied, we need to map scores back to original samples
         if self.window_size > 1:
             scores = reverse_windowing(
-                scores, 
+                scores,
                 window_size=self.window_size,
                 stride=self.stride,
-                n_timepoints=self._n_samples_orig
+                n_timepoints=self._n_samples_orig,
             )
 
         return scores
