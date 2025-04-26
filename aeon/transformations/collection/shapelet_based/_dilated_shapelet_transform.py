@@ -509,7 +509,7 @@ def _get_admissible_sampling_point(current_mask, random_generator):
         for i in range(n_cases):
             _new_val = idx_choice - current_mask[i].shape[0]
             if _new_val < 0 and current_mask[i].shape[0] > 0:
-                return i, idx_choice
+                return i, current_mask[i][idx_choice]
             idx_choice = _new_val
     else:
         return -1, -1
