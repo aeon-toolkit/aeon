@@ -252,7 +252,7 @@ class AutoPlaitSegmenter(BaseSegmenter):
         self.C.append(current_regime)
 
         while True:
-            self.costT = _MDLtotal(self.Opt, self.C, self.verbose)
+            self.costT = self._MDLtotal()
             if not self.C:
                 break
             current_regime = self.C.pop()
@@ -301,6 +301,27 @@ class AutoPlaitSegmenter(BaseSegmenter):
             x = self.x
             for j in range(x.m):
                 x.O[j][d] = MAX_NORMALISATION_VALUE * (x.O[j][d] - mean) / std
+
+    def _MDLtotal(self):
+        """
+        Calculate total MDL cost.
+
+        Parameters:
+        Opt -- Stack of optimal segments
+        C -- Stack of candidate segments
+
+        Returns:
+        Total MDL cost
+        """
+
+        r = len(self.Opt) + len(self.C)
+        m = sum(r.num_segments for r in self.Opt) + sum(r.num_segments for r in self.C)
+        cost = sum(r.costT for r in self.Opt) + sum(r.costT for r in self.C)
+        costT = cost + log_s(r) + log_s(m) + m * log_2(r) + (4 * 8) * r * r  # FLOATING_POINT_CONSTANT*r*r
+
+        if self.verbose: sys.stdout.write(f"{r} {m} {costT:.0f} \n")
+
+        return costT
 
 class Input:
     """
@@ -730,7 +751,7 @@ class CPS:
             # --- Update Pu[t] ---
 
             # Find best path from previous Pj
-            maxj = _findMax(Pj, k1)
+            maxj = self._findMax(Pj, k1)
 
             for u in range(k0):
                 log_emit = log_emission0[u, offset]
@@ -746,16 +767,16 @@ class CPS:
                 # Choose better path
                 if switch_score > stay_score:
                     Pu[u] = switch_score
-                    nSu[u] = _copy_path(Sj[maxj], nSj[maxj], Su[u])
+                    nSu[u] = self._copy_path(Sj[maxj], nSj[maxj], Su[u])
                     Su[u][nSu[u]] = t
                     nSu[u] += 1
                 else:
                     Pu[u] = stay_score
-                    nSu[u] = _copy_path(Sv[maxv], nSv[maxv], Su[u])
+                    nSu[u] = self._copy_path(Sv[maxv], nSv[maxv], Su[u])
 
             # --- Update Pi[t] ---
 
-            maxv = _findMax(Pv, k0)
+            maxv = self._findMax(Pv, k0)
 
             for i in range(k1):
                 log_emit = log_emission1[i, offset]
@@ -770,12 +791,12 @@ class CPS:
 
                 if switch_score > stay_score:
                     Pi[i] = switch_score
-                    nSi[i] = _copy_path(Sv[maxv], nSv[maxv], Si[i])
+                    nSi[i] = self._copy_path(Sv[maxv], nSv[maxv], Si[i])
                     Si[i][nSi[i]] = t
                     nSi[i] += 1
                 else:
                     Pi[i] = stay_score
-                    nSi[i] = _copy_path(Sj[maxj], nSj[maxj], Si[i])
+                    nSi[i] = self._copy_path(Sj[maxj], nSj[maxj], Si[i])
 
             # --- Swap buffers for next timestep ---
             Pu, Pv = Pv, Pu
@@ -990,12 +1011,12 @@ class CPS:
         regime0stB, regime1stB, regime0lenB, regime1lenB = 0, 0, 0, 0  # Best
 
         # Make sample set
-        UniformSet(current_regime, seedlen, nsamples, self.ap_seg.U)
+        self.UniformSet(current_regime, seedlen, nsamples, self.ap_seg.U)
 
         # Start uniform sampling
         for iter1 in range(self.ap_seg.U.num_segments):
             for iter2 in range(iter1 + 1, self.ap_seg.U.num_segments):
-                UniformSampling(regime0, regime1, seedlen, iter1, iter2, self.ap_seg.U)
+                self.UniformSampling(regime0, regime1, seedlen, iter1, iter2, self.ap_seg.U)
 
                 if regime0.num_segments == 0 or regime1.num_segments == 0:
                     continue  # Not sufficient
@@ -1025,7 +1046,7 @@ class CPS:
                     regime1lenB = regime1lenC
 
         if costMin == VERY_LARGE_COST:
-            FixedSampling(current_regime, regime0, regime1, seedlen)
+            self.FixedSampling(current_regime, regime0, regime1, seedlen)
             return VERY_LARGE_COST
 
         regime0.reset()
@@ -1137,170 +1158,129 @@ class CPS:
                     regime0.add_segment(regime1.segments[loc1]['start'], regime1.segments[loc1]['duration'])
                     regime1.remove_segment(loc1)
 
-def _MDLtotal(Opt, C, verbose):
-    """
-    Calculate total MDL cost.
+    def _findMax(self, P, k):
+        """
+        Find the index of the maximum value in array P.
 
-    Parameters:
-    Opt -- Stack of optimal segments
-    C -- Stack of candidate segments
+        Parameters:
+        P -- Array of values
+        k -- Length of array
 
-    Returns:
-    Total MDL cost
-    """
+        Returns:
+        Index of maximum value
+        """
+        loc = -1
+        max_val = float('-inf')
+        for i in range(k):
+            if max_val < P[i]:
+                max_val = P[i]
+                loc = i
+        return loc
 
-    r = len(Opt) + len(C)
-    m = sum(r.num_segments for r in Opt) + sum(r.num_segments for r in C)
-    cost = sum(r.costT for r in Opt) + sum(r.costT for r in C)
-    costT = cost + log_s(r) + log_s(m) + m * log_2(r) + (4 * 8) * r * r  # FLOATING_POINT_CONSTANT*r*r
+    def _copy_path(self, from_path, nfrom, to_path):
+        """
+        Copy path array.
 
-    if verbose: sys.stdout.write(f"{r} {m} {costT:.0f} \n")
+        Parameters:
+        from_path -- Source path array
+        nfrom -- Number of elements to copy
+        to_path -- Destination path array
 
-    return costT
+        Returns:
+        Number of elements copied
+        """
+        for i in range(nfrom):
+            to_path[i] = from_path[i]
+        return nfrom
 
+    def UniformSampling(self, regime0, regime1, length, n1, n2, U):
+        """
+        Uniform sampling strategy.
 
-def _copyVitPath(q, st, length, vit):
-    """
-    Copy Viterbi path.
+        Parameters:
+        current_regime -- Source SegBox
+        regime0 -- First output SegBox
+        regime1 -- Second output SegBox
+        length -- Length of samples
+        n1 -- First sample index
+        n2 -- Second sample index
+        U -- Uniform set SegBox
+        """
+        # Initialize segments
+        regime0.reset()
+        regime1.reset()
 
-    Parameters:
-    q -- Destination path array
-    st -- Start position
-    length -- Segment length
-    vit -- Viterbi data structure
-    """
-    for i in range(length):
-        q[i + st] = vit.q[i]
+        i = int(n1 % U.num_segments)
+        j = int(n2 % U.num_segments)
 
-def FixedSampling(current_regime, regime0, regime1, length):
-    """
-    Fixed sampling strategy.
+        st0 = U.segments[i]['start']
+        st1 = U.segments[j]['start']
 
-    Parameters:
-    current_regime -- Source SegBox
-    regime0 -- First output SegBox
-    regime1 -- Second output SegBox
-    length -- Length of samples
-    """
-    # Initialize segments
-    regime0.reset()
-    regime1.reset()
-
-    # Segment regime0
-    loc = 0 % current_regime.num_segments
-    r = current_regime.segments[loc]['start']
-    regime0.add_segment(r, length)
-
-    # Segment regime1
-    loc = 1 % current_regime.num_segments
-    r = current_regime.segments[loc]['start'] + int(current_regime.segments[loc]['duration'] / 2)
-    regime1.add_segment(r, length)
-
-def UniformSet(current_regime, length, trial, U):
-    """
-    Uniform set strategy.
-
-    Parameters:
-    current_regime -- Source SegBox
-    length -- Length of samples
-    trial -- Number of trials
-    U -- Output SegBox for uniform set
-    """
-    slideW = int(math.ceil((current_regime.total_length - length) / trial))
-
-    # Create uniform blocks
-    U.reset()
-
-    for i in range(current_regime.num_segments):
-        if U.num_segments >= trial:
+        # If overlapped, then ignore
+        if abs(st0 - st1) < length:
             return
 
-        st = current_regime.segments[i]['start']
-        ed = st + current_regime.segments[i]['duration']
+        regime0.add_segment(st0, length)
+        regime1.add_segment(st1, length)
 
-        for j in range(trial):
-            next_pos = st + j * slideW
+    def UniformSet(self, current_regime, length, trial, U):
+        """
+        Uniform set strategy.
 
-            if next_pos + length > ed:
-                st = ed - length
-                if st < 0:
-                    st = 0
-                U.add_segment_with_overlap(st, length)
-                break
+        Parameters:
+        current_regime -- Source SegBox
+        length -- Length of samples
+        trial -- Number of trials
+        U -- Output SegBox for uniform set
+        """
+        slideW = int(math.ceil((current_regime.total_length - length) / trial))
 
-            U.add_segment_with_overlap(next_pos, length)
+        # Create uniform blocks
+        U.reset()
 
+        for i in range(current_regime.num_segments):
+            if U.num_segments >= trial:
+                return
 
-def UniformSampling(regime0, regime1, length, n1, n2, U):
-    """
-    Uniform sampling strategy.
+            st = current_regime.segments[i]['start']
+            ed = st + current_regime.segments[i]['duration']
 
-    Parameters:
-    current_regime -- Source SegBox
-    regime0 -- First output SegBox
-    regime1 -- Second output SegBox
-    length -- Length of samples
-    n1 -- First sample index
-    n2 -- Second sample index
-    U -- Uniform set SegBox
-    """
-    # Initialize segments
-    regime0.reset()
-    regime1.reset()
+            for j in range(trial):
+                next_pos = st + j * slideW
 
-    i = int(n1 % U.num_segments)
-    j = int(n2 % U.num_segments)
+                if next_pos + length > ed:
+                    st = ed - length
+                    if st < 0:
+                        st = 0
+                    U.add_segment_with_overlap(st, length)
+                    break
 
-    st0 = U.segments[i]['start']
-    st1 = U.segments[j]['start']
+                U.add_segment_with_overlap(next_pos, length)
 
-    # If overlapped, then ignore
-    if abs(st0 - st1) < length:
-        return
+    def FixedSampling(self, current_regime, regime0, regime1, length):
+        """
+        Fixed sampling strategy.
 
-    regime0.add_segment(st0, length)
-    regime1.add_segment(st1, length)
+        Parameters:
+        current_regime -- Source SegBox
+        regime0 -- First output SegBox
+        regime1 -- Second output SegBox
+        length -- Length of samples
+        """
+        # Initialize segments
+        regime0.reset()
+        regime1.reset()
 
+        # Segment regime0
+        loc = 0 % current_regime.num_segments
+        r = current_regime.segments[loc]['start']
+        regime0.add_segment(r, length)
 
-# Function declarations from cps.c
-def _findMax(P, k):
-    """
-    Find the index of the maximum value in array P.
+        # Segment regime1
+        loc = 1 % current_regime.num_segments
+        r = current_regime.segments[loc]['start'] + int(current_regime.segments[loc]['duration'] / 2)
+        regime1.add_segment(r, length)
 
-    Parameters:
-    P -- Array of values
-    k -- Length of array
-
-    Returns:
-    Index of maximum value
-    """
-    loc = -1
-    max_val = float('-inf')
-    for i in range(k):
-        if max_val < P[i]:
-            max_val = P[i]
-            loc = i
-    return loc
-
-def _copy_path(from_path, nfrom, to_path):
-    """
-    Copy path array.
-
-    Parameters:
-    from_path -- Source path array
-    nfrom -- Number of elements to copy
-    to_path -- Destination path array
-
-    Returns:
-    Number of elements copied
-    """
-    for i in range(nfrom):
-        to_path[i] = from_path[i]
-    return nfrom
-
-# ------------------------------
-#         hmm_header_py.py
-# ------------------------------
 class HMM:
     """
     Hidden Markov Model class.
@@ -1405,7 +1385,6 @@ class HMM:
 
         # Scalar copy
         phmm2.pi_denom = self.pi_denom
-
 
 class BAUM:
     """
@@ -1905,38 +1884,9 @@ class VITERBI:
         m = min(m, O.shape[0])
         self.biot[:phmm.k, :m] = batch_log_pdf(phmm, phmm.k, m, O[:m])
 
-def batch_log_pdf(hmm, k, m, observations):
-    observations = observations[:m]  # (T, D)
-    mean = hmm.mean[:k] # (K, D)
-    var = np.abs(hmm.var[:k])  # (K, D)
-
-    # Expand dimensions for broadcasting: (K, T, D)
-    observations_exp = observations[None, :, :]  # (1, T, D)
-    mean_exp = mean[:, None, :]  # (K, 1, D)
-    var_exp = var[:, None, :]  # (K, 1, D)
-
-    # Gaussian PDF calculation
-    diff_sq = (observations_exp - mean_exp) ** 2
-    denom = np.sqrt(2 * np.pi * var_exp)
-    exponent = -diff_sq / (2 * var_exp)
-
-    p = np.exp(exponent) / denom
-
-    # Clamp to [EPSILON, ONE_MINUS_EPSILON]
-    p = np.clip(p, EPSILON, ONE_MINUS_EPSILON)
-
-    # log(EPSILON + p)
-    log_probs = np.log(EPSILON + p)
-
-    # Sum over dimensions (D), result is (K, T)
-    log_sums = log_probs.sum(axis=2)
-
-    # Final clamp: if sum < log(EPSILON), set to log(EPSILON)
-    return np.maximum(log_sums, LOG_EPSILON)
-
-def batch_pdf(hmm, k, m, observations):
-    return np.exp(batch_log_pdf(hmm, k, m, observations))
-
+# ------------------------------
+#         KMEANS FUNCTIONS
+# ------------------------------
 def compute_cluster_stats(data, labels, k, d, ap_seg):
     """
     Compute per-cluster mean and variance (vectorized).
@@ -2024,3 +1974,35 @@ def log_2(x):
 def log_s(x):
     """Compute 2*log_2(x) + 1."""
     return 2.0 * log_2(x) + 1.0
+
+def batch_log_pdf(hmm, k, m, observations):
+    observations = observations[:m]  # (T, D)
+    mean = hmm.mean[:k] # (K, D)
+    var = np.abs(hmm.var[:k])  # (K, D)
+
+    # Expand dimensions for broadcasting: (K, T, D)
+    observations_exp = observations[None, :, :]  # (1, T, D)
+    mean_exp = mean[:, None, :]  # (K, 1, D)
+    var_exp = var[:, None, :]  # (K, 1, D)
+
+    # Gaussian PDF calculation
+    diff_sq = (observations_exp - mean_exp) ** 2
+    denom = np.sqrt(2 * np.pi * var_exp)
+    exponent = -diff_sq / (2 * var_exp)
+
+    p = np.exp(exponent) / denom
+
+    # Clamp to [EPSILON, ONE_MINUS_EPSILON]
+    p = np.clip(p, EPSILON, ONE_MINUS_EPSILON)
+
+    # log(EPSILON + p)
+    log_probs = np.log(EPSILON + p)
+
+    # Sum over dimensions (D), result is (K, T)
+    log_sums = log_probs.sum(axis=2)
+
+    # Final clamp: if sum < log(EPSILON), set to log(EPSILON)
+    return np.maximum(log_sums, LOG_EPSILON)
+
+def batch_pdf(hmm, k, m, observations):
+    return np.exp(batch_log_pdf(hmm, k, m, observations))
