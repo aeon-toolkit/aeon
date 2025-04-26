@@ -89,7 +89,7 @@ class AutoPlaitSegmenter(BaseSegmenter):
                  max_k_means_iter=100,
                  min_infer_iter=3,
                  max_infer_iter=10,
-                 variance=10,
+                 default_variance=10,
                  max_variance=float('inf'),
                  min_variance=None,
                  segment_sample_ratio=0.03,
@@ -110,7 +110,7 @@ class AutoPlaitSegmenter(BaseSegmenter):
         self.max_k_means_iter = max_k_means_iter
         self.min_infer_iter = min_infer_iter
         self.max_infer_iter = max_infer_iter
-        self.variance = variance
+        self.default_variance = default_variance
         self.max_variance = max_variance
         self.min_variance = EPSILON if min_variance is None else min_variance
         self.segment_sample_ratio = segment_sample_ratio
@@ -122,18 +122,18 @@ class AutoPlaitSegmenter(BaseSegmenter):
         self.maxseg = 0
         self.d = 0
         self.lmax = max_sequence_length
-        self.cps = CPS(verbose)
-        self.baum = BAUM(self.variance, self.delta, self.max_iter, self.max_k_means_iter)
+        self.cps = CPS(self)
+        self.baum = BAUM(self)
         self.q = None
-        self.vit = VITERBI()
-        self.vit2 = VITERBI()
+        self.vit = VITERBI(self)
+        self.vit2 = VITERBI(self)
         self.x_tmp = None
         self.s = None
         self.C = []
         self.Opt = []
         self.S = []
         self.costT = 0.0
-        self.U = Regime(self.max_segments, self.min_k, self.max_k, self.variance)
+        self.U = Regime(self)
 
         self.verbose = verbose
         self.axis = 0
@@ -150,36 +150,34 @@ class AutoPlaitSegmenter(BaseSegmenter):
             Parameters:
             pws -- AutoPlait workspace
             """
-        global ws
-        ws = self
 
-        ws.maxc = int(math.log(ws.lmax) + 20)
-        ws.maxseg = self.max_segments  # int(ws.lmax * 0.1)
+        self.maxc = int(math.log(self.lmax) + 20)
+        self.maxseg = self.max_segments  # int(ws.lmax * 0.1)
 
         # Allocate Viterbi
-        AllocViterbi(ws.vit, ws.maxseg, ws.lmax, self.max_k)
-        AllocViterbi(ws.vit2, ws.maxseg, ws.lmax, self.max_k)
-        ws.q = np.zeros(ws.lmax, dtype=np.int32)#ivector(0, ws.lmax)
-        ws.cps._set_up(self.max_k, ws.lmax)
+        self.vit._set_up(self.maxseg, self.lmax, self.max_k)
+        self.vit2._set_up(self.maxseg, self.lmax, self.max_k)
+        self.q = np.zeros(self.lmax, dtype=np.int32)#ivector(0, ws.lmax)
+        self.cps._set_up(self.max_k, self.lmax)
 
         # Allocate Baum
-        n = ws.maxseg
+        n = self.maxseg
         if n > self.max_baumn_segments:
             n = self.max_baumn_segments
 
-        ws.x_tmp = [Input() for _ in range(n)]
-        AllocBaum(ws.baum, n, ws.lmax, self.max_k, ws.d)
+        self.x_tmp = [Input() for _ in range(n)]
+        self.baum._set_up(n, self.lmax, self.max_k, self.d)
 
         # Allocate segbox
-        ws.s = [Regime(self.max_segments, self.min_k, self.max_k, self.variance) for _ in range(ws.maxc)]
-        for i in range(ws.maxc):
-            _allocSegBox(ws.s[i])
+        self.s = [Regime(self) for _ in range(self.maxc)]
+        for i in range(self.maxc):
+            self.s[i]._set_up()
 
-        for i in range(ws.maxc):
-            ws.S.append(ws.s[i])
+        for i in range(self.maxc):
+            self.S.append(self.s[i])
 
         # For uniform sampling
-        _allocSegBox(ws.U)
+        self.U._set_up()
 
     def _fit(self, X, y=None):
         if X.ndim == 1:
@@ -201,8 +199,6 @@ class AutoPlaitSegmenter(BaseSegmenter):
         Parameters:
         pws -- AutoPlait workspace
         """
-        global ws
-        ws = self
 
         if self.verbose: sys.stdout.write("---------\n")
         if self.verbose: sys.stdout.write("r|m|Cost \n")
@@ -219,6 +215,29 @@ class AutoPlaitSegmenter(BaseSegmenter):
         self.regimes = [x[1] for x in output]
         return np.array(cps)
 
+    def get_regime(self, parent, label):
+        """
+        Get a segment box.
+
+        Parameters:
+        parent -- Parent label
+        label -- Segment label
+
+        Returns:
+        Segment box
+        """
+
+        s = self.S.pop()
+        if s is None:
+            raise ValueError('Too small maxc')
+
+        s.reset()
+        s.model.reset(self.max_k, self.d)
+        s.label = f"{parent}{label}"
+        s.delta = 1.0 / float(self.lmax)
+
+        return s
+
     def get_regimes(self):
         self._check_is_fitted()
         return self.regimes
@@ -226,35 +245,35 @@ class AutoPlaitSegmenter(BaseSegmenter):
     def _plait(self):
         """Main AutoPlait algorithm implementation."""
         # Initialize current_regime (X[0:m])
-        current_regime = _getS("", "")
+        current_regime = self.get_regime("", "")
         current_regime.costT = VERY_LARGE_COST
-        current_regime.add_segment(0, ws.x.m)
+        current_regime.add_segment(0, self.x.m)
         current_regime.estimate_parameters()
-        ws.C.append(current_regime)
+        self.C.append(current_regime)
 
         while True:
-            ws.costT = _MDLtotal(ws.Opt, ws.C, self.verbose)
-            if not ws.C:
+            self.costT = _MDLtotal(self.Opt, self.C, self.verbose)
+            if not self.C:
                 break
-            current_regime = ws.C.pop()
+            current_regime = self.C.pop()
 
             # Create new segment sets
-            regime0 = _getS(current_regime.label, "0")
-            regime1 = _getS(current_regime.label, "1")
+            regime0 = self.get_regime(current_regime.label, "0")
+            regime1 = self.get_regime(current_regime.label, "1")
 
             # Try to split regime: current_regime->(regime0,regime1)
-            _regimeSplit(current_regime, regime0, regime1)
+            self.cps._regimeSplit(current_regime, regime0, regime1)
             costT_regime01 = regime0.costT + regime1.costT
 
             # Split or not
             if costT_regime01 + current_regime.costT * self.regime_sample_ratio < current_regime.costT:
-                ws.C.append(regime0)
-                ws.C.append(regime1)
-                ws.S.append(current_regime)
+                self.C.append(regime0)
+                self.C.append(regime1)
+                self.S.append(current_regime)
             else:
-                ws.Opt.append(current_regime)
-                ws.S.append(regime0)
-                ws.S.append(regime1)
+                self.Opt.append(current_regime)
+                self.S.append(regime0)
+                self.S.append(regime1)
 
     def normalise(self):
         """Z-normalize sequences (mean=0, std=1)."""
@@ -322,24 +341,33 @@ class Regime:
         delta (float): Proportion of time spent in this regime relative to total sequence length.
     """
 
-    def __init__(self, max_segments, min_k, max_k, variance, label=''):
+    def __init__(self, ap_seg, label=''):
 
-        self.max_segments = max_segments
-        self.min_k = min_k
-        self.max_k = max_k
-        self.default_variance = variance
-
+        self.ap_seg = ap_seg
 
         segment_dtype = np.dtype([('start', np.int32), ('duration', np.int32)])
-        self.segments = np.zeros(self.max_segments, dtype=segment_dtype)
+        self.segments = np.zeros(self.ap_seg.max_segments, dtype=segment_dtype)
         self.num_segments = 0
         self.total_length = 0
         self.costT = 0.0
         self.costC = 0.0
         self.optimal = False
         self.label = label
-        self.model = HMM(self.default_variance)
+        self.model = HMM(self.ap_seg.default_variance)
         self.delta = 0.0
+
+    def _set_up(self):
+        """
+        Allocate memory for segment box.
+
+        Parameters:
+        s -- Segment box
+        n -- Maximum number of sub-segments
+        """
+
+        self.num_segments = 0
+        self.optimal = False
+        self.model._set_up(self.ap_seg.max_k, self.ap_seg.d)
 
     def reset(self) -> None:
         """
@@ -371,7 +399,7 @@ class Regime:
             loc += 1
 
         # Shift elements to make space
-        if self.num_segments >= self.max_segments:
+        if self.num_segments >= self.ap_seg.max_segments:
             raise RuntimeError("Too many segments")
 
         if loc < self.num_segments:
@@ -442,7 +470,7 @@ class Regime:
         """
         if duration <= 0:
             return
-        if self.num_segments >= self.max_segments:
+        if self.num_segments >= self.ap_seg.max_segments:
             raise RuntimeError("Exceeded maximum number of segments")
 
         self.segments[self.num_segments]['start'] = start
@@ -467,6 +495,20 @@ class Regime:
         target.delta = self.delta
         target.label = self.label
 
+    def Split(self, X, st, len_val, x):
+        """Split a sequence X into a sub-sequence x."""
+        if st < 0:
+            st = 0
+        if X.m < st + len_val:
+            len_val = X.m - st
+
+        # In Python, we need to create a view of the array rather than pointer arithmetic
+        x.O = X.O[st:st + len_val]
+        x.m = len_val
+        x.parent = X.id
+        x.st = st
+        x.tag = f"[{x.id}] {X.tag} [{st}-{st + len_val}]({len_val})"
+
     def max_segment_index(self) -> int:
         """
         Returns the index of the longest segment.
@@ -484,18 +526,18 @@ class Regime:
         Selects the model that minimizes the MDL.
         """
         self.costT = float('inf')
-        optk = self.min_k
+        optk = self.ap_seg.min_k
 
-        for k in range(self.min_k, self.max_k + 1):
+        for k in range(self.ap_seg.min_k, self.ap_seg.max_k + 1):
             previous_cost = self.costT
             self.estimate_hmm_k(k)
             self.compute_likelihood_mdl()
 
             if self.costT > previous_cost:
-                optk = max(self.min_k, k - 1)
+                optk = max(self.ap_seg.min_k, k - 1)
                 break
 
-        optk = min(self.max_k, max(self.min_k, optk))
+        optk = min(self.ap_seg.max_k, max(self.ap_seg.min_k, optk))
 
         self.estimate_hmm_k(optk)
         self.compute_likelihood_mdl()
@@ -507,17 +549,17 @@ class Regime:
         Args:
             k (int): Number of HMM states to estimate.
         """
-        k = min(self.max_k, max(self.min_k, k))  # Clamp k to [MIN_K, MAX_K]
+        k = min(self.ap_seg.max_k, max(self.ap_seg.min_k, k))  # Clamp k to [MIN_K, MAX_K]
 
-        num_segments = min(self.num_segments, ws.max_baumn_segments)
+        num_segments = min(self.num_segments, self.ap_seg.max_baumn_segments)
         for i in range(num_segments):
-            Split(ws.x, self.segments[i]['start'], self.segments[i]['duration'], ws.x_tmp[i])
+            self.Split(self.ap_seg.x, self.segments[i]['start'], self.segments[i]['duration'], self.ap_seg.x_tmp[i])
 
         self.model.k = k
         self.model.n = 0
-        self.model.reset(k, ws.d)
+        self.model.reset(k, self.ap_seg.d)
 
-        BaumWelch(self.model, num_segments, ws.x_tmp, ws.baum, wantKMEANS=True)
+        self.ap_seg.baum.BaumWelch(self.model, num_segments, self.ap_seg.x_tmp, wantKMEANS=True)
         self.delta = self.num_segments / self.total_length if self.total_length else 0.0
 
     def mdl(self) -> float:
@@ -552,7 +594,7 @@ class Regime:
         durations = self.segments[:self.num_segments]['duration']
 
         costs = np.fromiter(
-            (_viterbi(self.model, self.delta, int(st), int(dur), ws.vit)
+            (self.ap_seg.vit._viterbi(self.model, self.delta, int(st), int(dur))
              for st, dur in zip(starts, durations)),
             dtype=float,
             count=self.num_segments
@@ -584,7 +626,9 @@ class CPS:
         nSu, nSv, nSi, nSj: Counts
     """
 
-    def __init__(self, verbose):
+    def __init__(self, ap_seg):
+        self.ap_seg = ap_seg
+
         self.Pu = None
         self.Pv = None
         self.Pi = None
@@ -597,8 +641,6 @@ class CPS:
         self.nSv = None
         self.nSi = None
         self.nSj = None
-
-        self.verbose = verbose
 
     def _set_up(self, maxk, maxlen):
         """
@@ -622,341 +664,478 @@ class CPS:
         self.nSi = np.zeros(maxk, dtype=np.int32)
         self.nSj = np.zeros(maxk, dtype=np.int32)
 
-def _allocSegBox(s):
-    """
-    Allocate memory for segment box.
+    def _search_aux(self, st, length, regime0, regime1):
+        """
+        Auxiliary function for Cut Point Search.
 
-    Parameters:
-    s -- Segment box
-    n -- Maximum number of sub-segments
-    """
+        Parameters:
+            st (int): Start index of the segment
+            length (int): Length of the segment
+            regime0 (Regime): First regime model
+            regime1 (Regime): Second regime model
 
-    s.num_segments = 0
-    s.optimal = False
-    InitHMM(s.model, ws.max_k, ws.d)
+        Returns:
+            float: Coding cost
+        """
 
-def _getS(parent, label):
-    """
-    Get a segment box.
+        # Extract HMMs and deltas
+        m0, d0 = regime0.model, regime0.delta
+        m1, d1 = regime1.model, regime1.delta
+        k0, k1 = m0.k, m1.k
+        O = self.ap_seg.x.O
+        O_window = O[st:st + length]
 
-    Parameters:
-    parent -- Parent label
-    label -- Segment label
+        # Handle degenerate case early
+        if d0 <= 0 or d1 <= 0:
+            raise ValueError('Degenerate dlta <= 0')
 
-    Returns:
-    Segment box
-    """
+        # Alias CPS structures
+        Pu, Pv = self.Pu, self.Pv
+        Pi, Pj = self.Pi, self.Pj
+        Su, Sv = self.Su, self.Sv
+        Si, Sj = self.Si, self.Sj
+        nSu, nSv = self.nSu, self.nSv
+        nSi, nSj = self.nSi, self.nSj
 
-    s = ws.S.pop()
-    if s is None:
-        raise ValueError('Too small maxc')
+        # Reset path state
+        nSu[:k0] = 0
+        nSv[:k0] = 0
+        nSi[:k1] = 0
+        nSj[:k1] = 0
 
-    s.reset()
-    s.model.reset(ws.max_k, ws.d)
-    s.label = f"{parent}{label}"
-    s.delta = 1.0 / float(ws.lmax)
+        # Precompute emissions
+        log_emission0 = batch_log_pdf(m0, k0, length, O_window)  # shape: (k0, length)
+        log_emission1 = batch_log_pdf(m1, k1, length, O_window)  # shape: (k1, length)
 
-    return s
+        # Precompute log(pi) and log(A) values
+        log_pi0 = np.log(m0.pi + EPSILON)
+        log_pi1 = np.log(m1.pi + EPSILON)
+        log_A0 = np.log(m0.A + EPSILON)
+        log_A1 = np.log(m1.A + EPSILON)
 
-def _findMinDiff(regime0, regime1, diffp):
-    """
-    Find minimum difference between segments.
+        # Precompute transition constants
+        log_d0 = math.log(d0)
+        log_d1 = math.log(d1)
+        log_1md0 = math.log(1.0 - d0)
+        log_1md1 = math.log(1.0 - d1)
 
-    Parameters:
-    regime0 -- First segment
-    regime1 -- Second segment
-    diffp -- Reference to store difference value
+        # Initialize log-probabilities at t = 0
+        Pv[:k0] = log_d1 + log_pi0[:k0] + log_emission0[:, 0]
+        Pj[:k1] = log_d0 + log_pi1[:k1] + log_emission1[:, 0]
 
-    Returns:
-    Location of minimum difference
-    """
-    min_val = VERY_LARGE_COST
-    loc = -1
+        # Dynamic programming: for t >= 1
+        for t in range(st + 1, st + length):
+            offset = t - st
 
-    for i in range(regime0.num_segments):
-        st = regime0.segments[i]['start']
-        length = regime0.segments[i]['duration']
-        costC0 = _viterbi(regime0.model, regime0.delta, st, length, ws.vit)
-        costC1 = _viterbi(regime1.model, regime1.delta, st, length, ws.vit)
-        diff = costC1 - costC0
+            # --- Update Pu[t] ---
 
-        if min_val > diff:
-            loc = i
-            min_val = diff
+            # Find best path from previous Pj
+            maxj = _findMax(Pj, k1)
 
-    diffp[0] = min_val
-    return loc
+            for u in range(k0):
+                log_emit = log_emission0[u, offset]
 
+                # Case: switch to m0
+                switch_score = Pj[maxj] + log_d1 + log_pi0[u] + log_emit
 
-def _scanMinDiff(current_regime, regime0, regime1):
-    """
-    Scan for minimum difference.
+                # Case: stay in m0 (vectorized over v)
+                vals = log_1md0 + Pv[:k0] + log_A0[:k0, u] + log_emit
+                maxv = int(np.argmax(vals))
+                stay_score = vals[maxv]
 
-    Parameters:
-    current_regime -- Source segment
-    regime0 -- First segment
-    regime1 -- Second segment
+                # Choose better path
+                if switch_score > stay_score:
+                    Pu[u] = switch_score
+                    nSu[u] = _copy_path(Sj[maxj], nSj[maxj], Su[u])
+                    Su[u][nSu[u]] = t
+                    nSu[u] += 1
+                else:
+                    Pu[u] = stay_score
+                    nSu[u] = _copy_path(Sv[maxv], nSv[maxv], Su[u])
 
-    Returns:
-    Minimum difference cost
-    """
-    diff = [0.0]  # Use list to simulate pass-by-reference
-    loc0 = _findMinDiff(regime0, regime1, diff)
-    loc1 = _findMinDiff(regime1, regime0, diff)
+            # --- Update Pi[t] ---
 
-    if loc0 == -1 or loc1 == -1:
-        return VERY_LARGE_COST
+            maxv = _findMax(Pv, k0)
 
-    tmp0 = _getS("", "")
-    tmp1 = _getS("", "")
-    tmp0.add_segment(regime0.segments[loc0]['start'], regime0.segments[loc0]['duration'])
-    tmp1.add_segment(regime1.segments[loc1]['start'], regime1.segments[loc1]['duration'])
-    tmp0.estimate_hmm_k(tmp0.min_k)
-    tmp1.estimate_hmm_k(tmp1.min_k)
-    costC = CPSearch(current_regime, tmp0, tmp1, ws)
-    ws.S.append(tmp0)
-    ws.S.append(tmp1)
+            for i in range(k1):
+                log_emit = log_emission1[i, offset]
 
-    return costC
+                # Case: switch to m1
+                switch_score = Pv[maxv] + log_d0 + log_pi1[i] + log_emit
 
+                # Case: stay in m1 (vectorized over j)
+                vals = log_1md1 + Pj[:k1] + log_A1[:k1, i] + log_emit
+                maxj = int(np.argmax(vals))
+                stay_score = vals[maxj]
 
-def _removeNoise_aux(regime0, regime1, per):
-    """
-    Auxiliary function for noise removal.
+                if switch_score > stay_score:
+                    Pi[i] = switch_score
+                    nSi[i] = _copy_path(Sv[maxv], nSv[maxv], Si[i])
+                    Si[i][nSi[i]] = t
+                    nSi[i] += 1
+                else:
+                    Pi[i] = stay_score
+                    nSi[i] = _copy_path(Sj[maxj], nSj[maxj], Si[i])
 
-    Parameters:
-    current_regime -- Source segment
-    regime0 -- First segment
-    regime1 -- Second segment
-    per -- Percentage threshold
-    """
-    if per == 0:
-        return
+            # --- Swap buffers for next timestep ---
+            Pu, Pv = Pv, Pu
+            Pi, Pj = Pj, Pi
+            Su, Sv = Sv, Su
+            Si, Sj = Sj, Si
+            nSu, nSv = nSv, nSu
+            nSi, nSj = nSj, nSi
 
-    mprev = VERY_LARGE_COST
-    th = ws.costT * per
+        # Determine which path has higher likelihood
+        maxv = int(np.argmax(Pv[:k0]))
+        maxj = int(np.argmax(Pj[:k1]))
+        score_v = Pv[maxv]
+        score_j = Pj[maxj]
 
-    while mprev > regime0.num_segments + regime1.num_segments:
-        mprev = regime0.num_segments + regime1.num_segments
-
-        # Find minimum segment
-        diff0 = [0.0]  # Use list to simulate pass-by-reference
-        diff1 = [0.0]
-        loc0 = _findMinDiff(regime0, regime1, diff0)
-        loc1 = _findMinDiff(regime1, regime0, diff1)
-
-        if diff0[0] < diff1[0]:
-            min_val = diff0[0]
-            id_min = 0
+        if score_v > score_j:
+            path, npath, lh = Sv[maxv], nSv[maxv], score_v
+            firstID = (-1) ** npath * S0
         else:
-            min_val = diff1[0]
-            id_min = 1
+            path, npath, lh = Sj[maxj], nSj[maxj], score_j
+            firstID = (-1) ** npath * S1
 
-        # Check remove or not
-        if min_val < th:
-            if id_min == 0:
-                regime1.add_segment(regime0.segments[loc0]['start'], regime0.segments[loc0]['duration'])
-                regime0.remove_segment(loc0)
-            else:
-                regime0.add_segment(regime1.segments[loc1]['start'], regime1.segments[loc1]['duration'])
-                regime1.remove_segment(loc1)
+        # Segment reconstruction
+        curSt = st
+        flip = firstID  # Either S0 or S1 depending on best regime
 
+        for i in range(npath):
+            nxtSt = path[i]
+            target_regime = regime0 if flip == S0 else regime1
+            target_regime.add_segment(curSt, nxtSt - curSt)
+            curSt = nxtSt
+            flip *= -1  # Alternate regime
 
-def _removeNoise(current_regime, regime0, regime1):
-    """
-    Remove noise from segments.
+        # Final segment
+        target_regime = regime0 if flip == S0 else regime1
+        target_regime.add_segment(curSt, st + length - curSt)
 
-    Parameters:
-    current_regime -- Source segment
-    regime0 -- First segment
-    regime1 -- Second segment
-    """
-    if regime0.num_segments <= 1 and regime1.num_segments <= 1:
-        return
+        # Compute and return coding cost in bits
+        costC = -lh / math.log(2.0)
+        return costC
 
-    # Default pruning
-    per = ws.segment_sample_ratio
-    _removeNoise_aux(regime0, regime1, per)
-    costC = _scanMinDiff(current_regime, regime0, regime1)
+    def CPSearch(self, current_regime, regime0, regime1):
+        """
+        Cut Point Search algorithm.
 
-    # Optimal segment set
-    opt0 = _getS("", "")
-    opt1 = _getS("", "")
-    regime0.copy_to(opt0)
-    regime1.copy_to(opt1)
-    prev = VERY_LARGE_COST
+        Parameters:
+        current_regime -- Input segment box
+        regime0 -- First output segment box
+        regime1 -- Second output segment box
+        ap_seg -- AutoPlait workspace
 
-    # Find optimal pruning point
-    while per <= ws.segment_sample_ratio * 10:
-        if costC >= VERY_LARGE_COST:
-            break
+        Returns:
+        Likelihood (coding cost)
+        """
 
-        per *= 2
-        _removeNoise_aux(regime0, regime1, per)
+        regime0.reset()
+        regime1.reset()
 
-        if regime0.num_segments <= 1 or regime1.num_segments <= 1:
-            break
+        lh = 0
+        for i in range(current_regime.num_segments):
+            lh += self._search_aux(current_regime.segments[i]['start'], current_regime.segments[i]['duration'], regime0,
+                              regime1)
 
-        costC = _scanMinDiff(current_regime, regime0, regime1)
+        return lh
 
-        if prev > costC:
-            regime0.copy_to(opt0)
-            regime1.copy_to(opt1)
-        else:
-            break
+    def _cps(self, current_regime, regime0, regime1, RM):
+        """
+        Cut point search with optional noise removal.
 
-        prev = costC
+        Parameters:
+        current_regime -- Source segment
+        regime0 -- First segment
+        regime1 -- Second segment
+        RM -- Flag for noise removal
+        """
+        self.CPSearch(current_regime, regime0, regime1)
 
-    opt0.copy_to(regime0)
-    opt1.copy_to(regime1)
-    ws.S.append(opt0)
-    ws.S.append(opt1)
+        if RM:
+            self._removeNoise(current_regime, regime0, regime1)
 
+        regime0.compute_likelihood_mdl()
+        regime1.compute_likelihood_mdl()
 
-def _cps(current_regime, regime0, regime1, RM):
-    """
-    Cut point search with optional noise removal.
+    def _regimeEst_aux(self, current_regime, regime0, regime1):
+        """
+        Estimate regimes from segments.
 
-    Parameters:
-    current_regime -- Source segment
-    regime0 -- First segment
-    regime1 -- Second segment
-    RM -- Flag for noise removal
-    """
-    CPSearch(current_regime, regime0, regime1, ws)
+        Parameters:
+        current_regime -- Source segment
+        regime0 -- First output segment
+        regime1 -- Second output segment
+        """
+        opt0 = self.ap_seg.get_regime("", "")
+        opt1 = self.ap_seg.get_regime("", "")
 
-    if RM:
-        _removeNoise(current_regime, regime0, regime1)
+        for i in range(self.ap_seg.max_infer_iter):
+            # Phase 1: Estimate parameters
+            regime0.largest_segment()
+            regime1.largest_segment()
+            regime0.estimate_parameters()
+            regime1.estimate_parameters()
 
-    regime0.compute_likelihood_mdl()
-    regime1.compute_likelihood_mdl()
-
-
-def _findCentroid(current_regime, regime0, regime1, nsamples, seedlen):
-    """
-    Find optimal centroids for segmentation.
-
-    Parameters:
-    current_regime -- Source segment
-    regime0 -- First output segment
-    regime1 -- Second output segment
-    nsamples -- Number of samples
-    seedlen -- Seed length
-
-    Returns:
-    Minimum cost
-    """
-    costMin = VERY_LARGE_COST
-
-    # Keep best seeds
-    regime0stB, regime1stB, regime0lenB, regime1lenB = 0, 0, 0, 0  # Best
-    regime0stC, regime1stC, regime0lenC, regime1lenC = 0, 0, 0, 0  # Current
-
-    # Make sample set
-    UniformSet(current_regime, seedlen, nsamples, ws.U)
-
-    # Start uniform sampling
-    for iter1 in range(ws.U.num_segments):
-        for iter2 in range(iter1 + 1, ws.U.num_segments):
-            UniformSampling(regime0, regime1, seedlen, iter1, iter2, ws.U)
+            # Phase 2: Find cut-points
+            self._cps(current_regime, regime0, regime1, True)
 
             if regime0.num_segments == 0 or regime1.num_segments == 0:
-                continue  # Not sufficient
+                break  # Avoid null inference
 
-            # Copy positions
-            regime0stC = regime0.segments[0]['start']
-            regime0lenC = regime0.segments[0]['duration']
-            regime1stC = regime1.segments[0]['start']
-            regime1lenC = regime1.segments[0]['duration']
+            # If improving, update the optimal segment set
+            diff = (opt0.costT + opt1.costT) - (regime0.costT + regime1.costT)
+            if diff > 0:
+                regime0.copy_to(opt0)
+                regime1.copy_to(opt1)
+            # If not improving, then break iteration (efficient convergence)
+            elif i >= self.ap_seg.min_infer_iter:
+                break
 
-            # Estimate HMM
-            regime0.estimate_hmm_k(regime0.min_k)
-            regime1.estimate_hmm_k(regime1.min_k)
+        opt0.copy_to(regime0)
+        opt1.copy_to(regime1)
+        self.ap_seg.S.append(opt0)
+        self.ap_seg.S.append(opt1)
 
-            # Cut point search
-            _cps(current_regime, regime0, regime1, True)
+    def _regimeSplit(self, current_regime, regime0, regime1):
+        """
+        Split a regime into two.
 
-            if regime0.num_segments == 0 or regime1.num_segments == 0:
-                continue
+        Parameters:
+        current_regime -- Source segment
+        regime0 -- First output segment
+        regime1 -- Second output segment
+        ap_seg -- AutoPlaitSegmenter
+        """
+        seedlen = int(math.ceil(self.ap_seg.lmax * self.ap_seg.samplimg_lm))
+        # Initialize HMM parameters
+        self._findCentroid(current_regime, regime0, regime1, self.ap_seg.num_samples, seedlen)
+        self._regimeEst_aux(current_regime, regime0, regime1)
 
-            if costMin > regime0.costT + regime1.costT:
-                # Update best seeds
-                costMin = regime0.costT + regime1.costT
-                regime0stB = regime0stC
-                regime0lenB = regime0lenC
-                regime1stB = regime1stC
-                regime1lenB = regime1lenC
+        if regime0.num_segments == 0 or regime1.num_segments == 0:
+            return
 
-    if costMin == VERY_LARGE_COST:
-        FixedSampling(current_regime, regime0, regime1, seedlen)
-        return VERY_LARGE_COST
-
-    regime0.reset()
-    regime1.reset()
-    regime0.add_segment(regime0stB, regime0lenB)
-    regime1.add_segment(regime1stB, regime1lenB)
-
-    return costMin
-
-def _regimeEst_aux(current_regime, regime0, regime1):
-    """
-    Estimate regimes from segments.
-
-    Parameters:
-    current_regime -- Source segment
-    regime0 -- First output segment
-    regime1 -- Second output segment
-    """
-    opt0 = _getS("", "")
-    opt1 = _getS("", "")
-
-    for i in range(ws.max_infer_iter):
-        # Phase 1: Estimate parameters
-        regime0.largest_segment()
-        regime1.largest_segment()
+        # Final model estimation
         regime0.estimate_parameters()
         regime1.estimate_parameters()
 
-        # Phase 2: Find cut-points
-        _cps(current_regime, regime0, regime1, True)
+    def _removeNoise(self, current_regime, regime0, regime1):
+        """
+        Remove noise from segments.
 
-        if regime0.num_segments == 0 or regime1.num_segments == 0:
-            break  # Avoid null inference
+        Parameters:
+        current_regime -- Source segment
+        regime0 -- First segment
+        regime1 -- Second segment
+        """
+        if regime0.num_segments <= 1 and regime1.num_segments <= 1:
+            return
 
-        # If improving, update the optimal segment set
-        diff = (opt0.costT + opt1.costT) - (regime0.costT + regime1.costT)
-        if diff > 0:
-            regime0.copy_to(opt0)
-            regime1.copy_to(opt1)
-        # If not improving, then break iteration (efficient convergence)
-        elif i >= ws.min_infer_iter:
-            break
+        # Default pruning
+        per = self.ap_seg.segment_sample_ratio
+        self._removeNoise_aux(regime0, regime1, per)
+        costC = self._scanMinDiff(current_regime, regime0, regime1)
 
-    opt0.copy_to(regime0)
-    opt1.copy_to(regime1)
-    ws.S.append(opt0)
-    ws.S.append(opt1)
+        # Optimal segment set
+        opt0 = self.ap_seg.get_regime("", "")
+        opt1 = self.ap_seg.get_regime("", "")
+        regime0.copy_to(opt0)
+        regime1.copy_to(opt1)
+        prev = VERY_LARGE_COST
 
-def _regimeSplit(current_regime, regime0, regime1):
-    """
-    Split a regime into two.
+        # Find optimal pruning point
+        while per <= self.ap_seg.segment_sample_ratio * 10:
+            if costC >= VERY_LARGE_COST:
+                break
 
-    Parameters:
-    current_regime -- Source segment
-    regime0 -- First output segment
-    regime1 -- Second output segment
-    """
-    seedlen = int(math.ceil(ws.lmax * ws.samplimg_lm))
-    # Initialize HMM parameters
-    _findCentroid(current_regime, regime0, regime1, ws.num_samples, seedlen)
-    _regimeEst_aux(current_regime, regime0, regime1)
+            per *= 2
+            self._removeNoise_aux(regime0, regime1, per)
 
-    if regime0.num_segments == 0 or regime1.num_segments == 0:
-        return
+            if regime0.num_segments <= 1 or regime1.num_segments <= 1:
+                break
 
-    # Final model estimation
-    regime0.estimate_parameters()
-    regime1.estimate_parameters()
+            costC = self._scanMinDiff(current_regime, regime0, regime1)
+
+            if prev > costC:
+                regime0.copy_to(opt0)
+                regime1.copy_to(opt1)
+            else:
+                break
+
+            prev = costC
+
+        opt0.copy_to(regime0)
+        opt1.copy_to(regime1)
+        self.ap_seg.S.append(opt0)
+        self.ap_seg.S.append(opt1)
+
+    def _findCentroid(self, current_regime, regime0, regime1, nsamples, seedlen):
+        """
+        Find optimal centroids for segmentation.
+
+        Parameters:
+        current_regime -- Source segment
+        regime0 -- First output segment
+        regime1 -- Second output segment
+        nsamples -- Number of samples
+        seedlen -- Seed length
+
+        Returns:
+        Minimum cost
+        """
+        costMin = VERY_LARGE_COST
+
+        # Keep best seeds
+        regime0stB, regime1stB, regime0lenB, regime1lenB = 0, 0, 0, 0  # Best
+
+        # Make sample set
+        UniformSet(current_regime, seedlen, nsamples, self.ap_seg.U)
+
+        # Start uniform sampling
+        for iter1 in range(self.ap_seg.U.num_segments):
+            for iter2 in range(iter1 + 1, self.ap_seg.U.num_segments):
+                UniformSampling(regime0, regime1, seedlen, iter1, iter2, self.ap_seg.U)
+
+                if regime0.num_segments == 0 or regime1.num_segments == 0:
+                    continue  # Not sufficient
+
+                # Copy positions
+                regime0stC = regime0.segments[0]['start']
+                regime0lenC = regime0.segments[0]['duration']
+                regime1stC = regime1.segments[0]['start']
+                regime1lenC = regime1.segments[0]['duration']
+
+                # Estimate HMM
+                regime0.estimate_hmm_k(self.ap_seg.min_k)
+                regime1.estimate_hmm_k(self.ap_seg.min_k)
+
+                # Cut point search
+                self._cps(current_regime, regime0, regime1, True)
+
+                if regime0.num_segments == 0 or regime1.num_segments == 0:
+                    continue
+
+                if costMin > regime0.costT + regime1.costT:
+                    # Update best seeds
+                    costMin = regime0.costT + regime1.costT
+                    regime0stB = regime0stC
+                    regime0lenB = regime0lenC
+                    regime1stB = regime1stC
+                    regime1lenB = regime1lenC
+
+        if costMin == VERY_LARGE_COST:
+            FixedSampling(current_regime, regime0, regime1, seedlen)
+            return VERY_LARGE_COST
+
+        regime0.reset()
+        regime1.reset()
+        regime0.add_segment(regime0stB, regime0lenB)
+        regime1.add_segment(regime1stB, regime1lenB)
+
+        return costMin
+
+    def _scanMinDiff(self, current_regime, regime0, regime1):
+        """
+        Scan for minimum difference.
+
+        Parameters:
+        current_regime -- Source segment
+        regime0 -- First segment
+        regime1 -- Second segment
+
+        Returns:
+        Minimum difference cost
+        """
+        diff = [0.0]  # Use list to simulate pass-by-reference
+        loc0 = self._findMinDiff(regime0, regime1, diff)
+        loc1 = self._findMinDiff(regime1, regime0, diff)
+
+        if loc0 == -1 or loc1 == -1:
+            return VERY_LARGE_COST
+
+        tmp0 = self.ap_seg.get_regime("", "")
+        tmp1 = self.ap_seg.get_regime("", "")
+        tmp0.add_segment(regime0.segments[loc0]['start'], regime0.segments[loc0]['duration'])
+        tmp1.add_segment(regime1.segments[loc1]['start'], regime1.segments[loc1]['duration'])
+        tmp0.estimate_hmm_k(self.ap_seg.min_k)
+        tmp1.estimate_hmm_k(self.ap_seg.min_k)
+        costC = self.CPSearch(current_regime, tmp0, tmp1)
+        self.ap_seg.S.append(tmp0)
+        self.ap_seg.S.append(tmp1)
+
+        return costC
+
+    def _findMinDiff(self, regime0, regime1, diffp):
+        """
+        Find minimum difference between segments.
+
+        Parameters:
+        regime0 -- First segment
+        regime1 -- Second segment
+        diffp -- Reference to store difference value
+
+        Returns:
+        Location of minimum difference
+        """
+        min_val = VERY_LARGE_COST
+        loc = -1
+
+        for i in range(regime0.num_segments):
+            st = regime0.segments[i]['start']
+            length = regime0.segments[i]['duration']
+            costC0 = self.ap_seg.vit._viterbi(regime0.model, regime0.delta, st, length)
+            costC1 = self.ap_seg.vit._viterbi(regime1.model, regime1.delta, st, length)
+            diff = costC1 - costC0
+
+            if min_val > diff:
+                loc = i
+                min_val = diff
+
+        diffp[0] = min_val
+        return loc
+
+
+    def _removeNoise_aux(self, regime0, regime1, per):
+        """
+        Auxiliary function for noise removal.
+
+        Parameters:
+        current_regime -- Source segment
+        regime0 -- First segment
+        regime1 -- Second segment
+        per -- Percentage threshold
+        """
+        if per == 0:
+            return
+
+        mprev = VERY_LARGE_COST
+        th = self.ap_seg.costT * per
+
+        while mprev > regime0.num_segments + regime1.num_segments:
+            mprev = regime0.num_segments + regime1.num_segments
+
+            # Find minimum segment
+            diff0 = [0.0]  # Use list to simulate pass-by-reference
+            diff1 = [0.0]
+            loc0 = self._findMinDiff(regime0, regime1, diff0)
+            loc1 = self._findMinDiff(regime1, regime0, diff1)
+
+            if diff0[0] < diff1[0]:
+                min_val = diff0[0]
+                id_min = 0
+            else:
+                min_val = diff1[0]
+                id_min = 1
+
+            # Check remove or not
+            if min_val < th:
+                if id_min == 0:
+                    regime1.add_segment(regime0.segments[loc0]['start'], regime0.segments[loc0]['duration'])
+                    regime0.remove_segment(loc0)
+                else:
+                    regime0.add_segment(regime1.segments[loc1]['start'], regime1.segments[loc1]['duration'])
+                    regime1.remove_segment(loc1)
 
 def _MDLtotal(Opt, C, verbose):
     """
@@ -978,31 +1157,6 @@ def _MDLtotal(Opt, C, verbose):
     if verbose: sys.stdout.write(f"{r} {m} {costT:.0f} \n")
 
     return costT
-
-def _viterbi(phmm, delta, st, length, vit):
-    """
-    Run Viterbi algorithm.
-
-    Parameters:
-    phmm -- HMM model
-    delta -- Delta parameter
-    st -- Start position
-    length -- Segment length
-    vit -- Viterbi data structure
-
-    Returns:
-    Coding cost
-    """
-    Lh = ViterbiL(phmm, length, ws.x.O[st:st + length], vit)
-
-    if delta <= 0 or delta >= 1:
-        raise ValueError('Delta must be 0.0 < delta < 1.0')
-
-    Lh += math.log(delta)  # Switch
-    Lh += (length - 1) * math.log(1.0 - delta)  # Else (stay)
-    costC = -Lh / math.log(2.0)
-
-    return costC
 
 
 def _copyVitPath(q, st, length, vit):
@@ -1128,19 +1282,6 @@ def _findMax(P, k):
             loc = i
     return loc
 
-
-def _reset_npaths(nS, k):
-    """
-    Reset path counts.
-
-    Parameters:
-    nS -- Array of path counts
-    k -- Length of array
-    """
-    for i in range(k):
-        nS[i] = 0
-
-
 def _copy_path(from_path, nfrom, to_path):
     """
     Copy path array.
@@ -1156,187 +1297,6 @@ def _copy_path(from_path, nfrom, to_path):
     for i in range(nfrom):
         to_path[i] = from_path[i]
     return nfrom
-
-
-def _search_aux(st, length, regime0, regime1):
-    """
-    Auxiliary function for Cut Point Search.
-
-    Parameters:
-        st (int): Start index of the segment
-        length (int): Length of the segment
-        regime0 (Regime): First regime model
-        regime1 (Regime): Second regime model
-
-    Returns:
-        float: Coding cost
-    """
-    global ws
-
-    # Extract HMMs and deltas
-    m0, d0 = regime0.model, regime0.delta
-    m1, d1 = regime1.model, regime1.delta
-    k0, k1 = m0.k, m1.k
-    O = ws.x.O
-    O_window = O[st:st + length]
-
-    # Handle degenerate case early
-    if d0 <= 0 or d1 <= 0:
-        raise ValueError('Degenerate dlta <= 0')
-
-    # Alias CPS structures
-    Pu, Pv = ws.cps.Pu, ws.cps.Pv
-    Pi, Pj = ws.cps.Pi, ws.cps.Pj
-    Su, Sv = ws.cps.Su, ws.cps.Sv
-    Si, Sj = ws.cps.Si, ws.cps.Sj
-    nSu, nSv = ws.cps.nSu, ws.cps.nSv
-    nSi, nSj = ws.cps.nSi, ws.cps.nSj
-
-    # Reset path state
-    _reset_npaths(nSu, k0)
-    _reset_npaths(nSv, k0)
-    _reset_npaths(nSi, k1)
-    _reset_npaths(nSj, k1)
-
-    # Precompute emissions
-    log_emission0 = batch_log_pdf(m0, k0, length, O_window)  # shape: (k0, length)
-    log_emission1 = batch_log_pdf(m1, k1, length, O_window)  # shape: (k1, length)
-
-    # Precompute log(pi) and log(A) values
-    log_pi0 = np.log(m0.pi + EPSILON)
-    log_pi1 = np.log(m1.pi + EPSILON)
-    log_A0 = np.log(m0.A + EPSILON)
-    log_A1 = np.log(m1.A + EPSILON)
-
-    # Precompute transition constants
-    log_d0 = math.log(d0)
-    log_d1 = math.log(d1)
-    log_1md0 = math.log(1.0 - d0)
-    log_1md1 = math.log(1.0 - d1)
-
-    # Initialize log-probabilities at t = 0
-    Pv[:k0] = log_d1 + log_pi0[:k0] + log_emission0[:, 0]
-    Pj[:k1] = log_d0 + log_pi1[:k1] + log_emission1[:, 0]
-
-    # Dynamic programming: for t >= 1
-    for t in range(st + 1, st + length):
-        offset = t - st
-
-        # --- Update Pu[t] ---
-
-        # Find best path from previous Pj
-        maxj = _findMax(Pj, k1)
-
-        for u in range(k0):
-            log_emit = log_emission0[u, offset]
-
-            # Case: switch to m0
-            switch_score = Pj[maxj] + log_d1 + log_pi0[u] + log_emit
-
-            # Case: stay in m0 (vectorized over v)
-            vals = log_1md0 + Pv[:k0] + log_A0[:k0, u] + log_emit
-            maxv = int(np.argmax(vals))
-            stay_score = vals[maxv]
-
-            # Choose better path
-            if switch_score > stay_score:
-                Pu[u] = switch_score
-                nSu[u] = _copy_path(Sj[maxj], nSj[maxj], Su[u])
-                Su[u][nSu[u]] = t
-                nSu[u] += 1
-            else:
-                Pu[u] = stay_score
-                nSu[u] = _copy_path(Sv[maxv], nSv[maxv], Su[u])
-
-        # --- Update Pi[t] ---
-
-        maxv = _findMax(Pv, k0)
-
-        for i in range(k1):
-            log_emit = log_emission1[i, offset]
-
-            # Case: switch to m1
-            switch_score = Pv[maxv] + log_d0 + log_pi1[i] + log_emit
-
-            # Case: stay in m1 (vectorized over j)
-            vals = log_1md1 + Pj[:k1] + log_A1[:k1, i] + log_emit
-            maxj = int(np.argmax(vals))
-            stay_score = vals[maxj]
-
-            if switch_score > stay_score:
-                Pi[i] = switch_score
-                nSi[i] = _copy_path(Sv[maxv], nSv[maxv], Si[i])
-                Si[i][nSi[i]] = t
-                nSi[i] += 1
-            else:
-                Pi[i] = stay_score
-                nSi[i] = _copy_path(Sj[maxj], nSj[maxj], Si[i])
-
-        # --- Swap buffers for next timestep ---
-        Pu, Pv = Pv, Pu
-        Pi, Pj = Pj, Pi
-        Su, Sv = Sv, Su
-        Si, Sj = Sj, Si
-        nSu, nSv = nSv, nSu
-        nSi, nSj = nSj, nSi
-
-    # Determine which path has higher likelihood
-    maxv = int(np.argmax(Pv[:k0]))
-    maxj = int(np.argmax(Pj[:k1]))
-    score_v = Pv[maxv]
-    score_j = Pj[maxj]
-
-    if score_v > score_j:
-        path, npath, lh = Sv[maxv], nSv[maxv], score_v
-        firstID = (-1) ** npath * S0
-    else:
-        path, npath, lh = Sj[maxj], nSj[maxj], score_j
-        firstID = (-1) ** npath * S1
-
-    # Segment reconstruction
-    curSt = st
-    flip = firstID  # Either S0 or S1 depending on best regime
-
-    for i in range(npath):
-        nxtSt = path[i]
-        target_regime = regime0 if flip == S0 else regime1
-        target_regime.add_segment(curSt, nxtSt - curSt)
-        curSt = nxtSt
-        flip *= -1  # Alternate regime
-
-    # Final segment
-    target_regime = regime0 if flip == S0 else regime1
-    target_regime.add_segment(curSt, st + length - curSt)
-
-    # Compute and return coding cost in bits
-    costC = -lh / math.log(2.0)
-    return costC
-
-
-def CPSearch(current_regime, regime0, regime1, wsd):
-    """
-    Cut Point Search algorithm.
-
-    Parameters:
-    current_regime -- Input segment box
-    regime0 -- First output segment box
-    regime1 -- Second output segment box
-    wsd -- AutoPlait workspace
-
-    Returns:
-    Likelihood (coding cost)
-    """
-    global ws
-    ws = wsd
-
-    regime0.reset()
-    regime1.reset()
-
-    lh = 0
-    for i in range(current_regime.num_segments):
-        lh += _search_aux(current_regime.segments[i]['start'], current_regime.segments[i]['duration'], regime0, regime1)
-
-    return lh
 
 # ------------------------------
 #         hmm_header_py.py
@@ -1375,6 +1335,34 @@ class HMM:
         self.var = None
         self.sum_w = None
         self.M2 = None
+
+    def _set_up(self, K, D):
+        """Initialize an HMM with K states and D dimensions."""
+        self.n = 0
+        self.d = D
+        self.k = K
+
+        # Allocate arrays
+        self.A = np.zeros((self.k, self.k), dtype=np.float64)
+        self.pi = np.zeros(self.k, dtype=np.float64)
+        self.mean = np.zeros((self.k, self.d), dtype=np.float64)
+        self.var = np.zeros((self.k, self.d), dtype=np.float64)
+        self.pi_denom = 0
+        self.A_denom = np.zeros(self.k, dtype=np.float64)
+        self.sum_w = np.zeros((self.k, self.d), dtype=np.float64)
+        self.M2 = np.zeros((self.k, self.d), dtype=np.float64)
+
+        # Random A matrix with EPSILON added, normalized row-wise
+        self.A = np.random.rand(K, K) + EPSILON
+        self.A /= self.A.sum(axis=1, keepdims=True)
+
+        # Random pi with EPSILON added, normalized
+        self.pi = np.random.rand(K) + EPSILON
+        self.pi /= self.pi.sum()
+
+        # Random means, fixed variance
+        self.mean = np.random.rand(K, D) * MAX_NORMALISATION_VALUE
+        self.var.fill(self.default_variance)
 
     def reset(self, K, D):
         """Reset an HMM to random values."""
@@ -1434,12 +1422,8 @@ class BAUM:
         chmm: Current HMM model
     """
 
-    def __init__(self, variance, delta, max_iter, k_means_max_iter):
-
-        self.default_variance = variance
-        self.delta = delta
-        self.max_iter = max_iter
-        self.k_means_max_iter = k_means_max_iter
+    def __init__(self, ap_seg):
+        self.ap_seg = ap_seg
 
         self.alpha = None
         self.beta = None
@@ -1448,8 +1432,334 @@ class BAUM:
         self.xi = None
         self.scale = None
         self.idx = None
-        self.chmm = HMM(self.default_variance)
+        self.chmm = HMM(self.ap_seg.default_variance)
 
+    def BaumWelch(self, phmm, n, xlst, wantKMEANS):
+        """
+        Perform the Baum-Welch algorithm for HMM training.
+
+        Parameters:
+        phmm -- HMM model to train
+        n -- number of sequences
+        xlst -- observation sequences
+        baum -- BAUM data structure
+        wantKMEANS -- flag for K-means initialization
+
+        Returns:
+        Lsum -- final log likelihood
+        """
+
+        l = 0
+        alpha = self.alpha
+        beta = self.beta
+        gamma = self.gamma
+        xi = self.xi
+        scale = self.scale
+        idx = self.idx
+
+        if n == 0:
+            raise ValueError('Estimation error (n == 0)')
+
+        # If k==1, nothing to do (just run K-means)
+        if phmm.k == 1:
+            Kmeans(phmm, n, xlst, phmm.d, phmm.k, idx, self.ap_seg.max_k_means_iter, self.ap_seg)
+            return -1
+
+        if wantKMEANS:
+            # If initial stage and want k-means
+            if phmm.n == 0:
+                phmm.reset(phmm.k, phmm.d)
+                Kmeans(phmm, n, xlst, phmm.d, phmm.k, idx, self.ap_seg.max_k_means_iter, self.ap_seg)
+
+        # Take absolute value of n
+        n = int(abs(float(n)))
+
+        prev_n = phmm.n
+        phmm.n = n
+        phmm.copy_to(self.chmm)
+
+        # For each sequence
+        Lsum = 0.0
+        for r in range(phmm.n):
+            O = xlst[r].O
+            m = xlst[r].m
+
+            # Cache emission probs for this sequence
+            emission_probs = batch_pdf(phmm, phmm.k, m, O)  # shape: (K, m)
+
+            Lf = self.forward(phmm, O, m, alpha, scale, emission_probs)
+            self.backward(phmm, m, beta, scale, emission_probs)
+            self._computeGamma(phmm, alpha, beta, gamma[r], m)
+            self._computeXi(phmm, alpha, beta, xi[r], m, emission_probs)
+            Lsum += Lf
+
+        # Log likelihood
+        Lpreb = Lsum
+
+        # Baum-Welch iterations
+        while True:
+            # M-STEP: Update model parameters
+            self.chmm.copy_to(phmm)
+            self._computeParams(phmm, gamma, xi, xlst)
+
+            # E-STEP: Re-estimate expectations
+            Lsum = 0.0
+            for r in range(phmm.n):
+                O = xlst[r].O
+                m = xlst[r].m
+
+                # Cache emission probs for this sequence
+                emission_probs = batch_pdf(phmm, phmm.k, m, O)  # shape: (K, m)
+
+                Lf = self.forward(phmm, O, m, alpha, scale, emission_probs)
+                self.backward(phmm, m, beta, scale, emission_probs)
+                self._computeGamma(phmm, alpha, beta, gamma[r], m)
+                self._computeXi(phmm, alpha, beta, xi[r], m, emission_probs)
+                Lsum += Lf
+
+            delta = Lpreb - Lsum
+            Lpreb = Lsum
+            l += 1
+
+            # Check convergence
+            if abs(delta) <= self.ap_seg.delta or l >= self.ap_seg.max_iter:
+                break
+
+        # For incremental fitting
+        self._computeParams(phmm, gamma, xi, xlst)
+
+        # Avoid numerical errors
+        if math.isnan(Lsum):
+            print("baumWelch: isnan, resetHMM...")
+            phmm.reset(phmm.k, phmm.d)
+
+        phmm.n = phmm.n + prev_n
+
+        return Lsum
+
+    def _computeParams(self, phmm, gamma, xi, xlst):
+        """
+        Compute HMM parameters based on gamma and xi values.
+
+        Parameters:
+        phmm -- HMM model to update
+        gamma -- state probabilities
+        xi -- transition probabilities
+        xlst -- observation sequences
+        """
+        k = phmm.k
+        # Initial probability vector pi
+        # (a) recover previous pi*N
+        phmm.pi[:k] *= phmm.pi_denom  # restore weighted prior
+
+        # (b) add new gamma
+        gamma0_sum = sum(g[0] for g in gamma[:k])  # g[0] is shape (K,)
+        phmm.pi[:k] += EPSILON + gamma0_sum[:k]
+
+        # # (c) normalize, clip negatives and normalize
+        np.clip(phmm.pi[:k], 0, None, out=phmm.pi[:k])
+        phmm.pi_denom = np.sum(phmm.pi[:k])
+
+        phmm.pi[:k] /= phmm.pi_denom
+
+        # Transition matrix A
+        # (a) recover previous A*N
+        phmm.A[:k, :k] *= phmm.A_denom[:k, None]  # (K, 1)
+
+        # (b) add new xi
+        # (b) accumulate all xi transitions
+        A_update = np.zeros((k, k), dtype=np.float64)
+        for r in range(phmm.n):
+            m_r = xlst[r].m
+            A_update += np.sum(xi[r][:m_r - 1], axis=0) + EPSILON  # sum over t
+
+        phmm.A[:k, :k] += A_update
+
+        np.clip(phmm.A, 0.0, None, out=phmm.A)
+        phmm.A_denom = np.sum(phmm.A, axis=1)
+        phmm.A /= phmm.A_denom[:, None]
+
+        # Weighted incremental computation for means and variances
+        for i in range(k):
+            for j in range(phmm.d):
+                mean = phmm.mean[i][j]
+                M2 = phmm.M2[i][j]
+                sum_w = phmm.sum_w[i][j]
+
+                if sum_w == 0.0:
+                    mean = 0.0
+                    M2 = 0.0
+
+                for r in range(phmm.n):
+                    obs = xlst[r].O[:, j]  # shape: (T,)
+                    w = gamma[r][:, i]  # shape: (T,)
+
+                    for x, w_i in zip(obs, w):
+                        tmp = w_i + sum_w + EPSILON
+                        delta = x - mean
+                        R = (delta * w_i) / tmp
+                        mean += R
+                        M2 += sum_w * delta * R
+                        sum_w = tmp
+
+                # Finalize variance
+                var = M2 / sum_w if sum_w > 0 else 0.0
+                var = min(self.ap_seg.max_variance, max(var, self.ap_seg.min_variance))
+
+                phmm.mean[i][j] = mean
+                phmm.M2[i][j] = M2
+                phmm.sum_w[i][j] = sum_w
+                phmm.var[i][j] = var
+
+    def _set_up(self, n, m, k, d):
+        """
+        Allocate memory for Baum-Welch algorithm data structures.
+
+        Parameters:
+        baum -- BAUM data structure
+        n -- number of sequences
+        m -- max sequence length
+        k -- number of states
+        d -- dimension of observations
+        """
+
+        self.alpha = np.zeros((m, k), dtype=np.float64)  # dmatrix(0, m, 0, k)
+        self.beta = np.zeros((m, k), dtype=np.float64)  # dmatrix(0, m, 0, k)
+        self.scale = np.zeros(m, dtype=np.float64)  # dvector(0, m)
+        self.idx = np.zeros((n, m), dtype=np.int32)  # imatrix(0, n, 0, m)
+
+        # Gamma
+        self.gamma = [None] * n
+        for r in range(n):
+            self.gamma[r] = np.zeros((m, k), dtype=np.float64)  # dmatrix(0, m, 0, k)
+
+        # Xi
+        self.xi = [None] * n
+        for r in range(n):
+            self.xi[r] = [None] * m
+            for t in range(m):
+                self.xi[r][t] = np.zeros((k, k), dtype=np.float64)  # dmatrix(0, k, 0, k)
+
+        # For incremental EM
+        self.chmm._set_up(k, d)
+
+    # Function declarations from forbackward.c
+    def forward(self, phmm, O, m, alpha, scale, emission_probs):
+        """
+        Run the Forward algorithm to calculate the likelihood of observations.
+
+        Parameters:
+        phmm -- HMM model
+        O -- observation sequence
+        m -- sequence length
+        alpha -- forward probabilities matrix
+        scale -- scaling factors array
+
+        Returns:
+        L -- log likelihood of the observation sequence
+        """
+        # Initialize scale
+        scale[:m] = 0.0
+
+        O0 = np.asarray([O[0]])  # shape: (1, D)
+        obs_probs = batch_pdf(phmm, phmm.k, m, O0)[:, 0]  # shape: (K,)
+        alpha[0, :phmm.k] = phmm.pi[:phmm.k] * obs_probs
+        scale[0] = alpha[0].sum()
+
+        alpha[0, :phmm.k] /= scale[0]
+
+        # Induction
+        for t in range(m - 1):
+            # Matrix multiply: alpha[t] (1, K) x A (K, K) -> (K,)
+            alpha_t1 = alpha[t, :phmm.k] @ phmm.A[:phmm.k, :phmm.k]  # shape: (K,)
+            # Multiply by emission probabilities at time t+1
+            alpha[t + 1, :phmm.k] = alpha_t1 * emission_probs[:phmm.k, t + 1]
+
+            # Normalize and store scale
+            scale[t + 1] = alpha[t + 1, :phmm.k].sum()
+            alpha[t + 1, :phmm.k] /= scale[t + 1]
+
+        # Termination
+        return np.sum(np.log(scale[:m]))
+
+    def backward(self, phmm, m, beta, scale, emission_probs):
+        """
+        Run the Backward algorithm.
+
+        Parameters:
+        phmm -- HMM model
+        O -- observation sequence
+        m -- sequence length
+        beta -- backward probabilities matrix
+        scale -- scaling factors array from Forward algorithm
+
+        Returns:
+        L -- log likelihood of the observation sequence
+        """
+
+        # Init (t=m-1)
+        beta[m - 1, :phmm.k] = 1.0 / scale[m - 1]
+
+        # Induction
+        for t in range(m - 2, -1, -1):
+            # Emission at time t+1 across all states (shape: K,)
+            emis = emission_probs[:phmm.k, t + 1]
+
+            # Elementwise multiply: emission * beta[t+1]
+            weighted = emis * beta[t + 1, :phmm.k]  # shape: (K,)
+
+            # Matrix multiply: A (KxK) x weighted (K,) → (K,)
+            beta[t, :phmm.k] = phmm.A[:phmm.k, :phmm.k] @ weighted
+
+            # Normalize by scale[t]
+            beta[t] /= scale[t]
+
+        # Log likelihood (same as Forward)
+        return np.sum(np.log(scale[:m]))
+
+    # Function declarations from baum.c
+    def _computeGamma(self, phmm, alpha, beta, gamma, m):
+        """
+        Compute gamma values (state probabilities).
+
+        Parameters:
+        phmm -- HMM model
+        alpha -- forward probabilities matrix
+        beta -- backward probabilities matrix
+        gamma -- output gamma matrix
+        m -- sequence length
+        """
+        product = alpha[:m, :phmm.k] * beta[:m, :phmm.k]  # (m, K)
+        gamma[:m, :phmm.k] = product / product.sum(axis=1, keepdims=True)
+
+    def _computeXi(self, phmm, alpha, beta, xi, m, emission_probs):
+        """
+        Compute xi values (transition probabilities).
+
+        Parameters:
+        phmm -- HMM model
+        O -- observation sequence
+        alpha -- forward probabilities matrix
+        beta -- backward probabilities matrix
+        xi -- output xi tensor
+        m -- sequence length
+        """
+
+        k = phmm.k
+        A = phmm.A[:k, :k]  # shape: (K, K)
+
+        for t in range(m - 1):
+            # Shapes:
+            # alpha[t]: (K,)
+            # A: (K, K)
+            # emission_probs[:, t+1]: (K,)
+            # beta[t+1]: (K,)
+
+            # Broadcast to shape (K, K)
+            outer = alpha[t, :k][:, None] * A * emission_probs[:k, t + 1][None, :] * beta[t + 1, :k][None, :]
+
+            # Normalize
+            xi[t] = outer / np.sum(outer)
 
 class VITERBI:
     """
@@ -1464,7 +1774,9 @@ class VITERBI:
         biot: Log emission probabilities [k][m]
     """
 
-    def __init__(self):
+    def __init__(self, ap_seg):
+        self.ap_seg = ap_seg
+
         self.delta = None
         self.psi = None
         self.q = None
@@ -1472,62 +1784,126 @@ class VITERBI:
         self.AL = None
         self.biot = None
 
-def PrintHMM(fp, phmm):
-    """Print HMM parameters to a file pointer."""
-    fp.write(f"k= {phmm.k}\n")
-    fp.write(f"d= {phmm.d}\n")
+    # Function declarations from viterbi.c
+    def _set_up(self, n, m, k):
+        """Allocate memory for Viterbi algorithm data structures."""
+        self.delta = np.zeros((m, k), dtype=np.float64)
+        self.psi = np.zeros((m, k), dtype=np.int32)
+        self.q = np.zeros(m, dtype=np.int32)
+        self.piL = np.zeros(k, dtype=np.float64)
+        self.AL = np.zeros((k, k), dtype=np.float64)
+        self.biot = np.zeros((k, m), dtype=np.float64)
 
-    fp.write("pi:\n")
-    for i in range(phmm.k):
-        fp.write(f"{phmm.pi[i]} ")
-    fp.write("\n")
+    def _viterbi(self, phmm, delta, st, length):
+        """
+        Run Viterbi algorithm.
 
-    fp.write("A:\n")
-    for i in range(phmm.k):
-        for j in range(phmm.k):
-            fp.write(f"{phmm.A[i][j]} ")
-        fp.write("\n")
+        Parameters:
+        phmm -- HMM model
+        delta -- Delta parameter
+        st -- Start position
+        length -- Segment length
+        vit -- Viterbi data structure
 
-    fp.write("mean:\n")
-    for j in range(phmm.k):
-        for k in range(phmm.d):
-            fp.write(f"{phmm.mean[j][k]} ")
-        fp.write("\n")
+        Returns:
+        Coding cost
+        """
+        Lh = self.ViterbiL(phmm, length, self.ap_seg.x.O[st:st + length])
 
-    fp.write("var:\n")
-    for j in range(phmm.k):
-        for k in range(phmm.d):
-            fp.write(f"{phmm.var[j][k]} ")
-        fp.write("\n")
+        if delta <= 0 or delta >= 1:
+            raise ValueError('Delta must be 0.0 < delta < 1.0')
 
+        Lh += math.log(delta)  # Switch
+        Lh += (length - 1) * math.log(1.0 - delta)  # Else (stay)
+        costC = -Lh / math.log(2.0)
 
-def InitHMM(phmm, K, D):
-    """Initialize an HMM with K states and D dimensions."""
-    phmm.n = 0
-    phmm.d = D
-    phmm.k = K
+        return costC
 
-    # Allocate arrays
-    phmm.A = np.zeros((phmm.k, phmm.k), dtype=np.float64)
-    phmm.pi = np.zeros(phmm.k, dtype=np.float64)
-    phmm.mean = np.zeros((phmm.k, phmm.d), dtype=np.float64)
-    phmm.var = np.zeros((phmm.k, phmm.d), dtype=np.float64)
-    phmm.pi_denom = 0
-    phmm.A_denom = np.zeros(phmm.k, dtype=np.float64)
-    phmm.sum_w = np.zeros((phmm.k, phmm.d), dtype=np.float64)
-    phmm.M2 = np.zeros((phmm.k, phmm.d), dtype=np.float64)
+    def ViterbiL(self, phmm, m, O):
+        """
+        Run the Viterbi algorithm in log domain.
 
-    # Random A matrix with EPSILON added, normalized row-wise
-    phmm.A = np.random.rand(K, K) + EPSILON
-    phmm.A /= phmm.A.sum(axis=1, keepdims=True)
+        Parameters:
+        phmm -- HMM model
+        m -- sequence length
+        O -- observation sequence
+        vit -- VITERBI data structure
 
-    # Random pi with EPSILON added, normalized
-    phmm.pi = np.random.rand(K) + EPSILON
-    phmm.pi /= phmm.pi.sum()
+        Returns:
+        Lh -- log likelihood of the most probable path
+        """
 
-    # Random means, fixed variance
-    phmm.mean = np.random.rand(K, D) * MAX_NORMALISATION_VALUE
-    phmm.var.fill(phmm.default_variance)
+        k = phmm.k
+
+        if m == 0:
+            return 0
+
+        self.TakelogHMM(phmm, m, O)
+
+        delta = self.delta
+        psi = self.psi
+        q = self.q
+        piL = self.piL
+        AL = self.AL
+        biot = self.biot
+
+        # compute delta (t==0)
+        delta[0, :k] = piL[:k] + biot[:k, 0]
+        psi[0, :k] = 0
+
+        # compute delta (t>0)
+        for t in range(1, m):
+            deltax = -VERY_LARGE_COST
+            for j in range(phmm.k):
+                maxval = -VERY_LARGE_COST
+                maxvalind = 0
+                for i in range(phmm.k):
+                    val = delta[t - 1][i] + AL[i][j]
+                    if val > maxval:
+                        maxval = val
+                        maxvalind = i
+                delta[t][j] = maxval + biot[j][t]
+                psi[t][j] = maxvalind
+                if deltax < delta[t][j]:
+                    deltax = delta[t][j]
+
+        # final likelihood
+        Lh = -VERY_LARGE_COST
+        q[m - 1] = -1
+        for i in range(phmm.k):
+            if delta[m - 1][i] > Lh:
+                Lh = delta[m - 1][i]
+                q[m - 1] = i
+
+        # avoid error
+        if q[m - 1] == -1:
+            raise ValueError("Cannot compute log Viterbi path")
+
+        # check viterbi path
+        for t in range(m - 2, -1, -1):
+            q[t] = psi[t + 1][q[t + 1]]
+
+        return Lh
+
+    def TakelogHMM(self, phmm, m, O):
+        """
+        Take logarithm of HMM parameters for log-domain Viterbi algorithm.
+
+        Parameters:
+        phmm -- HMM model
+        m -- sequence length
+        O -- observation sequence
+        """
+
+        self.piL[:phmm.k] = np.log(phmm.pi[:phmm.k] + EPSILON)
+
+        # vit.AL[:phmm.k, :phmm.k] = np.log(phmm.A[:phmm.k, phmm.k] + EPSILON)
+        for i in range(phmm.k):
+            for j in range(phmm.k):
+                self.AL[i][j] = math.log(phmm.A[i][j] + EPSILON)
+
+        m = min(m, O.shape[0])
+        self.biot[:phmm.k, :m] = batch_log_pdf(phmm, phmm.k, m, O[:m])
 
 def batch_log_pdf(hmm, k, m, observations):
     observations = observations[:m]  # (T, D)
@@ -1561,438 +1937,7 @@ def batch_log_pdf(hmm, k, m, observations):
 def batch_pdf(hmm, k, m, observations):
     return np.exp(batch_log_pdf(hmm, k, m, observations))
 
-# Function declarations from forbackward.c
-def forward(phmm, O, m, alpha, scale, emission_probs):
-    """
-    Run the Forward algorithm to calculate the likelihood of observations.
-
-    Parameters:
-    phmm -- HMM model
-    O -- observation sequence
-    m -- sequence length
-    alpha -- forward probabilities matrix
-    scale -- scaling factors array
-
-    Returns:
-    L -- log likelihood of the observation sequence
-    """
-    # Initialize scale
-    scale[:m] = 0.0
-
-    O0 = np.asarray([O[0]])  # shape: (1, D)
-    obs_probs = batch_pdf(phmm, phmm.k, m, O0)[:, 0]  # shape: (K,)
-    alpha[0, :phmm.k] = phmm.pi[:phmm.k] * obs_probs
-    scale[0] = alpha[0].sum()
-
-    alpha[0, :phmm.k] /= scale[0]
-
-    # Induction
-    for t in range(m - 1):
-        # Matrix multiply: alpha[t] (1, K) x A (K, K) -> (K,)
-        alpha_t1 = alpha[t, :phmm.k] @ phmm.A[:phmm.k, :phmm.k]  # shape: (K,)
-        # Multiply by emission probabilities at time t+1
-        alpha[t + 1, :phmm.k] = alpha_t1 * emission_probs[:phmm.k, t + 1]
-
-        # Normalize and store scale
-        scale[t + 1] = alpha[t + 1, :phmm.k].sum()
-        alpha[t + 1, :phmm.k] /= scale[t + 1]
-
-    # Termination
-    return np.sum(np.log(scale[:m]))
-
-
-def backward(phmm, m, beta, scale, emission_probs):
-    """
-    Run the Backward algorithm.
-
-    Parameters:
-    phmm -- HMM model
-    O -- observation sequence
-    m -- sequence length
-    beta -- backward probabilities matrix
-    scale -- scaling factors array from Forward algorithm
-
-    Returns:
-    L -- log likelihood of the observation sequence
-    """
-
-    # Init (t=m-1)
-    beta[m - 1, :phmm.k] = 1.0 / scale[m - 1]
-
-    # Induction
-    for t in range(m - 2, -1, -1):
-        # Emission at time t+1 across all states (shape: K,)
-        emis = emission_probs[:phmm.k, t + 1]
-
-        # Elementwise multiply: emission * beta[t+1]
-        weighted = emis * beta[t + 1, :phmm.k]  # shape: (K,)
-
-        # Matrix multiply: A (KxK) x weighted (K,) → (K,)
-        beta[t, :phmm.k] = phmm.A[:phmm.k, :phmm.k] @ weighted
-
-        # Normalize by scale[t]
-        beta[t] /= scale[t]
-
-    # Log likelihood (same as Forward)
-    return np.sum(np.log(scale[:m]))
-
-
-# Function declarations from baum.c
-def _computeGamma(phmm, alpha, beta, gamma, m):
-    """
-    Compute gamma values (state probabilities).
-
-    Parameters:
-    phmm -- HMM model
-    alpha -- forward probabilities matrix
-    beta -- backward probabilities matrix
-    gamma -- output gamma matrix
-    m -- sequence length
-    """
-    product = alpha[:m, :phmm.k] * beta[:m, :phmm.k]  # (m, K)
-    gamma[:m, :phmm.k] = product / product.sum(axis=1, keepdims=True)
-
-
-def _computeXi(phmm, alpha, beta, xi, m, emission_probs):
-    """
-    Compute xi values (transition probabilities).
-
-    Parameters:
-    phmm -- HMM model
-    O -- observation sequence
-    alpha -- forward probabilities matrix
-    beta -- backward probabilities matrix
-    xi -- output xi tensor
-    m -- sequence length
-    """
-
-
-    k = phmm.k
-    A = phmm.A[:k, :k]  # shape: (K, K)
-
-    for t in range(m - 1):
-        # Shapes:
-        # alpha[t]: (K,)
-        # A: (K, K)
-        # emission_probs[:, t+1]: (K,)
-        # beta[t+1]: (K,)
-
-        # Broadcast to shape (K, K)
-        outer = alpha[t, :k][:, None] * A * emission_probs[:k, t + 1][None, :] * beta[t + 1, :k][None, :]
-
-        # Normalize
-        xi[t] = outer / np.sum(outer)
-
-def _computeParams(phmm, gamma, xi, xlst):
-    """
-    Compute HMM parameters based on gamma and xi values.
-
-    Parameters:
-    phmm -- HMM model to update
-    gamma -- state probabilities
-    xi -- transition probabilities
-    xlst -- observation sequences
-    """
-    k = phmm.k
-    # Initial probability vector pi
-    # (a) recover previous pi*N
-    phmm.pi[:k] *= phmm.pi_denom  # restore weighted prior
-
-    # (b) add new gamma
-    gamma0_sum = sum(g[0] for g in gamma[:k])  # g[0] is shape (K,)
-    phmm.pi[:k] += EPSILON + gamma0_sum[:k]
-
-    # # (c) normalize, clip negatives and normalize
-    np.clip(phmm.pi[:k], 0, None, out=phmm.pi[:k])
-    phmm.pi_denom = np.sum(phmm.pi[:k])
-
-    phmm.pi[:k] /= phmm.pi_denom
-
-    # Transition matrix A
-    # (a) recover previous A*N
-    phmm.A[:k, :k] *= phmm.A_denom[:k, None]  # (K, 1)
-
-    # (b) add new xi
-    # (b) accumulate all xi transitions
-    A_update = np.zeros((k, k), dtype=np.float64)
-    for r in range(phmm.n):
-        m_r = xlst[r].m
-        A_update += np.sum(xi[r][:m_r - 1], axis=0) + EPSILON  # sum over t
-
-    phmm.A[:k, :k] += A_update
-
-    np.clip(phmm.A, 0.0, None, out=phmm.A)
-    phmm.A_denom = np.sum(phmm.A, axis=1)
-    phmm.A /= phmm.A_denom[:, None]
-
-    # Weighted incremental computation for means and variances
-    for i in range(k):
-        for j in range(phmm.d):
-            mean = phmm.mean[i][j]
-            M2 = phmm.M2[i][j]
-            sum_w = phmm.sum_w[i][j]
-
-            if sum_w == 0.0:
-                mean = 0.0
-                M2 = 0.0
-
-            for r in range(phmm.n):
-                obs = xlst[r].O[:, j]  # shape: (T,)
-                w = gamma[r][:, i]  # shape: (T,)
-
-                for x, w_i in zip(obs, w):
-                    tmp = w_i + sum_w + EPSILON
-                    delta = x - mean
-                    R = (delta * w_i) / tmp
-                    mean += R
-                    M2 += sum_w * delta * R
-                    sum_w = tmp
-
-            # Finalize variance
-            var = M2 / sum_w if sum_w > 0 else 0.0
-            var = min(ws.max_variance, max(var, ws.min_variance))
-
-            phmm.mean[i][j] = mean
-            phmm.M2[i][j] = M2
-            phmm.sum_w[i][j] = sum_w
-            phmm.var[i][j] = var
-
-
-def BaumWelch(phmm, n, xlst, baum, wantKMEANS):
-    """
-    Perform the Baum-Welch algorithm for HMM training.
-
-    Parameters:
-    phmm -- HMM model to train
-    n -- number of sequences
-    xlst -- observation sequences
-    baum -- BAUM data structure
-    wantKMEANS -- flag for K-means initialization
-
-    Returns:
-    Lsum -- final log likelihood
-    """
-
-    l = 0
-    alpha = baum.alpha
-    beta = baum.beta
-    gamma = baum.gamma
-    xi = baum.xi
-    scale = baum.scale
-    idx = baum.idx
-
-    if n == 0:
-        raise ValueError('Estimation error (n == 0)')
-
-    # If k==1, nothing to do (just run K-means)
-    if phmm.k == 1:
-        Kmeans(phmm, n, xlst, phmm.d, phmm.k, idx, baum.k_means_max_iter)
-        return -1
-
-    if wantKMEANS:
-        # If initial stage and want k-means
-        if phmm.n == 0:
-            phmm.reset(phmm.k, phmm.d)
-            Kmeans(phmm, n, xlst, phmm.d, phmm.k, idx, baum.k_means_max_iter)
-
-    # Take absolute value of n
-    n = int(abs(float(n)))
-
-    prev_n = phmm.n
-    phmm.n = n
-    phmm.copy_to(baum.chmm)
-
-    # For each sequence
-    Lsum = 0.0
-    for r in range(phmm.n):
-        O = xlst[r].O
-        m = xlst[r].m
-
-        # Cache emission probs for this sequence
-        emission_probs = batch_pdf(phmm, phmm.k, m, O)  # shape: (K, m)
-
-        Lf = forward(phmm, O, m, alpha, scale, emission_probs)
-        backward(phmm, m, beta, scale, emission_probs)
-        _computeGamma(phmm, alpha, beta, gamma[r], m)
-        _computeXi(phmm, alpha, beta, xi[r], m, emission_probs)
-        Lsum += Lf
-
-    # Log likelihood
-    Lpreb = Lsum
-
-    # Baum-Welch iterations
-    while True:
-        # M-STEP: Update model parameters
-        baum.chmm.copy_to(phmm)
-        _computeParams(phmm, gamma, xi, xlst)
-
-        # E-STEP: Re-estimate expectations
-        Lsum = 0.0
-        for r in range(phmm.n):
-            O = xlst[r].O
-            m = xlst[r].m
-
-            # Cache emission probs for this sequence
-            emission_probs = batch_pdf(phmm, phmm.k, m, O)  # shape: (K, m)
-
-            Lf = forward(phmm, O, m, alpha, scale, emission_probs)
-            backward(phmm, m, beta, scale, emission_probs)
-            _computeGamma(phmm, alpha, beta, gamma[r], m)
-            _computeXi(phmm, alpha, beta, xi[r], m, emission_probs)
-            Lsum += Lf
-
-        delta = Lpreb - Lsum
-        Lpreb = Lsum
-        l += 1
-
-        # Check convergence
-        if abs(delta) <= baum.delta or l >= baum.max_iter:
-            break
-
-    # For incremental fitting
-    _computeParams(phmm, gamma, xi, xlst)
-
-    # Avoid numerical errors
-    if math.isnan(Lsum):
-        print("baumWelch: isnan, resetHMM...")
-        phmm.reset(phmm.k, phmm.d)
-
-    phmm.n = phmm.n + prev_n
-
-    return Lsum
-
-
-def AllocBaum(baum, n, m, k, d):
-    """
-    Allocate memory for Baum-Welch algorithm data structures.
-
-    Parameters:
-    baum -- BAUM data structure
-    n -- number of sequences
-    m -- max sequence length
-    k -- number of states
-    d -- dimension of observations
-    """
-
-    baum.alpha = np.zeros((m, k), dtype=np.float64)#dmatrix(0, m, 0, k)
-    baum.beta = np.zeros((m, k), dtype=np.float64)#dmatrix(0, m, 0, k)
-    baum.scale = np.zeros(m, dtype=np.float64)#dvector(0, m)
-    baum.idx = np.zeros((n, m), dtype=np.int32)#imatrix(0, n, 0, m)
-
-    # Gamma
-    baum.gamma = [None] * n
-    for r in range(n):
-        baum.gamma[r] = np.zeros((m, k), dtype=np.float64)#dmatrix(0, m, 0, k)
-
-    # Xi
-    baum.xi = [None] * n
-    for r in range(n):
-        baum.xi[r] = [None] * m
-        for t in range(m):
-            baum.xi[r][t] = np.zeros((k, k), dtype=np.float64)#dmatrix(0, k, 0, k)
-
-    # For incremental EM
-    InitHMM(baum.chmm, k, d)
-
-
-# Function declarations from viterbi.c
-def AllocViterbi(vit, n, m, k):
-    """Allocate memory for Viterbi algorithm data structures."""
-    vit.delta = np.zeros((m, k), dtype=np.float64)
-    vit.psi = np.zeros((m, k), dtype=np.int32)
-    vit.q = np.zeros(m, dtype=np.int32)
-    vit.piL = np.zeros(k, dtype=np.float64)
-    vit.AL = np.zeros((k, k), dtype=np.float64)
-    vit.biot = np.zeros((k, m), dtype=np.float64)
-
-def TakelogHMM(phmm, vit, m, O):
-    """
-    Take logarithm of HMM parameters for log-domain Viterbi algorithm.
-
-    Parameters:
-    phmm -- HMM model
-    vit -- VITERBI data structure
-    m -- sequence length
-    O -- observation sequence
-    """
-
-    vit.piL[:phmm.k] = np.log(phmm.pi[:phmm.k] + EPSILON)
-
-    #vit.AL[:phmm.k, :phmm.k] = np.log(phmm.A[:phmm.k, phmm.k] + EPSILON)
-    for i in range(phmm.k):
-        for j in range(phmm.k):
-            vit.AL[i][j] = math.log(phmm.A[i][j] + EPSILON)
-
-    m = min(m, O.shape[0])
-    vit.biot[:phmm.k, :m] = batch_log_pdf(phmm, phmm.k, m, O[:m])
-
-def ViterbiL(phmm, m, O, vit):
-    """
-    Run the Viterbi algorithm in log domain.
-
-    Parameters:
-    phmm -- HMM model
-    m -- sequence length
-    O -- observation sequence
-    vit -- VITERBI data structure
-
-    Returns:
-    Lh -- log likelihood of the most probable path
-    """
-
-    k = phmm.k
-
-    if m == 0:
-        return 0
-
-    TakelogHMM(phmm, vit, m, O)
-
-    delta = vit.delta
-    psi = vit.psi
-    q = vit.q
-    piL = vit.piL
-    AL = vit.AL
-    biot = vit.biot
-
-    # compute delta (t==0)
-    delta[0, :k] = piL[:k] + biot[:k, 0]
-    psi[0, :k] = 0
-
-    # compute delta (t>0)
-    for t in range(1, m):
-        deltax = -VERY_LARGE_COST
-        for j in range(phmm.k):
-            maxval = -VERY_LARGE_COST
-            maxvalind = 0
-            for i in range(phmm.k):
-                val = delta[t - 1][i] + AL[i][j]
-                if val > maxval:
-                    maxval = val
-                    maxvalind = i
-            delta[t][j] = maxval + biot[j][t]
-            psi[t][j] = maxvalind
-            if deltax < delta[t][j]:
-                deltax = delta[t][j]
-
-    # final likelihood
-    Lh = -VERY_LARGE_COST
-    q[m - 1] = -1
-    for i in range(phmm.k):
-        if delta[m - 1][i] > Lh:
-            Lh = delta[m - 1][i]
-            q[m - 1] = i
-
-    # avoid error
-    if q[m - 1] == -1:
-        raise ValueError("Cannot compute log Viterbi path")
-
-    # check viterbi path
-    for t in range(m - 2, -1, -1):
-        q[t] = psi[t + 1][q[t + 1]]
-
-    return Lh
-
-def compute_cluster_stats(data, labels, k, d):
+def compute_cluster_stats(data, labels, k, d, ap_seg):
     """
     Compute per-cluster mean and variance (vectorized).
     Parameters:
@@ -2014,18 +1959,18 @@ def compute_cluster_stats(data, labels, k, d):
         if len(cluster_points) == 0:
             # Fallback to random mean/var if empty
             means[j] = np.random.rand(d)
-            vars_[j] = ws.min_variance
+            vars_[j] = ap_seg.min_variance
             continue
 
         mean = np.mean(cluster_points, axis=0)
         var = np.var(cluster_points, axis=0, ddof=1)  # sample variance
 
         means[j] = mean
-        vars_[j] = np.clip(var + EPSILON, ws.min_variance, ws.max_variance)
+        vars_[j] = np.clip(var + EPSILON, ap_seg.min_variance, ap_seg.max_variance)
 
     return means, vars_
 
-def Kmeans(phmm, n, xlst, d, k, idx, max_iter):
+def Kmeans(phmm, n, xlst, d, k, idx, max_iter, ap_seg):
     """Perform K-means clustering.
 
     Parameters:
@@ -2048,7 +1993,7 @@ def Kmeans(phmm, n, xlst, d, k, idx, max_iter):
         # Compute global mean and variance
         phmm.mean[0] = np.mean(X, axis=0)
         var = np.var(X, axis=0, ddof=1)
-        phmm.var[0] = np.clip(var + EPSILON, ws.min_variance, ws.max_variance)
+        phmm.var[0] = np.clip(var + EPSILON, ap_seg.min_variance, ap_seg.max_variance)
 
         return
 
@@ -2066,22 +2011,7 @@ def Kmeans(phmm, n, xlst, d, k, idx, max_iter):
             offset += 1
 
     # Final calculation of means and variances
-    phmm.mean[:k], phmm.var[:k] = compute_cluster_stats(X, labels, k, d)
-
-# Function declarations from dynamic.c
-def Split(X, st, len_val, x):
-    """Split a sequence X into a sub-sequence x."""
-    if st < 0:
-        st = 0
-    if X.m < st + len_val:
-        len_val = X.m - st
-
-    # In Python, we need to create a view of the array rather than pointer arithmetic
-    x.O = X.O[st:st + len_val]
-    x.m = len_val
-    x.parent = X.id
-    x.st = st
-    x.tag = f"[{x.id}] {X.tag} [{st}-{st + len_val}]({len_val})"
+    phmm.mean[:k], phmm.var[:k] = compute_cluster_stats(X, labels, k, d, ap_seg)
 
 # ------------------------------
 #         MATH FUNCTIONS
