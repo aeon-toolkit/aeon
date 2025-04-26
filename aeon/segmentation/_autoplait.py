@@ -78,7 +78,7 @@ class AutoPlaitSegmenter(BaseSegmenter):
     }
 
     def __init__(self,
-                 max_segments=100,
+                 max_segments=250,
                  max_sequence_length=10000000,
                  min_k=1,
                  max_k=16,
@@ -112,7 +112,7 @@ class AutoPlaitSegmenter(BaseSegmenter):
         self.max_infer_iter = max_infer_iter
         self.variance = variance
         self.max_variance = max_variance
-        self.min_variance = min_variance
+        self.min_variance = EPSILON if min_variance is None else min_variance
         self.segment_sample_ratio = segment_sample_ratio
         self.regime_sample_ratio = regime_sample_ratio
         self.samplimg_lm = samplimg_lm
@@ -152,8 +152,6 @@ class AutoPlaitSegmenter(BaseSegmenter):
             """
         global ws
         ws = self
-
-        if self.verbose: sys.stderr.write("memory allocation...\n")
 
         ws.maxc = int(math.log(ws.lmax) + 20)
         ws.maxseg = self.max_segments  # int(ws.lmax * 0.1)
@@ -221,6 +219,10 @@ class AutoPlaitSegmenter(BaseSegmenter):
         self.regimes = [x[1] for x in output]
         return np.array(cps)
 
+    def get_regimes(self):
+        self._check_is_fitted()
+        return self.regimes
+
     def _plait(self):
         """Main AutoPlait algorithm implementation."""
         # Initialize current_regime (X[0:m])
@@ -256,7 +258,6 @@ class AutoPlaitSegmenter(BaseSegmenter):
 
     def normalise(self):
         """Z-normalize sequences (mean=0, std=1)."""
-        if self.verbose: sys.stderr.write("Z-normalization... \n")
 
         for d in range(self.d):
             mean = 0.0
@@ -608,7 +609,6 @@ class CPS:
         maxk -- Maximum number of states
         maxlen -- Maximum sequence length
         """
-        if self.verbose: sys.stderr.write(f"alloc cut point search...(k:{maxk},len:{maxlen})\n")
         self.Pu = np.zeros(maxk, dtype=np.float64)
         self.Pv = np.zeros(maxk, dtype=np.float64)
         self.Pi = np.zeros(maxk, dtype=np.float64)
