@@ -2,7 +2,7 @@
 
 Python implementation based on original C code.
 Originally written by Yasuko Matsubara.
-Translated to Python in 2025.
+Translated to Python in 2025 with the aid of LLMs.
 
 Yasuko Matsubara, Yasushi Sakurai, and Christos Faloutsos.
 "AutoPlait: Automatic Mining of Co-evolving Time Sequences."
