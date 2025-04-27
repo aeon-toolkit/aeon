@@ -52,7 +52,14 @@ OUTPUT_VITERBI_PATH = False
 class AutoPlaitSegmenter(BaseSegmenter):
     """AutoPlait Segmentation.
 
-    Using AutoPlait [1]_, DESCRIPTION.
+    AutoPlait [1]_ is a fully automatic mining algorithm for co-evolving
+    time series (multivariate). AutoPlait models a time series using several
+    Hidden Markov Models (HMM) and iteratively attempts to split
+    HMMs into two smaller HMMs that have a lower Minimum Description Length (MDL)
+    than the original larger HMM. AutoPlait is able to identify common patterns
+    or 'regimes' in a time series (segments that model the same underlying state).
+    The index points at which a time series switches from being model by optimal
+    HMM_i to optimal HMM_j are cut points of the time series.
 
     Parameters
     ----------
@@ -135,7 +142,7 @@ class AutoPlaitSegmenter(BaseSegmenter):
         max_infer_iter=10,
         default_variance=10,
         max_variance=float("inf"),
-        min_variance=None,
+        min_variance=1e-6,
         segment_sample_ratio=0.03,
         regime_sample_ratio=0.03,
         sampling_lm=0.1,
@@ -157,7 +164,7 @@ class AutoPlaitSegmenter(BaseSegmenter):
         self.max_infer_iter = max_infer_iter
         self.default_variance = default_variance
         self.max_variance = max_variance
-        self.min_variance = EPSILON if min_variance is None else min_variance
+        self.min_variance = min_variance
         self.segment_sample_ratio = segment_sample_ratio
         self.regime_sample_ratio = regime_sample_ratio
         self.sampling_lm = sampling_lm
