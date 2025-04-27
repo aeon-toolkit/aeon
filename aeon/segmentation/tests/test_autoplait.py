@@ -1,37 +1,64 @@
 """Simple AutoPlait test."""
 
-import pytest
+__maintainer__ = []
+__all__ = []
 
-from aeon.datasets import load_gun_point_segmentation
-from aeon.segmentation import AutoPlaitSegmenter, _autoplait
+import numpy as np
+
+from aeon.segmentation import AutoPlaitSegmenter
 
 
-def test_autoplait_sparse():
+def test_autoplait_simple():
     """Test AutoPlait segmentation.
 
+    Simple square wave.
     Check if the predicted change points match.
+    Check if regimes alternate
     """
-
     # load the test dataset
-    ts, period_size, cps = load_gun_point_segmentation()
+    ts = np.concatenate([np.ones(500), -np.ones(500), np.ones(500), -np.ones(500)])
+    true_cps = [499, 999, 1499]
 
-    # compute a FLUSS segmentation
-    autoplait = AutoPlaitSegmenter()
-    #found_cps = autoplait.fit_predict(ts)
+    autoplait = AutoPlaitSegmenter(seed=42)
+    autoplait.fit(ts)
+    found_cps = autoplait.predict(ts, axis=0)
+    regimes = autoplait.get_regime_labels()
 
-    pass
+    assert len(found_cps) == len(true_cps)  # Number of change points is correct
+    assert len(regimes) == len(true_cps) + 1  # Number of regimes is correct
 
-def test_cut_point_search():
-    X, regime1, regime2, d = [], [], [], []
-    _autoplait._cut_point_search(X, regime1, regime2, d)
-    pass
+    for i in range(len(found_cps)):
+        # Each predicted change point is within +- 2% of a true change point
+        assert abs(found_cps[i] - true_cps[i]) <= ts.shape[0] * 0.02
 
-def test_regime_split():
-    X = []
-    _autoplait._regime_split(X)
-    pass
+    # Check that regimes alternate
+    assert all(regimes[i] != regimes[i + 1] for i in range(len(regimes) - 1))
 
-def test_full_autoplait():
-    X = []
-    _autoplait._autoplait(X)
-    pass
+
+def test_autoplait_complex():
+    """Test AutoPlait segmentation.
+
+    Out of phase waves.
+    Check if the predicted change points match.
+    Check if regimes alternate
+    """
+    x = np.linspace(0, 2 * np.pi, 2000)
+    wave = np.cos(x)
+    ts = np.stack((wave, -wave), axis=-1)
+    true_cps = [250, 375, 550, 700, 1300, 1450, 1625, 1750]
+
+    autoplait = AutoPlaitSegmenter(seed=42)
+    autoplait.fit(ts)
+    found_cps = autoplait.predict(ts, axis=0)
+    regimes = autoplait.get_regime_labels()
+
+    assert len(found_cps) == len(true_cps)  # Number of change points is correct
+    assert len(regimes) == len(true_cps) + 1  # Number of regimes is correct
+
+    for i in range(len(found_cps)):
+        # Each predicted change point is within +- 2% of a true change point
+        assert abs(found_cps[i] - true_cps[i]) <= ts.shape[0] * 0.02
+
+    # Check that regimes are mirrored
+    for i in range(len(regimes)):
+        assert regimes[i] == regimes[-(i + 1)]
