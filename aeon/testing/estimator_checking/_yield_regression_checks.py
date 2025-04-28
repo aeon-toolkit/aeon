@@ -169,6 +169,7 @@ def check_regressor_overrides_and_tags(estimator_class):
         "feature",
         "hybrid",
         "shapelet",
+        "contrastive",
     ]
     algorithm_type = estimator_class.get_class_tag("algorithm_type")
     if algorithm_type is not None:
