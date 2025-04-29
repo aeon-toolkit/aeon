@@ -1,29 +1,20 @@
+"""TS2vec tests."""
+
 import numpy as np
+import pytest
 
 from aeon.transformations.collection.contrastive_based._ts2vec import TS2Vec
 
 
-
-def test_shape():
-    expected_features = 200
-    X = np.random.random(size=(10, 1, 100))
-    transformer = TS2Vec(output_dim=expected_features)
-    transformer.fit(X)
-    X_trans = transformer.transform(X)
-    np.testing.assert_equal(X_trans.shape, (len(X), expected_features))
-
-def test_shape2():
-    expected_features = 500
-    X = np.random.random(size=(10, 1, 100))
-    transformer = TS2Vec(output_dim=expected_features)
-    transformer.fit(X)
-    X_trans = transformer.transform(X)
-    np.testing.assert_equal(X_trans.shape, (len(X), expected_features))
-
-def test_shape3():
-    expected_features = 200
-    X = np.random.random(size=(10, 3, 100))
-    transformer = TS2Vec(output_dim=expected_features)
-    transformer.fit(X)
-    X_trans = transformer.transform(X)
-    np.testing.assert_equal(X_trans.shape, (len(X), expected_features))
+@pytest.mark.parametrize("expected_feature_size", [3, 5, 10])
+@pytest.mark.parametrize("n_series", [1, 2, 5])
+@pytest.mark.parametrize("n_channels", [1, 2, 3])
+@pytest.mark.parametrize("series_length", [3, 10, 20])
+def test_ts2vec_output_shapes(
+    expected_feature_size, n_series, n_channels, series_length
+):
+    """Test the output shapes of the TS2Vec transformer."""
+    X = np.random.random(size=(n_series, n_channels, series_length))
+    transformer = TS2Vec(output_dim=expected_feature_size, device="cpu", n_epochs=2)
+    X_t = transformer.fit_transform(X)
+    assert X_t.shape == (n_series, expected_feature_size)
