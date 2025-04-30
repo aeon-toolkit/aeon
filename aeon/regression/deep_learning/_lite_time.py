@@ -114,6 +114,7 @@ class LITETimeRegressor(BaseRegressor):
     -----
     Adapted from the implementation from Ismail-Fawaz et. al
     https://github.com/MSD-IRIMAS/LITE
+    by the code owner.
 
     References
     ----------
@@ -397,6 +398,7 @@ class IndividualLITERegressor(BaseDeepRegressor):
     -----
     Adapted from the implementation from Ismail-Fawaz et. al
     https://github.com/MSD-IRIMAS/LITE
+    by the code owner.
 
     References
     ----------

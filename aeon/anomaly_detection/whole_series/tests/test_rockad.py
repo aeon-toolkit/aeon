@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 from sklearn.utils import check_random_state
 
-from aeon.anomaly_detection import ROCKAD
+from aeon.anomaly_detection.whole_series import ROCKAD
 
 
 def test_rockad_univariate():
