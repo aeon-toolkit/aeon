@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 __maintainer__ = ["hadifawaz1999"]
 __all__ = ["ResNetRegressor"]
 
@@ -11,17 +9,19 @@ import gc
 import os
 import time
 from copy import deepcopy
-
-if TYPE_CHECKING:
-    from typing import Any
-    import tensorflow as tf
-    from tensorflow.keras.callbacks import Callback
+from typing import TYPE_CHECKING
 
 import numpy as np
 from sklearn.utils import check_random_state
 
 from aeon.networks import ResNetNetwork
 from aeon.regression.deep_learning.base import BaseDeepRegressor
+
+if TYPE_CHECKING:
+    from typing import Any
+
+    import tensorflow as tf
+    from tensorflow.keras.callbacks import Callback
 
 
 class ResNetRegressor(BaseDeepRegressor):

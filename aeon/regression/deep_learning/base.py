@@ -7,21 +7,21 @@ because we can generalise tags and _predict
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 __maintainer__ = []
 __all__ = ["BaseDeepRegressor"]
 
 from abc import abstractmethod
-
-if TYPE_CHECKING:
-    from typing import Any
-    import tensorflow as tf
-    from tensorflow.keras.callbacks import Callback
+from typing import TYPE_CHECKING
 
 import numpy as np
 
 from aeon.regression.base import BaseRegressor
+
+if TYPE_CHECKING:
+    from typing import Any
+
+    import tensorflow as tf
+    from tensorflow.keras.callbacks import Callback
 
 
 class BaseDeepRegressor(BaseRegressor):

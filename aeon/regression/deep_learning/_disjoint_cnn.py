@@ -2,14 +2,6 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from typing import Any
-
-    import tensorflow as tf
-    from tensorflow.keras.callbacks import Callback
-
 __maintainer__ = ["hadifawaz1999"]
 __all__ = ["DisjointCNNRegressor"]
 
@@ -17,12 +9,19 @@ import gc
 import os
 import time
 from copy import deepcopy
+from typing import TYPE_CHECKING
 
 import numpy as np
 from sklearn.utils import check_random_state
 
 from aeon.networks import DisjointCNNNetwork
 from aeon.regression.deep_learning.base import BaseDeepRegressor
+
+if TYPE_CHECKING:
+    from typing import Any
+
+    import tensorflow as tf
+    from tensorflow.keras.callbacks import Callback
 
 
 class DisjointCNNRegressor(BaseDeepRegressor):
