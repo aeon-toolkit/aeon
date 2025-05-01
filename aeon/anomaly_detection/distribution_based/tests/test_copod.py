@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from aeon.anomaly_detection import COPOD
+from aeon.anomaly_detection.distribution_based import COPOD
 from aeon.testing.data_generation import make_example_1d_numpy
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
