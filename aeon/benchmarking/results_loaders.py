@@ -29,7 +29,7 @@ NAME_ALIASES = {
     "Arsenal": ["TheArsenal", "AFC", "ArsenalClassifier"],
     "ROCKET": ["ROCKETClassifier", "ROCKETRegressor"],
     "MiniROCKET": ["MiniROCKETClassifier"],
-    "MR": ["MultiROCKET", "MultiROCKETClassifier", "MultiROCKETRegressor"],
+    "MR": ["MultiROCKET", "MultiROCKETClassifier"],
     "Hydra": ["hydraclassifier"],
     "MR-Hydra": [
         "Hydra-MultiROCKET",
