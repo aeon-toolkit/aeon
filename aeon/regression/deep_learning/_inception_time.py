@@ -9,7 +9,7 @@ import gc
 import os
 import time
 from copy import deepcopy
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 from sklearn.utils import check_random_state
@@ -19,8 +19,6 @@ from aeon.regression.base import BaseRegressor
 from aeon.regression.deep_learning.base import BaseDeepRegressor
 
 if TYPE_CHECKING:
-    from typing import Any
-
     import tensorflow as tf
     from tensorflow.keras.callbacks import Callback
 

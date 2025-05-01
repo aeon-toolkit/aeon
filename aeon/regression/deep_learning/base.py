@@ -11,15 +11,13 @@ __maintainer__ = []
 __all__ = ["BaseDeepRegressor"]
 
 from abc import abstractmethod
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
 from aeon.regression.base import BaseRegressor
 
 if TYPE_CHECKING:
-    from typing import Any
-
     import tensorflow as tf
     from tensorflow.keras.callbacks import Callback
 
