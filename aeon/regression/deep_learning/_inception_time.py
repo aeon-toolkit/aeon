@@ -353,7 +353,9 @@ class InceptionTimeRegressor(BaseRegressor):
         InceptionTimeRegressor
             An instance of InceptionTimeRegressor with the pre-trained models loaded.
         """
-        assert isinstance(model_paths, list), "model_paths should be a list of paths to the models"
+        assert isinstance(
+            model_paths, list
+        ), "model_paths should be a list of paths to the models"
 
         regressor = cls(n_regressors=len(model_paths))
         regressor.regressors_ = []
