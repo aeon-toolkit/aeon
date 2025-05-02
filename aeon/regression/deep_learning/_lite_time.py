@@ -285,7 +285,6 @@ class LITETimeRegressor(BaseRegressor):
         regressor.regressors_ = []
 
         for i, path in enumerate(model_paths):
-            # Create a dummy model just to load into
             ind_regressor = IndividualLITERegressor()
             ind_regressor.load_model(path)
             regressor.regressors_.append(ind_regressor)
