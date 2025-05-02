@@ -263,6 +263,37 @@ class LITETimeRegressor(BaseRegressor):
         return vals
 
     @classmethod
+    def load_model(cls, model_paths):
+        """
+        Load pre-trained regressors instead of fitting.
+
+        This enables full use of the estimator's functionality such as predict.
+
+        Parameters
+        ----------
+        model_paths : list of str (list of paths including the model names and extension)
+            List of file paths to the saved .keras models of each regressor.
+
+        Returns
+        -------
+        LITETimeRegressor
+            An instance of LITETimeRegressor with the pre-trained models loaded.
+        """
+        assert isinstance(model_paths, list), "model_paths should be a list of paths to the models"
+
+        regressor = cls(n_regressors=len(model_paths))
+        regressor.regressors_ = []
+
+        for i, path in enumerate(model_paths):
+            # Create a dummy model just to load into
+            ind_regressor = IndividualLITERegressor()
+            ind_regressor.load_model(path)
+            regressor.regressors_.append(ind_regressor)
+
+        regressor.is_fitted = True
+        return regressor
+
+    @classmethod
     def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
