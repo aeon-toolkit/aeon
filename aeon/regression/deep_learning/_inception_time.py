@@ -345,7 +345,8 @@ class InceptionTimeRegressor(BaseRegressor):
 
         Parameters
         ----------
-        model_paths : list of str (list of paths including the model names and extension)
+        model_paths : list of str (list of paths including the
+                                    model names and extension)
             List of file paths to the saved .keras models of each regressor.
 
         Returns
@@ -360,7 +361,7 @@ class InceptionTimeRegressor(BaseRegressor):
         regressor = cls(n_regressors=len(model_paths))
         regressor.regressors_ = []
 
-        for i, path in enumerate(model_paths):
+        for path in model_paths:
             ind_regressor = IndividualInceptionRegressor()
             ind_regressor.load_model(path)
             regressor.regressors_.append(ind_regressor)
