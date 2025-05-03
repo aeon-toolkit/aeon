@@ -53,7 +53,7 @@ The core developers push forward `aeon`'s development and maintain the package.
 
 `aeon` is an affiliated project of [NumFOCUS](https://numfocus.org/).
 
-![https://numfocus.org/](images/other_logos/numfocus-logo.png){w=400px}
+[![NumFOCUS logo](images/other_logos/numfocus-logo.png){w=400px}](https://numfocus.org/)
 
 ## History
 
