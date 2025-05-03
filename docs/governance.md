@@ -27,9 +27,10 @@ process.
 
 Supporting developers are contributors who have been nominated by a core developer
 and have been granted write access to the `aeon` repository. No vote is required for
-this role. Supporting developers can have access revoked at any time by a core
-developer if determined to be abusing this access. Supporting developers will have
-access removed after 6 months of inactivity.
+this role, but the nominator must notify Core Developers and creat a Pull Request.
+Supporting developers can have access revoked at any time by a core developer if
+determined to be abusing this access. Supporting developers will have access removed
+after 6 months of inactivity.
 
 ### Core Developers
 
