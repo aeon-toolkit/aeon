@@ -23,6 +23,14 @@ as detailed in the contributing guide. Contributors play a crucial role in shapi
 project through participating in discussions and influencing the decision-making
 process.
 
+### Supporting Developer
+
+Supporting developers are contributors who have been nominated by a core developer
+and have been granted write access to the `aeon` repository. No vote is required for
+this role. Supporting developers can have access revoked at any time by a core
+developer if determined to be abusing this access. Supporting developers will have
+access removed after 6 months of inactivity.
+
 ### Core Developers
 
 Core developers are community members that have made significant contributions and are
