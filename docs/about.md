@@ -54,7 +54,7 @@ The core developers push forward `aeon`'s development and maintain the package.
 The following developers were part of the `aeon` core developer team at some
 point.
 
-<details><summary>Previous `aeon` core developers</summary>
+<details><summary>Previous aeon core developers</summary>
 <p>
 
 - {user}`GuzalBulatova` 2025
@@ -68,7 +68,7 @@ point.
 
 `aeon` is an affiliated project of [NumFOCUS](https://numfocus.org/).
 
-![https://numfocus.org/](images/other_logos/numfocus-logo.png){w=400px}
+[![NumFOCUS logo](images/other_logos/numfocus-logo.png){w=400px}](https://numfocus.org/)
 
 ## History
 
@@ -145,7 +145,6 @@ projects via the shared NumFOCUS application for the program.
 We would also like to thank [GitHub Actions](https://github.com/features/actions)
 and [ReadtheDocs](https://readthedocs.org) for the free compute time on their servers
 and documentation hosting.
-
 
 ## Pre-fork Acknowledgements
 
