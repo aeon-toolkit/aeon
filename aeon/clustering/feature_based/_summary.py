@@ -24,7 +24,7 @@ class SummaryClusterer(BaseClusterer):
 
     Parameters
     ----------
-    summary_stats : ["default", "percentiles", "bowley", "tukey"], default="default"
+    summary_stats : ["default", "quantiles", "bowley", "tukey"], default="default"
         The summary statistics to compute.
         The options are as follows, with float denoting the percentile value extracted
         from the series:
