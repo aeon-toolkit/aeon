@@ -18,7 +18,7 @@ class SPARTAN(BaseCollectionTransformer):
 
     def __init__(
         self,
-        alphabet_size=8,  # [8, 4, 4, 2],
+        alphabet_size=8,  # this breaks flake8 [8, 4, 4, 2],
         window_size=0,
         word_length=4,
         binning_method="equi-depth",
@@ -32,8 +32,8 @@ class SPARTAN(BaseCollectionTransformer):
     ):
 
         if isinstance(alphabet_size, int):
-            self.alphabet_size = np.array(word_length, dtype=np.uint32)
-            self.alphabet_size = self.alphabet_size * word_length
+            self.alphabet_size = np.zeros(word_length, dtype=np.uint32)
+            self.alphabet_size[:] = alphabet_size
         else:
             self.alphabet_size = np.array(alphabet_size, dtype=np.uint32)
 
@@ -116,13 +116,13 @@ class SPARTAN(BaseCollectionTransformer):
             # assigned_evc = self.evcr[0:self.word_length]
             # assigned_evc = assigned_evc / np.sum(assigned_evc)
         elif self.assignment_policy in ["DAA", "dp"]:
-            if isinstance(self.alphabet_size, list):
-                self.alphabet_size = int(np.mean(self.alphabet_size))
+            if isinstance(self.alphabet_size, np.ndarray):
+                alphabet_size = int(self.alphabet_size.mean())
 
-            self.avg_alphabet_size = self.alphabet_size
-            if self.bit_budget != int(np.log2(self.alphabet_size) * self.word_length):
+            self.avg_alphabet_size = alphabet_size
+            if self.bit_budget != int(np.log2(alphabet_size) * self.word_length):
                 total_bit = self.bit_budget = int(
-                    np.log2(self.alphabet_size) * self.word_length
+                    np.log2(alphabet_size) * self.word_length
                 )
             else:
                 total_bit = self.bit_budget
