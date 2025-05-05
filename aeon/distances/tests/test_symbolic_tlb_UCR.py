@@ -196,7 +196,7 @@ def load_from_ucr_tsv_to_dataframe_plain(full_file_path_and_name):
 # configuration
 all_threads = 128
 n_segments = 16
-alphabet_sizes = [256, 128, 64, 32, 16, 8, 4, 2]
+alphabet_sizes = [256, 128, 64, 32, 16, 8, 4]
 
 DATA_PATH = "/Users/bzcschae/workspace/UCRArchive_2018/"
 server = False
@@ -315,6 +315,12 @@ for dataset_name in used_dataset:
         # print("\tSAX done.")
 
         histograms = ["equi-width"]  # , "equi-depth"
+        allocation_methods = [
+            "dynamic_programming",  # method introduced by Spartan paper
+            "linear_scale",
+            "log_scale",
+            "sqrt_scale",
+        ]
         variances = [True]  # , False
         dyn_alphabets = [True]  # , False
 
@@ -323,21 +329,9 @@ for dataset_name in used_dataset:
         all_dfts = []
         all_words = []
 
-        for histogram, variance, dyn_alphabet in itertools.product(
-            histograms, variances, dyn_alphabets
+        for histogram, variance, dyn_alphabet, alloc_method in itertools.product(
+            histograms, variances, dyn_alphabets, allocation_methods
         ):
-            # sfa = SFAFast(
-            #     word_length=n_segments,
-            #     alphabet_size=alphabet_size,
-            #     window_size=X_train.shape[-1],
-            #     binning_method=histogram,
-            #     norm=True,
-            #     variance=variance,
-            #     lower_bounding_distances=True,
-            #     learn_alphabet_sizes=dyn_alphabet,
-            #     n_jobs=all_threads,
-            # )
-
             sfa = SFAWhole(
                 word_length=n_segments,
                 alphabet_size=alphabet_size,
@@ -345,12 +339,11 @@ for dataset_name in used_dataset:
                 variance=variance,
                 norm=True,
                 learn_alphabet_sizes=dyn_alphabet,
+                alphabet_allocation_method=alloc_method,
                 n_jobs=all_threads,
             )
 
             sfa.fit(X_train)
-            # X_dfts = sfa.transform_mft(X_test).squeeze()
-            # Y_words = sfa.transform_words(X_train).squeeze()
 
             _, X_dfts = sfa.transform_words(X_test)
             Y_words, _ = sfa.transform_words(X_train)
@@ -358,8 +351,9 @@ for dataset_name in used_dataset:
             all_dfts.append(X_dfts.astype(np.float64))
             all_words.append(Y_words.astype(np.int32))
 
-            method_names.append(f"sfa_{histogram}_{variance}_{dyn_alphabet}")
-            # print(f"\tSFA {histogram} {variance} done.")
+            method_names.append(
+                f"sfa_{histogram}_{variance}_{dyn_alphabet}_{alloc_method}"
+            )
 
         sum_scores = {}
         for method_name in method_names:
