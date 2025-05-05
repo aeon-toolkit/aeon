@@ -14,7 +14,7 @@ def test_all_summary_stat_uni():
 
     X_train = X_train[:num_points]
     X_test = X_test[:num_points]
-    summary_stats_options = ["default", "percentiles", "bowley", "tukey"]
+    summary_stats_options = ["default", "quantiles", "bowley", "tukey"]
     for summary_stat in summary_stats_options:
         summary = SummaryClusterer(random_state=1, summary_stats=summary_stat)
         train_result = summary.fit_predict(X_train)
@@ -35,7 +35,7 @@ def test_all_summary_stat_multi():
 
     X_train = X_train[:num_points]
     X_test = X_test[:num_points]
-    summary_stats_options = ["default", "percentiles", "bowley", "tukey"]
+    summary_stats_options = ["default", "quantiles", "bowley", "tukey"]
     for summary_stat in summary_stats_options:
         summary = SummaryClusterer(random_state=1, summary_stats=summary_stat)
         train_result = summary.fit_predict(X_train)
