@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from aeon.anomaly_detection import LOF
+from aeon.anomaly_detection.distance_based import LOF
 from aeon.testing.data_generation import make_example_1d_numpy
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 

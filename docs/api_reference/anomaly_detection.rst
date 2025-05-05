@@ -13,28 +13,69 @@ Each detector in this module specifies its supported input data format, output d
 format, and learning type as an overview table in its documentation. Some detectors
 support multiple learning types.
 
-Detectors
----------
+.. note::
 
-.. currentmodule:: aeon.anomaly_detection
+    Not all algorithm families are currently implemented. The documentation includes
+    placeholders for planned categories which will be supported in future.
+
+Distance-based
+--------------
+
+.. currentmodule:: aeon.anomaly_detection.distance_based
 
 .. autosummary::
     :toctree: auto_generated/
     :template: class.rst
 
     CBLOF
-    COPOD
-    DWT_MLEAD
-    IsolationForest
     KMeansAD
     LeftSTAMPi
     LOF
     MERLIN
     OneClassSVM
-    PyODAdapter
-    ROCKAD
     STOMP
+    ROCKAD
+
+Distribution-based
+-----------------
+
+.. currentmodule:: aeon.anomaly_detection.distribution_based
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    COPOD
+    DWT_MLEAD
+
+Encoding-based
+--------------
+
+The algorithms for this family are not implemented yet.
+
+Forecasting-based
+-----------------
+
+The algorithms for this family are not implemented yet.
+
+Outlier-Detection
+-----------------
+
+.. currentmodule:: aeon.anomaly_detection.outlier_detection
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    IsolationForest
+    PyODAdapter
     STRAY
+
+Reconstruction-based
+--------------------
+
+The algorithms for this family are not implemented yet.
+
 
 Whole-series
 ------------
