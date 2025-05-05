@@ -41,6 +41,13 @@ binning_methods = {
     "quantile",
 }
 
+alphabet_allocation_methods = {
+    "dynamic_programming",  # method introduced by Spartan paper
+    "linear_scale",
+    "log_scale",
+    "sqrt_scale",
+}
+
 simplefilter(action="ignore", category=NumbaPendingDeprecationWarning)
 simplefilter(action="ignore", category=NumbaTypeSafetyWarning)
 
@@ -68,6 +75,9 @@ class SFAFast(BaseCollectionTransformer):
     learn_alphabet_sizes : boolean, default = False
         If True, dynamic alphabet sizes are learned based on the variance of the Fourier
         coefficients.
+    alphabet_allocation_method : str, default = None
+        The method used to learn the dynamic alphabet sizes. One of
+        {"dynamic_programming", "linear_scale", "log_scale", "sqrt_scale"}.
     learn_alphabet_lambda : float, default = 0.5
         The regularization parameter for dynamic alphabet size learning.
     norm : boolean, default = False
@@ -150,6 +160,7 @@ class SFAFast(BaseCollectionTransformer):
         window_size=12,
         learn_alphabet_sizes=False,
         learn_alphabet_lambda=0.5,
+        alphabet_allocation_method=None,
         norm=False,
         binning_method="equi-depth",
         anova=False,
@@ -207,6 +218,7 @@ class SFAFast(BaseCollectionTransformer):
         self.sampling_factor = sampling_factor
         self.learn_alphabet_sizes = learn_alphabet_sizes
         self.learn_alphabet_lambda = learn_alphabet_lambda
+        self.alphabet_allocation_method = alphabet_allocation_method
 
         # Feature selection part
         self.feature_selection = feature_selection
@@ -244,6 +256,14 @@ class SFAFast(BaseCollectionTransformer):
             raise ValueError(
                 "Learn Alphabet Sizes must be set in conjunction with variance-based"
                 "feature selection."
+            )
+
+        if self.learn_alphabet_sizes and (
+            self.alphabet_allocation_method not in alphabet_allocation_methods
+        ):
+            raise ValueError(
+                "alphabet_allocation_method must be one of: ",
+                alphabet_allocation_methods,
             )
 
         if self.binning_method not in binning_methods:
@@ -591,13 +611,36 @@ class SFAFast(BaseCollectionTransformer):
 
         # learn alphabet sizes
         if self.learn_alphabet_sizes and self.variance:
-            self.bit_budget = int(np.log2(self.alphabet_size) * self.word_length)
 
-            bit_arr = _dynamic_alphabet_allocation(
-                bits=self.bit_budget,
-                var=self.dft_variance[self.support],
-                lamda=self.learn_alphabet_lambda,
-            )
+            symbols = np.log2(self.alphabet_size)
+            self.bit_budget = int(symbols * self.word_length)
+            if self.alphabet_allocation_method == "dynamic_programming":
+                bit_arr = _dynamic_alphabet_allocation(
+                    bits=self.bit_budget,
+                    var=self.dft_variance[self.support],
+                    lamda=self.learn_alphabet_lambda,
+                )
+            else:
+                if self.alphabet_allocation_method == "linear_scale":
+                    variance = np.sqrt(self.dft_variance[self.support])
+                    normed_scale = variance / variance.sum()
+
+                elif self.alphabet_allocation_method == "sqrt_scale":
+                    variance = np.sqrt(np.sqrt(self.dft_variance[self.support]))
+                    normed_scale = variance / variance.sum()
+
+                elif self.alphabet_allocation_method == "log_scale":
+                    variance = np.log2(np.sqrt(self.dft_variance[self.support]) + 1)
+                    normed_scale = variance / variance.sum()
+
+                bit_arr_raw = np.floor(
+                    normed_scale * symbols * self.word_length
+                ).astype(np.uint32)
+
+                # Use at most symbols+1 for each position
+                bit_arr = heal_array(bit_arr_raw, symbols + 1, self.bit_budget)
+
+            # print(f"Method {self.alphabet_allocation_method},\t BitArray {bit_arr}")
             self.alphabet_sizes = [int(2 ** bit_arr[i]) for i in range(len(bit_arr))]
             self.letter_bits = np.array(bit_arr, dtype=np.uint32)
         else:
@@ -1419,3 +1462,29 @@ def trace_backwards(alloc, K, N):
         unused_bit -= alloc[i, unused_bit]
     bit_arr.append(unused_bit)
     return bit_arr
+
+
+@njit(fastmath=True, cache=True)
+def heal_array(bit_array, max_val, budget):
+    bit_array = bit_array.copy()
+
+    # cap values beyond max_val
+    for i in range(len(bit_array)):
+        bit_array[i] = min(max_val, bit_array[i])
+
+    if bit_array.sum() > budget:
+        # print("Error", bit_array, bit_array.sum(), budget, bit_array.sum() <= budget)
+        assert bit_array.sum() <= budget
+
+    # heal the array to have the correct sum == budget
+    if bit_array.sum() != budget:
+        diff = budget - bit_array.sum()
+        while diff > 0:
+            for i in range(len(bit_array)):
+                if bit_array[i] < max_val:
+                    bit_array[i] += 1
+                    diff -= 1
+                if diff == 0:
+                    break
+
+    return bit_array
