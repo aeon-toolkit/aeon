@@ -11,7 +11,7 @@ import joblib
 import numpy as np
 from sklearn.exceptions import NotFittedError
 
-from aeon.anomaly_detection.base import BaseAnomalyDetector
+from aeon.anomaly_detection.series.base import BaseSeriesAnomalyDetector
 from aeon.anomaly_detection.whole_series.base import BaseCollectionAnomalyDetector
 from aeon.base import BaseAeonEstimator
 from aeon.base._base import _clone_estimator
@@ -138,7 +138,7 @@ def _yield_all_aeon_checks(
             estimator_class, estimator_instances, datatypes
         )
 
-    if issubclass(estimator_class, BaseAnomalyDetector):
+    if issubclass(estimator_class, BaseSeriesAnomalyDetector):
         yield from _yield_anomaly_detection_checks(
             estimator_class, estimator_instances, datatypes
         )
