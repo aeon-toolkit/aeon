@@ -201,6 +201,14 @@ class ContractableBOSS(BaseClassifier):
         -----
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
+
+        Raises
+        _ _ _ _ 
+        TypeError
+           If X is not a numpy.ndarray,pandas.Dataframe, or list of numpy.ndarray/pandas.DataFrame.
+        ValueError
+           If min_window is greater than the computed max_window, which is based on the series length.
+           This can occur if the series is too short or min_window is set too large in the constructor.
         """
         time_limit = self.time_limit_in_minutes * 60
         self.n_cases_, _, self.n_timepoints_ = X.shape
