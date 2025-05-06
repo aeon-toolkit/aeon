@@ -7,15 +7,17 @@ from aeon.benchmarking.metrics.anomaly_detection import (
     f_score_at_k_points,
     f_score_at_k_ranges,
     pr_auc_score,
-    range_f_score,
     range_pr_auc_score,
     range_pr_vus_score,
-    range_precision,
-    range_recall,
     range_roc_auc_score,
     range_roc_vus_score,
     roc_auc_score,
     rp_rr_auc_score,
+)
+from aeon.benchmarking.metrics.anomaly_detection.range_metrics import (
+    range_f_score,
+    range_precision,
+    range_recall,
 )
 from aeon.testing.data_generation import make_example_1d_numpy
 from aeon.utils.validation._dependencies import _check_soft_dependencies
@@ -32,17 +34,21 @@ other_metrics = [
     f_score_at_k_points,
 ]
 continuous_metrics = [*pr_metrics, *other_metrics, *range_metrics]
-binary_metrics = []
+binary_metrics = [
+    range_f_score,
+    range_precision,
+    range_recall,
+]
 
 if _check_soft_dependencies("prts", severity="none"):
     pr_metrics.append(rp_rr_auc_score)
-    range_metrics.extend(
-        [
-            range_recall,
-            range_precision,
-            range_f_score,
-        ]
-    )
+    # range_metrics.extend(
+    #     [
+    #         range_recall,
+    #         range_precision,
+    #         range_f_score,
+    #     ]
+    # )
     other_metrics.extend(
         [
             f_score_at_k_ranges,
@@ -55,7 +61,7 @@ if _check_soft_dependencies("prts", severity="none"):
             f_score_at_k_ranges,
         ]
     )
-    binary_metrics = [range_recall, range_precision, range_f_score]
+    # binary_metrics = [range_recall, range_precision, range_f_score]
 
 metrics = [*pr_metrics, *range_metrics, *other_metrics]
 
