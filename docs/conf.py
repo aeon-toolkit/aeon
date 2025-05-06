@@ -172,6 +172,8 @@ def linkcode_resolve(domain, info):
         import inspect
         import os
 
+        obj = inspect.unwrap(obj)
+
         fn = inspect.getsourcefile(obj)
         fn = os.path.relpath(fn, start=os.path.dirname(aeon.__file__))
         source, lineno = inspect.getsourcelines(obj)
