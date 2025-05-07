@@ -203,7 +203,8 @@ class ContractableBOSS(BaseClassifier):
         ending in "_" and sets is_fitted flag to True.
 
         Raises
-        _ _ _ _ 
+        ------
+        _ _ _ _
         TypeError
            If X is not a numpy.ndarray,pandas.Dataframe, or list of numpy.ndarray/pandas.DataFrame.
         ValueError
