@@ -113,7 +113,7 @@ def check_y(
     else:
         penalize_mask = penalize_mask | nan_mask
     y_pred[penalize_mask] = (~np.array(y_true[penalize_mask], dtype=bool)).astype(
-        np.integer
+        np.int32
     )
 
     assert_all_finite(y_pred)

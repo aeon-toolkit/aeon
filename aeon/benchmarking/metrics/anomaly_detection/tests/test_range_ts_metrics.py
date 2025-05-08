@@ -2,6 +2,11 @@
 
 import numpy as np
 
+from aeon.benchmarking.metrics.anomaly_detection._range_metrics import (
+    range_f_score,
+    range_precision,
+    range_recall,
+)
 from aeon.benchmarking.metrics.anomaly_detection._range_ts_metrics import (
     ts_fscore,
     ts_precision,
@@ -20,22 +25,17 @@ def _execute_test_case(
     bias: str = "flat",
     floating_precision: int = 6,
 ) -> None:
-    precision = ts_precision(y_pred, y_true, gamma=cardinality, bias_type=bias)
-    recall = ts_recall(
-        y_pred,
+    precision = range_precision(y_true, y_pred, cardinality=cardinality, bias=bias)
+    recall = range_recall(y_true, y_pred, cardinality=cardinality, bias=bias)
+    f1_score = range_f_score(
         y_true,
-        gamma=cardinality,
-        bias_type=bias,
-        alpha=0.0,
-    )
-    f1_score = ts_fscore(
         y_pred,
-        y_true,
-        gamma=cardinality,
+        cardinality=cardinality,
         p_bias=bias,
         r_bias=bias,
         p_alpha=0.0,
         r_alpha=0.0,
+        beta=1.0,
     )
 
     np.testing.assert_almost_equal(
@@ -165,6 +165,7 @@ def test_multiple_overlapping_ranges_with_bias_middle_gamma_reciprocal():
     )
 
 
+# TODO: remove in v1.3.0
 def test_range_based_input():
     """Test with input being range-based or binary-based."""
     y_pred_range = [(1, 2)]
@@ -227,51 +228,13 @@ def test_range_based_input():
     )
 
     # for binary input
-    precision_binary = ts_precision(
-        y_pred_binary, y_true_binary, gamma="reciprocal", bias_type="flat"
-    )
-    recall_binary = ts_recall(
-        y_pred_binary,
-        y_true_binary,
-        gamma="reciprocal",
-        bias_type="flat",
-        alpha=0.0,
-    )
-    f1_score_binary = ts_fscore(
-        y_pred_binary,
-        y_true_binary,
-        gamma="reciprocal",
-        p_bias="flat",
-        r_bias="flat",
-        p_alpha=0.0,
-        r_alpha=0.0,
-    )
-
-    np.testing.assert_almost_equal(
-        precision_binary,
-        expected_precision,
-        decimal=6,
-        err_msg=(
-            f"Precision mismatch: "
-            f"ts_precision={precision_range} vs "
-            f"expected_precision_binary={expected_precision}"
-        ),
-    )
-    np.testing.assert_almost_equal(
-        recall_binary,
-        expected_recall,
-        decimal=6,
-        err_msg=(
-            f"Recall mismatch: "
-            f"ts_recall={recall_range} vs expected_recall_binary={expected_recall}"
-        ),
-    )
-    np.testing.assert_almost_equal(
-        f1_score_binary,
-        expected_f1,
-        decimal=6,
-        err_msg=(
-            f"F1-Score mismatch: "
-            f"ts_fscore={f1_score_range} vs expected_f_score_binary={expected_f1}"
-        ),
+    _execute_test_case(
+        y_true=y_true_binary,
+        y_pred=y_pred_binary,
+        expected_precision=expected_precision,
+        expected_recall=expected_recall,
+        expected_f1=expected_f1,
+        name="binary input is inconsistent with range input",
+        cardinality="reciprocal",
+        bias="flat",
     )
