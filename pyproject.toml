@@ -120,6 +120,8 @@ docs = [
     "furo",
     "tabulate",
     "matplotlib",
+
+    "snowballstemmer<3" # temporary to fix doc build bug
 ]
 
 [project.urls]
