@@ -53,6 +53,12 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         ``-1`` means using all processors.
         for more details. Parameter for compatibility purposes, still unimplemented.
 
+    Raises
+    ------
+    ValueError
+        If ``weights`` is not among the supported values.
+        See the ``weights`` parameter description for valid options.
+
     Examples
     --------
     >>> from aeon.datasets import load_unit_test
