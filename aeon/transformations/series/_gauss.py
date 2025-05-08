@@ -4,12 +4,20 @@ __maintainer__ = ["Cyril-Meyer"]
 __all__ = ["GaussSeriesTransformer"]
 
 
-from scipy.ndimage import gaussian_filter1d
+from deprecated.sphinx import deprecated
 
-from aeon.transformations.series.base import BaseSeriesTransformer
+from aeon.transformations.series.smoothing import GaussianFilter
 
 
-class GaussSeriesTransformer(BaseSeriesTransformer):
+# TODO: Remove in v1.3.0
+@deprecated(
+    version="1.2.0",
+    reason="GaussSeriesTransformer is deprecated and will be removed in v1.3.0. "
+    "Please use GaussianFilter from "
+    "transformations.series.smoothing instead.",
+    category=FutureWarning,
+)
+class GaussSeriesTransformer(GaussianFilter):
     """Filter a times series using Gaussian filter.
 
     Parameters
@@ -45,31 +53,4 @@ class GaussSeriesTransformer(BaseSeriesTransformer):
     (2, 100)
     """
 
-    _tags = {
-        "capability:multivariate": True,
-        "X_inner_type": "np.ndarray",
-        "fit_is_empty": True,
-    }
-
-    def __init__(self, sigma=1, order=0):
-        self.sigma = sigma
-        self.order = order
-        super().__init__(axis=1)
-
-    def _transform(self, X, y=None):
-        """Transform X and return a transformed version.
-
-        Parameters
-        ----------
-        X : np.ndarray
-            time series in shape (n_channels, n_timepoints)
-        y : ignored argument for interface compatibility
-
-        Returns
-        -------
-        transformed version of X
-        """
-        # Compute Gaussian filter
-        X_ = gaussian_filter1d(X, self.sigma, self.axis, self.order)
-
-        return X_
+    ...
