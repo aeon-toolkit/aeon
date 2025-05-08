@@ -4,12 +4,20 @@ __maintainer__ = ["Cyril-Meyer"]
 __all__ = ["SGSeriesTransformer"]
 
 
-from scipy.signal import savgol_filter
+from deprecated.sphinx import deprecated
 
-from aeon.transformations.series.base import BaseSeriesTransformer
+from aeon.transformations.series.smoothing import SavitzkyGolayFilter
 
 
-class SGSeriesTransformer(BaseSeriesTransformer):
+# TODO: Remove in v1.3.0
+@deprecated(
+    version="1.2.0",
+    reason="SGSeriesTransformer is deprecated and will be removed in v1.3.0. "
+    "Please use SavitzkyGolayFilter from "
+    "transformations.series.smoothing instead.",
+    category=FutureWarning,
+)
+class SGSeriesTransformer(SavitzkyGolayFilter):
     """Filter a times series using Savitzky-Golay (SG).
 
     Parameters
@@ -45,31 +53,4 @@ class SGSeriesTransformer(BaseSeriesTransformer):
     (2, 100)
     """
 
-    _tags = {
-        "capability:multivariate": True,
-        "X_inner_type": "np.ndarray",
-        "fit_is_empty": True,
-    }
-
-    def __init__(self, window_length=5, polyorder=2):
-        self.window_length = window_length
-        self.polyorder = polyorder
-        super().__init__(axis=1)
-
-    def _transform(self, X, y=None):
-        """Transform X and return a transformed version.
-
-        Parameters
-        ----------
-        X : np.ndarray
-            time series in shape (n_channels, n_timepoints)
-        y : ignored argument for interface compatibility
-
-        Returns
-        -------
-        transformed version of X
-        """
-        # Compute SG
-        X_ = savgol_filter(X, self.window_length, self.polyorder)
-
-        return X_
+    ...
