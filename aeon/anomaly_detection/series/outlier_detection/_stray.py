@@ -54,7 +54,7 @@ class STRAY(BaseSeriesAnomalyDetector):
 
     Examples
     --------
-    >>> from aeon.anomaly_detection.outlier_detection import STRAY
+    >>> from aeon.anomaly_detection.series.outlier_detection import STRAY
     >>> from aeon.datasets import load_airline
     >>> import numpy as np
     >>> X = load_airline()

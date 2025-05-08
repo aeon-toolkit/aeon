@@ -9,11 +9,12 @@ from typing import final
 import numpy as np
 import pandas as pd
 
+from aeon.anomaly_detection.base import BaseAnomalyDetector
 from aeon.base import BaseSeriesEstimator
 from aeon.base._base_series import VALID_SERIES_INPUT_TYPES
 
 
-class BaseSeriesAnomalyDetector(BaseSeriesEstimator):
+class BaseSeriesAnomalyDetector(BaseSeriesEstimator, BaseAnomalyDetector):
     """Base class for series anomaly detection algorithms.
 
     Anomaly detection algorithms are used to identify anomalous subsequences in time

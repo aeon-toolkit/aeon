@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 from sklearn.utils import check_random_state
 
-from aeon.anomaly_detection.series.outlier_detection import PyODAdapter
+from aeon.anomaly_detection.series import PyODAdapter
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 

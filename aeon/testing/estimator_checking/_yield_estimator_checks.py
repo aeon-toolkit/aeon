@@ -11,8 +11,8 @@ import joblib
 import numpy as np
 from sklearn.exceptions import NotFittedError
 
+from aeon.anomaly_detection.collection.base import BaseCollectionAnomalyDetector
 from aeon.anomaly_detection.series.base import BaseSeriesAnomalyDetector
-from aeon.anomaly_detection.whole_series.base import BaseCollectionAnomalyDetector
 from aeon.base import BaseAeonEstimator
 from aeon.base._base import _clone_estimator
 from aeon.classification import BaseClassifier

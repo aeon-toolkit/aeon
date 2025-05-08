@@ -32,10 +32,11 @@ from typing import final
 import numpy as np
 import pandas as pd
 
+from aeon.anomaly_detection.base import BaseAnomalyDetector
 from aeon.base import BaseCollectionEstimator
 
 
-class BaseCollectionAnomalyDetector(BaseCollectionEstimator):
+class BaseCollectionAnomalyDetector(BaseCollectionEstimator, BaseAnomalyDetector):
     """
     Abstract base class for collection anomaly detectors.
 
@@ -162,11 +163,64 @@ class BaseCollectionAnomalyDetector(BaseCollectionEstimator):
 
         return self._predict(X)
 
-    @abstractmethod
-    def _fit(self, X, y=None): ...
+    @final
+    def fit_predict(self, X, y=None, axis=1) -> np.ndarray:
+        """Fit time series anomaly detector and find anomalies for X.
+
+        Parameters
+        ----------
+        X : one of aeon.base._base_series.VALID_SERIES_INPUT_TYPES
+            The time series to fit the model to.
+            A valid aeon time series data structure. See
+            aeon.base._base_series.VALID_INPUT_TYPES for aeon supported types.
+        y : one of aeon.base._base_series.VALID_SERIES_INPUT_TYPES, default=None
+            The target values for the time series.
+            A valid aeon time series data structure. See
+            aeon.base._base_series.VALID_SERIES_INPUT_TYPES for aeon supported types.
+        axis : int, default=1
+            The time point axis of the input series if it is 2D. If ``axis==0``, it is
+            assumed each column is a time series and each row is a time point. i.e. the
+            shape of the data is ``(n_timepoints, n_channels)``. ``axis==1`` indicates
+            the time series are in rows, i.e. the shape of the data is
+            ``(n_channels, n_timepoints)``.
+
+        Returns
+        -------
+        np.ndarray
+            A boolean, int or float array of length len(X), where each element indicates
+            whether the corresponding subsequence is anomalous or its anomaly score.
+        """
+        if self.get_tag("requires_y"):
+            if y is None:
+                raise ValueError("Tag requires_y is true, but fit called with y=None")
+
+        # reset estimator at the start of fit
+        self.reset()
+
+        X = self._preprocess_series(X, axis, True)
+
+        if self.get_tag("fit_is_empty"):
+            self.is_fitted = True
+            return self._predict(X)
+
+        if y is not None:
+            y = self._check_y(y)
+
+        pred = self._fit_predict(X, y)
+
+        # this should happen last
+        self.is_fitted = True
+        return pred
+
+    def _fit(self, X, y):
+        return self
 
     @abstractmethod
     def _predict(self, X): ...
+
+    def _fit_predict(self, X, y):
+        self._fit(X, y)
+        return self._predict(X)
 
     def _check_y(self, y, n_cases):
         """Check y input is valid.

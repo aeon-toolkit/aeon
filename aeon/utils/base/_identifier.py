@@ -47,16 +47,16 @@ def get_identifier(estimator):
     if len(identifiers) == 0:
         raise TypeError("Error, no identifiers could be determined for estimator")
 
-    if len(identifiers) > 1 and "anomaly-detector" in identifiers:
-        identifiers.remove("anomaly-detector")
     if len(identifiers) > 1 and "estimator" in identifiers:
         identifiers.remove("estimator")
-    if len(identifiers) > 1 and "series-estimator" in identifiers:
-        identifiers.remove("series-estimator")
     if len(identifiers) > 1 and "collection-estimator" in identifiers:
         identifiers.remove("collection-estimator")
+    if len(identifiers) > 1 and "series-estimator" in identifiers:
+        identifiers.remove("series-estimator")
     if len(identifiers) > 1 and "transformer" in identifiers:
         identifiers.remove("transformer")
+    if len(identifiers) > 1 and "anomaly-detector" in identifiers:
+        identifiers.remove("anomaly-detector")
 
     if len(identifiers) > 1:
         TypeError(

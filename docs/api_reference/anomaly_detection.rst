@@ -80,7 +80,7 @@ The algorithms for this family are not implemented yet.
 Whole-series
 ------------
 
-.. currentmodule:: aeon.anomaly_detection.whole_series
+.. currentmodule:: aeon.anomaly_detection.collection
 
 .. autosummary::
     :toctree: auto_generated/

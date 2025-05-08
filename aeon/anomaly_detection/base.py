@@ -17,11 +17,11 @@ class BaseAnomalyDetector(BaseAeonEstimator):
         # todo
     }
 
-    def __init__(self, axis):
+    def __init__(self):
         super().__init__()
 
     @abstractmethod
-    def fit(self, X, y=None, axis=1):
+    def fit(self, X, y=None):
         """Fit time series anomaly detector to X.
 
         If the tag ``fit_is_empty`` is true, this just sets the ``is_fitted`` tag to
@@ -54,7 +54,7 @@ class BaseAnomalyDetector(BaseAeonEstimator):
         ...
 
     @abstractmethod
-    def predict(self, X, axis=1) -> np.ndarray:
+    def predict(self, X) -> np.ndarray:
         """Find anomalies in X.
 
         Parameters
@@ -79,7 +79,7 @@ class BaseAnomalyDetector(BaseAeonEstimator):
         ...
 
     @abstractmethod
-    def fit_predict(self, X, y=None, axis=1) -> np.ndarray:
+    def fit_predict(self, X, y=None) -> np.ndarray:
         """Fit time series anomaly detector and find anomalies for X.
 
         Parameters
