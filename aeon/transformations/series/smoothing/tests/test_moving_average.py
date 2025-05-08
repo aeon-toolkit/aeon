@@ -19,7 +19,7 @@ def test_window_size_greater_than_zero():
     """Test window sizes > 0."""
     ma = MovingAverage(window_size=1)
     xt = ma.fit_transform(TEST_DATA[0])
-    np.testing.assert_array_almost_equal(xt, TEST_DATA[0], decimal=2)
+    np.testing.assert_array_almost_equal(xt[0], TEST_DATA[0], decimal=2)
 
     ma = MovingAverage(window_size=2)
     for i in range(len(TEST_DATA)):
@@ -30,10 +30,12 @@ def test_window_size_greater_than_zero():
 def test_window_size_equal_zero():
     """Test window size == 0."""
     with pytest.raises(ValueError):
-        MovingAverage(window_size=0)
+        m = MovingAverage(window_size=0)
+        m.fit_transform(TEST_DATA[0])
 
 
 def test_window_size_less_than_zero():
     """Test window sizes < 0."""
     with pytest.raises(ValueError):
-        MovingAverage(window_size=-1)
+        m = MovingAverage(window_size=-1)
+        m.fit_transform(TEST_DATA[0])

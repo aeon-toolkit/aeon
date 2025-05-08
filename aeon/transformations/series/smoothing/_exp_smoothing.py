@@ -34,11 +34,11 @@ class ExponentialSmoothing(BaseSeriesTransformer):
     >>> X = np.array([-2, -1,  0,  1,  2])
     >>> transformer = ExponentialSmoothing(0.5)
     >>> transformer.fit_transform(X)
-    [[-2.     -1.5    -0.75    0.125   1.0625]]
+    array([[-2.    , -1.5   , -0.75  ,  0.125 ,  1.0625]])
     >>> X = np.array([[1, 2, 3, 4], [10, 9, 8, 7]])
     >>> transformer.fit_transform(X)
-    [[ 1.     1.5    2.25   3.125]
-     [10.     9.5    8.75   7.875]]
+    array([[ 1.   ,  1.5  ,  2.25 ,  3.125],
+           [10.   ,  9.5  ,  8.75 ,  7.875]])
     """
 
     _tags = {

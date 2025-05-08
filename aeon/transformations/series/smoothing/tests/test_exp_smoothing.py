@@ -43,16 +43,19 @@ def test_window_size_matches_alpha(alpha_window):
 def test_alpha_less_than_zero():
     """Test alpha less than zero."""
     with pytest.raises(ValueError):
-        ExponentialSmoothing(-0.5)
+        e = ExponentialSmoothing(-0.5)
+        e.fit_transform(TEST_DATA[0])
 
 
 def test_alpha_greater_than_one():
     """Test alpha greater than one."""
     with pytest.raises(ValueError):
-        ExponentialSmoothing(2.0)
+        e = ExponentialSmoothing(2.0)
+        e.fit_transform(TEST_DATA[0])
 
 
 def test_window_size_than_one():
     """Test window_size < 0."""
     with pytest.raises(ValueError):
-        ExponentialSmoothing(window_size=0)
+        e = ExponentialSmoothing(window_size=0)
+        e.fit_transform(TEST_DATA[0])

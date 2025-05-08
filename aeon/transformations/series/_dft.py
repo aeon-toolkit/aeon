@@ -50,4 +50,4 @@ class DFTSeriesTransformer(DiscreteFourierApproximation):
     (2, 100)
     """
 
-    ...
+    pass

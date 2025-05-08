@@ -53,4 +53,4 @@ class GaussSeriesTransformer(GaussianFilter):
     (2, 100)
     """
 
-    ...
+    pass

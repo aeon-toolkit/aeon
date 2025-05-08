@@ -55,4 +55,4 @@ class SIVSeriesTransformer(RecursiveMedianSieve):
     (2, 100)
     """
 
-    ...
+    pass

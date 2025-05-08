@@ -61,4 +61,4 @@ class ExpSmoothingSeriesTransformer(ExponentialSmoothing):
      [10.     9.5    8.75   7.875]]
     """
 
-    ...
+    pass

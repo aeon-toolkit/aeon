@@ -25,7 +25,7 @@ class MovingAverage(BaseSeriesTransformer):
     >>> X = np.array([-3, -2, -1,  0,  1,  2,  3])
     >>> transformer = MovingAverage(2)
     >>> transformer.fit_transform(X)
-    [[-2.5 -1.5 -0.5  0.5  1.5  2.5]]
+    array([[-2.5, -1.5, -0.5,  0.5,  1.5,  2.5]])
     """
 
     _tags = {

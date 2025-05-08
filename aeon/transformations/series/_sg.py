@@ -53,4 +53,4 @@ class SGSeriesTransformer(SavitzkyGolayFilter):
     (2, 100)
     """
 
-    ...
+    pass
