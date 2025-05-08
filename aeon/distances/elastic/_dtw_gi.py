@@ -70,7 +70,6 @@ def _dtw_gi(
 
     If use_bias is True, also returns:
       - bias
-
     """
     if x.ndim == 1 and y.ndim == 1:
         x_ = x.reshape((1, x.shape[0]))
