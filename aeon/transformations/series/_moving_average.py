@@ -3,21 +3,12 @@
 __maintainer__ = ["Datadote"]
 __all__ = ["MovingAverageSeriesTransformer"]
 
+import numpy as np
 
-from deprecated.sphinx import deprecated
-
-from aeon.transformations.series.smoothing import MovingAverage
+from aeon.transformations.series.base import BaseSeriesTransformer
 
 
-# TODO: Remove in v1.3.0
-@deprecated(
-    version="1.2.0",
-    reason="MovingAverageSeriesTransformer is deprecated and will be removed in "
-    "v1.3.0. Please use MovingAverage from "
-    "transformations.series.smoothing instead.",
-    category=FutureWarning,
-)
-class MovingAverageSeriesTransformer(MovingAverage):
+class MovingAverageSeriesTransformer(BaseSeriesTransformer):
     """Calculate the moving average of an array of numbers.
 
     Slides a window across the input array, and returns the averages for each window.
@@ -50,4 +41,38 @@ class MovingAverageSeriesTransformer(MovingAverage):
     [[-2.5 -1.5 -0.5  0.5  1.5  2.5]]
     """
 
-    ...
+    _tags = {
+        "capability:multivariate": True,
+        "X_inner_type": "np.ndarray",
+        "fit_is_empty": True,
+    }
+
+    def __init__(self, window_size: int = 5) -> None:
+        super().__init__(axis=0)
+        if window_size <= 0:
+            raise ValueError(f"window_size must be > 0, got {window_size}")
+        self.window_size = window_size
+
+    def _transform(self, X, y=None):
+        """Transform X and return a transformed version.
+
+        private _transform containing core logic, called from transform
+
+        Parameters
+        ----------
+        X : np.ndarray
+            Data to be transformed
+        y : ignored argument for interface compatibility
+            Additional data, e.g., labels for transformation
+
+        Returns
+        -------
+        Xt: 2D np.ndarray
+            transformed version of X
+        """
+        csum = np.cumsum(X, axis=0)
+        csum[self.window_size :, :] = (
+            csum[self.window_size :, :] - csum[: -self.window_size, :]
+        )
+        Xt = csum[self.window_size - 1 :, :] / self.window_size
+        return Xt

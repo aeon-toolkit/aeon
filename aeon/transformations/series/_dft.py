@@ -4,20 +4,12 @@ __maintainer__ = ["Cyril-Meyer"]
 __all__ = ["DFTSeriesTransformer"]
 
 
-from deprecated.sphinx import deprecated
+import numpy as np
 
-from aeon.transformations.series.smoothing import DiscreteFourierApproximation
+from aeon.transformations.series.base import BaseSeriesTransformer
 
 
-# TODO: Remove in v1.3.0
-@deprecated(
-    version="1.2.0",
-    reason="DFTSeriesTransformer is deprecated and will be removed in v1.3.0. "
-    "Please use DiscreteFourierApproximation from "
-    "transformations.series.smoothing instead.",
-    category=FutureWarning,
-)
-class DFTSeriesTransformer(DiscreteFourierApproximation):
+class DFTSeriesTransformer(BaseSeriesTransformer):
     """Filter a times series using Discrete Fourier Approximation (DFT).
 
     Parameters
@@ -50,4 +42,47 @@ class DFTSeriesTransformer(DiscreteFourierApproximation):
     (2, 100)
     """
 
-    ...
+    _tags = {
+        "capability:multivariate": True,
+        "X_inner_type": "np.ndarray",
+        "fit_is_empty": True,
+    }
+
+    def __init__(self, r=0.5, sort=False):
+        self.r = r
+        self.sort = sort
+        super().__init__(axis=1)
+
+    def _transform(self, X, y=None):
+        """Transform X and return a transformed version.
+
+        Parameters
+        ----------
+        X : np.ndarray
+            time series in shape (n_channels, n_timepoints)
+        y : ignored argument for interface compatibility
+
+        Returns
+        -------
+        transformed version of X
+        """
+        # Compute DFT
+        dft = np.fft.fft(X)
+
+        # Mask array of terms to keep and number of terms to keep
+        mask = np.zeros_like(dft, dtype=bool)
+        keep = max(int(self.r * dft.shape[1]), 1)
+
+        # If sort is set, sort the indices by the decreasing dft amplitude
+        if self.sort:
+            sorted_indices = np.argsort(np.abs(dft))[:, ::-1]
+            for i in range(dft.shape[0]):
+                mask[i, sorted_indices[i, 0:keep]] = True
+        # Else, keep the first terms
+        else:
+            mask[:, 0:keep] = True
+
+        # Invert DFT with masked terms
+        X_ = np.fft.ifft(dft * mask).real
+
+        return X_

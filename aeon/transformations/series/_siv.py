@@ -4,20 +4,13 @@ __maintainer__ = ["Cyril-Meyer"]
 __all__ = ["SIVSeriesTransformer"]
 
 
-from deprecated.sphinx import deprecated
+import numpy as np
+from scipy.ndimage import median_filter
 
-from aeon.transformations.series.smoothing import RecursiveMedianSieve
+from aeon.transformations.series.base import BaseSeriesTransformer
 
 
-# TODO: Remove in v1.3.0
-@deprecated(
-    version="1.2.0",
-    reason="SIVSeriesTransformer is deprecated and will be removed in v1.3.0. "
-    "Please use RecursiveMedianSieve from "
-    "transformations.series.smoothing instead.",
-    category=FutureWarning,
-)
-class SIVSeriesTransformer(RecursiveMedianSieve):
+class SIVSeriesTransformer(BaseSeriesTransformer):
     """Filter a times series using Recursive Median Sieve (SIV).
 
     Parameters
@@ -55,4 +48,40 @@ class SIVSeriesTransformer(RecursiveMedianSieve):
     (2, 100)
     """
 
-    ...
+    _tags = {
+        "capability:multivariate": True,
+        "X_inner_type": "np.ndarray",
+        "fit_is_empty": True,
+    }
+
+    def __init__(self, window_length=None):
+        self.window_length = window_length
+        super().__init__(axis=1)
+
+    def _transform(self, X, y=None):
+        """Transform X and return a transformed version.
+
+        Parameters
+        ----------
+        X : np.ndarray
+            time series in shape (n_channels, n_timepoints)
+        y : ignored argument for interface compatibility
+
+        Returns
+        -------
+        transformed version of X
+        """
+        window_length = self.window_length
+        if window_length is None:
+            window_length = [3, 5, 7]
+        if not isinstance(window_length, list):
+            window_length = [window_length]
+
+        # Compute SIV
+        X_ = X
+
+        for w in window_length:
+            footprint = np.ones((1, w))
+            X_ = median_filter(X_, footprint=footprint)
+
+        return X_
