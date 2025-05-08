@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from aeon.benchmarking.metrics.anomaly_detection.range_metrics import (
+from aeon.benchmarking.metrics.anomaly_detection._range_ts_metrics import (
     ts_fscore,
     ts_precision,
     ts_recall,

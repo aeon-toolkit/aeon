@@ -14,7 +14,7 @@ from aeon.benchmarking.metrics.anomaly_detection import (
     roc_auc_score,
     rp_rr_auc_score,
 )
-from aeon.benchmarking.metrics.anomaly_detection.range_metrics import (
+from aeon.benchmarking.metrics.anomaly_detection._range_metrics import (
     range_f_score,
     range_precision,
     range_recall,
@@ -42,13 +42,6 @@ binary_metrics = [
 
 if _check_soft_dependencies("prts", severity="none"):
     pr_metrics.append(rp_rr_auc_score)
-    # range_metrics.extend(
-    #     [
-    #         range_recall,
-    #         range_precision,
-    #         range_f_score,
-    #     ]
-    # )
     other_metrics.extend(
         [
             f_score_at_k_ranges,
@@ -61,7 +54,6 @@ if _check_soft_dependencies("prts", severity="none"):
             f_score_at_k_ranges,
         ]
     )
-    # binary_metrics = [range_recall, range_precision, range_f_score]
 
 metrics = [*pr_metrics, *range_metrics, *other_metrics]
 
