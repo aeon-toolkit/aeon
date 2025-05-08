@@ -34,7 +34,6 @@ Distance-based
     MERLIN
     OneClassSVM
     STOMP
-    ROCKAD
 
 Distribution-based
 -----------------
@@ -76,8 +75,7 @@ Reconstruction-based
 
 The algorithms for this family are not implemented yet.
 
-
-Whole-series
+Whole-Series
 ------------
 
 .. currentmodule:: aeon.anomaly_detection.whole_series
@@ -86,9 +84,7 @@ Whole-series
     :toctree: auto_generated/
     :template: class.rst
 
-    BaseCollectionAnomalyDetector
-    ClassificationAdapter
-    OutlierDetectionAdapter
+    ROCKAD
 
 Base
 ----

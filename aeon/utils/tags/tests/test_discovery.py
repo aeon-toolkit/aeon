@@ -2,7 +2,7 @@
 
 import pytest
 
-from aeon.anomaly_detection.series.base import BaseSeriesAnomalyDetector
+from aeon.anomaly_detection.base import BaseAnomalyDetector
 from aeon.classification import BaseClassifier
 from aeon.testing.mock_estimators import MockClassifier
 from aeon.testing.mock_estimators._mock_anomaly_detectors import MockAnomalyDetector
@@ -42,8 +42,8 @@ def test_all_tags_for_estimator_anomaly_detection():
     assert "capability:contractable" not in tags
 
     assert tags == all_tags_for_estimator(MockAnomalyDetector)
-    assert tags == all_tags_for_estimator(BaseSeriesAnomalyDetector)
-    assert tags == all_tags_for_estimator("series-anomaly-detector")
+    assert tags == all_tags_for_estimator(BaseAnomalyDetector)
+    assert tags == all_tags_for_estimator("anomaly-detector")
 
     tag_names = all_tags_for_estimator(MockAnomalyDetector(), names_only=True)
     assert isinstance(tag_names, list)

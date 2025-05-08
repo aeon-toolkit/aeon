@@ -34,7 +34,7 @@ def test_get_identifier():
     assert (
         get_identifier(MockAnomalyDetector)
         == get_identifier(MockAnomalyDetector())
-        == "series-anomaly-detector"
+        == "anomaly-detector"
     )
     assert (
         get_identifier(MockSeriesTransformer)

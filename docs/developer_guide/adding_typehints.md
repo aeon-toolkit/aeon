@@ -34,23 +34,17 @@ information. The `pyod` `BaseDetector` class can now be used in type hints with
 these additions.
 
  ```python
-"""Adapter for PyOD models"""
-
 from __future__ import annotations
 
-__maintainer__ = []
-__all__ = ["PyODAdapter"]
-
-from aeon.anomaly_detection.series.base import BaseSeriesAnomalyDetector
+from aeon.anomaly_detection.base import BaseAnomalyDetector
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from pyod.models.base import BaseDetector
 
-
-class PyODAdapter(BaseSeriesAnomalyDetector):
+class PyODAdapter(BaseAnomalyDetector):
     def __init__(
-            self, pyod_model: BaseDetector, window_size: int = 10, stride: int = 1
+        self, pyod_model: BaseDetector, window_size: int = 10, stride: int = 1
     ):
         self.pyod_model = pyod_model
         self.window_size = window_size

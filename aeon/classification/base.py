@@ -52,6 +52,8 @@ class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
         Number of classes (length of ``classes_``).
     _class_dictionary : dict
         Mapping of classes_ onto integers ``0 ... n_classes_-1``.
+    _estimator_type : string
+        The type of estimator. Required by some ``sklearn`` tools, set to "classifier".
     """
 
     _tags = {

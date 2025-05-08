@@ -3,3 +3,5 @@
 __all__ = [
     "BaseAnomalyDetector",
 ]
+
+from aeon.anomaly_detection.base import BaseAnomalyDetector
