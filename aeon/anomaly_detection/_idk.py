@@ -201,18 +201,18 @@ class IDK2(BaseAnomalyDetector):
                 reduction=np.nanmean,
             )
             return reversed_output
-        elif self.width >1:
-            self.original_output_ =  self._idk_fixed_window(X, rng)
+        elif self.width > 1:
+            self.original_output_ = self._idk_fixed_window(X, rng)
             padding_length = len(X) % self.width
             reversed_output = reverse_windowing(
                 y=self.original_output_,
                 window_size=self.width,
                 stride=self.width,
                 reduction=np.nanmean,
-                padding_length = padding_length
+                padding_length=padding_length,
             )
             return reversed_output
-        else :
+        else:
             return self._idk_fixed_window(X, rng)
 
     @classmethod
