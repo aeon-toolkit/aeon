@@ -118,6 +118,19 @@ Early TSC
 
 :::
 
+:::
+
+:::{grid-item-card}
+:img-top: examples/classification/img/rotation_forest.png
+:class-img-top: aeon-card-image-m
+:link: /examples/classification/rotation_forest.ipynb
+:link-type: ref
+:text-align: center
+
+Rotation Forest Classifier
+
+:::
+
 ::::
 
 ## Regression
