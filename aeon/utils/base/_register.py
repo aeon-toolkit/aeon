@@ -15,8 +15,9 @@ __all__ = [
     "VALID_ESTIMATOR_BASES",
 ]
 
-
 from aeon.anomaly_detection.base import BaseAnomalyDetector
+from aeon.anomaly_detection.collection.base import BaseCollectionAnomalyDetector
+from aeon.anomaly_detection.series.base import BaseSeriesAnomalyDetector
 from aeon.base import BaseAeonEstimator, BaseCollectionEstimator, BaseSeriesEstimator
 from aeon.classification.base import BaseClassifier
 from aeon.classification.early_classification import BaseEarlyClassifier
@@ -32,26 +33,34 @@ from aeon.transformations.series import BaseSeriesTransformer
 # all base classes
 BASE_CLASS_REGISTER = {
     # abstract - no estimator directly inherits from these
-    "collection-estimator": BaseCollectionEstimator,
     "estimator": BaseAeonEstimator,
+    "collection-estimator": BaseCollectionEstimator,
     "series-estimator": BaseSeriesEstimator,
     "transformer": BaseTransformer,
-    # estimator types
     "anomaly-detector": BaseAnomalyDetector,
+    # estimator types
+    "collection-anomaly-detector": BaseCollectionAnomalyDetector,
     "collection-transformer": BaseCollectionTransformer,
     "classifier": BaseClassifier,
     "clusterer": BaseClusterer,
     "early_classifier": BaseEarlyClassifier,
+    "forecaster": BaseForecaster,
     "regressor": BaseRegressor,
     "segmenter": BaseSegmenter,
     "similarity_searcher": BaseSimilaritySearch,
+    "series-anomaly-detector": BaseSeriesAnomalyDetector,
     "series-transformer": BaseSeriesTransformer,
-    "forecaster": BaseForecaster,
 }
 
 # base classes which are valid for estimator to directly inherit from
 VALID_ESTIMATOR_BASES = {
     k: BASE_CLASS_REGISTER[k]
     for k in BASE_CLASS_REGISTER.keys()
-    - {"estimator", "collection-estimator", "series-estimator", "transformer"}
+    - {
+        "estimator",
+        "collection-estimator",
+        "series-estimator",
+        "transformer",
+        "anomaly-detector",
+    }
 }

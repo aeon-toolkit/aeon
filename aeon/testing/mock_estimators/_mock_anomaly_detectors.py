@@ -10,10 +10,10 @@ __all__ = [
 
 import numpy as np
 
-from aeon.anomaly_detection.base import BaseAnomalyDetector
+from aeon.anomaly_detection.series.base import BaseSeriesAnomalyDetector
 
 
-class MockAnomalyDetector(BaseAnomalyDetector):
+class MockAnomalyDetector(BaseSeriesAnomalyDetector):
     """Mock anomaly detector."""
 
     _tags = {
