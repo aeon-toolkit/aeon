@@ -18,10 +18,11 @@ class IDK2(BaseAnomalyDetector):
     Distributional Kernel (IDK) approach as detailed in Kai Ming Ting, Bi-Cun Xu,
     Takashi Washio, Zhi-Hua Zhou (2020) [1]_.
 
-    This Anomaly Detector assumes the input time series is stationary, so trends should be
-    removed prior to detection. IDK² is recommended for periodic time series,
-    while s-IDK² is better suited for non-periodic cases.The attribute `original_output_`
-    stores the raw anomaly scores before reverse-windowing is applied when width > 1 only.
+    This Anomaly Detector assumes the input time series is stationary,
+    so trends should beremoved prior to detection. IDK² is recommended
+    for periodic time series,while s-IDK² is better suited for non-periodic
+    cases.The attribute `original_output_` stores the raw anomaly scores before
+    reverse-windowing is applied when width > 1 only.
 
     Parameters
     ----------
@@ -41,13 +42,13 @@ class IDK2(BaseAnomalyDetector):
          The size of the sliding or fixed-width window used for anomaly detection.
          For fixed-width processing, this defines the length of each segment analyzed.
          In sliding window mode, it specifies the length of the window moving
-         across the data. Width (referred to as `m` in the original paper) should be equal
-         to or greater than the period of the time series.
+         across the data. Width (referred to as `m` in the original paper)
+         should be equal to or greater than the period of the time series.
     t : int, default=100
          The number of iterations (time steps) for random sampling to
          construct the feature maps. Each iteration generates a set of random samples,
-         which contribute to the feature map matrix. Larger values improve the robustness
-         of the feature maps but increase the runtime.
+         which contribute to the feature map matrix. Larger values improve the
+         robustness of the feature maps but increase the runtime.
     sliding : bool, default=False
          Determines whether a sliding window approach is used for anomaly detection.
          If True, the model computes scores for overlapping windows across the
