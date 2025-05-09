@@ -18,14 +18,19 @@ class IDK2(BaseAnomalyDetector):
     Distributional Kernel (IDK) approach as detailed in Kai Ming Ting, Bi-Cun Xu,
     Takashi Washio, Zhi-Hua Zhou (2020) [1]_.
 
+    This Anomaly Detector assumes the input time series is stationary, so trends should be
+    removed prior to detection. IDK² is recommended for periodic time series,
+    while s-IDK² is better suited for non-periodic cases.The attribute `original_output_`
+    stores the raw anomaly scores before reverse-windowing is applied when width > 1 only.
+
     Parameters
     ----------
     psi1 : int, default=8
          The number of samples randomly selected in each iteration to construct the
          feature map matrix during the first stage. This parameter determines the
          granularity of the first-stage feature representation. Higher values allow
-         the model to capture more detailed data characteristics but
-         increase computational complexity.
+         the model to capture more detailed data characteristics but increase
+         computational complexity.
     psi2 : int, default=2
          The number of samples randomly selected in each iteration to construct
          the feature map matrix during the second stage. This parameter
@@ -36,24 +41,19 @@ class IDK2(BaseAnomalyDetector):
          The size of the sliding or fixed-width window used for anomaly detection.
          For fixed-width processing, this defines the length of each segment analyzed.
          In sliding window mode, it specifies the length of the window moving
-         across the data.
-         Smaller values lead to more localized anomaly detection, while
-         larger values capture
-         broader trends.
+         across the data. Width (referred to as `m` in the original paper) should be equal
+         to or greater than the period of the time series.
     t : int, default=100
          The number of iterations (time steps) for random sampling to
-         construct the feature
-         maps. Each iteration generates a set of random samples, which contribute to the
-         feature map matrix. Larger values improve the robustness of the feature maps
-         but increase the runtime.
+         construct the feature maps. Each iteration generates a set of random samples,
+         which contribute to the feature map matrix. Larger values improve the robustness
+         of the feature maps but increase the runtime.
     sliding : bool, default=False
          Determines whether a sliding window approach is used for anomaly detection.
          If True, the model computes scores for overlapping windows across the
-         time series,
-         providing more detailed anomaly scores at each step. If False, the
-         model processes
-         the data in fixed-width segments, offering faster computation at the
-         cost of granularity.
+         time series, providing more detailed anomaly scores at each step.
+         If False, the model processes the data in fixed-width segments,
+         offering faster computation at the cost of granularity.
     random_state : int, np.random.RandomState instance or None, default=None
         Determines random number for generation of random sample.
         If `int`, random_state is the seed used by the random number generator;
@@ -201,7 +201,18 @@ class IDK2(BaseAnomalyDetector):
                 reduction=np.nanmean,
             )
             return reversed_output
-        else:
+        elif self.width >1:
+            self.original_output_ =  self._idk_fixed_window(X, rng)
+            padding_length = len(X) % self.width
+            reversed_output = reverse_windowing(
+                y=self.original_output_,
+                window_size=self.width,
+                stride=self.width,
+                reduction=np.nanmean,
+                padding_length = padding_length
+            )
+            return reversed_output
+        else :
             return self._idk_fixed_window(X, rng)
 
     @classmethod
