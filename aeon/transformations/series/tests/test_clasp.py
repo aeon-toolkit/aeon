@@ -15,5 +15,3 @@ def test_clasp():
         m = len(series) - clasp.window_length + 1
         assert np.float64 == profile.dtype
         assert m == len(profile)
-
-        # print(f"Input {series.dtype} Output {profile.dtype} {m==len(profile)}")
