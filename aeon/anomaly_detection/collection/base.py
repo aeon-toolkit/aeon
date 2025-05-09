@@ -55,11 +55,6 @@ class BaseCollectionAnomalyDetector(BaseCollectionEstimator, BaseAnomalyDetector
         Dictionary containing dynamic tag values which have been set at runtime.
     """
 
-    _tags = {
-        "fit_is_empty": False,
-        "requires_y": False,
-    }
-
     def __init__(self):
         super().__init__()
 

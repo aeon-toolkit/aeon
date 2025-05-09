@@ -1,6 +1,7 @@
 """Adapter to use outlier detection algorithms for collection anomaly detection."""
 
 __maintainer__ = []
+__all__ = ["OutlierDetectionAdapter"]
 
 from sklearn.base import OutlierMixin
 from sklearn.ensemble import IsolationForest
@@ -29,6 +30,7 @@ class OutlierDetectionAdapter(BaseCollectionAnomalyDetector):
 
     _tags = {
         "X_inner_type": "numpy2D",
+        "fit_is_empty": False,
     }
 
     def __init__(self, detector, random_state=None):

@@ -76,12 +76,6 @@ class BaseSeriesAnomalyDetector(BaseSeriesEstimator, BaseAnomalyDetector):
         Setting this class variable will convert the input data to the chosen axis.
     """
 
-    _tags = {
-        "X_inner_type": "np.ndarray",  # One of VALID_SERIES_INNER_TYPES
-        "fit_is_empty": True,
-        "requires_y": False,
-    }
-
     def __init__(self, axis):
         super().__init__(axis=axis)
 

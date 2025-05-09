@@ -1,7 +1,7 @@
 """Adapter to use classification algorithms for collection anomaly detection."""
 
 __maintainer__ = []
-
+__all__ = ["ClassificationAdapter"]
 
 from sklearn.base import ClassifierMixin
 from sklearn.ensemble import RandomForestClassifier
@@ -30,7 +30,7 @@ class ClassificationAdapter(BaseCollectionAnomalyDetector):
     """
 
     _tags = {
-        "X_inner_type": "numpy2D",
+        "fit_is_empty": False,
         "requires_y": True,
     }
 

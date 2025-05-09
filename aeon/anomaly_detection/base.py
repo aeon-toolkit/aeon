@@ -11,10 +11,11 @@ from aeon.base import BaseAeonEstimator
 
 
 class BaseAnomalyDetector(BaseAeonEstimator):
-    """todo base class docs."""
+    """Anomaly detection base class."""
 
     _tags = {
-        # todo
+        "fit_is_empty": True,
+        "requires_y": False,
     }
 
     def __init__(self):
@@ -22,29 +23,23 @@ class BaseAnomalyDetector(BaseAeonEstimator):
 
     @abstractmethod
     def fit(self, X, y=None):
-        """Fit time series anomaly detector to X.
+        """Fit anomaly detector to X, optionally to y.
 
-        If the tag ``fit_is_empty`` is true, this just sets the ``is_fitted`` tag to
-        true. Otherwise, it checks ``self`` can handle ``X``, formats ``X`` into
-        the structure required by ``self`` then passes ``X`` (and possibly ``y``) to
-        ``_fit``.
+        State change:
+            Changes state to "fitted".
+
+        Writes to self:
+        _is_fitted : flag is set to True.
 
         Parameters
         ----------
-        X : one of aeon.base._base_series.VALID_SERIES_INPUT_TYPES
-            The time series to fit the model to.
-            A valid aeon time series data structure. See
-            aeon.base._base_series.VALID_SERIES_INPUT_TYPES for aeon supported types.
-        y : one of aeon.base._base_series.VALID_SERIES_INPUT_TYPES, default=None
-            The target values for the time series.
-            A valid aeon time series data structure. See
-            aeon.base._base_series.VALID_SERIES_INPUT_TYPES for aeon supported types.
-        axis : int
-            The time point axis of the input series if it is 2D. If ``axis==0``, it is
-            assumed each column is a time series and each row is a time point. i.e. the
-            shape of the data is ``(n_timepoints, n_channels)``. ``axis==1`` indicates
-            the time series are in rows, i.e. the shape of the data is
-            ``(n_channels, n_timepoints)``.
+        X : Series or Collection, any supported type
+            Data to fit anomaly detector to, of python type as follows:
+                Series: 2D np.ndarray shape (n_channels, n_timepoints)
+                Collection: 3D np.ndarray shape (n_cases, n_channels, n_timepoints)
+                or list of 2D np.ndarray, case i has shape (n_channels, n_timepoints_i)
+        y : Series, default=None
+            Additional data, e.g., labels for anomaly detector.
 
         Returns
         -------
@@ -59,16 +54,11 @@ class BaseAnomalyDetector(BaseAeonEstimator):
 
         Parameters
         ----------
-        X : one of aeon.base._base_series.VALID_SERIES_INPUT_TYPES
-            The time series to fit the model to.
-            A valid aeon time series data structure. See
-            aeon.base._base_series.VALID_SERIES_INPUT_TYPES for aeon supported types.
-        axis : int, default=1
-            The time point axis of the input series if it is 2D. If ``axis==0``, it is
-            assumed each column is a time series and each row is a time point. i.e. the
-            shape of the data is ``(n_timepoints, n_channels)``. ``axis==1`` indicates
-            the time series are in rows, i.e. the shape of the data is
-            ``(n_channels, n_timepoints)``.
+        X : Series or Collection, any supported type
+            Data to fit anomaly detector to, of python type as follows:
+                Series: 2D np.ndarray shape (n_channels, n_timepoints)
+                Collection: 3D np.ndarray shape (n_cases, n_channels, n_timepoints)
+                or list of 2D np.ndarray, case i has shape (n_channels, n_timepoints_i)
 
         Returns
         -------
@@ -84,20 +74,11 @@ class BaseAnomalyDetector(BaseAeonEstimator):
 
         Parameters
         ----------
-        X : one of aeon.base._base_series.VALID_SERIES_INPUT_TYPES
-            The time series to fit the model to.
-            A valid aeon time series data structure. See
-            aeon.base._base_series.VALID_INPUT_TYPES for aeon supported types.
-        y : one of aeon.base._base_series.VALID_SERIES_INPUT_TYPES, default=None
-            The target values for the time series.
-            A valid aeon time series data structure. See
-            aeon.base._base_series.VALID_SERIES_INPUT_TYPES for aeon supported types.
-        axis : int, default=1
-            The time point axis of the input series if it is 2D. If ``axis==0``, it is
-            assumed each column is a time series and each row is a time point. i.e. the
-            shape of the data is ``(n_timepoints, n_channels)``. ``axis==1`` indicates
-            the time series are in rows, i.e. the shape of the data is
-            ``(n_channels, n_timepoints)``.
+        X : Series or Collection, any supported type
+            Data to fit anomaly detector to, of python type as follows:
+                Series: 2D np.ndarray shape (n_channels, n_timepoints)
+                Collection: 3D np.ndarray shape (n_cases, n_channels, n_timepoints)
+                or list of 2D np.ndarray, case i has shape (n_channels, n_timepoints_i)
 
         Returns
         -------
