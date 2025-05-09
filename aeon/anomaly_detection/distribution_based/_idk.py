@@ -204,8 +204,10 @@ class IDK2(BaseAnomalyDetector):
             return reversed_output
         elif self.width > 1:
             self.original_output_ = self._idk_fixed_window(X, rng)
-            final_output = np.repeat(self.original_output_,self.width)
-            final_output = np.pad(final_output, (0, len(X) % self.width), mode='constant')
+            final_output = np.repeat(self.original_output_, self.width)
+            final_output = np.pad(
+                final_output, (0, len(X) % self.width), mode="constant"
+            )
             return final_output
         else:
             return self._idk_fixed_window(X, rng)
