@@ -20,7 +20,7 @@ def test_idk_univariate_basic():
     assert 50 <= np.argmax(pred) <= 58
 
 def test_idk_univariate_basic_greater_width():
-    """Test IDK on basic univariate data with width greater than 1"""
+    """Test IDK on basic univariate data with width greater than 1."""
     rng = np.random.default_rng(seed=2)
     series = rng.normal(size=(100,))
     series[50:58] -= 5
