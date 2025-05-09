@@ -19,6 +19,7 @@ def test_idk_univariate_basic():
     assert pred.dtype == np.float64
     assert 50 <= np.argmax(pred) <= 58
 
+
 def test_idk_univariate_basic_greater_width():
     """Test IDK on basic univariate data with width greater than 1"""
     rng = np.random.default_rng(seed=2)
@@ -32,6 +33,7 @@ def test_idk_univariate_basic_greater_width():
     assert pred.shape == (100,)
     assert pred.dtype == np.float64
     assert 77 <= np.argmax(pred) <= 80
+
 
 def test_idk_univariate_sliding():
     """Test IDK with sliding window on univariate data."""
