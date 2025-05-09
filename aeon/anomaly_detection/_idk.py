@@ -19,7 +19,7 @@ class IDK2(BaseAnomalyDetector):
     Takashi Washio, Zhi-Hua Zhou (2020) [1]_.
 
     This Anomaly Detector assumes the input time series is stationary,
-    so trends should beremoved prior to detection. IDK² is recommended
+    so trends should be removed prior to detection. IDK² is recommended
     for periodic time series,while s-IDK² is better suited for non-periodic
     cases.The attribute `original_output_` stores the raw anomaly scores before
     reverse-windowing is applied when width > 1 only.
