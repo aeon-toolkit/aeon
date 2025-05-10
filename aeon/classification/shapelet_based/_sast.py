@@ -83,15 +83,15 @@ class SASTClassifier(BaseClassifier):
         random_state: Optional[int] = None,
         classifier=None,
         n_jobs: int = 1,
-        seed: int = None,
+        # seed: Optional[int] = None,
     ) -> None:
         super().__init__()
         self.length_list = length_list
         self.stride = stride
         self.nb_inst_per_class = nb_inst_per_class
         self.n_jobs = n_jobs
-        if seed is not None:
-            random_state = seed
+        # if seed is not None:
+        #     random_state = seed
         self.random_state = random_state
 
         self.classifier = classifier

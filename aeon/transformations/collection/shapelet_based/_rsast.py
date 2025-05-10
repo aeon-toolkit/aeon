@@ -114,14 +114,14 @@ class RSAST(BaseCollectionTransformer):
         nb_inst_per_class: int = 10,
         random_state: Optional[int] = None,
         n_jobs: int = 1,  # Parllel Processing
-        seed=None,
+        # seed=None,
     ):
         self.n_random_points = n_random_points
         self.len_method = len_method
         self.nb_inst_per_class = nb_inst_per_class
         self.n_jobs = n_jobs
-        if seed is not None:
-            random_state = seed
+        # if seed is not None:
+        #     random_state = seed
         self.random_state = random_state
         self._kernels = None  # z-normalized subsequences
         self._cand_length_list = {}

@@ -3,11 +3,9 @@ name: PR pytest
 on:
   push:
     branches:
-      - tdmvdc
       - seed
   pull_request:
     branches:
-      - tdmvdc
       - seed
     paths:
       - "aeon/**"

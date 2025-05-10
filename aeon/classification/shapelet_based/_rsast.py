@@ -80,15 +80,15 @@ class RSASTClassifier(BaseClassifier):
         random_state=None,
         classifier=None,
         n_jobs=1,
-        seed=None,
+        # seed=None,
     ):
         super().__init__()
         self.n_random_points = n_random_points
         self.len_method = len_method
         self.nb_inst_per_class = nb_inst_per_class
         self.n_jobs = n_jobs
-        if seed is not None:
-            random_state = seed
+        # if seed is not None:
+        #     random_state = seed
         self.random_state = random_state
         self.classifier = classifier
 
