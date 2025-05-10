@@ -1,5 +1,7 @@
 """Time Convolutional Neural Network (TimeCNN) regressor."""
 
+from __future__ import annotations
+
 __maintainer__ = ["hadifawaz1999"]
 __all__ = ["TimeCNNRegressor"]
 
@@ -7,11 +9,17 @@ import gc
 import os
 import time
 from copy import deepcopy
+from typing import TYPE_CHECKING, Any
 
+import numpy as np
 from sklearn.utils import check_random_state
 
 from aeon.networks import TimeCNNNetwork
 from aeon.regression.deep_learning.base import BaseDeepRegressor
+
+if TYPE_CHECKING:
+    import tensorflow as tf
+    from tensorflow.keras.callbacks import Callback
 
 
 class TimeCNNRegressor(BaseDeepRegressor):
@@ -120,39 +128,39 @@ class TimeCNNRegressor(BaseDeepRegressor):
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
     ...                              return_y=True, regression_target=True,
     ...                              random_state=0)
-    >>> rgs = TimeCNNRegressor(n_epochs=20, bacth_size=4) # doctest: +SKIP
+    >>> rgs = TimeCNNRegressor(n_epochs=20, batch_size=4) # doctest: +SKIP
     >>> rgs.fit(X, y) # doctest: +SKIP
     TimeCNNRegressor(...)
     """
 
     def __init__(
         self,
-        n_layers=2,
-        kernel_size=7,
-        n_filters=None,
-        avg_pool_size=3,
-        activation="sigmoid",
-        padding="valid",
-        strides=1,
-        dilation_rate=1,
-        n_epochs=2000,
-        batch_size=16,
-        callbacks=None,
-        file_path="./",
-        save_best_model=False,
-        save_last_model=False,
-        save_init_model=False,
-        best_file_name="best_model",
-        last_file_name="last_model",
-        init_file_name="init_model",
-        verbose=False,
-        loss="mean_squared_error",
-        output_activation="linear",
-        metrics="mean_squared_error",
-        random_state=None,
-        use_bias=True,
-        optimizer=None,
-    ):
+        n_layers: int = 2,
+        kernel_size: int | list[int] = 7,
+        n_filters: int | list[int] | None = None,
+        avg_pool_size: int | list[int] = 3,
+        activation: str | list[str] = "sigmoid",
+        padding: str | list[str] = "valid",
+        strides: int | list[int] = 1,
+        dilation_rate: int | list[int] = 1,
+        n_epochs: int = 2000,
+        batch_size: int = 16,
+        callbacks: Callback | list[Callback] | None = None,
+        file_path: str = "./",
+        save_best_model: bool = False,
+        save_last_model: bool = False,
+        save_init_model: bool = False,
+        best_file_name: str = "best_model",
+        last_file_name: str = "last_model",
+        init_file_name: str = "init_model",
+        verbose: bool = False,
+        loss: str = "mean_squared_error",
+        output_activation: str = "linear",
+        metrics: str | list[str] = "mean_squared_error",
+        random_state: int | np.random.RandomState | None = None,
+        use_bias: bool | list[bool] = True,
+        optimizer: tf.keras.optimizers.Optimizer | None = None,
+    ) -> None:
         self.n_layers = n_layers
         self.avg_pool_size = avg_pool_size
         self.padding = padding
@@ -196,7 +204,9 @@ class TimeCNNRegressor(BaseDeepRegressor):
             use_bias=self.use_bias,
         )
 
-    def build_model(self, input_shape, **kwargs):
+    def build_model(
+        self, input_shape: tuple[int, ...], **kwargs: Any
+    ) -> tf.keras.Model:
         """Construct a compiled, un-trained, keras model that is ready for training.
 
         In aeon, time series are stored in numpy arrays of shape (d,m), where d
@@ -213,7 +223,6 @@ class TimeCNNRegressor(BaseDeepRegressor):
         -------
         output : a compiled Keras Model
         """
-        import numpy as np
         import tensorflow as tf
         from tensorflow import keras
 
@@ -239,7 +248,7 @@ class TimeCNNRegressor(BaseDeepRegressor):
         )
         return model
 
-    def _fit(self, X, y):
+    def _fit(self, X: np.ndarray, y: np.ndarray) -> TimeCNNRegressor:
         """Fit the regressor on the training set (X, y).
 
         Parameters
@@ -316,7 +325,9 @@ class TimeCNNRegressor(BaseDeepRegressor):
         return self
 
     @classmethod
-    def _get_test_params(cls, parameter_set="default"):
+    def _get_test_params(
+        cls, parameter_set: str = "default"
+    ) -> dict[str, Any] | list[dict[str, Any]]:
         """Return testing parameter settings for the estimator.
 
         Parameters
