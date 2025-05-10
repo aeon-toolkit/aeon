@@ -3,10 +3,10 @@ name: PR pytest
 on:
   push:
     branches:
-      - main
+      - hydra
   pull_request:
     branches:
-      - main
+      - hydra
     paths:
       - "aeon/**"
       - ".github/workflows/**"
