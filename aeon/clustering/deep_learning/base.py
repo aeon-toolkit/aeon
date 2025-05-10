@@ -8,7 +8,6 @@ from copy import deepcopy
 from aeon.base._base import _clone_estimator
 from aeon.clustering._k_means import TimeSeriesKMeans
 from aeon.clustering.base import BaseClusterer
-from aeon.utils.tags.enum_tags import AlgorithmType
 
 
 class BaseDeepClusterer(BaseClusterer):
@@ -30,9 +29,9 @@ class BaseDeepClusterer(BaseClusterer):
     """
 
     _tags = {
-        "X_inner_type": AlgorithmType.NUMPY3D.value,
+        "X_inner_type": "numpy3D",
         "capability:multivariate": True,
-        "algorithm_type": AlgorithmType.DEEPLEARNING.value,
+        "algorithm_type": "deeplearning",
         "non_deterministic": True,
         "cant_pickle": True,
         "python_dependencies": "tensorflow",

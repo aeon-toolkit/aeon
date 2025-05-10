@@ -2,8 +2,6 @@
 
 from typing import Optional
 
-from aeon.utils.tags.enum_tags import AlgorithmType
-
 __maintainer__ = []
 
 import warnings
@@ -148,7 +146,7 @@ class TimeSeriesKMedoids(BaseClusterer):
 
     _tags = {
         "capability:multivariate": True,
-        "algorithm_type": AlgorithmType.DISTANCE.value,
+        "algorithm_type": "distance",
     }
 
     def __init__(
