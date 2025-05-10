@@ -123,7 +123,7 @@ class BaseSeriesEstimator(BaseAeonEstimator):
             self.metadata_ = meta
         return self._convert_X(X, axis)
 
-    def _check_X(self, X, axis):
+    def _check_X(self, X, axis: int = 0):
         """Check input X is valid.
 
         Check if the input data is a compatible type, and that this estimator is
