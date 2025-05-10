@@ -69,6 +69,7 @@ Outlier-Detection
     IsolationForest
     PyODAdapter
     STRAY
+    EIF
 
 Reconstruction-based
 --------------------
