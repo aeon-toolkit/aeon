@@ -69,6 +69,7 @@ Outlier-Detection
     IsolationForest
     PyODAdapter
     STRAY
+    IDK2
 
 Reconstruction-based
 --------------------
