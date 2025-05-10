@@ -3,10 +3,12 @@ name: PR pytest
 on:
   push:
     branches:
-      - main
+      - tdmvdc
+      - seed
   pull_request:
     branches:
-      - main
+      - tdmvdc
+      - seed
     paths:
       - "aeon/**"
       - ".github/workflows/**"
