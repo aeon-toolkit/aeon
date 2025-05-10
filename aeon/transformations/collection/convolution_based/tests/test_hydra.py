@@ -1,8 +1,15 @@
 """Hydra tests."""
 
 import numpy as np
+import pytest
 
 from aeon.transformations.collection.convolution_based._hydra import HydraTransformer
+from aeon.utils.validation._dependencies import _check_soft_dependencies
+
+pytest.mark.skipif(
+    not _check_soft_dependencies("torch", severity="none"),
+    reason="Skip test if torch not available",
+)
 
 
 def test_hydra_output_types():
@@ -44,6 +51,12 @@ def test_hydra_output_types():
     assert numpy_output.shape[1] == df_output.shape[1]
 
 
+pytest.mark.skipif(
+    not _check_soft_dependencies("torch", severity="none"),
+    reason="Skip test if torch not available",
+)
+
+
 def test_hydra_short_series():
     """Test HydraTransformer with very short time series."""
     # Create a dataset with short time series (less than kernel length)
@@ -56,6 +69,12 @@ def test_hydra_short_series():
 
     # Check that output has the expected number of samples
     assert output.shape[0] == 10
+
+
+pytest.mark.skipif(
+    not _check_soft_dependencies("torch", severity="none"),
+    reason="Skip test if torch not available",
+)
 
 
 def test_hydra_parameter_values():
@@ -74,6 +93,12 @@ def test_hydra_parameter_values():
     # So expected features would be approximately 2 * 2 * 16 * 4 = 256
     # But this is approximate since dilations depend on series length
     assert output.shape[1] > 0
+
+
+pytest.mark.skipif(
+    not _check_soft_dependencies("torch", severity="none"),
+    reason="Skip test if torch not available",
+)
 
 
 def test_hydra_univariate():
