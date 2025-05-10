@@ -6,12 +6,11 @@ import pytest
 from aeon.transformations.collection.convolution_based._hydra import HydraTransformer
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
-pytest.mark.skipif(
+
+@pytest.mark.skipif(
     not _check_soft_dependencies("torch", severity="none"),
     reason="Skip test if torch not available",
 )
-
-
 def test_hydra_output_types():
     """Test HydraTransformer output_type parameter."""
     # Create a simple dataset
@@ -51,12 +50,10 @@ def test_hydra_output_types():
     assert numpy_output.shape[1] == df_output.shape[1]
 
 
-pytest.mark.skipif(
+@pytest.mark.skipif(
     not _check_soft_dependencies("torch", severity="none"),
     reason="Skip test if torch not available",
 )
-
-
 def test_hydra_short_series():
     """Test HydraTransformer with very short time series."""
     # Create a dataset with short time series (less than kernel length)
@@ -71,12 +68,10 @@ def test_hydra_short_series():
     assert output.shape[0] == 10
 
 
-pytest.mark.skipif(
+@pytest.mark.skipif(
     not _check_soft_dependencies("torch", severity="none"),
     reason="Skip test if torch not available",
 )
-
-
 def test_hydra_parameter_values():
     """Test HydraTransformer with different parameter values."""
     X = np.random.random(size=(10, 3, 20))
@@ -95,12 +90,10 @@ def test_hydra_parameter_values():
     assert output.shape[1] > 0
 
 
-pytest.mark.skipif(
+@pytest.mark.skipif(
     not _check_soft_dependencies("torch", severity="none"),
     reason="Skip test if torch not available",
 )
-
-
 def test_hydra_univariate():
     """Test HydraTransformer with univariate data."""
     # Create a univariate dataset
