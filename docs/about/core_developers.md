@@ -25,14 +25,6 @@
 <p><a href='https://github.com/baraline'>Antoine Guillaume</a></p>
 </div>
 <div>
-<a href='https://github.com/GuzalBulatova'><img src='https://avatars.githubusercontent.com/u/73598322?v=4' class='avatar' /></a> <br />
-<p><a href='https://github.com/GuzalBulatova'>Guzal</a></p>
-</div>
-<div>
-<a href='https://github.com/lmmentel'><img src='https://avatars.githubusercontent.com/u/8989838?v=4' class='avatar' /></a> <br />
-<p><a href='https://github.com/lmmentel'>Lukasz Mentel</a></p>
-</div>
-<div>
 <a href='https://github.com/MatthewMiddlehurst'><img src='https://avatars.githubusercontent.com/u/25731235?v=4' class='avatar' /></a> <br />
 <p><a href='https://github.com/MatthewMiddlehurst'>Matthew Middlehurst</a></p>
 </div>
@@ -51,9 +43,5 @@
 <div>
 <a href='https://github.com/ltsaprounis'><img src='https://avatars.githubusercontent.com/u/64217214?v=4' class='avatar' /></a> <br />
 <p><a href='https://github.com/ltsaprounis'>Leonidas Tsaprounis</a></p>
-</div>
-<div>
-<a href='https://github.com/aiwalter'><img src='https://avatars.githubusercontent.com/u/29627036?v=4' class='avatar' /></a> <br />
-<p><a href='https://github.com/aiwalter'>Martin Walter</a></p>
 </div>
 </div>
