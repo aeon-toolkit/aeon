@@ -180,6 +180,21 @@ Series transforms
     PCASeriesTransformer
     WarpingSeriesTransformer
 
+Smoothing
+~~~~~~~~~
+
+.. currentmodule:: aeon.transformations.series.smoothing
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    DiscreteFourierApproximation
+    ExponentialSmoothing
+    GaussianFilter
+    MovingAverage
+    SavitzkyGolayFilter
+    RecursiveMedianSieve
 
 Base
 ----

@@ -3,14 +3,21 @@
 __maintainer__ = ["Datadote"]
 __all__ = ["ExpSmoothingSeriesTransformer"]
 
-from typing import Union
 
-import numpy as np
+from deprecated.sphinx import deprecated
 
-from aeon.transformations.series.base import BaseSeriesTransformer
+from aeon.transformations.series.smoothing import ExponentialSmoothing
 
 
-class ExpSmoothingSeriesTransformer(BaseSeriesTransformer):
+# TODO: Remove in v1.3.0
+@deprecated(
+    version="1.2.0",
+    reason="ExpSmoothingSeriesTransformer is deprecated and will be removed in v1.3.0. "
+    "Please use ExponentialSmoothing from "
+    "transformations.series.smoothing instead.",
+    category=FutureWarning,
+)
+class ExpSmoothingSeriesTransformer(ExponentialSmoothing):
     """Filter a time series using exponential smoothing.
 
     - Exponential smoothing (EXP) is a generalisaton of moving average smoothing that
@@ -54,42 +61,4 @@ class ExpSmoothingSeriesTransformer(BaseSeriesTransformer):
      [10.     9.5    8.75   7.875]]
     """
 
-    _tags = {
-        "capability:multivariate": True,
-        "X_inner_type": "np.ndarray",
-        "fit_is_empty": True,
-    }
-
-    def __init__(
-        self, alpha: float = 0.2, window_size: Union[int, float, None] = None
-    ) -> None:
-        if not 0 <= alpha <= 1:
-            raise ValueError(f"alpha must be in range [0, 1], got {alpha}")
-        if window_size is not None and window_size <= 0:
-            raise ValueError(f"window_size must be > 0, got {window_size}")
-        super().__init__(axis=1)
-        self.alpha = alpha if window_size is None else 2.0 / (window_size + 1)
-        self.window_size = window_size
-
-    def _transform(self, X, y=None):
-        """Transform X and return a transformed version.
-
-        private _transform containing core logic, called from transform
-
-        Parameters
-        ----------
-        X : np.ndarray
-            Data to be transformed
-        y : ignored argument for interface compatibility
-            Additional data, e.g., labels for transformation
-
-        Returns
-        -------
-        Xt: 2D np.ndarray
-            transformed version of X
-        """
-        Xt = np.zeros_like(X, dtype="float")
-        Xt[:, 0] = X[:, 0]
-        for i in range(1, Xt.shape[1]):
-            Xt[:, i] = self.alpha * X[:, i] + (1 - self.alpha) * Xt[:, i - 1]
-        return Xt
+    pass
