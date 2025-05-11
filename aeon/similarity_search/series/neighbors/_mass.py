@@ -45,7 +45,7 @@ class MassSNN(BaseSeriesSimilaritySearch):
         self,
         length: int,
         normalize: Optional[bool] = False,
-        n_jobs : Optional[int] = -1,
+        n_jobs : Optional[int] = 1,
     ):
         self.n_jobs = n_jobs
         self.normalize = normalize
