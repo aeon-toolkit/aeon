@@ -7,6 +7,8 @@ __all__ = ["MassSNN"]
 
 import numpy as np
 from numba import njit
+from numba import prange
+from numba import set_num_threads, get_num_threads
 
 from aeon.similarity_search.series._base import BaseSeriesSimilaritySearch
 from aeon.similarity_search.series._commons import (
@@ -43,7 +45,9 @@ class MassSNN(BaseSeriesSimilaritySearch):
         self,
         length: int,
         normalize: Optional[bool] = False,
+        n_jobs : Optional[int] = -1,
     ):
+        self.n_jobs = n_jobs
         self.normalize = normalize
         self.length = length
         super().__init__()
@@ -151,6 +155,8 @@ class MassSNN(BaseSeriesSimilaritySearch):
 
         """
         QT = fft_sliding_dot_product(self.X_, X)
+        original_threads = get_num_threads()
+        set_num_threads(self.n_jobs)
 
         if self.normalize:
             distance_profile = _normalized_squared_distance_profile(
@@ -168,6 +174,7 @@ class MassSNN(BaseSeriesSimilaritySearch):
                 X,  # Q
             )
 
+        set_num_threads(original_threads)
         return distance_profile
 
     @classmethod
@@ -197,7 +204,7 @@ class MassSNN(BaseSeriesSimilaritySearch):
         return params
 
 
-@njit(cache=True, fastmath=True)
+@njit(parallel=True,cache=True, fastmath=True)
 def _squared_distance_profile(QT, T, Q):
     """
     Compute squared Euclidean distance profile between query and a time series.
@@ -226,7 +233,7 @@ def _squared_distance_profile(QT, T, Q):
     query_length = Q.shape[1]
     _QT = -2 * QT
     distance_profile = np.zeros(profile_length)
-    for k in range(n_channels):
+    for k in prange(n_channels):
         _sum = 0
         _qsum = 0
         for j in range(query_length):
@@ -241,7 +248,7 @@ def _squared_distance_profile(QT, T, Q):
     return distance_profile
 
 
-@njit(cache=True, fastmath=True)
+@njit(parallel=True,cache=True, fastmath=True)
 def _normalized_squared_distance_profile(
     QT, T_means, T_stds, Q_means, Q_stds, query_length
 ):
@@ -275,7 +282,7 @@ def _normalized_squared_distance_profile(
     n_channels, profile_length = QT.shape
     distance_profile = np.zeros(profile_length)
     Q_is_constant = Q_stds <= AEON_NUMBA_STD_THRESHOLD
-    for i in range(profile_length):
+    for i in prange(profile_length):
         Sub_is_constant = T_stds[:, i] <= AEON_NUMBA_STD_THRESHOLD
         for k in range(n_channels):
             # Two Constant case
