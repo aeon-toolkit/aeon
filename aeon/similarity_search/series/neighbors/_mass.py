@@ -6,9 +6,7 @@ __maintainer__ = ["baraline"]
 __all__ = ["MassSNN"]
 
 import numpy as np
-from numba import njit
-from numba import prange
-from numba import set_num_threads, get_num_threads
+from numba import get_num_threads, njit, prange, set_num_threads
 
 from aeon.similarity_search.series._base import BaseSeriesSimilaritySearch
 from aeon.similarity_search.series._commons import (
@@ -45,7 +43,7 @@ class MassSNN(BaseSeriesSimilaritySearch):
         self,
         length: int,
         normalize: Optional[bool] = False,
-        n_jobs : Optional[int] = 1,
+        n_jobs: Optional[int] = -1,
     ):
         self.n_jobs = n_jobs
         self.normalize = normalize
@@ -204,7 +202,7 @@ class MassSNN(BaseSeriesSimilaritySearch):
         return params
 
 
-@njit(parallel=True,cache=True, fastmath=True)
+@njit(parallel=True, cache=True, fastmath=True)
 def _squared_distance_profile(QT, T, Q):
     """
     Compute squared Euclidean distance profile between query and a time series.
@@ -248,7 +246,7 @@ def _squared_distance_profile(QT, T, Q):
     return distance_profile
 
 
-@njit(parallel=True,cache=True, fastmath=True)
+@njit(parallel=True, cache=True, fastmath=True)
 def _normalized_squared_distance_profile(
     QT, T_means, T_stds, Q_means, Q_stds, query_length
 ):
