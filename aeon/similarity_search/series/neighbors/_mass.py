@@ -38,6 +38,7 @@ class MassSNN(BaseSeriesSimilaritySearch):
     Viswanathan, Chetan Kumar Gupta and Eamonn Keogh (2015), The Fastest Similarity
     Search Algorithm for Time Series Subsequences under Euclidean Distance.
     """
+
     _tags = {
         "capability:multithreading": True,
     }
