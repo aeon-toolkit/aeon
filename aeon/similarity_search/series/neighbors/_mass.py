@@ -236,13 +236,13 @@ def _squared_distance_profile(QT, T, Q):
     for k in prange(n_channels):
         _sum = 0
         _qsum = 0
-        for j in range(query_length):
+        for j in prange(query_length):
             _sum += T[k, j] ** 2
             _qsum += Q[k, j] ** 2
 
         distance_profile += _qsum + _QT[k]
         distance_profile[0] += _sum
-        for i in range(1, profile_length):
+        for i in prange(1, profile_length):
             _sum += T[k, i + (query_length - 1)] ** 2 - T[k, i - 1] ** 2
             distance_profile[i] += _sum
     return distance_profile
@@ -284,7 +284,7 @@ def _normalized_squared_distance_profile(
     Q_is_constant = Q_stds <= AEON_NUMBA_STD_THRESHOLD
     for i in prange(profile_length):
         Sub_is_constant = T_stds[:, i] <= AEON_NUMBA_STD_THRESHOLD
-        for k in range(n_channels):
+        for k in prange(n_channels):
             # Two Constant case
             if Q_is_constant[k] and Sub_is_constant[k]:
                 _val = 0
