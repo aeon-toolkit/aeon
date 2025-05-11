@@ -1,7 +1,6 @@
 """Test for bounding matrix."""
 
 import numpy as np
-import pytest
 
 from aeon.distances import create_bounding_matrix
 
@@ -37,10 +36,34 @@ def test_itakura_parallelogram():
     matrix = create_bounding_matrix(10, 10, itakura_max_slope=0.2)
     assert isinstance(matrix, np.ndarray)
 
-    with pytest.raises(
-        ValueError,
-        match="""Itakura parallelogram does not support unequal length time series.
-Please consider using a full bounding matrix or a sakoe chiba bounding matrix
-instead.""",
-    ):
-        create_bounding_matrix(5, 10, itakura_max_slope=0.2)
+    expected_result_5_7 = np.array(
+        [
+            [True, False, False, False, False, False, False],
+            [False, True, True, True, True, False, False],
+            [False, False, True, True, True, False, False],
+            [False, False, True, True, True, True, False],
+            [False, False, False, False, False, False, True],
+        ]
+    )
+
+    expected_result_7_5 = np.array(
+        [
+            [True, False, False, False, False],
+            [False, True, False, False, False],
+            [False, True, True, True, False],
+            [False, True, True, True, False],
+            [False, True, True, True, False],
+            [False, False, False, True, False],
+            [False, False, False, False, True],
+        ]
+    )
+
+    matrix = create_bounding_matrix(5, 7, itakura_max_slope=0.5)
+    assert isinstance(matrix, np.ndarray)
+    assert matrix.shape == (5, 7)
+    assert np.array_equal(matrix, expected_result_5_7)
+
+    matrix = create_bounding_matrix(7, 5, itakura_max_slope=0.5)
+    assert isinstance(matrix, np.ndarray)
+    assert matrix.shape == (7, 5)
+    assert np.array_equal(matrix, expected_result_7_5)

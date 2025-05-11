@@ -211,9 +211,7 @@ class AEDCNNClusterer(BaseDeepClusterer):
         input_layer = tf.keras.layers.Input(input_shape, name="input layer")
         encoder_output = encoder(input_layer)
         decoder_output = decoder(encoder_output)
-        output_layer = tf.keras.layers.Reshape(
-            target_shape=input_shape, name="outputlayer"
-        )(decoder_output)
+        output_layer = decoder_output
 
         model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
 
@@ -298,7 +296,8 @@ class AEDCNNClusterer(BaseDeepClusterer):
 
         try:
             self.model_ = tf.keras.models.load_model(
-                self.file_path + self.file_name_ + ".keras", compile=False
+                self.file_path + self.file_name_ + ".keras",
+                compile=False,
             )
             if not self.save_best_model:
                 os.remove(self.file_path + self.file_name_ + ".keras")
