@@ -296,7 +296,8 @@ class AEDCNNClusterer(BaseDeepClusterer):
 
         try:
             self.model_ = tf.keras.models.load_model(
-                self.file_path + self.file_name_ + ".keras", compile=False
+                self.file_path + self.file_name_ + ".keras",
+                compile=False,
             )
             if not self.save_best_model:
                 os.remove(self.file_path + self.file_name_ + ".keras")
