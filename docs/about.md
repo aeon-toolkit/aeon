@@ -49,11 +49,26 @@ The core developers push forward `aeon`'s development and maintain the package.
 ```{include} about/core_developers.md
 ```
 
+#### Former Core Developers
+
+The following developers were part of the `aeon` core developer team at some
+point.
+
+<details><summary>Previous aeon core developers</summary>
+<p>
+
+- {user}`GuzalBulatova` 2025
+- {user}`lmmentel` 2025
+- {user}`aiwalter` 2025
+
+</p>
+</details>
+
 ## Affiliation
 
 `aeon` is an affiliated project of [NumFOCUS](https://numfocus.org/).
 
-![https://numfocus.org/](images/other_logos/numfocus-logo.png){w=400px}
+[![NumFOCUS logo](images/other_logos/numfocus-logo.png){w=400px}](https://numfocus.org/)
 
 ## History
 
@@ -131,14 +146,13 @@ We would also like to thank [GitHub Actions](https://github.com/features/actions
 and [ReadtheDocs](https://readthedocs.org) for the free compute time on their servers
 and documentation hosting.
 
-
 ## Pre-fork Acknowledgements
 
 <details><summary>sktime v0.16.0 core developers</summary>
 <p>
 
 The following listed contributors were part of the `sktime` core developer team at some
-point prior to the split of the project.
+point prior to the 2023 split of the project.
 
 - {user}`abostrom`
 - {user}`ayushmaanseth`
