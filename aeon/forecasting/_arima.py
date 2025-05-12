@@ -10,6 +10,8 @@ https://github.com/aeon-toolkit/aeon/pull/2244/
 __maintainer__ = []
 __all__ = ["ARIMAForecaster"]
 
+from math import comb
+
 import numpy as np
 
 from aeon.forecasting._utils import calc_seasonal_period, kpss_test
@@ -22,26 +24,8 @@ CACHE = True
 class ARIMAForecaster(BaseForecaster):
     """ARIMA forecaster.
 
-    An implementation of the exponential smoothing statistics forecasting algorithm.
-    Implements additive and multiplicative error models,
-    None, additive and multiplicative (including damped) trend and
-    None, additive and mutliplicative seasonality[1]_.
-
-    Parameters
-    ----------
-    alpha : float, default = 0.1
-        Level smoothing parameter.
-    beta : float, default = 0.01
-        Trend smoothing parameter.
-    gamma : float, default = 0.01
-        Seasonal smoothing parameter.
-    phi : float, default = 0.99
-        Trend damping smoothing parameters
-    horizon : int, default = 1
-        The horizon to forecast to.
-    model_type : ModelType, default = ModelType()
-        A object of type ModelType, describing the error,
-        trend and seasonality type of this ETS model.
+    An implementation of the Hyndman-Khandakar Auto ARIMA forecasting algorithm[1]_.
+    Adjusted to add basic seasonal ARIMA.
 
     References
     ----------
@@ -51,9 +35,26 @@ class ARIMAForecaster(BaseForecaster):
 
     def __init__(self, horizon=1):
         super().__init__(horizon=horizon, axis=1)
+        self.data_ = []
+        self.differenced_data_ = []
+        self.residuals_ = []
+        self.aic_ = 0
+        self.p_ = 0
+        self.d_ = 0
+        self.q_ = 0
+        self.ps_ = 0
+        self.ds_ = 0
+        self.qs_ = 0
+        self.seasonal_period_ = 0
+        self.constant_term_ = 0
+        self.c_ = 0
+        self.phi_ = 0
+        self.phi_s_ = 0
+        self.theta_ = 0
+        self.theta_s_ = 0
 
     def _fit(self, y, exog=None):
-        """Fit Exponential Smoothing forecaster to series y.
+        """Fit AutoARIMA forecaster to series y.
 
         Fit a forecaster to predict self.horizon steps ahead using y.
 
@@ -67,10 +68,38 @@ class ARIMAForecaster(BaseForecaster):
         Returns
         -------
         self
-            Fitted BaseForecaster.
+            Fitted ARIMAForecaster.
         """
-        data = np.array(y.squeeze(), dtype=np.float64)
-        self.model = auto_arima(data)
+        self.data_ = np.array(y.squeeze(), dtype=np.float64)
+        (
+            self.differenced_data_,
+            self.aic_,
+            self.p_,
+            self.d_,
+            self.q_,
+            self.ps_,
+            self.ds_,
+            self.qs_,
+            self.seasonal_period_,
+            self.constant_term_,
+            parameters,
+        ) = auto_arima(self.data_)
+        (self.c_, self.phi_, self.phi_s_, self.theta_, self.theta_s_) = extract_params(
+            parameters, self.p_, self.q_, self.ps_, self.qs_, self.constant_term_
+        )
+        (
+            self.aic_,
+            self.residuals_,
+        ) = arima_log_likelihood(
+            parameters,
+            self.differenced_data_,
+            self.p_,
+            self.q_,
+            self.ps_,
+            self.qs_,
+            self.seasonal_period_,
+            self.constant_term_,
+        )
         return self
 
     def _predict(self, y=None, exog=None):
@@ -91,71 +120,122 @@ class ARIMAForecaster(BaseForecaster):
             single prediction self.horizon steps ahead of y.
         """
         y = np.array(y, dtype=np.float64)
+        value = calc_arima(
+            self.differenced_data_,
+            self.p_,
+            self.q_,
+            self.ps_,
+            self.qs_,
+            self.seasonal_period_,
+            len(self.differenced_data_),
+            self.c_,
+            self.phi_,
+            self.phi_s_,
+            self.theta_,
+            self.theta_s_,
+            self.residuals_,
+        )
+        history = self.data_[::-1]
+        differenced_history = np.diff(self.data_, n=self.d_)[::-1]
+        # Step 1: undo seasonal differencing on y^(d)
+        for k in range(1, self.ds_ + 1):
+            lag = k * self.seasonal_period_
+            value += (-1) ** (k + 1) * comb(self.ds_, k) * differenced_history[lag - 1]
+
+        # Step 2: undo ordinary differencing
+        for k in range(1, self.d_ + 1):
+            value += (-1) ** (k + 1) * comb(self.d_, k) * history[k - 1]
+        return value
 
 
 # Define the ARIMA(p, d, q) likelihood function
 def arima_log_likelihood(
-    params, data, p, d, q, ps, ds, qs, seasonal_period, include_constant_term
+    params, data, p, q, ps, qs, seasonal_period, include_constant_term
 ):
-    # Extract parameters
-    c = params[0]
-    phi = params[include_constant_term : p + include_constant_term]  # AR coefficients
-    phi_s = params[
-        include_constant_term + p : p + ps + include_constant_term
-    ]  # Seasonal AR coefficients
-    theta = params[
-        include_constant_term + p + ps : p + ps + q + include_constant_term
-    ]  # MA coefficients
-    theta_s = params[include_constant_term + p + ps + q :]  # Seasonal MA coefficents
-
-    # Difference the data, d times
-    if d > 0:
-        data = np.diff(data, n=d)
-    # Seasonal Difference
-    for _i in range(ds):
-        data = data[seasonal_period:] - data[:-seasonal_period]
+    """Calculate the log-likelihood of an ARIMA model given the parameters."""
+    c, phi, phi_s, theta, theta_s = extract_params(
+        params, p, q, ps, qs, include_constant_term
+    )  # Extract parameters
 
     # Initialize residuals
     n = len(data)
     residuals = np.zeros(n)
-
-    for t in range(max(p, q), n):
-        # AR part
-        ar_term = np.dot(phi, data[t - p : t][::-1])
-        # Seasonal AR part
-        ars_term = np.dot(
-            phi_s, data[t - ps - seasonal_period : t - seasonal_period][::-1]
+    for t in range(n):
+        y_hat = calc_arima(
+            data,
+            p,
+            q,
+            ps,
+            qs,
+            seasonal_period,
+            t,
+            c,
+            phi,
+            phi_s,
+            theta,
+            theta_s,
+            residuals,
         )
-        # MA part
-        ma_term = np.dot(theta, residuals[t - q : t][::-1])
-        # Seasonal MA part
-        mas_term = np.dot(
-            theta_s, residuals[t - qs - seasonal_period : t - seasonal_period][::-1]
-        )
-        residuals[t] = (
-            data[t]
-            - (c if include_constant_term else 0)
-            - ar_term
-            - ma_term
-            - ars_term
-            - mas_term
-        )
+        residuals[t] = data[t] - y_hat
     # Calculate the log-likelihood
-    variance = (residuals @ residuals) / len(residuals)
-    neg_log_likelihood = 0.5 * n * (np.log(2 * np.pi) + np.log(variance) + 1)
+    variance = np.mean(residuals**2)
+    liklihood = n * (np.log(2 * np.pi) + np.log(variance) + 1)
+    k = len(params)
+    aic = liklihood + 2 * k
     return (
-        neg_log_likelihood,
+        aic,
         residuals,
     )  # Return negative log-likelihood for minimization
+
+
+def extract_params(params, p, q, ps, qs, include_constant_term):
+    """Extract ARIMA parameters from the parameter vector."""
+    # Extract parameters
+    c = params[0] if include_constant_term else 0  # Constant term
+    # AR coefficients
+    phi = params[include_constant_term : p + include_constant_term]
+    # Seasonal AR coefficients
+    phi_s = params[include_constant_term + p : p + ps + include_constant_term]
+    # MA coefficients
+    theta = params[include_constant_term + p + ps : p + ps + q + include_constant_term]
+    # Seasonal MA coefficents
+    theta_s = params[
+        include_constant_term + p + ps + q : include_constant_term + p + ps + q + qs
+    ]
+    return c, phi, phi_s, theta, theta_s
+
+
+def calc_arima(
+    data, p, q, ps, qs, seasonal_period, t, c, phi, phi_s, theta, theta_s, residuals
+):
+    """Calculate the ARIMA forecast for time t."""
+    # AR part
+    ar_term = 0 if (t - p) < 0 else np.dot(phi, data[t - p : t][::-1])
+    # Seasonal AR part
+    ars_term = (
+        0
+        if (t - seasonal_period * ps) < 0
+        else np.dot(phi_s, data[t - seasonal_period * ps : t : seasonal_period][::-1])
+    )
+    # MA part
+    ma_term = 0 if (t - q) < 0 else np.dot(theta, residuals[t - q : t][::-1])
+    # Seasonal MA part
+    mas_term = (
+        0
+        if (t - seasonal_period * qs) < 0
+        else np.dot(
+            theta_s, residuals[t - seasonal_period * qs : t : seasonal_period][::-1]
+        )
+    )
+    y_hat = c + ar_term + ma_term + ars_term + mas_term
+    return y_hat
 
 
 def nelder_mead(
     data,
     p,
-    d,
     q,
     ps,
-    ds,
     qs,
     seasonal_period,
     include_constant_term,
@@ -163,13 +243,14 @@ def nelder_mead(
     max_iter=500,
 ):
     """Implement the nelder-mead optimisation algorithm."""
-    points = np.full((1 + p + ps + q + qs + 1, 1 + p + ps + q + qs), 0.5)
-    for i in range(1 + p + ps + q + qs):
+    num_params = include_constant_term + p + ps + q + qs
+    points = np.full((num_params + 1, num_params), 0.5)
+    for i in range(num_params):
         points[i + 1][i] = 0.6
     values = np.array(
         [
             arima_log_likelihood(
-                v, data, p, d, q, ps, ds, qs, seasonal_period, include_constant_term
+                v, data, p, q, ps, qs, seasonal_period, include_constant_term
             )[0]
             for v in points
         ]
@@ -190,16 +271,14 @@ def nelder_mead(
             reflected_point,
             data,
             p,
-            d,
             q,
             ps,
-            ds,
             qs,
             seasonal_period,
             include_constant_term,
         )[0]
         # if between best and second best, use reflected value
-        if values[0] <= reflected_value < values[-2]:
+        if len(values) > 1 and values[0] <= reflected_value < values[-2]:
             points[-1] = reflected_point
             values[-1] = reflected_value
             continue
@@ -211,10 +290,8 @@ def nelder_mead(
                 expanded_point,
                 data,
                 p,
-                d,
                 q,
                 ps,
-                ds,
                 qs,
                 seasonal_period,
                 include_constant_term,
@@ -234,10 +311,8 @@ def nelder_mead(
             contracted_point,
             data,
             p,
-            d,
             q,
             ps,
-            ds,
             qs,
             seasonal_period,
             include_constant_term,
@@ -255,10 +330,8 @@ def nelder_mead(
                 points[i],
                 data,
                 p,
-                d,
                 q,
                 ps,
-                ds,
                 qs,
                 seasonal_period,
                 include_constant_term,
@@ -276,11 +349,69 @@ def nelder_mead(
 
 
 def auto_arima(data):
+    """
+    Implement the Hyndman-Khandakar algorithm.
+
+    For automatic ARIMA model selection.
+    """
     seasonal_period = calc_seasonal_period(data)
-    seasonal_difference = seasonal_period > 1
-    if seasonal_difference:
-        data = data[seasonal_period:] - data[:-seasonal_period]
     difference = 0
     while not kpss_test(data)[1]:
         data = np.diff(data, n=1)
         difference += 1
+    seasonal_difference = 1 if seasonal_period > 1 else 0
+    if seasonal_difference:
+        data = data[seasonal_period:] - data[:-seasonal_period]
+    include_c = 1 if difference == 0 else 0
+    model_parameters = [
+        [2, 2, 0, 0, include_c],
+        [0, 0, 0, 0, include_c],
+        [1, 0, 0, 0, include_c],
+        [0, 1, 0, 0, include_c],
+    ]
+    model_points = []
+    for p in model_parameters:
+        points, aic = nelder_mead(data, p[0], p[1], p[2], p[3], seasonal_period, p[4])
+        p.append(aic)
+        model_points.append(points)
+    current_model = max(model_parameters, key=lambda item: item[5])
+    current_points = model_points[model_parameters.index(current_model)]
+    while True:
+        better_model = False
+        for param_no in range(4):
+            for adjustment in [-1, 1]:
+                if (current_model[param_no] + adjustment) < 0:
+                    continue
+                model = current_model.copy()
+                model[param_no] += adjustment
+                for constant_term in [0, 1]:
+                    points, aic = nelder_mead(
+                        data,
+                        model[0],
+                        model[1],
+                        model[2],
+                        model[3],
+                        seasonal_period,
+                        constant_term,
+                    )
+                    if aic < current_model[5]:
+                        current_model = model
+                        current_points = points
+                        current_model[5] = aic
+                        current_model[4] = constant_term
+                        better_model = True
+        if not better_model:
+            break
+    return (
+        data,
+        current_model[5],
+        current_model[0],
+        difference,
+        current_model[1],
+        current_model[2],
+        seasonal_difference,
+        current_model[3],
+        seasonal_period,
+        current_model[4],
+        current_points,
+    )

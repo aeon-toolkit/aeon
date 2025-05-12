@@ -53,7 +53,7 @@ def _acf(X, max_lag):
     return X_t
 
 
-def kpss_test(y, regression="ct", lags=None):  # Test if time series is stationary
+def kpss_test(y, regression="c", lags=None):  # Test if time series is stationary
     """
     Implement the KPSS test for stationarity.
 
@@ -79,7 +79,7 @@ def kpss_test(y, regression="ct", lags=None):  # Test if time series is stationa
     else:
         raise ValueError("regression must be 'c' or 'ct'")
 
-    beta = np.linalg.inv(X.T @ X) @ X.T @ y  # Estimate regression coefficients
+    beta = np.linalg.lstsq(X, y, rcond=None)[0]  # Estimate regression coefficients
     residuals = y - X @ beta  # Get residuals (u_t)
 
     # Step 2: Compute cumulative sum of residuals (S_t)
@@ -87,9 +87,10 @@ def kpss_test(y, regression="ct", lags=None):  # Test if time series is stationa
 
     # Step 3: Estimate long-run variance (HAC variance)
     if lags is None:
+        # lags = int(12 * (n / 100)**(1/4)) # Default statsmodels lag length
         lags = int(np.sqrt(n))  # Default lag length
 
-    gamma_0 = np.mean(residuals**2)  # Lag-0 autocovariance
+    gamma_0 = np.sum(residuals**2) / (n - X.shape[1])  # Lag-0 autocovariance
     gamma = [np.sum(residuals[k:] * residuals[:-k]) / n for k in range(1, lags + 1)]
 
     # Bartlett weights
