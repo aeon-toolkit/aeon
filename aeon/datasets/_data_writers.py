@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 
 from aeon.transformations.format import SlidingWindowTransformer, TrainTestTransformer
+from aeon.transformations.series._difference import DifferencingSeriesTransformer
 
 __all__ = [
     "write_to_ts_file",
@@ -406,10 +407,16 @@ def write_to_arff_file(
 def write_regression_dataset(series, full_file_path, dataset_name):
     """Write a regression dataset to file."""
     train_series, test_series = TrainTestTransformer().fit_transform(series)
-    X_train, Y_train, train_indices = SlidingWindowTransformer().fit_transform(
+    differenced_train_series = DifferencingSeriesTransformer().fit_transform(
         train_series
     )
-    X_test, Y_test, test_indices = SlidingWindowTransformer().fit_transform(test_series)
+    X_train, Y_train, train_indices = SlidingWindowTransformer().fit_transform(
+        differenced_train_series
+    )
+    differenced_test_series = DifferencingSeriesTransformer().fit_transform(test_series)
+    X_test, Y_test, test_indices = SlidingWindowTransformer().fit_transform(
+        differenced_test_series
+    )
     write_to_ts_file(
         [[item] for item in X_train],
         full_file_path,
@@ -431,7 +438,15 @@ def write_regression_dataset(series, full_file_path, dataset_name):
 def write_forecasting_dataset(series, full_file_path, dataset_name):
     """Write a regression dataset to file."""
     train_series, test_series = TrainTestTransformer().fit_transform(series)
-    train_df = pd.DataFrame(train_series)
-    train_df.to_csv(f"{full_file_path}/{dataset_name}_TRAIN.csv")
-    test_df = pd.DataFrame(test_series)
-    test_df.to_csv(f"{full_file_path}/{dataset_name}_TEST.csv")
+    differenced_train_series = DifferencingSeriesTransformer().fit_transform(
+        train_series
+    )
+    differenced_test_series = DifferencingSeriesTransformer().fit_transform(test_series)
+    train_df = pd.DataFrame(differenced_train_series)
+    train_df.to_csv(
+        f"{full_file_path}/{dataset_name}_TRAIN.csv", index=False, header=False
+    )
+    test_df = pd.DataFrame(differenced_test_series)
+    test_df.to_csv(
+        f"{full_file_path}/{dataset_name}_TEST.csv", index=False, header=False
+    )

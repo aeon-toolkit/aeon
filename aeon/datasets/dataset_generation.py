@@ -171,7 +171,7 @@ def filter_and_categorise_m4(frequency_type):
 # filter_and_categorise_m4('hourly')
 
 
-def gen_datasets(problem_type):
+def gen_datasets(problem_type, dataset_folder=None):
     """
     Generate windowed train/test split of datasets.
 
@@ -189,7 +189,8 @@ def gen_datasets(problem_type):
     current_dataset = ""
     dataset = pd.DataFrame()
     tmpdir = tempfile.mkdtemp()
-    location_of_datasets = f"./aeon/datasets/local_data/{problem_type}"
+    folder = problem_type if dataset_folder is None else dataset_folder
+    location_of_datasets = f"./aeon/datasets/local_data/{folder}"
     if not os.path.exists(location_of_datasets):
         os.makedirs(location_of_datasets)
     with open(f"{location_of_datasets}/windowed_series.txt", "w") as f:
@@ -214,4 +215,4 @@ def gen_datasets(problem_type):
                 write_forecasting_dataset(series, full_file_path, dataset_name)
 
 
-gen_datasets("regression")
+gen_datasets("forecasting", "differenced_forecasting")
