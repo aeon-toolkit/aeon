@@ -1,16 +1,17 @@
 """IDK2 anomaly detector."""
 
-__maintainer__= ["Ramana-Raja"]
+__maintainer__ = ["Ramana-Raja"]
 __all__ = ["IDK2"]
 
 from typing import Optional, Union
 
 import numpy as np
+from numpy.random import RandomState
+from sklearn.utils import check_random_state
 
 from aeon.anomaly_detection.base import BaseAnomalyDetector
 from aeon.utils.windowing import reverse_windowing
-from sklearn.utils import check_random_state
-from numpy.random import RandomState
+
 
 class IDK2(BaseAnomalyDetector):
     """IDK² and s-IDK² anomaly detector.
@@ -65,6 +66,7 @@ class IDK2(BaseAnomalyDetector):
         random_state is the random number generator;
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`
+
     Notes
     -----
     GitHub Repository:
@@ -77,6 +79,7 @@ class IDK2(BaseAnomalyDetector):
          'Isolation Distributional Kernel: A New Tool for Kernel-Based
           Anomaly Detection',
           DOI: https://dl.acm.org/doi/10.1145/3394486.3403062
+
     Examples
     --------
     >>> import numpy as np
@@ -110,7 +113,7 @@ class IDK2(BaseAnomalyDetector):
         width: int = 1,
         t: int = 100,
         sliding: bool = False,
-         random_state: Optional[Union[int, RandomState]] = None
+        random_state: Optional[Union[int, RandomState]] = None,
     ) -> None:
         self.psi1 = psi1
         self.psi2 = psi2
@@ -177,9 +180,7 @@ class IDK2(BaseAnomalyDetector):
                     onepoint_matrix[i][time] = (
                         min_dist_point2sample[i] + time * self.psi1
                     )
-                    featuremap_count[int(i / self.width)][
-                        onepoint_matrix[i][time]
-                    ] += 1
+                    featuremap_count[int(i / self.width)][onepoint_matrix[i][time]] += 1
 
         for i in range(window_num):
             featuremap_count[i] /= self.width
