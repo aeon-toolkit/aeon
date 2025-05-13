@@ -54,6 +54,13 @@ class DummyClusterer(BaseClusterer):
     array([0, 1, 0])
     """
 
+    _tags = {
+        "X_inner_type": ["np-list", "numpy3D"],
+        "capability:missing_values": True,
+        "capability:multivariate": True,
+        "capability:unequal_length": True,
+    }
+
     def __init__(self, strategy="uniform", n_clusters=3, random_state=None):
         self.strategy = strategy
         self.random_state = random_state
@@ -78,8 +85,7 @@ class DummyClusterer(BaseClusterer):
         self : object
             Fitted estimator.
         """
-        n_samples = X.shape[0]
-
+        n_samples = len(X)
         if self.strategy == "random":
             rng = check_random_state(self.random_state)
             self.labels_ = rng.randint(self.n_clusters, size=n_samples)
@@ -111,7 +117,7 @@ class DummyClusterer(BaseClusterer):
         labels : ndarray of shape (n_samples,)
             Index of the cluster each sample belongs to.
         """
-        n_samples = X.shape[0]
+        n_samples = len(X)
         if self.strategy == "random":
             rng = check_random_state(self.random_state)
             return rng.randint(self.n_clusters, size=n_samples)

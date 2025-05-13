@@ -11,9 +11,6 @@ fit & transform - fit_transform(self, X, y=None)
 from abc import abstractmethod
 from typing import final
 
-import numpy as np
-import pandas as pd
-
 from aeon.base import BaseSeriesEstimator
 from aeon.transformations.base import BaseTransformer
 
@@ -21,7 +18,7 @@ from aeon.transformations.base import BaseTransformer
 class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer):
     """Transformer base class for collections."""
 
-    # tag values specific to SeriesTransformers
+    # default tag values for series transformers
     _tags = {
         "input_data_type": "Series",
         "output_data_type": "Series",
@@ -58,19 +55,24 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer):
         -------
         self : a fitted instance of the estimator
         """
-        # skip the rest if fit_is_empty is True
         if self.get_tag("fit_is_empty"):
             self.is_fitted = True
             return self
+
         if self.get_tag("requires_y"):
             if y is None:
                 raise ValueError("Tag requires_y is true, but fit called with y=None")
+
         # reset estimator at the start of fit
         self.reset()
+
+        # input checks and datatype conversion
         X = self._preprocess_series(X, axis=axis, store_metadata=True)
         if y is not None:
             self._check_y(y)
+
         self._fit(X=X, y=y)
+
         self.is_fitted = True
         return self
 
@@ -101,9 +103,18 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer):
         transformed version of X with the same axis as passed by the user, if axis
         not None.
         """
-        # check whether is fitted
-        self._check_is_fitted()
+        fit_empty = self.get_tag("fit_is_empty")
+        if not fit_empty:
+            self._check_is_fitted()
+
         X = self._preprocess_series(X, axis=axis, store_metadata=False)
+        if y is not None:
+            self._check_y(y)
+
+        # #2768
+        # if not fit_empty:
+        #     self._check_shape(X)
+
         Xt = self._transform(X, y)
         return self._postprocess_series(Xt, axis=axis)
 
@@ -137,10 +148,20 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer):
         transformed version of X with the same axis as passed by the user, if axis
         not None.
         """
-        # input checks and datatype conversion, to avoid doing in both fit and transform
+        if self.get_tag("requires_y"):
+            if y is None:
+                raise ValueError("Tag requires_y is true, but fit called with y=None")
+
+        # reset estimator at the start of fit
         self.reset()
+
+        # input checks and datatype conversion
         X = self._preprocess_series(X, axis=axis, store_metadata=True)
+        if y is not None:
+            self._check_y(y)
+
         Xt = self._fit_transform(X=X, y=y)
+
         self.is_fitted = True
         return self._postprocess_series(Xt, axis=axis)
 
@@ -263,7 +284,8 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer):
         """
         # Non-optimized default implementation; override when a better
         # method is possible for a given algorithm.
-        return self._fit(X, y)._transform(X, y)
+        self._fit(X, y)
+        return self._transform(X, y)
 
     def _inverse_transform(self, X, y=None):
         """Inverse transform X and return an inverse transformed version.
@@ -325,12 +347,3 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer):
             return Xt
         else:
             return Xt.T
-
-    def _check_y(self, y):
-        # Check y valid input for supervised transform
-        if not isinstance(y, (pd.Series, np.ndarray)):
-            raise TypeError(
-                f"y must be a np.array or a pd.Series, but found type: {type(y)}"
-            )
-        if isinstance(y, np.ndarray) and y.ndim > 1:
-            raise TypeError(f"y must be 1-dimensional, found {y.ndim} dimensions")
