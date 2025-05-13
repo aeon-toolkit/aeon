@@ -87,7 +87,8 @@ class IDK2(BaseAnomalyDetector):
     >>> X = np.array([1, 2, 3, 4, 1, 2, 3, 3], dtype=np.float64)
     >>> ad_sliding = IDK2(psi1=8, psi2=4, width=3, sliding=True, random_state=1)
     >>> ad_sliding.fit_predict(X)
-    array([0.11      , 0.1225    , 0.12666667, 0.135     , 0.12666667, 0.11833333, 0.11      , 0.11      ])
+    array([0.11      , 0.1225    , 0.12666667, 0.135     , 0.12666667,
+           0.11833333, 0.11      , 0.11      ])
 
     >>> import numpy as np
     >>> from aeon.anomaly_detection.distribution_based import IDK2
