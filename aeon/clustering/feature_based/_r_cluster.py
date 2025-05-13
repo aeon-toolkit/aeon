@@ -1,3 +1,9 @@
+"""RClusterer."""
+
+
+__maintainer__ = ["Ramana-Raja"]
+__all__ = ["RClusterer"]
+
 import multiprocessing
 
 import numpy as np
@@ -150,28 +156,6 @@ class RClusterer(BaseClusterer):
             biases,
         )
 
-    def check_params(self, X):
-        """
-        Check and adjust parameters related to multiprocessing.
-
-        Parameters
-        ----------
-        X : np.ndarray
-            Input data.
-
-        Returns
-        -------
-        np.ndarray
-            Processed input data with float32 type.
-        """
-        X = X.astype(np.float32)
-        if self.n_jobs < 1 or self.n_jobs > multiprocessing.cpu_count():
-            n_jobs = multiprocessing.cpu_count()
-        else:
-            n_jobs = self.n_jobs
-        set_num_threads(n_jobs)
-        return X
-
     def _get_transformed_data(self, X, parameters):
         """
         Transform input data using extracted parameters.
@@ -189,8 +173,7 @@ class RClusterer(BaseClusterer):
             Transformed data.
         """
         prev_threads = get_num_threads()
-        X = self.check_params(X)
-        X = X.squeeze(1)
+        X = X.squeeze(1).astype(np.float32)
         X_ = _static_transform_uni(X, parameters, self.indices)
         set_num_threads(prev_threads)
         return X_
@@ -207,9 +190,16 @@ class RClusterer(BaseClusterer):
             Ignored.
         """
         self.indices = _get_indices()
+
+        prev_threads = get_num_threads()
+        set_num_threads(self.n_jobs)
+
         self.parameters = self._get_parameterised_data(X)
 
         transformed_data = self._get_transformed_data(X=X, parameters=self.parameters)
+
+        set_num_threads(prev_threads)
+
         self._scaler = StandardScaler()
         X_std = self._scaler.fit_transform(transformed_data)
 
@@ -244,7 +234,13 @@ class RClusterer(BaseClusterer):
         labels : np.ndarray
             Array of cluster labels for each time series.
         """
+        prev_threads = get_num_threads()
+        set_num_threads(self.n_jobs)
+
         transformed_data = self._get_transformed_data(X=X, parameters=self.parameters)
+
+        set_num_threads(prev_threads)
+
         X_std = self._scaler.transform(transformed_data)
         transformed_data_pca = self._pca.transform(X_std)
 
