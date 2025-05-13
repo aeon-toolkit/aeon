@@ -13,9 +13,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: "3.11"
 
       - uses: pre-commit/action@v3.0.1
         with:
@@ -28,9 +29,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: "3.11"
 
       - name: Build project
         run: |
@@ -52,12 +54,14 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-24.04, macOS-14, windows-2022 ]
-        python-version: [ "3.9", "3.10", "3.11", "3.12" ]
+        python-version: [ "3.9", "3.10", "3.11", "3.12", "3.13" ]
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -94,12 +98,21 @@ jobs:
           max_attempts: 3
           command: python -m pip install "${{ env.WHEELNAME }}[all_extras,dev]"
 
+      - name: Show dependencies
+        run: python -m pip list
+
       - name: Tests
         run: python -m pytest -n logical
 
   upload-wheels:
     needs: test-wheels
     runs-on: ubuntu-24.04
+
+    environment:
+      name: release
+      url: https://pypi.org/p/aeon/
+    permissions:
+      id-token: write
 
     steps:
       - uses: actions/download-artifact@v4
@@ -109,5 +122,3 @@ jobs:
 
       - name: Publish package to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          password: ${{ secrets.PYPI_TOKEN }}

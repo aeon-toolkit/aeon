@@ -2656,6 +2656,51 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "shinymack",
+      "name": "Akash Kawle",
+      "avatar_url": "https://avatars.githubusercontent.com/u/128881349?v=4",
+      "profile": "https://github.com/shinymack",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "kevinzb56",
+      "name": "Kevin Shah",
+      "avatar_url": "https://avatars.githubusercontent.com/u/161136814?v=4",
+      "profile": "https://github.com/kevinzb56",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "tanishy7777",
+      "name": "Tanish Yelgoe",
+      "avatar_url": "https://avatars.githubusercontent.com/u/143334319?v=4",
+      "profile": "https://www.tanishyelgoe.tech/",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "HaroonAzamFiza",
+      "name": "HaroonAzamFiza",
+      "avatar_url": "https://avatars.githubusercontent.com/u/183639840?v=4",
+      "profile": "https://github.com/HaroonAzamFiza",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "Ramana-Raja",
+      "name": "Ramana Raja",
+      "avatar_url": "https://avatars.githubusercontent.com/u/83065061?v=4",
+      "profile": "https://github.com/Ramana-Raja",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "commitType": "docs"
