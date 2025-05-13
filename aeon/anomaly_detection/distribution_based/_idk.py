@@ -95,7 +95,7 @@ class IDK2(BaseAnomalyDetector):
     >>> X = np.array([1, 2, 3, 4, 1, 2, 3, 3], dtype=np.float64)
     >>> ad_sliding = IDK2(psi1=4, psi2=2, width=3, random_state=1)
     >>> ad_sliding.fit_predict(X)
-    array([0.5 ,0.5 ,0.5 ,0.5 ,0.5 ,0.5 ,0. ,0. ])
+    array([0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0. , 0. ])
 
     """
 
