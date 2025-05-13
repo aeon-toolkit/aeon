@@ -2701,6 +2701,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "SomtoOnyekwelu",
+      "name": "Somtochukwu Benedict Onyekwelu",
+      "avatar_url": "https://avatars.githubusercontent.com/u/117727947?v=4",
+      "profile": "https://github.com/SomtoOnyekwelu",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "commitType": "docs"
