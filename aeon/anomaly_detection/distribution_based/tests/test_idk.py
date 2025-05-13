@@ -65,7 +65,7 @@ def test_idk_univariate_custom_series():
             -0.55382284,
         ]
     )
-    expected = [0.41, 0.36, 0.36, 0.5 , 0.5 , 0.44, 0.36, 0.47, 0.41, 0.36]
+    expected = [0.41, 0.36, 0.36, 0.5, 0.5, 0.44, 0.36, 0.47, 0.41, 0.36]
 
     ad_2 = IDK2(psi1=4, psi2=2, width=1, t=10, random_state=2)
     pred2 = ad_2.predict(series1)
