@@ -1,17 +1,26 @@
 """Encoder Regressor."""
 
+from __future__ import annotations
+
 __author__ = ["AnonymousCodes911", "hadifawaz1999"]
 __all__ = ["EncoderRegressor"]
+
 
 import gc
 import os
 import time
 from copy import deepcopy
+from typing import TYPE_CHECKING, Any
 
+import numpy as np
 from sklearn.utils import check_random_state
 
 from aeon.networks import EncoderNetwork
 from aeon.regression.deep_learning.base import BaseDeepRegressor
+
+if TYPE_CHECKING:
+    import tensorflow as tf
+    from tensorflow.keras.callbacks import Callback
 
 
 class EncoderRegressor(BaseDeepRegressor):
@@ -111,31 +120,31 @@ class EncoderRegressor(BaseDeepRegressor):
 
     def __init__(
         self,
-        n_epochs=100,
-        batch_size=12,
-        kernel_size=None,
-        n_filters=None,
-        dropout_proba=0.2,
-        activation="sigmoid",
-        output_activation="linear",
-        max_pool_size=2,
-        padding="same",
-        strides=1,
-        fc_units=256,
-        callbacks=None,
-        file_path="./",
-        save_best_model=False,
-        save_last_model=False,
-        save_init_model=False,
-        best_file_name="best_model",
-        last_file_name="last_model",
-        init_file_name="init_model",
-        verbose=False,
-        loss="mean_squared_error",
-        metrics="mean_squared_error",
-        use_bias=True,
-        optimizer=None,
-        random_state=None,
+        n_epochs: int = 100,
+        batch_size: int = 12,
+        kernel_size: list[int] | None = None,
+        n_filters: list[int] | None = None,
+        dropout_proba: float = 0.2,
+        activation: str = "sigmoid",
+        output_activation: str = "linear",
+        max_pool_size: int = 2,
+        padding: str = "same",
+        strides: int = 1,
+        fc_units: int = 256,
+        callbacks: Callback | list[Callback] | None = None,
+        file_path: str = "./",
+        save_best_model: bool = False,
+        save_last_model: bool = False,
+        save_init_model: bool = False,
+        best_file_name: str = "best_model",
+        last_file_name: str = "last_model",
+        init_file_name: str = "init_model",
+        verbose: bool = False,
+        loss: str = "mean_squared_error",
+        metrics: str | list[str] = "mean_squared_error",
+        use_bias: bool = True,
+        optimizer: tf.keras.optimizers.Optimizer | None = None,
+        random_state: int | np.random.RandomState | None = None,
     ):
         self.n_filters = n_filters
         self.max_pool_size = max_pool_size
@@ -179,7 +188,9 @@ class EncoderRegressor(BaseDeepRegressor):
             activation=self.activation,
         )
 
-    def build_model(self, input_shape, **kwargs):
+    def build_model(
+        self, input_shape: tuple[int, ...], **kwargs: Any
+    ) -> tf.keras.Model:
         """Construct a compiled, un-trained, keras model that is ready for training.
 
         In aeon, time series are stored in numpy arrays of shape (d, m), where d
@@ -195,7 +206,6 @@ class EncoderRegressor(BaseDeepRegressor):
         -------
         output : a compiled Keras Model
         """
-        import numpy as np
         import tensorflow as tf
 
         rng = check_random_state(self.random_state)
@@ -222,7 +232,7 @@ class EncoderRegressor(BaseDeepRegressor):
 
         return model
 
-    def _fit(self, X, y):
+    def _fit(self, X: np.ndarray, y: np.ndarray) -> EncoderRegressor:
         """Fit the classifier on the training set (X, y).
 
         Parameters
@@ -299,7 +309,9 @@ class EncoderRegressor(BaseDeepRegressor):
         return self
 
     @classmethod
-    def _get_test_params(cls, parameter_set="default"):
+    def _get_test_params(
+        cls, parameter_set: str = "default"
+    ) -> dict[str, Any] | list[dict[str, Any]]:
         """Return testing parameter settings for the estimator.
 
         Parameters
