@@ -145,7 +145,11 @@ class ARIMAForecaster(BaseForecaster):
         # Step 2: undo ordinary differencing
         for k in range(1, self.d_ + 1):
             value += (-1) ** (k + 1) * comb(self.d_, k) * history[k - 1]
-        return value
+
+        if y is None:
+            return np.array([value])
+        else:
+            return np.insert(y, 0, value)[:-1]
 
 
 # Define the ARIMA(p, d, q) likelihood function
