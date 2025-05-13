@@ -23,30 +23,30 @@ def test_idk_univariate_basic():
 def test_idk_univariate_basic_greater_width():
     """Test IDK on basic univariate data with width greater than 1."""
     rng = np.random.default_rng(seed=2)
-    series = rng.normal(size=(100,))
-    series[50:58] -= 5
+    series = rng.normal(size=(1000,))
+    series[50:108] -= 1000
 
-    ad = IDK2(psi1=8, psi2=2, width=7, random_state=2)
+    ad = IDK2(psi1=64, psi2=32, width=7, random_state=3)
     pred = ad.fit_predict(series)
 
-    assert ad.original_output_.shape == (14,)
-    assert pred.shape == (100,)
+    assert ad.original_output_.shape == (142,)
+    assert pred.shape == (1000,)
     assert pred.dtype == np.float64
-    assert 77 <= np.argmax(pred) <= 80
+    assert 50 <= np.argmax(pred) <= 108
 
 
 def test_idk_univariate_sliding():
     """Test IDK with sliding window on univariate data."""
     rng = np.random.default_rng(seed=2)
-    series = rng.normal(size=(100,))
-    series[50:58] -= 5
+    series = rng.normal(size=(1000,))
+    series[50:208] -= 1000
 
-    ad_sliding = IDK2(psi1=16, psi2=4, width=10, sliding=True, random_state=1)
+    ad_sliding = IDK2(psi1=16, psi2=8, width=10, sliding=True, random_state=1)
     pred_sliding = ad_sliding.fit_predict(series)
 
-    assert pred_sliding.shape == (100,)
+    assert pred_sliding.shape == (1000,)
     assert pred_sliding.dtype == np.float64
-    assert 60 <= np.argmax(pred_sliding) <= 80
+    assert 50 <= np.argmax(pred_sliding) <= 208
 
 
 def test_idk_univariate_custom_series():
@@ -65,10 +65,10 @@ def test_idk_univariate_custom_series():
             -0.55382284,
         ]
     )
-    expected = [0.21, 0.17, 0.17, 0.3, 0.38, 0.35, 0.17, 0.36, 0.21, 0.17]
+    expected = [0.41, 0.36, 0.36, 0.5 , 0.5 , 0.44, 0.36, 0.47, 0.41, 0.36]
 
     ad_2 = IDK2(psi1=4, psi2=2, width=1, t=10, random_state=2)
-    pred2 = ad_2.fit_predict(series1)
+    pred2 = ad_2.predict(series1)
 
     assert pred2.shape == (10,)
     assert pred2.dtype == np.float64

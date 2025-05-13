@@ -1,12 +1,16 @@
 """IDK2 anomaly detector."""
 
-from typing import Optional
+__maintainer__= ["Ramana-Raja"]
+__all__ = ["IDK2"]
+
+from typing import Optional, Union
 
 import numpy as np
 
 from aeon.anomaly_detection.base import BaseAnomalyDetector
 from aeon.utils.windowing import reverse_windowing
-
+from sklearn.utils import check_random_state
+from numpy.random import RandomState
 
 class IDK2(BaseAnomalyDetector):
     """IDK² and s-IDK² anomaly detector.
@@ -22,7 +26,8 @@ class IDK2(BaseAnomalyDetector):
     so trends should be removed prior to detection. IDK² is recommended
     for periodic time series,while s-IDK² is better suited for non-periodic
     cases.The attribute `original_output_` stores the raw anomaly scores before
-    reverse-windowing is applied when width > 1 only.
+    reverse-windowing is applied when width > 1 only. The use of s-IDK² or IDK²
+    is determined by the parameter "sliding".
 
     Parameters
     ----------
@@ -50,19 +55,16 @@ class IDK2(BaseAnomalyDetector):
          which contribute to the feature map matrix. Larger values improve the
          robustness of the feature maps but increase the runtime.
     sliding : bool, default=False
-         Determines whether a sliding window approach is used for anomaly detection.
-         If True, the model computes scores for overlapping windows across the
-         time series, providing more detailed anomaly scores at each step.
-         If False, the model processes the data in fixed-width segments,
-         offering faster computation at the cost of granularity.
+         Determines whether IDK² or s-IDK² is used for anomaly detection.
+         If True, the model uses s-IDK²
+         If False, the model uses IDK²
     random_state : int, np.random.RandomState instance or None, default=None
-        Determines random number for generation of random sample.
+        Determines random number generation for centroid initialization.
         If `int`, random_state is the seed used by the random number generator;
         If `np.random.RandomState` instance,
         random_state is the random number generator;
         If `None`, the random number generator is the `RandomState` instance used
-        by `np.random`.
-
+        by `np.random`
     Notes
     -----
     GitHub Repository:
@@ -75,6 +77,21 @@ class IDK2(BaseAnomalyDetector):
          'Isolation Distributional Kernel: A New Tool for Kernel-Based
           Anomaly Detection',
           DOI: https://dl.acm.org/doi/10.1145/3394486.3403062
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.anomaly_detection.distribution_based import IDK2
+    >>> X = np.array([1, 2, 3, 4, 1, 2, 3, 3], dtype=np.float64)
+    >>> ad_sliding = IDK2(psi1=8, psi2=4, width=3, sliding=True, random_state=1)
+    >>> ad_sliding.fit_predict(X)
+    array([0.11 ,0.1225 ,0.12666667 ,0.135 ,0.12666667 ,0.11833333 ,0.11 ,0.11])
+
+    >>> import numpy as np
+    >>> from aeon.anomaly_detection.distribution_based import IDK2
+    >>> X = np.array([1, 2, 3, 4, 1, 2, 3, 3], dtype=np.float64)
+    >>> ad_sliding = IDK2(psi1=4, psi2=2, width=3, random_state=1)
+    >>> ad_sliding.fit_predict(X)
+    array([0.5 ,0.5 ,0.5 ,0.5 ,0.5 ,0.5 ,0. ,0. ])
 
     """
 
@@ -82,6 +99,8 @@ class IDK2(BaseAnomalyDetector):
         "capability:univariate": True,
         "capability:multivariate": False,
         "capability:missing_values": False,
+        "capability:multithreading": False,
+        "fit_is_empty": True,
     }
 
     def __init__(
@@ -91,7 +110,7 @@ class IDK2(BaseAnomalyDetector):
         width: int = 1,
         t: int = 100,
         sliding: bool = False,
-        random_state: Optional[int] = None,
+         random_state: Optional[Union[int, RandomState]] = None
     ) -> None:
         self.psi1 = psi1
         self.psi2 = psi2
@@ -158,7 +177,7 @@ class IDK2(BaseAnomalyDetector):
                     onepoint_matrix[i][time] = (
                         min_dist_point2sample[i] + time * self.psi1
                     )
-                    featuremap_count[(int)(i / self.width)][
+                    featuremap_count[int(i / self.width)][
                         onepoint_matrix[i][time]
                     ] += 1
 
@@ -167,7 +186,6 @@ class IDK2(BaseAnomalyDetector):
         isextra = X.shape[0] - (int)(X.shape[0] / self.width) * self.width
         if isextra > 0:
             featuremap_count[-1] /= isextra
-        if isextra > 0:
             featuremap_count = np.delete(
                 featuremap_count, [featuremap_count.shape[0] - 1], axis=0
             )
@@ -191,8 +209,8 @@ class IDK2(BaseAnomalyDetector):
             X=subsequence_fm_list, psi=self.psi2, t=self.t, rng=rng
         )
 
-    def _predict(self, X):
-        rng = np.random.default_rng(self.random_state)
+    def _predict(self, X: np.ndarray) -> np.ndarray:
+        rng = check_random_state(self.random_state)
         if self.sliding:
             sliding_output = self._idk_square_sliding(X, rng)
             reversed_output = reverse_windowing(
