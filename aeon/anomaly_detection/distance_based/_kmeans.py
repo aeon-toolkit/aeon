@@ -81,7 +81,7 @@ class KMeansAD(BaseAnomalyDetector):
         "capability:multivariate": True,
         "capability:missing_values": False,
         "fit_is_empty": False,
-        "output_data_format": "anomaly_scores",
+        "anomaly_output_type": "anomaly_scores",
         "learning_type:unsupervised": True,
         "learning_type:semi_supervised": True,
     }
