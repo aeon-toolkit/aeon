@@ -4,8 +4,6 @@
 __maintainer__ = ["Ramana-Raja"]
 __all__ = ["RClusterer"]
 
-import multiprocessing
-
 import numpy as np
 from numba import get_num_threads, set_num_threads
 from sklearn.cluster import KMeans
