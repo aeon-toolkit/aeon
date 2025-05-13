@@ -1,4 +1,4 @@
-"""RClusterer."""
+"""Time series RClusterer."""
 
 __maintainer__ = ["Ramana-Raja"]
 __all__ = ["RClusterer"]
@@ -16,7 +16,6 @@ from aeon.transformations.collection.convolution_based._minirocket import (
     _quantiles,
     _static_transform_uni,
 )
-
 
 class RClusterer(BaseClusterer):
     """Implementation of Time Series R Cluster.
