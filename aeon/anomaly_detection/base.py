@@ -156,7 +156,7 @@ class BaseAnomalyDetector(BaseSeriesEstimator):
         Returns
         -------
         np.ndarray
-            A boolean, ``int`` or ``float`` array of length ``len(X)``, where each
+            A ``bool``, ``int`` or ``float`` array of length ``len(X)``, where each
             element indicates whether the corresponding subsequence is anomalous or its
             anomaly score.
         """
@@ -192,7 +192,7 @@ class BaseAnomalyDetector(BaseSeriesEstimator):
         Returns
         -------
         np.ndarray
-            A ``boolean``, ``int`` or ``float`` array of length ``len(X)``, where each
+            A ``bool``, ``int`` or ``float`` array of length ``len(X)``, where each
             element indicates whether the corresponding subsequence is anomalous or
             its anomaly score.
 
