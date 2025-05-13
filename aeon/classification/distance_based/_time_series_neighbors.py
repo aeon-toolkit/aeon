@@ -64,6 +64,12 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         If ``weights`` is not among the supported values.
         See the ``weights`` parameter description for valid options.
 
+    Raises
+    ------
+    ValueError
+        If ``weights`` is not among the supported values.
+        See the ``weights`` parameter description for valid options.
+
     Examples
     --------
     >>> from aeon.datasets import load_unit_test

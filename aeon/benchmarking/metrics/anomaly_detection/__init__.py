@@ -43,3 +43,8 @@ from aeon.benchmarking.metrics.anomaly_detection._vus_metrics import (
     range_roc_auc_score,
     range_roc_vus_score,
 )
+from aeon.benchmarking.metrics.anomaly_detection.range_metrics import (
+    ts_fscore,
+    ts_precision,
+    ts_recall,
+)

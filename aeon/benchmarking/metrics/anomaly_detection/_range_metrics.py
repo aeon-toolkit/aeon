@@ -6,6 +6,7 @@ __all__ = ["range_precision", "range_recall", "range_f_score"]
 import warnings
 
 import numpy as np
+from deprecated.sphinx import deprecated
 
 from aeon.benchmarking.metrics.anomaly_detection._range_ts_metrics import (
     _binary_to_ranges,
@@ -15,6 +16,13 @@ from aeon.benchmarking.metrics.anomaly_detection._range_ts_metrics import (
 from aeon.benchmarking.metrics.anomaly_detection._util import check_y
 
 
+# TODO: Remove in v1.2.0
+@deprecated(
+    version="1.1.0",
+    reason="range_precision is deprecated and will be removed in v1.2.0. "
+    "Please use ts_precision from the range_metrics module instead.",
+    category=FutureWarning,
+)
 def range_precision(
     y_true: np.ndarray,
     y_pred: np.ndarray,
@@ -82,6 +90,13 @@ def range_precision(
     )
 
 
+# TODO: Remove in v1.2.0
+@deprecated(
+    version="1.1.0",
+    reason="range_recall is deprecated and will be removed in v1.2.0. "
+    "Please use ts_recall from the range_metrics module instead.",
+    category=FutureWarning,
+)
 def range_recall(
     y_true: np.ndarray,
     y_pred: np.ndarray,
@@ -142,6 +157,13 @@ def range_recall(
     )
 
 
+# TODO: Remove in v1.2.0
+@deprecated(
+    version="1.1.0",
+    reason="range_f_score is deprecated and will be removed in v1.2.0. "
+    "Please use ts_fscore from the range_metrics module instead.",
+    category=FutureWarning,
+)
 def range_f_score(
     y_true: np.ndarray,
     y_pred: np.ndarray,
