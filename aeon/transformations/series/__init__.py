@@ -5,6 +5,7 @@ __all__ = [
     "BaseSeriesTransformer",
     "ClaSPTransformer",
     "DFTSeriesTransformer",
+    "DifferencingSeriesTransformer",
     "Dobin",
     "ExpSmoothingSeriesTransformer",
     "GaussSeriesTransformer",
@@ -32,6 +33,7 @@ from aeon.transformations.series._bkfilter import BKFilter
 from aeon.transformations.series._boxcox import BoxCoxTransformer
 from aeon.transformations.series._clasp import ClaSPTransformer
 from aeon.transformations.series._dft import DFTSeriesTransformer
+from aeon.transformations.series._difference import DifferencingSeriesTransformer
 from aeon.transformations.series._dobin import Dobin
 from aeon.transformations.series._exp_smoothing import ExpSmoothingSeriesTransformer
 from aeon.transformations.series._gauss import GaussSeriesTransformer
