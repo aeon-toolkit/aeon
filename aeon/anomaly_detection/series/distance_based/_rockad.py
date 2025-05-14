@@ -206,23 +206,9 @@ class ROCKAD(BaseSeriesAnomalyDetector):
         point_anomaly_scores = self._inner_predict(_X, padding)
         return point_anomaly_scores
 
-    def _inner_predict(self, X: np.ndarray, padding: int) -> np.ndarray:
-
-        anomaly_scores = self._predict_proba(X)
-
-        point_anomaly_scores = reverse_windowing(
-            anomaly_scores, self.window_size, np.nanmean, self.stride, padding
-        )
-
-        point_anomaly_scores = (point_anomaly_scores - point_anomaly_scores.min()) / (
-            point_anomaly_scores.max() - point_anomaly_scores.min()
-        )
-
-        return point_anomaly_scores
-
-    def _predict_proba(self, X):
+    def _inner_predict(self, X: np.ndarray, padding: int) -> np.ndarray:        
         """
-        Predicts the probability of anomalies for the input data.
+        Predict the anomaly score for each time-point in the input data.
 
         Parameters
         ----------
@@ -257,6 +243,14 @@ class ROCKAD(BaseSeriesAnomalyDetector):
             y_scores[:, idx] = scores
 
         # Average the scores to get the final score for each time series
-        y_scores = y_scores.mean(axis=1)
+        anomaly_scores = y_scores.mean(axis=1)
 
-        return y_scores
+        point_anomaly_scores = reverse_windowing(
+            anomaly_scores, self.window_size, np.nanmean, self.stride, padding
+        )
+
+        point_anomaly_scores = (point_anomaly_scores - point_anomaly_scores.min()) / (
+            point_anomaly_scores.max() - point_anomaly_scores.min()
+        )
+
+        return point_anomaly_scores
