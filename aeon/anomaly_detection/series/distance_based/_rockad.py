@@ -19,12 +19,14 @@ class ROCKAD(BaseSeriesAnomalyDetector):
     """
     ROCKET-based Anomaly Detector (ROCKAD).
 
+    Adapted ROCKAD [1]_ version to detect anomalies on time-points.
     ROCKAD leverages the ROCKET transformation for feature extraction from
     time series data and applies the scikit learn k-nearest neighbors (k-NN)
     approach with bootstrap aggregation for robust anomaly detection.
     After windowing, the data gets transformed into the ROCKET feature space.
     Then the windows are compared based on the feature space by
-    finding the nearest neighbours.
+    finding the nearest neighbours. Whole-series based ROCKAD as proposed in
+    [1]_ can be found at aeon/anomaly_detection/whole_series/_rockad.py
 
     This class supports both univariate and multivariate time series and
     provides options for normalizing features, applying power transformations,
@@ -52,6 +54,30 @@ class ROCKAD(BaseSeriesAnomalyDetector):
         Step size for moving the sliding window over the time series data.
     random_state : int, default=42
         Random seed for reproducibility.
+
+    References
+    ----------
+    .. [1] Theissler, A., Wengert, M., Gerschner, F. (2023).
+        ROCKAD: Transferring ROCKET to Whole Time Series Anomaly Detection.
+        In: Crémilleux, B., Hess, S., Nijssen, S. (eds) Advances in Intelligent
+        Data Analysis XXI. IDA 2023. Lecture Notes in Computer Science,
+        vol 13876. Springer, Cham. https://doi.org/10.1007/978-3-031-30047-9_33
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.anomaly_detection.series.distance_based import ROCKAD
+    >>> rng = np.random.default_rng(seed=42)
+    >>> X_train = rng.normal(loc=0.0, scale=1.0, size=(1000,))
+    >>> X_test = rng.normal(loc=0.0, scale=1.0, size=(20,))
+    >>> X_test[15:20] -= 5
+    >>> detector = ROCKAD(window_size=15,n_estimators=10,n_kernels=10,n_neighbors=3)
+    >>> detector.fit(X_train)
+    >>> detector.predict(X_test)
+    array([0.         0.00554713 0.06990941 0.2288106  0.32382585 0.43652154
+    0.43652154 0.43652154 0.43652154 0.43652154 0.43652154 0.43652154
+    0.43652154 0.43652154 0.43652154 0.52382585 0.65200875 0.80313368
+    0.85194344 1.        ])
 
     Attributes
     ----------
@@ -206,7 +232,7 @@ class ROCKAD(BaseSeriesAnomalyDetector):
         point_anomaly_scores = self._inner_predict(_X, padding)
         return point_anomaly_scores
 
-    def _inner_predict(self, X: np.ndarray, padding: int) -> np.ndarray:        
+    def _inner_predict(self, X: np.ndarray, padding: int) -> np.ndarray:
         """
         Predict the anomaly score for each time-point in the input data.
 
