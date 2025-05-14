@@ -17,7 +17,7 @@ from aeon.utils.windowing import reverse_windowing, sliding_windows
 
 class ROCKAD(BaseSeriesAnomalyDetector):
     """
-    ROCKET-based Anomaly Detector (ROCKAD).
+    ROCKET-based Semi-Supervised Anomaly Detector (ROCKAD).
 
     Adapted ROCKAD [1]_ version to detect anomalies on time-points.
     ROCKAD leverages the ROCKET transformation for feature extraction from
