@@ -41,10 +41,10 @@ def fft_sliding_dot_product(X, q):
     Use FFT convolution to calculate the sliding window dot product.
 
     This function applies the Fast Fourier Transform (FFT) to efficiently compute
-    the sliding dot product between the input time series `X` and the query `q`.
+    the sliding dot product between the input time series ``X`` and the query ``q``.
     The dot product is computed for each channel individually. The sliding window
     approach ensures that the dot product is calculated for every possible subsequence
-    of `X` that matches the length of `q`
+    of ``X`` that matches the length of ``q``
 
     Parameters
     ----------

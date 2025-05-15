@@ -90,8 +90,8 @@ class MassSNN(BaseSeriesSimilaritySearch):
             A factor of the query length used to define the exclusion zone when
             ``allow_trivial_matches`` is set to False. For a given timestamp,
             the exclusion zone starts from
-            :math:`id_timestamp - floor(length * exclusion_factor)` and end at
-            :math:`id_timestamp + floor(length * exclusion_factor)`.
+            :math:``id_timestamp - floor(length * exclusion_factor)`` and end at
+            :math:``id_timestamp + floor(length * exclusion_factor)``.
         X_index : int, optional
             If ``X`` is a subsequence of X_, specify its starting timestamp in ``X_``.
             If specified, neighboring subsequences of X won't be able to match as
@@ -178,7 +178,7 @@ class MassSNN(BaseSeriesSimilaritySearch):
         ----------
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return ``"default"`` set.
             There are currently no reserved values for transformers.
 
         Returns
@@ -186,7 +186,8 @@ class MassSNN(BaseSeriesSimilaritySearch):
         params : dict or list of dict, default = {}
             Parameters to create testing instances of the class
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test
+            instance.
         """
         if parameter_set == "default":
             params = {"length": 20}
