@@ -10,11 +10,11 @@ from collections import OrderedDict
 
 import numpy as np
 from scipy.stats import multivariate_normal
-from sklearn.utils import check_random_state
-from aeon.transformations.collection import BaseCollectionTransformer
-from sklearn.neighbors import NearestNeighbors
 from sklearn.covariance import ledoit_wolf
+from sklearn.neighbors import NearestNeighbors
+from sklearn.utils import check_random_state
 
+from aeon.transformations.collection import BaseCollectionTransformer
 
 __all__ = ["OHIT"]
 
@@ -30,6 +30,7 @@ class OHIT(BaseCollectionTransformer):
     DRSNN also contains three parameters(i.e.,drT ,k and kapa),it is capable of selecting the proper value for
     drT around 1.In addition,k and kapa can be set in a complementary way to avoid the merging and
     dissociation of clusters,that is,a large k with a relatively low kapa.
+
     Parameters
     ----------
     k : int, the nearest neighbor parameter in SNN similarity
@@ -50,7 +51,9 @@ class OHIT(BaseCollectionTransformer):
         "requires_y": True,
     }
 
-    def __init__(self, k=None, kapa=None, drT=0.9, distance='euclidean' ,random_state=None):
+    def __init__(
+        self, k=None, kapa=None, drT=0.9, distance="euclidean", random_state=None
+    ):
         self.k = k
         self.kapa = kapa
         self.drT = drT
@@ -92,12 +95,14 @@ class OHIT(BaseCollectionTransformer):
             n, m = X_class.shape
             # set the default value of k and kapa
             if self.k is None:
-                self.k = int(np.ceil(n ** 0.5 * 1.25))
+                self.k = int(np.ceil(n**0.5 * 1.25))
             if self.kapa is None:
-                self.kapa = int(np.ceil(n ** 0.5))
+                self.kapa = int(np.ceil(n**0.5))
 
             # Initialize NearestNeighbors for SNN similarity
-            self.NearestNeighbors = NearestNeighbors(metric=self.distance, n_neighbors=self.k + 1)
+            self.NearestNeighbors = NearestNeighbors(
+                metric=self.distance, n_neighbors=self.k + 1
+            )
 
             clusters, cluster_label = self._cluster_minority(X_class)
             Me, eigen_matrices, eigen_values = self._covStruct(X_class, clusters)
@@ -105,7 +110,11 @@ class OHIT(BaseCollectionTransformer):
             # allocate the number of synthetic samples to be generated for each cluster
             random_state = check_random_state(self.random_state)
             os_ind = np.tile(np.arange(0, n), int(np.floor(n_samples / n)))
-            remaining = random_state.choice(np.arange(0, n), n_samples - n * int(np.floor(n_samples / n)), replace=False)
+            remaining = random_state.choice(
+                np.arange(0, n),
+                n_samples - n * int(np.floor(n_samples / n)),
+                replace=False,
+            )
             os_ind = np.concatenate([os_ind, remaining])
             R = 1.25 if len(clusters) > 1 else 1.1
 
@@ -117,12 +126,13 @@ class OHIT(BaseCollectionTransformer):
             if X_class_0.size != 0:
                 gen_0 = np.sum(np.isin(os_ind, np.where(cluster_label == 0)[0]))
                 idx_0 = random_state.choice(len(X_class_0), gen_0, replace=True)
-                X_new[count:count + gen_0, :] = X_class_0[idx_0]
+                X_new[count : count + gen_0, :] = X_class_0[idx_0]
                 count += gen_0
             for i, cluster in enumerate(clusters):
                 gen_i = np.sum(np.isin(os_ind, np.where(cluster_label == (i + 1))[0]))
-                X_new[count:count + gen_i, :] = self._generate_synthetic_samples(
-                                                Me[i], eigen_matrices[i], eigen_values[i], gen_i, R)
+                X_new[count : count + gen_i, :] = self._generate_synthetic_samples(
+                    Me[i], eigen_matrices[i], eigen_values[i], gen_i, R
+                )
                 count += gen_i
 
             assert count == n_samples
@@ -143,14 +153,16 @@ class OHIT(BaseCollectionTransformer):
         drT = self.drT
 
         self.NearestNeighbors.fit(X)
-        neighbors = self.NearestNeighbors.kneighbors(X, return_distance=False)[:,1:]
+        neighbors = self.NearestNeighbors.kneighbors(X, return_distance=False)[:, 1:]
         """ construct the shared nearest neighbor similarity """
         strength = np.zeros((n, n))
         for i in range(n):
             for j in range(i + 1, n):
                 shared_nn = np.intersect1d(neighbors[i, :k], neighbors[j, :k])
-                strength[i, j] = strength[j, i] = np.sum((k + 1 - np.searchsorted(neighbors[i, :k], shared_nn)) *
-                                                   (k + 1 - np.searchsorted(neighbors[j, :k], shared_nn)))
+                strength[i, j] = strength[j, i] = np.sum(
+                    (k + 1 - np.searchsorted(neighbors[i, :k], shared_nn))
+                    * (k + 1 - np.searchsorted(neighbors[j, :k], shared_nn))
+                )
 
         """ construct the shared nearest neighbor graph """
         strength_nn = np.sort(strength, axis=1)[:, ::-1][:, :k]
@@ -213,7 +225,7 @@ class OHIT(BaseCollectionTransformer):
             sigma, shrinkage = ledoit_wolf(cluster_data)
             me = np.mean(cluster_data, axis=0)
             eigenValues, eigenVectors = np.linalg.eigh(sigma)
-            eigenValues = np.diag((eigenValues))
+            eigenValues = np.diag(eigenValues)
             Me.append(me)
             Eigen_matrices.append(eigenVectors)
             Eigen_values.append(eigenValues)

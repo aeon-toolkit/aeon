@@ -3,5 +3,5 @@
 __all__ = ["ADASYN", "SMOTE", "OHIT"]
 
 from aeon.transformations.collection.imbalance._adasyn import ADASYN
-from aeon.transformations.collection.imbalance._smote import SMOTE
 from aeon.transformations.collection.imbalance._ohit import OHIT
+from aeon.transformations.collection.imbalance._smote import SMOTE

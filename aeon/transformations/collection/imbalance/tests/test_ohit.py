@@ -2,6 +2,7 @@
 
 import numpy as np
 import pytest
+
 from aeon.transformations.collection.imbalance import OHIT
 
 
@@ -28,4 +29,3 @@ def test_ohit():
     assert len(res_y) == 2 * majority_num
     assert res_count[0] == majority_num
     assert res_count[1] == majority_num
-
