@@ -46,8 +46,12 @@ def test_hydra_output_types():
 
     # Check that all outputs have the same shape
     assert tensor_output.shape == numpy_output.shape
-    assert numpy_output.shape[0] == df_output.shape[0]
-    assert numpy_output.shape[1] == df_output.shape[1]
+    assert numpy_output.shape == df_output.shape
+
+    tensor_np = tensor_output.detach().cpu().numpy()
+    df_np = df_output.to_numpy()
+    assert np.allclose(tensor_np[:5], numpy_output[:5], atol=1e-6)
+    assert np.allclose(numpy_output[:5], df_np[:5], atol=1e-6)
 
 
 @pytest.mark.skipif(

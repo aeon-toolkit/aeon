@@ -40,7 +40,8 @@ class HydraTransformer(BaseCollectionTransformer):
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
     output_type : str, default='tensor'
-        The output type of the transformer. Can be either 'tensor' or 'numpy'.
+        The output type of the transformer.
+        Can be either 'tensor' or 'numpy' or 'dataframe'.
         If 'tensor', the output will be a PyTorch tensor. If 'numpy', the output
         will be a NumPy array. If 'dataframe', the output will be a pandas DataFrame.
 
