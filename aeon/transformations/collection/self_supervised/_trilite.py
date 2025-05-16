@@ -645,7 +645,8 @@ class TRILITE(BaseCollectionTransformer):
         """
         params = {
             "latent_space_dim": 2,
-            "backbone_network": FCNNetwork(n_layers=1, n_filters=2, kernel_size=2),
+            # "backbone_network": FCNNetwork(n_layers=1, n_filters=2, kernel_size=2),
+            "backbone_network": None,
             "n_epochs": 3,
         }
 
