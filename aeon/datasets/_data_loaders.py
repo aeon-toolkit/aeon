@@ -468,15 +468,17 @@ def _download_and_extract(url, extract_path=None):
         extract_path = os.path.join(extract_path, "%s/" % file_name.split(".")[0])
 
     try:
-        if not os.path.exists(extract_path):
+        already_exists = os.path.exists(extract_path)
+        if not already_exists:
             os.makedirs(extract_path)
         zipfile.ZipFile(zip_file_name, "r").extractall(extract_path)
         shutil.rmtree(dl_dir)
         return extract_path
     except zipfile.BadZipFile:
         shutil.rmtree(dl_dir)
-        if os.path.exists(extract_path):
-            shutil.rmtree(extract_path)
+        if not already_exists:
+            if os.path.exists(extract_path):
+                shutil.rmtree(extract_path)
         raise zipfile.BadZipFile(
             "Could not unzip dataset. Please make sure the URL is valid."
         )
