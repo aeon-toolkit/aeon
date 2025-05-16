@@ -1,11 +1,15 @@
 """Functions to load published results."""
 
+from __future__ import annotations
+
 __maintainer__ = ["TonyBagnall", "MatthewMiddlehurst"]
 __all__ = [
     "load_classification_bake_off_2017_results",
     "load_classification_bake_off_2021_results",
     "load_classification_bake_off_2023_results",
 ]
+
+import numpy as np
 
 from aeon.benchmarking.results_loaders import _load_to_dict, _results_dict_to_array
 from aeon.datasets.tsc_datasets import (
@@ -16,8 +20,8 @@ from aeon.datasets.tsc_datasets import (
 
 
 def load_classification_bake_off_2017_results(
-    num_resamples=100, as_array=False, ignore_nan=False
-):
+    num_resamples: int | None = 100, as_array: bool = False, ignore_nan: bool = False
+) -> dict[str, dict[str, float]] | tuple[np.ndarray, list[str], list[str]]:
     """Fetch all the results of the 2017 univariate TSC bake off.
 
     Basic utility function to recover legacy results from [1]_. Loads results for 85
@@ -123,7 +127,9 @@ def load_classification_bake_off_2017_results(
     return res
 
 
-def load_classification_bake_off_2021_results(num_resamples=30, as_array=False):
+def load_classification_bake_off_2021_results(
+    num_resamples: int | None = 30, as_array: bool = False
+) -> dict[str, dict[str, float]] | tuple[np.ndarray, list[str], list[str]]:
     """Pull down all the results of the 2021 multivariate bake off.
 
     Basic utility function to recover legacy results from [1]_. Loads results for 26
@@ -209,7 +215,9 @@ def load_classification_bake_off_2021_results(num_resamples=30, as_array=False):
     return res
 
 
-def load_classification_bake_off_2023_results(num_resamples=30, as_array=False):
+def load_classification_bake_off_2023_results(
+    num_resamples: int | None = 30, as_array: bool = False
+) -> dict[str, dict[str, float]] | tuple[np.ndarray, list[str], list[str]]:
     """Pull down all the results of the 2023 univariate bake off.
 
     Basic utility function to recover legacy results from [1]_. Loads results for 112

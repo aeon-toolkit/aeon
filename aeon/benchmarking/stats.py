@@ -1,15 +1,21 @@
 """Functions to compute stats and get p-values."""
 
+from __future__ import annotations
+
 __maintainer__ = []
 __all__ = ["check_friedman", "nemenyi_test", "wilcoxon_test"]
 
 import warnings
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from typing import Any
 
 import numpy as np
 from scipy.stats import distributions, find_repeats, wilcoxon
 
 
-def check_friedman(ranks):
+def check_friedman(ranks: np.ndarray) -> float:
     """
     Check whether Friedman test is significant.
 
@@ -48,7 +54,9 @@ def check_friedman(ranks):
     return p_value
 
 
-def nemenyi_test(ordered_avg_ranks, n_datasets, alpha):
+def nemenyi_test(
+    ordered_avg_ranks: np.ndarray, n_datasets: int, alpha: float
+) -> list[list]:
     """
     Find cliques using post hoc Nemenyi test.
 
@@ -83,7 +91,7 @@ def nemenyi_test(ordered_avg_ranks, n_datasets, alpha):
     return cliques
 
 
-def _get_qalpha(alpha: float):
+def _get_qalpha(alpha: float) -> list[float]:
     """Get the alpha value for post hoc Nemenyi."""
     if alpha == 0.01:
         qalpha = [
@@ -271,7 +279,9 @@ def _get_qalpha(alpha: float):
     return qalpha
 
 
-def wilcoxon_test(results, labels, lower_better=False):
+def wilcoxon_test(
+    results: np.ndarray, labels: Any, lower_better: bool = False
+) -> np.ndarray:
     """
     Perform Wilcoxon test.
 
