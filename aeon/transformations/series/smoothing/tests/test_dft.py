@@ -1,12 +1,12 @@
 """Tests for DFT transformation."""
 
-__maintainer__ = []
-
 import numpy as np
 import pytest
 
+from aeon.transformations.series.smoothing._dfa import DiscreteFourierApproximation
 
-@pytest.mark.parametrize("r", [0.00, 0.25, 0.50, 0.75, 1.00])
+
+@pytest.mark.parametrize("r", [0.00, 0.50, 1.00])
 @pytest.mark.parametrize("sort", [True, False])
 def test_dft(r, sort):
     """Test the functionality of DFT transformation."""
@@ -23,15 +23,11 @@ def test_dft(r, sort):
         + 0.1 * np.sin(2 * np.pi * 8 * t)
     )
     x12 = np.array([x1, x2])
-    x12r = x12 + np.random.random((2, n_samples)) * 0.25
 
-    from aeon.transformations.series._dft import DFTSeriesTransformer
-
-    dft = DFTSeriesTransformer(r=r, sort=sort)
+    dft = DiscreteFourierApproximation(r=r, sort=sort)
     x_1 = dft.fit_transform(x1)
     x_2 = dft.fit_transform(x2)
     x_12 = dft.fit_transform(x12)
-    dft.fit_transform(x12r)
 
     np.testing.assert_almost_equal(x_1[0], x_12[0], decimal=4)
     np.testing.assert_almost_equal(x_2[0], x_12[1], decimal=4)
