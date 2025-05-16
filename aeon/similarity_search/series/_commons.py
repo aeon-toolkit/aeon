@@ -137,8 +137,10 @@ def _extract_top_k_from_dist_profile(
     top_k_distances = np.full(k, np.inf, dtype=np.float64)
     ub = np.full(k, np.inf)
     lb = np.full(k, -1.0)
-    # Could be optimized by using argpartition
-    sorted_indexes = np.argsort(dist_profile)
+
+    k = min(k, len(dist_profile))
+    partitioned = np.argpartition(dist_profile, k)[:k]
+    sorted_indexes = partitioned[np.argsort(dist_profile[partitioned])]
     _current_k = 0
     if not allow_trivial_matches:
         _current_j = 0
@@ -165,8 +167,7 @@ def _extract_top_k_from_dist_profile(
                     break
             _current_j += 1
     else:
-        _current_k += min(k, len(dist_profile))
-        dist_profile = dist_profile[sorted_indexes[:_current_k]]
+        dist_profile = dist_profile[sorted_indexes]
         dist_profile = dist_profile[dist_profile <= threshold]
         _current_k = len(dist_profile)
 
