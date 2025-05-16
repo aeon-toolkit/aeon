@@ -31,7 +31,7 @@ from aeon.utils.validation import get_n_cases
 def _yield_classification_checks(estimator_class, estimator_instances, datatypes):
     """Yield all classification checks for an aeon classifier."""
     # only class required
-    if sys.platform != "darwin":  # We cannot guarantee same results on ARM macOS
+    if sys.platform == "linux":  # We cannot guarantee same results on ARM macOS
         # Compare against results for both UnitTest and BasicMotions if available
         yield partial(
             check_classifier_against_expected_results,

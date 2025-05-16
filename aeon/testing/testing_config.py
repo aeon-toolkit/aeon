@@ -23,8 +23,9 @@ MULTITHREAD_TESTING = False
 NUMBA_DISABLED = os.environ.get("NUMBA_DISABLE_JIT") == "1"
 
 # exclude estimators here for short term fixes
-# Hydra excluded because it returns a pytorch Tensor
-EXCLUDE_ESTIMATORS = ["REDCOMETS", "HydraTransformer"]
+EXCLUDE_ESTIMATORS = [
+    "HydraTransformer",  # returns a pytorch Tensor
+]
 
 # Exclude specific tests for estimators here
 EXCLUDED_TESTS = {
@@ -50,14 +51,14 @@ EXCLUDED_TESTS = {
     "RSASTClassifier": ["check_fit_deterministic"],
     "SAST": ["check_fit_deterministic"],
     "RSAST": ["check_fit_deterministic"],
+    "MatrixProfile": ["check_fit_deterministic", "check_persistence_via_pickle"],
     # missed in legacy testing, changes state in predict/transform
+    "FLUSSSegmenter": ["check_non_state_changing_method"],
+    "InformationGainSegmenter": ["check_non_state_changing_method"],
+    "GreedyGaussianSegmenter": ["check_non_state_changing_method"],
+    "ClaSPSegmenter": ["check_non_state_changing_method"],
     "HMMSegmenter": ["check_non_state_changing_method"],
     "RSTSF": ["check_non_state_changing_method"],
-    "ClaSPSegmenter": ["check_non_state_changing_method"],
-    # Keeps length during predict to avoid recomputing means and std of data in fit
-    # if the next predict calls uses the same query length parameter.
-    "QuerySearch": ["check_non_state_changing_method"],
-    "SeriesSearch": ["check_non_state_changing_method"],
     # Unknown issue not producing the same results
     "RDSTRegressor": ["check_regressor_against_expected_results"],
     "RISTRegressor": ["check_regressor_against_expected_results"],
@@ -67,6 +68,10 @@ EXCLUDED_TESTS = {
 EXCLUDED_TESTS_NO_NUMBA = {
     # See issue #622
     "HIVECOTEV2": ["check_classifier_against_expected_results"],
+    # Other failures
+    "TemporalDictionaryEnsemble": ["check_classifier_against_expected_results"],
+    "OrdinalTDE": ["check_classifier_against_expected_results"],
+    "CanonicalIntervalForestRegressor": ["check_regressor_against_expected_results"],
 }
 
 

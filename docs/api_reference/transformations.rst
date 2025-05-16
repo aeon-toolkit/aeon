@@ -165,8 +165,10 @@ Series transforms
     ClaSPTransformer
     DFTSeriesTransformer
     Dobin
+    ExpSmoothingSeriesTransformer
     GaussSeriesTransformer
     MatrixProfileSeriesTransformer
+    MovingAverageSeriesTransformer
     PLASeriesTransformer
     SGSeriesTransformer
     StatsModelsACF
@@ -178,6 +180,21 @@ Series transforms
     PCASeriesTransformer
     WarpingSeriesTransformer
 
+Smoothing
+~~~~~~~~~
+
+.. currentmodule:: aeon.transformations.series.smoothing
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    DiscreteFourierApproximation
+    ExponentialSmoothing
+    GaussianFilter
+    MovingAverage
+    SavitzkyGolayFilter
+    RecursiveMedianSieve
 
 Base
 ----
