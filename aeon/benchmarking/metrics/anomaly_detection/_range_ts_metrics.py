@@ -229,8 +229,8 @@ def _binary_to_ranges(binary_sequence):
 # TODO: remove in v1.3.0
 @deprecated(
     version="1.2.0",
-    reason="ts_recall is deprecated and will be removed in v1.3.0. "
-    "Please use range_recall instead.",
+    reason="ts_precision is deprecated and will be removed in v1.3.0. "
+    "Please use range_precision instead.",
     category=FutureWarning,
 )
 def ts_precision(y_pred, y_real, gamma="one", bias_type="flat"):
