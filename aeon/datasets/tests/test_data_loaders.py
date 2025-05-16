@@ -6,6 +6,7 @@ import os
 import shutil
 import tempfile
 from urllib.error import URLError
+from zipfile import BadZipFile
 
 import numpy as np
 import pandas as pd
@@ -24,6 +25,7 @@ from aeon.datasets import (
 from aeon.datasets._data_loaders import (
     CONNECTION_ERRORS,
     _alias_datatype_check,
+    _download_and_extract,
     _get_channel_strings,
     _load_data,
     _load_header_info,
@@ -551,3 +553,21 @@ def test_load_tsc_dataset():
         assert isinstance(X, np.ndarray) and isinstance(y, np.ndarray)
         with pytest.raises(ValueError, match="Invalid dataset name"):
             _load_tsc_dataset("FOO", split="TEST", extract_path=tmp)
+
+
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of intermittent fail for read/write",
+)
+@pytest.mark.xfail(raises=(URLError, TimeoutError, ConnectionError))
+def test_download_and_extract():
+    """Test that the function does not delete a directory if already present."""
+    name = "Foo"
+    with tempfile.TemporaryDirectory() as tmp:
+        extract_path = os.path.join(tmp, name)
+        os.makedirs(extract_path)
+        url = "https://timeseriesclassification.com/aeon-toolkit/%s.zip" % name
+        try:
+            _download_and_extract(url, extract_path=extract_path)
+        except BadZipFile:
+            assert os.path.exists(extract_path)
