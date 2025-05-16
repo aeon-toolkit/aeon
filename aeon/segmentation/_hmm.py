@@ -50,7 +50,7 @@ class HMMSegmenter(BaseSegmenter):
     calculated - these are both nxm matrices, where n is the number of
     hidden states and m is the number of observations. The transition
     probability matrices record the probability of the most likely
-    sequence which has observation `m` being assigned to hidden state n.
+    sequence which has observation ``m`` being assigned to hidden state n.
     The transition_id matrix records the step before hidden state n that
     proceeds it in the most likely path.  This logic is mostly carried
     out by helper function _calculate_trans_mats.
@@ -76,7 +76,7 @@ class HMMSegmenter(BaseSegmenter):
         probability of transitioning from state i to state j.)
     initial_probs: 1D np.ndarray, shape = [num hidden states], optional
         A array of probabilities that the sequence of hidden states starts in each
-        of the hidden states. If passed, should be of length `n` the number of
+        of the hidden states. If passed, should be of length ``n`` the number of
         hidden states and  should match the length of both the emission funcs
         list and the transition_prob_mat. The initial probs should be reflective
         of prior beliefs.  If none is passed will each hidden state will be
