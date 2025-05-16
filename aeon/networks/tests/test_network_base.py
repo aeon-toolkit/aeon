@@ -15,12 +15,17 @@ class DummyDeepNetwork(BaseDeepLearningNetwork):
     def __init__(self):
         super().__init__()
 
+    def __repr__(self):
+        """Return a fixed string representation for test stability."""
+        return "DummyDeepNetwork()"
+
     def build_network(self, input_shape, **kwargs):
         """Build a neural network."""
         import tensorflow as tf
 
         input_layer = tf.keras.layers.Input(input_shape)
-        output_layer = tf.keras.layers.Dense(units=10)(input_layer)
+        flatten_layer = tf.keras.layers.Flatten()(input_layer)
+        output_layer = tf.keras.layers.Dense(units=10)(flatten_layer)
 
         return input_layer, output_layer
 
