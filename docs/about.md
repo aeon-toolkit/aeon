@@ -42,9 +42,18 @@ The release management workgroup is responsible for managing the project's relea
 ```{include} about/release_management_workgroup.md
 ```
 
+### Supporting Developers
+
+Supporting developers have been provided write access to the main repository to aid
+with package contributions and maintenance.
+
+```{include} about/supporting_developers.md
+```
+
 ### Core Developers
 
-The core developers push forward `aeon`'s development and maintain the package.
+Core developers push forward `aeon`'s development, maintain the package and build
+our community.
 
 ```{include} about/core_developers.md
 ```

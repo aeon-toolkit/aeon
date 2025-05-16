@@ -1,0 +1,133 @@
+name: Weekly GitHub Maintenance
+
+on:
+  schedule:
+    # every Monday at 12:30 AM UTC
+    - cron:  "30 0 * * 1"
+  workflow_dispatch:
+
+jobs:
+  pre-commit-auto-update:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - uses: browniebroke/pre-commit-autoupdate-action@v1.0.0
+
+      - if: always()
+        name: Create app token
+        uses: actions/create-github-app-token@v2
+        id: app-token
+        with:
+          app-id: ${{ vars.PR_APP_ID }}
+          private-key: ${{ secrets.PR_APP_KEY }}
+
+      - if: always()
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          commit-message: "Automated `pre-commit` hook update"
+          branch: pre-commit-hooks-update
+          title: "[MNT] Automated `pre-commit` hook update"
+          body: "Automated weekly update to `.pre-commit-config.yaml` hook versions."
+          labels: maintenance, full pre-commit, no changelog
+
+  teams-table-auto-update:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/utilities
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Create app token
+        uses: actions/create-github-app-token@v2
+        id: app-token
+        with:
+          app-id: ${{ vars.PR_APP_ID }}
+          private-key: ${{ secrets.PR_APP_KEY }}
+
+      - name: Process comment edit
+        id: label_out
+        run: python .github/utilities/generate_developer_tables.py
+        env:
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+
+      - uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          commit-message: "Automated teams tables update"
+          branch: webpage-teams-update
+          title: "[DOC] Automated website teams tables update"
+          body: "Automated weekly update to the website teams tables."
+          labels: documentation, no changelog
+
+  github-security-scorecard:
+    name: Scorecard analysis
+    runs-on: ubuntu-24.04
+    permissions:
+      # Needed to upload the results to code-scanning dashboard.
+      security-events: write
+      # Needed to publish results and get a badge (see publish_results below).
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Run analysis
+        uses: ossf/scorecard-action@v2.4.1
+        with:
+          results_file: results.sarif
+          results_format: sarif
+          publish_results: true
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SARIF file
+          path: results.sarif
+          retention-days: 5
+
+      - name: Upload to code-scanning
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: results.sarif
+
+  stale_branches:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Create app token
+        uses: actions/create-github-app-token@v2
+        id: app-token
+        with:
+          app-id: ${{ vars.PR_APP_ID }}
+          private-key: ${{ secrets.PR_APP_KEY }}
+
+      - name: Stale Branches
+        uses: crs-k/stale-branches@v7.0.1
+        with:
+          repo-token: ${{ steps.app-token.outputs.token }}
+          days-before-stale: 180
+          days-before-delete: 210
+          comment-updates: true
+          tag-committer: true
+          stale-branch-label: "stale branch"
+          compare-branches: "info"
+          pr-check: true

@@ -11,6 +11,7 @@ https://github.com/scikit-learn/scikit-learn/blob/main/build_tools/
 generate_authors_table.py
 """
 
+import os
 import sys
 import time
 from os import path
@@ -19,7 +20,7 @@ from pathlib import Path
 import requests
 
 LOGO_URL = "https://avatars2.githubusercontent.com/u/78909809"
-REPO_FOLDER = Path(path.abspath(__file__)).parent.parent
+REPO_FOLDER = Path(path.abspath(__file__)).parent.parent.parent
 
 
 def get(url, auth):
@@ -53,12 +54,14 @@ def get_contributors(auth):
     iw_slug = "aeon-infrastructure-workgroup"
     rmw = []
     rmw_slug = "aeon-release-management-workgroup"
+    sd = []
+    sd_slug = "aeon-supporting-developers"
 
     entry_point = "https://api.github.com/orgs/aeon-toolkit/"
 
     for team_slug, lst in zip(
-        (cocw_slug, cw_slug, cd_slug, fw_slug, iw_slug, rmw_slug),
-        (cocw, cw, cd, fw, iw, rmw),
+        (cocw_slug, cw_slug, cd_slug, fw_slug, iw_slug, rmw_slug, sd_slug),
+        (cocw, cw, cd, fw, iw, rmw, sd),
     ):
         for page in range(5):  # 5 pages, 30 per page
             reply = get(f"{entry_point}teams/{team_slug}/members?page={page}", auth)
@@ -71,6 +74,7 @@ def get_contributors(auth):
     fw = {c["login"] for c in fw}
     iw = {c["login"] for c in iw}
     rmw = {c["login"] for c in rmw}
+    sd = {c["login"] for c in sd}
 
     # get profiles from GitHub
     cocw = [get_profile(login, auth) for login in cocw]
@@ -79,6 +83,7 @@ def get_contributors(auth):
     fw = [get_profile(login, auth) for login in fw]
     iw = [get_profile(login, auth) for login in iw]
     rmw = [get_profile(login, auth) for login in rmw]
+    sd = [get_profile(login, auth) for login in sd]
 
     # sort by last name
     cocw = sorted(cocw, key=key)
@@ -87,6 +92,7 @@ def get_contributors(auth):
     fw = sorted(fw, key=key)
     iw = sorted(iw, key=key)
     rmw = sorted(rmw, key=key)
+    sd = sorted(sd, key=key)
 
     return (
         cocw,
@@ -95,6 +101,7 @@ def get_contributors(auth):
         fw,
         iw,
         rmw,
+        sd,
     )
 
 
@@ -140,9 +147,11 @@ def generate_table(contributors):
 
 
 if __name__ == "__main__":
-    print("access token:", file=sys.stderr)  # noqa: T201
-    token = input()
-    auth = ("user", token)
+    auth = os.getenv("GITHUB_TOKEN")
+    if auth is None:
+        print("access token:", file=sys.stderr)  # noqa: T201
+        token = input()
+        auth = ("user", token)
 
     (
         cocw,
@@ -151,6 +160,7 @@ if __name__ == "__main__":
         fw,
         iw,
         rmw,
+        sd,
     ) = get_contributors(auth)
 
     with open(
@@ -190,3 +200,10 @@ if __name__ == "__main__":
         encoding="utf-8",
     ) as rst_file:
         rst_file.write(generate_table(rmw))
+
+    with open(
+        REPO_FOLDER / "docs" / "about" / "supporting_developers.md",
+        "w+",
+        encoding="utf-8",
+    ) as rst_file:
+        rst_file.write(generate_table(sd))
