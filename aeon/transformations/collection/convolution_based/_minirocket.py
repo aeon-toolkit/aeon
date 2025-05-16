@@ -55,7 +55,7 @@ class MiniRocket(BaseCollectionTransformer):
     Notes
     -----
      Directly adapted from the original implementation
-     https://github.com/angus924/minirocket.
+     https://github.com/angus924/minirocket with owner permission.
 
     Examples
     --------

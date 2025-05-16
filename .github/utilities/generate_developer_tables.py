@@ -72,9 +72,6 @@ def get_contributors(auth):
     iw = {c["login"] for c in iw}
     rmw = {c["login"] for c in rmw}
 
-    # add missing contributors with GitHub accounts
-    cocw |= {"KatieBuc"}
-
     # get profiles from GitHub
     cocw = [get_profile(login, auth) for login in cocw]
     cw = [get_profile(login, auth) for login in cw]
@@ -111,13 +108,6 @@ def get_profile(login, auth):
 
     if profile["name"] is None:
         profile["name"] = profile["login"]
-
-    # fix missing names
-    missing_names = {
-        "KatieBuc": "Katie Buchhorn",
-    }
-    if profile["name"] in missing_names:
-        profile["name"] = missing_names[profile["name"]]
 
     return profile
 
