@@ -649,4 +649,4 @@ class TRILITE(BaseCollectionTransformer):
             "n_epochs": 3,
         }
 
-        return params
+        return [params]
