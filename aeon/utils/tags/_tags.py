@@ -169,4 +169,27 @@ ESTIMATOR_TAGS = {
         "unordered attributes are columns. Series indicates a single series output "
         "and collection indicates output is a collection of time series.",
     },
+    "anomaly_output_type": {
+        "class": "anomaly-detector",
+        "type": ("str", ["anomaly_scores", "binary"]),
+        "description": "The format of the anomaly detector output. anomaly_scores "
+        "estimators provide a numeric score on how anomalous the point/case is. binary"
+        "estimators provide a binary classification of whether the point/case is "
+        "anomalous or not.",
+    },
+    "learning_type:unsupervised": {
+        "class": "anomaly-detector",
+        "type": "bool",
+        "description": "Does the anomaly detector support unsupervised learning?",
+    },
+    "learning_type:semi_supervised": {
+        "class": "anomaly-detector",
+        "type": "bool",
+        "description": "Does the anomaly detector support semi-supervised learning?",
+    },
+    "learning_type:supervised": {
+        "class": "anomaly-detector",
+        "type": "bool",
+        "description": "Does the anomaly detector support supervised learning?",
+    },
 }

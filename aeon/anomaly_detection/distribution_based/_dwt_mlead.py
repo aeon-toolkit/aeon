@@ -91,6 +91,8 @@ class DWT_MLEAD(BaseAnomalyDetector):
         "capability:univariate": True,
         "capability:multivariate": False,
         "capability:missing_values": False,
+        "anomaly_output_type": "anomaly_scores",
+        "learning_type:unsupervised": True,
     }
 
     def __init__(

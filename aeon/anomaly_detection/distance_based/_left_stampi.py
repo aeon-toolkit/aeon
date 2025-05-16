@@ -69,6 +69,8 @@ class LeftSTAMPi(BaseAnomalyDetector):
         "fit_is_empty": False,
         "cant_pickle": True,
         "python_dependencies": ["stumpy"],
+        "anomaly_output_type": "anomaly_scores",
+        "learning_type:unsupervised": True,
     }
 
     def __init__(

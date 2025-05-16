@@ -79,6 +79,9 @@ class BaseAnomalyDetector(BaseSeriesEstimator):
         "X_inner_type": "np.ndarray",  # One of VALID_SERIES_INNER_TYPES
         "fit_is_empty": True,
         "requires_y": False,
+        "learning_type:unsupervised": False,
+        "learning_type:semi_supervised": False,
+        "learning_type:supervised": False,
     }
 
     def __init__(self, axis):
