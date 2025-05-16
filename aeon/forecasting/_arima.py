@@ -378,7 +378,7 @@ def auto_arima(data):
         points, aic = nelder_mead(data, p[0], p[1], p[2], p[3], seasonal_period, p[4])
         p.append(aic)
         model_points.append(points)
-    current_model = max(model_parameters, key=lambda item: item[5])
+    current_model = min(model_parameters, key=lambda item: item[5])
     current_points = model_points[model_parameters.index(current_model)]
     while True:
         better_model = False
