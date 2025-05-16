@@ -12,7 +12,6 @@ from copy import deepcopy
 import numpy as np
 from sklearn.utils import check_random_state
 
-from aeon.networks import BaseDeepLearningNetwork, FCNNetwork
 from aeon.transformations.collection import BaseCollectionTransformer
 
 
@@ -216,6 +215,8 @@ class TRILITE(BaseCollectionTransformer):
         self : object
         """
         import tensorflow as tf
+
+        from aeon.networks import BaseDeepLearningNetwork, FCNNetwork
 
         if isinstance(self.backbone_network, BaseDeepLearningNetwork):
             self._backbone_network = self.backbone_network
@@ -643,6 +644,8 @@ class TRILITE(BaseCollectionTransformer):
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
         """
+        from aeon.networks import FCNNetwork
+
         params = {
             "latent_space_dim": 2,
             "backbone_network": FCNNetwork(n_layers=1, n_filters=2, kernel_size=2),
