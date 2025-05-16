@@ -1342,7 +1342,7 @@ def load_classification(
             try_zenodo = False
             error_str = (
                 f"Invalid dataset name ={name} that is not available on extract path "
-                f"={extract_path}. Nor is it available on "
+                f"={extract_path} nor is it available on "
                 f"https://timeseriesclassification.com/ or zenodo."
             )
             try:
