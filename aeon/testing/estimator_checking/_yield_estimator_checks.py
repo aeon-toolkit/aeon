@@ -22,6 +22,7 @@ from aeon.clustering.deep_learning.base import BaseDeepClusterer
 from aeon.regression import BaseRegressor
 from aeon.regression.deep_learning.base import BaseDeepRegressor
 from aeon.segmentation import BaseSegmenter
+from aeon.similarity_search import BaseSimilaritySearch
 from aeon.testing.estimator_checking._yield_anomaly_detection_checks import (
     _yield_anomaly_detection_checks,
 )
@@ -231,9 +232,10 @@ def check_inheritance(estimator_class):
 
     # Only transformers can inherit from multiple base types currently
     if n_base_types > 1:
-        assert issubclass(
-            estimator_class, BaseTransformer
-        ), "Only transformers can inherit from multiple base types."
+        assert issubclass(estimator_class, BaseTransformer) or issubclass(
+            estimator_class, BaseSimilaritySearch
+        ), "Only transformers or similarity search estimators can inherit from multiple"
+        "base types."
 
 
 def check_has_common_interface(estimator_class):
@@ -627,10 +629,9 @@ def check_persistence_via_pickle(estimator, datatype):
             same, msg = deep_equals(output, results[i], return_msg=True)
             if not same:
                 raise ValueError(
-                    f"Running {method} after serialisation parameters gives "
-                    f"different results. "
-                    f"{type(estimator)} returns data as {type(output)}: test "
-                    f"equivalence message: {msg}"
+                    f"Running {type(estimator)} {method} with test parameters after "
+                    f"serialisation gives different results. "
+                    f"Check equivalence message: {msg}"
                 )
             i += 1
 
@@ -657,9 +658,8 @@ def check_fit_deterministic(estimator, datatype):
             same, msg = deep_equals(output, results[i], return_msg=True)
             if not same:
                 raise ValueError(
-                    f"Running {method} with test parameters after two calls to fit "
-                    f"gives different results."
-                    f"{type(estimator)} returns data as {type(output)}: test "
-                    f"equivalence message: {msg}"
+                    f"Running {type(estimator)} {method} with test parameters after "
+                    f"two calls to fit gives different results."
+                    f"Check equivalence message: {msg}"
                 )
             i += 1
