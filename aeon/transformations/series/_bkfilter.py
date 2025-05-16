@@ -34,8 +34,9 @@ class BKFilter(BaseSeriesTransformer):
 
     Notes
     -----
-    Adapted from statsmodels implementation
+    Adapted from statsmodels 0.14.4 implementation
     https://github.com/statsmodels/statsmodels/blob/main/statsmodels/tsa/filters/bk_filter.py
+    Copyright (c) 2009-2018 statsmodels Developers, BSD-3
 
     References
     ----------
