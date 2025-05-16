@@ -15,6 +15,10 @@ class DummyDeepNetwork(BaseDeepLearningNetwork):
     def __init__(self):
         super().__init__()
 
+    def __repr__(self):
+        """Return a fixed string representation for test stability."""
+        return "DummyDeepNetwork()"
+
     def build_network(self, input_shape, **kwargs):
         """Build a neural network."""
         import tensorflow as tf
