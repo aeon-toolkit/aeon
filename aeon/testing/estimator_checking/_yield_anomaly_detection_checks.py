@@ -6,10 +6,7 @@ import numpy as np
 
 from aeon.base._base import _clone_estimator
 from aeon.base._base_series import VALID_SERIES_INNER_TYPES
-from aeon.testing.data_generation import (
-    make_example_1d_numpy,
-    make_example_2d_numpy_series,
-)
+from aeon.testing.testing_data import FULL_TEST_DATA_DICT
 
 
 def _yield_anomaly_detection_checks(estimator_class, estimator_instances, datatypes):
@@ -20,10 +17,19 @@ def _yield_anomaly_detection_checks(estimator_class, estimator_instances, dataty
     )
 
     # test class instances
-    for _, estimator in enumerate(estimator_instances):
-        # no data needed
-        yield partial(check_anomaly_detector_univariate, estimator=estimator)
-        yield partial(check_anomaly_detector_multivariate, estimator=estimator)
+    for i, estimator in enumerate(estimator_instances):
+        # data type irrelevant
+        yield partial(
+            check_anomaly_detector_learning_types,
+            estimator=estimator,
+            datatype=datatypes[i][0],
+        )
+
+        # test all data types
+        for datatype in datatypes[i]:
+            yield partial(
+                check_anomaly_detector_output, estimator=estimator, datatype=datatype
+            )
 
 
 def check_anomaly_detector_overrides_and_tags(estimator_class):
@@ -53,41 +59,44 @@ def check_anomaly_detector_overrides_and_tags(estimator_class):
     assert multi or uni
 
 
-labels = np.zeros(15, dtype=np.int_)
-labels[np.random.choice(15, 5)] = 1
-uv_series = make_example_1d_numpy(n_timepoints=15, random_state=0)
-uv_series[labels == 1] += 1
-mv_series = make_example_2d_numpy_series(n_timepoints=15, n_channels=2, random_state=0)
-mv_series[:, labels == 1] += 1
+def check_anomaly_detector_learning_types(estimator, datatype):
+    """Test anomaly detector learning types."""
+    unsupervised = estimator.get_tag("learning_type:unsupervised")
+    semisup = estimator.get_tag("learning_type:semi_supervised")
+    supervised = estimator.get_tag("learning_type:supervised")
+
+    assert (
+        unsupervised or semisup or supervised
+    ), "At least one learning type must be True"
 
 
-def check_anomaly_detector_univariate(estimator):
-    """Test the anomaly detector on univariate data."""
-    import pytest
-
+def check_anomaly_detector_output(estimator, datatype):
+    """Test the anomaly detector output on valid data."""
     estimator = _clone_estimator(estimator)
 
-    if estimator.get_tag(tag_name="capability:univariate"):
-        pred = estimator.fit_predict(uv_series, labels)
-        assert isinstance(pred, np.ndarray)
-        assert pred.shape == (15,)
-        assert issubclass(pred.dtype.type, (np.integer, np.floating, np.bool_))
+    estimator.fit(
+        FULL_TEST_DATA_DICT[datatype]["train"][0],
+        FULL_TEST_DATA_DICT[datatype]["train"][1],
+    )
+
+    y_pred = estimator.predict(FULL_TEST_DATA_DICT[datatype]["test"][0])
+    assert isinstance(y_pred, np.ndarray)
+    assert len(y_pred) == FULL_TEST_DATA_DICT[datatype]["test"][0].shape[1]
+
+    ot = estimator.get_tag("anomaly_output_type")
+    if ot == "anomaly_scores":
+        assert np.issubdtype(y_pred.dtype, np.floating) or np.issubdtype(
+            y_pred.dtype, np.integer
+        ), "y_pred must be of floating point or int type"
+        assert not np.array_equal(
+            np.unique(y_pred), [0, 1]
+        ), "y_pred cannot contain only 0s and 1s"
+    elif ot == "binary":
+        assert np.issubdtype(y_pred.dtype, np.integer) or np.issubdtype(
+            y_pred.dtype, np.bool_
+        ), "y_pred must be of int or bool type for binary output"
+        assert all(
+            val in [0, 1] for val in np.unique(y_pred)
+        ), "y_pred must contain only 0s, 1s, True, or False"
     else:
-        with pytest.raises(ValueError, match="Univariate data not supported"):
-            estimator.fit_predict(uv_series, labels)
-
-
-def check_anomaly_detector_multivariate(estimator):
-    """Test the anomaly detector on multivariate data."""
-    import pytest
-
-    estimator = _clone_estimator(estimator)
-
-    if estimator.get_tag(tag_name="capability:multivariate"):
-        pred = estimator.fit_predict(mv_series, labels)
-        assert isinstance(pred, np.ndarray)
-        assert pred.shape == (15,)
-        assert issubclass(pred.dtype.type, (np.integer, np.floating, np.bool_))
-    else:
-        with pytest.raises(ValueError, match="Multivariate data not supported"):
-            estimator.fit_predict(mv_series, labels)
+        raise ValueError(f"Unknown anomaly output type: {ot}")
