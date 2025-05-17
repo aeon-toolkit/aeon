@@ -45,15 +45,15 @@ class SeriesToCollectionBroadcaster(BaseCollectionTransformer):
         self,
         transformer: BaseSeriesTransformer,
     ) -> None:
-        # Setting tags before __init__() causes them to be overwritten. Hence we make
-        # a copy before init from the series transformer, then copy the tags of the
-        # BaseSeriesTransformer to this BaseCollectionTransformer
         self.transformer = transformer
+
+        super().__init__()
+
+        # Setting tags before __init__() causes them to be overwritten.
         tags_to_keep = SeriesToCollectionBroadcaster._tags
         tags_to_add = transformer.get_tags()
         for key in tags_to_keep:
             tags_to_add.pop(key, None)
-        super().__init__()
         self.set_tags(**tags_to_add)
 
     def _fit(self, X, y=None):

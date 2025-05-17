@@ -1,7 +1,5 @@
 """Tests for SeriesToCollectionBroadcaster transformer."""
 
-__maintainer__ = ["baraline"]
-
 import pytest
 from numpy.testing import assert_array_almost_equal
 
@@ -14,7 +12,9 @@ from aeon.testing.mock_estimators._mock_series_transformers import (
     MockSeriesTransformerNoFit,
     MockUnivariateSeriesTransformer,
 )
-from aeon.transformations.collection._broadcaster import SeriesToCollectionBroadcaster
+from aeon.transformations.collection._series_broadcaster import (
+    SeriesToCollectionBroadcaster,
+)
 
 
 def test_broadcaster_tag_inheritance():
@@ -41,10 +41,9 @@ def test_broadcaster_tag_inheritance():
             assert post_constructor_tags[key] == mock_tags[key]
 
 
-df = [make_example_3d_numpy, make_example_3d_numpy_list]
-
-
-@pytest.mark.parametrize("data_gen", df)
+@pytest.mark.parametrize(
+    "data_gen", [make_example_3d_numpy, make_example_3d_numpy_list]
+)
 def test_broadcaster_methods_univariate(data_gen):
     """Test the broadcaster fit, transform and inverse transform method."""
     X, y = data_gen(n_channels=1)
@@ -64,7 +63,9 @@ def test_broadcaster_methods_univariate(data_gen):
         assert_array_almost_equal(X[i], X2[i])
 
 
-@pytest.mark.parametrize("data_gen", df)
+@pytest.mark.parametrize(
+    "data_gen", [make_example_3d_numpy, make_example_3d_numpy_list]
+)
 def test_broadcaster_methods_multivariate(data_gen):
     """Test the broadcaster fit, transform and inverse transform method."""
     X, y = data_gen(n_channels=3)
@@ -86,7 +87,7 @@ def test_broadcaster_methods_multivariate(data_gen):
 
 @pytest.mark.parametrize(
     "data_gen",
-    [make_example_3d_numpy],
+    [make_example_3d_numpy, make_example_3d_numpy_list],
 )
 def test_broadcaster_no_fit(data_gen):
     """Test the wrapper for transformers with fit_empty."""

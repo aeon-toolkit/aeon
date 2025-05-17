@@ -1,10 +1,10 @@
-"""Base class for pipelines in collection modules.
+"""Base class for pipelines in series modules.
 
-i.e. classification, regression and clustering.
+i.e. forecasting, anomaly detection, series transforms.
 """
 
 __maintainer__ = ["MatthewMiddlehurst"]
-__all__ = ["BaseCollectionPipeline"]
+__all__ = ["BaseSeriesPipeline"]
 
 from abc import abstractmethod
 
@@ -14,14 +14,14 @@ from sklearn.utils import check_random_state
 
 from aeon.base import (
     BaseAeonEstimator,
-    BaseCollectionEstimator,
+    BaseSeriesEstimator,
     ComposableEstimatorMixin,
 )
 from aeon.base._base import _clone_estimator
 
 
-class BaseCollectionPipeline(ComposableEstimatorMixin, BaseCollectionEstimator):
-    """Base class for composable pipelines in collection based modules.
+class BaseSeriesPipeline(ComposableEstimatorMixin, BaseSeriesEstimator):
+    """Base class for composable pipelines in series based modules.
 
     Parameters
     ----------
@@ -151,53 +151,9 @@ class BaseCollectionPipeline(ComposableEstimatorMixin, BaseCollectionEstimator):
 
         missing = all(missing_tags) or missing_rm_tag
 
-        # can handle unequal length if: estimator can and transformers can,
-        #   *or* transformer chain renders the series equal length
-        #   *or* transformer chain transforms the series to a tabular format
-        unequal_tags = [
-            (
-                e[1].get_tag(
-                    "capability:unequal_length",
-                    raise_error=False,
-                    tag_value_default=False,
-                )
-                if isinstance(e[1], BaseAeonEstimator)
-                else False
-            )
-            for e in self._steps
-        ]
-
-        unequal_rm_tag = False
-        for e in self._steps:
-            if (
-                isinstance(e[1], BaseAeonEstimator)
-                and e[1].get_tag(
-                    "capability:unequal_length",
-                    raise_error=False,
-                    tag_value_default=False,
-                )
-                and (
-                    e[1].get_tag(
-                        "removes_unequal_length",
-                        raise_error=False,
-                        tag_value_default=False,
-                    )
-                    or e[1].get_tag("output_data_type", raise_error=False) == "Tabular"
-                )
-            ):
-                unequal_rm_tag = True
-                break
-            elif not isinstance(e[1], BaseAeonEstimator) or not e[1].get_tag(
-                "capability:unequal_length", raise_error=False, tag_value_default=False
-            ):
-                break
-
-        unequal = all(unequal_tags) or unequal_rm_tag
-
         tags_to_set = {
             "capability:multivariate": multivariate,
             "capability:missing_values": missing,
-            "capability:unequal_length": unequal,
         }
         self.set_tags(**tags_to_set)
 
