@@ -479,9 +479,18 @@ class ClaSPTransformer(BaseSeriesTransformer):
                 "Period-Length is larger than size of the time series", stacklevel=1
             )
 
+        if X.dtype != np.float64:
+            warnings.warn(
+                f"dtype is {X.dtype} but should be {np.float64}. "
+                f"Will apply conversion to float64 now",
+                stacklevel=1,
+            )
+
         scoring_metric_call = self._check_scoring_metric(self.scoring_metric)
 
-        X = X.flatten()
+        # The input has to be of type float64
+        X = X.flatten().astype(np.float64)
+
         Xt, _ = clasp(
             X,
             self.window_length,
