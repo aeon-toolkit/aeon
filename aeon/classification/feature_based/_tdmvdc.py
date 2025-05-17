@@ -440,8 +440,8 @@ class TDMVDCClassifier(BaseClassifier):
             Parameters to create testing instances of the class.
         """
         return {
-            "k1": 1,
-            "k2": 1,
-            "feature_store_ratios": [0.1],
+            "k1": 2,
+            "k2": 2,
+            "feature_store_ratios": [0.1, 0.2, 0.3, 0.4, 0.5],
             "default_fc_parameters": "minimal",
         }
