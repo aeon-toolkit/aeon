@@ -32,6 +32,7 @@ class OutlierDetectionAdapter(BaseCollectionAnomalyDetector):
         "X_inner_type": "numpy2D",
         "fit_is_empty": False,
         "anomaly_output_type": "binary",
+        "learning_type:semi_supervised": True,
     }
 
     def __init__(self, detector, random_state=None):
