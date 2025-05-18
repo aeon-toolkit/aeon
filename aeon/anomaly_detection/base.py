@@ -16,6 +16,9 @@ class BaseAnomalyDetector(BaseAeonEstimator):
     _tags = {
         "fit_is_empty": True,
         "requires_y": False,
+        "learning_type:unsupervised": False,
+        "learning_type:semi_supervised": False,
+        "learning_type:supervised": False,
     }
 
     def __init__(self):

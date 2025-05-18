@@ -23,6 +23,7 @@ from aeon.clustering.deep_learning.base import BaseDeepClusterer
 from aeon.regression import BaseRegressor
 from aeon.regression.deep_learning.base import BaseDeepRegressor
 from aeon.segmentation import BaseSegmenter
+from aeon.similarity_search import BaseSimilaritySearch
 from aeon.testing.estimator_checking._yield_anomaly_detection_checks import (
     _yield_anomaly_detection_checks,
 )
@@ -240,9 +241,10 @@ def check_inheritance(estimator_class):
 
     # Only transformers can inherit from multiple base types currently
     if n_base_types > 1:
-        assert issubclass(
-            estimator_class, BaseTransformer
-        ), "Only transformers can inherit from multiple base types."
+        assert issubclass(estimator_class, BaseTransformer) or issubclass(
+            estimator_class, BaseSimilaritySearch
+        ), "Only transformers or similarity search estimators can inherit from multiple"
+        "base types."
 
 
 def check_has_common_interface(estimator_class):

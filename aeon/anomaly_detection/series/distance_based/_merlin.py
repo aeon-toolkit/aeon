@@ -51,6 +51,11 @@ class MERLIN(BaseSeriesAnomalyDetector):
            False, False, False, False, False, False, False])
     """
 
+    _tags = {
+        "anomaly_output_type": "binary",
+        "learning_type:unsupervised": True,
+    }
+
     def __init__(self, min_length=5, max_length=50, max_iterations=500):
         self.min_length = min_length
         self.max_length = max_length

@@ -57,6 +57,8 @@ def get_identifier(estimator):
         identifiers.remove("transformer")
     if len(identifiers) > 1 and "anomaly-detector" in identifiers:
         identifiers.remove("anomaly-detector")
+    if len(identifiers) > 1 and "similarity-search" in identifiers:
+        identifiers.remove("similarity-search")
 
     if len(identifiers) > 1:
         TypeError(
