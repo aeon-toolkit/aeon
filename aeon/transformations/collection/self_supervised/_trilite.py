@@ -644,11 +644,11 @@ class TRILITE(BaseCollectionTransformer):
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
         """
-        from aeon.networks.tests.test_network_base import DummyDeepNetwork
+        from aeon.networks import FCNNetwork
 
         params = {
             "latent_space_dim": 2,
-            "backbone_network": DummyDeepNetwork(),
+            "backbone_network": FCNNetwork(n_layers=1, n_filters=2, kernel_size=2),
             "n_epochs": 3,
         }
 
