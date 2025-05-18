@@ -6,7 +6,6 @@ __all__ = [
     "LeftSTAMPi",
     "LOF",
     "MERLIN",
-    "OneClassSVM",
     "STOMP",
     "ROCKAD",
 ]
@@ -18,4 +17,3 @@ from aeon.anomaly_detection.series.distance_based._lof import LOF
 from aeon.anomaly_detection.series.distance_based._merlin import MERLIN
 from aeon.anomaly_detection.series.distance_based._rockad import ROCKAD
 from aeon.anomaly_detection.series.distance_based._stomp import STOMP
-from aeon.anomaly_detection.series.outlier_detection._one_class_svm import OneClassSVM

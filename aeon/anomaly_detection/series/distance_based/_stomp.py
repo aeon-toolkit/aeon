@@ -38,7 +38,7 @@ class STOMP(BaseSeriesAnomalyDetector):
     Examples
     --------
     >>> import numpy as np
-    >>> from aeon.anomaly_detection.distance_based import STOMP  # doctest: +SKIP
+    >>> from aeon.anomaly_detection.series.distance_based import STOMP
     >>> X = np.random.default_rng(42).random((10, 2), dtype=np.float64)
     >>> detector = STOMP(X, window_size=2)  # doctest: +SKIP
     >>> detector.fit_predict(X, axis=0)  # doctest: +SKIP

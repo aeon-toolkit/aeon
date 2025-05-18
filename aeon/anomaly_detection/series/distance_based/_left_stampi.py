@@ -43,8 +43,8 @@ class LeftSTAMPi(BaseSeriesAnomalyDetector):
     Calculate the anomaly score for the complete time series at once.
     Internally,this is applying the incremental approach outlined below.
 
-    >>> import numpy as np # doctest: +SKIP
-    >>> from aeon.anomaly_detection.distance_based import LeftSTAMPi  # doctest: +SKIP
+    >>> import numpy as np
+    >>> from aeon.anomaly_detection.series.distance_based import LeftSTAMPi
     >>> X = np.random.default_rng(42).random((10))  # doctest: +SKIP
     >>> detector = LeftSTAMPi(window_size=3, n_init_train=3)  # doctest: +SKIP
     >>> detector.fit_predict(X)  # doctest: +SKIP

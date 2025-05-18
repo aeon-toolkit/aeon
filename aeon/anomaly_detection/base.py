@@ -46,7 +46,7 @@ class BaseAnomalyDetector(BaseAeonEstimator):
 
         Returns
         -------
-        BaseSeriesAnomalyDetector
+        BaseAnomalyDetector
             The fitted estimator, reference to self.
         """
         ...
@@ -67,7 +67,8 @@ class BaseAnomalyDetector(BaseAeonEstimator):
         -------
         np.ndarray
             A boolean, int or float array of length len(X), where each element indicates
-            whether the corresponding subsequence is anomalous or its anomaly score.
+            whether the corresponding subsequence/case is anomalous or its anomaly
+            score.
         """
         ...
 
@@ -87,6 +88,7 @@ class BaseAnomalyDetector(BaseAeonEstimator):
         -------
         np.ndarray
             A boolean, int or float array of length len(X), where each element indicates
-            whether the corresponding subsequence is anomalous or its anomaly score.
+            whether the corresponding subsequence/case is anomalous or its anomaly
+            score.
         """
         ...

@@ -145,8 +145,9 @@ class BaseCollectionAnomalyDetector(BaseCollectionEstimator, BaseAnomalyDetector
         Returns
         -------
         predictions : np.ndarray
-            1D np.array of float, of shape (n_cases) - predicted anomalies
-            indices correspond to instance indices in X
+            1D np.array of float, of shape (n_cases) - predicted anomalies or anomaly
+            scores for each time series in X.
+            Indices correspond to instance indices in X.
         """
         fit_empty = self.get_tag("fit_is_empty")
         if not fit_empty:
@@ -164,26 +165,34 @@ class BaseCollectionAnomalyDetector(BaseCollectionEstimator, BaseAnomalyDetector
 
         Parameters
         ----------
-        X : one of aeon.base._base_series.VALID_SERIES_INPUT_TYPES
-            The time series to fit the model to.
-            A valid aeon time series data structure. See
-            aeon.base._base_series.VALID_INPUT_TYPES for aeon supported types.
-        y : one of aeon.base._base_series.VALID_SERIES_INPUT_TYPES, default=None
-            The target values for the time series.
-            A valid aeon time series data structure. See
-            aeon.base._base_series.VALID_SERIES_INPUT_TYPES for aeon supported types.
-        axis : int, default=1
-            The time point axis of the input series if it is 2D. If ``axis==0``, it is
-            assumed each column is a time series and each row is a time point. i.e. the
-            shape of the data is ``(n_timepoints, n_channels)``. ``axis==1`` indicates
-            the time series are in rows, i.e. the shape of the data is
-            ``(n_channels, n_timepoints)``.
+        X : np.ndarray or list
+            Input data, any number of channels, equal length series of shape ``(
+            n_cases, n_channels, n_timepoints)``
+            or 2D np.array (univariate, equal length series) of shape
+            ``(n_cases, n_timepoints)``
+            or list of numpy arrays (any number of channels, unequal length series)
+            of shape ``[n_cases]``, 2D np.array ``(n_channels, n_timepoints_i)``,
+            where ``n_timepoints_i`` is length of series ``i``. Other types are
+            allowed and converted into one of the above.
+
+            Different estimators have different capabilities to handle different
+            types of input. If ``self.get_tag("capability:multivariate")`` is False,
+            they cannot handle multivariate series, so either ``n_channels == 1`` is
+            true or X is 2D of shape ``(n_cases, n_timepoints)``. If ``self.get_tag(
+            "capability:unequal_length")`` is False, they cannot handle unequal
+            length input. In both situations, a ``ValueError`` is raised if X has a
+            characteristic that the estimator does not have the capability for is
+            passed.
+        y : np.ndarray
+            1D np.array of int, of shape ``(n_cases)`` - anomaly labels
+            (ground truth) for fitting indices corresponding to instance indices in X.
 
         Returns
         -------
-        np.ndarray
-            A boolean, int or float array of length len(X), where each element indicates
-            whether the corresponding subsequence is anomalous or its anomaly score.
+        predictions : np.ndarray
+            1D np.array of float, of shape (n_cases) - predicted anomalies or anomaly
+            scores for each time series in X.
+            Indices correspond to instance indices in X.
         """
         if self.get_tag("requires_y"):
             if y is None:
@@ -230,7 +239,7 @@ class BaseCollectionAnomalyDetector(BaseCollectionEstimator, BaseAnomalyDetector
         if isinstance(y, np.ndarray) and y.ndim > 1:
             raise TypeError(f"y must be 1-dimensional, found {y.ndim} dimensions")
 
-        if not all([x == 0 or x == 1 for x in y]):
+        if not np.bitwise_or(y == 0, y == 1).all():
             raise ValueError(
                 "y input must only contain 0 (not anomalous) or 1 (anomalous) values."
             )
