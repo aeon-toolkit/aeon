@@ -45,7 +45,6 @@ Distance-based
     LeftSTAMPi
     LOF
     MERLIN
-    OneClassSVM
     STOMP
     ROCKAD
 
@@ -71,6 +70,7 @@ Outlier-Detection
     :template: class.rst
 
     IsolationForest
+    OneClassSVM
     STRAY
 
 Adapters
