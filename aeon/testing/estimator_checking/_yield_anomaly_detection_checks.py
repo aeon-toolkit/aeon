@@ -106,10 +106,10 @@ def check_anomaly_detector_fit_predict(estimator, datatype):
     """Test the anomaly detector fit_predict method."""
     est1 = _clone_estimator(estimator)
     est2 = _clone_estimator(estimator)
-    esitimator_class = type(estimator)
+    estimator_class = type(estimator)
 
     # Doesn't proceed if _fit_predict is inherited
-    if "_fit_predict" not in esitimator_class.__dict__:
+    if "_fit_predict" not in estimator_class.__dict__:
         return
 
     fit_predict_output = est1.fit_predict(
