@@ -3,6 +3,7 @@
 __maintainer__ = ["MatthewMiddlehurst"]
 
 import numpy as np
+import pytest
 from sklearn.metrics import mean_squared_error
 from sklearn.tree import DecisionTreeRegressor
 
@@ -84,3 +85,27 @@ def test_rotf_fit_predict():
     y_pred = rotf.predict(X_train)
     assert isinstance(y_pred, np.ndarray)
     assert len(y_pred) == len(y_train)
+
+
+def test_rotf_input():
+    """Test RotF with incorrect input."""
+    rotf = RotationForestRegressor()
+
+    X = rotf._check_X(np.random.random((10, 1, 100)))
+    assert X.shape == (10, 100)
+
+    with pytest.raises(
+        ValueError, match="RotationForestRegressor is not a time series regressor"
+    ):
+        rotf._check_X(np.random.random((10, 10, 100)))
+    with pytest.raises(
+        ValueError, match="RotationForestRegressor is not a time series regressor"
+    ):
+        rotf._check_X([[1, 2, 3], [4, 5], [6, 7, 8]])
+
+    X2 = np.zeros((10, 10))
+    y = np.zeros(10)
+    y[0:5] = 1
+
+    with pytest.raises(ValueError, match="All attributes in X contain the same value."):
+        rotf.fit_predict(X2, y)
