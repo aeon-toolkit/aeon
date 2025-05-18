@@ -51,7 +51,6 @@ BASE_CLASS_REGISTER = {
     "forecaster": BaseForecaster,
     "regressor": BaseRegressor,
     "segmenter": BaseSegmenter,
-    "similarity_searcher": BaseSimilaritySearch,
     "series-anomaly-detector": BaseSeriesAnomalyDetector,
     "series-similarity-search": BaseSeriesSimilaritySearch,
     "series-transformer": BaseSeriesTransformer,

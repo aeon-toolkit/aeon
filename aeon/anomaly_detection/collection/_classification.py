@@ -29,10 +29,7 @@ class ClassificationAdapter(BaseCollectionAnomalyDetector):
         by `np.random`.
     """
 
-    _tags = {
-        "fit_is_empty": False,
-        "requires_y": True,
-    }
+    _tags = {"fit_is_empty": False, "requires_y": True, "anomaly_output_type": "binary"}
 
     def __init__(self, classifier, random_state=None):
         self.classifier = classifier
