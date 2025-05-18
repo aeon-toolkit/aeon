@@ -24,9 +24,9 @@ Collection anomaly detectors
     :toctree: auto_generated/
     :template: class.rst
 
-    BaseCollectionAnomalyDetector
     ClassificationAdapter
     OutlierDetectionAdapter
+    BaseCollectionAnomalyDetector
 
 Series anomaly detectors
 ------------------------
