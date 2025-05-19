@@ -141,6 +141,15 @@ def check_clusterer_output(estimator, datatype):
     assert isinstance(y_proba, np.ndarray)
     np.testing.assert_almost_equal(y_proba.sum(axis=1), 1, decimal=4)
 
+    # check predict and predict_proba have consistent outputs
+    y_pred_proba = np.argmax(y_proba, axis=1)
+
+    np.testing.assert_array_equal(
+        y_pred,
+        y_pred_proba,
+        err_msg="predict and predict_proba outputs are inconsistent",
+    )
+
 
 def check_clusterer_saving_loading_deep_learning(estimator_class, datatype):
     """Test Deep Clusterer saving."""

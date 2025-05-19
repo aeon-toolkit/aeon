@@ -374,3 +374,10 @@ def check_classifier_output(estimator, datatype):
     # check predict proba (all classifiers have predict_proba by default)
     y_proba = estimator.predict_proba(FULL_TEST_DATA_DICT[datatype]["test"][0])
     _assert_predict_probabilities(y_proba, datatype, n_classes=len(unique_labels))
+
+    y_pred_proba = np.argmax(y_proba, axis=1)
+    _assert_predict_labels(y_pred_proba, datatype, unique_labels=unique_labels)
+
+    np.testing.assert_array_equal(
+        y_pred, y_pred_proba, err_msg="predict and predict_proba are not consistent"
+    )
