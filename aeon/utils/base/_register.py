@@ -29,6 +29,7 @@ from aeon.similarity_search.collection import BaseCollectionSimilaritySearch
 from aeon.similarity_search.series import BaseSeriesSimilaritySearch
 from aeon.transformations.base import BaseTransformer
 from aeon.transformations.collection import BaseCollectionTransformer
+from aeon.transformations.format import BaseFormatTransformer
 from aeon.transformations.series import BaseSeriesTransformer
 
 # all base classes
@@ -48,6 +49,7 @@ BASE_CLASS_REGISTER = {
     "regressor": BaseRegressor,
     "segmenter": BaseSegmenter,
     "series-transformer": BaseSeriesTransformer,
+    "format-transformer": BaseFormatTransformer,
     "forecaster": BaseForecaster,
     "series-similarity-search": BaseSeriesSimilaritySearch,
     "collection-similarity-search": BaseCollectionSimilaritySearch,

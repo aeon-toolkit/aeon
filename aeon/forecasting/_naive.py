@@ -41,7 +41,7 @@ class NaiveForecaster(BaseForecaster):
     >>> forecaster.fit(y)
     NaiveForecaster()
     >>> forecaster.predict()
-    366.90200486015596
+    array([432.])
     """
 
     def __init__(

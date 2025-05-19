@@ -71,7 +71,7 @@ class ETSForecaster(BaseForecaster):
     ETSForecaster(alpha=0.4, beta=0.2, gamma=0.5, phi=0.8, seasonal_period=4,
                   seasonality_type=2, trend_type=2)
     >>> forecaster.predict()
-    366.90200486015596
+    array([366.90200486])
     """
 
     def __init__(

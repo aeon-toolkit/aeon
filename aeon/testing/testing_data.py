@@ -23,6 +23,7 @@ from aeon.testing.data_generation import (
     make_example_multi_index_dataframe,
 )
 from aeon.transformations.collection import BaseCollectionTransformer
+from aeon.transformations.format import BaseFormatTransformer
 from aeon.transformations.series import BaseSeriesTransformer
 from aeon.utils.conversion import convert_collection
 
@@ -869,6 +870,7 @@ def _get_task_for_estimator(estimator):
         or isinstance(estimator, BaseSeriesTransformer)
         or isinstance(estimator, BaseForecaster)
         or isinstance(estimator, BaseSeriesSimilaritySearch)
+        or isinstance(estimator, BaseFormatTransformer)
     ):
         data_label = "None"
     else:
