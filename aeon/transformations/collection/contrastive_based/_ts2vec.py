@@ -13,6 +13,13 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 class TS2Vec(BaseCollectionTransformer):
     """TS2Vec Transformer.
 
+    TS2Vec [1]_ is a self-supervised model designed to learn universal representations
+    of time series data. It employs a hierarchical contrastive learning framework
+    that captures both local and global temporal dependencies. This approach
+    enables TS2Vec to generate robust representations for each timestamp
+    and allows for flexible aggregation to obtain representations for arbitrary
+    subsequences.
+
     Parameters
     ----------
     output_dim : int, default=320
@@ -39,6 +46,8 @@ class TS2Vec(BaseCollectionTransformer):
         that sets n_iters to 200 for datasets with size <= 100000, and 600 otherwise.
     verbose : bool, default=False
         Whether to print the training loss after each epoch.
+    after_epoch_callback : callable, default=None
+        A callback function to be called after each epoch.
     device : None or str, default=None
         The device to use for training and inference. If None, it will automatically
         select 'cuda' if available, otherwise 'cpu'.
@@ -92,6 +101,7 @@ class TS2Vec(BaseCollectionTransformer):
         n_iters=None,
         device=None,
         n_jobs=1,
+        after_epoch_callback=None,
         verbose=False,
     ):
         self.output_dim = output_dim
@@ -107,6 +117,7 @@ class TS2Vec(BaseCollectionTransformer):
         self.verbose = verbose
         self.n_epochs = n_epochs
         self.n_iters = n_iters
+        self.after_epoch_callback = after_epoch_callback
         super().__init__()
 
     def _transform(self, X, y=None):
@@ -138,6 +149,7 @@ class TS2Vec(BaseCollectionTransformer):
             batch_size=self.batch_size,
             max_train_length=self.max_train_length,
             temporal_unit=self.temporal_unit,
+            after_epoch_callback=self.after_epoch_callback,
         )
         self.loss_ = self._ts2vec.fit(
             X.transpose(0, 2, 1),
