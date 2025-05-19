@@ -46,7 +46,7 @@ class AutoETSForecaster(BaseForecaster):
     >>> forecaster.fit(y)
     AutoETSForecaster()
     >>> forecaster.predict()
-    366.90200486015596
+    array([407.74740434])
     """
 
     def __init__(

@@ -33,7 +33,8 @@ class SlidingWindowTransformer(BaseFormatTransformer):
     >>> transformer = SlidingWindowTransformer(3)
     >>> Xt = transformer.fit_transform(X)
     >>> print(Xt)
-    ([[1, 2], [2, 3], [3, 4], [4, 5]], [3, 4, 5, 6], [0, 1, 2, 3])
+    (array([[1., 2.], [2., 3.], [3., 4.], [4., 5.]]),
+    array([3., 4., 5., 6.]), array([0., 1., 2., 3.]))
 
 
     Returns
