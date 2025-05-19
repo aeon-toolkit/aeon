@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from aeon.transformations.collection.contrastive_based._ts2vec import TS2Vec
+from aeon.transformations.collection.contrastive_based import TS2Vec
 
 
 @pytest.mark.parametrize("expected_feature_size", [3, 5, 10])
