@@ -81,15 +81,6 @@ class ETSForecaster(BaseForecaster):
         gamma: float = 0.01,
         phi: float = 0.99,
         horizon: int = 1,
-        error_type: int = ADDITIVE,
-        trend_type: int = NONE,
-        seasonality_type: int = NONE,
-        seasonal_period: int = 1,
-        alpha: float = 0.1,
-        beta: float = 0.01,
-        gamma: float = 0.01,
-        phi: float = 0.99,
-        horizon: int = 1,
     ):
         self.alpha = alpha
         self.beta = beta
