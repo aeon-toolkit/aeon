@@ -116,7 +116,8 @@ class DistanceKwargs(TypedDict, total=False):
     max_shift: Optional[int]
     gamma: float
     sigma: float
-    noramlize: bool
+    normalize_input: bool
+    normalize_dist: bool
 
 
 DistanceFunction = Callable[[np.ndarray, np.ndarray, Any], float]

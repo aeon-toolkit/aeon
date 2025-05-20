@@ -55,7 +55,7 @@ def kdtw_distance(
         multivariate, shape ``(n_channels, n_timepoints)``.
     gamma : float, default=0.125
         bandwidth parameter which weights the local contributions, i.e. the distances
-        between locally aligned positions.
+        between locally aligned positions. Must fulfill 0 < gamma < 1!
     epsilon : float, default=1e-20
         Small value to avoid zero. The default is 1e-20.
     normalize_input : bool, default=True
