@@ -66,6 +66,12 @@ from aeon.distances.elastic import (
     wdtw_distance,
     wdtw_pairwise_distance,
 )
+from aeon.distances.kernel import (
+    kdtw_alignment_path,
+    kdtw_cost_matrix,
+    kdtw_distance,
+    kdtw_pairwise_distance,
+)
 from aeon.distances.mindist import (
     mindist_dft_sfa_distance,
     mindist_dft_sfa_pairwise_distance,
@@ -109,6 +115,8 @@ class DistanceKwargs(TypedDict, total=False):
     m: int
     max_shift: Optional[int]
     gamma: float
+    sigma: float
+    noramlize: bool
 
 
 DistanceFunction = Callable[[np.ndarray, np.ndarray, Any], float]
@@ -469,6 +477,7 @@ def get_distance_function(method: Union[str, DistanceFunction]) -> DistanceFunct
     'sbd'           distances.sbd_distance
     'shift_scale'   distances.shift_scale_invariant_distance
     'soft_dtw'      distances.soft_dtw_distance
+    'kdtw'          distances.kdtw_distance
     =============== ========================================
 
     Parameters
@@ -528,6 +537,7 @@ def get_pairwise_distance_function(
     'sbd'           distances.sbd_pairwise_distance
     'shift_scale'   distances.shift_scale_invariant_pairwise_distance
     'soft_dtw'      distances.soft_dtw_pairwise_distance
+    'kdtw'          distances.kdtw_pairwise_distance
     =============== ========================================
 
     Parameters
@@ -582,6 +592,7 @@ def get_alignment_path_function(method: str) -> AlignmentPathFunction:
     'twe'           distances.twe_alignment_path
     'lcss'          distances.lcss_alignment_path
     'soft_dtw'      distances.soft_dtw_alignment_path
+    'kdtw'          distances.kdtw_alignment_path
     =============== ========================================
 
     Parameters
@@ -631,6 +642,7 @@ def get_cost_matrix_function(method: str) -> CostMatrixFunction:
     'twe'           distances.twe_cost_matrix
     'lcss'          distances.lcss_cost_matrix
     'soft_dtw'      distances.soft_dtw_cost_matrix
+    'kdtw'          distances.kdtw_cost_matrix
     =============== ========================================
 
     Parameters
@@ -685,6 +697,7 @@ class DistanceType(Enum):
 
     POINTWISE = "pointwise"
     ELASTIC = "elastic"
+    KERNEL = "kernel"
     CROSS_CORRELATION = "cross-correlation"
     MIN_DISTANCE = "min-dist"
     MATRIX_PROFILE = "matrix-profile"
@@ -909,6 +922,16 @@ DISTANCES = [
         "symmetric": True,
         "unequal_support": True,
     },
+    {
+        "name": "kdtw",
+        "distance": kdtw_distance,
+        "pairwise_distance": kdtw_pairwise_distance,
+        "cost_matrix": kdtw_cost_matrix,
+        "alignment_path": kdtw_alignment_path,
+        "type": DistanceType.KERNEL,
+        "symmetric": True,
+        "unequal_support": True,
+    },
 ]
 
 DISTANCES_DICT = {d["name"]: d for d in DISTANCES}
@@ -922,6 +945,7 @@ UNEQUAL_LENGTH_SUPPORT_DISTANCES = [
 ]
 
 ELASTIC_DISTANCES = [d["name"] for d in DISTANCES if d["type"] == DistanceType.ELASTIC]
+KERNEL_DISTANCES = [d["name"] for d in DISTANCES if d["type"] == DistanceType.KERNEL]
 POINTWISE_DISTANCES = [
     d["name"] for d in DISTANCES if d["type"] == DistanceType.POINTWISE
 ]
