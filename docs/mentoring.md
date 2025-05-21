@@ -6,8 +6,8 @@
 `aeon` runs a range of short to medium duration projects that involve
 developing or using aeon and interacting with the community and the code
 base. These projects are designed for internships, usage as part of
-undergraduate/postgraduate projects at academic institutions, and as options for
-programs such as [Google Summer of Code (GSoC)](https://summerofcode.withgoogle.com/).
+undergraduate/postgraduate projects at academic institutions, options for
+programs such as [Google Summer of Code (GSoC)](https://summerofcode.withgoogle.com/) or just for personal side projects.
 
 For those interested in undertaking a project outside these scenarios, we recommend
 joining the [Slack](https://join.slack.com/t/aeon-toolkit/shared_invite/zt-22vwvut29-HDpCu~7VBUozyfL_8j3dLA)

@@ -4,6 +4,13 @@ This is a list of papers that use `aeon`. If you have a paper that uses `aeon`,
 please add it to this list by making a pull request. Please include a hyperlink to
 the paper and a link to the code in your personal GitHub or other repository.
 
+If you want to reference `aeon` please reference this paper.
+
+Middlehurst, M., Ismail-Fawaz, A., Guillaume, A., Holder, C., Guijo-Rubio D., Bulatova, G.,
+Tsaprounis, L., Mentel, L., Walter, M., Schäfer, P. and Bagnall,  A.
+aeon: a Python Toolkit for Learning from Time Series. in Journal of Machine Learning Research; 25(289):1−10, 2024.
+
+
 ## Challenge
 
 - Ermshaus, A., Schäfer, P., Bagnall, A., Guyet, T., Ifrim, G., Lemaire, V., ... &
