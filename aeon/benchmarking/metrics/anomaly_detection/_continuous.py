@@ -181,7 +181,7 @@ def f_score_at_k_ranges(
     threshold = top_k_ranges_threshold(y_true, y_score, k)
     y_pred = y_score >= threshold
     # Corrected p_alpha to 1 to match original prts behavior expectation
-    return range_f_score(y_true, y_pred, p_alpha=0, r_alpha=1, cardinality="one")
+    return range_f_score(y_true, y_pred, p_alpha=1, r_alpha=1, cardinality="reciprocal")
 
 
 def rp_rr_auc_score(
