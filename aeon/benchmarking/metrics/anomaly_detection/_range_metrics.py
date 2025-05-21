@@ -30,10 +30,6 @@ def range_precision(
     predicted continuous anomaly range the overlap size, position, and cardinality is
     considered. For more details, please refer to the paper [1]_.
 
-    The `alpha` parameter for the existence reward was removed. Because precision
-    emphasizes prediction quality, there is no need for an existence reward and this
-    value should always be set to 0.
-
     Parameters
     ----------
     y_true : np.ndarray
@@ -41,7 +37,7 @@ def range_precision(
     y_pred : np.ndarray
         Anomaly scores for each point of the time series of shape (n_instances,).
     alpha : float
-        DEPRECATED. Default is 0 = no existence reward.
+        Default is 0 = no existence reward.
     cardinality : {'reciprocal', 'one', 'udf_gamma'}
         Cardinality type.
     bias : {'flat', 'front', 'middle', 'back'}
@@ -153,9 +149,6 @@ def range_f_score(
     its optimal value at 1 and its worst value at 0. This implementation uses the
     range-based precision and range-based recall as basis.
 
-    The `p_alpha` parameter for the potential existance reward in the calculation of
-    range-based precision was removed. `p_alpha` should always be set to 0, anyway.
-
     Parameters
     ----------
     y_true : np.ndarray
@@ -166,7 +159,7 @@ def range_f_score(
         F-score beta determines the weight of recall in the combined score.
         beta < 1 lends more weight to precision, while beta > 1 favors recall.
     p_alpha : float
-        DEPRECATED. Default is 0 = no existence reward for precision.
+        Default is 0 = no existence reward for precision.
     r_alpha : float
         Weight of the existence reward. If 0: no existence reward, if 1: only
         existence reward.
