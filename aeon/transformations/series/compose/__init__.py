@@ -6,3 +6,4 @@ __all__ = [
 ]
 
 from aeon.transformations.series.compose._identity import SeriesId
+from aeon.transformations.series.compose._pipeline import SeriesTransformerPipeline

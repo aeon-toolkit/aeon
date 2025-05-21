@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 
 from aeon.base import BaseSeriesEstimator
-from aeon.base._base_series import VALID_SERIES_INNER_TYPES
+from aeon.utils.data_types import VALID_SERIES_INNER_TYPES
 
 
 class BaseForecaster(BaseSeriesEstimator):

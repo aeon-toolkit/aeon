@@ -30,7 +30,7 @@ class CollectionToSeriesWrapper(BaseSeriesTransformer):
     _tags = {
         "input_data_type": "Series",
         "output_data_type": "Series",
-        "X_inner_type": "numpy2D",
+        "X_inner_type": "np.ndarray",
     }
 
     def __init__(
@@ -45,6 +45,8 @@ class CollectionToSeriesWrapper(BaseSeriesTransformer):
         tags_to_keep = CollectionToSeriesWrapper._tags
         tags_to_add = transformer.get_tags()
         for key in tags_to_keep:
+            tags_to_add.pop(key, None)
+        for key in ["capability:unequal_length", "removes_unequal_length"]:
             tags_to_add.pop(key, None)
         self.set_tags(**tags_to_add)
 
@@ -61,6 +63,20 @@ class CollectionToSeriesWrapper(BaseSeriesTransformer):
             t = self.collection_transformer_
 
         return t.transform(X, y)
+
+    def _fit_transform(self, X, y=None):
+        X = X.reshape(1, X.shape[0], X.shape[1])
+        self.collection_transformer_ = self.transformer.clone()
+        return self.collection_transformer_.fit_transform(X, y)
+
+    def _inverse_transform(self, X, y=None):
+        X = X.reshape(1, X.shape[0], X.shape[1])
+
+        t = self.transformer
+        if not self.get_tag("fit_is_empty"):
+            t = self.collection_transformer_
+
+        return t.inverse_transform(X, y)
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):

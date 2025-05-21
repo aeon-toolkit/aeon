@@ -6,6 +6,7 @@ __all__ = ["SeriesTransformerPipeline"]
 from aeon.base._estimators.compose.series_pipeline import BaseSeriesPipeline
 from aeon.transformations.series import BaseSeriesTransformer
 from aeon.transformations.series.compose import SeriesId
+from aeon.utils.data_types import VALID_SERIES_INNER_TYPES
 
 
 class SeriesTransformerPipeline(BaseSeriesPipeline, BaseSeriesTransformer):
@@ -53,7 +54,7 @@ class SeriesTransformerPipeline(BaseSeriesPipeline, BaseSeriesTransformer):
     >>> from aeon.transformations.series.compose import SeriesTransformerPipeline
     >>> X = load_airline()
     >>> pipeline = SeriesTransformerPipeline(
-    ...     [LogTransformer, MovingAverageSeriesTransformer]
+    ...     [LogTransformer(), MovingAverageSeriesTransformer()]
     ... )
     >>> pipeline.fit(X)
     SeriesTransformerPipeline(...)
@@ -61,7 +62,7 @@ class SeriesTransformerPipeline(BaseSeriesPipeline, BaseSeriesTransformer):
     """
 
     _tags = {
-        "X_inner_type": "numpy2D",
+        "X_inner_type": VALID_SERIES_INNER_TYPES,
     }
 
     def __init__(self, transformers):

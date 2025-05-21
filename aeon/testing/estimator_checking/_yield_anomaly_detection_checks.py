@@ -5,11 +5,11 @@ from functools import partial
 import numpy as np
 
 from aeon.base._base import _clone_estimator
-from aeon.base._base_series import VALID_SERIES_INNER_TYPES
 from aeon.testing.data_generation import (
     make_example_1d_numpy,
     make_example_2d_numpy_series,
 )
+from aeon.utils.data_types import VALID_SERIES_INNER_TYPES
 
 
 def _yield_anomaly_detection_checks(estimator_class, estimator_instances, datatypes):

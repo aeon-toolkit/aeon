@@ -1,14 +1,14 @@
 """Identity transformer."""
 
 from aeon.transformations.series import BaseSeriesTransformer
-from aeon.utils.data_types import SERIES_DATA_TYPES
+from aeon.utils.data_types import VALID_SERIES_INNER_TYPES
 
 
 class SeriesId(BaseSeriesTransformer):
     """Identity transformer, returns data unchanged in transform/inverse_transform."""
 
     _tags = {
-        "X_inner_type": SERIES_DATA_TYPES,
+        "X_inner_type": VALID_SERIES_INNER_TYPES,
         "fit_is_empty": True,
         "capability:inverse_transform": True,
         "capability:multivariate": True,

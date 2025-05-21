@@ -13,13 +13,7 @@ import numpy as np
 import pandas as pd
 
 from aeon.base._base import BaseAeonEstimator
-
-# allowed input and internal data types for Series
-VALID_SERIES_INNER_TYPES = [
-    "np.ndarray",
-    "pd.DataFrame",
-]
-VALID_SERIES_INPUT_TYPES = [pd.DataFrame, pd.Series, np.ndarray]
+from aeon.utils.data_types import VALID_SERIES_INNER_TYPES
 
 
 class BaseSeriesEstimator(BaseAeonEstimator):

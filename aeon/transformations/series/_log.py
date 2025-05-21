@@ -5,7 +5,7 @@ __all__ = ["LogTransformer"]
 
 import numpy as np
 
-from aeon.transformations.series import BaseSeriesTransformer
+from aeon.transformations.series.base import BaseSeriesTransformer
 
 
 class LogTransformer(BaseSeriesTransformer):

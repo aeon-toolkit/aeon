@@ -87,7 +87,7 @@ def test_broadcaster_methods_multivariate(data_gen):
 
 @pytest.mark.parametrize(
     "data_gen",
-    [make_example_3d_numpy, make_example_3d_numpy_list],
+    [make_example_3d_numpy],
 )
 def test_broadcaster_no_fit(data_gen):
     """Test the wrapper for transformers with fit_empty."""

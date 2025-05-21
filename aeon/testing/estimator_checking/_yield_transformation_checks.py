@@ -9,7 +9,6 @@ from numpy.testing import assert_array_almost_equal
 from sklearn.utils._testing import set_random_state
 
 from aeon.base._base import _clone_estimator
-from aeon.base._base_series import VALID_SERIES_INNER_TYPES
 from aeon.datasets import load_basic_motions, load_unit_test
 from aeon.testing.expected_results.expected_transform_outputs import (
     basic_motions_result,
@@ -20,7 +19,7 @@ from aeon.testing.utils.deep_equals import deep_equals
 from aeon.testing.utils.estimator_checks import _run_estimator_method
 from aeon.transformations.collection.channel_selection.base import BaseChannelSelector
 from aeon.transformations.series import BaseSeriesTransformer
-from aeon.utils.data_types import COLLECTIONS_DATA_TYPES
+from aeon.utils.data_types import COLLECTIONS_DATA_TYPES, VALID_SERIES_INNER_TYPES
 
 
 def _yield_transformation_checks(estimator_class, estimator_instances, datatypes):
