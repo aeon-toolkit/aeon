@@ -21,6 +21,35 @@ from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
 @njit(cache=True, fastmath=True)
+def _normalize_time_series(x: np.ndarray) -> np.ndarray:
+    """Normalize the time series to zero mean, unit variance, and unit length.
+
+    First apply z-score normalization, then unit length normalization on each
+    channel.
+
+    Parameters
+    ----------
+    x : np.ndarray
+        Time series of shape ``(n_channels, n_timepoints)``.
+
+    Returns
+    -------
+    np.ndarray
+        Normalized time series of shape ``(n_channels, n_timepoints)``.
+    """
+    eps = np.finfo(np.float64).eps
+    _x = np.empty_like(x)
+
+    # Numba mean and std do not support axis parameters and
+    # np.linalg.norm is not supported in numba.
+    for i in range(x.shape[0]):
+        _x[i] = (x[i] - np.mean(x[i])) / (np.std(x[i]) + eps)
+        norm = np.sqrt(np.sum(x[i] ** 2))
+        _x[i] = _x[i] / (norm + eps)
+    return _x
+
+
+@njit(cache=True, fastmath=True)
 def kdtw_distance(
     x: np.ndarray,
     y: np.ndarray,
@@ -163,13 +192,20 @@ def kdtw_cost_matrix(
            [0.00823045, 0.04115226, 0.11522634, 0.21688767, 0.30239293,
             0.34130976]])
     """
-    if x.ndim == 1 and y.ndim == 1:
+    _x = x
+    _y = y
+    if x.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
+    if y.ndim == 1:
         _y = y.reshape((1, y.shape[0]))
-        return _kdtw_cost_matrix(_x, _y, gamma, epsilon, normalize_input)
-    if x.ndim == 2 and y.ndim == 2:
-        return _kdtw_cost_matrix(x, y, gamma, epsilon, normalize_input)
-    raise ValueError("x and y must be 1D or 2D")
+    if x.ndim != 2 or y.ndim != 2:
+        raise ValueError("x and y must be 1D or 2D")
+
+    if normalize_input:
+        _x = _normalize_time_series(x)
+        _y = _normalize_time_series(y)
+
+    return _kdtw_cost_matrix(_x, _y, gamma, epsilon)
 
 
 @njit(cache=True, fastmath=True)
@@ -181,73 +217,56 @@ def _kdtw_distance(
     normalize_input: bool,
     normalize_dist: bool,
 ) -> float:
-    # Do not subtract one because the cost matrix is one dimension larger:
-    n = x.shape[-1]
-    m = y.shape[-1]
-    if normalize_dist:
-        self_x = _kdtw_cost_matrix(x, x, gamma, epsilon, normalize_input)[n, n]
-        self_y = _kdtw_cost_matrix(y, y, gamma, epsilon, normalize_input)[m, m]
-        norm_factor = np.sqrt(self_x * self_y)
-    else:
-        norm_factor = 1.0
-    return (
-        1.0
-        - _kdtw_cost_matrix(x, y, gamma, epsilon, normalize_input)[n, m] / norm_factor
-    )
-
-
-@njit(cache=True, fastmath=True)
-def _local_kernel(
-    x: np.ndarray, y: np.ndarray, gamma: float, epsilon: float, normalize_input: bool
-) -> np.ndarray:
     if normalize_input:
-        # First apply z-score normalization, then unit length normalization on each
-        # channel
-        eps = np.finfo(np.float64).eps
-        _x = np.empty_like(x)
-        _y = np.empty_like(y)
-
-        # Numba mean and std do not support axis parameters and
-        # np.linalg.norm is not supported in numba.
-        for i in range(x.shape[0]):
-            _x[i] = (x[i] - np.mean(x[i])) / (np.std(x[i]) + eps)
-            norm = np.sqrt(np.sum(x[i] ** 2))
-            _x[i] = _x[i] / (norm + eps)
-        for i in range(y.shape[0]):
-            _y[i] = (y[i] - np.mean(y[i])) / (np.std(y[i]) + eps)
-            norm = np.sqrt(np.sum(y[i] ** 2))
-            _y[i] = _y[i] / (norm + eps)
+        _x = _normalize_time_series(x)
+        _y = _normalize_time_series(y)
     else:
         _x = x
         _y = y
 
+    # Do not subtract one because the cost matrix is one dimension larger:
+    n = _x.shape[-1]
+    m = _y.shape[-1]
+    if normalize_dist:
+        self_x = _kdtw_cost_matrix(_x, _x, gamma, epsilon)[n, n]
+        self_y = _kdtw_cost_matrix(_y, _y, gamma, epsilon)[m, m]
+        norm_factor = np.sqrt(self_x * self_y)
+    else:
+        norm_factor = 1.0
+    return 1.0 - _kdtw_cost_matrix(_x, _y, gamma, epsilon)[n, m] / norm_factor
+
+
+@njit(cache=True, fastmath=True)
+def _local_kernel(
+    x: np.ndarray, y: np.ndarray, gamma: float, epsilon: float
+) -> np.ndarray:
     factor = 1.0 / 3.0
     # Incoming shape is (n_channels, n_timepoints)
     # We want to calculate the multivariate squared distance between the two time series
     # considering each point in the time series as a separate instance, thus we need to
     # reshape to (m_cases, m_channels, 1), where m_cases = n_timepoints and
     # m_channels = n_channels.
-    _x = _x.T.reshape(-1, _x.shape[0], 1)
-    _y = _y.T.reshape(-1, _y.shape[0], 1)
-    n_cases = _x.shape[0]
-    m_cases = _y.shape[0]
+    x = x.T.reshape(-1, x.shape[0], 1)
+    y = y.T.reshape(-1, y.shape[0], 1)
+    n_cases = x.shape[0]
+    m_cases = y.shape[0]
     distances = np.zeros((n_cases, m_cases))
 
     for i in range(n_cases):
         for j in range(m_cases):
             # expects each input to have shape (n_channels, n_timepoints = 1)
-            distances[i, j] = squared_distance(_x[i], _y[j])
+            distances[i, j] = squared_distance(x[i], y[j])
 
     return factor * (np.exp(-distances / gamma) + epsilon)
 
 
 @njit(cache=True, fastmath=True)
 def _kdtw_cost_matrix(
-    x: np.ndarray, y: np.ndarray, gamma: float, epsilon: float, normalize_input: bool
+    x: np.ndarray, y: np.ndarray, gamma: float, epsilon: float
 ) -> np.ndarray:
     # deals with multivariate time series, afterward, we just work with the distances
     # and do not need to deal with the channels anymore
-    local_kernel = _local_kernel(x, y, gamma, epsilon, normalize_input)
+    local_kernel = _local_kernel(x, y, gamma, epsilon)
 
     # For the initial values of the cost matrix, we add 1
     n = np.shape(x)[-1] + 1
