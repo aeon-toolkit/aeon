@@ -216,7 +216,9 @@ def range_f_score(
     y_pred_ranges = _binary_to_ranges(y_pred)
     y_true_ranges = _binary_to_ranges(y_true)
 
-    precision = _ts_precision(y_pred_ranges, y_true_ranges, cardinality, p_bias)
+    precision = _ts_precision(
+        y_pred_ranges, y_true_ranges, cardinality, p_bias, p_alpha
+    )
     recall = _ts_recall(y_pred_ranges, y_true_ranges, cardinality, r_bias, r_alpha)
 
     if precision + recall > 0:
