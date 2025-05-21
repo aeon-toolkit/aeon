@@ -157,8 +157,8 @@ class StompMotif(BaseSeriesSimilaritySearch):
             A factor of the query length used to define the exclusion zone when
             ``allow_trivial_matches`` is set to False. For a given timestamp,
             the exclusion zone starts from
-            :math:`id_timestamp - floor(length*exclusion_factor)` and end at
-            :math:`id_timestamp + floor(length*exclusion_factor)`.
+            :math:``id_timestamp - floor(length*exclusion_factor)`` and end at
+            :math:``id_timestamp + floor(length*exclusion_factor)``.
         inverse_distance : bool
             If True, the matching will be made on the inverse of the distance, and thus,
             the farther neighbors will be returned instead of the closest ones.
@@ -241,8 +241,8 @@ class StompMotif(BaseSeriesSimilaritySearch):
             A factor of the query length used to define the exclusion zone when
             ``allow_trivial_matches`` is set to False. For a given timestamp,
             the exclusion zone starts from
-            :math:`id_timestamp - floor(length * exclusion_factor)` and end at
-            :math:`id_timestamp + floor(length * exclusion_factor)`.
+            :math:``id_timestamp - floor(length * exclusion_factor)`` and end at
+            :math:``id_timestamp + floor(length * exclusion_factor)``.
         is_self_computation : bool
             Wheter X is equal to the series X_ given during fit.
 
@@ -317,7 +317,8 @@ class StompMotif(BaseSeriesSimilaritySearch):
         params : dict or list of dict, default = {}
             Parameters to create testing instances of the class
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test
+            instance.
         """
         if parameter_set == "default":
             params = {"length": 3}
@@ -375,9 +376,9 @@ def _stomp_normalized(
         The size of the exclusion zone used to prevent returning as top k candidates
         the ones that are close to each other (for example i and i+1).
         It is used to define a region between
-        :math:`id_timestamp - exclusion_size` and
-        :math:`id_timestamp + exclusion_size` which cannot be returned
-        as best match if :math:`id_timestamp` was already selected. By default,
+        :math:``id_timestamp - exclusion_size`` and
+        :math:``id_timestamp + exclusion_size`` which cannot be returned
+        as best match if :math:``id_timestamp`` was already selected. By default,
         the value None means that this is not used.
     inverse_distance : bool
         If True, the matching will be made on the inverse of the distance, and thus, the
@@ -470,9 +471,9 @@ def _stomp(
         The size of the exclusion zone used to prevent returning as top k candidates
         the ones that are close to each other (for example i and i+1).
         It is used to define a region between
-        :math:`id_timestamp - exclusion_size` and
-        :math:`id_timestamp + exclusion_size` which cannot be returned
-        as best match if :math:`id_timestamp` was already selected. By default,
+        :math:``id_timestamp - exclusion_size`` and
+        :math:``id_timestamp + exclusion_size`` which cannot be returned
+        as best match if :math:``id_timestamp`` was already selected. By default,
         the value None means that this is not used.
     inverse_distance : bool
         If True, the matching will be made on the inverse of the distance, and thus, the
