@@ -39,9 +39,6 @@ to open source. We list projects by time series task
 [Clustering](#clustering)
 1. Density peaks clustering algorithm
 
-[Anomaly Detection](#anomaly-detection)
-1. Anomaly detection with the Matrix Profile, MERLIN and MADRID
-
 [Segmentation](#segmentation)
 1. Time series segmentation
 
@@ -240,51 +237,6 @@ Sci Rep 12, 1409 (2022) [DOI](https://doi.org/10.1038/s41598-021-02038-z)
 
 ### Anomaly detection
 
-
-#### 1. Anomaly detection with the Matrix Profile, MERLIN and MADRID
-
-Mentors: Matthew Middlehurst ({user}`MatthewMiddlehurst`)
-
-##### Description
-
-`aeon` is looking to extend its module for time series anomaly detection. The
-end goal of this project is to implement the Matrix Profile [1][2] and MERLIN [3]
-algorithms, but suitable framework for anomaly detection in `aeon` will need to be
-designed first. The mentee will help design the API for the anomaly detection module
-and implement the Matrix Profile and MERLIN algorithms.
-
-Usage of external libraries such as `stumpy` [4] is possible for the algorithm
-implementations, or the mentee can implement the algorithms from scratch using `numba`.
-There is also scope to benchmark the implementations, but as there is no existing
-anomaly detection module in `aeon`, this will require some infrastructure to be
-developed and is subject to time and interest.
-
-##### Project stages
-
-1. Learn about `aeon` best practices, coding standards and testing policies.
-2. Familiarise yourself with similar single series experimental modules in `aeon` such
-as segmentation and similarity search.
-3. Help design the API for the anomaly detection module.
-4. Study and implement the Matrix Profile for anomaly detection and MERLIN algorithms
-using the new API.
-5. If time allows and there is interest, benchmark the implementations against the
-original implementations or other anomaly detection algorithms.
-
-##### References
-
-1. Yeh, C.C.M., Zhu, Y., Ulanova, L., Begum, N., Ding, Y., Dau, H.A., Silva, D.F.,
-Mueen, A. and Keogh, E., 2016, December. Matrix profile I: all pairs similarity joins
-for time series: a unifying view that includes motifs, discords and shapelets. In 2016
-IEEE 16th international conference on data mining (ICDM) (pp. 1317-1322). Ieee.
-2. Lu, Y., Wu, R., Mueen, A., Zuluaga, M.A. and Keogh, E., 2022, August.
-Matrix profile XXIV: scaling time series anomaly detection to trillions of datapoints
-and ultra-fast arriving data streams. In Proceedings of the 28th ACM SIGKDD Conference
-on Knowledge Discovery and Data Mining (pp. 1173-1182).
-3. Nakamura, T., Imamura, M., Mercer, R. and Keogh, E., 2020, November. Merlin:
-Parameter-free discovery of arbitrary length anomalies in massive time series archives.
-In 2020 IEEE international conference on data mining (ICDM) (pp. 1190-1195). IEEE.
-4. Law, S.M., 2019. STUMPY: A powerful and scalable Python library for time series data
-mining. Journal of Open Source Software, 4(39), p.1504.
 
 ### Segmentation
 
