@@ -19,13 +19,12 @@ from aeon.distances.pointwise import squared_distance
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
+_eps = np.finfo(np.float64).eps
+
 
 @njit(cache=True, fastmath=True)
 def _normalize_time_series(x: np.ndarray) -> np.ndarray:
-    """Normalize the time series to zero mean, unit variance, and unit length.
-
-    First apply z-score normalization, then unit length normalization on each
-    channel.
+    """Normalize the time series to zero mean and unit variance.
 
     Parameters
     ----------
@@ -37,15 +36,11 @@ def _normalize_time_series(x: np.ndarray) -> np.ndarray:
     np.ndarray
         Normalized time series of shape ``(n_channels, n_timepoints)``.
     """
-    eps = np.finfo(np.float64).eps
     _x = np.empty_like(x)
 
-    # Numba mean and std do not support axis parameters and
-    # np.linalg.norm is not supported in numba.
+    # Numba mean and std do not support axis parameters
     for i in range(x.shape[0]):
-        _x[i] = (x[i] - np.mean(x[i])) / (np.std(x[i]) + eps)
-        norm = np.sqrt(np.sum(x[i] ** 2))
-        _x[i] = _x[i] / (norm + eps)
+        _x[i] = (x[i] - np.mean(x[i])) / (np.std(x[i]) + _eps)
     return _x
 
 
@@ -88,8 +83,8 @@ def kdtw_distance(
     epsilon : float, default=1e-20
         Small value to avoid zero. The default is 1e-20.
     normalize_input : bool, default=True
-        Whether to normalize the time series' channels to zero mean, unit variance, and
-        unit length before computing the distance. Highly recommended!
+        Whether to normalize the time series' channels to zero mean and unit variance
+        before computing the distance. Highly recommended!
     normalize_dist : bool, default=False
         Whether to normalize the distance by the product of the self distances of x and
         y to avoid scaling effects and put the distance value between 0 and 1.
@@ -159,8 +154,8 @@ def kdtw_cost_matrix(
     epsilon : float, default=1e-20
         Small value to avoid zero. The default is 1e-20.
     normalize_input : bool, default=True
-        Whether to normalize the time series' channels to zero mean, unit variance, and
-        unit length before computing the distance.
+        Whether to normalize the time series' channels to zero mean and unit variance
+        before computing the distance.
 
     Returns
     -------
@@ -179,18 +174,11 @@ def kdtw_cost_matrix(
     >>> x = np.array([[1, 2, 3, 4, 5]])
     >>> y = np.array([[1, 2, 3, 4, 5]])
     >>> kdtw_cost_matrix(x, y)
-    array([[2.        , 0.66666667, 0.22222222, 0.07407407, 0.02469136,
-            0.00823045],
-           [0.66666667, 1.11111111, 0.55555556, 0.24691358, 0.10288066,
-            0.04115226],
-           [0.22222222, 0.55555556, 0.74074074, 0.44032922, 0.2345679 ,
-            0.11522634],
-           [0.07407407, 0.24691358, 0.44032922, 0.54046639, 0.35848194,
-            0.21688767],
-           [0.02469136, 0.10288066, 0.2345679 , 0.35848194, 0.41914342,
-            0.30239293],
-           [0.00823045, 0.04115226, 0.11522634, 0.21688767, 0.30239293,
-            0.34130976]])
+    array([[1.11111111, 0.55555556, 0.24691358, 0.10288066, 0.04115226],
+           [0.55555556, 0.74074074, 0.44032922, 0.2345679 , 0.11522634],
+           [0.24691358, 0.44032922, 0.54046639, 0.35848194, 0.21688767],
+           [0.10288066, 0.2345679 , 0.35848194, 0.41914342, 0.30239293],
+           [0.04115226, 0.11522634, 0.21688767, 0.30239293, 0.34130976]])
     """
     _x = x
     _y = y
@@ -198,12 +186,12 @@ def kdtw_cost_matrix(
         _x = x.reshape((1, x.shape[0]))
     if y.ndim == 1:
         _y = y.reshape((1, y.shape[0]))
-    if x.ndim != 2 or y.ndim != 2:
+    if _x.ndim != 2 or _y.ndim != 2:
         raise ValueError("x and y must be 1D or 2D")
 
     if normalize_input:
-        _x = _normalize_time_series(x)
-        _y = _normalize_time_series(y)
+        _x = _normalize_time_series(_x)
+        _y = _normalize_time_series(_y)
 
     return _kdtw_cost_matrix(_x, _y, gamma, epsilon)
 
@@ -224,13 +212,14 @@ def _kdtw_distance(
         _x = x
         _y = y
 
-    # Do not subtract one because the cost matrix is one dimension larger:
-    n = _x.shape[-1]
-    m = _y.shape[-1]
+    n = _x.shape[-1] - 1
+    m = _y.shape[-1] - 1
     if normalize_dist:
         self_x = _kdtw_cost_matrix(_x, _x, gamma, epsilon)[n, n]
         self_y = _kdtw_cost_matrix(_y, _y, gamma, epsilon)[m, m]
         norm_factor = np.sqrt(self_x * self_y)
+        if norm_factor < _eps:
+            norm_factor = 1.0
     else:
         norm_factor = 1.0
     return 1.0 - _kdtw_cost_matrix(_x, _y, gamma, epsilon)[n, m] / norm_factor
@@ -240,6 +229,7 @@ def _kdtw_distance(
 def _local_kernel(
     x: np.ndarray, y: np.ndarray, gamma: float, epsilon: float
 ) -> np.ndarray:
+    # 1 / c in the paper; beta on the website
     factor = 1.0 / 3.0
     # Incoming shape is (n_channels, n_timepoints)
     # We want to calculate the multivariate squared distance between the two time series
@@ -265,7 +255,7 @@ def _kdtw_cost_matrix(
     x: np.ndarray, y: np.ndarray, gamma: float, epsilon: float
 ) -> np.ndarray:
     # deals with multivariate time series, afterward, we just work with the distances
-    # and do not need to deal with the channels anymore
+    # and do not handle the channels anymore
     local_kernel = _local_kernel(x, y, gamma, epsilon)
 
     # For the initial values of the cost matrix, we add 1
@@ -316,7 +306,7 @@ def _kdtw_cost_matrix(
 
     # Add the cumulative dp diagonal to the cost matrix
     cost_matrix = cost_matrix + cumulative_dp_diag
-    return cost_matrix
+    return cost_matrix[1:, 1:]
 
 
 def kdtw_pairwise_distance(
@@ -345,8 +335,8 @@ def kdtw_pairwise_distance(
     epsilon : float, default=1e-20
         Small value to avoid zero. The default is 1e-20.
     normalize_input : bool, default=True
-        Whether to normalize the time series' channels to zero mean, unit variance, and
-        unit length before computing the distance.
+        Whether to normalize the time series' channels to zero mean and unit variance
+        before computing the distance.
     normalize_dist : bool, default=False
         Whether to normalize the distance by the product of the self distances of x and
         y to avoid scaling effects and put the distance between 0 and 1.
@@ -466,8 +456,8 @@ def kdtw_alignment_path(
     epsilon : float, default=1e-20
         Small value to avoid zero. The default is 1e-20.
     normalize_input : bool, default=True
-        Whether to normalize the time series' channels to zero mean, unit variance, and
-        unit length before computing the distance.
+        Whether to normalize the time series' channels to zero mean and unit variance
+        before computing the distance.
 
     Returns
     -------
@@ -492,8 +482,8 @@ def kdtw_alignment_path(
     >>> kdtw_alignment_path(x, y)
     ([(0, 0), (1, 1), (2, 2), (3, 3), (4, 4)], 0.4191434232586494)
     """
-    x_size = x.shape[-1]
-    y_size = y.shape[-1]
+    x_size = x.shape[-1] - 1
+    y_size = y.shape[-1] - 1
     cost_matrix = kdtw_cost_matrix(x, y, gamma, epsilon, normalize_input)
     return (
         compute_min_return_path(cost_matrix, larger_is_better=True),
