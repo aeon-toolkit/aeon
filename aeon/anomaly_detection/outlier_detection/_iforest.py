@@ -81,6 +81,9 @@ class IsolationForest(PyODAdapter):
         "capability:multithreading": True,
         "fit_is_empty": False,
         "python_dependencies": ["pyod"],
+        "anomaly_output_type": "anomaly_scores",
+        "learning_type:unsupervised": True,
+        "learning_type:semi_supervised": True,
     }
 
     def __init__(
