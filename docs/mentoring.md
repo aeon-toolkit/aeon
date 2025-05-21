@@ -33,14 +33,8 @@ to open source. We list projects by time series task
 
 [Classification](#classification)
 1. Optimizing the Shapelet Transform for classification and similarity search
-2. Implement TS-CHIEF
-3. Improved HIVE-COTE implementation.
-4. Compare distance based classification.
-
-[Forecasting](#forecasting)
-1. Machine Learning for Time Series Forecasting (GSoC 2025)
-2. Deep Learning for Time Series Forecasting (GSoC 2025)
-3. Implement ETS forecasters in aeon
+2. Improved HIVE-COTE implementation
+3. Compare distance based classification.
 
 [Clustering](#clustering)
 1. Density peaks clustering algorithm
@@ -53,14 +47,9 @@ to open source. We list projects by time series task
 
 [Transformation](#transformation)
 1. Improve ROCKET family of transformers
-2. Implement channel selection algorithms
 
 [Visualisation](#visualisation)
 1. Explainable AI with the shapelet transform
-
-[Regression](#regression)
-1. Adapt forecasting regressors to time series extrinsic regression.
-2. Adapt HIVE-COTE for regression.
 
 [Documentation](#documentation)
 1. Improve automated API documentation
@@ -141,7 +130,7 @@ transform: A new approach for time series shapelets. In International Conference
 Pattern Recognition and Artificial Intelligence (pp. 653-664). Cham: Springer
 International Publishing.
 
-#### 3. Improved HIVE-COTE implementation
+#### 2. Improved HIVE-COTE implementation
 
 Mentors: Matthew Middlehurst ({user}`MatthewMiddlehurst`) and Tony Bagnall
 ({user}`TonyBagnall`)
@@ -184,7 +173,7 @@ alternative structures. This can easily develop into a research project.
 experimental evaluation of recent time series classification algorithms. arXiv preprint
 arXiv:2304.13029.
 
-#### 4. Compare distance based classification and regression
+#### 3. Compare distance based classification and regression
 
 Mentors: Chris Holder ({user}`cholder`) and Tony Bagnall
 ({user}`TonyBagnall`)
@@ -359,7 +348,7 @@ other time series tasks.
 `aeon` has implementations of the ROCKET transformation and its variants, including
 MiniROCKET [2] and MultiROCKET [3]. However, these implementations have room for
 improvement ([#208](https://github.com/aeon-toolkit/aeon/issues/208)). There is scope
-to speed up the implementations, and the amount of varients is likely unnecessary and
+to speed up the implementations, and the amount of variants is likely unnecessary and
 could be condensed into higher quality estimators.
 
 This projects involves improving the existing ROCKET implementations in `aeon` or
@@ -433,17 +422,6 @@ of summary measures and visualisation techniques, including plotting shapelets o
 [1] Bagnall, A., Lines, J., Bostrom, A., Large, J. and Keogh, E. The great time series classification bake off: a review and experimental evaluation of recent algorithmic advances. Data Mining and Knowledge Discovery, Volume 31, pages 606–660, (2017)
 [2] Ye, L., Keogh, E. Time series shapelets: a novel technique that allows accurate, interpretable and fast classification. Data Min Knowl Disc 22, 149–182 (2011). https://doi.org/10.1007/s10618-010-0179-5
 [3] Lines, L., Davis, L., Hills, J. and Bagnall, A. A shapelet transform for time series classification, KDD '12: Proceedings of the 18th ACM SIGKDD international conference on Knowledge discovery and data mining (2012) https://doi.org/10.1145/2339530.2339579
-
-### Regression
-
-#### 1. Adapt HIVE-COTE for regression
-
-Mentors: TonyBagnall ({user}`TonyBagnall`) and David Guijo-Rubio
-({user}`dguijo`)
-
-HIVE-COTE [1] is a state of the art classifier. Adapting it for regression is an
-ongoing research project for which we would welcome collaborators. Ongoing, this
-needs working up.
 
 
 ### Documentation
