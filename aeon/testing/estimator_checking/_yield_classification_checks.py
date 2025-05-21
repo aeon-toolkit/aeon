@@ -24,14 +24,14 @@ from aeon.testing.utils.estimator_checks import (
     _assert_predict_probabilities,
     _get_tag,
 )
-from aeon.utils import COLLECTIONS_DATA_TYPES
+from aeon.utils.data_types import COLLECTIONS_DATA_TYPES
 from aeon.utils.validation import get_n_cases
 
 
 def _yield_classification_checks(estimator_class, estimator_instances, datatypes):
     """Yield all classification checks for an aeon classifier."""
     # only class required
-    if sys.platform != "darwin":  # We cannot guarantee same results on ARM macOS
+    if sys.platform == "linux":  # We cannot guarantee same results on ARM macOS
         # Compare against results for both UnitTest and BasicMotions if available
         yield partial(
             check_classifier_against_expected_results,
@@ -73,7 +73,7 @@ def _yield_classification_checks(estimator_class, estimator_instances, datatypes
             yield partial(
                 check_classifier_train_estimate,
                 estimator=estimator,
-                datatype=datatypes[0][0],
+                datatype=datatypes[i][0],
             )
 
         if isinstance(estimator, BaseDeepClassifier):

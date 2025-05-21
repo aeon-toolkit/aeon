@@ -24,7 +24,7 @@ def dtw_distance(
 ) -> float:
     r"""Compute the DTW distance between two time series.
 
-    DTW is the most widely researched and used elastic distance measure. It mitigates
+    DTW is the most widely researched and used elastic distance method. It mitigates
     distortions in the time axis by realligning (warping) the series to best match
     each other. A good background into DTW can be found in [1]_. For two series,
     possibly of unequal length,

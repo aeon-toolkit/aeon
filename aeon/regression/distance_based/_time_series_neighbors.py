@@ -111,7 +111,7 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
         y : array-like, shape = (n_cases)
             The output value.
         """
-        self.metric_ = get_distance_function(metric=self.distance)
+        self.metric_ = get_distance_function(method=self.distance)
         self.X_ = X
         self.y_ = y
         return self

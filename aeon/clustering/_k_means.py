@@ -54,8 +54,8 @@ class TimeSeriesKMeans(BaseClusterer):
         n_timepoints)
         and contains the time series to use as centroids.
     distance : str or Callable, default='msm'
-        Distance metric to compute similarity between time series. A list of valid
-        strings for metrics can be found in the documentation for
+        Distance method to compute similarity between time series. A list of valid
+        strings for measures can be found in the documentation for
         :func:`aeon.distances.get_distance_function`. If a callable is passed it must be
         a function that takes two 2d numpy arrays as input and returns a float.
     n_init : int, default=10
@@ -82,9 +82,9 @@ class TimeSeriesKMeans(BaseClusterer):
         Averaging method to compute the average of a cluster. Any of the following
         strings are valid: ['mean', 'ba']. If a Callable is provided must take the form
         Callable[[np.ndarray], np.ndarray].
-        If you specify 'ba' then by default the distance measure used will be the same
-        as the distance measure used for clustering. If you wish to use a different
-        distance measure you can specify it by passing {"distance": "dtw"} as
+        If you specify 'ba' then by default the distance method used will be the same
+        as the distance method used for clustering. If you wish to use a different
+        distance method you can specify it by passing {"distance": "dtw"} as
         averaging_params. BA yields 'better' clustering results but is very
         computationally expensive so you may want to consider setting a bounding window
         or using a different averaging method if time complexity is a concern.
@@ -236,7 +236,7 @@ class TimeSeriesKMeans(BaseClusterer):
         prev_labels = None
         for i in range(self.max_iter):
             curr_pw = pairwise_distance(
-                X, cluster_centres, metric=self.distance, **self._distance_params
+                X, cluster_centres, method=self.distance, **self._distance_params
             )
             curr_labels = curr_pw.argmin(axis=1)
             curr_inertia = curr_pw.min(axis=1).sum()
@@ -273,19 +273,26 @@ class TimeSeriesKMeans(BaseClusterer):
     def _predict(self, X: np.ndarray, y=None) -> np.ndarray:
         if isinstance(self.distance, str):
             pairwise_matrix = pairwise_distance(
-                X, self.cluster_centers_, metric=self.distance, **self._distance_params
+                X, self.cluster_centers_, method=self.distance, **self._distance_params
             )
         else:
             pairwise_matrix = pairwise_distance(
                 X,
                 self.cluster_centers_,
-                metric=self.distance,
+                method=self.distance,
                 **self._distance_params,
             )
         return pairwise_matrix.argmin(axis=1)
 
     def _check_params(self, X: np.ndarray) -> None:
         self._random_state = check_random_state(self.random_state)
+
+        _incorrect_init_str = (
+            f"The value provided for init: {self.init} is "
+            f"invalid. The following are a list of valid init algorithms "
+            f"strings: random, kmeans++, first. You can also pass a "
+            f"np.ndarray of size (n_clusters, n_channels, n_timepoints)"
+        )
 
         if isinstance(self.init, str):
             if self.init == "random":
@@ -294,16 +301,13 @@ class TimeSeriesKMeans(BaseClusterer):
                 self._init = self._kmeans_plus_plus_center_initializer
             elif self.init == "first":
                 self._init = self._first_center_initializer
+            else:
+                raise ValueError(_incorrect_init_str)
         else:
             if isinstance(self.init, np.ndarray) and len(self.init) == self.n_clusters:
                 self._init = self.init.copy()
             else:
-                raise ValueError(
-                    f"The value provided for init: {self.init} is "
-                    f"invalid. The following are a list of valid init algorithms "
-                    f"strings: random, kmedoids++, first. You can also pass a"
-                    f"np.ndarray of size (n_clusters, n_channels, n_timepoints)"
-                )
+                raise ValueError(_incorrect_init_str)
 
         if self.distance_params is None:
             self._distance_params = {}
@@ -346,7 +350,7 @@ class TimeSeriesKMeans(BaseClusterer):
 
         for _ in range(1, self.n_clusters):
             pw_dist = pairwise_distance(
-                X, X[indexes], metric=self.distance, **self._distance_params
+                X, X[indexes], method=self.distance, **self._distance_params
             )
             min_distances = pw_dist.min(axis=1)
             probabilities = min_distances / min_distances.sum()
@@ -381,7 +385,7 @@ class TimeSeriesKMeans(BaseClusterer):
             index_furthest_from_centre = curr_pw.min(axis=1).argmax()
             cluster_centres[current_empty_cluster_index] = X[index_furthest_from_centre]
             curr_pw = pairwise_distance(
-                X, cluster_centres, metric=self.distance, **self._distance_params
+                X, cluster_centres, method=self.distance, **self._distance_params
             )
             curr_labels = curr_pw.argmin(axis=1)
             curr_inertia = curr_pw.min(axis=1).sum()

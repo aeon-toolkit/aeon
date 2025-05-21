@@ -15,14 +15,6 @@ All transformers in `aeon` can be listed using the `aeon.registry
 Collection transformers
 -----------------------
 
-.. currentmodule:: aeon.transformations.collection.base
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    BaseCollectionTransformer
-
 .. currentmodule:: aeon.transformations.collection
 
 .. autosummary::
@@ -31,6 +23,7 @@ Collection transformers
 
     AutocorrelationFunctionTransformer
     ARCoefficientTransformer
+    Centerer
     DownsampleTransformer
     DWTTransformer
     HOG1DTransformer
@@ -39,12 +32,11 @@ Collection transformers
     Normalizer
     Padder
     PeriodogramTransformer
-    Tabularizer
     Resizer
-    SimpleImputer
     SlopeTransformer
-    Standardizer
+    SimpleImputer
     Truncator
+    Tabularizer
 
 
 Channel selection
@@ -72,6 +64,7 @@ Compose
     :template: class.rst
 
     CollectionTransformerPipeline
+    CollectionId
 
 
 Convolution based
@@ -85,7 +78,6 @@ Convolution based
 
     Rocket
     MiniRocket
-    MiniRocketMultivariateVariable
     MultiRocket
     HydraTransformer
 
@@ -148,8 +140,6 @@ Shapelet based
     SAST
     RSAST
 
-
-
 Signature based
 ~~~~~~~~~~~~~~~
 
@@ -165,15 +155,6 @@ Signature based
 Series transforms
 -----------------
 
-.. currentmodule:: aeon.transformations.series.base
-
-.. autosummary::
-    :toctree: auto_generated/
-    :template: class.rst
-
-    BaseSeriesTransformer
-
-
 .. currentmodule:: aeon.transformations.series
 
 .. autosummary::
@@ -181,21 +162,56 @@ Series transforms
     :template: class.rst
 
     AutoCorrelationSeriesTransformer
-    ClearSkyTransformer
     ClaSPTransformer
     DFTSeriesTransformer
     Dobin
+    ExpSmoothingSeriesTransformer
     GaussSeriesTransformer
     MatrixProfileSeriesTransformer
+    MovingAverageSeriesTransformer
     PLASeriesTransformer
     SGSeriesTransformer
     StatsModelsACF
     StatsModelsPACF
     BKFilter
     BoxCoxTransformer
-    YeoJohnsonTransformer
-    Dobin
     ScaledLogitSeriesTransformer
     SIVSeriesTransformer
     PCASeriesTransformer
     WarpingSeriesTransformer
+
+Smoothing
+~~~~~~~~~
+
+.. currentmodule:: aeon.transformations.series.smoothing
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    DiscreteFourierApproximation
+    ExponentialSmoothing
+    GaussianFilter
+    MovingAverage
+    SavitzkyGolayFilter
+    RecursiveMedianSieve
+
+Base
+----
+
+.. currentmodule:: aeon.transformations.collection.base
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    BaseCollectionTransformer
+
+
+.. currentmodule:: aeon.transformations.series.base
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    BaseSeriesTransformer

@@ -43,8 +43,8 @@ class TimeSeriesCLARANS(TimeSeriesKMedoids):
         If a np.ndarray provided it must be of shape (n_clusters,) and contain
         the indexes of the time series to use as centroids.
     distance : str or Callable, default='msm'
-        Distance metric to compute similarity between time series. A list of valid
-        strings for metrics can be found in the documentation for
+        Distance method to compute similarity between time series. A list of valid
+        strings for measures can be found in the documentation for
         :func:`aeon.distances.get_distance_function`. If a callable is passed it must be
         a function that takes two 2d numpy arrays as input and returns a float.
     max_neighbours : int, default=None,
@@ -62,7 +62,7 @@ class TimeSeriesCLARANS(TimeSeriesKMedoids):
     random_state : int or np.random.RandomState instance or None, default=None
         Determines random number generation for centroid initialization.
     distance_params : dict, default=None
-        Dictionary containing kwargs for the distance metric being used.
+        Dictionary containing kwargs for the distance method being used.
 
     Attributes
     ----------

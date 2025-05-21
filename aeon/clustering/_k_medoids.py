@@ -36,7 +36,7 @@ class TimeSeriesKMedoids(BaseClusterer):
     accurate than PAM. For a full review of varations of k-medoids for time series
     see [5]_.
 
-    K-medoids for time series uses a dissimilarity measure to compute the distance
+    K-medoids for time series uses a dissimilarity method to compute the distance
     between time series. The default is 'msm' (move split merge) as
     it was found to significantly outperform the other measures in [2]_.
 
@@ -46,18 +46,22 @@ class TimeSeriesKMedoids(BaseClusterer):
         The number of clusters to form as well as the number of centroids to generate.
     init : str or np.ndarray, default='random'
         Method for initialising cluster centers. Any of the following are valid:
-        ['kmedoids++', 'random', 'first'].
+        ['kmedoids++', 'random', 'first', 'build'].
         Random is the default as it is very fast and it was found in [2] to
         perform about as well as the other methods.
         Kmedoids++ is a variant of kmeans++ [4] and is slower but often more
         accurate than random. It works by choosing centroids that are distant
         from one another. First is the fastest method and simply chooses the
-        first k time series as centroids.
+        first k time series as centroids. Build [1] greedily selects the k medoids
+        by first selecting the medoid that minimizes the sum of distances
+        to all other points(this point is the most centrally located) and then
+        iteratively selects the next k-1 medoids that maximizes the decrease in sum
+        of distances of all other points to their respective medoids selected so far.
         If a np.ndarray provided it must be of shape (n_clusters,) and contain
         the indexes of the time series to use as centroids.
     distance : str or Callable, default='msm'
-        Distance metric to compute similarity between time series. A list of valid
-        strings for metrics can be found in the documentation for
+        Distance method to compute similarity between time series. A list of valid
+        strings for measures can be found in the documentation for
         :func:`aeon.distances.get_distance_function`. If a callable is passed it must be
         a function that takes two 2d numpy arrays as input and returns a float.
     method : str, default='pam'
@@ -88,7 +92,7 @@ class TimeSeriesKMedoids(BaseClusterer):
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
     distance_params: dict, default=None
-        Dictionary containing kwargs for the distance metric being used.
+        Dictionary containing kwargs for the distance method being used.
 
     Attributes
     ----------
@@ -211,7 +215,7 @@ class TimeSeriesKMedoids(BaseClusterer):
     def _predict(self, X: np.ndarray, y=None) -> np.ndarray:
         if isinstance(self.distance, str):
             pairwise_matrix = pairwise_distance(
-                X, self.cluster_centers_, metric=self.distance, **self._distance_params
+                X, self.cluster_centers_, method=self.distance, **self._distance_params
             )
         else:
             pairwise_matrix = pairwise_distance(
@@ -428,6 +432,13 @@ class TimeSeriesKMedoids(BaseClusterer):
     def _check_params(self, X: np.ndarray) -> None:
         self._random_state = check_random_state(self.random_state)
 
+        _incorrect_init_str = (
+            f"The value provided for init: {self.init} is "
+            f"invalid. The following are a list of valid init algorithms "
+            f"strings: random, kmedoids++, first, build. You can also pass a "
+            f"np.ndarray of size (n_clusters, n_channels, n_timepoints)"
+        )
+
         if isinstance(self.init, str):
             if self.init == "random":
                 self._init = self._random_center_initializer
@@ -437,16 +448,13 @@ class TimeSeriesKMedoids(BaseClusterer):
                 self._init = self._first_center_initializer
             elif self.init == "build":
                 self._init = self._pam_build_center_initializer
+            else:
+                raise ValueError(_incorrect_init_str)
         else:
             if isinstance(self.init, np.ndarray) and len(self.init) == self.n_clusters:
                 self._init = self.init
             else:
-                raise ValueError(
-                    f"The value provided for init: {self.init} is "
-                    f"invalid. The following are a list of valid init algorithms "
-                    f"strings: random, kmedoids++, first. You can also pass a"
-                    f"np.ndarray of size (n_clusters, n_channels, n_timepoints)"
-                )
+                raise ValueError(_incorrect_init_str)
 
         if self.distance_params is not None:
             self._distance_params = self.distance_params
@@ -456,7 +464,7 @@ class TimeSeriesKMedoids(BaseClusterer):
                 f"n_clusters ({self.n_clusters}) cannot be larger than "
                 f"n_cases ({X.shape[0]})"
             )
-        self._distance_callable = get_distance_function(metric=self.distance)
+        self._distance_callable = get_distance_function(method=self.distance)
         self._distance_cache = np.full((X.shape[0], X.shape[0]), np.inf)
 
         if self.method == "alternate":
@@ -486,7 +494,7 @@ class TimeSeriesKMedoids(BaseClusterer):
 
         for _ in range(1, self.n_clusters):
             pw_dist = pairwise_distance(
-                X, X[indexes], metric=self.distance, **self._distance_params
+                X, X[indexes], method=self.distance, **self._distance_params
             )
             min_distances = pw_dist.min(axis=1)
             probabilities = min_distances / min_distances.sum()

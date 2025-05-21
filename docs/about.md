@@ -30,7 +30,7 @@ The finance workgroup is responsible for managing the project's finances.
 ### Infrastructure Workgroup
 
 The infrastructure workgroup is responsible for managing the project's infrastructure
-and CI.
+and CI. Matthew Middlehurst is the current lead of the workgroup.
 
 ```{include} about/infrastructure_workgroup.md
 ```
@@ -42,18 +42,42 @@ The release management workgroup is responsible for managing the project's relea
 ```{include} about/release_management_workgroup.md
 ```
 
+### Supporting Developers
+
+Supporting developers have been provided write access to the main repository to aid
+with package contributions and maintenance.
+
+```{include} about/supporting_developers.md
+```
+
 ### Core Developers
 
-The core developers push forward `aeon`'s development and maintain the package.
+Core developers push forward `aeon`'s development, maintain the package and build
+our community.
 
 ```{include} about/core_developers.md
 ```
+
+#### Former Core Developers
+
+The following developers were part of the `aeon` core developer team at some
+point.
+
+<details><summary>Previous aeon core developers</summary>
+<p>
+
+- {user}`GuzalBulatova` 2025
+- {user}`lmmentel` 2025
+- {user}`aiwalter` 2025
+
+</p>
+</details>
 
 ## Affiliation
 
 `aeon` is an affiliated project of [NumFOCUS](https://numfocus.org/).
 
-![https://numfocus.org/](images/other_logos/numfocus-logo.png){w=300px}
+[![NumFOCUS logo](images/other_logos/numfocus-logo.png){w=400px}](https://numfocus.org/)
 
 ## History
 
@@ -131,14 +155,13 @@ We would also like to thank [GitHub Actions](https://github.com/features/actions
 and [ReadtheDocs](https://readthedocs.org) for the free compute time on their servers
 and documentation hosting.
 
-
 ## Pre-fork Acknowledgements
 
-<details><summary>`sktime` v0.16.0 core developers</summary>
+<details><summary>sktime v0.16.0 core developers</summary>
 <p>
 
 The following listed contributors were part of the `sktime` core developer team at some
-point prior to the split of the project.
+point prior to the 2023 split of the project.
 
 - {user}`abostrom`
 - {user}`ayushmaanseth`
@@ -164,7 +187,7 @@ point prior to the split of the project.
 </p>
 </details>
 
-<details><summary>`sktime` v0.16.0 funders</summary>
+<details><summary>sktime v0.16.0 funders</summary>
 <p>
 
 As a fork of the `sktime` project, `aeon` has benefited from funding given to `sktime`

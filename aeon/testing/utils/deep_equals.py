@@ -1,6 +1,6 @@
 """Testing utility to compare equality in value for nested objects."""
 
-__maintainer__ = []
+__maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["deep_equals"]
 
 from inspect import isclass
@@ -56,7 +56,7 @@ def _deep_equals(x, y, depth, ignore_index):
     elif isinstance(x, pd.DataFrame):
         return _dataframe_equals(x, y, depth, ignore_index)
     elif isinstance(x, np.ndarray):
-        return _numpy_equals(x, y, depth)
+        return _numpy_equals(x, y, depth, ignore_index)
     elif isinstance(x, (list, tuple)):
         return _list_equals(x, y, depth, ignore_index)
     elif isinstance(x, dict):
@@ -72,7 +72,7 @@ def _deep_equals(x, y, depth, ignore_index):
         eq = np.isnan(y)
         msg = "" if eq else f"x ({x}) != y ({y}), depth={depth}"
         return eq, msg
-    elif isinstance(x == y, bool):
+    elif isinstance(x == y, (bool, np.bool_)):
         eq = x == y
         msg = "" if eq else f"x ({x}) != y ({y}), depth={depth}"
         return eq, msg
@@ -84,6 +84,8 @@ def _deep_equals(x, y, depth, ignore_index):
 def _series_equals(x, y, depth, ignore_index):
     if x.dtype != y.dtype:
         return False, f"x.dtype ({x.dtype}) != y.dtype ({y.dtype}), depth={depth}"
+    if x.shape != y.shape:
+        return False, f"x.shape ({x.shape}) != y.shape ({y.shape}), depth={depth}"
 
     # if columns are object, recurse over entries and index
     if x.dtype == "object":
@@ -108,7 +110,12 @@ def _series_equals(x, y, depth, ignore_index):
 
 def _dataframe_equals(x, y, depth, ignore_index):
     if not x.columns.equals(y.columns):
-        return False, f"x.columns ({x.columns}) != y.columns ({y.columns})"
+        return (
+            False,
+            f"x.columns ({x.columns}) != y.columns ({y.columns}), depth={depth}",
+        )
+    if x.shape != y.shape:
+        return False, f"x.shape ({x.shape}) != y.shape ({y.shape}), depth={depth}"
 
     # if columns are equal and at least one is object, recurse over Series
     if sum(x.dtypes == "object") > 0:
@@ -128,13 +135,23 @@ def _dataframe_equals(x, y, depth, ignore_index):
         return eq, msg
 
 
-def _numpy_equals(x, y, depth):
+def _numpy_equals(x, y, depth, ignore_index):
     if x.dtype != y.dtype:
-        return False, f"x.dtype ({x.dtype}) != y.dtype ({y.dtype})"
+        return False, f"x.dtype ({x.dtype}) != y.dtype ({y.dtype}), depth={depth}"
+    if x.shape != y.shape:
+        return False, f"x.shape ({x.shape}) != y.shape ({y.shape}), depth={depth}"
 
-    eq = np.allclose(x, y, equal_nan=True)
-    msg = "" if eq else f"x ({x}) != y ({y}), depth={depth}"
-    return eq, msg
+    if x.dtype == "object":
+        for i in range(len(x)):
+            eq, msg = _deep_equals(x[i], y[i], depth + 1, ignore_index)
+
+            if not eq:
+                return False, msg + f", idx={i}"
+    else:
+        eq = np.allclose(x, y, equal_nan=True)
+        msg = "" if eq else f"x ({x}) != y ({y}), depth={depth}"
+        return eq, msg
+    return True, ""
 
 
 def _csrmatrix_equals(x, y, depth):

@@ -4,47 +4,70 @@ Similarity search
 =================
 
 The :mod:`aeon.similarity_search` module contains algorithms and tools for similarity
-search tasks.
+search tasks. First, we distinguish between `series` estimator and `collection`
+estimators, similarly to the `aeon.transformer` module. Secondly, we distinguish between
+estimators used `neighbors` (with sufix SNN for subsequence nearest neighbors, or ANN
+for approximate nearest neighbors) search and estimators used for `motifs` search.
 
 
-Similarity search estimators
-----------------------------
+Series Similarity search estimators
+-----------------------------------
 
-.. currentmodule:: aeon.similarity_search
+.. currentmodule:: aeon.similarity_search.series.neighbors
 
 .. autosummary::
     :toctree: auto_generated/
     :template: class.rst
 
-    QuerySearch
-    SeriesSearch
-    BaseSimiliaritySearch
+    DummySNN
+    MassSNN
 
-
-Distance profile functions
---------------------------
-
-.. currentmodule:: aeon.similarity_search.distance_profiles
+.. currentmodule:: aeon.similarity_search.series.motifs
 
 .. autosummary::
     :toctree: auto_generated/
-    :template: function.rst
+    :template: class.rst
 
-    euclidean_distance_profile
-    normalized_euclidean_distance_profile
-    squared_distance_profile
-    normalized_squared_distance_profile
+    StompMotif
 
-Matrix profile functions
---------------------------
 
-.. currentmodule:: aeon.similarity_search.matrix_profiles
+Collection Similarity search estimators
+-----------------------------------
+
+.. currentmodule:: aeon.similarity_search.collection.neighbors
 
 .. autosummary::
     :toctree: auto_generated/
-    :template: function.rst
+    :template: class.rst
 
-    stomp_normalized_euclidean_matrix_profile
-    stomp_euclidean_matrix_profile
-    stomp_normalized_squared_matrix_profile
-    stomp_squared_matrix_profile
+    RandomProjectionIndexANN
+
+
+Base Estimators
+---------------
+
+.. currentmodule:: aeon.similarity_search._base
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    BaseSimilaritySearch
+
+
+.. currentmodule:: aeon.similarity_search.series._base
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    BaseSeriesSimilaritySearch
+
+
+.. currentmodule:: aeon.similarity_search.collection._base
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    BaseCollectionSimilaritySearch

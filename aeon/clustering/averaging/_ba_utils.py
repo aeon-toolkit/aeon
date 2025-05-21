@@ -31,7 +31,7 @@ def _medoids(
         return X
 
     if precomputed_pairwise_distance is None:
-        precomputed_pairwise_distance = pairwise_distance(X, metric=distance, **kwargs)
+        precomputed_pairwise_distance = pairwise_distance(X, method=distance, **kwargs)
 
     x_size = X.shape[0]
     distance_matrix = np.zeros((x_size, x_size))
@@ -155,6 +155,6 @@ def _get_alignment_path(
     elif distance == "adtw":
         return adtw_alignment_path(ts, center, window=window, warp_penalty=warp_penalty)
     else:
-        # When numba version > 0.57 add more informative error with what metric
+        # When numba version > 0.57 add more informative error with what method
         # was passed.
         raise ValueError("Distance parameter invalid")

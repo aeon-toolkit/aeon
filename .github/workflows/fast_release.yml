@@ -6,14 +6,15 @@ on:
 
 jobs:
   build-project:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: "3.11"
 
       - name: Build project
         run: |
@@ -28,7 +29,13 @@ jobs:
           retention-days: 5
 
   upload-wheels:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
+
+    environment:
+      name: release
+      url: https://pypi.org/p/aeon/
+    permissions:
+      id-token: write
 
     steps:
       - uses: actions/download-artifact@v4
@@ -38,5 +45,3 @@ jobs:
 
       - name: Publish package to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          password: ${{ secrets.PYPI_TOKEN }}

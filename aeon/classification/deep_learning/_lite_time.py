@@ -35,12 +35,10 @@ class LITETimeClassifier(BaseClassifier):
         if set to `True` then LITEMV is used. LITEMV is the
         same architecture as LITE but specifically designed
         to better handle multivariate time series.
-    n_filters : int or list of int32, default = 32
-        The number of filters used in one lite layer, if not a list, the same
-        number of filters is used in all lite layers.
-    kernel_size : int or list of int, default = 40
-        The head kernel size used for each lite layer, if not a list, the same
-        is used in all lite module.
+    n_filters : int, default = 32
+        The number of filters used in one lite layer.
+    kernel_size : int, default = 40
+        The head kernel size used for each lite layer.
     strides : int or list of int, default = 1
         The strides of kernels in convolution layers for each lite layer,
         if not a list, the same is used in all lite layers.
@@ -96,11 +94,13 @@ class LITETimeClassifier(BaseClassifier):
         The keras optimizer used for training.
     loss : str, default = "categorical_crossentropy"
         The name of the keras training loss.
-    metrics : str or list[str], default="accuracy"
-        The evaluation metrics to use during training. If
-        a single string metric is provided, it will be
-        used as the only metric. If a list of metrics are
-        provided, all will be used for evaluation.
+    metrics : str or list[str|function|keras.metrics.Metric], default="accuracy"
+        the evaluation metrics to use during training. each of this can be a
+        string, function or a keras.metrics.metric instance (for details, see
+        https://keras.io/api/metrics/).
+        if a single string metric is provided, it will be used as the only
+        metric. if a list of metrics are provided, all will be used for
+        evaluation.
 
     References
     ----------
@@ -215,6 +215,7 @@ class LITETimeClassifier(BaseClassifier):
                 use_litemv=self.use_litemv,
                 n_filters=self.n_filters,
                 kernel_size=self.kernel_size,
+                strides=self.strides,
                 file_path=self.file_path,
                 save_best_model=self.save_best_model,
                 save_last_model=self.save_last_model,
@@ -282,6 +283,46 @@ class LITETimeClassifier(BaseClassifier):
         return probs
 
     @classmethod
+    def load_model(self, model_path, classes):
+        """Load pre-trained classifiers instead of fitting.
+
+        When calling this function, all funcationalities can be used
+        such as predict, predict_proba, etc. with the loaded models.
+
+        Parameters
+        ----------
+        model_path : list of str (list of paths including the model names and extension)
+            The director where the models will be saved including the model
+            names with a ".keras" extension.
+        classes : np.ndarray
+            The set of unique classes the pre-trained loaded model is trained
+            to predict during the classification task.
+
+        Returns
+        -------
+        None
+        """
+        assert (
+            type(model_path) is list
+        ), "model_path should be a list of paths to the models"
+
+        classifier = self()
+        classifier.classifiers_ = []
+
+        for i in range(len(model_path)):
+            clf = IndividualLITEClassifier()
+            clf.load_model(model_path=model_path[i], classes=classes)
+            classifier.classifiers_.append(clf)
+
+        classifier.n_classifiers = len(classifier.classifiers_)
+
+        classifier.classes_ = classes
+        classifier.n_classes_ = len(classes)
+        classifier.is_fitted = True
+
+        return classifier
+
+    @classmethod
     def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
 
@@ -337,12 +378,10 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         if set to `True` then LITEMV is used. LITEMV is the
         same architecture as LITE but specifically designed
         to better handle multivariate time series.
-    n_filters : int or list of int32, default = 32
-        The number of filters used in one lite layer, if not a list, the same
-        number of filters is used in all lite layers.
-    kernel_size : int or list of int, default = 40
-        The head kernel size used for each lite layer, if not a list, the same
-        is used in all lite layers.
+    n_filters : int, default = 32
+        The number of filters used in one lite layer.
+    kernel_size : int, default = 40
+        The head kernel size used for each lite layer.
     strides : int or list of int, default = 1
         The strides of kernels in convolution layers for each lite layer,
         if not a list, the same is used in all lite layers.
@@ -398,11 +437,13 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         The keras optimizer used for training.
     loss : str, default = "categorical_crossentropy"
         The name of the keras training loss.
-    metrics : str or list[str], default="accuracy"
-        The evaluation metrics to use during training. If
-        a single string metric is provided, it will be
-        used as the only metric. If a list of metrics are
-        provided, all will be used for evaluation.
+    metrics : str or list[str|function|keras.metrics.Metric], default="accuracy"
+        the evaluation metrics to use during training. each of this can be a
+        string, function or a keras.metrics.metric instance (for details, see
+        https://keras.io/api/metrics/).
+        if a single string metric is provided, it will be used as the only
+        metric. if a list of metrics are provided, all will be used for
+        evaluation.
 
     References
     ----------

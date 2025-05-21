@@ -9,8 +9,6 @@ from inspect import getfullargspec, isclass, signature
 
 import joblib
 import numpy as np
-import pytest
-from numpy.testing import assert_array_almost_equal
 from sklearn.exceptions import NotFittedError
 
 from aeon.anomaly_detection.base import BaseAnomalyDetector
@@ -24,6 +22,7 @@ from aeon.clustering.deep_learning.base import BaseDeepClusterer
 from aeon.regression import BaseRegressor
 from aeon.regression.deep_learning.base import BaseDeepRegressor
 from aeon.segmentation import BaseSegmenter
+from aeon.similarity_search import BaseSimilaritySearch
 from aeon.testing.estimator_checking._yield_anomaly_detection_checks import (
     _yield_anomaly_detection_checks,
 )
@@ -233,9 +232,10 @@ def check_inheritance(estimator_class):
 
     # Only transformers can inherit from multiple base types currently
     if n_base_types > 1:
-        assert issubclass(
-            estimator_class, BaseTransformer
-        ), "Only transformers can inherit from multiple base types."
+        assert issubclass(estimator_class, BaseTransformer) or issubclass(
+            estimator_class, BaseSimilaritySearch
+        ), "Only transformers or similarity search estimators can inherit from multiple"
+        "base types."
 
 
 def check_has_common_interface(estimator_class):
@@ -596,6 +596,8 @@ def check_fit_updates_state_and_cloning(estimator, datatype):
 
 def check_raises_not_fitted_error(estimator, datatype):
     """Check exception raised for non-fit method calls to unfitted estimators."""
+    import pytest
+
     estimator = _clone_estimator(estimator)
 
     for method in NON_STATE_CHANGING_METHODS:
@@ -624,20 +626,18 @@ def check_persistence_via_pickle(estimator, datatype):
     for method in NON_STATE_CHANGING_METHODS_ARRAYLIKE:
         if hasattr(estimator, method) and callable(getattr(estimator, method)):
             output = _run_estimator_method(estimator, method, datatype, "test")
-            assert_array_almost_equal(
-                output,
-                results[i],
-                err_msg=f"Running {method} after fit twice with test "
-                f"parameters gives different results.",
-            )
+            same, msg = deep_equals(output, results[i], return_msg=True)
+            if not same:
+                raise ValueError(
+                    f"Running {type(estimator)} {method} with test parameters after "
+                    f"serialisation gives different results. "
+                    f"Check equivalence message: {msg}"
+                )
             i += 1
 
 
 def check_fit_deterministic(estimator, datatype):
-    """Test that fit is deterministic.
-
-    Check that calling fit twice is equivalent to calling it once.
-    """
+    """Check that calling fit twice is equivalent to calling it once."""
     estimator = _clone_estimator(estimator, random_state=0)
     _run_estimator_method(estimator, "fit", datatype, "train")
 
@@ -647,17 +647,19 @@ def check_fit_deterministic(estimator, datatype):
             output = _run_estimator_method(estimator, method, datatype, "test")
             results.append(output)
 
-    # run fit and other methods a second time
+    # run fit a second time
     _run_estimator_method(estimator, "fit", datatype, "train")
 
+    # check output of predict/transform etc does not change
     i = 0
     for method in NON_STATE_CHANGING_METHODS_ARRAYLIKE:
         if hasattr(estimator, method) and callable(getattr(estimator, method)):
             output = _run_estimator_method(estimator, method, datatype, "test")
-            assert_array_almost_equal(
-                output,
-                results[i],
-                err_msg=f"Running {method} after fit twice with test "
-                f"parameters gives different results.",
-            )
+            same, msg = deep_equals(output, results[i], return_msg=True)
+            if not same:
+                raise ValueError(
+                    f"Running {type(estimator)} {method} with test parameters after "
+                    f"two calls to fit gives different results."
+                    f"Check equivalence message: {msg}"
+                )
             i += 1
