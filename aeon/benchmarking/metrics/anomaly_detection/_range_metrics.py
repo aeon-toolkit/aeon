@@ -60,13 +60,6 @@ def range_precision(
        1920–30. 2018.
        http://papers.nips.cc/paper/7462-precision-and-recall-for-time-series.pdf.
     """
-    if alpha != 0:
-        warnings.warn(
-            "The alpha parameter should not be used in range precision. This "
-            "parameter is removed in 1.3.0.",
-            stacklevel=2,
-            category=FutureWarning,
-        )
     y_true, y_pred = check_y(y_true, y_pred, force_y_pred_continuous=False)
     if np.unique(y_pred).shape[0] == 1:
         warnings.warn(
@@ -197,14 +190,6 @@ def range_f_score(
        1920–30. 2018.
        http://papers.nips.cc/paper/7462-precision-and-recall-for-time-series.pdf.
     """
-    if p_alpha != 0:
-        warnings.warn(
-            "The p_alpha parameter should not be used. This parameter is removed "
-            "in 1.3.0.",
-            stacklevel=2,
-            category=FutureWarning,
-        )
-
     y_true, y_pred = check_y(y_true, y_pred, force_y_pred_continuous=False)
     if np.unique(y_pred).shape[0] == 1:
         warnings.warn(
