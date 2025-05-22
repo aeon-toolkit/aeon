@@ -30,6 +30,7 @@ class CollectionToSeriesWrapper(BaseSeriesTransformer):
     _tags = {
         "input_data_type": "Series",
         "output_data_type": "Series",
+        "capability:inverse_transform": True,
         "X_inner_type": "np.ndarray",
     }
 

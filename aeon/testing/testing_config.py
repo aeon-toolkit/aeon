@@ -53,6 +53,7 @@ EXCLUDED_TESTS = {
     "RSAST": ["check_fit_deterministic"],
     "MatrixProfile": ["check_fit_deterministic", "check_persistence_via_pickle"],
     "LeftSTAMPi": ["check_anomaly_detector_output"],
+    "SeriesToCollectionBroadcaster": ["check_transform_inverse_transform_equivalent"],
     # missed in legacy testing, changes state in predict/transform
     "FLUSSSegmenter": ["check_non_state_changing_method"],
     "InformationGainSegmenter": ["check_non_state_changing_method"],

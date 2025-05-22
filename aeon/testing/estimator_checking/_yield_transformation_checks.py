@@ -198,4 +198,5 @@ def check_transform_inverse_transform_equivalent(estimator, datatype):
     if isinstance(Xit, (np.ndarray, pd.DataFrame)):
         Xit = Xit.squeeze()
 
-    assert deep_equals(X, Xit, ignore_index=True)
+    eq, msg = deep_equals(X, Xit, ignore_index=True, return_msg=True)
+    assert eq, msg
