@@ -1,8 +1,5 @@
 """Tests for BoxCoxTransformer."""
 
-__maintainer__ = []
-__all__ = []
-
 import numpy as np
 import pytest
 from scipy.stats import boxcox

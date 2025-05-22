@@ -1,7 +1,5 @@
 """Unit tests for clustering pipeline."""
 
-__maintainer__ = ["MatthewMiddlehurst"]
-
 import pytest
 from numpy.testing import assert_array_almost_equal
 from sklearn.preprocessing import StandardScaler
