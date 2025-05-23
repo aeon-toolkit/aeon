@@ -233,7 +233,7 @@ def _binary_to_ranges(binary_sequence):
     "Please use range_precision instead.",
     category=FutureWarning,
 )
-def ts_precision(y_pred, y_real, gamma="one", bias_type="flat"):
+def ts_precision(y_pred, y_real, gamma="one", bias_type="flat", alpha=0.0):
     """
     Calculate Precision for time series anomaly detection.
 
@@ -317,10 +317,12 @@ def ts_precision(y_pred, y_real, gamma="one", bias_type="flat"):
     flat_y_pred = _flatten_ranges(y_pred_ranges)
     flat_y_real = _flatten_ranges(y_real_ranges)
 
-    return _ts_precision(flat_y_pred, flat_y_real, gamma, bias_type)
+    return _ts_precision(flat_y_pred, flat_y_real, gamma, bias_type, alpha=alpha)
 
 
-def _ts_precision(y_pred_ranges, y_real_ranges, gamma="one", bias_type="flat"):
+def _ts_precision(
+    y_pred_ranges, y_real_ranges, gamma="one", bias_type="flat", alpha=0.0
+):
     """
     Implement range-based precision for time series anomaly detection.
 
@@ -371,13 +373,20 @@ def _ts_precision(y_pred_ranges, y_real_ranges, gamma="one", bias_type="flat"):
         overlap_reward = _calculate_overlap_reward_precision(
             pred_range, overlap_set, bias_type
         )
+
+        existence_reward = 1.0 if overlap_set else 0.0
         gamma_value = _gamma_select(cardinality, gamma)
-        total_overlap_reward += gamma_value * overlap_reward
+
+        score_i = alpha * existence_reward + (1 - alpha) * (
+            gamma_value * overlap_reward
+        )
+
+        total_overlap_reward += score_i
+
         total_cardinality += 1
 
-    precision = (
-        total_overlap_reward / total_cardinality if total_cardinality > 0 else 0.0
-    )
+    precision = total_overlap_reward / total_cardinality if total_cardinality else 0.0
+
     return precision
 
 
@@ -609,7 +618,7 @@ def ts_fscore(
        Processing Systems (NeurIPS 2018), Montréal, Canada.
        http://papers.nips.cc/paper/7462-precision-and-recall-for-time-series.pdf
     """
-    precision = ts_precision(y_pred, y_real, gamma, p_bias)
+    precision = ts_precision(y_pred, y_real, gamma, p_bias, alpha=p_alpha)
     recall = ts_recall(y_pred, y_real, gamma, r_bias, r_alpha)
 
     if precision + recall > 0:
