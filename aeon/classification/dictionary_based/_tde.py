@@ -32,9 +32,9 @@ class TemporalDictionaryEnsemble(BaseClassifier):
     Implementation of the dictionary based Temporal Dictionary Ensemble as described
     in [1]_.
 
-    Overview: Input 'n' series length 'm' with 'd' dimensions
-    TDE searches 'k' parameter values selected using a Gaussian processes
-    regressor, evaluating each with a LOOCV. It then retains 's'
+    Overview: Input ``n`` series length ``m`` with ``d`` dimensions
+    TDE searches ``k`` parameter values selected using a Gaussian processes
+    regressor, evaluating each with a LOOCV. It then retains ``s``
     ensemble members.
     There are six primary parameters for individual classifiers:
             - alpha: alphabet size
@@ -46,14 +46,14 @@ class TemporalDictionaryEnsemble(BaseClassifier):
     For any combination, an individual TDE classifier slides a window of
     length w along the series. The w length window is shortened to
     an l length word through taking a Fourier transform and keeping the
-    first l/2 complex coefficients. These lcoefficients are then discretised
+    first l/2 complex coefficients. These coefficients are then discretised
     into alpha possible values, to form a word length l using breakpoints
     found using b. A histogram of words for each series is formed and stored,
     using a spatial pyramid of h levels. For multivariate series, accuracy
     from a reduced histogram is used to select dimensions.
 
     fit involves finding n histograms.
-    predict uses 1 nearest neighbour with the histogram intersection
+    predict uses 1 nearest neighbor with the histogram intersection
     distance function.
 
     Parameters
@@ -645,7 +645,7 @@ class IndividualTDE(BaseClassifier):
 
     See Also
     --------
-    TemporalDictinaryEnsemble, SFA
+    TemporalDictionaryEnsemble, SFA
         TDE extends BOSS and uses SFA.
 
     Notes

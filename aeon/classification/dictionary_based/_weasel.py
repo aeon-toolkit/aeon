@@ -23,7 +23,7 @@ class WEASEL(BaseClassifier):
     """
     Word Extraction for Time Series Classification (WEASEL).
 
-    As described in [1]_. Overview: Input 'n' series length 'm'
+    As described in [1]_. Overview: Input ``n`` series length ``m``
     WEASEL is a dictionary classifier that builds a bag-of-patterns using SFA
     for different window lengths and learns a logistic regression classifier
     on this bag.
@@ -74,10 +74,10 @@ class WEASEL(BaseClassifier):
         Sets the feature selections strategy to be used. One of {"chi2", "none",
         "random"}.  Large amounts of memory may beneeded depending on the setting of
         bigrams (true is more) or alpha (larger is more).
-        'chi2' reduces the number of words, keeping those above the 'p_threshold'.
-        'random' reduces the number to at most 'max_feature_count',
+        ``chi2`` reduces the number of words, keeping those above the ``p_threshold``.
+        ``random`` reduces the number to at most ``max_feature_count``,
         by randomly selecting features.
-        'none' does not apply any feature selection and yields large bag of words.
+        ``none`` does not apply any feature selection and yields large bag of words.
     support_probabilities : bool, default: False
         If set to False, a RidgeClassifierCV will be trained, which has higher accuracy
         and is faster, yet does not support predict_proba.
