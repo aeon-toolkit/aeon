@@ -1,9 +1,6 @@
-.. _transformations_ref:
+# Transformations
 
-Transformations
-===============
-
-The :mod:`aeon.transformations` module contains classes for series
+The `aeon.transformations` module contains classes for series
 transformations. The module is organised into CollectionTransformers which transform a
 collection of time series into a different representation and SeriesTransformers which
 transform single time series.
@@ -11,10 +8,9 @@ transform single time series.
 All transformers in `aeon` can be listed using the `aeon.registry
 .all_estimators` utility, using `estimator_types="transformer"` tag.
 
+## Collection transformers
 
-Collection transformers
------------------------
-
+```{eval-rst}
 .. currentmodule:: aeon.transformations.collection
 
 .. autosummary::
@@ -37,11 +33,11 @@ Collection transformers
     SimpleImputer
     Truncator
     Tabularizer
+```
 
+### Channel selection
 
-Channel selection
-~~~~~~~~~~~~~~~~~
-
+```{eval-rst}
 .. currentmodule:: aeon.transformations.collection.channel_selection
 
 .. autosummary::
@@ -52,11 +48,11 @@ Channel selection
     ElbowClassPairwise
     ElbowClassSum
     RandomChannelSelector
+```
 
+### Compose
 
-Compose
-~~~~~~~
-
+```{eval-rst}
 .. currentmodule:: aeon.transformations.collection.compose
 
 .. autosummary::
@@ -65,11 +61,11 @@ Compose
 
     CollectionTransformerPipeline
     CollectionId
+```
 
+### Convolution based
 
-Convolution based
-~~~~~~~~~~~~~~~~~
-
+```{eval-rst}
 .. currentmodule:: aeon.transformations.collection.convolution_based
 
 .. autosummary::
@@ -80,11 +76,21 @@ Convolution based
     MiniRocket
     MultiRocket
     HydraTransformer
+```
 
+```{eval-rst}
+.. currentmodule:: aeon.transformations.collection.convolution_based.rocketGPU
 
-Dictionary-based features
-~~~~~~~~~~~~~~~~~~~~~~~~~
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
 
+    ROCKETGPU
+```
+
+### Dictionary-based features
+
+```{eval-rst}
 .. currentmodule:: aeon.transformations.collection.dictionary_based
 
 .. autosummary::
@@ -95,12 +101,13 @@ Dictionary-based features
     PAA
     SFA
     SFAFast
+    SFAWhole
     BORF
+```
 
+### Feature based
 
-Feature based
-~~~~~~~~~~~~~
-
+```{eval-rst}
 .. currentmodule:: aeon.transformations.collection.feature_based
 
 .. autosummary::
@@ -111,11 +118,11 @@ Feature based
     TSFresh
     TSFreshRelevant
     SevenNumberSummary
+```
 
+### Interval based
 
-Interval based
-~~~~~~~~~~~~~~
-
+```{eval-rst}
 .. currentmodule:: aeon.transformations.collection.interval_based
 
 .. autosummary::
@@ -125,10 +132,11 @@ Interval based
     RandomIntervals
     SupervisedIntervals
     QUANTTransformer
+```
 
-Shapelet based
-~~~~~~~~~~~~~~
+### Shapelet based
 
+```{eval-rst}
 .. currentmodule:: aeon.transformations.collection.shapelet_based
 
 .. autosummary::
@@ -139,10 +147,11 @@ Shapelet based
     RandomDilatedShapeletTransform
     SAST
     RSAST
+```
 
-Signature based
-~~~~~~~~~~~~~~~
+### Signature based
 
+```{eval-rst}
 .. currentmodule:: aeon.transformations.collection.signature_based
 
 .. autosummary::
@@ -150,11 +159,11 @@ Signature based
     :template: class.rst
 
     SignatureTransformer
+```
 
+## Series transforms
 
-Series transforms
------------------
-
+```{eval-rst}
 .. currentmodule:: aeon.transformations.series
 
 .. autosummary::
@@ -163,26 +172,35 @@ Series transforms
 
     AutoCorrelationSeriesTransformer
     ClaSPTransformer
-    DFTSeriesTransformer
     Dobin
-    ExpSmoothingSeriesTransformer
-    GaussSeriesTransformer
     MatrixProfileSeriesTransformer
-    MovingAverageSeriesTransformer
+    LogTransformer
     PLASeriesTransformer
-    SGSeriesTransformer
     StatsModelsACF
     StatsModelsPACF
     BKFilter
     BoxCoxTransformer
     ScaledLogitSeriesTransformer
-    SIVSeriesTransformer
     PCASeriesTransformer
     WarpingSeriesTransformer
+```
 
-Smoothing
-~~~~~~~~~
+### Compose
 
+```{eval-rst}
+.. currentmodule:: aeon.transformations.series.compose
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    SeriesTransformerPipeline
+    SeriesId
+```
+
+### Smoothing
+
+```{eval-rst}
 .. currentmodule:: aeon.transformations.series.smoothing
 
 .. autosummary::
@@ -195,10 +213,11 @@ Smoothing
     MovingAverage
     SavitzkyGolayFilter
     RecursiveMedianSieve
+```
 
-Base
-----
+## Base
 
+```{eval-rst}
 .. currentmodule:: aeon.transformations.collection.base
 
 .. autosummary::
@@ -215,3 +234,12 @@ Base
     :template: class.rst
 
     BaseSeriesTransformer
+
+.. currentmodule:: aeon.transformations.base
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    BaseTransformer
+```

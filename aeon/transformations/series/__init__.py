@@ -17,7 +17,6 @@ __all__ = [
     "StatsModelsPACF",
     "BKFilter",
     "BoxCoxTransformer",
-    "Dobin",
     "ScaledLogitSeriesTransformer",
     "SIVSeriesTransformer",
     "PCASeriesTransformer",

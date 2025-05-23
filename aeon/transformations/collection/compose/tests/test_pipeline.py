@@ -1,6 +1,4 @@
-"""Unit tests for clustering pipeline."""
-
-__maintainer__ = ["MatthewMiddlehurst"]
+"""Unit tests for collection transform pipeline."""
 
 import pytest
 from numpy.testing import assert_array_almost_equal
