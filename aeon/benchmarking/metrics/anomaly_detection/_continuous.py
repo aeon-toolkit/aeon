@@ -18,12 +18,16 @@ import numpy as np
 from sklearn.metrics import auc, f1_score, precision_recall_curve
 from sklearn.metrics import roc_auc_score as _roc_auc_score
 
+from aeon.benchmarking.metrics.anomaly_detection._range_metrics import (
+    range_f_score,
+    range_precision,
+    range_recall,
+)
 from aeon.benchmarking.metrics.anomaly_detection._util import check_y
 from aeon.benchmarking.metrics.anomaly_detection.thresholding import (
     top_k_points_threshold,
     top_k_ranges_threshold,
 )
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 def roc_auc_score(y_true: np.ndarray, y_score: np.ndarray) -> float:
@@ -142,9 +146,8 @@ def f_score_at_k_ranges(
     finding a threshold on the scoring that produces at least k anomalous ranges. If `k`
     is not specified, the number of anomalies within the ground truth is used as `k`.
 
-    This implementation uses the community package
-    `prts <https://pypi.org/project/prts/>`_ as a soft-dependency to compute the
-    range-based F-score.
+    This implementation uses the aeon's implementation from `_range_metrics.py` to
+    compute the range-based F-score.
 
     Parameters
     ----------
@@ -167,12 +170,6 @@ def f_score_at_k_ranges(
     aeon.benchmarking.metrics.anomaly_detection.thresholding.top_k_ranges_threshold
         Function used to find the threshold.
     """
-    _check_soft_dependencies(
-        "prts", obj="f_score_at_k_ranges", suppress_import_stdout=True
-    )
-
-    from prts import ts_fscore
-
     y_true, y_pred = check_y(y_true, y_score, force_y_pred_continuous=True)
     if np.unique(y_score).shape[0] == 1:
         warnings.warn(
@@ -183,7 +180,8 @@ def f_score_at_k_ranges(
 
     threshold = top_k_ranges_threshold(y_true, y_score, k)
     y_pred = y_score >= threshold
-    return ts_fscore(y_true, y_pred, p_alpha=1, r_alpha=1, cardinality="reciprocal")
+    # Corrected p_alpha to 1 to match original prts behavior expectation
+    return range_f_score(y_true, y_pred, p_alpha=1, r_alpha=1, cardinality="reciprocal")
 
 
 def rp_rr_auc_score(
@@ -199,8 +197,6 @@ def rp_rr_auc_score(
 
     Computes the area under the precision recall curve when using the range-based
     precision and range-based recall metric introduced by Tatbul et al. at NeurIPS 2018
-    [1]_. This implementation uses the community package
-    `prts <https://pypi.org/project/prts/>`_ as a soft-dependency.
 
     This metric only considers the top-k predicted anomaly ranges within the scoring by
     finding a threshold on the scoring that produces at least k anomalous ranges. If `k`
@@ -242,12 +238,6 @@ def rp_rr_auc_score(
        1920–30. 2018.
        http://papers.nips.cc/paper/7462-precision-and-recall-for-time-series.pdf.
     """
-    _check_soft_dependencies(
-        "prts", obj="f_score_at_k_ranges", suppress_import_stdout=True
-    )
-
-    from prts import ts_precision, ts_recall
-
     y_true, y_pred = check_y(y_true, y_score, force_y_pred_continuous=True)
     if np.unique(y_score).shape[0] == 1:
         warnings.warn(
@@ -279,10 +269,10 @@ def rp_rr_auc_score(
     precisions = np.zeros_like(thresholds)
     for i, threshold in enumerate(thresholds):
         y_pred = (y_score >= threshold).astype(np.int64)
-        recalls[i] = ts_recall(
+        recalls[i] = range_recall(
             y_true, y_pred, alpha=r_alpha, cardinality=cardinality, bias=bias
         )
-        precisions[i] = ts_precision(
+        precisions[i] = range_precision(
             y_true, y_pred, alpha=p_alpha, cardinality=cardinality, bias=bias
         )
     # first sort by recall, then by precision to break ties
