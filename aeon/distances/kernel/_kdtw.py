@@ -214,15 +214,14 @@ def _kdtw_distance(
 
     n = _x.shape[-1] - 1
     m = _y.shape[-1] - 1
+    current_cost = _kdtw_cost_matrix(_x, _y, gamma, epsilon)[n, m]
     if normalize_dist:
         self_x = _kdtw_cost_matrix(_x, _x, gamma, epsilon)[n, n]
         self_y = _kdtw_cost_matrix(_y, _y, gamma, epsilon)[m, m]
         norm_factor = np.sqrt(self_x * self_y)
-        if norm_factor < _eps:
-            norm_factor = 1.0
-    else:
-        norm_factor = 1.0
-    return 1.0 - _kdtw_cost_matrix(_x, _y, gamma, epsilon)[n, m] / norm_factor
+        if norm_factor != 0.0:
+            current_cost /= norm_factor
+    return 1.0 - current_cost
 
 
 @njit(cache=True, fastmath=True)
