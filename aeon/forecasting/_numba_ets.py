@@ -62,7 +62,7 @@ class ETSForecaster(BaseForecaster):
 
     Examples
     --------
-    >>> from aeon.forecasting import ETSForecaster
+    >>> from aeon.forecasting._numba_ets import ETSForecaster
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()
     >>> forecaster = ETSForecaster(alpha=0.4, beta=0.2, gamma=0.5, phi=0.8, horizon=1,
