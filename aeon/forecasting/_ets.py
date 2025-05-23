@@ -14,8 +14,12 @@ __maintainer__ = []
 __all__ = ["ETSForecaster"]
 
 import numpy as np
+from numba import njit
 
 from aeon.forecasting.base import BaseForecaster
+
+NOGIL = False
+CACHE = True
 
 NONE = 0
 ADDITIVE = 1
@@ -56,29 +60,30 @@ class ETSForecaster(BaseForecaster):
     .. [1] R. J. Hyndman and G. Athanasopoulos,
         Forecasting: Principles and Practice. Melbourne, Australia: OTexts, 2014.
 
+
     Examples
     --------
-    >>> from aeon.forecasting._ets import ETSForecaster
+    >>> from aeon.forecasting import ETSForecaster
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()
     >>> forecaster = ETSForecaster(alpha=0.4, beta=0.2, gamma=0.5, phi=0.8, horizon=1,
     ...    error_type=1, trend_type=2, seasonality_type=2, seasonal_period=4)
     >>> f = forecaster.fit(y)
     >>> forecaster.predict()
-    array([366.90200486])
+    366.90200486015596
     """
 
     def __init__(
         self,
-        error_type: int = ADDITIVE,
-        trend_type: int = NONE,
-        seasonality_type: int = NONE,
-        seasonal_period: int = 1,
-        alpha: float = 0.1,
-        beta: float = 0.01,
-        gamma: float = 0.01,
-        phi: float = 0.99,
-        horizon: int = 1,
+        error_type=ADDITIVE,
+        trend_type=NONE,
+        seasonality_type=NONE,
+        seasonal_period=1,
+        alpha=0.1,
+        beta=0.01,
+        gamma=0.01,
+        phi=0.99,
+        horizon=1,
     ):
         self.alpha = alpha
         self.beta = beta
@@ -95,12 +100,13 @@ class ETSForecaster(BaseForecaster):
         self.seasonality_type = seasonality_type
         self.seasonal_period = seasonal_period
         self._seasonal_period = seasonal_period
-        self.n_timepoints = 0
+        self.n_timepoints_ = 0
         self.avg_mean_sq_err_ = 0
         self.liklihood_ = 0
         self.k_ = 0
         self.aic_ = 0
         self.residuals_ = []
+        self.fitted_values_ = []
         super().__init__(horizon=horizon, axis=1)
 
     def _fit(self, y, exog=None):
@@ -118,154 +124,44 @@ class ETSForecaster(BaseForecaster):
         Returns
         -------
         self
-            Fitted BaseForecaster.
+            Fitted ETSForecaster.
         """
-        assert (
-            self.error_type != NONE
-        ), "Error must be either additive or multiplicative"
+        if self.error_type not in (ADDITIVE, MULTIPLICATIVE):
+            raise ValueError("Error type must be either additive or multiplicative")
+
         if self._seasonal_period < 1 or self.seasonality_type == NONE:
             self._seasonal_period = 1
+
         if self.trend_type == NONE:
-            self._beta = (
-                0  # Required for the equations in _update_states to work correctly
-            )
+            # Required for the equations in _update_states to work correctly
+            self._beta = 0
         if self.seasonality_type == NONE:
-            self._gamma = (
-                0  # Required for the equations in _update_states to work correctly
-            )
+            # Required for the equations in _update_states to work correctly
+            self._gamma = 0
         data = y.squeeze()
-        self.n_timepoints = len(data)
-        self._initialise(data)
-        num_vals = self.n_timepoints - self._seasonal_period
-        self.avg_mean_sq_err_ = 0
-        self.liklihood_ = 0
-        # 1 Less residual than data points
-        self.residuals_ = np.zeros(num_vals)
-        for t, data_item in enumerate(data[self._seasonal_period :]):
-            # Calculate level, trend, and seasonal components
-            fitted_value, error = self._update_states(
-                data_item, t % self._seasonal_period
-            )
-            self.residuals_[t] = error
-            self.avg_mean_sq_err_ += (data_item - fitted_value) ** 2
-            liklihood_error = error
-            if self.error_type == MULTIPLICATIVE:
-                liklihood_error *= fitted_value
-            self.liklihood_ += liklihood_error**2
-        self.avg_mean_sq_err_ /= num_vals
-        self.liklihood_ = num_vals * np.log(self.liklihood_)
-        self.k_ = (
-            self.seasonal_period * (self.seasonality_type != 0)
-            + 2 * (self.trend_type != 0)
-            + 2
-            + 1 * (self.phi != 1)
+        (
+            self.level_,
+            self.trend_,
+            self.seasonality_,
+            self.n_timepoints_,
+            self.residuals_,
+            self.fitted_values_,
+            self.avg_mean_sq_err_,
+            self.liklihood_,
+            self.k_,
+            self.aic_,
+        ) = _numba_fit(
+            data,
+            self.error_type,
+            self.trend_type,
+            self.seasonality_type,
+            self._seasonal_period,
+            self.alpha,
+            self._beta,
+            self._gamma,
+            self.phi,
         )
-        self.aic_ = self.liklihood_ + 2 * self.k_ - num_vals * np.log(num_vals)
         return self
-
-    def _update_states(self, data_item, seasonal_index):
-        """
-        Update level, trend, and seasonality components.
-
-        Using state space equations for an ETS model.
-
-        Parameters
-        ----------
-        data_item: float
-            The current value of the time series.
-        seasonal_index: int
-            The index to update the seasonal component.
-        """
-        # Retrieve the current state values
-        level = self.level_
-        trend = self.trend_
-        seasonality = self.seasonality_[seasonal_index]
-        fitted_value, damped_trend, trend_level_combination = self._predict_value(
-            level, trend, seasonality, self.phi
-        )
-        # Calculate the error term (observed value - fitted value)
-        if self.error_type == MULTIPLICATIVE:
-            error = data_item / fitted_value - 1  # Multiplicative error
-        else:
-            error = data_item - fitted_value  # Additive error
-        # Update level
-        if self.error_type == MULTIPLICATIVE:
-            self.level_ = trend_level_combination * (1 + self.alpha * error)
-            self.trend_ = damped_trend * (1 + self._beta * error)
-            self.seasonality_[seasonal_index] = seasonality * (1 + self._gamma * error)
-            if self.seasonality_type == ADDITIVE:
-                self.level_ += (
-                    self.alpha * error * seasonality
-                )  # Add seasonality correction
-                self.seasonality_[seasonal_index] += (
-                    self._gamma * error * trend_level_combination
-                )
-                if self.trend_type == ADDITIVE:
-                    self.trend_ += (level + seasonality) * self._beta * error
-                else:
-                    self.trend_ += seasonality / level * self._beta * error
-            elif self.trend_type == ADDITIVE:
-                self.trend_ += level * self._beta * error
-        else:
-            level_correction = 1
-            trend_correction = 1
-            seasonality_correction = 1
-            if self.seasonality_type == MULTIPLICATIVE:
-                # Add seasonality correction
-                level_correction *= seasonality
-                trend_correction *= seasonality
-                seasonality_correction *= trend_level_combination
-            if self.trend_type == MULTIPLICATIVE:
-                trend_correction *= level
-            self.level_ = (
-                trend_level_combination + self.alpha * error / level_correction
-            )
-            self.trend_ = damped_trend + self._beta * error / trend_correction
-            self.seasonality_[seasonal_index] = (
-                seasonality + self._gamma * error / seasonality_correction
-            )
-        return (fitted_value, error)
-
-    def _initialise(self, data):
-        """
-        Initialize level, trend, and seasonality values for the ETS model.
-
-        Parameters
-        ----------
-        data : array-like
-            The time series data
-            (should contain at least two full seasons if seasonality is specified)
-        """
-        # Initial Level: Mean of the first season
-        self.level_ = np.mean(data[: self._seasonal_period])
-        # Initial Trend
-        if self.trend_type == ADDITIVE:
-            # Average difference between corresponding points in the first two seasons
-            self.trend_ = np.mean(
-                data[self._seasonal_period : 2 * self._seasonal_period]
-                - data[: self._seasonal_period]
-            )
-        elif self.trend_type == MULTIPLICATIVE:
-            # Average ratio between corresponding points in the first two seasons
-            self.trend_ = np.mean(
-                data[self._seasonal_period : 2 * self._seasonal_period]
-                / data[: self._seasonal_period]
-            )
-        else:
-            # No trend
-            self.trend_ = 0
-        # Initial Seasonality
-        if self.seasonality_type == ADDITIVE:
-            # Seasonal component is the difference
-            # from the initial level for each point in the first season
-            self.seasonality_ = data[: self._seasonal_period] - self.level_
-        elif self.seasonality_type == MULTIPLICATIVE:
-            # Seasonal component is the ratio of each point in the first season
-            # to the initial level
-            self.seasonality_ = data[: self._seasonal_period] / self.level_
-        else:
-            # No seasonality
-            self.seasonality_ = [0]
 
     def _predict(self, y=None, exog=None):
         """
@@ -284,60 +180,283 @@ class ETSForecaster(BaseForecaster):
         float
             single prediction self.horizon steps ahead of y.
         """
-        # Generate forecasts based on the final values of level, trend, and seasonals
-        if self.phi == 1:  # No damping case
-            phi_h = 1
-        else:
-            # Geometric series formula for calculating phi + phi^2 + ... + phi^h
-            phi_h = self.phi * (1 - self.phi**self.horizon) / (1 - self.phi)
-        seasonality = self.seasonality_[
-            (self.n_timepoints + self.horizon) % self._seasonal_period
-        ]
-        fitted_value = self._predict_value(
-            self.level_, self.trend_, seasonality, phi_h
-        )[0]
-        if y is None:
-            return np.array([fitted_value])
-        else:
-            return np.insert(y, 0, fitted_value)[:-1]
+        fitted_value = _predict(
+            self.trend_type,
+            self.seasonality_type,
+            self.level_,
+            self.trend_,
+            self.seasonality_,
+            self.phi,
+            self.horizon,
+            self.n_timepoints_,
+            self._seasonal_period,
+        )
+        return fitted_value
 
-    def _predict_value(self, level, trend, seasonality, phi):
+    def _initialise(self, data):
         """
-
-        Generate various useful values, including the next fitted value.
+        Initialize level, trend, and seasonality values for the ETS model.
 
         Parameters
         ----------
-        trend : float
-            The current trend value for the model
-        level : float
-            The current level value for the model
-        seasonality : float
-            The current seasonality value for the model
-        phi : float
-            The damping parameter for the model
-
-        Returns
-        -------
-        fitted_value : float
-            single prediction based on the current state variables.
-        damped_trend : float
-            The damping parameter combined with the trend dependant on the model type
-        trend_level_combination : float
-            Combination of the trend and level based on the model type.
+        data : array-like
+            The time series data
+            (should contain at least two full seasons if seasonality is specified)
         """
-        # Apply damping parameter and
-        # calculate commonly used combination of trend and level components
-        if self.trend_type == MULTIPLICATIVE:
-            damped_trend = trend**phi
-            trend_level_combination = level * damped_trend
-        else:  # Additive trend, if no trend, then trend = 0
-            damped_trend = trend * phi
-            trend_level_combination = level + damped_trend
+        self.level_, self.trend_, self.seasonality_ = _initialise(
+            self.trend_type, self.seasonality_type, self._seasonal_period, data
+        )
 
-        # Calculate forecast (fitted value) based on the current components
-        if self.seasonality_type == MULTIPLICATIVE:
-            fitted_value = trend_level_combination * seasonality
-        else:  # Additive seasonality, if no seasonality, then seasonality = 0
-            fitted_value = trend_level_combination + seasonality
-        return fitted_value, damped_trend, trend_level_combination
+
+@njit(nogil=NOGIL, cache=CACHE)
+def _numba_fit(
+    data,
+    error_type,
+    trend_type,
+    seasonality_type,
+    seasonal_period,
+    alpha,
+    beta,
+    gamma,
+    phi,
+):
+    n_timepoints = len(data) - seasonal_period
+    level, trend, seasonality = _initialise(
+        trend_type, seasonality_type, seasonal_period, data
+    )
+    avg_mean_sq_err_ = 0
+    liklihood_ = 0
+    residuals_ = np.zeros(n_timepoints)  # 1 Less residual than data points
+    fitted_values_ = np.zeros(n_timepoints)
+    for t in range(n_timepoints):
+        index = t + seasonal_period
+        s_index = t % seasonal_period
+
+        time_point = data[index]
+
+        # Calculate level, trend, and seasonal components
+        fitted_value, error, level, trend, seasonality[t % seasonal_period] = (
+            _update_states(
+                error_type,
+                trend_type,
+                seasonality_type,
+                level,
+                trend,
+                seasonality[s_index],
+                time_point,
+                alpha,
+                beta,
+                gamma,
+                phi,
+            )
+        )
+        residuals_[t] = error
+        fitted_values_[t] = fitted_value
+        avg_mean_sq_err_ += (time_point - fitted_value) ** 2
+        liklihood_error = error
+        if error_type == MULTIPLICATIVE:
+            liklihood_error *= fitted_value
+        liklihood_ += liklihood_error**2
+    avg_mean_sq_err_ /= n_timepoints
+    liklihood_ = n_timepoints * np.log(liklihood_)
+    k_ = (
+        seasonal_period * (seasonality_type != 0)
+        + 2 * (trend_type != 0)
+        + 2
+        + 1 * (phi != 1)
+    )
+    aic_ = liklihood_ + 2 * k_ - n_timepoints * np.log(n_timepoints)
+    return (
+        level,
+        trend,
+        seasonality,
+        n_timepoints,
+        residuals_,
+        fitted_values_,
+        avg_mean_sq_err_,
+        liklihood_,
+        k_,
+        aic_,
+    )
+
+
+@njit(nogil=NOGIL, cache=CACHE)
+def _predict(
+    trend_type,
+    seasonality_type,
+    level,
+    trend,
+    seasonality,
+    phi,
+    horizon,
+    n_timepoints,
+    seasonal_period,
+):
+    # Generate forecasts based on the final values of level, trend, and seasonals
+    if phi == 1:  # No damping case
+        phi_h = 1
+    else:
+        # Geometric series formula for calculating phi + phi^2 + ... + phi^h
+        phi_h = phi * (1 - phi**horizon) / (1 - phi)
+    seasonal_index = (n_timepoints + horizon) % seasonal_period
+    return _predict_value(
+        trend_type,
+        seasonality_type,
+        level,
+        trend,
+        seasonality[seasonal_index],
+        phi_h,
+    )[0]
+
+
+@njit(nogil=NOGIL, cache=CACHE)
+def _initialise(trend_type, seasonality_type, seasonal_period, data):
+    """
+    Initialize level, trend, and seasonality values for the ETS model.
+
+    Parameters
+    ----------
+    data : array-like
+        The time series data
+        (should contain at least two full seasons if seasonality is specified)
+    """
+    # Initial Level: Mean of the first season
+    level = np.mean(data[:seasonal_period])
+    # Initial Trend
+    if trend_type == ADDITIVE:
+        # Average difference between corresponding points in the first two seasons
+        trend = np.mean(
+            data[seasonal_period : 2 * seasonal_period] - data[:seasonal_period]
+        )
+    elif trend_type == MULTIPLICATIVE:
+        # Average ratio between corresponding points in the first two seasons
+        trend = np.mean(
+            data[seasonal_period : 2 * seasonal_period] / data[:seasonal_period]
+        )
+    else:
+        # No trend
+        trend = 0
+    # Initial Seasonality
+    if seasonality_type == ADDITIVE:
+        # Seasonal component is the difference
+        # from the initial level for each point in the first season
+        seasonality = data[:seasonal_period] - level
+    elif seasonality_type == MULTIPLICATIVE:
+        # Seasonal component is the ratio of each point in the first season
+        # to the initial level
+        seasonality = data[:seasonal_period] / level
+    else:
+        # No seasonality
+        seasonality = np.zeros(1, dtype=np.float64)
+    return level, trend, seasonality
+
+
+@njit(nogil=NOGIL, cache=CACHE)
+def _update_states(
+    error_type,
+    trend_type,
+    seasonality_type,
+    level,
+    trend,
+    seasonality,
+    data_item: int,
+    alpha,
+    beta,
+    gamma,
+    phi,
+):
+    """
+    Update level, trend, and seasonality components.
+
+    Using state space equations for an ETS model.
+
+    Parameters
+    ----------
+    data_item: float
+        The current value of the time series.
+    seasonal_index: int
+        The index to update the seasonal component.
+    """
+    # Retrieve the current state values
+    curr_level = level
+    curr_seasonality = seasonality
+    fitted_value, damped_trend, trend_level_combination = _predict_value(
+        trend_type, seasonality_type, level, trend, seasonality, phi
+    )
+    # Calculate the error term (observed value - fitted value)
+    if error_type == MULTIPLICATIVE:
+        error = data_item / fitted_value - 1  # Multiplicative error
+    else:
+        error = data_item - fitted_value  # Additive error
+    # Update level
+    if error_type == MULTIPLICATIVE:
+        level = trend_level_combination * (1 + alpha * error)
+        trend = damped_trend * (1 + beta * error)
+        seasonality = curr_seasonality * (1 + gamma * error)
+        if seasonality_type == ADDITIVE:
+            level += alpha * error * curr_seasonality  # Add seasonality correction
+            seasonality += gamma * error * trend_level_combination
+            if trend_type == ADDITIVE:
+                trend += (curr_level + curr_seasonality) * beta * error
+            else:
+                trend += curr_seasonality / curr_level * beta * error
+        elif trend_type == ADDITIVE:
+            trend += curr_level * beta * error
+    else:
+        level_correction = 1
+        trend_correction = 1
+        seasonality_correction = 1
+        if seasonality_type == MULTIPLICATIVE:
+            # Add seasonality correction
+            level_correction *= curr_seasonality
+            trend_correction *= curr_seasonality
+            seasonality_correction *= trend_level_combination
+        if trend_type == MULTIPLICATIVE:
+            trend_correction *= curr_level
+        level = trend_level_combination + alpha * error / level_correction
+        trend = damped_trend + beta * error / trend_correction
+        seasonality = curr_seasonality + gamma * error / seasonality_correction
+    return (fitted_value, error, level, trend, seasonality)
+
+
+@njit(nogil=NOGIL, cache=CACHE)
+def _predict_value(trend_type, seasonality_type, level, trend, seasonality, phi):
+    """
+
+    Generate various useful values, including the next fitted value.
+
+    Parameters
+    ----------
+    trend : float
+        The current trend value for the model
+    level : float
+        The current level value for the model
+    seasonality : float
+        The current seasonality value for the model
+    phi : float
+        The damping parameter for the model
+
+    Returns
+    -------
+    fitted_value : float
+        single prediction based on the current state variables.
+    damped_trend : float
+        The damping parameter combined with the trend dependant on the model type
+    trend_level_combination : float
+        Combination of the trend and level based on the model type.
+    """
+    # Apply damping parameter and
+    # calculate commonly used combination of trend and level components
+    if trend_type == MULTIPLICATIVE:
+        damped_trend = trend**phi
+        trend_level_combination = level * damped_trend
+    else:  # Additive trend, if no trend, then trend = 0
+        damped_trend = trend * phi
+        trend_level_combination = level + damped_trend
+
+    # Calculate forecast (fitted value) based on the current components
+    if seasonality_type == MULTIPLICATIVE:
+        fitted_value = trend_level_combination * seasonality
+    else:  # Additive seasonality, if no seasonality, then seasonality = 0
+        fitted_value = trend_level_combination + seasonality
+    return fitted_value, damped_trend, trend_level_combination
