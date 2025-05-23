@@ -1,9 +1,17 @@
 """Calculate Precision, Recall, and F1-Score for time series anomaly detection."""
 
 __maintainer__ = []
-__all__ = ["ts_precision", "ts_recall", "ts_fscore"]
+__all__ = [
+    "ts_precision",
+    "ts_recall",
+    "ts_fscore",
+    "_flatten_ranges",
+    "_ts_precision",
+    "_ts_recall",
+]
 
 import numpy as np
+from deprecated.sphinx import deprecated
 
 
 def _flatten_ranges(ranges):
@@ -36,7 +44,7 @@ def _flatten_ranges(ranges):
     return ranges
 
 
-def udf_gamma_def(overlap_count):
+def _udf_gamma_def(overlap_count):
     """User-defined gamma function. Should return a gamma value > 1.
 
     Parameters
@@ -109,8 +117,8 @@ def _gamma_select(cardinality, gamma):
     elif gamma == "reciprocal":
         return 1 / cardinality if cardinality > 1 else 1.0
     elif gamma == "udf_gamma":
-        if udf_gamma_def(cardinality) is not None:
-            return 1.0 / udf_gamma_def(cardinality)
+        if _udf_gamma_def(cardinality) is not None:
+            return 1.0 / _udf_gamma_def(cardinality)
         else:
             raise ValueError("udf_gamma must be provided for 'udf_gamma' gamma type.")
     else:
@@ -218,7 +226,14 @@ def _binary_to_ranges(binary_sequence):
     return ranges
 
 
-def ts_precision(y_pred, y_real, gamma="one", bias_type="flat"):
+# TODO: remove in v1.3.0
+@deprecated(
+    version="1.2.0",
+    reason="ts_precision is deprecated and will be removed in v1.3.0. "
+    "Please use range_precision instead.",
+    category=FutureWarning,
+)
+def ts_precision(y_pred, y_real, gamma="one", bias_type="flat", alpha=0.0):
     """
     Calculate Precision for time series anomaly detection.
 
@@ -271,11 +286,11 @@ def ts_precision(y_pred, y_real, gamma="one", bias_type="flat"):
     # Check if inputs are binary or range-based
     is_binary = False
     if isinstance(y_pred, (list, tuple, np.ndarray)) and isinstance(
-        y_pred[0], (int, np.integer)
+        y_pred[0], (int, bool, np.integer)
     ):
         is_binary = True
-    elif isinstance(y_real, (list, tuple, np.ndarray)) and isinstance(
-        y_real[0], (int, np.integer)
+    if isinstance(y_real, (list, tuple, np.ndarray)) and isinstance(
+        y_real[0], (int, bool, np.integer)
     ):
         is_binary = True
 
@@ -298,21 +313,56 @@ def ts_precision(y_pred, y_real, gamma="one", bias_type="flat"):
         y_pred_ranges = y_pred
         y_real_ranges = y_real
 
-    if gamma not in ["reciprocal", "one"]:
-        raise ValueError("Invalid gamma type for precision. Use 'reciprocal' or 'one'.")
-
     # Flattening y_pred and y_real to resolve nested lists
     flat_y_pred = _flatten_ranges(y_pred_ranges)
     flat_y_real = _flatten_ranges(y_real_ranges)
 
+    return _ts_precision(flat_y_pred, flat_y_real, gamma, bias_type, alpha=alpha)
+
+
+def _ts_precision(
+    y_pred_ranges, y_real_ranges, gamma="one", bias_type="flat", alpha=0.0
+):
+    """
+    Implement range-based precision for time series anomaly detection.
+
+    Parameters
+    ----------
+    y_pred : list of predicted anomaly ranges: each tuple in the list represents an
+        interval [start, end) of a detected anomaly.
+    y_real : list of true anomaly ranges: each tuple in the list represents an interval
+        [start, end) of a true anomaly.
+    bias_type : str, default="flat"
+        Type of bias to apply. Should be one of ["flat", "front", "middle", "back"].
+    gamma : str, default="one"
+        Cardinality type. Should be one of ["reciprocal", "one"].
+
+    Returns
+    -------
+    float
+        Range-based precision
+    """
+    if gamma not in ["reciprocal", "one"]:
+        raise ValueError("Invalid gamma type for precision. Use 'reciprocal' or 'one'.")
+
+    if bias_type not in [
+        "flat",
+        "front",
+        "middle",
+        "back",
+    ]:
+        raise ValueError(
+            "Invalid bias type. Choose from ['flat', 'front', 'middle', 'back']."
+        )
+
     total_overlap_reward = 0.0
     total_cardinality = 0
 
-    for pred_range in flat_y_pred:
+    for pred_range in y_pred_ranges:
         overlap_set = set()
         cardinality = 0
 
-        for real_start, real_end in flat_y_real:
+        for real_start, real_end in y_real_ranges:
             overlap_start = max(pred_range[0], real_start)
             overlap_end = min(pred_range[1], real_end)
 
@@ -323,16 +373,30 @@ def ts_precision(y_pred, y_real, gamma="one", bias_type="flat"):
         overlap_reward = _calculate_overlap_reward_precision(
             pred_range, overlap_set, bias_type
         )
+
+        existence_reward = 1.0 if overlap_set else 0.0
         gamma_value = _gamma_select(cardinality, gamma)
-        total_overlap_reward += gamma_value * overlap_reward
+
+        score_i = alpha * existence_reward + (1 - alpha) * (
+            gamma_value * overlap_reward
+        )
+
+        total_overlap_reward += score_i
+
         total_cardinality += 1
 
-    precision = (
-        total_overlap_reward / total_cardinality if total_cardinality > 0 else 0.0
-    )
+    precision = total_overlap_reward / total_cardinality if total_cardinality else 0.0
+
     return precision
 
 
+# TODO: remove in v1.3.0
+@deprecated(
+    version="1.2.0",
+    reason="ts_recall is deprecated and will be removed in v1.3.0. "
+    "Please use range_recall instead.",
+    category=FutureWarning,
+)
 def ts_recall(y_pred, y_real, gamma="one", bias_type="flat", alpha=0.0):
     """
     Calculate Recall for time series anomaly detection.
@@ -385,11 +449,11 @@ def ts_recall(y_pred, y_real, gamma="one", bias_type="flat", alpha=0.0):
     """
     is_binary = False
     if isinstance(y_pred, (list, tuple, np.ndarray)) and isinstance(
-        y_pred[0], (int, np.integer)
+        y_pred[0], (int, bool, np.integer)
     ):
         is_binary = True
-    elif isinstance(y_real, (list, tuple, np.ndarray)) and isinstance(
-        y_real[0], (int, np.integer)
+    if isinstance(y_real, (list, tuple, np.ndarray)) and isinstance(
+        y_real[0], (int, bool, np.integer)
     ):
         is_binary = True
 
@@ -415,14 +479,51 @@ def ts_recall(y_pred, y_real, gamma="one", bias_type="flat", alpha=0.0):
     # Flattening y_pred and y_real to resolve nested lists
     flat_y_pred = _flatten_ranges(y_pred_ranges)
     flat_y_real = _flatten_ranges(y_real_ranges)
+    return _ts_recall(flat_y_pred, flat_y_real, gamma, bias_type, alpha)
+
+
+def _ts_recall(y_pred_ranges, y_real_ranges, gamma="one", bias_type="flat", alpha=0.0):
+    """
+    Implement range-based recall for time series anomaly detection.
+
+    Parameters
+    ----------
+    y_pred : list of predicted anomaly ranges: each tuple in the list represents an
+        interval [start, end) of a detected anomaly.
+    y_real : list of true anomaly ranges: each tuple in the list represents an interval
+        [start, end) of a true anomaly.
+    gamma : str, default="one"
+        Cardinality type. Should be one of ["reciprocal", "one", "udf_gamma"].
+    bias_type : str, default="flat"
+        Type of bias to apply. Should be one of ["flat", "front", "middle", "back"].
+    alpha : float, default: 0.0
+        Weight for existence reward in recall calculation.
+
+    Returns
+    -------
+    float
+        Range-based recall
+    """
+    if gamma not in ["reciprocal", "one", "udf_gamma"]:
+        raise ValueError("Invalid gamma type for precision. Use 'reciprocal' or 'one'.")
+
+    if bias_type not in [
+        "flat",
+        "front",
+        "middle",
+        "back",
+    ]:
+        raise ValueError(
+            "Invalid bias type. Choose from ['flat', 'front', 'middle', 'back']."
+        )
 
     total_overlap_reward = 0.0
 
-    for real_range in flat_y_real:
+    for real_range in y_real_ranges:
         overlap_set = set()
         cardinality = 0
 
-        for pred_range in flat_y_pred:
+        for pred_range in y_pred_ranges:
             overlap_start = max(real_range[0], pred_range[0])
             overlap_end = min(real_range[1], pred_range[1])
 
@@ -444,10 +545,17 @@ def ts_recall(y_pred, y_real, gamma="one", bias_type="flat", alpha=0.0):
         recall_score = alpha * existence_reward + (1 - alpha) * overlap_reward
         total_overlap_reward += recall_score
 
-    recall = total_overlap_reward / len(flat_y_real) if flat_y_real else 0.0
+    recall = total_overlap_reward / len(y_real_ranges) if y_real_ranges else 0.0
     return recall
 
 
+# TODO: remove in v1.3.0
+@deprecated(
+    version="1.2.0",
+    reason="ts_fscore is deprecated and will be removed in v1.3.0. "
+    "Please use range_f_score instead.",
+    category=FutureWarning,
+)
 def ts_fscore(
     y_pred,
     y_real,
@@ -510,7 +618,7 @@ def ts_fscore(
        Processing Systems (NeurIPS 2018), Montréal, Canada.
        http://papers.nips.cc/paper/7462-precision-and-recall-for-time-series.pdf
     """
-    precision = ts_precision(y_pred, y_real, gamma, p_bias)
+    precision = ts_precision(y_pred, y_real, gamma, p_bias, alpha=p_alpha)
     recall = ts_recall(y_pred, y_real, gamma, r_bias, r_alpha)
 
     if precision + recall > 0:

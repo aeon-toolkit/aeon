@@ -70,12 +70,14 @@ all_extras = [
     "statsmodels>=0.12.1",
     "stumpy>=1.5.1",
     "tensorflow>=2.14; python_version < '3.13'",
+    "keras>=3.6.0; python_version < '3.13'",
     "torch>=1.13.1",
     "tsfresh>=0.20.0",
     "tslearn>=0.5.2",
 ]
 dl = [
     "tensorflow>=2.14; python_version < '3.13'",
+    "keras>=3.6.0; python_version < '3.13'",
 ]
 unstable_extras = [
     # requires gcc and fftw to be installed for Windows and some other OS (see http://www.fftw.org/index.html)
