@@ -6,7 +6,7 @@ __maintainer__ = ["baraline"]
 __all__ = ["MassSNN"]
 
 import numpy as np
-from numba import njit
+from numba import get_num_threads, njit, prange, set_num_threads
 
 from aeon.similarity_search.series._base import BaseSeriesSimilaritySearch
 from aeon.similarity_search.series._commons import (
@@ -39,11 +39,17 @@ class MassSNN(BaseSeriesSimilaritySearch):
     Search Algorithm for Time Series Subsequences under Euclidean Distance.
     """
 
+    _tags = {
+        "capability:multithreading": True,
+    }
+
     def __init__(
         self,
         length: int,
         normalize: Optional[bool] = False,
+        n_jobs: Optional[int] = 1,
     ):
+        self.n_jobs = n_jobs
         self.normalize = normalize
         self.length = length
         super().__init__()
@@ -151,6 +157,8 @@ class MassSNN(BaseSeriesSimilaritySearch):
 
         """
         QT = fft_sliding_dot_product(self.X_, X)
+        original_threads = get_num_threads()
+        set_num_threads(self.n_jobs)
 
         if self.normalize:
             distance_profile = _normalized_squared_distance_profile(
@@ -168,6 +176,7 @@ class MassSNN(BaseSeriesSimilaritySearch):
                 X,  # Q
             )
 
+        set_num_threads(original_threads)
         return distance_profile
 
     @classmethod
@@ -198,7 +207,7 @@ class MassSNN(BaseSeriesSimilaritySearch):
         return params
 
 
-@njit(cache=True, fastmath=True)
+@njit(parallel=True, cache=True, fastmath=True)
 def _squared_distance_profile(QT, T, Q):
     """
     Compute squared Euclidean distance profile between query and a time series.
@@ -227,22 +236,22 @@ def _squared_distance_profile(QT, T, Q):
     query_length = Q.shape[1]
     _QT = -2 * QT
     distance_profile = np.zeros(profile_length)
-    for k in range(n_channels):
+    for k in prange(n_channels):
         _sum = 0
         _qsum = 0
-        for j in range(query_length):
+        for j in prange(query_length):
             _sum += T[k, j] ** 2
             _qsum += Q[k, j] ** 2
 
         distance_profile += _qsum + _QT[k]
         distance_profile[0] += _sum
-        for i in range(1, profile_length):
+        for i in prange(1, profile_length):
             _sum += T[k, i + (query_length - 1)] ** 2 - T[k, i - 1] ** 2
             distance_profile[i] += _sum
     return distance_profile
 
 
-@njit(cache=True, fastmath=True)
+@njit(parallel=True, cache=True, fastmath=True)
 def _normalized_squared_distance_profile(
     QT, T_means, T_stds, Q_means, Q_stds, query_length
 ):
@@ -276,9 +285,9 @@ def _normalized_squared_distance_profile(
     n_channels, profile_length = QT.shape
     distance_profile = np.zeros(profile_length)
     Q_is_constant = Q_stds <= AEON_NUMBA_STD_THRESHOLD
-    for i in range(profile_length):
+    for i in prange(profile_length):
         Sub_is_constant = T_stds[:, i] <= AEON_NUMBA_STD_THRESHOLD
-        for k in range(n_channels):
+        for k in prange(n_channels):
             # Two Constant case
             if Q_is_constant[k] and Sub_is_constant[k]:
                 _val = 0
