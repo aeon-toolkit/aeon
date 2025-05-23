@@ -4,6 +4,7 @@ __maintainer__ = []
 
 from abc import ABC, abstractmethod
 
+from aeon.utils.repr import unchanged_and_required_params
 from aeon.utils.validation._dependencies import (
     _check_python_version,
     _check_soft_dependencies,
@@ -24,6 +25,11 @@ class BaseDeepLearningNetwork(ABC):
         _check_soft_dependencies(soft_dependencies)
         _check_python_version(python_version)
         super().__init__()
+
+    def __repr__(self):
+        """Format str output like scikit-learn estimators."""
+        changed_params = unchanged_and_required_params(self)
+        return f"{self.__class__.__name__}({changed_params})"
 
     @abstractmethod
     def build_network(self, input_shape, **kwargs):
