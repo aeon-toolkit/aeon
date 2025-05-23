@@ -79,8 +79,6 @@ class DifferenceTransformer(BaseSeriesTransformer):
         Returns
         -------
         Xt : np.ndarray
-            Transformed version of X, containing the n-th order difference.
-            Shape will be (n_channels, n_timepoints - order).
         """
         if not isinstance(self.order, int) or self.order < 1:
             raise ValueError(
