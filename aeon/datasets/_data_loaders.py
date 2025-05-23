@@ -977,7 +977,7 @@ def load_forecasting(name, extract_path=None, return_metadata=False):
     >>> X=load_forecasting("m1_yearly_dataset") # doctest: +SKIP
     """
     # Allow user to have non standard extract path
-    from aeon.datasets.tsf_datasets import tsf_all
+    from aeon.datasets.tsf_datasets import tsf_monash
 
     if extract_path is not None:
         local_module = extract_path
@@ -993,8 +993,8 @@ def load_forecasting(name, extract_path=None, return_metadata=False):
     if name not in get_downloaded_tsf_datasets(extract_path):
         # Dataset is not already present in the datasets directory provided.
         # If it is not there, download and install it.
-        if name in tsf_all.keys():
-            id = tsf_all[name]
+        if name in tsf_monash.keys():
+            id = tsf_monash[name]
             if extract_path is None:
                 local_dirname = "local_data"
             if not os.path.exists(os.path.join(local_module, local_dirname)):
