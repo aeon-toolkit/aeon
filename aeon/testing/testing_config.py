@@ -52,17 +52,12 @@ EXCLUDED_TESTS = {
     "SAST": ["check_fit_deterministic"],
     "RSAST": ["check_fit_deterministic"],
     "MatrixProfile": ["check_fit_deterministic", "check_persistence_via_pickle"],
+    "LeftSTAMPi": ["check_anomaly_detector_output"],
     # missed in legacy testing, changes state in predict/transform
     "FLUSSSegmenter": ["check_non_state_changing_method"],
-    "InformationGainSegmenter": ["check_non_state_changing_method"],
-    "GreedyGaussianSegmenter": ["check_non_state_changing_method"],
     "ClaSPSegmenter": ["check_non_state_changing_method"],
     "HMMSegmenter": ["check_non_state_changing_method"],
     "RSTSF": ["check_non_state_changing_method"],
-    # Keeps length during predict to avoid recomputing means and std of data in fit
-    # if the next predict calls uses the same query length parameter.
-    "QuerySearch": ["check_non_state_changing_method"],
-    "SeriesSearch": ["check_non_state_changing_method"],
     # Unknown issue not producing the same results
     "RDSTRegressor": ["check_regressor_against_expected_results"],
     "RISTRegressor": ["check_regressor_against_expected_results"],

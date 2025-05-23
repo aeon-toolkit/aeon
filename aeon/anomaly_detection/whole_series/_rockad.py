@@ -69,6 +69,8 @@ class ROCKAD(BaseAnomalyDetector):
         "capability:missing_values": False,
         "capability:multithreading": True,
         "fit_is_empty": False,
+        "anomaly_output_type": "anomaly_scores",
+        "learning_type:semi_supervised": True,
     }
 
     def __init__(
