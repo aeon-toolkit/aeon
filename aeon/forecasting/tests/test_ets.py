@@ -5,7 +5,7 @@ __all__ = []
 
 import numpy as np
 
-from aeon.forecasting import ETSForecaster
+from aeon.forecasting._numba_ets import ETSForecaster
 
 
 def test_ets_forecaster_additive():

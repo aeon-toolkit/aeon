@@ -59,6 +59,18 @@ class ETSForecaster(BaseForecaster):
     ----------
     .. [1] R. J. Hyndman and G. Athanasopoulos,
         Forecasting: Principles and Practice. Melbourne, Australia: OTexts, 2014.
+
+
+    Examples
+    --------
+    >>> from aeon.forecasting._numba_ets import ETSForecaster
+    >>> from aeon.datasets import load_airline
+    >>> y = load_airline()
+    >>> forecaster = ETSForecaster(alpha=0.4, beta=0.2, gamma=0.5, phi=0.8, horizon=1,
+    ...    error_type=1, trend_type=2, seasonality_type=2, seasonal_period=4)
+    >>> f = forecaster.fit(y)
+    >>> forecaster.predict()
+    366.90200486015596
     """
 
     def __init__(
@@ -114,9 +126,9 @@ class ETSForecaster(BaseForecaster):
         self
             Fitted ETSForecaster.
         """
-        assert (
-            self.error_type != NONE
-        ), "Error must be either additive or multiplicative"
+        if self.error_type not in (ADDITIVE, MULTIPLICATIVE):
+            raise ValueError("Error type must be either additive or multiplicative")
+
         if self._seasonal_period < 1 or self.seasonality_type == NONE:
             self._seasonal_period = 1
 
@@ -138,7 +150,7 @@ class ETSForecaster(BaseForecaster):
             self.liklihood_,
             self.k_,
             self.aic_,
-        ) = _fit(
+        ) = _numba_fit(
             data,
             self.error_type,
             self.trend_type,
@@ -179,10 +191,7 @@ class ETSForecaster(BaseForecaster):
             self.n_timepoints_,
             self._seasonal_period,
         )
-        if y is None:
-            return np.array([fitted_value])
-        else:
-            return np.insert(y, 0, fitted_value)[:-1]
+        return fitted_value
 
     def _initialise(self, data):
         """
@@ -200,7 +209,7 @@ class ETSForecaster(BaseForecaster):
 
 
 @njit(nogil=NOGIL, cache=CACHE)
-def _fit(
+def _numba_fit(
     data,
     error_type,
     trend_type,
@@ -211,21 +220,6 @@ def _fit(
     gamma,
     phi,
 ):
-    assert error_type != NONE, "Error must be either additive or multiplicative"
-    assert (
-        error_type != MULTIPLICATIVE
-        and trend_type != MULTIPLICATIVE
-        and seasonality_type != MULTIPLICATIVE
-        or data.min() > 0
-    ), "Data must be positive with multiplicative components"
-    if seasonal_period < 1 or seasonality_type == NONE:
-        seasonal_period = 1
-    if trend_type == NONE:
-        # Required for the equations in _update_states to work correctly
-        beta = 0
-    if seasonality_type == NONE:
-        # Required for the equations in _update_states to work correctly
-        gamma = 0
     n_timepoints = len(data) - seasonal_period
     level, trend, seasonality = _initialise(
         trend_type, seasonality_type, seasonal_period, data
@@ -234,7 +228,12 @@ def _fit(
     liklihood_ = 0
     residuals_ = np.zeros(n_timepoints)  # 1 Less residual than data points
     fitted_values_ = np.zeros(n_timepoints)
-    for t, data_item in enumerate(data[seasonal_period:]):
+    for t in range(n_timepoints):
+        index = t + seasonal_period
+        s_index = t % seasonal_period
+
+        time_point = data[index]
+
         # Calculate level, trend, and seasonal components
         fitted_value, error, level, trend, seasonality[t % seasonal_period] = (
             _update_states(
@@ -243,8 +242,8 @@ def _fit(
                 seasonality_type,
                 level,
                 trend,
-                seasonality[t % seasonal_period],
-                data_item,
+                seasonality[s_index],
+                time_point,
                 alpha,
                 beta,
                 gamma,
@@ -253,7 +252,7 @@ def _fit(
         )
         residuals_[t] = error
         fitted_values_[t] = fitted_value
-        avg_mean_sq_err_ += (data_item - fitted_value) ** 2
+        avg_mean_sq_err_ += (time_point - fitted_value) ** 2
         liklihood_error = error
         if error_type == MULTIPLICATIVE:
             liklihood_error *= fitted_value
