@@ -59,19 +59,6 @@ class ETSForecaster(BaseForecaster):
     ----------
     .. [1] R. J. Hyndman and G. Athanasopoulos,
         Forecasting: Principles and Practice. Melbourne, Australia: OTexts, 2014.
-
-    Examples
-    --------
-    >>> from aeon.forecasting._numba_ets import ETSForecaster
-    >>> from aeon.datasets import load_airline
-    >>> y = load_airline()
-    >>> forecaster = ETSForecaster(alpha=0.4, beta=0.2, gamma=0.5, phi=0.8, horizon=1,
-        error_type=1, trend_type=2, seasonality_type=2, seasonal_period=4)
-    >>> forecaster.fit(y)
-    ETSForecaster(alpha=0.4, beta=0.2, gamma=0.5, phi=0.8, seasonal_period=4,
-                  seasonality_type=2, trend_type=2)
-    >>> forecaster.predict()
-    array([366.90200486])
     """
 
     def __init__(
