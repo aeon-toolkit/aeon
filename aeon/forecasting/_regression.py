@@ -1,8 +1,8 @@
 """Window-based regression forecaster.
 
 General purpose forecaster to use with any scikit learn or aeon compatible
-regressor. Simply forms a collection of windows from the time series and trains to
-predict the next
+regressor. Simply forms a collection of series using windowing from the time series
+to form ``X`` and trains to predict the next ``horizon`` points ahead.
 """
 
 import numpy as np
@@ -16,9 +16,9 @@ class RegressionForecaster(BaseForecaster):
     Regression based forecasting.
 
     Container for forecaster that reduces forecasting to regression through a
-    window. Form a collection of sub series of length ``window`` through a sliding
-    window to form ``X``, take ``horizon`` points ahead to form ``y``, then apply an
-    aeon or sklearn regressor.
+    window. Form a collection of sub-series of length ``window`` through a sliding
+    window to form training collection ``X``, take ``horizon`` points ahead to form
+    ``y``, then apply an aeon or sklearn regressor.
 
 
     Parameters
