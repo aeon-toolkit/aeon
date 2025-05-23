@@ -2,7 +2,7 @@ import numpy as np
 
 from aeon.transformations.series.base import BaseSeriesTransformer
 
-__maintainer__ = ["Tina Jin"]
+__maintainer__ = ["TinaJin0228"]
 __all__ = ["DifferenceTransformer"]
 
 
