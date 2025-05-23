@@ -108,7 +108,7 @@ class BaseCollectionEnsemble(ComposableEstimatorMixin, BaseCollectionEstimator):
             self._ensemble, clone_estimators=False
         )
 
-        super().__init__()
+        super().__init__(axis=1)
 
         # can handle multivariate if all estimators can
         multivariate = all(

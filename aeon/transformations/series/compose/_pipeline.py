@@ -1,18 +1,18 @@
-"""Pipeline with collection transformers."""
+"""Pipeline with series transformers."""
 
 __maintainer__ = ["MatthewMiddlehurst"]
-__all__ = ["CollectionTransformerPipeline"]
+__all__ = ["SeriesTransformerPipeline"]
+
+from aeon.base._estimators.compose.series_pipeline import BaseSeriesPipeline
+from aeon.transformations.series import BaseSeriesTransformer
+from aeon.transformations.series.compose import SeriesId
+from aeon.utils.data_types import VALID_SERIES_INNER_TYPES
 
 
-from aeon.base._estimators.compose.collection_pipeline import BaseCollectionPipeline
-from aeon.transformations.collection import BaseCollectionTransformer
-from aeon.transformations.collection.compose import CollectionId
+class SeriesTransformerPipeline(BaseSeriesPipeline, BaseSeriesTransformer):
+    """Pipeline of series transformers.
 
-
-class CollectionTransformerPipeline(BaseCollectionPipeline, BaseCollectionTransformer):
-    """Pipeline of collection transformers.
-
-    The `CollectionTransformerPipeline` compositor chains transformers.
+    The `SeriesTransformerPipeline` compositor chains transformers.
     The pipeline is constructed with a list of aeon transformers,
         i.e., estimators following the BaseTransformer interface.
     The transformer list can be unnamed - a simple list of transformers -
@@ -48,29 +48,28 @@ class CollectionTransformerPipeline(BaseCollectionPipeline, BaseCollectionTransf
 
     Examples
     --------
-    >>> from aeon.transformations.collection import Resizer
-    >>> from aeon.transformations.collection.feature_based import SevenNumberSummary
-    >>> from aeon.datasets import load_unit_test
-    >>> from aeon.transformations.collection.compose import (
-    ...                                                 CollectionTransformerPipeline)
-    >>> X, y = load_unit_test(split="train")
-    >>> pipeline = CollectionTransformerPipeline(
-    ...     [Resizer(length=10), SevenNumberSummary()]
+    >>> from aeon.transformations.series import LogTransformer
+    >>> from aeon.transformations.series import MovingAverageSeriesTransformer
+    >>> from aeon.datasets import load_airline
+    >>> from aeon.transformations.series.compose import SeriesTransformerPipeline
+    >>> X = load_airline()
+    >>> pipeline = SeriesTransformerPipeline(
+    ...     [LogTransformer(), MovingAverageSeriesTransformer()]
     ... )
-    >>> pipeline.fit(X, y)
-    CollectionTransformerPipeline(...)
-    >>> Xt = pipeline.transform(X, y)
+    >>> pipeline.fit(X)
+    SeriesTransformerPipeline(...)
+    >>> Xt = pipeline.transform(X)
     """
 
     _tags = {
-        "X_inner_type": ["np-list", "numpy3D"],
+        "X_inner_type": VALID_SERIES_INNER_TYPES,
     }
 
     def __init__(self, transformers):
         if not isinstance(transformers, list):
-            transformers = [CollectionId(), transformers]
+            transformers = [SeriesId(), transformers]
         elif len(transformers) < 2:
-            transformers = [CollectionId(), transformers[0]]
+            transformers = [SeriesId(), transformers[0]]
 
         super().__init__(transformers=transformers, _estimator=None)
 
@@ -91,12 +90,14 @@ class CollectionTransformerPipeline(BaseCollectionPipeline, BaseCollectionTransf
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
         """
-        from aeon.transformations.collection import Truncator
-        from aeon.transformations.collection.feature_based import SevenNumberSummary
+        from aeon.transformations.series import (
+            LogTransformer,
+            MovingAverageSeriesTransformer,
+        )
 
         return {
             "transformers": [
-                Truncator(truncated_length=5),
-                SevenNumberSummary(),
+                LogTransformer(),
+                MovingAverageSeriesTransformer(),
             ]
         }
