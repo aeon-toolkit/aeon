@@ -22,8 +22,10 @@ class RNNNetwork(BaseDeepLearningNetwork):
         Dropout rate for regularization.
     bidirectional : bool, default=False
         Whether to use bidirectional recurrent layers.
-    activation : str, default='tanh'
-        Activation function for the recurrent layers.
+    activation : str or list of str, default='tanh'
+        Activation function for the recurrent layers. If a string, the same
+        activation is used for all layers. If a list, specifies activation
+        for each layer.
     return_sequences : bool or list, default=None
         Whether to return the full sequence (True) or just the last output (False).
         If None, returns sequences for all layers except the last one.
@@ -83,7 +85,9 @@ class RNNNetwork(BaseDeepLearningNetwork):
 
         # Validate parameters
         if self.rnn_type not in ["lstm", "gru", "simple"]:
-            raise ValueError(f"Unknown RNN type: {self.rnn_type}.")
+            raise ValueError(
+                f"Unknown type: {self.rnn_type}. Choose from 'lstm', 'gru', or 'simple'"
+            )
 
         # Process n_units to a list
         if isinstance(self.n_units, int):
@@ -93,6 +97,18 @@ class RNNNetwork(BaseDeepLearningNetwork):
                 f"Length of n_units ({len(self.n_units)}) must match "
                 f"n_layers ({self.n_layers})"
             )
+
+        # Process activation to a list
+        if isinstance(self.activation, list):
+            if len(self.activation) != self.n_layers:
+                raise ValueError(
+                    f"Number of activations {len(self.activation)} should be"
+                    f" the same as number of layers but is"
+                    f" not: {self.n_layers}"
+                )
+            self._activation = self.activation
+        else:
+            self._activation = [self.activation] * self.n_layers
 
         # Process return_sequences to a list
         if self.return_sequences is None:
@@ -124,7 +140,7 @@ class RNNNetwork(BaseDeepLearningNetwork):
                 x = tf.keras.layers.Bidirectional(
                     rnn_cell(
                         units=self.n_units[i],
-                        activation=self.activation,
+                        activation=self._activation[i],
                         return_sequences=self.return_sequences[i],
                         name=f"{self.rnn_type}_{i+1}",
                     )
@@ -132,7 +148,7 @@ class RNNNetwork(BaseDeepLearningNetwork):
             else:
                 x = rnn_cell(
                     units=self.n_units[i],
-                    activation=self.activation,
+                    activation=self._activation[i],
                     return_sequences=self.return_sequences[i],
                     name=f"{self.rnn_type}_{i+1}",
                 )(x)
