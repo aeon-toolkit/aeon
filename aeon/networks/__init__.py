@@ -18,6 +18,7 @@ __all__ = [
     "AEDRNNNetwork",
     "AEBiGRUNetwork",
     "DisjointCNNNetwork",
+    "RNNNetwork",
 ]
 from aeon.networks._ae_abgru import AEAttentionBiGRUNetwork
 from aeon.networks._ae_bgru import AEBiGRUNetwork
@@ -34,4 +35,5 @@ from aeon.networks._inception import InceptionNetwork
 from aeon.networks._lite import LITENetwork
 from aeon.networks._mlp import MLPNetwork
 from aeon.networks._resnet import ResNetNetwork
+from aeon.networks._rnn import RNNNetwork
 from aeon.networks.base import BaseDeepLearningNetwork
