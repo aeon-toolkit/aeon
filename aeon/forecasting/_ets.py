@@ -27,48 +27,82 @@ MULTIPLICATIVE = 2
 
 
 class ETSForecaster(BaseForecaster):
-    """Exponential Smoothing forecaster.
+    """Exponential Smoothing (ETS) forecaster.
 
-    An implementation of the exponential smoothing statistics forecasting algorithm.
-    Implements additive and multiplicative error models,
-    None, additive and multiplicative (including damped) trend and
-    None, additive and mutliplicative seasonality[1]_.
+    Implements the ETS (Error, Trend, Seasonality) forecaster, supporting additive
+    and multiplicative forms of error, trend (including damped), and seasonality
+    components. Based on the state space model formulation of exponential
+    smoothing as described in Hyndman and Athanasopoulos [1]_.
 
     Parameters
     ----------
-    alpha : float, default = 0.1
+    error_type : int, default=1
+        Type of error model:
+        - 1: additive
+        - 2: multiplicative
+    trend_type : int, default=0
+        Type of trend component:
+        - 0: none
+        - 1: additive
+        - 2: multiplicative (can be damped via `phi`)
+    seasonality_type : int, default=0
+        Type of seasonal component:
+        - 0: none
+        - 1: additive
+        - 2: multiplicative
+    seasonal_period : int, default=1
+        Number of time points in a seasonal cycle.
+    alpha : float, default=0.1
         Level smoothing parameter.
-    beta : float, default = 0.01
+    beta : float, default=0.01
         Trend smoothing parameter.
-    gamma : float, default = 0.01
+    gamma : float, default=0.01
         Seasonal smoothing parameter.
-    phi : float, default = 0.99
-        Trend damping smoothing parameters
-    horizon : int, default = 1
-        The horizon to forecast to.
-    error_type : int
-        The type of error model; either Additive(1) or Multiplicative(2)
-    trend_type : int
-        The type of trend model; one of None(0), additive(1) or multiplicative(2).
-    seasonality_type : int
-        The type of seasonality model; one of None(0), additive(1) or multiplicative(2).
-    seasonal_period : int
-        The period of the seasonality (m) (e.g., for quaterly data seasonal_period = 4).
+    phi : float, default=0.99
+        Trend damping parameter (used only for damped trend models).
+    horizon : int, default=1
+        Forecasting horizon (number of time steps ahead to predict).
+
+    Attributes
+    ----------
+    forecast_val_ : float
+        Forecast value for the given horizon.
+    level_ : float
+        Estimated level component.
+    trend_ : float
+        Estimated trend component.
+    seasonality_ : array-like or None
+        Estimated seasonal components.
+    aic_ : float
+        Akaike Information Criterion of the fitted model.
+    avg_mean_sq_err_ : float
+        Average mean squared error of the fitted model.
+    residuals_ : list of float
+        Residuals from the fitted model.
+    fitted_values_ : list of float
+        Fitted values for the training data.
+    liklihood_ : float
+        Log-likelihood of the fitted model.
+    n_timepoints_ : int
+        Number of time points in the training series.
 
     References
     ----------
     .. [1] R. J. Hyndman and G. Athanasopoulos,
-        Forecasting: Principles and Practice. Melbourne, Australia: OTexts, 2014.
-
+       Forecasting: Principles and Practice, 2nd Edition. OTexts, 2014.
+       https://otexts.com/fpp3/
 
     Examples
     --------
     >>> from aeon.forecasting import ETSForecaster
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()
-    >>> forecaster = ETSForecaster(alpha=0.4, beta=0.2, gamma=0.5, phi=0.8, horizon=1,
-    ...    error_type=1, trend_type=2, seasonality_type=2, seasonal_period=4)
-    >>> f = forecaster.fit(y)
+    >>> forecaster = ETSForecaster(
+    ...     alpha=0.4, beta=0.2, gamma=0.5, phi=0.8, horizon=1,
+    ...     error_type=1, trend_type=2, seasonality_type=2, seasonal_period=4
+    ... )
+    >>> forecaster.fit(y)
+    ETSForecaster(...)
     >>> forecaster.predict()
     366.90200486015596
     """
