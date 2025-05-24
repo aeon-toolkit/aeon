@@ -43,7 +43,7 @@ def test_mcm_file_save():
         fig = create_multi_comparison_matrix(
             df,
             output_config={
-                "dir": tmp,
+                "save_path": tmp,
                 "base_name": "test",
                 "formats": ["pdf", "png", "tex"],
             },

@@ -58,7 +58,7 @@ def create_multi_comparison_matrix(
         contain the names of the problems if `dataset_column` is true.
     output_config: dict, default = None
         A dictionary for output configurations. Expected keys:
-            - "dir": output directory (default: "./")
+            - "save_path": output directory (default: "./")
             - "base_name": basef filename (if provided, used for saving)
             - "format": list of file formats to save. eg:["pdf", "png", "csv", "tex"]
     ordering_strategy : str, default="higher-wins"
@@ -168,13 +168,13 @@ def create_multi_comparison_matrix(
         except Exception as e:
             raise ValueError(f"No dataframe or valid path is given: Exception {e}")
 
-    default_output_config = {"dir": "./", "base_name": None, "formats": []}
+    default_output_config = {"save_path": "./", "base_name": None, "formats": []}
 
     if output_config is None:
         output_config = {}
 
     default_output_config.update(output_config)
-    output_dir = default_output_config["dir"]
+    save_path = default_output_config["save_path"]
     base_name = default_output_config.get("base_name", None)
     formats = default_output_config.get("formats", [])
 
@@ -206,7 +206,7 @@ def create_multi_comparison_matrix(
 
     analysis = _get_analysis(
         df_results,
-        output_dir=output_dir,
+        save_path=save_path,
         used_statistic=used_statistic,
         save_as_json=save_as_json,
         plot_1v1_comparisons=plot_1v1_comparisons,
@@ -231,7 +231,7 @@ def create_multi_comparison_matrix(
         png_savename=png_savename,
         tex_savename=tex_savename,
         csv_savename=csv_savename,
-        output_dir=output_dir,
+        save_path=save_path,
         row_comparates=row_comparates,
         col_comparates=col_comparates,
         excluded_row_comparates=excluded_row_comparates,
@@ -253,7 +253,7 @@ def create_multi_comparison_matrix(
 
 def _get_analysis(
     df_results,
-    output_dir="./",
+    save_path="./",
     used_statistic="Score",
     save_as_json=True,
     plot_1v1_comparisons=False,
@@ -282,7 +282,7 @@ def _get_analysis(
         win_x,
         loss_x,
         tie,
-        output_directory="./",
+        save_path="./",
         min_lim: int = 0,
         max_lim: int = 1,
         scatter_size: int = 100,
@@ -291,7 +291,7 @@ def _get_analysis(
         fontsize: int = 20,
     ):
         save_path = os.path.join(
-            output_directory,
+            save_path,
             "1v1_plots",
             _get_keys_for_two_comparates(name_x, name_y) + ".pdf",
         )
@@ -352,15 +352,15 @@ def _get_analysis(
 
         ax.legend(handles=legend_elements)
 
-        if not os.path.exists(output_directory + "1v1_plots/"):
-            os.mkdir(output_directory + "1v1_plots/")
+        if not os.path.exists(save_path + "1v1_plots/"):
+            os.mkdir(save_path + "1v1_plots/")
         plt.savefig(save_path, bbox_inches="tight")
         plt.savefig(save_path.replace(".pdf", ".png"), bbox_inches="tight")
         plt.cla()
         plt.clf()
         plt.close()
 
-    save_file = output_dir + "analysis.json"
+    save_file = save_path + "analysis.json"
 
     if load_analysis and os.path.exists(save_file):
         with open(save_file) as json_file:
@@ -432,7 +432,7 @@ def _get_analysis(
                         win_x=pairwise_content["win"],
                         tie=pairwise_content["tie"],
                         loss_x=pairwise_content["loss"],
-                        output_directory=output_dir,
+                        save_path=save_path,
                         max_lim=max_lim,
                         min_lim=min_lim,
                     )
@@ -454,7 +454,7 @@ def _get_analysis(
 
 def _draw(
     analysis,
-    output_dir="./",
+    save_path="./",
     pdf_savename=None,
     png_savename=None,
     csv_savename=None,
@@ -602,7 +602,7 @@ def _draw(
 
     if csv_savename is not None:
         # todo: can add a argument to save or not
-        df_annotations.to_csv(output_dir + f"{csv_savename}.csv", index=False)
+        df_annotations.to_csv(save_path + f"{csv_savename}.csv", index=False)
 
     df_annotations.drop("comparates", inplace=True, axis=1)
     df_annotations_np = np.asarray(df_annotations)
@@ -833,13 +833,9 @@ def _draw(
         )
 
     if pdf_savename is not None:
-        plt.savefig(
-            os.path.join(output_dir, f"{pdf_savename}.pdf"), bbox_inches="tight"
-        )
+        plt.savefig(os.path.join(save_path, f"{pdf_savename}.pdf"), bbox_inches="tight")
     if png_savename is not None:
-        plt.savefig(
-            os.path.join(output_dir, f"{png_savename}.png"), bbox_inches="tight"
-        )
+        plt.savefig(os.path.join(save_path, f"{png_savename}.png"), bbox_inches="tight")
 
     latex_string += (
         f"\\begin{{tabular}}{{{'c' * (len(latex_table[0]) + 1)}}}\n"  # +1 for labels
@@ -907,7 +903,7 @@ def _draw(
 
     if tex_savename is not None:
         with open(
-            f"{output_dir}/{tex_savename}.tex", "w", encoding="utf8", newline="\n"
+            f"{save_path}/{tex_savename}.tex", "w", encoding="utf8", newline="\n"
         ) as file:
             file.writelines(latex_string)
 
