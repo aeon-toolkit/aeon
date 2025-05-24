@@ -1,13 +1,7 @@
 """ETSForecaster class.
 
 An implementation of the exponential smoothing statistics forecasting algorithm.
-Implements additive and multiplicative error models,
-None, additive and multiplicative (including damped) trend and
-None, additive and mutliplicative seasonality
-
-aeon enhancement proposal
-https://github.com/aeon-toolkit/aeon/pull/2244/
-
+Implements additive and multiplicative error models.
 """
 
 __maintainer__ = []
