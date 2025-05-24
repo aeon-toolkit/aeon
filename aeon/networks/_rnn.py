@@ -86,7 +86,7 @@ class RNNNetwork(BaseDeepLearningNetwork):
         # Validate parameters
         if self.rnn_type not in ["lstm", "gru", "simple"]:
             raise ValueError(
-                f"Unknown type: {self.rnn_type}. Choose from 'lstm', 'gru', or 'simple'"
+                f"Unknown RNN type: {self.rnn_type}. Should be 'lstm', 'gru' 'simple'"
             )
 
         # Process n_units to a list
