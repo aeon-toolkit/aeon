@@ -119,14 +119,14 @@ class ARIMAForecaster(BaseForecaster):
             self.seasonal_period_,
             self.constant_term_,
             parameters,
-        ) = auto_arima(self.data_)
-        (self.c_, self.phi_, self.phi_s_, self.theta_, self.theta_s_) = extract_params(
+        ) = _auto_arima(self.data_)
+        (self.c_, self.phi_, self.phi_s_, self.theta_, self.theta_s_) = _extract_params(
             parameters, self.p_, self.q_, self.ps_, self.qs_, self.constant_term_
         )
         (
             self.aic_,
             self.residuals_,
-        ) = arima_log_likelihood(
+        ) = _arima_log_likelihood(
             parameters,
             self.differenced_data_,
             self.p_,
@@ -156,7 +156,7 @@ class ARIMAForecaster(BaseForecaster):
             single prediction self.horizon steps ahead of y.
         """
         y = np.array(y, dtype=np.float64)
-        value = calc_arima(
+        value = _calc_arima(
             self.differenced_data_,
             self.p_,
             self.q_,
@@ -181,19 +181,15 @@ class ARIMAForecaster(BaseForecaster):
         # Step 2: undo ordinary differencing
         for k in range(1, self.d_ + 1):
             value += (-1) ** (k + 1) * comb(self.d_, k) * history[k - 1]
-
-        if y is None:
-            return np.array([value])
-        else:
-            return np.insert(y, 0, value)[:-1]
+        return value
 
 
 # Define the ARIMA(p, d, q) likelihood function
-def arima_log_likelihood(
+def _arima_log_likelihood(
     params, data, p, q, ps, qs, seasonal_period, include_constant_term
 ):
     """Calculate the log-likelihood of an ARIMA model given the parameters."""
-    c, phi, phi_s, theta, theta_s = extract_params(
+    c, phi, phi_s, theta, theta_s = _extract_params(
         params, p, q, ps, qs, include_constant_term
     )  # Extract parameters
 
@@ -201,7 +197,7 @@ def arima_log_likelihood(
     n = len(data)
     residuals = np.zeros(n)
     for t in range(n):
-        y_hat = calc_arima(
+        y_hat = _calc_arima(
             data,
             p,
             q,
@@ -228,7 +224,7 @@ def arima_log_likelihood(
     )  # Return negative log-likelihood for minimization
 
 
-def extract_params(params, p, q, ps, qs, include_constant_term):
+def _extract_params(params, p, q, ps, qs, include_constant_term):
     """Extract ARIMA parameters from the parameter vector."""
     # Extract parameters
     c = params[0] if include_constant_term else 0  # Constant term
@@ -245,7 +241,7 @@ def extract_params(params, p, q, ps, qs, include_constant_term):
     return c, phi, phi_s, theta, theta_s
 
 
-def calc_arima(
+def _calc_arima(
     data, p, q, ps, qs, seasonal_period, t, c, phi, phi_s, theta, theta_s, residuals
 ):
     """Calculate the ARIMA forecast for time t."""
@@ -271,7 +267,7 @@ def calc_arima(
     return y_hat
 
 
-def nelder_mead(
+def _nelder_mead(
     data,
     p,
     q,
@@ -289,7 +285,7 @@ def nelder_mead(
         points[i + 1][i] = 0.6
     values = np.array(
         [
-            arima_log_likelihood(
+            _arima_log_likelihood(
                 v, data, p, q, ps, qs, seasonal_period, include_constant_term
             )[0]
             for v in points
@@ -307,7 +303,7 @@ def nelder_mead(
         # Reflection
         # centre + distance between centre and largest value
         reflected_point = centre_point + (centre_point - points[-1])
-        reflected_value = arima_log_likelihood(
+        reflected_value = _arima_log_likelihood(
             reflected_point,
             data,
             p,
@@ -326,7 +322,7 @@ def nelder_mead(
         # Otherwise if it is better than the best value
         if reflected_value < values[0]:
             expanded_point = centre_point + 2 * (reflected_point - centre_point)
-            expanded_value = arima_log_likelihood(
+            expanded_value = _arima_log_likelihood(
                 expanded_point,
                 data,
                 p,
@@ -347,7 +343,7 @@ def nelder_mead(
         # Contraction
         # Otherwise if reflection is worse than all current values
         contracted_point = centre_point - 0.5 * (centre_point - points[-1])
-        contracted_value = arima_log_likelihood(
+        contracted_value = _arima_log_likelihood(
             contracted_point,
             data,
             p,
@@ -366,7 +362,7 @@ def nelder_mead(
         # Shrinkage
         for i in range(1, len(points)):
             points[i] = points[0] - 0.5 * (points[0] - points[i])
-            values[i] = arima_log_likelihood(
+            values[i] = _arima_log_likelihood(
                 points[i],
                 data,
                 p,
@@ -383,12 +379,7 @@ def nelder_mead(
     return points[0], values[0]
 
 
-# def calc_moving_variance(data, window):
-#     X = np.lib.stride_tricks.sliding_window_view(data, window_shape=window)
-#     return X.var()
-
-
-def auto_arima(data):
+def _auto_arima(data):
     """
     Implement the Hyndman-Khandakar algorithm.
 
@@ -411,7 +402,7 @@ def auto_arima(data):
     ]
     model_points = []
     for p in model_parameters:
-        points, aic = nelder_mead(data, p[0], p[1], p[2], p[3], seasonal_period, p[4])
+        points, aic = _nelder_mead(data, p[0], p[1], p[2], p[3], seasonal_period, p[4])
         p.append(aic)
         model_points.append(points)
     current_model = min(model_parameters, key=lambda item: item[5])
@@ -425,7 +416,7 @@ def auto_arima(data):
                 model = current_model.copy()
                 model[param_no] += adjustment
                 for constant_term in [0, 1]:
-                    points, aic = nelder_mead(
+                    points, aic = _nelder_mead(
                         data,
                         model[0],
                         model[1],
