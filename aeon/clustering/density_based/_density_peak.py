@@ -89,8 +89,8 @@ class DensityPeakClusterer:
         min_distance = np.min(distances)
         dc = (max_distance + min_distance) / 2
 
-        lower_bound = 0.01  # 0.002
-        upper_bound = 0.002  # 0.01  # target range: 0.2% to 1%
+        lower_bound = 0.01  # 0.2
+        upper_bound = 0.002  # 1
 
         while True:
             nneighs = np.sum(distances < dc) / (self.n**2)
