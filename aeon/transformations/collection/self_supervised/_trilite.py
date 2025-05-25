@@ -219,9 +219,9 @@ class TRILITE(BaseCollectionTransformer):
         from aeon.networks import BaseDeepLearningNetwork, FCNNetwork
 
         if isinstance(self.backbone_network, BaseDeepLearningNetwork):
-            self._backbone_network = self.backbone_network
+            self._backbone_network = deepcopy(self.backbone_network)
         elif self.backbone_network is None:
-            self._backbone_network = FCNNetwork
+            self._backbone_network = FCNNetwork()
         else:
             raise ValueError(
                 "The parameter backbone_network", "should be an aeon network."
