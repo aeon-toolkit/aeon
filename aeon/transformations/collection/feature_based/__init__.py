@@ -5,11 +5,6 @@ __all__ = [
     "TSFresh",
     "TSFreshRelevant",
     "SevenNumberSummary",
-    "series_set_dilation",
-    "series_transform",
-    "td",
-    "fhan",
-    "hard_voting",
 ]
 
 from aeon.transformations.collection.feature_based._catch22 import Catch22
