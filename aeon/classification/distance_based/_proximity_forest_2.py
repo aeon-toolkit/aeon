@@ -110,6 +110,7 @@ class ProximityForest2(BaseClassifier):
 
     def _fit(self, X, y):
         rng = check_random_state(self.random_state)
+        seeds = rng.randint(np.iinfo(np.int32).max, size=self.n_trees)
         self.trees_ = Parallel(
             n_jobs=self._n_jobs, backend=self.parallel_backend, prefer="threads"
         )(
@@ -119,9 +120,9 @@ class ProximityForest2(BaseClassifier):
                 self.n_splitters,
                 self.max_depth,
                 self.min_samples_split,
-                check_random_state(rng.randint(np.iinfo(np.int32).max)),
+                check_random_state(seed),
             )
-            for _ in range(self.n_trees)
+            for seed in seeds
         )
 
     def _predict_proba(self, X):
