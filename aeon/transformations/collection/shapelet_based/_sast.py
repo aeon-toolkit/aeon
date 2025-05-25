@@ -88,6 +88,7 @@ class SAST(BaseCollectionTransformer):
     _tags = {
         "output_data_type": "Tabular",
         "capability:multivariate": False,
+        "capability:multithreading": True,
         "algorithm_type": "shapelet",
     }
 

@@ -26,7 +26,7 @@ def twe_distance(
 ) -> float:
     r"""Compute the TWE distance between two time series.
 
-    Proposed in [1]_, the Time Warp Edit (TWE) distance is a distance measure for time
+    Proposed in [1]_, the Time Warp Edit (TWE) distance is a distance method for time
     series matching with time 'elasticity'. For two series, possibly of unequal length,
     :math:`\mathbf{x}=\{x_1,x_2,\ldots,x_n\}` and
     :math:`\mathbf{y}=\{y_1,y_2, \ldots,y_m\}` TWE works by iterating over series
@@ -133,7 +133,7 @@ def twe_cost_matrix(
         shortest time series.
     nu : float, default=0.001
         A non-negative constant which characterizes the stiffness of the elastic
-        twe measure. Must be > 0.
+        twe method. Must be > 0.
     lmbda : float, default=1.0
         A constant penalty that punishes the editing efforts. Must be >= 1.0.
     itakura_max_slope : float, default=None
@@ -268,7 +268,7 @@ def twe_pairwise_distance(
         is used.
     nu : float, default=0.001
         A non-negative constant which characterizes the stiffness of the elastic
-        twe measure. Must be > 0.
+        twe method. Must be > 0.
     lmbda : float, default=1.0
         A constant penalty that punishes the editing efforts. Must be >= 1.0.
     itakura_max_slope : float, default=None
@@ -432,7 +432,7 @@ def twe_alignment_path(
         is used.
     nu : float, default=0.001
         A non-negative constant which characterizes the stiffness of the elastic
-        twe measure. Must be > 0.
+        twe method. Must be > 0.
     lmbda : float, default=1.0
         A constant penalty that punishes the editing efforts. Must be >= 1.0.
     itakura_max_slope : float, default=None

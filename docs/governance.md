@@ -1,6 +1,6 @@
 # Governance
 
-The purpose of this document is to formalize the governance process used by the `aeon`
+The purpose of this document is to formalise the governance process used by the `aeon`
 project, to clarify how decisions are made and how the various elements of our community
 interact. Our goal is to ensure a transparent, democratic, and inclusive decision-making
 process that empowers all community members to contribute to the project.
@@ -23,6 +23,15 @@ as detailed in the contributing guide. Contributors play a crucial role in shapi
 project through participating in discussions and influencing the decision-making
 process.
 
+### Supporting Developers
+
+Supporting developers are contributors who have been nominated by a core developer
+and granted write access to the `aeon` repository. No vote is required for this role,
+but the nominator must notify the Core Developers and create a Pull Request.
+Supporting developers can have their access revoked at any time by a core developer
+if it is determined that they are abusing this access. Access will also be removed
+after 6 months of inactivity.
+
 ### Core Developers
 
 Core developers are community members that have made significant contributions and are
@@ -32,7 +41,7 @@ on all project decisions. They are expected to review code contributions
 and engage with topics or code they are knowledgeable about.
 
 New core developers are nominated by existing core developers and are subject to a
-two-thirds majority vote of existing core developers. Core developers are expected to
+two-thirds majority vote of voting core developers. Core developers are expected to
 maintain a reasonable amount of engagement with the project. Developing code,
 interacting with contributions and engaging with the broader community are all valid
 contributions for core developers.
@@ -109,15 +118,15 @@ necessary.
 Decisions about the future of the project are announced publicly to allow discussion
 with all members of the community. The whole process from proposal to implementation
 is fully visible, apart from topics considered sensitive. All non-sensitive project
-management discussion takes place on the contributors channel on the project
-Slack and/or the issue tracker. Occasionally, sensitive discussion and votes such as
-appointments will occur in private Slack channels.
+management discussion takes place on the project Slack and/or the issue tracker.
+Occasionally, sensitive discussion and votes such as appointments will occur in private
+Slack channels or meetings.
 
-For most decisions a consensus seeking process of all interested contributors is used.
+For most decisions, a consensus seeking process of all interested contributors is used.
 Contributors try to find a resolution that has no open objections among core developers.
 If a reasonable amount of time (at least 7-days for non-trivial changes) has passed
 since the last change to a proposed contribution, the proposal has at least one approval
-(+1) and no rejections (-1) from core developers, it can be approved by lazy consensus.
+(+1), and no rejections (-1) from core developers, it can be approved by lazy consensus.
 If a change is rejected, it is expected that an explanation and description of
 conditions (if any) to withdraw the rejection is provided.
 
@@ -126,7 +135,8 @@ for a vote, which will conclude two weeks from the call for the vote. Any vote t
 bypass a rejection from a core developer must be backed by an AEP (see the following
 section). For major contributions (such as a new module or major framework redesigns)
 an AEP may be requested without a rejection or vote. In the event a vote is called,
-the proposal must receive a two-thirds majority of core developers to be approved.
+the proposal must receive a two-thirds majority of voting core developers to be
+approved.
 
 All changes to the `aeon` code or documentation should be done via Pull Request.
 By default, push rights to the `main` GitHub branch are restricted for all core developers.
@@ -137,15 +147,15 @@ emergencies where harm will come to the project unless timely action is taken.
 ### Enhancement Proposals
 
 For contentious decision-making votes (not including appointment votes), a proposal
-must have been made public for discussion before the vote. It is recommended that this
+should be made public for discussion before the vote. It is recommended that this
 proposal is made as a consolidated document, in the form of an “aeon Enhancement
 Proposal” (AEP). The AEP template is available
 [here](https://github.com/aeon-toolkit/aeon-admin/blob/main/aep/aep_template.md), but
 the use of said template is not a requirement. A detailed issue or pull request can
-substitute an AEP if all parties believe it is sufficient, but a more formal proposal
+substitute an AEP if all parties believe it is enough, but a more formal proposal
 can be requested by any core developer.
 
-Having a rejection on a pull request does not necessitate the creation of an AEP and
+Having a rejection on a pull request does not require the creation of an AEP and
 further discussion to find consensus can be held, but one must be created prior to any
 vote to bypass a rejection.
 
@@ -155,7 +165,7 @@ submitted to the community for discussion and comment.
 
 ## Acknowledgements
 
-Substantial portions of this document were adapted from or inspired by the following
+Significant portions of this document were adapted from or inspired by the following
 projects governance documents:
 
 - [Scikit-learn](https://scikit-learn.org/stable/governance.html)

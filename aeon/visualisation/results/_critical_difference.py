@@ -11,7 +11,7 @@ import math
 import numpy as np
 from scipy.stats import rankdata
 
-from aeon.performance_metrics.stats import check_friedman, nemenyi_test, wilcoxon_test
+from aeon.benchmarking.stats import check_friedman, nemenyi_test, wilcoxon_test
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
@@ -88,8 +88,8 @@ def plot_critical_difference(
     overall performance in general, and such comparisons should be seen as exploratory
     analysis rather than designed experiments to test an a priori hypothesis.
 
-    Parts of the code are adapted from here:
-    https://github.com/hfawaz/cd-diagram
+    Parts of the code are adapted from https://github.com/hfawaz/cd-diagram
+    with permission from the owner.
 
     Parameters
     ----------

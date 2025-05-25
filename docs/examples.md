@@ -118,6 +118,19 @@ Early TSC
 
 :::
 
+:::
+
+:::{grid-item-card}
+:img-top: examples/classification/img/rotation_forest.png
+:class-img-top: aeon-card-image-m
+:link: /examples/classification/rotation_forest.ipynb
+:link-type: ref
+:text-align: center
+
+Rotation Forest Classifier
+
+:::
+
 ::::
 
 ## Regression
@@ -126,7 +139,7 @@ Early TSC
 :gutter: 1
 
 :::{grid-item-card}
-:img-top: /examples/regression/img/tser.png
+:img-top: examples/regression/img/tser.png
 :class-img-top: aeon-card-image-m
 :link: /examples/regression/regression.ipynb
 :link-type: ref
@@ -180,6 +193,17 @@ Partitional TSCL
 :text-align: center
 
 Overview of Transformations
+
+:::
+
+:::{grid-item-card}
+:img-top: examples/transformations/img/preprocessing.png
+:class-img-top: aeon-card-image-m
+:link: /examples/transformations/preprocessing.ipynb
+:link-type: ref
+:text-align: center
+
+Preprocessing time series
 
 :::
 
@@ -239,17 +263,6 @@ SAST transform
 :::
 
 :::{grid-item-card}
-:img-top: examples/transformations/img/interpolation.png
-:class-img-top: aeon-card-image-m
-:link: /examples/transformations/interpolation.ipynb
-:link-type: ref
-:text-align: center
-
-Interpolation
-
-:::
-
-:::{grid-item-card}
 :img-top: examples/transformations/img/signature.png
 :class-img-top: aeon-card-image-m
 :link: /examples/transformations/signature_method.ipynb
@@ -261,13 +274,13 @@ Signature method
 :::
 
 :::{grid-item-card}
-:img-top: examples/transformations/img/theta.png
+:img-top: images/logo/aeon-logo-blue-2-transparent.png
 :class-img-top: aeon-card-image-m
-:link: /examples/transformations/theta_transform.ipynb
+:link: /examples/transformations/channel_selection.ipynb
 :link-type: ref
 :text-align: center
 
-Theta transform
+Channel selection
 
 :::
 
@@ -311,9 +324,7 @@ Hidalgo segmentation
 
 :::
 
-
 ::::
-
 
 ## Distances
 
@@ -331,7 +342,6 @@ Distance functions
 
 :::
 
-
 :::{grid-item-card}
 :img-top: examples/distances/img/svm.png
 :class-img-top: aeon-card-image-m
@@ -343,11 +353,10 @@ Using aeon distances with scikit-learn
 
 ::::
 
-## Similarity search
+## Similarity Search
 
 ::::{grid} 2 3 4 4
 :gutter: 1
-
 
 :::{grid-item-card}
 :img-top: examples/similarity_search/img/sim_search.png
@@ -382,9 +391,25 @@ Benchmarking of similarity search speed-ups
 
 :::
 
-
 ::::
 
+## Forecasting
+
+::::{grid} 2 3 4 4
+:gutter: 1
+
+:::{grid-item-card}
+:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:class-img-top: aeon-card-image-m
+:link: /examples/forecasting/forecasting.ipynb
+:link-type: ref
+:text-align: center
+
+Forecasting
+
+:::
+
+::::
 
 ## Data Formatting and Loading
 
@@ -399,28 +424,6 @@ Benchmarking of similarity search speed-ups
 :text-align: center
 
 Data in aeon
-
-:::
-
-:::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
-:class-img-top: aeon-card-image-m
-:link: /examples/datasets/data_structures.ipynb
-:link-type: ref
-:text-align: center
-
-Data structures and containers used in aeon
-
-:::
-
-:::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
-:class-img-top: aeon-card-image-m
-:link: /examples/datasets/data_conversions.ipynb
-:link-type: ref
-:text-align: center
-
-Conversions between data structures
 
 :::
 
@@ -469,7 +472,6 @@ Loading data from the web
 Unequal length series
 
 :::
-
 
 ::::
 
@@ -522,17 +524,6 @@ Benchmarking extrinsic regression algorithms
 
 :::
 
-:::{grid-item-card}
-:img-top: images/logo/aeon-logo-blue-2-transparent.png
-:class-img-top: aeon-card-image-m
-:link: /examples/benchmarking/bakeoff_results.ipynb
-:link-type: ref
-:text-align: center
-
-Getting published bakeoff results
-
-:::
-
 ::::
 
 ## Base
@@ -564,7 +555,7 @@ Series base classes
 
 ::::
 
-## Utils
+## Visualisation
 
 ::::{grid} 2 3 4 4
 :gutter: 1
@@ -572,11 +563,33 @@ Series base classes
 :::{grid-item-card}
 :img-top: images/logo/aeon-logo-blue-2-transparent.png
 :class-img-top: aeon-card-image-m
-:link: /examples/utils/preprocessing.ipynb
+:link: /examples/visualisation/plotting_series.ipynb
 :link-type: ref
 :text-align: center
 
-Preprocessing collections of time series
+Plotting time series
+
+:::
+
+:::{grid-item-card}
+:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:class-img-top: aeon-card-image-m
+:link: /examples/visualisation/plotting_results.ipynb
+:link-type: ref
+:text-align: center
+
+Plotting results
+
+:::
+
+:::{grid-item-card}
+:img-top: images/logo/aeon-logo-blue-2-transparent.png
+:class-img-top: aeon-card-image-m
+:link: /examples/visualisation/plotting_series.ipynb
+:link-type: ref
+:text-align: center
+
+Plotting for specific learning tasks
 
 :::
 

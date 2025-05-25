@@ -6,8 +6,6 @@ required package or version is missing. Other tests will be automatically skippe
 
 from functools import partial
 
-import pytest
-
 from aeon.utils.validation._dependencies import (
     _check_python_version,
     _check_soft_dependencies,
@@ -23,6 +21,8 @@ def _yield_soft_dependency_checks(estimator_class, estimator_instances, datatype
 
 def check_python_version_softdep(estimator_class):
     """Test that estimators raise error if python version is wrong."""
+    import pytest
+
     # if dependencies are incompatible skip
     softdeps = estimator_class.get_class_tag("python_dependencies", None)
     if softdeps is not None and not _check_soft_dependencies(softdeps, severity="none"):
@@ -46,6 +46,8 @@ def check_python_version_softdep(estimator_class):
 
 def check_python_dependency_softdep(estimator_class):
     """Test that estimators raise error if required soft dependencies are missing."""
+    import pytest
+
     # if python version is incompatible skip
     if not _check_python_version(estimator_class, severity="none"):
         return

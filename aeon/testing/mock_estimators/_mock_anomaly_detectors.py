@@ -1,4 +1,4 @@
-"""Mock anomaly detectors for testing."""
+"""Mock anomaly detectorsuseful for testing and debugging."""
 
 __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = [
@@ -19,6 +19,9 @@ class MockAnomalyDetector(BaseAnomalyDetector):
     _tags = {
         "capability:missing_values": True,
         "capability:multivariate": True,
+        "anomaly_output_type": "anomaly_scores",
+        "learning_type:unsupervised": True,
+        "learning_type:semi_supervised": True,
     }
 
     def __init__(self):

@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 
 from aeon.segmentation.base import BaseSegmenter
-from aeon.testing.mock_estimators import MockSegmenter, SupervisedMockSegmenter
+from aeon.testing.mock_estimators import MockSegmenter, MockSegmenterRequiresY
 
 
 def test_fit_predict_correct():
@@ -25,7 +25,7 @@ def test_fit_predict_correct():
     assert res.is_fitted
     res = seg.fit_predict(x_correct)
     assert isinstance(res, np.ndarray)
-    seg = SupervisedMockSegmenter()
+    seg = MockSegmenterRequiresY()
     res = seg.fit(x_correct, y=x_correct)
     assert res.is_fitted
     with pytest.raises(

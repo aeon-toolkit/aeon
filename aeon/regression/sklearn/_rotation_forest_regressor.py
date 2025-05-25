@@ -241,6 +241,10 @@ class RotationForestRegressor(RegressorMixin, BaseEstimator):
         # remove useless attributes
         self._useful_atts = ~np.all(X[1:] == X[:-1], axis=0)
         X = X[:, self._useful_atts]
+        if sum(self._useful_atts) == 0:
+            raise ValueError(
+                "All attributes in X contain the same value.",
+            )
 
         self._n_atts = X.shape[1]
 
@@ -352,7 +356,7 @@ class RotationForestRegressor(RegressorMixin, BaseEstimator):
 
         return tree, pcas, groups, X_t if save_transformed_data else None
 
-    def _predict_for_estimator(self, X, clf: int, pcas: type[PCA], groups):
+    def _predict_for_estimator(self, X, clf: int, pcas: PCA, groups):
         X_t = np.concatenate(
             [pcas[i].transform(X[:, group]) for i, group in enumerate(groups)], axis=1
         )

@@ -18,7 +18,7 @@ from aeon.visualisation import (
 
 data_path = os.path.join(
     os.path.dirname(aeon.__file__),
-    "benchmarking/example_results/",
+    "testing/example_results_files/",
 )
 
 
@@ -90,6 +90,19 @@ def test_plot_pairwise_scatter():
     plt.gcf().canvas.draw_idle()
 
     assert isinstance(fig, plt.Figure) and isinstance(ax, plt.Axes)
+
+    # best_on_top = False (reversed ordering)
+    fig_false, ax_false = plot_pairwise_scatter(
+        res[0],
+        res[1],
+        cls[0],
+        cls[1],
+        metric="accuracy",
+        title="Test Plot best_on_top False",
+        best_on_top=False,
+    )
+    plt.gcf().canvas.draw_idle()
+    assert isinstance(fig_false, plt.Figure) and isinstance(ax_false, plt.Axes)
 
     # Test error handling for metrics
     with pytest.raises(ValueError):

@@ -1,5 +1,7 @@
 """LITETime and LITE regressors."""
 
+from __future__ import annotations
+
 __author__ = ["aadya940", "hadifawaz1999"]
 __all__ = ["IndividualLITERegressor", "LITETimeRegressor"]
 
@@ -7,12 +9,17 @@ import gc
 import os
 import time
 from copy import deepcopy
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 from sklearn.utils import check_random_state
 
 from aeon.networks import LITENetwork
 from aeon.regression.deep_learning.base import BaseDeepRegressor, BaseRegressor
+
+if TYPE_CHECKING:
+    import tensorflow as tf
+    from tensorflow.keras.callbacks import Callback
 
 
 class LITETimeRegressor(BaseRegressor):
@@ -34,12 +41,10 @@ class LITETimeRegressor(BaseRegressor):
         if set to `True` then LITEMV is used. LITEMV is the
         same architecture as LITE but specifically designed
         to better handle multivariate time series.
-    n_filters : int or list of int32, default = 32
-        The number of filters used in one lite layer, if not a list, the same
-        number of filters is used in all lite layers.
-    kernel_size : int or list of int, default = 40
-        The head kernel size used for each lite layer, if not a list, the same
-        is used in all lite module.
+    n_filters : int, default = 32
+        The number of filters used in one lite layer.
+    kernel_size : int, default = 40
+        The head kernel size used for each lite layer.
     strides : int or list of int, default = 1
         The strides of kernels in convolution layers for each lite layer,
         if not a list, the same is used in all lite layers.
@@ -55,8 +60,10 @@ class LITETimeRegressor(BaseRegressor):
         formula Wang et al.
     n_epochs : int, default = 1500
         the number of epochs to train the model.
-    callbacks : callable or None, default = ReduceOnPlateau and ModelCheckpoint
-        list of tf.keras.callbacks.Callback objects.
+    callbacks : keras callback or list of callbacks,
+        default = None
+        The default list of callbacks are set to
+        ModelCheckpoint and ReduceLROnPlateau.
     file_path : str, default = "./"
         file_path when saving model_Checkpoint callback
     save_best_model : bool, default = False
@@ -91,15 +98,21 @@ class LITETimeRegressor(BaseRegressor):
         GPU processing will be non-deterministic.
     verbose : boolean, default = False
         whether to output extra information
-    optimizer : keras optimizer, default = Adam
-    loss : keras loss, default = "mean_squared_error"
-    metrics : keras metrics, default = mean_squared_error,
-        will be set to mean_squared_error as default if None
+    loss : str, default = "mean_squared_error"
+        The name of the keras training loss.
+    metrics : str or list[str], default="mean_squared_error"
+        The evaluation metrics to use during training. If
+        a single string metric is provided, it will be
+        used as the only metric. If a list of metrics are
+        provided, all will be used for evaluation.
+    optimizer : keras.optimizer, default = tf.keras.optimizers.Adam()
+        The keras optimizer used for training.
 
     Notes
     -----
     Adapted from the implementation from Ismail-Fawaz et. al
     https://github.com/MSD-IRIMAS/LITE
+    by the code owner.
 
     References
     ----------
@@ -131,29 +144,29 @@ class LITETimeRegressor(BaseRegressor):
 
     def __init__(
         self,
-        n_regressors=5,
-        use_litemv=False,
-        n_filters=32,
-        kernel_size=40,
-        strides=1,
-        activation="relu",
-        output_activation="linear",
-        file_path="./",
-        save_last_model=False,
-        save_best_model=False,
-        save_init_model=False,
-        best_file_name="best_model",
-        last_file_name="last_model",
-        init_file_name="init_model",
-        batch_size=64,
-        use_mini_batch_size=False,
-        n_epochs=1500,
-        callbacks=None,
-        random_state=None,
-        verbose=False,
-        loss="mean_squared_error",
-        metrics=None,
-        optimizer=None,
+        n_regressors: int = 5,
+        use_litemv: bool = False,
+        n_filters: int = 32,
+        kernel_size: int = 40,
+        strides: int | list[int] = 1,
+        activation: str | list[str] = "relu",
+        output_activation: str = "linear",
+        file_path: str = "./",
+        save_last_model: bool = False,
+        save_best_model: bool = False,
+        save_init_model: bool = False,
+        best_file_name: str = "best_model",
+        last_file_name: str = "last_model",
+        init_file_name: str = "init_model",
+        batch_size: int = 64,
+        use_mini_batch_size: bool = False,
+        n_epochs: int = 1500,
+        callbacks: Callback | list[Callback] | None = None,
+        random_state: int | np.random.RandomState | None = None,
+        verbose: bool = False,
+        loss: str = "mean_squared_error",
+        metrics: str | list[str] = "mean_squared_error",
+        optimizer: tf.keras.optimizers.Optimizer | None = None,
     ):
         self.n_regressors = n_regressors
 
@@ -185,11 +198,11 @@ class LITETimeRegressor(BaseRegressor):
         self.metrics = metrics
         self.optimizer = optimizer
 
-        self.regressors_ = []
+        self.regressors_: list[IndividualLITERegressor] = []
 
         super().__init__()
 
-    def _fit(self, X, y):
+    def _fit(self, X: np.ndarray, y: np.ndarray) -> LITETimeRegressor:
         """Fit the ensemble of IndividualLITERegressor models.
 
         Parameters
@@ -234,7 +247,7 @@ class LITETimeRegressor(BaseRegressor):
 
         return self
 
-    def _predict(self, X) -> np.ndarray:
+    def _predict(self, X: np.ndarray) -> np.ndarray:
         """Predict the values of the test set using LITETime.
 
         Parameters
@@ -257,7 +270,7 @@ class LITETimeRegressor(BaseRegressor):
         return vals
 
     @classmethod
-    def _get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set: str = "default") -> dict | list[dict]:
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -312,12 +325,10 @@ class IndividualLITERegressor(BaseDeepRegressor):
         if set to `True` then LITEMV is used. LITEMV is the
         same architecture as LITE but specifically designed
         to better handle multivariate time series.
-    n_filters : int or list of int32, default = 32
-        The number of filters used in one lite layer, if not a list, the same
-        number of filters is used in all lite layers.
-    kernel_size : int or list of int, default = 40
-        The head kernel size used for each lite layer, if not a list, the same
-        is used in all lite layers.
+    n_filters : int, default = 32
+        The number of filters used in one lite layer.
+    kernel_size : int, default = 40
+        The head kernel size used for each lite layer.
     strides : int or list of int, default = 1
         The strides of kernels in convolution layers for each lite layer,
         if not a list, the same is used in all lite layers.
@@ -333,8 +344,10 @@ class IndividualLITERegressor(BaseDeepRegressor):
         formula Wang et al.
     n_epochs : int, default = 1500
         the number of epochs to train the model.
-    callbacks : callable or None, default = ReduceOnPlateau and ModelCheckpoint
-        list of tf.keras.callbacks.Callback objects.
+    callbacks : keras callback or list of callbacks,
+        default = None
+        The default list of callbacks are set to
+        ModelCheckpoint and ReduceLROnPlateau.
     file_path : str, default = "./"
         file_path when saving model_Checkpoint callback
     save_best_model : bool, default = False
@@ -369,15 +382,21 @@ class IndividualLITERegressor(BaseDeepRegressor):
         GPU processing will be non-deterministic.
     verbose : boolean, default = False
         whether to output extra information
-    optimizer : keras optimizer, default = Adam
-    loss : keras loss, default = 'mean_squared_error'
-    metrics : keras metrics, default = mean_squared_error,
-        will be set to mean_squared_error as default if None
+    loss : str, default = "mean_squared_error"
+        The name of the keras training loss.
+    metrics : str or list[str], default="mean_squared_error"
+        The evaluation metrics to use during training. If
+        a single string metric is provided, it will be
+        used as the only metric. If a list of metrics are
+        provided, all will be used for evaluation.
+    optimizer : keras.optimizer, default = tf.keras.optimizers.Adam()
+        The keras optimizer used for training.
 
     Notes
     -----
     Adapted from the implementation from Ismail-Fawaz et. al
     https://github.com/MSD-IRIMAS/LITE
+    by the code owner.
 
     References
     ----------
@@ -401,28 +420,28 @@ class IndividualLITERegressor(BaseDeepRegressor):
 
     def __init__(
         self,
-        use_litemv=False,
-        n_filters=32,
-        kernel_size=40,
-        strides=1,
-        activation="relu",
-        output_activation="linear",
-        file_path="./",
-        save_best_model=False,
-        save_last_model=False,
-        save_init_model=False,
-        best_file_name="best_model",
-        last_file_name="last_model",
-        init_file_name="init_model",
-        batch_size=64,
-        use_mini_batch_size=False,
-        n_epochs=1500,
-        callbacks=None,
-        random_state=None,
-        verbose=False,
-        loss="mean_squared_error",
-        metrics=None,
-        optimizer=None,
+        use_litemv: bool = False,
+        n_filters: int = 32,
+        kernel_size: int = 40,
+        strides: int | list[int] = 1,
+        activation: str | list[str] = "relu",
+        output_activation: str = "linear",
+        file_path: str = "./",
+        save_best_model: bool = False,
+        save_last_model: bool = False,
+        save_init_model: bool = False,
+        best_file_name: str = "best_model",
+        last_file_name: str = "last_model",
+        init_file_name: str = "init_model",
+        batch_size: int = 64,
+        use_mini_batch_size: bool = False,
+        n_epochs: int = 1500,
+        callbacks: Callback | list[Callback] | None = None,
+        random_state: int | np.random.RandomState | None = None,
+        verbose: bool = False,
+        loss: str = "mean_squared_error",
+        metrics: str | list[str] = "mean_squared_error",
+        optimizer: tf.keras.optimizers.Optimizer | None = None,
     ):
         self.use_litemv = use_litemv
         self.n_filters = n_filters
@@ -462,7 +481,9 @@ class IndividualLITERegressor(BaseDeepRegressor):
             activation=self.activation,
         )
 
-    def build_model(self, input_shape, **kwargs):
+    def build_model(
+        self, input_shape: tuple[int, ...], **kwargs: Any
+    ) -> tf.keras.Model:
         """
         Construct a compiled, un-trained, keras model that is ready for training.
 
@@ -475,7 +496,6 @@ class IndividualLITERegressor(BaseDeepRegressor):
         -------
         output : a compiled Keras Model
         """
-        import numpy as np
         import tensorflow as tf
 
         rng = check_random_state(self.random_state)
@@ -489,11 +509,6 @@ class IndividualLITERegressor(BaseDeepRegressor):
 
         model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
 
-        if self.metrics is None:
-            metrics = ["mean_squared_error"]
-        else:
-            metrics = self.metrics
-
         self.optimizer_ = (
             tf.keras.optimizers.Adam() if self.optimizer is None else self.optimizer
         )
@@ -501,12 +516,12 @@ class IndividualLITERegressor(BaseDeepRegressor):
         model.compile(
             loss=self.loss,
             optimizer=self.optimizer_,
-            metrics=metrics,
+            metrics=self._metrics,
         )
 
         return model
 
-    def _fit(self, X, y):
+    def _fit(self, X: np.ndarray, y: np.ndarray) -> IndividualLITERegressor:
         """
         Fit the Regressor on the training set (X, y).
 
@@ -526,6 +541,11 @@ class IndividualLITERegressor(BaseDeepRegressor):
 
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
+
+        if isinstance(self.metrics, list):
+            self._metrics = self.metrics
+        elif isinstance(self.metrics, str):
+            self._metrics = [self.metrics]
 
         # ignore the number of instances, X.shape[0],
         # just want the shape of each instance
@@ -590,7 +610,7 @@ class IndividualLITERegressor(BaseDeepRegressor):
         return self
 
     @classmethod
-    def _get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set: str = "default") -> dict | list[dict]:
         """Return testing parameter settings for the estimator.
 
         Parameters

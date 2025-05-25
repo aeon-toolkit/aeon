@@ -23,6 +23,7 @@ Notes
 Based on the work from [1]_.
 
 - source code adapted based on: https://github.com/cvxgrp/GGS
+  Copyright (c) 2018, Stanford University Convex Optimization Group, BSD-2
 - paper available at: https://stanford.edu/~boyd/papers/pdf/ggs.pdf
 
 References
@@ -435,12 +436,10 @@ class GreedyGaussianSegmenter(BaseSegmenter):
 
     Examples
     --------
-    >>> from aeon.testing.data_generation import piecewise_normal_multivariate
+    >>> from aeon.testing.data_generation import make_example_dataframe_series
     >>> from sklearn.preprocessing import MinMaxScaler
     >>> from aeon.segmentation import GreedyGaussianSegmenter
-    >>> X = piecewise_normal_multivariate(lengths=[10, 10, 10, 10],
-    ...     means=[[0.0, 1.0], [11.0, 10.0], [5.0, 3.0], [2.0, 2.0]],
-    ...     variances=0.5)
+    >>> X = make_example_dataframe_series(n_channels=2, random_state=10)
     >>> X_scaled = MinMaxScaler(feature_range=(0, 1)).fit_transform(X)
     >>> ggs = GreedyGaussianSegmenter(k_max=3, max_shuffles=5)
     >>> y = ggs.fit_predict(X_scaled, axis=0)
@@ -504,12 +503,10 @@ class GreedyGaussianSegmenter(BaseSegmenter):
             dimension of X. The numerical values represent distinct segments
             labels for each of the data points.
         """
-        self.change_points_ = self.ggs.find_change_points(X)
+        change_points_ = self.ggs.find_change_points(X)
 
         labels = np.zeros(X.shape[0], dtype=np.int32)
-        for i, (start, stop) in enumerate(
-            zip(self.change_points_[:-1], self.change_points_[1:])
-        ):
+        for i, (start, stop) in enumerate(zip(change_points_[:-1], change_points_[1:])):
             labels[start:stop] = i
         return labels
 

@@ -1,5 +1,7 @@
 """Multi Layer Perceptron Network (MLP) regressor."""
 
+from __future__ import annotations
+
 __author__ = ["Aadya-Chinubhai", "hadifawaz1999"]
 __all__ = ["MLPRegressor"]
 
@@ -7,11 +9,17 @@ import gc
 import os
 import time
 from copy import deepcopy
+from typing import TYPE_CHECKING, Any
 
+import numpy as np
 from sklearn.utils import check_random_state
 
 from aeon.networks import MLPNetwork
 from aeon.regression.deep_learning.base import BaseDeepRegressor
+
+if TYPE_CHECKING:
+    import tensorflow as tf
+    from tensorflow.keras.callbacks import Callback
 
 
 class MLPRegressor(BaseDeepRegressor):
@@ -21,16 +29,33 @@ class MLPRegressor(BaseDeepRegressor):
 
     Parameters
     ----------
+    n_layers : int, optional (default=3)
+        The number of dense layers in the MLP.
+    n_units : Union[int, List[int]], optional (default=500)
+        Number of units in each dense layer.
+    activation : Union[str, List[str]], optional (default='relu')
+        Activation function(s) for each dense layer.
+    dropout_rate : Union[float, List[Union[int, float]]], optional (default=None)
+        Dropout rate(s) for each dense layer. If None, a default rate of 0.2 is used,
+        except the first element, being 0.1. Dropout rate(s) are typically a number
+        in the interval [0, 1].
+    dropout_last : float, default = 0.3
+        The dropout rate of the last layer.
+    use_bias : bool, default = True
+        Condition on whether or not to use bias values for dense layers.
     n_epochs : int, default = 2000
         the number of epochs to train the model
     batch_size : int, default = 16
         the number of samples per gradient update.
-    callbacks : callable or None, default
+    callbacks : keras callback or list of callbacks,
+        default = None
+        The default list of callbacks are set to
+        ModelCheckpoint and ReduceLROnPlateau.
     verbose : boolean, default = False
         whether to output extra information
-    loss : string, default="mean_squared_error"
-        fit parameter for the keras model
-    metrics : list of strings, default="mean_squared_error"
+    loss : str, default = "mean_squared_error"
+        The name of the keras training loss.
+    metrics : str or list[str], default="mean_squared_error"
         The evaluation metrics to use during training. If
         a single string metric is provided, it will be
         used as the only metric. If a list of metrics are
@@ -67,15 +92,10 @@ class MLPRegressor(BaseDeepRegressor):
         by `np.random`.
         Seeded random number generation can only be guaranteed on CPU processing,
         GPU processing will be non-deterministic.
-    activation : string or a tf callable, default="relu"
-        Activation function used in the output linear layer.
-        List of available activation functions:
-        https://keras.io/api/layers/activations/
     output_activation : str = "linear"
-        Activation for the last layer in a Regressor
-    use_bias : boolean, default = True
-        whether the layer uses a bias vector.
-    optimizer : keras.optimizer, default=keras.optimizers.Adadelta()
+        Activation for the last layer in a Regressor.
+    optimizer : keras.optimizer, default = tf.keras.optimizers.Adam()
+        The keras optimizer used for training.
 
 
     References
@@ -96,31 +116,39 @@ class MLPRegressor(BaseDeepRegressor):
 
     def __init__(
         self,
-        n_epochs=2000,
-        batch_size=16,
-        callbacks=None,
-        verbose=False,
-        loss="mse",
-        metrics="mean_squared_error",
-        file_path="./",
-        save_best_model=False,
-        save_last_model=False,
-        save_init_model=False,
-        best_file_name="best_model",
-        last_file_name="last_model",
-        init_file_name="init_model",
-        random_state=None,
-        activation="relu",
-        output_activation="linear",
-        use_bias=True,
-        optimizer=None,
+        n_layers: int = 3,
+        n_units: int | list[int] = 500,
+        activation: str | list[str] = "relu",
+        dropout_rate: float | list[float] | None = None,
+        dropout_last: float = 0.3,
+        use_bias: bool = True,
+        n_epochs: int = 2000,
+        batch_size: int = 16,
+        callbacks: Callback | list[Callback] | None = None,
+        verbose: bool = False,
+        loss: str = "mean_squared_error",
+        metrics: str | list[str] = "mean_squared_error",
+        file_path: str = "./",
+        save_best_model: bool = False,
+        save_last_model: bool = False,
+        save_init_model: bool = False,
+        best_file_name: str = "best_model",
+        last_file_name: str = "last_model",
+        init_file_name: str = "init_model",
+        random_state: int | np.random.RandomState | None = None,
+        output_activation: str = "linear",
+        optimizer: tf.keras.optimizers.Optimizer | None = None,
     ):
+        self.n_layers = n_layers
+        self.n_units = n_units
+        self.activation = activation
+        self.dropout_rate = dropout_rate
+        self.dropout_last = dropout_last
         self.callbacks = callbacks
         self.n_epochs = n_epochs
         self.verbose = verbose
         self.loss = loss
         self.metrics = metrics
-        self.activation = activation
         self.use_bias = use_bias
         self.file_path = file_path
         self.save_best_model = save_best_model
@@ -139,9 +167,18 @@ class MLPRegressor(BaseDeepRegressor):
             last_file_name=last_file_name,
         )
 
-        self._network = MLPNetwork()
+        self._network = MLPNetwork(
+            n_layers=self.n_layers,
+            n_units=self.n_units,
+            activation=self.activation,
+            dropout_rate=self.dropout_rate,
+            dropout_last=self.dropout_last,
+            use_bias=self.use_bias,
+        )
 
-    def build_model(self, input_shape, **kwargs):
+    def build_model(
+        self, input_shape: tuple[int, ...], **kwargs: Any
+    ) -> tf.keras.Model:
         """Construct a compiled, un-trained, keras model that is ready for training.
 
         In aeon, time series are stored in numpy arrays of shape (d,m), where d
@@ -158,7 +195,6 @@ class MLPRegressor(BaseDeepRegressor):
         -------
         output : a compiled Keras Model
         """
-        import numpy as np
         import tensorflow as tf
         from tensorflow import keras
 
@@ -168,9 +204,9 @@ class MLPRegressor(BaseDeepRegressor):
 
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
-        output_layer = keras.layers.Dense(
-            units=1, activation=self.output_activation, use_bias=self.use_bias
-        )(output_layer)
+        output_layer = keras.layers.Dense(units=1, activation=self.output_activation)(
+            output_layer
+        )
 
         self.optimizer_ = (
             keras.optimizers.Adadelta() if self.optimizer is None else self.optimizer
@@ -184,7 +220,7 @@ class MLPRegressor(BaseDeepRegressor):
         )
         return model
 
-    def _fit(self, X, y):
+    def _fit(self, X: np.ndarray, y: np.ndarray) -> MLPRegressor:
         """Fit the Regressor on the training set (X, y).
 
         Parameters
@@ -203,10 +239,11 @@ class MLPRegressor(BaseDeepRegressor):
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
 
-        if isinstance(self.metrics, str):
-            self._metrics = [self.metrics]
-        else:
+        if isinstance(self.metrics, list):
             self._metrics = self.metrics
+        elif isinstance(self.metrics, str):
+            self._metrics = [self.metrics]
+
         self.input_shape = X.shape[1:]
 
         self.training_model_ = self.build_model(self.input_shape)
@@ -264,7 +301,9 @@ class MLPRegressor(BaseDeepRegressor):
         return self
 
     @classmethod
-    def _get_test_params(cls, parameter_set="default"):
+    def _get_test_params(
+        cls, parameter_set: str = "default"
+    ) -> dict[str, Any] | list[dict[str, Any]]:
         """Return testing parameter settings for the estimator.
 
         Parameters

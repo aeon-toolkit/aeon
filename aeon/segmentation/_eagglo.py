@@ -31,25 +31,25 @@ class EAggloSegmenter(BaseSegmenter):
     ----------
     member : array_like (default=None)
         Assigns points to the initial cluster membership, therefore the first
-        dimension should be the same as for data. If `None` it will be initialized
+        dimension should be the same as for data. If ``None`` it will be initialized
         to dummy vector where each point is assigned to separate cluster.
     alpha : float (default=1.0)
         Fixed constant alpha in (0, 2] used in the divergence measure, as the
         alpha-th absolute moment, see equation (4) in [1]_.
     penalty : str or callable or None (default=None)
         Function that defines a penalization of the sequence of goodness-of-fit
-        statistic, when overfitting is a concern. If `None` not penalty is applied.
-        Could also be an existing penalty name, either `len_penalty` or
-        `mean_diff_penalty`.
+        statistic, when overfitting is a concern. If ``None`` not penalty is applied.
+        Could also be an existing penalty name, either ``len_penalty`` or
+        ``mean_diff_penalty``.
 
     Attributes
     ----------
     merged_ : array_like
-        2D `array_like` outlining which clusters were merged_ at each step.
+        2D ``array_like`` outlining which clusters were merged_ at each step.
     gof_ : float
         goodness-of-fit statistic for current clsutering.
     cluster_ : array_like
-        1D `array_like` specifying which cluster each row of input data
+        1D ``array_like`` specifying which cluster each row of input data
         X belongs to.
 
     Notes
@@ -72,17 +72,15 @@ class EAggloSegmenter(BaseSegmenter):
 
     Examples
     --------
-    >>> from aeon.testing.data_generation import piecewise_normal_multivariate
+    >>> from aeon.testing.data_generation import make_example_dataframe_series
     >>> from aeon.segmentation import EAggloSegmenter
-    >>> X = piecewise_normal_multivariate(means=[[1, 3], [4, 5]], lengths=[3, 4],
-    ...     random_state = 10)
+    >>> X = make_example_dataframe_series(n_channels=2, random_state=10)
     >>> model = EAggloSegmenter()
-    >>> model.fit_predict(X, axis=0)
-    array([0, 0, 0, 1, 1, 1, 1])
+    >>> y = model.fit_predict(X, axis=0)
     """
 
     _tags = {
-        "X_inner_type": "pd.DataFrame",  # One of VALID_INNER_TYPES
+        "X_inner_type": "pd.DataFrame",
         "capability:multivariate": True,
         "fit_is_empty": False,
         "returns_dense": False,

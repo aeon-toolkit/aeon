@@ -1,6 +1,6 @@
 """Auto-Encoder based on Dilated Convolutional Nerual Networks (DCNN) Model."""
 
-__maintainer__ = []
+__maintainer__ = ["aadya940", "hadifawaz1999"]
 
 import warnings
 
@@ -54,7 +54,7 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
 
     _config = {
         "python_dependencies": ["tensorflow"],
-        "python_version": "<3.12",
+        "python_version": "<3.13",
         "structure": "auto-encoder",
     }
 
@@ -241,20 +241,25 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
     ):
         import tensorflow as tf
 
+        from aeon.utils.networks.weight_norm import _WeightNormalization
+
         _add = tf.keras.layers.Conv1D(_num_filters, kernel_size=1)(_inputs)
-        x = tf.keras.layers.Conv1D(
-            _num_filters,
-            kernel_size=_kernel_size,
-            dilation_rate=_dilation_rate,
-            padding=_padding_encoder,
-            kernel_regularizer="l2",
+        x = _WeightNormalization(
+            tf.keras.layers.Conv1D(
+                _num_filters,
+                kernel_size=_kernel_size,
+                dilation_rate=_dilation_rate,
+                padding=_padding_encoder,
+            )
         )(_inputs)
-        x = tf.keras.layers.Conv1D(
-            _num_filters,
-            kernel_size=_kernel_size,
-            dilation_rate=_dilation_rate,
-            padding=_padding_encoder,
-            kernel_regularizer="l2",
+        x = _WeightNormalization(
+            tf.keras.layers.Conv1D(
+                _num_filters,
+                kernel_size=_kernel_size,
+                dilation_rate=_dilation_rate,
+                padding=_padding_encoder,
+                activation=_activation,
+            )
         )(x)
         output = tf.keras.layers.Add()([x, _add])
         output = tf.keras.layers.Activation(_activation)(output)

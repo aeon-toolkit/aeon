@@ -17,7 +17,7 @@ sub-dictionary has the following items:
 __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["ESTIMATOR_TAGS"]
 
-from aeon.utils import COLLECTIONS_DATA_TYPES, SERIES_DATA_TYPES
+from aeon.utils.data_types import COLLECTIONS_DATA_TYPES, SERIES_DATA_TYPES
 
 ESTIMATOR_TAGS = {
     # all estimators
@@ -49,6 +49,14 @@ ESTIMATOR_TAGS = {
         "class": "estimator",
         "type": [
             ("list||str", COLLECTIONS_DATA_TYPES + SERIES_DATA_TYPES),
+        ],
+        "description": "What data structure(s) the estimator uses internally for "
+        "fit/predict.",
+    },
+    "y_inner_type": {
+        "class": "forecaster",
+        "type": [
+            ("list||str", SERIES_DATA_TYPES),
         ],
         "description": "What data structure(s) the estimator uses internally for "
         "fit/predict.",
@@ -130,7 +138,7 @@ ESTIMATOR_TAGS = {
         "point belongs to.",
     },
     "requires_y": {
-        "class": ["transformer", "anomaly-detector", "segmenter"],
+        "class": ["transformer", "anomaly-detector", "segmenter", "similarity-search"],
         "type": "bool",
         "description": "Does this estimator require y to be passed in its methods?",
     },
@@ -147,9 +155,9 @@ ESTIMATOR_TAGS = {
         "values?",
     },
     "input_data_type": {
-        "class": "transformer",
+        "class": ["transformer", "similarity-search"],
         "type": ("str", ["Series", "Collection"]),
-        "description": "The input abstract data type of the transformer, input X. "
+        "description": "The input abstract data type of the estimator, input X. "
         "Series indicates a single series input, Collection indicates a collection of "
         "time series.",
     },
@@ -160,5 +168,28 @@ ESTIMATOR_TAGS = {
         "transformed X. Tabular indicates 2D output where rows are cases and "
         "unordered attributes are columns. Series indicates a single series output "
         "and collection indicates output is a collection of time series.",
+    },
+    "anomaly_output_type": {
+        "class": "anomaly-detector",
+        "type": ("str", ["anomaly_scores", "binary"]),
+        "description": "The format of the anomaly detector output. anomaly_scores "
+        "estimators provide a numeric score on how anomalous the point/case is. binary"
+        "estimators provide a binary classification of whether the point/case is "
+        "anomalous or not.",
+    },
+    "learning_type:unsupervised": {
+        "class": "anomaly-detector",
+        "type": "bool",
+        "description": "Does the anomaly detector support unsupervised learning?",
+    },
+    "learning_type:semi_supervised": {
+        "class": "anomaly-detector",
+        "type": "bool",
+        "description": "Does the anomaly detector support semi-supervised learning?",
+    },
+    "learning_type:supervised": {
+        "class": "anomaly-detector",
+        "type": "bool",
+        "description": "Does the anomaly detector support supervised learning?",
     },
 }

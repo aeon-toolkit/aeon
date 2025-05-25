@@ -5,6 +5,9 @@ __all__ = ["BaseTransformer"]
 
 from abc import abstractmethod
 
+import numpy as np
+import pandas as pd
+
 from aeon.base import BaseAeonEstimator
 
 
@@ -19,7 +22,10 @@ class BaseTransformer(BaseAeonEstimator):
         "removes_missing_values": False,
     }
 
+    @abstractmethod
     def __init__(self):
+        self._estimator_type = "transformer"
+
         super().__init__()
 
     @abstractmethod
@@ -87,3 +93,22 @@ class BaseTransformer(BaseAeonEstimator):
             Additional data, e.g., labels for transformation.
         """
         ...
+
+    def _check_y(self, y, n_cases=None):
+        # Check y valid input for supervised transform
+        if not isinstance(y, (pd.Series, np.ndarray)):
+            raise TypeError(
+                f"y must be a np.array or a pd.Series, but found type: {type(y)}"
+            )
+
+        if isinstance(y, np.ndarray) and y.ndim > 1:
+            raise TypeError(f"y must be 1-dimensional, found {y.ndim} dimensions")
+
+        if n_cases is not None:
+            # Check matching number of labels
+            n_labels = y.shape[0]
+            if n_cases != n_labels:
+                raise ValueError(
+                    f"Mismatch in number of cases. Number in X = {n_cases} nos in y = "
+                    f"{n_labels}"
+                )
