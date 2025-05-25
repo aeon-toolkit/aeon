@@ -24,7 +24,7 @@ def test_trilite_use_mixing_up(use_mixing_up):
         ssl = TRILITE(
             use_mixing_up=use_mixing_up,
             latent_space_dim=2,
-            backbone_network=DummyDeepNetwork,
+            backbone_network=DummyDeepNetwork(),
             n_epochs=3,
             file_path=tmp,
         )
@@ -49,7 +49,7 @@ def test_trilite_use_masking(use_masking):
 
         ssl = TRILITE(
             use_masking=use_masking,
-            backbone_network=DummyDeepNetwork,
+            backbone_network=DummyDeepNetwork(),
             latent_space_dim=2,
             n_epochs=3,
             file_path=tmp,
@@ -75,7 +75,7 @@ def test_trilite_znormalize_pos_neg(znormalize_pos_neg):
 
         ssl = TRILITE(
             znormalize_pos_neg=znormalize_pos_neg,
-            backbone_network=DummyDeepNetwork,
+            backbone_network=DummyDeepNetwork(),
             latent_space_dim=2,
             n_epochs=3,
             file_path=tmp,
@@ -101,7 +101,7 @@ def test_trilite_alpha(alpha):
 
         ssl = TRILITE(
             alpha=alpha,
-            backbone_network=DummyDeepNetwork,
+            backbone_network=DummyDeepNetwork(),
             latent_space_dim=2,
             n_epochs=3,
             file_path=tmp,
@@ -127,7 +127,7 @@ def test_trilite_weight_ref_min(weight_ref_min):
 
         ssl = TRILITE(
             weight_ref_min=weight_ref_min,
-            backbone_network=DummyDeepNetwork,
+            backbone_network=DummyDeepNetwork(),
             latent_space_dim=2,
             n_epochs=3,
             file_path=tmp,
@@ -153,7 +153,7 @@ def test_trilite_percentage_mask_length(percentage_mask_length):
 
         ssl = TRILITE(
             percentage_mask_length=percentage_mask_length,
-            backbone_network=DummyDeepNetwork,
+            backbone_network=DummyDeepNetwork(),
             latent_space_dim=2,
             n_epochs=3,
             file_path=tmp,
@@ -179,7 +179,7 @@ def test_trilite_latent_space_dim(latent_space_dim):
 
         ssl = TRILITE(
             latent_space_dim=latent_space_dim,
-            backbone_network=DummyDeepNetwork,
+            backbone_network=DummyDeepNetwork(),
             n_epochs=3,
             file_path=tmp,
         )
@@ -204,7 +204,7 @@ def test_trilite_latent_space_activation(latent_space_activation):
 
         ssl = TRILITE(
             latent_space_activation=latent_space_activation,
-            backbone_network=DummyDeepNetwork,
+            backbone_network=DummyDeepNetwork(),
             latent_space_dim=2,
             n_epochs=3,
             file_path=tmp,
@@ -228,12 +228,20 @@ def test_trilite_backbone_network(backbone_network):
     X = np.random.random((100, 2, 5))
     with tempfile.TemporaryDirectory() as tmp:
 
-        ssl = TRILITE(
-            backbone_network=backbone_network,
-            latent_space_dim=2,
-            n_epochs=3,
-            file_path=tmp,
-        )
+        if backbone_network is not None:
+            ssl = TRILITE(
+                backbone_network=backbone_network(),
+                latent_space_dim=2,
+                n_epochs=3,
+                file_path=tmp,
+            )
+        else:
+            ssl = TRILITE(
+                backbone_network=backbone_network,
+                latent_space_dim=2,
+                n_epochs=3,
+                file_path=tmp,
+            )
 
         ssl.fit(X=X)
 
