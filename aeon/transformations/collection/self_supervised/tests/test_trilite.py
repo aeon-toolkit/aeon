@@ -5,7 +5,7 @@ import tempfile
 import numpy as np
 import pytest
 
-from aeon.networks import TimeCNNNetwork
+from aeon.networks import LITENetwork
 from aeon.networks.tests.test_network_base import DummyDeepNetwork
 from aeon.transformations.collection.self_supervised import TRILITE
 from aeon.utils.validation._dependencies import _check_soft_dependencies
@@ -222,7 +222,7 @@ def test_trilite_latent_space_activation(latent_space_activation):
     not _check_soft_dependencies(["tensorflow"], severity="none"),
     reason="Tensorflow soft dependency unavailable.",
 )
-@pytest.mark.parametrize("backbone_network", [None, DummyDeepNetwork, TimeCNNNetwork])
+@pytest.mark.parametrize("backbone_network", [None, DummyDeepNetwork, LITENetwork])
 def test_trilite_backbone_network(backbone_network):
     """Test TRILITE with possible backbone_network setups."""
     X = np.random.random((100, 2, 5))
