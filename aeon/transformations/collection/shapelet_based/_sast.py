@@ -107,20 +107,24 @@ class SAST(BaseCollectionTransformer):
         stride: int = 1,
         nb_inst_per_class: int = 1,
         random_state: Optional[int] = None,
-        n_jobs: int = 1,  # Parallel processing
-        seed = None,
+        n_jobs: int = 1,
+        seed=None,
     ):
         super().__init__()
         self.lengths = lengths
         self.stride = stride
         self.nb_inst_per_class = nb_inst_per_class
-        self._kernels = None  # z-normalized subsequences
-        self._kernel_orig = None  # non z-normalized subsequences
-        self._start_points = []  # To store the start positions
-        self._classes = []  # To store the class of each shapelet
-        self._source_series = []  # To store the index of the original time series
-        self.kernels_generators_ = {}  # Reference time series
+        self._kernels = None
+        self._kernel_orig = None
+        self._start_points = []
+        self._classes = []
+        self._source_series = []
+        self.kernels_generators_ = {}
         self.n_jobs = n_jobs
+        
+        # Store the seed parameter (required for sklearn compatibility)
+        self.seed = seed
+        
         # Handle deprecated seed parameter
         if seed is not None:
             import warnings
@@ -128,7 +132,7 @@ class SAST(BaseCollectionTransformer):
                 "The 'seed' parameter is deprecated and will be removed in v1.2. "
                 "Use 'random_state' instead.",
                 FutureWarning,
-                stacklevel=2
+                stacklevel=2,
             )
             if random_state is None:
                 random_state = seed
@@ -137,7 +141,9 @@ class SAST(BaseCollectionTransformer):
                     "Cannot specify both 'seed' and 'random_state'. "
                     "Use 'random_state' only."
                 )
+        
         self.random_state = random_state
+
 
     def _fit(self, X: np.ndarray, y: Union[np.ndarray, list]) -> "SAST":
         """Select reference time series and generate subsequences from them.
