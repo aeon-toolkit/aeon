@@ -114,15 +114,12 @@ class RSAST(BaseCollectionTransformer):
         nb_inst_per_class: int = 10,
         random_state: Optional[int] = None,
         n_jobs: int = 1,  # Parllel Processing
-        # seed=None,
+        seed=None
     ):
         self.n_random_points = n_random_points
         self.len_method = len_method
         self.nb_inst_per_class = nb_inst_per_class
         self.n_jobs = n_jobs
-        # if seed is not None:
-        #     random_state = seed
-        self.random_state = random_state
         self._kernels = None  # z-normalized subsequences
         self._cand_length_list = {}
         self._kernel_orig = []
@@ -130,6 +127,23 @@ class RSAST(BaseCollectionTransformer):
         self._classes = []
         self._source_series = []  # To store the index of the original time series
         self._kernels_generators = {}  # Reference time series
+        # Handle deprecated seed parameter
+        if seed is not None:
+            import warnings
+            warnings.warn(
+                "The 'seed' parameter is deprecated and will be removed in v1.2. "
+                "Use 'random_state' instead.",
+                FutureWarning,
+                stacklevel=2
+            )
+            if random_state is None:
+                random_state = seed
+            else:
+                raise ValueError(
+                    "Cannot specify both 'seed' and 'random_state'. "
+                    "Use 'random_state' only."
+                )
+        self.random_state = random_state
         super().__init__()
 
     def _fit(self, X: np.ndarray, y: Union[np.ndarray, list]) -> "RSAST":

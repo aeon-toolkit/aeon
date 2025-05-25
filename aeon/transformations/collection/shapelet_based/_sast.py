@@ -108,7 +108,7 @@ class SAST(BaseCollectionTransformer):
         nb_inst_per_class: int = 1,
         random_state: Optional[int] = None,
         n_jobs: int = 1,  # Parallel processing
-        # seed: int = None,
+        seed = None,
     ):
         super().__init__()
         self.lengths = lengths
@@ -121,8 +121,22 @@ class SAST(BaseCollectionTransformer):
         self._source_series = []  # To store the index of the original time series
         self.kernels_generators_ = {}  # Reference time series
         self.n_jobs = n_jobs
-        # if seed is not None:
-        #     random_state = seed
+        # Handle deprecated seed parameter
+        if seed is not None:
+            import warnings
+            warnings.warn(
+                "The 'seed' parameter is deprecated and will be removed in v1.2. "
+                "Use 'random_state' instead.",
+                FutureWarning,
+                stacklevel=2
+            )
+            if random_state is None:
+                random_state = seed
+            else:
+                raise ValueError(
+                    "Cannot specify both 'seed' and 'random_state'. "
+                    "Use 'random_state' only."
+                )
         self.random_state = random_state
 
     def _fit(self, X: np.ndarray, y: Union[np.ndarray, list]) -> "SAST":

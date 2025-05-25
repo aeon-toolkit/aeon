@@ -68,9 +68,9 @@ class RSASTClassifier(BaseClassifier):
 
     # TODO: remove 'seed' in v1.2
     @deprecated(
-        version="1.1",
-        reason="The 'seed' parameter will be removed in v1.2.",
-        category=FutureWarning,
+    version="1.1",
+    reason="The 'seed' parameter will be removed in v1.2.",
+    category=FutureWarning,
     )
     def __init__(
         self,
@@ -80,17 +80,34 @@ class RSASTClassifier(BaseClassifier):
         random_state=None,
         classifier=None,
         n_jobs=1,
-        # seed=None,
+        seed=None,
     ):
         super().__init__()
         self.n_random_points = n_random_points
         self.len_method = len_method
         self.nb_inst_per_class = nb_inst_per_class
         self.n_jobs = n_jobs
-        # if seed is not None:
-        #     random_state = seed
+        
+        # Handle deprecated seed parameter
+        if seed is not None:
+            import warnings
+            warnings.warn(
+                "The 'seed' parameter is deprecated and will be removed in v1.2. "
+                "Use 'random_state' instead.",
+                FutureWarning,
+                stacklevel=2
+            )
+            if random_state is None:
+                random_state = seed
+            else:
+                raise ValueError(
+                    "Cannot specify both 'seed' and 'random_state'. "
+                    "Use 'random_state' only."
+                )
+        
         self.random_state = random_state
         self.classifier = classifier
+
 
     def _fit(self, X, y):
         """Fit RSASTClassifier to the training data.

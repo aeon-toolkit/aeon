@@ -83,15 +83,29 @@ class SASTClassifier(BaseClassifier):
         random_state: Optional[int] = None,
         classifier=None,
         n_jobs: int = 1,
-        # seed: Optional[int] = None,
+        seed = None,
     ) -> None:
         super().__init__()
         self.length_list = length_list
         self.stride = stride
         self.nb_inst_per_class = nb_inst_per_class
         self.n_jobs = n_jobs
-        # if seed is not None:
-        #     random_state = seed
+        # Handle deprecated seed parameter
+        if seed is not None:
+            import warnings
+            warnings.warn(
+                "The 'seed' parameter is deprecated and will be removed in v1.2. "
+                "Use 'random_state' instead.",
+                FutureWarning,
+                stacklevel=2
+            )
+            if random_state is None:
+                random_state = seed
+            else:
+                raise ValueError(
+                    "Cannot specify both 'seed' and 'random_state'. "
+                    "Use 'random_state' only."
+                )
         self.random_state = random_state
 
         self.classifier = classifier
