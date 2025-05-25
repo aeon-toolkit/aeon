@@ -127,6 +127,7 @@ class RSAST(BaseCollectionTransformer):
         self._classes = []
         self._source_series = []  # To store the index of the original time series
         self._kernels_generators = {}  # Reference time series
+
         # Handle deprecated seed parameter
         # Store the seed parameter (required for sklearn compatibility)
         self.seed = seed

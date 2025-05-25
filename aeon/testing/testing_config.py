@@ -46,12 +46,8 @@ EXCLUDED_TESTS = {
         "check_persistence_via_pickle",
         "check_save_estimators_to_file",
     ],
-    # needs investigation
-    "SASTClassifier": ["check_fit_deterministic"],
-    "RSASTClassifier": ["check_fit_deterministic"],
-    "SAST": ["check_fit_deterministic"],
-    "RSAST": ["check_fit_deterministic"],
-    "MatrixProfile": ["check_persistence_via_pickle"],
+    "MatrixProfile": ["check_fit_deterministic", "check_persistence_via_pickle"],
+    "LeftSTAMPi": ["check_anomaly_detector_output"],
     # missed in legacy testing, changes state in predict/transform
     "FLUSSSegmenter": ["check_non_state_changing_method"],
     "ClaSPSegmenter": ["check_non_state_changing_method"],

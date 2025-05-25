@@ -87,10 +87,9 @@ class RSASTClassifier(BaseClassifier):
         self.len_method = len_method
         self.nb_inst_per_class = nb_inst_per_class
         self.n_jobs = n_jobs
-
         # Store the seed parameter (required for sklearn compatibility)
         self.seed = seed
-        
+
         # Handle deprecated seed parameter
         if seed is not None:
             import warnings

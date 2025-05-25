@@ -110,6 +110,7 @@ class SAST(BaseCollectionTransformer):
         n_jobs: int = 1,
         seed=None,
     ):
+
         super().__init__()
         self.lengths = lengths
         self.stride = stride
@@ -121,13 +122,14 @@ class SAST(BaseCollectionTransformer):
         self._source_series = []
         self.kernels_generators_ = {}
         self.n_jobs = n_jobs
-        
+
         # Store the seed parameter (required for sklearn compatibility)
         self.seed = seed
-        
+
         # Handle deprecated seed parameter
         if seed is not None:
             import warnings
+
             warnings.warn(
                 "The 'seed' parameter is deprecated and will be removed in v1.2. "
                 "Use 'random_state' instead.",
@@ -141,9 +143,8 @@ class SAST(BaseCollectionTransformer):
                     "Cannot specify both 'seed' and 'random_state'. "
                     "Use 'random_state' only."
                 )
-        
-        self.random_state = random_state
 
+        self.random_state = random_state
 
     def _fit(self, X: np.ndarray, y: Union[np.ndarray, list]) -> "SAST":
         """Select reference time series and generate subsequences from them.
