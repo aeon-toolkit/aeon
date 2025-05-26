@@ -14,12 +14,14 @@ class SFAWhole(SFAFast):
     """Symbolic Fourier Approximation (SFA) Transformer.
 
     A whole series transform for SFA which holds the lower bounding lemma, see [1].
+    SOFA [2] extends on SFA by introducing variance based feature selection, and dynamic
+    alphabet sizes. It produces a significantly tighter lower bound.
 
     It is implemented as a wrapper for the SFA-Fast transformer, the latter implements
     subsequence-based SFA extraction.
 
     This wrapper reduces non-needed parameters, and sets some usefull defaults for
-    lower bounding.
+    the tightest possible lower bounding.
 
     Parameters
     ----------
@@ -27,9 +29,15 @@ class SFAWhole(SFAFast):
         Length of word to shorten window to (using DFT).
     alphabet_size : int, default = 4
         Number of values to discretise each value to.
+    learn_alphabet_sizes : boolean, default = True
+        If True, dynamic alphabet sizes are learned based on the variance of the Fourier
+        coefficients.
+    alphabet_allocation_method : str, default = linear_scale
+        The method used to learn the dynamic alphabet sizes. One of
+        {"linear_scale", "log_scale", "sqrt_scale"}.
     norm : boolean, default = False
         Mean normalise words by dropping first fourier coefficient.
-    binning_method : str, default="equi-depth"
+    binning_method : str, default="equi-width"
         The binning method used to derive the breakpoints. One of {"equi-depth",
         "equi-width", "information-gain", "information-gain-mae", "kmeans", "quantile"},
     variance : boolean, default = False
@@ -51,9 +59,12 @@ class SFAWhole(SFAFast):
 
     References
     ----------
-    .. [1] Schäfer, Patrick, and Mikael Högqvist. "SFA: a symbolic fourier approximation
+    .. [1] P. Schäfer, and M. Högqvist. "SFA: a symbolic fourier approximation
     and  index for similarity search in high dimensional datasets." Proceedings of the
     15th international conference on extending database technology. 2012.
+    .. [2] P. Schäfer, J. Brand, U. Leser, B. Peng and T. Palpanas, "Fast and Exact
+    Similarity Search in Less than a Blink of an Eye," in 2025 IEEE 41st International
+    Conference on Data Engineering (ICDE), Hong Kong, 2025, pp. 2464-2477.
     """
 
     _tags = {
@@ -66,8 +77,10 @@ class SFAWhole(SFAFast):
         self,
         word_length=8,
         alphabet_size=4,
+        learn_alphabet_sizes=True,
+        alphabet_allocation_method="linear_scale",
         norm=True,
-        binning_method="equi-depth",
+        binning_method="equi-width",
         variance=True,
         sampling_factor=None,
         random_state=None,
@@ -77,6 +90,8 @@ class SFAWhole(SFAFast):
             word_length=word_length,
             alphabet_size=alphabet_size,
             norm=norm,
+            learn_alphabet_sizes=learn_alphabet_sizes,
+            alphabet_allocation_method=alphabet_allocation_method,
             binning_method=binning_method,
             variance=variance,
             sampling_factor=sampling_factor,
@@ -92,7 +107,7 @@ class SFAWhole(SFAFast):
             skip_grams=False,
             remove_repeat_words=False,
             return_sparse=False,
-            window_size=None,  # set in fit
+            window_size=None,  # set in fit - do not remove
         )
 
     def _fit_transform(self, X, y=None):
