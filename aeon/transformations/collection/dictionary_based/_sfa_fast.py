@@ -747,13 +747,22 @@ class SFAFast(BaseCollectionTransformer):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
         """
         # small window size for testing
-        params = {
-            "word_length": 4,
-            "window_size": 4,
-            "return_sparse": True,
-            "feature_selection": "chi2",
-            "alphabet_size": 2,
-        }
+        params = [
+            {
+                "word_length": 4,
+                "window_size": 4,
+                "return_sparse": False,
+                "feature_selection": "chi2",
+                "alphabet_size": 2,
+            },
+            {
+                "word_length": 4,
+                "window_size": 4,
+                "return_sparse": True,
+                "feature_selection": "chi2",
+                "alphabet_size": 2,
+            },
+        ]
         return params
 
     def __getstate__(self):
