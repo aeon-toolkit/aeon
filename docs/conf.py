@@ -166,29 +166,46 @@ def linkcode_resolve(domain, info):
     def find_source():
         # try to find the file and line number, based on code from numpy:
         # https://github.com/numpy/numpy/blob/main/doc/source/conf.py#L286
-        obj = sys.modules[info["module"]]
-        for part in info["fullname"].split("."):
-            obj = getattr(obj, part)
+
         import inspect
         import os
 
-        obj = inspect.unwrap(obj)
+        obj = sys.modules[info["module"]]
+        for part in info["fullname"].split("."):
+            obj = getattr(obj, part)
 
-        fn = inspect.getsourcefile(obj)
-        fn = os.path.relpath(fn, start=os.path.dirname(aeon.__file__))
+        if inspect.isfunction(obj):
+            obj = inspect.unwrap(obj)
+
+        try:
+            fn = inspect.getsourcefile(obj)
+        except TypeError:
+            fn = None
+
+        if not fn:
+            return None
+
+        startdir = Path(aeon.__file__).parent.parent
+        try:
+            fn = os.path.relpath(fn, start=startdir).replace(os.path.sep, "/")
+        except ValueError:
+            return None
+
+        if not fn.startswith("aeon/"):
+            return None
+
         source, lineno = inspect.getsourcelines(obj)
         return fn, lineno, lineno + len(source) - 1
 
     if domain != "py" or not info["module"]:
         return None
     try:
-        filename = "aeon/%s#L%d-L%d" % find_source()
+        result = find_source()
+        if not result:
+            return None
+        filename = "%s#L%d-L%d" % result
     except Exception:
         filename = info["module"].replace(".", "/") + ".py"
-
-    if filename.split("/")[0] != "aeon":
-        return None
-
     return "https://github.com/aeon-toolkit/aeon/blob/{}/{}".format(
         github_tag,
         filename,
