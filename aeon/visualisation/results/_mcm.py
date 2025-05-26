@@ -1,4 +1,4 @@
-"""Function to create the Multi-Comparison Matrix (MCM) results visualisation."""
+"""Function to createthe Multi-Comparison Matrix (MCM) results visualisation."""
 
 __maintainer__ = ["TonyBagnall"]
 
@@ -16,11 +16,15 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 def create_multi_comparison_matrix(
     df_results,
-    output_config=None,  # dictionary
+    output_dir="./",
+    pdf_savename=None,
+    png_savename=None,
+    csv_savename=None,
+    tex_savename=None,
     used_statistic="Accuracy",
     save_as_json=False,
     plot_1v1_comparisons=False,
-    ordering_strategy="higher-wins",
+    order_win_tie_loss="higher",
     include_pvalue=True,
     pvalue_test="wilcoxon",
     pvalue_test_params=None,
@@ -28,6 +32,7 @@ def create_multi_comparison_matrix(
     pvalue_threshold=0.05,
     use_mean="mean-difference",
     order_stats="average-statistic",
+    order_better="decreasing",
     dataset_column=None,
     precision=4,
     load_analysis=False,
@@ -40,7 +45,9 @@ def create_multi_comparison_matrix(
     font_size="auto",
     colorbar_orientation="vertical",
     colorbar_value=None,
-    result_labels=True,
+    win_label="r>c",
+    tie_label="r=c",
+    loss_label="r<c",
     include_legend=True,
     show_symetry=True,
 ):
@@ -56,23 +63,28 @@ def create_multi_comparison_matrix(
         A csv file containing results in `n_problems,n_estimators` format. The first
         row should contain the names of the estimators and the first column can
         contain the names of the problems if `dataset_column` is true.
-    output_config: dict, default = None
-        A dictionary for output configurations. Expected keys:
-            - "save_path": output directory (default: "./")
-            - "base_name": basef filename (if provided, used for saving)
-            - "format": list of file formats to save. eg:["pdf", "png", "csv", "tex"]
-    ordering_strategy : str, default="higher-wins"
-        Unified parameter to specify ordering.
-            - "higher-wins": higher metric values (accuracy) count as wins and sorting
-            is in decreasing order.
-            - "lower-wins": lower metric values (error) count as wins and sorting is in
-               increasing order.
+    output_dir: str, default = './'
+        The output directory for the results.
+    pdf_savename: str, default = None
+        The name of the saved file into pdf format. if None, it will not be saved into
+        this format.
+    png_savename: str, default = None
+        The name of the saved file into png format, if None, it will not be saved
+        into this format.
+    csv_savename: str, default = None
+        The name of the saved file into csv format, if None, will not be saved into
+        this format.
+    tex_savename: str, default = None
+        The name of the saved file into tex format, if None, will not be saved into
+        this format.
     used_statistic: str, default = 'Score'
         Name of the metric being assesses (e.g. accuracy, error, mse).
     save_as_json: bool, default = True
         Whether or not to save the python analysis dict into a json file format.
     plot_1v1_comparisons: bool, default = True
         Whether or not to plot the 1v1 scatter results.
+    order_win_tie_loss: str, default = 'higher'
+        The order on considering a win or a loss for a given statistics.
     include_pvalue bool, default = True
         Condition whether or not include a pvalue stats.
     pvalue_test: str, default = 'wilcoxon'
@@ -105,6 +117,8 @@ def create_multi_comparison_matrix(
         amean-amean            average over difference of use_mean
         pvalue                 average pvalue over all comparates
         ================================================================
+    order_better: str, default = 'decreasing'
+        By which order to sort stats, from best to worse.
     dataset_column: str, default = 'dataset_name'
         The name of the datasets column in the csv file.
     precision: int, default = 4
@@ -133,10 +147,12 @@ def create_multi_comparison_matrix(
         In which orientation to show the colorbar either horizontal or vertical.
     colorbar_value: str, default = 'mean-difference'
         The values for which the heat map colors are based on.
-    result_labels : bool, default=True
-        r = row estimator performance, c = column estimator performance.
-        If True, use default labels (win: "r>c", tie: "r=c", loss: "r<c");
-        if False, use the reversed labels (win: "r<c", tie: "r=c", loss: "r>c").
+    win_label: str, default = "r>c"
+        The winning label to be set on the MCM.
+    tie_label: str, default = "r=c"
+        The tie label to be set on the MCM.
+    loss_label: str, default = "r<c"
+        The loss label to be set on the MCM.
     include_legend: bool, default = True
         Whether or not to show the legend on the MCM.
     show_symetry: bool, default = True
@@ -168,45 +184,9 @@ def create_multi_comparison_matrix(
         except Exception as e:
             raise ValueError(f"No dataframe or valid path is given: Exception {e}")
 
-    default_output_config = {"save_path": "./", "base_name": None, "formats": []}
-
-    if output_config is None:
-        output_config = {}
-
-    default_output_config.update(output_config)
-    save_path = default_output_config["save_path"]
-    base_name = default_output_config.get("base_name", None)
-    formats = default_output_config.get("formats", [])
-
-    pdf_savename = base_name if ("pdf" in formats and base_name is not None) else None
-    png_savename = base_name if ("png" in formats and base_name is not None) else None
-    csv_savename = base_name if ("csv" in formats and base_name is not None) else None
-    tex_savename = base_name if ("tex" in formats and base_name is not None) else None
-
-    if ordering_strategy == "higher-wins":
-        order_win_tie_loss = "higher"
-        order_better = "decreasing"
-    elif ordering_strategy == "lower-wins":
-        order_win_tie_loss = "lower"
-        order_better = "increasing"
-    else:
-        raise ValueError(
-            "ordering_strategy must be either 'higher-wins' or 'lower-wins'"
-        )
-
-    # result_labels: if boolean, select defaults or reversed labels
-    if isinstance(result_labels, bool):
-        if result_labels:
-            result_labels_dict = {"win": "r>c", "tie": "r=c", "loss": "r<c"}
-        else:
-            result_labels_dict = {"win": "r<c", "tie": "r=c", "loss": "r>c"}
-    else:
-        # assume the user provided a custom dict
-        result_labels_dict = result_labels
-
     analysis = _get_analysis(
         df_results,
-        save_path=save_path,
+        output_dir=output_dir,
         used_statistic=used_statistic,
         save_as_json=save_as_json,
         plot_1v1_comparisons=plot_1v1_comparisons,
@@ -231,7 +211,7 @@ def create_multi_comparison_matrix(
         png_savename=png_savename,
         tex_savename=tex_savename,
         csv_savename=csv_savename,
-        save_path=save_path,
+        output_dir=output_dir,
         row_comparates=row_comparates,
         col_comparates=col_comparates,
         excluded_row_comparates=excluded_row_comparates,
@@ -242,9 +222,9 @@ def create_multi_comparison_matrix(
         font_size=font_size,
         colorbar_orientation=colorbar_orientation,
         colorbar_value=colorbar_value,
-        win_label=result_labels_dict["win"],
-        tie_label=result_labels_dict["tie"],
-        loss_label=result_labels_dict["loss"],
+        win_label=win_label,
+        tie_label=tie_label,
+        loss_label=loss_label,
         include_legend=include_legend,
         show_symetry=show_symetry,
     )
@@ -253,7 +233,7 @@ def create_multi_comparison_matrix(
 
 def _get_analysis(
     df_results,
-    save_path="./",
+    output_dir="./",
     used_statistic="Score",
     save_as_json=True,
     plot_1v1_comparisons=False,
@@ -282,7 +262,7 @@ def _get_analysis(
         win_x,
         loss_x,
         tie,
-        save_path="./",
+        output_directory="./",
         min_lim: int = 0,
         max_lim: int = 1,
         scatter_size: int = 100,
@@ -291,7 +271,7 @@ def _get_analysis(
         fontsize: int = 20,
     ):
         save_path = os.path.join(
-            save_path,
+            output_directory,
             "1v1_plots",
             _get_keys_for_two_comparates(name_x, name_y) + ".pdf",
         )
@@ -352,15 +332,15 @@ def _get_analysis(
 
         ax.legend(handles=legend_elements)
 
-        if not os.path.exists(save_path + "1v1_plots/"):
-            os.mkdir(save_path + "1v1_plots/")
+        if not os.path.exists(output_directory + "1v1_plots/"):
+            os.mkdir(output_directory + "1v1_plots/")
         plt.savefig(save_path, bbox_inches="tight")
         plt.savefig(save_path.replace(".pdf", ".png"), bbox_inches="tight")
         plt.cla()
         plt.clf()
         plt.close()
 
-    save_file = save_path + "analysis.json"
+    save_file = output_dir + "analysis.json"
 
     if load_analysis and os.path.exists(save_file):
         with open(save_file) as json_file:
@@ -432,7 +412,7 @@ def _get_analysis(
                         win_x=pairwise_content["win"],
                         tie=pairwise_content["tie"],
                         loss_x=pairwise_content["loss"],
-                        save_path=save_path,
+                        output_directory=output_dir,
                         max_lim=max_lim,
                         min_lim=min_lim,
                     )
@@ -454,7 +434,7 @@ def _get_analysis(
 
 def _draw(
     analysis,
-    save_path="./",
+    output_dir="./",
     pdf_savename=None,
     png_savename=None,
     csv_savename=None,
@@ -540,6 +520,7 @@ def _draw(
             raise ValueError(
                 f"Row and Column comparates are the same" f" {row_comparates[0]}"
             )
+            return
     else:
         figure_aspect = "auto"
 
@@ -602,7 +583,7 @@ def _draw(
 
     if csv_savename is not None:
         # todo: can add a argument to save or not
-        df_annotations.to_csv(save_path + f"{csv_savename}.csv", index=False)
+        df_annotations.to_csv(output_dir + f"{csv_savename}.csv", index=False)
 
     df_annotations.drop("comparates", inplace=True, axis=1)
     df_annotations_np = np.asarray(df_annotations)
@@ -833,9 +814,18 @@ def _draw(
         )
 
     if pdf_savename is not None:
-        plt.savefig(os.path.join(save_path, f"{pdf_savename}.pdf"), bbox_inches="tight")
-    if png_savename is not None:
-        plt.savefig(os.path.join(save_path, f"{png_savename}.png"), bbox_inches="tight")
+        plt.savefig(
+            os.path.join(output_dir + f"{pdf_savename}.pdf"), bbox_inches="tight"
+        )
+        plt.cla()
+        plt.clf()
+        plt.close()
+    elif png_savename is not None:
+        plt.savefig(
+            os.path.join(output_dir + f"{png_savename}.png"), bbox_inches="tight"
+        )
+        plt.cla()
+        plt.clf()
 
     latex_string += (
         f"\\begin{{tabular}}{{{'c' * (len(latex_table[0]) + 1)}}}\n"  # +1 for labels
@@ -903,7 +893,7 @@ def _draw(
 
     if tex_savename is not None:
         with open(
-            f"{save_path}/{tex_savename}.tex", "w", encoding="utf8", newline="\n"
+            f"{output_dir}/{tex_savename}.tex", "w", encoding="utf8", newline="\n"
         ) as file:
             file.writelines(latex_string)
 
@@ -912,7 +902,7 @@ def _draw(
     # * https://tex.stackexchange.com/a/334293
     # * https://tex.stackexchange.com/a/592942
     # * https://tex.stackexchange.com/a/304215
-    return fig
+    return plt.Figure()
 
 
 def _get_keys_for_two_comparates(a, b):
