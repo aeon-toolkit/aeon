@@ -103,9 +103,9 @@ class ETSForecaster(BaseForecaster):
 
     def __init__(
         self,
-        error_type: string = ADDITIVE,
-        trend_type: string = NONE,
-        seasonality_type: string = NONE,
+        error_type: str = ADDITIVE,
+        trend_type: str = NONE,
+        seasonality_type: str = NONE,
         seasonal_period: int = 1,
         alpha: float = 0.1,
         beta: float = 0.01,
