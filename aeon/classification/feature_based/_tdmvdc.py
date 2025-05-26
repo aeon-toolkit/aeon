@@ -121,11 +121,7 @@ class TDMVDCClassifier(BaseClassifier):
         self.default_fc_parameters = default_fc_parameters
         self.k1 = k1
         self.k2 = k2
-        self.feature_store_ratios = (
-            feature_store_ratios
-            if feature_store_ratios is not None
-            else [0.1, 0.2, 0.3, 0.4, 0.5]
-        )
+        self.feature_store_ratios = feature_store_ratios
         self.n_jobs = n_jobs
         self.parallel_backend = parallel_backend
         super().__init__()
@@ -381,11 +377,18 @@ class TDMVDCClassifier(BaseClassifier):
         self.clfList_ = []
 
         # Train classifiers for each feature ratio in parallel
+        # Ensure feature_store_ratios is set
+        feature_store_ratios = (
+            self.feature_store_ratios
+            if self.feature_store_ratios is not None
+            else [0.1, 0.2, 0.3, 0.4, 0.5]
+        )
+
         self.clfList_ = Parallel(
             n_jobs=threads_to_use, backend=self.parallel_backend, prefer="threads"
         )(
             delayed(self._train_classifier_for_ratio)(RX, FX, SX, y, ratio)
-            for ratio in self.feature_store_ratios
+            for ratio in feature_store_ratios
         )
 
         return self
@@ -515,12 +518,19 @@ class TDMVDCClassifier(BaseClassifier):
         FX = np.hstack(FXList)
         SX = np.hstack(SXList)
 
+        # Ensure feature_store_ratios is set
+        feature_store_ratios = (
+            self.feature_store_ratios
+            if self.feature_store_ratios is not None
+            else [0.1, 0.2, 0.3, 0.4, 0.5]
+        )
+
         # Predict in parallel for each classifier
         PYList = Parallel(
             n_jobs=threads_to_use, backend=self.parallel_backend, prefer="threads"
         )(
             delayed(self._predict_with_classifier)(RX, FX, SX, i, ratio)
-            for i, ratio in enumerate(self.feature_store_ratios)
+            for i, ratio in enumerate(feature_store_ratios)
         )
 
         # Convert to numpy array for voting

@@ -49,7 +49,6 @@ EXCLUDED_TESTS = {
     # needs investigation
     "SASTClassifier": ["check_fit_deterministic"],
     "RSASTClassifier": ["check_fit_deterministic"],
-    "TDMVDCClassifier": ["check_constructor"],
     "SAST": ["check_fit_deterministic"],
     "RSAST": ["check_fit_deterministic"],
     "MatrixProfile": ["check_fit_deterministic", "check_persistence_via_pickle"],
