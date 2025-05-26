@@ -5,7 +5,7 @@ __all__ = ["ComposableEstimatorMixin"]
 
 from abc import ABC, abstractmethod
 
-from aeon.base import BaseAeonEstimator
+from aeon.base import BaseAeonEstimator, BaseCollectionEstimator
 from aeon.base._base import _clone_estimator
 
 
@@ -26,8 +26,11 @@ class ComposableEstimatorMixin(ABC):
     _fitted_estimators_attr = "estimators_"
 
     @abstractmethod
-    def __init__(self):
-        super().__init__()
+    def __init__(self, axis):
+        if isinstance(self, BaseCollectionEstimator):
+            super().__init__()
+        else:
+            super().__init__(axis=axis)
 
     def get_params(self, deep=True):
         """Get parameters for this estimator.
