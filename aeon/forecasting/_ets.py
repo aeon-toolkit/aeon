@@ -15,9 +15,9 @@ from aeon.forecasting.base import BaseForecaster
 NOGIL = False
 CACHE = True
 
-NONE = 'none'
-ADDITIVE = 'additive'
-MULTIPLICATIVE = 'multiplicative'
+NONE = "none"
+ADDITIVE = "additive"
+MULTIPLICATIVE = "multiplicative"
 
 
 class ETSForecaster(BaseForecaster):
