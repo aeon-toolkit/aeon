@@ -14,10 +14,10 @@ jobs:
       - name: Checkout main
         uses: actions/checkout@v4
 
-      - name: Setup Python 3.11
+      - name: Setup Python 3.12
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.12"
 
       - uses: browniebroke/pre-commit-autoupdate-action@v1.0.0
 
@@ -48,10 +48,10 @@ jobs:
         with:
           sparse-checkout: .github/utilities
 
-      - name: Setup Python 3.11
+      - name: Setup Python 3.12
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.12"
 
       - name: Create app token
         uses: actions/create-github-app-token@v2
