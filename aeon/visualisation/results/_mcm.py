@@ -1,4 +1,4 @@
-"""Function to createthe Multi-Comparison Matrix (MCM) results visualisation."""
+"""Function to create the Multi-Comparison Matrix (MCM) results visualisation."""
 
 __maintainer__ = ["TonyBagnall"]
 
@@ -16,15 +16,11 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 def create_multi_comparison_matrix(
     df_results,
-    output_dir="./",
-    pdf_savename=None,
-    png_savename=None,
-    csv_savename=None,
-    tex_savename=None,
+    save_path="./mcm",
+    formats=("pdf", "png", "csv", "tex", "json"),
     used_statistic="Accuracy",
-    save_as_json=False,
     plot_1v1_comparisons=False,
-    order_win_tie_loss="higher",
+    higher_stat_better=True,
     include_pvalue=True,
     pvalue_test="wilcoxon",
     pvalue_test_params=None,
@@ -32,7 +28,7 @@ def create_multi_comparison_matrix(
     pvalue_threshold=0.05,
     use_mean="mean-difference",
     order_stats="average-statistic",
-    order_better="decreasing",
+    order_stats_increasing=False,
     dataset_column=None,
     precision=4,
     load_analysis=False,
@@ -45,9 +41,7 @@ def create_multi_comparison_matrix(
     font_size="auto",
     colorbar_orientation="vertical",
     colorbar_value=None,
-    win_label="r>c",
-    tie_label="r=c",
-    loss_label="r<c",
+    labels=None,
     include_legend=True,
     show_symetry=True,
 ):
@@ -63,7 +57,7 @@ def create_multi_comparison_matrix(
         A csv file containing results in `n_problems,n_estimators` format. The first
         row should contain the names of the estimators and the first column can
         contain the names of the problems if `dataset_column` is true.
-    output_dir: str, default = './'
+    save_path: str, default = './'
         The output directory for the results.
     pdf_savename: str, default = None
         The name of the saved file into pdf format. if None, it will not be saved into
@@ -83,7 +77,7 @@ def create_multi_comparison_matrix(
         Whether or not to save the python analysis dict into a json file format.
     plot_1v1_comparisons: bool, default = True
         Whether or not to plot the 1v1 scatter results.
-    order_win_tie_loss: str, default = 'higher'
+    higher_stat_better: bool, default = 'True'
         The order on considering a win or a loss for a given statistics.
     include_pvalue bool, default = True
         Condition whether or not include a pvalue stats.
@@ -117,8 +111,9 @@ def create_multi_comparison_matrix(
         amean-amean            average over difference of use_mean
         pvalue                 average pvalue over all comparates
         ================================================================
-    order_better: str, default = 'decreasing'
-        By which order to sort stats, from best to worse.
+    order_stats_increasing: bool, default = False
+        If True, the order_stats will be ordered in increasing order, otherwise they are
+        ordered in decreasing order.
     dataset_column: str, default = 'dataset_name'
         The name of the datasets column in the csv file.
     precision: int, default = 4
@@ -166,7 +161,9 @@ def create_multi_comparison_matrix(
     Example
     -------
     >>> from aeon.visualisation import create_multi_comparison_matrix # doctest: +SKIP
-    >>> create_multi_comparison_matrix(df_results='results.csv') # doctest: +SKIP
+    >>> create_multi_comparison_matrix(df_results="results.csv",
+                                save_path="reports/mymcm",
+                                formats=("png","json")) # doctest: +SKIP
 
     Notes
     -----
@@ -184,13 +181,23 @@ def create_multi_comparison_matrix(
         except Exception as e:
             raise ValueError(f"No dataframe or valid path is given: Exception {e}")
 
+    if labels is None:
+        labels = (
+            ("r>c", "r=c", "r<c")
+            if higher_stat_better is True
+            else ("r<c", "r=c", "r>c")
+        )
+    if len(labels) != 3:
+        raise ValueError("Labels should be a list of three strings")
+    win_label, tie_label, loss_label = labels
+
     analysis = _get_analysis(
         df_results,
-        output_dir=output_dir,
+        save_path=save_path,
+        formats=formats,
         used_statistic=used_statistic,
-        save_as_json=save_as_json,
         plot_1v1_comparisons=plot_1v1_comparisons,
-        order_win_tie_loss=order_win_tie_loss,
+        higher_stat_better=higher_stat_better,
         include_pvalue=include_pvalue,
         pvalue_test=pvalue_test,
         pvalue_test_params=pvalue_test_params,
@@ -198,7 +205,7 @@ def create_multi_comparison_matrix(
         pvalue_threshhold=pvalue_threshold,
         use_mean=use_mean,
         order_stats=order_stats,
-        order_better=order_better,
+        order_stats_increasing=order_stats_increasing,
         dataset_column=dataset_column,
         precision=precision,
         load_analysis=load_analysis,
@@ -207,11 +214,8 @@ def create_multi_comparison_matrix(
     # start drawing heatmap
     temp = _draw(
         analysis,
-        pdf_savename=pdf_savename,
-        png_savename=png_savename,
-        tex_savename=tex_savename,
-        csv_savename=csv_savename,
-        output_dir=output_dir,
+        save_path=save_path,
+        formats=formats,
         row_comparates=row_comparates,
         col_comparates=col_comparates,
         excluded_row_comparates=excluded_row_comparates,
@@ -222,9 +226,7 @@ def create_multi_comparison_matrix(
         font_size=font_size,
         colorbar_orientation=colorbar_orientation,
         colorbar_value=colorbar_value,
-        win_label=win_label,
-        tie_label=tie_label,
-        loss_label=loss_label,
+        labels=labels,
         include_legend=include_legend,
         show_symetry=show_symetry,
     )
@@ -233,11 +235,11 @@ def create_multi_comparison_matrix(
 
 def _get_analysis(
     df_results,
-    output_dir="./",
+    save_path="./",
+    formats=("json"),
     used_statistic="Score",
-    save_as_json=True,
     plot_1v1_comparisons=False,
-    order_win_tie_loss="higher",
+    higher_stat_better=True,
     include_pvalue=True,
     pvalue_test="wilcoxon",
     pvalue_test_params=None,
@@ -245,7 +247,7 @@ def _get_analysis(
     pvalue_threshhold=0.05,
     use_mean="mean-difference",
     order_stats="average-statistic",
-    order_better="decreasing",
+    order_stats_increasing=False,
     dataset_column=None,
     precision=4,
     load_analysis=False,
@@ -262,7 +264,7 @@ def _get_analysis(
         win_x,
         loss_x,
         tie,
-        output_directory="./",
+        save_path="./",
         min_lim: int = 0,
         max_lim: int = 1,
         scatter_size: int = 100,
@@ -271,7 +273,7 @@ def _get_analysis(
         fontsize: int = 20,
     ):
         save_path = os.path.join(
-            output_directory,
+            save_path,
             "1v1_plots",
             _get_keys_for_two_comparates(name_x, name_y) + ".pdf",
         )
@@ -332,19 +334,21 @@ def _get_analysis(
 
         ax.legend(handles=legend_elements)
 
-        if not os.path.exists(output_directory + "1v1_plots/"):
-            os.mkdir(output_directory + "1v1_plots/")
+        if not os.path.exists(save_path + "1v1_plots/"):
+            os.mkdir(save_path + "1v1_plots/")
         plt.savefig(save_path, bbox_inches="tight")
         plt.savefig(save_path.replace(".pdf", ".png"), bbox_inches="tight")
         plt.cla()
         plt.clf()
         plt.close()
 
-    save_file = output_dir + "analysis.json"
+    save_file = f"{save_path}_analysis.json"
 
     if load_analysis and os.path.exists(save_file):
         with open(save_file) as json_file:
             analysis = json.load(json_file)
+
+        analysis.setdefault("order_stats_increasing", order_stats_increasing)
 
         return analysis
 
@@ -352,9 +356,9 @@ def _get_analysis(
         "dataset-column": dataset_column,
         "use-mean": use_mean,
         "order-stats": order_stats,
-        "order-better": order_better,
+        "order_stats_increasing": order_stats_increasing,
         "used-statistics": used_statistic,
-        "order-win_tie_loss": order_win_tie_loss,
+        "higher_stat_better": higher_stat_better,
         "include-pvalue": include_pvalue,
         "pvalue-test": pvalue_test,
         "pvalue-threshold": pvalue_threshhold,
@@ -386,7 +390,7 @@ def _get_analysis(
                 pairwise_content = _get_pairwise_content(
                     x=x,
                     y=y,
-                    order_WinTieLoss=order_win_tie_loss,
+                    higher_stat_better=higher_stat_better,
                     include_pvalue=include_pvalue,
                     pvalue_test=pvalue_test,
                     pvalue_test_params=pvalue_test_params,
@@ -412,7 +416,7 @@ def _get_analysis(
                         win_x=pairwise_content["win"],
                         tie=pairwise_content["tie"],
                         loss_x=pairwise_content["loss"],
-                        output_directory=output_dir,
+                        save_path=save_path,
                         max_lim=max_lim,
                         min_lim=min_lim,
                     )
@@ -425,7 +429,7 @@ def _get_analysis(
 
     _re_order_comparates(df_results=df_results, analysis=analysis)
 
-    if save_as_json:
+    if "json" in formats:
         with open(save_file, "w") as fjson:
             json.dump(analysis, fjson, cls=_NpEncoder)
 
@@ -434,11 +438,8 @@ def _get_analysis(
 
 def _draw(
     analysis,
-    output_dir="./",
-    pdf_savename=None,
-    png_savename=None,
-    csv_savename=None,
-    tex_savename=None,
+    save_path="./",
+    formats=(),
     row_comparates=None,
     col_comparates=None,
     excluded_row_comparates=None,
@@ -449,14 +450,15 @@ def _draw(
     font_size="auto",
     colorbar_orientation="vertical",
     colorbar_value=None,
-    win_label="r>c",
-    tie_label="r=c",
-    loss_label="r<c",
+    labels=None,
+    higher_stat_better=True,
     show_symetry=True,
     include_legend=True,
 ):
     _check_soft_dependencies("matplotlib")
     import matplotlib.pyplot as plt
+
+    win_label, tie_label, loss_label = labels
 
     latex_string = "\\documentclass[a4,12pt]{article}\n"
     latex_string += "\\usepackage{colortbl}\n"
@@ -580,10 +582,6 @@ def _draw(
     p_value_cell_location = annot_out["p_value_cell_location"]
 
     longest_string = max(annot_out["longest_string"], longest_string)
-
-    if csv_savename is not None:
-        # todo: can add a argument to save or not
-        df_annotations.to_csv(output_dir + f"{csv_savename}.csv", index=False)
 
     df_annotations.drop("comparates", inplace=True, axis=1)
     df_annotations_np = np.asarray(df_annotations)
@@ -813,20 +811,6 @@ def _draw(
             verticalalignment="center",
         )
 
-    if pdf_savename is not None:
-        plt.savefig(
-            os.path.join(output_dir + f"{pdf_savename}.pdf"), bbox_inches="tight"
-        )
-        plt.cla()
-        plt.clf()
-        plt.close()
-    elif png_savename is not None:
-        plt.savefig(
-            os.path.join(output_dir + f"{png_savename}.png"), bbox_inches="tight"
-        )
-        plt.cla()
-        plt.clf()
-
     latex_string += (
         f"\\begin{{tabular}}{{{'c' * (len(latex_table[0]) + 1)}}}\n"  # +1 for labels
     )
@@ -891,18 +875,27 @@ def _draw(
     latex_string = latex_string.replace(">", "$>$")
     latex_string = latex_string.replace("<", "$<$")
 
-    if tex_savename is not None:
-        with open(
-            f"{output_dir}/{tex_savename}.tex", "w", encoding="utf8", newline="\n"
-        ) as file:
-            file.writelines(latex_string)
-
     # latex references:
     # * https://tex.stackexchange.com/a/120187
     # * https://tex.stackexchange.com/a/334293
     # * https://tex.stackexchange.com/a/592942
     # * https://tex.stackexchange.com/a/304215
-    return plt.Figure()
+
+    parent = os.path.dirname(save_path)
+    if parent:
+        os.makedirs(parent, exist_ok=True)  # check for dir existence
+
+    if "pdf" in formats:
+        fig.savefig(f"{save_path}.pdf", bbox_inches="tight")
+    if "png" in formats:
+        fig.savefig(f"{save_path}.png", bbox_inches="tight")
+    if "csv" in formats:
+        df_annotations.to_csv(f"{save_path}.csv", index=False)
+    if "tex" in formats:
+        with open(f"{save_path}.tex", "w", encoding="utf8", newline="\n") as file:
+            file.writelines(latex_string)
+
+    return fig
 
 
 def _get_keys_for_two_comparates(a, b):
@@ -954,7 +947,7 @@ def _decode_results_data_frame(df, analysis):
 def _get_pairwise_content(
     x,
     y,
-    order_WinTieLoss="higher",
+    higher_stat_better=True,
     include_pvalue=True,
     pvalue_test="wilcoxon",
     pvalue_test_params=None,
@@ -963,14 +956,14 @@ def _get_pairwise_content(
 ):
     content = {}
 
-    if order_WinTieLoss == "lower":
-        win = len(x[x < y])
-        loss = len(x[x > y])
+    if higher_stat_better is True:
+        win = len(x[x > y])
+        loss = len(x[x < y])
         tie = len(x[x == y])
 
     else:  # by default we assume higher is better
-        win = len(x[x > y])
-        loss = len(x[x < y])
+        win = len(x[x < y])
+        loss = len(x[x > y])
         tie = len(x[x == y])
 
     content["win"] = win
@@ -1146,7 +1139,7 @@ def _re_order_comparates(df_results, analysis):
 
             stats.append(np.mean(pvalues))
 
-    if analysis["order-better"] == "increasing":
+    if analysis["order_stats_increasing"]:
         ordered_indices = np.argsort(stats)
     else:  # decreasing
         ordered_indices = np.argsort(stats)[::-1]
