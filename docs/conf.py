@@ -172,6 +172,8 @@ def linkcode_resolve(domain, info):
         import inspect
         import os
 
+        obj = inspect.unwrap(obj)
+
         fn = inspect.getsourcefile(obj)
         fn = os.path.relpath(fn, start=os.path.dirname(aeon.__file__))
         source, lineno = inspect.getsourcelines(obj)
@@ -199,7 +201,6 @@ html_theme = "furo"
 # documentation.
 
 html_theme_options = {
-    "announcement": "<em>Announcement</em>: aeon is taking part in the Google Summer of Code (GSoC) 2025! See the home page for more information.",  # noqa: E501
     "sidebar_hide_name": True,
     "top_of_page_button": "edit",
     "source_repository": "https://github.com/aeon-toolkit/aeon/",

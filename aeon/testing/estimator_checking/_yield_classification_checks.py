@@ -73,7 +73,7 @@ def _yield_classification_checks(estimator_class, estimator_instances, datatypes
             yield partial(
                 check_classifier_train_estimate,
                 estimator=estimator,
-                datatype=datatypes[0][0],
+                datatype=datatypes[i][0],
             )
 
         if isinstance(estimator, BaseDeepClassifier):
