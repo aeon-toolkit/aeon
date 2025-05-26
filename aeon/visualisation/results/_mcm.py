@@ -161,9 +161,11 @@ def create_multi_comparison_matrix(
     Example
     -------
     >>> from aeon.visualisation import create_multi_comparison_matrix # doctest: +SKIP
-    >>> create_multi_comparison_matrix(df_results="results.csv",
-                                save_path="reports/mymcm",
-                                formats=("png","json")) # doctest: +SKIP
+    >>> create_multi_comparison_matrix(
+    ...     df_results="results.csv",
+    ...     save_path="reports/mymcm",
+    ...     formats=("png", "json")
+    ... )  # doctest: +SKIP
 
     Notes
     -----
