@@ -15,9 +15,9 @@ from aeon.forecasting.base import BaseForecaster
 NOGIL = False
 CACHE = True
 
-NONE = 0
-ADDITIVE = 1
-MULTIPLICATIVE = 2
+NONE = 'none'
+ADDITIVE = 'additive'
+MULTIPLICATIVE = 'multiplicative'
 
 
 class ETSForecaster(BaseForecaster):
@@ -30,20 +30,20 @@ class ETSForecaster(BaseForecaster):
 
     Parameters
     ----------
-    error_type : int, default=1
+    error_type : string, default='additive'
         Type of error model:
-        - 1: additive
-        - 2: multiplicative
-    trend_type : int, default=0
+        - 'additive'
+        - 'multiplicative'
+    trend_type : string, default='none'
         Type of trend component:
-        - 0: none
-        - 1: additive
-        - 2: multiplicative (can be damped via `phi`)
-    seasonality_type : int, default=0
+        - 'none'
+        - 'additive'
+        - 'multiplicative' (can be damped via `phi`)
+    seasonality_type : string, default='none'
         Type of seasonal component:
-        - 0: none
-        - 1: additive
-        - 2: multiplicative
+        - 'none'
+        - 'additive'
+        - 'multiplicative'
     seasonal_period : int, default=1
         Number of time points in a seasonal cycle.
     alpha : float, default=0.1
@@ -93,7 +93,7 @@ class ETSForecaster(BaseForecaster):
     >>> y = load_airline()
     >>> forecaster = ETSForecaster(
     ...     alpha=0.4, beta=0.2, gamma=0.5, phi=0.8, horizon=1,
-    ...     error_type=1, trend_type=2, seasonality_type=2, seasonal_period=4
+    ...     error_type='additive', trend_type='multiplicative', seasonality_type='multiplicative', seasonal_period=4
     ... )
     >>> forecaster.fit(y)
     ETSForecaster(...)
@@ -288,8 +288,8 @@ def _numba_fit(
     avg_mean_sq_err_ /= n_timepoints
     liklihood_ = n_timepoints * np.log(liklihood_)
     k_ = (
-        seasonal_period * (seasonality_type != 0)
-        + 2 * (trend_type != 0)
+        seasonal_period * (seasonality_type != NONE)
+        + 2 * (trend_type != NONE)
         + 2
         + 1 * (phi != 1)
     )
