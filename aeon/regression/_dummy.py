@@ -11,14 +11,14 @@ from aeon.regression.base import BaseRegressor
 class DummyRegressor(BaseRegressor):
     """Dummy regressor that makes predictions ignoring input features.
 
-    This regressor serves as a simple baseline to compare against other more
+    This regressor serves as a simple baseline to compare against other, more
     complex regressors. It is a wrapper for scikit-learn's DummyRegressor that
-    has been adapted for time series data. The specific behavior is controlled
-    by the strategy parameter.
+    has been adapted for aeon's time series regression framework. The specific
+    behavior is controlled by the ``strategy`` parameter.
 
     All strategies make predictions that ignore the input feature values passed
-    as the X argument to fit and predict. However, predictions typically depend
-    on values observed in the y parameter passed to fit.
+    as the ``X`` argument to ``fit`` and ``predict``. The predictions, however,
+    typically depend on values observed in the ``y`` parameter passed to ``fit``.
 
     Parameters
     ----------
@@ -28,12 +28,12 @@ class DummyRegressor(BaseRegressor):
         - "mean": always predicts the mean of the training set
         - "median": always predicts the median of the training set
         - "quantile": always predicts a specified quantile of the training set,
-          provided with the quantile parameter
+          provided with the ``quantile`` parameter
         - "constant": always predicts a constant value provided by the user
 
     constant : int, float or array-like of shape (n_outputs,), default=None
         The explicit constant value predicted by the "constant" strategy.
-        This parameter is only used when strategy="constant".
+        This parameter is only used when ``strategy="constant"``.
 
     quantile : float in [0.0, 1.0], default=None
         The quantile to predict when using the "quantile" strategy. A quantile
@@ -44,6 +44,11 @@ class DummyRegressor(BaseRegressor):
     ----------
     sklearn_dummy_regressor : sklearn.dummy.DummyRegressor
         The underlying scikit-learn DummyRegressor instance.
+
+    Notes
+    -----
+    Function-identical to ``sklearn.dummy.DummyRegressor``, which is called inside.
+    This class has been adapted to work with aeon's time series regression framework.
 
     Examples
     --------
@@ -76,11 +81,6 @@ class DummyRegressor(BaseRegressor):
     >>> reg.predict(X_test)[:5]
     array([0.5, 0.5, 0.5, 0.5, 0.5])
 
-    Notes
-    -----
-    This regressor is function-identical to sklearn.dummy.DummyRegressor,
-    which is called internally. It has been adapted to work with aeon's
-    time series regression framework.
     """
 
     _tags = {
