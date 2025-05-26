@@ -93,7 +93,8 @@ class ETSForecaster(BaseForecaster):
     >>> y = load_airline()
     >>> forecaster = ETSForecaster(
     ...     alpha=0.4, beta=0.2, gamma=0.5, phi=0.8, horizon=1,
-    ...     error_type='additive', trend_type='multiplicative', seasonality_type='multiplicative', seasonal_period=4
+    ...     error_type='additive', trend_type='multiplicative', 
+    ...     seasonality_type='multiplicative', seasonal_period=4
     ... )
     >>> forecaster.fit(y)
     ETSForecaster(...)
