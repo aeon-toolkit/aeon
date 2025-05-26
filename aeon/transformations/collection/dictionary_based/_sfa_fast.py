@@ -598,7 +598,7 @@ class SFAFast(BaseCollectionTransformer):
             self.dft_length = self.dft_length + self.dft_length % 2  # even
 
         # learn alphabet sizes
-        if self.learn_alphabet_sizes:
+        if self.learn_alphabet_sizes and self.alphabet_allocation_method:
             if not hasattr(self, "dft_variance"):
                 self.dft_variance = np.var(dft, axis=0)
 
@@ -628,7 +628,9 @@ class SFAFast(BaseCollectionTransformer):
             self.letter_bits = np.array(bit_arr, dtype=np.uint32)
         else:
             # use the same alphabet size for all positions
-            self.alphabet_sizes = [self.alphabet_size for _ in range(self.word_length)]
+            self.alphabet_sizes = [
+                self.alphabet_size for _ in range(self.word_length_actual)
+            ]
 
         self.alphabet_sizes = np.array(self.alphabet_sizes)
 
@@ -830,7 +832,7 @@ def _get_chars(word, word_length, letter_bits):
     return chars
 
 
-@njit(fastmath=True, cache=True)
+@njit(fastmath=True, cache=True, parallel=True)
 def _binning_dft(
     X,
     window_size,
@@ -1013,7 +1015,7 @@ def _get_phis(window_size, length):
     return phis
 
 
-@njit(fastmath=True, cache=True)
+@njit(fastmath=True, cache=True, parallel=True)
 def generate_words(
     dfts, bigrams, skip_grams, window_size, breakpoints, word_length, letter_bits
 ):
@@ -1043,7 +1045,7 @@ def generate_words(
         for a in prange(dfts.shape[0]):
             for i in range(word_length):  # range(dfts.shape[2]):
                 words[a, : dfts.shape[1]] = (
-                    words[a, : dfts.shape[1]] << letter_bits[a]
+                    words[a, : dfts.shape[1]] << letter_bits[i]
                 ) | np.digitize(dfts[a, :, i], breakpoints[i], right=True)
 
     # add bigrams
@@ -1203,7 +1205,7 @@ def create_feature_names(sfa_words):
     return feature_names
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath=True, parallel=True)
 def create_bag_none(
     X_index, breakpoints, n_cases, sfa_words, word_length, remove_repeat_words
 ):
@@ -1251,7 +1253,7 @@ def create_bag_feature_selection(
     return all_win_words, relevant_features
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath=True, parallel=True)
 def create_bag_transform(
     X_index,
     feature_count,
@@ -1327,7 +1329,7 @@ def mcb(dft, alphabet_sizes, word_length_actual, binning_method):
     return breakpoints
 
 
-@njit(fastmath=True, cache=True)
+@njit(fastmath=True, cache=True, parallel=True)
 def shorten_words(words, amount, letter_bits):
     new_words = np.zeros((words.shape[0], words.shape[1]), dtype=np.uint32)
 
