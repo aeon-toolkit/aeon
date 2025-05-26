@@ -11,6 +11,7 @@ __all__ = ["SASTClassifier"]
 from operator import itemgetter
 
 import numpy as np
+from deprecated.sphinx import deprecated
 from sklearn.linear_model import RidgeClassifierCV
 from sklearn.pipeline import make_pipeline
 
@@ -32,8 +33,10 @@ class SASTClassifier(BaseClassifier):
         the stride used when generating subsquences
     nb_inst_per_class : int default = 1
         the number of reference time series to select per class
-    seed : int, default = None
+    random_state : int, default = None
         the seed of the random generator
+    seed : int, default=None
+        Deprecated and will be removed in v1.2. Use `random_state` instead.
     estimator : sklearn compatible classifier, default = None
         if None, a RidgeClassifierCV(alphas=np.logspace(-3, 3, 10)) is used.
     n_jobs : int, default -1
@@ -66,22 +69,50 @@ class SASTClassifier(BaseClassifier):
         "algorithm_type": "shapelet",
     }
 
+    # TODO: remove 'seed' in v1.2
+    @deprecated(
+        version="1.1",
+        reason="The 'seed' parameter will be removed in v1.2.",
+        category=FutureWarning,
+    )
     def __init__(
         self,
         length_list=None,
         stride: int = 1,
         nb_inst_per_class: int = 1,
-        seed: Optional[int] = None,
+        random_state: Optional[int] = None,
         classifier=None,
         n_jobs: int = 1,
+        seed=None,
     ) -> None:
         super().__init__()
         self.length_list = length_list
         self.stride = stride
         self.nb_inst_per_class = nb_inst_per_class
         self.n_jobs = n_jobs
+
+        # Store the seed parameter (required for sklearn compatibility)
         self.seed = seed
 
+        # Handle deprecated seed parameter
+        if seed is not None:
+            import warnings
+
+            warnings.warn(
+                "The 'seed' parameter is deprecated and will be removed in v1.2. "
+                "Use 'random_state' instead.",
+                FutureWarning,
+                stacklevel=2,
+            )
+            if random_state is None:
+                random_state = seed
+            else:
+                raise ValueError(
+                    "Cannot specify both 'seed' and 'random_state'. "
+                    "Use 'random_state' only."
+                )
+
+        self.random_state = random_state
         self.classifier = classifier
 
     def _fit(self, X, y):
@@ -104,7 +135,7 @@ class SASTClassifier(BaseClassifier):
             self.length_list,
             self.stride,
             self.nb_inst_per_class,
-            self.seed,
+            self.random_state,
             self.n_jobs,
         )
 
@@ -114,7 +145,7 @@ class SASTClassifier(BaseClassifier):
                 if self.classifier is None
                 else self.classifier
             ),
-            self.seed,
+            self.random_state,
         )
 
         self._pipeline = make_pipeline(self._transformer, self._classifier)
