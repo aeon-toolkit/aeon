@@ -599,7 +599,7 @@ class SFAFast(BaseCollectionTransformer):
 
         # learn alphabet sizes
         if self.learn_alphabet_sizes:
-            if self.dft_variance is None:
+            if not hasattr(self, "dft_variance"):
                 self.dft_variance = np.var(dft, axis=0)
 
             symbols = np.log2(self.alphabet_size)
