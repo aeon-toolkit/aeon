@@ -170,30 +170,41 @@ def linkcode_resolve(domain, info):
         import inspect
         import os
 
+        # Get the top-level object from the module name
         obj = sys.modules[info["module"]]
+
+        # Traverse dotted path (e.g., module.submodule.Class.method)
         for part in info["fullname"].split("."):
             obj = getattr(obj, part)
 
+        # Unwrapping decorators (if any), so we can get the true
+        # source function
         if inspect.isfunction(obj):
             obj = inspect.unwrap(obj)
 
+        # Get the source filename
         try:
             fn = inspect.getsourcefile(obj)
         except TypeError:
             fn = None
 
+        # If no source file is found, return None (no link)
         if not fn:
             return None
 
+        # Make filename relative to the aeon source directory
         startdir = Path(aeon.__file__).parent.parent
         try:
             fn = os.path.relpath(fn, start=startdir).replace(os.path.sep, "/")
         except ValueError:
             return None
 
+        # Filter out files not in the aeon package
+        # (e.g., inherited from sklearn)
         if not fn.startswith("aeon/"):
             return None
 
+        # Get line range of the object
         source, lineno = inspect.getsourcelines(obj)
         return fn, lineno, lineno + len(source) - 1
 
