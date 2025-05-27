@@ -72,8 +72,8 @@ def check_anomaly_detector_learning_types(estimator, datatype):
 
 def check_anomaly_detector_output(estimator, datatype):
     """Test the anomaly detector output on valid data."""
-    estimator = _clone_estimator(estimator)
-    estimator2 = _clone_estimator(estimator)
+    estimator = _clone_estimator(estimator, random_state=42)
+    estimator2 = _clone_estimator(estimator, random_state=42)
     estimator_class = type(estimator)
 
     estimator.fit(
