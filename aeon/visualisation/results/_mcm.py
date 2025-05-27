@@ -57,7 +57,7 @@ def create_multi_comparison_matrix(
         A csv file containing results in `n_problems,n_estimators` format. The first
         row should contain the names of the estimators and the first column can
         contain the names of the problems if `dataset_column` is true.
-    save_path: str, default = './'
+    save_path: str, default = './mcm'
         The output directory for the results.
     pdf_savename: str, default = None
         The name of the saved file into pdf format. if None, it will not be saved into
