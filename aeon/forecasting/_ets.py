@@ -12,9 +12,6 @@ from numba import njit
 
 from aeon.forecasting.base import BaseForecaster
 
-NOGIL = False
-CACHE = True
-
 NONE = "none"
 ADDITIVE = "additive"
 MULTIPLICATIVE = "multiplicative"
@@ -237,7 +234,7 @@ class ETSForecaster(BaseForecaster):
         )
 
 
-@njit(nogil=NOGIL, cache=CACHE)
+@njit(fastmath=True, cache=True)
 def _numba_fit(
     data,
     error_type,
@@ -309,7 +306,7 @@ def _numba_fit(
     )
 
 
-@njit(nogil=NOGIL, cache=CACHE)
+@njit(fastmath=True, cache=True)
 def _predict(
     trend_type,
     seasonality_type,
@@ -338,7 +335,7 @@ def _predict(
     )[0]
 
 
-@njit(nogil=NOGIL, cache=CACHE)
+@njit(fastmath=True, cache=True)
 def _initialise(trend_type, seasonality_type, seasonal_period, data):
     """
     Initialize level, trend, and seasonality values for the ETS model.
@@ -380,7 +377,7 @@ def _initialise(trend_type, seasonality_type, seasonal_period, data):
     return level, trend, seasonality
 
 
-@njit(nogil=NOGIL, cache=CACHE)
+@njit(fastmath=True, cache=True)
 def _update_states(
     error_type,
     trend_type,
@@ -448,7 +445,7 @@ def _update_states(
     return (fitted_value, error, level, trend, seasonality)
 
 
-@njit(nogil=NOGIL, cache=CACHE)
+@njit(fastmath=True, cache=True)
 def _predict_value(trend_type, seasonality_type, level, trend, seasonality, phi):
     """
 
