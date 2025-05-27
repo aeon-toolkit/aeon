@@ -73,6 +73,8 @@ def check_anomaly_detector_learning_types(estimator, datatype):
 def check_anomaly_detector_output(estimator, datatype):
     """Test the anomaly detector output on valid data."""
     estimator = _clone_estimator(estimator)
+    estimator2 = _clone_estimator(estimator)
+    estimator_class = type(estimator)
 
     estimator.fit(
         FULL_TEST_DATA_DICT[datatype]["train"][0],
@@ -101,32 +103,17 @@ def check_anomaly_detector_output(estimator, datatype):
     else:
         raise ValueError(f"Unknown anomaly output type: {ot}")
 
-
-def check_anomaly_detector_fit_predict(estimator, datatype):
-    """Test the anomaly detector fit_predict method."""
-    est1 = _clone_estimator(estimator)
-    est2 = _clone_estimator(estimator)
-    estimator_class = type(estimator)
-
-    # Doesn't proceed if _fit_predict is inherited
+    # check _fit_predict output is same as fit().predict()
     if "_fit_predict" not in estimator_class.__dict__:
         return
 
-    fit_predict_output = est1.fit_predict(
+    expected_output = estimator.predict(FULL_TEST_DATA_DICT[datatype]["train"][0])
+
+    fit_predict_output = estimator2.fit_predict(
         FULL_TEST_DATA_DICT[datatype]["train"][0],
         FULL_TEST_DATA_DICT[datatype]["train"][1],
     )
-    assert isinstance(fit_predict_output, np.ndarray)
 
-    expected_output = est2.fit(
-        FULL_TEST_DATA_DICT[datatype]["train"][0],
-        FULL_TEST_DATA_DICT[datatype]["train"][1],
-    ).predict(FULL_TEST_DATA_DICT[datatype]["train"][0])
-
-    assert isinstance(expected_output, np.ndarray)
-
-    # Assert outputs are same
-    assert len(fit_predict_output) == len(expected_output)
     assert np.array_equal(
         fit_predict_output, expected_output
     ), "outputs of _fit_predict() does not match fit().predict()"
