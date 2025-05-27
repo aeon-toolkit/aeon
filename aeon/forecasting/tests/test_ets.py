@@ -4,8 +4,10 @@ __maintainer__ = []
 __all__ = []
 
 import numpy as np
+import pytest
 
 from aeon.forecasting import ETSForecaster
+from aeon.forecasting._ets import _validate_parameter
 
 
 def test_ets_forecaster_additive():
@@ -90,3 +92,13 @@ def test_ets_forecaster_multiplicative():
     forecaster.fit(data)
     p = forecaster.predict()
     assert np.isclose(p, 16.811888294476528)
+
+
+def test_incorrect_parameters():
+    _validate_parameter(0, True)
+    _validate_parameter(None, True)
+    with pytest.raises(ValueError):
+        _validate_parameter(0, False)
+        _validate_parameter(None, True)
+        _validate_parameter(10, False)
+        _validate_parameter("Foo", True)
