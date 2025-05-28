@@ -9,6 +9,7 @@ __all__ = ["ARIMAForecaster"]
 from math import comb
 
 import numpy as np
+from numba import njit
 
 from aeon.forecasting.base import BaseForecaster
 from aeon.utils.optimisation._nelder_mead import nelder_mead
@@ -65,7 +66,7 @@ class ARIMAForecaster(BaseForecaster):
     >>> forecaster.fit(y)
     ARIMAForecaster()
     >>> forecaster.predict()
-    550.9147246631134
+    550.9147246631135
     """
 
     def __init__(self, p=1, d=0, q=1, constant_term=0, horizon=1):
@@ -102,11 +103,13 @@ class ARIMAForecaster(BaseForecaster):
             Fitted ARIMAForecaster.
         """
         self.data_ = np.array(y.squeeze(), dtype=np.float64)
-        self.model_ = [self.constant_term, self.p, self.q]
+        self.model_ = np.array((self.constant_term, self.p, self.q), dtype=np.int32)
         self.differenced_data_ = np.diff(self.data_, n=self.d)
         (self.parameters_, self.aic_) = nelder_mead(
-            make_arima_llf(_calc_arima, self.data_, self.model_),
+            _arima_model_wrapper,
             np.sum(self.model_[:3]),
+            self.data_,
+            self.model_,
         )
         (self.c_, self.phi_, self.theta_) = _extract_params(
             self.parameters_, self.model_
@@ -148,6 +151,7 @@ class ARIMAForecaster(BaseForecaster):
         return value
 
 
+@njit(cache=True, fastmath=True)
 def _aic(residuals, num_params):
     """Calculate the log-likelihood of a model."""
     variance = np.mean(residuals**2)
@@ -155,7 +159,13 @@ def _aic(residuals, num_params):
     return liklihood + 2 * num_params
 
 
+@njit(fastmath=True)
+def _arima_model_wrapper(params, data, model):
+    return _arima_model(params, _calc_arima, data, model)[0]
+
+
 # Define the ARIMA(p, d, q) likelihood function
+@njit(cache=True, fastmath=True)
 def _arima_model(params, base_function, data, model):
     """Calculate the log-likelihood of an ARIMA model given the parameters."""
     formatted_params = _extract_params(params, model)  # Extract parameters
@@ -175,9 +185,7 @@ def _arima_model(params, base_function, data, model):
     return _aic(residuals, len(params)), residuals
 
 
-# Define the SARIMA(p, d, q)(P, D, Q) likelihood function
-
-
+@njit(cache=True, fastmath=True)
 def _extract_params(params, model):
     """Extract ARIMA parameters from the parameter vector."""
     if len(params) != np.sum(model):
@@ -188,37 +196,32 @@ def _extract_params(params, model):
                 f"Expected {previous_length} parameters for a non-seasonal model or \
                     {np.sum(model)} parameters for a seasonal model, got {len(params)}"
             )
-    starts = np.cumsum([0] + model[:-1])
-    return [params[s : s + l].tolist() for s, l in zip(starts, model)]
+    starts = np.cumsum(np.concatenate((np.zeros(1, dtype=np.int32), model[:-1])))
+    n = len(starts)
+    max_len = np.max(model)
+    result = np.full((n, max_len), np.nan, dtype=params.dtype)
+    for i in range(n):
+        length = model[i]
+        start = starts[i]
+        result[i, :length] = params[start : start + length]
+    return result
 
 
+@njit(cache=True, fastmath=True)
 def _calc_arima(data, model, t, formatted_params, residuals):
     """Calculate the ARIMA forecast for time t."""
     if len(model) != 3:
         raise ValueError("Model must be of the form (c, p, q)")
     # AR part
     p = model[1]
-    phi = formatted_params[1]
+    phi = formatted_params[1][:p]
     ar_term = 0 if (t - p) < 0 else np.dot(phi, data[t - p : t][::-1])
 
     # MA part
     q = model[2]
-    theta = formatted_params[2]
+    theta = formatted_params[2][:q]
     ma_term = 0 if (t - q) < 0 else np.dot(theta, residuals[t - q : t][::-1])
 
     c = formatted_params[0][0] if model[0] else 0
     y_hat = c + ar_term + ma_term
     return y_hat
-
-
-def make_arima_llf(base_function, data, model):
-    """
-    Return a parameterized log-likelihood function for ARIMA.
-
-    This can then be used with an optimization algorithm.
-    """
-
-    def loss_fn(v):
-        return _arima_model(v, base_function, data, model)[0]
-
-    return loss_fn
