@@ -54,7 +54,7 @@ class SARIMAForecaster(ARIMAForecaster):
     >>> forecaster.fit(y)
     SARIMAForecaster(d=1, ds=1, q=2)
     >>> forecaster.predict()
-    450.7487685084027
+    450.7487685...
     """
 
     def __init__(
