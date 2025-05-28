@@ -89,7 +89,9 @@ class AutoARIMAForecaster(ARIMAForecaster):
             self.model_,
             self.parameters_,
             self.aic_,
-        ) = _auto_arima(self.differenced_data_, model_parameters, 3)
+        ) = _auto_arima(
+            self.differenced_data_, _arima_model_wrapper, model_parameters, 3
+        )
         (
             self.constant_term_,
             self.p_,
@@ -108,7 +110,9 @@ class AutoARIMAForecaster(ARIMAForecaster):
 
 
 @njit(cache=True, fastmath=True)
-def _auto_arima(differenced_data, inital_model_parameters, num_model_params=3):
+def _auto_arima(
+    differenced_data, model_function, inital_model_parameters, num_model_params=3
+):
     """
     Implement the Hyndman-Khandakar algorithm.
 
@@ -119,7 +123,7 @@ def _auto_arima(differenced_data, inital_model_parameters, num_model_params=3):
     best_points = None
     for model in inital_model_parameters:
         points, aic = nelder_mead(
-            _arima_model_wrapper,
+            model_function,
             np.sum(model[:num_model_params]),
             differenced_data,
             model,
@@ -140,7 +144,7 @@ def _auto_arima(differenced_data, inital_model_parameters, num_model_params=3):
                 for constant_term in [0, 1]:
                     model[0] = constant_term
                     points, aic = nelder_mead(
-                        _arima_model_wrapper,
+                        model_function,
                         np.sum(model[:num_model_params]),
                         differenced_data,
                         model,
