@@ -47,14 +47,6 @@ def nelder_mead(
     with one additional point per dimension at 0.6 for that dimension.
     - This implementation does not support constraints or bounds on the parameters.
     - The algorithm does not guarantee finding a global minimum.
-
-    Examples
-    --------
-    >>> from numba import njit
-    >>> @njit(cache=False, fastmath=True)
-    ... def sphere(x, data, model):
-    ...     return np.sum(x**2)
-    >>> x_opt, val = nelder_mead(sphere, num_params=2, data=None, model=None)
     """
     points = np.full((num_params + 1, num_params), 0.5)
     for i in range(num_params):
