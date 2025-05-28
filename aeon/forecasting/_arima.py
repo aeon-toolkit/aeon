@@ -62,7 +62,7 @@ class ARIMAForecaster(BaseForecaster):
     >>> from aeon.forecasting import ARIMAForecaster
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()
-    >>> forecaster = ARIMAForecaster(2,1,1,0)
+    >>> forecaster = ARIMAForecaster(p=2,d=1)
     >>> forecaster.fit(y)
     ARIMAForecaster(d=1, p=2)
     >>> forecaster.predict()
@@ -156,7 +156,7 @@ class ARIMAForecaster(BaseForecaster):
         # Step 2: undo ordinary differencing
         for k in range(1, self.d_ + 1):
             value += (-1) ** (k + 1) * comb(self.d_, k) * history[k - 1]
-        return value
+        return value.item()
 
 
 @njit(cache=True, fastmath=True)
