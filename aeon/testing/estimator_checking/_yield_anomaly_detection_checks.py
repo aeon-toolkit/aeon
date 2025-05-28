@@ -72,20 +72,20 @@ def check_anomaly_detector_learning_types(estimator, datatype):
 
 def check_anomaly_detector_output(estimator, datatype):
     """Test the anomaly detector output on valid data."""
-    estimator = _clone_estimator(estimator, random_state=42)
+    estimator1 = _clone_estimator(estimator, random_state=42)
     estimator2 = _clone_estimator(estimator, random_state=42)
     estimator_class = type(estimator)
 
-    estimator.fit(
+    estimator1.fit(
         FULL_TEST_DATA_DICT[datatype]["train"][0],
         FULL_TEST_DATA_DICT[datatype]["train"][1],
     )
 
-    y_pred = estimator.predict(FULL_TEST_DATA_DICT[datatype]["test"][0])
+    y_pred = estimator1.predict(FULL_TEST_DATA_DICT[datatype]["test"][0])
     assert isinstance(y_pred, np.ndarray)
     assert len(y_pred) == FULL_TEST_DATA_DICT[datatype]["test"][0].shape[1]
 
-    ot = estimator.get_tag("anomaly_output_type")
+    ot = estimator1.get_tag("anomaly_output_type")
     if ot == "anomaly_scores":
         assert np.issubdtype(y_pred.dtype, np.floating) or np.issubdtype(
             y_pred.dtype, np.integer
@@ -107,7 +107,7 @@ def check_anomaly_detector_output(estimator, datatype):
     if "_fit_predict" not in estimator_class.__dict__:
         return
 
-    expected_output = estimator.predict(FULL_TEST_DATA_DICT[datatype]["train"][0])
+    expected_output = estimator1.predict(FULL_TEST_DATA_DICT[datatype]["train"][0])
 
     fit_predict_output = estimator2.fit_predict(
         FULL_TEST_DATA_DICT[datatype]["train"][0],
