@@ -50,7 +50,9 @@ def nelder_mead(
 
     Examples
     --------
-    >>> def sphere(x, data, model):
+    >>> from numba import njit
+    >>> @njit(fastmath=True)
+    ... def sphere(x, data, model):
     ...     return np.sum(x**2)
     >>> x_opt, val = nelder_mead(sphere, num_params=2, data=None, model=None)
     """
