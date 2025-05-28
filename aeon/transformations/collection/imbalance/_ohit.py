@@ -63,9 +63,16 @@ class OHIT(BaseCollectionTransformer):
 
     Examples
     --------
-    >>> from aeon.classification.sampling import OHIT
-    >>> ohit = OHIT(k=10, kapa=5, drT=0.9, random_state=0)
-    >>> X_resampled, y_resampled = ohit.fit_resample(X, y)
+    >>> from aeon.transformations.collection.imbalance import OHIT
+    >>> import numpy as np
+    >>> X = np.random.random(size=(100,1,50))
+    >>> y = np.array([0] * 90 + [1] * 10)
+    >>> sampler = OHIT(random_state=49)
+    >>> X_res, y_res = sampler.fit_transform(X, y)
+    >>> np.sum(y_res == 1)
+    90
+    >>> np.sum(y_res == 0)
+    90
     """
 
     _tags = {

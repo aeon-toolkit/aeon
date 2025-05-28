@@ -57,11 +57,16 @@ class SMOTE(BaseCollectionTransformer):
 
     Examples
     --------
-    >>> from aeon.classification.sampling import SMOTE
-    >>> from aeon.datasets import load_unit_test
-    >>> X, y = load_unit_test()
-    >>> smote = SMOTE(k_neighbors=3, random_state=0)
-    >>> X_resampled, y_resampled = smote.fit(X, y)
+    >>> from aeon.transformations.collection.imbalance import SMOTE
+    >>> import numpy as np
+    >>> X = np.random.random(size=(100,1,50))
+    >>> y = np.array([0] * 90 + [1] * 10)
+    >>> sampler = SMOTE(random_state=49)
+    >>> X_res, y_res = sampler.fit_transform(X, y)
+    >>> np.sum(y_res == 1)
+    90
+    >>> np.sum(y_res == 0)
+    90
     """
 
     _tags = {

@@ -47,9 +47,12 @@ class ADASYN(SMOTE):
 
     Examples
     --------
-    >>> from aeon.classification.sampling import ADASYN
-    >>> sampler = ADASYN(random_state=42)
-    >>> X_res, y_res = sampler.fit_resample(X, y)
+    >>> from aeon.transformations.collection.imbalance import ADASYN
+    >>> import numpy as np
+    >>> X = np.random.random(size=(100,1,50))
+    >>> y = np.array([0] * 90 + [1] * 10)
+    >>> sampler = ADASYN(random_state=49)
+    >>> X_res, y_res = sampler.fit_transform(X, y)
     """
 
     def __init__(self, random_state=None, k_neighbors=5):
