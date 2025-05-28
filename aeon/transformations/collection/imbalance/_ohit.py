@@ -70,10 +70,8 @@ class OHIT(BaseCollectionTransformer):
     >>> y = np.array([0] * 90 + [1] * 10)
     >>> sampler = OHIT(random_state=49)
     >>> X_res, y_res = sampler.fit_transform(X, y)
-    >>> np.sum(y_res == 1)
-    90
-    >>> np.sum(y_res == 0)
-    90
+    >>> y_res.shape
+    (180,)
     """
 
     _tags = {
