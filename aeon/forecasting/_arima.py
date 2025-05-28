@@ -14,9 +14,6 @@ from numba import njit
 from aeon.forecasting.base import BaseForecaster
 from aeon.utils.optimisation._nelder_mead import nelder_mead
 
-NOGIL = False
-CACHE = True
-
 
 class ARIMAForecaster(BaseForecaster):
     """AutoRegressive Integrated Moving Average (ARIMA) forecaster.
@@ -31,24 +28,28 @@ class ARIMAForecaster(BaseForecaster):
 
     Attributes
     ----------
-    data_ : list of float
+    data_ : np.ndarray
         Original training series values.
-    differenced_data_ : list of float
+    differenced_data_ : np.ndarray
         Differenced version of the training data used for stationarity.
-    residuals_ : list of float
+    residuals_ : np.ndarray
         Residual errors from the fitted model.
     aic_ : float
         Akaike Information Criterion for the selected model.
+    p, d, q : int
+        Parameters passed to the forecaster see p_, d_, q_.
     p_, d_, q_ : int
         Orders of the ARIMA model: autoregressive (p), differencing (d),
         and moving average (q) terms.
+    constant_term : int
+        Parameters passed to the forecaster see constant_term_.
     constant_term_ : float
         Constant/intercept term in the model.
     c_ : float
         Estimated constant term (internal use).
-    phi_ : array-like
+    phi_ : np.ndarray
         Coefficients for the non-seasonal autoregressive terms.
-    theta_ : array-like
+    theta_ : np.ndarray
         Coefficients for the non-seasonal moving average terms.
 
     References
