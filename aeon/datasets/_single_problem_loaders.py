@@ -28,6 +28,7 @@ import os
 
 import numpy as np
 import pandas as pd
+from deprecated.sphinx import deprecated
 
 from aeon.datasets import load_from_tsf_file
 from aeon.datasets._data_loaders import _load_saved_dataset, _load_tsc_dataset
@@ -344,6 +345,48 @@ def load_basic_motions(split=None, return_type="numpy3d"):
     )
 
 
+def load_pickup_gesture_wiimoteZ(split=None):
+    """Load the PickupGestureWiimoteZ univariate time series classification problem.
+
+    Example of a univariate problem with unequal length time series.
+
+    Parameters
+    ----------
+    split: None or one of "TRAIN", "TEST", default=None
+        Whether to load the train or test instances of the problem. By default it
+        loads both train and test instances into a single array.
+
+    Returns
+    -------
+    X: list of 2D np.ndarray, one for each series.
+    y: 1D numpy array of length len(X). The class labels for each time series
+    instance in X.
+
+    Notes
+    -----
+    Dimensionality:     univariate
+    Series length:      variable
+    Train cases:        50
+    Test cases:         50
+    Number of classes:  2
+    https://timeseriesclassification.com/description.php?Dataset=PickupGestureWiimoteZ
+
+    Examples
+    --------
+    >>> from aeon.datasets import load_pickup_gesture_wiimoteZ
+    >>> X, y = load_pickup_gesture_wiimoteZ()
+    """
+    return _load_tsc_dataset("PickupGestureWiimoteZ", split, return_type="np-list")
+
+
+# TODO: remove in v1.3.0
+@deprecated(
+    version="1.1.0",
+    reason="load_plaid and the PLAID dataset will be removed in version 1.3. It has "
+    "been replaced by a smaller unequal length univariate problem "
+    "PickupGestureWiimote. ",
+    category=FutureWarning,
+)
 def load_plaid(split=None):
     """Load the PLAID univariate time series classification problem.
 
