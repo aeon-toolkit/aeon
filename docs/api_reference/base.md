@@ -1,13 +1,10 @@
-.. _base_ref:
+# Base
 
-Base
-====
+The `aeon.base` module contains abstract base classes.
 
-The :mod:`aeon.base` module contains abstract base classes.
+## Base classes
 
-Base classes
-------------
-
+```{eval-rst}
 .. currentmodule:: aeon.base
 
 .. autosummary::
@@ -18,3 +15,4 @@ Base classes
     BaseCollectionEstimator
     BaseSeriesEstimator
     ComposableEstimatorMixin
+```
