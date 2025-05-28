@@ -21,30 +21,51 @@ __all__ = ["OHIT"]
 
 class OHIT(BaseCollectionTransformer):
     """
-    Over-sampling using the Over-sampling based on (OHIT).
+    ver-sampling based on High-density region and Iterative Thresholding (OHIT).
 
-    This method is based on Density-Ratio Shared Nearest Neighbor (DRSNN) clustering to find high-density regions
-    of minority class samples and generate synthetic samples within these clusters and Shrinkage estimation of
-    large-dimensional covariance matrix
+    OHIT generates synthetic minority class samples based on the Density-Ratio Shared
+    Nearest Neighbor (DRSNN) clustering algorithm. It identifies high-density regions
+    amoung the minority class using DRSNN, then produces synthetic samples within
+    these clusters. Covariance estimation for high-dimensional data is performed using
+    shrinkage techniques.
 
-    DRSNN also contains three parameters(i.e.,drT ,k and kapa),it is capable of selecting the proper value for
-    drT around 1.In addition,k and kapa can be set in a complementary way to avoid the merging and
-    dissociation of clusters,that is,a large k with a relatively low kapa.
+    The DRSNN procedure involves three main parameters:
+    - `drT`: the density ratio threshold (typically set around 1).
+    - `k`: the nearest neighbour parameter in shared nearest neighbour similarity.
+    - `kapa`: the nearest neighbour parameter in defining density ratio.
+
+    `k` and `kapa` should be set in a complementary manner to avoid cluster merging
+    and dissociation. Typically, a large `k` is paired with a relatively low `kapa`.
 
     Parameters
     ----------
-    k : int, the nearest neighbor parameter in SNN similarity
-        if None, set k = int(np.ceil(n ** 0.5 * 1.25)) where n is the number of minority samples
-    kapa : int, the nearest neighbor parameter in defining density ratio
-        if None, set kapa = int(np.ceil(n ** 0.5)) where n is the number of minority samples
-    drT : float, default=0.9, the threshold of density ratio.
+    k : int or None, optional
+        The nearest neighbour parameter for SNN similarity.
+        If None, set to int(np.ceil(n ** 0.5 * 1.25)), where n is the number of
+        minority samples.
+    kapa : int or None, optional
+        The nearest neighbour parameter for defining the density ratio.
+        If None, set to int(np.ceil(n ** 0.5)), where n is the number of minority
+        samples.
+    drT : float, default=0.9
+        Threshold for the density ratio in DRSNN clustering.
     distance : str or callable, default='euclidean'
-        Distance metric to use for KNN in SNN similarity.
+        Distance metric to use for KNN in SNN similarity computation.
     random_state : int, RandomState instance or None, default=None
-        If `int`, random_state is the seed used by the random number generator;
-        If `RandomState` instance, random_state is the random number generator;
-        If `None`, the random number generator is the `RandomState` instance used
-        by `np.random`.
+        Controls random number generation for reproducibility:
+        - If `int`, sets the random seed.
+        - If `RandomState` instance, uses it as the generator.
+        - If `None`, uses `np.random`.
+
+    References
+    ----------
+    .. [1] (Add the relevant reference for OHIT here.)
+
+    Examples
+    --------
+    >>> from aeon.classification.sampling import OHIT
+    >>> ohit = OHIT(k=10, kapa=5, drT=0.9, random_state=0)
+    >>> X_resampled, y_resampled = ohit.fit_resample(X, y)
     """
 
     _tags = {
@@ -121,14 +142,13 @@ class OHIT(BaseCollectionTransformer):
             """generate  the structure-preserving synthetic samples for each cluster"""
             X_new = np.zeros((n_samples, m))
             count = 0
-            # consider the samples in the cluster with label 0 i.e. the samples that are not clustered
             X_class_0 = X_class[cluster_label == 0]
             if X_class_0.size != 0:
                 gen_0 = np.sum(np.isin(os_ind, np.where(cluster_label == 0)[0]))
                 idx_0 = random_state.choice(len(X_class_0), gen_0, replace=True)
                 X_new[count : count + gen_0, :] = X_class_0[idx_0]
                 count += gen_0
-            for i, cluster in enumerate(clusters):
+            for i, _ in enumerate(clusters):
                 gen_i = np.sum(np.isin(os_ind, np.where(cluster_label == (i + 1))[0]))
                 X_new[count : count + gen_i, :] = self._generate_synthetic_samples(
                     Me[i], eigen_matrices[i], eigen_values[i], gen_i, R
@@ -215,9 +235,7 @@ class OHIT(BaseCollectionTransformer):
         return clusters, cluster_label
 
     def _covStruct(self, data, clusters):
-        """
-        Calculate the covariance matrix of the minority samples.
-        """
+        """Calculate the covariance matrix of the minority samples."""
         Me, Eigen_matrices, Eigen_values = [], [], []
         for cluster in clusters:
             cluster = list(cluster)

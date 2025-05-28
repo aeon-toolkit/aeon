@@ -23,41 +23,52 @@ __all__ = ["SMOTE"]
 
 class SMOTE(BaseCollectionTransformer):
     """
-    Over-sampling using the Synthetic Minority Over-sampling TEchnique (SMOTE)[1]_.
+    Synthetic Minority Over-sampling TEchnique (SMOTE) for imbalanced datasets.
 
-    An adaptation of the imbalance-learn implementation of SMOTE in
-    imblearn.over_sampling.SMOTE. sampling_strategy is sampling target by
-    targeting all classes but not the majority, which is directly expressed in
-    _fit.sampling_strategy.
+    Generates synthetic samples of the minority class to address class imbalance.
+    SMOTE constructs new samples by interpolating between existing minority samples
+    and their nearest neighbours in feature space.
+
+    This implementation adapts the algorithm from `imblearn.over_sampling.SMOTE`.
+    It targets all classes except the majority, as controlled by the `sampling_strategy`
+    in the `_fit` method. It uses ``aeon`` distances to find the nearest neighbours.
 
     Parameters
     ----------
     k_neighbors : int, default=5
-        The number  of nearest neighbors used to define the neighborhood of samples
-        to use to generate the synthetic time series.
-        `~sklearn.neighbors.NearestNeighbors` instance will be fitted in this case.
+        Number of nearest neighbours used to generate synthetic samples. A
+        `sklearn.neighbors.NearestNeighbors` instance is fitted for this purpose.
     random_state : int, RandomState instance or None, default=None
-        If `int`, random_state is the seed used by the random number generator;
-        If `RandomState` instance, random_state is the random number generator;
-        If `None`, the random number generator is the `RandomState` instance used
-        by `np.random`.
+        Controls the random number generation for reproducibility:
+        - If `int`, sets the random seed.
+        - If `RandomState` instance, uses it as the generator.
+        - If `None`, uses `np.random`.
 
     See Also
     --------
-    ADASYN
+    ADASYN : Adaptive synthetic sampling extension to SMOTE.
 
     References
     ----------
-    .. [1] Chawla et al. SMOTE: synthetic minority over-sampling technique, Journal
-    of Artificial Intelligence Research 16(1): 321–357, 2002.
-        https://dl.acm.org/doi/10.5555/1622407.1622416
+    .. [1] Chawla, N. V., Bowyer, K. W., Hall, L. O., & Kegelmeyer, W. P. (2002).
+           SMOTE: Synthetic minority over-sampling technique.
+           Journal of Artificial Intelligence Research, 16, 321–357.
+           https://dl.acm.org/doi/10.5555/1622407.1622416
+
+    Examples
+    --------
+    >>> from aeon.classification.sampling import SMOTE
+    >>> from aeon.datasets import load_unit_test
+    >>> X, y = load_unit_test()
+    >>> smote = SMOTE(k_neighbors=3, random_state=0)
+    >>> X_resampled, y_resampled = smote.fit(X, y)
     """
 
     _tags = {
         "requires_y": True,
     }
 
-    def __init__(self, k_neighbors=5, random_state=None):
+    def __init__(self, k_neighbors: int = 5, random_state=None):
         self.random_state = random_state
         self.k_neighbors = k_neighbors
         super().__init__()

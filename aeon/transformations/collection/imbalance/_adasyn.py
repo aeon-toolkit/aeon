@@ -11,17 +11,36 @@ __all__ = ["ADASYN"]
 
 class ADASYN(SMOTE):
     """
-    Over-sampling using Adaptive Synthetic Sampling (ADASYN).
+    Adaptive Synthetic Sampling (ADASYN) over-sampler.
 
-    Adaptation of imblearn.over_sampling.ADASYN
-    original authors:
-    #          Guillaume Lemaitre <g.lemaitre58@gmail.com>
-    #          Christos Aridas
-    # License: MIT
+    Generates synthetic samples for the minority class based on local data
+    distribution. ADASYN extends SMOTE by adapting the number of synthetic samples
+    according to the density of the minority class: more samples are generated for
+    minority samples that are harder to learn (i.e., surrounded by more majority
+    samples).
 
-    This transformer extends SMOTE, but it generates different number of
-    samples depending on an estimate of the local distribution of the class
-    to be oversampled.
+    This implementation is adapted from imbalanced-learn's
+    `imblearn.over_sampling.ADASYN`.
+
+    Parameters
+    ----------
+        random_state : int or None, optional (default=None)
+            Random seed for reproducibility.
+        k_neighbors : int, optional (default=5)
+            Number of nearest neighbours used to construct synthetic samples.
+
+    References
+    ----------
+    .. [1] He, H., Bai, Y., Garcia, E. A., & Li, S. (2008).
+           ADASYN: Adaptive synthetic sampling approach for imbalanced learning.
+           In IEEE International Joint Conference on Neural Networks, pp. 1322-1328.
+           https://doi.org/10.1109/IJCNN.2008.4633969
+
+    Examples
+    --------
+    >>> from aeon.classification.sampling import ADASYN
+    >>> sampler = ADASYN(random_state=42)
+    >>> X_res, y_res = sampler.fit_resample(X, y)
     """
 
     def __init__(self, random_state=None, k_neighbors=5):
