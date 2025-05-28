@@ -7,6 +7,7 @@ __maintainer__ = ["alexbanwell1", "TonyBagnall"]
 __all__ = ["AutoARIMAForecaster"]
 
 import numpy as np
+from numba import njit
 
 from aeon.forecasting import ARIMAForecaster
 from aeon.forecasting._arima import (
@@ -70,13 +71,25 @@ class AutoARIMAForecaster(ARIMAForecaster):
             Fitted ARIMAForecaster.
         """
         self.data_ = np.array(y.squeeze(), dtype=np.float64)
+        self.differenced_data_ = self.data_.copy()
+        self.d_ = 0
+        while not kpss_test(self.differenced_data_)[1]:
+            self.differenced_data_ = np.diff(self.differenced_data_, n=1)
+            self.d_ += 1
+        include_c = 1 if self.d_ == 0 else 0
+        model_parameters = np.array(
+            [
+                [include_c, 2, 2],
+                [include_c, 0, 0],
+                [include_c, 1, 0],
+                [include_c, 0, 1],
+            ]
+        )
         (
-            self.differenced_data_,
-            self.d_,
             self.model_,
             self.parameters_,
             self.aic_,
-        ) = _auto_arima(self.data_)
+        ) = _auto_arima(self.differenced_data_, model_parameters, 3)
         (
             self.constant_term_,
             self.p_,
@@ -94,42 +107,8 @@ class AutoARIMAForecaster(ARIMAForecaster):
         return self
 
 
-def _auto_arima(data):
-    """
-    Prepare data for the AutoARIMA algorithm.
-
-    This function checks if the data is stationary
-    and applies differencing if necessary.
-    """
-    difference = 0
-    while not kpss_test(data)[1]:
-        data = np.diff(data, n=1)
-        difference += 1
-    include_c = 1 if difference == 0 else 0
-    model_parameters = np.array(
-        [
-            [include_c, 2, 2],
-            [include_c, 0, 0],
-            [include_c, 1, 0],
-            [include_c, 0, 1],
-        ]
-    )
-    (
-        differenced_data,
-        best_model,
-        best_points,
-        best_score,
-    ) = _auto_arma(data, model_parameters, 3)
-    return (
-        differenced_data,
-        difference,
-        best_model,
-        best_points,
-        best_score,
-    )
-
-
-def _auto_arma(differenced_data, inital_model_parameters, num_model_params=3):
+@njit(cache=True, fastmath=True)
+def _auto_arima(differenced_data, inital_model_parameters, num_model_params=3):
     """
     Implement the Hyndman-Khandakar algorithm.
 
@@ -138,16 +117,16 @@ def _auto_arma(differenced_data, inital_model_parameters, num_model_params=3):
     best_score = -1
     best_model = inital_model_parameters[0]
     best_points = None
-    for i in range(len(inital_model_parameters)):
+    for model in inital_model_parameters:
         points, aic = nelder_mead(
             _arima_model_wrapper,
-            np.sum(inital_model_parameters[i][:num_model_params]),
+            np.sum(model[:num_model_params]),
             differenced_data,
-            inital_model_parameters[i],
+            model,
         )
         if (aic < best_score) or (best_score == -1):
             best_score = aic
-            best_model = inital_model_parameters[i]
+            best_model = model
             best_points = points
 
     while True:
@@ -174,7 +153,6 @@ def _auto_arma(differenced_data, inital_model_parameters, num_model_params=3):
         if not better_model:
             break
     return (
-        differenced_data,
         best_model,
         best_points,
         best_score,
