@@ -1,11 +1,15 @@
 """Optimisation algorithms for automatic parameter tuning."""
 
 import numpy as np
+from numba import njit
 
 
+@njit(fastmath=True)
 def nelder_mead(
     loss_function,
     num_params,
+    data,
+    model,
     tol=1e-6,
     max_iter=500,
 ):
@@ -53,7 +57,7 @@ def nelder_mead(
     points = np.full((num_params + 1, num_params), 0.5)
     for i in range(num_params):
         points[i + 1][i] = 0.6
-    values = np.array([loss_function(v) for v in points])
+    values = np.array([loss_function(v, data, model) for v in points])
     for _iteration in range(max_iter):
         # Order simplex by function values
         order = np.argsort(values)
@@ -66,7 +70,7 @@ def nelder_mead(
         # Reflection
         # centre + distance between centre and largest value
         reflected_point = centre_point + (centre_point - points[-1])
-        reflected_value = loss_function(reflected_point)
+        reflected_value = loss_function(reflected_point, data, model)
         # if between best and second best, use reflected value
         if len(values) > 1 and values[0] <= reflected_value < values[-2]:
             points[-1] = reflected_point
@@ -76,7 +80,7 @@ def nelder_mead(
         # Otherwise if it is better than the best value
         if reflected_value < values[0]:
             expanded_point = centre_point + 2 * (reflected_point - centre_point)
-            expanded_value = loss_function(expanded_point)
+            expanded_value = loss_function(expanded_point, data, model)
             # if less than reflected value use expanded, otherwise go back to reflected
             if expanded_value < reflected_value:
                 points[-1] = expanded_point
@@ -88,7 +92,7 @@ def nelder_mead(
         # Contraction
         # Otherwise if reflection is worse than all current values
         contracted_point = centre_point - 0.5 * (centre_point - points[-1])
-        contracted_value = loss_function(contracted_point)
+        contracted_value = loss_function(contracted_point, data, model)
         # If contraction is better use that otherwise move to shrinkage
         if contracted_value < values[-1]:
             points[-1] = contracted_point
@@ -98,7 +102,7 @@ def nelder_mead(
         # Shrinkage
         for i in range(1, len(points)):
             points[i] = points[0] - 0.5 * (points[0] - points[i])
-            values[i] = loss_function(points[i])
+            values[i] = loss_function(points[i], data, model)
 
         # Convergence check
         if np.max(np.abs(values - values[0])) < tol:
