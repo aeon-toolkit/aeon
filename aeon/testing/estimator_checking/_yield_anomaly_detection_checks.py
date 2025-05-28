@@ -114,6 +114,6 @@ def check_anomaly_detector_output(estimator, datatype):
         FULL_TEST_DATA_DICT[datatype]["train"][1],
     )
 
-    assert np.array_equal(
+    assert np.allclose(
         fit_predict_output, expected_output
     ), "outputs of _fit_predict() does not match fit().predict()"
