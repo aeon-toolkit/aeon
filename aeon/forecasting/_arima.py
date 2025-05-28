@@ -64,7 +64,7 @@ class ARIMAForecaster(BaseForecaster):
     >>> y = load_airline()
     >>> forecaster = ARIMAForecaster(2,1,1,0)
     >>> forecaster.fit(y)
-    ARIMAForecaster()
+    ARIMAForecaster(d=1, p=2)
     >>> forecaster.predict()
     550.9147246631135
     """
@@ -79,6 +79,10 @@ class ARIMAForecaster(BaseForecaster):
         self.d = d
         self.q = q
         self.constant_term = constant_term
+        self.p_ = 0
+        self.d_ = 0
+        self.q_ = 0
+        self.constant_term_ = 0
         self.model_ = []
         self.c_ = 0
         self.phi_ = 0
@@ -102,6 +106,10 @@ class ARIMAForecaster(BaseForecaster):
         self
             Fitted ARIMAForecaster.
         """
+        self.p_ = self.p
+        self.d_ = self.d
+        self.q_ = self.q
+        self.constant_term_ = self.constant_term
         self.data_ = np.array(y.squeeze(), dtype=np.float64)
         self.model_ = np.array((self.constant_term, self.p, self.q), dtype=np.int32)
         self.differenced_data_ = np.diff(self.data_, n=self.d)
@@ -146,8 +154,8 @@ class ARIMAForecaster(BaseForecaster):
         )
         history = self.data_[::-1]
         # Step 2: undo ordinary differencing
-        for k in range(1, self.d + 1):
-            value += (-1) ** (k + 1) * comb(self.d, k) * history[k - 1]
+        for k in range(1, self.d_ + 1):
+            value += (-1) ** (k + 1) * comb(self.d_, k) * history[k - 1]
         return value
 
 
