@@ -26,7 +26,7 @@ def _kdtw_lk(x, y, local_kernel):
     diagonal_weights = np.zeros(max(x_timepoints, y_timepoints))
 
     min_timepoints = min(x_timepoints, y_timepoints)
-    diagonal_weights[1] = 1.0
+    diagonal_weights[0] = 1.0
     for i in range(1, min_timepoints):
         diagonal_weights[i] = local_kernel[i - 1, i - 1]
 
@@ -34,12 +34,12 @@ def _kdtw_lk(x, y, local_kernel):
     cumulative_dp_diag[0, 0] = 1
 
     for i in range(1, x_timepoints):
-        cost_matrix[i, 1] = cost_matrix[i - 1, 1] * local_kernel[i - 1, 2]
-        cumulative_dp_diag[i, 1] = cumulative_dp_diag[i - 1, 1] * diagonal_weights[i]
+        cost_matrix[i, 0] = cost_matrix[i - 1, 0] * local_kernel[i - 1, 0]
+        cumulative_dp_diag[i, 0] = cumulative_dp_diag[i - 1, 0] * diagonal_weights[i]
 
     for j in range(1, y_timepoints):
-        cost_matrix[1, j] = cost_matrix[1, j - 1] * local_kernel[2, j - 1]
-        cumulative_dp_diag[1, j] = cumulative_dp_diag[1, j - 1] * diagonal_weights[j]
+        cost_matrix[0, j] = cost_matrix[0, j - 1] * local_kernel[0, j - 1]
+        cumulative_dp_diag[0, j] = cumulative_dp_diag[0, j - 1] * diagonal_weights[j]
 
     for i in range(1, x_timepoints):
         for j in range(1, y_timepoints):
