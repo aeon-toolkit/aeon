@@ -68,6 +68,17 @@ class ARIMAForecaster(BaseForecaster):
     .. [1] R. J. Hyndman and G. Athanasopoulos,
        Forecasting: Principles and Practice. OTexts, 2014.
        https://otexts.com/fpp3/
+
+    Examples
+    --------
+    >>> from aeon.forecasting import ARIMAForecaster
+    >>> from aeon.datasets import load_airline
+    >>> y = load_airline()
+    >>> forecaster = ARIMAForecaster()
+    >>> forecaster.fit(y)
+    ARIMAForecaster()
+    >>> forecaster.predict()
+    450.74890401954826
     """
 
     def __init__(self, horizon=1):
