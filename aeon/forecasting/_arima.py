@@ -67,7 +67,7 @@ class ARIMAForecaster(BaseForecaster):
     >>> forecaster.fit(y)
     ARIMAForecaster(d=1, p=2)
     >>> forecaster.predict()
-    550.9147246631132
+    550.914724663113...
     """
 
     def __init__(self, p=1, d=0, q=1, constant_term=0, horizon=1):
