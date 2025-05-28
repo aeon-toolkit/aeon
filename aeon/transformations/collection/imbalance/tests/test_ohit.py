@@ -1,7 +1,6 @@
 """Test function for OHIT."""
 
 import numpy as np
-import pytest
 
 from aeon.transformations.collection.imbalance import OHIT
 
