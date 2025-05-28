@@ -3,18 +3,56 @@ import numpy as np
 
 def kpss_test(y, regression="c", lags=None):  # Test if time series is stationary
     """
-    Implement the KPSS test for stationarity.
+    Perform the KPSS (Kwiatkowski-Phillips-Schmidt-Shin) test for stationarity.
+
+    The KPSS test evaluates the null hypothesis that a time series is
+    (trend or level) stationary against the alternative of a unit root
+    (non-stationarity). It can test for either stationarity around a
+    constant (level stationarity) or arounda deterministic trend
+    (trend stationarity).
 
     Parameters
     ----------
-    y (array-like): Time series data
-    regression (str): 'c' for constant, 'ct' for constant + trend
-    lags (int): Number of lags for HAC variance estimation (default: sqrt(n))
+    y : array-like
+        Time series data to test for stationarity.
+    regression : str, default="c"
+        Indicates the null hypothesis for stationarity:
+        - "c"  : Stationary around a constant (level stationarity)
+        - "ct" : Stationary around a constant and linear trend (trend stationarity)
+    lags : int or None, optional
+        Number of lags to use for the
+        HAC (heteroskedasticity and autocorrelation consistent) variance estimator.
+        If None, defaults to sqrt(n), where n is the sample size.
 
     Returns
     -------
-    kpss_stat (float): KPSS test statistic
-    stationary (bool): Whether the series is stationary according to the test
+    kpss_stat : float
+        The KPSS test statistic.
+    stationary : bool
+        True if the series is judged stationary at the 5% significance level
+        (i.e., test statistic is below the critical value); False otherwise.
+
+    Notes
+    -----
+    - Uses asymptotic 5% critical values from Kwiatkowski et al. (1992): 0.463 for level
+      stationarity, 0.146 for trend stationarity.
+    - Returns True for stationary if the test statistic is below the 5% critical value.
+
+    References
+    ----------
+    Kwiatkowski, D., Phillips, P.C.B., Schmidt, P., & Shin, Y. (1992).
+    "Testing the null hypothesis of stationarity against the alternative
+    of a unit root."
+    Journal of Econometrics, 54(1–3), 159–178.
+    https://doi.org/10.1016/0304-4076(92)90104-Y
+
+    Examples
+    --------
+    >>> from aeon.utils.forecasting._hypo_tests import kpss_test
+    >>> from aeon.datasets import load_airline
+    >>> y = load_airline()
+    >>> kpss_test(y)
+    (1.1966313813502716, False)
     """
     y = np.asarray(y)
     n = len(y)
@@ -50,6 +88,7 @@ def kpss_test(y, regression="c", lags=None):  # Test if time series is stationar
     # Step 4: Calculate the KPSS statistic
     kpss_stat = np.sum(S_t**2) / (n**2 * sigma_squared)
 
+    # 5% critical values for KPSS test
     if regression == "ct":
         # p. 162 Kwiatkowski et al. (1992): y_t = beta * t + r_t + e_t,
         # where beta is the trend, r_t a random walk and e_t a stationary
