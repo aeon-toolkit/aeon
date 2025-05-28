@@ -156,20 +156,12 @@ class ElasticEnsemble(BaseClassifier):
 
         # Derivative DTW (DDTW) uses the regular DTW algorithm on data that
         # are transformed into derivatives.
-        if self._distance_measures.__contains__(
-            "ddtw"
-        ) or self._distance_measures.__contains__("wddtw"):
-            der_X = []  # use list to allow for unequal length
-            for x in X:
-                der_X.append(slope_derivative_2d(x))
-            if isinstance(X, np.ndarray):
-                der_X = np.array(der_X)
-        else:
-            der_X = None
+        der_X = self._get_derivatives(X)
 
         self.train_accs_by_classifier_ = np.zeros(len(self._distance_measures))
         self.estimators_ = [None] * len(self._distance_measures)
         rand = np.random.RandomState(self.random_state)
+
         # The default EE uses all training instances for setting parameters,
         # and 100 parameter options per elastic measure. The
         # prop_train_in_param_finding and prop_of_param_options attributes of this class
@@ -221,11 +213,11 @@ class ElasticEnsemble(BaseClassifier):
                 der_param_train_x = der_X
 
         self.constituent_build_times_ = []
-
         if self.verbose > 0:
             print(  # noqa: T201
                 f"Using{(100 * self.proportion_of_param_options)} parameter options"
             )
+
         for dm in range(0, len(self._distance_measures)):
             this_measure = self._distance_measures[dm]
 
@@ -346,17 +338,7 @@ class ElasticEnsemble(BaseClassifier):
         y : array-like, shape = (n_cases, n_classes_)
             Predicted probabilities using the ordering in classes_.
         """
-        if self._distance_measures.__contains__(
-            "ddtw"
-        ) or self._distance_measures.__contains__("wddtw"):
-            der_X = []  # use list to allow for unequal length
-            for x in X:
-                der_X.append(slope_derivative_2d(x))
-            if isinstance(X, np.ndarray):
-                der_X = np.array(der_X)
-        else:
-            der_X = None
-
+        der_X = self._get_derivatives(X)
         output_probas = []
         train_sum = 0
 
@@ -489,6 +471,16 @@ class ElasticEnsemble(BaseClassifier):
             raise NotImplementedError(
                 "EE does not currently support: " + str(distance_measure)
             )
+
+    def _get_derivatives(self, X):
+        if "ddtw" in self._distance_measures or "wddtw" in self._distance_measures:
+            der_X = []  # use list to allow for unequal length
+            for x in X:
+                der_X.append(slope_derivative_2d(x))
+            if isinstance(X, np.ndarray):
+                der_X = np.array(der_X)
+            return der_X
+        return None
 
     @classmethod
     def _get_test_params(

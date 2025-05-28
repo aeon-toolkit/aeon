@@ -3,11 +3,10 @@
 The Proximity Forest is an ensemble of Proximity Trees.
 """
 
-from typing import Optional
-
+__maintainer__ = []
 __all__ = ["ProximityForest"]
 
-from typing import Union
+from typing import Optional, Union
 
 import numpy as np
 from joblib import Parallel, delayed
@@ -71,18 +70,17 @@ class ProximityForest(BaseClassifier):
     >>> from aeon.classification.distance_based import ProximityForest
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test = load_unit_test(split="test")
-    >>> classifier = ProximityForest(n_trees = 10, n_splitters = 3)
+    >>> classifier = ProximityForest(n_trees=10, n_splitters=3)
     >>> classifier.fit(X_train, y_train)
     ProximityForest(...)
     >>> y_pred = classifier.predict(X_test)
     """
 
     _tags = {
-        "capability:multivariate": False,
-        "capability:unequal_length": False,
+        "capability:multivariate": True,
         "capability:multithreading": True,
         "algorithm_type": "distance",
-        "X_inner_type": ["numpy2D"],
+        "X_inner_type": "numpy3D",
     }
 
     def __init__(
@@ -102,6 +100,7 @@ class ProximityForest(BaseClassifier):
         self.random_state = random_state
         self.n_jobs = n_jobs
         self.parallel_backend = parallel_backend
+
         super().__init__()
 
     def _fit(self, X, y):
@@ -109,50 +108,40 @@ class ProximityForest(BaseClassifier):
         self.trees_ = Parallel(
             n_jobs=self._n_jobs, backend=self.parallel_backend, prefer="threads"
         )(
-            delayed(_fit_tree)(
+            delayed(self._fit_tree)(
                 X,
                 y,
-                self.n_splitters,
-                self.max_depth,
-                self.min_samples_split,
                 check_random_state(rng.randint(np.iinfo(np.int32).max)),
             )
             for _ in range(self.n_trees)
         )
 
+    def _predict(self, X):
+        return np.array(
+            [self.classes_[int(np.argmax(prob))] for prob in self._predict_proba(X)]
+        )
+
     def _predict_proba(self, X):
-        classes = list(self.classes_)
         preds = Parallel(
             n_jobs=self._n_jobs, backend=self.parallel_backend, prefer="threads"
-        )(delayed(_predict_tree)(tree, X) for tree in self.trees_)
-        n_cases = X.shape[0]
-        votes = np.zeros((n_cases, self.n_classes_))
+        )(delayed(self._predict_tree)(X, tree) for tree in self.trees_)
+
+        votes = np.zeros((X.shape[0], self.n_classes_))
         for i in range(len(preds)):
-            predictions = np.array(
-                [classes.index(class_label) for class_label in preds[i]]
-            )
-            for j in range(n_cases):
-                votes[j, predictions[j]] += 1
-        output_probas = votes / self.n_trees
-        return output_probas
+            for j in range(X.shape[0]):
+                votes[j, self._class_dictionary[preds[i][j]]] += 1
 
-    def _predict(self, X):
-        probas = self._predict_proba(X)
-        idx = np.argmax(probas, axis=1)
-        preds = np.asarray([self.classes_[x] for x in idx])
-        return preds
+        return votes / self.n_trees
 
+    def _fit_tree(self, X, y, random_state):
+        clf = ProximityTree(
+            n_splitters=self.n_splitters,
+            max_depth=self.max_depth,
+            min_samples_split=self.min_samples_split,
+            random_state=random_state,
+        )
+        clf.fit(X, y)
+        return clf
 
-def _fit_tree(X, y, n_splitters, max_depth, min_samples_split, random_state):
-    clf = ProximityTree(
-        n_splitters=n_splitters,
-        max_depth=max_depth,
-        min_samples_split=min_samples_split,
-        random_state=random_state,
-    )
-    clf.fit(X, y)
-    return clf
-
-
-def _predict_tree(tree, X):
-    return tree.predict(X)
+    def _predict_tree(self, X, tree):
+        return tree.predict(X)
