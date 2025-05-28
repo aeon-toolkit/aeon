@@ -28,6 +28,14 @@ def nelder_mead(
         `num_params` and return a scalar value.
     num_params : int
         The number of parameters (dimensions) in the optimisation problem.
+    data : np.ndarray
+        The input data used by the loss function. The shape and content depend on the
+        specific loss function being minimised.
+    model : np.ndarray
+        The model or context in which the loss function operates. This could be any
+        other object that the `loss_function` requires to compute its value.
+        The exact type and structure of `model` should be compatible with the
+        `loss_function`.
     tol : float, optional (default=1e-6)
         Tolerance for convergence. The algorithm stops when the maximum difference
         between function values at simplex vertices is less than `tol`.
@@ -47,6 +55,13 @@ def nelder_mead(
     with one additional point per dimension at 0.6 for that dimension.
     - This implementation does not support constraints or bounds on the parameters.
     - The algorithm does not guarantee finding a global minimum.
+
+    References
+    ----------
+    .. [1] Nelder, J. A. and Mead, R. (1965).
+       A Simplex Method for Function Minimization.
+       The Computer Journal, 7(4), 308–313.
+       https://doi.org/10.1093/comjnl/7.4.308
     """
     points = np.full((num_params + 1, num_params), 0.5)
     for i in range(num_params):
