@@ -1,4 +1,13 @@
-"""ADASYN over sampling algorithm."""
+"""ADASYN over sampling algorithm.
+
+See more in imblearn.over_sampling.ADASYN
+original authors:
+#          Guillaume Lemaitre <g.lemaitre58@gmail.com>
+#          Fernando Nogueira
+#          Christos Aridas
+#          Dzianis Dudnik
+# License: MIT
+"""
 
 import numpy as np
 from sklearn.utils import check_random_state

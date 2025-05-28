@@ -21,7 +21,7 @@ __all__ = ["OHIT"]
 
 class OHIT(BaseCollectionTransformer):
     """
-    ver-sampling based on High-density region and Iterative Thresholding (OHIT).
+    Over-sampling based on High-density region and Iterative Thresholding (OHIT).
 
     OHIT generates synthetic minority class samples based on the Density-Ratio Shared
     Nearest Neighbor (DRSNN) clustering algorithm. It identifies high-density regions
@@ -280,7 +280,3 @@ class OHIT(BaseCollectionTransformer):
         SampGen = SampGen[sorted_indices[:eta], :]
 
         return SampGen
-
-    @classmethod
-    def _get_test_params(cls, parameter_set="default"):
-        return {"n_clusters": 3}
