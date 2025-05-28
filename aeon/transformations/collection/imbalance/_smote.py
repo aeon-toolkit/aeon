@@ -58,8 +58,9 @@ class SMOTE(BaseCollectionTransformer):
     Examples
     --------
     >>> from aeon.transformations.collection.imbalance import SMOTE
+    >>> from aeon.testing.data_generation import make_example_3d_numpy
     >>> import numpy as np
-    >>> X = np.random.random(size=(100,1,50))
+    >>> X = make_example_3d_numpy(n_cases=100, return_y=False, random_state=49)
     >>> y = np.array([0] * 90 + [1] * 10)
     >>> sampler = SMOTE(random_state=49)
     >>> X_res, y_res = sampler.fit_transform(X, y)
