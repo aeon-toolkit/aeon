@@ -50,9 +50,11 @@ def nelder_mead(
 
     Examples
     --------
-    >>> def sphere(x):
+    >>> from numba import njit
+    >>> @njit(fastmath=True)
+    ... def sphere(x, data, model):
     ...     return np.sum(x**2)
-    >>> x_opt, val = nelder_mead(sphere, num_params=2)
+    >>> x_opt, val = nelder_mead(sphere, num_params=2, data=None, model=None)
     """
     points = np.full((num_params + 1, num_params), 0.5)
     for i in range(num_params):
