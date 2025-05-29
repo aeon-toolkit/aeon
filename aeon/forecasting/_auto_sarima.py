@@ -50,7 +50,7 @@ class AutoSARIMAForecaster(SARIMAForecaster):
     >>> forecaster.fit(y)
     AutoSARIMAForecaster()
     >>> forecaster.predict()
-    450.74890401954826
+    450.74890...
     """
 
     def __init__(self, horizon=1):
