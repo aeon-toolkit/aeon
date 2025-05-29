@@ -67,14 +67,14 @@ def test_trilite_use_masking(use_masking):
     not _check_soft_dependencies(["tensorflow"], severity="none"),
     reason="Tensorflow soft dependency unavailable.",
 )
-@pytest.mark.parametrize("znormalize_pos_neg", [True, False])
-def test_trilite_znormalize_pos_neg(znormalize_pos_neg):
+@pytest.mark.parametrize("z_normalize_pos_neg", [True, False])
+def test_trilite_z_normalize_pos_neg(z_normalize_pos_neg):
     """Test TRILITE with possible znorm pos and neg setups."""
     X = np.random.random((100, 2, 5))
     with tempfile.TemporaryDirectory() as tmp:
 
         ssl = TRILITE(
-            znormalize_pos_neg=znormalize_pos_neg,
+            z_normalize_pos_neg=z_normalize_pos_neg,
             backbone_network=DummyDeepNetwork(),
             latent_space_dim=2,
             n_epochs=3,
