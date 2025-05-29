@@ -8,11 +8,18 @@ import os
 import sys
 import time
 from copy import deepcopy
+from typing import TYPE_CHECKING
 
 import numpy as np
 from sklearn.utils import check_random_state
 
+from aeon.networks import BaseDeepLearningNetwork
 from aeon.transformations.collection import BaseCollectionTransformer
+from aeon.utils.self_supervised.general import z_normalization
+
+if TYPE_CHECKING:
+    from tensorflow.keras.callbacks import Callback
+    from tensorflow.keras.optimizers import Optimizer
 
 
 class TRILITE(BaseCollectionTransformer):
@@ -32,39 +39,39 @@ class TRILITE(BaseCollectionTransformer):
 
     Parameters
     ----------
-    alpha: float, default = 1e-2
+    alpha : float, default = 1e-2
         The value that controls the space of the triplet loss,
         the smaller the value the more difficult the problem
         becomes, the higher the value the more easy the problem
         becomes, a balance should be found.
-    weight_ref_min: float, default = 0.6
+    weight_ref_min : float, default = 0.6
         The weight of the reference series used for the triplet
         generation.
-    percentage_mask_length: int, default = 0.2
+    percentage_mask_length : int, default = 0.2
         The percentage of time series length to calculate
         the length of the masking used for the triplet
         generation. Default is 20%.
-    use_mixing_up: bool, default = True
+    use_mixing_up : bool, default = True
         Wether or not to use mixing up during the triplet
         generation phase.
-    use_masking: bool, default = True
+    use_masking : bool, default = True
         Whether or not to use masking during the triplet
         generation phase.
-    znormalize_pos_neg: bool, default = True
-        Whether or not to znormalize (mean 0 and std 1)
+    z_normalize_pos_neg : bool, default = True
+        Whether or not to z_normalize (mean 0 and std 1)
         pos and neg samples after generating the triplet.
-    backbone_network: aeon Network, default = None
+    backbone_network : aeon Network, default = None
         The backbone network used for the SSL model,
         it can be any network from the aeon.networks
         module on condition for it's structure to be
         configured as "encoder", see _config attribute.
         For TRILITE, the default network used is
         FCNNetwork.
-    latent_space_dim: int, default = 128
+    latent_space_dim : int, default = 128
         The size of the latent space, applied using a
         fully connected layer at the end of the network's
         output.
-    latent_space_activation: str, default = "linear"
+    latent_space_activation : str, default = "linear"
         The activation to control the range of values
         of the latent space.
     random_state : int, RandomState instance or None, default=None
@@ -151,36 +158,36 @@ class TRILITE(BaseCollectionTransformer):
 
     def __init__(
         self,
-        alpha=1e-2,
-        weight_ref_min=0.6,
-        percentage_mask_length=0.2,
-        use_mixing_up=True,
-        use_masking=True,
-        znormalize_pos_neg=True,
-        backbone_network=None,
-        latent_space_dim=128,
-        latent_space_activation="linear",
-        random_state=None,
-        verbose=False,
-        optimizer=None,
-        file_path="./",
-        save_best_model=False,
-        save_last_model=False,
-        save_init_model=False,
-        best_file_name="best_model",
-        last_file_name="last_model",
-        init_file_name="init_model",
-        callbacks=None,
-        batch_size=64,
-        use_mini_batch_size=False,
-        n_epochs=2000,
+        alpha: float = 1e-2,
+        weight_ref_min: float = 0.6,
+        percentage_mask_length: float = 0.2,
+        use_mixing_up: bool = True,
+        use_masking: bool = True,
+        z_normalize_pos_neg: bool = True,
+        backbone_network: BaseDeepLearningNetwork = None,
+        latent_space_dim: int = 128,
+        latent_space_activation: str = "linear",
+        random_state: int | np.random.RandomState | None = None,
+        verbose: bool = False,
+        optimizer: Optimizer | None = None,
+        file_path: str = "./",
+        save_best_model: bool = False,
+        save_last_model: bool = False,
+        save_init_model: bool = False,
+        best_file_name: str = "best_model",
+        last_file_name: str = "last_model",
+        init_file_name: str = "init_model",
+        callbacks: Callback | list[Callback] | None = None,
+        batch_size: int = 64,
+        use_mini_batch_size: bool = False,
+        n_epochs: int = 2000,
     ):
         self.alpha = alpha
         self.weight_ref_min = weight_ref_min
         self.percentage_mask_length = percentage_mask_length
         self.use_mixing_up = use_mixing_up
         self.use_masking = use_masking
-        self.znormalize_pos_neg = znormalize_pos_neg
+        self.z_normalize_pos_neg = z_normalize_pos_neg
         self.backbone_network = backbone_network
         self.latent_space_dim = latent_space_dim
         self.latent_space_activation = latent_space_activation
@@ -201,7 +208,7 @@ class TRILITE(BaseCollectionTransformer):
 
         super().__init__()
 
-    def _fit(self, X, y=None):
+    def _fit(self, X: np.ndarray, y=None):
         """Fit the SSL model on X, y is ignored.
 
         Parameters
@@ -216,7 +223,7 @@ class TRILITE(BaseCollectionTransformer):
         """
         import tensorflow as tf
 
-        from aeon.networks import BaseDeepLearningNetwork, FCNNetwork
+        from aeon.networks import FCNNetwork
 
         if isinstance(self.backbone_network, BaseDeepLearningNetwork):
             self._backbone_network = deepcopy(self.backbone_network)
@@ -374,7 +381,7 @@ class TRILITE(BaseCollectionTransformer):
 
         Parameters
         ----------
-        input_shape : tuple
+        input_shape : tuple[int, int]
             The shape of the data fed into the input layer, should be (m, d).
 
         Returns
@@ -453,32 +460,41 @@ class TRILITE(BaseCollectionTransformer):
         n_channels = int(X.shape[-1])
         length_TS = int(X.shape[1])
 
+        # define mask length
         self.mask_length = int(length_TS * self.percentage_mask_length)
 
+        # define weight for each sample in the mixing up
         w_ref = np.random.choice(
             np.linspace(start=self.weight_ref_min, stop=1, num=1000), size=1
         )
         w_ts = (1 - w_ref) / 2
 
+        # define your ref as random permutation of X
         ref = np.random.permutation(X[:])
 
         n = int(ref.shape[0])
 
+        # define positive and negative sample arrays
         _pos = np.zeros(shape=ref.shape)
         _neg = np.zeros(shape=ref.shape)
 
         all_indices = np.arange(start=0, stop=n)
 
         for i_ref in range(n):
+            # remove the sample ref from the random choice of pos-neg
             all_indices_without_ref = np.delete(arr=all_indices, obj=i_ref)
+
+            # choose a random sample used for the negative generation
             index_neg = int(np.random.choice(all_indices_without_ref, size=1))
 
             _ref = ref[i_ref].copy()
 
+            # remove the index_neg from choices
             all_indices_without_ref_and_not_ref = np.delete(
                 arr=all_indices, obj=[i_ref, index_neg]
             )
 
+            # choose samples used for the mixing up
             index_ts1_pos = int(
                 np.random.choice(all_indices_without_ref_and_not_ref, size=1)
             )
@@ -504,9 +520,12 @@ class TRILITE(BaseCollectionTransformer):
             # MixingUp
 
             if self.use_mixing_up and self.use_masking:
+                # mix up the selected series with ref to obtain pos
                 _pos[i_ref] = w_ref * _ref + w_ts * _ts1_pos + w_ts * _ts2_pos
+                # mix up the selected series with neg ref to obtain neg
                 _neg[i_ref] = w_ref * _not_ref + w_ts * _ts1_neg + w_ts * _ts2_neg
 
+                # apply masking
                 _pos[i_ref], _neg[i_ref] = self._apply_masking(
                     pos=_pos[i_ref],
                     neg=_neg[i_ref],
@@ -516,10 +535,13 @@ class TRILITE(BaseCollectionTransformer):
                 )
 
             elif self.use_mixing_up and not self.use_masking:
+                # mix up the selected series with ref to obtain pos
                 _pos[i_ref] = w_ref * _ref + w_ts * _ts1_pos + w_ts * _ts2_pos
+                # mix up the selected series with neg ref to obtain neg
                 _neg[i_ref] = w_ref * _not_ref + w_ts * _ts1_neg + w_ts * _ts2_neg
 
             elif self.use_masking and not self.use_mixing_up:
+                # apply masking
                 _pos[i_ref], _neg[i_ref] = self._apply_masking(
                     pos=_pos[i_ref],
                     neg=_neg[i_ref],
@@ -534,9 +556,10 @@ class TRILITE(BaseCollectionTransformer):
                     "should be chosen to generate",
                     "the triplets.",
                 )
-        if self.znormalize_pos_neg:
-            _pos_normalized = self._znormalization(_pos)
-            _neg_normalized = self._znormalization(_neg)
+        if self.z_normalize_pos_neg:
+            # z_normalize pos and neg
+            _pos_normalized = z_normalization(_pos)
+            _neg_normalized = z_normalization(_neg)
 
             return ref, _pos_normalized, _neg_normalized
         else:
@@ -544,19 +567,27 @@ class TRILITE(BaseCollectionTransformer):
 
     def _apply_masking(self, pos, neg, n_channels, length_TS, mask_length):
         """Apply masking phase on pos and neg."""
+        # select a random start for the mask
         start_mask = int(np.random.randint(low=0, high=length_TS - mask_length, size=1))
         stop_mask = start_mask + mask_length
 
+        # define noise on replacement on the left side of the mask
         noise_pos_left = np.random.random(size=(start_mask, n_channels))
+        # normalize noise
         noise_pos_left /= 5
         noise_pos_left -= 0.1
+
+        # define noise on replacement on the left side of the mask
         noise_pos_right = np.random.random(size=(length_TS - stop_mask, n_channels))
+        # normalize noise
         noise_pos_right /= 5
         noise_pos_right -= 0.1
 
+        # replace left and right side of the mask by normalized noise
         pos[0:start_mask, :] = noise_pos_left
         pos[stop_mask:length_TS, :] = noise_pos_right
 
+        # repeat the same procedure for the negative sample
         noise_neg_left = np.random.random(size=(start_mask, n_channels))
         noise_neg_left /= 5
         noise_neg_left -= 0.1
@@ -568,13 +599,6 @@ class TRILITE(BaseCollectionTransformer):
         neg[stop_mask:length_TS, :] = noise_neg_right
 
         return pos, neg
-
-    def _znormalization(self, X):
-        stds = np.std(X, axis=1, keepdims=True)
-        if len(stds[stds == 0.0]) > 0:
-            stds[stds == 0.0] = 1.0
-            return (X - X.mean(axis=1, keepdims=True)) / stds
-        return (X - X.mean(axis=1, keepdims=True)) / (X.std(axis=1, keepdims=True))
 
     def save_last_model_to_file(self, file_path="./"):
         """Save the last epoch of the trained deep learning model.
