@@ -5,7 +5,7 @@ __all__ = ["z_normalization"]
 import numpy as np
 
 
-def z_normalization(self, X, axis=1):
+def z_normalization(X, axis=1):
     """Z-Normalize collection of time series.
 
     Parameters
@@ -21,8 +21,8 @@ def z_normalization(self, X, axis=1):
     -------
     Normalized version of X.
     """
-    stds = np.std(X, axis=1, keepdims=True)
+    stds = np.std(X, axis=axis, keepdims=True)
     if len(stds[stds == 0.0]) > 0:
         stds[stds == 0.0] = 1.0
-        return (X - X.mean(axis=1, keepdims=True)) / stds
-    return (X - X.mean(axis=1, keepdims=True)) / (X.std(axis=1, keepdims=True))
+        return (X - X.mean(axis=axis, keepdims=True)) / stds
+    return (X - X.mean(axis=axis, keepdims=True)) / (X.std(axis=axis, keepdims=True))
