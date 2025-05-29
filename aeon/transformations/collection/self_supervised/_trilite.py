@@ -1,5 +1,7 @@
 """TRILITE SSL transformer."""
 
+from __future__ import annotations
+
 __maintainer__ = ["hadifawaz1999"]
 __all__ = ["TRILITE"]
 
