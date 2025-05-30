@@ -68,7 +68,7 @@ def create_multi_comparison_matrix(
         Whether or not to save the python analysis dict into a json file format.
     plot_1v1_comparisons: bool, default = True
         Whether or not to plot the 1v1 scatter results.
-    higher_stat_better: bool, default = 'True'
+    higher_stat_better: bool, default = True
         The order on considering a win or a loss for a given statistics.
     include_pvalue bool, default = True
         Condition whether or not include a pvalue stats.
