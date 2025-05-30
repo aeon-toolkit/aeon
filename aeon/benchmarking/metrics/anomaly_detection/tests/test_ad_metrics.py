@@ -20,9 +20,8 @@ from aeon.benchmarking.metrics.anomaly_detection._range_metrics import (
     range_recall,
 )
 from aeon.testing.data_generation import make_example_1d_numpy
-from aeon.utils.validation._dependencies import _check_soft_dependencies
 
-pr_metrics = [pr_auc_score]
+pr_metrics = [pr_auc_score, rp_rr_auc_score]
 range_metrics = [
     range_roc_auc_score,
     range_pr_auc_score,
@@ -32,6 +31,7 @@ range_metrics = [
 other_metrics = [
     roc_auc_score,
     f_score_at_k_points,
+    f_score_at_k_ranges,
 ]
 continuous_metrics = [*pr_metrics, *other_metrics, *range_metrics]
 binary_metrics = [
@@ -39,21 +39,6 @@ binary_metrics = [
     range_precision,
     range_recall,
 ]
-
-if _check_soft_dependencies("prts", severity="none"):
-    pr_metrics.append(rp_rr_auc_score)
-    other_metrics.extend(
-        [
-            f_score_at_k_ranges,
-            rp_rr_auc_score,
-        ]
-    )
-    continuous_metrics.extend(
-        [
-            rp_rr_auc_score,
-            f_score_at_k_ranges,
-        ]
-    )
 
 metrics = [*pr_metrics, *range_metrics, *other_metrics]
 
@@ -148,10 +133,6 @@ def test_edge_cases_pr_metrics(metric):
     assert score <= 0.2, f"{metric.__name__}(y_true, y_inverted)={score} is not <= 0.2"
 
 
-@pytest.mark.skipif(
-    not _check_soft_dependencies("prts", severity="none"),
-    reason="required soft dependency prts not available",
-)
 def test_range_based_f1():
     """Test range-based F1 score."""
     y_pred = np.array([0, 1, 1, 0])
@@ -160,10 +141,6 @@ def test_range_based_f1():
     np.testing.assert_almost_equal(result, 0.66666, decimal=4)
 
 
-@pytest.mark.skipif(
-    not _check_soft_dependencies("prts", severity="none"),
-    reason="required soft dependency prts not available",
-)
 def test_range_based_precision():
     """Test range-based precision."""
     y_pred = np.array([0, 1, 1, 0])
@@ -172,10 +149,6 @@ def test_range_based_precision():
     assert result == 0.5
 
 
-@pytest.mark.skipif(
-    not _check_soft_dependencies("prts", severity="none"),
-    reason="required soft dependency prts not available",
-)
 def test_range_based_recall():
     """Test range-based recall."""
     y_pred = np.array([0, 1, 1, 0])
@@ -184,10 +157,6 @@ def test_range_based_recall():
     assert result == 1
 
 
-@pytest.mark.skipif(
-    not _check_soft_dependencies("prts", severity="none"),
-    reason="required soft dependency prts not available",
-)
 def test_rf1_value_error():
     """Test range-based F1 score raises ValueError on binary predictions."""
     y_pred = np.array([0, 0.2, 0.7, 0])
@@ -211,10 +180,6 @@ def test_pr_curve_auc():
 #     np.testing.assert_almost_equal(result, 0.8333, decimal=4)
 
 
-@pytest.mark.skipif(
-    not _check_soft_dependencies("prts", severity="none"),
-    reason="required soft dependency prts not available",
-)
 def test_range_based_p_range_based_r_curve_auc():
     """Test range-based precision-recall curve AUC."""
     y_pred = np.array([0, 0.1, 1.0, 0.5, 0.1, 0])
@@ -223,10 +188,6 @@ def test_range_based_p_range_based_r_curve_auc():
     np.testing.assert_almost_equal(result, 0.9792, decimal=4)
 
 
-@pytest.mark.skipif(
-    not _check_soft_dependencies("prts", severity="none"),
-    reason="required soft dependency prts not available",
-)
 def test_range_based_p_range_based_r_auc_perfect_hit():
     """Test range-based precision-recall curve AUC with perfect hit."""
     y_pred = np.array([0, 0, 0.5, 0.5, 0, 0])
@@ -235,10 +196,6 @@ def test_range_based_p_range_based_r_auc_perfect_hit():
     np.testing.assert_almost_equal(result, 1.0000, decimal=4)
 
 
-@pytest.mark.skipif(
-    not _check_soft_dependencies("prts", severity="none"),
-    reason="required soft dependency prts not available",
-)
 def test_f_score_at_k_ranges():
     """Test range-based F1 score at k ranges."""
     y_pred = np.array([0.4, 0.1, 1.0, 0.5, 0.1, 0, 0.4, 0.5])
