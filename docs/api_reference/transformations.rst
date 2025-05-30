@@ -126,6 +126,18 @@ Interval based
     SupervisedIntervals
     QUANTTransformer
 
+
+Contrastive based
+~~~~~~~~~~~~~~
+
+.. currentmodule:: aeon.transformations.collection.contrastive_based
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    TS2Vec
+
 Shapelet based
 ~~~~~~~~~~~~~~
 

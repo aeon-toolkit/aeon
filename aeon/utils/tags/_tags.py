@@ -75,6 +75,7 @@ ESTIMATOR_TAGS = {
                     "convolution",
                     "shapelet",
                     "deeplearning",
+                    "contrastive",
                 ],
             ),
             None,
