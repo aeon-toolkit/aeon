@@ -59,18 +59,9 @@ def create_multi_comparison_matrix(
         contain the names of the problems if `dataset_column` is true.
     save_path: str, default = './mcm'
         The output directory for the results.
-    pdf_savename: str, default = None
-        The name of the saved file into pdf format. if None, it will not be saved into
-        this format.
-    png_savename: str, default = None
-        The name of the saved file into png format, if None, it will not be saved
-        into this format.
-    csv_savename: str, default = None
-        The name of the saved file into csv format, if None, will not be saved into
-        this format.
-    tex_savename: str, default = None
-        The name of the saved file into tex format, if None, will not be saved into
-        this format.
+    formats : str or list of str, default = ("pdf", "png", "csv", "tex", "json")
+        File formats to save.  A single string applies to one format,
+        an iterable applies to all its elements.
     used_statistic: str, default = 'Score'
         Name of the metric being assesses (e.g. accuracy, error, mse).
     save_as_json: bool, default = True
@@ -142,12 +133,9 @@ def create_multi_comparison_matrix(
         In which orientation to show the colorbar either horizontal or vertical.
     colorbar_value: str, default = 'mean-difference'
         The values for which the heat map colors are based on.
-    win_label: str, default = "r>c"
-        The winning label to be set on the MCM.
-    tie_label: str, default = "r=c"
-        The tie label to be set on the MCM.
-    loss_label: str, default = "r<c"
-        The loss label to be set on the MCM.
+    labels: tuple of str, default = None
+        The labels for the heatmap cells, if labels=None and higher_stat_better=True,
+        then the labels are ('r>c', 'r=c', 'r<c'), otherwise ('r<c', 'r=c', 'r>c').
     include_legend: bool, default = True
         Whether or not to show the legend on the MCM.
     show_symetry: bool, default = True
@@ -182,6 +170,11 @@ def create_multi_comparison_matrix(
             df_results = pd.read_csv(df_results)
         except Exception as e:
             raise ValueError(f"No dataframe or valid path is given: Exception {e}")
+
+    if isinstance(formats, str):
+        formats = [formats]
+    else:
+        formats = list(formats)
 
     if labels is None:
         labels = (
