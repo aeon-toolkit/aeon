@@ -607,22 +607,20 @@ class SFAFast(BaseCollectionTransformer):
 
             if self.alphabet_allocation_method == "linear_scale":
                 variance = np.sqrt(self.dft_variance[self.support])
-                normed_scale = variance / variance.sum()
+                normed_scale = variance / variance.mean()
 
             elif self.alphabet_allocation_method == "sqrt_scale":
                 variance = np.sqrt(np.sqrt(self.dft_variance[self.support]))
-                normed_scale = variance / variance.sum()
-
+                normed_scale = variance / variance.mean()
             elif self.alphabet_allocation_method == "log_scale":
                 variance = np.log2(np.sqrt(self.dft_variance[self.support]) + 1)
-                normed_scale = variance / variance.sum()
+                normed_scale = variance / variance.mean()
 
-            bit_arr_raw = np.floor(normed_scale * symbols * self.word_length).astype(
+            # Use at most symbols+1 for each position, and check if sum is correct
+            bit_arr = np.ceil(normed_scale * np.log2(self.alphabet_size)).astype(
                 np.uint32
             )
-
-            # Use at most symbols+1 for each position
-            bit_arr = heal_array(bit_arr_raw, symbols + 1, self.bit_budget)
+            bit_arr = heal_array(bit_arr, symbols + 1, self.bit_budget)
 
             self.alphabet_sizes = [int(2 ** bit_arr[i]) for i in range(len(bit_arr))]
             self.letter_bits = np.array(bit_arr, dtype=np.uint32)
@@ -1394,16 +1392,24 @@ def _transform_words_case(
 def heal_array(bit_array, max_val, budget):
     bit_array = bit_array.copy()
 
-    # cap values beyond max_val
+    # cap values beyond max_val and below 1
     for i in range(len(bit_array)):
         bit_array[i] = min(max_val, bit_array[i])
+        bit_array[i] = max(1, bit_array[i])
 
+    # to large: heal the array to have the correct sum == budget
     if bit_array.sum() > budget:
-        # print("Error", bit_array, bit_array.sum(), budget, bit_array.sum() <= budget)
-        assert bit_array.sum() <= budget
+        diff = bit_array.sum() - budget
+        while diff > 0:
+            for i in range(len(bit_array) - 1, 0, -1):
+                if bit_array[i] > 1:
+                    bit_array[i] -= 1
+                    diff -= 1
+                if diff == 0:
+                    break
 
-    # heal the array to have the correct sum == budget
-    if bit_array.sum() != budget:
+    # to small: heal the array to have the correct sum == budget
+    if bit_array.sum() < budget:
         diff = budget - bit_array.sum()
         while diff > 0:
             for i in range(len(bit_array)):
