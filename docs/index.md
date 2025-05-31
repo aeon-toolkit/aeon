@@ -293,7 +293,7 @@ examples.md
 
 contributing.md
 developer_guide.md
-mentoring.md
+projects.md
 ```
 
 ```{toctree}
