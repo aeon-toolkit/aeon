@@ -3,7 +3,7 @@ name: PR pre-commit
 on:
   push:
     branches:
-      - rnn_net
+      - rnn_regressor
   pull_request_target:
 
 concurrency:
