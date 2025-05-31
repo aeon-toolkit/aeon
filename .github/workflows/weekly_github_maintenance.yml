@@ -14,10 +14,10 @@ jobs:
       - name: Checkout main
         uses: actions/checkout@v4
 
-      - name: Setup Python 3.11
+      - name: Setup Python 3.12
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.12"
 
       - uses: browniebroke/pre-commit-autoupdate-action@v1.0.0
 
@@ -48,10 +48,13 @@ jobs:
         with:
           sparse-checkout: .github/utilities
 
-      - name: Setup Python 3.11
+      - name: Setup Python 3.12
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.12"
+
+      - name: Install requests
+        run: pip install -Uq requests
 
       - name: Create app token
         uses: actions/create-github-app-token@v2
@@ -76,7 +79,6 @@ jobs:
           labels: documentation, no changelog
 
   github-security-scorecard:
-    name: Scorecard analysis
     runs-on: ubuntu-24.04
     permissions:
       # Needed to upload the results to code-scanning dashboard.
