@@ -166,23 +166,55 @@ def linkcode_resolve(domain, info):
     def find_source():
         # try to find the file and line number, based on code from numpy:
         # https://github.com/numpy/numpy/blob/main/doc/source/conf.py#L286
-        obj = sys.modules[info["module"]]
-        for part in info["fullname"].split("."):
-            obj = getattr(obj, part)
+
         import inspect
         import os
 
-        obj = inspect.unwrap(obj)
+        # Get the top-level object from the module name
+        obj = sys.modules[info["module"]]
 
-        fn = inspect.getsourcefile(obj)
-        fn = os.path.relpath(fn, start=os.path.dirname(aeon.__file__))
+        # Traverse dotted path (e.g., module.submodule.Class.method)
+        for part in info["fullname"].split("."):
+            obj = getattr(obj, part)
+
+        # Unwrapping decorators (if any), so we can get the true
+        # source function
+        if inspect.isfunction(obj):
+            obj = inspect.unwrap(obj)
+
+        # Get the source filename
+        try:
+            fn = inspect.getsourcefile(obj)
+        except TypeError:
+            fn = None
+
+        # If no source file is found, return None (no link)
+        if not fn:
+            return None
+
+        # Make filename relative to the aeon source directory
+        startdir = Path(aeon.__file__).parent.parent
+        try:
+            fn = os.path.relpath(fn, start=startdir).replace(os.path.sep, "/")
+        except ValueError:
+            return None
+
+        # Filter out files not in the aeon package
+        # (e.g., inherited from sklearn)
+        if not fn.startswith("aeon/"):
+            return None
+
+        # Get line range of the object
         source, lineno = inspect.getsourcelines(obj)
         return fn, lineno, lineno + len(source) - 1
 
     if domain != "py" or not info["module"]:
         return None
     try:
-        filename = "aeon/%s#L%d-L%d" % find_source()
+        result = find_source()
+        if not result:
+            return None
+        filename = "%s#L%d-L%d" % result
     except Exception:
         filename = info["module"].replace(".", "/") + ".py"
     return "https://github.com/aeon-toolkit/aeon/blob/{}/{}".format(
