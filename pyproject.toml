@@ -58,7 +58,7 @@ dependencies = [
 # soft dependencies
 [project.optional-dependencies]
 all_extras = [
-    "esig>=1.0.0",
+    "esig>=1.0.0; platform_system != 'Darwin'",
     "imbalanced-learn",
     "matplotlib>=3.3.2",
     "pycatch22>=0.4.5",
