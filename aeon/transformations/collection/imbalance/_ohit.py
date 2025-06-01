@@ -127,9 +127,7 @@ class OHIT(BaseCollectionTransformer):
                 self.kapa = int(np.ceil(n**0.5))
 
             # Initialize NearestNeighbors for SNN similarity
-            self.NearestNeighbors = NearestNeighbors(
-                metric=self.distance, n_neighbors=self.k + 1
-            )
+            self.nn_ = NearestNeighbors(metric=self.distance, n_neighbors=self.k + 1)
 
             clusters, cluster_label = self._cluster_minority(X_class)
             Me, eigen_matrices, eigen_values = self._covStruct(X_class, clusters)
@@ -178,8 +176,8 @@ class OHIT(BaseCollectionTransformer):
         kapa = self.kapa
         drT = self.drT
 
-        self.NearestNeighbors.fit(X)
-        neighbors = self.NearestNeighbors.kneighbors(X, return_distance=False)[:, 1:]
+        self.nn_.fit(X)
+        neighbors = self.nn_.kneighbors(X, return_distance=False)[:, 1:]
         """ construct the shared nearest neighbor similarity """
         strength = np.zeros((n, n))
         for i in range(n):

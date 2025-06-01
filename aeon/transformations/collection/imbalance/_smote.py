@@ -226,7 +226,7 @@ class SMOTE(BaseCollectionTransformer):
             Synthetically generated samples.
         """
         diffs = nn_data[nn_num[rows, cols]] - X[rows]
-        if y is not None:  # only entering for BorderlineSMOTE-2
+        if y is not None:
             random_state = check_random_state(self.random_state)
             mask_pair_samples = y[nn_num[rows, cols]] != y_type
             diffs[mask_pair_samples] *= random_state.uniform(
