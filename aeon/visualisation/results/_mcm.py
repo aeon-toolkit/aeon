@@ -41,7 +41,7 @@ def create_multi_comparison_matrix(
     font_size="auto",
     colorbar_orientation="vertical",
     colorbar_value=None,
-    labels=None,
+    win_tie_loss_labels=None,
     include_legend=True,
     show_symetry=True,
 ):
@@ -58,7 +58,9 @@ def create_multi_comparison_matrix(
         row should contain the names of the estimators and the first column can
         contain the names of the problems if `dataset_column` is true.
     save_path: str, default = './mcm'
-        The output directory for the results.
+        The output directory for the results. If you want to save the results with a
+        different filename, you must include the filename in the path.
+        (e.g., './your_filename')
     formats : str or list of str, default = ("pdf", "png", "csv", "tex", "json")
         File formats to save.  A single string applies to one format,
         an iterable applies to all its elements.
@@ -133,9 +135,14 @@ def create_multi_comparison_matrix(
         In which orientation to show the colorbar either horizontal or vertical.
     colorbar_value: str, default = 'mean-difference'
         The values for which the heat map colors are based on.
-    labels: tuple of str, default = None
-        The labels for the heatmap cells, if labels=None and higher_stat_better=True,
-        then the labels are ('r>c', 'r=c', 'r<c'), otherwise ('r<c', 'r=c', 'r>c').
+    win_tie_loss_labels: tuple of str or None, default = None
+        Custom labels for heatmap cells, in the form (win_label, tie_label, loss_label).
+        If win_tie_loss_labels=None, default labels are chosen based on
+        higher_stat_better:
+        - If higher_stat_better=True, defaults to ('r>c', 'r=c', 'r<c')
+        - If higher_stat_better=False, defaults to ('r<c', 'r=c', 'r>c')
+        The tuple must contain exactly three strings, representing win, tie, and
+        loss outcomes for the row comparate (r) against the column comparate (c).
     include_legend: bool, default = True
         Whether or not to show the legend on the MCM.
     show_symetry: bool, default = True
@@ -176,15 +183,15 @@ def create_multi_comparison_matrix(
     else:
         formats = list(formats)
 
-    if labels is None:
-        labels = (
+    if win_tie_loss_labels is None:
+        win_tie_loss_labels = (
             ("r>c", "r=c", "r<c")
             if higher_stat_better is True
             else ("r<c", "r=c", "r>c")
         )
-    if len(labels) != 3:
-        raise ValueError("Labels should be a list of three strings")
-    win_label, tie_label, loss_label = labels
+    if len(win_tie_loss_labels) != 3:
+        raise ValueError("win_tie_loss_labels should be a list of three strings")
+    win_label, tie_label, loss_label = win_tie_loss_labels
 
     analysis = _get_analysis(
         df_results,
@@ -221,7 +228,7 @@ def create_multi_comparison_matrix(
         font_size=font_size,
         colorbar_orientation=colorbar_orientation,
         colorbar_value=colorbar_value,
-        labels=labels,
+        win_tie_loss_labels=win_tie_loss_labels,
         include_legend=include_legend,
         show_symetry=show_symetry,
     )
@@ -445,7 +452,7 @@ def _draw(
     font_size="auto",
     colorbar_orientation="vertical",
     colorbar_value=None,
-    labels=None,
+    win_tie_loss_labels=None,
     higher_stat_better=True,
     show_symetry=True,
     include_legend=True,
@@ -453,7 +460,7 @@ def _draw(
     _check_soft_dependencies("matplotlib")
     import matplotlib.pyplot as plt
 
-    win_label, tie_label, loss_label = labels
+    win_label, tie_label, loss_label = win_tie_loss_labels
 
     latex_string = "\\documentclass[a4,12pt]{article}\n"
     latex_string += "\\usepackage{colortbl}\n"
