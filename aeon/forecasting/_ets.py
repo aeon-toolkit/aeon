@@ -28,12 +28,12 @@ class ETSForecaster(BaseForecaster):
 
     Parameters
     ----------
-    error_type : string or in default='additive'
+    error_type : string or int, default=1
         Type of error model: 'additive' (0) or 'multiplicative' (1)
-    trend_type : string, int or None, default=None
+    trend_type : string, int or None, default=0
         Type of trend component: None (0), `additive' (1) or 'multiplicative' (2)
-    seasonality_type : string or None, default=None
-        Type of seasonal component:None (0), `additive' (1) or 'multiplicative' (2)
+    seasonality_type : string or None, default=0
+        Type of seasonal component: None (0), `additive' (1) or 'multiplicative' (2)
     seasonal_period : int, default=1
         Number of time points in a seasonal cycle.
     alpha : float, default=0.1
