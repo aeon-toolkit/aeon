@@ -279,8 +279,6 @@ class MultiRocket(BaseCollectionTransformer):
 
 
 @njit(
-    "float32[:,:](float32[:,:],float32[:,:],Tuple((int32[:],int32[:],float32[:])),"
-    "Tuple((int32[:],int32[:],float32[:])),int32, int32[:,:],optional(int32))",
     fastmath=True,
     parallel=True,
     cache=True,
@@ -553,10 +551,6 @@ def _transform_uni(
 
 
 @njit(
-    "float32[:,:](float32[:,:,:],float32[:,:,:],"
-    "Tuple((int32[:],int32[:],int32[:],int32[:],float32[:])),"
-    "Tuple((int32[:],int32[:],int32[:],int32[:],float32[:])),int32, int32[:,:],"
-    "optional(int32))",
     fastmath=True,
     parallel=True,
     cache=True,
@@ -875,7 +869,6 @@ def _transform_multi(
 
 
 @njit(
-    "float32[:](float32[:,:],int32[:],int32[:],float32[:], int32[:,:],optional(int32))",
     fastmath=True,
     parallel=False,
     cache=True,
@@ -945,8 +938,6 @@ def _fit_biases_univariate(
 
 
 @njit(
-    "float32[:](float32[:,:,:],int32[:],int32[:],int32[:],int32[:],float32[:], "
-    "int32[:,:],optional(int32))",
     fastmath=True,
     parallel=False,
     cache=True,
