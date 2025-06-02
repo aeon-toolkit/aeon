@@ -194,28 +194,21 @@ class SMOTE(BaseCollectionTransformer):
         X : np.ndarray
             Series from which the points will be created of shape (n_cases,
             n_timepoints).
-
         nn_data : ndarray of shape (n_samples_all, n_features)
             Data set carrying all the neighbours to be used.
-
         nn_num : ndarray of shape (n_samples_all, k_nearest_neighbours)
             The nearest neighbours of each sample in `nn_data`.
-
         rows : ndarray of shape (n_samples,), dtype=int
             Indices pointing at feature vector in X which will be used
             as a base for creating new samples.
-
         cols : ndarray of shape (n_samples,), dtype=int
             Indices pointing at which nearest neighbor of base feature vector
             will be used when creating new samples.
-
         steps : ndarray of shape (n_samples,), dtype=float
             Step sizes for new samples.
-
         y_type : str, int or None, default=None
             Class label of the current target classes for which we want to generate
             samples.
-
         y : ndarray of shape (n_samples_all,), default=None
             The true target associated with `nn_data`. Used by Borderline SMOTE-2 to
             weight the distances in the sample generation process.

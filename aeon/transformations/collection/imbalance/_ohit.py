@@ -59,7 +59,9 @@ class OHIT(BaseCollectionTransformer):
 
     References
     ----------
-    .. [1] (Add the relevant reference for OHIT here.)
+    .. [1] T. Zhu, C. Luo, Z. Zhang, J. Li, S. Ren, and Y. Zeng. Minority
+    oversampling for imbalanced time series classification. Knowledge-Based Systems,
+    247:108764, 2022.
 
     Examples
     --------
@@ -143,7 +145,7 @@ class OHIT(BaseCollectionTransformer):
             os_ind = np.concatenate([os_ind, remaining])
             R = 1.25 if len(clusters) > 1 else 1.1
 
-            """generate  the structure-preserving synthetic samples for each cluster"""
+            # generate  the structure-preserving synthetic samples for each cluster
             X_new = np.zeros((n_samples, m))
             count = 0
             X_class_0 = X_class[cluster_label == 0]
@@ -178,7 +180,7 @@ class OHIT(BaseCollectionTransformer):
 
         self.nn_.fit(X)
         neighbors = self.nn_.kneighbors(X, return_distance=False)[:, 1:]
-        """ construct the shared nearest neighbor similarity """
+        # construct the shared nearest neighbor similarity
         strength = np.zeros((n, n))
         for i in range(n):
             for j in range(i + 1, n):
@@ -188,7 +190,7 @@ class OHIT(BaseCollectionTransformer):
                     * (k + 1 - np.searchsorted(neighbors[j, :k], shared_nn))
                 )
 
-        """ construct the shared nearest neighbor graph """
+        # construct the shared nearest neighbor graph
         strength_nn = np.sort(strength, axis=1)[:, ::-1][:, :k]
         idx_nn = np.argsort(strength, axis=1)[:, ::-1]
         graph = np.zeros((n, k))
@@ -206,9 +208,9 @@ class OHIT(BaseCollectionTransformer):
             else:
                 density_ratio[i] = density[i] / np.mean(density[idx_nn[i, non_noise]])
 
-        """ identify core points """
+        # identify core points
         core_idx = np.where(density_ratio > drT)[0]
-        """ find directly density-reachable samples for each core point"""
+        # find directly density-reachable samples for each core point
         neighborhood = {core: set(idx_nn[core, :kapa]) for core in core_idx}
         for i in core_idx:
             for j in core_idx:
