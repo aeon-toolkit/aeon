@@ -50,7 +50,7 @@ class SARIMAForecaster(ARIMAForecaster):
     >>> from aeon.forecasting import SARIMAForecaster
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()
-    >>> forecaster = SARIMAForecaster(1,1,2,0,1,0,12,0)
+    >>> forecaster = SARIMAForecaster(1,1,2,0,1,0,12,False)
     >>> forecaster.fit(y)
     SARIMAForecaster(d=1, ds=1, q=2)
     >>> forecaster.predict()
@@ -59,15 +59,15 @@ class SARIMAForecaster(ARIMAForecaster):
 
     def __init__(
         self,
-        p=1,
-        d=0,
-        q=1,
-        ps=0,
-        ds=0,
-        qs=0,
-        seasonal_period=12,
-        constant_term=0,
-        horizon=1,
+        p: int = 1,
+        d: int = 0,
+        q: int = 1,
+        ps: int = 0,
+        ds: int = 0,
+        qs: int = 0,
+        seasonal_period: int = 12,
+        constant_term: bool = False,
+        horizon: int = 1,
     ):
         super().__init__(p=p, d=d, q=q, constant_term=constant_term, horizon=horizon)
         self.ps = ps
@@ -111,7 +111,7 @@ class SARIMAForecaster(ARIMAForecaster):
         self.data_ = np.array(y.squeeze(), dtype=np.float64)
         self.model_ = np.array(
             (
-                self.constant_term,
+                1 if self.constant_term else 0,
                 self.p,
                 self.q,
                 self.ps,
