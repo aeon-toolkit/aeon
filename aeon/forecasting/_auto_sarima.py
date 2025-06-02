@@ -53,7 +53,7 @@ class AutoSARIMAForecaster(SARIMAForecaster):
     450.748...
     """
 
-    def __init__(self, horizon=1):
+    def __init__(self, horizon: int = 1):
         super().__init__(horizon=horizon)
 
     def _fit(self, y, exog=None):
@@ -103,13 +103,14 @@ class AutoSARIMAForecaster(SARIMAForecaster):
             self.differenced_data_, _sarima_model_wrapper, model_parameters, 5
         )
         (
-            self.constant_term_,
+            constant_term_int,
             self.p_,
             self.q_,
             self.ps_,
             self.qs_,
             self.seasonal_period_,
         ) = self.model_
+        self.constant_term_ = constant_term_int == 1
         (self.c_, self.phi_, self.theta_, self.phi_s_, self.theta_s_) = _extract_params(
             self.parameters_, self.model_
         )
