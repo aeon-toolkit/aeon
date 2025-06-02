@@ -93,10 +93,11 @@ class AutoARIMAForecaster(ARIMAForecaster):
             self.differenced_data_, _arima_model_wrapper, model_parameters, 3
         )
         (
-            self.constant_term_,
+            constant_term_int,
             self.p_,
             self.q_,
         ) = self.model_
+        self.constant_term_ = constant_term_int == 1
         (self.c_, self.phi_, self.theta_) = _extract_params(
             self.parameters_, self.model_
         )
