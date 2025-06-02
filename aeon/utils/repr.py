@@ -5,9 +5,13 @@ import inspect
 from aeon.testing.utils.deep_equals import deep_equals
 
 
-def unchanged_and_required_params(obj):
+def get_unchanged_and_required_params_as_str(obj):
     """
-    Get parameters of a object that are either required or unchanged.
+    Get object parameters as a comma delimited string.
+
+    Collects the parameters of an object that are either required 
+    (no default) or different from the __init__ default value. Returns
+    the parameter names and values as a comma delimited string.
 
     Parameters
     ----------
@@ -17,7 +21,7 @@ def unchanged_and_required_params(obj):
     Returns
     -------
     str
-        A string representation of the parameters.
+        A string representation of the objects parameters and values.
     """
     cls = obj.__class__
     signature = inspect.signature(cls.__init__)
