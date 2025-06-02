@@ -23,6 +23,14 @@ class ARIMAForecaster(BaseForecaster):
 
     Parameters
     ----------
+    p : int, default=1,
+        Autoregressive (p) order of the ARIMA model
+    d : int, default=0,
+        Differencing (d) order of the ARIMA model
+    q : int, default=1,
+        Moving average (q) order of the ARIMA model
+    constant_term: bool = False,
+        Presence of a constant/intercept term in the model.
     horizon : int, default=1
         The forecasting horizon, i.e., the number of steps ahead to predict.
 
@@ -41,10 +49,10 @@ class ARIMAForecaster(BaseForecaster):
     p_, d_, q_ : int
         Orders of the ARIMA model: autoregressive (p), differencing (d),
         and moving average (q) terms.
-    constant_term : int
+    constant_term : bool
         Parameters passed to the forecaster see constant_term_.
-    constant_term_ : float
-        Constant/intercept term in the model.
+    constant_term_ : bool
+        Whether to include a constant/intercept term in the model.
     c_ : float
         Estimated constant term (internal use).
     phi_ : np.ndarray
@@ -67,10 +75,17 @@ class ARIMAForecaster(BaseForecaster):
     >>> forecaster.fit(y)
     ARIMAForecaster(d=1, p=2)
     >>> forecaster.predict()
-    550.914724663113...
+    474.49449...
     """
 
-    def __init__(self, p=1, d=0, q=1, constant_term=0, horizon=1):
+    def __init__(
+        self,
+        p: int = 1,
+        d: int = 0,
+        q: int = 1,
+        constant_term: bool = False,
+        horizon: int = 1,
+    ):
         super().__init__(horizon=horizon, axis=1)
         self.data_ = []
         self.differenced_data_ = []
@@ -83,7 +98,7 @@ class ARIMAForecaster(BaseForecaster):
         self.p_ = 0
         self.d_ = 0
         self.q_ = 0
-        self.constant_term_ = 0
+        self.constant_term_ = False
         self.model_ = []
         self.c_ = 0
         self.phi_ = 0
@@ -112,12 +127,14 @@ class ARIMAForecaster(BaseForecaster):
         self.q_ = self.q
         self.constant_term_ = self.constant_term
         self.data_ = np.array(y.squeeze(), dtype=np.float64)
-        self.model_ = np.array((self.constant_term, self.p, self.q), dtype=np.int32)
+        self.model_ = np.array(
+            (1 if self.constant_term else 0, self.p, self.q), dtype=np.int32
+        )
         self.differenced_data_ = np.diff(self.data_, n=self.d)
         (self.parameters_, self.aic_) = nelder_mead(
             _arima_model_wrapper,
             np.sum(self.model_[:3]),
-            self.data_,
+            self.differenced_data_,
             self.model_,
         )
         (self.c_, self.phi_, self.theta_) = _extract_params(
