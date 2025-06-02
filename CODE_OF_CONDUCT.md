@@ -48,7 +48,7 @@ Group. The workgroup may take immediate action if the situation requires it (e.g
 deleting a post, banning a user from a channel, etc.).
 
 Using the NumFOCUS form, your report will be received and handled by NumFOCUS Code of
-Conduct Working Group; trained, and experienced contributors with diverse backgrounds.
+Conduct Working Group; trained and experienced contributors with diverse backgrounds.
 The group is making decisions independently of `aeon`, PyData, NumFOCUS or any other
 organisation. You can learn more about the current NumFOCUS group members, as well as
 the reporting procedure [here](https://numfocus.org/code-of-conduct).
