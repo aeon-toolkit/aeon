@@ -171,7 +171,7 @@ Mentoring and Projects
 
 +++
 
-```{button-ref} mentoring
+```{button-ref} projects
 :color: primary
 :click-parent:
 :expand:
