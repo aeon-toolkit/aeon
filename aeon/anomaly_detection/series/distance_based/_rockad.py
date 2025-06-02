@@ -26,7 +26,7 @@ class ROCKAD(BaseSeriesAnomalyDetector):
     After windowing, the data gets transformed into the ROCKET feature space.
     Then the windows are compared based on the feature space by
     finding the nearest neighbours. Whole-series based ROCKAD as proposed in
-    [1]_ can be found at aeon/anomaly_detection/whole_series/_rockad.py
+    [1]_ can be found at aeon/anomaly_detection/collection/_rockad.py
 
     This class supports both univariate and multivariate time series and
     provides options for normalizing features, applying power transformations,
@@ -55,6 +55,15 @@ class ROCKAD(BaseSeriesAnomalyDetector):
     random_state : int, default=42
         Random seed for reproducibility.
 
+    Attributes
+    ----------
+    rocket_transformer_ : Optional[Rocket]
+        Instance of the ROCKET transformer used to extract features, set after fitting.
+    list_baggers_ : Optional[list[NearestNeighbors]]
+        List containing k-NN estimators used for anomaly scoring, set after fitting.
+    power_transformer_ : PowerTransformer
+        Transformer used to apply power transformation to the features.
+
     References
     ----------
     .. [1] Theissler, A., Wengert, M., Gerschner, F. (2023).
@@ -78,15 +87,6 @@ class ROCKAD(BaseSeriesAnomalyDetector):
     0.43652154 0.43652154 0.43652154 0.43652154 0.43652154 0.43652154
     0.43652154 0.43652154 0.43652154 0.52382585 0.65200875 0.80313368
     0.85194344 1.        ])
-
-    Attributes
-    ----------
-    rocket_transformer_ : Optional[Rocket]
-        Instance of the ROCKET transformer used to extract features, set after fitting.
-    list_baggers_ : Optional[list[NearestNeighbors]]
-        List containing k-NN estimators used for anomaly scoring, set after fitting.
-    power_transformer_ : PowerTransformer
-        Transformer used to apply power transformation to the features.
     """
 
     _tags = {
