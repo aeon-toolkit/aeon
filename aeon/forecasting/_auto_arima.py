@@ -50,7 +50,7 @@ class AutoARIMAForecaster(ARIMAForecaster):
     476.5824781648738
     """
 
-    def __init__(self, horizon=1):
+    def __init__(self, horizon: int = 1):
         super().__init__(horizon=horizon)
 
     def _fit(self, y, exog=None):
