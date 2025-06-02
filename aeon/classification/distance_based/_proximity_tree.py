@@ -253,7 +253,7 @@ class ProximityTree(BaseClassifier):
 
         for _ in range(self.n_splitters):
             exemplars, dist_name, dist_params, X_std = self._get_candidate_splitter(
-                X, rng, cls_idx, X_std
+                X, der_X, rng, cls_idx, X_std
             )
             splits = [[] for _ in unique_classes]
 
@@ -343,10 +343,11 @@ class ProximityTree(BaseClassifier):
                 if dist < min_dist:
                     min_dist = dist
                     best_exemplar_label = label
+
             return self._traverse_tree(node.children[best_exemplar_label], x, der_x)
 
     @staticmethod
-    def _get_candidate_splitter(X, rng, cls_idx, X_std):
+    def _get_candidate_splitter(X, der_X, rng, cls_idx, X_std):
         """Generate candidate splitter.
 
         Takes a time series dataset and a set of parameterized
@@ -357,6 +358,8 @@ class ProximityTree(BaseClassifier):
         ----------
         X : np.ndarray shape (n_cases, n_channels, n_timepoints)
             The training input samples.
+        der_X : np.ndarray shape (n_cases, n_channels, n_timepoints)
+            The slope derivative of the training input samples, used for ddtw and wddtw.
         rng : np.random.RandomState
             Random number generator.
         cls_idx : dict
@@ -378,13 +381,8 @@ class ProximityTree(BaseClassifier):
             The standard deviation of the training set if calculated, otherwise same
             as input.
         """
-        exemplars = {}
-        for label in cls_idx.keys():
-            label_idx = cls_idx[label]
-            id = rng.choice(label_idx)
-            exemplars[label] = X[id]
-
         n = rng.randint(0, 11)
+        derivative = False
         if n == 0:
             dist_name = "euclidean"
             dist_params = {}
@@ -397,15 +395,18 @@ class ProximityTree(BaseClassifier):
         elif n == 3:
             dist_name = "ddtw"
             dist_params = {}
+            derivative = True
         elif n == 4:
             dist_name = "ddtw"
             dist_params = {"window": rng.uniform(0, 0.25)}
+            derivative = True
         elif n == 5:
             dist_name = "wdtw"
             dist_params = {"g": rng.uniform(0, 1)}
         elif n == 6:
             dist_name = "wddtw"
             dist_params = {"g": rng.uniform(0, 1)}
+            derivative = True
         elif n == 7:
             if X_std is None:
                 X_std = X.std()
@@ -433,6 +434,12 @@ class ProximityTree(BaseClassifier):
             }
         else:
             raise ValueError(f"Invalid distance index {n}. Must be in range [0, 10].")
+
+        exemplars = {}
+        for label in cls_idx.keys():
+            label_idx = cls_idx[label]
+            id = rng.choice(label_idx)
+            exemplars[label] = der_X[id] if derivative else X[id]
 
         return exemplars, dist_name, dist_params, X_std
 
@@ -488,15 +495,13 @@ def gini_gain(y, y_subs) -> float:
     # find gini for parent node
     score = gini(y)
 
-    weighted_child_gini = 0.0
     for child in y_subs:
         # ignore empty children
         if child.shape[0] > 0:
             # find gini score for this child and weight score by proportion of
             # instances at child compared to parent
-            weighted_child_gini += (child.shape[0] / y.shape[0]) * gini(child)
-
-    return score - weighted_child_gini
+            score -= (child.shape[0] / y.shape[0]) * gini(child)
+    return score
 
 
 msm_params = [

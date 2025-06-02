@@ -1,7 +1,5 @@
 """Tests for numba functions."""
 
-__maintainer__ = []
-
 import numpy as np
 import pytest
 from numpy.testing import assert_array_almost_equal, assert_array_equal
@@ -13,11 +11,23 @@ from aeon.utils.numba.general import (
     get_subsequence_with_mean_std,
     normalise_subsequences,
     sliding_mean_std_one_series,
+    unique_count,
     z_normalise_series,
     z_normalise_series_with_mean_std,
 )
 
 DATATYPES = ["int32", "int64", "float32", "float64"]
+
+
+@pytest.mark.parametrize("type", DATATYPES)
+def test_unique_count(type):
+    """Test numba unique count."""
+    a = np.array([2, 0, 2, 2, 1, 1, 0, 2, 2, 1], dtype=type)
+    unique_expected = [0, 1, 2]
+    count_expected = [2, 3, 5]
+    a_result = unique_count(a)
+    assert_array_equal(a_result[0], unique_expected)
+    assert_array_equal(a_result[1], count_expected)
 
 
 @pytest.mark.parametrize("type", DATATYPES)
