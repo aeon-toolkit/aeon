@@ -208,9 +208,9 @@ def rp_rr_auc_score(
     y_score : np.ndarray
         Anomaly scores for each point of the time series of shape (n_instances,).
     max_samples: int
-        The implementation of the range-based precision and recall metrics is quite
-        can be slow. To prevent long runtimes caused by scorings with high precision
-        (many thresholds), just a specific amount of possible thresholds is sampled.
+        The calculation of the range-based precision and recall metrics can be slow. 
+        To prevent long runtimes caused by scorings with high precision
+        (many thresholds), a specified amount of possible thresholds is sampled.
         This parameter controls the maximum number of thresholds; however, too low
         numbers degrade the metrics' quality.
     r_alpha : float
