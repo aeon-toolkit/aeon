@@ -9,7 +9,7 @@ def get_unchanged_and_required_params_as_str(obj):
     """
     Get object parameters as a comma delimited string.
 
-    Collects the parameters of an object that are either required 
+    Collects the parameters of an object that are either required
     (no default) or different from the __init__ default value. Returns
     the parameter names and values as a comma delimited string.
 
