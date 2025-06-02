@@ -4,7 +4,7 @@ __maintainer__ = []
 
 from abc import ABC, abstractmethod
 
-from aeon.utils.repr import unchanged_and_required_params
+from aeon.utils.repr import get_unchanged_and_required_params_as_str
 from aeon.utils.validation._dependencies import (
     _check_python_version,
     _check_soft_dependencies,
@@ -28,7 +28,7 @@ class BaseDeepLearningNetwork(ABC):
 
     def __repr__(self):
         """Format str output like scikit-learn estimators."""
-        changed_params = unchanged_and_required_params(self)
+        changed_params = get_unchanged_and_required_params_as_str(self)
         return f"{self.__class__.__name__}({changed_params})"
 
     @abstractmethod
