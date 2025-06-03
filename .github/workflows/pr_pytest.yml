@@ -3,7 +3,7 @@ name: PR pytest
 on:
   push:
     branches:
-      - rnn_net
+      - main
   pull_request:
     paths:
       - "aeon/**"
