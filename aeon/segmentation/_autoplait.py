@@ -124,8 +124,8 @@ class AutoPlaitSegmenter(BaseSegmenter):
 
     _tags = {
         "returns_dense": True,
-        "capability:univariate" : False,
-        "capability:multivariate" : True,
+        "capability:univariate": False,
+        "capability:multivariate": True,
     }
 
     def __init__(
