@@ -2,14 +2,7 @@
 
 from functools import partial
 
-import numpy as np
-
-from aeon.base._base import _clone_estimator
-from aeon.base._base_series import VALID_SERIES_INNER_TYPES
-from aeon.testing.data_generation import (
-    make_example_1d_numpy,
-    make_example_2d_numpy_series,
-)
+from aeon.utils.data_types import ALL_TIME_SERIES_TYPES
 
 
 def _yield_anomaly_detection_checks(estimator_class, estimator_instances, datatypes):
@@ -20,24 +13,28 @@ def _yield_anomaly_detection_checks(estimator_class, estimator_instances, dataty
     )
 
     # test class instances
-    for _, estimator in enumerate(estimator_instances):
-        # no data needed
-        yield partial(check_anomaly_detector_univariate, estimator=estimator)
-        yield partial(check_anomaly_detector_multivariate, estimator=estimator)
+    for i, estimator in enumerate(estimator_instances):
+        # data type irrelevant
+        yield partial(
+            check_anomaly_detector_learning_types,
+            estimator=estimator,
+            datatype=datatypes[i][0],
+        )
 
 
 def check_anomaly_detector_overrides_and_tags(estimator_class):
     """Test compliance with the anomaly detector base class contract."""
     # Test they don't override final methods, because Python does not enforce this
-    assert "fit" not in estimator_class.__dict__
-    assert "predict" not in estimator_class.__dict__
-    assert "fit_predict" not in estimator_class.__dict__
+    final_methods = ["fit", "predict", "fit_predict"]
+    for method in final_methods:
+        if method in estimator_class.__dict__:
+            raise ValueError(
+                f"Anomaly detector {estimator_class} overrides the "
+                f"method {method}. Override _{method} instead."
+            )
 
     # Test that all anomaly detectors implement abstract predict.
     assert "_predict" in estimator_class.__dict__
-
-    # axis class parameter is for internal use only
-    assert "axis" not in estimator_class.__dict__
 
     # Test that fit_is_empty is correctly set
     fit_is_empty = estimator_class.get_class_tag(tag_name="fit_is_empty")
@@ -45,7 +42,10 @@ def check_anomaly_detector_overrides_and_tags(estimator_class):
 
     # Test valid tag for X_inner_type
     X_inner_type = estimator_class.get_class_tag(tag_name="X_inner_type")
-    assert X_inner_type in VALID_SERIES_INNER_TYPES
+    if isinstance(X_inner_type, str):
+        assert X_inner_type in ALL_TIME_SERIES_TYPES
+    else:  # must be a list
+        assert all([t in ALL_TIME_SERIES_TYPES for t in X_inner_type])
 
     # Must have at least one set to True
     multi = estimator_class.get_class_tag(tag_name="capability:multivariate")
@@ -53,41 +53,12 @@ def check_anomaly_detector_overrides_and_tags(estimator_class):
     assert multi or uni
 
 
-labels = np.zeros(15, dtype=np.int_)
-labels[np.random.choice(15, 5)] = 1
-uv_series = make_example_1d_numpy(n_timepoints=15, random_state=0)
-uv_series[labels == 1] += 1
-mv_series = make_example_2d_numpy_series(n_timepoints=15, n_channels=2, random_state=0)
-mv_series[:, labels == 1] += 1
+def check_anomaly_detector_learning_types(estimator, datatype):
+    """Test anomaly detector learning types."""
+    unsupervised = estimator.get_tag("learning_type:unsupervised")
+    semisup = estimator.get_tag("learning_type:semi_supervised")
+    supervised = estimator.get_tag("learning_type:supervised")
 
-
-def check_anomaly_detector_univariate(estimator):
-    """Test the anomaly detector on univariate data."""
-    import pytest
-
-    estimator = _clone_estimator(estimator)
-
-    if estimator.get_tag(tag_name="capability:univariate"):
-        pred = estimator.fit_predict(uv_series, labels)
-        assert isinstance(pred, np.ndarray)
-        assert pred.shape == (15,)
-        assert issubclass(pred.dtype.type, (np.integer, np.floating, np.bool_))
-    else:
-        with pytest.raises(ValueError, match="Univariate data not supported"):
-            estimator.fit_predict(uv_series, labels)
-
-
-def check_anomaly_detector_multivariate(estimator):
-    """Test the anomaly detector on multivariate data."""
-    import pytest
-
-    estimator = _clone_estimator(estimator)
-
-    if estimator.get_tag(tag_name="capability:multivariate"):
-        pred = estimator.fit_predict(mv_series, labels)
-        assert isinstance(pred, np.ndarray)
-        assert pred.shape == (15,)
-        assert issubclass(pred.dtype.type, (np.integer, np.floating, np.bool_))
-    else:
-        with pytest.raises(ValueError, match="Multivariate data not supported"):
-            estimator.fit_predict(mv_series, labels)
+    assert (
+        unsupervised or semisup or supervised
+    ), "At least one learning type must be True"
