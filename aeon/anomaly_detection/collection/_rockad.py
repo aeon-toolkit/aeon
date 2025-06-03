@@ -82,7 +82,7 @@ class ROCKAD(BaseCollectionAnomalyDetector):
 
     _tags = {
         "anomaly_output_type": "anomaly_scores",
-        "learning_type": "semi-supervised",
+        "learning_type": "semi_supervised",
         "capability:univariate": True,
         "capability:multivariate": True,
         "capability:missing_values": False,
