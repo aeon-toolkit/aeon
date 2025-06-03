@@ -12,6 +12,8 @@ import numpy as np
 from sklearn.exceptions import NotFittedError
 
 from aeon.anomaly_detection.base import BaseAnomalyDetector
+from aeon.anomaly_detection.collection.base import BaseCollectionAnomalyDetector
+from aeon.anomaly_detection.series.base import BaseSeriesAnomalyDetector
 from aeon.base import BaseAeonEstimator
 from aeon.base._base import _clone_estimator
 from aeon.classification import BaseClassifier
@@ -22,6 +24,7 @@ from aeon.clustering.deep_learning.base import BaseDeepClusterer
 from aeon.regression import BaseRegressor
 from aeon.regression.deep_learning.base import BaseDeepRegressor
 from aeon.segmentation import BaseSegmenter
+from aeon.similarity_search import BaseSimilaritySearch
 from aeon.testing.estimator_checking._yield_anomaly_detection_checks import (
     _yield_anomaly_detection_checks,
 )
@@ -30,6 +33,9 @@ from aeon.testing.estimator_checking._yield_classification_checks import (
 )
 from aeon.testing.estimator_checking._yield_clustering_checks import (
     _yield_clustering_checks,
+)
+from aeon.testing.estimator_checking._yield_collection_anomaly_detection_checks import (
+    _yield_collection_anomaly_detection_checks,
 )
 from aeon.testing.estimator_checking._yield_early_classification_checks import (
     _yield_early_classification_checks,
@@ -42,6 +48,9 @@ from aeon.testing.estimator_checking._yield_regression_checks import (
 )
 from aeon.testing.estimator_checking._yield_segmentation_checks import (
     _yield_segmentation_checks,
+)
+from aeon.testing.estimator_checking._yield_series_anomaly_detection_checks import (
+    _yield_series_anomaly_detection_checks,
 )
 from aeon.testing.estimator_checking._yield_soft_dependency_checks import (
     _yield_soft_dependency_checks,
@@ -139,6 +148,16 @@ def _yield_all_aeon_checks(
             estimator_class, estimator_instances, datatypes
         )
 
+    if issubclass(estimator_class, BaseSeriesAnomalyDetector):
+        yield from _yield_series_anomaly_detection_checks(
+            estimator_class, estimator_instances, datatypes
+        )
+
+    if issubclass(estimator_class, BaseCollectionAnomalyDetector):
+        yield from _yield_collection_anomaly_detection_checks(
+            estimator_class, estimator_instances, datatypes
+        )
+
     if issubclass(estimator_class, BaseTransformer):
         yield from _yield_transformation_checks(
             estimator_class, estimator_instances, datatypes
@@ -231,9 +250,10 @@ def check_inheritance(estimator_class):
 
     # Only transformers can inherit from multiple base types currently
     if n_base_types > 1:
-        assert issubclass(
-            estimator_class, BaseTransformer
-        ), "Only transformers can inherit from multiple base types."
+        assert issubclass(estimator_class, BaseTransformer) or issubclass(
+            estimator_class, BaseSimilaritySearch
+        ), "Only transformers or similarity search estimators can inherit from multiple"
+        "base types."
 
 
 def check_has_common_interface(estimator_class):
