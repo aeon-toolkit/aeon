@@ -14,6 +14,7 @@ import math
 import random
 import sys
 import warnings
+from typing import Optional
 
 __all__ = ["AutoPlaitSegmenter"]
 
@@ -25,8 +26,8 @@ from sklearn.exceptions import ConvergenceWarning
 
 from aeon.segmentation.base import BaseSegmenter
 
-# warnings.filterwarnings("ignore", category=RuntimeWarning)
-# warnings.filterwarnings("ignore", category=ConvergenceWarning)
+warnings.filterwarnings("ignore", category=RuntimeWarning)
+warnings.filterwarnings("ignore", category=ConvergenceWarning)
 
 # Numerical thresholds
 EPSILON = 1e-6
@@ -147,7 +148,7 @@ class AutoPlaitSegmenter(BaseSegmenter):
         segment_sample_ratio: float = 0.03,
         regime_sample_ratio: float = 0.03,
         sampling_lm: float = 0.1,
-        seed: Optional[int] = None,
+        seed: Union[int] = None,
         normalise: bool = True,
         verbose: bool = False,
     ):
