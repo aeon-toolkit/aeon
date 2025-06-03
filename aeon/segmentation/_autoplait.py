@@ -25,8 +25,8 @@ from sklearn.exceptions import ConvergenceWarning
 
 from aeon.segmentation.base import BaseSegmenter
 
-warnings.filterwarnings("ignore", category=RuntimeWarning)
-warnings.filterwarnings("ignore", category=ConvergenceWarning)
+# warnings.filterwarnings("ignore", category=RuntimeWarning)
+# warnings.filterwarnings("ignore", category=ConvergenceWarning)
 
 # Numerical thresholds
 EPSILON = 1e-6
@@ -52,8 +52,8 @@ OUTPUT_VITERBI_PATH = False
 class AutoPlaitSegmenter(BaseSegmenter):
     """AutoPlait Segmentation.
 
-    AutoPlait [1]_ is a fully automatic mining algorithm for co-evolving
-    time series (multivariate). AutoPlait models a time series using several
+    AutoPlait [1]_ is a fully automatic segmentation algorithm for multivariate
+    time series. AutoPlait models a time series using several
     Hidden Markov Models (HMM) and iteratively attempts to split
     HMMs into two smaller HMMs that have a lower Minimum Description Length (MDL)
     than the original larger HMM. AutoPlait is able to identify common patterns
@@ -124,31 +124,32 @@ class AutoPlaitSegmenter(BaseSegmenter):
 
     _tags = {
         "returns_dense": True,
-        "capability:multivariate": True,
+        "capability:univariate" : False,
+        "capability:multivariate" : True,
     }
 
     def __init__(
         self,
-        max_segments=250,
-        max_sequence_length=10000000,
-        min_k=1,
-        max_k=16,
-        num_samples=10,
-        max_baumn_segments=3,
-        delta=1,
-        max_iter=10,
-        max_k_means_iter=100,
-        min_infer_iter=3,
-        max_infer_iter=10,
-        default_variance=10,
-        max_variance=float("inf"),
-        min_variance=1e-6,
-        segment_sample_ratio=0.03,
-        regime_sample_ratio=0.03,
-        sampling_lm=0.1,
-        seed=None,
-        normalise=True,
-        verbose=False,
+        max_segments: int = 250,
+        max_sequence_length: int = 10_000_000,
+        min_k: int = 1,
+        max_k: int = 16,
+        num_samples: int = 10,
+        max_baumn_segments: int = 3,
+        delta: int = 1,
+        max_iter: int = 10,
+        max_k_means_iter: int = 100,
+        min_infer_iter: int = 3,
+        max_infer_iter: int = 10,
+        default_variance: float = 10,
+        max_variance: float = float("inf"),
+        min_variance: float = 1e-6,
+        segment_sample_ratio: float = 0.03,
+        regime_sample_ratio: float = 0.03,
+        sampling_lm: float = 0.1,
+        seed: Optional[int] = None,
+        normalise: bool = True,
+        verbose: bool = False,
     ):
 
         self.max_segments = max_segments
