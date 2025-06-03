@@ -53,7 +53,7 @@ class AutoPlaitSegmenter(BaseSegmenter):
     """AutoPlait Segmentation.
 
     AutoPlait [1]_ is a fully automatic segmentation algorithm for multivariate
-    time series. AutoPlait models a time series using several
+    time series. AutoPlait models a time series using multiple
     Hidden Markov Models (HMM) and iteratively attempts to split
     HMMs into two smaller HMMs that have a lower Minimum Description Length (MDL)
     than the original larger HMM. AutoPlait is able to identify common patterns
