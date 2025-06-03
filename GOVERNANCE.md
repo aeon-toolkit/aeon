@@ -9,7 +9,7 @@ engaging with the community, and steering the project. Tasks are delegated to
 workgroups, which are groups of core developers and contributors assigned by
 core developers to fulfil a specific role.
 
-aeon's decision-making process is transparent and consensus-based.
+`aeon`'s decision-making process is transparent and consensus-based.
 Most decisions involve seeking consensus among contributors and core developers.
 If consensus is not reached, a vote can be called, requiring a two-thirds majority
 of core developers for approval. The process emphasises transparency and open
