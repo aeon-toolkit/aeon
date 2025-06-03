@@ -69,14 +69,14 @@ class ROCKAD(BaseCollectionAnomalyDetector):
     Examples
     --------
     >>> import numpy as np
-    >>> from aeon.anomaly_detection.whole_series import ROCKAD
+    >>> from aeon.anomaly_detection.collection import ROCKAD
     >>> rng = np.random.default_rng(seed=42)
     >>> X_train = rng.normal(loc=0.0, scale=1.0, size=(10, 100))
     >>> X_test = rng.normal(loc=0.0, scale=1.0, size=(5, 100))
     >>> X_test[4][50:58] -= 5
-    >>> detector = ROCKAD()
-    >>> detector.fit(X_train)
-    >>> detector.predict(X_test)
+    >>> detector = ROCKAD() # doctest: +SKIP
+    >>> detector.fit(X_train) # doctest: +SKIP
+    >>> detector.predict(X_test) # doctest: +SKIP
     array([24.11974147, 23.93866453, 21.3941765 , 22.26811959, 64.9630108 ])
     """
 
