@@ -616,11 +616,9 @@ class SFAFast(BaseCollectionTransformer):
                 variance = np.log2(np.sqrt(self.dft_variance[self.support]) + 1)
                 normed_scale = variance / variance.mean()
 
-            # Use at most symbols+1 for each position, and check if sum is correct
-            bit_arr = np.ceil(normed_scale * np.log2(self.alphabet_size)).astype(
-                np.uint32
-            )
-            bit_arr = heal_array(bit_arr, symbols + 1, self.bit_budget)
+            # Use at most symbols+2 for each position, and check if sum is correct
+            bit_arr = np.ceil(normed_scale * symbols).astype(np.uint32)
+            bit_arr = heal_array(bit_arr, symbols + 2, self.bit_budget)
 
             self.alphabet_sizes = [int(2 ** bit_arr[i]) for i in range(len(bit_arr))]
             self.letter_bits = np.array(bit_arr, dtype=np.uint32)
@@ -1393,30 +1391,37 @@ def heal_array(bit_array, max_val, budget):
     bit_array = bit_array.copy()
 
     # cap values beyond max_val and below 1
-    for i in range(len(bit_array)):
-        bit_array[i] = min(max_val, bit_array[i])
-        bit_array[i] = max(1, bit_array[i])
+    bit_array = np.minimum(max_val, np.maximum(1, bit_array))
+    current_sum = bit_array.sum()
 
-    # to large: heal the array to have the correct sum == budget
-    if bit_array.sum() > budget:
-        diff = bit_array.sum() - budget
-        while diff > 0:
-            for i in range(len(bit_array) - 1, 0, -1):
-                if bit_array[i] > 1:
+    # too large: heal the array to have the correct sum == budget
+    if current_sum > budget:
+        diff = current_sum - budget
+        change = True
+        while (diff > 0) and change:
+            change = False
+            for i in range(len(bit_array) - 1, -1, -1):
+                if bit_array[i] >= 1:
                     bit_array[i] -= 1
                     diff -= 1
+                    change = True
                 if diff == 0:
                     break
+        assert diff == 0, "Cannot reduce sum to budget"
 
-    # to small: heal the array to have the correct sum == budget
-    if bit_array.sum() < budget:
-        diff = budget - bit_array.sum()
-        while diff > 0:
+    # too small: heal the array to have the correct sum == budget
+    if current_sum < budget:
+        diff = budget - current_sum
+        change = True
+        while (diff > 0) and change:
+            change = False
             for i in range(len(bit_array)):
                 if bit_array[i] < max_val:
                     bit_array[i] += 1
                     diff -= 1
+                    change = True
                 if diff == 0:
                     break
+        assert diff == 0, "Cannot increase sum to budget"
 
     return bit_array
