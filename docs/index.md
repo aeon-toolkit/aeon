@@ -276,6 +276,7 @@ experimental modules are:
 - `segmentation`
 - `similarity_search`
 - `visualisation`
+- `transformations.collection.self_supervised`
 
 ```{toctree}
 :caption: Using aeon
