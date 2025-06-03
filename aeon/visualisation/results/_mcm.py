@@ -17,7 +17,7 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 def create_multi_comparison_matrix(
     df_results,
     save_path="./mcm",
-    formats=("pdf", "png", "csv", "tex", "json"),
+    formats=None,
     used_statistic="Accuracy",
     plot_1v1_comparisons=False,
     higher_stat_better=True,
@@ -61,9 +61,10 @@ def create_multi_comparison_matrix(
         The output directory for the results. If you want to save the results with a
         different filename, you must include the filename in the path.
         (e.g., './your_filename')
-    formats : str or list of str, default = ("pdf", "png", "csv", "tex", "json")
-        File formats to save.  A single string applies to one format,
-        an iterable applies to all its elements.
+    formats : str or list of str, default = None
+        File formats to save in the save_path.
+        - If None, no files are saved.
+        - Valid formats are 'pdf', 'png', 'json', 'csv', 'tex'.
     used_statistic: str, default = 'Score'
         Name of the metric being assesses (e.g. accuracy, error, mse).
     save_as_json: bool, default = True
@@ -178,10 +179,7 @@ def create_multi_comparison_matrix(
         except Exception as e:
             raise ValueError(f"No dataframe or valid path is given: Exception {e}")
 
-    if isinstance(formats, str):
-        formats = [formats]
-    else:
-        formats = list(formats)
+    formats = _normalize_formats(formats)
 
     if win_tie_loss_labels is None:
         win_tie_loss_labels = (
@@ -257,6 +255,8 @@ def _get_analysis(
     _check_soft_dependencies("matplotlib")
     import matplotlib as mpl
     import matplotlib.pyplot as plt
+
+    formats = _normalize_formats(formats)
 
     def _plot_1v1(
         x,
@@ -441,7 +441,7 @@ def _get_analysis(
 def _draw(
     analysis,
     save_path="./",
-    formats=(),
+    formats=None,
     row_comparates=None,
     col_comparates=None,
     excluded_row_comparates=None,
@@ -459,6 +459,8 @@ def _draw(
 ):
     _check_soft_dependencies("matplotlib")
     import matplotlib.pyplot as plt
+
+    formats = _normalize_formats(formats)
 
     win_label, tie_label, loss_label = win_tie_loss_labels
 
@@ -963,7 +965,7 @@ def _get_pairwise_content(
         loss = len(x[x < y])
         tie = len(x[x == y])
 
-    else:  # by default we assume higher is better
+    else:
         win = len(x[x < y])
         loss = len(x[x > y])
         tie = len(x[x == y])
@@ -1150,6 +1152,15 @@ def _re_order_comparates(df_results, analysis):
     analysis["ordered-comparate-names"] = list(
         np.asarray(analysis["comparate-names"])[ordered_indices]
     )
+
+
+def _normalize_formats(formats):
+    """Return a list of extensions or an empty list."""
+    if formats is None:
+        return []
+    if isinstance(formats, str):
+        return [formats]
+    return list(formats)
 
 
 def _get_cell_legend(
