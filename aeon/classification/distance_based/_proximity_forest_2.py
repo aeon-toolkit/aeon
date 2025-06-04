@@ -16,6 +16,7 @@ from aeon.distances.pointwise._minkowski import (
     _univariate_minkowski_distance,
     minkowski_distance,
 )
+from aeon.transformations.collection.convolution_based import HydraTransformer
 
 
 class ProximityForest2(BaseClassifier):
@@ -306,9 +307,10 @@ class ProximityTree2(BaseClassifier):
     def _get_candidate_splitter(self, X, y):
         """Generate candidate splitter.
 
-        Takes a time series dataset and a set of parameterized
-        distance measures to create a candidate splitter, which
-        contains a parameterized distance measure and a set of exemplars.
+        Takes a time series dataset, a set of parameterized
+        distance measures and transformers to create a candidate splitter,
+        which contains a parameterized distance measure, a transformer and
+        a set of exemplars.
 
         Parameters
         ----------
@@ -334,11 +336,6 @@ class ProximityTree2(BaseClassifier):
             id = rng.randint(0, X_new.shape[0])
             exemplars[y_new[id]] = X_new[id, :]
 
-        # Time series transform
-        transforms = ["raw", "first_derivative"]
-        t = rng.randint(0, 2)
-        transform = transforms[t]
-
         # random parameterized distance measure
         parameterized_distances = self._get_parameter_value(X)
         n = rng.randint(0, 3)
@@ -354,6 +351,14 @@ class ProximityTree2(BaseClassifier):
             i = rng.randint(1, 101)
             w = ((i / 100) ** 5) * self._max_warp_penalty
             parameterized_distances[dist]["warp_penalty"] = w
+
+        # Time series transform
+        transforms = ["raw", "first_derivative", "hydra"]
+        if dist in ["dtw", "adtw"]:
+            t = rng.randint(0, 3)  # hydra can only be used with minkowski
+        else:
+            t = rng.randint(0, 2)
+        transform = transforms[t]
 
         # Create a list of class exemplars, distance measures and transform
         splitter = [exemplars, {dist: parameterized_distances[dist]}, transform]
@@ -477,6 +482,15 @@ class ProximityTree2(BaseClassifier):
             exemplars = NumbaList()
             for i in range(len(labels)):
                 exemplars.append(first_order_derivative(list(splitter[0].values())[i]))
+        elif transform == "hydra":
+            transformer = HydraTransformer(
+                n_kernels=8,
+                n_groups=64,
+                n_jobs=self._n_jobs,
+                random_state=self.random_state,
+            )
+            X_trans = np.array(transformer.fit_transform(X))
+            exemplars = np.array(transformer.transform(splitter[0].values))
         else:
             X_trans = X
             exemplars = np.array(list(splitter[0].values()))
