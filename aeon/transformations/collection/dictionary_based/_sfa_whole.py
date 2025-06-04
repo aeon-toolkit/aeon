@@ -32,7 +32,7 @@ class SFAWhole(SFAFast):
     learn_alphabet_sizes : boolean, default = True
         If True, dynamic alphabet sizes are learned based on the variance of the Fourier
         coefficients.
-    alphabet_allocation_method : str, default = sqrt_scale
+    alphabet_allocation_method : str, default = linear_scale
         The method used to learn the dynamic alphabet sizes. One of
         {"linear_scale", "log_scale", "sqrt_scale"}.
     norm : boolean, default = False
@@ -78,7 +78,7 @@ class SFAWhole(SFAFast):
         word_length=8,
         alphabet_size=4,
         learn_alphabet_sizes=True,
-        alphabet_allocation_method="sqrt_scale",
+        alphabet_allocation_method="linear_scale",
         norm=True,
         binning_method="equi-width",
         variance=True,
