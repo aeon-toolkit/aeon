@@ -3,25 +3,38 @@
 Anomaly Detection
 =================
 
-The :mod:`aeon.anomaly_detection` module contains algorithms and composition tools for time series classification.
+The :mod:`aeon.anomaly_detection` module contains algorithms and composition tools for
+time series anomaly detection.
 
 All detectors in `aeon`  can be listed using the `aeon.utils.discovery.all_estimators` utility,
 using ``estimator_types="anomaly-detector"``, optionally filtered by tags.
-Valid tags can be listed by calling the function `aeon.utils.discovery.all_tags_for_estimator`.
+Valid tags can be listed by calling the function `aeon.utils.tags.all_tags_for_estimator`.
 
 Each detector in this module specifies its supported input data format, output data
 format, and learning type as an overview table in its documentation. Some detectors
 support multiple learning types.
 
-.. note::
 
-    Not all algorithm families are currently implemented. The documentation includes
-    placeholders for planned categories which will be supported in future.
+Collection anomaly detectors
+----------------------------
+
+.. currentmodule:: aeon.anomaly_detection.collection
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    ClassificationAdapter
+    OutlierDetectionAdapter
+    BaseCollectionAnomalyDetector
+
+Series anomaly detectors
+------------------------
 
 Distance-based
---------------
+~~~~~~~~~~~~~~
 
-.. currentmodule:: aeon.anomaly_detection.distance_based
+.. currentmodule:: aeon.anomaly_detection.series.distance_based
 
 .. autosummary::
     :toctree: auto_generated/
@@ -32,13 +45,13 @@ Distance-based
     LeftSTAMPi
     LOF
     MERLIN
-    OneClassSVM
     STOMP
+    ROCKAD
 
 Distribution-based
------------------
+~~~~~~~~~~~~~~~~~~
 
-.. currentmodule:: aeon.anomaly_detection.distribution_based
+.. currentmodule:: aeon.anomaly_detection.series.distribution_based
 
 .. autosummary::
     :toctree: auto_generated/
@@ -47,44 +60,41 @@ Distribution-based
     COPOD
     DWT_MLEAD
 
-Encoding-based
---------------
-
-The algorithms for this family are not implemented yet.
-
-Forecasting-based
------------------
-
-The algorithms for this family are not implemented yet.
-
 Outlier-Detection
------------------
+~~~~~~~~~~~~~~~~~
 
-.. currentmodule:: aeon.anomaly_detection.outlier_detection
+.. currentmodule:: aeon.anomaly_detection.series.outlier_detection
 
 .. autosummary::
     :toctree: auto_generated/
     :template: class.rst
 
     IsolationForest
-    PyODAdapter
+    OneClassSVM
     STRAY
 
-Reconstruction-based
---------------------
+Adapters
+~~~~~~~~
 
-The algorithms for this family are not implemented yet.
-
-Whole-Series
-------------
-
-.. currentmodule:: aeon.anomaly_detection.whole_series
+.. currentmodule:: aeon.anomaly_detection.series
 
 .. autosummary::
     :toctree: auto_generated/
     :template: class.rst
 
-    ROCKAD
+    PyODAdapter
+
+Base
+~~~~
+
+.. currentmodule:: aeon.anomaly_detection.series
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    BaseSeriesAnomalyDetector
+
 
 Base
 ----

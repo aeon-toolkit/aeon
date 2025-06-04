@@ -2,7 +2,8 @@
 
 import numpy as np
 
-from aeon.anomaly_detection.base import BaseAnomalyDetector
+from aeon.anomaly_detection.collection.base import BaseCollectionAnomalyDetector
+from aeon.anomaly_detection.series.base import BaseSeriesAnomalyDetector
 from aeon.base import BaseCollectionEstimator, BaseSeriesEstimator
 from aeon.classification import BaseClassifier
 from aeon.classification.early_classification import BaseEarlyClassifier
@@ -861,6 +862,7 @@ def _get_task_for_estimator(estimator):
         or isinstance(estimator, BaseEarlyClassifier)
         or isinstance(estimator, BaseClusterer)
         or isinstance(estimator, BaseCollectionTransformer)
+        or isinstance(estimator, BaseCollectionAnomalyDetector)
         or isinstance(estimator, BaseCollectionSimilaritySearch)
     ):
         data_label = "Classification"
@@ -869,7 +871,7 @@ def _get_task_for_estimator(estimator):
         data_label = "Regression"
     # series data with no secondary input
     elif (
-        isinstance(estimator, BaseAnomalyDetector)
+        isinstance(estimator, BaseSeriesAnomalyDetector)
         or isinstance(estimator, BaseSegmenter)
         or isinstance(estimator, BaseSeriesTransformer)
         or isinstance(estimator, BaseForecaster)
