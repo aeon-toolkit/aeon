@@ -175,7 +175,7 @@ def test_sfa_whole_mindist():
 def test_dynamic_alphabet_allocation():
     """Test the SFA Min-Distance function."""
     n_segments = 16
-    alphabet_size = 256
+    alphabet_size = 64
 
     X_train, _ = load_unit_test("TRAIN")
     X_test, _ = load_unit_test("TEST")
