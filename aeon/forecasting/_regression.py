@@ -76,7 +76,7 @@ class RegressionForecaster(BaseForecaster):
         self.regressor_.fit(X=X, y=y)
         return self
 
-    def _predict(self, y=None, exog=None):
+    def _predict(self, exog=None):
         """
         Predict the next horizon steps ahead.
 
@@ -94,32 +94,7 @@ class RegressionForecaster(BaseForecaster):
         np.ndarray
             single prediction self.horizon steps ahead of y.
         """
-        if y is None:
-            return self.regressor_.predict(self.last_)
-        last = y[:, -self.window :]
-        return self.regressor_.predict(last)
-
-    def _forecast(self, y, exog=None):
-        """
-        Forecast the next horizon steps ahead.
-
-        Parameters
-        ----------
-        y : np.ndarray
-            A time series to predict the next horizon value for.
-        exog : np.ndarray, default=None
-            Optional exogenous time series data. Included for interface
-            compatibility but ignored in this estimator.
-
-        Returns
-        -------
-        np.ndarray
-            single prediction self.horizon steps ahead of y.
-
-        NOTE: deal with horizons
-        """
-        self.fit(y, exog)
-        return self.predict()
+        return self.regressor_.predict(self.last_)
 
     @classmethod
     def _get_test_params(cls, parameter_set: str = "default"):

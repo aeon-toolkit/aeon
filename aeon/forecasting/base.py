@@ -75,59 +75,26 @@ class BaseForecaster(BaseSeriesEstimator):
     @abstractmethod
     def _fit(self, y, exog=None): ...
 
-    def predict(self, y=None, exog=None):
+    def predict(self, exog=None):
         """Predict the next horizon steps ahead.
 
         Parameters
         ----------
-        y : np.ndarray, default = None
-            A time series to predict the next horizon value for. If None,
-            predict the next horizon value after series seen in fit.
         exog : np.ndarray, default =None
             Optional exogenous time series data assumed to be aligned with y.
 
         Returns
         -------
         float
-            single prediction self.horizon steps ahead of y.
+            single prediction self.horizon steps ahead of the series y seen in fit.
         """
         self._check_is_fitted()
-        if y is not None:
-            self._check_X(y, self.axis)
-            y = self._convert_y(y, self.axis)
         if exog is not None:
             raise NotImplementedError("Exogenous variables not yet supported")
-        return self._predict(y, exog)
+        return self._predict()
 
     @abstractmethod
-    def _predict(self, y=None, exog=None): ...
-
-    def forecast(self, y, exog=None):
-        """Forecast the next horizon steps ahead.
-
-        By default this is simply fit followed by predict.
-
-        Parameters
-        ----------
-        y : np.ndarray, default = None
-            A time series to predict the next horizon value for. If None,
-            predict the next horizon value after series seen in fit.
-        exog : np.ndarray, default =None
-            Optional exogenous time series data assumed to be aligned with y.
-
-        Returns
-        -------
-        float
-            single prediction self.horizon steps ahead of y.
-        """
-        self._check_X(y, self.axis)
-        y = self._convert_y(y, self.axis)
-        return self._forecast(y, exog)
-
-    def _forecast(self, y, exog=None):
-        """Forecast values for time series X."""
-        self.fit(y, exog)
-        return self._predict(y, exog)
+    def _predict(self, exog=None): ...
 
     def _convert_y(self, y: VALID_SERIES_INNER_TYPES, axis: int):
         """Convert y to self.get_tag("y_inner_type")."""

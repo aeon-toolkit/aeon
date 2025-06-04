@@ -17,11 +17,6 @@ class NaiveForecaster(BaseForecaster):
         self.last_value_ = y[-1]
         return self
 
-    def _predict(self, y=None, exog=None):
+    def _predict(self, exog=None):
         """Predict using Naive forecaster."""
         return self.last_value_
-
-    def _forecast(self, y, exog=None):
-        """Forecast using dummy forecaster."""
-        y = y.squeeze()
-        return y[-1]

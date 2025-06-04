@@ -196,7 +196,7 @@ class ETSForecaster(BaseForecaster):
         )
         return self
 
-    def _predict(self, y=None, exog=None):
+    def _predict(self, exog=None):
         """
         Predict the next horizon steps ahead.
 
@@ -213,7 +213,7 @@ class ETSForecaster(BaseForecaster):
         float
             single prediction self.horizon steps ahead of y.
         """
-        fitted_value = _predict(
+        fitted_value = _numba_predict(
             self._trend_type,
             self._seasonality_type,
             self.level_,
@@ -225,20 +225,6 @@ class ETSForecaster(BaseForecaster):
             self._seasonal_period,
         )
         return fitted_value
-
-    def _initialise(self, data):
-        """
-        Initialize level, trend, and seasonality values for the ETS model.
-
-        Parameters
-        ----------
-        data : array-like
-            The time series data
-            (should contain at least two full seasons if seasonality is specified)
-        """
-        self.level_, self.trend_, self.seasonality_ = _initialise(
-            self._trend_type, self._seasonality_type, self._seasonal_period, data
-        )
 
 
 @njit(fastmath=True, cache=True)
@@ -254,7 +240,7 @@ def _numba_fit(
     phi,
 ):
     n_timepoints = len(data) - seasonal_period
-    level, trend, seasonality = _initialise(
+    level, trend, seasonality = _numba_initialise(
         trend_type, seasonality_type, seasonal_period, data
     )
     avg_mean_sq_err_ = 0
@@ -314,7 +300,7 @@ def _numba_fit(
 
 
 @njit(fastmath=True, cache=True)
-def _predict(
+def _numba_predict(
     trend_type,
     seasonality_type,
     level,
@@ -343,7 +329,7 @@ def _predict(
 
 
 @njit(fastmath=True, cache=True)
-def _initialise(trend_type, seasonality_type, seasonal_period, data):
+def _numba_initialise(trend_type, seasonality_type, seasonal_period, data):
     """
     Initialize level, trend, and seasonality values for the ETS model.
 
