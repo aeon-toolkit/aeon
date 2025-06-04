@@ -11,7 +11,7 @@ from numba import njit
 from scipy.optimize import minimize
 
 from aeon.forecasting._autoets_gradient_params import _calc_model_liklihood
-from aeon.forecasting._ets_fast import _fit, _predict
+from aeon.forecasting._ets import _numba_fit, _predict
 from aeon.forecasting._utils import calc_seasonal_period
 from aeon.forecasting.base import BaseForecaster
 
@@ -115,7 +115,7 @@ class AutoETSForecaster(BaseForecaster):
             self.liklihood_,
             self.k_,
             self.aic_,
-        ) = _fit(
+        ) = _numba_fit(
             data,
             self.error_type_,
             self.trend_type_,
@@ -290,7 +290,7 @@ def optimise_params_scipy(
             _liklihood,
             _k,
             aic_,
-        ) = _fit(
+        ) = _numba_fit(
             data,
             error_type,
             trend_type,
@@ -337,7 +337,7 @@ def run_ets(
         _liklihood,
         _k,
         aic_,
-    ) = _fit(
+    ) = _numba_fit(
         data,
         error_type,
         trend_type,
