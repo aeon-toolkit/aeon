@@ -5,13 +5,9 @@ import numpy as np
 from aeon.forecasting import NaiveForecaster
 
 
-def sample_data():
-    """Pytest fixture for sample time series data."""
-    return np.array([10, 20, 30, 40, 50])
-
-
-def test_naive_forecaster_last_strategy(sample_data):
+def test_naive_forecaster_last_strategy():
     """Test NaiveForecaster with 'last' strategy."""
+    sample_data = np.array([10, 20, 30, 40, 50])
     forecaster = NaiveForecaster(strategy="last", horizon=3)
     forecaster.fit(sample_data)
     predictions = forecaster.predict()
@@ -19,8 +15,9 @@ def test_naive_forecaster_last_strategy(sample_data):
     np.testing.assert_array_equal(predictions, expected)
 
 
-def test_naive_forecaster_mean_strategy(sample_data):
+def test_naive_forecaster_mean_strategy():
     """Test NaiveForecaster with 'mean' strategy."""
+    sample_data = np.array([10, 20, 30, 40, 50])
     forecaster = NaiveForecaster(strategy="mean", horizon=2)
     forecaster.fit(sample_data)
     predictions = forecaster.predict()
@@ -38,8 +35,9 @@ def test_naive_forecaster_seasonal_last_strategy():
     np.testing.assert_array_equal(predictions, expected)
 
 
-def test_naive_forecaster_forecast_method(sample_data):
+def test_naive_forecaster_forecast_method():
     """Test the _forecast method (direct forecasting without prior fit)."""
+    sample_data = np.array([10, 20, 30, 40, 50])
     forecaster = NaiveForecaster(strategy="last", horizon=2)
     predictions = forecaster._forecast(sample_data)  # Using _forecast directly
     expected = np.array([50, 50])
