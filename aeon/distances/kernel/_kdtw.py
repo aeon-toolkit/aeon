@@ -51,7 +51,7 @@ def kdtw_distance(
     gamma: float = 0.125,
     epsilon: float = 1e-20,
     normalize_input: bool = True,
-    normalize_dist: bool = False,
+    normalize_dist: bool = True,
 ) -> float:
     r"""Compute the DTW kernel (KDTW) between two time series as a distance.
 
@@ -85,7 +85,7 @@ def kdtw_distance(
     normalize_input : bool, default=True
         Whether to normalize the time series' channels to zero mean and unit variance
         before computing the distance. Highly recommended!
-    normalize_dist : bool, default=False
+    normalize_dist : bool, default=True
         Whether to normalize the distance by the product of the self distances of x and
         y to avoid scaling effects and put the distance value between 0 and 1.
 
@@ -212,12 +212,25 @@ def _kdtw_distance(
         _x = x
         _y = y
 
-    n = _x.shape[-1] - 1
-    m = _y.shape[-1] - 1
-    current_cost = _kdtw_cost_matrix(_x, _y, gamma, epsilon)[n, m]
+    cost_matrix = _kdtw_cost_matrix(_x, _y, gamma, epsilon)
+    return _kdtw_cost_to_distance(cost_matrix, _x, _y, gamma, epsilon, normalize_dist)
+
+
+@njit(cache=True, fastmath=True)
+def _kdtw_cost_to_distance(
+    cost_matrix: np.ndarray,
+    x: np.ndarray,
+    y: np.ndarray,
+    gamma: float,
+    epsilon: float,
+    normalize_dist: bool,
+) -> float:
+    n = x.shape[-1] - 1
+    m = y.shape[-1] - 1
+    current_cost = cost_matrix[n, m]
     if normalize_dist:
-        self_x = _kdtw_cost_matrix(_x, _x, gamma, epsilon)[n, n]
-        self_y = _kdtw_cost_matrix(_y, _y, gamma, epsilon)[m, m]
+        self_x = _kdtw_cost_matrix(x, x, gamma, epsilon)[n, n]
+        self_y = _kdtw_cost_matrix(y, y, gamma, epsilon)[m, m]
         norm_factor = np.sqrt(self_x * self_y)
         if norm_factor != 0.0:
             current_cost /= norm_factor
@@ -314,7 +327,7 @@ def kdtw_pairwise_distance(
     gamma: float = 0.125,
     epsilon: float = 1e-20,
     normalize_input: bool = True,
-    normalize_dist: bool = False,
+    normalize_dist: bool = True,
 ) -> np.ndarray:
     """Compute the KDTW pairwise distance between a set of time series.
 
@@ -336,7 +349,7 @@ def kdtw_pairwise_distance(
     normalize_input : bool, default=True
         Whether to normalize the time series' channels to zero mean and unit variance
         before computing the distance.
-    normalize_dist : bool, default=False
+    normalize_dist : bool, default=True
         Whether to normalize the distance by the product of the self distances of x and
         y to avoid scaling effects and put the distance between 0 and 1.
 
@@ -440,6 +453,7 @@ def kdtw_alignment_path(
     gamma: float = 0.125,
     epsilon: float = 1e-20,
     normalize_input: bool = True,
+    normalize_dist: bool = True,
 ) -> tuple[list[tuple[int, int]], float]:
     """Compute the kdtw alignment path between two time series.
 
@@ -457,6 +471,9 @@ def kdtw_alignment_path(
     normalize_input : bool, default=True
         Whether to normalize the time series' channels to zero mean and unit variance
         before computing the distance.
+    normalize_dist : bool, default=True
+        Whether to normalize the distance by the product of the self distances of x and
+        y to avoid scaling effects and put the distance between 0 and 1.
 
     Returns
     -------
@@ -481,10 +498,21 @@ def kdtw_alignment_path(
     >>> kdtw_alignment_path(x, y)
     ([(0, 0), (1, 1), (2, 2), (3, 3), (4, 4)], 0.4191434232586494)
     """
-    x_size = x.shape[-1] - 1
-    y_size = y.shape[-1] - 1
-    cost_matrix = kdtw_cost_matrix(x, y, gamma, epsilon, normalize_input)
+    _x = x
+    _y = y
+    if x.ndim == 1:
+        _x = x.reshape((1, x.shape[0]))
+    if y.ndim == 1:
+        _y = y.reshape((1, y.shape[0]))
+    if _x.ndim != 2 or _y.ndim != 2:
+        raise ValueError("x and y must be 1D or 2D")
+
+    if normalize_input:
+        _x = _normalize_time_series(_x)
+        _y = _normalize_time_series(_y)
+
+    cost_matrix = _kdtw_cost_matrix(_x, _y, gamma, epsilon)
     return (
         compute_min_return_path(cost_matrix, larger_is_better=True),
-        cost_matrix[x_size, y_size],
+        _kdtw_cost_to_distance(cost_matrix, _x, _y, gamma, epsilon, normalize_dist),
     )

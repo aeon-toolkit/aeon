@@ -1,8 +1,9 @@
-"""Test the distance calculations are correct.
+"""Test the correctness of the KDTW distance calculations.
 
 Compare the distance calculations on the 1D and 2D (d,m) format input against the
-results generated with the Octave implementation from
-https://people.irisa.fr/Pierre-Francois.Marteau/REDK/KDTW/kdtw.m (adapted).
+results generated with the Matlab/Octave implementation from
+https://people.irisa.fr/Pierre-Francois.Marteau/REDK/KDTW/kdtw.m (adapted to support
+multivariate time series).
 """
 
 from numpy.testing import assert_array_almost_equal_nulp
@@ -18,10 +19,10 @@ distance_parameters = {
     "kdtw": [1e-5, 1e-2, 1e-1],  # gamma
 }
 basic_motions_distances = {
-    "kdtw": [1.0 - 2.7435e-123, 1.0 - 4.9180e-72, 1.0 - 6.5392e-53],
+    "kdtw": [1.0, 1.0, 1.0],
 }
 unit_test_distances = {
-    "kdtw": [1.0 - 6.6667e-21, 1.0 - 6.6667e-21, 1.0 - 6.6667e-21],
+    "kdtw": [1.0, 1.0, 0.9984255139339736],
 }
 
 
@@ -36,8 +37,8 @@ def test_multivariate_correctness():
             case1,
             case2,
             gamma=distance_parameters["kdtw"][j],
-            normalize_input=False,
-            normalize_dist=False,
+            normalize_input=True,
+            normalize_dist=True,
         )
         assert_array_almost_equal_nulp(d, basic_motions_distances["kdtw"][j])
 
@@ -55,15 +56,15 @@ def test_univariate_correctness():
             cases1[0],
             cases2[0],
             gamma=distance_parameters["kdtw"][j],
-            normalize_input=False,
-            normalize_dist=False,
+            normalize_input=True,
+            normalize_dist=True,
         )
         d2 = kdtw_distance(
             cases1[1],
             cases2[1],
             gamma=distance_parameters["kdtw"][j],
-            normalize_input=False,
-            normalize_dist=False,
+            normalize_input=True,
+            normalize_dist=True,
         )
         assert_array_almost_equal_nulp(d, unit_test_distances["kdtw"][j])
         assert d == d2

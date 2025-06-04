@@ -134,7 +134,7 @@ DIST_PARAMS = {
     "soft_dtw": BASIC_BOUNDING_PARAMS + [{"gamma": 0.2}],
     "kdtw": [
         {"gamma": 0.125, "epsilon": 1e-3},
-        {"gamma": 0.125, "epsilon": 1e-3, "normalize_dist": True},
+        {"gamma": 0.125, "epsilon": 1e-3, "normalize_dist": False},
     ],
 }
 
