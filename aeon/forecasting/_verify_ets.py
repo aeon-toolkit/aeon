@@ -8,7 +8,6 @@ import numpy as np
 from statsforecast.utils import AirPassengers as ap
 
 import aeon.forecasting._ets as ets
-import aeon.forecasting._ets_fast as etsfast
 from aeon.forecasting import ETSForecaster
 
 NA = -99999.0
@@ -231,31 +230,9 @@ def test_ets_comparison(setup_func, random_seed, catch_errors):
         return True
 
 
-def time_etsfast():
+def time_ets():
     """Test function for optimised numba ets algorithm."""
-    etsfast.ETSForecaster(2, 2, 2, 4).fit(ap).predict()
-
-
-def time_etsnoopt():
-    """Test function for non-optimised ets algorithm."""
-    ets.ETSForecaster(2, 2, 2, 4).fit(ap).predict()
-
-
-def time_etsfast_noclass():
-    """Test function for optimised ets algorithm without the class based structure."""
-    data = np.array(ap.squeeze(), dtype=np.float64)
-    # pylint: disable=W0212
-    (
-        level,
-        trend,
-        seasonality,
-        _residuals,
-        _fitted_values,
-        _avg_mean_sq_err,
-        _liklihood,
-    ) = etsfast._fit(data, 2, 2, 2, 4, 0.1, 0.01, 0.01, 0.99)
-    etsfast._predict(2, 2, level, trend, seasonality, 0.99, 1, 144, 4)
-    # pylint: enable=W0212
+    ETSForecaster(2, 2, 2, 4).fit(ap).predict()
 
 
 def time_sf():
@@ -284,42 +261,24 @@ def time_compare(random_seed):
     # print (f"Execution time ETS No-opt: {etsnoopt_time} seconds")
     # Do a few iterations to remove background/overheads. Makes comparison more reliable
     for _i in range(10):
-        time_etsfast()
+        time_ets()
         time_sf()
-        time_etsfast_noclass()
-    etsfast_time = timeit.timeit(time_etsfast, globals={}, number=1000)
-    print(f"Execution time ETS Fast: {etsfast_time} seconds")  # noqa
-    etsfast_noclass_time = timeit.timeit(time_etsfast_noclass, globals={}, number=1000)
-    print(f"Execution time ETS Fast NoClass: {etsfast_noclass_time} seconds")  # noqa
+    ets_time = timeit.timeit(time_ets, globals={}, number=1000)
+    print(f"Execution time ETS: {ets_time} seconds")  # noqa
     statsforecast_time = timeit.timeit(time_sf, globals={}, number=1000)
     print(f"Execution time StatsForecast: {statsforecast_time} seconds")  # noqa
-    etsfast_time = timeit.timeit(time_etsfast, globals={}, number=1000)
-    print(f"Execution time ETS Fast: {etsfast_time} seconds")  # noqa
-    etsfast_noclass_time = timeit.timeit(time_etsfast_noclass, globals={}, number=1000)
-    print(f"Execution time ETS Fast NoClass: {etsfast_noclass_time} seconds")  # noqa
+    ets_time = timeit.timeit(time_ets, globals={}, number=1000)
+    print(f"Execution time ETS: {ets_time} seconds")  # noqa
     statsforecast_time = timeit.timeit(time_sf, globals={}, number=1000)
     print(f"Execution time StatsForecast: {statsforecast_time} seconds")  # noqa
-    # _ets_fast_nostruct implementation
-    start = time.perf_counter()
-    f3 = etsfast.ETSForecaster(error, trend, season, m, alpha, beta, gamma, phi, 1)
-    f3.fit(y)
-    end = time.perf_counter()
-    etsfast_time = end - start
-    # _ets_fast implementation
     # _ets implementation
     start = time.perf_counter()
     f1 = ets.ETSForecaster(error, trend, season, m, alpha, beta, gamma, phi, 1)
     f1.fit(y)
     end = time.perf_counter()
-    etsnoopt_time = end - start
-    assert np.allclose(f1.residuals_, f3.residuals_)
-    assert np.allclose(f1.avg_mean_sq_err_, f3.avg_mean_sq_err_)
-    assert np.isclose(f1.liklihood_, f3.liklihood_)
-    print(  # noqa
-        f"ETS No-optimisation Time: {etsnoopt_time},\
-        Fast time: {etsfast_time}"
-    )
-    return etsnoopt_time, etsfast_time
+    ets_time = end - start
+    print(f"ETS Time: {ets_time}")  # noqa
+    return ets_time
 
 
 if __name__ == "__main__":
@@ -332,14 +291,9 @@ if __name__ == "__main__":
         print("Test Completed Successfully with no errors")  # noqa
     # time_compare(300)
     # avg_ets = 0
-    # avg_etsfast = 0
-    # avg_etsfast_ns = 0
     # iterations = 100
     # for i in range (iterations):
-    #     time_ets, etsfast_time = time_compare(300)
+    #     time_ets = time_compare(300)
     #     avg_ets += time_ets
-    #     avg_etsfast += etsfast_time
     # avg_ets/= iterations
-    # avg_etsfast/= iterations
-    # avg_etsfast_ns /= iterations
-    # print(f"Avg ETS Time: {avg_ets}, Avg Fast ETS time: {avg_etsfast},\
+    # print(f"Avg ETS Time: {avg_ets},\

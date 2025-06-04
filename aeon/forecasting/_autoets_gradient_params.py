@@ -12,7 +12,11 @@ __all__ = []
 
 import torch
 
-from aeon.forecasting._ets_fast import ADDITIVE, MULTIPLICATIVE, NONE, ETSForecaster
+from aeon.forecasting._ets import ETSForecaster
+
+NONE = 0
+ADDITIVE = 1
+MULTIPLICATIVE = 2
 
 
 def _calc_model_liklihood(

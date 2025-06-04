@@ -14,7 +14,7 @@ from statsforecast.utils import AirPassengersDF
 from statsmodels.tsa.exponential_smoothing.ets import ETSModel
 
 from aeon.forecasting._autoets import auto_ets
-from aeon.forecasting._ets_fast import ETSForecaster
+from aeon.forecasting._ets import ETSForecaster
 
 plt.rcParams["figure.figsize"] = (12, 8)
 
