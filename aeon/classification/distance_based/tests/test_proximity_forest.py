@@ -11,7 +11,7 @@ def test_proximity_forest():
     X_train, y_train = load_unit_test(split="train")
     X_test, y_test = load_unit_test(split="test")
 
-    clf = ProximityForest(n_trees=15, random_state=42)
+    clf = ProximityForest(n_trees=5, n_splitters=3, max_depth=4, random_state=42)
     clf.fit(X_train, y_train)
 
     y_pred = clf.predict(X_test)
