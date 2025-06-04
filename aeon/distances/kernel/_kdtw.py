@@ -116,9 +116,9 @@ def kdtw_distance(
     >>> from aeon.distances import kdtw_distance
     >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
     >>> y = np.array([[11, 12, 13, 14, 15, 16, 17, 18, 19, 20]])
+    >>> kdtw_distance(x, y, normalize_dist=False)
+    0.9860651016277014
     >>> kdtw_distance(x, y)
-    0.8051764348248271
-    >>> kdtw_distance(x, y, normalize_dist=True)
     0.0
     """
     if x.ndim == 1 and y.ndim == 1:
@@ -174,11 +174,11 @@ def kdtw_cost_matrix(
     >>> x = np.array([[1, 2, 3, 4, 5]])
     >>> y = np.array([[1, 2, 3, 4, 5]])
     >>> kdtw_cost_matrix(x, y)
-    array([[1.11111111, 0.55555556, 0.24691358, 0.10288066, 0.04115226],
-           [0.55555556, 0.74074074, 0.44032922, 0.2345679 , 0.11522634],
-           [0.24691358, 0.44032922, 0.54046639, 0.35848194, 0.21688767],
-           [0.10288066, 0.2345679 , 0.35848194, 0.41914342, 0.30239293],
-           [0.04115226, 0.11522634, 0.21688767, 0.30239293, 0.34130976]])
+    array([[1.11111111, 0.22232162, 0.08641977, 0.03292181, 0.01234568],
+           [0.22232162, 0.51858479, 0.20170132, 0.07820771, 0.02332192],
+           [0.08641977, 0.20170132, 0.30732914, 0.14910683, 0.03689383],
+           [0.03292181, 0.07820771, 0.14910683, 0.2018476 , 0.05442779],
+           [0.01234568, 0.02332192, 0.03689383, 0.05442779, 0.10356772]])
     """
     _x = x
     _y = y
@@ -370,25 +370,25 @@ def kdtw_pairwise_distance(
     >>> from aeon.distances import kdtw_pairwise_distance
     >>> # Distance between each time series in a collection of time series
     >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
-    >>> kdtw_pairwise_distance(X)
-    array([[0.        , 0.45953361, 0.45953361],
-           [0.45953361, 0.        , 0.45953361],
-           [0.45953361, 0.45953361, 0.        ]])
+    >>> kdtw_pairwise_distance(X, normalize_dist=False)
+    array([[0.        , 0.73384612, 0.73384612],
+           [0.73384612, 0.        , 0.73384612],
+           [0.73384612, 0.73384612, 0.        ]]
 
     >>> # Distance between two collections of time series
     >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
-    >>> y = np.array([[[11, 12, 13]],[[14, 15, 16]], [[17, 18, 19]]])
+    >>> y = np.array([[[11, 12, 13, 14]],[[15, 16, 17, 18]], [[19, 20, 21, 22]]])
     >>> kdtw_pairwise_distance(X, y)
-    array([[0.45953361, 0.45953361, 0.45953361],
-           [0.45953361, 0.45953361, 0.45953361],
-           [0.45953361, 0.45953361, 0.45953361]])
+    array([[0.90035627, 0.90035627, 0.90035627],
+           [0.90035627, 0.90035627, 0.90035627],
+           [0.90035627, 0.90035627, 0.90035627]])
 
     >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
     >>> y_univariate = np.array([[11, 12, 13],[14, 15, 16], [17, 18, 19]])
-    >>> kdtw_pairwise_distance(X, y_univariate)
-    array([[0.45953361, 0.45953361, 0.45953361],
-           [0.45953361, 0.45953361, 0.45953361],
-           [0.45953361, 0.45953361, 0.45953361]])
+    >>> kdtw_pairwise_distance(X, y_univariate, normalize_dist=False)
+    array([[0.73384612, 0.73384612, 0.73384612],
+           [0.73384612, 0.73384612, 0.73384612],
+           [0.73384612, 0.73384612, 0.73384612]])
     """
     multivariate_conversion = _is_numpy_list_multivariate(X, y)
     _X, _ = _convert_collection_to_numba_list(X, "X", multivariate_conversion)
@@ -495,8 +495,8 @@ def kdtw_alignment_path(
     >>> from aeon.distances import kdtw_alignment_path
     >>> x = np.array([[1, 2, 3, 6]])
     >>> y = np.array([[1, 2, 3, 4]])
-    >>> kdtw_alignment_path(x, y)
-    ([(0, 0), (1, 1), (2, 2), (3, 3), (4, 4)], 0.4191434232586494)
+    >>> kdtw_alignment_path(x, y, normalize_dist=False)
+    ([(0, 0), (1, 1), (2, 2), (3, 3), (4, 4)], 0.8393218410741822)
     """
     _x = x
     _y = y
