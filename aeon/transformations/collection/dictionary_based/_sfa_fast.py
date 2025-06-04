@@ -606,19 +606,16 @@ class SFAFast(BaseCollectionTransformer):
             self.bit_budget = int(symbols * self.word_length)
 
             if self.alphabet_allocation_method == "linear_scale":
+                variance = self.dft_variance[self.support]
+                normed_scale = variance / variance.mean()
+            elif self.alphabet_allocation_method == "sqrt_scale":
                 variance = np.sqrt(self.dft_variance[self.support])
                 normed_scale = variance / variance.mean()
-
-            elif self.alphabet_allocation_method == "sqrt_scale":
-                variance = np.sqrt(np.sqrt(self.dft_variance[self.support]))
-                normed_scale = variance / variance.mean()
             elif self.alphabet_allocation_method == "log_scale":
-                variance = np.log2(np.sqrt(self.dft_variance[self.support]) + 1)
+                variance = np.log2((self.dft_variance[self.support]) + 1)
                 normed_scale = variance / variance.mean()
 
-            # Use at most symbols+2 for each position, and check if sum is correct
-            bit_arr = np.ceil(normed_scale * symbols).astype(np.uint32)
-            bit_arr = heal_array(bit_arr, symbols + 2, self.bit_budget)
+            bit_arr = assign_bits_dynamically(normed_scale, self.bit_budget)
 
             self.alphabet_sizes = [int(2 ** bit_arr[i]) for i in range(len(bit_arr))]
             self.letter_bits = np.array(bit_arr, dtype=np.uint32)
@@ -1387,41 +1384,41 @@ def _transform_words_case(
 
 
 @njit(fastmath=True, cache=True)
-def heal_array(bit_array, max_val, budget):
-    bit_array = bit_array.copy()
+def assign_bits_dynamically(variance, budget, max_bit_val=9):
+    """Assign bits dynamically based on variance and budget.
 
-    # cap values beyond max_val and below 1
-    bit_array = np.minimum(max_val, np.maximum(1, bit_array))
+    The goal is to maximize the variance covered by each symbol.
+
+    Parameters
+    ----------
+    variance : 1d numpy array
+        the variance for each position.
+    budget :   float
+        the maximal number of bits to assign.
+    max_bit_val : int, optional, default=9
+        the maximum number of bits that can be assigned to a single position.
+
+    Returns
+    -------
+    bit_array : 1d numpy array
+        the number of bits assigned to each position.
+    """
+    bit_array = np.zeros(len(variance), dtype=np.int32)
+    bit_array[:] = 0
+
+    improve = variance.copy() / 2.0
+
+    # assign bits to positions
     current_sum = bit_array.sum()
+    while current_sum < budget:
+        best_pos = np.argmax(improve)
+        bit_array[best_pos] += 1
+        current_sum += 1
 
-    # too large: heal the array to have the correct sum == budget
-    if current_sum > budget:
-        diff = current_sum - budget
-        change = True
-        while (diff > 0) and change:
-            change = False
-            for i in range(len(bit_array) - 1, -1, -1):
-                if bit_array[i] >= 1:
-                    bit_array[i] -= 1
-                    diff -= 1
-                    change = True
-                if diff == 0:
-                    break
-        assert diff == 0, "Cannot reduce sum to budget"
+        # recalculate the improvement
+        improve[best_pos] = variance[best_pos] / (2 ** (bit_array[best_pos] + 1))
 
-    # too small: heal the array to have the correct sum == budget
-    if current_sum < budget:
-        diff = budget - current_sum
-        change = True
-        while (diff > 0) and change:
-            change = False
-            for i in range(len(bit_array)):
-                if bit_array[i] < max_val:
-                    bit_array[i] += 1
-                    diff -= 1
-                    change = True
-                if diff == 0:
-                    break
-        assert diff == 0, "Cannot increase sum to budget"
+        if bit_array[best_pos] == max_bit_val:
+            improve[best_pos] = 0
 
     return bit_array
