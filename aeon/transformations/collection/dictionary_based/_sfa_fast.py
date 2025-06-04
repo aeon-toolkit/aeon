@@ -1198,7 +1198,7 @@ def create_feature_names(sfa_words):
     return feature_names
 
 
-@njit(cache=True, fastmath=True)  # TODO does not work parallel=True ??
+@njit(cache=True, fastmath=True)  # does not work with parallel=True ??
 def create_bag_none(
     X_index, breakpoints, n_cases, sfa_words, word_length, remove_repeat_words
 ):
