@@ -1,19 +1,23 @@
 """Forecasters."""
 
 __all__ = [
-    "ARIMAForecaster",
-    "DummyForecaster",
+    "NaiveForecaster",
     "BaseForecaster",
     "RegressionForecaster",
     "ETSForecaster",
     "AutoETSForecaster",
-    "NaiveForecaster",
+    "ARIMAForecaster",
+    "SARIMAForecaster",
+    "AutoARIMAForecaster",
+    "AutoSARIMAForecaster",
 ]
 
 from aeon.forecasting._arima import ARIMAForecaster
+from aeon.forecasting._auto_arima import AutoARIMAForecaster
+from aeon.forecasting._auto_sarima import AutoSARIMAForecaster
 from aeon.forecasting._autoets import AutoETSForecaster
-from aeon.forecasting._dummy import DummyForecaster
-from aeon.forecasting._ets_fast import ETSForecaster
+from aeon.forecasting._ets import ETSForecaster
 from aeon.forecasting._naive import NaiveForecaster
 from aeon.forecasting._regression import RegressionForecaster
+from aeon.forecasting._sarima import SARIMAForecaster
 from aeon.forecasting.base import BaseForecaster
