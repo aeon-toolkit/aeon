@@ -5,7 +5,6 @@ from typing import Any, Callable, Optional, TypedDict, Union
 import numpy as np
 from joblib import Parallel, delayed
 from numba import njit
-from numba.typed import List as NumbaList
 from sklearn.utils import check_random_state
 from typing_extensions import Unpack
 
@@ -17,6 +16,7 @@ from aeon.distances.pointwise._minkowski import (
     minkowski_distance,
 )
 from aeon.transformations.collection.convolution_based import HydraTransformer
+from aeon.utils.numba.general import slope_derivative, slope_derivative_2d
 
 
 class ProximityForest2(BaseClassifier):
@@ -379,18 +379,12 @@ class ProximityTree2(BaseClassifier):
             measure = list(splitter[1].keys())[0]
             transform = splitter[2]
             if transform == "first_derivative":
-                X_trans = NumbaList()
-                for i in range(len(X)):
-                    X_trans.append(first_order_derivative(X[i]))
-                exemplars = NumbaList()
-                for i in range(len(labels)):
-                    exemplars.append(
-                        first_order_derivative(list(splitter[0].values())[i])
-                    )
+                X_trans = slope_derivative_2d(X)
+                exemplars = slope_derivative_2d(np.stack(list(splitter[0].values())))
             elif transform == "hydra":
                 X_trans = np.array(self.hydra_transformer.fit_transform(X))
                 exemplars = np.array(
-                    self.hydra_transformer.transform(list(splitter[0].values()))
+                    self.hydra_transformer.transform(np.array(splitter[0].values()))
                 )
             else:
                 X_trans = X
@@ -485,16 +479,12 @@ class ProximityTree2(BaseClassifier):
         measure = list(splitter[1].keys())[0]
         transform = splitter[2]
         if transform == "first_derivative":
-            X_trans = NumbaList()
-            for i in range(len(X)):
-                X_trans.append(first_order_derivative(X[i]))
-            exemplars = NumbaList()
-            for i in range(len(labels)):
-                exemplars.append(first_order_derivative(list(splitter[0].values())[i]))
+            X_trans = slope_derivative_2d(X)
+            exemplars = slope_derivative_2d(np.stack(list(splitter[0].values())))
         elif transform == "hydra":
             X_trans = np.array(self.hydra_transformer.transform(X))
             exemplars = np.array(
-                self.hydra_transformer.transform(list(splitter[0].values()))
+                self.hydra_transformer.transform(np.array(splitter[0].values()))
             )
         else:
             X_trans = X
@@ -599,17 +589,15 @@ class ProximityTree2(BaseClassifier):
             branches = list(treenode.splitter[0].keys())
             transform = treenode.splitter[2]
             if transform == "first_derivative":
-                x_trans = first_order_derivative(x)
-                exemplars = NumbaList()
-                for i in range(len(list(treenode.splitter[0].values()))):
-                    exemplars.append(
-                        first_order_derivative(list(treenode.splitter[0].values())[i])
-                    )
+                x_trans = slope_derivative(x)
+                exemplars = slope_derivative_2d(
+                    np.stack(list(treenode.splitter[0].values()))
+                )
             elif transform == "hydra":
                 x_trans = np.array(self.hydra_transformer.transform(x))
                 exemplars = np.array(
                     self.hydra_transformer.transform(
-                        list(treenode.splitter[0].values())
+                        np.array(treenode.splitter[0].values())
                     )
                 )
             else:
@@ -724,71 +712,6 @@ def _global_warp_penalty(X):
     distances = np.array([minkowski_distance(pair[0], pair[1], 2) for pair in pairs])
     penalty = np.mean(distances)
     return penalty
-
-
-@njit(cache=True, fastmath=True)
-def first_order_derivative_1d(q: np.ndarray) -> np.ndarray:
-    """Compute the first-order derivative of a 1D time series."""
-    n = len(q)
-    result = np.zeros(n)
-
-    # First element
-    result[0] = (q[1] - q[0]) / 2.0
-
-    # Middle elements
-    for j in range(1, n - 1):
-        result[j] = ((q[j] - q[j - 1]) + (q[j + 1] - q[j - 1]) / 2.0) / 2.0
-
-    # Last element
-    result[-1] = (q[-1] - q[-2]) / 2.0
-
-    return result
-
-
-@njit(cache=True, fastmath=True)
-def first_order_derivative_2d(q: np.ndarray) -> np.ndarray:
-    """Compute the first-order derivative of a 2D time series."""
-    n = q.shape[1]
-    result = np.zeros((1, n))
-
-    # First element
-    result[0, 0] = (q[0, 1] - q[0, 0]) / 2.0
-
-    # Middle elements
-    for j in range(1, n - 1):
-        result[0, j] = (
-            (q[0, j] - q[0, j - 1]) + (q[0, j + 1] - q[0, j - 1]) / 2.0
-        ) / 2.0
-
-    # Last element
-    result[0, -1] = (q[0, -1] - q[0, -2]) / 2.0
-
-    return result
-
-
-@njit(cache=True, fastmath=True)
-def first_order_derivative(q: np.ndarray) -> np.ndarray:
-    """
-    Compute the first-order derivative of the time series.
-
-    Parameters
-    ----------
-    q : np.ndarray (n_timepoints,) or (1, n_timepoints)
-        Time series to take derivative of.
-
-    Returns
-    -------
-    np.ndarray
-        The first-order derivative of q with the same shape as the input.
-    """
-    if q.ndim == 1:
-        return first_order_derivative_1d(q)
-    elif q.ndim == 2 and q.shape[0] == 1:
-        return first_order_derivative_2d(q)
-    else:
-        raise ValueError(
-            "Time series must be either (n_timepoints,) or (1, n_timepoints)."
-        )
 
 
 # Distances for PF 2.

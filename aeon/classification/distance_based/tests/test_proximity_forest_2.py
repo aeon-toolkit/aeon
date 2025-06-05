@@ -44,7 +44,7 @@ def test_get_cadidate_splitter():
 
 def test_get_best_splitter():
     """Test the method to get optimum splitter of a node."""
-    X, y = load_unit_test()
+    X, y = load_unit_test(return_type="numpy2d")
     clf = ProximityTree2(n_splitters=3, max_depth=1)
     clf.fit(X, y)
 
