@@ -5,8 +5,8 @@ import numpy as np
 from aeon.forecasting.base import BaseForecaster
 
 
-def recursive_forecasting(
-    forecaster: BaseForecaster, y: np.ndarray, steps_ahead: int, exog=None
+def evaluate_forecaster(
+    forecaster: BaseForecaster, y_train: np.ndarray, y_test: np.ndarray
 ):
     """
     Forecast on increasng train data.
@@ -25,7 +25,7 @@ def recursive_forecasting(
     .. code-block:: python
 
         model = BaseForecaster(horizon=1)
-        for i in range(1, len(y_test)-1):
+        for i in range(1, len(y_test)):
             model.fit(y_train, exog)
             predictions[i] = model.predict()
             y_train.append(y_test[i])
@@ -46,12 +46,13 @@ def recursive_forecasting(
 
     Example
     -------
-    >>> from aeon.forecasting import recursive_forecasting
+    >>> from aeon.forecasting import evaluate_forecaster
     >>> from aeon.forecasting import RegressionForecaster
     >>> import numpy as np
-    >>> y = np.array([1,2,3,4,5,6,7,8,9,10])
+    >>> y_train = np.array([1,2,3,4,5,6,7,8,9,10])
+    >>> y_test = np.array([11,12,13,14,15])
     >>> forecaster=RegressionForecaster(horizon=1, window=3)
-    >>> pred = recursive_forecasting(forecaster,y,steps_ahead=5)
+    >>> pred = evaluate_forecaster(forecaster,y_train, y_test)
     >>> len(pred)
     5
     >>> pred
@@ -64,9 +65,9 @@ def recursive_forecasting(
         )
     if not isinstance(forecaster, BaseForecaster):
         raise TypeError("Passed an object that does not inherit from BaseForecaster.")
-    preds = np.zeros(steps_ahead)
-    forecaster.fit(y, exog=exog)
-    for i in range(1, steps_ahead + 1):
-        preds[i - 1] = forecaster.predict(y, exog)
-        y = np.append(y, preds[i - 1])
+    preds = np.zeros(len(y_test))
+    for i in range(0, len(y_test)):
+        forecaster.fit(y_train)
+        preds[i] = forecaster.predict()
+        y_train = np.append(y_train, y_test[i])
     return preds
