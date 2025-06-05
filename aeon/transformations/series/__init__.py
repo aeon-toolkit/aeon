@@ -5,6 +5,7 @@ __all__ = [
     "BaseSeriesTransformer",
     "ClaSPTransformer",
     "DFTSeriesTransformer",
+    "DifferencingSeriesTransformer",
     "Dobin",
     "ExpSmoothingSeriesTransformer",
     "GaussSeriesTransformer",
