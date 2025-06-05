@@ -9,7 +9,7 @@ base. These projects are designed for internships, usage as part of
 undergraduate/postgraduate projects at academic institutions, options for
 programs such as [Google Summer of Code (GSoC)](https://summerofcode.withgoogle.com/) or just for personal side projects.
 For those interested in undertaking a project outside these scenarios, we recommend
-joining the [Slack](https://join.slack.com/t/aeon-toolkit/shared_invite/zt-22vwvut29-HDpCu~7VBUozyfL_8j3dLA)and discussing with the community.
+joining the [Slack](https://join.slack.com/t/aeon-toolkit/shared_invite/zt-36dlmbouu-vajTShUYAHopSXUUVtHGzw)and discussing with the community.
 
 Feel free to propose your own project ideas, but please discuss them with us first.
 We have an active community of researchers and students who work on `aeon`.
