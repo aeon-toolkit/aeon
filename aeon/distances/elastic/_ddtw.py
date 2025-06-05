@@ -15,7 +15,7 @@ from aeon.distances.elastic._dtw import (
     create_bounding_matrix,
 )
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
-from aeon.utils.numba.general import slope_derivative, slope_derivative_2d
+from aeon.utils.numba.general import slope_derivative_2d
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
@@ -81,8 +81,8 @@ def ddtw_distance(
     2180
     """
     if x.ndim == 1 and y.ndim == 1:
-        _x = slope_derivative(x)
-        _y = slope_derivative(y)
+        _x = slope_derivative_2d(x.reshape((1, x.shape[0])))
+        _y = slope_derivative_2d(y.reshape((1, y.shape[0])))
         bounding_matrix = create_bounding_matrix(
             _x.shape[1], _y.shape[1], window, itakura_max_slope
         )
@@ -152,8 +152,8 @@ def ddtw_cost_matrix(
            [0., 0., 0., 0., 0., 0., 0., 0.]])
     """
     if x.ndim == 1 and y.ndim == 1:
-        _x = slope_derivative(x)
-        _y = slope_derivative(y)
+        _x = slope_derivative_2d(x.reshape((1, x.shape[0])))
+        _y = slope_derivative_2d(y.reshape((1, y.shape[0])))
         bounding_matrix = create_bounding_matrix(
             _x.shape[1], _y.shape[1], window, itakura_max_slope
         )

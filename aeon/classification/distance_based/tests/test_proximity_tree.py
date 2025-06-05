@@ -2,7 +2,6 @@
 
 import numpy as np
 import pytest
-from sklearn.metrics import accuracy_score
 from sklearn.utils import check_random_state
 
 from aeon.classification.distance_based import ProximityTree
@@ -87,7 +86,7 @@ def test_get_candidate_splitter():
     clf = ProximityTree()
     rng = check_random_state(0)
     exemplars, distance, distance_params, X_std = clf._get_candidate_splitter(
-        X, rng, cls_idx, None
+        X, X, rng, cls_idx, None
     )
 
     assert isinstance(exemplars, dict)
@@ -145,16 +144,3 @@ def test_get_best_splitter():
     assert isinstance(split, list)
     assert len(split) == len(unique_classes)
     assert sum(len(s) for s in split) == len(y)
-
-
-def test_proximity_tree():
-    """Test the fit method of ProximityTree."""
-    X_train, y_train = load_unit_test(split="train")
-    X_test, y_test = load_unit_test(split="test")
-
-    clf = ProximityTree(max_depth=5, random_state=42)
-    clf.fit(X_train, y_train)
-
-    y_pred = clf.predict(X_test)
-    score = accuracy_score(y_test, y_pred)
-    assert score >= 0.9

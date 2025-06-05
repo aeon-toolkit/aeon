@@ -729,7 +729,7 @@ def slope_derivative_2d(X: np.ndarray) -> np.ndarray:
     >>> X = np.array([[1, 2, 2, 3, 3, 3, 4, 4, 4, 4], [5, 6, 6, 7, 7, 7, 8, 8, 8, 8]])
     >>> X_der = slope_derivative_2d(X)
     """
-    arr = np.zeros((X.shape[0], X.shape[2] - 2))
+    arr = np.zeros((X.shape[0], X.shape[1] - 2))
     for i in range(X.shape[0]):
         arr[i] = slope_derivative(X[i])
     return arr
