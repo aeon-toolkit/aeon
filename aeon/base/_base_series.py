@@ -169,7 +169,7 @@ class BaseSeriesEstimator(BaseAeonEstimator):
                 raise ValueError("pd.DataFrame dtype must be numeric")
         else:
             raise ValueError(
-                f"Input type of X should be one of {VALID_SERIES_INNER_TYPES}, "
+                f"Input type of series should be one of {VALID_SERIES_INNER_TYPES}, "
                 f"saw {type(X)}"
             )
 
