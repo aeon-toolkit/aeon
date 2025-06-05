@@ -5,7 +5,9 @@ import numpy as np
 from aeon.forecasting.base import BaseForecaster
 
 
-def recursive_forecasting(forecaster_class, y: np.ndarray, steps_ahead: int, exog=None):
+def recursive_forecasting(
+    forecaster: BaseForecaster, y: np.ndarray, steps_ahead: int, exog=None
+):
     """
     Forecast ``steps_ahead`` using a BaseForecaster trained on y then recursively .
 
@@ -24,9 +26,8 @@ def recursive_forecasting(forecaster_class, y: np.ndarray, steps_ahead: int, exo
 
     Parameters
     ----------
-    forecaster_class : BaseForecaster
-        A forecasting estimator class that supports setting the forecast horizon at
-        instantiation.
+    forecaster : BaseForecaster object
+        A forecasting estimator object.
     y : np.ndarray
         The univariate time series to be forecast.
     steps_ahead : int
@@ -41,28 +42,27 @@ def recursive_forecasting(forecaster_class, y: np.ndarray, steps_ahead: int, exo
 
     Example
     -------
-    >>> from aeon.forecasting import direct_forecasting, ETSForecaster
+    >>> from aeon.forecasting import recursive_forecasting
+    >>> from aeon.forecasting import RegressionForecaster
     >>> import numpy as np
     >>> y = np.array([1,2,3,4,5,6,7,8,9,10])
-    >>> pred = recursive_forecasting(ETSForecaster,y,steps_ahead=5)
+    >>> forecaster=RegressionForecaster(horizon=1, window=3)
+    >>> pred = recursive_forecasting(forecaster,y,steps_ahead=5)
     >>> len(pred)
     5
     >>> pred
-    array([4.4867844, 4.4867844, 4.4867844, 4.4867844, 4.4867844])
+    array([11., 12., 13., 14., 15.])
     """
-    if not isinstance(forecaster_class, type):
+    if isinstance(forecaster, type):
         raise TypeError(
-            "Passed an object in the forecaster_class parameter rather than a "
-            "class that inherits from BaseForecaster"
+            "Passed a class in the forecaster parameter rather than a "
+            "object that is an instance of class that inherits from BaseForecaster"
         )
-    if not issubclass(forecaster_class, BaseForecaster):
-        raise TypeError(
-            "Passed a class in the forecaster_class parameter that does not "
-            "extend BaseForecaster. It must inherit from BaseForecaster."
-        )
+    if not isinstance(forecaster, BaseForecaster):
+        raise TypeError("Passed an object that does not inherit from BaseForecaster.")
     preds = np.zeros(steps_ahead)
+    forecaster.fit(y, exog=exog)
     for i in range(1, steps_ahead + 1):
-        f = forecaster_class(horizon=i)
-        f.fit(y, exog=exog)
-        preds[i - 1] = f.forecast(y, exog)
+        preds[i - 1] = forecaster.predict(y, exog)
+        y = np.append(y, preds[i - 1])
     return preds
