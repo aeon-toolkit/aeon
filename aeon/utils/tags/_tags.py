@@ -124,6 +124,16 @@ ESTIMATOR_TAGS = {
         "type": "bool",
         "description": "Can the estimator limiting max fit time?",
     },
+    "capability:exogenous": {
+        "class": ["forecastor"],
+        "type": "bool",
+        "description": "Can the forecaster accept exogenous arguments?",
+    },
+    "capability:horizon": {
+        "class": ["forecastor"],
+        "type": "bool",
+        "description": "Can the forecaster forecast a horizon beyond one?",
+    },
     "capability:inverse_transform": {
         "class": "transformer",
         "type": "bool",
