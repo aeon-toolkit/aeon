@@ -273,10 +273,7 @@ class ProximityTree2(BaseClassifier):
         super().__init__()
 
     def _get_parameter_value(self, X):
-        """Generate random parameter values.
-
-        For a list of distance measures, generate a dictionary
-        of parameterized distances.
+        """Generate random parameter values for various distance measures.
 
         Parameters
         ----------
@@ -284,23 +281,37 @@ class ProximityTree2(BaseClassifier):
 
         Returns
         -------
-        distance_param : a dictionary of distances and their
-        parameters.
+        dict
+            Dictionary of distance measures and their randomly selected parameters.
         """
         rng = check_random_state(self.random_state)
 
         X_std = X.std()
         param_ranges = {
-            "dtw": {"window": (0, 0.25)},
-            "adtw": {"window": (0, 0.25)},
-            "lcss": {"epsilon": (X_std / 5, X_std), "window": (0, 0.25)},
+            "dtw": {"window": ("uniform", 0, 0.25), "p": ("choice", [0.5, 1, 2])},
+            "adtw": {"window": ("uniform", 0, 0.25), "p": ("choice", [0.5, 1, 2])},
+            "lcss": {
+                "epsilon": ("uniform", X_std / 5, X_std),
+                "window": ("uniform", 0, 0.25),
+            },
+            "minkowski": {"p": ("choice", [0.5, 1, 2])},
         }
+
         random_params = {}
-        for measure, ranges in param_ranges.items():
-            random_params[measure] = {
-                param: np.round(rng.uniform(low, high), 3)
-                for param, (low, high) in ranges.items()
-            }
+
+        for measure, params in param_ranges.items():
+            sampled_params = {}
+            for param, spec in params.items():
+                method = spec[0]
+                if method == "uniform":
+                    low, high = spec[1], spec[2]
+                    sampled_params[param] = np.round(rng.uniform(low, high), 3)
+                elif method == "choice":
+                    choices = spec[1]
+                    sampled_params[param] = rng.choice(choices)
+                else:
+                    raise ValueError(f"Unsupported sampling method: {method}")
+            random_params[measure] = sampled_params
 
         return random_params
 
@@ -340,22 +351,15 @@ class ProximityTree2(BaseClassifier):
         parameterized_distances = self._get_parameter_value(X)
         n = rng.randint(0, 3)
         dist = list(parameterized_distances.keys())[n]
-        if dist == "dtw":
-            values = [0.5, 1, 2]
-            p = rng.choice(values)
-            parameterized_distances[dist]["p"] = p
         if dist == "adtw":
-            values = [0.5, 1, 2]
-            p = rng.choice(values)
-            parameterized_distances[dist]["p"] = p
             i = rng.randint(1, 101)
             w = ((i / 100) ** 5) * self._max_warp_penalty
             parameterized_distances[dist]["warp_penalty"] = w
 
         # Time series transform
         transforms = ["raw", "first_derivative", "hydra"]
-        if dist in ["dtw", "adtw"]:
-            t = rng.randint(0, 3)  # hydra can only be used with minkowski
+        if dist == "minkowski":  # HYDRA can only be used with minkowski
+            t = 3
         else:
             t = rng.randint(0, 2)
         transform = transforms[t]
@@ -383,6 +387,11 @@ class ProximityTree2(BaseClassifier):
                     exemplars.append(
                         first_order_derivative(list(splitter[0].values())[i])
                     )
+            elif transform == "hydra":
+                X_trans = np.array(self.hydra_transformer.fit_transform(X))
+                exemplars = np.array(
+                    self.hydra_transformer.transform(list(splitter[0].values()))
+                )
             else:
                 X_trans = X
                 exemplars = np.array(list(splitter[0].values()))
@@ -483,14 +492,10 @@ class ProximityTree2(BaseClassifier):
             for i in range(len(labels)):
                 exemplars.append(first_order_derivative(list(splitter[0].values())[i]))
         elif transform == "hydra":
-            transformer = HydraTransformer(
-                n_kernels=8,
-                n_groups=64,
-                n_jobs=self._n_jobs,
-                random_state=self.random_state,
+            X_trans = np.array(self.hydra_transformer.transform(X))
+            exemplars = np.array(
+                self.hydra_transformer.transform(list(splitter[0].values()))
             )
-            X_trans = np.array(transformer.fit_transform(X))
-            exemplars = np.array(transformer.transform(splitter[0].values))
         else:
             X_trans = X
             exemplars = np.array(list(splitter[0].values()))
@@ -551,6 +556,13 @@ class ProximityTree2(BaseClassifier):
 
     def _fit(self, X, y):
         self._max_warp_penalty = _global_warp_penalty(X)
+        self.hydra_transformer = HydraTransformer(
+            n_kernels=8,
+            n_groups=64,
+            n_jobs=self._n_jobs,
+            random_state=self.random_state,
+        )
+        self.hydra_transformer.fit(X)
         self.root = self._build_tree(
             X, y, depth=0, node_id="0", parent_target_value=None
         )
@@ -593,6 +605,13 @@ class ProximityTree2(BaseClassifier):
                     exemplars.append(
                         first_order_derivative(list(treenode.splitter[0].values())[i])
                     )
+            elif transform == "hydra":
+                x_trans = np.array(self.hydra_transformer.transform(x))
+                exemplars = np.array(
+                    self.hydra_transformer.transform(
+                        list(treenode.splitter[0].values())
+                    )
+                )
             else:
                 x_trans = x
                 exemplars = np.array(list(treenode.splitter[0].values()))

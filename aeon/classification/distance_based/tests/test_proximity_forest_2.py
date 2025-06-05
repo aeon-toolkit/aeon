@@ -17,11 +17,7 @@ def test_get_parameter_value():
     params = tree._get_parameter_value(X)
 
     # Check if the parameters are generated for all distance measures
-    expected_measures = [
-        "dtw",
-        "adtw",
-        "lcss",
-    ]
+    expected_measures = ["dtw", "adtw", "lcss", "minkowski"]
     assert set(params.keys()) == set(expected_measures)
 
     # Check specific parameter ranges
@@ -41,11 +37,7 @@ def test_get_cadidate_splitter():
     splitter = clf._get_candidate_splitter(X, y)
     assert len(splitter) == 3
 
-    expected_measures = [
-        "dtw",
-        "adtw",
-        "lcss",
-    ]
+    expected_measures = ["dtw", "adtw", "lcss", "minkowski"]
     measure = list(splitter[1].keys())[0]
     assert measure in expected_measures
 
