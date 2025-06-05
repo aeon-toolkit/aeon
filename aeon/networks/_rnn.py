@@ -5,9 +5,9 @@ __maintainer__ = []
 from aeon.networks.base import BaseDeepLearningNetwork
 
 
-class RNNNetwork(BaseDeepLearningNetwork):
+class RecurrentNetwork(BaseDeepLearningNetwork):
     """
-    A class to implement a Recurrent Neural Network (RNN) for time series forecasting.
+    Implements a Recurrent Neural Network (RNN) for time series forecasting.
 
     Parameters
     ----------
@@ -18,18 +18,19 @@ class RNNNetwork(BaseDeepLearningNetwork):
     n_units : list or int, default=64
         Number of units in each recurrent layer. If an int, the same number
         of units is used in each layer.
-    dropout_rate : float, default=0.2
-        Dropout rate for regularization.
+    dropout_intermediate : float, default=0.0
+        Dropout rate applied after each intermediate recurrent layer (not last layer).
+    dropout_output : float, default=0.0
+        Dropout rate applied after the last recurrent layer.
     bidirectional : bool, default=False
         Whether to use bidirectional recurrent layers.
     activation : str or list of str, default='tanh'
-        Activation function for the recurrent layers. If a string, the same
-        activation is used for all layers. If a list, specifies activation
-        for each layer.
-    return_sequences : bool or list, default=None
-        Whether to return the full sequence (True) or just the last output (False).
-        If None, returns sequences for all layers except the last one.
-        If a list, specifies return_sequences for each layer.
+        Activation function(s) for the recurrent layers. If a string, the same
+        activation is used for all layers.
+        If a list, specifies activation for each layer.
+    return_sequence_last : bool, default=False
+        Whether the last recurrent layer returns the full sequence (True)
+        or just the last output (False).
 
     References
     ----------
@@ -49,22 +50,24 @@ class RNNNetwork(BaseDeepLearningNetwork):
 
     def __init__(
         self,
-        rnn_type="lstm",
+        rnn_type="simple",
         n_layers=1,
         n_units=64,
-        dropout_rate=0.2,
+        dropout_intermediate=0.0,
+        dropout_output=0.0,
         bidirectional=False,
         activation="tanh",
-        return_sequences=None,
+        return_sequence_last=False,
     ):
         super().__init__()
         self.rnn_type = rnn_type.lower()
         self.n_layers = n_layers
         self.n_units = n_units
-        self.dropout_rate = dropout_rate
+        self.dropout_intermediate = dropout_intermediate
+        self.dropout_output = dropout_output
         self.bidirectional = bidirectional
         self.activation = activation
-        self.return_sequences = return_sequences
+        self.return_sequence_last = return_sequence_last
 
     def build_network(self, input_shape, **kwargs):
         """Construct a network and return its input and output layers.
@@ -110,17 +113,6 @@ class RNNNetwork(BaseDeepLearningNetwork):
         else:
             self._activation = [self.activation] * self.n_layers
 
-        # Process return_sequences to a list
-        if self.return_sequences is None:
-            self.return_sequences = [True] * (self.n_layers - 1) + [False]
-        elif isinstance(self.return_sequences, bool):
-            self.return_sequences = [self.return_sequences] * self.n_layers
-        elif len(self.return_sequences) != self.n_layers:
-            raise ValueError(
-                f"Length of return_sequences ({len(self.return_sequences)}) must match "
-                f"n_layers ({self.n_layers})"
-            )
-
         # Select RNN cell type
         if self.rnn_type == "lstm":
             rnn_cell = tf.keras.layers.LSTM
@@ -135,13 +127,19 @@ class RNNNetwork(BaseDeepLearningNetwork):
 
         # Build RNN layers
         for i in range(self.n_layers):
+            # Determine return_sequences for current layer
+            # All layers except the last must return sequences for stacking
+            # The last layer uses the return_sequence_last parameter
+            is_last_layer = i == self.n_layers - 1
+            return_sequences = not is_last_layer or self.return_sequence_last
+
             # Create the recurrent layer
             if self.bidirectional:
                 x = tf.keras.layers.Bidirectional(
                     rnn_cell(
                         units=self.n_units[i],
                         activation=self._activation[i],
-                        return_sequences=self.return_sequences[i],
+                        return_sequences=return_sequences,
                         name=f"{self.rnn_type}_{i+1}",
                     )
                 )(x)
@@ -149,13 +147,23 @@ class RNNNetwork(BaseDeepLearningNetwork):
                 x = rnn_cell(
                     units=self.n_units[i],
                     activation=self._activation[i],
-                    return_sequences=self.return_sequences[i],
+                    return_sequences=return_sequences,
                     name=f"{self.rnn_type}_{i+1}",
                 )(x)
 
-            # Add dropout for regularization
-            if self.dropout_rate > 0:
-                x = tf.keras.layers.Dropout(self.dropout_rate, name=f"dropout_{i+1}")(x)
+            # Add appropriate dropout based on layer position
+            if is_last_layer:
+                # Apply output dropout to the last layer
+                if self.dropout_output > 0:
+                    x = tf.keras.layers.Dropout(
+                        self.dropout_output, name="dropout_output"
+                    )(x)
+            else:
+                # Apply intermediate dropout to all layers except the last
+                if self.dropout_intermediate > 0:
+                    x = tf.keras.layers.Dropout(
+                        self.dropout_intermediate, name=f"dropout_intermediate_{i+1}"
+                    )(x)
 
         # Return input and output layers
         return input_layer, x
