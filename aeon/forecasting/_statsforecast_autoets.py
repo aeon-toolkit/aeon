@@ -7,8 +7,6 @@ Wraps statsforecast AutoETS model for forecasting.
 __maintainer__ = []
 __all__ = ["StatsForecastAutoETSForecaster"]
 
-
-import numpy as np
 from statsforecast.models import AutoETS
 
 from aeon.forecasting._utils import calc_seasonal_period
@@ -71,8 +69,4 @@ class StatsForecastAutoETSForecaster(BaseForecaster):
         float
             single prediction self.horizon steps ahead of y.
         """
-        fitted_value = self.model_.predict(self.horizon, exog)["mean"][0]
-        if y is None:
-            return np.array([fitted_value])
-        else:
-            return np.insert(y, 0, fitted_value)[:-1]
+        return self.model_.predict(self.horizon, exog)["mean"][0]

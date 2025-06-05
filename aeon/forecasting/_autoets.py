@@ -145,7 +145,7 @@ class AutoETSForecaster(BaseForecaster):
         float
             single prediction self.horizon steps ahead of y.
         """
-        fitted_value = _predict(
+        return _predict(
             self.trend_type_,
             self.seasonality_type_,
             self.level_,
@@ -156,10 +156,6 @@ class AutoETSForecaster(BaseForecaster):
             self.n_timepoints_,
             self.seasonal_period_,
         )
-        if y is None:
-            return np.array([fitted_value])
-        else:
-            return np.insert(y, 0, fitted_value)[:-1]
 
 
 def auto_ets(data, method="internal_nelder_mead"):
