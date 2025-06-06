@@ -78,9 +78,10 @@ class ProximityForest(BaseClassifier):
 
     _tags = {
         "capability:multivariate": True,
+        "capability:unequal_length": True,
         "capability:multithreading": True,
         "algorithm_type": "distance",
-        "X_inner_type": "numpy3D",
+        "X_inner_type": ["np-list", "numpy3D"],
     }
 
     def __init__(
@@ -126,9 +127,9 @@ class ProximityForest(BaseClassifier):
             n_jobs=self._n_jobs, backend=self.parallel_backend, prefer="threads"
         )(delayed(self._predict_tree)(X, tree) for tree in self.trees_)
 
-        votes = np.zeros((X.shape[0], self.n_classes_))
+        votes = np.zeros((len(X), self.n_classes_))
         for i in range(len(preds)):
-            for j in range(X.shape[0]):
+            for j in range(len(X)):
                 votes[j, self._class_dictionary[preds[i][j]]] += 1
 
         return votes / self.n_trees
@@ -145,3 +146,28 @@ class ProximityForest(BaseClassifier):
 
     def _predict_tree(self, X, tree):
         return tree.predict(X)
+
+    @classmethod
+    def _get_test_params(
+        cls, parameter_set: str = "default"
+    ) -> Union[dict, list[dict]]:
+        """Return testing parameter settings for the estimator.
+
+        Parameters
+        ----------
+        parameter_set : str, default="default"
+            Name of the set of test parameters to return, for use in tests. If no
+            special parameters are defined for a value, will return `"default"` set.
+            ElasticEnsemble provides the following special sets:
+                 "results_comparison" - used in some classifiers to compare against
+                    previously generated results where the default set of parameters
+                    cannot produce suitable probability estimates
+
+        Returns
+        -------
+        params : dict or list of dict, default={}
+            Parameters to create testing instances of the class.
+            Each dict are parameters to construct an "interesting" test instance, i.e.,
+            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+        """
+        return {"n_trees": 3, "n_splitters": 3, "max_depth": 3}

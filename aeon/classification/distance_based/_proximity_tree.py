@@ -11,12 +11,16 @@ __all__ = ["ProximityTree"]
 from typing import Optional, Union
 
 import numpy as np
-from numba import njit
 from sklearn.utils import check_random_state
 
 from aeon.classification.base import BaseClassifier
 from aeon.distances import distance
-from aeon.utils.numba.general import slope_derivative_3d, unique_count
+from aeon.utils.numba.general import (
+    slope_derivative_2d,
+    slope_derivative_3d,
+    unique_count,
+)
+from aeon.utils.numba.stats import gini_gain, std
 
 
 class _ProximityNode:
@@ -114,9 +118,10 @@ class ProximityTree(BaseClassifier):
     """
 
     _tags = {
+        "capability:unequal_length": True,
         "capability:multivariate": True,
         "algorithm_type": "distance",
-        "X_inner_type": "numpy3D",
+        "X_inner_type": ["np-list", "numpy3D"],
     }
 
     def __init__(
@@ -135,7 +140,7 @@ class ProximityTree(BaseClassifier):
 
     def _fit(self, X, y):
         # Reuse the transform for ddtw and wddtw
-        der_X = slope_derivative_3d(X)
+        der_X = self._get_derivatives(X)
         rng = check_random_state(self.random_state)
         self._root = self._build_tree(X, der_X, y, rng, 0)
 
@@ -146,8 +151,8 @@ class ProximityTree(BaseClassifier):
 
     def _predict_proba(self, X):
         # Reuse the transform for ddtw and wddtw
-        der_X = slope_derivative_3d(X)
-        probas = np.zeros((X.shape[0], len(self.classes_)))
+        der_X = self._get_derivatives(X)
+        probas = np.zeros((len(X), len(self.classes_)))
         for i in range(len(X)):
             probas[i] = self._traverse_tree(self._root, X[i], der_X[i])
         return probas
@@ -179,15 +184,13 @@ class ProximityTree(BaseClassifier):
         unique_classes, class_counts = unique_count(y)
         class_distribution = np.zeros(len(self.classes_))
         for i, label in enumerate(unique_classes):
-            class_distribution[self._class_dictionary[label]] = (
-                class_counts[i] / X.shape[0]
-            )
+            class_distribution[self._class_dictionary[label]] = class_counts[i] / len(X)
 
         if (
             # Pure node
             len(unique_classes) == 1
             # If min sample splits is reached
-            or self.min_samples_split >= X.shape[0]
+            or self.min_samples_split >= len(X)
             # If max depth is reached
             or (self.max_depth is not None and depth >= self.max_depth)
         ):
@@ -208,8 +211,16 @@ class ProximityTree(BaseClassifier):
         # For each exemplar, create a branch
         for i, label in enumerate(unique_classes):
             child_node = self._build_tree(
-                X[node_splits[i]],
-                der_X[node_splits[i]],
+                (
+                    X[node_splits[i]]
+                    if isinstance(X, np.ndarray)
+                    else [X[j] for j in node_splits[i]]
+                ),
+                (
+                    der_X[node_splits[i]]
+                    if isinstance(der_X, np.ndarray)
+                    else [der_X[j] for j in node_splits[i]]
+                ),
                 y[node_splits[i]],
                 rng,
                 depth + 1,
@@ -269,7 +280,7 @@ class ProximityTree(BaseClassifier):
                 dist_used = "wdtw"
 
             # For each time series in the dataset, find the closest exemplar
-            for j in range(X_used.shape[0]):
+            for j in range(len(X_used)):
                 min_dist = np.inf
                 best_exemplar_idx = None
                 for i, label in enumerate(unique_classes):
@@ -346,8 +357,7 @@ class ProximityTree(BaseClassifier):
 
             return self._traverse_tree(node.children[best_exemplar_label], x, der_x)
 
-    @staticmethod
-    def _get_candidate_splitter(X, der_X, rng, cls_idx, X_std):
+    def _get_candidate_splitter(self, X, der_X, rng, cls_idx, X_std):
         """Generate candidate splitter.
 
         Takes a time series dataset and a set of parameterized
@@ -409,7 +419,7 @@ class ProximityTree(BaseClassifier):
             derivative = True
         elif n == 7:
             if X_std is None:
-                X_std = X.std()
+                X_std = self._get_std(X)
             dist_name = "erp"
             dist_params = {
                 "window": rng.uniform(0, 0.25),
@@ -417,7 +427,7 @@ class ProximityTree(BaseClassifier):
             }
         elif n == 8:
             if X_std is None:
-                X_std = X.std()
+                X_std = self._get_std(X)
             dist_name = "lcss"
             dist_params = {
                 "window": rng.uniform(0, 0.25),
@@ -443,65 +453,49 @@ class ProximityTree(BaseClassifier):
 
         return exemplars, dist_name, dist_params, X_std
 
+    @staticmethod
+    def _get_derivatives(X):
+        if isinstance(X, np.ndarray):
+            return slope_derivative_3d(X)
+        else:
+            der_X = []
+            for x in X:
+                der_X.append(slope_derivative_2d(x))
+            return der_X
 
-@njit(cache=True, fastmath=True)
-def gini(y) -> float:
-    """Get gini score for an array of labels.
+    @staticmethod
+    def _get_std(X):
+        if isinstance(X, np.ndarray):
+            return std(X.flatten())
+        else:
+            return std(np.concatenate(X, axis=1).flatten())
 
-    Parameters
-    ----------
-    y : 1d numpy array
-        An array of labels
+    @classmethod
+    def _get_test_params(
+        cls, parameter_set: str = "default"
+    ) -> Union[dict, list[dict]]:
+        """Return testing parameter settings for the estimator.
 
-    Returns
-    -------
-    score : float
-        gini score for the set of labels (i.e. how pure they are).
-        A larger score means more impurity. 0 means pure.
-    """
-    if y.shape[0] == 0:
-        raise ValueError("y is empty")
+        Parameters
+        ----------
+        parameter_set : str, default="default"
+            Name of the set of test parameters to return, for use in tests. If no
+            special parameters are defined for a value, will return `"default"` set.
+            ElasticEnsemble provides the following special sets:
+                 "results_comparison" - used in some classifiers to compare against
+                    previously generated results where the default set of parameters
+                    cannot produce suitable probability estimates
 
-    _, counts = unique_count(y)
-    proportions = counts / y.shape[0]
-    return 1.0 - np.sum(proportions**2)
-
-
-@njit(cache=True, fastmath=True)
-def gini_gain(y, y_subs) -> float:
-    """Get gini score of a split, i.e. the gain from parent to children.
-
-    Parameters
-    ----------
-    y : 1d array
-        An array of labels
-    y_subs : list of 1d array
-        List of arrays contain subsets of the labels in y. Total number of
-        labels must sum to len(y).
-
-    Returns
-    -------
-    score : float
-        gini score of the split from parent class labels (y) to children (y_sub).
-        Note a higher score means better gain.
-    """
-    if y.shape[0] == 0:
-        raise ValueError("y is empty")
-    if sum([child.shape[0] for child in y_subs]) != y.shape[0]:
-        raise ValueError(
-            "The number of labels in y_subs must sum to the number of labels in y."
-        )
-
-    # find gini for parent node
-    score = gini(y)
-
-    for child in y_subs:
-        # ignore empty children
-        if child.shape[0] > 0:
-            # find gini score for this child and weight score by proportion of
-            # instances at child compared to parent
-            score -= (child.shape[0] / y.shape[0]) * gini(child)
-    return score
+        Returns
+        -------
+        params : dict or list of dict, default={}
+            Parameters to create testing instances of the class.
+            Each dict are parameters to construct an "interesting" test instance, i.e.,
+            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+        """
+        return {
+            "n_splitters": 3,
+        }
 
 
 msm_params = [

@@ -9,7 +9,9 @@ from aeon.utils.numba.general import (
     get_all_subsequences,
     get_subsequence,
     get_subsequence_with_mean_std,
+    is_prime,
     normalise_subsequences,
+    prime_up_to,
     sliding_mean_std_one_series,
     unique_count,
     z_normalise_series,
@@ -160,3 +162,72 @@ def test_get_all_subsequences(dtype):
         dtype=dtype,
     )
     assert_array_equal(X_subs, X_true)
+
+
+def test_prime_up_to():
+    """Test the generation of prime numbers up to a specified limit."""
+    true_primes_to_100 = [
+        2,
+        3,
+        5,
+        7,
+        11,
+        13,
+        17,
+        19,
+        23,
+        29,
+        31,
+        37,
+        41,
+        43,
+        47,
+        53,
+        59,
+        61,
+        67,
+        71,
+        73,
+        79,
+        83,
+        89,
+        97,
+    ]
+    primes = prime_up_to(100)
+    assert_array_equal(true_primes_to_100, primes)
+
+
+def test_is_prime():
+    """Test the determination of prime numbers."""
+    true_primes_to_100 = [
+        2,
+        3,
+        5,
+        7,
+        11,
+        13,
+        17,
+        19,
+        23,
+        29,
+        31,
+        37,
+        41,
+        43,
+        47,
+        53,
+        59,
+        61,
+        67,
+        71,
+        73,
+        79,
+        83,
+        89,
+        97,
+    ]
+    for n in np.arange(100):
+        if n in true_primes_to_100:
+            assert is_prime(n)
+        else:
+            assert not is_prime(n)
