@@ -395,8 +395,6 @@ class ProximityTree2(BaseClassifier):
                 min_dist = float("inf")
                 sub = None
                 for k in range(len(labels)):
-                    if measure == "dtw" or measure == "adtw":
-                        splitter[1][measure]["threshold"] = min_dist
                     dist = distance(
                         X_trans[j],
                         exemplars[k],
@@ -496,8 +494,6 @@ class ProximityTree2(BaseClassifier):
             min_dist = np.inf
             id = None
             for j in range(len(labels)):
-                if measure == "dtw" or measure == "adtw":
-                    splitter[1][measure]["threshold"] = min_dist
                 dist = distance(
                     X_trans[i],
                     exemplars[j],
@@ -606,8 +602,6 @@ class ProximityTree2(BaseClassifier):
             min_dist = np.inf
             id = None
             for i in range(len(branches)):
-                if measure == "dtw" or measure == "adtw":
-                    treenode.splitter[1][measure]["threshold"] = min_dist
                 dist = distance(
                     x_trans,
                     exemplars[i],
@@ -724,7 +718,6 @@ class DistanceKwargs(TypedDict, total=False):
     w: np.ndarray
     epsilon: float
     warp_penalty: float
-    threshold: float
 
 
 DistanceFunction = Callable[[np.ndarray, np.ndarray, Any], float]
@@ -777,7 +770,6 @@ def distance(
             p=kwargs.get("p"),
             window=kwargs.get("window"),
             itakura_max_slope=kwargs.get("itakura_max_slope"),
-            threshold=kwargs.get("threshold"),
         )
     elif metric == "lcss":
         return lcss_distance(
@@ -795,7 +787,6 @@ def distance(
             itakura_max_slope=kwargs.get("itakura_max_slope"),
             window=kwargs.get("window"),
             warp_penalty=kwargs.get("warp_penalty", 1.0),
-            threshold=kwargs.get("threshold"),
         )
     else:
         if isinstance(metric, Callable):
@@ -810,7 +801,6 @@ def _dtw_distance(
     p: float = 2.0,
     window: Optional[float] = None,
     itakura_max_slope: Optional[float] = None,
-    threshold: Optional[float] = np.inf,
 ) -> float:
     r"""Return parameterised DTW distance for PF 2.0.
 
@@ -865,8 +855,6 @@ def _dtw_distance(
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
-    threshold : float, default=np.inf
-        Threshold to stop the calculation of cost matrix.
 
     Returns
     -------
@@ -892,14 +880,14 @@ def _dtw_distance(
         bounding_matrix = create_bounding_matrix(
             _x.shape[1], _y.shape[1], window, itakura_max_slope
         )
-        return _dtw_cost_matrix(_x, _y, p, bounding_matrix, threshold)[
+        return _dtw_cost_matrix(_x, _y, p, bounding_matrix)[
             _x.shape[1] - 1, _y.shape[1] - 1
         ]
     if x.ndim == 2 and y.ndim == 2:
         bounding_matrix = create_bounding_matrix(
             x.shape[1], y.shape[1], window, itakura_max_slope
         )
-        return _dtw_cost_matrix(x, y, p, bounding_matrix, threshold)[
+        return _dtw_cost_matrix(x, y, p, bounding_matrix)[
             x.shape[1] - 1, y.shape[1] - 1
         ]
     raise ValueError("x and y must be 1D or 2D")
@@ -911,7 +899,6 @@ def _dtw_cost_matrix(
     y: np.ndarray,
     p: float,
     bounding_matrix: np.ndarray,
-    threshold: float,
 ) -> np.ndarray:
     x_size = x.shape[1]
     y_size = y.shape[1]
@@ -928,8 +915,6 @@ def _dtw_cost_matrix(
                     cost_matrix[i + 1, j],
                     cost_matrix[i, j],
                 )
-                if cost_matrix[i + 1, j + 1] > threshold:
-                    break
     return cost_matrix[1:, 1:]
 
 
@@ -941,7 +926,6 @@ def _adtw_distance(
     window: Optional[float] = None,
     itakura_max_slope: Optional[float] = None,
     warp_penalty: float = 1.0,
-    threshold: Optional[float] = np.inf,
 ) -> float:
     """Parameterised version of ADTW distance for PF 2.0.
 
@@ -971,8 +955,6 @@ def _adtw_distance(
         Itakura parallelogram on the bounding matrix. Must be between 0.0 and 1.0
     warp_penalty: float, default=1.0
         Penalty for warping. A high value will mean less warping.
-    threshold: float, default=np.inf
-        The threshold to stop the calculation of cost matrix.
 
     Returns
     -------
@@ -995,14 +977,14 @@ def _adtw_distance(
         bounding_matrix = create_bounding_matrix(
             _x.shape[1], _y.shape[1], window, itakura_max_slope
         )
-        return _adtw_cost_matrix(_x, _y, p, bounding_matrix, warp_penalty, threshold)[
+        return _adtw_cost_matrix(_x, _y, p, bounding_matrix, warp_penalty)[
             _x.shape[1] - 1, _y.shape[1] - 1
         ]
     if x.ndim == 2 and y.ndim == 2:
         bounding_matrix = create_bounding_matrix(
             x.shape[1], y.shape[1], window, itakura_max_slope
         )
-        return _adtw_cost_matrix(x, y, p, bounding_matrix, warp_penalty, threshold)[
+        return _adtw_cost_matrix(x, y, p, bounding_matrix, warp_penalty)[
             x.shape[1] - 1, y.shape[1] - 1
         ]
     raise ValueError("x and y must be 1D or 2D")
@@ -1015,7 +997,6 @@ def _adtw_cost_matrix(
     p: float,
     bounding_matrix: np.ndarray,
     warp_penalty: float,
-    threshold: float,
 ) -> np.ndarray:
     x_size = x.shape[1]
     y_size = y.shape[1]
@@ -1033,7 +1014,5 @@ def _adtw_cost_matrix(
                     cost_matrix[i + 1, j] + warp_penalty,
                     cost_matrix[i, j],
                 )
-                if cost_matrix[i + 1, j + 1] > threshold:
-                    break
 
     return cost_matrix[1:, 1:]
