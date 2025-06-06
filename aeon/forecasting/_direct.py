@@ -45,6 +45,6 @@ def direct_forecasting(forecaster, y: np.ndarray, steps_ahead: int, exog=None):
     for i in range(1, steps_ahead + 1):
         f = deepcopy(forecaster)
         f.horizon = i
-        f.fit(y, exog=exog)
-        preds[i - 1] = f.forecast(y, exog)
+        f.fit(y)
+        preds[i - 1] = f.predict()
     return preds
