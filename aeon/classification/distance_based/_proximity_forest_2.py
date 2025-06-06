@@ -1,5 +1,7 @@
 """Proximity Forest 2.0 Classifier."""
 
+__all__ = ["ProximityForest2"]
+
 from typing import Any, Callable, Optional, TypedDict, Union
 
 import numpy as np
@@ -76,10 +78,10 @@ class ProximityForest2(BaseClassifier):
     >>> from aeon.classification.distance_based import ProximityForest
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test = load_unit_test(split="test")
-    >>> classifier = ProximityForest2(n_trees = 10, n_splitters = 3)
-    >>> classifier.fit(X_train, y_train)
+    >>> classifier = ProximityForest2(n_trees=10, n_splitters=3) # doctest: +SKIP
+    >>> classifier.fit(X_train, y_train) # doctest: +SKIP
     ProximityForest2(...)
-    >>> y_pred = classifier.predict(X_test)
+    >>> y_pred = classifier.predict(X_test) # doctest: +SKIP
     """
 
     _tags = {
@@ -88,6 +90,7 @@ class ProximityForest2(BaseClassifier):
         "capability:multithreading": True,
         "algorithm_type": "distance",
         "X_inner_type": ["numpy2D"],
+        "python_dependencies": "torch",
     }
 
     def __init__(
