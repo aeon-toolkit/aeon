@@ -89,7 +89,7 @@ class ETSForecaster(BaseForecaster):
     >>> forecaster.fit(y)
     ETSForecaster(...)
     >>> forecaster.predict()
-    366.90200486015596
+    array([366.9020...)
     """
 
     def __init__(
@@ -200,6 +200,11 @@ class ETSForecaster(BaseForecaster):
         """
         Predict the next horizon steps ahead.
 
+        If given y, use y to update the model and continue to predict horizon
+        steps ahead. Assumes no gap in time between the y passed in fit and the
+        y passed here. Assumes that y is of the same frequency as y passed in fit.
+        If y is None, predict horizon steps ahead of the series seen in fit.
+
         Parameters
         ----------
         y : np.ndarray, default = None
@@ -213,18 +218,25 @@ class ETSForecaster(BaseForecaster):
         float
             single prediction self.horizon steps ahead of y.
         """
-        fitted_value = _predict(
+        if y is not None:
+            y = y.squeeze()
+        fitted_values = _predict(
+            self._error_type,
             self._trend_type,
             self._seasonality_type,
+            self.alpha,
+            self._beta,
+            self._gamma,
+            self.phi,
             self.level_,
             self.trend_,
             self.seasonality_,
-            self.phi,
             self.horizon,
             self.n_timepoints_,
             self._seasonal_period,
+            y,
         )
-        return fitted_value
+        return fitted_values
 
     def _initialise(self, data):
         """
@@ -315,31 +327,70 @@ def _numba_fit(
 
 @njit(fastmath=True, cache=True)
 def _predict(
+    error_type,
     trend_type,
     seasonality_type,
+    alpha,
+    beta,
+    gamma,
+    phi,
     level,
     trend,
     seasonality,
-    phi,
     horizon,
     n_timepoints,
     seasonal_period,
+    y=None,
 ):
-    # Generate forecasts based on the final values of level, trend, and seasonals
+    # Predict horizon steps ahead for each time point in y
+    if y is None:
+        y = np.zeros(shape=0, dtype=np.float64)
+    fitted_values_ = np.zeros(shape=(len(y) + 1), dtype=np.float64)
     if phi == 1:  # No damping case
         phi_h = 1
     else:
         # Geometric series formula for calculating phi + phi^2 + ... + phi^h
         phi_h = phi * (1 - phi**horizon) / (1 - phi)
-    seasonal_index = (n_timepoints + horizon) % seasonal_period
-    return _predict_value(
+    for t, time_point in enumerate(y):
+        s_index = (n_timepoints + t) % seasonal_period
+        # Calculate level, trend, and seasonal components
+        (fitted_value, _error, level, trend, seasonality[s_index]) = _update_states(
+            error_type,
+            trend_type,
+            seasonality_type,
+            level,
+            trend,
+            seasonality[s_index],
+            time_point,
+            alpha,
+            beta,
+            gamma,
+            phi,
+        )
+        if horizon > 1:
+            forecast_s_index = (n_timepoints + t + horizon) % seasonal_period
+            # Generate forecasts based the horizon ahead
+            fitted_values_[t] = _predict_value(
+                trend_type,
+                seasonality_type,
+                level,
+                trend,
+                seasonality[forecast_s_index],
+                phi_h,
+            )[0]
+        else:
+            fitted_values_[t] = fitted_value
+    forecast_s_index = (n_timepoints + len(y) + horizon) % seasonal_period
+    # Generate forecasts based on the final values of level, trend, and seasonals
+    fitted_values_[-1] = _predict_value(
         trend_type,
         seasonality_type,
         level,
         trend,
-        seasonality[seasonal_index],
+        seasonality[forecast_s_index],
         phi_h,
     )[0]
+    return fitted_values_
 
 
 @njit(fastmath=True, cache=True)
