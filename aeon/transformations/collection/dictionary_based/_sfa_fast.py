@@ -615,10 +615,10 @@ class SFAFast(BaseCollectionTransformer):
                 variance = np.log2((self.dft_variance[self.support]) + 1)
                 normed_scale = variance / variance.mean()
 
-            bit_arr = assign_bits_dynamically(normed_scale, self.bit_budget)
-
-            self.alphabet_sizes = [int(2 ** bit_arr[i]) for i in range(len(bit_arr))]
-            self.letter_bits = np.array(bit_arr, dtype=np.uint32)
+            self.letter_bits = assign_bits_dynamically(normed_scale, self.bit_budget)
+            self.alphabet_sizes = [
+                int(2 ** self.letter_bits[i]) for i in range(len(self.letter_bits))
+            ]
         else:
             # use the same alphabet size for all positions
             self.alphabet_sizes = [
@@ -1403,7 +1403,7 @@ def assign_bits_dynamically(variance, budget, max_bit_val=9):
     bit_array : 1d numpy array
         the number of bits assigned to each position.
     """
-    bit_array = np.zeros(len(variance), dtype=np.int32)
+    bit_array = np.zeros(len(variance), dtype=np.uint32)
     bit_array[:] = 0
 
     improve = variance.copy() / 2.0
