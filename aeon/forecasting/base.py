@@ -72,8 +72,8 @@ class BaseForecaster(BaseSeriesEstimator):
                 f"Horizon is set >1, but {self.__class__.__name__} cannot handle a "
                 f"horizon greater than 1"
             )
-        exog = self.get_tag("capability:exogenous")
-        if not exog and exog is not None:
+        exog_tag = self.get_tag("capability:exogenous")
+        if not exog_tag and exog is not None:
             raise ValueError(
                 f"Exogenous variables passed but {self.__class__.__name__} cannot "
                 "handle exogenous variables"
