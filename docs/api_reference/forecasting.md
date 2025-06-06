@@ -7,8 +7,8 @@
     :toctree: auto_generated/
     :template: class.rst
 
-    DummyForecaster
     BaseForecaster
+    NaiveForecaster
     RegressionForecaster
     ETSForecaster
 ```

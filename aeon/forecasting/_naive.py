@@ -17,7 +17,7 @@ class NaiveForecaster(BaseForecaster):
             - "last" predicts the last seen value in training for all horizon steps.
             - "mean": predicts the mean of the training series for all horizon steps.
             - "seasonal_last": predicts the last season value in the training series.
-            Returns np.nan if the effective seasonal data is empty.
+              Returns np.nan if the effective seasonal data is empty.
     seasonal_period : int, default=1
         The seasonal period to use for the "seasonal_last" strategy.
         E.g., 12 for monthly data with annual seasonality.
@@ -53,34 +53,12 @@ class NaiveForecaster(BaseForecaster):
         return self
 
     def _predict(self, y=None, exog=None):
-        """Predict with the fitted Naive forecaster."""
-        predictions = np.zeros(self.horizon)
-
+        """Predict a single value self.horizon steps ahead."""
         if self.strategy == "last" or self.strategy == "mean":
-            predictions[:] = self._fitted_scalar_value_
-        elif self.strategy == "seasonal_last":
-            m = len(self._fitted_last_season_)
-            for i in range(self.horizon):
-                predictions[i] = self._fitted_last_season_[i % m]
-        return predictions
+            return self._fitted_scalar_value_
 
-    def _forecast(self, y, exog=None):
-        """Forecast using Naive forecaster on new data `y` for `self.horizon` steps."""
-        y_squeezed = y.squeeze()
-        predictions = np.zeros(self.horizon)
+        # For "seasonal_last" strategy
+        prediction_index = (self.horizon - 1) % self.seasonal_period
+        return self._fitted_last_season_[prediction_index]
 
-        if self.strategy == "last":
-            predictions[:] = y_squeezed[-1]
-        elif self.strategy == "mean":
-            predictions[:] = np.mean(y_squeezed)
-        elif self.strategy == "seasonal_last":
-            last_season_from_input = y_squeezed[-self.seasonal_period :]
-            m = len(last_season_from_input)
-            for i in range(self.horizon):
-                predictions[i] = last_season_from_input[i % m]
-        else:
-            raise ValueError(
-                f"Unknown strategy: {self.strategy}. "
-                "Valid strategies are 'last', 'mean', 'seasonal_last'."
-            )
-        return predictions
+    # The class will inherit the _forecast method from BaseForecaster.
