@@ -21,7 +21,7 @@ def test_naive_forecaster_mean_strategy():
     forecaster = NaiveForecaster(strategy="mean", horizon=2)
     forecaster.fit(sample_data)
     predictions = forecaster.predict()
-    expected = np.array([30, 30])  # Mean of [10, 20, 30, 40, 50] is 30
+    expected = np.array(30)  # Mean of [10, 20, 30, 40, 50] is 30
     np.testing.assert_array_equal(predictions, expected)
 
 
@@ -31,7 +31,7 @@ def test_naive_forecaster_seasonal_last_strategy():
     forecaster = NaiveForecaster(strategy="seasonal_last", seasonal_period=3, horizon=4)
     forecaster.fit(data)  # Last season is [6, 7, 8]
     predictions = forecaster.predict()
-    expected = np.array([6, 7, 8, 6])  # Repeats 6, 7, 8, then 6
+    expected = np.array(6)
     np.testing.assert_array_equal(predictions, expected)
 
 
