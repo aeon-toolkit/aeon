@@ -11,6 +11,15 @@ def direct_forecasting(forecaster, y: np.ndarray, steps_ahead: int, exog=None):
 
     Implements the direct strategy, cloning the given estimator and setting its horizon.
 
+    .. code-block:: python
+
+        preds = []
+        for h in 1 to steps_ahead:
+            model = clone(forecaster)
+            model.horizon = h
+            model.fit(y)
+            preds.append(model.predict())
+
     Parameters
     ----------
     forecaster : BaseForecaster
