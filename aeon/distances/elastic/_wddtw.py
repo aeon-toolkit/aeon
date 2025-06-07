@@ -10,9 +10,9 @@ from numba.typed import List as NumbaList
 
 from aeon.distances.elastic._alignment_paths import compute_min_return_path
 from aeon.distances.elastic._bounding_matrix import create_bounding_matrix
-from aeon.distances.elastic._ddtw import average_of_slope
 from aeon.distances.elastic._wdtw import _wdtw_cost_matrix, _wdtw_distance
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
+from aeon.utils.numba.general import slope_derivative_2d
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
@@ -85,15 +85,15 @@ def wddtw_distance(
     981
     """
     if x.ndim == 1 and y.ndim == 1:
-        _x = average_of_slope(x.reshape((1, x.shape[0])))
-        _y = average_of_slope(y.reshape((1, y.shape[0])))
+        _x = slope_derivative_2d(x.reshape((1, x.shape[0])))
+        _y = slope_derivative_2d(y.reshape((1, y.shape[0])))
         bounding_matrix = create_bounding_matrix(
             _x.shape[1], _y.shape[1], window, itakura_max_slope
         )
         return _wdtw_distance(_x, _y, bounding_matrix, g)
     if x.ndim == 2 and y.ndim == 2:
-        _x = average_of_slope(x)
-        _y = average_of_slope(y)
+        _x = slope_derivative_2d(x)
+        _y = slope_derivative_2d(y)
         bounding_matrix = create_bounding_matrix(
             _x.shape[1], _y.shape[1], window, itakura_max_slope
         )
@@ -155,15 +155,15 @@ def wddtw_cost_matrix(
            [0., 0., 0., 0., 0., 0., 0., 0.]])
     """
     if x.ndim == 1 and y.ndim == 1:
-        _x = average_of_slope(x.reshape((1, x.shape[0])))
-        _y = average_of_slope(y.reshape((1, y.shape[0])))
+        _x = slope_derivative_2d(x.reshape((1, x.shape[0])))
+        _y = slope_derivative_2d(y.reshape((1, y.shape[0])))
         bounding_matrix = create_bounding_matrix(
             _x.shape[1], _y.shape[1], window, itakura_max_slope
         )
         return _wdtw_cost_matrix(_x, _y, bounding_matrix, g)
     if x.ndim == 2 and y.ndim == 2:
-        _x = average_of_slope(x)
-        _y = average_of_slope(y)
+        _x = slope_derivative_2d(x)
+        _y = slope_derivative_2d(y)
         bounding_matrix = create_bounding_matrix(
             _x.shape[1], _y.shape[1], window, itakura_max_slope
         )
@@ -276,7 +276,7 @@ def _wddtw_pairwise_distance(
         )
     X_average_of_slope = NumbaList()
     for i in range(n_cases):
-        X_average_of_slope.append(average_of_slope(X[i]))
+        X_average_of_slope.append(slope_derivative_2d(X[i]))
 
     for i in range(n_cases):
         for j in range(i + 1, n_cases):
@@ -312,11 +312,11 @@ def _wddtw_from_multiple_to_multiple_distance(
     # Derive the arrays before so that we dont have to redo every iteration
     x_average_of_slope = NumbaList()
     for i in range(n_cases):
-        x_average_of_slope.append(average_of_slope(x[i]))
+        x_average_of_slope.append(slope_derivative_2d(x[i]))
 
     y_average_of_slope = NumbaList()
     for i in range(m_cases):
-        y_average_of_slope.append(average_of_slope(y[i]))
+        y_average_of_slope.append(slope_derivative_2d(y[i]))
 
     for i in range(n_cases):
         for j in range(m_cases):
