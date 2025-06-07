@@ -66,6 +66,10 @@ class RegressionForecaster(BaseForecaster):
         else:
             self.regressor_ = self.regressor
         y = y.squeeze()
+        if self.window < 1 or self.window > len(y) - 3:
+            raise ValueError(
+                f" window value {self.window} is invalid for series " f"length {len(y)}"
+            )
         X = np.lib.stride_tricks.sliding_window_view(y, window_shape=self.window)
         # Ignore the final horizon values: need to store these for pred with empty y
         X = X[: -self.horizon]
@@ -91,35 +95,13 @@ class RegressionForecaster(BaseForecaster):
 
         Returns
         -------
-        np.ndarray
+        float
             single prediction self.horizon steps ahead of y.
         """
         if y is None:
-            return self.regressor_.predict(self.last_)
+            return self.regressor_.predict(self.last_)[0]
         last = y[:, -self.window :]
-        return self.regressor_.predict(last)
-
-    def _forecast(self, y, exog=None):
-        """
-        Forecast the next horizon steps ahead.
-
-        Parameters
-        ----------
-        y : np.ndarray
-            A time series to predict the next horizon value for.
-        exog : np.ndarray, default=None
-            Optional exogenous time series data. Included for interface
-            compatibility but ignored in this estimator.
-
-        Returns
-        -------
-        np.ndarray
-            single prediction self.horizon steps ahead of y.
-
-        NOTE: deal with horizons
-        """
-        self.fit(y, exog)
-        return self.predict()
+        return self.regressor_.predict(last)[0]
 
     @classmethod
     def _get_test_params(cls, parameter_set: str = "default"):

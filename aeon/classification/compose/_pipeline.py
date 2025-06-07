@@ -40,7 +40,7 @@ class ClassifierPipeline(BaseCollectionPipeline, BaseClassifier):
         A transform or list of transformers to use prior to classification.
         List of tuples (str, transformer) of transformers can also be passed, where
         the str is used to name the transformer.
-        The objecst are cloned prior, as such the state of the input will not be
+        The objects are cloned prior, as such the state of the input will not be
         modified by fitting the pipeline.
     estimator : aeon or sklearn classifier
         A classifier to use at the end of the pipeline.
