@@ -22,7 +22,7 @@ def test_regression_forecaster():
     f2.fit(y)
     p2 = f2.predict()
     assert p == p2
-    f2 = RegressionForecaster(regressor=DummyRegressor, window=10)
+    f2 = RegressionForecaster(regressor=DummyRegressor(), window=10)
     f2.fit(y)
     f2.predict()
 
