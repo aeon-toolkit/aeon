@@ -126,6 +126,17 @@ Interval based
     SupervisedIntervals
     QUANTTransformer
 
+Self Supervised
+~~~~~~~~~~~~~~~
+
+.. currentmodule:: aeon.transformations.collection.self_supervised
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    TRILITE
+
 Shapelet based
 ~~~~~~~~~~~~~~
 
@@ -180,6 +191,21 @@ Series transforms
     PCASeriesTransformer
     WarpingSeriesTransformer
 
+Smoothing
+~~~~~~~~~
+
+.. currentmodule:: aeon.transformations.series.smoothing
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    DiscreteFourierApproximation
+    ExponentialSmoothing
+    GaussianFilter
+    MovingAverage
+    SavitzkyGolayFilter
+    RecursiveMedianSieve
 
 Base
 ----

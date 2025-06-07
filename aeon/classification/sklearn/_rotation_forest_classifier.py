@@ -327,6 +327,10 @@ class RotationForestClassifier(ClassifierMixin, BaseEstimator):
         # remove useless attributes
         self._useful_atts = ~np.all(X[1:] == X[:-1], axis=0)
         X = X[:, self._useful_atts]
+        if sum(self._useful_atts) == 0:
+            raise ValueError(
+                "All attributes in X contain the same value.",
+            )
 
         self._n_atts = X.shape[1]
 

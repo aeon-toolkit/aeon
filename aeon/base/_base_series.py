@@ -1,7 +1,31 @@
-"""Base class for estimators that fit single time series.
+"""
+Base class for single time series estimators (univariate/multivariate).
 
-This time series can be univariate or multivariate. The time series can potentially
-contain missing values.
+Class Name: BaseSeriesEstimator
+
+Methods
+-------
+    - _preprocess_series(X, axis, store_metadata)
+      Validates and converts input `X` before fitting.
+    - _check_X(X, axis)
+      Ensures `X` is a valid type and format.
+    - _convert_X(X, axis)
+      Converts `X` to the required internal format.
+
+Attributes
+----------
+    - metadata_
+      Stores input series metadata.
+    - axis
+      Defines time axis for input data.
+    - _tags
+      Specifies estimator capabilities (e.g., univariate, multivariate).
+
+Inherited Methods:
+    - get_params()
+      Returns hyperparameters.
+    - get_fitted_params()
+      Returns learned parameters.
 """
 
 __maintainer__ = ["TonyBagnall", "MatthewMiddlehurst"]
@@ -99,7 +123,7 @@ class BaseSeriesEstimator(BaseAeonEstimator):
             self.metadata_ = meta
         return self._convert_X(X, axis)
 
-    def _check_X(self, X, axis):
+    def _check_X(self, X, axis: int = 0):
         """Check input X is valid.
 
         Check if the input data is a compatible type, and that this estimator is
