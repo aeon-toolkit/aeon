@@ -18,9 +18,7 @@ def test_base_forecaster():
     p3 = f._forecast(y)
     assert p2 == p1
     assert p3 == p2
-    with pytest.raises(
-        NotImplementedError, match="Exogenous variables not yet " "supported"
-    ):
+    with pytest.raises(ValueError, match="Exogenous variables passed"):
         f.fit(y, exog=y)
 
 
