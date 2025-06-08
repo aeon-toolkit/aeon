@@ -6,8 +6,6 @@ An implementation of the ARIMA forecasting algorithm.
 __maintainer__ = ["alexbanwell1", "TonyBagnall"]
 __all__ = ["ARIMAForecaster"]
 
-from math import comb
-
 import numpy as np
 from numba import njit
 
@@ -84,12 +82,12 @@ class ARIMAForecaster(BaseForecaster):
         d: int = 0,
         q: int = 1,
         constant_term: bool = False,
-        horizon: int = 1,
     ):
-        super().__init__(horizon=horizon, axis=1)
+        super().__init__(horizon=1, axis=1)
         self.data_ = []
         self.differenced_data_ = []
         self.residuals_ = []
+        self.fitted_values_ = []
         self.aic_ = 0
         self.p = p
         self.d = d
@@ -140,8 +138,12 @@ class ARIMAForecaster(BaseForecaster):
         (self.c_, self.phi_, self.theta_) = _extract_params(
             self.parameters_, self.model_
         )
-        (self.aic_, self.residuals_) = _arima_model(
-            self.parameters_, _calc_arima, self.differenced_data_, self.model_
+        (self.aic_, self.residuals_, self.fitted_values_) = _arima_model(
+            self.parameters_,
+            _calc_arima,
+            self.differenced_data_,
+            self.model_,
+            np.empty(0),
         )
         return self
 
@@ -159,22 +161,28 @@ class ARIMAForecaster(BaseForecaster):
 
         Returns
         -------
-        float
-            single prediction self.horizon steps ahead of y.
+        array[float]
+            Predictions len(y) steps ahead of the data seen in fit.
+        If y is None, then predict 1 step ahead of the data seen in fit.
         """
-        y = np.array(y, dtype=np.float64)
-        value = _calc_arima(
-            self.differenced_data_,
+        if y is not None:
+            combined_data = np.concatenate((self.data_, y.flatten()))
+        else:
+            combined_data = self.data_
+        n = len(self.data_)
+        differenced_data = np.diff(combined_data, n=self.d)
+        _aic, _residuals, predicted_values = _arima_model(
+            self.parameters_,
+            _calc_arima,
+            differenced_data,
             self.model_,
-            len(self.differenced_data_),
-            _extract_params(self.parameters_, self.model_),
             self.residuals_,
         )
-        history = self.data_[::-1]
-        # Step 2: undo ordinary differencing
-        for k in range(1, self.d_ + 1):
-            value += (-1) ** (k + 1) * comb(self.d_, k) * history[k - 1]
-        return float(value)
+        init = combined_data[n - self.d_ : n]
+        x = np.concatenate((init, predicted_values))
+        for _ in range(self.d_):
+            x = np.cumsum(x)
+        return x[self.d_ :]
 
 
 @njit(cache=True, fastmath=True)
@@ -187,28 +195,35 @@ def _aic(residuals, num_params):
 
 @njit(fastmath=True)
 def _arima_model_wrapper(params, data, model):
-    return _arima_model(params, _calc_arima, data, model)[0]
+    return _arima_model(params, _calc_arima, data, model, np.empty(0))[0]
 
 
 # Define the ARIMA(p, d, q) likelihood function
 @njit(cache=True, fastmath=True)
-def _arima_model(params, base_function, data, model):
+def _arima_model(params, base_function, data, model, residuals):
     """Calculate the log-likelihood of an ARIMA model given the parameters."""
     formatted_params = _extract_params(params, model)  # Extract parameters
 
     # Initialize residuals
     n = len(data)
-    residuals = np.zeros(n)
-    for t in range(n):
-        y_hat = base_function(
+    m = len(residuals)
+    num_predictions = n - m + 1
+    residuals = np.concatenate((residuals, np.zeros(num_predictions - 1)))
+    expect_full_history = m > 0  # I.e. we've been provided with some residuals
+    fitted_values = np.zeros(num_predictions)
+    for t in range(num_predictions):
+        fitted_values[t] = base_function(
             data,
             model,
-            t,
+            m + t,
             formatted_params,
             residuals,
+            expect_full_history,
         )
-        residuals[t] = data[t] - y_hat
-    return _aic(residuals, len(params)), residuals
+        if t != num_predictions - 1:
+            # Only calculate residuals for the predictions we have data for
+            residuals[m + t] = data[m + t] - fitted_values[t]
+    return _aic(residuals, len(params)), residuals, fitted_values
 
 
 @njit(cache=True, fastmath=True)
@@ -234,17 +249,22 @@ def _extract_params(params, model):
 
 
 @njit(cache=True, fastmath=True)
-def _calc_arima(data, model, t, formatted_params, residuals):
+def _calc_arima(data, model, t, formatted_params, residuals, expect_full_history=False):
     """Calculate the ARIMA forecast for time t."""
     if len(model) != 3:
         raise ValueError("Model must be of the form (c, p, q)")
-    # AR part
     p = model[1]
+    q = model[2]
+    if expect_full_history and (t - p < 0 or t - q < 0):
+        raise ValueError(
+            f"Insufficient data for ARIMA model at time {t}. "
+            f"Expected at least {p} past values for AR and {q} for MA."
+        )
+    # AR part
     phi = formatted_params[1][:p]
     ar_term = 0 if (t - p) < 0 else np.dot(phi, data[t - p : t][::-1])
 
     # MA part
-    q = model[2]
     theta = formatted_params[2][:q]
     ma_term = 0 if (t - q) < 0 else np.dot(theta, residuals[t - q : t][::-1])
 
