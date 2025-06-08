@@ -1,34 +1,35 @@
-"""Truncation transformer - truncate unequal length collections."""
+"""Truncation transformer, truncate unequal length collections."""
 
+__maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["Truncator"]
-__maintainer__ = []
 
 import numpy as np
-from deprecated.sphinx import deprecated
 
 from aeon.transformations.collection.base import BaseCollectionTransformer
-
-
-# TODO: Remove in v1.3.0
-@deprecated(
-    version="1.2.0",
-    reason="Truncator is deprecated and will be moving to . "
-    "transformations.collection.unequal_length with additional/reworked functionality.",
-    category=FutureWarning,
+from aeon.transformations.collection.unequal_length._common_utils import (
+    _get_max_length,
+    _get_min_length,
 )
-class Truncator(BaseCollectionTransformer):
-    """Truncate unequal length time series to a lower bounds.
 
-    Truncates all series in collection between lower/upper range bounds. This
-    transformer assumes that all series have the same number of channels (dimensions)
-    and that all channels in a single series are the same length.
+
+class Truncator(BaseCollectionTransformer):
+    """Truncate unequal length time series to equal, fixed length.
+
+    Truncates the input dataset to either a fixed series length or finds the
+    max/min length series across all series and channels and truncates to that.
 
     Parameters
     ----------
-    truncated_length : int, default=None
-        bottom range of the values to truncate can also be used to truncate
-        to a specific length.
-        if None, will find the shortest sequence and use instead.
+    truncated_length : int, "min" or "max", default="min"
+        The length to truncate series to. If "min", will truncate to the shortest
+        series seen in ``fit``. If "max", will truncate to the longest series seen in
+        ``fit``. If an integer, will truncate to that length.
+        Calling ``fit`` is not required if ``truncated_length`` is an int.
+    error_on_short : bool, default=True
+        If True, raise an error if a series is shorter than truncated_length.
+        If False, will ignore series shorter than truncated_length. As the series
+        collection could remain unequal length, a list of numpy arrays will be returned
+        instead of a 3D numpy array.
 
     Examples
     --------
@@ -40,7 +41,6 @@ class Truncator(BaseCollectionTransformer):
     >>> X2 = truncator.fit_transform(X)
     >>> X2.shape
     (10, 4, 10)
-
     """
 
     _tags = {
@@ -50,18 +50,13 @@ class Truncator(BaseCollectionTransformer):
         "removes_unequal_length": True,
     }
 
-    def __init__(self, truncated_length=None):
+    def __init__(self, truncated_length="min", error_on_short=True):
         self.truncated_length = truncated_length
+        self.error_on_short = error_on_short
+
         super().__init__()
 
-    @staticmethod
-    def _get_min_length(X):
-        min_length = X[0].shape[1]
-        for x in X:
-            if x.shape[1] < min_length:
-                min_length = x.shape[1]
-
-        return min_length
+        self.set_tags(**{"fit_is_empty": isinstance(truncated_length, int)})
 
     def _fit(self, X, y=None):
         """Fit transformer to X and y.
@@ -78,16 +73,12 @@ class Truncator(BaseCollectionTransformer):
         -------
         self : reference to self
         """
-        # If lower is none, set to the minimum length in X
-        min_length = self._get_min_length(X)
-        if self.truncated_length is None:
-            self.truncated_length_ = min_length
-        elif min_length < self.truncated_length:
-            self.truncated_length_ = min_length
+        if self.truncated_length == "min":
+            self._truncated_length = _get_min_length(X)
+        elif self.truncated_length == "max":
+            self._truncated_length = _get_max_length(X)
         else:
-            self.truncated_length_ = self.truncated_length
-
-        return self
+            raise ValueError("truncated_length must be 'min', 'max' or an integer.")
 
     def _transform(self, X, y=None):
         """Truncate X and return a transformed version.
@@ -103,14 +94,24 @@ class Truncator(BaseCollectionTransformer):
         Xt : numpy3D array (n_cases, n_channels, self.truncated_length_)
             truncated time series from X.
         """
-        min_length = self._get_min_length(X)
-        if min_length < self.truncated_length_:
-            raise ValueError(
-                "Error: min_length of series \
-                    is less than the one found when fit or set."
-            )
-        Xt = np.array([x[:, : self.truncated_length_] for x in X])
-        return Xt
+        # Must call fit unless truncated_length is an int
+        truncated_length = (
+            self.truncated_length
+            if isinstance(self.truncated_length, int)
+            else self._truncated_length
+        )
+
+        if self.error_on_short:
+            min_length = _get_min_length(X)
+            if min_length < truncated_length:
+                raise ValueError(
+                    "min length of series in X is less than the provided "
+                    "truncated_length (or less than the series seen in fit if "
+                    "truncated_length is str)."
+                )
+
+        Xt = [x[:, :truncated_length] for x in X]
+        return np.array(Xt) if self.error_on_short else Xt
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
@@ -122,7 +123,6 @@ class Truncator(BaseCollectionTransformer):
             Name of the set of test parameters to return, for use in tests. If no
             special parameters are defined for a value, will return `"default"` set.
 
-
         Returns
         -------
         params : dict or list of dict, default = {}
@@ -130,5 +130,4 @@ class Truncator(BaseCollectionTransformer):
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
         """
-        params = {"truncated_length": 5}
-        return params
+        return {"truncated_length": 10}

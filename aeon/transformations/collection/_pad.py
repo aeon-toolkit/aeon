@@ -4,6 +4,7 @@ __all__ = ["Padder"]
 __maintainer__ = []
 
 import numpy as np
+from deprecated.sphinx import deprecated
 
 from aeon.transformations.collection.base import BaseCollectionTransformer
 
@@ -17,6 +18,13 @@ def _get_max_length(X):
     return max_length
 
 
+# TODO: Remove in v1.3.0
+@deprecated(
+    version="1.2.0",
+    reason="Padder is deprecated and will be moving to . "
+    "transformations.collection.unequal_length with additional/reworked functionality.",
+    category=FutureWarning,
+)
 class Padder(BaseCollectionTransformer):
     """Pad unequal length time series to equal, fixed length.
 
