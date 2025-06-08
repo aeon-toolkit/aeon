@@ -3,6 +3,7 @@
 from typing import Optional, Union
 
 import numpy as np
+from deprecated.sphinx import deprecated
 from numba import get_num_threads, njit, prange, set_num_threads
 
 from aeon.transformations.collection import BaseCollectionTransformer
@@ -56,8 +57,10 @@ class SAST(BaseCollectionTransformer):
         the stride used when generating subsequences
     nb_inst_per_class : int, default = 1
         the number of reference time series to select per class
-    seed : int, default = None
+    random_state : int, default = None
         the seed of the random generator
+    seed : int, default=None
+        Deprecated and will be removed in v1.2. Use `random_state` instead.
     n_jobs : int, default -1
         Number of threads to use for the transform.
         The available CPU count is used if this value is less than 1
@@ -92,26 +95,56 @@ class SAST(BaseCollectionTransformer):
         "algorithm_type": "shapelet",
     }
 
+    # TODO: remove 'seed' in v1.2
+    @deprecated(
+        version="1.1",
+        reason="The 'seed' parameter will be removed in v1.2.",
+        category=FutureWarning,
+    )
     def __init__(
         self,
         lengths: Optional[np.ndarray] = None,
         stride: int = 1,
         nb_inst_per_class: int = 1,
-        seed: Optional[int] = None,
-        n_jobs: int = 1,  # Parallel processing
+        random_state: Optional[int] = None,
+        n_jobs: int = 1,
+        seed=None,
     ):
+
         super().__init__()
         self.lengths = lengths
         self.stride = stride
         self.nb_inst_per_class = nb_inst_per_class
-        self._kernels = None  # z-normalized subsequences
-        self._kernel_orig = None  # non z-normalized subsequences
-        self._start_points = []  # To store the start positions
-        self._classes = []  # To store the class of each shapelet
-        self._source_series = []  # To store the index of the original time series
-        self.kernels_generators_ = {}  # Reference time series
+        self._kernels = None
+        self._kernel_orig = None
+        self._start_points = []
+        self._classes = []
+        self._source_series = []
+        self.kernels_generators_ = {}
         self.n_jobs = n_jobs
+
+        # Store the seed parameter (required for sklearn compatibility)
         self.seed = seed
+
+        # Handle deprecated seed parameter
+        if seed is not None:
+            import warnings
+
+            warnings.warn(
+                "The 'seed' parameter is deprecated and will be removed in v1.2. "
+                "Use 'random_state' instead.",
+                FutureWarning,
+                stacklevel=2,
+            )
+            if random_state is None:
+                random_state = seed
+            else:
+                raise ValueError(
+                    "Cannot specify both 'seed' and 'random_state'. "
+                    "Use 'random_state' only."
+                )
+
+        self.random_state = random_state
 
     def _fit(self, X: np.ndarray, y: Union[np.ndarray, list]) -> "SAST":
         """Select reference time series and generate subsequences from them.
@@ -135,9 +168,9 @@ class SAST(BaseCollectionTransformer):
         )
 
         self._random_state = (
-            np.random.RandomState(self.seed)
-            if not isinstance(self.seed, np.random.RandomState)
-            else self.seed
+            np.random.RandomState(self.random_state)
+            if not isinstance(self.random_state, np.random.RandomState)
+            else self.random_state
         )
 
         classes = np.unique(y)
