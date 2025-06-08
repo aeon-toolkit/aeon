@@ -155,8 +155,9 @@ class SFA_Simple(BaseCollectionTransformer):
         sfa_symbols : np.ndarray of shape = (n_cases, n_channels, word_length)
             The output of the SFA transformation.
         """
+        n_cases_ = len(X)
         sfa_symbols = np.zeros(
-            shape=(self.n_cases, self.n_channels, self.word_length), dtype=np.int32
+            shape=(n_cases_, self.n_channels, self.word_length), dtype=np.int32
         )
 
         for c in range(self.n_channels):
@@ -164,7 +165,7 @@ class SFA_Simple(BaseCollectionTransformer):
             dft_features = np.array([self._compute_dft(x_c) for x_c in X_c])
             bins_c = self.bins_[c]
 
-            for n in range(self.n_cases):
+            for n in range(n_cases_):
                 sfa_symbols[n, c] = self._discretize(dft_features[n], bins_c)
 
         return sfa_symbols
