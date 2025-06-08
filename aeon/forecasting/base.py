@@ -4,6 +4,9 @@ A simplified first base class for forecasting models.
 
 """
 
+__maintainer__ = ["TonyBagnall"]
+__all__ = ["BaseForecaster"]
+
 from abc import abstractmethod
 
 import numpy as np

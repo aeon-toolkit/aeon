@@ -134,6 +134,18 @@ All transformers in `aeon` can be listed using the `aeon.registry
     QUANTTransformer
 ```
 
+### Self Supervised
+
+```{eval-rst}
+.. currentmodule:: aeon.transformations.collection.self_supervised
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    TRILITE
+```
+
 ### Shapelet based
 
 ```{eval-rst}
