@@ -83,8 +83,6 @@ unstable_extras = [
     # requires gcc and fftw to be installed for Windows and some other OS (see http://www.fftw.org/index.html)
     "mrsqm>=0.0.7,<0.1.0; platform_system != 'Windows' and python_version < '3.12'",
     "mrseql>=0.0.4,<0.1.0; platform_system != 'Windows' and python_version < '3.12'",
-    # very outdated and used code is deprecated
-    "prts>=1.0.0.0",
 ]
 
 # development dependencies
