@@ -23,7 +23,6 @@ class _WindowSignatureTransform(BaseCollectionTransformer):
     num_intervals: int, dimension of the transformed data (default 8)
     """
 
-    # default tag values for "Series-to-Primitives"
     _tags = {
         "fit_is_empty": True,
         "output_data_type": "Tabular",
