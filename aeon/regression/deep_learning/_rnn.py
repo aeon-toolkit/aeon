@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING, Any
 import numpy as np
 from sklearn.utils import check_random_state
 
-from aeon.networks import RNNNetwork
+from aeon.networks import RecurrentNetwork
 from aeon.regression.deep_learning.base import BaseDeepRegressor
 
 if TYPE_CHECKING:
@@ -42,7 +42,7 @@ class RNNRegressor(BaseDeepRegressor):
         Whether to use bidirectional RNN layers
     activation : str, default = "tanh"
         Activation function for RNN layers
-    return_sequences : bool, default = None
+    return_sequence_last : bool, default = None
         Whether RNN layers should return sequences. If None, automatically determined
     n_epochs : int, default = 100
         Number of epochs to train the model
@@ -99,10 +99,11 @@ class RNNRegressor(BaseDeepRegressor):
         rnn_type: str = "lstm",
         n_layers: int = 1,
         n_units: int = 64,
-        dropout_rate: float = 0.2,
+        dropout_intermediate: float = 0.2,
+        dropout_output: float = 0.2,
         bidirectional: bool = False,
         activation: str = "tanh",
-        return_sequences: bool | None = None,
+        return_sequence_last: bool | None = None,
         n_epochs: int = 100,
         callbacks: Callback | list[Callback] | None = None,
         verbose: bool = False,
@@ -124,10 +125,11 @@ class RNNRegressor(BaseDeepRegressor):
         self.rnn_type = rnn_type
         self.n_layers = n_layers
         self.n_units = n_units
-        self.dropout_rate = dropout_rate
+        self.dropout_intermediate = dropout_intermediate
+        self.dropout_output = dropout_output
         self.bidirectional = bidirectional
         self.activation = activation
-        self.return_sequences = return_sequences
+        self.return_sequence_last = return_sequence_last
         self.n_epochs = n_epochs
         self.callbacks = callbacks
         self.verbose = verbose
@@ -147,14 +149,15 @@ class RNNRegressor(BaseDeepRegressor):
 
         super().__init__(batch_size=batch_size, last_file_name=last_file_name)
 
-        self._network = RNNNetwork(
+        self._network = RecurrentNetwork(
             rnn_type=self.rnn_type,
             n_layers=self.n_layers,
             n_units=self.n_units,
-            dropout_rate=self.dropout_rate,
+            dropout_intermediate=self.dropout_intermediate,
+            dropout_output=self.dropout_output,
             bidirectional=self.bidirectional,
             activation=self.activation,
-            return_sequences=self.return_sequences,
+            return_sequence_last=self.return_sequence_last,
         )
 
     def build_model(
