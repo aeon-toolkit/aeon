@@ -34,7 +34,7 @@ class _ProximityNode:
         The class distribution for the node. Empty if not a leaf node.
     splitter: tuple or None, default=None
         The splitter used to split the node. Contains exemplars used, distance name and
-        distance parameters.Empty if leaf node.
+        distance parameters. Empty if leaf node.
 
     Attributes
     ----------
@@ -82,15 +82,16 @@ class ProximityTree(BaseClassifier):
     n_splitters: int, default = 5
         The number of candidate splitters to be evaluated at each node.
     max_depth: int, default = None
-        The maximum depth of the tree. If None, then nodes are expanded until all
-        leaves are pure or until all leaves contain less than min_samples_split samples.
+        The maximum depth of the tree. If ``None``, then nodes are expanded until all
+        leaves are pure or until all leaves contain less than ``min_samples_split``
+        samples.
     min_samples_split: int, default = 2
         The minimum number of samples required to split an internal node.
     random_state : int, RandomState instance or None, default=None
-        If `int`, random_state is the seed used by the random number generator;
-        If `RandomState` instance, random_state is the random number generator;
-        If `None`, the random number generator is the `RandomState` instance used
-        by `np.random`.
+        If ``int``, ``random_state`` is the seed used by the random number generator;
+        If ``RandomState`` instance, ``random_state`` is the random number generator;
+        If ``None``, the random number generator is the ``RandomState`` instance used
+        by ``np.random``.
 
     Notes
     -----
