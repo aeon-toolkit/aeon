@@ -166,21 +166,55 @@ def linkcode_resolve(domain, info):
     def find_source():
         # try to find the file and line number, based on code from numpy:
         # https://github.com/numpy/numpy/blob/main/doc/source/conf.py#L286
-        obj = sys.modules[info["module"]]
-        for part in info["fullname"].split("."):
-            obj = getattr(obj, part)
+
         import inspect
         import os
 
-        fn = inspect.getsourcefile(obj)
-        fn = os.path.relpath(fn, start=os.path.dirname(aeon.__file__))
+        # Get the top-level object from the module name
+        obj = sys.modules[info["module"]]
+
+        # Traverse dotted path (e.g., module.submodule.Class.method)
+        for part in info["fullname"].split("."):
+            obj = getattr(obj, part)
+
+        # Unwrapping decorators (if any), so we can get the true
+        # source function
+        if inspect.isfunction(obj):
+            obj = inspect.unwrap(obj)
+
+        # Get the source filename
+        try:
+            fn = inspect.getsourcefile(obj)
+        except TypeError:
+            fn = None
+
+        # If no source file is found, return None (no link)
+        if not fn:
+            return None
+
+        # Make filename relative to the aeon source directory
+        startdir = Path(aeon.__file__).parent.parent
+        try:
+            fn = os.path.relpath(fn, start=startdir).replace(os.path.sep, "/")
+        except ValueError:
+            return None
+
+        # Filter out files not in the aeon package
+        # (e.g., inherited from sklearn)
+        if not fn.startswith("aeon/"):
+            return None
+
+        # Get line range of the object
         source, lineno = inspect.getsourcelines(obj)
         return fn, lineno, lineno + len(source) - 1
 
     if domain != "py" or not info["module"]:
         return None
     try:
-        filename = "aeon/%s#L%d-L%d" % find_source()
+        result = find_source()
+        if not result:
+            return None
+        filename = "%s#L%d-L%d" % result
     except Exception:
         filename = info["module"].replace(".", "/") + ".py"
     return "https://github.com/aeon-toolkit/aeon/blob/{}/{}".format(
@@ -199,7 +233,6 @@ html_theme = "furo"
 # documentation.
 
 html_theme_options = {
-    "announcement": "<em>Announcement</em>: aeon is taking part in the Google Summer of Code (GSoC) 2025! See the home page for more information.",  # noqa: E501
     "sidebar_hide_name": True,
     "top_of_page_button": "edit",
     "source_repository": "https://github.com/aeon-toolkit/aeon/",
@@ -216,7 +249,7 @@ html_theme_options = {
     "footer_icons": [
         {
             "name": "Slack",
-            "url": "https://join.slack.com/t/aeon-toolkit/shared_invite/zt-22vwvut29-HDpCu~7VBUozyfL_8j3dLA",  # noqa: E501
+            "url": "https://join.slack.com/t/aeon-toolkit/shared_invite/zt-36dlmbouu-vajTShUYAHopSXUUVtHGzw",  # noqa: E501
             "html": """
             <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
                 <path d="M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64zM361.5 580.2c0 27.8-22.5 50.4-50.3 50.4-13.3 0-26.1-5.3-35.6-14.8-9.4-9.5-14.7-22.3-14.7-35.6 0-27.8 22.5-50.4 50.3-50.4h50.3v50.4zm134 134.4c0 27.8-22.5 50.4-50.3 50.4-27.8 0-50.3-22.6-50.3-50.4V580.2c0-27.8 22.5-50.4 50.3-50.4 13.3 0 26.1 5.3 35.6 14.8s14.7 22.3 14.7 35.6v134.4zm-50.2-218.4h-134c-27.8 0-50.3-22.6-50.3-50.4 0-27.8 22.5-50.4 50.3-50.4h134c27.8 0 50.3 22.6 50.3 50.4-.1 27.9-22.6 50.4-50.3 50.4zm0-134.4c-13.3 0-26.1-5.3-35.6-14.8S395 324.8 395 311.4c0-27.8 22.5-50.4 50.3-50.4 27.8 0 50.3 22.6 50.3 50.4v50.4h-50.3zm83.7-50.4c0-27.8 22.5-50.4 50.3-50.4 27.8 0 50.3 22.6 50.3 50.4v134.4c0 27.8-22.5 50.4-50.3 50.4-27.8 0-50.3-22.6-50.3-50.4V311.4zM579.3 765c-27.8 0-50.3-22.6-50.3-50.4v-50.4h50.3c27.8 0 50.3 22.6 50.3 50.4 0 27.8-22.5 50.4-50.3 50.4zm134-134.4h-134c-13.3 0-26.1-5.3-35.6-14.8S529 593.6 529 580.2c0-27.8 22.5-50.4 50.3-50.4h134c27.8 0 50.3 22.6 50.3 50.4 0 27.8-22.5 50.4-50.3 50.4zm0-134.4H663v-50.4c0-27.8 22.5-50.4 50.3-50.4s50.3 22.6 50.3 50.4c0 27.8-22.5 50.4-50.3 50.4z"></path>
