@@ -37,7 +37,6 @@ class BaseForecaster(BaseSeriesEstimator):
         "capability:missing_values": False,
         "capability:horizon": True,
         "capability:exogenous": False,
-        "fit_is_empty": False,
         "y_inner_type": "np.ndarray",
     }
 
