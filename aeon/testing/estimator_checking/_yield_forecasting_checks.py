@@ -65,7 +65,11 @@ def check_forecaster_output(estimator, datatype):
     )
 
     y_pred = estimator.predict(FULL_TEST_DATA_DICT[datatype]["test"][0])
-    assert isinstance(y_pred, float)
+    assert isinstance(y_pred, float), (
+        f"predict() output should be float, got" f" {type(y_pred)}"
+    )
 
     y_pred2 = estimator.forecast(FULL_TEST_DATA_DICT[datatype]["test"][0])
-    assert y_pred == y_pred2
+    assert y_pred == y_pred2, (
+        f"predict() and forecast() output differ: {y_pred} !=" f" {y_pred2}"
+    )
