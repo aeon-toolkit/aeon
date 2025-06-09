@@ -4,12 +4,12 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from aeon.forecasting import DummyForecaster
+from aeon.forecasting import NaiveForecaster
 
 
 def test_base_forecaster():
     """Test base forecaster functionality."""
-    f = DummyForecaster()
+    f = NaiveForecaster()
     y = np.random.rand(50)
     f.fit(y)
     p1 = f.predict()
@@ -18,15 +18,13 @@ def test_base_forecaster():
     p3 = f._forecast(y)
     assert p2 == p1
     assert p3 == p2
-    with pytest.raises(
-        NotImplementedError, match="Exogenous variables not yet " "supported"
-    ):
+    with pytest.raises(ValueError, match="Exogenous variables passed"):
         f.fit(y, exog=y)
 
 
 def test_convert_y():
     """Test y conversion in forecasting base."""
-    f = DummyForecaster()
+    f = NaiveForecaster()
     y = np.random.rand(50)
     with pytest.raises(ValueError, match="Input axis should be 0 or 1"):
         f._convert_y(y, axis=2)

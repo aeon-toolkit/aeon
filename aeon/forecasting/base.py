@@ -4,13 +4,16 @@ A simplified first base class for forecasting models.
 
 """
 
+__maintainer__ = ["TonyBagnall"]
+__all__ = ["BaseForecaster"]
+
 from abc import abstractmethod
 
 import numpy as np
 import pandas as pd
 
 from aeon.base import BaseSeriesEstimator
-from aeon.base._base_series import VALID_SERIES_INNER_TYPES
+from aeon.utils.data_types import VALID_SERIES_INNER_TYPES
 
 
 class BaseForecaster(BaseSeriesEstimator):
@@ -32,6 +35,8 @@ class BaseForecaster(BaseSeriesEstimator):
         "capability:univariate": True,
         "capability:multivariate": False,
         "capability:missing_values": False,
+        "capability:horizon": True,
+        "capability:exogenous": False,
         "fit_is_empty": False,
         "y_inner_type": "np.ndarray",
     }
@@ -61,6 +66,18 @@ class BaseForecaster(BaseSeriesEstimator):
         if self.get_tag("fit_is_empty"):
             self.is_fitted = True
             return self
+        horizon = self.get_tag("capability:horizon")
+        if not horizon and self.horizon > 1:
+            raise ValueError(
+                f"Horizon is set >1, but {self.__class__.__name__} cannot handle a "
+                f"horizon greater than 1"
+            )
+        exog_tag = self.get_tag("capability:exogenous")
+        if not exog_tag and exog is not None:
+            raise ValueError(
+                f"Exogenous variables passed but {self.__class__.__name__} cannot "
+                "handle exogenous variables"
+            )
 
         self._check_X(y, self.axis)
         y = self._convert_y(y, self.axis)
