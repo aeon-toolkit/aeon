@@ -57,7 +57,6 @@ def check_forecaster_output(estimator, datatype):
 
     estimator.fit(
         FULL_TEST_DATA_DICT[datatype]["train"][0],
-        FULL_TEST_DATA_DICT[datatype]["train"][1],
     )
 
     y_pred = estimator.predict(FULL_TEST_DATA_DICT[datatype]["test"][0])
