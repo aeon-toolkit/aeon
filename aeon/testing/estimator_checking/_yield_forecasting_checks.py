@@ -58,8 +58,7 @@ def check_forecaster_output(estimator, datatype):
     estimator.fit(
         FULL_TEST_DATA_DICT[datatype]["train"][0],
     )
-
-    y_pred = estimator.predict(FULL_TEST_DATA_DICT[datatype]["test"][0])
+    y_pred = estimator.predict()
     assert isinstance(y_pred, float), (
         f"predict() output should be float, got" f" {type(y_pred)}"
     )
