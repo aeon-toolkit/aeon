@@ -117,7 +117,7 @@ class SARIMAForecaster(ARIMAForecaster):
             ),
             dtype=np.int32,
         )
-        self.differenced_data_ = np.diff(self.data_, n=self.d)
+        self.differenced_data_ = np.diff(self.data_, n=self.d_)
         for _ds in range(self.ds_):
             self.differenced_data_ = (
                 self.differenced_data_[self.seasonal_period_ :]
@@ -163,7 +163,7 @@ class SARIMAForecaster(ARIMAForecaster):
         else:
             combined_data = self.data_
         n = len(self.data_)
-        differenced_data = np.diff(combined_data, n=self.d)
+        differenced_data = np.diff(combined_data, n=self.d_)
         m = n - self.d_
         seasonal_differenced_data = differenced_data
         for _ds in range(self.ds_):
