@@ -5,12 +5,10 @@ The class can take callables or uses string references to utilise the numba base
 distances in aeon.distances.
 """
 
-from typing import Optional
-
 __maintainer__ = []
 __all__ = ["KNeighborsTimeSeriesClassifier"]
 
-from typing import Callable, Union
+from typing import Callable, Optional, Union
 
 import numpy as np
 from joblib import Parallel, delayed
@@ -255,7 +253,4 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
         """
-        # non-default distance and algorithm
-        params1 = {"distance": "euclidean"}
-
-        return [params1]
+        return {"distance": "euclidean"}

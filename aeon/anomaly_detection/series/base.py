@@ -11,7 +11,7 @@ import pandas as pd
 
 from aeon.anomaly_detection.base import BaseAnomalyDetector
 from aeon.base import BaseSeriesEstimator
-from aeon.base._base_series import VALID_SERIES_INPUT_TYPES
+from aeon.utils.data_types import VALID_SERIES_INPUT_TYPES
 
 
 class BaseSeriesAnomalyDetector(BaseSeriesEstimator, BaseAnomalyDetector):
