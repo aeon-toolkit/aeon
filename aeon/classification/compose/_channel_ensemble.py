@@ -10,6 +10,7 @@ __all__ = ["ClassifierChannelEnsemble"]
 import numpy as np
 from sklearn.utils import check_random_state
 
+from aeon.base._estimators.compose._commons import _get_channel
 from aeon.base._estimators.compose.collection_channel_ensemble import (
     BaseCollectionChannelEnsemble,
 )
@@ -114,14 +115,14 @@ class ClassifierChannelEnsemble(BaseCollectionChannelEnsemble, BaseClassifier):
             # Call predict on each classifier, add the predictions to the
             # current probabilities
             for i, (_, clf) in enumerate(self.ensemble_):
-                preds = clf.predict(X=self._get_channel(X, self.channels_[i]))
+                preds = clf.predict(X=_get_channel(X, self.channels_[i]))
                 for n in range(X.shape[0]):
                     dists[n, self._class_dictionary[preds[n]]] += 1
         else:
             # Call predict_proba on each classifier, then add them to the current
             # probabilities
             for i, (_, clf) in enumerate(self.ensemble_):
-                dists += clf.predict_proba(X=self._get_channel(X, self.channels_[i]))
+                dists += clf.predict_proba(X=_get_channel(X, self.channels_[i]))
 
         # Make each instances probability array sum to 1 and return
         y_proba = dists / dists.sum(axis=1, keepdims=True)
