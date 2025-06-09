@@ -38,7 +38,7 @@ def check_anomaly_detector_overrides_and_tags(estimator_class):
 
     # Test that fit_is_empty is correctly set
     fit_is_empty = estimator_class.get_class_tag(tag_name="fit_is_empty")
-    assert fit_is_empty == "_fit" not in estimator_class.__dict__
+    assert fit_is_empty == ("_fit" not in estimator_class.__dict__)
 
     # Test valid tag for X_inner_type
     X_inner_type = estimator_class.get_class_tag(tag_name="X_inner_type")
