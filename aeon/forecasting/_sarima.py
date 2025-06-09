@@ -6,8 +6,6 @@ An implementation of the Seasonal ARIMA forecasting algorithm.
 __maintainer__ = ["alexbanwell1", "TonyBagnall"]
 __all__ = ["SARIMAForecaster"]
 
-from math import comb
-
 import numpy as np
 from numba import njit
 
@@ -67,9 +65,8 @@ class SARIMAForecaster(ARIMAForecaster):
         qs: int = 0,
         seasonal_period: int = 12,
         constant_term: bool = False,
-        horizon: int = 1,
     ):
-        super().__init__(p=p, d=d, q=q, constant_term=constant_term, horizon=horizon)
+        super().__init__(p=p, d=d, q=q, constant_term=constant_term)
         self.ps = ps
         self.ds = ds
         self.qs = qs
@@ -135,8 +132,12 @@ class SARIMAForecaster(ARIMAForecaster):
         (self.c_, self.phi_, self.theta_, self.phi_s_, self.theta_s_) = _extract_params(
             self.parameters_, self.model_
         )
-        (self.aic_, self.residuals_) = _arima_model(
-            self.parameters_, _calc_sarima, self.differenced_data_, self.model_
+        (self.aic_, self.residuals_, self.fitted_values_) = _arima_model(
+            self.parameters_,
+            _calc_sarima,
+            self.differenced_data_,
+            self.model_,
+            np.empty(0),
         )
         return self
 
@@ -157,41 +158,70 @@ class SARIMAForecaster(ARIMAForecaster):
         float
             single prediction self.horizon steps ahead of y.
         """
-        y = np.array(y, dtype=np.float64)
-        value = _calc_sarima(
-            self.differenced_data_,
+        if y is not None:
+            combined_data = np.concatenate((self.data_, y.flatten()))
+        else:
+            combined_data = self.data_
+        n = len(self.data_)
+        differenced_data = np.diff(combined_data, n=self.d)
+        m = n - self.d_
+        seasonal_differenced_data = differenced_data
+        for _ds in range(self.ds_):
+            seasonal_differenced_data = (
+                seasonal_differenced_data[self.seasonal_period_ :]
+                - seasonal_differenced_data[: -self.seasonal_period_]
+            )
+        _aic, _residuals, predicted_values = _arima_model(
+            self.parameters_,
+            _calc_sarima,
+            seasonal_differenced_data,
             self.model_,
-            len(self.differenced_data_),
-            _extract_params(self.parameters_, self.model_),
             self.residuals_,
         )
-        history = self.data_[::-1]
-        differenced_history = np.diff(self.data_, n=self.d_)[::-1]
-        # Step 1: undo seasonal differencing on y^(d)
-        for k in range(1, self.ds_ + 1):
-            lag = k * self.seasonal_period_
-            value += (-1) ** (k + 1) * comb(self.ds_, k) * differenced_history[lag - 1]
-
-        # Step 2: undo ordinary differencing
-        for k in range(1, self.d_ + 1):
-            value += (-1) ** (k + 1) * comb(self.d_, k) * history[k - 1]
-        return float(value)
+        # Undo seasonal differencing
+        last_season = differenced_data[m - self.seasonal_period * self.ds_ : m]
+        values = np.concatenate((last_season, predicted_values))
+        for _ in range(self.ds_):
+            for i in range(self.seasonal_period_, len(values)):
+                values[i] += values[i - self.seasonal_period_]
+        values = values[self.seasonal_period_ * self.ds_ :]
+        # Undo ordinary differencing
+        init = self.data_[n - self.d_ : n]
+        values = np.concatenate((init, values))
+        for _ in range(self.d_):
+            values = np.cumsum(values)
+        return values[self.d_ :]
 
 
 @njit(fastmath=True)
 def _sarima_model_wrapper(params, data, model):
-    return _arima_model(params, _calc_sarima, data, model)[0]
+    return _arima_model(params, _calc_sarima, data, model, np.empty(0))[0]
 
 
 @njit(cache=True, fastmath=True)
-def _calc_sarima(data, model, t, formatted_params, residuals):
+def _calc_sarima(
+    data, model, t, formatted_params, residuals, expect_full_history=False
+):
     """Calculate the SARIMA forecast for time t."""
     if len(model) != 6:
         raise ValueError("Model must be of the form (c, p, q, ps, qs, seasonal_period)")
-    arima_forecast = _calc_arima(data, model[:3], t, formatted_params, residuals)
-    seasonal_period = model[5]
-    # Seasonal AR part
     ps = model[3]
+    qs = model[4]
+    seasonal_period = model[5]
+    if expect_full_history and (
+        (t - seasonal_period * ps) < 0 or (t - seasonal_period * qs) < 0
+    ):
+        raise ValueError(
+            f"Insufficient data for SARIMA model at time {t}. \
+                Seasonal period is {seasonal_period}."
+            f"Expected at least {seasonal_period * ps} past \
+            values for AR and {seasonal_period * qs} for MA."
+        )
+
+    arima_forecast = _calc_arima(
+        data, model[:3], t, formatted_params, residuals, expect_full_history
+    )
+    # Seasonal AR part
     phi_s = formatted_params[3][:ps]
     ars_term = (
         0
@@ -199,7 +229,6 @@ def _calc_sarima(data, model, t, formatted_params, residuals):
         else np.dot(phi_s, data[t - seasonal_period * ps : t : seasonal_period][::-1])
     )
     # Seasonal MA part
-    qs = model[4]
     theta_s = formatted_params[4][:qs]
     mas_term = (
         0
