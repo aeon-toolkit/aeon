@@ -180,7 +180,6 @@ def f_score_at_k_ranges(
 
     threshold = top_k_ranges_threshold(y_true, y_score, k)
     y_pred = y_score >= threshold
-    # Corrected p_alpha to 1 to match original prts behavior expectation
     return range_f_score(y_true, y_pred, p_alpha=1, r_alpha=1, cardinality="reciprocal")
 
 
@@ -209,12 +208,11 @@ def rp_rr_auc_score(
     y_score : np.ndarray
         Anomaly scores for each point of the time series of shape (n_instances,).
     max_samples: int
-        The implementation of the range-based precision and recall metrics is quite
-        slow because it relies on the non-optimized ``prts``-package. To prevent long
-        runtimes caused by scorings with high precision (many thresholds), just a
-        specific amount of possible thresholds is sampled. This parameter controls the
-        maximum number of thresholds; however, too low numbers degrade the metrics'
-        quality.
+        The calculation of the range-based precision and recall metrics can be slow.
+        To prevent long runtimes caused by scorings with high precision
+        (many thresholds), a specified amount of possible thresholds is sampled.
+        This parameter controls the maximum number of thresholds; however, too low
+        numbers degrade the metrics' quality.
     r_alpha : float
         Weight of the existence reward for the range-based recall.
     p_alpha : float
