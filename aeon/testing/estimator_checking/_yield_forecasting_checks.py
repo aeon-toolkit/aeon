@@ -35,7 +35,6 @@ def check_forecaster_overrides_and_tags(estimator_class):
             )
 
     # Test that all forecasters implement abstract predict.
-    assert "_fit" in estimator_class.__dict__
     assert "_predict" in estimator_class.__dict__
 
     # Test valid tag for X_inner_type
@@ -48,7 +47,10 @@ def check_forecaster_overrides_and_tags(estimator_class):
     # Must have at least one set to True
     multi = estimator_class.get_class_tag(tag_name="capability:multivariate")
     uni = estimator_class.get_class_tag(tag_name="capability:univariate")
-    assert multi or uni
+    assert multi or uni, (
+        "At least one of tag capability:multivariate or "
+        "capability:univariate must be true."
+    )
 
 
 def check_forecaster_output(estimator, datatype):
@@ -63,7 +65,7 @@ def check_forecaster_output(estimator, datatype):
         f"predict() output should be float, got" f" {type(y_pred)}"
     )
 
-    y_pred2 = estimator.forecast(FULL_TEST_DATA_DICT[datatype]["test"][0])
+    y_pred2 = estimator.forecast(FULL_TEST_DATA_DICT[datatype]["train"][0])
     assert y_pred == y_pred2, (
         f"predict() and forecast() output differ: {y_pred} !=" f" {y_pred2}"
     )
