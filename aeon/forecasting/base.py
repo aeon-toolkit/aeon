@@ -86,8 +86,8 @@ class BaseForecaster(BaseSeriesEstimator):
         self.is_fitted = True
         return self._fit(y, exog)
 
-    @abstractmethod
-    def _fit(self, y, exog=None): ...
+    def _fit(self, y, exog=None):
+        return self
 
     def predict(self, y=None, exog=None):
         """Predict the next horizon steps ahead.
@@ -105,7 +105,7 @@ class BaseForecaster(BaseSeriesEstimator):
         float
             single prediction self.horizon steps ahead of y.
         """
-        self._check_is_fitted()
+        # self._check_is_fitted()
         if y is not None:
             self._check_X(y, self.axis)
             y = self._convert_y(y, self.axis)
