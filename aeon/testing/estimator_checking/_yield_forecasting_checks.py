@@ -5,7 +5,7 @@ from functools import partial
 import numpy as np
 
 from aeon.base._base import _clone_estimator
-from aeon.base._base_series import VALID_SERIES_INPUT_TYPES
+from aeon.utils.data_types import VALID_SERIES_INPUT_TYPES
 
 
 def _yield_forecasting_checks(estimator_class, estimator_instances, datatypes):
