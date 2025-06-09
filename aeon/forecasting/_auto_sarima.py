@@ -53,8 +53,8 @@ class AutoSARIMAForecaster(SARIMAForecaster):
     450.748...
     """
 
-    def __init__(self, horizon: int = 1):
-        super().__init__(horizon=horizon)
+    def __init__(self):
+        super().__init__()
 
     def _fit(self, y, exog=None):
         """Fit AutoARIMA forecaster to series y.
@@ -114,10 +114,11 @@ class AutoSARIMAForecaster(SARIMAForecaster):
         (self.c_, self.phi_, self.theta_, self.phi_s_, self.theta_s_) = _extract_params(
             self.parameters_, self.model_
         )
-        (
-            self.aic_,
-            self.residuals_,
-        ) = _arima_model(
-            self.parameters_, _calc_sarima, self.differenced_data_, self.model_
+        (self.aic_, self.residuals_, self.fitted_values_) = _arima_model(
+            self.parameters_,
+            _calc_sarima,
+            self.differenced_data_,
+            self.model_,
+            np.empty(0),
         )
         return self

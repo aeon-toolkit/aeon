@@ -11,13 +11,13 @@ __all__ = [
     "GaussSeriesTransformer",
     "MatrixProfileSeriesTransformer",
     "MovingAverageSeriesTransformer",
+    "LogTransformer",
     "PLASeriesTransformer",
     "SGSeriesTransformer",
     "StatsModelsACF",
     "StatsModelsPACF",
     "BKFilter",
     "BoxCoxTransformer",
-    "Dobin",
     "ScaledLogitSeriesTransformer",
     "SIVSeriesTransformer",
     "PCASeriesTransformer",
@@ -38,6 +38,7 @@ from aeon.transformations.series._diff import DifferenceTransformer
 from aeon.transformations.series._dobin import Dobin
 from aeon.transformations.series._exp_smoothing import ExpSmoothingSeriesTransformer
 from aeon.transformations.series._gauss import GaussSeriesTransformer
+from aeon.transformations.series._log import LogTransformer
 from aeon.transformations.series._matrix_profile import MatrixProfileSeriesTransformer
 from aeon.transformations.series._moving_average import MovingAverageSeriesTransformer
 from aeon.transformations.series._pca import PCASeriesTransformer
