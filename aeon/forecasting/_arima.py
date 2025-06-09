@@ -170,7 +170,7 @@ class ARIMAForecaster(BaseForecaster):
         else:
             combined_data = self.data_
         n = len(self.data_)
-        differenced_data = np.diff(combined_data, n=self.d)
+        differenced_data = np.diff(combined_data, n=self.d_)
         _aic, _residuals, predicted_values = _arima_model(
             self.parameters_,
             _calc_arima,

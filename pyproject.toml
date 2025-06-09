@@ -38,19 +38,18 @@ classifiers = [
     "Operating System :: Unix",
     "Operating System :: MacOS",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
 ]
-requires-python = ">=3.9,<3.14"
+requires-python = ">=3.10,<3.14"
 dependencies = [
     "deprecated>=1.2.13",
     "numba>=0.55,<0.62.0",
     "numpy>=1.21.0,<2.3.0",
     "packaging>=20.0",
-    "pandas>=2.0.0,<2.3.0",
+    "pandas>=2.0.0,<2.4.0",
     "scikit-learn>=1.0.0,<1.7.0",
     "scipy>=1.9.0,<1.16.0",
     "typing-extensions>=4.6.0",
@@ -59,6 +58,7 @@ dependencies = [
 # soft dependencies
 [project.optional-dependencies]
 all_extras = [
+    "esig>=1.0.0; platform_system != 'Darwin'",
     "imbalanced-learn",
     "matplotlib>=3.3.2",
     "pycatch22>=0.4.5",
@@ -83,11 +83,6 @@ unstable_extras = [
     # requires gcc and fftw to be installed for Windows and some other OS (see http://www.fftw.org/index.html)
     "mrsqm>=0.0.7,<0.1.0; platform_system != 'Windows' and python_version < '3.12'",
     "mrseql>=0.0.4,<0.1.0; platform_system != 'Windows' and python_version < '3.12'",
-    # very outdated and used code is deprecated
-    "prts>=1.0.0.0",
-    # Upper bound set as <1.0.0 as 1.0 dropped support for python 3.9. We will remove
-    # the upper bound once we also drop support for python 3.9 later in 2025.
-    "esig>=0.9.7,<1.0.0; platform_system != 'Darwin' and python_version < '3.11'",
 ]
 
 # development dependencies
