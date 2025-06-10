@@ -404,49 +404,64 @@ def write_to_arff_file(
             file.write("\n")  # open a new line
 
 
-def write_regression_dataset(series, full_file_path, dataset_name):
+def write_regression_dataset(
+    series, full_file_path, dataset_name, difference_series=False, difference_y=False
+):
     """Write a regression dataset to file."""
     train_series, test_series = TrainTestTransformer().fit_transform(series)
-    differenced_train_series = DifferencingSeriesTransformer().fit_transform(
+    if difference_series:
+        train_series = DifferencingSeriesTransformer().fit_transform(train_series)
+        test_series = DifferencingSeriesTransformer().fit_transform(test_series)
+    x_train, y_train, _train_indices = SlidingWindowTransformer().fit_transform(
         train_series
     )
-    X_train, Y_train, train_indices = SlidingWindowTransformer().fit_transform(
-        differenced_train_series
+    x_test, y_test, _test_indices = SlidingWindowTransformer().fit_transform(
+        test_series
     )
-    differenced_test_series = DifferencingSeriesTransformer().fit_transform(test_series)
-    X_test, Y_test, test_indices = SlidingWindowTransformer().fit_transform(
-        differenced_test_series
-    )
+    if difference_y:
+        y_train = np.concatenate(
+            (
+                [y_train[0] - train_series[99]],
+                DifferencingSeriesTransformer().fit_transform(y_train),
+            )
+        )
+        y_test = np.concatenate(
+            (
+                [y_test[0] - test_series[99]],
+                DifferencingSeriesTransformer().fit_transform(y_test),
+            )
+        )
     write_to_ts_file(
-        [[item] for item in X_train],
+        [[item] for item in x_train],
         full_file_path,
-        Y_train,
+        y_train,
         f"{dataset_name}_TRAIN",
         None,
         True,
     )
     write_to_ts_file(
-        [[item] for item in X_test],
+        [[item] for item in x_test],
         full_file_path,
-        Y_test,
+        y_test,
         f"{dataset_name}_TEST",
         None,
         True,
     )
 
 
-def write_forecasting_dataset(series, full_file_path, dataset_name):
+def write_forecasting_dataset(
+    series, full_file_path, dataset_name, difference_series=False
+):
     """Write a regression dataset to file."""
     train_series, test_series = TrainTestTransformer().fit_transform(series)
-    differenced_train_series = DifferencingSeriesTransformer().fit_transform(
-        train_series
-    )
-    differenced_test_series = DifferencingSeriesTransformer().fit_transform(test_series)
-    train_df = pd.DataFrame(differenced_train_series)
+    if difference_series:
+        train_series = DifferencingSeriesTransformer().fit_transform(train_series)
+        test_series = DifferencingSeriesTransformer().fit_transform(test_series)
+    train_df = pd.DataFrame(train_series)
     train_df.to_csv(
         f"{full_file_path}/{dataset_name}_TRAIN.csv", index=False, header=False
     )
-    test_df = pd.DataFrame(differenced_test_series)
+    test_df = pd.DataFrame(test_series)
     test_df.to_csv(
         f"{full_file_path}/{dataset_name}_TEST.csv", index=False, header=False
     )

@@ -210,9 +210,17 @@ def gen_datasets(problem_type, dataset_folder=None):
             if not os.path.exists(full_file_path):
                 os.makedirs(full_file_path)
             if problem_type == "regression":
-                write_regression_dataset(series, full_file_path, dataset_name)
+                write_regression_dataset(
+                    series,
+                    full_file_path,
+                    dataset_name,
+                    difference_series=False,
+                    difference_y=True,
+                )
             elif problem_type == "forecasting":
-                write_forecasting_dataset(series, full_file_path, dataset_name)
+                write_forecasting_dataset(
+                    series, full_file_path, dataset_name, difference_series=False
+                )
 
 
-gen_datasets("forecasting", "differenced_forecasting")
+gen_datasets("regression", "part_diff_regression")
