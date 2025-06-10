@@ -50,8 +50,8 @@ class AutoARIMAForecaster(ARIMAForecaster):
     476.5824781648738
     """
 
-    def __init__(self, horizon: int = 1):
-        super().__init__(horizon=horizon)
+    def __init__(self):
+        super().__init__()
 
     def _fit(self, y, exog=None):
         """Fit AutoARIMA forecaster to series y.
@@ -104,8 +104,13 @@ class AutoARIMAForecaster(ARIMAForecaster):
         (
             self.aic_,
             self.residuals_,
+            self.fitted_values_,
         ) = _arima_model(
-            self.parameters_, _calc_arima, self.differenced_data_, self.model_
+            self.parameters_,
+            _calc_arima,
+            self.differenced_data_,
+            self.model_,
+            np.empty(0),
         )
         return self
 
