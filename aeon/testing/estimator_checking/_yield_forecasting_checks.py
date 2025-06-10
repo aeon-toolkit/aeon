@@ -37,6 +37,8 @@ def check_forecaster_overrides_and_tags(estimator_class):
     # Test that all forecasters implement abstract predict.
     assert "_predict" in estimator_class.__dict__
 
+    # todo decide what to do with "fit_is_empty" and abstract "_fit"
+
     # Test valid tag for X_inner_type
     X_inner_type = estimator_class.get_class_tag(tag_name="X_inner_type")
     if isinstance(X_inner_type, str):
