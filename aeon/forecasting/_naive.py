@@ -1,5 +1,7 @@
 """Naive Forecaster."""
 
+import numpy as np
+
 from aeon.forecasting.base import BaseForecaster
 
 
@@ -19,7 +21,10 @@ class NaiveForecaster(BaseForecaster):
 
     def _predict(self, y=None, exog=None):
         """Predict using Naive forecaster."""
-        return self.last_value_
+        if y is None:
+            return np.array([self.last_value_])
+        else:
+            return np.concatenate(([self.last_value_], y.flatten()))
 
     def _forecast(self, y, exog=None):
         """Forecast using dummy forecaster."""
