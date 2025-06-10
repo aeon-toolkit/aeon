@@ -92,6 +92,10 @@ class ETSForecaster(BaseForecaster):
     array([366.9020...)
     """
 
+    _tags = {
+        "capability:horizon": False,
+    }
+
     def __init__(
         self,
         error_type: Union[int, str] = 1,
