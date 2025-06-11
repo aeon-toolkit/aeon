@@ -106,7 +106,6 @@ class ETSForecaster(BaseForecaster):
         beta: float = 0.01,
         gamma: float = 0.01,
         phi: float = 0.99,
-        horizon: int = 1,
     ):
         self.alpha = alpha
         self.beta = beta
@@ -130,7 +129,7 @@ class ETSForecaster(BaseForecaster):
         self.aic_ = 0
         self.residuals_ = []
         self.fitted_values_ = []
-        super().__init__(horizon=horizon, axis=1)
+        super().__init__(horizon=1, axis=1)
 
     def _fit(self, y, exog=None):
         """Fit Exponential Smoothing forecaster to series y.
