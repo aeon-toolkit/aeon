@@ -144,6 +144,61 @@ class BaseForecaster(BaseSeriesEstimator):
         self.fit(y, exog)
         return self._predict(y, exog)
 
+    def direct_forecast(self, y, steps_ahead):
+        """BBBBBB."""
+        """
+        Forecast ``steps_ahead`` using a BaseForecaster instance for each horizon.
+
+        Implements the direct strategy, cloning the given estimator and setting its
+        horizon.
+
+        Parameters
+        ----------
+        y : np.ndarray
+            The univariate time series to be forecast.
+        steps_ahead : int
+            The number of future time steps to forecast.
+
+        Returns
+        -------
+        predictions : np.ndarray
+            An array of shape (steps_ahead,) containing the forecasts for each horizon.
+        """
+        # Check horizon tag here
+        preds = np.zeros(steps_ahead)
+        for i in range(0, steps_ahead):
+            self.horizon = i + 1
+            preds[i - 1] = self.forecast()
+        return preds
+
+    def recursive_forecast(self, y, steps_ahead):
+        """
+        Forecast ``steps_ahead`` predictions.
+
+        This function implements the "direct" forecasting strategy, where a separate
+        forecasting model is trained for each horizon from 1 to ``steps_ahead``.
+
+        Parameters
+        ----------
+        y : np.ndarray
+            The univariate time series to be forecast.
+        steps_ahead : int
+            The number of future time steps to forecast.
+        exog : array-like, optional
+            Optional exogenous variables to use for forecasting.
+
+        Returns
+        -------
+        predictions : np.ndarray
+            An array of shape (steps_ahead,) containing the forecasts for each horizon.
+        """
+        preds = np.zeros(steps_ahead)
+        self.fit(y)
+        for i in range(0, steps_ahead):
+            preds[i] = self.predict(y)
+            y = np.append(y, preds[i])
+        return preds
+
     def _convert_y(self, y: VALID_SERIES_INNER_TYPES, axis: int):
         """Convert y to self.get_tag("y_inner_type")."""
         if axis > 1 or axis < 0:
