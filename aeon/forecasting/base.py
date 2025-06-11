@@ -146,7 +146,30 @@ class BaseForecaster(BaseSeriesEstimator):
 
     def direct_forecast(self, y, steps_ahead):
         """BBBBBB."""
-        return None
+        """
+        Forecast ``steps_ahead`` using a BaseForecaster instance for each horizon.
+
+        Implements the direct strategy, cloning the given estimator and setting its
+        horizon.
+
+        Parameters
+        ----------
+        y : np.ndarray
+            The univariate time series to be forecast.
+        steps_ahead : int
+            The number of future time steps to forecast.
+
+        Returns
+        -------
+        predictions : np.ndarray
+            An array of shape (steps_ahead,) containing the forecasts for each horizon.
+        """
+        # Check horizon tag here
+        preds = np.zeros(steps_ahead)
+        for i in range(0, steps_ahead):
+            self.horizon = i + 1
+            preds[i - 1] = self.forecast()
+        return preds
 
     def recursive_forecast(self, y, steps_ahead):
         """BBBBBB."""
