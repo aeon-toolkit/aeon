@@ -144,6 +144,14 @@ class BaseForecaster(BaseSeriesEstimator):
         self.fit(y, exog)
         return self._predict(y, exog)
 
+    def direct_forecast(self, y, steps_ahead):
+        """BBBBBB."""
+        return None
+
+    def recursive_forecast(self, y, steps_ahead):
+        """BBBBBB."""
+        return None
+
     def _convert_y(self, y: VALID_SERIES_INNER_TYPES, axis: int):
         """Convert y to self.get_tag("y_inner_type")."""
         if axis > 1 or axis < 0:
