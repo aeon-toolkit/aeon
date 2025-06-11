@@ -329,7 +329,7 @@ class SFAFast(BaseCollectionTransformer):
         self: object
         """
         # with parallel_backend("loky", inner_max_num_threads=n_jobs):
-        self._fit_transform(X, y, return_bag_of_words=True)
+        self._fit_transform(X, y, return_bag_of_words=self.return_sparse)
         return self
 
     def _transform(self, X, y=None):
