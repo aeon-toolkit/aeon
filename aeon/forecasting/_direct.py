@@ -6,7 +6,7 @@ from aeon.base._base import _clone_estimator
 from aeon.forecasting.base import BaseForecaster
 
 
-def direct_forecasting(forecaster, y: np.ndarray, steps_ahead: int, exog=None):
+def direct_forecast(forecaster, y: np.ndarray, steps_ahead: int):
     """
     Forecast ``steps_ahead`` using a BaseForecaster instance for each horizon.
 
@@ -20,8 +20,6 @@ def direct_forecasting(forecaster, y: np.ndarray, steps_ahead: int, exog=None):
         The univariate time series to be forecast.
     steps_ahead : int
         The number of future time steps to forecast.
-    exog : array-like, optional
-        Optional exogenous variables to use for forecasting.
 
     Returns
     -------
