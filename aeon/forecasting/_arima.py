@@ -16,8 +16,8 @@ from aeon.utils.optimisation._nelder_mead import nelder_mead
 class ARIMAForecaster(BaseForecaster):
     """AutoRegressive Integrated Moving Average (ARIMA) forecaster.
 
-    The model automatically selects the parameters of the model based
-    on information criteria, such as AIC.
+    ARIMA with fixed model structure and fitted parameters found with an
+    nelder mead optimizer to minimise the AIC.
 
     Parameters
     ----------
@@ -27,36 +27,19 @@ class ARIMAForecaster(BaseForecaster):
         Differencing (d) order of the ARIMA model
     q : int, default=1,
         Moving average (q) order of the ARIMA model
-    constant_term: bool = False,
+    use_constant: bool = False,
         Presence of a constant/intercept term in the model.
-    horizon : int, default=1
-        The forecasting horizon, i.e., the number of steps ahead to predict.
 
     Attributes
     ----------
-    data_ : np.ndarray
-        Original training series values.
-    differenced_data_ : np.ndarray
-        Differenced version of the training data used for stationarity.
     residuals_ : np.ndarray
         Residual errors from the fitted model.
     aic_ : float
-        Akaike Information Criterion for the selected model.
-    p, d, q : int
-        Parameters passed to the forecaster see p_, d_, q_.
-    p_, d_, q_ : int
-        Orders of the ARIMA model: autoregressive (p), differencing (d),
-        and moving average (q) terms.
-    constant_term : bool
-        Parameters passed to the forecaster see constant_term_.
-    constant_term_ : bool
-        Whether to include a constant/intercept term in the model.
-    c_ : float
-        Estimated constant term (internal use).
+        Akaike Information Criterion for the fitted model.
     phi_ : np.ndarray
-        Coefficients for the non-seasonal autoregressive terms.
+        Coefficients for the non-seasonal autoregressive terms (length p).
     theta_ : np.ndarray
-        Coefficients for the non-seasonal moving average terms.
+        Coefficients for the non-seasonal moving average terms (length q).
 
     References
     ----------
@@ -76,80 +59,68 @@ class ARIMAForecaster(BaseForecaster):
     474.49449...
     """
 
-    def __init__(
-        self,
-        p: int = 1,
-        d: int = 0,
-        q: int = 1,
-        constant_term: bool = False,
-    ):
-        super().__init__(horizon=1, axis=1)
-        self.data_ = []
-        self.differenced_data_ = []
-        self.residuals_ = []
-        self.fitted_values_ = []
-        self.aic_ = 0
+    _tags = {
+        "capability:horizon": False,
+    }
+
+    def __init__(self, p: int = 1, d: int = 0, q: int = 1, use_constant: bool = False):
         self.p = p
         self.d = d
         self.q = q
-        self.constant_term = constant_term
-        self.p_ = 0
-        self.d_ = 0
-        self.q_ = 0
-        self.constant_term_ = False
-        self.model_ = []
-        self.c_ = 0
+        self.use_constant = use_constant
         self.phi_ = 0
         self.theta_ = 0
-        self.parameters_ = []
+        self._series = []
+        self._differenced_series = []
+        self.residuals_ = []
+        self.fitted_values_ = []
+        self.aic_ = 0
+        self._model = []
+        self._c = 0
+        self._parameters = []
+        super().__init__(horizon=1, axis=1)
 
     def _fit(self, y, exog=None):
-        """Fit AutoARIMA forecaster to series y.
-
-        Fit a forecaster to predict self.horizon steps ahead using y.
+        """Fit ARIMA forecaster to series y to predict one ahead using y.
 
         Parameters
         ----------
         y : np.ndarray
             A time series on which to learn a forecaster to predict horizon ahead
         exog : np.ndarray, default =None
-            Optional exogenous time series data assumed to be aligned with y
+            Not allowed for this forecaster
 
         Returns
         -------
         self
             Fitted ARIMAForecaster.
         """
-        self.p_ = self.p
-        self.d_ = self.d
-        self.q_ = self.q
-        self.constant_term_ = self.constant_term
-        self.data_ = np.array(y.squeeze(), dtype=np.float64)
-        self.model_ = np.array(
-            (1 if self.constant_term else 0, self.p, self.q), dtype=np.int32
+        self._series = np.array(y.squeeze(), dtype=np.float64)
+        self._model = np.array(
+            (1 if self.use_constant else 0, self.p, self.q), dtype=np.int32
         )
-        self.differenced_data_ = np.diff(self.data_, n=self.d)
-        (self.parameters_, self.aic_) = nelder_mead(
+        self._differenced_series = np.diff(self._series, n=self.d)
+        (self._parameters, self.aic_) = nelder_mead(
             _arima_model_wrapper,
-            np.sum(self.model_[:3]),
-            self.differenced_data_,
-            self.model_,
+            np.sum(self._model[:3]),
+            self._differenced_series,
+            self._model,
         )
         (self.c_, self.phi_, self.theta_) = _extract_params(
-            self.parameters_, self.model_
+            self._parameters, self._model
         )
         (self.aic_, self.residuals_, self.fitted_values_) = _arima_model(
-            self.parameters_,
+            self._parameters,
             _calc_arima,
-            self.differenced_data_,
-            self.model_,
+            self._differenced_series,
+            self._model,
             np.empty(0),
         )
         return self
 
     def _predict(self, y=None, exog=None):
         """
-        Predict the next horizon steps ahead.
+        Predict the next step ahead for training data or y.
 
         Parameters
         ----------
@@ -161,28 +132,28 @@ class ARIMAForecaster(BaseForecaster):
 
         Returns
         -------
-        array[float]
-            Predictions len(y) steps ahead of the data seen in fit.
-        If y is None, then predict 1 step ahead of the data seen in fit.
+        float
+            Prediction 1 step ahead of the data seen in fit or passed as y.
         """
         if y is not None:
-            combined_data = np.concatenate((self.data_, y.flatten()))
+            series = y.squeeze()
         else:
-            combined_data = self.data_
-        n = len(self.data_)
-        differenced_data = np.diff(combined_data, n=self.d_)
-        _aic, _residuals, predicted_values = _arima_model(
-            self.parameters_,
+            series = self._series
+        n = len(series)
+        differenced_series = np.diff(series, n=self.d)
+        _, _, predicted_values = _arima_model(
+            self._parameters,
             _calc_arima,
-            differenced_data,
-            self.model_,
+            differenced_series,
+            self._model,
             self.residuals_,
         )
-        init = combined_data[n - self.d_ : n]
+        # Invert differences
+        init = series[n - self.d : n]
         x = np.concatenate((init, predicted_values))
-        for _ in range(self.d_):
+        for _ in range(self.d):
             x = np.cumsum(x)
-        return x[self.d_ :]
+        return x[self.d :][0]
 
 
 @njit(cache=True, fastmath=True)
