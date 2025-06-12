@@ -21,8 +21,6 @@ class NaiveForecaster(BaseForecaster):
     seasonal_period : int, default=1
         The seasonal period to use for the "seasonal_last" strategy.
         E.g., 12 for monthly data with annual seasonality.
-    horizon : int, default=1
-        The number of time steps ahead to forecast.
     """
 
     def __init__(self, strategy="last", seasonal_period=1, horizon=1):
@@ -34,17 +32,14 @@ class NaiveForecaster(BaseForecaster):
 
     def _fit(self, y, exog=None):
         """Fit Naive forecaster to training data `y`."""
-        self._fitted_scalar_value_ = None  # For 'last' and 'mean' strategies
-        self._fitted_last_season_ = np.array([])  # For 'seasonal_last', init as empty
-
         y_squeezed = y.squeeze()
 
         if self.strategy == "last":
-            self._fitted_scalar_value_ = y_squeezed[-1]
+            self._fitted_scalar_value = y_squeezed[-1]
         elif self.strategy == "mean":
-            self._fitted_scalar_value_ = np.mean(y_squeezed)
+            self._fitted_scalar_value = np.mean(y_squeezed)
         elif self.strategy == "seasonal_last":
-            self._fitted_last_season_ = y_squeezed[-self.seasonal_period :]
+            self._fitted_last_season = y_squeezed[-self.seasonal_period :]
         else:
             raise ValueError(
                 f"Unknown strategy: {self.strategy}. "
@@ -55,10 +50,8 @@ class NaiveForecaster(BaseForecaster):
     def _predict(self, y=None, exog=None):
         """Predict a single value self.horizon steps ahead."""
         if self.strategy == "last" or self.strategy == "mean":
-            return self._fitted_scalar_value_
+            return self._fitted_scalar_value
 
         # For "seasonal_last" strategy
         prediction_index = (self.horizon - 1) % self.seasonal_period
-        return self._fitted_last_season_[prediction_index]
-
-    # The class will inherit the _forecast method from BaseForecaster.
+        return self._fitted_last_season[prediction_index]
