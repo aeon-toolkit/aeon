@@ -7,11 +7,12 @@ from abc import abstractmethod
 
 import numpy as np
 import pandas as pd
+from sklearn.base import TransformerMixin
 
 from aeon.base import BaseAeonEstimator
 
 
-class BaseTransformer(BaseAeonEstimator):
+class BaseTransformer(TransformerMixin, BaseAeonEstimator):
     """Transformer base class."""
 
     _tags = {
