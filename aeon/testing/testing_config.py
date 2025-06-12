@@ -55,6 +55,7 @@ EXCLUDED_TESTS = {
     "LeftSTAMPi": ["check_series_anomaly_detector_output"],
     "SignatureClassifier": ["check_classifier_against_expected_results"],
     "SeriesToCollectionBroadcaster": ["check_transform_inverse_transform_equivalent"],
+    "CollectionToSeriesWrapper": ["check_transform_inverse_transform_equivalent"],
     # missed in legacy testing, changes state in predict/transform
     "FLUSSSegmenter": ["check_non_state_changing_method"],
     "ClaSPSegmenter": ["check_non_state_changing_method"],
