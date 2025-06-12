@@ -111,7 +111,8 @@ class BaseForecaster(BaseSeriesEstimator):
             y = self._convert_y(y, self.axis)
         if exog is not None:
             raise NotImplementedError("Exogenous variables not yet supported")
-        return self._predict(y, exog)
+        x = self._predict(y, exog)
+        return x
 
     @abstractmethod
     def _predict(self, y=None, exog=None): ...
