@@ -252,18 +252,25 @@ def auto_ets_nelder_mead(data):
     for error_type in range(1, 3):
         for trend_type in range(0, 3):
             for seasonality_type in range(0, 2 * (seasonal_period != 1) + 1):
-                ([alpha, beta, gamma, phi], aic) = nelder_mead(
-                    data, error_type, trend_type, seasonality_type, seasonal_period
-                )
                 if trend_type == 0:
                     phi = 1
+                model_seasonal_period = seasonal_period
+                if seasonal_period < 1 or seasonality_type == 0:
+                    model_seasonal_period = 1
+                ([alpha, beta, gamma, phi], aic) = nelder_mead(
+                    data,
+                    error_type,
+                    trend_type,
+                    seasonality_type,
+                    model_seasonal_period,
+                )
                 if lowest_aic == -1 or lowest_aic > aic:
                     lowest_aic = aic
                     best_model = (
                         error_type,
                         trend_type,
                         seasonality_type,
-                        seasonal_period,
+                        model_seasonal_period,
                         alpha,
                         beta,
                         gamma,
