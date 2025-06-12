@@ -174,9 +174,9 @@ addopts = '''
     --timeout 600
     --showlocals
     --dist worksteal
-    --reruns 2
+    --reruns 3
     --only-rerun "crashed while running"
-    --only-rerun "zipfile.BadZipFile"
+    --only-rerun "Bad magic number for file header"
     --only-rerun "accessible `.keras` zip file."
 '''
 filterwarnings = '''
