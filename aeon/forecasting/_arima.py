@@ -249,7 +249,7 @@ def _extract_params(params, model):
 
 
 @njit(cache=True, fastmath=True)
-def _calc_arima(data, model, t, formatted_params, residuals, expect_full_history):
+def _calc_arima(data, model, t, formatted_params, residuals, expect_full_history=False):
     """Calculate the ARIMA forecast for time t."""
     if len(model) != 3:
         raise ValueError("Model must be of the form (c, p, q)")
@@ -261,13 +261,13 @@ def _calc_arima(data, model, t, formatted_params, residuals, expect_full_history
             f"Expected at least {p} past values for AR and {q} for MA."
         )
     # AR part
-    phi = formatted_params[1][:p]
+    phi = formatted_params[1, :p]
     ar_term = 0 if (t - p) < 0 else np.dot(phi, data[t - p : t][::-1])
 
     # MA part
-    theta = formatted_params[2][:q]
+    theta = formatted_params[2, :q]
     ma_term = 0 if (t - q) < 0 else np.dot(theta, residuals[t - q : t][::-1])
 
-    c = formatted_params[0][0] if model[0] else 0
+    c = formatted_params[0, 0] if model[0] else 0
     y_hat = c + ar_term + ma_term
     return y_hat

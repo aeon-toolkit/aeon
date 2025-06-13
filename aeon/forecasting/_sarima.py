@@ -220,14 +220,14 @@ def _calc_sarima(data, model, t, formatted_params, residuals, expect_full_histor
         data, model[:3], t, formatted_params, residuals, expect_full_history
     )
     # Seasonal AR part
-    phi_s = formatted_params[3][:ps]
+    phi_s = formatted_params[3, :ps]
     ars_term = (
         0
         if (t - seasonal_period * ps) < 0
         else np.dot(phi_s, data[t - seasonal_period * ps : t : seasonal_period][::-1])
     )
     # Seasonal MA part
-    theta_s = formatted_params[4][:qs]
+    theta_s = formatted_params[4, :qs]
     mas_term = (
         0
         if (t - seasonal_period * qs) < 0
