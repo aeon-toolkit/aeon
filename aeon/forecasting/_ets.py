@@ -473,6 +473,8 @@ def _update_states(
     )
     # Calculate the error term (observed value - fitted value)
     if error_type == 2:
+        if fitted_value == 0:
+            fitted_value = 1e-10  # Avoid division by zero
         error = data_item / fitted_value - 1  # Multiplicative error
     else:
         error = data_item - fitted_value  # Additive error
@@ -487,6 +489,8 @@ def _update_states(
             if trend_type == 1:
                 trend += (curr_level + curr_seasonality) * beta * error
             else:
+                if curr_level == 0:
+                    curr_level = 1e-10  # Avoid division by zero
                 trend += curr_seasonality / curr_level * beta * error
         elif trend_type == 1:
             trend += curr_level * beta * error
@@ -501,8 +505,14 @@ def _update_states(
             seasonality_correction *= trend_level_combination
         if trend_type == 2:
             trend_correction *= curr_level
+        if level_correction == 0:
+            level_correction = 1e-10  # Avoid division by zero
         level = trend_level_combination + alpha * error / level_correction
+        if trend_correction == 0:
+            trend_correction = 1e-10  # Avoid division by zero
         trend = damped_trend + beta * error / trend_correction
+        if seasonality_correction == 0:
+            seasonality_correction = 1e-10  # Avoid division by zero
         seasonality = curr_seasonality + gamma * error / seasonality_correction
     return (fitted_value, error, level, trend, seasonality)
 
