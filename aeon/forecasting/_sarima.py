@@ -193,7 +193,7 @@ class SARIMAForecaster(ARIMAForecaster):
         return values[self.d_ :]
 
 
-@njit(fastmath=True)
+@njit(cache=False, fastmath=True)
 def _sarima_model_wrapper(params, data, model):
     return _arima_model(params, _calc_sarima, data, model, np.empty(0))[0]
 

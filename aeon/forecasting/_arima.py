@@ -193,7 +193,7 @@ def _aic(residuals, num_params):
     return liklihood + 2 * num_params
 
 
-@njit(fastmath=True)
+@njit(cache=False, fastmath=True)
 def _arima_model_wrapper(params, data, model):
     return _arima_model(params, _calc_arima, data, model, np.empty(0))[0]
 
