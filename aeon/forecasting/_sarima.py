@@ -179,7 +179,7 @@ class SARIMAForecaster(ARIMAForecaster):
             self.residuals_,
         )
         # Undo seasonal differencing
-        last_season = differenced_data[m - self.seasonal_period * self.ds_ : m]
+        last_season = differenced_data[m - self.seasonal_period_ * self.ds_ : m]
         values = np.concatenate((last_season, predicted_values))
         for _ in range(self.ds_):
             for i in range(self.seasonal_period_, len(values)):
