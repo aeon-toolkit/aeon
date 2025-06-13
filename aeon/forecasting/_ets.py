@@ -384,6 +384,7 @@ def _predict(
             )[0]
         else:
             fitted_values_[t] = fitted_value
+    # Handle the final forecast value after the last time point in y
     forecast_s_index = (n_timepoints + len(y) + horizon) % seasonal_period
     # Generate forecasts based on the final values of level, trend, and seasonals
     fitted_values_[-1] = _predict_value(
@@ -474,7 +475,7 @@ def _update_states(
     # Calculate the error term (observed value - fitted value)
     if error_type == 2:
         if fitted_value == 0:
-            fitted_value = 1e-10  # Avoid division by zero
+            error = data_item - fitted_value  # Avoid division by zero
         error = data_item / fitted_value - 1  # Multiplicative error
     else:
         error = data_item - fitted_value  # Additive error
@@ -546,7 +547,11 @@ def _predict_value(trend_type, seasonality_type, level, trend, seasonality, phi)
     # Apply damping parameter and
     # calculate commonly used combination of trend and level components
     if trend_type == 2:  # Multiplicative
-        damped_trend = trend**phi
+        if trend <= 0 and phi < 1:
+            # Avoid NANs
+            damped_trend = -(np.abs(trend) ** phi)
+        else:
+            damped_trend = trend**phi
         trend_level_combination = level * damped_trend
     else:  # Additive trend, if no trend, then trend = 0
         damped_trend = trend * phi
