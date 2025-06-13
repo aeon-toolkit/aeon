@@ -249,7 +249,7 @@ def _extract_params(params, model):
 
 
 @njit(cache=True, fastmath=True)
-def _calc_arima(data, model, t, formatted_params, residuals, expect_full_history=False):
+def _calc_arima(data, model, t, formatted_params, residuals, expect_full_history):
     """Calculate the ARIMA forecast for time t."""
     if len(model) != 3:
         raise ValueError("Model must be of the form (c, p, q)")

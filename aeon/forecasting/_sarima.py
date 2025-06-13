@@ -199,9 +199,7 @@ def _sarima_model_wrapper(params, data, model):
 
 
 @njit(cache=True, fastmath=True)
-def _calc_sarima(
-    data, model, t, formatted_params, residuals, expect_full_history=False
-):
+def _calc_sarima(data, model, t, formatted_params, residuals, expect_full_history):
     """Calculate the SARIMA forecast for time t."""
     if len(model) != 6:
         raise ValueError("Model must be of the form (c, p, q, ps, qs, seasonal_period)")
