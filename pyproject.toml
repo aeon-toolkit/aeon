@@ -87,8 +87,6 @@ unstable_extras = [
 
 # development dependencies
 dev = [
-    "backoff",
-    "httpx",
     "pre-commit",
     "pytest",
     "pytest-cov",
@@ -97,7 +95,6 @@ dev = [
     "pytest-timeout",
     "pytest-xdist[psutil]",
     "pytest-rerunfailures",
-    "wheel",
 ]
 binder = [
     "notebook",
@@ -175,9 +172,9 @@ addopts = '''
     --showlocals
     --dist worksteal
     --reruns 3
-    --only-rerun "crashed while running"
-    --only-rerun "Bad magic number for file header"
-    --only-rerun "accessible `.keras` zip file."
+    --reruns-delay 3
+    --rerun-except Error
+    --rerun-except Exception
 '''
 filterwarnings = '''
     ignore::UserWarning

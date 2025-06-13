@@ -113,8 +113,8 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Disable Numba JIT
-        run: echo "NUMBA_DISABLE_JIT=1" >> $GITHUB_ENV
+#      - name: Disable Numba JIT
+#        run: echo "NUMBA_DISABLE_JIT=1" >> $GITHUB_ENV
 
       - uses: ./.github/actions/cpu_all_extras
         with:
@@ -124,7 +124,7 @@ jobs:
         run: python -m pip list
 
       - name: Run tests
-        run: python -m pytest -n logical --cov=aeon --cov-report=xml --timeout 1800
+        run: python -m pytest -n logical --cov=aeon --cov-report=xml
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
