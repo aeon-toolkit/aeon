@@ -173,14 +173,14 @@ doctest_optionflags = [
     "FLOAT_CMP",
 ]
 addopts = [
-    "--durations 20",
-    "--timeout 600",
+    "--durations=20",
+    "--timeout=600",
     "--showlocals",
-    "--dist worksteal",
-    "--reruns 3",
-    "--reruns-delay 3",
-    "--rerun-except Error",
-    "--rerun-except Exception",
+    "--dist=worksteal",
+    "--reruns=3",
+    "--reruns-delay=3",
+    "--rerun-except=Error",
+    "--rerun-except=Exception",
 ]
 filterwarnings = [
     "ignore::UserWarning",
