@@ -90,11 +90,12 @@ dev = [
     "pre-commit",
     "pytest",
     "pytest-cov",
+    "pytest-doctestplus",
     "pytest-mock",
     "pytest-randomly",
+    "pytest-rerunfailures",
     "pytest-timeout",
     "pytest-xdist[psutil]",
-    "pytest-rerunfailures",
 ]
 binder = [
     "notebook",
@@ -163,8 +164,13 @@ convention = "numpy"
 mypy_path = "aeon/"
 
 [tool.pytest.ini_options]
-# ignore certain folders and pytest warnings
 testpaths = "aeon"
+doctest_plus = "enabled"
+doctest_optionflags = [
+    "NORMALIZE_WHITESPACE",
+    "ELLIPSIS",
+    "FLOAT_CMP",
+]
 addopts = '''
     --doctest-modules
     --durations 20
