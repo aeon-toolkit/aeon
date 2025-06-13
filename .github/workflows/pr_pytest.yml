@@ -158,7 +158,7 @@ jobs:
         run: python -m pip list
 
       - name: Run tests
-        run: python -m pytest -n logical --cov=aeon --cov-report=xml
+        run: python -m pytest -n logical --cov=aeon --cov-report=xml --timeout 1800
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v5
