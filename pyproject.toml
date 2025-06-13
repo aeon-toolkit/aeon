@@ -166,7 +166,6 @@ mypy_path = "aeon/"
 
 [tool.pytest.ini_options]
 testpaths = "aeon"
-doctest_plus = "enabled"
 doctest_optionflags = [
     "NORMALIZE_WHITESPACE",
     "ELLIPSIS",
