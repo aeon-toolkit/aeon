@@ -96,7 +96,7 @@ jobs:
 
       - name: Run tests
         # run the full test suit if a PR has the 'full pytest actions' label
-        run: python -m pytest -n logical --prtesting ${{ github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'full pytest actions') }} --cov=aeon --cov-report=xml
+        run: python -m pytest -n logical --prtesting ${{ github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'full pytest actions') }}
 
   codecov:
     # run the code coverage job if a PR has the 'codecov actions' label
@@ -113,8 +113,8 @@ jobs:
         with:
           python-version: "3.12"
 
-#      - name: Disable Numba JIT
-#        run: echo "NUMBA_DISABLE_JIT=1" >> $GITHUB_ENV
+      - name: Disable Numba JIT
+        run: echo "NUMBA_DISABLE_JIT=1" >> $GITHUB_ENV
 
       - uses: ./.github/actions/cpu_all_extras
         with:
