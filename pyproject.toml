@@ -93,6 +93,7 @@ dev = [
     "pytest-doctestplus",
     "pytest-mock",
     "pytest-randomly",
+    "pytest-remotedata",
     "pytest-rerunfailures",
     "pytest-timeout",
     "pytest-xdist[psutil]",
@@ -171,19 +172,18 @@ doctest_optionflags = [
     "ELLIPSIS",
     "FLOAT_CMP",
 ]
-addopts = '''
-    --doctest-modules
-    --durations 20
-    --timeout 600
-    --showlocals
-    --dist worksteal
-    --reruns 3
-    --reruns-delay 3
-    --rerun-except Error
-    --rerun-except Exception
-'''
-filterwarnings = '''
-    ignore::UserWarning
-    ignore:numpy.dtype size changed
-    ignore:numpy.ufunc size changed
-'''
+addopts = [
+    "--durations 20",
+    "--timeout 600",
+    "--showlocals",
+    "--dist worksteal",
+    "--reruns 3",
+    "--reruns-delay 3",
+    "--rerun-except Error",
+    "--rerun-except Exception",
+]
+filterwarnings = [
+    "ignore::UserWarning",
+    "ignore:numpy.dtype size changed",
+    "ignore:numpy.ufunc size changed",
+]
