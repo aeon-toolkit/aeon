@@ -41,7 +41,8 @@ jobs:
           runner_os: ${{ runner.os }}
           python_version: "3.12"
 
-      - uses: ./.github/actions/cpu_all_extras
+      - name: Install aeon and dependencies
+        uses: ./.github/actions/cpu_all_extras
         with:
           additional_extras: "dev,binder"
 
