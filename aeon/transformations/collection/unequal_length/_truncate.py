@@ -6,7 +6,7 @@ __all__ = ["Truncator"]
 import numpy as np
 
 from aeon.transformations.collection.base import BaseCollectionTransformer
-from aeon.transformations.collection.unequal_length._common_utils import (
+from aeon.transformations.collection.unequal_length._commons import (
     _get_max_length,
     _get_min_length,
 )
@@ -33,7 +33,7 @@ class Truncator(BaseCollectionTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.collection import Truncator
+    >>> from aeon.transformations.collection.unequal_length import Truncator
     >>> import numpy as np
     >>> X = []
     >>> for i in range(10): X.append(np.random.random((4, 75 + i)))

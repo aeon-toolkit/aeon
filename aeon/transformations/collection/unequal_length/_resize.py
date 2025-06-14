@@ -36,7 +36,7 @@ class Resizer(BaseCollectionTransformer):
     >>> resizer = Resizer(resized_length=100)
     >>> X2 = resizer.fit_transform(X)
     >>> X2.shape
-    (10, 4, 200)
+    (10, 4, 100)
     """
 
     _tags = {

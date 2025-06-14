@@ -68,7 +68,7 @@ def test_resizer_min():
     resizer.fit(X)
     Xt = resizer.transform(X2)
 
-    assert isinstance(Xt, list)
+    assert isinstance(Xt, np.ndarray)
     assert len(Xt) == len(X2)
     assert len(Xt[0].shape) == 2 and Xt[0].shape[0] == 1
     assert all(
