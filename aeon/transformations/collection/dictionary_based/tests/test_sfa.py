@@ -5,7 +5,7 @@ import sys
 import numpy as np
 import pytest
 
-from aeon.datasets import load_classification
+from aeon.datasets import load_unit_test
 from aeon.transformations.collection.dictionary_based import SFA, SFAFast
 
 
@@ -229,7 +229,7 @@ def test_typed_dict():
 
 def test_sfa_fast_transform_after_fit():
     """Test transform called after fit returns the same result as fit_transform()."""
-    X_train, y_train = load_classification("SmoothSubspace", split="train")
+    X_train, y_train = load_unit_test(split="train")
 
     # Fit, then transform
     sfa = SFAFast()
