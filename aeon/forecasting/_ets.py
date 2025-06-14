@@ -94,6 +94,7 @@ class ETSForecaster(BaseForecaster):
 
     _tags = {
         "capability:horizon": False,
+        "fit_is_empty": True,
     }
 
     def __init__(
@@ -108,46 +109,33 @@ class ETSForecaster(BaseForecaster):
         phi: float = 0.99,
         horizon: int = 1,
     ):
-        self.alpha = alpha
-        self.beta = beta
-        self.gamma = gamma
-        self.phi = phi
-        self.forecast_val_ = 0.0
-        self.level_ = 0.0
-        self.trend_ = 0.0
-        self.seasonality_ = None
-        self._beta = beta
-        self._gamma = gamma
         self.error_type = error_type
         self.trend_type = trend_type
         self.seasonality_type = seasonality_type
         self.seasonal_period = seasonal_period
-        self._seasonal_period = seasonal_period
-        self.n_timepoints_ = 0
-        self.avg_mean_sq_err_ = 0
-        self.liklihood_ = 0
-        self.k_ = 0
-        self.aic_ = 0
-        self.residuals_ = []
-        self.fitted_values_ = []
+        self.alpha = alpha
+        self.beta = beta
+        self.gamma = gamma
+        self.phi = phi
+
         super().__init__(horizon=horizon, axis=1)
 
-    def _fit(self, y, exog=None):
-        """Fit Exponential Smoothing forecaster to series y.
-
-        Fit a forecaster to predict self.horizon steps ahead using y.
+    def _predict(self, y=None, exog=None):
+        """
+        Predict the next horizon steps ahead.
 
         Parameters
         ----------
-        y : np.ndarray
-            A time series on which to learn a forecaster to predict horizon ahead
+        y : np.ndarray, default = None
+            A time series to predict the next horizon value for. If None,
+            predict the next horizon value after series seen in fit.
         exog : np.ndarray, default =None
             Optional exogenous time series data assumed to be aligned with y
 
         Returns
         -------
-        self
-            Fitted ETSForecaster.
+        float
+            single prediction self.horizon steps ahead of y.
         """
         _validate_parameter(self.error_type, False)
         _validate_parameter(self.seasonality_type, True)
@@ -162,6 +150,10 @@ class ETSForecaster(BaseForecaster):
             if x == MULTIPLICATIVE:
                 return 2
             return x
+
+        self._seasonal_period = self.seasonal_period
+        self._beta = self.beta
+        self._gamma = self.gamma
 
         self._error_type = _get_int(self.error_type)
         self._seasonality_type = _get_int(self.seasonality_type)
@@ -198,25 +190,7 @@ class ETSForecaster(BaseForecaster):
             self._gamma,
             self.phi,
         )
-        return self
 
-    def _predict(self, y=None, exog=None):
-        """
-        Predict the next horizon steps ahead.
-
-        Parameters
-        ----------
-        y : np.ndarray, default = None
-            A time series to predict the next horizon value for. If None,
-            predict the next horizon value after series seen in fit.
-        exog : np.ndarray, default =None
-            Optional exogenous time series data assumed to be aligned with y
-
-        Returns
-        -------
-        float
-            single prediction self.horizon steps ahead of y.
-        """
         fitted_value = _predict(
             self._trend_type,
             self._seasonality_type,
@@ -229,20 +203,6 @@ class ETSForecaster(BaseForecaster):
             self._seasonal_period,
         )
         return fitted_value
-
-    def _initialise(self, data):
-        """
-        Initialize level, trend, and seasonality values for the ETS model.
-
-        Parameters
-        ----------
-        data : array-like
-            The time series data
-            (should contain at least two full seasons if seasonality is specified)
-        """
-        self.level_, self.trend_, self.seasonality_ = _initialise(
-            self._trend_type, self._seasonality_type, self._seasonal_period, data
-        )
 
 
 @njit(fastmath=True, cache=True)

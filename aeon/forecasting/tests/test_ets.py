@@ -1,8 +1,5 @@
 """Test ETS."""
 
-__maintainer__ = []
-__all__ = []
-
 import numpy as np
 import pytest
 
@@ -26,8 +23,7 @@ def test_ets_forecaster_additive():
         seasonality_type="additive",
         seasonal_period=4,
     )
-    forecaster.fit(data)
-    p = forecaster.predict()
+    p = forecaster.predict(data)
     assert np.isclose(p, 9.191190608800001)
 
 
@@ -47,8 +43,7 @@ def test_ets_forecaster_mult_error():
         seasonality_type="additive",
         seasonal_period=4,
     )
-    forecaster.fit(data)
-    p = forecaster.predict()
+    p = forecaster.predict(data)
     assert np.isclose(p, 16.20176819429869)
 
 
@@ -68,8 +63,7 @@ def test_ets_forecaster_mult_compnents():
         seasonality_type="multiplicative",
         seasonal_period=4,
     )
-    forecaster.fit(data)
-    p = forecaster.predict()
+    p = forecaster.predict(data)
     assert np.isclose(p, 12.301259229712382)
 
 
@@ -89,8 +83,7 @@ def test_ets_forecaster_multiplicative():
         seasonality_type="multiplicative",
         seasonal_period=4,
     )
-    forecaster.fit(data)
-    p = forecaster.predict()
+    p = forecaster.predict(data)
     assert np.isclose(p, 16.811888294476528)
 
 
