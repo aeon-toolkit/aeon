@@ -1,4 +1,4 @@
-name: PR Examples
+name: PR examples
 
 on:
   push:

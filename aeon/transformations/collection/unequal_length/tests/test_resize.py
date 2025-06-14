@@ -71,14 +71,7 @@ def test_resizer_min():
     assert isinstance(Xt, np.ndarray)
     assert len(Xt) == len(X2)
     assert len(Xt[0].shape) == 2 and Xt[0].shape[0] == 1
-    assert all(
-        (
-            Xt[i].shape[1] == min_length
-            if X2[i].shape[1] > min_length
-            else Xt[i].shape[1] == X2[i].shape[1]
-        )
-        for i in range(len(Xt))
-    )
+    assert all((Xt[i].shape[1] == min_length) for i in range(len(Xt)))
 
 
 def test_incorrect_arguments():

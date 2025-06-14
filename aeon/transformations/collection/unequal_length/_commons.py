@@ -1,3 +1,10 @@
+"""Common functions for unequal length transformations.
+
+These should ideally be incorporated into the collection data utilities in utils/ in
+the future.
+"""
+
+
 def _get_min_length(X):
     min_length = X[0].shape[1]
     for x in X:
