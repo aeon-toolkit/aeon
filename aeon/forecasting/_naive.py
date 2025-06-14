@@ -24,7 +24,6 @@ class NaiveForecaster(BaseForecaster):
     """
 
     def __init__(self, strategy="last", seasonal_period=1, horizon=1):
-        """Initialize NaiveForecaster."""
         self.strategy = strategy
         self.seasonal_period = seasonal_period
 
