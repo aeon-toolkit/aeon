@@ -48,6 +48,11 @@ class NaiveForecaster(BaseForecaster):
 
     def _predict(self, y=None, exog=None):
         """Predict a single value self.horizon steps ahead."""
+        if y is not None:
+            raise ValueError(
+                "NaiveForecaster does not support a `y` input in `predict`. "
+            )
+
         if self.strategy == "last" or self.strategy == "mean":
             return self._fitted_scalar_value
 
