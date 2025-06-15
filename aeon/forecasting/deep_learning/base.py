@@ -1,12 +1,13 @@
-"""
-BaseDeepForecaster class.
+"""Base class module for deep learning forecasters in aeon.
 
-A simplified first base class for deep learning forecasting models.
-This class is a subclass of BaseForecaster and inherits its methods and attributes.
-It provides a base for deep learning models, including methods for training and
-predicting.
-
+This module defines the `BaseDeepForecaster` class, an abstract base class for
+deep learning-based forecasting models within the aeon toolkit.
 """
+
+from __future__ import annotations
+
+__maintainer__ = []
+__all__ = ["BaseDeepForecaster"]
 
 from abc import abstractmethod
 
@@ -19,6 +20,9 @@ from aeon.forecasting.base import BaseForecaster
 
 class BaseDeepForecaster(BaseForecaster):
     """Base class for deep learning forecasters in aeon.
+
+    This class provides a foundation for deep learning-based forecasting models,
+    handling data preprocessing, model training, and prediction.
 
     Parameters
     ----------
@@ -38,6 +42,9 @@ class BaseDeepForecaster(BaseForecaster):
         Loss function for training.
     random_state : int, default=None
         Seed for random number generators.
+    axis : int, default=0
+        Axis along which to apply the forecaster.
+        Default is 0 for univariate time series.
     """
 
     def __init__(
@@ -50,6 +57,7 @@ class BaseDeepForecaster(BaseForecaster):
         optimizer="adam",
         loss="mse",
         random_state=None,
+        axis=0,
     ):
         self.horizon = horizon
         self.window = window
@@ -59,8 +67,11 @@ class BaseDeepForecaster(BaseForecaster):
         self.optimizer = optimizer
         self.loss = loss
         self.random_state = random_state
+        self.axis = axis
         self.model_ = None
-        super().__init__()
+
+        # Pass horizon and axis to BaseForecaster
+        super().__init__(horizon=horizon, axis=axis)
 
     def _fit(self, y, X=None):
         """Fit the forecaster to training data.
@@ -74,7 +85,8 @@ class BaseDeepForecaster(BaseForecaster):
 
         Returns
         -------
-        self : returns an instance of self
+        self : BaseDeepForecaster
+            Returns an instance of self.
         """
         # Set random seed for reproducibility
         if self.random_state is not None:
@@ -83,12 +95,21 @@ class BaseDeepForecaster(BaseForecaster):
 
         # Convert input data to numpy array
         y_inner = self._convert_input(y)
+        if y_inner.shape[0] < self.window + self.horizon:
+            raise ValueError(
+                f"Data length ({y_inner.shape[0]}) is insufficient"
+                f"({self.window}) and horizon ({self.horizon})."
+            )
 
         # Create sequences for training
         X_train, y_train = self._create_sequences(y_inner)
 
+        if X_train.shape[0] == 0:
+            raise ValueError("No training sequences could be created.")
+
         # Build and compile the model
-        self.model_ = self._build_model(X_train.shape[1:])
+        input_shape = X_train.shape[1:]
+        self.model_ = self._build_model(input_shape)
         self.model_.compile(optimizer=self.optimizer, loss=self.loss)
 
         # Train the model
@@ -115,7 +136,7 @@ class BaseDeepForecaster(BaseForecaster):
         Returns
         -------
         predictions : np.ndarray
-            Predicted values.
+            Predicted values for the specified horizon.
         """
         if y is None:
             raise ValueError("y cannot be None for prediction")
@@ -123,13 +144,26 @@ class BaseDeepForecaster(BaseForecaster):
         # Convert input data to numpy array
         y_inner = self._convert_input(y)
 
+        if len(y_inner) < self.window:
+            raise ValueError(
+                f"Input data length ({len(y_inner)}) is less than the window size "
+                f"({self.window})."
+            )
+
         # Use the last window of data for prediction
         last_window = y_inner[-self.window :].reshape(1, self.window, 1)
 
         # Make prediction
-        prediction = self.model_.predict(last_window, verbose=0)
+        predictions = []
+        current_window = last_window
+        for _ in range(self.horizon):
+            pred = self.model_.predict(current_window, verbose=0)
+            predictions.append(pred[0, 0])
+            # Update the window with the latest prediction (autoregressive)
+            current_window = np.roll(current_window, -1, axis=1)
+            current_window[0, -1, 0] = pred[0, 0]
 
-        return prediction.flatten()
+        return np.array(predictions)
 
     def _forecast(self, y, X=None):
         """Forecast time series at future horizon.
@@ -144,13 +178,9 @@ class BaseDeepForecaster(BaseForecaster):
         Returns
         -------
         forecasts : np.ndarray
-            Forecasted values.
+            Forecasted values for the specified horizon.
         """
-        # Fit the model
-        self._fit(y, X)
-
-        # Make prediction
-        return self._predict(y, X)
+        return self._fit(y, X)._predict(y, X)
 
     def _convert_input(self, y):
         """Convert input data to numpy array.
@@ -191,12 +221,20 @@ class BaseDeepForecaster(BaseForecaster):
         y : np.ndarray
             Target values.
         """
+        if len(data) < self.window + self.horizon:
+            raise ValueError(
+                f"Data length ({len(data)}) is insufficient for window "
+                f"({self.window}) and horizon ({self.horizon})."
+            )
+
         X, y = [], []
         for i in range(len(data) - self.window - self.horizon + 1):
             X.append(data[i : (i + self.window)])
             y.append(data[i + self.window : (i + self.window + self.horizon)])
 
-        return np.array(X).reshape(-1, self.window, 1), np.array(y)
+        X = np.array(X).reshape(-1, self.window, 1)
+        y = np.array(y).reshape(-1, self.horizon)
+        return X, y
 
     @abstractmethod
     def _build_model(self, input_shape):
