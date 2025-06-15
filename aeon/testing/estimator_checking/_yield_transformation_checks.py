@@ -169,6 +169,9 @@ def check_transformer_output(estimator, datatype):
         Xt2 = _run_estimator_method(estimator, "fit_transform", datatype, "train")
         assert deep_equals(Xt, Xt2, ignore_index=True)
 
+        Xt3 = _run_estimator_method(estimator, "transform", datatype, "train")
+        assert deep_equals(Xt, Xt3, ignore_index=True)
+
 
 def check_channel_selectors(estimator, datatype):
     """Test channel selectors have fit and select at least one channel."""

@@ -4,10 +4,18 @@ __all__ = ["Resizer"]
 __maintainer__ = []
 
 import numpy as np
+from deprecated.sphinx import deprecated
 
 from aeon.transformations.collection.base import BaseCollectionTransformer
 
 
+# TODO: Remove in v1.3.0
+@deprecated(
+    version="1.2.0",
+    reason="Resizer is deprecated and will be moving to . "
+    "transformations.collection.unequal_length with additional/reworked functionality.",
+    category=FutureWarning,
+)
 class Resizer(BaseCollectionTransformer):
     """Time series interpolator/re-sampler.
 

@@ -4,10 +4,18 @@ __all__ = ["Truncator"]
 __maintainer__ = []
 
 import numpy as np
+from deprecated.sphinx import deprecated
 
 from aeon.transformations.collection.base import BaseCollectionTransformer
 
 
+# TODO: Remove in v1.3.0
+@deprecated(
+    version="1.2.0",
+    reason="Truncator is deprecated and will be moving to . "
+    "transformations.collection.unequal_length with additional/reworked functionality.",
+    category=FutureWarning,
+)
 class Truncator(BaseCollectionTransformer):
     """Truncate unequal length time series to a lower bounds.
 
