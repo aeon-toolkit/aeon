@@ -3,7 +3,7 @@ name: PR pytest
 on:
   push:
     branches:
-      - basedlf
+      - main
   pull_request:
     paths:
       - "aeon/**"

@@ -10,6 +10,9 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 class SimpleDeepForecaster(BaseDeepForecaster):
     """A simple concrete implementation of BaseDeepForecaster for testing."""
 
+    def __init__(self, horizon=1, window=5, epochs=1, verbose=0):
+        super().__init__(horizon=horizon, window=window, epochs=epochs, verbose=verbose)
+
     def _build_model(self, input_shape):
         import tensorflow as tf
 
