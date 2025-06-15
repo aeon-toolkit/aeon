@@ -38,6 +38,10 @@ class SetartreeForecaster(BaseForecaster):
         The minimum percentage of error reduction required to make a split.
     """
 
+    _tags = {
+        "capability:multivariate": True,
+    }
+
     def __init__(
         self,
         lag: int = 10,
@@ -78,7 +82,7 @@ class SetartreeForecaster(BaseForecaster):
                 X_list.append(series[j : j + self.lag])
                 y_list.append(series[j + self.lag])
 
-        # The paper uses a convention of Lags 1, 2, 3...
+        # The paper uses a convention of Lags 1, 2...
         # we flip the columns to match the convention
         return np.fliplr(np.array(X_list)), np.array(y_list)
 
@@ -97,7 +101,7 @@ class SetartreeForecaster(BaseForecaster):
 
     def _find_optimal_split(self, X, y):
         """Find the best lag and threshold for a split."""
-        # currently standard, brute-force grid search method
+        # currently brute-force grid search method
         best_split = {"sse": float("inf")}
         n_samples, n_features = X.shape
 
@@ -249,7 +253,7 @@ class SetartreeForecaster(BaseForecaster):
 
         # If y is not provided, we predict from the end of the training data
         if y is None:
-            history = self._last_window
+            history = self._last_window.flatten()
         else:
             # Ensure y is 2D
             if y.ndim == 1:
@@ -266,7 +270,7 @@ class SetartreeForecaster(BaseForecaster):
                 node = self.tree_[current_node_id]
                 split_info = node["split_info"]
 
-                # Note: Lags are flipped to match the paper's L1, L2... convention
+                # Lags are flipped to match the paper's L1, L2... convention
                 lag_val = np.flip(history)[split_info["lag_idx"]]
 
                 if lag_val < split_info["threshold"]:
@@ -282,4 +286,8 @@ class SetartreeForecaster(BaseForecaster):
             # Update history for the next prediction
             history = np.append(history[1:], next_pred)
 
-        return np.array(predictions[self.horizon - 1])
+        # Now I believe predict horizen steps forward is more natural
+        # than predict just one step at the horizen position...
+        # direct / recursive?
+        # return np.array(predictions[self.horizon - 1])
+        return np.array(predictions)
