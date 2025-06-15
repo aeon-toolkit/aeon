@@ -1,293 +1,154 @@
-"""SETAR-Tree: A tree algorithm for global time series forecasting."""
+"""SETAR: A classic univariate forecasting algorithm."""
 
 import numpy as np
-from scipy.stats import f
 from sklearn.linear_model import LinearRegression
 
 from aeon.forecasting.base import BaseForecaster
 
-__maintainer__ = ["TinaJin0228"]
-__all__ = ["SetartreeForecaster"]
 
-
-class SetartreeForecaster(BaseForecaster):
+class SetarForecaster(BaseForecaster):
     """
-    SETAR-Tree: A tree algorithm for global time series forecasting.
+    SETAR: A classic univariate forecasting algorithm.
 
-    This implementation is based on the paper "SETAR-Tree: a novel and accurate
-    tree algorithm for global time series forecasting" by Godahewa, R., et al. (2023).
+    SETAR (Self-Exciting Threshold Autoregressive) model is a time series
+    model that defines two or more regimes based on a particular lagged
+    value of the series itself, using a separate autoregressive model for
+    each regime.
+
+    This model works on a single time series. It finds an optimal lag and
+    a single threshold on that lag's value to switch between two different
+    linear autoregressive models.
+
+    This implementation is based on the logic from the `get_setar_forecasts`
+    function in the original paper's R code
+    (https://github.com/rakshitha123/SETAR_Trees).
 
     Parameters
     ----------
     lag : int, default=10
-        The number of past lags to use as features for forecasting.
-    horizon : int, default=1
-        The number of time steps ahead to forecast.
-    max_depth : int, default=10
-        The maximum depth of the tree.
-    stopping_criteria : {"lin_test", "error_imp", "both"}, default="both"
-        The criteria to use for stopping tree growth:
-        - "lin_test": Uses a statistical F-test for linearity.
-        - "error_imp": Uses a minimum error reduction threshold.
-        - "both": Uses both linearity test and error improvement.
-    significance : float, default=0.05
-        The initial significance level (alpha) for the linearity F-test.
-    significance_divider : int, default=2
-        The factor by which to divide the significance level at each tree depth.
-    error_threshold : float, default=0.03
-        The minimum percentage of error reduction required to make a split.
+        The maximum number of past lags to consider for both the AR models
+        and as the thresholding variable.
     """
 
-    _tags = {
-        "capability:multivariate": True,
-    }
-
-    def __init__(
-        self,
-        lag: int = 10,
-        horizon: int = 1,
-        max_depth: int = 10,
-        stopping_criteria: str = "both",
-        significance: float = 0.05,
-        significance_divider: int = 2,
-        error_threshold: float = 0.03,
-    ):
-        super().__init__(horizon=horizon, axis=1)
+    def __init__(self, lag: int = 10, horizon: int = 1):
+        super().__init__(horizon=horizon)
         self.lag = lag
-        self.max_depth = max_depth
-        self.stopping_criteria = stopping_criteria
-        self.significance = significance
-        self.significance_divider = significance_divider
-        self.error_threshold = error_threshold
-
-        # Attributes to be fitted
-        self.tree_ = {}
-        self.leaf_models_ = {}
-
-        # for in-sample prediction when y = None in predict()
+        self.model_ = None
         self._last_window = None
 
-    def _create_input_matrix(self, y: np.ndarray):
-        """Create an embedded matrix from a time series."""
-        n_series, n_timepoints = y.shape
-
-        # We need at least lag + 1 points to create one sample
-        if n_timepoints < self.lag + 1:
-            return None, None
-
+    def _create_input_matrix(self, y, lag_val):
+        """Create an embedded matrix for a specific lag."""
         X_list, y_list = [], []
-        for i in range(n_series):
-            series = y[i, :]
-            for j in range(len(series) - self.lag):
-                X_list.append(series[j : j + self.lag])
-                y_list.append(series[j + self.lag])
-
-        # The paper uses a convention of Lags 1, 2...
-        # we flip the columns to match the convention
+        for j in range(len(y) - lag_val):
+            X_list.append(y[j : j + lag_val])
+            y_list.append(y[j + lag_val])
+        # Columns are L_lag, ..., L1. We flip to get L1, ..., L_lag
         return np.fliplr(np.array(X_list)), np.array(y_list)
 
-    def _fit_pr_model(self, X, y):
-        """Fit a Pooled Regression (linear) model."""
-        model = LinearRegression()
-        model.fit(X, y)
-        return model
+    def _fit(self, y, exog=None):
+        """Fit the SETAR model to a single time series."""
+        self._last_window = y[-self.lag :].copy()
+        best_overall_sse = float("inf")
+        best_model_params = None
 
-    def _calculate_sse(self, model, X, y):
-        """Calculate the Sum of Squared Errors (SSE)."""
-        if len(y) == 0:
-            return 0
-        predictions = model.predict(X)
-        return np.sum((y - predictions) ** 2)
+        for _lag in range(self.lag, 0, -1):
+            if len(y) <= _lag:
+                continue
 
-    def _find_optimal_split(self, X, y):
-        """Find the best lag and threshold for a split."""
-        # currently brute-force grid search method
-        best_split = {"sse": float("inf")}
-        n_samples, n_features = X.shape
+            X, y_target = self._create_input_matrix(y, _lag)
+            if X.shape[0] < 2 * (_lag + 1):  # Need enough samples to fit two models
+                continue
 
-        for lag_idx in range(n_features):
-            thresholds = np.unique(X[:, lag_idx])
-            for t in thresholds:
-                left_indices = X[:, lag_idx] < t
-                right_indices = X[:, lag_idx] >= t
+            # Find the best threshold for the current lag `_lag`
+            # A deliberate simplification here to take L1; to be implemented
+            threshold_lag_idx = 0  # L1
 
+            best_threshold_sse = float("inf")
+            best_threshold_params = None
+
+            threshold_values = np.unique(X[:, threshold_lag_idx])
+            for t in threshold_values:
+                left_indices = X[:, threshold_lag_idx] < t
+                right_indices = X[:, threshold_lag_idx] >= t
+
+                # Ensure both child nodes are non-empty
                 if np.sum(left_indices) == 0 or np.sum(right_indices) == 0:
                     continue
 
-                X_left, y_left = X[left_indices], y[left_indices]
-                X_right, y_right = X[right_indices], y[right_indices]
+                # Fit a linear model to each regime
+                model_left = LinearRegression().fit(
+                    X[left_indices], y_target[left_indices]
+                )
+                model_right = LinearRegression().fit(
+                    X[right_indices], y_target[right_indices]
+                )
 
-                model_left = self._fit_pr_model(X_left, y_left)
-                model_right = self._fit_pr_model(X_right, y_right)
-
-                sse_left = self._calculate_sse(model_left, X_left, y_left)
-                sse_right = self._calculate_sse(model_right, X_right, y_right)
+                sse_left = np.sum(
+                    (model_left.predict(X[left_indices]) - y_target[left_indices]) ** 2
+                )
+                sse_right = np.sum(
+                    (model_right.predict(X[right_indices]) - y_target[right_indices])
+                    ** 2
+                )
                 total_sse = sse_left + sse_right
 
-                if total_sse < best_split["sse"]:
-                    best_split = {
-                        "sse": total_sse,
-                        "lag_idx": lag_idx,
+                if total_sse < best_threshold_sse:
+                    best_threshold_sse = total_sse
+                    best_threshold_params = {
                         "threshold": t,
-                        "left_indices": left_indices,
-                        "right_indices": right_indices,
-                    }
-        return best_split
-
-    def _check_linearity(self, parent_sse, child_sse, n_samples, current_alpha):
-        """Perform the F-test to check for remaining non-linearity."""
-        # Degrees of freedom for parent and child models
-        # df_parent = n_samples - self.lag - 1
-        df_child = n_samples - 2 * self.lag - 2
-
-        if df_child <= 0:
-            return False
-
-        f_stat = ((parent_sse - child_sse) / (self.lag + 1)) / (child_sse / df_child)
-        p_value = 1 - f.cdf(f_stat, self.lag + 1, df_child)
-
-        return p_value < current_alpha
-
-    def _check_error_improvement(self, parent_sse, child_sse):
-        """Check if the error reduction from splitting is sufficient."""
-        if parent_sse == 0:
-            return False
-        improvement = (parent_sse - child_sse) / parent_sse
-        return improvement >= self.error_threshold
-
-    def _fit(self, y, exog=None):
-        # store last `lag` for each series
-        self._last_window = y[:, -self.lag :].copy()
-
-        X, y_embedded = self._create_input_matrix(y)
-        if X is None:
-            # If not enough data, fit a single model on what's available
-            self.tree_ = {"is_leaf": True, "node_id": 0}
-            self.leaf_models_[0] = self._fit_pr_model(y[:, :-1], y[:, -1])
-            return self
-
-        current_alpha = self.significance
-
-        # Initialize the tree with a root node
-        self.tree_ = {0: {"X": X, "y": y_embedded, "is_leaf": False}}
-        node_queue = [0]
-        next_node_id = 1
-
-        for _depth in range(self.max_depth):
-            if not node_queue:
-                break
-
-            nodes_at_this_level = list(node_queue)
-            node_queue.clear()
-
-            for node_id in nodes_at_this_level:
-                node = self.tree_[node_id]
-
-                # Try to find the best split for the current node
-                best_split = self._find_optimal_split(node["X"], node["y"])
-
-                if best_split["sse"] == float("inf"):
-                    node["is_leaf"] = True
-                    continue
-
-                # --- Stopping Criteria ---
-                parent_model = self._fit_pr_model(node["X"], node["y"])
-                parent_sse = self._calculate_sse(parent_model, node["X"], node["y"])
-                child_sse = best_split["sse"]
-
-                is_good_split = False
-                if self.stopping_criteria == "lin_test":
-                    is_good_split = self._check_linearity(
-                        parent_sse, child_sse, len(node["y"]), current_alpha
-                    )
-                elif self.stopping_criteria == "error_imp":
-                    is_good_split = self._check_error_improvement(parent_sse, child_sse)
-                elif self.stopping_criteria == "both":
-                    is_good_split = self._check_linearity(
-                        parent_sse, child_sse, len(node["y"]), current_alpha
-                    ) and self._check_error_improvement(parent_sse, child_sse)
-
-                if is_good_split:
-                    node["split_info"] = {
-                        "lag_idx": best_split["lag_idx"],
-                        "threshold": best_split["threshold"],
+                        "model_left": model_left,
+                        "model_right": model_right,
                     }
 
-                    # Create left child
-                    left_id = next_node_id
-                    self.tree_[left_id] = {
-                        "X": node["X"][best_split["left_indices"]],
-                        "y": node["y"][best_split["left_indices"]],
-                        "is_leaf": False,
-                    }
-                    node["left_child"] = left_id
-                    node_queue.append(left_id)
-                    next_node_id += 1
+            if best_threshold_sse < best_overall_sse:
+                best_overall_sse = best_threshold_sse
+                best_model_params = best_threshold_params
+                best_model_params["lag_to_fit"] = _lag
+                best_model_params["threshold_lag_idx"] = threshold_lag_idx
 
-                    # Create right child
-                    right_id = next_node_id
-                    self.tree_[right_id] = {
-                        "X": node["X"][best_split["right_indices"]],
-                        "y": node["y"][best_split["right_indices"]],
-                        "is_leaf": False,
-                    }
-                    node["right_child"] = right_id
-                    node_queue.append(right_id)
-                    next_node_id += 1
-                else:
-                    node["is_leaf"] = True
-
-            # Decrease alpha for the next level
-            current_alpha /= self.significance_divider
-
-        # Fit models for all leaf nodes
-        for node_id, node in self.tree_.items():
-            if node["is_leaf"] or node.get("left_child") is None:
-                self.leaf_models_[node_id] = self._fit_pr_model(node["X"], node["y"])
-                node["is_leaf"] = True
-
+        if best_model_params:
+            # A good SETAR model was found
+            self.model_ = {"type": "setar", "params": best_model_params}
+        else:
+            # Fallback: fit a simple linear AR model
+            X, y_target = self._create_input_matrix(y, self.lag)
+            fallback_model = LinearRegression().fit(X, y_target)
+            self.model_ = {"type": "ar", "params": {"model": fallback_model}}
         return self
 
     def _predict(self, y=None, exog=None):
-        self._check_is_fitted()
-
-        # If y is not provided, we predict from the end of the training data
+        """Generate forecasts recursively."""
         if y is None:
-            history = self._last_window.flatten()
+            history = self._last_window
         else:
-            # Ensure y is 2D
-            if y.ndim == 1:
-                y = y.reshape(1, -1)
-            # We take the last 'lag' points of y for the initial prediction
-            history = y[0, -self.lag :]
+            history = y.flatten()[-self.lag :]
+
+        # Ensure history has the correct length for the model that was fitted
+        if self.model_["type"] == "setar":
+            history = history[-(self.model_["params"]["lag_to_fit"]) :]
+        else:
+            history = history[-self.lag :]
 
         predictions = []
-
         for _ in range(self.horizon):
-            # Find the leaf node for the current history
-            current_node_id = 0
-            while not self.tree_[current_node_id]["is_leaf"]:
-                node = self.tree_[current_node_id]
-                split_info = node["split_info"]
+            # Reshape history for prediction
+            history_2d = history.reshape(1, -1)
 
-                # Lags are flipped to match the paper's L1, L2... convention
-                lag_val = np.flip(history)[split_info["lag_idx"]]
+            if self.model_["type"] == "setar":
+                params = self.model_["params"]
+                threshold_val = history[-(params["threshold_lag_idx"] + 1)]
 
-                if lag_val < split_info["threshold"]:
-                    current_node_id = node["left_child"]
+                if threshold_val < params["threshold"]:
+                    model_to_use = params["model_left"]
                 else:
-                    current_node_id = node["right_child"]
+                    model_to_use = params["model_right"]
+                next_pred = model_to_use.predict(history_2d)[0]
+            else:  # 'ar'
+                model_to_use = self.model_["params"]["model"]
+                next_pred = model_to_use.predict(history_2d)[0]
 
-            # Predict using the leaf's model
-            leaf_model = self.leaf_models_[current_node_id]
-            next_pred = leaf_model.predict(history.reshape(1, -1))[0]
             predictions.append(next_pred)
-
-            # Update history for the next prediction
+            # Update history for the next recursive step
             history = np.append(history[1:], next_pred)
 
-        # Now I believe predict horizen steps forward is more natural
-        # than predict just one step at the horizen position...
-        # direct / recursive?
-        # return np.array(predictions[self.horizon - 1])
-        return np.array(predictions)
+        return np.array(predictions[self.horizon - 1])

@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 from sklearn.linear_model import LinearRegression
 
-from aeon.forecasting._setar import SetartreeForecaster
+from aeon.forecasting._setartree import SetartreeForecaster
 
 
 def test_create_input_matrix_too_short():
