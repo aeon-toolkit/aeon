@@ -205,13 +205,13 @@ class BaseForecaster(BaseSeriesEstimator):
         """
         Forecast ``prediction_horizon`` prediction using a single model from `y`.
 
-        This function implements the "recursive" forecasting strategy. This involves
-        a single model fit on y which is then used to make ``prediction_horizon``
-        ahead. By default, this is done by taking the prediction at step ``i`` and
-        feeding it back into the model to help predict for step ``i+1``. This method
-        can be overridden to change internally how this works, because there can be
-        variants. The basic contract of `recursive_forecast` is that `fit` is only
-        ever called once.
+        This function implements the iterative forecasting strategy also called
+        recursive or iterated. This involves a single model fit on y which is then
+        used to make ``prediction_horizon`` ahead. By default, this is done by taking
+        the prediction at step ``i`` and feeding it back into the model to help
+        predict for step ``i+1``. This method can be overridden to change internally
+        how this works, because there can be variants. The basic contract of
+        `iterative_forecast` is that `fit` is only ever called once.
 
         y : np.ndarray
             The time series to make forecasts about.
