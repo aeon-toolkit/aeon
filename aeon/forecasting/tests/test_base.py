@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from aeon.forecasting import NaiveForecaster
+from aeon.forecasting import NaiveForecaster, RegressionForecaster
 
 
 def test_base_forecaster():
@@ -39,3 +39,16 @@ def test_convert_y():
     f.set_tags(**{"y_inner_type": "pd.Series"})
     with pytest.raises(ValueError, match="Unsupported inner type"):
         f._convert_y(y, axis=1)
+
+
+def test_direct_forecast():
+    """Test direct forecasting."""
+    y = np.random.rand(50)
+    f = RegressionForecaster(window=10)
+    # Direct should be the same as setting horizon manually.
+    preds = f.direct_forecast(y, prediction_horizon=10)
+    assert isinstance(preds, np.ndarray) and len(preds) == 10
+    for i in range(1, 11):
+        f = RegressionForecaster(window=10, horizon=i)
+        p = f.forecast(y)
+        assert p == preds[i - 1]

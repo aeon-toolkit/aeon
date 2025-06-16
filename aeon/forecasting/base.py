@@ -146,11 +146,13 @@ class BaseForecaster(BaseSeriesEstimator):
 
     def direct_forecast(self, y, prediction_horizon):
         """
-        Forecast ``prediction_horizon`` using a separate fit for each horizon.
+        Make ``prediction_horizon`` ahead forecasts using a fit for each horizon.
 
-        Implements the direct strategy, fitting a separate model for each horizon.
-        Not all forecasters are capable of this. The ability to forecast on horizons
-        greater than 1 is indicated by the tag "capability:horizon".
+        This is commonly called the direct strategy. The forecaster is trained to
+        predict one ahead, then retrained to fit two ahead etc. Not all forecasters
+        are capable of being used with direct forecasting. The ability to
+        forecast on horizons greater than 1 is indicated by the tag
+        "capability:horizon". If this tag is false this function raises a value error.
 
         Parameters
         ----------
@@ -164,22 +166,36 @@ class BaseForecaster(BaseSeriesEstimator):
         predictions : np.ndarray
             An array of shape (steps_ahead,) containing the forecasts for each horizon.
 
-        Example
-        -------
-        >>> from aeon.forecasting import
+        Raises
+        ------
+        ValueError
+            if ``"capability:horizon`` is False
+
+        Examples
+        --------
+        >>> from aeon.forecasting import RegressionForecaster
+        >>> y = np.array([1.0, 2.0, 3.0, 4.0, 3.0, 2.0, 1.0, 2.0, 3.0, 4.0])
+        >>> f = RegressionForecaster(window=3)
+        >>> f.direct_forecast(y,2)
+        array([3., 2.])
         """
+        horizon = self.get_tag("capability:horizon")
+        if not horizon:
+            raise ValueError(
+                "This forecaster cannot be used with the direct strategy "
+                "because it cannot be trained with a horizon > 1"
+            )
         preds = np.zeros(prediction_horizon)
         for i in range(0, prediction_horizon):
             self.horizon = i + 1
-            preds[i] = self.forecast()
+            preds[i] = self.forecast(y)
         return preds
 
     def recursive_forecast(self, y, prediction_horizon):
         """
-        Forecast ``prediction_horizon`` prediction using a single model from `y`.
+        Forecast ``prediction_horizon`` prediction using a single model for on `y`.
 
-        This function implements the "direct" forecasting strategy, where a separate
-        forecasting model is trained for each horizon from 1 to ``steps_ahead``.
+        This function implements the "recursive" forecasting strategy.
 
         Parameters
         ----------
