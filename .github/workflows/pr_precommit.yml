@@ -60,4 +60,3 @@ jobs:
         with:
           commit_message: Automatic `pre-commit` fixes
           commit_user_name: aeon-actions-bot[bot]
-          create_branch: false
