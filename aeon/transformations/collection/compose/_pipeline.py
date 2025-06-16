@@ -49,11 +49,10 @@ class CollectionTransformerPipeline(BaseCollectionPipeline, BaseCollectionTransf
     Examples
     --------
     >>> from aeon.transformations.collection import Resizer
-    >>> from aeon.transformations.collection.feature_based import (
-    ...     SevenNumberSummary)
+    >>> from aeon.transformations.collection.feature_based import SevenNumberSummary
     >>> from aeon.datasets import load_unit_test
     >>> from aeon.transformations.collection.compose import (
-    ...     CollectionTransformerPipeline)
+    ...                                                 CollectionTransformerPipeline)
     >>> X, y = load_unit_test(split="train")
     >>> pipeline = CollectionTransformerPipeline(
     ...     [Resizer(length=10), SevenNumberSummary()]
