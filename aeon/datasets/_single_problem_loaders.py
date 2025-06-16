@@ -381,10 +381,10 @@ def load_pickup_gesture_wiimoteZ(split=None):
 
 # TODO: remove in v1.3.0
 @deprecated(
-    version="1.1.0",
+    version="1.2.0",
     reason="load_plaid and the PLAID dataset will be removed in version 1.3. It has "
     "been replaced by a smaller unequal length univariate problem "
-    "PickupGestureWiimote. ",
+    "PickupGestureWiimoteZ.",
     category=FutureWarning,
 )
 def load_plaid(split=None):
