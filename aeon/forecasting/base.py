@@ -157,19 +157,18 @@ class BaseForecaster(BaseSeriesEstimator):
         Parameters
         ----------
         y : np.ndarray
-            The univariate time series to be forecast.
+            The time series to make forecasts about.
         prediction_horizon : int
             The number of future time steps to forecast.
 
-        Returns
-        -------
         predictions : np.ndarray
-            An array of shape (steps_ahead,) containing the forecasts for each horizon.
+            An array of shape `(prediction_horizon,)` containing the forecasts for
+            each horizon.
 
         Raises
         ------
         ValueError
-            if ``"capability:horizon`` is False
+            if ``"capability:horizon`` is False or `prediction_horizon` less than 1.
 
         Examples
         --------
@@ -183,8 +182,13 @@ class BaseForecaster(BaseSeriesEstimator):
         if not horizon:
             raise ValueError(
                 "This forecaster cannot be used with the direct strategy "
-                "because it cannot be trained with a horizon > 1"
+                "because it cannot be trained with a horizon > 1."
             )
+        if prediction_horizon < 1:
+            raise ValueError(
+                "The `prediction_horizon` must be greater than or equal to 1."
+            )
+
         preds = np.zeros(prediction_horizon)
         for i in range(0, prediction_horizon):
             self.horizon = i + 1
@@ -193,22 +197,44 @@ class BaseForecaster(BaseSeriesEstimator):
 
     def recursive_forecast(self, y, prediction_horizon):
         """
-        Forecast ``prediction_horizon`` prediction using a single model for on `y`.
+        Forecast ``prediction_horizon`` prediction using a single model from `y`.
 
-        This function implements the "recursive" forecasting strategy.
+        This function implements the "recursive" forecasting strategy. This involves
+        a single model fit on y which is then used to make ``prediction_horizon``
+        ahead. By default, this is done by taking the prediction at step ``i`` and
+        feeding it back into the model to help predict for step ``i+1``. This method
+        can be overridden to change internally how this works, because there can be
+        variants. The basic contract of `recursive_forecast` is that `fit` is only
+        ever called once.
 
-        Parameters
-        ----------
         y : np.ndarray
-            The univariate time series to be forecast.
-        steps_ahead : int
+            The time series to make forecasts about.
+        prediction_horizon : int
             The number of future time steps to forecast.
 
         Returns
         -------
         predictions : np.ndarray
-            An array of shape (steps_ahead,) containing the forecasts for each horizon.
+            An array of shape `(prediction_horizon,)` containing the forecasts for
+            each horizon.
+
+        Raises
+        ------
+        ValueError
+            if prediction_horizon` less than 1.
+
+        Examples
+        --------
+        >>> from aeon.forecasting import RegressionForecaster
+        >>> y = np.array([1.0, 2.0, 3.0, 4.0, 3.0, 2.0, 1.0, 2.0, 3.0, 4.0])
+        >>> f = RegressionForecaster(window=3)
+        >>> f.recursive_forecast(y,2)
+        array([3., 2.])
         """
+        if prediction_horizon < 1:
+            raise ValueError(
+                "The `prediction_horizon` must be greater than or equal to 1."
+            )
         preds = np.zeros(prediction_horizon)
         self.fit(y)
         for i in range(0, prediction_horizon):
