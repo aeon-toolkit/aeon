@@ -21,6 +21,7 @@ from aeon.classification.deep_learning.base import BaseDeepClassifier
 from aeon.classification.early_classification import BaseEarlyClassifier
 from aeon.clustering import BaseClusterer
 from aeon.clustering.deep_learning.base import BaseDeepClusterer
+from aeon.forecasting import BaseForecaster
 from aeon.regression import BaseRegressor
 from aeon.regression.deep_learning.base import BaseDeepRegressor
 from aeon.segmentation import BaseSegmenter
@@ -39,6 +40,9 @@ from aeon.testing.estimator_checking._yield_collection_anomaly_detection_checks 
 )
 from aeon.testing.estimator_checking._yield_early_classification_checks import (
     _yield_early_classification_checks,
+)
+from aeon.testing.estimator_checking._yield_forecasting_checks import (
+    _yield_forecasting_checks,
 )
 from aeon.testing.estimator_checking._yield_multithreading_checks import (
     _yield_multithreading_checks,
@@ -155,6 +159,11 @@ def _yield_all_aeon_checks(
 
     if issubclass(estimator_class, BaseCollectionAnomalyDetector):
         yield from _yield_collection_anomaly_detection_checks(
+            estimator_class, estimator_instances, datatypes
+        )
+
+    if issubclass(estimator_class, BaseForecaster):
+        yield from _yield_forecasting_checks(
             estimator_class, estimator_instances, datatypes
         )
 
