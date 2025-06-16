@@ -615,7 +615,7 @@ def _sax(
     )
     global_std = np.std(a)
     if global_std == 0:
-        return np.zeros((n_windows, word_length), dtype=np.uint8)
+        return np.zeros((n_windows, word_length), dtype=np.uint16)
     seg_size = window_size // word_length
     n_windows = _get_n_windows(
         sequence_size=a.size, window_size=window_size, dilation=dilation, stride=stride
@@ -646,7 +646,7 @@ def _sax(
                 sigma_global=global_std,
                 sigma_threshold=min_window_to_signal_std_ratio,
             )
-    return np.digitize(out, bins).astype(np.uint8)
+    return np.digitize(out, bins).astype(np.uint16)
 
 
 @nb.njit(fastmath=True, cache=True)
