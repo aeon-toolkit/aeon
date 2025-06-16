@@ -58,7 +58,7 @@ def test_recursive_forecast():
     """Test recursive forecasting."""
     y = np.random.rand(50)
     f = RegressionForecaster(window=4)
-    preds = f.recursive_forecast(y, prediction_horizon=10)
+    preds = f.iterative_forecast(y, prediction_horizon=10)
     assert isinstance(preds, np.ndarray) and len(preds) == 10
     f.fit(y)
     for i in range(0, 10):

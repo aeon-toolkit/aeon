@@ -201,7 +201,7 @@ class BaseForecaster(BaseSeriesEstimator):
             preds[i] = self.forecast(y)
         return preds
 
-    def recursive_forecast(self, y, prediction_horizon):
+    def iterative_forecast(self, y, prediction_horizon):
         """
         Forecast ``prediction_horizon`` prediction using a single model from `y`.
 
@@ -234,7 +234,7 @@ class BaseForecaster(BaseSeriesEstimator):
         >>> from aeon.forecasting import RegressionForecaster
         >>> y = np.array([1.0, 2.0, 3.0, 4.0, 3.0, 2.0, 1.0, 2.0, 3.0, 4.0])
         >>> f = RegressionForecaster(window=3)
-        >>> f.recursive_forecast(y,2)
+        >>> f.iterative_forecast(y,2)
         array([3., 2.])
         """
         if prediction_horizon < 1:
