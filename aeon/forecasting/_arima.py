@@ -36,10 +36,12 @@ class ARIMAForecaster(BaseForecaster):
         Residual errors from the fitted model.
     aic_ : float
         Akaike Information Criterion for the fitted model.
+    c_ : float, default = 0
+        Intercept term.
     phi_ : np.ndarray
-        Coefficients for the non-seasonal autoregressive terms (length p).
+        Coefficients for autoregressive terms (length p).
     theta_ : np.ndarray
-        Coefficients for the non-seasonal moving average terms (length q).
+        Coefficients for moving average terms (length q).
 
     References
     ----------
@@ -53,9 +55,7 @@ class ARIMAForecaster(BaseForecaster):
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()
     >>> forecaster = ARIMAForecaster(p=2,d=1)
-    >>> forecaster.fit(y)
-    ARIMAForecaster(d=1, p=2)
-    >>> forecaster.predict()
+    >>> forecaster.forecast(y)
     474.49449...
     """
 
@@ -70,13 +70,13 @@ class ARIMAForecaster(BaseForecaster):
         self.use_constant = use_constant
         self.phi_ = 0
         self.theta_ = 0
+        self.c_ = 0
         self._series = []
         self._differenced_series = []
         self.residuals_ = []
         self.fitted_values_ = []
         self.aic_ = 0
         self._model = []
-        self._c = 0
         self._parameters = []
         super().__init__(horizon=1, axis=1)
 
@@ -100,6 +100,7 @@ class ARIMAForecaster(BaseForecaster):
             (1 if self.use_constant else 0, self.p, self.q), dtype=np.int32
         )
         self._differenced_series = np.diff(self._series, n=self.d)
+
         (self._parameters, self.aic_) = nelder_mead(
             _arima_model_wrapper,
             np.sum(self._model[:3]),
@@ -137,10 +138,14 @@ class ARIMAForecaster(BaseForecaster):
         """
         if y is not None:
             series = y.squeeze()
-        else:
-            series = self._series
-        n = len(series)
-        differenced_series = np.diff(series, n=self.d)
+            # Difference the series using numpy
+            differenced_series = np.diff(self._series, n=self.d)
+            pred = _single_forecast(differenced_series, self.c_, self.phi_, self.theta_)
+            forecast = pred + series[-self.d :].sum() if self.d > 0 else pred
+            return forecast
+
+        n = len(self._series)
+        differenced_series = np.diff(self._series, n=self.d)
         _, _, predicted_values = _arima_model(
             self._parameters,
             _calc_arima,
@@ -242,3 +247,27 @@ def _calc_arima(data, model, t, formatted_params, residuals, expect_full_history
     c = formatted_params[0][0] if model[0] else 0
     y_hat = c + ar_term + ma_term
     return y_hat
+
+
+@njit(cache=True, fastmath=True)
+def _single_forecast(series, c, phi, theta):
+    """Calculate the ARIMA forecast with fixed model.
+
+    This is equivalent to filter in statsmodels.
+    """
+    p = len(phi)
+    q = len(theta)
+    n = len(series)
+    residuals = np.zeros(n)
+    max_lag = max(p, q)
+    # Compute in-sample residuals
+    for t in range(max_lag, n):
+        ar_part = np.dot(phi, series[t - np.arange(1, p + 1)]) if p > 0 else 0.0
+        ma_part = np.dot(theta, residuals[t - np.arange(1, q + 1)]) if q > 0 else 0.0
+        pred = c + ar_part + ma_part
+        residuals[t] = series[t] - pred
+    # Forecast next value using most recent p values and q residuals
+    ar_forecast = np.dot(phi, series[-p:][::-1]) if p > 0 else 0.0
+    ma_forecast = np.dot(theta, residuals[-q:][::-1]) if q > 0 else 0.0
+    f = c + ar_forecast + ma_forecast
+    return f
