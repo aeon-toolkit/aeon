@@ -74,10 +74,10 @@ class RegressionForecaster(BaseForecaster):
         # Ignore the final horizon values: need to store these for pred with empty y
         X = X[: -self.horizon]
         # Extract y
-        y = y[self.window + self.horizon - 1 :]
+        y_train = y[self.window + self.horizon - 1 :]
         self.last_ = y[-self.window :]
         self.last_ = self.last_.reshape(1, -1)
-        self.regressor_.fit(X=X, y=y)
+        self.regressor_.fit(X=X, y=y_train)
         return self
 
     def _predict(self, y=None, exog=None):
