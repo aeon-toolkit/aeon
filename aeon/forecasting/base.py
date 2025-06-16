@@ -8,6 +8,7 @@ __maintainer__ = ["TonyBagnall"]
 __all__ = ["BaseForecaster"]
 
 from abc import abstractmethod
+from typing import final
 
 import numpy as np
 import pandas as pd
@@ -46,6 +47,7 @@ class BaseForecaster(BaseSeriesEstimator):
         self.meta_ = None  # Meta data related to y on the last fit
         super().__init__(axis)
 
+    @final
     def fit(self, y, exog=None):
         """Fit forecaster to series y.
 
@@ -89,6 +91,7 @@ class BaseForecaster(BaseSeriesEstimator):
     @abstractmethod
     def _fit(self, y, exog=None): ...
 
+    @final
     def predict(self, y=None, exog=None):
         """Predict the next horizon steps ahead.
 
@@ -117,6 +120,7 @@ class BaseForecaster(BaseSeriesEstimator):
     @abstractmethod
     def _predict(self, y=None, exog=None): ...
 
+    @final
     def forecast(self, y, exog=None):
         """Forecast the next horizon steps ahead.
 
@@ -144,6 +148,7 @@ class BaseForecaster(BaseSeriesEstimator):
         self.fit(y, exog)
         return self._predict(y, exog)
 
+    @final
     def direct_forecast(self, y, prediction_horizon):
         """
         Make ``prediction_horizon`` ahead forecasts using a fit for each horizon.
@@ -152,7 +157,8 @@ class BaseForecaster(BaseSeriesEstimator):
         predict one ahead, then retrained to fit two ahead etc. Not all forecasters
         are capable of being used with direct forecasting. The ability to
         forecast on horizons greater than 1 is indicated by the tag
-        "capability:horizon". If this tag is false this function raises a value error.
+        "capability:horizon". If this tag is false this function raises a value
+        error. This method cannot be overridden.
 
         Parameters
         ----------
