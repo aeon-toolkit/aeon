@@ -144,36 +144,39 @@ class BaseForecaster(BaseSeriesEstimator):
         self.fit(y, exog)
         return self._predict(y, exog)
 
-    def direct_forecast(self, y, steps_ahead):
-        """BBBBBB."""
+    def direct_forecast(self, y, prediction_horizon):
         """
-        Forecast ``steps_ahead`` using a BaseForecaster instance for each horizon.
+        Forecast ``prediction_horizon`` using a separate fit for each horizon.
 
-        Implements the direct strategy, cloning the given estimator and setting its
-        horizon.
+        Implements the direct strategy, fitting a separate model for each horizon.
+        Not all forecasters are capable of this. The ability to forecast on horizons
+        greater than 1 is indicated by the tag "capability:horizon".
 
         Parameters
         ----------
         y : np.ndarray
             The univariate time series to be forecast.
-        steps_ahead : int
+        prediction_horizon : int
             The number of future time steps to forecast.
 
         Returns
         -------
         predictions : np.ndarray
             An array of shape (steps_ahead,) containing the forecasts for each horizon.
+
+        Example
+        -------
+        >>> from aeon.forecasting import
         """
-        # Check horizon tag here
-        preds = np.zeros(steps_ahead)
-        for i in range(0, steps_ahead):
+        preds = np.zeros(prediction_horizon)
+        for i in range(0, prediction_horizon):
             self.horizon = i + 1
-            preds[i - 1] = self.forecast()
+            preds[i] = self.forecast()
         return preds
 
-    def recursive_forecast(self, y, steps_ahead):
+    def recursive_forecast(self, y, prediction_horizon):
         """
-        Forecast ``steps_ahead`` predictions.
+        Forecast ``prediction_horizon`` prediction using a single model from `y`.
 
         This function implements the "direct" forecasting strategy, where a separate
         forecasting model is trained for each horizon from 1 to ``steps_ahead``.
@@ -184,17 +187,15 @@ class BaseForecaster(BaseSeriesEstimator):
             The univariate time series to be forecast.
         steps_ahead : int
             The number of future time steps to forecast.
-        exog : array-like, optional
-            Optional exogenous variables to use for forecasting.
 
         Returns
         -------
         predictions : np.ndarray
             An array of shape (steps_ahead,) containing the forecasts for each horizon.
         """
-        preds = np.zeros(steps_ahead)
+        preds = np.zeros(prediction_horizon)
         self.fit(y)
-        for i in range(0, steps_ahead):
+        for i in range(0, prediction_horizon):
             preds[i] = self.predict(y)
             y = np.append(y, preds[i])
         return preds
