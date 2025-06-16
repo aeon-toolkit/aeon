@@ -48,7 +48,20 @@ def test_direct_forecast():
     # Direct should be the same as setting horizon manually.
     preds = f.direct_forecast(y, prediction_horizon=10)
     assert isinstance(preds, np.ndarray) and len(preds) == 10
-    for i in range(1, 11):
-        f = RegressionForecaster(window=10, horizon=i)
+    for i in range(0, 10):
+        f = RegressionForecaster(window=10, horizon=i + 1)
         p = f.forecast(y)
-        assert p == preds[i - 1]
+        assert p == preds[i]
+
+
+def test_recursive_forecast():
+    """Test recursive forecasting."""
+    y = np.random.rand(50)
+    f = RegressionForecaster(window=4)
+    preds = f.recursive_forecast(y, prediction_horizon=10)
+    assert isinstance(preds, np.ndarray) and len(preds) == 10
+    f.fit(y)
+    for i in range(0, 10):
+        p = f.predict(y)
+        assert p == preds[i]
+        y = np.append(y, p)
