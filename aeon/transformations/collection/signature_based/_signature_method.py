@@ -43,7 +43,6 @@ class SignatureTransformer(BaseCollectionTransformer):
         "output_data_type": "Tabular",
         "capability:multivariate": True,
         "python_dependencies": "esig",
-        "python_version": "<3.11",
     }
 
     def __init__(
