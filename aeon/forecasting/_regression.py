@@ -73,7 +73,7 @@ class RegressionForecaster(BaseForecaster):
         X = np.lib.stride_tricks.sliding_window_view(y, window_shape=self.window)
         # Ignore the final horizon values: need to store these for pred with empty y
         X = X[: -self.horizon]
-        # Extract y
+        # Extract y_train
         y_train = y[self.window + self.horizon - 1 :]
         self.last_ = y[-self.window :]
         self.last_ = self.last_.reshape(1, -1)
