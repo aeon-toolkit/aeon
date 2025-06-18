@@ -68,6 +68,8 @@ class STRAY(BaseSeriesAnomalyDetector):
         "capability:multivariate": True,
         "capability:missing_values": True,
         "X_inner_type": "np.ndarray",
+        "anomaly_output_type": "binary",
+        "learning_type:unsupervised": True,
     }
 
     def __init__(

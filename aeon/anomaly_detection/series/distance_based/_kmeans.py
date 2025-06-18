@@ -81,6 +81,9 @@ class KMeansAD(BaseSeriesAnomalyDetector):
         "capability:multivariate": True,
         "capability:missing_values": False,
         "fit_is_empty": False,
+        "anomaly_output_type": "anomaly_scores",
+        "learning_type:unsupervised": True,
+        "learning_type:semi_supervised": True,
     }
 
     def __init__(
@@ -168,14 +171,15 @@ class KMeansAD(BaseSeriesAnomalyDetector):
         ----------
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return ``"default"`` set.
 
         Returns
         -------
         dict or list of dict, default={}
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid
+            test instance.
         """
         return {
             "n_clusters": 5,

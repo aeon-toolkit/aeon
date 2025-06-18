@@ -16,6 +16,9 @@ class BaseAnomalyDetector(BaseAeonEstimator):
     _tags = {
         "fit_is_empty": True,
         "requires_y": False,
+        "learning_type:unsupervised": False,
+        "learning_type:semi_supervised": False,
+        "learning_type:supervised": False,
     }
 
     def __init__(self):
@@ -64,7 +67,8 @@ class BaseAnomalyDetector(BaseAeonEstimator):
         -------
         np.ndarray
             A boolean, int or float array of length len(X), where each element indicates
-            whether the corresponding subsequence is anomalous or its anomaly score.
+            whether the corresponding subsequence/case is anomalous or its anomaly
+            score.
         """
         ...
 
@@ -84,6 +88,7 @@ class BaseAnomalyDetector(BaseAeonEstimator):
         -------
         np.ndarray
             A boolean, int or float array of length len(X), where each element indicates
-            whether the corresponding subsequence is anomalous or its anomaly score.
+            whether the corresponding subsequence/case is anomalous or its anomaly
+            score.
         """
         ...

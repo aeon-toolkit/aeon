@@ -24,9 +24,9 @@ Collection anomaly detectors
     :toctree: auto_generated/
     :template: class.rst
 
-    BaseCollectionAnomalyDetector
     ClassificationAdapter
     OutlierDetectionAdapter
+    BaseCollectionAnomalyDetector
 
 Series anomaly detectors
 ------------------------
@@ -45,7 +45,6 @@ Distance-based
     LeftSTAMPi
     LOF
     MERLIN
-    OneClassSVM
     STOMP
     ROCKAD
 
@@ -71,6 +70,7 @@ Outlier-Detection
     :template: class.rst
 
     IsolationForest
+    OneClassSVM
     STRAY
 
 Adapters

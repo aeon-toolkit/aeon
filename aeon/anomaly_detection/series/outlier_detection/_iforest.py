@@ -16,15 +16,15 @@ class IsolationForest(PyODAdapter):
 
     This class implements the Isolation Forest algorithm for anomaly detection
     using PyODAdadpter to be used in the aeon framework. All parameters are passed to
-    the PyOD model ``IForest`` except for `window_size` and `stride`, which are used to
-    construct the sliding windows.
+    the PyOD model ``IForest`` except for ``window_size`` and ``stride``,
+    which are used to construct the sliding windows.
 
     The documentation for parameters has been adapted from the
     [PyOD documentation](https://pyod.readthedocs.io/en/latest/pyod.models.html#id405).
-    Here, `X` refers to the set of sliding windows extracted from the time series
+    Here, ``X`` refers to the set of sliding windows extracted from the time series
     using :func:`aeon.utils.windowing.sliding_windows` with the parameters
-    ``window_size`` and ``stride``. The internal `X` has the shape
-    `(n_windows, window_size * n_channels)`.
+    ``window_size`` and ``stride``. The internal ``X`` has the shape
+    ``(n_windows, window_size * n_channels)``.
 
     Parameters
     ----------
@@ -34,9 +34,9 @@ class IsolationForest(PyODAdapter):
     max_samples : int, float or "auto", default="auto"
         The number of samples to draw from X to train each base estimator.
 
-            - If int, then draw `max_samples` samples.
-            - If float, then draw `max_samples * X.shape[0]` samples.
-            - If "auto", then `max_samples=min(256, n_samples)`.
+            - If ``int``, then draw ``max_samples`` samples.
+            - If ``float``, then draw ``max_samples * X.shape[0]`` samples.
+            - If ``"auto"``, then ``max_samples=min(256, n_samples)``.
 
         If max_samples is larger than the number of samples provided,
         all samples will be used for all trees (no sampling).
@@ -44,24 +44,24 @@ class IsolationForest(PyODAdapter):
     max_features : int or float, default=1.0
         The number of features to draw from X to train each base estimator.
 
-            - If int, then draw `max_features` features.
-            - If float, then draw `max_features * X.shape[1]` features.
+            - If ``int``, then draw ``max_features`` features.
+            - If ``float``, then draw ``max_features * X.shape[1]`` features.
 
     bootstrap : bool, default=False
-        If True, individual trees are fit on random subsets of the training
+        If ``True``, individual trees are fit on random subsets of the training
         data sampled with replacement. If False, sampling without replacement
         is performed.
 
     n_jobs : int, default=1
-        The number of jobs to run in parallel for both `fit` and `predict`.
-        If -1, then the number of jobs is set to the number of cores.
+        The number of jobs to run in parallel for both ``fit`` and ``predict``.
+        If ``-1``, then the number of jobs is set to the number of cores.
 
 
     random_state : int, np.RandomState or None, default=None
-        If int, random_state is the seed used by the random number generator;
+        If ``int``, random_state is the seed used by the random number generator;
         If RandomState instance, random_state is the random number generator;
-        If None, the random number generator is the RandomState instance used
-        by `np.random`.
+        If ``None``, the random number generator is the RandomState instance used
+        by ``np.random``.
 
     verbose : int, default=0
         Controls the verbosity of the tree building process.
@@ -81,6 +81,9 @@ class IsolationForest(PyODAdapter):
         "capability:multithreading": True,
         "fit_is_empty": False,
         "python_dependencies": ["pyod"],
+        "anomaly_output_type": "anomaly_scores",
+        "learning_type:unsupervised": True,
+        "learning_type:semi_supervised": True,
     }
 
     def __init__(
@@ -135,14 +138,14 @@ class IsolationForest(PyODAdapter):
         ----------
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return ``"default"`` set.
 
         Returns
         -------
         params : dict
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `IsolationForest(**params)` creates a valid test instance.
+            ``IsolationForest(**params)`` creates a valid test instance.
         """
         return {
             "n_estimators": 10,

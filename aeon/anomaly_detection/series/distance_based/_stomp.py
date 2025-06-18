@@ -38,7 +38,7 @@ class STOMP(BaseSeriesAnomalyDetector):
     Examples
     --------
     >>> import numpy as np
-    >>> from aeon.anomaly_detection.distance_based import STOMP  # doctest: +SKIP
+    >>> from aeon.anomaly_detection.series.distance_based import STOMP
     >>> X = np.random.default_rng(42).random((10, 2), dtype=np.float64)
     >>> detector = STOMP(X, window_size=2)  # doctest: +SKIP
     >>> detector.fit_predict(X, axis=0)  # doctest: +SKIP
@@ -61,6 +61,8 @@ class STOMP(BaseSeriesAnomalyDetector):
         "capability:missing_values": False,
         "fit_is_empty": True,
         "python_dependencies": ["stumpy"],
+        "anomaly_output_type": "anomaly_scores",
+        "learning_type:unsupervised": True,
     }
 
     def __init__(
@@ -115,14 +117,15 @@ class STOMP(BaseSeriesAnomalyDetector):
         ----------
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return ``"default"`` set.
 
         Returns
         -------
         params : dict or list of dict, default={}
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid
+            test instance.
         """
         return {
             "window_size": 10,

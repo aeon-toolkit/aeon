@@ -19,6 +19,9 @@ class MockAnomalyDetector(BaseSeriesAnomalyDetector):
     _tags = {
         "capability:missing_values": True,
         "capability:multivariate": True,
+        "anomaly_output_type": "anomaly_scores",
+        "learning_type:unsupervised": True,
+        "learning_type:semi_supervised": True,
     }
 
     def __init__(self):

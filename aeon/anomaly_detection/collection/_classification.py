@@ -32,6 +32,8 @@ class ClassificationAdapter(BaseCollectionAnomalyDetector):
     _tags = {
         "fit_is_empty": False,
         "requires_y": True,
+        "anomaly_output_type": "binary",
+        "learning_type:supervised": True,
     }
 
     def __init__(self, classifier, random_state=None):

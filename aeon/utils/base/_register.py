@@ -25,7 +25,9 @@ from aeon.clustering.base import BaseClusterer
 from aeon.forecasting.base import BaseForecaster
 from aeon.regression.base import BaseRegressor
 from aeon.segmentation.base import BaseSegmenter
-from aeon.similarity_search.base import BaseSimilaritySearch
+from aeon.similarity_search._base import BaseSimilaritySearch
+from aeon.similarity_search.collection import BaseCollectionSimilaritySearch
+from aeon.similarity_search.series import BaseSeriesSimilaritySearch
 from aeon.transformations.base import BaseTransformer
 from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.transformations.series import BaseSeriesTransformer
@@ -38,8 +40,10 @@ BASE_CLASS_REGISTER = {
     "series-estimator": BaseSeriesEstimator,
     "transformer": BaseTransformer,
     "anomaly-detector": BaseAnomalyDetector,
+    "similarity-search": BaseSimilaritySearch,
     # estimator types
     "collection-anomaly-detector": BaseCollectionAnomalyDetector,
+    "collection-similarity-search": BaseCollectionSimilaritySearch,
     "collection-transformer": BaseCollectionTransformer,
     "classifier": BaseClassifier,
     "clusterer": BaseClusterer,
@@ -47,8 +51,8 @@ BASE_CLASS_REGISTER = {
     "forecaster": BaseForecaster,
     "regressor": BaseRegressor,
     "segmenter": BaseSegmenter,
-    "similarity_searcher": BaseSimilaritySearch,
     "series-anomaly-detector": BaseSeriesAnomalyDetector,
+    "series-similarity-search": BaseSeriesSimilaritySearch,
     "series-transformer": BaseSeriesTransformer,
 }
 
@@ -62,5 +66,6 @@ VALID_ESTIMATOR_BASES = {
         "series-estimator",
         "transformer",
         "anomaly-detector",
+        "similarity-search",
     }
 }

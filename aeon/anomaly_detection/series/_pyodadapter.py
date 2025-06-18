@@ -40,9 +40,9 @@ class PyODAdapter(BaseSeriesAnomalyDetector):
     target time series with the same number of dimensions. The reference (or training)
     time series does not need to be clean for most PyOD models. However, knowledge in
     form of anomaly labels about the potential existing anomalies in the reference time
-    series are not used during the fitting process. Use `fit` to fit the model on the
-    reference time series and `predict` to detect anomalies in the target time series.
-    For unsupervised anomaly detection, use `fit_predict` directly on the target time
+    series are not used during the fitting process. Use ``fit`` to fit the model on the
+    reference time series and ``predict`` to detect anomalies in the target time series.
+    For unsupervised anomaly detection, use ``fit_predict`` directly on the target time
     series.
 
 
@@ -75,6 +75,9 @@ class PyODAdapter(BaseSeriesAnomalyDetector):
         "capability:missing_values": False,
         "fit_is_empty": False,
         "python_dependencies": ["pyod"],
+        "anomaly_output_type": "anomaly_scores",
+        "learning_type:unsupervised": True,
+        "learning_type:semi_supervised": True,
     }
 
     def __init__(
@@ -157,14 +160,15 @@ class PyODAdapter(BaseSeriesAnomalyDetector):
         ----------
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return ``"default"`` set.
 
         Returns
         -------
         params : dict or list of dict, default={}
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid
+            test instance.
         """
         _check_soft_dependencies(*cls._tags["python_dependencies"])
 
