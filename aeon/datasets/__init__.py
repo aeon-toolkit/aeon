@@ -16,7 +16,10 @@ __all__ = [
     "load_human_activity_segmentation_datasets",
     # Write functions
     "write_to_ts_file",
+    "write_to_tsf_file",
     "write_to_arff_file",
+    "write_regression_dataset",
+    "write_forecasting_dataset",
     # Single problem loaders
     "load_airline",
     "load_arrow_head",
@@ -57,7 +60,13 @@ from aeon.datasets._data_loaders import (
     load_from_tsv_file,
     load_regression,
 )
-from aeon.datasets._data_writers import write_to_arff_file, write_to_ts_file
+from aeon.datasets._data_writers import (
+    write_forecasting_dataset,
+    write_regression_dataset,
+    write_to_arff_file,
+    write_to_ts_file,
+    write_to_tsf_file,
+)
 from aeon.datasets._single_problem_loaders import (
     load_acsf1,
     load_airline,
