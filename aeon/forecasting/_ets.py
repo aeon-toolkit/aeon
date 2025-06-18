@@ -44,8 +44,6 @@ class ETSForecaster(BaseForecaster):
         Seasonal smoothing parameter.
     phi : float, default=0.99
         Trend damping parameter (used only for damped trend models).
-    horizon : int, default=1
-        Forecasting horizon (number of time steps ahead to predict).
 
     Attributes
     ----------
