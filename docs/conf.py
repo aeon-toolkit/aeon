@@ -82,14 +82,29 @@ exclude_patterns = [
     ".DS_Store",
 ]
 
+# A boolean that decides whether module names are prepended to all object names (for
+# object types where a “module” of some kind is defined), e.g. for py:function
+# directives.
 add_module_names = False
 
+# -- numpydoc --
+
 # see http://stackoverflow.com/q/12206334/562769
+#     https://github.com/numpy/numpydoc/issues/69
+# Lots of warnings
 numpydoc_show_class_members = True
-# this is needed for some reason...
-# see https://github.com/numpy/numpydoc/issues/69
+
+# Whether to create a Sphinx table of contents for the lists of class methods and
+# attributes. If a table of contents is made, Sphinx expects each entry to have a
+# separate page.
+# We remove the toctree for API for speed and do not want separate pages for this
 numpydoc_class_members_toctree = False
 
+# Whether to produce plot:: directives for Examples sections that contain
+# 'import matplotlib' or 'from matplotlib import'.
+numpydoc_use_plots = True
+
+# This will produce warnings for docstring errors.
 numpydoc_validation_checks = {
     "all",
     "GL01",  # docstring starts after opening quotes
@@ -97,6 +112,8 @@ numpydoc_validation_checks = {
     "SA01",  # no see also section
     "EX01",  # no examples
 }
+
+# -- ? --
 
 # generate autosummary even if no references
 autosummary_generate = True
