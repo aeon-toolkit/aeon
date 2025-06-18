@@ -1,4 +1,8 @@
-"""Naive Forecaster."""
+"""Naive forecaster with multiple strategies."""
+
+__maintainer__ = []
+__all__ = ["NaiveForecaster"]
+
 
 import numpy as np
 
@@ -14,8 +18,8 @@ class NaiveForecaster(BaseForecaster):
     strategy : str, default="last"
         The forecasting strategy to use.
         Options: "last", "mean", "seasonal_last".
-            - "last" predicts the last seen value in training for all horizon steps.
-            - "mean": predicts the mean of the training series for all horizon steps.
+            - "last" predicts the last value of the input series for all horizon steps.
+            - "mean": predicts the mean of the input series for all horizon steps.
             - "seasonal_last": predicts the last season value in the training series.
               Returns np.nan if the effective seasonal data is empty.
     seasonal_period : int, default=1
@@ -30,7 +34,6 @@ class NaiveForecaster(BaseForecaster):
         super().__init__(horizon=horizon, axis=1)
 
     def _fit(self, y, exog=None):
-        """Fit Naive forecaster to training data `y`."""
         y_squeezed = y.squeeze()
 
         if self.strategy == "last":
@@ -47,15 +50,26 @@ class NaiveForecaster(BaseForecaster):
         return self
 
     def _predict(self, y=None, exog=None):
-        """Predict a single value self.horizon steps ahead."""
-        if y is not None:
-            raise ValueError(
-                "NaiveForecaster does not support a `y` input in `predict`. "
-            )
+        if y is None:
+            if self.strategy == "last" or self.strategy == "mean":
+                return self._fitted_scalar_value
 
-        if self.strategy == "last" or self.strategy == "mean":
-            return self._fitted_scalar_value
+            # For "seasonal_last" strategy
+            prediction_index = (self.horizon - 1) % self.seasonal_period
+            return self._fitted_last_season[prediction_index]
+        else:
+            y_squeezed = y.squeeze()
 
-        # For "seasonal_last" strategy
-        prediction_index = (self.horizon - 1) % self.seasonal_period
-        return self._fitted_last_season[prediction_index]
+            if self.strategy == "last":
+                return y_squeezed[-1]
+            elif self.strategy == "mean":
+                return np.mean(y_squeezed)
+            elif self.strategy == "seasonal_last":
+                period = y_squeezed[-self.seasonal_period :]
+                idx = (self.horizon - 1) % self.seasonal_period
+                return period[idx]
+            else:
+                raise ValueError(
+                    f"Unknown strategy: {self.strategy}. "
+                    "Valid strategies are 'last', 'mean', 'seasonal_last'."
+                )
