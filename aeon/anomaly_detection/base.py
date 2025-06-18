@@ -46,7 +46,7 @@ class BaseAnomalyDetector(BaseAeonEstimator):
 
         Returns
         -------
-        BaseSeriesAnomalyDetector
+        BaseAnomalyDetector
             The fitted estimator, reference to self.
         """
         ...
