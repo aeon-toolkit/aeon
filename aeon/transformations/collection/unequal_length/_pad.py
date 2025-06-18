@@ -22,9 +22,9 @@ class Padder(BaseCollectionTransformer):
     Parameters
     ----------
     padded_length  : int, "min" or "max", default="min"
-        Length to pad the series to. If "min", will pad to the shortest
-        series seen in ``fit``. If "max", will pad to the longest series seen in
-        ``fit``. If an integer, will pad to that length.
+        Length to pad the series to. If "min", will pad the transformed series to the
+        shortest series seen in ``fit``. If "max", will pad to the longest series seen
+        in ``fit``. If an integer, will pad to that length.
         Calling ``fit`` is not required if ``padded_length`` is an int.
     fill_value : int, str or Callable, default=0
         Value to pad with. Can be a float or a statistic string or an numpy array for
@@ -83,7 +83,12 @@ class Padder(BaseCollectionTransformer):
 
         super().__init__()
 
-        self.set_tags(**{"fit_is_empty": isinstance(padded_length, int)})
+        self.set_tags(
+            **{
+                "fit_is_empty": isinstance(padded_length, int),
+                "removes_unequal_length": error_on_long,
+            }
+        )
 
     def _fit(self, X, y=None):
         """Fit padding transformer to X and y.

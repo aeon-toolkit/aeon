@@ -21,7 +21,7 @@ def _get_max_length(X):
 # TODO: Remove in v1.3.0
 @deprecated(
     version="1.2.0",
-    reason="Padder is deprecated and will be moving to . "
+    reason="Padder is deprecated and will be moving to "
     "transformations.collection.unequal_length with additional/reworked functionality.",
     category=FutureWarning,
 )

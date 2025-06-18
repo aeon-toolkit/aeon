@@ -16,15 +16,15 @@ class Resizer(BaseCollectionTransformer):
     """Resize unequal length time series to equal, fixed length.
 
     Resize the series using linear interpolation to either a fixed length or
-    finds the max/min length series across all series and channels and resuizes
+    finds the max/min length series across all series and channels and resizes
     all series to that length.
 
     Parameters
     ----------
     resized_length  : int, "min" or "max", default="min"
-        Length to resize the series to. If "min", will resize to the shortest
-        series seen in ``fit``. If "max", will resize to the longest series seen in
-        ``fit``. If an integer, will resize to that length.
+        Length to resize the series to. If "min", will resize the transformed series
+        to the shortest series seen in ``fit``. If "max", will resize to the longest
+        series seen in ``fit``. If an integer, will resize to that length.
         Calling ``fit`` is not required if ``resized_length`` is an int.
 
     Examples

@@ -21,9 +21,9 @@ class Truncator(BaseCollectionTransformer):
     Parameters
     ----------
     truncated_length : int, "min" or "max", default="min"
-        The length to truncate series to. If "min", will truncate to the shortest
-        series seen in ``fit``. If "max", will truncate to the longest series seen in
-        ``fit``. If an integer, will truncate to that length.
+        The length to truncate series to. If "min", will truncate the transformed
+        series to the shortest series seen in ``fit``. If "max", will truncate to the
+        longest series seen in ``fit``. If an integer, will truncate to that length.
         Calling ``fit`` is not required if ``truncated_length`` is an int.
     error_on_short : bool, default=True
         If True, raise an error if a series is shorter than truncated_length.
@@ -56,7 +56,12 @@ class Truncator(BaseCollectionTransformer):
 
         super().__init__()
 
-        self.set_tags(**{"fit_is_empty": isinstance(truncated_length, int)})
+        self.set_tags(
+            **{
+                "fit_is_empty": isinstance(truncated_length, int),
+                "removes_unequal_length": error_on_short,
+            }
+        )
 
     def _fit(self, X, y=None):
         """Fit transformer to X and y.
