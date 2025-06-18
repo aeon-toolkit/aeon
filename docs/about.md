@@ -100,6 +100,14 @@ organisations:
   - GitHub ID
   - Organization
   - Year
+* - Balgopal Moharana
+  - {user}`lucifer4073`
+  - [Google Summer of Code](https://summerofcode.withgoogle.com)
+  - 2025
+* - Jiarong Jin
+  - {user}`TinaJin0228`
+  - [Google Summer of Code](https://summerofcode.withgoogle.com)
+  - 2025
 * - Divya Tiwari
   - {user}`itsdivya1309`
   - [Google Summer of Code](https://summerofcode.withgoogle.com)

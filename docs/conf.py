@@ -140,6 +140,7 @@ autosummary_generate = True
 autodoc_default_options = {
     "class-doc-from": "class",
     "members": True,
+    "exclude-members": "get_metadata_routing, set_output",
     "inherited-members": True,
     "show-inheritance": True,
 }
