@@ -1,5 +1,6 @@
 """ROCKAD anomaly detector."""
 
+__maintainer__ = []
 __all__ = ["ROCKAD"]
 
 import warnings
@@ -113,7 +114,6 @@ class ROCKAD(BaseSeriesAnomalyDetector):
         n_jobs=1,
         random_state=42,
     ):
-
         self.n_estimators = n_estimators
         self.n_kernels = n_kernels
         self.normalise = normalise
@@ -163,7 +163,6 @@ class ROCKAD(BaseSeriesAnomalyDetector):
             )
 
     def _inner_fit(self, X: np.ndarray) -> None:
-
         self.rocket_transformer_ = Rocket(
             n_kernels=self.n_kernels,
             normalise=self.normalise,
@@ -216,7 +215,6 @@ class ROCKAD(BaseSeriesAnomalyDetector):
             self.list_baggers_.append(estimator)
 
     def _predict(self, X) -> np.ndarray:
-
         _X, padding = sliding_windows(
             X, window_size=self.window_size, stride=self.stride, axis=0
         )
