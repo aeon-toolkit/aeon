@@ -6,14 +6,20 @@ import pytest
 from aeon.datasets import (
     load_basic_motions,
     load_japanese_vowels,
-    load_plaid,
+    load_pickup_gesture_wiimoteZ,
     load_unit_test,
 )
 from aeon.transformations.collection import Truncator
 
 
 @pytest.mark.parametrize(
-    "loader", [load_japanese_vowels, load_plaid, load_unit_test, load_basic_motions]
+    "loader",
+    [
+        load_japanese_vowels,
+        load_pickup_gesture_wiimoteZ,
+        load_unit_test,
+        load_basic_motions,
+    ],
 )
 def test_truncation_transformer(loader):
     """Test truncation to the fixed series length on provided datasets."""
