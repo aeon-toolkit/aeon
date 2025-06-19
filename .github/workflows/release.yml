@@ -69,7 +69,7 @@ jobs:
         if: runner.os == 'Linux'
         uses: pierotofy/set-swap-space@v1.0
         with:
-          swap-size-gb: 8
+          swap-size-gb: 4
 
       - uses: actions/download-artifact@v4
         with:
