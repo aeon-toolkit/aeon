@@ -25,6 +25,10 @@ class NaiveForecaster(BaseForecaster):
     seasonal_period : int, default=1
         The seasonal period to use for the "seasonal_last" strategy.
         E.g., 12 for monthly data with annual seasonality.
+    horizon : int, default =1
+        The number of time steps ahead to forecast. If horizon is one, the forecaster
+        will learn to predict one point ahead.
+        Only relevant for "seasonal_last".
     """
 
     def __init__(self, strategy="last", seasonal_period=1, horizon=1):
