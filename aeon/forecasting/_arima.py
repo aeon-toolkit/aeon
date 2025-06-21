@@ -60,7 +60,7 @@ class ARIMAForecaster(BaseForecaster):
     """
 
     _tags = {
-        "capability:horizon": False,
+        "capability:horizon": False,  # cannot fit to a horizon other than 1
     }
 
     def __init__(self, p: int = 1, d: int = 0, q: int = 1, use_constant: bool = False):
@@ -112,11 +112,19 @@ class ARIMAForecaster(BaseForecaster):
         )
         (self.aic_, self.residuals_, self.fitted_values_) = _arima_model(
             self._parameters,
-            _calc_arima,
+            _calc_arma,
             self._differenced_series,
             self._model,
             np.empty(0),
         )
+        self.forecast_ = _calc_arma(
+            self._differenced_series,
+            self._model,
+            len(y),
+            self._parameters,
+            self.residuals_,
+        )
+
         return self
 
     def _predict(self, y=None, exog=None):
@@ -148,7 +156,7 @@ class ARIMAForecaster(BaseForecaster):
         differenced_series = np.diff(self._series, n=self.d)
         _, _, predicted_values = _arima_model(
             self._parameters,
-            _calc_arima,
+            _calc_arma,
             differenced_series,
             self._model,
             self.residuals_,
@@ -159,6 +167,11 @@ class ARIMAForecaster(BaseForecaster):
         for _ in range(self.d):
             x = np.cumsum(x)
         return x[self.d :][0]
+
+    def _forecast(self, y, exog=None):
+        """Forecast one ahead for time series y."""
+        self.fit(y, exog)
+        return self.forecast_
 
 
 @njit(cache=True, fastmath=True)
@@ -171,7 +184,7 @@ def _aic(residuals, num_params):
 
 @njit(fastmath=True)
 def _arima_model_wrapper(params, data, model):
-    return _arima_model(params, _calc_arima, data, model, np.empty(0))[0]
+    return _arima_model(params, _calc_arma, data, model, np.empty(0))[0]
 
 
 # Define the ARIMA(p, d, q) likelihood function
@@ -225,8 +238,8 @@ def _extract_params(params, model):
 
 
 @njit(cache=True, fastmath=True)
-def _calc_arima(data, model, t, formatted_params, residuals, expect_full_history=False):
-    """Calculate the ARIMA forecast for time t."""
+def _calc_arma(data, model, t, formatted_params, residuals, expect_full_history=False):
+    """Calculate the ARMA forecast for time t."""
     if len(model) != 3:
         raise ValueError("Model must be of the form (c, p, q)")
     p = model[1]
