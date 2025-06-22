@@ -13,7 +13,6 @@ from abc import abstractmethod
 
 import numpy as np
 import pandas as pd
-import tensorflow as tf
 
 from aeon.forecasting.base import BaseForecaster
 
@@ -88,6 +87,8 @@ class BaseDeepForecaster(BaseForecaster):
         self : BaseDeepForecaster
             Returns an instance of self.
         """
+        import tensorflow as tf
+
         # Set random seed for reproducibility
         if self.random_state is not None:
             np.random.seed(self.random_state)

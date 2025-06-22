@@ -7,6 +7,10 @@ from aeon.forecasting.deep_learning import BaseDeepForecaster
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
+@pytest.mark.skipif(
+    not _check_soft_dependencies("tensorflow", severity="none"),
+    reason="skip test if required soft dependency not available",
+)
 class SimpleDeepForecaster(BaseDeepForecaster):
     """A simple concrete implementation of BaseDeepForecaster for testing."""
 
