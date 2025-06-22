@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 __maintainer__ = [""]
-__all__ = ["RNNRegressor"]
+__all__ = ["RecurrentRegressor"]
 
 import gc
 import os
@@ -22,7 +22,7 @@ if TYPE_CHECKING:
     from tensorflow.keras.callbacks import Callback
 
 
-class RNNRegressor(BaseDeepRegressor):
+class RecurrentRegressor(BaseDeepRegressor):
     """
     Recurrent Neural Network (RNN) regressor.
 
@@ -84,14 +84,14 @@ class RNNRegressor(BaseDeepRegressor):
 
     Examples
     --------
-    >>> from aeon.regression.deep_learning import RNNRegressor
+    >>> from aeon.regression.deep_learning import RecurrentRegressor
     >>> from aeon.testing.data_generation import make_example_3d_numpy
     >>> X, y = make_example_3d_numpy(n_cases=10, n_channels=1, n_timepoints=12,
     ...                              return_y=True, regression_target=True,
     ...                              random_state=0)
-    >>> rgs = RNNRegressor(n_epochs=20, batch_size=4)  # doctest: +SKIP
+    >>> rgs = RecurrentRegressor(n_epochs=20, batch_size=4)  # doctest: +SKIP
     >>> rgs.fit(X, y)  # doctest: +SKIP
-    RNNRegressor(...)
+    RecurrentRegressor(...)
     """
 
     def __init__(
@@ -209,7 +209,7 @@ class RNNRegressor(BaseDeepRegressor):
 
         return model
 
-    def _fit(self, X: np.ndarray, y: np.ndarray) -> RNNRegressor:
+    def _fit(self, X: np.ndarray, y: np.ndarray) -> RecurrentRegressor:
         """
         Fit the regressor on the training set (X, y).
 

@@ -9,6 +9,12 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
     """
     Implements a Recurrent Neural Network (RNN) for time series forecasting.
 
+    This implementation provides a flexible RNN architecture that can be configured
+    to use different types of recurrent cells including Simple RNN, Long Short-Term
+    Memory (LSTM) [1], and Gated Recurrent Unit (GRU) [2]. The network supports
+    multiple layers, bidirectional processing, and various dropout configurations
+    for regularization.
+
     Parameters
     ----------
     rnn_type : str, default='lstm'
@@ -17,7 +23,8 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
         Number of recurrent layers.
     n_units : list or int, default=64
         Number of units in each recurrent layer. If an int, the same number
-        of units is used in each layer.
+        of units is used in each layer. If a list, specifies the number of
+        units for each layer and must match the number of layers.
     dropout_intermediate : float, default=0.0
         Dropout rate applied after each intermediate recurrent layer (not last layer).
     dropout_output : float, default=0.0
@@ -26,8 +33,8 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
         Whether to use bidirectional recurrent layers.
     activation : str or list of str, default='tanh'
         Activation function(s) for the recurrent layers. If a string, the same
-        activation is used for all layers.
-        If a list, specifies activation for each layer.
+        activation is used for all layers. If a list, specifies activation for
+        each layer and must match the number of layers.
     return_sequence_last : bool, default=False
         Whether the last recurrent layer returns the full sequence (True)
         or just the last output (False).
@@ -35,11 +42,11 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
     References
     ----------
     .. [1] Hochreiter, S., & Schmidhuber, J. (1997). Long short-term memory.
-           Neural computation, 9(8), 1735-1780.
+       Neural computation, 9(8), 1735-1780.
     .. [2] Cho, K., Van Merriënboer, B., Gulcehre, C., Bahdanau, D., Bougares, F.,
-           Schwenk, H., & Bengio, Y. (2014). Learning phrase representations using
-           RNN encoder-decoder for statistical machine translation.
-           arXiv preprint arXiv:1406.1078.
+       Schwenk, H., & Bengio, Y. (2014). Learning phrase representations using
+       RNN encoder-decoder for statistical machine translation.
+       arXiv preprint arXiv:1406.1078.
     """
 
     _config = {
@@ -68,6 +75,7 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
         self.bidirectional = bidirectional
         self.activation = activation
         self.return_sequence_last = return_sequence_last
+        self._rnn_cell = None
 
     def build_network(self, input_shape, **kwargs):
         """Construct a network and return its input and output layers.
@@ -93,13 +101,16 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
             )
 
         # Process n_units to a list
-        if isinstance(self.n_units, int):
-            self.n_units = [self.n_units] * self.n_layers
-        elif len(self.n_units) != self.n_layers:
-            raise ValueError(
-                f"Length of n_units ({len(self.n_units)}) must match "
-                f"n_layers ({self.n_layers})"
-            )
+        if isinstance(self.n_units, list):
+            if len(self.n_units) != self.n_layers:
+                raise ValueError(
+                    f"Number of units {len(self.n_units)} should be"
+                    f" the same as number of layers but is"
+                    f" not: {self.n_layers}"
+                )
+            self._n_units = self.n_units
+        else:
+            self._n_units = [self.n_units] * self.n_layers
 
         # Process activation to a list
         if isinstance(self.activation, list):
@@ -115,11 +126,11 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
 
         # Select RNN cell type
         if self.rnn_type == "lstm":
-            rnn_cell = tf.keras.layers.LSTM
+            self._rnn_cell = tf.keras.layers.LSTM
         elif self.rnn_type == "gru":
-            rnn_cell = tf.keras.layers.GRU
+            self._rnn_cell = tf.keras.layers.GRU
         else:  # simple
-            rnn_cell = tf.keras.layers.SimpleRNN
+            self._rnn_cell = tf.keras.layers.SimpleRNN
 
         # Create input layer
         input_layer = tf.keras.layers.Input(shape=input_shape)
@@ -130,22 +141,22 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
             # Determine return_sequences for current layer
             # All layers except the last must return sequences for stacking
             # The last layer uses the return_sequence_last parameter
-            is_last_layer = i == self.n_layers - 1
-            return_sequences = not is_last_layer or self.return_sequence_last
+            is_last_layer = i == (self.n_layers - 1)
+            return_sequences = (not is_last_layer) or self.return_sequence_last
 
             # Create the recurrent layer
             if self.bidirectional:
                 x = tf.keras.layers.Bidirectional(
-                    rnn_cell(
-                        units=self.n_units[i],
+                    self._rnn_cell(
+                        units=self._n_units[i],
                         activation=self._activation[i],
                         return_sequences=return_sequences,
                         name=f"{self.rnn_type}_{i+1}",
                     )
                 )(x)
             else:
-                x = rnn_cell(
-                    units=self.n_units[i],
+                x = self._rnn_cell(
+                    units=self._n_units[i],
                     activation=self._activation[i],
                     return_sequences=return_sequences,
                     name=f"{self.rnn_type}_{i+1}",

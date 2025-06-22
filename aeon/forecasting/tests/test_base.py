@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from aeon.forecasting import NaiveForecaster
+from aeon.forecasting import NaiveForecaster, RegressionForecaster
 
 
 def test_base_forecaster():
@@ -18,9 +18,7 @@ def test_base_forecaster():
     p3 = f._forecast(y)
     assert p2 == p1
     assert p3 == p2
-    with pytest.raises(
-        NotImplementedError, match="Exogenous variables not yet " "supported"
-    ):
+    with pytest.raises(ValueError, match="Exogenous variables passed"):
         f.fit(y, exog=y)
 
 
@@ -41,3 +39,29 @@ def test_convert_y():
     f.set_tags(**{"y_inner_type": "pd.Series"})
     with pytest.raises(ValueError, match="Unsupported inner type"):
         f._convert_y(y, axis=1)
+
+
+def test_direct_forecast():
+    """Test direct forecasting."""
+    y = np.random.rand(50)
+    f = RegressionForecaster(window=10)
+    # Direct should be the same as setting horizon manually.
+    preds = f.direct_forecast(y, prediction_horizon=10)
+    assert isinstance(preds, np.ndarray) and len(preds) == 10
+    for i in range(0, 10):
+        f = RegressionForecaster(window=10, horizon=i + 1)
+        p = f.forecast(y)
+        assert p == preds[i]
+
+
+def test_recursive_forecast():
+    """Test recursive forecasting."""
+    y = np.random.rand(50)
+    f = RegressionForecaster(window=4)
+    preds = f.iterative_forecast(y, prediction_horizon=10)
+    assert isinstance(preds, np.ndarray) and len(preds) == 10
+    f.fit(y)
+    for i in range(0, 10):
+        p = f.predict(y)
+        assert p == preds[i]
+        y = np.append(y, p)
