@@ -65,3 +65,17 @@ def test_recursive_forecast():
         p = f.predict(y)
         assert p == preds[i]
         y = np.append(y, p)
+
+
+def test_direct_forecast_with_exog():
+    """Test direct forecasting with exogenous variables."""
+    y = np.arange(50)
+    exog = np.arange(50) * 2
+    f = RegressionForecaster(window=10)
+
+    preds = f.direct_forecast(y, prediction_horizon=10, exog=exog)
+    assert isinstance(preds, np.ndarray) and len(preds) == 10
+
+    # Check that predictions are different from when no exog is used
+    preds_no_exog = f.direct_forecast(y, prediction_horizon=10)
+    assert not np.array_equal(preds, preds_no_exog)

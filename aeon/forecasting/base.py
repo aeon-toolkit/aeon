@@ -68,12 +68,14 @@ class BaseForecaster(BaseSeriesEstimator):
         if self.get_tag("fit_is_empty"):
             self.is_fitted = True
             return self
+
         horizon = self.get_tag("capability:horizon")
         if not horizon and self.horizon > 1:
             raise ValueError(
                 f"Horizon is set >1, but {self.__class__.__name__} cannot handle a "
                 f"horizon greater than 1"
             )
+
         exog_tag = self.get_tag("capability:exogenous")
         if not exog_tag and exog is not None:
             raise ValueError(
@@ -83,8 +85,11 @@ class BaseForecaster(BaseSeriesEstimator):
 
         self._check_X(y, self.axis)
         y = self._convert_y(y, self.axis)
+
         if exog is not None:
-            raise NotImplementedError("Exogenous variables not yet supported")
+            self._check_X(exog, self.axis)
+            exog = self._convert_y(exog, self.axis)
+
         self.is_fitted = True
         return self._fit(y, exog)
 
@@ -113,9 +118,10 @@ class BaseForecaster(BaseSeriesEstimator):
             self._check_X(y, self.axis)
             y = self._convert_y(y, self.axis)
         if exog is not None:
-            raise NotImplementedError("Exogenous variables not yet supported")
-        x = self._predict(y, exog)
-        return x
+            self._check_X(exog, self.axis)
+            exog = self._convert_y(exog, self.axis)
+
+        return self._predict(y, exog)
 
     @abstractmethod
     def _predict(self, y=None, exog=None): ...
@@ -141,6 +147,9 @@ class BaseForecaster(BaseSeriesEstimator):
         """
         self._check_X(y, self.axis)
         y = self._convert_y(y, self.axis)
+        if exog is not None:
+            self._check_X(exog, self.axis)
+            exog = self._convert_y(exog, self.axis)
         return self._forecast(y, exog)
 
     def _forecast(self, y, exog=None):
@@ -149,7 +158,7 @@ class BaseForecaster(BaseSeriesEstimator):
         return self._predict(y, exog)
 
     @final
-    def direct_forecast(self, y, prediction_horizon):
+    def direct_forecast(self, y, prediction_horizon, exog=None):
         """
         Make ``prediction_horizon`` ahead forecasts using a fit for each horizon.
 
@@ -166,7 +175,8 @@ class BaseForecaster(BaseSeriesEstimator):
             The time series to make forecasts about.
         prediction_horizon : int
             The number of future time steps to forecast.
-
+        exog : np.ndarray, default =None
+            Optional exogenous time series data assumed to be aligned with y.
         predictions : np.ndarray
             An array of shape `(prediction_horizon,)` containing the forecasts for
             each horizon.
@@ -198,7 +208,7 @@ class BaseForecaster(BaseSeriesEstimator):
         preds = np.zeros(prediction_horizon)
         for i in range(0, prediction_horizon):
             self.horizon = i + 1
-            preds[i] = self.forecast(y)
+            preds[i] = self.forecast(y, exog)
         return preds
 
     def iterative_forecast(self, y, prediction_horizon):
@@ -263,7 +273,6 @@ class BaseForecaster(BaseSeriesEstimator):
             if inner_names[0] == "ndarray":
                 y = y.to_numpy()
             elif inner_names[0] == "DataFrame":
-                # converting a 1d array will create a 2d array in axis 0 format
                 transpose = False
                 if y.ndim == 1 and axis == 1:
                     transpose = True
