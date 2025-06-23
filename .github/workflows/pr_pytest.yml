@@ -159,7 +159,7 @@ jobs:
         run: python -m pip list
 
       - name: Run tests
-        run: python -m pytest aeon/testing/tests/ --enablethreading -k "check_estimator_multithreading"
+        run: python -m pytest aeon/testing/tests/ --enablethreading true -k "check_estimator_multithreading"
 
   codecov:
     # run the code coverage job if a PR has the 'codecov actions' label
