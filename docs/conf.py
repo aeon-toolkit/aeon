@@ -181,6 +181,7 @@ nbsphinx_epilog = f"""
 ----
 
 Generated using nbsphinx_. The Jupyter notebook can be found here_.
+
 |Binder|_
 
 .. _here: {notebook_url}
