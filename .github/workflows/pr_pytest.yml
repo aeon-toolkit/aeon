@@ -72,12 +72,6 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Set swap space
-        if: runner.os == 'Linux'
-        uses: pierotofy/set-swap-space@v1.0
-        with:
-          swap-size-gb: 4
-
       - if: ${{ github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'no numba cache') }}
         name: Restore numba cache
         uses: ./.github/actions/numba_cache
