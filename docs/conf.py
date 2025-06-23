@@ -201,7 +201,7 @@ copybutton_exclude = ".linenos, .gp, .go"
 # -- MyST parser --
 
 # "colon_fence" and "html_image" recommended by sphinx_design when using the MyST Parser
-myst_enable_extensions = ["colon_fence", "html_image"]
+myst_enable_extensions = ["colon_fence", "html_image", "attrs_inline"]
 
 myst_heading_anchors = 4
 
