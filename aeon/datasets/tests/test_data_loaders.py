@@ -318,7 +318,8 @@ def test_load_from_ts_file():
     Test
     1. Univariate equal length (UnitTest) returns 3D numpy X, 1D numpy y
     2. Multivariate equal length (BasicMotions) returns 3D numpy X, 1D numpy y
-    3. Univariate and multivariate unequal length (PLAID) return X as list of numpy
+    3. unequal length Univariate (PickupGestureWiimoteZ) and multivariate (
+    JapaneseVowels) return X as list of numpy
     """
     # Test 1.1: load univariate equal length (UnitTest), should return 2D array and 1D
     # array, test first and last data
@@ -338,7 +339,8 @@ def test_load_from_ts_file():
     assert X.shape == (20, 24)
     assert X[0][0] == 573.0
 
-    # Test 2: load multivare equal length (BasicMotions), should return 3D array and 1D
+    # Test 2: load multivariate equal length (BasicMotions), should return 3D array
+    # and 1D
     # array, test first and last data.
     data_path = os.path.join(
         os.path.dirname(aeon.__file__),
@@ -354,16 +356,16 @@ def test_load_from_ts_file():
     assert X.shape == (40, 6, 100) and y.shape == (40,)
     assert X[1][2][3] == -1.898794
 
-    # Test 3.1: load univariate unequal length (PLAID), should return a one column
-    # dataframe,
+    # Test 3.1: load univariate unequal length (PickupGestureWiimoteZ), should return
+    # a list up numpy arrays
     data_path = os.path.join(
         os.path.dirname(aeon.__file__),
-        "datasets/data/PLAID/PLAID_TRAIN.ts",
+        "datasets/data/PickupGestureWiimoteZ/PickupGestureWiimoteZ_TRAIN.ts",
     )
 
     X, y = load_from_ts_file(full_file_path_and_name=data_path, return_meta_data=False)
     assert isinstance(X, list) and isinstance(y, np.ndarray)
-    assert len(X) == 537 and y.shape == (537,)
+    assert len(X) == 50 and y.shape == (50,)
     # Test 3.2: load multivariate unequal length (JapaneseVowels), should return a X
     # columns dataframe,
     data_path = os.path.join(
