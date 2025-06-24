@@ -7,6 +7,7 @@ import numpy as np
 from aeon.base._base import _clone_estimator
 from aeon.base._base_series import VALID_SERIES_INNER_TYPES
 from aeon.testing.testing_data import FULL_TEST_DATA_DICT
+from aeon.testing.utils.deep_equals import deep_equals
 
 
 def _yield_series_anomaly_detection_checks(
@@ -71,3 +72,18 @@ def check_series_anomaly_detector_output(estimator, datatype):
         ), "y_pred must contain only 0s, 1s, True, or False"
     else:
         raise ValueError(f"Unknown anomaly output type: {ot}")
+
+    # check fit_predict output is same as fit and predict
+    if "_fit_predict" in type(estimator).__dict__:
+        estimator_fp = _clone_estimator(estimator)
+
+        expected_output = estimator.predict(FULL_TEST_DATA_DICT[datatype]["train"][0])
+
+        fit_predict_output = estimator_fp.fit_predict(
+            FULL_TEST_DATA_DICT[datatype]["train"][0],
+            FULL_TEST_DATA_DICT[datatype]["train"][1],
+        )
+
+        assert deep_equals(
+            fit_predict_output, expected_output
+        ), "output of fit_predict() does not match fit().predict()"
