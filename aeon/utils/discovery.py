@@ -6,7 +6,6 @@ __all__ = ["all_estimators"]
 import inspect
 import warnings
 from importlib import import_module
-from operator import itemgetter
 from pathlib import Path
 from pkgutil import walk_packages
 
@@ -97,7 +96,6 @@ def all_estimators(
         "datasets",
         "distances",
         "networks",
-        "performance_metrics",
         "pipeline",
         "testing",
         "utils",
@@ -154,7 +152,7 @@ def all_estimators(
         )
 
     # sort for reproducibility, remove names if return_names=False
-    estimators = sorted(set(estimators), key=itemgetter(0))
+    estimators = sorted(set(estimators), key=lambda x: (x[0], str(x[1])))
     if not return_names:
         return [est for (name, est) in estimators]
     else:

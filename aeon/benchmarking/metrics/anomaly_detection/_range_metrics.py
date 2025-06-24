@@ -30,10 +30,6 @@ def range_precision(
     predicted continuous anomaly range the overlap size, position, and cardinality is
     considered. For more details, please refer to the paper [1]_.
 
-    The `alpha` parameter for the existence reward was removed. Because precision
-    emphasizes prediction quality, there is no need for an existence reward and this
-    value should always be set to 0.
-
     Parameters
     ----------
     y_true : np.ndarray
@@ -41,7 +37,7 @@ def range_precision(
     y_pred : np.ndarray
         Anomaly scores for each point of the time series of shape (n_instances,).
     alpha : float
-        DEPRECATED. Default is 0 = no existence reward.
+        Default is 0 = no existence reward.
     cardinality : {'reciprocal', 'one', 'udf_gamma'}
         Cardinality type.
     bias : {'flat', 'front', 'middle', 'back'}
@@ -60,13 +56,6 @@ def range_precision(
        1920–30. 2018.
        http://papers.nips.cc/paper/7462-precision-and-recall-for-time-series.pdf.
     """
-    if alpha != 0:
-        warnings.warn(
-            "The alpha parameter should not be used in range precision. This "
-            "parameter is removed in 1.3.0.",
-            stacklevel=2,
-            category=FutureWarning,
-        )
     y_true, y_pred = check_y(y_true, y_pred, force_y_pred_continuous=False)
     if np.unique(y_pred).shape[0] == 1:
         warnings.warn(
@@ -160,9 +149,6 @@ def range_f_score(
     its optimal value at 1 and its worst value at 0. This implementation uses the
     range-based precision and range-based recall as basis.
 
-    The `p_alpha` parameter for the potential existance reward in the calculation of
-    range-based precision was removed. `p_alpha` should always be set to 0, anyway.
-
     Parameters
     ----------
     y_true : np.ndarray
@@ -173,7 +159,7 @@ def range_f_score(
         F-score beta determines the weight of recall in the combined score.
         beta < 1 lends more weight to precision, while beta > 1 favors recall.
     p_alpha : float
-        DEPRECATED. Default is 0 = no existence reward for precision.
+        Default is 0 = no existence reward for precision.
     r_alpha : float
         Weight of the existence reward. If 0: no existence reward, if 1: only
         existence reward.
@@ -197,14 +183,6 @@ def range_f_score(
        1920–30. 2018.
        http://papers.nips.cc/paper/7462-precision-and-recall-for-time-series.pdf.
     """
-    if p_alpha != 0:
-        warnings.warn(
-            "The p_alpha parameter should not be used. This parameter is removed "
-            "in 1.3.0.",
-            stacklevel=2,
-            category=FutureWarning,
-        )
-
     y_true, y_pred = check_y(y_true, y_pred, force_y_pred_continuous=False)
     if np.unique(y_pred).shape[0] == 1:
         warnings.warn(
@@ -216,7 +194,9 @@ def range_f_score(
     y_pred_ranges = _binary_to_ranges(y_pred)
     y_true_ranges = _binary_to_ranges(y_true)
 
-    precision = _ts_precision(y_pred_ranges, y_true_ranges, cardinality, p_bias)
+    precision = _ts_precision(
+        y_pred_ranges, y_true_ranges, cardinality, p_bias, p_alpha
+    )
     recall = _ts_recall(y_pred_ranges, y_true_ranges, cardinality, r_bias, r_alpha)
 
     if precision + recall > 0:

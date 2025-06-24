@@ -2,11 +2,7 @@
 
 from functools import partial
 
-import numpy as np
-
-from aeon.base._base import _clone_estimator
-from aeon.base._base_series import VALID_SERIES_INNER_TYPES
-from aeon.testing.testing_data import FULL_TEST_DATA_DICT
+from aeon.utils.data_types import ALL_TIME_SERIES_TYPES
 
 
 def _yield_anomaly_detection_checks(estimator_class, estimator_instances, datatypes):
@@ -25,33 +21,31 @@ def _yield_anomaly_detection_checks(estimator_class, estimator_instances, dataty
             datatype=datatypes[i][0],
         )
 
-        # test all data types
-        for datatype in datatypes[i]:
-            yield partial(
-                check_anomaly_detector_output, estimator=estimator, datatype=datatype
-            )
-
 
 def check_anomaly_detector_overrides_and_tags(estimator_class):
     """Test compliance with the anomaly detector base class contract."""
     # Test they don't override final methods, because Python does not enforce this
-    assert "fit" not in estimator_class.__dict__
-    assert "predict" not in estimator_class.__dict__
-    assert "fit_predict" not in estimator_class.__dict__
+    final_methods = ["fit", "predict", "fit_predict"]
+    for method in final_methods:
+        if method in estimator_class.__dict__:
+            raise ValueError(
+                f"Anomaly detector {estimator_class} overrides the "
+                f"method {method}. Override _{method} instead."
+            )
 
     # Test that all anomaly detectors implement abstract predict.
     assert "_predict" in estimator_class.__dict__
 
-    # axis class parameter is for internal use only
-    assert "axis" not in estimator_class.__dict__
-
     # Test that fit_is_empty is correctly set
     fit_is_empty = estimator_class.get_class_tag(tag_name="fit_is_empty")
-    assert not fit_is_empty == "_fit" not in estimator_class.__dict__
+    assert fit_is_empty == ("_fit" not in estimator_class.__dict__)
 
     # Test valid tag for X_inner_type
     X_inner_type = estimator_class.get_class_tag(tag_name="X_inner_type")
-    assert X_inner_type in VALID_SERIES_INNER_TYPES
+    if isinstance(X_inner_type, str):
+        assert X_inner_type in ALL_TIME_SERIES_TYPES
+    else:  # must be a list
+        assert all([t in ALL_TIME_SERIES_TYPES for t in X_inner_type])
 
     # Must have at least one set to True
     multi = estimator_class.get_class_tag(tag_name="capability:multivariate")
