@@ -1,13 +1,8 @@
 """Script for the GitHub issue self-assign bot.
 
-It checks if a comment on an issue or PR includes the trigger
-phrase (as defined) and a mentioned user.
-If it does, it assigns the issue to the mentioned user.
-
-Users without write access can only have up to 2 open issues assigned.
-Users with write access (or admin) are exempt from this limit.
-If a non-write user already has 2 or more open issues, the bot
-comments on the issue with links to the currently assigned open issues.
+Checks if a comment on an issue or PR includes the trigger phrase and a mentioned user.
+If it does, it assigns or unassigns the issue to the mentioned user if they have
+permissions.
 """
 
 import json
@@ -27,6 +22,8 @@ issue_labels = {label.name.lower() for label in issue.labels}
 pr = context_dict["event"]["issue"].get("pull_request")
 comment_body = context_dict["event"]["comment"]["body"]
 commenter = context_dict["event"]["comment"]["user"]["login"]
+commenter_permission = repo.get_collaborator_permission(commenter)
+has_write_permission = commenter_permission not in ["admin", "write"]
 
 restricted_labels = {"meta-issue"}
 
@@ -50,32 +47,26 @@ if "@aeon-actions-bot" in body and "assign" in body and not pr:
             mentioned_users.append(commenter)
         mentioned_users = set(mentioned_users)
 
-        # Get permissions of the commenter
-        commenter_permission = repo.get_collaborator_permission(commenter)
-
+        access_error = False
         for user in mentioned_users:
-            if user != commenter and commenter_permission not in ["admin", "write"]:
-                comment_msg = (
-                    f"@{commenter}, you cannot assign @{user}"
-                    " because you lack write access.\n"
-                    "Only users with write access can assign others."
-                )
-                issue.create_comment(comment_msg)
-                continue
-            elif user != commenter and commenter_permission in ["admin", "write"]:
-                issue.add_to_assignees(user)
+            # Can only assign others if the commenter has write access
+            if user != commenter and not has_write_permission:
+                if not access_error:
+                    issue.create_comment(
+                        "Cannot assign other users to issues without write access."
+                    )
+                    access_error = True
                 continue
 
-            user_obj = g.get_user(user)
-            permission = repo.get_collaborator_permission(user_obj)
+            # If the user is already assigned to this issue, remove them
+            if user in [assignee.login for assignee in issue.assignees]:
+                issue.remove_from_assignees(user)
+                continue
 
-            if permission in ["admin", "write"]:
+            # If the commenter has write access, just assign
+            if has_write_permission:
                 issue.add_to_assignees(user)
             else:
-                # First check if the user is already assigned to this issue
-                if user in [assignee.login for assignee in issue.assignees]:
-                    continue
-
                 # search for open issues only
                 query = f"repo:{repo.full_name} is:issue is:open assignee:{user}"
                 issues_assigned_to_user = g.search_issues(query)
@@ -88,7 +79,7 @@ if "@aeon-actions-bot" in body and "assign" in body and not pr:
                         for assigned_issue in issues_assigned_to_user
                     ]
 
-                    comment_message = (
+                    issue.create_comment(
                         f"@{user}, already has {assigned_count} open issues assigned."
                         "Users without write access are limited to self-assigning "
                         "three issues.\n\n"
@@ -97,6 +88,5 @@ if "@aeon-actions-bot" in body and "assign" in body and not pr:
                             f"- {issue_link}" for issue_link in assigned_issues_list
                         )
                     )
-                    issue.create_comment(comment_message)
                 else:
                     issue.add_to_assignees(user)
