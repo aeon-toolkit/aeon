@@ -1,4 +1,4 @@
-name: Periodic Tests
+name: Periodic tests
 
 on:
   schedule:
