@@ -1,7 +1,31 @@
-"""Base class for estimators that fit single time series.
+"""
+Base class for single time series estimators (univariate/multivariate).
 
-This time series can be univariate or multivariate. The time series can potentially
-contain missing values.
+Class Name: BaseSeriesEstimator
+
+Methods
+-------
+    - _preprocess_series(X, axis, store_metadata)
+      Validates and converts input `X` before fitting.
+    - _check_X(X, axis)
+      Ensures `X` is a valid type and format.
+    - _convert_X(X, axis)
+      Converts `X` to the required internal format.
+
+Attributes
+----------
+    - metadata_
+      Stores input series metadata.
+    - axis
+      Defines time axis for input data.
+    - _tags
+      Specifies estimator capabilities (e.g., univariate, multivariate).
+
+Inherited Methods:
+    - get_params()
+      Returns hyperparameters.
+    - get_fitted_params()
+      Returns learned parameters.
 """
 
 __maintainer__ = ["TonyBagnall", "MatthewMiddlehurst"]
@@ -13,13 +37,7 @@ import numpy as np
 import pandas as pd
 
 from aeon.base._base import BaseAeonEstimator
-
-# allowed input and internal data types for Series
-VALID_SERIES_INNER_TYPES = [
-    "np.ndarray",
-    "pd.DataFrame",
-]
-VALID_SERIES_INPUT_TYPES = [pd.DataFrame, pd.Series, np.ndarray]
+from aeon.utils.data_types import VALID_SERIES_INNER_TYPES
 
 
 class BaseSeriesEstimator(BaseAeonEstimator):
@@ -99,7 +117,7 @@ class BaseSeriesEstimator(BaseAeonEstimator):
             self.metadata_ = meta
         return self._convert_X(X, axis)
 
-    def _check_X(self, X, axis):
+    def _check_X(self, X, axis: int = 0):
         """Check input X is valid.
 
         Check if the input data is a compatible type, and that this estimator is

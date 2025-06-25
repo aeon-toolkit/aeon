@@ -26,7 +26,7 @@ def _kdtw_lk(x, y, local_kernel):
     diagonal_weights = np.zeros(max(x_timepoints, y_timepoints))
 
     min_timepoints = min(x_timepoints, y_timepoints)
-    diagonal_weights[1] = 1.0
+    diagonal_weights[0] = 1.0
     for i in range(1, min_timepoints):
         diagonal_weights[i] = local_kernel[i - 1, i - 1]
 
@@ -34,12 +34,12 @@ def _kdtw_lk(x, y, local_kernel):
     cumulative_dp_diag[0, 0] = 1
 
     for i in range(1, x_timepoints):
-        cost_matrix[i, 1] = cost_matrix[i - 1, 1] * local_kernel[i - 1, 2]
-        cumulative_dp_diag[i, 1] = cumulative_dp_diag[i - 1, 1] * diagonal_weights[i]
+        cost_matrix[i, 0] = cost_matrix[i - 1, 0] * local_kernel[i - 1, 0]
+        cumulative_dp_diag[i, 0] = cumulative_dp_diag[i - 1, 0] * diagonal_weights[i]
 
     for j in range(1, y_timepoints):
-        cost_matrix[1, j] = cost_matrix[1, j - 1] * local_kernel[2, j - 1]
-        cumulative_dp_diag[1, j] = cumulative_dp_diag[1, j - 1] * diagonal_weights[j]
+        cost_matrix[0, j] = cost_matrix[0, j - 1] * local_kernel[0, j - 1]
+        cumulative_dp_diag[0, j] = cumulative_dp_diag[0, j - 1] * diagonal_weights[j]
 
     for i in range(1, x_timepoints):
         for j in range(1, y_timepoints):
@@ -64,7 +64,7 @@ def _kdtw_lk(x, y, local_kernel):
     return cost_matrix[x_timepoints - 1, y_timepoints - 1]
 
 
-def kdtw(x, y, sigma=1.0, epsilon=1e-3):
+def _kdtw(x, y, sigma=1.0, epsilon=1e-3):
     """
     Callable kernel function for KernelKMeans.
 
@@ -81,6 +81,12 @@ def kdtw(x, y, sigma=1.0, epsilon=1e-3):
         A small constant added for numerical stability to avoid zero values in the
         local kernel matrix.
 
+    Notes
+    -----
+    Inspired by the original implementation
+    https://github.com/pfmarteau/KDTW/tree/master
+    Copyright (c) 2020 Pierre-François Marteau, MIT License
+
     Returns
     -------
     similarity : float
@@ -90,35 +96,6 @@ def kdtw(x, y, sigma=1.0, epsilon=1e-3):
     distance = squared_pairwise_distance(x, y)
     local_kernel = (np.exp(-distance / sigma) + epsilon) / (3 * (1 + epsilon))
     return _kdtw_lk(x, y, local_kernel)
-
-
-def factory_kdtw_kernel(channels: int):
-    """
-    Return a kdtw kernel callable function that flattened samples to (T, channels).
-
-    Parameters
-    ----------
-    channels: int
-        Number of channels per timepoint.
-
-    Returns
-    -------
-    kdtw_kernel : callable
-        A callable kernel function that computes the KDTW similarity between two
-        time series samples. The function signature is the same as the kdtw
-        function.
-    """
-
-    def kdtw_kernel(x, y, sigma=1.0, epsilon=1e-3):
-        if x.ndim == 1:
-            T = x.size // channels
-            x = x.reshape(T, channels)
-        if y.ndim == 1:
-            T = y.size // channels
-            y = y.reshape(T, channels)
-        return kdtw(x, y, sigma=sigma, epsilon=epsilon)
-
-    return kdtw_kernel
 
 
 class TimeSeriesKernelKMeans(BaseClusterer):
@@ -255,7 +232,18 @@ class TimeSeriesKernelKMeans(BaseClusterer):
             verbose = 1
 
         if self.kernel == "kdtw":
-            self.kernel = factory_kdtw_kernel(channels=X.shape[1])
+            n_channels = X.shape[1]
+
+            def kdtw_kernel(x, y, sigma=1.0, epsilon=1e-3):
+                if x.ndim == 1:
+                    T = x.size // n_channels
+                    x = x.reshape(T, n_channels)
+                if y.ndim == 1:
+                    T = y.size // n_channels
+                    y = y.reshape(T, n_channels)
+                return _kdtw(x, y, sigma=sigma, epsilon=epsilon)
+
+            self.kernel = kdtw_kernel
 
         self._tslearn_kernel_k_means = TsLearnKernelKMeans(
             n_clusters=self.n_clusters,

@@ -5,15 +5,17 @@ __all__ = ["ComposableEstimatorMixin"]
 
 from abc import ABC, abstractmethod
 
-from aeon.base import BaseAeonEstimator
+from aeon.base import BaseAeonEstimator, BaseCollectionEstimator
 from aeon.base._base import _clone_estimator
 
 
 class ComposableEstimatorMixin(ABC):
     """Handles parameter management for estimators composed of named estimators.
 
-    Parts (i.e. get_params and set_params) adapted or copied from the scikit-learn
+    Parts (i.e. get_params and set_params) adapted from the scikit-learn 1.5.0
     ``_BaseComposition`` class in utils/metaestimators.py.
+    https://github.com/scikit-learn/scikit-learn/
+    Copyright (c) 2007-2024 The scikit-learn developers, BSD-3
     """
 
     # Attribute name containing an iterable of processed (str, estimator) tuples
@@ -24,8 +26,11 @@ class ComposableEstimatorMixin(ABC):
     _fitted_estimators_attr = "estimators_"
 
     @abstractmethod
-    def __init__(self):
-        super().__init__()
+    def __init__(self, axis):
+        if isinstance(self, BaseCollectionEstimator):
+            super().__init__()
+        else:
+            super().__init__(axis=axis)
 
     def get_params(self, deep=True):
         """Get parameters for this estimator.

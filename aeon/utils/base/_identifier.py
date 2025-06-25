@@ -49,12 +49,16 @@ def get_identifier(estimator):
 
     if len(identifiers) > 1 and "estimator" in identifiers:
         identifiers.remove("estimator")
-    if len(identifiers) > 1 and "series-estimator" in identifiers:
-        identifiers.remove("series-estimator")
     if len(identifiers) > 1 and "collection-estimator" in identifiers:
         identifiers.remove("collection-estimator")
+    if len(identifiers) > 1 and "series-estimator" in identifiers:
+        identifiers.remove("series-estimator")
     if len(identifiers) > 1 and "transformer" in identifiers:
         identifiers.remove("transformer")
+    if len(identifiers) > 1 and "anomaly-detector" in identifiers:
+        identifiers.remove("anomaly-detector")
+    if len(identifiers) > 1 and "similarity-search" in identifiers:
+        identifiers.remove("similarity-search")
 
     if len(identifiers) > 1:
         TypeError(
