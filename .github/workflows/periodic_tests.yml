@@ -18,10 +18,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Python 3.10
+      - name: Setup Python 3.12
         uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: "3.12"
 
       - name: Run check-manifest
         uses: pre-commit/action@v3.0.1
@@ -35,10 +35,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Python 3.10
+      - name: Setup Python 3.12
         uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: "3.12"
 
       - name: Run pre-commit
         uses: pre-commit/action@v3.0.1
@@ -57,22 +57,28 @@ jobs:
           brew install bash
           /opt/homebrew/bin/bash --version
 
-      - name: Setup Python 3.10
+      - name: Setup Python 3.12
         uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: "3.12"
 
       - name: Use numba cache to set env variables but not restore cache
         uses: ./.github/actions/numba_cache
         with:
           cache_name: "run-notebook-examples"
           runner_os: ${{ runner.os }}
-          python_version: "3.10"
+          python_version: "3.12"
           restore_cache: "false"
 
-      - uses: ./.github/actions/cpu_all_extras
+      - name: Install dependencies
+        uses: nick-fields/retry@v3
         with:
-          additional_extras: "dev,binder"
+          timeout_minutes: 30
+          max_attempts: 3
+          command: python -m pip install .[all_extras,binder,dev]
+
+      - name: Show dependencies
+        run: python -m pip list
 
       - name: Run example notebooks
         run: .github/utilities/run_examples.sh false
@@ -83,7 +89,7 @@ jobs:
         with:
           path: ${{ github.workspace }}/.numba_cache
           # Save cache with the current date (ENV set in numba_cache action)
-          key: numba-run-notebook-examples-${{ runner.os }}-3.10-${{ env.CURRENT_DATE }}
+          key: numba-run-notebook-examples-${{ runner.os }}-3.12-${{ env.CURRENT_DATE }}
 
   test-core-imports:
     runs-on: ubuntu-24.04
@@ -92,10 +98,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Python 3.10
+      - name: Setup Python 3.12
         uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: "3.12"
 
       - name: Install aeon and dependencies
         uses: nick-fields/retry@v3
@@ -117,17 +123,17 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Python 3.10
+      - name: Setup Python 3.12
         uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: "3.12"
 
       - name: Use numba cache to set env variables but not restore cache
         uses: ./.github/actions/numba_cache
         with:
           cache_name: "test-no-soft-deps"
           runner_os: ${{ runner.os }}
-          python_version: "3.10"
+          python_version: "3.12"
           restore_cache: "false"
 
       - name: Install aeon and dependencies
@@ -148,7 +154,7 @@ jobs:
         with:
           path: ${{ github.workspace }}/.numba_cache
           # Save cache with the current date (ENV set in numba_cache action)
-          key: numba-test-no-soft-deps-${{ runner.os }}-3.10-${{ env.CURRENT_DATE }}
+          key: numba-test-no-soft-deps-${{ runner.os }}-3.12-${{ env.CURRENT_DATE }}
 
   pytest:
     runs-on: ${{ matrix.os }}
@@ -157,7 +163,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-24.04, macOS-14, windows-2022 ]
-        python-version: [ "3.9", "3.10", "3.11", "3.12" ]
+        python-version: [ "3.10", "3.11", "3.12", "3.13.5" ]
 
     steps:
       - name: Checkout
@@ -172,7 +178,7 @@ jobs:
         if: runner.os == 'Linux'
         uses: pierotofy/set-swap-space@v1.0
         with:
-          swap-size-gb: 10
+          swap-size-gb: 6
 
       - name: Use numba cache to set env variables but not restore cache
         uses: ./.github/actions/numba_cache
@@ -182,9 +188,12 @@ jobs:
           python_version: ${{ matrix.python-version }}
           restore_cache: "false"
 
-      - uses: ./.github/actions/cpu_all_extras
+      - name: Install aeon and dependencies
+        uses: nick-fields/retry@v3
         with:
-          additional_extras: "dev"
+          timeout_minutes: 30
+          max_attempts: 3
+          command: python -m pip install .[all_extras,dev]
 
       - name: Show dependencies
         run: python -m pip list
@@ -199,6 +208,40 @@ jobs:
           # Save cache with the current date (ENV set in numba_cache action)
           key: numba-pytest-${{ runner.os }}-${{ matrix.python-version}}-${{ env.CURRENT_DATE }}
 
+  doctests:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - if: ${{ github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'no numba cache') }}
+        name: Use numba cache to set env variables but not restore cache
+        uses: ./.github/actions/numba_cache
+        with:
+          cache_name: "doctests"
+          runner_os: ${{ runner.os }}
+          python_version: "3.12"
+          restore_cache: "false"
+
+      - name: Install aeon and dependencies
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 30
+          max_attempts: 3
+          command: python -m pip install .[all_extras,dev]
+
+      - name: Show dependencies
+        run: python -m pip list
+
+      - name: Run tests
+        run: python -m pytest -n logical --doctest-only
+
   codecov:
     runs-on: ubuntu-24.04
 
@@ -206,17 +249,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Python 3.10
+      - name: Setup Python 3.12
         uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: "3.12"
 
       - name: Disable Numba JIT
         run: echo "NUMBA_DISABLE_JIT=1" >> $GITHUB_ENV
 
-      - uses: ./.github/actions/cpu_all_extras
+      - name: Install aeon and dependencies
+        uses: nick-fields/retry@v3
         with:
-          additional_extras: "unstable_extras,dev"
+          timeout_minutes: 30
+          max_attempts: 3
+          command: python -m pip install .[all_extras,unstable_extras,dev]
 
       - name: Show dependencies
         run: python -m pip list

@@ -21,6 +21,7 @@ from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.exceptions import NotFittedError
 from sklearn.utils import check_random_state
 from sklearn.utils.multiclass import check_classification_targets
+from sklearn.utils.validation import validate_data
 
 
 class _TreeNode:
@@ -374,7 +375,8 @@ class ContinuousIntervalTree(ClassifierMixin, BaseEstimator):
         """
         # data processing
         X = self._check_X(X)
-        X, y = self._validate_data(
+        X, y = validate_data(
+            self,
             X=X,
             y=y,
             ensure_min_samples=2,
@@ -464,8 +466,8 @@ class ContinuousIntervalTree(ClassifierMixin, BaseEstimator):
 
         # data processing
         X = self._check_X(X)
-        X = self._validate_data(
-            X=X, reset=False, force_all_finite="allow-nan", accept_sparse=False
+        X = validate_data(
+            self, X=X, reset=False, force_all_finite="allow-nan", accept_sparse=False
         )
 
         dists = np.zeros((X.shape[0], self.n_classes_))

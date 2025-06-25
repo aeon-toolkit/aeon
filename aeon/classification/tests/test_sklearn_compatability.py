@@ -35,7 +35,7 @@ from sklearn.pipeline import Pipeline
 
 from aeon.classification.interval_based import CanonicalIntervalForestClassifier
 from aeon.testing.data_generation import make_example_3d_numpy
-from aeon.transformations.collection import Resizer
+from aeon.transformations.collection.unequal_length import Resizer
 
 # StratifiedGroupKFold(n_splits=2), removed because it is not available in sklearn 0.24
 CROSS_VALIDATION_METHODS = [
@@ -60,7 +60,7 @@ PARAMETER_TUNING_METHODS = [
 COMPOSITE_ESTIMATORS = [
     Pipeline(
         [
-            ("transform", Resizer(length=10)),
+            ("transform", Resizer(resized_length=10)),
             ("clf", CanonicalIntervalForestClassifier._create_test_instance()),
         ]
     ),

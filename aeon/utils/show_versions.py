@@ -1,7 +1,4 @@
-"""Utility methods to print system info for debugging.
-
-Adapted from the sklearn show_versions function.
-"""
+"""Utility methods to print system info for debugging."""
 
 __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["show_versions"]
@@ -36,6 +33,12 @@ def show_versions(as_str: bool = False) -> Union[str, None]:
     -------
     str or None
         The output string if `as_str` is True, otherwise None.
+
+    Notes
+    -----
+    Adapted from the scikit-learn 1.5.0 show_versions function.
+    https://github.com/scikit-learn/scikit-learn/
+    Copyright (c) 2007-2024 The scikit-learn developers, BSD-3
 
     Examples
     --------

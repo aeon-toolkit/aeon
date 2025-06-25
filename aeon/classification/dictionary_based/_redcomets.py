@@ -66,7 +66,8 @@ class REDCOMETS(BaseClassifier):
 
     Notes
     -----
-    Adapted from the implementation at https://github.com/zy18811/RED-CoMETS
+    Adapted from the implementation at https://github.com/zy18811/RED-CoMETS by
+    the code owner.
 
     References
     ----------
@@ -318,8 +319,8 @@ class REDCOMETS(BaseClassifier):
         Returns
         -------
         sfa_transforms : list
-            List of lists of ``SFAFast()`` instances with random word length and alphabet
-            size
+            List of lists of ``SFAFast()`` instances with random word length and
+            alphabet size
         sfa_clfs : list
             List of lists of ``(RandomForestClassifier(), weight)`` tuples fitted on
             `SFAFast` transformed training data

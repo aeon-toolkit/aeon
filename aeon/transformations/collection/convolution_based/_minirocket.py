@@ -55,7 +55,7 @@ class MiniRocket(BaseCollectionTransformer):
     Notes
     -----
      Directly adapted from the original implementation
-     https://github.com/angus924/minirocket.
+     https://github.com/angus924/minirocket with owner permission.
 
     Examples
     --------
@@ -230,7 +230,7 @@ def _static_fit(X, n_features=10_000, max_dilations_per_kernel=32, seed=None):
     )
 
 
-@vectorize("float32(float32,float32)", nopython=True, cache=True)
+@vectorize(nopython=True, cache=True)
 def _PPV(a, b):
     if a > b:
         return 1
@@ -238,8 +238,6 @@ def _PPV(a, b):
 
 
 @njit(
-    "float32[:,:](float32[:,:],Tuple((int32[:],int32[:],int32[:],int32[:],float32["
-    ":])), int32[:,:])",
     fastmath=True,
     parallel=True,
     cache=True,
@@ -305,8 +303,6 @@ def _static_transform_uni(X, parameters, indices):
 
 
 @njit(
-    "float32[:,:](float32[:,:,:],Tuple((int32[:],int32[:],int32[:],int32[:],float32["
-    ":])), int32[:,:])",
     fastmath=True,
     parallel=True,
     cache=True,
@@ -384,8 +380,6 @@ def _static_transform_multi(X, parameters, indices):
 
 
 @njit(
-    "float32[:](float32[:,:,:],int32[:],int32[:],int32[:],int32[:],float32[:],"
-    "int32[:,:],optional(int32))",  # noqa
     fastmath=True,
     parallel=False,
     cache=True,
