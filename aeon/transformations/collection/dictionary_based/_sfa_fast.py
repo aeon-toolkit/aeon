@@ -329,7 +329,7 @@ class SFAFast(BaseCollectionTransformer):
         self: object
         """
         # with parallel_backend("loky", inner_max_num_threads=n_jobs):
-        self._fit_transform(X, y, return_bag_of_words=False)
+        self._fit_transform(X, y, return_bag_of_words=self.return_sparse)
         return self
 
     def _transform(self, X, y=None):
@@ -747,13 +747,22 @@ class SFAFast(BaseCollectionTransformer):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
         """
         # small window size for testing
-        params = {
-            "word_length": 4,
-            "window_size": 4,
-            "return_sparse": False,
-            "feature_selection": "chi2",
-            "alphabet_size": 2,
-        }
+        params = [
+            {
+                "word_length": 4,
+                "window_size": 4,
+                "return_sparse": False,
+                "feature_selection": "chi2",
+                "alphabet_size": 2,
+            },
+            {
+                "word_length": 4,
+                "window_size": 4,
+                "return_sparse": True,
+                "feature_selection": "chi2",
+                "alphabet_size": 2,
+            },
+        ]
         return params
 
     def __getstate__(self):
