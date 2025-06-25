@@ -87,7 +87,6 @@ class BaseForecaster(BaseSeriesEstimator):
         y = self._convert_y(y, self.axis)
 
         if exog is not None:
-            self._check_X(exog, self.axis)
             exog = self._convert_y(exog, self.axis)
 
         self.is_fitted = True
@@ -118,7 +117,6 @@ class BaseForecaster(BaseSeriesEstimator):
             self._check_X(y, self.axis)
             y = self._convert_y(y, self.axis)
         if exog is not None:
-            self._check_X(exog, self.axis)
             exog = self._convert_y(exog, self.axis)
 
         return self._predict(y, exog)
@@ -148,7 +146,6 @@ class BaseForecaster(BaseSeriesEstimator):
         self._check_X(y, self.axis)
         y = self._convert_y(y, self.axis)
         if exog is not None:
-            self._check_X(exog, self.axis)
             exog = self._convert_y(exog, self.axis)
         return self._forecast(y, exog)
 
