@@ -30,22 +30,25 @@ commenter = context_dict["event"]["comment"]["user"]["login"]
 
 restricted_labels = {"meta-issue"}
 
+# Assign tagged used to the issue if the comment includes the trigger phrase
 body = comment_body.lower()
-if "@aeon-actions-bot" in body and not pr:
-    if issue_labels & restricted_labels:
-        restricted = restricted_labels & issue_labels
+if "@aeon-actions-bot" in body and "assign" in body and not pr:
+    # Check if the issue has any restricted labels for auto assignment
+    label_intersect = issue_labels & restricted_labels
+    if len(label_intersect) > 0:
         issue.create_comment(
             f"This issue contains the following restricted label(s): "
-            f"{', '.join(restricted)}. Assignment is skipped."
+            f"{', '.join(label_intersect)}. Cannot assign to users."
         )
-    # Assign commenter if comment includes "assign me"
-    if "assign me" in body:
-        issue.add_to_assignees(commenter)
-    # Assign tagged used to the issue if the comment includes the trigger phrase
-    elif "assign" in body:
+    else:
+        # collect any mentioned (@username) users
         mentioned_users = re.findall(r"@[a-zA-Z0-9_-]+", comment_body)
         mentioned_users = [user[1:] for user in mentioned_users]
         mentioned_users.remove("aeon-actions-bot")
+        # Assign commenter if comment includes "assign me"
+        if "assign me" in body:
+            mentioned_users.append(commenter)
+        mentioned_users = set(mentioned_users)
 
         for user in mentioned_users:
             user_obj = g.get_user(user)
