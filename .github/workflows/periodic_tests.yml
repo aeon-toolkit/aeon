@@ -240,7 +240,7 @@ jobs:
         run: python -m pip list
 
       - name: Run tests
-        run: python -m pytest -n logical --doctest-only
+        run: python -m pytest -n logical --doctest-only --doctest-continue-on-failure
 
   codecov:
     runs-on: ubuntu-24.04
