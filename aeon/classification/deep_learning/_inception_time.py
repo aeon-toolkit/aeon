@@ -354,7 +354,7 @@ class InceptionTimeClassifier(BaseClassifier):
     def load_model(self, model_path, classes):
         """Load pre-trained classifiers instead of fitting.
 
-        When calling this function, all funcationalities can be used
+        When calling this function, all functionalities can be used
         such as predict, predict_proba, etc. with the loaded models.
 
         Parameters

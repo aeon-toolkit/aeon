@@ -1,4 +1,4 @@
-"""Unit tests for aeon classifier compatability with sklearn interfaces."""
+"""Unit tests for aeon classifier compatibility with sklearn interfaces."""
 
 __maintainer__ = []
 __all__ = [

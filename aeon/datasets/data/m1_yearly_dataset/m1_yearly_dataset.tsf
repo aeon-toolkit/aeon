@@ -4,7 +4,7 @@
 # The last 2 digits of the starting year are missing for the 51st series and they have been replaced by zeros.
 #
 # For more details, please refer to
-# Makridakis, S., Andersen, A., Carbone, R. F., Fildes, R., Hibon, M., Lewandowski, R., Newton, J., Parzen,E., Winkler, R. L., 1982. The accuracy of extrapolation (time series) methods: Results of a forecasting competition. Journal of Forecasting 1 (2), 111–153.
+# Makridakis, S., Andersen, A., Carbone, R. F., Fildes, R., Hibon, M., Lewandowski, R., Newton, J., Parzen,E., Winkler, R. L., 1982. The accuracy of extrapolation (time series) methods: Results of a forecasting competition. Journal of Forecasting 1 (2), 111â€“153.
 #
 @relation M1
 @attribute series_name string

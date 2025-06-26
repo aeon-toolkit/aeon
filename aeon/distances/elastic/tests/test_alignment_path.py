@@ -118,7 +118,7 @@ def test_alignment_path(dist):
         dist["name"] not in SINGLE_POINT_NOT_SUPPORTED_DISTANCES
         and dist["name"] != "lcss"
     ):
-        # Test singe point univariate of shape (1,)
+        # Test single point univariate of shape (1,)
         _validate_alignment_path_result(
             np.array([10.0]),
             np.array([15.0]),
@@ -127,7 +127,7 @@ def test_alignment_path(dist):
             dist["alignment_path"],
         )
 
-        # Test singe point univariate of shape (1, 1)
+        # Test single point univariate of shape (1, 1)
         _validate_alignment_path_result(
             np.array([[10.0]]),
             np.array([[15.0]]),

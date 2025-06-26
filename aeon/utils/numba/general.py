@@ -908,7 +908,7 @@ def is_prime(n: int) -> bool:
     Returns
     -------
     bool
-        Wheter n is a prime number
+        Whether n is a prime number
 
     Examples
     --------

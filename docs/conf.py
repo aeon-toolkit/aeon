@@ -390,7 +390,7 @@ def _make_estimator_overview(app):
     # Initialize data dictionary with base columns
     data = {col: [] for col in base_columns}
     # Add abbreviated columns
-    data.update({abbrevation: [] for abbrevation in capabilities_to_include.values()})
+    data.update({abbreviation: [] for abbreviation in capabilities_to_include.values()})
 
     for estimator_name, estimator_class in all_estimators(include_sklearn=False):
         algorithm_type = "::".join(str(estimator_class).split(".")[1:-2])
@@ -417,14 +417,14 @@ def _make_estimator_overview(app):
             data["Method family"].append("/".join(algorithm_type[1:]))
         else:
             data["Method family"].append("N/A")
-        for capability_name, abbrevation in capabilities_to_include.items():
+        for capability_name, abbreviation in capabilities_to_include.items():
             _val = tag_dict.get(f"capability:{capability_name}")
 
             # For case where tag is not included output as not supported
             if not _val or _val is None:
-                data[abbrevation].append("\u274c")
+                data[abbreviation].append("\u274c")
             else:
-                data[abbrevation].append("\u2705")
+                data[abbreviation].append("\u2705")
 
     df = pd.DataFrame(data).sort_values(
         by=["Module", "Method family", "Estimator name"]
@@ -621,7 +621,7 @@ nbsphinx_execute = "never"  # always  # whether to run notebooks
 nbsphinx_allow_errors = False  # False
 nbsphinx_timeout = 600  # seconds, set to -1 to disable timeout
 
-# add Binder launch buttom at the top
+# add Binder launch button at the top
 current_file = "{{ env.doc2path( env.docname, base=None) }}"
 
 # make sure Binder points to latest stable release, not main

@@ -90,7 +90,7 @@ class BoxCoxTransformer(BaseSeriesTransformer):
     References
     ----------
     .. [1] Box, G. E. P. & Cox, D. R. (1964) An analysis of transformations,
-       Journal ofthe Royal Statistical Society, Series B, 26, 211-252.
+       Journal of the Royal Statistical Society, Series B, 26, 211-252.
     .. [2] V.M. Guerrero, "Time-series analysis supported by Power
        Transformations ", Journal of Forecasting, vol. 12, pp. 37-48, 1993.
 

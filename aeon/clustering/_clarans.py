@@ -52,7 +52,7 @@ class TimeSeriesCLARANS(TimeSeriesKMedoids):
         for each set of medoids. A neighbouring solution is obtained by replacing
         one of the medoids with a non-medoid and seeing if total cost reduces. If
         not specified max_neighbours is set to 1.25% of the total number of possible
-        swaps (as suggested in the orginal paper).
+        swaps (as suggested in the original paper).
     n_init : int, default=5
         Number of times the PAM algorithm will be run with different
         centroid seeds. The final result will be the best output of n_init

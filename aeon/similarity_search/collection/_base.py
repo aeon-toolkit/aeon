@@ -1,4 +1,4 @@
-"""Base similiarity search for collections."""
+"""Base similarity search for collections."""
 
 __maintainer__ = ["baraline"]
 __all__ = [
@@ -95,7 +95,7 @@ class BaseCollectionSimilaritySearch(BaseCollectionEstimator, BaseSimilaritySear
 
     def _check_predict_series_format(self, X):
         """
-        Check whether a series X in predict is correctly formated.
+        Check whether a series X in predict is correctly formatted.
 
         Parameters
         ----------
