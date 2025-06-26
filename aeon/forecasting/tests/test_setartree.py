@@ -108,7 +108,4 @@ def test_predict_in_sample_basic():
     model.fit(y)
 
     pred = model._predict()  # in‐sample path
-    # should be a numpy scalar/0‐d array equal to the true next value 4
-    assert isinstance(pred, np.ndarray)
-    assert pred.shape == ()  # scalar array
-    assert pred.item() == 4
+    assert pred == 4

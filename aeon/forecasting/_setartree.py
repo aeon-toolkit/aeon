@@ -38,10 +38,6 @@ class SetartreeForecaster(BaseForecaster):
         The minimum percentage of error reduction required to make a split.
     """
 
-    _tags = {
-        "capability:multivariate": True,
-    }
-
     def __init__(
         self,
         lag: int = 10,
