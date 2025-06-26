@@ -82,8 +82,8 @@ def check_estimator_multithreading(estimator, datatype):
     # fit and get results for single thread estimator
     _run_estimator_method(st_estimator, "fit", datatype, "train")
 
-    assert hasattr(st_estimator, "n_jobs_"), (
-        f"Single threaded estimator {st_estimator} does not store an n_jobs_ "
+    assert hasattr(st_estimator, "_n_jobs"), (
+        f"Single threaded estimator {st_estimator} does not store an _n_jobs "
         "attribute. It is recommended to use the aeon.utils.validation.check_n_jobs "
         "function to set n_jobs_ and use this for any multithreading."
     )
@@ -104,8 +104,8 @@ def check_estimator_multithreading(estimator, datatype):
     _run_estimator_method(mt_estimator, "fit", datatype, "train")
 
     # check n_jobs_ attribute is set
-    assert hasattr(mt_estimator, "n_jobs_"), (
-        f"Multithreaded estimator {mt_estimator} does not store an n_jobs_ "
+    assert hasattr(mt_estimator, "_n_jobs"), (
+        f"Multithreaded estimator {mt_estimator} does not store an _n_jobs "
         "attribute. It is recommended to use the aeon.utils.validation.check_n_jobs "
         "function to set n_jobs_ and use this for any multithreading."
     )
