@@ -759,6 +759,7 @@ class IndividualOrdinalTDE(BaseClassifier):
         ending in "_" and sets is_fitted flag to True.
         """
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
+        self._n_jobs = check_n_jobs(self.n_jobs)
         self._class_vals = y
 
         # select dimensions using accuracy estimate if multivariate
