@@ -88,7 +88,7 @@ def check_estimator_multithreading(estimator, datatype):
         "function to set n_jobs_ and use this for any multithreading."
     )
     assert st_estimator._n_jobs == 1, (
-        f"Single threaded estimator {st_estimator} does not store an n_jobs_ "
+        f"Single threaded estimator {st_estimator} does not store an _n_jobs "
         f"attribute correctly. Expected 1, got {mt_estimator.n_jobs_}."
         f"It is recommended to use the aeon.utils.validation.check_n_jobs function to "
         f"set n_jobs_ and use this for any multithreading."
@@ -96,7 +96,7 @@ def check_estimator_multithreading(estimator, datatype):
 
     results = []
     for method in NON_STATE_CHANGING_METHODS_ARRAYLIKE:
-        if hasattr(st_estimator, method) and callable(getattr(estimator, method)):
+        if hasattr(st_estimator, method) and callable(getattr(st_estimator, method)):
             output = _run_estimator_method(st_estimator, method, datatype, "test")
             results.append(output)
 
@@ -110,7 +110,7 @@ def check_estimator_multithreading(estimator, datatype):
         "function to set n_jobs_ and use this for any multithreading."
     )
     assert mt_estimator._n_jobs == n_jobs, (
-        f"Multithreaded estimator {mt_estimator} does not store an n_jobs_ "
+        f"Multithreaded estimator {mt_estimator} does not store an _n_jobs "
         f"attribute correctly. Expected {n_jobs}, got {mt_estimator.n_jobs_}."
         f"It is recommended to use the aeon.utils.validation.check_n_jobs function to "
         f"set n_jobs_ and use this for any multithreading."
@@ -119,8 +119,8 @@ def check_estimator_multithreading(estimator, datatype):
     # compare results from single and multithreaded estimators
     i = 0
     for method in NON_STATE_CHANGING_METHODS_ARRAYLIKE:
-        if hasattr(estimator, method) and callable(getattr(estimator, method)):
-            output = _run_estimator_method(estimator, method, datatype, "test")
+        if hasattr(mt_estimator, method) and callable(getattr(mt_estimator, method)):
+            output = _run_estimator_method(mt_estimator, method, datatype, "test")
 
             assert deep_equals(output, results[i]), (
                 f"Running {method} after fit with test parameters gives different "
