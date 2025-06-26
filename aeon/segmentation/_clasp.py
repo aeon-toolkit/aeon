@@ -190,7 +190,7 @@ class ClaSPSegmenter(BaseSegmenter):
     ----------
     .. [1] Schafer, Patrick and Ermshaus, Arik and Leser, Ulf. "ClaSP - Time Series
     Segmentation", CIKM, 2021.
-    .. [2] Ermshaus, Arik, Sch"after, Patrick and Leser, Ulf. ClaSP: parameter-free
+    .. [2] Ermshaus, Arik, Sch"afer, Patrick and Leser, Ulf. ClaSP: parameter-free
     time series segmentation. Data Mining and Knowledge Discovery, 37, 2023.
 
     Examples

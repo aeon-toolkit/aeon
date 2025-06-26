@@ -96,7 +96,7 @@ def _transform_subsequences(
     sliding_window = reach * 2 + 1
     sliding_window = int(sliding_window)
 
-    # get the output dimension of the subsequence transformation s
+    # get the output dimension of the subsequence transformation
     dim_desc = descriptor_function(x[0, 0 : 0 + sliding_window]).shape[0]
     # dim_desc = 7
 
