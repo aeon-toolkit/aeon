@@ -13,9 +13,11 @@ __all__ = ["KNeighborsTimeSeriesRegressor"]
 from typing import Callable, Union
 
 import numpy as np
+from joblib import Parallel, delayed
 
 from aeon.distances import get_distance_function
 from aeon.regression.base import BaseRegressor
+from aeon.utils.validation import check_n_jobs
 
 WEIGHTS_SUPPORTED = ["uniform", "distance"]
 
@@ -46,11 +48,15 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
         n_timepoints)`` as input and returns a float.
     distance_params : dict, default = None
         Dictionary for metric parameters for the case that distance is a str.
-    n_jobs : int, default = None
+    n_jobs : int, default = 1
         The number of parallel jobs to run for neighbors search.
-        ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.
+        ``None`` means 1 unless in a :obj:``joblib.parallel_backend`` context.
         ``-1`` means using all processors.
-        for more details. Parameter for compatibility purposes, still unimplemented.
+    parallel_backend : str, ParallelBackendBase instance or None, default=None
+        Specify the parallelisation backend implementation in joblib, if None
+        a ‘prefer’ value of “threads” is used by default. Valid options are
+        “loky”, “multiprocessing”, “threading” or a custom backend.
+        See the joblib Parallel documentation for more details.
 
     Examples
     --------
@@ -79,11 +85,13 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
         n_neighbors: int = 1,
         weights: Union[str, Callable] = "uniform",
         n_jobs: int = 1,
+        parallel_backend: str = None,
     ) -> None:
         self.distance = distance
         self.distance_params = distance_params
         self.n_neighbors = n_neighbors
         self.n_jobs = n_jobs
+        self.parallel_backend = parallel_backend
 
         self._distance_params = distance_params
         if self._distance_params is None:
@@ -114,6 +122,7 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
         self.metric_ = get_distance_function(method=self.distance)
         self.X_ = X
         self.y_ = y
+        self._n_jobs = check_n_jobs(self.n_jobs)
         return self
 
     def _predict(self, X):
@@ -132,12 +141,14 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
         y : array of shape (n_cases)
             Output values for each data sample.
         """
-        preds = np.empty(len(X))
-        for i in range(len(X)):
-            idx, weights = self._kneighbors(X[i])
-            preds[i] = np.average(self.y_[idx], weights=weights)
+        preds = Parallel(n_jobs=self._n_jobs, backend=self.parallel_backend)(
+            delayed(self._predict_row)(x) for x in X
+        )
+        return np.array(preds)
 
-        return preds
+    def _predict_row(self, x):
+        idx, weights = self._kneighbors(x)
+        return np.average(self.y_[idx], weights=weights)
 
     def _kneighbors(self, X):
         """

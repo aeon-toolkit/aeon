@@ -271,7 +271,7 @@ class REDCOMETS(BaseClassifier):
                 weight = 1
             elif self.variant == 3:
                 weight = cross_val_score(
-                    rf, X_sfa, y_smote, cv=cv, n_jobs=self._
+                    rf, X_sfa, y_smote, cv=cv, n_jobs=self._n_jobs
                 ).mean()
 
             else:
