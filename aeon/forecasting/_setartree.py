@@ -286,4 +286,4 @@ class SetartreeForecaster(BaseForecaster):
             # Update history for the next prediction
             history = np.append(history[1:], next_pred)
 
-        return np.array(predictions[self.horizon - 1])
+        return predictions[self.horizon - 1]
