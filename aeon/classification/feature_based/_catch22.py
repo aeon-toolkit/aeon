@@ -181,7 +181,6 @@ class Catch22Classifier(BaseClassifier):
             Reference to self.
         """
         self._n_jobs = check_n_jobs(self.n_jobs)
-
         self._transformer = Catch22(
             features=self.features,
             catch24=self.catch24,
