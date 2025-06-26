@@ -286,8 +286,4 @@ class SetartreeForecaster(BaseForecaster):
             # Update history for the next prediction
             history = np.append(history[1:], next_pred)
 
-        # Now I believe predict horizen steps forward is more natural
-        # than predict just one step at the horizen position...
-        # direct / recursive?
-        # return np.array(predictions[self.horizon - 1])
-        return np.array(predictions)
+        return np.array(predictions[self.horizon - 1])
