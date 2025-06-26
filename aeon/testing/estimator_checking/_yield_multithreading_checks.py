@@ -87,7 +87,7 @@ def check_estimator_multithreading(estimator, datatype):
         "attribute. It is recommended to use the aeon.utils.validation.check_n_jobs "
         "function to set n_jobs_ and use this for any multithreading."
     )
-    assert st_estimator.n_jobs_ == 1, (
+    assert st_estimator._n_jobs == 1, (
         f"Single threaded estimator {st_estimator} does not store an n_jobs_ "
         f"attribute correctly. Expected 1, got {mt_estimator.n_jobs_}."
         f"It is recommended to use the aeon.utils.validation.check_n_jobs function to "
@@ -109,7 +109,7 @@ def check_estimator_multithreading(estimator, datatype):
         "attribute. It is recommended to use the aeon.utils.validation.check_n_jobs "
         "function to set n_jobs_ and use this for any multithreading."
     )
-    assert mt_estimator.n_jobs_ == n_jobs, (
+    assert mt_estimator._n_jobs == n_jobs, (
         f"Multithreaded estimator {mt_estimator} does not store an n_jobs_ "
         f"attribute correctly. Expected {n_jobs}, got {mt_estimator.n_jobs_}."
         f"It is recommended to use the aeon.utils.validation.check_n_jobs function to "
