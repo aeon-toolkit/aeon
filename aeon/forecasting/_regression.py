@@ -71,7 +71,7 @@ class RegressionForecaster(BaseForecaster):
                 f" window value {self.window} is invalid for series " f"length {len(y)}"
             )
         X = np.lib.stride_tricks.sliding_window_view(y, window_shape=self.window)
-        # Ignore the final horizon values: need to store these for pred with empty y
+        # Ignore the final horizon values
         X = X[: -self.horizon]
         # Extract y_train
         y_train = y[self.window + self.horizon - 1 :]
