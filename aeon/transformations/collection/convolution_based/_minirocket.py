@@ -139,7 +139,7 @@ class MiniRocket(BaseCollectionTransformer):
         """
         X = X.astype(np.float32)
         _, n_channels, n_timepoints = X.shape
-        # change n_jobs dependend on value and existing cores
+        # change n_jobs depending on value and existing cores
         prev_threads = get_num_threads()
         if self.n_jobs < 1 or self.n_jobs > multiprocessing.cpu_count():
             n_jobs = multiprocessing.cpu_count()

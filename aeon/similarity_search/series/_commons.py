@@ -11,14 +11,14 @@ from aeon.utils.numba.general import AEON_NUMBA_STD_THRESHOLD
 
 def _check_X_index(X_index: int, n_timepoints: int, length: int):
     """
-    Check wheter a X_index parameter is correctly formated and is admissible.
+    Check whether an X_index parameter is correctly formatted and is admissible.
 
     Parameters
     ----------
     X_index : int
         Index of a timestamp in X_.
      n_timepoints: int
-         Number of timepoints in the serie X_
+         Number of timepoints in the series X_
      length: int
          Length parameter of the estimator
 
@@ -30,7 +30,7 @@ def _check_X_index(X_index: int, n_timepoints: int, length: int):
         max_timepoints = n_timepoints - length
         if X_index >= max_timepoints or X_index < 0:
             raise ValueError(
-                "The value of X_index cannot exced the number "
+                "The value of X_index cannot exceed the number "
                 "of timepoint in series given during fit. Expected a value "
                 f"between [0, {max_timepoints - 1}] but got {X_index}"
             )
@@ -122,7 +122,7 @@ def _extract_top_k_from_dist_profile(
         ignoring the exclusion zone defined by the ``exclusion_size`` parameter.
         If False, the exclusion zone is applied.
     exclusion_size : int
-        The size of the exlusion size to apply when ``allow_trivial_matches`` is
+        The size of the exclusion size to apply when ``allow_trivial_matches`` is
         False. It is applied on both side of existing matches (+/- their indexes).
 
     Returns

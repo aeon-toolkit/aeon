@@ -297,12 +297,12 @@ def plot_pairwise_scatter(
             )[1]
 
         ttes = f"Paired t-test for equality of means, p-value={p_value_t:.3f}"
-        wil = f"Wilcoxon test for equality of medians, p-value={p_value_w:.3f}"
+        wilcox = f"Wilcoxon test for equality of medians, p-value={p_value_w:.3f}"
 
         plt.figtext(
             0.5,
             0.03 if not lower_better else 0.13,
-            f"{wil}\n{ttes}",
+            f"{wilcox}\n{ttes}",
             fontsize=10,
             wrap=True,
             horizontalalignment="center",

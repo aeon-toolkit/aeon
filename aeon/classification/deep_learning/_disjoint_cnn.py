@@ -54,7 +54,7 @@ class DisjointCNNClassifier(BaseDeepClassifier):
         as `n_layers`, if input is int the a list of the same
         element is created of length `n_layers`.
     use_bias : bool or list of bool, default = True
-        Whether or not ot use bias in convolution. If
+        Whether or not to use bias in convolution. If
         input is set to a list, the length should be the same
         as `n_layers`, if input is int the a list of the same
         element is created of length `n_layers`.

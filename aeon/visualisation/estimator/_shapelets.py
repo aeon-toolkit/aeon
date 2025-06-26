@@ -259,7 +259,7 @@ class ShapeletVisualizer:
         -------
         fig : matplotlib figure
             The resulting figure with S on its best match on X. A normalised
-            shapelet will be scaled to macth the scale of X.
+            shapelet will be scaled to match the scale of X.
 
         """
         _check_soft_dependencies("matplotlib")
@@ -512,7 +512,7 @@ class ShapeletTransformerVisualizer:
         -------
         fig : matplotlib figure
             The resulting figure with S on its best match on X. A normalised
-            shapelet will be scaled to macth the scale of X.
+            shapelet will be scaled to match the scale of X.
 
         """
         return self._get_shapelet(id_shapelet).plot_on_X(
@@ -1114,7 +1114,7 @@ class ShapeletClassifierVisualizer:
         -------
         fig : matplotlib figure
             The resulting figure with S on its best match on X. A normalised
-            shapelet will be scaled to macth the scale of X.
+            shapelet will be scaled to match the scale of X.
 
         """
         return self.transformer_vis.plot_on_X(

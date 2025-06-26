@@ -5,7 +5,7 @@ from aeon.transformations.collection import BaseCollectionTransformer
 
 
 def _make_augmentation_pipeline(augmentation_list):
-    """Builds an sklearn pipeline of augmentations from a tuple of strings.
+    """Build an sklearn pipeline of augmentations from a tuple of strings.
 
     Parameters
     ----------

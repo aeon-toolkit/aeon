@@ -537,8 +537,8 @@ class HidalgoSegmenter(BaseSegmenter):
 
             N_in, f1 = self._update_zeta_prior(Z, N, Iin)
 
-            lik = sample_likelihood(N, mu, p, d, Z, N_in, zeta, NN)
-            sampling = np.append(sampling, lik)
+            likelihood = sample_likelihood(N, mu, p, d, Z, N_in, zeta, NN)
+            sampling = np.append(sampling, likelihood)
 
         return sampling
 
@@ -622,11 +622,11 @@ class HidalgoSegmenter(BaseSegmenter):
             ]
             sampling = sampling[idx,]
 
-            lik = np.mean(sampling[:, -1], axis=0)
+            likelihood = np.mean(sampling[:, -1], axis=0)
 
-            if lik > maxlik:
+            if likelihood > maxlik:
                 bestsampling = sampling
-                maxlik = lik
+                maxlik = likelihood
 
         self._d = np.mean(bestsampling[:, :K], axis=0)
         self._derr = np.std(bestsampling[:, :K], axis=0)
