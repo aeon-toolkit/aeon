@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "aeon"
-version = "1.1.0"
+version = "1.2.0"
 description = "A toolkit for machine learning from time series"
 authors = [
     {name = "aeon developers", email = "contact@aeon-toolkit.org"},
@@ -50,7 +50,7 @@ dependencies = [
     "numpy>=1.21.0,<2.3.0",
     "packaging>=20.0",
     "pandas>=2.0.0,<2.4.0",
-    "scikit-learn>=1.0.0,<1.7.0",
+    "scikit-learn>=1.0.0,<1.8.0",
     "scipy>=1.9.0,<1.16.0",
     "typing-extensions>=4.6.0",
 ]
