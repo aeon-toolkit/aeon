@@ -1,5 +1,6 @@
 """Time-Varying Parameter (TVP) Forecaster using Kalman filter."""
 import numpy as np
+from scipy.stats import betanbinom
 
 from aeon.forecasting.base import BaseForecaster
 
@@ -9,7 +10,11 @@ class TVPForecaster(BaseForecaster):
 
     This forecaster models the target series using a time-varying linear autoregression:
         \[ \hat{y}_t = \beta_1,t * y_{t-1} + ... + \beta_k,t * y_{t-k} \]
-    where the coefficients $\beta_t$ evolve based on observations $y_t$.
+    where the coefficients $\beta_t$ evolve based on observations $y_t$. At each step, a weight
+    vector is calculated based in the latest residual
+
+    Related to stochastic gradient descent (SGD) regression, with the update weight the dynamically
+    calculated Kalman gain based on the covariance of the parameters rather than a fixed learning rate.
 
     Parameters
     ----------
@@ -29,10 +34,10 @@ class TVPForecaster(BaseForecaster):
     Oxford University Press, 2nd Edition, 2012
     """
 
-    def __init__(self, window, horizon = 1, var=0.01, coeff_var=0.01):
+    def __init__(self, window, horizon = 1, var=0.01, beta_var=0.01):
         self.window = window
         self.var = var
-        self.coeff_var = coeff_var
+        self.beta_var = beta_var
         super().__init__(axis=1, horizon=horizon)
 
     def _fit(self, y, exog=None):
@@ -47,24 +52,22 @@ class TVPForecaster(BaseForecaster):
 
         # Kalman filter initialisation
         beta = np.zeros(self.window)
-        predicted_covariance = np.eye(self.window)
-        coeff_var = self.coeff_var * np.eye(self.window)
+        beta_covariance = np.eye(self.window)
+        beta_var = self.beta_var * np.eye(self.window)
         for t in range(len(y_train)):
             x_t = X[t]
             y_t = y_train[t]
 
-            # Predict
-            m_pred = beta
-            predicted_covariance = predicted_covariance + coeff_var
-
+            # Predict covariance
+            beta_covariance = beta_covariance + beta_var
             # Forecast error
-            error_t = y_t - x_t @ m_pred
-            total_variance = x_t @ predicted_covariance @ x_t + self.var
-            kalman_t = predicted_covariance @ x_t / total_variance
+            error_t = y_t - x_t @ beta
+            total_variance = x_t @ beta_covariance @ x_t + self.var
+            kalman_weight = beta_covariance @ x_t / total_variance
 
-            # Update
-            beta = m_pred + kalman_t * error_t
-            predicted_covariance = predicted_covariance - np.outer(kalman_t, x_t) @ predicted_covariance
+            # Update beta parameters with kalman weights times error.
+            beta = beta + kalman_weight * error_t
+            beta_covariance = beta_covariance - np.outer(kalman_weight, x_t) @ beta_covariance
 
         self._beta = beta
         self._last_window = y[-self.window:]
