@@ -73,7 +73,7 @@ class TVPForecaster(BaseForecaster):
 
     def _predict(self, y = None, exog = None):
         if y is None: return self.forecast_
-        x_t = y_test[-self.window:]
+        x_t = y[-self.window:]
         y_hat = x_t @ self._beta
         return y_hat
 
