@@ -139,6 +139,7 @@ class RSAST(BaseCollectionTransformer):
             This transformer
 
         """
+        self._n_jobs = check_n_jobs(self.n_jobs)
 
         # 0- initialize variables and convert values in "y" to string
         X_ = np.reshape(X, (X.shape[0], X.shape[-1]))
@@ -342,10 +343,7 @@ class RSAST(BaseCollectionTransformer):
         X_ = np.reshape(X, (X.shape[0], X.shape[-1]))
 
         prev_threads = get_num_threads()
-
-        n_jobs = check_n_jobs(self.n_jobs)
-
-        set_num_threads(n_jobs)
+        set_num_threads(self._n_jobs)
 
         X_transformed = _apply_kernels(X_, self._kernels)  # subsequence transform of X
         set_num_threads(prev_threads)

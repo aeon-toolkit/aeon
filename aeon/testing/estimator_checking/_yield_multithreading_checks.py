@@ -1,13 +1,12 @@
 import inspect
 from functools import partial
 
-from numpy.testing import assert_array_almost_equal
-
 from aeon.base._base import _clone_estimator
 from aeon.testing.testing_config import (
     MULTITHREAD_TESTING,
     NON_STATE_CHANGING_METHODS_ARRAYLIKE,
 )
+from aeon.testing.utils.deep_equals import deep_equals
 from aeon.testing.utils.estimator_checks import _get_tag, _run_estimator_method
 from aeon.utils.validation import check_n_jobs
 
@@ -75,41 +74,66 @@ def check_no_multithreading_param(estimator_class):
 
 def check_estimator_multithreading(estimator, datatype):
     """Test that multithreaded estimators store n_jobs_ and produce same results."""
+    estimator_name = estimator.__class__.__name__
     st_estimator = _clone_estimator(estimator, random_state=42)
     mt_estimator = _clone_estimator(estimator, random_state=42)
+
     n_jobs = max(2, check_n_jobs(-2))
     mt_estimator.set_params(n_jobs=n_jobs)
 
-    # fit and get results for single thread estimator
-    _run_estimator_method(st_estimator, "fit", datatype, "train")
+    tags = estimator.get_tags()
+
+    if not tags["fit_is_empty"]:
+        # fit and get results for single thread estimator
+        _run_estimator_method(st_estimator, "fit", datatype, "train")
+
+        # check _n_jobs attribute is set
+        assert hasattr(st_estimator, "_n_jobs"), (
+            f"Estimator with default n_jobs {estimator_name} does not store an _n_jobs "
+            "attribute. It is recommended to use the "
+            "aeon.utils.validation.check_n_jobs function to set _n_jobs and use this "
+            "for any multithreading."
+        )
+        assert st_estimator._n_jobs == 1, (
+            f"Estimator with default n_jobs {estimator_name} does not store an _n_jobs "
+            f"attribute correctly. Expected 1, got {mt_estimator._n_jobs}."
+            f"It is recommended to use the aeon.utils.validation.check_n_jobs function "
+            f"to set _n_jobs and use this for any multithreading."
+        )
 
     results = []
     for method in NON_STATE_CHANGING_METHODS_ARRAYLIKE:
-        if hasattr(st_estimator, method) and callable(getattr(estimator, method)):
+        if hasattr(st_estimator, method) and callable(getattr(st_estimator, method)):
             output = _run_estimator_method(st_estimator, method, datatype, "test")
             results.append(output)
 
-    # fit multithreaded estimator
-    _run_estimator_method(mt_estimator, "fit", datatype, "train")
+    if not tags["fit_is_empty"]:
+        # fit multithreaded estimator
+        _run_estimator_method(mt_estimator, "fit", datatype, "train")
 
-    # check n_jobs_ attribute is set
-    assert mt_estimator.n_jobs_ == n_jobs, (
-        f"Multithreaded estimator {mt_estimator} does not store n_jobs_ "
-        f"attribute correctly. Expected {n_jobs}, got {mt_estimator.n_jobs_}."
-        f"It is recommended to use the check_n_jobs function to set n_jobs_ and use"
-        f"this for any multithreading."
-    )
+        # check _n_jobs attribute is set
+        assert hasattr(mt_estimator, "_n_jobs"), (
+            f"Multithreaded estimator {estimator_name} does not store an _n_jobs "
+            "attribute. It is recommended to use the "
+            "aeon.utils.validation.check_n_jobs function to set _n_jobs and use this "
+            "for any multithreading."
+        )
+        assert mt_estimator._n_jobs == n_jobs, (
+            f"Multithreaded estimator {estimator_name} does not store an _n_jobs "
+            f"attribute correctly. Expected {n_jobs}, got {mt_estimator._n_jobs}."
+            f"It is recommended to use the aeon.utils.validation.check_n_jobs function "
+            f"to set _n_jobs and use this for any multithreading."
+        )
 
     # compare results from single and multithreaded estimators
     i = 0
     for method in NON_STATE_CHANGING_METHODS_ARRAYLIKE:
-        if hasattr(estimator, method) and callable(getattr(estimator, method)):
-            output = _run_estimator_method(estimator, method, datatype, "test")
+        if hasattr(mt_estimator, method) and callable(getattr(mt_estimator, method)):
+            output = _run_estimator_method(mt_estimator, method, datatype, "test")
 
-            assert_array_almost_equal(
-                output,
-                results[i],
-                err_msg=f"Running {method} after fit twice with test "
-                f"parameters gives different results.",
-            )
+            if not tags["non_deterministic"]:
+                assert deep_equals(output, results[i]), (
+                    f"Running {method} after fit with test parameters gives different "
+                    f"results when multithreading."
+                )
             i += 1

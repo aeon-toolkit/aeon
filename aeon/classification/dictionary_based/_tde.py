@@ -23,6 +23,7 @@ from sklearn.utils import check_random_state
 
 from aeon.classification.base import BaseClassifier
 from aeon.transformations.collection.dictionary_based import SFA
+from aeon.utils.validation import check_n_jobs
 
 
 class TemporalDictionaryEnsemble(BaseClassifier):
@@ -247,6 +248,7 @@ class TemporalDictionaryEnsemble(BaseClassifier):
             )
 
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
+        self._n_jobs = check_n_jobs(self.n_jobs)
 
         self.estimators_ = []
         self.weights_ = []
@@ -780,6 +782,7 @@ class IndividualTDE(BaseClassifier):
         ending in "_" and sets is_fitted flag to True.
         """
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
+        self._n_jobs = check_n_jobs(self.n_jobs)
         self._class_vals = y
 
         # select dimensions using accuracy estimate if multivariate

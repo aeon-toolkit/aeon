@@ -12,6 +12,7 @@ from sklearn.ensemble import RandomForestRegressor
 from aeon.base._base import _clone_estimator
 from aeon.regression.base import BaseRegressor
 from aeon.transformations.collection.interval_based import RandomIntervals
+from aeon.utils.validation import check_n_jobs
 
 
 class RandomIntervalRegressor(BaseRegressor):
@@ -137,6 +138,7 @@ class RandomIntervalRegressor(BaseRegressor):
             Reference to self.
         """
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
+        self._n_jobs = check_n_jobs(self.n_jobs)
 
         self._transformer = RandomIntervals(
             n_intervals=self.n_intervals,

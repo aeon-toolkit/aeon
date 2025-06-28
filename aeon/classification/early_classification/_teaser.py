@@ -19,6 +19,7 @@ from sklearn.utils import check_random_state
 from aeon.base._base import _clone_estimator
 from aeon.classification.dictionary_based import MUSE, WEASEL
 from aeon.classification.early_classification.base import BaseEarlyClassifier
+from aeon.utils.validation import check_n_jobs
 
 
 class TEASER(BaseEarlyClassifier):
@@ -145,6 +146,7 @@ class TEASER(BaseEarlyClassifier):
 
     def _fit(self, X, y):
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
+        self._n_jobs = check_n_jobs(self.n_jobs)
 
         self._estimator = (
             (

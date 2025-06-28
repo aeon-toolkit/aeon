@@ -8,6 +8,7 @@ from typing import Optional, Union
 import numpy as np
 
 from aeon.anomaly_detection.series._pyodadapter import PyODAdapter
+from aeon.utils.validation import check_n_jobs
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
@@ -98,6 +99,8 @@ class LOF(PyODAdapter):
         # Set a default contamination value internally
         contamination = 0.1
 
+        self._n_jobs = check_n_jobs(n_jobs)
+
         model = PyOD_LOF(
             n_neighbors=n_neighbors,
             algorithm=algorithm,
@@ -105,7 +108,7 @@ class LOF(PyODAdapter):
             metric=metric,
             p=p,
             metric_params=metric_params,
-            n_jobs=n_jobs,
+            n_jobs=self._n_jobs,
             contamination=contamination,  # Only for PyOD LOF
             novelty=False,  # Initialize unsupervised LOF (novelty=False)
         )
@@ -116,6 +119,7 @@ class LOF(PyODAdapter):
         self.p = p
         self.metric_params = metric_params
         self.n_jobs = n_jobs
+
         super().__init__(pyod_model=model, window_size=window_size, stride=stride)
 
     def _fit(self, X: np.ndarray, y: Union[np.ndarray, None] = None) -> None:

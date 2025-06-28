@@ -45,7 +45,8 @@ class DummySNN(BaseSeriesSimilaritySearch):
     ):
         prev_threads = get_num_threads()
 
-        set_num_threads(check_n_jobs(self.n_jobs))
+        self._n_jobs = check_n_jobs(self.n_jobs)
+        set_num_threads(self._n_jobs)
 
         self.X_subs = get_all_subsequences(self.X_, self.length, 1)
         if self.normalize:

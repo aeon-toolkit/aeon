@@ -12,6 +12,7 @@ from aeon.classification import BaseClassifier
 from aeon.classification.convolution_based._hydra import _SparseScaler
 from aeon.transformations.collection.convolution_based import MultiRocket
 from aeon.transformations.collection.convolution_based._hydra import HydraTransformer
+from aeon.utils.validation import check_n_jobs
 
 
 class MultiRocketHydraClassifier(BaseClassifier):
@@ -105,10 +106,12 @@ class MultiRocketHydraClassifier(BaseClassifier):
         super().__init__()
 
     def _fit(self, X, y):
+        self._n_jobs = check_n_jobs(self.n_jobs)
+
         self._transform_hydra = HydraTransformer(
             n_kernels=self.n_kernels,
             n_groups=self.n_groups,
-            n_jobs=self.n_jobs,
+            n_jobs=self._n_jobs,
             random_state=self.random_state,
         )
         Xt_hydra = self._transform_hydra.fit_transform(X)
@@ -117,7 +120,7 @@ class MultiRocketHydraClassifier(BaseClassifier):
         Xt_hydra = self._scale_hydra.fit_transform(Xt_hydra)
 
         self._transform_multirocket = MultiRocket(
-            n_jobs=self.n_jobs,
+            n_jobs=self._n_jobs,
             random_state=self.random_state,
         )
         Xt_multirocket = self._transform_multirocket.fit_transform(X)

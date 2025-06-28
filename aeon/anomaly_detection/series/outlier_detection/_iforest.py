@@ -8,6 +8,7 @@ from typing import Literal, Optional, Union
 import numpy as np
 
 from aeon.anomaly_detection.series._pyodadapter import PyODAdapter
+from aeon.utils.validation import check_n_jobs
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
@@ -101,12 +102,14 @@ class IsolationForest(PyODAdapter):
         _check_soft_dependencies(*self._tags["python_dependencies"])
         from pyod.models.iforest import IForest
 
+        self._n_jobs = check_n_jobs(n_jobs)
+
         model = IForest(
             n_estimators=n_estimators,
             max_samples=max_samples,
             max_features=max_features,
             bootstrap=bootstrap,
-            n_jobs=n_jobs,
+            n_jobs=self._n_jobs,
             random_state=random_state,
             verbose=verbose,
         )

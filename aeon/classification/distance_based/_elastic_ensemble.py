@@ -26,6 +26,7 @@ from aeon.classification.distance_based._time_series_neighbors import (
     KNeighborsTimeSeriesClassifier,
 )
 from aeon.utils.numba.general import slope_derivative_2d, slope_derivative_3d
+from aeon.utils.validation import check_n_jobs
 
 
 class ElasticEnsemble(BaseClassifier):
@@ -139,6 +140,8 @@ class ElasticEnsemble(BaseClassifier):
         -------
         self : object
         """
+        self._n_jobs = check_n_jobs(self.n_jobs)
+
         if self.distance_measures == "all":
             self._distance_measures = [
                 "dtw",

@@ -99,6 +99,8 @@ class Rocket(BaseCollectionTransformer):
         -------
         self
         """
+        self._n_jobs = check_n_jobs(self.n_jobs)
+
         if isinstance(self.random_state, int):
             self._random_state = self.random_state
         else:
@@ -128,11 +130,10 @@ class Rocket(BaseCollectionTransformer):
         if self.normalise:
             norm = Normalizer()
             X = norm.fit_transform(X)
+
         prev_threads = get_num_threads()
+        set_num_threads(self._n_jobs)
 
-        n_jobs = check_n_jobs(self.n_jobs)
-
-        set_num_threads(n_jobs)
         X_ = _apply_kernels(X, self.kernels)
 
         set_num_threads(prev_threads)

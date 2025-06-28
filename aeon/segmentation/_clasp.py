@@ -12,6 +12,7 @@ import pandas as pd
 
 from aeon.segmentation.base import BaseSegmenter
 from aeon.transformations.series import ClaSPTransformer
+from aeon.utils.validation import check_n_jobs
 
 
 def find_dominant_window_sizes(X, offset=0.05):
@@ -265,10 +266,12 @@ class ClaSPSegmenter(BaseSegmenter):
         return {"profiles": self.profiles, "scores": self.scores}
 
     def _run_clasp(self, X):
+        n_jobs = check_n_jobs(self.n_jobs)
+
         clasp_transformer = ClaSPTransformer(
             window_length=self.period_length,
             exclusion_radius=self.exclusion_radius,
-            n_jobs=self.n_jobs,
+            n_jobs=n_jobs,
         ).fit(X)
 
         self.found_cps, self.profiles, self.scores = _segmentation(

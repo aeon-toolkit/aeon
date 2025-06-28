@@ -12,6 +12,7 @@ from sklearn.ensemble import RandomForestClassifier
 from aeon.base._base import _clone_estimator
 from aeon.classification import BaseClassifier
 from aeon.transformations.collection.feature_based import Catch22
+from aeon.utils.validation import check_n_jobs
 
 
 class Catch22Classifier(BaseClassifier):
@@ -179,6 +180,7 @@ class Catch22Classifier(BaseClassifier):
         self :
             Reference to self.
         """
+        self._n_jobs = check_n_jobs(self.n_jobs)
         self._transformer = Catch22(
             features=self.features,
             catch24=self.catch24,

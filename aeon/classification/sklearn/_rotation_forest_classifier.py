@@ -303,9 +303,9 @@ class RotationForestClassifier(ClassifierMixin, BaseEstimator):
         X, y = validate_data(self, X=X, y=y, ensure_min_samples=2, accept_sparse=False)
         check_classification_targets(y)
 
+        self.n_cases_, self.n_atts_ = X.shape
         self._n_jobs = check_n_jobs(self.n_jobs)
 
-        self.n_cases_, self.n_atts_ = X.shape
         self.classes_ = np.unique(y)
         self.n_classes_ = self.classes_.shape[0]
         self._class_dictionary = {}

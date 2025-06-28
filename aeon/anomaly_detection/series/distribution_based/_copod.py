@@ -8,6 +8,7 @@ from typing import Union
 import numpy as np
 
 from aeon.anomaly_detection.series._pyodadapter import PyODAdapter
+from aeon.utils.validation import check_n_jobs
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
@@ -46,7 +47,9 @@ class COPOD(PyODAdapter):
         _check_soft_dependencies(*self._tags["python_dependencies"])
         from pyod.models.copod import COPOD
 
-        model = COPOD(n_jobs=n_jobs)
+        self._n_jobs = check_n_jobs(n_jobs)
+
+        model = COPOD(n_jobs=self._n_jobs)
         self.n_jobs = n_jobs
         super().__init__(model, window_size=window_size, stride=stride)
 

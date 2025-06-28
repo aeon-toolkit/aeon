@@ -227,9 +227,8 @@ class RotationForestRegressor(RegressorMixin, BaseEstimator):
 
         self._label_average = np.mean(y)
 
-        self._n_jobs = check_n_jobs(self.n_jobs)
-
         self.n_cases_, self.n_atts_ = X.shape
+        self._n_jobs = check_n_jobs(self.n_jobs)
 
         time_limit = self.time_limit_in_minutes * 60
         start_time = time.time()

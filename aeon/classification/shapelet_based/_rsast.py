@@ -13,6 +13,7 @@ from sklearn.pipeline import make_pipeline
 from aeon.base._base import _clone_estimator
 from aeon.classification import BaseClassifier
 from aeon.transformations.collection.shapelet_based import RSAST
+from aeon.utils.validation import check_n_jobs
 
 
 class RSASTClassifier(BaseClassifier):
@@ -96,12 +97,14 @@ class RSASTClassifier(BaseClassifier):
             This pipeline classifier
 
         """
+        self._n_jobs = check_n_jobs(self.n_jobs)
+
         self._transformer = RSAST(
             self.n_random_points,
             self.len_method,
             self.nb_inst_per_class,
             self.seed,
-            self.n_jobs,
+            self._n_jobs,
         )
 
         self._classifier = _clone_estimator(

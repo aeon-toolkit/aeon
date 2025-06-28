@@ -592,13 +592,17 @@ class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
         random_state = getattr(self, "random_state", None)
         estimator = _clone_estimator(self, random_state)
 
+        n_jobs = getattr(self, "_n_jobs", None)
+        if n_jobs is None:
+            n_jobs = getattr(self, "n_jobs", None)
+
         return cross_val_predict(
             estimator,
             X=X,
             y=y,
             cv=cv_size,
             method=method,
-            n_jobs=self._n_jobs,
+            n_jobs=n_jobs,
         )
 
     @staticmethod

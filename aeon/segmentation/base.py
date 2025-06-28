@@ -147,7 +147,8 @@ class BaseSegmenter(BaseSeriesEstimator):
             list of integers of ``len(X)`` indicating which segment each time point
             belongs to.
         """
-        self._check_is_fitted()
+        if not self.get_tag("fit_is_empty"):
+            self._check_is_fitted()
         if axis is None:
             axis = self.axis
         X = self._preprocess_series(X, axis, False)
