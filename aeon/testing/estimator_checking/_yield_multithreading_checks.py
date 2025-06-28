@@ -82,6 +82,7 @@ def check_estimator_multithreading(estimator, datatype):
     mt_estimator.set_params(n_jobs=n_jobs)
 
     fit_is_empty = estimator.get_tag("fit_is_empty")
+    non_deterministic = estimator.get_tag("non_deterministic")
 
     if not fit_is_empty:
         # fit and get results for single thread estimator
@@ -126,13 +127,12 @@ def check_estimator_multithreading(estimator, datatype):
         )
 
     # compare results from single and multithreaded estimators
-    i = 0
-    for method in NON_STATE_CHANGING_METHODS_ARRAYLIKE:
+    for i, method in enumerate(NON_STATE_CHANGING_METHODS_ARRAYLIKE):
         if hasattr(mt_estimator, method) and callable(getattr(mt_estimator, method)):
             output = _run_estimator_method(mt_estimator, method, datatype, "test")
 
-            assert deep_equals(output, results[i]), (
-                f"Running {method} after fit with test parameters gives different "
-                f"results when multithreading."
-            )
-            i += 1
+            if non_deterministic:
+                assert deep_equals(output, results[i]), (
+                    f"Running {method} after fit with test parameters gives different "
+                    f"results when multithreading."
+                )
