@@ -81,7 +81,7 @@ def check_estimator_multithreading(estimator, datatype):
     n_jobs = max(2, check_n_jobs(-2))
     mt_estimator.set_params(n_jobs=n_jobs)
 
-    fit_is_empty = not estimator.get_tag("capability:fit_is_empty")
+    fit_is_empty = not estimator.get_tag("fit_is_empty")
 
     if not fit_is_empty:
         # fit and get results for single thread estimator
