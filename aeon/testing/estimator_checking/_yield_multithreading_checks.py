@@ -127,7 +127,7 @@ def check_estimator_multithreading(estimator, datatype):
 
     # compare results from single and multithreaded estimators
     i = 0
-    for method in enumerate(NON_STATE_CHANGING_METHODS_ARRAYLIKE):
+    for method in NON_STATE_CHANGING_METHODS_ARRAYLIKE:
         if hasattr(mt_estimator, method) and callable(getattr(mt_estimator, method)):
             output = _run_estimator_method(mt_estimator, method, datatype, "test")
 
