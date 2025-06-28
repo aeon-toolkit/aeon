@@ -399,7 +399,7 @@ class WEASELTransformerV2:
                 self.anova,
                 self.bigrams,
                 self.lower_bounding,
-                self._n_jobs,
+                self.n_jobs,
                 self.max_feature_count,
                 self.ensemble_size,
                 self.feature_selection,

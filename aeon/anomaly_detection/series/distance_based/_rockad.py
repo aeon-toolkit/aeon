@@ -13,6 +13,7 @@ from sklearn.utils import resample
 
 from aeon.anomaly_detection.series.base import BaseSeriesAnomalyDetector
 from aeon.transformations.collection.convolution_based import Rocket
+from aeon.utils.validation import check_n_jobs
 from aeon.utils.windowing import reverse_windowing, sliding_windows
 
 
@@ -163,10 +164,12 @@ class ROCKAD(BaseSeriesAnomalyDetector):
             )
 
     def _inner_fit(self, X: np.ndarray) -> None:
+        self._n_jobs = check_n_jobs(self.n_jobs)
+
         self.rocket_transformer_ = Rocket(
             n_kernels=self.n_kernels,
             normalise=self.normalise,
-            n_jobs=self.n_jobs,
+            n_jobs=self._n_jobs,
             random_state=self.random_state,
         )
         # X: (n_windows, window_size)
@@ -197,7 +200,7 @@ class ROCKAD(BaseSeriesAnomalyDetector):
             # Initialize estimator
             estimator = NearestNeighbors(
                 n_neighbors=self.n_neighbors,
-                n_jobs=self.n_jobs,
+                n_jobs=self._n_jobs,
                 metric=self.metric,
                 algorithm="kd_tree",
             )
