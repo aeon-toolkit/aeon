@@ -107,7 +107,7 @@ def check_estimator_multithreading(estimator, datatype):
             output = _run_estimator_method(st_estimator, method, datatype, "test")
             results.append(output)
 
-    if fit_is_empty:
+    if not fit_is_empty:
         # fit multithreaded estimator
         _run_estimator_method(mt_estimator, "fit", datatype, "train")
 
