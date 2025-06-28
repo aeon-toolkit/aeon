@@ -77,13 +77,16 @@ def check_estimator_multithreading(estimator, datatype):
     estimator_name = estimator.__class__.__name__
     st_estimator = _clone_estimator(estimator, random_state=42)
     mt_estimator = _clone_estimator(estimator, random_state=42)
+
     n_jobs = max(2, check_n_jobs(-2))
     mt_estimator.set_params(n_jobs=n_jobs)
 
-    # fit and get results for single thread estimator
-    _run_estimator_method(st_estimator, "fit", datatype, "train")
+    fit_is_empty = not estimator.get_tag("capability:fit_is_empty")
 
-    if not st_estimator.get_tag("capability:fit_is_empty"):
+    if not fit_is_empty:
+        # fit and get results for single thread estimator
+        _run_estimator_method(st_estimator, "fit", datatype, "train")
+
         # check _n_jobs attribute is set
         assert hasattr(st_estimator, "_n_jobs"), (
             f"Estimator with default n_jobs {estimator_name} does not store an _n_jobs "
@@ -104,10 +107,10 @@ def check_estimator_multithreading(estimator, datatype):
             output = _run_estimator_method(st_estimator, method, datatype, "test")
             results.append(output)
 
-    # fit multithreaded estimator
-    _run_estimator_method(mt_estimator, "fit", datatype, "train")
+    if fit_is_empty:
+        # fit multithreaded estimator
+        _run_estimator_method(mt_estimator, "fit", datatype, "train")
 
-    if not mt_estimator.get_tag("capability:fit_is_empty"):
         # check _n_jobs attribute is set
         assert hasattr(mt_estimator, "_n_jobs"), (
             f"Multithreaded estimator {estimator_name} does not store an _n_jobs "
