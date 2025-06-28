@@ -77,7 +77,7 @@ class _TSFresh(BaseCollectionTransformer):
         # make n_jobs compatible with scikit-learn. disaster area that needs reworking
         n_jobs = self.n_jobs
         self.n_jobs = check_n_jobs(self.n_jobs)
-        self._n_jobs = self.n_jobs
+        self._n_jobs = check_n_jobs(self.n_jobs)
 
         # lazy imports to avoid hard dependency
         from tsfresh.defaults import (

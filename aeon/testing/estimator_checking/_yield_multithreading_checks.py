@@ -83,17 +83,20 @@ def check_estimator_multithreading(estimator, datatype):
     # fit and get results for single thread estimator
     _run_estimator_method(st_estimator, "fit", datatype, "train")
 
-    assert hasattr(st_estimator, "_n_jobs"), (
-        f"Estimator with default n_jobs {estimator_name} does not store an _n_jobs "
-        "attribute. It is recommended to use the aeon.utils.validation.check_n_jobs "
-        "function to set _n_jobs and use this for any multithreading."
-    )
-    assert st_estimator._n_jobs == 1, (
-        f"Estimator with default n_jobs {estimator_name} does not store an _n_jobs "
-        f"attribute correctly. Expected 1, got {mt_estimator.n_jobs_}."
-        f"It is recommended to use the aeon.utils.validation.check_n_jobs function to "
-        f"set _n_jobs and use this for any multithreading."
-    )
+    if not st_estimator.get_tag("capability:fit_is_empty"):
+        # check _n_jobs attribute is set
+        assert hasattr(st_estimator, "_n_jobs"), (
+            f"Estimator with default n_jobs {estimator_name} does not store an _n_jobs "
+            "attribute. It is recommended to use the "
+            "aeon.utils.validation.check_n_jobs function to set _n_jobs and use this "
+            "for any multithreading."
+        )
+        assert st_estimator._n_jobs == 1, (
+            f"Estimator with default n_jobs {estimator_name} does not store an _n_jobs "
+            f"attribute correctly. Expected 1, got {mt_estimator._n_jobs}."
+            f"It is recommended to use the aeon.utils.validation.check_n_jobs function "
+            f"to set _n_jobs and use this for any multithreading."
+        )
 
     results = []
     for method in NON_STATE_CHANGING_METHODS_ARRAYLIKE:
@@ -104,18 +107,20 @@ def check_estimator_multithreading(estimator, datatype):
     # fit multithreaded estimator
     _run_estimator_method(mt_estimator, "fit", datatype, "train")
 
-    # check n_jobs_ attribute is set
-    assert hasattr(mt_estimator, "_n_jobs"), (
-        f"Multithreaded estimator {estimator_name} does not store an _n_jobs "
-        "attribute. It is recommended to use the aeon.utils.validation.check_n_jobs "
-        "function to set _n_jobs and use this for any multithreading."
-    )
-    assert mt_estimator._n_jobs == n_jobs, (
-        f"Multithreaded estimator {estimator_name} does not store an _n_jobs "
-        f"attribute correctly. Expected {n_jobs}, got {mt_estimator.n_jobs_}."
-        f"It is recommended to use the aeon.utils.validation.check_n_jobs function to "
-        f"set _n_jobs and use this for any multithreading."
-    )
+    if not mt_estimator.get_tag("capability:fit_is_empty"):
+        # check _n_jobs attribute is set
+        assert hasattr(mt_estimator, "_n_jobs"), (
+            f"Multithreaded estimator {estimator_name} does not store an _n_jobs "
+            "attribute. It is recommended to use the "
+            "aeon.utils.validation.check_n_jobs function to set _n_jobs and use this "
+            "for any multithreading."
+        )
+        assert mt_estimator._n_jobs == n_jobs, (
+            f"Multithreaded estimator {estimator_name} does not store an _n_jobs "
+            f"attribute correctly. Expected {n_jobs}, got {mt_estimator._n_jobs}."
+            f"It is recommended to use the aeon.utils.validation.check_n_jobs function "
+            f"to set _n_jobs and use this for any multithreading."
+        )
 
     # compare results from single and multithreaded estimators
     i = 0
