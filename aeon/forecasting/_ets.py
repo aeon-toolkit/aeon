@@ -44,8 +44,6 @@ class ETSForecaster(BaseForecaster):
         Seasonal smoothing parameter.
     phi : float, default=0.99
         Trend damping parameter (used only for damped trend models).
-    horizon : int, default=1
-        Forecasting horizon (number of time steps ahead to predict).
 
     Attributes
     ----------
@@ -82,7 +80,7 @@ class ETSForecaster(BaseForecaster):
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()
     >>> forecaster = ETSForecaster(
-    ...     alpha=0.4, beta=0.2, gamma=0.5, phi=0.8, horizon=1,
+    ...     alpha=0.4, beta=0.2, gamma=0.5, phi=0.8,
     ...     error_type='additive', trend_type='multiplicative',
     ...     seasonality_type='multiplicative', seasonal_period=4
     ... )
@@ -91,6 +89,10 @@ class ETSForecaster(BaseForecaster):
     >>> forecaster.predict()
     366.90200486015596
     """
+
+    _tags = {
+        "capability:horizon": False,
+    }
 
     def __init__(
         self,
@@ -102,7 +104,6 @@ class ETSForecaster(BaseForecaster):
         beta: float = 0.01,
         gamma: float = 0.01,
         phi: float = 0.99,
-        horizon: int = 1,
     ):
         self.alpha = alpha
         self.beta = beta
@@ -126,7 +127,7 @@ class ETSForecaster(BaseForecaster):
         self.aic_ = 0
         self.residuals_ = []
         self.fitted_values_ = []
-        super().__init__(horizon=horizon, axis=1)
+        super().__init__(horizon=1, axis=1)
 
     def _fit(self, y, exog=None):
         """Fit Exponential Smoothing forecaster to series y.
