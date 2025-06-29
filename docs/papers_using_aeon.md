@@ -29,7 +29,7 @@ Research, 25(289), pp.1-10.
 - Serramazza, D., Nguyen, T. and Ifrim, G. A short tutorial for multivariate time
   series explanation using tsCaptum. Software Impacts, 22.
   [Paper](https://doi.org/10.1016/j.simpa.2024.100723)
--
+
 ## 2024
 
 - Bagnall, A.,Middlehurst, M., Forestier, G., Schäfer, P., Ismail-Fawaz, A.,
