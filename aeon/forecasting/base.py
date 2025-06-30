@@ -5,7 +5,7 @@ A simplified first base class for forecasting models.
 """
 
 __maintainer__ = ["TonyBagnall"]
-__all__ = ["BaseForecaster"]
+__all__ = ["BaseForecaster", "DirectForecastingMixin", "IterativeForecastingMixin"]
 
 from abc import abstractmethod
 from typing import final
@@ -44,7 +44,7 @@ class BaseForecaster(BaseSeriesEstimator):
 
     def __init__(self, horizon: int, axis: int):
         self.horizon = horizon
-        self.meta_ = None  # Meta data related to y on the last fit
+
         super().__init__(axis)
 
     @final
@@ -92,11 +92,8 @@ class BaseForecaster(BaseSeriesEstimator):
         self.is_fitted = True
         return self._fit(y, exog)
 
-    def _fit(self, y, exog=None):
-        return self
-
     @final
-    def predict(self, y=None, exog=None):
+    def predict(self, y, exog=None):
         """Predict the next horizon steps ahead.
 
         Parameters
@@ -112,7 +109,9 @@ class BaseForecaster(BaseSeriesEstimator):
         float
             single prediction self.horizon steps ahead of y.
         """
-        # self._check_is_fitted()
+        if not self.get_tag("fit_is_empty"):
+            self._check_is_fitted()
+
         if y is not None:
             self._check_X(y, self.axis)
             y = self._convert_y(y, self.axis)
@@ -120,9 +119,6 @@ class BaseForecaster(BaseSeriesEstimator):
             exog = self._convert_y(exog, self.axis)
 
         return self._predict(y, exog)
-
-    @abstractmethod
-    def _predict(self, y=None, exog=None): ...
 
     @final
     def forecast(self, y, exog=None):
@@ -149,10 +145,51 @@ class BaseForecaster(BaseSeriesEstimator):
             exog = self._convert_y(exog, self.axis)
         return self._forecast(y, exog)
 
-    def _forecast(self, y, exog=None):
+    def _fit(self, y, exog):
+        return self
+
+    @abstractmethod
+    def _predict(self, y, exog): ...
+
+    def _forecast(self, y, exog):
         """Forecast values for time series X."""
         self.fit(y, exog)
         return self._predict(y, exog)
+
+    def _convert_y(self, y: VALID_SERIES_INNER_TYPES, axis: int):
+        """Convert y to self.get_tag("y_inner_type")."""
+        if axis > 1 or axis < 0:
+            raise ValueError(f"Input axis should be 0 or 1, saw {axis}")
+
+        inner_type = self.get_tag("y_inner_type")
+        if not isinstance(inner_type, list):
+            inner_type = [inner_type]
+        inner_names = [i.split(".")[-1] for i in inner_type]
+
+        input = type(y).__name__
+        if input not in inner_names:
+            if inner_names[0] == "ndarray":
+                y = y.to_numpy()
+            elif inner_names[0] == "DataFrame":
+                transpose = False
+                if y.ndim == 1 and axis == 1:
+                    transpose = True
+                y = pd.DataFrame(y)
+                if transpose:
+                    y = y.T
+            else:
+                raise ValueError(
+                    f"Unsupported inner type {inner_names[0]} derived from {inner_type}"
+                )
+        if y.ndim > 1 and self.axis != axis:
+            y = y.T
+        elif y.ndim == 1 and isinstance(y, np.ndarray):
+            y = y[np.newaxis, :] if self.axis == 1 else y[:, np.newaxis]
+        return y
+
+
+class DirectForecastingMixin:
+    """Mixin class for direct forecasting."""
 
     @final
     def direct_forecast(self, y, prediction_horizon, exog=None):
@@ -208,6 +245,10 @@ class BaseForecaster(BaseSeriesEstimator):
             preds[i] = self.forecast(y, exog)
         return preds
 
+
+class IterativeForecastingMixin:
+    """Mixin class for iterative forecasting."""
+
     def iterative_forecast(self, y, prediction_horizon):
         """
         Forecast ``prediction_horizon`` prediction using a single model from `y`.
@@ -254,34 +295,3 @@ class BaseForecaster(BaseSeriesEstimator):
             preds[i] = self.predict(y)
             y = np.append(y, preds[i])
         return preds
-
-    def _convert_y(self, y: VALID_SERIES_INNER_TYPES, axis: int):
-        """Convert y to self.get_tag("y_inner_type")."""
-        if axis > 1 or axis < 0:
-            raise ValueError(f"Input axis should be 0 or 1, saw {axis}")
-
-        inner_type = self.get_tag("y_inner_type")
-        if not isinstance(inner_type, list):
-            inner_type = [inner_type]
-        inner_names = [i.split(".")[-1] for i in inner_type]
-
-        input = type(y).__name__
-        if input not in inner_names:
-            if inner_names[0] == "ndarray":
-                y = y.to_numpy()
-            elif inner_names[0] == "DataFrame":
-                transpose = False
-                if y.ndim == 1 and axis == 1:
-                    transpose = True
-                y = pd.DataFrame(y)
-                if transpose:
-                    y = y.T
-            else:
-                raise ValueError(
-                    f"Unsupported inner type {inner_names[0]} derived from {inner_type}"
-                )
-        if y.ndim > 1 and self.axis != axis:
-            y = y.T
-        elif y.ndim == 1 and isinstance(y, np.ndarray):
-            y = y[np.newaxis, :] if self.axis == 1 else y[:, np.newaxis]
-        return y

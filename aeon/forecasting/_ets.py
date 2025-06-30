@@ -12,13 +12,13 @@ from typing import Union
 import numpy as np
 from numba import njit
 
-from aeon.forecasting.base import BaseForecaster
+from aeon.forecasting.base import BaseForecaster, DirectForecastingMixin
 
 ADDITIVE = "additive"
 MULTIPLICATIVE = "multiplicative"
 
 
-class ETSForecaster(BaseForecaster):
+class ETSForecaster(BaseForecaster, DirectForecastingMixin):
     """Exponential Smoothing (ETS) forecaster.
 
     Implements the ETS (Error, Trend, Seasonality) forecaster, supporting additive
