@@ -71,9 +71,6 @@ class SFAFast(BaseCollectionTransformer):
         Number of values to discretise each value to.
     window_size : int, default = 12
         Size of window for sliding. Input series length for whole series transform.
-    learn_alphabet_sizes : boolean, default = False
-        If True, dynamic alphabet sizes are learned based on the variance of the Fourier
-        coefficients.
     alphabet_allocation_method : str, default = None
         The method used to learn the dynamic alphabet sizes. One of
         {"linear_scale", "log_scale", "sqrt_scale"}.
@@ -84,12 +81,12 @@ class SFAFast(BaseCollectionTransformer):
         "equi-width", "information-gain", "information-gain-mae", "kmeans"},
     anova : boolean, default = False
         If True, the Fourier coefficient selection is done via a one-way ANOVA test.
-        If False, the first Fourier coefficients are selected. Only applicable if
-        labels are given.
+        If False, the first Fourier coefficients are selected.
+        It is a supervised feature selection strategy. Only applicable if labels given.
     variance : boolean, default = False
         If True, the Fourier coefficient selection is done via the largest variance.
-        If False, the first Fourier coefficients are selected. Only applicable if
-        labels are given.
+        If False, the first Fourier coefficients are selected.
+        It is an unsupervised feature selection strategy.
     dilation : int, default = 0
         When set to dilation > 1, adds dilation to the sliding window operation.
     save_words : boolean, default = False
@@ -155,7 +152,6 @@ class SFAFast(BaseCollectionTransformer):
         word_length=8,
         alphabet_size=4,
         window_size=12,
-        learn_alphabet_sizes=False,
         alphabet_allocation_method=None,
         norm=False,
         binning_method="equi-depth",
@@ -212,8 +208,8 @@ class SFAFast(BaseCollectionTransformer):
         self.dilation = dilation
         self.first_difference = first_difference
         self.sampling_factor = sampling_factor
-        self.learn_alphabet_sizes = learn_alphabet_sizes
         self.alphabet_allocation_method = alphabet_allocation_method
+        self.learn_alphabet_sizes = self.alphabet_allocation_method is not None
 
         # Feature selection part
         self.feature_selection = feature_selection

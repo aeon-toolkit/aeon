@@ -194,7 +194,6 @@ def test_dynamic_alphabet_allocation():
             word_length=n_segments,
             alphabet_size=alphabet_size,
             binning_method=histogram_type,
-            learn_alphabet_sizes=True,
             alphabet_allocation_method=alphabet_allocation_method,
             variance=True,  # True gives a tighter lower bound
             norm=True,
