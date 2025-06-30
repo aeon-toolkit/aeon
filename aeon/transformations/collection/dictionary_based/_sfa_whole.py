@@ -29,9 +29,6 @@ class SFAWhole(SFAFast):
         Length of word to shorten window to (using DFT).
     alphabet_size : int, default = 4
         Number of values to discretise each value to.
-    learn_alphabet_sizes : boolean, default = True
-        If True, dynamic alphabet sizes are learned based on the variance of the Fourier
-        coefficients.
     alphabet_allocation_method : str, default = linear_scale
         The method used to learn the dynamic alphabet sizes. One of
         {"linear_scale", "log_scale", "sqrt_scale"}.
@@ -42,10 +39,6 @@ class SFAWhole(SFAFast):
     binning_method : str, default="equi-width"
         The binning method used to derive the breakpoints. One of {"equi-depth",
         "equi-width", "information-gain", "information-gain-mae", "kmeans", "quantile"},
-    variance : boolean, default = False
-        If True, the Fourier coefficient selection is done via the largest variance.
-        If False, the first Fourier coefficients are selected. Only applicable if
-        labels are given.
     sampling_factor : float, default = None
        If set to a value <1.0, this percentage of samples are used to learn MCB bins.
     n_jobs : int, default = 1
@@ -79,12 +72,11 @@ class SFAWhole(SFAFast):
         self,
         word_length=8,
         alphabet_size=4,
-        learn_alphabet_sizes=True,
         learn_alphabet_lambda=0.5,
         alphabet_allocation_method="linear_scale",
         norm=True,
         binning_method="equi-width",
-        variance=True,
+        feature_selection_strategy="variance",
         sampling_factor=None,
         random_state=None,
         n_jobs=1,
@@ -93,18 +85,16 @@ class SFAWhole(SFAFast):
             word_length=word_length,
             alphabet_size=alphabet_size,
             norm=norm,
-            learn_alphabet_sizes=learn_alphabet_sizes,
             learn_alphabet_lambda=learn_alphabet_lambda,
             alphabet_allocation_method=alphabet_allocation_method,
             binning_method=binning_method,
-            variance=variance,
+            feature_selection_strategy=feature_selection_strategy,
             sampling_factor=sampling_factor,
             random_state=random_state,
             n_jobs=n_jobs,
             # Default values for other parameters
             lower_bounding_distances=True,
             feature_selection="none",
-            anova=False,
             save_words=False,
             lower_bounding=False,
             bigrams=False,

@@ -23,6 +23,7 @@ from numba import (
 from numba.core import types
 from numba.typed import Dict
 from scipy.sparse import csr_matrix
+from sklearn.decomposition import PCA
 from sklearn.feature_selection import chi2, f_classif
 from sklearn.preprocessing import KBinsDiscretizer
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
@@ -40,6 +41,8 @@ binning_methods = {
     "kmeans",
     "quantile",
 }
+
+feature_selection_strategy = {"anova", "variance", "pca"}
 
 alphabet_allocation_methods = {
     "dynamic_programming",  # method introduced by Spartan paper
@@ -72,9 +75,6 @@ class SFAFast(BaseCollectionTransformer):
         Number of values to discretise each value to.
     window_size : int, default = 12
         Size of window for sliding. Input series length for whole series transform.
-    learn_alphabet_sizes : boolean, default = False
-        If True, dynamic alphabet sizes are learned based on the variance of the Fourier
-        coefficients.
     alphabet_allocation_method : str, default = None
         The method used to learn the dynamic alphabet sizes. One of
         {"dynamic_programming", "linear_scale", "log_scale", "sqrt_scale"}.
@@ -85,14 +85,20 @@ class SFAFast(BaseCollectionTransformer):
     binning_method : str, default="equi-depth"
         The binning method used to derive the breakpoints. One of {"equi-depth",
         "equi-width", "information-gain", "information-gain-mae", "kmeans"},
+    feature_selection_strategy : {"variance", "pca", "anova"}, default = "variance"
+        Sets the Fourier coefficient selection strategy to be used.
+        Use "variance" to select the Fourier coefficients with the largest variance,
+        "pca" to reduce the Fourier coefficients using PCA, or "anova" to select
+        the Fourier coefficients with the largest F-score. Anova is only applicable
+        if labels are given.
+    pca : boolean, default = False
+        If True, the Fourier coefficients are reduced using PCA.
+        If False, the first Fourier coefficients are selected.
+        It is an unsupervised feature selection strategy.
     anova : boolean, default = False
         If True, the Fourier coefficient selection is done via a one-way ANOVA test.
-        If False, the first Fourier coefficients are selected. Only applicable if
-        labels are given.
-    variance : boolean, default = False
-        If True, the Fourier coefficient selection is done via the largest variance.
-        If False, the first Fourier coefficients are selected. Only applicable if
-        labels are given.
+        If False, the first Fourier coefficients are selected.
+        It is a supervised feature selection strategy. Only applicable if labels given.
     dilation : int, default = 0
         When set to dilation > 1, adds dilation to the sliding window operation.
     save_words : boolean, default = False
@@ -158,13 +164,11 @@ class SFAFast(BaseCollectionTransformer):
         word_length=8,
         alphabet_size=4,
         window_size=12,
-        learn_alphabet_sizes=False,
         learn_alphabet_lambda=0.5,
         alphabet_allocation_method=None,
         norm=False,
         binning_method="equi-depth",
-        anova=False,
-        variance=False,
+        feature_selection_strategy="variance",
         bigrams=False,
         skip_grams=False,
         remove_repeat_words=False,
@@ -202,8 +206,18 @@ class SFAFast(BaseCollectionTransformer):
         self.save_words = save_words
 
         self.binning_method = binning_method
-        self.anova = anova
-        self.variance = variance
+        self.feature_selection_strategy = feature_selection_strategy
+        self.pca = False
+        self.variance = False
+        self.anova = False
+        self.pca_transform = None
+
+        if feature_selection_strategy == "variance":
+            self.variance = True
+        elif feature_selection_strategy == "anova":
+            self.anova = True
+        elif feature_selection_strategy == "pca":
+            self.pca = True
 
         self.bigrams = bigrams
         self.skip_grams = skip_grams
@@ -216,9 +230,10 @@ class SFAFast(BaseCollectionTransformer):
         self.dilation = dilation
         self.first_difference = first_difference
         self.sampling_factor = sampling_factor
-        self.learn_alphabet_sizes = learn_alphabet_sizes
+
         self.learn_alphabet_lambda = learn_alphabet_lambda
         self.alphabet_allocation_method = alphabet_allocation_method
+        self.learn_alphabet_sizes = self.alphabet_allocation_method is not None
 
         # Feature selection part
         self.feature_selection = feature_selection
@@ -245,11 +260,6 @@ class SFAFast(BaseCollectionTransformer):
         ) and y is None:
             raise ValueError(
                 "Class values must be provided for information gain binning"
-            )
-
-        if self.variance and self.anova:
-            raise ValueError(
-                "Please set either variance or anova Fourier coefficient selection"
             )
 
         if self.learn_alphabet_sizes and (
@@ -286,7 +296,7 @@ class SFAFast(BaseCollectionTransformer):
 
         self.dft_length = (
             self.window_size - offset
-            if (self.anova or self.variance) is True
+            if (self.feature_selection_strategy is not None)
             else self.word_length_actual
         )
 
@@ -331,6 +341,7 @@ class SFAFast(BaseCollectionTransformer):
                 self.support,
                 self.anova,
                 self.variance,
+                self.pca_transform,
                 self.breakpoints,
                 self.letter_bits,
                 self.bigrams,
@@ -393,6 +404,7 @@ class SFAFast(BaseCollectionTransformer):
             self.support,
             self.anova,
             self.variance,
+            self.pca_transform,
             self.breakpoints,
             self.letter_bits,
             self.bigrams,
@@ -584,7 +596,17 @@ class SFAFast(BaseCollectionTransformer):
             self.dft_length = np.max(self.support) + 1
             self.dft_length = self.dft_length + self.dft_length % 2  # even
 
-        if self.anova and y is not None:
+        elif self.pca:
+            self.pca_transform = PCA(
+                n_components=self.word_length_actual,
+                svd_solver="auto",  # FIXME needed???
+            )
+
+            # extract explained variance
+            dft = self.pca_transform.fit_transform(dft)
+            self.dft_variance = self.pca_transform.explained_variance_ratio_
+
+        elif self.anova and y is not None:
             non_constant = np.where(
                 ~np.isclose(dft.var(axis=0), np.zeros_like(dft.shape[1]))
             )[0]
@@ -618,7 +640,6 @@ class SFAFast(BaseCollectionTransformer):
                 )
             else:
                 if self.alphabet_allocation_method == "linear_scale":
-                    # TODO np.sqrt ???
                     variance = self.dft_variance[self.support]
                     normed_scale = variance / variance.mean()
                 elif self.alphabet_allocation_method == "sqrt_scale":
@@ -773,6 +794,7 @@ class SFAFast(BaseCollectionTransformer):
             self.support,
             self.anova,
             self.variance,
+            self.pca_transform,
             self.inverse_sqrt_win_size,
             self.lower_bounding or self.lower_bounding_distances,
             self.word_length,
@@ -938,7 +960,7 @@ def _fast_fourier_transform(X, norm, dft_length, inverse_sqrt_win_size, norm_std
     return dft[:, start:]
 
 
-@njit(fastmath=True, cache=True)
+# @njit(fastmath=True, cache=True)
 def _transform_case(
     X,
     window_size,
@@ -949,6 +971,7 @@ def _transform_case(
     support,
     anova,
     variance,
+    pca_transform,
     breakpoints,
     letter_bits,
     bigrams,
@@ -967,6 +990,11 @@ def _transform_case(
         inverse_sqrt_win_size,
         lower_bounding,
     )
+
+    if pca_transform is not None:
+        # apply PCA transform
+        dfts2 = pca_transform.transform(dfts.squeeze(1))
+        dfts = dfts2.reshape(X.shape[0], dfts.shape[1], word_length)
 
     words = generate_words(
         dfts,
@@ -1369,7 +1397,7 @@ def shorten_words(words, amount, letter_bits):
     return new_words
 
 
-@njit(fastmath=True, cache=True, parallel=True)
+# @njit(fastmath=True, cache=True, parallel=True)
 def _transform_words_case(
     X,
     window_size,
@@ -1378,6 +1406,7 @@ def _transform_words_case(
     support,
     anova,
     variance,
+    pca_transform,
     inverse_sqrt_win_size,
     lower_bounding,
     word_length,
@@ -1395,8 +1424,13 @@ def _transform_words_case(
         lower_bounding,
     )
 
-    words = np.zeros((dfts.shape[0], dfts.shape[1], word_length), dtype=np.int32)
+    if pca_transform is not None:
+        # apply PCA transform
+        # with objmode(dfts="float32[:,:,:]"):
+        dfts2 = pca_transform.transform(dfts.squeeze(1))
+        dfts = dfts2.reshape(X.shape[0], dfts.shape[1], word_length)
 
+    words = np.zeros((dfts.shape[0], dfts.shape[1], word_length), dtype=np.int32)
     for x in prange(dfts.shape[0]):
         for window in prange(dfts.shape[1]):
             for i in prange(word_length):

@@ -195,10 +195,9 @@ def test_dynamic_alphabet_allocation():
             word_length=n_segments,
             alphabet_size=alphabet_size,
             binning_method=histogram_type,
-            learn_alphabet_sizes=True,
+            # variance/pca gives a tighter lower bound
+            feature_selection_strategy="pca",
             alphabet_allocation_method=alphabet_allocation_method,
-            variance=True,  # True gives a tighter lower bound
-            norm=True,
         )
 
         X_train_words, X_train_dfts = sfa.fit_transform(X_train)

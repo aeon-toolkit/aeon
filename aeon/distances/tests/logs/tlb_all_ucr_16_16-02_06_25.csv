@@ -1,0 +1,16 @@
+Method,Dataset,TLB
+isax,ArrowHead,0.6599571596014188
+sfa_equi-width_True_True_dynamic_programming,ArrowHead,0.8870264490185634
+sfa_equi-width_True_True_linear_scale,ArrowHead,0.9059148425894058
+sfa_equi-width_True_True_log_scale,ArrowHead,0.9027192400273237
+sfa_equi-width_True_True_sqrt_scale,ArrowHead,0.8962895267284698
+isax,Beef,0.6190783957456855
+sfa_equi-width_True_True_dynamic_programming,Beef,0.8119592801341532
+sfa_equi-width_True_True_linear_scale,Beef,0.8331210124168585
+sfa_equi-width_True_True_log_scale,Beef,0.812481960794118
+sfa_equi-width_True_True_sqrt_scale,Beef,0.8098917614071776
+isax,BeetleFly,0.7131503231417069
+sfa_equi-width_True_True_dynamic_programming,BeetleFly,0.8047827340761664
+sfa_equi-width_True_True_linear_scale,BeetleFly,0.8060405828176442
+sfa_equi-width_True_True_log_scale,BeetleFly,0.8018147014744974
+sfa_equi-width_True_True_sqrt_scale,BeetleFly,0.8047827340761664

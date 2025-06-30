@@ -149,34 +149,34 @@ dataset_names = [
     "ArrowHead",
     "Beef",
     "BeetleFly",
-    "BirdChicken",
-    "Car",
-    "CBF",
-    "Coffee",
-    "DiatomSizeReduction",
-    "DistalPhalanxOutlineAgeGroup",
-    "DistalPhalanxOutlineCorrect",
-    "DistalPhalanxTW",
-    "ECG200",
-    "ECGFiveDays",
-    "FaceAll",
-    "FaceFour",
-    "FacesUCR",
-    "GunPoint",
-    "ItalyPowerDemand",
-    "MiddlePhalanxOutlineAgeGroup",
-    "MiddlePhalanxOutlineCorrect",
-    "MiddlePhalanxTW",
-    "OliveOil",
-    "Plane",
-    "ProximalPhalanxOutlineAgeGroup",
-    "ProximalPhalanxOutlineCorrect",
-    "ProximalPhalanxTW",
-    "SonyAIBORobotSurface1",
-    "SonyAIBORobotSurface2",
-    "SyntheticControl",
-    "TwoLeadECG",
-    "Wine",
+    # "BirdChicken",
+    # "Car",
+    # "CBF",
+    # "Coffee",
+    # "DiatomSizeReduction",
+    # "DistalPhalanxOutlineAgeGroup",
+    # "DistalPhalanxOutlineCorrect",
+    # "DistalPhalanxTW",
+    # "ECG200",
+    # "ECGFiveDays",
+    # "FaceAll",
+    # "FaceFour",
+    # "FacesUCR",
+    # "GunPoint",
+    # "ItalyPowerDemand",
+    # "MiddlePhalanxOutlineAgeGroup",
+    # "MiddlePhalanxOutlineCorrect",
+    # "MiddlePhalanxTW",
+    # "OliveOil",
+    # "Plane",
+    # "ProximalPhalanxOutlineAgeGroup",
+    # "ProximalPhalanxOutlineCorrect",
+    # "ProximalPhalanxTW",
+    # "SonyAIBORobotSurface1",
+    # "SonyAIBORobotSurface2",
+    # "SyntheticControl",
+    # "TwoLeadECG",
+    # "Wine",
 ]
 
 
@@ -194,9 +194,9 @@ def load_from_ucr_tsv_to_dataframe_plain(full_file_path_and_name):
 
 
 # configuration
-all_threads = 128
+all_threads = 6
 n_segments = 16
-alphabet_sizes = [256, 128, 64, 32, 16, 8, 4]
+alphabet_sizes = [256, 128, 64, 32, 16, 8, 4, 2]
 
 DATA_PATH = "/Users/bzcschae/workspace/UCRArchive_2018/"
 server = False
@@ -255,7 +255,7 @@ def compute_distances(
             #     )
 
         # DFT-SFA Min-Distance variants
-        for a in range(all_dfts.shape[0]):
+        for a in prange(all_dfts.shape[0]):
             for j in range(samples.shape[0]):
                 md = mindist_dft_sfa_distance(
                     all_dfts[a][i],
@@ -316,12 +316,12 @@ for dataset_name in used_dataset:
 
         histograms = ["equi-width"]  # , "equi-depth"
         allocation_methods = [
-            "dynamic_programming",  # method introduced by Spartan paper
+            "dynamic_programming",
             "linear_scale",
             "log_scale",
             "sqrt_scale",
         ]
-        variances = [True]  # , False
+        feature_selections = ["variance", "pca"]
         dyn_alphabets = [True]  # , False
 
         method_names = ["isax"]
@@ -329,16 +329,16 @@ for dataset_name in used_dataset:
         all_dfts = []
         all_words = []
 
-        for histogram, variance, dyn_alphabet, alloc_method in itertools.product(
-            histograms, variances, dyn_alphabets, allocation_methods
+        for histogram, fs_strategy, alloc_method in itertools.product(
+            histograms, feature_selections, allocation_methods
         ):
+            # print(f"\tTransformation with SFA,
+            # {histogram}, {variance}, {dyn_alphabet}, {alloc_method}")
             sfa = SFAWhole(
                 word_length=n_segments,
                 alphabet_size=alphabet_size,
                 binning_method=histogram,
-                variance=variance,
-                norm=True,
-                learn_alphabet_sizes=dyn_alphabet,
+                feature_selection_strategy=fs_strategy,
                 alphabet_allocation_method=alloc_method,
                 n_jobs=all_threads,
             )
@@ -351,9 +351,7 @@ for dataset_name in used_dataset:
             all_dfts.append(X_dfts.astype(np.float64))
             all_words.append(Y_words.astype(np.int32))
 
-            method_names.append(
-                f"sfa_{histogram}_{variance}_{dyn_alphabet}_{alloc_method}"
-            )
+            method_names.append(f"sofa_{histogram}_{fs_strategy}_{alloc_method}")
 
         sum_scores = {}
         for method_name in method_names:
@@ -397,5 +395,5 @@ for dataset_name in used_dataset:
                 "TLB",
             ],
         ).to_csv(
-            f"logs/tlb_all_ucr_{n_segments}_{alphabet_size}-26_02_25.csv", index=None
+            f"logs/tlb_all_ucr_{n_segments}_{alphabet_size}-02_06_25.csv", index=None
         )

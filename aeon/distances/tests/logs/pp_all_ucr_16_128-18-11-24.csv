@@ -1,0 +1,11 @@
+Method,Dataset,Pruning_Power
+isax,ArrowHead,0.8817460317460317
+sfa_equi-width_True,ArrowHead,0.9468253968253968
+sfa_equi-width_False,ArrowHead,0.9412698412698413
+sfa_equi-depth_True,ArrowHead,0.9344444444444444
+sfa_equi-depth_False,ArrowHead,0.9280952380952381
+isax,Beef,0.9277777777777778
+sfa_equi-width_True,Beef,0.9477777777777778
+sfa_equi-width_False,Beef,0.9477777777777778
+sfa_equi-depth_True,Beef,0.94
+sfa_equi-depth_False,Beef,0.9388888888888889
