@@ -17,6 +17,11 @@ class SetartreeForecaster(BaseForecaster):
     This implementation is based on the paper "SETAR-Tree: a novel and accurate
     tree algorithm for global time series forecasting" by Godahewa, R., et al. (2023).
 
+    The SETAR-Tree forecaster is a global time series model trained across collections
+    of time series, enabling it to learn cross-series patterns. Exogenous variables are
+    treated as additional time series and are concatenated with the target series (y)
+    during training to provide a richer context for model fitting.
+
     Parameters
     ----------
     lag : int, default=10
@@ -37,6 +42,10 @@ class SetartreeForecaster(BaseForecaster):
     error_threshold : float, default=0.03
         The minimum percentage of error reduction required to make a split.
     """
+
+    _tags = {
+        "capability:exogenous": True,
+    }
 
     def __init__(
         self,
@@ -64,7 +73,7 @@ class SetartreeForecaster(BaseForecaster):
         self._last_window = None
 
     def _create_input_matrix(self, y: np.ndarray):
-        """Create an embedded matrix from a time series."""
+        """Create an embedded matrix from multiple time series."""
         n_series, n_timepoints = y.shape
 
         # We need at least lag + 1 points to create one sample
@@ -152,6 +161,27 @@ class SetartreeForecaster(BaseForecaster):
         return improvement >= self.error_threshold
 
     def _fit(self, y, exog=None):
+        """Fit forecaster to time series.
+
+        Concatenate y and exog for model fitting.
+
+        Parameters
+        ----------
+        y : np.ndarray
+            A time series on which to learn a forecaster to predict horizon ahead.
+        exog : np.ndarray, default=None
+            Exogenous time series data, assumed to be aligned with y.
+
+        Returns
+        -------
+        self
+            Fitted estimator
+        """
+        if exog is not None:
+            y = np.vstack([y, exog])
+        else:
+            y = y.reshape(1, -1) if y.ndim == 1 else y
+
         # store last `lag` for each series
         self._last_window = y[:, -self.lag :].copy()
 
