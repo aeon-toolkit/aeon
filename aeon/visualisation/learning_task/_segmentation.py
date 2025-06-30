@@ -1,4 +1,4 @@
-"""Utility class for ploting functionality."""
+"""Utility class for plotting functionality."""
 
 __all__ = [
     "plot_series_with_change_points",

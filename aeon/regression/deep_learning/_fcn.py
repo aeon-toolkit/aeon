@@ -44,7 +44,7 @@ class FCNRegressor(BaseDeepRegressor):
     activation : str or list of str, default = "relu"
         activation used after the convolution
     use_bias : bool or list of bool, default = True
-        whether or not ot use bias in convolution
+        whether or not to use bias in convolution
     n_epochs : int, default = 2000
         the number of epochs to train the model
     batch_size : int, default = 16

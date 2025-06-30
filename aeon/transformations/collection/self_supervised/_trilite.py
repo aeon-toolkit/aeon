@@ -54,7 +54,7 @@ class TRILITE(BaseCollectionTransformer):
         the length of the masking used for the triplet
         generation. Default is 20%.
     use_mixing_up : bool, default = True
-        Wether or not to use mixing up during the triplet
+        Whether or not to use mixing up during the triplet
         generation phase.
     use_masking : bool, default = True
         Whether or not to use masking during the triplet

@@ -23,7 +23,7 @@ class SIVSeriesTransformer(RecursiveMedianSieve):
     Parameters
     ----------
     window_length : list of int or int, default=[3, 5, 7]
-        The filter windows lenths (recommended increasing value).
+        The filter windows lengths (recommended increasing value).
 
     Notes
     -----

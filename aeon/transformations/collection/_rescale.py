@@ -83,7 +83,7 @@ class MinMaxScaler(BaseCollectionTransformer):
     Parameters
     ----------
     min: float, default=0
-        Minumum value of the range to scale to.
+        Minimum value of the range to scale to.
     max: float, default=1
         Maximum value of the range to scale to.
 

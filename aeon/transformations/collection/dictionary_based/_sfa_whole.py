@@ -18,7 +18,7 @@ class SFAWhole(SFAFast):
     It is implemented as a wrapper for the SFA-Fast transformer, the latter implements
     subsequence-based SFA extraction.
 
-    This wrapper reduces non-needed parameters, and sets some usefull defaults for
+    This wrapper reduces non-needed parameters, and sets some useful defaults for
     lower bounding.
 
     Parameters

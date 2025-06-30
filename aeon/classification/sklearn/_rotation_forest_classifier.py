@@ -33,7 +33,7 @@ class RotationForestClassifier(ClassifierMixin, BaseEstimator):
     of trees build on random portions of the data transformed using PCA.
 
     Intended as a benchmark for time series data and a base classifier for
-    transformation based appraoches such as ShapeletTransformClassifier, this aeon
+    transformation based approaches such as ShapeletTransformClassifier, this aeon
     implementation only works with continuous attributes.
 
     Parameters

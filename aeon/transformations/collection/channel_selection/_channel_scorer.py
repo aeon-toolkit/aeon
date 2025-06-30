@@ -21,10 +21,10 @@ from aeon.transformations.collection.channel_selection.base import BaseChannelSe
 class ChannelScorer(BaseChannelSelector):
     """Performs channel selection using a single channel classifier or regressor.
 
-    ChannelScorer uses a time series classifier or a regressor to score each channel
-    using an estimate of accuracy on the training data fro classifier or mean
-    squared error for regressor, then selects a proportion of the top
-    channels to keep. Can be configured through the constructor to use any time
+    ChannelScorer uses a time series classifier or regressor to score each channel
+    using an estimate of accuracy on the training data foo classifiers or mean
+    squared error for regressors. It then selects a proportion of the top
+    channels to keep. It can be configured through the constructor to use any time
     series estimator and could easily be adapted to use forward selection or elbow
     class methods. Approximately as described in [1]_.
 
