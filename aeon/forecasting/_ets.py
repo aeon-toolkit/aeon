@@ -84,9 +84,7 @@ class ETSForecaster(BaseForecaster, DirectForecastingMixin):
     ...     error_type='additive', trend_type='multiplicative',
     ...     seasonality_type='multiplicative', seasonal_period=4
     ... )
-    >>> forecaster.fit(y)
-    ETSForecaster(...)
-    >>> forecaster.predict()
+    >>> forecaster.predict(y)
     366.90200486015596
     """
 
