@@ -179,6 +179,8 @@ class ROCKAD(BaseSeriesAnomalyDetector):
 
         if self.power_transform:
             self.power_transformer_ = PowerTransformer()
+            # todo check if this is still an issue with scikit-learn >= 1.7.0
+            # when lower bound is raised
             try:
                 Xtp = self.power_transformer_.fit_transform(Xt)
 
