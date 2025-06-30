@@ -163,7 +163,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-24.04, macOS-14, windows-2022 ]
-        python-version: [ "3.10", "3.11", "3.12", "3.13" ]
+        python-version: [ "3.10", "3.11", "3.12", "3.13.5" ]
 
     steps:
       - name: Checkout
@@ -178,7 +178,7 @@ jobs:
         if: runner.os == 'Linux'
         uses: pierotofy/set-swap-space@v1.0
         with:
-          swap-size-gb: 10
+          swap-size-gb: 6
 
       - name: Use numba cache to set env variables but not restore cache
         uses: ./.github/actions/numba_cache
@@ -207,6 +207,40 @@ jobs:
           path: ${{ github.workspace }}/.numba_cache
           # Save cache with the current date (ENV set in numba_cache action)
           key: numba-pytest-${{ runner.os }}-${{ matrix.python-version}}-${{ env.CURRENT_DATE }}
+
+  doctests:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - if: ${{ github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'no numba cache') }}
+        name: Use numba cache to set env variables but not restore cache
+        uses: ./.github/actions/numba_cache
+        with:
+          cache_name: "doctests"
+          runner_os: ${{ runner.os }}
+          python_version: "3.12"
+          restore_cache: "false"
+
+      - name: Install aeon and dependencies
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 30
+          max_attempts: 3
+          command: python -m pip install .[all_extras,dev]
+
+      - name: Show dependencies
+        run: python -m pip list
+
+      - name: Run tests
+        run: python -m pytest -n logical --doctest-only
 
   codecov:
     runs-on: ubuntu-24.04
