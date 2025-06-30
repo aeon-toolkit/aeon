@@ -1,4 +1,35 @@
-"""Base class template for aeon estimators."""
+"""
+Base class for Aeon estimators.
+
+Provides a framework for defining estimators in Aeon, managing state, cloning,
+and dynamic tagging.
+
+Class Name: BaseEstimator
+
+Main Methods:
+    - reset(keep) - Resets estimator while preserving attributes.
+    - clone(random_state) - Creates a copy of the estimator.
+    - get_class_tags() / get_class_tag(tag_name) - Retrieves static class tags.
+    - get_tags() / get_tag(tag_name) - Retrieves all or specific tags.
+    - set_tags(**tag_dict) - Modifies dynamic tags.
+    - get_fitted_params(deep) - Extracts fitted parameters.
+    - _check_is_fitted() - Ensures estimator is fitted before use.
+    - _create_test_instance() - Generates test instances.
+
+Attributes
+----------
+    - is_fitted - Indicates if `fit()` has been called.
+    - _tags - Static metadata dictionary.
+    - _tags_dynamic - Stores dynamic tag modifications.
+
+Sklearn Compatibility:
+    - Implements `__sklearn_is_fitted__()` for compatibility.
+    - `_validate_data()` and `get_metadata_routing()`
+      raise NotImplementedError.
+
+Helper Methods:
+    - _clone_estimator(base_estimator, random_state) - Clones an estimator.
+"""
 
 __maintainer__ = ["MatthewMiddlehurst", "TonyBagnall"]
 __all__ = ["BaseAeonEstimator"]
@@ -86,6 +117,11 @@ class BaseAeonEstimator(BaseEstimator, ABC):
         -------
         self : object
             Reference to self.
+
+        Raises
+        ------
+        TypeError
+            If 'keep' is not a string or a list of strings.
         """
         # retrieve parameters to copy them later
         params = self.get_params(deep=False)
@@ -414,6 +450,18 @@ class BaseAeonEstimator(BaseEstimator, ABC):
     def __sklearn_is_fitted__(self):
         """Check fitted status and return a Boolean value."""
         return self.is_fitted
+
+    def __sklearn_tags__(self):
+        """Return sklearn style tags for the estimator."""
+        aeon_tags = self.get_tags()
+        sklearn_tags = super().__sklearn_tags__()
+        sklearn_tags.non_deterministic = aeon_tags.get("non_deterministic", False)
+        sklearn_tags.target_tags.one_d_labels = True
+        sklearn_tags.input_tags.three_d_array = True
+        sklearn_tags.input_tags.allow_nan = aeon_tags.get(
+            "capability:missing_values", False
+        )
+        return sklearn_tags
 
     def _validate_data(self, **kwargs):
         """Sklearn data validation."""

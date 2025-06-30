@@ -175,7 +175,7 @@ def test_sfa_whole_mindist():
 def test_dynamic_alphabet_allocation():
     """Test the SFA Min-Distance function."""
     n_segments = 16
-    alphabet_size = 256
+    alphabet_size = 64
 
     X_train, _ = load_unit_test("TRAIN")
     X_test, _ = load_unit_test("TEST")
@@ -221,6 +221,7 @@ def test_dynamic_alphabet_allocation():
             # Euclidean Distance
             ed = np.linalg.norm(X[0] - Y[0])
 
+            assert np.mean(np.log2(sfa.alphabet_sizes)) == np.log2(alphabet_size)
             assert mindist_sfa <= ed
             assert mindist_dft_sfa >= mindist_sfa  # a tighter lower bound
             assert mindist_dft_sfa <= ed

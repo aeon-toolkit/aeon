@@ -23,6 +23,7 @@ Notes
 Based on the work from [1]_.
 
 - source code adapted based on: https://github.com/cvxgrp/GGS
+  Copyright (c) 2018, Stanford University Convex Optimization Group, BSD-2
 - paper available at: https://stanford.edu/~boyd/papers/pdf/ggs.pdf
 
 References
@@ -502,12 +503,10 @@ class GreedyGaussianSegmenter(BaseSegmenter):
             dimension of X. The numerical values represent distinct segments
             labels for each of the data points.
         """
-        self.change_points_ = self.ggs.find_change_points(X)
+        change_points_ = self.ggs.find_change_points(X)
 
         labels = np.zeros(X.shape[0], dtype=np.int32)
-        for i, (start, stop) in enumerate(
-            zip(self.change_points_[:-1], self.change_points_[1:])
-        ):
+        for i, (start, stop) in enumerate(zip(change_points_[:-1], change_points_[1:])):
             labels[start:stop] = i
         return labels
 

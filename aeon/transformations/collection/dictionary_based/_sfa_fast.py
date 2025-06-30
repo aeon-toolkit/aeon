@@ -252,12 +252,6 @@ class SFAFast(BaseCollectionTransformer):
                 "Please set either variance or anova Fourier coefficient selection"
             )
 
-        if self.learn_alphabet_sizes and not self.variance:
-            raise ValueError(
-                "Learn Alphabet Sizes must be set in conjunction with variance-based"
-                "feature selection."
-            )
-
         if self.learn_alphabet_sizes and (
             self.alphabet_allocation_method not in alphabet_allocation_methods
         ):
@@ -302,7 +296,6 @@ class SFAFast(BaseCollectionTransformer):
 
         self.support = np.arange(self.word_length_actual)
 
-        # TODO the use of letter_bins as an array has to be tested
         self.letter_bits = np.zeros(self.word_length_actual, dtype=np.uint32)
         self.letter_bits[:] = np.uint32(math.ceil(math.log2(self.alphabet_size)))
 
@@ -369,7 +362,7 @@ class SFAFast(BaseCollectionTransformer):
         self: object
         """
         # with parallel_backend("loky", inner_max_num_threads=n_jobs):
-        self._fit_transform(X, y, return_bag_of_words=False)
+        self._fit_transform(X, y, return_bag_of_words=self.return_sparse)
         return self
 
     def _transform(self, X, y=None):
@@ -610,42 +603,43 @@ class SFAFast(BaseCollectionTransformer):
             self.dft_length = self.dft_length + self.dft_length % 2  # even
 
         # learn alphabet sizes
-        if self.learn_alphabet_sizes and self.variance:
+        if self.learn_alphabet_sizes and self.alphabet_allocation_method:
+            if not hasattr(self, "dft_variance"):
+                self.dft_variance = np.var(dft, axis=0)
 
             symbols = np.log2(self.alphabet_size)
             self.bit_budget = int(symbols * self.word_length)
+
             if self.alphabet_allocation_method == "dynamic_programming":
-                bit_arr = _dynamic_alphabet_allocation(
+                self.letter_bits = _dynamic_alphabet_allocation(
                     bits=self.bit_budget,
                     var=self.dft_variance[self.support],
                     lamda=self.learn_alphabet_lambda,
                 )
             else:
                 if self.alphabet_allocation_method == "linear_scale":
-                    variance = np.sqrt(self.dft_variance[self.support])
-                    normed_scale = variance / variance.sum()
-
+                    # TODO np.sqrt ???
+                    variance = self.dft_variance[self.support]
+                    normed_scale = variance / variance.mean()
                 elif self.alphabet_allocation_method == "sqrt_scale":
-                    variance = np.sqrt(np.sqrt(self.dft_variance[self.support]))
-                    normed_scale = variance / variance.sum()
-
+                    variance = np.sqrt(self.dft_variance[self.support])
+                    normed_scale = variance / variance.mean()
                 elif self.alphabet_allocation_method == "log_scale":
-                    variance = np.log2(np.sqrt(self.dft_variance[self.support]) + 1)
-                    normed_scale = variance / variance.sum()
+                    variance = np.log2((self.dft_variance[self.support]) + 1)
+                    normed_scale = variance / variance.mean()
 
-                bit_arr_raw = np.floor(
-                    normed_scale * symbols * self.word_length
-                ).astype(np.uint32)
+                self.letter_bits = assign_bits_dynamically(
+                    normed_scale, self.bit_budget
+                )
 
-                # Use at most symbols+1 for each position
-                bit_arr = heal_array(bit_arr_raw, symbols + 1, self.bit_budget)
-
-            # print(f"Method {self.alphabet_allocation_method},\t BitArray {bit_arr}")
-            self.alphabet_sizes = [int(2 ** bit_arr[i]) for i in range(len(bit_arr))]
-            self.letter_bits = np.array(bit_arr, dtype=np.uint32)
+            self.alphabet_sizes = [
+                int(2 ** self.letter_bits[i]) for i in range(len(self.letter_bits))
+            ]
         else:
             # use the same alphabet size for all positions
-            self.alphabet_sizes = [self.alphabet_size for _ in range(self.word_length)]
+            self.alphabet_sizes = [
+                self.alphabet_size for _ in range(self.word_length_actual)
+            ]
 
         self.alphabet_sizes = np.array(self.alphabet_sizes)
 
@@ -805,13 +799,22 @@ class SFAFast(BaseCollectionTransformer):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
         """
         # small window size for testing
-        params = {
-            "word_length": 4,
-            "window_size": 4,
-            "return_sparse": False,
-            "feature_selection": "chi2",
-            "alphabet_size": 2,
-        }
+        params = [
+            {
+                "word_length": 4,
+                "window_size": 4,
+                "return_sparse": False,
+                "feature_selection": "chi2",
+                "alphabet_size": 2,
+            },
+            {
+                "word_length": 4,
+                "window_size": 4,
+                "return_sparse": True,
+                "feature_selection": "chi2",
+                "alphabet_size": 2,
+            },
+        ]
         return params
 
     def __getstate__(self):
@@ -847,7 +850,7 @@ def _get_chars(word, word_length, letter_bits):
     return chars
 
 
-@njit(fastmath=True, cache=True)
+@njit(fastmath=True, cache=True, parallel=True)
 def _binning_dft(
     X,
     window_size,
@@ -1030,7 +1033,7 @@ def _get_phis(window_size, length):
     return phis
 
 
-@njit(fastmath=True, cache=True)
+@njit(fastmath=True, cache=True, parallel=True)
 def generate_words(
     dfts, bigrams, skip_grams, window_size, breakpoints, word_length, letter_bits
 ):
@@ -1060,7 +1063,7 @@ def generate_words(
         for a in prange(dfts.shape[0]):
             for i in range(word_length):  # range(dfts.shape[2]):
                 words[a, : dfts.shape[1]] = (
-                    words[a, : dfts.shape[1]] << letter_bits[a]
+                    words[a, : dfts.shape[1]] << letter_bits[i]
                 ) | np.digitize(dfts[a, :, i], breakpoints[i], right=True)
 
     # add bigrams
@@ -1220,7 +1223,7 @@ def create_feature_names(sfa_words):
     return feature_names
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath=True)  # does not work with parallel=True ??
 def create_bag_none(
     X_index, breakpoints, n_cases, sfa_words, word_length, remove_repeat_words
 ):
@@ -1268,7 +1271,7 @@ def create_bag_feature_selection(
     return all_win_words, relevant_features
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath=True, parallel=True)
 def create_bag_transform(
     X_index,
     feature_count,
@@ -1344,7 +1347,7 @@ def mcb(dft, alphabet_sizes, word_length_actual, binning_method):
     return breakpoints
 
 
-@njit(fastmath=True, cache=True)
+@njit(fastmath=True, cache=True, parallel=True)
 def shorten_words(words, amount, letter_bits):
     new_words = np.zeros((words.shape[0], words.shape[1]), dtype=np.uint32)
 
@@ -1465,26 +1468,41 @@ def trace_backwards(alloc, K, N):
 
 
 @njit(fastmath=True, cache=True)
-def heal_array(bit_array, max_val, budget):
-    bit_array = bit_array.copy()
+def assign_bits_dynamically(variance, budget, max_bit_val=9):
+    """Assign bits dynamically based on variance and budget.
 
-    # cap values beyond max_val
-    for i in range(len(bit_array)):
-        bit_array[i] = min(max_val, bit_array[i])
+    The goal is to maximize the variance covered by each symbol.
 
-    if bit_array.sum() > budget:
-        # print("Error", bit_array, bit_array.sum(), budget, bit_array.sum() <= budget)
-        assert bit_array.sum() <= budget
+    Parameters
+    ----------
+    variance : 1d numpy array
+        the variance for each position.
+    budget :   float
+        the maximal number of bits to assign.
+    max_bit_val : int, optional, default=9
+        the maximum number of bits that can be assigned to a single position.
 
-    # heal the array to have the correct sum == budget
-    if bit_array.sum() != budget:
-        diff = budget - bit_array.sum()
-        while diff > 0:
-            for i in range(len(bit_array)):
-                if bit_array[i] < max_val:
-                    bit_array[i] += 1
-                    diff -= 1
-                if diff == 0:
-                    break
+    Returns
+    -------
+    bit_array : 1d numpy array
+        the number of bits assigned to each position.
+    """
+    bit_array = np.zeros(len(variance), dtype=np.uint32)
+    bit_array[:] = 0
+
+    improve = variance.copy() / 2.0
+
+    # assign bits to positions
+    current_sum = bit_array.sum()
+    while current_sum < budget:
+        best_pos = np.argmax(improve)
+        bit_array[best_pos] += 1
+        current_sum += 1
+
+        # recalculate the improvement
+        improve[best_pos] = variance[best_pos] / (2 ** (bit_array[best_pos] + 1))
+
+        if bit_array[best_pos] == max_bit_val:
+            improve[best_pos] = 0
 
     return bit_array

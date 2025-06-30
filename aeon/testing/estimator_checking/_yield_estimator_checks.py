@@ -9,10 +9,11 @@ from inspect import getfullargspec, isclass, signature
 
 import joblib
 import numpy as np
-from numpy.testing import assert_array_almost_equal
 from sklearn.exceptions import NotFittedError
 
 from aeon.anomaly_detection.base import BaseAnomalyDetector
+from aeon.anomaly_detection.collection.base import BaseCollectionAnomalyDetector
+from aeon.anomaly_detection.series.base import BaseSeriesAnomalyDetector
 from aeon.base import BaseAeonEstimator
 from aeon.base._base import _clone_estimator
 from aeon.classification import BaseClassifier
@@ -20,9 +21,11 @@ from aeon.classification.deep_learning.base import BaseDeepClassifier
 from aeon.classification.early_classification import BaseEarlyClassifier
 from aeon.clustering import BaseClusterer
 from aeon.clustering.deep_learning.base import BaseDeepClusterer
+from aeon.forecasting import BaseForecaster
 from aeon.regression import BaseRegressor
 from aeon.regression.deep_learning.base import BaseDeepRegressor
 from aeon.segmentation import BaseSegmenter
+from aeon.similarity_search import BaseSimilaritySearch
 from aeon.testing.estimator_checking._yield_anomaly_detection_checks import (
     _yield_anomaly_detection_checks,
 )
@@ -32,8 +35,14 @@ from aeon.testing.estimator_checking._yield_classification_checks import (
 from aeon.testing.estimator_checking._yield_clustering_checks import (
     _yield_clustering_checks,
 )
+from aeon.testing.estimator_checking._yield_collection_anomaly_detection_checks import (
+    _yield_collection_anomaly_detection_checks,
+)
 from aeon.testing.estimator_checking._yield_early_classification_checks import (
     _yield_early_classification_checks,
+)
+from aeon.testing.estimator_checking._yield_forecasting_checks import (
+    _yield_forecasting_checks,
 )
 from aeon.testing.estimator_checking._yield_multithreading_checks import (
     _yield_multithreading_checks,
@@ -43,6 +52,9 @@ from aeon.testing.estimator_checking._yield_regression_checks import (
 )
 from aeon.testing.estimator_checking._yield_segmentation_checks import (
     _yield_segmentation_checks,
+)
+from aeon.testing.estimator_checking._yield_series_anomaly_detection_checks import (
+    _yield_series_anomaly_detection_checks,
 )
 from aeon.testing.estimator_checking._yield_soft_dependency_checks import (
     _yield_soft_dependency_checks,
@@ -140,6 +152,21 @@ def _yield_all_aeon_checks(
             estimator_class, estimator_instances, datatypes
         )
 
+    if issubclass(estimator_class, BaseSeriesAnomalyDetector):
+        yield from _yield_series_anomaly_detection_checks(
+            estimator_class, estimator_instances, datatypes
+        )
+
+    if issubclass(estimator_class, BaseCollectionAnomalyDetector):
+        yield from _yield_collection_anomaly_detection_checks(
+            estimator_class, estimator_instances, datatypes
+        )
+
+    if issubclass(estimator_class, BaseForecaster):
+        yield from _yield_forecasting_checks(
+            estimator_class, estimator_instances, datatypes
+        )
+
     if issubclass(estimator_class, BaseTransformer):
         yield from _yield_transformation_checks(
             estimator_class, estimator_instances, datatypes
@@ -232,9 +259,10 @@ def check_inheritance(estimator_class):
 
     # Only transformers can inherit from multiple base types currently
     if n_base_types > 1:
-        assert issubclass(
-            estimator_class, BaseTransformer
-        ), "Only transformers can inherit from multiple base types."
+        assert issubclass(estimator_class, BaseTransformer) or issubclass(
+            estimator_class, BaseSimilaritySearch
+        ), "Only transformers or similarity search estimators can inherit from multiple"
+        "base types."
 
 
 def check_has_common_interface(estimator_class):
@@ -625,20 +653,18 @@ def check_persistence_via_pickle(estimator, datatype):
     for method in NON_STATE_CHANGING_METHODS_ARRAYLIKE:
         if hasattr(estimator, method) and callable(getattr(estimator, method)):
             output = _run_estimator_method(estimator, method, datatype, "test")
-            assert_array_almost_equal(
-                output,
-                results[i],
-                err_msg=f"Running {method} after fit twice with test "
-                f"parameters gives different results.",
-            )
+            same, msg = deep_equals(output, results[i], return_msg=True)
+            if not same:
+                raise ValueError(
+                    f"Running {type(estimator)} {method} with test parameters after "
+                    f"serialisation gives different results. "
+                    f"Check equivalence message: {msg}"
+                )
             i += 1
 
 
 def check_fit_deterministic(estimator, datatype):
-    """Test that fit is deterministic.
-
-    Check that calling fit twice is equivalent to calling it once.
-    """
+    """Check that calling fit twice is equivalent to calling it once."""
     estimator = _clone_estimator(estimator, random_state=0)
     _run_estimator_method(estimator, "fit", datatype, "train")
 
@@ -648,17 +674,19 @@ def check_fit_deterministic(estimator, datatype):
             output = _run_estimator_method(estimator, method, datatype, "test")
             results.append(output)
 
-    # run fit and other methods a second time
+    # run fit a second time
     _run_estimator_method(estimator, "fit", datatype, "train")
 
+    # check output of predict/transform etc does not change
     i = 0
     for method in NON_STATE_CHANGING_METHODS_ARRAYLIKE:
         if hasattr(estimator, method) and callable(getattr(estimator, method)):
             output = _run_estimator_method(estimator, method, datatype, "test")
-            assert_array_almost_equal(
-                output,
-                results[i],
-                err_msg=f"Running {method} after fit twice with test "
-                f"parameters gives different results.",
-            )
+            same, msg = deep_equals(output, results[i], return_msg=True)
+            if not same:
+                raise ValueError(
+                    f"Running {type(estimator)} {method} with test parameters after "
+                    f"two calls to fit gives different results."
+                    f"Check equivalence message: {msg}"
+                )
             i += 1

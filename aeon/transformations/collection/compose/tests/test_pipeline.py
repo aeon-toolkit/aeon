@@ -1,6 +1,4 @@
-"""Unit tests for clustering pipeline."""
-
-__maintainer__ = ["MatthewMiddlehurst"]
+"""Unit tests for collection transform pipeline."""
 
 import pytest
 from numpy.testing import assert_array_almost_equal
@@ -15,23 +13,23 @@ from aeon.transformations.collection import (
     AutocorrelationFunctionTransformer,
     HOG1DTransformer,
     Normalizer,
-    Padder,
     Tabularizer,
 )
 from aeon.transformations.collection.compose import CollectionTransformerPipeline
 from aeon.transformations.collection.feature_based import SevenNumberSummary
+from aeon.transformations.collection.unequal_length import Padder
 
 
 @pytest.mark.parametrize(
     "transformers",
     [
-        Padder(pad_length=15),
+        Padder(padded_length=15),
         SevenNumberSummary(),
-        [Padder(pad_length=15), Tabularizer(), StandardScaler()],
-        [Padder(pad_length=15), SevenNumberSummary()],
+        [Padder(padded_length=15), Tabularizer(), StandardScaler()],
+        [Padder(padded_length=15), SevenNumberSummary()],
         [Tabularizer(), StandardScaler(), SevenNumberSummary()],
         [
-            Padder(pad_length=15),
+            Padder(padded_length=15),
             SevenNumberSummary(),
         ],
     ],
@@ -44,13 +42,16 @@ def test_collection_transform_pipeline(transformers):
     pipeline.fit(X, y)
     Xt = pipeline.transform(X)
 
+    pipeline2 = CollectionTransformerPipeline(transformers=transformers)
+    Xt2 = pipeline2.fit_transform(X, y)
+
     if not isinstance(transformers, list):
         transformers = [transformers]
-
     for t in transformers:
         X = t.fit_transform(X, y)
 
     assert_array_almost_equal(Xt, X)
+    assert_array_almost_equal(Xt2, X)
 
 
 def test_unequal_tag_inference():

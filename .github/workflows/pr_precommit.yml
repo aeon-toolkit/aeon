@@ -5,8 +5,6 @@ on:
     branches:
       - main
   pull_request_target:
-    branches:
-      - main
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
@@ -18,7 +16,7 @@ jobs:
 
     steps:
       - name: Create app token
-        uses: actions/create-github-app-token@v1
+        uses: actions/create-github-app-token@v2
         id: app-token
         with:
           app-id: ${{ vars.PR_APP_ID }}
@@ -31,13 +29,13 @@ jobs:
           ref: ${{ github.head_ref }}
           token: ${{ steps.app-token.outputs.token }}
 
-      - name: Setup Python 3.10
+      - name: Setup Python 3.12
         uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: "3.12"
 
       - name: Get changed files
-        uses: tj-actions/changed-files@v45
+        uses: tj-actions/changed-files@v46.0.5
         id: changed-files
 
       - name: List changed files
@@ -58,8 +56,7 @@ jobs:
       # push fixes if pre-commit fails and PR is eligible
       - if: ${{ failure() && github.event_name == 'pull_request_target' && !github.event.pull_request.draft && !contains(github.event.pull_request.labels.*.name, 'stop pre-commit fixes') }}
         name: Push pre-commit fixes
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@v6
         with:
           commit_message: Automatic `pre-commit` fixes
           commit_user_name: aeon-actions-bot[bot]
-          create_branch: false
