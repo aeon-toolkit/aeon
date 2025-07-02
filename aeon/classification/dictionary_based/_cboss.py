@@ -17,6 +17,7 @@ from sklearn.utils import check_random_state
 from aeon.classification.base import BaseClassifier
 from aeon.classification.dictionary_based import IndividualBOSS
 from aeon.classification.dictionary_based._boss import pairwise_distances
+from aeon.utils.validation import check_n_jobs
 
 
 class ContractableBOSS(BaseClassifier):
@@ -213,6 +214,7 @@ class ContractableBOSS(BaseClassifier):
         """
         time_limit = self.time_limit_in_minutes * 60
         self.n_cases_, _, self.n_timepoints_ = X.shape
+        self._n_jobs = check_n_jobs(self.n_jobs)
 
         self.estimators_ = []
         self.weights_ = []
