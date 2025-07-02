@@ -20,6 +20,7 @@ from aeon.classification.interval_based import (
     TimeSeriesForestClassifier,
 )
 from aeon.classification.shapelet_based import ShapeletTransformClassifier
+from aeon.utils.validation import check_n_jobs
 
 
 class HIVECOTEV1(BaseClassifier):
@@ -165,6 +166,8 @@ class HIVECOTEV1(BaseClassifier):
         self :
             Reference to self.
         """
+        self._n_jobs = check_n_jobs(self.n_jobs)
+
         if self.stc_params is None:
             self._stc_params = {"n_shapelet_samples": HIVECOTEV1._DEFAULT_N_SHAPELETS}
         if self.tsf_params is None:
