@@ -7,9 +7,9 @@ __all__ = ["AutoNaiveForecaster"]
 
 
 import numpy as np
-
+from enum import Enum
 from aeon.forecasting.base import BaseForecaster
-from aeon.forecasting._naive import NaiveForecaster
+
 
 class AutoNaiveForecaster(BaseForecaster):
     """
@@ -34,43 +34,50 @@ class AutoNaiveForecaster(BaseForecaster):
 
     def __init__(self, max_season=None, horizon=1):
         self.max_season = max_season
+        self.strategy_ = "last"
         super().__init__(horizon=horizon, axis=1)
 
     def _fit(self, y, exog=None):
         y = y.squeeze()
-        l = len(y)
+        # last strategy
+        mse_last = np.mean((y[1:] - y[:-1]) ** 2)
 
-        y_train = y[:int(0.7*l)]
-        y_test = y[int(0.7*l):]
-        # Eval last first
-        last = y_train[-1]
-        mean = np.mean(y_train)
-        # measure error and pick one
-        seasons = y_train[-self.max_season:] # Get all the fixed values
+        # series mean strategy, in sample
+        mse_mean = np.mean((y - np.mean(y)) ** 2)
+
+        # seasonal strategy, in sample
+        max_season = self.max_season
+        if self.max_season is None:
+            max_season = len(y)/4
+        best_s = None
+        best_seasonal = np.inf
+        for s in range(1, max_season + 1):
+            # Predict y[t] = y[t - s]
+            y_true = y[s:]
+            y_pred = y[:-s]
+            mse = np.mean((y_true - y_pred) ** 2)
+
+            if mse < best_seasonal:
+                best_seasonal = mse
+                best_s = s
+        self.best_mse_ = mse_last
+        self._fitted_scalar_value = y[:-1]
+
+        if mse_mean < mse_last:
+            self.strategy_ = "mean"
+            self.best_mse_ = mse_mean
+            self._fitted_scalar_value = np.mean(y)
+
+        if self.best_mse_ < best_seasonal:
+            self.strategy_ = "seasonal"
+            self.season = best_s
+            self.best_mse_ = best_seasonal
 
         return self
 
-    def _predict(self, y=None, exog=None):
-        if y is None:
-            if self.strategy == "last" or self.strategy == "mean":
-                return self._fitted_scalar_value
-
+    def _predict(self, y, exog=None):
+        if self.strategy_ == "last" or self.strategy_ == "mean":
+                    return self._fitted_scalar_value
             # For "seasonal_last" strategy
-            prediction_index = (self.horizon - 1) % self.seasonal_period
-            return self._fitted_last_season[prediction_index]
-        else:
-            y_squeezed = y.squeeze()
-
-            if self.strategy == "last":
-                return y_squeezed[-1]
-            elif self.strategy == "mean":
-                return np.mean(y_squeezed)
-            elif self.strategy == "seasonal_last":
-                period = y_squeezed[-self.seasonal_period :]
-                idx = (self.horizon - 1) % self.seasonal_period
-                return period[idx]
-            else:
-                raise ValueError(
-                    f"Unknown strategy: {self.strategy}. "
-                    "Valid strategies are 'last', 'mean', 'seasonal_last'."
-                )
+        prediction_index = (self.horizon - 1) % self.seasonal_period
+        return self._fitted_last_season[prediction_index]
