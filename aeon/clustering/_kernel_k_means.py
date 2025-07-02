@@ -8,6 +8,7 @@ from numpy.random import RandomState
 
 from aeon.clustering.base import BaseClusterer
 from aeon.distances.pointwise._squared import squared_pairwise_distance
+from aeon.utils.validation import check_n_jobs
 
 
 @njit(cache=True, fastmath=True)
@@ -227,6 +228,8 @@ class TimeSeriesKernelKMeans(BaseClusterer):
         """
         from tslearn.clustering import KernelKMeans as TsLearnKernelKMeans
 
+        self._n_jobs = check_n_jobs(self.n_jobs)
+
         verbose = 0
         if self.verbose is True:
             verbose = 1
@@ -252,7 +255,7 @@ class TimeSeriesKernelKMeans(BaseClusterer):
             tol=self.tol,
             n_init=self.n_init,
             kernel_params=self.kernel_params,
-            n_jobs=self.n_jobs,
+            n_jobs=self._n_jobs,
             verbose=verbose,
             random_state=self.random_state,
         )
