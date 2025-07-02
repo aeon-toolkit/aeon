@@ -21,12 +21,12 @@ class TVPForecaster(BaseForecaster):
     window : int
         Number of autoregressive lags to use.
     var : float, default=0.01
-        Observation noise variance. ``var`` controls the influence of recency in the update. A small R (e.g. 0.01) means
-        the parameters will be more affected by recent values. A large R (e.g., 1.0 or more)
+        Observation noise variance. ``var`` controls the influence of recency in the update. A small ``var`` (e.g. 0.01) means
+        the parameters will be more affected by recent values. A large ``var`` (e.g., 1.0 or more)
         means the observations are noisy, so the filter will adjust the parameters less to match recent values.
-    coeff_var : float, default=0.01
+    beta_var : float, default=0.01
         State evolution noise variance, applied to all coefficients at each step. Small
-        ``coeff_var`` leads to slowly evolving parameters.
+        ``beta_var`` leads to slowly evolving parameters.
 
     References
     ----------
@@ -43,11 +43,12 @@ class TVPForecaster(BaseForecaster):
     def _fit(self, y, exog=None):
         y = y.squeeze()
 
-        # Create autoregressive design matrix
+        # Create autoregressive training data
+        # This could be done dynamically, there is no need to create X in one step.
         X = np.lib.stride_tricks.sliding_window_view(y, window_shape=self.window)
         X = X[: -self.horizon]
 
-
+        # Create training response variable
         y_train = y[self.window + self.horizon - 1 :]
 
         # Kalman filter initialisation
