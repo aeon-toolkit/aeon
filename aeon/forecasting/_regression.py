@@ -101,11 +101,11 @@ class RegressionForecaster(BaseForecaster):
         # Extract y_train from the original series
         y_train = y.squeeze()[self.window + self.horizon - 1 :]
 
-        self.last_ = combined_data[:, -self.window :]
-        self.regressor_.fit(X=X, y=y_train)
+        self.regressor.fit(X=X, y=y_train)
+        self.forecast_ =self.regressor_.predict(combined_data[:, -self.window:])
         return self
 
-    def _predict(self, y=None, exog=None):
+    def _predict(self, y, exog=None):
         """
         Predict the next horizon steps ahead.
 

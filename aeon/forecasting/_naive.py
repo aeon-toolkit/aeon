@@ -53,7 +53,7 @@ class NaiveForecaster(BaseForecaster):
             )
         return self
 
-    def _predict(self, y=None, exog=None):
+    def _predict(self, y, exog=None):
         if y is None:
             if self.strategy == "last" or self.strategy == "mean":
                 return self._fitted_scalar_value

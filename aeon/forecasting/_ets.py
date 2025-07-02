@@ -195,9 +195,21 @@ class ETSForecaster(BaseForecaster):
             self._gamma,
             self.phi,
         )
+        self.forecast_ = _predict(
+            self._trend_type,
+            self._seasonality_type,
+            self.level_,
+            self.trend_,
+            self.seasonality_,
+            self.phi,
+            self.horizon,
+            self.n_timepoints_,
+            self._seasonal_period,
+        )
+
         return self
 
-    def _predict(self, y=None, exog=None):
+    def _predict(self, y, exog=None):
         """
         Predict the next horizon steps ahead.
 
@@ -214,18 +226,7 @@ class ETSForecaster(BaseForecaster):
         float
             single prediction self.horizon steps ahead of y.
         """
-        fitted_value = _predict(
-            self._trend_type,
-            self._seasonality_type,
-            self.level_,
-            self.trend_,
-            self.seasonality_,
-            self.phi,
-            self.horizon,
-            self.n_timepoints_,
-            self._seasonal_period,
-        )
-        return fitted_value
+        return self.forecast_
 
     def _initialise(self, data):
         """
