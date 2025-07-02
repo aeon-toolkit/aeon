@@ -39,6 +39,7 @@ class AutoNaiveForecaster(BaseForecaster):
 
     def _fit(self, y, exog=None):
         y = y.squeeze()
+        self._y = y
         # last strategy
         mse_last = np.mean((y[1:] - y[:-1]) ** 2)
 
@@ -70,7 +71,7 @@ class AutoNaiveForecaster(BaseForecaster):
 
         if self.best_mse_ < best_seasonal:
             self.strategy_ = "seasonal"
-            self.season = best_s
+            self.season_ = best_s
             self.best_mse_ = best_seasonal
 
         return self
@@ -79,5 +80,7 @@ class AutoNaiveForecaster(BaseForecaster):
         if self.strategy_ == "last" or self.strategy_ == "mean":
                     return self._fitted_scalar_value
             # For "seasonal_last" strategy
-        prediction_index = (self.horizon - 1) % self.seasonal_period
-        return self._fitted_last_season[prediction_index]
+        prediction_index = (self.horizon - 1) % self.season_
+        return self.self._y [prediction_index]
+
+
