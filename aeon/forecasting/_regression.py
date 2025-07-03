@@ -8,10 +8,16 @@ to form ``X`` and trains to predict the next ``horizon`` points ahead.
 import numpy as np
 from sklearn.linear_model import LinearRegression
 
-from aeon.forecasting.base import BaseForecaster
+from aeon.forecasting.base import (
+    BaseForecaster,
+    DirectForecastingMixin,
+    IterativeForecastingMixin,
+)
 
 
-class RegressionForecaster(BaseForecaster):
+class RegressionForecaster(
+    BaseForecaster, DirectForecastingMixin, IterativeForecastingMixin
+):
     """
     Regression based forecasting.
 

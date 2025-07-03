@@ -12,13 +12,13 @@ from typing import Union
 import numpy as np
 from numba import njit
 
-from aeon.forecasting.base import BaseForecaster
+from aeon.forecasting.base import BaseForecaster, DirectForecastingMixin
 
 ADDITIVE = "additive"
 MULTIPLICATIVE = "multiplicative"
 
 
-class ETSForecaster(BaseForecaster):
+class ETSForecaster(BaseForecaster, DirectForecastingMixin):
     """Exponential Smoothing (ETS) forecaster.
 
     Implements the ETS (Error, Trend, Seasonality) forecaster, supporting additive
@@ -45,29 +45,6 @@ class ETSForecaster(BaseForecaster):
     phi : float, default=0.99
         Trend damping parameter (used only for damped trend models).
 
-    Attributes
-    ----------
-    forecast_val_ : float
-        Forecast value for the given horizon.
-    level_ : float
-        Estimated level component.
-    trend_ : float
-        Estimated trend component.
-    seasonality_ : array-like or None
-        Estimated seasonal components.
-    aic_ : float
-        Akaike Information Criterion of the fitted model.
-    avg_mean_sq_err_ : float
-        Average mean squared error of the fitted model.
-    residuals_ : list of float
-        Residuals from the fitted model.
-    fitted_values_ : list of float
-        Fitted values for the training data.
-    liklihood_ : float
-        Log-likelihood of the fitted model.
-    n_timepoints_ : int
-        Number of time points in the training series.
-
     References
     ----------
     .. [1] R. J. Hyndman and G. Athanasopoulos,
@@ -84,14 +61,13 @@ class ETSForecaster(BaseForecaster):
     ...     error_type='additive', trend_type='multiplicative',
     ...     seasonality_type='multiplicative', seasonal_period=4
     ... )
-    >>> forecaster.fit(y)
-    ETSForecaster(...)
-    >>> forecaster.predict()
+    >>> forecaster.predict(y)
     366.90200486015596
     """
 
     _tags = {
         "capability:horizon": False,
+        "fit_is_empty": True,
     }
 
     def __init__(
@@ -105,97 +81,16 @@ class ETSForecaster(BaseForecaster):
         gamma: float = 0.01,
         phi: float = 0.99,
     ):
-        self.alpha = alpha
-        self.beta = beta
-        self.gamma = gamma
-        self.phi = phi
-        self.forecast_val_ = 0.0
-        self.level_ = 0.0
-        self.trend_ = 0.0
-        self.seasonality_ = None
-        self._beta = beta
-        self._gamma = gamma
         self.error_type = error_type
         self.trend_type = trend_type
         self.seasonality_type = seasonality_type
         self.seasonal_period = seasonal_period
-        self._seasonal_period = seasonal_period
-        self.n_timepoints_ = 0
-        self.avg_mean_sq_err_ = 0
-        self.liklihood_ = 0
-        self.k_ = 0
-        self.aic_ = 0
-        self.residuals_ = []
-        self.fitted_values_ = []
+        self.alpha = alpha
+        self.beta = beta
+        self.gamma = gamma
+        self.phi = phi
+
         super().__init__(horizon=1, axis=1)
-
-    def _fit(self, y, exog=None):
-        """Fit Exponential Smoothing forecaster to series y.
-
-        Fit a forecaster to predict self.horizon steps ahead using y.
-
-        Parameters
-        ----------
-        y : np.ndarray
-            A time series on which to learn a forecaster to predict horizon ahead
-        exog : np.ndarray, default =None
-            Optional exogenous time series data assumed to be aligned with y
-
-        Returns
-        -------
-        self
-            Fitted ETSForecaster.
-        """
-        _validate_parameter(self.error_type, False)
-        _validate_parameter(self.seasonality_type, True)
-        _validate_parameter(self.trend_type, True)
-
-        # Convert to string parameters to ints for numba efficiency
-        def _get_int(x):
-            if x is None:
-                return 0
-            if x == ADDITIVE:
-                return 1
-            if x == MULTIPLICATIVE:
-                return 2
-            return x
-
-        self._error_type = _get_int(self.error_type)
-        self._seasonality_type = _get_int(self.seasonality_type)
-        self._trend_type = _get_int(self.trend_type)
-        if self._seasonal_period < 1 or self._seasonality_type == 0:
-            self._seasonal_period = 1
-
-        if self._trend_type == 0:
-            # Required for the equations in _update_states to work correctly
-            self._beta = 0
-        if self._seasonality_type == 0:
-            # Required for the equations in _update_states to work correctly
-            self._gamma = 0
-        data = y.squeeze()
-        (
-            self.level_,
-            self.trend_,
-            self.seasonality_,
-            self.n_timepoints_,
-            self.residuals_,
-            self.fitted_values_,
-            self.avg_mean_sq_err_,
-            self.liklihood_,
-            self.k_,
-            self.aic_,
-        ) = _numba_fit(
-            data,
-            self._error_type,
-            self._trend_type,
-            self._seasonality_type,
-            self._seasonal_period,
-            self.alpha,
-            self._beta,
-            self._gamma,
-            self.phi,
-        )
-        return self
 
     def _predict(self, y=None, exog=None):
         """
@@ -214,32 +109,74 @@ class ETSForecaster(BaseForecaster):
         float
             single prediction self.horizon steps ahead of y.
         """
+        _validate_parameter(self.error_type, False)
+        _validate_parameter(self.seasonality_type, True)
+        _validate_parameter(self.trend_type, True)
+
+        # Convert to string parameters to ints for numba efficiency
+        def _get_int(x):
+            if x is None:
+                return 0
+            if x == ADDITIVE:
+                return 1
+            if x == MULTIPLICATIVE:
+                return 2
+            return x
+
+        error_type = _get_int(self.error_type)
+        seasonality_type = _get_int(self.seasonality_type)
+        trend_type = _get_int(self.trend_type)
+
+        seasonal_period = self.seasonal_period
+        if self.seasonal_period < 1 or seasonality_type == 0:
+            seasonal_period = 1
+
+        beta = self.beta
+        if trend_type == 0:
+            # Required for the equations in _update_states to work correctly
+            beta = 0
+
+        gamma = self.gamma
+        if seasonality_type == 0:
+            # Required for the equations in _update_states to work correctly
+            gamma = 0
+
+        data = y.squeeze()
+        (
+            level_,
+            trend_,
+            seasonality_,
+            n_timepoints_,
+            residuals_,
+            fitted_values_,
+            avg_mean_sq_err_,
+            liklihood_,
+            k_,
+            aic_,
+        ) = _numba_fit(
+            data,
+            error_type,
+            trend_type,
+            seasonality_type,
+            seasonal_period,
+            self.alpha,
+            beta,
+            gamma,
+            self.phi,
+        )
+
         fitted_value = _predict(
-            self._trend_type,
-            self._seasonality_type,
-            self.level_,
-            self.trend_,
-            self.seasonality_,
+            trend_type,
+            seasonality_type,
+            level_,
+            trend_,
+            seasonality_,
             self.phi,
             self.horizon,
-            self.n_timepoints_,
-            self._seasonal_period,
+            n_timepoints_,
+            seasonal_period,
         )
         return fitted_value
-
-    def _initialise(self, data):
-        """
-        Initialize level, trend, and seasonality values for the ETS model.
-
-        Parameters
-        ----------
-        data : array-like
-            The time series data
-            (should contain at least two full seasons if seasonality is specified)
-        """
-        self.level_, self.trend_, self.seasonality_ = _initialise(
-            self._trend_type, self._seasonality_type, self._seasonal_period, data
-        )
 
 
 @njit(fastmath=True, cache=True)
