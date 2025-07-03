@@ -132,7 +132,7 @@ class ETSForecaster(BaseForecaster, DirectForecastingMixin):
             seasonal_period = 1
 
         beta = self.beta
-        if self._trend_type == 0:
+        if trend_type == 0:
             # Required for the equations in _update_states to work correctly
             beta = 0
 

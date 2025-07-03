@@ -129,9 +129,8 @@ class BaseForecaster(BaseSeriesEstimator):
                 "handle exogenous variables"
             )
 
-        if y is not None:
-            self._check_X(y, self.axis)
-            y = self._convert_y(y, self.axis)
+        self._check_X(y, self.axis)
+        y = self._convert_y(y, self.axis)
 
         if exog is not None:
             exog = self._convert_y(exog, self.axis)
@@ -157,11 +156,31 @@ class BaseForecaster(BaseSeriesEstimator):
         float
             single prediction self.horizon steps ahead of y.
         """
+        horizon = self.get_tag("capability:horizon")
+        if not horizon and self.horizon > 1:
+            raise ValueError(
+                f"Horizon is set >1, but {self.__class__.__name__} cannot handle a "
+                f"horizon greater than 1"
+            )
+
+        exog_tag = self.get_tag("capability:exogenous")
+        if not exog_tag and exog is not None:
+            raise ValueError(
+                f"Exogenous variables passed but {self.__class__.__name__} cannot "
+                "handle exogenous variables"
+            )
+
         self._check_X(y, self.axis)
         y = self._convert_y(y, self.axis)
+
         if exog is not None:
             exog = self._convert_y(exog, self.axis)
-        return self._forecast(y, exog)
+
+        y_pred = self._forecast(y, exog)
+
+        # this should happen last
+        self.is_fitted = True
+        return y_pred
 
     def _fit(self, y, exog):
         return self
