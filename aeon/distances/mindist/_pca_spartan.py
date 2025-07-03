@@ -89,7 +89,7 @@ def _univariate_pca_spartan_distance(
             dist += (x_pca[i] - br_upper) ** 2
 
         if dist > squared_lower_bound:
-            return np.inf
+            return np.sqrt(dist)
 
     return np.sqrt(dist)
 

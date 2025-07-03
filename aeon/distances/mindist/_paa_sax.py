@@ -108,7 +108,7 @@ def _univariate_paa_sax_distance(
             dist += n_split[i].shape[0] * np.abs(x_paa[i] - br_upper) ** p
 
         if dist > squared_lower_bound:
-            return np.inf
+            np.power(dist, 1 / p)
 
     return np.power(dist, 1 / p)
 

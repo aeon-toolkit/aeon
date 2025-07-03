@@ -94,8 +94,8 @@ def _univariate_dft_sfa_distance(
         elif br_upper < x_dft[i]:
             dist += (x_dft[i] - br_upper) ** 2
 
-        if dist > squared_lower_bound:
-            return np.inf
+        if 2 * dist > squared_lower_bound:
+            return np.sqrt(2 * dist)
 
     return np.sqrt(2 * dist)
 
