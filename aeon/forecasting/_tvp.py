@@ -12,7 +12,7 @@ class TVPForecaster(BaseForecaster):
 
     .. math::
 
-        \\hat{y}_t = \beta_1,t * y_{t-1} + ... + \beta_k,t * y_{t-k}
+        \\hat{y}_t = \beta_0,t+\beta_1,t * y_{t-1} + ... + \beta_k,t * y_{t-k}
 
     where the coefficients $\beta_t$ evolve based on observations $y_t$. At each
     step, a weight vector is calculated based in the latest residual
@@ -52,19 +52,24 @@ class TVPForecaster(BaseForecaster):
         # Create autoregressive design matrix
         X = np.lib.stride_tricks.sliding_window_view(y, window_shape=self.window)
         X = X[: -self.horizon]
+        ones = np.ones((X.shape[0], 1))
+        X = np.hstack([ones, X])  # Add intercept column
 
         y_train = y[self.window + self.horizon - 1 :]
 
         # Kalman filter initialisation
-        beta = np.zeros(self.window)
-        beta_covariance = np.eye(self.window)
-        beta_var = self.beta_var * np.eye(self.window)
+        k = X.shape[1]  # number of coefficients (lags + intercept)
+        beta = np.zeros(k)
+        beta_covariance = np.eye(k)
+        beta_var = self.beta_var * np.eye(k)
+
         for t in range(len(y_train)):
             x_t = X[t]
             y_t = y_train[t]
 
             # Predict covariance
             beta_covariance = beta_covariance + beta_var
+
             # Forecast error
             error_t = y_t - x_t @ beta
             total_variance = x_t @ beta_covariance @ x_t + self.var
@@ -78,12 +83,14 @@ class TVPForecaster(BaseForecaster):
 
         self._beta = beta
         self._last_window = y[-self.window :]
-        self.forecast_ = self._last_window @ self._beta  # store forecast y_{t+1}
+        self.forecast_ = (
+            np.insert(self._last_window, 0, 1.0) @ self._beta
+        )  # include intercept
         return self
 
     def _predict(self, y=None, exog=None):
         if y is None:
             return self.forecast_
-        x_t = y[-self.window :]
+        x_t = np.insert(y[-self.window :], 0, 1.0)  # include intercept term
         y_hat = x_t @ self._beta
         return y_hat
