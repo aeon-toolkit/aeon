@@ -91,6 +91,14 @@ class WEASEL_V2(BaseClassifier):
         For multi-output, the weights of each column of y will be multiplied.
         Note that these weights will be multiplied with sample_weight (passed through
         the fit method) if sample_weight is specified.
+    feature_selection_strategy : str, default="variance"
+        The strategy to use for feature selection. Options are "variance",
+        "anova", "pca" or None.
+    alphabet_allocation_method : str, default=None
+        The strategy to use for alphabet selection. Options are "linear_scale",
+        "log_scale", "sqrt_scale", "dynamic_programming" or None.
+    n_jobs : int, default=1
+        The number of jobs to run in parallel for both `fit` and `predict`.
     random_state : int or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `None`, the random number generator is the `RandomState` instance used
@@ -139,6 +147,8 @@ class WEASEL_V2(BaseClassifier):
         feature_selection="chi2_top_k",
         max_feature_count=30_000,
         class_weight=None,
+        alphabet_allocation_method=None,
+        feature_selection_strategy="variance",
         n_jobs=1,
         random_state=None,
     ):
@@ -149,6 +159,9 @@ class WEASEL_V2(BaseClassifier):
         self.use_first_differences = use_first_differences
         self.feature_selection = feature_selection
         self.clf = None
+
+        self.feature_selection_strategy = feature_selection_strategy
+        self.alphabet_allocation_method = alphabet_allocation_method
 
         self.class_weight = class_weight
         self.n_jobs = n_jobs
@@ -182,6 +195,8 @@ class WEASEL_V2(BaseClassifier):
             use_first_differences=self.use_first_differences,
             feature_selection=self.feature_selection,
             max_feature_count=self.max_feature_count,
+            feature_selection_strategy=self.feature_selection_strategy,
+            alphabet_allocation_method=self.alphabet_allocation_method,
             random_state=self.random_state,
             n_jobs=self.n_jobs,
         )
@@ -298,8 +313,16 @@ class WEASELTransformerV2:
     max_feature_count : int, default=30_000
        size of the dictionary - number of words to use - if feature_selection set to
        "chi2" or "random". Else ignored.
+    alphabet_allocation_method : str, default="linear_scale"
+        The strategy to use for dynamic alphabet allocation. Options are
+        "linear_scale", "log_scale", "sqrt_scale", "dynamic_programming" or None.
+    feature_selection_strategy : str, default="variance"
+        The strategy to use for feature selection. Options are "variance",
+        "anova", "pca" or None.
     random_state: int or None, default=None
         Seed for random, integer
+    n_jobs : int, default=1
+        The number of jobs to run in parallel for both `fit` and `predict`.
     """
 
     def __init__(
@@ -311,6 +334,8 @@ class WEASELTransformerV2:
         feature_selection="chi2_top_k",
         max_feature_count=30_000,
         random_state=None,
+        alphabet_allocation_method=None,
+        feature_selection_strategy="variance",
         n_jobs=4,
     ):
         self.min_window = min_window
@@ -325,8 +350,9 @@ class WEASELTransformerV2:
         self.alphabet_sizes = [2]
         self.binning_strategies = ["equi-depth", "equi-width"]
 
-        self.anova = False
-        self.variance = True
+        self.alphabet_allocation_method = alphabet_allocation_method
+        self.feature_selection_strategy = feature_selection_strategy
+
         self.bigrams = False
         self.lower_bounding = True
         self.remove_repeat_words = False
@@ -395,8 +421,8 @@ class WEASELTransformerV2:
                 self.norm_options,
                 self.use_first_differences,
                 self.binning_strategies,
-                self.variance,
-                self.anova,
+                self.feature_selection_strategy,
+                self.alphabet_allocation_method,
                 self.bigrams,
                 self.lower_bounding,
                 self.n_jobs,
@@ -465,8 +491,8 @@ def _parallel_fit(
     norm_options,
     use_first_differences,
     binning_strategies,
-    variance,
-    anova,
+    feature_selection_strategy,
+    alphabet_allocation_method,
     bigrams,
     lower_bounding,
     n_jobs,
@@ -498,12 +524,11 @@ def _parallel_fit(
     all_words = []
     for first_difference in use_first_differences:
         transformer = SFAFast(
-            variance=variance,
+            feature_selection_strategy=feature_selection_strategy,
             word_length=word_length,
             alphabet_size=alphabet_size,
             window_size=window_size,
             norm=norm,
-            anova=anova,
             binning_method=binning_strategy,
             remove_repeat_words=remove_repeat_words,
             bigrams=bigrams,
@@ -511,6 +536,7 @@ def _parallel_fit(
             lower_bounding=lower_bounding,
             first_difference=first_difference,
             feature_selection=feature_selection,
+            alphabet_allocation_method=alphabet_allocation_method,
             max_feature_count=max_feature_count // ensemble_size,
             random_state=i,
             return_sparse=False,
