@@ -19,6 +19,7 @@ github_tag = f"v{version}"
 
 # -- Path setup --------------------------------------------------------------
 
+# local sphinx extensions
 sys.path.append(str(Path(__file__).parent / "_sphinxext"))
 
 # If extensions (or modules to document with autodoc) are in another directory,
@@ -37,28 +38,22 @@ else:
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    "numpydoc",
+    "sphinx.ext.autosummary",
+    "sphinx.ext.autodoc",
     "sphinx.ext.autosectionlabel",
     "sphinx.ext.intersphinx",
-    "sphinx.ext.linkcode",  # link to GitHub source code via linkcode_resolve()
+    "sphinx.ext.linkcode",
     "sphinxext.opengraph",
-    "numpydoc",
-    "nbsphinx",  # integrates example notebooks
+    "nbsphinx",
     "sphinx_design",
     "sphinx_issues",
     "sphinx_copybutton",
     "versionwarning.extension",
     "myst_parser",
-    # local extensions
+    # local extensions (_sphinxext/)
     "sphinx_remove_toctrees",
 ]
-
-# Notebook thumbnails
-nbsphinx_thumbnails = {
-    "examples/02_classification": "examples/img/tsc.png",
-}
-
-# Use bootstrap CSS from theme.
-panels_add_bootstrap_css = False
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
@@ -90,14 +85,38 @@ exclude_patterns = [
     ".DS_Store",
 ]
 
+# A boolean that decides whether module names are prepended to all object names (for
+# object types where a “module” of some kind is defined), e.g. for py:function
+# directives.
 add_module_names = False
 
+# -- Extension configuration -------------------------------------------------
+
+# -- numpydoc --
+
 # see http://stackoverflow.com/q/12206334/562769
+#     https://github.com/numpy/numpydoc/issues/69
+# Lots of warnings
 numpydoc_show_class_members = True
-# this is needed for some reason...
-# see https://github.com/numpy/numpydoc/issues/69
+
+# Whether to create a Sphinx table of contents for the lists of class methods and
+# attributes. If a table of contents is made, Sphinx expects each entry to have a
+# separate page.
+# We remove the toctree for API for speed and do not want separate pages for this
 numpydoc_class_members_toctree = False
 
+# Whether to produce plot:: directives for Examples sections that contain
+# 'import matplotlib' or 'from matplotlib import'.
+numpydoc_use_plots = True
+
+# Options for the ::plot directive:
+# https://matplotlib.org/stable/api/sphinxext_plot_directive_api.html
+plot_formats = ["png"]
+plot_include_source = True
+plot_html_show_formats = False
+plot_html_show_source_link = False
+
+# This will produce warnings for docstring errors.
 numpydoc_validation_checks = {
     "all",
     "GL01",  # docstring starts after opening quotes
@@ -105,6 +124,11 @@ numpydoc_validation_checks = {
     "SA01",  # no see also section
     "EX01",  # no examples
 }
+
+# If true, '()' will be appended to :func: etc. cross-reference text.
+add_function_parentheses = False
+
+# -- autosummary and autodoc --
 
 # generate autosummary even if no references
 autosummary_generate = True
@@ -114,80 +138,82 @@ autosummary_generate = True
 # Member-order orders the documentation in the order of how the members are defined in
 # the source code.
 autodoc_default_options = {
+    "class-doc-from": "class",
     "members": True,
+    "exclude-members": "get_metadata_routing, set_output",
     "inherited-members": True,
-    "member-order": "bysource",
+    "show-inheritance": True,
 }
 
-# If true, '()' will be appended to :func: etc. cross-reference text.
-add_function_parentheses = False
+# -- autosectionlabel --
 
-# Link to GitHub repo for github_issues extension
+autosectionlabel_maxdepth = 4
+
+# -- intersphinx --
+
+intersphinx_mapping = {
+    "python": ("https://docs.python.org/3/", None),
+    "numpy": ("https://numpy.org/doc/stable/", None),
+    "scipy": ("https://docs.scipy.org/doc/scipy/", None),
+    "matplotlib": ("https://matplotlib.org/stable/", None),
+    "pandas": ("https://pandas.pydata.org/pandas-docs/stable/", None),
+    "joblib": ("https://joblib.readthedocs.io/en/latest/", None),
+    "scikit-learn": ("https://scikit-learn.org/stable/", None),
+}
+
+# -- nbsphinx --
+
+nbsphinx_execute = "never"  # whether to run notebooks
+nbsphinx_allow_errors = False
+nbsphinx_timeout = 600  # seconds, set to -1 to disable timeout
+
+# Binder launch button
+current_file = "{{ env.doc2path( env.docname, base=None) }}"
+binder_url = (
+    f"https://mybinder.org/v2/gh/aeon-toolkit/aeon/{github_tag}?filepath={current_file}"
+)
+
+# link to original notebook
+notebook_url = f"https://github.com/aeon-toolkit/aeon/tree/{github_tag}/{current_file}"
+
+# add to the bottom of each notebook page
+nbsphinx_epilog = f"""
+----
+
+Generated using nbsphinx_. The Jupyter notebook can be found here_.
+
+|Binder|_
+
+.. _here: {notebook_url}
+.. _nbsphinx: https://nbsphinx.readthedocs.io/
+.. |binder| image:: https://mybinder.org/badge_logo.svg
+.. _Binder: {binder_url}
+"""
+
+# -- sphinx_issues --
+
 issues_github_path = "aeon-toolkit/aeon"
 
-# sphinx-copybutton configuration
+# -- sphinx_copybutton --
+
 copybutton_exclude = ".linenos, .gp, .go"
 
-# sphinx-remove-toctrees (and in-built alternative) configuration
-# see https://github.com/pradyunsg/furo/pull/674
-# we use an in-built alternative currently due to a bug. See sphinx_remove_toctrees.py
-# extension issue https://github.com/executablebooks/sphinx-remove-toctrees/issues/9
-remove_from_toctrees = ["api_reference/auto_generated/*"]
-
-# MyST Parser configuration
-
-# When building HTML using the sphinx.ext.mathjax (enabled by default),
-# Myst-Parser injects the tex2jax_ignore (MathJax v2) and mathjax_ignore (MathJax v3)
-# classes in to the top-level section of each MyST document, and adds some default
-# configuration. This ensures that MathJax processes only math, identified by the
-# dollarmath and amsmath extensions, or specified in math directives. We here silence
-# the corresponding warning that this override happens.
-suppress_warnings = ["myst.mathjax"]
+# -- MyST parser --
 
 # "colon_fence" and "html_image" recommended by sphinx_design when using the MyST Parser
 myst_enable_extensions = ["colon_fence", "html_image", "attrs_inline"]
 
 myst_heading_anchors = 4
 
+# --  sphinx-remove-toctrees --
 
-def linkcode_resolve(domain, info):
-    """Return URL to source code corresponding.
-
-    Parameters
-    ----------
-    domain : str
-    info : dict
-
-    Returns
-    -------
-    url : str
-    """
-
-    def find_source():
-        # try to find the file and line number, based on code from numpy:
-        # https://github.com/numpy/numpy/blob/main/doc/source/conf.py#L286
-        obj = sys.modules[info["module"]]
-        for part in info["fullname"].split("."):
-            obj = getattr(obj, part)
-        import inspect
-        import os
-
-        fn = inspect.getsourcefile(obj)
-        fn = os.path.relpath(fn, start=os.path.dirname(aeon.__file__))
-        source, lineno = inspect.getsourcelines(obj)
-        return fn, lineno, lineno + len(source) - 1
-
-    if domain != "py" or not info["module"]:
-        return None
-    try:
-        filename = "aeon/%s#L%d-L%d" % find_source()
-    except Exception:
-        filename = info["module"].replace(".", "/") + ".py"
-    return "https://github.com/aeon-toolkit/aeon/blob/{}/{}".format(
-        github_tag,
-        filename,
-    )
-
+# see https://github.com/pradyunsg/furo/pull/674
+# we use an in-built alternative currently due to a bug. See sphinx_remove_toctrees.py
+# extension issue https://github.com/executablebooks/sphinx-remove-toctrees/issues/9
+remove_from_toctrees = [
+    "api_reference/auto_generated/*",  # including all api pages significantly slows
+    # down the documentation build
+]
 
 # -- Options for HTML output -------------------------------------------------
 
@@ -215,7 +241,7 @@ html_theme_options = {
     "footer_icons": [
         {
             "name": "Slack",
-            "url": "https://join.slack.com/t/aeon-toolkit/shared_invite/zt-22vwvut29-HDpCu~7VBUozyfL_8j3dLA",  # noqa: E501
+            "url": "https://join.slack.com/t/aeon-toolkit/shared_invite/zt-36dlmbouu-vajTShUYAHopSXUUVtHGzw",  # noqa: E501
             "html": """
             <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
                 <path d="M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64zM361.5 580.2c0 27.8-22.5 50.4-50.3 50.4-13.3 0-26.1-5.3-35.6-14.8-9.4-9.5-14.7-22.3-14.7-35.6 0-27.8 22.5-50.4 50.3-50.4h50.3v50.4zm134 134.4c0 27.8-22.5 50.4-50.3 50.4-27.8 0-50.3-22.6-50.3-50.4V580.2c0-27.8 22.5-50.4 50.3-50.4 13.3 0 26.1 5.3 35.6 14.8s14.7 22.3 14.7 35.6v134.4zm-50.2-218.4h-134c-27.8 0-50.3-22.6-50.3-50.4 0-27.8 22.5-50.4 50.3-50.4h134c27.8 0 50.3 22.6 50.3 50.4-.1 27.9-22.6 50.4-50.3 50.4zm0-134.4c-13.3 0-26.1-5.3-35.6-14.8S395 324.8 395 311.4c0-27.8 22.5-50.4 50.3-50.4 27.8 0 50.3 22.6 50.3 50.4v50.4h-50.3zm83.7-50.4c0-27.8 22.5-50.4 50.3-50.4 27.8 0 50.3 22.6 50.3 50.4v134.4c0 27.8-22.5 50.4-50.3 50.4-27.8 0-50.3-22.6-50.3-50.4V311.4zM579.3 765c-27.8 0-50.3-22.6-50.3-50.4v-50.4h50.3c27.8 0 50.3 22.6 50.3 50.4 0 27.8-22.5 50.4-50.3 50.4zm134-134.4h-134c-13.3 0-26.1-5.3-35.6-14.8S529 593.6 529 580.2c0-27.8 22.5-50.4 50.3-50.4h134c27.8 0 50.3 22.6 50.3 50.4 0 27.8-22.5 50.4-50.3 50.4zm0-134.4H663v-50.4c0-27.8 22.5-50.4 50.3-50.4s50.3 22.6 50.3 50.4c0 27.8-22.5 50.4-50.3 50.4z"></path>
@@ -274,65 +300,84 @@ html_favicon = "images/logo/aeon-favicon.ico"
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
-html_css_files = [
-    "css/custom.css",
-]
+html_css_files = ["css/custom.css"]
 
 html_show_sourcelink = False
 
-# -- Options for HTMLHelp output ---------------------------------------------
+# -- Documentation functions and setup ---------------------------------------
 
-# Output file base name for HTML help builder.
-htmlhelp_basename = "aeondoc"
 
-# -- Options for LaTeX output ------------------------------------------------
+def linkcode_resolve(domain, info):
+    """Return URL to source code corresponding.
 
-latex_elements = {
-    # The paper size ('letterpaper' or 'a4paper').
-    # 'papersize': 'letterpaper',
-    # The font size ('10pt', '11pt' or '12pt').
-    # 'pointsize': '10pt',
-    # Additional stuff for the LaTeX preamble.
-    # 'preamble': '',
-    # Latex figure (float) alignment
-    # 'figure_align': 'htbp',
-}
+    Parameters
+    ----------
+    domain : str
+    info : dict
 
-# Grouping the document tree into LaTeX files. List of tuples
-# (source start file, target name, title,
-#  author, documentclass [howto, manual, or own class]).
-latex_documents = [
-    (
-        master_doc,
-        "aeon.tex",
-        "aeon Documentation",
-        "aeon developers",
-        "manual",
-    ),
-]
+    Returns
+    -------
+    url : str
+    """
 
-# -- Options for manual page output ------------------------------------------
+    def find_source():
+        # try to find the file and line number, based on code from numpy:
+        # https://github.com/numpy/numpy/blob/main/doc/source/conf.py#L286
 
-# One entry per manual page. List of tuples
-# (source start file, name, description, authors, manual section).
-man_pages = [(master_doc, "aeon", "aeon Documentation", [author], 1)]
+        import inspect
+        import os
 
-# -- Options for Texinfo output ----------------------------------------------
+        # Get the top-level object from the module name
+        obj = sys.modules[info["module"]]
 
-# Grouping the document tree into Texinfo files. List of tuples
-# (source start file, target name, title, author,
-#  dir menu entry, description, category)
-texinfo_documents = [
-    (
-        master_doc,
-        "aeon",
-        "aeon Documentation",
-        author,
-        "aeon",
-        "One line description of project.",
-        "Miscellaneous",
-    ),
-]
+        # Traverse dotted path (e.g., module.submodule.Class.method)
+        for part in info["fullname"].split("."):
+            obj = getattr(obj, part)
+
+        # Unwrapping decorators (if any), so we can get the true
+        # source function
+        if inspect.isfunction(obj):
+            obj = inspect.unwrap(obj)
+
+        # Get the source filename
+        try:
+            fn = inspect.getsourcefile(obj)
+        except TypeError:
+            fn = None
+
+        # If no source file is found, return None (no link)
+        if not fn:
+            return None
+
+        # Make filename relative to the aeon source directory
+        startdir = Path(aeon.__file__).parent.parent
+        try:
+            fn = os.path.relpath(fn, start=startdir).replace(os.path.sep, "/")
+        except ValueError:
+            return None
+
+        # Filter out files not in the aeon package
+        # (e.g., inherited from sklearn)
+        if not fn.startswith("aeon/"):
+            return None
+
+        # Get line range of the object
+        source, lineno = inspect.getsourcelines(obj)
+        return fn, lineno, lineno + len(source) - 1
+
+    if domain != "py" or not info["module"]:
+        return None
+    try:
+        result = find_source()
+        if not result:
+            return None
+        filename = "%s#L%d-L%d" % result
+    except Exception:
+        filename = info["module"].replace(".", "/") + ".py"
+    return "https://github.com/aeon-toolkit/aeon/blob/{}/{}".format(
+        github_tag,
+        filename,
+    )
 
 
 def _make_estimator_overview(app):
@@ -578,52 +623,3 @@ def setup(app):
     """
     app.connect("builder-inited", _make_estimator_overview)
     app.connect("html-page-context", _add_estimator_capabilities_table)
-
-
-# -- Extension configuration -------------------------------------------------
-
-# -- Options for nbsphinx extension ---------------------------------------
-nbsphinx_execute = "never"  # always  # whether to run notebooks
-nbsphinx_allow_errors = False  # False
-nbsphinx_timeout = 600  # seconds, set to -1 to disable timeout
-
-# add Binder launch buttom at the top
-current_file = "{{ env.doc2path( env.docname, base=None) }}"
-
-# make sure Binder points to latest stable release, not main
-binder_url = f"https://mybinder.org/v2/gh/aeon-toolkit/aeon/{github_tag}?filepath={current_file}"  # noqa
-nbsphinx_prolog = f"""
-.. |binder| image:: https://mybinder.org/badge_logo.svg
-.. _Binder: {binder_url}
-
-|Binder|_
-"""
-
-# add link to original notebook at the bottom
-notebook_url = f"https://github.com/aeon-toolkit/aeon/tree/{github_tag}/{current_file}"
-nbsphinx_epilog = f"""
-----
-
-Generated using nbsphinx_. The Jupyter notebook can be found here_.
-
-.. _here: {notebook_url}
-.. _nbsphinx: https://nbsphinx.readthedocs.io/
-"""
-
-# -- Options for intersphinx extension ---------------------------------------
-
-# Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {
-    "python": ("https://docs.python.org/3/", None),
-    "numpy": ("https://numpy.org/doc/stable/", None),
-    "scipy": ("https://docs.scipy.org/doc/scipy/", None),
-    "matplotlib": ("https://matplotlib.org/stable/", None),
-    "pandas": ("https://pandas.pydata.org/pandas-docs/stable/", None),
-    "joblib": ("https://joblib.readthedocs.io/en/latest/", None),
-    "scikit-learn": ("https://scikit-learn.org/stable/", None),
-    "statsmodels": ("https://www.statsmodels.org/stable/", None),
-}
-
-
-# -- Options for _todo extension ----------------------------------------------
-todo_include_todos = False

@@ -1,4 +1,4 @@
-"""Base class for pipelines in series collection modules.
+"""Base class for pipelines in collection modules.
 
 i.e. classification, regression and clustering.
 """
@@ -18,6 +18,7 @@ from aeon.base import (
     ComposableEstimatorMixin,
 )
 from aeon.base._base import _clone_estimator
+from aeon.base._estimators.compose._commons import _transform_args_wrapper
 
 
 class BaseCollectionPipeline(ComposableEstimatorMixin, BaseCollectionEstimator):
@@ -47,11 +48,6 @@ class BaseCollectionPipeline(ComposableEstimatorMixin, BaseCollectionEstimator):
         Clones of transformers and the estimator which are fitted in the pipeline.
         Will always be in (str, estimator) format, even if transformers input is a
         singular transform or list of transformers.
-
-    See Also
-    --------
-    ClassifierPipeline : A pipeline for classification tasks.
-    RegressorPipeline : A pipeline for regression tasks.
     """
 
     # Attribute name containing an iterable of processed (str, estimator) tuples
@@ -82,7 +78,7 @@ class BaseCollectionPipeline(ComposableEstimatorMixin, BaseCollectionEstimator):
         )
         self._steps = self._convert_estimators(self._steps, clone_estimators=False)
 
-        super().__init__()
+        super().__init__(axis=1)
 
         # can handle multivariate if: both estimator and all transformers can,
         #   *or* transformer chain removes multivariate
@@ -223,7 +219,7 @@ class BaseCollectionPipeline(ComposableEstimatorMixin, BaseCollectionEstimator):
         # fit transforms sequentially
         Xt = X
         for i in range(len(self.steps_) - 1):
-            Xt = self.steps_[i][1].fit_transform(X=Xt, y=y)
+            Xt = _transform_args_wrapper(self.steps_[i][1], "fit_transform", Xt, y)
         # fit estimator
         self.steps_[-1][1].fit(X=Xt, y=y)
 
@@ -243,7 +239,7 @@ class BaseCollectionPipeline(ComposableEstimatorMixin, BaseCollectionEstimator):
         # transform
         Xt = X
         for i in range(len(self.steps_) - 1):
-            Xt = self.steps_[i][1].transform(X=Xt)
+            Xt = _transform_args_wrapper(self.steps_[i][1], "transform", Xt)
         # predict
         return self.steps_[-1][1].predict(X=Xt)
 
@@ -265,7 +261,7 @@ class BaseCollectionPipeline(ComposableEstimatorMixin, BaseCollectionEstimator):
         # transform
         Xt = X
         for i in range(len(self.steps_) - 1):
-            Xt = self.steps_[i][1].transform(X=Xt)
+            Xt = _transform_args_wrapper(self.steps_[i][1], "transform", Xt)
         # predict
         return self.steps_[-1][1].predict_proba(X=Xt)
 
@@ -285,7 +281,7 @@ class BaseCollectionPipeline(ComposableEstimatorMixin, BaseCollectionEstimator):
         # transform
         Xt = X
         for i in range(len(self.steps_)):
-            Xt = self.steps_[i][1].fit_transform(X=Xt)
+            Xt = _transform_args_wrapper(self.steps_[i][1], "fit_transform", Xt, y)
         return Xt
 
     def _transform(self, X, y=None) -> np.ndarray:
@@ -302,7 +298,7 @@ class BaseCollectionPipeline(ComposableEstimatorMixin, BaseCollectionEstimator):
         # transform
         Xt = X
         for i in range(len(self.steps_)):
-            Xt = self.steps_[i][1].transform(X=Xt)
+            Xt = _transform_args_wrapper(self.steps_[i][1], "transform", Xt, y)
         return Xt
 
     def _clone_steps(self):

@@ -19,6 +19,7 @@ from sklearn.decomposition import PCA
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.utils import check_random_state
 from sklearn.utils.multiclass import check_classification_targets
+from sklearn.utils.validation import validate_data
 
 from aeon.base._base import _clone_estimator
 from aeon.utils.validation import check_n_jobs
@@ -192,7 +193,7 @@ class RotationForestClassifier(ClassifierMixin, BaseEstimator):
 
         # data processing
         X = self._check_X(X)
-        X = self._validate_data(X=X, reset=False, accept_sparse=False)
+        X = validate_data(self, X=X, reset=False, accept_sparse=False)
 
         # replace missing values with 0 and remove useless attributes
         X = X[:, self._useful_atts]
@@ -299,12 +300,12 @@ class RotationForestClassifier(ClassifierMixin, BaseEstimator):
     def _fit_rotf(self, X, y, save_transformed_data: bool = False):
         # data processing
         X = self._check_X(X)
-        X, y = self._validate_data(X=X, y=y, ensure_min_samples=2, accept_sparse=False)
+        X, y = validate_data(self, X=X, y=y, ensure_min_samples=2, accept_sparse=False)
         check_classification_targets(y)
 
+        self.n_cases_, self.n_atts_ = X.shape
         self._n_jobs = check_n_jobs(self.n_jobs)
 
-        self.n_cases_, self.n_atts_ = X.shape
         self.classes_ = np.unique(y)
         self.n_classes_ = self.classes_.shape[0]
         self._class_dictionary = {}
@@ -327,6 +328,10 @@ class RotationForestClassifier(ClassifierMixin, BaseEstimator):
         # remove useless attributes
         self._useful_atts = ~np.all(X[1:] == X[:-1], axis=0)
         X = X[:, self._useful_atts]
+        if sum(self._useful_atts) == 0:
+            raise ValueError(
+                "All attributes in X contain the same value.",
+            )
 
         self._n_atts = X.shape[1]
 

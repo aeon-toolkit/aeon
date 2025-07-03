@@ -23,6 +23,15 @@ as detailed in the contributing guide. Contributors play a crucial role in shapi
 project through participating in discussions and influencing the decision-making
 process.
 
+### Supporting Developers
+
+Supporting developers are contributors who have been nominated by a core developer
+and granted write access to the `aeon` repository. No vote is required for this role,
+but the nominator must notify the Core Developers and create a Pull Request.
+Supporting developers can have their access revoked at any time by a core developer
+if it is determined that they are abusing this access. Access will also be removed
+after 6 months of inactivity.
+
 ### Core Developers
 
 Core developers are community members that have made significant contributions and are
@@ -91,17 +100,19 @@ responsible for managing access to the `aeon` email address. To help manage
 GitHub discussions, the communication workgroup is given triage access to the `aeon`
 GitHub repository.
 
-#### Code of Conduct Workgroup
+#### Code of Conduct Moderators
 
-The Code of Conduct Workgroup (CoCW) consists of contributors tasked with making sure
-`aeon` remains a welcoming and inclusive community. CoCW responsibilities include
-maintaining the `aeon` Code of Conduct (CoC) and managing reports of breaking the CoC.
-CoCW members are expected to review reports of CoC violations, contact and discuss with
-involved individuals and make recommendations on actions to take.
+The Code of Conduct Moderators (CoCM) consists of contributors tasked with making sure
+`aeon` remains a welcoming and inclusive community. CoCM responsibilities include
+ensuring the Code of Conduct (CoC) remains up to date, keeping contact with the
+NumFOCUS Code of Conduct Workgroup and managing reports of breaking the CoC.
+CoCM members are expected to review reports of CoC violations, refer cases to the
+NumFOCUS workgroup when applicable and make decisions on report actions while
+consulting with the greater community.
 
-Any CoCW members involved in a CoC report or CoCW members which have a conflict of
+Any CoCM members involved in a CoC report or CoCM members which have a conflict of
 interest regarding the report are expected to recuse themselves from the process. The
-CoCW is given triage access to the `aeon` GitHub repository to moderate discussions if
+CoCM is given triage access to the `aeon` GitHub repository to moderate discussions if
 necessary.
 
 ## Decision-Making Process
@@ -156,7 +167,7 @@ submitted to the community for discussion and comment.
 
 ## Acknowledgements
 
-Significant portions of this document were adapted from or inspired by the following
+Portions of this document were adapted from or inspired by the following
 projects governance documents:
 
 - [Scikit-learn](https://scikit-learn.org/stable/governance.html)

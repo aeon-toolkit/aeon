@@ -106,7 +106,7 @@ class _IGTS:
     """
     Information Gain based Temporal Segmentation (GTS).
 
-    GTS is a n unsupervised method for segmenting multivariate time series
+    GTS is an unsupervised method for segmenting multivariate time series
     into non-overlapping segments by locating change points that for which
     the information gain is maximized.
 
@@ -127,17 +127,12 @@ class _IGTS:
 
     Parameters
     ----------
-    k_max: int, default=10
+    k_max : int, default=10
         Maximum number of change points to find. The number of segments is thus k+1.
-    step: : int, default=5
+    step : int, default=5
         Step size, or stride for selecting candidate locations of change points.
         Fox example a `step=5` would produce candidates [0, 5, 10, ...]. Has the same
         meaning as `step` in `range` function.
-
-    Attributes
-    ----------
-    intermediate_results_: list of `ChangePointResult`
-        Intermediate segmentation results for each k value, where k=1, 2, ..., k_max
 
     Notes
     -----
@@ -279,7 +274,7 @@ class InformationGainSegmenter(BaseSegmenter):
 
     GTS uses top-down search method to greedily find the next change point
     location that creates the maximum information gain. Once this is found, it
-    repeats the process until it finds `k_max` splits of the time series.
+    repeats the process until it finds ``k_max`` splits of the time series.
 
     .. note::
 
@@ -295,8 +290,8 @@ class InformationGainSegmenter(BaseSegmenter):
 
     step: : int, default=5
         Step size, or stride for selecting candidate locations of change points.
-        Fox example a `step=5` would produce candidates [0, 5, 10, ...]. Has the same
-        meaning as `step` in `range` function.
+        Fox example a ``step=5`` would produce candidates [0, 5, 10, ...]. Has the same
+        meaning as ``step`` in ``range`` function.
 
     Attributes
     ----------
@@ -304,7 +299,7 @@ class InformationGainSegmenter(BaseSegmenter):
         Locations of change points as integer indexes. By convention change points
         include the identity segmentation, i.e. first and last index + 1 values.
 
-    intermediate_results_: list of `ChangePointResult`
+    intermediate_results_: list of ``ChangePointResult``
         Intermediate segmentation results for each k value, where k=1, 2, ..., k_max
 
     Notes
@@ -366,9 +361,9 @@ class InformationGainSegmenter(BaseSegmenter):
             The numerical values represent distinct segment labels for each of the
             data points.
         """
-        self.change_points_ = self._igts.find_change_points(X)
-        self.intermediate_results_ = self._igts.intermediate_results_
-        return self.to_clusters(self.change_points_[1:-1], X.shape[0])
+        change_points_ = self._igts.find_change_points(X)
+        # self.intermediate_results_ = self._igts.intermediate_results_
+        return self.to_clusters(change_points_[1:-1], X.shape[0])
 
     def __repr__(self) -> str:
         """Return a string representation of the estimator."""

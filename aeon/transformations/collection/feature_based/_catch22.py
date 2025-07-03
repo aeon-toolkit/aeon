@@ -222,8 +222,7 @@ class Catch22(BaseCollectionTransformer):
         n_cases = len(X)
 
         f_idx = _verify_features(self.features, self.catch24)
-
-        threads_to_use = check_n_jobs(self.n_jobs)
+        n_jobs = check_n_jobs(self.n_jobs)
 
         features = [
             Catch22._DN_HistogramMode_5,
@@ -289,7 +288,7 @@ class Catch22(BaseCollectionTransformer):
                 )
 
         c22_list = Parallel(
-            n_jobs=threads_to_use, backend=self.parallel_backend, prefer="threads"
+            n_jobs=n_jobs, backend=self.parallel_backend, prefer="threads"
         )(
             delayed(
                 self._transform_case_pycatch22
