@@ -45,29 +45,6 @@ class ETSForecaster(BaseForecaster, DirectForecastingMixin):
     phi : float, default=0.99
         Trend damping parameter (used only for damped trend models).
 
-    Attributes
-    ----------
-    forecast_val_ : float
-        Forecast value for the given horizon.
-    level_ : float
-        Estimated level component.
-    trend_ : float
-        Estimated trend component.
-    seasonality_ : array-like or None
-        Estimated seasonal components.
-    aic_ : float
-        Akaike Information Criterion of the fitted model.
-    avg_mean_sq_err_ : float
-        Average mean squared error of the fitted model.
-    residuals_ : list of float
-        Residuals from the fitted model.
-    fitted_values_ : list of float
-        Fitted values for the training data.
-    liklihood_ : float
-        Log-likelihood of the fitted model.
-    n_timepoints_ : int
-        Number of time points in the training series.
-
     References
     ----------
     .. [1] R. J. Hyndman and G. Athanasopoulos,
@@ -146,56 +123,58 @@ class ETSForecaster(BaseForecaster, DirectForecastingMixin):
                 return 2
             return x
 
-        self._seasonal_period = self.seasonal_period
-        self._beta = self.beta
-        self._gamma = self.gamma
+        error_type = _get_int(self.error_type)
+        seasonality_type = _get_int(self.seasonality_type)
+        trend_type = _get_int(self.trend_type)
 
-        self._error_type = _get_int(self.error_type)
-        self._seasonality_type = _get_int(self.seasonality_type)
-        self._trend_type = _get_int(self.trend_type)
-        if self._seasonal_period < 1 or self._seasonality_type == 0:
-            self._seasonal_period = 1
+        seasonal_period = self.seasonal_period
+        if self.seasonal_period < 1 or seasonality_type == 0:
+            seasonal_period = 1
 
+        beta = self.beta
         if self._trend_type == 0:
             # Required for the equations in _update_states to work correctly
-            self._beta = 0
-        if self._seasonality_type == 0:
+            beta = 0
+
+        gamma = self.gamma
+        if seasonality_type == 0:
             # Required for the equations in _update_states to work correctly
-            self._gamma = 0
+            gamma = 0
+
         data = y.squeeze()
         (
-            self.level_,
-            self.trend_,
-            self.seasonality_,
-            self.n_timepoints_,
-            self.residuals_,
-            self.fitted_values_,
-            self.avg_mean_sq_err_,
-            self.liklihood_,
-            self.k_,
-            self.aic_,
+            level_,
+            trend_,
+            seasonality_,
+            n_timepoints_,
+            residuals_,
+            fitted_values_,
+            avg_mean_sq_err_,
+            liklihood_,
+            k_,
+            aic_,
         ) = _numba_fit(
             data,
-            self._error_type,
-            self._trend_type,
-            self._seasonality_type,
-            self._seasonal_period,
+            error_type,
+            trend_type,
+            seasonality_type,
+            seasonal_period,
             self.alpha,
-            self._beta,
-            self._gamma,
+            beta,
+            gamma,
             self.phi,
         )
 
         fitted_value = _predict(
-            self._trend_type,
-            self._seasonality_type,
-            self.level_,
-            self.trend_,
-            self.seasonality_,
+            trend_type,
+            seasonality_type,
+            level_,
+            trend_,
+            seasonality_,
             self.phi,
             self.horizon,
-            self.n_timepoints_,
-            self._seasonal_period,
+            n_timepoints_,
+            seasonal_period,
         )
         return fitted_value
 

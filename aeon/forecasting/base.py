@@ -89,8 +89,11 @@ class BaseForecaster(BaseSeriesEstimator):
         if exog is not None:
             exog = self._convert_y(exog, self.axis)
 
+        self._fit(y, exog)
+
+        # this should happen last
         self.is_fitted = True
-        return self._fit(y, exog)
+        return self
 
     @final
     def predict(self, y, exog=None):
@@ -112,9 +115,24 @@ class BaseForecaster(BaseSeriesEstimator):
         if not self.get_tag("fit_is_empty"):
             self._check_is_fitted()
 
+        horizon = self.get_tag("capability:horizon")
+        if not horizon and self.horizon > 1:
+            raise ValueError(
+                f"Horizon is set >1, but {self.__class__.__name__} cannot handle a "
+                f"horizon greater than 1"
+            )
+
+        exog_tag = self.get_tag("capability:exogenous")
+        if not exog_tag and exog is not None:
+            raise ValueError(
+                f"Exogenous variables passed but {self.__class__.__name__} cannot "
+                "handle exogenous variables"
+            )
+
         if y is not None:
             self._check_X(y, self.axis)
             y = self._convert_y(y, self.axis)
+
         if exog is not None:
             exog = self._convert_y(exog, self.axis)
 
