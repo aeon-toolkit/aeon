@@ -241,6 +241,59 @@ class ETSForecaster(BaseForecaster):
             self._trend_type, self._seasonality_type, self._seasonal_period, data
         )
 
+    def iterative_forecast(self, y, prediction_horizon):
+        """Forecast multi-step ahead.
+
+        The first prediction will be identical to forecast(). Subsequent steps roll
+        forward the state.
+        """
+        # Fit the model to ensure states are current
+        self.fit(y)
+
+        # Copy the states to avoid mutating the model
+        level = self.level_
+        trend = self.trend_
+        seasonality = np.copy(self.seasonality_)
+        seasonal_period = self._seasonal_period
+        n_timepoints = self.n_timepoints_
+
+        forecasts = np.zeros(prediction_horizon)
+        # This tracks the simulated time moving forward
+        t = n_timepoints
+
+        for step in range(prediction_horizon):
+            # The seasonality index is always relative to the *simulated* time
+            seasonal_idx = t % seasonal_period
+
+            # Forecast next value using current state
+            forecast, _, _ = _predict_value(
+                self._trend_type,
+                self._seasonality_type,
+                level,
+                trend,
+                seasonality[seasonal_idx],
+                self.phi,
+            )
+            forecasts[step] = forecast
+
+            # Now simulate an "observation" equal to the forecast, and update states
+            _, _, level, trend, seasonality[seasonal_idx] = _update_states(
+                self._error_type,
+                self._trend_type,
+                self._seasonality_type,
+                level,
+                trend,
+                seasonality[seasonal_idx],
+                forecast,
+                self.alpha,
+                self.beta,
+                self.gamma,
+                self.phi,
+            )
+            t += 1  # move forward in time for seasonality indexing
+
+        return forecasts
+
 
 @njit(fastmath=True, cache=True)
 def _numba_fit(
@@ -314,7 +367,7 @@ def _numba_fit(
     )
 
 
-@njit(fastmath=True, cache=True)
+# @njit(fastmath=True, cache=True)
 def _predict(
     trend_type,
     seasonality_type,
