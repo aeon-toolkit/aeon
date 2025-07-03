@@ -17,6 +17,7 @@ from aeon.base._base import _clone_estimator
 from aeon.classification.base import BaseClassifier
 from aeon.classification.sklearn import RotationForestClassifier
 from aeon.transformations.collection.shapelet_based import RandomShapeletTransform
+from aeon.utils.validation import check_n_jobs
 
 
 class ShapeletTransformClassifier(BaseClassifier):
@@ -279,6 +280,7 @@ class ShapeletTransformClassifier(BaseClassifier):
 
     def _fit_stc_shared(self, X, y):
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
+        self._n_jobs = check_n_jobs(self.n_jobs)
 
         if self.time_limit_in_minutes > 0:
             # contracting 2/3 transform (with 1/5 of that taken away for final
