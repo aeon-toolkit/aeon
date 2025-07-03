@@ -2,7 +2,8 @@
 
 import numpy as np
 
-from aeon.anomaly_detection.base import BaseAnomalyDetector
+from aeon.anomaly_detection.collection.base import BaseCollectionAnomalyDetector
+from aeon.anomaly_detection.series.base import BaseSeriesAnomalyDetector
 from aeon.base import BaseCollectionEstimator, BaseSeriesEstimator
 from aeon.classification import BaseClassifier
 from aeon.classification.early_classification import BaseEarlyClassifier
@@ -13,7 +14,6 @@ from aeon.segmentation import BaseSegmenter
 from aeon.similarity_search.collection import BaseCollectionSimilaritySearch
 from aeon.similarity_search.series import BaseSeriesSimilaritySearch
 from aeon.testing.data_generation import (
-    make_example_1d_numpy,
     make_example_2d_dataframe_collection,
     make_example_2d_numpy_collection,
     make_example_2d_numpy_series,
@@ -642,11 +642,14 @@ MISSING_VALUES_REGRESSION = {
 
 # Series testing data
 
-X_series = make_example_1d_numpy(
-    n_timepoints=40, random_state=data_rng.randint(np.iinfo(np.int32).max)
+X_series = make_example_2d_numpy_series(
+    n_timepoints=40,
+    n_channels=1,
+    axis=1,
+    random_state=data_rng.randint(np.iinfo(np.int32).max),
 )
-X_series2 = X_series[20:40]
-X_series = X_series[:20]
+X_series2 = X_series[:, 20:40]
+X_series = X_series[:, :20]
 UNIVARIATE_SERIES_NONE = {"train": (X_series, None), "test": (X_series2, None)}
 
 X_series_mv = make_example_2d_numpy_series(
@@ -662,13 +665,16 @@ MULTIVARIATE_SERIES_NONE = {
     "test": (X_series_mv2, None),
 }
 
-X_series_mi = make_example_1d_numpy(
-    n_timepoints=40, random_state=data_rng.randint(np.iinfo(np.int32).max)
+X_series_mi = make_example_2d_numpy_series(
+    n_timepoints=40,
+    n_channels=1,
+    axis=1,
+    random_state=data_rng.randint(np.iinfo(np.int32).max),
 )
-X_series_mi2 = X_series_mi[20:40]
-X_series_mi2[data_rng.choice(20, 1)] = np.nan
-X_series_mi = X_series_mi[:20]
-X_series_mi[data_rng.choice(20, 2)] = np.nan
+X_series_mi2 = X_series_mi[:, 20:40]
+X_series_mi2[:, data_rng.choice(20, 1)] = np.nan
+X_series_mi = X_series_mi[:, :20]
+X_series_mi[:, data_rng.choice(20, 2)] = np.nan
 MISSING_VALUES_SERIES_NONE = {
     "train": (X_series_mi, None),
     "test": (X_series_mi2, None),
@@ -856,6 +862,7 @@ def _get_task_for_estimator(estimator):
         or isinstance(estimator, BaseEarlyClassifier)
         or isinstance(estimator, BaseClusterer)
         or isinstance(estimator, BaseCollectionTransformer)
+        or isinstance(estimator, BaseCollectionAnomalyDetector)
         or isinstance(estimator, BaseCollectionSimilaritySearch)
     ):
         data_label = "Classification"
@@ -864,7 +871,7 @@ def _get_task_for_estimator(estimator):
         data_label = "Regression"
     # series data with no secondary input
     elif (
-        isinstance(estimator, BaseAnomalyDetector)
+        isinstance(estimator, BaseSeriesAnomalyDetector)
         or isinstance(estimator, BaseSegmenter)
         or isinstance(estimator, BaseSeriesTransformer)
         or isinstance(estimator, BaseForecaster)
