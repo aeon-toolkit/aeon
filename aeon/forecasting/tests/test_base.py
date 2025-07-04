@@ -12,7 +12,7 @@ def test_base_forecaster():
     f = NaiveForecaster()
     y = np.random.rand(50)
     f.fit(y)
-    p1 = f.predict()
+    p1 = f.predict(y)
     assert p1 == y[-1]
     p2 = f.forecast(y)
     p3 = f._forecast(y)
@@ -54,8 +54,8 @@ def test_direct_forecast():
         assert p == preds[i]
 
 
-def test_recursive_forecast():
-    """Test recursive forecasting."""
+def test_iterative_forecast():
+    """Test iterative forecasting."""
     y = np.random.rand(50)
     f = RegressionForecaster(window=4)
     preds = f.iterative_forecast(y, prediction_horizon=10)

@@ -71,8 +71,7 @@ def test_ets_forecaster(params, expected):
     """Test ETSForecaster for multiple parameter combinations."""
     data = np.array([3, 10, 12, 13, 12, 10, 12, 3, 10, 12, 13, 12, 10, 12])
     forecaster = ETSForecaster(**params)
-    forecaster.fit(data)
-    p = forecaster.predict()
+    p = forecaster.forecast(data)
     assert np.isclose(p, expected)
 
 
