@@ -71,7 +71,8 @@ def check_forecaster_output(estimator, datatype):
         f"predict(y) output should be float, got" f" {type(y_pred)}"
     )
 
+    y_pred = estimator.forecast_
     y_pred2 = estimator.forecast(FULL_TEST_DATA_DICT[datatype]["train"][0])
     assert y_pred == y_pred2, (
-        f"predict(y) and forecast(y) output differ: {y_pred} !=" f" {y_pred2}"
+        f"estimator.forecast_ and forecast(y) output differ: {y_pred} !=" f" {y_pred2}"
     )
