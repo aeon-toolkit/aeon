@@ -93,4 +93,4 @@ def test_incorrect_parameters():
     with pytest.raises(
         ValueError, match="This forecaster cannot be used with the " "direct strategy"
     ):
-        forecaster.direct_forecast(data)
+        forecaster.direct_forecast(data, prediction_horizon=5)
