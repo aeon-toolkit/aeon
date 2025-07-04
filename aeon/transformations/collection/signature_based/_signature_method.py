@@ -19,17 +19,21 @@ class SignatureTransformer(BaseCollectionTransformer):
 
     Parameters
     ----------
-    augmentation_list: tuple of strings, contains the augmentations to be
-        applied before application of the signature transform.
-    window_name: str, The name of the window transform to apply.
-    window_depth: int, The depth of the dyadic window. (Active only if
-        `window_name == 'dyadic'`).
-    window_length: int, The length of the sliding/expanding window. (Active
+    augmentation_list : tuple of strings, default = ``("basepoint", "addtime")``
+        Contains the augmentations to be applied before application of the signature
+        transform.
+    window_name : str
+        The name of the window transform to apply.
+    window_depth : int
+        The depth of the dyadic window. (Active only if ``window_name == 'dyadic'``).
+    window_length : int
+        The length of the sliding/expanding window. (Active only if ``window_name``
+        in ``['sliding, 'expanding']``.
+    window_step : int
+        The step of the sliding/expanding window. (Active
         only if `window_name in ['sliding, 'expanding']`.
-    window_step: int, The step of the sliding/expanding window. (Active
-        only if `window_name in ['sliding, 'expanding']`.
-    rescaling: str or None, The method of signature rescaling.
-    sig_tfm: str, String to specify the type of signature transform. One of:
+    rescaling : str or None, The method of signature rescaling.
+    sig_tfm : str, String to specify the type of signature transform. One of:
         ['signature', 'logsignature']).
     depth: int, Signature truncation depth.
 
