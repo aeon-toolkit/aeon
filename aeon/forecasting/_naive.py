@@ -41,11 +41,13 @@ class NaiveForecaster(BaseForecaster):
         y_squeezed = y.squeeze()
 
         if self.strategy == "last":
-            self._fitted_scalar_value = y_squeezed[-1]
+            self.forecast_ = y_squeezed[-1]
         elif self.strategy == "mean":
-            self._fitted_scalar_value = np.mean(y_squeezed)
+            self.forecast_ = np.mean(y_squeezed)
         elif self.strategy == "seasonal_last":
-            self._fitted_last_season = y_squeezed[-self.seasonal_period :]
+            season = y_squeezed[-self.seasonal_period :]
+            idx = (self.horizon - 1) % self.seasonal_period
+            self.forecast_ = season[idx]
         else:
             raise ValueError(
                 f"Unknown strategy: {self.strategy}. "
