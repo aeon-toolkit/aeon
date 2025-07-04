@@ -101,7 +101,7 @@ class RegressionForecaster(BaseForecaster):
         # Extract y_train from the original series
         y_train = y.squeeze()[self.window + self.horizon - 1 :]
 
-        self.regressor.fit(X=X, y=y_train)
+        self.regressor_.fit(X=X, y=y_train)
         self.forecast_ = self.regressor_.predict(combined_data[:, -self.window :])
         return self
 
