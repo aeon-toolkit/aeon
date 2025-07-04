@@ -17,7 +17,6 @@ State:
     fitted model/strategy   - by convention, any attributes ending in "_"
     fitted state flag       - is_fitted (property)
     fitted state inspection - check_is_fitted()
-
 """
 
 from abc import abstractmethod
@@ -30,7 +29,6 @@ from aeon.utils.conversion import (
     resolve_equal_length_inner_type,
     resolve_unequal_length_inner_type,
 )
-from aeon.utils.validation import check_n_jobs
 from aeon.utils.validation.collection import (
     get_n_cases,
     get_n_channels,
@@ -65,7 +63,6 @@ class BaseCollectionEstimator(BaseAeonEstimator):
     @abstractmethod
     def __init__(self):
         self.metadata_ = {}  # metadata/properties of data seen in fit
-        self._n_jobs = 1
 
         super().__init__()
 
@@ -115,21 +112,12 @@ class BaseCollectionEstimator(BaseAeonEstimator):
         """
         if isinstance(X, list) and isinstance(X[0], np.ndarray):
             X = self._reshape_np_list(X)
+
         meta = self._check_X(X)
         if len(self.metadata_) == 0 and store_metadata:
             self.metadata_ = meta
 
-        X = self._convert_X(X)
-        # This usage of n_jobs is legacy, see issue #102
-        multithread = self.get_tag("capability:multithreading")
-        if multithread:
-            if hasattr(self, "n_jobs"):
-                self._n_jobs = check_n_jobs(self.n_jobs)
-            else:
-                raise AttributeError(
-                    "self.n_jobs must be set if capability:multithreading is True"
-                )
-        return X
+        return self._convert_X(X)
 
     def _check_X(self, X):
         """
