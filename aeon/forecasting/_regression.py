@@ -102,7 +102,7 @@ class RegressionForecaster(BaseForecaster):
         y_train = y.squeeze()[self.window + self.horizon - 1 :]
 
         self.regressor.fit(X=X, y=y_train)
-        self.forecast_ =self.regressor_.predict(combined_data[:, -self.window:])
+        self.forecast_ = self.regressor_.predict(combined_data[:, -self.window :])
         return self
 
     def _predict(self, y, exog=None):
@@ -142,6 +142,11 @@ class RegressionForecaster(BaseForecaster):
         last_window_flat = last_window.reshape(1, -1)
 
         return self.regressor_.predict(last_window_flat)[0]
+
+    def _forecast(self, y, exog=None):
+        """Forecast values for time series X."""
+        self.fit(y, exog)
+        return self.forecast_
 
     @classmethod
     def _get_test_params(cls, parameter_set: str = "default"):
