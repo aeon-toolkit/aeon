@@ -107,3 +107,5 @@ def test_regression_forecaster_with_exog_errors():
         f.predict(y, exog_short)
     with pytest.raises(ValueError, match="predict passed no exogenous variables"):
         f.predict(y)
+    with pytest.raises(ValueError, match="must be greater than or equal to 1"):
+        f.direct_forecast(y, prediction_horizon=0)

@@ -76,6 +76,7 @@ def test_ets_forecaster(params, expected):
 
 
 def test_incorrect_parameters():
+    """Test incorrect set up."""
     _validate_parameter(0, True)
     _validate_parameter(None, True)
     with pytest.raises(ValueError):
@@ -83,3 +84,13 @@ def test_incorrect_parameters():
         _validate_parameter(None, True)
         _validate_parameter(10, False)
         _validate_parameter("Foo", True)
+    forecaster = ETSForecaster()
+    forecaster.horizon = 2
+    data = np.array([3, 10, 12, 13, 12, 10, 12, 3, 10, 12, 13, 12, 10, 12])
+    with pytest.raises(ValueError, match="Horizon is set >1, but"):
+        forecaster.fit(data)
+    forecaster = ETSForecaster()
+    with pytest.raises(
+        ValueError, match="This forecaster cannot be used with the " "direct strategy"
+    ):
+        forecaster.direct_forecast(data)
