@@ -12,6 +12,7 @@ from sklearn.pipeline import make_pipeline
 
 from aeon.classification import BaseClassifier
 from aeon.transformations.collection.convolution_based._hydra import HydraTransformer
+from aeon.utils.validation import check_n_jobs
 
 
 class HydraClassifier(BaseClassifier):
@@ -112,10 +113,11 @@ class HydraClassifier(BaseClassifier):
         super().__init__()
 
     def _fit(self, X, y):
+        self._n_jobs = check_n_jobs(self.n_jobs)
         transform = HydraTransformer(
             n_kernels=self.n_kernels,
             n_groups=self.n_groups,
-            n_jobs=self.n_jobs,
+            n_jobs=self._n_jobs,
             random_state=self.random_state,
         )
 
