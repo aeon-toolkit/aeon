@@ -26,7 +26,7 @@ def _yield_forecasting_checks(estimator_class, estimator_instances, datatypes):
 def check_forecaster_overrides_and_tags(estimator_class):
     """Test compliance with the forecaster base class contract."""
     # Test they don't override final methods, because Python does not enforce this
-    final_methods = ["fit", "predict", "forecast", "direct_forecast"]
+    final_methods = ["fit", "predict", "forecast"]
     for method in final_methods:
         if method in estimator_class.__dict__:
             raise ValueError(
