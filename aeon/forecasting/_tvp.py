@@ -97,3 +97,19 @@ class TVPForecaster(BaseForecaster):
         x_t = np.insert(y[-self.window :], 0, 1.0)  # include intercept term
         y_hat = x_t @ self._beta
         return y_hat
+
+    @classmethod
+    def _get_test_params(cls, parameter_set: str = "default"):
+        """Return testing parameter settings for the estimator.
+
+        Parameters
+        ----------
+        parameter_set : str, default='default'
+            Name of the parameter set to return.
+
+        Returns
+        -------
+        dict
+            Dictionary of testing parameter settings.
+        """
+        return {"window": 4}
