@@ -39,8 +39,9 @@ class SignatureTransformer(BaseCollectionTransformer):
 
     Attributes
     ----------
-    signature_method: sklearn.Pipeline, A sklearn pipeline object that contains
-        all the steps to extract the signature features.
+    sklearn.Pipeline
+        sklearn pipeline object that contains all the steps to extract the signature
+        features.
     """
 
     _tags = {
@@ -70,9 +71,8 @@ class SignatureTransformer(BaseCollectionTransformer):
         self.depth = depth
 
         super().__init__()
-        self.setup_feature_pipeline()
 
-    def setup_feature_pipeline(self):
+    def _fit(self, X, y=None):
         """Set up the signature method as an sklearn pipeline."""
         augmentation_step = _make_augmentation_pipeline(self.augmentation_list)
         transform_step = _WindowSignatureTransform(
@@ -86,19 +86,17 @@ class SignatureTransformer(BaseCollectionTransformer):
         )
 
         # The so-called 'signature method' as defined in the reference paper
-        self.signature_method = Pipeline(
+        self.signature_method_ = Pipeline(
             [
                 ("augmentations", augmentation_step),
                 ("window_and_transform", transform_step),
             ]
         )
-
-    def _fit(self, X, y=None):
-        self.signature_method.fit(X)
+        self.signature_method_.fit(X)
         return self
 
     def _transform(self, X, y=None):
-        return self.signature_method.transform(X)
+        return self.signature_method_.transform(X)
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
