@@ -11,4 +11,5 @@
     NaiveForecaster
     RegressionForecaster
     ETSForecaster
+    TVPForecaster
 ```
