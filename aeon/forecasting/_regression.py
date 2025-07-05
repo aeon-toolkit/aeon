@@ -36,14 +36,6 @@ class RegressionForecaster(BaseForecaster):
     regressor : object, default =None
         Regression estimator that implements BaseRegressor or is otherwise compatible
         with sklearn regressors.
-
-    Examples
-    --------
-    >>>from aeon.datasets import load_airline
-    >>>from aeon.forecasting import RegressionForecaster
-    >>>y = load_airline()
-    >>>reg = RegressionForecaster(window=10)
-
     """
 
     _tags = {
