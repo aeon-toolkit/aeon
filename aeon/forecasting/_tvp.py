@@ -27,12 +27,14 @@ class TVPForecaster(BaseForecaster):
         Number of autoregressive lags to use.
     var : float, default=0.01
         Observation noise variance. ``var`` controls the influence of recency in the
-        update. A small R (e.g. 0.01) means the parameters will be more affected by
-        recent values. A large R (e.g., 1.0 or more) means the observations are
+        update. A small var (such as the default 0.01) means the parameters will be
+        more
+        affected by
+        recent values. A large var (e.g., 1.0 or more) means the observations are
         noisy, so the filter will adjust the parameters less to match recent values.
-    coeff_var : float, default=0.01
+    beta_var : float, default=0.01
         State evolution noise variance, applied to all coefficients at each step. Small
-        ``coeff_var`` leads to slowly evolving parameters.
+        ``beta_var`` leads to slowly evolving parameters.
 
     References
     ----------
@@ -91,6 +93,7 @@ class TVPForecaster(BaseForecaster):
     def _predict(self, y=None, exog=None):
         if y is None:
             return self.forecast_
+        y = y.squeeze()
         x_t = np.insert(y[-self.window :], 0, 1.0)  # include intercept term
         y_hat = x_t @ self._beta
         return y_hat
