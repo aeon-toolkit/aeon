@@ -52,8 +52,8 @@ class TemporalConvolutionalNetwork(BaseDeepLearningNetwork):
 
     def __init__(
         self,
-        num_inputs: int,
-        num_channels: list,
+        num_inputs: int = 1,
+        num_channels: list = [16] * 3,
         kernel_size: int = 2,
         dropout: float = 0.2,
     ):
