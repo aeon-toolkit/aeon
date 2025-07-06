@@ -108,7 +108,7 @@ docs = [
     "sphinx-version-warning",
     "sphinx_issues",
     "sphinx-copybutton",
-    "sphinxext-opengraph",
+    "sphinxext-opengraph[social_cards]",
     "nbsphinx",
     "numpydoc",
     "myst-parser",
