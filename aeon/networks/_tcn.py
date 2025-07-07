@@ -42,6 +42,21 @@ class TemporalConvolutionalNetwork(BaseDeepLearningNetwork):
     Bai, S., Kolter, J. Z., & Koltun, V. (2018). An empirical evaluation of
     generic convolutional and recurrent networks for sequence modeling.
     arXiv preprint arXiv:1803.01271.
+
+    Examples
+    --------
+    >>> from aeon.networks._tcn import TemporalConvolutionalNetwork
+    >>> from aeon.testing.data_generation import make_example_3d_numpy
+    >>> import tensorflow as tf
+    >>> X, y = make_example_3d_numpy(n_cases=8, n_channels=4, n_timepoints=150,
+    ...                              return_y=True, regression_target=True,
+    ...                              random_state=42)
+    >>> network = TemporalConvolutionalNetwork(num_inputs=4, num_channels=[8, 8])
+    >>> input_layer, output = network.build_network(input_shape=(4, 150))
+    >>> model = tf.keras.Model(inputs=input_layer, outputs=output)
+    >>> model.compile(optimizer="adam", loss="mse")
+    >>> model.fit(X, y, epochs=2, batch_size=2, verbose=0)  # doctest: +SKIP
+    <keras.src.callbacks.History object ...>
     """
 
     _config = {
@@ -53,7 +68,7 @@ class TemporalConvolutionalNetwork(BaseDeepLearningNetwork):
     def __init__(
         self,
         num_inputs: int = 1,
-        num_channels: list = [16] * 3,
+        num_channels: list = [16] * 3,  # change to n_filters
         kernel_size: int = 2,
         dropout: float = 0.2,
     ):
@@ -321,6 +336,8 @@ class TemporalConvolutionalNetwork(BaseDeepLearningNetwork):
             dropout=self.dropout,
         )
 
-        output = x
-
+        x = tf.keras.layers.Dense(input_shape[0])(x[:, -1, :])
+        output = tf.keras.layers.Lambda(
+            lambda x: tf.reduce_mean(x, axis=1, keepdims=True), output_shape=(1,)
+        )(x)
         return input_layer, output
