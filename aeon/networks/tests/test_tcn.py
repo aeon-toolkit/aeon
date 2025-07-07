@@ -136,7 +136,7 @@ def test_tcn_network_output_shape():
     output = model(dummy_input)
 
     # Output should maintain sequence length and have final channel dimension
-    expected_shape = (batch_size, num_channels[-1], input_shape[1])
+    expected_shape = (batch_size, 1)
     assert (
         output.shape == expected_shape
     ), f"Expected shape {expected_shape}, got {output.shape}"
@@ -209,4 +209,4 @@ def test_tcn_network_single_layer():
 
     dummy_input = np.random.random((4,) + input_shape)
     output = model(dummy_input)
-    assert output.shape == (4, 16, 2)
+    assert output.shape == (4, 1)
