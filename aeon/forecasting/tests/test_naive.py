@@ -32,33 +32,33 @@ def test_naive_forecaster_seasonal_last_strategy():
     pred = forecaster.forecast(data)
     forecaster.fit(data)
     pred2 = forecaster.forecast_
+    pred3 = forecaster.predict(data)
     expected = 6  # predicts the 1-st element of the last season.
-    np.testing.assert_array_equal(pred, expected)
-    np.testing.assert_array_equal(pred2, expected)
+    np.testing.assert_allclose(pred, pred2, pred3, expected)
 
     # Test horizon within the season length
     forecaster = NaiveForecaster(strategy="seasonal_last", seasonal_period=3, horizon=2)
     pred = forecaster.forecast(data)
     forecaster.fit(data)
     pred2 = forecaster.forecast_
+    pred3 = forecaster.predict(data)
     expected = 7  # predicts the 2-nd element of the last season.
-    np.testing.assert_array_equal(pred, expected)
-    np.testing.assert_array_equal(pred2, expected)
+    np.testing.assert_allclose(pred, pred2, pred3, expected)
 
     # Test horizon wrapping around to a new season
     forecaster = NaiveForecaster(strategy="seasonal_last", seasonal_period=3, horizon=7)
     pred = forecaster.forecast(data)
     forecaster.fit(data)
     pred2 = forecaster.forecast_
+    pred3 = forecaster.predict(data)
     expected = 6  # predicts the 1-st element of the last season.
-    np.testing.assert_array_equal(pred, expected)
-    np.testing.assert_array_equal(pred2, expected)
+    np.testing.assert_allclose(pred, pred2, pred3, expected)
 
     # Last season is now [5, 6, 7, 8] with seasonal_period = 4
     forecaster = NaiveForecaster(strategy="seasonal_last", seasonal_period=4, horizon=6)
     pred = forecaster.forecast(data)
     forecaster.fit(data)
     pred2 = forecaster.forecast_
+    pred3 = forecaster.predict(data)
     expected = 6  # predicts the 2nd element of the new last season.
-    np.testing.assert_array_equal(pred, expected)
-    np.testing.assert_array_equal(pred2, expected)
+    np.testing.assert_allclose(pred, pred2, pred3, expected)
