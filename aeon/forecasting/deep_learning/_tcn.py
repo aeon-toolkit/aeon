@@ -6,13 +6,13 @@ __maintainer__ = []
 __all__ = ["TCNForecaster"]
 
 from aeon.forecasting.deep_learning.base import BaseDeepForecaster
-from aeon.networks._tcn import TemporalConvolutionalNetwork
+from aeon.networks._tcn import TCNNetwork
 
 
 class TCNForecaster(BaseDeepForecaster):
     """A deep learning forecaster using Temporal Convolutional Network (TCN).
 
-    It leverages the `TemporalConvolutionalNetwork` from aeon's network module
+    It leverages the `TCNNetwork` from aeon's network module
     to build the architecture suitable for forecasting tasks.
 
     Parameters
@@ -35,9 +35,7 @@ class TCNForecaster(BaseDeepForecaster):
         Seed for random number generators.
     axis : int, default=0
         Axis along which to apply the forecaster.
-    num_inputs : int, default=1
-        Number of input channels/features in the input sequence.
-    n_filters : list of int, default=[16, 16, 16]
+    n_blocks : list of int, default=[16, 16, 16]
         List specifying the number of output channels for each layer of the
         TCN. The length determines the depth of the network.
     kernel_size : int, default=2
@@ -66,8 +64,7 @@ class TCNForecaster(BaseDeepForecaster):
         loss="mse",
         random_state=None,
         axis=0,
-        num_inputs=1,
-        n_filters=None,
+        n_blocks=None,
         kernel_size=2,
         dropout=0.2,
     ):
@@ -78,12 +75,12 @@ class TCNForecaster(BaseDeepForecaster):
             epochs=epochs,
             verbose=verbose,
             optimizer=optimizer,
-            loss=loss,
             random_state=random_state,
             axis=axis,
+            loss=loss,
         )
-        self.num_inputs = num_inputs
-        self.n_filters = n_filters
+
+        self.n_blocks = n_blocks
         self.kernel_size = kernel_size
         self.dropout = dropout
 
@@ -102,12 +99,11 @@ class TCNForecaster(BaseDeepForecaster):
         """
         import tensorflow as tf
 
-        if self.n_filters is None:
-            self.n_filters = [16] * 3
+        if self.n_blocks is None:
+            self.n_blocks = [16] * 3
         # Initialize the TCN network with the updated parameters
-        network = TemporalConvolutionalNetwork(
-            num_inputs=self.num_inputs,
-            n_filters=self.n_filters,
+        network = TCNNetwork(
+            n_blocks=self.n_blocks,
             kernel_size=self.kernel_size,
             dropout=self.dropout,
         )
