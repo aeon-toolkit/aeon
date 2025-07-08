@@ -45,7 +45,7 @@ class TCNNetwork(BaseDeepLearningNetwork):
     >>> X, y = make_example_3d_numpy(n_cases=8, n_channels=4, n_timepoints=150,
     ...                              return_y=True, regression_target=True,
     ...                              random_state=42)
-    >>> network = TCNNetwork(num_channels=[8, 8])
+    >>> network = TCNNetwork(n_blocks=[8, 8])
     >>> input_layer, output = network.build_network(input_shape=(4, 150))
     >>> model = tf.keras.Model(inputs=input_layer, outputs=output)
     >>> model.compile(optimizer="adam", loss="mse")
