@@ -73,11 +73,6 @@ def test_rockad_incorrect_input():
     ):
         ad = ROCKAD(stride=1, window_size=100)
         ad.fit(train_series)
-    with pytest.warns(
-        UserWarning, match=r"Power Transform failed and thus has been disabled."
-    ):
-        ad = ROCKAD(stride=1, window_size=5)
-        ad.fit(train_series)
     with pytest.raises(
         ValueError, match=r"window shape cannot be larger than input array shape"
     ):

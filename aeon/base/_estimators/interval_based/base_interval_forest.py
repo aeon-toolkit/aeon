@@ -352,6 +352,7 @@ class BaseIntervalForest(ABC):
         rng = check_random_state(self.random_state)
 
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
+        self._n_jobs = check_n_jobs(self.n_jobs)
 
         self._base_estimator = self.base_estimator
         if self.base_estimator is None:
@@ -795,8 +796,6 @@ class BaseIntervalForest(ABC):
             and self.replace_nan is not None
         ):
             raise ValueError(f"Invalid replace_nan input. Found {self.replace_nan}")
-
-        self._n_jobs = check_n_jobs(self.n_jobs)
 
         if self.time_limit_in_minutes is not None and self.time_limit_in_minutes > 0:
             time_limit = self.time_limit_in_minutes * 60
