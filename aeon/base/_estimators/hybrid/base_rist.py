@@ -114,6 +114,7 @@ class BaseRIST(ABC):
 
     def _fit(self, X, y) -> object:
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
+        self._n_jobs = check_n_jobs(self.n_jobs)
 
         rng = check_random_state(self.random_state)
 
@@ -134,10 +135,9 @@ class BaseRIST(ABC):
 
         self._estimator = _clone_estimator(self._estimator, rng)
 
-        n_jobs = check_n_jobs(self.n_jobs)
         m = getattr(self._estimator, "n_jobs", "missing")
         if m != "missing":
-            self._estimator.n_jobs = n_jobs
+            self._estimator.n_jobs = self._n_jobs
 
         if self.series_transformers == "default":
             self._series_transformers = [
@@ -168,7 +168,7 @@ class BaseRIST(ABC):
             if st is not None:
                 m = getattr(st, "n_jobs", "missing")
                 if m != "missing":
-                    st.n_jobs = n_jobs
+                    st.n_jobs = self._n_jobs
 
                 s = st.fit_transform(X, y)
             else:
@@ -198,7 +198,7 @@ class BaseRIST(ABC):
                     row_numba_max,
                     row_ppv,
                 ],
-                n_jobs=n_jobs,
+                n_jobs=self._n_jobs,
             )
             _set_random_states(ct, rng)
             self._transformers.append(ct)
@@ -214,7 +214,7 @@ class BaseRIST(ABC):
                 n_shapelets = self.n_shapelets
 
             st = RandomDilatedShapeletTransform(
-                max_shapelets=n_shapelets, n_jobs=n_jobs
+                max_shapelets=n_shapelets, n_jobs=self._n_jobs
             )
             _set_random_states(st, rng)
             self._transformers.append(st)
