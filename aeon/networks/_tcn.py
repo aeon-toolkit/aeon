@@ -68,7 +68,7 @@ class TemporalConvolutionalNetwork(BaseDeepLearningNetwork):
     def __init__(
         self,
         num_inputs: int = 1,
-        num_channels: list = [16] * 3,  # change to n_filters
+        n_filters: list = [16] * 3,  # changed from num_channels
         kernel_size: int = 2,
         dropout: float = 0.2,
     ):
@@ -78,7 +78,7 @@ class TemporalConvolutionalNetwork(BaseDeepLearningNetwork):
         ----------
         num_inputs : int
             Number of input channels/features.
-        num_channels : list of int
+        n_filters : list of int
             Number of output channels for each temporal block.
         kernel_size : int, default=2
             Size of convolutional kernels.
@@ -87,7 +87,7 @@ class TemporalConvolutionalNetwork(BaseDeepLearningNetwork):
         """
         super().__init__()
         self.num_inputs = num_inputs
-        self.num_channels = num_channels
+        self.n_filters = n_filters
         self.kernel_size = kernel_size
         self.dropout = dropout
 
@@ -243,7 +243,7 @@ class TemporalConvolutionalNetwork(BaseDeepLearningNetwork):
         self,
         x,
         num_inputs: int,
-        num_channels: list,
+        n_filters: list,  # changed from num_channels
         kernel_size: int = 2,
         dropout: float = 0.2,
         training: bool = None,
@@ -259,7 +259,7 @@ class TemporalConvolutionalNetwork(BaseDeepLearningNetwork):
             Input tensor of shape (batch_size, channels, sequence_length).
         num_inputs : int
             Number of input channels.
-        num_channels : list of int
+        n_filters : list of int
             Number of output channels for each temporal block.
         kernel_size : int, default=2
             Size of convolutional kernels.
@@ -273,11 +273,11 @@ class TemporalConvolutionalNetwork(BaseDeepLearningNetwork):
         tf.Tensor
             Output tensor after applying all temporal blocks.
         """
-        num_levels = len(num_channels)
+        num_levels = len(n_filters)
         for i in range(num_levels):
             dilation_size = 2**i
-            in_channels = num_inputs if i == 0 else num_channels[i - 1]
-            out_channels = num_channels[i]
+            in_channels = num_inputs if i == 0 else n_filters[i - 1]
+            out_channels = n_filters[i]
             padding = (kernel_size - 1) * dilation_size
 
             x = self._temporal_block(
@@ -331,13 +331,11 @@ class TemporalConvolutionalNetwork(BaseDeepLearningNetwork):
         x = self._temporal_conv_net(
             x,
             num_inputs=self.num_inputs,
-            num_channels=self.num_channels,
+            n_filters=self.n_filters,
             kernel_size=self.kernel_size,
             dropout=self.dropout,
         )
 
         x = tf.keras.layers.Dense(input_shape[0])(x[:, -1, :])
-        output = tf.keras.layers.Lambda(
-            lambda x: tf.reduce_mean(x, axis=1, keepdims=True), output_shape=(1,)
-        )(x)
+        output = tf.keras.layers.Dense(1)(x)
         return input_layer, output
