@@ -37,7 +37,7 @@ class TCNForecaster(BaseDeepForecaster):
         Axis along which to apply the forecaster.
     num_inputs : int, default=1
         Number of input channels/features in the input sequence.
-    num_channels : list of int, default=[16, 16, 16]
+    n_filters : list of int, default=[16, 16, 16]
         List specifying the number of output channels for each layer of the
         TCN. The length determines the depth of the network.
     kernel_size : int, default=2
@@ -48,6 +48,12 @@ class TCNForecaster(BaseDeepForecaster):
 
 
     """
+
+    _tags = {
+        "capability:horizon": True,
+        "capability:multivariate": True,
+        "capability:exogenous": False,
+    }
 
     def __init__(
         self,
@@ -61,7 +67,7 @@ class TCNForecaster(BaseDeepForecaster):
         random_state=None,
         axis=0,
         num_inputs=1,
-        num_channels=None,
+        n_filters=None,
         kernel_size=2,
         dropout=0.2,
     ):
@@ -77,34 +83,9 @@ class TCNForecaster(BaseDeepForecaster):
             axis=axis,
         )
         self.num_inputs = num_inputs
-        self.num_channels = num_channels if num_channels is not None else [16, 16, 16]
+        self.n_filters = n_filters
         self.kernel_size = kernel_size
         self.dropout = dropout
-
-    def _add_linear_layer(self, x, output_units):
-        """Add a linear layer to the output of the TCN network.
-
-        Parameters
-        ----------
-        x : tf.Tensor
-            Input tensor from the TCN output, typically of shape
-            (batch_size, channels, sequence_length).
-        output_units : int
-            Number of output units for the linear layer, typically matching
-            the forecasting horizon.
-
-        Returns
-        -------
-        tf.Tensor
-            Output tensor after applying the linear layer.
-        """
-        import tensorflow as tf
-
-        # Take the last time step's output for forecasting
-        x_last = x[:, -1, :]
-        # Apply a dense layer to map to the desired output size (horizon)
-        output = tf.keras.layers.Dense(output_units)(x_last)
-        return output
 
     def _build_model(self, input_shape):
         """Build the TCN model for forecasting.
@@ -121,19 +102,18 @@ class TCNForecaster(BaseDeepForecaster):
         """
         import tensorflow as tf
 
+        if self.n_filters is None:
+            self.n_filters = [16] * 3
         # Initialize the TCN network with the updated parameters
         network = TemporalConvolutionalNetwork(
             num_inputs=self.num_inputs,
-            num_channels=self.num_channels,
+            n_filters=self.n_filters,
             kernel_size=self.kernel_size,
             dropout=self.dropout,
         )
 
         # Build the network with the given input shape
         input_layer, output = network.build_network(input_shape=input_shape)
-
-        # Adjust the output layer to match the forecasting horizon
-        output = self._add_linear_layer(output, self.horizon)
 
         # Create the final model
         model = tf.keras.Model(inputs=input_layer, outputs=output)
