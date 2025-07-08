@@ -47,7 +47,7 @@ def test_base_deep_forecaster_fit_predict():
     forecaster.fit(data)
 
     # Predict
-    predictions = forecaster.predict(data)
+    predictions = forecaster.predict()
 
     # Validate output shape
     assert (

@@ -68,6 +68,7 @@ class BaseDeepForecaster(BaseForecaster):
         self.random_state = random_state
         self.axis = axis
         self.model_ = None
+        self.last_window_ = None
 
         # Pass horizon and axis to BaseForecaster
         super().__init__(horizon=horizon, axis=axis)
@@ -121,7 +122,7 @@ class BaseDeepForecaster(BaseForecaster):
             epochs=self.epochs,
             verbose=self.verbose,
         )
-
+        self.last_window_ = y_inner[-self.window :]
         return self
 
     def _predict(self, y=None, X=None):
@@ -130,9 +131,9 @@ class BaseDeepForecaster(BaseForecaster):
         Parameters
         ----------
         y : np.ndarray or pd.Series, default=None
-            Series to predict from.
+            Series to predict from. If None, uses last fitted window.
         X : np.ndarray or pd.DataFrame, default=None
-            Exogenous variables.
+            Exogenous variables (not supported by default).
 
         Returns
         -------
@@ -140,48 +141,27 @@ class BaseDeepForecaster(BaseForecaster):
             Predicted values for the specified horizon.
         """
         if y is None:
-            raise ValueError("y cannot be None for prediction")
+            if not hasattr(self, "last_window_"):
+                raise ValueError("No fitted data available for prediction.")
+            y_inner = self.last_window_
+        else:
+            y_inner = self._convert_input(y)
+            if len(y_inner) < self.window:
+                raise ValueError(
+                    f"Input data length ({len(y_inner)}) is less than the window size "
+                    f"({self.window})."
+                )
+            y_inner = y_inner[-self.window :]
 
-        # Convert input data to numpy array
-        y_inner = self._convert_input(y)
-
-        if len(y_inner) < self.window:
-            raise ValueError(
-                f"Input data length ({len(y_inner)}) is less than the window size "
-                f"({self.window})."
-            )
-
-        # Use the last window of data for prediction
-        last_window = y_inner[-self.window :].reshape(1, self.window, 1)
-
-        # Make prediction
+        last_window = y_inner.reshape(1, self.window, 1)
         predictions = []
         current_window = last_window
         for _ in range(self.horizon):
             pred = self.model_.predict(current_window, verbose=0)
             predictions.append(pred[0, 0])
-            # Update the window with the latest prediction (autoregressive)
             current_window = np.roll(current_window, -1, axis=1)
             current_window[0, -1, 0] = pred[0, 0]
-
         return np.array(predictions)
-
-    def _forecast(self, y, X=None):
-        """Forecast time series at future horizon.
-
-        Parameters
-        ----------
-        y : np.ndarray or pd.Series
-            Time series to forecast from.
-        X : np.ndarray or pd.DataFrame, default=None
-            Exogenous variables.
-
-        Returns
-        -------
-        forecasts : np.ndarray
-            Forecasted values for the specified horizon.
-        """
-        return self._fit(y, X)._predict(y, X)
 
     def _convert_input(self, y):
         """Convert input data to numpy array.
