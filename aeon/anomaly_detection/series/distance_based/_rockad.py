@@ -1,5 +1,6 @@
 """ROCKAD anomaly detector."""
 
+__maintainer__ = []
 __all__ = ["ROCKAD"]
 
 import warnings
@@ -12,19 +13,22 @@ from sklearn.utils import resample
 
 from aeon.anomaly_detection.series.base import BaseSeriesAnomalyDetector
 from aeon.transformations.collection.convolution_based import Rocket
+from aeon.utils.validation import check_n_jobs
 from aeon.utils.windowing import reverse_windowing, sliding_windows
 
 
 class ROCKAD(BaseSeriesAnomalyDetector):
     """
-    ROCKET-based Anomaly Detector (ROCKAD).
+    ROCKET-based Semi-Supervised Anomaly Detector (ROCKAD).
 
+    Adapted ROCKAD [1]_ version to detect anomalies on time-points.
     ROCKAD leverages the ROCKET transformation for feature extraction from
     time series data and applies the scikit learn k-nearest neighbors (k-NN)
     approach with bootstrap aggregation for robust anomaly detection.
     After windowing, the data gets transformed into the ROCKET feature space.
     Then the windows are compared based on the feature space by
-    finding the nearest neighbours.
+    finding the nearest neighbours. Whole-series based ROCKAD as proposed in
+    [1]_ can be found at aeon/anomaly_detection/collection/_rockad.py
 
     This class supports both univariate and multivariate time series and
     provides options for normalizing features, applying power transformations,
@@ -61,6 +65,31 @@ class ROCKAD(BaseSeriesAnomalyDetector):
         List containing k-NN estimators used for anomaly scoring, set after fitting.
     power_transformer_ : PowerTransformer
         Transformer used to apply power transformation to the features.
+
+    References
+    ----------
+    .. [1] Theissler, A., Wengert, M., Gerschner, F. (2023).
+        ROCKAD: Transferring ROCKET to Whole Time Series Anomaly Detection.
+        In: Crémilleux, B., Hess, S., Nijssen, S. (eds) Advances in Intelligent
+        Data Analysis XXI. IDA 2023. Lecture Notes in Computer Science,
+        vol 13876. Springer, Cham. https://doi.org/10.1007/978-3-031-30047-9_33
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.anomaly_detection.series.distance_based import ROCKAD
+    >>> rng = np.random.default_rng(seed=42)
+    >>> X_train = rng.normal(loc=0.0, scale=1.0, size=(1000,))
+    >>> X_test = rng.normal(loc=0.0, scale=1.0, size=(20,))
+    >>> X_test[15:20] -= 5
+    >>> detector = ROCKAD(window_size=15,n_estimators=10,n_kernels=10,n_neighbors=3)
+    >>> detector.fit(X_train)
+    ROCKAD(...)
+    >>> detector.predict(X_test)
+    array([0.        , 0.00554713, 0.0699094 , 0.22881059, 0.32382585,
+           0.43652154, 0.43652154, 0.43652154, 0.43652154, 0.43652154,
+           0.43652154, 0.43652154, 0.43652154, 0.43652154, 0.43652154,
+           0.52382585, 0.65200875, 0.80313368, 0.85194345, 1.        ])
     """
 
     _tags = {
@@ -86,7 +115,6 @@ class ROCKAD(BaseSeriesAnomalyDetector):
         n_jobs=1,
         random_state=42,
     ):
-
         self.n_estimators = n_estimators
         self.n_kernels = n_kernels
         self.normalise = normalise
@@ -136,11 +164,12 @@ class ROCKAD(BaseSeriesAnomalyDetector):
             )
 
     def _inner_fit(self, X: np.ndarray) -> None:
+        self._n_jobs = check_n_jobs(self.n_jobs)
 
         self.rocket_transformer_ = Rocket(
             n_kernels=self.n_kernels,
             normalise=self.normalise,
-            n_jobs=self.n_jobs,
+            n_jobs=self._n_jobs,
             random_state=self.random_state,
         )
         # X: (n_windows, window_size)
@@ -150,6 +179,8 @@ class ROCKAD(BaseSeriesAnomalyDetector):
 
         if self.power_transform:
             self.power_transformer_ = PowerTransformer()
+            # todo check if this is still an issue with scikit-learn >= 1.7.0
+            # when lower bound is raised
             try:
                 Xtp = self.power_transformer_.fit_transform(Xt)
 
@@ -171,7 +202,7 @@ class ROCKAD(BaseSeriesAnomalyDetector):
             # Initialize estimator
             estimator = NearestNeighbors(
                 n_neighbors=self.n_neighbors,
-                n_jobs=self.n_jobs,
+                n_jobs=self._n_jobs,
                 metric=self.metric,
                 algorithm="kd_tree",
             )
@@ -189,7 +220,6 @@ class ROCKAD(BaseSeriesAnomalyDetector):
             self.list_baggers_.append(estimator)
 
     def _predict(self, X) -> np.ndarray:
-
         _X, padding = sliding_windows(
             X, window_size=self.window_size, stride=self.stride, axis=0
         )
@@ -209,22 +239,8 @@ class ROCKAD(BaseSeriesAnomalyDetector):
         return point_anomaly_scores
 
     def _inner_predict(self, X: np.ndarray, padding: int) -> np.ndarray:
-
-        anomaly_scores = self._predict_proba(X)
-
-        point_anomaly_scores = reverse_windowing(
-            anomaly_scores, self.window_size, np.nanmean, self.stride, padding
-        )
-
-        point_anomaly_scores = (point_anomaly_scores - point_anomaly_scores.min()) / (
-            point_anomaly_scores.max() - point_anomaly_scores.min()
-        )
-
-        return point_anomaly_scores
-
-    def _predict_proba(self, X):
         """
-        Predicts the probability of anomalies for the input data.
+        Predict the anomaly score for each time-point in the input data.
 
         Parameters
         ----------
@@ -259,6 +275,14 @@ class ROCKAD(BaseSeriesAnomalyDetector):
             y_scores[:, idx] = scores
 
         # Average the scores to get the final score for each time series
-        y_scores = y_scores.mean(axis=1)
+        anomaly_scores = y_scores.mean(axis=1)
 
-        return y_scores
+        point_anomaly_scores = reverse_windowing(
+            anomaly_scores, self.window_size, np.nanmean, self.stride, padding
+        )
+
+        point_anomaly_scores = (point_anomaly_scores - point_anomaly_scores.min()) / (
+            point_anomaly_scores.max() - point_anomaly_scores.min()
+        )
+
+        return point_anomaly_scores

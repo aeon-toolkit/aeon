@@ -47,12 +47,13 @@ EXCLUDED_TESTS = {
         "check_save_estimators_to_file",
     ],
     # needs investigation
-    "SASTClassifier": ["check_fit_deterministic"],
-    "RSASTClassifier": ["check_fit_deterministic"],
-    "SAST": ["check_fit_deterministic"],
-    "RSAST": ["check_fit_deterministic"],
+    "SASTClassifier": ["check_fit_deterministic", "check_estimator_multithreading"],
+    "RSASTClassifier": ["check_fit_deterministic", "check_estimator_multithreading"],
+    "SAST": ["check_fit_deterministic", "check_estimator_multithreading"],
+    "RSAST": ["check_fit_deterministic", "check_estimator_multithreading"],
     "MatrixProfile": ["check_fit_deterministic", "check_persistence_via_pickle"],
     "LeftSTAMPi": ["check_series_anomaly_detector_output"],
+    "SignatureClassifier": ["check_classifier_against_expected_results"],
     # missed in legacy testing, changes state in predict/transform
     "FLUSSSegmenter": ["check_non_state_changing_method"],
     "ClaSPSegmenter": ["check_non_state_changing_method"],

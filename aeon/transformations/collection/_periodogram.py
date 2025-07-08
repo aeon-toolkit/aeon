@@ -46,8 +46,10 @@ class PeriodogramTransformer(BaseCollectionTransformer):
     """
 
     _tags = {
-        "capability:multivariate": True,
         "fit_is_empty": True,
+        "capability:multivariate": True,
+        "capability:unequal_length": True,
+        "X_inner_type": ["np-list", "numpy3D"],
     }
 
     def __init__(
@@ -63,23 +65,44 @@ class PeriodogramTransformer(BaseCollectionTransformer):
         super().__init__()
 
     def _transform(self, X, y=None):
-        if self.pad_series:
-            kwargs = {"mode": self.pad_with}
-            if self.pad_with == "constant":
-                kwargs["constant_values"] = self.constant_value
-            len = int(math.pow(2, math.ceil(math.log(X.shape[2], 2))) - X.shape[2])
-            X = np.pad(
-                X,
-                (
-                    (0, 0),
-                    (0, 0),
+        if isinstance(X, np.ndarray):
+            if self.pad_series:
+                kwargs = {"mode": self.pad_with}
+                if self.pad_with == "constant":
+                    kwargs["constant_values"] = self.constant_value
+                len = int(math.pow(2, math.ceil(math.log(X.shape[2], 2))) - X.shape[2])
+                X = np.pad(
+                    X,
                     (
-                        0,
-                        len,
+                        (0, 0),
+                        (0, 0),
+                        (
+                            0,
+                            len,
+                        ),
                     ),
-                ),
-                **kwargs,
-            )
-        Xt = np.abs(np.fft.fft(X)[:, :, : int(X.shape[2] / 2)])
+                    **kwargs,
+                )
+            Xt = np.abs(np.fft.fft(X)[:, :, : int(X.shape[2] / 2)])
+        else:
+            Xt = []
+            for x in X:
+                if self.pad_series:
+                    len = int(
+                        math.pow(2, math.ceil(math.log(x.shape[1], 2))) - x.shape[1]
+                    )
+                    x = np.pad(
+                        x,
+                        (
+                            (0, 0),
+                            (
+                                0,
+                                len,
+                            ),
+                        ),
+                        mode=self.pad_with,
+                        constant_values=self.constant_value,
+                    )
+                Xt.append(np.abs(np.fft.fft(x)[:, : int(x.shape[1] / 2)]))
 
         return Xt
