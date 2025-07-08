@@ -1,15 +1,11 @@
-"""Implementation of Temporal Convolutional Network (TCN).
-
-Based on the paper "An Empirical Evaluation of Generic Convolutional and
-Recurrent Networks for Sequence Modeling" by Bai et al. (2018).
-"""
+"""Implementation of Temporal Convolutional Network (TCN)."""
 
 __maintainer__ = []
 
 from aeon.networks.base import BaseDeepLearningNetwork
 
 
-class TemporalConvolutionalNetwork(BaseDeepLearningNetwork):
+class TCNNetwork(BaseDeepLearningNetwork):
     """Temporal Convolutional Network (TCN) for sequence modeling.
 
     A generic convolutional architecture for sequence modeling that combines:
@@ -21,9 +17,7 @@ class TemporalConvolutionalNetwork(BaseDeepLearningNetwork):
 
     Parameters
     ----------
-    num_inputs : int
-        Number of input channels/features in the input sequence.
-    num_channels : list of int
+    n_blocks : list of int
         List specifying the number of output channels for each layer.
         The length determines the depth of the network.
     kernel_size : int, default=2
@@ -39,19 +33,19 @@ class TemporalConvolutionalNetwork(BaseDeepLearningNetwork):
 
     References
     ----------
-    Bai, S., Kolter, J. Z., & Koltun, V. (2018). An empirical evaluation of
+    .. [1]  Bai, S., Kolter, J. Z., & Koltun, V. (2018). An empirical evaluation of
     generic convolutional and recurrent networks for sequence modeling.
     arXiv preprint arXiv:1803.01271.
 
     Examples
     --------
-    >>> from aeon.networks._tcn import TemporalConvolutionalNetwork
+    >>> from aeon.networks._tcn import TCNNetwork
     >>> from aeon.testing.data_generation import make_example_3d_numpy
     >>> import tensorflow as tf
     >>> X, y = make_example_3d_numpy(n_cases=8, n_channels=4, n_timepoints=150,
     ...                              return_y=True, regression_target=True,
     ...                              random_state=42)
-    >>> network = TemporalConvolutionalNetwork(num_inputs=4, num_channels=[8, 8])
+    >>> network = TCNNetwork(num_channels=[8, 8])
     >>> input_layer, output = network.build_network(input_shape=(4, 150))
     >>> model = tf.keras.Model(inputs=input_layer, outputs=output)
     >>> model.compile(optimizer="adam", loss="mse")
@@ -67,8 +61,7 @@ class TemporalConvolutionalNetwork(BaseDeepLearningNetwork):
 
     def __init__(
         self,
-        num_inputs: int = 1,
-        n_filters: list = [16] * 3,  # changed from num_channels
+        n_blocks: list = [16] * 3,
         kernel_size: int = 2,
         dropout: float = 0.2,
     ):
@@ -78,7 +71,7 @@ class TemporalConvolutionalNetwork(BaseDeepLearningNetwork):
         ----------
         num_inputs : int
             Number of input channels/features.
-        n_filters : list of int
+        n_blocks : list of int
             Number of output channels for each temporal block.
         kernel_size : int, default=2
             Size of convolutional kernels.
@@ -86,33 +79,32 @@ class TemporalConvolutionalNetwork(BaseDeepLearningNetwork):
             Dropout rate for regularization.
         """
         super().__init__()
-        self.num_inputs = num_inputs
-        self.n_filters = n_filters
+        self.n_blocks = n_blocks
         self.kernel_size = kernel_size
         self.dropout = dropout
 
     def _conv1d_with_variable_padding(
         self,
-        x,
-        filters: int,
+        input_tensor,
+        n_filters: int,
         kernel_size: int,
         padding_value: int,
-        stride: int = 1,
+        strides: int = 1,
         dilation_rate: int = 1,
     ):
         """Apply 1D convolution with variable padding for causal convolutions.
 
         Parameters
         ----------
-        x : tf.Tensor
+        input_tensor : tf.Tensor
             Input tensor of shape (batch_size, channels, sequence_length).
-        filters : int
+        n_filters : int
             Number of output filters.
         kernel_size : int
             Size of the convolutional kernel.
         padding_value : int
             Amount of padding to apply.
-        stride : int, default=1
+        strides : int, default=1
             Stride of the convolution.
         dilation_rate : int, default=1
             Dilation rate for dilated convolutions.
@@ -125,16 +117,16 @@ class TemporalConvolutionalNetwork(BaseDeepLearningNetwork):
         import tensorflow as tf
 
         # Transpose to Keras format (batch, sequence, channels)
-        x_keras_format = tf.keras.layers.Permute((2, 1))(x)
+        x_keras_format = tf.keras.layers.Permute((2, 1))(input_tensor)
 
         # Apply padding in sequence dimension
         padded_x = tf.keras.layers.ZeroPadding1D(padding=padding_value)(x_keras_format)
 
         # Create and apply convolution layer
         conv_layer = tf.keras.layers.Conv1D(
-            filters=filters,
+            filters=n_filters,
             kernel_size=kernel_size,
-            strides=stride,
+            strides=strides,
             dilation_rate=dilation_rate,
             padding="valid",
         )
@@ -145,7 +137,7 @@ class TemporalConvolutionalNetwork(BaseDeepLearningNetwork):
         # Transpose back to PyTorch format (batch, channels, sequence)
         return tf.keras.layers.Permute((2, 1))(out)
 
-    def _chomp_1d(self, x, chomp_size: int):
+    def _chomp(self, input_tensor, chomp_size: int):
         """Remove padding from the end of sequences to maintain causality.
 
         This operation ensures that the output at time t only depends on
@@ -153,7 +145,7 @@ class TemporalConvolutionalNetwork(BaseDeepLearningNetwork):
 
         Parameters
         ----------
-        x : tf.Tensor
+        input_tensor : tf.Tensor
             Input tensor of shape (batch_size, channels, sequence_length).
         chomp_size : int
             Number of time steps to remove from the end.
@@ -163,17 +155,17 @@ class TemporalConvolutionalNetwork(BaseDeepLearningNetwork):
         tf.Tensor
             Chomped tensor with reduced sequence length.
         """
-        return x[:, :, :-chomp_size]
+        return input_tensor[:, :, :-chomp_size]
 
     def _temporal_block(
         self,
-        x,
+        input_tensor,
         n_inputs: int,
-        n_outputs: int,
+        n_filters: int,
         kernel_size: int,
-        stride: int,
-        dilation: int,
-        padding: int,
+        strides: int,
+        dilation_rate: int,
+        padding_value: int,
         dropout: float = 0.2,
         training: bool = None,
     ):
@@ -187,19 +179,19 @@ class TemporalConvolutionalNetwork(BaseDeepLearningNetwork):
 
         Parameters
         ----------
-        x : tf.Tensor
+        input_tensor : tf.Tensor
             Input tensor of shape (batch_size, channels, sequence_length).
         n_inputs : int
             Number of input channels.
-        n_outputs : int
-            Number of output channels.
+        n_filters : int
+            Number of output filters.
         kernel_size : int
             Size of convolutional kernels.
-        stride : int
+        strides : int
             Stride of convolutions (typically 1).
-        dilation : int
+        dilation_rate : int
             Dilation factor for dilated convolutions.
-        padding : int
+        padding_value : int
             Padding size to be chomped off.
         dropout : float, default=0.2
             Dropout rate for regularization.
@@ -209,31 +201,38 @@ class TemporalConvolutionalNetwork(BaseDeepLearningNetwork):
         Returns
         -------
         tf.Tensor
-            Output tensor of shape (batch_size, n_outputs, sequence_length).
+            Output tensor of shape (batch_size, n_filters, sequence_length).
         """
         import tensorflow as tf
 
         # First convolution block
         out = self._conv1d_with_variable_padding(
-            x, n_outputs, kernel_size, padding, stride, dilation
+            input_tensor, n_filters, kernel_size, padding_value, strides, dilation_rate
         )
-        out = self._chomp_1d(out, padding)
+        out = self._chomp(out, padding_value)
         out = tf.keras.layers.ReLU()(out)
         out = tf.keras.layers.Dropout(dropout)(out, training=training)
 
         # Second convolution block
         out = self._conv1d_with_variable_padding(
-            out, n_outputs, kernel_size, padding, stride, dilation
+            out, n_filters, kernel_size, padding_value, strides, dilation_rate
         )
-        out = self._chomp_1d(out, padding)
+        out = self._chomp(out, padding_value)
         out = tf.keras.layers.ReLU()(out)
         out = tf.keras.layers.Dropout(dropout)(out, training=training)
 
         # Residual connection with optional dimension matching
-        if n_inputs != n_outputs:
-            res = self._conv1d_with_variable_padding(x, n_outputs, 1, 0, 1, 1)
+        if n_inputs != n_filters:
+            res = self._conv1d_with_variable_padding(
+                input_tensor=input_tensor,
+                n_filters=n_filters,
+                kernel_size=1,
+                padding_value=0,
+                strides=1,
+                dilation_rate=1,
+            )
         else:
-            res = x
+            res = input_tensor
 
         # Add residual and apply final ReLU
         result = tf.keras.layers.Add()([out, res])
@@ -241,9 +240,9 @@ class TemporalConvolutionalNetwork(BaseDeepLearningNetwork):
 
     def _temporal_conv_net(
         self,
-        x,
-        num_inputs: int,
-        n_filters: list,  # changed from num_channels
+        input_tensor,
+        n_inputs: int,
+        n_blocks: list,
         kernel_size: int = 2,
         dropout: float = 0.2,
         training: bool = None,
@@ -255,11 +254,11 @@ class TemporalConvolutionalNetwork(BaseDeepLearningNetwork):
 
         Parameters
         ----------
-        x : tf.Tensor
+        input_tensor : tf.Tensor
             Input tensor of shape (batch_size, channels, sequence_length).
-        num_inputs : int
+        n_inputs : int
             Number of input channels.
-        n_filters : list of int
+        n_blocks : list of int
             Number of output channels for each temporal block.
         kernel_size : int, default=2
             Size of convolutional kernels.
@@ -273,26 +272,26 @@ class TemporalConvolutionalNetwork(BaseDeepLearningNetwork):
         tf.Tensor
             Output tensor after applying all temporal blocks.
         """
-        num_levels = len(n_filters)
+        num_levels = len(n_blocks)
         for i in range(num_levels):
-            dilation_size = 2**i
-            in_channels = num_inputs if i == 0 else n_filters[i - 1]
-            out_channels = n_filters[i]
-            padding = (kernel_size - 1) * dilation_size
+            dilation_rate = 2**i
+            in_channels = n_inputs if i == 0 else n_blocks[i - 1]
+            out_channels = n_blocks[i]
+            padding_value = (kernel_size - 1) * dilation_rate
 
-            x = self._temporal_block(
-                x,
+            input_tensor = self._temporal_block(
+                input_tensor,
                 n_inputs=in_channels,
-                n_outputs=out_channels,
+                n_filters=out_channels,
                 kernel_size=kernel_size,
-                stride=1,
-                dilation=dilation_size,
-                padding=padding,
+                strides=1,
+                dilation_rate=dilation_rate,
+                padding_value=padding_value,
                 dropout=dropout,
                 training=training,
             )
 
-        return x
+        return input_tensor
 
     def build_network(self, input_shape: tuple, **kwargs) -> tuple:
         """Build the complete TCN architecture.
@@ -303,7 +302,7 @@ class TemporalConvolutionalNetwork(BaseDeepLearningNetwork):
         Parameters
         ----------
         input_shape : tuple
-            Shape of input data (sequence_length, num_features).
+            Shape of input data (n_channels, n_timepoints).
         **kwargs
             Additional keyword arguments (unused).
 
@@ -326,12 +325,13 @@ class TemporalConvolutionalNetwork(BaseDeepLearningNetwork):
 
         # Transpose input to match the expected format (batch, channels, seq)
         x = input_layer
+        n_inputs = input_shape[0]
 
         # Apply TCN using the private function
         x = self._temporal_conv_net(
             x,
-            num_inputs=self.num_inputs,
-            n_filters=self.n_filters,
+            n_inputs=n_inputs,
+            n_blocks=self.n_blocks,
             kernel_size=self.kernel_size,
             dropout=self.dropout,
         )

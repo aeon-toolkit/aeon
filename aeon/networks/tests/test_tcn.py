@@ -1,8 +1,8 @@
-"""Tests for the TemporalConvolutionalNetwork."""
+"""Tests for the TCNNetwork."""
 
 import pytest
 
-from aeon.networks import TemporalConvolutionalNetwork
+from aeon.networks import TCNNetwork
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
@@ -15,12 +15,9 @@ def test_tcn_network_basic():
     import tensorflow as tf
 
     input_shape = (100, 5)
-    num_inputs = 5
-    n_filters = [32, 64]
+    n_blocks = [32, 64]
 
-    tcn_network = TemporalConvolutionalNetwork(
-        num_inputs=num_inputs, n_filters=n_filters
-    )
+    tcn_network = TCNNetwork(n_blocks=n_blocks)
     input_layer, output_layer = tcn_network.build_network(input_shape)
 
     # Check that layers are created correctly
@@ -38,17 +35,14 @@ def test_tcn_network_basic():
     not _check_soft_dependencies(["tensorflow"], severity="none"),
     reason="Tensorflow soft dependency unavailable.",
 )
-@pytest.mark.parametrize("n_filters", [[32], [32, 64], [16, 32, 64], [64, 32, 16]])
-def test_tcn_network_different_channels(n_filters):
+@pytest.mark.parametrize("n_blocks", [[32], [32, 64], [16, 32, 64], [64, 32, 16]])
+def test_tcn_network_different_channels(n_blocks):
     """Test TCN network with different channel configurations."""
     import tensorflow as tf
 
     input_shape = (50, 3)
-    num_inputs = 3
 
-    tcn_network = TemporalConvolutionalNetwork(
-        num_inputs=num_inputs, n_filters=n_filters
-    )
+    tcn_network = TCNNetwork(n_blocks=n_blocks)
     input_layer, output_layer = tcn_network.build_network(input_shape)
 
     # Create a model and verify it works
@@ -73,12 +67,10 @@ def test_tcn_network_kernel_sizes(kernel_size):
     import tensorflow as tf
 
     input_shape = (80, 4)
-    num_inputs = 4
-    n_filters = [32, 64]
+    n_blocks = [32, 64]
 
-    tcn_network = TemporalConvolutionalNetwork(
-        num_inputs=num_inputs,
-        n_filters=n_filters,
+    tcn_network = TCNNetwork(
+        n_blocks=n_blocks,
         kernel_size=kernel_size,
     )
     input_layer, output_layer = tcn_network.build_network(input_shape)
@@ -98,12 +90,9 @@ def test_tcn_network_dropout_rates(dropout):
     import tensorflow as tf
 
     input_shape = (60, 2)
-    num_inputs = 2
-    n_filters = [16, 32]
+    n_blocks = [16, 32]
 
-    tcn_network = TemporalConvolutionalNetwork(
-        num_inputs=num_inputs, n_filters=n_filters, dropout=dropout
-    )
+    tcn_network = TCNNetwork(n_blocks=n_blocks, dropout=dropout)
     input_layer, output_layer = tcn_network.build_network(input_shape)
 
     # Verify network builds successfully
@@ -122,12 +111,9 @@ def test_tcn_network_output_shape():
 
     input_shape = (40, 6)
     batch_size = 16
-    num_inputs = 6
-    n_filters = [32, 64]
+    n_blocks = [32, 64]
 
-    tcn_network = TemporalConvolutionalNetwork(
-        num_inputs=num_inputs, n_filters=n_filters
-    )
+    tcn_network = TCNNetwork(n_blocks=n_blocks)
     input_layer, output_layer = tcn_network.build_network(input_shape)
     model = tf.keras.Model(inputs=input_layer, outputs=output_layer)
 
@@ -148,7 +134,7 @@ def test_tcn_network_output_shape():
 )
 def test_tcn_network_config():
     """Test TCN network configuration attributes."""
-    tcn_network = TemporalConvolutionalNetwork(num_inputs=3, n_filters=[16, 32])
+    tcn_network = TCNNetwork(n_blocks=[16, 32])
 
     # Check _config attributes
     assert "python_dependencies" in tcn_network._config
@@ -164,21 +150,18 @@ def test_tcn_network_config():
 )
 def test_tcn_network_parameter_initialization():
     """Test TCN network parameter initialization."""
-    num_inputs = 4
-    n_filters = [32, 64, 128]
+    n_blocks = [32, 64, 128]
     kernel_size = 3
     dropout = 0.2
 
-    tcn_network = TemporalConvolutionalNetwork(
-        num_inputs=num_inputs,
-        n_filters=n_filters,
+    tcn_network = TCNNetwork(
+        n_blocks=n_blocks,
         kernel_size=kernel_size,
         dropout=dropout,
     )
 
     # Check that parameters are set correctly
-    assert tcn_network.num_inputs == num_inputs
-    assert tcn_network.n_filters == n_filters
+    assert tcn_network.n_blocks == n_blocks
     assert tcn_network.kernel_size == kernel_size
     assert tcn_network.dropout == dropout
 
@@ -192,12 +175,9 @@ def test_tcn_network_single_layer():
     import tensorflow as tf
 
     input_shape = (30, 2)
-    num_inputs = 2
-    n_filters = [16]  # Single layer
+    n_blocks = [16]  # Single layer
 
-    tcn_network = TemporalConvolutionalNetwork(
-        num_inputs=num_inputs, n_filters=n_filters
-    )
+    tcn_network = TCNNetwork(n_blocks=n_blocks)
     input_layer, output_layer = tcn_network.build_network(input_shape)
 
     # Verify single layer network works

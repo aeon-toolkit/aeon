@@ -19,7 +19,7 @@ __all__ = [
     "AEBiGRUNetwork",
     "DisjointCNNNetwork",
     "RecurrentNetwork",
-    "TemporalConvolutionalNetwork",
+    "TCNNetwork",
 ]
 from aeon.networks._ae_abgru import AEAttentionBiGRUNetwork
 from aeon.networks._ae_bgru import AEBiGRUNetwork
@@ -37,5 +37,5 @@ from aeon.networks._lite import LITENetwork
 from aeon.networks._mlp import MLPNetwork
 from aeon.networks._resnet import ResNetNetwork
 from aeon.networks._rnn import RecurrentNetwork
-from aeon.networks._tcn import TemporalConvolutionalNetwork
+from aeon.networks._tcn import TCNNetwork
 from aeon.networks.base import BaseDeepLearningNetwork
