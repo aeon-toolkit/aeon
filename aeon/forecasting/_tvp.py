@@ -15,16 +15,18 @@ class TVPForecaster(BaseForecaster):
         \\hat{y}_t = \beta_0,t+\beta_1,t * y_{t-1} + ... + \beta_k,t * y_{t-k}
 
     where the coefficients $\beta_t$ evolve based on observations $y_t$. At each
-    step, a weight vector is calculated based in the latest residual
+    step, a weight vector is calculated based in the latest residual. This is used to
+    adjust the $\beta$ parameter values and the estimate of parameter variance.
 
-    Related to stochastic gradient descent (SGD) regression, with the update weight
-    the dynamically calculated Kalman gain based on the covariance of the parameters
-    rather than a fixed learning rate.
+    TVP can be considered as related to stochastic gradient descent (SGD) regression,
+    with the update weight being the dynamically calculated Kalman gain based on the
+    covariance of the parameters rather than a fixed learning rate.
 
     Parameters
     ----------
     window : int
-        Number of autoregressive lags to use.
+        Number of autoregressive lags to use, called window to co-ordinate with
+        RegressionForecaster.
     var : float, default=0.01
         Observation noise variance. ``var`` controls the influence of recency in the
         update. A small var (such as the default 0.01) means the parameters will be
