@@ -97,14 +97,13 @@ class BaseForecaster(BaseSeriesEstimator):
     def _fit(self, y, exog=None): ...
 
     @final
-    def predict(self, y=None, exog=None):
+    def predict(self, y, exog=None):
         """Predict the next horizon steps ahead.
 
         Parameters
         ----------
-        y : np.ndarray, default = None
-            A time series to predict the next horizon value for. If None,
-            predict the next horizon value after series seen in fit.
+        y : np.ndarray
+            A time series to predict the next horizon value for.
         exog : np.ndarray, default =None
             Optional exogenous time series data assumed to be aligned with y.
 
@@ -114,28 +113,25 @@ class BaseForecaster(BaseSeriesEstimator):
             single prediction self.horizon steps ahead of y.
         """
         self._check_is_fitted()
-        if y is not None:
-            self._check_X(y, self.axis)
-            y = self._convert_y(y, self.axis)
+        self._check_X(y, self.axis)
+        y = self._convert_y(y, self.axis)
         if exog is not None:
             exog = self._convert_y(exog, self.axis)
-
         return self._predict(y, exog)
 
     @abstractmethod
-    def _predict(self, y=None, exog=None): ...
+    def _predict(self, y, exog=None): ...
 
     @final
     def forecast(self, y, exog=None):
-        """Forecast the next horizon steps ahead.
+        """Forecast the next horizon steps ahead of ``y``.
 
-        By default this is simply fit followed by predict.
+        By default this is simply fit followed by returning forecast_.
 
         Parameters
         ----------
-        y : np.ndarray, default = None
-            A time series to predict the next horizon value for. If None,
-            predict the next horizon value after series seen in fit.
+        y : np.ndarray
+            A time series to predict the next horizon value for.
         exog : np.ndarray, default =None
             Optional exogenous time series data assumed to be aligned with y.
 
@@ -151,9 +147,9 @@ class BaseForecaster(BaseSeriesEstimator):
         return self._forecast(y, exog)
 
     def _forecast(self, y, exog=None):
-        """Forecast values for time series X."""
+        """Forecast horizon steps ahead for time series ``y``."""
         self.fit(y, exog)
-        return self._predict(y, exog)
+        return self.forecast_
 
     @final
     def direct_forecast(self, y, prediction_horizon, exog=None):
@@ -175,7 +171,10 @@ class BaseForecaster(BaseSeriesEstimator):
             The number of future time steps to forecast.
         exog : np.ndarray, default =None
             Optional exogenous time series data assumed to be aligned with y.
-        predictions : np.ndarray
+
+        Returns
+        -------
+        np.ndarray
             An array of shape `(prediction_horizon,)` containing the forecasts for
             each horizon.
 
@@ -212,15 +211,15 @@ class BaseForecaster(BaseSeriesEstimator):
 
     def iterative_forecast(self, y, prediction_horizon):
         """
-        Forecast ``prediction_horizon`` prediction using a single model from `y`.
+        Forecast ``prediction_horizon`` prediction using a single model fit on `y`.
 
         This function implements the iterative forecasting strategy (also called
-        recursive or iterated). This involves a single model fit on y which is then
-        used to make ``prediction_horizon`` ahead  using its own predictions as
-        inputs for future forecasts. This is done by taking
-        the prediction at step ``i`` and feeding it back into the model to help
-        predict for step ``i+1``. The basic contract of
-        `iterative_forecast` is that `fit` is only ever called once.
+        recursive or iterated). This involves a single model fit on ``y`` which is then
+        used to make ``prediction_horizon`` ahead forecasts using its own predictions as
+        inputs for future forecasts. This is done by taking the prediction at step
+        ``i`` and feeding it back into the model to help predict for step ``i+1``.
+        The basic contract of `iterative_forecast` is that `fit` is only ever called
+        once.
 
         y : np.ndarray
             The time series to make forecasts about.
@@ -229,7 +228,7 @@ class BaseForecaster(BaseSeriesEstimator):
 
         Returns
         -------
-        predictions : np.ndarray
+        np.ndarray
             An array of shape `(prediction_horizon,)` containing the forecasts for
             each horizon.
 
