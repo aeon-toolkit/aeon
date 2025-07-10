@@ -14,6 +14,7 @@ import numpy as np
 import pandas as pd
 
 from aeon.base import BaseSeriesEstimator
+from aeon.base._base import _clone_estimator
 from aeon.utils.data_types import VALID_SERIES_INNER_TYPES
 
 
@@ -203,8 +204,9 @@ class BaseForecaster(BaseSeriesEstimator):
 
         preds = np.zeros(prediction_horizon)
         for i in range(0, prediction_horizon):
-            self.horizon = i + 1
-            preds[i] = self.forecast(y, exog)
+            f = _clone_estimator(self)
+            f.horizon = i + 1
+            preds[i] = f.forecast(y, exog)
         return preds
 
     def iterative_forecast(self, y, prediction_horizon):
