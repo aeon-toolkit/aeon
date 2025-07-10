@@ -4,7 +4,8 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from aeon.forecasting import BaseForecaster, NaiveForecaster, RegressionForecaster
+from aeon.forecasting import NaiveForecaster, RegressionForecaster
+from aeon.forecasting.base import BaseForecaster
 
 
 def test_base_forecaster():
@@ -55,7 +56,7 @@ def test_direct_forecast():
 
 
 def test_iterative_forecast():
-    """Test iterative forecasting."""
+    """Test terativeforecasting."""
     y = np.random.rand(50)
     f = RegressionForecaster(window=4)
     preds = f.iterative_forecast(y, prediction_horizon=10)
@@ -65,6 +66,17 @@ def test_iterative_forecast():
         p = f.predict(y)
         assert p == preds[i]
         y = np.append(y, p)
+
+
+def test_output_equivalence():
+    """Test output same for one ahead forecast."""
+    y = np.random.rand(50)
+    f = RegressionForecaster(window=4)
+    p1 = f.forecast(y)
+    p2 = f.fit(y).predict(y)
+    p3 = f.iterative_forecast(y, 1)
+    p4 = f.direct_forecast(y, 1)
+    assert np.allclose(p1, p2, p3[0], p4[0])
 
 
 def test_direct_forecast_with_exog():
