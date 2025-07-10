@@ -1,7 +1,8 @@
 """ETSForecaster class.
 
 An implementation of the exponential smoothing statistics forecasting algorithm.
-Implements additive and multiplicative error models.
+Implements additive and multiplicative error models. We recommend using the AutoETS
+version, but this is useful for demonstrations.
 """
 
 __maintainer__ = []
@@ -348,7 +349,7 @@ def _numba_predict(
 ):
     # Generate forecasts based on the final values of level, trend, and seasonals
     if phi == 1:  # No damping case
-        phi_h = 1
+        phi_h = horizon
     else:
         # Geometric series formula for calculating phi + phi^2 + ... + phi^h
         phi_h = phi * (1 - phi**horizon) / (1 - phi)
