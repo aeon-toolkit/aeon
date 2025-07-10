@@ -44,6 +44,8 @@ class ETSForecaster(BaseForecaster):
         Seasonal smoothing parameter.
     phi : float, default=0.99
         Trend damping parameter (used only for damped trend models).
+    horizon : int, default=1
+        Forecasting horizon (number of time steps ahead to predict).
 
     Attributes
     ----------
@@ -80,12 +82,14 @@ class ETSForecaster(BaseForecaster):
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()
     >>> forecaster = ETSForecaster(
-    ...     alpha=0.4, beta=0.2, gamma=0.5, phi=0.8,
+    ...     alpha=0.4, beta=0.2, gamma=0.5, phi=0.8, horizon=1,
     ...     error_type='additive', trend_type='multiplicative',
     ...     seasonality_type='multiplicative', seasonal_period=4
     ... )
-    >>> forecaster.forecast(y)
-    366.90200486015596
+    >>> forecaster.fit(y)
+    ETSForecaster(...)
+    >>> forecaster.predict()
+    array([366.9020...)
     """
 
     _tags = {
@@ -102,6 +106,7 @@ class ETSForecaster(BaseForecaster):
         beta: float = 0.01,
         gamma: float = 0.01,
         phi: float = 0.99,
+        horizon: int = 1,
     ):
         self.alpha = alpha
         self.beta = beta
@@ -125,7 +130,7 @@ class ETSForecaster(BaseForecaster):
         self.aic_ = 0
         self.residuals_ = []
         self.fitted_values_ = []
-        super().__init__(horizon=1, axis=1)
+        super().__init__(horizon=horizon, axis=1)
 
     def _fit(self, y, exog=None):
         """Fit Exponential Smoothing forecaster to series y.
@@ -193,23 +198,16 @@ class ETSForecaster(BaseForecaster):
             self._gamma,
             self.phi,
         )
-        self.forecast_ = _predict(
-            self._trend_type,
-            self._seasonality_type,
-            self.level_,
-            self.trend_,
-            self.seasonality_,
-            self.phi,
-            self.horizon,
-            self.n_timepoints_,
-            self._seasonal_period,
-        )
-
         return self
 
-    def _predict(self, y, exog=None):
+    def _predict(self, y=None, exog=None):
         """
         Predict the next horizon steps ahead.
+
+        If given y, use y to update the model and continue to predict horizon
+        steps ahead. Assumes no gap in time between the y passed in fit and the
+        y passed here. Assumes that y is of the same frequency as y passed in fit.
+        If y is None, predict horizon steps ahead of the series seen in fit.
 
         Parameters
         ----------
@@ -224,7 +222,25 @@ class ETSForecaster(BaseForecaster):
         float
             single prediction self.horizon steps ahead of y.
         """
-        return self.forecast_
+        if y is not None:
+            y = y.squeeze()
+        fitted_values = _predict(
+            self._error_type,
+            self._trend_type,
+            self._seasonality_type,
+            self.alpha,
+            self._beta,
+            self._gamma,
+            self.phi,
+            self.level_,
+            self.trend_,
+            self.seasonality_,
+            self.horizon,
+            self.n_timepoints_,
+            self._seasonal_period,
+            y,
+        )
+        return fitted_values
 
     def _initialise(self, data):
         """
@@ -315,31 +331,71 @@ def _numba_fit(
 
 @njit(fastmath=True, cache=True)
 def _predict(
+    error_type,
     trend_type,
     seasonality_type,
+    alpha,
+    beta,
+    gamma,
+    phi,
     level,
     trend,
     seasonality,
-    phi,
     horizon,
     n_timepoints,
     seasonal_period,
+    y=None,
 ):
-    # Generate forecasts based on the final values of level, trend, and seasonals
+    # Predict horizon steps ahead for each time point in y
+    if y is None:
+        y = np.zeros(shape=0, dtype=np.float64)
+    fitted_values_ = np.zeros(shape=(len(y) + 1), dtype=np.float64)
     if phi == 1:  # No damping case
         phi_h = 1
     else:
         # Geometric series formula for calculating phi + phi^2 + ... + phi^h
         phi_h = phi * (1 - phi**horizon) / (1 - phi)
-    seasonal_index = (n_timepoints + horizon) % seasonal_period
-    return _predict_value(
+    for t, time_point in enumerate(y):
+        s_index = (n_timepoints + t) % seasonal_period
+        # Calculate level, trend, and seasonal components
+        (fitted_value, _error, level, trend, seasonality[s_index]) = _update_states(
+            error_type,
+            trend_type,
+            seasonality_type,
+            level,
+            trend,
+            seasonality[s_index],
+            time_point,
+            alpha,
+            beta,
+            gamma,
+            phi,
+        )
+        if horizon > 1:
+            forecast_s_index = (n_timepoints + t + horizon) % seasonal_period
+            # Generate forecasts based the horizon ahead
+            fitted_values_[t] = _predict_value(
+                trend_type,
+                seasonality_type,
+                level,
+                trend,
+                seasonality[forecast_s_index],
+                phi_h,
+            )[0]
+        else:
+            fitted_values_[t] = fitted_value
+    # Handle the final forecast value after the last time point in y
+    forecast_s_index = (n_timepoints + len(y) + horizon) % seasonal_period
+    # Generate forecasts based on the final values of level, trend, and seasonals
+    fitted_values_[-1] = _predict_value(
         trend_type,
         seasonality_type,
         level,
         trend,
-        seasonality[seasonal_index],
+        seasonality[forecast_s_index],
         phi_h,
     )[0]
+    return fitted_values_
 
 
 @njit(fastmath=True, cache=True)
@@ -418,6 +474,8 @@ def _update_states(
     )
     # Calculate the error term (observed value - fitted value)
     if error_type == 2:
+        if fitted_value == 0:
+            error = data_item - fitted_value  # Avoid division by zero
         error = data_item / fitted_value - 1  # Multiplicative error
     else:
         error = data_item - fitted_value  # Additive error
@@ -432,6 +490,8 @@ def _update_states(
             if trend_type == 1:
                 trend += (curr_level + curr_seasonality) * beta * error
             else:
+                if curr_level == 0:
+                    curr_level = 1e-10  # Avoid division by zero
                 trend += curr_seasonality / curr_level * beta * error
         elif trend_type == 1:
             trend += curr_level * beta * error
@@ -446,8 +506,14 @@ def _update_states(
             seasonality_correction *= trend_level_combination
         if trend_type == 2:
             trend_correction *= curr_level
+        if level_correction == 0:
+            level_correction = 1e-10  # Avoid division by zero
         level = trend_level_combination + alpha * error / level_correction
+        if trend_correction == 0:
+            trend_correction = 1e-10  # Avoid division by zero
         trend = damped_trend + beta * error / trend_correction
+        if seasonality_correction == 0:
+            seasonality_correction = 1e-10  # Avoid division by zero
         seasonality = curr_seasonality + gamma * error / seasonality_correction
     return (fitted_value, error, level, trend, seasonality)
 
@@ -481,7 +547,11 @@ def _predict_value(trend_type, seasonality_type, level, trend, seasonality, phi)
     # Apply damping parameter and
     # calculate commonly used combination of trend and level components
     if trend_type == 2:  # Multiplicative
-        damped_trend = trend**phi
+        if trend <= 0 and phi < 1:
+            # Avoid NANs
+            damped_trend = -(np.abs(trend) ** phi)
+        else:
+            damped_trend = trend**phi
         trend_level_combination = level * damped_trend
     else:  # Additive trend, if no trend, then trend = 0
         damped_trend = trend * phi
