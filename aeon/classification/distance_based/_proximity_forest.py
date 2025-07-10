@@ -14,6 +14,7 @@ from sklearn.utils import check_random_state
 
 from aeon.classification.base import BaseClassifier
 from aeon.classification.distance_based._proximity_tree import ProximityTree
+from aeon.utils.validation import check_n_jobs
 
 
 class ProximityForest(BaseClassifier):
@@ -108,6 +109,8 @@ class ProximityForest(BaseClassifier):
 
     def _fit(self, X, y):
         rng = check_random_state(self.random_state)
+        self._n_jobs = check_n_jobs(self.n_jobs)
+
         self.trees_ = Parallel(
             n_jobs=self._n_jobs, backend=self.parallel_backend, prefer="threads"
         )(

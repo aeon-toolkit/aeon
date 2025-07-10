@@ -15,6 +15,7 @@ from aeon.transformations.collection.interval_based import (
     RandomIntervals,
     SupervisedIntervals,
 )
+from aeon.utils.validation import check_n_jobs
 
 
 class RandomIntervalClassifier(BaseClassifier):
@@ -143,6 +144,7 @@ class RandomIntervalClassifier(BaseClassifier):
             Reference to self.
         """
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
+        self._n_jobs = check_n_jobs(self.n_jobs)
 
         self._transformer = RandomIntervals(
             n_intervals=self.n_intervals,
@@ -380,6 +382,7 @@ class SupervisedIntervalClassifier(BaseClassifier):
             Reference to self.
         """
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
+        self._n_jobs = check_n_jobs(self.n_jobs)
 
         self._transformer = SupervisedIntervals(
             n_intervals=self.n_intervals,
@@ -389,7 +392,7 @@ class SupervisedIntervalClassifier(BaseClassifier):
             randomised_split_point=self.randomised_split_point,
             normalise_for_search=self.normalise_for_search,
             random_state=self.random_state,
-            n_jobs=self.n_jobs,
+            n_jobs=self._n_jobs,
             parallel_backend=self.parallel_backend,
         )
 
