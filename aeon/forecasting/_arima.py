@@ -144,18 +144,30 @@ class ARIMAForecaster(BaseForecaster):
         float
             Prediction 1 step ahead of the data seen in fit or passed as y.
         """
-        if y is not None:
-            series = y.squeeze()
-            # Difference the series using numpy
-            differenced_series = np.diff(self._series, n=self.d)
-            pred = _single_forecast(differenced_series, self.c_, self.phi_, self.theta_)
-            forecast = pred + series[-self.d :].sum() if self.d > 0 else pred
-            return forecast
+        series = y.squeeze()
+        # Difference the series using numpy
+        differenced_series = np.diff(self._series, n=self.d)
+        pred = _single_forecast(differenced_series, self.c_, self.phi_, self.theta_)
+        forecast = pred + series[-self.d :].sum() if self.d > 0 else pred
+        # Need to undifference it!
+        return forecast
 
     def _forecast(self, y, exog=None):
         """Forecast one ahead for time series y."""
         self.fit(y, exog)
         return self.forecast_
+
+    def iterative_forecast(self, y, prediction_horizon):
+        self.fit(y)
+        preds = np.zeros(prediction_horizon)
+        preds[0] = self.forecast_
+        differenced_series = np.diff(self._series, n=self.d)
+        for i in range(1, prediction_horizon):
+            differenced_series = np.append(differenced_series, preds[i - 1])
+            preds[i] = _single_forecast(
+                differenced_series, self.c_, self.phi_, self.theta_
+            )
+        return preds
 
 
 @njit(cache=True, fastmath=True)
@@ -248,9 +260,9 @@ def _calc_arma(data, model, t, formatted_params, residuals, expect_full_history=
 
 @njit(cache=True, fastmath=True)
 def _single_forecast(series, c, phi, theta):
-    """Calculate the ARIMA forecast with fixed model.
+    """Calculate the ARMA forecast with fixed model.
 
-    This is equivalent to filter in statsmodels.
+    This is equivalent to filter in statsmodels. Assumes differenced if necessary.
     """
     p = len(phi)
     q = len(theta)
