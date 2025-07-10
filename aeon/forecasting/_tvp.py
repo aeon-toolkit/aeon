@@ -90,9 +90,7 @@ class TVPForecaster(BaseForecaster):
         )  # include intercept
         return self
 
-    def _predict(self, y=None, exog=None):
-        if y is None:
-            return self.forecast_
+    def _predict(self, y, exog=None):
         y = y.squeeze()
         x_t = np.insert(y[-self.window :], 0, 1.0)  # include intercept term
         y_hat = x_t @ self._beta
