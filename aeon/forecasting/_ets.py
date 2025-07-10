@@ -193,7 +193,7 @@ class ETSForecaster(BaseForecaster):
             self._gamma,
             self.phi,
         )
-        self.forecast_ = _predict(
+        self.forecast_ = _numba_predict(
             self._trend_type,
             self._seasonality_type,
             self.level_,
@@ -240,6 +240,29 @@ class ETSForecaster(BaseForecaster):
             self._trend_type, self._seasonality_type, self._seasonal_period, data
         )
 
+    def iterative_forecast(self, y, prediction_horizon):
+        """Forecast with ETS specific iterative method.
+
+        Overrides the base class iterative_forecast to avoid refitting on each step.
+        This simply rolls the ETS model forward
+        """
+        self.fit(y)
+        preds = np.zeros(prediction_horizon)
+        preds[0] = self.forecast_
+        for i in range(1, prediction_horizon):
+            preds[i] = _numba_predict(
+                self._trend_type,
+                self._seasonality_type,
+                self.level_,
+                self.trend_,
+                self.seasonality_,
+                self.phi,
+                i + 1,
+                self.n_timepoints_,
+                self._seasonal_period,
+            )
+        return preds
+
 
 @njit(fastmath=True, cache=True)
 def _numba_fit(
@@ -268,20 +291,18 @@ def _numba_fit(
         time_point = data[index]
 
         # Calculate level, trend, and seasonal components
-        fitted_value, error, level, trend, seasonality[t % seasonal_period] = (
-            _update_states(
-                error_type,
-                trend_type,
-                seasonality_type,
-                level,
-                trend,
-                seasonality[s_index],
-                time_point,
-                alpha,
-                beta,
-                gamma,
-                phi,
-            )
+        fitted_value, error, level, trend, seasonality[s_index] = _update_states(
+            error_type,
+            trend_type,
+            seasonality_type,
+            level,
+            trend,
+            seasonality[s_index],
+            time_point,
+            alpha,
+            beta,
+            gamma,
+            phi,
         )
         residuals_[t] = error
         fitted_values_[t] = fitted_value
@@ -314,7 +335,7 @@ def _numba_fit(
 
 
 @njit(fastmath=True, cache=True)
-def _predict(
+def _numba_predict(
     trend_type,
     seasonality_type,
     level,
@@ -392,7 +413,7 @@ def _update_states(
     level,
     trend,
     seasonality,
-    data_item: int,
+    data_item,
     alpha,
     beta,
     gamma,
