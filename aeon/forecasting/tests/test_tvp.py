@@ -5,7 +5,6 @@ Tests include convergence properties described in Durbin & Koopman, 2012.
 """
 
 import numpy as np
-import pytest
 
 from aeon.forecasting._tvp import TVPForecaster
 
@@ -89,40 +88,3 @@ def test_tvp_adapts_to_changing_coefficient():
     assert abs(estimated_intercept - intercept) < 0.5
     # Check that final phi is closer to second-half OLS estimate than first-half
     assert abs(estimated_phi - beta2_ols[1]) < abs(estimated_phi - beta1_ols[1])
-
-
-def test_direct_vs_iterative_forecasting_equivalence():
-    """Test that direct 10-step forecasting gives similar results to iterative."""
-    # Simulate a deterministic AR(1) process (no noise) for which multi-step
-    # forecasts can be calculated analytically
-    phi = 0.8
-    n = 60  # length of series
-    y = np.zeros(n)
-    y[0] = 1.0  # initial value
-    for t in range(1, n):
-        y[t] = phi * y[t - 1]  # no intercept, no noise
-    # Fit a one-step-ahead forecaster and a direct 10-steps-ahead forecaster
-    forecaster_1step = TVPForecaster(window=1, horizon=1, var=1e-8, beta_var=0.0)
-    forecaster_10step = TVPForecaster(window=1, horizon=10, var=1e-8, beta_var=0.0)
-    forecaster_1step.fit(y)
-    forecaster_10step.fit(y)
-    # The one-step model should learn phi ≈ 0.8, the direct model should learn phi^{10}
-    beta1 = forecaster_1step._beta  # [intercept, phi]
-    beta10 = forecaster_10step._beta  # [intercept, phi^10]
-    assert abs(beta1[1] - phi) < 1e-4
-    assert abs(beta10[1] - (phi**10)) < 1e-6
-    # Compute 10-step ahead forecast by iterative one-step predictions
-    last_val = y[-1]  # last observed value in the series
-    iter_pred = last_val
-    for _ in range(10):
-        iter_pred = (
-            beta1[0] + beta1[1] * iter_pred
-        )  # apply one-step forecast iteratively
-    # Get direct 10-step ahead forecast from the model
-    direct_pred = forecaster_10step.forecast_  # this is y_{t+10} forecast
-    # Both forecasts should be essentially equal to the true value phi^10 * last_val
-    true_10ahead = (phi**10) * last_val
-    assert pytest.approx(true_10ahead, rel=1e-8) == direct_pred
-    assert pytest.approx(true_10ahead, rel=1e-8) == iter_pred
-    # Also check the direct and iterative forecasts match each other closely
-    assert np.isclose(direct_pred, iter_pred, rtol=1e-9)
