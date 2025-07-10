@@ -5,6 +5,7 @@ import pandas as pd
 import pytest
 
 from aeon.forecasting import NaiveForecaster, RegressionForecaster
+from aeon.forecasting.base import BaseForecaster
 
 
 def test_base_forecaster():
@@ -90,3 +91,21 @@ def test_direct_forecast_with_exog():
     # Check that predictions are different from when no exog is used
     preds_no_exog = f.direct_forecast(y, prediction_horizon=10)
     assert not np.array_equal(preds, preds_no_exog)
+
+
+def test_fit_is_empty():
+    """Test empty fit."""
+
+    class _EmptyFit(BaseForecaster):
+        _tags = {"fit_is_empty": True}
+
+        def _fit(self, y):
+            return self
+
+        def _predict(self, y):
+            return 0
+
+    dummy = _EmptyFit(horizon=1, axis=1)
+    y = np.arange(50)
+    dummy.fit(y)
+    assert dummy.is_fitted
