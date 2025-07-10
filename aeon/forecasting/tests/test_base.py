@@ -13,7 +13,7 @@ def test_base_forecaster():
     f = NaiveForecaster()
     y = np.random.rand(50)
     f.fit(y)
-    p1 = f.predict()
+    p1 = f.predict(y)
     assert p1 == y[-1]
     p2 = f.forecast(y)
     p3 = f._forecast(y)
