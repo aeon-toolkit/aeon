@@ -127,7 +127,7 @@ class ARIMAForecaster(BaseForecaster):
 
         return self
 
-    def _predict(self, y=None, exog=None):
+    def _predict(self, y, exog=None):
         """
         Predict the next step ahead for training data or y.
 
@@ -151,22 +151,6 @@ class ARIMAForecaster(BaseForecaster):
             pred = _single_forecast(differenced_series, self.c_, self.phi_, self.theta_)
             forecast = pred + series[-self.d :].sum() if self.d > 0 else pred
             return forecast
-
-        n = len(self._series)
-        differenced_series = np.diff(self._series, n=self.d)
-        _, _, predicted_values = _arima_model(
-            self._parameters,
-            _calc_arma,
-            differenced_series,
-            self._model,
-            self.residuals_,
-        )
-        # Invert differences
-        init = series[n - self.d : n]
-        x = np.concatenate((init, predicted_values))
-        for _ in range(self.d):
-            x = np.cumsum(x)
-        return x[self.d :][0]
 
     def _forecast(self, y, exog=None):
         """Forecast one ahead for time series y."""
