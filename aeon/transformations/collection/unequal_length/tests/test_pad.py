@@ -78,7 +78,7 @@ def test_padding_fixed_value():
 def test_padding_fill_unequal_length():
     """Test padding unequal length longer than longest.
 
-    Padding should create a 3D numpy array and padd to given value.
+    Padding should create a 3D numpy array and pad to given value.
     """
     X = []
     for i in range(10):
