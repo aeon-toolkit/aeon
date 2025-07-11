@@ -49,7 +49,7 @@ class RDSTRegressor(BaseRegressor):
         Occurrence feature. If None, the 5th and the 10th percentiles (i.e. [5,10])
         will be used.
     alpha_similarity : float, default=0.5
-        The strenght of the alpha similarity pruning. The higher the value, the lower
+        The strength of the alpha similarity pruning. The higher the value, the lower
         the allowed number of common indexes with previously sampled shapelets
         when sampling a new candidate with the same dilation parameter.
         It can cause the number of sampled shapelets to be lower than max_shapelets if

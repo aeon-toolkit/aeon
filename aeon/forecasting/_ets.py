@@ -474,7 +474,7 @@ def _predict_value(trend_type, seasonality_type, level, trend, seasonality, phi)
     fitted_value : float
         single prediction based on the current state variables.
     damped_trend : float
-        The damping parameter combined with the trend dependant on the model type
+        The damping parameter combined with the trend dependent on the model type
     trend_level_combination : float
         Combination of the trend and level based on the model type.
     """

@@ -34,7 +34,7 @@ class RotationForestRegressor(RegressorMixin, BaseEstimator):
     transformed using PCA.
 
     Intended as a benchmark for time series data and a base regressor for
-    transformation based appraoches such as FreshPRINCERegressor, this aeon
+    transformation based approaches such as FreshPRINCERegressor, this aeon
     implementation only works with continuous attributes.
 
     Parameters
