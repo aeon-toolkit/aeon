@@ -17,6 +17,7 @@ from sklearn.utils import check_random_state
 from aeon.base._base import _clone_estimator
 from aeon.classification.early_classification.base import BaseEarlyClassifier
 from aeon.classification.interval_based import DrCIFClassifier
+from aeon.utils.validation import check_n_jobs
 
 
 class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
@@ -127,6 +128,7 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
 
     def _fit(self, X, y):
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
+        self._n_jobs = check_n_jobs(self.n_jobs)
 
         self._estimator = (
             DrCIFClassifier() if self.estimator is None else self.estimator

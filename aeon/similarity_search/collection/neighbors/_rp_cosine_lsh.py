@@ -5,6 +5,7 @@ from numba import get_num_threads, njit, prange, set_num_threads
 
 from aeon.similarity_search.collection._base import BaseCollectionSimilaritySearch
 from aeon.utils.numba.general import AEON_NUMBA_STD_THRESHOLD, z_normalise_series_3d
+from aeon.utils.validation import check_n_jobs
 
 
 @njit(cache=True)
@@ -178,7 +179,9 @@ class RandomProjectionIndexANN(BaseCollectionSimilaritySearch):
 
         """
         prev_threads = get_num_threads()
+        self._n_jobs = check_n_jobs(self.n_jobs)
         set_num_threads(self._n_jobs)
+
         rng = np.random.default_rng(self.random_state)
         if self.normalize:
             X = z_normalise_series_3d(X)

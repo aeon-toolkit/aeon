@@ -30,6 +30,7 @@ from sklearn.utils import check_random_state
 
 from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.utils.numba.general import AEON_NUMBA_STD_THRESHOLD
+from aeon.utils.validation import check_n_jobs
 
 # The binning methods to use: equi-depth, equi-width, information gain or kmeans
 binning_methods = {
@@ -214,6 +215,8 @@ class SFAFast(BaseCollectionTransformer):
 
     def _fit_transform(self, X, y=None, return_bag_of_words=True):
         """Fit to data, then transform it."""
+        self._n_jobs = check_n_jobs(self.n_jobs)
+
         if self.alphabet_size < 2:
             raise ValueError("Alphabet size must be an integer greater than 2")
 
