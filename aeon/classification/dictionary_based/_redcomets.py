@@ -19,6 +19,7 @@ from sklearn.utils import check_random_state
 from aeon.classification.base import BaseClassifier
 from aeon.transformations.collection import Normalizer
 from aeon.transformations.collection.dictionary_based import SAX, SFAFast
+from aeon.utils.validation import check_n_jobs
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
@@ -35,7 +36,7 @@ class REDCOMETS(BaseClassifier):
         RED CoMETS variant to use from {1, 2, 3, 4, 5, 6, 7, 8, 9} to use as per [1]_.
         Defaults to RED CoMETS-3. Variants 4-9 only support multivariate problems.
     perc_length : int or float, default=5
-        Percentage of time series length used to determinne number of lenses during
+        Percentage of time series length used to determine number of lenses during
         pair selection.
     n_trees : int, default=100
         Number of trees used by each random forest sub-classifier.
@@ -140,6 +141,7 @@ class REDCOMETS(BaseClassifier):
             Reference to self.
         """
         self._n_channels = X.shape[1]
+        self._n_jobs = check_n_jobs(self.n_jobs)
 
         if self._n_channels == 1:  # Univariate
             assert self.variant in [1, 2, 3]
@@ -183,12 +185,12 @@ class REDCOMETS(BaseClassifier):
         Returns
         -------
         sfa_transforms :
-            List of ``SFAFast()`` instances with random word length and alpabet size
+            List of ``SFAFast()`` instances with random word length and alphabet size
         sfa_clfs :
             List of ``(RandomForestClassifier(), weight)`` tuples fitted on `SFAFast`
             transformed training data
         sax_transforms :
-            List of ``SAX()`` instances with random word length and alpabet size
+            List of ``SAX()`` instances with random word length and alphabet size
         sax_clfs :
             List of ``(RandomForestClassifier(), weight)`` tuples fitted on `SAX`
             transformed training data
@@ -225,7 +227,7 @@ class REDCOMETS(BaseClassifier):
                 X_smote, y_smote = SMOTE(
                     sampling_strategy="all",
                     k_neighbors=NearestNeighbors(
-                        n_neighbors=min_neighbours - 1, n_jobs=self.n_jobs
+                        n_neighbors=min_neighbours - 1, n_jobs=self._n_jobs
                     ),
                     random_state=self.random_state,
                 ).fit_resample(X, y)
@@ -247,7 +249,7 @@ class REDCOMETS(BaseClassifier):
                 alphabet_size=a,
                 window_size=X_smote.shape[1],
                 binning_method="equi-width",
-                n_jobs=self.n_jobs,
+                n_jobs=self._n_jobs,
                 random_state=self.random_state,
             )
             for w, a in sfa_lenses
@@ -261,7 +263,7 @@ class REDCOMETS(BaseClassifier):
             rf = RandomForestClassifier(
                 n_estimators=self.n_trees,
                 random_state=self.random_state,
-                n_jobs=self.n_jobs,
+                n_jobs=self._n_jobs,
             )
             rf.fit(X_sfa, y_smote)
 
@@ -269,7 +271,7 @@ class REDCOMETS(BaseClassifier):
                 weight = 1
             elif self.variant == 3:
                 weight = cross_val_score(
-                    rf, X_sfa, y_smote, cv=cv, n_jobs=self.n_jobs
+                    rf, X_sfa, y_smote, cv=cv, n_jobs=self._n_jobs
                 ).mean()
 
             else:
@@ -286,7 +288,7 @@ class REDCOMETS(BaseClassifier):
             rf = RandomForestClassifier(
                 n_estimators=self.n_trees,
                 random_state=self.random_state,
-                n_jobs=self.n_jobs,
+                n_jobs=self._n_jobs,
             )
             rf.fit(X_sax, y_smote)
 
@@ -294,7 +296,7 @@ class REDCOMETS(BaseClassifier):
                 weight = 1
             elif self.variant == 3:
                 weight = cross_val_score(
-                    rf, X_sax, y_smote, cv=cv, n_jobs=self.n_jobs
+                    rf, X_sax, y_smote, cv=cv, n_jobs=self._n_jobs
                 ).mean()
             else:
                 weight = None
@@ -319,13 +321,13 @@ class REDCOMETS(BaseClassifier):
         Returns
         -------
         sfa_transforms : list
-            List of lists of ``SFAFast()`` instances with random word length and alpabet
-            size
+            List of lists of ``SFAFast()`` instances with random word length and
+            alphabet size
         sfa_clfs : list
             List of lists of ``(RandomForestClassifier(), weight)`` tuples fitted on
             `SFAFast` transformed training data
         sax_transforms : list
-            List of lists of ``SAX()`` instances with random word length and alpabet
+            List of lists of ``SAX()`` instances with random word length and alphabet
             size
         sax_clfs : list
             List of lists ``(RandomForestClassifier(), weight)`` tuples fitted on `SAX`
@@ -588,7 +590,7 @@ class REDCOMETS(BaseClassifier):
         def _sax_wrapper(sax):
             return np.squeeze(sax.fit_transform(X))
 
-        sax_parallel_res = Parallel(n_jobs=self.n_jobs, backend=self.parallel_backend)(
+        sax_parallel_res = Parallel(n_jobs=self._n_jobs, backend=self.parallel_backend)(
             delayed(_sax_wrapper)(sax) for sax in sax_transforms
         )
         return sax_parallel_res

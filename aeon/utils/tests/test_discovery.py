@@ -3,7 +3,7 @@
 import pytest
 from sklearn.base import BaseEstimator
 
-from aeon.anomaly_detection.base import BaseAnomalyDetector
+from aeon.anomaly_detection.series.base import BaseSeriesAnomalyDetector
 from aeon.base import BaseAeonEstimator
 from aeon.classification import BaseClassifier, DummyClassifier
 from aeon.clustering import BaseClusterer
@@ -62,7 +62,7 @@ def test_all_estimators_by_type(item):
     [
         [BaseTransformer, BaseClassifier],
         [BaseClassifier, "segmenter"],
-        [BaseClassifier, BaseAnomalyDetector, BaseClusterer],
+        [BaseClassifier, BaseSeriesAnomalyDetector, BaseClusterer],
     ],
 )
 def test_all_estimators_by_multiple_types(input):

@@ -18,6 +18,7 @@ from aeon.base import (
     ComposableEstimatorMixin,
 )
 from aeon.base._base import _clone_estimator
+from aeon.base._estimators.compose._commons import _get_channel
 
 
 class BaseCollectionChannelEnsemble(ComposableEstimatorMixin, BaseCollectionEstimator):
@@ -98,7 +99,7 @@ class BaseCollectionChannelEnsemble(ComposableEstimatorMixin, BaseCollectionEsti
             self._ensemble, clone_estimators=False
         )
 
-        super().__init__()
+        super().__init__(axis=1)
 
         # can handle missing values if all estimators can
         missing = all(
@@ -241,17 +242,6 @@ class BaseCollectionChannelEnsemble(ComposableEstimatorMixin, BaseCollectionEsti
 
         # fit estimators
         for i, (_, estimator) in enumerate(self.ensemble_):
-            estimator.fit(self._get_channel(X, self.channels_[i]), y)
+            estimator.fit(_get_channel(X, self.channels_[i]), y)
 
         return self
-
-    @staticmethod
-    def _get_channel(X, key):
-        """Get time series channel(s) from input data X."""
-        if isinstance(X, np.ndarray):
-            return X[:, key]
-        else:
-            li = [x[key] for x in X]
-            if li[0].ndim == 1:
-                li = [x.reshape(1, -1) for x in li]
-            return li

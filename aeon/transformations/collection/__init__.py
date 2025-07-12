@@ -13,13 +13,14 @@ __all__ = [
     "MatrixProfile",
     "MinMaxScaler",
     "Normalizer",
-    "Padder",
     "PeriodogramTransformer",
-    "Resizer",
     "SlopeTransformer",
     "SimpleImputer",
-    "Truncator",
     "Tabularizer",
+    #  deprecated
+    "Resizer",
+    "Padder",
+    "Truncator",
 ]
 
 from aeon.transformations.collection._acf import AutocorrelationFunctionTransformer

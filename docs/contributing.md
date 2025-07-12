@@ -38,7 +38,7 @@ stuck, please don’t hesitate to talk with us or raise an issue.
 Recommended steps for first time contributors, or to get started with regular
 contributions:
 
-1. Say hello in the `introductions` or `contributors` channel on [Slack](https://join.slack.com/t/aeon-toolkit/shared_invite/zt-22vwvut29-HDpCu~7VBUozyfL_8j3dLA)
+1. Say hello in the `introductions` or `contributors` channel on [Slack](https://join.slack.com/t/aeon-toolkit/shared_invite/zt-36dlmbouu-vajTShUYAHopSXUUVtHGzw)
 and mention which places you are interested in contributing to.
 2. Get setup for development, see the [developer install instructions](developer_guide/dev_installation.md)
 for creating a fork of `aeon`.
@@ -84,7 +84,7 @@ contributing, but if your issue to related to a specific topic i.e. documentatio
 testing you may find it useful.
 
 If your intended method of contribution does not fit into the above steps, please
-reach out to us on [Slack](https://join.slack.com/t/aeon-toolkit/shared_invite/zt-22vwvut29-HDpCu~7VBUozyfL_8j3dLA)
+reach out to us on [Slack](https://join.slack.com/t/aeon-toolkit/shared_invite/zt-36dlmbouu-vajTShUYAHopSXUUVtHGzw)
 for discussion. While GitHub contributions are the most common, it is not the only
 way to contribute to `aeon`.
 
@@ -171,7 +171,7 @@ Mentoring and Projects
 
 +++
 
-```{button-ref} mentoring
+```{button-ref} projects
 :color: primary
 :click-parent:
 :expand:

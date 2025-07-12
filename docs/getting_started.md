@@ -76,7 +76,7 @@ international airline passengers, 1949 to 1960, in thousands.
 A multivariate time series is made up of multiple series or channels, where each
 observation is a vector of related recordings in the same time index. An example
 would be a motion trace from a smartwatch with at least three dimensions (X,Y,Z
-co-ordinates), or multiple financial statistics recorded over time. Single
+coordinates), or multiple financial statistics recorded over time. Single
 multivariate series input typically follows the shape `(n_channels, n_timepoints)` by
 default. Algorithms may have an `axis` parameter to change this, where `axis=1` assumes
 the default shape and is the default setting, and `axis=0` assumes the shape
@@ -317,14 +317,15 @@ classification or clustering.
 
 Similarly to the transformation module, similarity search estimators are either defined
 for single series or for collection of series. The estimators are inheriting from the
-[BaseSimiliaritySearch](similarity_search._base.BaseSimiliaritySearch) class, which
-both [BaseSeriesSimiliaritySearch](similarity_search.series._base.BaseSeriesSimiliaritySearch)
-and [BaseCollectionSimiliaritySearch](similarity_search.collection._base.BaseCollectionSimiliaritySearch)
+[BaseSimilaritySearch](similarity_search._base.BaseSimilaritySearch) class, which
+both [BaseSeriesSimilaritySearch](similarity_search.series._base.BaseSeriesSimilaritySearch)
+and [BaseCollectionSimilaritySearch](similarity_search.collection._base.BaseCollectionSimilaritySearch)
 inherit from.
 
 All estimators use a `fit` `predict` interface, where `predict` outputs both the
 indexes of the neighbors or motifs and a distance or similarity measure linked to them.
 For example, using `StompMotif` to compute the matrix profile between two series :
+
 ```{code-block} python
 >>> import numpy as np
 >>> from aeon.similarity_search.series import StompMotif
@@ -333,6 +334,7 @@ For example, using `StompMotif` to compute the matrix profile between two series
 >>> top_k = StompMotif(4).fit(X1) # 4 is length of the motif to search
 >>> distances, indexes = top_k.predict(X2, k=1)
 ```
+
 Some things to note on this example :
 
 - We defined `1D` series of shape `(n_timepoints)`, but internally, series estimator
@@ -350,7 +352,7 @@ and those that transform a collection.
 
 ### Transformers for Single Time Series
 
-Transformers inheriting from the [BaseSeriesTransformer](transformations.base.BaseSeriesTransformer)
+Transformers inheriting from the [BaseSeriesTransformer](transformations.series.base.BaseSeriesTransformer)
 in the `aeon.transformations.series` package transform a single (possibly multivariate)
 time series into a different time series or a feature vector. More info to follow.
 
@@ -379,7 +381,7 @@ Most time series classification and regression algorithms are based on some form
 transformation into an alternative feature space. For example, we might extract some
 summary time series features from each series, and fit a traditional classifier or
 regressor on these features. For example, we could use
-[Catch22](transformations.collection.feauture_based), which calculates 22 summary
+[Catch22](transformations.collection.feature_based.Catch22), which calculates 22 summary
 statistics for each series.
 
 ```{code-block} python
@@ -397,7 +399,7 @@ statistics for each series.
 ```
 
 There are also series-to-series transformations, such as the
-[Padder](transformations.collection) to lengthen
+[Padder](transformations.collection.Padder) to lengthen
 series and process unequal length collections.
 
 ```{code-block} python
@@ -432,7 +434,7 @@ For machine learning tasks such as classification, regression and clustering, th
 `scikit-learn` `make_pipeline` functionality can be used if the transformer outputs
 a valid input type.
 
-The following example uses the [Catch22](transformations.collection.catch22.Catch22)
+The following example uses the [Catch22](transformations.collection.feature_based.Catch22)
 feature extraction transformer and a random forest classifier to classify.
 
 ```{code-block} python
