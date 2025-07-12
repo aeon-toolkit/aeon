@@ -95,7 +95,7 @@ class MockClassifierParams(MockClassifier):
 
 
 class MockClassifierComposite(BaseClassifier):
-    """Mock classifier which contains another mock classfier."""
+    """Mock classifier which contains another mock classifier."""
 
     def __init__(self, mock=None):
         self.mock = mock

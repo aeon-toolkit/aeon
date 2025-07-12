@@ -84,9 +84,7 @@ class ETSForecaster(BaseForecaster):
     ...     error_type='additive', trend_type='multiplicative',
     ...     seasonality_type='multiplicative', seasonal_period=4
     ... )
-    >>> forecaster.fit(y)
-    ETSForecaster(...)
-    >>> forecaster.predict()
+    >>> forecaster.forecast(y)
     366.90200486015596
     """
 
@@ -195,9 +193,21 @@ class ETSForecaster(BaseForecaster):
             self._gamma,
             self.phi,
         )
+        self.forecast_ = _predict(
+            self._trend_type,
+            self._seasonality_type,
+            self.level_,
+            self.trend_,
+            self.seasonality_,
+            self.phi,
+            self.horizon,
+            self.n_timepoints_,
+            self._seasonal_period,
+        )
+
         return self
 
-    def _predict(self, y=None, exog=None):
+    def _predict(self, y, exog=None):
         """
         Predict the next horizon steps ahead.
 
@@ -214,18 +224,7 @@ class ETSForecaster(BaseForecaster):
         float
             single prediction self.horizon steps ahead of y.
         """
-        fitted_value = _predict(
-            self._trend_type,
-            self._seasonality_type,
-            self.level_,
-            self.trend_,
-            self.seasonality_,
-            self.phi,
-            self.horizon,
-            self.n_timepoints_,
-            self._seasonal_period,
-        )
-        return fitted_value
+        return self.forecast_
 
     def _initialise(self, data):
         """
@@ -475,7 +474,7 @@ def _predict_value(trend_type, seasonality_type, level, trend, seasonality, phi)
     fitted_value : float
         single prediction based on the current state variables.
     damped_trend : float
-        The damping parameter combined with the trend dependant on the model type
+        The damping parameter combined with the trend dependent on the model type
     trend_level_combination : float
         Combination of the trend and level based on the model type.
     """

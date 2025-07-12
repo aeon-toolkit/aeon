@@ -133,7 +133,7 @@ class InceptionNetwork(BaseDeepLearningNetwork):
         super().__init__()
 
     def hybrid_layer(self, input_tensor, input_channels, kernel_sizes=None):
-        """Construct the hybrid layer to compute features of cutom filters.
+        """Construct the hybrid layer to compute features of custom filters.
 
         Parameters
         ----------
@@ -272,7 +272,7 @@ class InceptionNetwork(BaseDeepLearningNetwork):
 
         hybrid_layer = tf.keras.layers.Concatenate(axis=2)(
             conv_list
-        )  # concantenate all convolution layers
+        )  # concatenate all convolution layers
         hybrid_layer = tf.keras.layers.Activation(activation="relu")(
             hybrid_layer
         )  # apply activation ReLU
