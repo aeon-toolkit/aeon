@@ -25,7 +25,7 @@ class TVPForecaster(BaseForecaster):
     Parameters
     ----------
     window : int
-        Number of autoregressive lags to use, called window to co-ordinate with
+        Number of autoregressive lags to use, called window to coordinate with
         RegressionForecaster.
     var : float, default=0.01
         Observation noise variance. ``var`` controls the influence of recency in the
