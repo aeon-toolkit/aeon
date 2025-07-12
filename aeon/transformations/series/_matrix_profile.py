@@ -14,7 +14,7 @@ class MatrixProfileSeriesTransformer(BaseSeriesTransformer):
     z-normalized Euclidean distance between any subsequence within a
     time series and its nearest neighbour.
 
-    For more information on the matrix profile, see `th stumpy tutorial
+    For more information on the matrix profile, see `the STUMPY tutorial
     <https://stumpy.readthedocs.io/en/latest/Tutorial_The_Matrix_Profile.html>`_
 
     Parameters
