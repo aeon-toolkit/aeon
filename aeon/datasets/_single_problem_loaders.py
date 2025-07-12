@@ -792,7 +792,7 @@ def load_solar(return_array=True):
     """Get national solar estimates for GB from Sheffield Solar PV_Live API.
 
     This function calls the Sheffield Solar PV_Live API to extract national solar data
-    for the GB eletricity network. Note that these are estimates of the true solar
+    for the GB electricity network. Note that these are estimates of the true solar
     generation, since the true values are "behind the meter" and essentially
     unknown.
 

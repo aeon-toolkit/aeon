@@ -60,3 +60,16 @@ jobs:
         with:
           commit_message: Automatic `pre-commit` fixes
           commit_user_name: aeon-actions-bot[bot]
+
+  codespell-annotations:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Annotate locations with typos
+        uses: codespell-project/codespell-problem-matcher@v1
+
+      - name: Codespell
+        uses: codespell-project/actions-codespell@v2

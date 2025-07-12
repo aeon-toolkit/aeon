@@ -36,7 +36,7 @@ class REDCOMETS(BaseClassifier):
         RED CoMETS variant to use from {1, 2, 3, 4, 5, 6, 7, 8, 9} to use as per [1]_.
         Defaults to RED CoMETS-3. Variants 4-9 only support multivariate problems.
     perc_length : int or float, default=5
-        Percentage of time series length used to determinne number of lenses during
+        Percentage of time series length used to determine number of lenses during
         pair selection.
     n_trees : int, default=100
         Number of trees used by each random forest sub-classifier.
@@ -185,12 +185,12 @@ class REDCOMETS(BaseClassifier):
         Returns
         -------
         sfa_transforms :
-            List of ``SFAFast()`` instances with random word length and alpabet size
+            List of ``SFAFast()`` instances with random word length and alphabet size
         sfa_clfs :
             List of ``(RandomForestClassifier(), weight)`` tuples fitted on `SFAFast`
             transformed training data
         sax_transforms :
-            List of ``SAX()`` instances with random word length and alpabet size
+            List of ``SAX()`` instances with random word length and alphabet size
         sax_clfs :
             List of ``(RandomForestClassifier(), weight)`` tuples fitted on `SAX`
             transformed training data
@@ -321,13 +321,13 @@ class REDCOMETS(BaseClassifier):
         Returns
         -------
         sfa_transforms : list
-            List of lists of ``SFAFast()`` instances with random word length and alpabet
-            size
+            List of lists of ``SFAFast()`` instances with random word length and
+            alphabet size
         sfa_clfs : list
             List of lists of ``(RandomForestClassifier(), weight)`` tuples fitted on
             `SFAFast` transformed training data
         sax_transforms : list
-            List of lists of ``SAX()`` instances with random word length and alpabet
+            List of lists of ``SAX()`` instances with random word length and alphabet
             size
         sax_clfs : list
             List of lists ``(RandomForestClassifier(), weight)`` tuples fitted on `SAX`
