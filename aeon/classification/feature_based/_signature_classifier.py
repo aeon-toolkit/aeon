@@ -139,7 +139,7 @@ class SignatureClassifier(BaseClassifier):
             rescaling,
             sig_tfm,
             depth,
-        )
+        ).signature_method
         self.pipeline = None
 
     def _setup_classification_pipeline(self):
