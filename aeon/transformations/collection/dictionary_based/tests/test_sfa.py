@@ -6,6 +6,9 @@ import numpy as np
 import pytest
 
 from aeon.datasets import load_unit_test
+from aeon.testing.data_generation import (
+    make_example_3d_numpy,
+)
 from aeon.transformations.collection.dictionary_based import SFA, SFAFast
 
 
@@ -90,9 +93,6 @@ def test_dft_mft(use_fallback_dft, norm):
 
     assert len(mft) == len(X_tab[0]) - window_size + 1
     assert len(mft[0]) == word_length
-
-
-test_dft_mft(True, True)
 
 
 @pytest.mark.parametrize("binning_method", ["equi-depth", "information-gain"])
@@ -249,3 +249,31 @@ def test_sfa_fast_transform_after_fit():
         and np.all(x.indptr == y.indptr)
         and np.allclose(x.data, y.data)
     )
+
+
+def test_incorrect_paras():
+    """Test incorrect parameters in SFA."""
+    X, y = make_example_3d_numpy(n_cases=20, n_channels=1, n_timepoints=49)
+    sfa = SFA(alphabet_size=1, word_length=0, binning_method="information-gain")
+    with pytest.raises(ValueError, match="must be an integer greater than 2"):
+        sfa._fit(X)
+    sfa.alphabet_size = 4
+    with pytest.raises(ValueError, match="must be an integer greater than 1"):
+        sfa._fit(X)
+    sfa.word_length = 2
+    with pytest.raises(ValueError, match="Class values must be provided"):
+        sfa._fit(X)
+    sfa.binning_method = "Arsenal"
+    with pytest.raises(TypeError, match="binning_method must be one of"):
+        sfa._fit(X)
+    sfa = SFA(word_length=64, alphabet_size=8)
+    sfa.max_bits = 128
+    sfa._typed_dict = True
+    with pytest.raises(ValueError, match="Typed Dictionaries can only handle 64 bit"):
+        sfa._fit(X, y)
+    sfa = SFA(typed_dict=True, levels=16)
+    with pytest.raises(ValueError, match="Dictionaries can only handle 15 levels"):
+        sfa._fit(X, y)
+    sfa = SFA(typed_dict=True, save_words=True, n_jobs=2)
+    sfa.fit_transform(X, y)
+    assert isinstance(sfa.words, np.ndarray)

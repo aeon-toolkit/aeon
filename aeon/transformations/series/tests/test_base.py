@@ -3,6 +3,10 @@
 import numpy as np
 import pytest
 
+from aeon.testing.data_generation import (
+    make_example_1d_numpy,
+    make_example_2d_numpy_series,
+)
 from aeon.testing.mock_estimators import (
     MockMultivariateSeriesTransformer,
     MockSeriesTransformerNoFit,
@@ -53,3 +57,16 @@ def test_fit_transform_univariate():
     x3 = transformer.transform(x1, x2)
     x4 = transformer.fit_transform(x1, x2)
     np.testing.assert_array_almost_equal(x3, x4)
+
+
+def test_check_y():
+    """Test check_y function in BaseTransformer."""
+    y = make_example_2d_numpy_series(100, 3)
+    t = MockSeriesTransformerNoFit()
+    with pytest.raises(TypeError, match="must be a np.array or a pd.Series"):
+        t._check_y("Arsenal")
+    with pytest.raises(TypeError, match="must be 1-dimensional"):
+        t._check_y(y)
+    y = make_example_1d_numpy(100)
+    with pytest.raises(ValueError, match="Mismatch in number of cases"):
+        t._check_y(y, 50)
