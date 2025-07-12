@@ -1,8 +1,5 @@
 """Test ETS."""
 
-__maintainer__ = []
-__all__ = []
-
 import numpy as np
 import pytest
 
@@ -71,12 +68,12 @@ def test_ets_forecaster(params, expected):
     """Test ETSForecaster for multiple parameter combinations."""
     data = np.array([3, 10, 12, 13, 12, 10, 12, 3, 10, 12, 13, 12, 10, 12])
     forecaster = ETSForecaster(**params)
-    p = forecaster.forecast(data)
+    p = forecaster.predict(data)
     assert np.isclose(p, expected)
 
 
 def test_incorrect_parameters():
-    """Test incorrect set up."""
+    """Test ETSForecaster with incorrect parameters."""
     _validate_parameter(0, True)
     _validate_parameter(None, True)
     with pytest.raises(ValueError):

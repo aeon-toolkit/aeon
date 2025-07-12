@@ -16,11 +16,11 @@ def test_base_forecaster():
     p1 = f.predict(y)
     assert p1 == y[-1]
     p2 = f.forecast(y)
-    p3 = f._forecast(y)
+    p3 = f._forecast(y, None)
     assert p2 == p1
     assert p3 == p2
     with pytest.raises(ValueError, match="Exogenous variables passed"):
-        f.fit(y, exog=y)
+        f.predict(y, exog=y)
 
 
 def test_convert_y():

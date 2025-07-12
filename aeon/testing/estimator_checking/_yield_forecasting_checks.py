@@ -37,7 +37,9 @@ def check_forecaster_overrides_and_tags(estimator_class):
     # Test that all forecasters implement abstract predict.
     assert "_predict" in estimator_class.__dict__
 
-    # todo decide what to do with "fit_is_empty" and abstract "_fit"
+    # Test that fit_is_empty is correctly set
+    fit_is_empty = estimator_class.get_class_tag(tag_name="fit_is_empty")
+    assert fit_is_empty == ("_fit" not in estimator_class.__dict__)
 
     # Test valid tag for X_inner_type
     X_inner_type = estimator_class.get_class_tag(tag_name="X_inner_type")
@@ -62,17 +64,16 @@ def check_forecaster_output(estimator, datatype):
     estimator.fit(
         FULL_TEST_DATA_DICT[datatype]["train"][0],
     )
-    assert hasattr(estimator, "forecast_"), "fit() must set the attribute forecast_"
-    assert isinstance(estimator.forecast_, float), "attribute forecast_ must be a float"
-
-    y_pred = estimator.predict(FULL_TEST_DATA_DICT[datatype]["test"][0])
-
+    y_pred = estimator.predict(
+        FULL_TEST_DATA_DICT[datatype]["test"][0],
+    )
     assert isinstance(y_pred, float), (
         f"predict(y) output should be float, got" f" {type(y_pred)}"
     )
 
-    y_pred = estimator.forecast_
     y_pred2 = estimator.forecast(FULL_TEST_DATA_DICT[datatype]["train"][0])
-    assert y_pred == y_pred2, (
-        f"estimator.forecast_ and forecast(y) output differ: {y_pred} !=" f" {y_pred2}"
+    y_pred3 = estimator.predict(FULL_TEST_DATA_DICT[datatype]["train"][0])
+    assert y_pred2 == y_pred3, (
+        f"fit(y).predict(y) and forecast(y) should be the same, but"
+        f"output differ: {y_pred2} != {y_pred3}"
     )
