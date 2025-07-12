@@ -129,7 +129,8 @@ class SignatureTransformer(BaseCollectionTransformer):
 class _WindowSignatureTransform(BaseCollectionTransformer):
     """Perform the signature transform over given windows.
 
-    Given data of shape [N, L, C] and specification of a window method from the
+    Input series Given data of shape (n_N, L, C] and specification of a window method
+    from the
     signatures window module, this class will compute the signatures over
     each window (for the given signature options) and concatenate the results
     into a tensor of shape [N, num_sig_features * num_windows].
