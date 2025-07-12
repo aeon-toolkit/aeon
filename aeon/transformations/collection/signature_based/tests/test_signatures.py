@@ -20,5 +20,5 @@ def test_rescale_signature():
     """Test rescale_signatures."""
     X = np.random.random((10, 2, 40))
     data = np.swapaxes(X, 1, 2)
-    trans = _rescale_signature(data, 1)
+    trans = _rescale_signature(data, 1, depth=2)
     assert isinstance(trans, np.ndarray)
