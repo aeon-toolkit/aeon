@@ -19,29 +19,24 @@ class SignatureTransformer(BaseCollectionTransformer):
 
     Parameters
     ----------
-    augmentation_list : tuple of strings, default = ``("basepoint", "addtime")``
-        Contains the augmentations to be applied before application of the signature
-        transform.
-    window_name : str
-        The name of the window transform to apply.
-    window_depth : int
-        The depth of the dyadic window. (Active only if ``window_name == 'dyadic'``).
-    window_length : int
-        The length of the sliding/expanding window. (Active only if ``window_name``
-        in ``['sliding, 'expanding']``.
-    window_step : int
-        The step of the sliding/expanding window. (Active
+    augmentation_list: tuple of strings, contains the augmentations to be
+        applied before application of the signature transform.
+    window_name: str, The name of the window transform to apply.
+    window_depth: int, The depth of the dyadic window. (Active only if
+        `window_name == 'dyadic'`).
+    window_length: int, The length of the sliding/expanding window. (Active
         only if `window_name in ['sliding, 'expanding']`.
-    rescaling : str or None, The method of signature rescaling.
-    sig_tfm : str, String to specify the type of signature transform. One of:
+    window_step: int, The step of the sliding/expanding window. (Active
+        only if `window_name in ['sliding, 'expanding']`.
+    rescaling: str or None, The method of signature rescaling.
+    sig_tfm: str, String to specify the type of signature transform. One of:
         ['signature', 'logsignature']).
     depth: int, Signature truncation depth.
 
     Attributes
     ----------
-    self.signature_method_ : sklearn.Pipeline
-        sklearn pipeline object that contains all the steps to extract the signature
-        features.
+    signature_method: sklearn.Pipeline, A sklearn pipeline object that contains
+        all the steps to extract the signature features.
     """
 
     _tags = {
@@ -69,11 +64,11 @@ class SignatureTransformer(BaseCollectionTransformer):
         self.rescaling = rescaling
         self.sig_tfm = sig_tfm
         self.depth = depth
-        self.signature_method_ = None
 
         super().__init__()
+        self.setup_feature_pipeline()
 
-    def _fit(self, X, y=None):
+    def setup_feature_pipeline(self):
         """Set up the signature method as an sklearn pipeline."""
         augmentation_step = _make_augmentation_pipeline(self.augmentation_list)
         transform_step = _WindowSignatureTransform(
@@ -86,18 +81,20 @@ class SignatureTransformer(BaseCollectionTransformer):
             rescaling=self.rescaling,
         )
 
-        # 'signature method' as defined in the reference paper
-        self.signature_method_ = Pipeline(
+        # The so-called 'signature method' as defined in the reference paper
+        self.signature_method = Pipeline(
             [
                 ("augmentations", augmentation_step),
                 ("window_and_transform", transform_step),
             ]
         )
-        self.signature_method_.fit(X)
+
+    def _fit(self, X, y=None):
+        self.signature_method.fit(X)
         return self
 
     def _transform(self, X, y=None):
-        return self.signature_method_.transform(X)
+        return self.signature_method.transform(X)
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
