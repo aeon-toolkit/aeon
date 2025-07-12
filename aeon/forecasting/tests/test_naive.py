@@ -29,6 +29,7 @@ def test_naive_forecaster_seasonal_last_strategy():
 
     # Last season is [6, 7, 8] for seasonal_period = 3
     forecaster = NaiveForecaster(strategy="seasonal_last", seasonal_period=3, horizon=4)
+    pred = forecaster.forecast(data)
     forecaster.fit(data)
     pred = forecaster.predict(data)
     expected = 6  # predicts the 1-st element of the last season.
@@ -36,6 +37,7 @@ def test_naive_forecaster_seasonal_last_strategy():
 
     # Test horizon within the season length
     forecaster = NaiveForecaster(strategy="seasonal_last", seasonal_period=3, horizon=2)
+    pred = forecaster.forecast(data)
     forecaster.fit(data)
     pred = forecaster.predict(data)
     expected = 7  # predicts the 2-nd element of the last season.
@@ -43,6 +45,7 @@ def test_naive_forecaster_seasonal_last_strategy():
 
     # Test horizon wrapping around to a new season
     forecaster = NaiveForecaster(strategy="seasonal_last", seasonal_period=3, horizon=7)
+    pred = forecaster.forecast(data)
     forecaster.fit(data)
     pred = forecaster.predict(data)
     expected = 6  # predicts the 1-st element of the last season.
@@ -50,6 +53,7 @@ def test_naive_forecaster_seasonal_last_strategy():
 
     # Last season is now [5, 6, 7, 8] with seasonal_period = 4
     forecaster = NaiveForecaster(strategy="seasonal_last", seasonal_period=4, horizon=6)
+    pred = forecaster.forecast(data)
     forecaster.fit(data)
     pred = forecaster.predict(data)
     expected = 6  # predicts the 2nd element of the new last season.
