@@ -23,20 +23,23 @@ class SignatureTransformer(BaseCollectionTransformer):
     augmentation_list : tuple of strings, default = ``("basepoint", "addtime")``
         Contains the augmentations to be applied before application of the signature
         transform.
-    window_name : str
+    window_name : str, default="dyadic"
         The name of the window transform to apply.
-    window_depth : int
+    window_depth : int, default=3
         The depth of the dyadic window. (Active only if ``window_name == 'dyadic'``).
-    window_length : int
+    window_length : int or None, default=None
         The length of the sliding/expanding window. (Active only if ``window_name``
         in ``['sliding, 'expanding']``.
-    window_step : int
-        The step of the sliding/expanding window. (Active
-        only if `window_name in ['sliding, 'expanding']`.
-    rescaling : str or None, The method of signature rescaling.
-    sig_tfm : str, String to specify the type of signature transform. One of:
-        ['signature', 'logsignature']).
-    depth: int, Signature truncation depth.
+    window_step : int or None, default=None
+        The step of the sliding/expanding window. (Active only if ``window_name in [
+        'sliding, 'expanding']``.
+    rescaling : str or None, default=None
+        The method of signature rescaling.
+    sig_tfm : str, default="signature
+        Specifies the type of signature transform. One of:
+        ``['signature', 'logsignature']``).
+    depth: int, default=4
+        Signature truncation depth.
 
     Attributes
     ----------
@@ -54,13 +57,13 @@ class SignatureTransformer(BaseCollectionTransformer):
     def __init__(
         self,
         augmentation_list=("basepoint", "addtime"),
-        window_name="dyadic",
-        window_depth=3,
+        window_name: str = "dyadic",
+        window_depth: int = 3,
         window_length=None,
         window_step=None,
         rescaling=None,
-        sig_tfm="signature",
-        depth=4,
+        sig_tfm: str = "signature",
+        depth: int = 4,
     ):
         self.augmentation_list = augmentation_list
         self.window_name = window_name
