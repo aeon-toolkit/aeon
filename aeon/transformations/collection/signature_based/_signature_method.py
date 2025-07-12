@@ -39,7 +39,7 @@ class SignatureTransformer(BaseCollectionTransformer):
 
     Attributes
     ----------
-    sklearn.Pipeline
+    self.signature_method_ : sklearn.Pipeline
         sklearn pipeline object that contains all the steps to extract the signature
         features.
     """
@@ -69,6 +69,7 @@ class SignatureTransformer(BaseCollectionTransformer):
         self.rescaling = rescaling
         self.sig_tfm = sig_tfm
         self.depth = depth
+        self.signature_method_ = None
 
         super().__init__()
 
@@ -85,7 +86,7 @@ class SignatureTransformer(BaseCollectionTransformer):
             rescaling=self.rescaling,
         )
 
-        # The so-called 'signature method' as defined in the reference paper
+        # 'signature method' as defined in the reference paper
         self.signature_method_ = Pipeline(
             [
                 ("augmentations", augmentation_step),
