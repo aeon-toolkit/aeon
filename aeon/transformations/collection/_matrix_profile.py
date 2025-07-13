@@ -195,9 +195,13 @@ def _stomp_self(ts, m):
 class MatrixProfile(BaseCollectionTransformer):
     """Return the matrix profile and index profile for each time series of a dataset.
 
-    Parameters
-    ----------
-    m : int, default = 10
+    Example of use:
+    # Xt = MatrixProfile(m).transform(X)
+    X, a pandas DataFrame, is the the dataset.
+    m, an integer, is the desired subsequence length to be used.
+    Xt is the transformed X, i.e., a pandas DataFrame with the same number
+    of rows as X, but each row has the matrix profile for the
+    corresponding time series.
     """
 
     _tags = {
@@ -220,6 +224,9 @@ class MatrixProfile(BaseCollectionTransformer):
         -------
         Xt : Matrix profile series
         """
+        # Input checks
+        import pandas as pd
+
         n_cases = len(X)
-        Xt = np.ndarray([_stomp_self(X[i], self.m) for i in range(n_cases)])
+        Xt = pd.DataFrame([_stomp_self(X[i], self.m) for i in range(n_cases)])
         return Xt
