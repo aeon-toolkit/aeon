@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 __maintainer__ = []
+
 __all__ = ["TCNForecaster"]
+
+from typing import Any
 
 from aeon.forecasting.deep_learning.base import BaseDeepForecaster
 from aeon.networks._tcn import TCNNetwork
@@ -43,14 +46,14 @@ class TCNForecaster(BaseDeepForecaster):
     dropout : float, default=0.2
         Dropout rate applied after each convolutional layer for
         regularization.
-
-
     """
 
     _tags = {
+        "python_dependencies": ["tensorflow"],
         "capability:horizon": True,
         "capability:multivariate": True,
         "capability:exogenous": False,
+        "capability:univariate": True,
     }
 
     def __init__(
@@ -79,7 +82,6 @@ class TCNForecaster(BaseDeepForecaster):
             axis=axis,
             loss=loss,
         )
-
         self.n_blocks = n_blocks
         self.kernel_size = kernel_size
         self.dropout = dropout
@@ -99,11 +101,9 @@ class TCNForecaster(BaseDeepForecaster):
         """
         import tensorflow as tf
 
-        if self.n_blocks is None:
-            self.n_blocks = [16] * 3
         # Initialize the TCN network with the updated parameters
         network = TCNNetwork(
-            n_blocks=self.n_blocks,
+            n_blocks=self.n_blocks if self.n_blocks is not None else [16, 16, 16],
             kernel_size=self.kernel_size,
             dropout=self.dropout,
         )
@@ -114,3 +114,37 @@ class TCNForecaster(BaseDeepForecaster):
         # Create the final model
         model = tf.keras.Model(inputs=input_layer, outputs=output)
         return model
+
+    # Added to handle __name__ in tests (class-level access)
+    @classmethod
+    def _get_test_params(
+        cls, parameter_set: str = "default"
+    ) -> dict[str, Any] | list[dict[str, Any]]:
+        """
+        Return testing parameter settings for the estimator.
+
+        Parameters
+        ----------
+        parameter_set : str, default="default"
+            Name of the set of test parameters to return, for use in tests. If no
+            special parameters are defined for a value, will return `"default"` set.
+            For forecasters, a "default" set of parameters should be provided for
+            general testing, and a "results_comparison" set for comparing against
+            previously recorded results if the general set does not produce suitable
+            probabilities to compare against.
+
+        Returns
+        -------
+        params : dict or list of dict, default={}
+            Parameters to create testing instances of the class.
+            Each dict are parameters to construct an "interesting" test instance, i.e.,
+            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+        """
+        param = {
+            "epochs": 10,
+            "batch_size": 4,
+            "n_blocks": [8, 8],
+            "kernel_size": 2,
+            "dropout": 0.1,
+        }
+        return [param]
