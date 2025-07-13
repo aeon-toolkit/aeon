@@ -280,9 +280,6 @@ class SFA(BaseCollectionTransformer):
         List of dictionaries containing SFA words
         """
         X = X.squeeze(1)
-
-        # with warnings.catch_warnings():
-        # warnings.simplefilter("ignore", category=NumbaTypeSafetyWarning)
         transform = Parallel(n_jobs=self._n_jobs, prefer="threads")(
             delayed(self._transform_case)(
                 X[i, :],
@@ -327,10 +324,6 @@ class SFA(BaseCollectionTransformer):
         -------
         Array of Fourier coefficients
         """
-        # X = X.squeeze(1)
-
-        # with warnings.catch_warnings():
-        #    warnings.simplefilter("ignore", category=NumbaTypeSafetyWarning)
         transform = Parallel(n_jobs=self._n_jobs, prefer="threads")(
             delayed(self._mft)(X[i, :]) for i in range(X.shape[0])
         )
