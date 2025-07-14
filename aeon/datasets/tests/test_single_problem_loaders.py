@@ -20,7 +20,7 @@ from aeon.datasets import (  # Univariate; Unequal length; Multivariate
     load_lynx,
     load_osuleaf,
     load_PBS_dataset,
-    load_plaid,
+    load_pickup_gesture_wiimoteZ,
     load_shampoo_sales,
     load_solar,
     load_unit_test,
@@ -39,7 +39,7 @@ MULTIVARIATE_PROBLEMS = [
     load_basic_motions,
 ]
 UNEQUAL_LENGTH_PROBLEMS = [
-    load_plaid,
+    load_pickup_gesture_wiimoteZ,
     load_japanese_vowels,
 ]
 

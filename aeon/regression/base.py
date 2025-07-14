@@ -333,13 +333,17 @@ class BaseRegressor(RegressorMixin, BaseCollectionEstimator):
         random_state = getattr(self, "random_state", None)
         estimator = _clone_estimator(self, random_state)
 
+        n_jobs = getattr(self, "_n_jobs", None)
+        if n_jobs is None:
+            n_jobs = getattr(self, "n_jobs", None)
+
         return cross_val_predict(
             estimator,
             X=X,
             y=y,
             cv=10,
             method="predict",
-            n_jobs=self._n_jobs,
+            n_jobs=n_jobs,
         )
 
     def _fit_setup(self, X, y):

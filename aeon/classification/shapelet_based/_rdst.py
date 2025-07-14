@@ -19,6 +19,7 @@ from aeon.classification.base import BaseClassifier
 from aeon.transformations.collection.shapelet_based import (
     RandomDilatedShapeletTransform,
 )
+from aeon.utils.validation import check_n_jobs
 
 
 class RDSTClassifier(BaseClassifier):
@@ -186,6 +187,7 @@ class RDSTClassifier(BaseClassifier):
         Changes state by creating a fitted model that updates attributes
         ending in "_".
         """
+        self._n_jobs = check_n_jobs(self.n_jobs)
         self._transformer = RandomDilatedShapeletTransform(
             max_shapelets=self.max_shapelets,
             shapelet_lengths=self.shapelet_lengths,
@@ -193,9 +195,10 @@ class RDSTClassifier(BaseClassifier):
             threshold_percentiles=self.threshold_percentiles,
             alpha_similarity=self.alpha_similarity,
             use_prime_dilations=self.use_prime_dilations,
-            n_jobs=self.n_jobs,
+            n_jobs=self._n_jobs,
             random_state=self.random_state,
         )
+
         if self.estimator is None:
             self._estimator = make_pipeline(
                 StandardScaler(with_mean=True),
@@ -208,7 +211,7 @@ class RDSTClassifier(BaseClassifier):
             self._estimator = _clone_estimator(self.estimator, self.random_state)
             m = getattr(self._estimator, "n_jobs", None)
             if m is not None:
-                self._estimator.n_jobs = self.n_jobs
+                self._estimator.n_jobs = self._n_jobs
 
         X_t = self._transformer.fit_transform(X, y)
 
