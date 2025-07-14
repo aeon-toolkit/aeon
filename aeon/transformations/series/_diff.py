@@ -59,6 +59,7 @@ class DifferenceTransformer(BaseSeriesTransformer):
 
     _tags = {
         "capability:multivariate": True,
+        "capability:inverse_transform": True,
         "X_inner_type": "np.ndarray",
         "fit_is_empty": True,
     }
@@ -90,3 +91,16 @@ class DifferenceTransformer(BaseSeriesTransformer):
         Xt = diff_X
 
         return Xt
+
+    def _inverse_transform(self, X, y=None):
+        if y is None or len(y) < self.order:
+            raise ValueError(
+                f"Inverse transformm requires first {self.order} original \
+                  data values supplied as y, but inverse_transform called with y=None"
+            )
+        X = X.squeeze()
+        init = y[: self.order]
+        x = np.concatenate((init, X))
+        for _ in range(self.order):
+            x = np.cumsum(x)
+        return x[self.order :]
