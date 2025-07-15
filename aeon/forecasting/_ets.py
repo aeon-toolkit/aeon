@@ -353,7 +353,7 @@ def _numba_predict(
     else:
         # Geometric series formula for calculating phi + phi^2 + ... + phi^h
         phi_h = phi * (1 - phi**horizon) / (1 - phi)
-    seasonal_index = (n_timepoints + horizon) % seasonal_period
+    seasonal_index = (n_timepoints + horizon - 1) % seasonal_period
     return _predict_value(
         trend_type,
         seasonality_type,
