@@ -159,7 +159,7 @@ def test_is_numpy_list_multivariate_single():
     # 2d format tests
     # Equal (n_cases, n_timepoints)
 
-    # As the function is intended to be used for pairwise we assume it isnt a single
+    # As the function is intended to be used for pairwise we assume it isn't a single
     # multivariate time series but two collections of univariate
     x_multi_2d = make_example_2d_numpy_collection(10, 20, return_y=False)
     is_multivariate = _is_numpy_list_multivariate(x_multi_2d)

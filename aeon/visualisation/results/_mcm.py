@@ -127,7 +127,7 @@ def create_multi_comparison_matrix(
     colormap: str, default = 'coolwarm'
         The colormap used in matplotlib, if set to None, no color map is used and the
         heatmap is turned off, no colors will be seen.
-    fig_size: str ot tuple of two int, default = 'auto'
+    fig_size: str or tuple of two int, default = 'auto'
         The height and width of the figure, if 'auto', use _get_fig_size function in
         utils.py. Note that the fig size values are in matplotlib units.
     font_size: int, default = 17
@@ -147,7 +147,7 @@ def create_multi_comparison_matrix(
     include_legend: bool, default = True
         Whether or not to show the legend on the MCM.
     show_symetry: bool, default = True
-        Whether or not to show the symetrical part of the heatmap.
+        Whether or not to show the symmetrical part of the heatmap.
 
     Returns
     -------
