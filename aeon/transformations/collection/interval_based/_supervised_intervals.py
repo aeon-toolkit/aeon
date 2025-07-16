@@ -261,6 +261,7 @@ class SupervisedIntervals(BaseCollectionTransformer):
         self.intervals_ = []
 
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
+        self._n_jobs = check_n_jobs(self.n_jobs)
 
         if self.n_cases_ <= 1:
             raise ValueError(
@@ -348,8 +349,6 @@ class SupervisedIntervals(BaseCollectionTransformer):
             self._metric = fisher_score
         else:
             raise ValueError("metric must be callable or 'fisher'")
-
-        self._n_jobs = check_n_jobs(self.n_jobs)
 
         le = preprocessing.LabelEncoder()
         return X, le.fit_transform(y), rng
