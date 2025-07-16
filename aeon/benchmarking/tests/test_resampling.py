@@ -107,7 +107,7 @@ def test_resample_data_indices():
     concat = np.concatenate((train_indices, test_indices), axis=0)
     assert len(np.unique(concat)) == len(concat)
 
-    # expected indicies after resampling
+    # expected indices after resampling
     np.testing.assert_array_equal(
         concat,
         [
@@ -277,7 +277,7 @@ def test_stratified_resample_data_indices():
     concat = np.concatenate((train_indices, test_indices), axis=0)
     assert len(np.unique(concat)) == len(concat)
 
-    # expected indicies after resampling
+    # expected indices after resampling
     np.testing.assert_array_equal(
         concat,
         [
