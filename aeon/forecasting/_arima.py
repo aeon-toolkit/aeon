@@ -174,8 +174,8 @@ class ARIMAForecaster(BaseForecaster):
 def _aic(residuals, num_params):
     """Calculate the log-likelihood of a model."""
     variance = np.mean(residuals**2)
-    liklihood = len(residuals) * (np.log(2 * np.pi) + np.log(variance) + 1)
-    return liklihood + 2 * num_params
+    likelihood = len(residuals) * (np.log(2 * np.pi) + np.log(variance) + 1)
+    return likelihood + 2 * num_params
 
 
 @njit(fastmath=True)
