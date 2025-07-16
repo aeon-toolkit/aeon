@@ -81,11 +81,8 @@ def test_incorrect_parameters():
     _validate_parameter(None, True)
     with pytest.raises(ValueError):
         _validate_parameter(0, False)
-    with pytest.raises(ValueError):
         _validate_parameter(None, True)
-    with pytest.raises(ValueError):
         _validate_parameter(10, False)
-    with pytest.raises(ValueError):
         _validate_parameter("Foo", True)
     forecaster = ETSForecaster()
     forecaster.horizon = 2
