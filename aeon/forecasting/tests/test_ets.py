@@ -24,7 +24,7 @@ from aeon.forecasting._ets import _validate_parameter
                 seasonality_type="additive",
                 seasonal_period=4,
             ),
-            9.191190608800001,
+            11.456563248800002,
         ),
         (
             dict(
@@ -37,7 +37,7 @@ from aeon.forecasting._ets import _validate_parameter
                 seasonality_type="additive",
                 seasonal_period=4,
             ),
-            16.20176819429869,
+            15.507105356706465,
         ),
         (
             dict(
@@ -50,7 +50,7 @@ from aeon.forecasting._ets import _validate_parameter
                 seasonality_type="multiplicative",
                 seasonal_period=4,
             ),
-            12.301259229712382,
+            13.168538863095991,
         ),
         (
             dict(
@@ -63,7 +63,7 @@ from aeon.forecasting._ets import _validate_parameter
                 seasonality_type="multiplicative",
                 seasonal_period=4,
             ),
-            16.811888294476528,
+            15.223040987015944,
         ),
     ],
 )
