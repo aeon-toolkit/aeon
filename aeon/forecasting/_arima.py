@@ -96,20 +96,23 @@ class ARIMAForecaster(BaseForecaster):
             Fitted ARIMAForecaster.
         """
         self._series = np.array(y.squeeze(), dtype=np.float64)
+        # Model is an array of the (c,p,q)
         self._model = np.array(
             (1 if self.use_constant else 0, self.p, self.q), dtype=np.int32
         )
         self._differenced_series = np.diff(self._series, n=self.d)
-
+        # Nelder Mead returns the parameters in a single array
         (self._parameters, self.aic_) = nelder_mead(
             _arima_model_wrapper,
             np.sum(self._model[:3]),
             self._differenced_series,
             self._model,
         )
+        # Extract the parameter values
         (self.c_, self.phi_, self.theta_) = _extract_params(
             self._parameters, self._model
         )
+        #
         (self.aic_, self.residuals_, self.fitted_values_) = _arima_model(
             self._parameters,
             _calc_arma,
@@ -117,13 +120,13 @@ class ARIMAForecaster(BaseForecaster):
             self._model,
             np.empty(0),
         )
-        self.forecast_ = _calc_arma(
-            self._differenced_series,
-            self._model,
-            len(y),
-            self._parameters,
-            self.residuals_,
-        )
+        # self.forecast_ = _calc_arma(
+        #     self._differenced_series,
+        #     self._model,
+        #     len(y),
+        #     self._parameters,
+        #     self.residuals_,
+        # )
 
         return self
 
