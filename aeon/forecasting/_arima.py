@@ -56,7 +56,7 @@ class ARIMAForecaster(BaseForecaster):
     >>> y = load_airline()
     >>> forecaster = ARIMAForecaster(p=2,d=1)
     >>> forecaster.forecast(y)
-    474.49449...
+    np.float64(474.4944911737508)
     """
 
     _tags = {
