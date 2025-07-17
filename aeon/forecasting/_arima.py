@@ -1,10 +1,10 @@
-"""ARIMAForecaster.
+"""ARIMA.
 
 An implementation of the ARIMA forecasting algorithm.
 """
 
 __maintainer__ = ["alexbanwell1", "TonyBagnall"]
-__all__ = ["ARIMAForecaster"]
+__all__ = ["ARIMA"]
 
 import numpy as np
 from numba import njit
@@ -13,7 +13,7 @@ from aeon.forecasting.base import BaseForecaster
 from aeon.utils.optimisation._nelder_mead import nelder_mead
 
 
-class ARIMAForecaster(BaseForecaster):
+class ARIMA(BaseForecaster):
     """AutoRegressive Integrated Moving Average (ARIMA) forecaster.
 
     ARIMA with fixed model structure and fitted parameters found with an
@@ -51,10 +51,10 @@ class ARIMAForecaster(BaseForecaster):
 
     Examples
     --------
-    >>> from aeon.forecasting import ARIMAForecaster
+    >>> from aeon.forecasting import ARIMA
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()
-    >>> forecaster = ARIMAForecaster(p=2,d=1)
+    >>> forecaster = ARIMA(p=2,d=1)
     >>> forecaster.forecast(y)
     np.float64(474.4944911737508)
     """
@@ -93,7 +93,7 @@ class ARIMAForecaster(BaseForecaster):
         Returns
         -------
         self
-            Fitted ARIMAForecaster.
+            Fitted ARIMA.
         """
         self._series = np.array(y.squeeze(), dtype=np.float64)
         # Model is an array of the (c,p,q)

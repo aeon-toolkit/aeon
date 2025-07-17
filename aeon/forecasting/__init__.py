@@ -6,10 +6,10 @@ __all__ = [
     "RegressionForecaster",
     "ETSForecaster",
     "TVPForecaster",
-    "ARIMAForecaster",
+    "ARIMA",
 ]
 
-from aeon.forecasting._arima import ARIMAForecaster
+from aeon.forecasting._arima import ARIMA
 from aeon.forecasting._ets import ETSForecaster
 from aeon.forecasting._naive import NaiveForecaster
 from aeon.forecasting._regression import RegressionForecaster
