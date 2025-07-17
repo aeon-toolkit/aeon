@@ -94,6 +94,7 @@ class ARIMA(BaseForecaster):
         self._differenced_series = np.diff(self._series, n=self.d)
         # Nelder Mead returns the parameters in a single array
         (self._parameters, self.aic_) = nelder_mead(
+            0,
             np.sum(self._model[:3]),
             self._differenced_series,
             self._model,

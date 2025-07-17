@@ -7,7 +7,16 @@ from aeon.forecasting._loss_functions import _arima_fit
 
 
 @njit(cache=True, fastmath=True)
+def dispatch_loss(fn_id, params, data, model):
+    if fn_id == 0:
+        return _arima_fit(params, data, model)
+    else:
+        raise ValueError("Unknown loss function ID")
+
+
+@njit(cache=True, fastmath=True)
 def nelder_mead(
+    loss_id,
     num_params,
     data,
     model,
@@ -24,6 +33,8 @@ def nelder_mead(
 
     Parameters
     ----------
+    loss_id : int
+        ID for loss function to optimise, used by dispatch_loss.
     num_params : int
         The number of parameters (dimensions) in the optimisation problem.
     data : np.ndarray
@@ -61,12 +72,13 @@ def nelder_mead(
        The Computer Journal, 7(4), 308–313.
        https://doi.org/10.1093/comjnl/7.4.308
     """
-    loss_function = _arima_fit
     points = np.full((num_params + 1, num_params), 0.5)
     for i in range(num_params):
         points[i + 1][i] = 0.6
-    values = np.array([loss_function(v, data, model) for v in points])
-    for _iteration in range(max_iter):
+    values = np.empty(len(points), dtype=np.float64)
+    for i in range(len(points)):
+        values[i] = dispatch_loss(loss_id, points[i].copy(), data, model)
+    for i in range(max_iter):
         # Order simplex by function values
         order = np.argsort(values)
         points = points[order]
@@ -78,7 +90,7 @@ def nelder_mead(
         # Reflection
         # centre + distance between centre and largest value
         reflected_point = centre_point + (centre_point - points[-1])
-        reflected_value = loss_function(reflected_point, data, model)
+        reflected_value = dispatch_loss(0, reflected_point, data, model)
         # if between best and second best, use reflected value
         if len(values) > 1 and values[0] <= reflected_value < values[-2]:
             points[-1] = reflected_point
@@ -88,7 +100,7 @@ def nelder_mead(
         # Otherwise if it is better than the best value
         if reflected_value < values[0]:
             expanded_point = centre_point + 2 * (reflected_point - centre_point)
-            expanded_value = loss_function(expanded_point, data, model)
+            expanded_value = dispatch_loss(0, expanded_point, data, model)
             # if less than reflected value use expanded, otherwise go back to reflected
             if expanded_value < reflected_value:
                 points[-1] = expanded_point
@@ -100,7 +112,7 @@ def nelder_mead(
         # Contraction
         # Otherwise if reflection is worse than all current values
         contracted_point = centre_point - 0.5 * (centre_point - points[-1])
-        contracted_value = loss_function(contracted_point, data, model)
+        contracted_value = dispatch_loss(0, contracted_point, data, model)
         # If contraction is better use that otherwise move to shrinkage
         if contracted_value < values[-1]:
             points[-1] = contracted_point
@@ -110,7 +122,7 @@ def nelder_mead(
         # Shrinkage
         for i in range(1, len(points)):
             points[i] = points[0] - 0.5 * (points[0] - points[i])
-            values[i] = loss_function(points[i], data, model)
+            values[i] = dispatch_loss(0, points[i], data, model)
 
         # Convergence check
         if np.max(np.abs(values - values[0])) < tol:

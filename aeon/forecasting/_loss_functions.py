@@ -13,20 +13,31 @@ def _arima_fit(params, data, model):
     n = len(data)
     residuals = np.zeros(n)
     fitted_values = np.zeros(n)
+    c = formatted_params[0][0] if model[0] else 0
+    p = model[1]
+    q = model[2]
+    # AR part
+    phi = formatted_params[1][:p]
+    theta = formatted_params[2][:q]
     for t in range(n):
-        fitted_values[t] = _in_sample_forecast(
-            data,
-            model,
-            t,
-            formatted_params,
-            residuals,
-        )
+        ar_term = 0 if (t - p) < 0 else np.dot(phi, data[t - p : t][::-1])
+        ma_term = 0 if (t - q) < 0 else np.dot(theta, residuals[t - q : t][::-1])
+        fitted_values[t] = c + ar_term + ma_term
         residuals[t] = data[t] - fitted_values[t]
     return _aic(residuals, len(params))
 
 
 @njit(cache=True, fastmath=True)
-def _in_sample_forecast(data, model, t, formatted_params, residuals):
+def _in_sample_forecast(
+    data,
+    model,
+    t,
+    formatted_params,
+    residuals,
+    p,
+    q,
+    phi,
+):
     """Calculate the ARMA forecast for time t."""
     p = model[1]
     q = model[2]
@@ -46,8 +57,6 @@ def _in_sample_forecast(data, model, t, formatted_params, residuals):
 @njit(cache=True, fastmath=True)
 def _extract_params(params, model):
     """Extract ARIMA parameters from the parameter vector."""
-    if len(params) != np.sum(model):
-        model = model[:-1]  # Remove the seasonal period
     starts = np.cumsum(np.concatenate((np.zeros(1, dtype=np.int32), model[:-1])))
     n = len(starts)
     max_len = np.max(model)
