@@ -56,7 +56,7 @@ class ARIMA(BaseForecaster):
     >>> y = load_airline()
     >>> forecaster = ARIMA(p=2,d=1)
     >>> forecaster.forecast(y)
-    np.float64(474.4944911737508)
+    474.4944911737508
     """
 
     _tags = {
@@ -203,7 +203,7 @@ class ARIMA(BaseForecaster):
     def _forecast(self, y, exog=None):
         """Forecast one ahead for time series y."""
         self.fit(y, exog)
-        return self.forecast_
+        return float(self.forecast_)
 
     def iterative_forecast(self, y, prediction_horizon):
         self.fit(y)
