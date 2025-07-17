@@ -108,10 +108,6 @@ class ARIMAForecaster(BaseForecaster):
             self._differenced_series,
             self._model,
         )
-        # Extract the parameter values
-        (self.c_, self.phi_, self.theta_) = _extract_params(
-            self._parameters, self._model
-        )
         #
         (self.aic_, self.residuals_, self.fitted_values_) = _arima_model(
             self._parameters,
@@ -137,31 +133,72 @@ class ARIMAForecaster(BaseForecaster):
             self.forecast_ = differenced_forecast + self._series[-1]
         else:
             self.forecast_ = differenced_forecast + np.sum(self._series[-self.d :])
+        # Extract the parameter values
+        self.c_ = formatted_params[0][0]
+        self.phi_ = formatted_params[1][: self.p]
+        self.theta_ = formatted_params[2][: self.q]
+
         return self
 
     def _predict(self, y, exog=None):
         """
-        Predict the next step ahead for training data or y.
+        Predict the next step ahead for y.
 
         Parameters
         ----------
         y : np.ndarray, default = None
-            A time series to predict the next horizon value for. If None,
-            predict the next horizon value after series seen in fit.
+            A time series to predict the value of. y can be independent of the series
+            seen in fit.
         exog : np.ndarray, default =None
             Optional exogenous time series data assumed to be aligned with y
 
         Returns
         -------
         float
-            Prediction 1 step ahead of the data seen in fit or passed as y.
+            Prediction 1 step ahead of the last value in y.
         """
-        series = y.squeeze()
-        # Difference the series using numpy
-        differenced_series = np.diff(self._series, n=self.d)
-        pred = _single_forecast(differenced_series, self.c_, self.phi_, self.theta_)
-        forecast = pred + series[-self.d :].sum() if self.d > 0 else pred
-        return forecast
+        y = y.squeeze()
+        p, q, d = self.p, self.q, self.d
+        phi, theta = self.phi_, self.theta_
+        c = 0.0
+        if self.use_constant:
+            c = self.c_
+
+        # Apply differencing
+        if d > 0:
+            if len(y) <= d:
+                raise ValueError("Series too short for differencing.")
+            y_diff = np.diff(y, n=d)
+        else:
+            y_diff = y
+
+        n = len(y_diff)
+        if n < max(p, q):
+            raise ValueError("Series too short for ARMA(p,q) with given order.")
+
+        # Estimate in-sample residuals using model (fixed parameters)
+        residuals = np.zeros(n)
+        for t in range(max(p, q), n):
+            ar_part = np.dot(phi, y_diff[t - np.arange(1, p + 1)]) if p > 0 else 0.0
+            ma_part = (
+                np.dot(theta, residuals[t - np.arange(1, q + 1)]) if q > 0 else 0.0
+            )
+            pred = c + ar_part + ma_part
+            residuals[t] = y_diff[t] - pred
+
+        # Use most recent p values of y_diff and q values of residuals to forecast t+1
+        ar_forecast = np.dot(phi, y_diff[-np.arange(1, p + 1)]) if p > 0 else 0.0
+        ma_forecast = np.dot(theta, residuals[-np.arange(1, q + 1)]) if q > 0 else 0.0
+
+        forecast_diff = c + ar_forecast + ma_forecast
+
+        # Undifference the forecast
+        if d == 0:
+            return forecast_diff
+        elif d == 1:
+            return forecast_diff + y[-1]
+        else:
+            return forecast_diff + np.sum(y[-d:])
 
     def _forecast(self, y, exog=None):
         """Forecast one ahead for time series y."""
@@ -170,15 +207,47 @@ class ARIMAForecaster(BaseForecaster):
 
     def iterative_forecast(self, y, prediction_horizon):
         self.fit(y)
-        preds = np.zeros(prediction_horizon)
-        preds[0] = self.forecast_
-        differenced_series = np.diff(self._series, n=self.d)
-        for i in range(1, prediction_horizon):
-            differenced_series = np.append(differenced_series, preds[i - 1])
-            preds[i] = _single_forecast(
-                differenced_series, self.c_, self.phi_, self.theta_
-            )
-        return preds
+        n = len(self._differenced_series)
+        p, q = self.p, self.q
+        phi, theta = self.phi_, self.theta_
+        h = prediction_horizon
+        c = 0.0
+        if self.use_constant:
+            c = self.c_
+
+        # Start with a copy of the original series and residuals
+        residuals = np.zeros(len(self.residuals_) + h)
+        residuals[: len(self.residuals_)] = self.residuals_
+        forecast_series = np.zeros(n + h)
+        forecast_series[:n] = self._differenced_series
+        for i in range(h):
+            # Get most recent p values (lags)
+            t = n + i
+            ar_term = 0.0
+            if p > 0:
+                ar_term = np.dot(phi, forecast_series[t - np.arange(1, p + 1)])
+            # Get most recent q residuals (lags)
+            ma_term = 0.0
+            if q > 0:
+                ma_term = np.dot(theta, residuals[t - np.arange(1, q + 1)])
+            next_value = c + ar_term + ma_term
+            # Append prediction and a zero residual (placeholder)
+            forecast_series[n + i] = next_value
+            # Can't compute real residual during prediction, leave as zero
+
+        # Correct differencing using forecast values
+        y_forecast_diff = forecast_series[n : n + h]
+        d = self.d
+        if d == 0:
+            return y_forecast_diff
+        else:  # Correct undifferencing
+            # Start with last d values from original y
+            undiff = list(self._series[-d:])
+            for i in range(h):
+                # Take the last d values and sum them
+                reconstructed = y_forecast_diff[i] + sum(undiff[-d:])
+                undiff.append(reconstructed)
+            return np.array(undiff[d:])
 
 
 @njit(cache=True, fastmath=True)
@@ -263,7 +332,7 @@ def _calc_arma(data, model, t, formatted_params, residuals, expect_full_history=
     return y_hat
 
 
-@njit(cache=True, fastmath=True)
+# @njit(cache=True, fastmath=True)
 def _single_forecast(series, c, phi, theta):
     """Calculate the ARMA forecast with fixed model.
 
