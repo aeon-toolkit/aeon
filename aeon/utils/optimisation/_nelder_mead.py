@@ -11,7 +11,7 @@ def nelder_mead(
     data,
     model,
     tol=1e-6,
-    max_iter=50,
+    max_iter=500,
 ):
     """
     Perform optimisation using the Nelder–Mead simplex algorithm.

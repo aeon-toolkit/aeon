@@ -126,7 +126,7 @@ class ARIMAForecaster(BaseForecaster):
         differenced_forecast = _calc_arma(
             self._differenced_series,
             self._model,
-            len(self._series),
+            len(self._differenced_series),
             formatted_params,
             self.residuals_,
             expect_full_history=True,
