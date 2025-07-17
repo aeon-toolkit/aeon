@@ -4,14 +4,14 @@ import numpy as np
 from numba import njit
 
 
-@njit(fastmath=True)
+@njit(cache=True, fastmath=True)
 def nelder_mead(
     loss_function,
     num_params,
     data,
     model,
     tol=1e-6,
-    max_iter=500,
+    max_iter=50,
 ):
     """
     Perform optimisation using the Nelder–Mead simplex algorithm.

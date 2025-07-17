@@ -120,14 +120,23 @@ class ARIMAForecaster(BaseForecaster):
             self._model,
             np.empty(0),
         )
-        # self.forecast_ = _calc_arma(
-        #     self._differenced_series,
-        #     self._model,
-        #     len(y),
-        #     self._parameters,
-        #     self.residuals_,
-        # )
+        formatted_params = _extract_params(self._parameters, self._model)  # Extract
+        # parameters
 
+        differenced_forecast = _calc_arma(
+            self._differenced_series,
+            self._model,
+            len(self._series),
+            formatted_params,
+            self.residuals_,
+            expect_full_history=True,
+        )
+        if self.d == 0:
+            self.forecast_ = differenced_forecast
+        elif self.d == 1:
+            self.forecast_ = differenced_forecast + self._series[-1]
+        else:
+            self.forecast_ = differenced_forecast + np.sum(self._series[-self.d :])
         return self
 
     def _predict(self, y, exog=None):
@@ -152,7 +161,6 @@ class ARIMAForecaster(BaseForecaster):
         differenced_series = np.diff(self._series, n=self.d)
         pred = _single_forecast(differenced_series, self.c_, self.phi_, self.theta_)
         forecast = pred + series[-self.d :].sum() if self.d > 0 else pred
-        # Need to undifference it!
         return forecast
 
     def _forecast(self, y, exog=None):
@@ -218,13 +226,7 @@ def _arima_model(params, base_function, data, model, residuals):
 def _extract_params(params, model):
     """Extract ARIMA parameters from the parameter vector."""
     if len(params) != np.sum(model):
-        previous_length = np.sum(model)
         model = model[:-1]  # Remove the seasonal period
-        if len(params) != np.sum(model):
-            raise ValueError(
-                f"Expected {previous_length} parameters for a non-seasonal model or \
-                    {np.sum(model)} parameters for a seasonal model, got {len(params)}"
-            )
     starts = np.cumsum(np.concatenate((np.zeros(1, dtype=np.int32), model[:-1])))
     n = len(starts)
     max_len = np.max(model)
@@ -239,15 +241,15 @@ def _extract_params(params, model):
 @njit(cache=True, fastmath=True)
 def _calc_arma(data, model, t, formatted_params, residuals, expect_full_history=False):
     """Calculate the ARMA forecast for time t."""
-    if len(model) != 3:
-        raise ValueError("Model must be of the form (c, p, q)")
+    # if len(model) != 3:
+    #     raise ValueError("Model must be of the form (c, p, q)")
     p = model[1]
     q = model[2]
-    if expect_full_history and (t - p < 0 or t - q < 0):
-        raise ValueError(
-            f"Insufficient data for ARIMA model at time {t}. "
-            f"Expected at least {p} past values for AR and {q} for MA."
-        )
+    # if expect_full_history and (t - p < 0 or t - q < 0):
+    #     raise ValueError(
+    #         f"Insufficient data for ARIMA model at time {t}. "
+    #         f"Expected at least {p} past values for AR and {q} for MA."
+    #     )
     # AR part
     phi = formatted_params[1][:p]
     ar_term = 0 if (t - p) < 0 else np.dot(phi, data[t - p : t][::-1])
