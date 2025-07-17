@@ -4,7 +4,7 @@ import numpy as np
 from numba import njit
 
 
-@njit(fastmath=True)
+@njit(cache=True, fastmath=True)
 def nelder_mead(
     loss_function,
     num_params,

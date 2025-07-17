@@ -9,8 +9,8 @@ __all__ = ["ARIMA"]
 import numpy as np
 from numba import njit
 
+from aeon.forecasting._nelder_mead import nelder_mead
 from aeon.forecasting.base import BaseForecaster
-from aeon.utils.optimisation._nelder_mead import nelder_mead
 
 
 class ARIMA(BaseForecaster):
@@ -48,15 +48,6 @@ class ARIMA(BaseForecaster):
     .. [1] R. J. Hyndman and G. Athanasopoulos,
        Forecasting: Principles and Practice. OTexts, 2014.
        https://otexts.com/fpp3/
-
-    Examples
-    --------
-    >>> from aeon.forecasting import ARIMA
-    >>> from aeon.datasets import load_airline
-    >>> y = load_airline()
-    >>> forecaster = ARIMA(p=2,d=1)
-    >>> forecaster.forecast(y)
-    474.4944911737508
     """
 
     _tags = {
@@ -111,7 +102,7 @@ class ARIMA(BaseForecaster):
         #
         (self.aic_, self.residuals_, self.fitted_values_) = _arima_model(
             self._parameters,
-            _calc_arma,
+            _in_sample_forecast,
             self._differenced_series,
             self._model,
             np.empty(0),
@@ -119,7 +110,7 @@ class ARIMA(BaseForecaster):
         formatted_params = _extract_params(self._parameters, self._model)  # Extract
         # parameters
 
-        differenced_forecast = _calc_arma(
+        differenced_forecast = _in_sample_forecast(
             self._differenced_series,
             self._model,
             len(self._differenced_series),
@@ -260,7 +251,7 @@ def _aic(residuals, num_params):
 
 @njit(fastmath=True)
 def _arima_model_wrapper(params, data, model):
-    return _arima_model(params, _calc_arma, data, model, np.empty(0))[0]
+    return _arima_model(params, _in_sample_forecast, data, model, np.empty(0))[0]
 
 
 # Define the ARIMA(p, d, q) likelihood function
@@ -308,17 +299,12 @@ def _extract_params(params, model):
 
 
 @njit(cache=True, fastmath=True)
-def _calc_arma(data, model, t, formatted_params, residuals, expect_full_history=False):
+def _in_sample_forecast(
+    data, model, t, formatted_params, residuals, expect_full_history=False
+):
     """Calculate the ARMA forecast for time t."""
-    # if len(model) != 3:
-    #     raise ValueError("Model must be of the form (c, p, q)")
     p = model[1]
     q = model[2]
-    # if expect_full_history and (t - p < 0 or t - q < 0):
-    #     raise ValueError(
-    #         f"Insufficient data for ARIMA model at time {t}. "
-    #         f"Expected at least {p} past values for AR and {q} for MA."
-    #     )
     # AR part
     phi = formatted_params[1][:p]
     ar_term = 0 if (t - p) < 0 else np.dot(phi, data[t - p : t][::-1])
@@ -330,27 +316,3 @@ def _calc_arma(data, model, t, formatted_params, residuals, expect_full_history=
     c = formatted_params[0][0] if model[0] else 0
     y_hat = c + ar_term + ma_term
     return y_hat
-
-
-# @njit(cache=True, fastmath=True)
-def _single_forecast(series, c, phi, theta):
-    """Calculate the ARMA forecast with fixed model.
-
-    This is equivalent to filter in statsmodels. Assumes differenced if necessary.
-    """
-    p = len(phi)
-    q = len(theta)
-    n = len(series)
-    residuals = np.zeros(n)
-    max_lag = max(p, q)
-    # Compute in-sample residuals
-    for t in range(max_lag, n):
-        ar_part = np.dot(phi, series[t - np.arange(1, p + 1)]) if p > 0 else 0.0
-        ma_part = np.dot(theta, residuals[t - np.arange(1, q + 1)]) if q > 0 else 0.0
-        pred = c + ar_part + ma_part
-        residuals[t] = series[t] - pred
-    # Forecast next value using most recent p values and q residuals
-    ar_forecast = np.dot(phi, series[-p:][::-1]) if p > 0 else 0.0
-    ma_forecast = np.dot(theta, residuals[-q:][::-1]) if q > 0 else 0.0
-    f = c + ar_forecast + ma_forecast
-    return f
