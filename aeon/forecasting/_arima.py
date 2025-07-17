@@ -94,7 +94,6 @@ class ARIMA(BaseForecaster):
         self._differenced_series = np.diff(self._series, n=self.d)
         # Nelder Mead returns the parameters in a single array
         (self._parameters, self.aic_) = nelder_mead(
-            _arima_model_wrapper,
             np.sum(self._model[:3]),
             self._differenced_series,
             self._model,
@@ -102,7 +101,6 @@ class ARIMA(BaseForecaster):
         #
         (self.aic_, self.residuals_, self.fitted_values_) = _arima_model(
             self._parameters,
-            _in_sample_forecast,
             self._differenced_series,
             self._model,
             np.empty(0),
@@ -249,14 +247,9 @@ def _aic(residuals, num_params):
     return likelihood + 2 * num_params
 
 
-@njit(fastmath=True)
-def _arima_model_wrapper(params, data, model):
-    return _arima_model(params, _in_sample_forecast, data, model, np.empty(0))[0]
-
-
 # Define the ARIMA(p, d, q) likelihood function
 @njit(cache=True, fastmath=True)
-def _arima_model(params, base_function, data, model, residuals):
+def _arima_model(params, data, model, residuals):
     """Calculate the log-likelihood of an ARIMA model given the parameters."""
     formatted_params = _extract_params(params, model)  # Extract parameters
 
@@ -268,7 +261,7 @@ def _arima_model(params, base_function, data, model, residuals):
     expect_full_history = m > 0  # I.e. we've been provided with some residuals
     fitted_values = np.zeros(num_predictions)
     for t in range(num_predictions):
-        fitted_values[t] = base_function(
+        fitted_values[t] = _in_sample_forecast(
             data,
             model,
             m + t,

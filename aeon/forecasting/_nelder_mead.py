@@ -3,10 +3,11 @@
 import numpy as np
 from numba import njit
 
+from aeon.forecasting._loss_functions import _arima_fit
+
 
 @njit(cache=True, fastmath=True)
 def nelder_mead(
-    loss_function,
     num_params,
     data,
     model,
@@ -23,9 +24,6 @@ def nelder_mead(
 
     Parameters
     ----------
-    loss_function : callable
-        The objective function to minimise. Should accept a 1D NumPy array of length
-        `num_params` and return a scalar value.
     num_params : int
         The number of parameters (dimensions) in the optimisation problem.
     data : np.ndarray
@@ -63,6 +61,7 @@ def nelder_mead(
        The Computer Journal, 7(4), 308–313.
        https://doi.org/10.1093/comjnl/7.4.308
     """
+    loss_function = _arima_fit
     points = np.full((num_params + 1, num_params), 0.5)
     for i in range(num_params):
         points[i + 1][i] = 0.6
