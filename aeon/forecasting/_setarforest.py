@@ -4,14 +4,15 @@ import random
 
 import numpy as np
 
-from aeon.forecasting import SetartreeForecaster
 from aeon.forecasting.base import BaseForecaster
 
+from ._setartree import SETARTree
+
 __maintainer__ = ["TinaJin0228"]
-__all__ = ["SetarforestForecaster"]
+__all__ = ["SETARForest"]
 
 
-class SetarforestForecaster(BaseForecaster):
+class SETARForest(BaseForecaster):
     """
     SETAR-Forest: An ensemble of SETAR-Trees for global time series forecasting.
 
@@ -97,7 +98,7 @@ class SetarforestForecaster(BaseForecaster):
             random_error_threshold = random.uniform(0.01, 0.05)
 
             # Fit a single SETAR-tree
-            tree = SetartreeForecaster(
+            tree = SETARTree(
                 lag=self.lag,
                 horizon=self.horizon,
                 max_depth=self.max_depth,

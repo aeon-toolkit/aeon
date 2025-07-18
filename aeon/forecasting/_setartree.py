@@ -1,16 +1,18 @@
 """SETAR-Tree: A tree algorithm for global time series forecasting."""
 
 import numpy as np
+import pandas as pd
+from scipy.linalg import LinAlgError, solve
 from scipy.stats import f
 from sklearn.linear_model import LinearRegression
 
 from aeon.forecasting.base import BaseForecaster
 
 __maintainer__ = ["TinaJin0228"]
-__all__ = ["SetartreeForecaster"]
+__all__ = ["SETARTree"]
 
 
-class SetartreeForecaster(BaseForecaster):
+class SETARTree(BaseForecaster):
     """
     SETAR-Tree: A tree algorithm for global time series forecasting.
 
@@ -18,16 +20,12 @@ class SetartreeForecaster(BaseForecaster):
     tree algorithm for global time series forecasting" by Godahewa, R., et al. (2023).
 
     The SETAR-Tree forecaster is a global time series model trained across collections
-    of time series, enabling it to learn cross-series patterns. Exogenous variables are
-    treated as additional time series and are concatenated with the target series (y)
-    during training to provide a richer context for model fitting.
+    of time series, enabling it to learn cross-series patterns.
 
     Parameters
     ----------
     lag : int, default=10
         The number of past lags to use as features for forecasting.
-    horizon : int, default=1
-        The number of time steps ahead to forecast.
     max_depth : int, default=10
         The maximum depth of the tree.
     stopping_criteria : {"lin_test", "error_imp", "both"}, default="both"
@@ -41,275 +39,425 @@ class SetartreeForecaster(BaseForecaster):
         The factor by which to divide the significance level at each tree depth.
     error_threshold : float, default=0.03
         The minimum percentage of error reduction required to make a split.
+    n_thresholds : int, default=15
+        The maximum number of candidate thresholds when trying to find the best
+        split point for a single lag.
+    scale : bool, default=False
+        Whether to scale the time series by their mean before processing.
+    seq_significance : bool, default=True
+        Whether to decrease significance level with tree depth.
+    fixed_lag : bool, default=False
+        Whether to use a fixed lag (e.g., Lag{external_lag}) for splitting.
+    external_lag : int, default=0
+        The specific lag to use if fixed_lag is True.
     """
 
     _tags = {
+        "capability:horizon": False,
         "capability:exogenous": True,
     }
 
     def __init__(
         self,
-        lag: int = 10,
-        horizon: int = 1,
-        max_depth: int = 10,
-        stopping_criteria: str = "both",
-        significance: float = 0.05,
-        significance_divider: int = 2,
-        error_threshold: float = 0.03,
+        lag=10,
+        max_depth=10,
+        stopping_criteria="both",
+        significance=0.05,
+        significance_divider=2,
+        error_threshold=0.03,
+        n_thresholds=15,
+        scale=False,
+        seq_significance=True,
+        fixed_lag=False,
+        external_lag=0,
     ):
-        super().__init__(horizon=horizon, axis=1)
         self.lag = lag
         self.max_depth = max_depth
         self.stopping_criteria = stopping_criteria
         self.significance = significance
         self.significance_divider = significance_divider
         self.error_threshold = error_threshold
+        self.n_thresholds = n_thresholds
+        self.scale = scale
+        self.seq_significance = seq_significance
+        self.fixed_lag = fixed_lag
+        self.external_lag = external_lag
+        self.categorical_covariates = []
+        self.numerical_covariates = []
+        super().__init__(horizon=1, axis=0)
 
-        # Attributes to be fitted
-        self.tree_ = {}
-        self.leaf_models_ = {}
+        # Attributes to store fitted model components
+        self.tree_ = None
+        self.th_lags_ = None
+        self.thresholds_ = None
+        self.leaf_models_ = None
+        self.series_means_ = None
+        self.cat_unique_vals_ = {}
+        self.final_lags_ = None
 
-        # for in-sample prediction when y = None in predict()
-        self._last_window = None
+    def _embed(self, x, dimension):
+        if len(x) < dimension:
+            return np.array([]).reshape(0, dimension)
+        y = np.array([x[i : i + dimension] for i in range(len(x) - dimension + 1)])
+        return y[:, ::-1]
 
-    def _create_input_matrix(self, y: np.ndarray):
-        """Create an embedded matrix from multiple time series."""
-        n_series, n_timepoints = y.shape
+    def _create_tree_input_matrix(self, training_set, test_set=None):
+        embedded_rows, final_lags_rows, series_means = [], [], []
+        final_cols = [f"Lag{i}" for i in range(1, self.lag + 1)]
 
-        # We need at least lag + 1 points to create one sample
-        if n_timepoints < self.lag + 1:
-            return None, None
+        for i in range(len(training_set["series"])):
+            time_series = np.asarray(training_set["series"][i], dtype=float)
+            mean = np.mean(time_series) if len(time_series) > 0 else 1.0
+            series_means.append(mean if mean != 0 else 1.0)
 
-        X_list, y_list = [], []
-        for i in range(n_series):
-            series = y[i, :]
-            for j in range(len(series) - self.lag):
-                X_list.append(series[j : j + self.lag])
-                y_list.append(series[j + self.lag])
+            if self.scale and mean != 0:
+                time_series /= mean
 
-        # The paper uses a convention of Lags 1, 2...
-        # we flip the columns to match the convention
-        return np.fliplr(np.array(X_list)), np.array(y_list)
+            embedded = self._embed(time_series, self.lag + 1)
+            if embedded.shape[0] == 0:
+                continue
 
-    def _fit_pr_model(self, X, y):
-        """Fit a Pooled Regression (linear) model."""
-        model = LinearRegression()
-        model.fit(X, y)
-        return model
+            # No covariates currently
+            # covariate_blocks, final_lags_cov_blocks = [], []
 
-    def _calculate_sse(self, model, X, y):
-        """Calculate the Sum of Squared Errors (SSE)."""
-        if len(y) == 0:
-            return 0
-        predictions = model.predict(X)
-        return np.sum((y - predictions) ** 2)
+            embedded_rows.append(embedded)
 
-    def _find_optimal_split(self, X, y):
-        """Find the best lag and threshold for a split."""
-        # currently brute-force grid search method
-        best_split = {"sse": float("inf")}
-        n_samples, n_features = X.shape
+            final_lags_ts = time_series[-self.lag :][::-1]
+            final_lags_rows.append(final_lags_ts)
 
-        for lag_idx in range(n_features):
-            thresholds = np.unique(X[:, lag_idx])
-            for t in thresholds:
-                left_indices = X[:, lag_idx] < t
-                right_indices = X[:, lag_idx] >= t
+        if not embedded_rows:
+            return pd.DataFrame(), pd.DataFrame(), []
 
-                if np.sum(left_indices) == 0 or np.sum(right_indices) == 0:
+        full_embedded_matrix = np.vstack(embedded_rows)
+        embedded_df = pd.DataFrame(full_embedded_matrix, columns=["y"] + final_cols)
+        final_lags_df = pd.DataFrame(np.vstack(final_lags_rows), columns=final_cols)
+        return embedded_df, final_lags_df, series_means
+
+    def _find_cut_point(self, X, y, x_ix, k, criterion="RSS"):
+        n, p = X.shape
+        recheck = 0
+        if len(np.unique(x_ix)) <= 1 or np.all(x_ix == x_ix[0]):
+            return {"cost": np.inf, "need_recheck": 0}
+        q_values = np.linspace(x_ix.min(), x_ix.max(), num=k)
+        q = np.concatenate(([-np.inf], q_values, [np.inf]))
+
+        XtX_chunks, Xty_chunks, yty_chunks, n_chunks = [], [], [], []
+        XtX_right = np.zeros((p, p))
+        Xty_right = np.zeros(p)
+        yty_right = 0.0
+
+        for i in range(len(q) - 1):
+            ix = (x_ix >= q[i]) & (x_ix < q[i + 1])
+            n_s = np.sum(ix)
+            n_chunks.append(n_s)
+            if n_s == 0:
+                XtX_chunks.append(np.zeros((p, p)))
+                Xty_chunks.append(np.zeros(p))
+                yty_chunks.append(0.0)
+            else:
+                X_s, y_s = X[ix], y[ix]
+                XtX_s = X_s.T @ X_s
+                Xty_s = X_s.T @ y_s
+                yty_s = np.sum(y_s**2)
+                XtX_chunks.append(XtX_s)
+                Xty_chunks.append(Xty_s)
+                yty_chunks.append(yty_s)
+                XtX_right += XtX_s
+                Xty_right += Xty_s
+                yty_right += yty_s
+
+        XtX_left = np.zeros((p, p))
+        Xty_left = np.zeros(p)
+        yty_left = 0.0
+        n_left, n_right = 0, n
+        RSS_left, RSS_right = np.full(k, np.inf), np.full(k, np.inf)
+        AICc_left, AICc_right = np.full(k, np.inf), np.full(k, np.inf)
+
+        for i in range(k):
+            XtX_left += XtX_chunks[i]
+            Xty_left += Xty_chunks[i]
+            yty_left += yty_chunks[i]
+            n_left += n_chunks[i]
+            XtX_right -= XtX_chunks[i]
+            Xty_right -= Xty_chunks[i]
+            yty_right -= yty_chunks[i]
+            n_right -= n_chunks[i]
+
+            if n_left > p + 1 and n_right > p + 1:
+                try:
+                    b_left = solve(XtX_left, Xty_left, assume_a="pos")
+                    rss_l = yty_left - Xty_left @ b_left
+                    RSS_left[i] = max(rss_l, 1e-9)
+                    if n_left > p + 1:
+                        AICc_left[i] = (
+                            n_left / 2 * np.log(2 * np.pi * RSS_left[i] / n_left)
+                            + n_left / 2
+                            + ((p + 1) * n_left) / (n_left - p - 1)
+                        )
+                    b_right = solve(XtX_right, Xty_right, assume_a="pos")
+                    rss_r = yty_right - Xty_right @ b_right
+                    RSS_right[i] = max(rss_r, 1e-9)
+                    if n_right > p + 1:
+                        AICc_right[i] = (
+                            n_right / 2 * np.log(2 * np.pi * RSS_right[i] / n_right)
+                            + n_right / 2
+                            + ((p + 1) * n_right) / (n_right - p - 1)
+                        )
+                except (LinAlgError, ValueError):
+                    recheck += 1
                     continue
 
-                X_left, y_left = X[left_indices], y[left_indices]
-                X_right, y_right = X[right_indices], y[right_indices]
+        scores = AICc_left + AICc_right if criterion == "AICc" else RSS_left + RSS_right
+        if np.all(np.isinf(scores)):
+            return {"cost": np.inf, "need_recheck": recheck}
+        best_idx = np.nanargmin(scores)
+        return {
+            "cost": scores[best_idx],
+            "cut_point": q_values[best_idx],
+            "need_recheck": recheck,
+        }
 
-                model_left = self._fit_pr_model(X_left, y_left)
-                model_right = self._fit_pr_model(X_right, y_right)
+    def _create_split(self, data, conditional_lag_col, threshold):
+        left_node = data[data[conditional_lag_col] < threshold]
+        right_node = data[data[conditional_lag_col] >= threshold]
+        return left_node, right_node
 
-                sse_left = self._calculate_sse(model_left, X_left, y_left)
-                sse_right = self._calculate_sse(model_right, X_right, y_right)
-                total_sse = sse_left + sse_right
+    def _ss(self, p_threshold, train_data, current_lg_col):
+        left, right = self._create_split(train_data, current_lg_col, p_threshold)
+        if left.empty or right.empty:
+            return np.inf
+        res_l = self._fit_global_model(left)
+        res_r = self._fit_global_model(right)
+        residuals_l = left["y"] - res_l["predictions"]
+        residuals_r = right["y"] - res_r["predictions"]
+        return np.sum(residuals_l**2) + np.sum(residuals_r**2)
 
-                if total_sse < best_split["sse"]:
-                    best_split = {
-                        "sse": total_sse,
-                        "lag_idx": lag_idx,
-                        "threshold": t,
-                        "left_indices": left_indices,
-                        "right_indices": right_indices,
-                    }
-        return best_split
-
-    def _check_linearity(self, parent_sse, child_sse, n_samples, current_alpha):
-        """Perform the F-test to check for remaining non-linearity."""
-        # Degrees of freedom for parent and child models
-        # df_parent = n_samples - self.lag - 1
-        df_child = n_samples - 2 * self.lag - 2
-
-        if df_child <= 0:
+    def _check_linearity(self, parent_node, child_nodes, significance):
+        parent_model_res = self._fit_global_model(parent_node)
+        ss0 = np.sum((parent_node["y"] - parent_model_res["predictions"]) ** 2)
+        if ss0 < 1e-9:
             return False
-
-        f_stat = ((parent_sse - child_sse) / (self.lag + 1)) / (child_sse / df_child)
-        p_value = 1 - f.cdf(f_stat, self.lag + 1, df_child)
-
-        return p_value < current_alpha
-
-    def _check_error_improvement(self, parent_sse, child_sse):
-        """Check if the error reduction from splitting is sufficient."""
-        if parent_sse == 0:
+        ss1 = 0
+        for child in child_nodes:
+            if not child.empty:
+                child_model_res = self._fit_global_model(child)
+                ss1 += np.sum((child["y"] - child_model_res["predictions"]) ** 2)
+        df1 = self.lag + 1
+        df2 = parent_node.shape[0] - 2 * self.lag - 2
+        if df2 <= 0 or ss1 < 1e-9:
             return False
-        improvement = (parent_sse - child_sse) / parent_sse
+        f_stat = ((ss0 - ss1) / df1) / (ss1 / df2)
+        p_value = 1.0 - f.cdf(f_stat, df1, df2)
+        return p_value <= significance
+
+    def _check_error_improvement(self, parent_node, child_nodes):
+        parent_model_res = self._fit_global_model(parent_node)
+        ss0 = np.sum((parent_node["y"] - parent_model_res["predictions"]) ** 2)
+        if ss0 < 1e-9:
+            return False
+        ss1 = 0
+        for child in child_nodes:
+            if not child.empty:
+                child_model_res = self._fit_global_model(child)
+                ss1 += np.sum((child["y"] - child_model_res["predictions"]) ** 2)
+        improvement = (ss0 - ss1) / ss0 if ss0 > 0 else 0
         return improvement >= self.error_threshold
 
-    def _fit(self, y, exog=None):
-        """Fit forecaster to time series.
-
-        Concatenate y and exog for model fitting.
-
-        Parameters
-        ----------
-        y : np.ndarray
-            A time series on which to learn a forecaster to predict horizon ahead.
-        exog : np.ndarray, default=None
-            Exogenous time series data, assumed to be aligned with y.
-
-        Returns
-        -------
-        self
-            Fitted estimator
-        """
-        if exog is not None:
-            y = np.vstack([y, exog])
-        else:
-            y = y.reshape(1, -1) if y.ndim == 1 else y
-
-        # store last `lag` for each series
-        self._last_window = y[:, -self.lag :].copy()
-
-        X, y_embedded = self._create_input_matrix(y)
-        if X is None:
-            # If not enough data, fit a single model on what's available
-            self.tree_ = {"is_leaf": True, "node_id": 0}
-            self.leaf_models_[0] = self._fit_pr_model(y[:, :-1], y[:, -1])
-            return self
-
-        current_alpha = self.significance
-
-        # Initialize the tree with a root node
-        self.tree_ = {0: {"X": X, "y": y_embedded, "is_leaf": False}}
-        node_queue = [0]
-        next_node_id = 1
-
-        for _depth in range(self.max_depth):
-            if not node_queue:
+    def _get_leaf_index(self, instance, th_lags, thresholds):
+        current = 0
+        for _level, (lags, threshs) in enumerate(zip(th_lags, thresholds)):
+            if lags[current] in (0, None):
                 break
+            go_right = instance[lags[current]] >= threshs[current]
+            splits_before = sum(1 for x in lags[:current] if x not in (0, None))
+            pass_before = current - splits_before
+            base = splits_before * 2 + pass_before
+            current = base + (1 if go_right else 0)
+        return current
 
-            nodes_at_this_level = list(node_queue)
-            node_queue.clear()
+    def _fit_global_model(self, fitting_data, test_data=None):
+        if "y" not in fitting_data.columns:
+            raise ValueError("'y' column not found in fitting_data")
+        if fitting_data.empty:
+            return {"predictions": [], "model": None}
+        y = fitting_data["y"]
+        X = fitting_data.drop("y", axis=1)
+        model = LinearRegression(fit_intercept=False)
+        model.fit(X, y)
+        if test_data is not None:
+            X_test = test_data[X.columns]
+            predictions = model.predict(X_test)
+        else:
+            predictions = model.predict(X)
+        return {"predictions": predictions, "model": model}
 
-            for node_id in nodes_at_this_level:
-                node = self.tree_[node_id]
+    def _process_input_data(self, y, exog=None):
+        training_set = {"series": [y[:, i] for i in range(y.shape[1])]}
+        if exog is not None:
+            training_set["series"] += [exog[:, i] for i in range(exog.shape[1])]
+        return training_set
 
-                # Try to find the best split for the current node
-                best_split = self._find_optimal_split(node["X"], node["y"])
+    def _fit(self, y, exog=None):
+        training_set = self._process_input_data(y, exog)
+        embedded_series, self.final_lags_, self.series_means_ = (
+            self._create_tree_input_matrix(training_set)
+        )
+        if embedded_series.empty:
+            raise ValueError("Failed to create embedded matrix: insufficient data.")
 
-                if best_split["sse"] == float("inf"):
-                    node["is_leaf"] = True
+        self.tree_ = []
+        self.th_lags_ = []
+        self.thresholds_ = []
+        node_data = [embedded_series]
+        split_info = [1]
+        significance = self.significance
+        start_con = {"nTh": self.n_thresholds}
+
+        for _d in range(self.max_depth):
+            level_th_lags = []
+            level_thresholds = []
+            level_nodes = []
+            level_significant_node_count = 0
+            next_level_split_info = []
+
+            for n, current_node_df in enumerate(node_data):
+                if (
+                    current_node_df.shape[0] <= (2 * (embedded_series.shape[1] - 1) + 2)
+                    or split_info[n] == 0
+                ):
+                    level_th_lags.append(0)
+                    level_thresholds.append(0.0)
+                    level_nodes.append(current_node_df)
+                    next_level_split_info.append(0)
                     continue
 
-                # --- Stopping Criteria ---
-                parent_model = self._fit_pr_model(node["X"], node["y"])
-                parent_sse = self._calculate_sse(parent_model, node["X"], node["y"])
-                child_sse = best_split["sse"]
+                best_cost, best_th, best_th_lag = float("inf"), None, None
+                X_features_df = current_node_df.drop("y", axis=1)
+                lags_to_check = (
+                    [f"Lag{self.external_lag}"]
+                    if self.fixed_lag
+                    else X_features_df.columns
+                )
+                X_node = X_features_df.to_numpy()
+                y_node = current_node_df["y"].to_numpy()
 
-                is_good_split = False
-                if self.stopping_criteria == "lin_test":
-                    is_good_split = self._check_linearity(
-                        parent_sse, child_sse, len(node["y"]), current_alpha
+                for lg_col_name in lags_to_check:
+                    lg_col_idx = X_features_df.columns.get_loc(lg_col_name)
+                    ss_output = self._find_cut_point(
+                        X_node, y_node, X_node[:, lg_col_idx], start_con["nTh"]
                     )
-                elif self.stopping_criteria == "error_imp":
-                    is_good_split = self._check_error_improvement(parent_sse, child_sse)
-                elif self.stopping_criteria == "both":
-                    is_good_split = self._check_linearity(
-                        parent_sse, child_sse, len(node["y"]), current_alpha
-                    ) and self._check_error_improvement(parent_sse, child_sse)
+                    if ss_output is None:
+                        ss_output = {
+                            "cost": float("inf"),
+                            "cut_point": None,
+                            "need_recheck": 0,
+                        }
+                    cost = ss_output["cost"]
 
-                if is_good_split:
-                    node["split_info"] = {
-                        "lag_idx": best_split["lag_idx"],
-                        "threshold": best_split["threshold"],
-                    }
+                    if ss_output["need_recheck"] > round(start_con["nTh"] * 0.6):
+                        threshs = np.linspace(
+                            current_node_df[lg_col_name].min(),
+                            current_node_df[lg_col_name].max(),
+                            start_con["nTh"],
+                        )
+                        for t in threshs:
+                            cost_ss = self._ss(t, current_node_df, lg_col_name)
+                            if cost_ss < cost:
+                                cost = cost_ss
+                                ss_output["cut_point"] = t
+                    if cost < best_cost:
+                        best_cost = cost
+                        best_th = ss_output.get("cut_point")
+                        best_th_lag = lg_col_name
 
-                    # Create left child
-                    left_id = next_node_id
-                    self.tree_[left_id] = {
-                        "X": node["X"][best_split["left_indices"]],
-                        "y": node["y"][best_split["left_indices"]],
-                        "is_leaf": False,
-                    }
-                    node["left_child"] = left_id
-                    node_queue.append(left_id)
-                    next_node_id += 1
+                is_significant = False
+                if best_cost != float("inf") and best_th is not None:
+                    split_nodes = self._create_split(
+                        current_node_df, best_th_lag, best_th
+                    )
+                    if not split_nodes[0].empty and not split_nodes[1].empty:
+                        if self.stopping_criteria == "lin_test":
+                            is_significant = self._check_linearity(
+                                current_node_df, split_nodes, significance
+                            )
+                        elif self.stopping_criteria == "error_imp":
+                            is_significant = self._check_error_improvement(
+                                current_node_df, split_nodes
+                            )
+                        elif self.stopping_criteria == "both":
+                            is_significant = self._check_linearity(
+                                current_node_df, split_nodes, significance
+                            ) and self._check_error_improvement(
+                                current_node_df, split_nodes
+                            )
 
-                    # Create right child
-                    right_id = next_node_id
-                    self.tree_[right_id] = {
-                        "X": node["X"][best_split["right_indices"]],
-                        "y": node["y"][best_split["right_indices"]],
-                        "is_leaf": False,
-                    }
-                    node["right_child"] = right_id
-                    node_queue.append(right_id)
-                    next_node_id += 1
+                if is_significant:
+                    level_significant_node_count += 1
+                    level_th_lags.append(best_th_lag)
+                    level_thresholds.append(best_th)
+                    level_nodes.extend(split_nodes)
+                    next_level_split_info.extend([1, 1])
                 else:
-                    node["is_leaf"] = True
+                    level_th_lags.append(0)
+                    level_thresholds.append(0.0)
+                    level_nodes.append(current_node_df)
+                    next_level_split_info.append(0)
 
-            # Decrease alpha for the next level
-            current_alpha /= self.significance_divider
+            if level_significant_node_count > 0:
+                self.tree_.append(level_nodes)
+                self.th_lags_.append(level_th_lags)
+                self.thresholds_.append(level_thresholds)
+                node_data = level_nodes
+                split_info = next_level_split_info
+                if self.seq_significance:
+                    significance /= self.significance_divider
+            else:
+                break
 
-        # Fit models for all leaf nodes
-        for node_id, node in self.tree_.items():
-            if node["is_leaf"] or node.get("left_child") is None:
-                self.leaf_models_[node_id] = self._fit_pr_model(node["X"], node["y"])
-                node["is_leaf"] = True
+        leaf_nodes = self.tree_[-1] if self.tree_ else [embedded_series]
+        self.leaf_models_ = [
+            self._fit_global_model(node)["model"] for node in leaf_nodes
+        ]
 
         return self
 
     def _predict(self, y=None, exog=None):
-        self._check_is_fitted()
-
-        # If y is not provided, we predict from the end of the training data
-        if y is None:
-            history = self._last_window.flatten()
+        if y is not None:
+            training_set = self._process_input_data(y, exog)
+            _, current_lags_df, _ = self._create_tree_input_matrix(training_set)
         else:
-            # Ensure y is 2D
-            if y.ndim == 1:
-                y = y.reshape(1, -1)
-            # We take the last 'lag' points of y for the initial prediction
-            history = y[0, -self.lag :]
+            current_lags_df = self.final_lags_.copy()
 
-        predictions = []
+        num_series = current_lags_df.shape[0]
+        forecasts = np.zeros((1, num_series))
 
-        for _ in range(self.horizon):
-            # Find the leaf node for the current history
-            current_node_id = 0
-            while not self.tree_[current_node_id]["is_leaf"]:
-                node = self.tree_[current_node_id]
-                split_info = node["split_info"]
+        horizon_predictions = np.zeros(num_series)
+        for i in range(num_series):
+            instance = current_lags_df.iloc[i]
+            leaf_idx = self._get_leaf_index(instance, self.th_lags_, self.thresholds_)
+            leaf_model = self.leaf_models_[leaf_idx]
+            horizon_predictions[i] = leaf_model.predict(instance.to_frame().T)[0]
+        forecasts[0, :] = horizon_predictions
 
-                # Lags are flipped to match the paper's L1, L2... convention
-                lag_val = np.flip(history)[split_info["lag_idx"]]
+        if self.scale:
+            forecasts *= np.array(self.series_means_)
 
-                if lag_val < split_info["threshold"]:
-                    current_node_id = node["left_child"]
-                else:
-                    current_node_id = node["right_child"]
+        return forecasts.flatten() if num_series == 1 else forecasts
 
-            # Predict using the leaf's model
-            leaf_model = self.leaf_models_[current_node_id]
-            next_pred = leaf_model.predict(history.reshape(1, -1))[0]
-            predictions.append(next_pred)
-
-            # Update history for the next prediction
-            history = np.append(history[1:], next_pred)
-
-        return predictions[self.horizon - 1]
+    def iterative_forecast(self, y, prediction_horizon):
+        # if there are n time series in y, then return n predictions
+        if prediction_horizon < 1:
+            raise ValueError(
+                "The `prediction_horizon` must be greater than or equal to 1."
+            )
+        if y.ndim == 1:
+            y = y[:, np.newaxis]
+        n_time, n_vars = y.shape
+        preds = np.zeros((prediction_horizon, n_vars))
+        self.fit(y)
+        current_y = y.copy()
+        for i in range(prediction_horizon):
+            pred = self.predict(current_y)
+            preds[i, :] = pred
+            current_y = np.vstack((current_y, pred.reshape(1, -1)))
+        return preds.squeeze() if n_vars == 1 else preds

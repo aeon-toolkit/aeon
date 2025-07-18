@@ -6,7 +6,7 @@ from sklearn.linear_model import LinearRegression
 from aeon.forecasting.base import BaseForecaster
 
 
-class SetarForecaster(BaseForecaster):
+class SETAR(BaseForecaster):
     """
     SETAR: A classic univariate forecasting algorithm.
 
@@ -20,7 +20,7 @@ class SetarForecaster(BaseForecaster):
     linear autoregressive models.
 
     This implementation is based on the logic from the `get_setar_forecasts`
-    function in the original paper's R code
+    function in the SETAR-tree paper's R code
     (https://github.com/rakshitha123/SETAR_Trees).
 
     Parameters
@@ -28,10 +28,21 @@ class SetarForecaster(BaseForecaster):
     lag : int, default=10
         The maximum number of past lags to consider for both the AR models
         and as the thresholding variable.
+    horizon : int, default=1
+        The number of time steps ahead to forecast.
+
+    Examples
+    --------
+    >>> from aeon.datasets import load_airline
+    >>> from aeon.forecasting._setar import SETAR
+    >>> y = load_airline()
+    >>> forecaster = SETAR(lag=12)
+    >>> forecaster.fit(y)
+    >>> y_pred = forecaster.predict(fh=[1, 2, 3])
     """
 
     def __init__(self, lag: int = 10, horizon: int = 1):
-        super().__init__(horizon=horizon)
+        super().__init__(horizon=horizon, axis=1)
         self.lag = lag
         self.model_ = None
         self._last_window = None
@@ -51,15 +62,15 @@ class SetarForecaster(BaseForecaster):
         best_overall_sse = float("inf")
         best_model_params = None
 
-        for _lag in range(self.lag, 0, -1):
-            if len(y) <= _lag:
+        for lag in range(self.lag, 0, -1):
+            if len(y) <= lag:
                 continue
 
-            X, y_target = self._create_input_matrix(y, _lag)
-            if X.shape[0] < 2 * (_lag + 1):  # Need enough samples to fit two models
+            X, y_target = self._create_input_matrix(y, lag)
+            if X.shape[0] < 2 * (lag + 1):  # Need enough samples to fit two models
                 continue
 
-            # Find the best threshold for the current lag `_lag`
+            # Find the best threshold for the current lag `lag`
             # A deliberate simplification here to take L1; to be implemented
             threshold_lag_idx = 0  # L1
 
@@ -103,7 +114,7 @@ class SetarForecaster(BaseForecaster):
             if best_threshold_sse < best_overall_sse:
                 best_overall_sse = best_threshold_sse
                 best_model_params = best_threshold_params
-                best_model_params["lag_to_fit"] = _lag
+                best_model_params["lag_to_fit"] = lag
                 best_model_params["threshold_lag_idx"] = threshold_lag_idx
 
         if best_model_params:

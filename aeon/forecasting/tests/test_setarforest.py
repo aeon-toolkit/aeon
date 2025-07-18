@@ -2,12 +2,12 @@
 
 import numpy as np
 
-from aeon.forecasting import SetarforestForecaster, SetartreeForecaster
+from aeon.forecasting import SETARForest, SetartreeForecaster
 
 
 def test_forest_initialization():
     """Test that the forest initializes with correct parameters."""
-    forest = SetarforestForecaster(n_estimators=5, bagging_fraction=0.7)
+    forest = SETARForest(n_estimators=5, bagging_fraction=0.7)
     assert forest.n_estimators == 5
     assert forest.bagging_fraction == 0.7
     assert forest.estimators_ == []  # Estimators should be empty before fitting
@@ -15,7 +15,7 @@ def test_forest_initialization():
 
 def test_fit_creates_correct_number_of_trees():
     """Verify that fitting the forest creates the specified number of trees."""
-    forest = SetarforestForecaster(n_estimators=3)
+    forest = SETARForest(n_estimators=3)
     # Create a dummy panel with enough series for bagging
     y_panel = np.random.rand(10, 20)
     y_fit = y_panel[0]
@@ -30,7 +30,7 @@ def test_fit_creates_correct_number_of_trees():
 
 def test_forest_end_to_end_run():
     """Ensure the forest can fit and predict without errors."""
-    forest = SetarforestForecaster(
+    forest = SETARForest(
         n_estimators=2,
         lag=3,
         horizon=1,
