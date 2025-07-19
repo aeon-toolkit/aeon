@@ -64,6 +64,7 @@ class SAX(BaseCollectionTransformer):
 
     _tags = {
         "capability:multivariate": True,
+        "capability:multithreading": True,
         "fit_is_empty": True,
         "algorithm_type": "dictionary",
     }
