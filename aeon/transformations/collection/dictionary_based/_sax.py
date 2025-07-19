@@ -5,10 +5,11 @@ __all__ = ["SAX", "_invert_sax_symbols"]
 
 import numpy as np
 import scipy.stats
-from numba import njit, prange
+from numba import get_num_threads, njit, prange, set_num_threads
 
 from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.transformations.collection.dictionary_based import PAA
+from aeon.utils.validation import check_n_jobs
 
 
 class SAX(BaseCollectionTransformer):
@@ -74,11 +75,12 @@ class SAX(BaseCollectionTransformer):
         distribution="Gaussian",
         distribution_params=None,
         znormalized=True,
+        n_jobs=1,
     ):
         self.n_segments = n_segments
         self.alphabet_size = alphabet_size
         self.distribution = distribution
-
+        self.n_jobs = n_jobs
         self.distribution_params = distribution_params
         self.znormalized = znormalized
 
@@ -182,12 +184,15 @@ class SAX(BaseCollectionTransformer):
         sax_inverse : np.ndarray(n_cases, n_channels, n_timepoints)
             The inverse of sax transform
         """
+        prev_threads = get_num_threads()
+        _n_jobs = check_n_jobs(self.n_jobs)
+        set_num_threads(_n_jobs)
         sax_inverse = _invert_sax_symbols(
             sax_symbols=X,
             n_timepoints=original_length,
             breakpoints_mid=self.breakpoints_mid,
         )
-
+        set_num_threads(prev_threads)
         return sax_inverse
 
     def _generate_breakpoints(
