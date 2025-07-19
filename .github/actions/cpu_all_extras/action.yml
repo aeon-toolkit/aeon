@@ -15,7 +15,7 @@ runs:
   using: "composite"
   steps:
     - name: Install CPU TensorFlow
-      if: ${{ runner.os == 'Linux' && inputs.python_version != '3.13.5' }}
+      if: ${{ runner.os == 'Linux' && inputs.python_version != '3.13' }}
       uses: nick-fields/retry@v3
       with:
         timeout_minutes: 30
