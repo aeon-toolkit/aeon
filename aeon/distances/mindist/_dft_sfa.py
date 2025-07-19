@@ -54,11 +54,14 @@ def mindist_dft_sfa_distance(
     ... )
     >>> x_sfa, _ = transform.fit_transform(x)
     >>> _, y_dft = transform.transform(y)
-    >>> dist = mindist_dft_sfa_distance(y_dft, x_sfa, transform.breakpoints)
+    >>> dist = mindist_dft_sfa_distance(y_dft[0], x_sfa[0], transform.breakpoints)
     """
     if x_dft.ndim == 1 and y_sfa.ndim == 1:
         return _univariate_dft_sfa_distance(x_dft, y_sfa, breakpoints)
-    raise ValueError("x and y must be 1D")
+    raise ValueError(
+        f"x and y must be 1D, but got x of shape {x_dft.shape} and y of shape"
+        f"{y_sfa.shape}"
+    )
 
 
 @njit(cache=True, fastmath=True)
