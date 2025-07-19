@@ -104,19 +104,11 @@ class ARIMA(BaseForecaster):
             self._parameters,
             self._differenced_series,
             self._model,
-            np.empty(0),
         )
         formatted_params = _extract_params(self._parameters, self._model)  # Extract
         # parameters
+        differenced_forecast = self.fitted_values_[-1]
 
-        differenced_forecast = _in_sample_forecast(
-            self._differenced_series,
-            self._model,
-            len(self._differenced_series),
-            formatted_params,
-            self.residuals_,
-            expect_full_history=True,
-        )
         if self.d == 0:
             self.forecast_ = differenced_forecast
         elif self.d == 1:
@@ -251,29 +243,22 @@ def _aic(residuals, num_params):
 
 # Define the ARIMA(p, d, q) likelihood function
 @njit(cache=True, fastmath=True)
-def _arima_model(params, data, model, residuals):
+def _arima_model(params, data, model):
     """Calculate the log-likelihood of an ARIMA model given the parameters."""
     formatted_params = _extract_params(params, model)  # Extract parameters
 
     # Initialize residuals
     n = len(data)
-    m = len(residuals)
-    num_predictions = n - m + 1
-    residuals = np.concatenate((residuals, np.zeros(num_predictions - 1)))
-    expect_full_history = m > 0  # I.e. we've been provided with some residuals
+    num_predictions = n + 1
+    residuals = np.zeros(num_predictions - 1)
     fitted_values = np.zeros(num_predictions)
     for t in range(num_predictions):
         fitted_values[t] = _in_sample_forecast(
-            data,
-            model,
-            m + t,
-            formatted_params,
-            residuals,
-            expect_full_history,
+            data, model, t, formatted_params, residuals
         )
         if t != num_predictions - 1:
             # Only calculate residuals for the predictions we have data for
-            residuals[m + t] = data[m + t] - fitted_values[t]
+            residuals[t] = data[t] - fitted_values[t]
     return _aic(residuals, len(params)), residuals, fitted_values
 
 
@@ -294,10 +279,8 @@ def _extract_params(params, model):
 
 
 @njit(cache=True, fastmath=True)
-def _in_sample_forecast(
-    data, model, t, formatted_params, residuals, expect_full_history=False
-):
-    """Calculate the ARMA forecast for time t."""
+def _in_sample_forecast(data, model, t, formatted_params, residuals):
+    """Calculate the ARMA forecast for time t for fitted model."""
     p = model[1]
     q = model[2]
     # AR part
