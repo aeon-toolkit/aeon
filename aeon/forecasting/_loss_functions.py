@@ -3,13 +3,15 @@
 import numpy as np
 from numba import njit
 
+from aeon.forecasting._extract_paras import _extract_arma_params
+
 LOG_2PI = 1.8378770664093453
 
 
 @njit(cache=True, fastmath=True)
 def _arima_fit(params, data, model):
     """Calculate the AIC of an ARIMA model given the parameters."""
-    formatted_params = _extract_params(params, model)  # Extract parameters
+    formatted_params = _extract_arma_params(params, model)  # Extract parameters
 
     # Initialize residuals
     n = len(data)
@@ -35,26 +37,3 @@ def _arima_fit(params, data, model):
     likelihood = n * (LOG_2PI + np.log(variance) + 1.0)
     k = len(params)
     return likelihood + 2 * k
-
-
-@njit(cache=True, fastmath=True)
-def _extract_params(params, model):
-    """Extract ARIMA parameters from the parameter vector."""
-    n_parts = len(model)
-    starts = np.zeros(n_parts, dtype=np.int32)
-    for i in range(1, n_parts):
-        starts[i] = starts[i - 1] + model[i - 1]
-
-    max_len = np.max(model)
-    result = np.empty((n_parts, max_len), dtype=params.dtype)
-    for i in range(n_parts):
-        for j in range(max_len):
-            result[i, j] = np.nan
-
-    for i in range(n_parts):
-        length = model[i]
-        start = starts[i]
-        for j in range(length):
-            result[i, j] = params[start + j]
-
-    return result

@@ -9,6 +9,7 @@ __all__ = ["ARIMA"]
 import numpy as np
 from numba import njit
 
+from aeon.forecasting._extract_paras import _extract_arma_params
 from aeon.forecasting._nelder_mead import nelder_mead
 from aeon.forecasting.base import BaseForecaster
 
@@ -27,8 +28,10 @@ class ARIMA(BaseForecaster):
         Differencing (d) order of the ARIMA model
     q : int, default=1,
         Moving average (q) order of the ARIMA model
-    use_constant: bool = False,
+    use_constant : bool = False,
         Presence of a constant/intercept term in the model.
+    iterations : int, default = 200
+        Maximum number of iterations to use in the Nelder-Mead parameter search.
 
     Attributes
     ----------
@@ -54,11 +57,19 @@ class ARIMA(BaseForecaster):
         "capability:horizon": False,  # cannot fit to a horizon other than 1
     }
 
-    def __init__(self, p: int = 1, d: int = 0, q: int = 1, use_constant: bool = False):
+    def __init__(
+        self,
+        p: int = 1,
+        d: int = 0,
+        q: int = 1,
+        use_constant: bool = False,
+        iterations: int = 200,
+    ):
         self.p = p
         self.d = d
         self.q = q
         self.use_constant = use_constant
+        self.iterations = iterations
         self.phi_ = 0
         self.theta_ = 0
         self.c_ = 0
@@ -98,6 +109,7 @@ class ARIMA(BaseForecaster):
             np.sum(self._model[:3]),
             self._differenced_series,
             self._model,
+            max_iter=self.iterations,
         )
         #
         (self.aic_, self.residuals_, self.fitted_values_) = _arima_model(
@@ -105,7 +117,9 @@ class ARIMA(BaseForecaster):
             self._differenced_series,
             self._model,
         )
-        formatted_params = _extract_params(self._parameters, self._model)  # Extract
+        formatted_params = _extract_arma_params(
+            self._parameters, self._model
+        )  # Extract
         # parameters
         differenced_forecast = self.fitted_values_[-1]
 
@@ -245,7 +259,7 @@ def _aic(residuals, num_params):
 @njit(cache=True, fastmath=True)
 def _arima_model(params, data, model):
     """Calculate the log-likelihood of an ARIMA model given the parameters."""
-    formatted_params = _extract_params(params, model)  # Extract parameters
+    formatted_params = _extract_arma_params(params, model)  # Extract parameters
 
     # Initialize residuals
     n = len(data)
@@ -263,34 +277,18 @@ def _arima_model(params, data, model):
 
 
 @njit(cache=True, fastmath=True)
-def _extract_params(params, model):
-    """Extract ARIMA parameters from the parameter vector."""
-    if len(params) != np.sum(model):
-        model = model[:-1]  # Remove the seasonal period
-    starts = np.cumsum(np.concatenate((np.zeros(1, dtype=np.int32), model[:-1])))
-    n = len(starts)
-    max_len = np.max(model)
-    result = np.full((n, max_len), np.nan, dtype=params.dtype)
-    for i in range(n):
-        length = model[i]
-        start = starts[i]
-        result[i, :length] = params[start : start + length]
-    return result
-
-
-@njit(cache=True, fastmath=True)
 def _in_sample_forecast(data, model, t, formatted_params, residuals):
-    """Calculate the ARMA forecast for time t for fitted model."""
+    """Efficient ARMA one-step forecast at time t for fitted model."""
     p = model[1]
     q = model[2]
-    # AR part
-    phi = formatted_params[1][:p]
-    ar_term = 0 if (t - p) < 0 else np.dot(phi, data[t - p : t][::-1])
+    c = formatted_params[0][0] if model[0] else 0.0
 
-    # MA part
-    theta = formatted_params[2][:q]
-    ma_term = 0 if (t - q) < 0 else np.dot(theta, residuals[t - q : t][::-1])
+    ar_term = 0.0
+    for j in range(min(p, t)):
+        ar_term += formatted_params[1, j] * data[t - j - 1]
 
-    c = formatted_params[0][0] if model[0] else 0
-    y_hat = c + ar_term + ma_term
-    return y_hat
+    ma_term = 0.0
+    for j in range(min(q, t)):
+        ma_term += formatted_params[2, j] * residuals[t - j - 1]
+
+    return c + ar_term + ma_term
