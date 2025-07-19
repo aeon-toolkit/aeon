@@ -8,20 +8,20 @@ __all__ = ["MassSNN"]
 import numpy as np
 from numba import njit
 
-from aeon.similarity_search.series._base import BaseSeriesSimilaritySearch
 from aeon.similarity_search.series._commons import (
     _check_X_index,
     _extract_top_k_from_dist_profile,
     _inverse_distance_profile,
     fft_sliding_dot_product,
 )
+from aeon.similarity_search.subsequence._base import BaseSubsequenceSearch
 from aeon.utils.numba.general import (
     AEON_NUMBA_STD_THRESHOLD,
     sliding_mean_std_one_series,
 )
 
 
-class MassSNN(BaseSeriesSimilaritySearch):
+class MassSNN(BaseSubsequenceSearch):
     """
     Estimator to compute the subsequences nearest neighbors using MASS _[1].
 
@@ -38,6 +38,12 @@ class MassSNN(BaseSeriesSimilaritySearch):
     Viswanathan, Chetan Kumar Gupta and Eamonn Keogh (2015), The Fastest Similarity
     Search Algorithm for Time Series Subsequences under Euclidean Distance.
     """
+
+    _tags = {
+        "capability:unequal_length": False,
+        "capability:multivariate": True,
+        "capability:multithreading": True,
+    }
 
     def __init__(
         self,
