@@ -124,7 +124,8 @@ class ARIMA(BaseForecaster):
         else:
             self.forecast_ = differenced_forecast + np.sum(self._series[-self.d :])
         # Extract the parameter values
-        self.c_ = formatted_params[0][0]
+        if self.use_constant:
+            self.c_ = formatted_params[0][0]
         self.phi_ = formatted_params[1][: self.p]
         self.theta_ = formatted_params[2][: self.q]
 
