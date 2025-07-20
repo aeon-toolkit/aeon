@@ -102,13 +102,13 @@ class MERLIN(BaseSeriesAnomalyDetector):
 
         r = 2 * np.sqrt(self.min_length)
         distances = np.full(len(lengths), -1.0)
-        indicies = np.full(len(lengths), -1)
+        indices = np.full(len(lengths), -1)
 
-        indicies[0], distances[0] = self._find_index(X, lengths[0], r, np.multiply, 0.5)
+        indices[0], distances[0] = self._find_index(X, lengths[0], r, np.multiply, 0.5)
 
         for i in range(1, min(5, len(lengths))):
             r = distances[i - 1] * 0.99
-            indicies[i], distances[i] = self._find_index(
+            indices[i], distances[i] = self._find_index(
                 X, lengths[i], r, np.multiply, 0.99
             )
 
@@ -116,12 +116,12 @@ class MERLIN(BaseSeriesAnomalyDetector):
             m = mean(distances[i - 5 : i])
             s = std(distances[i - 5 : i])
             r = m - 2 * s
-            indicies[i], distances[i] = self._find_index(
+            indices[i], distances[i] = self._find_index(
                 X, lengths[i], r, np.subtract, s
             )
 
         anomalies = np.zeros(X.shape[0], dtype=bool)
-        for i in indicies:
+        for i in indices:
             if i > -1:
                 anomalies[i] = True
 

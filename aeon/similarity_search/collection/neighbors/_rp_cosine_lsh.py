@@ -125,15 +125,15 @@ class RandomProjectionIndexANN(BaseCollectionSimilaritySearch):
     n_hash_funcs : int, optional
         Number of random hashing function to use to index series. The default is 128.
     hash_func_coverage : float, optional
-        A value in the interval ]0,1] which defines the size L fo the random vectors
+        A value in the interval ]0,1] which defines the size L of the random vectors
         relative to the size of the input time series. The default is 0.25.
     use_discrete_vectors: bool, optional,
-        Wheter to use dicrete vectors with values -1 or 1 as random vector. If false,
+        Whether to use discrete vectors with values -1 or 1 as random vector. If false,
         the values of the random vectors are drawn uniformly between [-1,1].
     random_state: int, optional
         A random seed to seed the index building. The default is None.
     normalize: bool, optional
-        Wheter to z-normalize the input the series during fit and predict before
+        Whether to z-normalize the input the series during fit and predict before
         indexing them.
     n_jobs: int, optional
         Number of parallel threads to use when computing boolean hashes.
@@ -231,8 +231,8 @@ class RandomProjectionIndexANN(BaseCollectionSimilaritySearch):
         k : int, optional
             Number of neighbors to return for each series. The default is 1.
         inverse_distance : bool, optional
-            Wheter to inverse the computed distance, meaning that the method will return
-            the k most dissimilar neighbors instead of the k most similar.
+            Whether to inverse the computed distance, meaning that the method will
+            return the k most dissimilar neighbors instead of the k most similar.
 
         Returns
         -------
@@ -286,7 +286,7 @@ class RandomProjectionIndexANN(BaseCollectionSimilaritySearch):
         else:
             current_k = 0
 
-        # Case where we want to find more neighboors in buckets with similar hash
+        # Case where we want to find more neighbors in buckets with similar hash
         if current_k < k:
             dists = _bool_hamming_dist_matrix(X_bool, self._raw_index_bool_arrays)
 
@@ -298,7 +298,7 @@ class RandomProjectionIndexANN(BaseCollectionSimilaritySearch):
                 ).max
             # Get top k index of keys
             ids = np.argpartition(dists, kth=k)[:k]
-            # and reoder them
+            # and reorder them
             ids = ids[np.argsort(dists[ids])]
 
             _i_bucket = 0
