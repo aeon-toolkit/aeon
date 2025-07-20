@@ -178,7 +178,7 @@ jobs:
         if: runner.os == 'Linux'
         uses: pierotofy/set-swap-space@v1.0
         with:
-          swap-size-gb: 4
+          swap-size-gb: 6
 
       - name: Use numba cache to set env variables but not restore cache
         uses: ./.github/actions/numba_cache
@@ -220,8 +220,7 @@ jobs:
         with:
           python-version: "3.12"
 
-      - if: ${{ github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'no numba cache') }}
-        name: Use numba cache to set env variables but not restore cache
+      - name: Use numba cache to set env variables but not restore cache
         uses: ./.github/actions/numba_cache
         with:
           cache_name: "doctests"
@@ -241,6 +240,39 @@ jobs:
 
       - name: Run tests
         run: python -m pytest -n logical --doctest-only
+
+  multithreaded-estimators:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Use numba cache to set env variables but not restore cache
+        uses: ./.github/actions/numba_cache
+        with:
+          cache_name: "multithreaded-estimators"
+          runner_os: ${{ runner.os }}
+          python_version: "3.12"
+          restore_cache: "false"
+
+      - name: Install aeon and dependencies
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 30
+          max_attempts: 3
+          command: python -m pip install .[all_extras,dev]
+
+      - name: Show dependencies
+        run: python -m pip list
+
+      - name: Run tests
+        run: python -m pytest aeon/testing/tests/ --enablethreading true -k "check_estimator_multithreading"
 
   codecov:
     runs-on: ubuntu-24.04

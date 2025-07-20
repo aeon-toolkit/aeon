@@ -6,7 +6,7 @@ import subprocess
 
 import numba.core.caching
 
-if os.environ.get("CICD_RUNNING") == "1":  # pragma: no cover
+if os.environ.get("CACHING_CICD_RUNNING") == "1":  # pragma: no cover
 
     def get_invalid_numba_files():
         """Get the files that have been changed since the last commit.
