@@ -31,7 +31,7 @@ class BaseDeepForecaster(BaseForecaster):
         The window size for creating input sequences.
     batch_size : int, default=32
         Batch size for training the model.
-    epochs : int, default=100
+    n_epochs : int, default=100
         Number of epochs to train the model.
     verbose : int, default=0
         Verbosity mode (0, 1, or 2).
@@ -39,19 +39,33 @@ class BaseDeepForecaster(BaseForecaster):
         Optimizer to use for training.
     loss : str or tf.keras.losses.Loss, default='mse'
         Loss function for training.
-    random_state : int, default=None
-        Seed for random number generators.
+    random_state : int, RandomState instance or None, default=None
+        If int, random_state is the seed used by the random number generator;
+        If RandomState instance, random_state is the random number generator;
+        If None, the random number generator is the RandomState instance used
+        by np.random.
+        Seeded random number generation can only be guaranteed on CPU processing,
+        GPU processing will be non-deterministic.
     axis : int, default=0
         Axis along which to apply the forecaster.
         Default is 0 for univariate time series.
     """
+
+    _tags = {
+        "capability:horizon": False,
+        "capability:exogenous": False,
+        "algorithm_type": "deeplearning",
+        "non_deterministic": True,
+        "cant_pickle": True,
+        "python_dependencies": "tensorflow",
+    }
 
     def __init__(
         self,
         horizon=1,
         window=10,
         batch_size=32,
-        epochs=100,
+        n_epochs=100,
         verbose=0,
         optimizer="adam",
         loss="mse",
@@ -61,7 +75,7 @@ class BaseDeepForecaster(BaseForecaster):
         self.horizon = horizon
         self.window = window
         self.batch_size = batch_size
-        self.epochs = epochs
+        self.n_epochs = n_epochs
         self.verbose = verbose
         self.optimizer = optimizer
         self.loss = loss
@@ -89,11 +103,12 @@ class BaseDeepForecaster(BaseForecaster):
             Returns an instance of self.
         """
         import tensorflow as tf
+        from sklearn.utils import check_random_state
 
         # Set random seed for reproducibility
-        if self.random_state is not None:
-            np.random.seed(self.random_state)
-            tf.random.set_seed(self.random_state)
+        rng = check_random_state(self.random_state)
+        self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
+        tf.keras.utils.set_random_seed(self.random_state_)
 
         # Convert input data to numpy array
         y_inner = self._convert_input(y)
@@ -111,7 +126,7 @@ class BaseDeepForecaster(BaseForecaster):
 
         # Build and compile the model
         input_shape = X_train.shape[1:]
-        self.model_ = self._build_model(input_shape)
+        self.model_ = self.build_model(input_shape)
         self.model_.compile(optimizer=self.optimizer, loss=self.loss)
 
         # Train the model
@@ -119,7 +134,7 @@ class BaseDeepForecaster(BaseForecaster):
             X_train,
             y_train,
             batch_size=self.batch_size,
-            epochs=self.epochs,
+            epochs=self.n_epochs,
             verbose=self.verbose,
         )
         self.last_window_ = y_inner[-self.window :]
@@ -218,7 +233,7 @@ class BaseDeepForecaster(BaseForecaster):
         return X, y
 
     @abstractmethod
-    def _build_model(self, input_shape):
+    def build_model(self, input_shape):
         """Build the deep learning model.
 
         Parameters

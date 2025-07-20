@@ -14,10 +14,13 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 class SimpleDeepForecaster(BaseDeepForecaster):
     """A simple concrete implementation of BaseDeepForecaster for testing."""
 
-    def __init__(self, horizon=1, window=5, epochs=1, verbose=0):
-        super().__init__(horizon=horizon, window=window, epochs=epochs, verbose=verbose)
+    def __init__(self, horizon=1, window=5, n_epochs=1, verbose=0):
+        super().__init__(
+            horizon=horizon, window=window, n_epochs=n_epochs, verbose=verbose
+        )
 
-    def _build_model(self, input_shape):
+    def build_model(self, input_shape):
+        """Build a simple Keras model for testing."""
         import tensorflow as tf
 
         model = tf.keras.Sequential(
@@ -41,7 +44,7 @@ def test_base_deep_forecaster_fit_predict():
     data = np.random.randn(50)
 
     # Initialize forecaster
-    forecaster = SimpleDeepForecaster(horizon=2, window=5, epochs=1, verbose=0)
+    forecaster = SimpleDeepForecaster(horizon=1, window=5, n_epochs=1, verbose=0)
 
     # Fit the model
     forecaster.fit(data)
@@ -51,8 +54,8 @@ def test_base_deep_forecaster_fit_predict():
 
     # Validate output shape
     assert (
-        len(predictions) == 2
-    ), f"Expected predictions of length 2, got {len(predictions)}"
+        len(predictions) == 1
+    ), f"Expected predictions of length 1, got {len(predictions)}"
     assert isinstance(predictions, np.ndarray), "Predictions should be a numpy array"
 
 
@@ -63,7 +66,7 @@ def test_base_deep_forecaster_fit_predict():
 def test_base_deep_forecaster_insufficient_data():
     """Test error handling for insufficient data."""
     data = np.random.randn(5)
-    forecaster = SimpleDeepForecaster(horizon=2, window=5, epochs=1, verbose=0)
+    forecaster = SimpleDeepForecaster(horizon=1, window=5, n_epochs=1, verbose=0)
 
     with pytest.raises(ValueError, match="Data length.*insufficient"):
         forecaster.fit(data)
