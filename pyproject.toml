@@ -108,7 +108,7 @@ docs = [
     "sphinx-version-warning",
     "sphinx_issues",
     "sphinx-copybutton",
-    "sphinxext-opengraph",
+    "sphinxext-opengraph[social_cards]",
     "nbsphinx",
     "numpydoc",
     "myst-parser",
@@ -186,3 +186,10 @@ filterwarnings = [
     "ignore:numpy.dtype size changed",
     "ignore:numpy.ufunc size changed",
 ]
+
+[tool.codespell]
+ignore-words = ".github/utilities/codespell_ignore_words.txt"
+ignore-regex = '(^\s*"image/\S+": ".*|Binay|Lamba|Mapp|Hart|Sch"afer|SOM|COO)'
+skip = ".venv,.mypy_cache,.git"
+check-filenames = true
+check-hidden = true
