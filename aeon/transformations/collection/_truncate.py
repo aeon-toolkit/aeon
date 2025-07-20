@@ -17,15 +17,15 @@ from aeon.transformations.collection.base import BaseCollectionTransformer
     category=FutureWarning,
 )
 class Truncator(BaseCollectionTransformer):
-    """Truncate unequal length time series to a lower bounds.
+    """Truncate unequal length time series collection to equal length.
 
-    Truncates all series in collection between lower/upper range bounds. This
+    Truncates all series in collection to the same l. This
     transformer assumes that all series have the same number of channels (dimensions)
     and that all channels in a single series are the same length.
 
     Parameters
     ----------
-    truncated_length : int, default=None
+    truncated_length : int or None, default=None
         bottom range of the values to truncate can also be used to truncate
         to a specific length.
         if None, will find the shortest sequence and use instead.
