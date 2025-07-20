@@ -537,11 +537,11 @@ def initialize_shapelet_extraction(
 ):
     """Randomly generate a set of shapelets given the input parameters.
 
-    This step preceeds from the ``random_dilated_shapelet_extraction`` function,
+    This step precedes from the ``random_dilated_shapelet_extraction`` function,
     as we need to spawn new random generator for each dilation. We process each dilation
     in parallel, but using the same random generator is not thread-safe, and we cannot
     call the spawn function inside a njit function. Hence we need to return the number
-    of unique dilation along with the other initialized informations before calling the
+    of unique dilation along with the other initialized information before calling the
     ``random_dilated_shapelet_extraction`` function.
 
     Parameters
