@@ -42,6 +42,7 @@ def test_base_deep_forecaster_fit_predict():
     # Generate synthetic data
     np.random.seed(42)
     data = np.random.randn(50)
+    y = np.random.randn(10)
 
     # Initialize forecaster
     forecaster = SimpleDeepForecaster(horizon=1, window=5, n_epochs=1, verbose=0)
@@ -50,7 +51,7 @@ def test_base_deep_forecaster_fit_predict():
     forecaster.fit(data)
 
     # Predict
-    predictions = forecaster.predict()
+    predictions = forecaster.predict(y)
 
     # Validate output shape
     assert (
