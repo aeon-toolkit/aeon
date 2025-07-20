@@ -53,9 +53,9 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
     features from each pair of shapelets and input series. Three features are extracted:
         - min d(S,X): the minimum value of the distance vector between a shapelet S and
         a time series X.
-        - argmin d(S,X): the location of the minumum.
+        - argmin d(S,X): the location of the minimum.
         - SO(d(S,X), threshold): The number of points in the distance vector that are
-        bellow the threshold parameter of the shapelet.
+        below the threshold parameter of the shapelet.
 
     Parameters
     ----------
@@ -182,7 +182,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
         y: array-like or list, default=None
             The class values for X. If not specified, a random sample (i.e. not of the
             same class) will be used when computing the threshold for the Shapelet
-            Occurence feature.
+            Occurrence feature.
 
         Returns
         -------
@@ -963,7 +963,7 @@ def compute_shapelet_features(
     distance vector:
         - min
         - argmin
-        - Shapelet Occurence : number of point in the distance vector inferior to the
+        - Shapelet Occurrence : number of point in the distance vector inferior to the
         threshold parameter
 
     Parameters
@@ -979,7 +979,7 @@ def compute_shapelet_features(
 
     Returns
     -------
-    min, argmin, shapelet occurence
+    min, argmin, shapelet occurrence
         The three computed features as float dtypes
     """
     _min = np.inf
@@ -1013,7 +1013,7 @@ def compute_shapelet_dist_vector(
     distance vector:
         - min
         - argmin
-        - Shapelet Occurence : number of point in the distance vector inferior to the
+        - Shapelet Occurrence : number of point in the distance vector inferior to the
         threshold parameter
 
     Parameters
