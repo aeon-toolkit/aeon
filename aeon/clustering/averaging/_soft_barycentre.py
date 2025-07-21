@@ -21,6 +21,7 @@ from aeon.distances.elastic.soft._soft_dtw import _soft_dtw_cost_matrix_with_arr
 from aeon.distances.elastic.soft._soft_erp import _soft_erp_cost_matrix_with_arrs
 from aeon.distances.elastic.soft._soft_msm import (
     _soft_msm_cost_matrix_with_arr_independent,
+    _soft_msm_jacobian,
 )
 from aeon.distances.elastic.soft._soft_shape_dtw import (
     _soft_shape_dtw_cost_matrix_with_arrs,
@@ -212,116 +213,127 @@ def _soft_barycenter_one_iter(
             _bounding_matrix = create_bounding_matrix(
                 curr_ts.shape[1], n_timepoints, window=window
             )
-        if distance == "soft_dtw":
-            (
-                cost_matrix,
-                diagonal_arr,
-                vertical_arr,
-                horizontal_arr,
-                diff_dist_matrix,
-            ) = _soft_dtw_cost_matrix_with_arrs(
-                barycenter,
-                curr_ts,
-                bounding_matrix=_bounding_matrix,
-                gamma=gamma,
-            )
-        elif distance == "soft_wdtw":
-            (
-                cost_matrix,
-                diagonal_arr,
-                vertical_arr,
-                horizontal_arr,
-                diff_dist_matrix,
-            ) = _soft_wdtw_cost_matrix_with_arrs(
-                barycenter, curr_ts, bounding_matrix=bounding_matrix, gamma=gamma, g=g
-            )
-        elif distance == "soft_erp":
-            (
-                cost_matrix,
-                diagonal_arr,
-                vertical_arr,
-                horizontal_arr,
-                diff_dist_matrix,
-            ) = _soft_erp_cost_matrix_with_arrs(
-                barycenter, curr_ts, bounding_matrix=bounding_matrix, gamma=gamma, g=g
-            )
-        elif distance == "soft_twe":
-            (
-                cost_matrix,
-                diagonal_arr,
-                vertical_arr,
-                horizontal_arr,
-                diff_dist_matrix,
-            ) = _soft_twe_cost_matrix_with_arrs(
-                barycenter,
-                curr_ts,
-                bounding_matrix=bounding_matrix,
-                gamma=gamma,
-                nu=nu,
-                lmbda=lmbda,
-            )
-        elif distance == "soft_msm":
-            (
-                cost_matrix,
-                diagonal_arr,
-                vertical_arr,
-                horizontal_arr,
-                diff_dist_matrix,
-            ) = _soft_msm_cost_matrix_with_arr_independent(
-                barycenter, curr_ts, bounding_matrix=bounding_matrix, gamma=gamma, c=c
-            )
-        elif distance == "soft_shape_dtw":
-            (
-                cost_matrix,
-                diagonal_arr,
-                vertical_arr,
-                horizontal_arr,
-                diff_dist_matrix,
-            ) = _soft_shape_dtw_cost_matrix_with_arrs(
-                barycenter,
-                curr_ts,
-                bounding_matrix=bounding_matrix,
-                gamma=gamma,
-                descriptor=descriptor,
-                reach=reach,
-                transformed_x=transformed_x,
-                transformed_y=transformed_y,
-                transformation_precomputed=transformation_precomputed,
-            )
-        elif distance == "soft_adtw":
-            (
-                cost_matrix,
-                diagonal_arr,
-                vertical_arr,
-                horizontal_arr,
-                diff_dist_matrix,
-            ) = _soft_adtw_cost_matrix_with_arrs(
-                barycenter,
-                curr_ts,
-                bounding_matrix=bounding_matrix,
-                gamma=gamma,
-                warp_penalty=warp_penalty,
-            )
 
-        grad = _soft_gradient_with_arrs(
-            cost_matrix, diagonal_arr, vertical_arr, horizontal_arr
+        # if distance == "soft_msm":
+        local_jacobian_products[i] = _soft_msm_jacobian(
+            barycenter,
+            curr_ts,
+            bounding_matrix=_bounding_matrix,
+            gamma=gamma,
+            c=c,
         )
-        curr_dist = cost_matrix[-1, -1]
-        local_distances[i] = curr_dist
-        distances_to_center[i] = curr_dist
-
-        if distance == "soft_msm":
-            local_jacobian_products[i] = _jacobian_product_absolute_distance(
-                barycenter, curr_ts, grad, diff_dist_matrix
-            )
-        elif distance == "soft_twe" or distance == "soft_erp":
-            local_jacobian_products[i] = _jacobian_product_euclidean(
-                barycenter, curr_ts, grad, diff_dist_matrix
-            )
-        else:
-            local_jacobian_products[i] = _jacobian_product_squared_euclidean(
-                barycenter, curr_ts, grad, diff_dist_matrix
-            )
+        # continue
+        #
+        # if distance == "soft_dtw":
+        #     (
+        #         cost_matrix,
+        #         diagonal_arr,
+        #         vertical_arr,
+        #         horizontal_arr,
+        #         diff_dist_matrix,
+        #     ) = _soft_dtw_cost_matrix_with_arrs(
+        #         barycenter,
+        #         curr_ts,
+        #         bounding_matrix=_bounding_matrix,
+        #         gamma=gamma,
+        #     )
+        # elif distance == "soft_wdtw":
+        #     (
+        #         cost_matrix,
+        #         diagonal_arr,
+        #         vertical_arr,
+        #         horizontal_arr,
+        #         diff_dist_matrix,
+        #     ) = _soft_wdtw_cost_matrix_with_arrs(
+        #         barycenter, curr_ts, bounding_matrix=bounding_matrix, gamma=gamma, g=g
+        #     )
+        # elif distance == "soft_erp":
+        #     (
+        #         cost_matrix,
+        #         diagonal_arr,
+        #         vertical_arr,
+        #         horizontal_arr,
+        #         diff_dist_matrix,
+        #     ) = _soft_erp_cost_matrix_with_arrs(
+        #         barycenter, curr_ts, bounding_matrix=bounding_matrix, gamma=gamma, g=g
+        #     )
+        # elif distance == "soft_twe":
+        #     (
+        #         cost_matrix,
+        #         diagonal_arr,
+        #         vertical_arr,
+        #         horizontal_arr,
+        #         diff_dist_matrix,
+        #     ) = _soft_twe_cost_matrix_with_arrs(
+        #         barycenter,
+        #         curr_ts,
+        #         bounding_matrix=bounding_matrix,
+        #         gamma=gamma,
+        #         nu=nu,
+        #         lmbda=lmbda,
+        #     )
+        # elif distance == "soft_msm":
+        #     (
+        #         cost_matrix,
+        #         diagonal_arr,
+        #         vertical_arr,
+        #         horizontal_arr,
+        #         diff_dist_matrix,
+        #     ) = _soft_msm_cost_matrix_with_arr_independent(
+        #         barycenter, curr_ts, bounding_matrix=bounding_matrix, gamma=gamma, c=c
+        #     )
+        # elif distance == "soft_shape_dtw":
+        #     (
+        #         cost_matrix,
+        #         diagonal_arr,
+        #         vertical_arr,
+        #         horizontal_arr,
+        #         diff_dist_matrix,
+        #     ) = _soft_shape_dtw_cost_matrix_with_arrs(
+        #         barycenter,
+        #         curr_ts,
+        #         bounding_matrix=bounding_matrix,
+        #         gamma=gamma,
+        #         descriptor=descriptor,
+        #         reach=reach,
+        #         transformed_x=transformed_x,
+        #         transformed_y=transformed_y,
+        #         transformation_precomputed=transformation_precomputed,
+        #     )
+        # elif distance == "soft_adtw":
+        #     (
+        #         cost_matrix,
+        #         diagonal_arr,
+        #         vertical_arr,
+        #         horizontal_arr,
+        #         diff_dist_matrix,
+        #     ) = _soft_adtw_cost_matrix_with_arrs(
+        #         barycenter,
+        #         curr_ts,
+        #         bounding_matrix=bounding_matrix,
+        #         gamma=gamma,
+        #         warp_penalty=warp_penalty,
+        #     )
+        #
+        # grad = _soft_gradient_with_arrs(
+        #     cost_matrix, diagonal_arr, vertical_arr, horizontal_arr
+        # )
+        # curr_dist = cost_matrix[-1, -1]
+        # local_distances[i] = curr_dist
+        # distances_to_center[i] = curr_dist
+        #
+        # if distance == "soft_msm":
+        #     local_jacobian_products[i] = _jacobian_product_absolute_distance(
+        #         barycenter, curr_ts, grad, diff_dist_matrix
+        #     )
+        # elif distance == "soft_twe" or distance == "soft_erp":
+        #     local_jacobian_products[i] = _jacobian_product_euclidean(
+        #         barycenter, curr_ts, grad, diff_dist_matrix
+        #     )
+        # else:
+        #     local_jacobian_products[i] = _jacobian_product_squared_euclidean(
+        #         barycenter, curr_ts, grad, diff_dist_matrix
+        #     )
 
     # Combine results after parallel section
     jacobian_product = np.zeros_like(barycenter)
@@ -343,34 +355,34 @@ if __name__ == "__main__":
     class_labels_to_load = "1"
 
     gamma = 0.1
-    verbose = False
+    verbose = True
     X, y = load_dataset()
     X = X[y == class_labels_to_load]
 
-    aeon_start = time.time()
-    dtw_ba = soft_barycenter_average(
-        X, max_iters=50, gamma=gamma, verbose=verbose, distance="soft_dtw", tol=1e-3
-    )
-    aeon_end = time.time()
-    print(f"Aeon soft-DBA time: {aeon_end - aeon_start}")  # noqa: T201
-    dtw_ba = dtw_ba.swapaxes(0, 1)
-
-    tslearn_X = X.swapaxes(1, 2)
-    tslearn_start = time.time()
-    tslearn_ba = softdtw_barycenter(tslearn_X, gamma=gamma, max_iter=50, tol=1e-3)
-    tslearn_end = time.time()
-    print(f"Tslearn soft-DBA time: {tslearn_end - tslearn_start}")  # noqa: T201
-
-    print(f"Soft DTW barycenter equal: {np.allclose(dtw_ba, tslearn_ba)}")  # noqa: T201
-
-    twe_aeon_start = time.time()
-    twe_ba = soft_barycenter_average(
-        X, max_iters=50, gamma=gamma, distance="soft_twe", verbose=verbose
-    )
-    twe_aeon_end = time.time()
-    twe_ba = twe_ba.swapaxes(0, 1)
-    print(f"Aeon twe time: {twe_aeon_end - twe_aeon_start}")  # noqa: T201
-
+    # aeon_start = time.time()
+    # dtw_ba = soft_barycenter_average(
+    #     X, max_iters=50, gamma=gamma, verbose=verbose, distance="soft_dtw", tol=1e-3
+    # )
+    # aeon_end = time.time()
+    # print(f"Aeon soft-DBA time: {aeon_end - aeon_start}")  # noqa: T201
+    # dtw_ba = dtw_ba.swapaxes(0, 1)
+    #
+    # tslearn_X = X.swapaxes(1, 2)
+    # tslearn_start = time.time()
+    # tslearn_ba = softdtw_barycenter(tslearn_X, gamma=gamma, max_iter=50, tol=1e-3)
+    # tslearn_end = time.time()
+    # print(f"Tslearn soft-DBA time: {tslearn_end - tslearn_start}")  # noqa: T201
+    #
+    # print(f"Soft DTW barycenter equal: {np.allclose(dtw_ba, tslearn_ba)}")  # noqa: T201
+    #
+    # twe_aeon_start = time.time()
+    # twe_ba = soft_barycenter_average(
+    #     X, max_iters=50, gamma=gamma, distance="soft_twe", verbose=verbose
+    # )
+    # twe_aeon_end = time.time()
+    # twe_ba = twe_ba.swapaxes(0, 1)
+    # print(f"Aeon twe time: {twe_aeon_end - twe_aeon_start}")  # noqa: T201
+    #
     msm_aeon_start = time.time()
     msm_ba = soft_barycenter_average(
         X,
@@ -384,51 +396,51 @@ if __name__ == "__main__":
     msm_aeon_end = time.time()
     print(f"Aeon soft-MBA time: {msm_aeon_end - msm_aeon_start}")  # noqa: T201
     msm_ba = msm_ba.swapaxes(0, 1)
-
-    adtw_aeon_start = time.time()
-    adtw_ba = soft_barycenter_average(
-        X, max_iters=50, gamma=gamma, distance="soft_adtw", verbose=verbose
-    )
-    adtw_aeon_end = time.time()
-    adtw_ba = adtw_ba.swapaxes(0, 1)
-    print(f"Aeon adtw time: {adtw_aeon_end - adtw_aeon_start}")  # noqa: T201
-
-    shape_dtw_aeon_start = time.time()
-    shape_dtw_ba = soft_barycenter_average(
-        X, max_iters=50, gamma=gamma, distance="soft_shape_dtw", verbose=verbose
-    )
-    shape_dtw_aeon_end = time.time()
-    shape_dtw_ba = shape_dtw_ba.swapaxes(0, 1)
-    print(  # noqa: T201
-        f"Aeon shape dtw time: "  # noqa: T201
-        f"{shape_dtw_aeon_end - shape_dtw_aeon_start}"  # noqa: T201
-    )  # noqa: T201
-
-    wdtw_aeon_start = time.time()
-    wdtw_ba = soft_barycenter_average(
-        X, max_iters=50, gamma=gamma, distance="soft_wdtw", verbose=verbose
-    )
-    wdtw_aeon_end = time.time()
-    wdtw_ba = wdtw_ba.swapaxes(0, 1)
-    print(f"Aeon wdtw time: {wdtw_aeon_end - wdtw_aeon_start}")  # noqa: T201
-
-    erp_aeon_start = time.time()
-    erp_ba = soft_barycenter_average(
-        X, max_iters=50, gamma=gamma, distance="soft_erp", verbose=verbose
-    )
-    erp_aeon_end = time.time()
-    erp_ba = erp_ba.swapaxes(0, 1)
-    print(f"Aeon erp time: {erp_aeon_end - erp_aeon_start}")  # noqa: T201
+    #
+    # adtw_aeon_start = time.time()
+    # adtw_ba = soft_barycenter_average(
+    #     X, max_iters=50, gamma=gamma, distance="soft_adtw", verbose=verbose
+    # )
+    # adtw_aeon_end = time.time()
+    # adtw_ba = adtw_ba.swapaxes(0, 1)
+    # print(f"Aeon adtw time: {adtw_aeon_end - adtw_aeon_start}")  # noqa: T201
+    #
+    # shape_dtw_aeon_start = time.time()
+    # shape_dtw_ba = soft_barycenter_average(
+    #     X, max_iters=50, gamma=gamma, distance="soft_shape_dtw", verbose=verbose
+    # )
+    # shape_dtw_aeon_end = time.time()
+    # shape_dtw_ba = shape_dtw_ba.swapaxes(0, 1)
+    # print(  # noqa: T201
+    #     f"Aeon shape dtw time: "  # noqa: T201
+    #     f"{shape_dtw_aeon_end - shape_dtw_aeon_start}"  # noqa: T201
+    # )  # noqa: T201
+    #
+    # wdtw_aeon_start = time.time()
+    # wdtw_ba = soft_barycenter_average(
+    #     X, max_iters=50, gamma=gamma, distance="soft_wdtw", verbose=verbose
+    # )
+    # wdtw_aeon_end = time.time()
+    # wdtw_ba = wdtw_ba.swapaxes(0, 1)
+    # print(f"Aeon wdtw time: {wdtw_aeon_end - wdtw_aeon_start}")  # noqa: T201
+    #
+    # erp_aeon_start = time.time()
+    # erp_ba = soft_barycenter_average(
+    #     X, max_iters=50, gamma=gamma, distance="soft_erp", verbose=verbose
+    # )
+    # erp_aeon_end = time.time()
+    # erp_ba = erp_ba.swapaxes(0, 1)
+    # print(f"Aeon erp time: {erp_aeon_end - erp_aeon_start}")  # noqa: T201
 
     # twe_ba_01 = soft_barycenter_average(
-    #   X, max_iters=50, gamma=0.1, distance="soft_twe"
+    #   X, max_iters=50, gamma=0.1, distance="soft_twe", verbose=True
     #   )
     # twe_ba_01 = twe_ba_01.swapaxes(0, 1)
     # twe_ba_1 = soft_barycenter_average(
     #   X, max_iters=50, gamma=1.0, distance="soft_twe"
     #   )
     # twe_ba_1 = twe_ba_1.swapaxes(0, 1)
-    # # print(f"Soft DTW barycenter equal: {np.allclose(dtw_ba, tslearn_ba)}")
-    # # print(f"Soft TWE barycenter equal: {np.allclose(twe_ba, tslearn_ba)}")
-    # average = X.mean(axis=0)
+    # print(f"Soft DTW barycenter equal: {np.allclose(dtw_ba, tslearn_ba)}")
+    # print(f"Soft TWE barycenter equal: {np.allclose(twe_ba, tslearn_ba)}")
+    average = X.mean(axis=0)
     stop = ""

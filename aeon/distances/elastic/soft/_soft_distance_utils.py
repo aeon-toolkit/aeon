@@ -135,22 +135,52 @@ FLOAT_EPS = np.finfo(np.float64).eps
 def _jacobian_product_euclidean(
     X: np.ndarray, Y: np.ndarray, E: np.ndarray, diff_matrix: np.ndarray
 ) -> np.ndarray:
-    d, m = X.shape[0], X.shape[1]
+    d, m = X.shape
     n = Y.shape[1]
 
     product = np.zeros((d, m), dtype=np.float64)
+    diff_vector = np.empty(d, dtype=np.float64)
 
     for i in range(m):
         for j in range(n):
             e_ij = E[i, j]
-            if e_ij > FLOAT_EPS:
-                dist_squared = diff_matrix[i, j] * diff_matrix[i, j]
-                if dist_squared > FLOAT_EPS:
-                    inv_dist = 1.0 / np.sqrt(dist_squared)
-                    for k in range(d):
-                        product[k, i] += e_ij * diff_matrix[i, j] * inv_dist
+            if e_ij == 0.0:
+                continue
+
+            dist_squared = 0.0
+            for k in range(d):
+                diff_vector[k] = diff_matrix[i, j] * diff_matrix[i, j]
+                dist_squared += diff_vector[k] * diff_vector[k]
+
+            if dist_squared > FLOAT_EPS:
+                dist = np.sqrt(dist_squared)
+                factor = e_ij / dist
+                for k in range(d):
+                    product[k, i] += factor * diff_vector[k]
 
     return product
+
+
+# @njit(cache=True, fastmath=True)
+# def _jacobian_product_euclidean(
+#     X: np.ndarray, Y: np.ndarray, E: np.ndarray, diff_matrix: np.ndarray
+# ) -> np.ndarray:
+#     d, m = X.shape[0], X.shape[1]
+#     n = Y.shape[1]
+#
+#     product = np.zeros((d, m), dtype=np.float64)
+#
+#     for i in range(m):
+#         for j in range(n):
+#             e_ij = E[i, j]
+#             if e_ij > FLOAT_EPS:
+#                 dist_squared = diff_matrix[i, j] * diff_matrix[i, j]
+#                 if dist_squared > FLOAT_EPS:
+#                     inv_dist = 1.0 / np.sqrt(dist_squared)
+#                     for k in range(d):
+#                         product[k, i] += e_ij * diff_matrix[i, j] * inv_dist
+#
+#     return product
 
 
 def _compute_soft_gradient(
