@@ -5,14 +5,15 @@ __maintainer__ = [""]
 from typing import Optional
 
 from aeon.networks.base import BaseDeepLearningNetwork
-from aeon.utils.networks.attention import (
-    AttentionLayer,
-    KerasProbAttention,
-)
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 if _check_soft_dependencies(["tensorflow"], severity="none"):
     import tensorflow as tf
+
+    from aeon.utils.networks.attention import (
+        AttentionLayer,
+        KerasProbAttention,
+    )
 
 
 class InformerNetwork(BaseDeepLearningNetwork):
