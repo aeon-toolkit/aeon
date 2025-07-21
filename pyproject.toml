@@ -143,6 +143,7 @@ aeon = [
     "*.tsv",
 ]
 
+
 [tool.setuptools.packages.find]
 exclude = ["tests", "tests.*"]
 
@@ -173,13 +174,6 @@ doctest_optionflags = [
 ]
 addopts = [
     "--durations=20",
-    "--timeout=600",
-    "--showlocals",
-    "--dist=worksteal",
-    "--reruns=3",
-    "--reruns-delay=3",
-    "--rerun-except=Error",
-    "--rerun-except=Exception",
 ]
 filterwarnings = [
     "ignore::UserWarning",

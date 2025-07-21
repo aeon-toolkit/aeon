@@ -2,20 +2,18 @@
 
 import itertools
 import os
+import time
 from warnings import simplefilter
 
-import matplotlib
 import numpy as np
 import pandas as pd
-from numba import njit, prange, set_num_threads
+from numba import njit, prange, set_num_threads, objmode
 from scipy.stats import zscore
 
 from aeon.distances.mindist._dft_sfa import mindist_dft_sfa_distance
 from aeon.distances.mindist._paa_sax import mindist_paa_sax_distance
-from aeon.transformations.collection.dictionary_based import SAX, SFAWhole
-
-matplotlib.rcParams["pdf.fonttype"] = 42
-matplotlib.rcParams["ps.fonttype"] = 42
+from aeon.distances.mindist._pca_spartan import mindist_pca_spartan_distance
+from aeon.transformations.collection.dictionary_based import SAX, SFAWhole, SPARTAN
 
 simplefilter(action="ignore", category=FutureWarning)
 simplefilter(action="ignore", category=UserWarning)
@@ -149,34 +147,34 @@ dataset_names = [
     "ArrowHead",
     "Beef",
     "BeetleFly",
-    # "BirdChicken",
-    # "Car",
-    # "CBF",
-    # "Coffee",
-    # "DiatomSizeReduction",
-    # "DistalPhalanxOutlineAgeGroup",
-    # "DistalPhalanxOutlineCorrect",
-    # "DistalPhalanxTW",
-    # "ECG200",
-    # "ECGFiveDays",
-    # "FaceAll",
-    # "FaceFour",
-    # "FacesUCR",
-    # "GunPoint",
-    # "ItalyPowerDemand",
-    # "MiddlePhalanxOutlineAgeGroup",
-    # "MiddlePhalanxOutlineCorrect",
-    # "MiddlePhalanxTW",
-    # "OliveOil",
-    # "Plane",
-    # "ProximalPhalanxOutlineAgeGroup",
-    # "ProximalPhalanxOutlineCorrect",
-    # "ProximalPhalanxTW",
-    # "SonyAIBORobotSurface1",
-    # "SonyAIBORobotSurface2",
-    # "SyntheticControl",
-    # "TwoLeadECG",
-    # "Wine",
+    "BirdChicken",
+    "Car",
+    "CBF",
+    "Coffee",
+    "DiatomSizeReduction",
+    "DistalPhalanxOutlineAgeGroup",
+    "DistalPhalanxOutlineCorrect",
+    "DistalPhalanxTW",
+    "ECG200",
+    "ECGFiveDays",
+    "FaceAll",
+    "FaceFour",
+    "FacesUCR",
+    "GunPoint",
+    "ItalyPowerDemand",
+    "MiddlePhalanxOutlineAgeGroup",
+    "MiddlePhalanxOutlineCorrect",
+    "MiddlePhalanxTW",
+    "OliveOil",
+    "Plane",
+    "ProximalPhalanxOutlineAgeGroup",
+    "ProximalPhalanxOutlineCorrect",
+    "ProximalPhalanxTW",
+    "SonyAIBORobotSurface1",
+    "SonyAIBORobotSurface2",
+    "SyntheticControl",
+    "TwoLeadECG",
+    "Wine",
 ]
 
 
@@ -194,9 +192,11 @@ def load_from_ucr_tsv_to_dataframe_plain(full_file_path_and_name):
 
 
 # configuration
-all_threads = 6
+all_threads = os.cpu_count() - 1
 n_segments = 16
 alphabet_sizes = [256, 128, 64, 32, 16, 8, 4, 2]
+all_csv_scores = {}
+set_num_threads(all_threads)
 
 DATA_PATH = "/Users/bzcschae/workspace/UCRArchive_2018/"
 server = False
@@ -217,68 +217,72 @@ else:
 def compute_distances(
     queries,
     samples,
-    PAA_queries,
-    SAX_samples,
-    SAX_breakpoints,
-    # sfa_transforms,
-    all_breakpoints,
-    all_dfts,
+    sax_breakpoints,
+    other_breakpoints,
+    all_coeffs,
     all_words,
     method_names,
 ):
-    """Compute lower bounding distances."""
-    p = 2
-
     tightness = np.zeros((queries.shape[0], len(method_names)), dtype=np.float64)
+    runtimes = np.zeros(len(method_names), dtype=np.float64)
+
     for i in prange(queries.shape[0]):
 
-        eds = np.zeros((samples.shape[0]), dtype=np.float32)
+        eds = np.zeros((samples.shape[0]), dtype=np.float64)
         for j in range(samples.shape[0]):
-            eds[j] = np.linalg.norm(queries[i] - samples[j], ord=p)
+            eds[j] = np.linalg.norm(queries[i] - samples[j], ord=2)
 
-        # SAX-PAA Min-Distance
-        for j in range(samples.shape[0]):
-            md = mindist_paa_sax_distance(
-                PAA_queries[i],
-                SAX_samples[j],
-                SAX_breakpoints,
-                samples.shape[-1],
-                p=p,
-            )
-            if eds[j] > 0:
-                tightness[i][0] += md / eds[j] / samples.shape[0]
+        for a in prange(method_names.shape[0]):
+            with objmode(start_time='f8'):
+                start_time = time.time()
 
-            # if md > eds[j]:
-            #     print(
-            #         f"mindist {method_names[a]} is:\t {md} "
-            #         f"but ED is:\t {eds[j]} \t Pos: {i}, {j}"
-            #     )
-
-        # DFT-SFA Min-Distance variants
-        for a in prange(all_dfts.shape[0]):
             for j in range(samples.shape[0]):
-                md = mindist_dft_sfa_distance(
-                    all_dfts[a][i],
-                    all_words[a][j],
-                    all_breakpoints[a],
-                )
-                if eds[j] > 0:
-                    tightness[i][a + 1] += md / eds[j] / samples.shape[0]
+                if method_names[a].startswith("sax"):
+                    # SAX Min-Distance
+                    md = mindist_paa_sax_distance(
+                        all_coeffs[a][i],
+                        all_words[a][j],
+                        sax_breakpoints,
+                        samples.shape[-1],
+                    )
+                elif ((method_names[a].startswith("sofa")) or
+                      (method_names[a].startswith("sfa"))):
+                    # DFT-SFA Min-Distance
+                    md = mindist_dft_sfa_distance(
+                        all_coeffs[a][i],
+                        all_words[a][j],
+                        other_breakpoints[a-1],
+                    )
+                elif method_names[a].startswith("spartan"):
+                    # SPARTAN Min-Distance
+                    md = mindist_pca_spartan_distance(
+                        all_coeffs[a][i],
+                        all_words[a][j],
+                        other_breakpoints[a-1],
+                    )
+                else:
+                    print(f"Unknown method name {method_names[a]}.")
+                    continue
 
-                # if md > eds[j]:
-                #     print(f"mindist {method_names[a+1]} is:\t "+str(md)+" "
-                #          f"but ED is:\t "+str(eds[j])+f" \t Pos: {i}, {j}")
-                #     assert False
+                if eds[j] > 0:
+                    tightness[i][a] += md / eds[j] / samples.shape[0]
+
+                if md > eds[j]:
+                    print(f"mindist {method_names[a+1]} is:", np.round(md, 1),
+                          f" but ED is: ", np.round(eds[j], 1),
+                          f" Pos: {i}, {j}")
+
+            with objmode(end_time='f8'):
+                end_time = time.time()
+
+            runtimes[a] += end_time - start_time
 
     tightness = np.sum(tightness, axis=0)
     for i in range(len(tightness)):
         tightness[i] /= queries.shape[0]
 
-    return tightness
+    return tightness, runtimes
 
-
-all_csv_scores = {}
-set_num_threads(all_threads)
 
 for alphabet_size in alphabet_sizes:
     all_csv_scores[alphabet_size] = []
@@ -296,7 +300,7 @@ for dataset_name in used_dataset:
             os.path.join(DATA_PATH, dataset_name, dataset_name + "_TEST.tsv")
         )
 
-        # print("\tDataset\t", dataset_name)
+        print("\tDataset\t", dataset_name)
         # print("\tData Shape\t", X_train.shape)
         # print("\tQuery Shape\t", X_test.shape)
 
@@ -309,25 +313,71 @@ for dataset_name in used_dataset:
         X_train = zscore(X_train.squeeze(), axis=1).values
         X_test = zscore(X_test.squeeze(), axis=1).values
 
-        SAX_transform = SAX(n_segments=n_segments, alphabet_size=alphabet_size)
-        SAX_train = SAX_transform.fit_transform(X_train).squeeze()
-        PAA_test = SAX_transform._get_paa(X_test).squeeze()
-        # print("\tSAX done.")
-
-        histograms = ["equi-width"]  # , "equi-depth"
+        histograms = ["equi-width"]
         allocation_methods = [
             "dynamic_programming",
             "linear_scale",
             "log_scale",
             "sqrt_scale",
         ]
-        feature_selections = ["variance", "pca"]
+        feature_selections = ["pca"]
         dyn_alphabets = [True]  # , False
 
-        method_names = ["isax"]
-        all_breakpoints = []
-        all_dfts = []
-        all_words = []
+        method_names = []
+        other_breakpoints = []
+        all_test_coeffs = []
+        all_train_words = []
+
+        sax = SAX(n_segments=n_segments, alphabet_size=alphabet_size)
+        X_words = sax.fit_transform(X_train).squeeze()
+        Y_paa = sax._get_paa(X_test).squeeze()
+        all_test_coeffs.append(Y_paa.astype(np.float64))
+        all_train_words.append(X_words.astype(np.int32))
+        sax_breakpoints = sax.breakpoints.astype(np.float64)
+        method_names.append("sax")
+
+        sfa = SFAWhole(
+            word_length=n_segments,
+            alphabet_size=alphabet_size,
+            binning_method="equi-width",
+            feature_selection_strategy=None,
+            alphabet_allocation_method=None,
+            n_jobs=all_threads,
+        ).fit(X_train)
+        train_words, _ = sfa.transform_words(X_train)
+        _, test_dfts = sfa.transform_words(X_test)
+        all_test_coeffs.append(test_dfts.astype(np.float64))
+        all_train_words.append(train_words.astype(np.int32))
+        other_breakpoints.append(sfa.breakpoints.astype(np.float64))
+        method_names.append("sfa")
+
+        sfa = SFAWhole(
+            word_length=n_segments,
+            alphabet_size=alphabet_size,
+            binning_method="equi-width",
+            feature_selection_strategy="variance",
+            alphabet_allocation_method=None,
+            n_jobs=all_threads,
+        ).fit(X_train)
+        train_words, _ = sfa.transform_words(X_train)
+        all_train_words.append(train_words.astype(np.int32))
+        _, test_dfts = sfa.transform_words(X_test)
+        all_test_coeffs.append(test_dfts.astype(np.float64))
+        other_breakpoints.append(sfa.breakpoints.astype(np.float64))
+        method_names.append("sofa")
+
+        SPARTAN_transform = SPARTAN(
+            word_length=n_segments,
+            alphabet_size=alphabet_size,
+            build_histogram=False,
+            return_sparse=False,
+        ).fit(X_train)
+        train_words, _ = SPARTAN_transform.transform_words(X_train)
+        _, test_pca = SPARTAN_transform.transform_words(X_test)
+        all_test_coeffs.append(test_pca.copy().astype(np.float64))
+        all_train_words.append(train_words.copy().astype(np.int32))
+        other_breakpoints.append(SPARTAN_transform.breakpoints.copy().astype(np.float64))
+        method_names.append("spartan")
 
         for histogram, fs_strategy, alloc_method in itertools.product(
             histograms, feature_selections, allocation_methods
@@ -341,15 +391,13 @@ for dataset_name in used_dataset:
                 feature_selection_strategy=fs_strategy,
                 alphabet_allocation_method=alloc_method,
                 n_jobs=all_threads,
-            )
+            ).fit(X_train)
 
-            sfa.fit(X_train)
-
-            _, X_dfts = sfa.transform_words(X_test)
-            Y_words, _ = sfa.transform_words(X_train)
-            all_breakpoints.append(sfa.breakpoints.astype(np.float64))
-            all_dfts.append(X_dfts.astype(np.float64))
-            all_words.append(Y_words.astype(np.int32))
+            train_words, _ = sfa.transform_words(X_train)
+            all_train_words.append(train_words.astype(np.int32))
+            _, test_dfts = sfa.transform_words(X_test)
+            all_test_coeffs.append(test_dfts.astype(np.float64))
+            other_breakpoints.append(sfa.breakpoints.astype(np.float64))
 
             method_names.append(f"sofa_{histogram}_{fs_strategy}_{alloc_method}")
 
@@ -358,33 +406,32 @@ for dataset_name in used_dataset:
             sum_scores[method_name] = {
                 "dataset": [],
                 "tightness": [],
+                "runtime": [],
             }
 
-        # print("\tTransformation done. Computing Distances")
+        print("\tTransformation done. Computing Distances")
 
-        tightness = compute_distances(
+        tightness, runtimes = compute_distances(
             X_test,
             X_train,
-            PAA_test,
-            SAX_train,
-            SAX_transform.breakpoints,
-            all_breakpoints,
-            np.array(all_dfts),
-            np.array(all_words),
+            np.array(sax_breakpoints),
+            other_breakpoints,
+            np.array(all_test_coeffs),
+            np.array(all_train_words),
             np.array(method_names),
         )
 
         for i, method_name in enumerate(method_names):
             sum_scores[method_name]["dataset"].append(dataset_name)
             sum_scores[method_name]["tightness"].append(tightness[i])
-            csv_scores.append((method_name, dataset_name, tightness[i]))
+            sum_scores[method_name]["runtime"].append(runtimes[i])
+            csv_scores.append((method_name, dataset_name, tightness[i], runtimes[i]))
 
-        # print(f"\n\n---- Results using {alphabet_size}-----")
-        # for name, _ in sum_scores.items():
-        #    print(
-        #        f"---- Name {name}, \t tlb:
-        #        {np.round(sum_scores[name]['tightness'], 3)}"
-        #    )
+        print(f"\n\n---- Results using {alphabet_size}-----")
+        for name, _ in sum_scores.items():
+           print(f"---- Name {name}, tlb: "
+                 f"{sum_scores[name]['tightness'][0]:0.3f}, "
+                 f"{sum_scores[name]['runtime'][0]:0.3f}")
 
         # if server:
         pd.DataFrame.from_records(
@@ -393,7 +440,8 @@ for dataset_name in used_dataset:
                 "Method",
                 "Dataset",
                 "TLB",
+                "Runtime",
             ],
         ).to_csv(
-            f"logs/tlb_all_ucr_{n_segments}_{alphabet_size}-02_06_25.csv", index=None
+            f"logs/tlb_all_ucr_{n_segments}_{alphabet_size}-02_07_25.csv", index=None
         )

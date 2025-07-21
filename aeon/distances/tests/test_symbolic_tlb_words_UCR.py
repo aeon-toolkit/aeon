@@ -1,8 +1,8 @@
 """Test MinDist functions of symbolic representations."""
 
-import time
 import itertools
 import os
+import time
 from warnings import simplefilter
 
 import numpy as np
@@ -10,9 +10,9 @@ import pandas as pd
 from numba import njit, prange, set_num_threads, objmode
 from scipy.stats import zscore
 
-from aeon.distances.mindist._dft_sfa import mindist_dft_sfa_distance
-from aeon.distances.mindist._paa_sax import mindist_paa_sax_distance
-from aeon.distances.mindist._pca_spartan import mindist_pca_spartan_distance
+from aeon.distances.mindist._sax import mindist_sax_distance
+from aeon.distances.mindist._sfa import mindist_sfa_distance
+from aeon.distances.mindist._spartan import mindist_spartan_distance
 from aeon.transformations.collection.dictionary_based import SAX, SFAWhole, SPARTAN
 
 simplefilter(action="ignore", category=FutureWarning)
@@ -143,38 +143,38 @@ dataset_names_full = [
 ]
 
 dataset_names = [
-    # "Chinatown"
+    # "Chinatown",
     "ArrowHead",
     "Beef",
-    # "BeetleFly",
-    # "BirdChicken",
-    # "Car",
-    # "CBF",
-    # "Coffee",
-    # "DiatomSizeReduction",
-    # "DistalPhalanxOutlineAgeGroup",
-    # "DistalPhalanxOutlineCorrect",
-    # "DistalPhalanxTW",
-    # "ECG200",
-    # "ECGFiveDays",
-    # "FaceAll",
-    # "FaceFour",
-    # "FacesUCR",
-    # "GunPoint",
-    # "ItalyPowerDemand",
-    # "MiddlePhalanxOutlineAgeGroup",
-    # "MiddlePhalanxOutlineCorrect",
-    # "MiddlePhalanxTW",
-    # "OliveOil",
-    # "Plane",
-    # "ProximalPhalanxOutlineAgeGroup",
-    # "ProximalPhalanxOutlineCorrect",
-    # "ProximalPhalanxTW",
-    # "SonyAIBORobotSurface1",
-    # "SonyAIBORobotSurface2",
-    # "SyntheticControl",
-    # "TwoLeadECG",
-    # "Wine",
+    "BeetleFly",
+    "BirdChicken",
+    "Car",
+    "CBF",
+    "Coffee",
+    "DiatomSizeReduction",
+    "DistalPhalanxOutlineAgeGroup",
+    "DistalPhalanxOutlineCorrect",
+    "DistalPhalanxTW",
+    "ECG200",
+    "ECGFiveDays",
+    "FaceAll",
+    "FaceFour",
+    "FacesUCR",
+    "GunPoint",
+    "ItalyPowerDemand",
+    "MiddlePhalanxOutlineAgeGroup",
+    "MiddlePhalanxOutlineCorrect",
+    "MiddlePhalanxTW",
+    "OliveOil",
+    "Plane",
+    "ProximalPhalanxOutlineAgeGroup",
+    "ProximalPhalanxOutlineCorrect",
+    "ProximalPhalanxTW",
+    "SonyAIBORobotSurface1",
+    "SonyAIBORobotSurface2",
+    "SyntheticControl",
+    "TwoLeadECG",
+    "Wine",
 ]
 
 
@@ -191,12 +191,22 @@ def load_from_ucr_tsv_to_dataframe_plain(full_file_path_and_name):
     return df, y
 
 
+# configuration
+# configuration
+all_threads = os.cpu_count() - 1
+n_segments = 16
+alphabet_sizes = [256, 128, 64, 32, 16, 8, 4, 2]
+all_csv_scores = {}
+set_num_threads(all_threads)
+
 DATA_PATH = "/Users/bzcschae/workspace/UCRArchive_2018/"
 server = False
 
 if os.path.exists(DATA_PATH):
     DATA_PATH = "/Users/bzcschae/workspace/UCRArchive_2018/"
     used_dataset = dataset_names
+    alphabet_sizes = [16]
+    all_threads = 8
 # server
 else:
     DATA_PATH = "/vol/fob-wbib-vol2/wbi/schaefpa/sktime/datasets/UCRArchive_2018"
@@ -206,28 +216,22 @@ else:
 
 @njit(cache=True, fastmath=True, parallel=True)
 def compute_distances(
-        queries,
-        samples,
-        sax_breakpoints,
-        other_breakpoints,
-        all_coeffs,
-        all_words,
-        method_names,
+    queries,
+    samples,
+    sax_breakpoints,
+    other_breakpoints,
+    test_words,
+    train_words,
+    method_names,
 ):
-    """Compute lower bounding distances."""
-    pruning_power = np.zeros((queries.shape[0], len(method_names)), dtype=np.float64)
+    tightness = np.zeros((queries.shape[0], len(method_names)), dtype=np.float64)
     runtimes = np.zeros(len(method_names), dtype=np.float64)
 
     for i in prange(queries.shape[0]):
-        # ED first
-        nn_dist = np.inf
+
         eds = np.zeros((samples.shape[0]), dtype=np.float64)
         for j in range(samples.shape[0]):
-            eds[j] = np.linalg.norm(queries[i] - samples[j])
-        nn_dist = np.nanmin(eds)
-
-        # used for pruning
-        squared_lower_bound = nn_dist ** 2
+            eds[j] = np.linalg.norm(queries[i] - samples[j], ord=2)
 
         for a in prange(method_names.shape[0]):
             with objmode(start_time='f8'):
@@ -235,40 +239,37 @@ def compute_distances(
 
             for j in range(samples.shape[0]):
                 if method_names[a].startswith("sax"):
-                    # SAX-PAA Min-Distance
-                    min_dist = mindist_paa_sax_distance(
-                        all_coeffs[a][i],
-                        all_words[a][j],
+                    # SAX Min-Distance
+                    md = mindist_sax_distance(
+                        test_words[a][i],
+                        train_words[a][j],
                         sax_breakpoints,
                         samples.shape[-1],
-                        squared_lower_bound=squared_lower_bound,
                     )
                 elif ((method_names[a].startswith("sofa")) or
                       (method_names[a].startswith("sfa"))):
-                    # DFT-SFA Min-Distance variants
-                    min_dist = mindist_dft_sfa_distance(
-                        all_coeffs[a][i],
-                        all_words[a][j],
-                        other_breakpoints[a - 1],
-                        squared_lower_bound=squared_lower_bound,
+                    # DFT-SFA Min-Distance
+                    md = mindist_sfa_distance(
+                        test_words[a][i],
+                        train_words[a][j],
+                        other_breakpoints[a-1],
                     )
                 elif method_names[a].startswith("spartan"):
                     # SPARTAN Min-Distance
-                    min_dist = mindist_pca_spartan_distance(
-                        all_coeffs[a][i],
-                        all_words[a][j],
-                        other_breakpoints[a - 1],
-                        squared_lower_bound=squared_lower_bound,
+                    md = mindist_spartan_distance(
+                        test_words[a][i],
+                        train_words[a][j],
+                        other_breakpoints[a-1],
                     )
                 else:
                     print(f"Unknown method name {method_names[a]}.")
                     continue
 
-                if np.isnan(min_dist) or np.isinf(min_dist) or (min_dist > nn_dist):
-                    pruning_power[i][a] += 1
+                if eds[j] > 0:
+                    tightness[i][a] += md / eds[j] / samples.shape[0]
 
-                if ~np.isinf(min_dist) and (min_dist > eds[j]):
-                    print(f"mindist {method_names[a]} is:", np.round(min_dist, 1),
+                if md > eds[j]:
+                    print(f"mindist {method_names[a+1]} is:", np.round(md, 1),
                           f" but ED is: ", np.round(eds[j], 1),
                           f" Pos: {i}, {j}")
 
@@ -277,18 +278,13 @@ def compute_distances(
 
             runtimes[a] += end_time - start_time
 
-    pruning_power = np.sum(pruning_power, axis=0)
-    for i in range(len(pruning_power)):
-        pruning_power[i] /= samples.shape[0] * queries.shape[0]
 
-    return pruning_power, runtimes
+    tightness = np.sum(tightness, axis=0)
+    for i in range(len(tightness)):
+        tightness[i] /= queries.shape[0]
 
+    return tightness, runtimes
 
-all_threads = os.cpu_count() - 1
-n_segments = 16
-alphabet_sizes = [256, 128, 64, 32, 16, 8, 4, 2]
-all_csv_scores = {}
-set_num_threads(all_threads)
 
 for alphabet_size in alphabet_sizes:
     all_csv_scores[alphabet_size] = []
@@ -327,19 +323,22 @@ for dataset_name in used_dataset:
             "sqrt_scale",
         ]
         feature_selections = ["pca"]
+        dyn_alphabets = [True]  # , False
 
         method_names = []
         other_breakpoints = []
-        all_coeffs = []
-        all_words = []
+        all_test_words = []
+        all_train_words = []
 
         sax = SAX(n_segments=n_segments, alphabet_size=alphabet_size)
-        X_words = sax.fit_transform(X_train).squeeze()
-        Y_paa = sax._get_paa(X_test).squeeze()
+        test_words = sax.fit_transform(X_train).squeeze()
+        all_train_words.append(test_words.astype(np.int32))
+        train_words = sax.transform(X_test).squeeze()
+        all_test_words.append(train_words.astype(np.int32))
+
         sax_breakpoints = sax.breakpoints.astype(np.float64)
-        all_coeffs.append(Y_paa.astype(np.float64))
-        all_words.append(X_words.astype(np.int32))
         method_names.append("sax")
+
 
         sfa = SFAWhole(
             word_length=n_segments,
@@ -349,11 +348,12 @@ for dataset_name in used_dataset:
             alphabet_allocation_method=None,
             n_jobs=all_threads,
         ).fit(X_train)
-        Y_words, _ = sfa.transform_words(X_train)
-        _, X_dfts = sfa.transform_words(X_test)
+        train_words, _ = sfa.transform_words(X_train)
+        all_train_words.append(train_words.astype(np.int32))
+        test_words, _ = sfa.transform_words(X_test)
+        all_test_words.append(test_words.astype(np.int32))
+
         other_breakpoints.append(sfa.breakpoints.astype(np.float64))
-        all_coeffs.append(X_dfts.astype(np.float64))
-        all_words.append(Y_words.astype(np.int32))
         method_names.append("sfa")
 
         sfa = SFAWhole(
@@ -364,11 +364,11 @@ for dataset_name in used_dataset:
             alphabet_allocation_method=None,
             n_jobs=all_threads,
         ).fit(X_train)
-        Y_words, _ = sfa.transform_words(X_train)
-        _, X_dfts = sfa.transform_words(X_test)
+        train_words, _ = sfa.transform_words(X_train)
+        all_train_words.append(train_words.astype(np.int32))
+        test_words, _ = sfa.transform_words(X_test)
+        all_test_words.append(test_words.astype(np.int32))
         other_breakpoints.append(sfa.breakpoints.astype(np.float64))
-        all_coeffs.append(X_dfts.astype(np.float64))
-        all_words.append(Y_words.astype(np.int32))
         method_names.append("sofa")
 
         SPARTAN_transform = SPARTAN(
@@ -378,15 +378,17 @@ for dataset_name in used_dataset:
             return_sparse=False,
         ).fit(X_train)
         train_words, _ = SPARTAN_transform.transform_words(X_train)
-        _, test_pca = SPARTAN_transform.transform_words(X_test)
+        all_train_words.append(train_words.astype(np.int32))
+        test_words, _ = SPARTAN_transform.transform_words(X_test)
+        all_test_words.append(test_words.astype(np.int32))
         other_breakpoints.append(SPARTAN_transform.breakpoints.astype(np.float64))
-        all_coeffs.append(Y_pca.astype(np.float64))
-        all_words.append(X_words.astype(np.int32))
         method_names.append("spartan")
 
         for histogram, fs_strategy, alloc_method in itertools.product(
             histograms, feature_selections, allocation_methods
         ):
+            # print(f"\tTransformation with SFA,
+            # {histogram}, {variance}, {dyn_alphabet}, {alloc_method}")
             sfa = SFAWhole(
                 word_length=n_segments,
                 alphabet_size=alphabet_size,
@@ -394,14 +396,13 @@ for dataset_name in used_dataset:
                 feature_selection_strategy=fs_strategy,
                 alphabet_allocation_method=alloc_method,
                 n_jobs=all_threads,
-            )
-            sfa.fit(X_train)
+            ).fit(X_train)
 
-            Y_words, _ = sfa.transform_words(X_train)
-            _, X_dfts = sfa.transform_words(X_test)
+            train_words, _ = sfa.transform_words(X_train)
+            all_train_words.append(train_words.astype(np.int32))
+            test_words, _ = sfa.transform_words(X_test)
+            all_test_words.append(test_words.astype(np.int32))
             other_breakpoints.append(sfa.breakpoints.astype(np.float64))
-            all_coeffs.append(X_dfts.astype(np.float64))
-            all_words.append(Y_words.astype(np.int32))
 
             method_names.append(f"sofa_{histogram}_{fs_strategy}_{alloc_method}")
 
@@ -409,33 +410,34 @@ for dataset_name in used_dataset:
         for method_name in method_names:
             sum_scores[method_name] = {
                 "dataset": [],
-                "pruning_power": [],
+                "tightness": [],
                 "runtime": [],
             }
 
         print("\tTransformation done. Computing Distances")
 
-        pruning_power, runtimes = compute_distances(
+        tightness, runtimes = compute_distances(
             X_test,
             X_train,
-            sax_breakpoints,
+            np.array(sax_breakpoints),
             other_breakpoints,
-            np.array(all_coeffs),
-            np.array(all_words),
+            np.array(all_test_words),
+            np.array(all_train_words),
             np.array(method_names),
         )
 
-        for a, method_name in enumerate(method_names):
+        for i, method_name in enumerate(method_names):
             sum_scores[method_name]["dataset"].append(dataset_name)
-            sum_scores[method_name]["pruning_power"].append(pruning_power[a])
-            sum_scores[method_name]["runtime"].append(runtimes[a])
-            csv_scores.append((method_name, dataset_name, pruning_power[a], runtimes[a]))
+            sum_scores[method_name]["tightness"].append(tightness[i])
+            sum_scores[method_name]["runtime"].append(runtimes[i])
+            csv_scores.append((method_name, dataset_name, tightness[i], runtimes[i]))
 
         print(f"\n\n---- Results using {alphabet_size}-----")
         for name, _ in sum_scores.items():
-           print(f"---- Name {name},\tPrP: "
-                 f"{sum_scores[name]['pruning_power'][0]:0.3f}, "
+           print(f"---- Name {name}, tlb: "
+                 f"{sum_scores[name]['tightness'][0]:0.3f}, "
                  f"{sum_scores[name]['runtime'][0]:0.3f}")
+
 
         # if server:
         pd.DataFrame.from_records(
@@ -443,9 +445,9 @@ for dataset_name in used_dataset:
             columns=[
                 "Method",
                 "Dataset",
-                "Pruning_Power",
+                "TLB",
                 "Runtime",
             ],
         ).to_csv(
-            f"logs/pp_all_ucr_{n_segments}_{alphabet_size}-01-07-25-2.csv", index=None
+            f"logs/tlb_all_ucr_onlywords_{n_segments}_{alphabet_size}-02_07_25.csv", index=None
         )

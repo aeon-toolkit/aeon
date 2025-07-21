@@ -12,7 +12,7 @@ from aeon.transformations.collection.dictionary_based import SPARTAN
 def test_spartan_mindist():
     """Test the SPARTAN Min-Distance function."""
     n_segments = 16
-    alphabet_size = 8
+    alphabet_size = 256
 
     X_train, _ = load_unit_test("TRAIN")
     X_test, _ = load_unit_test("TEST")

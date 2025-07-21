@@ -175,7 +175,7 @@ def test_sfa_whole_mindist():
 def test_dynamic_alphabet_allocation():
     """Test the SFA Min-Distance function."""
     n_segments = 16
-    alphabet_size = 64
+    alphabet_size = 256
 
     X_train, _ = load_unit_test("TRAIN")
     X_test, _ = load_unit_test("TEST")
@@ -195,7 +195,8 @@ def test_dynamic_alphabet_allocation():
             word_length=n_segments,
             alphabet_size=alphabet_size,
             binning_method=histogram_type,
-            # variance/pca gives a tighter lower bound
+
+            # variance or pca give a tighter lower bound
             feature_selection_strategy="pca",
             alphabet_allocation_method=alphabet_allocation_method,
         )

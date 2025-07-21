@@ -15,7 +15,7 @@ from sklearn.linear_model import RidgeClassifierCV
 from sklearn.utils import check_random_state
 
 from aeon.classification.base import BaseClassifier
-from aeon.transformations.collection.dictionary_based import SFAFast
+from aeon.transformations.collection.dictionary_based import SPARTAN, SFAFast
 
 # some constants on input parameters for WEASEL v2
 SWITCH_SMALL_INSTANCES = 250
@@ -97,6 +97,10 @@ class WEASEL_V2(BaseClassifier):
     alphabet_allocation_method : str, default=None
         The strategy to use for alphabet selection. Options are "linear_scale",
         "log_scale", "sqrt_scale", "dynamic_programming" or None.
+    transformer : str, default="SFA"
+        The type of transformer to use for word extraction. Options are "SFA" or
+        "SPARTAN". SFA is the original WEASEL transform, SPARTAN is a new
+        transform that uses dynamic alphabet allocation and PCA.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both `fit` and `predict`.
     random_state : int or None, default=None
@@ -149,6 +153,7 @@ class WEASEL_V2(BaseClassifier):
         class_weight=None,
         alphabet_allocation_method=None,
         feature_selection_strategy="variance",
+        transformer="SFA",
         n_jobs=1,
         random_state=None,
     ):
@@ -163,6 +168,7 @@ class WEASEL_V2(BaseClassifier):
         self.feature_selection_strategy = feature_selection_strategy
         self.alphabet_allocation_method = alphabet_allocation_method
 
+        self.transformer = transformer
         self.class_weight = class_weight
         self.n_jobs = n_jobs
         self.random_state = random_state
@@ -198,6 +204,7 @@ class WEASEL_V2(BaseClassifier):
             feature_selection_strategy=self.feature_selection_strategy,
             alphabet_allocation_method=self.alphabet_allocation_method,
             random_state=self.random_state,
+            transformer=self.transformer,
             n_jobs=self.n_jobs,
         )
         words = self.transform.fit_transform(X, y)
@@ -319,6 +326,10 @@ class WEASELTransformerV2:
     feature_selection_strategy : str, default="variance"
         The strategy to use for feature selection. Options are "variance",
         "anova", "pca" or None.
+    transformer : str, default="SFA"
+        The type of transformer to use for word extraction. Options are "SFA" or
+        "SPARTAN". SFA is the original WEASEL transform, SPARTAN is a new
+        transform that uses dynamic alphabet allocation and PCA.
     random_state: int or None, default=None
         Seed for random, integer
     n_jobs : int, default=1
@@ -336,6 +347,7 @@ class WEASELTransformerV2:
         random_state=None,
         alphabet_allocation_method=None,
         feature_selection_strategy="variance",
+        transformer="SFA",  # SFA or SPARTAN
         n_jobs=4,
     ):
         self.min_window = min_window
@@ -352,6 +364,8 @@ class WEASELTransformerV2:
 
         self.alphabet_allocation_method = alphabet_allocation_method
         self.feature_selection_strategy = feature_selection_strategy
+
+        self.transformer = transformer
 
         self.bigrams = False
         self.lower_bounding = True
@@ -431,6 +445,7 @@ class WEASELTransformerV2:
                 self.feature_selection,
                 self.remove_repeat_words,
                 self.random_state,
+                self.transformer,  # SFA or SPARTAN
             )
             for i in range(self.ensemble_size)
         )
@@ -501,6 +516,7 @@ def _parallel_fit(
     feature_selection,
     remove_repeat_words,
     random_state,
+    transformer_name="SFA",  # SFA or SPARTAN
 ):
     if random_state is None:
         rng = check_random_state(None)
@@ -523,25 +539,43 @@ def _parallel_fit(
     all_transformers = []
     all_words = []
     for first_difference in use_first_differences:
-        transformer = SFAFast(
-            feature_selection_strategy=feature_selection_strategy,
-            word_length=word_length,
-            alphabet_size=alphabet_size,
-            window_size=window_size,
-            norm=norm,
-            binning_method=binning_strategy,
-            remove_repeat_words=remove_repeat_words,
-            bigrams=bigrams,
-            dilation=dilation,
-            lower_bounding=lower_bounding,
-            first_difference=first_difference,
-            feature_selection=feature_selection,
-            alphabet_allocation_method=alphabet_allocation_method,
-            max_feature_count=max_feature_count // ensemble_size,
-            random_state=i,
-            return_sparse=False,
-            n_jobs=n_jobs,
-        )
+        if transformer_name == "SFA":
+            transformer = SFAFast(
+                feature_selection_strategy=feature_selection_strategy,
+                word_length=word_length,
+                alphabet_size=alphabet_size,
+                window_size=window_size,
+                norm=norm,
+                binning_method=binning_strategy,
+                remove_repeat_words=remove_repeat_words,
+                bigrams=bigrams,
+                dilation=dilation,
+                lower_bounding=lower_bounding,
+                first_difference=first_difference,
+                feature_selection=feature_selection,
+                alphabet_allocation_method=alphabet_allocation_method,
+                max_feature_count=max_feature_count // ensemble_size,
+                random_state=i,
+                return_sparse=False,
+                n_jobs=n_jobs,
+            )
+        elif transformer_name == "SPARTAN":
+            transformer = SPARTAN(
+                word_length=word_length,
+                alphabet_size=alphabet_size,
+                window_size=window_size,
+                binning_method=binning_strategy,
+                dilation=dilation,
+                first_difference=first_difference,
+                alphabet_allocation_method=alphabet_allocation_method,
+                random_state=i,
+                return_sparse=False,
+            )
+        else:
+            raise ValueError(
+                f"Unknown transformer {transformer_name}, "
+                f"expected 'SFA' or 'SPARTAN'",
+            )
 
         # generate SFA words on sample
         words = transformer.fit_transform(X, y)
