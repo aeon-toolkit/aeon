@@ -177,7 +177,7 @@ class PLASeriesTransformer(BaseSeriesTransformer):
         return left_segment + right_segment
 
     def improvement_splitting_here(self, X, breakpoint):
-        """Return the SSE of two segments split at a particual point in a time series.
+        """Return the SSE of two segments split at a particular point in a time series.
 
         Parameters
         ----------

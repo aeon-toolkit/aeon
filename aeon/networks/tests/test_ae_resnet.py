@@ -22,13 +22,13 @@ def test_ae_res_unit_activation(
     latent_space_dim, n_residual_blocks, activation, n_filters
 ):
     """Test whether AEResNetNetwork initializes correctly with different activations."""
-    aer = AEResNetNetwork(
+    aeres = AEResNetNetwork(
         latent_space_dim=latent_space_dim,
         n_residual_blocks=n_residual_blocks,
         activation=activation,
         n_filters=n_filters,
     )
-    encoder, decoder = aer.build_network((1000, 5))
+    encoder, decoder = aeres.build_network((1000, 5))
     assert encoder is not None
     assert decoder is not None
 
@@ -49,12 +49,12 @@ def test_ae_res_unit_activation(
 )
 def test_use_bias(use_bias, n_conv_per_residual_block):
     """Test AEResNetNetwork use_bias configurations."""
-    aer = AEResNetNetwork(
+    aeres = AEResNetNetwork(
         latent_space_dim=128,
         use_bias=use_bias,
         n_conv_per_residual_block=n_conv_per_residual_block,
     )
-    encoder, decoder = aer.build_network((1000, 5))
+    encoder, decoder = aeres.build_network((1000, 5))
     assert encoder is not None
     assert decoder is not None
 
@@ -75,12 +75,12 @@ def test_use_bias(use_bias, n_conv_per_residual_block):
 )
 def test_n_filters(n_filters, n_residual_blocks):
     """Test AEResNetNetwork n_filters configurations."""
-    aer = AEResNetNetwork(
+    aeres = AEResNetNetwork(
         latent_space_dim=128,
         n_filters=n_filters,
         n_residual_blocks=n_residual_blocks,
     )
-    encoder, decoder = aer.build_network((1000, 5))
+    encoder, decoder = aeres.build_network((1000, 5))
     assert encoder is not None
     assert decoder is not None
 
@@ -101,12 +101,12 @@ def test_n_filters(n_filters, n_residual_blocks):
 )
 def test_kernel_size(kernel_size, n_conv_per_residual_block):
     """Test AEResNetNetwork kernel_size configurations."""
-    aer = AEResNetNetwork(
+    aeres = AEResNetNetwork(
         latent_space_dim=128,
         kernel_size=kernel_size,
         n_conv_per_residual_block=n_conv_per_residual_block,
     )
-    encoder, decoder = aer.build_network((1000, 5))
+    encoder, decoder = aeres.build_network((1000, 5))
     assert encoder is not None
     assert decoder is not None
 
@@ -126,12 +126,12 @@ def test_kernel_size(kernel_size, n_conv_per_residual_block):
 )
 def test_strides(strides, n_conv_per_residual_block):
     """Test AEResNetNetwork strides configurations."""
-    aer = AEResNetNetwork(
+    aeres = AEResNetNetwork(
         latent_space_dim=128,
         strides=strides,
         n_conv_per_residual_block=n_conv_per_residual_block,
     )
-    encoder, decoder = aer.build_network((1000, 5))
+    encoder, decoder = aeres.build_network((1000, 5))
     assert encoder is not None
     assert decoder is not None
 
@@ -151,12 +151,12 @@ def test_strides(strides, n_conv_per_residual_block):
 )
 def test_dilation_rate(dilation_rate, n_conv_per_residual_block):
     """Test AEResNetNetwork dilation_rate configurations."""
-    aer = AEResNetNetwork(
+    aeres = AEResNetNetwork(
         latent_space_dim=128,
         dilation_rate=dilation_rate,
         n_conv_per_residual_block=n_conv_per_residual_block,
     )
-    encoder, decoder = aer.build_network((1000, 5))
+    encoder, decoder = aeres.build_network((1000, 5))
     assert encoder is not None
     assert decoder is not None
 
@@ -177,11 +177,11 @@ def test_dilation_rate(dilation_rate, n_conv_per_residual_block):
 )
 def test_padding(padding, n_conv_per_residual_block):
     """Test AEResNetNetwork padding configurations."""
-    aer = AEResNetNetwork(
+    aeres = AEResNetNetwork(
         latent_space_dim=128,
         padding=padding,
         n_conv_per_residual_block=n_conv_per_residual_block,
     )
-    encoder, decoder = aer.build_network((1000, 5))
+    encoder, decoder = aeres.build_network((1000, 5))
     assert encoder is not None
     assert decoder is not None
