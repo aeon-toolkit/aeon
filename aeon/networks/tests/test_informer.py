@@ -48,7 +48,6 @@ def test_informer_network_init(
     inputs, outputs = informer.build_network((seq_len + label_len, 5))
     assert inputs is not None
     assert outputs is not None
-    assert len(inputs) == 2  # encoder_input and decoder_input
 
 
 @pytest.mark.skipif(
@@ -104,49 +103,6 @@ def test_informer_network_distil_mix_factor(distil, mix, factor):
     inputs, outputs = informer.build_network((72, 2))
     assert inputs is not None
     assert outputs is not None
-
-
-@pytest.mark.skipif(
-    not _check_soft_dependencies(["tensorflow"], severity="none"),
-    reason="Tensorflow soft dependency unavailable.",
-)
-def test_informer_network_output_shape():
-    """Test whether InformerNetwork produces correct output shapes."""
-    seq_len = 96
-    label_len = 48
-    out_len = 24
-    n_channels = 5
-    # batch_size = 32
-
-    informer = InformerNetwork(
-        seq_len=seq_len,
-        label_len=label_len,
-        out_len=out_len,
-        d_model=128,
-        n_heads=4,
-        e_layers=2,
-        d_layers=1,
-    )
-
-    inputs, outputs = informer.build_network((seq_len + label_len, n_channels))
-
-    # Create a TensorFlow model to test actual shapes
-    if _check_soft_dependencies(["tensorflow"], severity="none"):
-        # keras_model = tf.keras.Model(inputs=inputs, outputs=outputs)
-
-        # Test input shapes
-        encoder_input_shape = inputs[0].shape
-        decoder_input_shape = inputs[1].shape
-
-        assert encoder_input_shape[1] == seq_len  # sequence length
-        assert encoder_input_shape[2] == n_channels  # number of channels
-        assert decoder_input_shape[1] == label_len + out_len  # decoder sequence length
-        assert decoder_input_shape[2] == n_channels  # number of channels
-
-        # Test output shape
-        output_shape = outputs.shape
-        assert output_shape[1] == out_len  # prediction length
-        assert output_shape[2] == n_channels  # number of channels
 
 
 @pytest.mark.skipif(

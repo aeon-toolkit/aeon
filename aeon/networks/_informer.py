@@ -2,7 +2,6 @@
 
 __maintainer__ = [""]
 
-from typing import Optional
 
 from aeon.networks.base import BaseDeepLearningNetwork
 from aeon.utils.validation._dependencies import _check_soft_dependencies
@@ -65,10 +64,8 @@ class InformerNetwork(BaseDeepLearningNetwork):
     _config = {
         "python_dependencies": ["tensorflow"],
         "python_version": "<3.13",
-        "structure": "auto-encoder",
+        "structure": "transformer",
     }
-
-    import tensorflow as tf
 
     def __init__(
         self,
@@ -104,9 +101,7 @@ class InformerNetwork(BaseDeepLearningNetwork):
 
         super().__init__()
 
-    def _token_embedding(
-        self, input_tensor: tf.Tensor, c_in: int, d_model: int
-    ) -> tf.Tensor:
+    def _token_embedding(self, input_tensor, c_in, d_model):
         """
         Token embedding layer using 1D convolution with causal padding.
 
@@ -132,9 +127,7 @@ class InformerNetwork(BaseDeepLearningNetwork):
         x = tf.keras.layers.LeakyReLU()(x)
         return x
 
-    def _positional_embedding(
-        self, input_tensor: tf.Tensor, d_model: int, max_len: int = 5000
-    ) -> tf.Tensor:
+    def _positional_embedding(self, input_tensor, d_model, max_len=5000):
         """
         Positional embedding layer that computes positional encodings.
 
@@ -175,12 +168,12 @@ class InformerNetwork(BaseDeepLearningNetwork):
 
     def _data_embedding(
         self,
-        input_tensor: tf.Tensor,
-        c_in: int,
-        d_model: int,
-        dropout: float = 0.1,
-        max_len: int = 5000,
-    ) -> tf.Tensor:
+        input_tensor,
+        c_in,
+        d_model,
+        dropout=0.1,
+        max_len=5000,
+    ):
         """
         Combine token and positional embeddings for the input tensor.
 
@@ -218,7 +211,7 @@ class InformerNetwork(BaseDeepLearningNetwork):
 
         return x
 
-    def _conv_layer(self, input_tensor: tf.Tensor, c_in: int) -> tf.Tensor:
+    def _conv_layer(self, input_tensor, c_in):
         """
         Convolutional layer with batch normalization, ELU, and max pooling.
 
@@ -254,15 +247,15 @@ class InformerNetwork(BaseDeepLearningNetwork):
 
     def _attention_out(
         self,
-        input_tensor: tf.Tensor,
-        attention_type: str,
-        mask_flag: bool,
-        d_model: int,
-        n_heads: int,
-        factor: int = 5,
-        dropout: float = 0.1,
-        attn_mask: Optional[tf.Tensor] = None,
-    ) -> tf.Tensor:
+        input_tensor,
+        attention_type,
+        mask_flag,
+        d_model,
+        n_heads,
+        factor=5,
+        dropout=0.1,
+        attn_mask=None,
+    ):
         """
         Attention output layer applying either ProbAttention or FullAttention.
 
@@ -327,17 +320,17 @@ class InformerNetwork(BaseDeepLearningNetwork):
 
     def _encoder_layer(
         self,
-        input_tensor: tf.Tensor,
-        d_model: int,
-        d_ff: Optional[int] = None,
-        dropout: float = 0.1,
-        activation: str = "relu",
-        attn_mask: Optional[tf.Tensor] = None,
-        attention_type: str = "prob",
-        mask_flag: bool = True,
-        n_heads: int = 8,
-        factor: int = 5,
-    ) -> tf.Tensor:
+        input_tensor,
+        d_model,
+        d_ff=None,
+        dropout=0.1,
+        activation="relu",
+        attn_mask=None,
+        attention_type="prob",
+        mask_flag=True,
+        n_heads=8,
+        factor=5,
+    ):
         """
         Apply encoder layer with multi-head attention and feed-forward network.
 
@@ -415,21 +408,21 @@ class InformerNetwork(BaseDeepLearningNetwork):
 
     def _encoder(
         self,
-        input_tensor: tf.Tensor,
-        e_layers: int,
-        d_model: int,
-        d_ff: Optional[int] = None,
-        dropout: float = 0.1,
-        activation: str = "relu",
-        attn_mask: Optional[tf.Tensor] = None,
-        attention_type: str = "prob",
-        mask_flag: bool = True,
-        n_heads: int = 8,
-        factor: int = 5,
-        use_conv_layers: bool = False,
-        c_in: Optional[int] = None,
-        use_norm: bool = True,
-    ) -> tf.Tensor:
+        input_tensor,
+        e_layers,
+        d_model,
+        d_ff=None,
+        dropout=0.1,
+        activation="relu",
+        attn_mask=None,
+        attention_type="prob",
+        mask_flag=True,
+        n_heads=8,
+        factor=5,
+        use_conv_layers=False,
+        c_in=None,
+        use_norm=True,
+    ):
         """
         Apply encoder stack with multiple encoder layers and optional conv layers.
 
@@ -539,20 +532,20 @@ class InformerNetwork(BaseDeepLearningNetwork):
 
     def _decoder_layer(
         self,
-        input_tensor: tf.Tensor,
-        cross_tensor: tf.Tensor,
-        d_model: int,
-        d_ff: Optional[int] = None,
-        dropout: float = 0.1,
-        activation: str = "relu",
-        x_mask: Optional[tf.Tensor] = None,
-        cross_mask: Optional[tf.Tensor] = None,
-        self_attention_type: str = "prob",
-        cross_attention_type: str = "prob",
-        mask_flag: bool = True,
-        n_heads: int = 8,
-        factor: int = 5,
-    ) -> tf.Tensor:
+        input_tensor,
+        cross_tensor,
+        d_model,
+        d_ff=None,
+        dropout=0.1,
+        activation="relu",
+        x_mask=None,
+        cross_mask=None,
+        self_attention_type="prob",
+        cross_attention_type="prob",
+        mask_flag=True,
+        n_heads=8,
+        factor=5,
+    ):
         """
         Apply decoder layer with self-attention, cross-attention, and FFN.
 
@@ -661,22 +654,22 @@ class InformerNetwork(BaseDeepLearningNetwork):
 
     def _decoder(
         self,
-        input_tensor: tf.Tensor,
-        cross_tensor: tf.Tensor,
-        d_layers: int,
-        d_model: int,
-        d_ff: Optional[int] = None,
-        dropout: float = 0.1,
-        activation: str = "relu",
-        x_mask: Optional[tf.Tensor] = None,
-        cross_mask: Optional[tf.Tensor] = None,
-        self_attention_type: str = "prob",
-        cross_attention_type: str = "prob",
-        mask_flag: bool = True,
-        n_heads: int = 8,
-        factor: int = 5,
-        use_norm: bool = True,
-    ) -> tf.Tensor:
+        input_tensor,
+        cross_tensor,
+        d_layers,
+        d_model,
+        d_ff=None,
+        dropout=0.1,
+        activation="relu",
+        x_mask=None,
+        cross_mask=None,
+        self_attention_type="prob",
+        cross_attention_type="prob",
+        mask_flag=True,
+        n_heads=8,
+        factor=5,
+        use_norm=True,
+    ):
         """
         Apply decoder stack with multiple decoder layers and optional normalization.
 
@@ -746,29 +739,67 @@ class InformerNetwork(BaseDeepLearningNetwork):
 
         return x
 
-    def build_network(
-        self, input_shape: tuple[int, int], **kwargs
-    ) -> tuple[list[tf.Tensor], tf.Tensor]:
+    def _preprocess_time_series(self, data, seq_len, label_len, pred_len):
+        """
+        Preprocess time series data of shape (None, n_timepoints, n_channels).
+
+        Parameters
+        ----------
+        data : tf.Tensor
+            Input tensor of shape (None, n_timepoints, n_channels)
+        seq_len : int
+            Encoder input sequence length
+        label_len : int
+            Known decoder input length
+        pred_len : int
+            Prediction length
+
+        Returns
+        -------
+        tuple
+            (x_enc, x_dec) where:
+            - x_enc: Encoder input tensor of shape (None, seq_len, n_channels)
+            - x_dec: Decoder input tensor of shape (None, label_len + pred_len
+                                                        , n_channels)
+        """
+        import tensorflow as tf
+
+        # Get tensor dimensions - handle None batch dimension
+        batch_size, n_timepoints, n_channels = data.shape
+
+        # Encoder input: first seq_len timepoints
+        x_enc = data[:, :seq_len, :]  # (None, seq_len, n_channels)
+
+        # Decoder input construction
+        x_dec_known = data[
+            :, seq_len - label_len : seq_len, :
+        ]  # (None, label_len, n_channels)
+
+        # Unknown part: zeros for prediction horizon
+        x_dec_pred = data[:, :pred_len, :]
+
+        # Concatenate known and prediction parts
+        x_dec = tf.keras.layers.Concatenate(axis=1)([x_dec_known, x_dec_pred])
+
+        return x_enc, x_dec
+
+    def build_network(self, input_shape, **kwargs):
         """Build the complete Informer architecture for time series forecasting."""
         import tensorflow as tf
 
         # Get input dimensions
         n_timepoints, n_channels = input_shape
 
-        # hardcode batch_size for now
-        batch_size = 32
-
-        # Create input layers for encoder and decoder
-        encoder_input = tf.keras.layers.Input(
-            shape=(self.seq_len, n_channels),
-            name="encoder_input",
-            batch_size=batch_size,
+        input_data = tf.keras.layers.Input(
+            shape=input_shape,
+            name="time_series_input",
         )
 
-        decoder_input = tf.keras.layers.Input(
-            shape=(self.label_len + self.out_len, n_channels),
-            name="decoder_input",
-            batch_size=batch_size,
+        encoder_input, decoder_input = self._preprocess_time_series(
+            data=input_data,
+            seq_len=self.seq_len,
+            label_len=self.label_len,
+            pred_len=self.out_len,
         )
 
         # Encoder embedding
@@ -829,7 +860,4 @@ class InformerNetwork(BaseDeepLearningNetwork):
         # Extract only the prediction part (last out_len timesteps)
         output = output[:, -self.out_len :, :]
 
-        # Create the model with both encoder and decoder inputs
-        inputs = [encoder_input, decoder_input]
-
-        return inputs, output
+        return input_data, output

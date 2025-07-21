@@ -75,6 +75,11 @@ def test_all_networks_params(network):
             f"{network.__name__} not to be tested (AE networks have their own tests)."
         )
 
+    if network._config["structure"] == "transformer":
+        pytest.skip(
+            f"{network.__name__} not to be tested (transformers have their own tests)."
+        )
+
     if not (
         _check_soft_dependencies(
             network._config["python_dependencies"], severity="none"
