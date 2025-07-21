@@ -40,17 +40,10 @@ class TCNNetwork(BaseDeepLearningNetwork):
     Examples
     --------
     >>> from aeon.networks._tcn import TCNNetwork
-    >>> from aeon.testing.data_generation import make_example_3d_numpy
-    >>> import tensorflow as tf
-    >>> X, y = make_example_3d_numpy(n_cases=8, n_channels=4, n_timepoints=150,
-    ...                              return_y=True, regression_target=True,
-    ...                              random_state=42)
     >>> network = TCNNetwork(n_blocks=[8, 8])
-    >>> input_layer, output = network.build_network(input_shape=(4, 150))
-    >>> model = tf.keras.Model(inputs=input_layer, outputs=output)
-    >>> model.compile(optimizer="adam", loss="mse")
-    >>> model.fit(X, y, epochs=2, batch_size=2, verbose=0)  # doctest: +SKIP
-    <keras.src.callbacks.History object ...>
+    >>> input_layer, output = network.build_network(input_shape=(150, 4))
+    >>> input_layer.shape, output.shape
+    ((None, 150, 4), (None, 4))
     """
 
     _config = {
@@ -69,8 +62,6 @@ class TCNNetwork(BaseDeepLearningNetwork):
 
         Parameters
         ----------
-        num_inputs : int
-            Number of input channels/features.
         n_blocks : list of int
             Number of output channels for each temporal block.
         kernel_size : int, default=2
@@ -97,7 +88,7 @@ class TCNNetwork(BaseDeepLearningNetwork):
         Parameters
         ----------
         input_tensor : tf.Tensor
-            Input tensor of shape (batch_size, channels, sequence_length).
+            Input tensor of shape (batch_size, n_timepoints, n_channels).
         n_filters : int
             Number of output filters.
         kernel_size : int
@@ -116,11 +107,8 @@ class TCNNetwork(BaseDeepLearningNetwork):
         """
         import tensorflow as tf
 
-        # Transpose to Keras format (batch, sequence, channels)
-        x_keras_format = tf.keras.layers.Permute((2, 1))(input_tensor)
-
         # Apply padding in sequence dimension
-        padded_x = tf.keras.layers.ZeroPadding1D(padding=padding_value)(x_keras_format)
+        padded_x = tf.keras.layers.ZeroPadding1D(padding=padding_value)(input_tensor)
 
         # Create and apply convolution layer
         conv_layer = tf.keras.layers.Conv1D(
@@ -134,8 +122,7 @@ class TCNNetwork(BaseDeepLearningNetwork):
         # Apply convolution
         out = conv_layer(padded_x)
 
-        # Transpose back to PyTorch format (batch, channels, sequence)
-        return tf.keras.layers.Permute((2, 1))(out)
+        return out
 
     def _chomp(self, input_tensor, chomp_size: int):
         """Remove padding from the end of sequences to maintain causality.
@@ -155,7 +142,7 @@ class TCNNetwork(BaseDeepLearningNetwork):
         tf.Tensor
             Chomped tensor with reduced sequence length.
         """
-        return input_tensor[:, :, :-chomp_size]
+        return input_tensor[:, :-chomp_size, :]
 
     def _temporal_block(
         self,
@@ -302,7 +289,7 @@ class TCNNetwork(BaseDeepLearningNetwork):
         Parameters
         ----------
         input_shape : tuple
-            Shape of input data (n_channels, n_timepoints).
+            Shape of input data (n_timepoints, n_channels).
         **kwargs
             Additional keyword arguments (unused).
 
@@ -323,9 +310,9 @@ class TCNNetwork(BaseDeepLearningNetwork):
         # Create input layer
         input_layer = tf.keras.layers.Input(shape=input_shape)
 
-        # Transpose input to match the expected format (batch, channels, seq)
+        # Transpose input to match the expected format (batch, n_timepoints, n_channels)
         x = input_layer
-        n_inputs = input_shape[0]
+        n_inputs = input_shape[1]
 
         # Apply TCN using the private function
         x = self._temporal_conv_net(
@@ -335,7 +322,6 @@ class TCNNetwork(BaseDeepLearningNetwork):
             kernel_size=self.kernel_size,
             dropout=self.dropout,
         )
-
-        x = tf.keras.layers.Dense(input_shape[0])(x[:, -1, :])
-        output = tf.keras.layers.Dense(1)(x)
+        output = tf.keras.layers.Dense(input_shape[1])(x[:, :, -1])
+        # output = tf.keras.layers.Dense(1)(x)
         return input_layer, output
