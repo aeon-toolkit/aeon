@@ -1,6 +1,6 @@
 """Register of estimator tags.
 
-Each dictionary item corresponds to a tag with the key as its name, the contrained
+Each dictionary item corresponds to a tag with the key as its name, the contained
 sub-dictionary has the following items:
     class : identifier for the base class of objects this tag applies to
     type : expected type of the tag value. Should be one or a list of:

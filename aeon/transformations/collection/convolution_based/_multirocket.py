@@ -164,7 +164,7 @@ class MultiRocket(BaseCollectionTransformer):
             X = (X - X.mean(axis=-1, keepdims=True)) / (
                 X.std(axis=-1, keepdims=True) + 1e-8
             )
-        # change n_jobs dependend on value and existing cores
+        # change n_jobs depending on value and existing cores
         prev_threads = get_num_threads()
         if self._n_jobs < 1 or self._n_jobs > multiprocessing.cpu_count():
             n_jobs = multiprocessing.cpu_count()
