@@ -8,7 +8,6 @@ from aeon.networks.base import BaseDeepLearningNetwork
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 if _check_soft_dependencies(["tensorflow"], severity="none"):
-    import tensorflow as tf
 
     from aeon.utils.networks.attention import (
         AttentionLayer,
@@ -68,6 +67,8 @@ class InformerNetwork(BaseDeepLearningNetwork):
         "python_version": "<3.13",
         "structure": "auto-encoder",
     }
+
+    import tensorflow as tf
 
     def __init__(
         self,
