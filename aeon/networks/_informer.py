@@ -65,7 +65,7 @@ class InformerNetwork(BaseDeepLearningNetwork):
     _config = {
         "python_dependencies": ["tensorflow"],
         "python_version": "<3.13",
-        "structure": "encoder-decoder",
+        "structure": "auto-encoder",
     }
 
     def __init__(
