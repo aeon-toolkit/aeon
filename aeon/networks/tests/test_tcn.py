@@ -14,10 +14,10 @@ def test_tcn_network_basic():
     """Test basic TCN network creation and build_network functionality."""
     import tensorflow as tf
 
-    input_shape = (100, 5)
+    input_shape = (100, 5)  # (n_timepoints, n_channels)
     n_blocks = [32, 64]
-
     tcn_network = TCNNetwork(n_blocks=n_blocks)
+
     input_layer, output_layer = tcn_network.build_network(input_shape)
 
     # Check that layers are created correctly
@@ -40,9 +40,9 @@ def test_tcn_network_different_channels(n_blocks):
     """Test TCN network with different channel configurations."""
     import tensorflow as tf
 
-    input_shape = (50, 3)
-
+    input_shape = (50, 3)  # (n_timepoints, n_channels)
     tcn_network = TCNNetwork(n_blocks=n_blocks)
+
     input_layer, output_layer = tcn_network.build_network(input_shape)
 
     # Create a model and verify it works
@@ -66,13 +66,14 @@ def test_tcn_network_kernel_sizes(kernel_size):
     """Test TCN network with different kernel sizes."""
     import tensorflow as tf
 
-    input_shape = (80, 4)
+    input_shape = (80, 4)  # (n_timepoints, n_channels)
     n_blocks = [32, 64]
 
     tcn_network = TCNNetwork(
         n_blocks=n_blocks,
         kernel_size=kernel_size,
     )
+
     input_layer, output_layer = tcn_network.build_network(input_shape)
 
     # Verify network builds successfully
@@ -89,7 +90,7 @@ def test_tcn_network_dropout_rates(dropout):
     """Test TCN network with different dropout rates."""
     import tensorflow as tf
 
-    input_shape = (60, 2)
+    input_shape = (60, 2)  # (n_timepoints, n_channels)
     n_blocks = [16, 32]
 
     tcn_network = TCNNetwork(n_blocks=n_blocks, dropout=dropout)
@@ -109,20 +110,21 @@ def test_tcn_network_output_shape():
     import numpy as np
     import tensorflow as tf
 
-    input_shape = (40, 6)
+    input_shape = (40, 6)  # (n_timepoints, n_channels)
     batch_size = 16
     n_blocks = [32, 64]
 
     tcn_network = TCNNetwork(n_blocks=n_blocks)
     input_layer, output_layer = tcn_network.build_network(input_shape)
+
     model = tf.keras.Model(inputs=input_layer, outputs=output_layer)
 
     # Create dummy input and test output shape
     dummy_input = np.random.random((batch_size,) + input_shape)
     output = model(dummy_input)
 
-    # Output should maintain sequence length and have final channel dimension
-    expected_shape = (batch_size, 1)
+    # Output should have the same number of channels as input
+    expected_shape = (batch_size, input_shape[1])  # (batch_size, n_channels)
     assert (
         output.shape == expected_shape
     ), f"Expected shape {expected_shape}, got {output.shape}"
@@ -174,7 +176,7 @@ def test_tcn_network_single_layer():
     """Test TCN network with single temporal block."""
     import tensorflow as tf
 
-    input_shape = (30, 2)
+    input_shape = (30, 2)  # (n_timepoints, n_channels)
     n_blocks = [16]  # Single layer
 
     tcn_network = TCNNetwork(n_blocks=n_blocks)
@@ -189,4 +191,4 @@ def test_tcn_network_single_layer():
 
     dummy_input = np.random.random((4,) + input_shape)
     output = model(dummy_input)
-    assert output.shape == (4, 1)
+    assert output.shape == (4, input_shape[1])  # (batch_size, n_channels)
