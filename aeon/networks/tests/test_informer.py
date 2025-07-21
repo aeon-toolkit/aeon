@@ -13,7 +13,9 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
     reason="Tensorflow soft dependency unavailable.",
 )
 @pytest.mark.parametrize(
-    "seq_len,label_len,out_len,d_model,n_heads,e_layers,d_layers",
+    "encoder_input_len,decoder_input_len,"
+    "prediction_horizon,model_dimension,num_attention_heads,"
+    "encoder_layers,decoder_layers",
     [
         (96, 48, 24, 512, 8, 3, 2),
         (48, 24, 12, 256, 4, 2, 1),
@@ -22,30 +24,30 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
     ],
 )
 def test_informer_network_init(
-    seq_len,
-    label_len,
-    out_len,
-    d_model,
-    n_heads,
-    e_layers,
-    d_layers,
+    encoder_input_len,
+    decoder_input_len,
+    prediction_horizon,
+    model_dimension,
+    num_attention_heads,
+    encoder_layers,
+    decoder_layers,
 ):
     """Test whether InformerNetwork initializes correctly for various parameters."""
     informer = InformerNetwork(
-        seq_len=seq_len,
-        label_len=label_len,
-        out_len=out_len,
-        d_model=d_model,
-        n_heads=n_heads,
-        e_layers=e_layers,
-        d_layers=d_layers,
+        encoder_input_len=encoder_input_len,
+        decoder_input_len=decoder_input_len,
+        prediction_horizon=prediction_horizon,
+        model_dimension=model_dimension,
+        num_attention_heads=num_attention_heads,
+        encoder_layers=encoder_layers,
+        decoder_layers=decoder_layers,
         factor=random.choice([3, 5, 7]),
         dropout=random.choice([0.0, 0.1, 0.2]),
-        attn=random.choice(["prob", "full"]),
+        attention_type=random.choice(["prob", "full"]),
         activation=random.choice(["relu", "gelu"]),
     )
 
-    inputs, outputs = informer.build_network((seq_len + label_len, 5))
+    inputs, outputs = informer.build_network((encoder_input_len + decoder_input_len, 5))
     assert inputs is not None
     assert outputs is not None
 
@@ -55,20 +57,20 @@ def test_informer_network_init(
     reason="Tensorflow soft dependency unavailable.",
 )
 @pytest.mark.parametrize(
-    "attn,activation",
+    "attention_type,activation",
     [("prob", "relu"), ("full", "gelu"), ("prob", "gelu"), ("full", "relu")],
 )
-def test_informer_network_attention_activation(attn, activation):
+def test_informer_network_attention_activation(attention_type, activation):
     """Test InformerNetwork with different attention and activation."""
     informer = InformerNetwork(
-        seq_len=96,
-        label_len=48,
-        out_len=24,
-        d_model=128,
-        n_heads=4,
-        e_layers=2,
-        d_layers=1,
-        attn=attn,
+        encoder_input_len=96,
+        decoder_input_len=48,
+        prediction_horizon=24,
+        model_dimension=128,
+        num_attention_heads=4,
+        encoder_layers=2,
+        decoder_layers=1,
+        attention_type=attention_type,
         activation=activation,
     )
 
@@ -88,13 +90,13 @@ def test_informer_network_attention_activation(attn, activation):
 def test_informer_network_distil_mix_factor(distil, mix, factor):
     """Test whether InformerNetwork works with different configurations."""
     informer = InformerNetwork(
-        seq_len=48,
-        label_len=24,
-        out_len=12,
-        d_model=64,
-        n_heads=2,
-        e_layers=1,
-        d_layers=1,
+        encoder_input_len=48,
+        decoder_input_len=24,
+        prediction_horizon=12,
+        model_dimension=64,
+        num_attention_heads=2,
+        encoder_layers=1,
+        decoder_layers=1,
         distil=distil,
         mix=mix,
         factor=factor,
@@ -118,14 +120,14 @@ def test_informer_network_default_parameters():
     assert outputs is not None
 
     # Check default values
-    assert informer.seq_len == 96
-    assert informer.label_len == 48
-    assert informer.out_len == 24
-    assert informer.d_model == 512
-    assert informer.n_heads == 8
-    assert informer.e_layers == 3
-    assert informer.d_layers == 2
-    assert informer.attn == "prob"
+    assert informer.encoder_input_len == 96
+    assert informer.decoder_input_len == 48
+    assert informer.prediction_horizon == 24
+    assert informer.model_dimension == 512
+    assert informer.num_attention_heads == 8
+    assert informer.encoder_layers == 3
+    assert informer.decoder_layers == 2
+    assert informer.attention_type == "prob"
     assert informer.activation == "gelu"
     assert informer.distil
     assert informer.mix
@@ -137,15 +139,14 @@ def test_informer_network_default_parameters():
 )
 def test_informer_network_parameter_validation():
     """Test whether InformerNetwork handles edge case parameters correctly."""
-    # Test minimum viable configuration
     informer = InformerNetwork(
-        seq_len=12,
-        label_len=6,
-        out_len=3,
-        d_model=32,
-        n_heads=1,
-        e_layers=1,
-        d_layers=1,
+        encoder_input_len=12,
+        decoder_input_len=6,
+        prediction_horizon=3,
+        model_dimension=32,
+        num_attention_heads=1,
+        encoder_layers=1,
+        decoder_layers=1,
         factor=1,
         dropout=0.0,
     )
@@ -163,13 +164,13 @@ def test_informer_network_different_channels():
     """Test whether InformerNetwork works with different numbers of input channels."""
     for n_channels in [1, 3, 5, 10]:
         informer = InformerNetwork(
-            seq_len=48,
-            label_len=24,
-            out_len=12,
-            d_model=64,
-            n_heads=2,
-            e_layers=1,
-            d_layers=1,
+            encoder_input_len=48,
+            decoder_input_len=24,
+            prediction_horizon=12,
+            model_dimension=64,
+            num_attention_heads=2,
+            encoder_layers=1,
+            decoder_layers=1,
         )
 
         inputs, outputs = informer.build_network((72, n_channels))
