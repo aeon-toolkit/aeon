@@ -7,6 +7,7 @@ if _check_soft_dependencies(["tensorflow"], severity="none"):
     import tensorflow as tf
     from tensorflow.keras.layers import Dropout, Layer
 
+    @tf.keras.utils.register_keras_serializable(package="aeon")
     class KerasProbAttention(Layer):
         """Keras implementation of ProbSparse Attention mechanism for Informer."""
 
@@ -258,6 +259,7 @@ if _check_soft_dependencies(["tensorflow"], severity="none"):
             """Create layer from config."""
             return cls(**config)
 
+    @tf.keras.utils.register_keras_serializable(package="aeon")
     class AttentionLayer(Layer):
         """Keras multi-head attention layer using a custom attention mechanism."""
 
