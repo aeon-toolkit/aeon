@@ -1486,8 +1486,8 @@ def _dynamic_alphabet_allocation(bits, var, lamda=0.5):
             for x in range(min_bit, max_bit + 1):
                 if j - x >= 0 and x <= alloc[i - 1, j - x]:
                     current_reward = (
-                            DP[i - 1, j - x] \
-                            + x * var_sorted[i - 1] \
+                            DP[i - 1, j - x]
+                            + x * var_sorted[i - 1]
                             + regularization_term(x, var_sorted[i - 1], A, lamda)
                     )
                     if current_reward > max_reward:
