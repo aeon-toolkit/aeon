@@ -2,12 +2,12 @@
 
 import os
 from warnings import simplefilter
-from joblib import Parallel, delayed
 
-import scipy
 import numpy as np
 import pandas as pd
-from numba import set_num_threads, njit, objmode
+import scipy
+from joblib import Parallel, delayed
+from numba import njit, objmode, set_num_threads
 from scipy.stats import zscore
 from sklearn.decomposition import PCA
 
@@ -22,8 +22,9 @@ def explain_variance(X, model, n_components):
         X_trans_ii = np.zeros_like(X_trans)
         X_trans_ii[:, ii] = X_trans[:, ii]
         X_approx_ii = model.inverse_transform(X_trans_ii)
-        result[ii] = 1 - (np.linalg.norm(X_approx_ii - X) /
-                          np.linalg.norm(X - model.mean_)) ** 2
+        result[ii] = (
+            1 - (np.linalg.norm(X_approx_ii - X) / np.linalg.norm(X - model.mean_)) ** 2
+        )
     return result
 
 
@@ -56,8 +57,8 @@ def _fast_fourier_transform(X, norm, dft_length, inverse_sqrt_win_size, norm_std
     imags = np.imag(X_ffts)  # float64[]
     count = (length // 2) * 2
 
-    dft[:, 0:count:2] = reals[:, 0: length // 2]
-    dft[:, 1:count:2] = imags[:, 0: length // 2]
+    dft[:, 0:count:2] = reals[:, 0 : length // 2]
+    dft[:, 1:count:2] = imags[:, 0 : length // 2]
     dft *= inverse_sqrt_win_size
 
     # apply z-normalization
@@ -244,9 +245,8 @@ def load_from_ucr_tsv_to_dataframe_plain(full_file_path_and_name):
     df.columns -= 1
     return df, y
 
-def process_n_components(
-        n_components, X_train, X_test, dataset_name
-):
+
+def process_n_components(n_components, X_train, X_test, dataset_name):
     print("\tRunning: ", dataset_name, n_components)
     csv_scores = []
 
@@ -270,47 +270,44 @@ def process_n_components(
     norm, norm_std = True, True
 
     X_train_dfts = _fast_fourier_transform(
-        X_train, norm, dft_length, inverse_sqrt_win_size, norm_std=norm_std)
+        X_train, norm, dft_length, inverse_sqrt_win_size, norm_std=norm_std
+    )
     X_test_dfts = _fast_fourier_transform(
-        X_test, norm, dft_length, inverse_sqrt_win_size, norm_std=norm_std)
+        X_test, norm, dft_length, inverse_sqrt_win_size, norm_std=norm_std
+    )
 
-    pca_transform = PCA(
-        n_components=n_components,
-        svd_solver="auto"
-    ).fit(X_train_dfts)
+    pca_transform = PCA(n_components=n_components, svd_solver="auto").fit(X_train_dfts)
     X_dft = pca_transform.transform(X_train_dfts)
     explained_variance_train = pca_transform.explained_variance_ratio_.sum()
-    explained_variance_test = explain_variance(X_test_dfts, pca_transform,
-                                               X_dft.shape[-1]).sum()
+    explained_variance_test = explain_variance(
+        X_test_dfts, pca_transform, X_dft.shape[-1]
+    ).sum()
 
     method_name = "PISA"
     sum_scores[method_name]["dataset"].append(dataset_name)
     sum_scores[method_name]["EVAR_TRAIN"].append(explained_variance_train)
     sum_scores[method_name]["EVAR_TEST"].append(explained_variance_test)
-    csv_scores.append((method_name, dataset_name,
-                       explained_variance_train,
-                       explained_variance_test))
+    csv_scores.append(
+        (method_name, dataset_name, explained_variance_train, explained_variance_test)
+    )
 
     # SPARTAN: PCA
-    pca_transform = PCA(
-        n_components=n_components,
-        svd_solver="auto"
-    ).fit(X_train)
+    pca_transform = PCA(n_components=n_components, svd_solver="auto").fit(X_train)
     X_pca = pca_transform.transform(X_train)
     explained_variance_train = pca_transform.explained_variance_ratio_.sum()
-    explained_variance_test = explain_variance(X_test, pca_transform,
-                                               X_pca.shape[-1]).sum()
+    explained_variance_test = explain_variance(
+        X_test, pca_transform, X_pca.shape[-1]
+    ).sum()
 
     method_name = "SPARTAN"
     sum_scores[method_name]["dataset"].append(dataset_name)
     sum_scores[method_name]["EVAR_TRAIN"].append(explained_variance_train)
     sum_scores[method_name]["EVAR_TEST"].append(explained_variance_test)
-    csv_scores.append((method_name, dataset_name,
-                       explained_variance_train,
-                       explained_variance_test))
+    csv_scores.append(
+        (method_name, dataset_name, explained_variance_train, explained_variance_test)
+    )
 
     return n_components, sum_scores, csv_scores
-
 
 
 # configuration
@@ -358,9 +355,7 @@ for dataset_name in used_dataset:
     X_test = zscore(X_test.squeeze(), axis=1).values
 
     results = Parallel(n_jobs=-1, prefer="processes")(
-        delayed(process_n_components)(
-            n_components, X_train, X_test, dataset_name
-        )
+        delayed(process_n_components)(n_components, X_train, X_test, dataset_name)
         for n_components in all_n_components
     )
 
@@ -368,9 +363,11 @@ for dataset_name in used_dataset:
         if csv_score:  # Only process if not skipped
             print(f"\n\n---- Results using {dataset_name} {n_components} -----")
             for name, _ in sum_scores.items():
-                print(f"---- Name {name}, EVAR:\t"
-                      f"{sum_scores[name]['EVAR_TRAIN'][0]:0.3f}\t"
-                      f"{sum_scores[name]['EVAR_TEST'][0]:0.3f}")
+                print(
+                    f"---- Name {name}, EVAR:\t"
+                    f"{sum_scores[name]['EVAR_TRAIN'][0]:0.3f}\t"
+                    f"{sum_scores[name]['EVAR_TEST'][0]:0.3f}"
+                )
             all_csv_scores[n_components].extend(csv_score)
 
             pd.DataFrame.from_records(
@@ -381,6 +378,4 @@ for dataset_name in used_dataset:
                     "EVAR_TRAIN",
                     "EVAR_TEST",
                 ],
-            ).to_csv(
-                f"logs/evar_all_ucr_{n_components}-04_07_25.csv", index=None
-            )
+            ).to_csv(f"logs/evar_all_ucr_{n_components}-04_07_25.csv", index=None)

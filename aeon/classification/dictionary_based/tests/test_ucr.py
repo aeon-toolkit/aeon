@@ -1,11 +1,12 @@
 """UCR test."""
+
 import os
 
 os.environ["KMP_WARNINGS"] = "off"
 
-import traceback
 import itertools
 import sys
+import traceback
 
 sys.path.insert(0, "./")
 sys.path.insert(0, "./../")
@@ -16,7 +17,8 @@ from warnings import simplefilter
 import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
-from aeon.classification.dictionary_based import WEASEL_V2, WEASEL
+
+from aeon.classification.dictionary_based import WEASEL, WEASEL_V2
 
 simplefilter(action="ignore", category=FutureWarning)
 simplefilter(action="ignore", category=UserWarning)
@@ -193,7 +195,7 @@ def get_classifiers(threads_to_use):
             random_state=1379,
             alphabet_allocation_method="DAA",
             transformer="SPARTAN",
-            n_jobs=threads_to_use
+            n_jobs=threads_to_use,
         ),
         # "WEASEL 3.0 - DYN": WEASEL_V2(
         #     random_state=1379,
@@ -224,10 +226,7 @@ def get_classifiers(threads_to_use):
         #     feature_selection_strategy="pca",
         #     n_jobs=threads_to_use
         # ),
-        "WEASEL 2.0 -ORIG": WEASEL_V2(
-            random_state=1379,
-            n_jobs=threads_to_use
-        ),
+        "WEASEL 2.0 -ORIG": WEASEL_V2(random_state=1379, n_jobs=threads_to_use),
     }
     return clfs
 
@@ -272,14 +271,13 @@ if __name__ == "__main__":
                     X_test, X_train, clf_name, dataset_name, y_test, y_train
                 )
             except Exception as e:
-                print("An exception occurred: {}".format(e))
+                print(f"An exception occurred: {e}")
                 print("\tFailed: ", dataset_name, clf_name)
                 print(e)
                 traceback.print_exc()  # This prints the full stack trace
 
         else:
             return make_run(X_test, X_train, clf_name, dataset_name, y_test, y_train)
-
 
     def make_run(X_test, X_train, clf_name, dataset_name, y_test, y_train):
         """Run experiments."""
@@ -317,8 +315,8 @@ if __name__ == "__main__":
             + (
                 f",{clf.steps[0][-1].total_features_count}"
                 if hasattr(clf, "steps")
-                   and (len(clf.steps) > 0)
-                   and hasattr(clf.steps[0][-1], "total_features_count")
+                and (len(clf.steps) > 0)
+                and hasattr(clf.steps[0][-1], "total_features_count")
                 else f""
             ),
             flush=True,
@@ -330,11 +328,10 @@ if __name__ == "__main__":
         sum_scores[clf_name]["all_pred"].append(pred_time)
         sum_scores[clf_name]["fit_time"] += sum_scores[clf_name]["fit_time"] + fit_time
         sum_scores[clf_name]["pred_time"] += (
-                sum_scores[clf_name]["pred_time"] + pred_time
+            sum_scores[clf_name]["pred_time"] + pred_time
         )
 
         return sum_scores
-
 
     # with parallel_backend("threading", n_jobs=-1):
     parallel_res = Parallel(n_jobs=parallel_jobs, timeout=9999999, batch_size=1)(

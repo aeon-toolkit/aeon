@@ -1,19 +1,19 @@
 """Test MinDist functions of symbolic representations."""
 
-import time
 import itertools
 import os
+import time
 from warnings import simplefilter
 
 import numpy as np
 import pandas as pd
-from numba import njit, prange, set_num_threads, objmode
+from numba import njit, objmode, prange, set_num_threads
 from scipy.stats import zscore
 
 from aeon.distances.mindist._dft_sfa import mindist_dft_sfa_distance
 from aeon.distances.mindist._paa_sax import mindist_paa_sax_distance
 from aeon.distances.mindist._pca_spartan import mindist_pca_spartan_distance
-from aeon.transformations.collection.dictionary_based import SAX, SFAWhole, SPARTAN
+from aeon.transformations.collection.dictionary_based import SAX, SPARTAN, SFAWhole
 
 simplefilter(action="ignore", category=FutureWarning)
 simplefilter(action="ignore", category=UserWarning)
@@ -206,13 +206,13 @@ else:
 
 @njit(cache=True, fastmath=True, parallel=True)
 def compute_distances(
-        queries,
-        samples,
-        sax_breakpoints,
-        other_breakpoints,
-        all_coeffs,
-        all_words,
-        method_names,
+    queries,
+    samples,
+    sax_breakpoints,
+    other_breakpoints,
+    all_coeffs,
+    all_words,
+    method_names,
 ):
     """Compute lower bounding distances."""
     pruning_power = np.zeros((queries.shape[0], len(method_names)), dtype=np.float64)
@@ -227,10 +227,10 @@ def compute_distances(
         nn_dist = np.nanmin(eds)
 
         # used for pruning
-        squared_lower_bound = nn_dist ** 2
+        squared_lower_bound = nn_dist**2
 
         for a in prange(method_names.shape[0]):
-            with objmode(start_time='f8'):
+            with objmode(start_time="f8"):
                 start_time = time.time()
 
             for j in range(samples.shape[0]):
@@ -243,8 +243,9 @@ def compute_distances(
                         samples.shape[-1],
                         squared_lower_bound=squared_lower_bound,
                     )
-                elif ((method_names[a].startswith("sofa")) or
-                      (method_names[a].startswith("sfa"))):
+                elif (method_names[a].startswith("sofa")) or (
+                    method_names[a].startswith("sfa")
+                ):
                     # DFT-SFA Min-Distance variants
                     min_dist = mindist_dft_sfa_distance(
                         all_coeffs[a][i],
@@ -268,11 +269,15 @@ def compute_distances(
                     pruning_power[i][a] += 1
 
                 if ~np.isinf(min_dist) and (min_dist > eds[j]):
-                    print(f"mindist {method_names[a]} is:", np.round(min_dist, 1),
-                          f" but ED is: ", np.round(eds[j], 1),
-                          f" Pos: {i}, {j}")
+                    print(
+                        f"mindist {method_names[a]} is:",
+                        np.round(min_dist, 1),
+                        f" but ED is: ",
+                        np.round(eds[j], 1),
+                        f" Pos: {i}, {j}",
+                    )
 
-            with objmode(end_time='f8'):
+            with objmode(end_time="f8"):
                 end_time = time.time()
 
             runtimes[a] += end_time - start_time
@@ -429,13 +434,17 @@ for dataset_name in used_dataset:
             sum_scores[method_name]["dataset"].append(dataset_name)
             sum_scores[method_name]["pruning_power"].append(pruning_power[a])
             sum_scores[method_name]["runtime"].append(runtimes[a])
-            csv_scores.append((method_name, dataset_name, pruning_power[a], runtimes[a]))
+            csv_scores.append(
+                (method_name, dataset_name, pruning_power[a], runtimes[a])
+            )
 
         print(f"\n\n---- Results using {alphabet_size}-----")
         for name, _ in sum_scores.items():
-           print(f"---- Name {name},\tPrP: "
-                 f"{sum_scores[name]['pruning_power'][0]:0.3f}, "
-                 f"{sum_scores[name]['runtime'][0]:0.3f}")
+            print(
+                f"---- Name {name},\tPrP: "
+                f"{sum_scores[name]['pruning_power'][0]:0.3f}, "
+                f"{sum_scores[name]['runtime'][0]:0.3f}"
+            )
 
         # if server:
         pd.DataFrame.from_records(

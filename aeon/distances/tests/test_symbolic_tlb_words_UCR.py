@@ -7,13 +7,13 @@ from warnings import simplefilter
 
 import numpy as np
 import pandas as pd
-from numba import njit, prange, set_num_threads, objmode
+from numba import njit, objmode, prange, set_num_threads
 from scipy.stats import zscore
 
 from aeon.distances.mindist._sax import mindist_sax_distance
 from aeon.distances.mindist._sfa import mindist_sfa_distance
 from aeon.distances.mindist._spartan import mindist_spartan_distance
-from aeon.transformations.collection.dictionary_based import SAX, SFAWhole, SPARTAN
+from aeon.transformations.collection.dictionary_based import SAX, SPARTAN, SFAWhole
 
 simplefilter(action="ignore", category=FutureWarning)
 simplefilter(action="ignore", category=UserWarning)
@@ -234,7 +234,7 @@ def compute_distances(
             eds[j] = np.linalg.norm(queries[i] - samples[j], ord=2)
 
         for a in prange(method_names.shape[0]):
-            with objmode(start_time='f8'):
+            with objmode(start_time="f8"):
                 start_time = time.time()
 
             for j in range(samples.shape[0]):
@@ -246,20 +246,21 @@ def compute_distances(
                         sax_breakpoints,
                         samples.shape[-1],
                     )
-                elif ((method_names[a].startswith("sofa")) or
-                      (method_names[a].startswith("sfa"))):
+                elif (method_names[a].startswith("sofa")) or (
+                    method_names[a].startswith("sfa")
+                ):
                     # DFT-SFA Min-Distance
                     md = mindist_sfa_distance(
                         test_words[a][i],
                         train_words[a][j],
-                        other_breakpoints[a-1],
+                        other_breakpoints[a - 1],
                     )
                 elif method_names[a].startswith("spartan"):
                     # SPARTAN Min-Distance
                     md = mindist_spartan_distance(
                         test_words[a][i],
                         train_words[a][j],
-                        other_breakpoints[a-1],
+                        other_breakpoints[a - 1],
                     )
                 else:
                     print(f"Unknown method name {method_names[a]}.")
@@ -269,15 +270,18 @@ def compute_distances(
                     tightness[i][a] += md / eds[j] / samples.shape[0]
 
                 if md > eds[j]:
-                    print(f"mindist {method_names[a+1]} is:", np.round(md, 1),
-                          f" but ED is: ", np.round(eds[j], 1),
-                          f" Pos: {i}, {j}")
+                    print(
+                        f"mindist {method_names[a+1]} is:",
+                        np.round(md, 1),
+                        f" but ED is: ",
+                        np.round(eds[j], 1),
+                        f" Pos: {i}, {j}",
+                    )
 
-            with objmode(end_time='f8'):
+            with objmode(end_time="f8"):
                 end_time = time.time()
 
             runtimes[a] += end_time - start_time
-
 
     tightness = np.sum(tightness, axis=0)
     for i in range(len(tightness)):
@@ -338,7 +342,6 @@ for dataset_name in used_dataset:
 
         sax_breakpoints = sax.breakpoints.astype(np.float64)
         method_names.append("sax")
-
 
         sfa = SFAWhole(
             word_length=n_segments,
@@ -434,10 +437,11 @@ for dataset_name in used_dataset:
 
         print(f"\n\n---- Results using {alphabet_size}-----")
         for name, _ in sum_scores.items():
-           print(f"---- Name {name}, tlb: "
-                 f"{sum_scores[name]['tightness'][0]:0.3f}, "
-                 f"{sum_scores[name]['runtime'][0]:0.3f}")
-
+            print(
+                f"---- Name {name}, tlb: "
+                f"{sum_scores[name]['tightness'][0]:0.3f}, "
+                f"{sum_scores[name]['runtime'][0]:0.3f}"
+            )
 
         # if server:
         pd.DataFrame.from_records(
@@ -449,5 +453,6 @@ for dataset_name in used_dataset:
                 "Runtime",
             ],
         ).to_csv(
-            f"logs/tlb_all_ucr_onlywords_{n_segments}_{alphabet_size}-02_07_25.csv", index=None
+            f"logs/tlb_all_ucr_onlywords_{n_segments}_{alphabet_size}-02_07_25.csv",
+            index=None,
         )
