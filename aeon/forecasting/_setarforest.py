@@ -32,14 +32,13 @@ class SETARForest(BaseForecaster):
         training each tree.
     lag : int, default=10
         The number of past lags to use as features for forecasting.
-    horizon : int, default=1
-        The number of time steps ahead to forecast.
     max_depth : int, default=10
         The maximum depth of each tree.
     """
 
     _tags = {
         "capability:exogenous": True,
+        "capability:horizon": False,
     }
 
     def __init__(
@@ -47,10 +46,9 @@ class SETARForest(BaseForecaster):
         n_estimators: int = 10,
         bagging_fraction: float = 0.8,
         lag: int = 10,
-        horizon: int = 1,
         max_depth: int = 10,
     ):
-        super().__init__(horizon=horizon, axis=1)
+        super().__init__(horizon=1, axis=1)
         self.n_estimators = n_estimators
         self.bagging_fraction = bagging_fraction
         self.lag = lag
@@ -100,7 +98,6 @@ class SETARForest(BaseForecaster):
             # Fit a single SETAR-tree
             tree = SETARTree(
                 lag=self.lag,
-                horizon=self.horizon,
                 max_depth=self.max_depth,
                 stopping_criteria="both",
                 significance=random_significance,
@@ -127,7 +124,6 @@ class SETARForest(BaseForecaster):
         Returns
         -------
         float
-            The averaged forecast from all trees at the specified horizon.
         """
         self._check_is_fitted()
         if not self.estimators_:
