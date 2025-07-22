@@ -61,7 +61,7 @@ class TCNForecaster(BaseDeepForecaster):
         horizon=1,
         window=10,
         batch_size=32,
-        epochs=100,
+        n_epochs=100,
         verbose=0,
         optimizer="adam",
         loss="mse",
@@ -75,7 +75,7 @@ class TCNForecaster(BaseDeepForecaster):
             horizon=horizon,
             window=window,
             batch_size=batch_size,
-            epochs=epochs,
+            n_epochs=n_epochs,
             verbose=verbose,
             optimizer=optimizer,
             random_state=random_state,
@@ -86,7 +86,7 @@ class TCNForecaster(BaseDeepForecaster):
         self.kernel_size = kernel_size
         self.dropout = dropout
 
-    def _build_model(self, input_shape):
+    def build_model(self, input_shape):
         """Build the TCN model for forecasting.
 
         Parameters
@@ -107,7 +107,7 @@ class TCNForecaster(BaseDeepForecaster):
             kernel_size=self.kernel_size,
             dropout=self.dropout,
         )
-
+        # input_shape = (input_shape[1], input_shape[0])
         # Build the network with the given input shape
         input_layer, output = network.build_network(input_shape=input_shape)
 
@@ -127,7 +127,7 @@ class TCNForecaster(BaseDeepForecaster):
         ----------
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value,` will return `"default"` set.
             For forecasters, a "default" set of parameters should be provided for
             general testing, and a "results_comparison" set for comparing against
             previously recorded results if the general set does not produce suitable
@@ -141,7 +141,7 @@ class TCNForecaster(BaseDeepForecaster):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
         """
         param = {
-            "epochs": 10,
+            "n_epochs": 10,
             "batch_size": 4,
             "n_blocks": [8, 8],
             "kernel_size": 2,

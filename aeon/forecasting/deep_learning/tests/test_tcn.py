@@ -24,7 +24,7 @@ def test_tcn_forecaster(horizon, window, epochs):
 
     # Initialize TCNForecaster
     forecaster = TCNForecaster(
-        horizon=horizon, window=window, epochs=epochs, batch_size=16, verbose=0
+        horizon=horizon, window=window, n_epochs=epochs, batch_size=16, verbose=0
     )
 
     # Fit and predict
