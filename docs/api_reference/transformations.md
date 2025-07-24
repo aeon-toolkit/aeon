@@ -144,6 +144,7 @@ All transformers in `aeon` can be listed using the `aeon.registry
     :template: class.rst
 
     TRILITE
+    TS2Vec
 ```
 
 ### Shapelet based
