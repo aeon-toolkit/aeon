@@ -318,9 +318,9 @@ if _check_soft_dependencies("torch", severity="none"):
             npad[axis] = (0, pad_size)
         return np.pad(array, pad_width=npad, mode="constant", constant_values=np.nan)
 
-    def take_per_row(A, indx, num_elem):
-        all_indx = indx[:, None] + np.arange(num_elem)
-        return A[torch.arange(all_indx.shape[0])[:, None], all_indx]
+    def take_per_row(A, index, num_elem):
+        all_index = index[:, None] + np.arange(num_elem)
+        return A[torch.arange(all_index.shape[0])[:, None], all_index]
 
     def torch_pad_nan(arr, left=0, right=0, dim=0):
         if left > 0:
