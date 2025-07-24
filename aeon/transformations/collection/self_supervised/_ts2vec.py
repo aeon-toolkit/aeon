@@ -112,7 +112,7 @@ class TS2Vec(BaseCollectionTransformer):
         self.batch_size = batch_size
         self.max_train_length = max_train_length
         self.temporal_unit = temporal_unit
-        self.n_jobs = n_jobs
+        self._n_jobs = check_n_jobs(n_jobs)
 
         self.verbose = verbose
         self.n_epochs = n_epochs
@@ -130,8 +130,7 @@ class TS2Vec(BaseCollectionTransformer):
     def _fit(self, X, y=None):
         import torch
 
-        n_jobs = check_n_jobs(self.n_jobs)
-        torch.set_num_threads(n_jobs)
+        torch.set_num_threads(self._n_jobs)
 
         selected_device = None
         if self.device is None:
