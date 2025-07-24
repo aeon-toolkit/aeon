@@ -150,7 +150,7 @@ class REDCOMETS(BaseClassifier):
                 self.sfa_clfs,
                 self.sax_transforms,
                 self.sax_clfs,
-            ) = self._build_univariate_ensemble(np.squeeze(X), y)
+            ) = self._build_univariate_ensemble(np.squeeze(X, 1), y)
         else:  # Multivariate
 
             if self.variant in [1, 2, 3]:  # Concatenate
@@ -204,7 +204,7 @@ class REDCOMETS(BaseClassifier):
 
         from imblearn.over_sampling import SMOTE, RandomOverSampler
 
-        X = Normalizer().fit_transform(X).squeeze()
+        X = Normalizer().fit_transform(X).squeeze(1)
 
         if self.variant in [1, 2, 3]:
             perc_length = self.perc_length / self._n_channels
@@ -391,7 +391,7 @@ class REDCOMETS(BaseClassifier):
             Predicted probabilities using the ordering in ``classes_``.
         """
         if X.shape[1] == 1:  # Univariate
-            return self._predict_proba_unvivariate(np.squeeze(X))
+            return self._predict_proba_unvivariate(np.squeeze(X, 1))
         else:  # Multivariate
             if self.variant in [1, 2, 3]:  # Concatenate
                 X_concat = X.reshape(*X.shape[:-2], -1)
@@ -414,7 +414,7 @@ class REDCOMETS(BaseClassifier):
             2D np.ndarray of shape (n_cases, n_classes_)
             Predicted probabilities using the ordering in ``classes_``.
         """
-        X = Normalizer().fit_transform(X).squeeze()
+        X = Normalizer().fit_transform(X).squeeze(1)
 
         pred_mat = np.zeros((X.shape[0], self.n_classes_))
 
@@ -588,7 +588,7 @@ class REDCOMETS(BaseClassifier):
         """
 
         def _sax_wrapper(sax):
-            return np.squeeze(sax.fit_transform(X))
+            return np.squeeze(sax.fit_transform(X), 1)
 
         sax_parallel_res = Parallel(n_jobs=self._n_jobs, backend=self.parallel_backend)(
             delayed(_sax_wrapper)(sax) for sax in sax_transforms
