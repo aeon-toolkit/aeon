@@ -28,7 +28,9 @@ class DensityPeakClusterer:
         Distance cutoff for the Gaussian kernel. If set to "auto", the cutoff is
         automatically selected.
     distance_metric : str, default="euclidean"
-        The distance metric to use for clustering.
+        The distance metric to use for clustering. Supported metrics include
+        "euclidean", "manhattan", "minkowski", "sqeuclidean" (squared euclidean),
+        and other metrics supported by aeon.distances.
     n_jobs : int, default=1
         Number of parallel jobs to run.
     density_threshold : float, optional
@@ -71,8 +73,12 @@ class DensityPeakClusterer:
         distance_matrix : np.ndarray
             A symmetric matrix of pairwise distances.
         """
-        dist_func = get_distance_function(self.distance_metric)
-        distance_matrix = pairwise_distance(self.data, method=dist_func)
+        # Handle squared euclidean distance for compatibility with original DPCA
+        if self.distance_metric == "sqeuclidean":
+            distance_matrix = pairwise_distance(self.data, method="squared")
+        else:
+            dist_func = get_distance_function(self.distance_metric)
+            distance_matrix = pairwise_distance(self.data, method=dist_func)
         return distance_matrix
 
     def _auto_select_dc(self):
@@ -83,7 +89,7 @@ class DensityPeakClusterer:
         is within a target range (approximately 0.2% to 1%).
         Intended target range: 0.01 <= nneighs <= 0.002.
         """
-        tri_indices = np.triu_indices(self.n, k=1)  # ignore diagonal (self-distances)
+        tri_indices = np.triu_indices(self.n, k=1)
         distances = self.distance_matrix[tri_indices]
         max_distance = np.max(distances)
         min_distance = np.min(distances)
@@ -149,7 +155,7 @@ class DensityPeakClusterer:
             The fitted clusterer.
         """
         self.data = X
-        self.n = X.shape[0]  # total number of data points
+        self.n = X.shape[0]
 
         self.distance_matrix = self._build_distance()
         self.dc = self.select_dc()
