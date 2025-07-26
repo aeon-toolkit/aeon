@@ -24,6 +24,8 @@ __all__ = [
     "generate_combinations",
     "get_all_subsequences",
     "compute_mean_stds_collection_parallel",
+    "prime_up_to",
+    "is_prime",
 ]
 
 
@@ -63,7 +65,7 @@ def unique_count(X: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """
     if X.shape[0] > 0:
         X = np.sort(X)
-        unique = np.zeros(X.shape[0])
+        unique = np.zeros(X.shape[0], dtype=X.dtype)
         unique[0] = X[0]
         counts = np.zeros(X.shape[0], dtype=np.int_)
         counts[0] = 1
@@ -77,7 +79,7 @@ def unique_count(X: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
             else:
                 counts[uc] += 1
         return unique[: uc + 1], counts[: uc + 1]
-    return np.zeros(0), np.zeros(0, dtype=np.int_)
+    return np.zeros(0, dtype=X.dtype), np.zeros(0, dtype=np.int_)
 
 
 @njit(fastmath=True, cache=True)
@@ -641,20 +643,37 @@ def combinations_1d(x: np.ndarray, y: np.ndarray) -> np.ndarray:
 
 @njit(fastmath=True, cache=True)
 def slope_derivative(X: np.ndarray) -> np.ndarray:
-    """Numba slope derivative transformation for a 1d numpy array.
+    r"""Compute the average of a slope between points.
 
-    Finds the derivative of the series, padding the first and last values so that the
-    length stays the same.
+    a.k.a. slope derivative.
+
+    Computes the average of the slope of the line through the point in question and
+    its left neighbour, and the slope of the line through the left neighbour and the
+    right neighbour. Proposed in [1] for use in distances i.e. ddtw and wddtw.
+    .. math::
+    q'_(i) = \frac{{}(q_{i} - q_{i-1} + ((q_{i+1} - q_{i-1}/2)}{2}
+    Where q is the original time series and q' is the derived time series.
 
     Parameters
     ----------
-    X : 1d numpy array
-        A 1d numpy array of values
+    X : np.ndarray (n_timepoints)
+        Time series to take derivative of.
 
     Returns
     -------
-    arr : 1d numpy array
-        The slope derivative of the series
+    np.ndarray (n_timepoints - 2)
+        Array containing the derivative of X.
+
+    Raises
+    ------
+    ValueError
+        If the time series length has less than 3 points.
+
+    References
+    ----------
+    .. [1] Keogh, Eamonn & Pazzani, Michael. (2002). Derivative Dynamic Time Warping.
+        First SIAM International Conference on Data Mining.
+        1. 10.1137/1.9781611972719.1.
 
     Examples
     --------
@@ -663,31 +682,47 @@ def slope_derivative(X: np.ndarray) -> np.ndarray:
     >>> X = np.array([1, 2, 2, 3, 3, 3, 4, 4, 4, 4])
     >>> X_der = slope_derivative(X)
     """
-    m = len(X)
-    arr = np.zeros(m)
-    for i in range(1, m - 1):
-        arr[i] = ((X[i] - X[i - 1]) + ((X[i + 1] - X[i - 1]) / 2.0)) / 2.0
-    arr[0] = arr[1]
-    arr[m - 1] = arr[m - 2]
-    return arr
+    if X.shape[0] < 3:
+        raise ValueError("Time series must have at least 3 points.")
+    result = np.zeros(X.shape[0] - 2)
+    for i in range(1, X.shape[0] - 1):
+        result[i - 1] = ((X[i] - X[i - 1]) + (X[i + 1] - X[i - 1]) / 2.0) / 2.0
+    return result
 
 
 @njit(fastmath=True, cache=True)
 def slope_derivative_2d(X: np.ndarray) -> np.ndarray:
-    """Numba slope derivative transformation for a 2d numpy array.
+    r"""Compute the average of a slope between points.
 
-    Finds the derivative of the series, padding the first and last values so that the
-    length stays the same.
+    a.k.a. slope derivative.
+
+    Computes the average of the slope of the line through the point in question and
+    its left neighbour, and the slope of the line through the left neighbour and the
+    right neighbour. Proposed in [1] for use in distances i.e. ddtw and wddtw.
+    .. math::
+    q'_(i) = \frac{{}(q_{i} - q_{i-1} + ((q_{i+1} - q_{i-1}/2)}{2}
+    Where q is the original time series and q' is the derived time series.
 
     Parameters
     ----------
-    X : 2d numpy array
-        A 2d numpy array of values
+    X : np.ndarray (n_channels, n_timepoints)
+        Time series to take derivative of.
 
     Returns
     -------
-    arr : 2d numpy array
-        The slope derivative of each series
+    np.ndarray (n_channels, n_timepoints - 2)
+        Array containing the derivative of X.
+
+    Raises
+    ------
+    ValueError
+        If the time series length has less than 3 points.
+
+    References
+    ----------
+    .. [1] Keogh, Eamonn & Pazzani, Michael. (2002). Derivative Dynamic Time Warping.
+        First SIAM International Conference on Data Mining.
+        1. 10.1137/1.9781611972719.1.
 
     Examples
     --------
@@ -696,7 +731,7 @@ def slope_derivative_2d(X: np.ndarray) -> np.ndarray:
     >>> X = np.array([[1, 2, 2, 3, 3, 3, 4, 4, 4, 4], [5, 6, 6, 7, 7, 7, 8, 8, 8, 8]])
     >>> X_der = slope_derivative_2d(X)
     """
-    arr = np.zeros(X.shape)
+    arr = np.zeros((X.shape[0], X.shape[1] - 2))
     for i in range(X.shape[0]):
         arr[i] = slope_derivative(X[i])
     return arr
@@ -704,20 +739,37 @@ def slope_derivative_2d(X: np.ndarray) -> np.ndarray:
 
 @njit(fastmath=True, cache=True)
 def slope_derivative_3d(X: np.ndarray) -> np.ndarray:
-    """Numba slope derivative transformation for a 3d numpy array.
+    r"""Compute the average of a slope between points.
 
-    Finds the derivative of the series, padding the first and last values so that the
-    length stays the same.
+    a.k.a. slope derivative.
+
+    Computes the average of the slope of the line through the point in question and
+    its left neighbour, and the slope of the line through the left neighbour and the
+    right neighbour. Proposed in [1] for use in distances i.e. ddtw and wddtw.
+    .. math::
+    q'_(i) = \frac{{}(q_{i} - q_{i-1} + ((q_{i+1} - q_{i-1}/2)}{2}
+    Where q is the original time series and q' is the derived time series.
 
     Parameters
     ----------
-    X : 3d numpy array
-        A 3d numpy array of values
+    X : np.ndarray (n_cases, n_channels, n_timepoints)
+        Time series to take derivative of.
 
     Returns
     -------
-    arr : 3d numpy array
-        The slope derivative of each series
+    np.ndarray (n_cases, n_channels, n_timepoints - 2)
+        Array containing the derivative of X.
+
+    Raises
+    ------
+    ValueError
+        If the time series length has less than 3 points.
+
+    References
+    ----------
+    .. [1] Keogh, Eamonn & Pazzani, Michael. (2002). Derivative Dynamic Time Warping.
+        First SIAM International Conference on Data Mining.
+        1. 10.1137/1.9781611972719.1.
 
     Examples
     --------
@@ -729,7 +781,7 @@ def slope_derivative_3d(X: np.ndarray) -> np.ndarray:
     ... ])
     >>> X_der = slope_derivative_3d(X)
     """
-    arr = np.zeros(X.shape)
+    arr = np.zeros((X.shape[0], X.shape[1], X.shape[2] - 2))
     for i in range(X.shape[0]):
         arr[i] = slope_derivative_2d(X[i])
     return arr
@@ -817,3 +869,55 @@ def get_all_subsequences(X: np.ndarray, length: int, dilation: int) -> np.ndarra
     out_shape = (n_timepoints - (length - 1) * dilation, n_features, np.int64(length))
     strides = (s1, s0, s1 * dilation)
     return np.lib.stride_tricks.as_strided(X, shape=out_shape, strides=strides)
+
+
+@njit(fastmath=True, cache=True)
+def prime_up_to(n: int) -> np.ndarray:
+    """Check if any number from 1 to n is a prime number and return the ones which are.
+
+    Parameters
+    ----------
+    n : int
+        Number up to which the search for prime number will go
+
+    Returns
+    -------
+    array
+        Prime numbers up to n
+
+    Examples
+    --------
+    >>> from aeon.utils.numba.stats import prime_up_to
+    >>> p = prime_up_to(50)
+    """
+    is_p = np.zeros(n + 1, dtype=np.bool_)
+    for i in range(n + 1):
+        is_p[i] = is_prime(i)
+    return np.where(is_p)[0]
+
+
+@njit(fastmath=True, cache=True)
+def is_prime(n: int) -> bool:
+    """Check if the input number is a prime number.
+
+    Parameters
+    ----------
+    n : int
+        The number to test
+
+    Returns
+    -------
+    bool
+        Whether n is a prime number
+
+    Examples
+    --------
+    >>> from aeon.utils.numba.stats import is_prime
+    >>> p = is_prime(7)
+    """
+    if (n % 2 == 0 and n > 2) or n == 0 or n == 1:
+        return False
+    for i in range(3, int(n**0.5) + 1, 2):
+        if not n % i:
+            return False
+    return True

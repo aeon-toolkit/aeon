@@ -13,11 +13,13 @@ from typing import Literal, Optional
 
 import numba as nb
 import numpy as np
+from numba import get_num_threads
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.pipeline import FeatureUnion
 from sklearn.pipeline import make_pipeline as make_pipeline_sklearn
 
 from aeon.transformations.collection import BaseCollectionTransformer
+from aeon.utils.validation import check_n_jobs
 
 
 class BORF(BaseCollectionTransformer):
@@ -142,9 +144,13 @@ class BORF(BaseCollectionTransformer):
         self.transformer_weights = transformer_weights
         self.complexity = complexity
         self.densify = densify
+
         super().__init__()
 
     def _fit(self, X, y=None):
+        self._n_jobs = check_n_jobs(self.n_jobs)
+        n_jobs_numba = check_n_jobs(self.n_jobs_numba)
+
         time_series_length = X.shape[2]
         # for better computation time, this should be moved to the init,
         #  setting time_series_length as a user parameter
@@ -169,8 +175,8 @@ class BORF(BaseCollectionTransformer):
             dilations_min_dilation=self.dilations_min_dilation,
             dilations_max_dilation=self.dilations_max_dilation,
             min_window_to_signal_std_ratio=self.min_window_to_signal_std_ratio,
-            n_jobs=self.n_jobs,
-            n_jobs_numba=self.n_jobs_numba,
+            n_jobs=self._n_jobs,
+            n_jobs_numba=n_jobs_numba,
             transformer_weights=self.transformer_weights,
             pipeline_objects=pipeline_objects,
             complexity=self.complexity,
@@ -303,7 +309,6 @@ class IndividualBORF(BaseEstimator, TransformerMixin):
             _array_to_int(np.full(self.word_length, self.alphabet_size - 1)) + 1,
             base=self.alphabet_size,
         )
-        _set_n_jobs_numba(n_jobs=self.n_jobs)
 
         self.feature_names_in_ = None
         self.n_features_in_ = None
@@ -313,6 +318,9 @@ class IndividualBORF(BaseEstimator, TransformerMixin):
 
     def transform(self, X, y=None):
         import sparse  # FIXME: can we move this outside for better performance?
+
+        prev_threads = get_num_threads()
+        _set_n_jobs_numba(n_jobs=self.n_jobs)
 
         shape_ = (len(X), len(X[0]), self.n_words)
         out = _transform_sax_patterns(
@@ -325,6 +333,9 @@ class IndividualBORF(BaseEstimator, TransformerMixin):
             min_window_to_signal_std_ratio=self.min_window_to_signal_std_ratio,
         )
         # ts_idx, signal_idx, words, count
+
+        _set_n_jobs_numba(n_jobs=prev_threads)
+
         return sparse.COO(coords=out[:, :3].T, data=out[:, -1].T, shape=shape_)
 
 
@@ -615,7 +626,7 @@ def _sax(
     )
     global_std = np.std(a)
     if global_std == 0:
-        return np.zeros((n_windows, word_length), dtype=np.uint8)
+        return np.zeros((n_windows, word_length), dtype=np.uint16)
     seg_size = window_size // word_length
     n_windows = _get_n_windows(
         sequence_size=a.size, window_size=window_size, dilation=dilation, stride=stride
@@ -646,7 +657,7 @@ def _sax(
                 sigma_global=global_std,
                 sigma_threshold=min_window_to_signal_std_ratio,
             )
-    return np.digitize(out, bins).astype(np.uint8)
+    return np.digitize(out, bins).astype(np.uint16)
 
 
 @nb.njit(fastmath=True, cache=True)

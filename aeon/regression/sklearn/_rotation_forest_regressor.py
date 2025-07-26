@@ -19,6 +19,7 @@ from sklearn.decomposition import PCA
 from sklearn.exceptions import NotFittedError
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.utils import check_random_state
+from sklearn.utils.validation import validate_data
 
 from aeon.base._base import _clone_estimator
 from aeon.utils.validation import check_n_jobs
@@ -33,7 +34,7 @@ class RotationForestRegressor(RegressorMixin, BaseEstimator):
     transformed using PCA.
 
     Intended as a benchmark for time series data and a base regressor for
-    transformation based appraoches such as FreshPRINCERegressor, this aeon
+    transformation based approaches such as FreshPRINCERegressor, this aeon
     implementation only works with continuous attributes.
 
     Parameters
@@ -168,7 +169,7 @@ class RotationForestRegressor(RegressorMixin, BaseEstimator):
 
         # data processing
         X = self._check_X(X)
-        X = self._validate_data(X=X, reset=False, accept_sparse=False)
+        X = validate_data(self, X=X, reset=False, accept_sparse=False)
 
         # replace missing values with 0 and remove useless attributes
         X = X[:, self._useful_atts]
@@ -222,13 +223,12 @@ class RotationForestRegressor(RegressorMixin, BaseEstimator):
     def _fit_rotf(self, X, y, save_transformed_data: bool = False):
         # data processing
         X = self._check_X(X)
-        X, y = self._validate_data(X=X, y=y, ensure_min_samples=2, accept_sparse=False)
+        X, y = validate_data(self, X=X, y=y, ensure_min_samples=2, accept_sparse=False)
 
         self._label_average = np.mean(y)
 
-        self._n_jobs = check_n_jobs(self.n_jobs)
-
         self.n_cases_, self.n_atts_ = X.shape
+        self._n_jobs = check_n_jobs(self.n_jobs)
 
         time_limit = self.time_limit_in_minutes * 60
         start_time = time.time()
@@ -241,6 +241,10 @@ class RotationForestRegressor(RegressorMixin, BaseEstimator):
         # remove useless attributes
         self._useful_atts = ~np.all(X[1:] == X[:-1], axis=0)
         X = X[:, self._useful_atts]
+        if sum(self._useful_atts) == 0:
+            raise ValueError(
+                "All attributes in X contain the same value.",
+            )
 
         self._n_atts = X.shape[1]
 
