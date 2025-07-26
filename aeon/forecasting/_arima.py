@@ -124,12 +124,18 @@ class ARIMA(BaseForecaster):
         differenced_forecast = self.fitted_values_[-1]
 
         if self.d == 0:
-            self.forecast_ = differenced_forecast
+            forecast_value = differenced_forecast
         elif self.d == 1:
-            self.forecast_ = differenced_forecast + self._series[-1]
-        else:
-            self.forecast_ = differenced_forecast + np.sum(self._series[-self.d :])
-        # Extract the parameter values
+            forecast_value = differenced_forecast + self._series[-1]
+        else:  # for d > 1, iteratively undifference
+            forecast_value = differenced_forecast
+            last_vals = self._series[-self.d :]
+            for _ in range(self.d):
+                forecast_value += last_vals[-1] - last_vals[-2]
+                # Shift values to avoid appending to list (efficient)
+                last_vals = np.roll(last_vals, -1)
+                last_vals[-1] = forecast_value  # Extract the parameter values
+        self.forecast_ = forecast_value
         if self.use_constant:
             self.c_ = formatted_params[0][0]
         self.phi_ = formatted_params[1][: self.p]
@@ -266,7 +272,8 @@ def _arima_model(params, data, model):
     num_predictions = n + 1
     residuals = np.zeros(num_predictions - 1)
     fitted_values = np.zeros(num_predictions)
-    for t in range(num_predictions):
+    # Leave first max(p,q) residuals and fitted as zero.
+    for t in range(max(model[1], model[2]), num_predictions):
         fitted_values[t] = _in_sample_forecast(
             data, model, t, formatted_params, residuals
         )
