@@ -30,3 +30,4 @@ Deep learning networks
     AEAttentionBiGRUNetwork
     AEDRNNNetwork
     RecurrentNetwork
+    DeepARNetwork
