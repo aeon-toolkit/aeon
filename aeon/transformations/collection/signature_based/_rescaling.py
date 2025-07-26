@@ -35,9 +35,9 @@ def _rescale_path(path, depth):
 
 
 def _rescale_signature(signature, channels, depth):
-    """Rescals the output signature by multiplying the depth-d term by d!.
+    """Rescales the output signature by multiplying the depth-d term by d!.
 
-    Ain is that every term become ~O(1).
+    Aim is that every term become ~O(1).
 
     Parameters
     ----------
