@@ -3,10 +3,10 @@
 __maintainer__ = []
 __all__ = ["DensityPeakClusterer"]
 
-import matplotlib.pyplot as plt
 import numpy as np
 
 from aeon.distances import get_distance_function, pairwise_distance
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 class DensityPeakClusterer:
@@ -39,7 +39,7 @@ class DensityPeakClusterer:
     distance_threshold : float, optional
         Distance threshold for selecting cluster centers. If None, the midpoint of min
         and max delta is used.
-    anormal : bool, default=False
+    abnormal : bool, default=False
         If True, points in the halo region (border points) are marked with a label
         of -1.
     """
@@ -53,7 +53,7 @@ class DensityPeakClusterer:
         n_jobs: int = 1,
         density_threshold: float = None,
         distance_threshold: float = None,
-        anormal: bool = False,
+        abnormal: bool = False,
     ):
         self.rho = rho
         self.gauss_cutoff = gauss_cutoff
@@ -62,7 +62,7 @@ class DensityPeakClusterer:
         self.n_jobs = n_jobs
         self.density_threshold = density_threshold
         self.distance_threshold = distance_threshold
-        self.anormal = anormal
+        self.abnormal = abnormal
 
     def _build_distance(self):
         """
@@ -248,8 +248,8 @@ class DensityPeakClusterer:
             if self.labels_[i] in bord_rho and self.rho[i] < bord_rho[self.labels_[i]]:
                 halo[i] = 0
 
-        # if anormal flag is True, assign halo points a label of -1
-        if self.anormal:
+        # if abnormal flag is True, assign halo points a label of -1
+        if self.abnormal:
             for i in range(self.n):
                 if halo[i] == 0:
                     self.labels_[i] = -1
@@ -292,6 +292,9 @@ class DensityPeakClusterer:
         kwargs : dict
             Additional keyword arguments passed to plotting functions.
         """
+        _check_soft_dependencies("matplotlib")
+        import matplotlib.pyplot as plt
+
         if mode in {"decision", "all"}:
             plt.figure()
             plt.scatter(self.rho, self.delta, c=self.labels_, cmap="viridis")
