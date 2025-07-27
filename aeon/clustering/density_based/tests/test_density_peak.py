@@ -355,3 +355,31 @@ def test_density_peak_clusterer():
     assert clusterer_sq.dc > 0
 
     assert clusterer.dc != clusterer_sq.dc  # Should have different dc values
+
+
+def test_density_peak_invalid_params():
+    """Test DensityPeakClusterer with invalid parameters."""
+    try:
+        clusterer = DensityPeakClusterer(distance_metric="invalid")
+        clusterer.fit(test_data)
+        raise AssertionError("Should have raised an error for invalid distance metric")
+    except ValueError:
+        pass
+
+    try:
+        clusterer = DensityPeakClusterer(density_threshold=-1)
+        clusterer.fit(test_data)
+        raise AssertionError(
+            "Should have raised an error for negative density threshold"
+        )
+    except ValueError:
+        pass
+
+    try:
+        clusterer = DensityPeakClusterer(distance_threshold=-1)
+        clusterer.fit(test_data)
+        raise AssertionError(
+            "Should have raised an error for negative distance threshold"
+        )
+    except ValueError:
+        pass

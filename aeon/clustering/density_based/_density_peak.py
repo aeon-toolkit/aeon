@@ -55,6 +55,11 @@ class DensityPeakClusterer:
         distance_threshold: float = None,
         abnormal: bool = False,
     ):
+        if density_threshold is not None and density_threshold < 0:
+            raise ValueError("density_threshold must be non-negative")
+        if distance_threshold is not None and distance_threshold < 0:
+            raise ValueError("distance_threshold must be non-negative")
+
         self.rho = rho
         self.gauss_cutoff = gauss_cutoff
         self.cutoff_distance = cutoff_distance
