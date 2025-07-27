@@ -31,9 +31,10 @@ def _arima_fit(params, data, model):
         y_hat = c + ar_term + ma_term
         residuals[t] = data[t] - y_hat
     sse = 0.0
-    for i in range(n):
-        sse += residuals[i] ** 2
-    variance = sse / n
-    likelihood = n * (LOG_2PI + np.log(variance) + 1.0)
+    start = max(p, q)
+    for i in range(start, n):
+        sse += residuals[i] * residuals[i]
+    variance = sse / (n - start)
+    likelihood = (n - start) * (LOG_2PI + np.log(variance) + 1.0)
     k = len(params)
     return likelihood + 2 * k
