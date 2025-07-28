@@ -68,7 +68,7 @@ from aeon.forecasting._ets import _validate_parameter
     ],
 )
 def test_ets_forecaster(params, expected):
-    """Test ETSForecaster for multiple parameter combinations."""
+    """Test ETS for multiple parameter combinations."""
     data = np.array([3, 10, 12, 13, 12, 10, 12, 3, 10, 12, 13, 12, 10, 12])
     forecaster = ETSForecaster(**params)
     p = forecaster.forecast(data)

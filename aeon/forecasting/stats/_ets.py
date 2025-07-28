@@ -1,4 +1,4 @@
-"""ETSForecaster class.
+"""ETS class.
 
 An implementation of the exponential smoothing statistics forecasting algorithm.
 Implements additive and multiplicative error models. We recommend using the AutoETS
@@ -6,7 +6,7 @@ version, but this is useful for demonstrations.
 """
 
 __maintainer__ = []
-__all__ = ["ETSForecaster"]
+__all__ = ["ETS"]
 
 from typing import Union
 
@@ -19,7 +19,7 @@ ADDITIVE = "additive"
 MULTIPLICATIVE = "multiplicative"
 
 
-class ETSForecaster(BaseForecaster):
+class ETS(BaseForecaster):
     """Exponential Smoothing (ETS) forecaster.
 
     Implements the ETS (Error, Trend, Seasonality) forecaster, supporting additive
@@ -77,10 +77,10 @@ class ETSForecaster(BaseForecaster):
 
     Examples
     --------
-    >>> from aeon.forecasting import ETSForecaster
+    >>> from aeon.forecasting import ETS
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()
-    >>> forecaster = ETSForecaster(
+    >>> forecaster = ETS(
     ...     alpha=0.4, beta=0.2, gamma=0.5, phi=0.8,
     ...     error_type='additive', trend_type='multiplicative',
     ...     seasonality_type='multiplicative', seasonal_period=4
@@ -143,7 +143,7 @@ class ETSForecaster(BaseForecaster):
         Returns
         -------
         self
-            Fitted ETSForecaster.
+            Fitted ETS.
         """
         _validate_parameter(self.error_type, False)
         _validate_parameter(self.seasonality_type, True)
