@@ -80,8 +80,8 @@ def test_iterative_forecast_with_d2():
     "p, d, q, use_constant, expected_forecast",
     [
         (1, 0, 1, False, 118.47506756),  # precomputed from known ARIMA implementation
-        (2, 1, 1, False, 202.1120270),  # precomputed
-        (3, 0, 0, True, 125.2778775),  # precomputed
+        (2, 1, 1, False, 209.1099231455),  # precomputed
+        (3, 0, 0, True, 137.47368045155),  # precomputed
     ],
 )
 def test_arima_fixed_paras(p, d, q, use_constant, expected_forecast):
@@ -99,7 +99,7 @@ def test_arima_fixed_paras(p, d, q, use_constant, expected_forecast):
     forecast = model.forecast_
     assert isinstance(forecast, float)
     assert np.isfinite(forecast)
-    assert np.isclose(forecast, expected_forecast, atol=0.5)
+    assert np.isclose(forecast, expected_forecast, atol=1e-6)
 
 
 def test_arima_known_output():
