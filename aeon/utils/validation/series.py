@@ -1,16 +1,214 @@
 """Functions for checking input data."""
 
-__all__ = [
-    "is_single_series",
-    "is_hierarchical",
-    "check_series",
-    "is_univariate_series",
-]
-__maintainer__ = ["TonyBagnall"]
-
 import numpy as np
 import pandas as pd
 
+
+__maintainer__ = ["TonyBagnall", "MatthewMiddlehurst"]
+__all__ = [
+    "is_series",
+    "get_n_timepoints",
+    "get_n_channels",
+    "has_missing",
+    "is_univariate",
+    "get_type",
+]
+
+
+def is_series(X):
+    """Check X is a valid series data structure.
+
+    Parameters
+    ----------
+    X : array-like
+        Input data to be checked.
+
+    Returns
+    -------
+    bool
+        True if input is a series, False otherwise.
+    """
+    valid = ["pd.Series", "pd.DataFrame", "np.ndarray"]
+    return get_type(X, raise_error=False) in valid
+
+
+def get_n_timepoints(X, axis=1):
+    """Return the number of timepoints in a series.
+
+    Parameters
+    ----------
+    X : series
+        See aeon.utils.data_types.SERIES_DATA_TYPES for details.
+
+    Returns
+    -------
+    int
+        Number of time points in the series.
+
+    Raises
+    ------
+    ValueError
+        Input_type not in SERIES_DATA_TYPES.
+    """
+    t = get_type(X)
+    if axis not in [0, 1]:
+        raise ValueError("axis must be 0 or 1.")
+    if t in ["pd.DataFrame", "np.ndarray"]:
+        return X.shape[axis]
+    elif t == "pd.Series":
+        return len(X)
+
+
+def get_n_channels(X, axis=1):
+    """Return the number of channels in a series.
+
+    Parameters
+    ----------
+    X : series
+        See aeon.utils.data_types.SERIES_DATA_TYPES for details.
+
+    Returns
+    -------
+    int
+        Number of channels in the series.
+
+    Raises
+    ------
+    ValueError
+        Input_type not in SERIES_DATA_TYPES.
+    """
+    t = get_type(X)
+    if axis not in [0, 1]:
+        raise ValueError("axis must be 0 or 1.")
+    if t in ["pd.DataFrame", "np.ndarray"]:
+        return X.shape[0] if axis == 1 else X.shape[1]
+    elif t == "pd.Series":
+        return 1
+
+
+def has_missing(X):
+    """Check if X has missing values.
+
+    Parameters
+    ----------
+    X : series
+        See aeon.utils.data_types.SERIES_DATA_TYPES for details.
+
+    Returns
+    -------
+    boolean
+        True if there are any missing values, False otherwise
+
+    Raises
+    ------
+    ValueError
+        Input_type not in SERIES_DATA_TYPES.
+
+    Examples
+    --------
+    >>> from aeon.utils.validation import has_missing
+    >>> m = has_missing(np.zeros(shape=(10, 20)))
+    """
+    type = get_type(X)
+    if type == "np.ndarray":
+        return np.any(np.isnan(X))
+    elif type in ["pd.DataFrame", "pd.Series"]:
+        return X.isnull().any().any()
+
+
+def is_univariate(X):
+    """Check if X is multivariate.
+
+    Parameters
+    ----------
+    X : series
+        See aeon.utils.data_types.SERIES_DATA_TYPES for details.
+
+    Returns
+    -------
+    bool
+        True if series is univariate, else False.
+
+    Raises
+    ------
+    ValueError
+        Input_type not in SERIES_DATA_TYPES.
+    """
+    return get_n_channels(X) == 1
+
+
+def get_type(X, raise_error=True):
+    """Get the string identifier associated with different series data structures.
+
+    Parameters
+    ----------
+    X : series
+        See aeon.utils.data_types.SERIES_DATA_TYPES for details.
+    raise_error : bool, default=True
+        If True, raise a ValueError if the input is not a valid type.
+        If False, returns None when an error would be raised.
+
+    Returns
+    -------
+    input_type : string
+        One of SERIES_DATA_TYPES.
+
+    Raises
+    ------
+    ValueError
+        X np.ndarray but does not have 1 or 2 dimensions.
+        X is a pd.DataFrame of non-float primitives.
+        X is not a valid type.
+        Only if raise_error is True.
+
+    Examples
+    --------
+    >>> from aeon.utils.validation.series import get_type
+    >>> get_type(np.zeros(shape=(10, 20)))
+    'np.ndarray'
+    """
+    msg = None
+    if isinstance(X, pd.Series):
+        if np.issubdtype(X.dtype, np.floating) and not np.issubdtype(X.dtype, np.integer):
+            return "pd.Series"
+        else:
+            msg = "ERROR pd.Series must contain numeric values only"
+    if isinstance(X, pd.DataFrame):
+        if (
+            isinstance(X, pd.DataFrame)
+            and not isinstance(X.index, pd.MultiIndex)
+            and not isinstance(X.columns, pd.MultiIndex)
+        ):
+            for col in X:
+                if not np.issubdtype(X[col].dtype, np.floating) and not np.issubdtype(
+                        X[col].dtype, np.integer
+                ):
+                    msg = (
+                        "ERROR pd.DataFrame must contain numeric values only"
+                    )
+                    break
+            if msg is None:
+                return "pd.DataFrame"
+        else:
+            msg = (
+                "ERROR pd.DataFrame must contain non-multiindex columns and index"
+            )
+    if isinstance(X, np.ndarray):
+        if not np.issubdtype(X.dtype, np.floating) and not np.issubdtype(
+                X.dtype, np.integer
+            ):
+            msg = "ERROR np.ndarray must contain numeric values only"
+        elif X.ndim > 2:
+            msg = "ERROR np.ndarray must be 1D or 2D"
+        else:
+            return "np.ndarray"
+
+    if raise_error and msg is not None:
+        raise TypeError(msg)
+    return None
+
+
+# deprecated
 
 def is_single_series(y):
     """Check if input is a single time series.
@@ -37,54 +235,6 @@ def is_single_series(y):
             return False
         return True
     return False
-
-
-def is_hierarchical(y):
-    """Check to see if y is in a hierarchical dataframe.
-
-     Hierarchical is defined as a pd.DataFrame having 3 or more indices.
-
-    Parameters
-    ----------
-    y : Any object
-
-    Returns
-    -------
-    bool
-        True if y is a pd.DataFrame with three or more indices.
-    """
-    if isinstance(y, pd.DataFrame):
-        if y.index.nlevels >= 3:
-            return True
-    return False
-
-
-def is_univariate_series(y):
-    """Check if series is univariate.
-
-    Parameters
-    ----------
-    y : series
-        Time series data.
-
-    Returns
-    -------
-    bool
-        True if series is pd.Series, single row/column pd.DataFrame or np.ndarray with 1
-        dimension, False otherwise.
-    """
-    if isinstance(y, pd.Series):
-        return True
-    if isinstance(y, pd.DataFrame):
-        if y.shape[0] > 1 and y.shape[1] > 1:
-            return False
-        return True
-    if isinstance(y, np.ndarray):
-        if y.ndim > 1 and y.shape[1] > 1:
-            return False
-        return True
-    return False
-
 
 def check_series(y):
     """Validate a time series is an acceptable type.
@@ -121,3 +271,48 @@ def check_series(y):
         )
 
     return y
+
+def is_hierarchical(y):
+    """Check to see if y is in a hierarchical dataframe.
+
+     Hierarchical is defined as a pd.DataFrame having 3 or more indices.
+
+    Parameters
+    ----------
+    y : Any object
+
+    Returns
+    -------
+    bool
+        True if y is a pd.DataFrame with three or more indices.
+    """
+    if isinstance(y, pd.DataFrame):
+        if y.index.nlevels >= 3:
+            return True
+    return False
+
+def is_univariate_series(y):
+    """Check if series is univariate.
+
+    Parameters
+    ----------
+    y : series
+        Time series data.
+
+    Returns
+    -------
+    bool
+        True if series is pd.Series, single row/column pd.DataFrame or np.ndarray with 1
+        dimension, False otherwise.
+    """
+    if isinstance(y, pd.Series):
+        return True
+    if isinstance(y, pd.DataFrame):
+        if y.shape[0] > 1 and y.shape[1] > 1:
+            return False
+        return True
+    if isinstance(y, np.ndarray):
+        if y.ndim > 1 and y.shape[1] > 1:
+            return False
+        return True
+    return False

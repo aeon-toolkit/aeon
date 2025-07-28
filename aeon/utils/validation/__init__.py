@@ -10,16 +10,6 @@ __all__ = [
     "is_timedelta_or_date_offset",
     "check_n_jobs",
     "check_window_length",
-    "get_n_cases",
-    "get_type",
-    "is_equal_length",
-    "has_missing",
-    "is_univariate",
-    "is_univariate_series",
-    "is_single_series",
-    "is_collection",
-    "is_tabular",
-    "is_hierarchical",
 ]
 
 import os
@@ -31,7 +21,6 @@ import pandas as pd
 
 from aeon.utils.validation.collection import (
     get_n_cases,
-    get_type,
     has_missing,
     is_collection,
     is_equal_length,
@@ -54,7 +43,14 @@ NON_FLOAT_WINDOW_LENGTH_TYPES = Union[
     int, Union[ACCEPTED_TIMEDELTA_TYPES], Union[ACCEPTED_DATEOFFSET_TYPES]
 ]
 
-
+# TODO: Remove in v1.3.0
+@deprecated(
+    version="1.2.0",
+    reason="SIVSeriesTransformer is deprecated and will be removed in v1.3.0. "
+    "Please use RecursiveMedianSieve from "
+    "transformations.series.smoothing instead.",
+    category=FutureWarning,
+)
 def is_valid_type(y) -> bool:
     if is_hierarchical(y) or is_collection(y) or is_single_series(y):
         return True
