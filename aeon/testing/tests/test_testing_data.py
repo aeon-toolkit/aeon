@@ -17,13 +17,13 @@ from aeon.testing.testing_data import (
     UNEQUAL_LENGTH_UNIVARIATE_REGRESSION,
 )
 from aeon.utils.data_types import COLLECTIONS_DATA_TYPES
-from aeon.utils.validation import (
+from aeon.utils.validation.collection import (
     has_missing,
     is_collection,
     is_equal_length,
-    is_single_series,
     is_univariate,
 )
+from aeon.utils.validation.series import is_series
 
 
 def test_datatype_exists():
@@ -42,10 +42,10 @@ def test_testing_data_dict():
         assert "train" in FULL_TEST_DATA_DICT[key]
         assert "test" in FULL_TEST_DATA_DICT[key]
         # data
-        assert is_collection(FULL_TEST_DATA_DICT[key]["train"][0]) or is_single_series(
+        assert is_collection(FULL_TEST_DATA_DICT[key]["train"][0]) or is_series(
             FULL_TEST_DATA_DICT[key]["train"][0]
         )
-        assert is_collection(FULL_TEST_DATA_DICT[key]["test"][0]) or is_single_series(
+        assert is_collection(FULL_TEST_DATA_DICT[key]["test"][0]) or is_series(
             FULL_TEST_DATA_DICT[key]["test"][0]
         )
         # label

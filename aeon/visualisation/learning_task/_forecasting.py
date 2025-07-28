@@ -5,7 +5,7 @@ __all__ = [
 import numpy as np
 
 from aeon.utils.validation._dependencies import _check_soft_dependencies
-from aeon.utils.validation.series import check_series
+from aeon.utils.validation.series import is_series
 
 
 def plot_series_windows(y, cv, title=""):
@@ -31,7 +31,11 @@ def plot_series_windows(y, cv, title=""):
     import seaborn as sns
     from matplotlib.ticker import FuncFormatter, MaxNLocator
 
-    y = check_series(y)
+    if not is_series(y):
+        raise ValueError(
+            "Input time series `y` must be a valid series data structure, "
+            "e.g. pd.Series, pd.DataFrame, or np.ndarray."
+        )
 
     train_windows = []
     test_windows = []

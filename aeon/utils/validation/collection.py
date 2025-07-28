@@ -173,7 +173,7 @@ def is_equal_length(X):
 
     Examples
     --------
-    >>> from aeon.utils.validation import is_equal_length
+    >>> from aeon.utils.validation.collection import is_equal_length
     >>> is_equal_length(np.zeros(shape=(10, 3, 20)))
     True
     """
@@ -215,7 +215,7 @@ def has_missing(X):
 
     Examples
     --------
-    >>> from aeon.utils.validation import has_missing
+    >>> from aeon.utils.validation.collection import has_missing
     >>> m = has_missing(np.zeros(shape=(10, 3, 20)))
     """
     type = get_type(X)
@@ -292,8 +292,8 @@ def get_type(X, raise_error=True):
     msg = None
     if isinstance(X, np.ndarray):  # "numpy3D" or numpy2D
         if not np.issubdtype(X.dtype, np.floating) and not np.issubdtype(
-                X.dtype, np.integer
-            ):
+            X.dtype, np.integer
+        ):
             msg = "ERROR np.ndarray must contain numeric values only"
         elif X.ndim == 3:
             return "numpy3D"
@@ -305,7 +305,7 @@ def get_type(X, raise_error=True):
         if isinstance(X[0], np.ndarray):
             for a in X:
                 if not np.issubdtype(a.dtype, np.floating) and not np.issubdtype(
-                        a.dtype, np.integer
+                    a.dtype, np.integer
                 ):
                     msg = "ERROR all np-list arrays must contain numeric values only"
                     break

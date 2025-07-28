@@ -1,9 +1,5 @@
 """Functions for checking input data."""
 
-import numpy as np
-import pandas as pd
-
-
 __maintainer__ = ["TonyBagnall", "MatthewMiddlehurst"]
 __all__ = [
     "is_series",
@@ -13,6 +9,10 @@ __all__ = [
     "is_univariate",
     "get_type",
 ]
+
+import numpy as np
+import pandas as pd
+from deprecated.sphinx import deprecated
 
 
 def is_series(X):
@@ -32,13 +32,19 @@ def is_series(X):
     return get_type(X, raise_error=False) in valid
 
 
-def get_n_timepoints(X, axis=1):
+def get_n_timepoints(X, axis):
     """Return the number of timepoints in a series.
 
     Parameters
     ----------
     X : series
         See aeon.utils.data_types.SERIES_DATA_TYPES for details.
+    axis : int
+        The time point axis of the input series if it is 2D. If ``axis==0``, it is
+        assumed each column is a time series and each row is a time point. i.e. the
+        shape of the data is ``(n_timepoints, n_channels)``. ``axis==1`` indicates
+        the time series are in rows, i.e. the shape of the data is
+        ``(n_channels, n_timepoints)``.
 
     Returns
     -------
@@ -59,13 +65,19 @@ def get_n_timepoints(X, axis=1):
         return len(X)
 
 
-def get_n_channels(X, axis=1):
+def get_n_channels(X, axis):
     """Return the number of channels in a series.
 
     Parameters
     ----------
     X : series
         See aeon.utils.data_types.SERIES_DATA_TYPES for details.
+    axis : int
+        The time point axis of the input series if it is 2D. If ``axis==0``, it is
+        assumed each column is a time series and each row is a time point. i.e. the
+        shape of the data is ``(n_timepoints, n_channels)``. ``axis==1`` indicates
+        the time series are in rows, i.e. the shape of the data is
+        ``(n_channels, n_timepoints)``.
 
     Returns
     -------
@@ -106,7 +118,7 @@ def has_missing(X):
 
     Examples
     --------
-    >>> from aeon.utils.validation import has_missing
+    >>> from aeon.utils.validation.series import has_missing
     >>> m = has_missing(np.zeros(shape=(10, 20)))
     """
     type = get_type(X)
@@ -116,13 +128,19 @@ def has_missing(X):
         return X.isnull().any().any()
 
 
-def is_univariate(X):
+def is_univariate(X, axis):
     """Check if X is multivariate.
 
     Parameters
     ----------
     X : series
         See aeon.utils.data_types.SERIES_DATA_TYPES for details.
+    axis : int
+        The time point axis of the input series if it is 2D. If ``axis==0``, it is
+        assumed each column is a time series and each row is a time point. i.e. the
+        shape of the data is ``(n_timepoints, n_channels)``. ``axis==1`` indicates
+        the time series are in rows, i.e. the shape of the data is
+        ``(n_channels, n_timepoints)``.
 
     Returns
     -------
@@ -134,7 +152,7 @@ def is_univariate(X):
     ValueError
         Input_type not in SERIES_DATA_TYPES.
     """
-    return get_n_channels(X) == 1
+    return get_n_channels(X, axis) == 1
 
 
 def get_type(X, raise_error=True):
@@ -169,7 +187,9 @@ def get_type(X, raise_error=True):
     """
     msg = None
     if isinstance(X, pd.Series):
-        if np.issubdtype(X.dtype, np.floating) and not np.issubdtype(X.dtype, np.integer):
+        if np.issubdtype(X.dtype, np.floating) and not np.issubdtype(
+            X.dtype, np.integer
+        ):
             return "pd.Series"
         else:
             msg = "ERROR pd.Series must contain numeric values only"
@@ -181,22 +201,18 @@ def get_type(X, raise_error=True):
         ):
             for col in X:
                 if not np.issubdtype(X[col].dtype, np.floating) and not np.issubdtype(
-                        X[col].dtype, np.integer
+                    X[col].dtype, np.integer
                 ):
-                    msg = (
-                        "ERROR pd.DataFrame must contain numeric values only"
-                    )
+                    msg = "ERROR pd.DataFrame must contain numeric values only"
                     break
             if msg is None:
                 return "pd.DataFrame"
         else:
-            msg = (
-                "ERROR pd.DataFrame must contain non-multiindex columns and index"
-            )
+            msg = "ERROR pd.DataFrame must contain non-multiindex columns and index"
     if isinstance(X, np.ndarray):
         if not np.issubdtype(X.dtype, np.floating) and not np.issubdtype(
-                X.dtype, np.integer
-            ):
+            X.dtype, np.integer
+        ):
             msg = "ERROR np.ndarray must contain numeric values only"
         elif X.ndim > 2:
             msg = "ERROR np.ndarray must be 1D or 2D"
@@ -208,8 +224,13 @@ def get_type(X, raise_error=True):
     return None
 
 
-# deprecated
-
+# TODO: Remove in v1.4.0
+@deprecated(
+    version="1.3.0",
+    reason="is_single_series is deprecated and will be removed in v1.4.0. "
+    "Use is_series instead.",
+    category=FutureWarning,
+)
 def is_single_series(y):
     """Check if input is a single time series.
 
@@ -236,6 +257,14 @@ def is_single_series(y):
         return True
     return False
 
+
+# TODO: Remove in v1.4.0
+@deprecated(
+    version="1.3.0",
+    reason="check_series is deprecated and will be removed in v1.4.0. "
+    "Use get_type instead.",
+    category=FutureWarning,
+)
 def check_series(y):
     """Validate a time series is an acceptable type.
 
@@ -272,6 +301,13 @@ def check_series(y):
 
     return y
 
+
+# TODO: Remove in v1.4.0
+@deprecated(
+    version="1.3.0",
+    reason="is_hierarchical is deprecated and will be removed in v1.4.0.",
+    category=FutureWarning,
+)
 def is_hierarchical(y):
     """Check to see if y is in a hierarchical dataframe.
 
@@ -291,6 +327,14 @@ def is_hierarchical(y):
             return True
     return False
 
+
+# TODO: Remove in v1.4.0
+@deprecated(
+    version="1.3.0",
+    reason="is_univariate_series is deprecated and will be removed in v1.4.0. "
+    "Use is_univariate instead.",
+    category=FutureWarning,
+)
 def is_univariate_series(y):
     """Check if series is univariate.
 
