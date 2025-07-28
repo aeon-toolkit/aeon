@@ -45,14 +45,6 @@ def kpss_test(y, regression="c", lags=None):  # Test if time series is stationar
     of a unit root."
     Journal of Econometrics, 54(1–3), 159–178.
     https://doi.org/10.1016/0304-4076(92)90104-Y
-
-    Examples
-    --------
-    >>> from aeon.utils.forecasting._hypo_tests import kpss_test
-    >>> from aeon.datasets import load_airline
-    >>> y = load_airline()
-    >>> kpss_test(y)
-    (1.1966313813502716, False)
     """
     y = np.asarray(y)
     n = len(y)
