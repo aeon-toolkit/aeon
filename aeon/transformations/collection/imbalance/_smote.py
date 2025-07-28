@@ -165,7 +165,7 @@ class SMOTE(BaseCollectionTransformer):
         random_state = check_random_state(self.random_state)
         samples_indices = random_state.randint(low=0, high=nn_num.size, size=n_samples)
 
-        # np.newaxis for backwards compatability with random_state
+        # np.newaxis for backwards compatibility with random_state
         steps = step_size * random_state.uniform(size=n_samples)[:, np.newaxis]
         rows = np.floor_divide(samples_indices, nn_num.shape[1])
         cols = np.mod(samples_indices, nn_num.shape[1])

@@ -25,7 +25,7 @@ class OHIT(BaseCollectionTransformer):
 
     OHIT generates synthetic minority class samples based on the Density-Ratio Shared
     Nearest Neighbor (DRSNN) clustering algorithm. It identifies high-density regions
-    amoung the minority class using DRSNN, then produces synthetic samples within
+    among the minority class using DRSNN, then produces synthetic samples within
     these clusters. Covariance estimation for high-dimensional data is performed using
     shrinkage techniques.
 

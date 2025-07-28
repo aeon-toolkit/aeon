@@ -80,7 +80,7 @@ class ADASYN(SMOTE):
             ratio_nn = np.sum(y[nns] != class_sample, axis=1) / n_neighbors
             if not np.sum(ratio_nn):
                 raise RuntimeError(
-                    "Not any neigbours belong to the majority"
+                    "Not any neighbours belong to the majority"
                     " class. This case will induce a NaN case"
                     " with a division by zero. ADASYN is not"
                     " suited for this specific dataset."
