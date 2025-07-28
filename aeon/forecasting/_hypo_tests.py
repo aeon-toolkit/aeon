@@ -52,7 +52,7 @@ def kpss_test(y, regression="c", lags=None):  # Test if time series is stationar
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()
     >>> kpss_test(y)
-    (np.float64(1.1966313813...), np.False_)
+    (1.1966313813502716, False)
     """
     y = np.asarray(y)
     n = len(y)
