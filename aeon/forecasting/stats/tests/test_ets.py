@@ -7,7 +7,7 @@ import numpy as np
 import pytest
 
 from aeon.forecasting import ETSForecaster
-from aeon.forecasting._ets import _validate_parameter
+from aeon.forecasting.stats._ets import _validate_parameter
 
 
 @pytest.mark.parametrize(
