@@ -81,7 +81,7 @@ class STLSeriesTransformer(BaseSeriesTransformer):
     """
 
     _tags = {
-        "X_inner_type": "Series",
+        "X_inner_type": "pd.Series",
         "capability:multivariate": False,
         "fit_is_empty": True,
         "capability:inverse_transform": False,
