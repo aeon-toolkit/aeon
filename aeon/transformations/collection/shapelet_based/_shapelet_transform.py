@@ -266,7 +266,6 @@ class RandomShapeletTransform(BaseCollectionTransformer):
                         y,
                         n_shapelets_extracted + i,
                         check_random_state(rng.randint(np.iinfo(np.int32).max)),
-                        save_distances,
                     )
                     for i in range(self._batch_size)
                 )
@@ -329,7 +328,6 @@ class RandomShapeletTransform(BaseCollectionTransformer):
                         y,
                         n_shapelets_extracted + i,
                         check_random_state(rng.randint(np.iinfo(np.int32).max)),
-                        save_distances,
                     )
                     for i in range(n_shapelets_to_extract)
                 )
