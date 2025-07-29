@@ -55,7 +55,7 @@ def mindist_sfa_distance(
     >>> x_sfa, _ = transform.fit_transform(x)
     >>> y_sfa, _ = transform.transform(y)
     >>> for i in range(x.shape[0]):
-    >>>    dist = mindist_sfa_distance(x_sfa[i], y_sfa[i], transform.breakpoints)
+    ...    dist = mindist_sfa_distance(x_sfa[i], y_sfa[i], transform.breakpoints)
     """
     if x.ndim == 1 and y.ndim == 1:
         return _univariate_sfa_distance(x, y, breakpoints)
