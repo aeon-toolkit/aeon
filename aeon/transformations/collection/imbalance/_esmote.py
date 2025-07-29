@@ -11,6 +11,7 @@ from aeon.transformations.collection import BaseCollectionTransformer
 
 __all__ = ["ESMOTE"]
 
+
 class KNN(KNeighborsTimeSeriesClassifier):
     """
     KNN classifier for time series data, adapted to work with ESMOTE.
@@ -52,7 +53,9 @@ class KNN(KNeighborsTimeSeriesClassifier):
         """
         self._check_is_fitted()
         import numbers
+
         from aeon.distances import pairwise_distance
+
         if n_neighbors is None:
             n_neighbors = self.n_neighbors
         elif n_neighbors <= 0:
@@ -101,6 +104,7 @@ class KNN(KNeighborsTimeSeriesClassifier):
 class ESMOTE(BaseCollectionTransformer):
     """
     Elastic Synthetic Minority Over-sampling Technique (ESMOTE).
+
     Parameters
     ----------
     n_neighbors : int, default=5
@@ -118,9 +122,11 @@ class ESMOTE(BaseCollectionTransformer):
         If `RandomState` instance, random_state is the random number generator;
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
+
     See Also
     --------
     ADASYN
+
     References
     ----------
     .. [1] Chawla et al. SMOTE: synthetic minority over-sampling technique, Journal
@@ -210,7 +216,6 @@ class ESMOTE(BaseCollectionTransformer):
 
         return X_synthetic, y_synthetic
 
-
     def _make_samples(
         self, X, y_dtype, y_type, nn_data, nn_num, n_samples, step_size=1.0, n_jobs=1
     ):
@@ -218,7 +223,10 @@ class ESMOTE(BaseCollectionTransformer):
             low=0, high=nn_num.size, size=n_samples
         )
 
-        steps = step_size * self._random_state.uniform(low=0, high=1, size=n_samples)[:, np.newaxis]
+        steps = (
+            step_size
+            * self._random_state.uniform(low=0, high=1, size=n_samples)[:, np.newaxis]
+        )
         rows = np.floor_divide(samples_indices, nn_num.shape[1])
         cols = np.mod(samples_indices, nn_num.shape[1])
         distance = self.distance
@@ -268,7 +276,7 @@ def _generate_samples(
         i = rows[count]
         j = cols[count]
         curr_ts = X[i]  # shape: (c, l)
-        nn_ts = nn_data[nn_num[i, j]] # shape: (c, l)
+        nn_ts = nn_data[nn_num[i, j]]  # shape: (c, l)
         new_ts = curr_ts.copy()
         alignment, _ = _get_alignment_path(
             nn_ts,
@@ -293,7 +301,7 @@ def _generate_samples(
             path_list[k].append(l)
 
         # num_of_alignments = np.zeros_like(curr_ts, dtype=np.int32)
-        empty_of_array = np.zeros_like(curr_ts, dtype=float) # shape: (c, l)
+        empty_of_array = np.zeros_like(curr_ts, dtype=float)  # shape: (c, l)
 
         for k, l in enumerate(path_list):
             if len(l) == 0:
@@ -304,6 +312,6 @@ def _generate_samples(
             # Compute difference for all channels at this time step
             empty_of_array[:, k] = curr_ts[:, k] - nn_ts[:, key]
 
-        X_new[count]  = new_ts + steps[count] * empty_of_array  #/ num_of_alignments
+        X_new[count] = new_ts + steps[count] * empty_of_array  # / num_of_alignments
 
     return X_new
