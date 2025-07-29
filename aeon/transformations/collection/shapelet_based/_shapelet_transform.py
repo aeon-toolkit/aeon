@@ -69,7 +69,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         Number of shapelet candidates processed before being merged into the set of best
         shapelets.
     verbose : bool, default=False
-        todo
+        Whether to print progress messages during fitting and transforming.
     time_limit_in_minutes : float, default=0.0
         Time contract to limit build time in minutes, overriding n_shapelet_samples.
         Default of 0 means n_shapelet_samples is used.
