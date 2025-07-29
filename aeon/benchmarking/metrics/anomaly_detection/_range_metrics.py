@@ -33,6 +33,8 @@ def range_precision(
         Anomaly scores for each point of the time series of shape (n_instances,).
     alpha : float
         Default is 0 = no existence reward.
+        Because precision emphasizes prediction quality, there is no need for an
+        existence reward and this value should always be set to 0 [1].
     cardinality : {'reciprocal', 'one', 'udf_gamma'}
         Cardinality type.
     bias : {'flat', 'front', 'middle', 'back'}
@@ -434,6 +436,10 @@ def _ts_precision(
         Type of bias to apply. Should be one of ["flat", "front", "middle", "back"].
     gamma : str, default="one"
         Cardinality type. Should be one of ["reciprocal", "one"].
+    alpha : float
+        Default is 0 = no existence reward.
+        Because precision emphasizes prediction quality, there is no need for an
+        existence reward and this value should always be set to 0.
 
     Returns
     -------
