@@ -174,11 +174,18 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      - name: Clear disik space
+        uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          dotnet: false
+          large-packages: false
+          swap-storage: false
+
       - name: Set swap space
         if: runner.os == 'Linux'
         uses: pierotofy/set-swap-space@v1.0
         with:
-          swap-size-gb: 6
+          swap-size-gb: 8
 
       - name: Use numba cache to set env variables but not restore cache
         uses: ./.github/actions/numba_cache
