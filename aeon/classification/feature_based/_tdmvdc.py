@@ -345,11 +345,11 @@ class TDMVDCClassifier(BaseClassifier):
         SXList = []
 
         # Use parallel processing for feature extraction
-        threads_to_use = check_n_jobs(self.n_jobs)
+        self._n_jobs = check_n_jobs(self.n_jobs)
 
         # Extract features for each dilation rate in parallel
         results = Parallel(
-            n_jobs=threads_to_use, backend=self.parallel_backend, prefer="threads"
+            n_jobs=self._n_jobs, backend=self.parallel_backend, prefer="threads"
         )(
             delayed(self._extract_features_for_dilation)(X, X_F, X_S, d_rate, y)
             for d_rate in self.dList_
@@ -385,7 +385,7 @@ class TDMVDCClassifier(BaseClassifier):
         )
 
         self.clfList_ = Parallel(
-            n_jobs=threads_to_use, backend=self.parallel_backend, prefer="threads"
+            n_jobs=self._n_jobs, backend=self.parallel_backend, prefer="threads"
         )(
             delayed(self._train_classifier_for_ratio)(RX, FX, SX, y, ratio)
             for ratio in feature_store_ratios

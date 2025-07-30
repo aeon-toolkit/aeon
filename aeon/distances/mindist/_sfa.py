@@ -45,8 +45,8 @@ def mindist_sfa_distance(
     >>> import numpy as np
     >>> from aeon.distances import mindist_sfa_distance
     >>> from aeon.transformations.collection.dictionary_based import SFAWhole
-    >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
-    >>> y = np.array([[11, 12, 13, 14, 15, 16, 17, 18, 19, 20]])
+    >>> x = np.random.rand(1,1,10) # (n_cases, n_channels, n_timepoints)
+    >>> y = np.random.rand(1,1,10)
     >>> transform = SFAWhole(
     ...    word_length=8,
     ...    alphabet_size=8,
@@ -54,11 +54,14 @@ def mindist_sfa_distance(
     ... )
     >>> x_sfa, _ = transform.fit_transform(x)
     >>> y_sfa, _ = transform.transform(y)
-    >>> dist = mindist_sfa_distance(x_sfa, y_sfa, transform.breakpoints)
+    >>> for i in range(x.shape[0]):
+    ...    dist = mindist_sfa_distance(x_sfa[i], y_sfa[i], transform.breakpoints)
     """
     if x.ndim == 1 and y.ndim == 1:
         return _univariate_sfa_distance(x, y, breakpoints)
-    raise ValueError("x and y must be 1D")
+    raise ValueError(
+        f"x and y must be 1D, but got x of shape {x.shape} and y of shape {y.shape}"
+    )
 
 
 @njit(cache=True, fastmath=True)

@@ -26,12 +26,9 @@ All transformers in `aeon` can be listed using the `aeon.registry
     MatrixProfile
     MinMaxScaler
     Normalizer
-    Padder
     PeriodogramTransformer
-    Resizer
     SlopeTransformer
     SimpleImputer
-    Truncator
     Tabularizer
 ```
 
@@ -171,6 +168,18 @@ All transformers in `aeon` can be listed using the `aeon.registry
     :template: class.rst
 
     SignatureTransformer
+```
+
+### Unequal length
+
+```{eval-rst}
+.. currentmodule:: aeon.transformations.collection.unequal_length
+    :toctree: auto_generated/
+    :template: class.rst
+
+    Padder
+    Resizer
+    Truncator
 ```
 
 ## Series transforms
