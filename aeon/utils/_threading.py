@@ -57,6 +57,13 @@ def threaded(func: Callable) -> Callable:
             result = func(*args, **kwargs)
             return result
         finally:
+            if original_thread_count is None:
+                original_thread_count = 1
+            if not isinstance(original_thread_count, int):
+                raise TypeError(
+                    f"Expected original_thread_count to be an int, got type: "
+                    f"{type(original_thread_count)} value: {original_thread_count}"
+                )
             set_num_threads(original_thread_count)
 
     return wrapper
