@@ -3,10 +3,10 @@
 import numpy as np
 from numba import njit
 
-from aeon.forecasting import BaseForecaster
+from aeon.forecasting.base import BaseForecaster
 
 
-class ThetaForecaster(BaseForecaster):
+class Theta(BaseForecaster):
     """Theta forecaster.
 
     Parameters
@@ -19,7 +19,10 @@ class ThetaForecaster(BaseForecaster):
 
     def __init__(self, theta=2.0):
         self.theta = theta
-        super().__init__(forecast_horizon=1)
+        super().__init__(horizon=1, axis=1)
+
+    def _fit(self, y, exog=None):
+        return self
 
     def _predict(self, y, exog=None):
         y = y.squeeze()
