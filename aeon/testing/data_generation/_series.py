@@ -64,7 +64,7 @@ def make_example_1d_numpy(
     if return_y is not None:
         if return_y == "anomaly" or return_y == "anomaly_detection":
             y = make_anomaly_detection_labels(n_timepoints, random_state=random_state)
-            anomaly = y == 1
+            anomaly = [i for i in range(len(y)) if y[i] == 1]
             X[anomaly] = -X[anomaly]
         else:
             raise ValueError(
@@ -142,7 +142,7 @@ def make_example_2d_numpy_series(
     if return_y is not None:
         if return_y == "anomaly" or return_y == "anomaly_detection":
             y = make_anomaly_detection_labels(n_timepoints, random_state=random_state)
-            anomaly = y == 1
+            anomaly = [i for i in range(len(y)) if y[i] == 1]
             if axis == 1:
                 X[:, anomaly] = -X[:, anomaly]
             else:
@@ -215,7 +215,7 @@ def make_example_pandas_series(
     if return_y is not None:
         if return_y == "anomaly" or return_y == "anomaly_detection":
             y = make_anomaly_detection_labels(n_timepoints, random_state=random_state)
-            anomaly = y == 1
+            anomaly = [i for i in range(len(y)) if y[i] == 1]
             X[anomaly] = -X[anomaly]
         else:
             raise ValueError(
@@ -307,11 +307,11 @@ def make_example_dataframe_series(
     if return_y is not None:
         if return_y == "anomaly" or return_y == "anomaly_detection":
             y = make_anomaly_detection_labels(n_timepoints, random_state=random_state)
-            anomaly = y == 1
+            anomaly = [i for i in range(len(y)) if y[i] == 1]
             if axis == 1:
-                X[:, anomaly] = -X[:, anomaly]
+                X.iloc[:, anomaly] = -X.iloc[:, anomaly]
             else:
-                X[anomaly, :] = -X[anomaly, :]
+                X.iloc[anomaly, :] = -X.iloc[anomaly, :]
         else:
             raise ValueError(
                 f"{return_y} value for return_y is not supported, see the docstring "

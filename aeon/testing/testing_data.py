@@ -14,7 +14,6 @@ from aeon.segmentation import BaseSegmenter
 from aeon.similarity_search.collection import BaseCollectionSimilaritySearch
 from aeon.similarity_search.series import BaseSeriesSimilaritySearch
 from aeon.testing.data_generation import (
-    make_example_1d_numpy,
     make_example_2d_dataframe_collection,
     make_example_2d_numpy_collection,
     make_example_2d_numpy_series,
@@ -684,14 +683,16 @@ UNIVARIATE_SERIES = {
     },
     "np.ndarray": {
         "train": (
-            make_example_1d_numpy(
+            make_example_2d_numpy_series(
+                n_channels=1,
                 n_timepoints=20,
                 random_state=data_rng.randint(np.iinfo(np.int32).max),
             ),
             None,
         ),
         "test": (
-            make_example_1d_numpy(
+            make_example_2d_numpy_series(
+                n_channels=1,
                 n_timepoints=20,
                 random_state=data_rng.randint(np.iinfo(np.int32).max),
             ),
@@ -730,12 +731,14 @@ UNIVARIATE_SERIES_ANOMALY = {
         ),
     },
     "np.ndarray": {
-        "train": make_example_1d_numpy(
+        "train": make_example_2d_numpy_series(
+            n_channels=1,
             n_timepoints=20,
             random_state=data_rng.randint(np.iinfo(np.int32).max),
             return_y="anomaly",
         ),
-        "test": make_example_1d_numpy(
+        "test": make_example_2d_numpy_series(
+            n_channels=1,
             n_timepoints=20,
             random_state=data_rng.randint(np.iinfo(np.int32).max),
             return_y="anomaly",
