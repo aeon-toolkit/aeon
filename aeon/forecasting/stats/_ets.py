@@ -77,7 +77,7 @@ class ETS(BaseForecaster):
 
     Examples
     --------
-    >>> from aeon.forecasting import ETS
+    >>> from aeon.forecasting.stats import ETS
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()
     >>> forecaster = ETS(
