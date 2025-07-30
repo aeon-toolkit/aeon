@@ -1,4 +1,4 @@
-name: Update Contributors
+name: Update contributors
 
 on:
   push:
