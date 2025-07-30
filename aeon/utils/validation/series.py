@@ -32,19 +32,22 @@ def is_series(X):
     return get_type(X, raise_error=False) in valid
 
 
-def get_n_timepoints(X, axis):
+def get_n_timepoints(X, axis=None):
     """Return the number of timepoints in a series.
 
     Parameters
     ----------
     X : series
         See aeon.utils.data_types.SERIES_DATA_TYPES for details.
-    axis : int
+    axis : int or None, default=None
         The time point axis of the input series if it is 2D. If ``axis==0``, it is
         assumed each column is a time series and each row is a time point. i.e. the
         shape of the data is ``(n_timepoints, n_channels)``. ``axis==1`` indicates
         the time series are in rows, i.e. the shape of the data is
         ``(n_channels, n_timepoints)``.
+
+        Only required if X is a 2D array-like structure (e.g., pd.DataFrame or
+        2D np.ndarray).
 
     Returns
     -------
@@ -55,17 +58,27 @@ def get_n_timepoints(X, axis):
     ------
     ValueError
         Input_type not in SERIES_DATA_TYPES.
+        X is 2D but axis is not 0 or 1.
     """
     t = get_type(X)
-    if axis not in [0, 1]:
-        raise ValueError("axis must be 0 or 1.")
-    if t in ["pd.DataFrame", "np.ndarray"]:
+    if (t == "pd.DataFrame" or (t == "np.ndarray" and X.ndim == 2)) and axis not in [
+        0,
+        1,
+    ]:
+        raise ValueError("axis must be 0 or 1 for 2D inputs.")
+
+    if t == "pd.DataFrame":
         return X.shape[axis]
+    elif t == "np.ndarray":
+        if X.ndim == 1:
+            return len(X)
+        else:
+            return X.shape[axis]
     elif t == "pd.Series":
         return len(X)
 
 
-def get_n_channels(X, axis):
+def get_n_channels(X, axis=None):
     """Return the number of channels in a series.
 
     Parameters
@@ -79,6 +92,9 @@ def get_n_channels(X, axis):
         the time series are in rows, i.e. the shape of the data is
         ``(n_channels, n_timepoints)``.
 
+        Only required if X is a 2D array-like structure (e.g., pd.DataFrame or
+        2D np.ndarray).
+
     Returns
     -------
     int
@@ -88,12 +104,22 @@ def get_n_channels(X, axis):
     ------
     ValueError
         Input_type not in SERIES_DATA_TYPES.
+        X is 2D but axis is not 0 or 1.
     """
     t = get_type(X)
-    if axis not in [0, 1]:
-        raise ValueError("axis must be 0 or 1.")
-    if t in ["pd.DataFrame", "np.ndarray"]:
+    if (t == "pd.DataFrame" or (t == "np.ndarray" and X.ndim == 2)) and axis not in [
+        0,
+        1,
+    ]:
+        raise ValueError("axis must be 0 or 1 for 2D inputs.")
+
+    if t == "pd.DataFrame":
         return X.shape[0] if axis == 1 else X.shape[1]
+    elif t == "np.ndarray":
+        if X.ndim == 1:
+            return 1
+        else:
+            return X.shape[0] if axis == 1 else X.shape[1]
     elif t == "pd.Series":
         return 1
 
@@ -128,7 +154,7 @@ def has_missing(X):
         return X.isnull().any().any()
 
 
-def is_univariate(X, axis):
+def is_univariate(X, axis=None):
     """Check if X is multivariate.
 
     Parameters
@@ -142,6 +168,9 @@ def is_univariate(X, axis):
         the time series are in rows, i.e. the shape of the data is
         ``(n_channels, n_timepoints)``.
 
+        Only required if X is a 2D array-like structure (e.g., pd.DataFrame or
+        2D np.ndarray).
+
     Returns
     -------
     bool
@@ -151,6 +180,7 @@ def is_univariate(X, axis):
     ------
     ValueError
         Input_type not in SERIES_DATA_TYPES.
+        X is 2D but axis is not 0 or 1.
     """
     return get_n_channels(X, axis) == 1
 
