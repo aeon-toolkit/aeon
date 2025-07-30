@@ -1,13 +1,9 @@
 """Test ETS."""
 
-__maintainer__ = []
-__all__ = []
-
 import numpy as np
 import pytest
 
-from aeon.forecasting import ETS
-from aeon.forecasting.stats._ets import _validate_parameter
+from aeon.forecasting.stats._ets import ETS, _validate_parameter
 
 
 @pytest.mark.parametrize(
