@@ -18,7 +18,7 @@ class CollectionToSeriesWrapper(BaseSeriesTransformer):
 
     Examples
     --------
-    >>> from aeon.transformations.collection._resize import Resizer
+    >>> from aeon.transformations.collection.unequal_length import Resizer
     >>> import numpy as np
     >>> X = np.random.rand(1, 10)
     >>> transformer = Resizer(length=5)
