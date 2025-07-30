@@ -1,7 +1,6 @@
 import functools
 import inspect
 import os
-import threading
 from typing import Any, Callable
 
 from numba import set_num_threads
@@ -18,33 +17,28 @@ def threaded(func: Callable) -> Callable:
     The decorated function is expected to have a 'n_jobs' parameter.
     """
 
+    def num_threads_default():
+        try:
+            sched_getaffinity = os.sched_getaffinity
+        except AttributeError:
+            pass
+        else:
+            return max(1, len(sched_getaffinity(0)))
+
+        cpu_count = os.cpu_count()
+        if cpu_count is not None:
+            return max(1, cpu_count)
+
+        return 1
+
     @functools.wraps(func)
     def wrapper(*args: Any, **kwargs: Any) -> Any:
-        numba_env_threads = os.environ.get("NUMBA_NUM_THREADS")
+        NUMBA_ENV_THREADS = os.environ.get("NUMBA_NUM_THREADS")
 
-        first = False
-        second = False
-        third = False
-        first_info = ""
-        second_info = ""
-        third_info = ""
-
-        if numba_env_threads is not None and numba_env_threads.isdigit():
-            first = True
-            first_info = f"NUMBA_NUM_THREADS={numba_env_threads}"
-            original_thread_count = int(numba_env_threads)
+        if NUMBA_ENV_THREADS is not None and NUMBA_ENV_THREADS.isdigit():
+            original_thread_count = int(NUMBA_ENV_THREADS)
         else:
-            active_count = threading.active_count()
-            if isinstance(active_count, int):
-                second = True
-                second_info = f"threading.active_count()={active_count}"
-                original_thread_count = threading.active_count()
-            else:
-                third = True
-                third_info = (
-                    f"threading.active_count()={active_count} type {type(active_count)}"
-                )
-                original_thread_count = 1
+            original_thread_count = num_threads_default()
 
         n_jobs = None
         if "n_jobs" in kwargs:
@@ -79,9 +73,6 @@ def threaded(func: Callable) -> Callable:
                     f"Failed to restore original thread count: {original_thread_count} "
                     f"type {type(original_thread_count)} \n\n "
                     f"\n\n Kwargs: {kwargs}"
-                    f"\n\n First: {first} Second: {second} Third: {third}"
-                    f"\n\n First info: {first_info} \n\n Second info: {second_info} "
-                    f"\n\n Third info: {third_info}"
                 )
 
     return wrapper
