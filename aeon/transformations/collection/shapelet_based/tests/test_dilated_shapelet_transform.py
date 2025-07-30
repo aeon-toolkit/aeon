@@ -14,8 +14,7 @@ from aeon.transformations.collection.shapelet_based._dilated_shapelet_transform 
     compute_shapelet_dist_vector,
     compute_shapelet_features,
 )
-from aeon.utils.numba.general import get_all_subsequences
-from aeon.utils.numba.stats import is_prime
+from aeon.utils.numba.general import get_all_subsequences, is_prime
 
 DATATYPES = ["int64", "float64"]
 

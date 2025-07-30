@@ -4,6 +4,11 @@ import inspect
 
 from aeon.testing.utils.deep_equals import deep_equals
 
+__maintainer__ = ["MatthewMiddlehurst"]
+__all__ = [
+    "get_unchanged_and_required_params_as_str",
+]
+
 
 def get_unchanged_and_required_params_as_str(obj):
     """
