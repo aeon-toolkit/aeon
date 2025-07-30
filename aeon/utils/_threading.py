@@ -22,13 +22,28 @@ def threaded(func: Callable) -> Callable:
     def wrapper(*args: Any, **kwargs: Any) -> Any:
         numba_env_threads = os.environ.get("NUMBA_NUM_THREADS")
 
+        first = False
+        second = False
+        third = False
+        first_info = ""
+        second_info = ""
+        third_info = ""
+
         if numba_env_threads is not None and numba_env_threads.isdigit():
+            first = True
+            first_info = f"NUMBA_NUM_THREADS={numba_env_threads}"
             original_thread_count = int(numba_env_threads)
         else:
             active_count = threading.active_count()
             if isinstance(active_count, int):
+                second = True
+                second_info = f"threading.active_count()={active_count}"
                 original_thread_count = threading.active_count()
             else:
+                third = True
+                third_info = (
+                    f"threading.active_count()={active_count} type {type(active_count)}"
+                )
                 original_thread_count = 1
 
         n_jobs = None
@@ -63,8 +78,10 @@ def threaded(func: Callable) -> Callable:
                 raise ValueError(
                     f"Failed to restore original thread count: {original_thread_count} "
                     f"type {type(original_thread_count)} \n\n "
-                    f"Other debug info: {inspect.getsource(func)} \n\n Args: {args} "
                     f"\n\n Kwargs: {kwargs}"
+                    f"\n\n First: {first} Second: {second} Third: {third}"
+                    f"\n\n First info: {first_info} \n\n Second info: {second_info} "
+                    f"\n\n Third info: {third_info}"
                 )
 
     return wrapper
