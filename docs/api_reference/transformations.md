@@ -5,8 +5,11 @@ transformations. The module is organised into CollectionTransformers which trans
 collection of time series into a different representation and SeriesTransformers which
 transform single time series.
 
-All transformers in `aeon` can be listed using the `aeon.registry
-.all_estimators` utility, using `estimator_types="transformer"` tag.
+All transformers in `aeon`  can be listed using the `aeon.utils.discovery
+.all_estimators` function using ``type_filter="transformer"``, optionally filtered by
+tags. Valid tags for transformers can be found with ``aeon.utils.tags.
+all_tags_for_estimator`` function with the argument ``"transformer"``.
+
 
 ## Collection transformers
 
