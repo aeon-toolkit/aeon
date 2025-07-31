@@ -147,8 +147,8 @@ def generate_table(contributors):
 
 
 if __name__ == "__main__":
-    auth = os.getenv("GITHUB_TOKEN")
-    if auth is None:
+    auth = ("user", os.getenv("GITHUB_TOKEN"))
+    if auth[1] is None:
         print("access token:", file=sys.stderr)  # noqa: T201
         token = input()
         auth = ("user", token)
