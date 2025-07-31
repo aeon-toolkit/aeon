@@ -22,6 +22,10 @@ from aeon.distances.elastic import (
     ddtw_distance,
     ddtw_pairwise_distance,
     dtw_alignment_path,
+    dtw_arow_alignment_path,
+    dtw_arow_cost_matrix,
+    dtw_arow_distance,
+    dtw_arow_pairwise_distance,
     dtw_cost_matrix,
     dtw_distance,
     dtw_gi_alignment_path,
@@ -624,6 +628,7 @@ def get_cost_matrix_function(method: str) -> CostMatrixFunction:
     'ddtw'          distances.ddtw_cost_matrix
     'wdtw'          distances.wdtw_cost_matrix
     'wddtw'         distances.wddtw_cost_matrix
+    'dtw_arow'      distances.dtw_arow_cost_matrix
     'adtw'          distances.adtw_cost_matrix
     'erp'           distances.erp_cost_matrix
     'edr'           distances.edr_cost_matrix
@@ -769,6 +774,16 @@ DISTANCES = [
         "pairwise_distance": wddtw_pairwise_distance,
         "cost_matrix": wddtw_cost_matrix,
         "alignment_path": wddtw_alignment_path,
+        "type": DistanceType.ELASTIC,
+        "symmetric": True,
+        "unequal_support": True,
+    },
+    {
+        "name": "dtw_arow",
+        "distance": dtw_arow_distance,
+        "pairwise_distance": dtw_arow_pairwise_distance,
+        "cost_matrix": dtw_arow_cost_matrix,
+        "alignment_path": dtw_arow_alignment_path,
         "type": DistanceType.ELASTIC,
         "symmetric": True,
         "unequal_support": True,
