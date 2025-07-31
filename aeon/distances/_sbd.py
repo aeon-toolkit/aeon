@@ -2,13 +2,15 @@
 
 __maintainer__ = ["SebastianSchmidl"]
 
+import warnings
 from typing import Optional, Union
 
 import numpy as np
-from numba import njit, objmode
+from numba import njit, objmode, prange
 from numba.typed import List as NumbaList
 from scipy.signal import correlate
 
+from aeon.utils._threading import threaded
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
@@ -113,10 +115,13 @@ def sbd_distance(x: np.ndarray, y: np.ndarray, standardize: bool = True) -> floa
     raise ValueError("x and y must be 1D or 2D")
 
 
+@threaded
 def sbd_pairwise_distance(
     X: Union[np.ndarray, list[np.ndarray]],
     y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
     standardize: bool = True,
+    n_jobs: int = 1,
+    **kwargs,
 ) -> np.ndarray:
     """
     Compute the shape-based distance (SBD) between all pairs of time series.
@@ -138,6 +143,10 @@ def sbd_pairwise_distance(
     standardize : bool, default=True
         Apply z-score to both input time series for standardization before
         computing the distance. This makes SBD scaling invariant. Default is True.
+    n_jobs : int, default=1
+        The number of jobs to run in parallel. If -1, then the number of jobs is set
+        to the number of CPU cores. If 1, then the function is executed in a single
+        thread. If greater than 1, then the function is executed in parallel.
 
     Returns
     -------
@@ -188,6 +197,15 @@ def sbd_pairwise_distance(
            [0.36754447, 0.        , 0.29289322],
            [0.5527864 , 0.29289322, 0.        ]])
     """
+    if n_jobs > 1:
+        warnings.warn(
+            "You have set n_jobs > 1. For this distance function "
+            "unless your data has a large number of time points, it is "
+            "recommended to use n_jobs=1. If this function is slower than "
+            "expected try setting n_jobs=1.",
+            UserWarning,
+            stacklevel=2,
+        )
     multivariate_conversion = _is_numpy_list_multivariate(X, y)
     _X, _ = _convert_collection_to_numba_list(X, "", multivariate_conversion)
 
@@ -199,14 +217,14 @@ def sbd_pairwise_distance(
     return _sbd_pairwise_distance(_X, _y, standardize)
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath=True, parallel=True)
 def _sbd_pairwise_distance_single(
     x: NumbaList[np.ndarray], standardize: bool
 ) -> np.ndarray:
     n_cases = len(x)
     distances = np.zeros((n_cases, n_cases))
 
-    for i in range(n_cases):
+    for i in prange(n_cases):
         for j in range(i + 1, n_cases):
             distances[i, j] = sbd_distance(x[i], x[j], standardize)
             distances[j, i] = distances[i, j]
@@ -214,7 +232,7 @@ def _sbd_pairwise_distance_single(
     return distances
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath=True, parallel=True)
 def _sbd_pairwise_distance(
     x: NumbaList[np.ndarray], y: NumbaList[np.ndarray], standardize: bool
 ) -> np.ndarray:
@@ -222,7 +240,7 @@ def _sbd_pairwise_distance(
     m_cases = len(y)
     distances = np.zeros((n_cases, m_cases))
 
-    for i in range(n_cases):
+    for i in prange(n_cases):
         for j in range(m_cases):
             distances[i, j] = sbd_distance(x[i], y[j], standardize)
     return distances

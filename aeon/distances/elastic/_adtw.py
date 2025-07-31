@@ -5,12 +5,13 @@ __maintainer__ = []
 from typing import Optional, Union
 
 import numpy as np
-from numba import njit
+from numba import njit, prange
 from numba.typed import List as NumbaList
 
 from aeon.distances.elastic._alignment_paths import compute_min_return_path
 from aeon.distances.elastic._bounding_matrix import create_bounding_matrix
 from aeon.distances.pointwise._squared import _univariate_squared_distance
+from aeon.utils._threading import threaded
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
@@ -197,12 +198,15 @@ def _adtw_cost_matrix(
     return cost_matrix[1:, 1:]
 
 
+@threaded
 def adtw_pairwise_distance(
     X: Union[np.ndarray, list[np.ndarray]],
     y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
     window: Optional[float] = None,
     itakura_max_slope: Optional[float] = None,
     warp_penalty: float = 1.0,
+    n_jobs: int = 1,
+    **kwargs,
 ) -> np.ndarray:
     r"""Compute the ADTW pairwise distance between a set of time series.
 
@@ -226,6 +230,10 @@ def adtw_pairwise_distance(
         Penalty for warping. A high value will mean less warping.
         warp less and if value is low then will encourage algorithm to warp
         more.
+    n_jobs : int, default=1
+        The number of jobs to run in parallel. If -1, then the number of jobs is set
+        to the number of CPU cores. If 1, then the function is executed in a single
+        thread. If greater than 1, then the function is executed in parallel.
 
     Returns
     -------
@@ -290,7 +298,7 @@ def adtw_pairwise_distance(
     )
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath=True, parallel=True)
 def _adtw_pairwise_distance(
     X: NumbaList[np.ndarray],
     window: Optional[float],
@@ -306,7 +314,7 @@ def _adtw_pairwise_distance(
         bounding_matrix = create_bounding_matrix(
             n_timepoints, n_timepoints, window, itakura_max_slope
         )
-    for i in range(n_cases):
+    for i in prange(n_cases):
         for j in range(i + 1, n_cases):
             x1, x2 = X[i], X[j]
             if unequal_length:
@@ -319,7 +327,7 @@ def _adtw_pairwise_distance(
     return distances
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath=True, parallel=True)
 def _adtw_from_multiple_to_multiple_distance(
     x: NumbaList[np.ndarray],
     y: NumbaList[np.ndarray],
@@ -336,7 +344,7 @@ def _adtw_from_multiple_to_multiple_distance(
         bounding_matrix = create_bounding_matrix(
             x[0].shape[1], y[0].shape[1], window, itakura_max_slope
         )
-    for i in range(n_cases):
+    for i in prange(n_cases):
         for j in range(m_cases):
             x1, y1 = x[i], y[j]
             if unequal_length:
