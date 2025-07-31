@@ -148,7 +148,7 @@ class PAA(BaseCollectionTransformer):
         return params
 
 
-@njit(parallel=True, fastmath=True)
+@njit(parallel=True, cache=True, fastmath=True)
 def _parallel_paa_transform(X, n_segments, split_segments):
     """Parallelized PAA for uneven segment splits using Numba."""
     n_samples, n_channels, _ = X.shape
@@ -171,7 +171,7 @@ def _parallel_paa_transform(X, n_segments, split_segments):
     return X_paa
 
 
-@njit(parallel=True, fastmath=True)
+@njit(parallel=True, cache=True, fastmath=True)
 def _parallel_inverse_paa_transform(X, original_length, n_segments, split_segments):
     """Parallelize the inverse PAA transformation for cases where the series length is not
     divisible by the number of segments.
