@@ -5,8 +5,8 @@ Clustering
 
 The :mod:`aeon.clustering` module contains algorithms for time series clustering.
 
-All clusterers in ``aeon``  can be listed using the `aeon.utils.discovery
-.all_estimators` function using ``type_filter="clusterer"``, optionally filtered by
+All clusterers in ``aeon``  can be listed using the ``aeon.utils.discovery
+.all_estimators`` function using ``type_filter="clusterer"``, optionally filtered by
 tags. Valid tags for clusterers can be found with ``aeon.utils.tags
 .all_tags_for_estimator`` function with the argument ``"clusterer"``.
 

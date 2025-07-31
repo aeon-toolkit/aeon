@@ -5,8 +5,8 @@ Classification
 
 The :mod:`aeon.classification` module contains algorithms for time series classification.
 
-All classifiers in ``aeon``  can be listed using the `aeon.utils.discovery
-.all_estimators` function using ``type_filter="classifier"``, optionally filtered by
+All classifiers in ``aeon``  can be listed using the ``aeon.utils.discovery
+.all_estimators`` function using ``type_filter="classifier"``, optionally filtered by
 tags. Valid tags for classifiers can be found with ``aeon.utils.tags.all_tags_for_estimator``
 function with the argument ``"classifier"``.
 
