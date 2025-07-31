@@ -25,6 +25,10 @@ from aeon.distances.elastic import (
     dtw_alignment_path,
     dtw_cost_matrix,
     dtw_distance,
+    dtw_gi_alignment_path,
+    dtw_gi_cost_matrix,
+    dtw_gi_distance,
+    dtw_gi_pairwise_distance,
     dtw_pairwise_distance,
     edr_alignment_path,
     edr_cost_matrix,
@@ -194,7 +198,7 @@ def pairwise_distance(
         :func:`aeon.distances.get_distance_function` or by calling  the function
         :func:`aeon.distances.get_distance_function_names`.
     symmetric : bool, default=True
-        If True and a function is provided as the "method" paramter, then it will
+        If True and a function is provided as the "method" parameter, then it will
         compute a symmetric distance matrix where d(x, y) = d(y, x). Only the lower
         triangle is calculated, and the upper triangle is ignored. If False and a
         function is provided as the "method" parameter, then it will compute an
@@ -376,7 +380,7 @@ def alignment_path(
         of the index in x and the index in y that have the best alignment according
         to the cost matrix.
     float
-        The dtw distance betweeen the two time series.
+        The dtw distance between the two time series.
 
     Raises
     ------
@@ -494,6 +498,7 @@ def get_distance_function(method: Union[str, DistanceFunction]) -> DistanceFunct
     method          Distance Function
     =============== ========================================
     'dtw'           distances.dtw_distance
+    'dtw_gi'        distances.dtw_gi_distance
     'shape_dtw'     distances.shape_dtw_distance
     'ddtw'          distances.ddtw_distance
     'wdtw'          distances.wdtw_distance
@@ -589,7 +594,7 @@ def get_pairwise_distance_function(
     Raises
     ------
     ValueError
-        If mehtod is not one of the supported strings or a callable.
+        If method is not one of the supported strings or a callable.
 
     Examples
     --------
@@ -773,6 +778,16 @@ DISTANCES = [
         "alignment_path": dtw_alignment_path,
         "type": DistanceType.ELASTIC,
         "symmetric": True,
+        "unequal_support": True,
+    },
+    {
+        "name": "dtw_gi",
+        "distance": dtw_gi_distance,
+        "pairwise_distance": dtw_gi_pairwise_distance,
+        "cost_matrix": dtw_gi_cost_matrix,
+        "alignment_path": dtw_gi_alignment_path,
+        "type": DistanceType.ELASTIC,
+        "symmetric": False,
         "unequal_support": True,
     },
     {

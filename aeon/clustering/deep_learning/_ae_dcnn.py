@@ -46,7 +46,7 @@ class AEDCNNClusterer(BaseDeepClusterer):
         Keras compatible Padding string for the decoder. Defaults to a list
         of "same" paddings.
     use_bias : bool or list of bool, default = True
-        Whether or not ot use bias in convolution.
+        Whether or not to use bias in convolution.
     n_epochs : int, default = 2000
         The number of epochs to train the model.
     batch_size : int, default = 16
@@ -296,7 +296,8 @@ class AEDCNNClusterer(BaseDeepClusterer):
 
         try:
             self.model_ = tf.keras.models.load_model(
-                self.file_path + self.file_name_ + ".keras", compile=False
+                self.file_path + self.file_name_ + ".keras",
+                compile=False,
             )
             if not self.save_best_model:
                 os.remove(self.file_path + self.file_name_ + ".keras")

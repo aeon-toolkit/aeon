@@ -23,6 +23,7 @@ Notes
 Based on the work from [1]_.
 
 - source code adapted based on: https://github.com/cvxgrp/GGS
+  Copyright (c) 2018, Stanford University Convex Optimization Group, BSD-2
 - paper available at: https://stanford.edu/~boyd/papers/pdf/ggs.pdf
 
 References
@@ -63,7 +64,7 @@ class _GGS:
     to the data by computing the approximate solution to the combinatorial
     problem of finding the approximate covariance-regularized  maximum
     log-likelihood for fixed number of change points and a reagularization
-    strength. It follows an interative procedure
+    strength. It follows an iterative procedure
     where a new breakpoint is added and then adjusting all breakpoints to
     (approximately) maximize the objective. It is similar to the top-down
     search used in other change point detection problems.
@@ -126,7 +127,7 @@ class _GGS:
     _intermediate_ll: list[float] = field(init=False, default_factory=list)
 
     def initialize_intermediates(self) -> None:
-        """Initialize the state fo the estimator."""
+        """Initialize the state of the estimator."""
         self._intermediate_change_points = []
         self._intermediate_ll = []
 
@@ -387,7 +388,7 @@ class GreedyGaussianSegmenter(BaseSegmenter):
     to the data by computing the approximate solution to the combinatorial
     problem of finding the approximate covariance-regularized  maximum
     log-likelihood for fixed number of change points and a reagularization
-    strength. It follows an interative procedure
+    strength. It follows an iterative procedure
     where a new breakpoint is added and then adjusting all breakpoints to
     (approximately) maximize the objective. It is similar to the top-down
     search used in other change point detection problems.
@@ -502,12 +503,10 @@ class GreedyGaussianSegmenter(BaseSegmenter):
             dimension of X. The numerical values represent distinct segments
             labels for each of the data points.
         """
-        self.change_points_ = self.ggs.find_change_points(X)
+        change_points_ = self.ggs.find_change_points(X)
 
         labels = np.zeros(X.shape[0], dtype=np.int32)
-        for i, (start, stop) in enumerate(
-            zip(self.change_points_[:-1], self.change_points_[1:])
-        ):
+        for i, (start, stop) in enumerate(zip(change_points_[:-1], change_points_[1:])):
             labels[start:stop] = i
         return labels
 

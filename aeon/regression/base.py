@@ -25,6 +25,7 @@ from typing import final
 
 import numpy as np
 import pandas as pd
+from sklearn.base import RegressorMixin
 from sklearn.metrics import get_scorer, get_scorer_names
 from sklearn.model_selection import cross_val_predict
 from sklearn.utils.multiclass import type_of_target
@@ -33,7 +34,7 @@ from aeon.base import BaseCollectionEstimator
 from aeon.base._base import _clone_estimator
 
 
-class BaseRegressor(BaseCollectionEstimator):
+class BaseRegressor(RegressorMixin, BaseCollectionEstimator):
     """Abstract base class for time series regressors.
 
     The base regressor specifies the methods and method signatures that all
@@ -54,9 +55,6 @@ class BaseRegressor(BaseCollectionEstimator):
 
     @abstractmethod
     def __init__(self):
-        # required for compatibility with some sklearn interfaces
-        self._estimator_type = "regressor"
-
         super().__init__()
 
     @final
@@ -169,7 +167,7 @@ class BaseRegressor(BaseCollectionEstimator):
             allowed and converted into one of the above.
 
             Different estimators have different capabilities to handle different
-            types of input. If `self.get_tag("capability:multivariate")`` is False,
+            types of input. If ``self.get_tag("capability:multivariate")`` is False,
             they cannot handle multivariate series, so either ``n_channels == 1`` is
             true or X is 2D of shape ``(n_cases, n_timepoints)``. If ``self.get_tag(
             "capability:unequal_length")`` is False, they cannot handle unequal
@@ -210,7 +208,7 @@ class BaseRegressor(BaseCollectionEstimator):
             allowed and converted into one of the above.
 
             Different estimators have different capabilities to handle different
-            types of input. If `self.get_tag("capability:multivariate")`` is False,
+            types of input. If ``self.get_tag("capability:multivariate")`` is False,
             they cannot handle multivariate series, so either ``n_channels == 1`` is
             true or X is 2D of shape ``(n_cases, n_timepoints)``. If ``self.get_tag(
             "capability:unequal_length")`` is False, they cannot handle unequal
@@ -222,7 +220,7 @@ class BaseRegressor(BaseCollectionEstimator):
             (ground truth) for fitting indices corresponding to instance indices in X.
         metric : Union[str, callable], default="r2",
             Defines the scoring metric to test the fit of the model. For supported
-            strings arguments, check `sklearn.metrics.get_scorer_names`.
+            strings arguments, check ``sklearn.metrics.get_scorer_names``.
         metric_params : dict, default=None,
             Contains parameters to be passed to the scoring function. If None, no
             parameters are passed.
@@ -335,13 +333,17 @@ class BaseRegressor(BaseCollectionEstimator):
         random_state = getattr(self, "random_state", None)
         estimator = _clone_estimator(self, random_state)
 
+        n_jobs = getattr(self, "_n_jobs", None)
+        if n_jobs is None:
+            n_jobs = getattr(self, "n_jobs", None)
+
         return cross_val_predict(
             estimator,
             X=X,
             y=y,
             cv=10,
             method="predict",
-            n_jobs=self._n_jobs,
+            n_jobs=n_jobs,
         )
 
     def _fit_setup(self, X, y):

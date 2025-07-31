@@ -431,7 +431,7 @@ def soft_dtw_alignment_path(
         of the index in x and the index in y that have the best alignment according
         to the cost matrix.
     float
-        The soft-DTW distance betweeen the two time series.
+        The soft-DTW distance between the two time series.
 
     Raises
     ------

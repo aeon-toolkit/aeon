@@ -9,7 +9,6 @@ from numpy.testing import assert_array_almost_equal
 from sklearn.utils._testing import set_random_state
 
 from aeon.base._base import _clone_estimator
-from aeon.base._base_series import VALID_SERIES_INNER_TYPES
 from aeon.datasets import load_basic_motions, load_unit_test
 from aeon.testing.expected_results.expected_transform_outputs import (
     basic_motions_result,
@@ -20,13 +19,14 @@ from aeon.testing.utils.deep_equals import deep_equals
 from aeon.testing.utils.estimator_checks import _run_estimator_method
 from aeon.transformations.collection.channel_selection.base import BaseChannelSelector
 from aeon.transformations.series import BaseSeriesTransformer
-from aeon.utils.data_types import COLLECTIONS_DATA_TYPES
+from aeon.utils.data_types import COLLECTIONS_DATA_TYPES, VALID_SERIES_INNER_TYPES
 
 
 def _yield_transformation_checks(estimator_class, estimator_instances, datatypes):
     """Yield all transformation checks for an aeon transformer."""
     # only class required
-    if sys.platform != "darwin":
+    if sys.platform == "linux":  # We cannot guarantee same results on ARM macOS
+        # Compare against results for both UnitTest and BasicMotions if available
         yield partial(
             check_transformer_against_expected_results,
             estimator_class=estimator_class,
@@ -169,6 +169,9 @@ def check_transformer_output(estimator, datatype):
         Xt2 = _run_estimator_method(estimator, "fit_transform", datatype, "train")
         assert deep_equals(Xt, Xt2, ignore_index=True)
 
+        Xt3 = _run_estimator_method(estimator, "transform", datatype, "train")
+        assert deep_equals(Xt, Xt3, ignore_index=True)
+
 
 def check_channel_selectors(estimator, datatype):
     """Test channel selectors have fit and select at least one channel."""
@@ -198,4 +201,5 @@ def check_transform_inverse_transform_equivalent(estimator, datatype):
     if isinstance(Xit, (np.ndarray, pd.DataFrame)):
         Xit = Xit.squeeze()
 
-    assert deep_equals(X, Xit, ignore_index=True)
+    eq, msg = deep_equals(X, Xit, ignore_index=True, return_msg=True)
+    assert eq, msg

@@ -133,7 +133,7 @@ def erp_cost_matrix(
     window :  float, default=None
         The window to use for the bounding matrix. If None, no bounding matrix
         is used.
-    g :  float, defualt=0.0
+    g :  float, default=0.0
         The reference value to penalise gaps. The default is 0.
     g_arr : np.ndarray, of shape (n_channels), default=None
         Numpy array that must be the length of the number of channels in x and y.
@@ -452,7 +452,7 @@ def erp_alignment_path(
         of the index in x and the index in y that have the best alignment according
         to the cost matrix.
     float
-        The erp distance betweeen the two time series.
+        The erp distance between the two time series.
 
     Raises
     ------

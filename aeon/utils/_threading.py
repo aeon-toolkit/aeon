@@ -1,12 +1,26 @@
 import functools
 import inspect
 import os
-import threading
 from typing import Any, Callable
 
 from numba import set_num_threads
 
 from aeon.utils.validation import check_n_jobs
+
+
+def num_threads_default():
+    try:
+        sched_getaffinity = os.sched_getaffinity
+    except AttributeError:
+        pass
+    else:
+        return max(1, len(sched_getaffinity(0)))
+
+    cpu_count = os.cpu_count()
+    if cpu_count is not None:
+        return max(1, cpu_count)
+
+    return 1
 
 
 def threaded(func: Callable) -> Callable:
@@ -20,16 +34,12 @@ def threaded(func: Callable) -> Callable:
 
     @functools.wraps(func)
     def wrapper(*args: Any, **kwargs: Any) -> Any:
-        numba_env_threads = os.environ.get("NUMBA_NUM_THREADS")
+        NUMBA_ENV_THREADS = os.environ.get("NUMBA_NUM_THREADS")
 
-        if numba_env_threads is not None and numba_env_threads.isdigit():
-            original_thread_count = int(numba_env_threads)
+        if NUMBA_ENV_THREADS is not None and NUMBA_ENV_THREADS.isdigit():
+            original_thread_count = int(NUMBA_ENV_THREADS)
         else:
-            active_count = threading.active_count()
-            if isinstance(active_count, int):
-                original_thread_count = threading.active_count()
-            else:
-                original_thread_count = 1
+            original_thread_count = num_threads_default()
 
         n_jobs = None
         if "n_jobs" in kwargs:
@@ -47,7 +57,6 @@ def threaded(func: Callable) -> Callable:
                     n_jobs = default if default is not inspect.Parameter.empty else None
 
             if n_jobs is None and args and hasattr(args[0], "n_jobs"):
-                # This gets n_jobs if it belongs to a object (i.e. self.n_jobs)
                 n_jobs = args[0].n_jobs
 
         adjusted_n_jobs = check_n_jobs(n_jobs)

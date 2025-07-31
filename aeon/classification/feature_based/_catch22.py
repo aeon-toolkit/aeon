@@ -12,6 +12,7 @@ from sklearn.ensemble import RandomForestClassifier
 from aeon.base._base import _clone_estimator
 from aeon.classification import BaseClassifier
 from aeon.transformations.collection.feature_based import Catch22
+from aeon.utils.validation import check_n_jobs
 
 
 class Catch22Classifier(BaseClassifier):
@@ -43,8 +44,11 @@ class Catch22Classifier(BaseClassifier):
         true. If a List of specific features to extract is provided, "Mean" and/or
         "StandardDeviation" must be added to the List to extract these features.
     outlier_norm : bool, optional, default=False
-        Normalise each series during the two outlier Catch22 features, which can take a
-        while to process for large values.
+        If True, each time series is normalized during the computation of the two
+        outlier Catch22 features, which can take a while to process for large values
+        as it depends on the max value in the timseries. Note that this parameter
+        did not exist in the original publication/implementation as they used time
+        series that were already normalized.
     replace_nans : bool, default=True
         Replace NaN or inf values from the Catch22 transform with 0.
     use_pycatch22 : bool, default=False
@@ -136,7 +140,7 @@ class Catch22Classifier(BaseClassifier):
         self,
         features="all",
         catch24=True,
-        outlier_norm=False,
+        outlier_norm=True,
         replace_nans=True,
         use_pycatch22=False,
         estimator=None,
@@ -176,6 +180,7 @@ class Catch22Classifier(BaseClassifier):
         self :
             Reference to self.
         """
+        self._n_jobs = check_n_jobs(self.n_jobs)
         self._transformer = Catch22(
             features=self.features,
             catch24=self.catch24,

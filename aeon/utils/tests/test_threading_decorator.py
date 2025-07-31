@@ -67,21 +67,14 @@ def test_numba_env_variable(clean_env):
 
 
 def test_fallback_to_threading_count(clean_env):
-    """
-    Test the fallback mechanism to the system's active thread count.
-
-    When the NUMBA_NUM_THREADS environment variable is not set or is invalid,
-    the decorator should use the system's active thread count as the baseline.
-    This ensures proper thread management even when no explicit configuration is
-    provided.
-    """
+    """Test the fallback mechanism to CPU count/affinity."""
     check_jobs_mock = MagicMock(side_effect=lambda x: x if x is not None else 1)
     set_threads_mock = MagicMock()
-    thread_count_mock = MagicMock(return_value=3)
 
+    # Mock the new fallback mechanism
     with patch("aeon.utils._threading.check_n_jobs", check_jobs_mock):
         with patch("aeon.utils._threading.set_num_threads", set_threads_mock):
-            with patch("threading.active_count", thread_count_mock):
+            with patch("aeon.utils._threading.num_threads_default", return_value=3):
 
                 @threaded
                 def sample_func(n_jobs=None):

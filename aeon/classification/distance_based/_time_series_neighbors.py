@@ -18,6 +18,7 @@ import numpy as np
 from aeon.classification.base import BaseClassifier
 from aeon.distances import pairwise_distance
 from aeon.utils._threading import threaded
+from aeon.utils.validation import check_n_jobs
 
 WEIGHTS_SUPPORTED = ["uniform", "distance"]
 
@@ -28,30 +29,38 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
 
     A KNN classifier which supports time series distance measures.
     It determines distance function through string references to numba
-    based distances in aeon.distances, and can also be used with callables.
+    based distances in ``aeon.distances``, and can also be used with callables.
 
     Parameters
     ----------
     n_neighbors : int, default = 1
-        Set k for knn.
+        Set ``k`` for knn.
     weights : str or callable, default = 'uniform'
-        Mechanism for weighting a vote one of: 'uniform', 'distance', or a callable
+        Mechanism for weighting a vote one of: ``'uniform'``, ``'distance'``,
+        or a callable
         function.
     distance : str or callable, default ='dtw'
         Distance measure between time series.
-        Distance metric to compute similarity between time series. A list of valid
+        Distance metric to compute similarity between time series. A ``list`` of valid
         strings for metrics can be found in the documentation for
-        :func:`aeon.distances.get_distance_function` or through calling
-        :func:`aeon.distances.get_distance_function_names`. If a
-        callable is passed it must be
-        a function that takes two 2d numpy arrays of shape ``(n_channels,
-        n_timepoints)`` as input and returns a float.
+        :func:``aeon.distances.get_distance_function`` or through calling
+        :func:``aeon.distances.get_distance_function_names``. If a
+        ``callable`` is passed it must be
+        a function that takes two 2d numpy arrays of shape `(n_channels,
+        n_timepoints)` as input and returns a ``float``.
     distance_params : dict, default = None
-        Dictionary for metric parameters for the case that distance is a str.
+        Dictionary for metric parameters for the case that distance is a ``str``.
     n_jobs : int, default=1
         The number of jobs to run in parallel. If -1, then the number of jobs is set
         to the number of CPU cores. If 1, then the function is executed in a single
         thread. If greater than 1, then the function is executed in parallel.
+
+    Raises
+    ------
+    ValueError
+        If ``weights`` is not among the supported values.
+        See the ``weights`` parameter description for valid options.
+        Dictionary for metric parameters for the case that distance is a str.
 
     Examples
     --------
@@ -101,19 +110,20 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
 
     def _fit(self, X, y):
         """
-        Fit the model using X as training data and y as target values.
+        Fit the model using ``X`` as training data and ``y`` as target values.
 
         Parameters
         ----------
         X : 3D np.ndarray of shape = (n_cases, n_channels, n_timepoints) or list of
         shape [n_cases] of 2D arrays shape (n_channels,n_timepoints_i)
-        If the series are all equal length, a numpy3D will be passed. If unequal,
-        a list of 2D numpy arrays is passed, which may have different lengths.
+        If the series are all equal length, a ``numpy3D`` will be passed. If unequal,
+        a ``list`` of 2D numpy arrays is passed, which may have different lengths.
         y : array-like, shape = (n_cases)
             The class labels.
         """
         self.X_ = X
-        self.classes_, self.y_ = np.unique(y, return_inverse=True)
+        _, self.y_ = np.unique(y, return_inverse=True)
+        self._n_jobs = check_n_jobs(self.n_jobs)
         return self
 
     def _predict_proba(self, X):
@@ -124,8 +134,8 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         ----------
         X : 3D np.ndarray of shape = (n_cases, n_channels, n_timepoints) or list of
         shape[n_cases] of 2D arrays shape (n_channels,n_timepoints_i)
-                If the series are all equal length, a numpy3D will be passed. If
-                unequal, a list of 2D numpy arrays is passed, which may have
+                If the series are all equal length, a ``numpy3D`` will be passed. If
+                unequal, a ``list`` of 2D numpy arrays is passed, which may have
                 different lengths.
 
         Returns
@@ -153,7 +163,8 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         ----------
         X : 3D np.ndarray of shape = (n_cases, n_channels, n_timepoints) or list of
         shape[n_cases] of 2D arrays shape (n_channels,n_timepoints_i)
-        If the series are all equal length, a numpy3D will be passed. If unequal, a list
+        If the series are all equal length, a ``numpy3D`` will be passed. If unequal,
+        a ``list``
         of 2D numpy arrays is passed, which may have different lengths.
 
         Returns
@@ -248,16 +259,15 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         ----------
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return ``"default"`` set.
 
         Returns
         -------
         params : dict or list of dict, default={}
             Parameters to create testing instances of the class.
-            Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            Each ``dict`` are parameters to construct an ``interesting`` test instance,
+            i.e.,
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test
+            instance.
         """
-        # non-default distance and algorithm
-        params1 = {"distance": "euclidean"}
-
-        return [params1]
+        return {"distance": "euclidean"}

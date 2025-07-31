@@ -29,26 +29,26 @@ repos:
         args: [ "--create", "--python-folders", "aeon" ]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.9.7
+    rev: v0.12.5
     hooks:
       - id: ruff
         args: [ "--fix"]
 
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.19.1
+    rev: v3.20.0
     hooks:
       - id: pyupgrade
         args: [ "--py39-plus" ]
 
   - repo: https://github.com/pycqa/isort
-    rev: 6.0.0
+    rev: 6.0.1
     hooks:
       - id: isort
         name: isort
         args: [ "--profile=black", "--multi-line=3" ]
 
   - repo: https://github.com/pycqa/flake8
-    rev: 7.1.2
+    rev: 7.3.0
     hooks:
       - id: flake8
         additional_dependencies: [ flake8-bugbear, flake8-print, Flake8-pyproject ]
@@ -78,3 +78,11 @@ repos:
     hooks:
       - id: check-manifest
         stages: [ manual ]
+
+  - repo: https://github.com/codespell-project/codespell
+    # Configuration for codespell is in pyproject.toml
+    rev: v2.4.1
+    hooks:
+      - id: codespell
+        additional_dependencies:
+          - tomli  # for python_version < '3.11'

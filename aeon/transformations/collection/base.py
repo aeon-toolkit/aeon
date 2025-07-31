@@ -19,7 +19,7 @@ State:
     fitted state inspection - check_is_fitted()
 """
 
-__maintainer__ = []
+__maintainer__ = ["MatthewMiddlehurst"]
 __all__ = [
     "BaseCollectionTransformer",
 ]
@@ -27,17 +27,15 @@ __all__ = [
 from abc import abstractmethod
 from typing import final
 
-import numpy as np
-import pandas as pd
-
 from aeon.base import BaseCollectionEstimator
 from aeon.transformations.base import BaseTransformer
+from aeon.utils.validation import get_n_cases
 
 
 class BaseCollectionTransformer(BaseCollectionEstimator, BaseTransformer):
     """Transformer base class for collections."""
 
-    # tag values specific to CollectionTransformers
+    # default tag values for collection transformers
     _tags = {
         "input_data_type": "Collection",
         "output_data_type": "Collection",
@@ -64,8 +62,8 @@ class BaseCollectionTransformer(BaseCollectionEstimator, BaseTransformer):
         X : np.ndarray or list
             Data to fit transform to, of valid collection type. Input data,
             any number of channels, equal length series of shape ``(
-            n_cases, n_channels, n_timepoints)`` or list of numpy arrays (any number
-            of channels, unequal length series) of shape ``[n_cases]``, 2D np.array
+            n_cases, n_channels, n_timepoints)`` or list of numpy arrays (number
+            of channels, series length) of shape ``[n_cases]``, 2D np.array
             ``(n_channels, n_timepoints_i)``, where ``n_timepoints_i`` is length of
             series ``i``. Other types are allowed and converted into one of the above.
 
@@ -84,22 +82,25 @@ class BaseCollectionTransformer(BaseCollectionEstimator, BaseTransformer):
         -------
         self : a fitted instance of the estimator
         """
-        if self.get_tag("requires_y"):
-            if y is None:
-                raise ValueError("Tag requires_y is true, but fit called with y=None")
-        # skip the rest if fit_is_empty is True
         if self.get_tag("fit_is_empty"):
             self.is_fitted = True
             return self
+
+        if self.get_tag("requires_y"):
+            if y is None:
+                raise ValueError("Tag requires_y is true, but fit called with y=None")
+
+        # reset estimator at the start of fit
         self.reset()
 
         # input checks and datatype conversion
-        X_inner = self._preprocess_collection(X)
-        y_inner = y
-        self._fit(X=X_inner, y=y_inner)
+        X = self._preprocess_collection(X, store_metadata=True)
+        if y is not None:
+            self._check_y(y, n_cases=self.metadata_["n_cases"])
+
+        self._fit(X=X, y=y)
 
         self.is_fitted = True
-
         return self
 
     @final
@@ -118,8 +119,8 @@ class BaseCollectionTransformer(BaseCollectionEstimator, BaseTransformer):
         X : np.ndarray or list
             Data to fit transform to, of valid collection type. Input data,
             any number of channels, equal length series of shape ``(
-            n_cases, n_channels, n_timepoints)`` or list of numpy arrays (any number
-            of channels, unequal length series) of shape ``[n_cases]``, 2D np.array
+            n_cases, n_channels, n_timepoints)`` or list of numpy arrays (number
+            of channels, series length) of shape ``[n_cases]``, 2D np.array
             ``(n_channels, n_timepoints_i)``, where ``n_timepoints_i`` is length of
             series ``i``. Other types are allowed and converted into one of the above.
 
@@ -139,18 +140,19 @@ class BaseCollectionTransformer(BaseCollectionEstimator, BaseTransformer):
         -------
         transformed version of X
         """
-        # check whether is fitted
-        self._check_is_fitted()
+        fit_empty = self.get_tag("fit_is_empty")
+        if not fit_empty:
+            self._check_is_fitted()
 
-        # input check and conversion for X/y
-        X_inner = self._preprocess_collection(X, store_metadata=False)
-        y_inner = y
+        # input checks and datatype conversion
+        X = self._preprocess_collection(X, store_metadata=False)
+        if y is not None:
+            self._check_y(y, n_cases=get_n_cases(X))
 
-        if not self.get_tag("fit_is_empty"):
+        if not fit_empty:
             self._check_shape(X)
 
-        Xt = self._transform(X=X_inner, y=y_inner)
-
+        Xt = self._transform(X, y)
         return Xt
 
     @final
@@ -171,10 +173,10 @@ class BaseCollectionTransformer(BaseCollectionEstimator, BaseTransformer):
         ----------
         X : np.ndarray or list
             Data to fit transform to, of valid collection type. Input data,
-            any number of channels, equal length series of shape ``(n_cases,
-            n_channels, n_timepoints)`` or list of numpy arrays (any number of
-            channels, unequal length series) of shape ``[n_cases]``, 2D np.array ``(
-            n_channels, n_timepoints_i)``, where ``n_timepoints_i`` is length of
+            any number of channels, equal length series of shape ``(
+            n_cases, n_channels, n_timepoints)`` or list of numpy arrays (number
+            of channels, series length) of shape ``[n_cases]``, 2D np.array
+            ``(n_channels, n_timepoints_i)``, where ``n_timepoints_i`` is length of
             series ``i``. Other types are allowed and converted into one of the above.
 
             Different estimators have different capabilities to handle different
@@ -192,14 +194,21 @@ class BaseCollectionTransformer(BaseCollectionEstimator, BaseTransformer):
         -------
         transformed version of X
         """
-        # input checks and datatype conversion
+        if self.get_tag("requires_y"):
+            if y is None:
+                raise ValueError("Tag requires_y is true, but fit called with y=None")
+
+        # reset estimator at the start of fit
         self.reset()
-        X_inner = self._preprocess_collection(X)
-        y_inner = y
-        Xt = self._fit_transform(X=X_inner, y=y_inner)
+
+        # input checks and datatype conversion
+        X = self._preprocess_collection(X, store_metadata=True)
+        if y is not None:
+            self._check_y(y, n_cases=self.metadata_["n_cases"])
+
+        Xt = self._fit_transform(X=X, y=y)
 
         self.is_fitted = True
-
         return Xt
 
     @final
@@ -222,8 +231,8 @@ class BaseCollectionTransformer(BaseCollectionEstimator, BaseTransformer):
         X : np.ndarray or list
             Data to fit transform to, of valid collection type. Input data,
             any number of channels, equal length series of shape ``(
-            n_cases, n_channels, n_timepoints)`` or list of numpy arrays (any number
-            of channels, unequal length series)  of shape ``[n_cases]``, 2D np.array
+            n_cases, n_channels, n_timepoints)`` or list of numpy arrays (number
+            of channels, series length) of shape ``[n_cases]``, 2D np.array
             ``(n_channels, n_timepoints_i)``, where ``n_timepoints_i`` is length of
             series ``i``. Other types are allowed and converted into one of the above.
 
@@ -297,6 +306,7 @@ class BaseCollectionTransformer(BaseCollectionEstimator, BaseTransformer):
         -------
         transformed version of X
         """
+        ...
 
     def _fit_transform(self, X, y=None):
         """Fit to data, then transform it.
@@ -318,7 +328,8 @@ class BaseCollectionTransformer(BaseCollectionEstimator, BaseTransformer):
         """
         # Non-optimized default implementation; override when a better
         # method is possible for a given algorithm.
-        self._fit(X, y)
+        if not self.get_tag("fit_is_empty"):
+            self._fit(X, y)
         return self._transform(X, y)
 
     def _inverse_transform(self, X, y=None):
@@ -340,42 +351,4 @@ class BaseCollectionTransformer(BaseCollectionEstimator, BaseTransformer):
         """
         raise NotImplementedError(
             f"{self.__class__.__name__} does not support inverse_transform"
-        )
-
-    def _update(self, X, y=None):
-        """Update transformer with X and y.
-
-        private _update containing the core logic, called from update
-
-        Parameters
-        ----------
-        X : Input data
-            Data to fit transform to, of valid collection type.
-        y : Target variable, default=None
-            Additional data, e.g., labels for transformation
-
-        Returns
-        -------
-        self: a fitted instance of the estimator.
-        """
-        # standard behaviour: no update takes place, new data is ignored
-        return self
-
-
-def _check_y(self, y, n_cases):
-    if y is None:
-        return None
-    # Check y valid input for collection transformations
-    if not isinstance(y, (pd.Series, np.ndarray)):
-        raise TypeError(
-            f"y must be a np.array or a pd.Series, but found type: {type(y)}"
-        )
-    if isinstance(y, np.ndarray) and y.ndim > 1:
-        raise TypeError(f"y must be 1-dimensional, found {y.ndim} dimensions")
-    # Check matching number of labels
-    n_labels = y.shape[0]
-    if n_cases != n_labels:
-        raise ValueError(
-            f"Mismatch in number of cases. Number in X = {n_cases} nos in y = "
-            f"{n_labels}"
         )

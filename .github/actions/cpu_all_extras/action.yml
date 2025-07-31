@@ -2,6 +2,10 @@ name: Pip install all_extras with CPU versions
 description: "For CI testing install the CPU version of dependencies with all extras if on ubuntu"
 
 inputs:
+  python_version:
+    description: "Python version used"
+    required: false
+    default: "3.12"
   additional_extras:
     description: "Comma-separated list of additional extras to install"
     required: false
@@ -11,7 +15,7 @@ runs:
   using: "composite"
   steps:
     - name: Install CPU TensorFlow
-      if: runner.os == 'Linux'
+      if: ${{ runner.os == 'Linux' && inputs.python_version != '3.13' }}
       uses: nick-fields/retry@v3
       with:
         timeout_minutes: 30

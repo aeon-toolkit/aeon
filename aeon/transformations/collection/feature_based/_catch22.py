@@ -111,8 +111,11 @@ class Catch22(BaseCollectionTransformer):
         true. If a List of specific features to extract is provided, "Mean" and/or
         "StandardDeviation" must be added to the List to extract these features.
     outlier_norm : bool, optional, default=False
-        Normalise each series during the two outlier Catch22 features, which can take a
-        while to process for large values.
+        If True, each time series is normalized during the computation of the two
+        outlier Catch22 features, which can take a while to process for large values
+        as it depends on the max value in the timseries. Note that this parameter
+        did not exist in the original publication/implementation as they used time
+        series that were already normalized.
     replace_nans : bool, default=False
         Replace NaN or inf values from the Catch22 transform with 0.
     use_pycatch22 : bool, optional, default=False
@@ -163,7 +166,7 @@ class Catch22(BaseCollectionTransformer):
     [1.15639531e+00 1.31700577e+00 5.66227710e-01 2.00000000e+00
      3.89048349e-01 2.33853577e-01 1.00000000e+00 3.00000000e+00
      8.23045267e-03 0.00000000e+00 1.70859420e-01 2.00000000e+00
-     1.00000000e+00 2.00000000e-01 0.00000000e+00 1.10933565e-32
+     1.00000000e+00 7.00000000e-01 2.00000000e-01 1.10933565e-32
      4.00000000e+00 2.04319187e+00 0.00000000e+00 0.00000000e+00
      1.96349541e+00 5.51667002e-01]
     """
@@ -181,7 +184,7 @@ class Catch22(BaseCollectionTransformer):
         self,
         features="all",
         catch24=False,
-        outlier_norm=False,
+        outlier_norm=True,
         replace_nans=False,
         use_pycatch22=False,
         n_jobs=1,
@@ -219,8 +222,7 @@ class Catch22(BaseCollectionTransformer):
         n_cases = len(X)
 
         f_idx = _verify_features(self.features, self.catch24)
-
-        threads_to_use = check_n_jobs(self.n_jobs)
+        n_jobs = check_n_jobs(self.n_jobs)
 
         features = [
             Catch22._DN_HistogramMode_5,
@@ -286,7 +288,7 @@ class Catch22(BaseCollectionTransformer):
                 )
 
         c22_list = Parallel(
-            n_jobs=threads_to_use, backend=self.parallel_backend, prefer="threads"
+            n_jobs=n_jobs, backend=self.parallel_backend, prefer="threads"
         )(
             delayed(
                 self._transform_case_pycatch22
