@@ -1,4 +1,4 @@
-name: Issue Comment Edited
+name: Issue comment edited
 
 on:
   issue_comment:
@@ -26,10 +26,10 @@ jobs:
         with:
           sparse-checkout: .github/utilities
 
-      - name: Setup Python 3.11
+      - name: Setup Python 3.12
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.12"
 
       - name: Install PyGithub
         run: pip install -Uq PyGithub
@@ -51,10 +51,9 @@ jobs:
 
       - if: ${{ steps.label_out.outputs.empty_commit == 'true' }}
         name: Push empty commit
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@v6
         with:
           commit_message: Empty commit for CI
           commit_user_name: aeon-actions-bot[bot]
           commit_options: --allow-empty
-          create_branch: false
           skip_dirty_check: true

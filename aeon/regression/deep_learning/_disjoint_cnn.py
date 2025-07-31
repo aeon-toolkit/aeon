@@ -1,5 +1,7 @@
 """DisjointCNN regressor."""
 
+from __future__ import annotations
+
 __maintainer__ = ["hadifawaz1999"]
 __all__ = ["DisjointCNNRegressor"]
 
@@ -7,11 +9,17 @@ import gc
 import os
 import time
 from copy import deepcopy
+from typing import TYPE_CHECKING, Any
 
+import numpy as np
 from sklearn.utils import check_random_state
 
 from aeon.networks import DisjointCNNNetwork
 from aeon.regression.deep_learning.base import BaseDeepRegressor
+
+if TYPE_CHECKING:
+    import tensorflow as tf
+    from tensorflow.keras.callbacks import Callback
 
 
 class DisjointCNNRegressor(BaseDeepRegressor):
@@ -25,42 +33,42 @@ class DisjointCNNRegressor(BaseDeepRegressor):
         Number of 1+1D Convolution layers.
     n_filters : int or list of int, default = 64
         Number of filters used in convolution layers. If
-        input is set to a list, the lenght should be the same
+        input is set to a list, the length should be the same
         as `n_layers`, if input is int the a list of the same
         element is created of length `n_layers`.
     kernel_size : int or list of int, default = [8, 5, 5, 3]
         Size of convolution kernel. If
-        input is set to a list, the lenght should be the same
+        input is set to a list, the length should be the same
         as `n_layers`, if input is int the a list of the same
         element is created of length `n_layers`.
     dilation_rate : int or list of int, default = 1
         The dilation rate for convolution. If
-        input is set to a list, the lenght should be the same
+        input is set to a list, the length should be the same
         as `n_layers`, if input is int the a list of the same
         element is created of length `n_layers`.
     strides : int or list of int, default = 1
         The strides of the convolution filter. If
-        input is set to a list, the lenght should be the same
+        input is set to a list, the length should be the same
         as `n_layers`, if input is int the a list of the same
         element is created of length `n_layers`.
     padding : str or list of str, default = "same"
         The type of padding used for convolution. If
-        input is set to a list, the lenght should be the same
+        input is set to a list, the length should be the same
         as `n_layers`, if input is int the a list of the same
         element is created of length `n_layers`.
     activation : str or list of str, default = "elu"
         Activation used after the convolution. If
-        input is set to a list, the lenght should be the same
+        input is set to a list, the length should be the same
         as `n_layers`, if input is int the a list of the same
         element is created of length `n_layers`.
     use_bias : bool or list of bool, default = True
-        Whether or not ot use bias in convolution. If
-        input is set to a list, the lenght should be the same
+        Whether or not to use bias in convolution. If
+        input is set to a list, the length should be the same
         as `n_layers`, if input is int the a list of the same
         element is created of length `n_layers`.
     kernel_initializer: str or list of str, default = "he_uniform"
         The initialization method of convolution layers. If
-        input is set to a list, the lenght should be the same
+        input is set to a list, the length should be the same
         as `n_layers`, if input is int the a list of the same
         element is created of length `n_layers`.
     pool_size: int, default = 5
@@ -159,37 +167,37 @@ class DisjointCNNRegressor(BaseDeepRegressor):
 
     def __init__(
         self,
-        n_layers=4,
-        n_filters=64,
-        kernel_size=None,
-        dilation_rate=1,
-        strides=1,
-        padding="same",
-        activation="elu",
-        use_bias=True,
-        kernel_initializer="he_uniform",
-        pool_size=5,
-        pool_strides=None,
-        pool_padding="valid",
-        hidden_fc_units=128,
-        activation_fc="relu",
-        n_epochs=2000,
-        batch_size=16,
-        use_mini_batch_size=False,
-        random_state=None,
-        verbose=False,
-        output_activation="linear",
-        loss="mean_squared_error",
-        metrics="mean_squared_error",
-        optimizer=None,
-        file_path="./",
-        save_best_model=False,
-        save_last_model=False,
-        save_init_model=False,
-        best_file_name="best_model",
-        last_file_name="last_model",
-        init_file_name="init_model",
-        callbacks=None,
+        n_layers: int = 4,
+        n_filters: int | list[int] = 64,
+        kernel_size: int | list[int] | None = None,
+        dilation_rate: int | list[int] = 1,
+        strides: int | list[int] = 1,
+        padding: str | list[str] = "same",
+        activation: str | list[str] = "elu",
+        use_bias: bool | list[bool] = True,
+        kernel_initializer: str | list[str] = "he_uniform",
+        pool_size: int = 5,
+        pool_strides: int | None = None,
+        pool_padding: str = "valid",
+        hidden_fc_units: int = 128,
+        activation_fc: str = "relu",
+        n_epochs: int = 2000,
+        batch_size: int = 16,
+        use_mini_batch_size: bool = False,
+        random_state: int | np.random.RandomState | None = None,
+        verbose: bool = False,
+        output_activation: str = "linear",
+        loss: str = "mean_squared_error",
+        metrics: str | list[str] = "mean_squared_error",
+        optimizer: tf.keras.optimizers.Optimizer | None = None,
+        file_path: str = "./",
+        save_best_model: bool = False,
+        save_last_model: bool = False,
+        save_init_model: bool = False,
+        best_file_name: str = "best_model",
+        last_file_name: str = "last_model",
+        init_file_name: str = "init_model",
+        callbacks: Callback | list[Callback] | None = None,
     ):
         self.n_layers = n_layers
         self.n_filters = n_filters
@@ -247,7 +255,9 @@ class DisjointCNNRegressor(BaseDeepRegressor):
             activation_fc=self.activation_fc,
         )
 
-    def build_model(self, input_shape, **kwargs):
+    def build_model(
+        self, input_shape: tuple[int, ...], **kwargs: Any
+    ) -> tf.keras.Model:
         """Construct a compiled, un-trained, keras model that is ready for training.
 
         In aeon, time series are stored in numpy arrays of shape (d,m), where d
@@ -266,7 +276,6 @@ class DisjointCNNRegressor(BaseDeepRegressor):
         -------
         output : a compiled Keras Model
         """
-        import numpy as np
         import tensorflow as tf
 
         rng = check_random_state(self.random_state)
@@ -291,7 +300,7 @@ class DisjointCNNRegressor(BaseDeepRegressor):
 
         return model
 
-    def _fit(self, X, y):
+    def _fit(self, X: np.ndarray, y: np.ndarray) -> DisjointCNNRegressor:
         """Fit the regressor on the training set (X, y).
 
         Parameters
@@ -376,7 +385,9 @@ class DisjointCNNRegressor(BaseDeepRegressor):
         return self
 
     @classmethod
-    def _get_test_params(cls, parameter_set="default"):
+    def _get_test_params(
+        cls, parameter_set: str = "default"
+    ) -> dict[str, Any] | list[dict[str, Any]]:
         """Return testing parameter settings for the estimator.
 
         Parameters

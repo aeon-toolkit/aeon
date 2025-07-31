@@ -201,7 +201,7 @@ def estimator_alias(name: str) -> str:
 def get_available_estimators(
     task: str = "classification", as_list: bool = False
 ) -> Union[pd.DataFrame, list]:
-    """Get a DataFrame of estimators avialable for a specific learning task.
+    """Get a DataFrame of estimators available for a specific learning task.
 
     Parameters
     ----------
@@ -228,7 +228,7 @@ def get_available_estimators(
             f"be one of {VALID_TASK_TYPES}"
         )
     data = pd.read_csv(
-        f"http://timeseriesclassification.com/results/ReferenceResults/"
+        f"https://timeseriesclassification.com/results/ReferenceResults/"
         f"{t}/estimators.txt"
     )
     return data.iloc[:, 0].tolist() if as_list else data
@@ -241,7 +241,7 @@ def get_estimator_results(
     task: str = "classification",
     measure: str = "accuracy",
     remove_dataset_modifiers: bool = False,
-    path: str = "http://timeseriesclassification.com/results/ReferenceResults",
+    path: str = "https://timeseriesclassification.com/results/ReferenceResults",
 ):
     """Look for results for given estimators for a list of datasets.
 
@@ -251,7 +251,7 @@ def get_estimator_results(
 
     Parameters
     ----------
-    estimators : str ot list of str
+    estimators : str or list of str
         Estimator name or list of estimator names to search for. See
         get_available_estimators, aeon.benchmarking.results_loading.NAME_ALIASES or
         the directory at path for valid options.
@@ -327,7 +327,7 @@ def get_estimator_results_as_array(
     task: str = "classification",
     measure: str = "accuracy",
     remove_dataset_modifiers: bool = False,
-    path: str = "http://timeseriesclassification.com/results/ReferenceResults",
+    path: str = "https://timeseriesclassification.com/results/ReferenceResults",
     include_missing: bool = False,
 ):
     """Look for results for given estimators for a list of datasets.

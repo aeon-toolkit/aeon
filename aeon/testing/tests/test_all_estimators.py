@@ -18,9 +18,9 @@ ALL_TEST_ESTIMATORS = all_estimators(return_names=False, include_sklearn=False)
 if PR_TESTING:
     # only use 3 Python versions in PR
     i = sys.version_info.minor
-    if i == 9:
+    if i == 10:
         i = 0
-    elif i == 11:
+    elif i == 12:
         i = 1
     elif i == 13:
         i = 2

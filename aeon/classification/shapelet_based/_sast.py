@@ -18,6 +18,7 @@ from aeon.base._base import _clone_estimator
 from aeon.classification import BaseClassifier
 from aeon.transformations.collection.shapelet_based import SAST
 from aeon.utils.numba.general import z_normalise_series
+from aeon.utils.validation import check_n_jobs
 
 
 class SASTClassifier(BaseClassifier):
@@ -27,7 +28,7 @@ class SASTClassifier(BaseClassifier):
     ----------
     length_list : int[], default = None
         an array containing the lengths of the subsequences to be generated.
-        If None, will be infered during fit as np.arange(3, X.shape[1])
+        If None, will be inferred during fit as np.arange(3, X.shape[1])
     stride : int, default = 1
         the stride used when generating subsquences
     nb_inst_per_class : int default = 1
@@ -100,12 +101,13 @@ class SASTClassifier(BaseClassifier):
             This pipeline classifier
 
         """
+        self._n_jobs = check_n_jobs(self.n_jobs)
         self._transformer = SAST(
             self.length_list,
             self.stride,
             self.nb_inst_per_class,
             self.seed,
-            self.n_jobs,
+            self._n_jobs,
         )
 
         self._classifier = _clone_estimator(

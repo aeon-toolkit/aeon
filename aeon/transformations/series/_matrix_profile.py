@@ -14,13 +14,13 @@ class MatrixProfileSeriesTransformer(BaseSeriesTransformer):
     z-normalized Euclidean distance between any subsequence within a
     time series and its nearest neighbour.
 
-    For more information on the matrix profile, see `th stumpy tutorial
+    For more information on the matrix profile, see `the STUMPY tutorial
     <https://stumpy.readthedocs.io/en/latest/Tutorial_The_Matrix_Profile.html>`_
 
     Parameters
     ----------
     window_length : int
-        Length of the sliding winodw for the matrix profile calculation.
+        Length of the sliding window for the matrix profile calculation.
 
     Notes
     -----
