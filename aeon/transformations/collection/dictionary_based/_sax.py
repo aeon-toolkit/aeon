@@ -167,7 +167,11 @@ class SAX(BaseCollectionTransformer):
         sax_symbols : np.ndarray of shape = (n_cases, n_channels, n_segments)
             The output of the SAX transformation using np.digitize
         """
-        sax_symbols = np.digitize(x=X_paa, bins=self.breakpoints)
+        prev_threads = get_num_threads()
+        _n_jobs = check_n_jobs(self.n_jobs)
+        set_num_threads(_n_jobs)
+        sax_symbols = _parallel_get_sax_symbols(X_paa, breakpoints=self.breakpoints)
+        set_num_threads(prev_threads)
         return sax_symbols
 
     def inverse_sax(self, X, original_length, y=None):
@@ -292,3 +296,20 @@ def _invert_sax_symbols(sax_symbols, n_timepoints, breakpoints_mid):
                 ]
 
     return sax_inverse
+
+
+@njit(fastmath=True, cache=True, parallel=True)
+def _parallel_get_sax_symbols(X, breakpoints):
+    n_cases, n_channels, n_timepoints = X.shape
+    X_new = np.zeros((n_cases, n_channels, n_timepoints), dtype=np.intp)
+    n_break = breakpoints.shape[0] - 1
+    for i_x in prange(n_cases):
+        for i_c in prange(n_channels):
+            for i_b in prange(n_break):
+                mask = np.where(
+                    (X[i_x, i_c] >= breakpoints[i_b])
+                    & (X[i_x, i_c] < breakpoints[i_b + 1])
+                )[0]
+                X_new[i_x, i_c, mask] += np.array(i_b).astype(np.intp)
+
+    return X_new

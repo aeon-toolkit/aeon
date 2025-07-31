@@ -3,8 +3,10 @@
 __maintainer__ = []
 
 import numpy as np
+from numba import njit, prange, get_num_threads, set_num_threads
 
 from aeon.transformations.collection import BaseCollectionTransformer
+from aeon.utils.validation import check_n_jobs
 
 
 class PAA(BaseCollectionTransformer):
@@ -39,12 +41,14 @@ class PAA(BaseCollectionTransformer):
 
     _tags = {
         "capability:multivariate": True,
+        "capability:multithreading": True,
         "fit_is_empty": True,
         "algorithm_type": "dictionary",
     }
 
-    def __init__(self, n_segments=8):
+    def __init__(self, n_segments=8, n_jobs=1):
         self.n_segments = n_segments
+        self.n_jobs = n_jobs
 
         super().__init__()
 
@@ -71,7 +75,6 @@ class PAA(BaseCollectionTransformer):
         # of segments is 3, the indices will be [0:3], [3:6] and [6:10]
         # so 3 segments, two of length 3 and one of length 4
         split_segments = np.array_split(all_indices, self.n_segments)
-
         # If the series length is divisible by the number of segments
         # then the transformation can be done in one line
         # If not, a for loop is needed only on the segments while
@@ -82,13 +85,13 @@ class PAA(BaseCollectionTransformer):
             return X_paa
 
         else:
-            n_samples, n_channels, _ = X.shape
-            X_paa = np.zeros(shape=(n_samples, n_channels, self.n_segments))
-
-            for _s, segment in enumerate(split_segments):
-                if X[:, :, segment].shape[-1] > 0:  # avoids mean of empty slice error
-                    X_paa[:, :, _s] = X[:, :, segment].mean(axis=-1)
-
+            prev_threads = get_num_threads()
+            _n_jobs = check_n_jobs(self.n_jobs)
+            set_num_threads(_n_jobs)
+            X_paa = _parallel_paa_transform(
+                X, n_segments=self.n_segments, split_segments=split_segments
+            )
+            set_num_threads(prev_threads)
             return X_paa
 
     def inverse_paa(self, X, original_length):
@@ -110,17 +113,17 @@ class PAA(BaseCollectionTransformer):
             return np.repeat(X, repeats=int(original_length / self.n_segments), axis=-1)
 
         else:
-            n_samples, n_channels, _ = X.shape
-            X_inverse_paa = np.zeros(shape=(n_samples, n_channels, original_length))
-
-            all_indices = np.arange(original_length)
-            split_segments = np.array_split(all_indices, self.n_segments)
-
-            for _s, segment in enumerate(split_segments):
-                X_inverse_paa[:, :, segment] = np.repeat(
-                    X[:, :, [_s]], repeats=len(segment), axis=-1
-                )
-
+            split_segments = np.array_split(np.arange(original_length), self.n_segments)
+            prev_threads = get_num_threads()
+            _n_jobs = check_n_jobs(self.n_jobs)
+            set_num_threads(_n_jobs)
+            X_inverse_paa = _parallel_inverse_paa_transform(
+                X,
+                original_length=original_length,
+                n_segments=self.n_segments,
+                split_segments=split_segments,
+            )
+            set_num_threads(prev_threads)
             return X_inverse_paa
 
     @classmethod
@@ -143,3 +146,44 @@ class PAA(BaseCollectionTransformer):
         """
         params = {"n_segments": 10}
         return params
+
+
+@njit(parallel=True, fastmath=True)
+def _parallel_paa_transform(X, n_segments, split_segments):
+    """Parallelized PAA for uneven segment splits using Numba."""
+    n_samples, n_channels, _ = X.shape
+    X_paa = np.zeros((n_samples, n_channels, n_segments), dtype=X.dtype)
+
+    for _s in prange(n_segments):  # Parallel over segments
+        segment = split_segments[_s]
+        seg_len = segment.shape[0]
+
+        if seg_len == 0:
+            continue  # skip empty segment
+
+        for i in range(n_samples):
+            for j in range(n_channels):
+                acc = 0.0
+                for k in range(seg_len):
+                    acc += X[i, j, segment[k]]
+                X_paa[i, j, _s] = acc / seg_len
+
+    return X_paa
+
+
+@njit(parallel=True, fastmath=True)
+def _parallel_inverse_paa_transform(X, original_length, n_segments, split_segments):
+    """Parallelize the inverse PAA transformation for cases where the series length is not
+    divisible by the number of segments."""
+    n_samples, n_channels, _ = X.shape
+    X_inverse_paa = np.zeros(shape=(n_samples, n_channels, original_length))
+
+    for _s in prange(n_segments):
+        segment = split_segments[_s]
+        for idx in prange(len(segment)):
+            t = segment[idx]
+            for i in prange(n_samples):
+                for j in prange(n_channels):
+                    X_inverse_paa[i, j, t] = X[i, j, _s]
+
+    return X_inverse_paa
