@@ -5,9 +5,10 @@ Forecasting
 
 The :mod:`aeon.forecasting` module contains algorithms for forecasting.
 
-All clusterers in `aeon` can be listed using the `aeon.registry.all_estimators`
-utility, using `estimator_types="forecasting"`, optionally filtered by tags.
-Valid tags can be listed using `aeon.registry.all_tags`.
+All forecasters in ``aeon``  can be listed using the ``aeon.utils.discovery
+.all_estimators`` function using ``type_filter="forecaster"``, optionally filtered by
+tags. Valid tags for forecasters can be found with ``aeon.utils.tags
+.all_tags_for_estimator`` function with the argument ``"forecaster"``.
 
 Forecasting Models
 ------------------
