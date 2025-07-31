@@ -194,6 +194,17 @@ Composition
     ClassifierEnsemble
     ClassifierPipeline
 
+Dummy
+-----
+
+.. currentmodule:: aeon.classification
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    DummyClassifier
+
 Base
 ----
 
@@ -204,7 +215,6 @@ Base
     :template: class.rst
 
     BaseClassifier
-    DummyClassifier
 
 .. currentmodule:: aeon.classification.deep_learning.base
 

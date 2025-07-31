@@ -117,6 +117,20 @@ All transformers in `aeon` can be listed using the `aeon.registry
     SevenNumberSummary
 ```
 
+### Imbalance
+
+```{eval-rst}
+.. currentmodule:: aeon.transformations.collection.imbalance
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    ADASYN
+    SMOTE
+    OHIT
+```
+
 ### Interval based
 
 ```{eval-rst}
