@@ -309,14 +309,14 @@ def _parallel_get_sax_symbols(x, breakpoints, right=False):
         bin_idx = 0
 
         if right:
-            for j in range(len(bins)):
-                if val <= bins[j]:
+            for j in range(len(breakpoints)):
+                if val <= breakpoints[j]:
                     bin_idx = j
                     break
                 bin_idx = j + 1
         else:
-            for j in range(len(bins)):
-                if val < bins[j]:
+            for j in range(len(breakpoints)):
+                if val < breakpoints[j]:
                     bin_idx = j
                     break
                 bin_idx = j + 1
