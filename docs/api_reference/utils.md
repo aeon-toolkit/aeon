@@ -1,18 +1,15 @@
-.. _utils_ref:
+# Utility functions
 
-Utility functions
-=================
+`aeon` has a number of modules dedicated to utilities:
 
-``aeon`` has a number of modules dedicated to utilities:
-
-* :mod:`aeon.pipeline`, which contains functions for pipeline construction.
-* :mod:`aeon.testing`, which contains functions for estimator testing and data generation.
-* :mod:`aeon.utils`, which contains generic utility functions.
+- `aeon.pipeline`, which contains functions for pipeline construction.
+- `aeon.testing`, which contains functions for estimator testing and data generation.
+- `aeon.utils`, which contains generic utility functions.
 
 
-Pipeline
---------
+## Pipeline
 
+```{eval-rst}
 .. currentmodule:: aeon.pipeline
 
 .. autosummary::
@@ -21,13 +18,13 @@ Pipeline
 
     make_pipeline
     sklearn_to_aeon
+```
 
-Testing
--------
+## Testing
 
-Data Generation
-^^^^^^^^^^^^^^^
+### Data Generation
 
+```{eval-rst}
 .. currentmodule:: aeon.testing.data_generation
 
 .. autosummary::
@@ -45,10 +42,11 @@ Data Generation
     make_example_2d_numpy_series
     make_example_pandas_series
     make_example_dataframe_series
+```
 
-Estimator Checking
-^^^^^^^^^^^^^^^^^^
+### Estimator Checking
 
+```{eval-rst}
 .. currentmodule:: aeon.testing.estimator_checking
 
 .. autosummary::
@@ -57,10 +55,11 @@ Estimator Checking
 
     check_estimator
     parametrize_with_checks
+```
 
-Mock Estimators
-^^^^^^^^^^^^^^^
+### Mock Estimators
 
+```{eval-rst}
 .. currentmodule:: aeon.testing.mock_estimators
 
 .. autosummary::
@@ -89,10 +88,11 @@ Mock Estimators
     MockSeriesTransformerNoFit
     MockSeriesSimilaritySearch
     MockCollectionSimilaritySearch
+```
 
-Utilities
-^^^^^^^^^
+### Utilities
 
+```{eval-rst}
 .. currentmodule:: aeon.testing.utils.deep_equals
 
 .. autosummary::
@@ -102,19 +102,21 @@ Utilities
     deep_equals
 
 .. currentmodule:: aeon.testing.utils.output_suppression
+```
 
+```{eval-rst}
 .. autosummary::
     :toctree: auto_generated/
     :template: function.rst
 
     suppress_output
+```
 
-Utils
------
+## Utils
 
-Estimator Discovery & Tags
-^^^^^^^^^^^^^^^^^^^^^^^^^^
+### Estimator Discovery & Tags
 
+```{eval-rst}
 .. currentmodule:: aeon.utils.base
 
 .. autosummary::
@@ -122,7 +124,9 @@ Estimator Discovery & Tags
     :template: function.rst
 
     get_identifier
+```
 
+```{eval-rst}
 .. currentmodule:: aeon.utils.discovery
 
 .. autosummary::
@@ -130,7 +134,9 @@ Estimator Discovery & Tags
     :template: function.rst
 
     all_estimators
+```
 
+```{eval-rst}
 .. currentmodule:: aeon.utils.tags
 
 .. autosummary::
@@ -139,11 +145,11 @@ Estimator Discovery & Tags
 
     check_valid_tags
     all_tags_for_estimator
+```
 
+### Data Conversion & Validation
 
-Data Conversion & Validation
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
+```{eval-rst}
 .. currentmodule:: aeon.utils.conversion
 
 .. autosummary::
@@ -154,7 +160,9 @@ Data Conversion & Validation
     resolve_unequal_length_inner_type
     convert_collection
     convert_series
+```
 
+```{eval-rst}
 .. currentmodule:: aeon.utils.validation
 
 .. autosummary::
@@ -178,10 +186,11 @@ Data Conversion & Validation
     is_collection
     is_tabular
     is_hierarchical
+```
 
-Numba
-^^^^^
+### Numba
 
+```{eval-rst}
 .. currentmodule:: aeon.utils.numba.general
 
 .. autosummary::
@@ -210,8 +219,11 @@ Numba
     generate_combinations
     get_all_subsequences
     compute_mean_stds_collection_parallel
+    prime_up_to
+    is_prime
+```
 
-
+```{eval-rst}
 .. currentmodule:: aeon.utils.numba.stats
 
 .. autosummary::
@@ -233,7 +245,7 @@ Numba
     quantile75
     row_quantile75
     std
-    std2
+    std_with_mean
     row_std
     numba_min
     row_numba_min
@@ -246,9 +258,11 @@ Numba
     ppv
     row_ppv
     fisher_score
-    prime_up_to
-    is_prime
+    gini
+    gini_gain
+```
 
+```{eval-rst}
 .. currentmodule:: aeon.utils.numba.wavelets
 
 .. autosummary::
@@ -257,18 +271,51 @@ Numba
 
     haar_transform
     multilevel_haar_transform
+```
 
-Other
-^^^^^
+### Other
 
-.. currentmodule:: aeon.utils
+```{eval-rst}
+.. currentmodule:: aeon.utils.self_supervised.general
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: function.rst
+
+    z_normalization
+```
+
+```{eval-rst}
+.. currentmodule:: aeon.utils.repr
 
 .. autosummary::
     :toctree: auto_generated/
     :template: function.rst
 
     show_versions
+```
 
+```{eval-rst}
+.. currentmodule:: aeon.utils.repr
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: function.rst
+
+    show_versions
+```
+
+```{eval-rst}
+.. currentmodule:: aeon.utils.show_versions
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: function.rst
+
+    show_versions
+```
+
+```{eval-rst}
 .. currentmodule:: aeon.utils.sklearn
 
 .. autosummary::
@@ -281,7 +328,9 @@ Other
     is_sklearn_classifier
     is_sklearn_regressor
     is_sklearn_clusterer
+```
 
+```{eval-rst}
 .. currentmodule:: aeon.utils.split
 
 .. autosummary::
@@ -289,7 +338,9 @@ Other
     :template: function.rst
 
     split_series
+```
 
+```{eval-rst}
 .. currentmodule:: aeon.utils.windowing
 
 .. autosummary::
@@ -298,3 +349,4 @@ Other
 
     sliding_windows
     reverse_windowing
+```
