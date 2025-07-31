@@ -5,6 +5,7 @@ Forecasting
 
 The :mod:`aeon.forecasting` module contains algorithms for forecasting.
 
+
 All forecasters in ``aeon``  can be listed using the ``aeon.utils.discovery
 .all_estimators`` function using ``type_filter="forecaster"``, optionally filtered by
 tags. Valid tags for forecasters can be found with ``aeon.utils.tags
