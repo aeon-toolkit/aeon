@@ -27,7 +27,7 @@ classical techniques for the following learning tasks:
   ([more details](examples/similarity_search/similarity_search.ipynb)).
 - [**Anomaly detection**](api_reference/anomaly_detection), where the goal is to find
   values or areas of a single time series that are not representative of the whole series.
-- [**Forecasting**](api_reference/forecasting), where the goal is to predict future values
+- [**Forecasting**](api_reference/forecasting.rst), where the goal is to predict future values
   of a single time series
   ([more details](examples/forecasting/forecasting.ipynb)).
 - [**Segmentation**](api_reference/segmentation), where the goal is to split a single time
