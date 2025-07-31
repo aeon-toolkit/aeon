@@ -1,13 +1,9 @@
 """Test ETS."""
 
-__maintainer__ = []
-__all__ = []
-
 import numpy as np
 import pytest
 
-from aeon.forecasting import ETSForecaster
-from aeon.forecasting._ets import _validate_parameter
+from aeon.forecasting.stats._ets import ETS, _validate_parameter
 
 
 @pytest.mark.parametrize(
@@ -68,9 +64,9 @@ from aeon.forecasting._ets import _validate_parameter
     ],
 )
 def test_ets_forecaster(params, expected):
-    """Test ETSForecaster for multiple parameter combinations."""
+    """Test ETS for multiple parameter combinations."""
     data = np.array([3, 10, 12, 13, 12, 10, 12, 3, 10, 12, 13, 12, 10, 12])
-    forecaster = ETSForecaster(**params)
+    forecaster = ETS(**params)
     p = forecaster.forecast(data)
     assert np.isclose(p, expected)
 
@@ -84,12 +80,12 @@ def test_incorrect_parameters():
         _validate_parameter(None, True)
         _validate_parameter(10, False)
         _validate_parameter("Foo", True)
-    forecaster = ETSForecaster()
+    forecaster = ETS()
     forecaster.horizon = 2
     data = np.array([3, 10, 12, 13, 12, 10, 12, 3, 10, 12, 13, 12, 10, 12])
     with pytest.raises(ValueError, match="Horizon is set >1, but"):
         forecaster.fit(data)
-    forecaster = ETSForecaster()
+    forecaster = ETS()
     with pytest.raises(
         ValueError, match="This forecaster cannot be used with the " "direct strategy"
     ):

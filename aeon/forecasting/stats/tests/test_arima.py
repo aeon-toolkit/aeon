@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from aeon.forecasting import ARIMA
+from aeon.forecasting.stats._arima import ARIMA
 
 y = np.array(
     [112, 118, 132, 129, 121, 135, 148, 148, 136, 119, 104, 118], dtype=np.float64

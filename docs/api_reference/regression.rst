@@ -3,11 +3,12 @@
 Regression
 ==========
 
-The :mod:`aeon.regression` module contains algorithms and composition tools for time series regression.
+The :mod:`aeon.regression` module contains algorithms for time series regression.
 
-All regressors in ``aeon``can be listed using the ``aeon.registry.all_estimators`` utility,
-using ``estimator_types="regressor"``, optionally filtered by tags.
-Valid tags can be listed using ``aeon.registry.all_tags``.
+All regressors in ``aeon``  can be listed using the ``aeon.utils.discovery.all_estimators`` function using ``type_filter="regressor"``, optionally filtered by
+tags. Valid tags for regressors can be found with ``aeon.utils.tags.all_tags_for_estimator`` function with the argument ``"regressor"``.
+
+
 
 Convolution-based
 -----------------
