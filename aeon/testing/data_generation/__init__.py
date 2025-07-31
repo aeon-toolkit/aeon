@@ -14,6 +14,8 @@ __all__ = [
     "make_example_2d_numpy_series",
     "make_example_pandas_series",
     "make_example_dataframe_series",
+    # labels
+    "make_anomaly_detection_labels",
 ]
 
 
@@ -26,6 +28,7 @@ from aeon.testing.data_generation._collection import (
     make_example_dataframe_list,
     make_example_multi_index_dataframe,
 )
+from aeon.testing.data_generation._labels import make_anomaly_detection_labels
 from aeon.testing.data_generation._series import (
     make_example_1d_numpy,
     make_example_2d_numpy_series,
