@@ -3,7 +3,7 @@
 __maintainer__ = []
 
 import numpy as np
-from numba import njit, prange, get_num_threads, set_num_threads
+from numba import get_num_threads, njit, prange, set_num_threads
 
 from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.utils.validation import check_n_jobs
