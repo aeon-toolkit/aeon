@@ -174,7 +174,8 @@ def _parallel_paa_transform(X, n_segments, split_segments):
 @njit(parallel=True, fastmath=True)
 def _parallel_inverse_paa_transform(X, original_length, n_segments, split_segments):
     """Parallelize the inverse PAA transformation for cases where the series length is not
-    divisible by the number of segments."""
+    divisible by the number of segments.
+    """
     n_samples, n_channels, _ = X.shape
     X_inverse_paa = np.zeros(shape=(n_samples, n_channels, original_length))
 

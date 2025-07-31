@@ -299,7 +299,7 @@ def _invert_sax_symbols(sax_symbols, n_timepoints, breakpoints_mid):
 
 
 @njit(fastmath=True, cache=True, parallel=True)
-def _parallel_get_sax_symbols(x, bins, right=False):
+def _parallel_get_sax_symbols(x, breakpoints, right=False):
     """Parallel version of `np.digitize`."""
     x_flat = x.flatten()
     result = np.empty(x_flat.shape[0], dtype=np.intp)
