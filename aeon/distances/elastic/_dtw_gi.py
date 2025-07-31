@@ -5,10 +5,11 @@ __maintainer__ = []
 from typing import Optional, Union
 
 import numpy as np
-from numba import njit
+from numba import njit, prange
 from numba.typed import List as NumbaList
 
 from aeon.distances.elastic._dtw import dtw_alignment_path, dtw_cost_matrix
+from aeon.utils._threading import threaded
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
@@ -323,6 +324,7 @@ def dtw_gi_cost_matrix(
     return dtw_cost_matrix(xnew, y_trans, window, itakura_max_slope)
 
 
+@threaded
 def dtw_gi_pairwise_distance(
     X: Union[np.ndarray, list[np.ndarray]],
     y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
@@ -332,6 +334,7 @@ def dtw_gi_pairwise_distance(
     init_p: np.ndarray = None,
     max_iter: int = 20,
     use_bias: bool = False,
+    n_jobs: int = 1,
 ) -> np.ndarray:
     r"""Compute the DTW_GI pairwise distance between a set of time series.
 
@@ -373,6 +376,10 @@ def dtw_gi_pairwise_distance(
         Maximum number of iterations for the iterative optimization.
     use_bias : bool, default=False
         If True, the feature space map is affine (with a bias term).
+    n_jobs : int, default=1
+        The number of jobs to run in parallel. If -1, then the number of jobs is set
+        to the number of CPU cores. If 1, then the function is executed in a single
+        thread. If greater than 1, then the function is executed in parallel.
 
     Returns
     -------
@@ -452,7 +459,7 @@ def _dtw_gi_from_multiple_to_multiple_distance(
     m_cases = len(y)
     distances = np.zeros((n_cases, m_cases))
 
-    for i in range(n_cases):
+    for i in prange(n_cases):
         for j in range(m_cases):
             x1, y1 = x[i], y[j]
             distances[i, j] = dtw_gi_distance(
@@ -474,7 +481,7 @@ def _dtw_gi_pairwise_distance(
     n_cases = len(X)
     distances = np.zeros((n_cases, n_cases))
 
-    for i in range(n_cases):
+    for i in prange(n_cases):
         for j in range(i + 1, n_cases):
             x1, x2 = X[i], X[j]
             distances[i, j] = dtw_gi_distance(

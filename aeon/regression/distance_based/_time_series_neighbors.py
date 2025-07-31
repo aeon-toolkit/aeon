@@ -13,7 +13,6 @@ __all__ = ["KNeighborsTimeSeriesRegressor"]
 from typing import Callable, Union
 
 import numpy as np
-from joblib import Parallel, delayed
 
 from aeon.distances import get_distance_function
 from aeon.regression.base import BaseRegressor
@@ -141,14 +140,12 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
         y : array of shape (n_cases)
             Output values for each data sample.
         """
-        preds = Parallel(n_jobs=self._n_jobs, backend=self.parallel_backend)(
-            delayed(self._predict_row)(x) for x in X
-        )
-        return np.array(preds)
+        preds = np.empty(len(X))
+        for i in range(len(X)):
+            idx, weights = self.kneighbors(X[i])
+            preds[i] = np.average(self.y_[idx], weights=weights)
 
-    def _predict_row(self, x):
-        idx, weights = self._kneighbors(x)
-        return np.average(self.y_[idx], weights=weights)
+        return preds
 
     def _kneighbors(self, X):
         """
