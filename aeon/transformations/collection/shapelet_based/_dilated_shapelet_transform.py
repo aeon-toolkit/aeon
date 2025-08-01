@@ -27,9 +27,9 @@ from aeon.utils.numba.general import (
     get_subsequence,
     get_subsequence_with_mean_std,
     normalise_subsequences,
+    prime_up_to,
     sliding_mean_std_one_series,
 )
-from aeon.utils.numba.stats import prime_up_to
 from aeon.utils.validation import check_n_jobs
 
 

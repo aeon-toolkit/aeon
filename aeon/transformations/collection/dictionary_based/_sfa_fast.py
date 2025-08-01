@@ -729,8 +729,7 @@ class SFAFast(BaseCollectionTransformer):
             self.alphabet_size,
             self.breakpoints,
         )
-
-        return words.squeeze(), dfts.squeeze()
+        return words.squeeze(1), dfts.squeeze(1)
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
