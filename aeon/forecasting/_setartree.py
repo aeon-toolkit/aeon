@@ -16,11 +16,10 @@ class SETARTree(BaseForecaster):
     """
     SETAR-Tree: A tree algorithm for global time series forecasting.
 
-    This implementation is based on the paper "SETAR-Tree: a novel and accurate
-    tree algorithm for global time series forecasting" by Godahewa, R., et al. (2023).
-
     The SETAR-Tree forecaster is a global time series model trained across collections
     of time series, enabling it to learn cross-series patterns.
+    This implementation is based on the codebase associated with the work
+    by Godahewa et al. [1].
 
     Parameters
     ----------
@@ -50,11 +49,25 @@ class SETARTree(BaseForecaster):
         Whether to use a fixed lag (e.g., Lag{external_lag}) for splitting.
     external_lag : int, default=0
         The specific lag to use if fixed_lag is True.
+    feature_subset :
+        Lags/covariate column names the tree is allowed to split on.
+    feature_subset : list[str] or None, default=None
+        Used by SETARForest.
+        Column names allowed as split candidates when growing the tree.
+        If None, all available features are considered.
+
+    References
+    ----------
+    .. [1] Godahewa, Rakshitha, et al. "SETAR-Tree: a novel and accurate
+    tree algorithm for global time series forecasting." Machine Learning
+    112.7 (2023): 2555-2591.
     """
 
     _tags = {
         "capability:horizon": False,
         "capability:exogenous": True,
+        "capability:multivariate": False,
+        "capability:univariate": True,
     }
 
     def __init__(
@@ -70,6 +83,7 @@ class SETARTree(BaseForecaster):
         seq_significance=True,
         fixed_lag=False,
         external_lag=0,
+        feature_subset=None,
     ):
         self.lag = lag
         self.max_depth = max_depth
@@ -94,6 +108,7 @@ class SETARTree(BaseForecaster):
         self.series_means_ = None
         self.cat_unique_vals_ = {}
         self.final_lags_ = None
+        self.feature_subset = feature_subset
 
     def _embed(self, x, dimension):
         if len(x) < dimension:
@@ -297,14 +312,10 @@ class SETARTree(BaseForecaster):
             training_set["series"] += [exog[:, i] for i in range(exog.shape[1])]
         return training_set
 
-    def _fit(self, y, exog=None):
-        training_set = self._process_input_data(y, exog)
-        embedded_series, self.final_lags_, self.series_means_ = (
-            self._create_tree_input_matrix(training_set)
-        )
+    def _build_from_embedded(self, embedded_series: pd.DataFrame):
+        """Build tree and train leaf models from a fully-prepared embedded matrix."""
         if embedded_series.empty:
-            raise ValueError("Failed to create embedded matrix: insufficient data.")
-
+            raise ValueError("Empty embedded matrix provided.")
         self.tree_ = []
         self.th_lags_ = []
         self.thresholds_ = []
@@ -314,9 +325,7 @@ class SETARTree(BaseForecaster):
         start_con = {"nTh": self.n_thresholds}
 
         for _d in range(self.max_depth):
-            level_th_lags = []
-            level_thresholds = []
-            level_nodes = []
+            level_th_lags, level_thresholds, level_nodes = [], [], []
             level_significant_node_count = 0
             next_level_split_info = []
 
@@ -333,11 +342,22 @@ class SETARTree(BaseForecaster):
 
                 best_cost, best_th, best_th_lag = float("inf"), None, None
                 X_features_df = current_node_df.drop("y", axis=1)
-                lags_to_check = (
-                    [f"Lag{self.external_lag}"]
-                    if self.fixed_lag
-                    else X_features_df.columns
-                )
+
+                # restrict to feature_subset if provided
+                if self.fixed_lag:
+                    lags_to_check = [f"Lag{self.external_lag}"]
+                else:
+                    all_cols = list(X_features_df.columns)
+                    if self.feature_subset is not None:
+                        lags_to_check = [
+                            c for c in all_cols if c in self.feature_subset
+                        ]
+                        if not lags_to_check:
+                            # fall back to all if subset is empty
+                            lags_to_check = all_cols
+                    else:
+                        lags_to_check = all_cols
+
                 X_node = X_features_df.to_numpy()
                 y_node = current_node_df["y"].to_numpy()
 
@@ -384,7 +404,7 @@ class SETARTree(BaseForecaster):
                             is_significant = self._check_error_improvement(
                                 current_node_df, split_nodes
                             )
-                        elif self.stopping_criteria == "both":
+                        else:  # "both"
                             is_significant = self._check_linearity(
                                 current_node_df, split_nodes, significance
                             ) and self._check_error_improvement(
@@ -419,45 +439,45 @@ class SETARTree(BaseForecaster):
             self._fit_global_model(node)["model"] for node in leaf_nodes
         ]
 
+        # As setar-forest will bypass BaseForecaster.fit() when building trees
+        self.is_fitted = True
         return self
 
-    def _predict(self, y=None, exog=None):
-        if y is not None:
-            training_set = self._process_input_data(y, exog)
-            _, current_lags_df, _ = self._create_tree_input_matrix(training_set)
+    def fit_from_embedded(self, embedded_df: pd.DataFrame):
+        """Public hook used by SETARForest: train from a pre-bagged embedded matrix."""
+        return self._build_from_embedded(embedded_df)
+
+    def _fit(self, y, exog=None):
+        training_set = self._process_input_data(y, exog)
+        embedded_series, self.final_lags_, self.series_means_ = (
+            self._create_tree_input_matrix(training_set)
+        )
+        return self._build_from_embedded(embedded_series)
+
+    def _predict(self, y, exog=None):
+        training_set = {"series": [y[:, 0]]}
+        _, current_lags_df, series_means = self._create_tree_input_matrix(training_set)
+
+        instance = current_lags_df.iloc[0]
+        leaf_idx = self._get_leaf_index(instance, self.th_lags_, self.thresholds_)
+        leaf_model = self.leaf_models_[leaf_idx]
+
+        model_cols = getattr(leaf_model, "feature_names_in_", None)
+        if model_cols is not None:
+            cols = [c for c in model_cols if c in instance.index]
+            X_test = instance[cols].to_frame().T
         else:
-            current_lags_df = self.final_lags_.copy()
+            X_test = instance.to_frame().T
 
-        num_series = current_lags_df.shape[0]
-        forecasts = np.zeros((1, num_series))
-
-        horizon_predictions = np.zeros(num_series)
-        for i in range(num_series):
-            instance = current_lags_df.iloc[i]
-            leaf_idx = self._get_leaf_index(instance, self.th_lags_, self.thresholds_)
-            leaf_model = self.leaf_models_[leaf_idx]
-            horizon_predictions[i] = leaf_model.predict(instance.to_frame().T)[0]
-        forecasts[0, :] = horizon_predictions
+        pred = float(leaf_model.predict(X_test)[0])
 
         if self.scale:
-            forecasts *= np.array(self.series_means_)
+            pred *= float(series_means[0])
 
-        return forecasts.flatten() if num_series == 1 else forecasts
+        return pred
 
-    def iterative_forecast(self, y, prediction_horizon):
-        # if there are n time series in y, then return n predictions
-        if prediction_horizon < 1:
-            raise ValueError(
-                "The `prediction_horizon` must be greater than or equal to 1."
-            )
-        if y.ndim == 1:
-            y = y[:, np.newaxis]
-        n_time, n_vars = y.shape
-        preds = np.zeros((prediction_horizon, n_vars))
-        self.fit(y)
-        current_y = y.copy()
-        for i in range(prediction_horizon):
-            pred = self.predict(current_y)
-            preds[i, :] = pred
-            current_y = np.vstack((current_y, pred.reshape(1, -1)))
-        return preds.squeeze() if n_vars == 1 else preds
+    def _forecast(self, y, exog=None):
+        """Overwrite _forecast to set forecast_ value."""
+        self.fit(y, exog)
+        self.forecast_ = self.predict(y)
+        return self.forecast_

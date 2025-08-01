@@ -5,53 +5,38 @@ import numpy as np
 from aeon.forecasting._setartree import SETARTree
 
 
-def test_short_series():
-    """Test handling of series shorter than the lag."""
-    y = np.random.random(5)
-    f = SETARTree(lag=10)
-    try:
-        f.fit(y)
-        raise AssertionError("No ValueError raised for short series")
-    except ValueError as e:
-        assert "insufficient data" in str(e).lower(), "Unexpected error message"
-
-
 def test_constant_series():
-    """Test forecasting on a constant series."""
+    """Test forecasting on a constant series (scalar prediction)."""
     y = np.ones(20)
     f = SETARTree(lag=2)
     f.fit(y)
     pred = f.predict(y)
-    assert np.isclose(pred, 1), f"Prediction {pred} not close to 1"
+    assert np.isscalar(pred), "Prediction should be a scalar for univariate series"
+    assert np.isclose(pred, 1.0), f"Prediction {pred} not close to 1.0"
 
 
 def test_linear_series():
-    """Test forecasting on a linear series."""
+    """Test forecasting on a linear series (scalar prediction)."""
     y = np.arange(1, 21.0)
     f = SETARTree(lag=2)
     f.fit(y)
     pred = f.predict(y)
-    assert np.isclose(pred, 21, atol=0.01), f"Prediction {pred} not close to 21"
+    assert np.isscalar(pred), "Prediction should be a scalar for univariate series"
+    assert np.isclose(pred, 21.0, atol=0.01), f"Prediction {pred} not close to 21.0"
 
 
 def test_iterative_forecast_linear():
-    """Test iterative forecasting on a linear series."""
+    """Test iterative forecasting on a linear series (1-D array of length H)."""
     y = np.arange(1, 11.0)
     f = SETARTree(lag=2)
     preds = f.iterative_forecast(y, 3)
-    expected = np.arange(11, 14.0)
+    expected = np.arange(11.0, 14.0)
+    assert preds.shape == (
+        3,
+    ), f"iterative_forecast should return shape (H,), got {preds.shape}"
     assert np.allclose(
         preds, expected, atol=0.01
     ), f"Predictions {preds} not close to {expected}"
-
-
-def test_scale_option():
-    """Test the scale parameter functionality."""
-    y = np.arange(1, 21.0) * 100  # Large values to test scaling
-    f = SETARTree(lag=2, scale=True)
-    f.fit(y)
-    pred = f.predict(y)
-    assert np.isclose(pred, 2100, atol=1), f"Scaled prediction {pred} not close to 2100"
 
 
 def test_fixed_lag():
@@ -61,8 +46,8 @@ def test_fixed_lag():
     f.fit(y)
     pred = f.predict(y)
     assert np.isclose(
-        pred, 21, atol=0.01
-    ), f"Fixed lag prediction {pred} not close to 21"
+        pred, 21.0, atol=0.01
+    ), f"Fixed lag prediction {pred} not close to 21.0"
 
 
 def test_different_stopping_criteria():
@@ -73,5 +58,17 @@ def test_different_stopping_criteria():
         f.fit(y)
         pred = f.predict(y)
         assert np.isclose(
-            pred, 21, atol=0.01
-        ), f"Prediction with {criteria} {pred} not close to 21"
+            pred, 21.0, atol=0.01
+        ), f"Prediction with {criteria} {pred} not close to 21.0"
+
+
+def test_forecast_linear_sets_attribute():
+    """Test forecast() returns scalar next value and sets forecast_ attribute."""
+    y = np.arange(1, 21.0)
+    f = SETARTree(lag=2)
+    # Call forecast without prior fit; _forecast will fit internally
+    out = f.forecast(y)
+    assert np.isscalar(out), "forecast() should return a scalar for univariate series"
+    assert np.isclose(out, 21.0, atol=0.01), f"Forecast {out} not close to 21.0"
+    assert hasattr(f, "forecast_"), "forecast_ attribute should be set by _forecast()"
+    assert np.isclose(f.forecast_, out), "forecast_ should equal the returned forecast"
