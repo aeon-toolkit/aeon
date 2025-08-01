@@ -3,7 +3,6 @@
 __maintainer__ = []
 __all__ = [
     "load_airline",
-    "load_plaid",
     "load_arrow_head",
     "load_gunpoint",
     "load_osuleaf",
@@ -28,7 +27,6 @@ import os
 
 import numpy as np
 import pandas as pd
-from deprecated.sphinx import deprecated
 
 from aeon.datasets import load_from_tsf_file
 from aeon.datasets._data_loaders import _load_saved_dataset, _load_tsc_dataset
@@ -377,48 +375,6 @@ def load_pickup_gesture_wiimoteZ(split=None):
     >>> X, y = load_pickup_gesture_wiimoteZ()
     """
     return _load_tsc_dataset("PickupGestureWiimoteZ", split, return_type="np-list")
-
-
-# TODO: remove in v1.3.0
-@deprecated(
-    version="1.2.0",
-    reason="load_plaid and the PLAID dataset will be removed in version 1.3. It has "
-    "been replaced by a smaller unequal length univariate problem "
-    "PickupGestureWiimoteZ.",
-    category=FutureWarning,
-)
-def load_plaid(split=None):
-    """Load the PLAID univariate time series classification problem.
-
-    Example of a univariate problem with unequal length time series.
-
-    Parameters
-    ----------
-    split: None or one of "TRAIN", "TEST", default=None
-        Whether to load the train or test instances of the problem. By default it
-        loads both train and test instances into a single array.
-
-    Returns
-    -------
-    X: list of 2D np.ndarray, one for each series.
-    y: 1D numpy array of length len(X). The class labels for each time series
-    instance in X.
-
-    Notes
-    -----
-    Dimensionality:     univariate
-    Series length:      variable
-    Train cases:        537
-    Test cases:         537
-    Number of classes:  2
-    Details: https://timeseriesclassification.com/description.php?Dataset=PLAID
-
-    Examples
-    --------
-    >>> from aeon.datasets import load_plaid
-    >>> X, y = load_plaid()
-    """
-    return _load_tsc_dataset("PLAID", split, return_type="np-list")
 
 
 def load_japanese_vowels(split=None):
@@ -836,7 +792,7 @@ def load_solar(return_array=True):
     """Get national solar estimates for GB from Sheffield Solar PV_Live API.
 
     This function calls the Sheffield Solar PV_Live API to extract national solar data
-    for the GB eletricity network. Note that these are estimates of the true solar
+    for the GB electricity network. Note that these are estimates of the true solar
     generation, since the true values are "behind the meter" and essentially
     unknown.
 

@@ -1,11 +1,12 @@
-"""ETSForecaster class.
+"""ETS class.
 
 An implementation of the exponential smoothing statistics forecasting algorithm.
-Implements additive and multiplicative error models.
+Implements additive and multiplicative error models. We recommend using the AutoETS
+version, but this is useful for demonstrations.
 """
 
 __maintainer__ = []
-__all__ = ["ETSForecaster"]
+__all__ = ["ETS"]
 
 from typing import Union
 
@@ -18,7 +19,7 @@ ADDITIVE = "additive"
 MULTIPLICATIVE = "multiplicative"
 
 
-class ETSForecaster(BaseForecaster):
+class ETS(BaseForecaster):
     """Exponential Smoothing (ETS) forecaster.
 
     Implements the ETS (Error, Trend, Seasonality) forecaster, supporting additive
@@ -76,16 +77,16 @@ class ETSForecaster(BaseForecaster):
 
     Examples
     --------
-    >>> from aeon.forecasting import ETSForecaster
+    >>> from aeon.forecasting.stats import ETS
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()
-    >>> forecaster = ETSForecaster(
+    >>> forecaster = ETS(
     ...     alpha=0.4, beta=0.2, gamma=0.5, phi=0.8,
     ...     error_type='additive', trend_type='multiplicative',
     ...     seasonality_type='multiplicative', seasonal_period=4
     ... )
     >>> forecaster.forecast(y)
-    366.90200486015596
+    365.5141941111267
     """
 
     _tags = {
@@ -142,7 +143,7 @@ class ETSForecaster(BaseForecaster):
         Returns
         -------
         self
-            Fitted ETSForecaster.
+            Fitted ETS.
         """
         _validate_parameter(self.error_type, False)
         _validate_parameter(self.seasonality_type, True)
@@ -193,7 +194,7 @@ class ETSForecaster(BaseForecaster):
             self._gamma,
             self.phi,
         )
-        self.forecast_ = _predict(
+        self.forecast_ = _numba_predict(
             self._trend_type,
             self._seasonality_type,
             self.level_,
@@ -240,6 +241,29 @@ class ETSForecaster(BaseForecaster):
             self._trend_type, self._seasonality_type, self._seasonal_period, data
         )
 
+    def iterative_forecast(self, y, prediction_horizon):
+        """Forecast with ETS specific iterative method.
+
+        Overrides the base class iterative_forecast to avoid refitting on each step.
+        This simply rolls the ETS model forward
+        """
+        self.fit(y)
+        preds = np.zeros(prediction_horizon)
+        preds[0] = self.forecast_
+        for i in range(1, prediction_horizon):
+            preds[i] = _numba_predict(
+                self._trend_type,
+                self._seasonality_type,
+                self.level_,
+                self.trend_,
+                self.seasonality_,
+                self.phi,
+                i + 1,
+                self.n_timepoints_,
+                self._seasonal_period,
+            )
+        return preds
+
 
 @njit(fastmath=True, cache=True)
 def _numba_fit(
@@ -268,20 +292,18 @@ def _numba_fit(
         time_point = data[index]
 
         # Calculate level, trend, and seasonal components
-        fitted_value, error, level, trend, seasonality[t % seasonal_period] = (
-            _update_states(
-                error_type,
-                trend_type,
-                seasonality_type,
-                level,
-                trend,
-                seasonality[s_index],
-                time_point,
-                alpha,
-                beta,
-                gamma,
-                phi,
-            )
+        fitted_value, error, level, trend, seasonality[s_index] = _update_states(
+            error_type,
+            trend_type,
+            seasonality_type,
+            level,
+            trend,
+            seasonality[s_index],
+            time_point,
+            alpha,
+            beta,
+            gamma,
+            phi,
         )
         residuals_[t] = error
         fitted_values_[t] = fitted_value
@@ -314,7 +336,7 @@ def _numba_fit(
 
 
 @njit(fastmath=True, cache=True)
-def _predict(
+def _numba_predict(
     trend_type,
     seasonality_type,
     level,
@@ -327,11 +349,11 @@ def _predict(
 ):
     # Generate forecasts based on the final values of level, trend, and seasonals
     if phi == 1:  # No damping case
-        phi_h = 1
+        phi_h = horizon
     else:
         # Geometric series formula for calculating phi + phi^2 + ... + phi^h
         phi_h = phi * (1 - phi**horizon) / (1 - phi)
-    seasonal_index = (n_timepoints + horizon) % seasonal_period
+    seasonal_index = (n_timepoints + horizon - 1) % seasonal_period
     return _predict_value(
         trend_type,
         seasonality_type,
@@ -392,7 +414,7 @@ def _update_states(
     level,
     trend,
     seasonality,
-    data_item: int,
+    data_item,
     alpha,
     beta,
     gamma,
@@ -474,7 +496,7 @@ def _predict_value(trend_type, seasonality_type, level, trend, seasonality, phi)
     fitted_value : float
         single prediction based on the current state variables.
     damped_trend : float
-        The damping parameter combined with the trend dependant on the model type
+        The damping parameter combined with the trend dependent on the model type
     trend_level_combination : float
         Combination of the trend and level based on the model type.
     """

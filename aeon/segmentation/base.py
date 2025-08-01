@@ -118,7 +118,7 @@ class BaseSegmenter(BaseSeriesEstimator):
             axis = self.axis
         X = self._preprocess_series(X, axis, True)
         if y is not None:
-            y = self._check_y(y)
+            self._check_y(y)
         self._fit(X=X, y=y)
         self.is_fitted = True
         return self

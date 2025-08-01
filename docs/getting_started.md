@@ -27,7 +27,7 @@ classical techniques for the following learning tasks:
   ([more details](examples/similarity_search/similarity_search.ipynb)).
 - [**Anomaly detection**](api_reference/anomaly_detection), where the goal is to find
   values or areas of a single time series that are not representative of the whole series.
-- [**Forecasting**](api_reference/forecasting), where the goal is to predict future values
+- [**Forecasting**](api_reference/forecasting.rst), where the goal is to predict future values
   of a single time series
   ([more details](examples/forecasting/forecasting.ipynb)).
 - [**Segmentation**](api_reference/segmentation), where the goal is to split a single time
@@ -76,7 +76,7 @@ international airline passengers, 1949 to 1960, in thousands.
 A multivariate time series is made up of multiple series or channels, where each
 observation is a vector of related recordings in the same time index. An example
 would be a motion trace from a smartwatch with at least three dimensions (X,Y,Z
-co-ordinates), or multiple financial statistics recorded over time. Single
+coordinates), or multiple financial statistics recorded over time. Single
 multivariate series input typically follows the shape `(n_channels, n_timepoints)` by
 default. Algorithms may have an `axis` parameter to change this, where `axis=1` assumes
 the default shape and is the default setting, and `axis=0` assumes the shape
