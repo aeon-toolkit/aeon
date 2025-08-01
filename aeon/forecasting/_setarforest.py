@@ -17,8 +17,8 @@ class SETARForest(BaseForecaster):
     """
     SETAR-Forest: Bagging + random subspace ensemble of SETAR-Tree base learners.
 
-    This implementation is based on the paper "SETAR-Tree: a novel and accurate
-    tree algorithm for global time series forecasting" by Godahewa, R., et al. (2023).
+    This implementation is based on the codebase associated with the work
+    by Godahewa et al. [1].
 
     In a SETAR-Forest, each tree is trained on a bootstrap-free row sample of the
     embedded matrix and a random subset of features (lags, and in future, covariates).
@@ -66,6 +66,12 @@ class SETARForest(BaseForecaster):
         If True, round the *final averaged* prediction to nearest integer.
     random_state : Optional[int], default=None
         RNG seed for reproducibility.
+
+    References
+    ----------
+    .. [1] Godahewa, Rakshitha, et al. "SETAR-Tree: a novel and accurate
+    tree algorithm for global time series forecasting." Machine Learning
+    112.7 (2023): 2555-2591.
     """
 
     _tags = {
