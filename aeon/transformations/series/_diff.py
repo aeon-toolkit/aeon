@@ -5,7 +5,7 @@ from numba import njit
 
 from aeon.transformations.series.base import BaseSeriesTransformer
 
-__maintainer__ = ["TinaJin0228", "Alex Banwell"]
+__maintainer__ = ["TinaJin0228", "alexbanwell1"]
 __all__ = ["DifferenceTransformer"]
 
 
