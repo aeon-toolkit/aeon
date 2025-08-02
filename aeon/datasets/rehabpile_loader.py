@@ -30,7 +30,7 @@ REHABPILE_COLLECTIONS = [
 ]
 
 
-def _fetch_rehabpile_dataset_names() -> Tuple[List[str], List[str]]:
+def _fetch_rehabpile_dataset_names() -> tuple[list[str], list[str]]:
     """
     Scrape the RehabPile website to discover all available datasets.
 
@@ -54,8 +54,7 @@ def _fetch_rehabpile_dataset_names() -> Tuple[List[str], List[str]]:
                 html_content = response.read().decode("utf-8")
         except HTTPError as e:
             print(
-                f"Warning: Could not access {collection_url}. "
-                f"Skipping. Error: {e}"
+                f"Warning: Could not access {collection_url}. " f"Skipping. Error: {e}"
             )
             continue
 
@@ -79,7 +78,7 @@ def _fetch_rehabpile_dataset_names() -> Tuple[List[str], List[str]]:
 ) = _fetch_rehabpile_dataset_names()
 
 
-def rehabpile_classification_datasets() -> List[str]:
+def rehabpile_classification_datasets() -> list[str]:
     """
     Return a list of all classification datasets in the RehabPile archive.
 
@@ -91,7 +90,7 @@ def rehabpile_classification_datasets() -> List[str]:
     return _rehabpile_classification_datasets
 
 
-def rehabpile_regression_datasets() -> List[str]:
+def rehabpile_regression_datasets() -> list[str]:
     """
     Return a list of all regression datasets in the RehabPile archive.
 
@@ -107,7 +106,7 @@ def load_rehabpile(
     name: str,
     split: Literal["train", "test"] = "test",
     extract_path: Union[str, Path, None] = None,
-) -> Tuple[np.ndarray, np.ndarray]:
+) -> tuple[np.ndarray, np.ndarray]:
     """
     Load a dataset from the RehabPile collection.
 
@@ -146,7 +145,10 @@ def load_rehabpile(
     HTTPError
         If the dataset files cannot be downloaded from the server.
     """
-    if name not in _rehabpile_classification_datasets and name not in _rehabpile_regression_datasets:
+    if (
+        name not in _rehabpile_classification_datasets
+        and name not in _rehabpile_regression_datasets
+    ):
         raise ValueError(
             f"Dataset {name} not found in the RehabPile collection. "
             "Please check the spelling or run the discovery functions."
@@ -154,13 +156,13 @@ def load_rehabpile(
 
     if split not in ["train", "test"]:
         raise ValueError(f"Split must be 'train' or 'test', but found '{split}'.")
-    
+
     # Determine the task and base collection name from the dataset name
     # e.g., "KIMORE_clf_bn_Subject_1" -> "KIMORE_clf_bn", "Subject_1"
     name_parts = name.split("_")
-    subfolder = f"{name_parts[-2]}_{name_parts[-1]}" # Handles names like 'Subject_1'
+    subfolder = f"{name_parts[-2]}_{name_parts[-1]}"  # Handles names like 'Subject_1'
     collection = "_".join(name_parts[:-2])
-    
+
     task_folder = "classification" if "clf" in collection else "regression"
 
     # Set up the extraction path
@@ -169,7 +171,7 @@ def load_rehabpile(
         base_path = Path(__file__).parent / "local_data"
     else:
         base_path = Path(extract_path)
-    
+
     dataset_path = base_path / task_folder / name
     dataset_path.mkdir(parents=True, exist_ok=True)
 
@@ -178,7 +180,7 @@ def load_rehabpile(
         "X": f"X_{split}.npy",
         "y": f"y_{split}.npy",
     }
-    
+
     for file_key, file_name in files_to_load.items():
         local_file_path = dataset_path / file_name
         if not local_file_path.exists():
@@ -191,9 +193,9 @@ def load_rehabpile(
                     f"Failed to download {file_url}. Please check the dataset "
                     f"name and your internet connection. Error: {e}"
                 ) from e
-    
+
     # Load data from local .npy files
     X = np.load(dataset_path / files_to_load["X"], allow_pickle=True)
     y = np.load(dataset_path / files_to_load["y"], allow_pickle=True)
-    
+
     return X, y

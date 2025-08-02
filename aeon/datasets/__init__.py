@@ -14,7 +14,7 @@ __all__ = [
     "download_all_regression",
     "load_time_series_segmentation_benchmark",
     "load_human_activity_segmentation_datasets",
-    #rehabpile 
+    # rehabpile
     "load_rehabpile",
     "rehabpile_classification_datasets",
     "rehabpile_regression_datasets",
