@@ -4,11 +4,41 @@ __maintainer__ = ["TinaJin0228"]
 __all__ = ["SETAR"]
 
 import numpy as np
-from statsmodels.regression.linear_model import OLS
-from statsmodels.tools.tools import add_constant
-from statsmodels.tsa.tsatools import lagmat
 
 from aeon.forecasting.base import BaseForecaster
+
+
+def _lagmat_1d(y: np.ndarray, maxlag: int) -> np.ndarray:
+    """Return lag matrix with columns [y_{t-1}, ..., y_{t-maxlag}] (trim='both')."""
+    y = np.asarray(y, dtype=float).squeeze()
+    if y.ndim != 1:
+        raise ValueError("y must be a 1D array for lag construction.")
+    n = y.shape[0]
+    if n <= maxlag:
+        raise ValueError("Series too short for lag construction.")
+    # Column k (0-based) is y_{t-(k+1)}
+    cols = [y[maxlag - (k + 1) : -(k + 1) or None] for k in range(maxlag)]
+    return np.column_stack(cols)  # shape: (n - maxlag, maxlag)
+
+
+def _add_constant(X: np.ndarray) -> np.ndarray:
+    """Add an explicit intercept column of ones as the first column."""
+    X = np.asarray(X, dtype=float)
+    if X.ndim != 2:
+        raise ValueError("X must be 2D to add a constant.")
+    n = X.shape[0]
+    return np.hstack([np.ones((n, 1), dtype=X.dtype), X])
+
+
+def _ols_fit(X: np.ndarray, y: np.ndarray):
+    """Least-squares fit: return (intercept, coefs, sse)."""
+    # X already contains an intercept column
+    beta, *_ = np.linalg.lstsq(X, y, rcond=None)
+    resid = y - X @ beta
+    sse = float(resid @ resid)
+    intercept = float(beta[0])
+    coefs = np.asarray(beta[1:], dtype=float)
+    return intercept, coefs, sse
 
 
 class SETAR(BaseForecaster):
@@ -49,7 +79,7 @@ class SETAR(BaseForecaster):
         super().__init__(horizon=horizon, axis=1)
 
     def _fit(self, y, exog=None):
-        y = y.squeeze()
+        y = y.squeeze().astype(float)
         fitted = False
         delay = 1
 
@@ -76,15 +106,13 @@ class SETAR(BaseForecaster):
             maxlag = self.lag
             if len(y) <= maxlag:
                 raise ValueError("Series too short for fallback fitting.")
-            lagged = lagmat(y, maxlag, trim="both")  # cols: y_{t-1}..y_{t-maxlag}
-            # X = add_constant(lagged)
-            X = add_constant(lagged, has_constant="add")
+            lagged = _lagmat_1d(y, maxlag)  # cols: y_{t-1}..y_{t-maxlag}
+            X = _add_constant(lagged)
             target = y[maxlag:]
-            model = OLS(target, X).fit()
-            self.fallback_intercept = float(model.params[0])
-            self.fallback_coefs = np.asarray(model.params[1:])
+            inter, coefs, _ = _ols_fit(X, target)
+            self.fallback_intercept = inter
+            self.fallback_coefs = coefs
             self.model = "linear"
-            # self.current_lag = self.lag
             self.current_lag = len(self.fallback_coefs)
 
         # set one-step-ahead forecast_ for forecast()
@@ -96,10 +124,10 @@ class SETAR(BaseForecaster):
         if len(y) <= maxlag:
             raise ValueError(f"Series too short for lag {lag_order}.")
 
-        lagged = lagmat(y, maxlag, trim="both")  # shape: (T-maxlag, maxlag)
+        lagged = _lagmat_1d(y, maxlag)  # shape: (T-maxlag, maxlag)
         trimmed_y = y[maxlag:]
         th_index = delay - 1  # 0-based index for threshold variable (y_{t-d})
-        th_var = lagged[:, th_index]
+        th_var = lagged[:, th_index]  # y_{t-1} when delay=1
 
         # Grid search for threshold over 15%-85% quantiles
         sort_idx = np.argsort(th_var)
@@ -108,8 +136,7 @@ class SETAR(BaseForecaster):
         start = int(num_obs * 0.15)
         end = int(num_obs * 0.85)
         grid = np.unique(th_var_sorted[start:end])  # Unique to avoid duplicates
-
-        if len(grid) == 0:
+        if grid.size == 0:
             raise ValueError("No valid threshold grid.")
 
         best_sse = np.inf
@@ -119,9 +146,8 @@ class SETAR(BaseForecaster):
         best_inter_high = None
         best_coefs_high = None
 
-        # X for AR: lags 1..l (plus intercept)
-        # X = add_constant(lagged[:, :l])
-        X = add_constant(lagged[:, :lag_order], has_constant="add")
+        # X for AR: lags 1..lag_order (plus intercept)
+        X_full = _add_constant(lagged[:, :lag_order])
 
         min_obs_per_regime = lag_order + 1  # intercept + lag_order params
         for th in grid:
@@ -133,22 +159,22 @@ class SETAR(BaseForecaster):
             ):
                 continue
 
-            X_low = X[low_idx]
+            X_low = X_full[low_idx]
             y_low = trimmed_y[low_idx]
-            X_high = X[high_idx]
+            X_high = X_full[high_idx]
             y_high = trimmed_y[high_idx]
 
-            model_low = OLS(y_low, X_low).fit()
-            model_high = OLS(y_high, X_high).fit()
-            sse = model_low.ssr + model_high.ssr
+            inter_l, coef_l, sse_l = _ols_fit(X_low, y_low)
+            inter_h, coef_h, sse_h = _ols_fit(X_high, y_high)
+            sse = sse_l + sse_h
 
             if sse < best_sse:
                 best_sse = sse
                 best_th = th
-                best_inter_low = float(model_low.params[0])
-                best_coefs_low = np.asarray(model_low.params[1:])
-                best_inter_high = float(model_high.params[0])
-                best_coefs_high = np.asarray(model_high.params[1:])
+                best_inter_low = inter_l
+                best_coefs_low = coef_l
+                best_inter_high = inter_h
+                best_coefs_high = coef_h
 
         if best_th is None:
             raise ValueError("Could not find a suitable threshold.")
@@ -174,5 +200,5 @@ class SETAR(BaseForecaster):
             return self.fallback_intercept + float(np.dot(self.fallback_coefs, vector))
 
     def _predict(self, y, exog=None):
-        y = y.squeeze()
+        y = y.squeeze().astype(float)
         return float(self._one_step_from_tail(y))
