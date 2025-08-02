@@ -3,7 +3,7 @@
 import numpy as np
 from numba import njit
 
-from aeon.forecasting._loss_functions import _arima_fit
+from aeon.forecasting.utils._loss_functions import _arima_fit
 
 
 @njit(cache=True, fastmath=True)
