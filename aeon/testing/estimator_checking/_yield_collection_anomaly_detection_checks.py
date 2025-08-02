@@ -7,7 +7,7 @@ import numpy as np
 from aeon.base._base import _clone_estimator
 from aeon.testing.testing_data import FULL_TEST_DATA_DICT
 from aeon.utils.data_types import COLLECTIONS_DATA_TYPES
-from aeon.utils.validation import get_n_cases
+from aeon.utils.validation.collection import get_n_cases
 
 
 def _yield_collection_anomaly_detection_checks(

@@ -25,7 +25,7 @@ from aeon.testing.utils.estimator_checks import (
     _get_tag,
 )
 from aeon.utils.data_types import COLLECTIONS_DATA_TYPES
-from aeon.utils.validation import get_n_cases
+from aeon.utils.validation.collection import get_n_cases
 
 
 def _yield_classification_checks(estimator_class, estimator_instances, datatypes):
