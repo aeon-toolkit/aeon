@@ -23,7 +23,6 @@ Forecasting Models
     BaseForecaster
     NaiveForecaster
     RegressionForecaster
-    TVPForecaster
 
 Statistical Models
 ------------------
@@ -36,3 +35,4 @@ Statistical Models
 
     ARIMA
     ETS
+    TVPForecaster

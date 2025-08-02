@@ -9,9 +9,9 @@ __all__ = ["ARIMA"]
 import numpy as np
 from numba import njit
 
-from aeon.forecasting._extract_paras import _extract_arma_params
-from aeon.forecasting._nelder_mead import nelder_mead
 from aeon.forecasting.base import BaseForecaster
+from aeon.forecasting.utils._extract_paras import _extract_arma_params
+from aeon.forecasting.utils._nelder_mead import nelder_mead
 
 
 class ARIMA(BaseForecaster):
