@@ -1,4 +1,4 @@
-name: AI Spam Detection On PR
+name: Pull request labelled
 
 on:
   pull_request:
@@ -9,8 +9,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  ai-spam-present:
-    if: ${{ github.event.label.name == 'AI Spam' }}
+  ai-pull-request:
+    if: ${{ github.event.label.name == 'AI pull request' }}
     runs-on: ubuntu-24.04
 
     steps:
@@ -26,15 +26,15 @@ jobs:
         with:
           sparse-checkout: .github/utilities
 
-      - name: Setup Python 3.11
+      - name: Setup Python 3.12
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.12"
 
       - name: Install PyGithub
         run: pip install -Uq PyGithub
 
-      - name: Process AI Spam
+      - name: Process AI label
         id: handle_spam
         run: python .github/utilities/ai_spam.py
         env:
