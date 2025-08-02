@@ -43,6 +43,9 @@ def test_arima_iterative_forecast():
     preds = model.iterative_forecast(y, prediction_horizon=horizon)
     assert preds.shape == (horizon,)
     assert np.all(np.isfinite(preds))
+    model = ARIMA(p=1, d=0, q=1, use_constant=True)
+    preds = model.iterative_forecast(y, prediction_horizon=horizon)
+    assert preds.shape == (horizon,)
 
 
 @pytest.mark.parametrize(
