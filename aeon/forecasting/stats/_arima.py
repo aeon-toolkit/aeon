@@ -9,8 +9,8 @@ __all__ = ["ARIMA"]
 import numpy as np
 from numba import njit
 
-from aeon.forecasting._extract_paras import _extract_arma_params
 from aeon.forecasting.base import BaseForecaster
+from aeon.forecasting.utils._extract_paras import _extract_arma_params
 from aeon.forecasting.utils._nelder_mead import nelder_mead
 
 
@@ -104,16 +104,14 @@ class ARIMA(BaseForecaster):
         )
         self._differenced_series = np.diff(self._series, n=self.d)
         # Nelder Mead returns the parameters in a single array
-        s = np.sum(self._model)
-        simplex = 0.1 / (s + 1)
         (self._parameters, self.aic_) = nelder_mead(
             0,
             np.sum(self._model[:3]),
             self._differenced_series,
             self._model,
             max_iter=self.iterations,
-            simplex_init=simplex,
         )
+        #
         (self.aic_, self.residuals_, self.fitted_values_) = _arima_model(
             self._parameters,
             self._differenced_series,
