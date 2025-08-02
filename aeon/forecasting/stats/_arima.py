@@ -103,6 +103,9 @@ class ARIMA(BaseForecaster):
             (1 if self.use_constant else 0, self.p, self.q), dtype=np.int32
         )
         self._differenced_series = np.diff(self._series, n=self.d)
+        s = np.sum(self._model)
+        s = 0.5 / (s + 1)
+        x = np.random.uniform(-s, s)
         # Nelder Mead returns the parameters in a single array
         (self._parameters, self.aic_) = nelder_mead(
             0,
@@ -110,6 +113,7 @@ class ARIMA(BaseForecaster):
             self._differenced_series,
             self._model,
             max_iter=self.iterations,
+            simplex_init=x,
         )
         #
         (self.aic_, self.residuals_, self.fitted_values_) = _arima_model(

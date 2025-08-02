@@ -83,7 +83,7 @@ def nelder_mead(
     values = np.empty(len(points), dtype=np.float64)
     for i in range(len(points)):
         values[i] = dispatch_loss(loss_id, points[i].copy(), data, model)
-    for i in range(max_iter):
+    for _ in range(max_iter):
         # Order simplex by function values
         order = np.argsort(values)
         points = points[order]
