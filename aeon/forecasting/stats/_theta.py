@@ -51,7 +51,7 @@ class Theta(BaseForecaster):
 
     def _fit(self, y, exog=None):
         y = y.squeeze()
-        self.forecast_ = _fit_predict_numba(y, 1, self.theta)
+        self.forecast_ = _fit_predict_numba(y, 1, self.theta)[-1]
         return self
 
     def _predict(self, y, exog=None):
