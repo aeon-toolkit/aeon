@@ -126,9 +126,12 @@ class ARIMA(BaseForecaster):
         # parameters
         differenced_forecast = self.fitted_values_[-1]
 
-        self.forecast_ = _undifference(
-            np.array([differenced_forecast]), self._series[-self.d :]
-        )[0]
+        if self.d == 0:
+            self.forecast_ = differenced_forecast
+        else:
+            self.forecast_ = _undifference(
+                np.array([differenced_forecast]), self._series[-self.d :]
+            )[self.d]
         if self.use_constant:
             self.c_ = formatted_params[0][0]
         self.phi_ = formatted_params[1][: self.p]
@@ -189,7 +192,12 @@ class ARIMA(BaseForecaster):
         forecast_diff = c + ar_forecast + ma_forecast
 
         # Undifference the forecast
-        return _undifference(np.array([forecast_diff]), self._series[-self.d :])[0]
+        if self.d == 0:
+            return forecast_diff
+        else:
+            return _undifference(np.array([forecast_diff]), self._series[-self.d :])[
+                self.d
+            ]
 
     def _forecast(self, y, exog=None):
         """Forecast one ahead for time series y."""
@@ -228,7 +236,10 @@ class ARIMA(BaseForecaster):
 
         # Correct differencing using forecast values
         y_forecast_diff = forecast_series[n : n + h]
-        return _undifference(np.array([y_forecast_diff]), self._series[-self.d :])
+        if self.d == 0:
+            return y_forecast_diff
+        else:
+            return _undifference(y_forecast_diff, self._series[-self.d :])[self.d :]
 
 
 @njit(cache=True, fastmath=True)
