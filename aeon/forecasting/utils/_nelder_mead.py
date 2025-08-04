@@ -22,6 +22,7 @@ def nelder_mead(
     model,
     tol=1e-6,
     max_iter=500,
+    simplex_init=0.5,
 ):
     """
     Perform optimisation using the Nelder–Mead simplex algorithm.
@@ -34,7 +35,7 @@ def nelder_mead(
     Parameters
     ----------
     loss_id : int
-        ID for loss function to optimise, used by dispatch_loss.
+        ID for loss function to optimise, used by ``dispatch_loss``.
     num_params : int
         The number of parameters (dimensions) in the optimisation problem.
     data : np.ndarray
@@ -42,14 +43,16 @@ def nelder_mead(
         specific loss function being minimised.
     model : np.ndarray
         The model or context in which the loss function operates. This could be any
-        other object that the `loss_function` requires to compute its value.
-        The exact type and structure of `model` should be compatible with the
+        other object that the ``loss_function`` requires to compute its value.
+        The exact type and structure of ``model`` should be compatible with the
         `loss_function`.
-    tol : float, optional (default=1e-6)
+    tol : float, default=1e-6
         Tolerance for convergence. The algorithm stops when the maximum difference
-        between function values at simplex vertices is less than `tol`.
-    max_iter : int, optional (default=500)
+        between function values at simplex vertices is less than ``tol``.
+    max_iter : int, default=500
         Maximum number of iterations to perform.
+    simplex_init : float, default=0.5
+        Initial value for the simplex search matrix.
 
     Returns
     -------
@@ -60,10 +63,12 @@ def nelder_mead(
 
     Notes
     -----
-    - The initial simplex is constructed by setting each parameter to 0.5,
-    with one additional point per dimension at 0.6 for that dimension.
+    - The initial simplex is constructed by setting each parameter to simplex_init (
+    default to 0.5), with one additional point per dimension at simplex_init*1.2
+    (0.6 by default) for that dimension.
     - This implementation does not support constraints or bounds on the parameters.
-    - The algorithm does not guarantee finding a global minimum.
+    - The algorithm does not guarantee finding a global minimum and may occasionally
+    converge on a poor solution.
 
     References
     ----------
@@ -72,13 +77,13 @@ def nelder_mead(
        The Computer Journal, 7(4), 308–313.
        https://doi.org/10.1093/comjnl/7.4.308
     """
-    points = np.full((num_params + 1, num_params), 0.5)
+    points = np.full((num_params + 1, num_params), simplex_init)
     for i in range(num_params):
-        points[i + 1][i] = 0.6
+        points[i + 1][i] = simplex_init * 1.2
     values = np.empty(len(points), dtype=np.float64)
     for i in range(len(points)):
         values[i] = dispatch_loss(loss_id, points[i].copy(), data, model)
-    for i in range(max_iter):
+    for _ in range(max_iter):
         # Order simplex by function values
         order = np.argsort(values)
         points = points[order]
@@ -90,7 +95,7 @@ def nelder_mead(
         # Reflection
         # centre + distance between centre and largest value
         reflected_point = centre_point + (centre_point - points[-1])
-        reflected_value = dispatch_loss(0, reflected_point, data, model)
+        reflected_value = dispatch_loss(loss_id, reflected_point, data, model)
         # if between best and second best, use reflected value
         if len(values) > 1 and values[0] <= reflected_value < values[-2]:
             points[-1] = reflected_point
@@ -100,7 +105,7 @@ def nelder_mead(
         # Otherwise if it is better than the best value
         if reflected_value < values[0]:
             expanded_point = centre_point + 2 * (reflected_point - centre_point)
-            expanded_value = dispatch_loss(0, expanded_point, data, model)
+            expanded_value = dispatch_loss(loss_id, expanded_point, data, model)
             # if less than reflected value use expanded, otherwise go back to reflected
             if expanded_value < reflected_value:
                 points[-1] = expanded_point
@@ -112,7 +117,7 @@ def nelder_mead(
         # Contraction
         # Otherwise if reflection is worse than all current values
         contracted_point = centre_point - 0.5 * (centre_point - points[-1])
-        contracted_value = dispatch_loss(0, contracted_point, data, model)
+        contracted_value = dispatch_loss(loss_id, contracted_point, data, model)
         # If contraction is better use that otherwise move to shrinkage
         if contracted_value < values[-1]:
             points[-1] = contracted_point
@@ -122,7 +127,7 @@ def nelder_mead(
         # Shrinkage
         for i in range(1, len(points)):
             points[i] = points[0] - 0.5 * (points[0] - points[i])
-            values[i] = dispatch_loss(0, points[i], data, model)
+            values[i] = dispatch_loss(loss_id, points[i], data, model)
 
         # Convergence check
         if np.max(np.abs(values - values[0])) < tol:
