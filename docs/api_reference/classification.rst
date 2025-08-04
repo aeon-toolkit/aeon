@@ -3,11 +3,13 @@
 Classification
 ==============
 
-The :mod:`aeon.classification` module contains algorithms and composition tools for time series classification.
+The :mod:`aeon.classification` module contains algorithms for time series classification.
 
-All classifiers in `aeon`  can be listed using the `aeon.registry.all_estimators` utility,
-using ``estimator_types="classifier"``, optionally filtered by tags.
-Valid tags can be listed by calling the function `aeon.registry.all_tags`.
+All classifiers in ``aeon``  can be listed using the ``aeon.utils.discovery
+.all_estimators`` function using ``type_filter="classifier"``, optionally filtered by
+tags. Valid tags for classifiers can be found with ``aeon.utils.tags.all_tags_for_estimator``
+function with the argument ``"classifier"``.
+
 
 Convolution-based
 -----------------
@@ -194,6 +196,17 @@ Composition
     ClassifierEnsemble
     ClassifierPipeline
 
+Dummy
+-----
+
+.. currentmodule:: aeon.classification
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    DummyClassifier
+
 Base
 ----
 
@@ -204,7 +217,6 @@ Base
     :template: class.rst
 
     BaseClassifier
-    DummyClassifier
 
 .. currentmodule:: aeon.classification.deep_learning.base
 

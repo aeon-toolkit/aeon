@@ -385,7 +385,7 @@ def _is_numpy_list_multivariate(
                     return False
                 return True
             if x_dims == 2:
-                # As this function is used for pairwise we assume it isnt a single
+                # As this function is used for pairwise we assume it isn't a single
                 # multivariate time series but two collections of univariate
                 return False
             if x_dims == 1:

@@ -1,4 +1,4 @@
-name: Weekly GitHub Maintenance
+name: Weekly GitHub maintenance
 
 on:
   schedule:
@@ -123,7 +123,7 @@ jobs:
           private-key: ${{ secrets.PR_APP_KEY }}
 
       - name: Stale Branches
-        uses: crs-k/stale-branches@v8.2.0
+        uses: crs-k/stale-branches@v8.1.1
         with:
           repo-token: ${{ steps.app-token.outputs.token }}
           days-before-stale: 180

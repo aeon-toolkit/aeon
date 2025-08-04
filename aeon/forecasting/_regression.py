@@ -20,6 +20,8 @@ class RegressionForecaster(BaseForecaster):
     window to form training collection ``X``, take ``horizon`` points ahead to form
     ``y``, then apply an aeon or sklearn regressor.
 
+    If exogenous variables are provided, they are concatenated with the main series
+    and included in the regression windows.
 
     Parameters
     ----------
@@ -35,6 +37,10 @@ class RegressionForecaster(BaseForecaster):
         Regression estimator that implements BaseRegressor or is otherwise compatible
         with sklearn regressors.
     """
+
+    _tags = {
+        "capability:exogenous": True,
+    }
 
     def __init__(self, window: int, horizon: int = 1, regressor=None):
         self.window = window
@@ -52,8 +58,7 @@ class RegressionForecaster(BaseForecaster):
         y : np.ndarray
             A time series on which to learn a forecaster to predict horizon ahead.
         exog : np.ndarray, default=None
-            Optional exogenous time series data. Included for interface
-            compatibility but ignored in this estimator.
+            Optional exogenous time series data, assumed to be aligned with y.
 
         Returns
         -------
@@ -65,22 +70,45 @@ class RegressionForecaster(BaseForecaster):
             self.regressor_ = LinearRegression()
         else:
             self.regressor_ = self.regressor
-        y = y.squeeze()
-        if self.window < 1 or self.window > len(y) - 3:
+        self._n_exog = 0
+        # Combine y and exog for windowing
+        if exog is not None:
+            self._n_exog = exog.shape[0]
+            if exog.ndim == 1:
+                exog = exog.reshape(1, -1)
+            if exog.shape[1] != y.shape[1]:
+                raise ValueError("y and exog must have the same number of time points.")
+            combined_data = np.vstack([y, exog])
+        else:
+            combined_data = y
+
+        # Enforce a minimum number of training samples, currently 3
+        if self.window < 1 or self.window >= combined_data.shape[1] - 3:
             raise ValueError(
-                f" window value {self.window} is invalid for series " f"length {len(y)}"
+                f"window value {self.window} is invalid for series length "
+                f"{combined_data.shape[1]}"
             )
-        X = np.lib.stride_tricks.sliding_window_view(y, window_shape=self.window)
-        # Ignore the final horizon values: need to store these for pred with empty y
-        X = X[: -self.horizon]
-        # Extract y_train
-        y_train = y[self.window + self.horizon - 1 :]
-        self.last_ = y[-self.window :]
-        self.last_ = self.last_.reshape(1, -1)
-        self.regressor_.fit(X=X, y=y_train)
+
+        # Create windowed data for X
+        X = np.lib.stride_tricks.sliding_window_view(
+            combined_data, window_shape=(combined_data.shape[0], self.window)
+        )
+        X = X.squeeze(axis=0)
+        X = X[:, :, :].reshape(X.shape[0], -1)
+
+        # Ignore the final horizon values for X
+        X_train = X[: -self.horizon]
+
+        # Extract y_train from the original series
+        y_train = y.squeeze()[self.window + self.horizon - 1 :]
+
+        self.regressor_.fit(X=X_train, y=y_train)
+
+        last = X[[-1]]
+        self.forecast_ = self.regressor_.predict(last)[0]
         return self
 
-    def _predict(self, y=None, exog=None):
+    def _predict(self, y, exog=None):
         """
         Predict the next horizon steps ahead.
 
@@ -90,18 +118,59 @@ class RegressionForecaster(BaseForecaster):
             A time series to predict the next horizon value for. If None,
             predict the next horizon value after series seen in fit.
         exog : np.ndarray, default=None
-            Optional exogenous time series data. Included for interface
-            compatibility but ignored in this estimator.
+            Optional exogenous time series data, assumed to be aligned with y.
 
         Returns
         -------
         float
             single prediction self.horizon steps ahead of y.
         """
-        if y is None:
-            return self.regressor_.predict(self.last_)[0]
-        last = y[:, -self.window :]
-        return self.regressor_.predict(last)[0]
+        y = y[:, -self.window :]
+        y = y.squeeze()
+        # Test data compliant for regression based
+        if len(y) < self.window:
+            raise ValueError(
+                f" Series passed in predict length = {len(y)} but this "
+                f"RegressionForecaster was trained on window length = "
+                f"{self.window}"
+            )
+        # Combine y and exog for prediction
+        if exog is not None:
+            if exog.shape[0] != self._n_exog:
+                raise ValueError(
+                    f" Forecaster passed {exog.shape[0]} exogenous variables in "
+                    f"predict but this RegressionForecaster was trained on"
+                    f" {self._n_exog} variables in fit"
+                )
+
+            if exog.ndim == 1:
+                exog = exog.reshape(1, -1)
+            if exog.shape[1] < self.window:
+                raise ValueError(
+                    f" Exogenous variables passed in predict of length = {len(y)} but "
+                    f"this RegressionForecaster was trained on window length = "
+                    f"{self.window}"
+                )
+
+            exog = exog[:, -self.window :]
+            combined_data = np.vstack([y, exog])
+        else:
+            if self._n_exog > 0:
+                raise ValueError(
+                    f" predict passed no exogenous variables, but this "
+                    f"RegressionForecaster was trained on {self._n_exog} exog in fit"
+                )
+            combined_data = y
+
+        # Extract the last window and flatten for prediction
+        last_window = combined_data.reshape(1, -1)
+
+        return self.regressor_.predict(last_window)[0]
+
+    def _forecast(self, y, exog=None):
+        """Forecast values for time series X."""
+        self.fit(y, exog)
+        return self.forecast_
 
     @classmethod
     def _get_test_params(cls, parameter_set: str = "default"):
