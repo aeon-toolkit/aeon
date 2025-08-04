@@ -53,6 +53,8 @@ from aeon.distances.elastic import (
     soft_dtw_cost_matrix,
     soft_dtw_distance,
     soft_dtw_pairwise_distance,
+    swale_distance,
+    swale_pairwise_distance,
     twe_alignment_path,
     twe_cost_matrix,
     twe_distance,
@@ -467,6 +469,7 @@ def get_distance_function(method: Union[str, DistanceFunction]) -> DistanceFunct
     'manhattan'     distances.manhattan_distance
     'minkowski'     distances.minkowski_distance
     'sbd'           distances.sbd_distance
+    'swale          distances.swale_distance
     'shift_scale'   distances.shift_scale_invariant_distance
     'soft_dtw'      distances.soft_dtw_distance
     =============== ========================================
@@ -526,6 +529,7 @@ def get_pairwise_distance_function(
     'manhattan'     distances.manhattan_pairwise_distance
     'minkowski'     distances.minkowski_pairwise_distance
     'sbd'           distances.sbd_pairwise_distance
+    'swale'         disrances.swale_pairwise_distance
     'shift_scale'   distances.shift_scale_invariant_pairwise_distance
     'soft_dtw'      distances.soft_dtw_pairwise_distance
     =============== ========================================
@@ -906,6 +910,14 @@ DISTANCES = [
         "distance": mp_distance,
         "pairwise_distance": mp_pairwise_distance,
         "type": DistanceType.MATRIX_PROFILE,
+        "symmetric": True,
+        "unequal_support": True,
+    },
+    {
+        "name": "swale",
+        "distance": swale_distance,
+        "pairwise_distance": swale_pairwise_distance,
+        "type": DistanceType.ELASTIC,
         "symmetric": True,
         "unequal_support": True,
     },
