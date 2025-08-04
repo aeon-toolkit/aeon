@@ -226,7 +226,8 @@ class BaseForecaster(BaseSeriesEstimator):
         once.
 
         y : np.ndarray
-            The time series to make forecasts about.
+            The time series to make forecasts about.  Must be of shape
+            ``(n_channels, n_timepoints)`` if a multivariate time series.
         prediction_horizon : int
             The number of future time steps to forecast.
 
