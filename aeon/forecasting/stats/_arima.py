@@ -12,7 +12,7 @@ from numba import njit
 from aeon.forecasting.base import BaseForecaster
 from aeon.forecasting.utils._extract_paras import _extract_arma_params
 from aeon.forecasting.utils._nelder_mead import nelder_mead
-from aeon.transformations.series._diff import _undifference
+from aeon.forecasting.utils._undifference import _undifference
 
 
 class ARIMA(BaseForecaster):
