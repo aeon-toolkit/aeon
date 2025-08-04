@@ -54,7 +54,7 @@ class BaseForecaster(BaseSeriesEstimator):
         super().__init__(axis)
 
     @final
-    def fit(self, y, exog=None):
+    def fit(self, y, exog=None, axis=1):
         """Fit forecaster to series y.
 
         Fit a forecaster to predict self.horizon steps ahead using y.
@@ -89,11 +89,10 @@ class BaseForecaster(BaseSeriesEstimator):
                 "handle exogenous variables"
             )
 
-        self._check_X(y, self.axis)
-        y = self._convert_y(y, self.axis)
+        y = self._preprocess_series(y, axis, True)
 
         if exog is not None:
-            exog = self._convert_y(exog, self.axis)
+            exog = self._convert_y(exog, axis)
 
         self.is_fitted = True
         return self._fit(y, exog)
@@ -102,7 +101,7 @@ class BaseForecaster(BaseSeriesEstimator):
     def _fit(self, y, exog=None): ...
 
     @final
-    def predict(self, y, exog=None):
+    def predict(self, y, exog=None, axis=1) -> float:
         """Predict the next horizon steps ahead.
 
         Parameters
@@ -118,17 +117,16 @@ class BaseForecaster(BaseSeriesEstimator):
             single prediction self.horizon steps ahead of y.
         """
         self._check_is_fitted()
-        self._check_X(y, self.axis)
-        y = self._convert_y(y, self.axis)
+        y = self._preprocess_series(y, axis, False)
         if exog is not None:
-            exog = self._convert_y(exog, self.axis)
+            exog = self._convert_y(exog, axis)
         return self._predict(y, exog)
 
     @abstractmethod
     def _predict(self, y, exog=None): ...
 
     @final
-    def forecast(self, y, exog=None):
+    def forecast(self, y, exog=None) -> float:
         """Forecast the next horizon steps ahead of ``y``.
 
         By default this is simply fit followed by returning forecast_.
@@ -136,7 +134,8 @@ class BaseForecaster(BaseSeriesEstimator):
         Parameters
         ----------
         y : np.ndarray
-            A time series to predict the next horizon value for.
+            A time series to predict the next horizon value for. Must be of shape
+            ``(n_channels, n_timepoints)`` if a multivariate time series.
         exog : np.ndarray, default =None
             Optional exogenous time series data assumed to be aligned with y.
 
@@ -145,19 +144,18 @@ class BaseForecaster(BaseSeriesEstimator):
         float
             single prediction self.horizon steps ahead of y.
         """
-        self._check_X(y, self.axis)
-        y = self._convert_y(y, self.axis)
+        y = self._preprocess_series(y, axis=1, store_metadata=False)
         if exog is not None:
-            exog = self._convert_y(exog, self.axis)
+            exog = self._convert_y(exog, axis=1)
         return self._forecast(y, exog)
 
     def _forecast(self, y, exog=None):
         """Forecast horizon steps ahead for time series ``y``."""
-        self.fit(y, exog)
+        self._fit(y, exog)
         return self.forecast_
 
     @final
-    def direct_forecast(self, y, prediction_horizon, exog=None):
+    def direct_forecast(self, y, prediction_horizon, exog=None) -> np.ndarray:
         """
         Make ``prediction_horizon`` ahead forecasts using a fit for each horizon.
 
@@ -171,7 +169,8 @@ class BaseForecaster(BaseSeriesEstimator):
         Parameters
         ----------
         y : np.ndarray
-            The time series to make forecasts about.
+            The time series to make forecasts about. Must be of shape
+            ``(n_channels, n_timepoints)`` if a multivariate time series.
         prediction_horizon : int
             The number of future time steps to forecast.
         exog : np.ndarray, default =None
@@ -214,7 +213,7 @@ class BaseForecaster(BaseSeriesEstimator):
             preds[i] = f.forecast(y, exog)
         return preds
 
-    def iterative_forecast(self, y, prediction_horizon):
+    def iterative_forecast(self, y, prediction_horizon) -> np.ndarray:
         """
         Forecast ``prediction_horizon`` prediction using a single model fit on `y`.
 
