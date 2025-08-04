@@ -28,9 +28,14 @@ class BaseForecaster(BaseSeriesEstimator):
 
     Parameters
     ----------
-    horizon : int, default =1
-        The number of time steps ahead to forecast. If horizon is one, the forecaster
-        will learn to predict one point ahead.
+    horizon : int
+        The number of time steps ahead to forecast. If ``horizon`` is one, the
+        forecaster will learn to predict one point ahead.
+    axis : int
+        The axis of time the forecaster uses internally. If ``axis`` is 0, the series
+        are internally assumed to be (n_timepoints, n_channels) and if ``axis`` is 1,
+        the series are stored as (n_channels, n_timepoints). This is used to convert
+        the input data to the correct shape.
     """
 
     _tags = {
