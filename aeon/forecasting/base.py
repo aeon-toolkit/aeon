@@ -33,9 +33,9 @@ class BaseForecaster(BaseSeriesEstimator):
         forecaster will learn to predict one point ahead.
     axis : int
         The axis of time the forecaster uses internally. If ``axis`` is 0, the series
-        are internally assumed to be (n_timepoints, n_channels) and if ``axis`` is 1,
-        the series are stored as (n_channels, n_timepoints). This is used to convert
-        the input data to the correct shape.
+        are internally assumed to be ``(n_timepoints, n_channels)`` and if ``axis`` is
+        1, the series are stored as ``(n_channels, n_timepoints)``. This is used to
+        convert the input data to the correct shape.
     """
 
     _tags = {
