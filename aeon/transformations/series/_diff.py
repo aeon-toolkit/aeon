@@ -70,6 +70,7 @@ class DifferenceTransformer(BaseSeriesTransformer):
     def __init__(self, order=1):
         self.order = order
         super().__init__(axis=1)
+        self.x_ = None
 
     def _transform(self, X, y=None):
         """
@@ -88,6 +89,7 @@ class DifferenceTransformer(BaseSeriesTransformer):
             raise ValueError(
                 f"`order` must be a positive integer, but got {self.order}"
             )
+        self.x_ = X
 
         diff_X = np.diff(X, n=self.order, axis=1)
 
@@ -102,17 +104,24 @@ class DifferenceTransformer(BaseSeriesTransformer):
         Parameters
         ----------
         X : Time series to inverse transform. With shape (n_channels, n_timepoints).
-        y : ignored argument for interface compatibility
+        y : If provided, should contain the first `order` values of the original series.
+            If None, the first `order` values will be taken from values
+            stored in _transform.
 
         Returns
         -------
         Xt : np.ndarray
             Reconstructed original time series.
         """
+        if y is None:
+            y = self.x_
         if y is None or y.shape[1] < self.order:
             raise ValueError(
-                f"Inverse transformm requires first {self.order} original \
-                  data values supplied as y, but inverse_transform called with y=None"
+                f"Inverse transform requires first {self.order} original \
+                  data values. If y is supplied, then those values will be used. \
+                  If not if .transform() has been called, the X series from that \
+                    shall be used. But inverse_transform called with y=None and \
+                    no previous .transform() call."
             )
         if y.shape[0] != X.shape[0]:
             raise ValueError(
