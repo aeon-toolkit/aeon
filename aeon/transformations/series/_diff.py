@@ -1,8 +1,11 @@
+"""Difference Transformer."""
+
 import numpy as np
+from numba import njit
 
 from aeon.transformations.series.base import BaseSeriesTransformer
 
-__maintainer__ = ["TinaJin0228"]
+__maintainer__ = ["TinaJin0228", "alexbanwell1"]
 __all__ = ["DifferenceTransformer"]
 
 
@@ -59,6 +62,7 @@ class DifferenceTransformer(BaseSeriesTransformer):
 
     _tags = {
         "capability:multivariate": True,
+        "capability:inverse_transform": True,
         "X_inner_type": "np.ndarray",
         "fit_is_empty": True,
     }
@@ -66,6 +70,7 @@ class DifferenceTransformer(BaseSeriesTransformer):
     def __init__(self, order=1):
         self.order = order
         super().__init__(axis=1)
+        self.x_ = None
 
     def _transform(self, X, y=None):
         """
@@ -84,9 +89,110 @@ class DifferenceTransformer(BaseSeriesTransformer):
             raise ValueError(
                 f"`order` must be a positive integer, but got {self.order}"
             )
+        self.x_ = X
 
         diff_X = np.diff(X, n=self.order, axis=1)
 
         Xt = diff_X
 
         return Xt
+
+    def _inverse_transform(self, X, y=None):
+        """
+        Inverse transform to reconstruct the original time series.
+
+        Parameters
+        ----------
+        X : Time series to inverse transform. With shape (n_channels, n_timepoints).
+        y : If provided, should contain the first `order` values of the original series.
+            If None, the first `order` values will be taken from values
+            stored in _transform.
+
+        Returns
+        -------
+        Xt : np.ndarray
+            Reconstructed original time series.
+        """
+        if y is None:
+            y = self.x_
+        if y is None or y.shape[1] < self.order:
+            raise ValueError(
+                f"Inverse transform requires first {self.order} original \
+                  data values. If y is supplied, then those values will be used. \
+                  If not if .transform() has been called, the X series from that \
+                    shall be used. But inverse_transform called with y=None and \
+                    no previous .transform() call."
+            )
+        if y.shape[0] != X.shape[0]:
+            raise ValueError(
+                f"y must have the same number of channels as X. "
+                f"Got X.shape[0]={X.shape[0]}, y.shape[0]={y.shape[0]}"
+            )
+        X = np.array(X, dtype=np.float64)
+        y = np.array(y, dtype=np.float64)
+        initial_values = y[:, : self.order]
+
+        return np.array(
+            [
+                _undifference(diff_X, initial_value)
+                for diff_X, initial_value in zip(X, initial_values)
+            ]
+        )
+
+
+@njit(cache=True, fastmath=True)
+def _comb(n, k):
+    """
+    Calculate the binomial coefficient C(n, k) = n! / (k! * (n - k)!).
+
+    Parameters
+    ----------
+    n : int
+        The total number of items.
+    k : int
+        The number of items to choose.
+
+    Returns
+    -------
+    int
+        The binomial coefficient C(n, k).
+    """
+    if k < 0 or k > n:
+        return 0
+    if k > n - k:
+        k = n - k  # Take advantage of symmetry
+    c = 1
+    for i in range(k):
+        c = c * (n - i) // (i + 1)
+    return c
+
+
+@njit(cache=True, fastmath=True)
+def _undifference(diff, initial_values):
+    """
+    Reconstruct original time series from an n-th order differenced series.
+
+    Parameters
+    ----------
+    diff : array-like
+        n-th order differenced series of length N - n
+    initial_values : array-like
+        The first n values of the original series before differencing (length n)
+
+    Returns
+    -------
+    original : np.ndarray
+        Reconstructed original series of length N
+    """
+    n = len(initial_values)
+    kernel = np.array(
+        [(-1) ** (k + 1) * _comb(n, k) for k in range(1, n + 1)],
+        dtype=initial_values.dtype,
+    )
+    original = np.empty((n + len(diff)), dtype=initial_values.dtype)
+    original[:n] = initial_values
+
+    for i, d in enumerate(diff):
+        original[n + i] = np.dot(kernel, original[i : n + i][::-1]) + d
+
+    return original
