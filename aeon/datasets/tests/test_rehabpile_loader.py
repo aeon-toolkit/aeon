@@ -8,9 +8,9 @@ import pytest
 
 from aeon.datasets._data_loaders import CONNECTION_ERRORS
 from aeon.datasets.rehabpile_loader import (
-    load_rehabpile,
-    rehabpile_classification_datasets,
-    rehabpile_regression_datasets,
+    load_rehab_pile_classification_datasets,
+    load_rehab_pile_dataset,
+    load_rehab_pile_regression_datasets,
 )
 from aeon.testing.testing_config import PR_TESTING
 
@@ -21,17 +21,13 @@ from aeon.testing.testing_config import PR_TESTING
 )
 @pytest.mark.xfail(raises=CONNECTION_ERRORS)
 def test_rehabpile_listing_functions():
-    """Test functions that list available RehabPile datasets.
-
-    This test requires an internet connection to scrape the website.
-    It checks that the returned objects are lists and contain strings.
-    """
-    class_datasets = rehabpile_classification_datasets()
+    """Test functions that list available RehabPile datasets."""
+    class_datasets = load_rehab_pile_classification_datasets()
     assert isinstance(class_datasets, list)
     assert len(class_datasets) > 0
     assert all(isinstance(name, str) for name in class_datasets)
 
-    reg_datasets = rehabpile_regression_datasets()
+    reg_datasets = load_rehab_pile_regression_datasets()
     assert isinstance(reg_datasets, list)
     assert len(reg_datasets) > 0
     assert all(isinstance(name, str) for name in reg_datasets)
@@ -42,46 +38,46 @@ def test_rehabpile_listing_functions():
     reason="Only run on overnights because of read from internet.",
 )
 @pytest.mark.xfail(raises=CONNECTION_ERRORS)
-def test_load_rehabpile_from_archive():
+def test_load_rehab_pile_dataset_from_archive():
     """
     Test loading a dataset from the RehabPile archive.
 
     This test downloads a sample classification and regression dataset to a
-    temporary directory and verifies the structure of the returned data.
+    temporary directory, verifies the structure of the returned data, and
+    validates the data dimensions against the returned metadata.
     """
     with tempfile.TemporaryDirectory() as tmp:
         extract_path = Path(tmp)
 
-        # Test loading a classification problem
-        classification_names = rehabpile_classification_datasets()
+        # Test loading a classification problem with metadata
+        classification_names = load_rehab_pile_classification_datasets()
         if classification_names:
             clf_name = classification_names[0]
-            X_train, y_train = load_rehabpile(
-                name=clf_name, split="train", extract_path=extract_path
-            )
-            X_test, y_test = load_rehabpile(
-                name=clf_name, split="test", extract_path=extract_path
+            X_train, y_train, meta = load_rehab_pile_dataset(
+                name=clf_name,
+                split="train",
+                extract_path=extract_path,
+                return_meta=True,
             )
 
             # Check types
             assert isinstance(X_train, np.ndarray)
             assert isinstance(y_train, np.ndarray)
-            assert isinstance(X_test, np.ndarray)
-            assert isinstance(y_test, np.ndarray)
+            assert isinstance(meta, dict)
 
-            # Check dimensions and consistency
-            assert X_train.ndim == 3, "X_train should be 3D numpy array"
-            assert y_train.ndim == 1, "y_train should be 1D numpy array"
-            assert X_test.ndim == 3, "X_test should be 3D numpy array"
-            assert y_test.ndim == 1, "y_test should be 1D numpy array"
+            # Check dimensions and consistency against metadata
+            assert X_train.ndim == 3
+            assert y_train.ndim == 1
             assert len(X_train) == len(y_train)
-            assert len(X_test) == len(y_test)
+            # keys from info.json
+            assert X_train.shape[2] == meta["length_TS"]
+            assert X_train.shape[1] == meta["n_joints"] * meta["n_dim"]
 
         # Test loading a regression problem
-        regression_names = rehabpile_regression_datasets()
+        regression_names = load_rehab_pile_regression_datasets()
         if regression_names:
             reg_name = regression_names[0]
-            X_reg, y_reg = load_rehabpile(
+            X_reg, y_reg = load_rehab_pile_dataset(
                 name=reg_name, split="test", extract_path=extract_path
             )
 
@@ -93,19 +89,72 @@ def test_load_rehabpile_from_archive():
             assert np.issubdtype(y_reg.dtype, np.number)
 
 
-def test_load_rehabpile_wrong_name_and_split():
-    """Test that load_rehabpile raises errors for invalid inputs."""
-    # Test invalid dataset name
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of read from internet.",
+)
+@pytest.mark.xfail(raises=CONNECTION_ERRORS)
+def test_load_rehab_pile_dataset_return_meta():
+    """Test the return_meta parameter."""
+    classification_names = load_rehab_pile_classification_datasets()
+    if classification_names:
+        clf_name = classification_names[0]
+        # Test return_meta=False
+        result_false = load_rehab_pile_dataset(name=clf_name, return_meta=False)
+        assert isinstance(result_false, tuple)
+        assert len(result_false) == 2
+
+        # Test return_meta=True
+        result_true = load_rehab_pile_dataset(name=clf_name, return_meta=True)
+        assert isinstance(result_true, tuple)
+        assert len(result_true) == 3
+        assert isinstance(result_true[2], dict)
+
+
+def test_load_rehab_pile_dataset_invalid_fold(mocker):
+    """Test that load_rehab_pile_dataset raises errors for invalid fold inputs."""
+    # Mock the discovery functions to avoid network calls
+    mocker.patch(
+        "aeon.datasets.rehabpile_loader.load_rehab_pile_classification_datasets",
+        return_value=["A_valid_clf_dataset"],
+    )
+    mocker.patch(
+        "aeon.datasets.rehabpile_loader.load_rehab_pile_regression_datasets",
+        return_value=[],
+    )
+    mocker.patch(
+        "aeon.datasets.rehabpile_loader.REHABPILE_FOLDS",
+        {"classification": {"A_valid_clf_dataset": 5}},
+    )
+
+    # Test with a fold number that is too high
+    with pytest.raises(ValueError, match="Invalid fold"):
+        load_rehab_pile_dataset(name="A_valid_clf_dataset", fold=99)
+    # Test with a negative fold number
+    with pytest.raises(ValueError, match="Invalid fold"):
+        load_rehab_pile_dataset(name="A_valid_clf_dataset", fold=-1)
+
+
+def test_load_rehab_pile_dataset_wrong_name_and_split(mocker):
+    """Test that load_rehab_pile_dataset raises errors for invalid inputs."""
+    # Mock the discovery functions to avoid network calls
+    mocker.patch(
+        "aeon.datasets.rehabpile_loader.load_rehab_pile_classification_datasets",
+        return_value=["A_valid_clf_dataset"],
+    )
+    mocker.patch(
+        "aeon.datasets.rehabpile_loader.load_rehab_pile_regression_datasets",
+        return_value=[],
+    )
+
+    # Test invalid dataset name (now runs offline)
     with pytest.raises(
         ValueError, match="Dataset FOO_BAR not found in the RehabPile collection."
     ):
-        load_rehabpile("FOO_BAR")
+        load_rehab_pile_dataset("FOO_BAR")
 
-    # Test invalid split parameter
-    classification_names = rehabpile_classification_datasets()
-    if classification_names:
-        valid_name = classification_names[0]
-        with pytest.raises(
-            ValueError, match="Split must be 'train' or 'test', but found 'validation'."
-        ):
-            load_rehabpile(name=valid_name, split="validation")
+    # Test invalid split parameter (now runs offline)
+    with pytest.raises(
+        ValueError, match="Split must be 'train' or 'test', but found 'validation'."
+    ):
+        load_rehab_pile_dataset(name="A_valid_clf_dataset", split="validation")

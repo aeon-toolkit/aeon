@@ -6,7 +6,7 @@ Tests include convergence properties described in Durbin & Koopman, 2012.
 
 import numpy as np
 
-from aeon.forecasting._tvp import TVPForecaster
+from aeon.forecasting.stats._tvp import TVPForecaster
 
 
 def test_direct():
