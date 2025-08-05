@@ -9,9 +9,10 @@ __all__ = ["ARIMA"]
 import numpy as np
 from numba import njit
 
-from aeon.forecasting._extract_paras import _extract_arma_params
-from aeon.forecasting._nelder_mead import nelder_mead
 from aeon.forecasting.base import BaseForecaster
+from aeon.forecasting.utils._extract_paras import _extract_arma_params
+from aeon.forecasting.utils._nelder_mead import nelder_mead
+from aeon.forecasting.utils._undifference import _undifference
 
 
 class ARIMA(BaseForecaster):
@@ -103,6 +104,7 @@ class ARIMA(BaseForecaster):
             (1 if self.use_constant else 0, self.p, self.q), dtype=np.int32
         )
         self._differenced_series = np.diff(self._series, n=self.d)
+        s = 0.1 / (np.sum(self._model) + 1)  # Randomise
         # Nelder Mead returns the parameters in a single array
         (self._parameters, self.aic_) = nelder_mead(
             0,
@@ -110,6 +112,7 @@ class ARIMA(BaseForecaster):
             self._differenced_series,
             self._model,
             max_iter=self.iterations,
+            simplex_init=s,
         )
         #
         (self.aic_, self.residuals_, self.fitted_values_) = _arima_model(
@@ -124,18 +127,11 @@ class ARIMA(BaseForecaster):
         differenced_forecast = self.fitted_values_[-1]
 
         if self.d == 0:
-            forecast_value = differenced_forecast
-        elif self.d == 1:
-            forecast_value = differenced_forecast + self._series[-1]
-        else:  # for d > 1, iteratively undifference
-            forecast_value = differenced_forecast
-            last_vals = self._series[-self.d :]
-            for _ in range(self.d):
-                forecast_value += last_vals[-1] - last_vals[-2]
-                # Shift values to avoid appending to list (efficient)
-                last_vals = np.roll(last_vals, -1)
-                last_vals[-1] = forecast_value  # Extract the parameter values
-        self.forecast_ = forecast_value
+            self.forecast_ = differenced_forecast
+        else:
+            self.forecast_ = _undifference(
+                np.array([differenced_forecast]), self._series[-self.d :]
+            )[self.d]
         if self.use_constant:
             self.c_ = formatted_params[0][0]
         self.phi_ = formatted_params[1][: self.p]
@@ -196,12 +192,12 @@ class ARIMA(BaseForecaster):
         forecast_diff = c + ar_forecast + ma_forecast
 
         # Undifference the forecast
-        if d == 0:
+        if self.d == 0:
             return forecast_diff
-        elif d == 1:
-            return forecast_diff + y[-1]
         else:
-            return forecast_diff + np.sum(y[-d:])
+            return _undifference(np.array([forecast_diff]), self._series[-self.d :])[
+                self.d
+            ]
 
     def _forecast(self, y, exog=None):
         """Forecast one ahead for time series y."""
@@ -240,17 +236,10 @@ class ARIMA(BaseForecaster):
 
         # Correct differencing using forecast values
         y_forecast_diff = forecast_series[n : n + h]
-        d = self.d
-        if d == 0:
+        if self.d == 0:
             return y_forecast_diff
-        else:  # Correct undifferencing
-            # Start with last d values from original y
-            undiff = list(self._series[-d:])
-            for i in range(h):
-                # Take the last d values and sum them
-                reconstructed = y_forecast_diff[i] + sum(undiff[-d:])
-                undiff.append(reconstructed)
-            return np.array(undiff[d:])
+        else:
+            return _undifference(y_forecast_diff, self._series[-self.d :])[self.d :]
 
 
 @njit(cache=True, fastmath=True)

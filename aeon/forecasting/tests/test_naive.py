@@ -1,6 +1,7 @@
 """Test Naive Forecaster."""
 
 import numpy as np
+import pytest
 
 from aeon.forecasting import NaiveForecaster
 
@@ -62,3 +63,20 @@ def test_naive_forecaster_seasonal_last_strategy():
     pred3 = forecaster.predict(data)
     expected = 6  # predicts the 2nd element of the new last season.
     np.testing.assert_allclose(pred, pred2, pred3, expected)
+
+
+def test_predict():
+    """Test different input for private predict."""
+    forecaster = NaiveForecaster(strategy="mean")
+    y = np.array([1, 2, 3, 4, 5, 6, 7, 8])
+    pred = forecaster._predict(y)
+    np.testing.assert_allclose(pred, 4.5)
+    assert isinstance(pred, float)
+    forecaster = NaiveForecaster(strategy="seasonal_last", seasonal_period=2)
+    forecaster._fit(y)
+    assert forecaster.forecast_ == 7.0
+    forecaster = NaiveForecaster(strategy="FOOBAR")
+    with pytest.raises(ValueError, match="Unknown strategy"):
+        forecaster._fit(y)
+    with pytest.raises(ValueError, match="Unknown strategy"):
+        forecaster._predict(y)
