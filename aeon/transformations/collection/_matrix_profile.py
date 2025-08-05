@@ -3,6 +3,7 @@
 __maintainer__ = []
 
 import numpy as np
+from deprecated.sphinx import deprecated
 
 from aeon.transformations.collection.base import BaseCollectionTransformer
 
@@ -192,6 +193,13 @@ def _stomp_self(ts, m):
     return mp
 
 
+# TODO: remove in v1.5.0
+@deprecated(
+    version="1.3.0",
+    reason="MatrixProfile will be removed in v1.5.0. Instead, use the "
+    "MatrixProfileSeriesTransformer and the SeriesToCollectionBroadcaster.",
+    category=FutureWarning,
+)
 class MatrixProfile(BaseCollectionTransformer):
     """Return the matrix profile and index profile for each time series of a dataset.
 

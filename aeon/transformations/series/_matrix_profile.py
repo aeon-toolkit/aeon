@@ -1,11 +1,20 @@
 """Implements matrix profile transformation."""
 
-__maintainer__ = []
+__maintainer__ = ["TonyBagnall"]
 __all__ = ["MatrixProfileSeriesTransformer"]
+
+from deprecated.sphinx import deprecated
 
 from aeon.transformations.series.base import BaseSeriesTransformer
 
 
+# TODO: remove in v1.5.0
+@deprecated(
+    version="1.3.0",
+    reason="MatrixProfileSeriesTransformer will be renamed MatrixProfileTransformer in "
+    "v1.5.0.",
+    category=FutureWarning,
+)
 class MatrixProfileSeriesTransformer(BaseSeriesTransformer):
     """Calculate the matrix profile of a time series.
 
