@@ -6,8 +6,8 @@ import numpy as np
 from numba import njit, prange
 from numba.typed import List as NumbaList
 
-from aeon.utils._threading import threaded
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
+from aeon.utils.numba._threading import threaded
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 

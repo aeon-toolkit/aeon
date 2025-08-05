@@ -1,6 +1,5 @@
 __maintainer__ = []
 
-import warnings
 from typing import Optional, Union
 
 import numpy as np
@@ -11,8 +10,8 @@ from aeon.distances.pointwise._squared import (
     _univariate_squared_distance,
     squared_distance,
 )
-from aeon.utils._threading import threaded
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
+from aeon.utils.numba._threading import threaded
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
@@ -95,6 +94,9 @@ def euclidean_pairwise_distance(
         to the number of CPU cores. If 1, then the function is executed in a single
         thread. If greater than 1, then the function is executed in parallel.
 
+        NOTE: For this distance function unless your data has a large number of time
+        points, it is recommended to use n_jobs=1.
+
     Returns
     -------
     np.ndarray (n_cases, n_cases)
@@ -137,16 +139,6 @@ def euclidean_pairwise_distance(
            [ 5.19615242,  0.        ,  8.        ],
            [12.12435565,  8.        ,  0.        ]])
     """
-    if n_jobs > 1:
-        warnings.warn(
-            "You have set n_jobs > 1. For this distance function "
-            "unless your data has a large number of time points, it is "
-            "recommended to use n_jobs=1. If this function is slower than "
-            "expected try setting n_jobs=1.",
-            UserWarning,
-            stacklevel=2,
-        )
-
     multivariate_conversion = _is_numpy_list_multivariate(X, y)
     _X, _ = _convert_collection_to_numba_list(X, "X", multivariate_conversion)
     if y is None:

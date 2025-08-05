@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from aeon.utils._threading import threaded
+from aeon.utils.numba._threading import threaded
 
 
 def check_n_jobs(n_jobs):
