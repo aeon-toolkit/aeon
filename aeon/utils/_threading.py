@@ -3,7 +3,7 @@ import inspect
 import os
 from typing import Any, Callable
 
-from numba import set_num_threads
+from numba import get_num_threads, set_num_threads
 
 from aeon.utils.validation import check_n_jobs
 
@@ -34,12 +34,7 @@ def threaded(func: Callable) -> Callable:
 
     @functools.wraps(func)
     def wrapper(*args: Any, **kwargs: Any) -> Any:
-        NUMBA_ENV_THREADS = os.environ.get("NUMBA_NUM_THREADS")
-
-        if NUMBA_ENV_THREADS is not None and NUMBA_ENV_THREADS.isdigit():
-            original_thread_count = int(NUMBA_ENV_THREADS)
-        else:
-            original_thread_count = num_threads_default()
+        original_thread_count = get_num_threads()
 
         n_jobs = None
         if "n_jobs" in kwargs:
