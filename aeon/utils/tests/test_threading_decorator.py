@@ -75,7 +75,7 @@ def test_fallback_to_threading_count(clean_env):
     with patch("aeon.utils.numba._threading.check_n_jobs", check_jobs_mock):
         with patch("aeon.utils.numba._threading.set_num_threads", set_threads_mock):
             with patch(
-                "aeon.utils.numba._threading.num_threads_default", return_value=3
+                "aeon.utils.numba._threading._num_threads_default", return_value=3
             ):
 
                 @threaded
