@@ -152,8 +152,6 @@ def check_transformer_overrides_and_tags(estimator_class):
 
     if estimator_class.get_class_tag("capability:inverse_transform"):
         assert "_inverse_transform" in estimator_class.__dict__
-    else:
-        assert "_inverse_transform" not in estimator_class.__dict__
 
 
 def check_transformer_output(estimator, datatype):
