@@ -199,7 +199,7 @@ def check_transform_inverse_transform_equivalent(estimator, datatype):
     if isinstance(Xit, (np.ndarray, pd.DataFrame)):
         Xit = Xit.squeeze()
     # If input is equal length, inverse should be equal length
-    if isinstance(X, np.ndarray):
-        Xit = Xit.to_numpy()
+    if isinstance(X, np.ndarray) and isinstance(Xit, list):
+        Xit = np.array(Xit)
     eq, msg = deep_equals(X, Xit, ignore_index=True, return_msg=True)
     assert eq, msg
