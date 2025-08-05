@@ -3,7 +3,7 @@
 import numpy as np
 from numba import njit
 
-from aeon.forecasting._extract_paras import _extract_arma_params
+from aeon.forecasting.utils._extract_paras import _extract_arma_params
 
 LOG_2PI = 1.8378770664093453
 

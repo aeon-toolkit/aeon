@@ -1,14 +1,13 @@
-# aeon/datasets/rehabpile_loader.py
+"""Dataset loading functions for RehabPile dataset."""
 
-import os
 import re
+import warnings
 from pathlib import Path
-from typing import List, Literal, Tuple, Union
-from urllib.error import HTTPError
-from urllib.request import urlopen, urlretrieve
+from typing import Literal, Union
+from urllib.error import HTTPError, URLError
+from urllib.request import urlopen
 
 import numpy as np
-import pandas as pd
 
 # The root URL for the RehabPile dataset collection
 REHABPILE_ROOT_URL = "https://maxime-devanne.com/datasets/RehabPile/"
@@ -53,8 +52,8 @@ def _fetch_rehabpile_dataset_names() -> tuple[list[str], list[str]]:
             with urlopen(collection_url, timeout=30) as response:
                 html_content = response.read().decode("utf-8")
         except HTTPError as e:
-            print(
-                f"Warning: Could not access {collection_url}. " f"Skipping. Error: {e}"
+            warnings.warn(
+                f"Could not access {collection_url}. Skipping. Error: {e}", stacklevel=2
             )
             continue
 
@@ -181,15 +180,17 @@ def load_rehabpile(
         "y": f"y_{split}.npy",
     }
 
-    for file_key, file_name in files_to_load.items():
+    for _, file_name in files_to_load.items():
         local_file_path = dataset_path / file_name
         if not local_file_path.exists():
-            print(f"Downloading {file_name} for dataset {name}...")
             file_url = f"{REHABPILE_ROOT_URL}{collection}/{subfolder}/{file_name}"
             try:
-                urlretrieve(file_url, local_file_path)
-            except HTTPError as e:
-                raise HTTPError(
+                # using urlopen instead of urlretrieve
+                with urlopen(file_url, timeout=60) as response:
+                    with open(local_file_path, "wb") as out_file:
+                        out_file.write(response.read())
+            except (HTTPError, URLError, TimeoutError) as e:
+                raise OSError(
                     f"Failed to download {file_url}. Please check the dataset "
                     f"name and your internet connection. Error: {e}"
                 ) from e
