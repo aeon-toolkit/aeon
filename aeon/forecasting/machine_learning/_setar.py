@@ -24,15 +24,12 @@ def _lagmat_1d(y: np.ndarray, maxlag: int) -> np.ndarray:
 def _add_constant(X: np.ndarray) -> np.ndarray:
     """Add an explicit intercept column of ones as the first column."""
     X = np.asarray(X, dtype=float)
-    if X.ndim != 2:
-        raise ValueError("X must be 2D to add a constant.")
     n = X.shape[0]
     return np.hstack([np.ones((n, 1), dtype=X.dtype), X])
 
 
 def _ols_fit(X: np.ndarray, y: np.ndarray):
     """Least-squares fit: return (intercept, coefs, sse)."""
-    # X already contains an intercept column
     beta, *_ = np.linalg.lstsq(X, y, rcond=None)
     resid = y - X @ beta
     sse = float(resid @ resid)
@@ -46,12 +43,8 @@ class SETAR(BaseForecaster):
     Self-Exciting Threshold AutoRegressive (SETAR) forecaster with 2 regimes.
 
     Implements a 2-regime SETAR model with fallback to linear regression if fitting
-    fails. The implementation mimics the R tsDyn::setar behavior by attempting to fit
-    with decreasing lags from the specified max lag down to 1, using a fixed delay of 1.
-
-    This implementation is based on the logic from the `get_setar_forecasts`
-    function in the SETAR-tree paper's R code
-    (https://github.com/rakshitha123/SETAR_Trees).
+    fails. Attempts decreasing lags from the specified max lag down to 1,
+    using a fixed delay of 1.
 
     Parameters
     ----------
@@ -64,7 +57,7 @@ class SETAR(BaseForecaster):
         "y_inner_type": "np.ndarray",
     }
 
-    def __init__(self, lag=10, horizon=1):
+    def __init__(self, lag=10):
         self.lag = lag
         self.model = None  # 'setar' or 'linear'
         self.current_lag = None
@@ -76,30 +69,37 @@ class SETAR(BaseForecaster):
         self.fallback_intercept = None
         self.fallback_coefs = None
         self.forecast_ = None
-        super().__init__(horizon=horizon, axis=1)
+        super().__init__(horizon=1, axis=1)
 
     def _fit(self, y, exog=None):
         y = y.squeeze().astype(float)
-        fitted = False
         delay = 1
 
-        # try decreasing AR orders
-        for lag_order in range(self.lag, 0, -1):
-            try:
+        # one-time length check
+        if len(y) <= self.lag + delay:
+            fallback_needed = True
+        else:
+            fallback_needed = False
+
+        fitted = False
+        if not fallback_needed:
+            # try decreasing AR orders
+            for lag_order in range(self.lag, 0, -1):
+                res = self._fit_setar(y, lag_order, delay)
+                if res is None:
+                    # no valid threshold/regime split at this lag; try smaller lag
+                    continue
                 (
                     self.threshold,
                     self.coefs_low,
                     self.intercept_low,
                     self.coefs_high,
                     self.intercept_high,
-                ) = self._fit_setar(y, lag_order, delay)
+                ) = res
                 self.model = "setar"
                 self.current_lag = lag_order
                 fitted = True
                 break
-            except Exception:
-                # try a smaller lag
-                pass
 
         if not fitted:
             # Fallback to linear regression AR(self.lag)
@@ -119,25 +119,32 @@ class SETAR(BaseForecaster):
         self.forecast_ = float(self._one_step_from_tail(y))
         return self
 
-    def _fit_setar(self, y, lag_order, delay):
+    @staticmethod
+    def _fit_setar(y: np.ndarray, lag_order: int, delay: int):
+        """Fit 2-regime SETAR for a given lag and delay; return params or None."""
         maxlag = lag_order + delay
         if len(y) <= maxlag:
-            raise ValueError(f"Series too short for lag {lag_order}.")
+            # caller does the one-time length check; just return None here
+            return None
 
         lagged = _lagmat_1d(y, maxlag)  # shape: (T-maxlag, maxlag)
         trimmed_y = y[maxlag:]
-        th_index = delay - 1  # 0-based index for threshold variable (y_{t-d})
+        th_index = delay - 1  # threshold variable (y_{t-d})
         th_var = lagged[:, th_index]  # y_{t-1} when delay=1
 
         # Grid search for threshold over 15%-85% quantiles
+        num_obs = th_var.shape[0]
+        if num_obs <= 0:
+            return None
         sort_idx = np.argsort(th_var)
         th_var_sorted = th_var[sort_idx]
-        num_obs = len(th_var)
         start = int(num_obs * 0.15)
         end = int(num_obs * 0.85)
+        if end <= start:
+            return None
         grid = np.unique(th_var_sorted[start:end])  # Unique to avoid duplicates
         if grid.size == 0:
-            raise ValueError("No valid threshold grid.")
+            return None
 
         best_sse = np.inf
         best_th = None
@@ -153,10 +160,9 @@ class SETAR(BaseForecaster):
         for th in grid:
             low_idx = th_var <= th
             high_idx = ~low_idx
-            if (
-                low_idx.sum() < min_obs_per_regime
-                or high_idx.sum() < min_obs_per_regime
-            ):
+            n_low = int(low_idx.sum())
+            n_high = int(high_idx.sum())
+            if n_low < min_obs_per_regime or n_high < min_obs_per_regime:
                 continue
 
             X_low = X_full[low_idx]
@@ -177,17 +183,12 @@ class SETAR(BaseForecaster):
                 best_coefs_high = coef_h
 
         if best_th is None:
-            raise ValueError("Could not find a suitable threshold.")
+            return None
 
         return best_th, best_coefs_low, best_inter_low, best_coefs_high, best_inter_high
 
-    def _one_step_from_tail(self, y_1d):
-        if self.current_lag is None:
-            raise ValueError("Model is not fitted.")
-        if y_1d.size < self.current_lag:
-            raise ValueError("Input series too short for prediction.")
-
-        tail = y_1d[-self.current_lag :]  # length = current_lag
+    def _one_step_from_tail(self, y_1d: np.ndarray):
+        tail = y_1d[-self.current_lag :]
         vector = tail[::-1]  # [y_t, y_{t-1}, ..., y_{t-l+1}]
 
         if self.model == "setar":

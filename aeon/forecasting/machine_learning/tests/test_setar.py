@@ -34,7 +34,6 @@ def test_forecast_sets_attribute_and_matches_predict():
     assert np.isscalar(out), "forecast() should return a scalar"
     assert hasattr(f, "forecast_"), "forecast_ should be set by _fit/_forecast"
     assert np.isclose(f.forecast_, out), "forecast_ must equal the returned forecast"
-    # If we fit explicitly, predict(y) should match the same one-step forecast
     f2 = SETAR(lag=6)
     f2.fit(y)
     pred = f2.predict(y)
@@ -49,6 +48,9 @@ def test_too_short_series_for_fallback_raises():
     f = SETAR(lag=10)  # fallback path will require len(y) > lag
     with pytest.raises(ValueError):
         f.fit(y)
+
+
+# helpers for synthetic data
 
 
 def _simulate_ar1(phi=0.8, a0=0.0, y0=1.0, n=200):
@@ -88,7 +90,6 @@ def test_ar1_decay_next_value_matches_rule():
 def test_ar1_with_intercept_next_value_matches_rule():
     """AR(1) with intercept predicts next value close to a0 + phi * last."""
     a0, phi = 0.5, 0.9
-    # Construct AR(1) with intercept by shifting to ensure stationarity-like behavior
     y = _simulate_ar1(phi=phi, a0=a0, y0=0.0, n=300)
     f = SETAR(lag=4)
     f.fit(y)
@@ -108,18 +109,14 @@ def test_step_change_piecewise_constant_predicts_level():
 
 def test_setar_two_regime_series_predicts_rule_next_step():
     """Synthetic 2-regime SETAR(1) predicts close to the true next value."""
-    # True rule (threshold at 0): if y_{t-1} <= 0 use low, else use high
     a_low, b_low = -0.5, 0.6
     a_high, b_high = 0.4, 0.8
     y = _simulate_setar(a_low, b_low, a_high, b_high, thr=0.0, y0=-2.0, n=600)
-
-    f = SETAR(lag=1)
+    f = SETAR(lag=1)  # true process is lag-1
     f.fit(y)
-
     last = y[-1]
     expected = (a_low + b_low * last) if last <= 0.0 else (a_high + b_high * last)
     pred = f.predict(y)
-
     assert np.isclose(pred, expected, atol=5e-2), f"{pred=} not close to {expected=}"
 
 
@@ -129,10 +126,19 @@ def test_predict_depends_only_on_tail_lags():
     f = SETAR(lag=6)
     f.fit(y_full)
     pred_full = f.predict(y_full)
-
-    # Keep only the tail (>= current_lag + some buffer), preserving the last tail
     keep = f.current_lag + 25
     y_tail = y_full[-keep:]
     pred_tail = f.predict(y_tail)
-
     assert np.isclose(pred_full, pred_tail, atol=1e-9), "Tail-invariance violated"
+
+
+def test_none_return_from_fit_setar_falls_back_to_linear():
+    """If no valid threshold is found for any lag, it falls back and still predicts."""
+    # Constant series makes threshold grid degenerate; ensures None path is hit.
+    y = np.ones(80)
+    f = SETAR(lag=8)
+    f.fit(y)
+    assert f.model in {"linear", "setar"}  # typically linear here
+    pred = f.predict(y)
+    assert np.isfinite(pred)
+    assert np.isclose(pred, 1.0, atol=1e-6)

@@ -92,8 +92,6 @@ class SETARTree(BaseForecaster):
         self.fixed_lag = fixed_lag
         self.external_lag = external_lag
         self.feature_subset = feature_subset
-        super().__init__(horizon=1, axis=1)
-
         # learned state
         self.tree_ = None
         self.th_lags_ = None  # per depth, list of chosen lag indices
@@ -102,6 +100,8 @@ class SETARTree(BaseForecaster):
         self.series_means_ = None
         self.final_lags_ = None
         self.feature_indices_ = None  # training-time feature order
+
+        super().__init__(horizon=1, axis=1)
 
     def _embed(self, x: np.ndarray, dimension: int) -> np.ndarray:
         """Return reversed sliding windows of length `dimension`."""
