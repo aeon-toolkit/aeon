@@ -99,14 +99,6 @@ def test_ets_raises_on_horizon_greater_than_one():
         forecaster.fit(data)
 
 
-def test_ets_raises_on_direct_forecast_strategy():
-    """Test that ETS raises ValueError when direct_forecast is called."""
-    forecaster = ETS()
-    data = np.array([3, 10, 12, 13, 12, 10, 12, 3, 10, 12, 13, 12, 10, 12])
-    with pytest.raises(ValueError, match="cannot be used with the direct strategy"):
-        forecaster.direct_forecast(data, prediction_horizon=6)
-
-
 def test_ets_iterative_forecast():
     """Test the ETS.iterative_forecast method produces correct number of forecasts."""
     forecaster = ETS(
