@@ -312,7 +312,7 @@ class TCNNetwork(BaseDeepLearningNetwork):
 
         # Transpose input to match the expected format (batch, n_timepoints, n_channels)
         x = input_layer
-        n_inputs = input_shape[1] # input_shape is of shape (n_timepoints, n_channels)
+        n_inputs = input_shape[1]  # input_shape is of shape (n_timepoints, n_channels)
 
         # Apply TCN using the private function
         x = self._temporal_conv_net(
