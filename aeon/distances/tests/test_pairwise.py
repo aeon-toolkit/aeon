@@ -562,3 +562,20 @@ def test_pairwise_distance_non_negative(dist, seed):
     pairwise = dist["pairwise_distance"]
     Xt2 = pairwise(X2, X)
     assert Xt2.min() >= 0, f"Distance {dist['name']} is negative"
+
+
+@pytest.mark.parametrize("dist", DISTANCES)
+@pytest.mark.parametrize("n_jobs", [2, -1])
+def test_pairwise_distance_n_jobs_equals_serial(dist, n_jobs):
+    """Ensure parallel n_jobs yields same result as serial (n_jobs=1)."""
+    if dist["name"] in MIN_DISTANCES or dist["name"] in MP_DISTANCES:
+        return
+    X1 = make_example_2d_numpy_collection(5, 5, random_state=1, return_y=False)
+    X2 = make_example_3d_numpy(5, 3, 7, random_state=2, return_y=False)
+
+    for X in (X1, X2):
+        serial = dist["pairwise_distance"](X, n_jobs=1)
+        parallel = dist["pairwise_distance"](X, n_jobs=n_jobs)
+        assert isinstance(parallel, np.ndarray)
+        assert serial.shape == parallel.shape
+        assert_almost_equal(serial, parallel)
