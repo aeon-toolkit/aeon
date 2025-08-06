@@ -5,13 +5,13 @@ from scipy.linalg import LinAlgError, solve
 from scipy.stats import f
 from sklearn.linear_model import LinearRegression
 
-from aeon.forecasting.base import BaseForecaster
+from aeon.forecasting.base import BaseForecaster, IterativeForecastingMixin
 
 __maintainer__ = ["TinaJin0228"]
 __all__ = ["SETARTree"]
 
 
-class SETARTree(BaseForecaster):
+class SETARTree(BaseForecaster, IterativeForecastingMixin):
     """
     SETAR-Tree: A tree algorithm for global time series forecasting.
 
