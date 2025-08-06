@@ -10,7 +10,7 @@ def make_anomaly_detection_labels(
 ) -> np.ndarray:
     """Generate anomaly detection labels.
 
-    Creates a boolean array of length ``n_labels`` with ``ceil(anomaly_rate*n_labels)`` 
+    Creates a boolean array of length ``n_labels`` with ``ceil(anomaly_rate*n_labels)``
     anomalies at random positions.
 
     Parameters
