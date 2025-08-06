@@ -258,7 +258,6 @@ def erp_pairwise_distance(
     g_arr: Optional[np.ndarray] = None,
     itakura_max_slope: Optional[float] = None,
     n_jobs: int = 1,
-    **kwargs,
 ) -> np.ndarray:
     """Compute the ERP pairwise distance between a set of time series.
 

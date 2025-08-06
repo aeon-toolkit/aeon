@@ -206,7 +206,6 @@ def adtw_pairwise_distance(
     itakura_max_slope: Optional[float] = None,
     warp_penalty: float = 1.0,
     n_jobs: int = 1,
-    **kwargs,
 ) -> np.ndarray:
     r"""Compute the ADTW pairwise distance between a set of time series.
 

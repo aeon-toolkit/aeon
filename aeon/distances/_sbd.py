@@ -120,7 +120,6 @@ def sbd_pairwise_distance(
     y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
     standardize: bool = True,
     n_jobs: int = 1,
-    **kwargs,
 ) -> np.ndarray:
     """
     Compute the shape-based distance (SBD) between all pairs of time series.

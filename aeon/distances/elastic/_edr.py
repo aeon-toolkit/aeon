@@ -238,7 +238,6 @@ def edr_pairwise_distance(
     epsilon: Optional[float] = None,
     itakura_max_slope: Optional[float] = None,
     n_jobs: int = 1,
-    **kwargs,
 ) -> np.ndarray:
     """Compute the pairwise EDR distance between a set of time series.
 

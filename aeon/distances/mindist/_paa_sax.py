@@ -98,7 +98,6 @@ def mindist_paa_sax_pairwise_distance(
     breakpoints: np.ndarray,
     n: int,
     n_jobs: int = 1,
-    **kwargs,
 ) -> np.ndarray:
     """Compute the PAA SAX pairwise distance between a set of SAX representations.
 

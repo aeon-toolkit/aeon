@@ -528,7 +528,6 @@ def shape_dtw_pairwise_distance(
     transformed_x: Optional[np.ndarray] = None,
     transformed_y: Optional[np.ndarray] = None,
     n_jobs: int = 1,
-    **kwargs,
 ) -> np.ndarray:
     """Compute the ShapeDTW pairwise distance among a set of series.
 

@@ -75,7 +75,6 @@ def euclidean_pairwise_distance(
     X: Union[np.ndarray, list[np.ndarray]],
     y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
     n_jobs: int = 1,
-    **kwargs,
 ) -> np.ndarray:
     """Compute the Euclidean pairwise distance between a set of time series.
 

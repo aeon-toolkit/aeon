@@ -92,7 +92,7 @@ def _univariate_dft_sfa_distance(
 
 @threaded
 def mindist_dft_sfa_pairwise_distance(
-    X: np.ndarray, y: np.ndarray, breakpoints: np.ndarray, n_jobs: int = 1, **kwargs
+    X: np.ndarray, y: np.ndarray, breakpoints: np.ndarray, n_jobs: int = 1
 ) -> np.ndarray:
     """Compute the DFT SFA pairwise distance between a set of SFA representations.
 

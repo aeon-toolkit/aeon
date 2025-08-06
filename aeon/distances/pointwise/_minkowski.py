@@ -134,7 +134,6 @@ def minkowski_pairwise_distance(
     p: float = 2.0,
     w: Optional[np.ndarray] = None,
     n_jobs: int = 1,
-    **kwargs,
 ) -> np.ndarray:
     """Compute the Minkowski pairwise distance between a set of time series.
 

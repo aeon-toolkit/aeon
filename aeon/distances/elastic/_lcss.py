@@ -231,7 +231,6 @@ def lcss_pairwise_distance(
     epsilon: float = 1.0,
     itakura_max_slope: Optional[float] = None,
     n_jobs: int = 1,
-    **kwargs,
 ) -> np.ndarray:
     """Compute the LCSS pairwise distance between a set of time series.
 

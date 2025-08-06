@@ -284,7 +284,6 @@ def mp_pairwise_distance(
     y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
     m: int = 0,
     n_jobs: int = 1,
-    **kwargs,
 ) -> np.ndarray:
     """Compute the mpdist pairwise distance between a set of time series.
 
@@ -341,4 +340,4 @@ def mp_pairwise_distance(
         m = int(X.shape[2] / 4)
     from aeon.distances._distance import pairwise_distance
 
-    return pairwise_distance(X, y, method=mp_distance, m=m, n_jobs=n_jobs, **kwargs)
+    return pairwise_distance(X, y, method=mp_distance, m=m, n_jobs=n_jobs)

@@ -163,7 +163,6 @@ def shift_scale_invariant_pairwise_distance(
     y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
     max_shift: Optional[int] = None,
     n_jobs: int = 1,
-    **kwargs,
 ) -> np.ndarray:
     r"""Compute the shift-scale invariant pairwise distance between time series.
 

@@ -353,7 +353,6 @@ def msm_pairwise_distance(
     c: float = 1.0,
     itakura_max_slope: Optional[float] = None,
     n_jobs: int = 1,
-    **kwargs,
 ) -> np.ndarray:
     """Compute the msm pairwise distance between a set of time series.
 

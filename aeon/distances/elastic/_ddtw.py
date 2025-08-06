@@ -176,7 +176,6 @@ def ddtw_pairwise_distance(
     window: Optional[float] = None,
     itakura_max_slope: Optional[float] = None,
     n_jobs: int = 1,
-    **kwargs,
 ) -> np.ndarray:
     """Compute the DDTW pairwise distance between a set of time series.
 
