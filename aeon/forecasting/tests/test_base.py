@@ -20,7 +20,7 @@ def test_base_forecaster():
     assert p2 == p1
     assert p3 == p2
     with pytest.raises(ValueError, match="Exogenous variables passed"):
-        f.predict(y, exog=y)
+        f.forecast(y, exog=y)
 
 
 def test_convert_y():
@@ -43,7 +43,7 @@ def test_convert_y():
     with pytest.raises(ValueError, match="Unsupported inner type"):
         f._convert_y(y, axis=1)
     with pytest.raises(ValueError, match="must be greater than or equal to 1"):
-        f.iterative_forecast(y, prediction_horizon=0)
+        f.direct_forecast(y, prediction_horizon=0)
 
 
 def test_direct_forecast():

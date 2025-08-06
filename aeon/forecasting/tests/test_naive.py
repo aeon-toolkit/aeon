@@ -69,10 +69,8 @@ def test_predict():
     np.testing.assert_allclose(pred, 4.5)
     assert isinstance(pred, float)
     forecaster = NaiveForecaster(strategy="seasonal_last", seasonal_period=2)
-    forecaster._fit(y)
-    assert forecaster.forecast_ == 7.0
+    pred = forecaster._predict(y)
+    assert pred == 7.0
     forecaster = NaiveForecaster(strategy="FOOBAR")
-    with pytest.raises(ValueError, match="Unknown strategy"):
-        forecaster._fit(y)
     with pytest.raises(ValueError, match="Unknown strategy"):
         forecaster._predict(y)
