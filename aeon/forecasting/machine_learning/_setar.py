@@ -5,7 +5,7 @@ __all__ = ["SETAR"]
 
 import numpy as np
 
-from aeon.forecasting.base import BaseForecaster
+from aeon.forecasting.base import BaseForecaster, IterativeForecastingMixin
 
 
 def _lagmat_1d(y: np.ndarray, maxlag: int) -> np.ndarray:
@@ -38,7 +38,7 @@ def _ols_fit(X: np.ndarray, y: np.ndarray):
     return intercept, coefs, sse
 
 
-class SETAR(BaseForecaster):
+class SETAR(BaseForecaster, IterativeForecastingMixin):
     """
     Self-Exciting Threshold AutoRegressive (SETAR) forecaster with 2 regimes.
 
