@@ -3,8 +3,12 @@
 __maintainer__ = ["GasperPetelin"]
 __all__ = ["TS2Vec"]
 
+import os
+from typing import Callable
+
 import numpy as np
 
+from aeon.networks._ts2vec import TS2VecNetwork
 from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.utils.validation import check_n_jobs
 from aeon.utils.validation._dependencies import _check_soft_dependencies
@@ -101,8 +105,16 @@ class TS2Vec(BaseCollectionTransformer):
         n_iters=None,
         device=None,
         n_jobs=1,
-        after_epoch_callback=None,
+        after_iter_callbacks: Callable | list[Callable] | None = None,
+        after_epoch_callbacks: Callable | list[Callable] | None = None,
         verbose=False,
+        file_path: str = "./",
+        save_best_model: bool = False,
+        save_last_model: bool = False,
+        save_init_model: bool = False,
+        best_file_name: str = "best_model",
+        last_file_name: str = "last_model",
+        init_file_name: str = "init_model",
     ):
         self.output_dim = output_dim
         self.hidden_dim = hidden_dim
@@ -117,7 +129,15 @@ class TS2Vec(BaseCollectionTransformer):
         self.verbose = verbose
         self.n_epochs = n_epochs
         self.n_iters = n_iters
-        self.after_epoch_callback = after_epoch_callback
+        self.after_iter_callbacks = after_iter_callbacks
+        self.after_epoch_callbacks = after_epoch_callbacks
+        self.file_path = file_path
+        self.save_best_model = save_best_model
+        self.save_last_model = save_last_model
+        self.save_init_model = save_init_model
+        self.best_file_name = best_file_name
+        self.last_file_name = last_file_name
+        self.init_file_name = init_file_name
         super().__init__()
 
     def _transform(self, X, y=None):
@@ -149,268 +169,52 @@ class TS2Vec(BaseCollectionTransformer):
             batch_size=self.batch_size,
             max_train_length=self.max_train_length,
             temporal_unit=self.temporal_unit,
-            after_epoch_callback=self.after_epoch_callback,
+            after_epoch_callbacks=self.after_epoch_callbacks,
+            after_iter_callbacks=self.after_iter_callbacks,
+            file_path=self.file_path,
+            save_best_model=self.save_best_model,
+            save_last_model=self.save_last_model,
+            save_init_model=self.save_init_model,
+            best_file_name=self.best_file_name,
+            last_file_name=self.last_file_name,
+            init_file_name=self.init_file_name,
         )
-        self.loss_ = self._ts2vec.fit(
+        loss = self._ts2vec.fit(
             X.transpose(0, 2, 1),
             verbose=self.verbose,
             n_epochs=self.n_epochs,
             n_iters=self.n_iters,
         )
+        self.history = {"loss": loss}
         return self
 
 
 if _check_soft_dependencies("torch", severity="none"):
     import torch
     import torch.nn.functional as F
-    from torch import nn
     from torch.utils.data import DataLoader, TensorDataset
-
-    class ConvBlock(nn.Module):
-        def __init__(
-            self, in_channels, out_channels, kernel_size, dilation, final=False
-        ):
-            super().__init__()
-            self.conv1 = SamePadConv(
-                in_channels, out_channels, kernel_size, dilation=dilation
-            )
-            self.conv2 = SamePadConv(
-                out_channels, out_channels, kernel_size, dilation=dilation
-            )
-            self.projector = (
-                nn.Conv1d(in_channels, out_channels, 1)
-                if in_channels != out_channels or final
-                else None
-            )
-
-        def forward(self, x):
-            residual = x if self.projector is None else self.projector(x)
-            x = F.gelu(x)
-            x = self.conv1(x)
-            x = F.gelu(x)
-            x = self.conv2(x)
-            return x + residual
-
-    class DilatedConvEncoder(nn.Module):
-        def __init__(self, in_channels, channels, kernel_size):
-            super().__init__()
-            self.net = nn.Sequential(
-                *[
-                    ConvBlock(
-                        channels[i - 1] if i > 0 else in_channels,
-                        channels[i],
-                        kernel_size=kernel_size,
-                        dilation=2**i,
-                        final=(i == len(channels) - 1),
-                    )
-                    for i in range(len(channels))
-                ]
-            )
-
-        def forward(self, x):
-            return self.net(x)
-
-    class SamePadConv(nn.Module):
-        def __init__(
-            self, in_channels, out_channels, kernel_size, dilation=1, groups=1
-        ):
-            super().__init__()
-            self.receptive_field = (kernel_size - 1) * dilation + 1
-            padding = self.receptive_field // 2
-            self.conv = nn.Conv1d(
-                in_channels,
-                out_channels,
-                kernel_size,
-                padding=padding,
-                dilation=dilation,
-                groups=groups,
-            )
-            self.remove = 1 if self.receptive_field % 2 == 0 else 0
-
-        def forward(self, x):
-            out = self.conv(x)
-            if self.remove > 0:
-                out = out[:, :, : -self.remove]
-            return out
-
-    class TSEncoder(nn.Module):
-        def __init__(
-            self,
-            input_dims,
-            output_dims,
-            hidden_dims=64,
-            depth=10,
-            mask_mode="binomial",
-        ):
-            super().__init__()
-            self.input_dims = input_dims
-            self.output_dims = output_dims
-            self.hidden_dims = hidden_dims
-            self.mask_mode = mask_mode
-            self.input_fc = nn.Linear(input_dims, hidden_dims)
-            self.feature_extractor = DilatedConvEncoder(
-                hidden_dims, [hidden_dims] * depth + [output_dims], kernel_size=3
-            )
-            self.repr_dropout = nn.Dropout(p=0.1)
-
-        def forward(self, x, mask=None):  # x: B x T x input_dims
-            nan_mask = ~x.isnan().any(axis=-1)
-            x[~nan_mask] = 0
-            x = self.input_fc(x)  # B x T x Ch
-
-            # generate & apply mask
-            if mask is None:
-                if self.training:
-                    mask = self.mask_mode
-                else:
-                    mask = "all_true"
-
-            if mask == "binomial":
-                mask = generate_binomial_mask(x.size(0), x.size(1)).to(x.device)
-            elif mask == "continuous":
-                mask = generate_continuous_mask(x.size(0), x.size(1)).to(x.device)
-            elif mask == "all_true":
-                mask = x.new_full((x.size(0), x.size(1)), True, dtype=torch.bool)
-            elif mask == "all_false":
-                mask = x.new_full((x.size(0), x.size(1)), False, dtype=torch.bool)
-            elif mask == "mask_last":
-                mask = x.new_full((x.size(0), x.size(1)), True, dtype=torch.bool)
-                mask[:, -1] = False
-
-            mask &= nan_mask
-            x[~mask] = 0
-
-            # conv encoder
-            x = x.transpose(1, 2)  # B x Ch x T
-            x = self.repr_dropout(self.feature_extractor(x))  # B x Co x T
-            x = x.transpose(1, 2)  # B x T x Co
-
-            return x
-
-    def generate_binomial_mask(B, T, p=0.5):
-        return torch.from_numpy(np.random.binomial(1, p, size=(B, T))).to(torch.bool)
-
-    def generate_continuous_mask(B, T, n=5, mask_length=0.1):
-        res = torch.full((B, T), True, dtype=torch.bool)
-        if isinstance(n, float):
-            n = int(n * T)
-        n = max(min(n, T // 2), 1)
-
-        if isinstance(mask_length, float):
-            mask_length = int(mask_length * T)
-        mask_length = max(mask_length, 1)
-
-        for i in range(B):
-            for _ in range(n):
-                t = np.random.randint(T - mask_length + 1)
-                res[i, t : t + mask_length] = False
-        return res
-
-    def pad_nan_to_target(array, target_length, axis=0, both_side=False):
-        assert array.dtype in [np.float16, np.float32, np.float64]
-        pad_size = target_length - array.shape[axis]
-        if pad_size <= 0:
-            return array
-        npad = [(0, 0)] * array.ndim
-        if both_side:
-            npad[axis] = (pad_size // 2, pad_size - pad_size // 2)
-        else:
-            npad[axis] = (0, pad_size)
-        return np.pad(array, pad_width=npad, mode="constant", constant_values=np.nan)
-
-    def take_per_row(A, index, num_elem):
-        all_index = index[:, None] + np.arange(num_elem)
-        return A[torch.arange(all_index.shape[0])[:, None], all_index]
-
-    def torch_pad_nan(arr, left=0, right=0, dim=0):
-        if left > 0:
-            padshape = list(arr.shape)
-            padshape[dim] = left
-            arr = torch.cat((torch.full(padshape, np.nan), arr), dim=dim)
-        if right > 0:
-            padshape = list(arr.shape)
-            padshape[dim] = right
-            arr = torch.cat((arr, torch.full(padshape, np.nan)), dim=dim)
-        return arr
-
-    def instance_contrastive_loss(z1, z2):
-        B, _ = z1.size(0), z1.size(1)
-        if B == 1:
-            return z1.new_tensor(0.0)
-        z = torch.cat([z1, z2], dim=0)  # 2B x T x C
-        z = z.transpose(0, 1)  # T x 2B x C
-        sim = torch.matmul(z, z.transpose(1, 2))  # T x 2B x 2B
-        logits = torch.tril(sim, diagonal=-1)[:, :, :-1]  # T x 2B x (2B-1)
-        logits += torch.triu(sim, diagonal=1)[:, :, 1:]
-        logits = -F.log_softmax(logits, dim=-1)
-
-        i = torch.arange(B, device=z1.device)
-        loss = (logits[:, i, B + i - 1].mean() + logits[:, B + i, i].mean()) / 2
-        return loss
-
-    def temporal_contrastive_loss(z1, z2):
-        _, T = z1.size(0), z1.size(1)
-        if T == 1:
-            return z1.new_tensor(0.0)
-        z = torch.cat([z1, z2], dim=1)  # B x 2T x C
-        sim = torch.matmul(z, z.transpose(1, 2))  # B x 2T x 2T
-        logits = torch.tril(sim, diagonal=-1)[:, :, :-1]  # B x 2T x (2T-1)
-        logits += torch.triu(sim, diagonal=1)[:, :, 1:]
-        logits = -F.log_softmax(logits, dim=-1)
-
-        t = torch.arange(T, device=z1.device)
-        loss = (logits[:, t, T + t - 1].mean() + logits[:, T + t, t].mean()) / 2
-        return loss
-
-    def hierarchical_contrastive_loss(z1, z2, alpha=0.5, temporal_unit=0):
-        loss = torch.tensor(0.0, device=z1.device)
-        d = 0
-        while z1.size(1) > 1:
-            if alpha != 0:
-                loss += alpha * instance_contrastive_loss(z1, z2)
-            if d >= temporal_unit:
-                if 1 - alpha != 0:
-                    loss += (1 - alpha) * temporal_contrastive_loss(z1, z2)
-            d += 1
-            z1 = F.max_pool1d(z1.transpose(1, 2), kernel_size=2).transpose(1, 2)
-            z2 = F.max_pool1d(z2.transpose(1, 2), kernel_size=2).transpose(1, 2)
-        if z1.size(1) == 1:
-            if alpha != 0:
-                loss += alpha * instance_contrastive_loss(z1, z2)
-            d += 1
-        return loss / d
-
-    def split_with_nan(x, sections, axis=0):
-        assert x.dtype in [np.float16, np.float32, np.float64]
-        arrs = np.array_split(x, sections, axis=axis)
-        target_length = arrs[0].shape[axis]
-        for i in range(len(arrs)):
-            arrs[i] = pad_nan_to_target(arrs[i], target_length, axis=axis)
-        return arrs
-
-    def centerize_vary_length_series(x):
-        prefix_zeros = np.argmax(~np.isnan(x).all(axis=-1), axis=1)
-        suffix_zeros = np.argmax(~np.isnan(x[:, ::-1]).all(axis=-1), axis=1)
-        offset = (prefix_zeros + suffix_zeros) // 2 - prefix_zeros
-        rows, column_indices = np.ogrid[: x.shape[0], : x.shape[1]]
-        offset[offset < 0] += x.shape[1]
-        column_indices = column_indices - offset[:, np.newaxis]
-        return x[rows, column_indices]
 
     class _TS2Vec:
         def __init__(
             self,
             input_dims,
-            output_dims=320,
-            hidden_dims=64,
-            depth=10,
+            output_dims: int = 320,
+            hidden_dims: int = 64,
+            depth: int = 10,
             device="cuda",
-            lr=0.001,
-            batch_size=16,
+            lr: float = 0.001,
+            batch_size: int = 16,
             max_train_length=None,
             temporal_unit=0,
-            after_iter_callback=None,
-            after_epoch_callback=None,
+            after_iter_callbacks=None,
+            after_epoch_callbacks=None,
+            file_path: str = "./",
+            save_best_model: bool = False,
+            save_last_model: bool = False,
+            save_init_model: bool = False,
+            best_file_name: str = "best_model",
+            last_file_name: str = "last_model",
+            init_file_name: str = "init_model",
         ):
             super().__init__()
             self.device = device
@@ -419,20 +223,143 @@ if _check_soft_dependencies("torch", severity="none"):
             self.max_train_length = max_train_length
             self.temporal_unit = temporal_unit
 
-            self._net = TSEncoder(
-                input_dims=input_dims,
-                output_dims=output_dims,
-                hidden_dims=hidden_dims,
-                depth=depth,
-            ).to(self.device)
+            self._net = (
+                TS2VecNetwork(
+                    input_dims=input_dims,
+                    output_dims=output_dims,
+                    hidden_dims=hidden_dims,
+                    depth=depth,
+                )
+                .build_network(None)
+                .to(self.device)
+            )
             self.net = torch.optim.swa_utils.AveragedModel(self._net)
             self.net.update_parameters(self._net)
 
-            self.after_iter_callback = after_iter_callback
-            self.after_epoch_callback = after_epoch_callback
+            self.after_iter_callbacks = after_iter_callbacks
+            self.after_epoch_callbacks = after_epoch_callbacks
+
+            callback_error = (
+                "after_iter_callbacks must either be a Callable, "
+                "a list of Callables or None"
+            )
+            if isinstance(self.after_iter_callbacks, Callable):
+                self.after_iter_callbacks = [self.after_iter_callbacks]
+            elif self.after_epoch_callbacks is None:
+                self.after_epoch_callbacks = []
+            else:
+                assert isinstance(self.after_epoch_callbacks, list), callback_error
+
+            if isinstance(self.after_epoch_callbacks, Callable):
+                self.after_epoch_callbacks = [self.after_epoch_callbacks]
+            elif self.after_iter_callbacks is None:
+                self.after_iter_callbacks = []
+            else:
+                assert isinstance(self.after_iter_callbacks, list), callback_error
 
             self.n_epochs = 0
             self.n_iters = 0
+
+            self.file_path = file_path
+            self.save_best_model = save_best_model
+            self.save_last_model = save_last_model
+            self.save_init_model = save_init_model
+            self.best_file_name = best_file_name
+            self.last_file_name = last_file_name
+            self.init_file_name = init_file_name
+
+        def pad_nan_to_target(self, array, target_length, axis=0, both_side=False):
+            assert array.dtype in [np.float16, np.float32, np.float64]
+            pad_size = target_length - array.shape[axis]
+            if pad_size <= 0:
+                return array
+            npad = [(0, 0)] * array.ndim
+            if both_side:
+                npad[axis] = (pad_size // 2, pad_size - pad_size // 2)
+            else:
+                npad[axis] = (0, pad_size)
+            return np.pad(
+                array, pad_width=npad, mode="constant", constant_values=np.nan
+            )
+
+        def instance_contrastive_loss(self, z1, z2):
+            B, _ = z1.size(0), z1.size(1)
+            if B == 1:
+                return z1.new_tensor(0.0)
+            z = torch.cat([z1, z2], dim=0)  # 2B x T x C
+            z = z.transpose(0, 1)  # T x 2B x C
+            sim = torch.matmul(z, z.transpose(1, 2))  # T x 2B x 2B
+            logits = torch.tril(sim, diagonal=-1)[:, :, :-1]  # T x 2B x (2B-1)
+            logits += torch.triu(sim, diagonal=1)[:, :, 1:]
+            logits = -F.log_softmax(logits, dim=-1)
+
+            i = torch.arange(B, device=z1.device)
+            loss = (logits[:, i, B + i - 1].mean() + logits[:, B + i, i].mean()) / 2
+            return loss
+
+        def take_per_row(self, A, index, num_elem):
+            all_index = index[:, None] + np.arange(num_elem)
+            return A[torch.arange(all_index.shape[0])[:, None], all_index]
+
+        def torch_pad_nan(self, arr, left=0, right=0, dim=0):
+            if left > 0:
+                padshape = list(arr.shape)
+                padshape[dim] = left
+                arr = torch.cat((torch.full(padshape, np.nan), arr), dim=dim)
+            if right > 0:
+                padshape = list(arr.shape)
+                padshape[dim] = right
+                arr = torch.cat((arr, torch.full(padshape, np.nan)), dim=dim)
+            return arr
+
+        def hierarchical_contrastive_loss(self, z1, z2, alpha=0.5, temporal_unit=0):
+            loss = torch.tensor(0.0, device=z1.device)
+            d = 0
+            while z1.size(1) > 1:
+                if alpha != 0:
+                    loss += alpha * self.instance_contrastive_loss(z1, z2)
+                if d >= temporal_unit:
+                    if 1 - alpha != 0:
+                        loss += (1 - alpha) * self.temporal_contrastive_loss(z1, z2)
+                d += 1
+                z1 = F.max_pool1d(z1.transpose(1, 2), kernel_size=2).transpose(1, 2)
+                z2 = F.max_pool1d(z2.transpose(1, 2), kernel_size=2).transpose(1, 2)
+            if z1.size(1) == 1:
+                if alpha != 0:
+                    loss += alpha * self.instance_contrastive_loss(z1, z2)
+                d += 1
+            return loss / d
+
+        def temporal_contrastive_loss(self, z1, z2):
+            _, T = z1.size(0), z1.size(1)
+            if T == 1:
+                return z1.new_tensor(0.0)
+            z = torch.cat([z1, z2], dim=1)  # B x 2T x C
+            sim = torch.matmul(z, z.transpose(1, 2))  # B x 2T x 2T
+            logits = torch.tril(sim, diagonal=-1)[:, :, :-1]  # B x 2T x (2T-1)
+            logits += torch.triu(sim, diagonal=1)[:, :, 1:]
+            logits = -F.log_softmax(logits, dim=-1)
+
+            t = torch.arange(T, device=z1.device)
+            loss = (logits[:, t, T + t - 1].mean() + logits[:, T + t, t].mean()) / 2
+            return loss
+
+        def centerize_vary_length_series(self, x):
+            prefix_zeros = np.argmax(~np.isnan(x).all(axis=-1), axis=1)
+            suffix_zeros = np.argmax(~np.isnan(x[:, ::-1]).all(axis=-1), axis=1)
+            offset = (prefix_zeros + suffix_zeros) // 2 - prefix_zeros
+            rows, column_indices = np.ogrid[: x.shape[0], : x.shape[1]]
+            offset[offset < 0] += x.shape[1]
+            column_indices = column_indices - offset[:, np.newaxis]
+            return x[rows, column_indices]
+
+        def split_with_nan(self, x, sections, axis=0):
+            assert x.dtype in [np.float16, np.float32, np.float64]
+            arrs = np.array_split(x, sections, axis=axis)
+            target_length = arrs[0].shape[axis]
+            for i in range(len(arrs)):
+                arrs[i] = self.pad_nan_to_target(arrs[i], target_length, axis=axis)
+            return arrs
 
         def fit(self, train_data, n_epochs=None, n_iters=None, verbose=False):
             assert train_data.ndim == 3
@@ -446,12 +373,12 @@ if _check_soft_dependencies("torch", severity="none"):
                 sections = train_data.shape[1] // self.max_train_length
                 if sections >= 2:
                     train_data = np.concatenate(
-                        split_with_nan(train_data, sections, axis=1), axis=0
+                        self.split_with_nan(train_data, sections, axis=1), axis=0
                     )
 
             temporal_missing = np.isnan(train_data).all(axis=-1).any(axis=0)
             if temporal_missing[0] or temporal_missing[-1]:
-                train_data = centerize_vary_length_series(train_data)
+                train_data = self.centerize_vary_length_series(train_data)
 
             train_data = train_data[~np.isnan(train_data).all(axis=2).all(axis=1)]
 
@@ -466,6 +393,13 @@ if _check_soft_dependencies("torch", severity="none"):
             optimizer = torch.optim.AdamW(self._net.parameters(), lr=self.lr)
 
             loss_log = []
+
+            full_init_path = os.path.join(self.file_path, self.init_file_name + ".pth")
+            full_last_path = os.path.join(self.file_path, self.last_file_name + ".pth")
+            full_best_path = os.path.join(self.file_path, self.best_file_name + ".pth")
+
+            if self.save_init_model:
+                torch.save(self._net.state_dict(), full_init_path)
 
             while True:
                 if n_epochs is not None and self.n_epochs >= n_epochs:
@@ -506,20 +440,20 @@ if _check_soft_dependencies("torch", severity="none"):
                     optimizer.zero_grad()
 
                     out1 = self._net(
-                        take_per_row(
+                        self.take_per_row(
                             x, crop_offset + crop_eleft, crop_right - crop_eleft
                         )
                     )
                     out1 = out1[:, -crop_l:]
 
                     out2 = self._net(
-                        take_per_row(
+                        self.take_per_row(
                             x, crop_offset + crop_left, crop_eright - crop_left
                         )
                     )
                     out2 = out2[:, :crop_l]
 
-                    loss = hierarchical_contrastive_loss(
+                    loss = self.hierarchical_contrastive_loss(
                         out1, out2, temporal_unit=self.temporal_unit
                     )
 
@@ -532,20 +466,35 @@ if _check_soft_dependencies("torch", severity="none"):
 
                     self.n_iters += 1
 
-                    if self.after_iter_callback is not None:
-                        self.after_iter_callback(self, loss.item())
+                    # if self.after_iter_callback is not None:
+                    #    self.after_iter_callback(self, loss.item())
+                    for callback in self.after_iter_callbacks:
+                        callback(self, loss.item())
 
                 if interrupted:
                     break
 
                 cum_loss /= n_epoch_iters
                 loss_log.append(cum_loss)
+
                 if verbose:
                     print(f"Epoch #{self.n_epochs}: loss={cum_loss}")  # noqa
                 self.n_epochs += 1
 
-                if self.after_epoch_callback is not None:
-                    self.after_epoch_callback(self, cum_loss)
+                for callback in self.after_epoch_callbacks:
+                    callback(self, cum_loss)
+                # if self.after_epoch_callback is not None:
+                #    self.after_epoch_callback(self, cum_loss)
+
+                if cum_loss <= np.min(loss_log) and self.save_best_model:
+                    torch.save(self._net.state_dict(), full_best_path)
+
+            if self.save_last_model:
+                torch.save(self._net.state_dict(), full_last_path)
+
+            if self.save_best_model and os.path.exists(full_best_path):
+                self._net.load_state_dict(torch.load(full_best_path))
+                self.net.update_parameters(self._net)
 
             return loss_log
 
@@ -631,7 +580,7 @@ if _check_soft_dependencies("torch", severity="none"):
                                 + sliding_length
                                 + (sliding_padding if not causal else 0)
                             )
-                            x_sliding = torch_pad_nan(
+                            x_sliding = self.torch_pad_nan(
                                 x[:, max(left, 0) : min(right, ts_l)],
                                 left=-left if left < 0 else 0,
                                 right=right - ts_l if right > ts_l else 0,
