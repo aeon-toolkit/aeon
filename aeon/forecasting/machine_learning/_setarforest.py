@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import numpy as np
-import pandas as pd
 
 from aeon.forecasting.base import BaseForecaster
 
@@ -64,7 +63,7 @@ class SETARForest(BaseForecaster):
         If True, uniformly choose a random error threshold in [0.001, 0.05] per tree.
     integer_conversion : bool, default=False
         If True, round the *final averaged* prediction to nearest integer.
-    random_state : Optional[int], default=None
+    random_state : Optional[int], default=1
         RNG seed for reproducibility.
 
     References
@@ -99,9 +98,9 @@ class SETARForest(BaseForecaster):
         random_significance_divider: bool = False,
         random_tree_error_threshold: bool = False,
         integer_conversion: bool = False,
-        random_state: int | None = None,
+        random_state: int | None = 1,
     ):
-        super().__init__(horizon=1, axis=0)
+        super().__init__(horizon=1, axis=1)
         self.lag = lag
         self.n_estimators = n_estimators
         self.bagging_fraction = bagging_fraction
@@ -122,18 +121,17 @@ class SETARForest(BaseForecaster):
 
         # learned attributes
         self.estimators_: list[SETARTree] = []
-        self.feature_subsets_: list[list[str]] = []
-        self.embedded_columns_: list[str] | None = None  # for reference/debug
+        self.feature_subsets_: list[list[int]] = []
 
     def _rng(self, offset: int = 0) -> np.random.Generator:
         seed = None if self.random_state is None else (self.random_state + offset)
         return np.random.default_rng(seed)
 
-    def _embed_once(self, y, exog=None) -> pd.DataFrame:
+    def _embed_once(self, y, exog=None) -> np.ndarray:
         """Use a template SETARTree to build the full embedded matrix once."""
         template = SETARTree(
             lag=self.lag,
-            max_depth=1,  # depth irrelevant for embedding
+            max_depth=1,
             stopping_criteria=self.stopping_criteria,
             significance=self.significance,
             significance_divider=self.significance_divider,
@@ -143,20 +141,18 @@ class SETARForest(BaseForecaster):
             seq_significance=self.seq_significance,
         )
         training_set = template._process_input_data(y, exog)
-        embedded_df, _, _ = template._create_tree_input_matrix(training_set)
-        return embedded_df
+        embedded, _, _ = template._create_tree_input_matrix(training_set)
+        return embedded
 
     def _fit(self, y, exog=None):
-        # Full embedded matrix (reuses SETARTree logic)
-        embedded_df = self._embed_once(y, exog)
-        if embedded_df.empty:
+        embedded = self._embed_once(y, exog)
+        if embedded.size == 0:
             raise ValueError("SETARForest: empty embedded matrix; insufficient data.")
-        self.embedded_columns_ = list(embedded_df.columns)
 
-        # columns: ["y", "Lag1", ... "LagL", (future: covariates...)]
-        all_features = [c for c in embedded_df.columns if c != "y"]
-        n_rows = embedded_df.shape[0]
-        n_feats = len(all_features)
+        # feature index space: 0..(lag-1) iff embedded has all lags in columns 1..lag
+        all_feats = list(range(embedded.shape[1] - 1))  # exclude y col
+        n_rows = embedded.shape[0]
+        n_feats = len(all_feats)
 
         n_rows_bag = max(1, int(round(self.bagging_fraction * n_rows)))
         n_feats_bag = max(1, int(round(self.feature_fraction * n_feats)))
@@ -164,16 +160,12 @@ class SETARForest(BaseForecaster):
         self.estimators_.clear()
         self.feature_subsets_.clear()
 
-        # Train n_estimators trees on bagged rows/features
         for b in range(self.n_estimators):
             rng = self._rng(b + 1)
 
-            # row bagging
             row_idx = np.sort(rng.choice(n_rows, size=n_rows_bag, replace=False))
-
-            # feature subsampling
             feat_idx = np.sort(rng.choice(n_feats, size=n_feats_bag, replace=False))
-            feat_subset = [all_features[i] for i in feat_idx]
+            feat_subset = [int(i) for i in feat_idx]
 
             # per-tree randomized hyperparameters
             significance = self.significance
@@ -181,23 +173,17 @@ class SETARForest(BaseForecaster):
             err_thr = self.error_threshold
 
             if self.random_tree_significance:
-                # sample seq(0.01, 0.1, length.out = 10) -> 10 uniform grid points
-                grid = np.linspace(0.01, 0.10, num=10)
-                significance = rng.choice(grid)
-
+                significance = float(rng.choice(np.linspace(0.01, 0.10, num=10)))
             if self.random_significance_divider:
-                sig_div = int(rng.integers(2, 11))  # {2,...,10}
-
+                sig_div = int(rng.integers(2, 11))
             if self.random_tree_error_threshold:
-                # seq(0.001, 0.05, length.out = 50)
-                grid = np.linspace(0.001, 0.05, num=50)
-                err_thr = rng.choice(grid)
+                err_thr = float(rng.choice(np.linspace(0.001, 0.05, num=50)))
 
-            # prepare current bagged design
-            bag_df = embedded_df.iloc[row_idx, :]
-            bag_df = bag_df[["y"] + feat_subset]
+            # Build bagged embedded matrix:
+            # keep y and the selected feature columns (by order)
+            cols = [0] + [1 + i for i in feat_subset]
+            bag = embedded[np.ix_(row_idx, cols)]
 
-            # create and fit the base tree via tree's API
             tree = SETARTree(
                 lag=self.lag,
                 max_depth=self.max_depth,
@@ -208,13 +194,12 @@ class SETARForest(BaseForecaster):
                 n_thresholds=self.n_thresholds,
                 scale=self.scale,
                 seq_significance=self.seq_significance,
-                feature_subset=feat_subset,  # restrict split candidates
-            ).fit_from_embedded(bag_df)
+            ).fit_from_embedded(bag, feature_indices=feat_subset)
 
             self.estimators_.append(tree)
             self.feature_subsets_.append(feat_subset)
 
-        # self.is_fitted = True
+        self.forecast_ = self._predict(y)
         return self
 
     def _predict(self, y, exog=None):
@@ -227,9 +212,3 @@ class SETARForest(BaseForecaster):
         if self.integer_conversion:
             avg = float(np.rint(avg))
         return avg
-
-    def _forecast(self, y, exog=None):
-        """Fit-then-predict one step (aeon contract for horizon=1)."""
-        self.fit(y, exog)
-        self.forecast_ = self.predict(y, exog)
-        return self.forecast_

@@ -2,7 +2,7 @@
 
 import numpy as np
 
-from aeon.forecasting._setartree import SETARTree
+from aeon.forecasting.machine_learning._setartree import SETARTree
 
 
 def test_constant_series():
@@ -66,7 +66,6 @@ def test_forecast_linear_sets_attribute():
     """Test forecast() returns scalar next value and sets forecast_ attribute."""
     y = np.arange(1, 21.0)
     f = SETARTree(lag=2)
-    # Call forecast without prior fit; _forecast will fit internally
     out = f.forecast(y)
     assert np.isscalar(out), "forecast() should return a scalar for univariate series"
     assert np.isclose(out, 21.0, atol=0.01), f"Forecast {out} not close to 21.0"
