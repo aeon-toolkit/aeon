@@ -192,3 +192,42 @@ def test_tcn_network_single_layer():
     dummy_input = np.random.random((4,) + input_shape)
     output = model(dummy_input)
     assert output.shape == (4, input_shape[1])  # (batch_size, n_channels)
+
+
+@pytest.mark.skipif(
+    not _check_soft_dependencies(["tensorflow"], severity="none"),
+    reason="Tensorflow soft dependency unavailable.",
+)
+def test_tcn_final_dense_weights_shape():
+    """Test that the final Dense layer in TCN has the correct weight matrix shape."""
+    import tensorflow as tf
+    import numpy as np
+
+    input_shape = (40, 6)  # (n_timepoints, n_channels)
+    n_blocks = [32, 64]
+    batch_size = 8
+
+    tcn_network = TCNNetwork(n_blocks=n_blocks)
+    input_layer, output_layer = tcn_network.build_network(input_shape)
+
+    model = tf.keras.Model(inputs=input_layer, outputs=output_layer)
+
+    # Run model to build weights
+    dummy_input = np.random.random((batch_size,) + input_shape).astype(np.float32)
+    _ = model(dummy_input)
+
+    # Directly access last layer (assuming it's Dense)
+    dense_layer = model.layers[-1]
+    assert isinstance(dense_layer, tf.keras.layers.Dense), \
+        f"Expected last layer to be Dense, got {type(dense_layer)}"
+
+    weight_shape = dense_layer.kernel.shape
+    input_dim, output_dim = weight_shape
+
+    expected_input_dim = n_blocks[-1]
+    expected_output_dim = input_shape[1]
+
+    assert input_dim == expected_input_dim, \
+        f"Expected input dim {expected_input_dim}, got {input_dim}"
+    assert output_dim == expected_output_dim, \
+        f"Expected output dim {expected_output_dim}, got {output_dim}"
