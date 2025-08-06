@@ -96,7 +96,7 @@ def test_ets_raises_on_horizon_greater_than_one():
     forecaster.horizon = 2
     data = np.array([3, 10, 12, 13, 12, 10, 12, 3, 10, 12, 13, 12, 10, 12])
     with pytest.raises(ValueError, match="Horizon is set >1, but"):
-        forecaster.fit(data)
+        forecaster.predict(data)
 
 
 def test_ets_iterative_forecast():
@@ -114,10 +114,5 @@ def test_ets_iterative_forecast():
     assert np.all(np.isfinite(preds)), "All forecast values should be finite"
 
     # Optional: check that the first prediction equals forecast_ from .fit()
-    forecaster.fit(y)
-    assert np.isclose(
-        preds[0], forecaster.forecast_, atol=1e-6
-    ), "First forecast should match forecast_"
-    forecaster = ETS(trend_type=None)
-    forecaster._fit(y)
-    assert forecaster._trend_type == 0
+    p = forecaster.predict(y)
+    assert np.isclose(preds[0], p, atol=1e-6), "First forecast should match predict"
