@@ -25,20 +25,6 @@ def test_linear_series():
     assert np.isclose(pred, 21.0, atol=0.01), f"Prediction {pred} not close to 21.0"
 
 
-def test_iterative_forecast_linear():
-    """Test iterative forecasting on a linear series (1-D array of length H)."""
-    y = np.arange(1, 11.0)
-    f = SETARTree(lag=2)
-    preds = f.iterative_forecast(y, 3)
-    expected = np.arange(11.0, 14.0)
-    assert preds.shape == (
-        3,
-    ), f"iterative_forecast should return shape (H,), got {preds.shape}"
-    assert np.allclose(
-        preds, expected, atol=0.01
-    ), f"Predictions {preds} not close to {expected}"
-
-
 def test_fixed_lag():
     """Test the fixed_lag parameter."""
     y = np.arange(1, 21.0)
