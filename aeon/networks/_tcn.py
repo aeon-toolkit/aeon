@@ -322,6 +322,6 @@ class TCNNetwork(BaseDeepLearningNetwork):
             kernel_size=self.kernel_size,
             dropout=self.dropout,
         )
-        output = tf.keras.layers.Dense(input_shape[1])(x[:, :, -1])
+        output = tf.keras.layers.Dense(input_shape[1])(x[:, -1, :])
         # output = tf.keras.layers.Dense(1)(x)
         return input_layer, output
