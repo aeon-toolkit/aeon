@@ -6,10 +6,16 @@ __all__ = ["NaiveForecaster"]
 
 import numpy as np
 
-from aeon.forecasting.base import BaseForecaster, DirectForecastingMixin
+from aeon.forecasting.base import (
+    BaseForecaster,
+    DirectForecastingMixin,
+    IterativeForecastingMixin,
+)
 
 
-class NaiveForecaster(BaseForecaster, DirectForecastingMixin):
+class NaiveForecaster(
+    BaseForecaster, DirectForecastingMixin, IterativeForecastingMixin
+):
     """
     Naive forecaster with multiple strategies and flexible horizon.
 

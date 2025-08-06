@@ -273,7 +273,7 @@ class DirectForecastingMixin:
         horizon = self.get_tag("capability:horizon")
         if not horizon:
             raise ValueError(
-                "This forecaster cannot be used with the direct strategy "
+                f"{self.__class__.__name__} cannot be used with the direct strategy "
                 "because it cannot be trained with a horizon > 1."
             )
         if prediction_horizon < 1:
@@ -333,6 +333,7 @@ class IterativeForecastingMixin:
             raise ValueError(
                 "The `prediction_horizon` must be greater than or equal to 1."
             )
+
         preds = np.zeros(prediction_horizon)
         self.fit(y)
         for i in range(0, prediction_horizon):
@@ -345,5 +346,5 @@ class _SeriesToSeriesForecastingMixin:
     """Mixin class for series-to-series forecasting."""
 
     def series_to_series_forecast(self, y, prediction_horizon) -> np.ndarray:
-        """In the future makes a big forecast."""
+        """Unimplemented."""
         pass

@@ -2,10 +2,14 @@
 
 import numpy as np
 
-from aeon.forecasting.base import BaseForecaster, DirectForecastingMixin
+from aeon.forecasting.base import (
+    BaseForecaster,
+    DirectForecastingMixin,
+    IterativeForecastingMixin,
+)
 
 
-class TVPForecaster(BaseForecaster, DirectForecastingMixin):
+class TVPForecaster(BaseForecaster, DirectForecastingMixin, IterativeForecastingMixin):
     r"""Time-Varying Parameter (TVP) Forecaster using Kalman filter as described in [1].
 
     This forecaster models the target series using a time-varying linear autoregression:
