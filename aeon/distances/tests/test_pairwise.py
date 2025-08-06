@@ -20,6 +20,7 @@ from aeon.testing.data_generation import (
     make_example_3d_numpy,
     make_example_3d_numpy_list,
 )
+from aeon.testing.testing_config import MULTITHREAD_TESTING
 
 
 def _make_3d_series(x: np.ndarray) -> np.ndarray:
@@ -564,6 +565,7 @@ def test_pairwise_distance_non_negative(dist, seed):
     assert Xt2.min() >= 0, f"Distance {dist['name']} is negative"
 
 
+@pytest.mark.skipif(not MULTITHREAD_TESTING, reason="Only run on multithread testing")
 @pytest.mark.parametrize("dist", DISTANCES)
 @pytest.mark.parametrize("n_jobs", [2, -1])
 def test_pairwise_distance_n_jobs_equals_serial(dist, n_jobs):
