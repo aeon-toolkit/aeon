@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from aeon.forecasting.base import BaseForecaster
+from aeon.forecasting.base import BaseForecaster, IterativeForecastingMixin
 
 from ._setartree import SETARTree
 
@@ -12,7 +12,7 @@ __maintainer__ = ["TinaJin0228"]
 __all__ = ["SETARForest"]
 
 
-class SETARForest(BaseForecaster):
+class SETARForest(BaseForecaster, IterativeForecastingMixin):
     """
     SETAR-Forest: Bagging + random subspace ensemble of SETAR-Tree base learners.
 
