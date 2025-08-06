@@ -339,3 +339,11 @@ class IterativeForecastingMixin:
             preds[i] = self.predict(y)
             y = np.append(y, preds[i])
         return preds
+
+
+class _SeriesToSeriesForecastingMixin:
+    """Mixin class for series-to-series forecasting."""
+
+    def series_to_series_forecast(self, y, prediction_horizon) -> np.ndarray:
+        """In the future makes a big forecast."""
+        pass
