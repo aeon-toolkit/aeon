@@ -79,6 +79,9 @@ def test_regression_forecaster_with_exog():
     f.fit(y, exog_m)
     p2 = f.predict(y, exog_m)
     assert p1 == p2
+    y = np.random.random((1, 100))
+    exog = np.random.random((1, 100))
+    f._fit(y, exog)
 
 
 def test_regression_forecaster_with_exog_errors():

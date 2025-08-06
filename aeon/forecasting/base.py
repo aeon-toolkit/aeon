@@ -28,9 +28,14 @@ class BaseForecaster(BaseSeriesEstimator):
 
     Parameters
     ----------
-    horizon : int, default =1
-        The number of time steps ahead to forecast. If horizon is one, the forecaster
-        will learn to predict one point ahead.
+    horizon : int
+        The number of time steps ahead to forecast. If ``horizon`` is one, the
+        forecaster will learn to predict one point ahead.
+    axis : int
+        The axis of time the forecaster uses internally. If ``axis`` is 0, the series
+        are internally assumed to be ``(n_timepoints, n_channels)`` and if ``axis`` is
+        1, the series are stored as ``(n_channels, n_timepoints)``. This is used to
+        convert the input data to the correct shape.
     """
 
     _tags = {
@@ -49,7 +54,7 @@ class BaseForecaster(BaseSeriesEstimator):
         super().__init__(axis)
 
     @final
-    def fit(self, y, exog=None):
+    def fit(self, y, exog=None, axis=1):
         """Fit forecaster to series y.
 
         Fit a forecaster to predict self.horizon steps ahead using y.
@@ -84,11 +89,10 @@ class BaseForecaster(BaseSeriesEstimator):
                 "handle exogenous variables"
             )
 
-        self._check_X(y, self.axis)
-        y = self._convert_y(y, self.axis)
+        y = self._preprocess_series(y, axis, True)
 
         if exog is not None:
-            exog = self._convert_y(exog, self.axis)
+            exog = self._convert_y(exog, axis)
 
         self._fit(y, exog)
 
@@ -97,7 +101,7 @@ class BaseForecaster(BaseSeriesEstimator):
         return self
 
     @final
-    def predict(self, y, exog=None):
+    def predict(self, y, exog=None, axis=1) -> float:
         """Predict the next horizon steps ahead.
 
         Parameters
@@ -129,15 +133,14 @@ class BaseForecaster(BaseSeriesEstimator):
                 "handle exogenous variables"
             )
 
-        self._check_X(y, self.axis)
-        y = self._convert_y(y, self.axis)
+        y = self._preprocess_series(y, axis, False)
 
         if exog is not None:
-            exog = self._convert_y(exog, self.axis)
+            exog = self._convert_y(exog, axis)
         return self._predict(y, exog)
 
     @final
-    def forecast(self, y, exog=None):
+    def forecast(self, y, exog=None, axis=1) -> float:
         """Forecast the next horizon steps ahead of ``y``.
 
         By default this is simply fit followed by returning forecast_.
@@ -145,7 +148,8 @@ class BaseForecaster(BaseSeriesEstimator):
         Parameters
         ----------
         y : np.ndarray
-            A time series to predict the next horizon value for.
+            A time series to predict the next horizon value for. Must be of shape
+            ``(n_channels, n_timepoints)`` if a multivariate time series.
         exog : np.ndarray, default =None
             Optional exogenous time series data assumed to be aligned with y.
 
@@ -168,8 +172,7 @@ class BaseForecaster(BaseSeriesEstimator):
                 "handle exogenous variables"
             )
 
-        self._check_X(y, self.axis)
-        y = self._convert_y(y, self.axis)
+        y = self._preprocess_series(y, axis, True)
 
         if exog is not None:
             exog = self._convert_y(exog, self.axis)
@@ -227,7 +230,7 @@ class DirectForecastingMixin:
     """Mixin class for direct forecasting."""
 
     @final
-    def direct_forecast(self, y, prediction_horizon, exog=None):
+    def direct_forecast(self, y, prediction_horizon, exog=None) -> np.ndarray:
         """
         Make ``prediction_horizon`` ahead forecasts using a fit for each horizon.
 
@@ -241,7 +244,8 @@ class DirectForecastingMixin:
         Parameters
         ----------
         y : np.ndarray
-            The time series to make forecasts about.
+            The time series to make forecasts about. Must be of shape
+            ``(n_channels, n_timepoints)`` if a multivariate time series.
         prediction_horizon : int
             The number of future time steps to forecast.
         exog : np.ndarray, default =None
@@ -288,7 +292,7 @@ class DirectForecastingMixin:
 class IterativeForecastingMixin:
     """Mixin class for iterative forecasting."""
 
-    def iterative_forecast(self, y, prediction_horizon):
+    def iterative_forecast(self, y, prediction_horizon) -> np.ndarray:
         """
         Forecast ``prediction_horizon`` prediction using a single model fit on `y`.
 
@@ -301,7 +305,8 @@ class IterativeForecastingMixin:
         once.
 
         y : np.ndarray
-            The time series to make forecasts about.
+            The time series to make forecasts about.  Must be of shape
+            ``(n_channels, n_timepoints)`` if a multivariate time series.
         prediction_horizon : int
             The number of future time steps to forecast.
 
