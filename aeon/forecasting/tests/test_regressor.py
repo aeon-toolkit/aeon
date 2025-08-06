@@ -16,15 +16,12 @@ def test_regression_forecaster():
     """
     y = np.random.rand(100)
     f = RegressionForecaster(window=10)
+    p = f.forecast(y)
     f.fit(y)
-    p = f.predict(y)
-    p2 = f.forecast(y)
+    p2 = f.predict(y)
     assert p == p2
-    p3 = f.forecast(y)
-    assert p == p3
     f2 = RegressionForecaster(regressor=LinearRegression(), window=10)
-    f2.fit(y)
-    p2 = f2.predict(y)
+    p2 = f2.forecast(y)
     assert p == p2
     f2 = RegressionForecaster(regressor=DummyRegressor(), window=10)
     f2.fit(y)
@@ -52,14 +49,14 @@ def test_regression_forecaster_with_exog():
 
     # Test fit and predict with exog
     f.fit(y, exog=exog)
-    p = f.predict(y, exog=exog)
-    assert isinstance(p, float)
+    p1 = f.forecast_
+    assert isinstance(p1, float)
 
     # Test that exog variable have an impact
     exog_zeros = np.zeros(n_samples)
     f.fit(y, exog=exog_zeros)
-    p2 = f.predict(y, exog=exog)
-    assert p != p2
+    p2 = f.forecast_
+    assert p1 != p2
 
     # Test that forecast method works and is equivalent to fit+predict
     y_new = np.arange(50, 150)

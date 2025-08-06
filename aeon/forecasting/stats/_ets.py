@@ -110,6 +110,73 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
         float
             single prediction self.horizon steps ahead of y.
         """
+        (
+            trend_type,
+            seasonality_type,
+            seasonal_period,
+            level_,
+            trend_,
+            seasonality_,
+            n_timepoints_,
+            residuals_,
+            fitted_values_,
+            avg_mean_sq_err_,
+            liklihood_,
+            k_,
+            aic_,
+        ) = self._shared_fit(y)
+
+        fitted_value = _numba_predict(
+            trend_type,
+            seasonality_type,
+            level_,
+            trend_,
+            seasonality_,
+            self.phi,
+            self.horizon,
+            n_timepoints_,
+            seasonal_period,
+        )
+        return fitted_value
+
+    def iterative_forecast(self, y, prediction_horizon):
+        """Forecast with ETS specific iterative method.
+
+        Overrides the base class iterative_forecast to avoid refitting on each step.
+        This simply rolls the ETS model forward
+        """
+        (
+            trend_type,
+            seasonality_type,
+            seasonal_period,
+            level_,
+            trend_,
+            seasonality_,
+            n_timepoints_,
+            residuals_,
+            fitted_values_,
+            avg_mean_sq_err_,
+            liklihood_,
+            k_,
+            aic_,
+        ) = self._shared_fit(y)
+
+        preds = np.zeros(prediction_horizon)
+        for i in range(0, prediction_horizon):
+            preds[i] = _numba_predict(
+                trend_type,
+                seasonality_type,
+                level_,
+                trend_,
+                seasonality_,
+                self.phi,
+                i + 1,
+                n_timepoints_,
+                seasonal_period,
+            )
+        return preds
+
+    def _shared_fit(self, y):
         _validate_parameter(self.error_type, False)
         _validate_parameter(self.seasonality_type, True)
         _validate_parameter(self.trend_type, True)
@@ -166,41 +233,21 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
             self.phi,
         )
 
-        fitted_value = _numba_predict(
+        return (
             trend_type,
             seasonality_type,
+            seasonal_period,
             level_,
             trend_,
             seasonality_,
-            self.phi,
-            self.horizon,
             n_timepoints_,
-            seasonal_period,
+            residuals_,
+            fitted_values_,
+            avg_mean_sq_err_,
+            liklihood_,
+            k_,
+            aic_,
         )
-        return fitted_value
-
-    def iterative_forecast(self, y, prediction_horizon):
-        """Forecast with ETS specific iterative method.
-
-        Overrides the base class iterative_forecast to avoid refitting on each step.
-        This simply rolls the ETS model forward
-        """
-        self.fit(y)
-        preds = np.zeros(prediction_horizon)
-        preds[0] = self.forecast_
-        for i in range(1, prediction_horizon):
-            preds[i] = _numba_predict(
-                self._trend_type,
-                self._seasonality_type,
-                self.level_,
-                self.trend_,
-                self.seasonality_,
-                self.phi,
-                i + 1,
-                self.n_timepoints_,
-                self._seasonal_period,
-            )
-        return preds
 
 
 @njit(fastmath=True, cache=True)
