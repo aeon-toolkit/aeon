@@ -10,7 +10,8 @@ def make_anomaly_detection_labels(
 ) -> np.ndarray:
     """Generate anomaly detection labels.
 
-    Generates a simple 0/1 anomaly labels for testing purposes.
+    Creates a boolean array of length ``n_labels`` with ``ceil(anomaly_rate*n_labels)`` 
+    anomalies at random positions.
 
     Parameters
     ----------
@@ -31,6 +32,6 @@ def make_anomaly_detection_labels(
     rng = np.random.RandomState(random_state)
     n_anomalies = np.ceil(n_labels * anomaly_rate)
     anomaly_indices = rng.choice(n_labels, size=int(n_anomalies), replace=False)
-    y = np.zeros(n_labels, dtype=int)
+    y = np.zeros(n_labels, dtype=bool)
     y[anomaly_indices] = 1
     return y
