@@ -56,7 +56,7 @@ def _ols_predict(X: np.ndarray, intercept: float, coef: np.ndarray):
 
 
 class TAR(BaseForecaster, IterativeForecastingMixin):
-    """Fast Threshold Autoregressive (TAR) forecaster using Numba OLS.
+    """Fast Threshold Autoregressive (TAR) [1] forecaster using Numba OLS.
 
     A TAR model fits two autoregressive models to different regimes,
     depending on whether the value at lag `delay` is above or below
@@ -64,16 +64,17 @@ class TAR(BaseForecaster, IterativeForecastingMixin):
     its own set of AR coefficients estimated via OLS.
 
     This implementation uses Numba to efficiently compute the lag
-    matrix, assign regimes, and fit both models without sklearn.
+    matrix, assign regimes, and fit both models without sklearn. It does not yet set
+    the threshold or the AR parameters automatically based on the training data.
 
     Parameters
     ----------
     threshold : float or None, default=None
         Threshold value for regime split. If None, set to mean of training data.
     delay : int, default=1
-        Delay `d` for threshold variable y_{t-d}.
+        Delay ``d`` for threshold variable ``y_{t-d}``.
     ar_order : int, default=1
-        AR order `p` for both regimes.
+        AR order ``p`` for both regimes.
 
     Attributes
     ----------
@@ -84,21 +85,8 @@ class TAR(BaseForecaster, IterativeForecastingMixin):
 
     References
     ----------
-    Tong, H. (1978). "On a threshold model." In: Chen, C.H. (ed.)
+    ..[1] Tong, H. (1978). "On a threshold model." In: Chen, C.H. (ed.)
     Pattern Recognition and Signal Processing. Sijthoff & Noordhoff, pp. 575–586.
-
-    Examples
-    --------
-    >>> from aeon.datasets import load_airline
-    >>> from aeon.forecasting.stats import TAR
-    >>> y = load_airline().squeeze()
-    >>> f = TAR(ar_order=2, delay=1)
-    >>> f.fit(y)
-    TARForecaster(...)
-    >>> f.forecast_
-    431.23...
-    >>> f.predict(y[:-1])
-    428.57...
     """
 
     def __init__(self, threshold=None, delay=1, ar_order=1):
