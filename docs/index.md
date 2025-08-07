@@ -25,7 +25,7 @@ segmentation and similarity search.
 
 **LinkedIn**: [linkedin/aeon-toolkit](https://www.linkedin.com/company/aeon-toolkit)
 
-**Twitter**: [twitter/aeon-toolkit](https://twitter.com/aeon_toolkit)
+**X/Twitter**: [twitter/aeon-toolkit](https://twitter.com/aeon_toolkit)
 
 **Medium Blog**: [medium/aeon.toolkit](https://medium.com/@aeon.toolkit)
 
