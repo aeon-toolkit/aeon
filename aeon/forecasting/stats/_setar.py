@@ -4,21 +4,10 @@ __maintainer__ = ["TinaJin0228"]
 __all__ = ["SETAR"]
 
 import numpy as np
+from numba import njit
 
 from aeon.forecasting.base import BaseForecaster, IterativeForecastingMixin
-
-
-def _lagmat_1d(y: np.ndarray, maxlag: int) -> np.ndarray:
-    """Return lag matrix with columns [y_{t-1}, ..., y_{t-maxlag}] (trim='both')."""
-    y = np.asarray(y, dtype=float).squeeze()
-    if y.ndim != 1:
-        raise ValueError("y must be a 1D array for lag construction.")
-    n = y.shape[0]
-    if n <= maxlag:
-        raise ValueError("Series too short for lag construction.")
-    # Column k (0-based) is y_{t-(k+1)}
-    cols = [y[maxlag - (k + 1) : -(k + 1) or None] for k in range(maxlag)]
-    return np.column_stack(cols)  # shape: (n - maxlag, maxlag)
+from aeon.forecasting.stats._tar import _make_lag_matrix
 
 
 def _add_constant(X: np.ndarray) -> np.ndarray:
@@ -28,6 +17,7 @@ def _add_constant(X: np.ndarray) -> np.ndarray:
     return np.hstack([np.ones((n, 1), dtype=X.dtype), X])
 
 
+@njit(cache=True, fastmath=True)
 def _ols_fit(X: np.ndarray, y: np.ndarray):
     """Least-squares fit: return (intercept, coefs, sse)."""
     beta, *_ = np.linalg.lstsq(X, y, rcond=None)
@@ -106,7 +96,7 @@ class SETAR(BaseForecaster, IterativeForecastingMixin):
             maxlag = self.lag
             if len(y) <= maxlag:
                 raise ValueError("Series too short for fallback fitting.")
-            lagged = _lagmat_1d(y, maxlag)  # cols: y_{t-1}..y_{t-maxlag}
+            lagged = _make_lag_matrix(y, maxlag)  # cols: y_{t-1}..y_{t-maxlag}
             X = _add_constant(lagged)
             target = y[maxlag:]
             inter, coefs, _ = _ols_fit(X, target)
@@ -127,7 +117,7 @@ class SETAR(BaseForecaster, IterativeForecastingMixin):
             # caller does the one-time length check; just return None here
             return None
 
-        lagged = _lagmat_1d(y, maxlag)  # shape: (T-maxlag, maxlag)
+        lagged = _make_lag_matrix(y, maxlag)  # shape: (T-maxlag, maxlag)
         trimmed_y = y[maxlag:]
         th_index = delay - 1  # threshold variable (y_{t-d})
         th_var = lagged[:, th_index]  # y_{t-1} when delay=1
