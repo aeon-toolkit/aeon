@@ -171,6 +171,22 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
         if self._seasonality_type == 0:
             # Required for the equations in _update_states to work correctly
             self._gamma = 0
+        params = [self.alpha]
+        if self._trend_type != 0:
+            params.append(self._beta)
+            params.append(self.phi)
+        if self._seasonality_type != 0:
+            params.append(self._gamma)
+        self.parameters_ = np.array(params, dtype=np.float64)
+        self.model_ = np.array(
+            [
+                self._error_type,
+                self._trend_type,
+                self._seasonality_type,
+                self._seasonal_period,
+            ],
+            dtype=np.int32,
+        )
         data = y.squeeze()
         (
             self.level_,
@@ -183,17 +199,7 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
             self.liklihood_,
             self.k_,
             self.aic_,
-        ) = _numba_fit(
-            data,
-            self._error_type,
-            self._trend_type,
-            self._seasonality_type,
-            self._seasonal_period,
-            self.alpha,
-            self._beta,
-            self._gamma,
-            self.phi,
-        )
+        ) = _numba_fit(self.parameters_, data, self.model_)
         self.forecast_ = _numba_predict(
             self._trend_type,
             self._seasonality_type,
@@ -266,17 +272,32 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
 
 
 @njit(fastmath=True, cache=True)
+def _extract_ets_params(params, trend_type, seasonality_type):
+    alpha = params[0]
+    if trend_type != 0:
+        beta = params[1]
+        phi = params[2]
+    else:
+        beta = 0
+        phi = 1
+    if seasonality_type != 0:
+        gamma = params[1 + 2 * (seasonality_type != 0)]
+    else:
+        gamma = 0
+    return alpha, beta, gamma, phi
+
+
+@njit(fastmath=True, cache=True)
 def _numba_fit(
+    params,
     data,
-    error_type,
-    trend_type,
-    seasonality_type,
-    seasonal_period,
-    alpha,
-    beta,
-    gamma,
-    phi,
+    model,
 ):
+    error_type = model[0]
+    trend_type = model[1]
+    seasonality_type = model[2]
+    seasonal_period = model[3]
+    alpha, beta, gamma, phi = _extract_ets_params(params, trend_type, seasonality_type)
     n_timepoints = len(data) - seasonal_period
     level, trend, seasonality = _initialise(
         trend_type, seasonality_type, seasonal_period, data
