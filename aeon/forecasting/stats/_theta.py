@@ -3,10 +3,10 @@
 import numpy as np
 from numba import njit
 
-from aeon.forecasting.base import BaseForecaster
+from aeon.forecasting.base import BaseForecaster, IterativeForecastingMixin
 
 
-class Theta(BaseForecaster):
+class Theta(BaseForecaster, IterativeForecastingMixin):
     """Theta forecaster.
 
     The Theta forecaster [1] is a univariate forecasting method that combines
