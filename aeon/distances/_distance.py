@@ -87,8 +87,8 @@ from aeon.distances.pointwise import (
     squared_distance,
     squared_pairwise_distance,
 )
-from aeon.utils._threading import threaded
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
+from aeon.utils.numba._threading import threaded
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
@@ -304,18 +304,13 @@ def _custom_pairwise_distance(
 
     indices = [(i, j) for i in range(n_cases) for j in range(i + 1, n_cases)]
 
-    if n_jobs == 1:
-        for i, j in indices:
-            distances[i, j] = dist_func(X[i], X[j], **kwargs)
-            distances[j, i] = distances[i, j]  # Mirror for symmetry
-    else:
-        results = Parallel(n_jobs=n_jobs)(
-            delayed(compute_single_distance)(i, j) for i, j in indices
-        )
+    results = Parallel(n_jobs=n_jobs)(
+        delayed(compute_single_distance)(i, j) for i, j in indices
+    )
 
-        for i, j, dist in results:
-            distances[i, j] = dist
-            distances[j, i] = dist  # Mirror for symmetry
+    for i, j, dist in results:
+        distances[i, j] = dist
+        distances[j, i] = dist  # Mirror for symmetry
 
     return distances
 
@@ -336,16 +331,12 @@ def _custom_from_multiple_to_multiple_distance(
 
     indices = [(i, j) for i in range(n_cases) for j in range(m_cases)]
 
-    if n_jobs == 1:
-        for i, j in indices:
-            distances[i, j] = dist_func(x[i], y[j], **kwargs)
-    else:
-        results = Parallel(n_jobs=n_jobs)(
-            delayed(compute_single_distance)(i, j) for i, j in indices
-        )
+    results = Parallel(n_jobs=n_jobs)(
+        delayed(compute_single_distance)(i, j) for i, j in indices
+    )
 
-        for i, j, dist in results:
-            distances[i, j] = dist
+    for i, j, dist in results:
+        distances[i, j] = dist
 
     return distances
 

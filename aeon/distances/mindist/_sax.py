@@ -5,8 +5,8 @@ from typing import Union
 import numpy as np
 from numba import njit, prange
 
-from aeon.utils._threading import threaded
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
+from aeon.utils.numba._threading import threaded
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
@@ -92,7 +92,6 @@ def mindist_sax_pairwise_distance(
     breakpoints: np.ndarray,
     n: int,
     n_jobs: int = 1,
-    **kwargs,
 ) -> np.ndarray:
     """Compute the SAX pairwise distance between a set of SAX representations.
 

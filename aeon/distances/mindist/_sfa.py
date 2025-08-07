@@ -5,8 +5,8 @@ from typing import Union
 import numpy as np
 from numba import njit, prange
 
-from aeon.utils._threading import threaded
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
+from aeon.utils.numba._threading import threaded
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
@@ -83,7 +83,7 @@ def _univariate_sfa_distance(
 
 @threaded
 def mindist_sfa_pairwise_distance(
-    X: np.ndarray, y: np.ndarray, breakpoints: np.ndarray, n_jobs: int = 1, **kwargs
+    X: np.ndarray, y: np.ndarray, breakpoints: np.ndarray, n_jobs: int = 1
 ) -> np.ndarray:
     """Compute the SFA mindist pairwise distance between a set of SFA representations.
 

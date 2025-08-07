@@ -11,8 +11,8 @@ from numba.typed import List as NumbaList
 from aeon.distances.elastic._alignment_paths import compute_lcss_return_path
 from aeon.distances.elastic._bounding_matrix import create_bounding_matrix
 from aeon.distances.pointwise._euclidean import _univariate_euclidean_distance
-from aeon.utils._threading import threaded
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
+from aeon.utils.numba._threading import threaded
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
@@ -231,7 +231,6 @@ def lcss_pairwise_distance(
     epsilon: float = 1.0,
     itakura_max_slope: Optional[float] = None,
     n_jobs: int = 1,
-    **kwargs,
 ) -> np.ndarray:
     """Compute the LCSS pairwise distance between a set of time series.
 

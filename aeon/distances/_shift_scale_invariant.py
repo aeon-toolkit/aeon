@@ -6,8 +6,8 @@ import numpy as np
 from numba import njit, prange
 from numba.typed import List as NumbaList
 
-from aeon.utils._threading import threaded
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
+from aeon.utils.numba._threading import threaded
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
@@ -163,7 +163,6 @@ def shift_scale_invariant_pairwise_distance(
     y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
     max_shift: Optional[int] = None,
     n_jobs: int = 1,
-    **kwargs,
 ) -> np.ndarray:
     r"""Compute the shift-scale invariant pairwise distance between time series.
 

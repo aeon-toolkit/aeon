@@ -2,7 +2,6 @@
 
 __maintainer__ = ["SebastianSchmidl"]
 
-import warnings
 from typing import Optional, Union
 
 import numpy as np
@@ -10,8 +9,8 @@ from numba import njit, objmode, prange
 from numba.typed import List as NumbaList
 from scipy.signal import correlate
 
-from aeon.utils._threading import threaded
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
+from aeon.utils.numba._threading import threaded
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
@@ -121,7 +120,6 @@ def sbd_pairwise_distance(
     y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
     standardize: bool = True,
     n_jobs: int = 1,
-    **kwargs,
 ) -> np.ndarray:
     """
     Compute the shape-based distance (SBD) between all pairs of time series.
@@ -147,6 +145,9 @@ def sbd_pairwise_distance(
         The number of jobs to run in parallel. If -1, then the number of jobs is set
         to the number of CPU cores. If 1, then the function is executed in a single
         thread. If greater than 1, then the function is executed in parallel.
+
+        NOTE: For this distance function unless your data has a large number of time
+        points, it is recommended to use n_jobs=1.
 
     Returns
     -------
@@ -197,15 +198,6 @@ def sbd_pairwise_distance(
            [0.36754447, 0.        , 0.29289322],
            [0.5527864 , 0.29289322, 0.        ]])
     """
-    if n_jobs > 1:
-        warnings.warn(
-            "You have set n_jobs > 1. For this distance function "
-            "unless your data has a large number of time points, it is "
-            "recommended to use n_jobs=1. If this function is slower than "
-            "expected try setting n_jobs=1.",
-            UserWarning,
-            stacklevel=2,
-        )
     multivariate_conversion = _is_numpy_list_multivariate(X, y)
     _X, _ = _convert_collection_to_numba_list(X, "", multivariate_conversion)
 

@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from aeon.utils._threading import threaded
+from aeon.utils.numba._threading import threaded
 
 
 def check_n_jobs(n_jobs):
@@ -32,8 +32,8 @@ def test_basic_functionality():
     check_jobs_mock = MagicMock(side_effect=lambda x: x if x is not None else 1)
     set_threads_mock = MagicMock()
 
-    with patch("aeon.utils._threading.check_n_jobs", check_jobs_mock):
-        with patch("aeon.utils._threading.set_num_threads", set_threads_mock):
+    with patch("aeon.utils.numba._threading.check_n_jobs", check_jobs_mock):
+        with patch("aeon.utils.numba._threading.set_num_threads", set_threads_mock):
 
             @threaded
             def sample_func(n_jobs=None):
@@ -53,8 +53,8 @@ def test_numba_env_variable(clean_env):
     check_jobs_mock = MagicMock(side_effect=lambda x: x if x is not None else 1)
     set_threads_mock = MagicMock()
 
-    with patch("aeon.utils._threading.check_n_jobs", check_jobs_mock):
-        with patch("aeon.utils._threading.set_num_threads", set_threads_mock):
+    with patch("aeon.utils.numba._threading.check_n_jobs", check_jobs_mock):
+        with patch("aeon.utils.numba._threading.set_num_threads", set_threads_mock):
 
             @threaded
             def sample_func(n_jobs=None):
@@ -72,9 +72,11 @@ def test_fallback_to_threading_count(clean_env):
     set_threads_mock = MagicMock()
 
     # Mock the new fallback mechanism
-    with patch("aeon.utils._threading.check_n_jobs", check_jobs_mock):
-        with patch("aeon.utils._threading.set_num_threads", set_threads_mock):
-            with patch("aeon.utils._threading.num_threads_default", return_value=3):
+    with patch("aeon.utils.numba._threading.check_n_jobs", check_jobs_mock):
+        with patch("aeon.utils.numba._threading.set_num_threads", set_threads_mock):
+            with patch(
+                "aeon.utils.numba._threading._num_threads_default", return_value=3
+            ):
 
                 @threaded
                 def sample_func(n_jobs=None):
@@ -97,8 +99,8 @@ def test_positional_argument():
     check_jobs_mock = MagicMock(side_effect=lambda x: x if x is not None else 1)
     set_threads_mock = MagicMock()
 
-    with patch("aeon.utils._threading.check_n_jobs", check_jobs_mock):
-        with patch("aeon.utils._threading.set_num_threads", set_threads_mock):
+    with patch("aeon.utils.numba._threading.check_n_jobs", check_jobs_mock):
+        with patch("aeon.utils.numba._threading.set_num_threads", set_threads_mock):
 
             @threaded
             def sample_func(data, n_jobs=None):
@@ -121,8 +123,8 @@ def test_keyword_argument():
     check_jobs_mock = MagicMock(side_effect=lambda x: x if x is not None else 1)
     set_threads_mock = MagicMock()
 
-    with patch("aeon.utils._threading.check_n_jobs", check_jobs_mock):
-        with patch("aeon.utils._threading.set_num_threads", set_threads_mock):
+    with patch("aeon.utils.numba._threading.check_n_jobs", check_jobs_mock):
+        with patch("aeon.utils.numba._threading.set_num_threads", set_threads_mock):
 
             @threaded
             def sample_func(data, n_jobs=None):
@@ -145,8 +147,8 @@ def test_default_value():
     check_jobs_mock = MagicMock(side_effect=lambda x: x if x is not None else 1)
     set_threads_mock = MagicMock()
 
-    with patch("aeon.utils._threading.check_n_jobs", check_jobs_mock):
-        with patch("aeon.utils._threading.set_num_threads", set_threads_mock):
+    with patch("aeon.utils.numba._threading.check_n_jobs", check_jobs_mock):
+        with patch("aeon.utils.numba._threading.set_num_threads", set_threads_mock):
 
             @threaded
             def sample_func(data, n_jobs=2):
@@ -169,8 +171,8 @@ def test_exception_handling():
     check_jobs_mock = MagicMock(side_effect=lambda x: x if x is not None else 1)
     set_threads_mock = MagicMock()
 
-    with patch("aeon.utils._threading.check_n_jobs", check_jobs_mock):
-        with patch("aeon.utils._threading.set_num_threads", set_threads_mock):
+    with patch("aeon.utils.numba._threading.check_n_jobs", check_jobs_mock):
+        with patch("aeon.utils.numba._threading.set_num_threads", set_threads_mock):
 
             @threaded
             def sample_func(n_jobs=None):
@@ -194,8 +196,8 @@ def test_class_attribute():
     check_jobs_mock = MagicMock(side_effect=lambda x: x if x is not None else 1)
     set_threads_mock = MagicMock()
 
-    with patch("aeon.utils._threading.check_n_jobs", check_jobs_mock):
-        with patch("aeon.utils._threading.set_num_threads", set_threads_mock):
+    with patch("aeon.utils.numba._threading.check_n_jobs", check_jobs_mock):
+        with patch("aeon.utils.numba._threading.set_num_threads", set_threads_mock):
 
             class TestClass:
                 def __init__(self, n_jobs):
@@ -225,8 +227,8 @@ def test_parameter_precedence_over_attribute():
     check_jobs_mock = MagicMock(side_effect=lambda x: x if x is not None else 1)
     set_threads_mock = MagicMock()
 
-    with patch("aeon.utils._threading.check_n_jobs", check_jobs_mock):
-        with patch("aeon.utils._threading.set_num_threads", set_threads_mock):
+    with patch("aeon.utils.numba._threading.check_n_jobs", check_jobs_mock):
+        with patch("aeon.utils.numba._threading.set_num_threads", set_threads_mock):
 
             class TestClass:
                 def __init__(self, n_jobs):
@@ -256,8 +258,8 @@ def test_fallback_when_no_attribute():
     check_jobs_mock = MagicMock(side_effect=lambda x: x if x is not None else 1)
     set_threads_mock = MagicMock()
 
-    with patch("aeon.utils._threading.check_n_jobs", check_jobs_mock):
-        with patch("aeon.utils._threading.set_num_threads", set_threads_mock):
+    with patch("aeon.utils.numba._threading.check_n_jobs", check_jobs_mock):
+        with patch("aeon.utils.numba._threading.set_num_threads", set_threads_mock):
 
             class TestClass:
                 # No n_jobs attribute
