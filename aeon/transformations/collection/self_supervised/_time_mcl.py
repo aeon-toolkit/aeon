@@ -128,6 +128,16 @@ class TimeMCL(BaseCollectionTransformer):
     >>> X_train_transformed = ssl.transform(X_train) # doctest: +SKIP
     """
 
+    _tags = {
+        "X_inner_type": "numpy3D",
+        "output_data_type": "Tabular",
+        "capability:multivariate": True,
+        "algorithm_type": "deeplearning",
+        "python_dependencies": "tensorflow",
+        "non_deterministic": True,
+        "cant_pickle": True,
+    }
+
     def __init__(
         self,
         alpha: float = 0.2,
