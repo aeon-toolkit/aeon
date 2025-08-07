@@ -1,5 +1,6 @@
 """Tests for KNeighborsTimeSeriesRegressor."""
 
+import numpy as np
 import pytest
 from numpy.testing import assert_almost_equal
 from sklearn.metrics import mean_squared_error
@@ -63,3 +64,15 @@ def test_knn_bounding_matrix(distance_key):
 
     mse = mean_squared_error(y_test, y_pred)
     assert_almost_equal(mse, expected_mse_window[distance_key])
+
+
+@pytest.mark.parametrize("distance_key", distance_functions)
+def test_knn_kneighbors(distance_key):
+    """Test knn kneighbors."""
+    knn = KNeighborsTimeSeriesRegressor(distance=distance_key, n_neighbors=3)
+    knn.fit(X_train, y_train)
+    dists, ind = knn.kneighbors(X_test, n_neighbors=3)
+    assert isinstance(dists, np.ndarray)
+    assert isinstance(ind, np.ndarray)
+    assert dists.shape == (X_test.shape[0], 3)
+    assert ind.shape == (X_test.shape[0], 3)
