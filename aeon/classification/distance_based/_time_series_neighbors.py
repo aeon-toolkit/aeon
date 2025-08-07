@@ -146,8 +146,18 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         """
         preds = np.zeros((len(X), len(self.classes_)))
         for i in range(len(X)):
-            weights, idx = self.kneighbors(X[i])
-            for id, w in zip(idx, weights):
+            neigh_dist, neigh_ind = self.kneighbors(X[i : i + 1])
+            neigh_dist = neigh_dist[0]
+            neigh_ind = neigh_ind[0]
+
+            if self.weights == "distance":
+                weights = 1 / (neigh_dist + np.finfo(float).eps)
+            elif self.weights == "uniform":
+                weights = np.repeat(1.0, len(neigh_ind))
+            else:
+                raise Exception(f"Invalid kNN weights: {self.weights}")
+
+            for id, w in zip(neigh_ind, weights):
                 predicted_class = self.y_[id]
                 preds[i, predicted_class] += w
 
