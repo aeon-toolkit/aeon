@@ -8,7 +8,7 @@ import numpy as np
 
 from aeon.similarity_search import BaseSimilaritySearch
 from aeon.testing.testing_data import FULL_TEST_DATA_DICT
-from aeon.utils.validation import get_n_cases
+from aeon.utils.validation.collection import get_n_cases
 
 
 def _run_estimator_method(estimator, method_name, datatype, split):

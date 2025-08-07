@@ -15,7 +15,7 @@ from aeon.testing.testing_data import (
     UNEQUAL_LENGTH_UNIVARIATE_CLASSIFICATION,
 )
 from aeon.utils.data_types import COLLECTIONS_DATA_TYPES
-from aeon.utils.validation import get_type
+from aeon.utils.validation.collection import get_type
 
 
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)

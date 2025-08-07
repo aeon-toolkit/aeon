@@ -401,7 +401,7 @@ def convert_collection(X, output_type):
     Examples
     --------
     >>> from aeon.utils.conversion import convert_collection
-    >>> from aeon.utils.validation import get_type
+    >>> from aeon.utils.validation.collection import get_type
     >>> X=convert_collection(np.zeros(shape=(10, 3, 20)), "np-list")
     >>> type(X)
     <class 'list'>
