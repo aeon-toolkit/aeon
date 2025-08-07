@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from aeon.forecasting.stats._setar import SETAR
+from aeon.forecasting.machine_learning._setar import SETAR
 
 
 def test_constant_series_scalar_and_close():
