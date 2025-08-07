@@ -133,7 +133,7 @@ class TCNNetwork(BaseDeepLearningNetwork):
         Parameters
         ----------
         input_tensor : tf.Tensor
-            Input tensor of shape (batch_size, channels, sequence_length).
+            Input tensor of shape (batch_size, sequence_length, channels).
         chomp_size : int
             Number of time steps to remove from the end.
 
@@ -167,7 +167,7 @@ class TCNNetwork(BaseDeepLearningNetwork):
         Parameters
         ----------
         input_tensor : tf.Tensor
-            Input tensor of shape (batch_size, channels, sequence_length).
+            Input tensor of shape (batch_size, sequence_length, channels).
         n_inputs : int
             Number of input channels.
         n_filters : int
@@ -188,7 +188,7 @@ class TCNNetwork(BaseDeepLearningNetwork):
         Returns
         -------
         tf.Tensor
-            Output tensor of shape (batch_size, n_filters, sequence_length).
+            Output tensor of shape (batch_size, sequence_length, n_filters).
         """
         import tensorflow as tf
 
@@ -312,7 +312,7 @@ class TCNNetwork(BaseDeepLearningNetwork):
 
         # Transpose input to match the expected format (batch, n_timepoints, n_channels)
         x = input_layer
-        n_inputs = input_shape[1]
+        n_inputs = input_shape[1]  # input_shape is of shape (n_timepoints, n_channels)
 
         # Apply TCN using the private function
         x = self._temporal_conv_net(
@@ -322,6 +322,6 @@ class TCNNetwork(BaseDeepLearningNetwork):
             kernel_size=self.kernel_size,
             dropout=self.dropout,
         )
-        output = tf.keras.layers.Dense(input_shape[1])(x[:, :, -1])
+        output = tf.keras.layers.Dense(input_shape[1])(x[:, -1, :])
         # output = tf.keras.layers.Dense(1)(x)
         return input_layer, output
