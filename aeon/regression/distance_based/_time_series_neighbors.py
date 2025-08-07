@@ -17,7 +17,7 @@ import numpy as np
 
 from aeon.distances import pairwise_distance
 from aeon.regression.base import BaseRegressor
-from aeon.utils._threading import threaded
+from aeon.utils.numba._threading import threaded
 from aeon.utils.validation import check_n_jobs
 
 WEIGHTS_SUPPORTED = ["uniform", "distance"]
