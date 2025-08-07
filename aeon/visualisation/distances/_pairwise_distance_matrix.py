@@ -39,7 +39,10 @@ def plot_pairwise_distance_matrix(
     import seaborn as sns
 
     plt.figure(1, figsize=(10, 10))
-    a_size = len(a)
+    if len(a.shape) == 1:
+        a_size = ts_length = len(a)
+    else:
+        a_size, ts_length = a.shape
 
     left, bottom = 0.01, 0.1
     w_ts = h_ts = 0.2
@@ -82,22 +85,36 @@ def plot_pairwise_distance_matrix(
 
     ax_gram.axis("off")
 
+    if b.ndim == 1:
+        b = b[np.newaxis, :]  # reshape (1, len(b))
+
     # Plot the orange time series b.
-    ax_s_x.plot(
-        np.linspace(0.5, a_size - 1.5, a_size), b, "-", linewidth=3.0, color="orange"
-    )
+    for i in range(b.shape[0]):
+
+        ax_s_x.plot(
+            np.linspace(0.5, ts_length - 1.5, ts_length),
+            b[i],
+            linewidth=2.0,
+            color="orange",
+            alpha=0.8,
+        )
+
     ax_s_x.set_xlim((0, a_size - 1))
     ax_s_x.set_title(r"$\mathbf{b}$", fontsize=15)
     ax_s_x.axis("off")
 
+    if a.ndim == 1:
+        a = a[np.newaxis, :]
+
     # Plot the blue time series a.
-    ax_s_y.plot(
-        -a[::-1],
-        np.linspace(0.5, a_size - 1.5, a_size),
-        "-",
-        linewidth=3.0,
-        color="blue",
-    )
+    for i in range(a.shape[0]):
+        ax_s_y.plot(
+            -a[i][::-1],
+            np.linspace(0.5, ts_length - 1.5, ts_length),
+            "-",
+            linewidth=3.0,
+            color="blue",
+        )
     ax_s_y.set_ylim((0, a_size - 1))
     ax_s_y.set_ylabel(r"$\mathbf{a}$", fontsize=15)
 
