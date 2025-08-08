@@ -180,48 +180,65 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
             Indices of the nearest points in the population matrix.
         """
         self._check_is_fitted()
+
         if n_neighbors is None:
             n_neighbors = self.n_neighbors
-        elif n_neighbors <= 0:
-            raise ValueError(f"Expected n_neighbors > 0. Got {n_neighbors}")
         elif not isinstance(n_neighbors, numbers.Integral):
             raise TypeError(
-                f"n_neighbors does not take {type(n_neighbors)} value, "
-                "enter integer value"
+                f"n_neighbors does not take {type(n_neighbors)} value, enter integer "
+                f"value"
             )
+        elif n_neighbors <= 0:
+            raise ValueError(f"Expected n_neighbors > 0. Got {n_neighbors}")
 
         query_is_train = X is None
         if query_is_train:
             X = self.X_
-            n_neighbors += 1
         else:
             X = self._preprocess_collection(X, store_metadata=False)
             self._check_shape(X)
 
+        n_samples_fit = self.X_.shape[0]
+        if query_is_train:
+            if not (n_neighbors < n_samples_fit):
+                raise ValueError(
+                    "Expected n_neighbors < n_samples_fit, but "
+                    f"n_neighbors = {n_neighbors}, n_samples_fit = {n_samples_fit}, "
+                    f"n_samples = {X.shape[0]}"
+                )
+        else:
+            if not (n_neighbors <= n_samples_fit):
+                raise ValueError(
+                    "Expected n_neighbors <= n_samples_fit, but "
+                    f"n_neighbors = {n_neighbors}, n_samples_fit = {n_samples_fit}, "
+                    f"n_samples = {X.shape[0]}"
+                )
+
         distances = pairwise_distance(
             X,
-            self.X_ if not query_is_train else None,
+            None if query_is_train else self.X_,
             method=self.distance,
             n_jobs=self.n_jobs,
             **self._distance_params,
         )
 
-        sample_range = np.arange(distances.shape[0])[:, None]
-        neigh_ind = np.argpartition(distances, n_neighbors - 1, axis=1)
-        neigh_ind = neigh_ind[:, :n_neighbors]
-        neigh_ind = neigh_ind[
-            sample_range, np.argsort(distances[sample_range, neigh_ind])
-        ]
-
+        # If querying the training set, exclude self by setting diag to +inf
         if query_is_train:
-            neigh_ind = neigh_ind[:, 1:]
+            np.fill_diagonal(distances, np.inf)
+
+        k = n_neighbors
+        # 1) partial select smallest k
+        idx_part = np.argpartition(distances, kth=k - 1, axis=1)[:, :k]
+        # 2) sort those k by (distance, index)
+        row_idx = np.arange(distances.shape[0])[:, None]
+        part_d = distances[row_idx, idx_part]
+        # argsort by distance, then by index for ties (lexsort uses last key as primary)
+        order = np.lexsort((idx_part, part_d), axis=1)
+        neigh_ind = idx_part[row_idx, order]
 
         if return_distance:
-            if query_is_train:
-                neigh_dist = distances[sample_range, neigh_ind]
-                return neigh_dist, neigh_ind
-            return distances[sample_range, neigh_ind], neigh_ind
-
+            neigh_dist = distances[row_idx, neigh_ind]
+            return neigh_dist, neigh_ind
         return neigh_ind
 
     @classmethod
