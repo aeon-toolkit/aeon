@@ -285,7 +285,12 @@ class TimeMCL(BaseCollectionTransformer):
                     z2 = self.training_model_(x_batch_train2, training=True)
                     z_augmented = self.training_model_(x_batch_augmented, training=True)
 
-                    loss_batch = self._mixup_loss(z1=z1, z2=z2, z_augmented=z_augmented)
+                    loss_batch = self._mixup_loss(
+                        z1=z1,
+                        z2=z2,
+                        z_augmented=z_augmented,
+                        contrastive_weight=_contrastive_weight,
+                    )
                     loss_mean = tf.reduce_mean(loss_batch)
 
                 gradients = tape.gradient(
@@ -400,7 +405,7 @@ class TimeMCL(BaseCollectionTransformer):
 
         return model
 
-    def _mixup_loss(self, z1, z2, z_augmented):
+    def _mixup_loss(self, z1, z2, z_augmented, contrastive_weight):
         import tensorflow as tf
 
         batch_size = tf.shape(z_augmented)[0]
@@ -410,8 +415,8 @@ class TimeMCL(BaseCollectionTransformer):
         z_augmented = tf.nn.l2_normalize(z_augmented, axis=1)
 
         eye = tf.eye(batch_size)
-        labels_lamda_0 = self.weight_mixup * eye
-        labels_lamda_1 = (1 - self.weight_mixup) * eye
+        labels_lamda_0 = contrastive_weight * eye
+        labels_lamda_1 = (1 - contrastive_weight) * eye
         labels = tf.concat([labels_lamda_0, labels_lamda_1], axis=1)
 
         logits_1 = tf.matmul(z_augmented, z1, transpose_b=True)
