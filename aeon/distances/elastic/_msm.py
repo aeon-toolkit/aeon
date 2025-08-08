@@ -272,7 +272,7 @@ def _independent_cost_matrix(
 
     for i in range(1, y_size):
         if bounding_matrix[0, i]:
-            cost = _cost_independent(y[i], y[i - 1], x[0], c)
+            cost = _cost_independent(y[i], x[0], y[i - 1], c)
             cost_matrix[0][i] = cost_matrix[0][i - 1] + cost
 
     for i in range(1, x_size):
@@ -302,7 +302,7 @@ def _msm_dependent_cost_matrix(
             cost_matrix[i][0] = cost_matrix[i - 1][0] + cost
     for i in range(1, y_size):
         if bounding_matrix[0, i]:
-            cost = _cost_dependent(y[:, i], y[:, i - 1], x[:, 0], c)
+            cost = _cost_dependent(y[:, i], x[:, 0], y[:, i - 1], c)
             cost_matrix[0][i] = cost_matrix[0][i - 1] + cost
 
     for i in range(1, x_size):
