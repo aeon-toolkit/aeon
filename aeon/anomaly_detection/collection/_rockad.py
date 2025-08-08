@@ -13,7 +13,7 @@ from sklearn.utils import check_random_state, resample
 
 from aeon.anomaly_detection.collection.base import BaseCollectionAnomalyDetector
 from aeon.transformations.collection.convolution_based import Rocket
-from aeon.utils.tests.test_threading_decorator import check_n_jobs
+from aeon.utils.validation import check_n_jobs
 
 
 class ROCKAD(BaseCollectionAnomalyDetector):
