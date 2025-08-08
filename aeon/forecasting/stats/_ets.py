@@ -14,11 +14,13 @@ import numpy as np
 from numba import njit
 
 from aeon.forecasting.base import BaseForecaster, IterativeForecastingMixin
+from aeon.forecasting.utils._extract_paras import _extract_ets_params
 from aeon.forecasting.utils._loss_functions import (
     _ets_fit,
     _ets_initialise,
     _ets_predict_value,
 )
+from aeon.forecasting.utils._nelder_mead import nelder_mead
 
 ADDITIVE = "additive"
 MULTIPLICATIVE = "multiplicative"
@@ -104,26 +106,21 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
         trend_type: Union[int, str, None] = 0,
         seasonality_type: Union[int, str, None] = 0,
         seasonal_period: int = 1,
-        alpha: float = 0.1,
-        beta: float = 0.01,
-        gamma: float = 0.01,
-        phi: float = 0.99,
+        iterations: int = 200,
     ):
-        self.alpha = alpha
-        self.beta = beta
-        self.gamma = gamma
-        self.phi = phi
         self.forecast_val_ = 0.0
         self.level_ = 0.0
         self.trend_ = 0.0
         self.seasonality_ = None
-        self._beta = beta
-        self._gamma = gamma
         self.error_type = error_type
+        self._error_type = error_type
         self.trend_type = trend_type
+        self._trend_type = trend_type
         self.seasonality_type = seasonality_type
+        self._seasonality_type = seasonality_type
         self.seasonal_period = seasonal_period
         self._seasonal_period = seasonal_period
+        self.iterations = iterations
         self.n_timepoints_ = 0
         self.avg_mean_sq_err_ = 0
         self.liklihood_ = 0
@@ -131,6 +128,13 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
         self.aic_ = 0
         self.residuals_ = []
         self.fitted_values_ = []
+        self._model = []
+        self.parameters_ = []
+        self.alpha_ = 0
+        self.beta_ = 0
+        self.gamma_ = 0
+        self.phi_ = 0
+        self.forecast_ = 0
         super().__init__(horizon=1, axis=1)
 
     def _fit(self, y, exog=None):
@@ -169,21 +173,7 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
         self._trend_type = _get_int(self.trend_type)
         if self._seasonal_period < 1 or self._seasonality_type == 0:
             self._seasonal_period = 1
-
-        if self._trend_type == 0:
-            # Required for the equations in _update_states to work correctly
-            self._beta = 0
-        if self._seasonality_type == 0:
-            # Required for the equations in _update_states to work correctly
-            self._gamma = 0
-        params = [self.alpha]
-        if self._trend_type != 0:
-            params.append(self._beta)
-            params.append(self.phi)
-        if self._seasonality_type != 0:
-            params.append(self._gamma)
-        self.parameters_ = np.array(params, dtype=np.float64)
-        self.model_ = np.array(
+        self._model = np.array(
             [
                 self._error_type,
                 self._trend_type,
@@ -193,6 +183,16 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
             dtype=np.int32,
         )
         data = y.squeeze()
+        (self.parameters_, self.aic_) = nelder_mead(
+            1,
+            1 + 2 * (self._trend_type != 0) + (self._seasonality_type != 0),
+            data,
+            self._model,
+            max_iter=self.iterations,
+        )
+        self.alpha_, self.beta_, self.gamma_, self.phi_ = _extract_ets_params(
+            self.parameters_, self._model
+        )
         (
             self.aic_,
             self.level_,
@@ -204,14 +204,14 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
             self.avg_mean_sq_err_,
             self.liklihood_,
             self.k_,
-        ) = _ets_fit(self.parameters_, data, self.model_)
+        ) = _ets_fit(self.parameters_, data, self._model)
         self.forecast_ = _numba_predict(
             self._trend_type,
             self._seasonality_type,
             self.level_,
             self.trend_,
             self.seasonality_,
-            self.phi,
+            self.phi_,
             self.horizon,
             self.n_timepoints_,
             self._seasonal_period,
@@ -268,7 +268,7 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
                 self.level_,
                 self.trend_,
                 self.seasonality_,
-                self.phi,
+                self.phi_,
                 i + 1,
                 self.n_timepoints_,
                 self._seasonal_period,
