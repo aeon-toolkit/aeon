@@ -9,7 +9,7 @@ from typing import Optional
 import numpy as np
 from sklearn.neighbors import NearestNeighbors
 from sklearn.preprocessing import PowerTransformer
-from sklearn.utils import resample
+from sklearn.utils import check_random_state, resample
 
 from aeon.anomaly_detection.collection.base import BaseCollectionAnomalyDetector
 from aeon.transformations.collection.convolution_based import Rocket
@@ -121,7 +121,7 @@ class ROCKAD(BaseCollectionAnomalyDetector):
 
     def _fit(self, X: np.ndarray, y: Optional[np.ndarray] = None):
         self._n_jobs = check_n_jobs(self.n_jobs)
-        rng = np.random.RandomState(self.random_state)
+        rng = check_random_state(self.random_state)
 
         self.rocket_transformer_ = Rocket(
             n_kernels=self.n_kernels,
