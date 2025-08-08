@@ -198,20 +198,20 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
             X = self._preprocess_collection(X, store_metadata=False)
             self._check_shape(X)
 
-        n_samples_fit = self.X_.shape[0]
+        n_samples_fit = len(self.X_)
         if query_is_train:
             if not (n_neighbors < n_samples_fit):
                 raise ValueError(
                     "Expected n_neighbors < n_samples_fit, but "
                     f"n_neighbors = {n_neighbors}, n_samples_fit = {n_samples_fit}, "
-                    f"n_samples = {X.shape[0]}"
+                    f"n_samples = {len(X)}"
                 )
         else:
             if not (n_neighbors <= n_samples_fit):
                 raise ValueError(
                     "Expected n_neighbors <= n_samples_fit, but "
                     f"n_neighbors = {n_neighbors}, n_samples_fit = {n_samples_fit}, "
-                    f"n_samples = {X.shape[0]}"
+                    f"n_samples = {len(X)}"
                 )
 
         distances = pairwise_distance(
