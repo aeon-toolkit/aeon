@@ -88,12 +88,11 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()
     >>> forecaster = ETS(
-    ...     alpha=0.4, beta=0.2, gamma=0.5, phi=0.8,
     ...     error_type='additive', trend_type='multiplicative',
     ...     seasonality_type='multiplicative', seasonal_period=4
     ... )
     >>> forecaster.forecast(y)
-    365.5141941111267
+    413.07266877621925
     """
 
     _tags = {
