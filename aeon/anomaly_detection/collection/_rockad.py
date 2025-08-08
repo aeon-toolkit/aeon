@@ -121,6 +121,7 @@ class ROCKAD(BaseCollectionAnomalyDetector):
 
     def _fit(self, X: np.ndarray, y: Optional[np.ndarray] = None):
         self._n_jobs = check_n_jobs(self.n_jobs)
+        rng = np.random.RandomState(self.random_state)
 
         self.rocket_transformer_ = Rocket(
             n_kernels=self.n_kernels,
@@ -150,11 +151,11 @@ class ROCKAD(BaseCollectionAnomalyDetector):
 
         self.list_baggers_ = []
 
-        for idx_estimator in range(self.n_estimators):
+        for _ in range(self.n_estimators):
             # Initialize estimator
             estimator = NearestNeighbors(
                 n_neighbors=self.n_neighbors,
-                n_jobs=self.n_jobs,
+                n_jobs=self._n_jobs,
                 metric=self.metric,
                 algorithm="kd_tree",
             )
@@ -163,7 +164,7 @@ class ROCKAD(BaseCollectionAnomalyDetector):
                 Xtp,
                 replace=True,
                 n_samples=None,
-                random_state=self.random_state + idx_estimator,
+                random_state=rng.randint(np.iinfo(np.int32).max),
                 stratify=None,
             )
 
