@@ -1,5 +1,6 @@
 """ROCKAD anomaly detector."""
 
+__maintainer__ = []
 __all__ = ["ROCKAD"]
 
 import warnings
@@ -12,6 +13,7 @@ from sklearn.utils import resample
 
 from aeon.anomaly_detection.collection.base import BaseCollectionAnomalyDetector
 from aeon.transformations.collection.convolution_based import Rocket
+from aeon.utils.tests.test_threading_decorator import check_n_jobs
 
 
 class ROCKAD(BaseCollectionAnomalyDetector):
@@ -46,7 +48,7 @@ class ROCKAD(BaseCollectionAnomalyDetector):
         Distance metric to use for the k-NN algorithm.
     power_transform : bool, default=True
         Whether to apply a power transformation (Yeo-Johnson) to the features.
-    random_state : int, default=42
+    random_state : int, default=None
         Random seed for reproducibility.
 
     Attributes
@@ -99,7 +101,7 @@ class ROCKAD(BaseCollectionAnomalyDetector):
         metric="euclidean",
         power_transform=True,
         n_jobs=1,
-        random_state=42,
+        random_state=None,
     ):
 
         self.n_estimators = n_estimators
@@ -117,18 +119,13 @@ class ROCKAD(BaseCollectionAnomalyDetector):
 
         super().__init__()
 
-    def _fit(self, X: np.ndarray, y: Optional[np.ndarray] = None) -> "ROCKAD":
-        _X = X
-        self._inner_fit(_X)
-
-        return self
-
-    def _inner_fit(self, X: np.ndarray) -> None:
+    def _fit(self, X: np.ndarray, y: Optional[np.ndarray] = None):
+        self._n_jobs = check_n_jobs(self.n_jobs)
 
         self.rocket_transformer_ = Rocket(
             n_kernels=self.n_kernels,
             normalise=self.normalise,
-            n_jobs=self.n_jobs,
+            n_jobs=self._n_jobs,
             random_state=self.random_state,
         )
         # XT: (n_cases, n_kernels*2)
@@ -175,12 +172,6 @@ class ROCKAD(BaseCollectionAnomalyDetector):
             self.list_baggers_.append(estimator)
 
     def _predict(self, X) -> np.ndarray:
-        _X = X
-        collection_anomaly_scores = self._inner_predict(_X)
-
-        return collection_anomaly_scores
-
-    def _inner_predict(self, X: np.ndarray) -> np.ndarray:
         """
         Return the anomaly scores for the input data.
 
@@ -191,7 +182,6 @@ class ROCKAD(BaseCollectionAnomalyDetector):
         Returns
         -------
             np.ndarray: The predicted probabilities.
-
         """
         y_scores = np.zeros((len(X), self.n_estimators))
         # Transform into rocket feature space
