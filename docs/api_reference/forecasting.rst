@@ -35,4 +35,5 @@ Statistical Models
 
     ARIMA
     ETS
-    TVPForecaster
+    TVP
+    TAR
