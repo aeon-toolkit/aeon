@@ -14,6 +14,7 @@ __all__ = [
     "MinMaxScaler",
     "Normalizer",
     "PeriodogramTransformer",
+    "SeriesToCollectionBroadcaster",
     "SlopeTransformer",
     "SimpleImputer",
     "Tabularizer",
@@ -21,6 +22,7 @@ __all__ = [
 
 from aeon.transformations.collection._acf import AutocorrelationFunctionTransformer
 from aeon.transformations.collection._ar_coefficient import ARCoefficientTransformer
+from aeon.transformations.collection._broadcaster import SeriesToCollectionBroadcaster
 from aeon.transformations.collection._downsample import DownsampleTransformer
 from aeon.transformations.collection._dwt import DWTTransformer
 from aeon.transformations.collection._hog1d import HOG1DTransformer
