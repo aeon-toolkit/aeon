@@ -197,7 +197,7 @@ def _stomp_self(ts, m):
 @deprecated(
     version="1.3.0",
     reason="MatrixProfile will be removed in v1.5.0. Instead, use the "
-    "MatrixProfileSeriesTransformer and the SeriesToCollectionBroadcaster.",
+    "MatrixProfileTransformer and the SeriesToCollectionBroadcaster.",
     category=FutureWarning,
 )
 class MatrixProfile(BaseCollectionTransformer):
