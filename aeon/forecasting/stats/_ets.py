@@ -112,13 +112,9 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
         self.trend_ = 0.0
         self.seasonality_ = None
         self.error_type = error_type
-        self._error_type = error_type
         self.trend_type = trend_type
-        self._trend_type = trend_type
         self.seasonality_type = seasonality_type
-        self._seasonality_type = seasonality_type
         self.seasonal_period = seasonal_period
-        self._seasonal_period = seasonal_period
         self.iterations = iterations
         self.n_timepoints_ = 0
         self.avg_mean_sq_err_ = 0
