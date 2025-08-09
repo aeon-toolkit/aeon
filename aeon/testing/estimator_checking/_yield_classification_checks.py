@@ -14,9 +14,9 @@ from sklearn.utils._testing import set_random_state
 from aeon.base._base import _clone_estimator
 from aeon.classification.deep_learning import BaseDeepClassifier
 from aeon.datasets import load_basic_motions, load_unit_test
-from aeon.testing.expected_results.expected_classifier_outputs import (
-    basic_motions_proba,
-    unit_test_proba,
+from aeon.testing.expected_results.expected_classifier_results import (
+    multivariate_expected_results,
+    univariate_expected_results,
 )
 from aeon.testing.testing_data import FULL_TEST_DATA_DICT
 from aeon.testing.utils.estimator_checks import (
@@ -38,16 +38,14 @@ def _yield_classification_checks(estimator_class, estimator_instances, datatypes
             estimator_class=estimator_class,
             data_name="UnitTest",
             data_loader=load_unit_test,
-            results_dict=unit_test_proba,
-            resample_seed=0,
+            results_dict=univariate_expected_results,
         )
         yield partial(
             check_classifier_against_expected_results,
             estimator_class=estimator_class,
             data_name="BasicMotions",
             data_loader=load_basic_motions,
-            results_dict=basic_motions_proba,
-            resample_seed=4,
+            results_dict=multivariate_expected_results,
         )
     yield partial(check_classifier_overrides_and_tags, estimator_class=estimator_class)
 
