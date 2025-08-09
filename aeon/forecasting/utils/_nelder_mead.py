@@ -3,13 +3,15 @@
 import numpy as np
 from numba import njit
 
-from aeon.forecasting.utils._loss_functions import _arima_fit
+from aeon.forecasting.utils._loss_functions import _arima_fit, _ets_fit
 
 
 @njit(cache=True, fastmath=True)
 def dispatch_loss(fn_id, params, data, model):
     if fn_id == 0:
         return _arima_fit(params, data, model)
+    if fn_id == 1:
+        return _ets_fit(params, data, model)[0]
     else:
         raise ValueError("Unknown loss function ID")
 
