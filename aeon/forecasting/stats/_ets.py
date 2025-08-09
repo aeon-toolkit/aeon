@@ -166,6 +166,7 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
         self._error_type = _get_int(self.error_type)
         self._seasonality_type = _get_int(self.seasonality_type)
         self._trend_type = _get_int(self.trend_type)
+        self._seasonal_period = self.seasonal_period
         if self._seasonal_period < 1 or self._seasonality_type == 0:
             self._seasonal_period = 1
         self._model = np.array(
