@@ -221,7 +221,6 @@ def _ets_update_states(
 @njit(fastmath=True, cache=True)
 def _ets_predict_value(trend_type, seasonality_type, level, trend, seasonality, phi):
     """
-
     Generate various useful values, including the next fitted value.
 
     Parameters
