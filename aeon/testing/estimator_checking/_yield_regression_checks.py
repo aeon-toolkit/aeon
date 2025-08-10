@@ -10,7 +10,7 @@ from functools import partial
 
 import numpy as np
 from numpy.testing import assert_array_almost_equal
-from sklearn.utils._testing import set_random_state
+from sklearn.ensemble._base import _set_random_states
 
 from aeon.base._base import _clone_estimator
 from aeon.regression.deep_learning import BaseDeepRegressor
@@ -34,26 +34,24 @@ from aeon.utils.data_types import COLLECTIONS_DATA_TYPES
 def _yield_regression_checks(estimator_class, estimator_instances, datatypes):
     """Yield all regression checks for an aeon regressor."""
     # only class required
-    if sys.platform == "linux":  # We cannot guarantee same results on ARM macOS
-        # Compare against results for both Covid3Month and CardanoSentiment if available
-        yield partial(
-            check_regressor_against_expected_results,
-            estimator_class=estimator_class,
-            data_name="Covid3Month",
-            X_train=X_c3m_train,
-            y_train=y_c3m_train,
-            X_test=X_c3m_test,
-            results_dict=univariate_expected_results,
-        )
-        yield partial(
-            check_regressor_against_expected_results,
-            estimator_class=estimator_class,
-            data_name="CardanoSentiment",
-            X_train=X_cs_train,
-            y_train=y_cs_train,
-            X_test=X_cs_test,
-            results_dict=multivariate_expected_results,
-        )
+    yield partial(
+        check_regressor_against_expected_results,
+        estimator_class=estimator_class,
+        data_name="Covid3Month",
+        X_train=X_c3m_train,
+        y_train=y_c3m_train,
+        X_test=X_c3m_test,
+        results_dict=univariate_expected_results,
+    )
+    yield partial(
+        check_regressor_against_expected_results,
+        estimator_class=estimator_class,
+        data_name="CardanoSentiment",
+        X_train=X_cs_train,
+        y_train=y_cs_train,
+        X_test=X_cs_test,
+        results_dict=multivariate_expected_results,
+    )
     yield partial(check_regressor_overrides_and_tags, estimator_class=estimator_class)
 
     # data type irrelevant
@@ -105,7 +103,10 @@ def check_regressor_against_expected_results(
 ):
     """Test regressor against stored results."""
     # retrieve expected predict output, and skip test if not available
-    if estimator_class.__name__ in results_dict.keys():
+    if sys.platform != "linux":
+        # we cannot guarantee same results on ARM macOS
+        return "Comparison against expected results is only available on Linux."
+    elif estimator_class.__name__ in results_dict.keys():
         expected_preds = results_dict[estimator_class.__name__]
     else:
         # skip test if no expected preds are registered
@@ -116,11 +117,11 @@ def check_regressor_against_expected_results(
         parameter_set="results_comparison", return_first=True
     )
     # set random seed if possible
-    set_random_state(estimator_instance, 42)
+    _set_random_states(estimator_instance, 42)
 
     # train regressor and predict
     estimator_instance.fit(deepcopy(X_train), deepcopy(y_train))
-    y_pred = estimator_instance.predict_proba(deepcopy(X_test))
+    y_pred = estimator_instance.predict(deepcopy(X_test))
 
     # assert predictions are the same
     assert_array_almost_equal(

@@ -151,7 +151,7 @@ if __name__ == "__main__":
                 continue
 
             estimator = estimator_class._create_test_instance(
-                "results_comparison", return_first=True
+                parameter_set="results_comparison", return_first=True
             )
             tags = estimator.get_tags()
 
