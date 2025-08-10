@@ -111,8 +111,9 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer):
         if y is not None:
             self._check_y(y)
 
-        if not fit_empty:
-            self._check_shape(X)
+        # #2768
+        # if not fit_empty:
+        #     self._check_shape(X)
 
         Xt = self._transform(X, y)
         return self._postprocess_series(Xt, axis=axis)
