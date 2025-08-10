@@ -97,6 +97,6 @@ def test_ets_iterative_forecast():
     assert preds.shape == (h,), f"Expected output shape {(h,)}, got {preds.shape}"
     assert np.all(np.isfinite(preds)), "All forecast values should be finite"
 
-    # Optional: check that the first prediction equals forecast_ from .fit()
+    # Optional: check that the first prediction equals .predict()
     p = forecaster.predict(y)
     assert np.isclose(preds[0], p, atol=1e-6), "First forecast should match predict"
