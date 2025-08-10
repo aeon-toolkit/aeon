@@ -1,17 +1,25 @@
 """Tests for all early classifiers."""
 
+import sys
+from copy import deepcopy
 from functools import partial
-from sys import platform
 
 import numpy as np
 from numpy.testing import assert_array_almost_equal
 from sklearn.utils._testing import set_random_state
 
 from aeon.base._base import _clone_estimator
-from aeon.datasets import load_basic_motions, load_unit_test
-from aeon.testing.expected_results.expected_classifier_outputs import (
-    basic_motions_proba,
-    unit_test_proba,
+from aeon.testing.expected_results._write_estimator_results import (
+    X_bm_test,
+    X_bm_train,
+    X_ut_test,
+    X_ut_train,
+    y_bm_train,
+    y_ut_train,
+)
+from aeon.testing.expected_results.expected_early_classifier_results import (
+    multivariate_expected_results,
+    univariate_expected_results,
 )
 from aeon.testing.testing_data import FULL_TEST_DATA_DICT
 from aeon.utils.validation import get_n_cases
@@ -20,70 +28,79 @@ from aeon.utils.validation import get_n_cases
 def _yield_early_classification_checks(estimator_class, estimator_instances, datatypes):
     """Yield all early classification checks for an aeon early classifier."""
     # only class required
-    yield partial(
-        check_early_classifier_against_expected_results, estimator_class=estimator_class
-    )
+    if sys.platform == "linux":  # We cannot guarantee same results on ARM macOS
+        # Compare against results for both UnitTest and BasicMotions if available
+        yield partial(
+            check_early_classifier_against_expected_results,
+            estimator_class=estimator_class,
+            data_name="UnitTest",
+            X_train=X_ut_train,
+            y_train=y_ut_train,
+            X_test=X_ut_test,
+            results_dict=univariate_expected_results,
+        )
+        yield partial(
+            check_early_classifier_against_expected_results,
+            estimator_class=estimator_class,
+            data_name="BasicMotions",
+            X_train=X_bm_train,
+            y_train=y_bm_train,
+            X_test=X_bm_test,
+            results_dict=multivariate_expected_results,
+        )
 
     # test class instances
     for i, estimator in enumerate(estimator_instances):
         # test all data types
         for datatype in datatypes[i]:
             yield partial(
-                check_classifier_output,
+                check_early_classifier_output,
                 estimator=estimator,
                 datatype=datatype,
             )
 
 
-def check_early_classifier_against_expected_results(estimator_class):
+def check_early_classifier_against_expected_results(
+    estimator_class,
+    data_name,
+    X_train,
+    y_train,
+    X_test,
+    results_dict,
+):
     """Test early classifier against stored results."""
+    # retrieve expected predict_proba output, and skip test if not available
+    if estimator_class.__name__ in results_dict.keys():
+        expected_probas = results_dict[estimator_class.__name__]
+    else:
+        # skip test if no expected probas are registered
+        return f"No stored results for {estimator_class.__name__} on {data_name}"
+
     # we only use the first estimator instance for testing
-    classname = estimator_class.__name__
+    estimator_instance = estimator_class._create_test_instance(
+        parameter_set="results_comparison", return_first=True
+    )
+    # set random seed if possible
+    set_random_state(estimator_instance, 42)
 
-    # We cannot guarantee same results on ARM macOS
-    if platform == "darwin":
-        return None
+    # train early classifier and predict probas
+    estimator_instance.fit(deepcopy(X_train), deepcopy(y_train))
+    y_proba, decisions = estimator_instance.predict_proba(deepcopy(X_test))
 
-    for data_name, data_dict, data_loader, data_seed in [
-        ["UnitTest", unit_test_proba, load_unit_test, 0],
-        ["BasicMotions", basic_motions_proba, load_basic_motions, 4],
-    ]:
-        # retrieve expected predict_proba output, and skip test if not available
-        if classname in data_dict.keys():
-            expected_probas = data_dict[classname]
-        else:
-            # skip test if no expected probas are registered
-            continue
-
-        # we only use the first estimator instance for testing
-        estimator_instance = estimator_class._create_test_instance(
-            parameter_set="results_comparison"
-        )
-        # set random seed if possible
-        set_random_state(estimator_instance, 0)
-
-        # load test data
-        X_train, y_train = data_loader(split="train")
-        X_test, _ = data_loader(split="test")
-        indices = np.random.RandomState(data_seed).choice(
-            len(y_train), 10, replace=False
-        )
-
-        # train classifier and predict probas
-        estimator_instance.fit(X_train[indices], y_train[indices])
-        y_proba, _ = estimator_instance.predict_proba(X_test[indices])
-
-        # assert probabilities are the same
-        assert_array_almost_equal(
-            y_proba,
-            expected_probas,
-            decimal=2,
-            err_msg=f"Failed to reproduce results for {classname} on {data_name}",
-        )
+    # assert probabilities are the same
+    assert_array_almost_equal(
+        y_proba,
+        expected_probas,
+        decimal=2,
+        err_msg=(
+            f"Failed to reproduce results for {estimator_class.__name__} "
+            f"on {data_name}"
+        ),
+    )
 
 
-def check_classifier_output(estimator, datatype):
-    """Test classifier outputs the correct data types and values.
+def check_early_classifier_output(estimator, datatype):
+    """Test early classifier outputs the correct data types and values.
 
     Test predict produces a np.array or pd.Series with only values seen in the train
     data, and that predict_proba probability estimates add up to one.

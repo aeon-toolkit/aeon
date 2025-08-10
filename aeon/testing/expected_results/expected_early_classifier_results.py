@@ -30,7 +30,6 @@ univariate_expected_results = {
         [0.7, 0.3],
     ],
 }
-
 multivariate_expected_results = {
     "ProbabilityThresholdEarlyClassifier": [
         [0.1, 0.9, 0.0, 0.0],

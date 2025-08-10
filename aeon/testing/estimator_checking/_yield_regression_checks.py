@@ -5,6 +5,7 @@ import os
 import sys
 import tempfile
 import time
+from copy import deepcopy
 from functools import partial
 
 import numpy as np
@@ -12,11 +13,18 @@ from numpy.testing import assert_array_almost_equal
 from sklearn.utils._testing import set_random_state
 
 from aeon.base._base import _clone_estimator
-from aeon.datasets import load_cardano_sentiment, load_covid_3month
 from aeon.regression.deep_learning import BaseDeepRegressor
-from aeon.testing.expected_results.expected_regressor_outputs import (
-    cardano_sentiment_preds,
-    covid_3month_preds,
+from aeon.testing.expected_results._write_estimator_results import (
+    X_c3m_test,
+    X_c3m_train,
+    X_cs_test,
+    X_cs_train,
+    y_c3m_train,
+    y_cs_train,
+)
+from aeon.testing.expected_results.expected_regressor_results import (
+    multivariate_expected_results,
+    univariate_expected_results,
 )
 from aeon.testing.testing_data import FULL_TEST_DATA_DICT
 from aeon.testing.utils.estimator_checks import _assert_predict_labels, _get_tag
@@ -32,17 +40,19 @@ def _yield_regression_checks(estimator_class, estimator_instances, datatypes):
             check_regressor_against_expected_results,
             estimator_class=estimator_class,
             data_name="Covid3Month",
-            data_loader=load_covid_3month,
-            results_dict=covid_3month_preds,
-            resample_seed=0,
+            X_train=X_c3m_train,
+            y_train=y_c3m_train,
+            X_test=X_c3m_test,
+            results_dict=univariate_expected_results,
         )
         yield partial(
             check_regressor_against_expected_results,
             estimator_class=estimator_class,
             data_name="CardanoSentiment",
-            data_loader=load_cardano_sentiment,
-            results_dict=cardano_sentiment_preds,
-            resample_seed=0,
+            X_train=X_cs_train,
+            y_train=y_cs_train,
+            X_test=X_cs_test,
+            results_dict=multivariate_expected_results,
         )
     yield partial(check_regressor_overrides_and_tags, estimator_class=estimator_class)
 
@@ -86,7 +96,12 @@ def _yield_regression_checks(estimator_class, estimator_instances, datatypes):
 
 
 def check_regressor_against_expected_results(
-    estimator_class, data_name, data_loader, results_dict, resample_seed
+    estimator_class,
+    data_name,
+    X_train,
+    y_train,
+    X_test,
+    results_dict,
 ):
     """Test regressor against stored results."""
     # retrieve expected predict output, and skip test if not available
@@ -101,22 +116,11 @@ def check_regressor_against_expected_results(
         parameter_set="results_comparison", return_first=True
     )
     # set random seed if possible
-    set_random_state(estimator_instance, 0)
-
-    # load test data
-    X_train, y_train = data_loader(split="train")
-    X_test, y_test = data_loader(split="test")
-    # resample test data
-    indices_train = np.random.RandomState(resample_seed).choice(
-        len(y_train), 10, replace=False
-    )
-    indices_test = np.random.RandomState(resample_seed).choice(
-        len(y_test), 10, replace=False
-    )
+    set_random_state(estimator_instance, 42)
 
     # train regressor and predict
-    estimator_instance.fit(X_train[indices_train], y_train[indices_train])
-    y_pred = estimator_instance.predict(X_test[indices_test])
+    estimator_instance.fit(deepcopy(X_train), deepcopy(y_train))
+    y_pred = estimator_instance.predict_proba(deepcopy(X_test))
 
     # assert predictions are the same
     assert_array_almost_equal(

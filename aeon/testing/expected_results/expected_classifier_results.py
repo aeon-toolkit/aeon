@@ -498,7 +498,6 @@ univariate_expected_results = {
         [1.0, 0.0],
     ],
 }
-
 multivariate_expected_results = {
     "Arsenal": [
         [-0.0, 1.0, -0.0, -0.0],

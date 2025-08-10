@@ -5,6 +5,7 @@ import os
 import sys
 import tempfile
 import time
+from copy import deepcopy
 from functools import partial
 
 import numpy as np
@@ -13,7 +14,14 @@ from sklearn.utils._testing import set_random_state
 
 from aeon.base._base import _clone_estimator
 from aeon.classification.deep_learning import BaseDeepClassifier
-from aeon.datasets import load_basic_motions, load_unit_test
+from aeon.testing.expected_results._write_estimator_results import (
+    X_bm_test,
+    X_bm_train,
+    X_ut_test,
+    X_ut_train,
+    y_bm_train,
+    y_ut_train,
+)
 from aeon.testing.expected_results.expected_classifier_results import (
     multivariate_expected_results,
     univariate_expected_results,
@@ -37,14 +45,18 @@ def _yield_classification_checks(estimator_class, estimator_instances, datatypes
             check_classifier_against_expected_results,
             estimator_class=estimator_class,
             data_name="UnitTest",
-            data_loader=load_unit_test,
+            X_train=X_ut_train,
+            y_train=y_ut_train,
+            X_test=X_ut_test,
             results_dict=univariate_expected_results,
         )
         yield partial(
             check_classifier_against_expected_results,
             estimator_class=estimator_class,
             data_name="BasicMotions",
-            data_loader=load_basic_motions,
+            X_train=X_bm_train,
+            y_train=y_bm_train,
+            X_test=X_bm_test,
             results_dict=multivariate_expected_results,
         )
     yield partial(check_classifier_overrides_and_tags, estimator_class=estimator_class)
@@ -89,7 +101,12 @@ def _yield_classification_checks(estimator_class, estimator_instances, datatypes
 
 
 def check_classifier_against_expected_results(
-    estimator_class, data_name, data_loader, results_dict, resample_seed
+    estimator_class,
+    data_name,
+    X_train,
+    y_train,
+    X_test,
+    results_dict,
 ):
     """Test classifier against stored results."""
     # retrieve expected predict_proba output, and skip test if not available
@@ -104,19 +121,11 @@ def check_classifier_against_expected_results(
         parameter_set="results_comparison", return_first=True
     )
     # set random seed if possible
-    set_random_state(estimator_instance, 0)
-
-    # load test data
-    X_train, y_train = data_loader(split="train")
-    X_test, y_test = data_loader(split="test")
-    # resample test data
-    indices = np.random.RandomState(resample_seed).choice(
-        len(y_train), 10, replace=False
-    )
+    set_random_state(estimator_instance, 42)
 
     # train classifier and predict probas
-    estimator_instance.fit(X_train[indices], y_train[indices])
-    y_proba = estimator_instance.predict_proba(X_test[indices])
+    estimator_instance.fit(deepcopy(X_train), deepcopy(y_train))
+    y_proba = estimator_instance.predict_proba(deepcopy(X_test))
 
     # assert probabilities are the same
     assert_array_almost_equal(

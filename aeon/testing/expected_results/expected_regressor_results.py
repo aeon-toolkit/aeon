@@ -258,7 +258,6 @@ univariate_expected_results = {
         0.0059,
     ],
 }
-
 multivariate_expected_results = {
     "CanonicalIntervalForestRegressor": [
         0.0215,
