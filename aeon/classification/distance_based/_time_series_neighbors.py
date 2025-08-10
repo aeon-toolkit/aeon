@@ -187,7 +187,6 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         indexes = self.kneighbors(X, return_distance=False)[:, 0]
         return self.classes_[self.y_[indexes]]
 
-    @threaded
     def kneighbors(self, X=None, n_neighbors=None, return_distance=True):
         """Find the K-neighbors of a point.
 
@@ -216,6 +215,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         """
         self._check_is_fitted()
 
+        # Input validation
         if n_neighbors is None:
             n_neighbors = self.n_neighbors
         elif not isinstance(n_neighbors, numbers.Integral):
@@ -226,6 +226,12 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         elif n_neighbors <= 0:
             raise ValueError(f"Expected n_neighbors > 0. Got {n_neighbors}")
 
+        if not isinstance(return_distance, bool):
+            raise TypeError(
+                f"return_distance must be a boolean, got {type(return_distance)}"
+            )
+
+        # Preprocess X if provided
         query_is_train = X is None
         if query_is_train:
             X = self.X_
@@ -233,6 +239,7 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
             X = self._preprocess_collection(X, store_metadata=False)
             self._check_shape(X)
 
+        # Validate n_neighbors against data size
         n_samples_fit = len(self.X_)
         if query_is_train:
             if not (n_neighbors < n_samples_fit):
@@ -249,6 +256,34 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
                     f"n_samples = {len(X)}"
                 )
 
+        return self._kneighbors(X, n_neighbors, return_distance, query_is_train)
+
+    @threaded
+    def _kneighbors(self, X, n_neighbors, return_distance, query_is_train):
+        """Find the K-neighbors of a point.
+
+        Returns indices of and distances to the neighbors of each point.
+
+        Parameters
+        ----------
+        X : 3D np.ndarray of shape = (n_cases, n_channels, n_timepoints) or list of
+        shape [n_cases] of 2D arrays shape (n_channels,n_timepoints_i)
+            The query point or points.
+        n_neighbors : int
+            Number of neighbors required for each sample.
+        return_distance : bool
+            Whether or not to return the distances.
+        query_is_train : bool
+            Whether the query points are from the training set.
+
+        Returns
+        -------
+        neigh_dist : ndarray of shape (n_queries, n_neighbors)
+            Array representing the distances to points, only present if
+            return_distance=True.
+        neigh_ind : ndarray of shape (n_queries, n_neighbors)
+            Indices of the nearest points in the population matrix.
+        """
         distances = pairwise_distance(
             X,
             None if query_is_train else self.X_,
