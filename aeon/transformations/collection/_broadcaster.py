@@ -5,12 +5,13 @@ __all__ = ["SeriesToCollectionBroadcaster"]
 
 import numpy as np
 
+from aeon.transformations.base import InverseTransformerMixin
 from aeon.transformations.collection.base import BaseCollectionTransformer
 from aeon.transformations.series.base import BaseSeriesTransformer
 from aeon.utils.validation import get_n_cases
 
 
-class SeriesToCollectionBroadcaster(BaseCollectionTransformer):
+class SeriesToCollectionBroadcaster(BaseCollectionTransformer, InverseTransformerMixin):
     """Broadcast a ``BaseSeriesTransformer`` over a collection of time series.
 
     Uses the ``BaseSeriesTransformer`` passed in the constructor.  If the
