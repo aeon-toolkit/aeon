@@ -91,7 +91,7 @@ class KMeansAD(BaseSeriesAnomalyDetector):
         n_clusters: int = 20,
         window_size: int = 20,
         stride: int = 1,
-        random_state: Optional[int] = None,
+        random_state: int | None = None,
     ):
         self.n_clusters = n_clusters
         self.window_size = window_size
@@ -100,9 +100,9 @@ class KMeansAD(BaseSeriesAnomalyDetector):
 
         super().__init__(axis=0)
 
-        self.estimator_: Optional[KMeans] = None
+        self.estimator_: KMeans | None = None
 
-    def _fit(self, X: np.ndarray, y: Optional[np.ndarray] = None) -> "KMeansAD":
+    def _fit(self, X: np.ndarray, y: np.ndarray | None = None) -> "KMeansAD":
         self._check_params(X)
         _X, _ = sliding_windows(
             X, window_size=self.window_size, stride=self.stride, axis=0
@@ -117,7 +117,7 @@ class KMeansAD(BaseSeriesAnomalyDetector):
         point_anomaly_scores = self._inner_predict(_X, padding)
         return point_anomaly_scores
 
-    def _fit_predict(self, X: np.ndarray, y: Optional[np.ndarray] = None) -> np.ndarray:
+    def _fit_predict(self, X: np.ndarray, y: np.ndarray | None = None) -> np.ndarray:
         self._check_params(X)
         _X, padding = sliding_windows(
             X, window_size=self.window_size, stride=self.stride, axis=0

@@ -55,11 +55,9 @@ _COLLECTION_DOWNLOAD_IDS = {
 def load_anomaly_detection(
     name: tuple[str, str],
     split: Literal["train", "test"] = "test",
-    extract_path: Optional[PathLike] = None,
+    extract_path: PathLike | None = None,
     return_metadata: bool = False,
-) -> Union[
-    tuple[np.ndarray, np.ndarray], tuple[np.ndarray, np.ndarray, dict[str, Any]]
-]:
+) -> tuple[np.ndarray, np.ndarray] | tuple[np.ndarray, np.ndarray, dict[str, Any]]:
     """Load an anomaly detection dataset.
 
     This function loads TSAD problems into memory, downloading from the TimeEval
@@ -182,9 +180,7 @@ def _load_custom(
     split: Literal["train", "test"],
     path: Path,
     return_metadata: bool,
-) -> Union[
-    tuple[np.ndarray, np.ndarray], tuple[np.ndarray, np.ndarray, dict[str, Any]]
-]:
+) -> tuple[np.ndarray, np.ndarray] | tuple[np.ndarray, np.ndarray, dict[str, Any]]:
     if not path.is_file() or path.suffix != ".csv":
         raise ValueError(
             "When loading a custom dataset, the extract_path must point to a "
@@ -364,9 +360,10 @@ def load_ecg_diff_count_3(
     learning_type: Literal[
         "unsupervised", "semi-supervised", "supervised"
     ] = "unsupervised",
-) -> Union[
-    tuple[np.ndarray, np.ndarray], tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]
-]:
+) -> (
+    tuple[np.ndarray, np.ndarray]
+    | tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]
+):
     """Load the synthetic ECG dataset 'ecg-diff-count-3'.
 
     The dataset contains three different kind of anomalies. The dataset was generated

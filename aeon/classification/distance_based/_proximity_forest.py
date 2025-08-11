@@ -91,9 +91,9 @@ class ProximityForest(BaseClassifier):
         self,
         n_trees=100,
         n_splitters: int = 5,
-        max_depth: Optional[int] = None,
+        max_depth: int | None = None,
         min_samples_split: int = 2,
-        random_state: Union[int, np.random.RandomState, None] = None,
+        random_state: int | np.random.RandomState | None = None,
         n_jobs: int = 1,
         parallel_backend=None,
     ):
@@ -153,9 +153,7 @@ class ProximityForest(BaseClassifier):
         return tree.predict(X)
 
     @classmethod
-    def _get_test_params(
-        cls, parameter_set: str = "default"
-    ) -> Union[dict, list[dict]]:
+    def _get_test_params(cls, parameter_set: str = "default") -> dict | list[dict]:
         """Return testing parameter settings for the estimator.
 
         Parameters

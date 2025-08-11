@@ -98,13 +98,13 @@ class KSpectralCentroid(TimeSeriesKMeans):
     def __init__(
         self,
         n_clusters: int = 8,
-        max_shift: Optional[int] = None,
-        init: Union[str, np.ndarray] = "random",
+        max_shift: int | None = None,
+        init: str | np.ndarray = "random",
         n_init: int = 10,
         max_iter: int = 300,
         tol: float = 1e-6,
         verbose: bool = False,
-        random_state: Optional[Union[int, RandomState]] = None,
+        random_state: int | RandomState | None = None,
     ):
         self.max_shift = max_shift
 

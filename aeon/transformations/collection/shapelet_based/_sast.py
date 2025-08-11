@@ -94,10 +94,10 @@ class SAST(BaseCollectionTransformer):
 
     def __init__(
         self,
-        lengths: Optional[np.ndarray] = None,
+        lengths: np.ndarray | None = None,
         stride: int = 1,
         nb_inst_per_class: int = 1,
-        seed: Optional[int] = None,
+        seed: int | None = None,
         n_jobs: int = 1,  # Parallel processing
     ):
         super().__init__()
@@ -113,7 +113,7 @@ class SAST(BaseCollectionTransformer):
         self.n_jobs = n_jobs
         self.seed = seed
 
-    def _fit(self, X: np.ndarray, y: Union[np.ndarray, list]) -> "SAST":
+    def _fit(self, X: np.ndarray, y: np.ndarray | list) -> "SAST":
         """Select reference time series and generate subsequences from them.
 
         Parameters
@@ -199,7 +199,7 @@ class SAST(BaseCollectionTransformer):
         return self
 
     def _transform(
-        self, X: np.ndarray, y: Optional[Union[np.ndarray, list]] = None
+        self, X: np.ndarray, y: np.ndarray | list | None = None
     ) -> np.ndarray:
         """Transform the input X using the generated subsequences.
 

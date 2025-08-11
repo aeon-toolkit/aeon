@@ -30,7 +30,7 @@ class BaseSimilaritySearch(BaseAeonEstimator):
     @abstractmethod
     def fit(
         self,
-        X: Union[np.ndarray, List],
+        X: np.ndarray | List,
         y=None,
     ):
         """
@@ -60,7 +60,7 @@ class BaseSimilaritySearch(BaseAeonEstimator):
     @abstractmethod
     def predict(
         self,
-        X: Union[np.ndarray, None] = None,
+        X: np.ndarray | None = None,
     ):
         """
         Predict method.

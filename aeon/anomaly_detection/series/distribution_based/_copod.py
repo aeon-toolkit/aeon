@@ -53,15 +53,13 @@ class COPOD(PyODAdapter):
         self.n_jobs = n_jobs
         super().__init__(model, window_size=window_size, stride=stride)
 
-    def _fit(self, X: np.ndarray, y: Union[np.ndarray, None] = None) -> None:
+    def _fit(self, X: np.ndarray, y: np.ndarray | None = None) -> None:
         super()._fit(X, y)
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
         return super()._predict(X)
 
-    def _fit_predict(
-        self, X: np.ndarray, y: Union[np.ndarray, None] = None
-    ) -> np.ndarray:
+    def _fit_predict(self, X: np.ndarray, y: np.ndarray | None = None) -> np.ndarray:
         return super()._fit_predict(X, y)
 
     @classmethod

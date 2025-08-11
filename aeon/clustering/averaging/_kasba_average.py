@@ -19,7 +19,7 @@ def kasba_average(
     initial_step_size: float = 0.05,
     decay_rate: float = 0.1,
     verbose: bool = False,
-    random_state: Optional[int] = None,
+    random_state: int | None = None,
     **kwargs,
 ) -> tuple[np.ndarray, np.ndarray]:
     """KASBA average [1]_.

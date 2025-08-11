@@ -72,7 +72,7 @@ class SASTClassifier(BaseClassifier):
         length_list=None,
         stride: int = 1,
         nb_inst_per_class: int = 1,
-        seed: Optional[int] = None,
+        seed: int | None = None,
         classifier=None,
         n_jobs: int = 1,
     ) -> None:

@@ -13,14 +13,14 @@ def elastic_barycenter_average(
     distance: str = "dtw",
     max_iters: int = 30,
     tol: float = 1e-5,
-    init_barycenter: Union[np.ndarray, str] = "mean",
+    init_barycenter: np.ndarray | str = "mean",
     method: str = "petitjean",
-    weights: Optional[np.ndarray] = None,
+    weights: np.ndarray | None = None,
     initial_step_size: float = 0.05,
     final_step_size: float = 0.005,
-    precomputed_medoids_pairwise_distance: Optional[np.ndarray] = None,
+    precomputed_medoids_pairwise_distance: np.ndarray | None = None,
     verbose: bool = False,
-    random_state: Optional[int] = None,
+    random_state: int | None = None,
     **kwargs,
 ) -> np.ndarray:
     """Compute the barycenter average of time series using a elastic distance.

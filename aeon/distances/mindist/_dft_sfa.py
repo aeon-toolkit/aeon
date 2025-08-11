@@ -135,7 +135,7 @@ def mindist_dft_sfa_pairwise_distance(
 
 @njit(cache=True, fastmath=True, parallel=True)
 def _dft_sfa_from_multiple_to_multiple_distance(
-    X: np.ndarray, y: Union[np.ndarray, None], breakpoints: np.ndarray
+    X: np.ndarray, y: np.ndarray | None, breakpoints: np.ndarray
 ) -> np.ndarray:
     if y is None:
         n_instances = X.shape[0]

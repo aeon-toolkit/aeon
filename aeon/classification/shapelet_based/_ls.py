@@ -101,17 +101,17 @@ class LearningShapeletClassifier(BaseClassifier):
 
     def __init__(
         self,
-        n_shapelets_per_size: Union[dict, None] = None,
+        n_shapelets_per_size: dict | None = None,
         max_iter: int = 10000,
         batch_size: int = 256,
         verbose: int = 0,
         optimizer: str = "sgd",
-        weight_regularizer: Union[float, None] = 0.0,
+        weight_regularizer: float | None = 0.0,
         shapelet_length: float = 0.15,
         total_lengths: int = 3,
-        max_size: Union[int, None] = None,
+        max_size: int | None = None,
         scale: bool = False,
-        random_state: Union[int, None] = None,
+        random_state: int | None = None,
         save_transformed_data: bool = False,
     ) -> None:
         self.n_shapelets_per_size = n_shapelets_per_size
@@ -209,9 +209,7 @@ class LearningShapeletClassifier(BaseClassifier):
         return self.clf_.locate(self.transformed_data_)
 
     @classmethod
-    def _get_test_params(
-        cls, parameter_set: str = "default"
-    ) -> Union[dict, list[dict]]:
+    def _get_test_params(cls, parameter_set: str = "default") -> dict | list[dict]:
         """Return testing parameter settings for the estimator.
 
         Parameters

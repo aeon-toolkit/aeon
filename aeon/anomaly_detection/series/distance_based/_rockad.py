@@ -126,13 +126,13 @@ class ROCKAD(BaseSeriesAnomalyDetector):
         self.stride = stride
         self.random_state = random_state
 
-        self.rocket_transformer_: Optional[Rocket] = None
-        self.list_baggers_: Optional[list[NearestNeighbors]] = None
-        self.power_transformer_: Optional[PowerTransformer] = None
+        self.rocket_transformer_: Rocket | None = None
+        self.list_baggers_: list[NearestNeighbors] | None = None
+        self.power_transformer_: PowerTransformer | None = None
 
         super().__init__(axis=0)
 
-    def _fit(self, X: np.ndarray, y: Optional[np.ndarray] = None) -> "ROCKAD":
+    def _fit(self, X: np.ndarray, y: np.ndarray | None = None) -> "ROCKAD":
         self._check_params(X)
         # X: (n_timepoints, 1) because __init__(axis==0)
         _X, _ = sliding_windows(
@@ -228,7 +228,7 @@ class ROCKAD(BaseSeriesAnomalyDetector):
 
         return point_anomaly_scores
 
-    def _fit_predict(self, X: np.ndarray, y: Optional[np.ndarray] = None) -> np.ndarray:
+    def _fit_predict(self, X: np.ndarray, y: np.ndarray | None = None) -> np.ndarray:
         self._check_params(X)
         _X, padding = sliding_windows(
             X, window_size=self.window_size, stride=self.stride, axis=0

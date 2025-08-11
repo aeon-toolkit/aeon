@@ -20,9 +20,9 @@ from aeon.utils.validation.collection import _is_numpy_list_multivariate
 def edr_distance(
     x: np.ndarray,
     y: np.ndarray,
-    window: Optional[float] = None,
-    epsilon: Optional[float] = None,
-    itakura_max_slope: Optional[float] = None,
+    window: float | None = None,
+    epsilon: float | None = None,
+    itakura_max_slope: float | None = None,
 ) -> float:
     r"""Compute the EDR distance between two time series.
 
@@ -115,9 +115,9 @@ def edr_distance(
 def edr_cost_matrix(
     x: np.ndarray,
     y: np.ndarray,
-    window: Optional[float] = None,
-    epsilon: Optional[float] = None,
-    itakura_max_slope: Optional[float] = None,
+    window: float | None = None,
+    epsilon: float | None = None,
+    itakura_max_slope: float | None = None,
 ) -> np.ndarray:
     """Compute the EDR cost matrix between two time series.
 
@@ -185,7 +185,7 @@ def _edr_distance(
     x: np.ndarray,
     y: np.ndarray,
     bounding_matrix: np.ndarray,
-    epsilon: Optional[float] = None,
+    epsilon: float | None = None,
 ) -> float:
     distance = _edr_cost_matrix(x, y, bounding_matrix, epsilon)[
         x.shape[1] - 1, y.shape[1] - 1
@@ -198,7 +198,7 @@ def _edr_cost_matrix(
     x: np.ndarray,
     y: np.ndarray,
     bounding_matrix: np.ndarray,
-    epsilon: Optional[float] = None,
+    epsilon: float | None = None,
 ) -> np.ndarray:
     x_size = x.shape[1]
     y_size = y.shape[1]
@@ -232,11 +232,11 @@ def _edr_cost_matrix(
 
 @threaded
 def edr_pairwise_distance(
-    X: Union[np.ndarray, list[np.ndarray]],
-    y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
-    window: Optional[float] = None,
-    epsilon: Optional[float] = None,
-    itakura_max_slope: Optional[float] = None,
+    X: np.ndarray | list[np.ndarray],
+    y: np.ndarray | list[np.ndarray] | None = None,
+    window: float | None = None,
+    epsilon: float | None = None,
+    itakura_max_slope: float | None = None,
     n_jobs: int = 1,
 ) -> np.ndarray:
     """Compute the pairwise EDR distance between a set of time series.
@@ -332,9 +332,9 @@ def edr_pairwise_distance(
 @njit(cache=True, fastmath=True, parallel=True)
 def _edr_pairwise_distance(
     X: NumbaList[np.ndarray],
-    window: Optional[float],
-    epsilon: Optional[float],
-    itakura_max_slope: Optional[float],
+    window: float | None,
+    epsilon: float | None,
+    itakura_max_slope: float | None,
     unequal_length: bool,
 ) -> np.ndarray:
     n_cases = len(X)
@@ -362,9 +362,9 @@ def _edr_pairwise_distance(
 def _edr_from_multiple_to_multiple_distance(
     x: NumbaList[np.ndarray],
     y: NumbaList[np.ndarray],
-    window: Optional[float],
-    epsilon: Optional[float],
-    itakura_max_slope: Optional[float],
+    window: float | None,
+    epsilon: float | None,
+    itakura_max_slope: float | None,
     unequal_length: bool,
 ) -> np.ndarray:
     n_cases = len(x)
@@ -390,9 +390,9 @@ def _edr_from_multiple_to_multiple_distance(
 def edr_alignment_path(
     x: np.ndarray,
     y: np.ndarray,
-    window: Optional[float] = None,
-    epsilon: Optional[float] = None,
-    itakura_max_slope: Optional[float] = None,
+    window: float | None = None,
+    epsilon: float | None = None,
+    itakura_max_slope: float | None = None,
 ) -> tuple[list[tuple[int, int]], float]:
     """Compute the EDR alignment path between two time series.
 

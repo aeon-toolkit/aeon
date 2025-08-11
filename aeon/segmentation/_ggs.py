@@ -457,7 +457,7 @@ class GreedyGaussianSegmenter(BaseSegmenter):
         lamb: float = 1.0,
         max_shuffles: int = 250,
         verbose: bool = False,
-        random_state: Optional[int] = None,
+        random_state: int | None = None,
     ):
         self.k_max = k_max
         self.lamb = lamb

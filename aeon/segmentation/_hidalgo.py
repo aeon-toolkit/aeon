@@ -692,7 +692,7 @@ class HidalgoSegmenter(BaseSegmenter):
         }
 
 
-def _binom(N: Union[int, float], q: Union[int, float]):
+def _binom(N: int | float, q: int | float):
     """Calculate the binomial coefficient.
 
     Parameters

@@ -52,9 +52,9 @@ class MLPNetwork(BaseDeepLearningNetwork):
     def __init__(
         self,
         n_layers: int = 3,
-        n_units: typing.Union[int, list[int]] = 500,
-        activation: typing.Union[str, list[str]] = "relu",
-        dropout_rate: typing.Union[float, list[float]] = None,
+        n_units: int | list[int] = 500,
+        activation: str | list[str] = "relu",
+        dropout_rate: float | list[float] = None,
         dropout_last: float = None,
         use_bias: bool = True,
     ):

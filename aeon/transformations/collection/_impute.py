@@ -3,7 +3,8 @@
 __maintainer__ = []
 __all__ = ["SimpleImputer"]
 
-from typing import Callable, Optional, Union
+from collections.abc import Callable
+from typing import Optional, Union
 
 import numpy as np
 from scipy.stats import mode
@@ -44,16 +45,16 @@ class SimpleImputer(BaseCollectionTransformer):
 
     def __init__(
         self,
-        strategy: Union[str, Callable] = "mean",
-        fill_value: Optional[float] = None,
+        strategy: str | Callable = "mean",
+        fill_value: float | None = None,
     ):
         self.strategy = strategy
         self.fill_value = fill_value
         super().__init__()
 
     def _transform(
-        self, X: Union[np.ndarray, list[np.ndarray]], y=None
-    ) -> Union[np.ndarray, list[np.ndarray]]:
+        self, X: np.ndarray | list[np.ndarray], y=None
+    ) -> np.ndarray | list[np.ndarray]:
         """
         Transform method to apply the SimpleImputer.
 

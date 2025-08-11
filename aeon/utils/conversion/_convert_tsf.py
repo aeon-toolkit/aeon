@@ -11,7 +11,7 @@ import pandas as pd
 def _convert_tsf_to_hierarchical(
     data: pd.DataFrame,
     metadata: dict,
-    freq: Optional[str] = None,
+    freq: str | None = None,
     value_column_name: str = "series_value",
 ) -> pd.DataFrame:
     """Convert the data from default_tsf to pd_multiindex_hier.

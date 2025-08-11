@@ -106,9 +106,7 @@ class MrSEQLClassifier(BaseClassifier):
         return self.clf_.predict_proba(_X)
 
     @classmethod
-    def _get_test_params(
-        cls, parameter_set: str = "default"
-    ) -> Union[dict, list[dict]]:
+    def _get_test_params(cls, parameter_set: str = "default") -> dict | list[dict]:
         """Return testing parameter settings for the estimator.
 
         Parameters

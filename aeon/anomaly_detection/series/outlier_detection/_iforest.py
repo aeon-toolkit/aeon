@@ -90,11 +90,11 @@ class IsolationForest(PyODAdapter):
     def __init__(
         self,
         n_estimators: int = 100,
-        max_samples: Union[int, float, Literal["auto"]] = "auto",
-        max_features: Union[int, float] = 1.0,
+        max_samples: int | float | Literal["auto"] = "auto",
+        max_features: int | float = 1.0,
         bootstrap: bool = False,
         n_jobs: int = 1,
-        random_state: Optional[Union[int, np.random.RandomState]] = None,
+        random_state: int | np.random.RandomState | None = None,
         verbose: int = 0,
         window_size: int = 10,
         stride: int = 1,
@@ -122,15 +122,13 @@ class IsolationForest(PyODAdapter):
         self.verbose = verbose
         super().__init__(model, window_size, stride)
 
-    def _fit(self, X: np.ndarray, y: Union[np.ndarray, None] = None) -> None:
+    def _fit(self, X: np.ndarray, y: np.ndarray | None = None) -> None:
         super()._fit(X, y)
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
         return super()._predict(X)
 
-    def _fit_predict(
-        self, X: np.ndarray, y: Union[np.ndarray, None] = None
-    ) -> np.ndarray:
+    def _fit_predict(self, X: np.ndarray, y: np.ndarray | None = None) -> np.ndarray:
         return super()._fit_predict(X, y)
 
     @classmethod

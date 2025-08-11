@@ -85,8 +85,8 @@ class TSFreshClusterer(BaseClusterer):
         estimator=None,
         verbose: int = 0,
         n_jobs: int = 1,
-        chunksize: Optional[int] = None,
-        random_state: Optional[int] = None,
+        chunksize: int | None = None,
+        random_state: int | None = None,
         n_clusters: int = 8,  # Default value as 8
     ):
         self.default_fc_parameters = default_fc_parameters
@@ -103,7 +103,7 @@ class TSFreshClusterer(BaseClusterer):
 
         super().__init__()
 
-    def _fit(self, X: np.ndarray, y: Optional[np.ndarray] = None):
+    def _fit(self, X: np.ndarray, y: np.ndarray | None = None):
         """Fit a pipeline on cases X.
 
         Parameters

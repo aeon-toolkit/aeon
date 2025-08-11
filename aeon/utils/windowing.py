@@ -3,7 +3,8 @@
 __maintainer__ = ["SebastianSchmidl"]
 __all__ = ["sliding_windows", "reverse_windowing"]
 
-from typing import Callable, Optional
+from collections.abc import Callable
+from typing import Optional
 
 import numpy as np
 from numpy.lib.stride_tricks import sliding_window_view
@@ -120,7 +121,7 @@ def reverse_windowing(
     window_size: int,
     reduction: Callable[..., np.ndarray] = np.nanmean,
     stride: int = 1,
-    padding_length: Optional[int] = None,
+    padding_length: int | None = None,
     force_iterative: bool = False,
 ) -> np.ndarray:
     """Aggregate windowed results for each point of the original time series.

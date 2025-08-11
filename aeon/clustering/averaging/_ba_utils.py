@@ -23,7 +23,7 @@ from aeon.distances import (
 
 def _medoids(
     X: np.ndarray,
-    precomputed_pairwise_distance: Union[np.ndarray, None] = None,
+    precomputed_pairwise_distance: np.ndarray | None = None,
     distance: str = "dtw",
     **kwargs,
 ):
@@ -43,10 +43,10 @@ def _medoids(
 
 def _get_init_barycenter(
     X: np.ndarray,
-    init_barycenter: Union[np.ndarray, str],
+    init_barycenter: np.ndarray | str,
     distance: str,
-    precomputed_medoids_pw: Optional[np.ndarray] = None,
-    random_state: Optional[int] = None,
+    precomputed_medoids_pw: np.ndarray | None = None,
+    random_state: int | None = None,
     **kwargs,
 ) -> np.ndarray:
     if isinstance(init_barycenter, str):
@@ -111,9 +111,9 @@ def _get_alignment_path(
     center: np.ndarray,
     ts: np.ndarray,
     distance: str = "dtw",
-    window: Union[float, None] = None,
+    window: float | None = None,
     g: float = 0.0,
-    epsilon: Union[float, None] = None,
+    epsilon: float | None = None,
     nu: float = 0.001,
     lmbda: float = 1.0,
     independent: bool = True,
@@ -122,8 +122,8 @@ def _get_alignment_path(
     reach: int = 30,
     warp_penalty: float = 1.0,
     transformation_precomputed: bool = False,
-    transformed_x: Optional[np.ndarray] = None,
-    transformed_y: Optional[np.ndarray] = None,
+    transformed_x: np.ndarray | None = None,
+    transformed_y: np.ndarray | None = None,
 ) -> tuple[list[tuple[int, int]], float]:
     if distance == "dtw":
         return dtw_alignment_path(ts, center, window)

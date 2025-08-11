@@ -4,7 +4,7 @@ __maintainer__ = ["TonyBagnall"]
 __all__ = ["ChannelScorer"]
 
 import math
-from typing import Callable
+from collections.abc import Callable
 from typing import Dict as TypingDict
 from typing import List as TypingList
 from typing import Optional, Union
@@ -62,7 +62,7 @@ class ChannelScorer(BaseChannelSelector):
 
     def __init__(
         self,
-        estimator: Optional[BaseAeonEstimator],
+        estimator: BaseAeonEstimator | None,
         scoring_function: Callable = None,
         score_sign: float = None,
         proportion: float = 0.4,
@@ -73,7 +73,7 @@ class ChannelScorer(BaseChannelSelector):
         self.score_sign = score_sign
         super().__init__()
 
-    def _fit(self, X: np.ndarray, y: Union[np.ndarray, TypingList]):
+    def _fit(self, X: np.ndarray, y: np.ndarray | TypingList):
         """
         Fit to a specified X and y.
 

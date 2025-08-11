@@ -4,7 +4,8 @@ from typing import Optional
 
 __maintainer__ = ["chrisholder"]
 
-from typing import Callable, Union
+from collections.abc import Callable
+from typing import Union
 
 import numpy as np
 from numpy.random import RandomState
@@ -110,15 +111,15 @@ class KASBA(BaseClusterer):
     def __init__(
         self,
         n_clusters: int = 8,
-        distance: Union[str, Callable] = "msm",
+        distance: str | Callable = "msm",
         ba_subset_size: float = 0.5,
         initial_step_size: float = 0.05,
         max_iter: int = 300,
         tol: float = 1e-6,
-        distance_params: Optional[dict] = None,
+        distance_params: dict | None = None,
         decay_rate: float = 0.1,
         verbose: bool = False,
-        random_state: Optional[Union[int, RandomState]] = None,
+        random_state: int | RandomState | None = None,
     ):
         self.distance = distance
         self.max_iter = max_iter

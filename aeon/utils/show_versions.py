@@ -21,7 +21,7 @@ deps = [
 ]
 
 
-def show_versions(as_str: bool = False) -> Union[str, None]:
+def show_versions(as_str: bool = False) -> str | None:
     """Print useful debugging information.
 
     Parameters

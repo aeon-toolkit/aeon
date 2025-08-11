@@ -154,17 +154,17 @@ class RandomShapeletTransform(BaseCollectionTransformer):
     def __init__(
         self,
         n_shapelet_samples: int = 10000,
-        max_shapelets: Optional[int] = None,
+        max_shapelets: int | None = None,
         min_shapelet_length: int = 3,
-        max_shapelet_length: Optional[int] = None,
+        max_shapelet_length: int | None = None,
         remove_self_similar: bool = True,
-        batch_size: Optional[int] = 100,
+        batch_size: int | None = 100,
         verbose: bool = False,
         time_limit_in_minutes: float = 0.0,
         contract_max_n_shapelet_samples: float = np.inf,
         n_jobs: int = 1,
         parallel_backend=None,
-        random_state: Optional[int] = None,
+        random_state: int | None = None,
     ) -> None:
         self.n_shapelet_samples = n_shapelet_samples
         self.max_shapelets = max_shapelets

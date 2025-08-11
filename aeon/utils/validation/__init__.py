@@ -183,7 +183,7 @@ def check_n_jobs(n_jobs: int) -> int:
 
 def check_window_length(
     window_length: ACCEPTED_WINDOW_LENGTH_TYPES,
-    n_timepoints: Optional[int] = None,
+    n_timepoints: int | None = None,
     name: str = "window_length",
 ) -> NON_FLOAT_WINDOW_LENGTH_TYPES:
     """Validate window length.

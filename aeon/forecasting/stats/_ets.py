@@ -101,9 +101,9 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
 
     def __init__(
         self,
-        error_type: Union[int, str] = 1,
-        trend_type: Union[int, str, None] = 0,
-        seasonality_type: Union[int, str, None] = 0,
+        error_type: int | str = 1,
+        trend_type: int | str | None = 0,
+        seasonality_type: int | str | None = 0,
         seasonal_period: int = 1,
         iterations: int = 200,
     ):

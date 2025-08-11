@@ -9,8 +9,8 @@ from aeon.distances import shift_scale_invariant_best_shift
 
 def shift_invariant_average(
     X: np.ndarray,
-    initial_center: Optional[np.ndarray] = None,
-    max_shift: Optional[int] = None,
+    initial_center: np.ndarray | None = None,
+    max_shift: int | None = None,
     **kwargs,
 ):
     if initial_center is None:

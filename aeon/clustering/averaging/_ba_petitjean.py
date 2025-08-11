@@ -14,11 +14,11 @@ def petitjean_barycenter_average(
     distance: str = "dtw",
     max_iters: int = 30,
     tol=1e-5,
-    init_barycenter: Union[np.ndarray, str] = "mean",
-    weights: Optional[np.ndarray] = None,
-    precomputed_medoids_pairwise_distance: Optional[np.ndarray] = None,
+    init_barycenter: np.ndarray | str = "mean",
+    weights: np.ndarray | None = None,
+    precomputed_medoids_pairwise_distance: np.ndarray | None = None,
     verbose: bool = False,
-    random_state: Optional[int] = None,
+    random_state: int | None = None,
     **kwargs,
 ) -> np.ndarray:
     """Compute the barycenter average of time series using a elastic distance.
@@ -115,10 +115,10 @@ def _ba_one_iter_petitjean(
     barycenter: np.ndarray,
     X: np.ndarray,
     distance: str = "dtw",
-    weights: Optional[np.ndarray] = None,
-    window: Union[float, None] = None,
+    weights: np.ndarray | None = None,
+    window: float | None = None,
     g: float = 0.0,
-    epsilon: Union[float, None] = None,
+    epsilon: float | None = None,
     nu: float = 0.001,
     lmbda: float = 1.0,
     independent: bool = True,
@@ -127,8 +127,8 @@ def _ba_one_iter_petitjean(
     reach: int = 30,
     warp_penalty: float = 1.0,
     transformation_precomputed: bool = False,
-    transformed_x: Optional[np.ndarray] = None,
-    transformed_y: Optional[np.ndarray] = None,
+    transformed_x: np.ndarray | None = None,
+    transformed_y: np.ndarray | None = None,
 ) -> tuple[np.ndarray, float]:
     X_size, X_dims, X_timepoints = X.shape
     sum = np.zeros(X_timepoints)

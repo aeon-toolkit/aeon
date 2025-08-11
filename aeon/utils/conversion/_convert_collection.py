@@ -466,7 +466,7 @@ def resolve_unequal_length_inner_type(inner_types: Sequence[str]) -> str:
 
 
 def _convert_collection_to_numba_list(
-    x: Union[np.ndarray, list[np.ndarray]],
+    x: np.ndarray | list[np.ndarray],
     name: str = "X",
     multivariate_conversion: bool = False,
 ) -> NumbaList[np.ndarray]:

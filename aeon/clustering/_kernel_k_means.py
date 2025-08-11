@@ -187,10 +187,10 @@ class TimeSeriesKernelKMeans(BaseClusterer):
         n_init: int = 10,
         max_iter: int = 300,
         tol: float = 1e-4,
-        kernel_params: Union[dict, None] = None,
+        kernel_params: dict | None = None,
         verbose: bool = False,
-        n_jobs: Union[int, None] = 1,
-        random_state: Optional[Union[int, RandomState]] = None,
+        n_jobs: int | None = 1,
+        random_state: int | RandomState | None = None,
     ):
         self.kernel = kernel
         self.n_init = n_init

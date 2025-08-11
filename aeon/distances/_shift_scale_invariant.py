@@ -13,7 +13,7 @@ from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 @njit(cache=True, fastmath=True)
 def shift_scale_invariant_distance(
-    x: np.ndarray, y: np.ndarray, max_shift: Optional[int] = None
+    x: np.ndarray, y: np.ndarray, max_shift: int | None = None
 ) -> float:
     r"""Compute the shift and scale invariant distance [1]_ between two time series.
 
@@ -159,9 +159,9 @@ def _univariate_shift_scale_invariant_distance(
 
 @threaded
 def shift_scale_invariant_pairwise_distance(
-    X: Union[np.ndarray, list[np.ndarray]],
-    y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
-    max_shift: Optional[int] = None,
+    X: np.ndarray | list[np.ndarray],
+    y: np.ndarray | list[np.ndarray] | None = None,
+    max_shift: int | None = None,
     n_jobs: int = 1,
 ) -> np.ndarray:
     r"""Compute the shift-scale invariant pairwise distance between time series.

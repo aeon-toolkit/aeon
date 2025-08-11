@@ -200,7 +200,7 @@ def estimator_alias(name: str) -> str:
 
 def get_available_estimators(
     task: str = "classification", as_list: bool = False
-) -> Union[pd.DataFrame, list]:
+) -> pd.DataFrame | list:
     """Get a DataFrame of estimators available for a specific learning task.
 
     Parameters
@@ -235,9 +235,9 @@ def get_available_estimators(
 
 
 def get_estimator_results(
-    estimators: Union[str, list[str]],
-    datasets: Optional[list[str]] = None,
-    num_resamples: Optional[int] = 1,
+    estimators: str | list[str],
+    datasets: list[str] | None = None,
+    num_resamples: int | None = 1,
     task: str = "classification",
     measure: str = "accuracy",
     remove_dataset_modifiers: bool = False,
@@ -321,9 +321,9 @@ def get_estimator_results(
 
 
 def get_estimator_results_as_array(
-    estimators: Union[str, list[str]],
-    datasets: Optional[list[str]] = None,
-    num_resamples: Optional[int] = 1,
+    estimators: str | list[str],
+    datasets: list[str] | None = None,
+    num_resamples: int | None = 1,
     task: str = "classification",
     measure: str = "accuracy",
     remove_dataset_modifiers: bool = False,

@@ -138,7 +138,7 @@ class HMMSegmenter(BaseSegmenter):
         self,
         emission_funcs: list,
         transition_prob_mat: np.ndarray,
-        initial_probs: Optional[np.ndarray] = None,
+        initial_probs: np.ndarray | None = None,
     ):
         self.initial_probs = initial_probs
         self.emission_funcs = emission_funcs

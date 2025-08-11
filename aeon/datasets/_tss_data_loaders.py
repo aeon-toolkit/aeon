@@ -27,12 +27,12 @@ _HAS_URL = (
 
 
 def load_time_series_segmentation_benchmark(
-    extract_path: Optional[PathLike] = None,
+    extract_path: PathLike | None = None,
     return_metadata: bool = False,
-) -> Union[
-    tuple[list[np.ndarray], list[np.ndarray]],
-    tuple[list[np.ndarray], list[np.ndarray], list[tuple[str, int]]],
-]:
+) -> (
+    tuple[list[np.ndarray], list[np.ndarray]]
+    | tuple[list[np.ndarray], list[np.ndarray], list[tuple[str, int]]]
+):
     """Load the Time Series Segmentation Benchmark (TSSB).
 
     This function loads the Time Series Segmentation Benchmark (TSSB) into memory,
@@ -121,14 +121,14 @@ def load_time_series_segmentation_benchmark(
 
 
 def load_human_activity_segmentation_datasets(
-    extract_path: Optional[PathLike] = None,
+    extract_path: PathLike | None = None,
     return_metadata: bool = False,
-) -> Union[
-    tuple[list[np.ndarray], list[np.ndarray]],
-    tuple[
+) -> (
+    tuple[list[np.ndarray], list[np.ndarray]]
+    | tuple[
         list[np.ndarray], list[np.ndarray], list[tuple[str, str, int, int, np.ndarray]]
-    ],
-]:
+    ]
+):
     """Load the Human Activity Segmentation Challenge data sets.
 
     This function loads the Human Activity Segmentation challenge data sets into
