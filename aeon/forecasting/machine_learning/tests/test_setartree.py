@@ -108,7 +108,6 @@ def test_stopping_criteria_variants(criteria):
     assert np.isclose(f.predict(y), 21.0, atol=0.01)
 
 
-# ---------- private helpers & edge branches (compressed) ----------
 def test_embed_create_input_process_scaling_and_empty():
     """Test _embed, _create_tree_input_matrix, and _process_input_data behaviours."""
     st = SETARTree(lag=3, scale=True)
