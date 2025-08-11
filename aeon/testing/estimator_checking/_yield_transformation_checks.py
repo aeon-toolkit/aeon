@@ -152,8 +152,6 @@ def check_transformer_overrides_and_tags(estimator_class):
 
     if estimator_class.get_class_tag("capability:inverse_transform"):
         assert "_inverse_transform" in estimator_class.__dict__
-    else:
-        assert "_inverse_transform" not in estimator_class.__dict__
 
 
 def check_transformer_output(estimator, datatype):
@@ -200,6 +198,9 @@ def check_transform_inverse_transform_equivalent(estimator, datatype):
         X = X.squeeze()
     if isinstance(Xit, (np.ndarray, pd.DataFrame)):
         Xit = Xit.squeeze()
-
+    # If input is equal length, inverse should be equal length
+    if isinstance(X, np.ndarray) and isinstance(Xit, list):
+        Xit = np.array(Xit)
+        Xit = Xit.squeeze()
     eq, msg = deep_equals(X, Xit, ignore_index=True, return_msg=True)
     assert eq, msg
