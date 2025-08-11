@@ -43,6 +43,29 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
     iterations : int, default=200
         Number of iterations for the Nelder-Mead optimisation algorithm used to fit.
 
+    Attributes
+    ----------
+    forecast_val_ : float
+        Forecast value for the given horizon.
+    level_ : float
+        Estimated level component.
+    trend_ : float
+        Estimated trend component.
+    seasonality_ : array-like or None
+        Estimated seasonal components.
+    aic_ : float
+        Akaike Information Criterion of the fitted model.
+    avg_mean_sq_err_ : float
+        Average mean squared error of the fitted model.
+    residuals_ : list of float
+        Residuals from the fitted model.
+    fitted_values_ : list of float
+        Fitted values for the training data.
+    liklihood_ : float
+        Log-likelihood of the fitted model.
+    n_timepoints_ : int
+        Number of time points in the training series.
+
     References
     ----------
     .. [1] R. J. Hyndman and G. Athanasopoulos,
@@ -65,6 +88,7 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
     _tags = {
         "capability:horizon": False,
         "fit_is_empty": True,
+        "predict_updates_state": True,
     }
 
     def __init__(
@@ -75,23 +99,40 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
         seasonal_period: int = 1,
         iterations: int = 200,
     ):
+        self.forecast_val_ = 0.0
+        self.level_ = 0.0
+        self.trend_ = 0.0
+        self.seasonality_ = None
         self.error_type = error_type
         self.trend_type = trend_type
         self.seasonality_type = seasonality_type
         self.seasonal_period = seasonal_period
         self.iterations = iterations
-
+        self.n_timepoints_ = 0
+        self.avg_mean_sq_err_ = 0
+        self.liklihood_ = 0
+        self.k_ = 0
+        self.aic_ = 0
+        self.residuals_ = []
+        self.fitted_values_ = []
+        self._model = []
+        self.parameters_ = []
+        self.alpha_ = 0
+        self.beta_ = 0
+        self.gamma_ = 0
+        self.phi_ = 0
+        self.forecast_ = 0
         super().__init__(horizon=1, axis=1)
 
-    def _predict(self, y=None, exog=None):
-        """
-        Predict the next horizon steps ahead.
+    def _predict(self, y, exog=None):
+        """Fit Exponential Smoothing forecaster to series y.
+
+        Fit a forecaster to predict self.horizon steps ahead using y.
 
         Parameters
         ----------
-        y : np.ndarray, default = None
-            A time series to predict the next horizon value for. If None,
-            predict the next horizon value after series seen in fit.
+        y : np.ndarray
+            A time series on which to learn a forecaster to predict horizon ahead
         exog : np.ndarray, default =None
             Optional exogenous time series data assumed to be aligned with y
 
@@ -100,63 +141,6 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
         float
             single prediction self.horizon steps ahead of y.
         """
-        (
-            trend_type,
-            seasonality_type,
-            seasonal_period,
-            level,
-            trend,
-            seasonality,
-            n_timepoints,
-            phi,
-        ) = self._shared_fit(y)
-
-        fitted_value = _numba_predict(
-            trend_type,
-            seasonality_type,
-            level,
-            trend,
-            seasonality,
-            phi,
-            self.horizon,
-            n_timepoints,
-            seasonal_period,
-        )
-        return fitted_value
-
-    def iterative_forecast(self, y, prediction_horizon):
-        """Forecast with ETS specific iterative method.
-
-        Overrides the base class iterative_forecast to avoid refitting on each step.
-        This simply rolls the ETS model forward
-        """
-        (
-            trend_type,
-            seasonality_type,
-            seasonal_period,
-            level,
-            trend,
-            seasonality,
-            n_timepoints,
-            phi,
-        ) = self._shared_fit(y)
-
-        preds = np.zeros(prediction_horizon)
-        for i in range(0, prediction_horizon):
-            preds[i] = _numba_predict(
-                trend_type,
-                seasonality_type,
-                level,
-                trend,
-                seasonality,
-                phi,
-                i + 1,
-                n_timepoints,
-                seasonal_period,
-            )
-        return preds
-
-    def _shared_fit(self, y):
         _validate_parameter(self.error_type, False)
         _validate_parameter(self.seasonality_type, True)
         _validate_parameter(self.trend_type, True)
@@ -171,56 +155,78 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
                 return 2
             return x
 
-        error_type = _get_int(self.error_type)
-        seasonality_type = _get_int(self.seasonality_type)
-        trend_type = _get_int(self.trend_type)
-        seasonal_period = self.seasonal_period
-        if seasonal_period < 1 or seasonality_type == 0:
-            seasonal_period = 1
-
-        model = np.array(
+        self._error_type = _get_int(self.error_type)
+        self._seasonality_type = _get_int(self.seasonality_type)
+        self._trend_type = _get_int(self.trend_type)
+        self._seasonal_period = self.seasonal_period
+        if self._seasonal_period < 1 or self._seasonality_type == 0:
+            self._seasonal_period = 1
+        self._model = np.array(
             [
-                error_type,
-                trend_type,
-                seasonality_type,
-                seasonal_period,
+                self._error_type,
+                self._trend_type,
+                self._seasonality_type,
+                self._seasonal_period,
             ],
             dtype=np.int32,
         )
         data = y.squeeze()
-
-        parameters, aic = nelder_mead(
+        (self.parameters_, self.aic_) = nelder_mead(
             1,
-            1 + 2 * (trend_type != 0) + (seasonality_type != 0),
+            1 + 2 * (self._trend_type != 0) + (self._seasonality_type != 0),
             data,
-            model,
+            self._model,
             max_iter=self.iterations,
         )
-        alpha, beta, gamma, phi = _extract_ets_params(parameters, model)
-
-        (
-            aic,
-            level,
-            trend,
-            seasonality,
-            n_timepoints,
-            residuals,
-            fitted_values,
-            avg_mean_sq_err,
-            likelihood,
-            k,
-        ) = _ets_fit(parameters, data, model)
-
-        return (
-            trend_type,
-            seasonality_type,
-            seasonal_period,
-            level,
-            trend,
-            seasonality,
-            n_timepoints,
-            phi,
+        self.alpha_, self.beta_, self.gamma_, self.phi_ = _extract_ets_params(
+            self.parameters_, self._model
         )
+        (
+            self.aic_,
+            self.level_,
+            self.trend_,
+            self.seasonality_,
+            self.n_timepoints_,
+            self.residuals_,
+            self.fitted_values_,
+            self.avg_mean_sq_err_,
+            self.liklihood_,
+            self.k_,
+        ) = _ets_fit(self.parameters_, data, self._model)
+
+        return _numba_predict(
+            self._trend_type,
+            self._seasonality_type,
+            self.level_,
+            self.trend_,
+            self.seasonality_,
+            self.phi_,
+            self.horizon,
+            self.n_timepoints_,
+            self._seasonal_period,
+        )
+
+    def iterative_forecast(self, y, prediction_horizon):
+        """Forecast with ETS specific iterative method.
+
+        Overrides the base class iterative_forecast to avoid refitting on each step.
+        This simply rolls the ETS model forward
+        """
+        preds = np.zeros(prediction_horizon)
+        preds[0] = self.predict(y)
+        for i in range(1, prediction_horizon):
+            preds[i] = _numba_predict(
+                self._trend_type,
+                self._seasonality_type,
+                self.level_,
+                self.trend_,
+                self.seasonality_,
+                self.phi_,
+                i + 1,
+                self.n_timepoints_,
+                self._seasonal_period,
+            )
+        return preds
 
 
 @njit(fastmath=True, cache=True)
