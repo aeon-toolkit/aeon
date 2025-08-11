@@ -15,8 +15,6 @@ repos:
       - id: end-of-file-fixer
         exclude: "^docs/examples"
       - id: fix-byte-order-marker
-      - id: fix-encoding-pragma
-        args: [ "--remove" ]
       - id: name-tests-test
         args: [ "--pytest-test-first" ]
       - id: requirements-txt-fixer
