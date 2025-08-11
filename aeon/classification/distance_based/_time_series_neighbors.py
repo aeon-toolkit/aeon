@@ -17,7 +17,6 @@ import numpy as np
 
 from aeon.classification.base import BaseClassifier
 from aeon.distances import pairwise_distance
-from aeon.utils.numba._threading import threaded
 from aeon.utils.validation import check_n_jobs
 
 WEIGHTS_SUPPORTED = ["uniform", "distance"]
@@ -184,7 +183,10 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
         """
         self._check_is_fitted()
 
-        indexes = self.kneighbors(X, return_distance=False)[:, 0]
+        neigh_ind = self._kneighbors(
+            X, n_neighbors=1, return_distance=False, query_is_train=False
+        )
+        indexes = neigh_ind[:, 0]
         return self.classes_[self.y_[indexes]]
 
     def kneighbors(self, X=None, n_neighbors=None, return_distance=True):
@@ -258,7 +260,6 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
 
         return self._kneighbors(X, n_neighbors, return_distance, query_is_train)
 
-    @threaded
     def _kneighbors(self, X, n_neighbors, return_distance, query_is_train):
         """Find the K-neighbors of a point.
 

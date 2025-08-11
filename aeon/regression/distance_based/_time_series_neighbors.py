@@ -17,7 +17,6 @@ import numpy as np
 
 from aeon.distances import pairwise_distance
 from aeon.regression.base import BaseRegressor
-from aeon.utils.numba._threading import threaded
 from aeon.utils.validation import check_n_jobs
 
 WEIGHTS_SUPPORTED = ["uniform", "distance"]
@@ -136,7 +135,12 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
         """
         preds = np.empty(len(X))
         for i in range(len(X)):
-            neigh_dist, neigh_ind = self.kneighbors(X[i : i + 1])
+            neigh_dist, neigh_ind = self._kneighbors(
+                X[i : i + 1],
+                n_neighbors=self.n_neighbors,
+                return_distance=True,
+                query_is_train=False,
+            )
             neigh_dist = neigh_dist[0]
             neigh_ind = neigh_ind[0]
 
@@ -223,7 +227,6 @@ class KNeighborsTimeSeriesRegressor(BaseRegressor):
 
         return self._kneighbors(X, n_neighbors, return_distance, query_is_train)
 
-    @threaded
     def _kneighbors(self, X, n_neighbors, return_distance, query_is_train):
         """Find the K-neighbors of a point.
 
