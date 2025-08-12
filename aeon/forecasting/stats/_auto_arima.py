@@ -1,15 +1,15 @@
-"""AutoARIMAForecaster.
+"""AutoARIMA.
 
 An implementation of the AutoARIMA forecasting algorithm.
 """
 
 __maintainer__ = ["alexbanwell1", "TonyBagnall"]
-__all__ = ["AutoARIMAForecaster"]
+__all__ = ["AutoARIMA"]
 
 import numpy as np
 from numba import njit
 
-from aeon.forecasting import ARIMAForecaster
+from aeon.forecasting import ARIMA
 from aeon.forecasting._arima import (
     _arima_model,
     _arima_model_wrapper,
@@ -20,7 +20,7 @@ from aeon.utils.forecasting._hypo_tests import kpss_test
 from aeon.utils.optimisation._nelder_mead import nelder_mead
 
 
-class AutoARIMAForecaster(ARIMAForecaster):
+class AutoARIMA(ARIMA):
     """AutoRegressive Integrated Moving Average (ARIMA) forecaster.
 
     Implements the Hyndman-Khandakar automatic ARIMA algorithm for time series
@@ -40,12 +40,12 @@ class AutoARIMAForecaster(ARIMAForecaster):
 
     Examples
     --------
-    >>> from aeon.forecasting import AutoARIMAForecaster
+    >>> from aeon.forecasting import AutoARIMA
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()
-    >>> forecaster = AutoARIMAForecaster()
+    >>> forecaster = AutoARIMA()
     >>> forecaster.fit(y)
-    AutoARIMAForecaster()
+    AutoARIMA()
     >>> forecaster.predict()
     476.5824781648738
     """
