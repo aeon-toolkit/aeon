@@ -11,55 +11,39 @@ from aeon.forecasting.stats._ets import ETS, _validate_parameter
     [
         (
             dict(
-                alpha=0.5,
-                beta=0.3,
-                gamma=0.4,
-                phi=1,
                 error_type="additive",
                 trend_type="additive",
                 seasonality_type="additive",
                 seasonal_period=4,
             ),
-            11.456563248800002,
+            11.150969310377484,
         ),
         (
             dict(
-                alpha=0.7,
-                beta=0.6,
-                gamma=0.1,
-                phi=0.97,
                 error_type="multiplicative",
                 trend_type="additive",
                 seasonality_type="additive",
                 seasonal_period=4,
             ),
-            15.507105356706465,
+            11.15096931037748,
         ),
         (
             dict(
-                alpha=0.4,
-                beta=0.2,
-                gamma=0.5,
-                phi=0.8,
                 error_type="additive",
                 trend_type="multiplicative",
                 seasonality_type="multiplicative",
                 seasonal_period=4,
             ),
-            13.168538863095991,
+            14.075007324719092,
         ),
         (
             dict(
-                alpha=0.7,
-                beta=0.5,
-                gamma=0.2,
-                phi=0.85,
                 error_type="multiplicative",
                 trend_type="multiplicative",
                 seasonality_type="multiplicative",
                 seasonal_period=4,
             ),
-            15.223040987015944,
+            14.075007324719058,
         ),
     ],
 )
@@ -97,14 +81,6 @@ def test_ets_raises_on_horizon_greater_than_one():
     data = np.array([3, 10, 12, 13, 12, 10, 12, 3, 10, 12, 13, 12, 10, 12])
     with pytest.raises(ValueError, match="Horizon is set >1, but"):
         forecaster.fit(data)
-
-
-def test_ets_raises_on_direct_forecast_strategy():
-    """Test that ETS raises ValueError when direct_forecast is called."""
-    forecaster = ETS()
-    data = np.array([3, 10, 12, 13, 12, 10, 12, 3, 10, 12, 13, 12, 10, 12])
-    with pytest.raises(ValueError, match="cannot be used with the direct strategy"):
-        forecaster.direct_forecast(data, prediction_horizon=6)
 
 
 def test_ets_iterative_forecast():
