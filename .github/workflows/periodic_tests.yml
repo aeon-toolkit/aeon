@@ -1,4 +1,4 @@
-name: Periodic Tests
+name: Periodic tests
 
 on:
   schedule:
@@ -174,11 +174,18 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      - name: Clear disik space
+        uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          dotnet: false
+          large-packages: false
+          swap-storage: false
+
       - name: Set swap space
         if: runner.os == 'Linux'
         uses: pierotofy/set-swap-space@v1.0
         with:
-          swap-size-gb: 10
+          swap-size-gb: 8
 
       - name: Use numba cache to set env variables but not restore cache
         uses: ./.github/actions/numba_cache
@@ -207,6 +214,72 @@ jobs:
           path: ${{ github.workspace }}/.numba_cache
           # Save cache with the current date (ENV set in numba_cache action)
           key: numba-pytest-${{ runner.os }}-${{ matrix.python-version}}-${{ env.CURRENT_DATE }}
+
+  doctests:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Use numba cache to set env variables but not restore cache
+        uses: ./.github/actions/numba_cache
+        with:
+          cache_name: "doctests"
+          runner_os: ${{ runner.os }}
+          python_version: "3.12"
+          restore_cache: "false"
+
+      - name: Install aeon and dependencies
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 30
+          max_attempts: 3
+          command: python -m pip install .[all_extras,dev]
+
+      - name: Show dependencies
+        run: python -m pip list
+
+      - name: Run tests
+        run: python -m pytest -n logical --doctest-only --doctest-continue-on-failure
+
+  multithreaded-estimators:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Use numba cache to set env variables but not restore cache
+        uses: ./.github/actions/numba_cache
+        with:
+          cache_name: "multithreaded-estimators"
+          runner_os: ${{ runner.os }}
+          python_version: "3.12"
+          restore_cache: "false"
+
+      - name: Install aeon and dependencies
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 30
+          max_attempts: 3
+          command: python -m pip install .[all_extras,dev]
+
+      - name: Show dependencies
+        run: python -m pip list
+
+      - name: Run tests
+        run: python -m pytest aeon/testing/tests/ --enablethreading true -k "check_estimator_multithreading"
 
   codecov:
     runs-on: ubuntu-24.04

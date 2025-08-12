@@ -14,6 +14,7 @@ from sklearn.utils import check_random_state
 
 from aeon.classification.base import BaseClassifier
 from aeon.classification.distance_based._proximity_tree import ProximityTree
+from aeon.utils.validation import check_n_jobs
 
 
 class ProximityForest(BaseClassifier):
@@ -27,29 +28,31 @@ class ProximityForest(BaseClassifier):
     Parameters
     ----------
     n_trees: int, default = 100
-        The number of trees, by default an ensemble of 100 trees is formed.
+        The number of trees, by default an ensemble of ``100`` trees is formed.
     n_splitters: int, default = 5
         The number of candidate splitters to be evaluated at each node.
     max_depth: int, default = None
-        The maximum depth of the tree. If None, then nodes are expanded until all
-        leaves are pure or until all leaves contain less than min_samples_split samples.
+        The maximum depth of the tree. If ``None``, then nodes are expanded until all
+        leaves are pure or until all leaves contain less than ``min_samples_split``
+        samples.
     min_samples_split: int, default = 2
         The minimum number of samples required to split an internal node.
     random_state : int, RandomState instance or None, default=None
-        If `int`, random_state is the seed used by the random number generator;
-        If `RandomState` instance, random_state is the random number generator;
-        If `None`, the random number generator is the `RandomState` instance used
-        by `np.random`.
+        If ``int``, ``random_state`` is the seed used by the random number generator;
+        If ``RandomState`` instance, ``random_state`` is the random number generator;
+        If ``None``, the random number generator is the ``RandomState`` instance used
+        by ``np.random``.
     n_jobs : int, default = 1
         The number of parallel jobs to run for neighbors search.
-        ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.
+        ``None`` means ``1`` unless in a :obj:``joblib.parallel_backend`` context.
         ``-1`` means using all processors.
         for more details. Parameter for compatibility purposes, still unimplemented.
     parallel_backend : str, ParallelBackendBase instance or None, default=None
-        Specify the parallelisation backend implementation in joblib, if None a 'prefer'
-        value of "threads" is used by default.
-        Valid options are "loky", "multiprocessing", "threading" or a custom backend.
-        See the joblib Parallel documentation for more details.
+        Specify the parallelisation backend implementation in ``joblib``, if ``None``
+        a ``prefer`` value of ``"threads"`` is used by default.
+        Valid options are ``"loky"``, ``"multiprocessing"``, ``"threading"`` or a
+        custom backend.
+        See the ``joblib`` Parallel documentation for more details.
 
     Notes
     -----
@@ -106,6 +109,8 @@ class ProximityForest(BaseClassifier):
 
     def _fit(self, X, y):
         rng = check_random_state(self.random_state)
+        self._n_jobs = check_n_jobs(self.n_jobs)
+
         self.trees_ = Parallel(
             n_jobs=self._n_jobs, backend=self.parallel_backend, prefer="threads"
         )(

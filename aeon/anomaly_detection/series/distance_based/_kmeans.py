@@ -42,7 +42,7 @@ class KMeansAD(BaseSeriesAnomalyDetector):
 
     stride : int, default=1
         The stride of the sliding window. The stride determines how many time points
-        the windows are spaced appart. A stride of 1 means that the window is moved one
+        the windows are spaced apart. A stride of 1 means that the window is moved one
         time point forward compared to the previous window. The larger the stride, the
         fewer windows are created, which leads to noisier anomaly scores.
 
@@ -171,14 +171,15 @@ class KMeansAD(BaseSeriesAnomalyDetector):
         ----------
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return ``"default"`` set.
 
         Returns
         -------
         dict or list of dict, default={}
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid
+            test instance.
         """
         return {
             "n_clusters": 5,

@@ -6,6 +6,7 @@ import numpy as np
 from numba import njit, prange
 
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
+from aeon.utils.numba._threading import threaded
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
@@ -45,8 +46,8 @@ def mindist_dft_sfa_distance(
     >>> import numpy as np
     >>> from aeon.distances import mindist_dft_sfa_distance
     >>> from aeon.transformations.collection.dictionary_based import SFAWhole
-    >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
-    >>> y = np.array([[11, 12, 13, 14, 15, 16, 17, 18, 19, 20]])
+    >>> x = np.random.rand(1,1,10) # (n_cases, n_channels, n_timepoints)
+    >>> y = np.random.rand(1,1,10)
     >>> transform = SFAWhole(
     ...    word_length=8,
     ...    alphabet_size=8,
@@ -54,11 +55,15 @@ def mindist_dft_sfa_distance(
     ... )
     >>> x_sfa, _ = transform.fit_transform(x)
     >>> _, y_dft = transform.transform(y)
-    >>> dist = mindist_dft_sfa_distance(y_dft, x_sfa, transform.breakpoints)
+    >>> for i in range(x.shape[0]):
+    ...    dist = mindist_dft_sfa_distance(y_dft[0], x_sfa[0], transform.breakpoints)
     """
     if x_dft.ndim == 1 and y_sfa.ndim == 1:
         return _univariate_dft_sfa_distance(x_dft, y_sfa, breakpoints)
-    raise ValueError("x and y must be 1D")
+    raise ValueError(
+        f"x and y must be 1D, but got x of shape {x_dft.shape} and y of shape"
+        f"{y_sfa.shape}"
+    )
 
 
 @njit(cache=True, fastmath=True)
@@ -85,8 +90,9 @@ def _univariate_dft_sfa_distance(
     return np.sqrt(2 * dist)
 
 
+@threaded
 def mindist_dft_sfa_pairwise_distance(
-    X: np.ndarray, y: np.ndarray, breakpoints: np.ndarray
+    X: np.ndarray, y: np.ndarray, breakpoints: np.ndarray, n_jobs: int = 1
 ) -> np.ndarray:
     """Compute the DFT SFA pairwise distance between a set of SFA representations.
 
@@ -98,6 +104,10 @@ def mindist_dft_sfa_pairwise_distance(
         A collection of SFA instances  of shape ``(n_instances, n_timepoints)``.
     breakpoints: np.ndarray
         The breakpoints of the SAX transformation
+    n_jobs : int, default=1
+        The number of jobs to run in parallel. If -1, then the number of jobs is set
+        to the number of CPU cores. If 1, then the function is executed in a single
+        thread. If greater than 1, then the function is executed in parallel.
 
     Returns
     -------
@@ -132,7 +142,7 @@ def _dft_sfa_from_multiple_to_multiple_distance(
         distances = np.zeros((n_instances, n_instances))
 
         for i in prange(n_instances):
-            for j in prange(i + 1, n_instances):
+            for j in range(i + 1, n_instances):
                 distances[i, j] = _univariate_dft_sfa_distance(X[i], X[j], breakpoints)
                 distances[j, i] = distances[i, j]
     else:
@@ -141,7 +151,7 @@ def _dft_sfa_from_multiple_to_multiple_distance(
         distances = np.zeros((n_instances, m_instances))
 
         for i in prange(n_instances):
-            for j in prange(m_instances):
+            for j in range(m_instances):
                 distances[i, j] = _univariate_dft_sfa_distance(X[i], y[j], breakpoints)
 
     return distances

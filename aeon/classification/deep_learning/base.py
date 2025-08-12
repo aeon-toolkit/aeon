@@ -49,10 +49,9 @@ class BaseDeepClassifier(BaseClassifier):
         The name of the file of the last model, used
         only if save_last_model_to_file is used
 
-    Arguments
-    ---------
+    Attributes
+    ----------
     self.model = None
-
     """
 
     _tags = {

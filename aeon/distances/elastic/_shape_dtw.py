@@ -5,7 +5,7 @@ __maintainer__ = []
 from typing import Optional, Union
 
 import numpy as np
-from numba import njit
+from numba import njit, prange
 from numba.typed import List as NumbaList
 
 from aeon.distances.elastic._alignment_paths import compute_min_return_path
@@ -13,6 +13,7 @@ from aeon.distances.elastic._bounding_matrix import create_bounding_matrix
 from aeon.distances.elastic._dtw import _dtw_cost_matrix
 from aeon.distances.pointwise._squared import _univariate_squared_distance
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
+from aeon.utils.numba._threading import threaded
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
@@ -96,7 +97,7 @@ def _transform_subsequences(
     sliding_window = reach * 2 + 1
     sliding_window = int(sliding_window)
 
-    # get the output dimension of the subsequence transofrmation s
+    # get the output dimension of the subsequence transformation
     dim_desc = descriptor_function(x[0, 0 : 0 + sliding_window]).shape[0]
     # dim_desc = 7
 
@@ -515,6 +516,7 @@ def shape_dtw_alignment_path(
     return (compute_min_return_path(cost_matrix), shapedtw_dist)
 
 
+@threaded
 def shape_dtw_pairwise_distance(
     X: Union[np.ndarray, list[np.ndarray]],
     y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
@@ -525,6 +527,7 @@ def shape_dtw_pairwise_distance(
     transformation_precomputed: bool = False,
     transformed_x: Optional[np.ndarray] = None,
     transformed_y: Optional[np.ndarray] = None,
+    n_jobs: int = 1,
 ) -> np.ndarray:
     """Compute the ShapeDTW pairwise distance among a set of series.
 
@@ -563,6 +566,10 @@ def shape_dtw_pairwise_distance(
         The transformation of X, ignored if transformation_precomputed is False.
     transformed_y : np.ndarray, default = None
         The transformation of y, ignored if transformation_precomputed is False.
+    n_jobs : int, default=1
+        The number of jobs to run in parallel. If -1, then the number of jobs is set
+        to the number of CPU cores. If 1, then the function is executed in a single
+        thread. If greater than 1, then the function is executed in parallel.
 
     Returns
     -------
@@ -644,7 +651,7 @@ def shape_dtw_pairwise_distance(
     )
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath=True, parallel=True)
 def _shape_dtw_pairwise_distance(
     X: NumbaList[np.ndarray],
     window: Optional[float],
@@ -663,7 +670,7 @@ def _shape_dtw_pairwise_distance(
         bounding_matrix = create_bounding_matrix(
             n_timepoints, n_timepoints, window, itakura_max_slope
         )
-    for i in range(len(X)):
+    for i in prange(len(X)):
         for j in range(i + 1, n_cases):
             x1_, x2_ = X[i], X[j]
             x1 = _pad_ts_edges(x=x1_, reach=reach)
@@ -695,7 +702,7 @@ def _shape_dtw_pairwise_distance(
     return distances
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath=True, parallel=True)
 def _shape_dtw_from_multiple_to_multiple_distance(
     x: NumbaList[np.ndarray],
     y: NumbaList[np.ndarray],
@@ -716,7 +723,7 @@ def _shape_dtw_from_multiple_to_multiple_distance(
         bounding_matrix = create_bounding_matrix(
             x[0].shape[1], y[0].shape[1], window, itakura_max_slope
         )
-    for i in range(n_cases):
+    for i in prange(n_cases):
         for j in range(m_cases):
             x1_, y1_ = x[i], y[j]
             x1 = _pad_ts_edges(x=x1_, reach=reach)
