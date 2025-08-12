@@ -15,8 +15,10 @@ from aeon.testing.testing_data import (
     UNEQUAL_LENGTH_MULTIVARIATE_REGRESSION,
     UNEQUAL_LENGTH_UNIVARIATE_CLASSIFICATION,
     UNEQUAL_LENGTH_UNIVARIATE_REGRESSION,
+    UNIVARIATE_SERIES,
+    UNIVARIATE_SERIES_ANOMALY,
 )
-from aeon.utils.data_types import COLLECTIONS_DATA_TYPES
+from aeon.utils.data_types import COLLECTIONS_DATA_TYPES, SERIES_DATA_TYPES
 from aeon.utils.validation.collection import (
     has_missing,
     is_collection,
@@ -31,6 +33,10 @@ def test_datatype_exists():
     for data in COLLECTIONS_DATA_TYPES:
         assert data in EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION
         assert data in EQUAL_LENGTH_UNIVARIATE_REGRESSION
+
+    for data in SERIES_DATA_TYPES:
+        assert data in UNIVARIATE_SERIES
+        assert data in UNIVARIATE_SERIES_ANOMALY
 
 
 def test_testing_data_dict():

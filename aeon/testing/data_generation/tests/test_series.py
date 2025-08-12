@@ -27,6 +27,18 @@ def test_make_example_1d_numpy(n_timepoints):
     assert X.shape == (n_timepoints,)
     assert is_series(X)
 
+    X, y = make_example_1d_numpy(n_timepoints=n_timepoints, return_y="anomaly")
+
+    assert isinstance(X, np.ndarray)
+    assert X.shape == (n_timepoints,)
+    assert is_series(X)
+    assert isinstance(y, np.ndarray)
+    assert y.shape == (n_timepoints,)
+    assert np.all(np.isin(y, [0, 1]))
+
+    with pytest.raises(ValueError, match="value for return_y is not supported"):
+        make_example_1d_numpy(n_timepoints=n_timepoints, return_y="invalid")
+
 
 @pytest.mark.parametrize("n_timepoints", N_TIMEPOINTS)
 @pytest.mark.parametrize("n_channels", N_CHANNELS)
@@ -48,6 +60,25 @@ def test_make_example_2d_numpy_series(n_timepoints, n_channels):
     assert X.shape == (n_channels, n_timepoints)
     assert is_series(X)
 
+    (
+        X,
+        y,
+    ) = make_example_2d_numpy_series(
+        n_timepoints=n_timepoints, n_channels=n_channels, axis=1, return_y="anomaly"
+    )
+
+    assert isinstance(X, np.ndarray)
+    assert X.shape == (n_channels, n_timepoints)
+    assert is_series(X)
+    assert isinstance(y, np.ndarray)
+    assert y.shape == (n_timepoints,)
+    assert np.all(np.isin(y, [0, 1]))
+
+    with pytest.raises(ValueError, match="value for return_y is not supported"):
+        make_example_2d_numpy_series(
+            n_timepoints=n_timepoints, n_channels=n_channels, axis=1, return_y="invalid"
+        )
+
 
 @pytest.mark.parametrize("n_timepoints", N_TIMEPOINTS)
 def test_make_example_pandas_series(n_timepoints):
@@ -57,6 +88,18 @@ def test_make_example_pandas_series(n_timepoints):
     assert isinstance(X, pd.Series)
     assert X.shape == (n_timepoints,)
     assert is_series(X)
+
+    X, y = make_example_pandas_series(n_timepoints=n_timepoints, return_y="anomaly")
+
+    assert isinstance(X, pd.Series)
+    assert X.shape == (n_timepoints,)
+    assert is_series(X)
+    assert isinstance(y, np.ndarray)
+    assert y.shape == (n_timepoints,)
+    assert np.all(np.isin(y, [0, 1]))
+
+    with pytest.raises(ValueError, match="value for return_y is not supported"):
+        make_example_pandas_series(n_timepoints=n_timepoints, return_y="invalid")
 
 
 @pytest.mark.parametrize("n_timepoints", N_TIMEPOINTS)
@@ -78,3 +121,22 @@ def test_make_example_dataframe_series(n_timepoints, n_channels):
     assert isinstance(X, pd.DataFrame)
     assert X.shape == (n_channels, n_timepoints)
     assert is_series(X)
+
+    (
+        X,
+        y,
+    ) = make_example_dataframe_series(
+        n_timepoints=n_timepoints, n_channels=n_channels, axis=1, return_y="anomaly"
+    )
+
+    assert isinstance(X, pd.DataFrame)
+    assert X.shape == (n_channels, n_timepoints)
+    assert is_series(X)
+    assert isinstance(y, np.ndarray)
+    assert y.shape == (n_timepoints,)
+    assert np.all(np.isin(y, [0, 1]))
+
+    with pytest.raises(ValueError, match="value for return_y is not supported"):
+        make_example_dataframe_series(
+            n_timepoints=n_timepoints, n_channels=n_channels, axis=1, return_y="invalid"
+        )
