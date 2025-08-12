@@ -1,10 +1,9 @@
 """Time series kmeans."""
 
-from typing import Optional
-
 __maintainer__ = []
+__all__ = ["TimeSeriesKMeans"]
 
-from typing import Callable, Union
+from collections.abc import Callable
 
 import numpy as np
 from numpy.random import RandomState
@@ -159,16 +158,16 @@ class TimeSeriesKMeans(BaseClusterer):
     def __init__(
         self,
         n_clusters: int = 8,
-        init: Union[str, np.ndarray] = "random",
-        distance: Union[str, Callable] = "msm",
+        init: str | np.ndarray = "random",
+        distance: str | Callable = "msm",
         n_init: int = 10,
         max_iter: int = 300,
         tol: float = 1e-6,
         verbose: bool = False,
-        random_state: Optional[Union[int, RandomState]] = None,
-        averaging_method: Union[str, Callable[[np.ndarray], np.ndarray]] = "ba",
-        distance_params: Optional[dict] = None,
-        average_params: Optional[dict] = None,
+        random_state: int | RandomState | None = None,
+        averaging_method: str | Callable[[np.ndarray], np.ndarray] = "ba",
+        distance_params: dict | None = None,
+        average_params: dict | None = None,
     ):
         self.init = init
         self.distance = distance
