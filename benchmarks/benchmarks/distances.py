@@ -32,7 +32,7 @@ class _DistanceBenchmark(Benchmark, ABC):
             self.distance_func(temp[0], temp[0])
             self.pairwise_func(temp)
 
-    def time_indv_dist(self, shape):
+    def time_dist(self, shape):
         # single-series distance
         self.distance_func(self.a[0], self.b[0])
 
