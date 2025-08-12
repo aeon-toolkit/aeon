@@ -167,3 +167,5 @@ local_code.py
 local.py
 
 /benchmarks/benchmark_results/
+
+/benchmarks/html/
