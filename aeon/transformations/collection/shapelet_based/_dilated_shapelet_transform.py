@@ -27,9 +27,9 @@ from aeon.utils.numba.general import (
     get_subsequence,
     get_subsequence_with_mean_std,
     normalise_subsequences,
+    prime_up_to,
     sliding_mean_std_one_series,
 )
-from aeon.utils.numba.stats import prime_up_to
 from aeon.utils.validation import check_n_jobs
 
 
@@ -190,9 +190,9 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
             This estimator.
         """
         if isinstance(self.random_state, int):
-            self._random_generator = np.random.default_rng(self.random_state)
+            _random_generator = np.random.default_rng(self.random_state)
         elif self.random_state is None:
-            self._random_generator = np.random.default_rng()
+            _random_generator = np.random.default_rng()
         else:
             raise ValueError(
                 "Expected integer or None for random_state argument but got"
@@ -218,16 +218,26 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
                 f"but got shapelets_lengths = {self.shapelet_lengths_} ",
                 f"with an input length = {self.min_n_timepoints_}",
             )
-        self.shapelets_ = random_dilated_shapelet_extraction(
+
+        init_params = initialize_shapelet_extraction(
             X,
             y,
             self.max_shapelets,
             self.shapelet_lengths_,
             self.proba_normalization,
+            self.use_prime_dilations,
+            _random_generator,
+        )
+
+        dilation_generators = _random_generator.spawn(init_params[-1])
+
+        self.shapelets_ = random_dilated_shapelet_extraction(
+            X,
+            y,
             self.threshold_percentiles_,
             self.alpha_similarity,
-            self.use_prime_dilations,
-            self._random_generator,
+            dilation_generators,
+            *init_params,
         )
         if len(self.shapelets_[0]) == 0:
             raise RuntimeError(
@@ -509,25 +519,30 @@ def _get_admissible_sampling_point(current_mask, random_generator):
         for i in range(n_cases):
             _new_val = idx_choice - current_mask[i].shape[0]
             if _new_val < 0 and current_mask[i].shape[0] > 0:
-                return i, idx_choice
+                return i, current_mask[i][idx_choice]
             idx_choice = _new_val
     else:
         return -1, -1
 
 
 @njit(fastmath=True, cache=True, parallel=True)
-def random_dilated_shapelet_extraction(
+def initialize_shapelet_extraction(
     X: np.ndarray,
     y: np.ndarray,
     max_shapelets: int,
     shapelet_lengths: np.ndarray,
     proba_normalization: float,
-    threshold_percentiles: np.ndarray,
-    alpha_similarity: float,
     use_prime_dilations: bool,
     random_generator: Generator,
 ):
     """Randomly generate a set of shapelets given the input parameters.
+
+    This step precedes from the ``random_dilated_shapelet_extraction`` function,
+    as we need to spawn new random generator for each dilation. We process each dilation
+    in parallel, but using the same random generator is not thread-safe, and we cannot
+    call the spawn function inside a njit function. Hence we need to return the number
+    of unique dilation along with the other initialized information before calling the
+    ``random_dilated_shapelet_extraction`` function.
 
     Parameters
     ----------
@@ -547,6 +562,119 @@ def random_dilated_shapelet_extraction(
         initialized such as it will use a z-normalised distance, inducing either scale
         sensitivity or invariance. A value of 1 would mean that all shapelets will use
         a z-normalised distance.
+    use_prime_dilations : bool
+        If True, restrict the value of the shapelet dilation parameter to be prime
+        values. This can greatly speed up the algorithm for long time series and/or
+        short shapelet length, possibly at the cost of some accuracy.
+    random_generator : Generator
+        The random generator used for random operations.
+
+    Returns
+    -------
+    The returned tuple contains the initialized arrays and some parameters:
+        - values : array, shape (max_shapelets, n_channels, max(shapelet_lengths))
+            Values of the shapelets.
+        - startpoints : array, shape (max_shapelets)
+            Start points parameter of the shapelets
+        - lengths : array, shape (max_shapelets)
+            Length parameter of the shapelets
+        - dilations : array, shape (max_shapelets)
+            Dilation parameter of the shapelets
+        - thresholds : array, shape (max_shapelets)
+            Threshold parameter of the shapelets
+        - normalises : array, shape (max_shapelets)
+            Normalization indicator of the shapelets
+        - means : array, shape (max_shapelets, n_channels)
+            Means of the shapelets
+        - stds : array, shape (max_shapelets, n_channels)
+            Standard deviation of the shapelets
+        - classes : array, shape (max_shapelets)
+            Class from which the shapelet was extracted
+        - max_n_timepoints : int
+            Maximum size of the series for unequal length collection
+        - n_timepoints : array, shape (n_cases)
+            The number of timestamp of each series.
+        - unique_dil: array, shape (n_dilations)
+            Unique dilation values.
+        - n_dilations : int
+            Number of unique dilations
+    """
+    n_cases = len(X)
+    n_channels = X[0].shape[0]
+    n_timepoints = np.zeros(n_cases, dtype=np.int_)
+    for i in range(n_cases):
+        n_timepoints[i] = X[i].shape[1]
+    min_n_timepoints = n_timepoints.min()
+    max_n_timepoints = n_timepoints.max()
+
+    # Initialize shapelets
+    (
+        values,
+        startpoints,
+        lengths,
+        dilations,
+        thresholds,
+        normalises,
+        means,
+        stds,
+        classes,
+    ) = _init_random_shapelet_params(
+        max_shapelets,
+        shapelet_lengths,
+        proba_normalization,
+        use_prime_dilations,
+        n_channels,
+        min_n_timepoints,
+        random_generator,
+    )
+    unique_dil = np.unique(dilations)
+    n_dilations = unique_dil.shape[0]
+    return (
+        values,
+        startpoints,
+        lengths,
+        dilations,
+        thresholds,
+        normalises,
+        means,
+        stds,
+        classes,
+        max_n_timepoints,
+        n_timepoints,
+        unique_dil,
+        n_dilations,
+    )
+
+
+@njit(fastmath=True, cache=True, parallel=True)
+def random_dilated_shapelet_extraction(
+    X: np.ndarray,
+    y: np.ndarray,
+    threshold_percentiles: np.ndarray,
+    alpha_similarity: float,
+    rng_dilations: np.ndarray,
+    values: np.ndarray,
+    startpoints: np.ndarray,
+    lengths: np.ndarray,
+    dilations: np.ndarray,
+    thresholds: np.ndarray,
+    normalises: np.ndarray,
+    means: np.ndarray,
+    stds: np.ndarray,
+    classes: np.ndarray,
+    max_n_timepoints: int,
+    n_timepoints: np.ndarray,
+    unique_dil: np.ndarray,
+    n_dilations: int,
+):
+    """Randomly generate a set of shapelets given the input parameters.
+
+    Parameters
+    ----------
+    X : array, shape (n_cases, n_channels, n_timepoints)
+        Time series dataset
+    y : array, shape (n_cases)
+        Class of each input time series
     threshold_percentiles : array
         The two percentiles used to select the threshold used to compute the Shapelet
         Occurrence feature.
@@ -556,12 +684,36 @@ def random_dilated_shapelet_extraction(
         when sampling a new candidate with the same dilation parameter.
         It can cause the number of sampled shapelets to be lower than max_shapelets if
         the whole search space has been covered. The default is 0.5.
-    use_prime_dilations : bool
-        If True, restrict the value of the shapelet dilation parameter to be prime
-        values. This can greatly speed up the algorithm for long time series and/or
-        short shapelet length, possibly at the cost of some accuracy.
-    random_generator : Generator
-        The random generator used for random operations.
+    rng_dilations : list of Generator
+        The random generator used for random operations for each dilation. As we perform
+        per dilation operations in parallel, and Generator objects are not thread-safe,
+        we need one generator per parallel loop.
+    values : array, shape (max_shapelets, n_channels, max(shapelet_lengths))
+        Values of the shapelets.
+    startpoints : array, shape (max_shapelets)
+        Start points parameter of the shapelets
+    lengths : array, shape (max_shapelets)
+        Length parameter of the shapelets
+    dilations : array, shape (max_shapelets)
+        Dilation parameter of the shapelets
+    thresholds : array, shape (max_shapelets)
+        Threshold parameter of the shapelets
+    normalises : array, shape (max_shapelets)
+        Normalization indicator of the shapelets
+    means : array, shape (max_shapelets, n_channels)
+        Means of the shapelets
+    stds : array, shape (max_shapelets, n_channels)
+        Standard deviation of the shapelets
+    classes : array, shape (max_shapelets)
+        Class from which the shapelet was extracted
+    max_n_timepoints : int
+        Maximum size of the series for unequal length collection
+    n_timepoints : array, shape (n_cases)
+        The number of timestamp of each series.
+    unique_dil: array, shape (n_dilations)
+        Unique dilation values.
+    n_dilations : int
+        Number of unique dilations
 
     Returns
     -------
@@ -577,53 +729,25 @@ def random_dilated_shapelet_extraction(
             Dilation parameter of the shapelets
         - threshold : array, shape (max_shapelets)
             Threshold parameter of the shapelets
-        - normalise : array, shape (max_shapelets)
+        - normalises : array, shape (max_shapelets)
             Normalization indicator of the shapelets
         - means : array, shape (max_shapelets, n_channels)
             Means of the shapelets
         - stds : array, shape (max_shapelets, n_channels)
             Standard deviation of the shapelets
         - classes : array, shape (max_shapelets)
-        An initialized (empty) startpoint array for each shapelet
+            Class from which the shapelet was extracted
     """
     n_cases = len(X)
-    n_channels = X[0].shape[0]
-    n_timepointss = np.zeros(n_cases, dtype=np.int_)
-    for i in range(n_cases):
-        n_timepointss[i] = X[i].shape[1]
-    min_n_timepoints = n_timepointss.min()
-    max_n_timepoints = n_timepointss.max()
-
-    # Initialize shapelets
-    (
-        values,
-        startpoints,
-        lengths,
-        dilations,
-        threshold,
-        normalise,
-        means,
-        stds,
-        classes,
-    ) = _init_random_shapelet_params(
-        max_shapelets,
-        shapelet_lengths,
-        proba_normalization,
-        use_prime_dilations,
-        n_channels,
-        min_n_timepoints,
-        random_generator,
-    )
-    # Get unique dilations to loop over
-    unique_dil = np.unique(dilations)
-    n_dilations = unique_dil.shape[0]
+    max_shapelets = values.shape[0]
     # For each dilation, we can do in parallel
     for i_dilation in prange(n_dilations):
+
         # (2, _, _): Mask is different for normalised and non-normalised shapelets
         alpha_mask = np.ones((2, n_cases, max_n_timepoints), dtype=np.bool_)
         for _i in range(n_cases):
             # For the unequal length case, we scale the mask up and set to False
-            alpha_mask[:, _i, n_timepointss[_i] :] = False
+            alpha_mask[:, _i, n_timepoints[_i] :] = False
 
         id_shps = np.where(dilations == unique_dil[i_dilation])[0]
         min_len = min(lengths[id_shps])
@@ -632,7 +756,7 @@ def random_dilated_shapelet_extraction(
             # Get shapelet params
             dilation = dilations[i_shp]
             length = lengths[i_shp]
-            norm = np.int_(normalise[i_shp])
+            norm = np.int_(normalises[i_shp])
             # Possible sampling points given self similarity mask
             current_mask = List(
                 [
@@ -640,14 +764,14 @@ def random_dilated_shapelet_extraction(
                         alpha_mask[
                             norm,
                             _i,
-                            : n_timepointss[_i] - (length - 1) * dilation,
+                            : n_timepoints[_i] - (length - 1) * dilation,
                         ]
                     )[0]
                     for _i in range(n_cases)
                 ]
             )
             idx_sample, idx_timestamp = _get_admissible_sampling_point(
-                current_mask, random_generator
+                current_mask, rng_dilations[i_dilation]
             )
             if idx_sample >= 0:
                 # Update the mask in two directions from the sampling point
@@ -681,7 +805,7 @@ def random_dilated_shapelet_extraction(
                 if loc_others.shape[0] > 1:
                     loc_others = loc_others[loc_others != idx_sample]
                     id_test = loc_others[
-                        random_generator.integers(0, high=loc_others.shape[0])
+                        rng_dilations[i_dilation].integers(0, high=loc_others.shape[0])
                     ]
                 else:
                     id_test = idx_sample
@@ -699,7 +823,9 @@ def random_dilated_shapelet_extraction(
                 lower_bound = np.percentile(x_dist, threshold_percentiles[0])
                 upper_bound = np.percentile(x_dist, threshold_percentiles[1])
 
-                threshold[i_shp] = random_generator.uniform(lower_bound, upper_bound)
+                thresholds[i_shp] = rng_dilations[i_dilation].uniform(
+                    lower_bound, upper_bound
+                )
                 values[i_shp, :, :length] = _val
 
                 # Extract the starting point index of the shapelet
@@ -722,8 +848,8 @@ def random_dilated_shapelet_extraction(
         startpoints[mask_values],
         lengths[mask_values],
         dilations[mask_values],
-        threshold[mask_values],
-        normalise[mask_values],
+        thresholds[mask_values],
+        normalises[mask_values],
         means[mask_values],
         stds[mask_values],
         classes[mask_values],
@@ -761,9 +887,9 @@ def dilated_shapelet_transform(
             Length parameter of the shapelets
         - dilations : array, shape (n_shapelets)
             Dilation parameter of the shapelets
-        - threshold : array, shape (n_shapelets)
+        - thresholds : array, shape (n_shapelets)
             Threshold parameter of the shapelets
-        - normalise : array, shape (n_shapelets)
+        - normalises : array, shape (n_shapelets)
             Normalization indicator of the shapelets
         - means : array, shape (n_shapelets, n_channels)
             Means of the shapelets
@@ -785,8 +911,8 @@ def dilated_shapelet_transform(
         startpoints,
         lengths,
         dilations,
-        threshold,
-        normalise,
+        thresholds,
+        normalises,
         means,
         stds,
         classes,
@@ -806,20 +932,20 @@ def dilated_shapelet_transform(
 
         for i_x in prange(n_cases):
             X_subs = get_all_subsequences(X[i_x], length, dilation)
-            idx_no_norm = id_shps[np.where(~normalise[id_shps])[0]]
+            idx_no_norm = id_shps[np.where(~normalises[id_shps])[0]]
             for i_shp in idx_no_norm:
                 X_new[i_x, (n_ft * i_shp) : (n_ft * i_shp + n_ft)] = (
-                    compute_shapelet_features(X_subs, values[i_shp], threshold[i_shp])
+                    compute_shapelet_features(X_subs, values[i_shp], thresholds[i_shp])
                 )
 
-            idx_norm = id_shps[np.where(normalise[id_shps])[0]]
+            idx_norm = id_shps[np.where(normalises[id_shps])[0]]
             if len(idx_norm) > 0:
                 X_means, X_stds = sliding_mean_std_one_series(X[i_x], length, dilation)
                 X_subs = normalise_subsequences(X_subs, X_means, X_stds)
                 for i_shp in idx_norm:
                     X_new[i_x, (n_ft * i_shp) : (n_ft * i_shp + n_ft)] = (
                         compute_shapelet_features(
-                            X_subs, values[i_shp], threshold[i_shp]
+                            X_subs, values[i_shp], thresholds[i_shp]
                         )
                     )
     return X_new
