@@ -33,8 +33,8 @@ class SASTClassifier(BaseClassifier):
         the stride used when generating subsquences
     nb_inst_per_class : int default = 1
         the number of reference time series to select per class
-    seed : int, default = None
-        the seed of the random generator
+    random_state : int, default = None
+        the random_state of the random generator
     estimator : sklearn compatible classifier, default = None
         if None, a RidgeClassifierCV(alphas=np.logspace(-3, 3, 10)) is used.
     n_jobs : int, default -1
@@ -72,7 +72,7 @@ class SASTClassifier(BaseClassifier):
         length_list=None,
         stride: int = 1,
         nb_inst_per_class: int = 1,
-        seed: Optional[int] = None,
+        random_state: Optional[int] = None,
         classifier=None,
         n_jobs: int = 1,
     ) -> None:
@@ -81,7 +81,7 @@ class SASTClassifier(BaseClassifier):
         self.stride = stride
         self.nb_inst_per_class = nb_inst_per_class
         self.n_jobs = n_jobs
-        self.seed = seed
+        self.random_state = random_state
 
         self.classifier = classifier
 
@@ -106,7 +106,7 @@ class SASTClassifier(BaseClassifier):
             self.length_list,
             self.stride,
             self.nb_inst_per_class,
-            self.seed,
+            self.random_state,
             self._n_jobs,
         )
 
@@ -116,7 +116,7 @@ class SASTClassifier(BaseClassifier):
                 if self.classifier is None
                 else self.classifier
             ),
-            self.seed,
+            self.random_state,
         )
 
         self._pipeline = make_pipeline(self._transformer, self._classifier)
