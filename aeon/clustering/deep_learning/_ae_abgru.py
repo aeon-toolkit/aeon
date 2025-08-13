@@ -16,7 +16,10 @@ from aeon.networks import AEAttentionBiGRUNetwork
 
 
 class AEAttentionBiGRUClusterer(BaseDeepClusterer):
-    """Auto-Encoder based the Attention Bidirectional GRU Network.
+    """
+    Auto-Encoder based Attention Bidirectional GRU Network.
+
+    Adapted from the implementation used in [1]_.
 
     Parameters
     ----------
@@ -96,6 +99,24 @@ class AEAttentionBiGRUClusterer(BaseDeepClusterer):
     ... batch_size=4) # doctest: +SKIP
     >>> abgruc.fit(X_train)  # doctest: +SKIP
     AEAttentionBiGRUClusterer(...)
+
+    Notes
+    -----
+    While originally based on [1]_, this implementation
+    derives from the adaptation in [2]_, this
+    implementation only uses the reconstruction training
+    (pretext loss) phase and not the cluster optimization
+
+    References
+    ----------
+    .. [1] Ienco & Interdonato, Deep Multivariate Time Series Embedding
+    Clustering via Attentive-Gated Autoencoder, Advances in Knowledge
+    Discovery and Data Mining, 2020.
+
+    .. [2] Lafabregue et. al, End-to-end deep representation learning
+    for time series clustering: a comparative study, Data Mining
+    and Knowledge Discovery, 2022.
+
     """
 
     def __init__(

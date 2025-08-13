@@ -97,6 +97,12 @@ class AEDCNNClusterer(BaseDeepClusterer):
     callbacks : keras.callbacks, default = None
         List of keras callbacks.
 
+    References
+    ----------
+    .. [1] Franceschi et. al, Unsupervised scalable representation
+    learning for multivariate time series, Advances in neural
+    information processing systems (NeurIPS), 2019.
+
     Examples
     --------
     >>> from aeon.clustering.deep_learning import AEDCNNClusterer

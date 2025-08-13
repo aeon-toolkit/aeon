@@ -20,7 +20,10 @@ if _check_soft_dependencies(["tensorflow"], severity="none"):
 
 
 class AEDRNNClusterer(BaseDeepClusterer):
-    """Auto-Encoder based Dilated Recurrent Neural Network (DRNN).
+    """
+    Auto-Encoder based Dilated Recurrent Neural Network (DRNN).
+
+    Adapted from [1]_.
 
     Parameters
     ----------
@@ -97,6 +100,13 @@ class AEDRNNClusterer(BaseDeepClusterer):
         this parameter is discarded.
     callbacks : keras.callbacks, default = None
         List of keras callbacks.
+
+    References
+    ----------
+    .. [1] Ma Q et. al, Learning representations for time series
+    clustering, Advances in neural information processing systems
+    (NeurIPS), 2019.
+
 
     Examples
     --------
