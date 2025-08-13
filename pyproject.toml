@@ -97,7 +97,8 @@ dev = [
     "pytest-rerunfailures",
     "pytest-timeout",
     "pytest-xdist[psutil]",
-    "asv"
+    "asv",
+    "snakeviz"
 ]
 binder = [
     "notebook",
