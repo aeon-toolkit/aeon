@@ -53,7 +53,7 @@ def plot_series_with_profiles(
     _check_soft_dependencies("matplotlib", "seaborn")
     import matplotlib.pyplot as plt
 
-    if not is_series(ts):
+    if not is_series(ts, include_2d=True):
         raise ValueError(
             "Input time series `ts` must be a valid series data structure, "
             "e.g. pd.Series, pd.DataFrame, or np.ndarray."

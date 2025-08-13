@@ -31,7 +31,7 @@ def plot_series_windows(y, cv, title=""):
     import seaborn as sns
     from matplotlib.ticker import FuncFormatter, MaxNLocator
 
-    if not is_series(y):
+    if not is_series(y, include_2d=True):
         raise ValueError(
             "Input time series `y` must be a valid series data structure, "
             "e.g. pd.Series, pd.DataFrame, or np.ndarray."

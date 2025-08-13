@@ -36,7 +36,7 @@ def plot_series_with_change_points(y, change_points, title=None, font_size=16):
     _check_soft_dependencies("matplotlib")
     import matplotlib.pyplot as plt
 
-    if not is_series(y):
+    if not is_series(y, include_2d=True):
         raise ValueError(
             "Input time series `y` must be a valid series data structure, "
             "e.g. pd.Series, pd.DataFrame, or np.ndarray."
