@@ -17,6 +17,7 @@ from sklearn.utils import check_random_state
 
 from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.transformations.collection.imbalance.utils import KNN
+from aeon.utils.validation import check_n_jobs
 
 __maintainer__ = ["TonyBagnall"]
 __all__ = ["SMOTE"]
@@ -96,6 +97,9 @@ class SMOTE(BaseCollectionTransformer):
         super().__init__()
 
     def _fit(self, X, y=None):
+        self._random_state = check_random_state(self.random_state)
+        self._n_jobs = check_n_jobs(self.n_jobs)
+
         # set the additional_neighbor required by SMOTE
         self.nn_ = KNN(
             n_neighbors=self.n_neighbors + 1,
@@ -116,6 +120,7 @@ class SMOTE(BaseCollectionTransformer):
             if key != class_majority
         }
         self.sampling_strategy_ = OrderedDict(sorted(sampling_strategy.items()))
+
         return self
 
     def _transform(self, X, y=None):
@@ -186,11 +191,12 @@ class SMOTE(BaseCollectionTransformer):
         y_new : ndarray
             Target values for synthetic samples of shape (n_samples_new,).
         """
-        random_state = check_random_state(self.random_state)
-        samples_indices = random_state.randint(low=0, high=nn_num.size, size=n_samples)
+        samples_indices = self._random_state.randint(
+            low=0, high=nn_num.size, size=n_samples
+        )
 
         # np.newaxis for backwards compatibility with random_state
-        steps = step_size * random_state.uniform(size=n_samples)[:, np.newaxis]
+        steps = step_size * self._random_state.uniform(size=n_samples)[:, np.newaxis]
         rows = np.floor_divide(samples_indices, nn_num.shape[1])
         cols = np.mod(samples_indices, nn_num.shape[1])
 
@@ -244,9 +250,8 @@ class SMOTE(BaseCollectionTransformer):
         """
         diffs = nn_data[nn_num[rows, cols]] - X[rows]
         if y is not None:
-            random_state = check_random_state(self.random_state)
             mask_pair_samples = y[nn_num[rows, cols]] != y_type
-            diffs[mask_pair_samples] *= random_state.uniform(
+            diffs[mask_pair_samples] *= self._random_state.uniform(
                 low=0.0, high=0.5, size=(mask_pair_samples.sum(), 1)
             )
         X_new = X[rows] + steps * diffs

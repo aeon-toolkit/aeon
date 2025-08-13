@@ -12,7 +12,6 @@ original authors:
 from typing import Optional, Union
 
 import numpy as np
-from sklearn.utils import check_random_state
 
 from aeon.transformations.collection.imbalance._smote import SMOTE
 
@@ -77,7 +76,6 @@ class ADASYN(SMOTE):
 
     def _transform(self, X, y=None):
         X = np.squeeze(X, axis=1)
-        random_state = check_random_state(self.random_state)
         X_resampled = [X.copy()]
         y_resampled = [y.copy()]
 
@@ -120,9 +118,9 @@ class ADASYN(SMOTE):
 
             enumerated_class_indices = np.arange(len(target_class_indices))
             rows = np.repeat(enumerated_class_indices, n_samples_generate)
-            cols = random_state.choice(n_neighbors, size=n_samples)
+            cols = self._random_state.choice(n_neighbors, size=n_samples)
             diffs = X_class[nns[rows, cols]] - X_class[rows]
-            steps = random_state.uniform(size=(n_samples, 1))
+            steps = self._random_state.uniform(size=(n_samples, 1))
             X_new = X_class[rows] + steps * diffs
 
             X_new = X_new.astype(X.dtype)

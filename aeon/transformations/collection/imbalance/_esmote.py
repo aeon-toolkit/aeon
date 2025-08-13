@@ -9,6 +9,7 @@ from aeon.clustering.averaging._ba_utils import _get_alignment_path
 from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.transformations.collection.imbalance.utils import KNN
 from aeon.utils.numba._threading import threaded
+from aeon.utils.validation import check_n_jobs
 
 __all__ = ["ESMOTE"]
 
@@ -77,6 +78,7 @@ class ESMOTE(BaseCollectionTransformer):
 
     def _fit(self, X, y=None):
         self._random_state = check_random_state(self.random_state)
+        self._n_jobs = check_n_jobs(self.n_jobs)
         self.nn_ = KNN(
             n_neighbors=self.n_neighbors + 1,
             distance=self.distance,
