@@ -62,7 +62,7 @@ def plot_series(
     >>> y = load_airline(return_array=False)
     >>> fig, ax = plot_series(y)  # doctest: +SKIP
     """
-    if not is_series(series):
+    if not is_series(series, include_2d=True):
         raise ValueError(
             "series must be a single time series, either univariate (1D "
             "np.ndarray or pd.Series) or multivariate (2D np.ndarray or pd.DataFrame)"

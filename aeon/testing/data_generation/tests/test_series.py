@@ -50,7 +50,7 @@ def test_make_example_2d_numpy_series(n_timepoints, n_channels):
 
     assert isinstance(X, np.ndarray)
     assert X.shape == (n_timepoints, n_channels)
-    assert is_series(X)
+    assert is_series(X, include_2d=True)
 
     X = make_example_2d_numpy_series(
         n_timepoints=n_timepoints, n_channels=n_channels, axis=1
@@ -58,7 +58,7 @@ def test_make_example_2d_numpy_series(n_timepoints, n_channels):
 
     assert isinstance(X, np.ndarray)
     assert X.shape == (n_channels, n_timepoints)
-    assert is_series(X)
+    assert is_series(X, include_2d=True)
 
     (
         X,
@@ -69,7 +69,7 @@ def test_make_example_2d_numpy_series(n_timepoints, n_channels):
 
     assert isinstance(X, np.ndarray)
     assert X.shape == (n_channels, n_timepoints)
-    assert is_series(X)
+    assert is_series(X, include_2d=True)
     assert isinstance(y, np.ndarray)
     assert y.shape == (n_timepoints,)
     assert np.all(np.isin(y, [0, 1]))
@@ -112,7 +112,7 @@ def test_make_example_dataframe_series(n_timepoints, n_channels):
 
     assert isinstance(X, pd.DataFrame)
     assert X.shape == (n_timepoints, n_channels)
-    assert is_series(X)
+    assert is_series(X, include_2d=True)
 
     X = make_example_dataframe_series(
         n_timepoints=n_timepoints, n_channels=n_channels, axis=1
@@ -120,7 +120,7 @@ def test_make_example_dataframe_series(n_timepoints, n_channels):
 
     assert isinstance(X, pd.DataFrame)
     assert X.shape == (n_channels, n_timepoints)
-    assert is_series(X)
+    assert is_series(X, include_2d=True)
 
     (
         X,
@@ -131,7 +131,7 @@ def test_make_example_dataframe_series(n_timepoints, n_channels):
 
     assert isinstance(X, pd.DataFrame)
     assert X.shape == (n_channels, n_timepoints)
-    assert is_series(X)
+    assert is_series(X, include_2d=True)
     assert isinstance(y, np.ndarray)
     assert y.shape == (n_timepoints,)
     assert np.all(np.isin(y, [0, 1]))

@@ -61,10 +61,10 @@ def test_testing_data_dict():
         assert "test" in FULL_TEST_DATA_DICT[key]
         # data
         assert is_collection(FULL_TEST_DATA_DICT[key]["train"][0]) or is_series(
-            FULL_TEST_DATA_DICT[key]["train"][0]
+            FULL_TEST_DATA_DICT[key]["train"][0], include_2d=True
         )
         assert is_collection(FULL_TEST_DATA_DICT[key]["test"][0]) or is_series(
-            FULL_TEST_DATA_DICT[key]["test"][0]
+            FULL_TEST_DATA_DICT[key]["test"][0], include_2d=True
         )
         # label
         if FULL_TEST_DATA_DICT[key]["train"][1] is not None:
@@ -320,23 +320,23 @@ def test_missing_values_collection():
 def test_univariate_series():
     """Test the contents of the univariate series data dictionary."""
     for key in UNIVARIATE_SERIES:
-        assert is_series(UNIVARIATE_SERIES[key]["train"][0])
+        assert is_series(UNIVARIATE_SERIES[key]["train"][0], include_2d=True)
         assert is_univariate_series(UNIVARIATE_SERIES[key]["train"][0], axis=1)
         assert not has_missing_series(UNIVARIATE_SERIES[key]["train"][0])
         assert UNIVARIATE_SERIES[key]["train"][1] is None
 
-        assert is_series(UNIVARIATE_SERIES[key]["test"][0])
+        assert is_series(UNIVARIATE_SERIES[key]["test"][0], include_2d=True)
         assert is_univariate_series(UNIVARIATE_SERIES[key]["test"][0], axis=1)
         assert not has_missing_series(UNIVARIATE_SERIES[key]["test"][0])
         assert UNIVARIATE_SERIES[key]["test"][1] is None
 
     for key in UNIVARIATE_SERIES_ANOMALY:
-        assert is_series(UNIVARIATE_SERIES_ANOMALY[key]["train"][0])
+        assert is_series(UNIVARIATE_SERIES_ANOMALY[key]["train"][0], include_2d=True)
         assert is_univariate_series(UNIVARIATE_SERIES_ANOMALY[key]["train"][0], axis=1)
         assert not has_missing_series(UNIVARIATE_SERIES_ANOMALY[key]["train"][0])
         check_anomaly_detection_y(UNIVARIATE_SERIES_ANOMALY[key]["train"][1])
 
-        assert is_series(UNIVARIATE_SERIES_ANOMALY[key]["test"][0])
+        assert is_series(UNIVARIATE_SERIES_ANOMALY[key]["test"][0], include_2d=True)
         assert is_univariate_series(UNIVARIATE_SERIES_ANOMALY[key]["test"][0], axis=1)
         assert not has_missing_series(UNIVARIATE_SERIES_ANOMALY[key]["test"][0])
         check_anomaly_detection_y(UNIVARIATE_SERIES_ANOMALY[key]["test"][1])
@@ -345,25 +345,25 @@ def test_univariate_series():
 def test_multivariate_series():
     """Test the contents of the multivariate series data dictionary."""
     for key in MULTIVARIATE_SERIES:
-        assert is_series(MULTIVARIATE_SERIES[key]["train"][0])
+        assert is_series(MULTIVARIATE_SERIES[key]["train"][0], include_2d=True)
         assert not is_univariate_series(MULTIVARIATE_SERIES[key]["train"][0], axis=1)
         assert not has_missing_series(MULTIVARIATE_SERIES[key]["train"][0])
         assert MULTIVARIATE_SERIES[key]["train"][1] is None
 
-        assert is_series(MULTIVARIATE_SERIES[key]["test"][0])
+        assert is_series(MULTIVARIATE_SERIES[key]["test"][0], include_2d=True)
         assert not is_univariate_series(MULTIVARIATE_SERIES[key]["test"][0], axis=1)
         assert not has_missing_series(MULTIVARIATE_SERIES[key]["test"][0])
         assert MULTIVARIATE_SERIES[key]["test"][1] is None
 
     for key in MULTIVARIATE_SERIES_ANOMALY:
-        assert is_series(MULTIVARIATE_SERIES_ANOMALY[key]["train"][0])
+        assert is_series(MULTIVARIATE_SERIES_ANOMALY[key]["train"][0], include_2d=True)
         assert not is_univariate_series(
             MULTIVARIATE_SERIES_ANOMALY[key]["train"][0], axis=1
         )
         assert not has_missing_series(MULTIVARIATE_SERIES_ANOMALY[key]["train"][0])
         check_anomaly_detection_y(MULTIVARIATE_SERIES_ANOMALY[key]["train"][1])
 
-        assert is_series(MULTIVARIATE_SERIES_ANOMALY[key]["test"][0])
+        assert is_series(MULTIVARIATE_SERIES_ANOMALY[key]["test"][0], include_2d=True)
         assert not is_univariate_series(
             MULTIVARIATE_SERIES_ANOMALY[key]["test"][0], axis=1
         )
@@ -374,25 +374,27 @@ def test_multivariate_series():
 def test_missing_series():
     """Test the contents of the series missing value data dictionary."""
     for key in MISSING_VALUES_SERIES:
-        assert is_series(MISSING_VALUES_SERIES[key]["train"][0])
+        assert is_series(MISSING_VALUES_SERIES[key]["train"][0], include_2d=True)
         assert is_univariate_series(MISSING_VALUES_SERIES[key]["train"][0], axis=1)
         assert has_missing_series(MISSING_VALUES_SERIES[key]["train"][0])
         assert MISSING_VALUES_SERIES[key]["train"][1] is None
 
-        assert is_series(MISSING_VALUES_SERIES[key]["test"][0])
+        assert is_series(MISSING_VALUES_SERIES[key]["test"][0], include_2d=True)
         assert is_univariate_series(MISSING_VALUES_SERIES[key]["test"][0], axis=1)
         assert has_missing_series(MISSING_VALUES_SERIES[key]["test"][0])
         assert MISSING_VALUES_SERIES[key]["test"][1] is None
 
     for key in MISSING_VALUES_SERIES_ANOMALY:
-        assert is_series(MISSING_VALUES_SERIES_ANOMALY[key]["train"][0])
+        assert is_series(
+            MISSING_VALUES_SERIES_ANOMALY[key]["train"][0], include_2d=True
+        )
         assert is_univariate_series(
             MISSING_VALUES_SERIES_ANOMALY[key]["train"][0], axis=1
         )
         assert has_missing_series(MISSING_VALUES_SERIES_ANOMALY[key]["train"][0])
         check_anomaly_detection_y(MISSING_VALUES_SERIES_ANOMALY[key]["train"][1])
 
-        assert is_series(MISSING_VALUES_SERIES_ANOMALY[key]["test"][0])
+        assert is_series(MISSING_VALUES_SERIES_ANOMALY[key]["test"][0], include_2d=True)
         assert is_univariate_series(
             MISSING_VALUES_SERIES_ANOMALY[key]["test"][0], axis=1
         )
