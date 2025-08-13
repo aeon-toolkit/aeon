@@ -13,10 +13,8 @@ class _DistanceBenchmark(Benchmark, ABC):
         [
             (10, 1, 10),
             (100, 1, 100),
-            (100, 1, 500),
             (10, 3, 10),
             (100, 3, 100),
-            (100, 3, 500),
         ],
     ]
     param_names = ["shape"]
@@ -45,6 +43,12 @@ class _DistanceBenchmark(Benchmark, ABC):
 
     def time_multiple_to_multiple_dist(self, shape):
         self.pairwise_func(self.a, self.b)
+
+    def time_muti_thread_pairwise_dist(self, shape):
+        self.pairwise_func(self.a, n_jobs=4)
+
+    def time_muti_thread_dist(self, shape):
+        self.pairwise_func(self.a, self.b, n_jobs=4)
 
     @property
     @abstractmethod
@@ -78,7 +82,37 @@ class _ElasticDistanceBenchmark(_DistanceBenchmark, ABC):
         raise NotImplementedError
 
 
-class DTW(_ElasticDistanceBenchmark):
+class SquaredBenchmark(_DistanceBenchmark):
+    @property
+    def distance_func(self):
+        return aeon_dists.squared_distance
+
+    @property
+    def pairwise_func(self):
+        return aeon_dists.squared_pairwise_distance
+
+
+class ManhattanBenchmark(_DistanceBenchmark):
+    @property
+    def distance_func(self):
+        return aeon_dists.manhattan_distance
+
+    @property
+    def pairwise_func(self):
+        return aeon_dists.manhattan_pairwise_distance
+
+
+class MinkowskiBenchmark(_DistanceBenchmark):
+    @property
+    def distance_func(self):
+        return aeon_dists.minkowski_distance
+
+    @property
+    def pairwise_func(self):
+        return aeon_dists.minkowski_pairwise_distance
+
+
+class DTWBenchmark(_ElasticDistanceBenchmark):
     @property
     def distance_func(self):
         return aeon_dists.dtw_distance
@@ -92,23 +126,105 @@ class DTW(_ElasticDistanceBenchmark):
         return aeon_dists.dtw_alignment_path
 
 
-class MSM(_ElasticDistanceBenchmark):
-
+class DTWGIBenchmark(_ElasticDistanceBenchmark):
     @property
     def distance_func(self):
-        return aeon_dists.msm_distance
+        return aeon_dists.dtw_gi_distance
 
     @property
     def pairwise_func(self):
-        return aeon_dists.msm_pairwise_distance
+        return aeon_dists.dtw_gi_pairwise_distance
 
     @property
     def alignment_func(self):
-        return aeon_dists.msm_alignment_path
+        return aeon_dists.dtw_gi_alignment_path
 
 
-class TWE(_ElasticDistanceBenchmark):
+class DDTWBenchmark(_ElasticDistanceBenchmark):
+    @property
+    def distance_func(self):
+        return aeon_dists.ddtw_distance
 
+    @property
+    def pairwise_func(self):
+        return aeon_dists.ddtw_pairwise_distance
+
+    @property
+    def alignment_func(self):
+        return aeon_dists.ddtw_alignment_path
+
+
+class WDTWBenchmark(_ElasticDistanceBenchmark):
+    @property
+    def distance_func(self):
+        return aeon_dists.wdtw_distance
+
+    @property
+    def pairwise_func(self):
+        return aeon_dists.wdtw_pairwise_distance
+
+    @property
+    def alignment_func(self):
+        return aeon_dists.wdtw_alignment_path
+
+
+class WDDTWBenchmark(_ElasticDistanceBenchmark):
+    @property
+    def distance_func(self):
+        return aeon_dists.wddtw_distance
+
+    @property
+    def pairwise_func(self):
+        return aeon_dists.wddtw_pairwise_distance
+
+    @property
+    def alignment_func(self):
+        return aeon_dists.wddtw_alignment_path
+
+
+class LCSSBenchmark(_ElasticDistanceBenchmark):
+    @property
+    def distance_func(self):
+        return aeon_dists.lcss_distance
+
+    @property
+    def pairwise_func(self):
+        return aeon_dists.lcss_pairwise_distance
+
+    @property
+    def alignment_func(self):
+        return aeon_dists.lcss_alignment_path
+
+
+class ERPBenchmark(_ElasticDistanceBenchmark):
+    @property
+    def distance_func(self):
+        return aeon_dists.erp_distance
+
+    @property
+    def pairwise_func(self):
+        return aeon_dists.erp_pairwise_distance
+
+    @property
+    def alignment_func(self):
+        return aeon_dists.erp_alignment_path
+
+
+class EDRBenchmark(_ElasticDistanceBenchmark):
+    @property
+    def distance_func(self):
+        return aeon_dists.edr_distance
+
+    @property
+    def pairwise_func(self):
+        return aeon_dists.edr_pairwise_distance
+
+    @property
+    def alignment_func(self):
+        return aeon_dists.edr_alignment_path
+
+
+class TWEBenchmark(_ElasticDistanceBenchmark):
     @property
     def distance_func(self):
         return aeon_dists.twe_distance
@@ -122,11 +238,127 @@ class TWE(_ElasticDistanceBenchmark):
         return aeon_dists.twe_alignment_path
 
 
-class Euclidean(_DistanceBenchmark):
+class MSMBenchmark(_ElasticDistanceBenchmark):
     @property
     def distance_func(self):
-        return aeon_dists.euclidean_distance
+        return aeon_dists.msm_distance
 
     @property
     def pairwise_func(self):
-        return aeon_dists.euclidean_pairwise_distance
+        return aeon_dists.msm_pairwise_distance
+
+    @property
+    def alignment_func(self):
+        return aeon_dists.msm_alignment_path
+
+
+class ADTWBenchmark(_ElasticDistanceBenchmark):
+    @property
+    def distance_func(self):
+        return aeon_dists.adtw_distance
+
+    @property
+    def pairwise_func(self):
+        return aeon_dists.adtw_pairwise_distance
+
+    @property
+    def alignment_func(self):
+        return aeon_dists.adtw_alignment_path
+
+
+class ShapeDTWBenchmark(_ElasticDistanceBenchmark):
+    @property
+    def distance_func(self):
+        return aeon_dists.shape_dtw_distance
+
+    @property
+    def pairwise_func(self):
+        return aeon_dists.shape_dtw_pairwise_distance
+
+    @property
+    def alignment_func(self):
+        return aeon_dists.shape_dtw_alignment_path
+
+
+class SoftDTWBenchmark(_ElasticDistanceBenchmark):
+    @property
+    def distance_func(self):
+        return aeon_dists.soft_dtw_distance
+
+    @property
+    def pairwise_func(self):
+        return aeon_dists.soft_dtw_pairwise_distance
+
+    @property
+    def alignment_func(self):
+        return aeon_dists.soft_dtw_alignment_path
+
+
+class SBDBenchmark(_DistanceBenchmark):
+    @property
+    def distance_func(self):
+        return aeon_dists.sbd_distance
+
+    @property
+    def pairwise_func(self):
+        return aeon_dists.sbd_pairwise_distance
+
+
+class ShiftScaleBenchmark(_DistanceBenchmark):
+    @property
+    def distance_func(self):
+        return aeon_dists.shift_scale_invariant_distance
+
+    @property
+    def pairwise_func(self):
+        return aeon_dists.shift_scale_invariant_pairwise_distance
+
+
+class DFTSFABenchmark(_DistanceBenchmark):
+    @property
+    def distance_func(self):
+        return aeon_dists.mindist_dft_sfa_distance
+
+    @property
+    def pairwise_func(self):
+        return aeon_dists.mindist_dft_sfa_pairwise_distance
+
+
+class PAASAXBenchmark(_DistanceBenchmark):
+    @property
+    def distance_func(self):
+        return aeon_dists.mindist_paa_sax_distance
+
+    @property
+    def pairwise_func(self):
+        return aeon_dists.mindist_paa_sax_pairwise_distance
+
+
+class SAXBenchmark(_DistanceBenchmark):
+    @property
+    def distance_func(self):
+        return aeon_dists.mindist_sax_distance
+
+    @property
+    def pairwise_func(self):
+        return aeon_dists.mindist_sax_pairwise_distance
+
+
+class SFABenchmark(_DistanceBenchmark):
+    @property
+    def distance_func(self):
+        return aeon_dists.mindist_sfa_distance
+
+    @property
+    def pairwise_func(self):
+        return aeon_dists.mindist_sfa_pairwise_distance
+
+
+class MPDistBenchmark(_DistanceBenchmark):
+    @property
+    def distance_func(self):
+        return aeon_dists.mp_distance
+
+    @property
+    def pairwise_func(self):
+        return aeon_dists.mp_pairwise_distance

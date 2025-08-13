@@ -42,7 +42,6 @@
     // version.
     "matrix": {
         "numpy": [],
-        "pytest": [],
         "numba": []
     },
 
