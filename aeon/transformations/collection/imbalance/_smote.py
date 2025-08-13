@@ -10,12 +10,13 @@ original authors:
 """
 
 from collections import OrderedDict
+from typing import Optional, Union
 
 import numpy as np
-from sklearn.neighbors import NearestNeighbors
 from sklearn.utils import check_random_state
 
 from aeon.transformations.collection import BaseCollectionTransformer
+from aeon.transformations.collection.imbalance.utils import KNN
 
 __maintainer__ = ["TonyBagnall"]
 __all__ = ["SMOTE"]
@@ -35,7 +36,7 @@ class SMOTE(BaseCollectionTransformer):
 
     Parameters
     ----------
-    k_neighbors : int, default=5
+    n_neighbors : int, default=5
         Number of nearest neighbours used to generate synthetic samples. A
         `sklearn.neighbors.NearestNeighbors` instance is fitted for this purpose.
     random_state : int, RandomState instance or None, default=None
@@ -72,14 +73,36 @@ class SMOTE(BaseCollectionTransformer):
         "requires_y": True,
     }
 
-    def __init__(self, k_neighbors: int = 5, random_state=None):
+    def __init__(
+        self,
+        n_neighbors: int = 5,
+        random_state=None,
+        distance: Union[str, callable] = "euclidean",
+        distance_params: Optional[dict] = None,
+        n_jobs: int = 1,
+        weights: Union[str, callable] = "uniform",
+    ):
+
         self.random_state = random_state
-        self.k_neighbors = k_neighbors
+        self.n_neighbors = n_neighbors
+        self.distance = distance
+        self.distance_params = distance_params
+        self.weights = weights
+        self.n_jobs = n_jobs
+
+        self._random_state = None
+        self._distance_params = distance_params or {}
         super().__init__()
 
     def _fit(self, X, y=None):
         # set the additional_neighbor required by SMOTE
-        self.nn_ = NearestNeighbors(n_neighbors=self.k_neighbors + 1)
+        self.nn_ = KNN(
+            n_neighbors=self.n_neighbors + 1,
+            distance=self.distance,
+            distance_params=self._distance_params,
+            weights=self.weights,
+            n_jobs=self.n_jobs,
+        )
 
         # generate sampling target by targeting all classes except the majority
         unique, counts = np.unique(y, return_counts=True)
@@ -106,8 +129,8 @@ class SMOTE(BaseCollectionTransformer):
                 continue
             target_class_indices = np.flatnonzero(y == class_sample)
             X_class = X[target_class_indices]
-
-            self.nn_.fit(X_class)
+            y_class = y[target_class_indices]
+            self.nn_.fit(X_class, y_class)
             nns = self.nn_.kneighbors(X_class, return_distance=False)[:, 1:]
             X_new, y_new = self._make_samples(
                 X_class, y.dtype, class_sample, X_class, nns, n_samples, 1.0
@@ -249,4 +272,4 @@ class SMOTE(BaseCollectionTransformer):
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
         """
-        return {"k_neighbors": 1}
+        return {"n_neighbors": 1}

@@ -5,100 +5,12 @@ import numpy as np
 from numba import prange
 from sklearn.utils import check_random_state
 
-from aeon.classification.distance_based import KNeighborsTimeSeriesClassifier
 from aeon.clustering.averaging._ba_utils import _get_alignment_path
 from aeon.transformations.collection import BaseCollectionTransformer
+from aeon.transformations.collection.imbalance.utils import KNN
+from aeon.utils.numba._threading import threaded
 
 __all__ = ["ESMOTE"]
-
-
-class KNN(KNeighborsTimeSeriesClassifier):
-    """
-    KNN classifier for time series data, adapted to work with ESMOTE.
-    This class is a wrapper around the original KNeighborsTimeSeriesClassifier
-    to ensure compatibility with the ESMOTE transformation.
-    """
-
-    def _fit_setup(self, X, y):
-        # KNN can support if all labels are the same so always return False for single
-        # class problem so the fit will always run
-        X, y, _ = super()._fit_setup(X, y)
-        return X, y, False
-
-    def kneighbors(self, X=None, n_neighbors=None, return_distance=True):
-        """Find the K-neighbors of a point.
-
-        Returns indices of and distances to the neighbors of each point.
-
-        Parameters
-        ----------
-        X : 3D np.ndarray of shape = (n_cases, n_channels, n_timepoints) or list of
-        shape [n_cases] of 2D arrays shape (n_channels,n_timepoints_i)
-            The query point or points.
-            If not provided, neighbors of each indexed point are returned.
-            In this case, the query point is not considered its own neighbor.
-        n_neighbors : int, default=None
-            Number of neighbors required for each sample. The default is the value
-            passed to the constructor.
-        return_distance : bool, default=True
-            Whether or not to return the distances.
-
-        Returns
-        -------
-        neigh_dist : ndarray of shape (n_queries, n_neighbors)
-            Array representing the distances to points, only present if
-            return_distance=True.
-        neigh_ind : ndarray of shape (n_queries, n_neighbors)
-            Indices of the nearest points in the population matrix.
-        """
-        self._check_is_fitted()
-        import numbers
-
-        from aeon.distances import pairwise_distance
-
-        if n_neighbors is None:
-            n_neighbors = self.n_neighbors
-        elif n_neighbors <= 0:
-            raise ValueError(f"Expected n_neighbors > 0. Got {n_neighbors}")
-        elif not isinstance(n_neighbors, numbers.Integral):
-            raise TypeError(
-                f"n_neighbors does not take {type(n_neighbors)} value, "
-                "enter integer value"
-            )
-
-        query_is_train = X is None
-        if query_is_train:
-            X = self.X_
-            n_neighbors += 1
-        else:
-            X = self._preprocess_collection(X, store_metadata=False)
-            self._check_shape(X)
-
-        # Compute pairwise distances between X and fit data
-        distances = pairwise_distance(
-            X,
-            self.X_ if not query_is_train else None,
-            method=self.distance,
-            **self._distance_params,
-        )
-
-        sample_range = np.arange(distances.shape[0])[:, None]
-        neigh_ind = np.argpartition(distances, n_neighbors - 1, axis=1)
-        neigh_ind = neigh_ind[:, :n_neighbors]
-        neigh_ind = neigh_ind[
-            sample_range, np.argsort(distances[sample_range, neigh_ind])
-        ]
-
-        if query_is_train:
-            neigh_ind = neigh_ind[:, 1:]
-
-        if return_distance:
-            if query_is_train:
-                neigh_dist = distances[sample_range, neigh_ind]
-                return neigh_dist, neigh_ind
-            return distances[sample_range, neigh_ind], neigh_ind
-
-        return neigh_ind
 
 
 class ESMOTE(BaseCollectionTransformer):
@@ -143,7 +55,7 @@ class ESMOTE(BaseCollectionTransformer):
     def __init__(
         self,
         n_neighbors=5,
-        distance: Union[str, callable] = "msm",
+        distance: Union[str, callable] = "twe",
         distance_params: Optional[dict] = None,
         weights: Union[str, callable] = "uniform",
         n_jobs: int = 1,
@@ -152,8 +64,8 @@ class ESMOTE(BaseCollectionTransformer):
         self.random_state = random_state
         self.n_neighbors = n_neighbors
         self.distance = distance
-        self.distance_params = distance_params
         self.weights = weights
+        self.distance_params = distance_params
         self.n_jobs = n_jobs
 
         self._random_state = None
@@ -216,6 +128,7 @@ class ESMOTE(BaseCollectionTransformer):
 
         return X_synthetic, y_synthetic
 
+    @threaded
     def _make_samples(
         self, X, y_dtype, y_type, nn_data, nn_num, n_samples, step_size=1.0, n_jobs=1
     ):
@@ -229,54 +142,52 @@ class ESMOTE(BaseCollectionTransformer):
         )
         rows = np.floor_divide(samples_indices, nn_num.shape[1])
         cols = np.mod(samples_indices, nn_num.shape[1])
-        distance = self.distance
+        X_new = np.zeros((len(rows), *X.shape[1:]), dtype=X.dtype)
+        for count in prange(len(rows)):
+            i = rows[count]
+            j = cols[count]
+            nn_ts = nn_data[nn_num[i, j]]
+            X_new[count] = self._generate_sample_use_soft_distance(
+                X[i],
+                nn_ts,
+                distance=self.distance,
+                step=steps[count],
+            )
 
-        X_new = _generate_samples(
-            X,
-            nn_data,
-            nn_num,
-            rows,
-            cols,
-            steps,
-            random_state=self._random_state,
-            distance=distance,
-            **self._distance_params,
-        )
         y_new = np.full(n_samples, fill_value=y_type, dtype=y_dtype)
         return X_new, y_new
 
+    def _generate_sample_use_soft_distance(
+        self,
+        curr_ts,
+        nn_ts,
+        distance,
+        step,
+        window: Union[float, None] = None,
+        g: float = 0.0,
+        epsilon: Union[float, None] = None,
+        nu: float = 0.001,
+        lmbda: float = 1.0,
+        independent: bool = True,
+        c: float = 1.0,
+        descriptor: str = "identity",
+        reach: int = 15,
+        warp_penalty: float = 1.0,
+        transformation_precomputed: bool = False,
+        transformed_x: Optional[np.ndarray] = None,
+        transformed_y: Optional[np.ndarray] = None,
+        return_bias=True,
+    ):
+        """
+        Generate a single synthetic sample using soft distance.
 
-def _generate_samples(
-    X,
-    nn_data,
-    nn_num,
-    rows,
-    cols,
-    steps,
-    random_state,
-    distance,
-    weights: Optional[np.ndarray] = None,
-    window: Union[float, None] = None,
-    g: float = 0.0,
-    epsilon: Union[float, None] = None,
-    nu: float = 0.001,
-    lmbda: float = 1.0,
-    independent: bool = True,
-    c: float = 1.0,
-    descriptor: str = "identity",
-    reach: int = 15,
-    warp_penalty: float = 1.0,
-    transformation_precomputed: bool = False,
-    transformed_x: Optional[np.ndarray] = None,
-    transformed_y: Optional[np.ndarray] = None,
-):
-    X_new = np.zeros((len(rows), *X.shape[1:]), dtype=X.dtype)
+        This is use soft distance to align the current time series with its nearest
+        neighbor, and then generate a synthetic sample by subtracting the aligned
+        nearest neighbor from the current time series.
 
-    for count in prange(len(rows)):
-        i = rows[count]
-        j = cols[count]
-        curr_ts = X[i]  # shape: (c, l)
-        nn_ts = nn_data[nn_num[i, j]]  # shape: (c, l)
+        # shape: (c, l) or (l)
+        # shape: (c, l) or (l)
+        """
         new_ts = curr_ts.copy()
         alignment, _ = _get_alignment_path(
             nn_ts,
@@ -300,18 +211,26 @@ def _generate_samples(
         for k, l in alignment:
             path_list[k].append(l)
 
-        # num_of_alignments = np.zeros_like(curr_ts, dtype=np.int32)
         empty_of_array = np.zeros_like(curr_ts, dtype=float)  # shape: (c, l)
 
         for k, l in enumerate(path_list):
             if len(l) == 0:
-                print("No alignment found for time step")
+                import logging
+
+                logging.getLogger("aeon").setLevel(logging.WARNING)
+                logging.warning(
+                    f"Alignment path for channel {k} is empty. "
+                    "Returning the original time series."
+                )
                 return new_ts
 
-            key = random_state.choice(l)
+            key = self._random_state.choice(l)
             # Compute difference for all channels at this time step
             empty_of_array[:, k] = curr_ts[:, k] - nn_ts[:, key]
 
-        X_new[count] = new_ts + steps[count] * empty_of_array  # / num_of_alignments
+        Bias = step * empty_of_array
+        if return_bias:
+            return Bias
 
-    return X_new
+        new_ts = new_ts - Bias
+        return new_ts
