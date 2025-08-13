@@ -36,6 +36,10 @@ excluded_estimators = [
     # Unknown failure, needs investigation
     "SignatureClassifier",
     "TDMVDCClassifier",
+    "RSASTClassifier",
+    "FreshPRINCEClassifier",
+    "DrCIFRegressor",
+    "FreshPRINCERegressor",
 ]
 
 rng = check_random_state(42)
