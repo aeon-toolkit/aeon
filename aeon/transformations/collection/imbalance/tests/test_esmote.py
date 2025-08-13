@@ -1,9 +1,7 @@
 """Test function for ESMOTE."""
 
 import numpy as np
-import pytest
 
-from aeon.testing.data_generation import make_example_3d_numpy
 from aeon.transformations.collection.imbalance import ESMOTE
 
 
