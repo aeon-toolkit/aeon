@@ -71,6 +71,7 @@ class SMOTE(BaseCollectionTransformer):
 
     _tags = {
         "requires_y": True,
+        "capability:multithreading": True,
     }
 
     def __init__(

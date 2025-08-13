@@ -49,6 +49,7 @@ class ESMOTE(BaseCollectionTransformer):
     _tags = {
         "capability:multivariate": False,
         "capability:unequal_length": False,
+        "capability:multithreading": True,
         "requires_y": True,
     }
 
