@@ -15,7 +15,7 @@ import pandas as pd
 from deprecated.sphinx import deprecated
 
 
-def is_series(X):
+def is_series(X, include_2d=False):
     """Check X is a valid series data structure.
 
     Parameters
@@ -28,8 +28,13 @@ def is_series(X):
     bool
         True if input is a series, False otherwise.
     """
-    valid = ["pd.Series", "pd.DataFrame", "np.ndarray"]
-    return get_type(X, raise_error=False) in valid
+    valid = ["pd.Series", "np1d"]
+    if include_2d:
+        valid += ["pd.DataFrame", "np2d"]
+    t = get_type(X, raise_error=False)
+    if t == "np.ndarray":
+        t = "np1d" if X.ndim == 1 else "np2d"
+    return t in valid
 
 
 def get_n_timepoints(X, axis=None):
@@ -223,7 +228,7 @@ def get_type(X, raise_error=True):
             return "pd.Series"
         else:
             msg = "ERROR pd.Series must contain numeric values only"
-    if isinstance(X, pd.DataFrame):
+    elif isinstance(X, pd.DataFrame):
         if (
             isinstance(X, pd.DataFrame)
             and not isinstance(X.index, pd.MultiIndex)
@@ -239,7 +244,7 @@ def get_type(X, raise_error=True):
                 return "pd.DataFrame"
         else:
             msg = "ERROR pd.DataFrame must contain non-multiindex columns and index"
-    if isinstance(X, np.ndarray):
+    elif isinstance(X, np.ndarray):
         if not np.issubdtype(X.dtype, np.floating) and not np.issubdtype(
             X.dtype, np.integer
         ):
@@ -248,6 +253,12 @@ def get_type(X, raise_error=True):
             msg = "ERROR np.ndarray must be 1D or 2D"
         else:
             return "np.ndarray"
+    else:
+        msg = (
+            f"ERROR passed input of type {type(X)}, must be of type "
+            f"np.ndarray, pd.Series or pd.DataFrame."
+            f"See aeon.utils.data_types.SERIES_DATA_TYPES"
+        )
 
     if raise_error and msg is not None:
         raise TypeError(msg)
