@@ -1,151 +1,341 @@
+from __future__ import annotations
+
 import numpy as np
 from numba import njit
 
 from aeon.forecasting.base import BaseForecaster, IterativeForecastingMixin
 
 
-@njit(cache=True, fastmath=True)
-def _make_lag_matrix(y: np.ndarray, maxlag: int) -> np.ndarray:
-    """Return lag matrix with columns [y_{t-1}, ..., y_{t-maxlag}] (trim='both')."""
-    n = y.shape[0]
-    rows = n - maxlag
-    out = np.empty((rows, maxlag), dtype=np.float64)
-
-    for i in range(rows):
-        for k in range(maxlag):
-            out[i, k] = y[maxlag + i - (k + 1)]
-    return out
-
-
-@njit(cache=True, fastmath=True)
-def _make_lags_regimes(y: np.ndarray, maxlag: int, delay: int, threshold: float):
-    """Create lag matrix and regime flags in one pass."""
-    n = y.shape[0]
-    rows = n - maxlag
-    X_lag = np.empty((rows, maxlag), dtype=np.float64)
-    regimes = np.empty(rows, dtype=np.bool_)
-
-    for i in range(rows):
-        for k in range(maxlag):
-            X_lag[i, k] = y[maxlag + i - (k + 1)]
-        regimes[i] = y[maxlag + i - delay] > threshold
-
-    return X_lag, regimes
-
-
-@njit(cache=True, fastmath=True)
-def _ols_fit(X: np.ndarray, y: np.ndarray):
-    """Fit OLS regression using normal equations."""
-    n_samples, n_features = X.shape
-    Xb = np.ones((n_samples, n_features + 1), dtype=np.float64)
-    Xb[:, 1:] = X
-
-    XtX = Xb.T @ Xb
-    Xty = Xb.T @ y
-    beta = np.linalg.solve(XtX, Xty)
-
-    intercept = beta[0]
-    coef = beta[1:]
-    return intercept, coef
-
-
-@njit(cache=True, fastmath=True)
-def _ols_predict(X: np.ndarray, intercept: float, coef: np.ndarray):
-    """Predict using intercept and coefficients."""
-    return intercept + X @ coef
-
-
 class TAR(BaseForecaster, IterativeForecastingMixin):
-    """Fast Threshold Autoregressive (TAR) [1] forecaster using Numba OLS.
+    r"""Threshold Autoregressive (TAR) forecaster with fixed parameters.
 
-    A TAR model fits two autoregressive models to different regimes,
-    depending on whether the value at lag `delay` is above or below
-    a threshold (default: mean of training series). Each regime has
-    its own set of AR coefficients estimated via OLS.
+    Two regimes split by a threshold :math:`r` on the variable :math:`z_t=y_{t-d}`:
+    observations with :math:`z_t \le r` follow the **below/left** AR model, and
+    those with :math:`z_t > r` follow the **above/right** AR model. Each regime is
+    fit by OLS. **No parameter optimisation/search** is performed.
 
-    This implementation uses Numba to efficiently compute the lag
-    matrix, assign regimes, and fit both models without sklearn. It does not yet set
-    the threshold or the AR parameters automatically based on the training data.
+    Defaults:
+    - ``delay=1``
+    - ``ar_order=(2, 2)`` (AR(2) in each regime)
+    - ``threshold=None`` → set to the **median** of the aligned threshold variable
+      computed on the training window.
 
     Parameters
     ----------
-    threshold : float or None, default=None
-        Threshold value for regime split. If None, set to mean of training data.
+    threshold : float | None, default=None
+        Fixed threshold :math:`r`. If ``None``, it is set in ``fit`` to the median
+        of :math:`z_t=y_{t-d}` over the aligned training rows.
     delay : int, default=1
-        Delay ``d`` for threshold variable ``y_{t-d}``.
-    ar_order : int, default=1
-        AR order ``p`` for both regimes.
+        Threshold delay :math:`d \ge 1` for :math:`z_t = y_{t-d}`.
+    ar_order : int | tuple[int, int], default=(2, 2)
+        If ``int``, use the same AR order in both regimes.
+        If tuple, use ``(p_below, p_above)`` for the two regimes.
 
     Attributes
     ----------
+    threshold_ : float
+        The threshold actually used (either provided or the computed median).
+    delay_ : int
+        The fixed delay actually used.
+    p_below_, p_above_ : int
+        AR orders used in the below/left and above/right regimes, respectively.
+    intercept_below_, coef_below_ : float, np.ndarray
+        OLS parameters for the below/left regime (:math:`z_t \le r`).
+    intercept_above_, coef_above_ : float, np.ndarray
+        OLS parameters for the above/right regime (:math:`z_t > r`).
     forecast_ : float
-        One-step-ahead forecast from end of training series.
+        One-step-ahead forecast from the end of training.
     params_ : dict
-        Dictionary containing fitted intercepts and AR coefficients for each regime.
+        Snapshot of configuration and a simple AIC diagnostic.
 
     References
     ----------
-    ..[1] Tong, H. (1978). "On a threshold model." In: Chen, C.H. (ed.)
-    Pattern Recognition and Signal Processing. Sijthoff & Noordhoff, pp. 575–586.
+    Tong, H., & Lim, K. S. (1980).
+    Threshold autoregression, limit cycles and cyclical data.
+    *JRSS-B*, 42(3), 245–292.
     """
 
-    def __init__(self, threshold=None, delay=1, ar_order=1):
+    def __init__(
+        self,
+        threshold: float | None = None,
+        delay: int = 1,
+        ar_order: int | tuple[int, int] = (2, 2),
+    ) -> None:
         self.threshold = threshold
         self.delay = delay
         self.ar_order = ar_order
         super().__init__(horizon=1, axis=1)
 
-    def _fit(self, y, X=None):
-        """Fit TAR model to training data."""
+    def _fit(self, y: np.ndarray, exog: np.ndarray | None = None) -> TAR:
+        self._validate_params()
         y = y.squeeze()
-        self.threshold_ = (
-            float(np.mean(y)) if self.threshold is None else float(self.threshold)
+        y = np.ascontiguousarray(np.asarray(y, dtype=np.float64))
+        n = y.shape[0]
+
+        # Resolve orders
+        if isinstance(self.ar_order, int):
+            p_below = p_above = int(self.ar_order)
+        else:
+            p_below = int(self.ar_order[0])
+            p_above = int(self.ar_order[1])
+
+        maxlag = max(p_below, p_above, self.delay)
+        if n <= maxlag:
+            raise RuntimeError(
+                f"Not enough observations (n={n}) for maxlag={maxlag}. "
+                "Provide more data or lower delay/order."
+            )
+
+        # Design matrices aligned to t = maxlag .. n-1
+        X_full = _make_lag_matrix(y, maxlag)  # shape (rows, maxlag)
+        y_resp = y[maxlag:]  # shape (rows,)
+        rows = y_resp.shape[0]
+
+        # Threshold variable z_t = y_{t-d}
+        base = maxlag - self.delay
+        z = y[base : base + rows]
+
+        # Default threshold to the median of z if not provided
+        if self.threshold is not None:
+            thr = self.threshold
+        else:
+            thr = np.median(z)
+
+        # Regime mask and sizes
+        mask_R = z > thr
+        nR = int(mask_R.sum())
+        nL = rows - nR
+
+        minL = p_below + 1
+        minR = p_above + 1
+        if nL < minL or nR < minR:
+            raise RuntimeError(
+                "Insufficient data per regime at the chosen threshold: "
+                f"below n={nL} (need ≥ {minL}), above n={nR} (need ≥ {minR}). "
+                "Consider providing a different threshold, delay, or orders."
+            )
+
+        # Per-regime designs
+        if p_below > 0:
+            XL = X_full[~mask_R, :p_below]
+        else:
+            XL = np.empty((nL, 0), dtype=np.float64)
+        if p_above > 0:
+            XR = X_full[mask_R, :p_above]
+        else:
+            XR = np.empty((nR, 0), dtype=np.float64)
+        yL = y_resp[~mask_R]
+        yR = y_resp[mask_R]
+
+        # OLS fits
+        iL, bL, rssL = _ols_fit_with_rss(XL, yL)
+        iR, bR, rssR = _ols_fit_with_rss(XR, yR)
+
+        # Persist learned params
+        self.threshold_ = thr
+        self.delay_ = int(self.delay)
+        self.p_below_ = p_below
+        self.p_above_ = p_above
+        self.intercept_below_ = float(iL)
+        self.coef_below_ = np.ascontiguousarray(bL, dtype=np.float64)
+        self.intercept_above_ = float(iR)
+        self.coef_above_ = np.ascontiguousarray(bR, dtype=np.float64)
+
+        # 1-step forecast
+        self.forecast_ = _numba_predict(
+            y,
+            self.delay_,
+            self.threshold_,
+            self.intercept_below_,
+            self.coef_below_,
+            self.p_below_,
+            self.intercept_above_,
+            self.coef_above_,
+            self.p_above_,
         )
 
-        # Use Numba lag matrix + regime builder
-        X_lag, regimes = _make_lags_regimes(
-            y, self.ar_order, self.delay, self.threshold_
-        )
-        y_resp = y[self.ar_order :]
-
-        # Fit OLS to each regime
-        self.intercept1_, self.coef1_ = _ols_fit(X_lag[~regimes], y_resp[~regimes])
-        self.intercept2_, self.coef2_ = _ols_fit(X_lag[regimes], y_resp[regimes])
-
-        # Store for inspection
+        # Simple AIC diagnostic (sum RSS; k counts both regimes incl. intercepts)
+        rss = rssL + rssR
+        k = (1 + p_below) + (1 + p_above)
+        aic = _aic_value(rss, rows, k)
         self.params_ = {
             "threshold": self.threshold_,
-            "regime_1": {
-                "intercept": self.intercept1_,
-                "coefficients": self.coef1_.tolist(),
+            "delay": self.delay_,
+            "regime_below": {
+                "order": self.p_below_,
+                "intercept": self.intercept_below_,
+                "coef": self.coef_below_,
+                "n": int(nL),
             },
-            "regime_2": {
-                "intercept": self.intercept2_,
-                "coefficients": self.coef2_.tolist(),
+            "regime_above": {
+                "order": self.p_above_,
+                "intercept": self.intercept_above_,
+                "coef": self.coef_above_,
+                "n": int(nR),
             },
+            "selection": {"criterion": "AIC", "value": float(aic)},
         }
-
-        # Store training data
-        self._y = list(y)
-
-        # Forecast from end of training
-        lagged_last = np.array(self._y[-self.ar_order :])[::-1].reshape(1, -1)
-        regime_last = self._y[-self.delay] > self.threshold_
-        self.forecast_ = (
-            _ols_predict(lagged_last, self.intercept2_, self.coef2_)[0]
-            if regime_last
-            else _ols_predict(lagged_last, self.intercept1_, self.coef1_)[0]
-        )
-
         return self
 
-    def _predict(self, y, exog=None) -> float:
-        """Predict the next step ahead given current series y."""
-        y = np.asarray(y).squeeze()
-        lagged = np.array(y[-self.ar_order :])[::-1].reshape(1, -1)
-        regime = y[-self.delay] > self.threshold_
-        return (
-            _ols_predict(lagged, self.intercept2_, self.coef2_)[0]
-            if regime
-            else _ols_predict(lagged, self.intercept1_, self.coef1_)[0]
+    def _predict(self, y: np.ndarray, exog: np.ndarray | None = None) -> float:
+        y = np.ascontiguousarray(np.asarray(y, dtype=np.float64)).squeeze()
+        return _numba_predict(
+            y,
+            self.delay_,
+            self.threshold_,
+            self.intercept_below_,
+            self.coef_below_,
+            self.p_below_,
+            self.intercept_above_,
+            self.coef_above_,
+            self.p_above_,
         )
+
+    def _validate_params(self) -> None:
+        """Validate fixed-parameter configuration for types and ranges."""
+        if self.threshold is not None:
+            if not isinstance(
+                self.threshold, (int, float, np.floating)
+            ) or not np.isfinite(self.threshold):
+                raise TypeError("threshold must be a finite real number or None")
+        if not isinstance(self.delay, int) or self.delay < 1:
+            raise TypeError("delay must be an int >= 1")
+        if isinstance(self.ar_order, int):
+            if self.ar_order < 0:
+                raise ValueError("ar_order int must be >= 0")
+        elif isinstance(self.ar_order, tuple):
+            if len(self.ar_order) != 2:
+                raise TypeError("ar_order tuple must be (p_below, p_above)")
+            pL, pR = self.ar_order
+            if not (isinstance(pL, int) and isinstance(pR, int)):
+                raise TypeError("ar_order tuple entries must be ints")
+            if pL < 0 or pR < 0:
+                raise ValueError("ar_order tuple entries must be >= 0")
+        else:
+            raise TypeError("ar_order must be int or (int, int)")
+
+
+# ============================ shared Numba utilities ============================
+
+
+@njit(cache=True, fastmath=True)
+def _make_lag_matrix(y: np.ndarray, maxlag: int) -> np.ndarray:
+    """Build lag matrix with columns [y_{t-1}, ..., y_{t-maxlag}] (trim='both')."""
+    n = y.shape[0]
+    rows = n - maxlag
+    out = np.empty((rows, maxlag), dtype=np.float64)
+    for i in range(rows):
+        base = maxlag + i
+        for k in range(maxlag):
+            out[i, k] = y[base - (k + 1)]
+    return out
+
+
+@njit(cache=True, fastmath=True)
+def _prepare_design(
+    y: np.ndarray, maxlag: int, d: int
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Build lagged design X, response y_resp, and threshold var z=y_{t-d} (aligned)."""
+    X_full = _make_lag_matrix(y, maxlag)
+    y_resp = y[maxlag:]
+    rows = y_resp.shape[0]
+    z = np.empty(rows, dtype=np.float64)
+    base = maxlag - d
+    for i in range(rows):
+        z[i] = y[base + i]  # y_{t-d}
+    return X_full, y_resp, z
+
+
+@njit(cache=True, fastmath=True)
+def _ols_fit_with_rss(X: np.ndarray, y: np.ndarray) -> tuple[float, np.ndarray, float]:
+    """OLS via normal equations; return (intercept, coef, rss)."""
+    n_samples, n_features = X.shape
+    Xb = np.empty((n_samples, n_features + 1), dtype=np.float64)
+    Xb[:, 0] = 1.0
+    if n_features:
+        Xb[:, 1:] = X
+    XtX = Xb.T @ Xb
+    Xty = Xb.T @ y
+    beta = np.linalg.solve(XtX, Xty)
+    pred = Xb @ beta
+    resid = y - pred
+    rss = float(resid @ resid)
+    return float(beta[0]), beta[1:], rss
+
+
+@njit(cache=True, fastmath=True)
+def _subset_rows_cols(
+    X: np.ndarray, mask_true: np.ndarray, choose_true: bool, keep_cols: int
+) -> np.ndarray:
+    """Select rows by mask and first keep_cols columns (Numba-friendly)."""
+    rows = 0
+    for i in range(mask_true.size):
+        if mask_true[i] == choose_true:
+            rows += 1
+    out = np.empty((rows, keep_cols), dtype=np.float64)
+    r = 0
+    for i in range(mask_true.size):
+        if mask_true[i] == choose_true:
+            for c in range(keep_cols):
+                out[r, c] = X[i, c]
+            r += 1
+    return out
+
+
+@njit(cache=True, fastmath=True)
+def _subset_target(
+    y: np.ndarray, mask_true: np.ndarray, choose_true: bool
+) -> np.ndarray:
+    """Select target rows by mask (Numba-friendly)."""
+    rows = 0
+    for i in range(mask_true.size):
+        if mask_true[i] == choose_true:
+            rows += 1
+    out = np.empty(rows, dtype=np.float64)
+    r = 0
+    for i in range(mask_true.size):
+        if mask_true[i] == choose_true:
+            out[r] = y[i]
+            r += 1
+    return out
+
+
+@njit(cache=True, fastmath=True)
+def _aic_value(rss: float, n_eff: int, k: int) -> float:
+    """AIC ∝ n*log(max(RSS/n, tiny)) + 2k."""
+    if n_eff <= 0:
+        return np.inf
+    sigma2 = rss / n_eff
+    if sigma2 <= 1e-300:
+        sigma2 = 1e-300
+    return n_eff * np.log(sigma2) + 2.0 * k
+
+
+@njit(cache=True, fastmath=True)
+def _numba_predict(
+    y: np.ndarray,
+    delay: int,
+    thr: float,
+    iL: float,
+    bL: np.ndarray,
+    pL: int,
+    iR: float,
+    bR: np.ndarray,
+    pR: int,
+) -> float:
+    """One-step forecast from end of y with fitted TAR params."""
+    regime_right = y[-delay] > thr
+    if regime_right:
+        if pR == 0:
+            return iR
+        val = iR
+        for j in range(pR):
+            val += bR[j] * y[-(j + 1)]
+        return val
+    else:
+        if pL == 0:
+            return iL
+        val = iL
+        for j in range(pL):
+            val += bL[j] * y[-(j + 1)]
+        return val
