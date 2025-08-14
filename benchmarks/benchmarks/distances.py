@@ -26,11 +26,9 @@ class _DistanceBenchmark(Benchmark, ABC):
         self.b = make_example_3d_numpy(*shape, return_y=False, random_state=2)
 
     def time_dist(self, shape):
-        # single-series distance
         self.distance_func(self.a[0], self.b[0])
 
     def time_pairwise_dist(self, shape):
-        # pairwise(X) or pairwise(X, Y)
         self.pairwise_func(self.a)
 
     def time_one_to_multiple_dist(self, shape):
