@@ -35,9 +35,11 @@ class EstimatorBenchmark(Benchmark, ABC):
     # Base grid (shared across all estimators)
     shapes = [
         (10, 1, 10),
-        (100, 1, 100),
+        (10, 1, 1000),
+        (50, 1, 100),
         (10, 3, 10),
-        (100, 3, 100),
+        (10, 3, 1000),
+        (50, 3, 100),
     ]
 
     # Subclasses will append their own grids to these:
@@ -52,9 +54,8 @@ class EstimatorBenchmark(Benchmark, ABC):
         # Warm-up tiny run (helps numba/JIT caches etc.)
         tmp_X = make_example_3d_numpy(10, 1, 10, random_state=42, return_y=False)
         tmp_est = self._build_estimator(*est_params)
-        for _ in range(3):
-            tmp_est.fit(tmp_X)
-            tmp_est.predict(tmp_X)
+        tmp_est.fit(tmp_X)
+        tmp_est.predict(tmp_X)
 
         # Pre-fit once for predict timing
         self.prefit_estimator = self._build_estimator(*est_params)

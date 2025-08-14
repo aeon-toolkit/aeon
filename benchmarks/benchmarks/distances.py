@@ -12,9 +12,11 @@ class _DistanceBenchmark(Benchmark, ABC):
     params = [
         [
             (10, 1, 10),
-            (100, 1, 100),
+            (10, 1, 1000),
+            (50, 1, 100),
             (10, 3, 10),
-            (100, 3, 100),
+            (10, 3, 1000),
+            (50, 3, 100),
         ],
     ]
     param_names = ["shape"]
@@ -45,7 +47,7 @@ class _DistanceBenchmark(Benchmark, ABC):
         self.pairwise_func(self.a, self.b)
 
     def time_muti_thread_pairwise_dist(self, shape):
-        self.pairwise_func(self.a, n_jobs=4)
+        self.pairwise_func(self.a, n_jobs=2)
 
     def time_muti_thread_dist(self, shape):
         self.pairwise_func(self.a, self.b, n_jobs=4)

@@ -4,47 +4,42 @@ from .common import EstimatorBenchmark, safe_import
 
 with safe_import():
     import aeon.clustering as aeon_clust
-    from aeon.distances._distance import DISTANCES_DICT, ELASTIC_DISTANCES
 
 
 class KMeansBenchmark(EstimatorBenchmark):
     """This runs kmeans with mean averaging method."""
 
-    ks = [2, 4, 8]
     inits = ["random", "kmeans++"]
-    distances = tuple(DISTANCES_DICT.keys())  # all supported distances
-    distances = ["euclidean"]
 
     # base grid
-    params = EstimatorBenchmark.params + [ks, inits, distances]
-    param_names = EstimatorBenchmark.param_names + ["k", "init", "distance"]
+    params = EstimatorBenchmark.params + [inits]
+    param_names = EstimatorBenchmark.param_names + ["init"]
 
     def _build_estimator(self, k, init, distance) -> BaseEstimator:
         return aeon_clust.TimeSeriesKMeans(
-            n_clusters=k,
+            n_clusters=4,
             init=init,
-            distance=distance,
+            distance="euclidean",
             averaging_method="mean",
             n_init=1,
-            max_iter=10,
+            max_iter=20,
             random_state=1,
         )
 
 
-class KMeansBABenchmark(KMeansBenchmark):
+class KMeansBABenchmark(EstimatorBenchmark):
     """This runs kmeans with ba averaging method."""
 
-    distances = tuple(ELASTIC_DISTANCES)
+    distances = ["dtw", "msm"]
     params = EstimatorBenchmark.params + [
-        KMeansBenchmark.ks,
         KMeansBenchmark.inits,
         distances,
     ]
+    param_names = EstimatorBenchmark.param_names + ["init", "distance"]
 
-    def _build_estimator(self, k, init, distance) -> BaseEstimator:
-        # distance will already be elastic-only due to the overridden grid
+    def _build_estimator(self, init, distance) -> BaseEstimator:
         return aeon_clust.TimeSeriesKMeans(
-            n_clusters=k,
+            n_clusters=4,
             init=init,
             distance=distance,
             averaging_method="ba",
