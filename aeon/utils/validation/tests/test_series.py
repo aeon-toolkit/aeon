@@ -2,7 +2,6 @@
 
 __maintainer__ = ["TonyBagnall"]
 
-from typing import Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -74,8 +73,8 @@ def _make_hierarchical(
     same_cutoff: bool = True,
     n_columns: int = 1,
     all_positive: bool = True,
-    index_type: Optional[str] = None,
-    random_state: Optional[Union[int, np.random.RandomState]] = None,
+    index_type: str | None = None,
+    random_state: int | np.random.RandomState | None = None,
     add_nan: bool = False,
 ) -> pd.DataFrame:
     """Generate hierarchical multiindex type for testing.

@@ -190,6 +190,6 @@ filterwarnings = [
 [tool.codespell]
 ignore-words = ".github/utilities/codespell_ignore_words.txt"
 ignore-regex = '(^\s*"image/\S+": ".*|Binay|Lamba|Mapp|Hart|Sch"afer|SOM|COO)'
-skip = ".venv,.mypy_cache,.git"
+skip = ".venv,.idea,.mypy_cache,.git"
 check-filenames = true
 check-hidden = true
