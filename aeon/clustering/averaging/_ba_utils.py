@@ -1,8 +1,6 @@
 __maintainer__ = []
-
-
 import numpy as np
-from numba import njit
+from numba import njit, set_num_threads
 from sklearn.utils import check_random_state
 
 from aeon.distances import (
@@ -18,6 +16,7 @@ from aeon.distances import (
     wddtw_alignment_path,
     wdtw_alignment_path,
 )
+from aeon.utils.validation import check_n_jobs
 
 
 def _medoids(
@@ -42,7 +41,7 @@ def _medoids(
 
 def _get_init_barycenter(
     X: np.ndarray,
-    init_barycenter: np.ndarray | str,
+    init_barycenter: np.ndarray | str | None,
     distance: str,
     precomputed_medoids_pw: np.ndarray | None = None,
     random_state: int | None = None,
@@ -67,11 +66,8 @@ def _get_init_barycenter(
             rng = check_random_state(random_state)
             return X[rng.choice(X.shape[0])]
     else:
-        if not isinstance(init_barycenter, np.ndarray):
-            raise ValueError(
-                "init_barycenter parameter is invalid. It must either be "
-                "a str or a np.ndarray"
-            )
+        if init_barycenter is None:
+            return X.mean(axis=0)
         if init_barycenter.shape != (X.shape[1], X.shape[2]):
             if init_barycenter.ndim == 1:
                 return _get_init_barycenter(
@@ -92,7 +88,79 @@ def _get_init_barycenter(
         return init_barycenter
 
 
-VALID_BA_METRICS = [
+def _ba_setup(
+    X: np.ndarray,
+    distance: str = "dtw",
+    init_barycenter: np.ndarray | str = "mean",
+    previous_cost: float | None = None,
+    previous_distance_to_center: np.ndarray | None = None,
+    precomputed_medoids_pairwise_distance: np.ndarray | None = None,
+    n_jobs: int = 1,
+    random_state: int | None = None,
+    **kwargs,
+):
+    n_jobs = check_n_jobs(n_jobs)
+    set_num_threads(n_jobs)
+    if X.ndim == 3:
+        _X = X
+    elif X.ndim == 2:
+        _X = X.reshape((X.shape[0], 1, X.shape[1]))
+    else:
+        raise ValueError("X must be a 2D or 3D array")
+
+    random_state = check_random_state(random_state)
+
+    if distance == "wdtw" or distance == "wddtw":
+        if "g" not in kwargs:
+            kwargs["g"] = 0.05
+
+    if (
+        init_barycenter is None
+        or previous_cost is None
+        or previous_distance_to_center is None
+    ):
+        init_barycenter = _get_init_barycenter(
+            _X,
+            init_barycenter=init_barycenter,
+            distance=distance,
+            random_state=random_state,
+            precomputed_medoids_pairwise_distance=precomputed_medoids_pairwise_distance,
+            **kwargs,
+        )
+        pw_dist = pairwise_distance(
+            _X, init_barycenter, method=distance, n_jobs=n_jobs, **kwargs
+        )
+        previous_cost = np.sum(pw_dist)
+        previous_distance_to_center = pw_dist.flatten()
+
+    barycenter = np.copy(init_barycenter)
+    prev_barycenter = np.copy(init_barycenter)
+    distances_to_center = np.full(len(_X), np.inf)
+
+    cost = np.inf
+
+    return (
+        _X,
+        barycenter,
+        prev_barycenter,
+        cost,
+        previous_cost,
+        distances_to_center,
+        previous_distance_to_center,
+        random_state,
+        n_jobs,
+    )
+
+
+VALID_BA_METHODS = [
+    "subgradient",
+    "kasba",
+    "soft",
+    "petitjean",
+]
+
+VALID_BA_DISTANCE_METHODS = [
+    "adtw",
     "dtw",
     "ddtw",
     "wdtw",
@@ -118,11 +186,12 @@ def _get_alignment_path(
     independent: bool = True,
     c: float = 1.0,
     descriptor: str = "identity",
-    reach: int = 30,
+    reach: int = 15,
     warp_penalty: float = 1.0,
     transformation_precomputed: bool = False,
     transformed_x: np.ndarray | None = None,
     transformed_y: np.ndarray | None = None,
+    gamma: float = 1.0,
 ) -> tuple[list[tuple[int, int]], float]:
     if distance == "dtw":
         return dtw_alignment_path(ts, center, window)
@@ -153,6 +222,7 @@ def _get_alignment_path(
         )
     elif distance == "adtw":
         return adtw_alignment_path(ts, center, window=window, warp_penalty=warp_penalty)
+
     else:
         # When numba version > 0.57 add more informative error with what method
         # was passed.

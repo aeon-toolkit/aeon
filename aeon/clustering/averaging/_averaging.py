@@ -6,7 +6,9 @@ from collections.abc import Callable
 
 import numpy as np
 
-from aeon.clustering.averaging._barycenter_averaging import elastic_barycenter_average
+from aeon.clustering.averaging._ba_petitjean import petitjean_barycenter_average
+from aeon.clustering.averaging._ba_subgradient import subgradient_barycenter_average
+from aeon.clustering.averaging._kasba_average import kasba_average
 from aeon.clustering.averaging._shift_scale_invariant_averaging import (
     shift_invariant_average,
 )
@@ -32,8 +34,11 @@ def mean_average(X: np.ndarray, **kwargs) -> np.ndarray:
 
 _AVERAGE_DICT = {
     "mean": mean_average,
-    "ba": elastic_barycenter_average,
+    "ba": petitjean_barycenter_average,
     "shift_scale": shift_invariant_average,
+    "petitjean_ba": petitjean_barycenter_average,
+    "subgradient_ba": subgradient_barycenter_average,
+    "kasba": kasba_average,
 }
 
 
