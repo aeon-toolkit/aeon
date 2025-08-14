@@ -23,8 +23,8 @@ class SlopeTransformer(BaseCollectionTransformer):
 
     Parameters
     ----------
-    n_intervals : int, number of approx equal segments
-                    to split the time series into.
+    n_intervals : int, default =8
+        Number of approximately equal segments to split the time series into.
 
     Examples
     --------
@@ -40,7 +40,7 @@ class SlopeTransformer(BaseCollectionTransformer):
         "fit_is_empty": True,
     }
 
-    def __init__(self, n_intervals=8):
+    def __init__(self, n_intervals: int = 8):
         self.n_intervals = n_intervals
         super().__init__()
 
