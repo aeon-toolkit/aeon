@@ -3,7 +3,6 @@
 __maintainer__ = ["Datadote"]
 __all__ = ["ExponentialSmoothing"]
 
-from typing import Union
 
 import numpy as np
 
@@ -48,7 +47,7 @@ class ExponentialSmoothing(BaseSeriesTransformer):
     }
 
     def __init__(
-        self, alpha: float = 0.2, window_size: Union[int, float, None] = None
+        self, alpha: float = 0.2, window_size: int | float | None = None
     ) -> None:
         self.alpha = alpha if window_size is None else 2.0 / (window_size + 1)
         self.window_size = window_size
