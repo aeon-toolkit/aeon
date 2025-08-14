@@ -1,7 +1,5 @@
 """Matrix Profile Distances."""
 
-from typing import Optional, Union
-
 import numpy as np
 from deprecated.sphinx import deprecated
 from numba import njit
@@ -295,8 +293,8 @@ def _stomp_ab(
     category=FutureWarning,
 )
 def mp_pairwise_distance(
-    X: Union[np.ndarray, list[np.ndarray]],
-    y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
+    X: np.ndarray | list[np.ndarray],
+    y: np.ndarray | list[np.ndarray] | None = None,
     m: int = 0,
     n_jobs: int = 1,
 ) -> np.ndarray:

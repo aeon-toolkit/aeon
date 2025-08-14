@@ -9,7 +9,6 @@ __all__ = ["ElasticEnsemble"]
 import math
 import time
 from itertools import product
-from typing import Union
 
 import numpy as np
 from sklearn.metrics import accuracy_score
@@ -102,7 +101,7 @@ class ElasticEnsemble(BaseClassifier):
 
     def __init__(
         self,
-        distance_measures: Union[str, list[str]] = "all",
+        distance_measures: str | list[str] = "all",
         proportion_of_param_options: float = 1.0,
         proportion_train_in_param_finding: float = 1.0,
         proportion_train_for_test: float = 1.0,
@@ -487,9 +486,7 @@ class ElasticEnsemble(BaseClassifier):
         return None
 
     @classmethod
-    def _get_test_params(
-        cls, parameter_set: str = "default"
-    ) -> Union[dict, list[dict]]:
+    def _get_test_params(cls, parameter_set: str = "default") -> dict | list[dict]:
         """Return testing parameter settings for the estimator.
 
         Parameters
