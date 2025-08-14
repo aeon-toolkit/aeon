@@ -1,11 +1,18 @@
 """Matrix Profile Distances."""
 
-from typing import Optional, Union
-
 import numpy as np
+from deprecated.sphinx import deprecated
 from numba import njit
 
 
+# TODO: remove in v1.5.0
+@deprecated(
+    version="1.3.0",
+    reason="mp_distance will be removed in v1.5.0. We recommend using the stumpy "
+    "version instead, see "
+    "https://stumpy.readthedocs.io/en/latest/api.html#stumpy.mpdist.",
+    category=FutureWarning,
+)
 def mp_distance(x: np.ndarray, y: np.ndarray, m: int = 0) -> float:
     r"""Matrix Profile Distance.
 
@@ -279,9 +286,15 @@ def _stomp_ab(
     return mp, ip
 
 
+# TODO: remove in v1.5.0
+@deprecated(
+    version="1.3.0",
+    reason="mp_pairwise_distance will be removed in v1.5.0.",
+    category=FutureWarning,
+)
 def mp_pairwise_distance(
-    X: Union[np.ndarray, list[np.ndarray]],
-    y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
+    X: np.ndarray | list[np.ndarray],
+    y: np.ndarray | list[np.ndarray] | None = None,
     m: int = 0,
     n_jobs: int = 1,
 ) -> np.ndarray:
