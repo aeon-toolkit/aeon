@@ -6,7 +6,6 @@ __all__ = ["STLSeriesTransformer"]
 from typing import Optional, Union
 
 import numpy as np
-import pandas as pd
 
 from aeon.transformations.series.base import BaseSeriesTransformer
 
@@ -14,31 +13,31 @@ from aeon.transformations.series.base import BaseSeriesTransformer
 class STLSeriesTransformer(BaseSeriesTransformer):
     """Seasonal-Trend decomposition using Loess (STL) for a single time series.
 
-    Implements the STL procedure from: R.B. Cleveland, W.S. Cleveland, J.E. McRae,
-    and I. Terpenning, "STL: A Seasonal-Trend Decomposition Procedure Based on LOESS",
-    Journal of Official Statistics, 6(1), 1990, 3–73.
+    This implementation follows Cleveland et al.[1] and operates purely on
+    NumPy arrays.
 
     Parameters
     ----------
     period : int
-        Periodicity of the seasonal component (e.g., 12 for monthly with yearly season).
+        Seasonal period (e.g., 12 for monthly data with yearly season),
         Must be >= 2.
     seasonal : int, default=7
-        LOESS window for seasonal subseries smoothing. Must be odd >= 3.
+        LOESS window for seasonal subseries.
+        Must be odd integer >= 3.
     trend : int, optional
-        LOESS window for trend smoothing. If None, uses the original STL default:
-        smallest odd integer greater than 1.5*period / (1 - 1.5/seasonal).
+        LOESS window for trend smoothing. If None, uses the default:
+        smallest odd integer > 1.5*period / (1 - 1.5/seasonal).
     low_pass : int, optional
-        Window for the low-pass filter used inside the seasonal update. If None,
-        uses the smallest odd integer > period.
+        Window for the internal low-pass filter.
+        If None, uses smallest odd integer > period.
     seasonal_deg : {0, 1}, default=1
         Polynomial degree for seasonal LOESS (0 or 1).
     trend_deg : {0, 1}, default=1
         Polynomial degree for trend LOESS (0 or 1).
     low_pass_deg : {0, 1}, default=1
-        Polynomial degree for the low-pass LOESS (used inside seasonal update).
+        Polynomial degree for low-pass LOESS (inside seasonal update).
     robust : bool, default=False
-        Use robustness weights (outer iterations).
+        Use robustness weights (outer loop).
     seasonal_jump : int, default=1
         Evaluate seasonal LOESS every `seasonal_jump` points and linearly interpolate.
     trend_jump : int, default=1
@@ -51,37 +50,22 @@ class STLSeriesTransformer(BaseSeriesTransformer):
     outer_iter : int, optional
         Number of robustness iterations. Defaults to 15 if `robust=True`, else 0.
     output : {"resid","seasonal","trend","all"}, default="resid"
-        Which component to return from `transform`.
-        - "resid": returns seasonally/trend-adjusted residual Series (y - s - t)
-        - "seasonal": returns the seasonal component Series
-        - "trend": returns the trend component Series
-        - "all": returns a DataFrame with columns ["seasonal","trend","resid"]
+        Component to return from `transform` as an array.
+        - "resid": (n,)
+        - "seasonal": (n,)
+        - "trend": (n,)
+        - "all": (n,3) with columns [seasonal, trend, resid]
 
-    Attributes
+    References
     ----------
-    components_ : dict
-        After `transform`, a dict with keys "seasonal", "trend", "resid".
-        Values are NumPy arrays (aligned to the passed X).
-
-    Examples
-    --------
-    >>> import numpy as np, pandas as pd
-    >>> from aeon.transformations.series._stl import STLSeriesTransformer
-    >>> idx = pd.date_range("2000-01-01", periods=48, freq="M")
-    >>> y = pd.Series(np.sin(2*np.pi*np.arange(48)/12) + 0.1*np.arange(48), index=idx)
-    >>> stl = STLSeriesTransformer(period=12, output="all")
-    >>> decomp = stl.fit_transform(y)
-    >>> list(decomp.columns)
-    ['seasonal', 'trend', 'resid']
-    >>> len(decomp)
-    48
-    >>> # Residuals should sum close to 0 for this synthetic example
-    >>> float(np.round(decomp["resid"].sum(), 6)) == 0.0
-    True
+    .. [1] R.B. Cleveland, W.S. Cleveland, J.E. McRae,
+    and I. Terpenning, "STL: A Seasonal-Trend Decomposition Procedure Based on LOESS",
+    Journal of Official Statistics, 6(1), 1990, 3–73.
     """
 
     _tags = {
-        "X_inner_type": "pd.Series",
+        "input_data_type": "Series",
+        "output_data_type": "Series",
         "capability:multivariate": False,
         "fit_is_empty": True,
         "capability:inverse_transform": False,
@@ -105,7 +89,6 @@ class STLSeriesTransformer(BaseSeriesTransformer):
         outer_iter: Optional[int] = None,
         output: str = "resid",
     ):
-        # public params
         self.period = period
         self.seasonal = seasonal
         self.trend = trend
@@ -121,22 +104,34 @@ class STLSeriesTransformer(BaseSeriesTransformer):
         self.outer_iter = outer_iter
         self.output = output
 
-        # results container
         self.components_ = {}
 
         super().__init__(axis=1)
 
-    def _transform(self, X: pd.Series, y=None):
-        """Run STL on the provided (univariate) series X."""
-        # validate input x and parameters
-        x = X.astype(float).to_numpy(copy=False)
+    def _fit_transform(self, X, y=None):
+        """Compute and store components_."""
+        x = self._coerce_1d(X)
+        s, t, r = self._compute_components_(x)
+
+        # store on the estimator (state change allowed during fit_transform)
+        self.components_ = {"seasonal": s.copy(), "trend": t.copy(), "resid": r.copy()}
+        return self._format_output(s, t, r)
+
+    def _transform(self, X, y=None):
+        """Non-state-changing path: return result without mutating __dict__."""
+        x = self._coerce_1d(X)
+        s, t, r = self._compute_components_(x)
+        # DO NOT write to self.components_ here
+        return self._format_output(s, t, r)
+
+    def _compute_components_(self, x: np.ndarray):
+        """Pure STL compute: returns (seasonal, trend, resid) without side effects."""
         n = x.shape[0]
+        # validation
         if n < 3:
             raise ValueError("Input series must have length >= 3.")
-
         if not self._is_pos_int(self.period, odd=False) or self.period < 2:
             raise ValueError("`period` must be an integer >= 2.")
-
         if not self._is_pos_int(self.seasonal, odd=True) or self.seasonal < 3:
             raise ValueError("`seasonal` must be an odd integer >= 3.")
 
@@ -166,13 +161,23 @@ class STLSeriesTransformer(BaseSeriesTransformer):
             or self.low_pass_deg not in (0, 1)
         ):
             raise ValueError("LOESS degrees must be 0 or 1.")
-
         if not self._is_pos_int(self.seasonal_jump, odd=False):
             raise ValueError("`seasonal_jump` must be a positive integer.")
         if not self._is_pos_int(self.trend_jump, odd=False):
             raise ValueError("`trend_jump` must be a positive integer.")
-        if not self._is_pos_int(self.low_pass_jump, odd=False):
-            raise ValueError("`low_pass_jump` must be a positive integer.")
+
+        # working buffers
+        x = np.ascontiguousarray(x, dtype=float)
+        seasonal_buf = np.zeros(n, dtype=float)
+        trend_buf = np.zeros(n, dtype=float)
+        rw = np.ones(n, dtype=float)
+        season_pad = np.zeros(n + 2 * self.period, dtype=float)
+
+        kmax = (n + self.period - 1) // self.period
+        work1 = np.empty(kmax, dtype=float)
+        work2 = np.empty(kmax, dtype=float)
+        fts_wk1 = np.empty_like(season_pad)
+        fts_wk2 = np.empty_like(season_pad)
 
         inner_iter = (
             self.inner_iter
@@ -185,24 +190,15 @@ class STLSeriesTransformer(BaseSeriesTransformer):
             else (15 if self.robust else 0)
         )
 
-        # working buffers
-        trend_buf = np.zeros(n, dtype=float)
-        seasonal_buf = np.zeros(n, dtype=float)
-        rw = np.ones(n, dtype=float)  # robustness weights
-        work_pad = np.zeros(n + 2 * self.period, dtype=float)  # pad / MA scratch
-        work = np.zeros(n, dtype=float)  # general-purpose scratch
-
-        # outer loop (robustness)
         use_rw = False
-        for _outer in range(max(outer_iter, 0) + 1):
+        for outer in range(max(outer_iter, 0) + 1):
             seasonal_buf.fill(0.0)
             trend_buf.fill(0.0)
 
-            # inner loop: seasonal and trend refinement
-            for _inner in range(max(inner_iter, 1)):
-                # seasonal update using de-trended series
+            for _ in range(max(inner_iter, 1)):
+                # seasonal update
                 y_minus_trend = x - trend_buf
-                seasonal, _ = self._seasonal_smoothing(
+                seasonal, _ = self._seasonal_smoothing_fast(
                     y_minus_trend,
                     self.period,
                     self.seasonal,
@@ -210,14 +206,17 @@ class STLSeriesTransformer(BaseSeriesTransformer):
                     self.seasonal_jump,
                     use_rw,
                     rw,
-                    work,
-                    work_pad,
+                    season_pad,
+                    work1,
+                    work2,
+                    fts_wk1,
+                    fts_wk2,
                 )
                 seasonal_buf[:] = seasonal
 
-                # trend update using de-seasonalized series
+                # trend update
                 y_minus_season = x - seasonal_buf
-                self._ess(
+                self._ess_fast(
                     y_minus_season,
                     trend,
                     self.trend_deg,
@@ -225,49 +224,38 @@ class STLSeriesTransformer(BaseSeriesTransformer):
                     use_rw,
                     rw,
                     trend_buf,
-                    work,
                 )
 
-            # compute robust weights for next outer iteration
-            if _outer < outer_iter:
+            if outer < outer_iter:
                 fit = seasonal_buf + trend_buf
-                rw = self._robust_weights(x, fit)
+                rw = self._robust_weights_fast(x, fit)
                 use_rw = True
 
         resid = x - seasonal_buf - trend_buf
+        return seasonal_buf, trend_buf, resid
 
-        self.components_ = {
-            "seasonal": seasonal_buf.copy(),
-            "trend": trend_buf.copy(),
-            "resid": resid.copy(),
-        }
-
-        # formatting output
+    def _format_output(self, s: np.ndarray, t: np.ndarray, r: np.ndarray):
         if self.output == "all":
-            out = pd.DataFrame(
-                {
-                    "seasonal": self.components_["seasonal"],
-                    "trend": self.components_["trend"],
-                    "resid": self.components_["resid"],
-                },
-                index=X.index,
-            )
-            return out
+            return np.column_stack((s, t, r))
         elif self.output == "seasonal":
-            return pd.Series(
-                self.components_["seasonal"], index=X.index, name="seasonal"
-            )
+            return s
         elif self.output == "trend":
-            return pd.Series(self.components_["trend"], index=X.index, name="trend")
+            return t
         elif self.output == "resid":
-            return pd.Series(self.components_["resid"], index=X.index, name="resid")
+            return r
         else:
             raise ValueError(
                 "`output` must be one of {'resid','seasonal','trend','all'}."
             )
 
-    # -------------------------------------------------------------------------
-    # helpers encapsulated inside the class
+    @staticmethod
+    def _coerce_1d(X):
+        x = np.asarray(X, dtype=float)
+        if x.ndim > 1:
+            x = np.squeeze(x)
+        if x.ndim != 1:
+            raise ValueError("Input series must be 1D array-like.")
+        return x
 
     @staticmethod
     def _is_pos_int(x: Union[int, np.integer], *, odd: bool) -> bool:
@@ -298,64 +286,62 @@ class STLSeriesTransformer(BaseSeriesTransformer):
     def _default_lowpass_window(cls, period: int) -> int:
         return cls._make_odd_at_least(period + 1, 3)
 
+    # optimized numeric helpers
+
     @staticmethod
-    def _est_point(
+    def _est_point_vec(
         y: np.ndarray,
         n: int,
         win_len: int,
         deg: int,
-        xs: int,
+        xs: int,  # 1-based index at which to estimate
         nleft: int,
         nright: int,
-        wbuf: np.ndarray,
         use_rw: bool,
         rw: np.ndarray,
     ) -> float:
+        """Vectorized across the local window with fewer loops."""
         h = max(xs - nleft, nright - xs)
         if win_len > n:
             h += (win_len - n) // 2
         if h <= 0:
             return np.nan
+
+        # positions in the window (1-based)
+        J = np.arange(nleft, nright + 1, dtype=float)
+        r = np.abs(J - xs)
+
         h9 = 0.999 * h
         h1 = 0.001 * h
 
-        a = 0.0
-        for j in range(nleft - 1, nright):
-            wbuf[j] = 0.0
-            r = abs((j + 1) - xs)
-            if r <= h9:
-                w = 1.0 if r <= h1 else (1.0 - (r / h) ** 3) ** 3
-                if use_rw:
-                    w *= rw[j]
-                wbuf[j] = w
-                a += wbuf[j]
-
-        if a <= 0:
+        # tri-cube weights with robust weights if enabled
+        mask = r <= h9
+        if not np.any(mask):
             return np.nan
 
-        for j in range(nleft - 1, nright):
-            wbuf[j] /= a
+        w = np.zeros_like(J)
+        # base tricube
+        w_base = np.where(r[mask] <= h1, 1.0, (1.0 - (r[mask] / h) ** 3) ** 3)
+        if use_rw:
+            w_base *= rw[nleft - 1 : nright][mask]
+        a = w_base.sum()
+        if a <= 0.0:
+            return np.nan
+        w[mask] = w_base / a
 
-        if (h > 0) and (deg > 0):
-            a = 0.0
-            for j in range(nleft - 1, nright):
-                a += wbuf[j] * (j + 1)
-            b = xs - a
-            c = 0.0
-            for j in range(nleft - 1, nright):
-                c += wbuf[j] * (j + 1 - a) ** 2
+        # local linear adjustment
+        if h > 0 and deg > 0:
+            a_bar = np.dot(w, J)  # weighted mean of positions
+            diff = J - a_bar
+            c = np.dot(w, diff * diff)
             if np.sqrt(c) > 0.001 * (n - 1.0):
-                b = b / c
-                for j in range(nleft - 1, nright):
-                    wbuf[j] *= b * (j + 1 - a) + 1.0
+                b = (xs - a_bar) / c
+                w *= b * diff + 1.0
 
-        ys = 0.0
-        for j in range(nleft - 1, nright):
-            ys += wbuf[j] * y[j]
-        return ys
+        return float(np.dot(w, y[nleft - 1 : nright]))
 
     @classmethod
-    def _ess(
+    def _ess_fast(
         cls,
         y: np.ndarray,
         win_len: int,
@@ -364,101 +350,102 @@ class STLSeriesTransformer(BaseSeriesTransformer):
         use_rw: bool,
         rw: np.ndarray,
         ys: np.ndarray,
-        work: np.ndarray,
     ) -> None:
+        """Efficient LOESS smoother with optional knot interpolation."""
         n = y.shape[0]
         if n == 1:
             ys[0] = y[0]
             return
 
         newjump = min(jump, max(n - 1, 1))
+
         if win_len >= n:
-            nleft, nright = 1, n
-            i = 0
-            while i < n:
-                val = cls._est_point(
-                    y, n, win_len, deg, i + 1, nleft, nright, work, use_rw, rw
-                )
-                ys[i] = y[i] if np.isnan(val) else val
-                i += newjump
-        elif newjump == 1:
+            # single global window—evaluate at knots then interpolate if needed
+            xs = np.arange(1, n + 1, newjump, dtype=int)
+            vals = np.empty(xs.size, dtype=float)
+            for i, xk in enumerate(xs):
+                val = cls._est_point_vec(y, n, win_len, deg, xk, 1, n, use_rw, rw)
+                vals[i] = y[xk - 1] if np.isnan(val) else val
+            if newjump == 1:
+                ys[:] = vals
+            else:
+                # ensure we have an endpoint at n-1
+                if xs[-1] != n:
+                    last = cls._est_point_vec(y, n, win_len, deg, n, 1, n, use_rw, rw)
+                    xs = np.append(xs, n)
+                    vals = np.append(vals, y[-1] if np.isnan(last) else last)
+                xi = np.arange(n)
+                ys[:] = np.interp(xi, xs - 1, vals)
+            return
+
+        # sliding windows for jump == 1
+        if newjump == 1:
             nsh = (win_len + 2) // 2
             nleft, nright = 1, win_len
             for i in range(n):
                 if (i + 1) > nsh and nright != n:
                     nleft += 1
                     nright += 1
-                val = cls._est_point(
-                    y, n, win_len, deg, i + 1, nleft, nright, work, use_rw, rw
+                val = cls._est_point_vec(
+                    y, n, win_len, deg, i + 1, nleft, nright, use_rw, rw
                 )
                 ys[i] = y[i] if np.isnan(val) else val
-        else:
-            nsh = (win_len + 1) // 2
-            i = 0
-            while i < n:
-                if (i + 1) < nsh:
-                    nleft, nright = 1, win_len
-                elif (i + 1) >= (n - nsh + 1):
-                    nleft, nright = n - win_len + 1, n
-                else:
-                    nleft = i + 1 - nsh + 1
-                    nright = win_len + i + 1 - nsh
-                val = cls._est_point(
-                    y, n, win_len, deg, i + 1, nleft, nright, work, use_rw, rw
-                )
-                ys[i] = y[i] if np.isnan(val) else val
-                i += newjump
-
-        if newjump == 1:
             return
 
-        i = 0
-        while i < (n - newjump):
-            delta = (ys[i + newjump] - ys[i]) / newjump
-            for j in range(i, i + newjump):
-                ys[j] = ys[i] + delta * (j - i)
-            i += newjump
+        # knot evaluation + linear interpolation for jump > 1
+        nsh = (win_len + 1) // 2
+        xs = np.arange(1, n + 1, newjump, dtype=int)
+        vals = np.empty(xs.size, dtype=float)
 
-        k = (n - 1) // newjump * newjump
-        if k != (n - 1):
-            val = cls._est_point(
-                y, n, win_len, deg, n, n - win_len + 1, n, work, use_rw, rw
+        for i, xk in enumerate(xs):
+            if xk < nsh:
+                nleft, nright = 1, win_len
+            elif xk >= (n - nsh + 1):
+                nleft, nright = n - win_len + 1, n
+            else:
+                nleft = xk - nsh + 1
+                nright = xk - nsh + win_len
+            val = cls._est_point_vec(y, n, win_len, deg, xk, nleft, nright, use_rw, rw)
+            vals[i] = y[xk - 1] if np.isnan(val) else val
+
+        # ensure we have an endpoint at n-1
+        if xs[-1] != n:
+            last = cls._est_point_vec(
+                y, n, win_len, deg, n, n - win_len + 1, n, use_rw, rw
             )
-            last = y[-1] if np.isnan(val) else val
-            ys[-1] = last
-            if k < (n - 1):
-                delta = (ys[-1] - ys[k]) / (n - 1 - k)
-                for j in range(k, n):
-                    ys[j] = ys[k] + delta * (j - k)
+            xs = np.append(xs, n)
+            vals = np.append(vals, y[-1] if np.isnan(last) else last)
+
+        xi = np.arange(n)
+        ys[:] = np.interp(xi, xs - 1, vals)
 
     @staticmethod
-    def _moving_average(x: np.ndarray, win: int, out: np.ndarray) -> None:
+    def _moving_average_vec(x: np.ndarray, win: int, out: np.ndarray) -> None:
+        """Vectorized moving average using cumulative sums."""
         n = x.shape[0]
         newn = n - win + 1
         if newn <= 0:
             raise ValueError("moving average window longer than array")
-        s = np.sum(x[:win], dtype=float)
-        out[0] = s / float(win)
-        k, m = win, 0
-        for j in range(1, newn):
-            s += x[k] - x[m]
-            out[j] = s / float(win)
-            k += 1
-            m += 1
+        c = np.empty(n + 1, dtype=float)
+        c[0] = 0.0
+        np.cumsum(x, dtype=float, out=c[1:])
+        out[:newn] = (c[win:] - c[:-win]) / float(win)
 
     @classmethod
     def _fts(
         cls, work1: np.ndarray, period: int, work2: np.ndarray, work0: np.ndarray
     ) -> None:
-        n = work1.shape[0]
-        cls._moving_average(work1, period, work2[: n - period + 1])
-        cls._moving_average(
-            work2[: n - period + 1], period, work0[: n - 2 * period + 2]
-        )
-        cls._moving_average(work0[: n - 2 * period + 2], 3, work2[: n - 2 * period])
+        """Efficient 'FTS' triple moving average used for low-pass filtering."""
+        n = work1.shape[0]  # this is len(season_pad) == original_n + 2*period
+        # 1st moving average of length 'period'
+        cls._moving_average_vec(work1, period, work2)
+        # 2nd moving average of length 'period'
+        cls._moving_average_vec(work2[: n - period + 1], period, work0)
+        # 3rd moving average of length 3
+        cls._moving_average_vec(work0[: n - 2 * period + 2], 3, work2)
 
     @classmethod
-    def _seasonal_smoothing(
+    def _seasonal_smoothing_fast(
         cls,
         y_minus_trend: np.ndarray,
         period: int,
@@ -467,68 +454,81 @@ class STLSeriesTransformer(BaseSeriesTransformer):
         seasonal_jump: int,
         use_rw: bool,
         rw: np.ndarray,
-        work: np.ndarray,
-        work_pad: np.ndarray,
+        season_pad: np.ndarray,
+        work1: np.ndarray,
+        work2: np.ndarray,
+        fts_wk1: np.ndarray,
+        fts_wk2: np.ndarray,
     ) -> tuple[np.ndarray, np.ndarray]:
-        n = y_minus_trend.shape[0]
-        season_pad = work_pad  # reuse allocated pad buffer
-        # Allocate per-iteration temp arrays
-        work1 = np.empty_like(y_minus_trend)
-        work2 = np.empty_like(y_minus_trend)
+        """Efficient seasonal smoothing over cycle-subseries with FTS low-pass."""
+        y = y_minus_trend
+        n = y.shape[0]
 
-        # For j in 0..period-1, smooth the j-th subseries and place back into season_pad
+        # For j=0..period-1: smooth the j-th subseries
         for j in range(period):
-            idx = np.arange(j, n, period, dtype=int)
-            sub = y_minus_trend[idx]
-            sub_rw = rw[idx] if use_rw else np.ones_like(sub)
+            sub = y[j::period]  # view, length k
+            sub_rw = (
+                rw[j::period] if use_rw else rw[j::period]
+            )  # rw is ones when not robust
+            k = sub.shape[0]
 
-            cls._ess(
+            # smooth subseries into work1[:k]
+            cls._ess_fast(
                 sub,
                 seasonal_win,
                 seasonal_deg,
                 seasonal_jump,
                 use_rw,
                 sub_rw,
-                work1[: sub.shape[0]],
-                work2,
+                work1[:k],
             )
 
-            k = sub.shape[0]
+            # pad ends (k+2) and place back into season_pad at stride 'period'
             padded = np.empty(k + 2, dtype=float)
-            padded[0] = work1[1] if k > 1 else work1[0]
+            if k > 1:
+                padded[0] = work1[1]
+                padded[-1] = work1[k - 2]
+            else:
+                padded[0] = work1[0]
+                padded[-1] = work1[0]
             padded[1:-1] = work1[:k]
-            padded[-1] = work1[-2] if k > 1 else work1[0]
-
             season_pad[j::period] = padded
 
-        work_ma1 = np.empty_like(season_pad)
-        work_ma2 = np.empty_like(season_pad)
-        cls._fts(season_pad, period, work_ma1, work_ma2)
+        cls._fts(season_pad, period, fts_wk1, fts_wk2)
 
-        lowpass = work_ma1[:n]
-        seasonal = np.empty(n, dtype=float)
-        prelim = season_pad[period : period + n]
-        seasonal[:] = prelim - lowpass
+        lowpass = fts_wk1[:n]  # result length n
+        prelim = season_pad[period : period + n]  # seasonal preliminary (length n)
+        seasonal = prelim - lowpass
         return seasonal, lowpass
 
     @staticmethod
-    def _robust_weights(y: np.ndarray, fit: np.ndarray) -> np.ndarray:
+    def _robust_weights_fast(y: np.ndarray, fit: np.ndarray) -> np.ndarray:
+        """Vectorized Tukey biweight robustness weights."""
         resid = np.abs(y - fit)
         n = resid.shape[0]
+        if n == 0:
+            return np.ones_like(y)
+
         mid0 = n // 2
         mid1 = n - mid0 - 1
         part = np.partition(resid, (mid0, mid1))
-        cmad = 3.0 * (part[mid0] + part[mid1])
+        cmad = 3.0 * (part[mid0] + part[mid1])  # same rule as classic STL
         if cmad == 0.0:
             return np.ones_like(y)
-        c9, c1 = 0.999 * cmad, 0.001 * cmad
-        rw = np.empty_like(y)
-        for i in range(n):
-            r = resid[i]
-            if r <= c1:
-                rw[i] = 1.0
-            elif r <= c9:
-                rw[i] = (1.0 - (r / cmad) ** 2) ** 2
-            else:
-                rw[i] = 0.0
+
+        c9 = 0.999 * cmad
+        c1 = 0.001 * cmad
+
+        rw = np.zeros_like(resid)
+        mask1 = resid <= c1
+        mask9 = (resid > c1) & (resid <= c9)
+        rw[mask1] = 1.0
+        r = resid[mask9] / cmad
+        rw[mask9] = (1.0 - r * r) ** 2
+        # else stays 0
         return rw
+
+    @classmethod
+    def _get_test_params(cls, parameter_set: str = "default"):
+        """Return testing parameter settings for the estimator."""
+        return {"period": 6}
