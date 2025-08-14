@@ -1,7 +1,5 @@
 """Check collection utilities."""
 
-from typing import Optional, Union
-
 import numpy as np
 import pandas as pd
 from numba.typed import List as NumbaList
@@ -356,8 +354,8 @@ def _is_pd_wide(X):
 
 
 def _is_numpy_list_multivariate(
-    x: Union[np.ndarray, list[np.ndarray]],
-    y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
+    x: np.ndarray | list[np.ndarray],
+    y: np.ndarray | list[np.ndarray] | None = None,
 ) -> bool:
     """Check if two numpy or list of numpy arrays are multivariate.
 
@@ -453,7 +451,7 @@ def _is_numpy_list_multivariate(
             return False
 
         list_x = None
-        ndarray_y: Optional[np.ndarray] = None
+        ndarray_y: np.ndarray | None = None
         if isinstance(x, (list, NumbaList)):
             list_x = x
             ndarray_y = y
