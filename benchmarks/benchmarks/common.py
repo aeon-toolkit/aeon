@@ -42,7 +42,6 @@ class EstimatorBenchmark(Benchmark, ABC):
         (50, 3, 100),
     ]
 
-    # Subclasses will append their own grids to these:
     params = [shapes]
     param_names = ["shape"]
 
@@ -51,13 +50,6 @@ class EstimatorBenchmark(Benchmark, ABC):
         self.X_train = make_example_3d_numpy(*shape, return_y=False, random_state=1)
         self.X_test = make_example_3d_numpy(*shape, return_y=False, random_state=2)
 
-        # Warm-up tiny run (helps numba/JIT caches etc.)
-        tmp_X = make_example_3d_numpy(10, 1, 10, random_state=42, return_y=False)
-        tmp_est = self._build_estimator(*est_params)
-        tmp_est.fit(tmp_X)
-        tmp_est.predict(tmp_X)
-
-        # Pre-fit once for predict timing
         self.prefit_estimator = self._build_estimator(*est_params)
         self.prefit_estimator.fit(self.X_train)
 

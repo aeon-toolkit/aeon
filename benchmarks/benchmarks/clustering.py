@@ -11,7 +11,6 @@ class KMeansBenchmark(EstimatorBenchmark):
 
     inits = ["random", "kmeans++"]
 
-    # base grid
     params = EstimatorBenchmark.params + [inits]
     param_names = EstimatorBenchmark.param_names + ["init"]
 

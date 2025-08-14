@@ -22,15 +22,8 @@ class _DistanceBenchmark(Benchmark, ABC):
     param_names = ["shape"]
 
     def setup(self, shape):
-        # Two independent samples so we don't measure duplicates
         self.a = make_example_3d_numpy(*shape, return_y=False, random_state=1)
         self.b = make_example_3d_numpy(*shape, return_y=False, random_state=2)
-
-        # Warm up
-        temp = make_example_3d_numpy(5, 1, 10, random_state=42, return_y=False)
-        for _ in range(3):
-            self.distance_func(temp[0], temp[0])
-            self.pairwise_func(temp)
 
     def time_dist(self, shape):
         # single-series distance
