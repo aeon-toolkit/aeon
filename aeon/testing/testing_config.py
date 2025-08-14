@@ -52,7 +52,7 @@ EXCLUDED_TESTS = {
     "FLUSSSegmenter": ["check_non_state_changing_method"],
     "ClaSPSegmenter": ["check_non_state_changing_method"],
     "HMMSegmenter": ["check_non_state_changing_method"],
-    "RSTSF": ["check_non_state_changing_method"],
+    # "RSTSF": ["check_non_state_changing_method"],
     # Unknown issue not producing the same results
     "RDSTRegressor": ["check_regressor_against_expected_results"],
     "RISTRegressor": ["check_regressor_against_expected_results"],
