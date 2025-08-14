@@ -227,7 +227,6 @@ def _kasba_refine_one_iter(
     transformation_precomputed: bool = False,
     transformed_x: np.ndarray | None = None,
     transformed_y: np.ndarray | None = None,
-    gamma: float = 1.0,
 ):
 
     X_size, X_dims, X_timepoints = X.shape
@@ -253,7 +252,6 @@ def _kasba_refine_one_iter(
             transformation_precomputed=transformation_precomputed,
             transformed_x=transformed_x,
             transformed_y=transformed_y,
-            gamma=gamma,
         )
 
         new_ba = np.zeros((X_dims, X_timepoints))

@@ -185,7 +185,6 @@ def _ba_one_iter_petitjean(
     weights: np.ndarray | None = None,
     window: float | None = None,
     g: float = 0.0,
-    gamma: float = 0.0,
     epsilon: float | None = None,
     nu: float = 0.001,
     lmbda: float = 1.0,
@@ -222,7 +221,6 @@ def _ba_one_iter_petitjean(
             transformation_precomputed=transformation_precomputed,
             transformed_x=transformed_x,
             transformed_y=transformed_y,
-            gamma=gamma,
         )
 
         for j, k in curr_alignment:

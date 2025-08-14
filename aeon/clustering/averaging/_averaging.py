@@ -51,8 +51,9 @@ def _resolve_average_callable(
     ----------
     averaging_method: str or Callable, default='mean'
         Averaging method to compute the average of a cluster. Any of the following
-        strings are valid: ['mean']. If a Callable is provided must take the form
-        Callable[[np.ndarray], np.ndarray].
+        strings are valid: ['mean', 'ba', 'shift_scale', 'petitjean_ba',
+        'subgradient_ba', 'kasba'].
+        If a Callable is provided must take the form Callable[[np.ndarray], np.ndarray].
 
     Returns
     -------
@@ -62,8 +63,8 @@ def _resolve_average_callable(
     if isinstance(averaging_method, str):
         if averaging_method not in _AVERAGE_DICT:
             raise ValueError(
-                "averaging_method string is invalid. Please use one of the" "following",
-                _AVERAGE_DICT.keys(),
+                "averaging_method string is invalid. Please use one of the following: ",
+                list(_AVERAGE_DICT.keys()),
             )
         return _AVERAGE_DICT[averaging_method]
     return averaging_method

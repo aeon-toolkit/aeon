@@ -191,7 +191,6 @@ def _get_alignment_path(
     transformation_precomputed: bool = False,
     transformed_x: np.ndarray | None = None,
     transformed_y: np.ndarray | None = None,
-    gamma: float = 1.0,
 ) -> tuple[list[tuple[int, int]], float]:
     if distance == "dtw":
         return dtw_alignment_path(ts, center, window)

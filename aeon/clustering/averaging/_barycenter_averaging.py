@@ -30,8 +30,6 @@ def elastic_barycenter_average(
     ba_subset_size: float = 0.5,
     decay_rate: float = 0.01,
     n_jobs: int = 1,
-    gamma: float = 1.0,
-    gradient_descent_method: str = "L-BFGS-B",
     **kwargs,
 ) -> (
     tuple[ndarray | Any, ndarray | Any]
