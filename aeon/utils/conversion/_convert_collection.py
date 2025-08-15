@@ -20,7 +20,6 @@ __maintainer__ = ["TonyBagnall", "MatthewMiddlehurst"]
 
 from collections.abc import Sequence
 from copy import deepcopy
-from typing import Union
 
 import numpy as np
 import pandas as pd
@@ -466,7 +465,7 @@ def resolve_unequal_length_inner_type(inner_types: Sequence[str]) -> str:
 
 
 def _convert_collection_to_numba_list(
-    x: Union[np.ndarray, list[np.ndarray]],
+    x: np.ndarray | list[np.ndarray],
     name: str = "X",
     multivariate_conversion: bool = False,
 ) -> NumbaList[np.ndarray]:
