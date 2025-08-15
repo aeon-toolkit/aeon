@@ -35,5 +35,5 @@ Statistical Models
 
     ARIMA
     ETS
-    TVP
-    TAR
+    Theta
+    TVPForecaster
