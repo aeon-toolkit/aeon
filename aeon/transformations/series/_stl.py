@@ -13,8 +13,7 @@ from aeon.transformations.series.base import BaseSeriesTransformer
 class STLSeriesTransformer(BaseSeriesTransformer):
     """Seasonal-Trend decomposition using Loess (STL) for a single time series.
 
-    This implementation follows Cleveland et al.[1] and operates purely on
-    NumPy arrays.
+    This implementation follows Cleveland et al.[1].
 
     Parameters
     ----------
