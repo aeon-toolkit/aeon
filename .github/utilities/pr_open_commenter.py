@@ -112,6 +112,7 @@ These checkboxes will add labels to enable/disable CI functionality for this PR.
 - [ ] Run numba-disabled `codecov` tests
 - [ ] Stop automatic `pre-commit` fixes (always disabled for drafts)
 - [ ] Disable numba cache loading
+- [ ] Regenerate expected results for testing
 - [ ] Push an empty commit to re-run CI checks
 
 </p>
