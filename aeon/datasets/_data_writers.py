@@ -1,11 +1,190 @@
+"""Functions to write aeon datasets to file."""
+
+__maintainers__ = ["MatthewMiddlehurst"]
+__all__ = ["write_to_ts_file"]
+
 import os
 import textwrap
 
 import numpy as np
+from deprecated.sphinx import deprecated
 
-__all__ = ["write_to_ts_file", "write_to_arff_file"]
+from aeon.utils.conversion import convert_collection
+from aeon.utils.validation.collection import is_collection, get_n_cases, get_n_channels, \
+    get_n_timepoints
 
 
+def write_to_ts_file(
+    X,
+    y=None,
+    *,
+    label_type=None,
+    path="./",
+    problem_name="sample_data",
+    file_suffix=None,
+    header=None,
+):
+    """Write an ``aeon`` collection of time series to text file in ``.ts`` format.
+
+    Write metadata and data stored in aeon compatible data set to file.
+    A description of the ``.ts`` format available at
+    https://www.aeon-toolkit.org/en/stable/api_reference/data_format.html.
+
+    Parameters
+    ----------
+    X: ``aeon`` collection data format
+        A collection of time series cases in one of the following formats:
+
+        - "numpy3D": a 3D numpy ndarray of shape ``(n_cases, n_channels, n_timepoints)``
+        - "np-list":  length ``n_cases`` Python list of 2D numpy ndarray
+            with shape ``(n_channels, n_timepoints_i)``
+        - "df-list":  length ``n_cases`` Python list of 2D pandas DataFrame
+            with shape (n_channels, n_timepoints_i)
+        - "numpy2D":  a 2D numpy ndarray of shape ``(n_cases, n_timepoints)``
+        - "pd-wide":  a 2D pandas DataFrame of shape ``(n_cases, n_timepoints)``
+        - "pd-multiindex": a pandas DataFrame with MultiIndex, index
+            ``[case, timepoint]``, columns ``[channel]``
+    y:  np.ndarray, pd.Series or None, default=None
+        The response variable if present. Must be discrete for classification,
+        continuous for regression. ``None`` if no labels are written.
+    label_type: str or None, default=None
+        If not ``None``, specifies the type of label, either ``"classification"`` or
+        ``"regression"`` to ensure the correct header is written. Must be set if
+        ``y`` is not ``None``.
+    path: str, default="./"
+        The directory to write the file to. If the directory does not exist, it will be
+        created.
+    problem_name: string, default = "sample_data"
+        The name of the problem being written to file. Used in the file metadata and
+        file name.
+        The file is written to ``{path}/{problem_name}{file_suffix}.ts``.
+    file_suffix: str or None, default=None
+        If not ``None``, this string is appended to the end of the file name, i.e.
+        ``"_TRAIN"`` or ``"_TEST"``.
+        The file is written to ``{path}/{problem_name}{file_suffix}.ts``.
+    header: str or None, default=None
+        Optional text at the top of the written file. This is for information only and
+        is ignored when loading.
+    """
+    if not is_collection(X, include_2d=True):
+        raise TypeError(
+            f"Wrong input data type for X. Convert to an aeon collection format, "
+            f"e.g. numpy3D (n_cases, n_channels, n_timepoints) or np-list of "
+            f"length n_cases containing np.ndarray's of shape "
+            f"(n_channels, n_timepoints_i) if unequal length."
+        )
+
+    X = convert_collection(X, "numpy-list")
+
+    n_cases = get_n_cases(X)
+    n_channels = get_n_channels(X)
+    n_timepoints = get_n_timepoints(X)
+
+    if y is None:
+        pass
+    else:
+        if label_type == "classification":
+            class_labels = np.unique(y)
+        elif label_type == "regression":
+            pass
+        else:
+            raise ValueError(
+                "If y is not None, label_type must be either 'classification' or "
+                "'regression'."
+            )
+
+        if n_cases != len(y):
+            raise IndexError(
+                "The number of cases in X does not match the number of values in y."
+            )
+
+
+    univariate = n_channels == 1
+    equal_length = True
+    if isinstance(X, list):
+        length = len(X[0][0])
+        for i in range(1, n_cases):
+            if length != len(X[i][0]):
+                equal_length = False
+                break
+
+    file = _write_header(
+        path,
+        problem_name,
+        univariate=univariate,
+        equal_length=equal_length,
+        n_timepoints=n_timepoints,
+        class_labels=class_labels,
+        comment=header,
+        regression=regression,
+        extension=None,
+    )
+    missing_values = "NaN"
+    for i in range(n_cases):
+        for j in range(n_channels):
+            series = ",".join(
+                [str(num) if not np.isnan(num) else missing_values for num in X[i][j]]
+            )
+            file.write(str(series))
+            file.write(":")
+        if y is not None:
+            file.write(str(y[i]))
+        file.write("\n")
+    file.close()
+
+
+def _write_header(
+    path,
+    problem_name,
+    univariate=True,
+    equal_length=False,
+    n_timepoints=-1,
+    comment=None,
+    regression=False,
+    class_labels=None,
+    extension=None,
+):
+    if class_labels is not None and regression:
+        raise ValueError("Cannot have class_labels true for a regression problem")
+    # create path if it does not exist
+    dir = os.path.join(path, "")
+    try:
+        os.makedirs(dir, exist_ok=True)
+    except OSError:
+        raise ValueError(f"Error trying to access {dir} in _write_header")
+    # create ts file in the path
+    load_path = os.path.join(dir, problem_name)
+    file = open(load_path, "w")
+    # write comment if any as a block at start of file
+    if comment is not None:
+        file.write("\n# ".join(textwrap.wrap("# " + comment)))
+        file.write("\n")
+
+    """ Writes the header info for a ts file"""
+    file.write(f"@problemName {problem_name}\n")
+    file.write("@timestamps false\n")
+    file.write(f"@univariate {str(univariate).lower()}\n")
+    file.write(f"@equalLength {str(equal_length).lower()}\n")
+    if n_timepoints > 0 and equal_length:
+        file.write(f"@seriesLength {n_timepoints}\n")
+    # write class labels line
+    if class_labels is not None:
+        space_separated_class_label = " ".join(str(label) for label in class_labels)
+        file.write(f"@classLabel true {space_separated_class_label}\n")
+    else:
+        file.write("@classLabel false\n")
+        if regression:  # or if a regression problem, write target label
+            file.write("@targetlabel true\n")
+    file.write("@data\n")
+    return file
+
+
+# TODO: remove in v1.4.0
+@deprecated(
+    version="1.3.0",
+    reason="write_to_ts_file will be removed in v1.4.0. Use save_to_ts_file instead.",
+    category=FutureWarning,
+)
 def write_to_ts_file(
     X,
     path,
@@ -145,6 +324,12 @@ def _write_header(
     return file
 
 
+# TODO: remove in v1.4.0
+@deprecated(
+    version="1.3.0",
+    reason="write_to_arff_file will be removed in v1.4.0.",
+    category=FutureWarning,
+)
 def write_to_arff_file(
     X,
     y,
