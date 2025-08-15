@@ -201,7 +201,7 @@ class TimeMCL(BaseCollectionTransformer):
         import tensorflow as tf
 
         from aeon.networks import FCNNetwork
-        
+
         assert self.alpha > 0, "alpha must be greater than 0"
         assert self.mixup_temperature > 0, "mixup_temperature must be greater than 0"
 
