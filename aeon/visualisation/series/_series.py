@@ -207,7 +207,7 @@ def plot_lags(series, lags=1, suptitle=None):
     Parameters
     ----------
     series : pd.Series or np.ndarray
-        Single univariate  ime series for plotting lags.
+        Single univariate time series for plotting lags.
     lags : int or array-like, default=1
         The lag or lags to plot.
 
