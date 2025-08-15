@@ -21,7 +21,7 @@ class InceptionNetwork(BaseDeepLearningNetwork):
     kernel_size : int or list of int, default = 40
         The head kernel size used for each inception module, if not a list, the same
         is used in all inception modules. For each inception module, the number
-        of convolution layers in parallel is controled by the parameter
+        of convolution layers in parallel is controlled by the parameter
         ``n_conv_per_layer`` and the kernel sizes are calculated using the following
         formula:
         kernel_sizes = [max(kernel_size/2**i, 1) for i in range(n_conv_per_layer)].
