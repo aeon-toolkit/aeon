@@ -35,5 +35,7 @@ Statistical Models
 
     ARIMA
     ETS
+    TAR
+    AutoTAR
     Theta
     TVPForecaster
