@@ -38,4 +38,4 @@ Statistical Models
     TAR
     AutoTAR
     Theta
-    TVPForecaster
+    TVP
