@@ -2,13 +2,11 @@ from collections import OrderedDict
 from typing import Optional, Union
 
 import numpy as np
-from numba import prange
 from sklearn.utils import check_random_state
 
 from aeon.clustering.averaging._ba_utils import _get_alignment_path
 from aeon.transformations.collection import BaseCollectionTransformer
-from aeon.transformations.collection.imbalance.utils import KNN
-from aeon.utils.numba._threading import threaded
+from aeon.transformations.collection.imbalance._single_class_knn import Single_Class_KNN
 from aeon.utils.validation import check_n_jobs
 
 __all__ = ["ESMOTE"]
@@ -23,7 +21,7 @@ class ESMOTE(BaseCollectionTransformer):
     n_neighbors : int, default=5
         The number  of nearest neighbors used to define the neighborhood of samples
         to use to generate the synthetic time series.
-    distance : str or callable, default="msm"
+    distance : str or callable, default="twe"
         The distance metric to use for the nearest neighbors search and alignment path
         of synthetic time series.
     weights : str or callable, default = 'uniform'
@@ -79,7 +77,7 @@ class ESMOTE(BaseCollectionTransformer):
     def _fit(self, X, y=None):
         self._random_state = check_random_state(self.random_state)
         self._n_jobs = check_n_jobs(self.n_jobs)
-        self.nn_ = KNN(
+        self.nn_ = Single_Class_KNN(
             n_neighbors=self.n_neighbors + 1,
             distance=self.distance,
             distance_params=self._distance_params,
@@ -131,7 +129,6 @@ class ESMOTE(BaseCollectionTransformer):
 
         return X_synthetic, y_synthetic
 
-    @threaded
     def _make_samples(
         self, X, y_dtype, y_type, nn_data, nn_num, n_samples, step_size=1.0, n_jobs=1
     ):
@@ -146,11 +143,11 @@ class ESMOTE(BaseCollectionTransformer):
         rows = np.floor_divide(samples_indices, nn_num.shape[1])
         cols = np.mod(samples_indices, nn_num.shape[1])
         X_new = np.zeros((len(rows), *X.shape[1:]), dtype=X.dtype)
-        for count in prange(len(rows)):
+        for count in range(len(rows)):
             i = rows[count]
             j = cols[count]
             nn_ts = nn_data[nn_num[i, j]]
-            X_new[count] = self._generate_sample_use_soft_distance(
+            X_new[count] = self._generate_sample_use_elastic_distance(
                 X[i],
                 nn_ts,
                 distance=self.distance,
@@ -160,7 +157,7 @@ class ESMOTE(BaseCollectionTransformer):
         y_new = np.full(n_samples, fill_value=y_type, dtype=y_dtype)
         return X_new, y_new
 
-    def _generate_sample_use_soft_distance(
+    def _generate_sample_use_elastic_distance(
         self,
         curr_ts,
         nn_ts,
@@ -217,23 +214,13 @@ class ESMOTE(BaseCollectionTransformer):
         empty_of_array = np.zeros_like(curr_ts, dtype=float)  # shape: (c, l)
 
         for k, l in enumerate(path_list):
-            if len(l) == 0:
-                import logging
-
-                logging.getLogger("aeon").setLevel(logging.WARNING)
-                logging.warning(
-                    f"Alignment path for channel {k} is empty. "
-                    "Returning the original time series."
-                )
-                return new_ts
-
             key = self._random_state.choice(l)
             # Compute difference for all channels at this time step
             empty_of_array[:, k] = curr_ts[:, k] - nn_ts[:, key]
 
-        Bias = step * empty_of_array
+        bias = step * empty_of_array
         if return_bias:
-            return Bias
+            return bias
 
-        new_ts = new_ts - Bias
+        new_ts = new_ts - bias
         return new_ts

@@ -16,7 +16,7 @@ import numpy as np
 from sklearn.utils import check_random_state
 
 from aeon.transformations.collection import BaseCollectionTransformer
-from aeon.transformations.collection.imbalance.utils import KNN
+from aeon.transformations.collection.imbalance._single_class_knn import Single_Class_KNN
 from aeon.utils.validation import check_n_jobs
 
 __maintainer__ = ["TonyBagnall"]
@@ -101,7 +101,7 @@ class SMOTE(BaseCollectionTransformer):
         self._n_jobs = check_n_jobs(self.n_jobs)
 
         # set the additional_neighbor required by SMOTE
-        self.nn_ = KNN(
+        self.nn_ = Single_Class_KNN(
             n_neighbors=self.n_neighbors + 1,
             distance=self.distance,
             distance_params=self._distance_params,

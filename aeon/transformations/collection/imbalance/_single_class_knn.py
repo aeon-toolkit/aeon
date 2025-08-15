@@ -1,4 +1,4 @@
-"""Wrapper of KNeighborsTimeSeriesClassifier named KNN.
+"""Wrapper of KNeighborsTimeSeriesClassifier named Single_Class_KNN.
 
 It wraps the fit setup to ensure `_fit` is executed even when the dataset
 contains only a single class.
@@ -6,10 +6,10 @@ contains only a single class.
 
 from aeon.classification.distance_based import KNeighborsTimeSeriesClassifier
 
-__all__ = ["KNN"]
+__all__ = ["Single_Class_KNN"]
 
 
-class KNN(KNeighborsTimeSeriesClassifier):
+class Single_Class_KNN(KNeighborsTimeSeriesClassifier):
     """
     KNN classifier for time series data, adapted to work with SMOTE.
 
