@@ -71,9 +71,8 @@ class BaseForecaster(BaseSeriesEstimator):
         self
             Fitted BaseForecaster.
         """
-        if self.get_tag("fit_is_empty"):
-            self.is_fitted = True
-            return self
+        self._y = self._preprocess_series(y, axis, True)
+        self._exog = exog
 
         horizon = self.get_tag("capability:horizon")
         if not horizon and self.horizon > 1:
@@ -89,13 +88,9 @@ class BaseForecaster(BaseSeriesEstimator):
                 "handle exogenous variables"
             )
 
-        y = self._preprocess_series(y, axis, True)
-
-        if exog is not None:
-            exog = self._convert_y(exog, axis)
-
-        self._fit(y, exog)
-
+        if self._exog is not None:
+            self._exog = self._convert_y(self._exog, axis)
+        self._fit(self._y, self._exog)
         # this should happen last
         self.is_fitted = True
         return self
@@ -119,18 +114,11 @@ class BaseForecaster(BaseSeriesEstimator):
         if not self.get_tag("fit_is_empty"):
             self._check_is_fitted()
 
-        horizon = self.get_tag("capability:horizon")
-        if not horizon and self.horizon > 1:
-            raise ValueError(
-                f"Horizon is set >1, but {self.__class__.__name__} cannot handle a "
-                f"horizon greater than 1"
-            )
-
         exog_tag = self.get_tag("capability:exogenous")
         if not exog_tag and exog is not None:
             raise ValueError(
-                f"Exogenous variables passed but {self.__class__.__name__} cannot "
-                "handle exogenous variables"
+                f"Exogenous variables passed in predict but {self.__class__.__name__} "
+                f"cannot handle exogenous variables"
             )
 
         y = self._preprocess_series(y, axis, False)
@@ -143,14 +131,14 @@ class BaseForecaster(BaseSeriesEstimator):
     def forecast(self, y, exog=None, axis=1) -> float:
         """Forecast the next horizon steps ahead of ``y``.
 
-        By default this is simply fit followed by returning forecast_.
+        This calls fit and then predict to make a single self.horizon ahead forecast.
 
         Parameters
         ----------
-        y : np.ndarray
+        y : np.ndarray or pd.DataFrame
             A time series to predict the next horizon value for. Must be of shape
             ``(n_channels, n_timepoints)`` if a multivariate time series.
-        exog : np.ndarray, default =None
+        exog : np.ndarray or pd.DataFrame, default =None
             Optional exogenous time series data assumed to be aligned with y.
 
         Returns
@@ -158,41 +146,14 @@ class BaseForecaster(BaseSeriesEstimator):
         float
             single prediction self.horizon steps ahead of y.
         """
-        horizon = self.get_tag("capability:horizon")
-        if not horizon and self.horizon > 1:
-            raise ValueError(
-                f"Horizon is set >1, but {self.__class__.__name__} cannot handle a "
-                f"horizon greater than 1"
-            )
-
-        exog_tag = self.get_tag("capability:exogenous")
-        if not exog_tag and exog is not None:
-            raise ValueError(
-                f"Exogenous variables passed but {self.__class__.__name__} cannot "
-                "handle exogenous variables"
-            )
-
-        y = self._preprocess_series(y, axis, True)
-
-        if exog is not None:
-            exog = self._convert_y(exog, self.axis)
-
-        y_pred = self._forecast(y, exog)
-
-        # this should happen last
-        self.is_fitted = True
-        return y_pred
+        self.fit(y, exog)
+        return self._predict(self._y, self._exog)
 
     def _fit(self, y, exog):
         return self
 
     @abstractmethod
     def _predict(self, y, exog): ...
-
-    def _forecast(self, y, exog):
-        """Forecast values for time series X."""
-        self.fit(y, exog)
-        return self._predict(y, exog)
 
     def _convert_y(self, y: VALID_SERIES_INNER_TYPES, axis: int):
         """Convert y to self.get_tag("y_inner_type")."""
