@@ -1,4 +1,4 @@
-from typing import Optional, Union
+__maintainer__ = []
 
 import numpy as np
 from numba import njit
@@ -15,13 +15,13 @@ def subgradient_barycenter_average(
     distance: str = "dtw",
     max_iters: int = 30,
     tol=1e-5,
-    init_barycenter: Union[np.ndarray, str] = "mean",
+    init_barycenter: np.ndarray | str = "mean",
     initial_step_size: float = 0.05,
     final_step_size: float = 0.005,
-    weights: Optional[np.ndarray] = None,
-    precomputed_medoids_pairwise_distance: Optional[np.ndarray] = None,
+    weights: np.ndarray | None = None,
+    precomputed_medoids_pairwise_distance: np.ndarray | None = None,
     verbose: bool = False,
-    random_state: Optional[int] = None,
+    random_state: int | None = None,
     **kwargs,
 ) -> np.ndarray:
     """Compute the stochastic subgradient barycenter average of time series.
@@ -152,11 +152,11 @@ def _ba_one_iter_subgradient(
     initial_step_size: float = 0.05,
     final_step_size: float = 0.005,
     current_step_size: float = 0.05,
-    weights: Optional[np.ndarray] = None,
+    weights: np.ndarray | None = None,
     iteration: int = 0,
-    window: Union[float, None] = None,
+    window: float | None = None,
     g: float = 0.0,
-    epsilon: Union[float, None] = None,
+    epsilon: float | None = None,
     nu: float = 0.001,
     lmbda: float = 1.0,
     independent: bool = True,
@@ -165,8 +165,8 @@ def _ba_one_iter_subgradient(
     reach: int = 30,
     warp_penalty: float = 1.0,
     transformation_precomputed: bool = False,
-    transformed_x: Optional[np.ndarray] = None,
-    transformed_y: Optional[np.ndarray] = None,
+    transformed_x: np.ndarray | None = None,
+    transformed_y: np.ndarray | None = None,
 ):
 
     X_size, X_dims, X_timepoints = X.shape

@@ -6,7 +6,6 @@ __all__ = ["show_versions"]
 import platform
 import sys
 from importlib.metadata import PackageNotFoundError, version
-from typing import Union
 
 from aeon import __version__
 
@@ -21,7 +20,7 @@ deps = [
 ]
 
 
-def show_versions(as_str: bool = False) -> Union[str, None]:
+def show_versions(as_str: bool = False) -> str | None:
     """Print useful debugging information.
 
     Parameters
