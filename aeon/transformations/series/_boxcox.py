@@ -8,6 +8,7 @@ from scipy import optimize, special, stats
 from scipy.special import boxcox, inv_boxcox
 from scipy.stats import boxcox_llf, distributions, variation
 
+from aeon.transformations.base import InverseTransformerMixin
 from aeon.transformations.series.base import BaseSeriesTransformer
 from aeon.utils.validation import is_int
 
@@ -39,7 +40,7 @@ def _calc_uniform_order_statistic_medians(n):
     return v
 
 
-class BoxCoxTransformer(BaseSeriesTransformer):
+class BoxCoxTransformer(BaseSeriesTransformer, InverseTransformerMixin):
     r"""Box-Cox power transform.
 
     Box-Cox transformation is a power transformation that is used to
@@ -107,7 +108,6 @@ class BoxCoxTransformer(BaseSeriesTransformer):
         "X_inner_type": "np.ndarray",
         "fit_is_empty": False,
         "capability:multivariate": False,
-        "capability:inverse_transform": True,
     }
 
     def __init__(self, bounds=None, method="mle", sp=None):

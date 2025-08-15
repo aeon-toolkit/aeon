@@ -1,16 +1,16 @@
 """Identity transformer."""
 
+from aeon.transformations.base import InverseTransformerMixin
 from aeon.transformations.series import BaseSeriesTransformer
 from aeon.utils.data_types import VALID_SERIES_INNER_TYPES
 
 
-class SeriesId(BaseSeriesTransformer):
+class SeriesId(BaseSeriesTransformer, InverseTransformerMixin):
     """Identity transformer, returns data unchanged in transform/inverse_transform."""
 
     _tags = {
         "X_inner_type": VALID_SERIES_INNER_TYPES,
         "fit_is_empty": True,
-        "capability:inverse_transform": True,
         "capability:multivariate": True,
         "capability:missing_values": True,
     }
