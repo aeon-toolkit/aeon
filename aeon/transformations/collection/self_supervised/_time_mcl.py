@@ -37,22 +37,25 @@ class TimeMCL(BaseCollectionTransformer):
     Parameters
     ----------
     alpha : float, default = 0.2
-        The alpha value for the Beta distribution.
+        The alpha value for the Beta distribution. In the Beta distribution,
+        alpha controls how strongly the distribution is pulled toward 1,
+        with larger alpha pushing probability mass toward higher values of x
+        and smaller alpha concentrating it near 0.
+        More info here:
+        https://numpy.org/doc/stable/reference/random/generated/numpy.random.beta
     mixup_temperature : float, default = 0.5
         The value that controls the logits smoothness.
     backbone_network : aeon Network, default = None
-        The backbone network used for the SSL model,
-        it can be any network from the aeon.networks
-        module on condition for it's structure to be
-        configured as "encoder", see _config attribute.
-        For TimeMCL, the default network used is
-        FCNNetwork(n_layers=3,
-                   kernel_size=[7, 5, 3],
-                   dilation_rate=[2, 4, 8]).
+        The backbone network used for the SSL model, it can be any network from
+        the aeon.networks module on condition for it's structure to be configured
+        as "encoder", see _config attribute. For TimeMCL, the default network
+        used is FCNNetwork(n_layers=3,
+                           n_filters=[128, 256, 128],
+                           kernel_size=[7, 5, 3],
+                           dilation_rate=[2, 4, 8]).
     latent_space_dim : int, default = 128
-        The size of the latent space, applied using a
-        fully connected layer at the end of the network's
-        output.
+        The size of the latent space, applied using a fully connected layer
+        at the end of the network's output.
     latent_space_activation : str, default = "linear"
         The activation to control the range of values
         of the latent space.
@@ -70,33 +73,32 @@ class TimeMCL(BaseCollectionTransformer):
     file_path : str, default = "./"
         File path to save best model.
     save_best_model : bool, default = False
-        Whether or not to save the best model, if the
-        modelcheckpoint callback is used by default,
-        this condition, if True, will prevent the
-        automatic deletion of the best saved model from
-        file and the user can choose the file name.
+        Whether or not to save the best model, if the modelcheckpoint callback
+        is used by default, this condition, if True, will prevent theautomatic
+        deletion of the best saved model from file and the user can choose the
+        file name.
     save_last_model : bool, default = False
-        Whether or not to save the last model, last
-        epoch trained, using the base class method
-        save_last_model_to_file.
+        Whether or not to save the last model, last epoch trained, using the
+        base class method save_last_model_to_file.
     save_init_model : bool, default = False
-        Whether to save the initialization of the  model.
+        Whether to save the initialization of the model.
     best_file_name : str, default = "best_model"
-        The name of the file of the best model, if
-        save_best_model is set to False, this parameter
-        is discarded.
+        The name of the file of the best model, if save_best_model is set to
+        False, this parameter is discarded.
     last_file_name : str, default = "last_model"
-        The name of the file of the last model, if
-        save_last_model is set to False, this parameter
-        is discarded.
+        The name of the file of the last model, if save_last_model is set to
+        False, this parameter is discarded.
     init_file_name : str, default = "init_model"
-        The name of the file of the init model, if
-        save_init_model is set to False,
+        The name of the file of the init model, if save_init_model is set to False,
         this parameter is discarded.
     callbacks : keras callback or list of callbacks,
         default = None
-        The default list of callbacks are set to
-        ModelCheckpoint and ReduceLROnPlateau.
+        The default list of callbacks are set to ModelCheckpoint and ReduceLROnPlateau.
+        ModelCheckpoint will ensure the best model over the training loss is being
+        saved, which will then be loaded when fitting is finished, the file will be
+        deleted unless ``save_best_model`` is set to ``True``. ReduceLROnPlateau
+        reduces the learning rate during trainining using a schedualar.
+        More info on these two callbacks are available on the keras docs.
     batch_size : int, default = 64
         The number of samples per gradient update.
     use_mini_batch_size : bool, default = False
@@ -158,7 +160,7 @@ class TimeMCL(BaseCollectionTransformer):
         callbacks: Callback | list[Callback] | None = None,
         batch_size: int = 64,
         use_mini_batch_size: bool = False,
-        n_epochs: int = 2000,
+        n_epochs: int = 1000,
     ):
 
         self.alpha = alpha
@@ -199,6 +201,9 @@ class TimeMCL(BaseCollectionTransformer):
         import tensorflow as tf
 
         from aeon.networks import FCNNetwork
+        
+        assert self.alpha > 0, "alpha must be greater than 0"
+        assert self.mixup_temperature > 0, "mixup_temperature must be greater than 0"
 
         if isinstance(self.backbone_network, BaseDeepLearningNetwork):
             self._backbone_network = deepcopy(self.backbone_network)
@@ -372,7 +377,6 @@ class TimeMCL(BaseCollectionTransformer):
         -------
         output : a compiled Keras Model
         """
-        import numpy as np
         import tensorflow as tf
 
         rng = check_random_state(self.random_state)
@@ -428,7 +432,7 @@ class TimeMCL(BaseCollectionTransformer):
         log_probs = tf.nn.log_softmax(logits, axis=1)
         loss = -tf.reduce_sum(labels * log_probs, axis=1)
 
-        return tf.reduce_mean(loss)
+        return loss
 
     def save_last_model_to_file(self, file_path="./"):
         """Save the last epoch of the trained deep learning model.
