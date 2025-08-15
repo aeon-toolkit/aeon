@@ -2,7 +2,6 @@
 
 __maintainer__ = []
 
-from typing import Optional, Union
 
 import numpy as np
 from numba import njit, prange
@@ -21,9 +20,9 @@ from aeon.utils.validation.collection import _is_numpy_list_multivariate
 def wddtw_distance(
     x: np.ndarray,
     y: np.ndarray,
-    window: Optional[float] = None,
+    window: float | None = None,
     g: float = 0.05,
-    itakura_max_slope: Optional[float] = None,
+    itakura_max_slope: float | None = None,
 ) -> float:
     r"""Compute the WDDTW distance between two time series.
 
@@ -106,9 +105,9 @@ def wddtw_distance(
 def wddtw_cost_matrix(
     x: np.ndarray,
     y: np.ndarray,
-    window: Optional[float] = None,
+    window: float | None = None,
     g: float = 0.05,
-    itakura_max_slope: Optional[float] = None,
+    itakura_max_slope: float | None = None,
 ) -> np.ndarray:
     """Compute the WDDTW cost matrix between two time series.
 
@@ -174,11 +173,11 @@ def wddtw_cost_matrix(
 
 @threaded
 def wddtw_pairwise_distance(
-    X: Union[np.ndarray, list[np.ndarray]],
-    y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
-    window: Optional[float] = None,
+    X: np.ndarray | list[np.ndarray],
+    y: np.ndarray | list[np.ndarray] | None = None,
+    window: float | None = None,
     g: float = 0.05,
-    itakura_max_slope: Optional[float] = None,
+    itakura_max_slope: float | None = None,
     n_jobs: int = 1,
 ) -> np.ndarray:
     """Compute the WDDTW pairwise distance between a set of time series.
@@ -268,9 +267,9 @@ def wddtw_pairwise_distance(
 @njit(cache=True, fastmath=True, parallel=True)
 def _wddtw_pairwise_distance(
     X: NumbaList[np.ndarray],
-    window: Optional[float],
+    window: float | None,
     g: float,
-    itakura_max_slope: Optional[float],
+    itakura_max_slope: float | None,
     unequal_length: bool,
 ) -> np.ndarray:
     n_cases = len(X)
@@ -302,9 +301,9 @@ def _wddtw_pairwise_distance(
 def _wddtw_from_multiple_to_multiple_distance(
     x: NumbaList[np.ndarray],
     y: NumbaList[np.ndarray],
-    window: Optional[float],
+    window: float | None,
     g: float,
-    itakura_max_slope: Optional[float],
+    itakura_max_slope: float | None,
     unequal_length: bool,
 ) -> np.ndarray:
     n_cases = len(x)
@@ -340,9 +339,9 @@ def _wddtw_from_multiple_to_multiple_distance(
 def wddtw_alignment_path(
     x: np.ndarray,
     y: np.ndarray,
-    window: Optional[float] = None,
+    window: float | None = None,
     g: float = 0.05,
-    itakura_max_slope: Optional[float] = None,
+    itakura_max_slope: float | None = None,
 ) -> tuple[list[tuple[int, int]], float]:
     """Compute the WDDTW alignment path between two time series.
 
