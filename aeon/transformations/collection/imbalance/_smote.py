@@ -10,12 +10,14 @@ original authors:
 """
 
 from collections import OrderedDict
+from typing import Optional, Union
 
 import numpy as np
-from sklearn.neighbors import NearestNeighbors
 from sklearn.utils import check_random_state
 
 from aeon.transformations.collection import BaseCollectionTransformer
+from aeon.transformations.collection.imbalance._single_class_knn import Single_Class_KNN
+from aeon.utils.validation import check_n_jobs
 
 __maintainer__ = ["TonyBagnall"]
 __all__ = ["SMOTE"]
@@ -35,7 +37,7 @@ class SMOTE(BaseCollectionTransformer):
 
     Parameters
     ----------
-    k_neighbors : int, default=5
+    n_neighbors : int, default=5
         Number of nearest neighbours used to generate synthetic samples. A
         `sklearn.neighbors.NearestNeighbors` instance is fitted for this purpose.
     random_state : int, RandomState instance or None, default=None
@@ -70,16 +72,42 @@ class SMOTE(BaseCollectionTransformer):
 
     _tags = {
         "requires_y": True,
+        "capability:multithreading": True,
     }
 
-    def __init__(self, k_neighbors: int = 5, random_state=None):
+    def __init__(
+        self,
+        n_neighbors: int = 5,
+        random_state=None,
+        distance: Union[str, callable] = "euclidean",
+        distance_params: Optional[dict] = None,
+        n_jobs: int = 1,
+        weights: Union[str, callable] = "uniform",
+    ):
+
         self.random_state = random_state
-        self.k_neighbors = k_neighbors
+        self.n_neighbors = n_neighbors
+        self.distance = distance
+        self.distance_params = distance_params
+        self.weights = weights
+        self.n_jobs = n_jobs
+
+        self._random_state = None
+        self._distance_params = distance_params or {}
         super().__init__()
 
     def _fit(self, X, y=None):
+        self._random_state = check_random_state(self.random_state)
+        self._n_jobs = check_n_jobs(self.n_jobs)
+
         # set the additional_neighbor required by SMOTE
-        self.nn_ = NearestNeighbors(n_neighbors=self.k_neighbors + 1)
+        self.nn_ = Single_Class_KNN(
+            n_neighbors=self.n_neighbors + 1,
+            distance=self.distance,
+            distance_params=self._distance_params,
+            weights=self.weights,
+            n_jobs=self.n_jobs,
+        )
 
         # generate sampling target by targeting all classes except the majority
         unique, counts = np.unique(y, return_counts=True)
@@ -92,6 +120,7 @@ class SMOTE(BaseCollectionTransformer):
             if key != class_majority
         }
         self.sampling_strategy_ = OrderedDict(sorted(sampling_strategy.items()))
+
         return self
 
     def _transform(self, X, y=None):
@@ -106,8 +135,8 @@ class SMOTE(BaseCollectionTransformer):
                 continue
             target_class_indices = np.flatnonzero(y == class_sample)
             X_class = X[target_class_indices]
-
-            self.nn_.fit(X_class)
+            y_class = y[target_class_indices]
+            self.nn_.fit(X_class, y_class)
             nns = self.nn_.kneighbors(X_class, return_distance=False)[:, 1:]
             X_new, y_new = self._make_samples(
                 X_class, y.dtype, class_sample, X_class, nns, n_samples, 1.0
@@ -162,11 +191,12 @@ class SMOTE(BaseCollectionTransformer):
         y_new : ndarray
             Target values for synthetic samples of shape (n_samples_new,).
         """
-        random_state = check_random_state(self.random_state)
-        samples_indices = random_state.randint(low=0, high=nn_num.size, size=n_samples)
+        samples_indices = self._random_state.randint(
+            low=0, high=nn_num.size, size=n_samples
+        )
 
         # np.newaxis for backwards compatibility with random_state
-        steps = step_size * random_state.uniform(size=n_samples)[:, np.newaxis]
+        steps = step_size * self._random_state.uniform(size=n_samples)[:, np.newaxis]
         rows = np.floor_divide(samples_indices, nn_num.shape[1])
         cols = np.mod(samples_indices, nn_num.shape[1])
 
@@ -220,9 +250,8 @@ class SMOTE(BaseCollectionTransformer):
         """
         diffs = nn_data[nn_num[rows, cols]] - X[rows]
         if y is not None:
-            random_state = check_random_state(self.random_state)
             mask_pair_samples = y[nn_num[rows, cols]] != y_type
-            diffs[mask_pair_samples] *= random_state.uniform(
+            diffs[mask_pair_samples] *= self._random_state.uniform(
                 low=0.0, high=0.5, size=(mask_pair_samples.sum(), 1)
             )
         X_new = X[rows] + steps * diffs
@@ -249,4 +278,4 @@ class SMOTE(BaseCollectionTransformer):
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
         """
-        return {"k_neighbors": 1}
+        return {"n_neighbors": 1}
