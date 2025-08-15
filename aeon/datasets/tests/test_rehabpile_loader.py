@@ -6,12 +6,12 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from aeon.datasets._data_loaders import CONNECTION_ERRORS
 from aeon.datasets import (
-    load_rehab_pile_dataset,
     load_rehab_pile_classification_datasets,
+    load_rehab_pile_dataset,
     load_rehab_pile_regression_datasets,
 )
+from aeon.datasets._data_loaders import CONNECTION_ERRORS
 from aeon.testing.testing_config import PR_TESTING
 
 
