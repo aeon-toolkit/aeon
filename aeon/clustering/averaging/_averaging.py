@@ -2,7 +2,7 @@
 
 __maintainer__ = []
 
-from typing import Callable, Union
+from collections.abc import Callable
 
 import numpy as np
 
@@ -38,7 +38,7 @@ _AVERAGE_DICT = {
 
 
 def _resolve_average_callable(
-    averaging_method: Union[str, Callable[[np.ndarray, dict], np.ndarray]],
+    averaging_method: str | Callable[[np.ndarray, dict], np.ndarray],
 ) -> Callable[[np.ndarray, dict], np.ndarray]:
     """Resolve a string or callable to a averaging callable.
 

@@ -54,7 +54,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-24.04, macOS-14, windows-2022 ]
-        python-version: [ "3.10", "3.11", "3.12", "3.13.5" ]
+        python-version: [ "3.10", "3.11", "3.12", "3.13" ]
 
     steps:
       - name: Checkout
@@ -65,13 +65,20 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      - name: Clear disik space
+        uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          dotnet: false
+          large-packages: false
+          swap-storage: false
+
       - name: Set swap space
         if: runner.os == 'Linux'
         uses: pierotofy/set-swap-space@v1.0
         with:
-          swap-size-gb: 6
+          swap-size-gb: 8
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: dist
           path: dist
@@ -123,7 +130,7 @@ jobs:
       id-token: write
 
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: dist
           path: dist
