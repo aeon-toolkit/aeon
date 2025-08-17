@@ -12,7 +12,7 @@ from scipy.fft import fftshift
 from scipy.signal import spectrogram
 
 from aeon.utils.validation._dependencies import _check_soft_dependencies
-from aeon.utils.validation.series import is_single_series, is_univariate_series
+from aeon.utils.validation.series import is_series, is_univariate
 
 
 def plot_series(
@@ -62,7 +62,7 @@ def plot_series(
     >>> y = load_airline(return_array=False)
     >>> fig, ax = plot_series(y)  # doctest: +SKIP
     """
-    if not is_single_series(series):
+    if not is_series(series, include_2d=True):
         raise ValueError(
             "series must be a single time series, either univariate (1D "
             "np.ndarray or pd.Series) or multivariate (2D np.ndarray or pd.DataFrame)"
@@ -207,7 +207,7 @@ def plot_lags(series, lags=1, suptitle=None):
     Parameters
     ----------
     series : pd.Series or np.ndarray
-        Single univariate  ime series for plotting lags.
+        Single univariate time series for plotting lags.
     lags : int or array-like, default=1
         The lag or lags to plot.
 
@@ -234,7 +234,7 @@ def plot_lags(series, lags=1, suptitle=None):
     _check_soft_dependencies("matplotlib")
     import matplotlib.pyplot as plt
 
-    if not (is_single_series(series) and is_univariate_series(series)):
+    if not is_series(series, include_2d=True) and not is_univariate(series):
         raise ValueError("series must be a single univariate time series")
 
     if isinstance(series, np.ndarray):
@@ -338,7 +338,7 @@ def plot_correlations(
     import matplotlib.pyplot as plt
     from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 
-    if not (is_single_series(series) and is_univariate_series(series)):
+    if not is_series(series, include_2d=True) and not is_univariate(series):
         raise ValueError("series must be a single univariate time series")
 
     # Setup figure for plotting
@@ -407,7 +407,7 @@ def plot_spectrogram(series, fs=1, return_onesided=True):
     _check_soft_dependencies("matplotlib")
     import matplotlib.pyplot as plt
 
-    if not (is_single_series(series) and is_univariate_series(series)):
+    if not is_series(series, include_2d=True) and not is_univariate(series):
         raise ValueError("series must be a single univariate time series")
     if isinstance(series, np.ndarray):
         series = pd.Series(series)
