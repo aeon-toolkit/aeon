@@ -18,26 +18,26 @@ class HOG1DTransformer(BaseCollectionTransformer):
 
     Parameters
     ----------
-    n_intervals : int
+    n_intervals : int, default=2
         Length of interval.
-    n_bins : int
+    n_bins : int, default=8
         Number of bins in the histogram.
-    scaling_factor : float
+    scaling_factor : float, default =0.1
         A constant that is multiplied to modify the distribution.
 
     References
     ----------
     [1] J. Zhao and L. Itti "Classifying time series using local descriptors with
     hybrid sampling", IEEE Transactions on Knowledge and Data Engineering 28(3), 2015.
-
-
     """
 
     _tags = {
         "fit_is_empty": True,
     }
 
-    def __init__(self, n_intervals=2, n_bins=8, scaling_factor=0.1):
+    def __init__(
+        self, n_intervals: int = 2, n_bins: int = 8, scaling_factor: float = 0.1
+    ):
         self.n_intervals = n_intervals
         self.n_bins = n_bins
         self.scaling_factor = scaling_factor

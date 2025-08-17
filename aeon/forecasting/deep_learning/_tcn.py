@@ -50,7 +50,7 @@ class TCNForecaster(BaseDeepForecaster):
 
     _tags = {
         "python_dependencies": ["tensorflow"],
-        "capability:horizon": True,
+        "capability:horizon": False,
         "capability:multivariate": True,
         "capability:exogenous": False,
         "capability:univariate": True,

@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "aeon"
 version = "1.2.0"
-description = "A toolkit for machine learning from time series"
+description = "A toolkit for time series machine learning"
 authors = [
     {name = "aeon developers", email = "contact@aeon-toolkit.org"},
 ]
@@ -190,6 +190,6 @@ filterwarnings = [
 [tool.codespell]
 ignore-words = ".github/utilities/codespell_ignore_words.txt"
 ignore-regex = '(^\s*"image/\S+": ".*|Binay|Lamba|Mapp|Hart|Sch"afer|SOM|COO)'
-skip = ".venv,.mypy_cache,.git"
+skip = ".venv,.idea,.mypy_cache,.git"
 check-filenames = true
 check-hidden = true

@@ -14,7 +14,7 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
     not _check_soft_dependencies(["tensorflow"], severity="none"),
     reason="Tensorflow soft dependency unavailable.",
 )
-@pytest.mark.parametrize("horizon,window,epochs", [(1, 10, 2), (3, 12, 3), (5, 15, 2)])
+@pytest.mark.parametrize("horizon,window,epochs", [(1, 10, 2), (1, 12, 3), (1, 15, 2)])
 def test_tcn_forecaster(horizon, window, epochs):
     """Test TCNForecaster with different parameter combinations."""
     import tensorflow as tf
