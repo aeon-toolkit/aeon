@@ -1,11 +1,11 @@
 """Time series kmedoids."""
 
-from typing import Optional
-
 __maintainer__ = []
+__all__ = ["TimeSeriesCLARANS"]
+
 
 import math
-from typing import Callable, Union
+from collections.abc import Callable
 
 import numpy as np
 from numpy.random import RandomState
@@ -104,13 +104,13 @@ class TimeSeriesCLARANS(TimeSeriesKMedoids):
     def __init__(
         self,
         n_clusters: int = 8,
-        init: Union[str, np.ndarray] = "random",
-        distance: Union[str, Callable] = "msm",
-        max_neighbours: Optional[int] = None,
+        init: str | np.ndarray = "random",
+        distance: str | Callable = "msm",
+        max_neighbours: int | None = None,
         n_init: int = 10,
         verbose: bool = False,
-        random_state: Optional[Union[int, RandomState]] = None,
-        distance_params: Optional[dict] = None,
+        random_state: int | RandomState | None = None,
+        distance_params: dict | None = None,
     ):
         self.max_neighbours = max_neighbours
 

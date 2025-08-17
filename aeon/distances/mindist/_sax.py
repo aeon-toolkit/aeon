@@ -1,6 +1,5 @@
 __maintainer__ = []
 
-from typing import Union
 
 import numpy as np
 from numba import njit, prange
@@ -137,7 +136,7 @@ def mindist_sax_pairwise_distance(
 
 @njit(cache=True, fastmath=True, parallel=True)
 def _sax_from_multiple_to_multiple_distance(
-    X: np.ndarray, y: Union[np.ndarray, None], breakpoints: np.ndarray, n: int
+    X: np.ndarray, y: np.ndarray | None, breakpoints: np.ndarray, n: int
 ) -> np.ndarray:
     if y is None:
         n_instances = X.shape[0]

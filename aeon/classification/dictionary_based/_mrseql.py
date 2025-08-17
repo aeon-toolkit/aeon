@@ -3,7 +3,6 @@
 __maintainer__ = ["TonyBagnall", "MatthewMiddlehurst"]
 __all__ = ["MrSEQLClassifier"]
 
-from typing import Union
 
 import numpy as np
 import pandas as pd
@@ -106,9 +105,7 @@ class MrSEQLClassifier(BaseClassifier):
         return self.clf_.predict_proba(_X)
 
     @classmethod
-    def _get_test_params(
-        cls, parameter_set: str = "default"
-    ) -> Union[dict, list[dict]]:
+    def _get_test_params(cls, parameter_set: str = "default") -> dict | list[dict]:
         """Return testing parameter settings for the estimator.
 
         Parameters

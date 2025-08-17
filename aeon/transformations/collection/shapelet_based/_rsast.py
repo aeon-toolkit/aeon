@@ -1,7 +1,5 @@
 """RSAST Transformer."""
 
-from typing import Optional, Union
-
 import numpy as np
 import pandas as pd
 from numba import get_num_threads, njit, prange, set_num_threads
@@ -103,7 +101,7 @@ class RSAST(BaseCollectionTransformer):
         n_random_points: int = 10,
         len_method: str = "both",
         nb_inst_per_class: int = 10,
-        seed: Optional[int] = None,
+        seed: int | None = None,
         n_jobs: int = 1,  # Parllel Processing
     ):
         self.n_random_points = n_random_points
@@ -120,7 +118,7 @@ class RSAST(BaseCollectionTransformer):
         self._kernels_generators = {}  # Reference time series
         super().__init__()
 
-    def _fit(self, X: np.ndarray, y: Union[np.ndarray, list]) -> "RSAST":
+    def _fit(self, X: np.ndarray, y: np.ndarray | list) -> "RSAST":
         from scipy.stats import ConstantInputWarning, DegenerateDataWarning, f_oneway
         from statsmodels.tsa.stattools import acf, pacf
 
@@ -324,7 +322,7 @@ class RSAST(BaseCollectionTransformer):
         return self
 
     def _transform(
-        self, X: np.ndarray, y: Optional[Union[np.ndarray, list]] = None
+        self, X: np.ndarray, y: np.ndarray | list | None = None
     ) -> np.ndarray:
         """Transform the input X using the generated subsequences.
 

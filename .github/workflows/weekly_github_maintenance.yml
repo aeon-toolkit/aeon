@@ -45,8 +45,6 @@ jobs:
     steps:
       - name: Checkout main
         uses: actions/checkout@v4
-        with:
-          sparse-checkout: .github/utilities
 
       - name: Setup Python 3.12
         uses: actions/setup-python@v5

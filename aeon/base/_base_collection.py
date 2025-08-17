@@ -226,7 +226,7 @@ class BaseCollectionEstimator(BaseAeonEstimator):
         --------
         >>> from aeon.testing.mock_estimators import MockClassifier
         >>> from aeon.testing.data_generation import make_example_3d_numpy_list
-        >>> from aeon.utils.validation import get_type
+        >>> from aeon.utils.validation.collection import get_type
         >>> clf = MockClassifier()
         >>> X, _ = make_example_3d_numpy_list(max_n_timepoints=8)
         >>> get_type(X)
