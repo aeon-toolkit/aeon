@@ -22,7 +22,7 @@ jobs:
           private-key: ${{ secrets.PR_APP_KEY }}
 
       - name: Checkout main
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           sparse-checkout: .github/utilities
 
@@ -43,7 +43,7 @@ jobs:
 
       - if: ${{ steps.label_out.outputs.empty_commit == 'true' }}
         name: Checkout head
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: ${{ steps.label_out.outputs.repo }}
           ref: ${{ steps.label_out.outputs.branch }}
