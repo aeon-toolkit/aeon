@@ -65,7 +65,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Clear disik space
+      - name: Clear disk space
         uses: jlumbroso/free-disk-space@v1.3.1
         with:
           dotnet: false
