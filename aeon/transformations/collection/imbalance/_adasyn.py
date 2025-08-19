@@ -12,6 +12,8 @@ original authors:
 __maintainer__ = ["TonyBagnall"]
 __all__ = ["ADASYN"]
 
+from collections.abc import Callable
+
 import numpy as np
 
 from aeon.transformations.collection.imbalance._smote import SMOTE
@@ -58,10 +60,10 @@ class ADASYN(SMOTE):
         self,
         n_neighbors: int = 5,
         random_state=None,
-        distance: str | callable = "euclidean",
+        distance: str | Callable = "euclidean",
         distance_params: dict | None = None,
         n_jobs: int = 1,
-        weights: str | callable = "uniform",
+        weights: str | Callable = "uniform",
     ):
         super().__init__(
             random_state=random_state,

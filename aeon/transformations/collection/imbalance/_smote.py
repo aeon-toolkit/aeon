@@ -13,6 +13,7 @@ __maintainer__ = ["TonyBagnall"]
 __all__ = ["SMOTE"]
 
 from collections import OrderedDict
+from collections.abc import Callable
 
 import numpy as np
 from sklearn.utils import check_random_state
@@ -78,10 +79,10 @@ class SMOTE(BaseCollectionTransformer):
         self,
         n_neighbors: int = 5,
         random_state=None,
-        distance: str | callable = "euclidean",
+        distance: str | Callable = "euclidean",
         distance_params: dict | None = None,
         n_jobs: int = 1,
-        weights: str | callable = "uniform",
+        weights: str | Callable = "uniform",
     ):
 
         self.random_state = random_state

@@ -4,6 +4,7 @@ __maintainer__ = []
 __all__ = ["ESMOTE"]
 
 from collections import OrderedDict
+from collections.abc import Callable
 
 import numpy as np
 from sklearn.utils import check_random_state
@@ -57,9 +58,9 @@ class ESMOTE(BaseCollectionTransformer):
     def __init__(
         self,
         n_neighbors=5,
-        distance: str | callable = "twe",
+        distance: str | Callable = "twe",
         distance_params: dict | None = None,
-        weights: str | callable = "uniform",
+        weights: str | Callable = "uniform",
         n_jobs: int = 1,
         random_state=None,
     ):
