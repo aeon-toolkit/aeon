@@ -10,6 +10,7 @@ __maintainer__ = []
 __all__ = ["BaseDeepForecaster"]
 
 from abc import abstractmethod
+from typing import Any
 
 from aeon.forecasting.base import BaseForecaster
 
@@ -23,10 +24,10 @@ class BaseDeepForecaster(BaseForecaster):
 
     Parameters
     ----------
+    window : int,
+        The window size for creating input sequences.
     horizon : int, default=1
         Forecasting horizon, the number of steps ahead to predict.
-    window : int, default=10
-        The window size for creating input sequences.
     verbose : int, default=0
         Verbosity mode (0, 1, or 2).
     callbacks : list of tf.keras.callbacks.Callback or None, default=None
@@ -55,13 +56,13 @@ class BaseDeepForecaster(BaseForecaster):
         "non_deterministic": True,
         "cant_pickle": True,
         "python_dependencies": "tensorflow",
-        "capability:multivariate": True,
+        "capability:multivariate": False,
     }
 
     def __init__(
         self,
+        window,
         horizon=1,
-        window=10,
         verbose=0,
         callbacks=None,
         axis=0,
@@ -84,11 +85,11 @@ class BaseDeepForecaster(BaseForecaster):
 
     def _fit(self, y, exog=None):
         """Fit the model."""
-        pass
+        ...
 
     def _predict(self, y, exog=None):
         """Predict using the model."""
-        pass
+        ...
 
     def _forecast(self, y, exog=None):
         """Forecast values for time series X."""
@@ -210,3 +211,25 @@ class BaseDeepForecaster(BaseForecaster):
             Compiled Keras model.
         """
         pass
+
+    @classmethod
+    def _get_test_params(
+        cls, parameter_set: str = "default"
+    ) -> dict[str, Any] | list[dict[str, Any]]:
+        """
+        Return testing parameter settings for the estimator.
+
+        Parameters
+        ----------
+        parameter_set : str, default="default"
+            Name of the set of test parameters to return, for use in tests.
+
+        Returns
+        -------
+        params : dict or list of dict, default={}
+            Parameters to create testing instances of the class.
+        """
+        param = {
+            "window": 10,
+        }
+        return [param]
