@@ -9,6 +9,9 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 class DummyDeepForecaster(BaseDeepForecaster):
     """Minimal concrete subclass to allow instantiation."""
 
+    def __init__(self, window):
+        super().__init__(window=window)
+
     def build_model(self, input_shape):
         """Construct and return a model based on the provided input shape."""
         return None  # Not needed for this test
@@ -20,7 +23,7 @@ class DummyDeepForecaster(BaseDeepForecaster):
 )
 def test_default_init_attributes():
     """Test that BaseDeepForecaster sets default params and attributes correctly."""
-    forecaster = DummyDeepForecaster()
+    forecaster = DummyDeepForecaster(window=10)
 
     # check default parameters
     assert forecaster.horizon == 1
@@ -29,7 +32,6 @@ def test_default_init_attributes():
     assert forecaster.callbacks is None
     assert forecaster.axis == 0
     assert forecaster.last_file_name == "last_model"
-    assert forecaster.save_best_model is False
     assert forecaster.file_path == "./"
 
     # check default attributes after init
@@ -41,4 +43,4 @@ def test_default_init_attributes():
     tags = forecaster.get_tags()
     assert tags["algorithm_type"] == "deeplearning"
     assert tags["capability:horizon"]
-    assert tags["capability:multivariate"]
+    assert tags["capability:univariate"]

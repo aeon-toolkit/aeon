@@ -10,6 +10,7 @@ __maintainer__ = []
 __all__ = ["BaseDeepForecaster"]
 
 from abc import abstractmethod
+from typing import Any
 
 from aeon.forecasting.base import BaseForecaster
 
@@ -23,10 +24,10 @@ class BaseDeepForecaster(BaseForecaster):
 
     Parameters
     ----------
+    window : int,
+        The window size for creating input sequences.
     horizon : int, default=1
         Forecasting horizon, the number of steps ahead to predict.
-    window : int, default=10
-        The window size for creating input sequences.
     verbose : int, default=0
         Verbosity mode (0, 1, or 2).
     callbacks : list of tf.keras.callbacks.Callback or None, default=None
@@ -35,8 +36,6 @@ class BaseDeepForecaster(BaseForecaster):
         Axis along which to apply the forecaster.
     last_file_name : str, default="last_model"
         The name of the file of the last model, used for saving models.
-    save_best_model : bool, default=False
-        Whether to save the best model during training based on validation loss.
     file_path : str, default="./"
         Directory path where models will be saved.
 
@@ -57,18 +56,17 @@ class BaseDeepForecaster(BaseForecaster):
         "non_deterministic": True,
         "cant_pickle": True,
         "python_dependencies": "tensorflow",
-        "capability:multivariate": True,
+        "capability:multivariate": False,
     }
 
     def __init__(
         self,
+        window,
         horizon=1,
-        window=10,
         verbose=0,
         callbacks=None,
         axis=0,
         last_file_name="last_model",
-        save_best_model=False,
         file_path="./",
     ):
         self.horizon = horizon
@@ -77,7 +75,6 @@ class BaseDeepForecaster(BaseForecaster):
         self.callbacks = callbacks
         self.axis = axis
         self.last_file_name = last_file_name
-        self.save_best_model = save_best_model
         self.file_path = file_path
 
         self.model_ = None
@@ -88,17 +85,11 @@ class BaseDeepForecaster(BaseForecaster):
 
     def _fit(self, y, exog=None):
         """Fit the model."""
-        pass
+        ...
 
     def _predict(self, y, exog=None):
         """Predict using the model."""
-        pass
-
-    def _forecast(self, y, exog=None):
-        """Forecast values for time series X."""
-        y = self._preprocess_series(y, 1, True)
-        self.fit(y, exog)
-        return self.predict(y, exog)
+        ...
 
     def _prepare_callbacks(self):
         """Prepare callbacks for training.
@@ -114,10 +105,10 @@ class BaseDeepForecaster(BaseForecaster):
                 callbacks_list.extend(self.callbacks)
             else:
                 callbacks_list.append(self.callbacks)
-        if self.save_best_model:
-            callbacks_list = self._get_model_checkpoint_callback(
-                callbacks_list, self.file_path, "best_model"
-            )
+
+        callbacks_list = self._get_model_checkpoint_callback(
+            callbacks_list, self.file_path, "best_model"
+        )
         return callbacks_list
 
     def _get_model_checkpoint_callback(self, callbacks, file_path, file_name):
@@ -172,9 +163,11 @@ class BaseDeepForecaster(BaseForecaster):
         -------
         None
         """
+        import os
+
         if self.model_ is None:
             raise ValueError("No model to save. Please fit the model first.")
-        self.model_.save(file_path + self.last_file_name + ".keras")
+        self.model_.save(os.path.join(file_path, self.last_file_name + ".keras"))
 
     def load_model(self, model_path):
         """Load a pre-trained keras model instead of fitting.
@@ -212,3 +205,25 @@ class BaseDeepForecaster(BaseForecaster):
             Compiled Keras model.
         """
         pass
+
+    @classmethod
+    def _get_test_params(
+        cls, parameter_set: str = "default"
+    ) -> dict[str, Any] | list[dict[str, Any]]:
+        """
+        Return testing parameter settings for the estimator.
+
+        Parameters
+        ----------
+        parameter_set : str, default="default"
+            Name of the set of test parameters to return, for use in tests.
+
+        Returns
+        -------
+        params : dict or list of dict, default={}
+            Parameters to create testing instances of the class.
+        """
+        param = {
+            "window": 10,
+        }
+        return [param]
