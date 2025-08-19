@@ -276,7 +276,7 @@ class AutoPlaitSegmenter(BaseSegmenter):
         """
         self._reshape_and_normalise(X)
         if self.verbose:
-            sys.stdout.write("---------\nr|m|Cost \n---------\n")
+            sys.stdout.write("---------\nr|m|Cost \n---------\n")  # noqa: T201
 
         self._plait()
         output = []
@@ -428,7 +428,7 @@ class AutoPlaitSegmenter(BaseSegmenter):
         )  # FLOATING_POINT_CONSTANT*r*r
 
         if self.verbose:
-            sys.stdout.write(f"{r} {m} {costT:.0f} \n")
+            sys.stdout.write(f"{r} {m} {costT:.0f} \n")  # noqa: T201
 
         return costT
 
@@ -1697,7 +1697,7 @@ class _BaumWelch:
         # Avoid numerical errors
         if math.isnan(Lsum):
             if self.ap_seg.verbose:
-                sys.stdout.write("baumWelch: isnan, resetHMM...")
+                sys.stdout.write("baumWelch: isnan, resetHMM...")  # noqa: T201
             hmm.reset(hmm.k, hmm.d)
 
         hmm.n = hmm.n + prev_n
