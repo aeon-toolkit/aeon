@@ -51,7 +51,7 @@ jobs:
 
       - if: ${{ steps.label_out.outputs.expected_results == 'true' }}
         name: Regenerate expected results
-        run: python aeon/testing/expected_results/_write_expected_results.py
+        run: python aeon/testing/expected_results/_write_estimator_results.py
 
       - if: ${{ steps.label_out.outputs.expected_results == 'true' }}
         name: Push expected results
@@ -68,3 +68,9 @@ jobs:
           commit_user_name: aeon-actions-bot[bot]
           commit_options: --allow-empty
           skip_dirty_check: true
+
+      - name: Uncheck relevant boxes
+        run: python .github/utilities/uncheck_welcome_boxes.py
+        env:
+          CONTEXT_GITHUB: ${{ toJson(github) }}
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
