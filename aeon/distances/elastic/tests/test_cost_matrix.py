@@ -66,6 +66,26 @@ def _validate_cost_matrix_result(
             assert_almost_equal(curr_distance, distance_result)
     elif name == "soft_dtw":
         assert_almost_equal(abs(cost_matrix_result[-1, -1]), distance_result)
+    elif name == "kdtw":
+        # distance is normalized by default, so we need to do this here as well:
+        from aeon.distances.kernel._kdtw import (
+            _kdtw_cost_to_distance,
+            _normalize_time_series,
+        )
+
+        _x = x
+        _y = y
+        if x.ndim == 1:
+            _x = x.reshape((1, x.shape[0]))
+        if y.ndim == 1:
+            _y = y.reshape((1, y.shape[0]))
+
+        _x = _normalize_time_series(_x)
+        _y = _normalize_time_series(_y)
+        d = _kdtw_cost_to_distance(
+            cost_matrix_result, _x, _y, gamma=0.125, epsilon=1e-20, normalize_dist=True
+        )
+        assert_almost_equal(d, distance_result)
     else:
         assert_almost_equal(cost_matrix_result[-1, -1], distance_result)
 
