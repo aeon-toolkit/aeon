@@ -887,7 +887,7 @@ def prime_up_to(n: int) -> np.ndarray:
 
     Examples
     --------
-    >>> from aeon.utils.numba.stats import prime_up_to
+    >>> from aeon.utils.numba.general import prime_up_to
     >>> p = prime_up_to(50)
     """
     is_p = np.zeros(n + 1, dtype=np.bool_)
@@ -908,11 +908,11 @@ def is_prime(n: int) -> bool:
     Returns
     -------
     bool
-        Wheter n is a prime number
+        Whether n is a prime number
 
     Examples
     --------
-    >>> from aeon.utils.numba.stats import is_prime
+    >>> from aeon.utils.numba.general import is_prime
     >>> p = is_prime(7)
     """
     if (n % 2 == 0 and n > 2) or n == 0 or n == 1:

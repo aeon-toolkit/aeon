@@ -1,4 +1,4 @@
-name: Issue Assigned
+name: Issue assigned
 
 on:
   issues:
@@ -21,7 +21,7 @@ jobs:
           private-key: ${{ secrets.PR_APP_KEY }}
 
       - name: Checkout main
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           sparse-checkout: .github/utilities
 

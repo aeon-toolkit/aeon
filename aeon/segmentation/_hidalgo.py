@@ -5,7 +5,6 @@ __all__ = ["HidalgoSegmenter"]
 
 
 from functools import reduce
-from typing import Union
 
 import numpy as np
 from sklearn.neighbors import NearestNeighbors
@@ -30,7 +29,7 @@ class HidalgoSegmenter(BaseSegmenter):
         distance used in the nearest neighbors part of the algorithm
     K : int, optional, default=2
         number of manifolds used in algorithm
-    zeta : float, optional, defualt=0.8
+    zeta : float, optional, default=0.8
         "local homogeneity level" used in the algorithm, see equation (4)
     q : int, optional, default=3
         number of points for local Z interaction, "local homogeneity range"
@@ -143,7 +142,7 @@ class HidalgoSegmenter(BaseSegmenter):
         m : int
             Number of rows (timepoints) of X.
         mu : np.ndarray
-            1D np.ndarray of length m. parameter in Pereto distribtion estimated by
+            1D np.ndarray of length m. parameter in Pereto distribution estimated by
             ``r2/r1``
         Iin : 1D np.ndarray of length m * q
             encodes the q neighbour index values for point index i in 0:m-1
@@ -537,15 +536,15 @@ class HidalgoSegmenter(BaseSegmenter):
 
             N_in, f1 = self._update_zeta_prior(Z, N, Iin)
 
-            lik = sample_likelihood(N, mu, p, d, Z, N_in, zeta, NN)
-            sampling = np.append(sampling, lik)
+            likelihood = sample_likelihood(N, mu, p, d, Z, N_in, zeta, NN)
+            sampling = np.append(sampling, likelihood)
 
         return sampling
 
     def _fit(self, X, y=None):
         """Run the Hidalgo algorithm.
 
-        Find parameter esimates as distributions in sampling.
+        Find parameter estimates as distributions in sampling.
         Iterate through n_replicas random starts and get posterior
         samples with best max likelihood.
 
@@ -568,7 +567,7 @@ class HidalgoSegmenter(BaseSegmenter):
             probability of posterior of z_i = k, point i can be safely
             assigned to manifold k if Pi > 0.8
         _Z : 1D np.ndarray of length N
-            base-zero integer values corresponsing to segment (manifold k)
+            base-zero integer values corresponding to segment (manifold k)
 
         Parameters
         ----------
@@ -622,11 +621,11 @@ class HidalgoSegmenter(BaseSegmenter):
             ]
             sampling = sampling[idx,]
 
-            lik = np.mean(sampling[:, -1], axis=0)
+            likelihood = np.mean(sampling[:, -1], axis=0)
 
-            if lik > maxlik:
+            if likelihood > maxlik:
                 bestsampling = sampling
-                maxlik = lik
+                maxlik = likelihood
 
         self._d = np.mean(bestsampling[:, :K], axis=0)
         self._derr = np.std(bestsampling[:, :K], axis=0)
@@ -692,7 +691,7 @@ class HidalgoSegmenter(BaseSegmenter):
         }
 
 
-def _binom(N: Union[int, float], q: Union[int, float]):
+def _binom(N: int | float, q: int | float):
     """Calculate the binomial coefficient.
 
     Parameters

@@ -46,7 +46,7 @@ class AEDCNNClusterer(BaseDeepClusterer):
         Keras compatible Padding string for the decoder. Defaults to a list
         of "same" paddings.
     use_bias : bool or list of bool, default = True
-        Whether or not ot use bias in convolution.
+        Whether or not to use bias in convolution.
     n_epochs : int, default = 2000
         The number of epochs to train the model.
     batch_size : int, default = 16
@@ -96,6 +96,12 @@ class AEDCNNClusterer(BaseDeepClusterer):
         this parameter is discarded.
     callbacks : keras.callbacks, default = None
         List of keras callbacks.
+
+    References
+    ----------
+    .. [1] Franceschi et. al, Unsupervised scalable representation
+    learning for multivariate time series, Advances in neural
+    information processing systems (NeurIPS), 2019.
 
     Examples
     --------

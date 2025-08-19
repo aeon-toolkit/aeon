@@ -36,7 +36,7 @@ class REDCOMETS(BaseClassifier):
         RED CoMETS variant to use from {1, 2, 3, 4, 5, 6, 7, 8, 9} to use as per [1]_.
         Defaults to RED CoMETS-3. Variants 4-9 only support multivariate problems.
     perc_length : int or float, default=5
-        Percentage of time series length used to determinne number of lenses during
+        Percentage of time series length used to determine number of lenses during
         pair selection.
     n_trees : int, default=100
         Number of trees used by each random forest sub-classifier.
@@ -150,7 +150,7 @@ class REDCOMETS(BaseClassifier):
                 self.sfa_clfs,
                 self.sax_transforms,
                 self.sax_clfs,
-            ) = self._build_univariate_ensemble(np.squeeze(X), y)
+            ) = self._build_univariate_ensemble(np.squeeze(X, 1), y)
         else:  # Multivariate
 
             if self.variant in [1, 2, 3]:  # Concatenate
@@ -185,12 +185,12 @@ class REDCOMETS(BaseClassifier):
         Returns
         -------
         sfa_transforms :
-            List of ``SFAFast()`` instances with random word length and alpabet size
+            List of ``SFAFast()`` instances with random word length and alphabet size
         sfa_clfs :
             List of ``(RandomForestClassifier(), weight)`` tuples fitted on `SFAFast`
             transformed training data
         sax_transforms :
-            List of ``SAX()`` instances with random word length and alpabet size
+            List of ``SAX()`` instances with random word length and alphabet size
         sax_clfs :
             List of ``(RandomForestClassifier(), weight)`` tuples fitted on `SAX`
             transformed training data
@@ -204,7 +204,7 @@ class REDCOMETS(BaseClassifier):
 
         from imblearn.over_sampling import SMOTE, RandomOverSampler
 
-        X = Normalizer().fit_transform(X).squeeze()
+        X = Normalizer().fit_transform(X).squeeze(1)
 
         if self.variant in [1, 2, 3]:
             perc_length = self.perc_length / self._n_channels
@@ -321,13 +321,13 @@ class REDCOMETS(BaseClassifier):
         Returns
         -------
         sfa_transforms : list
-            List of lists of ``SFAFast()`` instances with random word length and alpabet
-            size
+            List of lists of ``SFAFast()`` instances with random word length and
+            alphabet size
         sfa_clfs : list
             List of lists of ``(RandomForestClassifier(), weight)`` tuples fitted on
             `SFAFast` transformed training data
         sax_transforms : list
-            List of lists of ``SAX()`` instances with random word length and alpabet
+            List of lists of ``SAX()`` instances with random word length and alphabet
             size
         sax_clfs : list
             List of lists ``(RandomForestClassifier(), weight)`` tuples fitted on `SAX`
@@ -391,7 +391,7 @@ class REDCOMETS(BaseClassifier):
             Predicted probabilities using the ordering in ``classes_``.
         """
         if X.shape[1] == 1:  # Univariate
-            return self._predict_proba_unvivariate(np.squeeze(X))
+            return self._predict_proba_unvivariate(np.squeeze(X, 1))
         else:  # Multivariate
             if self.variant in [1, 2, 3]:  # Concatenate
                 X_concat = X.reshape(*X.shape[:-2], -1)
@@ -414,7 +414,7 @@ class REDCOMETS(BaseClassifier):
             2D np.ndarray of shape (n_cases, n_classes_)
             Predicted probabilities using the ordering in ``classes_``.
         """
-        X = Normalizer().fit_transform(X).squeeze()
+        X = Normalizer().fit_transform(X).squeeze(1)
 
         pred_mat = np.zeros((X.shape[0], self.n_classes_))
 
@@ -588,7 +588,7 @@ class REDCOMETS(BaseClassifier):
         """
 
         def _sax_wrapper(sax):
-            return np.squeeze(sax.fit_transform(X))
+            return np.squeeze(sax.fit_transform(X), 1)
 
         sax_parallel_res = Parallel(n_jobs=self._n_jobs, backend=self.parallel_backend)(
             delayed(_sax_wrapper)(sax) for sax in sax_transforms

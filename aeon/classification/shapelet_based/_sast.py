@@ -3,8 +3,6 @@
 Pipeline classifier using the SAST transformer and an sklearn classifier.
 """
 
-from typing import Optional
-
 __maintainer__ = ["TonyBagnall"]
 __all__ = ["SASTClassifier"]
 
@@ -28,7 +26,7 @@ class SASTClassifier(BaseClassifier):
     ----------
     length_list : int[], default = None
         an array containing the lengths of the subsequences to be generated.
-        If None, will be infered during fit as np.arange(3, X.shape[1])
+        If None, will be inferred during fit as np.arange(3, X.shape[1])
     stride : int, default = 1
         the stride used when generating subsquences
     nb_inst_per_class : int default = 1
@@ -72,7 +70,7 @@ class SASTClassifier(BaseClassifier):
         length_list=None,
         stride: int = 1,
         nb_inst_per_class: int = 1,
-        seed: Optional[int] = None,
+        seed: int | None = None,
         classifier=None,
         n_jobs: int = 1,
     ) -> None:

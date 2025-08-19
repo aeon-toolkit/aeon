@@ -6,7 +6,7 @@ Similarity search
 The :mod:`aeon.similarity_search` module contains algorithms and tools for similarity
 search tasks. First, we distinguish between `series` estimator and `collection`
 estimators, similarly to the `aeon.transformer` module. Secondly, we distinguish between
-estimators used `neighbors` (with sufix SNN for subsequence nearest neighbors, or ANN
+estimators used `neighbors` (with suffix SNN for subsequence nearest neighbors, or ANN
 for approximate nearest neighbors) search and estimators used for `motifs` search.
 
 

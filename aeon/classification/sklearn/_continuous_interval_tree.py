@@ -10,7 +10,6 @@ __all__ = ["ContinuousIntervalTree"]
 
 import math
 import sys
-from typing import Union
 
 import numpy as np
 import pandas as pd
@@ -27,9 +26,7 @@ from sklearn.utils.validation import validate_data
 class _TreeNode:
     """ContinuousIntervalTree tree node."""
 
-    def __init__(
-        self, random_state: Union[int, np.random.RandomState, None] = None
-    ) -> None:
+    def __init__(self, random_state: int | np.random.RandomState | None = None) -> None:
         self.random_state = random_state
 
         self.best_split = -1
@@ -292,7 +289,7 @@ class ContinuousIntervalTree(ClassifierMixin, BaseEstimator):
     max_depth : int, default=sys.maxsize
         Maximum depth for the tree.
     thresholds : int, default=20
-        Number of thresholds to split continous attributes on at tree nodes.
+        Number of thresholds to split continuous attributes on at tree nodes.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -342,7 +339,7 @@ class ContinuousIntervalTree(ClassifierMixin, BaseEstimator):
         self,
         max_depth: int = sys.maxsize,
         thresholds: int = 20,
-        random_state: Union[int, np.random.RandomState, None] = None,
+        random_state: int | np.random.RandomState | None = None,
     ) -> None:
         self.max_depth = max_depth
         self.thresholds = thresholds

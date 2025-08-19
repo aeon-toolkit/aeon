@@ -8,7 +8,6 @@ __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["RotationForestRegressor"]
 
 import time
-from typing import Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -34,7 +33,7 @@ class RotationForestRegressor(RegressorMixin, BaseEstimator):
     transformed using PCA.
 
     Intended as a benchmark for time series data and a base regressor for
-    transformation based appraoches such as FreshPRINCERegressor, this aeon
+    transformation based approaches such as FreshPRINCERegressor, this aeon
     implementation only works with continuous attributes.
 
     Parameters
@@ -105,12 +104,12 @@ class RotationForestRegressor(RegressorMixin, BaseEstimator):
         min_group: int = 3,
         max_group: int = 3,
         remove_proportion: float = 0.5,
-        base_estimator: Optional[BaseEstimator] = None,
+        base_estimator: BaseEstimator | None = None,
         pca_solver: str = "auto",
         time_limit_in_minutes: float = 0.0,
         contract_max_n_estimators: int = 500,
         n_jobs: int = 1,
-        random_state: Union[int, np.random.RandomState, None] = None,
+        random_state: int | np.random.RandomState | None = None,
     ):
         self.n_estimators = n_estimators
         self.min_group = min_group
