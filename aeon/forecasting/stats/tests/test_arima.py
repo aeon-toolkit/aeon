@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from aeon.forecasting.stats._arima import ARIMA
+from aeon.forecasting.stats._arima import ARIMA, AutoARIMA
 
 y = np.array(
     [112, 118, 132, 129, 121, 135, 148, 148, 136, 119, 104, 118], dtype=np.float64
@@ -114,3 +114,75 @@ def test_arima_known_output():
     model.fit(y)
     f = model.forecast_
     assert np.isclose(118.47506756, f)
+
+
+def test_autoarima_fit_sets_model_and_orders_within_bounds():
+    """Fit should set (p_, d_, q_) within configured maxima and wrap an ARIMA."""
+    forecaster = AutoARIMA(max_p=3, max_d=3, max_q=2)
+    forecaster.fit(y)
+
+    # wrapped model exists and is ARIMA
+    assert forecaster.wrapped_model_ is not None
+    assert isinstance(forecaster.wrapped_model_, ARIMA)
+
+    # orders exist and are within bounds
+    assert 0 <= forecaster.p_ <= forecaster.max_p
+    assert 0 <= forecaster.d_ <= forecaster.max_d
+    assert 0 <= forecaster.q_ <= forecaster.max_q
+
+
+def test_autoarima_predict_returns_finite_float():
+    """_predict should return a finite float once fitted."""
+    forecaster = AutoARIMA()
+    forecaster.fit(y)
+    pred = forecaster._predict(y)
+    assert isinstance(pred, float)
+    assert np.isfinite(pred)
+
+
+def test_autoarima_forecast_sets_wrapped_and_returns_forecast_float():
+    """_forecast should refit, set wrapped forecast_, and return that value."""
+    forecaster = AutoARIMA()
+    f = forecaster._forecast(y)
+    assert isinstance(f, float)
+    assert hasattr(forecaster.wrapped_model_, "forecast_")
+    assert np.isclose(f, forecaster.wrapped_model_.forecast_)
+
+
+def test_autoarima_iterative_forecast_shape_and_validity():
+    """iterative_forecast should delegate to wrapped model and return valid shape."""
+    horizon = 4
+    forecaster = AutoARIMA()
+    forecaster.fit(y)
+    preds = forecaster.iterative_forecast(y, prediction_horizon=horizon)
+    assert isinstance(preds, np.ndarray)
+    assert preds.shape == (horizon,)
+    assert np.all(np.isfinite(preds))
+
+
+def test_autoarima_respects_small_max_orders():
+    """With small max orders, ensure discovered orders don’t exceed those limits."""
+    forecaster = AutoARIMA(max_p=1, max_d=1, max_q=1)
+    forecaster.fit(y)
+    assert 0 <= forecaster.p_ <= 1
+    assert 0 <= forecaster.d_ <= 1
+    assert 0 <= forecaster.q_ <= 1
+
+
+def test_autoarima_predict_matches_wrapped_predict():
+    """_predict should be a thin wrapper around wrapped_model_.predict."""
+    forecaster = AutoARIMA()
+    forecaster.fit(y)
+    a = forecaster._predict(y)
+    b = forecaster.wrapped_model_.predict(y)
+    # both are floats and close
+    assert isinstance(a, float) and isinstance(b, float)
+    assert np.isfinite(a) and np.isfinite(b)
+    assert np.isclose(a, b)
+
+
+def test_autoarima_forecast_is_consistent_with_wrapped():
+    """_forecast should match the wrapped model's forecast after internal fit."""
+    forecaster = AutoARIMA()
+    val = forecaster._forecast(y)
+    assert np.isclose(val, forecaster.wrapped_model_.forecast_)
