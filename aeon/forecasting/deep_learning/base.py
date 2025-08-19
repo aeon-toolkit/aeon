@@ -35,8 +35,6 @@ class BaseDeepForecaster(BaseForecaster):
         Axis along which to apply the forecaster.
     last_file_name : str, default="last_model"
         The name of the file of the last model, used for saving models.
-    save_best_model : bool, default=False
-        Whether to save the best model during training based on validation loss.
     file_path : str, default="./"
         Directory path where models will be saved.
 
@@ -68,7 +66,6 @@ class BaseDeepForecaster(BaseForecaster):
         callbacks=None,
         axis=0,
         last_file_name="last_model",
-        save_best_model=False,
         file_path="./",
     ):
         self.horizon = horizon
@@ -77,7 +74,6 @@ class BaseDeepForecaster(BaseForecaster):
         self.callbacks = callbacks
         self.axis = axis
         self.last_file_name = last_file_name
-        self.save_best_model = save_best_model
         self.file_path = file_path
 
         self.model_ = None
@@ -114,10 +110,10 @@ class BaseDeepForecaster(BaseForecaster):
                 callbacks_list.extend(self.callbacks)
             else:
                 callbacks_list.append(self.callbacks)
-        if self.save_best_model:
-            callbacks_list = self._get_model_checkpoint_callback(
-                callbacks_list, self.file_path, "best_model"
-            )
+
+        callbacks_list = self._get_model_checkpoint_callback(
+            callbacks_list, self.file_path, "best_model"
+        )
         return callbacks_list
 
     def _get_model_checkpoint_callback(self, callbacks, file_path, file_name):
@@ -172,9 +168,11 @@ class BaseDeepForecaster(BaseForecaster):
         -------
         None
         """
+        import os
+
         if self.model_ is None:
             raise ValueError("No model to save. Please fit the model first.")
-        self.model_.save(file_path + self.last_file_name + ".keras")
+        self.model_.save(os.path.join(file_path, self.last_file_name + ".keras"))
 
     def load_model(self, model_path):
         """Load a pre-trained keras model instead of fitting.

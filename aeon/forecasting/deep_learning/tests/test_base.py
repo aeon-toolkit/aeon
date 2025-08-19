@@ -29,7 +29,6 @@ def test_default_init_attributes():
     assert forecaster.callbacks is None
     assert forecaster.axis == 0
     assert forecaster.last_file_name == "last_model"
-    assert forecaster.save_best_model is False
     assert forecaster.file_path == "./"
 
     # check default attributes after init
