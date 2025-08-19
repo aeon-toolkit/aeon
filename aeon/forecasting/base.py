@@ -74,7 +74,7 @@ class BaseForecaster(BaseSeriesEstimator):
         if self.get_tag("fit_is_empty"):
             self.is_fitted = True
             return self
-        y, exog = self._preprocess_forecasting_input(y, exog, axis)
+        y, exog = self._preprocess_forecasting_input(y, exog, axis, True)
         self._fit(y, exog)
         self.is_fitted = True
         return self
@@ -97,7 +97,7 @@ class BaseForecaster(BaseSeriesEstimator):
         """
         if not self.get_tag("fit_is_empty"):
             self._check_is_fitted()
-        y, exog = self._preprocess_forecasting_input(y, exog, axis)
+        y, exog = self._preprocess_forecasting_input(y, exog, axis, False)
         return self._predict(y, exog)
 
     @final
@@ -119,9 +119,8 @@ class BaseForecaster(BaseSeriesEstimator):
         float
             single prediction self.horizon steps ahead of y.
         """
-        y, exog = self._preprocess_forecasting_input(y, exog)
+        y, exog = self._preprocess_forecasting_input(y, exog, True)
         y_pred = self._forecast(y, exog)
-        # this should happen last
         self.is_fitted = True
         return y_pred
 
@@ -136,7 +135,7 @@ class BaseForecaster(BaseSeriesEstimator):
         self._fit(y, exog)
         return self._predict(y, exog)
 
-    def _preprocess_forecasting_input(self, y, exog, axis):
+    def _preprocess_forecasting_input(self, y, exog, axis, store_meta):
         horizon = self.get_tag("capability:horizon")
         if not horizon and self.horizon > 1:
             raise ValueError(
@@ -150,7 +149,7 @@ class BaseForecaster(BaseSeriesEstimator):
                 f"Exogenous variables passed but {self.__class__.__name__} cannot "
                 "handle exogenous variables"
             )
-        y = self._preprocess_series(y, axis, True)
+        y = self._preprocess_series(y, axis, store_meta)
 
         if exog is not None:
             exog = self._convert_y(exog, self.axis)
