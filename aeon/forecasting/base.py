@@ -119,7 +119,7 @@ class BaseForecaster(BaseSeriesEstimator):
         float
             single prediction self.horizon steps ahead of y.
         """
-        y, exog = self._preprocess_forecasting_input(y, exog, True)
+        y, exog = self._preprocess_forecasting_input(y, exog, axis, True)
         y_pred = self._forecast(y, exog)
         self.is_fitted = True
         return y_pred
