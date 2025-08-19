@@ -91,12 +91,6 @@ class BaseDeepForecaster(BaseForecaster):
         """Predict using the model."""
         ...
 
-    def _forecast(self, y, exog=None):
-        """Forecast values for time series X."""
-        y = self._preprocess_series(y, 1, True)
-        self.fit(y, exog)
-        return self.predict(y, exog)
-
     def _prepare_callbacks(self):
         """Prepare callbacks for training.
 
