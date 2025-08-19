@@ -12,12 +12,13 @@ from aeon.forecasting.base import BaseForecaster, IterativeForecastingMixin
 
 
 class TAR(BaseForecaster, IterativeForecastingMixin):
-    r"""Threshold Autoregressive (TAR) forecaster with fixed parameters.
+    r"""Threshold Autoregressive (TAR) [1] forecaster with fixed parameters.
 
-    Two regimes split by a threshold :math:`r` on the variable :math:`z_t=y_{t-d}`:
-    observations with :math:`z_t \le r` follow the **below/left** AR model, and
-    those with :math:`z_t > r` follow the **above/right** AR model. Each regime is
-    fit by OLS. **No parameter optimisation/search** is performed.
+    A series is split into two series (regimes) by a threshold :math:`r` on the
+    variable :math:`z_t=y_{t-d}`: observations with :math:`z_t \le r` follow the
+    **below/left** AR model, and those with :math:`z_t > r` follow the
+    **above/right** AR model. Each regime is fit by Ordinary Least Squares. No
+    parameter optimisation/search is performed.
 
     Defaults:
     - ``delay=1``
@@ -53,11 +54,15 @@ class TAR(BaseForecaster, IterativeForecastingMixin):
     params_ : dict
         Snapshot of configuration and a simple AIC diagnostic.
 
+    See Also
+    --------
+    AutoTAR
+
     References
     ----------
-    Tong, H., & Lim, K. S. (1980).
+    .. [1] Tong, H., & Lim, K. S. (1980).
     Threshold autoregression, limit cycles and cyclical data.
-    *JRSS-B*, 42(3), 245–292.
+    RSS-B, 42(3), 245–292.
     """
 
     def __init__(
