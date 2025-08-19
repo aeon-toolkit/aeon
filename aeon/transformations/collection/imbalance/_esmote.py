@@ -1,5 +1,9 @@
+"""Elastic Synthetic Minority Over-sampling Technique (ESMOTE)."""
+
+__maintainer__ = []
+__all__ = ["ESMOTE"]
+
 from collections import OrderedDict
-from typing import Optional, Union
 
 import numpy as np
 from sklearn.utils import check_random_state
@@ -8,8 +12,6 @@ from aeon.clustering.averaging._ba_utils import _get_alignment_path
 from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.transformations.collection.imbalance._single_class_knn import Single_Class_KNN
 from aeon.utils.validation import check_n_jobs
-
-__all__ = ["ESMOTE"]
 
 
 class ESMOTE(BaseCollectionTransformer):
@@ -55,9 +57,9 @@ class ESMOTE(BaseCollectionTransformer):
     def __init__(
         self,
         n_neighbors=5,
-        distance: Union[str, callable] = "twe",
-        distance_params: Optional[dict] = None,
-        weights: Union[str, callable] = "uniform",
+        distance: str | callable = "twe",
+        distance_params: dict | None = None,
+        weights: str | callable = "uniform",
         n_jobs: int = 1,
         random_state=None,
     ):
@@ -163,9 +165,9 @@ class ESMOTE(BaseCollectionTransformer):
         nn_ts,
         distance,
         step,
-        window: Union[float, None] = None,
+        window: float | None = None,
         g: float = 0.0,
-        epsilon: Union[float, None] = None,
+        epsilon: float | None = None,
         nu: float = 0.001,
         lmbda: float = 1.0,
         independent: bool = True,
@@ -174,8 +176,8 @@ class ESMOTE(BaseCollectionTransformer):
         reach: int = 15,
         warp_penalty: float = 1.0,
         transformation_precomputed: bool = False,
-        transformed_x: Optional[np.ndarray] = None,
-        transformed_y: Optional[np.ndarray] = None,
+        transformed_x: np.ndarray | None = None,
+        transformed_y: np.ndarray | None = None,
         return_bias=True,
     ):
         """

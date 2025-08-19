@@ -9,8 +9,10 @@ original authors:
 # License: MIT
 """
 
+__maintainer__ = ["TonyBagnall"]
+__all__ = ["SMOTE"]
+
 from collections import OrderedDict
-from typing import Optional, Union
 
 import numpy as np
 from sklearn.utils import check_random_state
@@ -18,9 +20,6 @@ from sklearn.utils import check_random_state
 from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.transformations.collection.imbalance._single_class_knn import Single_Class_KNN
 from aeon.utils.validation import check_n_jobs
-
-__maintainer__ = ["TonyBagnall"]
-__all__ = ["SMOTE"]
 
 
 class SMOTE(BaseCollectionTransformer):
@@ -79,10 +78,10 @@ class SMOTE(BaseCollectionTransformer):
         self,
         n_neighbors: int = 5,
         random_state=None,
-        distance: Union[str, callable] = "euclidean",
-        distance_params: Optional[dict] = None,
+        distance: str | callable = "euclidean",
+        distance_params: dict | None = None,
         n_jobs: int = 1,
-        weights: Union[str, callable] = "uniform",
+        weights: str | callable = "uniform",
     ):
 
         self.random_state = random_state
