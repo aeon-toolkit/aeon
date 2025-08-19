@@ -10,12 +10,12 @@ from typing import Any
 import numpy as np
 from sklearn.utils import check_random_state
 
-from aeon.forecasting.base import DirectForecastingMixin
+from aeon.forecasting.base import IterativeForecastingMixin
 from aeon.forecasting.deep_learning.base import BaseDeepForecaster
 from aeon.networks._tcn import TCNNetwork
 
 
-class TCNForecaster(BaseDeepForecaster, DirectForecastingMixin):
+class TCNForecaster(BaseDeepForecaster, IterativeForecastingMixin):
     """A deep learning forecaster using Temporal Convolutional Network (TCN).
 
     It leverages the `TCNNetwork` from aeon's network module
@@ -25,8 +25,6 @@ class TCNForecaster(BaseDeepForecaster, DirectForecastingMixin):
     ----------
     horizon : int, default=1
         Forecasting horizon, the number of steps ahead to predict.
-    window : int, default=10
-        The window size for creating input sequences.
     batch_size : int, default=32
         Batch size for training the model.
     n_epochs : int, default=100
@@ -62,7 +60,7 @@ class TCNForecaster(BaseDeepForecaster, DirectForecastingMixin):
     _tags = {
         "python_dependencies": ["tensorflow"],
         "capability:horizon": True,
-        "capability:multivariate": True,
+        "capability:multivariate": False,
         "capability:exogenous": False,
         "capability:univariate": True,
         "algorithm_type": "deeplearning",
@@ -72,8 +70,8 @@ class TCNForecaster(BaseDeepForecaster, DirectForecastingMixin):
 
     def __init__(
         self,
+        window,
         horizon=1,
-        window=10,
         batch_size=32,
         n_epochs=100,
         verbose=0,
@@ -96,7 +94,6 @@ class TCNForecaster(BaseDeepForecaster, DirectForecastingMixin):
             callbacks=callbacks,
             axis=axis,
             last_file_name=last_file_name,
-            save_best_model=save_best_model,
             file_path=file_path,
         )
         self.n_blocks = n_blocks
@@ -107,6 +104,7 @@ class TCNForecaster(BaseDeepForecaster, DirectForecastingMixin):
         self.optimizer = optimizer
         self.loss = loss
         self.random_state = random_state
+        self.save_best_model = save_best_model
 
     def build_model(self, input_shape):
         """Build the TCN model for forecasting.
@@ -221,7 +219,7 @@ class TCNForecaster(BaseDeepForecaster, DirectForecastingMixin):
             prediction = pred.flatten()[0]
         else:
             prediction = pred[0, :]
-        return prediction
+        return float(prediction)
 
     @classmethod
     def _get_test_params(
@@ -242,6 +240,7 @@ class TCNForecaster(BaseDeepForecaster, DirectForecastingMixin):
             Parameters to create testing instances of the class.
         """
         param = {
+            "window": 10,
             "n_epochs": 10,
             "batch_size": 4,
             "n_blocks": [8, 8],

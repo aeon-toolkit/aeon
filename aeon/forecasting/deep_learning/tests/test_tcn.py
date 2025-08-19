@@ -5,7 +5,7 @@ __all__ = []
 
 import pytest
 
-from aeon.datasets import load_airline, load_longley
+from aeon.datasets import load_airline
 from aeon.forecasting.deep_learning._tcn import TCNForecaster
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
@@ -45,7 +45,7 @@ def test_tcn_forecaster(horizon, window, epochs):
     "loader,is_univariate",
     [
         (load_airline, True),  # univariate dataset
-        (load_longley, False),  # multivariate dataset
+        # (load_longley, False),  # multivariate dataset
     ],
 )
 def test_tcn_forecaster_uni_mutli(loader, is_univariate):
@@ -71,8 +71,7 @@ def test_tcn_forecaster_uni_mutli(loader, is_univariate):
     prediction = forecaster.forecast(y)
     assert prediction is not None
 
-    # only for univariate case, test direct forecasting
-    if is_univariate:
-        prediction = forecaster.direct_forecast(y, 3)
-        assert prediction is not None
-        assert len(prediction) == 3
+    # iterative forecasting
+    prediction = forecaster.iterative_forecast(y, 3)
+    assert prediction is not None
+    assert len(prediction) == 3

@@ -46,8 +46,6 @@ EXCLUDED_TESTS = {
         "check_persistence_via_pickle",
         "check_save_estimators_to_file",
     ],
-    # checks required for multivariate
-    "TCNForecaster": ["check_forecaster_output"],
     # needs investigation
     "SASTClassifier": ["check_fit_deterministic", "check_estimator_multithreading"],
     "RSASTClassifier": ["check_fit_deterministic", "check_estimator_multithreading"],
