@@ -29,7 +29,7 @@ from typing import final
 
 from aeon.base import BaseCollectionEstimator
 from aeon.transformations.base import BaseTransformer
-from aeon.utils.validation import get_n_cases
+from aeon.utils.validation.collection import get_n_cases
 
 
 class BaseCollectionTransformer(BaseCollectionEstimator, BaseTransformer):
@@ -328,7 +328,8 @@ class BaseCollectionTransformer(BaseCollectionEstimator, BaseTransformer):
         """
         # Non-optimized default implementation; override when a better
         # method is possible for a given algorithm.
-        self._fit(X, y)
+        if not self.get_tag("fit_is_empty"):
+            self._fit(X, y)
         return self._transform(X, y)
 
     def _inverse_transform(self, X, y=None):

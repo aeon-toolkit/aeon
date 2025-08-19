@@ -40,7 +40,7 @@ class ClassifierPipeline(BaseCollectionPipeline, BaseClassifier):
         A transform or list of transformers to use prior to classification.
         List of tuples (str, transformer) of transformers can also be passed, where
         the str is used to name the transformer.
-        The objecst are cloned prior, as such the state of the input will not be
+        The objects are cloned prior, as such the state of the input will not be
         modified by fitting the pipeline.
     estimator : aeon or sklearn classifier
         A classifier to use at the end of the pipeline.
@@ -61,14 +61,14 @@ class ClassifierPipeline(BaseCollectionPipeline, BaseClassifier):
 
     Examples
     --------
-    >>> from aeon.transformations.collection import Resizer
+    >>> from aeon.transformations.collection.unequal_length import Resizer
     >>> from aeon.classification.convolution_based import RocketClassifier
     >>> from aeon.datasets import load_unit_test
     >>> from aeon.classification.compose import ClassifierPipeline
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test = load_unit_test(split="test")
     >>> pipeline = ClassifierPipeline(
-    ...     Resizer(length=10), RocketClassifier(n_kernels=50)
+    ...     Resizer(resized_length=10), RocketClassifier(n_kernels=50)
     ... )
     >>> pipeline.fit(X_train, y_train)
     ClassifierPipeline(...)
@@ -104,8 +104,8 @@ class ClassifierPipeline(BaseCollectionPipeline, BaseClassifier):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
         """
         from aeon.classification.distance_based import KNeighborsTimeSeriesClassifier
-        from aeon.transformations.collection import Truncator
         from aeon.transformations.collection.feature_based import SevenNumberSummary
+        from aeon.transformations.collection.unequal_length import Truncator
 
         return {
             "transformers": [

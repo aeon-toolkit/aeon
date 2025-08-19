@@ -15,28 +15,23 @@ from aeon.testing.data_generation import (
 from aeon.testing.testing_data import (
     EQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION,
     EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION,
+    MISSING_VALUES_CLASSIFICATION,
     UNEQUAL_LENGTH_UNIVARIATE_CLASSIFICATION,
+    UNIVARIATE_SERIES,
 )
-from aeon.utils.data_types import COLLECTIONS_DATA_TYPES
+from aeon.utils.data_types import COLLECTIONS_DATA_TYPES, SERIES_DATA_TYPES
 from aeon.utils.validation.collection import (
     _is_numpy_list_multivariate,
-    _is_pd_wide,
     get_n_cases,
+    get_n_channels,
+    get_n_timepoints,
     get_type,
     has_missing,
+    is_collection,
     is_equal_length,
     is_tabular,
     is_univariate,
 )
-
-
-@pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
-def test_is_pd_wide(data):
-    """Test _is_pd_wide function for different datatypes."""
-    if data == "pd-wide":
-        assert _is_pd_wide(EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[data]["train"][0])
-    else:
-        assert not _is_pd_wide(EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[data]["train"][0])
 
 
 def test_is_tabular():
@@ -48,16 +43,124 @@ def test_is_tabular():
     assert not is_tabular(np.random.random(size=(10)))
 
 
-def test_get_type():
-    """Test get_type function."""
+def test_is_collection():
+    """Test is_collection function."""
+    np_3d = np.random.random(size=(10, 10, 10))
+    np_2d = np.random.random(size=(10, 10))
+    assert is_collection(np_3d)
+    assert not is_collection(np_2d)
+    assert is_collection(np_2d, include_2d=True)
+    assert not is_collection(None)
+
+
+@pytest.mark.parametrize("data", SERIES_DATA_TYPES)
+def test_is_collection_series(data):
+    """Test is_collection function for series data types."""
+    assert not is_collection(UNIVARIATE_SERIES[data]["train"][0])
+
+
+@pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
+def test_get_n_cases(data):
+    """Test getting the number of cases."""
+    assert get_n_cases(EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[data]["train"][0]) == 10
+
+
+@pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
+def test_get_n_timepoints(data):
+    """Test getting the number of timepoints."""
+    assert (
+        get_n_timepoints(EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[data]["train"][0]) == 20
+    )
+    if data in UNEQUAL_LENGTH_UNIVARIATE_CLASSIFICATION.keys():
+        assert (
+            get_n_timepoints(UNEQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[data]["train"][0])
+            is None
+        )
+
+
+@pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
+def test_get_n_channels(data):
+    """Test getting the number of channels."""
+    assert get_n_channels(EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[data]["train"][0]) == 1
+    if data in EQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION.keys():
+        assert (
+            get_n_channels(EQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION[data]["train"][0])
+            == 2
+        )
+
+
+def test_get_n_channels_error():
+    """Test error catching when getting the number of channels."""
+    np_list = [
+        np.array([[1, 2, 3, 4, 5], [1, 2, 3, 4, 5]]),
+        np.array([[4, 5, 6, 7, 8], [1, 2, 3, 4, 5], [1, 2, 3, 4, 5]]),
+    ]
+    with pytest.raises(ValueError, match="number of channels is not consistent"):
+        get_n_channels(np_list)
+
+
+@pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
+def test_is_equal_length(data):
+    """Test if equal length series correctly identified."""
+    assert is_equal_length(EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[data]["train"][0])
+    if data in UNEQUAL_LENGTH_UNIVARIATE_CLASSIFICATION.keys():
+        assert not is_equal_length(
+            UNEQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[data]["train"][0]
+        )
+
+
+@pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
+def test_has_missing(data):
+    """Test if missing values are correctly identified."""
+    assert not has_missing(EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[data]["train"][0])
+    if data in MISSING_VALUES_CLASSIFICATION.keys():
+        assert has_missing(MISSING_VALUES_CLASSIFICATION[data]["train"][0])
+
+
+@pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
+def test_is_univariate(data):
+    """Test if univariate series are correctly identified."""
+    assert is_univariate(EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[data]["train"][0])
+    if data in EQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION.keys():
+        assert not is_univariate(
+            EQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION[data]["train"][0]
+        )
+
+
+@pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
+def test_get_type(data):
+    """Test getting the collection data type."""
+    assert get_type(EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[data]["train"][0]) == data
+
+    if data in UNEQUAL_LENGTH_UNIVARIATE_CLASSIFICATION.keys():
+        assert (
+            get_type(UNEQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[data]["train"][0]) == data
+        )
+    if data in MISSING_VALUES_CLASSIFICATION.keys():
+        assert get_type(MISSING_VALUES_CLASSIFICATION[data]["train"][0]) == data
+    if data in EQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION.keys():
+        assert (
+            get_type(EQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION[data]["train"][0]) == data
+        )
+
+
+def test_get_type_errors():
+    """Test error catching in the get_type function."""
+    with pytest.raises(TypeError, match="must be of type"):
+        get_type(UNIVARIATE_SERIES["pd.Series"]["train"][0])
+
+    assert (
+        get_type(UNIVARIATE_SERIES["pd.Series"]["train"][0], raise_error=False) is None
+    )
+
     np_list = [np.array([1, 2, 3, 4, 5]), np.array([4, 5, 6, 7, 8])]
     with pytest.raises(TypeError, match="np-list must contain 2D np.ndarray"):
         get_type(np_list)
+
     dp_list = [pd.DataFrame(np.random.random(size=(10, 10))), np.array([1, 2, 3, 4, 5])]
     with pytest.raises(TypeError, match="df-list must only contain pd.DataFrame"):
         get_type(dp_list)
-    res = get_type(pd.DataFrame(np.random.random(size=(10, 10))))
-    assert res == "pd-wide"
+
     data = {
         "Double_Column": [1.5, 2.3, 3.6, 4.8, 5.2],
         "String_Column": ["Apple", "Banana", "Cherry", "Date", "Elderberry"],
@@ -65,19 +168,6 @@ def test_get_type():
     df = pd.DataFrame(data)
     with pytest.raises(TypeError, match="contain numeric values only"):
         get_type(df)
-
-
-def test_has_missing():
-    """Test has_missing function."""
-    d1 = np.random.random(size=(10, 10))
-    assert not has_missing(d1)
-    d1[0, 0] = np.nan
-    assert has_missing(d1)
-    d2 = np.random.random(size=(10, 10))
-    l1 = [d1, d1]
-    assert has_missing(l1)
-    l2 = [pd.DataFrame(d1), pd.DataFrame(d2)]
-    assert has_missing(l2)
 
 
 def test_is_numpy_list_multivariate_single():
@@ -159,7 +249,7 @@ def test_is_numpy_list_multivariate_single():
     # 2d format tests
     # Equal (n_cases, n_timepoints)
 
-    # As the function is intended to be used for pairwise we assume it isnt a single
+    # As the function is intended to be used for pairwise we assume it isn't a single
     # multivariate time series but two collections of univariate
     x_multi_2d = make_example_2d_numpy_collection(10, 20, return_y=False)
     is_multivariate = _is_numpy_list_multivariate(x_multi_2d)
@@ -334,48 +424,3 @@ def test_is_numpy_list_multivariate_two_multi():
         x_multi_numba_list, x_multi_2d_numba_list
     )
     assert is_multivariate is True
-
-
-@pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
-def test_get_n_cases(data):
-    """Test getting the number of cases."""
-    assert get_n_cases(EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[data]["train"][0]) == 10
-
-
-@pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
-def test_get_type2(data):
-    """Test getting the type."""
-    assert get_type(EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[data]["train"][0]) == data
-
-
-@pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
-def test_is_equal_length(data):
-    """Test if equal length series correctly identified."""
-    assert is_equal_length(EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[data]["train"][0])
-
-
-@pytest.mark.parametrize("data", ["df-list", "np-list"])
-def test_is_unequal_length(data):
-    """Test if unequal length series correctly identified."""
-    assert not is_equal_length(
-        UNEQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[data]["train"][0]
-    )
-
-
-@pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
-def test_has_missing2(data):
-    """Test if missing values are correctly identified."""
-    assert not has_missing(EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[data]["train"][0])
-    X = np.random.random(size=(10, 2, 20))
-    X[5][1][12] = np.nan
-    assert has_missing(X)
-
-
-@pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
-def test_is_univariate(data):
-    """Test if univariate series are correctly identified."""
-    assert is_univariate(EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[data]["train"][0])
-    if data in EQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION.keys():
-        assert not is_univariate(
-            EQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION[data]["train"][0]
-        )

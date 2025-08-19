@@ -1,18 +1,18 @@
 __maintainer__ = []
 
-from typing import Optional, Union
 
 import numpy as np
-from numba import njit
+from numba import njit, prange
 from numba.typed import List as NumbaList
 
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
+from aeon.utils.numba._threading import threaded
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
 @njit(cache=True, fastmath=True)
 def minkowski_distance(
-    x: np.ndarray, y: np.ndarray, p: float = 2.0, w: Optional[np.ndarray] = None
+    x: np.ndarray, y: np.ndarray, p: float = 2.0, w: np.ndarray | None = None
 ) -> float:
     r"""Compute the Minkowski distance between two time series.
 
@@ -126,11 +126,13 @@ def _multivariate_minkowski_distance(
     return dist ** (1.0 / p)
 
 
+@threaded
 def minkowski_pairwise_distance(
-    X: Union[np.ndarray, list[np.ndarray]],
-    y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
+    X: np.ndarray | list[np.ndarray],
+    y: np.ndarray | list[np.ndarray] | None = None,
     p: float = 2.0,
-    w: Optional[np.ndarray] = None,
+    w: np.ndarray | None = None,
+    n_jobs: int = 1,
 ) -> np.ndarray:
     """Compute the Minkowski pairwise distance between a set of time series.
 
@@ -150,6 +152,10 @@ def minkowski_pairwise_distance(
     w : np.ndarray, default=None
         An array of weights, applied to each pairwise calculation.
         The weights should match the shape of the time series in X and y.
+    n_jobs : int, default=1
+        The number of jobs to run in parallel. If -1, then the number of jobs is set
+        to the number of CPU cores. If 1, then the function is executed in a single
+        thread. If greater than 1, then the function is executed in parallel.
 
     Returns
     -------
@@ -211,14 +217,14 @@ def minkowski_pairwise_distance(
     return _minkowski_from_multiple_to_multiple_distance(_X, _y, p, w)
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath=True, parallel=True)
 def _minkowski_pairwise_distance(
-    X: NumbaList[np.ndarray], p: float, w: Optional[np.ndarray] = None
+    X: NumbaList[np.ndarray], p: float, w: np.ndarray | None = None
 ) -> np.ndarray:
     n_cases = len(X)
     distances = np.zeros((n_cases, n_cases))
 
-    for i in range(n_cases):
+    for i in prange(n_cases):
         for j in range(i + 1, n_cases):
             if w is None:
                 distances[i, j] = minkowski_distance(X[i], X[j], p)
@@ -232,18 +238,18 @@ def _minkowski_pairwise_distance(
     return distances
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath=True, parallel=True)
 def _minkowski_from_multiple_to_multiple_distance(
     x: NumbaList[np.ndarray],
     y: NumbaList[np.ndarray],
     p: float,
-    w: Optional[np.ndarray] = None,
+    w: np.ndarray | None = None,
 ) -> np.ndarray:
     n_cases = len(x)
     m_cases = len(y)
     distances = np.zeros((n_cases, m_cases))
 
-    for i in range(n_cases):
+    for i in prange(n_cases):
         for j in range(m_cases):
             if w is None:
                 distances[i, j] = minkowski_distance(x[i], y[j], p)

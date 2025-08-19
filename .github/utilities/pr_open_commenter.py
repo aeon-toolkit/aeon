@@ -34,22 +34,10 @@ for i, label in enumerate(content_labels):
         if label == cur_label:
             content_labels[i] = new_label
 
-labels = [(label.name, label.color) for label in repo.get_labels()]
-title_labels = [
-    f"$\\color{{#{color}}}{{\\textsf{{{label}}}}}$"
-    for label, color in labels
-    if label in title_labels
-]
-title_labels_new = [
-    f"$\\color{{#{color}}}{{\\textsf{{{label}}}}}$"
-    for label, color in labels
-    if label in title_labels_new
-]
-content_labels = [
-    f"$\\color{{#{color}}}{{\\textsf{{{label}}}}}$"
-    for label, color in labels
-    if label in content_labels
-]
+labels = [label.name for label in repo.get_labels()]
+title_labels = [f"**{label}**" for label in labels if label in title_labels]
+title_labels_new = [f"**{label}**" for label in labels if label in title_labels_new]
+content_labels = [f"**{label}**" for label in labels if label in content_labels]
 
 title_labels_str = ""
 if len(title_labels) == 0:
@@ -62,15 +50,13 @@ elif len(title_labels_new) != 0:
     arr_str = str(title_labels_new).strip("[]").replace("'", "")
     title_labels_str = (
         "I have added the following labels to this PR based on the title: "
-        f"**[ {arr_str} ]**."
+        f"[ {arr_str} ]."
     )
     if len(title_labels) != len(title_labels_new):
         arr_str = (
             str(set(title_labels) - set(title_labels_new)).strip("[]").replace("'", "")
         )
-        title_labels_str += (
-            f" The following labels were already present: **[ {arr_str} ]**"
-        )
+        title_labels_str += f" The following labels were already present: [ {arr_str} ]"
 
 content_labels_str = ""
 if len(content_labels) != 0:
@@ -78,14 +64,14 @@ if len(content_labels) != 0:
         arr_str = str(content_labels).strip("[]").replace("'", "")
         content_labels_str = (
             "I have added the following labels to this PR based on "
-            f"the changes made: **[ {arr_str} ]**. Feel free "
+            f"the changes made: [ {arr_str} ]. Feel free "
             "to change these if they do not properly represent the PR."
         )
     elif content_labels_status == "ignored":
         arr_str = str(content_labels).strip("[]").replace("'", "")
         content_labels_str = (
             "I would have added the following labels to this PR "
-            f"based on the changes made: **[ {arr_str} ]**, "
+            f"based on the changes made: [ {arr_str} ], "
             "however some package labels are already present."
         )
     elif content_labels_status == "large":
@@ -112,9 +98,10 @@ The [Checks](https://github.com/aeon-toolkit/aeon/pull/{pr_number}/checks) tab w
 
 If our `pre-commit` code quality check fails, any trivial fixes will automatically be pushed to your PR unless it is a draft.
 
-Don't hesitate to ask questions on the `aeon` [Slack](https://join.slack.com/t/aeon-toolkit/shared_invite/zt-22vwvut29-HDpCu~7VBUozyfL_8j3dLA) channel if you have any.
+Don't hesitate to ask questions on the `aeon` [Slack](https://join.slack.com/t/aeon-toolkit/shared_invite/zt-36dlmbouu-vajTShUYAHopSXUUVtHGzw) channel if you have any.
 
-### PR CI actions
+<details><summary>PR CI actions</summary>
+<p>
 
 These checkboxes will add labels to enable/disable CI functionality for this PR. This may not take effect immediately, and a new commit may be required to run the new configuration.
 
@@ -125,6 +112,10 @@ These checkboxes will add labels to enable/disable CI functionality for this PR.
 - [ ] Run numba-disabled `codecov` tests
 - [ ] Stop automatic `pre-commit` fixes (always disabled for drafts)
 - [ ] Disable numba cache loading
+- [ ] Regenerate expected results for testing
 - [ ] Push an empty commit to re-run CI checks
+
+</p>
+</details>
     """  # noqa
 )

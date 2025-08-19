@@ -45,7 +45,7 @@ class ResNetNetwork(BaseDeepLearningNetwork):
 
     Notes
     -----
-    Adpated from the implementation source code
+    Adapted from the implementation source code
     https://github.com/hfawaz/dl-4-tsc/blob/master/classifiers/resnet.py
 
     References

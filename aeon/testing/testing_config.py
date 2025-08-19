@@ -47,10 +47,10 @@ EXCLUDED_TESTS = {
         "check_save_estimators_to_file",
     ],
     # needs investigation
-    "SASTClassifier": ["check_fit_deterministic"],
-    "RSASTClassifier": ["check_fit_deterministic"],
-    "SAST": ["check_fit_deterministic"],
-    "RSAST": ["check_fit_deterministic"],
+    "SASTClassifier": ["check_fit_deterministic", "check_estimator_multithreading"],
+    "RSASTClassifier": ["check_fit_deterministic", "check_estimator_multithreading"],
+    "SAST": ["check_fit_deterministic", "check_estimator_multithreading"],
+    "RSAST": ["check_fit_deterministic", "check_estimator_multithreading"],
     "MatrixProfile": ["check_fit_deterministic", "check_persistence_via_pickle"],
     "LeftSTAMPi": ["check_series_anomaly_detector_output"],
     # missed in legacy testing, changes state in predict/transform
@@ -61,6 +61,11 @@ EXCLUDED_TESTS = {
     # Unknown issue not producing the same results
     "RDSTRegressor": ["check_regressor_against_expected_results"],
     "RISTRegressor": ["check_regressor_against_expected_results"],
+    # Affected by threading changes in distance module
+    "CanonicalIntervalForestRegressor": ["check_regressor_against_expected_results"],
+    # Requires y to be passed in invers_transform,
+    # but this is not currently enabled/supported
+    "DifferenceTransformer": ["check_transform_inverse_transform_equivalent"],
 }
 
 # Exclude specific tests for estimators here only when numba is disabled

@@ -17,7 +17,7 @@ __all__ = [
     "quantile75",
     "row_quantile75",
     "std",
-    "std2",
+    "std_with_mean",
     "row_std",
     "numba_min",
     "row_numba_min",
@@ -30,9 +30,10 @@ __all__ = [
     "ppv",
     "row_ppv",
     "fisher_score",
-    "prime_up_to",
-    "is_prime",
+    "gini",
+    "gini_gain",
 ]
+
 
 import numpy as np
 from numba import njit
@@ -445,7 +446,7 @@ def std(X: np.ndarray) -> float:
 
 
 @njit(fastmath=True, cache=True)
-def std2(X: np.ndarray, X_mean: float) -> float:
+def std_with_mean(X: np.ndarray, X_mean: float) -> float:
     """Numba standard deviation function for a 1d numpy array with pre-calculated mean.
 
     Parameters
@@ -463,9 +464,9 @@ def std2(X: np.ndarray, X_mean: float) -> float:
     Examples
     --------
     >>> import numpy as np
-    >>> from aeon.utils.numba.stats import std2
+    >>> from aeon.utils.numba.stats import std_with_mean
     >>> X = np.array([1, 2, 2, 3, 3, 3, 4, 4, 4, 4])
-    >>> s = std2(X, 3)
+    >>> s = std_with_mean(X, 3)
     """
     s = 0
     for i in range(X.shape[0]):
@@ -813,7 +814,7 @@ def fisher_score(X: np.ndarray, y: np.ndarray) -> float:
         data_sub = X[idx_label]
 
         mu_feat_label = mean(data_sub)
-        sigma_feat_label = max(std2(data_sub, mu_feat_label), 0.000001)
+        sigma_feat_label = max(std_with_mean(data_sub, mu_feat_label), 0.000001)
 
         accum_numerator += idx_label.shape[0] * (mu_feat_label - mu_feat) ** 2
         accum_denominator += idx_label.shape[0] * sigma_feat_label**2
@@ -824,53 +825,61 @@ def fisher_score(X: np.ndarray, y: np.ndarray) -> float:
         return accum_numerator / accum_denominator
 
 
-@njit(fastmath=True, cache=True)
-def prime_up_to(n: int) -> np.ndarray:
-    """Check if any number from 1 to n is a prime number and return the ones which are.
+@njit(cache=True, fastmath=True)
+def gini(y) -> float:
+    """Get gini score for an array of labels.
 
     Parameters
     ----------
-    n : int
-        Number up to which the search for prime number will go
+    y : 1d numpy array
+        An array of labels
 
     Returns
     -------
-    array
-        Prime numbers up to n
-
-    Examples
-    --------
-    >>> from aeon.utils.numba.stats import prime_up_to
-    >>> p = prime_up_to(50)
+    score : float
+        gini score for the set of labels (i.e. how pure they are).
+        A larger score means more impurity. 0 means pure.
     """
-    is_p = np.zeros(n + 1, dtype=np.bool_)
-    for i in range(n + 1):
-        is_p[i] = is_prime(i)
-    return np.where(is_p)[0]
+    if y.shape[0] == 0:
+        raise ValueError("y is empty")
+
+    _, counts = general_numba.unique_count(y)
+    proportions = counts / y.shape[0]
+    return 1.0 - np.sum(proportions**2)
 
 
-@njit(fastmath=True, cache=True)
-def is_prime(n: int) -> bool:
-    """Check if the input number is a prime number.
+@njit(cache=True, fastmath=True)
+def gini_gain(y, y_subs) -> float:
+    """Get gini score of a split, i.e. the gain from parent to children.
 
     Parameters
     ----------
-    n : int
-        The number to test
+    y : 1d array
+        An array of labels
+    y_subs : list of 1d array
+        List of arrays contain subsets of the labels in y. Total number of
+        labels must sum to len(y).
 
     Returns
     -------
-    bool
-        Wheter n is a prime number
-
-    Examples
-    --------
-    >>> from aeon.utils.numba.stats import is_prime
-    >>> p = is_prime(7)
+    score : float
+        gini score of the split from parent class labels (y) to children (y_sub).
+        Note a higher score means better gain.
     """
-    if (n % 2 == 0 and n > 2) or n == 0 or n == 1:
-        return False
-    for i in range(3, int(n**0.5) + 1, 2):
-        if not n % i:
-            return False
-    return True
+    if y.shape[0] == 0:
+        raise ValueError("y is empty")
+    if sum([child.shape[0] for child in y_subs]) != y.shape[0]:
+        raise ValueError(
+            "The number of labels in y_subs must sum to the number of labels in y."
+        )
+
+    # find gini for parent node
+    score = gini(y)
+
+    for child in y_subs:
+        # ignore empty children
+        if child.shape[0] > 0:
+            # find gini score for this child and weight score by proportion of
+            # instances at child compared to parent
+            score -= (child.shape[0] / y.shape[0]) * gini(child)
+    return score

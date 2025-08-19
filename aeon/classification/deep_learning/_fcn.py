@@ -36,7 +36,7 @@ class FCNClassifier(BaseDeepClassifier):
     activation : str or list of str, default = "relu"
         Activation used after the convolution.
     use_bias : bool or list of bool, default = True
-        Whether or not ot use bias in convolution.
+        Whether or not to use bias in convolution.
     n_epochs : int, default = 2000
         The number of epochs to train the model.
     batch_size : int, default = 16

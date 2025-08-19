@@ -11,12 +11,12 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - name: Setup Python 3.11
+      - name: Setup Python 3.12
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.12"
 
       - uses: pre-commit/action@v3.0.1
         with:
@@ -27,12 +27,12 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - name: Setup Python 3.11
+      - name: Setup Python 3.12
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.12"
 
       - name: Build project
         run: |
@@ -54,24 +54,31 @@ jobs:
       fail-fast: false
       matrix:
         os: [ ubuntu-24.04, macOS-14, windows-2022 ]
-        python-version: [ "3.9", "3.10", "3.11", "3.12", "3.13" ]
+        python-version: [ "3.10", "3.11", "3.12", "3.13" ]
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
+      - name: Clear disk space
+        uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          dotnet: false
+          large-packages: false
+          swap-storage: false
+
       - name: Set swap space
         if: runner.os == 'Linux'
         uses: pierotofy/set-swap-space@v1.0
         with:
-          swap-size-gb: 10
+          swap-size-gb: 8
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: dist
           path: dist
@@ -82,6 +89,14 @@ jobs:
       - if: runner.os != 'Windows'
         name: Unix wheel filename
         run: echo "WHEELNAME=$(ls ./dist/aeon-*-none-any.whl)" >> $GITHUB_ENV
+
+      - name: Use numba cache to set env variables but not restore cache
+        uses: ./.github/actions/numba_cache
+        with:
+            cache_name: "release"
+            runner_os: ${{ runner.os }}
+            python_version: ${{ matrix.python-version }}
+            restore_cache: "false"
 
       - if: runner.os == 'Windows'
         name: Windows install
@@ -115,7 +130,7 @@ jobs:
       id-token: write
 
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: dist
           path: dist

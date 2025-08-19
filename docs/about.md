@@ -5,12 +5,12 @@
 The roles are described in `aeon`'s [governance](governance.md) document.
 A list of all contributors can be found [here](contributors.md).
 
-### Code of Conduct Workgroup
+### Code of Conduct Moderators
 
-The code of conduct workgroup maintains the code of conduct and handles any
-issues related that arise.
+The code of conduct moderators maintain the code of conduct and make decisions on any
+code of conduct related issues.
 
-```{include} about/code_of_conduct_workgroup.md
+```{include} about/code_of_conduct_moderators.md
 ```
 
 ### Communications Workgroup
@@ -124,6 +124,14 @@ organisations:
   - GitHub ID
   - Organization
   - Year
+* - Balgopal Moharana
+  - {user}`lucifer4073`
+  - [Google Summer of Code](https://summerofcode.withgoogle.com)
+  - 2025
+* - Jiarong Jin
+  - {user}`TinaJin0228`
+  - [Google Summer of Code](https://summerofcode.withgoogle.com)
+  - 2025
 * - Divya Tiwari
   - {user}`itsdivya1309`
   - [Google Summer of Code](https://summerofcode.withgoogle.com)
