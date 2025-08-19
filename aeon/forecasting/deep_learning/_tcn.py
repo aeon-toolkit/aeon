@@ -3,16 +3,19 @@
 from __future__ import annotations
 
 __maintainer__ = []
-
 __all__ = ["TCNForecaster"]
 
 from typing import Any
 
+import numpy as np
+from sklearn.utils import check_random_state
+
+from aeon.forecasting.base import DirectForecastingMixin
 from aeon.forecasting.deep_learning.base import BaseDeepForecaster
 from aeon.networks._tcn import TCNNetwork
 
 
-class TCNForecaster(BaseDeepForecaster):
+class TCNForecaster(BaseDeepForecaster, DirectForecastingMixin):
     """A deep learning forecaster using Temporal Convolutional Network (TCN).
 
     It leverages the `TCNNetwork` from aeon's network module
@@ -26,7 +29,7 @@ class TCNForecaster(BaseDeepForecaster):
         The window size for creating input sequences.
     batch_size : int, default=32
         Batch size for training the model.
-    epochs : int, default=100
+    n_epochs : int, default=100
         Number of epochs to train the model.
     verbose : int, default=0
         Verbosity mode (0, 1, or 2).
@@ -34,10 +37,18 @@ class TCNForecaster(BaseDeepForecaster):
         Optimizer to use for training.
     loss : str or tf.keras.losses.Loss, default='mse'
         Loss function for training.
+    callbacks : list of tf.keras.callbacks.Callback or None, default=None
+        List of Keras callbacks to be applied during training.
     random_state : int, default=None
         Seed for random number generators.
     axis : int, default=0
         Axis along which to apply the forecaster.
+    last_file_name : str, default="last_model"
+        The name of the file of the last model, used for saving models.
+    save_best_model : bool, default=False
+        Whether to save the best model during training based on validation loss.
+    file_path : str, default="./"
+        Directory path where models will be saved.
     n_blocks : list of int, default=[16, 16, 16]
         List specifying the number of output channels for each layer of the
         TCN. The length determines the depth of the network.
@@ -50,10 +61,13 @@ class TCNForecaster(BaseDeepForecaster):
 
     _tags = {
         "python_dependencies": ["tensorflow"],
-        "capability:horizon": False,
+        "capability:horizon": True,
         "capability:multivariate": True,
         "capability:exogenous": False,
         "capability:univariate": True,
+        "algorithm_type": "deeplearning",
+        "non_deterministic": True,
+        "cant_pickle": True,
     }
 
     def __init__(
@@ -65,8 +79,12 @@ class TCNForecaster(BaseDeepForecaster):
         verbose=0,
         optimizer="adam",
         loss="mse",
+        callbacks=None,
         random_state=None,
         axis=0,
+        last_file_name="last_model",
+        save_best_model=False,
+        file_path="./",
         n_blocks=None,
         kernel_size=2,
         dropout=0.2,
@@ -74,17 +92,21 @@ class TCNForecaster(BaseDeepForecaster):
         super().__init__(
             horizon=horizon,
             window=window,
-            batch_size=batch_size,
-            n_epochs=n_epochs,
             verbose=verbose,
-            optimizer=optimizer,
-            random_state=random_state,
+            callbacks=callbacks,
             axis=axis,
-            loss=loss,
+            last_file_name=last_file_name,
+            save_best_model=save_best_model,
+            file_path=file_path,
         )
         self.n_blocks = n_blocks
         self.kernel_size = kernel_size
         self.dropout = dropout
+        self.batch_size = batch_size
+        self.n_epochs = n_epochs
+        self.optimizer = optimizer
+        self.loss = loss
+        self.random_state = random_state
 
     def build_model(self, input_shape):
         """Build the TCN model for forecasting.
@@ -101,21 +123,106 @@ class TCNForecaster(BaseDeepForecaster):
         """
         import tensorflow as tf
 
-        # Initialize the TCN network with the updated parameters
         network = TCNNetwork(
             n_blocks=self.n_blocks if self.n_blocks is not None else [16, 16, 16],
             kernel_size=self.kernel_size,
             dropout=self.dropout,
         )
-        # input_shape = (input_shape[1], input_shape[0])
-        # Build the network with the given input shape
         input_layer, output = network.build_network(input_shape=input_shape)
-
-        # Create the final model
         model = tf.keras.Model(inputs=input_layer, outputs=output)
         return model
 
-    # Added to handle __name__ in tests (class-level access)
+    def _fit(self, y, exog=None):
+        """Fit the forecaster to training data.
+
+        Parameters
+        ----------
+        y : np.ndarray or pd.Series
+            Target time series to which to fit the forecaster.
+
+        Returns
+        -------
+        self : TCNForecaster
+            Returns an instance of self.
+        """
+        import tensorflow as tf
+
+        rng = check_random_state(self.random_state)
+        self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
+        tf.keras.utils.set_random_seed(self.random_state_)
+        y_inner = y
+        num_timepoints, num_channels = y_inner.shape
+        num_sequences = num_timepoints - self.window - self.horizon + 1
+        if y_inner.shape[0] < self.window + self.horizon:
+            raise ValueError(
+                f"Data length ({y_inner.shape}) is insufficient for window "
+                f"({self.window}) and horizon ({self.horizon})."
+            )
+        windows_full = np.lib.stride_tricks.sliding_window_view(
+            y_inner, window_shape=(self.window, num_channels)
+        )
+        windows_full = np.squeeze(windows_full, axis=1)
+        X_train = windows_full[:num_sequences]
+        # print(f"Shape of X_train is {X_train.shape}")
+        tail = y_inner[self.window :]
+        y_windows = np.lib.stride_tricks.sliding_window_view(
+            tail, window_shape=(self.horizon, num_channels)
+        )
+        y_windows = np.squeeze(y_windows, axis=1)
+        y_train = y_windows[:num_sequences]
+        # print(f"Shape of y_train is {y_train.shape}")
+        input_shape = X_train.shape[1:]
+        self.model_ = self.build_model(input_shape)
+        self.model_.compile(optimizer=self.optimizer, loss=self.loss)
+        callbacks_list = self._prepare_callbacks()
+        self.history_ = self.model_.fit(
+            X_train,
+            y_train,
+            batch_size=self.batch_size,
+            epochs=self.n_epochs,
+            verbose=self.verbose,
+            callbacks=callbacks_list,
+        )
+        self.last_window_ = y_inner[-self.window :]
+        return self
+
+    def _predict(self, y=None, exog=None):
+        """Make forecasts for y.
+
+        Parameters
+        ----------
+        y : np.ndarray or pd.Series, default=None
+            Series to predict from. If None, uses last fitted window.
+
+        Returns
+        -------
+        predictions : np.ndarray
+            Predicted values for the specified horizon. Since TCN has single
+            horizon capability, returns single step prediction.
+        """
+        if y is None:
+            if not hasattr(self, "last_window_"):
+                raise ValueError("No fitted data available for prediction.")
+            y_inner = self.last_window_
+        else:
+            y_inner = y
+            if y_inner.ndim == 1:
+                y_inner = y_inner.reshape(-1, 1)
+            if y_inner.shape[0] < self.window:
+                raise ValueError(
+                    f"Input data length ({y_inner.shape}) is less than the "
+                    f"window size ({self.window})."
+                )
+            y_inner = y_inner[-self.window :]
+        num_channels = y_inner.shape[-1]
+        last_window = y_inner.reshape(1, self.window, num_channels)
+        pred = self.model_.predict(last_window, verbose=0)
+        if num_channels == 1:
+            prediction = pred.flatten()[0]
+        else:
+            prediction = pred[0, :]
+        return prediction
+
     @classmethod
     def _get_test_params(
         cls, parameter_set: str = "default"
@@ -127,18 +234,12 @@ class TCNForecaster(BaseDeepForecaster):
         ----------
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value,` will return `"default"` set.
-            For forecasters, a "default" set of parameters should be provided for
-            general testing, and a "results_comparison" set for comparing against
-            previously recorded results if the general set does not produce suitable
-            probabilities to compare against.
+            special parameters are defined for a value, will return "default" set.
 
         Returns
         -------
         params : dict or list of dict, default={}
             Parameters to create testing instances of the class.
-            Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
         """
         param = {
             "n_epochs": 10,
