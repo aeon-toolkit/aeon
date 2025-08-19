@@ -269,7 +269,7 @@ class AutoARIMA(BaseForecaster):
     >>> y = load_airline()
     >>> forecaster = AutoARIMA()
     >>> forecaster.forecast(y)
-    476.2499...
+    476.24996265870845
     """
 
     def __init__(self, max_p=3, max_d=3, max_q=2):
