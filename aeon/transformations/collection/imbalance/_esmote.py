@@ -11,7 +11,7 @@ from sklearn.utils import check_random_state
 
 from aeon.clustering.averaging._ba_utils import _get_alignment_path
 from aeon.transformations.collection import BaseCollectionTransformer
-from aeon.transformations.collection.imbalance._single_class_knn import Single_Class_KNN
+from aeon.transformations.collection.imbalance._smote import _Single_Class_KNN
 from aeon.utils.validation import check_n_jobs
 
 
@@ -80,7 +80,7 @@ class ESMOTE(BaseCollectionTransformer):
     def _fit(self, X, y=None):
         self._random_state = check_random_state(self.random_state)
         self._n_jobs = check_n_jobs(self.n_jobs)
-        self.nn_ = Single_Class_KNN(
+        self.nn_ = _Single_Class_KNN(
             n_neighbors=self.n_neighbors + 1,
             distance=self.distance,
             distance_params=self._distance_params,
