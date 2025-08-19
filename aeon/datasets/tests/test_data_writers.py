@@ -81,7 +81,7 @@ def test_save_data_to_ts_file_invalid():
             save_to_ts_file("A string", path=tmp)
 
         X, _ = make_example_3d_numpy(n_cases=6, n_timepoints=10, n_channels=1)
-        y = np.ndarray([0, 1, 1, 0, 1])
+        y = np.array([0, 1, 1, 0, 1])
         with pytest.raises(
             ValueError,
             match="If y is not None, label_type must be either",

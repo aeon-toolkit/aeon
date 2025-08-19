@@ -17,6 +17,7 @@ from aeon.utils.validation.collection import (
     get_n_timepoints,
     is_collection,
 )
+from aeon.utils.validation.labels import check_classification_y, check_regression_y
 
 
 def save_to_ts_file(
@@ -96,10 +97,12 @@ def save_to_ts_file(
     elif isinstance(label_type, str):
         label_type = label_type.lower()
         if label_type == "classification":
+            check_classification_y(y)
             class_labels = np.unique(y)
             space_separated_class_label = " ".join(str(label) for label in class_labels)
             target_metadata = f"@classLabel true {space_separated_class_label}"
         elif label_type == "regression":
+            check_regression_y(y)
             target_metadata = "@targetlabel true"
         else:
             raise ValueError(bad_label_type)
