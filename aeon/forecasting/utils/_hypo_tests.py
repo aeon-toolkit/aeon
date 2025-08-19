@@ -48,7 +48,7 @@ def kpss_test(y, regression="c", lags=None):  # Test if time series is stationar
 
     Examples
     --------
-    >>> from aeon.utils.forecasting._hypo_tests import kpss_test
+    >>> from aeon.forecasting.utils._hypo_tests import kpss_test
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()
     >>> kpss_test(y)

@@ -39,9 +39,7 @@ class AutoARIMA(BaseForecaster):
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()
     >>> forecaster = AutoARIMA()
-    >>> forecaster.fit(y)
-    AutoARIMA()
-    >>> forecaster.predict()
+    >>> forecaster.forecast(y)
     482.1873214419662
     """
 
