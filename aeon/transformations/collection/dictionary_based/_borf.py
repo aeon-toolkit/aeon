@@ -9,7 +9,7 @@ __all__ = ["BORF"]
 import itertools
 import math
 from collections.abc import Sequence
-from typing import Literal, Optional
+from typing import Literal
 
 import numba as nb
 import numpy as np
@@ -224,7 +224,7 @@ def _build_pipeline_auto(
     n_jobs=1,
     n_jobs_numba=1,
     transformer_weights=None,
-    pipeline_objects: Optional[Sequence[tuple]] = None,
+    pipeline_objects: Sequence[tuple] | None = None,
     complexity: Literal["quadratic", "linear"] = "quadratic",
 ):
     configs = _heuristic_function_sax(
@@ -260,7 +260,7 @@ def _build_pipeline(
     n_jobs_numba=1,
     n_jobs=1,
     transformer_weights=None,
-    pipeline_objects: Optional[Sequence[tuple]] = None,
+    pipeline_objects: Sequence[tuple] | None = None,
 ):
     transformers = list()
     if pipeline_objects is None:

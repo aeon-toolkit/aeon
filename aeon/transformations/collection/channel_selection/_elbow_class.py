@@ -9,7 +9,6 @@ __all__ = ["ElbowClassSum", "ElbowClassPairwise"]
 
 
 import itertools
-from typing import Union
 
 import numpy as np
 import pandas as pd
@@ -42,7 +41,7 @@ def _detect_knee_point(values: list[float], indices: list[int]) -> list[int]:
 
 
 def _create_distance_matrix(
-    prototype: Union[pd.DataFrame, np.ndarray],
+    prototype: pd.DataFrame | np.ndarray,
     class_vals: np.array,
     distance: str = "euclidean",
 ) -> pd.DataFrame:
@@ -188,7 +187,7 @@ class _ClassPrototype:
 
     def _create_prototype(
         self, X: np.ndarray, y: np.array
-    ) -> Union[tuple[pd.DataFrame, np.array], tuple[np.ndarray, np.array]]:
+    ) -> tuple[pd.DataFrame, np.array] | tuple[np.ndarray, np.array]:
         """Create the class prototype for each class."""
         le = LabelEncoder()
         y_ind = le.fit_transform(y)

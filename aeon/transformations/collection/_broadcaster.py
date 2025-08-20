@@ -8,7 +8,7 @@ import numpy as np
 from aeon.transformations.base import InverseTransformerMixin
 from aeon.transformations.collection.base import BaseCollectionTransformer
 from aeon.transformations.series.base import BaseSeriesTransformer
-from aeon.utils.validation import get_n_cases
+from aeon.utils.validation.collection import get_n_cases
 
 
 class SeriesToCollectionBroadcaster(BaseCollectionTransformer, InverseTransformerMixin):

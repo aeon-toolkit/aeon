@@ -14,6 +14,10 @@ __all__ = [
     "download_all_regression",
     "load_time_series_segmentation_benchmark",
     "load_human_activity_segmentation_datasets",
+    # rehab_pile
+    "load_rehab_pile_dataset",
+    "load_rehab_pile_classification_datasets",
+    "load_rehab_pile_regression_datasets",
     # Write functions
     "write_to_ts_file",
     "write_to_arff_file",
@@ -91,4 +95,9 @@ from aeon.datasets._tsad_data_loaders import (
 from aeon.datasets._tss_data_loaders import (
     load_human_activity_segmentation_datasets,
     load_time_series_segmentation_benchmark,
+)
+from aeon.datasets.rehabpile_loader import (
+    load_rehab_pile_classification_datasets,
+    load_rehab_pile_dataset,
+    load_rehab_pile_regression_datasets,
 )

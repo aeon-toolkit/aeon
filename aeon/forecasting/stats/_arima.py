@@ -201,7 +201,7 @@ class ARIMA(BaseForecaster):
 
     def _forecast(self, y, exog=None):
         """Forecast one ahead for time series y."""
-        self.fit(y, exog)
+        self._fit(y, exog)
         return float(self.forecast_)
 
     def iterative_forecast(self, y, prediction_horizon):
