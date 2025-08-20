@@ -9,14 +9,14 @@ original authors:
 # License: MIT
 """
 
-from typing import Optional, Union
+__maintainer__ = ["TonyBagnall"]
+__all__ = ["ADASYN"]
+
+from collections.abc import Callable
 
 import numpy as np
 
 from aeon.transformations.collection.imbalance._smote import SMOTE
-
-__maintainer__ = ["TonyBagnall"]
-__all__ = ["ADASYN"]
 
 
 class ADASYN(SMOTE):
@@ -60,10 +60,10 @@ class ADASYN(SMOTE):
         self,
         n_neighbors: int = 5,
         random_state=None,
-        distance: Union[str, callable] = "euclidean",
-        distance_params: Optional[dict] = None,
+        distance: str | Callable = "euclidean",
+        distance_params: dict | None = None,
         n_jobs: int = 1,
-        weights: Union[str, callable] = "uniform",
+        weights: str | Callable = "uniform",
     ):
         super().__init__(
             random_state=random_state,
