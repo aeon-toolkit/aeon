@@ -8,11 +8,10 @@ from warnings import warn
 
 import numpy as np
 
-from aeon.transformations.base import InverseTransformerMixin
 from aeon.transformations.series.base import BaseSeriesTransformer
 
 
-class ScaledLogitSeriesTransformer(BaseSeriesTransformer, InverseTransformerMixin):
+class ScaledLogitSeriesTransformer(BaseSeriesTransformer):
     r"""Scaled logit transform or Log transform.
 
     If both lower_bound and upper_bound are not None, a scaled logit transform is
@@ -60,6 +59,7 @@ class ScaledLogitSeriesTransformer(BaseSeriesTransformer, InverseTransformerMixi
         "X_inner_type": "np.ndarray",
         "fit_is_empty": True,
         "capability:multivariate": True,
+        "capability:inverse_transform": True,
     }
 
     def __init__(self, lower_bound=None, upper_bound=None):
