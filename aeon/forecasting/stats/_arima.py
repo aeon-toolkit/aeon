@@ -10,14 +10,14 @@ __all__ = ["ARIMA", "AutoARIMA"]
 import numpy as np
 from numba import njit
 
-from aeon.forecasting.base import BaseForecaster
+from aeon.forecasting.base import BaseForecaster, IterativeForecastingMixin
 from aeon.forecasting.utils._extract_paras import _extract_arma_params
 from aeon.forecasting.utils._hypo_tests import kpss_test
 from aeon.forecasting.utils._nelder_mead import nelder_mead
 from aeon.forecasting.utils._undifference import _undifference
 
 
-class ARIMA(BaseForecaster):
+class ARIMA(BaseForecaster, IterativeForecastingMixin):
     """AutoRegressive Integrated Moving Average (ARIMA) forecaster.
 
     ARIMA with fixed model structure and fitted parameters found with an
@@ -244,7 +244,7 @@ class ARIMA(BaseForecaster):
             return _undifference(y_forecast_diff, self._series[-self.d :])[self.d :]
 
 
-class AutoARIMA(BaseForecaster):
+class AutoARIMA(BaseForecaster, IterativeForecastingMixin):
     """AutoRegressive Integrated Moving Average (ARIMA) forecaster.
 
     Implements the Hyndman-Khandakar automatic ARIMA algorithm for time series
@@ -253,8 +253,15 @@ class AutoARIMA(BaseForecaster):
 
     Parameters
     ----------
-    horizon : int, default=1
-        The forecasting horizon, i.e., the number of steps ahead to predict.
+    max_p : int, default=3
+        Maximum order of the autoregressive (AR) component to consider when
+        searching for the best ARIMA model.
+    max_d : int, default=3
+        Maximum order of differencing (number of times the series may be
+        differenced) considered to achieve stationarity.
+    max_q : int, default=2
+        Maximum order of the moving-average (MA) component to consider when
+        searching for the best ARIMA model.
 
     References
     ----------
@@ -303,9 +310,7 @@ class AutoARIMA(BaseForecaster):
         series = np.array(y.squeeze(), dtype=np.float64)
         differenced_series = series.copy()
         self.d_ = 0
-        while not kpss_test(differenced_series)[1]:
-            if self.d_ >= self.max_d:
-                break
+        while not kpss_test(differenced_series)[1] and self.d_ <= self.max_d:
             differenced_series = np.diff(differenced_series, n=1)
             self.d_ += 1
         include_constant = 1 if self.d_ == 0 else 0
@@ -439,7 +444,7 @@ def _in_sample_forecast(data, model, t, formatted_params, residuals):
 @njit(cache=True, fastmath=True)
 def _auto_arima(
     differenced_data,
-    loss_function,
+    loss_id,
     inital_model_parameters,
     num_model_params=3,
     parameter_limits=None,
@@ -454,7 +459,7 @@ def _auto_arima(
     best_points = None
     for model in inital_model_parameters:
         points, aic = nelder_mead(
-            loss_function,
+            loss_id,
             np.sum(model[:num_model_params]),
             differenced_data,
             model,
@@ -477,7 +482,7 @@ def _auto_arima(
                 for constant_term in [0, 1]:
                     model[0] = constant_term
                     points, aic = nelder_mead(
-                        loss_function,
+                        loss_id,
                         np.sum(model[:num_model_params]),
                         differenced_data,
                         model,
