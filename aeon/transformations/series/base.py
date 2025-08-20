@@ -11,6 +11,8 @@ fit & transform - fit_transform(self, X, y=None)
 from abc import abstractmethod
 from typing import final
 
+from deprecated.sphinx import deprecated
+
 from aeon.base import BaseSeriesEstimator
 from aeon.transformations.base import BaseTransformer
 
@@ -320,3 +322,37 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer):
             return Xt
         else:
             return Xt.T
+
+    # TODO: Remove in v1.4.0
+    @deprecated(
+        version="1.3.0",
+        reason="update is deprecated for transformers and will be removed in v1.4.0.",
+        category=FutureWarning,
+    )
+    @final
+    def update(self, X, y=None, update_params=True, axis=1):
+        """Update transformer with X, optionally y.
+
+        Parameters
+        ----------
+        X : data to update of valid series type.
+        y : Target variable, default=None
+            Additional data, e.g., labels for transformation
+        update_params : bool, default=True
+            whether the model is updated. Yes if true, if false, simply skips call.
+            argument exists for compatibility with forecasting module.
+        axis : int, default=None
+            axis along which to update. If None, uses self.axis.
+
+        Returns
+        -------
+        self : a fitted instance of the estimator
+        """
+        # check whether is fitted
+        self._check_is_fitted()
+        X = self._preprocess_series(X, axis, False)
+        return self._update(X=X, y=y, update_params=update_params)
+
+    def _update(self, X, y=None, update_params=True):
+        # standard behaviour: no update takes place, new data is ignored
+        return self
