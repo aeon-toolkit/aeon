@@ -216,16 +216,21 @@ class BaseCollectionTransformer(BaseCollectionEstimator, BaseTransformer):
 
         private _fit containing the core logic, called from fit
 
-        private _transform containing the core logic, called from transform
-
         Parameters
         ----------
         X : Input data
             Data to fit transform to, of valid collection type.
         y : Target variable, default=None
             Additional data, e.g., labels for transformation
+
+        Returns
+        -------
+        self: a fitted instance of the estimator
+
+        See extension_templates/transformer.py for implementation details.
         """
-        ...
+        # default fit is "no fitting happens"
+        return self
 
     @abstractmethod
     def _transform(self, X, y=None):
@@ -253,9 +258,6 @@ class BaseCollectionTransformer(BaseCollectionEstimator, BaseTransformer):
 
         private _fit_transform containing the core logic, called from fit_transform.
 
-        Non-optimized default implementation; override when a better
-        method is possible for a given algorithm.
-
         Parameters
         ----------
         X : Input data
@@ -267,6 +269,8 @@ class BaseCollectionTransformer(BaseCollectionEstimator, BaseTransformer):
         -------
         transformed version of X.
         """
+        # Non-optimized default implementation; override when a better
+        # method is possible for a given algorithm.
         if not self.get_tag("fit_is_empty"):
             self._fit(X, y)
         return self._transform(X, y)

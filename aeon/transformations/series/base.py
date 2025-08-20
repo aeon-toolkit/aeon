@@ -165,13 +165,34 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer):
         self.is_fitted = True
         return self._postprocess_series(Xt, axis=axis)
 
+    @final
+    def update(self, X, y=None, update_params=True, axis=1):
+        """Update transformer with X, optionally y.
+
+        Parameters
+        ----------
+        X : data to update of valid series type.
+        y : Target variable, default=None
+            Additional data, e.g., labels for transformation
+        update_params : bool, default=True
+            whether the model is updated. Yes if true, if false, simply skips call.
+            argument exists for compatibility with forecasting module.
+        axis : int, default=None
+            axis along which to update. If None, uses self.axis.
+
+        Returns
+        -------
+        self : a fitted instance of the estimator
+        """
+        # check whether is fitted
+        self._check_is_fitted()
+        X = self._preprocess_series(X, axis, False)
+        return self._update(X=X, y=y, update_params=update_params)
+
     def _fit(self, X, y=None):
         """Fit transformer to X and y.
 
         private _fit containing the core logic, called from fit
-
-        A default implementation for the fit_is_empty tag. Other transformers
-        should override this.
 
         Parameters
         ----------
@@ -179,8 +200,13 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer):
             Data to fit transform to, of valid collection type.
         y : Target variable, default=None
             Additional data, e.g., labels for transformation
+
+        Returns
+        -------
+        self: a fitted instance of the estimator
         """
-        ...
+        # default fit is "no fitting happens"
+        return self
 
     @abstractmethod
     def _transform(self, X, y=None):
@@ -199,7 +225,6 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer):
         -------
         transformed version of X
         """
-        ...
 
     def _fit_transform(self, X, y=None):
         """Fit to data, then transform it.
@@ -207,9 +232,6 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer):
         Fits the transformer to X and y and returns a transformed version of X.
 
         private _fit_transform containing the core logic, called from fit_transform.
-
-        Non-optimised default implementation; override when a better
-        method is possible for a given algorithm.
 
         Parameters
         ----------
@@ -222,9 +244,14 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer):
         -------
         transformed version of X.
         """
-        if not self.get_tag("fit_is_empty"):
-            self._fit(X, y)
+        # Non-optimized default implementation; override when a better
+        # method is possible for a given algorithm.
+        self._fit(X, y)
         return self._transform(X, y)
+
+    def _update(self, X, y=None, update_params=True):
+        # standard behaviour: no update takes place, new data is ignored
+        return self
 
     def _postprocess_series(self, Xt, axis):
         """Postprocess data Xt to revert to original shape.
