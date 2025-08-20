@@ -5,7 +5,6 @@ Translated to Python in 2025 with the aid of LLMs.
 """
 
 import math
-import random
 import sys
 import warnings
 
@@ -91,8 +90,11 @@ class AutoPlaitSegmenter(BaseSegmenter):
         Ratio controlling acceptance of split regimes based on MDL cost.
     sampling_lm : float, default=0.1
         Proportion of sequence length to use during sampling for KMeans initialization.
-    seed : int, optional
-        Random seed used for reproducibility.
+    random_state : int, RandomState instance or None, default=None
+        If `int`, random_state is the seed used by the random number generator;
+        If `RandomState` instance, random_state is the random number generator;
+        If `None`, the random number generator is the `RandomState` instance used
+        by `np.random`.
     normalise : bool, default=True
         Whether to apply Z-normalization to input sequences.
     verbose : bool, default=False
@@ -141,7 +143,7 @@ class AutoPlaitSegmenter(BaseSegmenter):
         segment_sample_ratio: float = 0.03,
         regime_sample_ratio: float = 0.03,
         sampling_lm: float = 0.1,
-        seed: int | None = None,
+        random_state=None,
         normalise: bool = True,
         verbose: bool = False,
     ):
@@ -184,9 +186,8 @@ class AutoPlaitSegmenter(BaseSegmenter):
 
         self.verbose = verbose
         self.axis = 0
-        self.seed = seed
+        self.random_state = random_state
         self.normalise = normalise
-        random.seed(seed)
 
         super().__init__(axis=0)
 
