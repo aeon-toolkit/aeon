@@ -176,6 +176,23 @@ class _WindowSignatureTransform(BaseCollectionTransformer):
     def _transform(self, X, y=None):
         import esig
 
+        # monkey patch due to bug in esig which causes some data shapes to crash.
+        # Remove if it is fixed upstream I guess.
+        def prepare_stream(self, stream_data, depth):
+            import numpy as np
+            import roughpy as rp
+
+            no_samples, width = stream_data.shape
+            increments = np.diff(stream_data, axis=0)
+            indices = np.arange(no_samples - 1) / (no_samples - 1)
+            context = rp.get_context(width, depth, rp.DPReal)
+            stream = rp.LieIncrementStream.from_increments(
+                increments, indices=indices, ctx=context
+            )
+            return stream
+
+        esig.backends.RoughPyBackend.prepare_stream = prepare_stream
+
         depth = self.sig_depth
         data = np.swapaxes(X, 1, 2)
 

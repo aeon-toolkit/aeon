@@ -1,4 +1,4 @@
-from typing import Optional
+"""Functions for generating learning task labels."""
 
 import numpy as np
 
@@ -6,7 +6,7 @@ import numpy as np
 def make_anomaly_detection_labels(
     n_labels: int,
     anomaly_rate: float = 0.01,
-    random_state: Optional[int] = None,
+    random_state: int | None = None,
 ) -> np.ndarray:
     """Generate anomaly detection labels.
 

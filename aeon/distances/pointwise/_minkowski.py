@@ -1,6 +1,5 @@
 __maintainer__ = []
 
-from typing import Optional, Union
 
 import numpy as np
 from numba import njit, prange
@@ -13,7 +12,7 @@ from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 @njit(cache=True, fastmath=True)
 def minkowski_distance(
-    x: np.ndarray, y: np.ndarray, p: float = 2.0, w: Optional[np.ndarray] = None
+    x: np.ndarray, y: np.ndarray, p: float = 2.0, w: np.ndarray | None = None
 ) -> float:
     r"""Compute the Minkowski distance between two time series.
 
@@ -129,10 +128,10 @@ def _multivariate_minkowski_distance(
 
 @threaded
 def minkowski_pairwise_distance(
-    X: Union[np.ndarray, list[np.ndarray]],
-    y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
+    X: np.ndarray | list[np.ndarray],
+    y: np.ndarray | list[np.ndarray] | None = None,
     p: float = 2.0,
-    w: Optional[np.ndarray] = None,
+    w: np.ndarray | None = None,
     n_jobs: int = 1,
 ) -> np.ndarray:
     """Compute the Minkowski pairwise distance between a set of time series.
@@ -220,7 +219,7 @@ def minkowski_pairwise_distance(
 
 @njit(cache=True, fastmath=True, parallel=True)
 def _minkowski_pairwise_distance(
-    X: NumbaList[np.ndarray], p: float, w: Optional[np.ndarray] = None
+    X: NumbaList[np.ndarray], p: float, w: np.ndarray | None = None
 ) -> np.ndarray:
     n_cases = len(X)
     distances = np.zeros((n_cases, n_cases))
@@ -244,7 +243,7 @@ def _minkowski_from_multiple_to_multiple_distance(
     x: NumbaList[np.ndarray],
     y: NumbaList[np.ndarray],
     p: float,
-    w: Optional[np.ndarray] = None,
+    w: np.ndarray | None = None,
 ) -> np.ndarray:
     n_cases = len(x)
     m_cases = len(y)

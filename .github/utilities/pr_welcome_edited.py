@@ -26,6 +26,7 @@ if (
     or "## Thank you for contributing to `aeon`" not in comment_body
 ):
     with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
+        print("expected_results=false", file=fh)  # noqa: T201
         print("empty_commit=false", file=fh)  # noqa: T201
     sys.exit(0)
 
@@ -44,14 +45,14 @@ with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
     print(f"repo={repo_name}", file=fh)  # noqa: T201
     print(f"branch={branch_name}", file=fh)  # noqa: T201
 
-if "- [x] Push an empty commit to re-run CI checks" in comment_body:
-    comment.edit(
-        comment_body.replace(
-            "- [x] Push an empty commit to re-run CI checks",
-            "- [ ] Push an empty commit to re-run CI checks",
-        )
-    )
+if "- [x] Regenerate expected results for testing" in comment_body:
+    with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
+        print("expected_results=true", file=fh)  # noqa: T201
+else:
+    with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
+        print("expected_results=false", file=fh)  # noqa: T201
 
+if "- [x] Push an empty commit to re-run CI checks" in comment_body:
     with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
         print("empty_commit=true", file=fh)  # noqa: T201
 else:
