@@ -442,11 +442,11 @@ def _in_sample_forecast(data, model, t, formatted_params, residuals):
     return c + ar_term + ma_term
 
 
-@njit(cache=True, fastmath=True)
+# @njit(cache=True, fastmath=True)
 def _auto_arima(
     differenced_data,
     loss_id,
-    inital_model_parameters,
+    initial_model_parameters,
     num_model_params=3,
     parameter_limits=None,
 ):
@@ -456,9 +456,9 @@ def _auto_arima(
     For automatic ARIMA model selection.
     """
     best_score = -1
-    best_model = inital_model_parameters[0]
+    best_model = initial_model_parameters[0]
     best_points = None
-    for model in inital_model_parameters:
+    for model in initial_model_parameters:
         points, aic = nelder_mead(
             loss_id,
             np.sum(model[:num_model_params]),
