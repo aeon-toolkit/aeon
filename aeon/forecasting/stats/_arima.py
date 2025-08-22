@@ -336,6 +336,7 @@ class AutoARIMA(BaseForecaster, IterativeForecastingMixin):
         self.constant_term_ = constant_term_int == 1
         self.wrapped_model_ = ARIMA(self.p_, self.d_, self.q_, self.constant_term_)
         self.wrapped_model_.fit(y)
+        self.forecast_ = self.wrapped_model_.forecast_
         return self
 
     def _predict(self, y, exog=None):
