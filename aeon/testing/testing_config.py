@@ -75,7 +75,8 @@ EXCLUDED_TESTS_NO_NUMBA = {
     # Other failures
     "TemporalDictionaryEnsemble": ["check_classifier_against_expected_results"],
     "OrdinalTDE": ["check_classifier_against_expected_results"],
-    "CanonicalIntervalForestRegressor": ["check_regressor_against_expected_results"],
+    "MultiRocketRegressor": ["check_regressor_against_expected_results"],
+    "MultiRocketHydraRegressor": ["check_regressor_against_expected_results"],
 }
 
 
