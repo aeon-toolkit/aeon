@@ -83,14 +83,6 @@ class BaseDeepForecaster(BaseForecaster):
 
         super().__init__(horizon=horizon, axis=axis)
 
-    def _fit(self, y, exog=None):
-        """Fit the model."""
-        ...
-
-    def _predict(self, y, exog=None):
-        """Predict using the model."""
-        ...
-
     def _prepare_callbacks(self):
         """Prepare callbacks for training.
 
