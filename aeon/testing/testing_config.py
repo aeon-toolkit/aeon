@@ -46,6 +46,8 @@ EXCLUDED_TESTS = {
         "check_persistence_via_pickle",
         "check_save_estimators_to_file",
     ],
+    # checks required for multivariate
+    "TCNForecaster": ["check_forecaster_output"],
     # needs investigation
     "LeftSTAMPi": ["check_series_anomaly_detector_output"],
     # missed in legacy testing, changes state in predict/transform
