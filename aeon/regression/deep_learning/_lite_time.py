@@ -1,5 +1,7 @@
 """LITETime and LITE regressors."""
 
+from __future__ import annotations
+
 __author__ = ["aadya940", "hadifawaz1999"]
 __all__ = ["IndividualLITERegressor", "LITETimeRegressor"]
 
@@ -7,12 +9,17 @@ import gc
 import os
 import time
 from copy import deepcopy
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 from sklearn.utils import check_random_state
 
 from aeon.networks import LITENetwork
 from aeon.regression.deep_learning.base import BaseDeepRegressor, BaseRegressor
+
+if TYPE_CHECKING:
+    import tensorflow as tf
+    from tensorflow.keras.callbacks import Callback
 
 
 class LITETimeRegressor(BaseRegressor):
@@ -105,6 +112,7 @@ class LITETimeRegressor(BaseRegressor):
     -----
     Adapted from the implementation from Ismail-Fawaz et. al
     https://github.com/MSD-IRIMAS/LITE
+    by the code owner.
 
     References
     ----------
@@ -136,29 +144,29 @@ class LITETimeRegressor(BaseRegressor):
 
     def __init__(
         self,
-        n_regressors=5,
-        use_litemv=False,
-        n_filters=32,
-        kernel_size=40,
-        strides=1,
-        activation="relu",
-        output_activation="linear",
-        file_path="./",
-        save_last_model=False,
-        save_best_model=False,
-        save_init_model=False,
-        best_file_name="best_model",
-        last_file_name="last_model",
-        init_file_name="init_model",
-        batch_size=64,
-        use_mini_batch_size=False,
-        n_epochs=1500,
-        callbacks=None,
-        random_state=None,
-        verbose=False,
-        loss="mean_squared_error",
-        metrics="mean_squared_error",
-        optimizer=None,
+        n_regressors: int = 5,
+        use_litemv: bool = False,
+        n_filters: int = 32,
+        kernel_size: int = 40,
+        strides: int | list[int] = 1,
+        activation: str | list[str] = "relu",
+        output_activation: str = "linear",
+        file_path: str = "./",
+        save_last_model: bool = False,
+        save_best_model: bool = False,
+        save_init_model: bool = False,
+        best_file_name: str = "best_model",
+        last_file_name: str = "last_model",
+        init_file_name: str = "init_model",
+        batch_size: int = 64,
+        use_mini_batch_size: bool = False,
+        n_epochs: int = 1500,
+        callbacks: Callback | list[Callback] | None = None,
+        random_state: int | np.random.RandomState | None = None,
+        verbose: bool = False,
+        loss: str = "mean_squared_error",
+        metrics: str | list[str] = "mean_squared_error",
+        optimizer: tf.keras.optimizers.Optimizer | None = None,
     ):
         self.n_regressors = n_regressors
 
@@ -190,11 +198,11 @@ class LITETimeRegressor(BaseRegressor):
         self.metrics = metrics
         self.optimizer = optimizer
 
-        self.regressors_ = []
+        self.regressors_: list[IndividualLITERegressor] = []
 
         super().__init__()
 
-    def _fit(self, X, y):
+    def _fit(self, X: np.ndarray, y: np.ndarray) -> LITETimeRegressor:
         """Fit the ensemble of IndividualLITERegressor models.
 
         Parameters
@@ -239,7 +247,7 @@ class LITETimeRegressor(BaseRegressor):
 
         return self
 
-    def _predict(self, X) -> np.ndarray:
+    def _predict(self, X: np.ndarray) -> np.ndarray:
         """Predict the values of the test set using LITETime.
 
         Parameters
@@ -262,7 +270,7 @@ class LITETimeRegressor(BaseRegressor):
         return vals
 
     @classmethod
-    def _get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set: str = "default") -> dict | list[dict]:
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -388,11 +396,12 @@ class IndividualLITERegressor(BaseDeepRegressor):
     -----
     Adapted from the implementation from Ismail-Fawaz et. al
     https://github.com/MSD-IRIMAS/LITE
+    by the code owner.
 
     References
     ----------
     ..[1] Ismail-Fawaz et al. LITE: Light Inception with boosTing
-    tEchniques for Time Series Classificaion, IEEE International
+    tEchniques for Time Series Classification, IEEE International
     Conference on Data Science and Advanced Analytics, 2023.
     ..[2] Ismail-Fawaz, Ali, et al. "Look Into the LITE
     in Deep Learning for Time Series Classification."
@@ -411,28 +420,28 @@ class IndividualLITERegressor(BaseDeepRegressor):
 
     def __init__(
         self,
-        use_litemv=False,
-        n_filters=32,
-        kernel_size=40,
-        strides=1,
-        activation="relu",
-        output_activation="linear",
-        file_path="./",
-        save_best_model=False,
-        save_last_model=False,
-        save_init_model=False,
-        best_file_name="best_model",
-        last_file_name="last_model",
-        init_file_name="init_model",
-        batch_size=64,
-        use_mini_batch_size=False,
-        n_epochs=1500,
-        callbacks=None,
-        random_state=None,
-        verbose=False,
-        loss="mean_squared_error",
-        metrics="mean_squared_error",
-        optimizer=None,
+        use_litemv: bool = False,
+        n_filters: int = 32,
+        kernel_size: int = 40,
+        strides: int | list[int] = 1,
+        activation: str | list[str] = "relu",
+        output_activation: str = "linear",
+        file_path: str = "./",
+        save_best_model: bool = False,
+        save_last_model: bool = False,
+        save_init_model: bool = False,
+        best_file_name: str = "best_model",
+        last_file_name: str = "last_model",
+        init_file_name: str = "init_model",
+        batch_size: int = 64,
+        use_mini_batch_size: bool = False,
+        n_epochs: int = 1500,
+        callbacks: Callback | list[Callback] | None = None,
+        random_state: int | np.random.RandomState | None = None,
+        verbose: bool = False,
+        loss: str = "mean_squared_error",
+        metrics: str | list[str] = "mean_squared_error",
+        optimizer: tf.keras.optimizers.Optimizer | None = None,
     ):
         self.use_litemv = use_litemv
         self.n_filters = n_filters
@@ -472,7 +481,9 @@ class IndividualLITERegressor(BaseDeepRegressor):
             activation=self.activation,
         )
 
-    def build_model(self, input_shape, **kwargs):
+    def build_model(
+        self, input_shape: tuple[int, ...], **kwargs: Any
+    ) -> tf.keras.Model:
         """
         Construct a compiled, un-trained, keras model that is ready for training.
 
@@ -485,7 +496,6 @@ class IndividualLITERegressor(BaseDeepRegressor):
         -------
         output : a compiled Keras Model
         """
-        import numpy as np
         import tensorflow as tf
 
         rng = check_random_state(self.random_state)
@@ -511,7 +521,7 @@ class IndividualLITERegressor(BaseDeepRegressor):
 
         return model
 
-    def _fit(self, X, y):
+    def _fit(self, X: np.ndarray, y: np.ndarray) -> IndividualLITERegressor:
         """
         Fit the Regressor on the training set (X, y).
 
@@ -600,7 +610,7 @@ class IndividualLITERegressor(BaseDeepRegressor):
         return self
 
     @classmethod
-    def _get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set: str = "default") -> dict | list[dict]:
         """Return testing parameter settings for the estimator.
 
         Parameters

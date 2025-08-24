@@ -1,10 +1,9 @@
 """Time series kmeans."""
 
-from typing import Optional
-
 __maintainer__ = []
+__all__ = ["TimeSeriesKMeans"]
 
-from typing import Callable, Union
+from collections.abc import Callable
 
 import numpy as np
 from numpy.random import RandomState
@@ -159,16 +158,16 @@ class TimeSeriesKMeans(BaseClusterer):
     def __init__(
         self,
         n_clusters: int = 8,
-        init: Union[str, np.ndarray] = "random",
-        distance: Union[str, Callable] = "msm",
+        init: str | np.ndarray = "random",
+        distance: str | Callable = "msm",
         n_init: int = 10,
         max_iter: int = 300,
         tol: float = 1e-6,
         verbose: bool = False,
-        random_state: Optional[Union[int, RandomState]] = None,
-        averaging_method: Union[str, Callable[[np.ndarray], np.ndarray]] = "ba",
-        distance_params: Optional[dict] = None,
-        average_params: Optional[dict] = None,
+        random_state: int | RandomState | None = None,
+        averaging_method: str | Callable[[np.ndarray], np.ndarray] = "ba",
+        distance_params: dict | None = None,
+        average_params: dict | None = None,
     ):
         self.init = init
         self.distance = distance
@@ -287,6 +286,13 @@ class TimeSeriesKMeans(BaseClusterer):
     def _check_params(self, X: np.ndarray) -> None:
         self._random_state = check_random_state(self.random_state)
 
+        _incorrect_init_str = (
+            f"The value provided for init: {self.init} is "
+            f"invalid. The following are a list of valid init algorithms "
+            f"strings: random, kmeans++, first. You can also pass a "
+            f"np.ndarray of size (n_clusters, n_channels, n_timepoints)"
+        )
+
         if isinstance(self.init, str):
             if self.init == "random":
                 self._init = self._random_center_initializer
@@ -294,16 +300,13 @@ class TimeSeriesKMeans(BaseClusterer):
                 self._init = self._kmeans_plus_plus_center_initializer
             elif self.init == "first":
                 self._init = self._first_center_initializer
+            else:
+                raise ValueError(_incorrect_init_str)
         else:
             if isinstance(self.init, np.ndarray) and len(self.init) == self.n_clusters:
                 self._init = self.init.copy()
             else:
-                raise ValueError(
-                    f"The value provided for init: {self.init} is "
-                    f"invalid. The following are a list of valid init algorithms "
-                    f"strings: random, kmedoids++, first. You can also pass a"
-                    f"np.ndarray of size (n_clusters, n_channels, n_timepoints)"
-                )
+                raise ValueError(_incorrect_init_str)
 
         if self.distance_params is None:
             self._distance_params = {}

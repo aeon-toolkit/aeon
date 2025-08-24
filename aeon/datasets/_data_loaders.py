@@ -1,7 +1,6 @@
 """Dataset loading functions."""
 
-from typing import Optional
-
+__maintainer__ = []
 __all__ = [  # Load functions
     "load_from_ts_file",
     "load_from_tsf_file",
@@ -468,15 +467,17 @@ def _download_and_extract(url, extract_path=None):
         extract_path = os.path.join(extract_path, "%s/" % file_name.split(".")[0])
 
     try:
-        if not os.path.exists(extract_path):
+        already_exists = os.path.exists(extract_path)
+        if not already_exists:
             os.makedirs(extract_path)
         zipfile.ZipFile(zip_file_name, "r").extractall(extract_path)
         shutil.rmtree(dl_dir)
         return extract_path
     except zipfile.BadZipFile:
         shutil.rmtree(dl_dir)
-        if os.path.exists(extract_path):
-            shutil.rmtree(extract_path)
+        if not already_exists:
+            if os.path.exists(extract_path):
+                shutil.rmtree(extract_path)
         raise zipfile.BadZipFile(
             "Could not unzip dataset. Please make sure the URL is valid."
         )
@@ -546,7 +547,7 @@ def _load_tsc_dataset(
             except zipfile.BadZipFile as e:
                 raise ValueError(
                     f"Invalid dataset name ={name} is not available on extract path ="
-                    f"{extract_path}. Nor is it available on {url}",
+                    f"{extract_path} nor is it available on {url}",
                 ) from e
 
     return _load_saved_dataset(
@@ -668,7 +669,7 @@ def load_from_tsv_file(full_file_path_and_name):
 def _convert_tsf_to_hierarchical(
     data: pd.DataFrame,
     metadata,
-    freq: Optional[str] = None,
+    freq: str | None = None,
     value_column_name: str = "series_value",
 ) -> pd.DataFrame:
     """Convert the data from default_tsf to pd_multiindex_hier.
@@ -1342,7 +1343,7 @@ def load_classification(
             try_zenodo = False
             error_str = (
                 f"Invalid dataset name ={name} that is not available on extract path "
-                f"={extract_path}. Nor is it available on "
+                f"={extract_path} nor is it available on "
                 f"https://timeseriesclassification.com/ or zenodo."
             )
             try:

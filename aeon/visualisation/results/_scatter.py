@@ -229,7 +229,7 @@ def plot_pairwise_scatter(
     plot.get_legend().remove()
 
     # Setting text with W, T and L for each method
-    anc = AnchoredText(
+    anc_text = AnchoredText(
         f"{first_method} wins here\n[{wins_A}W, {ties_A}T, {losses_A}L]",
         loc="upper left" if not lower_better else "lower right",
         frameon=True,
@@ -240,13 +240,13 @@ def plot_pairwise_scatter(
             ha="center",
         ),
     )
-    anc.patch.set_boxstyle("round,pad=0.,rounding_size=0.2")
-    anc.patch.set_color("wheat")
-    anc.patch.set_edgecolor("black")
-    anc.patch.set_alpha(0.5)
-    ax.add_artist(anc)
+    anc_text.patch.set_boxstyle("round,pad=0.,rounding_size=0.2")
+    anc_text.patch.set_color("wheat")
+    anc_text.patch.set_edgecolor("black")
+    anc_text.patch.set_alpha(0.5)
+    ax.add_artist(anc_text)
 
-    anc = AnchoredText(
+    anc_text = AnchoredText(
         f"{second_method} wins here\n[{wins_B}W, {ties_B}T, {losses_B}L]",
         loc="lower right" if not lower_better else "upper left",
         frameon=True,
@@ -257,11 +257,11 @@ def plot_pairwise_scatter(
             ha="center",
         ),
     )
-    anc.patch.set_boxstyle("round,pad=0.,rounding_size=0.2")
-    anc.patch.set_color("wheat")
-    anc.patch.set_edgecolor("black")
-    anc.patch.set_alpha(0.5)
-    ax.add_artist(anc)
+    anc_text.patch.set_boxstyle("round,pad=0.,rounding_size=0.2")
+    anc_text.patch.set_color("wheat")
+    anc_text.patch.set_edgecolor("black")
+    anc_text.patch.set_alpha(0.5)
+    ax.add_artist(anc_text)
 
     # Setting title if provided.
     if title is not None:
@@ -297,12 +297,12 @@ def plot_pairwise_scatter(
             )[1]
 
         ttes = f"Paired t-test for equality of means, p-value={p_value_t:.3f}"
-        wil = f"Wilcoxon test for equality of medians, p-value={p_value_w:.3f}"
+        wilcox = f"Wilcoxon test for equality of medians, p-value={p_value_w:.3f}"
 
         plt.figtext(
             0.5,
             0.03 if not lower_better else 0.13,
-            f"{wil}\n{ttes}",
+            f"{wilcox}\n{ttes}",
             fontsize=10,
             wrap=True,
             horizontalalignment="center",

@@ -10,6 +10,7 @@ import numpy as np
 from numba import get_num_threads, njit, prange, set_num_threads, vectorize
 
 from aeon.transformations.collection import BaseCollectionTransformer
+from aeon.utils.validation import check_n_jobs
 
 
 class MiniRocket(BaseCollectionTransformer):
@@ -55,7 +56,7 @@ class MiniRocket(BaseCollectionTransformer):
     Notes
     -----
      Directly adapted from the original implementation
-     https://github.com/angus924/minirocket.
+     https://github.com/angus924/minirocket with owner permission.
 
     Examples
     --------
@@ -105,6 +106,8 @@ class MiniRocket(BaseCollectionTransformer):
         -------
         self
         """
+        self._n_jobs = check_n_jobs(self.n_jobs)
+
         random_state = (
             np.int32(self.random_state) if isinstance(self.random_state, int) else None
         )
@@ -139,12 +142,12 @@ class MiniRocket(BaseCollectionTransformer):
         """
         X = X.astype(np.float32)
         _, n_channels, n_timepoints = X.shape
-        # change n_jobs dependend on value and existing cores
+        # change n_jobs depending on value and existing cores
         prev_threads = get_num_threads()
-        if self.n_jobs < 1 or self.n_jobs > multiprocessing.cpu_count():
+        if self._n_jobs < 1 or self._n_jobs > multiprocessing.cpu_count():
             n_jobs = multiprocessing.cpu_count()
         else:
-            n_jobs = self.n_jobs
+            n_jobs = self._n_jobs
         set_num_threads(n_jobs)
         if n_channels == 1:
             X = X.squeeze(1)
@@ -230,7 +233,7 @@ def _static_fit(X, n_features=10_000, max_dilations_per_kernel=32, seed=None):
     )
 
 
-@vectorize("float32(float32,float32)", nopython=True, cache=True)
+@vectorize(nopython=True, cache=True)
 def _PPV(a, b):
     if a > b:
         return 1
@@ -238,8 +241,6 @@ def _PPV(a, b):
 
 
 @njit(
-    "float32[:,:](float32[:,:],Tuple((int32[:],int32[:],int32[:],int32[:],float32["
-    ":])), int32[:,:])",
     fastmath=True,
     parallel=True,
     cache=True,
@@ -305,8 +306,6 @@ def _static_transform_uni(X, parameters, indices):
 
 
 @njit(
-    "float32[:,:](float32[:,:,:],Tuple((int32[:],int32[:],int32[:],int32[:],float32["
-    ":])), int32[:,:])",
     fastmath=True,
     parallel=True,
     cache=True,
@@ -384,8 +383,6 @@ def _static_transform_multi(X, parameters, indices):
 
 
 @njit(
-    "float32[:](float32[:,:,:],int32[:],int32[:],int32[:],int32[:],float32[:],"
-    "int32[:,:],optional(int32))",  # noqa
     fastmath=True,
     parallel=False,
     cache=True,

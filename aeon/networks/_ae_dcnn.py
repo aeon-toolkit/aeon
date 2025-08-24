@@ -85,8 +85,8 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
     def build_network(self, input_shape):
         """Construct a network and return its input and output layers.
 
-        Arguments
-        ---------
+        Parameters
+        ----------
         input_shape : tuple of shape = (n_timepoints (m), n_channels (d))
             The shape of the data fed into the input layer.
 
@@ -241,20 +241,25 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
     ):
         import tensorflow as tf
 
+        from aeon.utils.networks.weight_norm import _WeightNormalization
+
         _add = tf.keras.layers.Conv1D(_num_filters, kernel_size=1)(_inputs)
-        x = tf.keras.layers.Conv1D(
-            _num_filters,
-            kernel_size=_kernel_size,
-            dilation_rate=_dilation_rate,
-            padding=_padding_encoder,
-            kernel_regularizer="l2",
+        x = _WeightNormalization(
+            tf.keras.layers.Conv1D(
+                _num_filters,
+                kernel_size=_kernel_size,
+                dilation_rate=_dilation_rate,
+                padding=_padding_encoder,
+            )
         )(_inputs)
-        x = tf.keras.layers.Conv1D(
-            _num_filters,
-            kernel_size=_kernel_size,
-            dilation_rate=_dilation_rate,
-            padding=_padding_encoder,
-            kernel_regularizer="l2",
+        x = _WeightNormalization(
+            tf.keras.layers.Conv1D(
+                _num_filters,
+                kernel_size=_kernel_size,
+                dilation_rate=_dilation_rate,
+                padding=_padding_encoder,
+                activation=_activation,
+            )
         )(x)
         output = tf.keras.layers.Add()([x, _add])
         output = tf.keras.layers.Activation(_activation)(output)

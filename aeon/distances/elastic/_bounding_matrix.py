@@ -1,7 +1,6 @@
 __maintainer__ = []
 
 import math
-from typing import Optional
 
 import numpy as np
 from numba import njit
@@ -11,8 +10,8 @@ from numba import njit
 def create_bounding_matrix(
     x_size: int,
     y_size: int,
-    window: Optional[float] = None,
-    itakura_max_slope: Optional[float] = None,
+    window: float | None = None,
+    itakura_max_slope: float | None = None,
 ):
     """Create a bounding matrix for an elastic distance.
 
@@ -63,8 +62,14 @@ def create_bounding_matrix(
 def _itakura_parallelogram(x_size: int, y_size: int, max_slope_percent: float):
     """Itakura parallelogram bounding matrix.
 
-    This code was adapted from pyts. This link to the original code:
+    This code was adapted from the tslearn and pyts functions.
+
+    pyts code:
     https://pyts.readthedocs.io/en/latest/_modules/pyts/metrics/dtw.html#itakura_parallelogram
+    Copyright (c) 2018, Johann Faouzi and pyts contributors, BSD-3
+    tslearn code (line 974):
+    https://github.com/tslearn-team/tslearn/blob/main/tslearn/metrics/dtw_variants.py
+    Copyright (c) 2017, Romain Tavenard, BSD-2
     """
     one_percent = min(x_size, y_size) / 100
     max_slope = math.floor((max_slope_percent * one_percent) * 100)

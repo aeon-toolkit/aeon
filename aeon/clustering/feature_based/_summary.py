@@ -12,6 +12,7 @@ from sklearn.cluster import KMeans
 from aeon.base._base import _clone_estimator
 from aeon.clustering import BaseClusterer
 from aeon.transformations.collection.feature_based import SevenNumberSummary
+from aeon.utils.validation import check_n_jobs
 
 
 class SummaryClusterer(BaseClusterer):
@@ -24,12 +25,12 @@ class SummaryClusterer(BaseClusterer):
 
     Parameters
     ----------
-    summary_stats : ["default", "percentiles", "bowley", "tukey"], default="default"
+    summary_stats : ["default", "quantiles", "bowley", "tukey"], default="default"
         The summary statistics to compute.
         The options are as follows, with float denoting the percentile value extracted
         from the series:
             - "default": mean, std, min, max, 0.25, 0.5, 0.75
-            - "percentiles": 0.215, 0.887, 0.25, 0.5, 0.75, 0.9113, 0.9785
+            - "quantiles": 0.0215, 0.0887, 0.25, 0.5, 0.75, 0.9113, 0.9785
             - "bowley": min, max, 0.1, 0.25, 0.5, 0.75, 0.9
             - "tukey": min, max, 0.125, 0.25, 0.5, 0.75, 0.875
     estimator : sklearn clusterer, default=None
@@ -105,6 +106,8 @@ class SummaryClusterer(BaseClusterer):
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
         """
+        self._n_jobs = check_n_jobs(self.n_jobs)
+
         self._transformer = SevenNumberSummary(
             summary_stats=self.summary_stats,
         )

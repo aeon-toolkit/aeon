@@ -101,7 +101,6 @@ class SignatureClassifier(BaseClassifier):
         "capability:multivariate": True,
         "algorithm_type": "feature",
         "python_dependencies": "esig",
-        "python_version": "<3.11",
     }
 
     def __init__(
@@ -140,7 +139,7 @@ class SignatureClassifier(BaseClassifier):
             rescaling,
             sig_tfm,
             depth,
-        ).signature_method
+        )
         self.pipeline = None
 
     def _setup_classification_pipeline(self):
