@@ -14,9 +14,9 @@ Inherited inspection methods:
     fitted parameter inspection - ``get_fitted_params()``
 
 State:
-    fitted model/strategy   - by convention, any attributes ending in ``_``
-    fitted state flag       - ``is_fitted (property)``
-    fitted state inspection - ``check_is_fitted()``
+    fitted model/strategy   - by convention, any attributes ending in "_"
+    fitted state flag       - is_fitted (property)
+    fitted state inspection - check_is_fitted()
 
 """
 

@@ -79,9 +79,9 @@ class BaseAeonEstimator(BaseEstimator, ABC):
         Parameters
         ----------
         keep : None, str, or list of str, default=None
-             If ``None``, all attributes are removed except hyperparameters.
-             If ``str``, only the attribute with this name is kept.
-             If ``list`` of ``str``, only the attributes with these names are kept.
+            If ``None``, all attributes are removed except hyperparameters.
+            If ``str``, only the attribute with this name is kept.
+            If ``list`` of ``str``, only the attributes with these names are kept.
 
         Returns
         -------
@@ -370,7 +370,7 @@ class BaseAeonEstimator(BaseEstimator, ABC):
         ----------
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return ``default`` set.
+            special parameters are defined for a value, will return `"default"` set.
 
         Returns
         -------
@@ -395,7 +395,7 @@ class BaseAeonEstimator(BaseEstimator, ABC):
         ----------
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return ``default`` set.
+            special parameters are defined for a value, will return `"default"` set.
         return_first : bool, default=True
             If ``True``, return the first instance of the list of instances.
             If ``False``, return the list of instances.
@@ -454,7 +454,7 @@ class BaseAeonEstimator(BaseEstimator, ABC):
 
     @classmethod
     def _get_default_requests(cls):
-        """``Sklearn`` metadata request defaults."""
+        """Sklearn metadata request defaults."""
         from sklearn.utils._metadata_requests import MetadataRequest
 
         return MetadataRequest(None)

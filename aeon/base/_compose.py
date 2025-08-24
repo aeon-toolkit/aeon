@@ -12,8 +12,10 @@ from aeon.base._base import _clone_estimator
 class ComposableEstimatorMixin(ABC):
     """Handles parameter management for estimators composed of named estimators.
 
-    Parts (i.e. ``get_params`` and ``set_params``) adapted or copied from the
-    ``scikit-learn`` ``_BaseComposition`` class in ``utils/metaestimators.py``.
+    Parts (i.e. get_params and set_params) adapted from the scikit-learn 1.5.0
+    ``_BaseComposition`` class in utils/metaestimators.py.
+    https://github.com/scikit-learn/scikit-learn/
+    Copyright (c) 2007-2024 The scikit-learn developers, BSD-3
     """
 
     # Attribute name containing an iterable of processed (str, estimator) tuples
@@ -150,7 +152,7 @@ class ComposableEstimatorMixin(ABC):
         Parameters
         ----------
         estimators : list
-            A ``list`` of estimators or ``list`` of (``str``, ``estimator``) tuples.
+            A ``list`` of estimators or ``list`` of ``(str, estimator)`` tuples.
         attr_name : str, optional. Default = "steps"
             Name of checked attribute in error messages
         class_type : class, tuple of class or None, default=BaseAeonEstimator.
