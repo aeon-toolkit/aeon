@@ -9,7 +9,7 @@ from aeon.transformations.series._stl import STLSeriesTransformer
 
 def _toy_two_season(n=504):
     """Toy signal with daily (24) and weekly (168) seasonality + trend."""
-    t = np.arange(n)
+    t = np.arange(n, dtype=float)
     y = 1.5 * np.sin(2 * np.pi * t / 24) + 0.75 * np.sin(2 * np.pi * t / 168) + 0.01 * t
     return y.astype(float)
 
@@ -61,7 +61,7 @@ def test_modes_shapes():
 def test_mstl_matches_stl_single_season():
     """With one period and iterate=1, MSTL reduces to STL (same internals)."""
     n = 480
-    t = np.arange(n)
+    t = np.arange(n, dtype=float)
     y = np.sin(2 * np.pi * t / 24) + 0.02 * t
 
     mstl = MSTLSeriesTransformer(periods=[24], iterate=1, s_windows=[11], output="all")
@@ -89,3 +89,57 @@ def test_iterate_validation():
     y = rng.random(240)
     with pytest.raises(ValueError):
         MSTLSeriesTransformer(periods=[12], iterate=0).fit_transform(y)
+
+
+def test_mstl_numba_parity_vs_numpy():
+    """MSTL using Numba-STL should match NumPy-STL results closely."""
+    pytest.importorskip("numba")  # skip if Numba not installed
+
+    n = 24 * 21
+    t = np.arange(n, dtype=float)
+    y = (
+        1.2 * np.sin(2 * np.pi * t / 24 + 0.3)
+        + 0.8 * np.sin(2 * np.pi * t / 168)
+        + 0.01 * t
+    )
+
+    s_windows = [11, 15]
+
+    mstl_np = MSTLSeriesTransformer(
+        periods=[24, 168],
+        iterate=2,
+        s_windows=s_windows,
+        output="all",
+        stl_use_numba=False,
+    )
+    mstl_nb = MSTLSeriesTransformer(
+        periods=[24, 168],
+        iterate=2,
+        s_windows=s_windows,
+        output="all",
+        stl_use_numba=True,
+    )
+
+    Z_np = mstl_np.fit_transform(y)
+    Z_nb = mstl_nb.fit_transform(y)
+
+    assert np.allclose(Z_nb, Z_np, atol=1e-6, rtol=1e-7)
+
+
+def test_mstl_numba_smoke_with_jumps():
+    """Numba-STL inside MSTL with knot jumps runs and returns proper shapes."""
+    pytest.importorskip("numba")
+
+    y = _toy_two_season(n=24 * 21)
+
+    mstl_nb = MSTLSeriesTransformer(
+        periods=[24, 168],
+        iterate=2,
+        s_windows=[11, 15],
+        seasonal_jump=2,
+        trend_jump=2,
+        output="all",
+        stl_use_numba=True,
+    )
+    Z = mstl_nb.fit_transform(y)
+    assert isinstance(Z, np.ndarray) and Z.shape == (len(y), 4)

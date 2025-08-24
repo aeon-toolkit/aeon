@@ -65,3 +65,32 @@ def test_parameter_validation():
         )  # low_pass <= period
     with pytest.raises(ValueError):
         STLSeriesTransformer(period=12, output="foo").fit_transform(y)
+
+
+# ------------------------ Numba-specific tests ------------------------
+
+
+def test_stl_numba_parity_vs_numpy():
+    """Numba path should numerically match NumPy path (within a tight tolerance)."""
+    y, _, _ = _synthetic_series(n=720, period=24, trend_slope=0.02, noise=0.01, seed=42)
+
+    stl_np = STLSeriesTransformer(period=24, seasonal=11, output="all", use_numba=False)
+    stl_nb = STLSeriesTransformer(period=24, seasonal=11, output="all", use_numba=True)
+
+    Z_np = stl_np.fit_transform(y)
+    Z_nb = stl_nb.fit_transform(y)
+
+    # Allow for tiny numerical diffs; STL is deterministic here
+    assert np.allclose(Z_nb, Z_np, atol=1e-7, rtol=1e-7)
+
+
+def test_stl_numba_auto_matches_true():
+    """'auto' should behave like forcing use_numba=True when Numba is available."""
+    y, _, _ = _synthetic_series(n=360, period=12, trend_slope=0.01, noise=0.0, seed=7)
+
+    stl_auto = STLSeriesTransformer(period=12, seasonal=9, output="all", use_numba=None)
+    stl_true = STLSeriesTransformer(period=12, seasonal=9, output="all", use_numba=True)
+
+    Za = stl_auto.fit_transform(y)
+    Zt = stl_true.fit_transform(y)
+    assert np.allclose(Za, Zt, atol=1e-8, rtol=1e-7)
