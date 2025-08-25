@@ -3,8 +3,12 @@
 from __future__ import annotations
 
 __maintainer__ = []
+
 __all__ = ["TCNForecaster"]
 
+import os
+import time
+from copy import deepcopy
 from typing import Any
 
 import numpy as np
@@ -18,8 +22,8 @@ from aeon.networks._tcn import TCNNetwork
 class TCNForecaster(BaseDeepForecaster, IterativeForecastingMixin):
     """A deep learning forecaster using Temporal Convolutional Network (TCN).
 
-    It leverages the `TCNNetwork` from aeon's network module
-    to build the architecture suitable for forecasting tasks.
+    Leverages the `TCNNetwork` from aeon's network module to build the architecture
+    suitable for forecasting tasks.
 
     Parameters
     ----------
@@ -31,8 +35,13 @@ class TCNForecaster(BaseDeepForecaster, IterativeForecastingMixin):
         Number of epochs to train the model.
     verbose : int, default=0
         Verbosity mode (0, 1, or 2).
-    optimizer : str or tf.keras.optimizers.Optimizer, default='adam'
+    optimizer : str or tf.keras.optimizers.Optimizer, default=None
         Optimizer to use for training.
+    metrics : str or list[str|function|keras.metrics.Metric], default="accuracy"
+        The evaluation metrics to use during training. Each can be a string, function,
+        or a keras.metrics.Metric instance (see https://keras.io/api/metrics/).
+        If a single string metric is provided, it will be used as the only metric.
+        If a list of metrics are provided, all will be used for evaluation.
     loss : str or tf.keras.losses.Loss, default='mse'
         Loss function for training.
     callbacks : list of tf.keras.callbacks.Callback or None, default=None
@@ -48,13 +57,26 @@ class TCNForecaster(BaseDeepForecaster, IterativeForecastingMixin):
     file_path : str, default="./"
         Directory path where models will be saved.
     n_blocks : list of int, default=[16, 16, 16]
-        List specifying the number of output channels for each layer of the
-        TCN. The length determines the depth of the network.
+        List specifying the number of output channels for each layer of the TCN.
+        The length determines the depth of the network.
     kernel_size : int, default=2
         Size of the convolutional kernel in the TCN.
     dropout : float, default=0.2
-        Dropout rate applied after each convolutional layer for
-        regularization.
+        Dropout rate applied after each convolutional layer for regularization.
+    save_last_model : bool, default=False
+        Whether or not to save the last model, last epoch trained.
+    save_init_model : bool, default=False
+        Whether to save the initialization of the model.
+    best_file_name : str, default="best_model"
+        The name of the file of the best model.
+    init_file_name : str, default="init_model"
+        The name of the file of the init model.
+
+    References
+    ----------
+    .. [1] Bai, S., Kolter, J. Z., & Koltun, V. (2018). An empirical evaluation of
+       generic convolutional and recurrent networks for sequence modeling.
+       arXiv preprint arXiv:1803.01271.
     """
 
     _tags = {
@@ -75,7 +97,8 @@ class TCNForecaster(BaseDeepForecaster, IterativeForecastingMixin):
         batch_size=32,
         n_epochs=100,
         verbose=0,
-        optimizer="adam",
+        optimizer=None,
+        metrics="accuracy",
         loss="mse",
         callbacks=None,
         random_state=None,
@@ -86,25 +109,42 @@ class TCNForecaster(BaseDeepForecaster, IterativeForecastingMixin):
         n_blocks=None,
         kernel_size=2,
         dropout=0.2,
+        save_last_model=False,
+        save_init_model=False,
+        best_file_name="best_model",
+        init_file_name="init_model",
     ):
-        super().__init__(
-            horizon=horizon,
-            window=window,
-            verbose=verbose,
-            callbacks=callbacks,
-            axis=axis,
-            last_file_name=last_file_name,
-            file_path=file_path,
-        )
+        self.window = window
+        self.horizon = horizon
+        self.batch_size = batch_size
+        self.n_epochs = n_epochs
+        self.verbose = verbose
+        self.optimizer = optimizer
+        self.metrics = metrics
+        self.loss = loss
+        self.callbacks = callbacks
+        self.random_state = random_state
+        self.axis = axis
+        self.last_file_name = last_file_name
+        self.save_best_model = save_best_model
+        self.file_path = file_path
         self.n_blocks = n_blocks
         self.kernel_size = kernel_size
         self.dropout = dropout
-        self.batch_size = batch_size
-        self.n_epochs = n_epochs
-        self.optimizer = optimizer
-        self.loss = loss
-        self.random_state = random_state
-        self.save_best_model = save_best_model
+        self.save_last_model = save_last_model
+        self.save_init_model = save_init_model
+        self.best_file_name = best_file_name
+        self.init_file_name = init_file_name
+
+        super().__init__(
+            horizon=self.horizon,
+            window=self.window,
+            verbose=self.verbose,
+            callbacks=self.callbacks,
+            axis=self.axis,
+            last_file_name=self.last_file_name,
+            file_path=self.file_path,
+        )
 
     def build_model(self, input_shape):
         """Build the TCN model for forecasting.
@@ -121,17 +161,35 @@ class TCNForecaster(BaseDeepForecaster, IterativeForecastingMixin):
         """
         import tensorflow as tf
 
+        rng = check_random_state(self.random_state)
+        self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
+
+        tf.keras.utils.set_random_seed(self.random_state_)
         network = TCNNetwork(
             n_blocks=self.n_blocks if self.n_blocks is not None else [16, 16, 16],
             kernel_size=self.kernel_size,
             dropout=self.dropout,
         )
+
         input_layer, output = network.build_network(input_shape=input_shape)
+
         model = tf.keras.Model(inputs=input_layer, outputs=output)
+
+        self.optimizer_ = (
+            tf.keras.optimizers.Adam() if self.optimizer is None else self.optimizer
+        )
+
+        model.compile(
+            loss=self.loss,
+            optimizer=self.optimizer_,
+            metrics=self._metrics,
+        )
+
         return model
 
     def _fit(self, y, exog=None):
-        """Fit the forecaster to training data.
+        """
+        Fit the TCN forecaster model to the training data.
 
         Parameters
         ----------
@@ -140,40 +198,56 @@ class TCNForecaster(BaseDeepForecaster, IterativeForecastingMixin):
 
         Returns
         -------
-        self : TCNForecaster
-            Returns an instance of self.
+        self : object
         """
         import tensorflow as tf
 
-        rng = check_random_state(self.random_state)
-        self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
-        tf.keras.utils.set_random_seed(self.random_state_)
         y_inner = y
         num_timepoints, num_channels = y_inner.shape
         num_sequences = num_timepoints - self.window - self.horizon + 1
+
         if y_inner.shape[0] < self.window + self.horizon:
             raise ValueError(
                 f"Data length ({y_inner.shape}) is insufficient for window "
                 f"({self.window}) and horizon ({self.horizon})."
             )
+
+        if isinstance(self.metrics, list):
+            self._metrics = self.metrics
+        elif isinstance(self.metrics, str):
+            self._metrics = [self.metrics]
+
         windows_full = np.lib.stride_tricks.sliding_window_view(
             y_inner, window_shape=(self.window, num_channels)
         )
         windows_full = np.squeeze(windows_full, axis=1)
         X_train = windows_full[:num_sequences]
-        # print(f"Shape of X_train is {X_train.shape}")
+
         tail = y_inner[self.window :]
         y_windows = np.lib.stride_tricks.sliding_window_view(
             tail, window_shape=(self.horizon, num_channels)
         )
         y_windows = np.squeeze(y_windows, axis=1)
         y_train = y_windows[:num_sequences]
-        # print(f"Shape of y_train is {y_train.shape}")
+
         input_shape = X_train.shape[1:]
-        self.model_ = self.build_model(input_shape)
-        self.model_.compile(optimizer=self.optimizer, loss=self.loss)
+        self.training_model_ = self.build_model(input_shape)
+
+        if self.save_init_model:
+            self.training_model_.save(self.file_path + self.init_file_name + ".keras")
+
+        self.file_name_ = (
+            self.best_file_name if self.save_best_model else str(time.time_ns())
+        )
+
         callbacks_list = self._prepare_callbacks()
-        self.history_ = self.model_.fit(
+        callbacks_list.append(
+            tf.keras.callbacks.ReduceLROnPlateau(
+                monitor="loss", factor=0.5, patience=50, min_lr=0.0001
+            )
+        )
+
+        self.history = self.training_model_.fit(
             X_train,
             y_train,
             batch_size=self.batch_size,
@@ -181,7 +255,21 @@ class TCNForecaster(BaseDeepForecaster, IterativeForecastingMixin):
             verbose=self.verbose,
             callbacks=callbacks_list,
         )
+
+        try:
+            self.model_ = tf.keras.models.load_model(
+                self.file_path + self.file_name_ + ".keras", compile=False
+            )
+            if not self.save_best_model:
+                os.remove(self.file_path + self.file_name_ + ".keras")
+        except ValueError:
+            self.model_ = deepcopy(self.training_model_)
+
+        if self.save_last_model:
+            self.save_last_model_to_file(file_path=self.file_path)
+
         self.last_window_ = y_inner[-self.window :]
+
         return self
 
     def _predict(self, y=None, exog=None):
@@ -211,7 +299,7 @@ class TCNForecaster(BaseDeepForecaster, IterativeForecastingMixin):
                     f"Input data length ({y_inner.shape}) is less than the "
                     f"window size ({self.window})."
                 )
-            y_inner = y_inner[-self.window :]
+        y_inner = y_inner[-self.window :]
         num_channels = y_inner.shape[-1]
         last_window = y_inner.reshape(1, self.window, num_channels)
         pred = self.model_.predict(last_window, verbose=0)
