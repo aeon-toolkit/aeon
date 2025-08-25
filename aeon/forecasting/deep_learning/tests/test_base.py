@@ -12,6 +12,9 @@ class DummyDeepForecaster(BaseDeepForecaster):
     def __init__(self, window):
         super().__init__(window=window)
 
+    def _predict(self, y, exog=None):
+        return None
+
     def build_model(self, input_shape):
         """Construct and return a model based on the provided input shape."""
         return None  # Not needed for this test
