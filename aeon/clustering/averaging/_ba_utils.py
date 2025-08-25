@@ -1,6 +1,5 @@
 __maintainer__ = []
 
-
 import numpy as np
 from numba import njit
 from sklearn.utils import check_random_state
@@ -14,6 +13,7 @@ from aeon.distances import (
     msm_alignment_path,
     pairwise_distance,
     shape_dtw_alignment_path,
+    soft_dtw_alignment_path,
     twe_alignment_path,
     wddtw_alignment_path,
     wdtw_alignment_path,
@@ -22,21 +22,23 @@ from aeon.distances import (
 
 def _medoids(
     X: np.ndarray,
-    precomputed_pairwise_distance: np.ndarray | None = None,
+    precomputed_medoids_pairwise_distance: np.ndarray | None = None,
     distance: str = "dtw",
     **kwargs,
 ):
     if X.shape[0] < 1:
         return X
 
-    if precomputed_pairwise_distance is None:
-        precomputed_pairwise_distance = pairwise_distance(X, method=distance, **kwargs)
+    if precomputed_medoids_pairwise_distance is None:
+        precomputed_medoids_pairwise_distance = pairwise_distance(
+            X, method=distance, **kwargs
+        )
 
     x_size = X.shape[0]
     distance_matrix = np.zeros((x_size, x_size))
     for j in range(x_size):
         for k in range(x_size):
-            distance_matrix[j, k] = precomputed_pairwise_distance[j, k]
+            distance_matrix[j, k] = precomputed_medoids_pairwise_distance[j, k]
     return X[np.argmin(sum(distance_matrix))]
 
 
@@ -44,7 +46,7 @@ def _get_init_barycenter(
     X: np.ndarray,
     init_barycenter: np.ndarray | str,
     distance: str,
-    precomputed_medoids_pw: np.ndarray | None = None,
+    precomputed_medoids_pw_distance: np.ndarray | None = None,
     random_state: int | None = None,
     **kwargs,
 ) -> np.ndarray:
@@ -59,7 +61,7 @@ def _get_init_barycenter(
         elif init_barycenter == "medoids":
             return _medoids(
                 X,
-                precomputed_pairwise_distance=precomputed_medoids_pw,
+                precomputed_medoids_pw_distance,
                 distance=distance,
                 **kwargs,
             )
@@ -80,7 +82,7 @@ def _get_init_barycenter(
                         1, init_barycenter.shape[0]
                     ),
                     distance=distance,
-                    precomputed_medoids_pw=precomputed_medoids_pw,
+                    precomputed_medoids_pw_distance=precomputed_medoids_pw_distance,
                     random_state=random_state,
                     **kwargs,
                 )
@@ -123,6 +125,7 @@ def _get_alignment_path(
     transformation_precomputed: bool = False,
     transformed_x: np.ndarray | None = None,
     transformed_y: np.ndarray | None = None,
+    gamma: float = 1.0,
 ) -> tuple[list[tuple[int, int]], float]:
     if distance == "dtw":
         return dtw_alignment_path(ts, center, window)
@@ -153,7 +156,108 @@ def _get_alignment_path(
         )
     elif distance == "adtw":
         return adtw_alignment_path(ts, center, window=window, warp_penalty=warp_penalty)
+    elif distance == "soft_dtw":
+        return soft_dtw_alignment_path(ts, center, gamma=gamma, window=window)
     else:
         # When numba version > 0.57 add more informative error with what method
         # was passed.
         raise ValueError("Distance parameter invalid")
+
+
+def _ba_setup(
+    X: np.ndarray,
+    distance: str = "dtw",
+    init_barycenter: np.ndarray | str = "mean",
+    previous_cost: float | None = None,
+    previous_distance_to_center: np.ndarray | None = None,
+    precomputed_medoids_pairwise_distance: np.ndarray | None = None,
+    n_jobs: int = 1,
+    random_state: int | None = None,
+    weights: np.ndarray | None = None,
+    **kwargs,
+):
+    if X.ndim == 3:
+        _X = X
+    elif X.ndim == 2:
+        _X = X.reshape((X.shape[0], 1, X.shape[1]))
+    else:
+        raise ValueError("X must be a 2D or 3D array")
+
+    random_state = check_random_state(random_state)
+
+    if distance == "wdtw" or distance == "wddtw":
+        if "g" not in kwargs:
+            kwargs["g"] = 0.05
+
+    if (
+        init_barycenter is None
+        or previous_cost is None
+        or previous_distance_to_center is None
+    ):
+        init_barycenter = _get_init_barycenter(
+            _X,
+            init_barycenter=init_barycenter,
+            distance=distance,
+            random_state=random_state,
+            precomputed_medoids_pw_distance=precomputed_medoids_pairwise_distance,
+            **kwargs,
+        )
+
+        pw_dist = pairwise_distance(
+            _X, init_barycenter, method=distance, n_jobs=n_jobs, **kwargs
+        )
+        previous_cost = np.sum(pw_dist)
+        previous_distance_to_center = pw_dist.flatten()
+
+    barycenter = np.copy(init_barycenter)
+    prev_barycenter = np.copy(init_barycenter)
+    distances_to_center = np.full(len(_X), np.inf)
+
+    cost = np.inf
+
+    if weights is None:
+        weights = np.ones(len(_X))
+
+    return (
+        _X,
+        barycenter,
+        prev_barycenter,
+        cost,
+        previous_cost,
+        distances_to_center,
+        previous_distance_to_center,
+        random_state,
+        n_jobs,
+        weights,
+    )
+
+
+VALID_BA_METHODS = [
+    "subgradient",
+    "kasba",
+    "soft",
+    "petitjean",
+]
+
+
+VALID_SOFT_BA_DISTANCE_METHODS = [
+    "soft_adtw",
+    "soft_dtw",
+    "soft_twe",
+    "soft_msm",
+    "soft_wdtw",
+    "soft_erp",
+    "soft_shape_dtw",
+]
+
+
+VALID_BA_DISTANCE_METHODS = [
+    "adtw",
+    "dtw",
+    "wdtw",
+    "erp",
+    "edr",
+    "twe",
+    "msm",
+    "shape_dtw",
+] + VALID_SOFT_BA_DISTANCE_METHODS

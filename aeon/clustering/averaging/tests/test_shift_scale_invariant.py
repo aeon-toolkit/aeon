@@ -6,6 +6,11 @@ from aeon.clustering.averaging import shift_invariant_average
 from aeon.clustering.averaging._averaging import _resolve_average_callable
 from aeon.datasets import load_gunpoint
 from aeon.testing.data_generation import make_example_3d_numpy
+from aeon.testing.expected_results.expected_average_results import (
+    expected_shift_invariant_multi,
+    expected_shift_invariant_uni,
+    expected_shift_with_params,
+)
 
 
 def test_univariate_shift_invariant_average():
@@ -15,6 +20,7 @@ def test_univariate_shift_invariant_average():
     other_avg = _resolve_average_callable("shift_scale")(data)
 
     assert avg.shape == (1, 10)
+    assert np.allclose(avg, expected_shift_invariant_uni)
     assert np.array_equal(avg, other_avg)
 
 
@@ -25,6 +31,7 @@ def test_multivariate_shift_invariant_average():
     other_avg = _resolve_average_callable("shift_scale")(data)
 
     assert avg.shape == (3, 10)
+    assert np.allclose(avg, expected_shift_invariant_multi)
     assert np.array_equal(avg, other_avg)
 
 
@@ -53,4 +60,5 @@ def test_shift_invariant_average_with_max_shift():
 
     assert avg.shape == data[0].shape
     assert np.array_equal(avg, other_avg)
+    assert np.allclose(avg, expected_shift_with_params)
     assert not np.array_equal(avg, original)

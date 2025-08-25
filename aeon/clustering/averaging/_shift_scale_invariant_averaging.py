@@ -9,8 +9,35 @@ def shift_invariant_average(
     X: np.ndarray,
     initial_center: np.ndarray | None = None,
     max_shift: int | None = None,
-    **kwargs,
 ):
+    """
+    Shift-invariant average.
+
+    Computes a barycenter that is invariant to circular/time shifts by aligning each
+    instance in `X` to a common center using a shift-invariant distance. Using these
+    optimal shifts, a covariance matrix :math:`M` is constructed. Eigen decomposition
+    of :math:`M` is then performed, and the eigenvector corresponding to the smallest
+    eigenvalue is used as the new centroid.
+
+    Parameters
+    ----------
+    X: np.ndarray of shape (n_instances, n_dims, n_timepoints)
+        Collection of time series to average.
+    initial_center : np.ndarray of shape (n_dims, n_timepoints), default=None
+        Initial center used for alignment. If None, the arithmetic mean of `X`
+        over the first axis is used.
+    max_shift : int or None, default=None
+        Maximum shift allowed in the alignment path. If None, then `max_shift` is set
+        to `min(x.shape[1], y.shape[1])`.
+    **kwargs
+        Additional keyword arguments forwarded to
+        :func:`aeon.distances.shift_scale_invariant_best_shift`.
+
+    Returns
+    -------
+    np.ndarray of shape (n_dims, n_timepoints)
+        The shift-invariant barycenter.
+    """
     if initial_center is None:
         initial_center = X.mean(axis=0)
 
