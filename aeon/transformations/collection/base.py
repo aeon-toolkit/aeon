@@ -29,7 +29,7 @@ from typing import final
 
 from aeon.base import BaseCollectionEstimator
 from aeon.transformations.base import BaseTransformer
-from aeon.utils.validation import get_n_cases
+from aeon.utils.validation.collection import get_n_cases
 
 
 class BaseCollectionTransformer(BaseCollectionEstimator, BaseTransformer):

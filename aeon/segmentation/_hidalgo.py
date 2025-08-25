@@ -5,7 +5,6 @@ __all__ = ["HidalgoSegmenter"]
 
 
 from functools import reduce
-from typing import Union
 
 import numpy as np
 from sklearn.neighbors import NearestNeighbors
@@ -692,7 +691,7 @@ class HidalgoSegmenter(BaseSegmenter):
         }
 
 
-def _binom(N: Union[int, float], q: Union[int, float]):
+def _binom(N: int | float, q: int | float):
     """Calculate the binomial coefficient.
 
     Parameters
