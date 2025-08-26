@@ -149,7 +149,7 @@ class TimeSeriesKMeans(BaseClusterer):
     >>> X = np.random.random(size=(10,2,20))
     >>> clst = TimeSeriesKMeans(distance="dtw",n_clusters=2)
     >>> clst.fit(X)
-    TimeSeriesKMeans(distance='euclidean', n_clusters=2)
+    TimeSeriesKMeans(distance='dtw', n_clusters=2)
     >>> preds = clst.predict(X)
     """
 
