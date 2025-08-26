@@ -127,7 +127,7 @@ def test_subgradient_ba_multi(distance, init_barycenter):
 
 
 @pytest.mark.parametrize("distance", _average_distances_with_params)
-def test_kasba_distance_params(distance):
+def test_subgradient_distance_params(distance):
     """Test ssg-ba with various distance parameters."""
     distance_params = distance[1]
     distance = distance[0]

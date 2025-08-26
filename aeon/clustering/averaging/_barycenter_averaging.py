@@ -6,6 +6,7 @@ import numpy as np
 
 from aeon.clustering.averaging._ba_petitjean import petitjean_barycenter_average
 from aeon.clustering.averaging._ba_subgradient import subgradient_barycenter_average
+from aeon.clustering.averaging._ba_utils import VALID_BA_METHODS
 from aeon.clustering.averaging._kasba_average import kasba_average
 
 
@@ -173,5 +174,5 @@ def elastic_barycenter_average(
     else:
         raise ValueError(
             f"Invalid method: {method}. Please use one of the following: "
-            f"['petitjean', 'subgradient', 'kasba']"
+            f"{VALID_BA_METHODS}"
         )

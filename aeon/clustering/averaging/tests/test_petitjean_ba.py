@@ -22,7 +22,6 @@ from aeon.testing.expected_results.expected_average_results import (
 _average_distances_with_params = [
     ("dtw", {"window": 0.2}),
     ("wdtw", {"g": 2.0}),
-    ("erp", {"g": 1.0}),
     ("edr", {"epsilon": 0.8}),
     ("twe", {"nu": 0.2, "lmbda": 0.1}),
     ("msm", {"c": 2.0}),

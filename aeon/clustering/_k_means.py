@@ -9,7 +9,7 @@ import numpy as np
 from numpy.random import RandomState
 from sklearn.utils import check_random_state
 
-from aeon.clustering.averaging import VALID_BA_METRICS
+from aeon.clustering.averaging import VALID_BA_DISTANCE_METHODS
 from aeon.clustering.averaging._averaging import _resolve_average_callable
 from aeon.clustering.base import BaseClusterer
 from aeon.distances import pairwise_distance
@@ -320,7 +320,10 @@ class TimeSeriesKMeans(BaseClusterer):
         # Add the distance to average params
         if "distance" not in self._average_params:
             # Must be a str and a valid distance for ba averaging
-            if isinstance(self.distance, str) and self.distance in VALID_BA_METRICS:
+            if (
+                isinstance(self.distance, str)
+                and self.distance in VALID_BA_DISTANCE_METHODS
+            ):
                 self._average_params["distance"] = self.distance
             else:
                 # Invalid distance passed for ba so default to dba
