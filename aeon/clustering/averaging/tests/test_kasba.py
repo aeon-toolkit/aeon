@@ -9,6 +9,7 @@ from aeon.clustering.averaging import (
     elastic_barycenter_average,
     kasba_average,
 )
+from aeon.clustering.averaging._ba_utils import _get_init_barycenter
 from aeon.clustering.averaging.tests.test_petitjean_ba import (
     _average_distances_with_params,
 )
@@ -65,24 +66,35 @@ def test_kasba_ba_uni(distance, init_barycenter):
     distance = distance[0]
     X_train_uni = make_example_3d_numpy(10, 1, 10, random_state=1, return_y=False)
 
+    params = {
+        "window": 0.2,
+        "random_state": 1,
+        "init_barycenter": init_barycenter,
+        "distance": distance,
+    }
+
     average_ts_uni = elastic_barycenter_average(
         X_train_uni,
         method="kasba",
-        random_state=1,
-        distance=distance,
-        window=0.2,
-        init_barycenter=init_barycenter,
+        **params,
     )
     call_directly_average_ts_uni = kasba_average(
         X_train_uni,
-        random_state=1,
-        distance=distance,
-        window=0.2,
-        init_barycenter=init_barycenter,
+        **params,
     )
+    init_barycenter = _get_init_barycenter(
+        X_train_uni,
+        **params,
+    )
+
     assert isinstance(average_ts_uni, np.ndarray)
     assert average_ts_uni.shape == X_train_uni[0].shape
     assert np.allclose(average_ts_uni, call_directly_average_ts_uni)
+
+    # EDR and shape_dtw with random values don't update the barycenter so skipping
+    if distance not in ["shape_dtw", "edr"]:
+        # Test not just returning the init barycenter
+        assert not np.array_equal(average_ts_uni, init_barycenter)
 
 
 @pytest.mark.parametrize("distance", _average_distances_with_params)
@@ -100,25 +112,30 @@ def test_kasba_ba_multi(distance, init_barycenter):
     distance = distance[0]
     X_train_multi = make_example_3d_numpy(10, 3, 10, random_state=1, return_y=False)
 
+    params = {
+        "window": 0.2,
+        "random_state": 1,
+        "init_barycenter": init_barycenter,
+        "distance": distance,
+    }
+
     average_ts_multi = elastic_barycenter_average(
-        X_train_multi,
-        method="kasba",
-        random_state=1,
-        distance=distance,
-        window=0.2,
-        init_barycenter=init_barycenter,
+        X_train_multi, method="kasba", **params
     )
-    call_directly_average_ts_multi = kasba_average(
+    call_directly_average_ts_multi = kasba_average(X_train_multi, **params)
+
+    init_barycenter = _get_init_barycenter(
         X_train_multi,
-        random_state=1,
-        distance=distance,
-        window=0.2,
-        init_barycenter=init_barycenter,
+        **params,
     )
 
     assert isinstance(average_ts_multi, np.ndarray)
     assert average_ts_multi.shape == X_train_multi[0].shape
     assert np.allclose(average_ts_multi, call_directly_average_ts_multi)
+    # EDR and shape_dtw with random values don't update the barycenter so skipping
+    if distance not in ["shape_dtw", "edr"]:
+        # Test not just returning the init barycenter
+        assert not np.array_equal(average_ts_multi, init_barycenter)
 
 
 @pytest.mark.parametrize("distance", _average_distances_with_params)

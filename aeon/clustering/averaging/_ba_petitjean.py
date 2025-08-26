@@ -151,10 +151,11 @@ def petitjean_barycenter_average(
             if previous_cost < cost:
                 barycenter = prev_barycenter
                 distances_to_center = previous_distance_to_center
-            print(  # noqa: T001, T201
-                f"[Petitjean-BA] epoch {i}, early convergence change in cost between "
-                f"epochs {cost} - {previous_cost} < tol: {tol}"
-            )
+            if verbose:
+                print(  # noqa: T001, T201
+                    f"[Petitjean-BA] epoch {i}, early convergence change in cost "
+                    f"between epochs {cost} - {previous_cost} < tol: {tol}"
+                )
             break
         else:
             prev_barycenter = barycenter
