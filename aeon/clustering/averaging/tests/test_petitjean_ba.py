@@ -104,7 +104,9 @@ def test_petitjean_ba_uni(distance, init_barycenter):
     assert average_ts_uni.shape == X_train_uni[0].shape
     assert np.allclose(average_ts_uni, call_directly_average_ts_uni)
     # EDR and shape_dtw with random values don't update the barycenter so skipping
-    if distance not in ["shape_dtw"] and init_barycenter != "mean":
+    if distance not in ["shape_dtw"] and (
+        isinstance(init_barycenter, str) and init_barycenter != "mean"
+    ):
         # Test not just returning the init barycenter
         assert not np.array_equal(average_ts_uni, init_barycenter)
 
@@ -149,7 +151,9 @@ def test_petitjean_ba_multi(distance, init_barycenter):
     assert average_ts_multi.shape == X_train_multi[0].shape
     assert np.allclose(average_ts_multi, call_directly_average_ts_multi)
     # EDR and shape_dtw with random values don't update the barycenter so skipping
-    if distance not in ["edr", "shape_dtw"] and init_barycenter != "mean":
+    if distance not in ["edr", "shape_dtw"] and (
+        isinstance(init_barycenter, str) and init_barycenter != "mean"
+    ):
         # Test not just returning the init barycenter
         assert not np.array_equal(average_ts_multi, init_barycenter)
 

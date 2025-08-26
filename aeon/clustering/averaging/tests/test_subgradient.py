@@ -92,7 +92,9 @@ def test_subgradient_ba_uni(distance, init_barycenter):
     assert np.allclose(average_ts_uni, call_directly_average_ts_uni)
 
     # With random values some distances just return the init barycenter so skip those.
-    if distance != "shape_dtw" and init_barycenter != "mean":
+    if distance != "shape_dtw" and (
+        isinstance(init_barycenter, str) and init_barycenter != "mean"
+    ):
         if distance != "edr" and (
             init_barycenter != "medoids" or init_barycenter != "random"
         ):
@@ -140,7 +142,9 @@ def test_subgradient_ba_multi(distance, init_barycenter):
     assert np.allclose(average_ts_multi, call_directly_average_ts_multi)
 
     # With random values some distances just return the init barycenter so skip those.
-    if distance not in ["msm", "shape_dtw"] and init_barycenter != "mean":
+    if distance not in ["msm", "shape_dtw"] and (
+        isinstance(init_barycenter, str) and init_barycenter != "mean"
+    ):
         if distance != "edr":
             assert not np.array_equal(average_ts_multi, init_barycenter)
 
