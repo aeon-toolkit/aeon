@@ -34,8 +34,9 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer):
     def fit(self, X, y=None, axis=1):
         """Fit transformer to X, optionally using y if supervised.
 
-        State change:
-            Changes state to "fitted".
+        Writes to self:
+        - is_fitted : flag is set to True.
+        - model attributes (ending in "_") : dependent on estimator
 
         Parameters
         ----------
@@ -220,7 +221,7 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer):
         y : Target variable, default=None
             Additional data, e.g., labels for transformation
         """
-        ...
+        pass
 
     @abstractmethod
     def _transform(self, X, y=None):
