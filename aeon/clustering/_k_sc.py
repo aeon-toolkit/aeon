@@ -130,6 +130,10 @@ class KSpectralCentroid(TimeSeriesKMeans):
         if "max_shift" not in self._average_params:
             self._average_params["max_shift"] = temp_max_shift
 
+        # These params aren't needed for k-sc average
+        del self._average_params["distance"]
+        del self._average_params["random_state"]
+
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.

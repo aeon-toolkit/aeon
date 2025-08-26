@@ -9,7 +9,10 @@ import numpy as np
 from numpy.random import RandomState
 from sklearn.utils import check_random_state
 
-from aeon.clustering.averaging import VALID_BA_DISTANCE_METHODS
+from aeon.clustering.averaging import (
+    VALID_BA_DISTANCE_METHODS,
+    elastic_barycenter_average,
+)
 from aeon.clustering.averaging._averaging import _resolve_average_callable
 from aeon.clustering.base import BaseClusterer
 from aeon.distances import pairwise_distance
@@ -332,7 +335,10 @@ class TimeSeriesKMeans(BaseClusterer):
         if "random_state" not in self._average_params:
             self._average_params["random_state"] = self._random_state
 
-        self._averaging_method = _resolve_average_callable(self.averaging_method)
+        if self.averaging_method == "ba":
+            self._averaging_method = elastic_barycenter_average
+        else:
+            self._averaging_method = _resolve_average_callable(self.averaging_method)
 
         if self.n_clusters > X.shape[0]:
             raise ValueError(
