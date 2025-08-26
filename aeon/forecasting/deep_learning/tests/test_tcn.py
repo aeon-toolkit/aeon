@@ -32,7 +32,7 @@ def test_tcn_forecaster(horizon, window, epochs):
     prediction = forecaster.predict(y)
 
     # Basic assertions
-    assert prediction is not None
+    assert isinstance(prediction, float)
     if isinstance(prediction, tf.Tensor):
         assert not tf.math.is_nan(prediction).numpy()
 
@@ -65,11 +65,11 @@ def test_tcn_forecaster_uni_mutli(loader, is_univariate):
 
     # predict
     prediction = forecaster.predict(y)
-    assert prediction is not None
+    assert isinstance(prediction, float)
 
     # forecast
     prediction = forecaster.forecast(y)
-    assert prediction is not None
+    assert isinstance(prediction, float)
 
     # iterative forecasting
     prediction = forecaster.iterative_forecast(y, 3)

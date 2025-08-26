@@ -22,8 +22,8 @@ from aeon.networks._tcn import TCNNetwork
 class TCNForecaster(BaseDeepForecaster, IterativeForecastingMixin):
     """A deep learning forecaster using Temporal Convolutional Network (TCN).
 
-    Leverages the `TCNNetwork` from aeon's network module to build the architecture
-    suitable for forecasting tasks.
+    Adapted from the implementation used in [1]_. Leverages the `TCNNetwork` from
+    aeon's network module to build the architecture suitable for forecasting tasks.
 
     Parameters
     ----------
