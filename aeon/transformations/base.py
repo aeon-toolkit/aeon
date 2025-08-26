@@ -1,7 +1,7 @@
 """Base class for transformers."""
 
 __maintainer__ = ["MatthewMiddlehurst", "TonyBagnall"]
-__all__ = ["BaseTransformer"]
+__all__ = ["BaseTransformer", "InverseTransformerMixin"]
 
 from abc import ABC, abstractmethod
 from typing import final
@@ -10,8 +10,8 @@ import numpy as np
 import pandas as pd
 
 from aeon.base import BaseAeonEstimator
-from aeon.transformations.collection import BaseCollectionTransformer
-from aeon.transformations.series import BaseSeriesTransformer
+from aeon.transformations.collection.base import BaseCollectionTransformer
+from aeon.transformations.series.base import BaseSeriesTransformer
 
 
 class BaseTransformer(BaseAeonEstimator):
