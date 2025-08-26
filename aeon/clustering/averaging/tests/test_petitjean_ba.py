@@ -19,6 +19,7 @@ from aeon.testing.expected_results.expected_average_results import (
     expected_petitjean_ba_multivariate,
     expected_petitjean_ba_univariate,
 )
+from aeon.testing.testing_config import MULTITHREAD_TESTING
 
 _average_distances_with_params = [
     ("dtw", {"window": 0.2}),
@@ -267,3 +268,24 @@ def test_petitjean_ba_incorrect_input():
         ),
     ):
         petitjean_barycenter_average(X, init_barycenter=make_example_1d_numpy(9))
+
+
+@pytest.mark.skipif(not MULTITHREAD_TESTING, reason="Only run on multithread testing")
+@pytest.mark.parametrize("distance", _average_distances_with_params)
+@pytest.mark.parametrize("n_jobs", [2, -1])
+def test_petitjean_threaded(distance, n_jobs):
+    """Test petitjean threaded functionality."""
+    distance = distance[0]
+    data = make_example_3d_numpy(10, 3, 10, random_state=2, return_y=False)
+    serial = petitjean_barycenter_average(
+        data, distance=distance, n_jobs=1, random_state=1
+    )
+    parallel = petitjean_barycenter_average(
+        data, distance=distance, n_jobs=n_jobs, random_state=1
+    )
+    utils_parallel = elastic_barycenter_average(
+        data, method="petitjean", distance=distance, n_jobs=n_jobs, random_state=1
+    )
+    assert serial.shape == parallel.shape
+    assert np.allclose(serial, parallel)
+    assert np.allclose(serial, utils_parallel)
