@@ -50,12 +50,9 @@ class BaseCollectionTransformer(BaseCollectionEstimator, BaseTransformer):
     def fit(self, X, y=None):
         """Fit transformer to X, optionally using y if supervised.
 
-        State change:
-            Changes state to "fitted".
-
         Writes to self:
-        _is_fitted : flag is set to True.
-        model attributes (ending in "_") : dependent on estimator
+        - is_fitted : flag is set to True.
+        - model attributes (ending in "_") : dependent on estimator
 
         Parameters
         ----------
@@ -273,8 +270,6 @@ class BaseCollectionTransformer(BaseCollectionEstimator, BaseTransformer):
 
         private _fit containing the core logic, called from fit
 
-        private _transform containing the core logic, called from transform
-
         Parameters
         ----------
         X : Input data
@@ -282,7 +277,7 @@ class BaseCollectionTransformer(BaseCollectionEstimator, BaseTransformer):
         y : Target variable, default=None
             Additional data, e.g., labels for transformation
         """
-        ...
+        pass
 
     @abstractmethod
     def _transform(self, X, y=None):
