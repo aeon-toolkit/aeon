@@ -2,12 +2,13 @@ __maintainer__ = []
 
 import numpy as np
 from numba import njit
-from sklearn.utils import check_random_state
 
 from aeon.clustering.averaging._ba_utils import (
+    VALID_BA_DISTANCE_METHODS,
+    _ba_setup,
     _get_alignment_path,
-    _get_init_barycenter,
 )
+from aeon.distances import pairwise_distance
 
 
 def subgradient_barycenter_average(
@@ -22,6 +23,11 @@ def subgradient_barycenter_average(
     precomputed_medoids_pairwise_distance: np.ndarray | None = None,
     verbose: bool = False,
     random_state: int | None = None,
+    n_jobs: int = 1,
+    previous_cost: float | None = None,
+    previous_distance_to_center: np.ndarray | None = None,
+    return_distances_to_center: bool = False,
+    return_cost: bool = False,
     **kwargs,
 ):
     """
@@ -65,6 +71,20 @@ def subgradient_barycenter_average(
         If True, prints progress information.
     random_state : int or None, default=None
         Random seed used where applicable (e.g., for shuffling/initialisation).
+    n_jobs : int, default=1
+        The number of jobs to run in parallel. If -1, then the number of jobs is set
+        to the number of CPU cores. If 1, then the function is executed in a single
+        thread. If greater than 1, then the function is executed in parallel.
+    previous_cost : float, default=None
+        The total cost (sum of distances from all series in X to the current
+        barycenter). If None, it is computed in the first iteration.
+    previous_distance_to_center : np.ndarray of shape (n_cases,), default=None
+        Distances from each series in X to the current barycenter. If None, they are
+        computed in the first iteration.
+    return_distances_to_center : bool, default=False
+        If True, also return the distances between each time series and the barycenter.
+    return_cost : bool, default=False
+        If True, also return the total cost.
     **kwargs
         Additional keyword arguments forwarded to the chosen distance function.
 
@@ -83,39 +103,50 @@ def subgradient_barycenter_average(
            Pattern Recognition, 74, 340–358, 2018.
     """
     if len(X) <= 1:
-        return X
+        center = X[0] if X.ndim == 3 else X
+        if return_distances_to_center and return_cost:
+            return center, np.zeros(X.shape[0]), 0.0
+        elif return_distances_to_center:
+            return center, np.zeros(X.shape[0])
+        elif return_cost:
+            return center, 0.0
+        return center
 
-    if X.ndim == 3:
-        _X = X
-    elif X.ndim == 2:
-        _X = X.reshape((X.shape[0], 1, X.shape[1]))
-    else:
-        raise ValueError("X must be a 2D or 3D array")
+    if distance not in VALID_BA_DISTANCE_METHODS:
+        raise ValueError(
+            f"Invalid distance metric: {distance}. Valid metrics are: "
+            f"{VALID_BA_DISTANCE_METHODS}"
+        )
 
-    if weights is None:
-        weights = np.ones(len(_X))
-
-    barycenter = _get_init_barycenter(
+    (
         _X,
-        init_barycenter,
-        distance,
-        precomputed_medoids_pairwise_distance,
+        barycenter,
+        prev_barycenter,
+        cost,
+        previous_cost,
+        distances_to_center,
+        previous_distance_to_center,
         random_state,
+        n_jobs,
+        weights,
+    ) = _ba_setup(
+        X,
+        distance=distance,
+        weights=weights,
+        init_barycenter=init_barycenter,
+        previous_cost=previous_cost,
+        previous_distance_to_center=previous_distance_to_center,
+        precomputed_medoids_pairwise_distance=precomputed_medoids_pairwise_distance,
+        n_jobs=n_jobs,
+        random_state=random_state,
         **kwargs,
     )
-
-    random_state = check_random_state(random_state)
-
-    cost_prev = np.inf
-    if distance == "wdtw" or distance == "wddtw":
-        if "g" not in kwargs:
-            kwargs["g"] = 0.05
 
     current_step_size = initial_step_size
     X_size = _X.shape[0]
     for i in range(max_iters):
         shuffled_indices = random_state.permutation(X_size)
-        barycenter, cost, current_step_size = _ba_one_iter_subgradient(
+        barycenter, current_step_size = _ba_one_iter_subgradient(
             barycenter,
             _X,
             shuffled_indices,
@@ -127,15 +158,35 @@ def subgradient_barycenter_average(
             i,
             **kwargs,
         )
-        if abs(cost_prev - cost) < tol:
+        pw_dist = pairwise_distance(
+            _X, barycenter, method=distance, n_jobs=n_jobs, **kwargs
+        )
+        cost = np.sum(pw_dist)
+        distances_to_center = pw_dist.flatten()
+
+        if abs(previous_cost - cost) < tol:
+            if previous_cost < cost:
+                barycenter = prev_barycenter
+                distances_to_center = previous_distance_to_center
             break
-        elif cost_prev < cost:
+        elif previous_cost < cost:
+            barycenter = prev_barycenter
+            distances_to_center = previous_distance_to_center
             break
         else:
-            cost_prev = cost
+            prev_barycenter = barycenter
+            previous_distance_to_center = distances_to_center.copy()
+            previous_cost = cost
 
         if verbose:
-            print(f"[DBA] epoch {i}, cost {cost}")  # noqa: T001, T201
+            print(f"[Subgradient-BA] epoch {i}, cost {cost}")  # noqa: T001, T201
+
+    if return_distances_to_center and return_cost:
+        return barycenter, distances_to_center, cost
+    elif return_distances_to_center:
+        return barycenter, distances_to_center
+    elif return_cost:
+        return barycenter, cost
     return barycenter
 
 
@@ -167,7 +218,6 @@ def _ba_one_iter_subgradient(
 ):
 
     X_size, X_dims, X_timepoints = X.shape
-    cost = 0.0
     # Only update current_step_size on the first iteration
     step_size_reduction = 0.0
     if iteration == 0:
@@ -178,7 +228,7 @@ def _ba_one_iter_subgradient(
     for i in shuffled_indices:
         curr_ts = X[i]
         curr_alignment, curr_cost = _get_alignment_path(
-            center=barycenter,
+            center=barycenter_copy,
             ts=curr_ts,
             distance=distance,
             window=window,
@@ -204,5 +254,4 @@ def _ba_one_iter_subgradient(
         barycenter_copy -= (2.0 * current_step_size) * new_ba * weights[i]
 
         current_step_size -= step_size_reduction
-        cost = curr_cost * weights[i]
-    return barycenter_copy, cost, current_step_size
+    return barycenter_copy, current_step_size

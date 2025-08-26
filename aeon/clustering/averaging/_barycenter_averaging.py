@@ -123,7 +123,7 @@ def elastic_barycenter_average(
             precomputed_medoids_pairwise_distance=precomputed_medoids_pairwise_distance,
             verbose=verbose,
             random_state=random_state,
-            n_jobs=1,
+            n_jobs=n_jobs,
             previous_cost=previous_cost,
             previous_distance_to_center=previous_distance_to_center,
             return_cost=return_cost,
@@ -143,6 +143,11 @@ def elastic_barycenter_average(
             precomputed_medoids_pairwise_distance=precomputed_medoids_pairwise_distance,
             verbose=verbose,
             random_state=random_state,
+            n_jobs=n_jobs,
+            previous_cost=previous_cost,
+            previous_distance_to_center=previous_distance_to_center,
+            return_cost=return_cost,
+            return_distances_to_center=return_distances_to_center,
             **kwargs,
         )
     elif method == "kasba":
@@ -159,7 +164,7 @@ def elastic_barycenter_average(
             initial_step_size=initial_step_size,
             decay_rate=decay_rate,
             verbose=verbose,
-            n_jobs=1,
+            n_jobs=n_jobs,
             random_state=random_state,
             return_cost=return_cost,
             return_distances_to_center=return_distances_to_center,
@@ -168,5 +173,5 @@ def elastic_barycenter_average(
     else:
         raise ValueError(
             f"Invalid method: {method}. Please use one of the following: "
-            f"['petitjean', 'subgradient']"
+            f"['petitjean', 'subgradient', 'kasba']"
         )

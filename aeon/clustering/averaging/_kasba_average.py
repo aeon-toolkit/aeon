@@ -148,6 +148,7 @@ def kasba_average(
         n_jobs=n_jobs,
         random_state=random_state,
         weights=weights,
+        **kwargs,
     )
 
     X_size = len(_X)
