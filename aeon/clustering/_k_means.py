@@ -321,18 +321,29 @@ class TimeSeriesKMeans(BaseClusterer):
             self._average_params = self.average_params
 
         # Add the distance to average params
-        if "distance" not in self._average_params:
+        if "distance" not in self._average_params and self.averaging_method not in [
+            "mean",
+            "shift_scale",
+        ]:
             # Must be a str and a valid distance for ba averaging
-            if (
-                isinstance(self.distance, str)
-                and self.distance in VALID_BA_DISTANCE_METHODS
-            ):
+            if isinstance(self.distance, str):
+                if (
+                    self.averaging_method == "ba"
+                    and self.distance not in VALID_BA_DISTANCE_METHODS
+                ):
+                    raise ValueError(
+                        f"Invalid distance passed for ba. "
+                        f"Valid distances are: {VALID_BA_DISTANCE_METHODS}"
+                    )
                 self._average_params["distance"] = self.distance
             else:
                 # Invalid distance passed for ba so default to dba
                 self._average_params["distance"] = "dtw"
 
-        if "random_state" not in self._average_params:
+        if (
+            "random_state" not in self._average_params
+            and self.averaging_method not in ["shift_scale", "mean"]
+        ):
             self._average_params["random_state"] = self._random_state
 
         if self.averaging_method == "ba":

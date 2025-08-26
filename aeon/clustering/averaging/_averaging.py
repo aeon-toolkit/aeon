@@ -14,7 +14,7 @@ from aeon.clustering.averaging._shift_scale_invariant_averaging import (
 )
 
 
-def mean_average(X: np.ndarray, **kwargs) -> np.ndarray:
+def mean_average(X: np.ndarray) -> np.ndarray:
     """Compute the mean average of time series.
 
     Parameters
@@ -50,8 +50,8 @@ def _resolve_average_callable(
     ----------
     averaging_method: str or Callable, default='mean'
         Averaging method to compute the average of a cluster. Any of the following
-        strings are valid: ['mean']. If a Callable is provided must take the form
-        Callable[[np.ndarray], np.ndarray].
+        strings are valid: ['mean', 'shift_scale', 'subgradient', 'kasba', 'petitjean'].
+        If a Callable is provided must take the form Callable[[np.ndarray], np.ndarray].
 
     Returns
     -------

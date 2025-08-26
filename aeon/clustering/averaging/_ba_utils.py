@@ -202,6 +202,9 @@ def _ba_setup(
     if weights is None:
         weights = np.ones(len(_X))
 
+    if len(weights) != len(_X):
+        raise ValueError("Weights must be the same length as X")
+
     return (
         _X,
         barycenter,
