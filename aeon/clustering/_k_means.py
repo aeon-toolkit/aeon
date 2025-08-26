@@ -116,6 +116,10 @@ class TimeSeriesKMeans(BaseClusterer):
         the sample weights if provided.
     n_iter_ : int
         Number of iterations run.
+    n_jobs : int, default=1
+        The number of jobs to run in parallel. If -1, then the number of jobs is set
+        to the number of CPU cores. If 1, then the function is executed in a single
+        thread. If greater than 1, then the function is executed in parallel.
 
     References
     ----------
@@ -156,6 +160,7 @@ class TimeSeriesKMeans(BaseClusterer):
     _tags = {
         "capability:multivariate": True,
         "algorithm_type": "distance",
+        "capability:multithreading": True,
     }
 
     def __init__(
@@ -171,6 +176,7 @@ class TimeSeriesKMeans(BaseClusterer):
         averaging_method: str | Callable[[np.ndarray], np.ndarray] = "ba",
         distance_params: dict | None = None,
         average_params: dict | None = None,
+        n_jobs: int | None = 1,
     ):
         self.init = init
         self.distance = distance
@@ -183,6 +189,7 @@ class TimeSeriesKMeans(BaseClusterer):
         self.average_params = average_params
         self.averaging_method = averaging_method
         self.n_clusters = n_clusters
+        self.n_jobs = n_jobs
 
         self.cluster_centers_ = None
         self.labels_ = None
@@ -238,7 +245,11 @@ class TimeSeriesKMeans(BaseClusterer):
         prev_labels = None
         for i in range(self.max_iter):
             curr_pw = pairwise_distance(
-                X, cluster_centres, method=self.distance, **self._distance_params
+                X,
+                cluster_centres,
+                method=self.distance,
+                n_jobs=self.n_jobs,
+                **self._distance_params,
             )
             curr_labels = curr_pw.argmin(axis=1)
             curr_inertia = curr_pw.min(axis=1).sum()
@@ -273,17 +284,13 @@ class TimeSeriesKMeans(BaseClusterer):
         return prev_labels, cluster_centres, prev_inertia, i + 1
 
     def _predict(self, X: np.ndarray, y=None) -> np.ndarray:
-        if isinstance(self.distance, str):
-            pairwise_matrix = pairwise_distance(
-                X, self.cluster_centers_, method=self.distance, **self._distance_params
-            )
-        else:
-            pairwise_matrix = pairwise_distance(
-                X,
-                self.cluster_centers_,
-                method=self.distance,
-                **self._distance_params,
-            )
+        pairwise_matrix = pairwise_distance(
+            X,
+            self.cluster_centers_,
+            method=self.distance,
+            n_jobs=self.n_jobs,
+            **self._distance_params,
+        )
         return pairwise_matrix.argmin(axis=1)
 
     def _check_params(self, X: np.ndarray) -> None:
@@ -357,6 +364,10 @@ class TimeSeriesKMeans(BaseClusterer):
                 f"n_cases ({X.shape[0]})"
             )
 
+        # Mean is the only one that n_jobs doesn't support
+        if isinstance(self.averaging_method, str) and self.averaging_method != "mean":
+            self._average_params["n_jobs"] = self.n_jobs
+
     def _random_center_initializer(self, X: np.ndarray) -> np.ndarray:
         return X[self._random_state.choice(X.shape[0], self.n_clusters, replace=False)]
 
@@ -369,7 +380,11 @@ class TimeSeriesKMeans(BaseClusterer):
 
         for _ in range(1, self.n_clusters):
             pw_dist = pairwise_distance(
-                X, X[indexes], method=self.distance, **self._distance_params
+                X,
+                X[indexes],
+                method=self.distance,
+                n_jobs=self.n_jobs,
+                **self._distance_params,
             )
             min_distances = pw_dist.min(axis=1)
             probabilities = min_distances / min_distances.sum()
@@ -404,7 +419,11 @@ class TimeSeriesKMeans(BaseClusterer):
             index_furthest_from_centre = curr_pw.min(axis=1).argmax()
             cluster_centres[current_empty_cluster_index] = X[index_furthest_from_centre]
             curr_pw = pairwise_distance(
-                X, cluster_centres, method=self.distance, **self._distance_params
+                X,
+                cluster_centres,
+                method=self.distance,
+                n_jobs=self.n_jobs,
+                **self._distance_params,
             )
             curr_labels = curr_pw.argmin(axis=1)
             curr_inertia = curr_pw.min(axis=1).sum()
