@@ -122,8 +122,8 @@ def test_autoarima_fit_sets_model_and_orders_within_bounds():
     forecaster.fit(y)
 
     # wrapped model exists and is ARIMA
-    assert forecaster.wrapped_model_ is not None
-    assert isinstance(forecaster.wrapped_model_, ARIMA)
+    assert forecaster.final_model_ is not None
+    assert isinstance(forecaster.final_model_, ARIMA)
 
     # orders exist and are within bounds
     assert 0 <= forecaster.p_ <= forecaster.max_p
@@ -145,8 +145,8 @@ def test_autoarima_forecast_sets_wrapped_and_returns_forecast_float():
     forecaster = AutoARIMA()
     f = forecaster._forecast(y)
     assert isinstance(f, float)
-    assert hasattr(forecaster.wrapped_model_, "forecast_")
-    assert np.isclose(f, forecaster.wrapped_model_.forecast_)
+    assert hasattr(forecaster.final_model_, "forecast_")
+    assert np.isclose(f, forecaster.final_model_.forecast_)
 
 
 def test_autoarima_iterative_forecast_shape_and_validity():
@@ -170,11 +170,11 @@ def test_autoarima_respects_small_max_orders():
 
 
 def test_autoarima_predict_matches_wrapped_predict():
-    """_predict should be a thin wrapper around wrapped_model_.predict."""
+    """_predict should be a thin wrapper around final_model_.predict."""
     forecaster = AutoARIMA()
     forecaster.fit(y)
     a = forecaster._predict(y)
-    b = forecaster.wrapped_model_.predict(y)
+    b = forecaster.final_model_.predict(y)
     # both are floats and close
     assert isinstance(a, float) and isinstance(b, float)
     assert np.isfinite(a) and np.isfinite(b)
@@ -185,4 +185,4 @@ def test_autoarima_forecast_is_consistent_with_wrapped():
     """_forecast should match the wrapped model's forecast after internal fit."""
     forecaster = AutoARIMA()
     val = forecaster._forecast(y)
-    assert np.isclose(val, forecaster.wrapped_model_.forecast_)
+    assert np.isclose(val, forecaster.final_model_.forecast_)

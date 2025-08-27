@@ -21,7 +21,7 @@ class ARIMA(BaseForecaster, IterativeForecastingMixin):
     """AutoRegressive Integrated Moving Average (ARIMA) forecaster.
 
     ARIMA with fixed model structure and fitted parameters found with an
-    nelder mead optimizer to minimise the AIC.
+    Nelder Mead optimizer to minimise the AIC.
 
     Parameters
     ----------
@@ -33,6 +33,7 @@ class ARIMA(BaseForecaster, IterativeForecastingMixin):
         Moving average (q) order of the ARIMA model
     use_constant : bool = False,
         Presence of a constant/intercept term in the model.
+    grid : int: 0
     iterations : int, default = 200
         Maximum number of iterations to use in the Nelder-Mead parameter search.
 
@@ -287,7 +288,7 @@ class AutoARIMA(BaseForecaster, IterativeForecastingMixin):
         self.d_ = 0
         self.q_ = 0
         self.constant_term_ = False
-        self.wrapped_model_ = None
+        self.final_model_ = None
         super().__init__(horizon=1, axis=1)
 
     def _fit(self, y, exog=None):
@@ -325,8 +326,7 @@ class AutoARIMA(BaseForecaster, IterativeForecastingMixin):
         parameter_limits = np.array([self.max_p, self.max_q])
         (
             model,
-            _,
-            _,
+            self.fit_aci_,
         ) = _auto_arima(differenced_series, 0, model_parameters, 3, parameter_limits)
         (
             constant_term_int,
@@ -334,9 +334,9 @@ class AutoARIMA(BaseForecaster, IterativeForecastingMixin):
             self.q_,
         ) = model
         self.constant_term_ = constant_term_int == 1
-        self.wrapped_model_ = ARIMA(self.p_, self.d_, self.q_, self.constant_term_)
-        self.wrapped_model_.fit(y)
-        self.forecast_ = self.wrapped_model_.forecast_
+        self.final_model_ = ARIMA(self.p_, self.d_, self.q_, self.constant_term_)
+        self.final_model_.fit(y)
+        self.forecast_ = self.final_model_.forecast_
         return self
 
     def _predict(self, y, exog=None):
@@ -356,12 +356,12 @@ class AutoARIMA(BaseForecaster, IterativeForecastingMixin):
         float
             Prediction 1 step ahead of the last value in y.
         """
-        return self.wrapped_model_.predict(y, exog)
+        return self.final_model_.predict(y, exog)
 
     def _forecast(self, y, exog=None):
         """Forecast one ahead for time series y."""
         self.fit(y, exog)
-        return float(self.wrapped_model_.forecast_)
+        return float(self.final_model_.forecast_)
 
     def iterative_forecast(self, y, prediction_horizon):
         """Forecast ``prediction_horizon`` prediction using a single model fit on `y`.
@@ -391,7 +391,7 @@ class AutoARIMA(BaseForecaster, IterativeForecastingMixin):
         ValueError
             if prediction_horizon` less than 1.
         """
-        return self.wrapped_model_.iterative_forecast(y, prediction_horizon)
+        return self.final_model_.iterative_forecast(y, prediction_horizon)
 
 
 @njit(cache=True, fastmath=True)
