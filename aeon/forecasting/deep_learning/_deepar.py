@@ -19,6 +19,34 @@ from sklearn.utils import check_random_state
 from aeon.forecasting.base import DirectForecastingMixin, IterativeForecastingMixin
 from aeon.forecasting.deep_learning.base import BaseDeepForecaster
 from aeon.networks._deepar import DeepARNetwork
+from aeon.utils.validation._dependencies import _check_soft_dependencies
+
+if _check_soft_dependencies(["tensorflow"], severity="none"):
+    from tensorflow.keras.utils import register_keras_serializable
+
+    @register_keras_serializable(package="Custom")
+    def gaussian_loss(y_true, y_pred):
+        """
+        Gaussian negative log-likelihood loss for concatenated output format.
+
+        Parameters
+        ----------
+        y_true: Ground truth values of shape (batch_size, n_channels)
+        y_pred: Predicted parameters of shape (batch_size, 2, n_channels)
+                where y_pred[:, 0, :] = mu and y_pred[:, 1, :] = sigma
+        """
+        import tensorflow as tf
+
+        mu = y_pred[:, 0, :]
+        sigma = y_pred[:, 1, :]
+
+        sigma = tf.maximum(sigma, 1e-6)
+        mu_true = y_true[:, 0, :]
+        return tf.reduce_mean(
+            tf.math.log(tf.math.sqrt(2 * tf.constant(np.pi)))
+            + tf.math.log(sigma)
+            + tf.truediv(tf.square(mu_true - mu), 2 * tf.square(sigma))
+        )
 
 
 class DeepARForecaster(
@@ -67,6 +95,9 @@ class DeepARForecaster(
         Number of units in the dense layer of the DeepAR network.
     dropout : float, default=0.1
         Dropout rate applied for regularization.
+    use_probabilistic : bool, default=False
+        If True, returns probabilistic output (both mean and standard deviation)
+        for each forecasted value. If False, returns only the mean (`mu`).
     save_last_model : bool, default=False
         Whether or not to save the last model, last epoch trained.
     save_init_model : bool, default=False
@@ -104,7 +135,7 @@ class DeepARForecaster(
         verbose=0,
         optimizer=None,
         metrics="accuracy",
-        loss="mse",
+        loss=gaussian_loss,
         callbacks=None,
         random_state=None,
         axis=0,
@@ -114,6 +145,7 @@ class DeepARForecaster(
         lstm_units=None,
         dense_units=None,
         dropout=0.1,
+        use_probabilistic=False,
         save_last_model=False,
         save_init_model=False,
         best_file_name="best_model",
@@ -136,6 +168,7 @@ class DeepARForecaster(
         self.lstm_units = lstm_units
         self.dense_units = dense_units
         self.dropout = dropout
+        self.use_probabilistic = use_probabilistic
         self.save_last_model = save_last_model
         self.save_init_model = save_init_model
         self.best_file_name = best_file_name
@@ -313,8 +346,11 @@ class DeepARForecaster(
         num_channels = y_inner.shape[-1]
         last_window = y_inner.reshape(1, self.window, num_channels)
         pred = self.model_.predict(last_window, verbose=0)
-        prediction = pred[0, 0, :]
-        return float(prediction)
+        if self.use_probabilistic:
+            prediction = pred[0, :, :]  # return both mu and std
+        else:
+            prediction = float(pred[0, 0, :])  # return only mu
+        return prediction
 
     @classmethod
     def _get_test_params(
