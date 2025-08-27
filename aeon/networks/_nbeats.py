@@ -55,11 +55,12 @@ class NBeatsNetwork(BaseDeepLearningNetwork):
     _config = {
         "python_dependencies": ["tensorflow"],
         "python_version": "<3.13",
+        "structure": "auto-encoder",
     }
 
     def __init__(
         self,
-        horizon,
+        horizon=1,
         stacks=None,
         num_blocks_per_stack=2,
         units=30,
