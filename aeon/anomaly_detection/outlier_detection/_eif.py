@@ -18,7 +18,7 @@ class EIF(BaseAnomalyDetector):
 
     The implementation supports both unsupervised and semi-supervised learning:
     - Unsupervised: No labels provided (y=None)
-    - Semi-supervised: Labels provided (y=0 for normal, y=1 for anomalous)
+    - Semi-supervised: Labels provided (y=0 for normal data)
 
     Parameters
     ----------
@@ -43,12 +43,6 @@ class EIF(BaseAnomalyDetector):
         Size of the sliding window. If 1, the original point-wise behavior is used.
     stride : int, default=1
         Stride of the sliding window.
-    axis : int, default=1
-        The time point axis of the input series if it is 2D. If ``axis==0``, it is
-        assumed each column is a time series and each row is a time point. i.e. the
-        shape of the data is ``(n_timepoints, n_channels)``. ``axis==1`` indicates
-        the time series are in rows, i.e. the shape of the data is
-        ``(n_channels, n_timepoints)``.
     """
 
     _tags = {
@@ -69,9 +63,8 @@ class EIF(BaseAnomalyDetector):
         random_state=None,
         window_size=1,
         stride=1,
-        axis=0,
     ):
-        super().__init__(axis=axis)
+        super().__init__()
 
         self.n_estimators = n_estimators
         self.sample_size = sample_size
@@ -89,7 +82,7 @@ class EIF(BaseAnomalyDetector):
         X : np.ndarray
             Training data of shape (n_timepoints,) or (n_timepoints, n_channels)
         y : np.ndarray, optional
-            Labels for semi-supervised learning. 0 for normal, 1 for anomalous.
+            Labels for semi-supervised learning. 0 for normal data is supported.
             If None, unsupervised learning is used.
 
         Returns
@@ -97,17 +90,17 @@ class EIF(BaseAnomalyDetector):
         self : object
             Fitted estimator.
         """
-        # Ensure X is 2D
-        if X.ndim == 1:
-            X = X.reshape(-1, 1)
-
-        # Store original shape for later use
-        self._n_samples_orig = X.shape[0]
+        if y is not None:
+            y = np.asarray(y)
+            if not np.all(y == 0):
+                raise ValueError(
+                    "Semi-supervised mode only supports training on normal data (y==0)."
+                )
 
         # Apply sliding window if window_size > 1
         if self.window_size > 1:
             X_windowed, _ = sliding_windows(
-                X, window_size=self.window_size, stride=self.stride, axis=self.axis
+                X, window_size=self.window_size, stride=self.stride
             )
         else:
             X_windowed = X
@@ -149,13 +142,18 @@ class EIF(BaseAnomalyDetector):
             tree = self._build_tree(X_sample, rng)
             self.forest_.append(tree)
 
-        # Calculate anomaly scores
-        scores = self._predict(X)
-
-        # Set threshold
-        self.threshold_ = float(np.percentile(scores, 100 * (1 - self.contamination)))
-
         return self
+    
+    def _set_threshold_if_needed(self, scores):
+        """Set threshold based on contamination if not already set.
+        
+        Parameters
+        ----------
+        scores : np.ndarray
+            Anomaly scores to use for threshold calculation
+        """
+        if not hasattr(self, 'threshold_'):
+            self.threshold_ = float(np.percentile(scores, 100 * (1 - self.contamination)))
 
     def _build_tree(self, X, rng, depth=0):
         """Build an isolation tree recursively.
@@ -256,7 +254,14 @@ class EIF(BaseAnomalyDetector):
             return 0
         elif n == 2:
             return 1
-        return 2 * (np.log(n - 1) + 0.5772156649) - 2 * (n - 1) / n
+        
+        # Formula: 2 * (H(n-1)) - 2*(n-1)/n
+        # where H(n-1) is the harmonic number ≈ ln(n-1) + γ
+        # where γ is the Euler-Mascheroni constant
+        euler_mascheroni_constant = 0.5772156649015329
+        harmonic_number = np.log(n - 1) + euler_mascheroni_constant
+    
+        return 2 * harmonic_number - 2 * (n - 1) / n
 
     def _predict(self, X) -> np.ndarray:
         """Predict anomaly scores for X.
@@ -272,20 +277,22 @@ class EIF(BaseAnomalyDetector):
             The anomaly scores of the input samples.
             The higher, the more abnormal.
         """
-        # Ensure X is 2D
-        if X.ndim == 1:
-            X = X.reshape(-1, 1)
+        # Store original shape for reconstruction
+        original_n_timepoints = X.shape[0]
 
         # Apply sliding window if window_size > 1
         if self.window_size > 1:
-            X, _ = sliding_windows(
-                X, window_size=self.window_size, stride=self.stride, axis=self.axis
+            X_windowed, _ = sliding_windows(
+                X, window_size=self.window_size, stride=self.stride
             )
+            X_for_scoring = X_windowed
+        else:
+            X_for_scoring = X
 
         # Calculate anomaly scores
-        scores = np.zeros(len(X))
+        scores = np.zeros(len(X_for_scoring))
         for tree in self.forest_:
-            scores += self._path_length(X, tree)
+            scores += self._path_length(X_for_scoring, tree)
         scores = scores / len(self.forest_)
 
         # Convert to anomaly scores
@@ -297,32 +304,39 @@ class EIF(BaseAnomalyDetector):
                 scores,
                 window_size=self.window_size,
                 stride=self.stride,
-                n_timepoints=self._n_samples_orig,
+                reduction=np.mean 
             )
+
+            if len(scores) > original_n_timepoints:
+                scores = scores[:original_n_timepoints]
+            elif len(scores) < original_n_timepoints:
+                # Pad with edge values if needed
+                pad_length = original_n_timepoints - len(scores)
+                scores = np.pad(scores, (0, pad_length), mode='edge')
 
         return scores
 
-    def predict_labels(self, X, axis=1) -> np.ndarray:
+    def predict_labels(self, X) -> np.ndarray:
         """Predict if points are anomalies or not.
 
         Parameters
         ----------
         X : one of aeon.base._base_series.VALID_SERIES_INPUT_TYPES
             The time series to predict for.
-        axis : int, default=1
-            The time point axis of the input series if it is 2D.
 
         Returns
         -------
         np.ndarray
             Returns 1 for anomalies/outliers and 0 for inliers.
         """
-        # Use base class to handle input preprocessing
         self._check_is_fitted()
-        X = self._preprocess_series(X, axis, False)
+        X = self._preprocess_series(X, False)
 
         # Get anomaly scores
         scores = self._predict(X)
+
+        # Set threshold based on current data if not already set
+        self._set_threshold_if_needed(scores)
 
         # Use threshold to determine outliers
         predictions = np.zeros(len(X), dtype=int)
