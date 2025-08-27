@@ -168,7 +168,7 @@ testpaths = "aeon"
 doctest_optionflags = [
     "NORMALIZE_WHITESPACE",
     "ELLIPSIS",
-    "FLOAT_CMP",
+#    "FLOAT_CMP",
 ]
 addopts = [
     "--durations=20",
