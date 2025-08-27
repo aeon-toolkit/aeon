@@ -21,6 +21,7 @@ __all__ = [
     "RecurrentNetwork",
     "DeepARNetwork",
     "TCNNetwork",
+    "NBeatsNetwork",
 ]
 from aeon.networks._ae_abgru import AEAttentionBiGRUNetwork
 from aeon.networks._ae_bgru import AEBiGRUNetwork
@@ -37,6 +38,7 @@ from aeon.networks._fcn import FCNNetwork
 from aeon.networks._inception import InceptionNetwork
 from aeon.networks._lite import LITENetwork
 from aeon.networks._mlp import MLPNetwork
+from aeon.networks._nbeats import NBeatsNetwork
 from aeon.networks._resnet import ResNetNetwork
 from aeon.networks._rnn import RecurrentNetwork
 from aeon.networks._tcn import TCNNetwork
