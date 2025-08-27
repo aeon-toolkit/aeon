@@ -13,7 +13,7 @@ Our goal is to provide a comprehensive collection of state-of-the-art time
 series algorithms, with efficient implementations powered by `numba`, and to promote
 reproducible research in the field of time series machine learning.
 
-The latest `aeon` release is `v1.2.0`. You can view the full changelog
+The latest `aeon` release is `v1.3.0`. You can view the full changelog
 [here](https://www.aeon-toolkit.org/en/stable/changelog.html).
 
 Our webpage and documentation is available at https://aeon-toolkit.org.
