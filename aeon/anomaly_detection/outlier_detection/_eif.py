@@ -143,17 +143,19 @@ class EIF(BaseAnomalyDetector):
             self.forest_.append(tree)
 
         return self
-    
+
     def _set_threshold_if_needed(self, scores):
         """Set threshold based on contamination if not already set.
-        
+
         Parameters
         ----------
         scores : np.ndarray
             Anomaly scores to use for threshold calculation
         """
-        if not hasattr(self, 'threshold_'):
-            self.threshold_ = float(np.percentile(scores, 100 * (1 - self.contamination)))
+        if not hasattr(self, "threshold_"):
+            self.threshold_ = float(
+                np.percentile(scores, 100 * (1 - self.contamination))
+            )
 
     def _build_tree(self, X, rng, depth=0):
         """Build an isolation tree recursively.
@@ -254,13 +256,13 @@ class EIF(BaseAnomalyDetector):
             return 0
         elif n == 2:
             return 1
-        
+
         # Formula: 2 * (H(n-1)) - 2*(n-1)/n
         # where H(n-1) is the harmonic number ≈ ln(n-1) + γ
         # where γ is the Euler-Mascheroni constant
         euler_mascheroni_constant = 0.5772156649015329
         harmonic_number = np.log(n - 1) + euler_mascheroni_constant
-    
+
         return 2 * harmonic_number - 2 * (n - 1) / n
 
     def _predict(self, X) -> np.ndarray:
@@ -304,7 +306,7 @@ class EIF(BaseAnomalyDetector):
                 scores,
                 window_size=self.window_size,
                 stride=self.stride,
-                reduction=np.mean 
+                reduction=np.mean,
             )
 
             if len(scores) > original_n_timepoints:
@@ -312,7 +314,7 @@ class EIF(BaseAnomalyDetector):
             elif len(scores) < original_n_timepoints:
                 # Pad with edge values if needed
                 pad_length = original_n_timepoints - len(scores)
-                scores = np.pad(scores, (0, pad_length), mode='edge')
+                scores = np.pad(scores, (0, pad_length), mode="edge")
 
         return scores
 
