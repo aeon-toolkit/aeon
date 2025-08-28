@@ -4,7 +4,7 @@ test_distances_with_params = [
     ("dtw", {"window": 0.2}),
     ("wdtw", {"g": 2.0}),
     ("edr", {"epsilon": 0.8}),
-    ("twe", {"nu": 0.01, "lmbda": 1.0}),
+    ("twe", {"nu": 0.2, "lmbda": 0.1}),
     ("msm", {"c": 2.0}),
     ("shape_dtw", {"reach": 4}),
     ("adtw", {"warp_penalty": 0.2}),
