@@ -528,7 +528,7 @@ def test_k_means_ba_threaded(distance, averaging_method, n_jobs):
 @pytest.mark.skipif(not MULTITHREAD_TESTING, reason="Only run on multithread testing")
 @pytest.mark.parametrize("distance", test_distances_with_params)
 @pytest.mark.parametrize("n_jobs", [2, -1])
-def test_k_means_averages_threaded(distance, n_jobs):
+def test_k_means_threaded(distance, n_jobs):
     """Test mean averaging threaded functionality."""
     curr_params = {
         "max_iter": 10,
