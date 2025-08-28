@@ -16,6 +16,7 @@ from aeon.clustering.averaging import (
 from aeon.clustering.averaging._averaging import _resolve_average_callable
 from aeon.clustering.base import BaseClusterer
 from aeon.distances import pairwise_distance
+from aeon.utils.validation import check_n_jobs
 
 
 class EmptyClusterError(Exception):
@@ -249,7 +250,7 @@ class TimeSeriesKMeans(BaseClusterer):
                 X,
                 cluster_centres,
                 method=self.distance,
-                n_jobs=self.n_jobs,
+                n_jobs=self._n_jobs,
                 **self._distance_params,
             )
             curr_labels = curr_pw.argmin(axis=1)
@@ -289,13 +290,14 @@ class TimeSeriesKMeans(BaseClusterer):
             X,
             self.cluster_centers_,
             method=self.distance,
-            n_jobs=self.n_jobs,
+            n_jobs=self._n_jobs,
             **self._distance_params,
         )
         return pairwise_matrix.argmin(axis=1)
 
     def _check_params(self, X: np.ndarray) -> None:
         self._random_state = check_random_state(self.random_state)
+        self._n_jobs = check_n_jobs(self.n_jobs)
 
         _incorrect_init_str = (
             f"The value provided for init: {self.init} is "
@@ -371,7 +373,7 @@ class TimeSeriesKMeans(BaseClusterer):
 
         # Mean is the only one that n_jobs doesn't support
         if isinstance(self.averaging_method, str) and self.averaging_method != "mean":
-            self._average_params["n_jobs"] = self.n_jobs
+            self._average_params["n_jobs"] = self._n_jobs
 
     def _random_center_initializer(self, X: np.ndarray) -> np.ndarray:
         return X[self._random_state.choice(X.shape[0], self.n_clusters, replace=False)]
@@ -388,7 +390,7 @@ class TimeSeriesKMeans(BaseClusterer):
                 X,
                 X[indexes],
                 method=self.distance,
-                n_jobs=self.n_jobs,
+                n_jobs=self._n_jobs,
                 **self._distance_params,
             )
             min_distances = pw_dist.min(axis=1)
@@ -427,7 +429,7 @@ class TimeSeriesKMeans(BaseClusterer):
                 X,
                 cluster_centres,
                 method=self.distance,
-                n_jobs=self.n_jobs,
+                n_jobs=self._n_jobs,
                 **self._distance_params,
             )
             curr_labels = curr_pw.argmin(axis=1)
