@@ -90,6 +90,11 @@ class TimeSeriesKMeans(BaseClusterer):
         averaging_params. BA yields 'better' clustering results but is very
         computationally expensive so you may want to consider setting a bounding window
         or using a different averaging method if time complexity is a concern.
+    distance_params : dict, default=None
+        Dictionary containing kwargs for the distance being used. For example if you
+        wanted to specify a window for DTW you would pass
+        distance_params={"window": 0.2}. See documentation of aeon.distances for more
+        details.
     average_params : dict, default=None
         Dictionary containing kwargs for averaging_method. See documentation of
         aeon.clustering.averaging and aeon.distances for more details. NOTE: if you
@@ -97,11 +102,10 @@ class TimeSeriesKMeans(BaseClusterer):
         in this dict in addition to custom averaging params. For example to specify a
         window as a distance param and verbosity for the averaging you would pass
         average_params={"window": 0.2, "verbose": True}.
-    distance_params : dict, default=None
-        Dictionary containing kwargs for the distance being used. For example if you
-        wanted to specify a window for DTW you would pass
-        distance_params={"window": 0.2}. See documentation of aeon.distances for more
-        details.
+    n_jobs : int, default=1
+        The number of jobs to run in parallel. If -1, then the number of jobs is set
+        to the number of CPU cores. If 1, then the function is executed in a single
+        thread. If greater than 1, then the function is executed in parallel.
 
     Attributes
     ----------
@@ -116,10 +120,6 @@ class TimeSeriesKMeans(BaseClusterer):
         the sample weights if provided.
     n_iter_ : int
         Number of iterations run.
-    n_jobs : int, default=1
-        The number of jobs to run in parallel. If -1, then the number of jobs is set
-        to the number of CPU cores. If 1, then the function is executed in a single
-        thread. If greater than 1, then the function is executed in parallel.
 
     References
     ----------
@@ -243,6 +243,7 @@ class TimeSeriesKMeans(BaseClusterer):
             cluster_centres = self._init.copy()
         prev_inertia = np.inf
         prev_labels = None
+        i = 0
         for i in range(self.max_iter):
             curr_pw = pairwise_distance(
                 X,
@@ -278,7 +279,7 @@ class TimeSeriesKMeans(BaseClusterer):
                     X[curr_labels == j], **self._average_params
                 )
 
-            if self.verbose is True:
+            if self.verbose:
                 print(f"Iteration {i}, inertia {prev_inertia}.")  # noqa: T001, T201
 
         return prev_labels, cluster_centres, prev_inertia, i + 1
@@ -313,7 +314,11 @@ class TimeSeriesKMeans(BaseClusterer):
             else:
                 raise ValueError(_incorrect_init_str)
         else:
-            if isinstance(self.init, np.ndarray) and len(self.init) == self.n_clusters:
+            if (
+                isinstance(self.init, np.ndarray)
+                and len(self.init) == self.n_clusters
+                and self.init.shape[1:] == X.shape[1:]
+            ):
                 self._init = self.init.copy()
             else:
                 raise ValueError(_incorrect_init_str)
@@ -321,11 +326,11 @@ class TimeSeriesKMeans(BaseClusterer):
         if self.distance_params is None:
             self._distance_params = {}
         else:
-            self._distance_params = self.distance_params
+            self._distance_params = self.distance_params.copy()
         if self.average_params is None:
             self._average_params = {}
         else:
-            self._average_params = self.average_params
+            self._average_params = self.average_params.copy()
 
         # Add the distance to average params
         if "distance" not in self._average_params and self.averaging_method not in [
