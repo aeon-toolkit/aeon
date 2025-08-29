@@ -93,7 +93,7 @@ dev = [
     "pytest-mock",
     "pytest-randomly",
     "pytest-remotedata",
-    # "pytest-rerunfailures",   # Causing CI fails, temporarily removed
+    "pytest-rerunfailures<16.0",   # Causing CI fails, temporarily pinned
     "pytest-timeout",
     "pytest-xdist[psutil]",
 ]
@@ -175,10 +175,10 @@ addopts = [
     "--timeout=600",
     "--showlocals",
     "--dist=worksteal",
-#    "--reruns=3",
-#    "--reruns-delay=3",
-#    "--rerun-except=(?<!Permission)Error",
-#    "--rerun-except=Exception",
+    "--reruns=3",
+    "--reruns-delay=3",
+    "--rerun-except=(?<!Permission)Error",
+    "--rerun-except=Exception",
 ]
 filterwarnings = [
     "ignore::UserWarning",
