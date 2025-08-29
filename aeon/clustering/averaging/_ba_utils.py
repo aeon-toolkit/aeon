@@ -237,3 +237,5 @@ VALID_BA_DISTANCE_METHODS = [
     "shape_dtw",
     "soft_dtw",
 ]
+
+VALID_SOFT_BA_METHODS = ["soft_dtw"]
