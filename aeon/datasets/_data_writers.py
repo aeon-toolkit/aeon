@@ -1,7 +1,7 @@
 """Functions to write aeon datasets to file."""
 
 __maintainers__ = ["MatthewMiddlehurst"]
-__all__ = ["write_to_ts_file"]
+__all__ = ["save_to_ts_file"]
 
 import os
 import textwrap
@@ -146,8 +146,8 @@ def save_to_ts_file(
                     [str(num) if not np.isnan(num) else "NaN" for num in X[i][j]]
                 )
                 file.write(str(series))
-            if y is not None:
                 file.write(":")
+            if y is not None:
                 file.write(str(y[i]))
             file.write("\n")
         file.close()
