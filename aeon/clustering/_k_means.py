@@ -9,7 +9,10 @@ import numpy as np
 from numpy.random import RandomState
 from sklearn.utils import check_random_state
 
-from aeon.clustering.averaging import VALID_BA_METRICS
+from aeon.clustering.averaging import (
+    VALID_BA_DISTANCE_METHODS,
+    elastic_barycenter_average,
+)
 from aeon.clustering.averaging._averaging import _resolve_average_callable
 from aeon.clustering.base import BaseClusterer
 from aeon.distances import pairwise_distance
@@ -144,9 +147,9 @@ class TimeSeriesKMeans(BaseClusterer):
     >>> import numpy as np
     >>> from aeon.clustering import TimeSeriesKMeans
     >>> X = np.random.random(size=(10,2,20))
-    >>> clst= TimeSeriesKMeans(distance="euclidean",n_clusters=2)
+    >>> clst = TimeSeriesKMeans(distance="dtw", n_clusters=2)
     >>> clst.fit(X)
-    TimeSeriesKMeans(distance='euclidean', n_clusters=2)
+    TimeSeriesKMeans(distance='dtw', n_clusters=2)
     >>> preds = clst.predict(X)
     """
 
@@ -318,18 +321,35 @@ class TimeSeriesKMeans(BaseClusterer):
             self._average_params = self.average_params
 
         # Add the distance to average params
-        if "distance" not in self._average_params:
+        if "distance" not in self._average_params and self.averaging_method not in [
+            "mean",
+            "shift_scale",
+        ]:
             # Must be a str and a valid distance for ba averaging
-            if isinstance(self.distance, str) and self.distance in VALID_BA_METRICS:
+            if isinstance(self.distance, str):
+                if (
+                    self.averaging_method == "ba"
+                    and self.distance not in VALID_BA_DISTANCE_METHODS
+                ):
+                    raise ValueError(
+                        f"Invalid distance passed for ba. "
+                        f"Valid distances are: {VALID_BA_DISTANCE_METHODS}"
+                    )
                 self._average_params["distance"] = self.distance
             else:
                 # Invalid distance passed for ba so default to dba
                 self._average_params["distance"] = "dtw"
 
-        if "random_state" not in self._average_params:
+        if (
+            "random_state" not in self._average_params
+            and self.averaging_method not in ["shift_scale", "mean"]
+        ):
             self._average_params["random_state"] = self._random_state
 
-        self._averaging_method = _resolve_average_callable(self.averaging_method)
+        if self.averaging_method == "ba":
+            self._averaging_method = elastic_barycenter_average
+        else:
+            self._averaging_method = _resolve_average_callable(self.averaging_method)
 
         if self.n_clusters > X.shape[0]:
             raise ValueError(
