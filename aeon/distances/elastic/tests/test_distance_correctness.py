@@ -42,8 +42,8 @@ distance_parameters = {
     "wdtw": [0.0, 0.1, 1.0],  # parameter g
     "wddtw": [0.0, 0.1, 1.0],  # parameter g
     "erp": [0.0, 0.1, 1.0],  # window
-    "lcss": [0.0, 50.0, 200.0],  # espilon
-    "edr": [0.0, 50.0, 200.0],  # espilon
+    "lcss": [0.0, 50.0, 200.0],  # epsilon
+    "edr": [0.0, 50.0, 200.0],  # epsilon
     "ddtw": [0.0, 0.1, 1.0],  # window
     "twe": [0.0, 0.1, 1.0],  # window
     "msm": [0.0, 0.2, 3.0],  # parameter c
