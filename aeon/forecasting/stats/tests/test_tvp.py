@@ -6,20 +6,20 @@ Tests include convergence properties described in Durbin & Koopman, 2012.
 
 import numpy as np
 
-from aeon.forecasting.stats._tvp import TVPForecaster
+from aeon.forecasting.stats._tvp import TVP
 
 
 def test_direct():
     """Test aeon TVP Forecaster equivalent to statsmodels."""
     expected = np.array([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0])
-    tvp = TVPForecaster(window=5, horizon=1, var=0.01, beta_var=0.01)
+    tvp = TVP(window=5, horizon=1, var=0.01, beta_var=0.01)
     p = tvp.forecast(expected)
     p2 = tvp.direct_forecast(expected, prediction_horizon=5)
     assert p == p2[0]
 
 
 def test_static_ar1_convergence_to_ols():
-    """Test TVPForecaster converges to the OLS solution for a static AR(1) process."""
+    """Test TVP converges to the OLS solution for a static AR(1) process."""
     # Simulate AR(1) data with constant parameters
     rng = np.random.RandomState(0)
     true_phi = 0.6
@@ -32,7 +32,7 @@ def test_static_ar1_convergence_to_ols():
     for t in range(1, n):
         y[t] = true_intercept + true_phi * y[t - 1] + rng.normal(0, noise_std)
     # Fit with beta_var=0 (no parameter drift) and observation variance = noise_var
-    forecaster = TVPForecaster(window=1, horizon=1, var=noise_std**2, beta_var=0.0)
+    forecaster = TVP(window=1, horizon=1, var=noise_std**2, beta_var=0.0)
     forecaster.fit(y)
     beta_est = forecaster._beta  # [intercept, phi] estimated
     # Compute static OLS estimates for comparison
@@ -67,8 +67,8 @@ def test_tvp_adapts_to_changing_coefficient():
     # Second half (t=100 to 199) with phi2
     for t in range(100, n):
         y[t] = intercept + phi2 * y[t - 1] + rng.normal(0, noise_std)
-    # Fit TVPForecaster with nonzero beta_var to allow parameter drift
-    forecaster = TVPForecaster(window=1, horizon=1, var=noise_std**2, beta_var=0.1)
+    # Fit TVP with nonzero beta_var to allow parameter drift
+    forecaster = TVP(window=1, horizon=1, var=noise_std**2, beta_var=0.1)
     forecaster.fit(y)
     beta_final = forecaster._beta
     # Compute OLS on first and second half segments for reference

@@ -22,7 +22,7 @@ jobs:
           private-key: ${{ secrets.PR_APP_KEY }}
 
       - name: Checkout main
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           sparse-checkout: .github/utilities
 
@@ -41,13 +41,24 @@ jobs:
           CONTEXT_GITHUB: ${{ toJson(github) }}
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
 
-      - if: ${{ steps.label_out.outputs.empty_commit == 'true' }}
+      - if: ${{ steps.label_out.outputs.expected_results == 'true' || steps.label_out.outputs.empty_commit == 'true' }}
         name: Checkout head
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: ${{ steps.label_out.outputs.repo }}
           ref: ${{ steps.label_out.outputs.branch }}
           token: ${{ steps.app-token.outputs.token }}
+
+      - if: ${{ steps.label_out.outputs.expected_results == 'true' }}
+        name: Regenerate expected results
+        run: python aeon/testing/expected_results/_write_estimator_results.py
+
+      - if: ${{ steps.label_out.outputs.expected_results == 'true' }}
+        name: Push expected results
+        uses: stefanzweifel/git-auto-commit-action@v6
+        with:
+          commit_message: Regenerated expected results for testing
+          commit_user_name: aeon-actions-bot[bot]
 
       - if: ${{ steps.label_out.outputs.empty_commit == 'true' }}
         name: Push empty commit
@@ -57,3 +68,9 @@ jobs:
           commit_user_name: aeon-actions-bot[bot]
           commit_options: --allow-empty
           skip_dirty_check: true
+
+      - name: Uncheck relevant boxes
+        run: python .github/utilities/uncheck_welcome_boxes.py
+        env:
+          CONTEXT_GITHUB: ${{ toJson(github) }}
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
