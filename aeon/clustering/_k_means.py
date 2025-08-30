@@ -152,7 +152,7 @@ class TimeSeriesKMeans(BaseClusterer):
     >>> import numpy as np
     >>> from aeon.clustering import TimeSeriesKMeans
     >>> X = np.random.random(size=(10,2,20))
-    >>> clst = TimeSeriesKMeans(distance="dtw",n_clusters=2)
+    >>> clst = TimeSeriesKMeans(distance="dtw", n_clusters=2)
     >>> clst.fit(X)
     TimeSeriesKMeans(distance='dtw', n_clusters=2)
     >>> preds = clst.predict(X)
