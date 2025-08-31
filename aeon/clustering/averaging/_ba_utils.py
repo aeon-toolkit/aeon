@@ -169,7 +169,7 @@ def _ba_setup(
 
     random_state = check_random_state(random_state)
 
-    if distance == "wdtw" or distance == "wddtw":
+    if "wdtw" in distance or "wddtw" in distance:
         if "g" not in kwargs:
             kwargs["g"] = 0.05
 

@@ -8,6 +8,7 @@ from aeon.clustering.averaging._ba_utils import (
     VALID_SOFT_BA_METHODS,
     _ba_setup,
 )
+from aeon.distances.elastic import soft_dtw_alignment_matrix
 from aeon.utils.numba._threading import threaded
 
 
@@ -70,17 +71,26 @@ def soft_barycenter_average(
         random_state=random_state,
     )
 
+    latest = {"f": None, "g_inf": None}
+    it = {"k": 0}
+
     def _func(Z):
-        total_distance, jacobian_product, distances_to_center = (
-            _soft_barycenter_one_iter(
-                barycenter=Z.reshape(*barycenter.shape),
-                X=_X,
-                distance=distance,
-                gamma=gamma,
-                **kwargs,
-            )
+        f, g, _ = _soft_barycenter_one_iter(
+            barycenter=Z.reshape(*barycenter.shape),
+            X=_X,
+            gamma=gamma,
+            **kwargs,
         )
-        return total_distance, jacobian_product
+        latest["f"] = float(f)
+        latest["g_inf"] = float(np.max(np.abs(g)))  # projected grad ≈ sup-norm of g
+        return f, g.ravel()
+
+    def _cb(xk):
+        it["k"] += 1
+        print(  # noqa: T001, T201
+            f"[Soft-BA] iter={it['k']} cost={latest['f']:.6f} "
+            f"||g||={latest['g_inf']:.3e}"
+        )
 
     res = minimize(
         _func,
@@ -88,7 +98,8 @@ def soft_barycenter_average(
         method=method,
         jac=True,
         tol=tol,
-        options=dict(maxiter=max_iters, disp=verbose, maxls=40),
+        options=dict(maxiter=max_iters),
+        callback=_cb if verbose else None,
     )
 
     if res.success is False:
@@ -100,6 +111,19 @@ def soft_barycenter_average(
             stacklevel=2,
         )
 
+    if verbose and res.success:
+        print(
+            f"[Soft-BA] converged epoch {it['k']}, cost {res.fun:.6f}"
+        )  # noqa: T001, T201
+        summary = {
+            "status": res.status,
+            "success": res.success,
+            "message": res.message,
+        }
+        print(f"[Soft-BA] summary: {summary}")  # noqa: T001, T201
+
+    barycenter = res.x.reshape(*barycenter.shape)
+
     if return_distances_to_center and return_cost:
         return barycenter, distances_to_center, res.fun
     elif return_distances_to_center:
@@ -107,6 +131,22 @@ def soft_barycenter_average(
     elif return_cost:
         return barycenter, res.fun
     return barycenter
+
+
+@njit(cache=True, fastmath=True)
+def _jacobian_product_squared_euclidean(X: np.ndarray, Y: np.ndarray, E: np.ndarray):
+    m = X.shape[1]
+    n = Y.shape[1]
+    d = X.shape[0]
+
+    product = np.zeros((d, m))
+
+    for i in range(m):
+        for j in range(n):
+            for k in range(d):
+                # product[k, i] += E[i, j] * 2 * (diff_matrix[i, j])
+                product[k, i] += E[i, j] * 2 * (X[k, i] - Y[k, j])
+    return product
 
 
 @njit(cache=True, fastmath=True, parallel=True)
@@ -125,27 +165,13 @@ def _soft_barycenter_one_iter(
 
     for i in prange(X_size):
         curr_ts = X[i]
-        (
-            cost_matrix,
-            diagonal_arr,
-            vertical_arr,
-            horizontal_arr,
-            diff_dist_matrix,
-        ) = _soft_dtw_cost_matrix_with_arrs(
-            barycenter,
-            curr_ts,
-            window=window,
-            gamma=gamma,
+        grad, curr_dist = soft_dtw_alignment_matrix(
+            barycenter, curr_ts, gamma=gamma, window=window
         )
-
-        grad = _soft_gradient_with_arrs(
-            cost_matrix, diagonal_arr, vertical_arr, horizontal_arr
-        )
-        curr_dist = cost_matrix[-1, -1]
         local_distances[i] = curr_dist
         distances_to_center[i] = curr_dist
         local_jacobian_products[i] = _jacobian_product_squared_euclidean(
-            barycenter, curr_ts, grad, diff_dist_matrix
+            barycenter, curr_ts, grad
         )
 
     jacobian_product = np.zeros_like(barycenter)

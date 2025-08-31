@@ -1,0 +1,13 @@
+---
+name: python_venv
+alwaysApply: true
+description: "Ensure the project's Python virtual environment is activated for all terminal commands."
+---
+
+When running a terminal command for a Python project, first detect the operating system and shell.
+
+- **If the shell is `fish`**: Use `source venv/bin/activate.fish` to activate the virtual environment.
+- **Otherwise (e.g., `bash`, `zsh`)**: Use `source venv/bin/activate` to activate the virtual environment.
+- **On Windows**: Use `venv\Scripts\activate.bat`.
+
+Then, proceed with the requested terminal command. For example, to install dependencies, the command should be `pip install -r requirements.txt` only after the activation command has been run.

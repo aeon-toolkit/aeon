@@ -2,7 +2,6 @@ r"""Soft dynamic time warping (soft-DTW) between two time series."""
 
 __maintainer__ = []
 
-
 import numpy as np
 from numba import njit, prange
 from numba.typed import List as NumbaList
@@ -42,8 +41,8 @@ def _softmin3(a, b, c, gamma):
     b /= -gamma
     c /= -gamma
     max_val = max(a, b, c)
-    tmp = np.exp(a - max_val) + np.exp(b - max_val) + np.exp(c - max_val)
-    return -gamma * (np.log(tmp) + max_val)
+    exp_sum = np.exp(a - max_val) + np.exp(b - max_val) + np.exp(c - max_val)
+    return -gamma * (np.log(exp_sum) + max_val)
 
 
 @njit(cache=True, fastmath=True)
@@ -210,17 +209,15 @@ def soft_dtw_cost_matrix(
 def _soft_dtw_distance(
     x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, gamma: float
 ) -> float:
-    return abs(
-        _soft_dtw_cost_matrix(x, y, bounding_matrix, gamma)[
-            x.shape[1] - 1, y.shape[1] - 1
-        ]
-    )
+    return _soft_dtw_cost_matrix(x, y, bounding_matrix, gamma)[
+        x.shape[1] - 1, y.shape[1] - 1
+    ]
 
 
 @njit(cache=True, fastmath=True)
 def _soft_dtw_cost_matrix(
     x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, gamma: float
-) -> np.ndarray:
+) -> np.ndarray | tuple[np.ndarray, np.ndarray]:
     if gamma == 0.0 or np.array_equal(x, y):
         return _dtw_cost_matrix(x, y, bounding_matrix)
 
@@ -398,6 +395,30 @@ def _soft_dtw_from_multiple_to_multiple_distance(
 
 
 @njit(cache=True, fastmath=True)
+def _soft_dtw_cost_matrix_return_dist_matrix(
+    x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, gamma: float
+) -> tuple[np.ndarray, np.ndarray]:
+    x_size = x.shape[1]
+    y_size = y.shape[1]
+    cost_matrix = np.full((x_size + 1, y_size + 1), np.inf)
+    cost_matrix[0, 0] = 0.0
+    dist_matrix = np.zeros((x_size, y_size))
+
+    for i in range(1, x_size + 1):
+        for j in range(1, y_size + 1):
+            if bounding_matrix[i - 1, j - 1]:
+                dist = _univariate_squared_distance(x[:, i - 1], y[:, j - 1])
+                dist_matrix[i - 1, j - 1] = dist
+                cost_matrix[i, j] = dist + _softmin3(
+                    cost_matrix[i - 1, j],
+                    cost_matrix[i - 1, j - 1],
+                    cost_matrix[i, j - 1],
+                    gamma,
+                )
+    return cost_matrix[1:, 1:], dist_matrix
+
+
+@njit(cache=True, fastmath=True)
 def soft_dtw_alignment_path(
     x: np.ndarray,
     y: np.ndarray,
@@ -448,5 +469,74 @@ def soft_dtw_alignment_path(
     cost_matrix = soft_dtw_cost_matrix(x, y, gamma, window, itakura_max_slope)
     return (
         compute_min_return_path(cost_matrix),
-        abs(cost_matrix[x.shape[-1] - 1, y.shape[-1] - 1]),
+        cost_matrix[x.shape[-1] - 1, y.shape[-1] - 1],
     )
+
+
+@njit(cache=True, fastmath=True)
+def soft_dtw_alignment_matrix(
+    x: np.ndarray,
+    y: np.ndarray,
+    gamma: float = 1.0,
+    window: float | None = None,
+    itakura_max_slope: float | None = None,
+) -> tuple[np.ndarray, float]:
+
+    if x.ndim == 1 and y.ndim == 1:
+        _x = x.reshape((1, x.shape[0]))
+        _y = y.reshape((1, y.shape[0]))
+        bounding_matrix = create_bounding_matrix(
+            _x.shape[1], _y.shape[1], window, itakura_max_slope
+        )
+        cost_matrix, dist_matrix = _soft_dtw_cost_matrix_return_dist_matrix(
+            x, y, bounding_matrix, gamma
+        )
+    if x.ndim == 2 and y.ndim == 2:
+        bounding_matrix = create_bounding_matrix(
+            x.shape[1], y.shape[1], window, itakura_max_slope
+        )
+        cost_matrix, dist_matrix = _soft_dtw_cost_matrix_return_dist_matrix(
+            x, y, bounding_matrix, gamma
+        )
+    return (
+        _soft_gradient(dist_matrix, cost_matrix, gamma),
+        cost_matrix[x.shape[-1] - 1, y.shape[-1] - 1],
+    )
+
+
+@njit(cache=True, fastmath=True)
+def _soft_gradient(
+    distance_matrix: np.ndarray, cost_matrix: np.ndarray, gamma: float
+) -> np.ndarray:
+    m, n = distance_matrix.shape
+    E = np.zeros((m, n), dtype=float)
+
+    E[m - 1, n - 1] = 1.0
+
+    for i in range(m - 1, -1, -1):
+        for j in range(n - 1, -1, -1):
+            r_ij = cost_matrix[i, j]
+            E_ij = E[i, j]
+
+            if i + 1 < m:
+                w_horizontal = np.exp(
+                    (cost_matrix[i + 1, j] - r_ij - distance_matrix[i + 1, j]) / gamma
+                )
+                E_ij += E[i + 1, j] * w_horizontal
+
+            if j + 1 < n:
+                w_vertical = np.exp(
+                    (cost_matrix[i, j + 1] - r_ij - distance_matrix[i, j + 1]) / gamma
+                )
+                E_ij += E[i, j + 1] * w_vertical
+
+            if (i + 1 < m) and (j + 1 < n):
+                w_diag = np.exp(
+                    (cost_matrix[i + 1, j + 1] - r_ij - distance_matrix[i + 1, j + 1])
+                    / gamma
+                )
+                E_ij += E[i + 1, j + 1] * w_diag
+
+            E[i, j] = E_ij
+
+    return E
