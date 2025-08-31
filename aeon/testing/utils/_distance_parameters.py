@@ -1,6 +1,6 @@
 import numpy as np
 
-test_distances_with_params = [
+TEST_DISTANCE_WITH_PARAMS = [
     ("dtw", {"window": 0.2}),
     ("wdtw", {"g": 2.0}),
     ("edr", {"epsilon": 0.8}),
@@ -23,9 +23,9 @@ test_distances_with_params = [
 ]
 
 # All the distances that return a full alignment path.
-test_distances_with_full_alignment_path = [
+TEST_DISTANCES_WITH_FULL_ALIGNMENT_PATH = [
     (name, params)
-    for name, params in test_distances_with_params
+    for name, params in TEST_DISTANCE_WITH_PARAMS
     if name in ["dtw", "wdtw", "edr", "twe", "msm", "shape_dtw", "adtw", "soft_dtw"]
 ]
 
@@ -34,6 +34,6 @@ def _custom_distance_measure(x, y, custom_param=1):
     return np.sum(np.abs(x - y)) + custom_param
 
 
-test_all_distances_with_custom_distance = test_distances_with_params + [
+TEST_DISTANCE_WITH_CUSTOM_DISTANCE = TEST_DISTANCE_WITH_PARAMS + [
     (_custom_distance_measure, {"custom_param": 10}),
 ]

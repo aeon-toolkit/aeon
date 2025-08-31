@@ -21,7 +21,7 @@ from aeon.testing.expected_results.expected_average_results import (
 )
 from aeon.testing.testing_config import MULTITHREAD_TESTING
 from aeon.testing.utils._distance_parameters import (
-    test_distances_with_full_alignment_path,
+    TEST_DISTANCES_WITH_FULL_ALIGNMENT_PATH,
 )
 
 
@@ -56,7 +56,7 @@ def test_subgradient_ba():
     assert np.allclose(average_ts_multi, call_directly_average_ts_multi)
 
 
-@pytest.mark.parametrize("distance", test_distances_with_full_alignment_path)
+@pytest.mark.parametrize("distance", TEST_DISTANCES_WITH_FULL_ALIGNMENT_PATH)
 @pytest.mark.parametrize(
     "init_barycenter",
     [
@@ -101,7 +101,7 @@ def test_subgradient_ba_uni(distance, init_barycenter):
             assert not np.array_equal(average_ts_uni, init_barycenter)
 
 
-@pytest.mark.parametrize("distance", test_distances_with_full_alignment_path)
+@pytest.mark.parametrize("distance", TEST_DISTANCES_WITH_FULL_ALIGNMENT_PATH)
 @pytest.mark.parametrize(
     "init_barycenter",
     [
@@ -149,7 +149,7 @@ def test_subgradient_ba_multi(distance, init_barycenter):
             assert not np.array_equal(average_ts_multi, init_barycenter)
 
 
-@pytest.mark.parametrize("distance", test_distances_with_full_alignment_path)
+@pytest.mark.parametrize("distance", TEST_DISTANCES_WITH_FULL_ALIGNMENT_PATH)
 def test_subgradient_distance_params(distance):
     """Test ssg-ba with various distance parameters."""
     distance_params = distance[1]
@@ -268,7 +268,7 @@ def test_subgradient_ba_incorrect_input():
 
 
 @pytest.mark.skipif(not MULTITHREAD_TESTING, reason="Only run on multithread testing")
-@pytest.mark.parametrize("distance", test_distances_with_full_alignment_path)
+@pytest.mark.parametrize("distance", TEST_DISTANCES_WITH_FULL_ALIGNMENT_PATH)
 @pytest.mark.parametrize("n_jobs", [2, -1])
 def test_subgradient_threaded(distance, n_jobs):
     """Test subgradient threaded functionality."""

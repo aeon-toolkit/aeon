@@ -15,9 +15,9 @@ from aeon.testing.expected_results.expected_clustering_results import (
 )
 from aeon.testing.testing_config import MULTITHREAD_TESTING
 from aeon.testing.utils._distance_parameters import (
-    test_all_distances_with_custom_distance,
-    test_distances_with_full_alignment_path,
-    test_distances_with_params,
+    TEST_DISTANCE_WITH_CUSTOM_DISTANCE,
+    TEST_DISTANCE_WITH_PARAMS,
+    TEST_DISTANCES_WITH_FULL_ALIGNMENT_PATH,
 )
 
 
@@ -157,7 +157,7 @@ def test_kmeans_dba():
         assert np.count_nonzero(val == 1.0) == 1
 
 
-@pytest.mark.parametrize("distance", test_all_distances_with_custom_distance)
+@pytest.mark.parametrize("distance", TEST_DISTANCE_WITH_CUSTOM_DISTANCE)
 def test_k_mean_distances(distance):
     """Test that all distances work in k-mean."""
     dist, params = distance
@@ -203,7 +203,7 @@ def test_k_mean_distances(distance):
         )
 
 
-@pytest.mark.parametrize("distance", test_distances_with_full_alignment_path)
+@pytest.mark.parametrize("distance", TEST_DISTANCES_WITH_FULL_ALIGNMENT_PATH)
 @pytest.mark.parametrize("averaging_method", ["subgradient", "petitjean", "kasba"])
 def test_k_mean_ba(distance, averaging_method):
     """Test that all distances work in k-mean."""
@@ -247,7 +247,7 @@ def test_k_mean_ba(distance, averaging_method):
         )
 
 
-@pytest.mark.parametrize("distance", test_all_distances_with_custom_distance)
+@pytest.mark.parametrize("distance", TEST_DISTANCE_WITH_CUSTOM_DISTANCE)
 @pytest.mark.parametrize("init", ["random", "kmeans++", "first", "ndarray"])
 def test_k_mean_init(distance, init):
     """Test implementation of Kmeans."""
@@ -500,7 +500,7 @@ def test_invalid_params():
 
 
 @pytest.mark.skipif(not MULTITHREAD_TESTING, reason="Only run on multithread testing")
-@pytest.mark.parametrize("distance", test_distances_with_full_alignment_path)
+@pytest.mark.parametrize("distance", TEST_DISTANCES_WITH_FULL_ALIGNMENT_PATH)
 @pytest.mark.parametrize("averaging_method", ["subgradient", "petitjean", "kasba"])
 @pytest.mark.parametrize("n_jobs", [2, -1])
 def test_k_means_ba_threaded(distance, averaging_method, n_jobs):
@@ -526,7 +526,7 @@ def test_k_means_ba_threaded(distance, averaging_method, n_jobs):
 
 
 @pytest.mark.skipif(not MULTITHREAD_TESTING, reason="Only run on multithread testing")
-@pytest.mark.parametrize("distance", test_distances_with_params)
+@pytest.mark.parametrize("distance", TEST_DISTANCE_WITH_PARAMS)
 @pytest.mark.parametrize("n_jobs", [2, -1])
 def test_k_means_threaded(distance, n_jobs):
     """Test mean averaging threaded functionality."""
