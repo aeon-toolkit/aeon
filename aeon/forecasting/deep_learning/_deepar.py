@@ -19,34 +19,7 @@ from sklearn.utils import check_random_state
 from aeon.forecasting.base import DirectForecastingMixin, IterativeForecastingMixin
 from aeon.forecasting.deep_learning.base import BaseDeepForecaster
 from aeon.networks._deepar import DeepARNetwork
-from aeon.utils.validation._dependencies import _check_soft_dependencies
-
-if _check_soft_dependencies(["tensorflow"], severity="none"):
-    from tensorflow.keras.utils import register_keras_serializable
-
-    @register_keras_serializable(package="Custom")
-    def gaussian_loss(y_true, y_pred):
-        """
-        Gaussian negative log-likelihood loss for concatenated output format.
-
-        Parameters
-        ----------
-        y_true: Ground truth values of shape (batch_size, n_channels)
-        y_pred: Predicted parameters of shape (batch_size, 2, n_channels)
-                where y_pred[:, 0, :] = mu and y_pred[:, 1, :] = sigma
-        """
-        import tensorflow as tf
-
-        mu = y_pred[:, 0, :]
-        sigma = y_pred[:, 1, :]
-
-        sigma = tf.maximum(sigma, 1e-6)
-        mu_true = y_true[:, 0, :]
-        return tf.reduce_mean(
-            tf.math.log(tf.math.sqrt(2 * tf.constant(np.pi)))
-            + tf.math.log(sigma)
-            + tf.truediv(tf.square(mu_true - mu), 2 * tf.square(sigma))
-        )
+from aeon.utils.loss.gaussian_loss import gaussian_loss
 
 
 class DeepARForecaster(
@@ -135,7 +108,7 @@ class DeepARForecaster(
         verbose=0,
         optimizer=None,
         metrics="accuracy",
-        loss=gaussian_loss,
+        loss="gaussian_loss",
         callbacks=None,
         random_state=None,
         axis=0,
@@ -200,6 +173,8 @@ class DeepARForecaster(
         """
         import tensorflow as tf
 
+        if self.loss == "gaussian_loss":
+            self.loss = gaussian_loss
         rng = check_random_state(self.random_state)
         self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
 
