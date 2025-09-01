@@ -326,7 +326,8 @@ class AutoARIMA(BaseForecaster, IterativeForecastingMixin):
         parameter_limits = np.array([self.max_p, self.max_q])
         (
             model,
-            self.fit_aci_,
+            _,
+            self.fit_aic_,
         ) = _auto_arima(differenced_series, 0, model_parameters, 3, parameter_limits)
         (
             constant_term_int,
