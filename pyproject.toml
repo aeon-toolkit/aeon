@@ -93,7 +93,7 @@ dev = [
     "pytest-mock",
     "pytest-randomly",
     "pytest-remotedata",
-    "pytest-rerunfailures<16.0",   # Causing CI fails, temporarily pinned
+    "pytest-rerunfailures<17.0",   # Causing CI fails, temporarily pinned
     "pytest-timeout",
     "pytest-xdist[psutil]",
 ]
