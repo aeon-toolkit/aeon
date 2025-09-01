@@ -9,6 +9,8 @@ __all__ = [
     "minkowski_pairwise_distance",
     "squared_distance",
     "squared_pairwise_distance",
+    "smooth_absolute_distance",
+    "jacobian_product_smooth_abs",
 ]
 
 from aeon.distances.pointwise._euclidean import (
@@ -22,6 +24,10 @@ from aeon.distances.pointwise._manhattan import (
 from aeon.distances.pointwise._minkowski import (
     minkowski_distance,
     minkowski_pairwise_distance,
+)
+from aeon.distances.pointwise._smooth_absolute import (
+    jacobian_product_smooth_abs,
+    smooth_absolute_distance,
 )
 from aeon.distances.pointwise._squared import (
     squared_distance,

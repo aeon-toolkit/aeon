@@ -28,7 +28,12 @@ if __name__ == "__main__":
     X = X[y == "1"]
 
     aeon_res = soft_barycenter_average(
-        X.copy(), gamma=GAMMA, tol=TOL, max_iters=MAX_ITERS, verbose=True
+        X.copy(),
+        gamma=GAMMA,
+        tol=TOL,
+        max_iters=MAX_ITERS,
+        verbose=True,
+        distance="soft_msm",
     )
     tslearn_res = tslearn_soft_ba(X)
 

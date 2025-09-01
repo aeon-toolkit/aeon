@@ -9,40 +9,11 @@ from numba.typed import List as NumbaList
 from aeon.distances.elastic._alignment_paths import compute_min_return_path
 from aeon.distances.elastic._bounding_matrix import create_bounding_matrix
 from aeon.distances.elastic._dtw import _dtw_cost_matrix
+from aeon.distances.elastic.soft._utils import _softmin3
 from aeon.distances.pointwise._squared import _univariate_squared_distance
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
 from aeon.utils.numba._threading import threaded
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
-
-
-@njit(fastmath=True, cache=True)
-def _softmin3(a, b, c, gamma):
-    r"""Compute softmin of 3 input variables with parameter gamma.
-
-    This code is adapted from tslearn.
-
-    Parameters
-    ----------
-    a : float
-        First input variable.
-    b : float
-        Second input variable.
-    c : float
-        Third input variable.
-    gamma : float
-        Softmin parameter.
-
-    Returns
-    -------
-    float
-        Softmin of a, b, c.
-    """
-    a /= -gamma
-    b /= -gamma
-    c /= -gamma
-    max_val = max(a, b, c)
-    exp_sum = np.exp(a - max_val) + np.exp(b - max_val) + np.exp(c - max_val)
-    return -gamma * (np.log(exp_sum) + max_val)
 
 
 @njit(cache=True, fastmath=True)

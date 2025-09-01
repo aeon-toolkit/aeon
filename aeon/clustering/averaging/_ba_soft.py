@@ -8,7 +8,8 @@ from aeon.clustering.averaging._ba_utils import (
     VALID_SOFT_BA_METHODS,
     _ba_setup,
 )
-from aeon.distances.elastic import soft_dtw_alignment_matrix
+from aeon.distances.elastic import soft_dtw_alignment_matrix, soft_msm_alignment_matrix
+from aeon.distances.pointwise import jacobian_product_smooth_abs
 from aeon.utils.numba._threading import threaded
 
 
@@ -25,8 +26,6 @@ def soft_barycenter_average(
     minimise_method="L-BFGS-B",
     random_state: int | None = None,
     n_jobs: int = 1,
-    previous_cost: float | None = None,
-    previous_distance_to_center: np.ndarray | None = None,
     return_distances_to_center: bool = False,
     return_cost: bool = False,
     **kwargs,
@@ -52,9 +51,9 @@ def soft_barycenter_average(
         barycenter,
         prev_barycenter,
         cost,
-        previous_cost,
+        _,
         distances_to_center,
-        previous_distance_to_center,
+        _,
         random_state,
         n_jobs,
         weights,
@@ -63,11 +62,12 @@ def soft_barycenter_average(
         distance=distance,
         weights=weights,
         init_barycenter=init_barycenter,
-        previous_cost=previous_cost,
-        previous_distance_to_center=previous_distance_to_center,
+        previous_cost=None,
+        previous_distance_to_center=None,
         precomputed_medoids_pairwise_distance=precomputed_medoids_pairwise_distance,
         n_jobs=n_jobs,
         random_state=random_state,
+        compute_previous_cost=False,
     )
 
     latest = {"f": None, "g_inf": None}
@@ -78,6 +78,7 @@ def soft_barycenter_average(
             barycenter=Z.reshape(*barycenter.shape),
             X=_X,
             weights=weights,
+            distance=distance,
             **kwargs,
         )
         latest["f"] = float(f)
@@ -148,13 +149,16 @@ def _jacobian_product_squared_euclidean(X: np.ndarray, Y: np.ndarray, E: np.ndar
     return product
 
 
-@njit(cache=True, fastmath=True, parallel=True)
+# @njit(cache=True, fastmath=True, parallel=True)
 def _soft_barycenter_one_iter(
     barycenter: np.ndarray,
     X: np.ndarray,
     weights: np.ndarray,
+    distance: str,
     window: float | None = None,
     gamma: float = 1.0,
+    c: float = 1.0,
+    alpha: float = 25.0,
 ):
     X_size = len(X)
     local_jacobian_products = np.zeros(
@@ -165,14 +169,25 @@ def _soft_barycenter_one_iter(
 
     for i in prange(X_size):
         curr_ts = X[i]
-        grad, curr_dist = soft_dtw_alignment_matrix(
-            barycenter, curr_ts, gamma=gamma, window=window
-        )
+        if distance == "soft_dtw":
+            grad, curr_dist = soft_dtw_alignment_matrix(
+                barycenter, curr_ts, gamma=gamma, window=window
+            )
+            local_jacobian_products[i] = _jacobian_product_squared_euclidean(
+                barycenter, curr_ts, grad
+            )
+        elif distance == "soft_msm":
+            grad, curr_dist = soft_msm_alignment_matrix(
+                barycenter, curr_ts, c=c, alpha=alpha, gamma=gamma, window=window
+            )
+            local_jacobian_products[i] = jacobian_product_smooth_abs(
+                barycenter, curr_ts, grad
+            )
+        else:
+            raise ValueError("Distance parameter invalid")
+
         local_distances[i] = curr_dist
         distances_to_center[i] = curr_dist
-        local_jacobian_products[i] = _jacobian_product_squared_euclidean(
-            barycenter, curr_ts, grad
-        )
 
     jacobian_product = np.zeros_like(barycenter)
     total_distance = 0.0

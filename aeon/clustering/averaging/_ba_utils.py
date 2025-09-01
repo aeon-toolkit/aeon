@@ -158,6 +158,7 @@ def _ba_setup(
     n_jobs: int = 1,
     random_state: int | None = None,
     weights: np.ndarray | None = None,
+    compute_previous_cost: bool = True,
     **kwargs,
 ):
     if X.ndim == 3:
@@ -186,12 +187,12 @@ def _ba_setup(
             precomputed_medoids_pw_distance=precomputed_medoids_pairwise_distance,
             **kwargs,
         )
-
-        pw_dist = pairwise_distance(
-            _X, init_barycenter, method=distance, n_jobs=n_jobs, **kwargs
-        )
-        previous_cost = np.sum(pw_dist)
-        previous_distance_to_center = pw_dist.flatten()
+        if compute_previous_cost:
+            pw_dist = pairwise_distance(
+                _X, init_barycenter, method=distance, n_jobs=n_jobs, **kwargs
+            )
+            previous_cost = np.sum(pw_dist)
+            previous_distance_to_center = pw_dist.flatten()
 
     barycenter = np.copy(init_barycenter)
     prev_barycenter = np.copy(init_barycenter)
@@ -236,6 +237,7 @@ VALID_BA_DISTANCE_METHODS = [
     "msm",
     "shape_dtw",
     "soft_dtw",
+    "soft-msm",
 ]
 
-VALID_SOFT_BA_METHODS = ["soft_dtw"]
+VALID_SOFT_BA_METHODS = ["soft_dtw", "soft_msm"]

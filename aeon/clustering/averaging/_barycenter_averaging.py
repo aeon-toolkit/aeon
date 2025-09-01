@@ -192,8 +192,6 @@ def elastic_barycenter_average(
             minimise_method=minimise_method,
             random_state=random_state,
             n_jobs=n_jobs,
-            previous_cost=previous_cost,
-            previous_distance_to_center=previous_distance_to_center,
             return_distances_to_center=return_distances_to_center,
             return_cost=return_cost,
             **kwargs,

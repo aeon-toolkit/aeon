@@ -20,6 +20,7 @@ TEST_DISTANCE_WITH_PARAMS = [
     ("erp", {"g": 0.8}),
     ("sbd", {"standardize": False}),
     ("shift_scale", {"max_shift": 2}),
+    ("soft_msm", {"c": 2.0, "gamma": 0.1, "alpha": 100.0}),
 ]
 
 # All the distances that return a full alignment path.
@@ -40,4 +41,7 @@ TEST_DISTANCE_WITH_CUSTOM_DISTANCE = TEST_DISTANCE_WITH_PARAMS + [
 
 TEST_SOFT_DISTANCES_WITH_PARAMS = [
     ("soft_dtw", {"gamma": 0.1}),
+    ("soft_msm", {"c": 2.0}),
+    ("soft_msm", {"gamma": 0.01}),
+    ("soft_msm", {"alpha": 100}),
 ]
