@@ -16,14 +16,13 @@ from aeon.utils.numba._threading import threaded
 def soft_barycenter_average(
     X,
     distance="soft_dtw",
-    max_iters=50,
+    max_iters=30,
     tol=1e-5,
     init_barycenter="mean",
     weights=None,
     precomputed_medoids_pairwise_distance: np.ndarray | None = None,
     verbose=False,
-    gamma=1.0,
-    method="L-BFGS-B",
+    minimise_method="L-BFGS-B",
     random_state: int | None = None,
     n_jobs: int = 1,
     previous_cost: float | None = None,
@@ -78,7 +77,7 @@ def soft_barycenter_average(
         f, g, _ = _soft_barycenter_one_iter(
             barycenter=Z.reshape(*barycenter.shape),
             X=_X,
-            gamma=gamma,
+            weights=weights,
             **kwargs,
         )
         latest["f"] = float(f)
@@ -95,7 +94,7 @@ def soft_barycenter_average(
     res = minimize(
         _func,
         barycenter.ravel(),
-        method=method,
+        method=minimise_method,
         jac=True,
         tol=tol,
         options=dict(maxiter=max_iters),
@@ -112,9 +111,9 @@ def soft_barycenter_average(
         )
 
     if verbose and res.success:
-        print(
+        print(  # noqa: T001, T201
             f"[Soft-BA] converged epoch {it['k']}, cost {res.fun:.6f}"
-        )  # noqa: T001, T201
+        )
         summary = {
             "status": res.status,
             "success": res.success,
@@ -153,6 +152,7 @@ def _jacobian_product_squared_euclidean(X: np.ndarray, Y: np.ndarray, E: np.ndar
 def _soft_barycenter_one_iter(
     barycenter: np.ndarray,
     X: np.ndarray,
+    weights: np.ndarray,
     window: float | None = None,
     gamma: float = 1.0,
 ):
@@ -177,7 +177,7 @@ def _soft_barycenter_one_iter(
     jacobian_product = np.zeros_like(barycenter)
     total_distance = 0.0
     for i in range(X_size):
-        jacobian_product += local_jacobian_products[i]
-        total_distance += local_distances[i]
+        jacobian_product += local_jacobian_products[i] * weights[i]
+        total_distance += local_distances[i] * weights[i]
 
     return total_distance, jacobian_product, distances_to_center

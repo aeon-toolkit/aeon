@@ -1,7 +1,7 @@
 import numpy as np
 from tslearn.barycenters import softdtw_barycenter
 
-from aeon.clustering.averaging._soft_baycenter import soft_barycenter_average
+from aeon.clustering.averaging._ba_soft import soft_barycenter_average
 from aeon.datasets import load_from_ts_file, load_japanese_vowels
 
 DATASET_NAME = "GunPoint"
