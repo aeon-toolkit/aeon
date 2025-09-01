@@ -19,7 +19,7 @@ jobs:
         with:
           python-version: "3.12"
 
-      - uses: browniebroke/pre-commit-autoupdate-action@v1.0.0
+      - uses: browniebroke/pre-commit-autoupdate-action@v1.0.1
 
       - if: always()
         name: Create app token
