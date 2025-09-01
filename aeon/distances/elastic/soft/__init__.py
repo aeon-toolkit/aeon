@@ -1,4 +1,5 @@
 """Soft elastic distance functions."""
+
 __all__ = [
     "soft_dtw_alignment_matrix",
     "soft_dtw_alignment_path",
