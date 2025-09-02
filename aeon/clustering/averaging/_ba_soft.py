@@ -9,7 +9,6 @@ from aeon.clustering.averaging._ba_utils import (
     _ba_setup,
 )
 from aeon.distances.elastic import soft_dtw_alignment_matrix, soft_msm_alignment_matrix
-from aeon.distances.pointwise import jacobian_product_smooth_abs
 from aeon.utils.numba._threading import threaded
 
 
@@ -149,7 +148,26 @@ def _jacobian_product_squared_euclidean(X: np.ndarray, Y: np.ndarray, E: np.ndar
     return product
 
 
-# @njit(cache=True, fastmath=True, parallel=True)
+@njit(fastmath=True, cache=True)
+def jacobian_product_smooth_abs(X, Y, E):
+    d, m = X.shape
+    _, n = Y.shape
+
+    G = np.zeros((d, m), dtype=X.dtype)
+    eps_t = X.dtype.type(1e-6)
+
+    for i in range(m):  # time index in x
+        for j in range(n):  # time index in y
+            e_ij = E[i, j]
+            if e_ij == 0:
+                continue
+            for k in range(d):  # channel
+                diff = X[k, i] - Y[k, j]
+                G[k, i] += e_ij * (diff / np.sqrt(diff * diff + eps_t))
+    return G
+
+
+@njit(cache=True, fastmath=True, parallel=True)
 def _soft_barycenter_one_iter(
     barycenter: np.ndarray,
     X: np.ndarray,
@@ -183,9 +201,6 @@ def _soft_barycenter_one_iter(
             local_jacobian_products[i] = jacobian_product_smooth_abs(
                 barycenter, curr_ts, grad
             )
-        else:
-            raise ValueError("Distance parameter invalid")
-
         local_distances[i] = curr_dist
         distances_to_center[i] = curr_dist
 
