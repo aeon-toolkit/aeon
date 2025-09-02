@@ -294,6 +294,7 @@ def test_means_init():
         max_iter=5,
         init="first",
         distance="euclidean",
+        averaging_method="mean",
         n_clusters=num_clusters,
     )
     kmeans._random_state = check_random_state(kmeans.random_state)
@@ -314,6 +315,7 @@ def test_means_init():
         max_iter=5,
         init=custom_init_centres,
         distance="euclidean",
+        averaging_method="mean",
         n_clusters=num_clusters,
     )
     kmeans.fit(custom_init_centres)
