@@ -215,7 +215,7 @@ class TimeSeriesKMeans(BaseClusterer):
         for _ in range(self.n_init):
             try:
                 labels, centers, inertia, n_iters = self._fit_one_init(X)
-                if inertia < best_inertia:
+                if abs(inertia) < abs(best_inertia):
                     best_centers = centers
                     best_labels = labels
                     best_inertia = inertia
@@ -382,7 +382,8 @@ class TimeSeriesKMeans(BaseClusterer):
         return X[list(range(self.n_clusters))]
 
     def _kmeans_plus_plus_center_initializer(self, X: np.ndarray):
-        initial_center_idx = self._random_state.randint(X.shape[0])
+        n = X.shape[0]
+        initial_center_idx = self._random_state.randint(n)
         indexes = [initial_center_idx]
 
         for _ in range(1, self.n_clusters):
@@ -394,12 +395,37 @@ class TimeSeriesKMeans(BaseClusterer):
                 **self._distance_params,
             )
             min_distances = pw_dist.min(axis=1)
-            probabilities = min_distances / min_distances.sum()
-            next_center_idx = self._random_state.choice(X.shape[0], p=probabilities)
+
+            # Never reselect already chosen centers
+            chosen = np.asarray(indexes, dtype=int)
+            min_distances[chosen] = 0.0
+
+            # Shift so everything is non-negative (preserves ordering)
+            shift = -min(0.0, float(np.nanmin(min_distances)))
+            w = min_distances + shift
+
+            # Numerical safety & k-means++ D^2 weighting
+            w = np.clip(w, 0.0, None)
+            w = w * w
+
+            # Zero out chosen again after transform (paranoia)
+            w[chosen] = 0.0
+
+            total = np.nansum(w)
+            if not np.isfinite(total) or total <= 0:
+                # Fallback: uniform over not-yet-chosen
+                candidates = np.setdiff1d(np.arange(n), chosen, assume_unique=False)
+                next_center_idx = self._random_state.choice(candidates)
+            else:
+                p = w / total
+                # Replace any tiny negative due to fp with 0, re-normalize
+                p = np.clip(p, 0.0, None)
+                p = p / p.sum()
+                next_center_idx = self._random_state.choice(n, p=p)
+
             indexes.append(next_center_idx)
 
-        centers = X[indexes]
-        return centers
+        return X[indexes]
 
     def _handle_empty_cluster(
         self,
@@ -411,19 +437,20 @@ class TimeSeriesKMeans(BaseClusterer):
     ):
         """Handle an empty cluster.
 
-        This functions finds the time series that is furthest from its assigned centre
-        and then uses that as the new centre for the empty cluster. In terms of
-        optimisation this means it selects the time series that will reduce inertia
-        by the most.
+        For negative distances, we need to find the point with the worst
+        (highest) distance from its assigned center.
         """
         empty_clusters = np.setdiff1d(np.arange(self.n_clusters), curr_labels)
         j = 0
 
         while empty_clusters.size > 0:
-            # Assign each time series to the cluster that is closest to it
-            # and then find the time series that is furthest from its assigned centre
             current_empty_cluster_index = empty_clusters[0]
-            index_furthest_from_centre = curr_pw.min(axis=1).argmax()
+
+            # For negative distances, higher values are worse fits
+            # So we still want argmax to find the worst-fitting point
+            min_distances_per_point = curr_pw.min(axis=1)
+            index_furthest_from_centre = min_distances_per_point.argmax()
+
             cluster_centres[current_empty_cluster_index] = X[index_furthest_from_centre]
             curr_pw = pairwise_distance(
                 X,
@@ -437,8 +464,6 @@ class TimeSeriesKMeans(BaseClusterer):
             empty_clusters = np.setdiff1d(np.arange(self.n_clusters), curr_labels)
             j += 1
             if j > self.n_clusters:
-                # This should be unreachable but just a safety check to stop it looping
-                # forever
                 raise EmptyClusterError
         return curr_pw, curr_labels, curr_inertia, cluster_centres
 
