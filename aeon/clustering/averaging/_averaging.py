@@ -6,6 +6,7 @@ from collections.abc import Callable
 
 import numpy as np
 
+from aeon.clustering.averaging import soft_barycenter_average
 from aeon.clustering.averaging._ba_petitjean import petitjean_barycenter_average
 from aeon.clustering.averaging._ba_subgradient import subgradient_barycenter_average
 from aeon.clustering.averaging._kasba_average import kasba_average
@@ -38,6 +39,7 @@ _AVERAGE_DICT = {
     "subgradient": subgradient_barycenter_average,
     "kasba": kasba_average,
     "petitjean": petitjean_barycenter_average,
+    "soft": soft_barycenter_average,
 }
 
 
