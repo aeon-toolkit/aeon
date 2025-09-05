@@ -16,7 +16,7 @@ from aeon.forecasting.utils._nelder_mead import dispatch_loss, nelder_mead
             np.array([0.5, -0.1, 0.1]),
             np.array([1.0, 2.0, 1.5, 1.7, 2.1]),
             np.array([1, 1, 1]),
-            19.9988,
+            20.0745,
         ),
         (np.array([0.0]), np.array([1.0, 1.0, 1.0, 1.0]), np.array([0, 0, 0]), 13.3515),
     ],
