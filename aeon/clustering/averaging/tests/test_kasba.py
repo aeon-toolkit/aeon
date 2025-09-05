@@ -10,9 +10,6 @@ from aeon.clustering.averaging import (
     kasba_average,
 )
 from aeon.clustering.averaging._ba_utils import _get_init_barycenter
-from aeon.clustering.averaging.tests.test_petitjean_ba import (
-    _average_distances_with_params,
-)
 from aeon.testing.data_generation import (
     make_example_1d_numpy,
     make_example_2d_numpy_series,
@@ -23,6 +20,9 @@ from aeon.testing.expected_results.expected_average_results import (
     expected_kasba_ba_univariate,
 )
 from aeon.testing.testing_config import MULTITHREAD_TESTING
+from aeon.testing.utils._distance_parameters import (
+    TEST_DISTANCES_WITH_FULL_ALIGNMENT_PATH,
+)
 
 
 def test_kasba_ba_expected():
@@ -51,7 +51,7 @@ def test_kasba_ba_expected():
     assert np.allclose(average_ts_multi, call_directly_average_ts_multi)
 
 
-@pytest.mark.parametrize("distance", _average_distances_with_params)
+@pytest.mark.parametrize("distance", TEST_DISTANCES_WITH_FULL_ALIGNMENT_PATH)
 @pytest.mark.parametrize(
     "init_barycenter",
     [
@@ -98,7 +98,7 @@ def test_kasba_ba_uni(distance, init_barycenter):
         assert not np.array_equal(average_ts_uni, init_barycenter)
 
 
-@pytest.mark.parametrize("distance", _average_distances_with_params)
+@pytest.mark.parametrize("distance", TEST_DISTANCES_WITH_FULL_ALIGNMENT_PATH)
 @pytest.mark.parametrize(
     "init_barycenter",
     [
@@ -139,7 +139,7 @@ def test_kasba_ba_multi(distance, init_barycenter):
         assert not np.array_equal(average_ts_multi, init_barycenter)
 
 
-@pytest.mark.parametrize("distance", _average_distances_with_params)
+@pytest.mark.parametrize("distance", TEST_DISTANCES_WITH_FULL_ALIGNMENT_PATH)
 def test_kasba_distance_params(distance):
     """Test kasba with various distance parameters."""
     distance_params = distance[1]
@@ -261,7 +261,7 @@ def test_kasba_ba_incorrect_input():
 
 
 @pytest.mark.skipif(not MULTITHREAD_TESTING, reason="Only run on multithread testing")
-@pytest.mark.parametrize("distance", _average_distances_with_params)
+@pytest.mark.parametrize("distance", TEST_DISTANCES_WITH_FULL_ALIGNMENT_PATH)
 @pytest.mark.parametrize("n_jobs", [2, -1])
 def test_kasba_threaded(distance, n_jobs):
     """Test kasba threaded functionality."""
