@@ -174,13 +174,6 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Clear disk space
-        uses: jlumbroso/free-disk-space@v1.3.1
-        with:
-          dotnet: false
-          large-packages: false
-          swap-storage: false
-
       - name: Set swap space
         if: runner.os == 'Linux'
         uses: pierotofy/set-swap-space@v1.0
@@ -248,6 +241,13 @@ jobs:
       - name: Run tests
         run: python -m pytest -n logical --doctest-only --doctest-continue-on-failure
 
+      - name: Save new cache
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ github.workspace }}/.numba_cache
+          # Save cache with the current date (ENV set in numba_cache action)
+          key: numba-doctests-${{ runner.os }}-3.12-${{ env.CURRENT_DATE }}
+
   multithreaded-estimators:
     runs-on: ubuntu-24.04
 
@@ -280,6 +280,13 @@ jobs:
 
       - name: Run tests
         run: python -m pytest aeon/testing/tests/ --enablethreading true -k "check_estimator_multithreading"
+
+      - name: Save new cache
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ github.workspace }}/.numba_cache
+          # Save cache with the current date (ENV set in numba_cache action)
+          key: numba-multithreaded-estimators-${{ runner.os }}-3.12-${{ env.CURRENT_DATE }}
 
   codecov:
     runs-on: ubuntu-24.04
