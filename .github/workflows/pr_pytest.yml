@@ -72,6 +72,13 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      - name: Clear disk space
+        uses: jlumbroso/free-disk-space@v1.3.1
+        with:
+          dotnet: false
+          large-packages: false
+          swap-storage: false
+
       - name: Set swap space
         if: runner.os == 'Linux'
         uses: pierotofy/set-swap-space@v1.0
