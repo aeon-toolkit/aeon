@@ -60,6 +60,11 @@ __all__ = [
     "soft_msm_cost_matrix",
     "soft_msm_alignment_path",
     "soft_msm_pairwise_distance",
+    "soft_bag_distance",
+    "soft_bag_alignment_matrix",
+    "soft_bag_alignment_path",
+    "soft_bag_cost_matrix",
+    "soft_bag_pairwise_distance",
 ]
 
 from aeon.distances.elastic._adtw import (
@@ -134,6 +139,13 @@ from aeon.distances.elastic._wdtw import (
     wdtw_cost_matrix,
     wdtw_distance,
     wdtw_pairwise_distance,
+)
+from aeon.distances.elastic.soft._soft_bag import (
+    soft_bag_alignment_matrix,
+    soft_bag_alignment_path,
+    soft_bag_cost_matrix,
+    soft_bag_distance,
+    soft_bag_pairwise_distance,
 )
 from aeon.distances.elastic.soft._soft_dtw import (
     soft_dtw_alignment_matrix,

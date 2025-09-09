@@ -8,7 +8,11 @@ from aeon.clustering.averaging._ba_utils import (
     VALID_SOFT_BA_METHODS,
     _ba_setup,
 )
-from aeon.distances.elastic import soft_dtw_alignment_matrix, soft_msm_alignment_matrix
+from aeon.distances.elastic import (
+    soft_bag_alignment_matrix,
+    soft_dtw_alignment_matrix,
+    soft_msm_alignment_matrix,
+)
 from aeon.utils.numba._threading import threaded
 
 
@@ -199,6 +203,13 @@ def _soft_barycenter_one_iter(
                 barycenter, curr_ts, c=c, alpha=alpha, gamma=gamma, window=window
             )
             local_jacobian_products[i] = jacobian_product_smooth_abs(
+                barycenter, curr_ts, grad
+            )
+        elif distance == "soft_bag":
+            grad, curr_dist = soft_bag_alignment_matrix(
+                barycenter, curr_ts, c=c, alpha=alpha, gamma=gamma, window=window
+            )
+            local_jacobian_products[i] = _jacobian_product_squared_euclidean(
                 barycenter, curr_ts, grad
             )
         local_distances[i] = curr_dist

@@ -1,8 +1,7 @@
-import numpy as np
 from tslearn.barycenters import softdtw_barycenter
 
 from aeon.clustering.averaging._ba_soft import soft_barycenter_average
-from aeon.datasets import load_from_ts_file, load_japanese_vowels
+from aeon.datasets import load_from_ts_file
 
 DATASET_NAME = "GunPoint"
 TOL = 1e-5
@@ -10,7 +9,7 @@ GAMMA = 1.0
 MAX_ITERS = 50
 
 
-def tslearn_soft_ba(X):
+def _tslearn_soft_ba(X):
     _X = X.copy().swapaxes(1, 2)
     return softdtw_barycenter(
         _X,
@@ -27,7 +26,16 @@ if __name__ == "__main__":
 
     X = X[y == "1"]
 
-    aeon_res = soft_barycenter_average(
+    aeon_res_bag = soft_barycenter_average(
+        X.copy(),
+        gamma=GAMMA,
+        tol=TOL,
+        max_iters=MAX_ITERS,
+        verbose=True,
+        distance="soft_bag",
+    )
+
+    aeon_res_msm = soft_barycenter_average(
         X.copy(),
         gamma=GAMMA,
         tol=TOL,
@@ -35,9 +43,10 @@ if __name__ == "__main__":
         verbose=True,
         distance="soft_msm",
     )
-    tslearn_res = tslearn_soft_ba(X)
+    tslearn_res = _tslearn_soft_ba(X)
 
-    temp = aeon_res.copy().swapaxes(0, 1)
+    temp_bag = aeon_res_bag.copy().swapaxes(0, 1)
+    temp_msm = aeon_res_msm.copy().swapaxes(0, 1)
 
-    equal = np.allclose(temp, tslearn_res)
-    print(f"Equal: {equal}")
+    # equal = np.allclose(temp, tslearn_res)
+    # print(f"Equal: {equal}")

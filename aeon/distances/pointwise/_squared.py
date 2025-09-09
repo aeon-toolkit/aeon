@@ -11,6 +11,11 @@ from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
 @njit(cache=True, fastmath=True)
+def _squared_dist_pointwise(x, y):
+    return (x - y) ** 2
+
+
+@njit(cache=True, fastmath=True)
 def squared_distance(x: np.ndarray, y: np.ndarray) -> float:
     r"""Compute the squared distance between two time series.
 
