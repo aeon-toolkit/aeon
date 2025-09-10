@@ -65,6 +65,10 @@ __all__ = [
     "soft_bag_alignment_path",
     "soft_bag_cost_matrix",
     "soft_bag_pairwise_distance",
+    "ted_distance",
+    "ted_alignment_path",
+    "ted_pairwise_distance",
+    "ted_cost_matrix",
 ]
 
 from aeon.distances.elastic._adtw import (
@@ -121,6 +125,12 @@ from aeon.distances.elastic._shape_dtw import (
     shape_dtw_cost_matrix,
     shape_dtw_distance,
     shape_dtw_pairwise_distance,
+)
+from aeon.distances.elastic._ted import (
+    ted_alignment_path,
+    ted_cost_matrix,
+    ted_distance,
+    ted_pairwise_distance,
 )
 from aeon.distances.elastic._twe import (
     twe_alignment_path,
