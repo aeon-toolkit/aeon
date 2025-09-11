@@ -48,7 +48,7 @@ if __name__ == "__main__":
     print(f"Distance: {dist_temp}")
     print(f"Cost Matrix: {cost_matrix}")
 
-    for experiment in [1, 2, 3, 4, 5]:
+    for experiment in [1, 2, 3, 4, 5, 6, 7]:
         dist_kwargs = {
             "experiment": experiment,
         }
@@ -56,7 +56,7 @@ if __name__ == "__main__":
         #
         # plt_path.show()
         plt_alignment = _plot_alignment(
-            x, y, method="ted", title="ted", dist_kwargs=dist_kwargs
+            x, y, method="ted", title=f"ted-{experiment}", dist_kwargs=dist_kwargs
         )
         plt_alignment.show()
 

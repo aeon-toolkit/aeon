@@ -350,6 +350,27 @@ def _ted_cost_matrix_experiment5(x, y, i, j, cost_matrix, w_grad, lam, gap_base,
     return cost_matrix
 
 
+@njit(cache=True, fastmath=True)
+def _ted_cost_matrix_experiment6(x, y, i, j, cost_matrix):
+    # TED 1 from slack
+    d = cost_matrix[i, j]
+    h = cost_matrix[i, j + 1] + _univariate_squared_distance(x[:, i], x[:, i + 1])
+    v = cost_matrix[i + 1, j] + _univariate_squared_distance(y[:, j], y[:, j + 1])
+    cost_matrix[i + 1, j + 1] = min(d, h, v)
+    return cost_matrix
+
+
+@njit(cache=True, fastmath=True)
+def _ted_cost_matrix_experiment7(x, y, i, j, cost_matrix):
+    # TED 2 from slack
+    diag_dist = _univariate_squared_distance(x[:, i], y[:, j])
+    d = cost_matrix[i, j] + diag_dist
+    h = cost_matrix[i, j + 1] + min(_ted_cost(x, y, i, j), diag_dist)
+    v = cost_matrix[i + 1, j] + min(_ted_cost(y, x, j, i), diag_dist)
+    cost_matrix[i + 1, j + 1] = min(d, h, v)
+    return cost_matrix
+
+
 # ------------------------------
 # DP driver
 # ------------------------------
@@ -395,6 +416,10 @@ def _ted_cost_matrix(
                 cost_matrix = _ted_cost_matrix_experiment5(
                     x, y, i, j, cost_matrix, w_grad, lam, gap_base, gap_k
                 )
+            elif experiment == 6:
+                cost_matrix = _ted_cost_matrix_experiment6(x, y, i, j, cost_matrix)
+            elif experiment == 7:
+                cost_matrix = _ted_cost_matrix_experiment7(x, y, i, j, cost_matrix)
             else:
                 # Fallback to experiment 2 (sensible DP default)
                 cost_matrix = _ted_cost_matrix_experiment2(
