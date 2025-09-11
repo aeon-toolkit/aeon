@@ -306,6 +306,7 @@ def _ted_cost_matrix_experiment1(x, y, i, j, cost_matrix, w_grad, lam, gap_base,
 @njit(cache=True, fastmath=True)
 def _ted_cost_matrix_experiment2(x, y, i, j, cost_matrix, w_grad, lam, gap_base, gap_k):
     # Standard DP with insertion/deletion using _ted_cost and diagonal match
+    print(f"w_grad: {w_grad}")
     cost_matrix[i + 1, j + 1] = _univariate_squared_distance(x[:, i], y[:, j]) + min(
         cost_matrix[i, j + 1] + _ted_cost(x, y, i, j),  # insertion (advance i)
         cost_matrix[i + 1, j] + _ted_cost(y, x, j, i),  # deletion (advance j)
@@ -317,6 +318,7 @@ def _ted_cost_matrix_experiment2(x, y, i, j, cost_matrix, w_grad, lam, gap_base,
 @njit(cache=True, fastmath=True)
 def _ted_cost_matrix_experiment3(x, y, i, j, cost_matrix, w_grad, lam, gap_base, gap_k):
     # Derivative/velocity alignment: local term mixes value & gradient
+    print(f"w_grad: {w_grad}")
     local = _local_mixed_cost(x, y, i, j, w_grad)
     cost_matrix[i + 1, j + 1] = local + min(
         cost_matrix[i, j + 1] + _ted_cost(x, y, i, j),  # insertion
@@ -329,6 +331,7 @@ def _ted_cost_matrix_experiment3(x, y, i, j, cost_matrix, w_grad, lam, gap_base,
 @njit(cache=True, fastmath=True)
 def _ted_cost_matrix_experiment4(x, y, i, j, cost_matrix, w_grad, lam, gap_base, gap_k):
     # Slope/step penalties: penalise horizontal/vertical transitions equally via lam
+    print(f"lam: {lam}")
     local = _univariate_squared_distance(x[:, i], y[:, j])
     a = cost_matrix[i, j + 1] + _ted_cost(x, y, i, j) + lam  # insertion
     b = cost_matrix[i + 1, j] + _ted_cost(y, x, j, i) + lam  # deletion
@@ -340,6 +343,7 @@ def _ted_cost_matrix_experiment4(x, y, i, j, cost_matrix, w_grad, lam, gap_base,
 @njit(cache=True, fastmath=True)
 def _ted_cost_matrix_experiment5(x, y, i, j, cost_matrix, w_grad, lam, gap_base, gap_k):
     # Adaptive gap/edit costs (MSM-style): gaps depend on local volatility
+    print(f"gap_base: {gap_base}, gap_k: {gap_k}")
     local = _univariate_squared_distance(x[:, i], y[:, j])
     gap_x = _adaptive_gap_cost(x, i, gap_base, gap_k)  # insertion cost
     gap_y = _adaptive_gap_cost(y, j, gap_base, gap_k)  # deletion cost
