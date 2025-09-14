@@ -1,120 +1,97 @@
-"""Tests for time series k-means."""
+"""Test time series k-means clustering."""
+
+from collections.abc import Callable
 
 import numpy as np
 import pytest
 from sklearn import metrics
-from sklearn.utils import check_random_state
 
-from aeon.clustering._k_means import TimeSeriesKMeans
-from aeon.datasets import load_basic_motions, load_gunpoint
-from aeon.distances import euclidean_distance
+from aeon.clustering import TimeSeriesKMeans
+from aeon.datasets import load_basic_motions
+from aeon.distances._distance import ELASTIC_DISTANCES
 from aeon.testing.data_generation import make_example_3d_numpy
-from aeon.utils.validation._dependencies import _check_estimator_deps
-
-expected_results = {
-    "mean": [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        1,
-        0,
-        1,
-        0,
-        1,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-    ],
-    "dba": [1, 0, 1, 0, 0],
-}
-
-expected_train_result = {"mean": 0.47307692307692306, "dba": 0.6}
-
-expected_score = {"mean": 0.3192307692307692, "dba": 0.4}
-
-expected_iters = {"mean": 6, "dba": 3}
-
-expected_labels = {
-    "mean": [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        1,
-        1,
-        0,
-        0,
-        0,
-        1,
-        1,
-        0,
-        1,
-        1,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        1,
-        0,
-        0,
-        1,
-        1,
-        0,
-        0,
-    ],
-    "dba": [0, 1, 0, 0, 0],
-}
-
-
-@pytest.mark.skipif(
-    not _check_estimator_deps(TimeSeriesKMeans, severity="none"),
-    reason="skip test if required soft dependencies not available",
+from aeon.testing.expected_results.expected_clustering_results import (
+    k_means_expected_results,
 )
-def test_kmeans():
+from aeon.testing.testing_config import MULTITHREAD_TESTING
+from aeon.testing.utils._distance_parameters import (
+    TEST_DISTANCE_WITH_CUSTOM_DISTANCE,
+    TEST_DISTANCE_WITH_PARAMS,
+    TEST_DISTANCES_WITH_FULL_ALIGNMENT_PATH,
+)
+
+
+def _run_kmeans_test(kmeans_params, n_cases, n_channels, n_timepoints):
+    X_train = make_example_3d_numpy(
+        n_cases=n_cases,
+        n_channels=n_channels,
+        n_timepoints=n_timepoints,
+        random_state=1,
+        return_y=False,
+    )
+    X_test = make_example_3d_numpy(
+        n_cases=n_cases,
+        n_channels=n_channels,
+        n_timepoints=n_timepoints,
+        random_state=2,
+        return_y=False,
+    )
+
+    kmeans = TimeSeriesKMeans(**kmeans_params)
+    n_clusters = kmeans_params["n_clusters"]
+    train_predict = kmeans.fit_predict(X_train)
+
+    assert isinstance(train_predict, np.ndarray)
+    assert train_predict.shape == (n_cases,)
+    assert np.unique(train_predict).shape[0] <= n_clusters
+    assert kmeans.cluster_centers_.shape == (n_clusters, n_channels, n_timepoints)
+
+    test_result = kmeans.predict(X_test)
+
+    assert isinstance(test_result, np.ndarray)
+    assert test_result.shape == (n_cases,)
+    assert np.unique(test_result).shape[0] <= n_clusters
+
+    proba = kmeans.predict_proba(X_test)
+    assert isinstance(kmeans.cluster_centers_, np.ndarray)
+    assert proba.shape == (n_cases, n_clusters)
+    for val in proba:
+        assert np.count_nonzero(val == 1.0) == 1
+    return kmeans
+
+
+def _get_model_centres(data, distance, average_params=None, distance_params=None):
+    """Get the centres of a model."""
+    model = TimeSeriesKMeans(
+        averaging_method="ba",
+        random_state=1,
+        n_init=2,
+        n_clusters=2,
+        init="random",
+        distance=distance,
+        average_params=average_params,
+        distance_params=distance_params,
+    )
+    model.fit(data)
+    return model.cluster_centers_
+
+
+def check_value_in_every_cluster(num_clusters, initial_centres):
+    """Check that every cluster has at least one value."""
+    original_length = len(initial_centres)
+    assert original_length == num_clusters
+
+    # Check no duplicates
+    for i in range(len(initial_centres)):
+        curr = initial_centres[i]
+        for j in range(len(initial_centres)):
+            if i == j:
+                continue
+            other = initial_centres[j]
+            assert not np.array_equal(curr, other)
+
+
+def test_k_means_expected():
     """Test implementation of Kmeans."""
     X_train, y_train = load_basic_motions(split="train")
     X_test, y_test = load_basic_motions(split="test")
@@ -134,11 +111,11 @@ def test_kmeans():
     mean_score = metrics.rand_score(y_test, test_mean_result)
     proba = kmeans.predict_proba(X_test)
 
-    assert np.array_equal(test_mean_result, expected_results["mean"])
-    assert mean_score == expected_score["mean"]
-    assert train_mean_score == expected_train_result["mean"]
-    assert kmeans.n_iter_ == expected_iters["mean"]
-    assert np.array_equal(kmeans.labels_, expected_labels["mean"])
+    assert np.array_equal(test_mean_result, k_means_expected_results["mean_result"])
+    assert mean_score == k_means_expected_results["mean_test_score"]
+    assert train_mean_score == k_means_expected_results["mean_train_score"]
+    assert kmeans.n_iter_ == k_means_expected_results["mean_iters"]
+    assert np.array_equal(kmeans.labels_, k_means_expected_results["mean_labels"])
     assert isinstance(kmeans.cluster_centers_, np.ndarray)
     assert proba.shape == (40, 2)
 
@@ -146,10 +123,6 @@ def test_kmeans():
         assert np.count_nonzero(val == 1.0) == 1
 
 
-@pytest.mark.skipif(
-    not _check_estimator_deps(TimeSeriesKMeans, severity="none"),
-    reason="skip test if required soft dependencies not available",
-)
 def test_kmeans_dba():
     """Test implementation of Kmeans using dba."""
     X_train, y_train = load_basic_motions(split="train")
@@ -172,11 +145,11 @@ def test_kmeans_dba():
     mean_score = metrics.rand_score(y_test[0:num_test_values], test_mean_result)
     proba = kmeans.predict_proba(X_test[0:num_test_values])
 
-    assert np.array_equal(test_mean_result, expected_results["dba"])
-    assert mean_score == expected_score["dba"]
-    assert train_mean_score == expected_train_result["dba"]
-    assert kmeans.n_iter_ == expected_iters["dba"]
-    assert np.array_equal(kmeans.labels_, expected_labels["dba"])
+    assert np.array_equal(test_mean_result, k_means_expected_results["dba_result"])
+    assert mean_score == k_means_expected_results["dba_test_score"]
+    assert train_mean_score == k_means_expected_results["dba_train_score"]
+    assert kmeans.n_iter_ == k_means_expected_results["dba_iters"]
+    assert np.array_equal(kmeans.labels_, k_means_expected_results["dba_labels"])
     assert isinstance(kmeans.cluster_centers_, np.ndarray)
     assert proba.shape == (5, 2)
 
@@ -184,166 +157,178 @@ def test_kmeans_dba():
         assert np.count_nonzero(val == 1.0) == 1
 
 
-def _get_model_centres(data, distance, average_params=None, distance_params=None):
-    """Get the centres of a model."""
-    model = TimeSeriesKMeans(
-        averaging_method="ba",
-        random_state=1,
-        n_init=2,
-        n_clusters=2,
-        init="random",
-        distance=distance,
-        average_params=average_params,
-        distance_params=distance_params,
-    )
-    model.fit(data)
-    return model.cluster_centers_
+@pytest.mark.parametrize("distance", TEST_DISTANCE_WITH_CUSTOM_DISTANCE)
+def test_k_mean_distances(distance):
+    """Test that all distances work in k-mean."""
+    dist, params = distance
+
+    for key in params:
+        curr_params = {
+            "max_iter": 10,
+            "averaging_method": "mean",
+            "random_state": 1,
+            "n_init": 1,
+            "n_clusters": 3,
+            "init": "kmeans++",
+            "distance": dist,
+            "distance_params": {key: params[key]},
+        }
+        # Univariate test
+        with_param_kmeans = _run_kmeans_test(
+            kmeans_params=curr_params, n_cases=40, n_channels=1, n_timepoints=10
+        )
+
+        # Multivariate test
+        _run_kmeans_test(
+            kmeans_params=curr_params, n_cases=40, n_channels=3, n_timepoints=10
+        )
+
+        if dist in ELASTIC_DISTANCES:
+            curr_params["distance_params"] = {"window": 0.1}
+        else:
+            del curr_params["distance_params"]
+
+        # Shift scale with random values doesn't change the centers (1 which is the
+        # default is the best shift already)
+        if dist == "shift_scale":
+            continue
+
+        default_param_kmeans = _run_kmeans_test(
+            kmeans_params=curr_params, n_cases=40, n_channels=1, n_timepoints=10
+        )
+
+        # Test parameters passed through kmeans
+        assert not np.array_equal(
+            with_param_kmeans.cluster_centers_, default_param_kmeans.cluster_centers_
+        )
 
 
-def test_petitjean_ba_params():
-    """Test different petitjean ba params."""
-    data = make_example_3d_numpy(5, 2, 10, random_state=1, return_y=False)
+@pytest.mark.parametrize("distance", TEST_DISTANCES_WITH_FULL_ALIGNMENT_PATH)
+@pytest.mark.parametrize("averaging_method", ["subgradient", "petitjean", "kasba"])
+def test_k_mean_ba(distance, averaging_method):
+    """Test that all distances work in k-mean."""
+    dist, params = distance
 
-    # Test passing distance param
-    default_dba = _get_model_centres(data, distance="dtw")
-    dba_specified = _get_model_centres(
-        data, distance="dtw", average_params={"distance": "dtw"}
-    )
-    assert np.array_equal(dba_specified, default_dba)
+    for key in params:
+        # Univariate test
+        curr_params = {
+            "max_iter": 10,
+            "averaging_method": "ba",
+            "random_state": 1,
+            "n_init": 1,
+            "n_clusters": 4,
+            "init": "kmeans++",
+            "distance": dist,
+            "distance_params": {key: params[key]},
+            "average_params": {
+                "method": averaging_method,
+                "max_iters": 4,
+                "init_barycenter": "random",
+            },
+        }
+        with_param_kmeans = _run_kmeans_test(
+            kmeans_params=curr_params, n_cases=40, n_channels=1, n_timepoints=10
+        )
 
-    # Test another distance and check passing custom distance param
-    default_mba = _get_model_centres(data, distance="msm")
-    mba_specified = _get_model_centres(
-        data, distance="msm", average_params={"distance": "msm"}
-    )
-    assert np.array_equal(mba_specified, default_mba)
-    assert not np.array_equal(mba_specified, dba_specified)
+        # Multivariate test
+        _run_kmeans_test(
+            kmeans_params=curr_params, n_cases=40, n_channels=3, n_timepoints=10
+        )
 
-    # Test passing custom parameter
-    mba_custom_params = _get_model_centres(
-        data, distance="msm", average_params={"independent": False}
-    )
-    assert not np.array_equal(mba_custom_params, default_mba)
+        curr_params["distance_params"] = {"window": 0.1}
 
-    mba_custom_params_window = _get_model_centres(
-        data, distance="msm", average_params={"window": 0.2}
-    )
+        default_param_kmeans = _run_kmeans_test(
+            kmeans_params=curr_params, n_cases=40, n_channels=1, n_timepoints=10
+        )
 
-    assert not np.array_equal(mba_custom_params, mba_custom_params_window)
-
-    # Test passing multiple params
-    mba_custom_params_window_and_indep = _get_model_centres(
-        data, distance="msm", average_params={"window": 0.1, "independent": False}
-    )
-
-    # Check not equal to just when indep set
-    assert not np.array_equal(mba_custom_params, mba_custom_params_window_and_indep)
-    # Check not equal to just when window set
-    assert not np.array_equal(
-        mba_custom_params_window_and_indep, mba_custom_params_window
-    )
-    # Check not equal to default
-    assert not np.array_equal(default_mba, mba_custom_params_window_and_indep)
+        # Test parameters passed through kmeans
+        assert not np.array_equal(
+            with_param_kmeans.cluster_centers_, default_param_kmeans.cluster_centers_
+        )
 
 
-def test_ssg_ba_params():
-    """Test different ssg-ba params."""
-    data = make_example_3d_numpy(5, 2, 10, random_state=1, return_y=False)
-
-    # Test subgradient ba
-    subgradient_dba_specified = _get_model_centres(
-        data,
-        distance="dtw",
-        average_params={"distance": "dtw", "method": "subgradient"},
-    )
-
-    # Test another distance and check passing custom distance param
-    subgradient_mba_specified = _get_model_centres(
-        data,
-        distance="msm",
-        average_params={"distance": "msm", "method": "subgradient"},
-    )
-    assert not np.array_equal(subgradient_dba_specified, subgradient_mba_specified)
-
-
-def check_value_in_every_cluster(num_clusters, initial_centres):
-    """Check that every cluster has at least one value."""
-    original_length = len(initial_centres)
-    assert original_length == num_clusters
-
-    # Check no duplicates
-    for i in range(len(initial_centres)):
-        curr = initial_centres[i]
-        for j in range(len(initial_centres)):
-            if i == j:
-                continue
-            other = initial_centres[j]
-            assert not np.array_equal(curr, other)
-
-
-def test_means_init():
+@pytest.mark.parametrize("distance", TEST_DISTANCE_WITH_CUSTOM_DISTANCE)
+@pytest.mark.parametrize("init", ["random", "kmeans++", "first", "ndarray"])
+def test_k_mean_init(distance, init):
     """Test implementation of Kmeans."""
-    X_train, _ = load_gunpoint(split="train")
-    custom_init_centres = X_train[[12, 13]]
-    X_train = X_train[:10]
+    distance, params = distance
 
-    num_clusters = 4
+    # Only kmeans++ needs test with different distances
+    if init != "kmeans++" and distance != "euclidean":
+        return
+
+    n_cases = 10
+    n_timepoints = 10
+    n_clusters = 4
+
+    # Univariate test
+    X_train_uni = make_example_3d_numpy(
+        n_cases=n_cases,
+        n_channels=1,
+        n_timepoints=n_timepoints,
+        random_state=1,
+        return_y=False,
+    )
+
     kmeans = TimeSeriesKMeans(
         random_state=1,
-        n_init=1,
-        max_iter=5,
-        init="first",
-        distance="euclidean",
         averaging_method="mean",
-        n_clusters=num_clusters,
+        init=init,
+        distance=distance,
+        n_clusters=n_clusters,
     )
-    kmeans._random_state = check_random_state(kmeans.random_state)
-    kmeans._distance_params = {}
-    kmeans._distance_callable = euclidean_distance
-    first_mean_result = kmeans._first_center_initializer(X_train)
-    check_value_in_every_cluster(num_clusters, first_mean_result)
-    random_mean_result = kmeans._random_center_initializer(X_train)
-    check_value_in_every_cluster(num_clusters, random_mean_result)
-    kmean_plus_plus_result = kmeans._kmeans_plus_plus_center_initializer(X_train)
-    check_value_in_every_cluster(num_clusters, kmean_plus_plus_result)
 
-    # Test setting manual init centres
-    num_clusters = 2
+    if init == "ndarray":
+        kmeans.init = make_example_3d_numpy(
+            n_cases=n_clusters,
+            n_channels=1,
+            n_timepoints=n_timepoints,
+            random_state=1,
+            return_y=False,
+        )
+
+    kmeans._check_params(X_train_uni)
+    if isinstance(kmeans._init, Callable):
+        uni_init_vals = kmeans._init(X_train_uni)
+    else:
+        uni_init_vals = kmeans._init
+
+    check_value_in_every_cluster(n_clusters, uni_init_vals)
+
+    # Multivariate test
+    X_train_multi = make_example_3d_numpy(
+        n_cases=n_cases,
+        n_channels=3,
+        n_timepoints=n_timepoints,
+        random_state=1,
+        return_y=False,
+    )
+
     kmeans = TimeSeriesKMeans(
         random_state=1,
-        n_init=1,
-        max_iter=5,
-        init=custom_init_centres,
-        distance="euclidean",
         averaging_method="mean",
-        n_clusters=num_clusters,
+        init=init,
+        distance=distance,
+        n_clusters=n_clusters,
     )
-    kmeans.fit(custom_init_centres)
 
-    assert np.array_equal(kmeans.cluster_centers_, custom_init_centres)
+    if init == "ndarray":
+        kmeans.init = make_example_3d_numpy(
+            n_cases=n_clusters,
+            n_channels=3,
+            n_timepoints=n_timepoints,
+            random_state=1,
+            return_y=False,
+        )
 
+    kmeans._check_params(X_train_multi)
 
-def test_custom_distance_params():
-    """Test kmeans custom distance parameters."""
-    X_train, y_train = load_basic_motions(split="train")
+    if isinstance(kmeans._init, Callable):
+        multi_init_vals = kmeans._init(X_train_multi)
+    else:
+        multi_init_vals = kmeans._init
 
-    num_test_values = 10
-    data = X_train[0:num_test_values]
-
-    # Test passing distance param
-    default_dist = _get_model_centres(
-        data,
-        distance="msm",
-        distance_params={"window": 0.2},
-        average_params={"init_barycenter": "medoids"},
-    )
-    custom_params_dist = _get_model_centres(
-        data,
-        distance="msm",
-        distance_params={"window": 0.2},
-        average_params={"init_barycenter": "mean"},
-    )
-    assert not np.array_equal(default_dist, custom_params_dist)
+    check_value_in_every_cluster(n_clusters, multi_init_vals)
 
 
 def test_empty_cluster():
@@ -372,7 +357,7 @@ def test_empty_cluster():
     assert not np.array_equal(kmeans.cluster_centers_, init_centres)
     assert np.unique(kmeans.labels_).size == 3
 
-    # Test that if a duplicate centre would be created the algorithm
+    # Test that if a duplicate center would be created the algorithm
     init_centres = np.array([first, first, first])
 
     kmeans = TimeSeriesKMeans(
@@ -421,3 +406,140 @@ def test_empty_cluster():
 
     with pytest.raises(ValueError):
         kmeans.fit(np.array([first, first, first, first, first]))
+
+
+def test_invalid_params():
+    """Test invalid parameters for k-mean."""
+    uni_data = make_example_3d_numpy(
+        n_cases=10, n_channels=1, n_timepoints=10, random_state=1, return_y=False
+    )
+    multi_data = make_example_3d_numpy(
+        n_cases=10, n_channels=3, n_timepoints=10, random_state=1, return_y=False
+    )
+    # Init algorithm exceptions
+
+    default_params = {
+        "random_state": 1,
+        "averaging_method": "mean",
+        "distance": "euclidean",
+        "n_init": 1,
+        "max_iter": 5,
+    }
+
+    # Test invalid init string
+    with pytest.raises(ValueError, match=r"invalid.*init|The value provided for init"):
+        TimeSeriesKMeans(**default_params, n_clusters=2, init="not-a-valid-init").fit(
+            uni_data
+        )
+
+    # Test different length init
+    diff_len_uni_data = make_example_3d_numpy(
+        n_cases=2, n_channels=1, n_timepoints=8, random_state=1, return_y=False
+    )
+    with pytest.raises(ValueError, match=r"invalid.*init|The value provided for init"):
+        TimeSeriesKMeans(**default_params, n_clusters=2, init=diff_len_uni_data).fit(
+            uni_data
+        )
+
+    # Test different dims init
+    diff_len_multi_data = make_example_3d_numpy(
+        n_cases=2, n_channels=5, n_timepoints=8, random_state=1, return_y=False
+    )
+    with pytest.raises(ValueError, match=r"invalid.*init|The value provided for init"):
+        TimeSeriesKMeans(**default_params, n_clusters=2, init=diff_len_multi_data).fit(
+            multi_data
+        )
+
+    # Test with invalid distance
+    with pytest.raises(
+        ValueError, match=r"Method must be one of the supported strings or a callable"
+    ):
+        TimeSeriesKMeans(
+            n_clusters=2,
+            init="first",
+            averaging_method="mean",
+            distance="not-a-real-dist",
+            n_init=1,
+        ).fit(uni_data)
+
+    # Test with invalid distance for ba
+    with pytest.raises(ValueError, match=r"Invalid distance passed for ba"):
+        TimeSeriesKMeans(
+            n_clusters=2,
+            init="first",
+            averaging_method="ba",
+            distance="euclidean",
+            n_init=1,
+        ).fit(uni_data)
+
+    # Test with invalid averaging method
+    with pytest.raises(ValueError, match="averaging_method string is invalid"):
+        TimeSeriesKMeans(
+            n_clusters=2,
+            init="first",
+            averaging_method="no-real-average",
+            distance="euclidean",
+            n_init=1,
+        ).fit(uni_data)
+
+    with pytest.raises(ValueError, match=r"n_clusters .* cannot be larger"):
+        TimeSeriesKMeans(n_clusters=20, init="first").fit(uni_data)
+
+    # Test no clustering found
+    with pytest.raises(
+        ValueError, match=r"Unable to find a valid cluster configuration"
+    ):
+        TimeSeriesKMeans(
+            n_clusters=2,
+            n_init=1,
+            max_iter=0,
+            averaging_method="mean",
+            init="random",
+            distance="euclidean",
+        ).fit(uni_data)
+
+
+@pytest.mark.skipif(not MULTITHREAD_TESTING, reason="Only run on multithread testing")
+@pytest.mark.parametrize("distance", TEST_DISTANCES_WITH_FULL_ALIGNMENT_PATH)
+@pytest.mark.parametrize("averaging_method", ["subgradient", "petitjean", "kasba"])
+@pytest.mark.parametrize("n_jobs", [2, -1])
+def test_k_means_ba_threaded(distance, averaging_method, n_jobs):
+    """Test petitjean threaded functionality."""
+    curr_params = {
+        "max_iter": 10,
+        "averaging_method": "ba",
+        "random_state": 1,
+        "n_init": 1,
+        "n_jobs": n_jobs,
+        "n_clusters": 4,
+        "init": "kmeans++",
+        "distance": distance[0],
+        "average_params": {
+            "method": averaging_method,
+            "max_iters": 4,
+            "init_barycenter": "random",
+        },
+    }
+    _run_kmeans_test(
+        kmeans_params=curr_params, n_cases=40, n_channels=1, n_timepoints=10
+    )
+
+
+@pytest.mark.skipif(not MULTITHREAD_TESTING, reason="Only run on multithread testing")
+@pytest.mark.parametrize("distance", TEST_DISTANCE_WITH_PARAMS)
+@pytest.mark.parametrize("n_jobs", [2, -1])
+def test_k_means_threaded(distance, n_jobs):
+    """Test mean averaging threaded functionality."""
+    curr_params = {
+        "max_iter": 10,
+        "averaging_method": "mean",
+        "random_state": 1,
+        "n_init": 1,
+        "n_jobs": n_jobs,
+        "n_clusters": 4,
+        "init": "kmeans++",
+        "distance": distance[0],
+    }
+    _run_kmeans_test(
+        kmeans_params=curr_params, n_cases=40, n_channels=1, n_timepoints=10
+    )

@@ -20,17 +20,9 @@ from aeon.testing.expected_results.expected_average_results import (
     expected_petitjean_ba_univariate,
 )
 from aeon.testing.testing_config import MULTITHREAD_TESTING
-
-_average_distances_with_params = [
-    ("dtw", {"window": 0.2}),
-    ("wdtw", {"g": 2.0}),
-    ("edr", {"epsilon": 0.8}),
-    ("twe", {"nu": 0.2, "lmbda": 0.1}),
-    ("msm", {"c": 2.0}),
-    ("shape_dtw", {"reach": 4}),
-    ("adtw", {"warp_penalty": 0.2}),
-    ("soft_dtw", {"gamma": 0.1}),
-]
+from aeon.testing.utils._distance_parameters import (
+    TEST_DISTANCES_WITH_FULL_ALIGNMENT_PATH,
+)
 
 
 def test_petitjean_ba_expected():
@@ -63,7 +55,7 @@ def test_petitjean_ba_expected():
     assert np.allclose(average_ts_multi, call_directly_average_ts_multi)
 
 
-@pytest.mark.parametrize("distance", _average_distances_with_params)
+@pytest.mark.parametrize("distance", TEST_DISTANCES_WITH_FULL_ALIGNMENT_PATH)
 @pytest.mark.parametrize(
     "init_barycenter",
     [
@@ -111,7 +103,7 @@ def test_petitjean_ba_uni(distance, init_barycenter):
         assert not np.array_equal(average_ts_uni, init_barycenter)
 
 
-@pytest.mark.parametrize("distance", _average_distances_with_params)
+@pytest.mark.parametrize("distance", TEST_DISTANCES_WITH_FULL_ALIGNMENT_PATH)
 @pytest.mark.parametrize(
     "init_barycenter",
     [
@@ -158,7 +150,7 @@ def test_petitjean_ba_multi(distance, init_barycenter):
         assert not np.array_equal(average_ts_multi, init_barycenter)
 
 
-@pytest.mark.parametrize("distance", _average_distances_with_params)
+@pytest.mark.parametrize("distance", TEST_DISTANCES_WITH_FULL_ALIGNMENT_PATH)
 def test_petitjean_distance_params(distance):
     """Test petitjean with various distance parameters."""
     distance_params = distance[1]
@@ -275,7 +267,7 @@ def test_petitjean_ba_incorrect_input():
 
 
 @pytest.mark.skipif(not MULTITHREAD_TESTING, reason="Only run on multithread testing")
-@pytest.mark.parametrize("distance", _average_distances_with_params)
+@pytest.mark.parametrize("distance", TEST_DISTANCES_WITH_FULL_ALIGNMENT_PATH)
 @pytest.mark.parametrize("n_jobs", [2, -1])
 def test_petitjean_threaded(distance, n_jobs):
     """Test petitjean threaded functionality."""
