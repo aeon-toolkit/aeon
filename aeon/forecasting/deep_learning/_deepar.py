@@ -19,7 +19,6 @@ from sklearn.utils import check_random_state
 from aeon.forecasting.base import DirectForecastingMixin, IterativeForecastingMixin
 from aeon.forecasting.deep_learning.base import BaseDeepForecaster
 from aeon.networks._deepar import DeepARNetwork
-from aeon.utils.loss.gaussian_loss import gaussian_loss
 
 
 class DeepARForecaster(
@@ -173,8 +172,9 @@ class DeepARForecaster(
         """
         import tensorflow as tf
 
-        if self.loss == "gaussian_loss":
-            self.loss = gaussian_loss
+        from aeon.utils.loss.gaussian_loss import gaussian_loss
+
+        self._loss = gaussian_loss if self.loss == "gaussian_loss" else self.loss
         rng = check_random_state(self.random_state)
         self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
 
@@ -194,7 +194,7 @@ class DeepARForecaster(
         )
 
         model.compile(
-            loss=self.loss,
+            loss=self._loss,
             optimizer=self.optimizer_,
             metrics=self._metrics,
         )
