@@ -31,3 +31,5 @@ Deep learning networks
     AEDRNNNetwork
     RecurrentNetwork
     NBeatsNetwork
+    TCNNetwork
+    DeepARNetwork
