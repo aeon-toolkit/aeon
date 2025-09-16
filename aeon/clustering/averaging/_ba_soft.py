@@ -13,6 +13,7 @@ from aeon.distances.elastic import (
     soft_dtw_alignment_matrix,
     soft_msm_alignment_matrix,
 )
+from aeon.distances.elastic.soft._soft_msm import soft_msm_grad_x
 from aeon.utils.numba._threading import threaded
 
 
@@ -171,7 +172,7 @@ def jacobian_product_smooth_abs(X, Y, E):
     return G
 
 
-@njit(cache=True, fastmath=True, parallel=True)
+# @njit(cache=True, fastmath=True, parallel=True)
 def _soft_barycenter_one_iter(
     barycenter: np.ndarray,
     X: np.ndarray,
@@ -199,11 +200,14 @@ def _soft_barycenter_one_iter(
                 barycenter, curr_ts, grad
             )
         elif distance == "soft_msm":
-            grad, curr_dist = soft_msm_alignment_matrix(
+            # grad, curr_dist = soft_msm_alignment_matrix(
+            #     barycenter, curr_ts, c=c, alpha=alpha, gamma=gamma, window=window
+            # )
+            # local_jacobian_products[i] = jacobian_product_smooth_abs(
+            #     barycenter, curr_ts, grad
+            # )
+            local_jacobian_products[i], curr_dist = soft_msm_grad_x(
                 barycenter, curr_ts, c=c, alpha=alpha, gamma=gamma, window=window
-            )
-            local_jacobian_products[i] = jacobian_product_smooth_abs(
-                barycenter, curr_ts, grad
             )
         elif distance == "soft_bag":
             grad, curr_dist = soft_bag_alignment_matrix(
