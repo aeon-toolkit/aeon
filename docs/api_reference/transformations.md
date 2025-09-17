@@ -158,6 +158,7 @@ all_tags_for_estimator`` function with the argument ``"transformer"``.
     :template: class.rst
 
     TRILITE
+    TimeMCL
 ```
 
 ### Shapelet based

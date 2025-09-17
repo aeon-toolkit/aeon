@@ -35,5 +35,19 @@ Statistical Models
 
     ARIMA
     ETS
+    TAR
+    AutoTAR
     Theta
-    TVPForecaster
+    TVP
+
+Deep Learning Models
+--------------------
+
+.. currentmodule:: aeon.forecasting.deep_learning
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    BaseDeepForecaster
+    TCNForecaster
