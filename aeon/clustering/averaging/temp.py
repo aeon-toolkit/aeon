@@ -5,7 +5,7 @@ from aeon.clustering.averaging._ba_soft import soft_barycenter_average
 from aeon.datasets import load_from_ts_file
 from aeon.transformations.collection import Normalizer
 
-DATASET_NAME = "GunPoint"
+DATASET_NAME = "ACSF1"
 TOL = 1e-5
 GAMMA = 1.0
 MAX_ITERS = 50
@@ -56,6 +56,8 @@ def auto_soft_msm_params(
 
 
 if __name__ == "__main__":
+    import time
+
     X, y = load_from_ts_file(
         f"/Users/chrisholder/Documents/Research/datasets/UCR/Univariate_ts/{DATASET_NAME}/{DATASET_NAME}_TRAIN.ts"
     )
@@ -64,29 +66,30 @@ if __name__ == "__main__":
 
     X = X[y == "1"]
 
-    aeon_res_bag = soft_barycenter_average(
-        X.copy(),
-        gamma=GAMMA,
-        tol=TOL,
-        max_iters=MAX_ITERS,
-        verbose=True,
-        distance="soft_bag",
-    )
+    # aeon_res_bag = soft_barycenter_average(
+    #     X.copy(),
+    #     gamma=GAMMA,
+    #     tol=TOL,
+    #     max_iters=MAX_ITERS,
+    #     verbose=True,
+    #     distance="soft_bag",
+    # )
 
-    alpha, gamma = auto_soft_msm_params(X, delta=0.05, gamma_mult=1.5)
-
+    start = time.time()
     aeon_res_msm = soft_barycenter_average(
         X.copy(),
-        gamma=gamma,
+        gamma=0.001,
         tol=TOL,
         max_iters=MAX_ITERS,
         verbose=True,
         distance="soft_msm",
-        alpha=alpha,
+        alpha=50,
     )
-    tslearn_res = _tslearn_soft_ba(X)
+    end = time.time()
+    # tslearn_res = _tslearn_soft_ba(X)
+    print(f"Time: {end - start}")
 
-    temp_bag = aeon_res_bag.copy().swapaxes(0, 1)
+    # temp_bag = aeon_res_bag.copy().swapaxes(0, 1)
     temp_msm = aeon_res_msm.copy().swapaxes(0, 1)
 
     stop = ""

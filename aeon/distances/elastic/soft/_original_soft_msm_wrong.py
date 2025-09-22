@@ -64,7 +64,7 @@ def soft_msm_cost_matrix(
         bounding_matrix = create_bounding_matrix(
             x.shape[1], y.shape[1], window, itakura_max_slope
         )
-        return _soft_msm_cost_matrix(
+        return _soft_multivariate_msm_cost_matrix(
             x, y, bounding_matrix, c=c, gamma=gamma, alpha=alpha
         )
     raise ValueError("x and y must be 1D or 2D")
@@ -362,16 +362,13 @@ def _soft_msm_alignment_matrix_univariate(
                 continue
 
             r_ij = cm[i, j]
-            if (not bm[i, j]) or (not np.isfinite(r_ij)):
-                continue
-
             acc = 0.0
 
             # (i,j) -> (i+1, j+1): diagonal / match
             if (i + 1 < m) and (j + 1 < n) and bm[i + 1, j + 1]:
                 match_cost = (x[0, i + 1] - y[0, j + 1]) ** 2
                 r_next = cm[i + 1, j + 1]
-                w_diag = np.exp((r_next - (r_ij + match_cost)) * inv_gamma)
+                w_diag = np.exp((r_next - r_ij - match_cost) * inv_gamma)
                 acc += A[i + 1, j + 1] * w_diag
                 G[i + 1, j + 1] += A[i + 1, j + 1] * w_diag
 
@@ -381,7 +378,7 @@ def _soft_msm_alignment_matrix_univariate(
                     x[0, i + 1], x[0, i], y[0, j], c=c, alpha=alpha, gamma=gamma
                 )
                 r_next = cm[i + 1, j]
-                w_vert = np.exp((r_next - (r_ij + trans_cost)) * inv_gamma)
+                w_vert = np.exp((r_next - r_ij - trans_cost) * inv_gamma)
                 acc += A[i + 1, j] * w_vert
 
             # (i,j) -> (i, j+1): horizontal
@@ -390,13 +387,10 @@ def _soft_msm_alignment_matrix_univariate(
                     y[0, j + 1], y[0, j], x[0, i], c=c, alpha=alpha, gamma=gamma
                 )
                 r_next = cm[i, j + 1]
-                w_horz = np.exp((r_next - (r_ij + trans_cost)) * inv_gamma)
+                w_horz = np.exp((r_next - r_ij - trans_cost) * inv_gamma)
                 acc += A[i, j + 1] * w_horz
 
             A[i, j] = acc
-
-    # base match cell contribution is weighted by A[0,0]
-    G[0, 0] += A[0, 0]
 
     return G, distance
 
@@ -404,7 +398,7 @@ def _soft_msm_alignment_matrix_univariate(
 @njit(cache=True, fastmath=True)
 def _soft_msm_transition_cost_grads(x_val, y_prev, z_other, c, alpha, gamma):
     """
-    Derivatives of transition cost wrt (x_val, y_prev, z_other).
+    Derivatives of your transition cost wrt (x_val, y_prev, z_other).
     trans = c + (1 - g) * softmin( (x_val - y_prev)^2, (x_val - z_other)^2 )
     with g = sigmoid(alpha * s), s = - (x_val - y_prev)*(x_val - z_other)
     """
@@ -420,7 +414,7 @@ def _soft_msm_transition_cost_grads(x_val, y_prev, z_other, c, alpha, gamma):
     Z = e1 + e2
     w_same = e1 / Z
     w_cross = e2 / Z
-    # softmin value
+    # softmin value (needed because d/d(1-g) multiplies softmin)
     softmin_val = -gamma * (np.log(Z) + tmax)
 
     # g and its derivatives
@@ -429,9 +423,9 @@ def _soft_msm_transition_cost_grads(x_val, y_prev, z_other, c, alpha, gamma):
     g_fac = alpha * g * (1.0 - g)
 
     # ∂s/∂args
-    ds_dxval = -(a + b)
-    ds_dyprev = b
-    ds_dzoth = a
+    ds_dxval = -(a + b)  # = -(2*x_val - y_prev - z_other)
+    ds_dyprev = b  # =  (x_val - z_other)
+    ds_dzoth = a  # =  (x_val - y_prev)
 
     # ∂softmin/∂args
     dsm_dxval = w_same * (2.0 * a) + w_cross * (2.0 * b)
@@ -458,9 +452,15 @@ def soft_msm_grad_x(
     """
     Gradient (Jacobian) of soft-MSM distance w.r.t. the univariate series x.
     Returns a vector of shape (len(x),).
+
+    Requires your helpers in scope:
+      - create_bounding_matrix(...)
+      - _soft_msm_cost_matrix(...)
+      - _soft_msm_transition_cost(...)
     """
     if gamma <= 0:
         raise ValueError("gamma must be > 0 for a differentiable soft minimum.")
+    # ensure univariate (1, m) / (1, n)
     if x.ndim == 1 and y.ndim == 1:
         X = x.reshape((1, x.shape[0]))
         Y = y.reshape((1, y.shape[0]))
@@ -487,7 +487,8 @@ def _soft_msm_grad_x(
     bm = create_bounding_matrix(m, n, window, itakura_max_slope)
     R = _soft_msm_cost_matrix(X, Y, bm, c, gamma, alpha)  # shape (m, n)
 
-    # Conditional move probabilities from each node (softmin weights)
+    # Precompute conditional move probabilities w.r.t. each node (i,j)
+    # w_* sum to 1 for valid outgoing moves
     w_diag = np.zeros((m, n))
     w_vert = np.zeros((m, n))
     w_horz = np.zeros((m, n))
@@ -495,33 +496,29 @@ def _soft_msm_grad_x(
     for i in range(m):
         for j in range(n):
             Rij = R[i, j]
-            if (not bm[i, j]) or (not np.isfinite(Rij)):
-                continue
             # diagonal / match to (i+1, j+1)
             if i + 1 < m and j + 1 < n and bm[i + 1, j + 1]:
                 match_cost = (X[0, i + 1] - Y[0, j + 1]) ** 2
-                w_diag[i, j] = np.exp((R[i + 1, j + 1] - (Rij + match_cost)) / gamma)
+                w_diag[i, j] = np.exp((R[i + 1, j + 1] - Rij - match_cost) / gamma)
             # vertical to (i+1, j)
             if i + 1 < m and bm[i + 1, j]:
                 trans_cost = _soft_msm_transition_cost(
                     X[0, i + 1], X[0, i], Y[0, j], c=c, alpha=alpha, gamma=gamma
                 )
-                w_vert[i, j] = np.exp((R[i + 1, j] - (Rij + trans_cost)) / gamma)
+                w_vert[i, j] = np.exp((R[i + 1, j] - Rij - trans_cost) / gamma)
             # horizontal to (i, j+1)
             if j + 1 < n and bm[i, j + 1]:
                 trans_cost = _soft_msm_transition_cost(
                     Y[0, j + 1], Y[0, j], X[0, i], c=c, alpha=alpha, gamma=gamma
                 )
-                w_horz[i, j] = np.exp((R[i, j + 1] - (Rij + trans_cost)) / gamma)
+                w_horz[i, j] = np.exp((R[i, j + 1] - Rij - trans_cost) / gamma)
 
-    # Backward node occupancy A (node adjoint)
+    # Backward node occupancy A (equals visitation probability μ)
     A = np.zeros((m, n))
     A[m - 1, n - 1] = 1.0
     for i in range(m - 1, -1, -1):
         for j in range(n - 1, -1, -1):
             if i == m - 1 and j == n - 1:
-                continue
-            if (not bm[i, j]) or (not np.isfinite(R[i, j])):
                 continue
             acc = 0.0
             if i + 1 < m and j + 1 < n and bm[i + 1, j + 1]:
@@ -532,29 +529,28 @@ def _soft_msm_grad_x(
                 acc += A[i, j + 1] * w_horz[i, j]
             A[i, j] = acc
 
-    # Edge occupancies (use A[child] * w_edge(parent))
+    # Edge occupancies (using A[current] * w_edge)
     Gdiag = np.zeros((m, n))  # diagonal edge into (i,j)
     Vocc = np.zeros((m, n))  # vertical edge into (i,j)
     Hocc = np.zeros((m, n))  # horizontal edge into (i,j)
 
     for i in range(m):
         for j in range(n):
-            if (not bm[i, j]) or (not np.isfinite(R[i, j])):
-                continue
             if i + 1 < m and j + 1 < n and bm[i + 1, j + 1]:
-                Gdiag[i + 1, j + 1] += A[i + 1, j + 1] * w_diag[i, j]
+                Gdiag[i + 1, j + 1] += A[i, j] * w_diag[i, j]
             if i + 1 < m and bm[i + 1, j]:
-                Vocc[i + 1, j] += A[i + 1, j] * w_vert[i, j]
+                Vocc[i + 1, j] += A[i, j] * w_vert[i, j]
             if j + 1 < n and bm[i, j + 1]:
-                Hocc[i, j + 1] += A[i, j + 1] * w_horz[i, j]
+                Hocc[i, j + 1] += A[i, j] * w_horz[i, j]
 
     # Gradient wrt x (shape m,)
     dx = np.zeros(m)
 
-    # (i) match costs (diagonal edges) + base cell
+    # (i) match costs (diagonal edges) + start cell (0,0)
     if bm[0, 0]:
-        dx[0] += 2.0 * (X[0, 0] - Y[0, 0]) * A[0, 0]
+        dx[0] += 2.0 * (X[0, 0] - Y[0, 0])  # base match at (0,0)
     for i in range(1, m):
+        # sum over all j that receive diagonal edge into (i,j)
         for j in range(1, n):
             if Gdiag[i, j] != 0.0:
                 dx[i] += 2.0 * (X[0, i] - Y[0, j]) * Gdiag[i, j]
@@ -568,8 +564,8 @@ def _soft_msm_grad_x(
             d_dxval, d_dyprev, _ = _soft_msm_transition_cost_grads(
                 X[0, i], X[0, i - 1], Y[0, j], c=c, alpha=alpha, gamma=gamma
             )
-            dx[i] += occ * d_dxval  # x_val is X[i]
-            dx[i - 1] += occ * d_dyprev  # y_prev is X[i-1]
+            dx[i] += occ * d_dxval  # x_val is x[i]
+            dx[i - 1] += occ * d_dyprev  # y_prev is x[i-1]
 
     # (iii) horizontal transitions: edge (i,j-1) -> (i,j); x appears as z_other
     for i in range(m):
@@ -577,7 +573,7 @@ def _soft_msm_grad_x(
             occ = Hocc[i, j]
             if occ == 0.0:
                 continue
-            # trans args: (x_val = Y[j], y_prev = Y[j-1], z_other = X[i])
+            # trans args: (x_val = y[j], y_prev = y[j-1], z_other = x[i])
             _, _, d_dzoth = _soft_msm_transition_cost_grads(
                 Y[0, j], Y[0, j - 1], X[0, i], c=c, alpha=alpha, gamma=gamma
             )
