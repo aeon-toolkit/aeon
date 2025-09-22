@@ -560,3 +560,15 @@ def _soft_msm_grad_x(
             dx[i] += occ * d_dzoth
 
     return dx, R[-1, -1]
+
+if __name__ == "__main__":
+    from aeon.testing.data_generation import make_example_2d_numpy_series
+    n_timepoints = 10000
+
+    x = make_example_2d_numpy_series(n_timepoints, 1, random_state=1)
+    y = make_example_2d_numpy_series(n_timepoints, 1, random_state=2)
+
+    from time import time
+    t0 = time()
+    distances = soft_msm_grad_x(x, y, c=1.0, gamma=1.0)
+    print(f"Time: {time()-t0:.3f}s")

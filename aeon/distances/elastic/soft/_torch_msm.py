@@ -182,7 +182,7 @@ if __name__ == "__main__":
 
     shared = dict(c=0.5, gamma=0.2, window=None)
 
-    n_timepoint = 50
+    n_timepoint = 500
 
     x = make_example_2d_numpy_series(n_timepoint, 1, random_state=1)
     y = make_example_2d_numpy_series(n_timepoint, 1, random_state=2)
