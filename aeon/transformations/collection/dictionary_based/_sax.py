@@ -300,27 +300,12 @@ def _invert_sax_symbols(sax_symbols, n_timepoints, breakpoints_mid):
 
 @njit(fastmath=True, cache=True, parallel=True)
 def _parallel_get_sax_symbols(x, breakpoints, right=False):
-    """Parallel version of `np.digitize`."""
-    x_flat = x.flatten()
-    result = np.empty(x_flat.shape[0], dtype=np.intp)
+    """Parallel version using np.digitize within prange loop."""
+    n_samples, n_channels, n_segments = x.shape
+    result = np.empty_like(x, dtype=np.intp)
 
-    for i in prange(x_flat.shape[0]):
-        val = x_flat[i]
-        bin_idx = 0
+    for i in prange(n_samples):
+        for c in range(n_channels):
+            result[i, c, :] = np.digitize(x[i, c, :], breakpoints, right=right)
 
-        if right:
-            for j in range(len(breakpoints)):
-                if val <= breakpoints[j]:
-                    bin_idx = j
-                    break
-                bin_idx = j + 1
-        else:
-            for j in range(len(breakpoints)):
-                if val < breakpoints[j]:
-                    bin_idx = j
-                    break
-                bin_idx = j + 1
-
-        result[i] = bin_idx
-
-    return result.reshape(x.shape)
+    return result

@@ -163,19 +163,14 @@ def _parallel_paa_transform(X, n_segments, split_segments):
 
         for i in range(n_samples):
             for j in range(n_channels):
-                acc = 0.0
-                for k in range(seg_len):
-                    acc += X[i, j, segment[k]]
-                X_paa[i, j, _s] = acc / seg_len
+                X_paa[i, j, _s] = X[i, j, segment].mean()
 
     return X_paa
 
 
 @njit(parallel=True, cache=True, fastmath=True)
 def _parallel_inverse_paa_transform(X, original_length, n_segments, split_segments):
-    """Parallelize the inverse PAA transformation for cases where the series length is not
-    divisible by the number of segments.
-    """
+    """Parallelize inverse PAA when series len % segments ≠ 0."""
     n_samples, n_channels, _ = X.shape
     X_inverse_paa = np.zeros(shape=(n_samples, n_channels, original_length))
 
