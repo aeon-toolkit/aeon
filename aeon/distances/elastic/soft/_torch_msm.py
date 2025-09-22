@@ -1,42 +1,85 @@
 # _torch_msm.py
 import torch
 
+# -------------------------- helpers (softmins) --------------------------
 
-# --- keep existing helpers (unchanged API) ------------------------------------
-def _softmin3(
-    a: torch.Tensor, b: torch.Tensor, c: torch.Tensor, gamma: float
-) -> torch.Tensor:
+def _softmin3(a: torch.Tensor, b: torch.Tensor, c: torch.Tensor, gamma: float) -> torch.Tensor:
     """softmin(a,b,c) = -γ logsumexp([-a/γ, -b/γ, -c/γ])"""
     stack = torch.stack([-a / gamma, -b / gamma, -c / gamma], dim=0)
     return -gamma * torch.logsumexp(stack, dim=0)
 
+def _softmin3_scalar(a: torch.Tensor, b: torch.Tensor, c: torch.Tensor, gamma: float) -> torch.Tensor:
+    """Scalar softmin3 with fewer ops than stack+logsumexp for inner loop."""
+    s1 = -a / gamma
+    s2 = -b / gamma
+    s3 = -c / gamma
+    m = torch.maximum(s1, torch.maximum(s2, s3))
+    z = torch.exp(s1 - m) + torch.exp(s2 - m) + torch.exp(s3 - m)
+    return -gamma * (torch.log(z) + m)
 
 def _softmin2_t(a: torch.Tensor, b: torch.Tensor, gamma: float) -> torch.Tensor:
     """softmin(a,b) in torch"""
     stack = torch.stack([-a / gamma, -b / gamma], dim=0)
     return -gamma * torch.logsumexp(stack, dim=0)
 
+def _softmin2_vec_scalar_first(t1_scalar: torch.Tensor, t2_vec: torch.Tensor, gamma: float):
+    """Vectorized softmin2 when first arg is scalar and second is vector."""
+    s1 = -t1_scalar / gamma
+    s2 = -t2_vec / gamma
+    m = torch.maximum(s1, s2)
+    z = torch.exp(s1 - m) + torch.exp(s2 - m)
+    return -gamma * (torch.log(z) + m)
+
+# -------------------- parameter-free between-ness gate --------------------
+
+def _between_gate_t(a: torch.Tensor, b: torch.Tensor, eps: float = 1e-9) -> torch.Tensor:
+    """
+    Smooth, parameter-free gate g in [0,1].
+    a = x - y_prev, b = x - z_other. g≈1 when a*b<0 (between), g≈0 when a*b>0.
+    """
+    u = a * b
+    eps_t = torch.as_tensor(eps, dtype=u.dtype, device=u.device)
+    return 0.5 * (1.0 - u / torch.sqrt(u * u + eps_t))
+
+# ----------------------- transition cost (no alpha) -----------------------
 
 def _trans_cost_t(
     x_val: torch.Tensor,
     y_prev: torch.Tensor,
     z_other: torch.Tensor,
     c: float,
-    alpha: float,
     gamma: float,
 ) -> torch.Tensor:
-    """
-    Differentiable relaxation of MSM 'independent' transition:
-      if x between y and z -> cost = c
-      else                 -> cost = c + min((x-y)^2, (x-z)^2)
-    Using: g = sigmoid(alpha * (-(x-y)*(x-z))) and softmin with temperature gamma.
-    """
     a = x_val - y_prev
     b = x_val - z_other
-    g = torch.sigmoid(alpha * (-(a * b)))  # ~1 when between, ~0 otherwise
-    base = _softmin2_t(a * a, b * b, gamma)  # ≈ min((x-y)^2, (x-z)^2)
+    g = _between_gate_t(a, b)                     # parameter-free gate
+    base = _softmin2_t(a * a, b * b, gamma)       # ≈ min((x-y)^2, (x-z)^2)
     return c + (1.0 - g) * base
 
+def _trans_cost_row_up(xi, xim1, y_slice, c: float, gamma: float):
+    # x_val=xi (scalar), y_prev=xim1 (scalar), z_other=yj (vector)
+    a = xi - xim1            # scalar
+    b = xi - y_slice         # vector
+    g = _between_gate_t(a, b)
+    d_same = a * a           # scalar
+    d_cross = b * b          # vector
+    base = _softmin2_vec_scalar_first(d_same, d_cross, gamma)  # vector
+    return c + (1.0 - g) * base
+
+def _trans_cost_row_left(y_slice, y_prev_slice, xi, c: float, gamma: float):
+    # x_val=yj (vector), y_prev=y_{j-1} (vector), z_other=xi (scalar)
+    a = y_slice - y_prev_slice    # vector
+    b = y_slice - xi              # vector
+    g = _between_gate_t(a, b)
+    # vectorized softmin2
+    s1 = -(a * a) / gamma
+    s2 = -(b * b) / gamma
+    m = torch.maximum(s1, s2)
+    z = torch.exp(s1 - m) + torch.exp(s2 - m)
+    base = -gamma * (torch.log(z) + m)
+    return c + (1.0 - g) * base
+
+# ------------------------------- public API --------------------------------
 
 @torch.no_grad()
 def _check_inputs(x: torch.Tensor, y: torch.Tensor, gamma: float):
@@ -47,82 +90,24 @@ def _check_inputs(x: torch.Tensor, y: torch.Tensor, gamma: float):
     if not x.is_floating_point() or not y.is_floating_point():
         raise ValueError("x and y must be floating dtype tensors.")
 
-
-# --- new internal helpers (private) -------------------------------------------
-def _softmin3_scalar(a: torch.Tensor, b: torch.Tensor, c: torch.Tensor, gamma: float):
-    """Scalar (0-d tensor) softmin3 with fewer tiny ops than stack+logsumexp."""
-    s1 = -a / gamma
-    s2 = -b / gamma
-    s3 = -c / gamma
-    m = torch.maximum(s1, torch.maximum(s2, s3))
-    z = torch.exp(s1 - m) + torch.exp(s2 - m) + torch.exp(s3 - m)
-    return -gamma * (torch.log(z) + m)
-
-
-def _softmin2_vec_scalar_first(
-    t1_scalar: torch.Tensor, t2_vec: torch.Tensor, gamma: float
-):
-    """Vectorized softmin2 when first arg is scalar and second is vector."""
-    s1 = -t1_scalar / gamma
-    s2 = -t2_vec / gamma
-    m = torch.maximum(s1, s2)
-    z = torch.exp(s1 - m) + torch.exp(s2 - m)
-    return -gamma * (torch.log(z) + m)
-
-
-def _trans_cost_row_up(xi, xim1, y_slice, c: float, alpha: float, gamma: float):
-    # x_val=xi (scalar), y_prev=xim1 (scalar), z_other=yj (vector)
-    a = xi - xim1  # scalar
-    b = xi - y_slice  # vector
-    s = -(a * b)  # vector
-    g = torch.sigmoid(alpha * s)  # vector
-    d_same = a * a  # scalar
-    d_cross = b * b  # vector
-    base = _softmin2_vec_scalar_first(d_same, d_cross, gamma)  # vector
-    return c + (1.0 - g) * base
-
-
-def _trans_cost_row_left(
-    y_slice, y_prev_slice, xi, c: float, alpha: float, gamma: float
-):
-    # x_val=yj (vector), y_prev=y_{j-1} (vector), z_other=xi (scalar)
-    a = y_slice - y_prev_slice  # vector
-    b = y_slice - xi  # vector
-    s = -(a * b)  # vector
-    g = torch.sigmoid(alpha * s)  # vector
-    d_same = a * a  # vector
-    d_cross = b * b  # vector
-    # vectorized softmin2
-    s1 = -d_same / gamma
-    s2 = -d_cross / gamma
-    m = torch.maximum(s1, s2)
-    z = torch.exp(s1 - m) + torch.exp(s2 - m)
-    base = -gamma * (torch.log(z) + m)
-    return c + (1.0 - g) * base
-
-
-# --- public API (same name/signature) -----------------------------------------
 def soft_msm_torch(
     x: torch.Tensor,
     y: torch.Tensor,
     *,
     c: float = 1.0,
-    gamma: float = 1.0,  # > 0
-    alpha: float = 25.0,  # gate sharpness
-    window: (
-        int | None
-    ) = None,  # Sakoe–Chiba half-width (cells with |i-j|>window are forbidden)
+    gamma: float = 1.0,   # > 0
+    window: int | None = None,  # Sakoe–Chiba half-width
 ) -> torch.Tensor:
     """
     Differentiable soft-MSM distance between 1D series x (len n) and y (len m),
-    matching the Numba formulation (gate × softmin, squared distances, same boundaries).
+    mirroring the alpha-free Numba version (parameter-free gate + softmins).
     Returns a scalar tensor suitable for .backward().
     """
     _check_inputs(x, y, gamma)
     device, dtype = x.device, x.dtype
     n, m = x.numel(), y.numel()
 
-    # DP table like before: C[0,0] pays the (x0 - y0)^2 match
+    # DP table: C[0,0] uses match cost (x0 - y0)^2
     C = torch.full((n, m), float("inf"), device=device, dtype=dtype)
     C[0, 0] = (x[0] - y[0]) ** 2
 
@@ -134,7 +119,8 @@ def soft_msm_torch(
         if in_band(i, 0):
             a = x[i] - x[i - 1]
             b = x[i] - y[0]
-            g = torch.sigmoid(alpha * (-(a * b)))
+            g = _between_gate_t(a, b)
+            # softmin((x[i]-x[i-1])^2, (x[i]-y[0])^2)
             s1 = -(a * a) / gamma
             s2 = -(b * b) / gamma
             mm = torch.maximum(s1, s2)
@@ -148,7 +134,7 @@ def soft_msm_torch(
         if in_band(0, j):
             a = y[j] - y[j - 1]
             b = y[j] - x[0]
-            g = torch.sigmoid(alpha * (-(a * b)))
+            g = _between_gate_t(a, b)
             s1 = -(a * a) / gamma
             s2 = -(b * b) / gamma
             mm = torch.maximum(s1, s2)
@@ -157,7 +143,7 @@ def soft_msm_torch(
             trans = c + (1.0 - g) * base
             C[0, j] = C[0, j - 1] + trans
 
-    # Main DP (row-wise vectorized costs, scalar recurrence)
+    # Main DP (row-wise vectorized costs + scalar recurrence)
     for i in range(1, n):
         j_lo = 1 if window is None else max(1, i - window)
         j_hi = m - 1 if window is None else min(m - 1, i + window)
@@ -165,12 +151,12 @@ def soft_msm_torch(
             continue
 
         xi, xim1 = x[i], x[i - 1]
-        y_cur = y[j_lo : j_hi + 1]  # [L]
-        y_prev = y[j_lo - 1 : j_hi]  # [L]
+        y_cur = y[j_lo : j_hi + 1]      # [L]
+        y_prev = y[j_lo - 1 : j_hi]     # [L]
 
-        up_cost = _trans_cost_row_up(xi, xim1, y_cur, c, alpha, gamma)  # [L]
-        left_cost = _trans_cost_row_left(y_cur, y_prev, xi, c, alpha, gamma)  # [L]
-        match = (xi - y_cur).pow(2)  # [L]
+        up_cost = _trans_cost_row_up(xi, xim1, y_cur, c, gamma)          # [L]
+        left_cost = _trans_cost_row_left(y_cur, y_prev, xi, c, gamma)    # [L]
+        match = (xi - y_cur).pow(2)                                      # [L]
 
         Cijm1 = C[i, j_lo - 1]
         for t in range(y_cur.numel()):
@@ -184,7 +170,6 @@ def soft_msm_torch(
 
     return C[n - 1, m - 1]
 
-
 if __name__ == "__main__":
     import time
 
@@ -195,9 +180,9 @@ if __name__ == "__main__":
     )
     from aeon.testing.data_generation import make_example_2d_numpy_series
 
-    shared = dict(c=0.5, gamma=0.2, alpha=1.0, window=None)
+    shared = dict(c=0.5, gamma=0.2, window=None)
 
-    n_timepoint = 1000
+    n_timepoint = 50
 
     x = make_example_2d_numpy_series(n_timepoint, 1, random_state=1)
     y = make_example_2d_numpy_series(n_timepoint, 1, random_state=2)

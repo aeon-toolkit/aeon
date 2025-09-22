@@ -11,7 +11,7 @@ from aeon.distances.elastic.soft._soft_msm import (
 from aeon.testing.data_generation import make_example_3d_numpy
 
 if __name__ == "__main__":
-    X = make_example_3d_numpy(10000, 1, 10000, return_y=False, random_state=1)
+    X = make_example_3d_numpy(100, 1, 100, return_y=False, random_state=1)
     # X, y = load_gunpoint(split="train")
     y = X[1]
 

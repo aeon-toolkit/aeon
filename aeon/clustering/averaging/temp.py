@@ -5,7 +5,7 @@ from aeon.clustering.averaging._ba_soft import soft_barycenter_average
 from aeon.datasets import load_from_ts_file
 from aeon.transformations.collection import Normalizer
 
-DATASET_NAME = "ACSF1"
+DATASET_NAME = "GunPoint"
 TOL = 1e-5
 GAMMA = 1.0
 MAX_ITERS = 50
@@ -32,29 +32,6 @@ def _to_2d_ts(X):
     )
 
 
-def auto_soft_msm_params(
-    X,
-    delta=0.05,  # gate “soft zone” as fraction of typical span
-    gamma_mult=0.5,  # gamma ≈ gamma_mult * tau^2
-    alpha_bounds=(3.0, 500.0),
-    gamma_bounds=(1e-3, 1.0),
-):
-    X2d = _to_2d_ts(X)
-    diffs = np.diff(X2d, axis=1)
-    tau = np.median(np.abs(diffs))  # robust scale of first differences
-    tau2 = max(tau * tau, 1e-12)
-
-    # gate sharpness (logistic goes 0.01→0.99 over ±s0; s has scale tau^2)
-    alpha = 4.6 / (delta * tau2)
-
-    # softmin temperature on squared-diff scale
-    gamma = gamma_mult * tau2
-
-    alpha = float(np.clip(alpha, *alpha_bounds))
-    gamma = float(np.clip(gamma, *gamma_bounds))
-    return alpha, gamma
-
-
 if __name__ == "__main__":
     import time
 
@@ -75,23 +52,25 @@ if __name__ == "__main__":
     #     distance="soft_bag",
     # )
 
-    start = time.time()
-    aeon_res_msm = soft_barycenter_average(
-        X.copy(),
-        gamma=0.001,
-        tol=TOL,
-        max_iters=MAX_ITERS,
-        verbose=True,
-        distance="soft_msm",
-        alpha=50,
-    )
-    end = time.time()
-    # tslearn_res = _tslearn_soft_ba(X)
-    print(f"Time: {end - start}")
+    arrs = []
+    for gamma_val in [0.0001, 0.001, 0.01, 0.1, 1.0, 2.0]:
+        aeon_res_msm = soft_barycenter_average(
+            X.copy(),
+            gamma=gamma_val,
+            tol=TOL,
+            max_iters=MAX_ITERS,
+            verbose=True,
+            distance="soft_msm",
+        )
+        # temp_bag = aeon_res_bag.copy().swapaxes(0, 1)
+        temp_msm = aeon_res_msm.copy().swapaxes(0, 1)
+        arrs.append(temp_msm)
 
-    # temp_bag = aeon_res_bag.copy().swapaxes(0, 1)
-    temp_msm = aeon_res_msm.copy().swapaxes(0, 1)
-
+    gamma_0001 = arrs[0]
+    gamma_001 = arrs[1]
+    gamma_01 = arrs[2]
+    gamma_1 = arrs[3]
+    gamma_2 = arrs[4]
     stop = ""
 
     # equal = np.allclose(temp, tslearn_res)

@@ -200,14 +200,8 @@ def _soft_barycenter_one_iter(
                 barycenter, curr_ts, grad
             )
         elif distance == "soft_msm":
-            # grad, curr_dist = soft_msm_alignment_matrix(
-            #     barycenter, curr_ts, c=c, alpha=alpha, gamma=gamma, window=window
-            # )
-            # local_jacobian_products[i] = jacobian_product_smooth_abs(
-            #     barycenter, curr_ts, grad
-            # )
             local_jacobian_products[i], curr_dist = soft_msm_grad_x(
-                barycenter, curr_ts, c=c, alpha=alpha, gamma=gamma, window=window
+                barycenter, curr_ts, c=c, gamma=gamma, window=window
             )
         elif distance == "soft_bag":
             grad, curr_dist = soft_bag_alignment_matrix(

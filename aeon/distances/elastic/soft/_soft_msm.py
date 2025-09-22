@@ -14,6 +14,8 @@ from aeon.utils.numba._threading import threaded
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
+# ---------------------------------- public API ----------------------------------
+
 @njit(cache=True, fastmath=True)
 def soft_msm_distance(
     x: np.ndarray,
@@ -22,7 +24,6 @@ def soft_msm_distance(
     c: float = 1.0,
     itakura_max_slope: float | None = None,
     gamma: float = 1.0,
-    alpha: float = 25.0,
 ) -> float:
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
@@ -30,14 +31,12 @@ def soft_msm_distance(
         bounding_matrix = create_bounding_matrix(
             _x.shape[1], _y.shape[1], window, itakura_max_slope
         )
-        return _soft_msm_distance(
-            _x, _y, bounding_matrix, c=c, gamma=gamma, alpha=alpha
-        )
+        return _soft_msm_distance(_x, _y, bounding_matrix, c=c, gamma=gamma)
     if x.ndim == 2 and y.ndim == 2:
         bounding_matrix = create_bounding_matrix(
             x.shape[1], y.shape[1], window, itakura_max_slope
         )
-        return _soft_msm_distance(x, y, bounding_matrix, c=c, gamma=gamma, alpha=alpha)
+        return _soft_msm_distance(x, y, bounding_matrix, c=c, gamma=gamma)
     raise ValueError("x and y must be 1D or 2D")
 
 
@@ -49,7 +48,6 @@ def soft_msm_cost_matrix(
     c: float = 1.0,
     itakura_max_slope: float | None = None,
     gamma: float = 1.0,
-    alpha: float = 25.0,
 ) -> np.ndarray:
     if x.ndim == 1 and y.ndim == 1:
         _x = x.reshape((1, x.shape[0]))
@@ -57,18 +55,105 @@ def soft_msm_cost_matrix(
         bounding_matrix = create_bounding_matrix(
             _x.shape[1], _y.shape[1], window, itakura_max_slope
         )
-        return _soft_msm_cost_matrix(
-            _x, _y, bounding_matrix=bounding_matrix, c=c, gamma=gamma, alpha=alpha
-        )
+        return _soft_msm_cost_matrix(_x, _y, bounding_matrix=bounding_matrix, c=c, gamma=gamma)
     if x.ndim == 2 and y.ndim == 2:
         bounding_matrix = create_bounding_matrix(
             x.shape[1], y.shape[1], window, itakura_max_slope
         )
-        return _soft_msm_cost_matrix(
-            x, y, bounding_matrix, c=c, gamma=gamma, alpha=alpha
-        )
+        return _soft_msm_cost_matrix(x, y, bounding_matrix, c=c, gamma=gamma)
     raise ValueError("x and y must be 1D or 2D")
 
+
+@threaded
+def soft_msm_pairwise_distance(
+    X: np.ndarray | list[np.ndarray],
+    y: np.ndarray | list[np.ndarray] | None = None,
+    window: float | None = None,
+    c: float = 1.0,
+    itakura_max_slope: float | None = None,
+    n_jobs: int = 1,
+    gamma: float = 1.0,
+) -> np.ndarray:
+    multivariate_conversion = _is_numpy_list_multivariate(X, y)
+    _X, unequal_length = _convert_collection_to_numba_list(
+        X, "X", multivariate_conversion
+    )
+
+    if y is None:
+        # To self
+        return _soft_msm_pairwise_distance(
+            _X, window, c, itakura_max_slope, unequal_length, gamma
+        )
+
+    _y, unequal_length = _convert_collection_to_numba_list(
+        y, "y", multivariate_conversion
+    )
+    return _soft_msm_from_multiple_to_multiple_distance(
+        _X, _y, window, c, itakura_max_slope, unequal_length, gamma
+    )
+
+
+@njit(cache=True, fastmath=True)
+def soft_msm_alignment_path(
+    x: np.ndarray,
+    y: np.ndarray,
+    window: float | None = None,
+    c: float = 1.0,
+    itakura_max_slope: float | None = None,
+    gamma: float = 1.0,
+) -> tuple[list[tuple[int, int]], float]:
+    cost_matrix = soft_msm_cost_matrix(x, y, window, c, itakura_max_slope, gamma)
+    return (
+        compute_min_return_path(cost_matrix),
+        cost_matrix[x.shape[-1] - 1, y.shape[-1] - 1],
+    )
+
+
+@njit(cache=True, fastmath=True)
+def soft_msm_alignment_matrix(
+    x: np.ndarray,
+    y: np.ndarray,
+    gamma: float = 1.0,
+    c: float = 1.0,
+    window: float | None = None,
+    itakura_max_slope: float | None = None,
+) -> tuple[np.ndarray, float]:
+    if x.ndim == 1 and y.ndim == 1:
+        _x = x.reshape((1, x.shape[0]))
+        _y = y.reshape((1, y.shape[0]))
+        bm = create_bounding_matrix(_x.shape[1], _y.shape[1], window, itakura_max_slope)
+        cm = _soft_msm_cost_matrix(_x, _y, bounding_matrix=bm, c=c, gamma=gamma)
+        return _soft_msm_alignment_matrix_univariate(_x, _y, cm, bm, c, gamma)
+    else:
+        bm = create_bounding_matrix(x.shape[1], y.shape[1], window, itakura_max_slope)
+        cm = _soft_msm_cost_matrix(x, y, bounding_matrix=bm, c=c, gamma=gamma)
+        return _soft_msm_alignment_matrix_univariate(x, y, cm, bm, c, gamma)
+
+
+def soft_msm_grad_x(
+    x: np.ndarray,
+    y: np.ndarray,
+    c: float = 1.0,
+    gamma: float = 1.0,
+    window: float | None = None,
+    itakura_max_slope: float | None = None,
+):
+    """
+    Gradient (Jacobian) of soft-MSM distance w.r.t. the univariate series x.
+    Returns (dx, distance) with dx shape (len(x),).
+    """
+    if gamma <= 0:
+        raise ValueError("gamma must be > 0 for a differentiable soft minimum.")
+    if x.ndim == 1 and y.ndim == 1:
+        X = x.reshape((1, x.shape[0]))
+        Y = y.reshape((1, y.shape[0]))
+    else:
+        X = x
+        Y = y
+    return _soft_msm_grad_x(X, Y, c, gamma, window, itakura_max_slope)
+
+
+# --------------------------------- internals ---------------------------------
 
 @njit(cache=True, fastmath=True)
 def _soft_msm_distance(
@@ -77,10 +162,9 @@ def _soft_msm_distance(
     bounding_matrix: np.ndarray,
     c: float,
     gamma: float,
-    alpha: float,
 ) -> float:
     return _soft_msm_cost_matrix(
-        x, y, bounding_matrix=bounding_matrix, c=c, gamma=gamma, alpha=alpha
+        x, y, bounding_matrix=bounding_matrix, c=c, gamma=gamma
     )[x.shape[1] - 1, y.shape[1] - 1]
 
 
@@ -91,7 +175,6 @@ def _soft_multivariate_msm_cost_matrix(
     bounding_matrix: np.ndarray,
     c: float,
     gamma: float,
-    alpha: float,
 ) -> np.ndarray:
     x_size = x.shape[1]
     y_size = y.shape[1]
@@ -99,24 +182,28 @@ def _soft_multivariate_msm_cost_matrix(
     min_instances = min(x.shape[0], y.shape[0])
     for i in range(min_instances):
         curr_cost_matrix = _soft_msm_cost_matrix(
-            x[i], y[i], bounding_matrix=bounding_matrix, c=c, gamma=gamma, alpha=alpha
+            x[i], y[i], bounding_matrix=bounding_matrix, c=c, gamma=gamma
         )
         cost_matrix = np.add(cost_matrix, curr_cost_matrix)
     return cost_matrix
 
 
 @njit(fastmath=True, cache=True)
-def _soft_msm_transition_cost(x_val, y_prev, z_other, c, alpha, gamma):
-    s = -((x_val - y_prev) * (x_val - z_other))  # >0 when between
-    g = 1.0 / (1.0 + np.exp(-(alpha * s)))
+def _soft_msm_transition_cost(x_val, y_prev, z_other, c, gamma):
+    a = x_val - y_prev
+    b = x_val - z_other
 
-    d_same_prev = (x_val - y_prev) ** 2
-    d_cross = (x_val - z_other) ** 2
+    # Between gate
+    u = a * b
+    g = 0.5 * (1.0 - u / np.sqrt(u * u + 1e-9))
+
+    d_same_prev = a * a
+    d_cross = b * b
     return c + (1.0 - g) * _softmin2(d_same_prev, d_cross, gamma)
 
 
 @njit(fastmath=True, cache=True)
-def _soft_msm_cost_matrix(x, y, bounding_matrix, c, gamma, alpha):
+def _soft_msm_cost_matrix(x, y, bounding_matrix, c, gamma):
     m = x.shape[1]
     n = y.shape[1]
     cm = np.full((m, n), np.inf, dtype=np.float64)
@@ -131,7 +218,6 @@ def _soft_msm_cost_matrix(x, y, bounding_matrix, c, gamma, alpha):
                 y_prev=x[0, i - 1],
                 z_other=y[0, 0],
                 c=c,
-                alpha=alpha,
                 gamma=gamma,
             )
             cm[i, 0] = cm[i - 1, 0] + trans
@@ -144,7 +230,6 @@ def _soft_msm_cost_matrix(x, y, bounding_matrix, c, gamma, alpha):
                 y_prev=y[0, j - 1],
                 z_other=x[0, 0],
                 c=c,
-                alpha=alpha,
                 gamma=gamma,
             )
             cm[0, j] = cm[0, j - 1] + trans
@@ -163,49 +248,19 @@ def _soft_msm_cost_matrix(x, y, bounding_matrix, c, gamma, alpha):
 
                 # vertical (insert in x / delete in y)
                 c_vert = _soft_msm_transition_cost(
-                    x_val=xi, y_prev=xim1, z_other=yj, c=c, alpha=alpha, gamma=gamma
+                    x_val=xi, y_prev=xim1, z_other=yj, c=c, gamma=gamma
                 )
                 d2 = cm[i - 1, j] + c_vert
 
                 # horizontal (insert in y / delete in x)
                 c_horz = _soft_msm_transition_cost(
-                    x_val=yj, y_prev=yjm1, z_other=xi, c=c, alpha=alpha, gamma=gamma
+                    x_val=yj, y_prev=yjm1, z_other=xi, c=c, gamma=gamma
                 )
                 d3 = cm[i, j - 1] + c_horz
 
                 cm[i, j] = _softmin3(d1, d2, d3, gamma)
 
     return cm
-
-
-@threaded
-def soft_msm_pairwise_distance(
-    X: np.ndarray | list[np.ndarray],
-    y: np.ndarray | list[np.ndarray] | None = None,
-    window: float | None = None,
-    c: float = 1.0,
-    itakura_max_slope: float | None = None,
-    n_jobs: int = 1,
-    gamma: float = 1.0,
-    alpha: float = 25.0,
-) -> np.ndarray:
-    multivariate_conversion = _is_numpy_list_multivariate(X, y)
-    _X, unequal_length = _convert_collection_to_numba_list(
-        X, "X", multivariate_conversion
-    )
-
-    if y is None:
-        # To self
-        return _soft_msm_pairwise_distance(
-            _X, window, c, itakura_max_slope, unequal_length, gamma, alpha
-        )
-
-    _y, unequal_length = _convert_collection_to_numba_list(
-        y, "y", multivariate_conversion
-    )
-    return _soft_msm_from_multiple_to_multiple_distance(
-        _X, _y, window, c, itakura_max_slope, unequal_length, gamma, alpha
-    )
 
 
 @njit(cache=True, fastmath=True, parallel=True)
@@ -216,7 +271,6 @@ def _soft_msm_pairwise_distance(
     itakura_max_slope: float | None,
     unequal_length: bool,
     gamma: float = 1.0,
-    alpha: float = 25.0,
 ) -> np.ndarray:
     n_cases = len(X)
     distances = np.zeros((n_cases, n_cases))
@@ -234,7 +288,7 @@ def _soft_msm_pairwise_distance(
                     x1.shape[1], x2.shape[1], window, itakura_max_slope
                 )
             distances[i, j] = _soft_msm_distance(
-                x1, x2, bounding_matrix=bounding_matrix, c=c, gamma=gamma, alpha=alpha
+                x1, x2, bounding_matrix=bounding_matrix, c=c, gamma=gamma
             )
             distances[j, i] = distances[i, j]
 
@@ -250,7 +304,6 @@ def _soft_msm_from_multiple_to_multiple_distance(
     itakura_max_slope: float | None,
     unequal_length: bool,
     gamma: float,
-    alpha: float,
 ) -> np.ndarray:
     n_cases = len(x)
     m_cases = len(y)
@@ -268,69 +321,9 @@ def _soft_msm_from_multiple_to_multiple_distance(
                     x1.shape[1], y1.shape[1], window, itakura_max_slope
                 )
             distances[i, j] = _soft_msm_distance(
-                x1, y1, bounding_matrix, c=c, gamma=gamma, alpha=alpha
+                x1, y1, bounding_matrix, c=c, gamma=gamma
             )
     return distances
-
-
-@njit(cache=True, fastmath=True)
-def soft_msm_alignment_path(
-    x: np.ndarray,
-    y: np.ndarray,
-    window: float | None = None,
-    c: float = 1.0,
-    itakura_max_slope: float | None = None,
-    gamma: float = 1.0,
-    alpha: float = 25.0,
-) -> tuple[list[tuple[int, int]], float]:
-    cost_matrix = soft_msm_cost_matrix(x, y, window, c, itakura_max_slope, gamma, alpha)
-    return (
-        compute_min_return_path(cost_matrix),
-        cost_matrix[x.shape[-1] - 1, y.shape[-1] - 1],
-    )
-
-
-@njit(cache=True, fastmath=True)
-def soft_msm_alignment_matrix(
-    x: np.ndarray,
-    y: np.ndarray,
-    gamma: float = 1.0,
-    c: float = 1.0,
-    alpha: float = 25.0,
-    window: float | None = None,
-    itakura_max_slope: float | None = None,
-) -> tuple[np.ndarray, float]:
-
-    if x.ndim == 1 and y.ndim == 1:
-        _x = x.reshape((1, x.shape[0]))
-        _y = y.reshape((1, y.shape[0]))
-        bounding_matrix = create_bounding_matrix(
-            _x.shape[1], _y.shape[1], window, itakura_max_slope
-        )
-        cost_matrix = _soft_msm_cost_matrix(
-            _x, _y, bounding_matrix=bounding_matrix, c=c, gamma=gamma, alpha=alpha
-        )
-    if x.ndim == 2 and y.ndim == 2:
-        bounding_matrix = create_bounding_matrix(
-            x.shape[1], y.shape[1], window, itakura_max_slope
-        )
-        cost_matrix = _soft_msm_cost_matrix(
-            x,
-            y,
-            bounding_matrix=bounding_matrix,
-            c=c,
-            gamma=gamma,
-            alpha=alpha,
-        )
-    return _soft_msm_alignment_matrix_univariate(
-        x=x,
-        y=y,
-        cm=cost_matrix,
-        bm=bounding_matrix,
-        c=c,
-        gamma=gamma,
-        alpha=alpha,
-    )
 
 
 @njit(cache=True, fastmath=True)
@@ -341,7 +334,6 @@ def _soft_msm_alignment_matrix_univariate(
     bm: np.ndarray,  # shape (m, n)
     c: float,
     gamma: float,
-    alpha: float,
 ) -> tuple[np.ndarray, float]:
     m = x.shape[1]
     n = y.shape[1]
@@ -378,7 +370,7 @@ def _soft_msm_alignment_matrix_univariate(
             # (i,j) -> (i+1, j): vertical
             if (i + 1 < m) and bm[i + 1, j]:
                 trans_cost = _soft_msm_transition_cost(
-                    x[0, i + 1], x[0, i], y[0, j], c=c, alpha=alpha, gamma=gamma
+                    x[0, i + 1], x[0, i], y[0, j], c=c, gamma=gamma
                 )
                 r_next = cm[i + 1, j]
                 w_vert = np.exp((r_next - (r_ij + trans_cost)) * inv_gamma)
@@ -387,7 +379,7 @@ def _soft_msm_alignment_matrix_univariate(
             # (i,j) -> (i, j+1): horizontal
             if (j + 1 < n) and bm[i, j + 1]:
                 trans_cost = _soft_msm_transition_cost(
-                    y[0, j + 1], y[0, j], x[0, i], c=c, alpha=alpha, gamma=gamma
+                    y[0, j + 1], y[0, j], x[0, i], c=c, gamma=gamma
                 )
                 r_next = cm[i, j + 1]
                 w_horz = np.exp((r_next - (r_ij + trans_cost)) * inv_gamma)
@@ -402,16 +394,16 @@ def _soft_msm_alignment_matrix_univariate(
 
 
 @njit(cache=True, fastmath=True)
-def _soft_msm_transition_cost_grads(x_val, y_prev, z_other, c, alpha, gamma):
+def _soft_msm_transition_cost_grads(x_val, y_prev, z_other, c, gamma):
     """
     Derivatives of transition cost wrt (x_val, y_prev, z_other).
     trans = c + (1 - g) * softmin( (x_val - y_prev)^2, (x_val - z_other)^2 )
-    with g = sigmoid(alpha * s), s = - (x_val - y_prev)*(x_val - z_other)
+    with g = 0.5 * (1 - (ab)/sqrt((ab)^2+eps)), a=x_val-y_prev, b=x_val-z_other.
     """
     a = x_val - y_prev
     b = x_val - z_other
 
-    # softmin bits
+    # softmin bits for the (d_same_prev, d_cross)
     t1 = -(a * a) / gamma
     t2 = -(b * b) / gamma
     tmax = max(t1, t2)
@@ -423,15 +415,25 @@ def _soft_msm_transition_cost_grads(x_val, y_prev, z_other, c, alpha, gamma):
     # softmin value
     softmin_val = -gamma * (np.log(Z) + tmax)
 
-    # g and its derivatives
-    s = -a * b
-    g = 1.0 / (1.0 + np.exp(-alpha * s))
-    g_fac = alpha * g * (1.0 - g)
+    # gate g and its gradients (parameter-free)
+    eps = 1e-9
+    u = a * b
+    denom_sq = u * u + eps
+    denom = np.sqrt(denom_sq)
+    g = 0.5 * (1.0 - u / denom)
 
-    # ∂s/∂args
-    ds_dxval = -(a + b)
-    ds_dyprev = b
-    ds_dzoth = a
+    # df/du for f(u) = u/sqrt(u^2+eps) equals eps/(u^2+eps)^(3/2)
+    df_du = eps / (denom_sq * denom)
+    dg_du = -0.5 * df_du
+
+    # du/dargs
+    du_dxval = a + b
+    du_dyprev = -b
+    du_dzoth = -a
+
+    dg_dxval = dg_du * du_dxval
+    dg_dyprev = dg_du * du_dyprev
+    dg_dzoth = dg_du * du_dzoth
 
     # ∂softmin/∂args
     dsm_dxval = w_same * (2.0 * a) + w_cross * (2.0 * b)
@@ -439,36 +441,11 @@ def _soft_msm_transition_cost_grads(x_val, y_prev, z_other, c, alpha, gamma):
     dsm_dzoth = w_cross * (-2.0 * b)
 
     # chain rule: d trans = -(dg)*softmin + (1-g)*d softmin
-    dtrans_dxval = -g_fac * ds_dxval * softmin_val + (1.0 - g) * dsm_dxval
-    dtrans_dyprev = -g_fac * ds_dyprev * softmin_val + (1.0 - g) * dsm_dyprev
-    dtrans_dzoth = -g_fac * ds_dzoth * softmin_val + (1.0 - g) * dsm_dzoth
+    dtrans_dxval = -dg_dxval * softmin_val + (1.0 - g) * dsm_dxval
+    dtrans_dyprev = -dg_dyprev * softmin_val + (1.0 - g) * dsm_dyprev
+    dtrans_dzoth = -dg_dzoth * softmin_val + (1.0 - g) * dsm_dzoth
 
     return dtrans_dxval, dtrans_dyprev, dtrans_dzoth
-
-
-def soft_msm_grad_x(
-    x: np.ndarray,
-    y: np.ndarray,
-    c: float = 1.0,
-    gamma: float = 1.0,
-    alpha: float = 25.0,
-    window: float | None = None,
-    itakura_max_slope: float | None = None,
-):
-    """
-    Gradient (Jacobian) of soft-MSM distance w.r.t. the univariate series x.
-    Returns a vector of shape (len(x),).
-    """
-    if gamma <= 0:
-        raise ValueError("gamma must be > 0 for a differentiable soft minimum.")
-    if x.ndim == 1 and y.ndim == 1:
-        X = x.reshape((1, x.shape[0]))
-        Y = y.reshape((1, y.shape[0]))
-    else:
-        X = x
-        Y = y
-
-    return _soft_msm_grad_x(X, Y, c, gamma, alpha, window, itakura_max_slope)
 
 
 @njit(cache=True, fastmath=True)
@@ -477,7 +454,6 @@ def _soft_msm_grad_x(
     Y: np.ndarray,
     c: float = 1.0,
     gamma: float = 1.0,
-    alpha: float = 1.0,
     window: float | None = None,
     itakura_max_slope: float | None = None,
 ):
@@ -485,7 +461,7 @@ def _soft_msm_grad_x(
 
     # bounding + forward DP costs
     bm = create_bounding_matrix(m, n, window, itakura_max_slope)
-    R = _soft_msm_cost_matrix(X, Y, bm, c, gamma, alpha)  # shape (m, n)
+    R = _soft_msm_cost_matrix(X, Y, bm, c, gamma)  # shape (m, n)
 
     # Conditional move probabilities from each node (softmin weights)
     w_diag = np.zeros((m, n))
@@ -504,13 +480,13 @@ def _soft_msm_grad_x(
             # vertical to (i+1, j)
             if i + 1 < m and bm[i + 1, j]:
                 trans_cost = _soft_msm_transition_cost(
-                    X[0, i + 1], X[0, i], Y[0, j], c=c, alpha=alpha, gamma=gamma
+                    X[0, i + 1], X[0, i], Y[0, j], c=c, gamma=gamma
                 )
                 w_vert[i, j] = np.exp((R[i + 1, j] - (Rij + trans_cost)) / gamma)
             # horizontal to (i, j+1)
             if j + 1 < n and bm[i, j + 1]:
                 trans_cost = _soft_msm_transition_cost(
-                    Y[0, j + 1], Y[0, j], X[0, i], c=c, alpha=alpha, gamma=gamma
+                    Y[0, j + 1], Y[0, j], X[0, i], c=c, gamma=gamma
                 )
                 w_horz[i, j] = np.exp((R[i, j + 1] - (Rij + trans_cost)) / gamma)
 
@@ -534,8 +510,8 @@ def _soft_msm_grad_x(
 
     # Edge occupancies (use A[child] * w_edge(parent))
     Gdiag = np.zeros((m, n))  # diagonal edge into (i,j)
-    Vocc = np.zeros((m, n))  # vertical edge into (i,j)
-    Hocc = np.zeros((m, n))  # horizontal edge into (i,j)
+    Vocc = np.zeros((m, n))   # vertical edge into (i,j)
+    Hocc = np.zeros((m, n))   # horizontal edge into (i,j)
 
     for i in range(m):
         for j in range(n):
@@ -566,10 +542,10 @@ def _soft_msm_grad_x(
             if occ == 0.0:
                 continue
             d_dxval, d_dyprev, _ = _soft_msm_transition_cost_grads(
-                X[0, i], X[0, i - 1], Y[0, j], c=c, alpha=alpha, gamma=gamma
+                X[0, i], X[0, i - 1], Y[0, j], c=c, gamma=gamma
             )
-            dx[i] += occ * d_dxval  # x_val is X[i]
-            dx[i - 1] += occ * d_dyprev  # y_prev is X[i-1]
+            dx[i] += occ * d_dxval      # x_val is X[i]
+            dx[i - 1] += occ * d_dyprev # y_prev is X[i-1]
 
     # (iii) horizontal transitions: edge (i,j-1) -> (i,j); x appears as z_other
     for i in range(m):
@@ -579,7 +555,7 @@ def _soft_msm_grad_x(
                 continue
             # trans args: (x_val = Y[j], y_prev = Y[j-1], z_other = X[i])
             _, _, d_dzoth = _soft_msm_transition_cost_grads(
-                Y[0, j], Y[0, j - 1], X[0, i], c=c, alpha=alpha, gamma=gamma
+                Y[0, j], Y[0, j - 1], X[0, i], c=c, gamma=gamma
             )
             dx[i] += occ * d_dzoth
 
