@@ -292,14 +292,12 @@ class AutoETS(BaseForecaster):
 
     Examples
     --------
-    >>> from aeon.forecasting import AutoETSForecaster
+    >>> from aeon.forecasting.stats import AutoETS
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()
-    >>> forecaster = AutoETSForecaster()
-    >>> forecaster.fit(y)
-    AutoETSForecaster()
-    >>> forecaster.predict()
-    array([407.74740434])
+    >>> forecaster = AutoETS()
+    >>> forecaster.forecast(y)
+    435.9312382780535
     """
 
     def __init__(self):
@@ -361,6 +359,9 @@ class AutoETS(BaseForecaster):
             single prediction self.horizon steps ahead of y.
         """
         return self.wrapped_model_.predict(y, exog)
+
+    def _forecast(self, y, exog=None, axis=1):
+        return self.wrapped_model_.forecast(y, exog, axis)
 
     def iterative_forecast(self, y, prediction_horizon):
         """Forecast with ETS specific iterative method.
