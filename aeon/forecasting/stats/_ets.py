@@ -300,6 +300,10 @@ class AutoETS(BaseForecaster):
     435.9312382780535
     """
 
+    _tags = {
+        "capability:horizon": False,
+    }
+
     def __init__(self):
         self.error_type_ = 0
         self.trend_type_ = 0
