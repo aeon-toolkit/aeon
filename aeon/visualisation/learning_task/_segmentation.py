@@ -1,15 +1,14 @@
-"""Utility class for ploting functionality."""
+"""Utility class for plotting functionality."""
 
+__maintainer__ = []
 __all__ = [
     "plot_series_with_change_points",
 ]
 
-__maintainer__ = []
-
 import numpy as np
 
 from aeon.utils.validation._dependencies import _check_soft_dependencies
-from aeon.utils.validation.series import check_series
+from aeon.utils.validation.series import is_series
 
 
 def plot_series_with_change_points(y, change_points, title=None, font_size=16):
@@ -37,7 +36,11 @@ def plot_series_with_change_points(y, change_points, title=None, font_size=16):
     _check_soft_dependencies("matplotlib")
     import matplotlib.pyplot as plt
 
-    y = check_series(y)
+    if not is_series(y, include_2d=True):
+        raise ValueError(
+            "Input time series `y` must be a valid series data structure, "
+            "e.g. pd.Series, pd.DataFrame, or np.ndarray."
+        )
 
     true_cps = np.sort(change_points)
     segments = [0] + list(true_cps) + [y.shape[0] - 1]

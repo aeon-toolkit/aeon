@@ -1,4 +1,4 @@
-name: PR Examples
+name: PR examples
 
 on:
   push:
@@ -21,7 +21,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install latest version of bash
         run: |
@@ -29,7 +29,7 @@ jobs:
           /opt/homebrew/bin/bash --version
 
       - name: Setup Python 3.12
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
@@ -41,7 +41,8 @@ jobs:
           runner_os: ${{ runner.os }}
           python_version: "3.12"
 
-      - uses: ./.github/actions/cpu_all_extras
+      - name: Install aeon and dependencies
+        uses: ./.github/actions/cpu_all_extras
         with:
           additional_extras: "dev,binder"
 

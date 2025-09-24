@@ -1,6 +1,7 @@
 """Time series kernel kmeans."""
 
-from typing import Optional, Union
+__maintainer__ = []
+__all__ = ["TimeSeriesKernelKMeans"]
 
 import numpy as np
 from numba import njit
@@ -8,6 +9,7 @@ from numpy.random import RandomState
 
 from aeon.clustering.base import BaseClusterer
 from aeon.distances.pointwise._squared import squared_pairwise_distance
+from aeon.utils.validation import check_n_jobs
 
 
 @njit(cache=True, fastmath=True)
@@ -186,10 +188,10 @@ class TimeSeriesKernelKMeans(BaseClusterer):
         n_init: int = 10,
         max_iter: int = 300,
         tol: float = 1e-4,
-        kernel_params: Union[dict, None] = None,
+        kernel_params: dict | None = None,
         verbose: bool = False,
-        n_jobs: Union[int, None] = 1,
-        random_state: Optional[Union[int, RandomState]] = None,
+        n_jobs: int | None = 1,
+        random_state: int | RandomState | None = None,
     ):
         self.kernel = kernel
         self.n_init = n_init
@@ -227,6 +229,8 @@ class TimeSeriesKernelKMeans(BaseClusterer):
         """
         from tslearn.clustering import KernelKMeans as TsLearnKernelKMeans
 
+        self._n_jobs = check_n_jobs(self.n_jobs)
+
         verbose = 0
         if self.verbose is True:
             verbose = 1
@@ -252,7 +256,7 @@ class TimeSeriesKernelKMeans(BaseClusterer):
             tol=self.tol,
             n_init=self.n_init,
             kernel_params=self.kernel_params,
-            n_jobs=self.n_jobs,
+            n_jobs=self._n_jobs,
             verbose=verbose,
             random_state=self.random_state,
         )

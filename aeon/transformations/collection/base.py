@@ -29,7 +29,7 @@ from typing import final
 
 from aeon.base import BaseCollectionEstimator
 from aeon.transformations.base import BaseTransformer
-from aeon.utils.validation import get_n_cases
+from aeon.utils.validation.collection import get_n_cases
 
 
 class BaseCollectionTransformer(BaseCollectionEstimator, BaseTransformer):
@@ -50,12 +50,9 @@ class BaseCollectionTransformer(BaseCollectionEstimator, BaseTransformer):
     def fit(self, X, y=None):
         """Fit transformer to X, optionally using y if supervised.
 
-        State change:
-            Changes state to "fitted".
-
         Writes to self:
-        _is_fitted : flag is set to True.
-        model attributes (ending in "_") : dependent on estimator
+        - is_fitted : flag is set to True.
+        - model attributes (ending in "_") : dependent on estimator
 
         Parameters
         ----------
@@ -279,15 +276,8 @@ class BaseCollectionTransformer(BaseCollectionEstimator, BaseTransformer):
             Data to fit transform to, of valid collection type.
         y : Target variable, default=None
             Additional data, e.g., labels for transformation
-
-        Returns
-        -------
-        self: a fitted instance of the estimator
-
-        See extension_templates/transformer.py for implementation details.
         """
-        # default fit is "no fitting happens"
-        return self
+        pass
 
     @abstractmethod
     def _transform(self, X, y=None):
@@ -315,6 +305,9 @@ class BaseCollectionTransformer(BaseCollectionEstimator, BaseTransformer):
 
         private _fit_transform containing the core logic, called from fit_transform.
 
+        Non-optimized default implementation; override when a better
+        method is possible for a given algorithm.
+
         Parameters
         ----------
         X : Input data
@@ -326,9 +319,8 @@ class BaseCollectionTransformer(BaseCollectionEstimator, BaseTransformer):
         -------
         transformed version of X.
         """
-        # Non-optimized default implementation; override when a better
-        # method is possible for a given algorithm.
-        self._fit(X, y)
+        if not self.get_tag("fit_is_empty"):
+            self._fit(X, y)
         return self._transform(X, y)
 
     def _inverse_transform(self, X, y=None):

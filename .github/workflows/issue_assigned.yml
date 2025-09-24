@@ -1,4 +1,4 @@
-name: Issue Assigned
+name: Issue assigned
 
 on:
   issues:
@@ -21,12 +21,12 @@ jobs:
           private-key: ${{ secrets.PR_APP_KEY }}
 
       - name: Checkout main
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           sparse-checkout: .github/utilities
 
       - name: Setup Python 3.12
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 

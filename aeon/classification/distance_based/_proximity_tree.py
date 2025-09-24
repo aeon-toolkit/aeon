@@ -8,7 +8,6 @@ aeon distances.
 __maintainer__ = []
 __all__ = ["ProximityTree"]
 
-from typing import Optional, Union
 
 import numpy as np
 from sklearn.utils import check_random_state
@@ -34,7 +33,7 @@ class _ProximityNode:
         The class distribution for the node. Empty if not a leaf node.
     splitter: tuple or None, default=None
         The splitter used to split the node. Contains exemplars used, distance name and
-        distance parameters.Empty if leaf node.
+        distance parameters. Empty if leaf node.
 
     Attributes
     ----------
@@ -82,15 +81,16 @@ class ProximityTree(BaseClassifier):
     n_splitters: int, default = 5
         The number of candidate splitters to be evaluated at each node.
     max_depth: int, default = None
-        The maximum depth of the tree. If None, then nodes are expanded until all
-        leaves are pure or until all leaves contain less than min_samples_split samples.
+        The maximum depth of the tree. If ``None``, then nodes are expanded until all
+        leaves are pure or until all leaves contain less than ``min_samples_split``
+        samples.
     min_samples_split: int, default = 2
         The minimum number of samples required to split an internal node.
     random_state : int, RandomState instance or None, default=None
-        If `int`, random_state is the seed used by the random number generator;
-        If `RandomState` instance, random_state is the random number generator;
-        If `None`, the random number generator is the `RandomState` instance used
-        by `np.random`.
+        If ``int``, ``random_state`` is the seed used by the random number generator;
+        If ``RandomState`` instance, ``random_state`` is the random number generator;
+        If ``None``, the random number generator is the ``RandomState`` instance used
+        by ``np.random``.
 
     Notes
     -----
@@ -127,9 +127,9 @@ class ProximityTree(BaseClassifier):
     def __init__(
         self,
         n_splitters: int = 5,
-        max_depth: Optional[int] = None,
+        max_depth: int | None = None,
         min_samples_split: int = 2,
-        random_state: Union[int, np.random.RandomState, None] = None,
+        random_state: int | np.random.RandomState | None = None,
     ) -> None:
         self.n_splitters = n_splitters
         self.max_depth = max_depth
@@ -471,9 +471,7 @@ class ProximityTree(BaseClassifier):
             return std(np.concatenate(X, axis=1).flatten())
 
     @classmethod
-    def _get_test_params(
-        cls, parameter_set: str = "default"
-    ) -> Union[dict, list[dict]]:
+    def _get_test_params(cls, parameter_set: str = "default") -> dict | list[dict]:
         """Return testing parameter settings for the estimator.
 
         Parameters

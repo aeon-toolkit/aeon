@@ -3,7 +3,6 @@
 __maintainer__ = []
 __all__ = ["CBLOF"]
 
-from typing import Optional, Union
 
 import numpy as np
 
@@ -16,15 +15,16 @@ class CBLOF(PyODAdapter):
 
     This class implements the CBLOF algorithm for anomaly detection
     using PyODAdadpter to be used in the aeon framework. All parameters are passed to
-    the PyOD model ``CBLOF`` except for `window_size` and `stride`, which are used to
-    construct the sliding windows.
+    the PyOD model ``CBLOF`` except for ``window_size`` and ``stride``,
+    which are used to construct the sliding windows.
 
     The documentation for parameters has been adapted from the
-    [PyOD documentation](https://pyod.readthedocs.io/en/latest/pyod.models.html#id117).
-    Here, `X` refers to the set of sliding windows extracted from the time series
+    `PyOD documentation <https://pyod.readthedocs.io/en/latest/pyod.models.html#id117>`_
+
+    Here, ``X`` refers to the set of sliding windows extracted from the time series
     using :func:`aeon.utils.windowing.sliding_windows` with the parameters
-    ``window_size`` and ``stride``. The internal `X` has the shape
-    `(n_windows, window_size * n_channels)`.
+    ``window_size`` and ``stride``. The internal ``X`` has the shape
+    ``(n_windows, window_size * n_channels)``.
 
     Parameters
     ----------
@@ -52,21 +52,21 @@ class CBLOF(PyODAdapter):
 
     beta : int or float in (1,), default=5
         Coefficient for deciding small and large clusters. For a list
-        sorted clusters by size `|C1|, \|C2|, ..., |Cn|, beta = |Ck|/|Ck-1|`
+        sorted clusters by size ``|C1|, |C2|, ..., |Cn|, beta = |Ck|/|Ck-1|``
 
     use_weights : bool, default=False
-        If set to True, the size of clusters are used as weights in
+        If set to ``True``, the size of clusters are used as weights in
         outlier score calculation.
 
     check_estimator : bool, default=False
-        If set to True, check whether the base estimator is consistent with
+        If set to ``True``, check whether the base estimator is consistent with
         sklearn standard.
 
     random_state : int, np.RandomState or None, default=None
-        If int, random_state is the seed used by the random
+        If ``int``, random_state is the seed used by the random
         number generator; If RandomState instance, random_state is the random
-        number generator; If None, the random number generator is the
-        RandomState instance used by `np.random`.
+        number generator; If ``None``, the random number generator is the
+        RandomState instance used by ``np.random``.
 
     window_size : int, default=10
         Size of the sliding window.
@@ -91,10 +91,10 @@ class CBLOF(PyODAdapter):
         n_clusters: int = 8,
         clustering_estimator=None,
         alpha: float = 0.9,
-        beta: Union[int, float] = 5,
+        beta: int | float = 5,
         use_weights: bool = False,
         check_estimator: bool = False,
-        random_state: Optional[Union[int, np.random.RandomState]] = None,
+        random_state: int | np.random.RandomState | None = None,
         window_size: int = 10,
         stride: int = 1,
     ):
@@ -119,15 +119,13 @@ class CBLOF(PyODAdapter):
         self.random_state = random_state
         super().__init__(model, window_size, stride)
 
-    def _fit(self, X: np.ndarray, y: Union[np.ndarray, None] = None) -> None:
+    def _fit(self, X: np.ndarray, y: np.ndarray | None = None) -> None:
         super()._fit(X, y)
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
         return super()._predict(X)
 
-    def _fit_predict(
-        self, X: np.ndarray, y: Union[np.ndarray, None] = None
-    ) -> np.ndarray:
+    def _fit_predict(self, X: np.ndarray, y: np.ndarray | None = None) -> np.ndarray:
         return super()._fit_predict(X, y)
 
     @classmethod
@@ -138,15 +136,16 @@ class CBLOF(PyODAdapter):
         ----------
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return ``"default"`` set.
 
         Returns
         -------
         params : dict
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
-            `create_test_instance` uses the first (or only) dictionary in `params`.
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test
+            instance. ``create_test_instance`` uses the first (or only) dictionary
+            in ``params``.
         """
         return {
             "n_clusters": 4,

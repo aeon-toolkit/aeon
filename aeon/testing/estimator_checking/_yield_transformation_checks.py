@@ -1,19 +1,12 @@
 """Tests for all transformers."""
 
-import sys
 from functools import partial
 
 import numpy as np
 import pandas as pd
-from numpy.testing import assert_array_almost_equal
 from sklearn.utils._testing import set_random_state
 
 from aeon.base._base import _clone_estimator
-from aeon.datasets import load_basic_motions, load_unit_test
-from aeon.testing.expected_results.expected_transform_outputs import (
-    basic_motions_result,
-    unit_test_result,
-)
 from aeon.testing.testing_data import FULL_TEST_DATA_DICT
 from aeon.testing.utils.deep_equals import deep_equals
 from aeon.testing.utils.estimator_checks import _run_estimator_method
@@ -25,24 +18,6 @@ from aeon.utils.data_types import COLLECTIONS_DATA_TYPES, VALID_SERIES_INNER_TYP
 def _yield_transformation_checks(estimator_class, estimator_instances, datatypes):
     """Yield all transformation checks for an aeon transformer."""
     # only class required
-    if sys.platform == "linux":  # We cannot guarantee same results on ARM macOS
-        # Compare against results for both UnitTest and BasicMotions if available
-        yield partial(
-            check_transformer_against_expected_results,
-            estimator_class=estimator_class,
-            data_name="UnitTest",
-            data_loader=load_unit_test,
-            results_dict=unit_test_result,
-            resample_seed=0,
-        )
-        yield partial(
-            check_transformer_against_expected_results,
-            estimator_class=estimator_class,
-            data_name="BasicMotions",
-            data_loader=load_basic_motions,
-            results_dict=basic_motions_result,
-            resample_seed=4,
-        )
     yield partial(check_transformer_overrides_and_tags, estimator_class=estimator_class)
 
     # test class instances
@@ -68,49 +43,6 @@ def _yield_transformation_checks(estimator_class, estimator_instances, datatypes
                     estimator=estimator,
                     datatype=datatype,
                 )
-
-
-def check_transformer_against_expected_results(
-    estimator_class, data_name, data_loader, results_dict, resample_seed
-):
-    """Test transformer against stored results."""
-    # retrieve expected transform output, and skip test if not available
-    if estimator_class.__name__ in results_dict.keys():
-        expected_results = results_dict[estimator_class.__name__]
-    else:
-        # skip test if no expected results are registered
-        return f"No stored results for {estimator_class.__name__} on {data_name}"
-
-    # we only use the first estimator instance for testing
-    estimator_instance = estimator_class._create_test_instance(
-        parameter_set="results_comparison"
-    )
-    # set random seed if possible
-    set_random_state(estimator_instance, 0)
-
-    # load test data
-    X_train, y_train = data_loader(split="train")
-    indices = np.random.RandomState(resample_seed).choice(
-        len(y_train), 5, replace=False
-    )
-
-    # fit transformer and transform
-    results = np.nan_to_num(
-        estimator_instance.fit_transform(X_train[indices], y_train[indices]),
-        False,
-        0,
-        0,
-        0,
-    )
-
-    # assert results are the same
-    assert_array_almost_equal(
-        results,
-        expected_results,
-        decimal=2,
-        err_msg=f"Failed to reproduce results for {estimator_class.__name__} "
-        f"on {data_name}",
-    )
 
 
 def check_transformer_overrides_and_tags(estimator_class):
@@ -152,8 +84,6 @@ def check_transformer_overrides_and_tags(estimator_class):
 
     if estimator_class.get_class_tag("capability:inverse_transform"):
         assert "_inverse_transform" in estimator_class.__dict__
-    else:
-        assert "_inverse_transform" not in estimator_class.__dict__
 
 
 def check_transformer_output(estimator, datatype):
@@ -168,6 +98,9 @@ def check_transformer_output(estimator, datatype):
     if "_fit_transform" in estimator.__class__.__dict__:
         Xt2 = _run_estimator_method(estimator, "fit_transform", datatype, "train")
         assert deep_equals(Xt, Xt2, ignore_index=True)
+
+        Xt3 = _run_estimator_method(estimator, "transform", datatype, "train")
+        assert deep_equals(Xt, Xt3, ignore_index=True)
 
 
 def check_channel_selectors(estimator, datatype):
@@ -197,6 +130,9 @@ def check_transform_inverse_transform_equivalent(estimator, datatype):
         X = X.squeeze()
     if isinstance(Xit, (np.ndarray, pd.DataFrame)):
         Xit = Xit.squeeze()
-
+    # If input is equal length, inverse should be equal length
+    if isinstance(X, np.ndarray) and isinstance(Xit, list):
+        Xit = np.array(Xit)
+        Xit = Xit.squeeze()
     eq, msg = deep_equals(X, Xit, ignore_index=True, return_msg=True)
     assert eq, msg

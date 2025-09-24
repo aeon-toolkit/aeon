@@ -1,4 +1,4 @@
-"""Base similiarity search for series."""
+"""Base similarity search for series."""
 
 __maintainer__ = ["baraline"]
 __all__ = ["BaseSeriesSimilaritySearch"]
@@ -103,7 +103,7 @@ class BaseSeriesSimilaritySearch(BaseSeriesEstimator, BaseSimilaritySearch):
 
     def _check_predict_series_format(self, X):
         """
-        Check wheter a series X is correctly formated regarding series given in fit.
+        Check whether a series X is correctly formatted regarding series given in fit.
 
         Parameters
         ----------

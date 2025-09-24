@@ -10,7 +10,6 @@ __all__ = [
 
 
 from http.client import IncompleteRead, RemoteDisconnected
-from typing import Optional, Union
 from urllib.error import HTTPError, URLError
 
 import numpy as np
@@ -200,8 +199,8 @@ def estimator_alias(name: str) -> str:
 
 def get_available_estimators(
     task: str = "classification", as_list: bool = False
-) -> Union[pd.DataFrame, list]:
-    """Get a DataFrame of estimators avialable for a specific learning task.
+) -> pd.DataFrame | list:
+    """Get a DataFrame of estimators available for a specific learning task.
 
     Parameters
     ----------
@@ -235,9 +234,9 @@ def get_available_estimators(
 
 
 def get_estimator_results(
-    estimators: Union[str, list[str]],
-    datasets: Optional[list[str]] = None,
-    num_resamples: Optional[int] = 1,
+    estimators: str | list[str],
+    datasets: list[str] | None = None,
+    num_resamples: int | None = 1,
     task: str = "classification",
     measure: str = "accuracy",
     remove_dataset_modifiers: bool = False,
@@ -251,7 +250,7 @@ def get_estimator_results(
 
     Parameters
     ----------
-    estimators : str ot list of str
+    estimators : str or list of str
         Estimator name or list of estimator names to search for. See
         get_available_estimators, aeon.benchmarking.results_loading.NAME_ALIASES or
         the directory at path for valid options.
@@ -321,9 +320,9 @@ def get_estimator_results(
 
 
 def get_estimator_results_as_array(
-    estimators: Union[str, list[str]],
-    datasets: Optional[list[str]] = None,
-    num_resamples: Optional[int] = 1,
+    estimators: str | list[str],
+    datasets: list[str] | None = None,
+    num_resamples: int | None = 1,
     task: str = "classification",
     measure: str = "accuracy",
     remove_dataset_modifiers: bool = False,

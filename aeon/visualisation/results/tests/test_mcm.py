@@ -1,5 +1,6 @@
 """Test the multi-comparison-matrix visualisation."""
 
+import os
 import tempfile
 
 import numpy as np
@@ -22,7 +23,7 @@ def test_mcm():
         np.random.rand(10, 3),  # 10 rows, 3 columns of random numbers
         columns=["Classifier1", "Classifier2", "Classifier3"],
     )
-    fig = create_multi_comparison_matrix(df, save_as_json=False)
+    fig = create_multi_comparison_matrix(df, formats=())
     assert isinstance(fig, plt.Figure)
 
 
@@ -39,13 +40,11 @@ def test_mcm_file_save():
         columns=["Classifier1", "Classifier2", "Classifier3"],
     )
     with tempfile.TemporaryDirectory() as tmp:
+        prefix = os.path.join(tmp, "test")
         fig = create_multi_comparison_matrix(
             df,
-            output_dir=tmp,
-            pdf_savename="test1",
-            png_savename="test",
-            tex_savename="test",
-            save_as_json=True,
+            save_path=prefix,
+            formats=("pdf", "png", "csv", "json", "tex"),
             pvalue_correction="Holm",
         )
         assert isinstance(fig, plt.Figure)
