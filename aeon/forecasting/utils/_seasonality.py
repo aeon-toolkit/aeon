@@ -88,7 +88,7 @@ def calc_seasonal_period(data):
         The estimated seasonal period (lag) of the series. Returns 1 if no significant
         peak is detected in the autocorrelation.
     """
-    lags = acf(data, max(24, len(data)))
+    lags = acf(data, min(24, len(data)))
     lags = np.concatenate((np.array([1.0]), lags))
     peaks = []
     mean_lags = np.mean(lags)
