@@ -361,6 +361,7 @@ class AutoETS(BaseForecaster):
         return self.wrapped_model_.predict(y, exog)
 
     def _forecast(self, y, exog=None, axis=1):
+        self.fit(y, exog=exog)
         return self.wrapped_model_.forecast(y, exog, axis)
 
     def iterative_forecast(self, y, prediction_horizon):
