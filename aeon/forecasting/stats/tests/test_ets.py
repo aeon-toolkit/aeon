@@ -206,8 +206,7 @@ def test_autoets_exog_raises():
     exog = np.arange(len(Y_SEASONAL), dtype=float)  # simple aligned exogenous regressor
     with pytest.raises(
         ValueError,
-        match="Exogenous variables passed but AutoETS \
-            cannot handle exogenous variables",
+        match="AutoETS cannot handle exogenous variables",
     ):
         forecaster.fit(Y_SEASONAL, exog=exog)
 
