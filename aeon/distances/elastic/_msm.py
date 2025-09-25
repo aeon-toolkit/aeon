@@ -262,25 +262,32 @@ def _independent_cost_matrix(
     x_size = x.shape[0]
     y_size = y.shape[0]
     cost_matrix = np.full((x_size, y_size), np.inf)
-    cost_matrix[0, 0] = np.abs(x[0] - y[0])
+    # squared distance at (0,0)
+    d = x[0] - y[0]
+    cost_matrix[0, 0] = d * d
 
+    # first column (splits)
     for i in range(1, x_size):
         if bounding_matrix[i, 0]:
             cost = _cost_independent(x[i], x[i - 1], y[0], c)
-            cost_matrix[i][0] = cost_matrix[i - 1][0] + cost
+            cost_matrix[i, 0] = cost_matrix[i - 1, 0] + cost
 
-    for i in range(1, y_size):
-        if bounding_matrix[0, i]:
-            cost = _cost_independent(y[i], x[0], y[i - 1], c)
-            cost_matrix[0][i] = cost_matrix[0][i - 1] + cost
+    # first row (merges)
+    for j in range(1, y_size):
+        if bounding_matrix[0, j]:
+            cost = _cost_independent(y[j], x[0], y[j - 1], c)
+            cost_matrix[0, j] = cost_matrix[0, j - 1] + cost
 
+    # interior
     for i in range(1, x_size):
         for j in range(1, y_size):
             if bounding_matrix[i, j]:
-                d1 = cost_matrix[i - 1][j - 1] + np.abs(x[i] - y[j])
-                d2 = cost_matrix[i - 1][j] + _cost_independent(x[i], x[i - 1], y[j], c)
-                d3 = cost_matrix[i][j - 1] + _cost_independent(y[j], x[i], y[j - 1], c)
-
+                # move: squared pointwise difference
+                d = x[i] - y[j]
+                d1 = cost_matrix[i - 1, j - 1] + d * d
+                # split / merge: squared variants in the cost
+                d2 = cost_matrix[i - 1, j] + _cost_independent(x[i], x[i - 1], y[j], c)
+                d3 = cost_matrix[i, j - 1] + _cost_independent(y[j], x[i], y[j - 1], c)
                 cost_matrix[i, j] = min(d1, d2, d3)
 
     return cost_matrix
@@ -293,29 +300,38 @@ def _msm_dependent_cost_matrix(
     x_size = x.shape[1]
     y_size = y.shape[1]
     cost_matrix = np.full((x_size, y_size), np.inf)
-    cost_matrix[0, 0] = np.sum(np.abs(x[:, 0] - y[:, 0]))
+    # squared multivariate distance at (0,0)
+    diff0 = x[:, 0] - y[:, 0]
+    cost_matrix[0, 0] = np.sum(diff0 * diff0)
 
+    # first column (splits)
     for i in range(1, x_size):
         if bounding_matrix[i, 0]:
             cost = _cost_dependent(x[:, i], x[:, i - 1], y[:, 0], c)
-            cost_matrix[i][0] = cost_matrix[i - 1][0] + cost
-    for i in range(1, y_size):
-        if bounding_matrix[0, i]:
-            cost = _cost_dependent(y[:, i], x[:, 0], y[:, i - 1], c)
-            cost_matrix[0][i] = cost_matrix[0][i - 1] + cost
+            cost_matrix[i, 0] = cost_matrix[i - 1, 0] + cost
 
+    # first row (merges)
+    for j in range(1, y_size):
+        if bounding_matrix[0, j]:
+            cost = _cost_dependent(y[:, j], x[:, 0], y[:, j - 1], c)
+            cost_matrix[0, j] = cost_matrix[0, j - 1] + cost
+
+    # interior
     for i in range(1, x_size):
         for j in range(1, y_size):
             if bounding_matrix[i, j]:
-                d1 = cost_matrix[i - 1][j - 1] + np.sum(np.abs(x[:, i] - y[:, j]))
-                d2 = cost_matrix[i - 1][j] + _cost_dependent(
+                # move: sum of squared diffs over channels
+                d = x[:, i] - y[:, j]
+                d1 = cost_matrix[i - 1, j - 1] + np.sum(d * d)
+
+                d2 = cost_matrix[i - 1, j] + _cost_dependent(
                     x[:, i], x[:, i - 1], y[:, j], c
                 )
-                d3 = cost_matrix[i][j - 1] + _cost_dependent(
+                d3 = cost_matrix[i, j - 1] + _cost_dependent(
                     y[:, j], x[:, i], y[:, j - 1], c
                 )
-
                 cost_matrix[i, j] = min(d1, d2, d3)
+
     return cost_matrix
 
 
@@ -338,9 +354,13 @@ def _cost_dependent(x: np.ndarray, y: np.ndarray, z: np.ndarray, c: float) -> fl
 
 @njit(cache=True, fastmath=True)
 def _cost_independent(x: float, y: float, z: float, c: float) -> float:
+    # if x lies between y and z, pay just c
     if (y <= x <= z) or (y >= x >= z):
         return c
-    return c + min(abs(x - y), abs(x - z))
+    # otherwise c + min squared step
+    dy = x - y
+    dz = x - z
+    return c + min(dy * dy, dz * dz)
 
 
 @threaded
