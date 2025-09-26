@@ -240,4 +240,10 @@ VALID_BA_DISTANCE_METHODS = [
     "soft-msm",
 ]
 
-VALID_SOFT_BA_METHODS = ["soft_dtw", "soft_msm", "soft_bag"]
+VALID_SOFT_BA_METHODS = [
+    "soft_dtw",
+    "soft_msm",
+    "soft_bag",
+    "soft_divergence_dtw",
+    "soft_divergence_msm",
+]

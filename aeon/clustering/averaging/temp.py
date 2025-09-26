@@ -7,7 +7,7 @@ from aeon.transformations.collection import Normalizer
 
 DATASET_NAME = "GunPoint"
 TOL = 1e-5
-GAMMA = 1.0
+GAMMA = 0.1
 MAX_ITERS = 50
 
 
@@ -52,26 +52,18 @@ if __name__ == "__main__":
     #     distance="soft_bag",
     # )
 
-    arrs = []
-    for gamma_val in [0.0001, 0.001, 0.01, 0.1, 1.0, 2.0]:
-        aeon_res_msm = soft_barycenter_average(
-            X.copy(),
-            gamma=gamma_val,
-            tol=TOL,
-            max_iters=MAX_ITERS,
-            verbose=True,
-            distance="soft_msm",
-        )
-        # temp_bag = aeon_res_bag.copy().swapaxes(0, 1)
-        temp_msm = aeon_res_msm.copy().swapaxes(0, 1)
-        arrs.append(temp_msm)
+    tslearn_res = _tslearn_soft_ba(X)
+    aeon_res_msm = soft_barycenter_average(
+        X.copy(),
+        gamma=GAMMA,
+        tol=TOL,
+        max_iters=MAX_ITERS,
+        verbose=True,
+        distance="soft_divergence_msm",
+    )
+    # temp_bag = aeon_res_bag.copy().swapaxes(0, 1)
+    temp_res = aeon_res_msm.copy().swapaxes(0, 1)
 
-    gamma_0001 = arrs[0]
-    gamma_001 = arrs[1]
-    gamma_01 = arrs[2]
-    gamma_1 = arrs[3]
-    gamma_2 = arrs[4]
+    equal = np.allclose(temp_res, tslearn_res)
+    print(f"Equal: {equal}")
     stop = ""
-
-    # equal = np.allclose(temp, tslearn_res)
-    # print(f"Equal: {equal}")

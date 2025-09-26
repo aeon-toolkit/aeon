@@ -8,7 +8,6 @@ from numba.typed import List as NumbaList
 
 from aeon.distances.elastic._alignment_paths import compute_min_return_path
 from aeon.distances.elastic._bounding_matrix import create_bounding_matrix
-from aeon.distances.elastic._dtw import _dtw_cost_matrix
 from aeon.distances.elastic.soft._utils import _softmin3
 from aeon.distances.pointwise._squared import _univariate_squared_distance
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
@@ -189,9 +188,6 @@ def _soft_dtw_distance(
 def _soft_dtw_cost_matrix(
     x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, gamma: float
 ) -> np.ndarray | tuple[np.ndarray, np.ndarray]:
-    if gamma == 0.0 or np.array_equal(x, y):
-        return _dtw_cost_matrix(x, y, bounding_matrix)
-
     x_size = x.shape[1]
     y_size = y.shape[1]
     cost_matrix = np.full((x_size + 1, y_size + 1), np.inf)
@@ -444,6 +440,7 @@ def soft_dtw_alignment_path(
     )
 
 
+# --- fix a small bug: use the reshaped _x/_y when computing matrices ---
 @njit(cache=True, fastmath=True)
 def soft_dtw_alignment_matrix(
     x: np.ndarray,
@@ -460,8 +457,13 @@ def soft_dtw_alignment_matrix(
             _x.shape[1], _y.shape[1], window, itakura_max_slope
         )
         cost_matrix, dist_matrix = _soft_dtw_cost_matrix_return_dist_matrix(
-            x, y, bounding_matrix, gamma
+            _x, _y, bounding_matrix, gamma  # <- was (x, y)
         )
+        return (
+            _soft_gradient(dist_matrix, cost_matrix, gamma),
+            cost_matrix[_x.shape[-1] - 1, _y.shape[-1] - 1],
+        )
+
     if x.ndim == 2 and y.ndim == 2:
         bounding_matrix = create_bounding_matrix(
             x.shape[1], y.shape[1], window, itakura_max_slope
@@ -469,10 +471,12 @@ def soft_dtw_alignment_matrix(
         cost_matrix, dist_matrix = _soft_dtw_cost_matrix_return_dist_matrix(
             x, y, bounding_matrix, gamma
         )
-    return (
-        _soft_gradient(dist_matrix, cost_matrix, gamma),
-        cost_matrix[x.shape[-1] - 1, y.shape[-1] - 1],
-    )
+        return (
+            _soft_gradient(dist_matrix, cost_matrix, gamma),
+            cost_matrix[x.shape[-1] - 1, y.shape[-1] - 1],
+        )
+
+    return (np.zeros((0, 0)), 0.0)
 
 
 @njit(cache=True, fastmath=True)
@@ -511,3 +515,62 @@ def _soft_gradient(
             E[i, j] = E_ij
 
     return E
+
+
+def soft_dtw_grad_x(
+    x: np.ndarray,
+    y: np.ndarray,
+    gamma: float = 1.0,
+    window: float | None = None,
+    itakura_max_slope: float | None = None,
+):
+    """
+    Gradient (Jacobian) of soft-DTW distance w.r.t. the first series x.
+    Returns (dx, distance); dx has shape (len(x),) for univariate or (C, T) for
+    multivariate.
+    """
+    if gamma <= 0:
+        raise ValueError("gamma must be > 0 for a differentiable soft minimum.")
+    if x.ndim == 1 and y.ndim == 1:
+        X = x.reshape((1, x.shape[0]))
+        Y = y.reshape((1, y.shape[0]))
+    else:
+        X = x
+        Y = y
+    dx, s_xy = _soft_dtw_grad_x(X, Y, gamma, window, itakura_max_slope)
+    return (dx.ravel(), s_xy) if x.ndim == 1 else (dx, s_xy)
+
+
+@njit(cache=True, fastmath=True)
+def _soft_dtw_grad_x(
+    X: np.ndarray,
+    Y: np.ndarray,
+    gamma: float = 1.0,
+    window: float | None = None,
+    itakura_max_slope: float | None = None,
+):
+    """
+    Internal: compute gradient wrt the *first* argument X of soft-DTW, plus scalar cost.
+    X: (C, T) or (1, T), Y: (C, U) or (1, U)
+    Returns (dx, s_xy) with dx.shape == X.shape.
+    """
+    # bounding + forward DP
+    bm = create_bounding_matrix(X.shape[1], Y.shape[1], window, itakura_max_slope)
+    cost_matrix, dist_matrix = _soft_dtw_cost_matrix_return_dist_matrix(X, Y, bm, gamma)
+    s_xy = cost_matrix[X.shape[1] - 1, Y.shape[1] - 1]
+
+    # backward expected-alignment (node occupancy)
+    E = _soft_gradient(dist_matrix, cost_matrix, gamma)  # shape (T, U)
+
+    C, T = X.shape[0], X.shape[1]
+    U = Y.shape[1]
+    dx = np.zeros_like(X)
+
+    # ∂s/∂X[:, i] = 2 * sum_j (X[:, i] - Y[:, j]) * E[i, j]
+    for i in range(T):
+        acc = np.zeros(C)
+        for j in range(U):
+            acc += (X[:, i] - Y[:, j]) * E[i, j]
+        dx[:, i] = 2.0 * acc
+
+    return dx, s_xy

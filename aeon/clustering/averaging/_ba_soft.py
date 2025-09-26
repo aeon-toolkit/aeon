@@ -8,12 +8,11 @@ from aeon.clustering.averaging._ba_utils import (
     VALID_SOFT_BA_METHODS,
     _ba_setup,
 )
-from aeon.distances.elastic import (
-    soft_bag_alignment_matrix,
-    soft_dtw_alignment_matrix,
-    soft_msm_alignment_matrix,
-)
-from aeon.distances.elastic.soft._soft_msm import soft_msm_grad_x, _soft_msm_grad_x
+from aeon.distances.elastic import soft_bag_alignment_matrix
+from aeon.distances.elastic.soft._soft_dtw import _soft_dtw_grad_x
+from aeon.distances.elastic.soft._soft_dtw_divergence import _soft_dtw_divergence_grad_x
+from aeon.distances.elastic.soft._soft_msm import _soft_msm_grad_x
+from aeon.distances.elastic.soft._soft_msm_divergence import _soft_msm_divergence_grad_x
 from aeon.utils.numba._threading import threaded
 
 
@@ -193,14 +192,19 @@ def _soft_barycenter_one_iter(
     for i in prange(X_size):
         curr_ts = X[i]
         if distance == "soft_dtw":
-            grad, curr_dist = soft_dtw_alignment_matrix(
+            local_jacobian_products[i], curr_dist = _soft_dtw_grad_x(
                 barycenter, curr_ts, gamma=gamma, window=window
-            )
-            local_jacobian_products[i] = _jacobian_product_squared_euclidean(
-                barycenter, curr_ts, grad
             )
         elif distance == "soft_msm":
             local_jacobian_products[i], curr_dist = _soft_msm_grad_x(
+                barycenter, curr_ts, c=c, gamma=gamma, window=window
+            )
+        elif distance == "soft_divergence_dtw":
+            local_jacobian_products[i], curr_dist = _soft_dtw_divergence_grad_x(
+                barycenter, curr_ts, gamma=gamma, window=window
+            )
+        elif distance == "soft_divergence_msm":
+            local_jacobian_products[i], curr_dist = _soft_msm_divergence_grad_x(
                 barycenter, curr_ts, c=c, gamma=gamma, window=window
             )
         elif distance == "soft_bag":
