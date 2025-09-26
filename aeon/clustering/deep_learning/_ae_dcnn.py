@@ -319,6 +319,37 @@ class AEDCNNClusterer(BaseDeepClusterer):
 
         return self
 
+    def load_model(self, model_path, estimator):
+        """Load a pre-trained keras model instead of fitting.
+
+        When calling this function, all functionalities can be used
+        such as predict, predict_proba etc. with the loaded model.
+
+        Parameters
+        ----------
+        model_path : str (path including model name and extension)
+            The directory where the model will be saved including the model
+            name with a ".keras" extension.
+            Example: model_path="path/to/file/best_model.keras"
+        estimator : estimator : aeon clusterer
+            Pre-trained clusterer needed for loading model.
+
+        Returns
+        -------
+        None
+        """
+        import tensorflow as tf
+
+        from aeon.utils.networks.weight_norm import _WeightNormalization
+
+        self.model_ = tf.keras.models.load_model(
+            model_path, custom_objects={"_WeightNormalization": _WeightNormalization}
+        )
+        self.is_fitted = True
+
+        # use deep copy to preserve fit state
+        self._estimator = deepcopy(estimator)
+
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
