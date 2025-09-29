@@ -321,7 +321,7 @@ def _soft_dtw_pairwise_distance(
             n_timepoints, n_timepoints, window, itakura_max_slope
         )
     for i in prange(n_cases):
-        for j in range(i + 1, n_cases):
+        for j in range(n_cases):
             x1, x2 = X[i], X[j]
             if unequal_length:
                 bounding_matrix = create_bounding_matrix(

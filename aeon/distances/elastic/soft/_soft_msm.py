@@ -13,8 +13,8 @@ from aeon.utils.conversion._convert_collection import _convert_collection_to_num
 from aeon.utils.numba._threading import threaded
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
-
 # ---------------------------------- public API ----------------------------------
+
 
 @njit(cache=True, fastmath=True)
 def soft_msm_distance(
@@ -55,7 +55,9 @@ def soft_msm_cost_matrix(
         bounding_matrix = create_bounding_matrix(
             _x.shape[1], _y.shape[1], window, itakura_max_slope
         )
-        return _soft_msm_cost_matrix(_x, _y, bounding_matrix=bounding_matrix, c=c, gamma=gamma)
+        return _soft_msm_cost_matrix(
+            _x, _y, bounding_matrix=bounding_matrix, c=c, gamma=gamma
+        )
     if x.ndim == 2 and y.ndim == 2:
         bounding_matrix = create_bounding_matrix(
             x.shape[1], y.shape[1], window, itakura_max_slope
@@ -154,6 +156,7 @@ def soft_msm_grad_x(
 
 
 # --------------------------------- internals ---------------------------------
+
 
 @njit(cache=True, fastmath=True)
 def _soft_msm_distance(
@@ -281,7 +284,7 @@ def _soft_msm_pairwise_distance(
             n_timepoints, n_timepoints, window, itakura_max_slope
         )
     for i in prange(n_cases):
-        for j in range(i + 1, n_cases):
+        for j in range(n_cases):
             x1, x2 = X[i], X[j]
             if unequal_length:
                 bounding_matrix = create_bounding_matrix(
@@ -510,8 +513,8 @@ def _soft_msm_grad_x(
 
     # Edge occupancies (use A[child] * w_edge(parent))
     Gdiag = np.zeros((m, n))  # diagonal edge into (i,j)
-    Vocc = np.zeros((m, n))   # vertical edge into (i,j)
-    Hocc = np.zeros((m, n))   # horizontal edge into (i,j)
+    Vocc = np.zeros((m, n))  # vertical edge into (i,j)
+    Hocc = np.zeros((m, n))  # horizontal edge into (i,j)
 
     for i in range(m):
         for j in range(n):
@@ -544,8 +547,8 @@ def _soft_msm_grad_x(
             d_dxval, d_dyprev, _ = _soft_msm_transition_cost_grads(
                 X[0, i], X[0, i - 1], Y[0, j], c=c, gamma=gamma
             )
-            dx[i] += occ * d_dxval      # x_val is X[i]
-            dx[i - 1] += occ * d_dyprev # y_prev is X[i-1]
+            dx[i] += occ * d_dxval  # x_val is X[i]
+            dx[i - 1] += occ * d_dyprev  # y_prev is X[i-1]
 
     # (iii) horizontal transitions: edge (i,j-1) -> (i,j); x appears as z_other
     for i in range(m):
@@ -561,14 +564,16 @@ def _soft_msm_grad_x(
 
     return dx, R[-1, -1]
 
+
 if __name__ == "__main__":
     from aeon.testing.data_generation import make_example_2d_numpy_series
+
     n_timepoints = 10000
 
     x = make_example_2d_numpy_series(n_timepoints, 1, random_state=1)
     y = make_example_2d_numpy_series(n_timepoints, 1, random_state=2)
 
     from time import time
+
     t0 = time()
     distances = soft_msm_grad_x(x, y, c=1.0, gamma=1.0)
-    print(f"Time: {time()-t0:.3f}s")

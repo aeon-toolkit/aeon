@@ -1,83 +1,139 @@
-# ----------------------- soft-MSM divergence API -----------------------
+# ===================== Soft-MSM Divergence: distance & pairwise =====================
 import numpy as np
-from numba import njit
+from numba import njit, prange
+from numba.typed import List as NumbaList
 
 from aeon.distances.elastic._bounding_matrix import create_bounding_matrix
 from aeon.distances.elastic.soft._soft_msm import (
     _soft_msm_cost_matrix,
     _soft_msm_grad_x,
-    soft_msm_distance,
-    soft_msm_pairwise_distance,
 )
+from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
+from aeon.utils.numba._threading import threaded
+from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
+@njit(cache=True, fastmath=True)
 def soft_msm_divergence_distance(
     x: np.ndarray,
     y: np.ndarray,
-    window: float | None = None,
     c: float = 1.0,
-    itakura_max_slope: float | None = None,
     gamma: float = 1.0,
+    window: float | None = None,
+    itakura_max_slope: float | None = None,
 ) -> float:
     """
     Soft-MSM divergence:
-        D(x,y) = s(x,y) - 0.5*s(x,x) - 0.5*s(y,y)
+        D(x,y) = s(x,y) - 0.5*s(x,x) - 0.5*s(y,y),
+    where s(·,·) is the soft-MSM score (no MSM fallback).
     """
-    s_xy = soft_msm_distance(x, y, window, c, itakura_max_slope, gamma)
-    s_xx = soft_msm_distance(x, x, window, c, itakura_max_slope, gamma)
-    s_yy = soft_msm_distance(y, y, window, c, itakura_max_slope, gamma)
+    if x.ndim == 1 and y.ndim == 1:
+        _x = x.reshape(1, x.shape[0])
+        _y = y.reshape(1, y.shape[0])
+    elif x.ndim == 2 and y.ndim == 2:
+        _x, _y = x, y
+    else:
+        raise ValueError("x and y must be 1D or 2D")
+
+    return _soft_msm_divergence_distance(_x, _y, c, gamma, window, itakura_max_slope)
+
+
+@njit(cache=True, fastmath=True)
+def _soft_msm_divergence_distance(
+    x: np.ndarray,
+    y: np.ndarray,
+    c: float,
+    gamma: float,
+    window: float | None,
+    itakura_max_slope: float | None,
+) -> float:
+    # s(x,y)
+    bm_xy = create_bounding_matrix(x.shape[1], y.shape[1], window, itakura_max_slope)
+    s_xy = _soft_msm_cost_matrix(x, y, bm_xy, c, gamma)[x.shape[1] - 1, y.shape[1] - 1]
+    # s(x,x)
+    bm_xx = create_bounding_matrix(x.shape[1], x.shape[1], window, itakura_max_slope)
+    s_xx = _soft_msm_cost_matrix(x, x, bm_xx, c, gamma)[x.shape[1] - 1, x.shape[1] - 1]
+    # s(y,y)
+    bm_yy = create_bounding_matrix(y.shape[1], y.shape[1], window, itakura_max_slope)
+    s_yy = _soft_msm_cost_matrix(y, y, bm_yy, c, gamma)[y.shape[1] - 1, y.shape[1] - 1]
+
     return s_xy - 0.5 * s_xx - 0.5 * s_yy
 
 
+# ===================== Soft-MSM Divergence: pairwise (threaded + numba) ==============
+@threaded
 def soft_msm_divergence_pairwise_distance(
     X: np.ndarray | list[np.ndarray],
     y: np.ndarray | list[np.ndarray] | None = None,
-    window: float | None = None,
     c: float = 1.0,
-    itakura_max_slope: float | None = None,
-    n_jobs: int = 1,
     gamma: float = 1.0,
+    window: float | None = None,
+    itakura_max_slope: float | None = None,
+    n_jobs: int = 1,  # kept for API parity with aeon; threading handled by @threaded
 ) -> np.ndarray:
     """
-    Pairwise matrix of the soft-MSM divergence.
-    Efficiently computes:
-        D[i,j] = s(X_i, Y_j) - 0.5*s(X_i,X_i) - 0.5*s(Y_j,Y_j)
-    by reusing the existing pairwise soft-MSM and diagonal self-terms.
+    Pairwise matrix of the soft-MSM divergence:
+        D[i,j] = s(X_i, Y_j) - 0.5*s(X_i,X_i) - 0.5*s(Y_j,Y_j),
+    computed with numba-parallel recurrences.
     """
-    # base soft-MSM matrix
-    S = soft_msm_pairwise_distance(X, y, window, c, itakura_max_slope, n_jobs, gamma)
+    multivariate_conversion = _is_numpy_list_multivariate(X, y)
+    _X, _ = _convert_collection_to_numba_list(X, "X", multivariate_conversion)
 
-    # self terms for rows
     if y is None:
-        # to-self case
-        X_list = X if isinstance(X, list) else [X[i] for i in range(len(X))]
-        s_xx = np.array(
-            [
-                soft_msm_distance(xi, xi, window, c, itakura_max_slope, gamma)
-                for xi in X_list
-            ]
+        return _soft_msm_divergence_pairwise(_X, c, gamma, window, itakura_max_slope)
+
+    _Y, _ = _convert_collection_to_numba_list(y, "y", multivariate_conversion)
+    return _soft_msm_divergence_from_multiple_to_multiple(
+        _X, _Y, c, gamma, window, itakura_max_slope
+    )
+
+
+# -------- internals (numba) --------
+@njit(cache=True, fastmath=True, parallel=True)
+def _soft_msm_divergence_pairwise(
+    X: NumbaList[np.ndarray],
+    c: float,
+    gamma: float,
+    window: float | None,
+    itakura_max_slope: float | None,
+) -> np.ndarray:
+    n = len(X)
+    D = np.zeros((n, n))
+    for i in prange(n):
+        # diagonal
+        D[i, i] = _soft_msm_divergence_distance(
+            X[i], X[i], c, gamma, window, itakura_max_slope
         )
-        # broadcast: D = S - 0.5*s_xx[:,None] - 0.5*s_xx[None,:]
-        return S - 0.5 * s_xx[:, None] - 0.5 * s_xx[None, :]
-
-    # to-other case
-    X_list = X if isinstance(X, list) else [X[i] for i in range(len(X))]
-    Y_list = y if isinstance(y, list) else [y[i] for i in range(len(y))]
-    s_xx = np.array(
-        [
-            soft_msm_distance(xi, xi, window, c, itakura_max_slope, gamma)
-            for xi in X_list
-        ]
-    )
-    s_yy = np.array(
-        [
-            soft_msm_distance(yi, yi, window, c, itakura_max_slope, gamma)
-            for yi in Y_list
-        ]
-    )
-    return S - 0.5 * s_xx[:, None] - 0.5 * s_yy[None, :]
+        for j in range(i + 1, n):
+            Dij = _soft_msm_divergence_distance(
+                X[i], X[j], c, gamma, window, itakura_max_slope
+            )
+            D[i, j] = Dij
+            D[j, i] = Dij
+    return D
 
 
+@njit(cache=True, fastmath=True, parallel=True)
+def _soft_msm_divergence_from_multiple_to_multiple(
+    x: NumbaList[np.ndarray],
+    y: NumbaList[np.ndarray],
+    c: float,
+    gamma: float,
+    window: float | None,
+    itakura_max_slope: float | None,
+) -> np.ndarray:
+    n = len(x)
+    m = len(y)
+    D = np.zeros((n, m))
+    for i in prange(n):
+        for j in range(m):
+            D[i, j] = _soft_msm_divergence_distance(
+                x[i], y[j], c, gamma, window, itakura_max_slope
+            )
+    return D
+
+
+# ===================== Soft-MSM Divergence: gradient wrt x =====================
 def soft_msm_divergence_grad_x(
     x: np.ndarray,
     y: np.ndarray,
@@ -102,7 +158,6 @@ def soft_msm_divergence_grad_x(
 
     dx, D_val = _soft_msm_divergence_grad_x(X, Y, c, gamma, window, itakura_max_slope)
 
-    # Match public API shape for univariate x
     if x.ndim == 1:
         return dx.ravel(), D_val
     return dx, D_val
@@ -110,8 +165,8 @@ def soft_msm_divergence_grad_x(
 
 @njit(cache=True, fastmath=True)
 def _soft_msm_divergence_grad_x(
-    X: np.ndarray,  # expected shape (1, T) for univariate (no reshaping here)
-    Y: np.ndarray,  # expected shape (1, U)
+    X: np.ndarray,  # expected shape (C, T) or (1, T)
+    Y: np.ndarray,  # expected shape (C, U) or (1, U)
     c: float = 1.0,
     gamma: float = 1.0,
     window: float | None = None,
@@ -120,13 +175,11 @@ def _soft_msm_divergence_grad_x(
     """
     Private (Numba): no reshaping. Reuses _soft_msm_grad_x to assemble the divergence
     gradient.
-    Returns (dx, D_value), where dx has shape (T,) (same as _soft_msm_grad_x output).
+    Returns (dx, D_value) with dx.shape == X.shape.
     """
     # 1) grad wrt first arg of s(X, Y)
     g_xy, s_xy = _soft_msm_grad_x(X, Y, c, gamma, window, itakura_max_slope)
 
-    # 2) s(X, X): need both-args gradient -> sum of two first-arg grads with X in both
-    # roles
     g_xx_first, s_xx = _soft_msm_grad_x(X, X, c, gamma, window, itakura_max_slope)
     g_xx_second, _ = _soft_msm_grad_x(X, X, c, gamma, window, itakura_max_slope)
     g_xx_total = g_xx_first + g_xx_second
@@ -135,7 +188,6 @@ def _soft_msm_divergence_grad_x(
     dx = g_xy - 0.5 * g_xx_total
 
     # Divergence value: D = s_xy - 0.5*s_xx - 0.5*s_yy
-    # Compute s_yy with internal soft MSM DP to stay in Numba (no Python calls)
     bm_yy = create_bounding_matrix(Y.shape[1], Y.shape[1], window, itakura_max_slope)
     s_yy = _soft_msm_cost_matrix(Y, Y, bm_yy, c, gamma)[Y.shape[1] - 1, Y.shape[1] - 1]
 

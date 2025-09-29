@@ -1,16 +1,20 @@
 # ===================== Soft-DTW Divergence: distance & pairwise =====================
 import numpy as np
-from numba import njit
+from numba import njit, prange
+from numba.typed import List as NumbaList
 
 from aeon.distances.elastic._bounding_matrix import create_bounding_matrix
 from aeon.distances.elastic.soft._soft_dtw import (
     _soft_dtw_cost_matrix,
+    _soft_dtw_distance,
     _soft_dtw_grad_x,
-    soft_dtw_distance,
-    soft_dtw_pairwise_distance,
 )
+from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
+from aeon.utils.numba._threading import threaded
+from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
+@njit(cache=True, fastmath=True)
 def soft_dtw_divergence_distance(
     x: np.ndarray,
     y: np.ndarray,
@@ -18,17 +22,37 @@ def soft_dtw_divergence_distance(
     window: float | None = None,
     itakura_max_slope: float | None = None,
 ) -> float:
-    """
-    Soft-DTW divergence:
-        D(x,y) = s(x,y) - 0.5*s(x,x) - 0.5*s(y,y),
-    where s(·,·) is your soft_dtw_distance (no DTW fallback).
-    """
-    s_xy = soft_dtw_distance(x, y, gamma, window, itakura_max_slope)
-    s_xx = soft_dtw_distance(x, x, gamma, window, itakura_max_slope)
-    s_yy = soft_dtw_distance(y, y, gamma, window, itakura_max_slope)
+    if x.ndim == 1 and y.ndim == 1:
+        _x = x.reshape(1, x.shape[0])
+        _y = y.reshape(1, y.shape[0])
+    elif x.ndim == 2 and y.ndim == 2:
+        _x, _y = x, y
+    else:
+        raise ValueError("x and y must be 1D or 2D")
+
+    return _soft_dtw_divergence_distance(_x, _y, gamma, window, itakura_max_slope)
+
+
+@njit(cache=True, fastmath=True)
+def _soft_dtw_divergence_distance(
+    x: np.ndarray,
+    y: np.ndarray,
+    gamma: float,
+    window: float | None,
+    itakura_max_slope: float | None,
+) -> float:
+    bm_xy = create_bounding_matrix(x.shape[1], y.shape[1], window, itakura_max_slope)
+    s_xy = _soft_dtw_distance(x, y, bm_xy, gamma)
+    bm_xx = create_bounding_matrix(x.shape[1], x.shape[1], window, itakura_max_slope)
+    s_xx = _soft_dtw_distance(x, x, bm_xx, gamma)
+    bm_yy = create_bounding_matrix(y.shape[1], y.shape[1], window, itakura_max_slope)
+    s_yy = _soft_dtw_distance(y, y, bm_yy, gamma)
+
     return s_xy - 0.5 * s_xx - 0.5 * s_yy
 
 
+# ===================== Soft-DTW Divergence: pairwise (threaded + numba) ==============
+@threaded
 def soft_dtw_divergence_pairwise_distance(
     X: np.ndarray | list[np.ndarray],
     y: np.ndarray | list[np.ndarray] | None = None,
@@ -39,42 +63,87 @@ def soft_dtw_divergence_pairwise_distance(
 ) -> np.ndarray:
     """
     Pairwise matrix of the soft-DTW divergence:
-        D[i,j] = s(X_i, Y_j) - 0.5*s(X_i,X_i) - 0.5*s(Y_j,Y_j).
-    Reuses soft_dtw_pairwise_distance for cross terms and computes soft self-terms.
-    """
-    S = soft_dtw_pairwise_distance(X, y, gamma, window, itakura_max_slope, n_jobs)
+        D[i,j] = s(X_i, Y_j) - 0.5*s(X_i,X_i) - 0.5*s(Y_j,Y_j),
+    computed with numba-parallel recurrences.
 
-    def _as_list(arr_or_list):
-        if isinstance(arr_or_list, list):
-            return arr_or_list
-        if isinstance(arr_or_list, np.ndarray) and arr_or_list.ndim >= 2:
-            return [arr_or_list[i] for i in range(arr_or_list.shape[0])]
-        return [arr_or_list]
+    Parameters
+    ----------
+    X : np.ndarray or list[np.ndarray]
+        Collection of time series (univariate shape (T,) or multivariate (C,T)).
+    y : np.ndarray or list[np.ndarray] or None, default=None
+        Optional second collection. If None, compute a square (to-self) matrix.
+    gamma : float, default=1.0
+        Soft-min temperature.
+    window : float or None, default=None
+        Sakoe–Chiba band width (fraction of length) or None.
+    itakura_max_slope : float or None, default=None
+        Itakura parallelogram slope bound.
+    n_jobs : int, default=1
+        Parallelism for the outer Python wrapper (same as aeon’s @threaded).
+
+    Returns
+    -------
+    np.ndarray
+        Pairwise soft-DTW divergence matrix.
+    """
+    multivariate_conversion = _is_numpy_list_multivariate(X, y)
+    _X, _ = _convert_collection_to_numba_list(X, "X", multivariate_conversion)
 
     if y is None:
-        X_list = _as_list(X)
-        s_xx = np.array(
-            [
-                soft_dtw_distance(xi, xi, gamma, window, itakura_max_slope)
-                for xi in X_list
-            ]
-        )
-        return S - 0.5 * s_xx[:, None] - 0.5 * s_xx[None, :]
+        return _soft_dtw_divergence_pairwise(_X, window, itakura_max_slope, gamma)
 
-    X_list = _as_list(X)
-    Y_list = _as_list(y)
-    s_xx = np.array(
-        [soft_dtw_distance(xi, xi, gamma, window, itakura_max_slope) for xi in X_list]
+    _Y, _ = _convert_collection_to_numba_list(y, "y", multivariate_conversion)
+    # use the more general cross variant (handles unequal lengths independently)
+    return _soft_dtw_divergence_from_multiple_to_multiple(
+        _X, _Y, window, itakura_max_slope, gamma
     )
-    s_yy = np.array(
-        [soft_dtw_distance(yj, yj, gamma, window, itakura_max_slope) for yj in Y_list]
-    )
-    return S - 0.5 * s_xx[:, None] - 0.5 * s_yy[None, :]
+
+
+# -------- internals (numba) --------
+@njit(cache=True, fastmath=True, parallel=True)
+def _soft_dtw_divergence_pairwise(
+    X: NumbaList[np.ndarray],
+    window: float | None,
+    itakura_max_slope: float | None,
+    gamma: float,
+) -> np.ndarray:
+    n = len(X)
+    D = np.zeros((n, n))
+    for i in prange(n):
+        # compute diagonal once
+        D[i, i] = _soft_dtw_divergence_distance(
+            X[i], X[i], gamma, window, itakura_max_slope
+        )
+        for j in range(i + 1, n):
+            Dij = _soft_dtw_divergence_distance(
+                X[i], X[j], gamma, window, itakura_max_slope
+            )
+            D[i, j] = Dij
+            D[j, i] = Dij
+    return D
+
+
+@njit(cache=True, fastmath=True, parallel=True)
+def _soft_dtw_divergence_from_multiple_to_multiple(
+    x: NumbaList[np.ndarray],
+    y: NumbaList[np.ndarray],
+    window: float | None,
+    itakura_max_slope: float | None,
+    gamma: float,
+) -> np.ndarray:
+    n = len(x)
+    m = len(y)
+    D = np.zeros((n, m))
+
+    for i in prange(n):
+        for j in range(m):
+            D[i, j] = _soft_dtw_divergence_distance(
+                x[i], y[j], gamma, window, itakura_max_slope
+            )
+    return D
 
 
 # ===================== Soft-DTW Divergence: gradient wrt x =====================
-
-
 def soft_dtw_divergence_grad_x(
     x: np.ndarray,
     y: np.ndarray,
