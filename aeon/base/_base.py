@@ -98,7 +98,7 @@ class BaseAeonEstimator(BaseEstimator, ABC):
         Detailed behaviour:
             removes any object attributes, except:
                 hyper-parameters (arguments of ``__init__``)
-                object attributes containing double-underscores, i.e., the string ``__``
+                object attributes containing double-underscores, i.e., the string "__"
             runs ``__init__`` with current values of hyperparameters (result of
             ``get_params``)
 
@@ -407,7 +407,7 @@ class BaseAeonEstimator(BaseEstimator, ABC):
         -------
         params : dict or list of dict, default = {}
             Parameters to create testing instances of the class. Each ``dict`` are
-            parameters to construct an ``interesting`` test instance, i.e.,
+            parameters to construct an "interesting" test instance, i.e.,
             ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test
             instance.
         """
