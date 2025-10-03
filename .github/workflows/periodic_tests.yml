@@ -19,7 +19,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Setup Python 3.12
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
@@ -36,7 +36,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Setup Python 3.12
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
@@ -58,7 +58,7 @@ jobs:
           /opt/homebrew/bin/bash --version
 
       - name: Setup Python 3.12
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
@@ -99,7 +99,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Setup Python 3.12
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
@@ -124,7 +124,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Setup Python 3.12
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
@@ -170,7 +170,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -185,7 +185,7 @@ jobs:
         if: runner.os == 'Linux'
         uses: pierotofy/set-swap-space@v1.0
         with:
-          swap-size-gb: 8
+          swap-size-gb: 12
 
       - name: Use numba cache to set env variables but not restore cache
         uses: ./.github/actions/numba_cache
@@ -223,7 +223,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Setup Python 3.12
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
@@ -248,6 +248,13 @@ jobs:
       - name: Run tests
         run: python -m pytest -n logical --doctest-only --doctest-continue-on-failure
 
+      - name: Save new cache
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ github.workspace }}/.numba_cache
+          # Save cache with the current date (ENV set in numba_cache action)
+          key: numba-doctests-${{ runner.os }}-3.12-${{ env.CURRENT_DATE }}
+
   multithreaded-estimators:
     runs-on: ubuntu-24.04
 
@@ -256,7 +263,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Setup Python 3.12
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
@@ -281,6 +288,13 @@ jobs:
       - name: Run tests
         run: python -m pytest aeon/testing/tests/ --enablethreading true -k "check_estimator_multithreading"
 
+      - name: Save new cache
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ github.workspace }}/.numba_cache
+          # Save cache with the current date (ENV set in numba_cache action)
+          key: numba-multithreaded-estimators-${{ runner.os }}-3.12-${{ env.CURRENT_DATE }}
+
   codecov:
     runs-on: ubuntu-24.04
 
@@ -289,7 +303,7 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Setup Python 3.12
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 

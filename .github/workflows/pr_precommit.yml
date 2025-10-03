@@ -30,12 +30,12 @@ jobs:
           token: ${{ steps.app-token.outputs.token }}
 
       - name: Setup Python 3.12
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
       - name: Get changed files
-        uses: tj-actions/changed-files@v46.0.5
+        uses: tj-actions/changed-files@v47.0.0
         id: changed-files
 
       - name: List changed files
