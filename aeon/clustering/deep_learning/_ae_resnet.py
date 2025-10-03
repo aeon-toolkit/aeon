@@ -300,7 +300,7 @@ class AEResNetClusterer(BaseDeepClusterer):
                 ),
                 tf.keras.callbacks.ModelCheckpoint(
                     filepath=self.file_path + self.file_name_ + ".keras",
-                    monitor="val_loss" if self.validation_split else "loss",
+                    monitor="val_loss" if self.validation_split > 0 else "loss",
                     save_best_only=True,
                 ),
             ]
@@ -487,7 +487,7 @@ class AEResNetClusterer(BaseDeepClusterer):
                 for callback in self.callbacks_:
                     callback.on_batch_end(step, {"loss": float(loss_value)})
 
-            if validation_split:
+            if validation_split > 0:
                 val_loss = 0
                 val_batches = 0
                 for _, (x_batch_val, y_batch_val) in enumerate(val_dataset):

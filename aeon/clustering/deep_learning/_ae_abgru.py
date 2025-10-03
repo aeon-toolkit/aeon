@@ -274,7 +274,7 @@ class AEAttentionBiGRUClusterer(BaseDeepClusterer):
                 ),
                 tf.keras.callbacks.ModelCheckpoint(
                     filepath=self.file_path + self.file_name_ + ".keras",
-                    monitor="val_loss" if self.validation_split else "loss",
+                    monitor="val_loss" if self.validation_split > 0 else "loss",
                     save_best_only=True,
                 ),
             ]
