@@ -49,6 +49,8 @@ class AEFCNClusterer(BaseDeepClusterer):
         The number of epochs to train the model.
     batch_size : int, default = 16
         The number of samples per gradient update.
+    validation_split: float, default = 0
+        Fraction of the training data to be used as validation data.
     use_mini_batch_size : bool, default = True,
         Whether or not to use the mini batch size formula.
     random_state : int, RandomState instance or None, default=None
