@@ -234,7 +234,7 @@ def load_from_ts_file(
     replace_missing_vals_with="NaN",
     return_meta_data=False,
     return_type="auto",
-    encoding="utf-8"
+    encoding="utf-8",
 ):
     """Load time series .ts file into X and (optionally) y.
 
