@@ -55,14 +55,14 @@ jobs:
 
       - if: ${{ steps.label_out.outputs.expected_results == 'true' }}
         name: Push expected results
-        uses: stefanzweifel/git-auto-commit-action@v6
+        uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: Regenerated expected results for testing
           commit_user_name: aeon-actions-bot[bot]
 
       - if: ${{ steps.label_out.outputs.empty_commit == 'true' }}
         name: Push empty commit
-        uses: stefanzweifel/git-auto-commit-action@v6
+        uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: Empty commit for CI
           commit_user_name: aeon-actions-bot[bot]

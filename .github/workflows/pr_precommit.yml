@@ -56,7 +56,7 @@ jobs:
       # push fixes if pre-commit fails and PR is eligible
       - if: ${{ failure() && github.event_name == 'pull_request_target' && !github.event.pull_request.draft && !contains(github.event.pull_request.labels.*.name, 'stop pre-commit fixes') }}
         name: Push pre-commit fixes
-        uses: stefanzweifel/git-auto-commit-action@v6
+        uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: Automatic `pre-commit` fixes
           commit_user_name: aeon-actions-bot[bot]
