@@ -10,12 +10,13 @@ import numpy as np
 from deprecated.sphinx import deprecated
 
 from aeon.utils.conversion import convert_collection
-from aeon.utils.validation import has_missing, is_equal_length
 from aeon.utils.validation.collection import (
     get_n_cases,
     get_n_channels,
     get_n_timepoints,
+    has_missing,
     is_collection,
+    is_equal_length,
 )
 from aeon.utils.validation.labels import check_classification_y, check_regression_y
 
