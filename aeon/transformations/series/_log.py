@@ -5,11 +5,13 @@ __all__ = ["LogTransformer"]
 
 import numpy as np
 
-from aeon.transformations.base import InverseTransformerMixin
-from aeon.transformations.series.base import BaseSeriesTransformer
+from aeon.transformations.series.base import (
+    BaseSeriesTransformer,
+    SeriesInverseTransformerMixin,
+)
 
 
-class LogTransformer(BaseSeriesTransformer, InverseTransformerMixin):
+class LogTransformer(BaseSeriesTransformer, SeriesInverseTransformerMixin):
     """Natural logarithm transformation.
 
     The Natural logarithm transformation can be used to make the data more normally

@@ -1,8 +1,11 @@
 """Series transformations."""
 
 __all__ = [
-    "AutoCorrelationSeriesTransformer",
+    # base class
     "BaseSeriesTransformer",
+    "SeriesInverseTransformerMixin",
+    # transformers
+    "AutoCorrelationSeriesTransformer",
     "ClaSPTransformer",
     "Dobin",
     "MatrixProfileTransformer",
@@ -38,4 +41,7 @@ from aeon.transformations.series._pca import PCASeriesTransformer
 from aeon.transformations.series._pla import PLASeriesTransformer
 from aeon.transformations.series._scaled_logit import ScaledLogitSeriesTransformer
 from aeon.transformations.series._warping import WarpingSeriesTransformer
-from aeon.transformations.series.base import BaseSeriesTransformer
+from aeon.transformations.series.base import (
+    BaseSeriesTransformer,
+    SeriesInverseTransformerMixin,
+)

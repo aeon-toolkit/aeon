@@ -1,11 +1,11 @@
 """Identity transformer."""
 
-from aeon.transformations.base import InverseTransformerMixin
 from aeon.transformations.series import BaseSeriesTransformer
+from aeon.transformations.series.base import SeriesInverseTransformerMixin
 from aeon.utils.data_types import VALID_SERIES_INNER_TYPES
 
 
-class SeriesId(BaseSeriesTransformer, InverseTransformerMixin):
+class SeriesId(BaseSeriesTransformer, SeriesInverseTransformerMixin):
     """Identity transformer, returns data unchanged in transform/inverse_transform."""
 
     _tags = {

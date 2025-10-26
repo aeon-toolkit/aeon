@@ -20,15 +20,13 @@ State:
 """
 
 __maintainer__ = ["MatthewMiddlehurst"]
-__all__ = [
-    "BaseCollectionTransformer",
-]
+__all__ = ["BaseCollectionTransformer", "CollectionInverseTransformerMixin"]
 
 from abc import abstractmethod
 from typing import final
 
 from aeon.base import BaseCollectionEstimator
-from aeon.transformations.base import BaseTransformer
+from aeon.transformations.base import BaseTransformer, InverseTransformerMixin
 from aeon.utils.validation.collection import get_n_cases
 
 
@@ -265,3 +263,59 @@ class BaseCollectionTransformer(BaseCollectionEstimator, BaseTransformer):
         if not self.get_tag("fit_is_empty"):
             self._fit(X, y)
         return self._transform(X, y)
+
+
+class CollectionInverseTransformerMixin(InverseTransformerMixin):
+    """Mixin for transformers that support inverse transformation."""
+
+    _tags = {
+        "capability:inverse_transform": True,
+    }
+
+    @final
+    def inverse_transform(self, X, y=None):
+        """Inverse transform X and return an inverse transformed version.
+
+        Currently it is assumed that only transformers with tags
+             "input_data_type"="Series", "output_data_type"="Series",
+        can have an inverse_transform.
+
+        State required:
+             Requires state to be "fitted".
+
+        Accesses in self:
+         _is_fitted : must be True
+         fitted model attributes (ending in "_") : accessed by _inverse_transform
+
+        Parameters
+        ----------
+        X : Series or Collection, any supported type
+            Data to fit transform to, of python type as follows:
+                Series: 2D np.ndarray shape (n_channels, n_timepoints)
+                Collection: 3D np.ndarray shape (n_cases, n_channels, n_timepoints)
+                or list of 2D np.ndarray, case i has shape (n_channels, n_timepoints_i)
+        y : Series, default=None
+            Additional data, e.g., labels for transformation.
+        axis : int, default = 1
+            Axis of time in the input series.
+            If ``axis == 0``, it is assumed each column is a time series and each row is
+            a time point. i.e. the shape of the data is ``(n_timepoints,
+            n_channels)``.
+            ``axis == 1`` indicates the time series are in rows, i.e. the shape of
+            the data is ``(n_channels, n_timepoints)`.``axis is None`` indicates
+            that the axis of X is the same as ``self.axis``.
+
+            Only relevant for ``aeon.transformations.series`` transformers.
+
+        Returns
+        -------
+        inverse transformed version of X
+            of the same type as X
+        """
+        # check whether is fitted
+        self._check_is_fitted()
+
+        # input check and conversion for X/y
+        X_inner = self._preprocess_collection(X, store_metadata=False)
+        Xt = self._inverse_transform(X=X_inner, y=y)
+        return Xt

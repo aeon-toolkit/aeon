@@ -4,14 +4,11 @@ __maintainer__ = ["MatthewMiddlehurst", "TonyBagnall"]
 __all__ = ["BaseTransformer", "InverseTransformerMixin"]
 
 from abc import ABC, abstractmethod
-from typing import final
 
 import numpy as np
 import pandas as pd
 
 from aeon.base import BaseAeonEstimator
-from aeon.transformations.collection.base import BaseCollectionTransformer
-from aeon.transformations.series.base import BaseSeriesTransformer
 
 
 class BaseTransformer(BaseAeonEstimator):
@@ -124,7 +121,7 @@ class InverseTransformerMixin(ABC):
         "capability:inverse_transform": True,
     }
 
-    @final
+    @abstractmethod
     def inverse_transform(self, X, y=None, axis=1):
         """Inverse transform X and return an inverse transformed version.
 
@@ -164,19 +161,7 @@ class InverseTransformerMixin(ABC):
         inverse transformed version of X
             of the same type as X
         """
-        # check whether is fitted
-        self._check_is_fitted()
-
-        # input check and conversion for X/y
-        if isinstance(self, BaseCollectionTransformer):
-            X_inner = self._preprocess_collection(X, store_metadata=False)
-            Xt = self._inverse_transform(X=X_inner, y=y)
-            return Xt
-        elif isinstance(self, BaseSeriesTransformer):
-            self._check_is_fitted()
-            X = self._preprocess_series(X, axis=axis, store_metadata=False)
-            Xt = self._inverse_transform(X=X, y=y)
-            return self._postprocess_series(Xt, axis=axis)
+        ...
 
     @abstractmethod
     def _inverse_transform(self, X, y=None):

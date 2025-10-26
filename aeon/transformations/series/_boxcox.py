@@ -8,8 +8,10 @@ from scipy import optimize, special, stats
 from scipy.special import boxcox, inv_boxcox
 from scipy.stats import boxcox_llf, distributions, variation
 
-from aeon.transformations.base import InverseTransformerMixin
-from aeon.transformations.series.base import BaseSeriesTransformer
+from aeon.transformations.series.base import (
+    BaseSeriesTransformer,
+    SeriesInverseTransformerMixin,
+)
 
 
 # copy-pasted from scipy 1.7.3 since it moved in 1.8.0 and broke this estimator
@@ -39,7 +41,7 @@ def _calc_uniform_order_statistic_medians(n):
     return v
 
 
-class BoxCoxTransformer(BaseSeriesTransformer, InverseTransformerMixin):
+class BoxCoxTransformer(BaseSeriesTransformer, SeriesInverseTransformerMixin):
     r"""Box-Cox power transform.
 
     Box-Cox transformation is a power transformation that is used to

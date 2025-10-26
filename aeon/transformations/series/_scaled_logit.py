@@ -8,11 +8,15 @@ from warnings import warn
 
 import numpy as np
 
-from aeon.transformations.base import InverseTransformerMixin
-from aeon.transformations.series.base import BaseSeriesTransformer
+from aeon.transformations.series.base import (
+    BaseSeriesTransformer,
+    SeriesInverseTransformerMixin,
+)
 
 
-class ScaledLogitSeriesTransformer(BaseSeriesTransformer, InverseTransformerMixin):
+class ScaledLogitSeriesTransformer(
+    BaseSeriesTransformer, SeriesInverseTransformerMixin
+):
     r"""Scaled logit transform or Log transform.
 
     If both lower_bound and upper_bound are not None, a scaled logit transform is
