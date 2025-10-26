@@ -47,18 +47,11 @@ EXCLUDED_TESTS = {
         "check_save_estimators_to_file",
     ],
     # needs investigation
-    "SASTClassifier": ["check_fit_deterministic", "check_estimator_multithreading"],
-    "RSASTClassifier": ["check_fit_deterministic", "check_estimator_multithreading"],
-    "SAST": ["check_fit_deterministic", "check_estimator_multithreading"],
-    "RSAST": ["check_fit_deterministic", "check_estimator_multithreading"],
-    "MatrixProfile": ["check_fit_deterministic", "check_persistence_via_pickle"],
     "LeftSTAMPi": ["check_series_anomaly_detector_output"],
-    "SignatureClassifier": ["check_classifier_against_expected_results"],
     # missed in legacy testing, changes state in predict/transform
     "FLUSSSegmenter": ["check_non_state_changing_method"],
     "ClaSPSegmenter": ["check_non_state_changing_method"],
     "HMMSegmenter": ["check_non_state_changing_method"],
-    "RSTSF": ["check_non_state_changing_method"],
     # Requires y to be passed in inverse_transform,
     # but this is not currently enabled/supported
     "DifferenceTransformer": ["check_transform_inverse_transform_equivalent"],
@@ -71,7 +64,8 @@ EXCLUDED_TESTS_NO_NUMBA = {
     # Other failures
     "TemporalDictionaryEnsemble": ["check_classifier_against_expected_results"],
     "OrdinalTDE": ["check_classifier_against_expected_results"],
-    "CanonicalIntervalForestRegressor": ["check_regressor_against_expected_results"],
+    "MultiRocketRegressor": ["check_regressor_against_expected_results"],
+    "MultiRocketHydraRegressor": ["check_regressor_against_expected_results"],
 }
 
 

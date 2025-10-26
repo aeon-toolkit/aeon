@@ -1,0 +1,33 @@
+name: PR Label Edited
+
+on:
+  pull_request_target:
+    types: [labeled, unlabeled]
+
+jobs:
+  update-pr-welcome:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/create-github-app-token@v2
+        id: app-token
+        with:
+          app-id: ${{ vars.PR_APP_ID }}
+          private-key: ${{ secrets.PR_APP_KEY }}
+
+      - uses: actions/checkout@v5
+        with:
+          sparse-checkout: .github/utilities
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install PyGithub
+        run: pip install -Uq PyGithub
+
+      - name: Process label edit
+        run: python .github/utilities/pr_welcome_updater.py
+        env:
+          CONTEXT_GITHUB: ${{ toJson(github) }}
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
