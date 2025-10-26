@@ -1,12 +1,12 @@
 __maintainer__ = []
 
-from typing import Optional, Union
 
 import numpy as np
-from numba import njit
+from numba import njit, prange
 from numba.typed import List as NumbaList
 
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
+from aeon.utils.numba._threading import threaded
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
@@ -73,9 +73,11 @@ def _univariate_squared_distance(x: np.ndarray, y: np.ndarray) -> float:
     return distance
 
 
+@threaded
 def squared_pairwise_distance(
-    X: Union[np.ndarray, list[np.ndarray]],
-    y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
+    X: np.ndarray | list[np.ndarray],
+    y: np.ndarray | list[np.ndarray] | None = None,
+    n_jobs: int = 1,
 ) -> np.ndarray:
     """Compute the squared pairwise distance between a set of time series.
 
@@ -89,6 +91,13 @@ def squared_pairwise_distance(
         ``(m_cases, m_timepoints)`` or ``(m_cases, m_channels, m_timepoints)``.
         If None, then the squared pairwise distance between the instances of X is
         calculated.
+    n_jobs : int, default=1
+        The number of jobs to run in parallel. If -1, then the number of jobs is set
+        to the number of CPU cores. If 1, then the function is executed in a single
+        thread. If greater than 1, then the function is executed in parallel.
+
+        NOTE: For this distance function unless your data has a large number of time
+        points, it is recommended to use n_jobs=1.
 
     Returns
     -------
@@ -143,12 +152,12 @@ def squared_pairwise_distance(
     return _squared_from_multiple_to_multiple_distance(_X, _y)
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath=True, parallel=True)
 def _squared_pairwise_distance(X: NumbaList[np.ndarray]) -> np.ndarray:
     n_cases = len(X)
     distances = np.zeros((n_cases, n_cases))
 
-    for i in range(n_cases):
+    for i in prange(n_cases):
         for j in range(i + 1, n_cases):
             distances[i, j] = squared_distance(X[i], X[j])
             distances[j, i] = distances[i, j]
@@ -156,7 +165,7 @@ def _squared_pairwise_distance(X: NumbaList[np.ndarray]) -> np.ndarray:
     return distances
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath=True, parallel=True)
 def _squared_from_multiple_to_multiple_distance(
     x: NumbaList[np.ndarray], y: NumbaList[np.ndarray]
 ) -> np.ndarray:
@@ -164,7 +173,7 @@ def _squared_from_multiple_to_multiple_distance(
     m_cases = len(y)
     distances = np.zeros((n_cases, m_cases))
 
-    for i in range(n_cases):
+    for i in prange(n_cases):
         for j in range(m_cases):
             distances[i, j] = squared_distance(x[i], y[j])
     return distances

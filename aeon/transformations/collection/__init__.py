@@ -15,6 +15,7 @@ __all__ = [
     "MinMaxScaler",
     "Normalizer",
     "PeriodogramTransformer",
+    "SeriesToCollectionBroadcaster",
     "SlopeTransformer",
     "SimpleImputer",
     "Tabularizer",

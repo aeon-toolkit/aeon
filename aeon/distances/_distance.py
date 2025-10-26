@@ -1,9 +1,11 @@
 __maintainer__ = []
 
+from collections.abc import Callable
 from enum import Enum
-from typing import Any, Callable, Optional, TypedDict, Union
+from typing import Any, TypedDict
 
 import numpy as np
+from joblib import Parallel, delayed
 from typing_extensions import Unpack
 
 from aeon.distances._mpdist import mp_distance, mp_pairwise_distance
@@ -87,12 +89,13 @@ from aeon.distances.pointwise import (
     squared_pairwise_distance,
 )
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
+from aeon.utils.numba._threading import threaded
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
 class DistanceKwargs(TypedDict, total=False):
-    window: Optional[float]
-    itakura_max_slope: Optional[float]
+    window: float | None
+    itakura_max_slope: float | None
     p: float
     w: np.ndarray
     g: float
@@ -107,7 +110,7 @@ class DistanceKwargs(TypedDict, total=False):
     warp_penalty: float
     standardize: bool
     m: int
-    max_shift: Optional[int]
+    max_shift: int | None
     gamma: float
 
 
@@ -122,7 +125,7 @@ PairwiseFunction = Callable[[np.ndarray, np.ndarray, Any], np.ndarray]
 def distance(
     x: np.ndarray,
     y: np.ndarray,
-    method: Union[str, DistanceFunction],
+    method: str | DistanceFunction,
     **kwargs: Unpack[DistanceKwargs],
 ) -> float:
     """Compute the distance between two time series.
@@ -174,9 +177,10 @@ def distance(
 
 def pairwise_distance(
     x: np.ndarray,
-    y: Optional[np.ndarray] = None,
-    method: Union[str, DistanceFunction, None] = None,
+    y: np.ndarray | None = None,
+    method: str | DistanceFunction | None = None,
     symmetric: bool = True,
+    n_jobs: int = 1,
     **kwargs: Unpack[DistanceKwargs],
 ) -> np.ndarray:
     """Compute the pairwise distance matrix between two time series.
@@ -201,6 +205,10 @@ def pairwise_distance(
         function is provided as the "method" parameter, then it will compute an
         asymmetric distance matrix, and the entire matrix (including both upper and
         lower triangles) is returned.
+    n_jobs : int, default=1
+        The number of jobs to run in parallel. If -1, then the number of jobs is set
+        to the number of CPU cores. If 1, then the function is executed in a single
+        thread. If greater than 1, then the function is executed in parallel.
     kwargs : Any
         Extra arguments for distance. Refer to each distance documentation for a list of
         possible arguments.
@@ -244,19 +252,23 @@ def pairwise_distance(
            [ 48.]])
     """
     if method in PAIRWISE_DISTANCE:
-        return DISTANCES_DICT[method]["pairwise_distance"](x, y, **kwargs)
+        return DISTANCES_DICT[method]["pairwise_distance"](
+            x, y, n_jobs=n_jobs, **kwargs
+        )
     elif isinstance(method, Callable):
         if y is None and not symmetric:
-            return _custom_func_pairwise(x, x, method, **kwargs)
-        return _custom_func_pairwise(x, y, method, **kwargs)
+            return _custom_func_pairwise(x, x, method, n_jobs=n_jobs, **kwargs)
+        return _custom_func_pairwise(x, y, method, n_jobs=n_jobs, **kwargs)
     else:
         raise ValueError("Method must be one of the supported strings or a callable")
 
 
+@threaded
 def _custom_func_pairwise(
-    X: Optional[Union[np.ndarray, list[np.ndarray]]],
-    y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
-    dist_func: Union[DistanceFunction, None] = None,
+    X: np.ndarray | list[np.ndarray] | None,
+    y: np.ndarray | list[np.ndarray] | None = None,
+    dist_func: DistanceFunction | None = None,
+    n_jobs: int = 1,
     **kwargs: Unpack[DistanceKwargs],
 ) -> np.ndarray:
     if dist_func is None:
@@ -264,49 +276,76 @@ def _custom_func_pairwise(
 
     multivariate_conversion = _is_numpy_list_multivariate(X, y)
     X, _ = _convert_collection_to_numba_list(X, "X", multivariate_conversion)
+
+    if n_jobs > 1:
+        X = np.array(X)
+
     if y is None:
         # To self
-        return _custom_pairwise_distance(X, dist_func, **kwargs)
+        return _custom_pairwise_distance(X, dist_func, n_jobs=n_jobs, **kwargs)
     y, _ = _convert_collection_to_numba_list(y, "y", multivariate_conversion)
-    return _custom_from_multiple_to_multiple_distance(X, y, dist_func, **kwargs)
+    if n_jobs > 1:
+        y = np.array(y)
+    return _custom_from_multiple_to_multiple_distance(
+        X, y, dist_func, n_jobs=n_jobs, **kwargs
+    )
 
 
 def _custom_pairwise_distance(
-    X: Union[np.ndarray, list[np.ndarray]],
+    X: np.ndarray | list[np.ndarray],
     dist_func: DistanceFunction,
+    n_jobs: int = 1,
     **kwargs: Unpack[DistanceKwargs],
 ) -> np.ndarray:
     n_cases = len(X)
     distances = np.zeros((n_cases, n_cases))
 
-    for i in range(n_cases):
-        for j in range(i + 1, n_cases):
-            distances[i, j] = dist_func(X[i], X[j], **kwargs)
-            distances[j, i] = distances[i, j]
+    def compute_single_distance(i, j):
+        return i, j, dist_func(X[i], X[j], **kwargs)
+
+    indices = [(i, j) for i in range(n_cases) for j in range(i + 1, n_cases)]
+
+    results = Parallel(n_jobs=n_jobs)(
+        delayed(compute_single_distance)(i, j) for i, j in indices
+    )
+
+    for i, j, dist in results:
+        distances[i, j] = dist
+        distances[j, i] = dist  # Mirror for symmetry
 
     return distances
 
 
 def _custom_from_multiple_to_multiple_distance(
-    x: Union[np.ndarray, list[np.ndarray]],
-    y: Union[np.ndarray, list[np.ndarray]],
+    x: np.ndarray | list[np.ndarray],
+    y: np.ndarray | list[np.ndarray],
     dist_func: DistanceFunction,
+    n_jobs: int = 1,
     **kwargs: Unpack[DistanceKwargs],
 ) -> np.ndarray:
     n_cases = len(x)
     m_cases = len(y)
     distances = np.zeros((n_cases, m_cases))
 
-    for i in range(n_cases):
-        for j in range(m_cases):
-            distances[i, j] = dist_func(x[i], y[j], **kwargs)
+    def compute_single_distance(i, j):
+        return i, j, dist_func(x[i], y[j], **kwargs)
+
+    indices = [(i, j) for i in range(n_cases) for j in range(m_cases)]
+
+    results = Parallel(n_jobs=n_jobs)(
+        delayed(compute_single_distance)(i, j) for i, j in indices
+    )
+
+    for i, j, dist in results:
+        distances[i, j] = dist
+
     return distances
 
 
 def alignment_path(
     x: np.ndarray,
     y: np.ndarray,
-    method: Union[str, DistanceFunction, None] = None,
+    method: str | DistanceFunction | None = None,
     **kwargs: Unpack[DistanceKwargs],
 ) -> tuple[list[tuple[int, int]], float]:
     """Compute the alignment path and distance between two time series.
@@ -361,7 +400,7 @@ def alignment_path(
 def cost_matrix(
     x: np.ndarray,
     y: np.ndarray,
-    method: Union[str, DistanceFunction, None] = None,
+    method: str | DistanceFunction | None = None,
     **kwargs: Unpack[DistanceKwargs],
 ) -> np.ndarray:
     """Compute the alignment path and distance between two time series.
@@ -444,7 +483,7 @@ def get_distance_function_names() -> list[str]:
     return sorted(DISTANCES_DICT.keys())
 
 
-def get_distance_function(method: Union[str, DistanceFunction]) -> DistanceFunction:
+def get_distance_function(method: str | DistanceFunction) -> DistanceFunction:
     """Get the distance function for a given distance string or callable.
 
     =============== ========================================
@@ -503,7 +542,7 @@ def get_distance_function(method: Union[str, DistanceFunction]) -> DistanceFunct
 
 
 def get_pairwise_distance_function(
-    method: Union[str, PairwiseFunction],
+    method: str | PairwiseFunction,
 ) -> PairwiseFunction:
     """Get the pairwise distance function for a given method string or callable.
 
@@ -666,7 +705,7 @@ def get_cost_matrix_function(method: str) -> CostMatrixFunction:
     return _resolve_key_from_distance(method, "cost_matrix")
 
 
-def _resolve_key_from_distance(method: Union[str, Callable], key: str) -> Any:
+def _resolve_key_from_distance(method: str | Callable, key: str) -> Any:
     if isinstance(method, Callable):
         return method
     if method == "mpdist":

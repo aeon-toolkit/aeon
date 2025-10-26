@@ -3,7 +3,6 @@
 __maintainer__ = ["baraline"]
 __all__ = ["StompMotif"]
 
-from typing import Optional
 
 import numpy as np
 from numba import njit
@@ -80,7 +79,7 @@ class StompMotif(BaseSeriesSimilaritySearch):
     def __init__(
         self,
         length: int,
-        normalize: Optional[bool] = False,
+        normalize: bool | None = False,
     ):
         self.normalize = normalize
         self.length = length
@@ -120,14 +119,14 @@ class StompMotif(BaseSeriesSimilaritySearch):
     def _predict(
         self,
         X: np.ndarray,
-        k: Optional[int] = 1,
-        motif_size: Optional[int] = 1,
-        dist_threshold: Optional[float] = np.inf,
-        allow_trivial_matches: Optional[bool] = False,
-        exclusion_factor: Optional[float] = 0.5,
-        inverse_distance: Optional[bool] = False,
-        motif_extraction_method: Optional[str] = "k_motifs",
-        is_self_computation: Optional[bool] = False,
+        k: int | None = 1,
+        motif_size: int | None = 1,
+        dist_threshold: float | None = np.inf,
+        allow_trivial_matches: bool | None = False,
+        exclusion_factor: float | None = 0.5,
+        inverse_distance: bool | None = False,
+        motif_extraction_method: str | None = "k_motifs",
+        is_self_computation: bool | None = False,
     ):
         """
         Extract the motifs of X_ relative to a series X using STOMP matrix prfoile.
@@ -210,12 +209,12 @@ class StompMotif(BaseSeriesSimilaritySearch):
     def compute_matrix_profile(
         self,
         X: np.ndarray,
-        motif_size: Optional[int] = 1,
-        dist_threshold: Optional[float] = np.inf,
-        allow_trivial_matches: Optional[bool] = False,
-        exclusion_factor: Optional[float] = 0.5,
-        inverse_distance: Optional[bool] = False,
-        is_self_computation: Optional[bool] = False,
+        motif_size: int | None = 1,
+        dist_threshold: float | None = np.inf,
+        allow_trivial_matches: bool | None = False,
+        exclusion_factor: float | None = 0.5,
+        inverse_distance: bool | None = False,
+        is_self_computation: bool | None = False,
     ):
         """
         Compute matrix profile.

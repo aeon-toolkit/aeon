@@ -25,3 +25,21 @@ def _extract_arma_params(params, model):
             result[i, j] = params[start + j]
 
     return result
+
+
+@njit(fastmath=True, cache=True)
+def _extract_ets_params(params, model):
+    trend_type = model[1]
+    seasonality_type = model[2]
+    alpha = params[0]
+    if trend_type != 0:
+        beta = params[1]
+        phi = params[2]
+    else:
+        beta = 0
+        phi = 1
+    if seasonality_type != 0:
+        gamma = params[1 + 2 * (seasonality_type != 0)]
+    else:
+        gamma = 0
+    return alpha, beta, gamma, phi

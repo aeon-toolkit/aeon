@@ -6,6 +6,7 @@ __all__ = [
     "CollectionToSeriesWrapper",
     "ClaSPTransformer",
     "Dobin",
+    "MatrixProfileTransformer",
     "MatrixProfileSeriesTransformer",
     "LogTransformer",
     "PLASeriesTransformer",
@@ -31,7 +32,10 @@ from aeon.transformations.series._collection_wrapper import CollectionToSeriesWr
 from aeon.transformations.series._diff import DifferenceTransformer
 from aeon.transformations.series._dobin import Dobin
 from aeon.transformations.series._log import LogTransformer
-from aeon.transformations.series._matrix_profile import MatrixProfileSeriesTransformer
+from aeon.transformations.series._matrix_profile import (
+    MatrixProfileSeriesTransformer,
+    MatrixProfileTransformer,
+)
 from aeon.transformations.series._pca import PCASeriesTransformer
 from aeon.transformations.series._pla import PLASeriesTransformer
 from aeon.transformations.series._scaled_logit import ScaledLogitSeriesTransformer
