@@ -3,7 +3,6 @@ name: Issue comment edited
 on:
   issue_comment:
     types: [edited]
-  pull_request:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.comment.id }}
