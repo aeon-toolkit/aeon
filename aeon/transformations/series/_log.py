@@ -11,7 +11,7 @@ from aeon.transformations.series.base import (
 )
 
 
-class LogTransformer(BaseSeriesTransformer, SeriesInverseTransformerMixin):
+class LogTransformer(SeriesInverseTransformerMixin, BaseSeriesTransformer):
     """Natural logarithm transformation.
 
     The Natural logarithm transformation can be used to make the data more normally

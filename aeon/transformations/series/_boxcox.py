@@ -41,7 +41,7 @@ def _calc_uniform_order_statistic_medians(n):
     return v
 
 
-class BoxCoxTransformer(BaseSeriesTransformer, SeriesInverseTransformerMixin):
+class BoxCoxTransformer(SeriesInverseTransformerMixin, BaseSeriesTransformer):
     r"""Box-Cox power transform.
 
     Box-Cox transformation is a power transformation that is used to

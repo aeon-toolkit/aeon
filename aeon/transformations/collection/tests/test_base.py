@@ -47,18 +47,7 @@ def test_collection_transformer_invalid_input(dtype):
         t.fit_transform(y)
 
 
-def test_raise_inverse_transform():
-    """Test that inverse transform raises NotImplementedError."""
-    d = _Dummy()
-    x, _ = make_example_3d_numpy()
-    d.fit(x)
-    with pytest.raises(
-        NotImplementedError, match="does not implement " "inverse_transform"
-    ):
-        d.inverse_transform(x)
-
-
-class _Dummy(BaseCollectionTransformer, CollectionInverseTransformerMixin):
+class _Dummy(CollectionInverseTransformerMixin, BaseCollectionTransformer):
     """Dummy transformer for testing.
 
     Converts a numpy array to a list of numpy arrays.

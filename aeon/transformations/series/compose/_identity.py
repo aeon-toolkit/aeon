@@ -5,7 +5,7 @@ from aeon.transformations.series.base import SeriesInverseTransformerMixin
 from aeon.utils.data_types import VALID_SERIES_INNER_TYPES
 
 
-class SeriesId(BaseSeriesTransformer, SeriesInverseTransformerMixin):
+class SeriesId(SeriesInverseTransformerMixin, BaseSeriesTransformer):
     """Identity transformer, returns data unchanged in transform/inverse_transform."""
 
     _tags = {

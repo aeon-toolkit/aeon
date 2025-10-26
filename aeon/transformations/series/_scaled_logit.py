@@ -15,7 +15,7 @@ from aeon.transformations.series.base import (
 
 
 class ScaledLogitSeriesTransformer(
-    BaseSeriesTransformer, SeriesInverseTransformerMixin
+    SeriesInverseTransformerMixin, BaseSeriesTransformer
 ):
     r"""Scaled logit transform or Log transform.
 

@@ -14,7 +14,7 @@ from aeon.utils.validation.collection import get_n_cases
 
 
 class SeriesToCollectionBroadcaster(
-    BaseCollectionTransformer, CollectionInverseTransformerMixin
+    CollectionInverseTransformerMixin, BaseCollectionTransformer
 ):
     """Broadcast a ``BaseSeriesTransformer`` over a collection of time series.
 
