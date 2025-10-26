@@ -1,102 +1,157 @@
-__maintainer__ = []
-
 import numpy as np
 from numba import njit
-from sklearn.utils import check_random_state
 
-from aeon.distances import msm_alignment_path, pairwise_distance, twe_alignment_path
+from aeon.clustering.averaging._ba_utils import (
+    VALID_BA_DISTANCE_METHODS,
+    _ba_setup,
+    _get_alignment_path,
+)
+from aeon.distances import pairwise_distance
+from aeon.utils.numba._threading import threaded
 
 
+@threaded
 def kasba_average(
     X: np.ndarray,
-    init_barycenter: np.ndarray,
-    previous_cost: float,
-    previous_distance_to_centre: np.ndarray,
+    init_barycenter: np.ndarray | None = "mean",
+    previous_cost: float | None = None,
+    previous_distance_to_center: np.ndarray | None = None,
     distance: str = "msm",
-    max_iters: int = 50,
-    tol=1e-5,
+    max_iters: int = 30,
+    tol: float = 1e-5,
     ba_subset_size: float = 0.5,
+    weights: np.ndarray | None = None,
+    precomputed_medoids_pairwise_distance: np.ndarray | None = None,
     initial_step_size: float = 0.05,
     decay_rate: float = 0.1,
     verbose: bool = False,
+    n_jobs: int = 1,
     random_state: int | None = None,
+    return_distances_to_center: bool = False,
+    return_cost: bool = False,
     **kwargs,
-) -> tuple[np.ndarray, np.ndarray]:
-    """KASBA average [1]_.
+):
+    """
+    Compute the KASBA barycenter average of time series using an elastic distance [1]_.
 
-    The KASBA clusterer proposed an adapted version of the Stochastic Subgradient
-    Elastic Barycentre Average. The algorithm works by iterating randomly over X.
-    If it is the first iteration then all the values are used. However, if it is not
-    the first iteration then a subset is used. The subset size is determined by the
-    parameter ba_subset_size which is the percentage of the data to use. If there are
-    less than 10 data points, all the available data will be used every iteration.
+    KASBA adapts the Stochastic Subgradient Elastic Barycenter Average by iterating
+    randomly over the dataset. On the first iteration, all series are used; on
+    subsequent iterations, only a subset (controlled by ``ba_subset_size``) is used.
+    If there are fewer than 10 series, all available data are used on every iteration.
 
     Parameters
     ----------
-    X: np.ndarray, of shape (n_cases, n_channels, n_timepoints) or
-            (n_cases, n_timepoints)
-        A collection of time series instances to take the average from.
-    init_barycenter: np.ndarray, of shape (n_channels, n_timepoints)
-        The initial barycentre to refine.
-    previous_cost: float
-        The summed total distance from all time series in X to the init_barycentre.
-    previous_distance_to_centre: np.ndarray, of shape (n_cases,)
-        The distance between each time series in X and the init_barycentre.
-    distance: str, default='msm'
-        String defining the distance to use for averaging. Distance to
-        compute similarity between time series. A list of valid strings for metrics
-        can be found in the documentation form
-        :func:`aeon.distances.get_distance_function`.
-    max_iters: int, default=30
-        Maximum number iterations for dba to update over.
-    tol : float (default: 1e-5)
-        Tolerance to use for early stopping: if the decrease in cost is lower
-        than this value, the Expectation-Maximization procedure stops.
+    X : np.ndarray of shape (n_cases, n_channels, n_timepoints) or (n_cases,
+        n_timepoints)
+        Collection of time series to average. If 2D, it is internally reshaped to
+        (n_cases, 1, n_timepoints).
+    init_barycenter : {"mean", "medoids", "random"} or np.ndarray of shape (n_channels,
+        n_timepoints), default="mean"
+        Initial barycenter. If a string is provided, it specifies the initialisation
+        strategy. If an array is provided, it is used directly as the starting
+        barycenter.
+    previous_cost : float, default=None
+        The total cost (sum of distances from all series in X to the current
+        barycenter).
+        If None, it is computed in the first iteration.
+    previous_distance_to_center : np.ndarray of shape (n_cases,), default=None
+        Distances from each series in X to the current barycenter. If None, they are
+        computed in the first iteration.
+    distance : str, default="msm"
+        Distance function used during averaging. See
+        :func:`aeon.distances.get_distance_function` for valid options.
+    max_iters : int, default=30
+        Maximum number of iterations to update the barycenter.
+    tol : float, default=1e-5
+        Early-stopping tolerance: if the decrease in cost between iterations is
+        smaller than this value, the procedure stops.
     ba_subset_size : float, default=0.5
-        The proportion of the data to use in the barycentre average step. For the first
-        iteration all the data will be used however, on subsequent iterations a subset
-        of the data will be used. This will be a % of the data passed (e.g. 0.5 = 50%).
-        If there are less than 10 data points, all the available data will be used
-        every iteration.
+        Proportion of the data to use on each iteration after the first. The first
+        iteration always uses all data. If X has fewer than 10 series, all are used
+        on every iteration.
+    weights : np.ndarray of shape (n_cases,), default=None
+        Weights for each time series. If None, all series receive weight 1.
+    precomputed_medoids_pairwise_distance : np.ndarray of shape (n_cases, n_cases),
+        default=None
+        Optional precomputed pairwise distance matrix (used when relevant, e.g., for
+        "medoids" initialisation). If None, distances are computed on the fly.
     initial_step_size : float, default=0.05
-        The initial step size for the gradient descent.
+        Initial step size for the stochastic subgradient update.
     decay_rate : float, default=0.1
-        The decay rate for the step size in the barycentre average step. The
-        initial_step_size will be multiplied by np.exp(-decay_rate * i) every iteration
-        where i is the current iteration.
-    verbose: bool, default=False
-        Boolean that controls the verbosity.
-    random_state: int or None, default=None
-        Random state to use for the barycenter averaging.
+        Exponential decay rate for the step size; the step size at iteration i is
+        ``initial_step_size * exp(-decay_rate * i)``.
+    verbose : bool, default=False
+        If True, prints progress information.
+    n_jobs : int, default=1
+        The number of jobs to run in parallel. If -1, then the number of jobs is set
+        to the number of CPU cores. If 1, then the function is executed in a single
+        thread. If greater than 1, then the function is executed in parallel.
+    random_state : int or None, default=None
+        Random seed used where applicable.
+    return_distances_to_center : bool, default=False
+        If True, also return the distances between each time series and the barycenter.
+    return_cost : bool, default=False
+        If True, also return the total cost.
+    **kwargs
+        Additional keyword arguments forwarded to the chosen distance function.
 
     Returns
     -------
-    np.ndarray of shape (n_channels, n_timepoints)
-        Time series that is the KASBA average of the collection of instances provided.
+    barycenter : np.ndarray of shape (n_channels, n_timepoints)
+        The barycenter (KASBA average) of the input time series.
+    distances_to_center : np.ndarray of shape (n_cases,), optional
+        Returned if return_distances_to_center=True. Distances between each time series
+        and the barycenter.
+    cost : float, optional
+        Returned if return_cost=True. The total cost (sum of distances to barycenter).
 
     References
     ----------
-    .. [1] Holder, Christopher & Bagnall, Anthony. (2024).
-       Rock the KASBA: Blazingly Fast and Accurate Time Series Clustering.
-       10.48550/arXiv.2411.17838.
+    . [1] Holder, C. & Bagnall, A. (2024).
+        Rock the KASBA: Blazingly Fast and Accurate Time Series Clustering.
+        arXiv:2411.17838.
     """
     if len(X) <= 1:
-        return X, np.zeros(X.shape[0])
+        center = X[0] if X.ndim == 3 else X
+        if return_distances_to_center and return_cost:
+            return center, np.zeros(X.shape[0]), 0.0
+        elif return_distances_to_center:
+            return center, np.zeros(X.shape[0])
+        elif return_cost:
+            return center, 0.0
+        return center
 
-    if X.ndim == 3:
-        _X = X
-    elif X.ndim == 2:
-        _X = X.reshape((X.shape[0], 1, X.shape[1]))
-    else:
-        raise ValueError("X must be a 2D or 3D array")
+    if distance not in VALID_BA_DISTANCE_METHODS:
+        raise ValueError(
+            f"Invalid distance method: {distance}. Valid method are: "
+            f"{VALID_BA_DISTANCE_METHODS}"
+        )
 
-    random_state = check_random_state(random_state)
-    X_size = _X.shape[0]
+    (
+        _X,
+        barycenter,
+        prev_barycenter,
+        cost,
+        previous_cost,
+        distances_to_center,
+        previous_distance_to_center,
+        random_state,
+        n_jobs,
+        weights,
+    ) = _ba_setup(
+        X,
+        distance=distance,
+        init_barycenter=init_barycenter,
+        previous_cost=previous_cost,
+        previous_distance_to_center=previous_distance_to_center,
+        precomputed_medoids_pairwise_distance=precomputed_medoids_pairwise_distance,
+        n_jobs=n_jobs,
+        random_state=random_state,
+        weights=weights,
+        **kwargs,
+    )
 
-    barycenter = np.copy(init_barycenter)
-    prev_barycenter = np.copy(init_barycenter)
-
-    distances_to_centre = np.zeros(X_size)
+    X_size = len(_X)
     num_ts_to_use = min(X_size, max(10, int(ba_subset_size * X_size)))
     for i in range(max_iters):
         shuffled_indices = random_state.permutation(X_size)
@@ -111,32 +166,55 @@ def kasba_average(
             shuffled_indices=shuffled_indices,
             current_step_size=current_step_size,
             distance=distance,
+            weights=weights,
             **kwargs,
         )
 
-        pw_dist = pairwise_distance(_X, barycenter, method=distance, **kwargs)
+        pw_dist = pairwise_distance(
+            _X, barycenter, method=distance, n_jobs=n_jobs, **kwargs
+        )
         cost = np.sum(pw_dist)
-        distances_to_centre = pw_dist.flatten()
+        distances_to_center = pw_dist.flatten()
 
-        # Cost is the sum of distance to the centre
+        # Cost is the sum of distance to the cent
         if abs(previous_cost - cost) < tol:
             if previous_cost < cost:
                 barycenter = prev_barycenter
-                distances_to_centre = previous_distance_to_centre
+                distances_to_center = previous_distance_to_center
+
+            if verbose:
+                print(  # noqa: T001, T201
+                    f"[KASBA-BA] epoch {i}, early convergence change in cost between "
+                    f"epochs {cost} - {previous_cost} < tol: {tol}"
+                )
             break
         elif previous_cost < cost:
             barycenter = prev_barycenter
-            distances_to_centre = previous_distance_to_centre
+            distances_to_center = previous_distance_to_center
+            if verbose:
+                print(  # noqa: T001, T201
+                    f"[KASBA-BA] epoch {i}, early convergence cost increasing: {cost} "
+                    f"> previous cost: {previous_cost}"
+                )
             break
-
-        prev_barycenter = barycenter
-        previous_distance_to_centre = distances_to_centre.copy()
-        previous_cost = cost
+        else:
+            prev_barycenter = barycenter
+            previous_distance_to_center = distances_to_center.copy()
+            previous_cost = cost
 
         if verbose:
-            print(f"[Subset-SSG-BA] epoch {i}, cost {cost}")  # noqa: T001, T201
+            print(f"[KASBA-BA] epoch {i}, cost {cost}")  # noqa: T001, T201
 
-    return barycenter, distances_to_centre
+    if verbose:
+        print(f"[KASBA-BA] converged epoch {i}, cost {cost}")  # noqa: T001, T201
+
+    if return_distances_to_center and return_cost:
+        return barycenter, distances_to_center, cost
+    elif return_distances_to_center:
+        return barycenter, distances_to_center
+    elif return_cost:
+        return barycenter, cost
+    return barycenter
 
 
 @njit(cache=True, fastmath=True)
@@ -145,11 +223,22 @@ def _kasba_refine_one_iter(
     X: np.ndarray,
     shuffled_indices: np.ndarray,
     current_step_size,
+    weights: np.ndarray,
     distance: str = "msm",
+    window: float | None = None,
+    g: float = 0.0,
+    epsilon: float | None = None,
     nu: float = 0.001,
     lmbda: float = 1.0,
     independent: bool = True,
     c: float = 1.0,
+    descriptor: str = "identity",
+    reach: int = 15,
+    warp_penalty: float = 1.0,
+    transformation_precomputed: bool = False,
+    transformed_x: np.ndarray | None = None,
+    transformed_y: np.ndarray | None = None,
+    gamma: float = 1.0,
 ):
 
     X_size, X_dims, X_timepoints = X.shape
@@ -158,20 +247,29 @@ def _kasba_refine_one_iter(
 
     for i in shuffled_indices:
         curr_ts = X[i]
-        if distance == "twe":
-            curr_alignment, curr_cost = twe_alignment_path(
-                curr_ts, barycenter_copy, nu=nu, lmbda=lmbda
-            )
-        elif distance == "msm":
-            curr_alignment, curr_cost = msm_alignment_path(
-                curr_ts, barycenter_copy, independent=independent, c=c
-            )
-        else:
-            raise ValueError(f"Invalid distance metric: {distance}")
+        curr_alignment, _ = _get_alignment_path(
+            center=barycenter,
+            ts=curr_ts,
+            distance=distance,
+            window=window,
+            g=g,
+            epsilon=epsilon,
+            nu=nu,
+            lmbda=lmbda,
+            independent=independent,
+            c=c,
+            descriptor=descriptor,
+            reach=reach,
+            warp_penalty=warp_penalty,
+            transformation_precomputed=transformation_precomputed,
+            transformed_x=transformed_x,
+            transformed_y=transformed_y,
+            gamma=gamma,
+        )
 
         new_ba = np.zeros((X_dims, X_timepoints))
         for j, k in curr_alignment:
-            new_ba[:, k] += barycenter_copy[:, k] - curr_ts[:, j]
+            new_ba[:, k] += (barycenter_copy[:, k] - curr_ts[:, j]) * weights[i]
 
         barycenter_copy -= (2.0 * current_step_size) * new_ba
     return barycenter_copy
