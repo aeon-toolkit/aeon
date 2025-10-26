@@ -22,7 +22,7 @@ class CollectionToSeriesWrapper(BaseSeriesTransformer):
     >>> from aeon.transformations.collection.unequal_length import Resizer
     >>> import numpy as np
     >>> X = np.random.rand(1, 10)
-    >>> transformer = Resizer(length=5)
+    >>> transformer = Resizer(resized_length=5)
     >>> wrapper = CollectionToSeriesWrapper(transformer)
     >>> X_t = wrapper.fit_transform(X)
     """
