@@ -4,16 +4,16 @@
 
 # ⌛ Welcome to aeon
 
-`aeon` is an open-source toolkit for learning from time series. It is compatible with
-[scikit-learn](https://scikit-learn.org) and provides access to the very latest
-algorithms for time series machine learning, in addition to a range of classical
-techniques for learning tasks such as forecasting and classification.
+`aeon` is an open-source toolkit for time series machine learning.
+ Fully compatible with [scikit-learn](https://scikit-learn.org), it brings together
+the latest machine learning methods alongside a wide range of classical approaches
+for tasks such as forecasting, clustering, and classification.
 
-We strive to provide a broad library of time series algorithms including the
-latest advances, offer efficient implementations using numba, and interfaces with other
-time series packages to provide a single framework for algorithm comparison.
+Our goal is to provide a comprehensive collection of state-of-the-art time
+series algorithms, with efficient implementations powered by `numba`, and to promote
+reproducible research in the field of time series machine learning.
 
-The latest `aeon` release is `v1.2.0`. You can view the full changelog
+The latest `aeon` release is `v1.3.0`. You can view the full changelog
 [here](https://www.aeon-toolkit.org/en/stable/changelog.html).
 
 Our webpage and documentation is available at https://aeon-toolkit.org.

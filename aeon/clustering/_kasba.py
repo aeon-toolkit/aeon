@@ -1,10 +1,9 @@
 """Time series kmeans."""
 
-from typing import Optional
-
 __maintainer__ = ["chrisholder"]
+__all__ = ["KASBA"]
 
-from typing import Callable, Union
+from collections.abc import Callable
 
 import numpy as np
 from numpy.random import RandomState
@@ -24,8 +23,8 @@ class KASBA(BaseClusterer):
     metric [2]_ however, it can be used with any elastic distance that is a metric.
     KASBA finds initial clusters using an adapted form of kmeans++ to use
     elastic distances, a fast assignment step that exploits the metric property
-    to avoid distance calculations in assignment, and an adapted elastic barycentre
-    average that uses a stochastic gradient descent to find the barycentre averages.
+    to avoid distance calculations in assignment, and an adapted elastic barycenter
+    average that uses a stochastic gradient descent to find the barycenter averages.
 
     Parameters
     ----------
@@ -35,14 +34,14 @@ class KASBA(BaseClusterer):
         The distance metric to use. If a string, must be one of the following:
         'msm', 'twe'. The distance measure use MUST be a metric.
     ba_subset_size : float, default=0.5
-        The proportion of the data to use in the barycentre average step. For the first
+        The proportion of the data to use in the barycenter average step. For the first
         iteration all the data will be used however, on subsequent iterations a subset
         of the data will be used. This will be a % of the data passed (e.g. 0.5 = 50%).
         If there are less than 10 data points, all the available data will be used
         every iteration.
     initial_step_size : float, default=0.05
         The initial step size for the stochastic gradient descent in the
-        barycentre average step.
+        barycenter average step.
     max_iter : int, default=300
         Maximum number of iterations of the k-means algorithm before it is forcibly
         stopped.
@@ -56,7 +55,7 @@ class KASBA(BaseClusterer):
         distance_params={"c": 0.2}. See documentation of aeon.distances for more
         details.
     decay_rate : float, default=0.1
-        The decay rate for the step size in the barycentre average step. The
+        The decay rate for the step size in the barycenter average step. The
         initial_step_size will be multiplied by np.exp(-decay_rate * i) every iteration
         where i is the current iteration.
     verbose : bool, default=False
@@ -110,15 +109,15 @@ class KASBA(BaseClusterer):
     def __init__(
         self,
         n_clusters: int = 8,
-        distance: Union[str, Callable] = "msm",
+        distance: str | Callable = "msm",
         ba_subset_size: float = 0.5,
         initial_step_size: float = 0.05,
         max_iter: int = 300,
         tol: float = 1e-6,
-        distance_params: Optional[dict] = None,
+        distance_params: dict | None = None,
         decay_rate: float = 0.1,
         verbose: bool = False,
-        random_state: Optional[Union[int, RandomState]] = None,
+        random_state: int | RandomState | None = None,
     ):
         self.distance = distance
         self.max_iter = max_iter
@@ -143,13 +142,13 @@ class KASBA(BaseClusterer):
 
     def _fit(self, X: np.ndarray, y=None):
         self._check_params(X)
-        cluster_centres, distances_to_centres, labels = self._elastic_kmeans_plus_plus(
+        cluster_centers, distances_to_centers, labels = self._elastic_kmeans_plus_plus(
             X,
         )
         self.labels_, self.cluster_centers_, self.inertia_, self.n_iter_ = self._kasba(
             X,
-            cluster_centres,
-            distances_to_centres,
+            cluster_centers,
+            distances_to_centers,
             labels,
         )
 
@@ -172,34 +171,34 @@ class KASBA(BaseClusterer):
     def _kasba(
         self,
         X,
-        cluster_centres,
-        distances_to_centres,
+        cluster_centers,
+        distances_to_centers,
         labels,
     ):
         inertia = np.inf
         prev_inertia = np.inf
         prev_labels = None
-        prev_cluster_centres = None
+        prev_cluster_centers = None
         for i in range(self.max_iter):
-            cluster_centres, distances_to_centres = self._recalculate_centroids(
+            cluster_centers, distances_to_centers = self._recalculate_centroids(
                 X,
-                cluster_centres,
+                cluster_centers,
                 labels,
-                distances_to_centres,
+                distances_to_centers,
             )
 
-            labels, distances_to_centres, inertia = self._fast_assign(
+            labels, distances_to_centers, inertia = self._fast_assign(
                 X,
-                cluster_centres,
-                distances_to_centres,
+                cluster_centers,
+                distances_to_centers,
                 labels,
                 i == 0,
             )
 
-            labels, cluster_centres, distances_to_centres = self._handle_empty_cluster(
+            labels, cluster_centers, distances_to_centers = self._handle_empty_cluster(
                 X,
-                cluster_centres,
-                distances_to_centres,
+                cluster_centers,
+                distances_to_centers,
                 labels,
             )
 
@@ -213,41 +212,41 @@ class KASBA(BaseClusterer):
 
             prev_inertia = inertia
             prev_labels = labels.copy()
-            prev_cluster_centres = cluster_centres.copy()
+            prev_cluster_centers = cluster_centers.copy()
 
             if self.verbose is True:
                 print(f"Iteration {i}, inertia {prev_inertia}.")  # noqa: T001, T201
 
         if inertia < prev_inertia:
-            return prev_labels, prev_cluster_centres, prev_inertia, i + 1
-        return labels, cluster_centres, inertia, i + 1
+            return prev_labels, prev_cluster_centers, prev_inertia, i + 1
+        return labels, cluster_centers, inertia, i + 1
 
     def _fast_assign(
         self,
         X,
-        cluster_centres,
-        distances_to_centres,
+        cluster_centers,
+        distances_to_centers,
         labels,
         is_first_iteration,
     ):
-        distances_between_centres = pairwise_distance(
-            cluster_centres,
+        distances_between_centers = pairwise_distance(
+            cluster_centers,
             method=self.distance,
             **self._distance_params,
         )
         for i in range(X.shape[0]):
-            min_dist = distances_to_centres[i]
+            min_dist = distances_to_centers[i]
             closest = labels[i]
             for j in range(self.n_clusters):
                 if not is_first_iteration and j == closest:
                     continue
-                bound = distances_between_centres[j, closest] / 2.0
+                bound = distances_between_centers[j, closest] / 2.0
                 if min_dist < bound:
                     continue
 
                 dist = distance_func(
                     X[i],
-                    cluster_centres[j],
+                    cluster_centers[j],
                     method=self.distance,
                     **self._distance_params,
                 )
@@ -256,30 +255,30 @@ class KASBA(BaseClusterer):
                     closest = j
 
             labels[i] = closest
-            distances_to_centres[i] = min_dist
+            distances_to_centers[i] = min_dist
 
-        inertia = np.sum(distances_to_centres**2)
+        inertia = np.sum(distances_to_centers**2)
         if self.verbose:
             print(f"{inertia:.5f}", end=" --> ")  # noqa: T001, T201
-        return labels, distances_to_centres, inertia
+        return labels, distances_to_centers, inertia
 
     def _recalculate_centroids(
         self,
         X,
-        cluster_centres,
+        cluster_centers,
         labels,
-        distances_to_centres,
+        distances_to_centers,
     ):
         for j in range(self.n_clusters):
             current_cluster_indices = labels == j
 
-            previous_distance_to_centre = distances_to_centres[current_cluster_indices]
-            previous_cost = np.sum(previous_distance_to_centre)
-            curr_centre, dist_to_centre = kasba_average(
+            previous_distance_to_center = distances_to_centers[current_cluster_indices]
+            previous_cost = np.sum(previous_distance_to_center)
+            curr_center, dist_to_center = kasba_average(
                 X=X[current_cluster_indices],
-                init_barycenter=cluster_centres[j],
+                init_barycenter=cluster_centers[j],
                 previous_cost=previous_cost,
-                previous_distance_to_centre=previous_distance_to_centre,
+                previous_distance_to_center=previous_distance_to_center,
                 distance=self.distance,
                 max_iters=50,
                 tol=self.tol,
@@ -288,38 +287,39 @@ class KASBA(BaseClusterer):
                 ba_subset_size=self.ba_subset_size,
                 initial_step_size=self.initial_step_size,
                 decay_rate=self.decay_rate,
+                return_distances_to_center=True,
                 **self._distance_params,
             )
 
-            cluster_centres[j] = curr_centre
-            distances_to_centres[current_cluster_indices] = dist_to_centre
+            cluster_centers[j] = curr_center
+            distances_to_centers[current_cluster_indices] = dist_to_center
 
-        return cluster_centres, distances_to_centres
+        return cluster_centers, distances_to_centers
 
     def _handle_empty_cluster(
         self,
         X: np.ndarray,
-        cluster_centres: np.ndarray,
-        distances_to_centres: np.ndarray,
+        cluster_centers: np.ndarray,
+        distances_to_centers: np.ndarray,
         labels: np.ndarray,
     ):
         empty_clusters = np.setdiff1d(np.arange(self.n_clusters), labels)
         j = 0
         while empty_clusters.size > 0:
             current_empty_cluster_index = empty_clusters[0]
-            index_furthest_from_centre = distances_to_centres.argmax()
-            cluster_centres[current_empty_cluster_index] = X[index_furthest_from_centre]
+            index_furthest_from_center = distances_to_centers.argmax()
+            cluster_centers[current_empty_cluster_index] = X[index_furthest_from_center]
             curr_pw = pairwise_distance(
-                X, cluster_centres, method=self.distance, **self._distance_params
+                X, cluster_centers, method=self.distance, **self._distance_params
             )
             labels = curr_pw.argmin(axis=1)
-            distances_to_centres = curr_pw.min(axis=1)
+            distances_to_centers = curr_pw.min(axis=1)
             empty_clusters = np.setdiff1d(np.arange(self.n_clusters), labels)
             j += 1
             if j > self.n_clusters:
                 raise EmptyClusterError
 
-        return labels, cluster_centres, distances_to_centres
+        return labels, cluster_centers, distances_to_centers
 
     def _elastic_kmeans_plus_plus(
         self,

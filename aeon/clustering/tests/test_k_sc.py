@@ -1,10 +1,12 @@
 """Test KSpectralCentroid clusterer."""
 
 import numpy as np
+import pytest
 
 from aeon.clustering import KSpectralCentroid
 from aeon.datasets import load_gunpoint
 from aeon.testing.data_generation import make_example_3d_numpy
+from aeon.testing.testing_config import MULTITHREAD_TESTING
 
 
 def test_k_spectral_centroid_univariate():
@@ -89,3 +91,54 @@ def test_k_spectral_centroid_with_different_n_clusters():
 
     assert clusterer.cluster_centers_.shape == (4, 1, 10)
     assert isinstance(clusterer.n_iter_, int)
+
+
+@pytest.mark.skipif(not MULTITHREAD_TESTING, reason="Only run on multithread testing")
+@pytest.mark.parametrize("n_jobs", [2, -1])
+def test_ksc_threaded(n_jobs):
+    """Test mean averaging threaded functionality."""
+    n_cases = 20
+    n_timepoints = 10
+    n_clusters = 3
+
+    X_train = make_example_3d_numpy(
+        n_cases=n_cases,
+        n_channels=1,
+        n_timepoints=n_timepoints,
+        random_state=1,
+        return_y=False,
+    )
+    X_test = make_example_3d_numpy(
+        n_cases=n_cases,
+        n_channels=1,
+        n_timepoints=n_timepoints,
+        random_state=2,
+        return_y=False,
+    )
+
+    kmeans = KSpectralCentroid(
+        n_clusters=n_clusters,
+        max_shift=2,
+        init="first",
+        n_init=1,
+        random_state=1,
+        n_jobs=n_jobs,
+    )
+    train_predict = kmeans.fit_predict(X_train)
+
+    assert isinstance(train_predict, np.ndarray)
+    assert train_predict.shape == (n_cases,)
+    assert np.unique(train_predict).shape[0] <= n_clusters
+    assert kmeans.cluster_centers_.shape == (n_clusters, 1, n_timepoints)
+
+    test_result = kmeans.predict(X_test)
+
+    assert isinstance(test_result, np.ndarray)
+    assert test_result.shape == (n_cases,)
+    assert np.unique(test_result).shape[0] <= n_clusters
+
+    proba = kmeans.predict_proba(X_test)
+    assert isinstance(kmeans.cluster_centers_, np.ndarray)
+    assert proba.shape == (n_cases, n_clusters)
+    for val in proba:
+        assert np.count_nonzero(val == 1.0) == 1

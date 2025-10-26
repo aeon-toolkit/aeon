@@ -22,7 +22,7 @@ def _arima_fit(params, data, model):
     c = formatted_params[0][0] if model[0] else 0
     p = model[1]
     q = model[2]
-    for t in range(n):
+    for t in range(max(p, q), n):
         ar_term = 0.0
         max_ar = min(p, t)
         for j in range(max_ar):
