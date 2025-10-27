@@ -3,7 +3,7 @@
 import numpy as np
 from numba import njit
 
-from aeon.forecasting.utils._loss_functions import _arima_fit, _ets_fit
+from aeon.forecasting.utils._loss_functions import _arima_fit, _ets_aic
 
 
 @njit(cache=True, fastmath=True)
@@ -11,20 +11,14 @@ def dispatch_loss(fn_id, params, data, model):
     if fn_id == 0:
         return _arima_fit(params, data, model)
     if fn_id == 1:
-        return _ets_fit(params, data, model)[0]
+        return _ets_aic(params, data, model)
     else:
         raise ValueError("Unknown loss function ID")
 
 
 @njit(cache=True, fastmath=True)
 def nelder_mead(
-    loss_id,
-    num_params,
-    data,
-    model,
-    tol=1e-6,
-    max_iter=500,
-    simplex_init=0.5,
+    loss_id, num_params, data, model, tol=1e-6, max_iter=500, simplex_init=0.5, x0=None
 ):
     """
     Perform optimisation using the Nelder–Mead simplex algorithm.
@@ -79,12 +73,22 @@ def nelder_mead(
        The Computer Journal, 7(4), 308–313.
        https://doi.org/10.1093/comjnl/7.4.308
     """
-    points = np.full((num_params + 1, num_params), simplex_init)
-    for i in range(num_params):
-        points[i + 1][i] = simplex_init * 1.2
+    points = np.empty((num_params + 1, num_params), dtype=np.float64)
+    if x0 is None:
+        for i in range(num_params + 1):
+            points[i][:] = simplex_init
+        for i in range(num_params):
+            points[i + 1][i] = simplex_init * 1.2
+    else:
+        for i in range(num_params + 1):
+            points[i][:] = x0[:num_params]
+        for i in range(num_params):
+            p = x0[:num_params].copy()
+            p[i] = min(0.999, max(1e-6, x0[i] * 1.2))
+            points[i + 1, :] = p
     values = np.empty(len(points), dtype=np.float64)
     for i in range(len(points)):
-        values[i] = dispatch_loss(loss_id, points[i].copy(), data, model)
+        values[i] = dispatch_loss(loss_id, points[i], data, model)
     for _ in range(max_iter):
         # Order simplex by function values
         order = np.argsort(values)

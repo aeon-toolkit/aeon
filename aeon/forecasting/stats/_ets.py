@@ -330,12 +330,11 @@ class AutoETS(BaseForecaster):
             Fitted AutoETS.
         """
         data = y.squeeze()
-        (
-            self.error_type_,
-            self.trend_type_,
-            self.seasonality_type_,
-            self.seasonal_period_,
-        ) = auto_ets(data)
+        best_model = auto_ets(data)
+        self.error_type_ = int(best_model[0])
+        self.trend_type_ = int(best_model[1])
+        self.seasonality_type_ = int(best_model[2])
+        self.seasonal_period_ = int(best_model[3])
         self.wrapped_model_ = ETS(
             self.error_type_,
             self.trend_type_,
@@ -428,41 +427,54 @@ def _validate_parameter(var, can_be_none):
         )
 
 
+@njit(fastmath=True, cache=True)
 def auto_ets(data):
     """Calculate model parameters based on the internal nelder-mead implementation."""
     seasonal_period = calc_seasonal_period(data)
-    lowest_aic = -1
-    best_model = None
+    seasonal_enabled = seasonal_period > 1
+    s_max = 3 if seasonal_enabled else 1
+    all_pos = True
+    for i in range(data.size):
+        if data[i] <= 0.0:
+            all_pos = False
+            break
+    x0_k1 = np.array((0.2, 0), dtype=np.float64)
+    x0_k2 = np.array((0.2, 0.5), dtype=np.float64)
+    x0_k3 = np.array((0.2, 0.05, 0.99), dtype=np.float64)
+    x0_k4 = np.array((0.2, 0.05, 0.05, 0.99), dtype=np.float64)
+    model = np.empty(4, dtype=np.int32)
+    best_model = np.empty(4, dtype=np.int32)
+    best_aic = np.inf
     for error_type in range(1, 3):
+        if error_type == 2 and not all_pos:
+            continue
         for trend_type in range(0, 3):
-            for seasonality_type in range(0, 2 * (seasonal_period != 1) + 1):
-                model_seasonal_period = seasonal_period
-                if seasonal_period < 1 or seasonality_type == 0:
-                    model_seasonal_period = 1
-                model = np.array(
-                    [
-                        error_type,
-                        trend_type,
-                        seasonality_type,
-                        model_seasonal_period,
-                    ],
-                    dtype=np.int32,
-                )
-                try:
-                    (_, aic) = nelder_mead(
-                        1,
-                        1 + 2 * (trend_type != 0) + (seasonality_type != 0),
-                        data,
-                        model,
-                    )
-                except ZeroDivisionError:
+            if trend_type == 2 and not all_pos:
+                continue
+            k_base = 1 + (2 if (trend_type != 0) else 0)
+            for seasonality_type in range(0, s_max):
+                if seasonality_type == 2 and not all_pos:
                     continue
-                if lowest_aic == -1 or lowest_aic > aic:
-                    lowest_aic = aic
-                    best_model = (
-                        error_type,
-                        trend_type,
-                        seasonality_type,
-                        model_seasonal_period,
-                    )
+                model[0] = error_type
+                model[1] = trend_type
+                model[2] = seasonality_type
+                model[3] = seasonal_period if (seasonality_type != 0) else 1
+                k = k_base + (1 if seasonality_type != 0 else 0)
+                x0 = (
+                    x0_k1
+                    if k == 1
+                    else (x0_k2 if k == 2 else (x0_k3 if k == 3 else x0_k4))
+                )
+                best_params, aic = nelder_mead(1, k, data, model, x0=x0)
+                if aic < best_aic:
+                    best_aic = aic
+                    best_model[:] = model
+                    if k == 1:
+                        x0_k1[:-1] = best_params
+                    if k == 2:
+                        x0_k2[:] = best_params
+                    elif k == 3:
+                        x0_k3[:] = best_params
+                    else:
+                        x0_k4[:] = best_params
     return best_model
