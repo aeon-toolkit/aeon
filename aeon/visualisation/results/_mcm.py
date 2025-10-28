@@ -48,6 +48,10 @@ def create_multi_comparison_matrix(
     datasets. The MCM is a heatmap that shows absolute performance and tests for
     significant difference. It is configurable inmany ways.
 
+    Note: this implementation uses different pvalue parameters from the original
+    by default. To use the original parameters, set pvalue_test_params to
+    {"zero_method": "pratt", "alternative": "two-sided"}.
+
     Parameters
     ----------
     results: pd.DataFrame
@@ -65,14 +69,12 @@ def create_multi_comparison_matrix(
     statistic_name: str, default = 'Score'
         Name of the metric being assessesed (e.g. accuracy, error, mse).
         By default just generically labelles as 'Score'.
-    save_as_json: bool, default = True
-        Whether or not to save the python analysis dict into a json file format.
     plot_1v1_comparisons: bool, default = True
-        Whether or not to plot the 1v1 scatter results.
+        Whether to plot the 1v1 scatter results.
     higher_stat_better: bool, default = True
         The order on considering a win or a loss for a given statistics.
     include_pvalue bool, default = True
-        Condition whether or not include a pvalue stats.
+        Condition whether include a pvalue stats.
     pvalue_test: str, default = 'wilcoxon'
         The statistical test to produce the pvalue stats. Currently only wilcoxon is
         supported.
@@ -80,7 +82,7 @@ def create_multi_comparison_matrix(
         The default parameter set for the pvalue_test used. If pvalue_test is set
         to Wilcoxon, one should check the scipy.stats.wilcoxon parameters,
         in the case Wilcoxon is set and this parameter is None, then the default setup
-        is {"zero_method": "pratt", "alternative": "greater"}.
+        is {"zero_method": "wilcox", "alternative": "greater"}.
     pvalue_correction: str, default = None
         Correction to use for the pvalue significant test, None or "Holm".
     pvalue_threshold: float, default = 0.05
@@ -105,10 +107,10 @@ def create_multi_comparison_matrix(
     precision: int, default = 4
         The number of floating numbers after decimal point.
     row_comparates: list of str, default = None
-      A list of included row comparates, if None, all of the comparates in the study
+      A list of included row comparates, if None, all the comparates in the study
       are placed in the rows.
     col_comparates: list of str, default = None
-        A list of included col comparates, if None, all of the comparates in the
+        A list of included col comparates, if None, all the comparates in the
         study are placed in the cols.
     excluded_row_comparates: list of str, default = None
         A list of excluded row comparates. If None, all comparates are included.
@@ -135,9 +137,9 @@ def create_multi_comparison_matrix(
         The tuple must contain exactly three strings, representing win, tie, and
         loss outcomes for the row comparate (r) against the column comparate (c).
     include_legend: bool, default = True
-        Whether or not to show the legend on the MCM.
+        Whether to show the legend on the MCM.
     show_symmetry: bool, default = True
-        Whether or not to show the symmetrical part of the heatmap.
+        Whether to show the symmetrical part of the heatmap.
 
     Returns
     -------
@@ -884,31 +886,11 @@ def _decode_results_data_frame(df, analysis):
 
     """
     df_columns = list(df.columns)  # extract columns from data frame
-
-    # check if dataset column name is correct
-
-    if analysis["dataset-column"] is not None:
-        if analysis["dataset-column"] not in df_columns:
-            raise KeyError("The column " + analysis["dataset-column"] + " is missing.")
-
-    # get number of examples (datasets)
-    # n_datasets = len(np.unique(np.asarray(df[analysis['dataset-column']])))
-    n_datasets = len(df.index)
-
-    analysis["n-datasets"] = n_datasets  # add number of examples to dictionary
-
-    if analysis["dataset-column"] is not None:
-        analysis["dataset-names"] = list(
-            df[analysis["dataset-column"]]
-        )  # add example names to dict
-        df_columns.remove(
-            analysis["dataset-column"]
-        )  # drop the dataset column name from columns list
-        # and keep comparate names
-
     comparate_names = df_columns.copy()
     n_comparates = len(comparate_names)
 
+    # add number of examples to dictionary
+    analysis["n-datasets"] = len(df.index)
     # add the information about comparates to dict
     analysis["comparate-names"] = comparate_names
     analysis["n-comparates"] = n_comparates
@@ -1034,13 +1016,7 @@ def _re_order_comparates(df_results, analysis):
             stats.append(analysis["average-statistic"][analysis["comparate-names"][i]])
 
     elif analysis["order-stats"] == "average-rank":
-        if analysis["dataset-column"] is not None:
-            np_results = np.asarray(
-                df_results.drop([analysis["dataset-column"]], axis=1)
-            )
-        else:
-            np_results = np.asarray(df_results)
-
+        np_results = np.asarray(df_results)
         df = pd.DataFrame(columns=["comparate-name", "values"])
 
         for i, comparate_name in enumerate(analysis["comparate-names"]):
