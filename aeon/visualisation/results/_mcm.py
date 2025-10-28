@@ -50,7 +50,7 @@ def create_multi_comparison_matrix(
 
     Note: this implementation uses different pvalue parameters from the original
     by default. To use the original parameters, set ``pvalue_test_params`` to
-    ``{"zero_method": "pratt", "alternative": "two-sided"}`` and 
+    ``{"zero_method": "pratt", "alternative": "two-sided"}`` and
     ``pvalue_correction`` to ``None``.
 
     Parameters
