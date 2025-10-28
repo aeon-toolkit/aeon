@@ -1109,7 +1109,7 @@ def _get_cell_legend(
     tie_label="r=c",
     loss_label="r<c",
 ):
-    cell_legend = _capitalize_label(analysis["use-mean"])
+    cell_legend = _capitalize_label("mean-difference")
     longest_string = len(cell_legend)
 
     win_tie_loss_string = f"{win_label} / {tie_label} / {loss_label}"
@@ -1130,7 +1130,6 @@ def _get_cell_legend(
 def _capitalize_label(s):
     if len(s.split("-")) == 1:
         return s.capitalize()
-
     else:
         return "-".join(ss.capitalize() for ss in s.split("-"))
 
