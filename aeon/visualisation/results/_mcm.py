@@ -24,7 +24,7 @@ def create_multi_comparison_matrix(
     include_pvalue=True,
     pvalue_test="wilcoxon",
     pvalue_test_params=None,
-    pvalue_correction=None,
+    pvalue_correction="Holm",
     pvalue_threshold=0.05,
     order_stats="average-statistic",
     order_stats_increasing=False,
@@ -49,8 +49,8 @@ def create_multi_comparison_matrix(
     significant difference. It is configurable inmany ways.
 
     Note: this implementation uses different pvalue parameters from the original
-    by default. To use the original parameters, set pvalue_test_params to
-    {"zero_method": "pratt", "alternative": "two-sided"}.
+    by default. To use the original parameters, set ``pvalue_test_params`` to
+    ``{"zero_method": "pratt", "alternative": "two-sided"}``.
 
     Parameters
     ----------
