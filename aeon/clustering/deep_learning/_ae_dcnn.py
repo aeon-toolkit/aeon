@@ -51,6 +51,8 @@ class AEDCNNClusterer(BaseDeepClusterer):
         The number of epochs to train the model.
     batch_size : int, default = 16
         The number of samples per gradient update.
+    validation_split: float, default = 0
+        Fraction of the training data to be used as validation data.
     use_mini_batch_size : bool, default = True,
         Whether or not to use the mini batch size formula.
     random_state : int, RandomState instance or None, default=None
@@ -131,6 +133,7 @@ class AEDCNNClusterer(BaseDeepClusterer):
         padding_decoder="same",
         n_epochs=2000,
         batch_size=32,
+        validation_split=0,
         use_mini_batch_size=False,
         random_state=None,
         verbose=False,
@@ -163,6 +166,7 @@ class AEDCNNClusterer(BaseDeepClusterer):
         self.callbacks = callbacks
         self.file_path = file_path
         self.n_epochs = n_epochs
+        self.validation_split = validation_split
         self.save_best_model = save_best_model
         self.save_last_model = save_last_model
         self.save_init_model = save_init_model
@@ -280,7 +284,7 @@ class AEDCNNClusterer(BaseDeepClusterer):
                 ),
                 tf.keras.callbacks.ModelCheckpoint(
                     filepath=self.file_path + self.file_name_ + ".keras",
-                    monitor="loss",
+                    monitor="val_loss" if self.validation_split > 0 else "loss",
                     save_best_only=True,
                 ),
             ]
@@ -296,6 +300,7 @@ class AEDCNNClusterer(BaseDeepClusterer):
             X,
             batch_size=mini_batch_size,
             epochs=self.n_epochs,
+            validation_split=self.validation_split,
             verbose=self.verbose,
             callbacks=self.callbacks_,
         )
@@ -318,6 +323,37 @@ class AEDCNNClusterer(BaseDeepClusterer):
         gc.collect()
 
         return self
+
+    def load_model(self, model_path, estimator):
+        """Load a pre-trained keras model instead of fitting.
+
+        When calling this function, all functionalities can be used
+        such as predict, predict_proba etc. with the loaded model.
+
+        Parameters
+        ----------
+        model_path : str (path including model name and extension)
+            The directory where the model will be saved including the model
+            name with a ".keras" extension.
+            Example: model_path="path/to/file/best_model.keras"
+        estimator : estimator : aeon clusterer
+            Pre-trained clusterer needed for loading model.
+
+        Returns
+        -------
+        None
+        """
+        import tensorflow as tf
+
+        from aeon.utils.networks.weight_norm import _WeightNormalization
+
+        self.model_ = tf.keras.models.load_model(
+            model_path, custom_objects={"_WeightNormalization": _WeightNormalization}
+        )
+        self.is_fitted = True
+
+        # use deep copy to preserve fit state
+        self._estimator = deepcopy(estimator)
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):

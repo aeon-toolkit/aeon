@@ -197,7 +197,9 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
                 kernel_size=1,
             )(x)
 
-        encoder = tf.keras.Model(inputs=input_layer, outputs=output_layer)
+        encoder = tf.keras.Model(
+            inputs=input_layer, outputs=output_layer, name="encoder"
+        )
 
         if self.temporal_latent_space:
             input_layer_decoder = tf.keras.layers.Input(x.shape[1:])
@@ -226,7 +228,9 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
             )
 
         last_layer = tf.keras.layers.Conv1D(filters=input_shape[-1], kernel_size=1)(y)
-        decoder = tf.keras.Model(inputs=input_layer_decoder, outputs=last_layer)
+        decoder = tf.keras.Model(
+            inputs=input_layer_decoder, outputs=last_layer, name="decoder"
+        )
 
         return encoder, decoder
 
