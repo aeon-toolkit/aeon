@@ -337,19 +337,17 @@ def _msm_dependent_cost_matrix(
 
 @njit(cache=True, fastmath=True)
 def _cost_dependent(x: np.ndarray, y: np.ndarray, z: np.ndarray, c: float) -> float:
-    diameter = _univariate_squared_distance(y, z)
-    mid = (y + z) / 2
-    distance_to_mid = _univariate_squared_distance(mid, x)
+    diameter = _univariate_squared_distance(y, z)  # ||y - z||^2
+    mid = (y + z) / 2.0
+    distance_to_mid = _univariate_squared_distance(mid, x)  # ||x - mid||^2
 
-    if distance_to_mid <= (diameter / 2):
+    # Inside hypersphere if distance_to_mid <= (radius^2) = (diameter / 4)
+    if distance_to_mid <= (diameter / 4):
         return c
     else:
-        dist_to_q_prev = _univariate_squared_distance(y, x)
-        dist_to_c = _univariate_squared_distance(z, x)
-        if dist_to_q_prev < dist_to_c:
-            return c + dist_to_q_prev
-        else:
-            return c + dist_to_c
+        dist_to_y = _univariate_squared_distance(y, x)  # ||x - y||^2
+        dist_to_z = _univariate_squared_distance(z, x)  # ||x - z||^2
+        return c + min(dist_to_y, dist_to_z)
 
 
 @njit(cache=True, fastmath=True)

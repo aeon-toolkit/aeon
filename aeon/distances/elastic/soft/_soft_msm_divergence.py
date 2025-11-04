@@ -165,31 +165,43 @@ def soft_msm_divergence_grad_x(
 
 @njit(cache=True, fastmath=True)
 def _soft_msm_divergence_grad_x(
-    X: np.ndarray,  # expected shape (C, T) or (1, T)
-    Y: np.ndarray,  # expected shape (C, U) or (1, U)
+    X: np.ndarray,  # shape (C, T) or (1, T)
+    Y: np.ndarray,  # shape (C, U) or (1, U)
     c: float = 1.0,
     gamma: float = 1.0,
     window: float | None = None,
     itakura_max_slope: float | None = None,
 ):
     """
-    Private (Numba): no reshaping. Reuses _soft_msm_grad_x to assemble the divergence
-    gradient.
-    Returns (dx, D_value) with dx.shape == X.shape.
+    Compute the gradient of the Soft-MSM divergence w.r.t. X and its value.
+
+    Uses:
+        D(X, Y) = s(X, Y) - 0.5 * s(X, X) - 0.5 * s(Y, Y)
+    and at (X, X) symmetry implies:
+        ∂_1 s(X, X) + ∂_2 s(X, X) = 2 * ∂_1 s(X, X)
+    hence:
+        ∇_X D = ∂_1 s(X, Y) - ∂_1 s(X, X)
+
+    Returns
+    -------
+    dx : np.ndarray
+        Gradient w.r.t. X, same shape as X.
+    D_val : float
+        Soft-MSM divergence value.
     """
-    # 1) grad wrt first arg of s(X, Y)
+    # 1) grad/value wrt first arg of s(X, Y)
     g_xy, s_xy = _soft_msm_grad_x(X, Y, c, gamma, window, itakura_max_slope)
 
+    # 2) s(X, X): only need first-arg grad once (symmetry at X = X)
     g_xx_first, s_xx = _soft_msm_grad_x(X, X, c, gamma, window, itakura_max_slope)
-    g_xx_second, _ = _soft_msm_grad_x(X, X, c, gamma, window, itakura_max_slope)
-    g_xx_total = g_xx_first + g_xx_second
 
     # Assemble divergence gradient
-    dx = g_xy - 0.5 * g_xx_total
+    dx = g_xy - g_xx_first
 
     # Divergence value: D = s_xy - 0.5*s_xx - 0.5*s_yy
-    bm_yy = create_bounding_matrix(Y.shape[1], Y.shape[1], window, itakura_max_slope)
-    s_yy = _soft_msm_cost_matrix(Y, Y, bm_yy, c, gamma)[Y.shape[1] - 1, Y.shape[1] - 1]
+    m_y = Y.shape[1]
+    bm_yy = create_bounding_matrix(m_y, m_y, window, itakura_max_slope)
+    s_yy = _soft_msm_cost_matrix(Y, Y, bm_yy, c, gamma)[m_y - 1, m_y - 1]
 
     D_val = s_xy - 0.5 * s_xx - 0.5 * s_yy
     return dx, D_val

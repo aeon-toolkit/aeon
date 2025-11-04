@@ -175,32 +175,54 @@ def soft_dtw_divergence_grad_x(
 
 @njit(cache=True, fastmath=True)
 def _soft_dtw_divergence_grad_x(
-    X: np.ndarray,  # expected shape (C, T) or (1, T)
-    Y: np.ndarray,  # expected shape (C, U) or (1, U)
+    X: np.ndarray,  # shape (C, T) or (1, T)
+    Y: np.ndarray,  # shape (C, U) or (1, U)
     gamma: float = 1.0,
     window: float | None = None,
     itakura_max_slope: float | None = None,
 ):
     """
-    Private (Numba): no reshaping. Reuses _soft_dtw_grad_x to assemble the divergence
-    gradient.
-    Returns (dx, D_value) with dx.shape == X.shape.
+    Compute the gradient of the soft-DTW divergence w.r.t. X and its value.
+
+    Uses the identity:
+        D(X, Y) = s(X, Y) - 0.5 * s(X, X) - 0.5 * s(Y, Y)
+    and
+        ∇_X D = ∂_1 s(X, Y) - 0.5 * (∂_1 s(X, X) + ∂_2 s(X, X))
+               = ∂_1 s(X, Y) - ∂_1 s(X, X)        (by symmetry at X = X)
+
+    Parameters
+    ----------
+    X, Y : np.ndarray
+        Time series (channel-first). X has length T, Y has length U.
+    gamma : float, default=1.0
+        Soft-min temperature (> 0).
+    window : float | None
+        Sakoe–Chiba band width (fraction or absolute, per your create_bounding_matrix).
+    itakura_max_slope : float | None
+        Itakura parallelogram parameter.
+
+    Returns
+    -------
+    dx : np.ndarray
+        Gradient w.r.t. X, same shape as X.
+    D_val : float
+        Soft-DTW divergence value.
     """
-    # 1) grad wrt first arg of s(X, Y)
+    # 1) Gradient and value for s(X, Y) w.r.t. the first argument (X)
     g_xy, s_xy = _soft_dtw_grad_x(X, Y, gamma, window, itakura_max_slope)
 
-    # 2) s(X, X): need both-args gradient -> sum of two first-arg grads with X in both
-    # roles
+    # 2) For s(X, X), by symmetry ∂1 s(X, X) == ∂2 s(X, X) at (X, X),
+    #    so ∂1 s + ∂2 s = 2 * ∂1 s. With the 0.5 factor in D, this reduces to a single call.
     g_xx_first, s_xx = _soft_dtw_grad_x(X, X, gamma, window, itakura_max_slope)
-    g_xx_second, _ = _soft_dtw_grad_x(X, X, gamma, window, itakura_max_slope)
-    g_xx_total = g_xx_first + g_xx_second
 
     # Assemble divergence gradient
-    dx = g_xy - 0.5 * g_xx_total
+    dx = g_xy - g_xx_first
 
-    # Divergence value: D = s_xy - 0.5*s_xx - 0.5*s_yy (compute s_yy via internal DP)
-    bm_yy = create_bounding_matrix(Y.shape[1], Y.shape[1], window, itakura_max_slope)
-    s_yy = _soft_dtw_cost_matrix(Y, Y, bm_yy, gamma)[Y.shape[1] - 1, Y.shape[1] - 1]
+    # Divergence value: D = s_xy - 0.5*s_xx - 0.5*s_yy
+    # s_yy does not depend on X, so we only need its scalar value (no gradient).
+    m_y = Y.shape[1]
+    bm_yy = create_bounding_matrix(m_y, m_y, window, itakura_max_slope)
+    s_yy = _soft_dtw_cost_matrix(Y, Y, bm_yy, gamma)[m_y - 1, m_y - 1]
 
     D_val = s_xy - 0.5 * s_xx - 0.5 * s_yy
     return dx, D_val

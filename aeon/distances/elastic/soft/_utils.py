@@ -57,3 +57,6 @@ def _soft_min_arr(values: list, gamma: float) -> float:
         exp_sum += np.exp(values[i] / neg_gamma - max_val)
 
     return neg_gamma * (np.log(exp_sum) + max_val)
+
+
+from numba import jit
