@@ -41,7 +41,7 @@ if __name__ == "__main__":
     # soft_msm_distance_1 = soft_msm_distance(x, y)
     # soft_msm_distance_2 = soft_msm_distance(x, y, gamma=0.00001)
 
-    alignment_matrix, dist = soft_dtw_alignment_matrix(x, x, gamma=1.0)
+    alignment_matrix, dist = soft_dtw_alignment_matrix(x, y, gamma=1.0)
     # div_alig, div_dist = soft_dtw_distance(x, x, gamma=1.0)
 
     end = time.time()
