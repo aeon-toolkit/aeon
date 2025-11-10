@@ -113,13 +113,13 @@ class ROCKAD(BaseCollectionAnomalyDetector):
         self.power_transform = power_transform
         self.random_state = random_state
 
-        self.rocket_transformer_: Optional[Rocket] = None
-        self.list_baggers_: Optional[list[NearestNeighbors]] = None
-        self.power_transformer_: Optional[PowerTransformer] = None
+        self.rocket_transformer_: Rocket | None = None
+        self.list_baggers_: list[NearestNeighbors] | None = None
+        self.power_transformer_: PowerTransformer | None = None
 
         super().__init__()
 
-    def _fit(self, X: np.ndarray, y: Optional[np.ndarray] = None):
+    def _fit(self, X: np.ndarray, y: np.ndarray | None = None):
         self._n_jobs = check_n_jobs(self.n_jobs)
         rng = check_random_state(self.random_state)
 
