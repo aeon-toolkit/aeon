@@ -1,5 +1,4 @@
 import multiprocessing
-from typing import Optional
 
 import numpy as np
 from kshape.core import KShapeClusteringCPU, _ncc_c_3dim

@@ -5,7 +5,7 @@ if __name__ == "__main__":
     X_train, y_train = load_gunpoint(split="train")
     X_test, y_test = load_gunpoint(split="test")
 
-    kshape = TimeSeriesKShape(n_clusters=3)
+    kshape = TimeSeriesKShape(n_clusters=3, n_init=5, random_state=1)
     kshape.fit_predict(X_train)
 
     print(kshape.labels_)
