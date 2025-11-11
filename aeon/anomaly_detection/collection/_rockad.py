@@ -4,7 +4,6 @@ __maintainer__ = []
 __all__ = ["ROCKAD"]
 
 import warnings
-from typing import Optional
 
 import numpy as np
 from sklearn.neighbors import NearestNeighbors
@@ -79,7 +78,10 @@ class ROCKAD(BaseCollectionAnomalyDetector):
     >>> detector = ROCKAD() # doctest: +SKIP
     >>> detector.fit(X_train) # doctest: +SKIP
     >>> detector.predict(X_test) # doctest: +SKIP
-    array([24.11974147, 23.93866453, 21.3941765 , 22.26811959, 64.9630108 ])
+        array([0.        , 0.00554713, 0.06990941, 0.22881059, 0.32382585,
+            0.43652154, 0.43652154, 0.43652154, 0.43652154, 0.43652154,
+            0.43652154, 0.43652154, 0.43652154, 0.43652154, 0.43652154,
+            0.52382585, 0.65200875, 0.80313368, 0.85194344, 1.        ])
     """
 
     _tags = {

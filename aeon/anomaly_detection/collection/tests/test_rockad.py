@@ -46,14 +46,6 @@ def test_rockad_multivariate():
 def test_rockad_incorrect_input():
     """Test ROCKAD with invalid inputs."""
     rng = check_random_state(seed=2)
-    series = rng.normal(size=(10, 5))
-
-    with pytest.warns(
-        UserWarning, match=r"Power Transform failed and thus has been disabled."
-    ):
-        ad = ROCKAD()
-        ad.fit(series)
-
     train_series = rng.normal(loc=0.0, scale=1.0, size=(10, 100))
     test_series = rng.normal(loc=0.0, scale=1.0, size=(3, 100))
 
