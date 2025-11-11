@@ -1,4 +1,5 @@
 import multiprocessing
+from typing import Optional
 
 import numpy as np
 from kshape.core import KShapeClusteringCPU, _ncc_c_3dim
@@ -21,10 +22,14 @@ class TimeSeriesKShape(BaseClusterer):
         Centroid initialisation strategy.
     max_iter : int, default=100
         Maximum number of K-Shape iterations.
+    n_init : int, default=1
+        Number of times to run K-Shape with different random initial centres
+        (only effective when `centroid_init="random"`). The best run (lowest inertia)
+        is kept.
     n_jobs : int, default=1
         Number of worker processes used by the package (-1 = all cores).
     random_state : int, np.random.RandomState, or None, default=None
-        Random seed for reproducibility.
+        Seed / RNG for reproducibility across initialisations.
     verbose : bool, default=False
         Print progress messages from this wrapper.
 
@@ -51,6 +56,7 @@ class TimeSeriesKShape(BaseClusterer):
         n_clusters: int = 8,
         centroid_init: str = "zero",
         max_iter: int = 100,
+        n_init: int = 1,
         n_jobs: int = 1,
         random_state: int | np.random.RandomState | None = None,
         verbose: bool = False,
@@ -58,6 +64,7 @@ class TimeSeriesKShape(BaseClusterer):
         self.n_clusters = n_clusters
         self.centroid_init = centroid_init
         self.max_iter = max_iter
+        self.n_init = n_init
         self.n_jobs = n_jobs
         self.random_state = random_state
         self.verbose = verbose
@@ -72,10 +79,6 @@ class TimeSeriesKShape(BaseClusterer):
 
         super().__init__()
 
-    # ------------------------------------------------------------------
-    # BaseClusterer hooks
-    # ------------------------------------------------------------------
-
     def _fit(self, X, y=None):
         """
         Fit the K-Shape model using the `kshape` package.
@@ -84,34 +87,71 @@ class TimeSeriesKShape(BaseClusterer):
         ----------
         X : np.ndarray, shape (n_cases, n_channels, n_timepoints)
         """
+        if self.n_init is None or self.n_init < 1:
+            raise ValueError("n_init must be >= 1")
+
         X_ntc = np.swapaxes(X, 1, 2)  # package expects (N, T, C)
+        base_rng = check_random_state(self.random_state)
 
-        # ensure reproducible RNG
-        random_state = check_random_state(self.random_state)
-        np.random.set_state(random_state.get_state())
+        # EXACT matching behaviour for n_init == 1:
+        # set the global RNG state to the state produced by check_random_state(seed).
+        if self.n_init == 1:
+            np.random.set_state(base_rng.get_state())
+            seeds = [None]  # no reseed inside the loop; we've already set the state
+        else:
+            # multiple initialisations: create distinct, reproducible child seeds
+            seeds = base_rng.randint(0, 2**31 - 1, size=self.n_init, dtype=np.int64)
 
-        # instantiate CPU model
-        self._ks = KShapeClusteringCPU(
-            self.n_clusters,
-            centroid_init=self.centroid_init,
-            max_iter=self.max_iter,
-            n_jobs=self.n_jobs if self.n_jobs != -1 else multiprocessing.cpu_count(),
-        )
+        best = {
+            "inertia": np.inf,
+            "labels": None,
+            "centroids_ntc": None,
+            "model": None,
+        }
 
-        # fit the package model
-        self._ks.fit(X_ntc)
+        for run_idx, seed in enumerate(seeds, start=1):
+            if seed is not None:
+                # for multi-run scenario, reseed NumPy with a distinct child seed
+                np.random.seed(int(seed))
+            # else: n_init == 1 path has already set the full state above
 
-        # collect fitted attributes
-        self.labels_ = self._ks.labels_.astype(int)
-        centroids_ntc = self._ks.centroids_  # (k, T, C)
-        self.cluster_centers_ = np.transpose(centroids_ntc, (0, 2, 1))
-        self.n_iter_ = getattr(self._ks, "n_iter_", 0)
+            ks = KShapeClusteringCPU(
+                self.n_clusters,
+                centroid_init=self.centroid_init,
+                max_iter=self.max_iter,
+                n_jobs=(
+                    self.n_jobs if self.n_jobs != -1 else multiprocessing.cpu_count()
+                ),
+            )
+            ks.fit(X_ntc)
 
-        # compute inertia as sum of SBD distances
-        distances = self._pairwise_sbd(X_ntc, centroids_ntc)
-        self.inertia_ = float(
-            np.sum(distances[np.arange(X_ntc.shape[0]), self.labels_])
-        )
+            labels = ks.labels_.astype(int)
+            centroids_ntc = ks.centroids_  # (k, T, C)
+
+            # compute inertia as sum of SBD distances to assigned centroid
+            distances = self._pairwise_sbd(X_ntc, centroids_ntc)
+            inertia = float(np.sum(distances[np.arange(X_ntc.shape[0]), labels]))
+
+            if self.verbose:
+                print(f"[KShape run {run_idx}/{self.n_init}] inertia={inertia:.6f}")
+
+            if inertia < best["inertia"]:
+                best.update(
+                    {
+                        "inertia": inertia,
+                        "labels": labels,
+                        "centroids_ntc": centroids_ntc,
+                        "model": ks,
+                    }
+                )
+
+        # store the best run
+        self._ks = best["model"]
+        self.labels_ = best["labels"]
+        self.cluster_centers_ = np.transpose(
+            best["centroids_ntc"], (0, 2, 1)
+        )  # (k,C,T)
+        self.inertia_ = best["inertia"]
         return self
 
     def _predict(self, X, y=None) -> np.ndarray:
@@ -126,9 +166,7 @@ class TimeSeriesKShape(BaseClusterer):
         distances = self._pairwise_sbd(X_ntc, centroids_ntc)
         return np.argmin(distances, axis=1).astype(int)
 
-    # ------------------------------------------------------------------
-    # helper methods
-    # ------------------------------------------------------------------
+    # ---------------------- helpers ----------------------
 
     @staticmethod
     def _sbd_distance(x_ntc: np.ndarray, c_ntc: np.ndarray) -> float:
@@ -166,6 +204,7 @@ class TimeSeriesKShape(BaseClusterer):
             "n_clusters": 2,
             "centroid_init": "random",
             "max_iter": 2,
+            "n_init": 1,
             "n_jobs": 1,
             "random_state": 1,
         }
