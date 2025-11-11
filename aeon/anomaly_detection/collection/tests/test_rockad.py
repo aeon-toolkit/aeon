@@ -15,7 +15,7 @@ def test_rockad_univariate():
 
     test_series[0][50:58] -= 5
 
-    ad = ROCKAD(n_estimators=100, n_kernels=10, n_neighbors=9)
+    ad = ROCKAD(n_estimators=100, n_kernels=10, n_neighbors=9, random_state=rng)
 
     ad.fit(train_series)
     pred = ad.predict(test_series)
@@ -33,7 +33,7 @@ def test_rockad_multivariate():
 
     test_series[0][0][50:58] -= 5
 
-    ad = ROCKAD(n_estimators=1000, n_kernels=100, n_neighbors=9)
+    ad = ROCKAD(n_estimators=1000, n_kernels=100, n_neighbors=9, random_state=rng)
 
     ad.fit(train_series)
     pred = ad.predict(test_series)
