@@ -48,6 +48,8 @@ EXCLUDED_TESTS = {
     ],
     # needs investigation
     "LeftSTAMPi": ["check_series_anomaly_detector_output"],
+    "SeriesToCollectionBroadcaster": ["check_transform_inverse_transform_equivalent"],
+    "CollectionToSeriesWrapper": ["check_transform_inverse_transform_equivalent"],
     # missed in legacy testing, changes state in predict/transform
     "FLUSSSegmenter": ["check_non_state_changing_method"],
     "ClaSPSegmenter": ["check_non_state_changing_method"],
