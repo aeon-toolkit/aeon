@@ -159,12 +159,8 @@ class TimeSeriesKShape(BaseClusterer):
         Assign each series to its nearest centroid using SBD = 1 - max(NCC).
         """
         self._check_is_fitted()
-
         X_ntc = np.swapaxes(X, 1, 2)  # (N, T, C)
-        centroids_ntc = np.transpose(self.cluster_centers_, (0, 2, 1))  # (k, T, C)
-
-        distances = self._pairwise_sbd(X_ntc, centroids_ntc)
-        return np.argmin(distances, axis=1).astype(int)
+        return self._ks.predict(X_ntc)
 
     # ---------------------- helpers ----------------------
 

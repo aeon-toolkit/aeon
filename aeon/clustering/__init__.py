@@ -25,3 +25,4 @@ from aeon.clustering._kasba import KASBA
 from aeon.clustering._kernel_k_means import TimeSeriesKernelKMeans
 from aeon.clustering.base import BaseClusterer
 from aeon.clustering.dummy import DummyClusterer
+from aeon.clustering._k_graph import KGraphClusterer
