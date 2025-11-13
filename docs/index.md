@@ -21,7 +21,7 @@ segmentation and similarity search.
 
 **GitHub**: [github.com/aeon-toolkit/aeon](https://github.com/aeon-toolkit/aeon)
 
-**Slack**: [aeon slack](https://join.slack.com/t/aeon-toolkit/shared_invite/zt-36dlmbouu-vajTShUYAHopSXUUVtHGzw)
+**Slack**: [aeon slack](https://join.slack.com/t/aeon-toolkit/shared_invite/zt-3ihx5vif8-SwFzy1unNNMeQueC84MXVA)
 
 **LinkedIn**: [linkedin/aeon-toolkit](https://www.linkedin.com/company/aeon-toolkit)
 
