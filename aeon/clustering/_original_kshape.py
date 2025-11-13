@@ -2,7 +2,7 @@ import multiprocessing
 from typing import Optional
 
 import numpy as np
-from kshape.core import KShapeClusteringCPU, _ncc_c_3dim
+from aeon.clustering._private_kshape import KShapeClusteringCPU, _ncc_c_3dim
 from sklearn.utils import check_random_state
 
 from aeon.clustering.base import BaseClusterer
@@ -109,19 +109,26 @@ class TimeSeriesKShape(BaseClusterer):
             "model": None,
         }
 
+        check_inits = []
+
         for run_idx, seed in enumerate(seeds, start=1):
             if seed is not None:
                 # for multi-run scenario, reseed NumPy with a distinct child seed
                 np.random.seed(int(seed))
             # else: n_init == 1 path has already set the full state above
 
+            # indices = base_rng.choice(X.shape[0], self.n_clusters)
+            # check_inits.append(indices.copy())
+            # iter_centres = X_ntc[indices].copy()
+
             ks = KShapeClusteringCPU(
                 self.n_clusters,
-                centroid_init=self.centroid_init,
+                centroid_init="random",
                 max_iter=self.max_iter,
                 n_jobs=(
                     self.n_jobs if self.n_jobs != -1 else multiprocessing.cpu_count()
                 ),
+                random_state=1
             )
             ks.fit(X_ntc)
 
