@@ -34,13 +34,14 @@ __all__ = [
     "get_available_tsf_datasets",
 ]
 import os
+from pathlib import Path
 
 import aeon
 from aeon.datasets.tsc_datasets import multivariate, univariate
 from aeon.datasets.tser_datasets import tser_monash, tser_soton
 from aeon.datasets.tsf_datasets import tsf_all
 
-MODULE = os.path.join(os.path.dirname(aeon.__file__), "datasets")
+MODULE = Path(aeon.__file__).parent / "datasets"
 
 
 def get_available_tser_datasets(name="tser_soton", return_list=True):

@@ -24,6 +24,7 @@ __all__ = [
 ]
 
 import os
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -32,7 +33,7 @@ from aeon.datasets import load_from_tsf_file
 from aeon.datasets._data_loaders import _load_saved_dataset, _load_tsc_dataset
 
 DIRNAME = "data"
-MODULE = os.path.dirname(__file__)
+MODULE = Path(__file__).parent
 
 
 def load_gunpoint(split=None, return_type="numpy3d"):

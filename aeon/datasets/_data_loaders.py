@@ -23,6 +23,7 @@ import urllib
 import zipfile
 from datetime import datetime
 from http.client import IncompleteRead, RemoteDisconnected
+from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen, urlretrieve
@@ -40,7 +41,7 @@ from aeon.datasets.tser_datasets import tser_monash, tser_soton
 from aeon.utils.conversion import convert_collection
 
 DIRNAME = "data"
-MODULE = os.path.join(os.path.dirname(aeon.__file__), "datasets")
+MODULE = Path(aeon.__file__).parent / "datasets"
 
 CONNECTION_ERRORS = (
     HTTPError,
