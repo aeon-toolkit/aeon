@@ -158,57 +158,82 @@ class TimeSeriesKShapeCompare(BaseClusterer):
 
         n_samples = X_ntc.shape[0]
 
+        def _pairwise_sbd_against_index(idx: int) -> np.ndarray:
+            """Compute SBD distances from all series to X_ntc[idx]."""
+            if self.version == "original":
+                dists = original_pairwise_sbd(
+                    X_ntc,
+                    X_ntc[[idx]],
+                ).reshape(n_samples)
+            elif self.version == "tslearn":
+                dists = tslearn_pairwise_sbd(
+                    X_ntc,
+                    X_ntc[[idx]],
+                ).reshape(n_samples)
+            else:
+                raise ValueError(f"Unknown version: {self.version}")
+            # Clamp tiny negatives from numerical issues
+            return np.maximum(dists, 0.0)
+
         # 1. Choose first centre uniformly at random
         initial_center_idx = rng.randint(n_samples)
         indexes = [initial_center_idx]
 
-        # 2. Compute distances to the first centre
-        if self.version == "original":
-            min_distances = original_pairwise_sbd(
-                X_ntc, X_ntc[initial_center_idx: initial_center_idx + 1]
-            ).flatten()
-        elif self.version == "tslearn":
-            min_distances = tslearn_pairwise_sbd(
-                X_ntc, X_ntc[initial_center_idx: initial_center_idx + 1]
-            ).flatten()
-        else:
-            raise ValueError(f"Unknown version: {self.version}")
-
-        # --- NEW: clamp tiny negative distances due to numerical issues ---
-        min_distances = np.maximum(min_distances, 0.0)
-
+        # 2. Distances to the first centre
+        min_distances = _pairwise_sbd_against_index(initial_center_idx)
         labels = np.zeros(n_samples, dtype=int)
 
-        # 3. Iteratively choose the remaining centres
+        # 3. Iteratively choose the remaining centres (k-means++ style)
         for i in range(1, self.n_clusters):
-            total = min_distances.sum()
-            if total <= 0 or not np.isfinite(total):
-                # Pathological case: all distances are zero or NaN/inf → fall back to uniform
-                probabilities = np.full(n_samples, 1.0 / n_samples)
-            else:
-                probabilities = min_distances / total
-                # --- NEW: ensure probabilities are non-negative and renormalised ---
-                probabilities = np.maximum(probabilities, 0.0)
-                prob_sum = probabilities.sum()
-                if prob_sum <= 0 or not np.isfinite(prob_sum):
-                    probabilities = np.full(n_samples, 1.0 / n_samples)
-                else:
-                    probabilities /= prob_sum
+            d = min_distances.copy()
+            chosen = np.asarray(indexes, dtype=int)
+            finite_mask = np.isfinite(d)
 
-            next_center_idx = rng.choice(n_samples, p=probabilities)
+            if not np.any(finite_mask):
+                # No finite distances left → choose uniformly from unchosen indices
+                candidates = np.setdiff1d(
+                    np.arange(n_samples), chosen, assume_unique=False
+                )
+                next_center_idx = rng.choice(candidates)
+                indexes.append(next_center_idx)
+
+                new_distances = _pairwise_sbd_against_index(next_center_idx)
+                closer_points = new_distances < min_distances
+                min_distances[closer_points] = new_distances[closer_points]
+                labels[closer_points] = i
+                continue
+
+            # Shift distances for numerical stability (same as generic k-means++)
+            min_val = d[finite_mask].min()
+            w = d - min_val
+            w[~np.isfinite(w)] = 0.0
+            w = np.clip(w, 0.0, None)
+            w[chosen] = 0.0
+
+            total = w.sum()
+            if total <= 0.0:
+                # Degenerate case → choose uniformly from unchosen indices
+                candidates = np.setdiff1d(
+                    np.arange(n_samples), chosen, assume_unique=False
+                )
+                next_center_idx = rng.choice(candidates)
+            else:
+                p = w / total
+                p = np.clip(p, 0.0, None)
+                p_sum = p.sum()
+                if p_sum <= 0.0:
+                    candidates = np.setdiff1d(
+                        np.arange(n_samples), chosen, assume_unique=False
+                    )
+                    next_center_idx = rng.choice(candidates)
+                else:
+                    p = p / p_sum
+                    next_center_idx = rng.choice(n_samples, p=p)
+
             indexes.append(next_center_idx)
 
-            if self.version == "original":
-                new_distances = original_pairwise_sbd(
-                    X_ntc, X_ntc[next_center_idx: next_center_idx + 1]
-                ).flatten()
-            else:
-                new_distances = tslearn_pairwise_sbd(
-                    X_ntc, X_ntc[next_center_idx: next_center_idx + 1]
-                ).flatten()
-
-            new_distances = np.maximum(new_distances, 0.0)
-
+            # Update distances to include the new centre
+            new_distances = _pairwise_sbd_against_index(next_center_idx)
             closer_points = new_distances < min_distances
             min_distances[closer_points] = new_distances[closer_points]
             labels[closer_points] = i

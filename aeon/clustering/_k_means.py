@@ -201,6 +201,7 @@ class TimeSeriesKMeans(BaseClusterer):
         self._init = None
         self._averaging_method = None
         self._average_params = None
+        self._n_jobs = None
 
         super().__init__()
 
@@ -382,21 +383,79 @@ class TimeSeriesKMeans(BaseClusterer):
         return X[list(range(self.n_clusters))]
 
     def _kmeans_plus_plus_center_initializer(self, X: np.ndarray):
-        initial_center_idx = self._random_state.randint(X.shape[0])
+        n_samples = X.shape[0]
+        initial_center_idx = self._random_state.randint(n_samples)
         indexes = [initial_center_idx]
 
-        for _ in range(1, self.n_clusters):
-            pw_dist = pairwise_distance(
+        min_distances = pairwise_distance(
+            X,
+            X[[initial_center_idx]],
+            method=self.distance,
+            n_jobs=self._n_jobs,
+            **self._distance_params,
+        ).reshape(n_samples)
+
+        labels = np.zeros(n_samples, dtype=int)
+
+        for i in range(1, self.n_clusters):
+            d = min_distances.copy()
+            chosen = np.asarray(indexes, dtype=int)
+            finite_mask = np.isfinite(d)
+            if not np.any(finite_mask):
+                candidates = np.setdiff1d(np.arange(n_samples), chosen,
+                                          assume_unique=False)
+                next_center_idx = self._random_state.choice(candidates)
+                indexes.append(next_center_idx)
+
+                new_distances = pairwise_distance(
+                    X,
+                    X[[next_center_idx]],
+                    method=self.distance,
+                    n_jobs=self._n_jobs,
+                    **self._distance_params,
+                ).reshape(n_samples)
+
+                closer_points = new_distances < min_distances
+                min_distances[closer_points] = new_distances[closer_points]
+                labels[closer_points] = i
+                continue
+
+            min_val = d[finite_mask].min()
+            w = d - min_val
+            w[~np.isfinite(w)] = 0.0
+            w = np.clip(w, 0.0, None)
+            w[chosen] = 0.0
+
+            total = w.sum()
+            if total <= 0.0:
+                candidates = np.setdiff1d(np.arange(n_samples), chosen,
+                                          assume_unique=False)
+                next_center_idx = self._random_state.choice(candidates)
+            else:
+                p = w / total
+                p = np.clip(p, 0.0, None)
+                p_sum = p.sum()
+                if p_sum <= 0.0:
+                    candidates = np.setdiff1d(np.arange(n_samples), chosen,
+                                              assume_unique=False)
+                    next_center_idx = self._random_state.choice(candidates)
+                else:
+                    p = p / p_sum
+                    next_center_idx = self._random_state.choice(n_samples, p=p)
+
+            indexes.append(next_center_idx)
+
+            new_distances = pairwise_distance(
                 X,
-                X[indexes],
+                X[[next_center_idx]],
                 method=self.distance,
                 n_jobs=self._n_jobs,
                 **self._distance_params,
-            )
-            min_distances = pw_dist.min(axis=1)
-            probabilities = min_distances / min_distances.sum()
-            next_center_idx = self._random_state.choice(X.shape[0], p=probabilities)
-            indexes.append(next_center_idx)
+            ).reshape(n_samples)
+
+            closer_points = new_distances < min_distances
+            min_distances[closer_points] = new_distances[closer_points]
+            labels[closer_points] = i
 
         centers = X[indexes]
         return centers
