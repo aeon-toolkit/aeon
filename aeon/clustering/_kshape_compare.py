@@ -2,10 +2,10 @@ import multiprocessing
 from typing import Optional
 
 import numpy as np
-from aeon.clustering._private_kshape import KShapeClusteringCPU, _ncc_c_3dim
 from sklearn.utils import check_random_state
 from tslearn.clustering import KShape as TSLearnKShape
 
+from aeon.clustering._private_kshape import KShapeClusteringCPU, _ncc_c_3dim
 from aeon.clustering.base import BaseClusterer
 
 
@@ -18,7 +18,7 @@ class TimeSeriesKShapeCompare(BaseClusterer):
 
     def __init__(
         self,
-        version = "original",
+        version="original",
         n_clusters: int = 8,
         centroid_init: str = "random",
         max_iter: int = 100,
@@ -66,7 +66,7 @@ class TimeSeriesKShapeCompare(BaseClusterer):
 
         for i in range(self.n_init):
             # per-run seed and RNG
-            run_seed = int(base_rng.randint(0, 2 ** 31 - 1))
+            run_seed = int(base_rng.randint(0, 2**31 - 1))
             run_rng = np.random.RandomState(run_seed)
 
             if self.centroid_init == "random":
@@ -125,15 +125,16 @@ class TimeSeriesKShapeCompare(BaseClusterer):
 
         self._ks = best["model"]
         self.labels_ = best["labels"]
-        self.cluster_centers_ = np.transpose(best["centroids_ntc"],
-                                             (0, 2, 1))  # (k,C,T)
+        self.cluster_centers_ = np.transpose(
+            best["centroids_ntc"], (0, 2, 1)
+        )  # (k,C,T)
         self.inertia_ = best["inertia"]
         return self
 
     def _sbd_kmeans_plus_plus(
-            self,
-            X_ntc: np.ndarray,
-            rng: Optional[np.random.RandomState] = None,
+        self,
+        X_ntc: np.ndarray,
+        rng: np.random.RandomState | None = None,
     ):
         """K-means++ initialisation using SBD distances.
 
@@ -251,7 +252,6 @@ class TimeSeriesKShapeCompare(BaseClusterer):
 
     # ---------------------- helpers ----------------------
 
-
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
         return {
@@ -263,9 +263,10 @@ class TimeSeriesKShapeCompare(BaseClusterer):
             "random_state": 1,
         }
 
+
 import numpy as np
-from tslearn.utils import to_time_series_dataset
 from tslearn.metrics import cdist_normalized_cc
+from tslearn.utils import to_time_series_dataset
 
 
 def original_sbd_distance(x_ntc: np.ndarray, c_ntc: np.ndarray) -> float:
@@ -315,8 +316,8 @@ def tslearn_sbd(x_ntc: np.ndarray, c_ntc: np.ndarray) -> float:
         SBD distance = 1 - max normalized cross-correlation.
     """
     # Ensure 3D (N, T, C) as tslearn expects
-    X = to_time_series_dataset(x_ntc)   # shape (1, T, C)
-    C = to_time_series_dataset(c_ntc)   # shape (1, T, C)
+    X = to_time_series_dataset(x_ntc)  # shape (1, T, C)
+    C = to_time_series_dataset(c_ntc)  # shape (1, T, C)
 
     # Norms over time+channels, same as KShape (self.norms_, self.norms_centroids_)
     norms_X = np.linalg.norm(X, axis=(1, 2))

@@ -1,6 +1,7 @@
 import numpy as np
-from aeon.testing.data_generation import make_example_3d_numpy
+
 from aeon.clustering import TimeSeriesKMeans
+from aeon.testing.data_generation import make_example_3d_numpy
 
 if __name__ == "__main__":
 

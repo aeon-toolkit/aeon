@@ -222,7 +222,7 @@ class TimeSeriesKMedoids(BaseClusterer):
                 self.cluster_centers_,
                 method=self.distance,
                 n_jobs=self._n_jobs,
-                **self._distance_params
+                **self._distance_params,
             )
         else:
             pairwise_matrix = pairwise_distance(
@@ -592,8 +592,9 @@ class TimeSeriesKMedoids(BaseClusterer):
             chosen = np.asarray(indexes, dtype=int)
             finite_mask = np.isfinite(d)
             if not np.any(finite_mask):
-                candidates = np.setdiff1d(np.arange(n_samples), chosen,
-                                          assume_unique=False)
+                candidates = np.setdiff1d(
+                    np.arange(n_samples), chosen, assume_unique=False
+                )
                 next_center_idx = self._random_state.choice(candidates)
                 indexes.append(next_center_idx)
 
@@ -618,16 +619,18 @@ class TimeSeriesKMedoids(BaseClusterer):
 
             total = w.sum()
             if total <= 0.0:
-                candidates = np.setdiff1d(np.arange(n_samples), chosen,
-                                          assume_unique=False)
+                candidates = np.setdiff1d(
+                    np.arange(n_samples), chosen, assume_unique=False
+                )
                 next_center_idx = self._random_state.choice(candidates)
             else:
                 p = w / total
                 p = np.clip(p, 0.0, None)
                 p_sum = p.sum()
                 if p_sum <= 0.0:
-                    candidates = np.setdiff1d(np.arange(n_samples), chosen,
-                                              assume_unique=False)
+                    candidates = np.setdiff1d(
+                        np.arange(n_samples), chosen, assume_unique=False
+                    )
                     next_center_idx = self._random_state.choice(candidates)
                 else:
                     p = p / p_sum
