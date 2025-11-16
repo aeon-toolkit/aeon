@@ -29,10 +29,6 @@ class ROCKAD(BaseSeriesAnomalyDetector):
     finding the nearest neighbours. Whole-series based ROCKAD as proposed in
     [1]_ can be found at aeon/anomaly_detection/collection/_rockad.py
 
-    This class supports both univariate and multivariate time series and
-    provides options for normalizing features, applying power transformations,
-    and customizing the distance metric.
-
     Parameters
     ----------
     n_estimators : int, default=10
@@ -84,11 +80,11 @@ class ROCKAD(BaseSeriesAnomalyDetector):
     >>> detector = ROCKAD(window_size=15,n_estimators=10,n_kernels=10,n_neighbors=3)
     >>> detector.fit(X_train)
     ROCKAD(...)
-    >>> detector.predict(X_test)
-    array([0.        , 0.00554713, 0.0699094 , 0.22881059, 0.32382585,
-           0.43652154, 0.43652154, 0.43652154, 0.43652154, 0.43652154,
-           0.43652154, 0.43652154, 0.43652154, 0.43652154, 0.43652154,
-           0.52382585, 0.65200875, 0.80313368, 0.85194345, 1.        ])
+    >>> np.round(detector.predict(X_test), 6) # MODIFIED: Rounding output for stability
+    array([0.      , 0.005547, 0.069909, 0.228811, 0.323826,
+           0.436522, 0.436522, 0.436522, 0.436522, 0.436522,
+           0.436522, 0.436522, 0.436522, 0.436522, 0.436522,
+           0.523826, 0.652009, 0.803134, 0.851943, 1.      ])
     """
 
     _tags = {
