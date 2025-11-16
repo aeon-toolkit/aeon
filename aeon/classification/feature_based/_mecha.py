@@ -588,5 +588,11 @@ class MechaClassifier(BaseClassifier):
     @classmethod
     def get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator."""
-        params = {"max_iter": 1, "num_wolves": 2, "max_rate": 4}
+        params = {
+            "max_iter": 1,
+            "num_wolves": 2,
+            "max_rate": 2,
+            "basic_extractor": "Catch22",
+            "n_jobs": 1,
+        }
         return [params]
