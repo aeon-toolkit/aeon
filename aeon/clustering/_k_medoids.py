@@ -471,6 +471,8 @@ class TimeSeriesKMedoids(BaseClusterer):
         if isinstance(self.init, str):
             if self.init == "random":
                 self._init = self._random_center_initializer
+            elif self.init == "kmeans++":
+                self._init = self._kmeans_plus_plus_center_initializer
             elif self.init == "kmedoids++":
                 self._init = self._kmedoids_plus_plus_center_initializer
             elif self.init == "first":
