@@ -207,8 +207,13 @@ class ARIMA(BaseForecaster, IterativeForecastingMixin):
         self._fit(y, exog)
         return float(self.forecast_)
 
-    def iterative_forecast(self, y, prediction_horizon):
-        self.fit(y)
+    def iterative_forecast(self, y, prediction_horizon, fit=True):
+        if fit:
+            self.fit(y)
+        elif not self.is_fitted:
+            raise ValueError(
+                "Model must be fitted before calling iterative_forecast with fit=False."
+            )
         n = len(self._differenced_series)
         p, q = self.p, self.q
         phi, theta = self.phi_, self.theta_
