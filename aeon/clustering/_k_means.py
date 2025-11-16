@@ -201,6 +201,7 @@ class TimeSeriesKMeans(BaseClusterer):
         self._init = None
         self._averaging_method = None
         self._average_params = None
+        self._n_jobs = None
 
         super().__init__()
 
@@ -215,7 +216,7 @@ class TimeSeriesKMeans(BaseClusterer):
         for _ in range(self.n_init):
             try:
                 labels, centers, inertia, n_iters = self._fit_one_init(X)
-                if inertia < best_inertia:
+                if abs(inertia) < abs(best_inertia):
                     best_centers = centers
                     best_labels = labels
                     best_inertia = inertia
@@ -382,21 +383,79 @@ class TimeSeriesKMeans(BaseClusterer):
         return X[list(range(self.n_clusters))]
 
     def _kmeans_plus_plus_center_initializer(self, X: np.ndarray):
-        initial_center_idx = self._random_state.randint(X.shape[0])
+        n_samples = X.shape[0]
+        initial_center_idx = self._random_state.randint(n_samples)
         indexes = [initial_center_idx]
 
-        for _ in range(1, self.n_clusters):
-            pw_dist = pairwise_distance(
+        min_distances = pairwise_distance(
+            X,
+            X[[initial_center_idx]],
+            method=self.distance,
+            n_jobs=self._n_jobs,
+            **self._distance_params,
+        ).reshape(n_samples)
+
+        labels = np.zeros(n_samples, dtype=int)
+
+        for i in range(1, self.n_clusters):
+            d = min_distances.copy()
+            chosen = np.asarray(indexes, dtype=int)
+            finite_mask = np.isfinite(d)
+            if not np.any(finite_mask):
+                candidates = np.setdiff1d(np.arange(n_samples), chosen,
+                                          assume_unique=False)
+                next_center_idx = self._random_state.choice(candidates)
+                indexes.append(next_center_idx)
+
+                new_distances = pairwise_distance(
+                    X,
+                    X[[next_center_idx]],
+                    method=self.distance,
+                    n_jobs=self._n_jobs,
+                    **self._distance_params,
+                ).reshape(n_samples)
+
+                closer_points = new_distances < min_distances
+                min_distances[closer_points] = new_distances[closer_points]
+                labels[closer_points] = i
+                continue
+
+            min_val = d[finite_mask].min()
+            w = d - min_val
+            w[~np.isfinite(w)] = 0.0
+            w = np.clip(w, 0.0, None)
+            w[chosen] = 0.0
+
+            total = w.sum()
+            if total <= 0.0:
+                candidates = np.setdiff1d(np.arange(n_samples), chosen,
+                                          assume_unique=False)
+                next_center_idx = self._random_state.choice(candidates)
+            else:
+                p = w / total
+                p = np.clip(p, 0.0, None)
+                p_sum = p.sum()
+                if p_sum <= 0.0:
+                    candidates = np.setdiff1d(np.arange(n_samples), chosen,
+                                              assume_unique=False)
+                    next_center_idx = self._random_state.choice(candidates)
+                else:
+                    p = p / p_sum
+                    next_center_idx = self._random_state.choice(n_samples, p=p)
+
+            indexes.append(next_center_idx)
+
+            new_distances = pairwise_distance(
                 X,
-                X[indexes],
+                X[[next_center_idx]],
                 method=self.distance,
                 n_jobs=self._n_jobs,
                 **self._distance_params,
-            )
-            min_distances = pw_dist.min(axis=1)
-            probabilities = min_distances / min_distances.sum()
-            next_center_idx = self._random_state.choice(X.shape[0], p=probabilities)
-            indexes.append(next_center_idx)
+            ).reshape(n_samples)
+
+            closer_points = new_distances < min_distances
+            min_distances[closer_points] = new_distances[closer_points]
+            labels[closer_points] = i
 
         centers = X[indexes]
         return centers
@@ -411,19 +470,18 @@ class TimeSeriesKMeans(BaseClusterer):
     ):
         """Handle an empty cluster.
 
-        This functions finds the time series that is furthest from its assigned centre
-        and then uses that as the new centre for the empty cluster. In terms of
-        optimisation this means it selects the time series that will reduce inertia
-        by the most.
+        For negative distances, we need to find the point with the worst
+        (highest) distance from its assigned center.
         """
         empty_clusters = np.setdiff1d(np.arange(self.n_clusters), curr_labels)
         j = 0
 
         while empty_clusters.size > 0:
-            # Assign each time series to the cluster that is closest to it
-            # and then find the time series that is furthest from its assigned centre
             current_empty_cluster_index = empty_clusters[0]
-            index_furthest_from_centre = curr_pw.min(axis=1).argmax()
+
+            min_distances_per_point = curr_pw.min(axis=1)
+            index_furthest_from_centre = min_distances_per_point.argmax()
+
             cluster_centres[current_empty_cluster_index] = X[index_furthest_from_centre]
             curr_pw = pairwise_distance(
                 X,
@@ -437,8 +495,6 @@ class TimeSeriesKMeans(BaseClusterer):
             empty_clusters = np.setdiff1d(np.arange(self.n_clusters), curr_labels)
             j += 1
             if j > self.n_clusters:
-                # This should be unreachable but just a safety check to stop it looping
-                # forever
                 raise EmptyClusterError
         return curr_pw, curr_labels, curr_inertia, cluster_centres
 

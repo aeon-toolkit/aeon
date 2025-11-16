@@ -13,6 +13,7 @@ from sklearn.utils import check_random_state
 
 from aeon.clustering.base import BaseClusterer
 from aeon.distances import get_distance_function, pairwise_distance
+from aeon.utils.validation import check_n_jobs
 
 
 class TimeSeriesKMedoids(BaseClusterer):
@@ -164,6 +165,7 @@ class TimeSeriesKMedoids(BaseClusterer):
         verbose: bool = False,
         random_state: int | RandomState | None = None,
         distance_params: dict | None = None,
+        n_jobs: int | None = 1,
     ):
         self.distance = distance
         self.init = init
@@ -175,6 +177,7 @@ class TimeSeriesKMedoids(BaseClusterer):
         self.distance_params = distance_params
         self.method = method
         self.n_clusters = n_clusters
+        self.n_jobs = n_jobs
 
         self.cluster_centers_ = None
         self.labels_ = None
@@ -186,6 +189,7 @@ class TimeSeriesKMedoids(BaseClusterer):
         self._distance_cache = None
         self._distance_callable = None
         self._fit_method = None
+        self._n_jobs = None
 
         self._distance_params = {}
         super().__init__()
@@ -214,13 +218,18 @@ class TimeSeriesKMedoids(BaseClusterer):
     def _predict(self, X: np.ndarray, y=None) -> np.ndarray:
         if isinstance(self.distance, str):
             pairwise_matrix = pairwise_distance(
-                X, self.cluster_centers_, method=self.distance, **self._distance_params
+                X,
+                self.cluster_centers_,
+                method=self.distance,
+                n_jobs=self._n_jobs,
+                **self._distance_params
             )
         else:
             pairwise_matrix = pairwise_distance(
                 X,
                 self.cluster_centers_,
                 self._distance_callable,
+                n_jobs=self._n_jobs,
                 **self._distance_params,
             )
         return pairwise_matrix.argmin(axis=1)
@@ -266,6 +275,8 @@ class TimeSeriesKMedoids(BaseClusterer):
         distance_matrix = self._compute_pairwise(X, indexes, indexes)
         return indexes[np.argmin(sum(distance_matrix))]
 
+    from aeon.distances import pairwise_distance
+
     def _pam_fit(self, X: np.ndarray):
         old_inertia = np.inf
         n_cases = X.shape[0]
@@ -274,15 +285,30 @@ class TimeSeriesKMedoids(BaseClusterer):
             medoids_idxs = self._init(X)
         else:
             medoids_idxs = self._init
+
+        if isinstance(self.distance, str):
+            distance_matrix = pairwise_distance(
+                X,
+                X,
+                method=self.distance,
+                n_jobs=self._n_jobs,
+                **self._distance_params,
+            )
+        else:
+            distance_matrix = pairwise_distance(
+                X,
+                X,
+                self._distance_callable,
+                n_jobs=self._n_jobs,
+                **self._distance_params,
+            )
         not_medoid_idxs = np.arange(n_cases, dtype=int)
-        distance_matrix = self._compute_pairwise(X, not_medoid_idxs, not_medoid_idxs)
         distance_closest_medoid, distance_second_closest_medoid = np.sort(
             distance_matrix[medoids_idxs], axis=0
         )[[0, 1]]
         not_medoid_idxs = np.delete(np.arange(n_cases, dtype=int), medoids_idxs)
 
         for i in range(self.max_iter):
-            # Initialize best cost change and the associated swap couple.
             old_medoid_idxs = np.copy(medoids_idxs)
             best_cost_change = self._compute_optimal_swaps(
                 distance_matrix,
@@ -293,7 +319,6 @@ class TimeSeriesKMedoids(BaseClusterer):
             )
 
             inertia = np.inf
-            # If one of the swap decrease the objective, return that swap.
             if best_cost_change is not None and best_cost_change[2] < 0:
                 first, second, _ = best_cost_change
                 medoids_idxs[medoids_idxs == first] = second
@@ -326,7 +351,11 @@ class TimeSeriesKMedoids(BaseClusterer):
             if self.verbose is True:
                 print(f"Iteration {i}, inertia {inertia}.")  # noqa: T001, T201
 
-        labels, inertia = self._assign_clusters(X, medoids_idxs)
+        labels = distance_matrix[:, medoids_idxs].argmin(axis=1)
+
+        row_idx = np.arange(n_cases, dtype=int)
+        inertia = distance_matrix[row_idx, medoids_idxs[labels]].sum()
+
         centers = X[medoids_idxs]
 
         return labels, centers, inertia, i + 1
@@ -430,6 +459,7 @@ class TimeSeriesKMedoids(BaseClusterer):
 
     def _check_params(self, X: np.ndarray) -> None:
         self._random_state = check_random_state(self.random_state)
+        self._n_jobs = check_n_jobs(self.n_jobs)
 
         _incorrect_init_str = (
             f"The value provided for init: {self.init} is "
@@ -541,6 +571,84 @@ class TimeSeriesKMedoids(BaseClusterer):
                 Dj[id_j] = min(Dj[id_j], distance_matrix[id_j, new_medoid[0]])
 
         return np.array(medoid_idxs)
+
+    def _kmeans_plus_plus_center_initializer(self, X: np.ndarray):
+        n_samples = X.shape[0]
+        initial_center_idx = self._random_state.randint(n_samples)
+        indexes = [initial_center_idx]
+
+        min_distances = pairwise_distance(
+            X,
+            X[[initial_center_idx]],
+            method=self.distance,
+            n_jobs=self._n_jobs,
+            **self._distance_params,
+        ).reshape(n_samples)
+
+        labels = np.zeros(n_samples, dtype=int)
+
+        for i in range(1, self.n_clusters):
+            d = min_distances.copy()
+            chosen = np.asarray(indexes, dtype=int)
+            finite_mask = np.isfinite(d)
+            if not np.any(finite_mask):
+                candidates = np.setdiff1d(np.arange(n_samples), chosen,
+                                          assume_unique=False)
+                next_center_idx = self._random_state.choice(candidates)
+                indexes.append(next_center_idx)
+
+                new_distances = pairwise_distance(
+                    X,
+                    X[[next_center_idx]],
+                    method=self.distance,
+                    n_jobs=self._n_jobs,
+                    **self._distance_params,
+                ).reshape(n_samples)
+
+                closer_points = new_distances < min_distances
+                min_distances[closer_points] = new_distances[closer_points]
+                labels[closer_points] = i
+                continue
+
+            min_val = d[finite_mask].min()
+            w = d - min_val
+            w[~np.isfinite(w)] = 0.0
+            w = np.clip(w, 0.0, None)
+            w[chosen] = 0.0
+
+            total = w.sum()
+            if total <= 0.0:
+                candidates = np.setdiff1d(np.arange(n_samples), chosen,
+                                          assume_unique=False)
+                next_center_idx = self._random_state.choice(candidates)
+            else:
+                p = w / total
+                p = np.clip(p, 0.0, None)
+                p_sum = p.sum()
+                if p_sum <= 0.0:
+                    candidates = np.setdiff1d(np.arange(n_samples), chosen,
+                                              assume_unique=False)
+                    next_center_idx = self._random_state.choice(candidates)
+                else:
+                    p = p / p_sum
+                    next_center_idx = self._random_state.choice(n_samples, p=p)
+
+            indexes.append(next_center_idx)
+
+            new_distances = pairwise_distance(
+                X,
+                X[[next_center_idx]],
+                method=self.distance,
+                n_jobs=self._n_jobs,
+                **self._distance_params,
+            ).reshape(n_samples)
+
+            closer_points = new_distances < min_distances
+            min_distances[closer_points] = new_distances[closer_points]
+            labels[closer_points] = i
+
+        centers = X[indexes]
+        return centers
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):

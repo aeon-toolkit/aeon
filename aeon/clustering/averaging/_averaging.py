@@ -12,6 +12,7 @@ from aeon.clustering.averaging._kasba_average import kasba_average
 from aeon.clustering.averaging._shift_scale_invariant_averaging import (
     shift_invariant_average,
 )
+from aeon.clustering.averaging._ba_soft import soft_barycenter_average
 
 
 def mean_average(X: np.ndarray) -> np.ndarray:
@@ -38,6 +39,7 @@ _AVERAGE_DICT = {
     "subgradient": subgradient_barycenter_average,
     "kasba": kasba_average,
     "petitjean": petitjean_barycenter_average,
+    "soft": soft_barycenter_average,
 }
 
 

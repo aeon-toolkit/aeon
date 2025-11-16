@@ -142,7 +142,7 @@ class KASBA(BaseClusterer):
 
     def _fit(self, X: np.ndarray, y=None):
         self._check_params(X)
-        cluster_centers, distances_to_centers, labels = self._elastic_kmeans_plus_plus(
+        cluster_centers, distances_to_centers, labels = self._kmeans_plus_plus_center_initializer(
             X,
         )
         self.labels_, self.cluster_centers_, self.inertia_, self.n_iter_ = self._kasba(
@@ -214,7 +214,7 @@ class KASBA(BaseClusterer):
             prev_labels = labels.copy()
             prev_cluster_centers = cluster_centers.copy()
 
-            if self.verbose is True:
+            if self.verbose:
                 print(f"Iteration {i}, inertia {prev_inertia}.")  # noqa: T001, T201
 
         if inertia < prev_inertia:
@@ -321,26 +321,73 @@ class KASBA(BaseClusterer):
 
         return labels, cluster_centers, distances_to_centers
 
-    def _elastic_kmeans_plus_plus(
-        self,
-        X,
-    ):
-        initial_center_idx = self._random_state.randint(X.shape[0])
+    def _kmeans_plus_plus_center_initializer(self, X: np.ndarray):
+        n_samples = X.shape[0]
+        initial_center_idx = self._random_state.randint(n_samples)
         indexes = [initial_center_idx]
 
         min_distances = pairwise_distance(
-            X, X[initial_center_idx], method=self.distance, **self._distance_params
-        ).flatten()
-        labels = np.zeros(X.shape[0], dtype=int)
+            X,
+            X[[initial_center_idx]],
+            method=self.distance,
+            **self._distance_params,
+        ).reshape(n_samples)
+
+        labels = np.zeros(n_samples, dtype=int)
 
         for i in range(1, self.n_clusters):
-            probabilities = min_distances / min_distances.sum()
-            next_center_idx = self._random_state.choice(X.shape[0], p=probabilities)
+            d = min_distances.copy()
+            chosen = np.asarray(indexes, dtype=int)
+            finite_mask = np.isfinite(d)
+            if not np.any(finite_mask):
+                candidates = np.setdiff1d(np.arange(n_samples), chosen,
+                                          assume_unique=False)
+                next_center_idx = self._random_state.choice(candidates)
+                indexes.append(next_center_idx)
+
+                new_distances = pairwise_distance(
+                    X,
+                    X[[next_center_idx]],
+                    method=self.distance,
+                    **self._distance_params,
+                ).reshape(n_samples)
+
+                closer_points = new_distances < min_distances
+                min_distances[closer_points] = new_distances[closer_points]
+                labels[closer_points] = i
+                continue
+
+            min_val = d[finite_mask].min()
+            w = d - min_val
+            w[~np.isfinite(w)] = 0.0
+            w = np.clip(w, 0.0, None)
+            w[chosen] = 0.0
+
+            total = w.sum()
+            if total <= 0.0:
+                candidates = np.setdiff1d(np.arange(n_samples), chosen,
+                                          assume_unique=False)
+                next_center_idx = self._random_state.choice(candidates)
+            else:
+                p = w / total
+                p = np.clip(p, 0.0, None)
+                p_sum = p.sum()
+                if p_sum <= 0.0:
+                    candidates = np.setdiff1d(np.arange(n_samples), chosen,
+                                              assume_unique=False)
+                    next_center_idx = self._random_state.choice(candidates)
+                else:
+                    p = p / p_sum
+                    next_center_idx = self._random_state.choice(n_samples, p=p)
+
             indexes.append(next_center_idx)
 
             new_distances = pairwise_distance(
-                X, X[next_center_idx], method=self.distance, **self._distance_params
-            ).flatten()
+                X,
+                X[[next_center_idx]],
+                method=self.distance,
+                **self._distance_params,
+            ).reshape(n_samples)
 
             closer_points = new_distances < min_distances
             min_distances[closer_points] = new_distances[closer_points]

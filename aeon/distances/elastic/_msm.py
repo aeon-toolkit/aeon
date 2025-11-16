@@ -267,20 +267,19 @@ def _independent_cost_matrix(
     for i in range(1, x_size):
         if bounding_matrix[i, 0]:
             cost = _cost_independent(x[i], x[i - 1], y[0], c)
-            cost_matrix[i][0] = cost_matrix[i - 1][0] + cost
+            cost_matrix[i, 0] = cost_matrix[i - 1, 0] + cost
 
-    for i in range(1, y_size):
-        if bounding_matrix[0, i]:
-            cost = _cost_independent(y[i], x[0], y[i - 1], c)
-            cost_matrix[0][i] = cost_matrix[0][i - 1] + cost
+    for j in range(1, y_size):
+        if bounding_matrix[0, j]:
+            cost = _cost_independent(y[j], x[0], y[j - 1], c)
+            cost_matrix[0, j] = cost_matrix[0, j - 1] + cost
 
     for i in range(1, x_size):
         for j in range(1, y_size):
             if bounding_matrix[i, j]:
-                d1 = cost_matrix[i - 1][j - 1] + np.abs(x[i] - y[j])
-                d2 = cost_matrix[i - 1][j] + _cost_independent(x[i], x[i - 1], y[j], c)
-                d3 = cost_matrix[i][j - 1] + _cost_independent(y[j], x[i], y[j - 1], c)
-
+                d1 = cost_matrix[i - 1, j - 1] + np.abs(x[i] - y[j])
+                d2 = cost_matrix[i - 1, j] + _cost_independent(x[i], x[i - 1], y[j], c)
+                d3 = cost_matrix[i, j - 1] + _cost_independent(y[j], x[i], y[j - 1], c)
                 cost_matrix[i, j] = min(d1, d2, d3)
 
     return cost_matrix
@@ -298,24 +297,25 @@ def _msm_dependent_cost_matrix(
     for i in range(1, x_size):
         if bounding_matrix[i, 0]:
             cost = _cost_dependent(x[:, i], x[:, i - 1], y[:, 0], c)
-            cost_matrix[i][0] = cost_matrix[i - 1][0] + cost
-    for i in range(1, y_size):
-        if bounding_matrix[0, i]:
-            cost = _cost_dependent(y[:, i], x[:, 0], y[:, i - 1], c)
-            cost_matrix[0][i] = cost_matrix[0][i - 1] + cost
+            cost_matrix[i, 0] = cost_matrix[i - 1, 0] + cost
+
+    for j in range(1, y_size):
+        if bounding_matrix[0, j]:
+            cost = _cost_dependent(y[:, j], x[:, 0], y[:, j - 1], c)
+            cost_matrix[0, j] = cost_matrix[0, j - 1] + cost
 
     for i in range(1, x_size):
         for j in range(1, y_size):
             if bounding_matrix[i, j]:
                 d1 = cost_matrix[i - 1][j - 1] + np.sum(np.abs(x[:, i] - y[:, j]))
-                d2 = cost_matrix[i - 1][j] + _cost_dependent(
+                d2 = cost_matrix[i - 1, j] + _cost_dependent(
                     x[:, i], x[:, i - 1], y[:, j], c
                 )
-                d3 = cost_matrix[i][j - 1] + _cost_dependent(
+                d3 = cost_matrix[i, j - 1] + _cost_dependent(
                     y[:, j], x[:, i], y[:, j - 1], c
                 )
-
                 cost_matrix[i, j] = min(d1, d2, d3)
+
     return cost_matrix
 
 
@@ -341,7 +341,6 @@ def _cost_independent(x: float, y: float, z: float, c: float) -> float:
     if (y <= x <= z) or (y >= x >= z):
         return c
     return c + min(abs(x - y), abs(x - z))
-
 
 @threaded
 def msm_pairwise_distance(

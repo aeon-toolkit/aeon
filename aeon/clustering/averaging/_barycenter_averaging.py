@@ -8,6 +8,7 @@ from aeon.clustering.averaging._ba_petitjean import petitjean_barycenter_average
 from aeon.clustering.averaging._ba_subgradient import subgradient_barycenter_average
 from aeon.clustering.averaging._ba_utils import VALID_BA_METHODS
 from aeon.clustering.averaging._kasba_average import kasba_average
+from aeon.clustering.averaging._ba_soft import soft_barycenter_average
 
 
 def elastic_barycenter_average(
@@ -30,6 +31,7 @@ def elastic_barycenter_average(
     return_cost: bool = False,
     return_distances_to_center: bool = False,
     n_jobs: int = 1,
+    minimise_method="L-BFGS-B",
     **kwargs,
 ):
     """
@@ -169,6 +171,23 @@ def elastic_barycenter_average(
             random_state=random_state,
             return_cost=return_cost,
             return_distances_to_center=return_distances_to_center,
+            **kwargs,
+        )
+    elif method == "soft":
+        return soft_barycenter_average(
+            X,
+            distance=distance,
+            max_iters=max_iters,
+            tol=tol,
+            init_barycenter=init_barycenter,
+            weights=weights,
+            precomputed_medoids_pairwise_distance=precomputed_medoids_pairwise_distance,
+            verbose=verbose,
+            minimise_method=minimise_method,
+            random_state=random_state,
+            n_jobs=n_jobs,
+            return_distances_to_center=return_distances_to_center,
+            return_cost=return_cost,
             **kwargs,
         )
     else:
