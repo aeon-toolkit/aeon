@@ -28,6 +28,7 @@ from aeon.transformations.collection.feature_based._mecha_feature_extractor impo
     interleaved_fres_extract,
     series_transform,
 )
+from aeon.utils.validation import check_n_jobs
 
 warnings.filterwarnings("ignore")
 
@@ -296,6 +297,7 @@ class MechaClassifier(BaseClassifier):
         self.n_trees = n_trees
         self.random_state = random_state
         self.n_jobs = n_jobs
+        self._n_jobs = check_n_jobs(self.n_jobs)
 
         # Internal fitted attributes
         self.optimized_k1 = None
@@ -408,7 +410,7 @@ class MechaClassifier(BaseClassifier):
             clf_extra_mi = ExtraTreesClassifier(
                 n_estimators=self.n_trees,
                 random_state=self.random_state,
-                n_jobs=self.n_jobs,
+                n_jobs=self._n_jobs,
             )
             clf_ridge_mi.fit(trainX[:, bestIndex_], y)
             clf_extra_mi.fit(trainX[:, bestIndex_], y)
@@ -421,7 +423,7 @@ class MechaClassifier(BaseClassifier):
             clf_extra_fv = ExtraTreesClassifier(
                 n_estimators=self.n_trees,
                 random_state=self.random_state,
-                n_jobs=self.n_jobs,
+                n_jobs=self._n_jobs,
             )
             clf_ridge_fv.fit(trainX[:, bestIndex_], y)
             clf_extra_fv.fit(trainX[:, bestIndex_], y)
@@ -434,7 +436,7 @@ class MechaClassifier(BaseClassifier):
             clf_extra_a = ExtraTreesClassifier(
                 n_estimators=self.n_trees,
                 random_state=self.random_state,
-                n_jobs=self.n_jobs,
+                n_jobs=self._n_jobs,
             )
             clf_ridge_a.fit(trainX[:, bestIndex_], y)
             clf_extra_a.fit(trainX[:, bestIndex_], y)
