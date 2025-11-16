@@ -649,8 +649,7 @@ class TimeSeriesKMedoids(BaseClusterer):
             min_distances[closer_points] = new_distances[closer_points]
             labels[closer_points] = i
 
-        centers = X[indexes]
-        return centers
+        return np.array(indexes)
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
