@@ -1,13 +1,5 @@
 """Tests for saving and loading deep autoencoder clusterers."""
 
-import numpy as np
-import pytest
-from pathlib import Path
-
-from aeon.clustering.deep_learning._ae_dcnn import AEDCNNClusterer
-from aeon.clustering.deep_learning._ae_drnn import AEDRNNClusterer
-from aeon.utils.validation._dependencies import _check_soft_dependencies
-
 from pathlib import Path
 
 import numpy as np
