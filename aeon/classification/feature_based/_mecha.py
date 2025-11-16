@@ -280,6 +280,7 @@ class MechaClassifier(BaseClassifier):
         thresholds=None,
         n_trees=200,
         random_state=0,
+        n_jobs=1,
     ) -> None:
         self.basic_extractor = basic_extractor
         self.search_space = search_space if search_space is not None else [1.0, 3.0]
@@ -294,6 +295,7 @@ class MechaClassifier(BaseClassifier):
         self.max_rate = max_rate
         self.n_trees = n_trees
         self.random_state = random_state
+        self.n_jobs = n_jobs
 
         # Internal fitted attributes
         self.optimized_k1 = None
@@ -404,7 +406,9 @@ class MechaClassifier(BaseClassifier):
             bestIndex_ = self.indexListMI[i]
             clf_ridge_mi = RidgeClassifierCV(alphas=np.logspace(-3, 3, 10))
             clf_extra_mi = ExtraTreesClassifier(
-                n_estimators=self.n_trees, random_state=self.random_state
+                n_estimators=self.n_trees,
+                random_state=self.random_state,
+                n_jobs=self.n_jobs,
             )
             clf_ridge_mi.fit(trainX[:, bestIndex_], y)
             clf_extra_mi.fit(trainX[:, bestIndex_], y)
@@ -415,7 +419,9 @@ class MechaClassifier(BaseClassifier):
             bestIndex_ = self.indexListFV[i]
             clf_ridge_fv = RidgeClassifierCV(alphas=np.logspace(-3, 3, 10))
             clf_extra_fv = ExtraTreesClassifier(
-                n_estimators=self.n_trees, random_state=self.random_state
+                n_estimators=self.n_trees,
+                random_state=self.random_state,
+                n_jobs=self.n_jobs,
             )
             clf_ridge_fv.fit(trainX[:, bestIndex_], y)
             clf_extra_fv.fit(trainX[:, bestIndex_], y)
@@ -426,7 +432,9 @@ class MechaClassifier(BaseClassifier):
             bestIndex_ = self.indexListA[i]
             clf_ridge_a = RidgeClassifierCV(alphas=np.logspace(-3, 3, 10))
             clf_extra_a = ExtraTreesClassifier(
-                n_estimators=self.n_trees, random_state=self.random_state
+                n_estimators=self.n_trees,
+                random_state=self.random_state,
+                n_jobs=self.n_jobs,
             )
             clf_ridge_a.fit(trainX[:, bestIndex_], y)
             clf_extra_a.fit(trainX[:, bestIndex_], y)
