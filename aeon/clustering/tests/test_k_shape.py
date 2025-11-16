@@ -12,6 +12,7 @@ expected_results = [1, 1, 1, 2, 2]
 inertia = 0.5645477840468736
 
 expected_iters = 2
+
 expected_labels = [2, 0, 1, 1, 1]
 
 

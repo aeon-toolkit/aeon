@@ -29,6 +29,10 @@ class ROCKAD(BaseSeriesAnomalyDetector):
     finding the nearest neighbours. Whole-series based ROCKAD as proposed in
     [1]_ can be found at aeon/anomaly_detection/collection/_rockad.py
 
+    This class supports both univariate and multivariate time series and
+    provides options for normalizing features, applying power transformations,
+    and customizing the distance metric.
+
     Parameters
     ----------
     n_estimators : int, default=10
