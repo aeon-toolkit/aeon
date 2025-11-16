@@ -98,7 +98,7 @@ The [Checks](https://github.com/aeon-toolkit/aeon/pull/{pr_number}/checks) tab w
 
 If our `pre-commit` code quality check fails, any trivial fixes will automatically be pushed to your PR unless it is a draft.
 
-Don't hesitate to ask questions on the `aeon` [Slack](https://join.slack.com/t/aeon-toolkit/shared_invite/zt-36dlmbouu-vajTShUYAHopSXUUVtHGzw) channel if you have any.
+Don't hesitate to ask questions on the `aeon` [Slack](https://join.slack.com/t/aeon-toolkit/shared_invite/zt-3ihx5vif8-SwFzy1unNNMeQueC84MXVA) channel if you have any.
 
 <details><summary>PR CI actions</summary>
 <p>
