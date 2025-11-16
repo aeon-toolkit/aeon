@@ -11,10 +11,12 @@ __all__ = [
     "TSFreshClassifier",
     "FreshPRINCEClassifier",
     "TDMVDCClassifier",
+    "MechaClassifier",
 ]
 
 from aeon.classification.feature_based._catch22 import Catch22Classifier
 from aeon.classification.feature_based._fresh_prince import FreshPRINCEClassifier
+from aeon.classification.feature_based._mecha import MechaClassifier
 from aeon.classification.feature_based._signature_classifier import SignatureClassifier
 from aeon.classification.feature_based._summary import SummaryClassifier
 from aeon.classification.feature_based._tdmvdc import TDMVDCClassifier
