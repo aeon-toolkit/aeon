@@ -35,15 +35,18 @@ def test_deep_clusterer_load_model(cls):
     params = cls._get_test_params()[0]
     params["n_epochs"] = 1
     params["save_best_model"] = True
-    estimator = params["estimator"]
+
     with tempfile.TemporaryDirectory() as tmp:
         params["file_path"] = tmp + "/"
         model = cls(**params)
         model.fit(X)
+        trained_estimator = model._estimator
         saved = list(Path(tmp).glob("*.keras"))
-        assert saved, f"No .keras saved for {cls.__name__}"
+        assert saved, f"No .keras file saved for {cls.__name__}"
         model_path = str(saved[0])
         loaded = cls(**params)
-        loaded.load_model(model_path, estimator)
+        loaded.load_model(model_path, trained_estimator)
         assert loaded.model_ is not None, f"Loaded model_ is None for {cls.__name__}"
         assert hasattr(loaded.model_, "predict"), f"Invalid model_ for {cls.__name__}"
+        preds = loaded.predict(X)
+        assert preds.shape[0] == X.shape[0], f"Predict failed for {cls.__name__}"
