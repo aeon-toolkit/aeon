@@ -285,10 +285,6 @@ class MechaClassifier(BaseClassifier):
     ) -> None:
         self.search_space = search_space
         self.thresholds = thresholds
-        if search_space is None:
-            self.search_space = [1.0, 3.0]
-        if thresholds is None:
-            self.thresholds = [2e-05, 4e-05, 6e-05, 8e-05, 10e-05]
         self.basic_extractor = basic_extractor
         self.down_rate = down_rate
         self.num_wolves = num_wolves
@@ -331,13 +327,21 @@ class MechaClassifier(BaseClassifier):
         self : object
             Reference to self.
         """
+        search_space_ = (
+            self.search_space if self.search_space is not None else [1.0, 3.0]
+        )
+        thresholds_ = (
+            self.thresholds
+            if self.thresholds is not None
+            else [2e-05, 4e-05, 6e-05, 8e-05, 10e-05]
+        )
         # 1. Series Transformation & GWO Optimization
         self.optimized_k1, self.optimized_score = _gwo(
             _objective_function,
             X,
             y,
             dim=1,
-            search_space=self.search_space,
+            search_space=search_space_,
             down_rate=self.down_rate,
             num_wolves=self.num_wolves,
             max_iter=self.max_iter,
@@ -378,7 +382,7 @@ class MechaClassifier(BaseClassifier):
         scoreFV[np.isinf(scoreFV)] = 0
         scoreList.append(scoreFV)
 
-        kList = _adaptive_saving_features(trainX, scoreList, self.thresholds)
+        kList = _adaptive_saving_features(trainX, scoreList, thresholds_)
 
         self.indexListMI = []
         self.indexListFV = []
