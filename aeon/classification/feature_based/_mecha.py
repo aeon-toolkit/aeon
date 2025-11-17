@@ -235,7 +235,9 @@ class MechaClassifier(BaseClassifier):
     Parameters
     ----------
     basic_extractor : str, default="Catch22"
-        Basic feature extractor, options is "Catch22" only.
+        Basic feature extractor. Options are "Catch22", "TSFresh", or "TSFreshRelevant".
+        (Note: TSFresh/TSFreshRelevant currently use minimal feature set
+        for performance.)
     search_space : list, default=[1.0, 3.0]
         The boundaries for the filter factor of the TD during GWO optimization.
     down_rate : int, default=4
@@ -292,6 +294,13 @@ class MechaClassifier(BaseClassifier):
         self.random_state = random_state
         self.n_jobs = n_jobs
         self._n_jobs = check_n_jobs(self.n_jobs)
+
+        supported_extractors = ["Catch22", "TSFresh", "TSFreshRelevant"]
+        if self.basic_extractor not in supported_extractors:
+            raise ValueError(
+                f"basic_extractor must be one of {supported_extractors}. Found: "
+                f"{self.basic_extractor}"
+            )
 
         # Internal fitted attributes
         self.optimized_k1 = None
@@ -596,11 +605,20 @@ class MechaClassifier(BaseClassifier):
     @classmethod
     def get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator."""
-        params = {
+        params_c22 = {
             "max_iter": 1,
             "num_wolves": 2,
             "max_rate": 2,
             "basic_extractor": "Catch22",
             "n_jobs": 1,
         }
-        return [params]
+
+        params_tsf = {
+            "max_iter": 1,
+            "num_wolves": 2,
+            "max_rate": 2,
+            "basic_extractor": "TSFresh",
+            "n_jobs": 1,
+        }
+
+        return [params_c22, params_tsf]
