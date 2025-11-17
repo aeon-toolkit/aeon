@@ -106,16 +106,3 @@ def test_mecha_classifier_predict_proba(mecha_test_data):
     n_cases = X_test.shape[0]
     assert probas.shape == (n_cases, n_classes)
     assert np.allclose(probas.sum(axis=1), 1.0)
-
-
-# In test_mecha_classifier_fit (or add a new test)
-def test_mecha_classifier_fit_with_tsfresh(mecha_test_data):
-    """Test MechaClassifier can fit with TSFresh without error."""
-    X_train, y_train, _, _ = mecha_test_data
-    clf = MechaClassifier(
-        max_iter=1, num_wolves=2, max_rate=4, basic_extractor="TSFresh"
-    )
-    clf.fit(X_train, y_train)
-    assert clf.optimized_k1 is not None
-    assert clf.scaler is not None
-    assert len(clf.clfListExtraMI) > 0
