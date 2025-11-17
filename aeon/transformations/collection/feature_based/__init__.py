@@ -5,7 +5,6 @@ __all__ = [
     "TSFresh",
     "TSFreshRelevant",
     "SevenNumberSummary",
-    "TSFresh",
     "dilated_fres_extract",
     "interleaved_fres_extract",
     "series_transform",

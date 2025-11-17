@@ -20,7 +20,6 @@ import numpy as np
 from sklearn.preprocessing import scale
 
 from aeon.transformations.collection.feature_based._catch22 import Catch22
-from aeon.transformations.collection.feature_based._tsfresh import TSFresh
 
 warnings.filterwarnings("ignore")
 
@@ -218,13 +217,11 @@ def bidirect_interleaving_mapping(
 def _fres_extract(
     seriesX: np.ndarray, all_indices: np.ndarray, basic_extractor: str
 ) -> np.ndarray:
-    """Handle TSFresh/Catch22 feature extraction on re-indexed series views."""
-    if basic_extractor == "TSFresh":
-        extractor = TSFresh(default_fc_parameters="efficient")
-    elif basic_extractor == "Catch22":
+    """Handle Catch22 feature extraction on re-indexed series views."""
+    if basic_extractor == "Catch22":
         extractor = Catch22(catch24=False, replace_nans=True)
     else:
-        raise ValueError("basic_extractor must be 'TSFresh' or 'Catch22'")
+        raise ValueError("basic_extractor must be 'Catch22'")
 
     featureXList = []
 

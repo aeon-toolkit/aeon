@@ -236,8 +236,8 @@ class MechaClassifier(BaseClassifier):
 
     Parameters
     ----------
-    basic_extractor : str, default="TSFresh"
-        Basic feature extractor, options are "TSFresh" or "Catch22".
+    basic_extractor : str, default="Catch22"
+        Basic feature extractor, options is "Catch22" only.
     search_space : list, default=[1.0, 3.0]
         The boundaries for the filter factor of the TD during GWO optimization.
     down_rate : int, default=4
@@ -272,7 +272,7 @@ class MechaClassifier(BaseClassifier):
 
     def __init__(
         self,
-        basic_extractor="TSFresh",
+        basic_extractor="Catch22",
         search_space=None,
         down_rate=4,
         num_wolves=10,
