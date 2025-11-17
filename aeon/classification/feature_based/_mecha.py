@@ -20,8 +20,6 @@ from sklearn.metrics import silhouette_score
 from sklearn.preprocessing import MinMaxScaler
 
 from aeon.classification.base import BaseClassifier
-
-# Import core feature extraction utilities from the companion file
 from aeon.transformations.collection.feature_based._mecha_feature_extractor import (
     dilated_fres_extract,
     hard_voting,
