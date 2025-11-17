@@ -283,13 +283,9 @@ class MechaClassifier(BaseClassifier):
         random_state=0,
         n_jobs=1,
     ) -> None:
+        self.search_space = search_space
+        self.thresholds = thresholds
         self.basic_extractor = basic_extractor
-        self.search_space = search_space if search_space is not None else [1.0, 3.0]
-        self.thresholds = (
-            thresholds
-            if thresholds is not None
-            else [2e-05, 4e-05, 6e-05, 8e-05, 10e-05]
-        )
         self.down_rate = down_rate
         self.num_wolves = num_wolves
         self.max_iter = max_iter
@@ -331,13 +327,16 @@ class MechaClassifier(BaseClassifier):
         self : object
             Reference to self.
         """
+        search_space_ = (
+            self.search_space if self.search_space is not None else [1.0, 3.0]
+        )
         # 1. Series Transformation & GWO Optimization
         self.optimized_k1, self.optimized_score = _gwo(
             _objective_function,
             X,
             y,
             dim=1,
-            search_space=self.search_space,
+            search_space=search_space_,
             down_rate=self.down_rate,
             num_wolves=self.num_wolves,
             max_iter=self.max_iter,
