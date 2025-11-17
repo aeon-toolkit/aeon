@@ -190,3 +190,60 @@ def test_autoarima_forecast_is_consistent_with_wrapped():
     forecaster = AutoARIMA()
     val = forecaster._forecast(y)
     assert np.isclose(val, forecaster.final_model_.forecast_)
+
+
+def test_arima_with_exog_basic_fit_predict():
+    """Test ARIMA fit and predict with exogenous variables."""
+    y_local = np.arange(50, dtype=float)
+    exog = np.random.RandomState(42).randn(50, 2)
+
+    model = ARIMA(p=1, d=0, q=1)
+    model.fit(y_local, exog=exog)
+    pred = model.predict(y_local, exog=exog[-1:].copy())
+
+    assert isinstance(pred, float)
+    assert np.isfinite(pred)
+
+
+def test_arima_exog_shape_mismatch_raises():
+    """Test that exogenous shape mismatches raise ValueError."""
+    y_local = np.arange(20, dtype=float)
+    exog = np.random.RandomState(0).randn(20, 3)
+
+    model = ARIMA(p=1, d=0, q=1)
+
+    with pytest.raises(ValueError):
+        model.fit(y_local, exog=np.random.randn(10, 3))
+
+    model.fit(y_local, exog=exog)
+
+    with pytest.raises(ValueError):
+        model.predict(y_local, exog=np.random.randn(1, 5))
+
+
+def test_arima_iterative_forecast_with_exog():
+    """Test multi-step forecast with future exogenous variables."""
+    y_local = np.arange(40, dtype=float)
+    exog = np.random.RandomState(1).randn(40, 2)
+
+    model = ARIMA(p=1, d=1, q=1)
+    model.fit(y_local, exog=exog)
+
+    h = 5
+    future_exog = np.random.RandomState(2).randn(h, 2)
+    preds = model.iterative_forecast(y_local, prediction_horizon=h, exog=future_exog)
+
+    assert preds.shape == (h,)
+    assert np.all(np.isfinite(preds))
+
+
+def test_arima_no_exog_backward_compatibility():
+    """Test ARIMA works normally when no exogenous variables are provided."""
+    y_local = np.arange(30, dtype=float)
+
+    model = ARIMA(p=1, d=1, q=1)
+    model.fit(y_local)
+    pred = model.predict(y_local)
+
+    assert isinstance(pred, float)
+    assert np.isfinite(pred)
