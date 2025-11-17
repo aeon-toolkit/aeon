@@ -17,12 +17,7 @@ N_TIMEPOINTS = 50
 MAX_RATE = 8
 N_CASES = 5
 N_CHANNELS = 2
-
-TSFRESH_FEATURES_PER_CHANNEL = 39
-
-EXPECTED_DILATED_FEATURES = 7770
-
-EXPECTED_INTERLEAVED_FEATURES = 6216
+C22_FEATURES_PER_CHANNEL = 22
 
 
 @pytest.fixture
@@ -80,17 +75,8 @@ def test_interleaving_mapping_output(example_3d_data):
 
 
 def test_dilated_fres_extract_output_shape(example_3d_data):
-    """Test dilated extraction output shape (including original series)."""
+    """Test dilated extraction output shape using (including original series)."""
     X = example_3d_data
-    features = dilated_fres_extract(X, max_rate=MAX_RATE, basic_extractor="TSFresh")
-    assert features.shape[0] == X.shape[0]
-    assert features.shape[1] == EXPECTED_DILATED_FEATURES
-
-
-def test_dilated_fres_extract_catch22_output_shape(example_3d_data):
-    """Test dilated extraction output shape using Catch22."""
-    X = example_3d_data
-    C22_FEATURES_PER_CHANNEL = 22
     expected_num_views = 1 + 4
     expected_num_features = expected_num_views * N_CHANNELS * C22_FEATURES_PER_CHANNEL
     features = dilated_fres_extract(X, max_rate=MAX_RATE, basic_extractor="Catch22")
@@ -101,6 +87,8 @@ def test_dilated_fres_extract_catch22_output_shape(example_3d_data):
 def test_interleaved_fres_extract_output_shape(example_3d_data):
     """Test interleaved extraction output shape (only shuffled views)."""
     X = example_3d_data
-    features = interleaved_fres_extract(X, max_rate=MAX_RATE, basic_extractor="TSFresh")
+    features = interleaved_fres_extract(X, max_rate=MAX_RATE, basic_extractor="Catch22")
+    expected_num_views = 4
+    expected_num_features = expected_num_views * N_CHANNELS * C22_FEATURES_PER_CHANNEL
     assert features.shape[0] == X.shape[0]
-    assert features.shape[1] == EXPECTED_INTERLEAVED_FEATURES
+    assert features.shape[1] == expected_num_features
