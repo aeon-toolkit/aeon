@@ -72,7 +72,7 @@ all_extras = [
     "keras>=3.6.0; python_version < '3.13'",
     "torch>=1.13.1",
     "tsfresh>=0.20.0",
-    "tslearn",
+    "tslearn>=0.5.2",
 ]
 dl = [
     "tensorflow>=2.14; python_version < '3.13'",
