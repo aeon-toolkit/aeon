@@ -249,14 +249,10 @@ def test_k_mean_ba(distance, averaging_method):
 
 
 @pytest.mark.parametrize("distance", TEST_DISTANCE_WITH_CUSTOM_DISTANCE)
-@pytest.mark.parametrize("init", ["random", "kmeans++", "first", "ndarray"])
+@pytest.mark.parametrize("init", list(CENTER_INITIALISERS.keys()) + ["ndarray"])
 def test_k_mean_init(distance, init):
     """Test implementation of Kmeans."""
     distance, params = distance
-
-    # Only kmeans++ needs test with different distances
-    if init != "kmeans++" and distance != "euclidean":
-        return
 
     n_cases = 10
     n_timepoints = 10
@@ -443,7 +439,7 @@ def test_center_initialisers():
         # random_values returns (n_clusters, n_channels) - it generates random values
         # not based on the input data structure
         if init_name == "random_values":
-            assert centers.shape == (n_clusters, X_train.shape[1])
+            assert centers.shape == (n_clusters, X_train.shape[1], X_train.shape[2])
         else:
             assert centers.shape == (n_clusters, X_train.shape[1], X_train.shape[2])
             # Verify no duplicate centers

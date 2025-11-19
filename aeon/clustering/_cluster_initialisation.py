@@ -39,9 +39,31 @@ def _first_center_initialiser(
 
 
 def _random_values_center_initialiser(
-    *, X: np.ndarray, n_clusters: int, random_state: RandomState
+    *, X: np.ndarray, n_clusters: int, random_state: RandomState, **kwargs
 ):
     return random_state.rand(n_clusters, X.shape[-2], X.shape[-1])
+
+
+def _random_values_center_initialiser_indexes(
+    *,
+    X: np.ndarray,
+    n_clusters: int,
+    random_state: RandomState,
+    distance: str | Callable,
+    distance_params: dict,
+    n_jobs: int = 1,
+    **kwargs,
+) -> np.ndarray:
+    """Random values initialisation that returns indexes.
+
+    This generates random values and then finds the nearest time series in the
+    dataset to use as centroids.
+    """
+    centers = random_state.rand(n_clusters, X.shape[-2], X.shape[-1])
+    pw_dist = pairwise_distance(
+        X, centers, method=distance, n_jobs=n_jobs, **distance_params
+    )
+    return pw_dist.argmin(axis=0)
 
 
 def _kmeans_plus_plus_center_initialiser_indexes(
@@ -272,7 +294,7 @@ def resolve_center_initialiser(
             )
 
         initialiser_func = initialisers_dict[init]
-        if init in ("kmeans++", "kmedoids++"):
+        if init in ("kmeans++", "kmedoids++", "random_values"):
             # kmeans++ and kmedoids++ need additional parameters
             if distance is None or distance_params is None:
                 raise ValueError(
@@ -303,13 +325,26 @@ def resolve_center_initialiser(
                 )
 
             if use_indexes:
-                if init.ndim != 1:
+                if init.ndim == 1:
+                    return init
+                elif init.ndim == 3:
+                    # If values provided but indexes needed, snap to nearest
+                    if distance is None or distance_params is None:
+                        raise ValueError(
+                            "distance and distance_params are required when passing "
+                            "values to an estimator that expects indexes."
+                        )
+                    pw_dist = pairwise_distance(
+                        X, init, method=distance, n_jobs=n_jobs, **distance_params
+                    )
+                    return pw_dist.argmin(axis=0)
+                else:
                     raise ValueError(
                         f"The value provided for init: {init} is "
-                        f"invalid. Expected 1D array of shape ({n_clusters},), "
-                        f"got {init.shape}."
+                        f"invalid. Expected 1D array of shape ({n_clusters},) or "
+                        f"3D array of shape ({n_clusters}, {X.shape[1]}, "
+                        f"{X.shape[2]}), got {init.shape}."
                     )
-                return init
             else:
                 if init.ndim == 1:
                     raise ValueError(
@@ -342,6 +377,7 @@ CENTER_INITIALISERS = {
 CENTER_INITIALISER_INDEXES = {
     "random": _random_center_initialiser_indexes,
     "first": _first_center_initialiser_indexes,
+    "random_values": _random_values_center_initialiser_indexes,
     "kmeans++": _kmeans_plus_plus_center_initialiser_indexes,
     "kmedoids++": _kmedoids_plus_plus_center_initialiser_indexes,
 }
