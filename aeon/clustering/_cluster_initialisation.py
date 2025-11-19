@@ -41,7 +41,7 @@ def _first_center_initialiser(
 def _random_values_center_initialiser(
     *, X: np.ndarray, n_clusters: int, random_state: RandomState
 ):
-    return random_state.rand(n_clusters, X.shape[1])
+    return random_state.rand(n_clusters, X.shape[-2], X.shape[-1])
 
 
 def _kmeans_plus_plus_center_initialiser_indexes(
@@ -51,7 +51,7 @@ def _kmeans_plus_plus_center_initialiser_indexes(
     random_state: RandomState,
     distance: str | Callable,
     distance_params: dict,
-    n_jobs: int,
+    n_jobs: int = 1,
     return_distance_and_labels: bool = False,
     **kwargs,
 ) -> np.ndarray:
@@ -141,7 +141,7 @@ def _kmeans_plus_plus_center_initialiser(
     random_state: RandomState,
     distance: str | Callable,
     distance_params: dict,
-    n_jobs: int,
+    n_jobs: int = 1,
     return_distance_and_labels: bool = False,
     **kwargs,
 ) -> np.ndarray:
