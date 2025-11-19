@@ -236,7 +236,7 @@ class MechaClassifier(BaseClassifier):
     ----------
     basic_extractor : str, default="Catch22"
         Basic feature extractor. Options are "Catch22", "TSFresh", or "TSFreshRelevant".
-        (Note: TSFresh/TSFreshRelevant currently use minimal feature set
+        (Note: TSFresh/TSFreshRelevant currently use efficient feature set
         for performance.)
     search_space : list, default=[1.0, 3.0]
         The boundaries for the filter factor of the TD during GWO optimization.

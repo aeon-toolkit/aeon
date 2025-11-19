@@ -45,7 +45,7 @@ def fhan(x1: float, x2: float, r: float, h0: float) -> tuple[float, float]:
     """
     d = r * h0
     d0 = d * h0
-    y = x1 + h0 * x2
+    y = x1 + h0 * x2  # Computing the differential signal
     a0 = np.sqrt(d * d + 8 * r * np.abs(y))
 
     if np.abs(y) > d0:
@@ -53,12 +53,12 @@ def fhan(x1: float, x2: float, r: float, h0: float) -> tuple[float, float]:
     else:
         a = x2 + y / h0
 
-    if np.abs(a) <= d:
+    if np.abs(a) <= d:  # Computing the input u of observer
         u = -r * a / d
     else:
         u = -r * np.sign(a)
 
-    return u, y
+    return u, y  # Return input u of observer, and differential signal y
 
 
 def td(signal: np.ndarray, r: float = 100, k: float = 3, h: float = 1) -> np.ndarray:
@@ -81,27 +81,26 @@ def td(signal: np.ndarray, r: float = 100, k: float = 3, h: float = 1) -> np.nda
     dSignal : 1D np.ndarray of shape = [n_timepoints-1]
         The first-order differential signal.
     """
-    x1 = signal[0]
-    # State 2 initialization via a first-order backward difference approximation
-    x2 = -(signal[1] - signal[0]) / h
+    x1 = signal[0]  # Initializing state 1
+    x2 = -(signal[1] - signal[0]) / h  # Initializing state 2
+
     h0 = k * h
-
+    signalTD = np.zeros(len(signal))
     dSignal = np.zeros(len(signal))
-
     for i in range(len(signal)):
         v = signal[i]
         x1k = x1
         x2k = x2
-
-        x1 = x1k + h * x2k
-        u, y = fhan(x1k - v, x2k, r, h0)
-        x2 = x2k + h * u
-
+        x1 = x1k + h * x2k  # Update state 1
+        u, y = fhan(
+            x1k - v, x2k, r, h0
+        )  # Update input u of observer and differential signal y
+        x2 = x2k + h * u  # Update state 2
         dSignal[i] = y
+        signalTD[i] = x1
+    dSignal = -dSignal / h0  # Scale transform
 
-    dSignal = -dSignal / h0
-
-    return dSignal[1:]
+    return dSignal[1:]  # Return the differential signal
 
 
 def series_transform(seriesX: np.ndarray, k1: float) -> np.ndarray:
@@ -122,17 +121,12 @@ def series_transform(seriesX: np.ndarray, k1: float) -> np.ndarray:
     """
     n_cases, n_channels, n_timepoints = seriesX.shape[:]
 
-    # TD output length is n_timepoints - 1
     seriesFX = np.zeros((n_cases, n_channels, n_timepoints - 1))
-
-    h = 1 / n_timepoints
-
     for i in range(n_cases):
         for j in range(n_channels):
-            seriesFX[i, j, :] = td(seriesX[i, j, :], k=k1, h=h)
+            seriesFX[i, j, :] = td(seriesX[i, j, :], k=k1)
             seriesFX[i, j, :] = scale(seriesFX[i, j, :])
-
-    return seriesFX
+    return seriesFX  # Return the first-order differential time series set
 
 
 def bidirect_dilation_mapping(seriesX: np.ndarray, max_rate: int = 16) -> np.ndarray:
@@ -141,30 +135,34 @@ def bidirect_dilation_mapping(seriesX: np.ndarray, max_rate: int = 16) -> np.nda
 
     Indice are bidirectionally dilated under the exponential shuffling rates.
     """
-    n_timepoints = seriesX.shape[2]
-    # Calculate max power to ensure indices are valid (matching notebook logic)
+    _, _, n_timepoints = (
+        seriesX.shape[0],
+        seriesX.shape[1],
+        seriesX.shape[2],
+    )
     max_power = np.min([int(np.log2(max_rate)), int(np.log2(n_timepoints - 1)) - 3])
-    max_power = np.max([1, max_power])
-    dilation_rates = 2 ** np.arange(1, max_power + 1)
+    max_power = np.max([1, max_power])  # Guaranteed to be positive
+    dilation_rates = 2 ** np.arange(1, max_power + 1)  # Shuffling rates
 
-    indexList0 = np.arange(n_timepoints)
-    indexListF = []
-    indexListB = []
-
-    for rate_ in dilation_rates:
+    indexList0 = np.arange(n_timepoints)  # The index of the raw series
+    indexListF = []  # Initialize the index list for forward dilation
+    indexListB = []  # Initialize the index list for backward dilation
+    for i in range(len(dilation_rates)):  # Perform dilation at each shuffling rate
+        rate_ = dilation_rates[i]  # shuffling rate
         # (1) Forward dilation mapping
-        index_f = np.array([])
-        for j in range(rate_):
-            index_f = np.concatenate((index_f, indexList0[j::rate_])).astype(int)
-        indexListF.append(index_f)
-
+        index_ = np.array([])
+        for j in range(rate_):  # Rearrange index
+            index_ = np.concatenate((index_, indexList0[j::rate_])).astype(int)
+        indexListF.append(index_)
         # (2) Backward dilation mapping
-        index_b = np.array([])
-        for j in range(rate_):
-            index_b = np.concatenate((indexList0[j::rate_], index_b)).astype(int)
-        indexListB.append(index_b)
+        index_ = np.array([])
+        for j in range(rate_):  # Rearrange index
+            index_ = np.concatenate((indexList0[j::rate_], index_)).astype(int)
+        indexListB.append(index_)
 
-    return np.vstack((indexListF, indexListB))
+    indexList = np.vstack((indexListF, indexListB))
+
+    return indexList
 
 
 def bidirect_interleaving_mapping(
@@ -175,47 +173,58 @@ def bidirect_interleaving_mapping(
 
     Indice are bidirectionally interleaved under the exponential shuffling rates.
     """
-    n_timepoints = seriesX.shape[2]
+    _, _, n_timepoints = (
+        seriesX.shape[0],
+        seriesX.shape[1],
+        seriesX.shape[2],
+    )
     max_power = np.min([int(np.log2(max_rate)), int(np.log2(n_timepoints - 1)) - 3])
-    max_power = np.max([1, max_power])
-    dilation_rates = 2 ** np.arange(1, max_power + 1)
+    max_power = np.max([1, max_power])  # Guaranteed to be positive
+    dilation_rates = 2 ** np.arange(1, max_power + 1)  # Shuffling rates
 
-    indexList0 = np.arange(n_timepoints)
-    indexListF = []
-    indexListB = []
-
-    for rate_ in dilation_rates:
-        segmentIndex = [indexList0[j::rate_] for j in range(rate_)]
-
-        # (1) Forward interleaving mapping (interleaves segments sequentially)
-        index_f = np.array([])
-        max_len = max(len(s) for s in segmentIndex)
-        for j in range(max_len):
-            for k in range(rate_):
-                if j < len(segmentIndex[k]):
-                    index_f = np.concatenate((index_f, [segmentIndex[k][j]])).astype(
-                        int
-                    )
-            if len(index_f) == len(indexList0):
+    indexList0 = np.arange(n_timepoints)  # The index of the raw series
+    indexListF = []  # Initialize the index list for forward interleaving
+    indexListB = []  # Initialize the index list for backward interleaving
+    for i in range(len(dilation_rates)):  # Perform interleaving at each shuffling rate
+        rate_ = dilation_rates[i]  # shuffling rate
+        index_ = np.array([])
+        segmentNs = np.zeros(rate_, int)
+        segmentIndex = []
+        start = 0
+        for j in range(rate_):  # Get the length and index of each segment
+            segmentNs[j] = len(indexList0[j::rate_])
+            segmentIndex.append(np.arange(start, start + segmentNs[j]))
+            start += segmentNs[j]
+        # (1) Forward interleaving mapping
+        index_ = np.array([])
+        for j in range(len(segmentIndex[0])):  # Rearrange index
+            for k in range(rate_):  # Take a point from each segment
+                index_ = np.concatenate((index_, [segmentIndex[k][j]])).astype(int)
+                if len(index_) == len(indexList0):
+                    break
+            if len(index_) == len(indexList0):
                 break
-        indexListF.append(index_f)
+        indexListF.append(index_)
 
-        # (2) Backward interleaving mapping (interleaves segments in reverse order)
-        index_b_nb = np.array([])
-        max_len_b_nb = max(len(s) for s in segmentIndex)
+        # (2) Backward interleaving mapping
+        index_ = np.array([])
+        segmentNs = segmentNs[::-1]
+        segmentIndex = []
+        start = 0
+        for j in range(rate_):  # Get the length and index of each segment
+            segmentIndex.append(np.arange(start, start + segmentNs[j]))
+            start += segmentNs[j]
 
-        for j in range(max_len_b_nb):
-            for k in range(rate_):
-                # Access segments in reverse order: segmentIndex[rate_ - k - 1]
-                segment_to_use = segmentIndex[rate_ - k - 1]
-                if j < len(segment_to_use):
-                    index_b_nb = np.concatenate(
-                        (index_b_nb, [segment_to_use[j]])
-                    ).astype(int)
+        for j in range(len(segmentIndex[-1])):  # Rearrange index
+            for k in range(rate_):  # Take a point from each segment
+                if np.abs(j) >= len(segmentIndex[-k - 1]):
+                    continue
+                index_ = np.concatenate((index_, [segmentIndex[-k - 1][j]])).astype(int)
+        indexListB.append(index_)
 
-        indexListB.append(index_b_nb)
+    indexList = np.vstack((indexListF, indexListB))
 
-    return np.vstack((indexListF, indexListB))
+    return indexList
 
 
 def _fres_extract(
@@ -225,9 +234,9 @@ def _fres_extract(
     if basic_extractor == "Catch22":
         extractor = Catch22(catch24=False, replace_nans=True)
     elif basic_extractor == "TSFresh":
-        extractor = TSFresh(default_fc_parameters="minimal")
+        extractor = TSFresh(default_fc_parameters="efficient")
     elif basic_extractor == "TSFreshRelevant":
-        extractor = TSFreshRelevant(default_fc_parameters="minimal")
+        extractor = TSFreshRelevant(default_fc_parameters="efficient")
     else:
         raise ValueError(
             f"basic_extractor must be one of 'Catch22',"
