@@ -2,11 +2,9 @@
 
 import numpy as np
 from sklearn import metrics
-from sklearn.utils import check_random_state
 
 from aeon.clustering._k_medoids import TimeSeriesKMedoids
 from aeon.datasets import load_basic_motions, load_gunpoint
-from aeon.distances import euclidean_distance
 
 
 def test_kmedoids_uni():
@@ -165,6 +163,7 @@ def test_medoids_init():
     X_train = X_train[:10]
 
     num_clusters = 8
+    # Test first initializer
     kmedoids = TimeSeriesKMedoids(
         random_state=1,
         n_init=1,
@@ -173,18 +172,47 @@ def test_medoids_init():
         distance="euclidean",
         n_clusters=num_clusters,
     )
-    kmedoids._random_state = check_random_state(kmedoids.random_state)
-    kmedoids._distance_cache = np.full((len(X_train), len(X_train)), np.inf)
-    kmedoids._distance_callable = euclidean_distance
-    first_medoids_result = kmedoids._first_center_initializer(X_train)
+    kmedoids._check_params(X_train)
+    first_medoids_result = kmedoids._init(X_train)
     check_value_in_every_cluster(num_clusters, first_medoids_result)
-    random_medoids_result = kmedoids._random_center_initializer(X_train)
-    check_value_in_every_cluster(num_clusters, random_medoids_result)
-    kmedoids_plus_plus_medoids_result = kmedoids._kmedoids_plus_plus_center_initializer(
-        X_train
+
+    # Test random initializer
+    kmedoids = TimeSeriesKMedoids(
+        random_state=1,
+        n_init=1,
+        max_iter=5,
+        init="random",
+        distance="euclidean",
+        n_clusters=num_clusters,
     )
+    kmedoids._check_params(X_train)
+    random_medoids_result = kmedoids._init(X_train)
+    check_value_in_every_cluster(num_clusters, random_medoids_result)
+
+    # Test kmedoids++ initializer
+    kmedoids = TimeSeriesKMedoids(
+        random_state=1,
+        n_init=1,
+        max_iter=5,
+        init="kmedoids++",
+        distance="euclidean",
+        n_clusters=num_clusters,
+    )
+    kmedoids._check_params(X_train)
+    kmedoids_plus_plus_medoids_result = kmedoids._init(X_train)
     check_value_in_every_cluster(num_clusters, kmedoids_plus_plus_medoids_result)
-    kmedoids_build_result = kmedoids._pam_build_center_initializer(X_train)
+
+    # Test build initializer
+    kmedoids = TimeSeriesKMedoids(
+        random_state=1,
+        n_init=1,
+        max_iter=5,
+        init="build",
+        distance="euclidean",
+        n_clusters=num_clusters,
+    )
+    kmedoids._check_params(X_train)
+    kmedoids_build_result = kmedoids._init(X_train)
     check_value_in_every_cluster(num_clusters, kmedoids_build_result)
 
     # Test setting manual init centres

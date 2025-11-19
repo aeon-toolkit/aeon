@@ -11,6 +11,10 @@ from numpy.random import RandomState
 from sklearn.exceptions import ConvergenceWarning
 from sklearn.utils import check_random_state
 
+from aeon.clustering._cluster_initialisation import (
+    CENTER_INITIALISER_INDEXES,
+    resolve_center_initialiser,
+)
 from aeon.clustering.base import BaseClusterer
 from aeon.distances import get_distance_function, pairwise_distance
 
@@ -235,7 +239,6 @@ class TimeSeriesKMedoids(BaseClusterer):
         return np.array(new_center_indexes)
 
     def _compute_distance(self, X: np.ndarray, first_index: int, second_index: int):
-        # Check cache
         if np.isfinite(self._distance_cache[first_index, second_index]):
             return self._distance_cache[first_index, second_index]
         if np.isfinite(self._distance_cache[second_index, first_index]):
@@ -243,7 +246,6 @@ class TimeSeriesKMedoids(BaseClusterer):
         dist = self._distance_callable(
             X[first_index], X[second_index], **self._distance_params
         )
-        # Update cache
         self._distance_cache[first_index, second_index] = dist
         self._distance_cache[second_index, first_index] = dist
         return dist
@@ -282,7 +284,6 @@ class TimeSeriesKMedoids(BaseClusterer):
         not_medoid_idxs = np.delete(np.arange(n_cases, dtype=int), medoids_idxs)
 
         for i in range(self.max_iter):
-            # Initialize best cost change and the associated swap couple.
             old_medoid_idxs = np.copy(medoids_idxs)
             best_cost_change = self._compute_optimal_swaps(
                 distance_matrix,
@@ -293,7 +294,6 @@ class TimeSeriesKMedoids(BaseClusterer):
             )
 
             inertia = np.inf
-            # If one of the swap decrease the objective, return that swap.
             if best_cost_change is not None and best_cost_change[2] < 0:
                 first, second, _ = best_cost_change
                 medoids_idxs[medoids_idxs == first] = second
@@ -431,32 +431,23 @@ class TimeSeriesKMedoids(BaseClusterer):
     def _check_params(self, X: np.ndarray) -> None:
         self._random_state = check_random_state(self.random_state)
 
-        _incorrect_init_str = (
-            f"The value provided for init: {self.init} is "
-            f"invalid. The following are a list of valid init algorithms "
-            f"strings: random, kmedoids++, first, build. You can also pass a "
-            f"np.ndarray of size (n_clusters, n_channels, n_timepoints)"
-        )
-
-        if isinstance(self.init, str):
-            if self.init == "random":
-                self._init = self._random_center_initializer
-            elif self.init == "kmedoids++":
-                self._init = self._kmedoids_plus_plus_center_initializer
-            elif self.init == "first":
-                self._init = self._first_center_initializer
-            elif self.init == "build":
-                self._init = self._pam_build_center_initializer
-            else:
-                raise ValueError(_incorrect_init_str)
-        else:
-            if isinstance(self.init, np.ndarray) and len(self.init) == self.n_clusters:
-                self._init = self.init
-            else:
-                raise ValueError(_incorrect_init_str)
-
         if self.distance_params is not None:
             self._distance_params = self.distance_params
+        else:
+            self._distance_params = {}
+
+        self._init = resolve_center_initialiser(
+            init=self.init,
+            X=X,
+            n_clusters=self.n_clusters,
+            random_state=self._random_state,
+            initialisers_dict=CENTER_INITIALISER_INDEXES,
+            distance=self.distance,
+            distance_params=self._distance_params,
+            n_jobs=1,
+            custom_init_handlers={"build": self._pam_build_center_initializer},
+            use_indexes=True,
+        )
 
         if self.n_clusters > X.shape[0]:
             raise ValueError(
@@ -480,28 +471,6 @@ class TimeSeriesKMedoids(BaseClusterer):
                     "As such n_init will be set to 1.",
                     stacklevel=1,
                 )
-
-    def _random_center_initializer(self, X: np.ndarray) -> np.ndarray:
-        return self._random_state.choice(X.shape[0], self.n_clusters, replace=False)
-
-    def _first_center_initializer(self, _) -> np.ndarray:
-        return np.array(list(range(self.n_clusters)))
-
-    def _kmedoids_plus_plus_center_initializer(self, X: np.ndarray):
-        initial_center_idx = self._random_state.randint(X.shape[0])
-        indexes = [initial_center_idx]
-
-        for _ in range(1, self.n_clusters):
-            pw_dist = pairwise_distance(
-                X, X[indexes], method=self.distance, **self._distance_params
-            )
-            min_distances = pw_dist.min(axis=1)
-            probabilities = min_distances / min_distances.sum()
-            next_center_idx = self._random_state.choice(X.shape[0], p=probabilities)
-            indexes.append(next_center_idx)
-
-        centers = X[indexes]
-        return centers
 
     def _pam_build_center_initializer(
         self,
