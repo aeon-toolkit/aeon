@@ -1,25 +1,27 @@
 """ARIMA.
 
-An implementation of the ARIMA forecasting algorithm.
+An implementation of the ARIMA forecasting algorithm,
+including automatic hyperparameter tuning version
 """
 
 __maintainer__ = ["alexbanwell1", "TonyBagnall"]
-__all__ = ["ARIMA"]
+__all__ = ["ARIMA", "AutoARIMA"]
 
 import numpy as np
 from numba import njit
 
-from aeon.forecasting.base import BaseForecaster
+from aeon.forecasting.base import BaseForecaster, IterativeForecastingMixin
 from aeon.forecasting.utils._extract_paras import _extract_arma_params
+from aeon.forecasting.utils._hypo_tests import kpss_test
 from aeon.forecasting.utils._nelder_mead import nelder_mead
 from aeon.forecasting.utils._undifference import _undifference
 
 
-class ARIMA(BaseForecaster):
+class ARIMA(BaseForecaster, IterativeForecastingMixin):
     """AutoRegressive Integrated Moving Average (ARIMA) forecaster.
 
     ARIMA with fixed model structure and fitted parameters found with an
-    nelder mead optimizer to minimise the AIC.
+    Nelder Mead optimizer to minimise the AIC.
 
     Parameters
     ----------
@@ -31,6 +33,7 @@ class ARIMA(BaseForecaster):
         Moving average (q) order of the ARIMA model
     use_constant : bool = False,
         Presence of a constant/intercept term in the model.
+    grid : int: 0
     iterations : int, default = 200
         Maximum number of iterations to use in the Nelder-Mead parameter search.
 
@@ -201,7 +204,7 @@ class ARIMA(BaseForecaster):
 
     def _forecast(self, y, exog=None):
         """Forecast one ahead for time series y."""
-        self.fit(y, exog)
+        self._fit(y, exog)
         return float(self.forecast_)
 
     def iterative_forecast(self, y, prediction_horizon):
@@ -240,6 +243,156 @@ class ARIMA(BaseForecaster):
             return y_forecast_diff
         else:
             return _undifference(y_forecast_diff, self._series[-self.d :])[self.d :]
+
+
+class AutoARIMA(BaseForecaster, IterativeForecastingMixin):
+    """AutoRegressive Integrated Moving Average (ARIMA) forecaster.
+
+    Implements the Hyndman-Khandakar automatic ARIMA algorithm for time series
+    forecasting with optional seasonal components. The model automatically selects
+    the orders of the (p, d, q) components based on information criteria, such as AIC.
+
+    Parameters
+    ----------
+    max_p : int, default=3
+        Maximum order of the autoregressive (AR) component to consider when
+        searching for the best ARIMA model.
+    max_d : int, default=3
+        Maximum order of differencing (number of times the series may be
+        differenced) considered to achieve stationarity.
+    max_q : int, default=2
+        Maximum order of the moving-average (MA) component to consider when
+        searching for the best ARIMA model.
+
+    References
+    ----------
+    .. [1] R. J. Hyndman and G. Athanasopoulos,
+       Forecasting: Principles and Practice. OTexts, 2014.
+       https://otexts.com/fpp3/
+
+    Examples
+    --------
+    >>> from aeon.forecasting.stats import AutoARIMA
+    >>> from aeon.datasets import load_airline
+    >>> y = load_airline()
+    >>> forecaster = AutoARIMA()
+    >>> forecaster.forecast(y)
+    481.87157356139943
+    """
+
+    def __init__(self, max_p=3, max_d=3, max_q=2):
+        self.max_p = max_p
+        self.max_d = max_d
+        self.max_q = max_q
+        self.p_ = 0
+        self.d_ = 0
+        self.q_ = 0
+        self.constant_term_ = False
+        self.final_model_ = None
+        super().__init__(horizon=1, axis=1)
+
+    def _fit(self, y, exog=None):
+        """Fit AutoARIMA forecaster to series y.
+
+        Fit a forecaster to predict self.horizon steps ahead using y.
+
+        Parameters
+        ----------
+        y : np.ndarray
+            A time series on which to learn a forecaster to predict horizon ahead
+        exog : np.ndarray, default =None
+            Optional exogenous time series data assumed to be aligned with y
+
+        Returns
+        -------
+        self
+            Fitted ARIMAForecaster.
+        """
+        series = np.array(y.squeeze(), dtype=np.float64)
+        differenced_series = series.copy()
+        self.d_ = 0
+        while not kpss_test(differenced_series)[1] and self.d_ <= self.max_d:
+            differenced_series = np.diff(differenced_series, n=1)
+            self.d_ += 1
+        include_constant = 1 if self.d_ == 0 else 0
+        initial_parameters = [[include_constant, 0, 0]]
+        if self.max_p >= 1:
+            initial_parameters.append([include_constant, 1, 0])
+        if self.max_q >= 1:
+            initial_parameters.append([include_constant, 0, 1])
+        if (self.max_p >= 2) and (self.max_q >= 2):
+            initial_parameters.append([include_constant, 2, 2])
+        model_parameters = np.array(initial_parameters)
+        parameter_limits = np.array([self.max_p, self.max_q])
+        (
+            model,
+            _,
+            self.fit_aic_,
+        ) = _auto_arima(differenced_series, 0, model_parameters, 3, parameter_limits)
+        (
+            constant_term_int,
+            self.p_,
+            self.q_,
+        ) = model
+        self.constant_term_ = constant_term_int == 1
+        self.final_model_ = ARIMA(self.p_, self.d_, self.q_, self.constant_term_)
+        self.final_model_.fit(y)
+        self.forecast_ = self.final_model_.forecast_
+        return self
+
+    def _predict(self, y, exog=None):
+        """
+        Predict the next step ahead for y.
+
+        Parameters
+        ----------
+        y : np.ndarray, default = None
+            A time series to predict the value of. y can be independent of the series
+            seen in fit.
+        exog : np.ndarray, default =None
+            Optional exogenous time series data assumed to be aligned with y
+
+        Returns
+        -------
+        float
+            Prediction 1 step ahead of the last value in y.
+        """
+        return self.final_model_.predict(y, exog)
+
+    def _forecast(self, y, exog=None):
+        """Forecast one ahead for time series y."""
+        self._fit(y, exog)
+        return float(self.final_model_.forecast_)
+
+    def iterative_forecast(self, y, prediction_horizon):
+        """Forecast ``prediction_horizon`` prediction using a single model fit on `y`.
+
+        This function implements the iterative forecasting strategy (also called
+        recursive or iterated). This involves a single model fit on ``y`` which is then
+        used to make ``prediction_horizon`` ahead forecasts using its own predictions as
+        inputs for future forecasts. This is done by taking the prediction at step
+        ``i`` and feeding it back into the model to help predict for step ``i+1``.
+        The basic contract of `iterative_forecast` is that `fit` is only ever called
+        once.
+
+        y : np.ndarray
+            The time series to make forecasts about.  Must be of shape
+            ``(n_channels, n_timepoints)`` if a multivariate time series.
+        prediction_horizon : int
+            The number of future time steps to forecast.
+
+        Returns
+        -------
+        np.ndarray
+            An array of shape `(prediction_horizon,)` containing the forecasts for
+            each horizon.
+
+        Raises
+        ------
+        ValueError
+            if prediction_horizon` less than 1.
+        """
+        return self.final_model_.iterative_forecast(y, prediction_horizon)
 
 
 @njit(cache=True, fastmath=True)
@@ -288,3 +441,66 @@ def _in_sample_forecast(data, model, t, formatted_params, residuals):
         ma_term += formatted_params[2, j] * residuals[t - j - 1]
 
     return c + ar_term + ma_term
+
+
+@njit(cache=True, fastmath=True)
+def _auto_arima(
+    differenced_data,
+    loss_id,
+    initial_model_parameters,
+    num_model_params=3,
+    parameter_limits=None,
+):
+    """
+    Implement the Hyndman-Khandakar algorithm.
+
+    For automatic ARIMA model selection.
+    """
+    best_score = -1
+    best_model = initial_model_parameters[0]
+    best_points = None
+    for model in initial_model_parameters:
+        s = 0.1 / (np.sum(model) + 1)
+        points, aic = nelder_mead(
+            loss_id,
+            np.sum(model[:num_model_params]),
+            differenced_data,
+            model,
+            max_iter=200,
+            simplex_init=s,
+        )
+        if (aic < best_score) or (best_score == -1):
+            best_score = aic
+            best_model = model
+            best_points = points
+
+    while True:
+        better_model = False
+        for param_no in range(1, num_model_params):
+            for adjustment in [-1, 1]:
+                if (best_model[param_no] + adjustment) < 0 or (
+                    best_model[param_no] + adjustment
+                ) > parameter_limits[param_no - 1]:
+                    continue
+                model = best_model.copy()
+                model[param_no] += adjustment
+                for constant_term in [0, 1]:
+                    model[0] = constant_term
+                    points, aic = nelder_mead(
+                        loss_id,
+                        np.sum(model[:num_model_params]),
+                        differenced_data,
+                        model,
+                    )
+                    if aic < best_score:
+                        best_model = model.copy()
+                        best_points = points
+                        best_score = aic
+                        better_model = True
+        if not better_model:
+            break
+    return (
+        best_model,
+        best_points,
+        best_score,
+    )
