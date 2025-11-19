@@ -20,10 +20,7 @@ import numpy as np
 from sklearn.preprocessing import scale
 
 from aeon.transformations.collection.feature_based._catch22 import Catch22
-from aeon.transformations.collection.feature_based._tsfresh import (
-    TSFresh,
-    TSFreshRelevant,
-)
+from aeon.transformations.collection.feature_based._tsfresh import TSFresh
 
 warnings.filterwarnings("ignore")
 
@@ -235,12 +232,10 @@ def _fres_extract(
         extractor = Catch22(catch24=False, replace_nans=True)
     elif basic_extractor == "TSFresh":
         extractor = TSFresh(default_fc_parameters="efficient")
-    elif basic_extractor == "TSFreshRelevant":
-        extractor = TSFreshRelevant(default_fc_parameters="efficient")
     else:
         raise ValueError(
             f"basic_extractor must be one of 'Catch22',"
-            f"'TSFresh', or 'TSFreshRelevant'. Found: {basic_extractor}"
+            f"or 'TSFresh'. Found: {basic_extractor}"
         )
 
     featureXList = []
