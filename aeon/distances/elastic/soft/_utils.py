@@ -6,8 +6,6 @@ from numba import njit
 def _softmin3(a: float, b: float, c: float, gamma: float) -> float:
     r"""Compute softmin of 3 input variables with parameter gamma.
 
-    This code is adapted from tslearn.
-
     Parameters
     ----------
     a : float
