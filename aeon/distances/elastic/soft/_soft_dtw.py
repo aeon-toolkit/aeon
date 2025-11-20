@@ -440,7 +440,6 @@ def soft_dtw_alignment_path(
     )
 
 
-# --- fix a small bug: use the reshaped _x/_y when computing matrices ---
 @njit(cache=True, fastmath=True)
 def soft_dtw_alignment_matrix(
     x: np.ndarray,
