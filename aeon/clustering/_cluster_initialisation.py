@@ -172,20 +172,72 @@ def _kmedoids_plus_plus_center_initialiser_indexes(
 ) -> np.ndarray:
     """K-medoids++ initialisation that returns indexes.
 
-    This is a simpler variant of kmeans++ that uses minimum distances
-    directly as probabilities without the sophisticated weighting scheme.
+    This uses a k-means++-style seeding procedure, but with medoids,
+    and supports potentially negative distances by shifting the
+    distance distribution to be non-negative.
     """
-    initial_center_idx = random_state.randint(X.shape[0])
+    n_samples = X.shape[0]
+    initial_center_idx = random_state.randint(n_samples)
     indexes = [initial_center_idx]
 
+    # Initial minimum distances to the first medoid
+    min_distances = pairwise_distance(
+        X,
+        X[[initial_center_idx]],
+        method=distance,
+        n_jobs=n_jobs,
+        **distance_params,
+    ).reshape(n_samples)
+
     for _ in range(1, n_clusters):
-        pw_dist = pairwise_distance(
-            X, X[indexes], method=distance, n_jobs=n_jobs, **distance_params
-        )
-        min_distances = pw_dist.min(axis=1)
-        probabilities = min_distances / min_distances.sum()
-        next_center_idx = random_state.choice(X.shape[0], p=probabilities)
+        d = min_distances.copy()
+        chosen = np.asarray(indexes, dtype=int)
+
+        finite_mask = np.isfinite(d)
+        if not np.any(finite_mask):
+            candidates = np.setdiff1d(np.arange(n_samples), chosen, assume_unique=False)
+            next_center_idx = random_state.choice(candidates)
+        else:
+            min_val = d[finite_mask].min()
+            w = d - min_val
+
+            w[~np.isfinite(w)] = 0.0
+
+            w = np.clip(w, 0.0, None)
+
+            w[chosen] = 0.0
+
+            total = w.sum()
+            if total <= 0.0:
+                candidates = np.setdiff1d(
+                    np.arange(n_samples), chosen, assume_unique=False
+                )
+                next_center_idx = random_state.choice(candidates)
+            else:
+                p = w / total
+                p = np.clip(p, 0.0, None)
+                p_sum = p.sum()
+                if p_sum <= 0.0:
+                    candidates = np.setdiff1d(
+                        np.arange(n_samples), chosen, assume_unique=False
+                    )
+                    next_center_idx = random_state.choice(candidates)
+                else:
+                    p = p / p_sum
+                    next_center_idx = random_state.choice(n_samples, p=p)
+
         indexes.append(next_center_idx)
+
+        new_distances = pairwise_distance(
+            X,
+            X[[next_center_idx]],
+            method=distance,
+            n_jobs=n_jobs,
+            **distance_params,
+        ).reshape(n_samples)
+
+        closer_points = new_distances < min_distances
+        min_distances[closer_points] = new_distances[closer_points]
 
     return np.array(indexes)
 
