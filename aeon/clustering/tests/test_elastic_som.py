@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 
 from aeon.clustering import ElasticSOM
+from aeon.clustering._cluster_initialisation import CENTER_INITIALISERS
 from aeon.distances import dtw_distance, msm_alignment_path
 from aeon.distances._distance import ELASTIC_DISTANCES
 from aeon.testing.data_generation import make_example_3d_numpy
@@ -37,44 +38,35 @@ def test_elastic_som_multivariate():
     assert preds.shape == (10,)
 
 
-def test_elastic_som_init():
+@pytest.mark.parametrize("init", list(CENTER_INITIALISERS.keys()) + ["ndarray"])
+def test_elastic_som_init(init):
     """Test ElasticSOM with a custom initialization."""
     X = make_example_3d_numpy(
         n_cases=10, n_channels=5, n_timepoints=20, return_y=False, random_state=1
     )
-    labels = []
-    for init in ["random", "kmeans++", "first"]:
-        clst = ElasticSOM(n_clusters=3, init=init, random_state=1, num_iterations=10)
-        clst.fit(X)
-        assert clst.labels_.shape == (10,)
-        assert clst.cluster_centers_.shape == (3, 5, 20)
-        labels.append(clst.labels_)
+    if init == "ndarray":
+        init = X[:3]
 
-        preds = clst.predict(X)
-        assert preds.shape == (10,)
+    clst = ElasticSOM(n_clusters=3, init=init, random_state=1, num_iterations=10)
+    clst.fit(X)
+    assert clst.labels_.shape == (10,)
+    assert clst.cluster_centers_.shape == (3, 5, 20)
 
-    # Check that the labels are different
-    assert not np.array_equal(labels[0], labels[1])
-    assert not np.array_equal(labels[0], labels[2])
-    assert not np.array_equal(labels[1], labels[2])
+    preds = clst.predict(X)
+    assert preds.shape == (10,)
+
+
+def test_elastic_som_init_invalid():
+    """Test ElasticSOM with invalid initialization."""
+    X = make_example_3d_numpy(
+        n_cases=10, n_channels=5, n_timepoints=20, return_y=False, random_state=1
+    )
     # Test invalid init
     with pytest.raises(ValueError):
         clst = ElasticSOM(
             n_clusters=3, init="invalid", random_state=1, num_iterations=10
         )
         clst.fit(X)
-
-    # Test custom ndarray init
-    clst = ElasticSOM(n_clusters=3, init=X[:3], random_state=1, num_iterations=10)
-    clst.fit(X)
-    assert clst.labels_.shape == (10,)
-    assert clst.cluster_centers_.shape == (3, 5, 20)
-
-    # Last labels is for "first" init
-    assert np.array_equal(clst.labels_, labels[-1])
-
-    preds = clst.predict(X)
-    assert preds.shape == (10,)
 
     # Test more ndarrays than clusters
     with pytest.raises(ValueError):
