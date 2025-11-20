@@ -28,6 +28,76 @@ def soft_barycenter_average(
     return_cost: bool = False,
     **kwargs,
 ):
+    """
+    Compute the soft-DTW barycenter of a collection of time series.
+
+    This implements the differentiable soft-DTW barycenter formulation proposed by
+    Cuturi & Blondel (2017) [1]_. Unlike DBA, which performs discrete realignment
+    updates, the soft-DTW barycenter is obtained by minimising the smooth soft-DTW
+    objective using gradient-based optimisation. The gradient with respect to the
+    barycenter is computed via the soft-minimum dynamic programming recursion.
+
+    Parameters
+    ----------
+    X : np.ndarray of shape (n_cases, n_channels, n_timepoints) or (n_cases,
+        n_timepoints)
+        Collection of time series to average. If a 2D array is provided, it is
+        internally reshaped to ``(n_cases, 1, n_timepoints)``.
+    distance : {"soft_dtw"}, default="soft_dtw"
+        Distance function to minimise. Currently only ``"soft_dtw"`` is supported.
+    max_iters : int, default=30
+        Maximum number of optimisation iterations for updating the barycenter.
+    tol : float, default=1e-5
+        Early-stopping tolerance on the change in objective value. If the decrease
+        in soft-DTW cost between iterations is below this threshold, optimisation
+        terminates.
+    init_barycenter : {"mean", "medoids", "random"} or np.ndarray of shape \
+        (n_channels, n_timepoints), default="mean"
+        Initial barycenter used to start the optimisation procedure. If a string
+        is supplied, it specifies the initialisation strategy. If an array is
+        provided, it is used directly as the starting point.
+    weights : np.ndarray of shape (n_cases,), default=None
+        Optional non-negative weights for each time series. If None, all series
+        receive weight 1.
+    precomputed_medoids_pairwise_distance : np.ndarray of shape (n_cases, n_cases), \
+        default=None
+        Optional pairwise distance matrix used when ``init_barycenter="medoids"``.
+        If None, medoid distances are computed when required.
+    verbose : bool, default=False
+        If True, prints progress information during optimisation.
+    minimise_method : str, default="L-BFGS-B"
+        The optimisation method passed to :func:`scipy.optimize.minimize`.
+        Typical options include ``"L-BFGS-B"`` and ``"CG"``.
+    random_state : int or None, default=None
+        Random seed used for stochastic initialisations (e.g., ``"random"``).
+    n_jobs : int, default=1
+        Number of parallel jobs. When greater than 1, distance computations and
+        gradient evaluations may run in parallel depending on the backend.
+    return_distances_to_center : bool, default=False
+        If True, also return the distances from each series in ``X`` to the final
+        barycenter.
+    return_cost : bool, default=False
+        If True, also return the final value of the soft-DTW objective.
+    **kwargs
+        Additional keyword arguments forwarded to the underlying soft-DTW distance
+        and gradient functions.
+
+    Returns
+    -------
+    barycenter : np.ndarray of shape (n_channels, n_timepoints)
+        The soft-DTW barycenter minimising the smooth alignment objective.
+    distances_to_center : np.ndarray of shape (n_cases,), optional
+        Returned if ``return_distances_to_center=True``. Distances between each
+        time series and the final barycenter.
+    cost : float, optional
+        Returned if ``return_cost=True``. The final objective value (sum of
+        soft-DTW distances from each series to the barycenter).
+
+    References
+    ----------
+    .. [1] Cuturi, M. & Blondel, M. "Soft-DTW: a Differentiable Loss Function
+       for Time-Series." ICML 2017.
+    """
     if len(X) <= 1:
         center = X[0] if X.ndim == 3 else X
         if return_distances_to_center and return_cost:
@@ -37,12 +107,6 @@ def soft_barycenter_average(
         elif return_cost:
             return center, 0.0
         return center
-
-    # if distance not in VALID_SOFT_BA_METHODS:
-    #     raise ValueError(
-    #         f"Invalid distance metric: {distance}. Valid metrics are: "
-    #         f"{VALID_SOFT_BA_METHODS}"
-    #     )
 
     (
         _X,
