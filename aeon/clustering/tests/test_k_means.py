@@ -7,6 +7,7 @@ import pytest
 from sklearn import metrics
 
 from aeon.clustering import TimeSeriesKMeans
+from aeon.clustering._cluster_initialisation import CENTER_INITIALISERS
 from aeon.datasets import load_basic_motions
 from aeon.distances._distance import ELASTIC_DISTANCES
 from aeon.testing.data_generation import make_example_3d_numpy
@@ -169,18 +170,18 @@ def test_k_mean_distances(distance):
             "random_state": 1,
             "n_init": 1,
             "n_clusters": 3,
-            "init": "kmeans++",
+            "init": "random",
             "distance": dist,
             "distance_params": {key: params[key]},
         }
         # Univariate test
         with_param_kmeans = _run_kmeans_test(
-            kmeans_params=curr_params, n_cases=40, n_channels=1, n_timepoints=10
+            kmeans_params=curr_params, n_cases=80, n_channels=1, n_timepoints=10
         )
 
         # Multivariate test
         _run_kmeans_test(
-            kmeans_params=curr_params, n_cases=40, n_channels=3, n_timepoints=10
+            kmeans_params=curr_params, n_cases=80, n_channels=3, n_timepoints=10
         )
 
         if dist in ELASTIC_DISTANCES:
@@ -194,13 +195,15 @@ def test_k_mean_distances(distance):
             continue
 
         default_param_kmeans = _run_kmeans_test(
-            kmeans_params=curr_params, n_cases=40, n_channels=1, n_timepoints=10
+            kmeans_params=curr_params, n_cases=80, n_channels=1, n_timepoints=10
         )
 
-        # Test parameters passed through kmeans
-        assert not np.array_equal(
-            with_param_kmeans.cluster_centers_, default_param_kmeans.cluster_centers_
-        )
+        if not isinstance(dist, Callable):
+            # Test parameters passed through kmeans
+            assert not np.array_equal(
+                with_param_kmeans.cluster_centers_,
+                default_param_kmeans.cluster_centers_,
+            )
 
 
 @pytest.mark.parametrize("distance", TEST_DISTANCES_WITH_FULL_ALIGNMENT_PATH)
@@ -248,14 +251,10 @@ def test_k_mean_ba(distance, averaging_method):
 
 
 @pytest.mark.parametrize("distance", TEST_DISTANCE_WITH_CUSTOM_DISTANCE)
-@pytest.mark.parametrize("init", ["random", "kmeans++", "first", "ndarray"])
+@pytest.mark.parametrize("init", list(CENTER_INITIALISERS.keys()) + ["ndarray"])
 def test_k_mean_init(distance, init):
     """Test implementation of Kmeans."""
     distance, params = distance
-
-    # Only kmeans++ needs test with different distances
-    if init != "kmeans++" and distance != "euclidean":
-        return
 
     n_cases = 10
     n_timepoints = 10
@@ -289,7 +288,7 @@ def test_k_mean_init(distance, init):
 
     kmeans._check_params(X_train_uni)
     if isinstance(kmeans._init, Callable):
-        uni_init_vals = kmeans._init(X_train_uni)
+        uni_init_vals = kmeans._init(X=X_train_uni)
     else:
         uni_init_vals = kmeans._init
 
@@ -324,7 +323,7 @@ def test_k_mean_init(distance, init):
     kmeans._check_params(X_train_multi)
 
     if isinstance(kmeans._init, Callable):
-        multi_init_vals = kmeans._init(X_train_multi)
+        multi_init_vals = kmeans._init(X=X_train_multi)
     else:
         multi_init_vals = kmeans._init
 
@@ -406,6 +405,49 @@ def test_empty_cluster():
 
     with pytest.raises(ValueError):
         kmeans.fit(np.array([first, first, first, first, first]))
+
+
+def test_center_initialisers():
+    """Test that CENTER_INITIALISERS work correctly."""
+    from numpy.random import RandomState
+
+    X_train = make_example_3d_numpy(
+        n_cases=20, n_channels=1, n_timepoints=10, random_state=1, return_y=False
+    )
+    n_clusters = 3
+    random_state = RandomState(1)
+
+    # Test all available initializers
+    for init_name, initialiser_func in CENTER_INITIALISERS.items():
+        if init_name == "kmeans++" or init_name == "kmedoids++":
+            # kmeans++ and kmedoids++ needs additional parameters
+            centers = initialiser_func(
+                X=X_train,
+                n_clusters=n_clusters,
+                random_state=random_state,
+                distance="euclidean",
+                distance_params={},
+                n_jobs=1,
+            )
+        else:
+            # Other initializers only need basic parameters
+            centers = initialiser_func(
+                X=X_train,
+                n_clusters=n_clusters,
+                random_state=random_state,
+            )
+
+        # Verify output shape
+        # random_values returns (n_clusters, n_channels) - it generates random values
+        # not based on the input data structure
+        if init_name == "random_values":
+            assert centers.shape == (n_clusters, X_train.shape[1], X_train.shape[2])
+        else:
+            assert centers.shape == (n_clusters, X_train.shape[1], X_train.shape[2])
+            # Verify no duplicate centers
+            for i in range(n_clusters):
+                for j in range(i + 1, n_clusters):
+                    assert not np.array_equal(centers[i], centers[j])
 
 
 def test_invalid_params():

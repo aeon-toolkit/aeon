@@ -1,12 +1,14 @@
 """Tests for time series k-medoids."""
 
-import numpy as np
-from sklearn import metrics
-from sklearn.utils import check_random_state
+from collections.abc import Callable
 
+import numpy as np
+import pytest
+from sklearn import metrics
+
+from aeon.clustering._cluster_initialisation import CENTER_INITIALISER_INDEXES
 from aeon.clustering._k_medoids import TimeSeriesKMedoids
 from aeon.datasets import load_basic_motions, load_gunpoint
-from aeon.distances import euclidean_distance
 
 
 def test_kmedoids_uni():
@@ -159,47 +161,34 @@ def check_value_in_every_cluster(num_clusters, initial_medoids):
         assert original_length == len(set(initial_medoids))
 
 
-def test_medoids_init():
+@pytest.mark.parametrize("init", list(CENTER_INITIALISER_INDEXES.keys()) + ["indexes"])
+def test_medoids_init(init):
     """Test implementation of Kmedoids."""
     X_train, _ = load_gunpoint(split="train")
     X_train = X_train[:10]
 
-    num_clusters = 8
-    kmedoids = TimeSeriesKMedoids(
-        random_state=1,
-        n_init=1,
-        max_iter=5,
-        init="first",
-        distance="euclidean",
-        n_clusters=num_clusters,
-    )
-    kmedoids._random_state = check_random_state(kmedoids.random_state)
-    kmedoids._distance_cache = np.full((len(X_train), len(X_train)), np.inf)
-    kmedoids._distance_callable = euclidean_distance
-    first_medoids_result = kmedoids._first_center_initializer(X_train)
-    check_value_in_every_cluster(num_clusters, first_medoids_result)
-    random_medoids_result = kmedoids._random_center_initializer(X_train)
-    check_value_in_every_cluster(num_clusters, random_medoids_result)
-    kmedoids_plus_plus_medoids_result = kmedoids._kmedoids_plus_plus_center_initializer(
-        X_train
-    )
-    check_value_in_every_cluster(num_clusters, kmedoids_plus_plus_medoids_result)
-    kmedoids_build_result = kmedoids._pam_build_center_initializer(X_train)
-    check_value_in_every_cluster(num_clusters, kmedoids_build_result)
+    num_clusters = 3
 
-    # Test setting manual init centres
-    num_clusters = 8
-    custom_init_centres = np.array([1, 2, 3, 4, 5, 6, 7, 8])
+    if init == "indexes":
+        # Generate random indexes
+        rng = np.random.RandomState(1)
+        init = rng.choice(X_train.shape[0], num_clusters, replace=False)
+
+    # Test initializer
     kmedoids = TimeSeriesKMedoids(
         random_state=1,
         n_init=1,
         max_iter=5,
-        init=custom_init_centres,
+        init=init,
         distance="euclidean",
         n_clusters=num_clusters,
     )
-    kmedoids.fit(X_train)
-    assert np.array_equal(kmedoids.cluster_centers_, X_train[custom_init_centres])
+    kmedoids._check_params(X_train)
+    if isinstance(kmedoids._init, Callable):
+        medoids_result = kmedoids._init(X=X_train)
+    else:
+        medoids_result = kmedoids._init
+    check_value_in_every_cluster(num_clusters, medoids_result)
 
 
 def _get_model_centres(data, distance, method="pam", distance_params=None):
@@ -230,3 +219,28 @@ def test_custom_distance_params():
         data, distance="msm", distance_params={"window": 0.01}
     )
     assert not np.array_equal(default_dist, custom_params_dist)
+
+
+def test_medoids_init_invalid():
+    """Test implementation of Kmedoids with invalid init."""
+    X_train, _ = load_gunpoint(split="train")
+    X_train = X_train[:10]
+    num_clusters = 3
+
+    # Test float array
+    with pytest.raises(ValueError, match="Expected an array of integers"):
+        kmedoids = TimeSeriesKMedoids(
+            n_clusters=num_clusters,
+            init=np.array([0.5, 1.5, 2.5]),
+            random_state=1,
+        )
+        kmedoids.fit(X_train)
+
+    # Test out of bounds
+    with pytest.raises(ValueError, match="Values must be in the range"):
+        kmedoids = TimeSeriesKMedoids(
+            n_clusters=num_clusters,
+            init=np.array([0, 1, 100]),
+            random_state=1,
+        )
+        kmedoids.fit(X_train)
