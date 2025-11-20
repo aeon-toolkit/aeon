@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 from sklearn import metrics
 
-from aeon.clustering._cluster_initialisation import CENTER_INITIALISERS
+from aeon.clustering._cluster_initialisation import CENTER_INITIALISER_INDEXES
 from aeon.clustering._k_medoids import TimeSeriesKMedoids
 from aeon.datasets import load_basic_motions, load_gunpoint
 
@@ -161,7 +161,7 @@ def check_value_in_every_cluster(num_clusters, initial_medoids):
         assert original_length == len(set(initial_medoids))
 
 
-@pytest.mark.parametrize("init", list(CENTER_INITIALISERS.keys()) + ["ndarray"])
+@pytest.mark.parametrize("init", list(CENTER_INITIALISER_INDEXES.keys()) + ["indexes"])
 def test_medoids_init(init):
     """Test implementation of Kmedoids."""
     X_train, _ = load_gunpoint(split="train")
@@ -169,10 +169,10 @@ def test_medoids_init(init):
 
     num_clusters = 3
 
-    if init == "ndarray":
-        # Generate random values (not indexes) to test snapping
+    if init == "indexes":
+        # Generate random indexes
         rng = np.random.RandomState(1)
-        init = rng.rand(num_clusters, X_train.shape[1], X_train.shape[2])
+        init = rng.choice(X_train.shape[0], num_clusters, replace=False)
 
     # Test initializer
     kmedoids = TimeSeriesKMedoids(
@@ -189,25 +189,6 @@ def test_medoids_init(init):
     else:
         medoids_result = kmedoids._init
     check_value_in_every_cluster(num_clusters, medoids_result)
-
-
-def test_medoids_custom_init():
-    """Test implementation of Kmedoids with custom init."""
-    X_train, _ = load_gunpoint(split="train")
-    X_train = X_train[:10]
-    # Test setting manual init centres
-    num_clusters = 8
-    custom_init_centres = np.array([1, 2, 3, 4, 5, 6, 7, 8])
-    kmedoids = TimeSeriesKMedoids(
-        random_state=1,
-        n_init=1,
-        max_iter=5,
-        init=custom_init_centres,
-        distance="euclidean",
-        n_clusters=num_clusters,
-    )
-    kmedoids.fit(X_train)
-    assert np.array_equal(kmedoids.cluster_centers_, X_train[custom_init_centres])
 
 
 def _get_model_centres(data, distance, method="pam", distance_params=None):
@@ -238,3 +219,28 @@ def test_custom_distance_params():
         data, distance="msm", distance_params={"window": 0.01}
     )
     assert not np.array_equal(default_dist, custom_params_dist)
+
+
+def test_medoids_init_invalid():
+    """Test implementation of Kmedoids with invalid init."""
+    X_train, _ = load_gunpoint(split="train")
+    X_train = X_train[:10]
+    num_clusters = 3
+
+    # Test float array
+    with pytest.raises(ValueError, match="Expected an array of integers"):
+        kmedoids = TimeSeriesKMedoids(
+            n_clusters=num_clusters,
+            init=np.array([0.5, 1.5, 2.5]),
+            random_state=1,
+        )
+        kmedoids.fit(X_train)
+
+    # Test out of bounds
+    with pytest.raises(ValueError, match="Values must be in the range"):
+        kmedoids = TimeSeriesKMedoids(
+            n_clusters=num_clusters,
+            init=np.array([0, 1, 100]),
+            random_state=1,
+        )
+        kmedoids.fit(X_train)

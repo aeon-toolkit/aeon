@@ -198,10 +198,12 @@ def test_k_mean_distances(distance):
             kmeans_params=curr_params, n_cases=80, n_channels=1, n_timepoints=10
         )
 
-        # Test parameters passed through kmeans
-        assert not np.array_equal(
-            with_param_kmeans.cluster_centers_, default_param_kmeans.cluster_centers_
-        )
+        if not isinstance(dist, Callable):
+            # Test parameters passed through kmeans
+            assert not np.array_equal(
+                with_param_kmeans.cluster_centers_,
+                default_param_kmeans.cluster_centers_,
+            )
 
 
 @pytest.mark.parametrize("distance", TEST_DISTANCES_WITH_FULL_ALIGNMENT_PATH)

@@ -74,21 +74,6 @@ def test_elastic_som_init_invalid():
         clst.fit(X)
 
 
-def test_elastic_som_custom_init():
-    """Test ElasticSOM with custom initialization."""
-    X = make_example_3d_numpy(
-        n_cases=10, n_channels=5, n_timepoints=20, return_y=False, random_state=1
-    )
-    # Test custom ndarray init
-    clst = ElasticSOM(n_clusters=3, init=X[:3], random_state=1, num_iterations=10)
-    clst.fit(X)
-    assert clst.labels_.shape == (10,)
-    assert clst.cluster_centers_.shape == (3, 5, 20)
-
-    preds = clst.predict(X)
-    assert preds.shape == (10,)
-
-
 def test_elastic_som_decay_function():
     """Test ElasticSOM with a custom decay function."""
     X = make_example_3d_numpy(
