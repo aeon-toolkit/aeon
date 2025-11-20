@@ -185,7 +185,7 @@ def test_medoids_init(init):
     )
     kmedoids._check_params(X_train)
     if isinstance(kmedoids._init, Callable):
-        medoids_result = kmedoids._init(X_train)
+        medoids_result = kmedoids._init(X=X_train)
     else:
         medoids_result = kmedoids._init
     check_value_in_every_cluster(num_clusters, medoids_result)

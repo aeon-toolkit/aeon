@@ -1,4 +1,5 @@
 from collections.abc import Callable
+from functools import partial
 
 import numpy as np
 from numpy.random import RandomState
@@ -223,122 +224,103 @@ def resolve_center_initialiser(
     custom_init_handlers: dict | None = None,
     use_indexes: bool = False,
 ) -> Callable | np.ndarray:
-    """Resolve the center initialiser function or array from init parameter.
-
-    Parameters
-    ----------
-    init : str or np.ndarray
-        Initialisation method string or array of initial centers/indexes.
-    X : np.ndarray
-        Input data for validation.
-    n_clusters : int
-        Number of clusters.
-    random_state : RandomState
-        Random state for initialisation.
-    initialisers_dict : dict
-        Dictionary of available initialisers (CENTER_INITIALISERS or
-            CENTER_INITIALISER_INDEXES).
-    distance : str or Callable, optional
-        Distance method (required for kmeans++/kmedoids++).
-    distance_params : dict, optional
-        Distance parameters (required for kmeans++/kmedoids++).
-    n_jobs : int, default=1
-        Number of jobs for parallel processing (used for kmeans++/kmedoids++).
-    custom_init_handlers : dict, optional
-        Dictionary of custom initialisation handlers for special cases (e.g.,
-        {"build": handler}).
-    use_indexes : bool, default=False
-        If True, expects 1D arrays (indexes). If False, expects multi-dimensional
-        arrays (centers).
-
-    Returns
-    -------
-    Callable or np.ndarray
-        Initialisation function or array.
-    """
+    """Resolve the center initialiser function or array from init parameter."""
     valid_init_methods = ", ".join(sorted(initialisers_dict.keys()))
 
     if isinstance(init, str):
-        # Check custom handlers first (e.g., "build" for k-medoids)
+        # Custom handlers first (e.g., "build" for k-medoids)
         if custom_init_handlers and init in custom_init_handlers:
+            # This is typically a bound method on the estimator (picklable)
             return custom_init_handlers[init]
 
         if init not in initialisers_dict:
             raise ValueError(
-                f"The value provided for init: {init} is "
-                f"invalid. The following are a list of valid init algorithms "
+                f"The value provided for init: {init} is invalid. "
+                f"The following are a list of valid init algorithms "
                 f"strings: {valid_init_methods}. You can also pass a "
                 f"np.ndarray of appropriate shape."
             )
 
         initialiser_func = initialisers_dict[init]
-        if init in ("kmeans++", "kmedoids++", "random_values"):
-            # kmeans++ and kmedoids++ need additional parameters
+
+        # Initialisers that need distance info
+        if init in ("kmeans++", "kmedoids++"):
             if distance is None or distance_params is None:
                 raise ValueError(
                     f"distance and distance_params are required for {init} "
                     f"initialisation"
                 )
-            return lambda X: initialiser_func(
-                X=X,
+            # Return a partial of the top-level function (picklable)
+            return partial(
+                initialiser_func,
                 n_clusters=n_clusters,
                 random_state=random_state,
                 distance=distance,
                 distance_params=distance_params,
                 n_jobs=n_jobs,
             )
-        else:
-            # random, first, random_values only need basic parameters
-            return lambda X: initialiser_func(
-                X=X,
+
+        # random_values doesn't need distance, just size + RNG
+        if init == "random_values":
+            return partial(
+                initialiser_func,
                 n_clusters=n_clusters,
                 random_state=random_state,
             )
-    else:
-        if isinstance(init, np.ndarray):
-            if len(init) != n_clusters:
-                raise ValueError(
-                    f"The value provided for init: {init} is "
-                    f"invalid. Expected length {n_clusters}, got {len(init)}."
-                )
 
-            if use_indexes:
-                if init.ndim != 1:
-                    raise ValueError(
-                        f"The value provided for init: {init} is "
-                        f"invalid. Expected 1D array of shape ({n_clusters},), "
-                        f"got {init.shape}."
-                    )
-                if not np.issubdtype(init.dtype, np.integer):
-                    raise ValueError(
-                        f"The value provided for init: {init} is "
-                        f"invalid. Expected an array of integers, got {init.dtype}."
-                    )
-                if init.min() < 0 or init.max() >= X.shape[0]:
-                    raise ValueError(
-                        f"The value provided for init: {init} is "
-                        f"invalid. Values must be in the range [0, {X.shape[0]})."
-                    )
-                return init
-            else:
-                if init.ndim == 1:
-                    raise ValueError(
-                        f"The value provided for init: {init} is "
-                        f"invalid. Expected multi-dimensional array of shape "
-                        f"({n_clusters}, {X.shape[1]}, {X.shape[2]}), got {init.shape}."
-                    )
-                if init.shape[1:] != X.shape[1:]:
-                    raise ValueError(
-                        f"The value provided for init: {init} is "
-                        f"invalid. Expected shape ({n_clusters}, {X.shape[1]}, "
-                        f"{X.shape[2]}), got {init.shape}."
-                    )
-                return init.copy()
-        else:
+        # "random", "first", etc. – basic initialisers
+        return partial(
+            initialiser_func,
+            n_clusters=n_clusters,
+            random_state=random_state,
+        )
+
+    # ---- np.ndarray branch (indexes / centers) ----
+    if isinstance(init, np.ndarray):
+        if len(init) != n_clusters:
             raise ValueError(
-                f"The value provided for init: {init} is "
-                f"invalid. Expected a string or np.ndarray."
+                f"The value provided for init: {init} is invalid. "
+                f"Expected length {n_clusters}, got {len(init)}."
             )
+
+        if use_indexes:
+            if init.ndim != 1:
+                raise ValueError(
+                    f"The value provided for init: {init} is invalid. "
+                    f"Expected 1D array of shape ({n_clusters},), "
+                    f"got {init.shape}."
+                )
+            if not np.issubdtype(init.dtype, np.integer):
+                raise ValueError(
+                    f"The value provided for init: {init} is invalid. "
+                    f"Expected an array of integers, got {init.dtype}."
+                )
+            if init.min() < 0 or init.max() >= X.shape[0]:
+                raise ValueError(
+                    f"The value provided for init: {init} is invalid. "
+                    f"Values must be in the range [0, {X.shape[0]})."
+                )
+            return init
+        else:
+            if init.ndim == 1:
+                raise ValueError(
+                    f"The value provided for init: {init} is invalid. "
+                    f"Expected multi-dimensional array of shape "
+                    f"({n_clusters}, {X.shape[1]}, {X.shape[2]}), "
+                    f"got {init.shape}."
+                )
+            if init.shape[1:] != X.shape[1:]:
+                raise ValueError(
+                    f"The value provided for init: {init} is invalid. "
+                    f"Expected shape ({n_clusters}, {X.shape[1]}, "
+                    f"{X.shape[2]}), got {init.shape}."
+                )
+            return init.copy()
+
+    raise ValueError(
+        f"The value provided for init: {init} is invalid. "
+        f"Expected a string or np.ndarray."
+    )
 
 
 CENTER_INITIALISERS = {

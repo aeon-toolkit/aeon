@@ -288,7 +288,7 @@ def test_k_mean_init(distance, init):
 
     kmeans._check_params(X_train_uni)
     if isinstance(kmeans._init, Callable):
-        uni_init_vals = kmeans._init(X_train_uni)
+        uni_init_vals = kmeans._init(X=X_train_uni)
     else:
         uni_init_vals = kmeans._init
 
@@ -323,7 +323,7 @@ def test_k_mean_init(distance, init):
     kmeans._check_params(X_train_multi)
 
     if isinstance(kmeans._init, Callable):
-        multi_init_vals = kmeans._init(X_train_multi)
+        multi_init_vals = kmeans._init(X=X_train_multi)
     else:
         multi_init_vals = kmeans._init
 

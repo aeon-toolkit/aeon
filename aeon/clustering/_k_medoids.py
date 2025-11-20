@@ -273,7 +273,7 @@ class TimeSeriesKMedoids(BaseClusterer):
         n_cases = X.shape[0]
 
         if isinstance(self._init, Callable):
-            medoids_idxs = self._init(X)
+            medoids_idxs = self._init(X=X)
         else:
             medoids_idxs = self._init
         not_medoid_idxs = np.arange(n_cases, dtype=int)
@@ -393,7 +393,7 @@ class TimeSeriesKMedoids(BaseClusterer):
     def _alternate_fit(self, X) -> tuple[np.ndarray, np.ndarray, float, int]:
         cluster_center_indexes = self._init
         if isinstance(self._init, Callable):
-            cluster_center_indexes = self._init(X)
+            cluster_center_indexes = self._init(X=X)
         old_inertia = np.inf
         old_indexes = None
         for i in range(self.max_iter):

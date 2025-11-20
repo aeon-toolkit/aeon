@@ -207,7 +207,7 @@ class ElasticSOM(BaseClusterer):
         self._check_params(X)
 
         if isinstance(self._init, Callable):
-            weights = self._init(X)
+            weights = self._init(X=X)
         else:
             weights = self._init.copy()
 

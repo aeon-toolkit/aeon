@@ -243,7 +243,7 @@ class TimeSeriesKMeans(BaseClusterer):
 
     def _fit_one_init(self, X: np.ndarray) -> tuple:
         if isinstance(self._init, Callable):
-            cluster_centres = self._init(X)
+            cluster_centres = self._init(X=X)
         else:
             cluster_centres = self._init.copy()
         prev_inertia = np.inf
