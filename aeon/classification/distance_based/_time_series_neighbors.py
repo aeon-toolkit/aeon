@@ -105,6 +105,9 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
 
         super().__init__()
 
+        if n_neighbors == 1:
+            self.set_tags(**{"capability:predict_proba": False})
+
     def _fit(self, X, y):
         """
         Fit the model using ``X`` as training data and ``y`` as target values.
