@@ -86,13 +86,12 @@ class ClassifierPipeline(BaseCollectionPipeline, BaseClassifier):
             transformers=transformers, _estimator=classifier, random_state=random_state
         )
 
-        self.set_tags(
-            **{
-                "capability:predict_proba": classifier.get_tag(
-                    "capability:predict_proba", True
-                )
-            }
-        )
+        if hasattr(classifier, "get_tag"):
+            can_proba = classifier.get_tag("capability:predict_proba", True)
+        else:
+            can_proba = hasattr(classifier, "predict_proba")
+
+        self.set_tags(**{"capability:predict_proba": can_proba})
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
