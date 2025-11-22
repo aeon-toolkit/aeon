@@ -137,6 +137,7 @@ EXPECTED_MOCK_TAGS = {
     "capability:missing_values": True,
     "capability:multithreading": False,
     "capability:multivariate": True,
+    "capability:predict_proba": True,
     "capability:train_estimate": False,
     "capability:unequal_length": True,
     "capability:univariate": True,
