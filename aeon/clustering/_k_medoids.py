@@ -17,6 +17,7 @@ from aeon.clustering._cluster_initialisation import (
 )
 from aeon.clustering.base import BaseClusterer
 from aeon.distances import get_distance_function, pairwise_distance
+from aeon.utils.validation import check_n_jobs
 
 
 class TimeSeriesKMedoids(BaseClusterer):
@@ -96,6 +97,10 @@ class TimeSeriesKMedoids(BaseClusterer):
         by `np.random`.
     distance_params: dict, default=None
         Dictionary containing kwargs for the distance method being used.
+    n_jobs : int, default=1
+        The number of jobs to run in parallel. If -1, then the number of jobs is set
+        to the number of CPU cores. If 1, then the function is executed in a single
+        thread. If greater than 1, then the function is executed in parallel.
 
     Attributes
     ----------
@@ -154,6 +159,7 @@ class TimeSeriesKMedoids(BaseClusterer):
     _tags = {
         "capability:multivariate": True,
         "algorithm_type": "distance",
+        "capability:multithreading": True,
     }
 
     def __init__(
@@ -168,6 +174,7 @@ class TimeSeriesKMedoids(BaseClusterer):
         verbose: bool = False,
         random_state: int | RandomState | None = None,
         distance_params: dict | None = None,
+        n_jobs: int | None = 1,
     ):
         self.distance = distance
         self.init = init
@@ -179,6 +186,7 @@ class TimeSeriesKMedoids(BaseClusterer):
         self.distance_params = distance_params
         self.method = method
         self.n_clusters = n_clusters
+        self.n_jobs = n_jobs
 
         self.cluster_centers_ = None
         self.labels_ = None
@@ -190,6 +198,7 @@ class TimeSeriesKMedoids(BaseClusterer):
         self._distance_cache = None
         self._distance_callable = None
         self._fit_method = None
+        self._n_jobs = None
 
         self._distance_params = {}
         super().__init__()
@@ -216,17 +225,13 @@ class TimeSeriesKMedoids(BaseClusterer):
         self.n_iter_ = best_iters
 
     def _predict(self, X: np.ndarray, y=None) -> np.ndarray:
-        if isinstance(self.distance, str):
-            pairwise_matrix = pairwise_distance(
-                X, self.cluster_centers_, method=self.distance, **self._distance_params
-            )
-        else:
-            pairwise_matrix = pairwise_distance(
-                X,
-                self.cluster_centers_,
-                self._distance_callable,
-                **self._distance_params,
-            )
+        pairwise_matrix = pairwise_distance(
+            X,
+            self.cluster_centers_,
+            method=self.distance,
+            n_jobs=self._n_jobs,
+            **self._distance_params,
+        )
         return pairwise_matrix.argmin(axis=1)
 
     def _compute_new_cluster_centers(
@@ -265,7 +270,19 @@ class TimeSeriesKMedoids(BaseClusterer):
         return distance_matrix
 
     def _compute_medoids(self, X: np.ndarray, indexes: np.ndarray):
-        distance_matrix = self._compute_pairwise(X, indexes, indexes)
+        # Use pairwise_distance with n_jobs when n_jobs > 1, otherwise use caching
+        if self._n_jobs > 1:
+            cluster_data = X[indexes]
+            distance_matrix = pairwise_distance(
+                cluster_data,
+                cluster_data,
+                method=self.distance,
+                n_jobs=self._n_jobs,
+                **self._distance_params,
+            )
+        else:
+            # Use caching for single-threaded execution
+            distance_matrix = self._compute_pairwise(X, indexes, indexes)
         return indexes[np.argmin(sum(distance_matrix))]
 
     def _pam_fit(self, X: np.ndarray):
@@ -277,7 +294,14 @@ class TimeSeriesKMedoids(BaseClusterer):
         else:
             medoids_idxs = self._init
         not_medoid_idxs = np.arange(n_cases, dtype=int)
-        distance_matrix = self._compute_pairwise(X, not_medoid_idxs, not_medoid_idxs)
+        # Use pairwise_distance with n_jobs for initial distance matrix computation
+        distance_matrix = pairwise_distance(
+            X,
+            X,
+            method=self.distance,
+            n_jobs=self._n_jobs,
+            **self._distance_params,
+        )
         distance_closest_medoid, distance_second_closest_medoid = np.sort(
             distance_matrix[medoids_idxs], axis=0
         )[[0, 1]]
@@ -424,12 +448,27 @@ class TimeSeriesKMedoids(BaseClusterer):
     def _assign_clusters(
         self, X: np.ndarray, cluster_center_indexes: np.ndarray
     ) -> tuple[np.ndarray, float]:
-        X_indexes = np.arange(X.shape[0], dtype=int)
-        pairwise_matrix = self._compute_pairwise(X, X_indexes, cluster_center_indexes)
+        # Use pairwise_distance with n_jobs when n_jobs > 1, otherwise use caching
+        if self._n_jobs > 1:
+            cluster_centers = X[cluster_center_indexes]
+            pairwise_matrix = pairwise_distance(
+                X,
+                cluster_centers,
+                method=self.distance,
+                n_jobs=self._n_jobs,
+                **self._distance_params,
+            )
+        else:
+            # Use caching for single-threaded execution
+            X_indexes = np.arange(X.shape[0], dtype=int)
+            pairwise_matrix = self._compute_pairwise(
+                X, X_indexes, cluster_center_indexes
+            )
         return pairwise_matrix.argmin(axis=1), pairwise_matrix.min(axis=1).sum()
 
     def _check_params(self, X: np.ndarray) -> None:
         self._random_state = check_random_state(self.random_state)
+        self._n_jobs = check_n_jobs(self.n_jobs)
 
         if self.distance_params is not None:
             self._distance_params = self.distance_params
@@ -444,7 +483,7 @@ class TimeSeriesKMedoids(BaseClusterer):
             initialisers_dict=CENTER_INITIALISER_INDEXES,
             distance=self.distance,
             distance_params=self._distance_params,
-            n_jobs=1,
+            n_jobs=self._n_jobs,
             custom_init_handlers={"build": self._pam_build_center_initializer},
             use_indexes=True,
         )
@@ -477,8 +516,13 @@ class TimeSeriesKMedoids(BaseClusterer):
         X: np.ndarray,
     ):
         n_cases = X.shape[0]
-        X_index = np.arange(n_cases, dtype=int)
-        distance_matrix = self._compute_pairwise(X, X_index, X_index)
+        distance_matrix = pairwise_distance(
+            X,
+            X,
+            method=self.distance,
+            n_jobs=self._n_jobs,
+            **self._distance_params,
+        )
 
         medoid_idxs = np.zeros(self.n_clusters, dtype=int)
         not_medoid_idxs = np.arange(n_cases, dtype=int)
