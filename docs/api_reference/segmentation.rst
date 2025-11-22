@@ -13,6 +13,7 @@ contains algorithms and tools for time series segmentation.
     :toctree: auto_generated/
     :template: class.rst
 
+    AutoPlaitSegmenter
     BinSegmenter
     ClaSPSegmenter
     FLUSSSegmenter
