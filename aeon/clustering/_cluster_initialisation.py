@@ -374,8 +374,7 @@ def resolve_center_initialiser(
             n_clusters=n_clusters,
             random_state=random_state,
         )
-
-    if isinstance(init, np.ndarray):
+    elif isinstance(init, np.ndarray):
         if len(init) != n_clusters:
             raise ValueError(
                 f"The value provided for init: {init} is invalid. "
@@ -415,11 +414,11 @@ def resolve_center_initialiser(
                     f"{X.shape[2]}), got {init.shape}."
                 )
             return init.copy()
-
-    raise ValueError(
-        f"The value provided for init: {init} is invalid. "
-        f"Expected a string or np.ndarray."
-    )
+    else:
+        raise ValueError(
+            f"The value provided for init: {init} is invalid. "
+            f"Expected a string or np.ndarray."
+        )
 
 
 _CENTRE_INITIALISERS = {
