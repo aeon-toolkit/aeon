@@ -937,8 +937,6 @@ class _CPS:
         for t in range(start_idx + 1, start_idx + length):
             offset = t - start_idx
 
-            # --- Update Pu[t] ---
-
             # Find best path from previous Pj
             maxj = Pj[:k1].argmax()
 
@@ -965,8 +963,6 @@ class _CPS:
                     Su[u, : nSv[maxv]] = Sv[maxv, : nSv[maxv]]
                     nSu[u] = nSv[maxv]
 
-            # --- Update Pi[t] ---
-
             maxv = Pv[:k0].argmax()
 
             for i in range(k1):
@@ -991,7 +987,6 @@ class _CPS:
                     Si[i, : nSj[maxj]] = Sj[maxj, : nSj[maxj]]
                     nSi[i] = nSj[maxj]
 
-            # --- Swap buffers for next timestep ---
             Pu, Pv = Pv, Pu
             Pi, Pj = Pj, Pi
             Su, Sv = Sv, Su
@@ -1105,9 +1100,6 @@ class _CPS:
         # Calculate total length of segments in regime 0
         len0 = regime0.total_length
 
-        # Count switches from 0 to 1 (N_01)
-        # Since AutoPlait segments alternate (0->1->0...),
-        # the switch count is simply the number of segments.
         n_01 = regime0.num_segments
 
         # Update delta (switch probability), clamping to EPSILON to prevent log(0)
@@ -2452,11 +2444,6 @@ def Kmeans(phmm, n, xlst, d, k, idx, max_iter, ap_seg):
 
     # Final calculation of means and variances
     phmm.mean[:k], phmm.var[:k] = compute_cluster_stats(X, labels, k, d, ap_seg)
-
-
-# ------------------------------
-#         MATH FUNCTIONS
-# ------------------------------
 
 
 def log_2(x):
