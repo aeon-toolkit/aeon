@@ -86,6 +86,13 @@ class ClassifierPipeline(BaseCollectionPipeline, BaseClassifier):
             transformers=transformers, _estimator=classifier, random_state=random_state
         )
 
+    def _get_tags(self):
+        tags = super()._get_tags()
+        tags["capability:predict_proba"] = self.classifier.get_tag(
+            "capability:predict_proba", True
+        )
+        return tags
+
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
