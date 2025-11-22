@@ -12,7 +12,6 @@ from sklearn.exceptions import ConvergenceWarning
 from sklearn.utils import check_random_state
 
 from aeon.clustering._cluster_initialisation import (
-    CENTER_INITIALISER_INDEXES,
     resolve_center_initialiser,
 )
 from aeon.clustering.base import BaseClusterer
@@ -441,7 +440,6 @@ class TimeSeriesKMedoids(BaseClusterer):
             X=X,
             n_clusters=self.n_clusters,
             random_state=self._random_state,
-            initialisers_dict=CENTER_INITIALISER_INDEXES,
             distance=self.distance,
             distance_params=self._distance_params,
             n_jobs=1,

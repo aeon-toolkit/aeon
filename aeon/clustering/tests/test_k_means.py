@@ -7,7 +7,7 @@ import pytest
 from sklearn import metrics
 
 from aeon.clustering import TimeSeriesKMeans
-from aeon.clustering._cluster_initialisation import CENTER_INITIALISERS
+from aeon.clustering._cluster_initialisation import _CENTRE_INITIALISERS
 from aeon.datasets import load_basic_motions
 from aeon.distances._distance import ELASTIC_DISTANCES
 from aeon.testing.data_generation import make_example_3d_numpy
@@ -251,7 +251,7 @@ def test_k_mean_ba(distance, averaging_method):
 
 
 @pytest.mark.parametrize("distance", TEST_DISTANCE_WITH_CUSTOM_DISTANCE)
-@pytest.mark.parametrize("init", list(CENTER_INITIALISERS.keys()) + ["ndarray"])
+@pytest.mark.parametrize("init", list(_CENTRE_INITIALISERS.keys()) + ["ndarray"])
 def test_k_mean_init(distance, init):
     """Test implementation of Kmeans."""
     distance, params = distance
@@ -418,7 +418,7 @@ def test_center_initialisers():
     random_state = RandomState(1)
 
     # Test all available initializers
-    for init_name, initialiser_func in CENTER_INITIALISERS.items():
+    for init_name, initialiser_func in _CENTRE_INITIALISERS.items():
         if init_name == "kmeans++" or init_name == "kmedoids++":
             # kmeans++ and kmedoids++ needs additional parameters
             centers = initialiser_func(

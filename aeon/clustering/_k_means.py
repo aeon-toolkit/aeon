@@ -10,7 +10,6 @@ from numpy.random import RandomState
 from sklearn.utils import check_random_state
 
 from aeon.clustering._cluster_initialisation import (
-    CENTER_INITIALISERS,
     resolve_center_initialiser,
 )
 from aeon.clustering.averaging import (
@@ -314,7 +313,6 @@ class TimeSeriesKMeans(BaseClusterer):
             X=X,
             n_clusters=self.n_clusters,
             random_state=self._random_state,
-            initialisers_dict=CENTER_INITIALISERS,
             distance=self.distance,
             distance_params=self._distance_params,
             n_jobs=self._n_jobs,
