@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 from sklearn import metrics
 
-from aeon.clustering._cluster_initialisation import CENTER_INITIALISER_INDEXES
+from aeon.clustering._cluster_initialisation import _CENTRE_INITIALISER_INDEXES
 from aeon.clustering._k_medoids import TimeSeriesKMedoids
 from aeon.datasets import load_basic_motions, load_gunpoint
 
@@ -161,7 +161,7 @@ def check_value_in_every_cluster(num_clusters, initial_medoids):
         assert original_length == len(set(initial_medoids))
 
 
-@pytest.mark.parametrize("init", list(CENTER_INITIALISER_INDEXES.keys()) + ["indexes"])
+@pytest.mark.parametrize("init", list(_CENTRE_INITIALISER_INDEXES.keys()) + ["indexes"])
 def test_medoids_init(init):
     """Test implementation of Kmedoids."""
     X_train, _ = load_gunpoint(split="train")

@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from aeon.clustering import ElasticSOM
-from aeon.clustering._cluster_initialisation import CENTER_INITIALISERS
+from aeon.clustering._cluster_initialisation import _CENTRE_INITIALISERS
 from aeon.distances import dtw_distance, msm_alignment_path
 from aeon.distances._distance import ELASTIC_DISTANCES
 from aeon.testing.data_generation import make_example_3d_numpy
@@ -38,7 +38,7 @@ def test_elastic_som_multivariate():
     assert preds.shape == (10,)
 
 
-@pytest.mark.parametrize("init", list(CENTER_INITIALISERS.keys()) + ["ndarray"])
+@pytest.mark.parametrize("init", list(_CENTRE_INITIALISERS.keys()) + ["ndarray"])
 def test_elastic_som_init(init):
     """Test ElasticSOM with a custom initialization."""
     X = make_example_3d_numpy(
