@@ -58,6 +58,7 @@ class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
         "fit_is_empty": False,
         "capability:train_estimate": False,
         "capability:contractable": False,
+        "capability:predict_proba": True,
     }
 
     @abstractmethod
