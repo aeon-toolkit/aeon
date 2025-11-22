@@ -7,8 +7,8 @@ import pytest
 from numpy.random import RandomState
 
 from aeon.clustering._cluster_initialisation import (
-    CENTER_INITIALISER_INDEXES,
-    CENTER_INITIALISERS,
+    _CENTRE_INITIALISER_INDEXES,
+    _CENTRE_INITIALISERS,
 )
 from aeon.distances._distance import ELASTIC_DISTANCES, POINTWISE_DISTANCES
 from aeon.testing.data_generation import make_example_3d_numpy
@@ -54,7 +54,7 @@ def _run_initialisation_test(
         assert np.allclose(values, value_from_indexes)
 
 
-@pytest.mark.parametrize("init_key", CENTER_INITIALISERS.keys())
+@pytest.mark.parametrize("init_key", _CENTRE_INITIALISERS.keys())
 def test_center_initialisers(init_key):
     """Test all center initialisers."""
     params = {}
@@ -64,8 +64,8 @@ def test_center_initialisers(init_key):
 
     _run_initialisation_test(
         key=init_key,
-        init_func=CENTER_INITIALISERS[init_key],
-        init_func_indexes=CENTER_INITIALISER_INDEXES.get(init_key, None),
+        init_func=_CENTRE_INITIALISERS[init_key],
+        init_func_indexes=_CENTRE_INITIALISER_INDEXES.get(init_key, None),
         init_func_params=params,
     )
 
@@ -80,8 +80,8 @@ def test_distance_center_initialisers(init_key, dist):
     }
     _run_initialisation_test(
         key=init_key,
-        init_func=CENTER_INITIALISERS[init_key],
-        init_func_indexes=CENTER_INITIALISER_INDEXES.get(init_key, None),
+        init_func=_CENTRE_INITIALISERS[init_key],
+        init_func_indexes=_CENTRE_INITIALISER_INDEXES.get(init_key, None),
         init_func_params=params,
     )
 
@@ -92,7 +92,7 @@ def test_distance_center_initialisers_params(init_key):
     n_clusters = 3
     X = make_example_3d_numpy(50, 1, 10, random_state=1, return_y=False)
 
-    init_func_no_window = CENTER_INITIALISERS[init_key](
+    init_func_no_window = _CENTRE_INITIALISERS[init_key](
         X=X,
         n_clusters=n_clusters,
         distance_params={},
@@ -100,7 +100,7 @@ def test_distance_center_initialisers_params(init_key):
         random_state=RandomState(1),
     )
 
-    init_func_window = CENTER_INITIALISERS[init_key](
+    init_func_window = _CENTRE_INITIALISERS[init_key](
         X=X,
         n_clusters=n_clusters,
         distance_params={"gamma": 0.00001},

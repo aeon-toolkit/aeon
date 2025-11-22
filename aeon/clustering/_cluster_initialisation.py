@@ -1,3 +1,13 @@
+"""Initialisation strategies for clustering.
+
+This file contains the various initialisation algorithms that can be used
+with clustering algorithms.
+
+The functions with "indexes" in their names return the indexes of the
+initialised clusters, while the functions with "centers" return the
+actual centers.
+"""
+
 from collections.abc import Callable
 from functools import partial
 
@@ -269,20 +279,62 @@ def resolve_center_initialiser(
     X: np.ndarray,
     n_clusters: int,
     random_state: RandomState,
-    initialisers_dict: dict,
     distance: str | Callable | None = None,
     distance_params: dict | None = None,
     n_jobs: int = 1,
     custom_init_handlers: dict | None = None,
     use_indexes: bool = False,
 ) -> Callable | np.ndarray:
-    """Resolve the center initialiser function or array from init parameter."""
+    """Resolve the center initialiser function or array from init parameter.
+
+    Parameters
+    ----------
+    X : 3D np.ndarray
+        Input data, any number of channels, equal length series of shape ``(
+        n_cases, n_channels, n_timepoints)``
+        or 2D np.array (univariate, equal length series) of shape
+        ``(n_cases, n_timepoints)``
+        or list of numpy arrays (any number of channels, unequal length series)
+        of shape ``[n_cases]``, 2D np.array ``(n_channels, n_timepoints_i)``,
+        where ``n_timepoints_i`` is length of series ``i``. Other types are
+        allowed and converted into one of the above.
+    n_clusters : int
+        The number of clusters to form as well as the number of centroids to generate.
+    random_state : RandomState
+        If `np.random.RandomState` instance,
+    distance : str or callable, optional
+        Distance method to compute similarity between time series. A list of valid
+        strings for measures can be found in the documentation for
+        :func:`aeon.distances.get_distance_function`. If a callable is passed it must be
+        a function that takes two 2d numpy arrays as input and returns a float.
+    distance_params : dict, default=None
+        Dictionary containing kwargs for the distance being used. For example if you
+        wanted to specify a window for DTW you would pass
+        distance_params={"window": 0.2}. See documentation of aeon.distances for more
+        details.
+    n_jobs : int, default=1
+        The number of jobs to run in parallel. If -1, then the number of jobs is set
+        to the number of CPU cores. If 1, then the function is executed in a single
+        thread. If greater than 1, then the function is executed in parallel.
+    custom_init_handlers : dict, default=None
+        A dictionary of custom initialisation functions that can be used to initialise.
+    use_indexes : bool, default=False
+        Boolean when True initialisation that return indexes is returned, when false
+        return initialisation that returns the centres
+
+    Returns
+    -------
+    Callable | np.ndarray
+        If a ndarray is specific as init then the validated ndarray is returned,
+        If a string is passed then the corresponding function is returned.
+    """
+    initialisers_dict = (
+        _CENTRE_INITIALISERS if not use_indexes else _CENTRE_INITIALISER_INDEXES
+    )
     valid_init_methods = ", ".join(sorted(initialisers_dict.keys()))
 
     if isinstance(init, str):
-        # Custom handlers first (e.g., "build" for k-medoids)
         if custom_init_handlers and init in custom_init_handlers:
-            # This is typically a bound method on the estimator (picklable)
             return custom_init_handlers[init]
 
         if init not in initialisers_dict:
@@ -295,14 +347,12 @@ def resolve_center_initialiser(
 
         initialiser_func = initialisers_dict[init]
 
-        # Initialisers that need distance info
         if init in ("kmeans++", "kmedoids++"):
             if distance is None or distance_params is None:
                 raise ValueError(
                     f"distance and distance_params are required for {init} "
                     f"initialisation"
                 )
-            # Return a partial of the top-level function (picklable)
             return partial(
                 initialiser_func,
                 n_clusters=n_clusters,
@@ -312,7 +362,6 @@ def resolve_center_initialiser(
                 n_jobs=n_jobs,
             )
 
-        # random_values doesn't need distance, just size + RNG
         if init == "random_values":
             return partial(
                 initialiser_func,
@@ -320,14 +369,12 @@ def resolve_center_initialiser(
                 random_state=random_state,
             )
 
-        # "random", "first", etc. – basic initialisers
         return partial(
             initialiser_func,
             n_clusters=n_clusters,
             random_state=random_state,
         )
 
-    # ---- np.ndarray branch (indexes / centers) ----
     if isinstance(init, np.ndarray):
         if len(init) != n_clusters:
             raise ValueError(
@@ -375,7 +422,7 @@ def resolve_center_initialiser(
     )
 
 
-CENTER_INITIALISERS = {
+_CENTRE_INITIALISERS = {
     "random": _random_center_initialiser,
     "first": _first_center_initialiser,
     "random_values": _random_values_center_initialiser,
@@ -383,7 +430,7 @@ CENTER_INITIALISERS = {
     "kmedoids++": _kmedoids_plus_plus_center_initialiser,
 }
 
-CENTER_INITIALISER_INDEXES = {
+_CENTRE_INITIALISER_INDEXES = {
     "random": _random_center_initialiser_indexes,
     "first": _first_center_initialiser_indexes,
     "kmeans++": _kmeans_plus_plus_center_initialiser_indexes,
