@@ -255,7 +255,7 @@ class AutoPlaitSegmenter(BaseSegmenter):
         inp = _Input()
         inp.length = min(X.shape[0], self.lmax)
         inp.id = 0
-        inp.observations = X
+        inp.observations = X.astype(np.float64).copy()
         self.x = inp
         self.lmax = self.x.length
         self._set_up()
@@ -279,6 +279,8 @@ class AutoPlaitSegmenter(BaseSegmenter):
         np.ndarray
             Array of detected change points (indices).
         """
+        if len(X) < 2:
+            return np.array([], dtype=np.int32)
         self._reshape_and_normalise(X)
         if self.verbose:
             sys.stdout.write("---------\nr|m|Cost \n---------\n")
@@ -301,7 +303,7 @@ class AutoPlaitSegmenter(BaseSegmenter):
         output = sorted(output, key=lambda x: x[0])
         cps = [x[0] for x in output][:-1]
         self.regimes = np.array([x[1] for x in output])
-        return np.array(cps)
+        return np.array(cps, dtype=np.int32)
 
     def _get_new_regime(self, parent_label="", child_label=""):
         """
