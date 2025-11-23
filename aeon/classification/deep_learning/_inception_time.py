@@ -351,24 +351,28 @@ class InceptionTimeClassifier(BaseClassifier):
         return probs
 
     @classmethod
-    def load_model(self, model_path, classes):
-        """Load pre-trained classifiers instead of fitting.
-
+    def load_model(self, model_path: list[str], classes: np.ndarray) -> "InceptionTimeClassifier":
+        """ Load one or more pre-trained keras models from the given file path(s)
+        instead of fitting.
+        Pretrained models should be saved using "save_best_model"
+        or "save_last_model" parameter.
         When calling this function, all functionalities can be used
-        such as predict, predict_proba, etc. with the loaded models.
+        such as predict, predict_proba etc. with the loaded model.
 
         Parameters
         ----------
         model_path : list of str (list of paths including the model names and extension)
-            The directory where the models will be saved including the model
-            names with a ".keras" extension.
-        classes : np.ndarray
+            The complete path (including file name and '.keras' extension) 
+            from which the pre-trained model's weights and configuration 
+            are loaded.
+         classes : np.ndarray
             The set of unique classes the pre-trained loaded model is trained
             to predict during the classification task.
+        Example: model_path="path/to/file/best_model.keras"
 
         Returns
         -------
-        None
+        InceptionTimeClassifier
         """
         assert (
             type(model_path) is list

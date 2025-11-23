@@ -178,17 +178,19 @@ class BaseDeepClassifier(BaseClassifier):
         """
         self.model_.save(file_path + self.last_file_name + ".keras")
 
-    def load_model(self, model_path, classes):
+    def load_model(self, model_path: str, classes: np.ndarray) -> None:
         """Load a pre-trained keras model instead of fitting.
-
+        Pretrained model should be saved using "save_last_model_to_file" method.
+        
         When calling this function, all functionalities can be used
         such as predict, predict_proba etc. with the loaded model.
 
         Parameters
         ----------
         model_path : str (path including model name and extension)
-            The directory where the model will be saved including the model
-            name with a ".keras" extension.
+            The complete path (including file name and '.keras' extension) 
+            from which the pre-trained model's weights and configuration 
+            are loaded.
             Example: model_path="path/to/file/best_model.keras"
         classes : np.ndarray
             The set of unique classes the pre-trained loaded model is trained
