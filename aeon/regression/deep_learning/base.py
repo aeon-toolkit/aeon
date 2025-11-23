@@ -121,7 +121,6 @@ class BaseDeepRegressor(BaseRegressor):
             """Load a pre-trained keras model instead of fitting.
     
             Pretrained model should be saved using "save_last_model_to_file" method.
-            
             When calling this function, all functionalities can be used
             such as predict, etc. with the loaded model.
     

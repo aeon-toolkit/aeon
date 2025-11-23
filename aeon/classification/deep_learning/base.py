@@ -180,8 +180,8 @@ class BaseDeepClassifier(BaseClassifier):
 
     def load_model(self, model_path: str, classes: np.ndarray) -> None:
         """Load a pre-trained keras model instead of fitting.
-        Pretrained model should be saved using "save_last_model_to_file" method.
         
+        Pretrained model should be saved using "save_last_model_to_file" method.
         When calling this function, all functionalities can be used
         such as predict, predict_proba etc. with the loaded model.
 

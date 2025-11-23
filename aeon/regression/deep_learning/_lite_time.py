@@ -273,6 +273,7 @@ class LITETimeRegressor(BaseRegressor):
     def load_model(self,model_path: list[str]) -> "LITETimeRegressor":
         """ Load one or more pre-trained keras models from the given file path(s)
         instead of fitting.
+        
         Pretrained models should be saved using "save_best_model"
         or "save_last_model" parameter.
         When calling this function, all functionalities can be used
