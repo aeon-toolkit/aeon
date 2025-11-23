@@ -1,5 +1,7 @@
 """InceptionTime and Inception classifiers."""
 
+from __future__ import annotations
+
 __maintainer__ = ["hadifawaz1999"]
 __all__ = ["InceptionTimeClassifier"]
 
@@ -251,7 +253,7 @@ class InceptionTimeClassifier(BaseClassifier):
 
         super().__init__()
 
-    def _fit(self, X, y):
+    def _fit(self, X: np.ndarray, y: np.ndarray) -> InceptionTimeClassifier:
         """Fit the ensemble of IndividualInceptionClassifier models.
 
         Parameters
@@ -307,7 +309,7 @@ class InceptionTimeClassifier(BaseClassifier):
 
         return self
 
-    def _predict(self, X) -> np.ndarray:
+    def _predict(self, X: np.ndarray) -> np.ndarray:
         """Predict the labels of the test set using InceptionTime.
 
         Parameters
@@ -328,7 +330,7 @@ class InceptionTimeClassifier(BaseClassifier):
             ]
         )
 
-    def _predict_proba(self, X) -> np.ndarray:
+    def _predict_proba(self, X: np.ndarray) -> np.ndarray:
         """Predict the proba of labels of the test set using InceptionTime.
 
         Parameters
@@ -351,20 +353,20 @@ class InceptionTimeClassifier(BaseClassifier):
         return probs
 
     @classmethod
-    def load_model(self, model_path: list[str], classes: np.ndarray) -> "InceptionTimeClassifier":
-        """ Load one or more pre-trained keras models from the given file path(s)
-        instead of fitting.
+    def load_model(
+        self, model_path: list[str], classes: np.ndarray) -> InceptionTimeClassifier:
+        """Load pre-trained keras models from disk instead of fitting.
         
         Pretrained models should be saved using "save_best_model"
-        or "save_last_model" parameter.
+        or "save_last_model" boolean parameter.
         When calling this function, all functionalities can be used
         such as predict, predict_proba etc. with the loaded model.
 
         Parameters
         ----------
         model_path : list of str (list of paths including the model names and extension)
-            The complete path (including file name and '.keras' extension) 
-            from which the pre-trained model's weights and configuration 
+            The complete path (including file name and '.keras' extension)
+            from which the pre-trained model's weights and configuration
             are loaded.
          classes : np.ndarray
             The set of unique classes the pre-trained loaded model is trained

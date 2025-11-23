@@ -268,22 +268,21 @@ class LITETimeRegressor(BaseRegressor):
         vals = vals / self.n_regressors
 
         return vals
-    
+
     @classmethod
-    def load_model(self,model_path: list[str]) -> "LITETimeRegressor":
-        """ Load one or more pre-trained keras models from the given file path(s)
-        instead of fitting.
+    def load_model(self, model_path: list[str]) -> LITETimeRegressor:
+        """Load pre-trained keras models from disk instead of fitting.
         
         Pretrained models should be saved using "save_best_model"
-        or "save_last_model" parameter.
+        or "save_last_model" boolean parameter.
         When calling this function, all functionalities can be used
         such as predict, etc. with the loaded model.
 
         Parameters
         ----------
         model_path : list of str (list of paths including the model names and extension)
-            The complete path (including file name and '.keras' extension) 
-            from which the pre-trained model's weights and configuration 
+            The complete path (including file name and '.keras' extension)
+            from which the pre-trained model's weights and configuration
             are loaded.
         Example: model_path="path/to/file/best_model.keras"
 
@@ -294,16 +293,16 @@ class LITETimeRegressor(BaseRegressor):
         assert (
             type(model_path) is list
         ), "model_path should be a list of paths to the models"
-        
-        regressor=self()
+
+        regressor = self()
         regressor.regressors_ = []
-        
+
         for i in range(len(model_path)):
-            reg= IndividualLITERegressor()
+            reg = IndividualLITERegressor()
             reg.load_model(model_path[i])
             regressor.regressors_.append(reg)
-            
-        regressor.n_regressors=len(regressor.regressors_)
+
+        regressor.n_regressors = len(regressor.regressors_)
         regressor.is_fitted = True
         return regressor
 
