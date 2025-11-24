@@ -123,7 +123,8 @@ class BaseSeriesAnomalyDetector(BaseSeriesEstimator, BaseAnomalyDetector):
 
         X = self._preprocess_series(X, axis, True)
         if y is not None:
-            y = self._check_y(y)
+            self._check_y(y)
+            y = self._convert_y(y)
 
         self._fit(X=X, y=y)
 
@@ -203,7 +204,8 @@ class BaseSeriesAnomalyDetector(BaseSeriesEstimator, BaseAnomalyDetector):
             return self._predict(X)
 
         if y is not None:
-            y = self._check_y(y)
+            self._check_y(y)
+            y = self._convert_y(y)
 
         pred = self._fit_predict(X, y)
 
@@ -284,5 +286,12 @@ class BaseSeriesAnomalyDetector(BaseSeriesEstimator, BaseAnomalyDetector):
                 f"{VALID_SERIES_INPUT_TYPES}, saw {type(y)}"
             )
 
-        new_y = new_y.astype(bool)
         return new_y
+
+    def _convert_y(self, y):
+        """Convert y to correct anomaly detection format after validation."""
+        if isinstance(y, pd.Series):
+            y = y.values
+        elif isinstance(y, pd.DataFrame):
+            y = y.squeeze().values
+        return y.astype(bool)
