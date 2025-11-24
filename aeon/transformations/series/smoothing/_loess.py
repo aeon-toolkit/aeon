@@ -54,7 +54,6 @@ class LoessSmoother(BaseSeriesTransformer):
 
         if not (0 < self.span <= 1):
             raise ValueError(f"span must be in (0, 1], but got {self.span}")
-
         if self.degree not in [1, 2]:
             raise ValueError(f"degree must be 1 or 2, but got {self.degree}")
 
