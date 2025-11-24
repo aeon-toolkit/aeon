@@ -32,6 +32,7 @@ class LoessSmoother(BaseSeriesTransformer):
     >>> X = np.array([-3, -2, -1,  0,  1,  2,  3])
     >>> transformer = LoessSmoother(span=0.5, degree=1)
     >>> transformer.fit_transform(X)
+    array([[-3., -2., -1.,  0.,  1.,  2.,  3.]])
 
     References
     ----------
