@@ -118,29 +118,29 @@ class BaseDeepRegressor(BaseRegressor):
         self.model_.save(file_path + self.last_file_name + ".keras")
 
     def load_model(self, model_path: str) -> None:
-            """Load a pre-trained keras model instead of fitting.
-    
-            Pretrained model should be saved using "save_last_model"
-            or "save_best_model" boolean parameter.
-            When calling this function, all functionalities can be used
-            such as predict, etc. with the loaded model.
-    
-            Parameters
-            ----------
-            model_path : str (path including model name and extension)
-                The complete path (including file name and '.keras' extension)
-                from which the pre-trained model's weights and configuration
-                are loaded.
-                Example: model_path="path/to/file/best_model.keras"
-    
-            Returns
-            -------
-            None
-            """
-            import tensorflow as tf
-    
-            self.model_ = tf.keras.models.load_model(model_path)
-            self.is_fitted = True
+        """Load a pre-trained keras model instead of fitting.
+
+        Pretrained model should be saved using "save_last_model"
+        or "save_best_model" boolean parameter.
+        When calling this function, all functionalities can be used
+        such as predict, etc. with the loaded model.
+
+        Parameters
+        ----------
+        model_path : str (path including model name and extension)
+            The complete path (including file name and '.keras' extension)
+            from which the pre-trained model's weights and configuration
+            are loaded.
+            Example: model_path="path/to/file/best_model.keras"
+
+        Returns
+        -------
+        None
+        """
+        import tensorflow as tf
+
+        self.model_ = tf.keras.models.load_model(model_path)
+        self.is_fitted = True
 
     def _get_model_checkpoint_callback(
         self, callbacks: Callback | list[Callback], file_path: str, file_name: str

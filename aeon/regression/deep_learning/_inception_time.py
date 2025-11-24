@@ -346,7 +346,7 @@ class InceptionTimeRegressor(BaseRegressor):
     @classmethod
     def load_model(self, model_path: list[str]) -> InceptionTimeRegressor:
         """Load pre-trained keras models from disk instead of fitting.
-        
+
         Pretrained models should be saved using "save_best_model"
         or "save_last_model" boolean parameter.
         When calling this function, all functionalities can be used

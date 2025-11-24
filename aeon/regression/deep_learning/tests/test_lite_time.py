@@ -22,7 +22,11 @@ def test_save_load_litetim():
         temp_dir = os.path.join(temp, "")
 
         X, y = make_example_3d_numpy(
-            n_cases=10, n_channels=1, n_timepoints=12, return_y=True, regression_target=True
+            n_cases=10,
+            n_channels=1,
+            n_timepoints=12,
+            return_y=True,
+            regression_target=True,
         )
 
         model = LITETimeRegressor(
@@ -36,9 +40,7 @@ def test_save_load_litetim():
             os.path.join(temp_dir, f"{model.best_file_name}*.keras")
         )
 
-        loaded_model = LITETimeRegressor.load_model(
-            model_path=model_files
-        )
+        loaded_model = LITETimeRegressor.load_model(model_path=model_files)
 
         assert isinstance(loaded_model, LITETimeRegressor)
 

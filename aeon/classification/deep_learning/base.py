@@ -182,7 +182,7 @@ class BaseDeepClassifier(BaseClassifier):
 
     def load_model(self, model_path: str, classes: np.ndarray) -> None:
         """Load a pre-trained keras model instead of fitting.
-        
+
         Pretrained model should be saved using "save_last_model" or
         "save_best_model" boolean parameter.
         When calling this function, all functionalities can be used
@@ -210,7 +210,7 @@ class BaseDeepClassifier(BaseClassifier):
 
         self.classes_ = classes
         self.n_classes_ = len(self.classes_)
-    
+
     def _get_model_checkpoint_callback(self, callbacks, file_path, file_name):
         import tensorflow as tf
 

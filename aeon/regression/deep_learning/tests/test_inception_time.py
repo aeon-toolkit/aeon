@@ -22,7 +22,11 @@ def test_save_load_inceptiontime():
         temp_dir = os.path.join(temp, "")
 
         X, y = make_example_3d_numpy(
-            n_cases=10, n_channels=1, n_timepoints=12, return_y=True, regression_target=True
+            n_cases=10,
+            n_channels=1,
+            n_timepoints=12,
+            return_y=True,
+            regression_target=True,
         )
 
         model = InceptionTimeRegressor(
@@ -34,9 +38,7 @@ def test_save_load_inceptiontime():
 
         model_file = glob.glob(os.path.join(temp_dir, f"{model.best_file_name}*.keras"))
 
-        loaded_model = InceptionTimeRegressor.load_model(
-            model_path=model_file
-        )
+        loaded_model = InceptionTimeRegressor.load_model(model_path=model_file)
 
         assert isinstance(loaded_model, InceptionTimeRegressor)
 
