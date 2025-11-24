@@ -710,7 +710,6 @@ def check_common_input_dtypes(estimator, datatype):
     X_train_np = np.asarray(X_train)
     X_test_np = np.asarray(X_test)
 
-
     if X_train_np.dtype == object:
         return
 
