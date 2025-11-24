@@ -180,7 +180,7 @@ class BaseDeepClassifier(BaseClassifier):
         """
         self.model_.save(file_path + self.last_file_name + ".keras")
 
-    def load_model(self, model_path: str, classes: np.ndarray) -> BaseDeepClassifier:
+    def load_model(self, model_path: str, classes: np.ndarray) -> None:
         """Load a pre-trained keras model instead of fitting.
         
         Pretrained model should be saved using "save_last_model" or
@@ -201,7 +201,7 @@ class BaseDeepClassifier(BaseClassifier):
 
         Returns
         -------
-        BaseDeepClassifier
+        None
         """
         import tensorflow as tf
 
@@ -210,7 +210,6 @@ class BaseDeepClassifier(BaseClassifier):
 
         self.classes_ = classes
         self.n_classes_ = len(self.classes_)
-        return self
     
     def _get_model_checkpoint_callback(self, callbacks, file_path, file_name):
         import tensorflow as tf

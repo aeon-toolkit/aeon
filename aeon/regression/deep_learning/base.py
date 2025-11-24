@@ -117,7 +117,7 @@ class BaseDeepRegressor(BaseRegressor):
         """
         self.model_.save(file_path + self.last_file_name + ".keras")
 
-    def load_model(self, model_path: str) -> BaseDeepRegressor:
+    def load_model(self, model_path: str) -> None:
             """Load a pre-trained keras model instead of fitting.
     
             Pretrained model should be saved using "save_last_model"
