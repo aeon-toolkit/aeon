@@ -98,7 +98,8 @@ def test__check_y():
     reg._check_y(y, 100)
     assert isinstance(y, np.ndarray)
     y = pd.Series(y)
-    y = reg._check_y(y, 100)
+    reg._check_y(y, 100)
+    y = reg._convert_y(y)
     assert isinstance(y, np.ndarray)
     # Test error raising
     # y wrong length
