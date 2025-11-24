@@ -178,13 +178,29 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
             dtype=np.int32,
         )
         data = y.squeeze()
-        (self.parameters_, self.aic_) = nelder_mead(
-            1,
-            1 + 2 * (self._trend_type != 0) + (self._seasonality_type != 0),
-            data,
-            self._model,
-            max_iter=self.iterations,
-        )
+        if (
+            self._error_type == 2
+            or self._trend_type == 2
+            or self._seasonality_type == 2
+        ):
+            if np.any(~np.isfinite(data)) or np.any(data <= 0):
+                raise ValueError(
+                    "Multiplicative ETS models require strictly positive data."
+                )
+        try:
+            (self.parameters_, self.aic_) = nelder_mead(
+                1,
+                1 + 2 * (self._trend_type != 0) + (self._seasonality_type != 0),
+                data,
+                self._model,
+                max_iter=self.iterations,
+            )
+        except ZeroDivisionError as exc:
+            raise ValueError(
+                "ETS optimisation failed due to numerical instability. "
+                "This may occur when multiplicative ETS produces "
+                "invalid (non-positive or infinite) forecasts."
+            ) from exc
         self.alpha_, self.beta_, self.gamma_, self.phi_ = _extract_ets_params(
             self.parameters_, self._model
         )
