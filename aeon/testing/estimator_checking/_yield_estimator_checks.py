@@ -227,6 +227,11 @@ def _yield_estimator_checks(estimator_class, estimator_instances, datatypes):
             yield partial(
                 check_fit_deterministic, estimator=estimator, datatype=datatypes[i][0]
             )
+        yield partial(
+            check_common_input_dtypes,
+            estimator=estimator,
+            datatype=datatypes[i][0],
+        )
 
 
 def check_create_test_instance(estimator_class):
@@ -690,3 +695,30 @@ def check_fit_deterministic(estimator, datatype):
                     f"Check equivalence message: {msg}"
                 )
             i += 1
+
+
+def check_common_input_dtypes(estimator, datatype):
+    """Check estimator works with common numpy dtypes."""
+    estimator = _clone_estimator(estimator)
+
+    X_train = deepcopy(FULL_TEST_DATA_DICT[datatype]["train"][0])
+    y_train = deepcopy(FULL_TEST_DATA_DICT[datatype]["train"][1])
+    X_test = deepcopy(FULL_TEST_DATA_DICT[datatype]["test"][0])
+
+    dtypes = [np.float32, np.float64, np.int32, np.int64]
+
+    for dtype_cast in dtypes:
+        try:
+            X_train_cast = X_train.astype(dtype_cast)
+            X_test_cast = X_test.astype(dtype_cast)
+
+            est = estimator.clone()
+            est.fit(X_train_cast, y_train)
+
+            if hasattr(est, "predict"):
+                est.predict(X_test_cast)
+
+        except Exception as e:
+            raise AssertionError(
+                f"{type(estimator).__name__} failed for dtype {dtype_cast}: {e}"
+            )
