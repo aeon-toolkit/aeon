@@ -248,7 +248,7 @@ def _kasba_refine_one_iter(
     for i in shuffled_indices:
         curr_ts = X[i]
         curr_alignment, _ = _get_alignment_path(
-            center=barycenter,
+            center=barycenter_copy,
             ts=curr_ts,
             distance=distance,
             window=window,
