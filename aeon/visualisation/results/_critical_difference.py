@@ -318,27 +318,27 @@ def plot_critical_difference(
                 [
                     (_rankpos(ordered_avg_ranks[i]), cline),
                     (_rankpos(ordered_avg_ranks[i]), chei),
-                    (textspace + scalewidth + 0.2, chei),
+                    (textspace + scalewidth + 0.1, chei),
                 ],
                 linewidth=linewidth,
                 color=colours[i],
             )
             _text(  # labels left side.
-                textspace + scalewidth + 0.3,
+                textspace + scalewidth + 0.2,
                 chei,
                 ordered_labels[i],
                 ha="left",
                 va="center",
-                size=16,
+                size=9,
                 color=colours[i],
             )
             _text(  # ranks left side.
-                textspace + scalewidth - 0.3,
+                textspace + scalewidth - 0.15,
                 chei - 0.075,
                 format(ordered_avg_ranks[i], ".4f"),
                 ha="left",
                 va="center",
-                size=10,
+                size=7,
                 color=colours[i],
             )
         else:
@@ -357,16 +357,16 @@ def plot_critical_difference(
                 ordered_labels[i],
                 ha="right",
                 va="center",
-                size=16,
+                size=9,
                 color=colours[i],
             )
             _text(  # ranks left side.
-                textspace + 0.4,
+                textspace + 0.17,
                 chei - 0.075,
                 format(ordered_avg_ranks[i], ".4f"),
                 ha="right",
                 va="center",
-                size=10,
+                size=7,
                 color=colours[i],
             )
 
@@ -392,16 +392,16 @@ def plot_critical_difference(
                 ordered_labels[i],
                 ha="right",
                 va="center",
-                size=16,
+                size=9,
                 color=colours[i],
             )
             _text(  # ranks right side.
-                textspace + 0.4,
+                textspace + 0.2,
                 chei - 0.075,
                 format(ordered_avg_ranks[i], ".4f"),
                 ha="right",
                 va="center",
-                size=10,
+                size=7,
                 color=colours[i],
             )
         else:
@@ -420,16 +420,16 @@ def plot_critical_difference(
                 ordered_labels[i],
                 ha="left",
                 va="center",
-                size=16,
+                size=9,
                 color=colours[i],
             )
             _text(  # ranks right side.
-                textspace + scalewidth - 0.4,
+                textspace + scalewidth - 0.17,
                 chei - 0.075,
                 format(ordered_avg_ranks[i], ".4f"),
                 ha="left",
                 va="center",
-                size=10,
+                size=7,
                 color=colours[i],
             )
 
