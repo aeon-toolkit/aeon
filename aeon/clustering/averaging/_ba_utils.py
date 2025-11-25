@@ -131,18 +131,17 @@ def _get_alignment_path(
         return shape_dtw_alignment_path(
             ts,
             center,
-            window,
-            descriptor,
-            reach,
-            None,  # itakura_max_slope
-            transformation_precomputed,
-            transformed_x,
-            transformed_y,
+            window=window,
+            descriptor=descriptor,
+            reach=reach,
+            transformed_x=transformed_x,
+            transformed_y=transformed_y,
+            transformation_precomputed=transformation_precomputed,
         )
     elif distance == "adtw":
-        return adtw_alignment_path(ts, center, window, None, warp_penalty)
+        return adtw_alignment_path(ts, center, window=window, warp_penalty=warp_penalty)
     elif distance == "soft_dtw":
-        return soft_dtw_alignment_path(ts, center, gamma, window, None)
+        return soft_dtw_alignment_path(ts, center, gamma=gamma, window=window)
     else:
         # When numba version > 0.57 add more informative error with what method
         # was passed.
