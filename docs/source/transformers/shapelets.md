@@ -1,6 +1,6 @@
 # Shapelets in RDST Classifier / Transformer
 
-Aeon’s RDST classifier/transformer extracts **shapelets** – small patterns from time series data – used for classification.  
+Aeon’s RDST classifier/transformer extracts **shapelets** – small patterns from time series data – used for classification.
 This documentation explains how to access, interpret, and visualize them.
 
 ---
@@ -47,7 +47,7 @@ print("Length:", length)
 
 The `threshold` determines whether a subsequence in a time series is considered a **match** for a given shapelet:
 
-- If the distance between the shapelet and a subsequence **< threshold** → **occurrence = 1**  
+- If the distance between the shapelet and a subsequence **< threshold** → **occurrence = 1**
 - Else → **occurrence = 0**
 
 This binary Shapelet Occurrence (SO) feature is what the classifier ultimately uses.
@@ -80,7 +80,7 @@ else:
 ```python
 for i, shp in enumerate(rdstclf.transformer.shapelets):
     real_vals = shp['values'][:, :shp['length']].flatten()
-    
+
     print(f"Shapelet {i} | Class {shp['class']}")
     print(f"   Length     : {shp['length']}")
     print(f"   Startpoint : {shp['startpoint']}")
@@ -96,6 +96,3 @@ for i, shp in enumerate(rdstclf.transformer.shapelets):
 - How to extract the real (unpadded) numeric values
 - How threshold and Shapelet Occurrence (SO) features work
 - How to inspect and visualize all discovered shapelets
-
-
-
