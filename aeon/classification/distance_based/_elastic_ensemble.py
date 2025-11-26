@@ -413,7 +413,9 @@ class ElasticEnsemble(BaseClassifier):
             return np.arange(min_val, max_val + inc / 2, inc)
 
         if distance_measure == "dtw" or distance_measure == "ddtw":
-            return {"distance_params": [{"window": x / 100} for x in range(0, 100)]}
+            constrained_params = [{"window": x / 100} for x in range(1, 100)]
+            unconstrained_param = {"window": 1.0}
+            return {"distance_params": [unconstrained_param] + constrained_params}
         elif distance_measure == "wdtw" or distance_measure == "wddtw":
             return {"distance_params": [{"g": x / 100} for x in range(0, 100)]}
         elif distance_measure == "lcss":
