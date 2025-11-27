@@ -9,6 +9,7 @@ __all__ = [
 import numpy as np
 
 from aeon.utils.numba.general import z_normalise_series_3d
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 ORG_ID = "monster-monash"
 _monster_dataset_names = None
@@ -16,6 +17,7 @@ _monster_dataset_names = None
 
 def _fetch_monster_dataset_names() -> list[str]:
     """Fetch the list of Monster dataset names from Hugging Face Hub."""
+    _check_soft_dependencies("huggingface-hub")
     from huggingface_hub import list_datasets
 
     datasets = list_datasets(author=ORG_ID)
@@ -105,6 +107,7 @@ def load_monster_dataset(
         Time Series Evaluation Repository. arXiv preprint arXiv:2502.15122.
 
     """
+    _check_soft_dependencies("huggingface-hub")
     from huggingface_hub import hf_hub_download
     from huggingface_hub.utils import HfHubDownloadError
 
