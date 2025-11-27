@@ -104,12 +104,12 @@ from aeon.datasets._tss_data_loaders import (
     load_human_activity_segmentation_datasets,
     load_time_series_segmentation_benchmark,
 )
+from aeon.datasets.monster_loader import (
+    load_monster_dataset,
+    load_monster_dataset_names,
+)
 from aeon.datasets.rehabpile_loader import (
     load_rehab_pile_classification_datasets,
     load_rehab_pile_dataset,
     load_rehab_pile_regression_datasets,
-)
-from aeon.datasets.monster_loader import (
-    load_monster_dataset,
-    load_monster_dataset_names,
 )
