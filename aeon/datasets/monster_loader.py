@@ -1,7 +1,13 @@
 """Dataset loading functions for Monster datasets. """
 
+__maintainer__=[]
+__all__=[
+    "load_monster_dataset_names",
+    "load_monster_dataset",]
+
 import numpy as np
 from aeon.utils.numba.general import z_normalise_series_3d
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 ORG_ID = "monster-monash"
 
@@ -25,6 +31,10 @@ _monster_dataset_names=None
 def _fetch_monster_dataset_names()-> list[str]:
     """Fetch the list of Monster dataset names from Hugging Face Hub."""
     
+    _check_soft_dependencies(
+        "huggingface-hub",           
+        severity="error"           
+    )
     from huggingface_hub import list_datasets
     
     datasets = list_datasets(author=ORG_ID)
@@ -65,8 +75,8 @@ def load_monster_dataset(
     """Load a Monster dataset from Hugging Face Hub.
     
      MONSTER— the MONash Scalable Time Series Evaluation Repository,
-     is a collection of large datasets for time series classification.
-     The collection is hosted on Hugging Face Hub.
+     introduced in [1]_, is a collection of large datasets for time 
+     series classification.The collection is hosted on Hugging Face Hub.
      
      Parameters
     ----------
@@ -112,11 +122,19 @@ def load_monster_dataset(
         Time Series Evaluation Repository. arXiv preprint arXiv:2502.15122.
         
     """
-      
+    _check_soft_dependencies(
+        "huggingface-hub",           
+        severity="error"           
+    )
     from huggingface_hub import hf_hub_download
     
     repo_id = f"{ORG_ID}/{dataset_name}"
 
+    if dataset_name not in load_monster_dataset_names():
+        raise ValueError(
+            f"Dataset {dataset_name} not found in the Monster collection. "
+        )
+    
     data_path = hf_hub_download(
         repo_id=repo_id, filename=f"{dataset_name}_X.npy", repo_type="dataset"
     )
@@ -156,5 +174,3 @@ def load_monster_dataset(
         y[test_bool_index],
     )
 
-monster=load_monster_dataset("AudioMNIST")
-print(monster[0].shape, monster[1].shape, monster[2].shape, monster[3].shape)
