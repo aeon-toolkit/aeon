@@ -1,61 +1,44 @@
-"""Dataset loading functions for Monster datasets. """
+"""Dataset loading functions for Monster datasets."""
 
-__maintainer__=[]
-__all__=[
+__maintainer__ = []
+__all__ = [
     "load_monster_dataset_names",
-    "load_monster_dataset",]
+    "load_monster_dataset",
+]
 
 import numpy as np
+
 from aeon.utils.numba.general import z_normalise_series_3d
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 ORG_ID = "monster-monash"
 
-
-univariate_monster_datasets = [
-    "CornellWhaleChallenge",
-    "AudioMNIST",
-    "WhaleSounds",
-    "Pedestrian",
-    "FruitFlies",
-    "AudioMNIST-DS",
-    "Traffic",
-    "LakeIce",
-    "MosquitoSound",
-    "InsectSound",
-]
-
-_monster_dataset_names=None
+_monster_dataset_names = None
 
 
-def _fetch_monster_dataset_names()-> list[str]:
+def _fetch_monster_dataset_names() -> list[str]:
     """Fetch the list of Monster dataset names from Hugging Face Hub."""
-    
-    _check_soft_dependencies(
-        "huggingface-hub",           
-        severity="error"           
-    )
+    _check_soft_dependencies("huggingface-hub", severity="error")
     from huggingface_hub import list_datasets
-    
+
     datasets = list_datasets(author=ORG_ID)
     dataset_names = []
     for dataset_info in datasets:
         if dataset_info.id.startswith(f"{ORG_ID}/"):
-            name = dataset_info.id.split('/')[-1]
+            name = dataset_info.id.split("/")[-1]
             dataset_names.append(name)
-            
+
     return sorted(dataset_names)
 
 
 def _lazy_load_monster_names():
     """Fetch and cache names, but only on the first call."""
-    
     global _monster_dataset_names
     if _monster_dataset_names is None:
         _monster_dataset_names = _fetch_monster_dataset_names()
-    
-    
-def load_monster_dataset_names()-> list[str]:
+
+
+def load_monster_dataset_names() -> list[str]:
     """Load the list of available Monster dataset names from Hugging Face Hub.
 
     Returns
@@ -70,15 +53,15 @@ def load_monster_dataset_names()-> list[str]:
 def load_monster_dataset(
     dataset_name: str,
     fold: int = 0,
-    normalize: bool= True,
-    )-> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    normalize: bool = True,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """Load a Monster dataset from Hugging Face Hub.
-    
+
      MONSTER— the MONash Scalable Time Series Evaluation Repository,
-     introduced in [1]_, is a collection of large datasets for time 
+     introduced in [1]_, is a collection of large datasets for time
      series classification.The collection is hosted on Hugging Face Hub.
-     
-     Parameters
+
+    Parameters
     ----------
     dataset_name : str
         The name of the dataset to load (e.g., "CornellWhaleChallenge", "AudioMNIST").
@@ -104,50 +87,49 @@ def load_monster_dataset(
     Raises
     ------
     ModuleNotFoundError
-        If the required optional dependency 'huggingface-hub' is not installed.
+        If required optional dependency 'huggingface-hub' not installed.
     ValueError
-        If the requested `dataset_name` is not recognized or the `fold` number is invalid.
+        If the `dataset_name` is not recognized
+        or the `fold` number is invalid.
     OSError
-        If the download fails due to network issues (Timeout, HTTPError, etc.).
-    
+        If the download fails due to network issues
+
     Notes
     -----
-    The data files are cached locally by the `huggingface-hub` library, avoiding 
-    repeated downloads. This function requires the optional dependency `huggingface-hub`.
-    
+    The data files are cached locally by the `huggingface-hub`
+    library, avoiding repeated downloads. This function
+    requires the optional dependency `huggingface-hub`.
+
     References
     ----------
-    .. [1] Dempster, A., Mohammadi Foumani, N., Tan, C. W., Miller, L., Mishra, A., Salehi, M.,
-        Pelletier, C., Schmidt, D. F., & Webb, G. I. (2025). MONSTER: Monash Scalable 
+    .. [1] Dempster, A., Mohammadi Foumani, N., Tan, C. W., Miller,
+        L., Mishra, A., Salehi, M., Pelletier, C., Schmidt, D. F.,
+        & Webb, G. I. (2025). MONSTER: Monash Scalable
         Time Series Evaluation Repository. arXiv preprint arXiv:2502.15122.
-        
+
     """
-    _check_soft_dependencies(
-        "huggingface-hub",           
-        severity="error"           
-    )
+    _check_soft_dependencies("huggingface-hub", severity="error")
     from huggingface_hub import hf_hub_download
-    
+    from huggingface_hub.utils import HfHubDownloadError
+
     repo_id = f"{ORG_ID}/{dataset_name}"
 
     if dataset_name not in load_monster_dataset_names():
-        raise ValueError(
-            f"Dataset {dataset_name} not found in the Monster collection. "
-        )
-    
+        raise ValueError(f"Dataset {dataset_name} not found in the Monster collection.")
+
     data_path = hf_hub_download(
         repo_id=repo_id, filename=f"{dataset_name}_X.npy", repo_type="dataset"
     )
-    X = np.load(data_path, mmap_mode="r") 
+    X = np.load(data_path, mmap_mode="r")
     if normalize:
         X = z_normalise_series_3d(X)
-    
+
     label_filename = f"{dataset_name}_Y.npy"
     try:
         label_path = hf_hub_download(
             repo_id=repo_id, filename=label_filename, repo_type="dataset"
         )
-    except:
+    except HfHubDownloadError:
         label_filename = f"{dataset_name}_y.npy"
         label_path = hf_hub_download(
             repo_id=repo_id, filename=label_filename, repo_type="dataset"
@@ -162,8 +144,7 @@ def load_monster_dataset(
         )
         test_index = np.loadtxt(test_index_path, dtype=int)
     except Exception as e:
-        logger.error(f"Failed to load test indices: {e}")
-        raise
+        raise OSError(f"Failed to load test indices for fold {fold}: {e}. ") from e
 
     test_bool_index = np.zeros(len(y), dtype=bool)
     test_bool_index[test_index] = True
@@ -173,4 +154,3 @@ def load_monster_dataset(
         X[test_bool_index],
         y[test_bool_index],
     )
-
