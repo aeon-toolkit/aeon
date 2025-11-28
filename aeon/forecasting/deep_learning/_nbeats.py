@@ -6,22 +6,39 @@ __maintainer__ = []
 __all__ = ["NBeatsForecaster"]
 
 import numpy as np
-import tensorflow as tf
 from sklearn.utils import check_random_state
 
 from aeon.forecasting.base import DirectForecastingMixin
 from aeon.forecasting.deep_learning.base import BaseDeepForecaster
+from aeon.utils.validation._dependencies import _check_soft_dependencies
+
+if _check_soft_dependencies("tensorflow", severity="none"):
+    from tensorflow.keras.layers import Layer
+    from tensorflow.keras.utils import Sequence
+else:
+
+    class Layer:
+        """Dummy class for soft dependency."""
+
+        pass
+
+    class Sequence:
+        """Dummy class for soft dependency."""
+
+        pass
 
 
 def smape_loss(y_true, y_pred):
     """Symmetric Mean Absolute Percentage Error (SMAPE) loss."""
+    import tensorflow as tf
+
     epsilon = 0.1
     numerator = tf.abs(y_true - y_pred)
     denominator = tf.abs(y_true) + tf.abs(y_pred) + epsilon
     return 200.0 * tf.reduce_mean(numerator / denominator)
 
 
-class _NBeatsDataGenerator(tf.keras.utils.Sequence):
+class _NBeatsDataGenerator(Sequence):
     """Generates training data batches via random sampling."""
 
     def __init__(self, y, window, horizon, batch_size, steps_per_epoch, random_state):
@@ -53,7 +70,7 @@ class _NBeatsDataGenerator(tf.keras.utils.Sequence):
         return np.array(X_batch), np.array(y_batch)
 
 
-class _NBeatsBlock(tf.keras.layers.Layer):
+class _NBeatsBlock(Layer):
     """N-BEATS basic building block."""
 
     def __init__(
@@ -67,6 +84,8 @@ class _NBeatsBlock(tf.keras.layers.Layer):
         **kwargs,
     ):
         super().__init__(**kwargs)
+        import tensorflow as tf
+
         self.stack_type = stack_type
         self.input_width = input_width
         self.forecast_width = forecast_width
@@ -110,6 +129,8 @@ class _NBeatsBlock(tf.keras.layers.Layer):
         return backcast, forecast
 
     def _basis_trend(self, theta_b, theta_f):
+        import tensorflow as tf
+
         t_b = np.linspace(0, 1, self.input_width)
         t_f = np.linspace(0, 1, self.forecast_width)
         degree = self.thetas_dim
@@ -122,6 +143,8 @@ class _NBeatsBlock(tf.keras.layers.Layer):
         return backcast, forecast
 
     def _basis_seasonality(self, theta_b, theta_f):
+        import tensorflow as tf
+
         t_b = np.arange(self.input_width) / self.input_width
         t_f = np.arange(self.forecast_width) / self.forecast_width
         harmonics = self.thetas_dim // 2
@@ -283,6 +306,8 @@ class NBeatsForecaster(BaseDeepForecaster, DirectForecastingMixin):
 
     def build_model(self, input_shape):
         """Build the N-BEATS model."""
+        import tensorflow as tf
+
         inputs = tf.keras.Input(shape=input_shape)
         if len(input_shape) > 1:
             x_res = tf.keras.layers.Flatten()(inputs)
@@ -350,6 +375,8 @@ class NBeatsForecaster(BaseDeepForecaster, DirectForecastingMixin):
 
     def _fit(self, y, exog=None):
         """Fit the model."""
+        import tensorflow as tf
+
         rng = check_random_state(self.random_state)
         seed = rng.randint(0, np.iinfo(np.int32).max)
         tf.keras.utils.set_random_seed(seed)
@@ -395,6 +422,8 @@ class NBeatsForecaster(BaseDeepForecaster, DirectForecastingMixin):
 
     def predict_decomposition(self, y=None):
         """Predict and decompose the forecast into stack components."""
+        import tensorflow as tf
+
         X_pred = self._prepare_input(y)
         outputs = []
         output_names = []
