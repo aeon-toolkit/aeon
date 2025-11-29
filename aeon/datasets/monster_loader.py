@@ -17,7 +17,7 @@ _monster_dataset_names = None
 
 def _fetch_monster_dataset_names() -> list[str]:
     """Fetch the list of Monster dataset names from Hugging Face Hub."""
-    _check_soft_dependencies("huggingface-hub")
+    _check_soft_dependencies("huggingface-hub", severity="none")
     from huggingface_hub import list_datasets
 
     datasets = list_datasets(author=ORG_ID)
@@ -107,9 +107,9 @@ def load_monster_dataset(
         Time Series Evaluation Repository. arXiv preprint arXiv:2502.15122.
 
     """
-    _check_soft_dependencies("huggingface-hub")
+    _check_soft_dependencies("huggingface-hub", severity="none")
     from huggingface_hub import hf_hub_download
-    from huggingface_hub.utils import HfHubDownloadError
+    from huggingface_hub.errors import HfHubHTTPError
 
     repo_id = f"{ORG_ID}/{dataset_name}"
 
@@ -123,17 +123,14 @@ def load_monster_dataset(
     if normalize:
         X = z_normalise_series_3d(X)
 
-    label_filename = f"{dataset_name}_Y.npy"
+    label_filename = f"{dataset_name}_y.npy"
     try:
         label_path = hf_hub_download(
             repo_id=repo_id, filename=label_filename, repo_type="dataset"
         )
-    except HfHubDownloadError:
-        label_filename = f"{dataset_name}_y.npy"
-        label_path = hf_hub_download(
-            repo_id=repo_id, filename=label_filename, repo_type="dataset"
-        )
-    y = np.load(label_path)
+        y = np.load(label_path)
+    except HfHubHTTPError as e:
+        raise OSError("Failed to load labels for the dataset ") from e
 
     try:
         test_index_path = hf_hub_download(
@@ -142,7 +139,7 @@ def load_monster_dataset(
             repo_type="dataset",
         )
         test_index = np.loadtxt(test_index_path, dtype=int)
-    except Exception as e:
+    except HfHubHTTPError as e:
         raise OSError(f"Failed to load test indices for fold {fold}: {e}. ") from e
 
     test_bool_index = np.zeros(len(y), dtype=bool)
