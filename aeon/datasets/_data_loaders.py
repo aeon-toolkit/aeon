@@ -7,6 +7,7 @@ __all__ = [  # Load functions
     "load_from_arff_file",
     "load_from_tsv_file",
     "load_classification",
+    "load_classification_encoded",
     "load_forecasting",
     "load_regression",
     "download_all_regression",
@@ -29,6 +30,7 @@ from urllib.request import Request, urlopen, urlretrieve
 
 import numpy as np
 import pandas as pd
+from sklearn.preprocessing import LabelEncoder
 
 import aeon
 from aeon.datasets.dataset_collections import (
@@ -1425,6 +1427,82 @@ def load_classification(
     if return_metadata:
         return X, y, meta
     return X, y
+
+
+def load_classification_encoded(
+    name,
+    extract_path=None,
+    return_metadata=False,
+    return_encoder=False,
+    load_equal_length=True,
+    load_no_missing=True,
+):
+    """Load a classification dataset with encoded labels.
+
+    Loads both train and test splits, fits a LabelEncoder on the training
+    labels, and transforms both training and test labels.
+
+    Parameters
+    ----------
+    name : str
+        Name of the dataset to load.
+    extract_path : str, optional (default=None)
+        Path to the data file.
+    return_metadata : bool, optional (default=False)
+        If True, returns a dictionary of metadata.
+    return_encoder : bool, optional (default=False)
+        If True, returns the fitted LabelEncoder.
+    load_equal_length : bool, optional (default=True)
+        If True, load the version of the dataset with equal length series.
+    load_no_missing : bool, optional (default=True)
+        If True, load the version of the dataset with no missing values.
+
+    Returns
+    -------
+    X_train : np.ndarray or list of np.ndarray
+        Training data.
+    y_train : np.ndarray
+        Encoded training labels.
+    X_test : np.ndarray or list of np.ndarray
+        Test data.
+    y_test : np.ndarray
+        Encoded test labels.
+    meta_data : dict, optional
+        Metadata dictionary (only if return_metadata=True).
+    le : LabelEncoder, optional
+        Fitted LabelEncoder (only if return_encoder=True).
+    """
+    res = load_classification(
+        name,
+        split="train",
+        extract_path=extract_path,
+        return_metadata=return_metadata,
+        load_equal_length=load_equal_length,
+        load_no_missing=load_no_missing,
+    )
+
+    if return_metadata:
+        X_train, y_train, meta = res
+    else:
+        X_train, y_train = res
+    X_test, y_test = load_classification(
+        name,
+        split="test",
+        extract_path=extract_path,
+        return_metadata=False,
+        load_equal_length=load_equal_length,
+        load_no_missing=load_no_missing,
+    )
+
+    le = LabelEncoder()
+    y_train = le.fit_transform(y_train)
+    y_test = le.transform(y_test)
+    ret = (X_train, y_train, X_test, y_test)
+    if return_metadata:
+        ret += (meta,)
+    if return_encoder:
+        ret += (le,)
+    return ret
 
 
 def download_all_regression(extract_path=None):
