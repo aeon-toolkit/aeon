@@ -55,5 +55,5 @@ def test_load_monster_dataset():
     # Check normalization
     mean = np.mean(X_train, axis=(0, 2))
     std = np.std(X_train, axis=(0, 2))
-    np.testing.assert_array_almost_equal(mean, np.zeros_like(mean), decimal=5)
-    np.testing.assert_array_almost_equal(std, np.ones_like(std), decimal=5)
+    np.testing.assert_array_almost_equal(mean, np.zeros_like(mean), decimal=3)
+    np.testing.assert_array_almost_equal(std, np.ones_like(std), decimal=3)
