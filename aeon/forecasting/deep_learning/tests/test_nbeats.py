@@ -19,6 +19,7 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 def test_nbeats_forecaster_fit_predict(horizon, window, epochs):
     """Test NBeatsForecaster fit and predict with different parameter combinations."""
     import tensorflow as tf
+
     y = load_airline()
 
     forecaster = NBeatsForecaster(
