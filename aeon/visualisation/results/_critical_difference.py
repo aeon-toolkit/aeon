@@ -172,6 +172,7 @@ def plot_critical_difference(
         )
 
     # Step 1: rank data: in case of ties average ranks are assigned
+
     if lower_better:  # low is good -> rank 1
         ranks = rankdata(scores, axis=1)
     else:  # assign opposite ranks
@@ -313,32 +314,49 @@ def plot_critical_difference(
     space_between_names = 0.24
     for i in range(math.ceil(len(ordered_avg_ranks) / 2)):
         chei = cline + minnotsignificant + i * space_between_names
+        # The values rank_xpos and rank_ypos may change depending upon whether
+        # line is overlapping with rank values.
+        rank_xpos = 0
+        rank_ypos = 0
+
+        # Store x coordinate of line in some temporary variable for checking
+        line_xpos = _rankpos(ordered_avg_ranks[i])
         if reverse:
             _line(
                 [
                     (_rankpos(ordered_avg_ranks[i]), cline),
                     (_rankpos(ordered_avg_ranks[i]), chei),
-                    (textspace + scalewidth + 0.2, chei),
+                    (textspace + scalewidth + 0.1, chei),
                 ],
                 linewidth=linewidth,
                 color=colours[i],
             )
             _text(  # labels left side.
-                textspace + scalewidth + 0.3,
+                textspace + scalewidth + 0.2,
                 chei,
                 ordered_labels[i],
                 ha="left",
                 va="center",
-                size=16,
+                size=9,
                 color=colours[i],
             )
+
+            # Check if the horizontal position of line is too close to the scale edges,
+            # i.e. whether line can overlap with the rank values. if yes, shift the
+            # rank value corresponding to the line to a bit top and left side
+            if line_xpos > textspace + scalewidth - 0.17:
+                rank_xpos = line_xpos + 0.05
+                rank_ypos = chei - 0.4
+            else:
+                rank_xpos = textspace + scalewidth - 0.17
+                rank_ypos = chei - 0.075
             _text(  # ranks left side.
-                textspace + scalewidth - 0.3,
-                chei - 0.075,
+                rank_xpos,
+                rank_ypos,
                 format(ordered_avg_ranks[i], ".4f"),
                 ha="left",
                 va="center",
-                size=10,
+                size=7,
                 color=colours[i],
             )
         else:
@@ -357,16 +375,26 @@ def plot_critical_difference(
                 ordered_labels[i],
                 ha="right",
                 va="center",
-                size=16,
+                size=9,
                 color=colours[i],
             )
+
+            # Checking the same overlapping condition of the line for
+            # reverse = False case as well
+            if line_xpos < textspace + 0.22:
+                rank_xpos = line_xpos - 0.05
+                rank_ypos = chei - 0.4
+            else:
+                rank_xpos = textspace + 0.2
+                rank_ypos = chei - 0.075
+
             _text(  # ranks left side.
-                textspace + 0.4,
-                chei - 0.075,
+                rank_xpos,
+                rank_ypos,
                 format(ordered_avg_ranks[i], ".4f"),
                 ha="right",
                 va="center",
-                size=10,
+                size=7,
                 color=colours[i],
             )
 
@@ -376,6 +404,13 @@ def plot_critical_difference(
             + minnotsignificant
             + (len(ordered_avg_ranks) - i - 1) * space_between_names
         )
+        # The values rank_xpos and rank_ypos may change depending upon whether
+        # line is overlapping with rank values.
+        rank_xpos = 0
+        rank_ypos = 0
+
+        # Store x coordinate of line in some temporary variable for checking
+        line_xpos = _rankpos(ordered_avg_ranks[i])
         if reverse:
             _line(
                 [
@@ -392,16 +427,26 @@ def plot_critical_difference(
                 ordered_labels[i],
                 ha="right",
                 va="center",
-                size=16,
+                size=9,
                 color=colours[i],
             )
+
+            # Check if the horizontal position of line is too close to the scale edges,
+            # i.e. whether line can overlap with the rank values. if yes, shift the
+            # rank value corresponding to the line to a bit top and left side.
+            if line_xpos < textspace + 0.22:
+                rank_xpos = line_xpos - 0.05
+                rank_ypos = chei - 0.4
+            else:
+                rank_xpos = textspace + 0.2
+                rank_ypos = chei - 0.075
             _text(  # ranks right side.
-                textspace + 0.4,
-                chei - 0.075,
+                rank_xpos,
+                rank_ypos,
                 format(ordered_avg_ranks[i], ".4f"),
                 ha="right",
                 va="center",
-                size=10,
+                size=7,
                 color=colours[i],
             )
         else:
@@ -420,16 +465,26 @@ def plot_critical_difference(
                 ordered_labels[i],
                 ha="left",
                 va="center",
-                size=16,
+                size=9,
                 color=colours[i],
             )
+
+            # Checking the same overlapping condition of the line for
+            # reverse = False case as well
+            if line_xpos > textspace + scalewidth - 0.17:
+                rank_xpos = line_xpos + 0.05
+                rank_ypos = chei - 0.4
+            else:
+                rank_xpos = textspace + scalewidth - 0.17
+                rank_ypos = chei - 0.075
+
             _text(  # ranks right side.
-                textspace + scalewidth - 0.4,
-                chei - 0.075,
+                rank_xpos,
+                rank_ypos,
                 format(ordered_avg_ranks[i], ".4f"),
                 ha="left",
                 va="center",
-                size=10,
+                size=7,
                 color=colours[i],
             )
 
