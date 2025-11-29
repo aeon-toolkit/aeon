@@ -5,7 +5,6 @@ __all__ = []
 
 import numpy as np
 import pytest
-import tensorflow as tf
 
 from aeon.datasets import load_airline
 from aeon.forecasting.deep_learning._nbeats import NBeatsForecaster
@@ -19,6 +18,7 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 @pytest.mark.parametrize("horizon,window,epochs", [(1, 10, 2), (2, 12, 1)])
 def test_nbeats_forecaster_fit_predict(horizon, window, epochs):
     """Test NBeatsForecaster fit and predict with different parameter combinations."""
+    import tensorflow as tf
     y = load_airline()
 
     forecaster = NBeatsForecaster(

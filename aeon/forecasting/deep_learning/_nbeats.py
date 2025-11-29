@@ -418,7 +418,11 @@ class NBeatsForecaster(BaseDeepForecaster, DirectForecastingMixin):
         """Predict standard forecast."""
         X_pred = self._prepare_input(y)
         y_pred = self.model_.predict(X_pred, verbose=0)
-        return y_pred[0, :, 0]
+        pred_flat = y_pred[0, :, 0]
+        if self.horizon == 1:
+            return float(pred_flat[0])
+
+        return pred_flat
 
     def predict_decomposition(self, y=None):
         """Predict and decompose the forecast into stack components."""
@@ -467,7 +471,7 @@ class NBeatsForecaster(BaseDeepForecaster, DirectForecastingMixin):
     def _get_test_params(cls, parameter_set="default"):
         params = {
             "window": 10,
-            "horizon": 2,
+            "horizon": 1,
             "n_epochs": 1,
             "batch_size": 4,
             "hidden_layer_units": 8,
