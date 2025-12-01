@@ -3,8 +3,11 @@
 import numpy as np
 import pytest
 
-from aeon.forecasting._dummy_series_forecaster import DummySeriesForecaster
-from aeon.forecasting.base import BaseForecaster, SeriesToSeriesForecastingMixin
+from aeon.forecasting.base import SeriesToSeriesForecastingMixin
+from aeon.forecasting.deep_learning._dummy_series_forecaster import (
+    DummySeriesForecaster,
+)
+from aeon.forecasting.deep_learning.base import BaseDeepForecaster
 
 Y_TEST = np.array([[1.0, 2.0, 3.0, 4.0, 5.0]])
 
@@ -12,7 +15,7 @@ Y_TEST = np.array([[1.0, 2.0, 3.0, 4.0, 5.0]])
 def test_abstract_method_raises_error():
     """Checks that a forecaster must implement the abstract method."""
 
-    class BrokenForecaster(BaseForecaster, SeriesToSeriesForecastingMixin):
+    class BrokenForecaster(BaseDeepForecaster, SeriesToSeriesForecastingMixin):
         def _fit(self, y, exog=None):
             return self
 
