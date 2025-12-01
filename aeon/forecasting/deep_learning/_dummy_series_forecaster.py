@@ -17,9 +17,15 @@ class DummySeriesForecaster(BaseDeepForecaster, SeriesToSeriesForecastingMixin):
     is functional.
     """
 
-    def __init__(self, horizon: int = 1, axis: int = 1, value_to_return: float = 1.0):
+    def __init__(
+        self,
+        horizon: int = 1,
+        axis: int = 1,
+        window: int = 5,
+        value_to_return: float = 1.0,
+    ):
         self.value_to_return = value_to_return
-        super().__init__(horizon=horizon, axis=axis)
+        super().__init__(horizon=horizon, window=window, axis=axis)
 
     def _fit(self, y, exog=None):
         return self
@@ -33,3 +39,6 @@ class DummySeriesForecaster(BaseDeepForecaster, SeriesToSeriesForecastingMixin):
     ) -> np.ndarray:
         """Return a 1D NumPy array with predicted value for entire horizon."""
         return np.full(prediction_horizon, fill_value=self.value_to_return)
+
+    def build_model(self, input_shape):
+        pass
