@@ -2,10 +2,11 @@
 
 import numpy as np
 
-from aeon.forecasting.base import BaseForecaster, SeriesToSeriesForecastingMixin
+from aeon.forecasting.base import SeriesToSeriesForecastingMixin
+from aeon.forecasting.deep_learning.base import BaseDeepForecaster
 
 
-class DummySeriesForecaster(BaseForecaster, SeriesToSeriesForecastingMixin):
+class DummySeriesForecaster(BaseDeepForecaster, SeriesToSeriesForecastingMixin):
     """
     A dummy forecaster used to test the SeriesToSeriesForecastingMixin.
 
@@ -21,8 +22,6 @@ class DummySeriesForecaster(BaseForecaster, SeriesToSeriesForecastingMixin):
         super().__init__(horizon=horizon, axis=axis)
 
     def _fit(self, y, exog=None):
-        self.n_timepoints_ = y.shape[1]
-        self.last_observed_value_ = y[0, -1]
         return self
 
     def _predict(self, y, exog=None):
