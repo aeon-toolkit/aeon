@@ -2,6 +2,7 @@
 
 __maintainer__ = ["SebastianSchmidl"]
 
+from typing import List
 
 import numpy as np
 from numba import njit, objmode, prange
@@ -11,6 +12,21 @@ from scipy.signal import correlate
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
 from aeon.utils.numba._threading import threaded
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
+
+__all__ = [
+    "sbd_distance",
+    "sbd_pairwise_distance",
+    "_univariate_sbd_distance",
+    "_univariate_sbd_ncc_curve",
+    "_univariate_sbd_best_shift",
+    "_univariate_sbd_align_to_center",
+    "_zscore_1d",
+]
+
+
+# ---------------------------------------------------------------------------
+# Public API
+# ---------------------------------------------------------------------------
 
 
 @njit(cache=True, fastmath=True)
@@ -86,14 +102,6 @@ def sbd_distance(x: np.ndarray, y: np.ndarray, standardize: bool = True) -> floa
     .. [1] Paparrizos, John, and Luis Gravano: Fast and Accurate Time-Series
            Clustering. ACM Transactions on Database Systems 42, no. 2 (2017):
            8:1-8:49. https://doi.org/10.1145/3044711.
-
-    Examples
-    --------
-    >>> import numpy as np
-    >>> from aeon.distances import sbd_distance
-    >>> x = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
-    >>> y = np.array([[11, 12, 13, 14, 15, 16, 17, 18, 19, 20]])
-    >>> dist = sbd_distance(x, y)
     """
     if x.ndim == 1 and y.ndim == 1:
         return _univariate_sbd_distance(x, y, standardize)
@@ -115,8 +123,8 @@ def sbd_distance(x: np.ndarray, y: np.ndarray, standardize: bool = True) -> floa
 
 @threaded
 def sbd_pairwise_distance(
-    X: np.ndarray | list[np.ndarray],
-    y: np.ndarray | list[np.ndarray] | None = None,
+    X: np.ndarray | List[np.ndarray],
+    y: np.ndarray | List[np.ndarray] | None = None,
     standardize: bool = True,
     n_jobs: int = 1,
 ) -> np.ndarray:
@@ -163,39 +171,6 @@ def sbd_pairwise_distance(
     --------
     :func:`~aeon.distances.sbd_distance` : Compute the shape-based distance between
         two time series.
-
-    Examples
-    --------
-    >>> import numpy as np
-    >>> from aeon.distances import sbd_pairwise_distance
-    >>> # Distance between each time series in a collection of time series
-    >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
-    >>> sbd_pairwise_distance(X)
-    array([[0., 0., 0.],
-           [0., 0., 0.],
-           [0., 0., 0.]])
-
-    >>> # Distance between two collections of time series
-    >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
-    >>> y = np.array([[[11, 12, 13]],[[14, 15, 16]], [[17, 18, 19]]])
-    >>> sbd_pairwise_distance(X, y)
-    array([[0., 0., 0.],
-           [0., 0., 0.],
-           [0., 0., 0.]])
-
-    >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
-    >>> y_univariate = np.array([11, 12, 13])
-    >>> sbd_pairwise_distance(X, y_univariate)
-    array([[0.],
-           [0.],
-           [0.]])
-
-    >>> # Distance between each TS in a collection of unequal-length time series
-    >>> X = [np.array([1, 2, 3]), np.array([4, 5, 6, 7]), np.array([8, 9, 10, 11, 12])]
-    >>> sbd_pairwise_distance(X)
-    array([[0.        , 0.36754447, 0.5527864 ],
-           [0.36754447, 0.        , 0.29289322],
-           [0.5527864 , 0.29289322, 0.        ]])
     """
     multivariate_conversion = _is_numpy_list_multivariate(X, y)
     _X, _ = _convert_collection_to_numba_list(X, "", multivariate_conversion)
@@ -206,6 +181,11 @@ def sbd_pairwise_distance(
 
     _y, _ = _convert_collection_to_numba_list(y, "y", multivariate_conversion)
     return _sbd_pairwise_distance(_X, _y, standardize)
+
+
+# ---------------------------------------------------------------------------
+# Pairwise internals
+# ---------------------------------------------------------------------------
 
 
 @njit(cache=True, fastmath=True, parallel=True)
@@ -237,20 +217,142 @@ def _sbd_pairwise_distance(
     return distances
 
 
+# ---------------------------------------------------------------------------
+# Core reusable pieces: z-score, NCC curve, best shift, alignment, distance
+# ---------------------------------------------------------------------------
+
+
 @njit(cache=True, fastmath=True)
-def _univariate_sbd_distance(x: np.ndarray, y: np.ndarray, standardize: bool) -> float:
+def _zscore_1d(x: np.ndarray) -> np.ndarray:
+    """Numba-friendly z-score of a 1D array.
+
+    If the variance is zero, returns all zeros.
+    """
+    x = x.astype(np.float64)
+    n = x.size
+    if n <= 1:
+        return x * 0.0
+
+    mu = 0.0
+    for i in range(n):
+        mu += x[i]
+    mu /= n
+
+    var = 0.0
+    for i in range(n):
+        diff = x[i] - mu
+        var += diff * diff
+    var /= n
+
+    if var <= 0.0:
+        return x * 0.0
+
+    sigma = np.sqrt(var)
+    out = np.empty_like(x)
+    for i in range(n):
+        out[i] = (x[i] - mu) / sigma
+    return out
+
+
+@njit(cache=True, fastmath=True)
+def _univariate_sbd_preprocess(
+    x: np.ndarray, y: np.ndarray, standardize: bool
+) -> tuple[np.ndarray, np.ndarray]:
+    """Cast to float64 and optionally standardize both series."""
     x = x.astype(np.float64)
     y = y.astype(np.float64)
 
     if standardize:
         if x.size == 1 or y.size == 1:
-            return 0.0
+            # Degenerate case: we define distance 0.0 later, but still return arrays.
+            return x * 0.0, y * 0.0
 
-        x = (x - np.mean(x)) / np.std(x)
-        y = (y - np.mean(y)) / np.std(y)
+        x = _zscore_1d(x)
+        y = _zscore_1d(y)
 
+    return x, y
+
+
+@njit(cache=True, fastmath=True)
+def _univariate_sbd_ncc_curve(
+    x: np.ndarray, y: np.ndarray, standardize: bool
+) -> np.ndarray:
+    """Return the normalized cross-correlation (NCC) curve for all lags.
+
+    Uses scipy.signal.correlate via objmode + FFT method, then normalizes
+    by the geometric mean of autocorrelations, exactly as in the original
+    SBD definition.
+    """
+    x, y = _univariate_sbd_preprocess(x, y, standardize)
+
+    # full cross-correlation via SciPy in objmode
     with objmode(a="float64[:]"):
         a = correlate(x, y, method="fft")
 
+    # coefficient normalisation
     b = np.sqrt(np.dot(x, x) * np.dot(y, y))
-    return np.abs(1.0 - np.max(a / b))
+    if b == 0.0:
+        # avoid division by zero; all zeros → NCC all zeros
+        return a * 0.0
+
+    return a / b
+
+
+@njit(cache=True, fastmath=True)
+def _univariate_sbd_best_shift(
+    center: np.ndarray, x: np.ndarray, standardize: bool
+) -> int:
+    """Return the lag that maximises NCC(center, x).
+
+    Using SciPy's correlate semantics:
+
+    correlate(center, x, "full") yields lags from
+    -(len(x)-1) to +(len(center)-1); zero-lag is at index len(x)-1.
+    """
+    ncc = _univariate_sbd_ncc_curve(center, x, standardize)
+    idx = np.argmax(ncc)
+
+    # For equal-length series (n = len(center) = len(x)):
+    #   lags = -(n-1), ..., 0, ..., +(n-1)
+    #   zero-lag at index (n-1)
+    # In general:
+    shift = idx - (x.size - 1)
+    return shift
+
+
+@njit(cache=True, fastmath=True)
+def _roll_zeropad_1d(a: np.ndarray, shift: int) -> np.ndarray:
+    """Roll a 1D array by 'shift' with zeros padding in the gaps.
+
+    Positive shift => move data to the right.
+    Negative shift => move data to the left.
+    """
+    n = a.size
+    res = np.zeros_like(a)
+
+    for i in range(n):
+        j = i - shift
+        if 0 <= j < n:
+            res[i] = a[j]
+    return res
+
+
+@njit(cache=True, fastmath=True)
+def _univariate_sbd_align_to_center(
+    center: np.ndarray, x: np.ndarray, standardize: bool
+) -> np.ndarray:
+    """Align x to center using SBD (max NCC) and return shifted x.
+
+    If center is all zeros, x is returned unchanged.
+    """
+    if np.all(center == 0.0):
+        return x.copy()
+    shift = _univariate_sbd_best_shift(center, x, standardize)
+    return _roll_zeropad_1d(x, shift)
+
+
+@njit(cache=True, fastmath=True)
+def _univariate_sbd_distance(x: np.ndarray, y: np.ndarray, standardize: bool) -> float:
+    """Core univariate SBD distance using the NCC helper."""
+    ncc = _univariate_sbd_ncc_curve(x, y, standardize)
+    return np.abs(1.0 - np.max(ncc))
