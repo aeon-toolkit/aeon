@@ -27,8 +27,8 @@ __maintainer__ = []
 from typing import Literal
 
 import numpy as np
-from numpy.linalg import eigh
 from numba import njit
+from numpy.linalg import eigh
 from sklearn.utils import check_random_state
 
 from aeon.distances._sbd import (

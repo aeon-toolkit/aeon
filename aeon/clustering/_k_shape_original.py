@@ -8,13 +8,13 @@ allows the use of kmeans++ initialisation.
 Original code: https://github.com/TheDatumOrg/kshape-python
 """
 
+import multiprocessing
 from typing import Optional
 
 import numpy as np
-import multiprocessing
-from numpy.linalg import norm, eigh
 from numpy.fft import fft, ifft
-from sklearn.base import ClusterMixin, BaseEstimator
+from numpy.linalg import eigh, norm
+from sklearn.base import BaseEstimator, ClusterMixin
 from sklearn.utils import check_random_state
 
 from aeon.clustering.base import BaseClusterer
@@ -126,7 +126,7 @@ class TimeSeriesKShapeOriginal(BaseClusterer):
     def _sbd_kmeans_plus_plus(
         self,
         X_ntc: np.ndarray,
-        rng: Optional[np.random.RandomState] = None,
+        rng: np.random.RandomState | None = None,
     ):
         """K-means++ initialisation using original SBD distances.
 
@@ -286,8 +286,7 @@ def zscore(a, axis=0, ddof=0):
     sstd = a.std(axis=axis, ddof=ddof)
 
     if axis and mns.ndim < a.ndim:
-        res = ((a - np.expand_dims(mns, axis=axis)) /
-               np.expand_dims(sstd, axis=axis))
+        res = (a - np.expand_dims(mns, axis=axis)) / np.expand_dims(sstd, axis=axis)
     else:
         res = (a - mns) / sstd
 
@@ -334,7 +333,7 @@ def _ncc_c_3dim(data):
     fft_size = 1 << (2 * x_len - 1).bit_length()
 
     cc = ifft(fft(x, fft_size, axis=0) * np.conj(fft(y, fft_size, axis=0)), axis=0)
-    cc = np.concatenate((cc[-(x_len - 1):], cc[:x_len]), axis=0)
+    cc = np.concatenate((cc[-(x_len - 1) :], cc[:x_len]), axis=0)
 
     return np.real(cc).sum(axis=-1) / den
 
@@ -381,9 +380,11 @@ def _extract_shape(idx, x, j, cur_center, rng):  # CHANGED: added rng argument
     centroid = vec[:, -1]
 
     finddistance1 = np.sum(
-        np.linalg.norm(a - centroid.reshape((x.shape[1], 1)), axis=(1, 2)))
+        np.linalg.norm(a - centroid.reshape((x.shape[1], 1)), axis=(1, 2))
+    )
     finddistance2 = np.sum(
-        np.linalg.norm(a + centroid.reshape((x.shape[1], 1)), axis=(1, 2)))
+        np.linalg.norm(a + centroid.reshape((x.shape[1], 1)), axis=(1, 2))
+    )
 
     if finddistance1 >= finddistance2:
         centroid *= -1
@@ -391,8 +392,9 @@ def _extract_shape(idx, x, j, cur_center, rng):  # CHANGED: added rng argument
     return zscore(centroid, ddof=1)
 
 
-def _kshape(x, k, centroid_init='zero', max_iter=100, n_jobs=1,
-            random_state=None):  # CHANGED: added random_state param
+def _kshape(
+    x, k, centroid_init="zero", max_iter=100, n_jobs=1, random_state=None
+):  # CHANGED: added random_state param
     rng = check_random_state(random_state)  # CHANGED: create RNG from random_state
 
     m = x.shape[0]
@@ -400,9 +402,9 @@ def _kshape(x, k, centroid_init='zero', max_iter=100, n_jobs=1,
 
     if isinstance(centroid_init, np.ndarray):
         centroids = centroid_init
-    elif centroid_init == 'zero':
+    elif centroid_init == "zero":
         centroids = np.zeros((k, x.shape[1], x.shape[2]))
-    elif centroid_init == 'random':
+    elif centroid_init == "random":
         indices = rng.choice(x.shape[0], k)  # CHANGED: use rng instead of np.random
         centroids = x[indices].copy()
     distances = np.empty((m, k))
@@ -441,8 +443,9 @@ def _kshape(x, k, centroid_init='zero', max_iter=100, n_jobs=1,
     return idx, centroids
 
 
-def kshape(x, k, centroid_init='zero', max_iter=100,
-           random_state=None):  # CHANGED: added random_state param
+def kshape(
+    x, k, centroid_init="zero", max_iter=100, random_state=None
+):  # CHANGED: added random_state param
     idx, centroids = _kshape(
         np.array(x),
         k,
@@ -466,8 +469,14 @@ class KShapeClusteringCPU(ClusterMixin, BaseEstimator):
     labels_ = None
     centroids_ = None
 
-    def __init__(self, n_clusters, centroid_init='zero', max_iter=100,
-                 n_jobs=None, random_state=None):  # CHANGED: added random_state param
+    def __init__(
+        self,
+        n_clusters,
+        centroid_init="zero",
+        max_iter=100,
+        n_jobs=None,
+        random_state=None,
+    ):  # CHANGED: added random_state param
         self.n_clusters = n_clusters
         self.centroid_init = centroid_init
         self.max_iter = max_iter
@@ -501,7 +510,9 @@ class KShapeClusteringCPU(ClusterMixin, BaseEstimator):
     def _predict(self, x, centroids):
         m = x.shape[0]
         rng = check_random_state(self.random_state)  # CHANGED: create RNG here
-        idx = rng.randint(0, self.n_clusters, size=m)  # CHANGED: use rng instead of randint
+        idx = rng.randint(
+            0, self.n_clusters, size=m
+        )  # CHANGED: use rng instead of randint
         distances = np.empty((m, self.n_clusters))
 
         pool = multiprocessing.Pool(self.n_jobs)
@@ -521,7 +532,7 @@ class KShapeClusteringCPU(ClusterMixin, BaseEstimator):
 
         return idx, centroids
 
-    def _fit(self, x, k, centroid_init='zero', max_iter=100, n_jobs=1):
+    def _fit(self, x, k, centroid_init="zero", max_iter=100, n_jobs=1):
         idx, centroids = _kshape(
             np.array(x),
             k,

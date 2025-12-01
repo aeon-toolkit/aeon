@@ -1,12 +1,10 @@
 import numpy as np
-from aeon.testing.data_generation import make_example_3d_numpy
-from aeon.clustering._k_shape_original import _ncc_c_3dim
-
-from aeon.distances import sbd_distance, sbd_pairwise_distance
-
-import numpy as np
-from numpy.linalg import norm
 from numpy.fft import fft, ifft
+from numpy.linalg import norm
+
+from aeon.clustering._k_shape_original import _ncc_c_3dim
+from aeon.distances import sbd_distance, sbd_pairwise_distance
+from aeon.testing.data_generation import make_example_3d_numpy
 
 
 def pairwise_sbd_original(X: np.ndarray) -> np.ndarray:
@@ -59,13 +57,13 @@ def pairwise_sbd_original(X: np.ndarray) -> np.ndarray:
 
     return D
 
+
 if __name__ == "__main__":
     X_train = make_example_3d_numpy(10, 1, 10, random_state=1, return_y=False)
     our_sbd = sbd_pairwise_distance(X_train, standardize=False)
 
-    X_train_swap = X_train.swapaxes(1,2)
+    X_train_swap = X_train.swapaxes(1, 2)
     original = pairwise_sbd_original(X_train_swap)
-
 
     equal = np.allclose(original, our_sbd)
     stop = ""

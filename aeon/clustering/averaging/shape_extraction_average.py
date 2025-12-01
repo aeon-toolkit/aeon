@@ -2,9 +2,9 @@ import numpy as np
 from sklearn.utils import check_random_state
 
 from aeon.clustering._k_shape_original import _extract_shape
+from aeon.clustering.averaging._shape_extraction import shape_extraction_average
 from aeon.testing.data_generation import make_example_3d_numpy
 
-from aeon.clustering.averaging._shape_extraction import shape_extraction_average
 
 def original_shape_extraction_average(
     X_ntc: np.ndarray,
@@ -56,8 +56,7 @@ def original_shape_extraction_average(
     N, T, C = X_ntc.shape
     if cur_center_ntc.shape != (T, C):
         raise ValueError(
-            f"cur_center_ntc has shape {cur_center_ntc.shape}, "
-            f"expected {(T, C)}"
+            f"cur_center_ntc has shape {cur_center_ntc.shape}, " f"expected {(T, C)}"
         )
 
     # This mirrors the inner loop of `_kshape` for a fixed cluster j:
@@ -75,7 +74,7 @@ def original_shape_extraction_average(
 
     for d in range(C):
         # Extract dimension d as (N, T, 1)
-        x_d = np.expand_dims(X_ntc[:, :, d], axis=2)       # (N, T, 1)
+        x_d = np.expand_dims(X_ntc[:, :, d], axis=2)  # (N, T, 1)
         cur_center_d = np.expand_dims(cur_center_ntc[:, d], axis=1)  # (T, 1)
 
         # `_extract_shape` already contains the original K-Shape averaging logic.
@@ -83,6 +82,7 @@ def original_shape_extraction_average(
         new_center_ntc[:, d] = new_center_d
 
     return new_center_ntc
+
 
 if __name__ == "__main__":
     rng = check_random_state(1)
