@@ -8,10 +8,15 @@ from aeon.forecasting.deep_learning._dummy_series_forecaster import (
     DummySeriesForecaster,
 )
 from aeon.forecasting.deep_learning.base import BaseDeepForecaster
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 Y_TEST = np.array([[1.0, 2.0, 3.0, 4.0, 5.0]])
 
 
+@pytest.mark.skipif(
+    not _check_soft_dependencies("tensorflow", severity="none"),
+    reason="skip test if required soft dependency not available",
+)
 def test_abstract_method_raises_error():
     """Checks that a forecaster must implement the abstract method."""
 
@@ -26,6 +31,10 @@ def test_abstract_method_raises_error():
         BrokenForecaster(horizon=5, axis=1)
 
 
+@pytest.mark.skipif(
+    not _check_soft_dependencies("tensorflow", severity="none"),
+    reason="skip test if required soft dependency not available",
+)
 def test_series_to_series_forecast_output():
     """
     Test the functionality of the series_to_series_forecast method directly.
@@ -43,6 +52,10 @@ def test_series_to_series_forecast_output():
     np.testing.assert_array_equal(predictions, expected_preds)
 
 
+@pytest.mark.skipif(
+    not _check_soft_dependencies("tensorflow", severity="none"),
+    reason="skip test if required soft dependency not available",
+)
 def test_series_forecaster_base_predict():
     """Checks that the base class methods works correctly for single-step prediction."""
     f = DummySeriesForecaster(horizon=1, value_to_return=1.0)
