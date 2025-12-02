@@ -1,33 +1,851 @@
 """Function to compute and plot critical difference diagrams."""
 
-__maintainer__ = []
+__maintainer__ = ["baraline"]
 
 __all__ = [
     "plot_critical_difference",
 ]
 
 import math
+from typing import TYPE_CHECKING
 
 import numpy as np
 from scipy.stats import rankdata
 
+if TYPE_CHECKING:
+    from matplotlib.axes import Axes
+    from matplotlib.figure import Figure
+
 from aeon.benchmarking.stats import check_friedman, nemenyi_test, wilcoxon_test
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
+# =============================================================================
+# Constants
+# =============================================================================
+
+# Scale drawing constants
+# -----------------------
+# Width of the main horizontal scale line in points
+_SCALE_LINEWIDTH = 2
+# Height of tick marks at integer rank positions (in figure units/inches)
+_MAJOR_TICK_HEIGHT = 0.3
+# Height of tick marks at half-integer rank positions (in figure units/inches)
+_MINOR_TICK_HEIGHT = 0.15
+# Font size for the numeric rank labels on the scale
+_SCALE_LABEL_SIZE = 11
+
+# Estimator drawing constants
+# ---------------------------
+# Width of the L-shaped lines connecting estimators to the scale
+_ESTIMATOR_LINEWIDTH = 0.75
+# Vertical spacing between consecutive estimator lines (in figure units/inches)
+_ESTIMATOR_SPACING = 0.24
+# Font size for the average rank value displayed above each estimator line
+_RANK_TEXT_SIZE = 10
+# Font size for the estimator name labels
+_LABEL_TEXT_SIZE = 16
+# Horizontal gap between the line endpoint and the estimator label (in figure units)
+_LABEL_OFFSET = 0.1
+
+# Clique drawing constants
+# ------------------------
+# Width of the horizontal bars connecting estimators in the same clique
+_CLIQUE_LINEWIDTH = 2.5
+# Vertical spacing between multiple clique bars (in figure units/inches)
+_CLIQUE_SPACING = 0.1
+# Vertical offset from the scale to the first clique bar (in figure units/inches)
+_CLIQUE_START_OFFSET = 0.2
+# Small horizontal extension of clique bars beyond the outermost estimator positions
+_CLIQUE_SIDE_OFFSET = 0.02
+
+# Figure layout constants
+# -----------------------
+# Y-position of the main scale line from the top of the figure (in figure units)
+_CLINE_POSITION = 0.6
+# Minimum number of blank line heights below the scale before estimator lines start
+_MIN_LINES_BLANK = 1
+
+
+# =============================================================================
+# Rank Computation Functions
+# =============================================================================
+
+
+def _compute_ranks(scores: np.ndarray, lower_better: bool) -> np.ndarray:
+    """
+    Compute ranks for each estimator on each dataset.
+
+    Ranks are computed row-wise (per dataset). In case of ties, average ranks
+    are assigned.
+
+    Parameters
+    ----------
+    scores : np.ndarray of shape (n_datasets, n_estimators)
+        Performance scores for each estimator on each dataset.
+    lower_better : bool
+        If True, lower scores receive better (lower) ranks.
+        If False, higher scores receive better ranks.
+
+    Returns
+    -------
+    ranks : np.ndarray of shape (n_datasets, n_estimators)
+        Ranks for each estimator on each dataset, where rank 1 is best.
+    """
+    if lower_better:
+        return rankdata(scores, axis=1)
+    return rankdata(-1 * scores, axis=1)
+
+
+def _sort_by_average_rank(
+    scores: np.ndarray, labels: list[str], ranks: np.ndarray
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """
+    Sort estimators by their average rank across all datasets.
+
+    Parameters
+    ----------
+    scores : np.ndarray of shape (n_datasets, n_estimators)
+        Performance scores for each estimator on each dataset.
+    labels : list of str
+        Names of the estimators.
+    ranks : np.ndarray of shape (n_datasets, n_estimators)
+        Ranks for each estimator on each dataset.
+
+    Returns
+    -------
+    ordered_labels : np.ndarray of str
+        Estimator labels sorted by average rank (best first).
+    ordered_avg_ranks : np.ndarray of float32
+        Average ranks in ascending order.
+    ordered_scores : np.ndarray
+        Scores reordered to match sorted labels.
+    """
+    avg_ranks = ranks.mean(axis=0)
+    sort_indices = np.argsort(avg_ranks)
+
+    labels_array = np.array(labels, dtype=str)
+    ordered_labels = labels_array[sort_indices]
+    ordered_avg_ranks = avg_ranks[sort_indices].astype(np.float32)
+    ordered_scores = scores[:, sort_indices]
+
+    return ordered_labels, ordered_avg_ranks, ordered_scores
+
+
+# =============================================================================
+# Statistical Testing Functions
+# =============================================================================
+
+
+def _compute_adjusted_alpha(
+    alpha: float, n_estimators: int, correction: str | None
+) -> float:
+    """
+    Compute the adjusted significance level for multiple testing correction.
+
+    Parameters
+    ----------
+    alpha : float
+        Original significance level.
+    n_estimators : int
+        Number of estimators being compared.
+    correction : str or None
+        Correction method: "bonferroni", "holm", or None.
+
+    Returns
+    -------
+    adjusted_alpha : float
+        Adjusted significance level.
+
+    Raises
+    ------
+    ValueError
+        If correction method is not recognized.
+    """
+    if correction == "bonferroni":
+        return alpha / (n_estimators * (n_estimators - 1) / 2)
+    elif correction == "holm":
+        return alpha / (n_estimators - 1)
+    elif correction is None:
+        return alpha
+    else:
+        raise ValueError("correction available are None, Bonferroni and Holm.")
+
+
+def _find_cliques(
+    ranks: np.ndarray,
+    ordered_scores: np.ndarray,
+    ordered_labels: np.ndarray,
+    ordered_avg_ranks: np.ndarray,
+    n_datasets: int,
+    n_estimators: int,
+    test: str,
+    correction: str | None,
+    alpha: float,
+    lower_better: bool,
+) -> tuple[list[list[int]], np.ndarray | None]:
+    """
+    Find groups (cliques) of estimators with no significant performance difference.
+
+    First performs a Friedman test to check if there are any significant differences
+    among the estimators. If the Friedman test is not significant, all estimators
+    form a single clique. Otherwise, uses either the Nemenyi or Wilcoxon test
+    to determine which pairs of estimators are significantly different.
+
+    Parameters
+    ----------
+    ranks : np.ndarray of shape (n_datasets, n_estimators)
+        Ranks for each estimator on each dataset.
+    ordered_scores : np.ndarray
+        Scores ordered by average rank.
+    ordered_labels : np.ndarray
+        Labels ordered by average rank.
+    ordered_avg_ranks : np.ndarray
+        Average ranks in ascending order.
+    n_datasets : int
+        Number of datasets.
+    n_estimators : int
+        Number of estimators.
+    test : str
+        Statistical test: "nemenyi" or "wilcoxon".
+    correction : str or None
+        Multiple testing correction method for Wilcoxon test.
+    alpha : float
+        Significance level.
+    lower_better : bool
+        Whether lower scores are better.
+
+    Returns
+    -------
+    cliques : list of list
+        Each inner list is a binary mask indicating clique membership.
+    p_values : np.ndarray or None
+        P-values matrix from Wilcoxon test, or None if Nemenyi test was used.
+
+    Raises
+    ------
+    ValueError
+        If test method is not recognized.
+    """
+    p_values = None
+    p_value_friedman = check_friedman(ranks)
+
+    # If Friedman test is not significant, all estimators form one clique
+    if p_value_friedman >= alpha:
+        p_values = np.triu(np.ones((n_estimators, n_estimators)))
+        return [[1] * n_estimators], p_values
+
+    # Perform post-hoc test
+    if test == "nemenyi":
+        cliques = nemenyi_test(ordered_avg_ranks, n_datasets, alpha)
+        return _build_cliques(cliques), None
+
+    if test == "wilcoxon":
+        adjusted_alpha = _compute_adjusted_alpha(alpha, n_estimators, correction)
+        p_values = wilcoxon_test(ordered_scores, ordered_labels, lower_better)
+        return _build_cliques(p_values > adjusted_alpha), p_values
+
+    raise ValueError("tests available are only nemenyi and wilcoxon.")
+
+
+def _build_cliques(pairwise_matrix: np.ndarray) -> np.ndarray:
+    """
+    Build non-redundant cliques from a pairwise comparison matrix.
+
+    A clique is a group of estimators where no pair has a significant difference.
+    This function identifies all maximal cliques and removes redundant ones
+    (cliques that are subsets of larger cliques).
+
+    Parameters
+    ----------
+    pairwise_matrix : np.ndarray of shape (n_estimators, n_estimators)
+        Upper triangular matrix where entry (i,j) is True/1 if estimators i and j
+        are NOT significantly different. Assumed to be ordered by rank.
+
+    Returns
+    -------
+    cliques : np.ndarray
+        Array where each row is a binary mask indicating clique membership.
+        Returns empty array if no cliques with more than one member exist.
+    """
+    # Propagate non-significance: if i and j are different, i and k (k>j) are different
+    for i in range(pairwise_matrix.shape[0]):
+        for j in range(i + 1, pairwise_matrix.shape[1]):
+            if pairwise_matrix[i, j] == 0:
+                pairwise_matrix[i, j + 1:] = 0
+                break
+
+    # Keep only rows that could form cliques (connected to more than just themselves)
+    n = np.sum(pairwise_matrix, 1)
+    possible_cliques = pairwise_matrix[n > 1, :]
+
+    # Remove redundant cliques (those contained in larger cliques)
+    for i in range(possible_cliques.shape[0] - 1, 0, -1):
+        for j in range(i - 1, -1, -1):
+            if np.all(possible_cliques[j, possible_cliques[i, :].astype(bool)]):
+                possible_cliques[i, :] = 0
+                break
+
+    # Return only non-empty cliques
+    n = np.sum(possible_cliques, 1)
+    return possible_cliques[n > 1, :]
+
+
+# =============================================================================
+# Figure Setup Functions
+# =============================================================================
+
+
+def _compute_figure_dimensions(
+    n_estimators: int, width: float, textspace: float
+) -> tuple[float, float, float, float]:
+    """
+    Compute the dimensions and layout parameters for the figure.
+
+    Parameters
+    ----------
+    n_estimators : int
+        Number of estimators to display.
+    width : float
+        Figure width in inches.
+    textspace : float
+        Space reserved on each side for labels.
+
+    Returns
+    -------
+    height : float
+        Figure height in inches.
+    scale_y : float
+        Y-position of the horizontal scale line.
+    scalewidth : float
+        Width of the scale (figure width minus label spaces).
+    min_y_offset : float
+        Minimum vertical space below scale for estimator lines.
+    """
+    scale_y = _CLINE_POSITION
+    scalewidth = width - 2 * textspace
+    min_y_offset = max(2 * _ESTIMATOR_SPACING, _MIN_LINES_BLANK)
+    height = scale_y + ((n_estimators + 1) / 2) * _ESTIMATOR_SPACING + min_y_offset + 0.2
+
+    return height, scale_y, scalewidth, min_y_offset
+
+
+def _create_figure(width: float, height: float) -> tuple["Figure", "Axes"]:
+    """
+    Create and configure the matplotlib figure and axes.
+
+    Parameters
+    ----------
+    width : float
+        Figure width in inches.
+    height : float
+        Figure height in inches.
+
+    Returns
+    -------
+    fig : matplotlib.figure.Figure
+        The created figure.
+    ax : matplotlib.axes.Axes
+        The axes for drawing.
+    """
+    import matplotlib.pyplot as plt
+
+    fig = plt.figure(figsize=(width, height))
+    fig.set_facecolor("white")
+    ax = fig.add_axes([0, 0, 1, 1])
+    ax.set_axis_off()
+
+    # Initialize axes with inverted y-axis (0 at top)
+    ax.plot([0, 1], [0, 1], c="w")
+    ax.set_xlim(0.1, 0.9)
+    ax.set_ylim(1, 0)
+
+    return fig, ax
+
+
+def _draw_line(
+    ax: "Axes",
+    width: float,
+    height: float,
+    points: list[tuple[float, float]],
+    color: str = "k",
+    **kwargs,
+) -> None:
+    """
+    Draw a line through the given points in figure coordinates.
+
+    Converts logical coordinates (in inches/figure units) to normalized
+    axes coordinates before drawing.
+
+    Parameters
+    ----------
+    ax : matplotlib.axes.Axes
+        The axes to draw on.
+    width : float
+        Figure width for coordinate conversion.
+    height : float
+        Figure height for coordinate conversion.
+    points : list of tuple
+        List of (x, y) coordinates in figure units.
+    color : str, default="k"
+        Line color.
+    **kwargs
+        Additional arguments passed to ax.plot().
+    """
+    wf = 1.0 / width
+    hf = 1.0 / height
+    xs = [p[0] * wf for p in points]
+    ys = [p[1] * hf for p in points]
+    ax.plot(xs, ys, color=color, **kwargs)
+
+
+def _draw_text(
+    ax: "Axes",
+    width: float,
+    height: float,
+    x: float,
+    y: float,
+    s: str,
+    **kwargs,
+) -> None:
+    """
+    Draw text at the given position in figure coordinates.
+
+    Converts logical coordinates (in inches/figure units) to normalized
+    axes coordinates before drawing.
+
+    Parameters
+    ----------
+    ax : matplotlib.axes.Axes
+        The axes to draw on.
+    width : float
+        Figure width for coordinate conversion.
+    height : float
+        Figure height for coordinate conversion.
+    x : float
+        X-coordinate in figure units.
+    y : float
+        Y-coordinate in figure units.
+    s : str
+        Text to draw.
+    **kwargs
+        Additional arguments passed to ax.text().
+    """
+    wf = 1.0 / width
+    hf = 1.0 / height
+    ax.text(wf * x, hf * y, s, **kwargs)
+
+
+def _rank_to_position(
+    rank: float,
+    textspace: float,
+    scalewidth: float,
+    min_rank: int,
+    max_rank: int,
+    reverse: bool,
+) -> float:
+    """
+    Convert a rank value to its x-coordinate on the scale.
+
+    Parameters
+    ----------
+    rank : float
+        The rank value to convert.
+    textspace : float
+        Space reserved on each side for labels.
+    scalewidth : float
+        Width of the scale.
+    min_rank : int
+        Lowest rank value on the scale.
+    max_rank : int
+        Highest rank value on the scale.
+    reverse : bool
+        If True, lower ranks appear on the right side.
+
+    Returns
+    -------
+    x : float
+        The x-coordinate corresponding to the rank.
+    """
+    if reverse:
+        normalized = max_rank - rank
+    else:
+        normalized = rank - min_rank
+    return textspace + scalewidth / (max_rank - min_rank) * normalized
+
+
+# =============================================================================
+# Drawing Functions
+# =============================================================================
+
+
+def _draw_scale(
+    ax: "Axes",
+    width: float,
+    height: float,
+    textspace: float,
+    scalewidth: float,
+    scale_y: float,
+    min_rank: int,
+    max_rank: int,
+    reverse: bool,
+) -> None:
+    """
+    Draw the horizontal scale with tick marks and numeric labels.
+
+    Parameters
+    ----------
+    ax : matplotlib.axes.Axes
+        The axes to draw on.
+    width : float
+        Figure width.
+    height : float
+        Figure height.
+    textspace : float
+        Space reserved for labels.
+    scalewidth : float
+        Width of the scale.
+    scale_y : float
+        Y-position of the scale line.
+    min_rank : int
+        Lowest rank value.
+    max_rank : int
+        Highest rank value.
+    reverse : bool
+        If True, lower ranks appear on the right side.
+    """
+    # Draw main horizontal scale line
+    _draw_line(
+        ax, width, height,
+        [(textspace, scale_y), (width - textspace, scale_y)],
+        linewidth=_SCALE_LINEWIDTH,
+    )
+
+    # Draw tick marks at half-integer intervals
+    for tick_value in list(np.arange(min_rank, max_rank, 0.5)) + [max_rank]:
+        is_major = tick_value == int(tick_value)
+        tick_height = _MAJOR_TICK_HEIGHT if is_major else _MINOR_TICK_HEIGHT
+        x = _rank_to_position(tick_value, textspace, scalewidth, min_rank, max_rank, reverse)
+        _draw_line(
+            ax, width, height,
+            [(x, scale_y - tick_height / 2), (x, scale_y)],
+            linewidth=_SCALE_LINEWIDTH,
+        )
+
+    # Draw numeric labels at integer positions
+    for rank_value in range(min_rank, max_rank + 1):
+        x = _rank_to_position(rank_value, textspace, scalewidth, min_rank, max_rank, reverse)
+        _draw_text(
+            ax, width, height, x, scale_y - _MAJOR_TICK_HEIGHT / 2 - 0.05, str(rank_value),
+            ha="center", va="bottom", size=_SCALE_LABEL_SIZE,
+        )
+
+
+def _compute_line_endpoints(
+    ordered_avg_ranks: np.ndarray,
+    textspace: float,
+    scalewidth: float,
+    min_rank: int,
+    max_rank: int,
+    min_hline_width: float,
+    reverse: bool,
+) -> tuple[float, float]:
+    """
+    Compute the fixed x-coordinates where estimator lines end on each side.
+
+    All lines on the same side end at the same x-coordinate to ensure
+    vertical alignment of labels. The endpoint is extended if needed to
+    accommodate the rank text.
+
+    Parameters
+    ----------
+    ordered_avg_ranks : np.ndarray
+        Average ranks in sorted order.
+    textspace : float
+        Space reserved for labels.
+    scalewidth : float
+        Width of the scale.
+    min_rank : int
+        Lowest rank value on the scale.
+    max_rank : int
+        Highest rank value on the scale.
+    min_hline_width : float
+        Minimum horizontal line width to fit rank text.
+    reverse : bool
+        If True, best ranks go to right side.
+
+    Returns
+    -------
+    right_side_end : float
+        X-coordinate where right-side lines end.
+    left_side_end : float
+        X-coordinate where left-side lines end.
+    """
+    n = len(ordered_avg_ranks)
+    n_first_half = math.ceil(n / 2)
+    first_half = list(range(n_first_half))
+    second_half = list(range(n_first_half, n))
+
+    # Determine which estimators go to which side
+    right_indices = first_half if reverse else second_half
+    left_indices = second_half if reverse else first_half
+
+    # Compute right side endpoint (maximize to fit all lines)
+    right_side_end = textspace + scalewidth + 0.2
+    for i in right_indices:
+        rank_x = _rank_to_position(
+            ordered_avg_ranks[i], textspace, scalewidth, min_rank, max_rank, reverse
+        )
+        right_side_end = max(right_side_end, rank_x + min_hline_width)
+
+    # Compute left side endpoint (minimize to fit all lines)
+    left_side_end = textspace - 0.1
+    for i in left_indices:
+        rank_x = _rank_to_position(
+            ordered_avg_ranks[i], textspace, scalewidth, min_rank, max_rank, reverse
+        )
+        left_side_end = min(left_side_end, rank_x - min_hline_width)
+
+    return right_side_end, left_side_end
+
+
+def _draw_single_estimator(
+    ax: "Axes",
+    width: float,
+    height: float,
+    rank_x: float,
+    line_y: float,
+    line_end: float,
+    goes_right: bool,
+    avg_rank: float,
+    label: str,
+    colour: str,
+    scale_y: float,
+) -> None:
+    """
+    Draw the line, rank value, and label for a single estimator.
+
+    Parameters
+    ----------
+    ax : matplotlib.axes.Axes
+        The axes to draw on.
+    width : float
+        Figure width.
+    height : float
+        Figure height.
+    rank_x : float
+        X-coordinate of the rank position on the scale.
+    line_y : float
+        Y-coordinate for this estimator's horizontal line.
+    line_end : float
+        X-coordinate where the horizontal line ends.
+    goes_right : bool
+        If True, line extends to the right; if False, to the left.
+    avg_rank : float
+        Average rank value to display.
+    label : str
+        Estimator name to display.
+    colour : str
+        Color for the line and text.
+    scale_y : float
+        Y-coordinate of the scale line.
+    """
+    # Draw L-shaped line: vertical from scale, then horizontal to endpoint
+    _draw_line(
+        ax, width, height,
+        [(rank_x, scale_y), (rank_x, line_y), (line_end, line_y)],
+        linewidth=_ESTIMATOR_LINEWIDTH, color=colour,
+    )
+
+    # Draw rank value above the line end
+    _draw_text(
+        ax, width, height, line_end, line_y - 0.075,
+        f"{avg_rank:.4f}",
+        ha="right" if goes_right else "left",
+        va="center", size=_RANK_TEXT_SIZE, color=colour,
+    )
+
+    # Draw label just past the line end
+    label_x = line_end + (_LABEL_OFFSET if goes_right else -_LABEL_OFFSET)
+    _draw_text(
+        ax, width, height, label_x, line_y, label,
+        ha="left" if goes_right else "right",
+        va="center", size=_LABEL_TEXT_SIZE, color=colour,
+    )
+
+
+def _draw_estimators(
+    ax: "Axes",
+    width: float,
+    height: float,
+    ordered_avg_ranks: np.ndarray,
+    ordered_labels: np.ndarray,
+    colours: list[str],
+    scale_y: float,
+    min_y_offset: float,
+    textspace: float,
+    scalewidth: float,
+    min_rank: int,
+    max_rank: int,
+    reverse: bool,
+) -> None:
+    """
+    Draw lines and labels for all estimators.
+
+    Estimators are split into two halves: the best-ranked half is displayed
+    on one side of the diagram, and the worst-ranked half on the other side.
+    The side depends on the `reverse` parameter.
+
+    Parameters
+    ----------
+    ax : matplotlib.axes.Axes
+        The axes to draw on.
+    width : float
+        Figure width.
+    height : float
+        Figure height.
+    ordered_avg_ranks : np.ndarray
+        Average ranks in sorted order (best first).
+    ordered_labels : np.ndarray
+        Estimator labels in sorted order.
+    colours : list of str
+        Colors for each estimator.
+    scale_y : float
+        Y-coordinate of the scale line.
+    min_y_offset : float
+        Minimum vertical space below scale.
+    textspace : float
+        Space reserved for labels.
+    scalewidth : float
+        Width of the scale.
+    min_rank : int
+        Lowest rank value on the scale.
+    max_rank : int
+        Highest rank value on the scale.
+    reverse : bool
+        If True, best ranks appear on the right side.
+    """
+    # Minimum horizontal line width to fit rank text (6 chars like "1.0000")
+    min_hline_width = 6 * (_RANK_TEXT_SIZE / 100) * 0.8
+
+    n = len(ordered_avg_ranks)
+    n_first_half = math.ceil(n / 2)
+
+    # Compute fixed line endpoints for vertical label alignment
+    right_side_end, left_side_end = _compute_line_endpoints(
+        ordered_avg_ranks, textspace, scalewidth, min_rank, max_rank,
+        min_hline_width, reverse,
+    )
+
+    # Draw first half (best ranked estimators)
+    for i in range(n_first_half):
+        line_y = scale_y + min_y_offset + i * _ESTIMATOR_SPACING
+        line_end = right_side_end if reverse else left_side_end
+        rank_x = _rank_to_position(
+            ordered_avg_ranks[i], textspace, scalewidth, min_rank, max_rank, reverse
+        )
+        _draw_single_estimator(
+            ax, width, height, rank_x, line_y, line_end,
+            reverse, ordered_avg_ranks[i], ordered_labels[i], colours[i], scale_y,
+        )
+
+    # Draw second half (worst ranked estimators)
+    for i in range(n_first_half, n):
+        line_y = scale_y + min_y_offset + (n - i - 1) * _ESTIMATOR_SPACING
+        line_end = left_side_end if reverse else right_side_end
+        rank_x = _rank_to_position(
+            ordered_avg_ranks[i], textspace, scalewidth, min_rank, max_rank, reverse
+        )
+        _draw_single_estimator(
+            ax, width, height, rank_x, line_y, line_end,
+            not reverse, ordered_avg_ranks[i], ordered_labels[i], colours[i], scale_y,
+        )
+
+
+def _draw_cliques(
+    ax: "Axes",
+    width: float,
+    height: float,
+    ordered_avg_ranks: np.ndarray,
+    cliques: np.ndarray | list,
+    scale_y: float,
+    textspace: float,
+    scalewidth: float,
+    min_rank: int,
+    max_rank: int,
+    reverse: bool,
+) -> None:
+    """
+    Draw horizontal lines connecting estimators in the same clique.
+
+    Clique lines are drawn below the scale, with each clique on a separate
+    vertical level to avoid overlap.
+
+    Parameters
+    ----------
+    ax : matplotlib.axes.Axes
+        The axes to draw on.
+    width : float
+        Figure width.
+    height : float
+        Figure height.
+    ordered_avg_ranks : np.ndarray
+        Average ranks in sorted order.
+    cliques : np.ndarray or list
+        Binary masks indicating clique membership.
+    scale_y : float
+        Y-coordinate of the scale line.
+    textspace : float
+        Space reserved for labels.
+    scalewidth : float
+        Width of the scale.
+    min_rank : int
+        Lowest rank value on the scale.
+    max_rank : int
+        Highest rank value on the scale.
+    reverse : bool
+        If True, adjusts line positioning for reversed scale.
+    """
+    clique_y = scale_y + _CLIQUE_START_OFFSET
+    side_offset = -_CLIQUE_SIDE_OFFSET if reverse else _CLIQUE_SIDE_OFFSET
+
+    for clq in cliques:
+        positions = np.where(np.array(clq) == 1)[0]
+        if len(positions) == 0:
+            continue
+
+        min_idx, max_idx = positions.min(), positions.max()
+        x_min = _rank_to_position(
+            ordered_avg_ranks[min_idx], textspace, scalewidth, min_rank, max_rank, reverse
+        )
+        x_max = _rank_to_position(
+            ordered_avg_ranks[max_idx], textspace, scalewidth, min_rank, max_rank, reverse
+        )
+        _draw_line(
+            ax, width, height,
+            [(x_min - side_offset, clique_y), (x_max + side_offset, clique_y)],
+            linewidth=_CLIQUE_LINEWIDTH,
+        )
+        clique_y += _CLIQUE_SPACING
+
+
+# =============================================================================
+# Main Function
+# =============================================================================
+
 
 def plot_critical_difference(
-    scores,
-    labels,
-    highlight=None,
-    lower_better=False,
-    test="wilcoxon",
-    correction="holm",
-    alpha=0.1,
-    width=6,
-    textspace=1.5,
-    reverse=True,
-    return_p_values=False,
-):
+    scores: np.ndarray | list,
+    labels: list[str],
+    highlight: dict[str, str] | None = None,
+    lower_better: bool = False,
+    test: str = "wilcoxon",
+    correction: str = "holm",
+    alpha: float = 0.1,
+    width: float = 6,
+    textspace: float = 1.5,
+    reverse: bool = True,
+    return_p_values: bool = False,
+) -> tuple["Figure", "Axes"] | tuple["Figure", "Axes", np.ndarray]:
     """
     Plot the average ranks and cliques based on the method described in [1]_.
 
@@ -153,396 +971,78 @@ def plot_critical_difference(
     """
     _check_soft_dependencies("matplotlib")
 
-    import matplotlib.pyplot as plt
-
+    # Validate and preprocess inputs
     if isinstance(scores, list):
         scores = np.array(scores)
 
-    n_datasets, n_estimators = scores.shape
-    if isinstance(test, str):
-        test = test.lower()
-    if isinstance(correction, str):
-        correction = correction.lower()
+    if scores.ndim != 2:
+        raise ValueError(
+            f"scores must be a 2D array of shape (n_datasets, n_estimators), "
+            f"got shape {scores.shape}"
+        )
 
-    p_values = None
+    n_datasets, n_estimators = scores.shape
+
+    if len(labels) != n_estimators:
+        raise ValueError(
+            f"Number of labels ({len(labels)}) must match number of estimators "
+            f"({n_estimators})"
+        )
+
+    if n_estimators < 2:
+        raise ValueError("Need at least 2 estimators to compare")
+
+    test = test.lower() if isinstance(test, str) else test
+    correction = correction.lower() if isinstance(correction, str) else correction
+
     if return_p_values and test != "wilcoxon":
         raise ValueError(
             f"Cannot return p values for the {test}, since it does "
             "not calculate p-values."
         )
 
-    # Step 1: rank data: in case of ties average ranks are assigned
-
-    if lower_better:  # low is good -> rank 1
-        ranks = rankdata(scores, axis=1)
-    else:  # assign opposite ranks
-        ranks = rankdata(-1 * scores, axis=1)
-
-    # Step 2: calculate average rank per estimator
-    ordered_avg_ranks = ranks.mean(axis=0)
-    # Sort labels and ranks
-    ordered_labels_ranks = np.array(
-        [(labels, float(r)) for r, labels in sorted(zip(ordered_avg_ranks, labels))],
-        dtype=object,
+    # Step 1: Compute ranks and sort estimators
+    ranks = _compute_ranks(scores, lower_better)
+    ordered_labels, ordered_avg_ranks, ordered_scores = _sort_by_average_rank(
+        scores, labels, ranks
     )
-    ordered_labels = np.array([la for la, _ in ordered_labels_ranks], dtype=str)
-    ordered_avg_ranks = np.array([r for _, r in ordered_labels_ranks], dtype=np.float32)
 
-    indices = [np.where(np.array(labels) == r)[0] for r in ordered_labels]
-
-    ordered_scores = scores[:, indices]
-    # sort out colours for labels
+    # Step 2: Determine colours for labels
     if highlight is not None:
-        colours = [
-            highlight[label] if label in highlight else "#000000"
-            for label in ordered_labels
-        ]
+        colours = [highlight.get(label, "#000000") for label in ordered_labels]
     else:
-        colours = ["#000000"] * len(ordered_labels)
-    # Step 3 : check whether Friedman test is significant
-    p_value_friedman = check_friedman(ranks)
-    # Step 4: If Friedman test is significant find cliques
-    if p_value_friedman < alpha:
-        if test == "nemenyi":
-            cliques = nemenyi_test(ordered_avg_ranks, n_datasets, alpha)
-            cliques = _build_cliques(cliques)
-        elif test == "wilcoxon":
-            if correction == "bonferroni":
-                adjusted_alpha = alpha / (n_estimators * (n_estimators - 1) / 2)
-            elif correction == "holm":
-                adjusted_alpha = alpha / (n_estimators - 1)
-            elif correction is None:
-                adjusted_alpha = alpha
-            else:
-                raise ValueError("correction available are None, Bonferroni and Holm.")
-            p_values = wilcoxon_test(ordered_scores, ordered_labels, lower_better)
-            cliques = _build_cliques(p_values > adjusted_alpha)
-        else:
-            raise ValueError("tests available are only nemenyi and wilcoxon.")
-    # If Friedman test is not significant everything has to be one clique
-    else:
-        p_values = np.triu(np.ones((n_estimators, n_estimators)))
-        cliques = [[1] * n_estimators]
+        colours = ["#000000"] * n_estimators
 
-    # Step 6 create the diagram:
-    # check from where to where the axis has to go
-    lowv = min(1, int(math.floor(min(ordered_avg_ranks))))
-    highv = max(len(ordered_avg_ranks), int(math.ceil(max(ordered_avg_ranks))))
+    # Step 3: Find cliques using statistical tests
+    cliques, p_values = _find_cliques(
+        ranks, ordered_scores, ordered_labels, ordered_avg_ranks,
+        n_datasets, n_estimators, test, correction, alpha, lower_better
+    )
 
-    # set up the figure
+    # Step 4: Set up figure
     width = float(width)
     textspace = float(textspace)
+    height, scale_y, scalewidth, min_y_offset = _compute_figure_dimensions(
+        n_estimators, width, textspace
+    )
+    fig, ax = _create_figure(width, height)
 
-    cline = 0.6  # space needed above scale
-    linesblank = 1  # lines between scale and text
-    scalewidth = width - 2 * textspace
+    min_rank = min(1, int(math.floor(min(ordered_avg_ranks))))
+    max_rank = max(n_estimators, int(math.ceil(max(ordered_avg_ranks))))
 
-    # calculate needed height
-    minnotsignificant = max(2 * 0.2, linesblank)
-    height = cline + ((n_estimators + 1) / 2) * 0.2 + minnotsignificant + 0.2
-
-    fig = plt.figure(figsize=(width, height))
-    fig.set_facecolor("white")
-    ax = fig.add_axes([0, 0, 1, 1])  # reverse y axis
-    ax.set_axis_off()
-
-    hf = 1.0 / height  # height factor
-    wf = 1.0 / width
-
-    # Upper left corner is (0,0).
-    ax.plot([0, 1], [0, 1], c="w")
-    ax.set_xlim(0.1, 0.9)
-    ax.set_ylim(1, 0)
-
-    def _lloc(lst, n):
-        """List location in list of list structure."""
-        if n < 0:
-            return len(lst[0]) + n
-        else:
-            return n
-
-    def _nth(lst, n):
-        n = _lloc(lst, n)
-        return [a[n] for a in lst]
-
-    def _hfl(lst):
-        return [a * hf for a in lst]
-
-    def _wfl(lst):
-        return [a * wf for a in lst]
-
-    def _line(lst, color="k", **kwargs):
-        ax.plot(_wfl(_nth(lst, 0)), _hfl(_nth(lst, 1)), color=color, **kwargs)
-
-    # draw scale
-    _line([(textspace, cline), (width - textspace, cline)], linewidth=2)
-
-    bigtick = 0.3
-    smalltick = 0.15
-    linewidth = 0.75
-    linewidth_sign = 2.5
-
-    def _rankpos(rank):
-        if not reverse:
-            a = rank - lowv
-        else:
-            a = highv - rank
-        return textspace + scalewidth / (highv - lowv) * a
-
-    # add ticks to scale
-    tick = None
-    for a in list(np.arange(lowv, highv, 0.5)) + [highv]:
-        tick = smalltick
-        if a == int(a):
-            tick = bigtick
-        _line([(_rankpos(a), cline - tick / 2), (_rankpos(a), cline)], linewidth=2)
-
-    def _text(x, y, s, *args, **kwargs):
-        ax.text(wf * x, hf * y, s, *args, **kwargs)
-
-    for a in range(lowv, highv + 1):
-        _text(
-            _rankpos(a),
-            cline - tick / 2 - 0.05,
-            str(a),
-            ha="center",
-            va="bottom",
-            size=11,
-        )
-
-    # sort out lines and text based on whether order is reversed or not
-    space_between_names = 0.24
-    for i in range(math.ceil(len(ordered_avg_ranks) / 2)):
-        chei = cline + minnotsignificant + i * space_between_names
-        # The values rank_xpos and rank_ypos may change depending upon whether
-        # line is overlapping with rank values.
-        rank_xpos = 0
-        rank_ypos = 0
-
-        # Store x coordinate of line in some temporary variable for checking
-        line_xpos = _rankpos(ordered_avg_ranks[i])
-        if reverse:
-            _line(
-                [
-                    (_rankpos(ordered_avg_ranks[i]), cline),
-                    (_rankpos(ordered_avg_ranks[i]), chei),
-                    (textspace + scalewidth + 0.1, chei),
-                ],
-                linewidth=linewidth,
-                color=colours[i],
-            )
-            _text(  # labels left side.
-                textspace + scalewidth + 0.2,
-                chei,
-                ordered_labels[i],
-                ha="left",
-                va="center",
-                size=9,
-                color=colours[i],
-            )
-
-            # Check if the horizontal position of line is too close to the scale edges,
-            # i.e. whether line can overlap with the rank values. if yes, shift the
-            # rank value corresponding to the line to a bit top and left side
-            if line_xpos > textspace + scalewidth - 0.17:
-                rank_xpos = line_xpos + 0.05
-                rank_ypos = chei - 0.4
-            else:
-                rank_xpos = textspace + scalewidth - 0.17
-                rank_ypos = chei - 0.075
-            _text(  # ranks left side.
-                rank_xpos,
-                rank_ypos,
-                format(ordered_avg_ranks[i], ".4f"),
-                ha="left",
-                va="center",
-                size=7,
-                color=colours[i],
-            )
-        else:
-            _line(
-                [
-                    (_rankpos(ordered_avg_ranks[i]), cline),
-                    (_rankpos(ordered_avg_ranks[i]), chei),
-                    (textspace - 0.1, chei),
-                ],
-                linewidth=linewidth,
-                color=colours[i],
-            )
-            _text(  # labels left side.
-                textspace - 0.2,
-                chei,
-                ordered_labels[i],
-                ha="right",
-                va="center",
-                size=9,
-                color=colours[i],
-            )
-
-            # Checking the same overlapping condition of the line for
-            # reverse = False case as well
-            if line_xpos < textspace + 0.22:
-                rank_xpos = line_xpos - 0.05
-                rank_ypos = chei - 0.4
-            else:
-                rank_xpos = textspace + 0.2
-                rank_ypos = chei - 0.075
-
-            _text(  # ranks left side.
-                rank_xpos,
-                rank_ypos,
-                format(ordered_avg_ranks[i], ".4f"),
-                ha="right",
-                va="center",
-                size=7,
-                color=colours[i],
-            )
-
-    for i in range(math.ceil(len(ordered_avg_ranks) / 2), len(ordered_avg_ranks)):
-        chei = (
-            cline
-            + minnotsignificant
-            + (len(ordered_avg_ranks) - i - 1) * space_between_names
-        )
-        # The values rank_xpos and rank_ypos may change depending upon whether
-        # line is overlapping with rank values.
-        rank_xpos = 0
-        rank_ypos = 0
-
-        # Store x coordinate of line in some temporary variable for checking
-        line_xpos = _rankpos(ordered_avg_ranks[i])
-        if reverse:
-            _line(
-                [
-                    (_rankpos(ordered_avg_ranks[i]), cline),
-                    (_rankpos(ordered_avg_ranks[i]), chei),
-                    (textspace - 0.1, chei),
-                ],
-                linewidth=linewidth,
-                color=colours[i],
-            )
-            _text(  # labels right side.
-                textspace - 0.2,
-                chei,
-                ordered_labels[i],
-                ha="right",
-                va="center",
-                size=9,
-                color=colours[i],
-            )
-
-            # Check if the horizontal position of line is too close to the scale edges,
-            # i.e. whether line can overlap with the rank values. if yes, shift the
-            # rank value corresponding to the line to a bit top and left side.
-            if line_xpos < textspace + 0.22:
-                rank_xpos = line_xpos - 0.05
-                rank_ypos = chei - 0.4
-            else:
-                rank_xpos = textspace + 0.2
-                rank_ypos = chei - 0.075
-            _text(  # ranks right side.
-                rank_xpos,
-                rank_ypos,
-                format(ordered_avg_ranks[i], ".4f"),
-                ha="right",
-                va="center",
-                size=7,
-                color=colours[i],
-            )
-        else:
-            _line(
-                [
-                    (_rankpos(ordered_avg_ranks[i]), cline),
-                    (_rankpos(ordered_avg_ranks[i]), chei),
-                    (textspace + scalewidth + 0.1, chei),
-                ],
-                linewidth=linewidth,
-                color=colours[i],
-            )
-            _text(  # labels right side.
-                textspace + scalewidth + 0.2,
-                chei,
-                ordered_labels[i],
-                ha="left",
-                va="center",
-                size=9,
-                color=colours[i],
-            )
-
-            # Checking the same overlapping condition of the line for
-            # reverse = False case as well
-            if line_xpos > textspace + scalewidth - 0.17:
-                rank_xpos = line_xpos + 0.05
-                rank_ypos = chei - 0.4
-            else:
-                rank_xpos = textspace + scalewidth - 0.17
-                rank_ypos = chei - 0.075
-
-            _text(  # ranks right side.
-                rank_xpos,
-                rank_ypos,
-                format(ordered_avg_ranks[i], ".4f"),
-                ha="left",
-                va="center",
-                size=7,
-                color=colours[i],
-            )
-
-    # draw lines for cliques
-    start = cline + 0.2
-    side = -0.02 if reverse else 0.02
-    height = 0.1
-    for clq in cliques:
-        positions = np.where(np.array(clq) == 1)[0]
-        min_idx = np.array(positions).min()
-        max_idx = np.array(positions).max()
-        _line(
-            [
-                (_rankpos(ordered_avg_ranks[min_idx]) - side, start),
-                (_rankpos(ordered_avg_ranks[max_idx]) + side, start),
-            ],
-            linewidth=linewidth_sign,
-        )
-        start += height
+    # Step 5: Draw all components
+    _draw_scale(
+        ax, width, height, textspace, scalewidth, scale_y, min_rank, max_rank, reverse
+    )
+    _draw_estimators(
+        ax, width, height, ordered_avg_ranks, ordered_labels, colours,
+        scale_y, min_y_offset, textspace, scalewidth, min_rank, max_rank, reverse
+    )
+    _draw_cliques(
+        ax, width, height, ordered_avg_ranks, cliques, scale_y, textspace,
+        scalewidth, min_rank, max_rank, reverse
+    )
 
     if return_p_values:
         return fig, ax, p_values
-    else:
-        return fig, ax
-
-
-def _build_cliques(pairwise_matrix):
-    """
-    Build cliques from pairwise comparison matrix.
-
-    Parameters
-    ----------
-    pairwise_matrix : np.array
-        Pairwise matrix shape (n_estimators, n_estimators) indicating if there is a
-        significant difference between pairs. Assumed to be ordered by rank of
-        estimators.
-
-    Returns
-    -------
-    list of lists
-        cliques within which there is no significant different between estimators.
-    """
-    for i in range(0, pairwise_matrix.shape[0]):
-        for j in range(i + 1, pairwise_matrix.shape[1]):
-            if pairwise_matrix[i, j] == 0:
-                pairwise_matrix[i, j + 1 :] = 0  # noqa: E203
-                break
-
-    n = np.sum(pairwise_matrix, 1)
-    possible_cliques = pairwise_matrix[n > 1, :]
-
-    for i in range(possible_cliques.shape[0] - 1, 0, -1):
-        for j in range(i - 1, -1, -1):
-            if np.all(possible_cliques[j, possible_cliques[i, :]]):
-                possible_cliques[i, :] = 0
-                break
-
-    n = np.sum(possible_cliques, 1)
-    cliques = possible_cliques[n > 1, :]
-
-    return cliques
+    return fig, ax
