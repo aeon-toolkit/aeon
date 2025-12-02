@@ -8,12 +8,12 @@ from aeon.datasets.monster_loader import (
     load_monster_dataset,
     load_monster_dataset_names,
 )
-from aeon.testing.testing_config import PR_TESTING
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 @pytest.mark.skipif(
-    PR_TESTING,
-    reason="Only run on overnights because of read from internet.",
+    not _check_soft_dependencies("hugging-face", severity="none"),
+    reason="required soft dependency hugging-face not available",
 )
 @pytest.mark.xfail(raises=CONNECTION_ERRORS)
 def test_monster_dataset_names():
@@ -25,8 +25,8 @@ def test_monster_dataset_names():
 
 
 @pytest.mark.skipif(
-    PR_TESTING,
-    reason="Only run on overnights because of read from internet.",
+    not _check_soft_dependencies("hugging-face", severity="none"),
+    reason="required soft dependency hugging-face not available",
 )
 @pytest.mark.xfail(raises=CONNECTION_ERRORS)
 def test_load_monster_dataset():
