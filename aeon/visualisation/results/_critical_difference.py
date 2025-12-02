@@ -271,7 +271,7 @@ def _build_cliques(pairwise_matrix: np.ndarray) -> np.ndarray:
     for i in range(pairwise_matrix.shape[0]):
         for j in range(i + 1, pairwise_matrix.shape[1]):
             if pairwise_matrix[i, j] == 0:
-                pairwise_matrix[i, j + 1:] = 0
+                pairwise_matrix[i, j + 1 :] = 0
                 break
 
     # Keep only rows that could form cliques (connected to more than just themselves)
@@ -324,7 +324,9 @@ def _compute_figure_dimensions(
     scale_y = _CLINE_POSITION
     scalewidth = width - 2 * textspace
     min_y_offset = max(2 * _ESTIMATOR_SPACING, _MIN_LINES_BLANK)
-    height = scale_y + ((n_estimators + 1) / 2) * _ESTIMATOR_SPACING + min_y_offset + 0.2
+    height = (
+        scale_y + ((n_estimators + 1) / 2) * _ESTIMATOR_SPACING + min_y_offset + 0.2
+    )
 
     return height, scale_y, scalewidth, min_y_offset
 
@@ -515,7 +517,9 @@ def _draw_scale(
     """
     # Draw main horizontal scale line
     _draw_line(
-        ax, width, height,
+        ax,
+        width,
+        height,
         [(textspace, scale_y), (width - textspace, scale_y)],
         linewidth=_SCALE_LINEWIDTH,
     )
@@ -524,19 +528,32 @@ def _draw_scale(
     for tick_value in list(np.arange(min_rank, max_rank, 0.5)) + [max_rank]:
         is_major = tick_value == int(tick_value)
         tick_height = _MAJOR_TICK_HEIGHT if is_major else _MINOR_TICK_HEIGHT
-        x = _rank_to_position(tick_value, textspace, scalewidth, min_rank, max_rank, reverse)
+        x = _rank_to_position(
+            tick_value, textspace, scalewidth, min_rank, max_rank, reverse
+        )
         _draw_line(
-            ax, width, height,
+            ax,
+            width,
+            height,
             [(x, scale_y - tick_height / 2), (x, scale_y)],
             linewidth=_SCALE_LINEWIDTH,
         )
 
     # Draw numeric labels at integer positions
     for rank_value in range(min_rank, max_rank + 1):
-        x = _rank_to_position(rank_value, textspace, scalewidth, min_rank, max_rank, reverse)
+        x = _rank_to_position(
+            rank_value, textspace, scalewidth, min_rank, max_rank, reverse
+        )
         _draw_text(
-            ax, width, height, x, scale_y - _MAJOR_TICK_HEIGHT / 2 - 0.05, str(rank_value),
-            ha="center", va="bottom", size=_SCALE_LABEL_SIZE,
+            ax,
+            width,
+            height,
+            x,
+            scale_y - _MAJOR_TICK_HEIGHT / 2 - 0.05,
+            str(rank_value),
+            ha="center",
+            va="bottom",
+            size=_SCALE_LABEL_SIZE,
         )
 
 
@@ -651,25 +668,41 @@ def _draw_single_estimator(
     """
     # Draw L-shaped line: vertical from scale, then horizontal to endpoint
     _draw_line(
-        ax, width, height,
+        ax,
+        width,
+        height,
         [(rank_x, scale_y), (rank_x, line_y), (line_end, line_y)],
-        linewidth=_ESTIMATOR_LINEWIDTH, color=colour,
+        linewidth=_ESTIMATOR_LINEWIDTH,
+        color=colour,
     )
 
     # Draw rank value above the line end
     _draw_text(
-        ax, width, height, line_end, line_y - 0.075,
+        ax,
+        width,
+        height,
+        line_end,
+        line_y - 0.075,
         f"{avg_rank:.4f}",
         ha="right" if goes_right else "left",
-        va="center", size=_RANK_TEXT_SIZE, color=colour,
+        va="center",
+        size=_RANK_TEXT_SIZE,
+        color=colour,
     )
 
     # Draw label just past the line end
     label_x = line_end + (_LABEL_OFFSET if goes_right else -_LABEL_OFFSET)
     _draw_text(
-        ax, width, height, label_x, line_y, label,
+        ax,
+        width,
+        height,
+        label_x,
+        line_y,
+        label,
         ha="left" if goes_right else "right",
-        va="center", size=_LABEL_TEXT_SIZE, color=colour,
+        va="center",
+        size=_LABEL_TEXT_SIZE,
+        color=colour,
     )
 
 
@@ -732,8 +765,13 @@ def _draw_estimators(
 
     # Compute fixed line endpoints for vertical label alignment
     right_side_end, left_side_end = _compute_line_endpoints(
-        ordered_avg_ranks, textspace, scalewidth, min_rank, max_rank,
-        min_hline_width, reverse,
+        ordered_avg_ranks,
+        textspace,
+        scalewidth,
+        min_rank,
+        max_rank,
+        min_hline_width,
+        reverse,
     )
 
     # Draw first half (best ranked estimators)
@@ -744,8 +782,17 @@ def _draw_estimators(
             ordered_avg_ranks[i], textspace, scalewidth, min_rank, max_rank, reverse
         )
         _draw_single_estimator(
-            ax, width, height, rank_x, line_y, line_end,
-            reverse, ordered_avg_ranks[i], ordered_labels[i], colours[i], scale_y,
+            ax,
+            width,
+            height,
+            rank_x,
+            line_y,
+            line_end,
+            reverse,
+            ordered_avg_ranks[i],
+            ordered_labels[i],
+            colours[i],
+            scale_y,
         )
 
     # Draw second half (worst ranked estimators)
@@ -756,8 +803,17 @@ def _draw_estimators(
             ordered_avg_ranks[i], textspace, scalewidth, min_rank, max_rank, reverse
         )
         _draw_single_estimator(
-            ax, width, height, rank_x, line_y, line_end,
-            not reverse, ordered_avg_ranks[i], ordered_labels[i], colours[i], scale_y,
+            ax,
+            width,
+            height,
+            rank_x,
+            line_y,
+            line_end,
+            not reverse,
+            ordered_avg_ranks[i],
+            ordered_labels[i],
+            colours[i],
+            scale_y,
         )
 
 
@@ -815,13 +871,25 @@ def _draw_cliques(
 
         min_idx, max_idx = positions.min(), positions.max()
         x_min = _rank_to_position(
-            ordered_avg_ranks[min_idx], textspace, scalewidth, min_rank, max_rank, reverse
+            ordered_avg_ranks[min_idx],
+            textspace,
+            scalewidth,
+            min_rank,
+            max_rank,
+            reverse,
         )
         x_max = _rank_to_position(
-            ordered_avg_ranks[max_idx], textspace, scalewidth, min_rank, max_rank, reverse
+            ordered_avg_ranks[max_idx],
+            textspace,
+            scalewidth,
+            min_rank,
+            max_rank,
+            reverse,
         )
         _draw_line(
-            ax, width, height,
+            ax,
+            width,
+            height,
             [(x_min - side_offset, clique_y), (x_max + side_offset, clique_y)],
             linewidth=_CLIQUE_LINEWIDTH,
         )
@@ -1015,8 +1083,16 @@ def plot_critical_difference(
 
     # Step 3: Find cliques using statistical tests
     cliques, p_values = _find_cliques(
-        ranks, ordered_scores, ordered_labels, ordered_avg_ranks,
-        n_datasets, n_estimators, test, correction, alpha, lower_better
+        ranks,
+        ordered_scores,
+        ordered_labels,
+        ordered_avg_ranks,
+        n_datasets,
+        n_estimators,
+        test,
+        correction,
+        alpha,
+        lower_better,
     )
 
     # Step 4: Set up figure
@@ -1035,12 +1111,32 @@ def plot_critical_difference(
         ax, width, height, textspace, scalewidth, scale_y, min_rank, max_rank, reverse
     )
     _draw_estimators(
-        ax, width, height, ordered_avg_ranks, ordered_labels, colours,
-        scale_y, min_y_offset, textspace, scalewidth, min_rank, max_rank, reverse
+        ax,
+        width,
+        height,
+        ordered_avg_ranks,
+        ordered_labels,
+        colours,
+        scale_y,
+        min_y_offset,
+        textspace,
+        scalewidth,
+        min_rank,
+        max_rank,
+        reverse,
     )
     _draw_cliques(
-        ax, width, height, ordered_avg_ranks, cliques, scale_y, textspace,
-        scalewidth, min_rank, max_rank, reverse
+        ax,
+        width,
+        height,
+        ordered_avg_ranks,
+        cliques,
+        scale_y,
+        textspace,
+        scalewidth,
+        min_rank,
+        max_rank,
+        reverse,
     )
 
     if return_p_values:
