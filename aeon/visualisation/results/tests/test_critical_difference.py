@@ -133,7 +133,7 @@ def test__compute_ranks_ties():
     # Tied scores should get average rank
     assert ranks[0, 0] == 1.5  # Tied for 1st
     assert ranks[0, 1] == 1.5  # Tied for 1st
-    assert ranks[0, 2] == 3  # 3rd place
+    assert ranks[0, 2] == 3    # 3rd place
 
 
 # =============================================================================
@@ -242,6 +242,10 @@ def test__rank_to_position_reversed():
 # =============================================================================
 
 
+@pytest.mark.skipif(
+    not _check_soft_dependencies("matplotlib", severity="none"),
+    reason="skip test if required soft dependency not available",
+)
 def test_plot_critical_difference_invalid_scores_shape():
     """Test that invalid score shape raises error."""
     scores = np.array([0.9, 0.8, 0.7])  # 1D instead of 2D
@@ -250,6 +254,10 @@ def test_plot_critical_difference_invalid_scores_shape():
         plot_critical_difference(scores, labels)
 
 
+@pytest.mark.skipif(
+    not _check_soft_dependencies("matplotlib", severity="none"),
+    reason="skip test if required soft dependency not available",
+)
 def test_plot_critical_difference_mismatched_labels():
     """Test that mismatched label count raises error."""
     scores = np.array([[0.9, 0.8, 0.7]])
@@ -258,6 +266,10 @@ def test_plot_critical_difference_mismatched_labels():
         plot_critical_difference(scores, labels)
 
 
+@pytest.mark.skipif(
+    not _check_soft_dependencies("matplotlib", severity="none"),
+    reason="skip test if required soft dependency not available",
+)
 def test_plot_critical_difference_too_few_estimators():
     """Test that too few estimators raises error."""
     scores = np.array([[0.9]])  # Only 1 estimator
