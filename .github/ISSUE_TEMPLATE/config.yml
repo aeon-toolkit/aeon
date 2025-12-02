@@ -2,9 +2,9 @@ contact_links:
   - name: "\U0001F4AC Discussions"
     url: https://github.com/aeon-toolkit/aeon/discussions/new/choose
     about: If none of these options fit, your question or topic may be better suited to a discussion.
-  - name: "\U0001F4AC Slack"
-    url: https://join.slack.com/t/aeon-toolkit/shared_invite/zt-3ihx5vif8-SwFzy1unNNMeQueC84MXVA
-    about: For all other questions and general chat, come chat with the aeon community on Slack!
+  - name: "\U0001F4AC Discord"
+    url: https://discord.gg/W4PrQ4Dm7
+    about: For all other questions and general chat, come chat with the aeon community on Discord!
   - name: "\u2709\uFE0F Email"
     url: https://mailxto.com/jbp3ave49x
     about: Send an email to the aeon developers at contact@aeon-toolkit.org. Checked periodically.
