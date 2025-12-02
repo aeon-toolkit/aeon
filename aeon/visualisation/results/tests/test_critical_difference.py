@@ -133,7 +133,7 @@ def test__compute_ranks_ties():
     # Tied scores should get average rank
     assert ranks[0, 0] == 1.5  # Tied for 1st
     assert ranks[0, 1] == 1.5  # Tied for 1st
-    assert ranks[0, 2] == 3    # 3rd place
+    assert ranks[0, 2] == 3  # 3rd place
 
 
 # =============================================================================
