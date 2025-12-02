@@ -12,8 +12,8 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 @pytest.mark.skipif(
-    not _check_soft_dependencies("hugging-face", severity="none"),
-    reason="required soft dependency hugging-face not available",
+    not _check_soft_dependencies("huggingface-hub", severity="none"),
+    reason="required soft dependency huggingface-hub not available",
 )
 @pytest.mark.xfail(raises=CONNECTION_ERRORS)
 def test_monster_dataset_names():
@@ -25,8 +25,8 @@ def test_monster_dataset_names():
 
 
 @pytest.mark.skipif(
-    not _check_soft_dependencies("hugging-face", severity="none"),
-    reason="required soft dependency hugging-face not available",
+    not _check_soft_dependencies("huggingface-hub", severity="none"),
+    reason="required soft dependency huggingface-hub not available",
 )
 @pytest.mark.xfail(raises=CONNECTION_ERRORS)
 def test_load_monster_dataset():
