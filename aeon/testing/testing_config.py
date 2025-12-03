@@ -46,8 +46,6 @@ EXCLUDED_TESTS = {
         "check_persistence_via_pickle",
         "check_save_estimators_to_file",
     ],
-    # needs investigation
-    "LeftSTAMPi": ["check_series_anomaly_detector_output"],
     # missed in legacy testing, changes state in predict/transform
     "FLUSSSegmenter": ["check_non_state_changing_method"],
     "ClaSPSegmenter": ["check_non_state_changing_method"],

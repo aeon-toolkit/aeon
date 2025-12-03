@@ -22,6 +22,29 @@ class LeftSTAMPi(BaseSeriesAnomalyDetector):
 
     LeftSTAMPi supports univariate time series only.
 
+    .. versionchanged:: 1.4.0
+        **Breaking Change**: The ``predict(X)`` method now returns anomaly scores
+        of length ``len(X)`` (matching the input length), rather than scores for
+        the entire accumulated time series. This fixes issue #2819 where the output
+        shape was inconsistent with the input.
+
+        **Impact on existing code**: If your code expects ``predict(X)`` to return
+        scores for all points seen since ``fit()``, you will need to accumulate
+        results yourself or use ``fit_predict()`` on the complete series.
+
+        **Migration example**:
+
+        .. code-block:: python
+
+            # Old behavior (before v1.4.0):
+            detector.fit(X_train)
+            all_scores = detector.predict(X_test)  # Returns len(X_train) + len(X_test)
+
+            # New behavior (v1.4.0+):
+            detector.fit(X_train)
+            test_scores = detector.predict(X_test)  # Returns len(X_test)
+            # To get all scores:
+            all_scores = detector.fit_predict(np.concatenate([X_train, X_test]))
 
     Parameters
     ----------
@@ -50,6 +73,16 @@ class LeftSTAMPi(BaseSeriesAnomalyDetector):
     >>> detector.fit_predict(X)  # doctest: +SKIP
     array([0.        , 0.        , 0.        , 0.07042306, 0.15989868,
            0.68912499, 0.75398303, 0.89696118, 0.5516023 , 0.69736132])
+
+    Incremental prediction example (showing v1.4.0+ behavior):
+
+    >>> X_train = np.random.default_rng(42).random((10))  # doctest: +SKIP
+    >>> X_test = np.random.default_rng(43).random((5))  # doctest: +SKIP
+    >>> detector = LeftSTAMPi(window_size=3, n_init_train=3)  # doctest: +SKIP
+    >>> detector.fit(X_train)  # doctest: +SKIP
+    >>> test_scores = detector.predict(X_test)  # doctest: +SKIP
+    >>> len(test_scores) == len(X_test)  # True in v1.4.0+  # doctest: +SKIP
+    True
 
     References
     ----------
@@ -90,17 +123,24 @@ class LeftSTAMPi(BaseSeriesAnomalyDetector):
 
         super().__init__(axis=0)
 
-    def _check_params(self, X):
+    def _check_params_fit(self, X):
+        """Validate parameters for initial fit operation."""
         if self.window_size < 3 or self.window_size > len(X):
             raise ValueError(
-                "The window size must be at least 3 and at most the length of the "
-                "time series."
+                "The window size must be at least 3 and "
+                "at most the length of the time series."
+            )
+
+        if len(X) < self.window_size:
+            raise ValueError(
+                f"The time series length ({len(X)}) must be at least "
+                f"window_size ({self.window_size}) for initial fitting."
             )
 
         if self.window_size > self.n_init_train:
             raise ValueError(
-                f"The window size must be less than or equal to "
-                f"n_init_train (is: {self.n_init_train})"
+                f"The window size ({self.window_size}) must be less than or equal to "
+                f"n_init_train ({self.n_init_train})"
             )
 
         if self.k < 1 or self.k > len(X) - self.window_size + 1:
@@ -109,10 +149,20 @@ class LeftSTAMPi(BaseSeriesAnomalyDetector):
                 "the time series minus the window size."
             )
 
+    def _check_params_predict(self, X):
+        """Validate parameters for incremental predict operation.
+
+        For predict(), X can be any length >= 1 since it's being added to
+        an existing matrix profile initialized during fit().
+        """
+        # X should already be ensured to be an array in _predict
+        # No strict validation needed for incremental updates
+        pass
+
     def _fit(self, X: np.ndarray, y=None) -> "LeftSTAMPi":
         if X.ndim > 1:
             X = X.squeeze()
-        self._check_params(X)
+        self._check_params_fit(X)
 
         self._call_stumpi(X)
 
@@ -121,14 +171,49 @@ class LeftSTAMPi(BaseSeriesAnomalyDetector):
     def _predict(self, X: np.ndarray) -> np.ndarray:
         if X.ndim > 1:
             X = X.squeeze()
-        self._check_params(X)
 
+        # Ensure X is always 1D array (squeeze() can turn single element into scalar)
+        X = np.atleast_1d(X)
+
+        self._check_params_predict(X)
+
+        n_new_points = len(X)
+        if n_new_points == 0:
+            return np.array([])
+
+        # Store initial matrix profile length before updating
+        initial_mp_len = len(self.mp_._left_P)
+
+        # Update matrix profile incrementally with each new point
         for x in X:
             self.mp_.update(x)
 
-        lmp = self.mp_._left_P
-        lmp[: self.n_init_train] = 0
-        point_anomaly_scores = reverse_windowing(lmp, self.window_size)
+        # Extract only the newly added portion of the matrix profile
+        # Each new point adds one new window to the matrix profile
+        new_mp_windows = self.mp_._left_P[initial_mp_len:]
+
+        # reverse_windowing converts window scores back to point scores
+        # Formula: n_timepoints = (n_windows - 1) * stride + window_size
+        # For n_new_points, we add n_new_points windows
+        point_anomaly_scores = reverse_windowing(new_mp_windows, self.window_size)
+
+        # reverse_windowing may produce window_size - 1 extra points at boundaries
+        # Trim to exactly match the number of new input points
+        expected_length = n_new_points
+        actual_length = len(point_anomaly_scores)
+
+        if actual_length > expected_length:
+            # Trim excess points from the end (boundary effect from reverse_windowing)
+            point_anomaly_scores = point_anomaly_scores[:expected_length]
+        elif actual_length < expected_length:
+            # This should not happen with correct stumpy behavior
+            # Pad with zeros if needed for robustness
+            point_anomaly_scores = np.pad(
+                point_anomaly_scores,
+                (0, expected_length - actual_length),
+                mode="constant",
+                constant_values=0,
+            )
 
         return point_anomaly_scores
 
@@ -136,9 +221,38 @@ class LeftSTAMPi(BaseSeriesAnomalyDetector):
         if X.ndim > 1:
             X = X.squeeze()
 
+        n_total_points = len(X)
+        if n_total_points < self.n_init_train:
+            raise ValueError(
+                f"Input length ({n_total_points}) must be at least "
+                f"n_init_train ({self.n_init_train})"
+            )
+
+        # Initialize with first n_init_train points
         self.fit(X[: self.n_init_train])
 
-        return self.predict(X[self.n_init_train :])
+        # Predict on remaining points
+        if n_total_points > self.n_init_train:
+            test_scores = self.predict(X[self.n_init_train :])
+        else:
+            test_scores = np.array([])
+
+        # For fit_predict, return scores for the entire series
+        # First n_init_train points get zero scores (no left neighbors)
+        full_scores = np.zeros(n_total_points, dtype=np.float64)
+
+        # Assign test scores to the appropriate positions
+        n_test_points = n_total_points - self.n_init_train
+        if n_test_points > 0:
+            # Ensure test_scores has correct length before assignment
+            if len(test_scores) != n_test_points:
+                raise ValueError(
+                    f"predict() returned {len(test_scores)} scores, "
+                    f"expected {n_test_points}"
+                )
+            full_scores[self.n_init_train :] = test_scores
+
+        return full_scores
 
     def _call_stumpi(self, X: np.ndarray):
         import stumpy
