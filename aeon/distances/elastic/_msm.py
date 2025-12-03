@@ -246,12 +246,10 @@ def _msm_independent_cost_matrix(
     x_size = x.shape[1]
     y_size = y.shape[1]
     cost_matrix = np.zeros((x_size, y_size))
-    distance = 0
     min_instances = min(x.shape[0], y.shape[0])
     for i in range(min_instances):
         curr_cost_matrix = _independent_cost_matrix(x[i], y[i], bounding_matrix, c)
         cost_matrix = np.add(cost_matrix, curr_cost_matrix)
-        distance += curr_cost_matrix[-1, -1]
     return cost_matrix
 
 
@@ -277,9 +275,10 @@ def _independent_cost_matrix(
     for i in range(1, x_size):
         for j in range(1, y_size):
             if bounding_matrix[i, j]:
-                d1 = cost_matrix[i - 1, j - 1] + np.abs(x[i] - y[j])
+                d1 = cost_matrix[i - 1][j - 1] + np.abs(x[i] - y[j])
                 d2 = cost_matrix[i - 1, j] + _cost_independent(x[i], x[i - 1], y[j], c)
                 d3 = cost_matrix[i, j - 1] + _cost_independent(y[j], x[i], y[j - 1], c)
+
                 cost_matrix[i, j] = min(d1, d2, d3)
 
     return cost_matrix
@@ -291,8 +290,9 @@ def _msm_dependent_cost_matrix(
 ) -> np.ndarray:
     x_size = x.shape[1]
     y_size = y.shape[1]
+
     cost_matrix = np.full((x_size, y_size), np.inf)
-    cost_matrix[0, 0] = np.sum(np.abs(x[:, 0] - y[:, 0]))
+    cost_matrix[0, 0] = _univariate_squared_distance(x[:, 0], y[:, 0])
 
     for i in range(1, x_size):
         if bounding_matrix[i, 0]:
@@ -307,7 +307,9 @@ def _msm_dependent_cost_matrix(
     for i in range(1, x_size):
         for j in range(1, y_size):
             if bounding_matrix[i, j]:
-                d1 = cost_matrix[i - 1][j - 1] + np.sum(np.abs(x[:, i] - y[:, j]))
+                d1 = cost_matrix[i - 1, j - 1] + _univariate_squared_distance(
+                    x[:, i], y[:, j]
+                )
                 d2 = cost_matrix[i - 1, j] + _cost_dependent(
                     x[:, i], x[:, i - 1], y[:, j], c
                 )
@@ -322,10 +324,10 @@ def _msm_dependent_cost_matrix(
 @njit(cache=True, fastmath=True)
 def _cost_dependent(x: np.ndarray, y: np.ndarray, z: np.ndarray, c: float) -> float:
     diameter = _univariate_squared_distance(y, z)
-    mid = (y + z) / 2
+    mid = (y + z) / 2.0
     distance_to_mid = _univariate_squared_distance(mid, x)
 
-    if distance_to_mid <= (diameter / 2):
+    if distance_to_mid <= (diameter / 4.0):
         return c
     else:
         dist_to_q_prev = _univariate_squared_distance(y, x)
@@ -341,6 +343,7 @@ def _cost_independent(x: float, y: float, z: float, c: float) -> float:
     if (y <= x <= z) or (y >= x >= z):
         return c
     return c + min(abs(x - y), abs(x - z))
+
 
 @threaded
 def msm_pairwise_distance(
