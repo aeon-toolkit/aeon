@@ -170,7 +170,11 @@ class HidalgoSegmenter(BaseSegmenter):
             n_neighbors=q + 1, algorithm="ball_tree", metric=metric
         ).fit(X)
         distances, Iin = nbrs.kneighbors(X)
-        mu = np.divide(distances[:, 2], distances[:, 1])
+
+        # Add numerical stability: prevent division by zero when duplicate points exist
+        # Use epsilon to handle cases where r1 (distances[:, 1]) is zero or near-zero
+        eps = 1e-12
+        mu = np.divide(distances[:, 2], distances[:, 1] + eps)
 
         nbrmat = np.zeros((m, m))
         for n in range(q):
@@ -354,7 +358,14 @@ class HidalgoSegmenter(BaseSegmenter):
                     r1 = _rng.random()  # random sample for p[k]
                     r2 = _rng.random()  # random number for accepting
 
-                    rmax = (c1[k] - 1) / (c1[k] - 1 + c1[K - 1] - 1)
+                    # Add numerical stability for edge cases
+                    eps = 1e-12
+                    denom = max(c1[k] - 1 + c1[K - 1] - 1, eps)
+                    rmax = (c1[k] - 1) / denom
+
+                    # Prevent division by zero when rmax is 0 or 1
+                    rmax = np.clip(rmax, eps, 1.0 - eps)
+
                     frac = ((r1 / rmax) ** (c1[k] - 1)) * (
                         ((1 - r1) / (1 - rmax)) ** (c1[K - 1] - 1)
                     )
