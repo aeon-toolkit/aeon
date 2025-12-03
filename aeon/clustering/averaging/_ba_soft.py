@@ -194,41 +194,6 @@ def soft_barycenter_average(
     return barycenter
 
 
-@njit(cache=True, fastmath=True)
-def _jacobian_product_squared_euclidean(X: np.ndarray, Y: np.ndarray, E: np.ndarray):
-    m = X.shape[1]
-    n = Y.shape[1]
-    d = X.shape[0]
-
-    product = np.zeros((d, m))
-
-    for i in range(m):
-        for j in range(n):
-            for k in range(d):
-                # product[k, i] += E[i, j] * 2 * (diff_matrix[i, j])
-                product[k, i] += E[i, j] * 2 * (X[k, i] - Y[k, j])
-    return product
-
-
-@njit(fastmath=True, cache=True)
-def jacobian_product_smooth_abs(X, Y, E):
-    d, m = X.shape
-    _, n = Y.shape
-
-    G = np.zeros((d, m), dtype=X.dtype)
-    eps_t = X.dtype.type(1e-6)
-
-    for i in range(m):  # time index in x
-        for j in range(n):  # time index in y
-            e_ij = E[i, j]
-            if e_ij == 0:
-                continue
-            for k in range(d):  # channel
-                diff = X[k, i] - Y[k, j]
-                G[k, i] += e_ij * (diff / np.sqrt(diff * diff + eps_t))
-    return G
-
-
 @njit(cache=True, fastmath=True, parallel=True)
 def _soft_barycenter_one_iter(
     barycenter: np.ndarray,
