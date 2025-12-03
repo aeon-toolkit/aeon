@@ -84,17 +84,16 @@ class NearestCentroid(BaseClassifier):
         self._averaging_method = _resolve_average_callable(self.average_method)
 
 
-if __name__ == "__main__":
+# if __name__ == "__main__":
+#     from sklearn.metrics import accuracy_score
+#     from aeon.datasets import load_gunpoint
 
-    from aeon.datasets import load_gunpoint
+#     X, y = load_gunpoint(split="train")
+#     X_test, y_test = load_gunpoint(split="test")
+#     distance = "soft_dtw"
+#     average = "soft"
 
-    X, y = load_gunpoint(split="train")
-    X_test, y_test = load_gunpoint(split="test")
-    distance = "soft_dtw"
-    average = "soft"
-
-    classifier = NearestCentroid(distance=distance, average_method=average)
-    classifier.fit(X, y)
-    y_pred = classifier.predict(X_test)
-    # from sklearn.metrics import accuracy_score
-    # print(f"distance: {distance}: score {accuracy_score(y_test, y_pred)}")
+#     classifier = NearestCentroid(distance=distance, average_method=average)
+#     classifier.fit(X, y)
+#     y_pred = classifier.predict(X_test)
+#     print(f"distance: {distance}: score {accuracy_score(y_test, y_pred)}")
