@@ -170,13 +170,9 @@ class HidalgoSegmenter(BaseSegmenter):
             n_neighbors=q + 1, algorithm="ball_tree", metric=metric
         ).fit(X)
         distances, Iin = nbrs.kneighbors(X)
-        num = distances[:, 2]
-        den = distances[:, 1]
         eps = 1e-12
-        mu = np.divide(num, den, out=num / eps, where=den != 0)
-        mu = np.nan_to_num(
-            np.asarray(mu), nan=num / eps, posinf=num / eps, neginf=num / eps
-        )
+        # stabilise r2/r1 ratio; protect against zero or near-zero r1
+        mu = np.divide(distances[:, 2], distances[:, 1] + eps)
 
         nbrmat = np.zeros((m, m))
         for n in range(q):
