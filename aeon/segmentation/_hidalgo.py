@@ -4,6 +4,7 @@ __maintainer__ = []
 __all__ = ["HidalgoSegmenter"]
 
 
+import warnings
 from functools import reduce
 
 import numpy as np
@@ -619,6 +620,14 @@ class HidalgoSegmenter(BaseSegmenter):
                 for it in range(n_iter)
                 if it % sampling_rate == 0 and it >= n_iter * burn_in
             ]
+            if len(idx) == 0:
+                warnings.warn(
+                    "No Gibbs samples survived burn-in + sampling_rate; "
+                    "using last iteration as a fallback.",
+                    RuntimeWarning,
+                    stacklevel=2,
+                )
+                idx = [n_iter - 1]
             sampling = sampling[idx,]
 
             likelihood = np.mean(sampling[:, -1], axis=0)
