@@ -17,6 +17,7 @@ from aeon.distances import (
     wddtw_alignment_path,
     wdtw_alignment_path,
 )
+from aeon.distances.elastic.soft._soft_msm import soft_msm_alignment_path
 
 
 def _medoids(
@@ -142,6 +143,8 @@ def _get_alignment_path(
         return adtw_alignment_path(ts, center, window=window, warp_penalty=warp_penalty)
     elif distance == "soft_dtw":
         return soft_dtw_alignment_path(ts, center, gamma=gamma, window=window)
+    elif distance == "soft_msm":
+        return soft_msm_alignment_path(ts, center, gamma=gamma, c=c)
     else:
         # When numba version > 0.57 add more informative error with what method
         # was passed.
@@ -220,11 +223,7 @@ def _ba_setup(
     )
 
 
-VALID_BA_METHODS = [
-    "subgradient",
-    "kasba",
-    "petitjean",
-]
+VALID_BA_METHODS = ["subgradient", "kasba", "petitjean", "soft"]
 
 VALID_BA_DISTANCE_METHODS = [
     "adtw",
@@ -239,6 +238,4 @@ VALID_BA_DISTANCE_METHODS = [
     "soft_dtw",
 ]
 
-VALID_SOFT_BA_METHODS = [
-    "soft_dtw",
-]
+VALID_SOFT_BA_METHODS = ["soft_dtw", "soft_msm"]

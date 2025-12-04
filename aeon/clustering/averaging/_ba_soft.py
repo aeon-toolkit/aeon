@@ -8,6 +8,7 @@ from aeon.clustering.averaging._ba_utils import (
     _ba_setup,
 )
 from aeon.distances.elastic.soft._soft_dtw import _soft_dtw_grad_x
+from aeon.distances.elastic.soft._soft_msm import _soft_msm_grad_x
 from aeon.utils.numba._threading import threaded
 
 
@@ -140,6 +141,7 @@ def soft_barycenter_average(
             barycenter=Z.reshape(*barycenter.shape),
             X=_X,
             weights=weights,
+            distance=distance,
             **kwargs,
         )
         latest["f"] = float(f)
@@ -199,8 +201,10 @@ def _soft_barycenter_one_iter(
     barycenter: np.ndarray,
     X: np.ndarray,
     weights: np.ndarray,
+    distance: str,
     window: float | None = None,
     gamma: float = 1.0,
+    c: float = 1.0,
 ):
     X_size = len(X)
     local_jacobian_products = np.zeros(
@@ -209,13 +213,24 @@ def _soft_barycenter_one_iter(
     local_distances = np.zeros(X_size)
     distances_to_center = np.zeros(X_size)
 
-    for i in prange(X_size):
-        curr_ts = X[i]
-        local_jacobian_products[i], curr_dist = _soft_dtw_grad_x(
-            barycenter, curr_ts, gamma=gamma, window=window
-        )
-        local_distances[i] = curr_dist
-        distances_to_center[i] = curr_dist
+    if distance == "soft_dtw":
+        for i in prange(X_size):
+            curr_ts = X[i]
+            local_jacobian_products[i], curr_dist = _soft_dtw_grad_x(
+                barycenter, curr_ts, gamma=gamma, window=window
+            )
+            local_distances[i] = curr_dist
+            distances_to_center[i] = curr_dist
+    elif distance == "soft_msm":
+        for i in prange(X_size):
+            curr_ts = X[i]
+            local_jacobian_products[i], curr_dist = _soft_msm_grad_x(
+                barycenter, curr_ts, gamma=gamma, c=c
+            )
+            local_distances[i] = curr_dist
+            distances_to_center[i] = curr_dist
+    else:
+        raise ValueError(f"Distance '{distance}' not supported for soft barycenter.")
 
     jacobian_product = np.zeros_like(barycenter)
     total_distance = 0.0
