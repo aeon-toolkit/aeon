@@ -4,7 +4,7 @@ __maintainer__ = ["baraline"]
 __all__ = ["MassSNN"]
 
 import numpy as np
-from numba import njit
+from numba import get_num_threads, njit, prange
 
 from aeon.similarity_search.series._base import BaseSeriesSimilaritySearch
 from aeon.similarity_search.series._commons import (
@@ -29,6 +29,11 @@ class MassSNN(BaseSeriesSimilaritySearch):
         The length of the subsequences to use for the search.
     normalize : bool
         Whether the subsequences should be z-normalized.
+    n_jobs : int, default=1
+        The number of jobs to run in parallel for `compute_distance_profile`.
+        ``-1`` means using all processors.
+        ``1`` means sequential computation (using FFT based implementation).
+        Values > 1 uses a parallel implementation with sliding dot products.
 
     References
     ----------
@@ -41,9 +46,11 @@ class MassSNN(BaseSeriesSimilaritySearch):
         self,
         length: int,
         normalize: bool | None = False,
+        n_jobs: int = 1,
     ):
         self.normalize = normalize
         self.length = length
+        self.n_jobs = n_jobs
         super().__init__()
 
     def _fit(
@@ -148,6 +155,24 @@ class MassSNN(BaseSeriesSimilaritySearch):
             collection, returns a numba typed list instead of an ndarray.
 
         """
+        if self.n_jobs != 1:
+            if self.normalize:
+                _X_means = self.X_means_
+                _X_stds = self.X_stds_
+            else:
+                _X_means = np.zeros((1, 1))
+                _X_stds = np.zeros((1, 1))
+
+            return _compute_distance_profile_parallel(
+                self.X_,
+                X,
+                self.length,
+                _X_means,
+                _X_stds,
+                self.normalize,
+                self.n_jobs,
+            )
+
         QT = fft_sliding_dot_product(self.X_, X)
 
         if self.normalize:
@@ -293,3 +318,74 @@ def _normalized_squared_distance_profile(
             distance_profile[i] += _val
 
     return distance_profile
+
+
+@njit(cache=True, fastmath=True)
+def _sliding_dot_product(T, Q, QT_buffer):
+    n_channels, series_len = T.shape
+    n_channels, query_len = Q.shape
+    out_len = series_len - query_len + 1
+
+    for k in range(n_channels):
+        for i in range(out_len):
+            dot = 0.0
+            for j in range(query_len):
+                dot += T[k, i + j] * Q[k, j]
+            QT_buffer[k, i] = dot
+
+
+@njit(cache=True, parallel=True)
+def _compute_distance_profile_parallel(
+    T, Q, query_length, T_means, T_stds, normalize, n_jobs
+):
+    n_channels = T.shape[0]
+    n_timepoints = T.shape[1]
+    if n_jobs < 1:
+        n_jobs = get_num_threads()
+    out_len = n_timepoints - query_length + 1
+    chunk_size = int(np.ceil(out_len / n_jobs))
+    final_profile = np.empty(out_len)
+    if normalize:
+        Q_means = np.empty(n_channels)
+        Q_stds = np.empty(n_channels)
+        for k in range(n_channels):
+            q_sum = 0.0
+            q_sq_sum = 0.0
+            for j in range(query_length):
+                val = Q[k, j]
+                q_sum += val
+                q_sq_sum += val * val
+            Q_means[k] = q_sum / query_length
+            Q_stds[k] = np.sqrt((q_sq_sum / query_length) - (Q_means[k] ** 2))
+    else:
+        Q_means = np.zeros(1)
+        Q_stds = np.zeros(1)
+
+    for i in prange(n_jobs):
+        start = i * chunk_size
+        end = min((i + 1) * chunk_size, out_len)
+        if start >= end:
+            continue
+        t_start = start
+        t_end = end + query_length - 1
+        T_chunk = T[:, t_start:t_end]
+        chunk_out_len = end - start
+        QT_chunk = np.empty((n_channels, chunk_out_len))
+        _sliding_dot_product(T_chunk, Q, QT_chunk)
+
+        if normalize:
+            T_means_chunk = T_means[:, start:end]
+            T_stds_chunk = T_stds[:, start:end]
+            chunk_dist = _normalized_squared_distance_profile(
+                QT_chunk,
+                T_means_chunk,
+                T_stds_chunk,
+                Q_means,
+                Q_stds,
+                query_length,
+            )
+        else:
+            chunk_dist = _squared_distance_profile(QT_chunk, T_chunk, Q)
+        final_profile[start:end] = chunk_dist
+
+    return final_profile
