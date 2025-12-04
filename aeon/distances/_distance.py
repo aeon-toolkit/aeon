@@ -960,7 +960,7 @@ DISTANCES = [
     {
         "name": "soft_msm",
         "distance": soft_msm_distance,
-        "pairwise_distanCe": soft_msm_pairwise_distance,
+        "pairwise_distance": soft_msm_pairwise_distance,
         "cost_matrix": soft_msm_cost_matrix,
         "alignment_path": soft_msm_alignment_path,
         "gradient": soft_msm_grad_x,
