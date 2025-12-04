@@ -17,6 +17,7 @@ from aeon.utils.numba.general import (
     AEON_NUMBA_STD_THRESHOLD,
     sliding_mean_std_one_series,
 )
+from aeon.utils.validation import check_n_jobs
 
 
 class MassSNN(BaseSeriesSimilaritySearch):
@@ -62,6 +63,7 @@ class MassSNN(BaseSeriesSimilaritySearch):
         X: np.ndarray,
         y=None,
     ):
+        self._n_jobs = check_n_jobs(self.n_jobs)
         if self.normalize:
             self.X_means_, self.X_stds_ = sliding_mean_std_one_series(X, self.length, 1)
         return self
@@ -159,7 +161,7 @@ class MassSNN(BaseSeriesSimilaritySearch):
             collection, returns a numba typed list instead of an ndarray.
 
         """
-        if self.n_jobs != 1:
+        if self._n_jobs != 1:
             if self.normalize:
                 _X_means = self.X_means_
                 _X_stds = self.X_stds_
@@ -174,7 +176,7 @@ class MassSNN(BaseSeriesSimilaritySearch):
                 _X_means,
                 _X_stds,
                 self.normalize,
-                self.n_jobs,
+                self._n_jobs,
             )
 
         QT = fft_sliding_dot_product(self.X_, X)
