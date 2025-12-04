@@ -68,6 +68,13 @@ from aeon.distances.elastic import (
     wdtw_distance,
     wdtw_pairwise_distance,
 )
+from aeon.distances.elastic.soft._soft_msm import (
+    soft_msm_alignment_path,
+    soft_msm_cost_matrix,
+    soft_msm_distance,
+    soft_msm_grad_x,
+    soft_msm_pairwise_distance,
+)
 from aeon.distances.mindist import (
     mindist_dft_sfa_distance,
     mindist_dft_sfa_pairwise_distance,
@@ -945,6 +952,17 @@ DISTANCES = [
         "distance": mp_distance,
         "pairwise_distance": mp_pairwise_distance,
         "type": DistanceType.MATRIX_PROFILE,
+        "symmetric": True,
+        "unequal_support": True,
+    },
+    {
+        "name": "soft_msm",
+        "distance": soft_msm_distance,
+        "pairwise_distanCe": soft_msm_pairwise_distance,
+        "cost_matrix": soft_msm_cost_matrix,
+        "alignment_path": soft_msm_alignment_path,
+        "gradient": soft_msm_grad_x,
+        "type": DistanceType.ELASTIC,
         "symmetric": True,
         "unequal_support": True,
     },
