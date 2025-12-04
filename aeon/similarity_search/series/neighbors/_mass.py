@@ -42,6 +42,10 @@ class MassSNN(BaseSeriesSimilaritySearch):
     Search Algorithm for Time Series Subsequences under Euclidean Distance.
     """
 
+    _tags = {
+        "capability:multithreading": True,
+    }
+
     def __init__(
         self,
         length: int,
