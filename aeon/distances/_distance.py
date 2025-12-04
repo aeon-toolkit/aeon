@@ -68,6 +68,7 @@ from aeon.distances.elastic import (
     wdtw_distance,
     wdtw_pairwise_distance,
 )
+from aeon.distances.elastic.soft._soft_dtw import soft_dtw_grad_x
 from aeon.distances.elastic.soft._soft_msm import (
     soft_msm_alignment_path,
     soft_msm_cost_matrix,
@@ -895,6 +896,7 @@ DISTANCES = [
         "pairwise_distance": soft_dtw_pairwise_distance,
         "cost_matrix": soft_dtw_cost_matrix,
         "alignment_path": soft_dtw_alignment_path,
+        "gradient": soft_dtw_grad_x,
         "type": DistanceType.ELASTIC,
         "symmetric": True,
         "unequal_support": True,
@@ -979,6 +981,11 @@ UNEQUAL_LENGTH_SUPPORT_DISTANCES = [
 ]
 
 ELASTIC_DISTANCES = [d["name"] for d in DISTANCES if d["type"] == DistanceType.ELASTIC]
+SOFT_DISTANCES = [
+    d["name"]
+    for d in DISTANCES
+    if d["type"] == DistanceType.ELASTIC and "soft" in d["name"]
+]
 POINTWISE_DISTANCES = [
     d["name"] for d in DISTANCES if d["type"] == DistanceType.POINTWISE
 ]
