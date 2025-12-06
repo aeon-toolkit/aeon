@@ -51,55 +51,74 @@ class PAA(BaseCollectionTransformer):
 
         super().__init__()
 
+    @staticmethod
     @njit(parallel=True, fastmath=True, cache=True)
-    def _transform(self, X, y=None):
-        """Transform the input time series to PAA segments.
+    def _transform_paa_parallel(X, n_segments):
+        """
+        Transform the input time series to PAA segments.
 
         Parameters
         ----------
         X : np.ndarray of shape = (n_cases, n_channels, n_timepoints)
-            The input time series
-        y : np.ndarray of shape = (n_cases,), default = None
-            The labels are not used
+            The input time series.
+        segments : Number of segments to divide timepoints into.
 
         Returns
         -------
         X_paa : np.ndarray of shape = (n_cases, n_channels, n_segments)
-                The output of the PAA transformation
+                The output of the PAA transformation.
         """
-        prev_threads = get_num_threads()
-        _n_jobs = check_n_jobs(self.n_jobs)
-
-        set_num_threads(_n_jobs)
-
-        n_segments = self.n_segments
         n_cases, n_channels, n_timepoints = X.shape
         X_paa = np.zeros((n_cases, n_channels, n_segments), dtype=np.float64)
 
-        # find the number of elements in each segment, then mean of these
-        # elements will be stored in place of multiple time-points.
         segment_length = n_timepoints / n_segments
 
         for i_x in prange(n_cases):
-            for i_c in range(n_channels):
-                for seg in range(n_segments):
+            for i_c in prange(n_channels):
+                for seg in prange(n_segments):
+
                     start_idx = int(seg * segment_length)
 
-                    # Calculate end index, handling the last segment
+                    # Handle last segment edge
                     if seg == n_segments - 1:
                         end_idx = n_timepoints
                     else:
                         end_idx = int((seg + 1) * segment_length)
 
-                    # Compute mean of segment
-
+                    # Compute mean of segment if valid
                     if end_idx > start_idx:
                         segment_sum = 0.0
+
                         for t in range(start_idx, end_idx):
                             segment_sum += X[i_x, i_c, t]
-                            X_paa[i_x, i_c, seg] = segment_sum / (end_idx - start_idx)
+
+                        X_paa[i_x, i_c, seg] = segment_sum / (end_idx - start_idx)
+
+        return X_paa
+
+    def _transform(self, X, y=None):
+        """
+        Formal transform function to return PAA transformation.
+
+        Parameters
+        ----------
+        X : np.ndarray of shape = (n_cases, n_channels, n_timepoints)
+            The input time series.
+        y : np.ndarray of shape = (n_cases,), default = None.
+
+        Returns
+        -------
+        X_paa : np.ndarray of shape = (n_cases, n_channels, n_segments)
+                The output of the PAA transformation.
+        """
+        prev_threads = get_num_threads()
+        _n_jobs = check_n_jobs(self.n_jobs)
+        set_num_threads(_n_jobs)
+
+        X_paa = self._transform_paa_parallel(X, self.n_segments)
 
         set_num_threads(prev_threads)
+
         return X_paa
 
     def inverse_paa(self, X, original_length):
@@ -108,7 +127,7 @@ class PAA(BaseCollectionTransformer):
         Parameters
         ----------
         X : np.ndarray of shape = (n_cases, n_channels, n_segments)
-            The output of the PAA transformation
+            The output of the PAA transformation.
         original_length : int
             The original length of the series.
 
