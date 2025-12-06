@@ -117,15 +117,14 @@ class SAX(BaseCollectionTransformer):
             The output of the PAA transformation
         """
         if not self.znormalized:
-            # Safe, if std is 0
             X = (X - np.mean(X, axis=-1, keepdims=True)) / (
                 np.std(X, axis=-1, keepdims=True) + 1e-8
             )
 
-            # Non-Safe is std is 0
-            # X = scipy.stats.zscore(X, axis=-1)
+        # Create PAA that respects n_jobs
+        paa = PAA(n_segments=self.n_segments, n_jobs=self.n_jobs)
 
-        paa = PAA(n_segments=self.n_segments)
+        # Fit-transform the input
         X_paa = paa.fit_transform(X=X)
 
         return X_paa
@@ -150,10 +149,20 @@ class SAX(BaseCollectionTransformer):
         sax_symbols : np.ndarray of shape = (n_cases, n_channels, n_segments)
             The output of the SAX transformation
         """
+        # PAA computes in parallel
         X_paa = self._get_paa(X=X)
-        sax_symbols = self._get_sax_symbols(X_paa=X_paa)
+
+        # Now apply SAX in parallel
+        prev_threads = get_num_threads()
+        _n_jobs = check_n_jobs(self.n_jobs)
+        set_num_threads(_n_jobs)
+
+        sax_symbols = self._get_sax_symbols(X_paa, self.breakpoints)
+
+        set_num_threads(prev_threads)
         return sax_symbols
 
+    @njit(parallel=True, fastmath=True, cache=True)
     def _get_sax_symbols(self, X_paa):
         """Produce the SAX transformation.
 
@@ -167,7 +176,26 @@ class SAX(BaseCollectionTransformer):
         sax_symbols : np.ndarray of shape = (n_cases, n_channels, n_segments)
             The output of the SAX transformation using np.digitize
         """
-        sax_symbols = np.digitize(x=X_paa, bins=self.breakpoints)
+        breakpoints = self.breakpoints
+
+        n_cases, n_channels, n_segments = X_paa.shape
+        n_breakpoints = breakpoints.shape[0]
+        sax_symbols = np.zeros((n_cases, n_channels, n_segments), dtype=np.uint8)
+
+        for i_x in prange(n_cases):
+            for i_c in range(n_channels):  # keep inner loops non-parallel
+                for i_t in range(n_segments):
+                    value = X_paa[i_x, i_c, i_t]
+
+                    # Correct digitize, same way numpy does.
+                    symbol = n_breakpoints
+                    for i_b in range(n_breakpoints):
+                        if value <= breakpoints[i_b]:
+                            symbol = i_b
+                            break
+
+                    sax_symbols[i_x, i_c, i_t] = symbol
+
         return sax_symbols
 
     def inverse_sax(self, X, original_length, y=None):
