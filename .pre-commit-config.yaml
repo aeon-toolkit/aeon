@@ -45,13 +45,6 @@ repos:
         name: isort
         args: [ "--profile=black", "--multi-line=3" ]
 
-  - repo: https://github.com/pycqa/flake8
-    rev: 7.3.0
-    hooks:
-      - id: flake8
-        additional_dependencies: [ flake8-bugbear, flake8-print, Flake8-pyproject ]
-        args: [ "--max-line-length=88", "--extend-ignore=E203" ]
-
   - repo: https://github.com/psf/black
     rev: 25.11.0
     hooks:
@@ -67,9 +60,6 @@ repos:
       - id: nbqa-black
         additional_dependencies: [ black==24.4.2 ]
         args: [ "--nbqa-dont-skip-bad-cells" ]
-      - id: nbqa-flake8
-        additional_dependencies: [ flake8==7.0.0 ]
-        args: [ "--nbqa-dont-skip-bad-cells", "--extend-ignore=E402,E203", "--max-line-length=88" ]
 
   - repo: https://github.com/mgedmin/check-manifest
     rev: "0.51"
