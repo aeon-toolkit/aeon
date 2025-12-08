@@ -186,7 +186,7 @@ def petitjean_barycenter_average(
     return barycenter
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath=True, parallel=True)
 def _ba_one_iter_petitjean(
     barycenter: np.ndarray,
     X: np.ndarray,
