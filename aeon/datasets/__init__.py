@@ -49,7 +49,7 @@ __all__ = [
     "load_daphnet_s06r02e0",
     "load_ecg_diff_count_3",
     "get_dataset_meta_data",
-    #monster loader
+    # monster loader
     "load_monster",
 ]
 
@@ -69,6 +69,7 @@ from aeon.datasets._data_writers import (
     write_to_arff_file,
     write_to_ts_file,
 )
+from aeon.datasets._monster import load_monster
 from aeon.datasets._single_problem_loaders import (
     load_acsf1,
     load_airline,
@@ -108,4 +109,3 @@ from aeon.datasets.rehabpile_loader import (
     load_rehab_pile_dataset,
     load_rehab_pile_regression_datasets,
 )
-from aeon.datasets._monster import load_monster
