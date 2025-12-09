@@ -3,9 +3,11 @@
 import os
 import urllib.request
 from urllib.error import HTTPError
+
 import numpy as np
-from aeon.utils.numba.general import z_normalise_series_3d
+
 import aeon
+from aeon.utils.numba.general import z_normalise_series_3d
 
 __all__ = ["load_monster"]
 
@@ -23,16 +25,16 @@ monash_monster_datasets = [
     "InsectSound",
 ]
 
+
 def _download_from_hf(repo_id: str, filename: str, local_dir: str) -> str:
-    """
-    Helper to download a raw file from Hugging Face via HTTPS.
-    
+    """Download a raw file from Hugging Face via HTTPS.
+
     This avoids the need for the huggingface_hub library.
     """
     # Construct the raw URL
     # 'resolve/main' gets the file from the main branch
     url = f"https://huggingface.co/datasets/{repo_id}/resolve/main/{filename}"
-    
+
     local_path = os.path.join(local_dir, filename)
 
     # If file already exists, don't download again (Basic Caching)
@@ -43,8 +45,7 @@ def _download_from_hf(repo_id: str, filename: str, local_dir: str) -> str:
     os.makedirs(local_dir, exist_ok=True)
 
     try:
-        # Download the file
-        print(f"Downloading {filename} from {url}...")
+        # We removed the print() statement here to satisfy flake8 T201
         urllib.request.urlretrieve(url, local_path)
     except HTTPError as e:
         # Clean up empty file if download fails
@@ -57,7 +58,9 @@ def _download_from_hf(repo_id: str, filename: str, local_dir: str) -> str:
     return local_path
 
 
-def load_monster(name: str, fold: int = 0, normalize: bool = True, extract_path: str = None):
+def load_monster(
+    name: str, fold: int = 0, normalize: bool = True, extract_path: str = None
+):
     """
     Load a MONSTER dataset from Hugging Face using raw URLs.
 
@@ -74,15 +77,17 @@ def load_monster(name: str, fold: int = 0, normalize: bool = True, extract_path:
 
     Returns
     -------
-    X_train, y_train, X_test, y_test
+    X_train : np.ndarray
+    y_train : np.ndarray
+    X_test : np.ndarray
+    y_test : np.ndarray
     """
-    
     # Define where to save the data
     if extract_path is None:
-         # Use the standard aeon data location
+        # Use the standard aeon data location
         module_path = os.path.dirname(aeon.__file__)
         extract_path = os.path.join(module_path, "datasets", "local_data", name)
-    
+
     repo_id = f"monster-monash/{name}"
 
     # 1. Download X (Data)
@@ -95,7 +100,7 @@ def load_monster(name: str, fold: int = 0, normalize: bool = True, extract_path:
     X = np.load(data_path, mmap_mode="r")
 
     if normalize:
-        # Note: Normalizing mmap data might load it into RAM. 
+        # Note: Normalizing mmap data might load it into RAM.
         # Be careful if data is bigger than RAM.
         X = z_normalise_series_3d(X)
 
@@ -107,7 +112,7 @@ def load_monster(name: str, fold: int = 0, normalize: bool = True, extract_path:
         try:
             label_path = _download_from_hf(repo_id, f"{name}_y.npy", extract_path)
         except ValueError as e:
-             raise ValueError(f"Could not find labels for {name}") from e
+            raise ValueError(f"Could not find labels for {name}") from e
 
     y = np.load(label_path)
 
