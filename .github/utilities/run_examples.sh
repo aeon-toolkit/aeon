@@ -4,6 +4,7 @@
 set -euxo pipefail
 
 CMD="jupyter nbconvert --to notebook --inplace --execute --ExecutePreprocessor.timeout=600"
+MULTITHREADED=${2:-false}
 
 excluded=(
   # try removing when 3.9 is dropped
@@ -39,19 +40,38 @@ find "examples" -name "*.ipynb" -print0 |
     # Skip notebooks in the excluded list.
     if printf "%s\0" "${excluded[@]}" | grep -Fxqz -- "$notebook"; then
       echo "Skipping: $notebook"
-    # Run the notebook.
+    # Add valid notebooks to the array
     else
-      echo "Running: $notebook"
-
-      start=$(date +%s)
-      $CMD "$notebook"
-      end=$(date +%s)
-
       notebooks+=("$notebook")
-      runtimes+=($((end-start)))
     fi
   done
 
-# print runtimes and notebooks
-echo "Runtimes:"
-paste <(printf "%s\n" "${runtimes[@]}") <(printf "%s\n" "${notebooks[@]}")
+if [ "$MULTITHREADED" = true ]; then
+  # Detect CPU cores
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    CORES=$(sysctl -n hw.ncpu)
+  else
+    CORES=$(nproc)
+  fi
+  echo "Running ${#notebooks[@]} notebooks in parallel on $CORES cores..."
+  export CMD
+  
+  # Run in parallel
+  printf "%s\0" "${notebooks[@]}" | xargs -0 -n 1 -P "$CORES" bash -c '$CMD "$1"' _
+
+else
+  # Sequential execution
+  for notebook in "${notebooks[@]}"; do
+    echo "Running: $notebook"
+
+    start=$(date +%s)
+    $CMD "$notebook"
+    end=$(date +%s)
+
+    runtimes+=($((end-start)))
+  done
+
+  # print runtimes and notebooks
+  echo "Runtimes:"
+  paste <(printf "%s\n" "${runtimes[@]}") <(printf "%s\n" "${notebooks[@]}")
+fi
