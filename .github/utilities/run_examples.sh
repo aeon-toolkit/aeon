@@ -55,7 +55,7 @@ if [ "$MULTITHREADED" = true ]; then
   fi
   echo "Running ${#notebooks[@]} notebooks in parallel on $CORES cores..."
   export CMD
-  
+
   # Run in parallel
   printf "%s\0" "${notebooks[@]}" | xargs -0 -n 1 -P "$CORES" bash -c '$CMD "$1"' _
 
