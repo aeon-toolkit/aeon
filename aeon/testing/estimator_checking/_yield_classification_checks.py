@@ -9,7 +9,7 @@ from copy import deepcopy
 from functools import partial
 
 import numpy as np
-from numpy.testing import assert_array_almost_equal
+from numpy.testing import assert_array_almost_equal, assert_array_equal
 from sklearn.ensemble._base import _set_random_states
 
 from aeon.base._base import _clone_estimator
@@ -382,3 +382,12 @@ def check_classifier_output(estimator, datatype):
     # check predict proba (all classifiers have predict_proba by default)
     y_proba = estimator.predict_proba(FULL_TEST_DATA_DICT[datatype]["test"][0])
     _assert_predict_probabilities(y_proba, datatype, n_classes=len(unique_labels))
+
+    # check that the max probability class matches the predicted class
+    max_proba_idx = np.argmax(y_proba, axis=1)
+    y_pred_from_proba = estimator.classes_[max_proba_idx]
+    assert_array_equal(
+        y_pred,
+        y_pred_from_proba,
+        err_msg="Inconsistent predict() and predict_proba() outputs",
+    )
