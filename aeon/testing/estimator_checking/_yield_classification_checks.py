@@ -384,8 +384,15 @@ def check_classifier_output(estimator, datatype):
     _assert_predict_probabilities(y_proba, datatype, n_classes=len(unique_labels))
 
     # check that the max probability class matches the predicted class
-    if estimator.__class__.__name__ in ["IndividualTDE", "OrdinalTDE"]:
-        return  # these classifiers produce non-deterministic results
+    if estimator.__class__.__name__ in [
+        "Catch22Clusterer",
+        "KASBA",
+        "SummaryClusterer",
+        "TimeSeriesCLARA",
+        "ClustererPipeline",
+        "TSFreshClusterer",
+    ]:
+        return  # these clusterers produce non-deterministic results
     max_proba_idx = np.argmax(y_proba, axis=1)
     y_pred_from_proba = estimator.classes_[max_proba_idx]
     assert_array_equal(
