@@ -591,7 +591,7 @@ class HidalgoSegmenter(BaseSegmenter):
         V, NN, a1, b1, c1, Z, f1, N_in = self._initialise_params(N, mu, Iin, _rng)
 
         Npar = N + 2 * K + 2 + 1
-        bestsampling = np.zeros(shape=0)
+        bestsampling = None
         maxlik = -1e10
 
         for _ in range(n_replicas):
@@ -619,6 +619,10 @@ class HidalgoSegmenter(BaseSegmenter):
                 for it in range(n_iter)
                 if it % sampling_rate == 0 and it >= n_iter * burn_in
             ]
+
+            if len(idx) == 0:
+                continue
+
             sampling = sampling[idx,]
 
             likelihood = np.mean(sampling[:, -1], axis=0)
@@ -626,6 +630,12 @@ class HidalgoSegmenter(BaseSegmenter):
             if likelihood > maxlik:
                 bestsampling = sampling
                 maxlik = likelihood
+
+        if bestsampling is None or len(bestsampling) == 0:
+            raise ValueError(
+                f"No valid samples after burn-in and sampling_rate filtering. "
+                f"Try reducing burn_in ({burn_in}) or sampling_rate ({sampling_rate})."
+            )
 
         self._d = np.mean(bestsampling[:, :K], axis=0)
         self._derr = np.std(bestsampling[:, :K], axis=0)
@@ -639,7 +649,7 @@ class HidalgoSegmenter(BaseSegmenter):
         for k in range(K):
             Pi[k, :] = np.sum(bestsampling[:, (2 * K) + 1 : 2 * K + N + 1] == k, axis=0)
 
-        Pi = Pi / len(idx)
+        Pi = Pi / len(bestsampling)
         self._Pi = Pi
 
         Z = np.argmax(Pi, axis=0)
