@@ -166,11 +166,22 @@ class HidalgoSegmenter(BaseSegmenter):
 
         m, _ = np.shape(X)
 
+        n_neighbors_needed = q + 1
+
+        if m < n_neighbors_needed:
+            raise ValueError(
+                f"Input data has {m} samples, but HidalgoSegmenter requires "
+                f"at least q+1={n_neighbors_needed} samples for q={q}."
+            )
+
         nbrs = NearestNeighbors(
-            n_neighbors=q + 1, algorithm="ball_tree", metric=metric
+            n_neighbors=n_neighbors_needed, algorithm="ball_tree", metric=metric
         ).fit(X)
         distances, Iin = nbrs.kneighbors(X)
-        mu = np.divide(distances[:, 2], distances[:, 1])
+
+        with np.errstate(divide="ignore", invalid="ignore"):
+            mu = np.divide(distances[:, 2], distances[:, 1])
+        mu = np.nan_to_num(mu, nan=1.0, posinf=1.0, neginf=1.0)
 
         nbrmat = np.zeros((m, m))
         for n in range(q):
@@ -243,8 +254,8 @@ class HidalgoSegmenter(BaseSegmenter):
         else:
             Z = np.zeros(N, dtype=int)
 
-        V = [sum(np.log(mu[[Z[i] == k for i in range(N)]])) for k in range(K)]
-        NN = [sum([Z[i] == k for i in range(N)]) for k in range(K)]
+        V = [np.sum(np.log(mu[Z == k])) for k in range(K)]
+        NN = [np.sum(Z == k) for k in range(K)]
 
         a1 = a + NN
         b1 = b + V
@@ -323,15 +334,16 @@ class HidalgoSegmenter(BaseSegmenter):
             d = np.empty(shape=K)
             for k in range(K):
                 stop = False
+                while not stop:
+                    r1 = _rng.random() * 200
+                    r2 = _rng.random()
 
-                while stop is False:
-                    r1 = _rng.random() * 200  # random sample for d[k]
-                    r2 = _rng.random()  # random number for accepting
+                    if b1[k] == 0:
+                        rmax = 0
+                    else:
+                        rmax = (a1[k] - 1) / b1[k]
 
-                    rmax = (a1[k] - 1) / b1[k]
-
-                    if a1[k] - 1 > 0:
-                        assert rmax > 0
+                    if a1[k] - 1 > 0 and rmax > 0:
                         frac = np.exp(
                             -b1[k] * (r1 - rmax)
                             - (a1[k] - 1) * (np.log(rmax) - np.log(r1))
@@ -349,15 +361,22 @@ class HidalgoSegmenter(BaseSegmenter):
             """Sample p, the prior probability that a point belongs to manifold k."""
             for k in range(K - 1):
                 stop = False
+                while not stop:
+                    r1 = _rng.random()
+                    r2 = _rng.random()
 
-                while stop is False:
-                    r1 = _rng.random()  # random sample for p[k]
-                    r2 = _rng.random()  # random number for accepting
+                    denom = c1[k] - 1 + c1[K - 1] - 1
+                    if denom == 0:
+                        rmax = 0.5
+                    else:
+                        rmax = (c1[k] - 1) / denom
 
-                    rmax = (c1[k] - 1) / (c1[k] - 1 + c1[K - 1] - 1)
-                    frac = ((r1 / rmax) ** (c1[k] - 1)) * (
-                        ((1 - r1) / (1 - rmax)) ** (c1[K - 1] - 1)
-                    )
+                    if rmax <= 0 or rmax >= 1:
+                        frac = 1.0
+                    else:
+                        frac = ((r1 / rmax) ** (c1[k] - 1)) * (
+                            ((1 - r1) / (1 - rmax)) ** (c1[K - 1] - 1)
+                        )
 
                     if frac > r2:
                         stop = True
@@ -426,7 +445,6 @@ class HidalgoSegmenter(BaseSegmenter):
                 return Z, NN, a1, c1, V, b1
 
             for i in range(N):
-                stop = False
                 gg = np.empty(shape=K)
                 gmax = 0
 
@@ -442,38 +460,39 @@ class HidalgoSegmenter(BaseSegmenter):
                                 for j in range(Iout_count[i])
                             ]
                         )
+                        denom = _partition_function(N, NN[k1], zeta, q)
+                        denom = denom if denom > 0 else 1e-10
 
-                        g = (n_in + m_in) * np.log(zeta / (1 - zeta)) - np.log(
-                            _partition_function(N, NN[k1], zeta, q)
-                        )
-                        var = _partition_function(
-                            N, NN[k1] - 1, zeta, q
-                        ) / _partition_function(N, NN[k1], zeta, q)
-                        assert var > 0
-                        g = g + np.log(var) * (NN[k1] - 1)
+                        g = (n_in + m_in) * np.log(zeta / (1 - zeta)) - np.log(denom)
+
+                        num = _partition_function(N, NN[k1] - 1, zeta, q)
+                        var = num / denom
+                        if var > 0:
+                            g = g + np.log(var) * (NN[k1] - 1)
 
                     if g > gmax:
                         gmax = g
                     gg[k1] = g
 
                 gg = [np.exp(gg[k1] - gmax) for k1 in range(K)]
-
                 prob = p * d * mu[i] ** (-(d + 1)) * gg
-                prob /= prob.sum()
+                prob_sum = prob.sum()
+                if prob_sum > 0:
+                    prob /= prob_sum
+                else:
+                    prob = np.ones(K) / K
 
-                while stop is False:
-                    r1 = int(np.floor(_rng.random() * K))  # random sample for Z
-                    r2 = _rng.random()  # random number for accepting
-
+                stop = False
+                while not stop:
+                    r1 = int(np.floor(_rng.random() * K))
+                    r2 = _rng.random()
                     if prob[r1] > r2:
                         stop = True
-                        # minus values
                         NN[Z[i]] -= 1
                         a1[Z[i]] -= 1
                         c1[Z[i]] -= 1
                         V[Z[i]] -= np.log(mu[i])
                         b1[Z[i]] -= np.log(mu[i])
-                        # change Z, add values
                         Z[i] = r1
                         NN[Z[i]] += 1
                         a1[Z[i]] += 1
@@ -512,6 +531,7 @@ class HidalgoSegmenter(BaseSegmenter):
             zeta = sample_zeta(
                 N, K, zeta, use_Potts, estimate_zeta, q, NN, f1, it, _rng
             )
+
             sampling = np.append(sampling, zeta)
 
             Z, NN, a1, c1, V, b1 = sample_Z(
@@ -535,9 +555,8 @@ class HidalgoSegmenter(BaseSegmenter):
             sampling = np.append(sampling, Z)
 
             N_in, f1 = self._update_zeta_prior(Z, N, Iin)
-
-            likelihood = sample_likelihood(N, mu, p, d, Z, N_in, zeta, NN)
-            sampling = np.append(sampling, likelihood)
+            likelihood_val = sample_likelihood(N, mu, p, d, Z, N_in, zeta, NN)
+            sampling = np.append(sampling, likelihood_val[1])
 
         return sampling
 
@@ -587,11 +606,20 @@ class HidalgoSegmenter(BaseSegmenter):
 
         _rng = check_random_state(seed)
 
+        if X.shape[1] > X.shape[0]:
+            X = X.T
+
+        if X.shape[0] <= self.q:
+            raise ValueError(
+                f"Data size N={X.shape[0]} is too small for q={self.q}. N must be > q."
+            )
+
         N, mu, Iin, Iout, Iout_count, Iout_track = self._get_neighbourhood_params(X)
         V, NN, a1, b1, c1, Z, f1, N_in = self._initialise_params(N, mu, Iin, _rng)
 
-        Npar = N + 2 * K + 2 + 1
-        bestsampling = np.zeros(shape=0)
+        Npar = N + 2 * K + 2
+
+        bestsampling_list = []
         maxlik = -1e10
 
         for _ in range(n_replicas):
@@ -619,13 +647,27 @@ class HidalgoSegmenter(BaseSegmenter):
                 for it in range(n_iter)
                 if it % sampling_rate == 0 and it >= n_iter * burn_in
             ]
-            sampling = sampling[idx,]
 
-            likelihood = np.mean(sampling[:, -1], axis=0)
+            sampling_filtered = sampling[idx,]
+
+            if sampling_filtered.size == 0:
+                continue
+
+            likelihood = np.mean(sampling_filtered[:, -1], axis=0)
 
             if likelihood > maxlik:
-                bestsampling = sampling
+                bestsampling_list = sampling_filtered.tolist()
                 maxlik = likelihood
+
+        if not bestsampling_list:
+            raise ValueError(
+                f"HidalgoSegmenter failed to collect any valid posterior samples. "
+                f"With n_iter={n_iter}, burn_in={burn_in}, and "
+                f"sampling_rate={sampling_rate}, no iterations met the "
+                f"criteria (it % {sampling_rate} == 0 AND it >= {n_iter * burn_in})."
+            )
+
+        bestsampling = np.array(bestsampling_list)
 
         self._d = np.mean(bestsampling[:, :K], axis=0)
         self._derr = np.std(bestsampling[:, :K], axis=0)
@@ -639,7 +681,7 @@ class HidalgoSegmenter(BaseSegmenter):
         for k in range(K):
             Pi[k, :] = np.sum(bestsampling[:, (2 * K) + 1 : 2 * K + N + 1] == k, axis=0)
 
-        Pi = Pi / len(idx)
+        Pi = Pi / len(bestsampling)
         self._Pi = Pi
 
         Z = np.argmax(Pi, axis=0)
