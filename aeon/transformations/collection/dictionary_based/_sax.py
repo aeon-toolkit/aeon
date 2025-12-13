@@ -125,7 +125,7 @@ class SAX(BaseCollectionTransformer):
             # Non-Safe is std is 0
             # X = scipy.stats.zscore(X, axis=-1)
 
-        paa = PAA(n_segments=self.n_segments)
+        paa = PAA(n_segments=self.n_segments, n_jobs=self.n_jobs)
         X_paa = paa.fit_transform(X=X)
 
         return X_paa
