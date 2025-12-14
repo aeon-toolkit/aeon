@@ -143,13 +143,12 @@ def check_clusterer_output(estimator, datatype):
 
     # check that the max probability cluster matches the predicted cluster
     if estimator.__class__.__name__ in [
-        "IndividualTDE",
-        "OrdinalTDE",
-        "TemporalDictionaryEnsemble",
-        "IndividualOrdinalTDE",
-        "HIVECOTEV2",
-        "ContractableBOSS",
-        "ClassifierChannelEnsemble",
+        "Catch22Clusterer",
+        "ClustererPipeline",
+        "KASBA",
+        "SummaryClusterer",
+        "TimeSeriesCLARA",
+        "TSFreshClusterer",
     ]:
         return  # these classifiers produce non-deterministic results
     y_pred_from_proba = np.argmax(y_proba, axis=1)
