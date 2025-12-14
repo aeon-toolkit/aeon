@@ -117,6 +117,9 @@ class BaseSeriesEstimator(BaseAeonEstimator):
         meta = self._check_X(X, axis)
         if store_metadata:
             self.metadata_ = meta
+
+        self._check_scale(X)
+
         return self._convert_X(X, axis)
 
     def _check_X(self, X, axis: int = 0):
