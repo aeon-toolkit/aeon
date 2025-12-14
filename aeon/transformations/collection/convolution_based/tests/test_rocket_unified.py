@@ -98,19 +98,22 @@ class TestRocketParameterValidation:
 
     def test_cpu_params_on_gpu_warning(self):
         """Test warning when CPU parameters provided with GPU device."""
+        rocket = Rocket(
+            n_kernels=100,
+            device="gpu",
+            normalise=False,  # CPU param
+            n_jobs=4,  # CPU param
+            random_state=42,
+        )
+        X = np.random.randn(10, 1, 50)
+
         try:
+            # This will raise RuntimeError if GPU not available
+            # or issue warning if GPU is available
             with pytest.warns(UserWarning, match="CPU-only parameters"):
-                rocket = Rocket(
-                    n_kernels=100,
-                    device="gpu",
-                    normalise=False,  # CPU param
-                    n_jobs=4,  # CPU param
-                    random_state=42,
-                )
-                X = np.random.randn(10, 1, 50)
                 rocket.fit(X)
         except RuntimeError:
-            # GPU not available - that's okay for this test
+            # GPU not available - skip this test
             pytest.skip("GPU not available")
 
 
@@ -122,7 +125,7 @@ class TestRocketErrorHandling:
         rocket = Rocket(n_kernels=100)
         X = np.random.randn(10, 1, 50)
 
-        with pytest.raises(ValueError, match="not fitted"):
+        with pytest.raises(ValueError, match="not been fitted"):
             rocket.transform(X)
 
     def test_gpu_unavailable_error_message(self):

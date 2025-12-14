@@ -254,10 +254,10 @@ class Rocket(BaseCollectionTransformer):
     _tags = {
         "output_data_type": "Tabular",
         "capability:multivariate": True,
+        "capability:multithreading": True,  # Has n_jobs parameter
         "algorithm_type": "convolution",
         "X_inner_type": "numpy3D",
-        # Note: capability:multithreading and cant_pickle tags are set dynamically
-        # during _fit based on which device is selected
+        # Note: cant_pickle tag is set dynamically during _fit for GPU
     }
 
     def __init__(
