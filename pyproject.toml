@@ -156,7 +156,7 @@ ignore = [
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "B", "T20", "D"]
-ignore = ["E203", "E501", "E741", "B904", "B905", "B028"]
+ignore = ["E203", "E741", "B904", "B905", "B028"]
 
 [tool.ruff.lint.per-file-ignores]
 "*.ipynb" = ["T201", "E402"]
