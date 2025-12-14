@@ -5,9 +5,14 @@ A simplified first base class for forecasting models.
 """
 
 __maintainer__ = ["TonyBagnall"]
-__all__ = ["BaseForecaster", "DirectForecastingMixin", "IterativeForecastingMixin"]
+__all__ = [
+    "BaseForecaster",
+    "DirectForecastingMixin",
+    "IterativeForecastingMixin",
+    "SeriesToSeriesForecastingMixin",
+]
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from typing import final
 
 import numpy as np
@@ -303,9 +308,45 @@ class IterativeForecastingMixin:
         return preds
 
 
-class _SeriesToSeriesForecastingMixin:
+class SeriesToSeriesForecastingMixin(ABC):
     """Mixin class for series-to-series forecasting."""
 
-    def series_to_series_forecast(self, y, prediction_horizon) -> np.ndarray:
-        """Unimplemented."""
-        pass
+    @final
+    def series_to_series_forecast(self, y, prediction_horizon, exog=None) -> np.ndarray:
+        """
+        Forecast ``prediction_horizon`` using a series iterative approach.
+
+        This function implements a series-to-series forecasting strategy.
+        The forecaster is trained to predict multiple steps ahead in one go,
+        returning a series of predictions. This is done by fitting the model
+        once and then predicting a series of length `prediction_horizon`.
+
+        y : np.ndarray
+            The time series to make forecasts about.  Must be of shape
+            ``(n_channels, n_timepoints)`` if a multivariate time series.
+        prediction_horizon : int
+            The number of future time steps to forecast.
+        exog : np.ndarray, default =None
+            Optional exogenous time series data assumed to be aligned with y.
+
+        Returns
+        -------
+        np.ndarray
+            An array of shape `(prediction_horizon,)` containing the forecasts for
+            each horizon.
+
+        Raises
+        ------
+        ValueError
+            if prediction_horizon less than 1.
+
+        """
+        if prediction_horizon < 1:
+            raise ValueError(
+                "The `prediction_horizon` must be greater than or equal to 1."
+            )
+
+        return self._series_to_series_forecast(y, prediction_horizon, exog)
+
+    @abstractmethod
+    def _series_to_series_forecast(self, y, prediction_horizon, exog): ...
