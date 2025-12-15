@@ -90,3 +90,18 @@ def test_all_distance_measures():
     ee.fit(X, y)
     distances = list(ee.get_metric_params())
     assert len(distances) == 9
+
+
+@pytest.mark.parametrize("data", [DATA])
+def test_dtw_ddtw_full_window_inclusion(data):
+    """Test that window=1.0 (full window) is included in DTW/DDTW parameters."""
+    dtw_paras = ElasticEnsemble._get_100_param_options("dtw", data)
+    dtw_param_values = dtw_paras["distance_params"]
+    dtw_windows = {p.get("window") for p in dtw_param_values}
+    assert 1.0 in dtw_windows
+    assert len(dtw_param_values) == 100
+    ddtw_paras = ElasticEnsemble._get_100_param_options("ddtw", data)
+    ddtw_param_values = ddtw_paras["distance_params"]
+    ddtw_windows = {p.get("window") for p in ddtw_param_values}
+    assert 1.0 in ddtw_windows
+    assert len(ddtw_param_values) == 100
