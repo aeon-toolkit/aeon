@@ -81,7 +81,7 @@ jobs:
         run: python -m pip list
 
       - name: Run example notebooks
-        run: .github/utilities/run_examples.sh false
+        run: .github/utilities/run_examples.sh false true
         shell: bash
 
       - name: Save new cache
