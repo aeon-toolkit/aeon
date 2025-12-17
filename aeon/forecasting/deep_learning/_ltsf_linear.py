@@ -83,7 +83,6 @@ class LinearForecaster(BaseDeepForecaster, SeriesToSeriesForecastingMixin):
         "algorithm_type": "deeplearning",
         "non_deterministic": True,
         "cant_pickle": True,
-        "output_data_type": "np.ndarray",
     }
 
     def __init__(
