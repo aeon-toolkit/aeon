@@ -12,7 +12,6 @@ from aeon.utils.numba.general import z_normalise_series_3d
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 ORG_ID = "monster-monash"
-_monster_dataset_names = None
 
 
 def _fetch_monster_dataset_names() -> list[str]:
@@ -30,13 +29,6 @@ def _fetch_monster_dataset_names() -> list[str]:
     return sorted(dataset_names)
 
 
-def _lazy_load_monster_names():
-    """Fetch and cache names, but only on the first call."""
-    global _monster_dataset_names
-    if _monster_dataset_names is None:
-        _monster_dataset_names = _fetch_monster_dataset_names()
-
-
 def load_monster_dataset_names() -> list[str]:
     """Load the list of available Monster dataset names from Hugging Face Hub.
 
@@ -45,7 +37,7 @@ def load_monster_dataset_names() -> list[str]:
     list of str
         A list of available Monster dataset names.
     """
-    _lazy_load_monster_names()
+    _monster_dataset_names = _fetch_monster_dataset_names()
     return _monster_dataset_names
 
 
