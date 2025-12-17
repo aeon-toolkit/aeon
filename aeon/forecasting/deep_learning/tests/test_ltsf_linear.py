@@ -52,4 +52,4 @@ def test_series_to_series_forecast(prediction_horizon, horizon, window):
 
     assert predictions is not None
     assert len(predictions) == prediction_horizon
-    assert predictions is np.ndarray
+    assert isinstance(predictions, np.ndarray)

@@ -157,7 +157,11 @@ class LinearForecaster(BaseDeepForecaster, SeriesToSeriesForecastingMixin):
 
         num_channels = input_shape[-1]
         network = MLPNetwork(
-            n_layers=1, n_units=self.horizon * num_channels, activation="linear"
+            n_layers=1,
+            n_units=self.horizon * num_channels,
+            activation="linear",
+            dropout_rate=0.0,
+            dropout_last=0.0,
         )
         input_layer, output_layer = network.build_network(input_shape=input_shape)
         model = tf.keras.Model(inputs=input_layer, outputs=output_layer)
