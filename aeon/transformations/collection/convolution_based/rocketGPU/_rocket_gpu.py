@@ -40,6 +40,17 @@ class ROCKETGPU(BaseROCKETGPU):
         The batch to parallelize over GPU.
     random_state : None or int, optional, default = None
         Seed for random number generation.
+    legacy_rng : bool, default = False
+        .. deprecated::
+            legacy_rng=True is deprecated and will be removed in a future version.
+
+        If False (default), uses CPU-compatible random number generation for
+        reproducibility across CPU and GPU implementations with the same random_state.
+        If True, uses the legacy GPU implementation which is incompatible with CPU.
+
+        Note: Setting to False enables cross-platform reproducibility but produces
+        different results than previous GPU versions. Use True only for backward
+        compatibility with existing models.
 
     References
     ----------
@@ -60,6 +71,7 @@ class ROCKETGPU(BaseROCKETGPU):
         bias_range=None,
         batch_size=64,
         random_state=None,
+        legacy_rng=False,
     ):
         super().__init__(n_kernels)
 
@@ -70,39 +82,165 @@ class ROCKETGPU(BaseROCKETGPU):
         self.bias_range = bias_range
         self.batch_size = batch_size
         self.random_state = random_state
+        self.legacy_rng = legacy_rng
 
-    def _define_parameters(self):
-        """Define the parameters of ROCKET."""
-        rng = np.random.default_rng(self.random_state)
+        # Set TensorFlow determinism for reproducibility
+        if not self.legacy_rng:
+            import os
 
-        self._list_of_kernels = []
-        self._list_of_dilations = []
-        self._list_of_paddings = []
-        self._list_of_biases = []
+            os.environ["TF_DETERMINISTIC_OPS"] = "1"
+            os.environ["TF_CUDNN_DETERMINISTIC"] = "1"
+            try:
+                import tensorflow as tf
 
-        for _ in range(self.n_kernels):
-            _kernel_size = rng.choice(self._kernel_size, size=1)[0]
-            _convolution_kernel = rng.normal(size=(_kernel_size, self.n_channels, 1))
-            _convolution_kernel = _convolution_kernel - _convolution_kernel.mean(
-                axis=0, keepdims=True
+                tf.config.experimental.enable_op_determinism()
+            except Exception:
+                pass  # Older TF versions may not have this
+
+        # Deprecation warning for legacy mode
+        if self.legacy_rng:
+            import warnings
+
+            warnings.warn(
+                "legacy_rng=True is deprecated and will be removed in a future version. "
+                "The new default (legacy_rng=False) ensures CPU-GPU reproducibility. "
+                "See documentation for migration guide.",
+                FutureWarning,
+                stacklevel=2,
             )
 
-            if self.use_dilation:
-                _dilation_rate = 2 ** rng.uniform(
-                    0, np.log2((self.input_length - 1) / (_kernel_size - 1))
+    def _define_parameters(self):
+        """Define the parameters of ROCKET.
+
+        Behavior depends on legacy_rng flag:
+        - legacy_rng=True: Uses original GPU implementation (PCG64 RNG, all channels)
+        - legacy_rng=False (default): Matches CPU implementation (MT19937 RNG, random channels)
+        """
+        if self.legacy_rng:
+            # LEGACY MODE: Preserve original GPU behavior
+            rng = np.random.default_rng(self.random_state)
+
+            self._list_of_kernels = []
+            self._list_of_dilations = []
+            self._list_of_paddings = []
+            self._list_of_biases = []
+            self._list_of_channel_indices = []  # Track channels for consistency
+
+            for _ in range(self.n_kernels):
+                _kernel_size = rng.choice(self._kernel_size, size=1)[0]
+
+                # Legacy: Use ALL channels
+                _convolution_kernel = rng.normal(
+                    size=(_kernel_size, self.n_channels, 1)
                 )
-            else:
-                _dilation_rate = 1
+                _convolution_kernel = _convolution_kernel - _convolution_kernel.mean(
+                    axis=0, keepdims=True
+                )
 
-            _padding = rng.choice(self._padding, size=1)[0]
-            assert _padding in ["SAME", "VALID"]
+                if self.use_dilation:
+                    _dilation_rate = 2 ** rng.uniform(
+                        0, np.log2((self.input_length - 1) / (_kernel_size - 1))
+                    )
+                else:
+                    _dilation_rate = 1
 
-            _bias = rng.uniform(self._bias_range[0], self._bias_range[1])
+                _padding = rng.choice(self._padding, size=1)[0]
+                assert _padding in ["SAME", "VALID"]
 
-            self._list_of_kernels.append(_convolution_kernel)
-            self._list_of_dilations.append(_dilation_rate)
-            self._list_of_paddings.append(_padding)
-            self._list_of_biases.append(_bias)
+                _bias = rng.uniform(self._bias_range[0], self._bias_range[1])
+
+                self._list_of_kernels.append(_convolution_kernel)
+                self._list_of_dilations.append(_dilation_rate)
+                self._list_of_paddings.append(_padding)
+                self._list_of_biases.append(_bias)
+                # Store all channel indices for legacy mode
+                self._list_of_channel_indices.append(np.arange(self.n_channels))
+
+        else:
+            # NEW MODE: Match CPU implementation exactly
+            # Use OLD RNG (MT19937) like CPU does
+            if self.random_state is not None:
+                np.random.seed(self.random_state)
+                # CRITICAL: Also set TensorFlow random seed for deterministic operations
+                import tensorflow as tf
+
+                tf.random.set_seed(self.random_state)
+
+            self._list_of_kernels = []
+            self._list_of_dilations = []
+            self._list_of_paddings = []
+            self._list_of_biases = []
+            self._list_of_channel_indices = []  # Track selected channels per kernel
+
+            # CRITICAL: Generate ALL kernel lengths FIRST (before loops)
+            # This matches CPU implementation (line 147-148) and ensures RNG sequence sync
+            _kernel_lengths = np.random.choice(
+                self._kernel_size, self.n_kernels
+            ).astype(np.int32)
+
+            # CRITICAL: Generate ALL num_channels SECOND (before main loop)
+            # This matches CPU's first loop (lines 151-153)
+            _num_channels_list = []
+            for i in range(self.n_kernels):
+                limit = min(self.n_channels, _kernel_lengths[i])
+                _num_ch = int(2 ** np.random.uniform(0, np.log2(limit + 1)))
+                _num_ch = max(1, _num_ch)
+                _num_channels_list.append(_num_ch)
+
+            # Main loop: Generate weights, channels, biases, dilations, paddings
+            # This matches CPU's second loop (lines 170-205)
+            for i in range(self.n_kernels):
+                # Use pre-generated values
+                _kernel_size = _kernel_lengths[i]
+                _num_channels = _num_channels_list[i]
+
+                # 1. Generate weights FIRST (matches CPU line 174-176)
+                _weights = np.random.normal(0, 1, _num_channels * _kernel_size).astype(
+                    np.float32
+                )
+
+                # 2. Select random channel indices SECOND (matches CPU line 189-191)
+                # CRITICAL: CPU does NOT sort channel indices - keep random order!
+                _channel_indices = np.random.choice(
+                    self.n_channels, _num_channels, replace=False
+                )
+
+                # 3. Normalize per channel (matches CPU lines 182-185)
+                _weights_reshaped = _weights.reshape(_num_channels, _kernel_size)
+                for c in range(_num_channels):
+                    _weights_reshaped[c] = (
+                        _weights_reshaped[c] - _weights_reshaped[c].mean()
+                    )
+
+                # Reshape to TensorFlow format: (kernel_size, num_selected_channels, 1)
+                _convolution_kernel = _weights_reshaped.T.reshape(
+                    _kernel_size, _num_channels, 1
+                )
+
+                # 4. Bias (matches CPU line 193)
+                _bias = np.random.uniform(-1.0, 1.0)
+
+                # 5. Dilation (matches CPU lines 195-198)
+                if self.use_dilation:
+                    _dilation_rate = 2 ** np.random.uniform(
+                        0, np.log2((self.input_length - 1) / (_kernel_size - 1))
+                    )
+                    _dilation_rate = int(_dilation_rate)
+                else:
+                    _dilation_rate = 1
+
+                # 6. Padding - MATCH CPU logic (line 201)
+                # CPU uses 50/50 random choice: numeric padding or 0
+                # We translate to TensorFlow's "SAME" vs "VALID"
+                _use_padding = np.random.randint(2) == 1
+                _padding = "SAME" if _use_padding else "VALID"
+
+                # Store everything
+                self._list_of_kernels.append(_convolution_kernel)
+                self._list_of_dilations.append(_dilation_rate)
+                self._list_of_paddings.append(_padding)
+                self._list_of_biases.append(_bias)
+                self._list_of_channel_indices.append(_channel_indices)
 
     def _fit(self, X, y=None):
         """Generate random kernels adjusted to time series shape.
@@ -192,8 +330,14 @@ class ROCKETGPU(BaseROCKETGPU):
             output_features_filter = []
 
             for batch_indices in batch_indices_list:
+                # Select only the channels used by this kernel
+                _channel_indices = self._list_of_channel_indices[f]
+                X_filtered = tf.gather(X[batch_indices], _channel_indices, axis=2)
+                # Ensure dtype matches kernel (float32)
+                X_filtered = tf.cast(X_filtered, tf.float32)
+
                 _output_convolution = tf.nn.conv1d(
-                    input=X[batch_indices],
+                    input=X_filtered,
                     stride=1,
                     filters=self._list_of_kernels[f],
                     dilations=self._list_of_dilations[f],

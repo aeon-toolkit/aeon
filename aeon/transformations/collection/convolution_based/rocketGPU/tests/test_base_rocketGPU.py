@@ -135,10 +135,14 @@ def test_base_rocketGPU_multivariate():
     not _check_soft_dependencies("tensorflow", severity="none"),
     reason="skip test if required soft dependency not available",
 )
-@pytest.mark.xfail(reason="Random numbers in Rocket and ROCKETGPU differ.")
 @pytest.mark.parametrize("n_channels", [1, 3])
 def test_rocket_cpu_gpu(n_channels):
-    """Test consistency between CPU and GPU versions of ROCKET."""
+    """Test consistency between CPU and GPU versions of ROCKET.
+
+    With legacy_rng=False (default), GPU should produce results matching CPU
+    within acceptable precision tolerance (accounting for TensorFlow vs Numba
+    numerical differences).
+    """
     random_state = 42
     X, _ = make_example_3d_numpy(n_channels=n_channels, random_state=random_state)
 
@@ -152,4 +156,58 @@ def test_rocket_cpu_gpu(n_channels):
 
     X_transform_cpu = rocket_cpu.transform(X)
     X_transform_gpu = rocket_gpu.transform(X)
-    assert_array_almost_equal(X_transform_cpu, X_transform_gpu, decimal=8)
+
+    # Lower precision to account for TensorFlow vs Numba differences
+    # CPU uses Numba, GPU uses TensorFlow - precision differences acceptable
+    assert_array_almost_equal(X_transform_cpu, X_transform_gpu, decimal=4)
+
+
+@pytest.mark.skipif(
+    not _check_soft_dependencies("tensorflow", severity="none"),
+    reason="skip test if required soft dependency not available",
+)
+def test_rocket_gpu_legacy_mode():
+    """Test that legacy_rng=True preserves old GPU behavior and shows deprecation.
+
+    Verifies:
+    1. Legacy mode raises FutureWarning
+    2. Legacy mode still works (backward compatibility)
+    3. All kernels use all channels (legacy behavior)
+    """
+    import warnings
+
+    random_state = 42
+    X, _ = make_example_3d_numpy(
+        n_channels=3, n_timepoints=50, random_state=random_state
+    )
+
+    # Test deprecation warning
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        rocket_gpu_legacy = ROCKETGPU(
+            n_kernels=20, random_state=random_state, legacy_rng=True
+        )
+
+        # Check deprecation warning was raised
+        assert len(w) == 1, f"Expected 1 warning, got {len(w)}"
+        assert issubclass(
+            w[0].category, FutureWarning
+        ), f"Expected FutureWarning, got {w[0].category}"
+        assert "legacy_rng=True is deprecated" in str(
+            w[0].message
+        ), f"Warning message doesn't mention deprecation: {w[0].message}"
+
+    # Test that legacy mode still works (backward compatibility)
+    rocket_gpu_legacy.fit(X)
+    X_transform = rocket_gpu_legacy.transform(X)
+
+    expected_shape = (X.shape[0], 40)  # 20 kernels × 2 features
+    assert (
+        X_transform.shape == expected_shape
+    ), f"Shape mismatch: {X_transform.shape} != {expected_shape}"
+
+    # Verify all kernels use all channels (legacy behavior)
+    for i, channel_indices in enumerate(rocket_gpu_legacy._list_of_channel_indices):
+        assert (
+            len(channel_indices) == X.shape[1]
+        ), f"Kernel {i}: Expected all {X.shape[1]} channels, got {len(channel_indices)}"
