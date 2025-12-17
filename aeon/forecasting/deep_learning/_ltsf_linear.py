@@ -79,6 +79,7 @@ class LinearForecaster(BaseDeepForecaster, SeriesToSeriesForecastingMixin):
         "capability:multivariate": False,
         "capability:exogenous": False,
         "capability:univariate": True,
+        "capability:is_series_to_series": True,
         "algorithm_type": "deeplearning",
         "non_deterministic": True,
         "cant_pickle": True,
