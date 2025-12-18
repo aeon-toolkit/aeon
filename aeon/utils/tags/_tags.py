@@ -124,6 +124,11 @@ ESTIMATOR_TAGS = {
         "type": "bool",
         "description": "Can the estimator limiting max fit time?",
     },
+    "capability:predict_proba": {
+        "class": "classifier",
+        "type": "bool",
+        "description": "Does the estimator support granular predict_proba estimates?",
+    },
     "capability:exogenous": {
         "class": ["forecaster"],
         "type": "bool",
