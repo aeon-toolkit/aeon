@@ -210,9 +210,7 @@ class AEFCNNetwork(BaseDeepLearningNetwork):
             flatten_layer = tf.keras.layers.Flatten()(x)
             # Cast to int to avoid Keras rejecting numpy scalar types
             dense_units = int(np.prod(shape_before_flattent))
-            latent_space = tf.keras.layers.Dense(units=dense_units)(
-                flatten_layer
-            )
+            latent_space = tf.keras.layers.Dense(units=dense_units)(flatten_layer)
         else:
             latent_space = tf.keras.layers.Conv1D(
                 filters=self.latent_space_dim,
