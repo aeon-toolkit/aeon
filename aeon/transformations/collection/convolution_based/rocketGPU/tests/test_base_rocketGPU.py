@@ -214,10 +214,11 @@ def test_rocket_gpu_legacy_mode():
             n_kernels=20, random_state=random_state, legacy_rng=True
         )
 
-        # Check deprecation warning was raised
-        assert len(w) == 1, f"Expected 1 warning, got {len(w)}"
+        # Check that FutureWarning was raised (robust against unrelated warnings)
+        future_warnings = [warning for warning in w if issubclass(warning.category, FutureWarning)]
+        assert len(future_warnings) >= 1, f"Expected at least 1 FutureWarning, got {len(future_warnings)}"
         assert issubclass(
-            w[0].category, FutureWarning
+            future_warnings[0].category, FutureWarning
         ), f"Expected FutureWarning, got {w[0].category}"
         assert "legacy_rng=True is deprecated" in str(
             w[0].message
