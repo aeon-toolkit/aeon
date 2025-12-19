@@ -374,13 +374,6 @@ class ROCKETGPU(BaseROCKETGPU):
                     )
                 )
 
-                output_features_filter.append(
-                    np.concatenate(
-                        (np.expand_dims(_ppv, axis=-1), np.expand_dims(_max, axis=-1)),
-                        axis=1,
-                    )
-                )
-
             output_features.append(
                 np.expand_dims(np.concatenate(output_features_filter, axis=0), axis=0)
             )
