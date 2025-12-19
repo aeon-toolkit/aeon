@@ -226,12 +226,13 @@ class ROCKETGPU(BaseROCKETGPU):
                     )
 
                 # Reshape to TensorFlow format: (kernel_size, num_selected_channels, 1)
+                # Ensure float32 dtype is maintained after normalization
                 _convolution_kernel = _weights_reshaped.T.reshape(
                     _kernel_size, _num_channels, 1
-                )
+                ).astype(np.float32)
 
                 # 4. Bias (matches CPU line 193)
-                _bias = np.random.uniform(-1.0, 1.0)
+                _bias = np.float32(np.random.uniform(-1.0, 1.0))
 
                 # 5. Dilation (matches CPU lines 195-198)
                 if self.use_dilation:
