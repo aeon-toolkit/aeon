@@ -206,9 +206,7 @@ def test_rocket_gpu_legacy_mode():
     )
 
     # Test deprecation warning using pytest.warns (robust to TF/Keras warnings)
-    with pytest.warns(
-        FutureWarning, match=r"legacy_rng=True is deprecated"
-    ):
+    with pytest.warns(FutureWarning, match=r"legacy_rng=True is deprecated"):
         rocket_gpu_legacy = ROCKETGPU(
             n_kernels=20, random_state=random_state, legacy_rng=True
         )
