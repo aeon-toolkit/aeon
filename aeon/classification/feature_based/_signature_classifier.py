@@ -128,6 +128,16 @@ class SignatureClassifier(BaseClassifier):
         self.depth = depth
         self.random_state = random_state
         self.class_weight = class_weight
+        # Validate class_weight
+        if (
+            class_weight is not None
+            and class_weight != "balanced"
+            and not isinstance(class_weight, dict)
+        ):
+            raise ValueError(
+                "class_weight must be None, 'balanced', or a dict mapping class labels to weights."
+            )
+
         super().__init__()
 
         self.signature_method = SignatureTransformer(
