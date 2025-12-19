@@ -201,11 +201,14 @@ def test_rocket_gpu_legacy_mode():
     3. All kernels use all channels (legacy behavior)
     """
     import warnings
+    import numpy as np
 
     random_state = 42
     X, _ = make_example_3d_numpy(
         n_channels=3, n_timepoints=50, random_state=random_state
     )
+    # Convert to float32 for TensorFlow compatibility
+    X = X.astype(np.float32)
 
     # Test deprecation warning
     with warnings.catch_warnings(record=True) as w:
@@ -215,8 +218,12 @@ def test_rocket_gpu_legacy_mode():
         )
 
         # Check that FutureWarning was raised (robust against unrelated warnings)
-        future_warnings = [warning for warning in w if issubclass(warning.category, FutureWarning)]
-        assert len(future_warnings) >= 1, f"Expected at least 1 FutureWarning, got {len(future_warnings)}"
+        future_warnings = [
+            warning for warning in w if issubclass(warning.category, FutureWarning)
+        ]
+        assert (
+            len(future_warnings) >= 1
+        ), f"Expected at least 1 FutureWarning, got {len(future_warnings)}"
         assert issubclass(
             future_warnings[0].category, FutureWarning
         ), f"Expected FutureWarning, got {w[0].category}"
