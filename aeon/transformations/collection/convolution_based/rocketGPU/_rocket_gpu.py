@@ -350,10 +350,13 @@ class ROCKETGPU(BaseROCKETGPU):
                 # Ensure dtype matches kernel (float32)
                 X_filtered = tf.cast(X_filtered, tf.float32)
 
+                # Ensure kernel is float32 TF tensor
+                kernel_tensor = tf.constant(self._list_of_kernels[f], dtype=tf.float32)
+
                 _output_convolution = tf.nn.conv1d(
                     input=X_filtered,
                     stride=1,
-                    filters=self._list_of_kernels[f],
+                    filters=kernel_tensor,
                     dilations=self._list_of_dilations[f],
                     padding=self._list_of_paddings[f],
                 )
