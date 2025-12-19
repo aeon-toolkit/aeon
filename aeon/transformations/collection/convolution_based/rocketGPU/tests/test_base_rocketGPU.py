@@ -200,28 +200,18 @@ def test_rocket_gpu_legacy_mode():
     2. Legacy mode still works (backward compatibility)
     3. All kernels use all channels (legacy behavior)
     """
-    import warnings
-
     random_state = 42
     X, _ = make_example_3d_numpy(
         n_channels=3, n_timepoints=50, random_state=random_state
     )
 
-    # Test deprecation warning
-    with warnings.catch_warnings(record=True) as w:
-        warnings.simplefilter("always")
+    # Test deprecation warning using pytest.warns (robust to TF/Keras warnings)
+    with pytest.warns(
+        FutureWarning, match=r"legacy_rng=True is deprecated"
+    ):
         rocket_gpu_legacy = ROCKETGPU(
             n_kernels=20, random_state=random_state, legacy_rng=True
         )
-
-        # Check deprecation warning was raised
-        assert len(w) == 1, f"Expected 1 warning, got {len(w)}"
-        assert issubclass(
-            w[0].category, FutureWarning
-        ), f"Expected FutureWarning, got {w[0].category}"
-        assert "legacy_rng=True is deprecated" in str(
-            w[0].message
-        ), f"Warning message doesn't mention deprecation: {w[0].message}"
 
     # Test that legacy mode still works (backward compatibility)
     rocket_gpu_legacy.fit(X)

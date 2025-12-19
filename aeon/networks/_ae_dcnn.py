@@ -188,8 +188,8 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
 
         if not self.temporal_latent_space:
             shape_before_flatten = x.shape[1:]
-            x = tf.keras.layers.Flatten()(x)
-            output_layer = tf.keras.layers.Dense(self.latent_space_dim)(x)
+            flatten_layer = tf.keras.layers.Flatten()(x)
+            output_layer = tf.keras.layers.Dense(self.latent_space_dim)(flatten_layer)
 
         elif self.temporal_latent_space:
             output_layer = tf.keras.layers.Conv1D(
@@ -206,7 +206,9 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
             temp = input_layer_decoder
         elif not self.temporal_latent_space:
             input_layer_decoder = tf.keras.layers.Input((self.latent_space_dim,))
-            dense_layer = tf.keras.layers.Dense(units=np.prod(shape_before_flatten))(
+            # Cast to int to avoid Keras rejecting numpy scalar types
+            decoder_units = int(np.prod(shape_before_flatten))
+            dense_layer = tf.keras.layers.Dense(units=decoder_units)(
                 input_layer_decoder
             )
 
