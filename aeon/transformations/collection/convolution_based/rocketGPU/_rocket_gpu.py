@@ -84,6 +84,17 @@ class ROCKETGPU(BaseROCKETGPU):
         self.random_state = random_state
         self.legacy_rng = legacy_rng
 
+        # Warn users about deprecated legacy mode
+        if legacy_rng:
+            import warnings
+
+            warnings.warn(
+                "legacy_rng=True is deprecated and will be removed in version 0.12.0. "
+                "Use legacy_rng=False (default) for CPU-GPU kernel generation parity.",
+                FutureWarning,
+                stacklevel=2,
+            )
+
         # Set TensorFlow determinism for reproducibility
         if not self.legacy_rng:
             import os
@@ -102,9 +113,9 @@ class ROCKETGPU(BaseROCKETGPU):
             import warnings
 
             warnings.warn(
-                "legacy_rng=True is deprecated and will be removed in a future version. "
-                "The new default (legacy_rng=False) ensures CPU-GPU reproducibility. "
-                "See documentation for migration guide.",
+                "legacy_rng=True is deprecated and will be removed in a "
+                "future version. The new default (legacy_rng=False) ensures "
+                "CPU-GPU reproducibility. See documentation for migration guide.",
                 FutureWarning,
                 stacklevel=2,
             )
@@ -113,8 +124,10 @@ class ROCKETGPU(BaseROCKETGPU):
         """Define the parameters of ROCKET.
 
         Behavior depends on legacy_rng flag:
-        - legacy_rng=True: Uses original GPU implementation (PCG64 RNG, all channels)
-        - legacy_rng=False (default): Matches CPU implementation (MT19937 RNG, random channels)
+        - legacy_rng=True: Uses original GPU implementation
+          (PCG64 RNG, all channels)
+        - legacy_rng=False (default): Matches CPU implementation
+          (MT19937 RNG, random channels)
         """
         if self.legacy_rng:
             # LEGACY MODE: Preserve original GPU behavior
@@ -173,7 +186,7 @@ class ROCKETGPU(BaseROCKETGPU):
             self._list_of_channel_indices = []  # Track selected channels per kernel
 
             # CRITICAL: Generate ALL kernel lengths FIRST (before loops)
-            # This matches CPU implementation (line 147-148) and ensures RNG sequence sync
+            # Matches CPU implementation (line 147-148) for RNG sequence sync
             _kernel_lengths = np.random.choice(
                 self._kernel_size, self.n_kernels
             ).astype(np.int32)
@@ -349,6 +362,13 @@ class ROCKETGPU(BaseROCKETGPU):
 
                 _ppv = self._get_ppv(x=_output_convolution)
                 _max = self._get_max(x=_output_convolution)
+
+                output_features_filter.append(
+                    np.concatenate(
+                        (np.expand_dims(_ppv, axis=-1), np.expand_dims(_max, axis=-1)),
+                        axis=1,
+                    )
+                )
 
                 output_features_filter.append(
                     np.concatenate(
