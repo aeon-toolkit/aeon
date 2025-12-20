@@ -201,6 +201,7 @@ def test_rocket_gpu_legacy_mode():
     3. All kernels use all channels (legacy behavior)
     """
     import warnings
+
     import numpy as np
 
     random_state = 42
