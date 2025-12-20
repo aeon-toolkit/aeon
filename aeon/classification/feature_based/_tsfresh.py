@@ -83,6 +83,7 @@ class TSFreshClassifier(BaseClassifier):
     """
 
     _tags = {
+        "X_inner_type": ["np-list", "numpy3D"],
         "capability:multivariate": True,
         "capability:multithreading": True,
         "capability:unequal_length": True,

@@ -39,6 +39,7 @@ class _TSFresh(BaseCollectionTransformer):
 
     _tags = {
         "output_data_type": "Tabular",
+        "X_inner_type": ["np-list", "numpy3D"],
         "capability:multivariate": True,
         "capability:multithreading": True,
         "capability:unequal_length": True,
@@ -482,7 +483,7 @@ class TSFreshRelevant(_TSFresh):
 
     _tags = {
         "requires_y": True,
-        "X_inner_type": "np-list",
+        "X_inner_type": ["np-list", "numpy3D"],
         "fit_is_empty": False,
     }
 
