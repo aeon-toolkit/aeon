@@ -6,6 +6,12 @@ import time
 
 import pytest
 
+try:
+    import tensorflow as tf
+    tf.random.set_seed(1)
+except ImportError:
+    pass
+
 from aeon.regression.deep_learning.base import BaseDeepRegressor
 from aeon.testing.data_generation import make_example_2d_numpy_collection
 from aeon.utils.validation._dependencies import _check_soft_dependencies

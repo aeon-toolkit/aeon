@@ -3,6 +3,12 @@
 import numpy as np
 import pytest
 
+try:
+    import tensorflow as tf
+    tf.random.set_seed(1)
+except ImportError:
+    pass
+
 from aeon.classification.shapelet_based import LearningShapeletClassifier
 from aeon.testing.data_generation import make_example_3d_numpy
 from aeon.utils.validation._dependencies import _check_soft_dependencies

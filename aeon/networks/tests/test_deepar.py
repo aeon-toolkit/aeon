@@ -2,6 +2,12 @@
 
 import pytest
 
+try:
+    import tensorflow as tf
+    tf.random.set_seed(1)
+except ImportError:
+    pass
+
 from aeon.networks import DeepARNetwork
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
