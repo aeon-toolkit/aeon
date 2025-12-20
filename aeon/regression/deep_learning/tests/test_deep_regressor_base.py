@@ -8,6 +8,7 @@ import pytest
 
 try:
     import tensorflow as tf
+
     tf.random.set_seed(1)
 except ImportError:
     pass
