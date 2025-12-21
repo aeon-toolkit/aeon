@@ -63,7 +63,7 @@ def check_forecaster_output(estimator, datatype):
     """Test the forecaster output on valid data."""
     estimator = _clone_estimator(estimator)
 
-    is_s2s = estimator.get_tag("is_series_to_series", False)
+    is_s2s = estimator.get_tag("capability:is_series_to_series", False)
 
     estimator.fit(
         FULL_TEST_DATA_DICT[datatype]["train"][0],
@@ -83,14 +83,7 @@ def check_forecaster_output(estimator, datatype):
 
     y_pred2 = estimator.forecast(FULL_TEST_DATA_DICT[datatype]["train"][0])
     y_pred3 = estimator.predict(FULL_TEST_DATA_DICT[datatype]["train"][0])
-    if is_s2s:
-        np.testing.assert_allclose(
-            y_pred2,
-            y_pred3,
-            err_msg="fit(y).predict(y) and forecast(y) should be the same",
-        )
-    else:
-        assert y_pred2 == y_pred3, (
-            f"fit(y).predict(y) and forecast(y) should be the same, but"
-            f"output differ: {y_pred2} != {y_pred3}"
-        )
+    assert y_pred2 == y_pred3, (
+        f"fit(y).predict(y) and forecast(y) should be the same, but"
+        f"output differ: {y_pred2} != {y_pred3}"
+    )
