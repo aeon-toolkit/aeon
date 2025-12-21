@@ -217,11 +217,12 @@ def test_minkowski_pairwise_multiple_to_multiple():
 
 def test_minkowski_pairwise_weighted():
     """Test pairwise with weights."""
-    X = make_example_2d_numpy_series(10, 4, random_state=1)
-    X_collection = np.array([X, X, X])  # 3 instances
-    w = np.ones_like(X) * 1.5
+    # Create a 3D collection with 3 instances, 4 channels, 10 timesteps
+    X = make_example_3d_numpy(3, 4, 10, random_state=1, return_y=False)
+    # Weights should match individual series shape (4, 10), not collection
+    w = np.ones((4, 10)) * 1.5
 
-    pw = minkowski_pairwise_distance(X_collection, p=2.0, w=w)
+    pw = minkowski_pairwise_distance(X, p=2.0, w=w)
     assert pw.shape == (3, 3)
 
 
