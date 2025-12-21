@@ -102,11 +102,9 @@ class TSFreshRegressor(BaseRegressor):
 
         Parameters
         ----------
-        X : 3D np.ndarray (any number of channels, equal length series)
-                of shape (n_cases, n_channels, n_timepoints)
-            or list of numpy arrays (any number of channels, unequal length series)
-                of shape [n_cases], 2D np.array (n_channels, n_timepoints_i), where
-                n_timepoints_i is length of series
+        X : 3D np.ndarray of shape [n_cases, n_channels, n_timepoints]
+            or list of np.ndarray of shape [n_cases], where each array is a
+            2D np.ndarray of shape = [n_channels, n_timepoints_i]
         y : array-like, shape = [n_cases]
             The target labels.
 
@@ -176,11 +174,9 @@ class TSFreshRegressor(BaseRegressor):
 
         Parameters
         ----------
-        X : 3D np.ndarray (any number of channels, equal length series)
-                of shape (n_cases, n_channels, n_timepoints)
-            or list of numpy arrays (any number of channels, unequal length series)
-                of shape [n_cases], 2D np.array (n_channels, n_timepoints_i), where
-                n_timepoints_i is length of series
+        X : 3D np.ndarray of shape [n_cases, n_channels, n_timepoints]
+            or list of np.ndarray of shape [n_cases], where each array is a
+            2D np.ndarray of shape = [n_channels, n_timepoints_i]
             The data to make predictions for.
 
         Returns
