@@ -76,9 +76,11 @@ def _univariate_sax_distance(
         if np.abs(x[i] - y[i]) <= 1:
             continue
         else:
+            max_idx = x[i] if x[i] > y[i] else y[i]
+            min_idx = x[i] if x[i] < y[i] else y[i]
             dist += (
                 n_split[i].shape[0]
-                * (breakpoints[max(x[i], y[i]) - 1] - breakpoints[min(x[i], y[i])]) ** 2
+                * (breakpoints[max_idx - 1] - breakpoints[min_idx]) ** 2
             )
 
     return np.sqrt(dist)

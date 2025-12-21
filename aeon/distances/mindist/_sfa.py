@@ -73,9 +73,9 @@ def _univariate_sfa_distance(
         if np.abs(x[i] - y[i]) <= 1:
             continue
         else:
-            dist += (
-                breakpoints[i, max(x[i], y[i]) - 1] - breakpoints[i, min(x[i], y[i])]
-            ) ** 2
+            max_idx = x[i] if x[i] > y[i] else y[i]
+            min_idx = x[i] if x[i] < y[i] else y[i]
+            dist += (breakpoints[i, max_idx - 1] - breakpoints[i, min_idx]) ** 2
 
     return np.sqrt(2 * dist)
 
