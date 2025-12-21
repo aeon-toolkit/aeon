@@ -139,7 +139,7 @@ def _sax_from_multiple_to_multiple_distance(
     X: np.ndarray, y: np.ndarray | None, breakpoints: np.ndarray, n: int
 ) -> np.ndarray:
     if y is None:
-        n_instances = X.shape[0]
+        n_instances = len(X)
         distances = np.zeros((n_instances, n_instances))
 
         for i in prange(n_instances):
@@ -147,8 +147,8 @@ def _sax_from_multiple_to_multiple_distance(
                 distances[i, j] = _univariate_sax_distance(X[i], X[j], breakpoints, n)
                 distances[j, i] = distances[i, j]
     else:
-        n_instances = X.shape[0]
-        m_instances = y.shape[0]
+        n_instances = len(X)
+        m_instances = len(y)
         distances = np.zeros((n_instances, m_instances))
 
         for i in prange(n_instances):
