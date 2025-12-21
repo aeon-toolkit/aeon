@@ -151,7 +151,9 @@ def _sax_from_multiple_to_multiple_distance(
 
         for i in prange(n_instances):
             for j in range(i + 1, n_instances):
-                distances[i, j] = _univariate_sax_distance(X[i], X[j], breakpoints, n)
+                distances[i, j] = _univariate_sax_distance(
+                    X[i].ravel(), X[j].ravel(), breakpoints, n
+                )
                 distances[j, i] = distances[i, j]
     else:
         n_instances = len(X)
@@ -160,6 +162,8 @@ def _sax_from_multiple_to_multiple_distance(
 
         for i in prange(n_instances):
             for j in range(m_instances):
-                distances[i, j] = _univariate_sax_distance(X[i], y[j], breakpoints, n)
+                distances[i, j] = _univariate_sax_distance(
+                    X[i].ravel(), y[j].ravel(), breakpoints, n
+                )
 
     return distances

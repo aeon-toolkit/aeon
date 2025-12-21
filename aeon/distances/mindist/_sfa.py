@@ -142,7 +142,9 @@ def _sfa_from_multiple_to_multiple_distance(
 
         for i in prange(n_instances):
             for j in range(i + 1, n_instances):
-                distances[i, j] = _univariate_sfa_distance(X[i], X[j], breakpoints)
+                distances[i, j] = _univariate_sfa_distance(
+                    X[i].ravel(), X[j].ravel(), breakpoints
+                )
                 distances[j, i] = distances[i, j]
     else:
         n_instances = len(X)
@@ -151,6 +153,8 @@ def _sfa_from_multiple_to_multiple_distance(
 
         for i in prange(n_instances):
             for j in range(m_instances):
-                distances[i, j] = _univariate_sfa_distance(X[i], y[j], breakpoints)
+                distances[i, j] = _univariate_sfa_distance(
+                    X[i].ravel(), y[j].ravel(), breakpoints
+                )
 
     return distances
