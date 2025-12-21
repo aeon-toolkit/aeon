@@ -482,7 +482,7 @@ class TSFreshRelevant(_TSFresh):
 
     _tags = {
         "requires_y": True,
-        "X_inner_type": "numpy3D",
+        "X_inner_type": "np-list",
         "fit_is_empty": False,
     }
 
