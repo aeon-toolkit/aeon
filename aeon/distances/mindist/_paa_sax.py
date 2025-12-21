@@ -73,20 +73,25 @@ def _univariate_paa_sax_distance(
     n_split = np.array_split(np.arange(n), m)
 
     for i in range(x_paa.shape[0]):
-        if y_sax[i] >= breakpoints.shape[0]:
+        # Cast y_sax index to int64 explicitly
+        yi = np.int64(y_sax[i])
+
+        if yi >= breakpoints.shape[0]:
             br_upper = np.inf
         else:
-            br_upper = breakpoints[y_sax[i]]
+            br_upper = breakpoints[yi]
 
-        if y_sax[i] - 1 < 0:
+        if yi - 1 < 0:
             br_lower = -np.inf
         else:
-            br_lower = breakpoints[y_sax[i] - 1]
+            br_lower = breakpoints[yi - 1]
 
         if br_lower > x_paa[i]:
-            dist += n_split[i].shape[0] * (br_lower - x_paa[i]) ** 2
+            diff = br_lower - x_paa[i]
+            dist = dist + n_split[i].shape[0] * diff * diff  # Non-in-place
         elif br_upper < x_paa[i]:
-            dist += n_split[i].shape[0] * (x_paa[i] - br_upper) ** 2
+            diff = x_paa[i] - br_upper
+            dist = dist + n_split[i].shape[0] * diff * diff  # Non-in-place
 
     return np.sqrt(dist)
 

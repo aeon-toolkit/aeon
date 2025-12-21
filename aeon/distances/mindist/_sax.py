@@ -73,15 +73,20 @@ def _univariate_sax_distance(
     n_split = np.array_split(np.arange(n), m)
 
     for i in range(x.shape[0]):
-        if np.abs(x[i] - y[i]) <= 1:
+        # Cast to int64 explicitly for numba type inference
+        xi = np.int64(x[i])
+        yi = np.int64(y[i])
+
+        if np.abs(xi - yi) <= 1:
             continue
         else:
-            max_idx = x[i] if x[i] > y[i] else y[i]
-            min_idx = x[i] if x[i] < y[i] else y[i]
-            dist += (
-                n_split[i].shape[0]
-                * (breakpoints[max_idx - 1] - breakpoints[min_idx]) ** 2
-            )
+            max_idx = xi if xi > yi else yi
+            min_idx = xi if xi < yi else yi
+            idx_max = max_idx - 1
+            idx_min = min_idx
+
+            diff = breakpoints[idx_max] - breakpoints[idx_min]
+            dist = dist + n_split[i].shape[0] * diff * diff  # Non-in-place
 
     return np.sqrt(dist)
 

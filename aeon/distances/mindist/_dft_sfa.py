@@ -71,22 +71,27 @@ def _univariate_dft_sfa_distance(
 ) -> float:
     dist = 0.0
     for i in range(x_dft.shape[0]):
-        if y_sfa[i] >= breakpoints.shape[-1]:
+        # Cast y_sfa index to int64 explicitly
+        yi = np.int64(y_sfa[i])
+
+        if yi >= breakpoints.shape[-1]:
             br_upper = np.inf
         else:
-            br_upper = breakpoints[i, y_sfa[i]]
+            br_upper = breakpoints[i, yi]
 
-        if y_sfa[i] - 1 < 0:
+        if yi - 1 < 0:
             br_lower = -np.inf
         else:
-            br_lower = breakpoints[i, y_sfa[i] - 1]
+            br_lower = breakpoints[i, yi - 1]
 
         if br_lower > x_dft[i]:
-            dist += (br_lower - x_dft[i]) ** 2
+            diff = br_lower - x_dft[i]
+            dist = dist + diff * diff  # Non-in-place
         elif br_upper < x_dft[i]:
-            dist += (x_dft[i] - br_upper) ** 2
+            diff = x_dft[i] - br_upper
+            dist = dist + diff * diff  # Non-in-place
 
-    return np.sqrt(2 * dist)
+    return np.sqrt(2.0 * dist)
 
 
 @threaded

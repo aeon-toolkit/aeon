@@ -70,14 +70,22 @@ def _univariate_sfa_distance(
 ) -> float:
     dist = 0.0
     for i in range(x.shape[0]):
-        if np.abs(x[i] - y[i]) <= 1:
+        # Cast to int64 explicitly for numba type inference
+        xi = np.int64(x[i])
+        yi = np.int64(y[i])
+
+        if np.abs(xi - yi) <= 1:
             continue
         else:
-            max_idx = x[i] if x[i] > y[i] else y[i]
-            min_idx = x[i] if x[i] < y[i] else y[i]
-            dist += (breakpoints[i, max_idx - 1] - breakpoints[i, min_idx]) ** 2
+            max_idx = xi if xi > yi else yi
+            min_idx = xi if xi < yi else yi
+            idx_max = max_idx - 1
+            idx_min = min_idx
 
-    return np.sqrt(2 * dist)
+            diff = breakpoints[i, idx_max] - breakpoints[i, idx_min]
+            dist = dist + diff * diff  # Non-in-place to avoid iadd
+
+    return np.sqrt(2.0 * dist)
 
 
 @threaded
