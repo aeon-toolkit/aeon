@@ -97,6 +97,8 @@ class TimeTransformerClassifier(BaseDeepClassifier):
         save_last_model=False,
         best_file_name="best_model",
         last_file_name="last_model",
+        save_init_model=False,
+        init_file_name="init_model",
     ):
         self.n_layers = n_layers
         self.n_heads = n_heads
@@ -116,6 +118,8 @@ class TimeTransformerClassifier(BaseDeepClassifier):
         self.save_last_model = save_last_model
         self.best_file_name = best_file_name
         self.last_file_name = last_file_name
+        self.save_init_model = save_init_model
+        self.init_file_name = init_file_name
 
         self.history = None
 
@@ -145,7 +149,12 @@ class TimeTransformerClassifier(BaseDeepClassifier):
         -------
         output : a compiled Keras Model
         """
+        import numpy as np
         import tensorflow as tf
+
+        rng = check_random_state(self.random_state)
+        self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
+        tf.keras.utils.set_random_seed(self.random_state_)
 
         input_layer, output_layer = self._network.build_network(input_shape, **kwargs)
 
@@ -198,6 +207,9 @@ class TimeTransformerClassifier(BaseDeepClassifier):
         self.input_shape = X.shape[1:]
 
         self.training_model_ = self.build_model(self.input_shape, self.n_classes_)
+
+        if self.save_init_model:
+            self.training_model_.save(self.file_path + self.init_file_name + ".keras")
 
         if self.verbose:
             self.training_model_.summary()
