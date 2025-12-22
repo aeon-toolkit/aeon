@@ -18,14 +18,26 @@ def _make_simple_data():
 def test_signature_classifier_balanced_class_weight():
     """Test SignatureClassifier with balanced class_weight."""
     X, y = _make_simple_data()
-    clf = SignatureClassifier(class_weight="balanced", random_state=0)
+    clf = SignatureClassifier(
+        class_weight="balanced",
+        window_name="global",
+        depth=1,
+        random_state=0,
+    )
+
     clf.fit(X, y)
 
 
 def test_signature_classifier_dict_class_weight():
     """Test SignatureClassifier with dict-based class_weight."""
     X, y = _make_simple_data()
-    clf = SignatureClassifier(class_weight={0: 1, 1: 5}, random_state=0)
+    clf = SignatureClassifier(
+        class_weight={0: 1, 1: 5},
+        window_name="global",
+        depth=1,
+        random_state=0,
+    )
+
     clf.fit(X, y)
 
 

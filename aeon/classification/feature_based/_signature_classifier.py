@@ -127,9 +127,10 @@ class SignatureClassifier(BaseClassifier):
         # Validate class_weight
         if (
             class_weight is not None
-            and class_weight != "balanced"
+            and class_weight not in ("balanced", "balanced_subsample")
             and not isinstance(class_weight, dict)
-        ):
+            ):
+
             raise ValueError(
                 "class_weight must be None, 'balanced', or a dict "
                 "mapping class labels to weights."
