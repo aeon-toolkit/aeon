@@ -5,6 +5,7 @@ __all__ = ["TimeTransformerClassifier"]
 
 import gc
 import os
+import time
 from copy import deepcopy
 
 from sklearn.utils import check_random_state
@@ -123,7 +124,11 @@ class TimeTransformerClassifier(BaseDeepClassifier):
 
         self.history = None
 
-        super().__init__(batch_size=batch_size, random_state=random_state)
+        super().__init__(
+            batch_size=batch_size,
+            random_state=random_state,
+            last_file_name=last_file_name,
+        )
 
         self._network = TransformerNetwork(
             n_layers=self.n_layers,
@@ -214,13 +219,17 @@ class TimeTransformerClassifier(BaseDeepClassifier):
         if self.verbose:
             self.training_model_.summary()
 
+        self.file_name_ = (
+            self.best_file_name if self.save_best_model else str(time.time_ns())
+        )
+
         if self.callbacks is None:
             self.callbacks_ = [
                 tf.keras.callbacks.ReduceLROnPlateau(
                     monitor="loss", factor=0.5, patience=50, min_lr=0.0001
                 ),
                 tf.keras.callbacks.ModelCheckpoint(
-                    filepath=self.file_path + self.best_file_name + ".keras",
+                    filepath=self.file_path + self.file_name_ + ".keras",
                     monitor="loss",
                     save_best_only=True,
                 ),
@@ -229,7 +238,11 @@ class TimeTransformerClassifier(BaseDeepClassifier):
                 ),
             ]
         else:
-            self.callbacks_ = self.callbacks
+            self.callbacks_ = self._get_model_checkpoint_callback(
+                callbacks=self.callbacks,
+                file_path=self.file_path,
+                file_name=self.file_name_,
+            )
 
         self.history = self.training_model_.fit(
             X,
@@ -242,10 +255,10 @@ class TimeTransformerClassifier(BaseDeepClassifier):
 
         try:
             self.model_ = tf.keras.models.load_model(
-                self.file_path + self.best_file_name + ".keras", compile=False
+                self.file_path + self.file_name_ + ".keras", compile=False
             )
             if not self.save_best_model:
-                os.remove(self.file_path + self.best_file_name + ".keras")
+                os.remove(self.file_path + self.file_name_ + ".keras")
         except FileNotFoundError:
             self.model_ = deepcopy(self.training_model_)
 
