@@ -32,3 +32,4 @@ Deep learning networks
     RecurrentNetwork
     TCNNetwork
     DeepARNetwork
+    TransformerNetwork

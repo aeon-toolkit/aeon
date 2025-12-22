@@ -46,6 +46,7 @@ Deep learning
     MLPClassifier
     ResNetClassifier
     DisjointCNNClassifier
+    TimeTransformerClassifier
 
 Dictionary-based
 ----------------
