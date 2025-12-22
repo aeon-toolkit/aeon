@@ -97,8 +97,19 @@ class TransformerNetwork(BaseDeepLearningNetwork):
         )(positions)
         x = x + position_embedding
 
+        if isinstance(self.activation, list):
+            if len(self.activation) != self.n_layers:
+                raise ValueError(
+                    f"Number of activations {len(self.activation)} should be"
+                    f" the same as number of layers but is"
+                    f" not: {self.n_layers}"
+                )
+            self._activation = self.activation
+        else:
+            self._activation = [self.activation] * self.n_layers
+
         # 3. Transformer Encoder Blocks
-        for _ in range(self.n_layers):
+        for i in range(self.n_layers):
             # Attention
             # Pre-Norm architecture is often more stable
             x_norm = layers.LayerNormalization(epsilon=1e-6)(x)
@@ -113,7 +124,9 @@ class TransformerNetwork(BaseDeepLearningNetwork):
 
             # Feed Forward
             x_norm = layers.LayerNormalization(epsilon=1e-6)(x)
-            ffn_output = layers.Dense(self.d_inner, activation=self.activation)(x_norm)
+            ffn_output = layers.Dense(self.d_inner, activation=self._activation[i])(
+                x_norm
+            )
             ffn_output = layers.Dropout(self.dropout)(ffn_output)
             ffn_output = layers.Dense(self.d_model)(ffn_output)
 

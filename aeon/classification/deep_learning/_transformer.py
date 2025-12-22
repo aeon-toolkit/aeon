@@ -259,7 +259,7 @@ class TimeTransformerClassifier(BaseDeepClassifier):
             Parameters to create testing instances of the class.
         """
         params = {
-            "n_epoch": 2,
+            "n_epochs": 2,
             "batch_size": 4,
             "n_layers": 1,
             "n_heads": 2,
