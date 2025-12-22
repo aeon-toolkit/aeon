@@ -47,11 +47,11 @@ class SignatureClassifier(BaseClassifier):
     window_depth : int, default=3
         The depth of the dyadic window. (Active only if `window_name == 'dyadic']`.
     window_length : int, default=None
-        The length of the sliding/expanding window. (Active only if `window_name in
-        ['sliding, 'expanding'].
+    Length of the sliding or expanding window.
+    Active only if window_name is "sliding" or "expanding".
     window_step : int, default=None
-        The step of the sliding/expanding window. (Active only if `window_name in
-        ['sliding, 'expanding'].
+    Step size of the sliding or expanding window.
+    Active only if window_name is "sliding" or "expanding".
     rescaling : str, default=None
         The method of signature rescaling.
     sig_tfm : str, default="signature"
@@ -61,17 +61,13 @@ class SignatureClassifier(BaseClassifier):
         Signature truncation depth.
     random_state : int, default=None
         If `int`, random_state is the seed used by the random number generator;
-    class_weight{“balanced”, “balanced_subsample”}, dict or list of dicts, default=None
-        From sklearn documentation:
-        If not given, all classes are supposed to have weight one.
-        The “balanced” mode uses the values of y to automatically adjust weights
-        inversely proportional to class frequencies in the input data as
-        n_samples / (n_classes * np.bincount(y))
-        The “balanced_subsample” mode is the same as “balanced” except that weights
-        are computed based on the bootstrap sample for every tree grown.
-        For multi-output, the weights of each column of y will be multiplied.
-        Note that these weights will be multiplied with sample_weight (passed through
-        the fit method) if sample_weight is specified.
+    class_weight : {"balanced"}, dict or None, default=None
+    From sklearn documentation:
+    If not given, all classes are supposed to have weight one.
+    The "balanced" mode uses the values of y to automatically adjust
+    weights inversely proportional to class frequencies in the input data as
+    n_samples / (n_classes * np.bincount(y)).
+
 
     Attributes
     ----------
@@ -135,7 +131,8 @@ class SignatureClassifier(BaseClassifier):
             and not isinstance(class_weight, dict)
         ):
             raise ValueError(
-                "class_weight must be None, 'balanced', or a dict mapping class labels to weights."
+                "class_weight must be None, 'balanced', or a dict "
+                "mapping class labels to weights."
             )
 
         super().__init__()
@@ -157,8 +154,10 @@ class SignatureClassifier(BaseClassifier):
         # Use rf if no classifier is set
         if self.estimator is None:
             classifier = RandomForestClassifier(
-                random_state=self.random_state, class_weight=self.class_weight
+                random_state=self.random_state,
+                class_weight=self.class_weight,
             )
+
         else:
             classifier = _clone_estimator(self.estimator, self.random_state)
 
