@@ -9,6 +9,7 @@ __all__ = [
     "VALID_BA_DISTANCE_METHODS",
     "shift_invariant_average",
     "kasba_average",
+    "msm_barycenter_average",
 ]
 
 from aeon.clustering.averaging._averaging import mean_average
@@ -20,6 +21,7 @@ from aeon.clustering.averaging._ba_utils import (
 )
 from aeon.clustering.averaging._barycenter_averaging import elastic_barycenter_average
 from aeon.clustering.averaging._kasba_average import kasba_average
+from aeon.clustering.averaging._msm_average import msm_barycenter_average
 from aeon.clustering.averaging._shift_scale_invariant_averaging import (
     shift_invariant_average,
 )
