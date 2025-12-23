@@ -94,11 +94,7 @@ def test_msm_api_consistency():
     X = make_example_3d_numpy(3, 1, 5, random_state=1, return_y=False)
     try:
         msm_barycenter_average(
-            X, 
-            weights=np.ones(3), 
-            n_jobs=2, 
-            init_barycenter="mean",
-            verbose=True
+            X, weights=np.ones(3), n_jobs=2, init_barycenter="mean", verbose=True
         )
     except Exception as e:
         pytest.fail(f"API parameter caused crash: {e}")
