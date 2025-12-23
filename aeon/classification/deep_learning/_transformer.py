@@ -8,11 +8,11 @@ import os
 import time
 from copy import deepcopy
 
+import numpy as np
 from sklearn.utils import check_random_state
 
 from aeon.classification.deep_learning.base import BaseDeepClassifier
 from aeon.networks import TransformerNetwork
-from aeon.networks._transformer import APE
 
 
 class TimeTransformerClassifier(BaseDeepClassifier):
@@ -145,6 +145,30 @@ class TimeTransformerClassifier(BaseDeepClassifier):
             epsilon=self.epsilon,
         )
 
+    def load_model(self, model_path: str, classes: np.ndarray) -> None:
+        """Load a pre-trained keras model instead of fitting.
+
+        Parameters
+        ----------
+        model_path : str
+            Path to the model.
+        classes : np.ndarray
+            The classes.
+        """
+        import tensorflow as tf
+
+        from aeon.networks._transformer import _get_ape_class
+
+        # Ensure APE is registered/available
+        APE = _get_ape_class()
+
+        self.model_ = tf.keras.models.load_model(
+            model_path, custom_objects={"APE": APE}
+        )
+        self.is_fitted = True
+        self.classes_ = classes
+        self.n_classes_ = len(self.classes_)
+
     def build_model(self, input_shape, n_classes, **kwargs):
         """Construct a compiled, un-trained, keras model that is ready for training.
 
@@ -260,6 +284,9 @@ class TimeTransformerClassifier(BaseDeepClassifier):
         )
 
         try:
+            from aeon.networks._transformer import _get_ape_class
+
+            APE = _get_ape_class()
             self.model_ = tf.keras.models.load_model(
                 self.file_path + self.file_name_ + ".keras",
                 custom_objects={"APE": APE},

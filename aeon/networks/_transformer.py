@@ -2,82 +2,64 @@
 
 __maintainer__ = []
 
-import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras import layers
-
 from aeon.networks.base import BaseDeepLearningNetwork
 
 
-class APE(layers.Layer):
-    """Compute Absolute positional encoder.
+def _get_ape_class():
+    """Get the APE (Absolute Positional Encoder) class.
 
-    Parameters
-    ----------
-    d_model : int
-        The embed dim (required).
-    dropout_rate : float, default = 0.1
-        The dropout value.
-    max_len : int, default = 1024
-        The max. length of the incoming sequence.
+    This is defined inside a function to avoid top-level TensorFlow usage,
+    which breaks core dependency tests.
     """
+    import numpy as np
+    import tensorflow as tf
+    from tensorflow.keras import layers
 
-    def __init__(
-        self,
-        d_model: int,
-        dropout_rate: float = 0.1,
-        max_len: int = 1024,
-        **kwargs,
-    ) -> None:
-        super().__init__(**kwargs)
-        self.d_model = d_model
-        self.dropout_rate = dropout_rate
-        self.max_len = max_len
-        self.dropout = layers.Dropout(dropout_rate)
+    @tf.keras.utils.register_keras_serializable(package="aeon")
+    class APE(layers.Layer):
+        """Compute Absolute positional encoder."""
 
-        # Initialize positional encoding matrix with NumPy
-        import numpy as np
+        def __init__(
+            self,
+            d_model: int,
+            dropout_rate: float = 0.1,
+            max_len: int = 1024,
+            **kwargs,
+        ) -> None:
+            super().__init__(**kwargs)
+            self.d_model = d_model
+            self.dropout_rate = dropout_rate
+            self.max_len = max_len
+            self.dropout = layers.Dropout(dropout_rate)
 
-        position = np.arange(max_len)[:, np.newaxis]
-        div_term = np.exp(np.arange(0, d_model, 2) * (-np.log(10000.0) / d_model))
+            position = np.arange(max_len)[:, np.newaxis]
+            div_term = np.exp(np.arange(0, d_model, 2) * (-np.log(10000.0) / d_model))
 
-        pe = np.zeros((max_len, d_model))
-        pe[:, 0::2] = np.sin(position * div_term)
-        pe[:, 1::2] = np.cos(position * div_term)
-        pe = pe[np.newaxis, ...]
+            pe = np.zeros((max_len, d_model))
+            pe[:, 0::2] = np.sin(position * div_term)
+            pe[:, 1::2] = np.cos(position * div_term)
+            # Add newaxis to make it (1, max_len, d_model) for broadcasting
+            self.pe = tf.constant(pe[np.newaxis, ...], dtype=tf.float32)
 
-        # Convert to TensorFlow constant
-        self.pe = tf.constant(pe, dtype=tf.float32)
+        def build(self, input_shape):
+            super().build(input_shape)
 
-    def build(self, input_shape):
-        super().build(input_shape)
+        def call(self, x):
+            x += self.pe[:, : tf.shape(x)[1], :]
+            return self.dropout(x)
 
-    def call(self, x):
-        """Add position information to input embedding.
+        def get_config(self):
+            config = super().get_config()
+            config.update(
+                {
+                    "d_model": self.d_model,
+                    "dropout_rate": self.dropout_rate,
+                    "max_len": self.max_len,
+                }
+            )
+            return config
 
-        Parameters
-        ----------
-        x : KerasTensor
-            The sequence fed to the positional encoder model.
-
-        Returns
-        -------
-        KerasTensor
-            The output with positional encoding and dropout.
-        """
-        x += self.pe[:, : tf.shape(x)[1], :]
-        return self.dropout(x)
-
-    def get_config(self):
-        config = super().get_config()
-        config.update(
-            {
-                "d_model": self.d_model,
-                "dropout_rate": self.dropout_rate,
-                "max_len": self.max_len,
-            }
-        )
-        return config
+    return APE
 
 
 class TransformerNetwork(BaseDeepLearningNetwork):
@@ -99,7 +81,6 @@ class TransformerNetwork(BaseDeepLearningNetwork):
         The dropout rate for regularization.
     epsilon : float, default = 1e-6
         Small value to avoid division by zero in normalization layers.
-
     """
 
     _config = {
@@ -141,10 +122,15 @@ class TransformerNetwork(BaseDeepLearningNetwork):
         input_layer : a keras layer
         output_layer : a keras layer
         """
+        from tensorflow import keras
+        from tensorflow.keras import layers
+
+        # Get the APE class lazily
+        APE = _get_ape_class()
+
         input_layer = keras.Input(shape=input_shape)
 
         # 1. Input Embedding / Projection
-        # Project input channels to d_model dimension using Dense
         x = layers.Dense(units=self.d_model, activation="linear")(input_layer)
 
         # 2. Positional Encoding using APE
@@ -165,7 +151,7 @@ class TransformerNetwork(BaseDeepLearningNetwork):
         else:
             self._activation = [self.activation] * self.n_layers
 
-        # 3. Transformer Encoder Blocks (VanTran style: Post-Norm)
+        # 3. Transformer Encoder Blocks
         for i in range(self.n_layers):
             # Attention
             mha = layers.MultiHeadAttention(
