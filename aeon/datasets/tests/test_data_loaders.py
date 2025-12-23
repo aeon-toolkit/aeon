@@ -16,6 +16,7 @@ import aeon
 from aeon.datasets import (
     get_dataset_meta_data,
     load_classification,
+    load_classification_encoded,
     load_forecasting,
     load_from_arff_file,
     load_from_ts_file,
@@ -573,3 +574,23 @@ def test_download_and_extract():
             _download_and_extract(url, extract_path=extract_path)
         except BadZipFile:
             assert os.path.exists(extract_path)
+
+
+@pytest.mark.skipif(
+    PR_TESTING,
+    reason="Only run on overnights because of intermittent fail for read/write",
+)
+def test_load_classification_encoded():
+    """Test that load_classification_encoded returns integer labels."""
+    name = "BasicMotions"
+    X_train, y_train, X_test, y_test, le = load_classification_encoded(
+        name, return_encoder=True
+    )
+    assert np.issubdtype(y_train.dtype, np.integer)
+    assert np.issubdtype(y_test.dtype, np.integer)
+    assert hasattr(le, "classes_")
+    assert len(le.classes_) > 0
+    X_train, y_train, X_test, y_test = load_classification_encoded(
+        name, return_encoder=False
+    )
+    assert np.issubdtype(y_train.dtype, np.integer)
