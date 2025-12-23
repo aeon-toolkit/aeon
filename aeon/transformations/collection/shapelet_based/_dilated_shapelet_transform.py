@@ -252,7 +252,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
                 "you have NaN values in your data. We do not currently support NaN "
                 "values for shapelet transformation."
             )
-        
+
         # Store the number of shapelets found
         self.n_shapelets_ = len(self.shapelets_[0])
 
