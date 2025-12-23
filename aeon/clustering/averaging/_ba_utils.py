@@ -223,6 +223,7 @@ VALID_BA_METHODS = [
     "subgradient",
     "kasba",
     "petitjean",
+    "msm",
 ]
 
 VALID_BA_DISTANCE_METHODS = [
