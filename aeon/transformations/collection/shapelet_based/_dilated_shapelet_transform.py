@@ -105,6 +105,8 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
             - mean parameter
             - standard deviation parameter
             - class value
+    n_shapelets_ : int
+        The number of shapelets found during the fitting process.
     max_shapelet_length_ : int
         The maximum actual shapelet length fitted to train data.
     min_n_timepoints_ : int
@@ -250,6 +252,9 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
                 "you have NaN values in your data. We do not currently support NaN "
                 "values for shapelet transformation."
             )
+        
+        # Store the number of shapelets found
+        self.n_shapelets_ = len(self.shapelets_[0])
 
         # Shapelet "length" is length-1 times dilation
         self.max_shapelet_length_ = np.max(
