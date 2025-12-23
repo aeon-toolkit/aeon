@@ -38,6 +38,7 @@ import inspect
 from abc import ABC, abstractmethod
 from copy import deepcopy
 
+import numpy as np
 from sklearn import clone
 from sklearn.base import BaseEstimator
 from sklearn.ensemble._base import _set_random_states
@@ -374,6 +375,45 @@ class BaseAeonEstimator(BaseEstimator, ABC):
                 out.update((key + "__" + k, val) for k, val in deep_items)
             out[key] = value
         return out
+
+    def _check_scale(self, X):
+        """Check for extremely small values in X to prevent floating point issues.
+
+        Parameters
+        ----------
+        X : np.ndarray, pd.DataFrame, or list
+            The input data.
+
+        Raises
+        ------
+        ValueError
+            If the maximum absolute value of X is below the safe threshold.
+        """
+        # Threshold to avoid floating point underflows
+        MIN_SCALE_THRESHOLD = 1e-19
+
+        max_val = 0
+        if isinstance(X, list):
+            # handle list of arrays/frames
+            for x in X:
+                if hasattr(x, "to_numpy"):
+                    v = np.max(np.abs(x.to_numpy()))
+                else:
+                    v = np.max(np.abs(x))
+                if v > max_val:
+                    max_val = v
+        elif hasattr(X, "to_numpy"):
+            max_val = np.max(np.abs(X.to_numpy()))
+        else:
+            max_val = np.max(np.abs(X))
+
+        if 0 < max_val < MIN_SCALE_THRESHOLD:
+            raise ValueError(
+                f"Input series has an extremely small scale (max abs value < "
+                f"{MIN_SCALE_THRESHOLD}). Please rescale your data "
+                "before passing it to the estimator to prevent floating "
+                "point instability."
+            )
 
     # private functions to help testing
 

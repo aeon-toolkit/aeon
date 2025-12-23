@@ -117,6 +117,8 @@ class BaseCollectionEstimator(BaseAeonEstimator):
         if len(self.metadata_) == 0 and store_metadata:
             self.metadata_ = meta
 
+        self._check_scale(X)
+
         return self._convert_X(X)
 
     def _check_X(self, X):
