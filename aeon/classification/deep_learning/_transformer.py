@@ -12,6 +12,7 @@ from sklearn.utils import check_random_state
 
 from aeon.classification.deep_learning.base import BaseDeepClassifier
 from aeon.networks import TransformerNetwork
+from aeon.networks._transformer import APE
 
 
 class TimeTransformerClassifier(BaseDeepClassifier):
@@ -19,18 +20,20 @@ class TimeTransformerClassifier(BaseDeepClassifier):
 
     Parameters
     ----------
-    n_layers : int, default = 2
-        The number of transformer blocks.
+    n_layers : int, default = 4
+        The number of transformer encoder layers.
     n_heads : int, default = 4
         The number of heads in the multi-head attention layer.
-    d_model : int, default = 64
-        The dimension of the embedding vector.
-    d_inner : int, default = 128
-        The dimension of the feed-forward network in the transformer block.
-    activation : str, default = "relu"
-        The activation function used in the feed-forward network.
+    d_model : int, default = 256
+        The dimension of the embedding.
+    d_inner : int, default = 1024
+        The dimension of the feed-forward network.
+    activation : str or list of str, default = "gelu"
+        The activation function to use.
     dropout : float, default = 0.1
-        The dropout rate.
+        The dropout rate for regularization.
+    epsilon : float, default = 1e-6
+        Small value to avoid division by zero in normalization layers.
     n_epochs : int, default = 2000
         The number of epochs to train the model.
     batch_size : int, default = 64
@@ -79,12 +82,13 @@ class TimeTransformerClassifier(BaseDeepClassifier):
 
     def __init__(
         self,
-        n_layers=2,
+        n_layers=4,
         n_heads=4,
-        d_model=64,
-        d_inner=128,
-        activation="relu",
+        d_model=256,
+        d_inner=1024,
+        activation="gelu",
         dropout=0.1,
+        epsilon=1e-6,
         n_epochs=2000,
         batch_size=64,
         callbacks=None,
@@ -107,6 +111,7 @@ class TimeTransformerClassifier(BaseDeepClassifier):
         self.d_inner = d_inner
         self.activation = activation
         self.dropout = dropout
+        self.epsilon = epsilon
 
         self.n_epochs = n_epochs
         self.callbacks = callbacks
@@ -137,6 +142,7 @@ class TimeTransformerClassifier(BaseDeepClassifier):
             d_inner=self.d_inner,
             activation=self.activation,
             dropout=self.dropout,
+            epsilon=self.epsilon,
         )
 
     def build_model(self, input_shape, n_classes, **kwargs):
@@ -255,7 +261,9 @@ class TimeTransformerClassifier(BaseDeepClassifier):
 
         try:
             self.model_ = tf.keras.models.load_model(
-                self.file_path + self.file_name_ + ".keras", compile=False
+                self.file_path + self.file_name_ + ".keras",
+                custom_objects={"APE": APE},
+                compile=False,
             )
             if not self.save_best_model:
                 os.remove(self.file_path + self.file_name_ + ".keras")

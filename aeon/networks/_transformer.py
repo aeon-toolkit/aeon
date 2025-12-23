@@ -2,7 +2,82 @@
 
 __maintainer__ = []
 
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras import layers
+
 from aeon.networks.base import BaseDeepLearningNetwork
+
+
+class APE(layers.Layer):
+    """Compute Absolute positional encoder.
+
+    Parameters
+    ----------
+    d_model : int
+        The embed dim (required).
+    dropout_rate : float, default = 0.1
+        The dropout value.
+    max_len : int, default = 1024
+        The max. length of the incoming sequence.
+    """
+
+    def __init__(
+        self,
+        d_model: int,
+        dropout_rate: float = 0.1,
+        max_len: int = 1024,
+        **kwargs,
+    ) -> None:
+        super().__init__(**kwargs)
+        self.d_model = d_model
+        self.dropout_rate = dropout_rate
+        self.max_len = max_len
+        self.dropout = layers.Dropout(dropout_rate)
+
+        # Initialize positional encoding matrix with NumPy
+        import numpy as np
+
+        position = np.arange(max_len)[:, np.newaxis]
+        div_term = np.exp(np.arange(0, d_model, 2) * (-np.log(10000.0) / d_model))
+
+        pe = np.zeros((max_len, d_model))
+        pe[:, 0::2] = np.sin(position * div_term)
+        pe[:, 1::2] = np.cos(position * div_term)
+        pe = pe[np.newaxis, ...]
+
+        # Convert to TensorFlow constant
+        self.pe = tf.constant(pe, dtype=tf.float32)
+
+    def build(self, input_shape):
+        super().build(input_shape)
+
+    def call(self, x):
+        """Add position information to input embedding.
+
+        Parameters
+        ----------
+        x : KerasTensor
+            The sequence fed to the positional encoder model.
+
+        Returns
+        -------
+        KerasTensor
+            The output with positional encoding and dropout.
+        """
+        x += self.pe[:, : tf.shape(x)[1], :]
+        return self.dropout(x)
+
+    def get_config(self):
+        config = super().get_config()
+        config.update(
+            {
+                "d_model": self.d_model,
+                "dropout_rate": self.dropout_rate,
+                "max_len": self.max_len,
+            }
+        )
+        return config
 
 
 class TransformerNetwork(BaseDeepLearningNetwork):
@@ -10,27 +85,21 @@ class TransformerNetwork(BaseDeepLearningNetwork):
 
     Parameters
     ----------
-    n_layers : int, default = 2
-        The number of transformer blocks.
+    n_layers : int, default = 4
+        The number of transformer encoder layers.
     n_heads : int, default = 4
         The number of heads in the multi-head attention layer.
-    d_model : int, default = 64
+    d_model : int, default = 256
         The dimension of the embedding vector.
-    d_inner : int, default = 128
+    d_inner : int, default = 1024
         The dimension of the feed-forward network in the transformer block.
-    activation : str, default = "relu"
+    activation : str, default = "gelu"
         The activation function used in the feed-forward network.
     dropout : float, default = 0.1
-        The dropout rate.
+        The dropout rate for regularization.
+    epsilon : float, default = 1e-6
+        Small value to avoid division by zero in normalization layers.
 
-    Structure
-    ---------
-    It uses the standard Transformer Encoder architecture:
-    1. Input Embedding (Conv1D)
-    2. Positional Encoding
-    3. N x Transformer Encoder Blocks (MultiHeadAttention -> Add & Norm -> FeedForward
-       -> Add & Norm)
-    4. Global Average Pooling
     """
 
     _config = {
@@ -41,12 +110,13 @@ class TransformerNetwork(BaseDeepLearningNetwork):
 
     def __init__(
         self,
-        n_layers=2,
+        n_layers=4,
         n_heads=4,
-        d_model=64,
-        d_inner=128,
-        activation="relu",
+        d_model=256,
+        d_inner=1024,
+        activation="gelu",
         dropout=0.1,
+        epsilon=1e-6,
     ):
         self.n_layers = n_layers
         self.n_heads = n_heads
@@ -54,6 +124,7 @@ class TransformerNetwork(BaseDeepLearningNetwork):
         self.d_inner = d_inner
         self.activation = activation
         self.dropout = dropout
+        self.epsilon = epsilon
 
         super().__init__()
 
@@ -70,32 +141,18 @@ class TransformerNetwork(BaseDeepLearningNetwork):
         input_layer : a keras layer
         output_layer : a keras layer
         """
-        import tensorflow as tf
-        from tensorflow import keras
-        from tensorflow.keras import layers
-
         input_layer = keras.Input(shape=input_shape)
 
         # 1. Input Embedding / Projection
-        # Project input channels to d_model dimension
-        x = layers.Conv1D(filters=self.d_model, kernel_size=1, padding="same")(
-            input_layer
-        )
-        x = layers.BatchNormalization()(x)
-        x = layers.Activation("relu")(x)
+        # Project input channels to d_model dimension using Dense
+        x = layers.Dense(units=self.d_model, activation="linear")(input_layer)
 
-        # 2. Positional Encoding
-        # We'll use a simple learnable position embedding here for simplicity
-        # and compatibility
-        # Sequence length is input_shape[0]
-        seq_len = input_shape[0]
-
-        # Create positions
-        positions = tf.range(start=0, limit=seq_len, delta=1)
-        position_embedding = layers.Embedding(
-            input_dim=seq_len, output_dim=self.d_model
-        )(positions)
-        x = x + position_embedding
+        # 2. Positional Encoding using APE
+        x = APE(
+            d_model=self.d_model,
+            dropout_rate=self.dropout,
+            max_len=input_shape[0],
+        )(x)
 
         if isinstance(self.activation, list):
             if len(self.activation) != self.n_layers:
@@ -108,30 +165,25 @@ class TransformerNetwork(BaseDeepLearningNetwork):
         else:
             self._activation = [self.activation] * self.n_layers
 
-        # 3. Transformer Encoder Blocks
+        # 3. Transformer Encoder Blocks (VanTran style: Post-Norm)
         for i in range(self.n_layers):
             # Attention
-            # Pre-Norm architecture is often more stable
-            x_norm = layers.LayerNormalization(epsilon=1e-6)(x)
-            attn_output = layers.MultiHeadAttention(
+            mha = layers.MultiHeadAttention(
                 num_heads=self.n_heads,
-                key_dim=self.d_model // self.n_heads,
-                dropout=self.dropout,
-            )(x_norm, x_norm)
+                key_dim=self.d_model,
+            )(query=x, value=x, key=x)
 
-            # Skip connection
-            x = layers.Add()([x, attn_output])
+            x_dropped = layers.Dropout(self.dropout)(mha)
+            x_norm = layers.LayerNormalization(epsilon=self.epsilon)(x_dropped)
+            res = layers.Add()([x, x_norm])
 
             # Feed Forward
-            x_norm = layers.LayerNormalization(epsilon=1e-6)(x)
-            ffn_output = layers.Dense(self.d_inner, activation=self._activation[i])(
-                x_norm
-            )
-            ffn_output = layers.Dropout(self.dropout)(ffn_output)
-            ffn_output = layers.Dense(self.d_model)(ffn_output)
+            ffn = layers.Dense(units=self.d_inner, activation=self._activation[i])(res)
+            ffn = layers.Dense(units=self.d_model, activation="linear")(ffn)
 
-            # Skip connection
-            x = layers.Add()([x, ffn_output])
+            x_dropped = layers.Dropout(self.dropout)(ffn)
+            x_norm = layers.LayerNormalization(epsilon=self.epsilon)(x_dropped)
+            x = layers.Add()([res, x_norm])
 
         # 4. Global Average Pooling
         output_layer = layers.GlobalAveragePooling1D()(x)
