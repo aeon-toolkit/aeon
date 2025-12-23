@@ -85,7 +85,7 @@ jobs:
         shell: bash
 
       - name: Save new cache
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: ${{ github.workspace }}/.numba_cache
           # Save cache with the current date (ENV set in numba_cache action)
@@ -150,7 +150,7 @@ jobs:
         run: python -m pytest -n logical
 
       - name: Save new cache
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: ${{ github.workspace }}/.numba_cache
           # Save cache with the current date (ENV set in numba_cache action)
@@ -209,7 +209,7 @@ jobs:
         run: python -m pytest -n logical
 
       - name: Save new cache
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: ${{ github.workspace }}/.numba_cache
           # Save cache with the current date (ENV set in numba_cache action)
@@ -249,7 +249,7 @@ jobs:
         run: python -m pytest -n logical --doctest-only --doctest-continue-on-failure
 
       - name: Save new cache
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: ${{ github.workspace }}/.numba_cache
           # Save cache with the current date (ENV set in numba_cache action)
@@ -289,7 +289,7 @@ jobs:
         run: python -m pytest aeon/testing/tests/ --enablethreading true -k "check_estimator_multithreading"
 
       - name: Save new cache
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: ${{ github.workspace }}/.numba_cache
           # Save cache with the current date (ENV set in numba_cache action)
