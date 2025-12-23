@@ -109,7 +109,8 @@ class BaseCollectionAnomalyDetector(BaseCollectionEstimator, BaseAnomalyDetector
 
         X = self._preprocess_collection(X)
         if y is not None:
-            y = self._check_y(y, self.metadata_["n_cases"])
+            self._check_y(y, self.metadata_["n_cases"])
+            y = self._convert_y(y)
 
         self._fit(X, y)
 
@@ -208,7 +209,8 @@ class BaseCollectionAnomalyDetector(BaseCollectionEstimator, BaseAnomalyDetector
             return self._predict(X)
 
         if y is not None:
-            y = self._check_y(y)
+            self._check_y(y, self.metadata_["n_cases"])
+            y = self._convert_y(y)
 
         pred = self._fit_predict(X, y)
 
@@ -251,7 +253,10 @@ class BaseCollectionAnomalyDetector(BaseCollectionEstimator, BaseAnomalyDetector
                 f"Mismatch in number of cases. Found X = {n_cases} and y = {n_labels}"
             )
 
+        return y
+
+    def _convert_y(self, y):
+        """Convert y to correct anomaly detection format after validation."""
         if isinstance(y, pd.Series):
             y = pd.Series.to_numpy(y)
-
-        return y
+        return y.astype(bool)

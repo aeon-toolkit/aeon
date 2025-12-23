@@ -231,7 +231,8 @@ class BaseRegressor(RegressorMixin, BaseCollectionEstimator):
             MSE score of predict(X) vs y
         """
         self._check_is_fitted()
-        y = self._check_y(y, len(X))
+        self._check_y(y, len(X))
+        y = self._convert_y(y)
         _metric_params = metric_params
         if metric_params is None:
             _metric_params = {}
@@ -351,7 +352,8 @@ class BaseRegressor(RegressorMixin, BaseCollectionEstimator):
         self.reset()
 
         X = self._preprocess_collection(X)
-        y = self._check_y(y, self.metadata_["n_cases"])
+        self._check_y(y, self.metadata_["n_cases"])
+        y = self._convert_y(y)
 
         # return processed X and y
         return X, y
@@ -380,13 +382,16 @@ class BaseRegressor(RegressorMixin, BaseCollectionEstimator):
                 f"sklearn.utils.multiclass.type_of_target"
             )
 
-        if isinstance(y, pd.Series):
-            y = pd.Series.to_numpy(y)
-
         if any([isinstance(label, str) for label in y]):
             raise ValueError(
                 "y contains strings, cannot fit a regressor. If suitable, convert "
                 "to floats or consider classification."
             )
 
+        return y
+
+    def _convert_y(self, y):
+        """Convert y to the correct regression format after validation."""
+        if isinstance(y, pd.Series):
+            y = pd.Series.to_numpy(y)
         return y.astype(float)
