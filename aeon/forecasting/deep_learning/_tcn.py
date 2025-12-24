@@ -161,6 +161,12 @@ class TCNForecaster(BaseDeepForecaster, IterativeForecastingMixin):
         """
         import tensorflow as tf
 
+        if not hasattr(self, "_metrics"):
+            if isinstance(self.metrics, str):
+                self._metrics = [self.metrics]
+            else:
+                self._metrics = self.metrics
+
         rng = check_random_state(self.random_state)
         self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
 
