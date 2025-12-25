@@ -81,6 +81,7 @@ def dtw_distance(
         series length.
         For example, if there are 10 time points in the longer series and window = 0.1,
         DTW alignments are restricted such that the warping path may deviate by at most
+        one cell from the diagonal.
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
