@@ -321,9 +321,9 @@ class LITETimeClassifier(BaseClassifier):
         -------
         LITETimeClassifier
         """
-        assert type(model_path) is list, (
-            "model_path should be a list of paths to the models"
-        )
+        assert (
+            type(model_path) is list
+        ), "model_path should be a list of paths to the models"
 
         classifier = self()
         classifier.classifiers_ = []

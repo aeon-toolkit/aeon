@@ -375,9 +375,9 @@ class InceptionTimeRegressor(BaseRegressor):
         -------
         InceptionTimeRegressor
         """
-        assert type(model_path) is list, (
-            "model_path should be a list of paths to the models"
-        )
+        assert (
+            type(model_path) is list
+        ), "model_path should be a list of paths to the models"
 
         regressor = self()
         regressor.regressors_ = []
