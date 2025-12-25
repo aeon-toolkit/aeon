@@ -164,20 +164,8 @@ class EncoderClassifier(BaseDeepClassifier):
         self.use_bias = use_bias
         self.optimizer = optimizer
 
-        self.compile_args = {} if not compile_args else compile_args
-        for key in ["loss", "metrics", "optimizer"]:
-            if key in self.compile_args:
-                raise ValueError(
-                    f"Cannot specify '{key}' in 'compile_args'. "
-                    f"Specify it in the constructor instead. "
-                )
-        self.fit_args = {} if not fit_args else fit_args
-        for key in ["batch_size", "epochs", "verbose", "callbacks"]:
-            if key in self.fit_args:
-                raise ValueError(
-                    f"Cannot specify '{key}' in 'fit_args'. "
-                    f"Specify it in the constructor instead."
-                )
+        self.compile_args = compile_args
+        self.fit_args = fit_args
 
         self.history = None
 
@@ -234,6 +222,14 @@ class EncoderClassifier(BaseDeepClassifier):
             if self.optimizer is None
             else self.optimizer
         )
+
+        self.compile_args = {} if not self.compile_args else self.compile_args
+        for key in ["loss", "metrics", "optimizer"]:
+            if key in self.compile_args:
+                raise ValueError(
+                    f"Cannot specify '{key}' in 'compile_args'. "
+                    f"Specify it in the constructor instead. "
+                )
 
         model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
         model.compile(
@@ -297,6 +293,14 @@ class EncoderClassifier(BaseDeepClassifier):
                 file_path=self.file_path,
                 file_name=self.file_name_,
             )
+
+        self.fit_args = {} if not self.fit_args else self.fit_args
+        for key in ["batch_size", "epochs", "verbose", "callbacks"]:
+            if key in self.fit_args:
+                raise ValueError(
+                    f"Cannot specify '{key}' in 'fit_args'. "
+                    f"Specify it in the constructor instead."
+                )
 
         self.history = self.training_model_.fit(
             X,

@@ -255,20 +255,8 @@ class InceptionTimeClassifier(BaseClassifier):
         self.metrics = metrics
         self.optimizer = optimizer
 
-        self.compile_args = {} if not compile_args else compile_args
-        for key in ["loss", "metrics", "optimizer"]:
-            if key in self.compile_args:
-                raise ValueError(
-                    f"Cannot specify '{key}' in 'compile_args'. "
-                    f"Specify it in the constructor instead. "
-                )
-        self.fit_args = {} if not fit_args else fit_args
-        for key in ["batch_size", "epochs", "verbose", "callbacks"]:
-            if key in self.fit_args:
-                raise ValueError(
-                    f"Cannot specify '{key}' in 'fit_args'. "
-                    f"Specify it in the constructor instead."
-                )
+        self.compile_args = compile_args
+        self.fit_args = fit_args
 
         self.classifiers_ = []
 
@@ -660,20 +648,8 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         self.metrics = metrics
         self.optimizer = optimizer
 
-        self.compile_args = {} if not compile_args else compile_args
-        for key in ["loss", "metrics", "optimizer"]:
-            if key in self.compile_args:
-                raise ValueError(
-                    f"Cannot specify '{key}' in 'compile_args'. "
-                    f"Specify it in the constructor instead. "
-                )
-        self.fit_args = {} if not fit_args else fit_args
-        for key in ["batch_size", "epochs", "verbose", "callbacks"]:
-            if key in self.fit_args:
-                raise ValueError(
-                    f"Cannot specify '{key}' in 'fit_args'. "
-                    f"Specify it in the constructor instead."
-                )
+        self.compile_args = compile_args
+        self.fit_args = fit_args
 
         super().__init__(
             batch_size=batch_size,
@@ -732,6 +708,14 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         self.optimizer_ = (
             tf.keras.optimizers.Adam() if self.optimizer is None else self.optimizer
         )
+
+        self.compile_args = {} if not self.compile_args else self.compile_args
+        for key in ["loss", "metrics", "optimizer"]:
+            if key in self.compile_args:
+                raise ValueError(
+                    f"Cannot specify '{key}' in 'compile_args'. "
+                    f"Specify it in the constructor instead. "
+                )
 
         model.compile(
             loss=self.loss,
@@ -808,6 +792,14 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
                 file_path=self.file_path,
                 file_name=self.file_name_,
             )
+
+        self.fit_args = {} if not self.fit_args else self.fit_args
+        for key in ["batch_size", "epochs", "verbose", "callbacks"]:
+            if key in self.fit_args:
+                raise ValueError(
+                    f"Cannot specify '{key}' in 'fit_args'. "
+                    f"Specify it in the constructor instead."
+                )
 
         self.history = self.training_model_.fit(
             X,

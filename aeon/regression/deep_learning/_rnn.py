@@ -153,20 +153,8 @@ class RecurrentRegressor(BaseDeepRegressor):
         self.optimizer = optimizer
         self.history = None
 
-        self.compile_args = {} if not compile_args else compile_args
-        for key in ["loss", "metrics", "optimizer"]:
-            if key in self.compile_args:
-                raise ValueError(
-                    f"Cannot specify '{key}' in 'compile_args'. "
-                    f"Specify it in the constructor instead. "
-                )
-        self.fit_args = {} if not fit_args else fit_args
-        for key in ["batch_size", "epochs", "verbose", "callbacks"]:
-            if key in self.fit_args:
-                raise ValueError(
-                    f"Cannot specify '{key}' in 'fit_args'. "
-                    f"Specify it in the constructor instead."
-                )
+        self.compile_args = compile_args
+        self.fit_args = fit_args
 
         super().__init__(batch_size=batch_size, last_file_name=last_file_name)
 
@@ -208,6 +196,14 @@ class RecurrentRegressor(BaseDeepRegressor):
             if self.optimizer is None
             else self.optimizer
         )
+
+        self.compile_args = {} if not self.compile_args else self.compile_args
+        for key in ["loss", "metrics", "optimizer"]:
+            if key in self.compile_args:
+                raise ValueError(
+                    f"Cannot specify '{key}' in 'compile_args'. "
+                    f"Specify it in the constructor instead. "
+                )
 
         rng = check_random_state(self.random_state)
         self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
@@ -291,6 +287,14 @@ class RecurrentRegressor(BaseDeepRegressor):
             mini_batch_size = min(self.batch_size, X.shape[0] // 10)
         else:
             mini_batch_size = self.batch_size
+
+        self.fit_args = {} if not self.fit_args else self.fit_args
+        for key in ["batch_size", "epochs", "verbose", "callbacks"]:
+            if key in self.fit_args:
+                raise ValueError(
+                    f"Cannot specify '{key}' in 'fit_args'. "
+                    f"Specify it in the constructor instead."
+                )
 
         self.history = self.training_model_.fit(
             X,
