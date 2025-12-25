@@ -78,6 +78,10 @@ all_tags_for_estimator`` function with the argument ``"transformer"``.
     HydraTransformer
 ```
 
+**Note:** `Rocket` supports both CPU and GPU execution via the `device` parameter
+(``device="cpu"``, ``device="gpu"``, or ``device="auto"``). This provides a unified
+interface for both execution modes.
+
 ```{eval-rst}
 .. currentmodule:: aeon.transformations.collection.convolution_based.rocketGPU
 
@@ -87,6 +91,9 @@ all_tags_for_estimator`` function with the argument ``"transformer"``.
 
     ROCKETGPU
 ```
+
+**Note:** `ROCKETGPU` remains available for direct use, but ``Rocket(device="gpu")``
+is now the recommended approach for GPU execution.
 
 ### Dictionary-based features
 
