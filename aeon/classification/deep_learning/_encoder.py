@@ -223,9 +223,9 @@ class EncoderClassifier(BaseDeepClassifier):
             else self.optimizer
         )
 
-        self.compile_args = {} if not self.compile_args else self.compile_args
+        compile_args = {} if not self.compile_args else self.compile_args
         for key in ["loss", "metrics", "optimizer"]:
-            if key in self.compile_args:
+            if key in compile_args:
                 raise ValueError(
                     f"Cannot specify '{key}' in 'compile_args'. "
                     f"Specify it in the constructor instead. "
@@ -236,7 +236,7 @@ class EncoderClassifier(BaseDeepClassifier):
             loss=self.loss,
             optimizer=self.optimizer_,
             metrics=self._metrics,
-            **self.compile_args,
+            **compile_args,
         )
 
         return model
@@ -294,9 +294,9 @@ class EncoderClassifier(BaseDeepClassifier):
                 file_name=self.file_name_,
             )
 
-        self.fit_args = {} if not self.fit_args else self.fit_args
+        fit_args = {} if not self.fit_args else self.fit_args
         for key in ["batch_size", "epochs", "verbose", "callbacks"]:
-            if key in self.fit_args:
+            if key in fit_args:
                 raise ValueError(
                     f"Cannot specify '{key}' in 'fit_args'. "
                     f"Specify it in the constructor instead."
@@ -309,7 +309,7 @@ class EncoderClassifier(BaseDeepClassifier):
             epochs=self.n_epochs,
             verbose=self.verbose,
             callbacks=self.callbacks_,
-            **self.fit_args,
+            **fit_args,
         )
 
         try:
