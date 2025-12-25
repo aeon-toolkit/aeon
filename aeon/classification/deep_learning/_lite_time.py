@@ -103,6 +103,10 @@ class LITETimeClassifier(BaseClassifier):
         if a single string metric is provided, it will be used as the only
         metric. if a list of metrics are provided, all will be used for
         evaluation.
+    compile_args: dict or None, default=None
+        Dictionary of additional arguments to pass to the Keras `compile` method.
+    fit_args: dict or None, default=None
+        Dictionary of additional arguments to pass to the Keras `fit` method.
 
     References
     ----------
@@ -161,6 +165,8 @@ class LITETimeClassifier(BaseClassifier):
         loss="categorical_crossentropy",
         metrics="accuracy",
         optimizer=None,
+        compile_args=None,
+        fit_args=None,
     ):
         self.n_classifiers = n_classifiers
 
@@ -190,6 +196,21 @@ class LITETimeClassifier(BaseClassifier):
         self.loss = loss
         self.metrics = metrics
         self.optimizer = optimizer
+
+        self.compile_args = {} if not compile_args else compile_args
+        for key in ["loss", "metrics", "optimizer"]:
+            if key in self.compile_args:
+                raise ValueError(
+                    f"Cannot specify '{key}' in 'compile_args'. "
+                    f"Specify it in the constructor instead. "
+                )
+        self.fit_args = {} if not fit_args else fit_args
+        for key in ["batch_size", "epochs", "verbose", "callbacks"]:
+            if key in self.fit_args:
+                raise ValueError(
+                    f"Cannot specify '{key}' in 'fit_args'. "
+                    f"Specify it in the constructor instead."
+                )
 
         self.classifiers_ = []
 
@@ -234,6 +255,8 @@ class LITETimeClassifier(BaseClassifier):
                 optimizer=self.optimizer,
                 random_state=rng.randint(0, np.iinfo(np.int32).max),
                 verbose=self.verbose,
+                compile_args=self.compile_args,
+                fit_args=self.fit_args,
             )
             cls.fit(X, y)
             self.classifiers_.append(cls)
@@ -310,9 +333,9 @@ class LITETimeClassifier(BaseClassifier):
         -------
         LITETimeClassifier
         """
-        assert (
-            type(model_path) is list
-        ), "model_path should be a list of paths to the models"
+        assert type(model_path) is list, (
+            "model_path should be a list of paths to the models"
+        )
 
         classifier = self()
         classifier.classifiers_ = []
@@ -452,6 +475,10 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         if a single string metric is provided, it will be used as the only
         metric. if a list of metrics are provided, all will be used for
         evaluation.
+    compile_args: dict or None, default=None
+        Dictionary of additional arguments to pass to the Keras `compile` method.
+    fit_args: dict or None, default=None
+        Dictionary of additional arguments to pass to the Keras `fit` method.
 
     References
     ----------
@@ -501,6 +528,8 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         loss="categorical_crossentropy",
         metrics="accuracy",
         optimizer=None,
+        compile_args=None,
+        fit_args=None,
     ):
         self.use_litemv = use_litemv
         self.n_filters = n_filters
@@ -524,6 +553,21 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         self.loss = loss
         self.metrics = metrics
         self.optimizer = optimizer
+
+        self.compile_args = {} if not compile_args else compile_args
+        for key in ["loss", "metrics", "optimizer"]:
+            if key in self.compile_args:
+                raise ValueError(
+                    f"Cannot specify '{key}' in 'compile_args'. "
+                    f"Specify it in the constructor instead. "
+                )
+        self.fit_args = {} if not fit_args else fit_args
+        for key in ["batch_size", "epochs", "verbose", "callbacks"]:
+            if key in self.fit_args:
+                raise ValueError(
+                    f"Cannot specify '{key}' in 'fit_args'. "
+                    f"Specify it in the constructor instead."
+                )
 
         super().__init__(
             batch_size=batch_size,
@@ -577,6 +621,7 @@ class IndividualLITEClassifier(BaseDeepClassifier):
             loss=self.loss,
             optimizer=self.optimizer_,
             metrics=self._metrics,
+            **self.compile_args,
         )
 
         return model
@@ -654,6 +699,7 @@ class IndividualLITEClassifier(BaseDeepClassifier):
             epochs=self.n_epochs,
             verbose=self.verbose,
             callbacks=self.callbacks_,
+            **self.fit_args,
         )
 
         try:

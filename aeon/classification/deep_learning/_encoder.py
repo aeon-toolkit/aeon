@@ -93,6 +93,10 @@ class EncoderClassifier(BaseDeepClassifier):
         by `np.random`.
         Seeded random number generation can only be guaranteed on CPU processing,
         GPU processing will be non-deterministic.
+    compile_args: dict or None, default=None
+        Dictionary of additional arguments to pass to the Keras `compile` method.
+    fit_args: dict or None, default=None
+        Dictionary of additional arguments to pass to the Keras `fit` method.
 
     Notes
     -----
@@ -134,6 +138,8 @@ class EncoderClassifier(BaseDeepClassifier):
         random_state=None,
         use_bias=True,
         optimizer=None,
+        compile_args=None,
+        fit_args=None,
     ):
         self.n_filters = n_filters
         self.max_pool_size = max_pool_size
@@ -157,6 +163,21 @@ class EncoderClassifier(BaseDeepClassifier):
         self.metrics = metrics
         self.use_bias = use_bias
         self.optimizer = optimizer
+
+        self.compile_args = {} if not compile_args else compile_args
+        for key in ["loss", "metrics", "optimizer"]:
+            if key in self.compile_args:
+                raise ValueError(
+                    f"Cannot specify '{key}' in 'compile_args'. "
+                    f"Specify it in the constructor instead. "
+                )
+        self.fit_args = {} if not fit_args else fit_args
+        for key in ["batch_size", "epochs", "verbose", "callbacks"]:
+            if key in self.fit_args:
+                raise ValueError(
+                    f"Cannot specify '{key}' in 'fit_args'. "
+                    f"Specify it in the constructor instead."
+                )
 
         self.history = None
 
@@ -219,6 +240,7 @@ class EncoderClassifier(BaseDeepClassifier):
             loss=self.loss,
             optimizer=self.optimizer_,
             metrics=self._metrics,
+            **self.compile_args,
         )
 
         return model
@@ -283,6 +305,7 @@ class EncoderClassifier(BaseDeepClassifier):
             epochs=self.n_epochs,
             verbose=self.verbose,
             callbacks=self.callbacks_,
+            **self.fit_args,
         )
 
         try:

@@ -96,6 +96,10 @@ class MLPRegressor(BaseDeepRegressor):
         Activation for the last layer in a Regressor.
     optimizer : keras.optimizer, default = tf.keras.optimizers.Adam()
         The keras optimizer used for training.
+    compile_args: dict or None, default=None
+        Dictionary of additional arguments to pass to the Keras `compile` method.
+    fit_args: dict or None, default=None
+        Dictionary of additional arguments to pass to the Keras `fit` method.
 
 
     References
@@ -138,6 +142,8 @@ class MLPRegressor(BaseDeepRegressor):
         random_state: int | np.random.RandomState | None = None,
         output_activation: str = "linear",
         optimizer: tf.keras.optimizers.Optimizer | None = None,
+        compile_args=None,
+        fit_args=None,
     ):
         self.n_layers = n_layers
         self.n_units = n_units
@@ -159,6 +165,21 @@ class MLPRegressor(BaseDeepRegressor):
         self.optimizer = optimizer
         self.random_state = random_state
         self.output_activation = output_activation
+
+        self.compile_args = {} if not compile_args else compile_args
+        for key in ["loss", "metrics", "optimizer"]:
+            if key in self.compile_args:
+                raise ValueError(
+                    f"Cannot specify '{key}' in 'compile_args'. "
+                    f"Specify it in the constructor instead. "
+                )
+        self.fit_args = {} if not fit_args else fit_args
+        for key in ["batch_size", "epochs", "verbose", "callbacks"]:
+            if key in self.fit_args:
+                raise ValueError(
+                    f"Cannot specify '{key}' in 'fit_args'. "
+                    f"Specify it in the constructor instead."
+                )
 
         self.history = None
 
@@ -217,6 +238,7 @@ class MLPRegressor(BaseDeepRegressor):
             loss=self.loss,
             optimizer=self.optimizer_,
             metrics=self._metrics,
+            **self.compile_args,
         )
         return model
 
@@ -283,6 +305,7 @@ class MLPRegressor(BaseDeepRegressor):
             epochs=self.n_epochs,
             verbose=self.verbose,
             callbacks=self.callbacks_,
+            **self.fit_args,
         )
 
         try:

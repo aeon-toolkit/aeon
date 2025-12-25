@@ -110,6 +110,10 @@ class TimeCNNRegressor(BaseDeepRegressor):
     init_file_name : str, default = "init_model"
         The name of the file of the init model, if save_init_model is set to False,
         this parameter is discarded.
+    compile_args: dict or None, default=None
+        Dictionary of additional arguments to pass to the Keras `compile` method.
+    fit_args: dict or None, default=None
+        Dictionary of additional arguments to pass to the Keras `fit` method.
 
     Notes
     -----
@@ -160,6 +164,8 @@ class TimeCNNRegressor(BaseDeepRegressor):
         random_state: int | np.random.RandomState | None = None,
         use_bias: bool | list[bool] = True,
         optimizer: tf.keras.optimizers.Optimizer | None = None,
+        compile_args=None,
+        fit_args=None,
     ) -> None:
         self.n_layers = n_layers
         self.avg_pool_size = avg_pool_size
@@ -184,6 +190,21 @@ class TimeCNNRegressor(BaseDeepRegressor):
         self.activation = activation
         self.use_bias = use_bias
         self.optimizer = optimizer
+
+        self.compile_args = {} if not compile_args else compile_args
+        for key in ["loss", "metrics", "optimizer"]:
+            if key in self.compile_args:
+                raise ValueError(
+                    f"Cannot specify '{key}' in 'compile_args'. "
+                    f"Specify it in the constructor instead. "
+                )
+        self.fit_args = {} if not fit_args else fit_args
+        for key in ["batch_size", "epochs", "verbose", "callbacks"]:
+            if key in self.fit_args:
+                raise ValueError(
+                    f"Cannot specify '{key}' in 'fit_args'. "
+                    f"Specify it in the constructor instead."
+                )
 
         self.history = None
 
@@ -245,6 +266,7 @@ class TimeCNNRegressor(BaseDeepRegressor):
             loss=self.loss,
             optimizer=self.optimizer_,
             metrics=self._metrics,
+            **self.compile_args,
         )
         return model
 
@@ -307,6 +329,7 @@ class TimeCNNRegressor(BaseDeepRegressor):
             epochs=self.n_epochs,
             verbose=self.verbose,
             callbacks=self.callbacks_,
+            **self.fit_args,
         )
 
         try:

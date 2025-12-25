@@ -88,6 +88,10 @@ class MLPClassifier(BaseDeepClassifier):
         a single string metric is provided, it will be
         used as the only metric. If a list of metrics are
         provided, all will be used for evaluation.
+    compile_args: dict or None, default=None
+        Dictionary of additional arguments to pass to the Keras `compile` method.
+    fit_args: dict or None, default=None
+        Dictionary of additional arguments to pass to the Keras `fit` method.
 
     Notes
     -----
@@ -134,6 +138,8 @@ class MLPClassifier(BaseDeepClassifier):
         init_file_name="init_model",
         random_state=None,
         optimizer=None,
+        compile_args=None,
+        fit_args=None,
     ):
         self.n_layers = n_layers
         self.n_units = n_units
@@ -154,6 +160,21 @@ class MLPClassifier(BaseDeepClassifier):
         self.best_file_name = best_file_name
         self.init_file_name = init_file_name
         self.optimizer = optimizer
+
+        self.compile_args = {} if not compile_args else compile_args
+        for key in ["loss", "metrics", "optimizer"]:
+            if key in self.compile_args:
+                raise ValueError(
+                    f"Cannot specify '{key}' in 'compile_args'. "
+                    f"Specify it in the constructor instead. "
+                )
+        self.fit_args = {} if not fit_args else fit_args
+        for key in ["batch_size", "epochs", "verbose", "callbacks"]:
+            if key in self.fit_args:
+                raise ValueError(
+                    f"Cannot specify '{key}' in 'fit_args'. "
+                    f"Specify it in the constructor instead."
+                )
 
         self.history = None
 
@@ -213,6 +234,7 @@ class MLPClassifier(BaseDeepClassifier):
             loss=self.loss,
             optimizer=self.optimizer_,
             metrics=self._metrics,
+            **self.compile_args,
         )
         return model
 
@@ -284,6 +306,7 @@ class MLPClassifier(BaseDeepClassifier):
             epochs=self.n_epochs,
             verbose=self.verbose,
             callbacks=self.callbacks_,
+            **self.fit_args,
         )
 
         try:

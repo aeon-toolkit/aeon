@@ -100,6 +100,10 @@ class FCNRegressor(BaseDeepRegressor):
         default = None
         The default list of callbacks are set to
         ModelCheckpoint and ReduceLROnPlateau.
+    compile_args: dict or None, default=None
+        Dictionary of additional arguments to pass to the Keras `compile` method.
+    fit_args: dict or None, default=None
+        Dictionary of additional arguments to pass to the Keras `fit` method.
 
     Notes
     -----
@@ -150,6 +154,8 @@ class FCNRegressor(BaseDeepRegressor):
         random_state: int | np.random.RandomState | None = None,
         use_bias: bool = True,
         optimizer: tf.keras.optimizers.Optimizer | None = None,
+        compile_args=None,
+        fit_args=None,
     ) -> None:
         self.n_layers = n_layers
         self.kernel_size = kernel_size
@@ -174,6 +180,21 @@ class FCNRegressor(BaseDeepRegressor):
         self.save_init_model = save_init_model
         self.best_file_name = best_file_name
         self.init_file_name = init_file_name
+
+        self.compile_args = {} if not compile_args else compile_args
+        for key in ["loss", "metrics", "optimizer"]:
+            if key in self.compile_args:
+                raise ValueError(
+                    f"Cannot specify '{key}' in 'compile_args'. "
+                    f"Specify it in the constructor instead. "
+                )
+        self.fit_args = {} if not fit_args else fit_args
+        for key in ["batch_size", "epochs", "verbose", "callbacks"]:
+            if key in self.fit_args:
+                raise ValueError(
+                    f"Cannot specify '{key}' in 'fit_args'. "
+                    f"Specify it in the constructor instead."
+                )
 
         self.history = None
 
@@ -230,6 +251,7 @@ class FCNRegressor(BaseDeepRegressor):
             loss=self.loss,
             optimizer=self.optimizer_,
             metrics=self._metrics,
+            **self.compile_args,
         )
 
         return model
@@ -301,6 +323,7 @@ class FCNRegressor(BaseDeepRegressor):
             epochs=self.n_epochs,
             verbose=self.verbose,
             callbacks=self.callbacks_,
+            **self.fit_args,
         )
 
         try:

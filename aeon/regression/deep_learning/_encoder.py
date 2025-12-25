@@ -104,6 +104,10 @@ class EncoderRegressor(BaseDeepRegressor):
         default = None
         The default list of callbacks are set to
         ModelCheckpoint.
+    compile_args: dict or None, default=None
+        Dictionary of additional arguments to pass to the Keras `compile` method.
+    fit_args: dict or None, default=None
+        Dictionary of additional arguments to pass to the Keras `fit` method.
 
     Notes
     -----
@@ -145,6 +149,8 @@ class EncoderRegressor(BaseDeepRegressor):
         use_bias: bool = True,
         optimizer: tf.keras.optimizers.Optimizer | None = None,
         random_state: int | np.random.RandomState | None = None,
+        compile_args=None,
+        fit_args=None,
     ):
         self.n_filters = n_filters
         self.max_pool_size = max_pool_size
@@ -169,6 +175,21 @@ class EncoderRegressor(BaseDeepRegressor):
         self.metrics = metrics
         self.use_bias = use_bias
         self.optimizer = optimizer
+
+        self.compile_args = {} if not compile_args else compile_args
+        for key in ["loss", "metrics", "optimizer"]:
+            if key in self.compile_args:
+                raise ValueError(
+                    f"Cannot specify '{key}' in 'compile_args'. "
+                    f"Specify it in the constructor instead. "
+                )
+        self.fit_args = {} if not fit_args else fit_args
+        for key in ["batch_size", "epochs", "verbose", "callbacks"]:
+            if key in self.fit_args:
+                raise ValueError(
+                    f"Cannot specify '{key}' in 'fit_args'. "
+                    f"Specify it in the constructor instead."
+                )
 
         self.history = None
 
@@ -228,6 +249,7 @@ class EncoderRegressor(BaseDeepRegressor):
             loss=self.loss,
             optimizer=self.optimizer_,
             metrics=self._metrics,
+            **self.compile_args,
         )
 
         return model
@@ -291,6 +313,7 @@ class EncoderRegressor(BaseDeepRegressor):
             epochs=self.n_epochs,
             verbose=self.verbose,
             callbacks=self.callbacks_,
+            **self.fit_args,
         )
 
         try:
