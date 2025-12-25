@@ -248,6 +248,14 @@ class TimeCNNRegressor(BaseDeepRegressor):
             keras.optimizers.Adam() if self.optimizer is None else self.optimizer
         )
 
+        compile_args = {} if not self.compile_args else self.compile_args
+        for key in ["loss", "metrics", "optimizer"]:
+            if key in compile_args:
+                raise ValueError(
+                    f"Cannot specify '{key}' in 'compile_args'. "
+                    f"Specify it in the constructor instead. "
+                )
+
         model = keras.models.Model(inputs=input_layer, outputs=output_layer)
 
         model.compile(
