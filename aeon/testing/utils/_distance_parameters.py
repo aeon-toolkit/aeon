@@ -37,3 +37,7 @@ def _custom_distance_measure(x, y, custom_param=1):
 TEST_DISTANCE_WITH_CUSTOM_DISTANCE = TEST_DISTANCE_WITH_PARAMS + [
     (_custom_distance_measure, {"custom_param": 10}),
 ]
+
+TEST_SOFT_DISTANCES_WITH_PARAMS = [
+    ("soft_dtw", {"gamma": 0.1}),
+]
