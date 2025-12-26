@@ -42,7 +42,9 @@ class ElasticEnsemble(BaseClassifier):
       A ``list`` of strings identifying which distance measures to include. Valid values
       are one or more of: ``euclidean``, ``dtw``, ``wdtw``, ``ddtw``, ``wddtw``,
       ``lcss``, ``erp``, ``msm``, ``twe``. The default value ``all`` means that all
-      the previously listed distances are used.
+      the previously listed distances are used. The special value ``ts-quad`` can be
+      used to select the distance measures for the TS-QUAD ensemble: WDTW, DDTW,
+      LCSS, and MSM.
     proportion_of_param_options : float, default=1
       The proportion of the parameter grid space to search optional.
     proportion_train_in_param_finding : float, default=1
@@ -153,6 +155,17 @@ class ElasticEnsemble(BaseClassifier):
                 "euclidean",
                 "twe",
             ]
+        elif self.distance_measures == "ts-quad":
+            self._distance_measures = [
+                "wdtw",
+                "ddtw",
+                "lcss",
+                "msm",
+            ]
+            if self.verbose > 0:
+                print(  # noqa: T201
+                    "Configuring ElasticEnsemble as TS-QUAD with WDTW, DDTW, LCSS, MSM."
+                )
         else:
             self._distance_measures = self.distance_measures
 
@@ -514,6 +527,13 @@ class ElasticEnsemble(BaseClassifier):
                 "proportion_train_for_test": 0.1,
                 "majority_vote": True,
                 "distance_measures": ["dtw", "ddtw", "wdtw"],
+            }
+        elif parameter_set == "ts-quad":
+            return {
+                "proportion_of_param_options": 0.01,
+                "proportion_train_for_test": 0.1,
+                "majority_vote": True,
+                "distance_measures": "ts-quad",
             }
         else:
             return {
