@@ -34,6 +34,7 @@ Statistical Models
     :template: class.rst
 
     ARIMA
+    AutoARIMA
     ETS
     TAR
     AutoTAR
@@ -50,4 +51,18 @@ Deep Learning Models
     :template: class.rst
 
     BaseDeepForecaster
+    DeepARForecaster
     TCNForecaster
+
+Machine Learning Models
+------------------------
+
+.. currentmodule:: aeon.forecasting.machine_learning
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    SETAR
+    SETARForest
+    SETARTree
