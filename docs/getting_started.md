@@ -31,18 +31,17 @@ classical techniques for the following learning tasks:
   of a single time series
   ([more details](examples/forecasting/forecasting.ipynb)).
 - [**Segmentation**](api_reference/segmentation), where the goal is to split a single time
-  series into regions where the series are sofind areas of a time series that are not
-  representative of the whole series
+  series into regions that are dissimilar to each other
   ([more details](examples/segmentation/segmentation.ipynb)).
 
 `aeon` also provides core modules that are used by the modules above:
 
-- [**Transformations**](api_reference/transformations), where a either a single series or collection is
+- [**Transformations**](api_reference/transformations), where either a single series or collection is
   transformed into a different representation or domain. ([more details](examples/transformations/transformations.ipynb)).
 - [**Distances**](api_reference/distances), which measure the dissimilarity between two time series or
   collections of series and include functions to align series ([more details](examples/distances/distances.ipynb)).
 - [**Networks**](api_reference/networks), provides core models for deep learning for all time series tasks
-- ([more details](examples/networks/deep_learning.ipynb)).
+  ([more details](examples/networks/deep_learning.ipynb)).
 
 There are dedicated notebooks going into more detail for each of these modules. This
 guide is meant to give you the briefest of introductions to the main concepts and
@@ -200,7 +199,7 @@ estimators.
 1074
 >>> X3[0].shape
 (1, 500)
->>> X4, y4 = load_japanese_vowels()  # example unequal length mutlivariate collection
+>>> X4, y4 = load_japanese_vowels()  # example unequal length multivariate collection
 >>> len(X4)
 640
 >>> X4[0].shape
