@@ -174,10 +174,11 @@ class BaseSegmenter(BaseSeriesEstimator):
         """Check y specific to segmentation.
 
         y must be a univariate series
-               Raises
-       ------
-       ValueError
-           If ``y`` is not one of 
+
+        Raises
+        ------
+        ValueError
+           If ``y`` is not one of
            ``VALID_SERIES_INPUT_TYPES``, is not univariate,
            or does not contain numeric values.
 
