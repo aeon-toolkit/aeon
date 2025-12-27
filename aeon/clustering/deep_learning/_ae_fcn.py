@@ -219,6 +219,14 @@ class AEFCNClusterer(BaseDeepClusterer):
         import numpy as np
         import tensorflow as tf
 
+        if not hasattr(self, "_metrics"):
+            if self.metrics is None:
+                self._metrics = ["mean_squared_error"]
+            elif isinstance(self.metrics, str):
+                self._metrics = [self.metrics]
+            else:
+                self._metrics = self.metrics
+
         if self.metrics is None:
             self._metrics = ["mean_squared_error"]
         elif isinstance(self.metrics, list):

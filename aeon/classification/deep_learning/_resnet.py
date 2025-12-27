@@ -212,6 +212,12 @@ class ResNetClassifier(BaseDeepClassifier):
         import numpy as np
         import tensorflow as tf
 
+        if not hasattr(self, "_metrics"):
+            if isinstance(self.metrics, list):
+                self._metrics = self.metrics
+            elif isinstance(self.metrics, str):
+                self._metrics = [self.metrics]
+
         self.optimizer_ = (
             tf.keras.optimizers.Adam(learning_rate=0.01)
             if self.optimizer is None
