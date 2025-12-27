@@ -46,6 +46,9 @@ class MockDeepClusterer(BaseDeepClusterer):
         """Build a Mock model."""
         import tensorflow as tf
 
+        # Set seed for TensorFlow determinism
+        tf.random.set_seed(42)
+
         input_layer_encoder = tf.keras.layers.Input(input_shape)
         gap = tf.keras.layers.GlobalAveragePooling1D()(input_layer_encoder)
         output_layer_encoder = tf.keras.layers.Dense(units=10)(gap)
