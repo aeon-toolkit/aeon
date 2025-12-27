@@ -79,3 +79,12 @@ def check_collection_anomaly_detector_output(estimator, datatype):
         ), "y_pred must contain only 0s, 1s, True, or False"
     else:
         raise ValueError(f"Unknown anomaly output type: {out_type}")
+
+    # Test fit_predict method
+    estimator_fp = _clone_estimator(estimator)
+    y_pred_fp = estimator_fp.fit_predict(
+        FULL_TEST_DATA_DICT[datatype]["train"][0],
+        FULL_TEST_DATA_DICT[datatype]["train"][1],
+    )
+    assert isinstance(y_pred_fp, np.ndarray)
+    assert len(y_pred_fp) == get_n_cases(FULL_TEST_DATA_DICT[datatype]["train"][0])
