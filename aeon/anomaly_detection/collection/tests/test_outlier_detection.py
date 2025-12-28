@@ -134,9 +134,9 @@ def test_outlier_adapter_invalid_estimator_error_on_fit():
     """Test that invalid estimator raises ValueError on fit, not init."""
     # Invalid estimator (string)
     invalid_detector = "not_an_estimator"
+    # Should NOT error during init - error comes on fit
     adapter = OutlierDetectionAdapter(detector=invalid_detector)
 
-    # Should NOT error during init - error comes on fit
     X = make_example_3d_numpy(n_cases=10, return_y=False, random_state=42)
 
     # Now fit should raise ValueError
