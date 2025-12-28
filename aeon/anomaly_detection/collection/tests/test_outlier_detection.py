@@ -5,7 +5,7 @@ sklearn/PyOD conventions (-1 for outlier, 1 for inlier) to aeon
 conventions (1 for anomaly, 0 for normal).
 """
 
-__maintainer__ = ["SebastianSchmidl"]
+__maintainer__ = []
 
 import numpy as np
 import pytest
@@ -102,25 +102,43 @@ def test_outlier_adapter_edge_cases(input_pattern, expected_output):
     np.testing.assert_array_equal(predictions, expected_output)
 
 
-def test_outlier_adapter_no_sklearn_labels_in_output():
-    """Critical test: adapter output must NEVER contain sklearn's -1.
+def test_outlier_adapter_with_real_isolation_forest():
+    """Test OutlierDetectionAdapter with real sklearn IsolationForest.
 
-    Adapter Logic Under Test:
-    The adapter's primary responsibility is ensuring sklearn's -1 values
-    never leak into aeon output. This test verifies strict binary output
-    with only 0 and 1 values (never -1).
+    This test verifies interoperability with actual sklearn estimators.
     """
-    forced_output = np.array([-1, -1, 1, -1, 1, 1, -1])
-    dummy = DummyOutlierDetector(forced_predictions=forced_output)
-    adapter = OutlierDetectionAdapter(detector=dummy)
+    from sklearn.ensemble import IsolationForest
 
-    X = make_example_3d_numpy(
-        n_cases=7, n_channels=1, n_timepoints=10, return_y=False, random_state=42
+    # Create real IsolationForest detector
+    detector = IsolationForest(n_estimators=10, random_state=42)
+    adapter = OutlierDetectionAdapter(detector=detector)
+
+    # Generate 3D collection data
+    X_train = make_example_3d_numpy(
+        n_cases=20, n_channels=1, n_timepoints=10, return_y=False, random_state=42
+    )
+    X_test = make_example_3d_numpy(
+        n_cases=10, n_channels=1, n_timepoints=10, return_y=False, random_state=43
     )
 
-    adapter.fit(X)
-    predictions = adapter.predict(X)
+    # Fit and predict
+    adapter.fit(X_train)
+    predictions = adapter.predict(X_test)
 
-    # Critical assertions
-    assert not np.any(predictions == -1), "Adapter output contains -1!"
-    assert np.all(np.isin(predictions, [0, 1])), "Output not binary (0, 1)!"
+    # Verify output shape and binary values
+    assert predictions.shape == (10,)
+    assert np.all(np.isin(predictions, [0, 1]))
+
+
+def test_outlier_adapter_invalid_estimator_error_on_fit():
+    """Test that invalid estimator raises ValueError on fit, not init."""
+    # Invalid estimator (string)
+    invalid_detector = "not_an_estimator"
+    adapter = OutlierDetectionAdapter(detector=invalid_detector)
+
+    # Should NOT error during init - error comes on fit
+    X = make_example_3d_numpy(n_cases=10, return_y=False, random_state=42)
+
+    # Now fit should raise ValueError
+    with pytest.raises(ValueError, match="must be an outlier detection algorithm"):
+        adapter.fit(X)

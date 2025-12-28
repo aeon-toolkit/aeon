@@ -1,10 +1,6 @@
-"""Adapter-specific tests for ClassificationAdapter.
+"""Adapter-specific tests for ClassificationAdapter."""
 
-Tests focus exclusively on adapter logic: verifying classifier predictions
-pass through unchanged (no label translation needed).
-"""
-
-__maintainer__ = ["SebastianSchmidl"]
+__maintainer__ = []
 
 import numpy as np
 import pytest
@@ -90,3 +86,50 @@ def test_classification_adapter_edge_cases(input_pattern, description):
     predictions = adapter.predict(X_test)
 
     np.testing.assert_array_equal(predictions, forced_predictions)
+
+
+def test_classification_adapter_with_real_random_forest():
+    """Test ClassificationAdapter with real sklearn RandomForestClassifier.
+
+    This test verifies interoperability with actual sklearn estimators.
+    Uses aeon's SummaryClassifier wrapper to handle 3D collection data.
+    """
+    from sklearn.ensemble import RandomForestClassifier
+
+    from aeon.classification.feature_based import SummaryClassifier
+
+    # Create RandomForestClassifier wrapped in SummaryClassifier for 3D data
+    classifier = SummaryClassifier(
+        estimator=RandomForestClassifier(n_estimators=10, random_state=42)
+    )
+    adapter = ClassificationAdapter(classifier=classifier)
+
+    # Generate 3D collection data
+    X_train, y_train = make_example_3d_numpy(
+        n_cases=20, n_channels=1, n_timepoints=10, n_labels=2, random_state=42
+    )
+    X_test = make_example_3d_numpy(
+        n_cases=10, n_channels=1, n_timepoints=10, return_y=False, random_state=43
+    )
+
+    # Fit and predict
+    adapter.fit(X_train, y_train)
+    predictions = adapter.predict(X_test)
+
+    # Verify output shape and binary values
+    assert predictions.shape == (10,)
+    assert np.all(np.isin(predictions, [0, 1]))
+
+
+def test_classification_adapter_invalid_estimator_error_on_fit():
+    """Test that invalid estimator raises ValueError on fit, not init."""
+    # Invalid estimator (string)
+    invalid_classifier = "not_a_classifier"
+    adapter = ClassificationAdapter(classifier=invalid_classifier)
+
+    # Should NOT error during init - error comes on fit
+    X, y = make_example_3d_numpy(n_cases=10, n_labels=2, random_state=42)
+
+    # Now fit should raise ValueError
+    with pytest.raises(ValueError, match="must be an aeon classification algorithm"):
+        adapter.fit(X, y)
