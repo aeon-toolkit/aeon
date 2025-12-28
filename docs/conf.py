@@ -462,7 +462,7 @@ def _make_estimator_overview(app):
         # fetch tags
         tag_dict = estimator_class.get_class_tags()
 
-        # Get documentation path using new function that handles public API exports
+        # Get documentation path using function that handles public API exports
         clean_path = _get_estimator_doc_path(estimator_class, estimator_name)
         # adds html link reference
         estimator_name_as_link = str(
