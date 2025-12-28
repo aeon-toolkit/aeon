@@ -125,9 +125,9 @@ def test_classification_adapter_invalid_estimator_error_on_fit():
     """Test that invalid estimator raises ValueError on fit, not init."""
     # Invalid estimator (string)
     invalid_classifier = "not_a_classifier"
+    # Should NOT error during init - error comes on fit
     adapter = ClassificationAdapter(classifier=invalid_classifier)
 
-    # Should NOT error during init - error comes on fit
     X, y = make_example_3d_numpy(n_cases=10, n_labels=2, random_state=42)
 
     # Now fit should raise ValueError
