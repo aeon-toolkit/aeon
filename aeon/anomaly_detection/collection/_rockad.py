@@ -126,7 +126,7 @@ class ROCKAD(BaseCollectionAnomalyDetector):
             n_kernels=self.n_kernels,
             normalise=self.normalise,
             n_jobs=self._n_jobs,
-            random_state=self.random_state,
+            random_state=rng.randint(np.iinfo(np.int32).max),
         )
         # XT: (n_cases, n_kernels*2)
         Xt = self.rocket_transformer_.fit_transform(X)
