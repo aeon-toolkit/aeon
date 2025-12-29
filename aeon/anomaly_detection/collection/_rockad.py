@@ -3,8 +3,6 @@
 __maintainer__ = []
 __all__ = ["ROCKAD"]
 
-import warnings
-
 import numpy as np
 from sklearn.neighbors import NearestNeighbors
 from sklearn.preprocessing import PowerTransformer
@@ -24,8 +22,7 @@ class ROCKAD(BaseCollectionAnomalyDetector):
     approach with bootstrap aggregation for robust semi-supervised anomaly detection.
     The data gets transformed into the ROCKET feature space.
     Then the whole-series are compared based on the feature space by
-    finding the nearest neighbours. The time-point based ROCKAD anomaly detector
-    can be found at aeon/anomaly_detection/series/distance_based/_rockad.py
+    finding the nearest neighbours.
 
     This class supports both univariate and multivariate time series and
     provides options for normalizing features, applying power transformations,
@@ -137,17 +134,7 @@ class ROCKAD(BaseCollectionAnomalyDetector):
 
         if self.power_transform:
             self.power_transformer_ = PowerTransformer()
-            try:
-                Xtp = self.power_transformer_.fit_transform(Xt)
-
-            except Exception:
-                warnings.warn(
-                    "Power Transform failed and thus has been disabled. ",
-                    UserWarning,
-                    stacklevel=2,
-                )
-                self.power_transformer_ = None
-                Xtp = Xt
+            Xtp = self.power_transformer_.fit_transform(Xt)
         else:
             Xtp = Xt
 
@@ -193,10 +180,8 @@ class ROCKAD(BaseCollectionAnomalyDetector):
 
         Xt = Xt.astype(np.float64)
 
-        if self.power_transformer_ is not None:
-            # Power Transform using yeo-johnson
+        if self.power_transform:
             Xtp = self.power_transformer_.transform(Xt)
-
         else:
             Xtp = Xt
 
