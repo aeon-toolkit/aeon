@@ -1,5 +1,6 @@
 """Configuration file for the Sphinx documentation builder."""
 
+import importlib
 import os
 import sys
 from pathlib import Path
@@ -241,7 +242,7 @@ html_theme_options = {
     "footer_icons": [
         {
             "name": "Slack",
-            "url": "https://join.slack.com/t/aeon-toolkit/shared_invite/zt-36dlmbouu-vajTShUYAHopSXUUVtHGzw",  # noqa: E501
+            "url": "https://join.slack.com/t/aeon-toolkit/shared_invite/zt-3ihx5vif8-SwFzy1unNNMeQueC84MXVA",  # noqa: E501
             "html": """
             <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
                 <path d="M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64zM361.5 580.2c0 27.8-22.5 50.4-50.3 50.4-13.3 0-26.1-5.3-35.6-14.8-9.4-9.5-14.7-22.3-14.7-35.6 0-27.8 22.5-50.4 50.3-50.4h50.3v50.4zm134 134.4c0 27.8-22.5 50.4-50.3 50.4-27.8 0-50.3-22.6-50.3-50.4V580.2c0-27.8 22.5-50.4 50.3-50.4 13.3 0 26.1 5.3 35.6 14.8s14.7 22.3 14.7 35.6v134.4zm-50.2-218.4h-134c-27.8 0-50.3-22.6-50.3-50.4 0-27.8 22.5-50.4 50.3-50.4h134c27.8 0 50.3 22.6 50.3 50.4-.1 27.9-22.6 50.4-50.3 50.4zm0-134.4c-13.3 0-26.1-5.3-35.6-14.8S395 324.8 395 311.4c0-27.8 22.5-50.4 50.3-50.4 27.8 0 50.3 22.6 50.3 50.4v50.4h-50.3zm83.7-50.4c0-27.8 22.5-50.4 50.3-50.4 27.8 0 50.3 22.6 50.3 50.4v134.4c0 27.8-22.5 50.4-50.3 50.4-27.8 0-50.3-22.6-50.3-50.4V311.4zM579.3 765c-27.8 0-50.3-22.6-50.3-50.4v-50.4h50.3c27.8 0 50.3 22.6 50.3 50.4 0 27.8-22.5 50.4-50.3 50.4zm134-134.4h-134c-13.3 0-26.1-5.3-35.6-14.8S529 593.6 529 580.2c0-27.8 22.5-50.4 50.3-50.4h134c27.8 0 50.3 22.6 50.3 50.4 0 27.8-22.5 50.4-50.3 50.4zm0-134.4H663v-50.4c0-27.8 22.5-50.4 50.3-50.4s50.3 22.6 50.3 50.4c0 27.8-22.5 50.4-50.3 50.4z"></path>
@@ -380,6 +381,59 @@ def linkcode_resolve(domain, info):
     )
 
 
+def _get_estimator_doc_path(estimator_class, estimator_name):
+    """
+    Get the documentation path for an estimator.
+
+    Checks if the estimator is re-exported in a parent package's __all__.
+    If found, uses the shorter public API path. Otherwise, falls back to
+    the current underscore-filtering logic.
+
+    Parameters
+    ----------
+    estimator_class : class
+        The estimator class object
+    estimator_name : str
+        Name of the estimator
+
+    Returns
+    -------
+    str
+        The path to use for documentation links
+        (e.g., 'aeon.classification.DummyClassifier')
+    """
+    module_path = estimator_class.__module__
+    module_parts = module_path.split(".")
+
+    # Check parent packages (skip the immediate module itself)
+    # Start from len-1 to avoid checking the module containing the class
+    for i in range(len(module_parts) - 1, 1, -1):
+        parent_path = ".".join(module_parts[:i])
+        try:
+            parent_module = importlib.import_module(parent_path)
+
+            # Check if exported in parent's __all__
+            if (
+                hasattr(parent_module, "__all__")
+                and estimator_name in parent_module.__all__
+            ):
+                # Verify it's the same class
+                if (
+                    hasattr(parent_module, estimator_name)
+                    and getattr(parent_module, estimator_name) is estimator_class
+                ):
+                    # Use public API path
+                    return f"{parent_path}.{estimator_name}"
+        except (ImportError, AttributeError):
+            continue
+
+    # Fallback: use current underscore-filtering logic
+    modpath = str(estimator_class)[8:-2]
+    path_parts = modpath.split(".")
+    clean_path = ".".join([p for p in path_parts if not p.startswith("_")])
+    return clean_path
+
+
 def _make_estimator_overview(app):
     """Make estimator overview table."""
     import pandas as pd
@@ -408,11 +462,8 @@ def _make_estimator_overview(app):
         # fetch tags
         tag_dict = estimator_class.get_class_tags()
 
-        # includes part of class string
-        modpath = str(estimator_class)[8:-2]
-        path_parts = modpath.split(".")
-        # joins strings excluding starting with '_'
-        clean_path = ".".join(list(filter(_does_not_start_with_underscore, path_parts)))
+        # Get documentation path using function that handles public API exports
+        clean_path = _get_estimator_doc_path(estimator_class, estimator_name)
         # adds html link reference
         estimator_name_as_link = str(
             '<a href="api_reference/auto_generated/'
