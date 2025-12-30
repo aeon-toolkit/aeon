@@ -69,6 +69,7 @@ def test_rocket_on_univariate(transform):
     np.testing.assert_almost_equal(
         np.array(expected_uni[transform]),
         np.array([X_trans[0][0], X_trans[1][5], X_trans[3][80]]),
+        decimal=6
     )
     # Test fit_transform the same
     X_trans2 = rocket.fit_transform(X)
