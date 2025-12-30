@@ -206,9 +206,7 @@ def test_expected_unit_test():
     X4 = mur.fit_transform(X)
     np.testing.assert_allclose(X2[:5, :5], expected_unit_test["Rocket"], rtol=1e-4)
     np.testing.assert_allclose(X3[:5, :5], expected_unit_test["MiniRocket"], rtol=1e-4)
-    np.testing.assert_allclose(
-        X4[:5, :5], expected_unit_test["MultiRocket"], rtol=1e-4
-    )
+    np.testing.assert_allclose(X4[:5, :5], expected_unit_test["MultiRocket"], rtol=1e-4)
 
 
 def test_expected_basic_motions():
