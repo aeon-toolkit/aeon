@@ -103,4 +103,7 @@ def test_ts_quad_distance_measures():
     )
     ee.fit(X, y)
     actual_distances = list(ee.get_metric_params())
+    preds = ee.predict(X)
     assert len(actual_distances) == 4
+    assert isinstance(preds, np.ndarray)
+    assert len(preds) == len(X)

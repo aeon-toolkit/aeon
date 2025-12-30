@@ -528,13 +528,6 @@ class ElasticEnsemble(BaseClassifier):
                 "majority_vote": True,
                 "distance_measures": ["dtw", "ddtw", "wdtw"],
             }
-        elif parameter_set == "ts-quad":
-            return {
-                "proportion_of_param_options": 0.01,
-                "proportion_train_for_test": 0.1,
-                "majority_vote": True,
-                "distance_measures": "ts-quad",
-            }
         else:
             return {
                 "proportion_of_param_options": 0.01,
