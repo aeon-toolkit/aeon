@@ -166,7 +166,7 @@ class NLinearForecaster(BaseDeepForecaster, SeriesToSeriesForecastingMixin):
             dropout_rate=0.0,
             dropout_last=0.0,
         )
-        x_last = tf.gather(inputs, indices=[self.window - 1], axis=1)
+        x_last = inputs[:, -1:, :]
         x_norm = layers.Subtract(name="normalization")([inputs, x_last])
         inner_input, inner_output = network.build_network(input_shape=input_shape)
         inner_model = tf.keras.Model(inputs=inner_input, outputs=inner_output)
@@ -304,6 +304,8 @@ class NLinearForecaster(BaseDeepForecaster, SeriesToSeriesForecastingMixin):
         last_window = y_inner.reshape(1, self.window, num_channels)
         pred = self.model_.predict(last_window, verbose=0)
         prediction = np.squeeze(pred, axis=0)
+        if prediction.ndim == 1:
+            prediction = prediction.reshape(-1, num_channels)
         return prediction
 
     def _series_to_series_forecast(
@@ -343,7 +345,8 @@ class NLinearForecaster(BaseDeepForecaster, SeriesToSeriesForecastingMixin):
             return full_preds[:prediction_horizon]
 
         else:
-            preds = np.zeros((prediction_horizon,))
+            num_channels = y.shape[-1]
+            preds = np.zeros((prediction_horizon, num_channels))
             current_y = y.copy()
             current_idx = 0
 
