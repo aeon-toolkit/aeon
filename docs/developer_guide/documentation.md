@@ -95,6 +95,11 @@ sections or extended summary. At the discretion of developers. Some examples are
 extended summary)
 - Explanations of quirks or limitations of the code
 
+**Important:** When including code adapted from or inspired by external sources,
+you must include proper attribution with copyright and license information. See the
+[coding standards guide](coding_standards.md#referencing-externally-written-code) for
+detailed guidance on the required format.
+
 ### References
 
 `aeon` estimators that implement a published algorithm should generally include

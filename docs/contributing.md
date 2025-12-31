@@ -26,9 +26,20 @@ merging of the PR significantly. Please be aware of this when assigning
 yourself to an issue for such algorithms.
 
 When using code from another package or writing code inspired from another implementation,
-please mention this in your PR. At the very least credit must be given where
-applicable. If the package has a different license, using the code as is may not be
-acceptable. Using others code without credit will like result in your PR being closed.
+proper attribution and license information must be included. This is both a legal requirement
+and an ethical practice in open-source development.
+
+**All externally sourced code must include:**
+- Clear attribution in docstrings with links to the original source
+- Copyright information and license details
+- Verification that the original license permits redistribution under
+`aeon`'s BSD-3-Clause licensing terms.
+
+For detailed guidance on how to properly reference externally written code, including
+format examples and license compatibility information, see the
+[coding standards guide](developer_guide/coding_standards.md#referencing-externally-written-code).
+
+Using others' code without proper credit and attribution may result in your PR to be closed.
 
 In the following we will give a brief overview of how to contribute to `aeon`. Making
 contributions to open-source projects takes a bit of proactivity and can be daunting at
