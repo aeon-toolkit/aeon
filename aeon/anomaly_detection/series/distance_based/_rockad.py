@@ -84,13 +84,11 @@ class ROCKAD(BaseSeriesAnomalyDetector):
     >>> detector = ROCKAD(window_size=15,n_estimators=10,n_kernels=10,n_neighbors=3)
     >>> detector.fit(X_train)
     ROCKAD(...)
-    >>> np.set_printoptions(precision=6, suppress=True)
-    >>> detector.predict(X_test)
-    array([0.        , 0.29072106, 0.49810214, 0.62333888, 0.71432504,
-           0.74889259, 0.74889259, 0.74889259, 0.74889259, 0.74889259,
-           0.74889259, 0.74889259, 0.74889259, 0.74889259, 0.74889259,
-           0.89867111, 0.97797835, 0.99968304, 1.        , 0.9217303 ])
-    >>> np.set_printoptions(precision=None, suppress=False)
+    >>> np.round(detector.predict(X_test), 6)
+    array([0.      , 0.290721, 0.498102, 0.623339, 0.714325, 0.748893, 0.748893,
+           0.748893, 0.748893, 0.748893, 0.748893, 0.748893, 0.748893,
+           0.748893, 0.748893, 0.898671, 0.977978, 0.999683, 1.      ,
+           0.92173 ])
     """
 
     _tags = {
