@@ -42,8 +42,119 @@ Additional configurations for some hooks can be found in the [pyproject.toml](ht
 - Exceptionally, capital letters i.e. `X` are permissible as variable names or
 part of variable names such as `X_train` if referring to data sets.
 - Use absolute imports for references inside `aeon`.
-- Don’t use `import *` in the source code. It is considered harmful by the official
+- Don't use `import *` in the source code. It is considered harmful by the official
 Python recommendations.
+
+## Referencing externally written code
+
+When using code from another package, adapting code from external sources, or writing
+code inspired by another implementation, proper attribution and license information must
+be included. This is both a legal requirement and an ethical practice in open-source
+development.
+
+### When attribution is required
+
+Attribution is required when:
+
+- You copy or adapt code from another open-source project
+- You use code inspired by another implementation
+- You port an algorithm from another language or package
+- You use utility functions or helper code from external sources
+
+Even if you significantly modify the code, if it was originally based on external
+source material, attribution should be provided.
+
+### License compatibility
+
+Before using code from another package, ensure that the license is compatible with
+`aeon`'s BSD-3-Clause license. Common compatible licenses include:
+
+- BSD-2-Clause, BSD-3-Clause
+- MIT
+- Apache 2.0
+- Public domain
+
+If the source code uses a different license (e.g., GPL, AGPL), using the code as-is
+may not be acceptable. Consult with core developers if you're unsure about license
+compatibility.
+
+### Attribution format
+
+When attributing external code, include the following information in an appropriate
+docstring (module-level or function/class-level):
+
+
+1. **A clear statement** that the code was adapted/inspired from external sources
+2. **Links to the original code** (preferably to specific files or functions)
+3. **Copyright information** including the copyright holder and year
+4. **License information** (e.g., BSD-2, BSD-3, MIT)
+
+The attribution should be placed in the module-level docstring or the function/class
+docstring, typically in a **Notes** section.
+
+### Example attribution format
+
+Here is the recommended format for attributing external code:
+
+```python
+"""Itakura parallelogram bounding matrix.
+
+This code was adapted from pyts and tslearn.
+
+- pyts code:
+  https://pyts.readthedocs.io/en/latest/_modules/pyts/metrics/dtw.html#itakura_parallelogram
+  Copyright (c) 2018, Johann Faouzi and pyts contributors, BSD-3
+
+- tslearn code (line 974):
+  https://github.com/tslearn-team/tslearn/blob/main/tslearn/metrics/dtw_variants.py
+  Copyright (c) 2017, Romain Tavenard, BSD-2
+"""
+```
+
+For module-level attribution, you can use this format:
+
+```python
+"""
+Greedy Gaussian Segmentation (_GGS).
+
+[... description of the module ...]
+
+Notes
+-----
+Based on the work from [1]_.
+
+- source code adapted based on: https://github.com/cvxgrp/GGS
+  Copyright (c) 2018, Stanford University Convex Optimization Group, BSD-2
+- paper available at: https://stanford.edu/~boyd/papers/pdf/ggs.pdf
+
+References
+----------
+.. [1] Hallac, D., Nystrup, P. & Boyd, S.
+   "Greedy Gaussian segmentation of multivariate time series.",
+    Adv Data Anal Classif 13, 727–751 (2019).
+    https://doi.org/10.1007/s11634-018-0335-0
+"""
+```
+
+### What to include in your PR
+
+When submitting a PR that includes externally sourced code:
+
+1. **Mention the source** in your PR description
+2. **Include proper attribution** in the code docstrings (as shown above)
+3. **Verify license compatibility** and mention it in the PR
+4. **Link to the original source** in your PR description
+
+Attribution must appear in the source code itself; attribution only in
+commit messages or PR descriptions is not sufficient.
+
+Failure to properly attribute external code may result in your PR being closed.
+
+### Additional resources
+
+- For more information on open-source licenses, see the [Open Source Initiative](https://opensource.org/licenses)
+- For guidance on contributing, see the [contributing guide](../contributing.md)
+- For documentation standards, see the [documentation guide](documentation.md)
 
 ## Using `pre-commit`
 
