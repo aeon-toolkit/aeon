@@ -90,6 +90,7 @@ class ROCKAD(BaseSeriesAnomalyDetector):
            0.74889259, 0.74889259, 0.74889259, 0.74889259, 0.74889259,
            0.74889259, 0.74889259, 0.74889259, 0.74889259, 0.74889259,
            0.89867111, 0.97797835, 0.99968304, 1.        , 0.9217303 ])
+    >>> np.set_printoptions(precision=None, suppress=False)
     """
 
     _tags = {
