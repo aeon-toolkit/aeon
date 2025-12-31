@@ -294,6 +294,8 @@ class LinearForecaster(BaseDeepForecaster, SeriesToSeriesForecastingMixin):
         last_window = y_inner.reshape(1, self.window, num_channels)
         pred = self.model_.predict(last_window, verbose=0)
         prediction = np.squeeze(pred, axis=0)
+        if prediction.ndim == 1:
+            prediction = prediction.reshape(-1, num_channels)
         return prediction
 
     def _series_to_series_forecast(
@@ -333,7 +335,8 @@ class LinearForecaster(BaseDeepForecaster, SeriesToSeriesForecastingMixin):
             return full_preds[:prediction_horizon]
 
         else:
-            preds = np.zeros((prediction_horizon,))
+            num_channels = y.shape[-1]
+            preds = np.zeros((prediction_horizon, num_channels))
             current_y = y.copy()
             current_idx = 0
 
