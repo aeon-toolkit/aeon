@@ -108,7 +108,7 @@ def resample_data_indices(y_train, y_test, random_state=None):
     """
     # shuffle data indices
     rng = check_random_state(random_state)
-    indices = np.arange(len(y_train) + len(y_test), dtype=int)
+    indices = np.arange(len(y_train) + len(y_test), dtype=np.intp)
     rng.shuffle(indices)
 
     train_indices = indices[: len(y_train)]
@@ -230,8 +230,8 @@ def stratified_resample_data_indices(y_train, y_test, random_state=None):
     # ensure same classes exist in both train and test
     assert list(unique_train) == list(unique_test)
 
-    train_indices = np.zeros(0, dtype=int)
-    test_indices = np.zeros(0, dtype=int)
+    train_indices = np.zeros(0, dtype=np.intp)
+    test_indices = np.zeros(0, dtype=np.intp)
 
     # for each class
     for label_index in range(len(unique_train)):
