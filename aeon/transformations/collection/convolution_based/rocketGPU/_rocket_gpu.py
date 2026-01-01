@@ -7,42 +7,12 @@ numerical parity with the CPU implementation while providing GPU acceleration.
 __author__ = ["Aditya Kushwaha"]
 __maintainer__ = ["Aditya Kushwaha", "hadifawaz1999"]
 
-
-import os
-import sys
-
 import numpy as np
 
 from aeon.transformations.collection.convolution_based import Rocket
 from aeon.transformations.collection.convolution_based.rocketGPU.base import (
     BaseROCKETGPU,
 )
-
-# Platform-specific CUDA DLL path setup for Windows
-if sys.platform == "win32":
-    cuda_dirs = [r"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA"]
-    for cuda_dir in cuda_dirs:
-        if os.path.exists(cuda_dir):
-            try:
-                versions = [
-                    d
-                    for d in os.listdir(cuda_dir)
-                    if os.path.isdir(os.path.join(cuda_dir, d))
-                ]
-                for version in sorted(versions, reverse=True):
-                    bin_dir = os.path.join(cuda_dir, version, "bin")
-                    if os.path.exists(bin_dir):
-                        try:
-                            os.add_dll_directory(bin_dir)
-                            break
-                        except (AttributeError, OSError):
-                            if bin_dir not in os.environ.get("PATH", ""):
-                                os.environ["PATH"] = (
-                                    bin_dir + ";" + os.environ.get("PATH", "")
-                                )
-                            break
-            except Exception:
-                pass
 
 # CuPy availability check
 try:
@@ -54,7 +24,7 @@ except ImportError:
     cp = None
 
 
-# CUDA kernel source code for ROCKET transform
+# Custom CUDA kernel that mimics CPU's sequential accumulation to maintain parity
 CUDA_KERNEL_SOURCE = r"""
 extern "C" __global__
 void rocket_transform_kernel(
@@ -221,16 +191,17 @@ class ROCKETGPU(BaseROCKETGPU):
                 "pip install cupy-cuda11x (for CUDA 11.x)"
             )
 
-        # Use CPU Rocket to generate kernels (ensures parity)
+        # Generate kernels using CPU implementation to guarantee identical RNG sequence
+        # This is the key to maintaining numerical parity between CPU and GPU
         cpu_rocket = Rocket(
             n_kernels=self.n_kernels,
             random_state=self.random_state,
-            normalise=False,  # We'll handle normalization separately if needed
+            normalise=False,  # Handle normalization in transform instead
         )
         cpu_rocket.fit(X)
         self.kernels = cpu_rocket.kernels
 
-        # Compile CUDA kernel
+        # Compile the raw CUDA code into an executable kernel
         self._compile_kernel()
 
         return self
@@ -274,7 +245,7 @@ class ROCKETGPU(BaseROCKETGPU):
 
         output = np.zeros((n_cases, n_kernels * 2), dtype=np.float32)
 
-        # Transfer kernel data to GPU
+        # Move all kernel parameters to GPU memory once (not per batch)
         weights_gpu = cp.asarray(weights, dtype=cp.float32)
         lengths_gpu = cp.asarray(lengths, dtype=cp.int32)
         biases_gpu = cp.asarray(biases, dtype=cp.float32)
@@ -283,7 +254,7 @@ class ROCKETGPU(BaseROCKETGPU):
         num_channels_gpu = cp.asarray(num_channels_arr, dtype=cp.int32)
         channel_indices_gpu = cp.asarray(channel_indices, dtype=cp.int32)
 
-        # Process in batches
+        # Process time series in batches to manage GPU memory efficiently
         for batch_start in range(0, n_cases, batch_size):
             batch_end = min(batch_start + batch_size, n_cases)
             batch_n_cases = batch_end - batch_start
@@ -321,6 +292,7 @@ class ROCKETGPU(BaseROCKETGPU):
                 ),
             )
 
+            # Transfer batch results back to CPU memory
             output[batch_start:batch_end] = cp.asnumpy(output_batch_gpu)
 
         if self.normalise:
