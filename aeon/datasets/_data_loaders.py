@@ -1481,17 +1481,17 @@ def load_classification_train_test(
     Returns
     -------
     X_train : np.ndarray or list of np.ndarray
-        Training data.
+        The training data.
     y_train : np.ndarray
-        Encoded training labels.
+        The training class labels, encoded if ``encode_labels=True``.
     X_test : np.ndarray or list of np.ndarray
-        Test data.
+        The test data.
     y_test : np.ndarray
-        Encoded test labels.
+        The test class labels, encoded if ``encode_labels=True``.
     meta_data : dict, optional
-        Metadata dictionary (only if return_metadata=True).
+        The metadata dictionary (only returned if ``return_metadata=True``).
     le : LabelEncoder, optional
-        Fitted LabelEncoder (only if return_encoder=True).
+        The fitted scikit-learn LabelEncoder (only returned if ``return_encoder=True``).
 
     Examples
     --------
