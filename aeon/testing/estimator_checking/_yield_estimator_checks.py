@@ -708,9 +708,6 @@ def check_common_input_dtypes(estimator, datatype):
     except Exception:
         return
 
-    if X_np.dtype == object:
-        return
-
     for dtype in (np.float32, np.float64, np.int32, np.int64):
         try:
             X_np.astype(dtype)
