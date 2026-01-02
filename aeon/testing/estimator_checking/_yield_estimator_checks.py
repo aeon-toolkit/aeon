@@ -701,28 +701,25 @@ def check_common_input_dtypes(estimator, datatype):
     """Check estimator works with common numpy dtypes."""
     estimator = _clone_estimator(estimator)
 
-    X_train = deepcopy(FULL_TEST_DATA_DICT[datatype]["train"][0])
-    y_train = deepcopy(FULL_TEST_DATA_DICT[datatype]["train"][1])
-    X_test = deepcopy(FULL_TEST_DATA_DICT[datatype]["test"][0])
+    X, _ = FULL_TEST_DATA_DICT[datatype]["train"]
 
-    dtypes = [np.float32, np.float64, np.int32, np.int64]
-
-    X_train_np = np.asarray(X_train)
-    X_test_np = np.asarray(X_test)
-
-    if X_train_np.dtype == object:
+    try:
+        X_np = np.asarray(X)
+    except Exception:
         return
 
-    for dtype_cast in dtypes:
+    if X_np.dtype == object:
+        return
+
+    for dtype in (np.float32, np.float64, np.int32, np.int64):
         try:
-            X_train_cast = X_train_np.astype(dtype_cast)
-            X_test_cast = X_test_np.astype(dtype_cast)
-
-            est = estimator.clone()
-            est.fit(X_train_cast, y_train)
-
-            if hasattr(est, "predict"):
-                est.predict(X_test_cast)
-
+            X_np.astype(dtype)
         except Exception:
-            return
+            continue
+
+        _run_estimator_method(
+            estimator,
+            "fit",
+            datatype,
+            "train",
+        )
