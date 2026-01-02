@@ -1,4 +1,4 @@
-"""Helper and common function for similarity search series estimators."""
+"""Helper functions for subsequence similarity search."""
 
 __maintainer__ = ["baraline"]
 
@@ -6,34 +6,171 @@ import numpy as np
 from numba import njit
 from scipy.signal import convolve
 
-from aeon.utils.numba.general import AEON_NUMBA_STD_THRESHOLD
+# Re-export commonly used functions from the parent commons module
+from aeon.similarity_search._commons import _inverse_distance_profile  # noqa: F401
 
 
-def _check_X_index(X_index: int, n_timepoints: int, length: int):
+@njit(cache=True)
+def _extract_top_k_from_dist_profile_one_series(
+    dist_profile: np.ndarray,
+    k: int,
+    dist_threshold: float,
+    allow_trivial_matches: bool,
+    exclusion_size: int,
+) -> tuple:
     """
-    Check wheter a X_index parameter is correctly formated and is admissible.
+    Extract top-k matches from a 1D distance profile.
+
+    Finds the k smallest distances in the profile, optionally enforcing
+    an exclusion zone around each match to prevent trivial (neighboring)
+    matches.
 
     Parameters
     ----------
-    X_index : int
-        Index of a timestamp in X_.
-     n_timepoints: int
-         Number of timepoints in the serie X_
-     length: int
-         Length parameter of the estimator
+    dist_profile : np.ndarray, 1D array of shape (n_candidates,)
+        Distance profile from which to extract matches.
+    k : int
+        Maximum number of matches to return.
+    dist_threshold : float
+        Maximum allowed distance. Matches with distance > threshold are excluded.
+    allow_trivial_matches : bool
+        If False, enforce exclusion zones around matches to prevent
+        neighboring positions from being returned as separate matches.
+    exclusion_size : int
+        Size of the exclusion zone around each match. Only used when
+        ``allow_trivial_matches=False``.
 
+    Returns
+    -------
+    top_k_indexes : np.ndarray, 1D array of shape (n_matches,)
+        Indexes of the best matches in the distance profile.
+    top_k_distances : np.ndarray, 1D array of shape (n_matches,)
+        Distances of the best matches.
     """
-    if X_index is not None:
-        if not isinstance(X_index, int):
-            raise TypeError("Expected an integer for X_index but got {X_index}")
+    n_candidates = len(dist_profile)
 
-        max_timepoints = n_timepoints - length
-        if X_index >= max_timepoints or X_index < 0:
-            raise ValueError(
-                "The value of X_index cannot exced the number "
-                "of timepoint in series given during fit. Expected a value "
-                f"between [0, {max_timepoints - 1}] but got {X_index}"
-            )
+    # Initialize output arrays
+    top_k_indexes = np.empty(k, dtype=np.int64)
+    top_k_distances = np.empty(k, dtype=np.float64)
+    n_found = 0
+
+    # Track which positions are excluded
+    is_excluded = np.zeros(n_candidates, dtype=np.bool_)
+
+    # Find k best matches
+    for _ in range(k):
+        best_idx = -1
+        best_dist = np.inf
+
+        # Find the minimum non-excluded distance
+        for i in range(n_candidates):
+            if not is_excluded[i] and dist_profile[i] < best_dist:
+                best_dist = dist_profile[i]
+                best_idx = i
+
+        # Check if we found a valid match
+        if best_idx == -1 or best_dist > dist_threshold:
+            break
+
+        # Store the match
+        top_k_indexes[n_found] = best_idx
+        top_k_distances[n_found] = best_dist
+        n_found += 1
+
+        # Apply exclusion zone
+        if not allow_trivial_matches:
+            lb = max(0, best_idx - exclusion_size)
+            ub = min(n_candidates, best_idx + exclusion_size + 1)
+            for j in range(lb, ub):
+                is_excluded[j] = True
+        else:
+            is_excluded[best_idx] = True
+
+    return top_k_indexes[:n_found], top_k_distances[:n_found]
+
+
+def extract_top_k_from_dist_profiles_2d(
+    dist_profiles: np.ndarray,
+    k: int,
+    dist_threshold: float,
+    allow_trivial_matches: bool,
+    exclusion_size: int,
+) -> tuple:
+    """
+    Extract top-k matches from a 2D array of distance profiles.
+
+    Finds the k smallest distances across all series in a collection,
+    returning ``(i_case, i_timestamp)`` pairs indicating where each match
+    was found.
+
+    Parameters
+    ----------
+    dist_profiles : np.ndarray, 2D array of shape (n_cases, n_candidates)
+        Distance profiles for each series in the collection.
+    k : int
+        Maximum number of matches to return.
+    dist_threshold : float
+        Maximum allowed distance. Matches with distance > threshold are excluded.
+    allow_trivial_matches : bool
+        If False, enforce exclusion zones around matches within each series
+        to prevent neighboring positions from being returned as separate matches.
+    exclusion_size : int
+        Size of the exclusion zone around each match within a series.
+        Only used when ``allow_trivial_matches=False``.
+
+    Returns
+    -------
+    top_k_indexes : np.ndarray, 2D array of shape (n_matches, 2)
+        Indexes of the best matches as ``(i_case, i_timestamp)`` pairs.
+    top_k_distances : np.ndarray, 1D array of shape (n_matches,)
+        Distances of the best matches.
+    """
+    n_cases, n_candidates = dist_profiles.shape
+
+    # Initialize output arrays
+    top_k_indexes = np.empty((k, 2), dtype=np.int64)
+    top_k_distances = np.empty(k, dtype=np.float64)
+    n_found = 0
+
+    # Track which positions are excluded in each series
+    is_excluded = np.zeros((n_cases, n_candidates), dtype=bool)
+
+    # Find k best matches across all series
+    for _ in range(k):
+        best_case = -1
+        best_idx = -1
+        best_dist = np.inf
+
+        # Find the minimum non-excluded distance across all series
+        for i_case in range(n_cases):
+            for i_ts in range(n_candidates):
+                if (
+                    not is_excluded[i_case, i_ts]
+                    and dist_profiles[i_case, i_ts] < best_dist
+                ):
+                    best_dist = dist_profiles[i_case, i_ts]
+                    best_case = i_case
+                    best_idx = i_ts
+
+        # Check if we found a valid match
+        if best_case == -1 or best_dist > dist_threshold:
+            break
+
+        # Store the match
+        top_k_indexes[n_found, 0] = best_case
+        top_k_indexes[n_found, 1] = best_idx
+        top_k_distances[n_found] = best_dist
+        n_found += 1
+
+        # Apply exclusion zone within the same series
+        if not allow_trivial_matches:
+            lb = max(0, best_idx - exclusion_size)
+            ub = min(n_candidates, best_idx + exclusion_size + 1)
+            is_excluded[best_case, lb:ub] = True
+        else:
+            is_excluded[best_case, best_idx] = True
+
+    return top_k_indexes[:n_found], top_k_distances[:n_found]
 
 
 def fft_sliding_dot_product(X, q):
@@ -44,14 +181,14 @@ def fft_sliding_dot_product(X, q):
     the sliding dot product between the input time series ``X`` and the query ``q``.
     The dot product is computed for each channel individually. The sliding window
     approach ensures that the dot product is calculated for every possible subsequence
-    of ``X`` that matches the length of ``q``
+    of ``X`` that matches the length of ``q``.
 
     Parameters
     ----------
     X : array, shape=(n_channels, n_timepoints)
-        Input time series
+        Input time series.
     q : array, shape=(n_channels, query_length)
-        Input query
+        Input query.
 
     Returns
     -------
@@ -85,183 +222,5 @@ def get_ith_products(X, T, L, ith):
     -------
     np.ndarray, 2D array of shape (n_channels, n_timepoints_X - L + 1)
         Sliding dot product between the i-th subsequence of size L in T and X.
-
     """
     return fft_sliding_dot_product(X, T[:, ith : ith + L])
-
-
-@njit(cache=True, fastmath=True)
-def _inverse_distance_profile(dist_profile):
-    return 1 / (dist_profile + AEON_NUMBA_STD_THRESHOLD)
-
-
-@njit(cache=True)
-def _extract_top_k_from_dist_profile(
-    dist_profile,
-    k,
-    threshold,
-    allow_trivial_matches,
-    exclusion_size,
-):
-    """
-    Given a distance profile, extract the top k lowest distances.
-
-    Parameters
-    ----------
-    dist_profile : np.ndarray, shape = (n_timepoints - length + 1)
-        A distance profile of length ``n_timepoints - length + 1``, with
-        ``length`` the size of the query used to compute the distance profiles.
-    k : int
-        Number of best matches to return
-    threshold : float
-        A threshold on the distances of the best matches. To be returned, a candidate
-        must have a distance below this threshold. This can reduce the number of
-        returned matches to be below ``k``
-    allow_trivial_matches : bool
-        Whether to allow returning matches that are in the same neighborhood by
-        ignoring the exclusion zone defined by the ``exclusion_size`` parameter.
-        If False, the exclusion zone is applied.
-    exclusion_size : int
-        The size of the exlusion size to apply when ``allow_trivial_matches`` is
-        False. It is applied on both side of existing matches (+/- their indexes).
-
-    Returns
-    -------
-    top_k_indexes : np.ndarray, shape = (k)
-        The indexes of the best matches in ``distance_profile``.
-    top_k_distances : np.ndarray, shape = (k)
-        The distances of the best matches.
-
-    """
-    top_k_indexes = np.zeros(k, dtype=np.int64) - 1
-    top_k_distances = np.full(k, np.inf, dtype=np.float64)
-    ub = np.full(k, np.inf)
-    lb = np.full(k, -1.0)
-
-    remaining_indices = np.arange(len(dist_profile))
-    mask = np.full(len(dist_profile), True)
-    _current_k = 0
-
-    if not allow_trivial_matches:
-        while _current_k < k and np.any(mask):
-            available_indices = remaining_indices[mask]
-            search_k = min(k, len(available_indices))
-            if search_k == 0:
-                break
-            partitioned = available_indices[
-                np.argpartition(dist_profile[available_indices], search_k - 1)[
-                    :search_k
-                ]
-            ]
-            sorted_indexes = partitioned[np.argsort(dist_profile[partitioned])]
-
-            for idx in sorted_indexes:
-                if _current_k > 0 and np.any(
-                    (idx >= lb[:_current_k]) & (idx <= ub[:_current_k])
-                ):
-                    continue
-
-                if dist_profile[idx] <= threshold:
-                    top_k_indexes[_current_k] = idx
-                    top_k_distances[_current_k] = dist_profile[idx]
-                    ub[_current_k] = min(idx + exclusion_size, len(dist_profile))
-                    lb[_current_k] = max(idx - exclusion_size, 0)
-                    _current_k += 1
-                else:
-                    break
-
-                if _current_k == k:
-                    break
-
-            mask[sorted_indexes] = False
-    else:
-        _current_k += min(k, len(dist_profile))
-        partitioned = np.argpartition(dist_profile, k)[:k]
-        sorted_indexes = partitioned[np.argsort(dist_profile[partitioned])]
-        dist_profile = dist_profile[sorted_indexes]
-        dist_profile = dist_profile[dist_profile <= threshold]
-        _current_k = len(dist_profile)
-
-        top_k_indexes[:_current_k] = sorted_indexes[:_current_k]
-        top_k_distances[:_current_k] = dist_profile[:_current_k]
-
-    return top_k_indexes[:_current_k], top_k_distances[:_current_k]
-
-
-# Could add aggregation function as parameter instead of just max
-def _extract_top_k_motifs(MP, IP, k, allow_trivial_matches, exclusion_size):
-    criterion = np.zeros(len(MP))
-
-    for i in range(len(MP)):
-        if len(MP[i]) > 0:
-            criterion[i] = max(MP[i])
-        else:
-            criterion[i] = np.inf
-    idx, _ = _extract_top_k_from_dist_profile(
-        criterion, k, np.inf, allow_trivial_matches, exclusion_size
-    )
-    return (
-        [IP[i] for i in idx],
-        [MP[i] for i in idx],
-    )
-
-
-def _extract_top_r_motifs(MP, IP, k, allow_trivial_matches, exclusion_size):
-    criterion = np.zeros(len(MP))
-    for i in range(len(MP)):
-        criterion[i] = len(MP[i])
-    idx, _ = _extract_top_k_from_dist_profile(
-        _inverse_distance_profile(criterion),
-        k,
-        np.inf,
-        allow_trivial_matches,
-        exclusion_size,
-    )
-    return [IP[i] for i in idx], [MP[i] for i in idx]
-
-
-@njit(cache=True, fastmath=True)
-def _update_dot_products(
-    X,
-    T,
-    XT_products,
-    L,
-    i_query,
-):
-    """
-    Update dot products of the i-th query of size L in T from the dot products of i-1.
-
-    Parameters
-    ----------
-    X: np.ndarray, 2D array of shape (n_channels, n_timepoints)
-        Input time series on which the sliding dot product is computed.
-    T: np.ndarray, 2D array of shape (n_channels, series_length)
-        The series used for similarity search. Note that series_length can be equal,
-        superior or inferior to n_timepoints, it doesn't matter.
-    L : int
-        The length of the subsequences considered during the search. This parameter
-        cannot be larger than n_timepoints and series_length.
-    i_query : int
-        Query starting index in T.
-
-    Returns
-    -------
-    XT_products : np.ndarray of shape (n_channels, n_timepoints - L + 1)
-        Sliding dot product between the i-th subsequence of size L in T and X.
-
-    """
-    n_channels = T.shape[0]
-    Q = T[:, i_query : i_query + L]
-    n_candidates = X.shape[1] - L + 1
-
-    for i_ft in range(n_channels):
-        # first element of all 0 to n-1 candidates * first element of previous query
-        _a1 = X[i_ft, : n_candidates - 1] * T[i_ft, i_query - 1]
-        # last element of all 1 to n candidates * last element of current query
-        _a2 = X[i_ft, L : L - 1 + n_candidates] * T[i_ft, i_query + L - 1]
-
-        XT_products[i_ft, 1:] = XT_products[i_ft, :-1] - _a1 + _a2
-
-        # Compute first dot product
-        XT_products[i_ft, 0] = np.sum(Q[i_ft] * X[i_ft, :L])
-    return XT_products

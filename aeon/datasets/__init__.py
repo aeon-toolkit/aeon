@@ -14,9 +14,14 @@ __all__ = [
     "download_all_regression",
     "load_time_series_segmentation_benchmark",
     "load_human_activity_segmentation_datasets",
+    # rehab_pile
+    "load_rehab_pile_dataset",
+    "load_rehab_pile_classification_datasets",
+    "load_rehab_pile_regression_datasets",
     # Write functions
-    "write_to_ts_file",
-    "write_to_arff_file",
+    "write_to_ts_file",  # deprecated
+    "write_to_arff_file",  # deprecated
+    "save_to_ts_file",
     # Single problem loaders
     "load_airline",
     "load_arrow_head",
@@ -26,7 +31,6 @@ __all__ = [
     "load_italy_power_demand",
     "load_japanese_vowels",
     "load_pickup_gesture_wiimoteZ",
-    "load_plaid",
     "load_longley",
     "load_lynx",
     "load_shampoo_sales",
@@ -58,7 +62,11 @@ from aeon.datasets._data_loaders import (
     load_from_tsv_file,
     load_regression,
 )
-from aeon.datasets._data_writers import write_to_arff_file, write_to_ts_file
+from aeon.datasets._data_writers import (
+    save_to_ts_file,
+    write_to_arff_file,
+    write_to_ts_file,
+)
 from aeon.datasets._single_problem_loaders import (
     load_acsf1,
     load_airline,
@@ -76,7 +84,6 @@ from aeon.datasets._single_problem_loaders import (
     load_osuleaf,
     load_PBS_dataset,
     load_pickup_gesture_wiimoteZ,
-    load_plaid,
     load_shampoo_sales,
     load_solar,
     load_unit_test,
@@ -93,4 +100,9 @@ from aeon.datasets._tsad_data_loaders import (
 from aeon.datasets._tss_data_loaders import (
     load_human_activity_segmentation_datasets,
     load_time_series_segmentation_benchmark,
+)
+from aeon.datasets.rehabpile_loader import (
+    load_rehab_pile_classification_datasets,
+    load_rehab_pile_dataset,
+    load_rehab_pile_regression_datasets,
 )

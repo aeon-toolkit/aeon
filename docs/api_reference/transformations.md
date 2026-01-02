@@ -5,8 +5,11 @@ transformations. The module is organised into CollectionTransformers which trans
 collection of time series into a different representation and SeriesTransformers which
 transform single time series.
 
-All transformers in `aeon` can be listed using the `aeon.registry
-.all_estimators` utility, using `estimator_types="transformer"` tag.
+All transformers in `aeon`  can be listed using the `aeon.utils.discovery
+.all_estimators` function using ``type_filter="transformer"``, optionally filtered by
+tags. Valid tags for transformers can be found with ``aeon.utils.tags.
+all_tags_for_estimator`` function with the argument ``"transformer"``.
+
 
 ## Collection transformers
 
@@ -26,12 +29,10 @@ All transformers in `aeon` can be listed using the `aeon.registry
     MatrixProfile
     MinMaxScaler
     Normalizer
-    Padder
     PeriodogramTransformer
-    Resizer
+    SeriesToCollectionBroadcaster
     SlopeTransformer
     SimpleImputer
-    Truncator
     Tabularizer
 ```
 
@@ -120,6 +121,21 @@ All transformers in `aeon` can be listed using the `aeon.registry
     SevenNumberSummary
 ```
 
+### Imbalance
+
+```{eval-rst}
+.. currentmodule:: aeon.transformations.collection.imbalance
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    ADASYN
+    ESMOTE
+    SMOTE
+    OHIT
+```
+
 ### Interval based
 
 ```{eval-rst}
@@ -144,6 +160,7 @@ All transformers in `aeon` can be listed using the `aeon.registry
     :template: class.rst
 
     TRILITE
+    TimeMCL
 ```
 
 ### Shapelet based
@@ -173,6 +190,20 @@ All transformers in `aeon` can be listed using the `aeon.registry
     SignatureTransformer
 ```
 
+### Unequal length
+
+```{eval-rst}
+.. currentmodule:: aeon.transformations.collection.unequal_length
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    Padder
+    Resizer
+    Truncator
+```
+
 ## Series transforms
 
 ```{eval-rst}
@@ -184,8 +215,10 @@ All transformers in `aeon` can be listed using the `aeon.registry
 
     AutoCorrelationSeriesTransformer
     ClaSPTransformer
+    DifferenceTransformer
     Dobin
     MatrixProfileSeriesTransformer
+    MatrixProfileTransformer
     LogTransformer
     PLASeriesTransformer
     StatsModelsACF

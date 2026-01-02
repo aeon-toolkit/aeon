@@ -27,22 +27,21 @@ classical techniques for the following learning tasks:
   ([more details](examples/similarity_search/similarity_search.ipynb)).
 - [**Anomaly detection**](api_reference/anomaly_detection), where the goal is to find
   values or areas of a single time series that are not representative of the whole series.
-- [**Forecasting**](api_reference/forecasting), where the goal is to predict future values
+- [**Forecasting**](api_reference/forecasting.rst), where the goal is to predict future values
   of a single time series
   ([more details](examples/forecasting/forecasting.ipynb)).
 - [**Segmentation**](api_reference/segmentation), where the goal is to split a single time
-  series into regions where the series are sofind areas of a time series that are not
-  representative of the whole series
+  series into regions that are dissimilar to each other
   ([more details](examples/segmentation/segmentation.ipynb)).
 
 `aeon` also provides core modules that are used by the modules above:
 
-- [**Transformations**](api_reference/transformations), where a either a single series or collection is
+- [**Transformations**](api_reference/transformations), where either a single series or collection is
   transformed into a different representation or domain. ([more details](examples/transformations/transformations.ipynb)).
 - [**Distances**](api_reference/distances), which measure the dissimilarity between two time series or
   collections of series and include functions to align series ([more details](examples/distances/distances.ipynb)).
 - [**Networks**](api_reference/networks), provides core models for deep learning for all time series tasks
-- ([more details](examples/networks/deep_learning.ipynb)).
+  ([more details](examples/networks/deep_learning.ipynb)).
 
 There are dedicated notebooks going into more detail for each of these modules. This
 guide is meant to give you the briefest of introductions to the main concepts and
@@ -76,7 +75,7 @@ international airline passengers, 1949 to 1960, in thousands.
 A multivariate time series is made up of multiple series or channels, where each
 observation is a vector of related recordings in the same time index. An example
 would be a motion trace from a smartwatch with at least three dimensions (X,Y,Z
-co-ordinates), or multiple financial statistics recorded over time. Single
+coordinates), or multiple financial statistics recorded over time. Single
 multivariate series input typically follows the shape `(n_channels, n_timepoints)` by
 default. Algorithms may have an `axis` parameter to change this, where `axis=1` assumes
 the default shape and is the default setting, and `axis=0` assumes the shape
@@ -200,7 +199,7 @@ estimators.
 1074
 >>> X3[0].shape
 (1, 500)
->>> X4, y4 = load_japanese_vowels()  # example unequal length mutlivariate collection
+>>> X4, y4 = load_japanese_vowels()  # example unequal length multivariate collection
 >>> len(X4)
 640
 >>> X4[0].shape
@@ -315,30 +314,33 @@ related to time series similarity search. The estimators can be used standalone 
 data analysis purposes or as parts of pipelines, to perform other tasks such as
 classification or clustering.
 
-Similarly to the transformation module, similarity search estimators are either defined
-for single series or for collection of series. The estimators are inheriting from the
-[BaseSimiliaritySearch](similarity_search._base.BaseSimiliaritySearch) class, which
-both [BaseSeriesSimiliaritySearch](similarity_search.series._base.BaseSeriesSimiliaritySearch)
-and [BaseCollectionSimiliaritySearch](similarity_search.collection._base.BaseCollectionSimiliaritySearch)
-inherit from.
+The module is organized into two main categories:
+- **Subsequence search**: Finding nearest neighbors among subsequences of time series
+- **Whole series search**: Finding nearest neighbors among complete time series
+
+The estimators inherit from [BaseSimilaritySearch](similarity_search._base.BaseSimilaritySearch),
+with specific base classes for [BaseSubsequenceSearch](similarity_search.subsequence._base.BaseSubsequenceSearch)
+and [BaseWholeSeriesSearch](similarity_search.whole_series._base.BaseWholeSeriesSearch).
 
 All estimators use a `fit` `predict` interface, where `predict` outputs both the
-indexes of the neighbors or motifs and a distance or similarity measure linked to them.
-For example, using `StompMotif` to compute the matrix profile between two series :
+indexes of the neighbors and a distance or similarity measure linked to them.
+For example, using `MASS` to find nearest neighbor subsequences:
+
 ```{code-block} python
 >>> import numpy as np
->>> from aeon.similarity_search.series import StompMotif
->>> X1 = np.array([1, 1, 2, 4, 6, 6, 7])  # single series (univariate)
+>>> from aeon.similarity_search.subsequence import MASS
+>>> X1 = np.array([1, 1, 2, 4, 6, 6, 7, 5, 3, 2])  # single series (univariate)
 >>> X2 = np.array([0, 1, 2, 2, 4, 5, 7, 9, 4, 6])  # single series (univariate)
->>> top_k = StompMotif(4).fit(X1) # 4 is length of the motif to search
->>> distances, indexes = top_k.predict(X2, k=1)
+>>> snn = MASS(length=4).fit(X1)  # 4 is length of the subsequences
+>>> indexes, distances = snn.predict(X2[:4], k=1)  # find best match
 ```
+
 Some things to note on this example :
 
-- We defined `1D` series of shape `(n_timepoints)`, but internally, series estimator
+- We defined `1D` series of shape `(n_timepoints)`, but internally, series estimators
 will use a `2D` representation as `(n_channels, n_timepoints)`.
-- The output of predict gives a two lists of size `k` (the number of motifs to extract)
-which can be read as follows : `distances[i] = d(X1[:, indexes[i][0]],X2[:, indexes[i][1]])`
+- The output of predict gives the indexes of the best matching subsequences in the fitted series
+and their distances to the query.
 
 For more examples and use cases you can check the example section of the module,
 starting with the general [similarity search notebook](examples/similarity_search/similarity_search.ipynb)
@@ -350,7 +352,7 @@ and those that transform a collection.
 
 ### Transformers for Single Time Series
 
-Transformers inheriting from the [BaseSeriesTransformer](transformations.base.BaseSeriesTransformer)
+Transformers inheriting from the [BaseSeriesTransformer](transformations.series.base.BaseSeriesTransformer)
 in the `aeon.transformations.series` package transform a single (possibly multivariate)
 time series into a different time series or a feature vector. More info to follow.
 
@@ -379,7 +381,7 @@ Most time series classification and regression algorithms are based on some form
 transformation into an alternative feature space. For example, we might extract some
 summary time series features from each series, and fit a traditional classifier or
 regressor on these features. For example, we could use
-[Catch22](transformations.collection.feauture_based), which calculates 22 summary
+[Catch22](transformations.collection.feature_based.Catch22), which calculates 22 summary
 statistics for each series.
 
 ```{code-block} python
@@ -397,7 +399,7 @@ statistics for each series.
 ```
 
 There are also series-to-series transformations, such as the
-[Padder](transformations.collection) to lengthen
+[Padder](transformations.collection.Padder) to lengthen
 series and process unequal length collections.
 
 ```{code-block} python
@@ -432,7 +434,7 @@ For machine learning tasks such as classification, regression and clustering, th
 `scikit-learn` `make_pipeline` functionality can be used if the transformer outputs
 a valid input type.
 
-The following example uses the [Catch22](transformations.collection.catch22.Catch22)
+The following example uses the [Catch22](transformations.collection.feature_based.Catch22)
 feature extraction transformer and a random forest classifier to classify.
 
 ```{code-block} python

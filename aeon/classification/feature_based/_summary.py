@@ -12,6 +12,7 @@ from sklearn.ensemble import RandomForestClassifier
 from aeon.base._base import _clone_estimator
 from aeon.classification.base import BaseClassifier
 from aeon.transformations.collection.feature_based import SevenNumberSummary
+from aeon.utils.validation import check_n_jobs
 
 
 class SummaryClassifier(BaseClassifier):
@@ -128,6 +129,8 @@ class SummaryClassifier(BaseClassifier):
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
         """
+        self._n_jobs = check_n_jobs(self.n_jobs)
+
         self.transformer_ = SevenNumberSummary(
             summary_stats=self.summary_stats,
         )

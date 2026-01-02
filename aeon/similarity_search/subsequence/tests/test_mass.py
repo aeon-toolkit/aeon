@@ -5,8 +5,8 @@ __maintainer__ = ["baraline"]
 import numpy as np
 from numpy.testing import assert_almost_equal
 
-from aeon.similarity_search.series._commons import fft_sliding_dot_product
-from aeon.similarity_search.series.neighbors._mass import (
+from aeon.similarity_search.subsequence._commons import fft_sliding_dot_product
+from aeon.similarity_search.subsequence._mass import (
     _normalized_squared_distance_profile,
     _squared_distance_profile,
 )

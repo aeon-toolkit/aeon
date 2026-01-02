@@ -3,15 +3,11 @@
 __maintainer__ = ["baraline"]
 import numpy as np
 import pytest
-from numba.typed import List
-from numpy.testing import assert_, assert_array_almost_equal, assert_array_equal
+from numpy.testing import assert_, assert_array_almost_equal
 
-from aeon.similarity_search.series._commons import (
-    _extract_top_k_from_dist_profile,
-    _extract_top_k_motifs,
-    _extract_top_r_motifs,
+from aeon.similarity_search.subsequence._commons import (
+    _extract_top_k_from_dist_profile_one_series,
     _inverse_distance_profile,
-    _update_dot_products,
     fft_sliding_dot_product,
     get_ith_products,
 )
@@ -38,29 +34,6 @@ def test_fft_sliding_dot_product():
         values[0],
         [np.dot(Q[0], X[0, i : i + L]) for i in range(X.shape[1] - L + 1)],
     )
-
-
-def test__update_dot_products():
-    """Test the _update_dot_product function."""
-    X = make_example_2d_numpy_series(n_channels=1, n_timepoints=20)
-    T = make_example_2d_numpy_series(n_channels=1, n_timepoints=10)
-    L = 7
-    current_product = get_ith_products(X, T, L, 0)
-    for i_query in range(1, T.shape[1] - L + 1):
-        new_product = get_ith_products(
-            X,
-            T,
-            L,
-            i_query,
-        )
-        current_product = _update_dot_products(
-            X,
-            T,
-            current_product,
-            L,
-            i_query,
-        )
-        assert_array_almost_equal(new_product, current_product)
 
 
 def test_get_ith_products():
@@ -91,72 +64,25 @@ def test__inverse_distance_profile():
     assert_array_almost_equal(1 / (X + 1e-8), X_inv)
 
 
-def test__extract_top_k_motifs():
-    """Test motif extraction based on max distance."""
-    MP = np.array(
-        [
-            [1.0, 2.0],
-            [1.0, 4.0],
-            [0.5, 0.9],
-            [0.6, 0.7],
-        ]
-    )
-
-    IP = np.array(
-        [
-            [1, 2],
-            [1, 4],
-            [0, 3],
-            [0, 7],
-        ]
-    )
-    IP_k, MP_k = _extract_top_k_motifs(MP, IP, 2, True, 0)
-    assert_(len(MP_k) == 2)
-    assert_array_equal(MP_k[0], [0.6, 0.7])
-    assert_array_equal(IP_k[0], [0, 7])
-    assert_array_equal(MP_k[1], [0.5, 0.9])
-    assert_array_equal(IP_k[1], [0, 3])
-
-
-def test__extract_top_r_motifs():
-    """Test motif extraction based on motif set cardinality."""
-    MP = List()
-    MP.append(List([1.0, 1.5, 2.0, 1.5]))
-    MP.append(List([1.0, 4.0]))
-    MP.append(List([0.5, 0.9, 1.0]))
-    MP.append(List([0.6, 0.7]))
-
-    IP = List()
-    IP.append(List([1, 2, 3, 4]))
-    IP.append(List([1, 4]))
-    IP.append(List([0, 3, 6]))
-    IP.append(List([0, 7]))
-
-    IP_k, MP_k = _extract_top_r_motifs(MP, IP, 2, True, 0)
-    assert_(len(MP_k) == 2)
-    assert_array_equal(MP_k[0], [1.0, 1.5, 2.0, 1.5])
-    assert_array_equal(IP_k[0], [1, 2, 3, 4])
-    assert_array_equal(MP_k[1], [0.5, 0.9, 1.0])
-    assert_array_equal(IP_k[1], [0, 3, 6])
-
-
 @pytest.mark.parametrize("k", K_VALUES)
 @pytest.mark.parametrize("threshold", THRESHOLDS)
 @pytest.mark.parametrize("allow_nn_matches", NN_MATCHES)
 @pytest.mark.parametrize("exclusion_size", EXCLUSION_SIZE)
-def test__extract_top_k_from_dist_profile(
+def test__extract_top_k_from_dist_profile_one_series(
     k, threshold, allow_nn_matches, exclusion_size
 ):
     """Test method to esxtract the top k candidates from a list of distance profiles."""
     X = make_example_1d_numpy(n_timepoints=30)
     X_sort = np.argsort(X)
     exclusion_size = 3
-    top_k_indexes, top_k_distances = _extract_top_k_from_dist_profile(
+    top_k_indexes, top_k_distances = _extract_top_k_from_dist_profile_one_series(
         X, k, threshold, allow_nn_matches, exclusion_size
     )
 
     if len(top_k_indexes) == 0 or len(top_k_distances) == 0:
-        raise AssertionError("_extract_top_k_from_dist_profile returned empty list")
+        raise AssertionError(
+            "_extract_top_k_from_dist_profile_one_series returned empty"
+        )
     for i, index in enumerate(top_k_indexes):
         assert_(X[index] == top_k_distances[i])
 

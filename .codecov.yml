@@ -25,6 +25,6 @@ github_checks:
 ignore:
   - ".github/"
   - ".binder/"
-  - "aeon/testing/expected_results/results_reproduction/"
+  - "aeon/testing/expected_results/_write_estimator_results.py"
   - "docs/"
   - "examples/"

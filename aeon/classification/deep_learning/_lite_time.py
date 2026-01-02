@@ -1,5 +1,7 @@
 """LITETime and LITE classifiers."""
 
+from __future__ import annotations
+
 __maintainer__ = ["hadifawaz1999"]
 __all__ = ["LITETimeClassifier"]
 
@@ -193,7 +195,7 @@ class LITETimeClassifier(BaseClassifier):
 
         super().__init__()
 
-    def _fit(self, X, y):
+    def _fit(self, X: np.ndarray, y: np.ndarray) -> LITETimeClassifier:
         """Fit the ensemble of IndividualLITEClassifier models.
 
         Parameters
@@ -239,7 +241,7 @@ class LITETimeClassifier(BaseClassifier):
 
         return self
 
-    def _predict(self, X) -> np.ndarray:
+    def _predict(self, X: np.ndarray) -> np.ndarray:
         """Predict the labels of the test set using LITETime.
 
         Parameters
@@ -260,7 +262,7 @@ class LITETimeClassifier(BaseClassifier):
             ]
         )
 
-    def _predict_proba(self, X) -> np.ndarray:
+    def _predict_proba(self, X: np.ndarray) -> np.ndarray:
         """Predict the proba of labels of the test set using LITETime.
 
         Parameters
@@ -283,24 +285,30 @@ class LITETimeClassifier(BaseClassifier):
         return probs
 
     @classmethod
-    def load_model(self, model_path, classes):
-        """Load pre-trained classifiers instead of fitting.
+    def load_model(
+        self, model_path: list[str], classes: np.ndarray
+    ) -> LITETimeClassifier:
+        """Load pre-trained keras models from disk instead of fitting.
 
-        When calling this function, all funcationalities can be used
-        such as predict, predict_proba, etc. with the loaded models.
+        Pretrained models should be saved using "save_best_model"
+        or "save_last_model" boolean parameter.
+        When calling this function, all functionalities can be used
+        such as predict, predict_proba etc. with the loaded model.
 
         Parameters
         ----------
         model_path : list of str (list of paths including the model names and extension)
-            The director where the models will be saved including the model
-            names with a ".keras" extension.
-        classes : np.ndarray
+            The complete path (including file name and '.keras' extension)
+            from which the pre-trained model's weights and configuration
+            are loaded.
+         classes : np.ndarray
             The set of unique classes the pre-trained loaded model is trained
             to predict during the classification task.
+        Example: model_path="path/to/file/best_model.keras"
 
         Returns
         -------
-        None
+        LITETimeClassifier
         """
         assert (
             type(model_path) is list
@@ -448,7 +456,7 @@ class IndividualLITEClassifier(BaseDeepClassifier):
     References
     ----------
     ..[1] Ismail-Fawaz et al. LITE: Light Inception with boosTing
-    tEchniques for Time Series Classificaion, IEEE International
+    tEchniques for Time Series Classification, IEEE International
     Conference on Data Science and Advanced Analytics, 2023.
     ..[2] Ismail-Fawaz, Ali, et al. "Look Into the LITE
     in Deep Learning for Time Series Classification."

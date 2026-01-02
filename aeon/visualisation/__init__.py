@@ -1,4 +1,4 @@
-"""Plotting utlities for time series."""
+"""Plotting utilities for time series."""
 
 __all__ = [
     # Series plotting

@@ -2747,6 +2747,35 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "CodeFor2001",
+      "name": "Saniya S Inamdar",
+      "avatar_url": "https://avatars.githubusercontent.com/u/39870781?v=4",
+      "profile": "https://github.com/CodeFor2001",
+      "contributions": [
+        "doc"
+      ]
+    },
+    {
+      "login": "Adityakushwaha2006",
+      "name": "Aditya Kushwaha",
+      "avatar_url": "https://avatars.githubusercontent.com/u/72969747?v=4",
+      "profile": "http://adityakushwaha2006.github.io/",
+      "contributions": [
+        "code",
+        "test",
+        "bug"
+      ]
+    },
+    {
+      "login": "PoojasPatel013",
+      "name": "Pooja Patel",
+      "avatar_url": "https://avatars.githubusercontent.com/u/158751282?v=4",
+      "profile": "https://github.com/PoojasPatel013",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "commitType": "docs"

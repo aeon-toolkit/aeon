@@ -2,7 +2,6 @@
 
 __all__ = ["OneClassSVM"]
 
-from typing import Optional
 
 import numpy as np
 from sklearn.svm import OneClassSVM as OCSVM
@@ -123,7 +122,7 @@ class OneClassSVM(BaseSeriesAnomalyDetector):
         self.window_size = window_size
         self.stride = stride
 
-    def _fit(self, X: np.ndarray, y: Optional[np.ndarray] = None) -> "OneClassSVM":
+    def _fit(self, X: np.ndarray, y: np.ndarray | None = None) -> "OneClassSVM":
         self._check_params(X)
 
         _X, _ = sliding_windows(
@@ -169,7 +168,7 @@ class OneClassSVM(BaseSeriesAnomalyDetector):
 
         return point_anomaly_scores
 
-    def _fit_predict(self, X: np.ndarray, y: Optional[np.ndarray] = None) -> np.ndarray:
+    def _fit_predict(self, X: np.ndarray, y: np.ndarray | None = None) -> np.ndarray:
         self._check_params(X)
         _X, padding = sliding_windows(
             X, window_size=self.window_size, stride=self.stride, axis=0

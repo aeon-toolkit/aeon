@@ -62,6 +62,8 @@ class AEResNetClusterer(BaseDeepClusterer):
         convolution layers.
     n_epochs : int, default = 1500
         The number of epochs to train the model.
+    validation_split: float, default = 0
+        Fraction of the training data to be used as validation data.
     batch_size : int, default = 16
         The number of samples per gradient update.
     use_mini_batch_size : bool, default = False
@@ -147,6 +149,7 @@ class AEResNetClusterer(BaseDeepClusterer):
         loss="mse",
         metrics=None,
         batch_size=32,
+        validation_split=0,
         use_mini_batch_size=False,
         random_state=None,
         file_path="./",
@@ -171,6 +174,7 @@ class AEResNetClusterer(BaseDeepClusterer):
         self.loss = loss
         self.metrics = metrics
         self.batch_size = batch_size
+        self.validation_split = validation_split
         self.use_mini_batch_size = use_mini_batch_size
         self.random_state = random_state
         self.activation = activation
@@ -296,7 +300,7 @@ class AEResNetClusterer(BaseDeepClusterer):
                 ),
                 tf.keras.callbacks.ModelCheckpoint(
                     filepath=self.file_path + self.file_name_ + ".keras",
-                    monitor="loss",
+                    monitor="val_loss" if self.validation_split > 0 else "loss",
                     save_best_only=True,
                 ),
             ]
@@ -317,6 +321,7 @@ class AEResNetClusterer(BaseDeepClusterer):
                 X,
                 X,
                 batch_size=mini_batch_size,
+                validation_split=self.validation_split,
                 epochs=self.n_epochs,
                 verbose=self.verbose,
                 callbacks=self.callbacks_,
@@ -328,6 +333,7 @@ class AEResNetClusterer(BaseDeepClusterer):
                 inputs=X,
                 outputs=X,
                 batch_size=mini_batch_size,
+                validation_split=self.validation_split,
                 epochs=self.n_epochs,
                 verbose=self.verbose,
             )
@@ -359,18 +365,37 @@ class AEResNetClusterer(BaseDeepClusterer):
         inputs,
         outputs,
         batch_size,
+        validation_split,
         epochs,
         verbose,
     ):
         import tensorflow as tf
 
-        train_dataset = tf.data.Dataset.from_tensor_slices((inputs, outputs))
-        train_dataset = train_dataset.shuffle(buffer_size=1024).batch(batch_size)
+        if validation_split and validation_split > 0:
+            num_samples = inputs.shape[0]
+            val_size = int(num_samples * validation_split)
+            train_size = num_samples - val_size
+
+            train_dataset = tf.data.Dataset.from_tensor_slices(
+                (inputs[:train_size], outputs[:train_size])
+            )
+            train_dataset = train_dataset.shuffle(buffer_size=1024).batch(batch_size)
+
+            val_dataset = tf.data.Dataset.from_tensor_slices(
+                (inputs[train_size:], outputs[train_size:])
+            )
+            val_dataset = val_dataset.batch(batch_size)
+        else:
+            train_dataset = tf.data.Dataset.from_tensor_slices((inputs, outputs))
+            train_dataset = train_dataset.shuffle(buffer_size=1024).batch(batch_size)
+            val_dataset = None
 
         if isinstance(self.optimizer_, str):
             self.optimizer_ = tf.keras.optimizers.get(self.optimizer_)
 
         history = {"loss": []}
+        if val_dataset:
+            history["val_loss"] = []
 
         def layerwise_mse_loss(autoencoder, inputs, outputs):
             def loss(y_true, y_pred):
@@ -436,10 +461,10 @@ class AEResNetClusterer(BaseDeepClusterer):
         for callback in self.callbacks_:
             callback.set_model(autoencoder)
             callback.on_train_begin()
-
         for epoch in range(epochs):
             epoch_loss = 0
             num_batches = 0
+            val_batches = 0
             for step, (x_batch_train, y_batch_train) in enumerate(train_dataset):
                 with tf.GradientTape() as tape:
                     # Calculate the actual loss by calling the loss function
@@ -462,16 +487,47 @@ class AEResNetClusterer(BaseDeepClusterer):
                 for callback in self.callbacks_:
                     callback.on_batch_end(step, {"loss": float(loss_value)})
 
+            if validation_split > 0:
+                val_loss = 0
+                val_batches = 0
+                for _, (x_batch_val, y_batch_val) in enumerate(val_dataset):
+                    # Calculate the actual loss by calling the loss function
+                    loss_func = layerwise_mse_loss(
+                        autoencoder=autoencoder,
+                        inputs=x_batch_val,
+                        outputs=y_batch_val,
+                    )
+                    loss_value = loss_func(y_batch_val, autoencoder(x_batch_val))
+                    val_loss += float(loss_value)
+                    val_batches += 1
+
+                if val_batches > 0:
+                    val_loss /= val_batches
+                    history["val_loss"].append(val_loss)
+                else:
+                    history["val_loss"].append(None)
+
             epoch_loss /= num_batches
             history["loss"].append(epoch_loss)
 
             if verbose:
-                sys.stdout.write(
-                    "Training loss at epoch %d: %.4f\n" % (epoch, float(epoch_loss))
-                )
+                if validation_split and val_batches > 0:
+                    sys.stdout.write(
+                        "Training loss at epoch %d: %.4f, Validation loss: %.4f\n"
+                        % (epoch, float(epoch_loss), float(val_loss))
+                    )
+                else:
+                    sys.stdout.write(
+                        "Training loss at epoch %d: %.4f\n" % (epoch, float(epoch_loss))
+                    )
 
             for callback in self.callbacks_:
-                callback.on_epoch_end(epoch, {"loss": float(epoch_loss)})
+                if validation_split and val_batches > 0:
+                    callback.on_epoch_end(
+                        epoch, {"loss": float(epoch_loss), "val_loss": float(val_loss)}
+                    )
+                else:
+                    callback.on_epoch_end(epoch, {"loss": float(epoch_loss)})
 
         # Finalize callbacks
         for callback in self.callbacks_:

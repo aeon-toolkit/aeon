@@ -1,1 +1,1 @@
-"""Tests for similarity search for time series collection neighbors module."""
+"""Tests for subsequence similarity search."""

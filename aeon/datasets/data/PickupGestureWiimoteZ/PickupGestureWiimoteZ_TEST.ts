@@ -26,7 +26,7 @@
 #
 #- Missing value: No
 #
-#- Number of classses: 10
+#- Number of classes: 10
 #
 #- Time series length: Vary
 #
@@ -42,7 +42,7 @@
 #
 #- Missing value: No
 #
-#- Number of classses: 10
+#- Number of classes: 10
 #
 #- Time series length: Vary
 #
@@ -58,7 +58,7 @@
 #
 #- Missing value: No
 #
-#- Number of classses: 10
+#- Number of classes: 10
 #
 #- Time series length: Vary
 #
@@ -74,7 +74,7 @@
 #
 #- Missing value: No
 #
-#- Number of classses: 10
+#- Number of classes: 10
 #
 #- Time series length: Vary
 #
@@ -90,7 +90,7 @@
 #
 #- Missing value: No
 #
-#- Number of classses: 10
+#- Number of classes: 10
 #
 #- Time series length: Vary
 #
@@ -98,7 +98,7 @@
 #
 #Each time series is padded with NaN to the length of the longest time series in the dataset.
 #
-#Data are shuffled and randomly sampled so that instances across datasets do not sychronized by dimension or subject.
+#Data are shuffled and randomly sampled so that instances across datasets do not synchronize by dimension or subject.
 #
 #Data created by Guna Jože et al. (see [1]). Data edited by Hoang Anh Dau.
 #

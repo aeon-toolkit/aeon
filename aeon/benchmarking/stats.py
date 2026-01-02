@@ -57,7 +57,7 @@ def nemenyi_test(ordered_avg_ranks, n_datasets, alpha):
     ordered_avg_ranks : np.array
         Average ranks of estimators.
     n_datasets : int
-        Mumber of datasets.
+        Number of datasets.
     alpha : float
         alpha level for Nemenyi test.
 

@@ -5,6 +5,7 @@ import numpy as np
 from numba import get_num_threads, njit, prange, set_num_threads
 
 from aeon.transformations.collection import BaseCollectionTransformer
+from aeon.utils.validation import check_n_jobs
 
 
 class MultiRocket(BaseCollectionTransformer):
@@ -114,6 +115,8 @@ class MultiRocket(BaseCollectionTransformer):
         -------
         self
         """
+        self._n_jobs = check_n_jobs(self.n_jobs)
+
         self.random_state_ = (
             np.int32(self.random_state) if isinstance(self.random_state, int) else None
         )
@@ -161,12 +164,12 @@ class MultiRocket(BaseCollectionTransformer):
             X = (X - X.mean(axis=-1, keepdims=True)) / (
                 X.std(axis=-1, keepdims=True) + 1e-8
             )
-        # change n_jobs dependend on value and existing cores
+        # change n_jobs depending on value and existing cores
         prev_threads = get_num_threads()
-        if self.n_jobs < 1 or self.n_jobs > multiprocessing.cpu_count():
+        if self._n_jobs < 1 or self._n_jobs > multiprocessing.cpu_count():
             n_jobs = multiprocessing.cpu_count()
         else:
-            n_jobs = self.n_jobs
+            n_jobs = self._n_jobs
         set_num_threads(n_jobs)
 
         X = X.astype(np.float32)
@@ -864,6 +867,9 @@ def _transform_multi(
                         )
 
                 feature_index_start = feature_index_end
+
+                combination_index += 1
+                n_channels_start = n_channels_end
 
     return features
 

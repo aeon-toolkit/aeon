@@ -16,6 +16,7 @@ from sklearn.utils import check_random_state
 
 from aeon.classification.base import BaseClassifier
 from aeon.transformations.collection.dictionary_based import SFAFast
+from aeon.utils.validation import check_n_jobs
 
 # some constants on input parameters for WEASEL v2
 SWITCH_SMALL_INSTANCES = 250
@@ -171,9 +172,7 @@ class WEASEL_V2(BaseClassifier):
         self :
             Reference to self.
         """
-        # Window length parameter space dependent on series length
-
-        ...
+        self._n_jobs = check_n_jobs(self.n_jobs)
 
         self.transform = WEASELTransformerV2(
             min_window=self.min_window,
@@ -183,7 +182,7 @@ class WEASEL_V2(BaseClassifier):
             feature_selection=self.feature_selection,
             max_feature_count=self.max_feature_count,
             random_state=self.random_state,
-            n_jobs=self.n_jobs,
+            n_jobs=self._n_jobs,
         )
         words = self.transform.fit_transform(X, y)
 
@@ -355,6 +354,7 @@ class WEASELTransformerV2:
         """
         # Window length parameter space dependent on series length
         self.n_cases_, self.n_timepoints_ = X.shape[0], X.shape[-1]
+
         XX = X.squeeze(1)
 
         # avoid overfitting with too many features

@@ -62,6 +62,6 @@ runs:
         path: ${{ github.workspace }}/.numba_cache
         # Try restore using today's date
         key: numba-${{ inputs.cache_name }}-${{ inputs.runner_os }}-${{ inputs.python_version }}-${{ env.CURRENT_DATE }}
-        # If cant restore with today's date try another cache (without date)
+        # If can't restore with today's date try another cache (without date)
         restore-keys: |
           numba-${{ inputs.cache_name }}-${{ inputs.runner_os }}-${{ inputs.python_version }}-

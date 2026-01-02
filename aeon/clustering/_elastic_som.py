@@ -1,4 +1,9 @@
-from typing import Callable, Optional, Union
+"""Elastic Self-Organising Map (SOM) clustering algorithm."""
+
+__maintainer__ = []
+__all__ = ["ElasticSOM"]
+
+from collections.abc import Callable
 
 import numpy as np
 from numpy.random import RandomState
@@ -154,18 +159,18 @@ class ElasticSOM(BaseClusterer):
     def __init__(
         self,
         n_clusters: int = 8,
-        distance: Union[str, Callable] = "dtw",
-        init: Union[str, np.ndarray] = "random",
+        distance: str | Callable = "dtw",
+        init: str | np.ndarray = "random",
         sigma: float = 1.0,
         learning_rate: float = 0.5,
-        decay_function: Union[Callable, str] = "asymptotic_decay",
-        neighborhood_function: Union[Callable, str] = "gaussian",
-        sigma_decay_function: Union[Callable, str] = "asymptotic_decay",
+        decay_function: Callable | str = "asymptotic_decay",
+        neighborhood_function: Callable | str = "gaussian",
+        sigma_decay_function: Callable | str = "asymptotic_decay",
         num_iterations: int = 500,
-        distance_params: Optional[dict] = None,
-        random_state: Optional[Union[int, RandomState]] = None,
-        custom_alignment_path: Optional[Callable] = None,
-        verbose: Optional[bool] = False,
+        distance_params: dict | None = None,
+        random_state: int | RandomState | None = None,
+        custom_alignment_path: Callable | None = None,
+        verbose: bool | None = False,
     ):
         self.sigma = sigma
         self.learning_rate = learning_rate

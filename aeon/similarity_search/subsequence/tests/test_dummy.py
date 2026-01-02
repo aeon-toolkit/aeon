@@ -1,5 +1,5 @@
 """
-Tests for stomp algorithm.
+Tests for BruteForce subsequence nearest neighbor search.
 
 We do not test equality for returned indexes due to the unstable nature of argsort
 and the fact that the "kind=stable" parameter is not yet supported in numba. We instead
@@ -11,7 +11,7 @@ __maintainer__ = ["baraline"]
 import numpy as np
 from numpy.testing import assert_almost_equal
 
-from aeon.similarity_search.series.neighbors._dummy import (
+from aeon.similarity_search.subsequence._dummy import (
     _naive_squared_distance_profile,
 )
 from aeon.testing.data_generation import make_example_2d_numpy_series

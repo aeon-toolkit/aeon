@@ -1,19 +1,16 @@
 """Implementation of NN with brute force."""
 
-from typing import Optional
-
 __maintainer__ = ["baraline"]
-__all__ = ["DummySNN"]
+__all__ = ["BruteForce"]
 
 import numpy as np
 from numba import get_num_threads, njit, prange, set_num_threads
 
-from aeon.similarity_search.series._commons import (
-    _check_X_index,
-    _extract_top_k_from_dist_profile,
-    _inverse_distance_profile,
-)
 from aeon.similarity_search.subsequence._base import BaseSubsequenceSearch
+from aeon.similarity_search.subsequence._commons import (
+    _inverse_distance_profile,
+    extract_top_k_from_dist_profiles_2d,
+)
 from aeon.utils.numba.general import (
     get_all_subsequences,
     z_normalise_series_2d,
@@ -22,8 +19,50 @@ from aeon.utils.numba.general import (
 from aeon.utils.validation import check_n_jobs
 
 
-class DummySNN(BaseSubsequenceSearch):
-    """Estimator to compute the on profile and distance profile using brute force."""
+class BruteForce(BaseSubsequenceSearch):
+    """
+    Brute force subsequence nearest neighbor search.
+
+    This estimator searches for the k nearest neighbor subsequences across a
+    collection of time series using exhaustive pairwise distance computation.
+    Given a query subsequence, it computes distance profiles against all series
+    in the fitted collection and returns the best matches with their
+    ``(case_index, timestamp)`` locations.
+
+    Parameters
+    ----------
+    length : int
+        The length of the subsequences to use for the search. The query provided
+        to ``predict`` must have exactly this many timepoints.
+    normalize : bool, default=False
+        Whether the subsequences should be z-normalized before distance computation.
+        This results in scale-independent matching.
+    n_jobs : int, default=1
+        Number of parallel threads to use for distance computation.
+
+    Attributes
+    ----------
+    X_ : np.ndarray of shape (n_cases, n_channels, n_timepoints)
+        The fitted collection of time series.
+    X_subs_ : list of np.ndarray
+        Precomputed subsequences for each series in the collection.
+    n_cases_ : int
+        Number of time series in the fitted collection.
+    n_channels_ : int
+        Number of channels in the fitted time series.
+    n_timepoints_ : int
+        Number of timepoints in each fitted time series.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.similarity_search.subsequence import BruteForce
+    >>> X_fit = np.random.rand(5, 1, 100)
+    >>> query = np.random.rand(1, 20)
+    >>> searcher = BruteForce(length=20, normalize=False)
+    >>> searcher.fit(X_fit)
+    >>> indexes, distances = searcher.predict(query, k=3)
+    """
 
     _tags = {
         "capability:unequal_length": False,
@@ -34,104 +73,117 @@ class DummySNN(BaseSubsequenceSearch):
     def __init__(
         self,
         length: int,
-        normalize: Optional[bool] = False,
-        n_jobs: Optional[int] = 1,
+        normalize: bool | None = False,
+        n_jobs: int | None = 1,
     ):
         self.normalize = normalize
         self.n_jobs = n_jobs
-        self.length = length
-        super().__init__()
+        super().__init__(length)
 
     def _fit(
         self,
         X: np.ndarray,
         y=None,
     ):
+        """
+        Fit the BruteForce estimator on a collection of time series.
+
+        Parameters
+        ----------
+        X : np.ndarray, shape=(n_cases, n_channels, n_timepoints)
+            Collection of time series to search within.
+        y : ignored
+
+        Returns
+        -------
+        self
+        """
         prev_threads = get_num_threads()
+        self._n_jobs = check_n_jobs(self.n_jobs)
+        set_num_threads(self._n_jobs)
 
-        set_num_threads(check_n_jobs(self.n_jobs))
+        # Extract subsequences from each series in the collection
+        n_cases = X.shape[0]
+        self.X_subs_ = []
+        for i in range(n_cases):
+            subs = get_all_subsequences(X[i], self.length, 1)
+            if self.normalize:
+                subs = z_normalise_series_3d(subs)
+            self.X_subs_.append(subs)
 
-        self.X_subs = get_all_subsequences(self.X_, self.length, 1)
-        if self.normalize:
-            self.X_subs = z_normalise_series_3d(self.X_subs)
         set_num_threads(prev_threads)
         return self
 
     def _predict(
         self,
         X: np.ndarray,
-        k: Optional[int] = 1,
-        dist_threshold: Optional[float] = np.inf,
-        exclusion_factor: Optional[float] = 0.5,
-        inverse_distance: Optional[bool] = False,
-        allow_neighboring_matches: Optional[bool] = False,
-        X_index: Optional[int] = None,
+        k: int = 1,
+        dist_threshold: float = np.inf,
+        allow_trivial_matches: bool = False,
+        exclusion_factor: float = 0.5,
+        inverse_distance: bool = False,
+        X_index: tuple = None,
     ):
         """
-        Compute nearest neighbors to X in subsequences of X_.
+        Find nearest neighbor subsequences to X in the fitted collection.
 
         Parameters
         ----------
         X : np.ndarray, shape=(n_channels, length)
-            Subsequence we want to find neighbors for.
-        k : int
-            The number of neighbors to return.
-        dist_threshold : float
-            The maximum distance of neighbors to X.
-        inverse_distance : bool
-            If True, the matching will be made on the inverse of the distance, and thus,
-            the farther neighbors will be returned instead of the closest ones.
+            Query subsequence.
+        k : int, default=1
+            Number of neighbors to return.
+        dist_threshold : float, default=np.inf
+            Maximum distance threshold for matches.
+        allow_trivial_matches : bool, default=False
+            Whether to allow neighboring matches within the same series.
         exclusion_factor : float, default=0.5
-            A factor of the query length used to define the exclusion zone when
-            ``allow_neighboring_matches`` is set to False. For a given timestamp,
-            the exclusion zone starts from
-            :math:``id_timestamp - floor(length * exclusion_factor)`` and end at
-            :math:``id_timestamp + floor(length * exclusion_factor)``.
-        X_index : int, optional
-            If ``X`` is a subsequence of X_, specify its starting timestamp in ``X_``.
-            If specified, neighboring subsequences of X won't be able to match as
-            neighbors.
+            Factor of query length for exclusion zone size.
+        inverse_distance : bool, default=False
+            If True, return farthest neighbors instead.
+        X_index : tuple (i_case, i_timepoint), optional
+            If X is from the fitted collection, specify its location.
 
         Returns
         -------
-        np.ndarray, shape = (k)
-            The indexes of the best matches in ``distance_profile``.
-        np.ndarray, shape = (k)
+        indexes : np.ndarray, shape=(n_matches, 2)
+            The (i_case, i_timepoint) indexes of the best matches.
+        distances : np.ndarray, shape=(n_matches,)
             The distances of the best matches.
-
         """
-        if X.shape[1] != self.length:
-            raise ValueError(
-                f"Expected X to have {self.length} timepoints but"
-                f" got {X.shape[1]} timepoints."
-            )
+        self._check_query_length(X)
 
-        X_index = _check_X_index(X_index, self.n_timepoints_, self.length)
-        dist_profile = self.compute_distance_profile(X)
+        dist_profiles = self.compute_distance_profile(X)
+
         if inverse_distance:
-            dist_profile = _inverse_distance_profile(dist_profile)
+            for i in range(len(dist_profiles)):
+                dist_profiles[i] = _inverse_distance_profile(dist_profiles[i])
 
         exclusion_size = int(self.length * exclusion_factor)
+
         if X_index is not None:
+            i_case, i_timepoint = X_index
+            if i_case < 0 or i_case >= self.n_cases_:
+                raise ValueError(
+                    f"X_index case {i_case} is out of bounds for collection "
+                    f"with {self.n_cases_} cases."
+                )
             _max_timestamp = self.n_timepoints_ - self.length
-            ub = min(X_index + exclusion_size, _max_timestamp)
-            lb = max(0, X_index - exclusion_size)
-            dist_profile[lb:ub] = np.inf
+            ub = min(i_timepoint + exclusion_size, _max_timestamp)
+            lb = max(0, i_timepoint - exclusion_size)
+            dist_profiles[i_case, lb:ub] = np.inf
 
-        if k == np.inf:
-            k = len(dist_profile)
-
-        return _extract_top_k_from_dist_profile(
-            dist_profile,
+        return extract_top_k_from_dist_profiles_2d(
+            dist_profiles,
             k,
             dist_threshold,
-            allow_neighboring_matches,
+            allow_trivial_matches,
             exclusion_size,
         )
 
     def compute_distance_profile(self, X: np.ndarray):
         """
-        Compute the distance profile of X to all samples in X_.
+        Compute the distance profile of X to all subsequences in X_.
 
         Parameters
         ----------
@@ -140,19 +192,25 @@ class DummySNN(BaseSubsequenceSearch):
 
         Returns
         -------
-        distance_profile : np.ndarray, 1D array of shape (n_candidates)
-            The distance profile of X to X_. The ``n_candidates`` value
-            is equal to ``n_timepoins - length + 1``, with ``n_timepoints`` the
-            length of X_.
-
+        distance_profiles : np.ndarray, 2D array of shape (n_cases, n_candidates)
+            The distance profile of X to all subsequences in all series of X_.
+            The ``n_candidates`` value is equal to ``n_timepoints - length + 1``.
         """
         prev_threads = get_num_threads()
-        set_num_threads(check_n_jobs(self.n_jobs))
+        set_num_threads(self._n_jobs)
+
         if self.normalize:
             X = z_normalise_series_2d(X)
-        distance_profile = _naive_squared_distance_profile(self.X_subs, X)
+
+        n_cases = len(self.X_subs_)
+        n_candidates = self.n_timepoints_ - self.length + 1
+        distance_profiles = np.zeros((n_cases, n_candidates))
+
+        for i in range(n_cases):
+            distance_profiles[i] = _naive_squared_distance_profile(self.X_subs_[i], X)
+
         set_num_threads(prev_threads)
-        return distance_profile
+        return distance_profiles
 
     @classmethod
     def _get_test_params(cls, parameter_set: str = "default"):
@@ -199,9 +257,8 @@ def _naive_squared_distance_profile(
 
     Returns
     -------
-    out : np.ndarray, 1D array of shape (n_samples, n_timepoints_t - query_length + 1)
+    out : np.ndarray, 1D array of shape (n_subsequences,)
         The distance between the query and all candidates in X.
-
     """
     n_subs, n_channels, length = X_subs.shape
     dist_profile = np.zeros(n_subs)

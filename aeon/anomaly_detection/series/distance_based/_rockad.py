@@ -4,7 +4,6 @@ __maintainer__ = []
 __all__ = ["ROCKAD"]
 
 import warnings
-from typing import Optional
 
 import numpy as np
 from sklearn.neighbors import NearestNeighbors
@@ -13,6 +12,7 @@ from sklearn.utils import resample
 
 from aeon.anomaly_detection.series.base import BaseSeriesAnomalyDetector
 from aeon.transformations.collection.convolution_based import Rocket
+from aeon.utils.validation import check_n_jobs
 from aeon.utils.windowing import reverse_windowing, sliding_windows
 
 
@@ -85,7 +85,7 @@ class ROCKAD(BaseSeriesAnomalyDetector):
     >>> detector.fit(X_train)
     ROCKAD(...)
     >>> detector.predict(X_test)
-    array([0.        , 0.00554713, 0.0699094 , 0.22881059, 0.32382585,
+    array([0.        , 0.00554713, 0.06990941, 0.22881059, 0.32382585,
            0.43652154, 0.43652154, 0.43652154, 0.43652154, 0.43652154,
            0.43652154, 0.43652154, 0.43652154, 0.43652154, 0.43652154,
            0.52382585, 0.65200875, 0.80313368, 0.85194345, 1.        ])
@@ -125,13 +125,13 @@ class ROCKAD(BaseSeriesAnomalyDetector):
         self.stride = stride
         self.random_state = random_state
 
-        self.rocket_transformer_: Optional[Rocket] = None
-        self.list_baggers_: Optional[list[NearestNeighbors]] = None
-        self.power_transformer_: Optional[PowerTransformer] = None
+        self.rocket_transformer_: Rocket | None = None
+        self.list_baggers_: list[NearestNeighbors] | None = None
+        self.power_transformer_: PowerTransformer | None = None
 
         super().__init__(axis=0)
 
-    def _fit(self, X: np.ndarray, y: Optional[np.ndarray] = None) -> "ROCKAD":
+    def _fit(self, X: np.ndarray, y: np.ndarray | None = None) -> "ROCKAD":
         self._check_params(X)
         # X: (n_timepoints, 1) because __init__(axis==0)
         _X, _ = sliding_windows(
@@ -163,10 +163,12 @@ class ROCKAD(BaseSeriesAnomalyDetector):
             )
 
     def _inner_fit(self, X: np.ndarray) -> None:
+        self._n_jobs = check_n_jobs(self.n_jobs)
+
         self.rocket_transformer_ = Rocket(
             n_kernels=self.n_kernels,
             normalise=self.normalise,
-            n_jobs=self.n_jobs,
+            n_jobs=self._n_jobs,
             random_state=self.random_state,
         )
         # X: (n_windows, window_size)
@@ -199,7 +201,7 @@ class ROCKAD(BaseSeriesAnomalyDetector):
             # Initialize estimator
             estimator = NearestNeighbors(
                 n_neighbors=self.n_neighbors,
-                n_jobs=self.n_jobs,
+                n_jobs=self._n_jobs,
                 metric=self.metric,
                 algorithm="kd_tree",
             )
@@ -225,7 +227,7 @@ class ROCKAD(BaseSeriesAnomalyDetector):
 
         return point_anomaly_scores
 
-    def _fit_predict(self, X: np.ndarray, y: Optional[np.ndarray] = None) -> np.ndarray:
+    def _fit_predict(self, X: np.ndarray, y: np.ndarray | None = None) -> np.ndarray:
         self._check_params(X)
         _X, padding = sliding_windows(
             X, window_size=self.window_size, stride=self.stride, axis=0

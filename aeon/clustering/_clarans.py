@@ -1,11 +1,11 @@
 """Time series kmedoids."""
 
-from typing import Optional
-
 __maintainer__ = []
+__all__ = ["TimeSeriesCLARANS"]
+
 
 import math
-from typing import Callable, Union
+from collections.abc import Callable
 
 import numpy as np
 from numpy.random import RandomState
@@ -52,7 +52,7 @@ class TimeSeriesCLARANS(TimeSeriesKMedoids):
         for each set of medoids. A neighbouring solution is obtained by replacing
         one of the medoids with a non-medoid and seeing if total cost reduces. If
         not specified max_neighbours is set to 1.25% of the total number of possible
-        swaps (as suggested in the orginal paper).
+        swaps (as suggested in the original paper).
     n_init : int, default=5
         Number of times the PAM algorithm will be run with different
         centroid seeds. The final result will be the best output of n_init
@@ -104,13 +104,13 @@ class TimeSeriesCLARANS(TimeSeriesKMedoids):
     def __init__(
         self,
         n_clusters: int = 8,
-        init: Union[str, np.ndarray] = "random",
-        distance: Union[str, Callable] = "msm",
-        max_neighbours: Optional[int] = None,
+        init: str | np.ndarray = "random",
+        distance: str | Callable = "msm",
+        max_neighbours: int | None = None,
         n_init: int = 10,
         verbose: bool = False,
-        random_state: Optional[Union[int, RandomState]] = None,
-        distance_params: Optional[dict] = None,
+        random_state: int | RandomState | None = None,
+        distance_params: dict | None = None,
     ):
         self.max_neighbours = max_neighbours
 
