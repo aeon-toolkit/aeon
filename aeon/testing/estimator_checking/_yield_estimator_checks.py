@@ -706,4 +706,5 @@ def check_common_input_dtypes(estimator, datatype):
             estimator,
             "fit",
             datatype,
+            split="train",
         )
