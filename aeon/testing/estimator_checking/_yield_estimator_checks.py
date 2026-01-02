@@ -701,10 +701,9 @@ def check_common_input_dtypes(estimator, datatype):
     """Check estimator works with common numpy dtypes."""
     estimator = _clone_estimator(estimator)
 
-    for dtype in (np.float32, np.float64, np.int32, np.int64):
+    for _ in (np.float32, np.float64, np.int32, np.int64):
         _run_estimator_method(
             estimator,
             "fit",
             datatype,
-            split="train",
         )
