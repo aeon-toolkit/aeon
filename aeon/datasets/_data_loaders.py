@@ -7,7 +7,7 @@ __all__ = [  # Load functions
     "load_from_arff_file",
     "load_from_tsv_file",
     "load_classification",
-    "load_classification_encoded",
+    "load_classification_train_test",
     "load_forecasting",
     "load_regression",
     "download_all_regression",
@@ -1429,33 +1429,54 @@ def load_classification(
     return X, y
 
 
-def load_classification_encoded(
+def load_classification_train_test(
     name,
     extract_path=None,
     return_metadata=False,
     return_encoder=False,
+    encode_labels=True,
     load_equal_length=True,
     load_no_missing=True,
 ):
-    """Load a classification dataset with encoded labels.
+    """Load a classification dataset into train and test splits.
 
-    Loads both train and test splits, fits a LabelEncoder on the training
-    labels, and transforms both training and test labels.
+    This function loads the training and testing data for a given classification
+    problem. It can optionally encode the class labels using sklearn's LabelEncoder
+    and return the fitted encoder.
 
     Parameters
     ----------
     name : str
-        Name of the dataset to load.
-    extract_path : str, optional (default=None)
-        Path to the data file.
-    return_metadata : bool, optional (default=False)
-        If True, returns a dictionary of metadata.
+        Name of data set. If a dataset that is listed in tsc_datasets is given,
+        this function will look in the extract_path first, and if it is not present,
+        attempt to download the data from www.timeseriesclassification.com, saving it to
+        the extract_path.
+    extract_path : str, default=None
+        the path to look for the data. If no path is provided, the function
+        looks in `aeon/datasets/local_data/`. If a path is given, it can be absolute,
+        e.g. C:/Temp/ or relative, e.g. Temp/ or ./Temp/.
+    return_metadata : boolean, default = False
+        If True, returns a dictionary of metadata found in the header.
     return_encoder : bool, optional (default=False)
-        If True, returns the fitted LabelEncoder.
-    load_equal_length : bool, optional (default=True)
-        If True, load the version of the dataset with equal length series.
-    load_no_missing : bool, optional (default=True)
-        If True, load the version of the dataset with no missing values.
+        If True, returns the fitted sklearn LabelEncoder.
+        If True, implies encode_labels=True.
+    encode_labels : bool, optional (default=True)
+        If True, the class labels are encoded using a LabelEncoder fitted on the
+        training set.
+    load_equal_length : boolean, default=True
+        This is for the case when the standard release has unequal length series. The
+        downloaded zip for these contain a version made equal length through
+        truncation. These versions all have the suffix _eq after the name. If this
+        flag is set to True, the function first attempts to load files called
+        <name>_eq_TRAIN.ts/TEST.ts. If these are not present, it will load the normal
+        version.
+    load_no_missing : boolean, default=True
+        This is for the case when the standard release has missing values. The
+        downloaded zip for these contain a version with imputed missing values. These
+        versions all have the suffix _nmv after the name. If this
+        flag is set to True, the function first attempts to load files called
+        <name>_nmv_TRAIN.ts/TEST.ts. If these are not present, it will load the normal
+        version.
 
     Returns
     -------
@@ -1471,7 +1492,16 @@ def load_classification_encoded(
         Metadata dictionary (only if return_metadata=True).
     le : LabelEncoder, optional
         Fitted LabelEncoder (only if return_encoder=True).
+
+    Examples
+    --------
+    >>> from aeon.datasets import load_classification_train_test
+    >>> X_train, y_train, X_test, y_test = load_classification_train_test(
+    ...     "ArrowHead"
+    ... ) # doctest: +SKIP
     """
+    if return_encoder:
+        encode_labels = True
     res = load_classification(
         name,
         split="train",
@@ -1494,9 +1524,11 @@ def load_classification_encoded(
         load_no_missing=load_no_missing,
     )
 
-    le = LabelEncoder()
-    y_train = le.fit_transform(y_train)
-    y_test = le.transform(y_test)
+    le = None
+    if encode_labels:
+        le = LabelEncoder()
+        y_train = le.fit_transform(y_train)
+        y_test = le.transform(y_test)
     ret = (X_train, y_train, X_test, y_test)
     if return_metadata:
         ret += (meta,)

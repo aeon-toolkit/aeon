@@ -16,7 +16,7 @@ import aeon
 from aeon.datasets import (
     get_dataset_meta_data,
     load_classification,
-    load_classification_encoded,
+    load_classification_train_test,
     load_forecasting,
     load_from_arff_file,
     load_from_ts_file,
@@ -580,17 +580,20 @@ def test_download_and_extract():
     PR_TESTING,
     reason="Only run on overnights because of intermittent fail for read/write",
 )
-def test_load_classification_encoded():
-    """Test that load_classification_encoded returns integer labels."""
+def test_load_classification_train_test():
+    """Test that load_classification_train_test works as expected."""
     name = "BasicMotions"
-    X_train, y_train, X_test, y_test, le = load_classification_encoded(
-        name, return_encoder=True
-    )
+    X_train, y_train, X_test, y_test = load_classification_train_test(name)
     assert np.issubdtype(y_train.dtype, np.integer)
     assert np.issubdtype(y_test.dtype, np.integer)
+    X_train, y_train, X_test, y_test, le = load_classification_train_test(
+        name, return_encoder=True
+    )
     assert hasattr(le, "classes_")
     assert len(le.classes_) > 0
-    X_train, y_train, X_test, y_test = load_classification_encoded(
-        name, return_encoder=False
+    assert np.array_equal(le.transform(le.inverse_transform(y_train)), y_train)
+    X_train, y_train, X_test, y_test = load_classification_train_test(
+        name, encode_labels=False
     )
-    assert np.issubdtype(y_train.dtype, np.integer)
+    assert not np.issubdtype(y_train.dtype, np.integer)
+    assert isinstance(y_train[0], str)
