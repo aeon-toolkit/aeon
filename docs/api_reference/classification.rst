@@ -95,6 +95,7 @@ Feature-based
     FreshPRINCEClassifier
     SignatureClassifier
     SummaryClassifier
+    TDMVDCClassifier
     TSFreshClassifier
 
 Hybrid
