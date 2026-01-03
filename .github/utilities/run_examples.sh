@@ -1,10 +1,16 @@
-#!/opt/homebrew/bin/bash
+#!/usr/bin/env bash
 
 # Script to run all example notebooks.
 set -euxo pipefail
 
-CMD="jupyter nbconvert --to notebook --inplace --execute --ExecutePreprocessor.timeout=600"
+CMD="python -m jupyter nbconvert --to notebook --inplace --execute --ExecutePreprocessor.timeout=600"
 MULTITHREADED=${2:-false}
+
+if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" ]]; then
+    echo "WARNING: Windows detected. Multithreading is unstable in this environment."
+    echo "Defaulting to sequential execution."
+    MULTITHREADED=false
+fi
 
 excluded=(
   # try removing when 3.9 is dropped
@@ -56,8 +62,15 @@ if [ "$MULTITHREADED" = true ]; then
   echo "Running ${#notebooks[@]} notebooks in parallel on $CORES cores..."
   export CMD
 
-  # Run in parallel
-  printf "%s\0" "${notebooks[@]}" | xargs -0 -n 1 -P "$CORES" bash -c '$CMD "$1"' _
+  # Run in parallel with runtime logging
+  printf "%s\0" "${notebooks[@]}" | xargs -0 -n 1 -P "$CORES" bash -c '
+    start=$(date +%s)
+    $CMD "$1"
+    ret=$?
+    end=$(date +%s)
+    echo "Finished: $1 ($((end-start))s)"
+    exit $ret
+  ' _
 
 else
   # Sequential execution
