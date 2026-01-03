@@ -98,8 +98,8 @@ class BaseSimilaritySearch(BaseCollectionEstimator):
         Parameters
         ----------
         X : np.ndarray shape (n_cases, n_channels, n_timepoints)
-            Input data to store and use as database against the query given when calling
-            predict.
+            Input data to store and use as database against the query
+            given when calling predict.
         y: ignored, exists for API consistency reasons.
 
         Returns
@@ -110,7 +110,10 @@ class BaseSimilaritySearch(BaseCollectionEstimator):
         X = self._preprocess_collection(X)
         self.n_channels_ = self.metadata_["n_channels"]
         self.n_cases_ = self.metadata_["n_cases"]
-        self.n_timepoints_ = X.shape[2] if X.ndim == 3 else None
+        # For equal length collections, store the number of timepoints.
+        self.n_timepoints_ = (
+            X.shape[2] if isinstance(X, np.ndarray) and X.ndim == 3 else None
+        )
         self.X_ = X
         self._fit(X, y=y)
         self.is_fitted = True

@@ -3,17 +3,25 @@
 __maintainer__ = ["baraline"]
 __all__ = [
     "MockSubsequenceSearch",
+    "MockDistanceProfileSearch",
     "MockWholeSeriesSearch",
 ]
 
 import numpy as np
 
-from aeon.similarity_search.subsequence._base import BaseSubsequenceSearch
+from aeon.similarity_search.subsequence._base import (
+    BaseDistanceProfileSearch,
+    BaseSubsequenceSearch,
+)
 from aeon.similarity_search.whole_series._base import BaseWholeSeriesSearch
 
 
 class MockSubsequenceSearch(BaseSubsequenceSearch):
     """Mock estimator for BaseSubsequenceSearch."""
+
+    _tags = {
+        "capability:multivariate": True,
+    }
 
     def __init__(self, length=10):
         super().__init__(length=length)
@@ -28,10 +36,30 @@ class MockSubsequenceSearch(BaseSubsequenceSearch):
         distances = np.zeros(n_matches)
         return indexes, distances
 
+
+class MockDistanceProfileSearch(BaseDistanceProfileSearch):
+    """Mock estimator for BaseDistanceProfileSearch."""
+
+    _tags = {
+        "capability:multivariate": True,
+    }
+
+    def __init__(self, length=10):
+        super().__init__(length=length)
+
+    def _fit(self, X, y=None):
+        return self
+
     def compute_distance_profile(self, X):
-        """Return dummy distance profile."""
+        """Return squared Euclidean distance profile."""
         n_candidates = self.n_timepoints_ - self.length + 1
-        return np.zeros((self.n_cases_, n_candidates))
+        dist_profiles = np.zeros((self.n_cases_, n_candidates))
+        for i in range(self.n_cases_):
+            for j in range(n_candidates):
+                dist_profiles[i, j] = np.sum(
+                    (self.X_[i, :, j : j + self.length] - X) ** 2
+                )
+        return dist_profiles
 
 
 class MockWholeSeriesSearch(BaseWholeSeriesSearch):

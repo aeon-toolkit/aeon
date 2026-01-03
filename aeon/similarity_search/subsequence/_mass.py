@@ -6,19 +6,15 @@ __all__ = ["MASS"]
 import numpy as np
 from numba import njit
 
-from aeon.similarity_search.subsequence._base import BaseSubsequenceSearch
-from aeon.similarity_search.subsequence._commons import (
-    _inverse_distance_profile,
-    extract_top_k_from_dist_profiles_2d,
-    fft_sliding_dot_product,
-)
+from aeon.similarity_search.subsequence._base import BaseDistanceProfileSearch
+from aeon.similarity_search.subsequence._commons import fft_sliding_dot_product
 from aeon.utils.numba.general import (
     AEON_NUMBA_STD_THRESHOLD,
     sliding_mean_std_one_series,
 )
 
 
-class MASS(BaseSubsequenceSearch):
+class MASS(BaseDistanceProfileSearch):
     """
     Subsequence nearest neighbor search using MASS algorithm.
 
@@ -113,73 +109,6 @@ class MASS(BaseSubsequenceSearch):
                 self.X_means_.append(means)
                 self.X_stds_.append(stds)
         return self
-
-    def _predict(
-        self,
-        X: np.ndarray,
-        k: int = 1,
-        dist_threshold: float = np.inf,
-        allow_trivial_matches: bool = False,
-        exclusion_factor: float = 0.5,
-        inverse_distance: bool = False,
-        X_index: tuple = None,
-    ):
-        """
-        Find nearest neighbor subsequences to X in the fitted collection.
-
-        Parameters
-        ----------
-        X : np.ndarray, shape=(n_channels, length)
-            Query subsequence.
-        k : int, default=1
-            Number of neighbors to return.
-        dist_threshold : float, default=np.inf
-            Maximum distance threshold for matches.
-        allow_trivial_matches : bool, default=False
-            Whether to allow neighboring matches within the same series.
-        exclusion_factor : float, default=0.5
-            Factor of query length for exclusion zone size.
-        inverse_distance : bool, default=False
-            If True, return farthest neighbors instead.
-        X_index : tuple (i_case, i_timepoint), optional
-            If X is from the fitted collection, specify its location.
-
-        Returns
-        -------
-        indexes : np.ndarray, shape=(n_matches, 2)
-            The (i_case, i_timepoint) indexes of the best matches.
-        distances : np.ndarray, shape=(n_matches,)
-            The distances of the best matches.
-        """
-        self._check_query_length(X)
-
-        dist_profiles = self.compute_distance_profile(X)
-
-        if inverse_distance:
-            for i in range(len(dist_profiles)):
-                dist_profiles[i] = _inverse_distance_profile(dist_profiles[i])
-
-        exclusion_size = int(self.length * exclusion_factor)
-
-        if X_index is not None:
-            i_case, i_timepoint = X_index
-            if i_case < 0 or i_case >= self.n_cases_:
-                raise ValueError(
-                    f"X_index case {i_case} is out of bounds for collection "
-                    f"with {self.n_cases_} cases."
-                )
-            _max_timestamp = self.n_timepoints_ - self.length
-            ub = min(i_timepoint + exclusion_size, _max_timestamp)
-            lb = max(0, i_timepoint - exclusion_size)
-            dist_profiles[i_case, lb:ub] = np.inf
-
-        return extract_top_k_from_dist_profiles_2d(
-            dist_profiles,
-            k,
-            dist_threshold,
-            allow_trivial_matches,
-            exclusion_size,
-        )
 
     def compute_distance_profile(self, X: np.ndarray):
         """

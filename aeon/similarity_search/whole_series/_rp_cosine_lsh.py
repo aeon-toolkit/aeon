@@ -164,7 +164,7 @@ class LSHIndex(BaseWholeSeriesSearch):
 
     Parameters
     ----------
-    n_hash_funcs : int, default=128
+    n_hash_funcs : int, default=256
         Number of random hash functions to use. More functions increase accuracy
         but also memory usage and computation time.
     hash_func_coverage : float, default=0.25
@@ -204,17 +204,12 @@ class LSHIndex(BaseWholeSeriesSearch):
     --------
     >>> import numpy as np
     >>> from aeon.similarity_search.whole_series import LSHIndex
-    >>> # Create a collection of 100 univariate time series
     >>> X_fit = np.random.rand(100, 1, 50)
-    >>> # Create a query series
     >>> query = np.random.rand(1, 50)
-    >>> # Initialize and fit the index
     >>> index = LSHIndex(n_hash_funcs=128, normalize=True)
-    >>> index.fit(X_fit)  # doctest: +SKIP
-    >>> # Find approximate nearest neighbors
-    >>> indexes, distances = index.predict(query, k=5)  # doctest: +SKIP
-    >>> # indexes is shape (5,) with case indices
-    >>> # distances is shape (5,) with Hamming distances (lower is more similar)
+    >>> index.fit(X_fit)
+    >>> indexes, distances = index.predict(query, k=5)
+
     """
 
     _tags = {
@@ -225,7 +220,7 @@ class LSHIndex(BaseWholeSeriesSearch):
 
     def __init__(
         self,
-        n_hash_funcs=128,
+        n_hash_funcs=256,
         hash_func_coverage=0.25,
         use_discrete_vectors=True,
         random_state=None,

@@ -6,12 +6,15 @@ __all__ = ["BruteForce"]
 import numpy as np
 from numba import get_num_threads, njit, prange, set_num_threads
 
-from aeon.similarity_search.whole_series._base import BaseWholeSeriesSearch
-from aeon.similarity_search.whole_series._commons import (
+from aeon.similarity_search.subsequence._commons import (
     _extract_top_k_from_dist_profile,
-    _inverse_distance_profile,
 )
-from aeon.utils.numba.general import z_normalise_series_2d, z_normalise_series_3d
+from aeon.similarity_search.whole_series._base import BaseWholeSeriesSearch
+from aeon.utils.numba.general import (
+    AEON_NUMBA_STD_THRESHOLD,
+    z_normalise_series_2d,
+    z_normalise_series_3d,
+)
 from aeon.utils.validation import check_n_jobs
 
 
@@ -139,7 +142,7 @@ class BruteForce(BaseWholeSeriesSearch):
         dist_profile = self.compute_distance_profile(X)
 
         if inverse_distance:
-            dist_profile = _inverse_distance_profile(dist_profile)
+            dist_profile = 1.0 / (dist_profile + AEON_NUMBA_STD_THRESHOLD)
 
         if X_index is not None:
             if X_index < 0 or X_index >= self.n_cases_:
@@ -153,13 +156,17 @@ class BruteForce(BaseWholeSeriesSearch):
             k = len(dist_profile)
         k = min(k, len(dist_profile))
 
-        return _extract_top_k_from_dist_profile(
-            dist_profile,
+        # Reshape 1D profile to 2D (n_cases, 1) for the shared function
+        dist_profile_2d = dist_profile.reshape(-1, 1)
+        indexes_2d, distances = _extract_top_k_from_dist_profile(
+            dist_profile_2d,
             k,
             dist_threshold,
             allow_trivial_matches=True,
             exclusion_size=0,
         )
+        # Extract case indexes (column 0) from 2D result
+        return indexes_2d[:, 0], distances
 
     def compute_distance_profile(self, X: np.ndarray) -> np.ndarray:
         """
