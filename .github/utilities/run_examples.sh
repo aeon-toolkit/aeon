@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Script to run all example notebooks.
-set -euxo pipefail
+set -euo pipefail
 
 CMD="python -m jupyter nbconvert --to notebook --inplace --execute --ExecutePreprocessor.timeout=600"
 MULTITHREADED=${2:-false}
@@ -38,7 +38,6 @@ fi
 
 shopt -s lastpipe
 notebooks=()
-runtimes=()
 
 # Loop over all notebooks in the examples directory.
 find "examples" -name "*.ipynb" -print0 |
@@ -52,6 +51,32 @@ find "examples" -name "*.ipynb" -print0 |
     fi
   done
 
+LOG_DIR=$(mktemp -d)
+trap 'rm -rf "$LOG_DIR"' EXIT
+
+run_notebook() {
+    local notebook=$1
+    local start=$(date +%s)
+    
+    if $CMD "$notebook" > /dev/null 2>&1; then
+        local status="PASS"
+    else
+        local status="FAIL"
+        echo "::error::Failed: $notebook"
+        $CMD "$notebook"
+    fi
+    
+    local end=$(date +%s)
+    local runtime=$((end-start))
+    
+    echo "$runtime $status $notebook" >> "$LOG_DIR/results.txt"
+    echo "Finished: $notebook (${runtime}s) [$status]"
+}
+
+export -f run_notebook
+export CMD
+export LOG_DIR
+
 if [ "$MULTITHREADED" = true ]; then
   # Detect CPU cores
   if [[ "$OSTYPE" == "darwin"* ]]; then
@@ -60,31 +85,29 @@ if [ "$MULTITHREADED" = true ]; then
     CORES=$(nproc)
   fi
   echo "Running ${#notebooks[@]} notebooks in parallel on $CORES cores..."
-  export CMD
-
-  # Run in parallel with runtime logging
-  printf "%s\0" "${notebooks[@]}" | xargs -0 -n 1 -P "$CORES" bash -c '
-    start=$(date +%s)
-    $CMD "$1"
-    ret=$?
-    end=$(date +%s)
-    echo "Finished: $1 ($((end-start))s)"
-    exit $ret
-  ' _
+  
+  printf "%s\0" "${notebooks[@]}" | xargs -0 -n 1 -P "$CORES" bash -c 'run_notebook "$@"' _
 
 else
   # Sequential execution
   for notebook in "${notebooks[@]}"; do
-    echo "Running: $notebook"
-
-    start=$(date +%s)
-    $CMD "$notebook"
-    end=$(date +%s)
-
-    runtimes+=($((end-start)))
+    run_notebook "$notebook"
   done
+fi
 
-  # print runtimes and notebooks
-  echo "Runtimes:"
-  paste <(printf "%s\n" "${runtimes[@]}") <(printf "%s\n" "${notebooks[@]}")
+FAILURES=0
+if [ -f "$LOG_DIR/results.txt" ]; then
+    echo -e "TIME\tSTATUS\tNOTEBOOK"
+    sort -rn "$LOG_DIR/results.txt" | awk '{print $1"s\t"$2"\t"$3}'
+    
+    if grep -q "FAIL" "$LOG_DIR/results.txt"; then
+        FAILURES=1
+        echo ""
+        echo "::error::The following notebooks FAILED:"
+        grep "FAIL" "$LOG_DIR/results.txt" | awk '{print $3}'
+    fi
+fi
+
+if [ $FAILURES -eq 1 ]; then
+    exit 1
 fi
