@@ -57,7 +57,7 @@ trap 'rm -rf "$LOG_DIR"' EXIT
 run_notebook() {
     local notebook=$1
     local start=$(date +%s)
-    
+
     if $CMD "$notebook" > /dev/null 2>&1; then
         local status="PASS"
     else
@@ -65,10 +65,10 @@ run_notebook() {
         echo "::error::Failed: $notebook"
         $CMD "$notebook"
     fi
-    
+
     local end=$(date +%s)
     local runtime=$((end-start))
-    
+
     echo "$runtime $status $notebook" >> "$LOG_DIR/results.txt"
     echo "Finished: $notebook (${runtime}s) [$status]"
 }
@@ -85,7 +85,7 @@ if [ "$MULTITHREADED" = true ]; then
     CORES=$(nproc)
   fi
   echo "Running ${#notebooks[@]} notebooks in parallel on $CORES cores..."
-  
+
   printf "%s\0" "${notebooks[@]}" | xargs -0 -n 1 -P "$CORES" bash -c 'run_notebook "$@"' _
 
 else
@@ -99,7 +99,7 @@ FAILURES=0
 if [ -f "$LOG_DIR/results.txt" ]; then
     echo -e "TIME\tSTATUS\tNOTEBOOK"
     sort -rn "$LOG_DIR/results.txt" | awk '{print $1"s\t"$2"\t"$3}'
-    
+
     if grep -q "FAIL" "$LOG_DIR/results.txt"; then
         FAILURES=1
         echo ""
