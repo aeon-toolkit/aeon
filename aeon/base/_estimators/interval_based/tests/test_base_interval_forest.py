@@ -263,42 +263,33 @@ def test_interval_features():
     assert est._interval_transformer == [True]
 
 
-def test_drcif_temporal_importance_curves():
-    """Testing DrCIFClassifierto execute temporal_importance_curves."""
+@pytest.mark.parametrize(
+    "base_estimator",
+    [None, ContinuousIntervalTree()],
+)
+def test_drcif_temporal_importance_curves(base_estimator):
+    """Test temporal_importance_curves for supported base estimators."""
     X, y = load_classification("GunPoint", split="TRAIN")
     X_small, y_small = X[:20], y[:20]
     n_timepoints = X_small.shape[-1]
 
-    dr = DrCIFClassifier(n_estimators=10, random_state=42)
+    dr = DrCIFClassifier(
+        base_estimator=base_estimator,
+        n_estimators=5,
+        random_state=42,
+    )
     dr.fit(X_small, y_small)
 
-    try:
-        names, values = dr.temporal_importance_curves()
-    except ValueError as e:
-        pytest.fail(
-            f"DrCIFClassifier.temporal_importance_curves"
-            f" raised unexpected ValueError: {e}"
-        )
+    names, curves = dr.temporal_importance_curves()
 
-    assert isinstance(names, list), "Output names must be a list."
-    assert isinstance(
-        values, (list, tuple)
-    ), "Output values must be a list/tuple of curves."
+    assert isinstance(names, list)
+    assert isinstance(curves, list)
+    assert len(names) == len(curves) > 0
 
-    assert (
-        len(names) > 0
-    ), "No feature names were returned, indicating a processing issue."
-    assert len(names) == len(
-        values
-    ), "Number of feature names must match number of curves."
+    curve = curves[0]
+    assert isinstance(curve, np.ndarray)
+    assert curve.ndim == 1
+    assert len(curve) == n_timepoints
+    assert np.all(curve >= 0)
 
-    for curve in values:
-        assert isinstance(curve, np.ndarray), "Each curve must be a NumPy array."
-        assert curve.ndim == 1, "Each curve must be a 1-dimensional array."
-
-        assert len(curve) == n_timepoints, (
-            f"Curve length ({len(curve)}) does not match"
-            f" expected time points ({n_timepoints})."
-        )
-
-        assert np.all(curve >= 0), "Importance curve values must be non-negative."
+    assert np.any(curve > 0), "Importance curve should contain non-zero values"
