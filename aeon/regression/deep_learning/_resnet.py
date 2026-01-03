@@ -230,11 +230,10 @@ class ResNetRegressor(BaseDeepRegressor):
         """
         import tensorflow as tf
 
-        if not hasattr(self, "_metrics"):
-            if isinstance(self.metrics, str):
-                self._metrics = [self.metrics]
-            else:
-                self._metrics = self.metrics
+        if isinstance(self.metrics, str):
+            self._metrics = [self.metrics]
+        else:
+            self._metrics = self.metrics
 
         self.optimizer_ = (
             tf.keras.optimizers.Adam(learning_rate=0.01)
@@ -279,11 +278,6 @@ class ResNetRegressor(BaseDeepRegressor):
 
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
-
-        if isinstance(self.metrics, list):
-            self._metrics = self.metrics
-        elif isinstance(self.metrics, str):
-            self._metrics = [self.metrics]
 
         self.input_shape = X.shape[1:]
         self.training_model_ = self.build_model(self.input_shape)
