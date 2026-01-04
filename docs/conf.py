@@ -1,5 +1,6 @@
 """Configuration file for the Sphinx documentation builder."""
 
+import importlib
 import os
 import sys
 from pathlib import Path
@@ -380,6 +381,59 @@ def linkcode_resolve(domain, info):
     )
 
 
+def _get_estimator_doc_path(estimator_class, estimator_name):
+    """
+    Get the documentation path for an estimator.
+
+    Checks if the estimator is re-exported in a parent package's __all__.
+    If found, uses the shorter public API path. Otherwise, falls back to
+    the current underscore-filtering logic.
+
+    Parameters
+    ----------
+    estimator_class : class
+        The estimator class object
+    estimator_name : str
+        Name of the estimator
+
+    Returns
+    -------
+    str
+        The path to use for documentation links
+        (e.g., 'aeon.classification.DummyClassifier')
+    """
+    module_path = estimator_class.__module__
+    module_parts = module_path.split(".")
+
+    # Check parent packages (skip the immediate module itself)
+    # Start from len-1 to avoid checking the module containing the class
+    for i in range(len(module_parts) - 1, 1, -1):
+        parent_path = ".".join(module_parts[:i])
+        try:
+            parent_module = importlib.import_module(parent_path)
+
+            # Check if exported in parent's __all__
+            if (
+                hasattr(parent_module, "__all__")
+                and estimator_name in parent_module.__all__
+            ):
+                # Verify it's the same class
+                if (
+                    hasattr(parent_module, estimator_name)
+                    and getattr(parent_module, estimator_name) is estimator_class
+                ):
+                    # Use public API path
+                    return f"{parent_path}.{estimator_name}"
+        except (ImportError, AttributeError):
+            continue
+
+    # Fallback: use current underscore-filtering logic
+    modpath = str(estimator_class)[8:-2]
+    path_parts = modpath.split(".")
+    clean_path = ".".join([p for p in path_parts if not p.startswith("_")])
+    return clean_path
+
+
 def _make_estimator_overview(app):
     """Make estimator overview table."""
     import pandas as pd
@@ -408,11 +462,8 @@ def _make_estimator_overview(app):
         # fetch tags
         tag_dict = estimator_class.get_class_tags()
 
-        # includes part of class string
-        modpath = str(estimator_class)[8:-2]
-        path_parts = modpath.split(".")
-        # joins strings excluding starting with '_'
-        clean_path = ".".join(list(filter(_does_not_start_with_underscore, path_parts)))
+        # Get documentation path using function that handles public API exports
+        clean_path = _get_estimator_doc_path(estimator_class, estimator_name)
         # adds html link reference
         estimator_name_as_link = str(
             '<a href="api_reference/auto_generated/'
