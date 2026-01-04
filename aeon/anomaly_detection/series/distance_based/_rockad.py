@@ -73,7 +73,7 @@ class ROCKAD(BaseSeriesAnomalyDetector):
         Data Analysis XXI. IDA 2023. Lecture Notes in Computer Science,
         vol 13876. Springer, Cham. https://doi.org/10.1007/978-3-031-30047-9_33
 
-    Examples
+Examples
     --------
     >>> import numpy as np
     >>> from aeon.anomaly_detection.series.distance_based import ROCKAD
