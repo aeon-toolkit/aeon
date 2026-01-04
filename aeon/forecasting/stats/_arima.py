@@ -270,7 +270,7 @@ class ARIMA(BaseForecaster, IterativeForecastingMixin):
 
     def iterative_forecast(self, y, prediction_horizon, exog=None):
         """Forecast ``prediction_horizon`` prediction using a single model fit on `y`.
-        
+
         This handles the logic for iteratively forecasting into the future, including
         adding the exogenous regression component at each step.
         """
@@ -499,9 +499,7 @@ class AutoARIMA(BaseForecaster, IterativeForecastingMixin):
         ValueError
             if prediction_horizon` less than 1.
         """
-        return self.final_model_.iterative_forecast(
-            y, prediction_horizon, exog=exog
-        )
+        return self.final_model_.iterative_forecast(y, prediction_horizon, exog=exog)
 
 
 @njit(cache=True, fastmath=True)
