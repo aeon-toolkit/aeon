@@ -212,12 +212,12 @@ def test_arima_exog_shape_mismatch_raises():
 
     model = ARIMA(p=1, d=0, q=1)
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="same number of rows"):
         model.fit(y_local, exog=np.random.randn(10, 3))
 
     model.fit(y_local, exog=exog)
 
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="exog must have .* features"):
         model.predict(y_local, exog=np.random.randn(1, 5))
 
 
@@ -247,3 +247,19 @@ def test_arima_no_exog_backward_compatibility():
 
     assert isinstance(pred, float)
     assert np.isfinite(pred)
+
+
+def test_autoarima_passes_exog_correctly():
+    """Test that AutoARIMA successfully passes exog to the inner ARIMA."""
+    rng = np.random.RandomState(42)
+    y_local = rng.randn(30)
+    exog = rng.randn(30, 1)
+
+    model = AutoARIMA(max_p=1, max_q=1, max_d=1)
+    model.fit(y_local, exog=exog)
+
+    next_exog = rng.randn(1, 1)
+    pred = model.predict(y_local, exog=next_exog)
+
+    assert np.isfinite(pred)
+    assert model.final_model_.exog_ is not None
