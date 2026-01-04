@@ -270,7 +270,7 @@ class ARIMA(BaseForecaster, IterativeForecastingMixin):
 
     def iterative_forecast(self, y, prediction_horizon, exog=None):
         """Forecast ``prediction_horizon`` prediction using a single model fit on `y`.
-        
+
         This handles the logic for iteratively forecasting into the future, including
         adding the exogenous regression component at each step.
         """
@@ -280,15 +280,12 @@ class ARIMA(BaseForecaster, IterativeForecastingMixin):
             if len(self._series) == len(y_array):
                 if np.allclose(self._series, y_array, equal_nan=True):
                     needs_fit = False
-
         if needs_fit:
             self.fit(y, exog=exog)
-
         h = prediction_horizon
         p, q, d = self.p, self.q, self.d
         phi, theta = self.phi_, self.theta_
         c = self.c_ if self.use_constant else 0.0
-
         future_exog = None
         if self.beta_ is not None:
             if exog is None:
@@ -299,7 +296,6 @@ class ARIMA(BaseForecaster, IterativeForecastingMixin):
             exog = np.asarray(exog)
             if exog.ndim == 1:
                 exog = exog.reshape(-1, self.exog_n_features_)
-
             if exog.shape[0] == h:
                 future_exog = exog
             elif exog.shape[0] >= len(y_array) + h:
@@ -312,38 +308,33 @@ class ARIMA(BaseForecaster, IterativeForecastingMixin):
                 raise ValueError(
                     f"Future exog must have {self.exog_n_features_} columns."
                 )
-
         n = len(self._differenced_series)
-        forecast_series = np.zeros(n + h)
-        forecast_series[:n] = self._differenced_series
-
         residuals = np.zeros(len(self.residuals_) + h)
         residuals[: len(self.residuals_)] = self.residuals_
-
+        forecast_series = np.zeros(n + h)
+        forecast_series[:n] = self._differenced_series
         for i in range(h):
-
+            # Get most recent p values (lags)
             t = n + i
-            ar_term = (
-                np.dot(phi, forecast_series[t - np.arange(1, p + 1)]) if p > 0 else 0.0
-            )
-            ma_term = (
-                np.dot(theta, residuals[t - np.arange(1, q + 1)]) if q > 0 else 0.0
-            )
+            ar_term = 0.0
+            if p > 0:
+                ar_term = np.dot(phi, forecast_series[t - np.arange(1, p + 1)])
+            # Get most recent q residuals (lags)
+            ma_term = 0.0
+            if q > 0:
+                ma_term = np.dot(theta, residuals[t - np.arange(1, q + 1)])
             next_value = c + ar_term + ma_term
 
             if future_exog is not None:
                 Xf = np.concatenate(([1.0], future_exog[i]))
                 next_value += float(Xf @ self.beta_)
-
             forecast_series[t] = next_value
-
+        # Correct differencing using forecast values
         y_forecast_diff = forecast_series[n : n + h]
-
         if d == 0:
             return y_forecast_diff
         else:
-            restored = _undifference(y_forecast_diff, self._series[-d:])
-            return restored[d:]
+            return _undifference(y_forecast_diff, self._series[-d:])[d:]
 
 
 class AutoARIMA(BaseForecaster, IterativeForecastingMixin):
@@ -442,7 +433,6 @@ class AutoARIMA(BaseForecaster, IterativeForecastingMixin):
         ) = model
         self.constant_term_ = constant_term_int == 1
         self.final_model_ = ARIMA(self.p_, self.d_, self.q_, self.constant_term_)
-
         self.final_model_.fit(y, exog=exog)
         self.forecast_ = self.final_model_.forecast_
         return self
@@ -499,9 +489,7 @@ class AutoARIMA(BaseForecaster, IterativeForecastingMixin):
         ValueError
             if prediction_horizon` less than 1.
         """
-        return self.final_model_.iterative_forecast(
-            y, prediction_horizon, exog=exog
-        )
+        return self.final_model_.iterative_forecast(y, prediction_horizon, exog=exog)
 
 
 @njit(cache=True, fastmath=True)
