@@ -2,8 +2,6 @@
 
 from functools import partial
 
-import numpy as np
-
 from aeon.base._base import _clone_estimator
 from aeon.testing.testing_data import FULL_TEST_DATA_DICT
 from aeon.utils.data_types import VALID_SERIES_INNER_TYPES
@@ -63,24 +61,15 @@ def check_forecaster_output(estimator, datatype):
     """Test the forecaster output on valid data."""
     estimator = _clone_estimator(estimator)
 
-    is_s2s = estimator.get_tag("capability:is_series_to_series", False)
-
     estimator.fit(
         FULL_TEST_DATA_DICT[datatype]["train"][0],
     )
     y_pred = estimator.predict(
         FULL_TEST_DATA_DICT[datatype]["test"][0],
     )
-    if is_s2s:
-        assert isinstance(y_pred, np.ndarray), (
-            f"predict(y) output for series-to-series forecaster should be "
-            f"np.ndarray, got {type(y_pred)}"
-        )
-    else:
-        assert isinstance(
-            y_pred, float
-        ), f"predict(y) output should be float, got {type(y_pred)}"
-
+    assert isinstance(y_pred, float), (
+        f"predict(y) output should be float, got" f" {type(y_pred)}"
+    )
     y_pred2 = estimator.forecast(FULL_TEST_DATA_DICT[datatype]["train"][0])
     y_pred3 = estimator.predict(FULL_TEST_DATA_DICT[datatype]["train"][0])
     assert y_pred2 == y_pred3, (
