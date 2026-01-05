@@ -8,12 +8,12 @@ from aeon.datasets.monster_loader import (
     load_monster_dataset,
     load_monster_dataset_names,
 )
-from aeon.testing.testing_config import PR_TESTING
+from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 @pytest.mark.skipif(
-    PR_TESTING,
-    reason="Only run on overnights because of read from internet.",
+    not _check_soft_dependencies("huggingface-hub", severity="none"),
+    reason="required soft dependency huggingface-hub not available",
 )
 @pytest.mark.xfail(raises=CONNECTION_ERRORS)
 def test_monster_dataset_names():
@@ -25,8 +25,8 @@ def test_monster_dataset_names():
 
 
 @pytest.mark.skipif(
-    PR_TESTING,
-    reason="Only run on overnights because of read from internet.",
+    not _check_soft_dependencies("huggingface-hub", severity="none"),
+    reason="required soft dependency huggingface-hub not available",
 )
 @pytest.mark.xfail(raises=CONNECTION_ERRORS)
 def test_load_monster_dataset():
@@ -39,7 +39,7 @@ def test_load_monster_dataset():
     dataset_name = "Pedestrian"
 
     X_train, y_train, X_test, y_test = load_monster_dataset(
-        dataset_name=dataset_name, fold=0, normalize=True
+        dataset_name=dataset_name, fold=0
     )
 
     assert isinstance(X_train, np.ndarray)
@@ -51,9 +51,3 @@ def test_load_monster_dataset():
     assert X_test.ndim == 3
     assert len(X_train) == len(y_train)
     assert len(X_test) == len(y_test)
-
-    # Check normalization
-    mean = np.mean(X_train, axis=(0, 2))
-    std = np.std(X_train, axis=(0, 2))
-    np.testing.assert_array_almost_equal(mean, np.zeros_like(mean), decimal=5)
-    np.testing.assert_array_almost_equal(std, np.ones_like(std), decimal=5)

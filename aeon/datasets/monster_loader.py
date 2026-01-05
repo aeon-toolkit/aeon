@@ -8,15 +8,19 @@ __all__ = [
 
 import numpy as np
 
-from aeon.utils.numba.general import z_normalise_series_3d
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 ORG_ID = "monster-monash"
-_monster_dataset_names = None
 
 
-def _fetch_monster_dataset_names() -> list[str]:
-    """Fetch the list of Monster dataset names from Hugging Face Hub."""
+def load_monster_dataset_names() -> list[str]:
+    """Load the list of available Monster dataset names from Hugging Face Hub.
+
+    Returns
+    -------
+    list of str
+        A list of available Monster dataset names.
+    """
     _check_soft_dependencies("huggingface-hub")
     from huggingface_hub import list_datasets
 
@@ -30,29 +34,8 @@ def _fetch_monster_dataset_names() -> list[str]:
     return sorted(dataset_names)
 
 
-def _lazy_load_monster_names():
-    """Fetch and cache names, but only on the first call."""
-    global _monster_dataset_names
-    if _monster_dataset_names is None:
-        _monster_dataset_names = _fetch_monster_dataset_names()
-
-
-def load_monster_dataset_names() -> list[str]:
-    """Load the list of available Monster dataset names from Hugging Face Hub.
-
-    Returns
-    -------
-    list of str
-        A list of available Monster dataset names.
-    """
-    _lazy_load_monster_names()
-    return _monster_dataset_names
-
-
 def load_monster_dataset(
-    dataset_name: str,
-    fold: int = 0,
-    normalize: bool = True,
+    dataset_name: str, fold: int = 0
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """Load a Monster dataset from Hugging Face Hub.
 
@@ -67,9 +50,6 @@ def load_monster_dataset(
     fold : int, default=0
         The specific cross-validation fold index to load. This determines which
         samples are used for the test set. Defaults to fold 0.
-    normalize : bool, default=True
-        If True, the time series data (X) is Z-normalized (mean=0, std=1) across
-        the series length using `z_normalise_series_3d`.
 
     Returns
     -------
@@ -120,8 +100,6 @@ def load_monster_dataset(
         repo_id=repo_id, filename=f"{dataset_name}_X.npy", repo_type="dataset"
     )
     X = np.load(data_path, mmap_mode="r")
-    if normalize:
-        X = z_normalise_series_3d(X)
 
     label_filename = f"{dataset_name}_Y.npy"
     try:
