@@ -10,12 +10,13 @@ __maintainer__ = []
 import numpy as np
 import pytest
 from sklearn.base import BaseEstimator, OutlierMixin
+from sklearn.ensemble import IsolationForest
 
 from aeon.anomaly_detection.collection import OutlierDetectionAdapter
 from aeon.testing.data_generation import make_example_3d_numpy
 
 
-class DummyOutlierDetector(BaseEstimator, OutlierMixin):
+class _DummyOutlierDetector(BaseEstimator, OutlierMixin):
     """Mock outlier detector for testing adapter label translation."""
 
     def __init__(self, forced_predictions=None):
@@ -53,7 +54,7 @@ def test_outlier_adapter_label_translation():
     """
     # Test with mixed pattern
     forced_output = np.array([-1, 1, -1, 1, -1])
-    dummy = DummyOutlierDetector(forced_predictions=forced_output)
+    dummy = _DummyOutlierDetector(forced_predictions=forced_output)
     adapter = OutlierDetectionAdapter(detector=dummy)
 
     X = make_example_3d_numpy(
@@ -85,7 +86,7 @@ def test_outlier_adapter_edge_cases(input_pattern, expected_output):
     - All outliers (-1) → All anomalies (1)
     - All inliers (1) → All normal (0)
     """
-    dummy = DummyOutlierDetector(forced_predictions=input_pattern)
+    dummy = _DummyOutlierDetector(forced_predictions=input_pattern)
     adapter = OutlierDetectionAdapter(detector=dummy)
 
     X = make_example_3d_numpy(
@@ -107,8 +108,6 @@ def test_outlier_adapter_with_real_isolation_forest():
 
     This test verifies interoperability with actual sklearn estimators.
     """
-    from sklearn.ensemble import IsolationForest
-
     # Create real IsolationForest detector
     detector = IsolationForest(n_estimators=10, random_state=42)
     adapter = OutlierDetectionAdapter(detector=detector)

@@ -5,8 +5,10 @@ __maintainer__ = []
 import numpy as np
 import pytest
 from sklearn.base import BaseEstimator, ClassifierMixin
+from sklearn.ensemble import RandomForestClassifier
 
 from aeon.anomaly_detection.collection import ClassificationAdapter
+from aeon.classification.feature_based import SummaryClassifier
 from aeon.testing.data_generation import make_example_3d_numpy
 
 
@@ -94,10 +96,6 @@ def test_classification_adapter_with_real_random_forest():
     This test verifies interoperability with actual sklearn estimators.
     Uses aeon's SummaryClassifier wrapper to handle 3D collection data.
     """
-    from sklearn.ensemble import RandomForestClassifier
-
-    from aeon.classification.feature_based import SummaryClassifier
-
     # Create RandomForestClassifier wrapped in SummaryClassifier for 3D data
     classifier = SummaryClassifier(
         estimator=RandomForestClassifier(n_estimators=10, random_state=42)
