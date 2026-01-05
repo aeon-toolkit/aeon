@@ -89,6 +89,7 @@ class LinearForecaster(BaseDeepForecaster, SeriesToSeriesForecastingMixin):
         self,
         window,
         horizon=1,
+        type="linear",
         batch_size=32,
         n_epochs=100,
         verbose=0,
@@ -108,6 +109,7 @@ class LinearForecaster(BaseDeepForecaster, SeriesToSeriesForecastingMixin):
     ):
         self.window = window
         self.horizon = horizon
+        self.type = type
         self.batch_size = batch_size
         self.n_epochs = n_epochs
         self.verbose = verbose
@@ -135,7 +137,7 @@ class LinearForecaster(BaseDeepForecaster, SeriesToSeriesForecastingMixin):
             file_path=self.file_path,
         )
 
-    def build_model(self, input_shape):
+    def build_model(self, input_shape, type):
         """Build one-layered Linear model for forecasting.
 
         Parameters
@@ -163,7 +165,70 @@ class LinearForecaster(BaseDeepForecaster, SeriesToSeriesForecastingMixin):
             dropout_rate=0.0,
             dropout_last=0.0,
         )
-        input_layer, output_layer = network.build_network(input_shape=input_shape)
+        if type == "linear":
+            input_layer, output_layer = network.build_network(input_shape=input_shape)
+
+        if type == "nlinear":
+            from tensorflow.keras import layers
+
+            input_layer = layers.Input(shape=input_shape)
+            x_last = input_layer[:, -1:, :]
+            x_norm = layers.Subtract(name="normalization")([input_layer, x_last])
+
+            inner_input, inner_output = network.build_network(input_shape=input_shape)
+            inner_model = tf.keras.Model(inputs=inner_input, outputs=inner_output)
+
+            linear_preds = inner_model(x_norm)
+            x = layers.Reshape((self.horizon, num_channels))(linear_preds)
+            output_layer = layers.Add(name="denormalization")([x, x_last])
+
+        if type == "dlinear":
+            from tensorflow.keras import layers
+
+            kernel_size = 25
+            pad_len = (kernel_size - 1) // 2
+
+            def _moving_avg_decomp(x):
+                front = tf.gather(x[:, 0:1, :], repeats=pad_len, axis=1)
+                end = tf.gather(x[:, -1:, :], repeats=pad_len, axis=1)
+                x_padded = tf.concat([front, x, end], axis=1)
+
+                trend = layers.AveragePooling1D(
+                    pool_size=kernel_size, strides=1, padding="valid"
+                )(x_padded)
+
+                seasonal = layers.Subtract()([x, trend])
+                return seasonal, trend
+
+            seasonal_init, trend_init = _moving_avg_decomp(input_layer)
+
+            seasonal_network = MLPNetwork(
+                n_layers=1,
+                n_units=self.horizon * num_channels,
+                activation="linear",
+                dropout_rate=0.0,
+                dropout_last=0.0,
+            )
+            trend_network = MLPNetwork(
+                n_layers=1,
+                n_units=self.horizon * num_channels,
+                activation="linear",
+                dropout_rate=0.0,
+                dropout_last=0.0,
+            )
+
+            s_in, s_out = seasonal_network.build_network(input_shape=input_shape)
+            t_in, t_out = trend_network.build_network(input_shape=input_shape)
+
+            linear_seasonal = tf.keras.Model(inputs=s_in, outputs=s_out)
+            linear_trend = tf.keras.Model(inputs=t_in, outputs=t_out)
+
+            seasonal_output = linear_seasonal(seasonal_init)
+            trend_output = linear_trend(trend_init)
+
+            combined = layers.Add()([seasonal_output, trend_output])
+            output_layer = layers.Reshape((self.horizon, num_channels))(combined)
+
         model = tf.keras.Model(inputs=input_layer, outputs=output_layer)
 
         self.optimizer_ = (
