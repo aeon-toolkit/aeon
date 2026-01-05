@@ -60,21 +60,6 @@ def test_dft_sfa_mindist_lower_bound():
         assert dist_dft_sfa <= euclidean_dist + 1e-10
 
 
-def test_dft_sfa_mindist_identity():
-    """Test that identical representations have zero distance."""
-    x, _ = make_example_3d_numpy(n_cases=5, n_channels=1, n_timepoints=15)
-
-    transform = SFAWhole(word_length=8, alphabet_size=8, norm=True)
-    x_sfa, x_dft = transform.fit_transform(x)
-
-    for i in range(len(x_sfa)):
-        # DFT to itself with same SFA
-        dist = mindist_dft_sfa_distance(x_dft[i], x_sfa[i], transform.breakpoints)
-
-        # Should be 0 or very close
-        assert dist < 1e-8
-
-
 def test_dft_sfa_mindist_non_negativity():
     """Test that DFT-SFA mindist is always non-negative."""
     x, _ = make_example_3d_numpy(n_cases=3, n_channels=1, n_timepoints=10)

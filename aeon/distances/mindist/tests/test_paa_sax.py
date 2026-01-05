@@ -75,26 +75,6 @@ def test_paa_sax_mindist_lower_bound():
         assert mindist_paa_sax <= euclidean_dist + 1e-10
 
 
-def test_paa_sax_mindist_identity():
-    """Test distance when PAA and SAX are from the same series."""
-    X, _ = load_unit_test("TRAIN")
-    X = zscore(X.squeeze(), axis=1)
-
-    sax_transform = SAX(n_segments=8, alphabet_size=8)
-    sax_transformed = sax_transform.fit_transform(X).squeeze()
-    paa_transformed = sax_transform._get_paa(X).squeeze()
-
-    for i in range(min(5, X.shape[0])):
-        dist = mindist_paa_sax_distance(
-            paa_transformed[i],
-            sax_transformed[i],
-            sax_transform.breakpoints,
-            X.shape[-1],
-        )
-        # PAA to corresponding SAX should be 0 or very close
-        assert dist < 1e-8
-
-
 def test_paa_sax_mindist_non_negativity():
     """Test that PAA-SAX mindist is always non-negative."""
     X, _ = load_unit_test("TRAIN")

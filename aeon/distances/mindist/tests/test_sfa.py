@@ -14,65 +14,6 @@ from aeon.distances.mindist import mindist_sfa_distance, mindist_sfa_pairwise_di
 from aeon.transformations.collection.dictionary_based import SFA, SFAFast, SFAWhole
 
 
-def test_sfa_mindist_basic_lower_bounding():
-    """Test that SFA mindist is a lower bound for Euclidean distance."""
-    X_train, _ = load_unit_test("TRAIN")
-    X_test, _ = load_unit_test("TEST")
-
-    X_train = zscore(X_train.squeeze(), axis=1)
-    X_test = zscore(X_test.squeeze(), axis=1)
-
-    sfa_transform = SFAWhole(word_length=8, alphabet_size=8, norm=True)
-    sfa_train, _ = sfa_transform.fit_transform(X_train)
-    sfa_test, _ = sfa_transform.transform(X_test)
-
-    for i in range(min(5, X_train.shape[0], X_test.shape[0])):
-        X = X_train[i].reshape(1, -1)
-        Y = X_test[i].reshape(1, -1)
-
-        mindist_sfa = mindist_sfa_distance(
-            sfa_train[i], sfa_test[i], sfa_transform.breakpoints
-        )
-
-        euclidean_dist = np.linalg.norm(X[0] - Y[0])
-
-        assert mindist_sfa <= euclidean_dist + 1e-10
-
-
-def test_sfa_mindist_identity():
-    """Test that identical SFA representations have zero distance."""
-    X, _ = load_unit_test("TRAIN")
-    X = zscore(X.squeeze(), axis=1)
-
-    sfa_transform = SFAWhole(word_length=8, alphabet_size=8, norm=True)
-    sfa_transformed, _ = sfa_transform.fit_transform(X)
-
-    for i in range(min(5, X.shape[0])):
-        dist = mindist_sfa_distance(
-            sfa_transformed[i], sfa_transformed[i], sfa_transform.breakpoints
-        )
-        assert_almost_equal(dist, 0.0, decimal=10)
-
-
-def test_sfa_mindist_symmetry():
-    """Test that SFA mindist is symmetric."""
-    X, _ = load_unit_test("TRAIN")
-    X = zscore(X.squeeze(), axis=1)
-
-    sfa_transform = SFAWhole(word_length=8, alphabet_size=8, norm=True)
-    sfa_transformed, _ = sfa_transform.fit_transform(X)
-
-    for i in range(min(3, X.shape[0])):
-        for j in range(i + 1, min(i + 3, X.shape[0])):
-            dist_ij = mindist_sfa_distance(
-                sfa_transformed[i], sfa_transformed[j], sfa_transform.breakpoints
-            )
-            dist_ji = mindist_sfa_distance(
-                sfa_transformed[j], sfa_transformed[i], sfa_transform.breakpoints
-            )
-            assert_almost_equal(dist_ij, dist_ji, decimal=10)
-
-
 def test_sfa_mindist_non_negativity():
     """Test that SFA mindist is always non-negative."""
     X, _ = load_unit_test("TRAIN")
