@@ -35,13 +35,13 @@ def is_series(X, include_2d=False):
     >>> import numpy as np
     >>> import pandas as pd
     >>> from aeon.utils.validation.series import is_series
-    >>> is_series(pd.Series([1, 2, 3, 4, 5]))
+    >>> is_series(pd.Series([1.0, 2.0, 3.0, 4.0, 5.0]))
     True
     >>> is_series(np.array([1, 2, 3, 4, 5]))
     True
-    >>> is_series(pd.DataFrame([[1, 2], [3, 4]]))
+    >>> is_series(pd.DataFrame([[1.0, 2.0], [3.0, 4.0]]))
     False
-    >>> is_series(pd.DataFrame([[1, 2], [3, 4]]), include_2d=True)
+    >>> is_series(pd.DataFrame([[1.0, 2.0], [3.0, 4.0]]), include_2d=True)
     True
     """
     valid = ["pd.Series", "np1d"]
@@ -88,7 +88,7 @@ def get_n_timepoints(X, axis=None):
     >>> from aeon.utils.validation.series import get_n_timepoints
     >>> get_n_timepoints(np.array([1, 2, 3, 4, 5]))
     5
-    >>> get_n_timepoints(pd.Series([1, 2, 3, 4, 5]))
+    >>> get_n_timepoints(pd.Series([1.0, 2.0, 3.0, 4.0, 5.0]))
     5
     >>> get_n_timepoints(np.array([[1, 2], [3, 4], [5, 6]]), axis=0)
     3
@@ -148,7 +148,7 @@ def get_n_channels(X, axis=None):
     >>> from aeon.utils.validation.series import get_n_channels
     >>> get_n_channels(np.array([1, 2, 3, 4, 5]))
     1
-    >>> get_n_channels(pd.Series([1, 2, 3, 4, 5]))
+    >>> get_n_channels(pd.Series([1.0, 2.0, 3.0, 4.0, 5.0]))
     1
     >>> get_n_channels(np.array([[1, 2], [3, 4], [5, 6]]), axis=0)
     2
