@@ -139,14 +139,12 @@ def test_base_rocketGPU_multivariate():
 def test_rocket_cpu_gpu(n_channels):
     """Test kernel generation parity between CPU and GPU versions of ROCKET.
 
-    Phase 1 (Current): Tests kernel generation parity - FIXED
-    Phase 2 (Future): Transform parity for multivariate datasets - TODO
+    Tests that GPU produces identical kernel parameters as CPU when using
+    the same random_state. Verifies kernel generation is fixed with numerical
+    precision (<1e-6).
 
-    With legacy_rng=False (default), GPU should produce identical kernel
-    parameters as CPU within numerical precision (<1e-6).
-
-    Note: Transform divergence on multivariate datasets is a known limitation
-    documented in Phase 2. See issue #1248 for details.
+    Note: Transform divergence on multivariate datasets is a separate issue
+    that will be addressed later. See issue #1248.
     """
     import numpy as np
 
@@ -161,10 +159,10 @@ def test_rocket_cpu_gpu(n_channels):
     rocket_gpu = ROCKETGPU(n_kernels=n_kernels, random_state=random_state)
     rocket_gpu.fit(X)
 
-    # Phase 1: Test kernel generation parity (FIXED - perfect match)
+    # Extract kernel parameters for comparison
     cpu_params = rocket_cpu.kernels
-    cpu_biases = cpu_params[2]  # Extract biases
-    cpu_dilations = cpu_params[3]  # Extract dilations
+    cpu_biases = cpu_params[2]
+    cpu_dilations = cpu_params[3]
 
     gpu_biases = np.array(rocket_gpu._list_of_biases)
     gpu_dilations = np.array(rocket_gpu._list_of_dilations)
@@ -182,67 +180,3 @@ def test_rocket_cpu_gpu(n_channels):
         decimal=0,
         err_msg="Kernel dilations don't match between CPU and GPU",
     )
-
-    # Phase 2 TODO: Add transform parity test when multivariate convolution fixed
-    # Currently: Univariate ~0.3% divergence (acceptable), Multivariate up to 244%
-    # See maintainer discussion on acceptable divergence levels for Phase 2
-
-
-@pytest.mark.skipif(
-    not _check_soft_dependencies("tensorflow", severity="none"),
-    reason="skip test if required soft dependency not available",
-)
-def test_rocket_gpu_legacy_mode():
-    """Test that legacy_rng=True preserves old GPU behavior and shows deprecation.
-
-    Verifies:
-    1. Legacy mode raises FutureWarning
-    2. Legacy mode still works (backward compatibility)
-    3. All kernels use all channels (legacy behavior)
-    """
-    import warnings
-
-    import numpy as np
-
-    random_state = 42
-    X, _ = make_example_3d_numpy(
-        n_channels=3, n_timepoints=50, random_state=random_state
-    )
-    # Convert to float32 for TensorFlow compatibility
-    X = X.astype(np.float32)
-
-    # Test deprecation warning
-    with warnings.catch_warnings(record=True) as w:
-        warnings.simplefilter("always")
-        rocket_gpu_legacy = ROCKETGPU(
-            n_kernels=20, random_state=random_state, legacy_rng=True
-        )
-
-        # Check that FutureWarning was raised (robust against unrelated warnings)
-        future_warnings = [
-            warning for warning in w if issubclass(warning.category, FutureWarning)
-        ]
-        assert (
-            len(future_warnings) >= 1
-        ), f"Expected at least 1 FutureWarning, got {len(future_warnings)}"
-        assert issubclass(
-            future_warnings[0].category, FutureWarning
-        ), f"Expected FutureWarning, got {w[0].category}"
-        assert "legacy_rng=True is deprecated" in str(
-            w[0].message
-        ), f"Warning message doesn't mention deprecation: {w[0].message}"
-
-    # Test that legacy mode still works (backward compatibility)
-    rocket_gpu_legacy.fit(X)
-    X_transform = rocket_gpu_legacy.transform(X)
-
-    expected_shape = (X.shape[0], 40)  # 20 kernels × 2 features
-    assert (
-        X_transform.shape == expected_shape
-    ), f"Shape mismatch: {X_transform.shape} != {expected_shape}"
-
-    # Verify all kernels use all channels (legacy behavior)
-    for i, channel_indices in enumerate(rocket_gpu_legacy._list_of_channel_indices):
-        assert (
-            len(channel_indices) == X.shape[1]
-        ), f"Kernel {i}: Expected all {X.shape[1]} channels, got {len(channel_indices)}"
