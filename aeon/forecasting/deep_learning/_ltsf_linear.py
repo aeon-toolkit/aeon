@@ -24,11 +24,24 @@ class LinearForecaster(BaseDeepForecaster, SeriesToSeriesForecastingMixin):
 
     Adapted from the implementation used in [1]_. Leverages the `MLPNetwork` from
     aeon's network module to build the architecture suitable for forecasting tasks.
+    Provides three variants : ["linear","nlinear","dlinear"] for processing input
+    window
 
     Parameters
     ----------
+    window : int
+        Lookback window size, the number of steps behind to fit.
     horizon : int, default=1
         Forecasting horizon, the number of steps ahead to predict.
+    type : str, default="linear"
+        The type of LinearForecaster to use.
+        "linear" : Simple 1-layered linear MLP network.
+        "nlinear" : Normalizes distribution shift in data by subtracting last value
+                    of window from input and adding it back before last prediction.
+                    Builds on top of `linear` forecaster.
+        "dlinear" : Decomposes data into trend and seasonal components by means
+                    of a moving average kernel.
+                    Builds of top of `linear` forecaster.
     batch_size : int, default=32
         Batch size for training the model.
     n_epochs : int, default=100
@@ -37,7 +50,7 @@ class LinearForecaster(BaseDeepForecaster, SeriesToSeriesForecastingMixin):
         Verbosity mode (0, 1, or 2).
     optimizer : str or tf.keras.optimizers.Optimizer, default=None
         Optimizer to use for training.
-    metrics : str or list[str|function|keras.metrics.Metric], default="accuracy"
+    metrics : str | list[str|function|keras.metrics.Metric],default="mean_squared_error"
         The evaluation metrics to use during training. Each can be a string, function,
         or a keras.metrics.Metric instance (see https://keras.io/api/metrics/).
         If a single string metric is provided, it will be used as the only metric.
@@ -94,7 +107,7 @@ class LinearForecaster(BaseDeepForecaster, SeriesToSeriesForecastingMixin):
         n_epochs=100,
         verbose=0,
         optimizer=None,
-        metrics="accuracy",
+        metrics="mean_squared_error",
         loss="mse",
         callbacks=None,
         random_state=None,
@@ -168,7 +181,7 @@ class LinearForecaster(BaseDeepForecaster, SeriesToSeriesForecastingMixin):
         if type == "linear":
             input_layer, output_layer = network.build_network(input_shape=input_shape)
 
-        if type == "nlinear":
+        elif type == "nlinear":
             from tensorflow.keras import layers
 
             input_layer = layers.Input(shape=input_shape)
@@ -182,15 +195,15 @@ class LinearForecaster(BaseDeepForecaster, SeriesToSeriesForecastingMixin):
             x = layers.Reshape((self.horizon, num_channels))(linear_preds)
             output_layer = layers.Add(name="denormalization")([x, x_last])
 
-        if type == "dlinear":
+        elif type == "dlinear":
             from tensorflow.keras import layers
 
             kernel_size = 25
             pad_len = (kernel_size - 1) // 2
 
             def _moving_avg_decomp(x):
-                front = tf.gather(x[:, 0:1, :], repeats=pad_len, axis=1)
-                end = tf.gather(x[:, -1:, :], repeats=pad_len, axis=1)
+                front = tf.repeat(x[:, 0:1, :], repeats=pad_len, axis=1)
+                end = tf.repeat(x[:, -1:, :], repeats=pad_len, axis=1)
                 x_padded = tf.concat([front, x, end], axis=1)
 
                 trend = layers.AveragePooling1D(
@@ -228,6 +241,14 @@ class LinearForecaster(BaseDeepForecaster, SeriesToSeriesForecastingMixin):
 
             combined = layers.Add()([seasonal_output, trend_output])
             output_layer = layers.Reshape((self.horizon, num_channels))(combined)
+
+        else:
+            raise (
+                ValueError(
+                    f"`type` expects linear, nlinear or dlinear."
+                    f"but got type {self.type}."
+                )
+            )
 
         model = tf.keras.Model(inputs=input_layer, outputs=output_layer)
 
