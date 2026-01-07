@@ -83,7 +83,15 @@ def check_forecaster_output(estimator, datatype):
 
     y_pred2 = estimator.forecast(FULL_TEST_DATA_DICT[datatype]["train"][0])
     y_pred3 = estimator.predict(FULL_TEST_DATA_DICT[datatype]["train"][0])
-    assert y_pred2 == y_pred3, (
-        f"fit(y).predict(y) and forecast(y) should be the same, but"
-        f"output differ: {y_pred2} != {y_pred3}"
-    )
+    if is_s2s:
+        np.testing.assert_allclose(
+            y_pred2,
+            y_pred3,
+            err_msg=f"fit(y).predict(y) and forecast(y)"
+            f"should be the same for {estimator}",
+        )
+    else:
+        assert y_pred2 == y_pred3, (
+            f"fit(y).predict(y) and forecast(y) should be the same, but"
+            f"output differ: {y_pred2} != {y_pred3}"
+        )
