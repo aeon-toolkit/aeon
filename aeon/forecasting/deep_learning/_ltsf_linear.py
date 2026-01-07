@@ -20,12 +20,18 @@ from aeon.networks._mlp import MLPNetwork
 
 
 class LinearForecaster(BaseDeepForecaster, SeriesToSeriesForecastingMixin):
-    """A deep learning forecaster using Artificial Neural Network (ANN).
+    """LTSF-Linear Forecaster family (Linear, NLinear, DLinear).
 
-    Adapted from the implementation used in [1]_. Leverages the `MLPNetwork` from
-    aeon's network module to build the architecture suitable for forecasting tasks.
-    Provides three variants : ["linear","nlinear","dlinear"] for processing input
-    window
+    Implementation of the Linear-family models as proposed in [1]_.
+    This family of models uses a single linear layer to map a lookback window
+    directly to a forecasting horizon, proving highly effective for
+    long-term forecasting tasks.
+    Variants:
+    - "linear": A vanilla one-layered linear network.
+    - "nlinear": Adds a normalization step (subtracting the last value of the
+      window) to handle distribution shift in data.
+    - "dlinear": Uses a moving average kernel to decompose the series into
+      Trend and Seasonal components, forecasting each with a separate linear head.
 
     Parameters
     ----------
@@ -34,7 +40,7 @@ class LinearForecaster(BaseDeepForecaster, SeriesToSeriesForecastingMixin):
     horizon : int, default=1
         Forecasting horizon, the number of steps ahead to predict.
     type : str, default="linear"
-        The type of LinearForecaster to use.
+        The type of LinearForecaster variant to use.
         "linear" : Simple 1-layered linear MLP network.
         "nlinear" : Normalizes distribution shift in data by subtracting last value
                     of window from input and adding it back before last prediction.
@@ -150,13 +156,15 @@ class LinearForecaster(BaseDeepForecaster, SeriesToSeriesForecastingMixin):
             file_path=self.file_path,
         )
 
-    def build_model(self, input_shape, type):
+    def build_model(self, input_shape: tuple, type: str):
         """Build one-layered Linear model for forecasting.
 
         Parameters
         ----------
         input_shape : tuple
             Shape of input data.
+        type : str
+            Type of LinearForecaster
 
         Returns
         -------
@@ -198,13 +206,15 @@ class LinearForecaster(BaseDeepForecaster, SeriesToSeriesForecastingMixin):
         elif type == "dlinear":
             from tensorflow.keras import layers
 
+            input_layer = layers.Input(shape=input_shape)
             kernel_size = 25
             pad_len = (kernel_size - 1) // 2
 
             def _moving_avg_decomp(x):
-                front = tf.repeat(x[:, 0:1, :], repeats=pad_len, axis=1)
-                end = tf.repeat(x[:, -1:, :], repeats=pad_len, axis=1)
-                x_padded = tf.concat([front, x, end], axis=1)
+                """Implement moving average kernel."""
+                front = tf.keras.ops.repeat(x[:, 0:1, :], repeats=pad_len, axis=1)
+                end = tf.keras.ops.repeat(x[:, -1:, :], repeats=pad_len, axis=1)
+                x_padded = tf.keras.ops.concatenate([front, x, end], axis=1)
 
                 trend = layers.AveragePooling1D(
                     pool_size=kernel_size, strides=1, padding="valid"
@@ -308,7 +318,7 @@ class LinearForecaster(BaseDeepForecaster, SeriesToSeriesForecastingMixin):
         y_train = y_windows[:num_sequences]
 
         input_shape = X_train.shape[1:]
-        self.training_model_ = self.build_model(input_shape)
+        self.training_model_ = self.build_model(input_shape, self.type)
 
         if self.save_init_model:
             self.training_model_.save(self.file_path + self.init_file_name + ".keras")
@@ -415,13 +425,16 @@ class LinearForecaster(BaseDeepForecaster, SeriesToSeriesForecastingMixin):
             raise NotImplementedError(
                 "Exogenous variables not supported in LinearForecaster."
             )
+        if y.ndim == 1:
+            y = y.reshape(-1, 1)
+        num_channels = y.shape[-1]
 
         if prediction_horizon <= self.horizon:
-            full_preds = self._predict(y, exog)
-            return full_preds[:prediction_horizon]
+            full_preds_ = self._predict(y, exog)
+            full_preds = full_preds_[:prediction_horizon]
+            return np.squeeze(full_preds) if num_channels == 1 else full_preds
 
         else:
-            num_channels = y.shape[-1]
             preds = np.zeros((prediction_horizon, num_channels))
             current_y = y.copy()
             current_idx = 0
@@ -431,10 +444,10 @@ class LinearForecaster(BaseDeepForecaster, SeriesToSeriesForecastingMixin):
                 remaining_steps = prediction_horizon - current_idx
                 chunk_size = min(self.horizon, remaining_steps)
                 preds[current_idx : current_idx + chunk_size] = new_preds[:chunk_size]
-                current_y = np.append(current_y, new_preds)
+                current_y = np.append(current_y, new_preds, axis=0)
                 current_idx += chunk_size
 
-            return preds
+            return np.squeeze(preds) if num_channels == 1 else preds
 
     @classmethod
     def _get_test_params(
@@ -454,5 +467,27 @@ class LinearForecaster(BaseDeepForecaster, SeriesToSeriesForecastingMixin):
         params : dict or list of dict, default={}
             Parameters to create testing instances of the class.
         """
-        param = {"window": 10, "n_epochs": 10, "batch_size": 4}
-        return [param]
+        params = [
+            {
+                "window": 10,
+                "horizon": 1,
+                "type": "linear",
+                "n_epochs": 1,
+                "batch_size": 4,
+            },
+            {
+                "window": 10,
+                "horizon": 2,
+                "type": "nlinear",
+                "n_epochs": 1,
+                "batch_size": 4,
+            },
+            {
+                "window": 10,
+                "horizon": 3,
+                "type": "dlinear",
+                "n_epochs": 1,
+                "batch_size": 4,
+            },
+        ]
+        return params
