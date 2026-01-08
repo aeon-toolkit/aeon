@@ -5,10 +5,6 @@ __all__ = ["ROCKETGPU"]
 
 import numpy as np
 
-# Import CPU's kernel generation function
-from aeon.transformations.collection.convolution_based._rocket import (
-    _generate_kernels,
-)
 from aeon.transformations.collection.convolution_based.rocketGPU.base import (
     BaseROCKETGPU,
 )
@@ -32,16 +28,18 @@ class ROCKETGPU(BaseROCKETGPU):
     ----------
     n_kernels : int, default=10000
        Number of random convolutional filters.
+    kernel_size : list, default = None
+        The list of possible kernel sizes, default is [7, 9, 11].
+    padding : list, default = None
+        The list of possible tensorflow padding, default is ["SAME", "VALID"].
+    use_dilation : bool, default = True
+        Whether or not to use dilation in convolution operations.
+    bias_range : Tuple, default = None
+        The min and max value of bias values, default is (-1.0, 1.0).
     batch_size : int, default = 64
         The batch to parallelize over GPU.
     random_state : None or int, optional, default = None
         Seed for random number generation.
-
-    Notes
-    -----
-    This GPU implementation uses the CPU's kernel generation logic
-    (from `_rocket._generate_kernels`) to ensure exact kernel parity
-    when using the same random seed.
 
     References
     ----------
@@ -56,17 +54,61 @@ class ROCKETGPU(BaseROCKETGPU):
     def __init__(
         self,
         n_kernels=10000,
+        kernel_size=None,
+        padding=None,
+        use_dilation=True,
+        bias_range=None,
         batch_size=64,
         random_state=None,
     ):
         super().__init__(n_kernels)
 
         self.n_kernels = n_kernels
+        self.kernel_size = kernel_size
+        self.padding = padding
+        self.use_dilation = use_dilation
+        self.bias_range = bias_range
         self.batch_size = batch_size
         self.random_state = random_state
 
+    def _define_parameters(self):
+        """Define the parameters of ROCKET."""
+        rng = np.random.default_rng(self.random_state)
+
+        self._list_of_kernels = []
+        self._list_of_dilations = []
+        self._list_of_paddings = []
+        self._list_of_biases = []
+
+        for _ in range(self.n_kernels):
+            _kernel_size = rng.choice(self._kernel_size, size=1)[0]
+            _convolution_kernel = rng.normal(size=(_kernel_size, self.n_channels, 1))
+            _convolution_kernel = _convolution_kernel - _convolution_kernel.mean(
+                axis=0, keepdims=True
+            )
+
+            if self.use_dilation:
+                _dilation_rate = 2 ** rng.uniform(
+                    0, np.log2((self.input_length - 1) / (_kernel_size - 1))
+                )
+            else:
+                _dilation_rate = 1
+
+            _padding = rng.choice(self._padding, size=1)[0]
+            assert _padding in ["SAME", "VALID"]
+
+            _bias = rng.uniform(self._bias_range[0], self._bias_range[1])
+
+            self._list_of_kernels.append(_convolution_kernel)
+            self._list_of_dilations.append(_dilation_rate)
+            self._list_of_paddings.append(_padding)
+            self._list_of_biases.append(_bias)
+
     def _fit(self, X, y=None):
         """Generate random kernels adjusted to time series shape.
+
+        Infers time series length and number of channels from input numpy array,
+        and generates random kernels.
 
         Parameters
         ----------
@@ -81,91 +123,13 @@ class ROCKETGPU(BaseROCKETGPU):
         self.input_length = X.shape[2]
         self.n_channels = X.shape[1]
 
-        self.kernels = _generate_kernels(
-            n_timepoints=self.input_length,
-            n_kernels=self.n_kernels,
-            n_channels=self.n_channels,
-            seed=self.random_state,
-        )
-        self._convert_cpu_kernels_to_gpu_format()
-        return self
+        self._kernel_size = [7, 9, 11] if self.kernel_size is None else self.kernel_size
+        self._padding = ["VALID", "SAME"] if self.padding is None else self.padding
+        self._bias_range = (-1.0, 1.0) if self.bias_range is None else self.bias_range
 
-    def _convert_cpu_kernels_to_gpu_format(self):
-        """Convert CPU's kernel format to GPU's TensorFlow-compatible format.
+        assert self._bias_range[0] <= self._bias_range[1]
 
-        CPU kernels are stored compactly as:
-        (weights,lengths,biases,dilations,paddings,num_channel_indices,channel_indices)
-
-        GPU needs:
-        - _list_of_kernels: List of (kernel_length, n_channels, 1) arrays
-        - _list_of_dilations: List of int dilation rates
-        - _list_of_paddings: List of "SAME" or "VALID" strings
-        - _list_of_biases: List of float bias values
-
-        The key conversion is handling CPU's selective channel indexing
-        by creating dense kernels with zero weights for unused channels.
-        """
-        (
-            weights,
-            lengths,
-            biases,
-            dilations,
-            paddings,
-            num_channel_indices,
-            channel_indices,
-        ) = self.kernels
-
-        self._list_of_kernels = []
-        self._list_of_dilations = []
-        self._list_of_paddings = []
-        self._list_of_biases = []
-
-        weight_idx = 0
-        channel_idx = 0
-
-        for i in range(self.n_kernels):
-            kernel_length = lengths[i]
-            n_kernel_channels = num_channel_indices[i]
-
-            # Extract this kernel's sparse weights from CPU format
-            n_weights = kernel_length * n_kernel_channels
-            sparse_weights = weights[weight_idx : weight_idx + n_weights]
-            sparse_weights = sparse_weights.reshape((n_kernel_channels, kernel_length))
-
-            # Get which channels this kernel operates on
-            selected_channels = channel_indices[
-                channel_idx : channel_idx + n_kernel_channels
-            ]
-
-            # Create dense kernel tensor: (kernel_length, n_channels, 1)
-            # Unused channels have zero weights (no contribution to convolution)
-            dense_kernel = np.zeros(
-                (kernel_length, self.n_channels, 1), dtype=np.float32
-            )
-
-            # Place sparse weights in the corresponding channel positions
-            # Preserving the exact channel order from CPU
-            for c_idx, channel in enumerate(selected_channels):
-                dense_kernel[:, channel, 0] = sparse_weights[c_idx, :]
-
-            self._list_of_kernels.append(dense_kernel)
-
-            # Convert numeric padding to TensorFlow categorical padding
-            # CPU: 0 or (length-1)*dilation//2
-            # GPU: "VALID" or "SAME"
-            if paddings[i] == 0:
-                self._list_of_paddings.append("VALID")
-            else:
-                # Non-zero padding -> use SAME to approximate symmetric padding
-                self._list_of_paddings.append("SAME")
-
-            # Convert dilation and bias to Python scalar types
-            self._list_of_dilations.append(int(dilations[i]))
-            self._list_of_biases.append(float(biases[i]))
-
-            # Advance indices for next kernel
-            weight_idx += n_weights
-            channel_idx += n_kernel_channels
+        self._define_parameters()
 
     def _generate_batch_indices(self, n):
         """Generate the list of batches.
@@ -218,8 +182,7 @@ class ROCKETGPU(BaseROCKETGPU):
 
         tf.random.set_seed(self.random_state)
 
-        # Transpose and convert to float32 for TensorFlow compatibility
-        X = X.transpose(0, 2, 1).astype(np.float32)
+        X = X.transpose(0, 2, 1)
 
         batch_indices_list = self._generate_batch_indices(n=len(X))
 
