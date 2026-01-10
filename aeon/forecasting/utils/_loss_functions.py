@@ -10,7 +10,6 @@ from aeon.forecasting.utils._extract_paras import (
 
 LOG_2PI = 1.8378770664093453
 
-
 @njit(cache=True, fastmath=True)
 def _arima_fit(params, data, model):
     """Calculate the AIC of an ARIMA model given the parameters."""
@@ -42,6 +41,14 @@ def _arima_fit(params, data, model):
     k = len(params)
     return likelihood + 2 * k
 
+EPS=1e-6
+
+@njit(inline="always", cache=True)
+def safe_div(num, den):
+    if den < EPS:
+        return num / EPS
+    else:
+        return num / den
 
 @njit(fastmath=True, cache=True)
 def _ets_fit(params, data, model, return_all_states=False):
@@ -55,7 +62,7 @@ def _ets_fit(params, data, model, return_all_states=False):
         trend_type, seasonality_type, seasonal_period, data
     )
     avg_mean_sq_err_ = 0
-    liklihood_ = 0
+    sse_ = 0
     residuals_ = np.zeros(n_timepoints)  # 1 Less residual than data points
     fitted_values_ = np.zeros(n_timepoints)
     for t in range(n_timepoints):
@@ -81,19 +88,16 @@ def _ets_fit(params, data, model, return_all_states=False):
         residuals_[t] = error
         fitted_values_[t] = fitted_value
         avg_mean_sq_err_ += (time_point - fitted_value) ** 2
-        liklihood_error = error
-        if error_type == 2:  # Multiplicative
-            liklihood_error *= fitted_value
-        liklihood_ += liklihood_error**2
+        sse_ += error**2
     avg_mean_sq_err_ /= n_timepoints
-    liklihood_ = n_timepoints * np.log(liklihood_)
+    variance = sse_ / n_timepoints
+    liklihood_ = -0.5 * n_timepoints * (np.log(2 * np.pi) + np.log(variance) + 1)
     k_ = (
         seasonal_period * (seasonality_type != 0)
-        + 2 * (trend_type != 0)
+        + (1 + (phi != 1)) * (trend_type != 0)
         + 2
-        + 1 * (phi != 1)
     )
-    aic_ = liklihood_ + 2 * k_ - n_timepoints * np.log(n_timepoints)
+    aic_ = -2 * liklihood_ + 2 * k_
     return (
         aic_,
         level,
@@ -129,9 +133,7 @@ def _ets_initialise(trend_type, seasonality_type, seasonal_period, data):
         )
     elif trend_type == 2:
         # Average ratio between corresponding points in the first two seasons
-        trend = np.mean(
-            data[seasonal_period : 2 * seasonal_period] / data[:seasonal_period]
-        )
+        trend = safe_div(np.mean(data[seasonal_period : 2 * seasonal_period]), np.mean(data[:seasonal_period]))
     else:
         # No trend
         trend = 0
@@ -184,7 +186,7 @@ def _ets_update_states(
     )
     # Calculate the error term (observed value - fitted value)
     if error_type == 2:
-        error = data_item / fitted_value - 1  # Multiplicative error
+        error = safe_div(data_item, fitted_value) - 1  # Multiplicative error
     else:
         error = data_item - fitted_value  # Additive error
     # Update level
@@ -198,7 +200,7 @@ def _ets_update_states(
             if trend_type == 1:
                 trend += (curr_level + curr_seasonality) * beta * error
             else:
-                trend += curr_seasonality / curr_level * beta * error
+                trend += safe_div(curr_seasonality, curr_level) * beta * error
         elif trend_type == 1:
             trend += curr_level * beta * error
     else:
@@ -212,9 +214,9 @@ def _ets_update_states(
             seasonality_correction *= trend_level_combination
         if trend_type == 2:
             trend_correction *= curr_level
-        level = trend_level_combination + alpha * error / level_correction
-        trend = damped_trend + beta * error / trend_correction
-        seasonality = curr_seasonality + gamma * error / seasonality_correction
+        level = trend_level_combination + alpha * safe_div(error, level_correction)
+        trend = damped_trend + beta * safe_div(error, trend_correction)
+        seasonality = curr_seasonality + gamma * safe_div(error, seasonality_correction)
     return (fitted_value, error, level, trend, seasonality)
 
 
