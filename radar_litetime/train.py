@@ -4,12 +4,11 @@ import time
 from pathlib import Path
 
 import numpy as np
+from data_utils import load_dataset, save_json
 from sklearn.metrics import classification_report, confusion_matrix
 from sklearn.model_selection import train_test_split
 
 from aeon.classification.deep_learning import LITETimeClassifier
-
-from data_utils import load_dataset, save_json
 
 
 def parse_args():
@@ -51,8 +50,12 @@ def parse_args():
         default="pad",
         help="长度不一致时的处理方式：pad 补齐、truncate 截断、error 报错。",
     )
-    parser.add_argument("--pad-value", type=float, default=0.0, help="补齐时使用的数值。")
-    parser.add_argument("--max-length", type=int, default=None, help="强制截断/补齐到固定长度。")
+    parser.add_argument(
+        "--pad-value", type=float, default=0.0, help="补齐时使用的数值。"
+    )
+    parser.add_argument(
+        "--max-length", type=int, default=None, help="强制截断/补齐到固定长度。"
+    )
     parser.add_argument(
         "--nan-strategy",
         choices=["zero", "ffill", "drop"],
@@ -60,7 +63,9 @@ def parse_args():
         help="NaN 处理策略：zero 填 0、ffill 前向填充、drop 删除含 NaN 行。",
     )
 
-    parser.add_argument("--n-classifiers", type=int, default=5, help="LITETime 子模型数量。")
+    parser.add_argument(
+        "--n-classifiers", type=int, default=5, help="LITETime 子模型数量。"
+    )
     parser.add_argument(
         "--use-litemv",
         action="store_true",
@@ -120,7 +125,14 @@ def _split_train_val(
             random_state=random_state,
             stratify=y_train_full,
         )
-    return X_train_full, np.empty((0,)), y_train_full, np.empty((0,)), paths_train_full, []
+    return (
+        X_train_full,
+        np.empty((0,)),
+        y_train_full,
+        np.empty((0,)),
+        paths_train_full,
+        [],
+    )
 
 
 def _collect_model_files(output_dir, best_prefix, last_prefix, save_best, save_last):
@@ -150,13 +162,15 @@ def main():
         nan_strategy=args.nan_strategy,
     )
 
-    X_train_full, X_test, y_train_full, y_test, paths_train_full, paths_test = train_test_split(
-        X,
-        y,
-        paths,
-        test_size=args.test_size,
-        random_state=args.random_state,
-        stratify=y,
+    X_train_full, X_test, y_train_full, y_test, paths_train_full, paths_test = (
+        train_test_split(
+            X,
+            y,
+            paths,
+            test_size=args.test_size,
+            random_state=args.random_state,
+            stratify=y,
+        )
     )
 
     (
@@ -215,7 +229,9 @@ def main():
     if len(y_val) > 0:
         print("Predicting on validation set...")
         y_val_pred = clf.predict(X_val)
-        val_report = classification_report(y_val, y_val_pred, digits=4, output_dict=True)
+        val_report = classification_report(
+            y_val, y_val_pred, digits=4, output_dict=True
+        )
         val_matrix = confusion_matrix(y_val, y_val_pred).tolist()
 
     model_files = _collect_model_files(

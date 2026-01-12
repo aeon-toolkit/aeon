@@ -1,15 +1,14 @@
 import argparse
 import time
-from pathlib import Path
 from itertools import product
+from pathlib import Path
 
 import joblib
+from data_utils import load_dataset, save_json
 from sklearn.metrics import classification_report, confusion_matrix
 from sklearn.model_selection import train_test_split
 
 from aeon.classification.convolution_based import MultiRocketClassifier
-
-from data_utils import load_dataset, save_json
 
 
 def parse_args():
@@ -37,7 +36,9 @@ def parse_args():
         help="要读取的文件扩展名，逗号分隔。",
     )
     parser.add_argument("--test-size", type=float, default=0.2, help="测试集比例。")
-    parser.add_argument("--val-size", type=float, default=0.1, help="验证集比例（从训练集中划分）。")
+    parser.add_argument(
+        "--val-size", type=float, default=0.1, help="验证集比例（从训练集中划分）。"
+    )
     parser.add_argument("--random-state", type=int, default=42, help="随机种子。")
 
     parser.add_argument(
@@ -46,8 +47,12 @@ def parse_args():
         default="pad",
         help="长度不一致时的处理方式：pad 补齐、truncate 截断、error 报错。",
     )
-    parser.add_argument("--pad-value", type=float, default=0.0, help="补齐时使用的数值。")
-    parser.add_argument("--max-length", type=int, default=None, help="强制截断/补齐到固定长度。")
+    parser.add_argument(
+        "--pad-value", type=float, default=0.0, help="补齐时使用的数值。"
+    )
+    parser.add_argument(
+        "--max-length", type=int, default=None, help="强制截断/补齐到固定长度。"
+    )
     parser.add_argument(
         "--nan-strategy",
         choices=["zero", "ffill", "drop"],
@@ -55,7 +60,9 @@ def parse_args():
         help="NaN 处理策略：zero 填 0、ffill 前向填充、drop 删除含 NaN 行。",
     )
 
-    parser.add_argument("--n-kernels", type=int, default=10000, help="MultiROCKET 核数量。")
+    parser.add_argument(
+        "--n-kernels", type=int, default=10000, help="MultiROCKET 核数量。"
+    )
     parser.add_argument(
         "--max-dilations-per-kernel",
         type=int,
@@ -68,7 +75,9 @@ def parse_args():
         default=4,
         help="每个核提取的特征数量。",
     )
-    parser.add_argument("--n-jobs", type=int, default=1, help="并行任务数，-1 表示全部核心。")
+    parser.add_argument(
+        "--n-jobs", type=int, default=1, help="并行任务数，-1 表示全部核心。"
+    )
     parser.add_argument(
         "--enable-search",
         action="store_true",
@@ -111,13 +120,15 @@ def main():
         nan_strategy=args.nan_strategy,
     )
 
-    X_train_full, X_test, y_train_full, y_test, paths_train_full, paths_test = train_test_split(
-        X,
-        y,
-        paths,
-        test_size=args.test_size,
-        random_state=args.random_state,
-        stratify=y,
+    X_train_full, X_test, y_train_full, y_test, paths_train_full, paths_test = (
+        train_test_split(
+            X,
+            y,
+            paths,
+            test_size=args.test_size,
+            random_state=args.random_state,
+            stratify=y,
+        )
     )
 
     X_train, X_val, y_train, y_val, paths_train, paths_val = train_test_split(
@@ -154,10 +165,18 @@ def main():
     }
 
     if args.enable_search:
-        search_n_kernels = [int(v) for v in args.search_n_kernels.split(",") if v.strip()]
-        search_max_dilations = [int(v) for v in args.search_max_dilations.split(",") if v.strip()]
-        search_n_features = [int(v) for v in args.search_n_features.split(",") if v.strip()]
-        combos = list(product(search_n_kernels, search_max_dilations, search_n_features))
+        search_n_kernels = [
+            int(v) for v in args.search_n_kernels.split(",") if v.strip()
+        ]
+        search_max_dilations = [
+            int(v) for v in args.search_max_dilations.split(",") if v.strip()
+        ]
+        search_n_features = [
+            int(v) for v in args.search_n_features.split(",") if v.strip()
+        ]
+        combos = list(
+            product(search_n_kernels, search_max_dilations, search_n_features)
+        )
         total = len(combos)
         print(f"Start grid search: {total} configs")
         for i, (n_kernels, max_dilations, n_features) in enumerate(combos, start=1):
@@ -168,7 +187,9 @@ def main():
             clf, val_acc, fit_seconds = train_and_eval(
                 n_kernels, max_dilations, n_features
             )
-            print(f"[{i}/{total}] val accuracy={val_acc:.4f}, train_time={fit_seconds:.2f}s")
+            print(
+                f"[{i}/{total}] val accuracy={val_acc:.4f}, train_time={fit_seconds:.2f}s"
+            )
             if val_acc > best_acc:
                 best_acc = val_acc
                 best_clf = clf

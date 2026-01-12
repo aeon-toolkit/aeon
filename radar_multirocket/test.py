@@ -2,9 +2,8 @@ import argparse
 from pathlib import Path
 
 import joblib
-from sklearn.metrics import classification_report, confusion_matrix
-
 from data_utils import load_dataset, load_json
+from sklearn.metrics import classification_report, confusion_matrix
 
 
 def parse_args():
@@ -56,9 +55,7 @@ def main():
     X_test, y_test, _, _, _ = load_dataset(
         data_dir,
         class_names=meta.get("class_names"),
-        extensions=tuple(meta.get("extensions", [".xls"]))
-        if meta
-        else (".xls",),
+        extensions=tuple(meta.get("extensions", [".xls"])) if meta else (".xls",),
         pad_mode=meta.get("pad_mode", "pad"),
         pad_value=meta.get("pad_value", 0.0),
         max_length=meta.get("target_length"),

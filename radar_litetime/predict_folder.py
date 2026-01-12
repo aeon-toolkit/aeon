@@ -3,10 +3,9 @@ from collections import Counter
 from pathlib import Path
 
 import numpy as np
+from data_utils import collect_files_recursive, load_files, load_json
 
 from aeon.classification.deep_learning import LITETimeClassifier
-
-from data_utils import collect_files_recursive, load_files, load_json
 
 
 def parse_args():
@@ -121,12 +120,18 @@ def main():
         extensions = tuple(meta.get("extensions", [])) or (".xls",)
 
     pad_mode = args.pad_mode or meta.get("pad_mode", "pad")
-    pad_value = args.pad_value if args.pad_value is not None else meta.get("pad_value", 0.0)
+    pad_value = (
+        args.pad_value if args.pad_value is not None else meta.get("pad_value", 0.0)
+    )
     nan_strategy = args.nan_strategy or meta.get("nan_strategy", "zero")
 
-    target_length = args.length if args.length is not None else meta.get("target_length")
+    target_length = (
+        args.length if args.length is not None else meta.get("target_length")
+    )
     if target_length is None:
-        raise ValueError("Target length is required; use --length or meta.json target_length")
+        raise ValueError(
+            "Target length is required; use --length or meta.json target_length"
+        )
 
     file_paths = collect_files_recursive(input_dir, extensions=extensions)
     if not file_paths:

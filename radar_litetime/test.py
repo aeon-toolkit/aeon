@@ -2,11 +2,10 @@ import argparse
 from pathlib import Path
 
 import numpy as np
+from data_utils import load_dataset, load_json
 from sklearn.metrics import classification_report, confusion_matrix
 
 from aeon.classification.deep_learning import LITETimeClassifier
-
-from data_utils import load_dataset, load_json
 
 
 def parse_args():
@@ -74,7 +73,9 @@ def main():
         raise ValueError("Split file does not contain test items")
 
     if args.model_files:
-        model_files = [name.strip() for name in args.model_files.split(",") if name.strip()]
+        model_files = [
+            name.strip() for name in args.model_files.split(",") if name.strip()
+        ]
     else:
         model_files = meta.get("model_files", [])
 
@@ -88,7 +89,9 @@ def main():
 
     class_names = meta.get("class_names")
     if not class_names:
-        raise ValueError("meta.json missing class_names; please re-train or provide meta")
+        raise ValueError(
+            "meta.json missing class_names; please re-train or provide meta"
+        )
 
     X_test, y_test, _, _, _ = load_dataset(
         data_dir,
