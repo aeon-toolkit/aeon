@@ -7,6 +7,8 @@ from collections.abc import Callable
 
 import numpy as np
 from numpy.random import RandomState
+
+
 def _check_random_state(seed):
     """Turn seed into a numpy RandomState instance.
 
@@ -17,10 +19,10 @@ def _check_random_state(seed):
     """
     if seed is None or seed is np.random:
         return np.random.mtrand._rand
-    
+
     if isinstance(seed, (int, np.integer)):
         return np.random.RandomState(seed)
-    
+
     if isinstance(seed, np.random.RandomState):
         return seed
 
