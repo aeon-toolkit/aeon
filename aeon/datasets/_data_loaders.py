@@ -1428,7 +1428,10 @@ def load_classification(
 
 
 def download_all_regression(extract_path=None):
-    """Download and unpack all of the Monash TSER datasets.
+    """Download all regression datasets.
+
+    This downloads the extended TSER regression archive (63 datasets)
+    published on Zenodo in 2024 (~900 MB).
 
     Parameters
     ----------
@@ -1449,7 +1452,8 @@ def download_all_regression(extract_path=None):
     if not os.path.exists(os.path.join(local_module, local_dirname)):
         os.makedirs(os.path.join(local_module, local_dirname))
     url = (
-        "https://zenodo.org/record/4632512/files/Monash_UEA_UCR_Regression_Archive.zip"
+        "https://zenodo.org/records/11236865/files/"
+        "TSER%20Archive%20Datasets%202024.zip"
     )
     if extract_path is None:
         local_dirname = "local_data"
