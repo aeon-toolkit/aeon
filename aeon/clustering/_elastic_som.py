@@ -7,7 +7,25 @@ from collections.abc import Callable
 
 import numpy as np
 from numpy.random import RandomState
-from sklearn.utils.random import check_random_state
+def _check_random_state(seed):
+    """Turn seed into a numpy RandomState instance.
+
+    Accepts:
+        - None -> use np.random global state
+        - int  -> new RandomState with seed
+        - RandomState -> return itself
+    """
+    if seed is None or seed is np.random:
+        return np.random.mtrand._rand
+    
+    if isinstance(seed, (int, np.integer)):
+        return np.random.RandomState(seed)
+    
+    if isinstance(seed, np.random.RandomState):
+        return seed
+
+    raise ValueError(f"{seed!r} cannot be used to seed a numpy RandomState")
+
 
 from aeon.clustering.base import BaseClusterer
 from aeon.distances import get_alignment_path_function, pairwise_distance
@@ -256,7 +274,7 @@ class ElasticSOM(BaseClusterer):
         return weights
 
     def _check_params(self, X):
-        self._random_state = check_random_state(self.random_state)
+        self._random_state = _check_random_state(self.random_state)
         # random initialization
         if isinstance(self.init, str):
             if self.init == "random":
