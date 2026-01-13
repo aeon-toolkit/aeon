@@ -56,7 +56,7 @@ class AEResNetClusterer(BaseDeepClusterer):
     activation : str or list of str, default = 'relu'
         keras activation used in the convolution layers in one residual block,
         if not a list, the same kernel size is used in all convolution layers.
-    use_bia : bool or list of bool, default = True
+    use_bias : bool or list of bool, default = True
         Condition on whether or not to use bias values in the convolution layers
         in one residual block, if not a list, the same kernel size is used in all
         convolution layers.
@@ -230,12 +230,10 @@ class AEResNetClusterer(BaseDeepClusterer):
 
         if self.metrics is None:
             self._metrics = ["mean_squared_error"]
-        elif isinstance(self.metrics, list):
-            self._metrics = self.metrics
         elif isinstance(self.metrics, str):
             self._metrics = [self.metrics]
         else:
-            raise ValueError("Metrics should be a list, string, or None.")
+            self._metrics = self.metrics
 
         self.optimizer_ = (
             tf.keras.optimizers.Adam(learning_rate=0.01)
