@@ -3,12 +3,11 @@
 __maintainer__ = ["hadifawaz1999"]
 __all__ = ["FCNClassifier"]
 
-from typing import List, Tuple, Union
-
 import gc
 import os
 import time
 from copy import deepcopy
+from typing import List, Tuple, Union
 
 from sklearn.utils import check_random_state
 
@@ -119,12 +118,12 @@ class FCNClassifier(BaseDeepClassifier):
     def __init__(
         self,
         n_layers: int = 3,
-        n_filters: Union[int, List[int]] = None,
-        kernel_size: Union[int, List[int]] = None,
-        dilation_rate: Union[int, List[int]] = 1,
-        strides: Union[int, List[int]] = 1,
-        padding: Union[str, List[str]] = "same",
-        activation: Union[str, List[str]] = "relu",
+        n_filters: int | list[int] = None,
+        kernel_size: int | list[int] = None,
+        dilation_rate: int | list[int] = 1,
+        strides: int | list[int] = 1,
+        padding: str | list[str] = "same",
+        activation: str | list[str] = "relu",
         file_path: str = "./",
         save_best_model: bool = False,
         save_last_model: bool = False,
@@ -138,9 +137,9 @@ class FCNClassifier(BaseDeepClassifier):
         callbacks=None,
         verbose: bool = False,
         loss: str = "categorical_crossentropy",
-        metrics: Union[str, List[str]] = "accuracy",
+        metrics: str | list[str] = "accuracy",
         random_state=None,
-        use_bias: Union[bool, List[bool]] = True,
+        use_bias: bool | list[bool] = True,
         optimizer=None,
     ):
         self.n_layers = n_layers
@@ -186,7 +185,7 @@ class FCNClassifier(BaseDeepClassifier):
             use_bias=self.use_bias,
         )
 
-    def build_model(self, input_shape: Tuple[int, int], n_classes: int, **kwargs):
+    def build_model(self, input_shape: tuple[int, int], n_classes: int, **kwargs):
         """Construct a compiled, un-trained, keras model that is ready for training.
 
         In aeon, time series are stored in numpy arrays of shape (d,m), where d
@@ -316,7 +315,7 @@ class FCNClassifier(BaseDeepClassifier):
         return self
 
     @classmethod
-    def _get_test_params(cls, parameter_set: str = "default") -> Union[dict, List[dict]]:
+    def _get_test_params(cls, parameter_set: str = "default") -> dict | list[dict]:
         """Return testing parameter settings for the estimator.
 
         Parameters

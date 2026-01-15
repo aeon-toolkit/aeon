@@ -3,11 +3,11 @@
 __maintainer__ = ["hadifawaz1999"]
 __all__ = ["TimeCNNClassifier"]
 
-from typing import List, Union
 import gc
 import os
 import time
 from copy import deepcopy
+from typing import List, Union
 
 from sklearn.utils import check_random_state
 

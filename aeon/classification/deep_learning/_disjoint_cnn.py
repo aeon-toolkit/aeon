@@ -3,12 +3,11 @@
 __maintainer__ = ["hadifawaz1999"]
 __all__ = ["DisjointCNNClassifier"]
 
-from typing import List, Union
-
 import gc
 import os
 import time
 from copy import deepcopy
+from typing import List, Union
 
 from sklearn.utils import check_random_state
 
@@ -160,16 +159,16 @@ class DisjointCNNClassifier(BaseDeepClassifier):
     def __init__(
         self,
         n_layers: int = 4,
-        n_filters: Union[int, List[int]] = 64,
-        kernel_size: Union[int, List[int]] = None,
-        dilation_rate: Union[int, List[int]] = 1,
-        strides: Union[int, List[int]] = 1,
-        padding: Union[str, List[str]] = "same",
-        activation: Union[str, List[str]] = "elu",
-        use_bias: Union[bool, List[bool]] = True,
-        kernel_initializer: Union[str, List[str]] = "he_uniform",
-        pool_size: int =5,
-        pool_strides: int =None,
+        n_filters: int | list[int] = 64,
+        kernel_size: int | list[int] = None,
+        dilation_rate: int | list[int] = 1,
+        strides: int | list[int] = 1,
+        padding: str | list[str] = "same",
+        activation: str | list[str] = "elu",
+        use_bias: bool | list[bool] = True,
+        kernel_initializer: str | list[str] = "he_uniform",
+        pool_size: int = 5,
+        pool_strides: int = None,
         pool_padding: str = "valid",
         hidden_fc_units: int = 128,
         activation_fc: str = "relu",
@@ -179,7 +178,7 @@ class DisjointCNNClassifier(BaseDeepClassifier):
         random_state=None,
         verbose: bool = False,
         loss: str = "categorical_crossentropy",
-        metrics: Union[str, List[str]] = "accuracy",
+        metrics: str | list[str] = "accuracy",
         optimizer=None,
         file_path: str = "./",
         save_best_model: bool = False,
@@ -375,7 +374,7 @@ class DisjointCNNClassifier(BaseDeepClassifier):
         return self
 
     @classmethod
-    def _get_test_params(cls, parameter_set: str = "default") -> Union[dict, List[dict]]:
+    def _get_test_params(cls, parameter_set: str = "default") -> dict | list[dict]:
         """Return testing parameter settings for the estimator.
 
         Parameters

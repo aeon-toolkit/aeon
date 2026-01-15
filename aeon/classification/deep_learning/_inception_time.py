@@ -5,12 +5,11 @@ from __future__ import annotations
 __maintainer__ = ["hadifawaz1999"]
 __all__ = ["InceptionTimeClassifier"]
 
-from typing import List, Tuple, Union
-
 import gc
 import os
 import time
 from copy import deepcopy
+from typing import List, Tuple, Union
 
 import numpy as np
 from sklearn.utils import check_random_state
@@ -181,16 +180,16 @@ class InceptionTimeClassifier(BaseClassifier):
     def __init__(
         self,
         n_classifiers: int = 5,
-        n_filters: Union[int, List[int]] = 32,
-        n_conv_per_layer: Union[int, List[int]] = 3,
-        kernel_size: Union[int, List[int]] = 40,
-        use_max_pooling: Union[bool, List[bool]] = True,
-        max_pool_size: Union[int, List[int]] = 3,
-        strides: Union[int, List[int]] = 1,
-        dilation_rate: Union[int, List[int]] = 1,
-        padding: Union[str, List[str]] = "same",
-        activation: Union[str, List[str]] = "relu",
-        use_bias: Union[bool, List[bool]] = False,
+        n_filters: int | list[int] = 32,
+        n_conv_per_layer: int | list[int] = 3,
+        kernel_size: int | list[int] = 40,
+        use_max_pooling: bool | list[bool] = True,
+        max_pool_size: int | list[int] = 3,
+        strides: int | list[int] = 1,
+        dilation_rate: int | list[int] = 1,
+        padding: str | list[str] = "same",
+        activation: str | list[str] = "relu",
+        use_bias: bool | list[bool] = False,
         use_residual: bool = True,
         use_bottleneck: bool = True,
         bottleneck_size: int = 32,
@@ -210,7 +209,7 @@ class InceptionTimeClassifier(BaseClassifier):
         random_state=None,
         verbose: bool = False,
         loss: str = "categorical_crossentropy",
-        metrics: Union[str, List[str]]="accuracy",
+        metrics: str | list[str] = "accuracy",
         optimizer=None,
     ):
         self.n_classifiers = n_classifiers
@@ -401,7 +400,7 @@ class InceptionTimeClassifier(BaseClassifier):
         return classifier
 
     @classmethod
-    def _get_test_params(cls, parameter_set: str = "default") -> Union[dict, List[dict]]:
+    def _get_test_params(cls, parameter_set: str = "default") -> dict | list[dict]:
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -568,16 +567,16 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
 
     def __init__(
         self,
-        n_filters: Union[int, List[int]] = 32,
-        n_conv_per_layer: Union[int, List[int]] = 3,
-        kernel_size: Union[int, List[int]] = 40,
-        use_max_pooling: Union[bool, List[bool]]=True,
-        max_pool_size: Union[int, List[int]] = 3,
-        strides: Union[int, List[int]] = 1,
-        dilation_rate: Union[int, List[int]] = 1,
-        padding: Union[str, List[str]] = "same",
-        activation: Union[str, List[str]]="relu",
-        use_bias: Union[bool, List[bool]] = False,
+        n_filters: int | list[int] = 32,
+        n_conv_per_layer: int | list[int] = 3,
+        kernel_size: int | list[int] = 40,
+        use_max_pooling: bool | list[bool] = True,
+        max_pool_size: int | list[int] = 3,
+        strides: int | list[int] = 1,
+        dilation_rate: int | list[int] = 1,
+        padding: str | list[str] = "same",
+        activation: str | list[str] = "relu",
+        use_bias: bool | list[bool] = False,
         use_residual: bool = True,
         use_bottleneck: bool = True,
         bottleneck_size: int = 32,
@@ -597,7 +596,7 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         random_state=None,
         verbose: bool = False,
         loss: str = "categorical_crossentropy",
-        metrics: Union[str, List[str]] = "accuracy",
+        metrics: str | list[str] = "accuracy",
         optimizer=None,
     ):
         # predefined
@@ -657,7 +656,7 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
             use_custom_filters=self.use_custom_filters,
         )
 
-    def build_model(self, input_shape: Tuple[int, int], n_classes: int, **kwargs):
+    def build_model(self, input_shape: tuple[int, int], n_classes: int, **kwargs):
         """
         Construct a compiled, un-trained, keras model that is ready for training.
 
@@ -791,7 +790,7 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         return self
 
     @classmethod
-    def _get_test_params(cls, parameter_set: str = "default") -> Union[dict, List[dict]]:
+    def _get_test_params(cls, parameter_set: str = "default") -> dict | list[dict]:
         """Return testing parameter settings for the estimator.
 
         Parameters

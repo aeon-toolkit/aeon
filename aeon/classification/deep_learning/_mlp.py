@@ -3,12 +3,11 @@
 __maintainer__ = ["hadifawaz1999"]
 __all__ = ["MLPClassifier"]
 
-from typing import List, Tuple, Union
-
 import gc
 import os
 import time
 from copy import deepcopy
+from typing import List, Tuple, Union
 
 from sklearn.utils import check_random_state
 
@@ -115,9 +114,9 @@ class MLPClassifier(BaseDeepClassifier):
     def __init__(
         self,
         n_layers: int = 3,
-        n_units: Union[int, List[int]] = 500,
-        activation: Union[str, List[str]] = "relu",
-        dropout_rate: Union[float, List[Union[int, float]]] = None,
+        n_units: int | list[int] = 500,
+        activation: str | list[str] = "relu",
+        dropout_rate: float | list[int | float] = None,
         dropout_last: float = None,
         use_bias: bool = True,
         n_epochs: int = 2000,
@@ -126,7 +125,7 @@ class MLPClassifier(BaseDeepClassifier):
         callbacks=None,
         verbose: bool = False,
         loss: str = "categorical_crossentropy",
-        metrics: Union[str, List[str]] = "accuracy",
+        metrics: str | list[str] = "accuracy",
         file_path: str = "./",
         save_best_model: bool = False,
         save_last_model: bool = False,
@@ -174,7 +173,7 @@ class MLPClassifier(BaseDeepClassifier):
             use_bias=self.use_bias,
         )
 
-    def build_model(self, input_shape: Tuple[int, int], n_classes: int, **kwargs):
+    def build_model(self, input_shape: tuple[int, int], n_classes: int, **kwargs):
         """Construct a compiled, un-trained, keras model that is ready for training.
 
         In aeon, time series are stored in numpy arrays of shape (d,m), where d
@@ -304,7 +303,7 @@ class MLPClassifier(BaseDeepClassifier):
         return self
 
     @classmethod
-    def _get_test_params(cls, parameter_set: str = "default") -> Union[dict, List[dict]]:
+    def _get_test_params(cls, parameter_set: str = "default") -> dict | list[dict]:
         """Return testing parameter settings for the estimator.
 
         Parameters

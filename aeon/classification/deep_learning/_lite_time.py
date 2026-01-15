@@ -5,12 +5,11 @@ from __future__ import annotations
 __maintainer__ = ["hadifawaz1999"]
 __all__ = ["LITETimeClassifier"]
 
-from typing import List, Tuple, Union
-
 import gc
 import os
 import time
 from copy import deepcopy
+from typing import List, Tuple, Union
 
 import numpy as np
 from sklearn.utils import check_random_state
@@ -145,8 +144,8 @@ class LITETimeClassifier(BaseClassifier):
         use_litemv: bool = False,
         n_filters: int = 32,
         kernel_size: int = 40,
-        strides: Union[int, List[int]] = 1,
-        activation: Union[str, List[str]] = "relu",
+        strides: int | list[int] = 1,
+        activation: str | list[str] = "relu",
         file_path: str = "./",
         save_last_model: bool = False,
         save_best_model: bool = False,
@@ -161,7 +160,7 @@ class LITETimeClassifier(BaseClassifier):
         random_state=None,
         verbose: bool = False,
         loss: str = "categorical_crossentropy",
-        metrics: Union[str, List[str]] = "accuracy",
+        metrics: str | list[str] = "accuracy",
         optimizer=None,
     ):
         self.n_classifiers = n_classifiers
@@ -333,7 +332,7 @@ class LITETimeClassifier(BaseClassifier):
         return classifier
 
     @classmethod
-    def _get_test_params(cls, parameter_set: str = "default") -> Union[dict, List[dict]]:
+    def _get_test_params(cls, parameter_set: str = "default") -> dict | list[dict]:
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -485,8 +484,8 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         use_litemv: bool = False,
         n_filters: int = 32,
         kernel_size: int = 40,
-        strides: Union[int, List[int]] = 1,
-        activation: Union[str, List[str]] = "relu",
+        strides: int | list[int] = 1,
+        activation: str | list[str] = "relu",
         file_path: str = "./",
         save_best_model: bool = False,
         save_last_model: bool = False,
@@ -501,7 +500,7 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         random_state=None,
         verbose: bool = False,
         loss: str = "categorical_crossentropy",
-        metrics: Union[str, List[str]] = "accuracy",
+        metrics: str | list[str] = "accuracy",
         optimizer=None,
     ):
         self.use_litemv = use_litemv
@@ -541,7 +540,7 @@ class IndividualLITEClassifier(BaseDeepClassifier):
             activation=self.activation,
         )
 
-    def build_model(self, input_shape: Tuple[int, int], n_classes: int, **kwargs):
+    def build_model(self, input_shape: tuple[int, int], n_classes: int, **kwargs):
         """
         Construct a compiled, un-trained, keras model that is ready for training.
 
@@ -674,7 +673,7 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         return self
 
     @classmethod
-    def _get_test_params(cls, parameter_set: str = "default") -> Union[dict, List[dict]]:
+    def _get_test_params(cls, parameter_set: str = "default") -> dict | list[dict]:
         """Return testing parameter settings for the estimator.
 
         Parameters

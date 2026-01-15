@@ -3,12 +3,11 @@
 __maintainer__ = ["hadifawaz1999"]
 __all__ = ["EncoderClassifier"]
 
-from typing import List, Tuple, Union
-
 import gc
 import os
 import time
 from copy import deepcopy
+from typing import List, Tuple, Union
 
 from sklearn.utils import check_random_state
 
@@ -114,8 +113,8 @@ class EncoderClassifier(BaseDeepClassifier):
         self,
         n_epochs: int = 100,
         batch_size: int = 12,
-        kernel_size: List[int] = None,
-        n_filters: List[int] = None,
+        kernel_size: list[int] = None,
+        n_filters: list[int] = None,
         dropout_proba: float = 0.2,
         activation: str = "sigmoid",
         max_pool_size: int = 2,
@@ -123,16 +122,16 @@ class EncoderClassifier(BaseDeepClassifier):
         strides: int = 1,
         fc_units: int = 256,
         callbacks=None,
-        file_path: str  = "./",
+        file_path: str = "./",
         save_best_model: bool = False,
         save_last_model: bool = False,
         save_init_model: bool = False,
         best_file_name: str = "best_model",
-        last_file_name: str ="last_model",
-        init_file_name: str ="init_model",
-        verbose: bool =False,
+        last_file_name: str = "last_model",
+        init_file_name: str = "init_model",
+        verbose: bool = False,
         loss: str = "categorical_crossentropy",
-        metrics: Union[str, List[str]] = "accuracy",
+        metrics: str | list[str] = "accuracy",
         random_state=None,
         use_bias: bool = True,
         optimizer=None,
@@ -179,7 +178,7 @@ class EncoderClassifier(BaseDeepClassifier):
             activation=self.activation,
         )
 
-    def build_model(self, input_shape: Tuple[int, int], n_classes: int, **kwargs):
+    def build_model(self, input_shape: tuple[int, int], n_classes: int, **kwargs):
         """Construct a compiled, un-trained, keras model that is ready for training.
 
         In aeon, time series are stored in numpy arrays of shape (d, m), where d
@@ -304,7 +303,7 @@ class EncoderClassifier(BaseDeepClassifier):
         return self
 
     @classmethod
-    def _get_test_params(cls, parameter_set: str = "default") -> Union[dict, List[dict]]:
+    def _get_test_params(cls, parameter_set: str = "default") -> dict | list[dict]:
         """Return testing parameter settings for the estimator.
 
         Parameters
