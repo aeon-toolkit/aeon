@@ -3,6 +3,8 @@
 __maintainer__ = ["hadifawaz1999"]
 __all__ = ["DisjointCNNClassifier"]
 
+from typing import List, Union
+
 import gc
 import os
 import time
@@ -157,35 +159,35 @@ class DisjointCNNClassifier(BaseDeepClassifier):
 
     def __init__(
         self,
-        n_layers=4,
-        n_filters=64,
-        kernel_size=None,
-        dilation_rate=1,
-        strides=1,
-        padding="same",
-        activation="elu",
-        use_bias=True,
-        kernel_initializer="he_uniform",
-        pool_size=5,
-        pool_strides=None,
-        pool_padding="valid",
-        hidden_fc_units=128,
-        activation_fc="relu",
-        n_epochs=2000,
-        batch_size=16,
-        use_mini_batch_size=False,
+        n_layers: int = 4,
+        n_filters: Union[int, List[int]] = 64,
+        kernel_size: Union[int, List[int]] = None,
+        dilation_rate: Union[int, List[int]] = 1,
+        strides: Union[int, List[int]] = 1,
+        padding: Union[str, List[str]] = "same",
+        activation: Union[str, List[str]] = "elu",
+        use_bias: Union[bool, List[bool]] = True,
+        kernel_initializer: Union[str, List[str]] = "he_uniform",
+        pool_size: int =5,
+        pool_strides: int =None,
+        pool_padding: str = "valid",
+        hidden_fc_units: int = 128,
+        activation_fc: str = "relu",
+        n_epochs: int = 2000,
+        batch_size: int = 16,
+        use_mini_batch_size: bool = False,
         random_state=None,
-        verbose=False,
-        loss="categorical_crossentropy",
-        metrics="accuracy",
+        verbose: bool = False,
+        loss: str = "categorical_crossentropy",
+        metrics: Union[str, List[str]] = "accuracy",
         optimizer=None,
-        file_path="./",
-        save_best_model=False,
-        save_last_model=False,
-        save_init_model=False,
-        best_file_name="best_model",
-        last_file_name="last_model",
-        init_file_name="init_model",
+        file_path: str = "./",
+        save_best_model: bool = False,
+        save_last_model: bool = False,
+        save_init_model: bool = False,
+        best_file_name: str = "best_model",
+        last_file_name: str = "last_model",
+        init_file_name: str = "init_model",
         callbacks=None,
     ):
         self.n_layers = n_layers
@@ -243,7 +245,7 @@ class DisjointCNNClassifier(BaseDeepClassifier):
             activation_fc=self.activation_fc,
         )
 
-    def build_model(self, input_shape, n_classes, **kwargs):
+    def build_model(self, input_shape, n_classes: int, **kwargs):
         """Construct a compiled, un-trained, keras model that is ready for training.
 
         In aeon, time series are stored in numpy arrays of shape (d,m), where d
@@ -373,7 +375,7 @@ class DisjointCNNClassifier(BaseDeepClassifier):
         return self
 
     @classmethod
-    def _get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set: str = "default") -> Union[dict, List[dict]]:
         """Return testing parameter settings for the estimator.
 
         Parameters

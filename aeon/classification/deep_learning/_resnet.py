@@ -3,6 +3,8 @@
 __maintainer__ = ["hadifawaz1999"]
 __all__ = ["ResNetClassifier"]
 
+from typing import List, Tuple, Union
+
 import gc
 import os
 import time
@@ -121,30 +123,30 @@ class ResNetClassifier(BaseDeepClassifier):
 
     def __init__(
         self,
-        n_residual_blocks=3,
-        n_conv_per_residual_block=3,
-        n_filters=None,
-        kernel_size=None,
-        strides=1,
-        dilation_rate=1,
-        padding="same",
-        activation="relu",
-        use_bias=True,
-        n_epochs=1500,
+        n_residual_blocks: int = 3,
+        n_conv_per_residual_block: int = 3,
+        n_filters: Union[int, List[int]] = None,
+        kernel_size: Union[int, List[int]] = None,
+        strides: Union[int, List[int]] = 1,
+        dilation_rate: Union[int, List[int]] = 1,
+        padding: Union[str, List[str]] = "same",
+        activation: Union[str, List[str]] = "relu",
+        use_bias: Union[bool, List[bool]] = True,
+        n_epochs: int = 1500,
         callbacks=None,
-        verbose=False,
-        loss="categorical_crossentropy",
-        metrics="accuracy",
-        batch_size=64,
-        use_mini_batch_size=False,
+        verbose: bool = False,
+        loss: str = "categorical_crossentropy",
+        metrics: Union[str, List[str]] = "accuracy",
+        batch_size: int = 64,
+        use_mini_batch_size: bool = False,
         random_state=None,
-        file_path="./",
-        save_best_model=False,
-        save_last_model=False,
-        save_init_model=False,
-        best_file_name="best_model",
-        last_file_name="last_model",
-        init_file_name="init_model",
+        file_path: str = "./",
+        save_best_model: bool = False,
+        save_last_model: bool = False,
+        save_init_model: bool = False,
+        best_file_name: str = "best_model",
+        last_file_name: str = "last_model",
+        init_file_name: str = "init_model",
         optimizer=None,
     ):
         self.n_residual_blocks = n_residual_blocks
@@ -190,7 +192,7 @@ class ResNetClassifier(BaseDeepClassifier):
             padding=self.padding,
         )
 
-    def build_model(self, input_shape, n_classes, **kwargs):
+    def build_model(self, input_shape: Tuple[int, int], n_classes: int, **kwargs):
         """Construct a compiled, un-trained, keras model that is ready for training.
 
         In aeon, time series are stored in numpy arrays of shape (d,m), where d
@@ -322,7 +324,7 @@ class ResNetClassifier(BaseDeepClassifier):
         return self
 
     @classmethod
-    def _get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set: str = "default") -> Union[dict, List[dict]]:
         """Return testing parameter settings for the estimator.
 
         Parameters

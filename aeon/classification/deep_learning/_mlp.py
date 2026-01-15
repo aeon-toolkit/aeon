@@ -3,6 +3,8 @@
 __maintainer__ = ["hadifawaz1999"]
 __all__ = ["MLPClassifier"]
 
+from typing import List, Tuple, Union
+
 import gc
 import os
 import time
@@ -112,26 +114,26 @@ class MLPClassifier(BaseDeepClassifier):
 
     def __init__(
         self,
-        n_layers=3,
-        n_units=500,
-        activation="relu",
-        dropout_rate=None,
-        dropout_last=None,
-        use_bias=True,
-        n_epochs=2000,
-        batch_size=16,
-        use_mini_batch_size=False,
+        n_layers: int = 3,
+        n_units: Union[int, List[int]] = 500,
+        activation: Union[str, List[str]] = "relu",
+        dropout_rate: Union[float, List[Union[int, float]]] = None,
+        dropout_last: float = None,
+        use_bias: bool = True,
+        n_epochs: int = 2000,
+        batch_size: int = 16,
+        use_mini_batch_size: bool = False,
         callbacks=None,
-        verbose=False,
-        loss="categorical_crossentropy",
-        metrics="accuracy",
-        file_path="./",
-        save_best_model=False,
-        save_last_model=False,
-        save_init_model=False,
-        best_file_name="best_model",
-        last_file_name="last_model",
-        init_file_name="init_model",
+        verbose: bool = False,
+        loss: str = "categorical_crossentropy",
+        metrics: Union[str, List[str]] = "accuracy",
+        file_path: str = "./",
+        save_best_model: bool = False,
+        save_last_model: bool = False,
+        save_init_model: bool = False,
+        best_file_name: str = "best_model",
+        last_file_name: str = "last_model",
+        init_file_name: str = "init_model",
         random_state=None,
         optimizer=None,
     ):
@@ -172,7 +174,7 @@ class MLPClassifier(BaseDeepClassifier):
             use_bias=self.use_bias,
         )
 
-    def build_model(self, input_shape, n_classes, **kwargs):
+    def build_model(self, input_shape: Tuple[int, int], n_classes: int, **kwargs):
         """Construct a compiled, un-trained, keras model that is ready for training.
 
         In aeon, time series are stored in numpy arrays of shape (d,m), where d
@@ -302,7 +304,7 @@ class MLPClassifier(BaseDeepClassifier):
         return self
 
     @classmethod
-    def _get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set: str = "default") -> Union[dict, List[dict]]:
         """Return testing parameter settings for the estimator.
 
         Parameters

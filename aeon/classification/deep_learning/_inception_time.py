@@ -5,6 +5,8 @@ from __future__ import annotations
 __maintainer__ = ["hadifawaz1999"]
 __all__ = ["InceptionTimeClassifier"]
 
+from typing import List, Tuple, Union
+
 import gc
 import os
 import time
@@ -178,37 +180,37 @@ class InceptionTimeClassifier(BaseClassifier):
 
     def __init__(
         self,
-        n_classifiers=5,
-        n_filters=32,
-        n_conv_per_layer=3,
-        kernel_size=40,
-        use_max_pooling=True,
-        max_pool_size=3,
-        strides=1,
-        dilation_rate=1,
-        padding="same",
-        activation="relu",
-        use_bias=False,
-        use_residual=True,
-        use_bottleneck=True,
-        bottleneck_size=32,
-        depth=6,
-        use_custom_filters=False,
-        file_path="./",
-        save_last_model=False,
-        save_best_model=False,
-        save_init_model=False,
-        best_file_name="best_model",
-        last_file_name="last_model",
-        init_file_name="init_model",
-        batch_size=64,
-        use_mini_batch_size=False,
-        n_epochs=1500,
+        n_classifiers: int = 5,
+        n_filters: Union[int, List[int]] = 32,
+        n_conv_per_layer: Union[int, List[int]] = 3,
+        kernel_size: Union[int, List[int]] = 40,
+        use_max_pooling: Union[bool, List[bool]] = True,
+        max_pool_size: Union[int, List[int]] = 3,
+        strides: Union[int, List[int]] = 1,
+        dilation_rate: Union[int, List[int]] = 1,
+        padding: Union[str, List[str]] = "same",
+        activation: Union[str, List[str]] = "relu",
+        use_bias: Union[bool, List[bool]] = False,
+        use_residual: bool = True,
+        use_bottleneck: bool = True,
+        bottleneck_size: int = 32,
+        depth: int = 6,
+        use_custom_filters: bool = False,
+        file_path: str = "./",
+        save_last_model: bool = False,
+        save_best_model: bool = False,
+        save_init_model: bool = False,
+        best_file_name: str = "best_model",
+        last_file_name: str = "last_model",
+        init_file_name: str = "init_model",
+        batch_size: int = 64,
+        use_mini_batch_size: bool = False,
+        n_epochs: int = 1500,
         callbacks=None,
         random_state=None,
-        verbose=False,
-        loss="categorical_crossentropy",
-        metrics="accuracy",
+        verbose: bool = False,
+        loss: str = "categorical_crossentropy",
+        metrics: Union[str, List[str]]="accuracy",
         optimizer=None,
     ):
         self.n_classifiers = n_classifiers
@@ -399,7 +401,7 @@ class InceptionTimeClassifier(BaseClassifier):
         return classifier
 
     @classmethod
-    def _get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set: str = "default") -> Union[dict, List[dict]]:
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -566,36 +568,36 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
 
     def __init__(
         self,
-        n_filters=32,
-        n_conv_per_layer=3,
-        kernel_size=40,
-        use_max_pooling=True,
-        max_pool_size=3,
-        strides=1,
-        dilation_rate=1,
-        padding="same",
-        activation="relu",
-        use_bias=False,
-        use_residual=True,
-        use_bottleneck=True,
-        bottleneck_size=32,
-        depth=6,
-        use_custom_filters=False,
-        file_path="./",
-        save_best_model=False,
-        save_last_model=False,
-        save_init_model=False,
-        best_file_name="best_model",
-        last_file_name="last_model",
-        init_file_name="init_model",
-        batch_size=64,
-        use_mini_batch_size=False,
-        n_epochs=1500,
+        n_filters: Union[int, List[int]] = 32,
+        n_conv_per_layer: Union[int, List[int]] = 3,
+        kernel_size: Union[int, List[int]] = 40,
+        use_max_pooling: Union[bool, List[bool]]=True,
+        max_pool_size: Union[int, List[int]] = 3,
+        strides: Union[int, List[int]] = 1,
+        dilation_rate: Union[int, List[int]] = 1,
+        padding: Union[str, List[str]] = "same",
+        activation: Union[str, List[str]]="relu",
+        use_bias: Union[bool, List[bool]] = False,
+        use_residual: bool = True,
+        use_bottleneck: bool = True,
+        bottleneck_size: int = 32,
+        depth: int = 6,
+        use_custom_filters: bool = False,
+        file_path: str = "./",
+        save_best_model: bool = False,
+        save_last_model: bool = False,
+        save_init_model: bool = False,
+        best_file_name: str = "best_model",
+        last_file_name: str = "last_model",
+        init_file_name: str = "init_model",
+        batch_size: int = 64,
+        use_mini_batch_size: bool = False,
+        n_epochs: int = 1500,
         callbacks=None,
         random_state=None,
-        verbose=False,
-        loss="categorical_crossentropy",
-        metrics="accuracy",
+        verbose: bool = False,
+        loss: str = "categorical_crossentropy",
+        metrics: Union[str, List[str]] = "accuracy",
         optimizer=None,
     ):
         # predefined
@@ -655,7 +657,7 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
             use_custom_filters=self.use_custom_filters,
         )
 
-    def build_model(self, input_shape, n_classes, **kwargs):
+    def build_model(self, input_shape: Tuple[int, int], n_classes: int, **kwargs):
         """
         Construct a compiled, un-trained, keras model that is ready for training.
 
@@ -789,7 +791,7 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         return self
 
     @classmethod
-    def _get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set: str = "default") -> Union[dict, List[dict]]:
         """Return testing parameter settings for the estimator.
 
         Parameters
