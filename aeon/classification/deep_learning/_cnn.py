@@ -7,7 +7,7 @@ import gc
 import os
 import time
 from copy import deepcopy
-from typing import List, Union
+from typing import List, Tuple
 
 from sklearn.utils import check_random_state
 
@@ -123,14 +123,14 @@ class TimeCNNClassifier(BaseDeepClassifier):
     def __init__(
         self,
         n_layers: int = 2,
-        kernel_size: Union[int, List[int]] = 7,
-        n_filters: Union[int, List[int]] = [6, 12],
-        avg_pool_size: Union[in, List[int]] = 3,
-        activation: Union[str, List[str]] = "sigmoid",
-        padding: Union[str, List[str]] = "valid",
-        strides: Union[int, List[int]] = 1,
-        strides_pooling: Union[int, List[int]] = None,
-        dilation_rate: Union[int, List[int]] = 1,
+        kernel_size: int | list[int] = 7,
+        n_filters: int | list[int] = None,
+        avg_pool_size: int | list[int] = 3,
+        activation: str | list[str] = "sigmoid",
+        padding: str | list[str] = "valid",
+        strides: int | list[int] = 1,
+        strides_pooling: int | list[int] = None,
+        dilation_rate: int | list[int] = 1,
         n_epochs: int = 2000,
         batch_size: int = 16,
         callbacks=None,
@@ -143,9 +143,9 @@ class TimeCNNClassifier(BaseDeepClassifier):
         init_file_name: str ="init_model",
         verbose: bool = False,
         loss: str = "mean_squared_error",
-        metrics: Union[str, List[str]] = "accuracy",
+        metrics: str | list[str] = "accuracy",
         random_state=None,
-        use_bias: Union[bool, List[bool]] = True,
+        use_bias: bool | list[bool] = True,
         optimizer=None,
     ):
         self.n_layers = n_layers
@@ -193,7 +193,7 @@ class TimeCNNClassifier(BaseDeepClassifier):
             use_bias=self.use_bias,
         )
 
-    def build_model(self, input_shape, n_classes: int, **kwargs):
+    def build_model(self, input_shape: tuple[int, int], n_classes: int, **kwargs):
         """Construct a compiled, un-trained, keras model that is ready for training.
 
         In aeon, time series are stored in numpy arrays of shape (d, m), where d
@@ -316,7 +316,7 @@ class TimeCNNClassifier(BaseDeepClassifier):
         return self
 
     @classmethod
-    def _get_test_params(cls, parameter_set: str = "default") -> Union[dict, List[dict]]:
+    def _get_test_params(cls, parameter_set: str = "default") -> dict | list[dict]:
         """Return testing parameter settings for the estimator.
 
         Parameters

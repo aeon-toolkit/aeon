@@ -7,7 +7,7 @@ import gc
 import os
 import time
 from copy import deepcopy
-from typing import List, Union
+from typing import List, Tuple
 
 from sklearn.utils import check_random_state
 
@@ -244,7 +244,7 @@ class DisjointCNNClassifier(BaseDeepClassifier):
             activation_fc=self.activation_fc,
         )
 
-    def build_model(self, input_shape, n_classes: int, **kwargs):
+    def build_model(self, input_shape: tuple[int, int], n_classes: int, **kwargs):
         """Construct a compiled, un-trained, keras model that is ready for training.
 
         In aeon, time series are stored in numpy arrays of shape (d,m), where d
