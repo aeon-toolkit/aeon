@@ -89,7 +89,7 @@ class EAggloSegmenter(BaseSegmenter):
     def __init__(
         self,
         member=None,
-        alpha=1.0,
+        alpha: float = 1.0,
         penalty=None,
     ):
         self.member = member
