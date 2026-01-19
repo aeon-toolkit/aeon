@@ -48,7 +48,7 @@ class FLUSSSegmenter(BaseSegmenter):
         "python_dependencies": "stumpy",
     }
 
-    def __init__(self, period_length=10, n_regimes=2, exclusion_factor=5):
+    def __init__(self, period_length :int = 10, n_regimes :int = 2, exclusion_factor :int = 5):
         self.period_length = int(period_length)
         self.n_regimes = n_regimes
         self.exclusion_factor = exclusion_factor
@@ -137,7 +137,7 @@ class FLUSSSegmenter(BaseSegmenter):
         return pd.IntervalIndex.from_arrays(start, end)
 
     @classmethod
-    def _get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set :str = "default"):
         """Return testing parameter settings for the estimator.
 
         Parameters

@@ -20,7 +20,7 @@ class RandomSegmenter(BaseSegmenter):
         "returns_dense": True,
     }
 
-    def __init__(self, random_state=None, n_segments=2):
+    def __init__(self, random_state=None, n_segments: int = 2):
         self.random_state = random_state
         self.breakpoints_ = []
         super().__init__(axis=1, n_segments=n_segments)
