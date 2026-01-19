@@ -2,8 +2,8 @@ import numpy as np
 
 from aeon.forecasting.setar import (
     SETARForecaster,
-    SETARTreeForecaster,
     SETARForestForecaster,
+    SETARTreeForecaster,
 )
 
 
