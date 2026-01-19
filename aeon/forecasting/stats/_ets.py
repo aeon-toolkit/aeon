@@ -201,9 +201,7 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
                 parameters.append(self.phi_)
             if self._seasonality_type != 0:
                 parameters.append(self.gamma_)
-            self.parameters_ = np.array(
-                parameters
-            )
+            self.parameters_ = np.array(parameters)
         (
             self.aic_,
             self.level_,
@@ -337,6 +335,7 @@ def _validate_parameter(var, can_be_none):
             f" {valid_str} or {valid_int} but saw {var}"
         )
 
+
 class AutoETS(BaseForecaster):
     """Automatic Exponential Smoothing forecaster.
 
@@ -469,6 +468,7 @@ class AutoETS(BaseForecaster):
         """
         return self.wrapped_model_.iterative_forecast(y, prediction_horizon)
 
+
 @njit(fastmath=True, cache=True)
 def auto_ets(data):
     """Calculate model parameters based on the internal nelder-mead implementation."""
@@ -476,7 +476,7 @@ def auto_ets(data):
     seasonal_enabled = seasonal_period > 1
     s_max = 3 if seasonal_enabled else 1
     all_pos = True
-    for i in range(data.size):
+    for i in range(len(data)):
         if data[i] <= 0.0:
             all_pos = False
             break

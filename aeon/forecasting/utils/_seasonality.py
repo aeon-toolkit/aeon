@@ -90,12 +90,8 @@ def calc_seasonal_period(data):
     """
     lags = acf(data, 24)
     lags = np.concatenate((np.array([1.0]), lags))
-    peaks = []
     mean_lags = np.mean(lags)
     for i in range(1, len(lags) - 1):  # Skip the first (lag 0) and last elements
         if lags[i] >= lags[i - 1] and lags[i] >= lags[i + 1] and lags[i] > mean_lags:
-            peaks.append(i)
-    if not peaks:
-        return 1
-    else:
-        return peaks[0]
+            return i
+    return 1

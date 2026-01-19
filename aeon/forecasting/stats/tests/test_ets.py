@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from aeon.forecasting.stats._ets import ETS, _validate_parameter
+from aeon.forecasting.stats._ets import ETS, AutoETS, _validate_parameter
 
 
 @pytest.mark.parametrize(
@@ -105,3 +105,123 @@ def test_ets_iterative_forecast():
     forecaster = ETS(trend_type=None)
     forecaster._fit(y)
     assert forecaster._trend_type == 0
+
+
+y_pos = np.array(
+    [112, 118, 132, 129, 121, 135, 148, 148, 136, 119, 104, 118],
+    dtype=np.float64,
+)
+
+y_non_pos = np.array(
+    [10.0, 12.0, 0.0, 13.0, 15.0, 14.0, 13.0],
+    dtype=np.float64,
+)
+
+
+def test_autoets_fit_sets_wrapped_model_and_types():
+    """Fit should select a model and wrap an ETS instance."""
+    forecaster = AutoETS()
+    forecaster.fit(y_pos)
+
+    assert forecaster.wrapped_model_ is not None
+    assert isinstance(forecaster.wrapped_model_, ETS)
+
+    # model type attributes are set
+    assert forecaster.error_type_ in (1, 2)
+    assert forecaster.trend_type_ in (0, 1, 2)
+    assert forecaster.seasonality_type_ in (0, 1, 2)
+    assert forecaster.seasonal_period_ >= 1
+
+
+def test_autoets_predict_returns_finite_float():
+    """_predict should return a finite float once fitted."""
+    forecaster = AutoETS()
+    forecaster.fit(y_pos)
+
+    pred = forecaster._predict(y_pos)
+
+    assert isinstance(pred, float)
+    assert np.isfinite(pred)
+
+
+def test_autoets_forecast_sets_wrapped_and_returns_forecast():
+    """_forecast should refit internally and return wrapped forecast_."""
+    forecaster = AutoETS()
+
+    f = forecaster._forecast(y_pos)
+
+    assert isinstance(f, float)
+    assert forecaster.wrapped_model_ is not None
+    assert hasattr(forecaster.wrapped_model_, "forecast_")
+    assert np.isclose(f, forecaster.wrapped_model_.forecast_)
+
+
+def test_autoets_iterative_forecast_shape_and_validity():
+    """iterative_forecast should delegate and return valid forecasts."""
+    forecaster = AutoETS()
+    forecaster.fit(y_pos)
+
+    horizon = 5
+    preds = forecaster.iterative_forecast(y_pos, prediction_horizon=horizon)
+
+    assert isinstance(preds, np.ndarray)
+    assert preds.shape == (horizon,)
+    assert np.all(np.isfinite(preds))
+
+
+def test_autoets_predict_matches_wrapped_predict():
+    """_predict should be a thin wrapper around wrapped_model_.predict."""
+    forecaster = AutoETS()
+    forecaster.fit(y_pos)
+
+    a = forecaster._predict(y_pos)
+    b = forecaster.wrapped_model_.predict(y_pos)
+
+    assert isinstance(a, float)
+    assert isinstance(b, float)
+    assert np.isfinite(a) and np.isfinite(b)
+    assert np.isclose(a, b)
+
+
+def test_autoets_forecast_is_consistent_with_wrapped():
+    """_forecast output should match wrapped model forecast_."""
+    forecaster = AutoETS()
+
+    val = forecaster._forecast(y_pos)
+
+    assert np.isclose(val, forecaster.wrapped_model_.forecast_)
+
+
+def test_autoets_excludes_multiplicative_models_for_non_positive_data():
+    """If data contains non-positive values, multiplicative options must be excluded."""
+    forecaster = AutoETS()
+    forecaster.fit(y_non_pos)
+
+    # multiplicative error or components should not be selected
+    assert forecaster.error_type_ != 2
+    assert forecaster.trend_type_ != 2
+    assert forecaster.seasonality_type_ != 2
+
+
+def test_autoets_runs_on_short_but_valid_series():
+    """AutoETS should run on short series without crashing."""
+    y_short = np.array([10.0, 11.0, 12.0, 13.0])
+
+    forecaster = AutoETS()
+    pred = forecaster._forecast(y_short)
+
+    assert isinstance(pred, float)
+    assert np.isfinite(pred)
+
+
+def test_autoets_wrapped_model_parameters_match_selected_types():
+    """Wrapped ETS should reflect the auto-selected configuration."""
+    forecaster = AutoETS()
+    forecaster.fit(y_pos)
+
+    model = forecaster.wrapped_model_
+
+    assert model._error_type == forecaster.error_type_
+    assert model._trend_type == forecaster.trend_type_
+    assert model._seasonality_type == forecaster.seasonality_type_
+    assert model._seasonal_period == forecaster.seasonal_period_
