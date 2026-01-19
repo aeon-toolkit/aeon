@@ -1,3 +1,5 @@
+"""Self-Exciting Threshold Autoregressive (SETAR) forecaster."""
+
 import numpy as np
 from sklearn.linear_model import LinearRegression
 
@@ -23,7 +25,6 @@ class SETARForecaster(BaseForecaster):
     def _fit(self, y, X=None, fh=None):
         y = np.asarray(y, dtype=float)
 
-        # aeon gives univariate series as (n_timepoints, 1)
         if y.ndim == 2:
             y = y[:, 0]
 
@@ -42,6 +43,7 @@ class SETARForecaster(BaseForecaster):
         self.model_high_.fit(X_lagged[mask_high], y_target[mask_high])
 
         self.last_window_ = y[-self.lags :]
+
         return self
 
     def _predict(self, fh, X=None):
@@ -60,7 +62,6 @@ class SETARForecaster(BaseForecaster):
             history.append(y_pred)
             preds.append(y_pred)
 
-        # 🔑 ensure 1D output
         return np.asarray(preds)[fh - 1].ravel()
 
     def _make_lagged(self, y):

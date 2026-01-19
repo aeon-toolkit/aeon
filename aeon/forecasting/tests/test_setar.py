@@ -1,3 +1,5 @@
+"""Tests for SETAR-based forecasters."""
+
 import numpy as np
 
 from aeon.forecasting.setar import (
@@ -8,6 +10,7 @@ from aeon.forecasting.setar import (
 
 
 def test_setar_forecaster_basic():
+    """Test basic functionality of SETARForecaster."""
     y = np.arange(20, dtype=float)
 
     forecaster = SETARForecaster(lags=3, threshold_lag=1)
@@ -21,6 +24,7 @@ def test_setar_forecaster_basic():
 
 
 def test_setar_tree_forecaster_basic():
+    """Test basic functionality of SETARTreeForecaster."""
     y = [
         np.arange(20, dtype=float),
         np.arange(20, 40, dtype=float),
@@ -37,6 +41,7 @@ def test_setar_tree_forecaster_basic():
 
 
 def test_setar_forest_forecaster_basic():
+    """Test basic functionality of SETARForestForecaster."""
     y = [
         np.arange(20, dtype=float),
         np.arange(20, 40, dtype=float),

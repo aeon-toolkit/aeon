@@ -1,3 +1,5 @@
+"""Ensemble of SETAR-Tree forecasters."""
+
 import numpy as np
 from numpy.random import RandomState
 
@@ -14,6 +16,14 @@ class SETARForestForecaster:
         self.random_state = random_state
 
     def fit(self, y):
+        """
+        Fit the SETAR-Forest forecaster.
+
+        Parameters
+        ----------
+        y : list of 1D numpy arrays
+            Collection of univariate time series.
+        """
         rng = RandomState(self.random_state)
         self.trees_ = []
 
@@ -31,5 +41,6 @@ class SETARForestForecaster:
         return self
 
     def predict(self, fh):
+        """Generate forecasts by averaging ensemble predictions."""
         preds = np.array([t.predict(fh) for t in self.trees_])
         return preds.mean(axis=0).ravel()
