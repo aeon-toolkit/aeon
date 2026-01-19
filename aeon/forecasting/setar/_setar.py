@@ -2,20 +2,15 @@ import numpy as np
 from sklearn.linear_model import LinearRegression
 
 from aeon.forecasting.base import BaseForecaster
-from aeon.forecasting.base._base import DEFAULT_ALPHA
 
 
 class SETARForecaster(BaseForecaster):
-    """
-    Self-Exciting Threshold Autoregressive (SETAR) forecaster.
-
-    A nonlinear autoregressive model where different linear AR models
-    are fitted depending on whether a threshold variable exceeds
-    a learned threshold.
-    """
+    """Self-Exciting Threshold Autoregressive (SETAR) forecaster."""
 
     _tags = {
         "scitype:y": "univariate",
+        "capability:univariate": True,
+        "capability:multivariate": False,
         "ignores-exogeneous-X": True,
         "requires-fh-in-fit": False,
     }
@@ -23,21 +18,17 @@ class SETARForecaster(BaseForecaster):
     def __init__(self, lags=1, threshold_lag=1):
         self.lags = lags
         self.threshold_lag = threshold_lag
-        super().__init__()
+        super().__init__(horizon=None, axis=0)
 
     def _fit(self, y, X=None, fh=None):
         y = np.asarray(y, dtype=float)
 
-        if y.ndim != 1:
-            raise ValueError("SETARForecaster supports only univariate series.")
+        # aeon gives univariate series as (n_timepoints, 1)
+        if y.ndim == 2:
+            y = y[:, 0]
 
-        if self.threshold_lag > self.lags:
-            raise ValueError("threshold_lag must be <= lags")
-
-        # build lagged matrix
         X_lagged, y_target = self._make_lagged(y)
 
-        # threshold variable
         threshold_values = X_lagged[:, self.threshold_lag - 1]
         self.threshold_ = np.median(threshold_values)
 
@@ -51,21 +42,17 @@ class SETARForecaster(BaseForecaster):
         self.model_high_.fit(X_lagged[mask_high], y_target[mask_high])
 
         self.last_window_ = y[-self.lags :]
-
         return self
 
     def _predict(self, fh, X=None):
         fh = np.asarray(fh, dtype=int)
-        n_steps = fh.max()
-
         history = list(self.last_window_)
         preds = []
 
-        for _ in range(n_steps):
+        for _ in range(fh.max()):
             x = np.array(history[-self.lags :])[::-1].reshape(1, -1)
-            threshold_value = x[0, self.threshold_lag - 1]
 
-            if threshold_value <= self.threshold_:
+            if x[0, self.threshold_lag - 1] <= self.threshold_:
                 y_pred = self.model_low_.predict(x)[0]
             else:
                 y_pred = self.model_high_.predict(x)[0]
@@ -73,7 +60,8 @@ class SETARForecaster(BaseForecaster):
             history.append(y_pred)
             preds.append(y_pred)
 
-        return np.asarray(preds)[fh - 1]
+        # 🔑 ensure 1D output
+        return np.asarray(preds)[fh - 1].ravel()
 
     def _make_lagged(self, y):
         X, y_out = [], []
