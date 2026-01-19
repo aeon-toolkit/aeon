@@ -106,10 +106,6 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
         seasonality_type: int | str | None = 0,
         seasonal_period: int = 1,
         iterations: int = 200,
-        alpha: float = None,
-        beta: float = None,
-        gamma: float = None,
-        phi: float = 1.0,
     ):
         self.forecast_val_ = 0.0
         self.level_ = 0.0
@@ -129,10 +125,10 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
         self.fitted_values_ = []
         self._model = []
         self.parameters_ = []
-        self.alpha_ = alpha
-        self.beta_ = beta
-        self.gamma_ = gamma
-        self.phi_ = phi
+        self.alpha_ = 0
+        self.beta_ = 0
+        self.gamma_ = 0
+        self.phi_ = 0
         self.forecast_ = 0
         super().__init__(horizon=1, axis=1)
 
@@ -183,25 +179,16 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
             dtype=np.int32,
         )
         data = y.squeeze()
-        if self.alpha_ is None:
-            (self.parameters_, self.aic_) = nelder_mead(
-                1,
-                1 + 2 * (self._trend_type != 0) + (self._seasonality_type != 0),
-                data,
-                self._model,
-                max_iter=self.iterations,
-            )
-            self.alpha_, self.beta_, self.gamma_, self.phi_ = _extract_ets_params(
-                self.parameters_, self._model
-            )
-        else:
-            parameters = [self.alpha_]
-            if self._trend_type != 0:
-                parameters.append(self.beta_)
-                parameters.append(self.phi_)
-            if self._seasonality_type != 0:
-                parameters.append(self.gamma_)
-            self.parameters_ = np.array(parameters)
+        (self.parameters_, self.aic_) = nelder_mead(
+            1,
+            1 + 2 * (self._trend_type != 0) + (self._seasonality_type != 0),
+            data,
+            self._model,
+            max_iter=self.iterations,
+        )
+        self.alpha_, self.beta_, self.gamma_, self.phi_ = _extract_ets_params(
+            self.parameters_, self._model
+        )
         (
             self.aic_,
             self.level_,
