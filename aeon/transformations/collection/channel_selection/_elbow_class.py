@@ -64,10 +64,8 @@ def _create_distance_matrix(
 
     """
     if prototype.shape[0] != len(class_vals):
-        raise ValueError(
-            f"Prototype {prototype.shape[0]} and \
-            class values {len(class_vals)} must be of same length."
-        )
+        raise ValueError(f"Prototype {prototype.shape[0]} and \
+            class values {len(class_vals)} must be of same length.")
 
     distance_pair = list(itertools.combinations(range(0, class_vals.shape[0]), 2))
     # create a dictionary of class values and their indexes
