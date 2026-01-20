@@ -108,7 +108,7 @@ class ARIMA(BaseForecaster, IterativeForecastingMixin):
             Fitted ARIMA.
         """
         self._series = np.array(y.squeeze(), dtype=np.float64)
-        series_for_arima = self._series.copy()
+        series_for_arima = self._series
 
         if exog is not None:
             exog = np.asarray(exog)
