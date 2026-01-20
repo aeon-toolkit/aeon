@@ -184,7 +184,8 @@ def _ets_fit(params, data, model):
     # --- GUARD: Prevent division by zero for short series ---
     if n_timepoints <= 0:
         # Return invalid model state matching the tuple signature
-        # aic_, level, trend, seasonality, n_timepoints, residuals_, fitted_values_, avg_mean_sq_err_, liklihood_, k_
+        # aic_, level, trend, seasonality, n_timepoints, residuals_, fitted_values_,
+        # avg_mean_sq_err_, liklihood_, k_
         return (
             np.inf,
             0.0,
@@ -195,7 +196,7 @@ def _ets_fit(params, data, model):
             np.zeros(1),
             np.inf,
             -np.inf,
-            0
+            0,
         )
     # ------------------------------------------------------
 
