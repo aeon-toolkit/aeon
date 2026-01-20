@@ -36,7 +36,7 @@ jobs:
 
       - name: Process AI label
         id: handle_spam
-        run: python .github/utilities/ai_spam.py
+        run: python .github/utilities/ai_pull_request.py
         env:
           CONTEXT_GITHUB: ${{ toJson(github) }}
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
