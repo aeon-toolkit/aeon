@@ -1,4 +1,4 @@
-r"""Dynamic time warping (DTW) between two time series."""
+"""Dynamic time warping (DTW) between two time series."""
 
 __maintainer__ = []
 
@@ -202,7 +202,48 @@ def dtw_cost_matrix(
 
 @njit(cache=True, fastmath=True)
 def _dtw_distance(x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray) -> float:
-    return _dtw_cost_matrix(x, y, bounding_matrix)[x.shape[1] - 1, y.shape[1] - 1]
+    """Compute the DTW distance between two time series.
+
+    This function is optimized for memory usage by using a two-row buffer
+    (O(M) space complexity) instead of allocating the full cost matrix (O(NM)).
+    """
+    x_size = x.shape[1]
+    y_size = y.shape[1]
+
+    # prev represents the previous row (i-1), curr represents the current row (i)
+    # The size is y_size + 1 to handle the boundary condition at index 0
+    prev = np.full(y_size + 1, np.inf)
+    curr = np.full(y_size + 1, np.inf)
+
+    # Initial condition: distance at (0, 0) is 0
+    prev[0] = 0.0
+
+    for i in range(x_size):
+        # Boundary condition: The cell to the left of the first column is infinity
+        curr[0] = np.inf
+
+        for j in range(y_size):
+            if bounding_matrix[i, j]:
+                cost = _univariate_squared_distance(x[:, i], y[:, j])
+
+                # DTW recurrence:
+                # prev[j]   corresponds to matrix[i, j]     (Diagonal)
+                # prev[j+1] corresponds to matrix[i, j+1]   (Top)
+                # curr[j]   corresponds to matrix[i+1, j]   (Left)
+                min_cost = min(
+                    prev[j],  # Diagonal
+                    prev[j + 1],  # Top
+                    curr[j],  # Left
+                )
+
+                curr[j + 1] = cost + min_cost
+            else:
+                curr[j + 1] = np.inf
+
+        # Move current row to previous row for the next iteration
+        prev[:] = curr[:]
+
+    return prev[y_size]
 
 
 @njit(cache=True, fastmath=True)
