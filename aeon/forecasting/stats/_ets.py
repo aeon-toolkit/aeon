@@ -460,7 +460,10 @@ class AutoETS(BaseForecaster):
 def auto_ets(data):
     """Calculate model parameters based on the internal nelder-mead implementation."""
     seasonal_period = calc_seasonal_period(data)
-    seasonal_enabled = seasonal_period > 1
+    # Technically only needs to be 2 * seasonal periods to calculate initial conditions,
+    # but makes no sense to run a seasonal model with any less than 2 seasonal periods
+    # worth of usable data even that might be a bit low
+    seasonal_enabled = seasonal_period > 1 and len(data) > seasonal_period * 4
     s_max = 3 if seasonal_enabled else 1
     all_pos = True
     for i in range(len(data)):
