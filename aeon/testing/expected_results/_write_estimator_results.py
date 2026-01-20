@@ -1,9 +1,11 @@
 """Write expected results for estimators to file for usage in tests."""
 
 from copy import deepcopy
+from pathlib import Path
 
 from sklearn.utils import check_random_state
 
+import aeon
 from aeon.base import ComposableEstimatorMixin
 from aeon.base._base import _clone_estimator
 from aeon.datasets import (
@@ -144,7 +146,13 @@ if __name__ == "__main__":
 
         estimators = all_estimators(type_filter=estimator_type)
 
-        write_path = f"expected_{estimator_type.replace('-', '_')}_results.py"
+        write_path = (
+            Path(aeon.__file__).resolve().parent
+            / "testing"
+            / "expected_results"
+            / "_results_reproduction"
+            / f"expected_{estimator_type.replace('-', '_')}_results.py"
+        )
         uv_results = {}
         mv_results = {}
 

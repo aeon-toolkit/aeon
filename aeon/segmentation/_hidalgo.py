@@ -524,7 +524,7 @@ class HidalgoSegmenter(BaseSegmenter):
             d = sample_d(K, a1, b1, _rng)
             sampling = np.append(sampling, d)
 
-            (p, pp) = sample_p(K, p, pp, c1, _rng)
+            p, pp = sample_p(K, p, pp, c1, _rng)
             sampling = np.append(sampling, p[: K - 1])
             sampling = np.append(sampling, (1 - pp))
 
