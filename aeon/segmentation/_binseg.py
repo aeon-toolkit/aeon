@@ -58,7 +58,9 @@ class BinSegmenter(BaseSegmenter):
         "python_dependencies": "ruptures",
     }
 
-    def __init__(self, n_cps: int = 1, model: int = "l2", min_size: int = 2, jump: int = 5):
+    def __init__(
+        self, n_cps: int = 1, model: int = "l2", min_size: int = 2, jump: int = 5
+    ):
         self.n_cps = n_cps
         self.model = model
         self.min_size = min_size
