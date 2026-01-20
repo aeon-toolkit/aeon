@@ -1,4 +1,4 @@
-"""SETAR-based forecasting models."""
+"""SETAR-based forecasters."""
 
 from aeon.forecasting.setar._setar import SETARForecaster
 from aeon.forecasting.setar._setar_forest import SETARForestForecaster
