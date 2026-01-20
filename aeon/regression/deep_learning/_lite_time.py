@@ -535,6 +535,11 @@ class IndividualLITERegressor(BaseDeepRegressor):
         """
         import tensorflow as tf
 
+        if isinstance(self.metrics, str):
+            self._metrics = [self.metrics]
+        else:
+            self._metrics = self.metrics
+
         rng = check_random_state(self.random_state)
         self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
         tf.keras.utils.set_random_seed(self.random_state_)
@@ -578,11 +583,6 @@ class IndividualLITERegressor(BaseDeepRegressor):
 
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
-
-        if isinstance(self.metrics, list):
-            self._metrics = self.metrics
-        elif isinstance(self.metrics, str):
-            self._metrics = [self.metrics]
 
         # ignore the number of instances, X.shape[0],
         # just want the shape of each instance
