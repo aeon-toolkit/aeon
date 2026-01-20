@@ -179,6 +179,9 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
             dtype=np.int32,
         )
         data = y.squeeze()
+        if data.ndim == 0:
+            data = np.atleast_1d(data)
+
         self.parameters_, self.aic_ = nelder_mead(
             1,
             1 + 2 * (self._trend_type != 0) + (self._seasonality_type != 0),
@@ -410,6 +413,11 @@ class AutoETS(BaseForecaster):
             Fitted AutoETS.
         """
         data = y.squeeze()
+        # --- QUANT GUARD: Ensure data is 1D ---
+        if data.ndim == 0:
+            data = np.atleast_1d(data)
+        # --------------------------------------
+        
         best_model = auto_ets(data)
         self.error_type_ = int(best_model[0])
         self.trend_type_ = int(best_model[1])
@@ -468,7 +476,13 @@ def auto_ets(data):
             all_pos = False
             break
     model = np.empty(4, dtype=np.int32)
-    best_model = np.empty(4, dtype=np.int32)
+    
+    # --- QUANT GUARD: Default to Simple ETS (Additive, No Trend, No Seasonality) ---
+    # This prevents returning garbage if the loops below never find a valid model
+    # (e.g. if the series is too short for any complexity).
+    best_model = np.array([1, 0, 0, 1], dtype=np.int32)
+    # -----------------------------------------------------------------------------
+    
     best_aic = np.inf
     for error_type in range(1, 3):
         if error_type == 2 and not all_pos:

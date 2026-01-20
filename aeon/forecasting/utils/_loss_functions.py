@@ -62,6 +62,12 @@ def _ets_aic(params, data, model):
     seasonality_type = model[2]
     seasonal_period = model[3]
     n_timepoints = len(data) - seasonal_period
+
+    # --- GUARD: Prevent division by zero for short series ---
+    if n_timepoints <= 0:
+        return np.inf
+    # ------------------------------------------------------
+
     # Initial Level: Mean of the first season
     level = np.mean(data[:seasonal_period])
     # Initial Trend
@@ -149,7 +155,13 @@ def _ets_aic(params, data, model):
                 error, seasonality_correction
             )
         sse_ += error**2
+
     variance = sse_ / n_timepoints
+    # --- GUARD: Prevent log(0) ---
+    if variance < 1e-10:
+        variance = 1e-10
+    # -----------------------------
+
     liklihood_ = -0.5 * n_timepoints * (np.log(2 * np.pi) + np.log(variance) + 1)
     k_ = (
         seasonal_period * (seasonality_type != 0)
@@ -168,6 +180,25 @@ def _ets_fit(params, data, model):
     seasonality_type = model[2]
     seasonal_period = model[3]
     n_timepoints = len(data) - seasonal_period
+
+    # --- GUARD: Prevent division by zero for short series ---
+    if n_timepoints <= 0:
+        # Return invalid model state matching the tuple signature
+        # aic_, level, trend, seasonality, n_timepoints, residuals_, fitted_values_, avg_mean_sq_err_, liklihood_, k_
+        return (
+            np.inf,
+            0.0,
+            0.0,
+            np.zeros(1),
+            0,
+            np.zeros(1),
+            np.zeros(1),
+            np.inf,
+            -np.inf,
+            0
+        )
+    # ------------------------------------------------------
+
     level, trend, seasonality = _ets_initialise(
         trend_type, seasonality_type, seasonal_period, data
     )
@@ -199,8 +230,15 @@ def _ets_fit(params, data, model):
         fitted_values_[t] = fitted_value
         avg_mean_sq_err_ += (time_point - fitted_value) ** 2
         sse_ += error**2
+
     avg_mean_sq_err_ /= n_timepoints
     variance = sse_ / n_timepoints
+
+    # --- GUARD: Prevent log(0) ---
+    if variance < 1e-10:
+        variance = 1e-10
+    # -----------------------------
+
     liklihood_ = -0.5 * n_timepoints * (np.log(2 * np.pi) + np.log(variance) + 1)
     k_ = (
         seasonal_period * (seasonality_type != 0)
