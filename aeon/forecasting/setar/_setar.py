@@ -47,9 +47,7 @@ class SETARForecaster(BaseForecaster):
         mask_low = threshold_values <= self.threshold_
         mask_high = ~mask_low
 
-        self.model_low_ = LinearRegression().fit(
-            X_lagged[mask_low], y_target[mask_low]
-        )
+        self.model_low_ = LinearRegression().fit(X_lagged[mask_low], y_target[mask_low])
         self.model_high_ = LinearRegression().fit(
             X_lagged[mask_high], y_target[mask_high]
         )
