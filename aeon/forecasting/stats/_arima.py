@@ -8,7 +8,9 @@ __maintainer__ = ["alexbanwell1", "TonyBagnall"]
 __all__ = ["ARIMA", "AutoARIMA"]
 
 import numpy as np
+import pandas as pd
 from numba import njit
+from scipy.stats import norm
 
 from aeon.forecasting.base import BaseForecaster, IterativeForecastingMixin
 from aeon.forecasting.utils._extract_paras import _extract_arma_params
@@ -207,7 +209,26 @@ class ARIMA(BaseForecaster, IterativeForecastingMixin):
         self._fit(y, exog)
         return float(self.forecast_)
 
-    def iterative_forecast(self, y, prediction_horizon):
+    def iterative_forecast(self, y, prediction_horizon, alpha=None):
+        """Perform iterative (recursive) multi-step forecast.
+
+        Parameters
+        ----------
+        y : np.ndarray
+            The time series to make forecasts about.
+        prediction_horizon : int
+            Number of future time steps to forecast.
+        alpha : float, optional (default=None)
+            Significance level for prediction intervals. If provided, returns
+            lower and upper prediction bounds in addition to the mean forecast.
+
+        Returns
+        -------
+        np.ndarray or pandas.DataFrame
+            If alpha is None, returns a NumPy array of shape `(prediction_horizon,)`.
+            If alpha is provided, returns a DataFrame
+            with columns ["mean", "lower", "upper"].
+        """
         self.fit(y)
         n = len(self._differenced_series)
         p, q = self.p, self.q
@@ -240,9 +261,26 @@ class ARIMA(BaseForecaster, IterativeForecastingMixin):
         # Correct differencing using forecast values
         y_forecast_diff = forecast_series[n : n + h]
         if self.d == 0:
-            return y_forecast_diff
+            preds = y_forecast_diff
         else:
-            return _undifference(y_forecast_diff, self._series[-self.d :])[self.d :]
+            preds = _undifference(y_forecast_diff, self._series[-self.d :])[self.d :]
+
+        # If alpha is not given, return exactly as before
+        if alpha is None:
+            return preds
+
+        # Residual standard deviation
+        sigma = np.std(self.residuals_) if len(self.residuals_) > 1 else 0.0
+
+        # z multiplier
+        z = norm.ppf(1 - alpha / 2)
+
+        # SE grows with sqrt(horizon)
+        se = sigma * np.sqrt(np.arange(1, h + 1))
+        lower = preds - z * se
+        upper = preds + z * se
+
+        return pd.DataFrame({"mean": preds, "lower": lower, "upper": upper})
 
 
 class AutoARIMA(BaseForecaster, IterativeForecastingMixin):
@@ -364,7 +402,7 @@ class AutoARIMA(BaseForecaster, IterativeForecastingMixin):
         self._fit(y, exog)
         return float(self.final_model_.forecast_)
 
-    def iterative_forecast(self, y, prediction_horizon):
+    def iterative_forecast(self, y, prediction_horizon, alpha=None):
         """Forecast ``prediction_horizon`` prediction using a single model fit on `y`.
 
         This function implements the iterative forecasting strategy (also called
@@ -380,19 +418,24 @@ class AutoARIMA(BaseForecaster, IterativeForecastingMixin):
             ``(n_channels, n_timepoints)`` if a multivariate time series.
         prediction_horizon : int
             The number of future time steps to forecast.
+        alpha : float, optional (default=None)
+            Significance level for prediction intervals. If provided, returns
+            lower and upper prediction bounds in addition to the mean forecast.
 
         Returns
         -------
-        np.ndarray
-            An array of shape `(prediction_horizon,)` containing the forecasts for
-            each horizon.
+        np.ndarray or pandas.DataFrame
+            If alpha is None, returns a NumPy array of shape `(prediction_horizon,)`
+            containing point forecasts.
+            If alpha is provided, returns a DataFrame
+            with columns "mean", "lower", and "upper".
 
         Raises
         ------
         ValueError
             if prediction_horizon` less than 1.
         """
-        return self.final_model_.iterative_forecast(y, prediction_horizon)
+        return self.final_model_.iterative_forecast(y, prediction_horizon, alpha=alpha)
 
 
 @njit(cache=True, fastmath=True)
