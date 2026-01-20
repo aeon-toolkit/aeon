@@ -195,7 +195,7 @@ def _ets_fit(params, data, model):
             np.zeros(1),
             np.inf,
             -np.inf,
-            0
+            0,
         )
     # ------------------------------------------------------
 

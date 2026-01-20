@@ -8,7 +8,7 @@ from numba import njit
 def calc_seasonal_period(data):
     """Calculate the seasonal period of a time series."""
     n = len(data)
-    
+
     # --- QUANT GUARD 1: Series too short ---
     # You cannot have seasonality if you don't even have 4 points.
     if n < 4:
@@ -32,7 +32,7 @@ def calc_seasonal_period(data):
     for x in data:
         diff = x - mean
         denom += diff * diff
-    
+
     # --- QUANT GUARD 2: Zero Variance ---
     # If the line is flat (variance ~ 0), it has no seasonality.
     if denom < 1e-10:
@@ -48,7 +48,7 @@ def calc_seasonal_period(data):
         # Calculate autocovariance for this lag
         for i in range(n - lag):
             num += (data[i] - mean) * (data[i + lag] - mean)
-        
+
         acf = num / denom
         if acf > best_acf:
             best_acf = acf
@@ -57,5 +57,5 @@ def calc_seasonal_period(data):
     # A simple heuristic: if the best ACF is very weak, assume no seasonality
     if best_acf < 0.2:
         return 1
-        
+
     return best_lag
