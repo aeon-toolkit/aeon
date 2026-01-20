@@ -24,7 +24,7 @@ class SETARForecaster(BaseForecaster):
     def _fit(self, y, X=None, fh=None):
         y = np.asarray(y, dtype=float)
 
-        # aeon supplies univariate series as (n_timepoints, 1)
+        # aeon provides univariate series as (n_timepoints, 1)
         if y.ndim == 2:
             y = y[:, 0]
 
@@ -49,7 +49,7 @@ class SETARForecaster(BaseForecaster):
     def _predict(self, fh, X=None):
         fh = np.asarray(fh, dtype=int).ravel()
 
-        # aeon estimator checks call predict with fh=0
+        # aeon estimator checks may call predict with fh <= 0
         if fh.max() <= 0:
             return np.zeros(len(fh), dtype=float)
 
