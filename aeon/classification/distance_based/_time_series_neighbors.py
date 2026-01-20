@@ -55,9 +55,11 @@ class KNeighborsTimeSeriesClassifier(BaseClassifier):
     Raises
     ------
     ValueError
-        If ``weights`` is not among the supported values.
-        See the ``weights`` parameter description for valid options.
-        Dictionary for metric parameters for the case that distance is a str.
+        If ``weights`` is not among the supported values ('uniform' or 'distance').
+        If ``n_neighbors`` is not positive (must be > 0).
+        If ``n_neighbors`` is greater than the number of training samples.
+    TypeError
+        If ``n_neighbors`` is not an integer..
 
     Examples
     --------
