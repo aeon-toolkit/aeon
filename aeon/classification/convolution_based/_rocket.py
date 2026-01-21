@@ -45,9 +45,15 @@ class RocketClassifier(BaseClassifier):
         For multi-output, the weights of each column of y will be multiplied.
         Note that these weights will be multiplied with sample_weight (passed through
         the fit method) if sample_weight is specified.
+    use_gpu : bool, default=False
+        Whether to use GPU acceleration for the ROCKET transformation.
+        If True, requires TensorFlow to be installed. GPU acceleration can
+        significantly speed up computation for large datasets.
+        If False (default), uses CPU-based ROCKET transformation with
+        multithreading support via n_jobs.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both `fit` and `predict`.
-        ``-1`` means using all processors.
+        Only used when use_gpu=False. ``-1`` means using all processors.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -79,10 +85,16 @@ class RocketClassifier(BaseClassifier):
     >>> from aeon.datasets import load_unit_test
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test = load_unit_test(split="test")
+    >>> # CPU mode (default)
     >>> clf = RocketClassifier(n_kernels=500)
     >>> clf.fit(X_train, y_train)
     RocketClassifier(...)
     >>> y_pred = clf.predict(X_test)
+    >>> # GPU mode (requires TensorFlow)
+    >>> clf_gpu = RocketClassifier(n_kernels=500, use_gpu=True)  # doctest: +SKIP
+    >>> clf_gpu.fit(X_train, y_train)  # doctest: +SKIP
+    RocketClassifier(...)  # doctest: +SKIP
+    >>> y_pred_gpu = clf_gpu.predict(X_test)  # doctest: +SKIP
     """
 
     _tags = {
@@ -97,6 +109,7 @@ class RocketClassifier(BaseClassifier):
         n_kernels: int = 10000,
         estimator=None,
         class_weight=None,
+        use_gpu: bool = False,
         n_jobs: int = 1,
         random_state=None,
     ):
@@ -104,6 +117,7 @@ class RocketClassifier(BaseClassifier):
         self.estimator = estimator
 
         self.class_weight = class_weight
+        self.use_gpu = use_gpu
         self.n_jobs = n_jobs
         self.random_state = random_state
 
@@ -129,13 +143,36 @@ class RocketClassifier(BaseClassifier):
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
         """
-        self._n_jobs = check_n_jobs(self.n_jobs)
+        if self.use_gpu:
+            # Check for TensorFlow dependency
+            from aeon.utils.validation._dependencies import _check_soft_dependencies
 
-        self._transformer = Rocket(
-            n_kernels=self.n_kernels,
-            n_jobs=self._n_jobs,
-            random_state=self.random_state,
-        )
+            _check_soft_dependencies("tensorflow", severity="error")
+
+            # Import GPU transformer
+            try:
+                from aeon.transformations.collection.convolution_based.rocketGPU import (  # noqa: E501
+                    ROCKETGPU,
+                )
+            except ModuleNotFoundError as e:
+                raise ImportError(
+                    "GPU mode (use_gpu=True) requires TensorFlow to be installed. "
+                    "Install it with: pip install tensorflow>=2.0.0 "
+                    "or set use_gpu=False to use CPU mode."
+                ) from e
+
+            self._transformer = ROCKETGPU(
+                n_kernels=self.n_kernels,
+                random_state=self.random_state,
+            )
+        else:
+            # Use CPU transformer (existing behavior)
+            self._n_jobs = check_n_jobs(self.n_jobs)
+            self._transformer = Rocket(
+                n_kernels=self.n_kernels,
+                n_jobs=self._n_jobs,
+                random_state=self.random_state,
+            )
         self._scaler = StandardScaler(with_mean=False)
         self._estimator = _clone_estimator(
             (
