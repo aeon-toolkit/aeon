@@ -109,7 +109,7 @@ class ARIMA(BaseForecaster, IterativeForecastingMixin):
         self._differenced_series = np.diff(self._series, n=self.d)
         s = 0.1 / (np.sum(self._model) + 1)  # Randomise
         # Nelder Mead returns the parameters in a single array
-        (self._parameters, self.aic_) = nelder_mead(
+        self._parameters, self.aic_ = nelder_mead(
             0,
             np.sum(self._model[:3]),
             self._differenced_series,
@@ -118,7 +118,7 @@ class ARIMA(BaseForecaster, IterativeForecastingMixin):
             simplex_init=s,
         )
         #
-        (self.aic_, self.residuals_, self.fitted_values_) = _arima_model(
+        self.aic_, self.residuals_, self.fitted_values_ = _arima_model(
             self._parameters,
             self._differenced_series,
             self._model,

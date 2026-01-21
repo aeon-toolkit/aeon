@@ -178,7 +178,7 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
             dtype=np.int32,
         )
         data = y.squeeze()
-        (self.parameters_, self.aic_) = nelder_mead(
+        self.parameters_, self.aic_ = nelder_mead(
             1,
             1 + 2 * (self._trend_type != 0) + (self._seasonality_type != 0),
             data,
