@@ -53,8 +53,7 @@ def test_ets_forecaster(params, expected):
     forecaster = ETS(**params)
     p = forecaster.forecast(data)
 
-    # Updated to pass on all OS (Mac, Windows, Ubuntu) and architectures.
-    # rtol=0.05 (5%) handles the ~4.4% drift for params3 on ARM64 architectures
+    # Pass on all OS/architectures by handling ~4.4% drift on ARM64
     # caused by Numba fastmath optimizations.
     assert np.isclose(p, expected, rtol=0.05, atol=1e-4)
 
