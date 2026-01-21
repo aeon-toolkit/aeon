@@ -10,22 +10,27 @@ from aeon.transformations.collection.base import BaseCollectionTransformer
 from aeon.utils.validation import check_n_jobs
 
 
-def _from_3d_numpy_to_long(arr):
-    # Converting the numpy array to a long format DataFrame
-    n_cases, n_channels, n_timepoints = arr.shape
+def _from_collection_to_long(collection):
+    n_cases = len(collection)
+    n_channels = collection[0].shape[0]
+    n_timepoints = np.array([arr.shape[1] for arr in collection])
 
-    # Creating a DataFrame from the numpy array with multi-level index
-    df = pd.DataFrame(arr.reshape(n_cases * n_channels, n_timepoints))
-    df["case_index"] = np.repeat(np.arange(n_cases), n_channels)
-    df["dimension"] = np.tile(np.arange(n_channels), n_cases)
-    df = df.melt(
-        id_vars=["case_index", "dimension"], var_name="time_index", value_name="value"
+    index = np.repeat(np.arange(n_cases), n_channels * n_timepoints)
+    timepoints = [np.arange(timepoints_i) for timepoints_i in n_timepoints]
+    time_index = np.concatenate([np.tile(arr, n_channels) for arr in timepoints])
+    column = np.concatenate(
+        [
+            np.repeat(np.arange(n_channels), timepoints_i)
+            for timepoints_i in n_timepoints
+        ]
     )
+    value = np.concatenate([arr.flatten() for arr in collection])
 
-    # Adjusting the column order and renaming columns
-    df = df[["case_index", "time_index", "dimension", "value"]]
-    df = df.rename(columns={"case_index": "index", "dimension": "column"})
+    df = pd.DataFrame(
+        {"index": index, "time_index": time_index, "column": column, "value": value}
+    )
     df["column"] = "dim_" + df["column"].astype(str)
+
     return df
 
 
@@ -34,8 +39,10 @@ class _TSFresh(BaseCollectionTransformer):
 
     _tags = {
         "output_data_type": "Tabular",
+        "X_inner_type": ["np-list", "numpy3D"],
         "capability:multivariate": True,
         "capability:multithreading": True,
+        "capability:unequal_length": True,
         "fit_is_empty": True,
         "python_dependencies": "tsfresh",
     }
@@ -278,17 +285,18 @@ class TSFresh(_TSFresh):
 
         Parameters
         ----------
-        X : 3D numpy array of shape (n_cases, n_channels, n_features)
+        X : 3D np.ndarray of shape (n_cases, n_channels, n_timepoints)
+            or list of np.ndarray of shape [n_cases], where each array is a
+            2D np.ndarray of shape = [n_channels, n_timepoints_i]
             input time series collection.
         y : ignored argument for interface compatibility
 
         Returns
         -------
-        X : 3D numpy array of shape (n_cases, n_channels, n_features)
-            input time series collection.
-            transformed version of X
+        Xt : np.ndarray of shape (n_cases, n_features)
+            Transformed data.
         """
-        Xt = _from_3d_numpy_to_long(X)
+        Xt = _from_collection_to_long(X)
 
         # lazy imports to avoid hard dependency
         from tsfresh import extract_features
@@ -345,7 +353,7 @@ class TSFresh(_TSFresh):
         from tsfresh import extract_features
 
         X = np.random.random((2, 1, 30))
-        Xt = _from_3d_numpy_to_long(X)
+        Xt = _from_collection_to_long(X)
         Xt = extract_features(
             Xt,
             column_id="index",
@@ -475,7 +483,7 @@ class TSFreshRelevant(_TSFresh):
 
     _tags = {
         "requires_y": True,
-        "X_inner_type": "numpy3D",
+        "X_inner_type": ["np-list", "numpy3D"],
         "fit_is_empty": False,
     }
 
@@ -571,6 +579,8 @@ class TSFreshRelevant(_TSFresh):
         Parameters
         ----------
         X : 3D np.ndarray of shape (n_cases, n_channels, n_timepoints)
+            or list of np.ndarray of shape [n_cases], where each array is a
+            2D np.ndarray of shape = [n_channels, n_timepoints_i]
             collection of time series to transform
         y : Series, default=None
             Additional data, e.g., labels for transformation
