@@ -60,6 +60,9 @@ EXCLUDED_TESTS = {
     # Requires y to be passed in inverse_transform,
     # but this is not currently enabled/supported
     "DifferenceTransformer": ["check_transform_inverse_transform_equivalent"],
+    # broken by 0.63.0 numba update
+    "HIVECOTEV2": ["check_classifier_against_expected_results"],
+    "TemporalDictionaryEnsemble": ["check_classifier_against_expected_results"],
 }
 
 # Exclude specific tests for estimators here only when numba is disabled
