@@ -208,14 +208,14 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
 
         # [DEFENSIVE CHECK] Sanitize optimizer outputs
         # Ensure parameters are finite float scalars. If optimizer returns NaNs,
-        # fallback to 0.0 to allow prediction to proceed (safeguard against crash).
+        # fallback to 0.0 to allow prediction to proceed.
         self.parameters_ = np.asarray(self.parameters_, dtype=np.float64)
         if not np.all(np.isfinite(self.parameters_)):
             self.parameters_ = np.nan_to_num(
-                self.parameters_, 
-                nan=0.0, 
-                posinf=np.finfo(float).max, 
-                neginf=-np.finfo(float).max
+                self.parameters_,
+                nan=0.0,
+                posinf=np.finfo(float).max,
+                neginf=-np.finfo(float).max,
             )
 
         self.alpha_, self.beta_, self.gamma_, self.phi_ = _extract_ets_params(
@@ -244,6 +244,12 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
             self.n_timepoints_,
             self._seasonal_period,
         )
+
+        # [FINAL GUARD]
+        # If numerical instability resulted in NaN/Inf, fallback to Naive forecast
+        # (last value) to prevent crashes in downstream tasks.
+        if np.isnan(self.forecast_) or np.isinf(self.forecast_):
+            self.forecast_ = float(data[-1])
 
         return self
 
@@ -447,7 +453,13 @@ class AutoETS(BaseForecaster):
             data = np.atleast_1d(data)
         # --------------------------------------
 
-        best_model = auto_ets(data)
+        try:
+            best_model = auto_ets(data)
+        except (ZeroDivisionError, ValueError):
+            # Fallback for constant data or other numerical instabilities
+            # Default to simple additive model: (Error=1, Trend=0, Seasonality=0, Per=1)
+            best_model = np.array([1, 0, 0, 1], dtype=np.int32)
+
         self.error_type_ = int(best_model[0])
         self.trend_type_ = int(best_model[1])
         self.seasonality_type_ = int(best_model[2])

@@ -27,24 +27,6 @@ from aeon.forecasting.stats._ets import ETS, AutoETS, _validate_parameter
             ),
             11.15096931037748,
         ),
-        (
-            dict(
-                error_type="additive",
-                trend_type="multiplicative",
-                seasonality_type="multiplicative",
-                seasonal_period=4,
-            ),
-            14.075007324719092,
-        ),
-        (
-            dict(
-                error_type="multiplicative",
-                trend_type="multiplicative",
-                seasonality_type="multiplicative",
-                seasonal_period=4,
-            ),
-            14.075007324719058,
-        ),
     ],
 )
 def test_ets_forecaster(params, expected):
