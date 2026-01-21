@@ -251,77 +251,93 @@ class ElasticEnsemble(BaseClassifier):
                         f"Currently evaluating {self._distance_measures[dm]}"
                     )
 
-            # If 100 parameter options are being considered per measure,
-            # use a GridSearchCV
-            if self.proportion_of_param_options == 1:
-                grid = GridSearchCV(
-                    estimator=KNeighborsTimeSeriesClassifier(
-                        distance=this_measure, n_neighbors=1
-                    ),
-                    param_grid=ElasticEnsemble._get_100_param_options(
-                        self._distance_measures[dm], X
-                    ),
-                    cv=LeaveOneOut(),
-                    scoring="accuracy",
-                    n_jobs=self._n_jobs,
-                    verbose=self.verbose,
-                )
-                grid.fit(param_train_to_use, param_train_y)
+            param_grid = ElasticEnsemble._get_100_param_options(
+                self._distance_measures[dm], X
+            )
 
-            # Else, used RandomizedSearchCV to randomly sample parameter
-            # options for each measure
-            else:
-                grid = RandomizedSearchCV(
-                    estimator=KNeighborsTimeSeriesClassifier(
-                        distance=this_measure, n_neighbors=1
-                    ),
-                    param_distributions=ElasticEnsemble._get_100_param_options(
-                        self._distance_measures[dm], X
-                    ),
-                    n_iter=math.ceil(100 * self.proportion_of_param_options),
-                    cv=LeaveOneOut(),
-                    scoring="accuracy",
-                    n_jobs=self._n_jobs,
-                    random_state=rand,
-                    verbose=self.verbose,
-                )
-                grid.fit(param_train_to_use, param_train_y)
+            if self.proportion_train_in_param_finding == 1.0 and not self.majority_vote:
+                all_params = param_grid["distance_params"]
+                if self.proportion_of_param_options < 1:
+                    n_iter = math.ceil(
+                        len(all_params) * self.proportion_of_param_options
+                    )
+                    params_to_search = rand.choice(
+                        all_params, size=n_iter, replace=False
+                    )
+                else:
+                    params_to_search = all_params
 
-            if self.majority_vote:
-                acc = 1
-            # once the best parameter option has been estimated on the
-            # training data, perform a final pass with this parameter option
-            # to get the individual predictions with cross_cal_predict (
-            # Note: optimisation potentially possible here if a GridSearchCV
-            # was used previously. TO-DO: determine how to extract
-            # predictions for the best param option from GridSearchCV)
+                best_acc = -1.0
+                best_distance_params = None
+
+                for params in params_to_search:
+                    model = KNeighborsTimeSeriesClassifier(
+                        n_neighbors=1,
+                        distance=this_measure,
+                        distance_params=params,
+                        n_jobs=self._n_jobs,
+                    )
+                    preds = cross_val_predict(model, X, y, cv=LeaveOneOut())
+                    current_acc = accuracy_score(y, preds)
+                    if current_acc > best_acc:
+                        best_acc = current_acc
+                        best_distance_params = params
+                acc = best_acc
+
             else:
-                best_model = KNeighborsTimeSeriesClassifier(
-                    n_neighbors=1,
-                    distance=this_measure,
-                    distance_params=grid.best_params_["distance_params"],
-                    n_jobs=self._n_jobs,
-                )
-                preds = cross_val_predict(
-                    best_model, full_train_to_use, y, cv=LeaveOneOut()
-                )
-                acc = accuracy_score(y, preds)
+                if self.proportion_of_param_options == 1:
+                    grid = GridSearchCV(
+                        estimator=KNeighborsTimeSeriesClassifier(
+                            distance=this_measure, n_neighbors=1
+                        ),
+                        param_grid=param_grid,
+                        cv=LeaveOneOut(),
+                        scoring="accuracy",
+                        n_jobs=self._n_jobs,
+                        verbose=self.verbose,
+                    )
+                else:
+                    grid = RandomizedSearchCV(
+                        estimator=KNeighborsTimeSeriesClassifier(
+                            distance=this_measure, n_neighbors=1
+                        ),
+                        param_distributions=param_grid,
+                        n_iter=math.ceil(100 * self.proportion_of_param_options),
+                        cv=LeaveOneOut(),
+                        scoring="accuracy",
+                        n_jobs=self._n_jobs,
+                        random_state=rand,
+                        verbose=self.verbose,
+                    )
+
+                grid.fit(param_train_to_use, param_train_y)
+                best_distance_params = grid.best_params_["distance_params"]
+
+                if self.majority_vote:
+                    acc = 1.0
+                else:
+                    best_model = KNeighborsTimeSeriesClassifier(
+                        n_neighbors=1,
+                        distance=this_measure,
+                        distance_params=best_distance_params,
+                        n_jobs=self._n_jobs,
+                    )
+                    preds = cross_val_predict(best_model, X, y, cv=LeaveOneOut())
+                    acc = accuracy_score(y, preds)
 
             if self.verbose > 0:
                 print(  # noqa: T201
                     f"Training acc for {self._distance_measures[dm]}: {acc}"
                 )
 
-            # Finally, reset the classifier for this measure and parameter
-            # option, ready to be called for test classification
             best_model = KNeighborsTimeSeriesClassifier(
                 n_neighbors=1,
                 distance=this_measure,
-                distance_params=grid.best_params_["distance_params"],
+                distance_params=best_distance_params,
             )
             best_model.fit(full_train_to_use, y)
-            end_build_time = time.time()
 
+            end_build_time = time.time()
             self.constituent_build_times_.append(str(end_build_time - start_build_time))
             self.estimators_[dm] = best_model
             self.train_accs_by_classifier_[dm] = acc
