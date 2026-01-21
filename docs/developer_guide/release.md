@@ -87,5 +87,5 @@ categorised. It may be easier to re-label PRs and regenerate the release notes.
 If a release is required urgently, the release testing process can be expedited by
 running the "Fast release" workflow. **This workflow should not be used under normal
 circumstances**. Any issues with release testing should be addressed in the normal
-release workflow if possible. Consult the core developers on Slack before running this
+release workflow if possible. Consult the core developers on [Discord](https://discord.gg/D6rzqHGKRJ) before running this
 in any circumstance.
