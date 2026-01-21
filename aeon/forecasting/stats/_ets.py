@@ -212,10 +212,10 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
         self.parameters_ = np.asarray(self.parameters_, dtype=np.float64)
         if not np.all(np.isfinite(self.parameters_)):
             self.parameters_ = np.nan_to_num(
-                self.parameters_, 
-                nan=0.0, 
-                posinf=np.finfo(float).max, 
-                neginf=-np.finfo(float).max
+                self.parameters_,
+                nan=0.0,
+                posinf=np.finfo(float).max,
+                neginf=-np.finfo(float).max,
             )
 
         self.alpha_, self.beta_, self.gamma_, self.phi_ = _extract_ets_params(
