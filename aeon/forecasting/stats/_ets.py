@@ -16,13 +16,9 @@ from aeon.forecasting.base import BaseForecaster, IterativeForecastingMixin
 from aeon.forecasting.utils._extract_paras import _extract_ets_params
 from aeon.forecasting.utils._loss_functions import (
     _ets_fit,
-    _ets_initialise,
     _ets_predict_value,
 )
 from aeon.forecasting.utils._nelder_mead import nelder_mead
-
-ADDITIVE = "additive"
-MULTIPLICATIVE = "multiplicative"
 
 
 class ETS(BaseForecaster, IterativeForecastingMixin):
@@ -43,14 +39,8 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
         Type of seasonal component: None (0), `additive' (1) or 'multiplicative' (2)
     seasonal_period : int, default=1
         Number of time points in a seasonal cycle.
-    alpha : float, default=0.1
-        Level smoothing parameter.
-    beta : float, default=0.01
-        Trend smoothing parameter.
-    gamma : float, default=0.01
-        Seasonal smoothing parameter.
-    phi : float, default=0.99
-        Trend damping parameter (used only for damped trend models).
+    iterations : int, default=200
+        Number of iterations for the Nelder-Mead optimisation algorithm used to fit.
 
     Attributes
     ----------
@@ -96,6 +86,8 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
 
     _tags = {
         "capability:horizon": False,
+        "fit_is_empty": True,
+        "predict_updates_state": True,
     }
 
     def __init__(
@@ -131,7 +123,7 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
         self.forecast_ = 0
         super().__init__(horizon=1, axis=1)
 
-    def _fit(self, y, exog=None):
+    def _predict(self, y, exog=None):
         """Fit Exponential Smoothing forecaster to series y.
 
         Fit a forecaster to predict self.horizon steps ahead using y.
@@ -145,8 +137,8 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
 
         Returns
         -------
-        self
-            Fitted ETS.
+        float
+            single prediction self.horizon steps ahead of y.
         """
         _validate_parameter(self.error_type, False)
         _validate_parameter(self.seasonality_type, True)
@@ -156,9 +148,9 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
         def _get_int(x):
             if x is None:
                 return 0
-            if x == ADDITIVE:
+            if x == "additive":
                 return 1
-            if x == MULTIPLICATIVE:
+            if x == "multiplicative":
                 return 2
             return x
 
@@ -200,7 +192,8 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
             self.liklihood_,
             self.k_,
         ) = _ets_fit(self.parameters_, data, self._model)
-        self.forecast_ = _numba_predict(
+
+        return _numba_predict(
             self._trend_type,
             self._seasonality_type,
             self.level_,
@@ -212,50 +205,14 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
             self._seasonal_period,
         )
 
-        return self
-
-    def _predict(self, y, exog=None):
-        """
-        Predict the next horizon steps ahead.
-
-        Parameters
-        ----------
-        y : np.ndarray, default = None
-            A time series to predict the next horizon value for. If None,
-            predict the next horizon value after series seen in fit.
-        exog : np.ndarray, default =None
-            Optional exogenous time series data assumed to be aligned with y
-
-        Returns
-        -------
-        float
-            single prediction self.horizon steps ahead of y.
-        """
-        return self.forecast_
-
-    def _initialise(self, data):
-        """
-        Initialize level, trend, and seasonality values for the ETS model.
-
-        Parameters
-        ----------
-        data : array-like
-            The time series data
-            (should contain at least two full seasons if seasonality is specified)
-        """
-        self.level_, self.trend_, self.seasonality_ = _ets_initialise(
-            self._trend_type, self._seasonality_type, self._seasonal_period, data
-        )
-
     def iterative_forecast(self, y, prediction_horizon):
         """Forecast with ETS specific iterative method.
 
         Overrides the base class iterative_forecast to avoid refitting on each step.
         This simply rolls the ETS model forward
         """
-        self.fit(y)
         preds = np.zeros(prediction_horizon)
-        preds[0] = self.forecast_
+        preds[0] = self.predict(y)
         for i in range(1, prediction_horizon):
             preds[i] = _numba_predict(
                 self._trend_type,
@@ -301,10 +258,10 @@ def _numba_predict(
 
 
 def _validate_parameter(var, can_be_none):
-    valid_str = (ADDITIVE, MULTIPLICATIVE)
+    valid_str = ("additive", "multiplicative")
     valid_int = (1, 2)
     if can_be_none:
-        valid_str = (None, ADDITIVE, MULTIPLICATIVE)
+        valid_str = (None, "additive", "multiplicative")
         valid_int = (0, 1, 2)
     valid = True
     if isinstance(var, str) or var is None:
