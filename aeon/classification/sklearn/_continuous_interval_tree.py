@@ -377,7 +377,7 @@ class ContinuousIntervalTree(ClassifierMixin, BaseEstimator):
             X=X,
             y=y,
             ensure_min_samples=2,
-            force_all_finite="allow-nan",
+            ensure_all_finite="allow-nan",
             accept_sparse=False,
         )
         check_classification_targets(y)
@@ -464,7 +464,7 @@ class ContinuousIntervalTree(ClassifierMixin, BaseEstimator):
         # data processing
         X = self._check_X(X)
         X = validate_data(
-            self, X=X, reset=False, force_all_finite="allow-nan", accept_sparse=False
+            self, X=X, reset=False, ensure_all_finite="allow-nan", accept_sparse=False
         )
 
         dists = np.zeros((X.shape[0], self.n_classes_))

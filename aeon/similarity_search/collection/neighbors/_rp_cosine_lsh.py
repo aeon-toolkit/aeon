@@ -207,7 +207,7 @@ class RandomProjectionIndexANN(BaseCollectionSimilaritySearch):
         self.index_ = {}
         self._raw_index_bool_arrays = np.unique(X_bools, axis=0)
         for i in range(len(X_bools)):
-            key = X_bools[i].tostring()
+            key = X_bools[i].tobytes()
             if key in self.index_:
                 self.index_[key].append(i)
             else:
@@ -275,7 +275,7 @@ class RandomProjectionIndexANN(BaseCollectionSimilaritySearch):
         k=1,
         inverse_distance=False,
     ):
-        key = X_bool.tostring()
+        key = X_bool.tobytes()
         top_k = np.zeros(k, dtype=int)
         top_k_dist = np.zeros(k, dtype=float)
         remove_X_hash = False
@@ -303,7 +303,7 @@ class RandomProjectionIndexANN(BaseCollectionSimilaritySearch):
 
             _i_bucket = 0
             while current_k < k:
-                key_index = self._raw_index_bool_arrays[ids[_i_bucket]].tostring()
+                key_index = self._raw_index_bool_arrays[ids[_i_bucket]].tobytes()
                 candidates = self.index_[key_index]
                 # Can do exact search by computing distances here
                 if len(candidates) > k - current_k:
