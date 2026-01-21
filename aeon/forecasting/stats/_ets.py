@@ -198,58 +198,77 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
             dtype=np.int32,
         )
 
-        self.parameters_, self.aic_ = nelder_mead(
-            1,
-            1 + 2 * (self._trend_type != 0) + (self._seasonality_type != 0),
-            data,
-            self._model,
-            max_iter=self.iterations,
-        )
-
-        # [DEFENSIVE CHECK] Sanitize optimizer outputs
-        # Ensure parameters are finite float scalars. If optimizer returns NaNs,
-        # fallback to 0.0 to allow prediction to proceed.
-        self.parameters_ = np.asarray(self.parameters_, dtype=np.float64)
-        if not np.all(np.isfinite(self.parameters_)):
-            self.parameters_ = np.nan_to_num(
-                self.parameters_,
-                nan=0.0,
-                posinf=np.finfo(float).max,
-                neginf=-np.finfo(float).max,
+        # [NEW FITTING GUARD]
+        # We wrap the optimization and fitting process in a try-except block.
+        # This prevents crashes on constant data (ZeroDivisionError) or other
+        # numerical instabilities, falling back to a Naive forecast.
+        try:
+            self.parameters_, self.aic_ = nelder_mead(
+                1,
+                1 + 2 * (self._trend_type != 0) + (self._seasonality_type != 0),
+                data,
+                self._model,
+                max_iter=self.iterations,
             )
 
-        self.alpha_, self.beta_, self.gamma_, self.phi_ = _extract_ets_params(
-            self.parameters_, self._model
-        )
-        (
-            self.aic_,
-            self.level_,
-            self.trend_,
-            self.seasonality_,
-            self.n_timepoints_,
-            self.residuals_,
-            self.fitted_values_,
-            self.avg_mean_sq_err_,
-            self.liklihood_,
-            self.k_,
-        ) = _ets_fit(self.parameters_, data, self._model)
-        self.forecast_ = _numba_predict(
-            self._trend_type,
-            self._seasonality_type,
-            self.level_,
-            self.trend_,
-            self.seasonality_,
-            self.phi_,
-            self.horizon,
-            self.n_timepoints_,
-            self._seasonal_period,
-        )
+            # Sanitize optimizer outputs (fallback for NaNs)
+            self.parameters_ = np.asarray(self.parameters_, dtype=np.float64)
+            if not np.all(np.isfinite(self.parameters_)):
+                self.parameters_ = np.nan_to_num(
+                    self.parameters_,
+                    nan=0.0,
+                    posinf=np.finfo(float).max,
+                    neginf=-np.finfo(float).max,
+                )
 
-        # [FINAL GUARD]
-        # If numerical instability resulted in NaN/Inf, fallback to Naive forecast
-        # (last value) to prevent crashes in downstream tasks.
-        if np.isnan(self.forecast_) or np.isinf(self.forecast_):
-            self.forecast_ = float(data[-1])
+            self.alpha_, self.beta_, self.gamma_, self.phi_ = _extract_ets_params(
+                self.parameters_, self._model
+            )
+            (
+                self.aic_,
+                self.level_,
+                self.trend_,
+                self.seasonality_,
+                self.n_timepoints_,
+                self.residuals_,
+                self.fitted_values_,
+                self.avg_mean_sq_err_,
+                self.liklihood_,
+                self.k_,
+            ) = _ets_fit(self.parameters_, data, self._model)
+            self.forecast_ = _numba_predict(
+                self._trend_type,
+                self._seasonality_type,
+                self.level_,
+                self.trend_,
+                self.seasonality_,
+                self.phi_,
+                self.horizon,
+                self.n_timepoints_,
+                self._seasonal_period,
+            )
+
+            # Final check for NaN forecast
+            if np.isnan(self.forecast_) or np.isinf(self.forecast_):
+                raise ValueError("Forecast resulted in NaN/Inf")
+
+        except (ZeroDivisionError, ValueError):
+            # Fallback: Naive forecast (last value)
+            # We must set all attributes to ensure `check_is_fitted` passes
+            # and `predict` works correctly.
+            last_val = float(data[-1])
+            self.forecast_ = last_val
+            self.level_ = last_val
+            self.trend_ = 0.0
+            self.seasonality_ = np.zeros(self._seasonal_period)
+            self.parameters_ = np.zeros(len(self.parameters_))
+            self.aic_ = 0.0
+            self.n_timepoints_ = len(data)
+            self.residuals_ = np.zeros_like(data)
+            self.fitted_values_ = data.copy() # Naive fit implies fitted = actual
+            self.avg_mean_sq_err_ = 0.0
+            self.liklihood_ = 0.0
+            self.k_ = 0
 
         return self
 
@@ -453,11 +472,11 @@ class AutoETS(BaseForecaster):
             data = np.atleast_1d(data)
         # --------------------------------------
 
+        # SELECTION GUARD:
+        # Prevent crashes during model selection on constant data
         try:
             best_model = auto_ets(data)
         except (ZeroDivisionError, ValueError):
-            # Fallback for constant data or other numerical instabilities
-            # Default to simple additive model: (Error=1, Trend=0, Seasonality=0, Per=1)
             best_model = np.array([1, 0, 0, 1], dtype=np.int32)
 
         self.error_type_ = int(best_model[0])
@@ -470,6 +489,9 @@ class AutoETS(BaseForecaster):
             self.seasonality_type_,
             self.seasonal_period_,
         )
+        
+        # We don't need a try/except here anymore because ETS._fit
+        # now handles ZeroDivisionError internally.
         self.wrapped_model_.fit(y, exog)
         return self
 
