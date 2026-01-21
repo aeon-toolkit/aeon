@@ -186,6 +186,7 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
             self._model,
             max_iter=self.iterations,
         )
+        print(self.parameters_)  # noqa: T201
         self.alpha_, self.beta_, self.gamma_, self.phi_ = _extract_ets_params(
             self.parameters_, self._model
         )
@@ -212,6 +213,7 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
             self.n_timepoints_,
             self._seasonal_period,
         )
+        print(self.forecast_)  # noqa: T201
 
         return self
 
