@@ -362,8 +362,7 @@ class BaseIntervalForest(ABC):
                 self._base_estimator = DecisionTreeRegressor(criterion="absolute_error")
             else:
                 raise ValueError(
-                    f"{self} must be a scikit-learn compatible classifier or "
-                    "regressor."
+                    f"{self} must be a scikit-learn compatible classifier or regressor."
                 )
         # base_estimator must be an sklearn estimator
         elif not isinstance(self.base_estimator, BaseEstimator):
@@ -1157,10 +1156,12 @@ class BaseIntervalForest(ABC):
             raise NotImplementedError(
                 "Temporal importance curves are not available for regression."
             )
-        if not isinstance(self._base_estimator, ContinuousIntervalTree):
+        if not isinstance(
+            self._base_estimator, (ContinuousIntervalTree, BaseDecisionTree)
+        ):
             raise ValueError(
                 "base_estimator for temporal importance curves must"
-                " be ContinuousIntervalTree."
+                " be ContinuousIntervalTree or a scikit-learn BaseDecisionTree."
             )
 
         curves = {}
@@ -1168,7 +1169,31 @@ class BaseIntervalForest(ABC):
             counts = {}
 
         for i, est in enumerate(self.estimators_):
-            splits, gains = est.tree_node_splits_and_gain()
+            if isinstance(est, ContinuousIntervalTree):
+                splits, gains = est.tree_node_splits_and_gain()
+            elif isinstance(est, BaseDecisionTree):
+                tree = est.tree_
+                internal_nodes = np.where(tree.feature >= 0)[0]
+                splits = tree.feature[internal_nodes]
+                impurity = tree.impurity[internal_nodes]
+                impurity_left = tree.impurity[tree.children_left[internal_nodes]]
+                impurity_right = tree.impurity[tree.children_right[internal_nodes]]
+                n_samples_node = tree.n_node_samples[internal_nodes]
+                n_samples_total = self.n_cases_
+                gains = (n_samples_node / n_samples_total) * (
+                    impurity
+                    - (
+                        tree.n_node_samples[tree.children_left[internal_nodes]]
+                        / n_samples_node
+                    )
+                    * impurity_left
+                    - (
+                        tree.n_node_samples[tree.children_right[internal_nodes]]
+                        / n_samples_node
+                    )
+                    * impurity_right
+                )
+
             split_features = []
 
             for n, rep in enumerate(self.intervals_[i]):
@@ -1274,7 +1299,7 @@ class BaseIntervalForest(ABC):
 
             names, values = zip(*sorted(zip(names, values)))
 
-            return names, values
+            return list(names), list(values)
 
 
 def _is_transformer(obj):

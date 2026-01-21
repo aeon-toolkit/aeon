@@ -7,8 +7,10 @@ from sklearn.preprocessing import FunctionTransformer
 from sklearn.tree import DecisionTreeClassifier
 
 from aeon.base._base import _clone_estimator
+from aeon.classification.interval_based import DrCIFClassifier
 from aeon.classification.interval_based._interval_forest import IntervalForestClassifier
 from aeon.classification.sklearn import ContinuousIntervalTree
+from aeon.datasets import load_classification
 from aeon.testing.data_generation import make_example_3d_numpy
 from aeon.transformations.collection import AutocorrelationFunctionTransformer
 from aeon.transformations.collection.feature_based import Catch22, SevenNumberSummary
@@ -259,3 +261,35 @@ def test_interval_features():
 
     assert est._interval_function == [True]
     assert est._interval_transformer == [True]
+
+
+@pytest.mark.parametrize(
+    "base_estimator",
+    [None, ContinuousIntervalTree()],
+)
+def test_drcif_temporal_importance_curves(base_estimator):
+    """Test temporal_importance_curves for supported base estimators."""
+    X, y = load_classification("GunPoint", split="TRAIN")
+    X_small, y_small = X[:20], y[:20]
+    n_timepoints = X_small.shape[-1]
+
+    dr = DrCIFClassifier(
+        base_estimator=base_estimator,
+        n_estimators=5,
+        random_state=42,
+    )
+    dr.fit(X_small, y_small)
+
+    names, curves = dr.temporal_importance_curves()
+
+    assert isinstance(names, list)
+    assert isinstance(curves, list)
+    assert len(names) == len(curves) > 0
+
+    curve = curves[0]
+    assert isinstance(curve, np.ndarray)
+    assert curve.ndim == 1
+    assert len(curve) == n_timepoints
+    assert np.all(curve >= 0)
+
+    assert np.any(curve > 0), "Importance curve should contain non-zero values"
