@@ -265,7 +265,7 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
             self.aic_ = 0.0
             self.n_timepoints_ = len(data)
             self.residuals_ = np.zeros_like(data)
-            self.fitted_values_ = data.copy() # Naive fit implies fitted = actual
+            self.fitted_values_ = data.copy()  # Naive fit implies fitted = actual
             self.avg_mean_sq_err_ = 0.0
             self.liklihood_ = 0.0
             self.k_ = 0
@@ -489,7 +489,7 @@ class AutoETS(BaseForecaster):
             self.seasonality_type_,
             self.seasonal_period_,
         )
-        
+
         # We don't need a try/except here anymore because ETS._fit
         # now handles ZeroDivisionError internally.
         self.wrapped_model_.fit(y, exog)
