@@ -37,9 +37,7 @@ def test_ets_forecaster(params, expected):
 
     # Pass on all OS/architectures by handling ~4.4% drift on ARM64
     # caused by Numba fastmath optimizations.
-    assert np.isclose(
-        p, expected, rtol=0.05, atol=1e-4
-    )
+    assert np.isclose(p, expected, rtol=0.05, atol=1e-4)
 
 
 @pytest.mark.parametrize(
