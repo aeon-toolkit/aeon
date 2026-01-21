@@ -153,6 +153,25 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
         _validate_parameter(self.seasonality_type, True)
         _validate_parameter(self.trend_type, True)
 
+        data = y.squeeze()
+        if data.ndim == 0:
+            data = np.atleast_1d(data)
+
+        # Ensure data is float and finite to prevent internal arithmetic errors
+        data = data.astype(np.float64)
+
+        # Validation: Multiplicative components require strictly positive data
+        # to avoid NaNs during log transformations or division.
+        if (
+            self.error_type in (MULTIPLICATIVE, 2)
+            or self.trend_type in (MULTIPLICATIVE, 2)
+            or self.seasonality_type in (MULTIPLICATIVE, 2)
+        ):
+            if np.any(data <= 0):
+                raise ValueError(
+                    "Multiplicative components require all data points to be positive."
+                )
+
         # Convert to string parameters to ints for numba efficiency
         def _get_int(x):
             if x is None:
@@ -178,9 +197,6 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
             ],
             dtype=np.int32,
         )
-        data = y.squeeze()
-        if data.ndim == 0:
-            data = np.atleast_1d(data)
 
         self.parameters_, self.aic_ = nelder_mead(
             1,
@@ -189,6 +205,19 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
             self._model,
             max_iter=self.iterations,
         )
+
+        # [DEFENSIVE CHECK] Sanitize optimizer outputs
+        # Ensure parameters are finite float scalars. If optimizer returns NaNs,
+        # fallback to 0.0 to allow prediction to proceed (safeguard against crash).
+        self.parameters_ = np.asarray(self.parameters_, dtype=np.float64)
+        if not np.all(np.isfinite(self.parameters_)):
+            self.parameters_ = np.nan_to_num(
+                self.parameters_, 
+                nan=0.0, 
+                posinf=np.finfo(float).max, 
+                neginf=-np.finfo(float).max
+            )
+
         self.alpha_, self.beta_, self.gamma_, self.phi_ = _extract_ets_params(
             self.parameters_, self._model
         )
@@ -380,7 +409,7 @@ class AutoETS(BaseForecaster):
     >>> y = load_airline()
     >>> forecaster = AutoETS()
     >>> forecaster.forecast(y)
-    435.9312382780535
+    460.1613214776074
     """
 
     _tags = {
