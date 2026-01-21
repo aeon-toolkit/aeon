@@ -38,7 +38,7 @@ stuck, please don’t hesitate to talk with us or raise an issue.
 Recommended steps for first time contributors, or to get started with regular
 contributions:
 
-1. Say hello in the `introductions` or `contributors` channel on [Slack](https://join.slack.com/t/aeon-toolkit/shared_invite/zt-3ihx5vif8-SwFzy1unNNMeQueC84MXVA)
+1. Say hello in the `introductions` or `contributors` channel on [Discord](https://discord.gg/D6rzqHGKRJ)
 and mention which places you are interested in contributing to.
 2. Get setup for development, see the [developer install instructions](developer_guide/dev_installation.md)
 for creating a fork of `aeon`.
@@ -63,7 +63,7 @@ Developer may suggest a different issue if the one you chose is complex or someb
 already working on it.
 5. Create a [pull request (PR)](https://github.com/aeon-toolkit/aeon/compare)
 with your changes from your fork. For help, see the [GitHub documentation](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request-from-a-fork)
-or ask in Slack. Follow the PR template, template comments and checklist. Please make
+or ask in [Discord](https://discord.gg/D6rzqHGKRJ). Follow the PR template, template comments and checklist. Please make
 sure to include an appropriate [title tag](contributing/issues.md). **Do not just delete the PR template
 text.**
 6. A Core Developer will review your PR and may provide feedback, which you can then
@@ -84,7 +84,7 @@ contributing, but if your issue to related to a specific topic i.e. documentatio
 testing you may find it useful.
 
 If your intended method of contribution does not fit into the above steps, please
-reach out to us on [Slack](https://join.slack.com/t/aeon-toolkit/shared_invite/zt-3ihx5vif8-SwFzy1unNNMeQueC84MXVA)
+reach out to us on [Discord](https://discord.gg/D6rzqHGKRJ)
 for discussion. While GitHub contributions are the most common, it is not the only
 way to contribute to `aeon`.
 
