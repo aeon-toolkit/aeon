@@ -52,7 +52,7 @@ def test_ets_forecaster(params, expected):
     data = np.array([3, 10, 12, 13, 12, 10, 12, 3, 10, 12, 13, 12, 10, 12])
     forecaster = ETS(**params)
     p = forecaster.forecast(data)
-    
+
     # Updated to pass on all OS (Mac, Windows, Ubuntu) and architectures.
     # rtol=0.05 (5%) handles the ~4.4% drift for params3 on ARM64 architectures
     # caused by Numba fastmath optimizations.
