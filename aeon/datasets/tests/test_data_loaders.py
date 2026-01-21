@@ -57,7 +57,7 @@ def test_load_forecasting_from_repo():
     assert not meta["contain_missing_values"]
     assert not meta["contain_equal_length"]
 
-    shutil.rmtree(os.path.dirname(__file__) + "/../local_data")
+    shutil.rmtree(os.path.dirname(__file__) + "/../local_data", ignore_errors=True)
 
 
 @pytest.mark.skipif(
@@ -84,7 +84,7 @@ def test_load_classification_from_repo():
     assert meta["classlabel"]
     assert not meta["targetlabel"]
     assert meta["class_values"] == ["1", "2"]
-    shutil.rmtree(os.path.dirname(__file__) + "/../local_data")
+    shutil.rmtree(os.path.dirname(__file__) + "/../local_data", ignore_errors=True)
 
 
 @pytest.mark.skipif(
