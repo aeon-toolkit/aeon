@@ -1,1 +1,1 @@
-"""Similarity search Tests."""
+"""Tests for similarity search module."""
