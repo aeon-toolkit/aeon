@@ -11,4 +11,3 @@ valuable contributions beyond code which help make `aeon` a great package.
 - [Opening issues and reporting bugs](https://www.aeon-toolkit.org/en/stable/contributing/issues.html)
 - [Contributing to aeon](https://www.aeon-toolkit.org/en/stable/contributing.html)
 - [Developer guide](https://www.aeon-toolkit.org/en/stable/developer_guide.html)
-- [GSoC specific guidance](https://github.com/aeon-toolkit/aeon-admin/tree/main/gsoc)
