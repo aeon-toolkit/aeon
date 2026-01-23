@@ -170,7 +170,7 @@ def _load_data(file, meta_data, replace_missing_vals_with="NaN"):
     n_timepoints = 0
     y_values = []
     target = False
-    if meta_data["classlabel"] or meta_data["targetlabel"]:
+    if meta_data.get("classlabel", False) or meta_data.get("targetlabel", False):
         target = True
     for line in file:
         line = line.strip().lower()
@@ -199,7 +199,7 @@ def _load_data(file, meta_data, replace_missing_vals_with="NaN"):
 
         if n_cases == 1:
             n_channels = current_channels
-            if meta_data["equallength"]:
+            if meta_data.get("equallength", False):
                 n_timepoints = len(channels[0].split(","))
         else:
             if current_channels != n_channels:
@@ -208,13 +208,13 @@ def _load_data(file, meta_data, replace_missing_vals_with="NaN"):
                     f"Expecting {n_channels} but have read {current_channels}"
                 )
 
-        if meta_data["univariate"]:
+        if meta_data.get("univariate", False):
             if current_channels > 1:
                 raise OSError(
                     f"Seen {current_channels} in case {n_cases}."
                     f"Expecting univariate from meta data"
                 )
-        if meta_data["equallength"]:
+        if meta_data.get("equallength", False):
             current_length = n_timepoints
         else:
             current_length = len(channels[0].split(","))
@@ -238,7 +238,7 @@ def _load_data(file, meta_data, replace_missing_vals_with="NaN"):
         data.append(np_case)
         if target:
             y_values.append(channels[n_channels])
-    if meta_data["equallength"]:
+    if meta_data.get("equallength", False):
         data = np.array(data)
     return data, np.asarray(y_values), meta_data
 
@@ -298,7 +298,7 @@ def load_from_ts_file(
         data, y, meta_data = _load_data(file, meta_data)
 
     # if equal load to 3D numpy
-    if meta_data["equallength"]:
+    if meta_data.get("equallength", False):
         data = np.array(data)
         if return_type == "numpy2D" and meta_data["univariate"]:
             data = data.squeeze()
