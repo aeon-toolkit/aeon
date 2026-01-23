@@ -180,11 +180,24 @@ def _load_data(file, meta_data, replace_missing_vals_with="NaN"):
             channels = _get_channel_strings(line, target, replace_missing_vals_with)
         else:
             channels = line.split(":")
+
         n_cases += 1
+
+        expected_dims = meta_data.get("dimensions", len(channels))
+
+        # 🔥 FINAL FIX: pad with NaN STRINGS, not empty strings
+        if len(channels) < expected_dims:
+            # infer timepoints from first channel
+            n_timepoints = len(channels[0].split(","))
+            nan_channel = ",".join([replace_missing_vals_with] * n_timepoints)
+            for _ in range(expected_dims - len(channels)):
+                channels.append(nan_channel)
+
         current_channels = len(channels)
         if target:
             current_channels -= 1
-        if n_cases == 1:  # Find n_channels and length  from first if not unequal
+
+        if n_cases == 1:
             n_channels = current_channels
             if meta_data["equallength"]:
                 n_timepoints = len(channels[0].split(","))
@@ -194,12 +207,13 @@ def _load_data(file, meta_data, replace_missing_vals_with="NaN"):
                     f"Inconsistent number of dimensions in case {n_cases}. "
                     f"Expecting {n_channels} but have read {current_channels}"
                 )
-            if meta_data["univariate"]:
-                if current_channels > 1:
-                    raise OSError(
-                        f"Seen {current_channels} in case {n_cases}."
-                        f"Expecting univariate from meta data"
-                    )
+
+        if meta_data["univariate"]:
+            if current_channels > 1:
+                raise OSError(
+                    f"Seen {current_channels} in case {n_cases}."
+                    f"Expecting univariate from meta data"
+                )
         if meta_data["equallength"]:
             current_length = n_timepoints
         else:
