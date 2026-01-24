@@ -29,7 +29,7 @@ class TimeCNNClassifier(BaseDeepClassifier):
         is used for all layer, len(list) should be n_layers.
     n_filters : int or list of int, default = None
         Number of filters for each convolution layer, if not a list, the same n_filters
-        is used in all layers.
+        is used in all layers. If set to None, it would be mapped to [6, 12].
     avg_pool_size : int or list of int, default = 3
         The size of the average pooling layer, if not a list, the same
         max pooling size is used for all convolution layer.

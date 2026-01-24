@@ -31,8 +31,8 @@ class MLPClassifier(BaseDeepClassifier):
         Dropout rate(s) for each dense layer. If None, a default rate of 0.2 is used
         except the first element, being 0.1. Dropout rate(s) are typically a number
         in the interval [0, 1].
-    dropout_last : float, default = 0.3
-        The dropout rate of the last layer.
+    dropout_last : float, default = None
+        The dropout rate of the last layer. If None, it would be mapped to 0.3.
     use_bias : bool, default = True
         Condition on whether or not to use bias values for dense layers.
     n_epochs : int, default = 2000

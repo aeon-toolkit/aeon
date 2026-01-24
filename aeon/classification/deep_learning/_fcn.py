@@ -23,10 +23,12 @@ class FCNClassifier(BaseDeepClassifier):
     ----------
     n_layers : int, default = 3
         Number of convolution layers.
-    n_filters : int or list of int, default = [128,256,128]
+    n_filters : int or list of int, default = None
         Number of filters used in convolution layers.
-    kernel_size : int or list of int, default = [8,5,3]
-        Size of convolution kernel.
+        If None, it would be mapped to [128, 256, 128].
+    kernel_size : int or list of int, default = None
+        Size of convolution kernel. If None, 
+        it would be mapped to [8,5,3]
     dilation_rate : int or list of int, default = 1
         The dilation rate for convolution.
     strides : int or list of int, default = 1

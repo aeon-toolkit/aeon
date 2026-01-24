@@ -26,13 +26,15 @@ class ResNetClassifier(BaseDeepClassifier):
         The number of residual blocks of ResNet's model.
     n_conv_per_residual_block : int, default = 3
         The number of convolution blocks in each residual block.
-    n_filters : int or list of int, default = [128, 64, 64]
+    n_filters : int or list of int, default = None
         The number of convolution filters for all the convolution layers in the same
         residual block, if not a list, the same number of filters is used in all
         convolutions of all residual blocks.
-    kernel_sizes : int or list of int, default = [8, 5, 3]
+        If None, it would be mapped to [128, 64, 64].
+    kernel_sizes : int or list of int, default = None
         The kernel size of all the convolution layers in one residual block, if not
         a list, the same kernel size is used in all convolution layers.
+        If None, it would be mapped to [8, 5, 3].
     strides : int or list of int, default = 1
         The strides of convolution kernels in each of the convolution layers in
         one residual block, if not a list, the same kernel size is used in all
@@ -46,13 +48,13 @@ class ResNetClassifier(BaseDeepClassifier):
     activation : str or list of str, default = 'relu'
         keras activation used in the convolution layers in one residual block,
         if not a list, the same kernel size is used in all convolution layers.
-    use_bia : bool or list of bool, default = True
+    use_bias : bool or list of bool, default = True
         Condition on whether or not to use bias values in the convolution layers
         in one residual block, if not a list, the same kernel size is used in all
         convolution layers.
     n_epochs : int, default = 1500
         The number of epochs to train the model.
-    batch_size : int, default = 16
+    batch_size : int, default = 64
         The number of samples per gradient update.
     use_mini_batch_size : bool, default = False
         Condition on using the mini batch size formula Wang et al.

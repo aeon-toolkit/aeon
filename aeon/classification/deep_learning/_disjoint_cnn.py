@@ -28,11 +28,12 @@ class DisjointCNNClassifier(BaseDeepClassifier):
         input is set to a list, the length should be the same
         as `n_layers`, if input is int the a list of the same
         element is created of length `n_layers`.
-    kernel_size : int or list of int, default = [8, 5, 5, 3]
+    kernel_size : int or list of int, default = None
         Size of convolution kernel. If
         input is set to a list, the length should be the same
         as `n_layers`, if input is int the a list of the same
-        element is created of length `n_layers`.
+        element is created of length `n_layers`. If None,
+        it would be mapped to [8, 5, 5, 3].
     dilation_rate : int or list of int, default = 1
         The dilation rate for convolution. If
         input is set to a list, the length should be the same
