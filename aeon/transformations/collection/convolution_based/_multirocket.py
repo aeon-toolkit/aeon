@@ -3,6 +3,7 @@ from itertools import combinations
 
 import numpy as np
 from numba import get_num_threads, njit, prange, set_num_threads
+from sklearn.utils import check_random_state
 
 from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.utils.validation import check_n_jobs
@@ -117,11 +118,8 @@ class MultiRocket(BaseCollectionTransformer):
         """
         self._n_jobs = check_n_jobs(self.n_jobs)
 
-        self.random_state_ = (
-            np.int32(self.random_state) if isinstance(self.random_state, int) else None
-        )
-        if self.random_state_ is not None:
-            np.random.seed(self.random_state_)
+        rng = check_random_state(self.random_state)
+        self.random_state_ = rng.randint(np.iinfo(np.int32).max)
 
         _, n_channels, n_timepoints = X.shape
         if n_timepoints < 9:
@@ -140,9 +138,9 @@ class MultiRocket(BaseCollectionTransformer):
             _X1 = np.diff(X, 1)
             self.parameter1 = self._fit_univariate(_X1)
         else:
-            self.parameter = self._fit_multivariate(X)
+            self.parameter = self._fit_multivariate(X, rng)
             _X1 = np.diff(X, 1)
-            self.parameter1 = self._fit_multivariate(_X1)
+            self.parameter1 = self._fit_multivariate(_X1, rng)
 
         return self
 
@@ -226,7 +224,7 @@ class MultiRocket(BaseCollectionTransformer):
 
         return dilations, n_features_per_dilation, biases
 
-    def _fit_multivariate(self, X):
+    def _fit_multivariate(self, X, rng):
         _, n_channels, input_length = X.shape
 
         n_kernels = 84
@@ -246,7 +244,7 @@ class MultiRocket(BaseCollectionTransformer):
         max_exponent = np.log2(max_n_channels + 1)
 
         n_channels_per_combination = (
-            2 ** np.random.uniform(0, max_exponent, n_combinations)
+            2 ** rng.uniform(0, max_exponent, n_combinations)
         ).astype(np.int32)
 
         channel_indices = np.zeros(n_channels_per_combination.sum(), dtype=np.int32)
@@ -255,7 +253,7 @@ class MultiRocket(BaseCollectionTransformer):
         for combination_index in range(n_combinations):
             n_channels_this_combination = n_channels_per_combination[combination_index]
             n_channels_end = n_channels_start + n_channels_this_combination
-            channel_indices[n_channels_start:n_channels_end] = np.random.choice(
+            channel_indices[n_channels_start:n_channels_end] = rng.choice(
                 n_channels, n_channels_this_combination, replace=False
             )
 

@@ -4,6 +4,7 @@ __maintainer__ = ["hadifawaz1999"]
 __all__ = ["ROCKETGPU"]
 
 import numpy as np
+from sklearn.utils import check_random_state
 
 from aeon.transformations.collection.convolution_based.rocketGPU.base import (
     BaseROCKETGPU,
@@ -73,7 +74,7 @@ class ROCKETGPU(BaseROCKETGPU):
 
     def _define_parameters(self):
         """Define the parameters of ROCKET."""
-        rng = np.random.default_rng(self.random_state)
+        rng = np.random.default_rng(self._seed)
 
         self._list_of_kernels = []
         self._list_of_dilations = []
@@ -87,6 +88,8 @@ class ROCKETGPU(BaseROCKETGPU):
                 axis=0, keepdims=True
             )
 
+            _convolution_kernel = _convolution_kernel.astype(np.float32)
+
             if self.use_dilation:
                 _dilation_rate = 2 ** rng.uniform(
                     0, np.log2((self.input_length - 1) / (_kernel_size - 1))
@@ -98,6 +101,7 @@ class ROCKETGPU(BaseROCKETGPU):
             assert _padding in ["SAME", "VALID"]
 
             _bias = rng.uniform(self._bias_range[0], self._bias_range[1])
+            _bias = np.float32(_bias)
 
             self._list_of_kernels.append(_convolution_kernel)
             self._list_of_dilations.append(_dilation_rate)
@@ -128,6 +132,9 @@ class ROCKETGPU(BaseROCKETGPU):
         self._bias_range = (-1.0, 1.0) if self.bias_range is None else self.bias_range
 
         assert self._bias_range[0] <= self._bias_range[1]
+
+        rng = check_random_state(self.random_state)
+        self._seed = rng.randint(np.iinfo(np.int32).max)
 
         self._define_parameters()
 
@@ -180,7 +187,8 @@ class ROCKETGPU(BaseROCKETGPU):
         """
         import tensorflow as tf
 
-        tf.random.set_seed(self.random_state)
+        X = X.astype(np.float32)
+        tf.random.set_seed(self._seed)
 
         X = X.transpose(0, 2, 1)
 
