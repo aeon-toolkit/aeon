@@ -249,3 +249,11 @@ def test_convert_np_list():
     np3 = dummy1._preprocess_collection(np_list)
     assert isinstance(np3, np.ndarray)
     assert np3.shape == (3, 1, 10)
+
+
+def test_check_small_scale():
+    """Test that extremely small values raise a ValueError."""
+    X = np.random.random((10, 1, 20)) * 1e-25
+    clf = MockClassifier()
+    with pytest.raises(ValueError, match="extremely small scale"):
+        clf._preprocess_collection(X)
