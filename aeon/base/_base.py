@@ -52,19 +52,20 @@ class BaseAeonEstimator(BaseEstimator, ABC):
 
     Contains the following methods:
 
-    - reset estimator to post-init  - reset(keep)
-    - clone stimator (copy)         - clone(random_state)
-    - inspect tags (class method)   - get_class_tags()
-    - inspect tags (one tag, class) - get_class_tag(tag_name, tag_value_default,
-                                                                    raise_error)
-    - inspect tags (all)            - get_tags()
-    - inspect tags (one tag)        - get_tag(tag_name, tag_value_default, raise_error)
-    - setting dynamic tags          - set_tags(**tag_dict)
-    - get fitted parameters         - get_fitted_params(deep)
+    - reset estimator to post-init  - ``reset(keep)``
+    - clone stimator (copy)         - ``clone(random_state)``
+    - inspect tags (class method)   - ``get_class_tags()``
+    - inspect tags (one tag, class) - ``get_class_tag(tag_name, tag_value_default
+                                        , raise_error)``
+    - inspect tags (all)            - ``get_tags()``
+    - inspect tags (one tag)        - ``get_tag(tag_name, tag_value_default
+                                        , raise_error)``
+    - setting dynamic tags          - ``set_tags(**tag_dict)``
+    - get fitted parameters         - ``get_fitted_params(deep)``
 
     All estimators have the attribute:
 
-    - fitted state flag             - is_fitted
+    - fitted state flag             - ``is_fitted``
     """
 
     _tags = {
@@ -90,7 +91,7 @@ class BaseAeonEstimator(BaseEstimator, ABC):
         """
         Reset the object to a clean post-init state.
 
-        After a ``self.reset()`` call, self is equal or similar in value to
+        After a ``self.reset()`` call, ``self`` is equal or similar in value to
         ``type(self)(**self.get_params(deep=False))``, assuming no other attributes
         were kept using ``keep``.
 
@@ -109,9 +110,9 @@ class BaseAeonEstimator(BaseEstimator, ABC):
         Parameters
         ----------
         keep : None, str, or list of str, default=None
-            If None, all attributes are removed except hyperparameters.
-            If str, only the attribute with this name is kept.
-            If list of str, only the attributes with these names are kept.
+            If ``None``, all attributes are removed except hyperparameters.
+            If ``str``, only the attribute with this name is kept.
+            If ``list`` of ``str``, only the attributes with these names are kept.
 
         Returns
         -------
@@ -156,15 +157,18 @@ class BaseAeonEstimator(BaseEstimator, ABC):
         Obtain a clone of the object with the same hyperparameters.
 
         A clone is a different object without shared references, in post-init state.
-        This function is equivalent to returning ``sklearn.clone`` of self.
+        This function is equivalent to returning ``sklearn.clone`` of ``self``.
         Equal in value to ``type(self)(**self.get_params(deep=False))``.
 
         Parameters
         ----------
         random_state : int, RandomState instance, or None, default=None
-            Sets the random state of the clone. If None, the random state is not set.
-            If int, random_state is the seed used by the random number generator.
-            If RandomState instance, random_state is the random number generator.
+            Sets the random state of the clone. If ``None``, the random state is not
+            set.
+            If ``int``, ``random_state`` is the seed used by the random number
+            generator.
+            If ``RandomState`` instance, ``random_state`` is the random number
+            generator.
 
         Returns
         -------
@@ -218,7 +222,7 @@ class BaseAeonEstimator(BaseEstimator, ABC):
         tag_name : str
             Name of tag value.
         raise_error : bool, default=True
-            Whether a ValueError is raised when the tag is not found.
+            Whether a ``ValueError`` is raised when the tag is not found.
         tag_value_default : any type, default=None
             Default/fallback value if tag is not found and error is not raised.
 
@@ -226,13 +230,13 @@ class BaseAeonEstimator(BaseEstimator, ABC):
         -------
         tag_value
             Value of the ``tag_name`` tag in cls.
-            If not found, returns an error if ``raise_error`` is True, otherwise it
+            If not found, returns an error if ``raise_error`` is ``True``, otherwise it
             returns ``tag_value_default``.
 
         Raises
         ------
         ValueError
-            if ``raise_error`` is True and ``tag_name`` is not in
+            if ``raise_error`` is ``True`` and ``tag_name`` is not in
             ``self.get_tags().keys()``
 
         Examples
@@ -278,7 +282,7 @@ class BaseAeonEstimator(BaseEstimator, ABC):
         tag_name : str
             Name of tag to be retrieved.
         raise_error : bool, default=True
-            Whether a ValueError is raised when the tag is not found.
+            Whether a ``ValueError`` is raised when the tag is not found.
         tag_value_default : any type, default=None
             Default/fallback value if tag is not found and error is not raised.
 
@@ -286,7 +290,7 @@ class BaseAeonEstimator(BaseEstimator, ABC):
         -------
         tag_value
             Value of the ``tag_name`` tag in self.
-            If not found, returns an error if ``raise_error`` is True, otherwise it
+            If not found, returns an error if ``raise_error`` is ``True``, otherwise it
             returns ``tag_value_default``.
 
         Raises
@@ -323,7 +327,7 @@ class BaseAeonEstimator(BaseEstimator, ABC):
         Returns
         -------
         self : object
-            Reference to self.
+            Reference to ``self``.
         """
         tag_update = deepcopy(tag_dict)
         self._tags_dynamic.update(tag_update)
@@ -338,7 +342,7 @@ class BaseAeonEstimator(BaseEstimator, ABC):
         Parameters
         ----------
         deep : bool, default=True
-            If True, will return the fitted parameters for this estimator and
+            If ``True``, will return the fitted parameters for this estimator and
             contained subobjects that are estimators.
 
         Returns
@@ -385,7 +389,7 @@ class BaseAeonEstimator(BaseEstimator, ABC):
         if not self.is_fitted:
             raise NotFittedError(
                 f"This instance of {self.__class__.__name__} has not "
-                f"been fitted yet; please call `fit` first."
+                f"been fitted yet; please call ``fit`` first."
             )
 
     @classmethod
@@ -402,9 +406,10 @@ class BaseAeonEstimator(BaseEstimator, ABC):
         Returns
         -------
         params : dict or list of dict, default = {}
-            Parameters to create testing instances of the class. Each dict are
+            Parameters to create testing instances of the class. Each ``dict`` are
             parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test
+            instance.
         """
         # default parameters = empty dict
         return {}
@@ -414,8 +419,8 @@ class BaseAeonEstimator(BaseEstimator, ABC):
         """
         Construct Estimator instance if possible.
 
-        Calls the `_get_test_params` method and returns an instance or list of instances
-        using the returned dict or list of dict.
+        Calls the ``_get_test_params`` method and returns an instance or ``list``
+        of instances using the returned ``dict`` or list of ``dict``.
 
         Parameters
         ----------
@@ -423,14 +428,14 @@ class BaseAeonEstimator(BaseEstimator, ABC):
             Name of the set of test parameters to return, for use in tests. If no
             special parameters are defined for a value, will return `"default"` set.
         return_first : bool, default=True
-            If True, return the first instance of the list of instances.
-            If False, return the list of instances.
+            If ``True``, return the first instance of the list of instances.
+            If ``False``, return the list of instances.
 
         Returns
         -------
         instance : BaseAeonEstimator or list of BaseAeonEstimator
-            Instance of the class with default parameters. If return_first
-            is False, returns list of instances.
+            Instance of the class with default parameters. If ``return_first``
+            is ``False``, returns list of instances.
         """
         params = cls._get_test_params(parameter_set=parameter_set)
 
@@ -472,7 +477,7 @@ class BaseAeonEstimator(BaseEstimator, ABC):
     def get_metadata_routing(self):
         """Sklearn metadata routing.
 
-        Not supported by ``aeon`` estimators.
+        Not supported by aeon estimators.
         """
         raise NotImplementedError(
             "aeon estimators do not have a get_metadata_routing method."

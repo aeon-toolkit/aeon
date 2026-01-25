@@ -1,5 +1,7 @@
 """LITETime and LITE classifiers."""
 
+from __future__ import annotations
+
 __maintainer__ = ["hadifawaz1999"]
 __all__ = ["LITETimeClassifier"]
 
@@ -193,7 +195,7 @@ class LITETimeClassifier(BaseClassifier):
 
         super().__init__()
 
-    def _fit(self, X, y):
+    def _fit(self, X: np.ndarray, y: np.ndarray) -> LITETimeClassifier:
         """Fit the ensemble of IndividualLITEClassifier models.
 
         Parameters
@@ -239,7 +241,7 @@ class LITETimeClassifier(BaseClassifier):
 
         return self
 
-    def _predict(self, X) -> np.ndarray:
+    def _predict(self, X: np.ndarray) -> np.ndarray:
         """Predict the labels of the test set using LITETime.
 
         Parameters
@@ -260,7 +262,7 @@ class LITETimeClassifier(BaseClassifier):
             ]
         )
 
-    def _predict_proba(self, X) -> np.ndarray:
+    def _predict_proba(self, X: np.ndarray) -> np.ndarray:
         """Predict the proba of labels of the test set using LITETime.
 
         Parameters
@@ -283,24 +285,30 @@ class LITETimeClassifier(BaseClassifier):
         return probs
 
     @classmethod
-    def load_model(self, model_path, classes):
-        """Load pre-trained classifiers instead of fitting.
+    def load_model(
+        self, model_path: list[str], classes: np.ndarray
+    ) -> LITETimeClassifier:
+        """Load pre-trained keras models from disk instead of fitting.
 
+        Pretrained models should be saved using "save_best_model"
+        or "save_last_model" boolean parameter.
         When calling this function, all functionalities can be used
-        such as predict, predict_proba, etc. with the loaded models.
+        such as predict, predict_proba etc. with the loaded model.
 
         Parameters
         ----------
         model_path : list of str (list of paths including the model names and extension)
-            The director where the models will be saved including the model
-            names with a ".keras" extension.
-        classes : np.ndarray
+            The complete path (including file name and '.keras' extension)
+            from which the pre-trained model's weights and configuration
+            are loaded.
+         classes : np.ndarray
             The set of unique classes the pre-trained loaded model is trained
             to predict during the classification task.
+        Example: model_path="path/to/file/best_model.keras"
 
         Returns
         -------
-        None
+        LITETimeClassifier
         """
         assert (
             type(model_path) is list
@@ -550,6 +558,11 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         import numpy as np
         import tensorflow as tf
 
+        if isinstance(self.metrics, str):
+            self._metrics = [self.metrics]
+        else:
+            self._metrics = self.metrics
+
         rng = check_random_state(self.random_state)
         self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
         tf.keras.utils.set_random_seed(self.random_state_)
@@ -595,11 +608,6 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         y_onehot = self.convert_y_to_keras(y)
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
-
-        if isinstance(self.metrics, list):
-            self._metrics = self.metrics
-        elif isinstance(self.metrics, str):
-            self._metrics = [self.metrics]
 
         # ignore the number of instances, X.shape[0],
         # just want the shape of each instance
