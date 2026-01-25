@@ -205,8 +205,16 @@ def _dtw_distance(x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray) -> 
     """Compute the DTW distance between two time series.
 
     This function is optimized for memory usage by using a two-row buffer
-    (O(M) space complexity) instead of allocating the full cost matrix (O(NM)).
+    (O(min(N, M)) space complexity) instead of allocating the full cost matrix (O(NM)).
     """
+    # Optimization: Ensure we iterate over the larger dimension to minimize the
+    # size of the cost vectors (prev and curr), which are allocated based on y.
+    # If x is smaller than y, we swap them to make y the smaller one.
+    if x.shape[1] < y.shape[1]:
+        x, y = y, x
+        # The bounding matrix must also be transposed to match the swapped series
+        bounding_matrix = bounding_matrix.T
+
     x_size = x.shape[1]
     y_size = y.shape[1]
 
