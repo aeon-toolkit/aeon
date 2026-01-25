@@ -194,8 +194,47 @@ def lcss_cost_matrix(
 def _lcss_distance(
     x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, epsilon: float
 ) -> float:
-    distance = _lcss_cost_matrix(x, y, bounding_matrix, epsilon)[x.shape[1], y.shape[1]]
-    distance = 1 - (float(distance / min(x.shape[1], y.shape[1])))
+    """Compute the LCSS distance between two time series.
+
+    This function is optimized for memory usage by using a two-row buffer
+    (O(min(N, M)) space complexity) instead of allocating the full cost matrix (O(NM)).
+    """
+    x_size_orig = x.shape[1]
+    y_size_orig = y.shape[1]
+
+    # Optimization: Ensure we iterate over the larger dimension to minimize the
+    # size of the cost vectors (prev and curr), which are allocated based on y.
+    # If x is smaller than y, we swap them to make y the smaller one.
+    if x.shape[1] < y.shape[1]:
+        x, y = y, x
+        # The bounding matrix must also be transposed to match the swapped series
+        bounding_matrix = bounding_matrix.T
+
+    x_size = x.shape[1]
+    y_size = y.shape[1]
+
+    # prev represents the previous row (i-1), curr represents the current row (i)
+    # The size is y_size + 1 to handle the boundary condition at index 0
+    prev = np.zeros(y_size + 1)
+    curr = np.zeros(y_size + 1)
+
+    for i in range(x_size):
+        # Boundary condition: The cell to the left of the first column is 0
+        curr[0] = 0.0
+
+        for j in range(y_size):
+            if bounding_matrix[i, j]:
+                if _univariate_euclidean_distance(x[:, i], y[:, j]) <= epsilon:
+                    curr[j + 1] = 1 + prev[j]
+                else:
+                    curr[j + 1] = max(curr[j], prev[j + 1])
+            else:
+                curr[j + 1] = 0.0
+
+        # Move current row to previous row for the next iteration
+        prev[:] = curr[:]
+
+    distance = 1 - (float(prev[y_size] / min(x_size_orig, y_size_orig)))
     if distance < 0.0:
         return 0.0
     return distance
