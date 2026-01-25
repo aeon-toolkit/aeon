@@ -215,7 +215,7 @@ def _soft_dtw_distance(
     This function is optimized for memory usage by using a two-row buffer
     (O(min(N, M)) space complexity) instead of allocating the full cost matrix (O(NM)).
     """
-    if gamma == 0.0:
+    if gamma == 0.0 or np.array_equal(x, y):
         return _dtw_distance(x, y, bounding_matrix)
 
     # Optimization: Ensure we iterate over the larger dimension to minimize the
