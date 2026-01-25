@@ -12,7 +12,7 @@ from aeon.classification.feature_based import SummaryClassifier
 from aeon.testing.data_generation import make_example_3d_numpy
 
 
-class DummyClassifier(BaseEstimator, ClassifierMixin):
+class _DummyClassifier(BaseEstimator, ClassifierMixin):
     """Mock classifier for testing adapter pass-through behavior."""
 
     def __init__(self, forced_predictions=None):
