@@ -186,10 +186,68 @@ def _edr_distance(
     bounding_matrix: np.ndarray,
     epsilon: float | None = None,
 ) -> float:
-    distance = _edr_cost_matrix(x, y, bounding_matrix, epsilon)[
-        x.shape[1] - 1, y.shape[1] - 1
-    ]
-    return float(distance / max(x.shape[1], y.shape[1]))
+    """Compute the EDR distance between two time series.
+
+    This function is optimized for memory usage by using a two-row buffer
+    (O(min(N, M)) space complexity) instead of allocating the full cost matrix (O(NM)).
+    """
+    if epsilon is None:
+        epsilon = float(max(np.std(x), np.std(y))) / 4
+
+    # Optimization: Ensure we iterate over the larger dimension to minimize the
+    # size of the cost vectors (prev and curr), which are allocated based on y.
+    # If x is smaller than y, we swap them to make y the smaller one.
+    if x.shape[1] < y.shape[1]:
+        x, y = y, x
+        # The bounding matrix must also be transposed to match the swapped series
+        bounding_matrix = bounding_matrix.T
+
+    x_size = x.shape[1]
+    y_size = y.shape[1]
+
+    # prev represents the previous row (i-1), curr represents the current row (i)
+    # The size is y_size + 1 to handle the boundary condition at index 0
+    prev = np.full(y_size + 1, np.inf)
+    curr = np.full(y_size + 1, np.inf)
+
+    # Initial condition: distance at (0, 0) is 0
+    # EDR has a unique initialization where the first row and column are 0
+    # if they are within the bounding window.
+    for j in range(y_size):
+        if bounding_matrix[0, j - 1]:
+            prev[j] = 0.0
+    prev[0] = 0.0
+
+    for i in range(x_size):
+        # Boundary condition: The cell to the left of the first column is 0 if in window
+        if bounding_matrix[i, 0]:
+            curr[0] = 0.0
+        else:
+            curr[0] = np.inf
+
+        for j in range(y_size):
+            if bounding_matrix[i, j]:
+                if _univariate_euclidean_distance(x[:, i], y[:, j]) < epsilon:
+                    cost = 0
+                else:
+                    cost = 1
+
+                # EDR recurrence:
+                # prev[j]   corresponds to matrix[i, j]     (Diagonal)
+                # prev[j+1] corresponds to matrix[i, j+1]   (Top)
+                # curr[j]   corresponds to matrix[i+1, j]   (Left)
+                curr[j + 1] = min(
+                    prev[j] + cost,  # Diagonal
+                    prev[j + 1] + 1,  # Top
+                    curr[j] + 1,  # Left
+                )
+            else:
+                curr[j + 1] = np.inf
+
+        # Move current row to previous row for the next iteration
+        prev[:] = curr[:]
+
+    return float(prev[y_size] / max(x_size, y_size))
 
 
 @njit(cache=True, fastmath=True)
