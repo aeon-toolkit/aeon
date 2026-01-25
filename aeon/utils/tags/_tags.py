@@ -134,6 +134,11 @@ ESTIMATOR_TAGS = {
         "type": "bool",
         "description": "Can the forecaster forecast a horizon beyond one?",
     },
+    "capability:is_series_to_series": {
+        "class": ["forecaster"],
+        "type": "bool",
+        "description": "Is the forecaster a series-to-series forecaster?",
+    },
     "capability:inverse_transform": {
         "class": "transformer",
         "type": "bool",
