@@ -191,9 +191,58 @@ def _erp_distance(
     g: float,
     g_arr: np.ndarray | None,
 ) -> float:
-    return _erp_cost_matrix(x, y, bounding_matrix, g, g_arr)[
-        x.shape[1] - 1, y.shape[1] - 1
-    ]
+    """Compute the ERP distance between two time series.
+
+    This function is optimized for memory usage by using a two-row buffer
+    (O(min(N, M)) space complexity) instead of allocating the full cost matrix (O(NM)).
+    """
+    # Optimization: Ensure we iterate over the larger dimension to minimize the
+    # size of the cost vectors (prev and curr), which are allocated based on y.
+    # If x is smaller than y, we swap them to make y the smaller one.
+    if x.shape[1] < y.shape[1]:
+        x, y = y, x
+        # The bounding matrix must also be transposed to match the swapped series
+        bounding_matrix = bounding_matrix.T
+
+    x_size = x.shape[1]
+    y_size = y.shape[1]
+
+    gx_distance, x_sum = _precompute_g(x, g, g_arr)
+    gy_distance, y_sum = _precompute_g(y, g, g_arr)
+
+    # prev represents the previous row (i-1), curr represents the current row (i)
+    # The size is y_size + 1 to handle the boundary condition at index 0
+    # Initialization matches ERP boundary condition: D[0, j] = y_sum for j > 0
+    prev = np.full(y_size + 1, y_sum)
+    curr = np.full(y_size + 1, np.inf)
+
+    # Initial condition: distance at (0, 0) is 0
+    prev[0] = 0.0
+
+    for i in range(x_size):
+        # Boundary condition: The cell to the left of the first column is x_sum
+        curr[0] = x_sum
+
+        for j in range(y_size):
+            if bounding_matrix[i, j]:
+                cost = _univariate_euclidean_distance(x[:, i], y[:, j])
+
+                # ERP recurrence:
+                # prev[j]   corresponds to matrix[i, j]     (Diagonal)
+                # prev[j+1] corresponds to matrix[i, j+1]   (Top)
+                # curr[j]   corresponds to matrix[i+1, j]   (Left)
+                curr[j + 1] = min(
+                    prev[j] + cost,  # Match
+                    prev[j + 1] + gx_distance[i],  # Delete
+                    curr[j] + gy_distance[j],  # Insert
+                )
+            else:
+                curr[j + 1] = np.inf
+
+        # Move current row to previous row for the next iteration
+        prev[:] = curr[:]
+
+    return prev[y_size]
 
 
 @njit(cache=True, fastmath=True)
