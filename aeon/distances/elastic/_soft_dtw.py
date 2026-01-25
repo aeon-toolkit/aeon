@@ -9,7 +9,7 @@ from numba.typed import List as NumbaList
 
 from aeon.distances.elastic._alignment_paths import compute_min_return_path
 from aeon.distances.elastic._bounding_matrix import create_bounding_matrix
-from aeon.distances.elastic._dtw import _dtw_cost_matrix
+from aeon.distances.elastic._dtw import _dtw_cost_matrix, _dtw_distance
 from aeon.distances.pointwise._squared import _univariate_squared_distance
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
 from aeon.utils.numba._threading import threaded
@@ -210,11 +210,60 @@ def soft_dtw_cost_matrix(
 def _soft_dtw_distance(
     x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, gamma: float
 ) -> float:
-    return abs(
-        _soft_dtw_cost_matrix(x, y, bounding_matrix, gamma)[
-            x.shape[1] - 1, y.shape[1] - 1
-        ]
-    )
+    """Compute the soft-DTW distance between two time series.
+
+    This function is optimized for memory usage by using a two-row buffer
+    (O(min(N, M)) space complexity) instead of allocating the full cost matrix (O(NM)).
+    """
+    if gamma == 0.0:
+        return _dtw_distance(x, y, bounding_matrix)
+
+    # Optimization: Ensure we iterate over the larger dimension to minimize the
+    # size of the cost vectors (prev and curr), which are allocated based on y.
+    # If x is smaller than y, we swap them to make y the smaller one.
+    if x.shape[1] < y.shape[1]:
+        x, y = y, x
+        # The bounding matrix must also be transposed to match the swapped series
+        bounding_matrix = bounding_matrix.T
+
+    x_size = x.shape[1]
+    y_size = y.shape[1]
+
+    # prev represents the previous row (i-1), curr represents the current row (i)
+    # The size is y_size + 1 to handle the boundary condition at index 0
+    prev = np.full(y_size + 1, np.inf)
+    curr = np.full(y_size + 1, np.inf)
+
+    # Initial condition: distance at (0, 0) is 0
+    prev[0] = 0.0
+
+    for i in range(x_size):
+        # Boundary condition: The cell to the left of the first column is infinity
+        curr[0] = np.inf
+
+        for j in range(y_size):
+            if bounding_matrix[i, j]:
+                cost = _univariate_squared_distance(x[:, i], y[:, j])
+
+                # Soft-DTW recurrence:
+                # prev[j]   corresponds to matrix[i, j]     (Diagonal)
+                # prev[j+1] corresponds to matrix[i, j+1]   (Top)
+                # curr[j]   corresponds to matrix[i+1, j]   (Left)
+                min_cost = _softmin3(
+                    prev[j + 1],  # Top
+                    prev[j],  # Diagonal
+                    curr[j],  # Left
+                    gamma,
+                )
+
+                curr[j + 1] = cost + min_cost
+            else:
+                curr[j + 1] = np.inf
+
+        # Move current row to previous row for the next iteration
+        prev[:] = curr[:]
+
+    return abs(prev[y_size])
 
 
 @njit(cache=True, fastmath=True)
