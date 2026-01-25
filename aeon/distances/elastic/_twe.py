@@ -187,9 +187,70 @@ def twe_cost_matrix(
 def _twe_distance(
     x: np.ndarray, y: np.ndarray, bounding_matrix: np.ndarray, nu: float, lmbda: float
 ) -> float:
-    return _twe_cost_matrix(x, y, bounding_matrix, nu, lmbda)[
-        x.shape[1] - 2, y.shape[1] - 2
-    ]
+    """Compute the TWE distance between two time series.
+
+    This function is optimized for memory usage by using a two-row buffer
+    (O(min(N, M)) space complexity) instead of allocating the full cost matrix (O(NM)).
+    """
+    # Optimization: Ensure we iterate over the larger dimension to minimize the
+    # size of the cost vectors (prev and curr), which are allocated based on y.
+    # Note: x and y are already padded with a zero at index 0 by the caller.
+    if x.shape[1] < y.shape[1]:
+        x, y = y, x
+        # The bounding matrix must also be transposed to match the swapped series
+        bounding_matrix = bounding_matrix.T
+
+    x_size = x.shape[1]
+    y_size = y.shape[1]
+
+    # prev represents the previous row (i-1), curr represents the current row (i)
+    # The size is y_size to handle indices from 0 to y_size-1
+    prev = np.full(y_size, np.inf)
+    curr = np.full(y_size, np.inf)
+
+    # Initial condition: distance at (0, 0) is 0
+    prev[0] = 0.0
+
+    del_add = nu + lmbda
+
+    for i in range(1, x_size):
+        # Boundary condition: The cell at index 0 of the current row is inf
+        # (since the loop starts from 1 and cost_matrix[i, 0] was inf in original)
+        curr[0] = np.inf
+
+        for j in range(1, y_size):
+            if bounding_matrix[i - 1, j - 1]:
+                # Deletion in x
+                # del_x_dist: distance between x[i-1] and x[i]
+                del_x_dist = _univariate_euclidean_distance(x[:, i - 1], x[:, i])
+                del_x = prev[j] + del_x_dist + del_add
+
+                # Deletion in y
+                # del_y_dist: distance between y[j-1] and y[j]
+                del_y_dist = _univariate_euclidean_distance(y[:, j - 1], y[:, j])
+                del_y = curr[j - 1] + del_y_dist + del_add
+
+                # Match
+                # match_dist: distance between x[i] and y[j]
+                # prev_dist: distance between x[i-1] and y[j-1]
+                match_dist = _univariate_euclidean_distance(x[:, i], y[:, j])
+                prev_dist = _univariate_euclidean_distance(x[:, i - 1], y[:, j - 1])
+
+                match = (
+                    prev[j - 1]
+                    + match_dist
+                    + prev_dist
+                    + nu * (abs(i - j) + abs((i - 1) - (j - 1)))
+                )
+
+                curr[j] = min(del_x, del_y, match)
+            else:
+                curr[j] = np.inf
+
+        # Move current row to previous row for the next iteration
+        prev[:] = curr[:]
+
+    return prev[y_size - 1]
 
 
 @njit(cache=True, fastmath=True)
