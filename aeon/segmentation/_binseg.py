@@ -59,7 +59,7 @@ class BinSegmenter(BaseSegmenter):
     }
 
     def __init__(
-        self, n_cps: int = 1, model: int = "l2", min_size: int = 2, jump: int = 5
+        self, n_cps: int = 1, model: str = "l2", min_size: int = 2, jump: int = 5
     ):
         self.n_cps = n_cps
         self.model = model
