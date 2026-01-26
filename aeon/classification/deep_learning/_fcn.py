@@ -28,7 +28,7 @@ class FCNClassifier(BaseDeepClassifier):
         If None, it would be mapped to [128, 256, 128].
     kernel_size : int or list of int, default = None
         Size of convolution kernel. If None, 
-        it would be mapped to [8,5,3]
+        it would be mapped to [8,5,3].
     dilation_rate : int or list of int, default = 1
         The dilation rate for convolution.
     strides : int or list of int, default = 1
