@@ -4,13 +4,12 @@ import warnings
 
 __maintainer__ = []
 __all__ = ["ClaSPSegmenter", "find_dominant_window_sizes"]
-
-from queue import PriorityQueue
 from typing import Optional
+from queue import PriorityQueue
+
 
 import numpy as np
 import pandas as pd
-from typing import Optional
 from aeon.segmentation.base import BaseSegmenter
 from aeon.transformations.series import ClaSPTransformer
 from aeon.utils.validation import check_n_jobs
