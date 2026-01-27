@@ -10,7 +10,23 @@ from aeon.segmentation.base import BaseSegmenter
 class RandomSegmenter(BaseSegmenter):
     """Random Segmenter.
 
-    Randomly segments a time series.
+    Randomly segments a time series into a specified number of segments
+    at random cut points.
+
+    Parameters
+    ----------
+    n_segments : int, default=2
+        Number of segments to split the time series into  (must be >= 2).
+    random_state : int, RandomState instance or None, default=None
+        Random seed for reproducibility.
+
+    Examples
+    --------
+        >>> from aeon.segmentation import RandomSegmenter
+        >>> segmenter = RandomSegmenter(n_segments=3)
+        >>> from aeon.testing.data_generation import make_example_1d_numpy
+        >>> X = make_example_1d_numpy(n_timepoints=100, return_y=False, random_state=0)
+        >>>  found_cps = segmenter.fit_predict(X)
     """
 
     _tags = {
