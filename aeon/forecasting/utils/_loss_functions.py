@@ -43,8 +43,125 @@ def _arima_fit(params, data, model):
     return likelihood + 2 * k
 
 
+EPS = 1e-6
+
+
+@njit(inline="always", cache=True)
+def safe_div(num, den):
+    if den < EPS:
+        return num / EPS
+    else:
+        return num / den
+
+
 @njit(fastmath=True, cache=True)
-def _ets_fit(params, data, model, return_all_states=False):
+def _ets_aic(params, data, model):
+    alpha, beta, gamma, phi = _extract_ets_params(params, model)
+    error_type = model[0]
+    trend_type = model[1]
+    seasonality_type = model[2]
+    seasonal_period = model[3]
+    n_timepoints = len(data) - seasonal_period
+    # Initial Level: Mean of the first season
+    level = np.mean(data[:seasonal_period])
+    # Initial Trend
+    if trend_type == 1:
+        # Average difference between corresponding points in the first two seasons
+        trend = np.mean(
+            data[seasonal_period : 2 * seasonal_period] - data[:seasonal_period]
+        )
+    elif trend_type == 2:
+        # Average ratio between corresponding points in the first two seasons
+        trend = safe_div(
+            np.mean(data[seasonal_period : 2 * seasonal_period]),
+            np.mean(data[:seasonal_period]),
+        )
+    else:
+        # No trend
+        trend = 0
+    # Initial Seasonality
+    if seasonality_type == 1:
+        # Seasonal component is the difference
+        # from the initial level for each point in the first season
+        seasonality = data[:seasonal_period] - level
+    elif seasonality_type == 2:
+        # Seasonal component is the ratio of each point in the first season
+        # to the initial level
+        seasonality = data[:seasonal_period] / level
+    else:
+        # No seasonality
+        seasonality = np.zeros(1, dtype=np.float64)
+    sse_ = 0
+    for t in range(n_timepoints):
+        index = t + seasonal_period
+        s_index = t % seasonal_period
+
+        time_point = data[index]
+
+        # Calculate level, trend, and seasonal components
+        curr_level = level
+        curr_seasonality = seasonality[s_index]
+        if trend_type == 2:  # Multiplicative
+            damped_trend = trend**phi
+            trend_level_combination = level * damped_trend
+        else:  # Additive trend, if no trend, then trend = 0
+            damped_trend = trend * phi
+            trend_level_combination = level + damped_trend
+
+        # Calculate forecast (fitted value) based on the current components
+        if seasonality_type == 2:  # Multiplicative
+            fitted_value = trend_level_combination * seasonality
+        else:  # Additive seasonality, if no seasonality, then seasonality = 0
+            fitted_value = trend_level_combination + seasonality
+        # Calculate the error term (observed value - fitted value)
+        if error_type == 2:
+            error = safe_div(time_point, fitted_value) - 1  # Multiplicative error
+        else:
+            error = time_point - fitted_value  # Additive error
+        # Update level
+        if error_type == 2:
+            level = trend_level_combination * (1 + alpha * error)
+            trend = damped_trend * (1 + beta * error)
+            seasonality[s_index] = curr_seasonality * (1 + gamma * error)
+            if seasonality_type == 1:
+                level += alpha * error * curr_seasonality  # Add seasonality correction
+                seasonality[s_index] += gamma * error * trend_level_combination
+                if trend_type == 1:
+                    trend += (curr_level + curr_seasonality) * beta * error
+                else:
+                    trend += safe_div(curr_seasonality, curr_level) * beta * error
+            elif trend_type == 1:
+                trend += curr_level * beta * error
+        else:
+            level_correction = 1
+            trend_correction = 1
+            seasonality_correction = 1
+            if seasonality_type == 2:
+                # Add seasonality correction
+                level_correction *= curr_seasonality
+                trend_correction *= curr_seasonality
+                seasonality_correction *= trend_level_combination
+            if trend_type == 2:
+                trend_correction *= curr_level
+            level = trend_level_combination + alpha * safe_div(error, level_correction)
+            trend = damped_trend + beta * safe_div(error, trend_correction)
+            seasonality[s_index] = curr_seasonality + gamma * safe_div(
+                error, seasonality_correction
+            )
+        sse_ += error**2
+    variance = sse_ / n_timepoints
+    liklihood_ = -0.5 * n_timepoints * (np.log(2 * np.pi) + np.log(variance) + 1)
+    k_ = (
+        seasonal_period * (seasonality_type != 0)
+        + (1 + (phi != 1)) * (trend_type != 0)
+        + 2
+    )
+    aic_ = -2 * liklihood_ + 2 * k_
+    return aic_
+
+
+@njit(fastmath=True, cache=True)
+def _ets_fit(params, data, model):
     alpha, beta, gamma, phi = _extract_ets_params(params, model)
     error_type = model[0]
     trend_type = model[1]
@@ -55,8 +172,11 @@ def _ets_fit(params, data, model, return_all_states=False):
         trend_type, seasonality_type, seasonal_period, data
     )
     avg_mean_sq_err_ = 0
-    liklihood_ = 0
+    sse_ = 0
     residuals_ = np.zeros(n_timepoints)  # 1 Less residual than data points
+    levels_ = np.zeros(n_timepoints)
+    trends_ = np.zeros(n_timepoints)
+    seasonalities_ = np.zeros(n_timepoints)
     fitted_values_ = np.zeros(n_timepoints)
     for t in range(n_timepoints):
         index = t + seasonal_period
@@ -79,21 +199,21 @@ def _ets_fit(params, data, model, return_all_states=False):
             phi,
         )
         residuals_[t] = error
+        levels_[t] = level
+        trends_[t] = trend
+        seasonalities_[t] = seasonality[s_index]
         fitted_values_[t] = fitted_value
         avg_mean_sq_err_ += (time_point - fitted_value) ** 2
-        liklihood_error = error
-        if error_type == 2:  # Multiplicative
-            liklihood_error *= fitted_value
-        liklihood_ += liklihood_error**2
+        sse_ += error**2
     avg_mean_sq_err_ /= n_timepoints
-    liklihood_ = n_timepoints * np.log(liklihood_)
+    variance = sse_ / n_timepoints
+    liklihood_ = -0.5 * n_timepoints * (np.log(2 * np.pi) + np.log(variance) + 1)
     k_ = (
         seasonal_period * (seasonality_type != 0)
-        + 2 * (trend_type != 0)
+        + (1 + (phi != 1)) * (trend_type != 0)
         + 2
-        + 1 * (phi != 1)
     )
-    aic_ = liklihood_ + 2 * k_ - n_timepoints * np.log(n_timepoints)
+    aic_ = -2 * liklihood_ + 2 * k_
     return (
         aic_,
         level,
@@ -105,6 +225,9 @@ def _ets_fit(params, data, model, return_all_states=False):
         avg_mean_sq_err_,
         liklihood_,
         k_,
+        levels_,
+        trends_,
+        seasonalities_,
     )
 
 
@@ -129,8 +252,9 @@ def _ets_initialise(trend_type, seasonality_type, seasonal_period, data):
         )
     elif trend_type == 2:
         # Average ratio between corresponding points in the first two seasons
-        trend = np.mean(
-            data[seasonal_period : 2 * seasonal_period] / data[:seasonal_period]
+        trend = safe_div(
+            np.mean(data[seasonal_period : 2 * seasonal_period]),
+            np.mean(data[:seasonal_period]),
         )
     else:
         # No trend
@@ -182,9 +306,20 @@ def _ets_update_states(
     fitted_value, damped_trend, trend_level_combination = _ets_predict_value(
         trend_type, seasonality_type, level, trend, seasonality, phi
     )
+    if fitted_value is np.nan:
+        raise ValueError(
+            "Fitted value is NaN ",
+            fitted_value,
+            " level ",
+            level,
+            " trend ",
+            trend,
+            " seasonality ",
+            seasonality,
+        )
     # Calculate the error term (observed value - fitted value)
     if error_type == 2:
-        error = data_item / fitted_value - 1  # Multiplicative error
+        error = safe_div(data_item, fitted_value) - 1  # Multiplicative error
     else:
         error = data_item - fitted_value  # Additive error
     # Update level
@@ -198,7 +333,7 @@ def _ets_update_states(
             if trend_type == 1:
                 trend += (curr_level + curr_seasonality) * beta * error
             else:
-                trend += curr_seasonality / curr_level * beta * error
+                trend += safe_div(curr_seasonality, curr_level) * beta * error
         elif trend_type == 1:
             trend += curr_level * beta * error
     else:
@@ -212,9 +347,9 @@ def _ets_update_states(
             seasonality_correction *= trend_level_combination
         if trend_type == 2:
             trend_correction *= curr_level
-        level = trend_level_combination + alpha * error / level_correction
-        trend = damped_trend + beta * error / trend_correction
-        seasonality = curr_seasonality + gamma * error / seasonality_correction
+        level = trend_level_combination + alpha * safe_div(error, level_correction)
+        trend = damped_trend + beta * safe_div(error, trend_correction)
+        seasonality = curr_seasonality + gamma * safe_div(error, seasonality_correction)
     return (fitted_value, error, level, trend, seasonality)
 
 
