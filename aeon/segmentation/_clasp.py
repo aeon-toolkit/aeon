@@ -4,16 +4,12 @@ import warnings
 
 __maintainer__ = []
 __all__ = ["ClaSPSegmenter", "find_dominant_window_sizes"]
-from typing import Optional
 from queue import PriorityQueue
-
-
 import numpy as np
 import pandas as pd
 from aeon.segmentation.base import BaseSegmenter
 from aeon.transformations.series import ClaSPTransformer
 from aeon.utils.validation import check_n_jobs
-
 
 def find_dominant_window_sizes(X, offset: float = 0.05):
     """Determine the Window-Size using dominant FFT-frequencies.
@@ -90,7 +86,7 @@ def _is_trivial_match(
 
 
 def _segmentation(
-    X, clasp, n_change_points: Optional[int] = None, exclusion_radius: float = 0.05
+    X, clasp, n_change_points: int | None = None, exclusion_radius: float = 0.05
 ):
     """Segments the time series by extracting change points.
 
