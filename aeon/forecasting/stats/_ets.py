@@ -201,8 +201,15 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
             self.avg_mean_sq_err_,
             self.liklihood_,
             self.k_,
+            levels_,
+            trends_,
+            seasonalities_,
         ) = _ets_fit(self.parameters_, data, self._model)
         print(self.fitted_values_)  # noqa: T201
+        print(self.residuals_)  # noqa: T201
+        print(levels_)  # noqa: T201
+        print(trends_)  # noqa: T201
+        print(seasonalities_)  # noqa: T201
         print(  # noqa: T201
             self.level_, self.trend_, self.seasonality_, self.n_timepoints_
         )
