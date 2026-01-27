@@ -10,7 +10,7 @@ from typing import Optional
 
 import numpy as np
 import pandas as pd
-from typing import Optional
+
 from aeon.segmentation.base import BaseSegmenter
 from aeon.transformations.series import ClaSPTransformer
 from aeon.utils.validation import check_n_jobs
@@ -91,7 +91,7 @@ def _is_trivial_match(
 
 
 def _segmentation(
-    X, clasp, n_change_points: Optional[int] = None, exclusion_radius: float = 0.05
+    X, clasp, n_change_points: int | None = None, exclusion_radius: float = 0.05
 ):
     """Segments the time series by extracting change points.
 
