@@ -6,10 +6,11 @@ __maintainer__ = []
 __all__ = ["ClaSPSegmenter", "find_dominant_window_sizes"]
 
 from queue import PriorityQueue
+from typing import Optional
 
 import numpy as np
 import pandas as pd
-
+from typing import Optional
 from aeon.segmentation.base import BaseSegmenter
 from aeon.transformations.series import ClaSPTransformer
 from aeon.utils.validation import check_n_jobs
@@ -89,7 +90,9 @@ def _is_trivial_match(
     return False
 
 
-def _segmentation(X, clasp, n_change_points=None, exclusion_radius: float = 0.05):
+def _segmentation(
+    X, clasp, n_change_points: Optional[int] = None, exclusion_radius: float = 0.05
+):
     """Segments the time series by extracting change points.
 
     Parameters
@@ -184,7 +187,7 @@ class ClaSPSegmenter(BaseSegmenter):
         Size of window for sliding, based on the period length of the data.
     n_cps : int, default = 1
         The number of change points to search.
-    exclusion_radius : int
+    exclusion_radius : float
         Exclusion Radius for change points to be non-trivial matches.
     n_jobs : int, default=1
         Number of jobs to be used.
@@ -297,7 +300,7 @@ class ClaSPSegmenter(BaseSegmenter):
         Parameters
         ----------
         X :         array-like, shape = [n]
-           Univariate time-series data to be segmented.
+        Univariate time-series data to be segmented.
         found_cps : array-like, shape = [n_cps] The found change points found
 
         Returns
