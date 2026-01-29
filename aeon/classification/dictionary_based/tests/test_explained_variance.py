@@ -18,8 +18,8 @@ def explain_variance(X, model, n_components):
         X_trans_ii = np.zeros_like(X_trans)
         X_trans_ii[:, ii] = X_trans[:, ii]
         X_approx_ii = model.inverse_transform(X_trans_ii)
-        result[ii] = (1 - (np.linalg.norm(X_approx_ii - X) / np.linalg.norm(
-            X - model.mean_)) ** 2
+        result[ii] = (
+            1 - (np.linalg.norm(X_approx_ii - X) / np.linalg.norm(X - model.mean_)) ** 2
         )
     return result
 
