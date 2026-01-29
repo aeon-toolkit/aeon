@@ -189,8 +189,13 @@ class SPARTAN(BaseCollectionTransformer):
             X_pca = self.pca.transform(X)
             words = generate_words(X_pca, self.breakpoints, self.word_length)
         else:
-            split = X[:, (np.arange(window_size)[None, :]
-                          + np.arange(num_windows_per_inst)[:, None]),]
+            split = X[
+                :,
+                (
+                    np.arange(window_size)[None, :]
+                    + np.arange(num_windows_per_inst)[:, None]
+                ),
+            ]
             flat_split = np.reshape(split, (split.shape[0], -1))
             X_pca = self.pca.transform(flat_split)
             words = generate_words(X_pca, self.breakpoints, self.word_length)
@@ -405,7 +410,8 @@ def _dynamic_alphabet_allocation(total_bit, EV, lamda=0.5):
             for x in range(min_bit, max_bit + 1):
                 if j - x >= 0 and x <= alloc[i - 1, j - x]:
                     current_reward = (
-                        DP[i - 1, j - x] + x * EV[i - 1]
+                        DP[i - 1, j - x]
+                        + x * EV[i - 1]
                         + regularization_term(x, EV[i - 1], A, lamda)
                     )
 

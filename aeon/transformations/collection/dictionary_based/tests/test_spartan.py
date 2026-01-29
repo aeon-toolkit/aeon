@@ -10,11 +10,7 @@ def test_spartan_dict():
     X_train, y_train = load_unit_test(split="train")
 
     # Fit, then transform
-    spartan = SPARTAN(
-        dilation=2,
-        window_size=10,
-        return_sparse=True
-    )
+    spartan = SPARTAN(dilation=2, window_size=10, return_sparse=True)
     spartan.fit(X_train)
 
     x = spartan.fit_transform(X_train)
