@@ -173,9 +173,6 @@ def _ets_fit(params, data, model):
     avg_mean_sq_err_ = 0
     sse_ = 0
     residuals_ = np.zeros(n_timepoints)  # 1 Less residual than data points
-    levels_ = np.zeros(n_timepoints)
-    trends_ = np.zeros(n_timepoints)
-    seasonalities_ = np.zeros(n_timepoints)
     fitted_values_ = np.zeros(n_timepoints)
     for t in range(n_timepoints):
         index = t + seasonal_period
@@ -198,9 +195,6 @@ def _ets_fit(params, data, model):
             phi,
         )
         residuals_[t] = error
-        levels_[t] = level
-        trends_[t] = trend
-        seasonalities_[t] = seasonality[s_index]
         fitted_values_[t] = fitted_value
         avg_mean_sq_err_ += (time_point - fitted_value) ** 2
         sse_ += error**2
@@ -224,9 +218,6 @@ def _ets_fit(params, data, model):
         avg_mean_sq_err_,
         liklihood_,
         k_,
-        levels_,
-        trends_,
-        seasonalities_,
     )
 
 
@@ -305,17 +296,6 @@ def _ets_update_states(
     fitted_value, damped_trend, trend_level_combination = _ets_predict_value(
         trend_type, seasonality_type, level, trend, seasonality, phi
     )
-    if fitted_value is np.nan:
-        raise ValueError(
-            "Fitted value is NaN ",
-            fitted_value,
-            " level ",
-            level,
-            " trend ",
-            trend,
-            " seasonality ",
-            seasonality,
-        )
     # Calculate the error term (observed value - fitted value)
     if error_type == 2:
         error = safe_div(data_item, fitted_value) - 1  # Multiplicative error

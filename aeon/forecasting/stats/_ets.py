@@ -200,9 +200,6 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
             self.avg_mean_sq_err_,
             self.liklihood_,
             self.k_,
-            levels_,
-            trends_,
-            seasonalities_,
         ) = _ets_fit(self.parameters_, data, self._model)
         self.forecast_ = _numba_predict(
             self._trend_type,
