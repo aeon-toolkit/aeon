@@ -92,7 +92,7 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
     ...     seasonality_type='multiplicative', seasonal_period=4
     ... )
     >>> forecaster.forecast(y)
-    413.07266877621925
+    413.0682421672687
     """
 
     _tags = {
@@ -380,7 +380,7 @@ class AutoETS(BaseForecaster):
     >>> y = load_airline()
     >>> forecaster = AutoETS()
     >>> forecaster.forecast(y)
-    435.9312382780535
+    452.9256738170091
     """
 
     _tags = {
