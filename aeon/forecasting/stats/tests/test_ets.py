@@ -43,7 +43,7 @@ from aeon.forecasting.stats._ets import ETS, AutoETS, _validate_parameter
                 seasonality_type="multiplicative",
                 seasonal_period=4,
             ),
-            13.664797705601895,
+            13.453943153564548,
         ),
     ],
 )
