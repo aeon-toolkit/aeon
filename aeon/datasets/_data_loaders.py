@@ -1210,12 +1210,12 @@ def load_regression(
     if load_equal_length:
         # If there exists a version with equal length, load that
         train = os.path.join(path, f"{name}/{name}_eq_TRAIN.ts")
-        test = os.path.join(path, f"{name}/{name}_eq_TRAIN.ts")
+        test = os.path.join(path, f"{name}/{name}_eq_TEST.ts")
         if os.path.exists(train) and os.path.exists(test):
             name = name + "_eq"
     if load_no_missing:
         train = os.path.join(path, f"{name}/{name}_nmv_TRAIN.ts")
-        test = os.path.join(path, f"{name}/{name}_nmv_TRAIN.ts")
+        test = os.path.join(path, f"{name}/{name}_nmv_TEST.ts")
         if os.path.exists(train) and os.path.exists(test):
             name = name + "_nmv"
 
