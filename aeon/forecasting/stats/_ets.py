@@ -186,7 +186,6 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
             self._model,
             max_iter=self.iterations,
         )
-        print(self.parameters_)  # noqa: T201
         self.alpha_, self.beta_, self.gamma_, self.phi_ = _extract_ets_params(
             self.parameters_, self._model
         )
@@ -205,14 +204,6 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
             trends_,
             seasonalities_,
         ) = _ets_fit(self.parameters_, data, self._model)
-        print(self.fitted_values_)  # noqa: T201
-        print(self.residuals_)  # noqa: T201
-        print(levels_)  # noqa: T201
-        print(trends_)  # noqa: T201
-        print(seasonalities_)  # noqa: T201
-        print(  # noqa: T201
-            self.level_, self.trend_, self.seasonality_, self.n_timepoints_
-        )
         self.forecast_ = _numba_predict(
             self._trend_type,
             self._seasonality_type,
@@ -224,7 +215,6 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
             self.n_timepoints_,
             self._seasonal_period,
         )
-        print(self.forecast_)  # noqa: T201
 
         return self
 
@@ -435,6 +425,7 @@ class AutoETS(BaseForecaster):
             self.seasonal_period_,
         )
         self.wrapped_model_.fit(y, exog)
+        self.forecast_ = self.wrapped_model_.forecast_
         return self
 
     def _predict(self, y=None, exog=None):

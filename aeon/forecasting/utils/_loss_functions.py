@@ -102,8 +102,7 @@ def _ets_aic(params, data, model):
         curr_level = level
         curr_seasonality = seasonality[s_index]
         if trend_type == 2:  # Multiplicative
-            damped_trend = trend**phi
-            trend_level_combination = level * damped_trend
+            trend_level_combination = level * trend
         else:  # Additive trend, if no trend, then trend = 0
             damped_trend = trend * phi
             trend_level_combination = level + damped_trend

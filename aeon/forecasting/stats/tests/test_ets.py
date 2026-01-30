@@ -34,7 +34,7 @@ from aeon.forecasting.stats._ets import ETS, AutoETS, _validate_parameter
                 seasonality_type="multiplicative",
                 seasonal_period=4,
             ),
-            13.954475405173625,
+            9.539038702169034,
         ),
         (
             dict(
@@ -43,7 +43,7 @@ from aeon.forecasting.stats._ets import ETS, AutoETS, _validate_parameter
                 seasonality_type="multiplicative",
                 seasonal_period=4,
             ),
-            13.453943153564548,
+            9.189926890465994,
         ),
     ],
 )
