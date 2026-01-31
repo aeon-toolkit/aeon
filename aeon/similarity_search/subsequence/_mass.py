@@ -1,41 +1,76 @@
 """Implementation of NN with MASS."""
 
 __maintainer__ = ["baraline"]
-__all__ = ["MassSNN"]
+__all__ = ["MASS"]
 
 import numpy as np
 from numba import njit
 
-from aeon.similarity_search.series._base import BaseSeriesSimilaritySearch
-from aeon.similarity_search.series._commons import (
-    _check_X_index,
-    _extract_top_k_from_dist_profile,
-    _inverse_distance_profile,
-    fft_sliding_dot_product,
-)
+from aeon.similarity_search.subsequence._base import BaseDistanceProfileSearch
+from aeon.similarity_search.subsequence._commons import fft_sliding_dot_product
 from aeon.utils.numba.general import (
     AEON_NUMBA_STD_THRESHOLD,
     sliding_mean_std_one_series,
 )
 
 
-class MassSNN(BaseSeriesSimilaritySearch):
+class MASS(BaseDistanceProfileSearch):
     """
-    Estimator to compute the subsequences nearest neighbors using MASS _[1].
+    Subsequence nearest neighbor search using MASS algorithm.
+
+    MASS (Mueen's Algorithm for Similarity Search) originally computes the distance
+    profile between a query subsequence and all subsequences in a time series using
+    FFT-based convolution. This estimator adapts it to search for the k nearest
+    neighbor subsequences across a collection and returns the best matches with their
+    ``(case_index, timestamp)`` locations.
 
     Parameters
     ----------
     length : int
-        The length of the subsequences to use for the search.
-    normalize : bool
-        Whether the subsequences should be z-normalized.
+        The length of the subsequences to use for the search. The query provided
+        to ``predict`` must have exactly this many timepoints.
+    normalize : bool, default=False
+        Whether the subsequences should be z-normalized before distance computation.
+        This results in scale-independent matching, useful when you want to find
+        patterns regardless of their amplitude.
+
+    Attributes
+    ----------
+    X_ : np.ndarray of shape (n_cases, n_channels, n_timepoints)
+        The fitted collection of time series.
+    n_cases_ : int
+        Number of time series in the fitted collection.
+    n_channels_ : int
+        Number of channels in the fitted time series.
+    n_timepoints_ : int
+        Number of timepoints in each fitted time series.
+
+    See Also
+    --------
+    BruteForce : Brute force subsequence search (slower but simpler).
 
     References
     ----------
     .. [1] Abdullah Mueen, Yan Zhu, Michael Yeh, Kaveh Kamgar, Krishnamurthy
-    Viswanathan, Chetan Kumar Gupta and Eamonn Keogh (2015), The Fastest Similarity
-    Search Algorithm for Time Series Subsequences under Euclidean Distance.
+       Viswanathan, Chetan Kumar Gupta and Eamonn Keogh (2015), The Fastest Similarity
+       Search Algorithm for Time Series Subsequences under Euclidean Distance.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.similarity_search.subsequence import MASS
+    >>> X_fit = np.random.rand(5, 1, 100)
+    >>> query = np.random.rand(1, 20)
+    >>> searcher = MASS(length=20, normalize=False)
+    >>> searcher.fit(X_fit)
+    >>> indexes, distances = searcher.predict(query, k=3)
     """
+
+    _tags = {
+        "capability:unequal_length": False,
+        "capability:multivariate": True,
+        "capability:multithreading": True,
+    }
 
     def __init__(
         self,
@@ -43,97 +78,41 @@ class MassSNN(BaseSeriesSimilaritySearch):
         normalize: bool | None = False,
     ):
         self.normalize = normalize
-        self.length = length
-        super().__init__()
+        super().__init__(length)
 
     def _fit(
         self,
         X: np.ndarray,
         y=None,
     ):
-        if self.normalize:
-            self.X_means_, self.X_stds_ = sliding_mean_std_one_series(X, self.length, 1)
-        return self
-
-    def _predict(
-        self,
-        X: np.ndarray,
-        k: int | None = 1,
-        dist_threshold: float | None = np.inf,
-        allow_trivial_matches: bool | None = False,
-        exclusion_factor: float | None = 0.5,
-        inverse_distance: bool | None = False,
-        X_index: int | None = None,
-    ):
         """
-        Compute nearest neighbors to X in subsequences of X_.
+        Fit the MASS estimator on a collection of time series.
 
         Parameters
         ----------
-        X : np.ndarray, shape=(n_channels, length)
-            Subsequence we want to find neighbors for.
-        k : int
-            The number of neighbors to return.
-        dist_threshold : float
-            The maximum allowed distance of a candidate subsequence of X_ to X
-            for the candidate to be considered as a neighbor.
-        allow_trivial_matches: bool, optional
-            Whether a neighbors of a match to a query can be also considered as matches
-            (True), or if an exclusion zone is applied around each match to avoid
-            trivial matches with their direct neighbors (False).
-        inverse_distance : bool
-            If True, the matching will be made on the inverse of the distance, and thus,
-            the farther neighbors will be returned instead of the closest ones.
-        exclusion_factor : float, default=1.
-            A factor of the query length used to define the exclusion zone when
-            ``allow_trivial_matches`` is set to False. For a given timestamp,
-            the exclusion zone starts from
-            :math:``id_timestamp - floor(length * exclusion_factor)`` and end at
-            :math:``id_timestamp + floor(length * exclusion_factor)``.
-        X_index : int, optional
-            If ``X`` is a subsequence of X_, specify its starting timestamp in ``X_``.
-            If specified, neighboring subsequences of X won't be able to match as
-            neighbors.
+        X : np.ndarray, shape=(n_cases, n_channels, n_timepoints)
+            Collection of time series to search within.
+        y : ignored
 
         Returns
         -------
-        np.ndarray, shape = (k)
-            The indexes of the best matches in ``distance_profile``.
-        np.ndarray, shape = (k)
-            The distances of the best matches.
-
+        self
         """
-        if X.shape[1] != self.length:
-            raise ValueError(
-                f"Expected X to have {self.length} timepoints but"
-                f" got {X.shape[1]} timepoints."
-            )
-        X_index = _check_X_index(X_index, self.n_timepoints_, self.length)
-        dist_profile = self.compute_distance_profile(X)
-        if inverse_distance:
-            dist_profile = _inverse_distance_profile(dist_profile)
-
-        exclusion_size = int(self.length * exclusion_factor)
-        if X_index is not None:
-            _max_timestamp = self.n_timepoints_ - self.length
-            ub = min(X_index + exclusion_size, _max_timestamp)
-            lb = max(0, X_index - exclusion_size)
-            dist_profile[lb:ub] = np.inf
-
-        if k == np.inf:
-            k = len(dist_profile)
-
-        return _extract_top_k_from_dist_profile(
-            dist_profile,
-            k,
-            dist_threshold,
-            allow_trivial_matches,
-            exclusion_size,
-        )
+        # Precompute means and stds for each series in the collection
+        if self.normalize:
+            n_cases = X.shape[0]
+            # Store means and stds for each series
+            self.X_means_ = []
+            self.X_stds_ = []
+            for i in range(n_cases):
+                means, stds = sliding_mean_std_one_series(X[i], self.length, 1)
+                self.X_means_.append(means)
+                self.X_stds_.append(stds)
+        return self
 
     def compute_distance_profile(self, X: np.ndarray):
         """
-        Compute the distance profile of X to all samples in X_.
+        Compute the distance profile of X to all subsequences in X_.
 
         Parameters
         ----------
@@ -143,30 +122,36 @@ class MassSNN(BaseSeriesSimilaritySearch):
         Returns
         -------
         distance_profiles : np.ndarray, 2D array of shape (n_cases, n_candidates)
-            The distance profile of X to all samples in X_. The ``n_candidates`` value
-            is equal to ``n_timepoins - length + 1``. If X_ is an unequal length
-            collection, returns a numba typed list instead of an ndarray.
-
+            The distance profile of X to all subsequences in all series of X_.
+            The ``n_candidates`` value is equal to ``n_timepoints - length + 1``.
         """
-        QT = fft_sliding_dot_product(self.X_, X)
+        n_cases = self.X_.shape[0]
+        n_candidates = self.n_timepoints_ - self.length + 1
+        distance_profiles = np.zeros((n_cases, n_candidates))
 
-        if self.normalize:
-            distance_profile = _normalized_squared_distance_profile(
-                QT,
-                self.X_means_,
-                self.X_stds_,
-                X.mean(axis=1),
-                X.std(axis=1),
-                self.length,
-            )
-        else:
-            distance_profile = _squared_distance_profile(
-                QT,
-                self.X_,  # T
-                X,  # Q
-            )
+        Q_means = X.mean(axis=1) if self.normalize else None
+        Q_stds = X.std(axis=1) if self.normalize else None
 
-        return distance_profile
+        for i in range(n_cases):
+            QT = fft_sliding_dot_product(self.X_[i], X)
+
+            if self.normalize:
+                distance_profiles[i] = _normalized_squared_distance_profile(
+                    QT,
+                    self.X_means_[i],
+                    self.X_stds_[i],
+                    Q_means,
+                    Q_stds,
+                    self.length,
+                )
+            else:
+                distance_profiles[i] = _squared_distance_profile(
+                    QT,
+                    self.X_[i],
+                    X,
+                )
+
+        return distance_profiles
 
     @classmethod
     def _get_test_params(cls, parameter_set: str = "default"):

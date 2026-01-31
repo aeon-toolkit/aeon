@@ -314,32 +314,33 @@ related to time series similarity search. The estimators can be used standalone 
 data analysis purposes or as parts of pipelines, to perform other tasks such as
 classification or clustering.
 
-Similarly to the transformation module, similarity search estimators are either defined
-for single series or for collection of series. The estimators are inheriting from the
-[BaseSimilaritySearch](similarity_search._base.BaseSimilaritySearch) class, which
-both [BaseSeriesSimilaritySearch](similarity_search.series._base.BaseSeriesSimilaritySearch)
-and [BaseCollectionSimilaritySearch](similarity_search.collection._base.BaseCollectionSimilaritySearch)
-inherit from.
+The module is organized into two main categories:
+- **Subsequence search**: Finding nearest neighbors among subsequences of time series
+- **Whole series search**: Finding nearest neighbors among complete time series
+
+The estimators inherit from [BaseSimilaritySearch](similarity_search._base.BaseSimilaritySearch),
+with specific base classes for [BaseSubsequenceSearch](similarity_search.subsequence._base.BaseSubsequenceSearch)
+and [BaseWholeSeriesSearch](similarity_search.whole_series._base.BaseWholeSeriesSearch).
 
 All estimators use a `fit` `predict` interface, where `predict` outputs both the
-indexes of the neighbors or motifs and a distance or similarity measure linked to them.
-For example, using `StompMotif` to compute the matrix profile between two series :
+indexes of the neighbors and a distance or similarity measure linked to them.
+For example, using `MASS` to find nearest neighbor subsequences:
 
 ```{code-block} python
 >>> import numpy as np
->>> from aeon.similarity_search.series import StompMotif
->>> X1 = np.array([1, 1, 2, 4, 6, 6, 7])  # single series (univariate)
+>>> from aeon.similarity_search.subsequence import MASS
+>>> X1 = np.array([1, 1, 2, 4, 6, 6, 7, 5, 3, 2])  # single series (univariate)
 >>> X2 = np.array([0, 1, 2, 2, 4, 5, 7, 9, 4, 6])  # single series (univariate)
->>> top_k = StompMotif(4).fit(X1) # 4 is length of the motif to search
->>> distances, indexes = top_k.predict(X2, k=1)
+>>> snn = MASS(length=4).fit(X1)  # 4 is length of the subsequences
+>>> indexes, distances = snn.predict(X2[:4], k=1)  # find best match
 ```
 
 Some things to note on this example :
 
-- We defined `1D` series of shape `(n_timepoints)`, but internally, series estimator
+- We defined `1D` series of shape `(n_timepoints)`, but internally, series estimators
 will use a `2D` representation as `(n_channels, n_timepoints)`.
-- The output of predict gives a two lists of size `k` (the number of motifs to extract)
-which can be read as follows : `distances[i] = d(X1[:, indexes[i][0]],X2[:, indexes[i][1]])`
+- The output of predict gives the indexes of the best matching subsequences in the fitted series
+and their distances to the query.
 
 For more examples and use cases you can check the example section of the module,
 starting with the general [similarity search notebook](examples/similarity_search/similarity_search.ipynb)
