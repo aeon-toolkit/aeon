@@ -81,6 +81,10 @@ class RecurrentRegressor(BaseDeepRegressor):
         The evaluation metrics to use during training
     output_activation : str, default = "linear"
         The output activation for the regressor
+    compile_args: dict or None, default=None
+        Dictionary of additional arguments to pass to the Keras `compile` method.
+    fit_args: dict or None, default=None
+        Dictionary of additional arguments to pass to the Keras `fit` method.
 
     Examples
     --------
@@ -121,6 +125,8 @@ class RecurrentRegressor(BaseDeepRegressor):
         last_file_name: str = "last_model",
         init_file_name: str = "init_model",
         optimizer: tf.keras.optimizers.Optimizer | None = None,
+        compile_args=None,
+        fit_args=None,
     ):
         self.rnn_type = rnn_type
         self.n_layers = n_layers
@@ -146,6 +152,9 @@ class RecurrentRegressor(BaseDeepRegressor):
         self.init_file_name = init_file_name
         self.optimizer = optimizer
         self.history = None
+
+        self.compile_args = compile_args
+        self.fit_args = fit_args
 
         super().__init__(batch_size=batch_size, last_file_name=last_file_name)
 
@@ -193,6 +202,14 @@ class RecurrentRegressor(BaseDeepRegressor):
             else self.optimizer
         )
 
+        compile_args = {} if not self.compile_args else self.compile_args
+        for key in ["loss", "metrics", "optimizer"]:
+            if key in compile_args:
+                raise ValueError(
+                    f"Cannot specify '{key}' in 'compile_args'. "
+                    f"Specify it in the constructor instead. "
+                )
+
         rng = check_random_state(self.random_state)
         self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
         tf.keras.utils.set_random_seed(self.random_state_)
@@ -210,6 +227,7 @@ class RecurrentRegressor(BaseDeepRegressor):
             loss=self.loss,
             optimizer=self.optimizer_,
             metrics=self._metrics,
+            **compile_args,
         )
 
         return model
@@ -270,6 +288,14 @@ class RecurrentRegressor(BaseDeepRegressor):
         else:
             mini_batch_size = self.batch_size
 
+        fit_args = {} if not self.fit_args else self.fit_args
+        for key in ["batch_size", "epochs", "verbose", "callbacks"]:
+            if key in fit_args:
+                raise ValueError(
+                    f"Cannot specify '{key}' in 'fit_args'. "
+                    f"Specify it in the constructor instead."
+                )
+
         self.history = self.training_model_.fit(
             X,
             y,
@@ -277,6 +303,7 @@ class RecurrentRegressor(BaseDeepRegressor):
             epochs=self.n_epochs,
             verbose=self.verbose,
             callbacks=self.callbacks_,
+            **fit_args,
         )
 
         try:
