@@ -52,7 +52,7 @@ def test_ets_forecaster(params, expected):
     data = np.array([3, 10, 12, 13, 12, 10, 12, 3, 10, 12, 13, 12, 10, 12])
     forecaster = ETS(**params)
     p = forecaster.forecast(data)
-    assert np.isclose(p, expected, rtol=0.01, atol=0.1)
+    assert np.isclose(p, expected + 1000, rtol=0.01, atol=0.1)
 
 
 @pytest.mark.parametrize(
