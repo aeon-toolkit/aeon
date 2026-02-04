@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from aeon.forecasting.stats._arima import ARIMA, AutoARIMA
+from aeon.forecasting.stats._arima import ARIMA, AutoARIMA, _arima_model
 
 y = np.array(
     [112, 118, 132, 129, 121, 135, 148, 148, 136, 119, 104, 118], dtype=np.float64
@@ -190,3 +190,69 @@ def test_autoarima_forecast_is_consistent_with_wrapped():
     forecaster = AutoARIMA()
     val = forecaster._forecast(y)
     assert np.isclose(val, forecaster.final_model_.forecast_)
+
+
+@pytest.mark.parametrize("prediction_horizon", [1, 3, 5])
+def test_arima_evaluate_forecast(prediction_horizon):
+    """Check ARIMA Evaluate Forecast method."""
+    forecaster = ARIMA()
+
+    # --- Fast implementation ---
+    fast_forecast = forecaster.evaluate_forecast(
+        y=y,
+        prediction_horizon=prediction_horizon,
+    )
+
+    forecaster = ARIMA()
+    # Train on data available up to that point
+    train_y = y[:-prediction_horizon]
+
+    forecaster.fit(train_y)
+
+    y_hat = _arima_model(forecaster._parameters, y, forecaster._model)[2][
+        -prediction_horizon:
+    ]
+
+    # --- Assertions ---
+    assert fast_forecast.shape == (prediction_horizon,)
+
+    np.testing.assert_allclose(
+        fast_forecast,
+        y_hat,
+        rtol=1e-6,
+        atol=1e-8,
+        err_msg="Fast ETS forecast does not match rolling forecast",
+    )
+
+
+@pytest.mark.parametrize("prediction_horizon", [1, 3, 5])
+def test_auto_arima_evaluate_forecast(prediction_horizon):
+    """Check AutoARIMA Evaluate Forecast method."""
+    forecaster = AutoARIMA()
+
+    # --- Fast implementation ---
+    fast_forecast = forecaster.evaluate_forecast(
+        y=y,
+        prediction_horizon=prediction_horizon,
+    )
+
+    forecaster = AutoARIMA()
+    # Train on data available up to that point
+    train_y = y[:-prediction_horizon]
+
+    forecaster.fit(train_y)
+
+    y_hat = _arima_model(
+        forecaster.final_model_._parameters, y, forecaster.final_model_._model
+    )[2][-prediction_horizon:]
+
+    # --- Assertions ---
+    assert fast_forecast.shape == (prediction_horizon,)
+
+    np.testing.assert_allclose(
+        fast_forecast,
+        y_hat,
+        rtol=1e-6,
+        atol=1e-8,
+        err_msg="Fast ETS forecast does not match rolling forecast",
+    )

@@ -308,6 +308,53 @@ class IterativeForecastingMixin:
         return preds
 
 
+class EvaluateForecastingMixin(ABC):
+    """Mixin class for evaluating forecaster without refitting."""
+
+    @final
+    def evaluate_forecast(self, y, prediction_horizon, exog=None) -> np.ndarray:
+        """
+        Forecast ``prediction_horizon`` predictions using a single model.
+
+        This function implements the iterative forecasting strategy (also called
+        recursive or iterated). This involves a single model fit on
+        `y - prediction_horizon points`. which is then used to make
+        ``prediction_horizon`` ahead forecasts using the remaining data
+        points as inputs for future forecasts. The basic contract of
+        `evaluate_forecast` is that`fit` is only ever called once, but that
+        the true values are used to advance the model. This allows forecasts
+        to be evaluated without the computational overhead of refitting the
+        model.
+
+        y : np.ndarray
+            The time series to make forecasts about.  Must be of shape
+            ``(n_channels, n_timepoints)`` if a multivariate time series.
+        prediction_horizon : int
+            The number of future time steps to forecast.
+
+        Returns
+        -------
+        np.ndarray
+            An array of shape `(prediction_horizon,)` containing the forecasts for
+            each horizon.
+
+        Raises
+        ------
+        ValueError
+            if prediction_horizon` less than 1.
+
+        """
+        if prediction_horizon < 1:
+            raise ValueError(
+                "The `prediction_horizon` must be greater than or equal to 1."
+            )
+
+        return self._evaluate_forecast(y, prediction_horizon, exog)
+
+    @abstractmethod
+    def _evaluate_forecast(self, y, prediction_horizon, exog): ...
+
+
 class SeriesToSeriesForecastingMixin(ABC):
     """Mixin class for series-to-series forecasting."""
 

@@ -10,14 +10,18 @@ __all__ = ["ARIMA", "AutoARIMA"]
 import numpy as np
 from numba import njit
 
-from aeon.forecasting.base import BaseForecaster, IterativeForecastingMixin
+from aeon.forecasting.base import (
+    BaseForecaster,
+    EvaluateForecastingMixin,
+    IterativeForecastingMixin,
+)
 from aeon.forecasting.utils._extract_paras import _extract_arma_params
 from aeon.forecasting.utils._hypo_tests import kpss_test
 from aeon.forecasting.utils._nelder_mead import nelder_mead
 from aeon.forecasting.utils._undifference import _undifference
 
 
-class ARIMA(BaseForecaster, IterativeForecastingMixin):
+class ARIMA(BaseForecaster, IterativeForecastingMixin, EvaluateForecastingMixin):
     """AutoRegressive Integrated Moving Average (ARIMA) forecaster.
 
     ARIMA with fixed model structure and fitted parameters found with an
@@ -207,6 +211,46 @@ class ARIMA(BaseForecaster, IterativeForecastingMixin):
         self._fit(y, exog)
         return float(self.forecast_)
 
+    def _evaluate_forecast(self, y=None, prediction_horizon=1, exog=None):
+        """
+        Predict the next horizon steps ahead.
+
+        Parameters
+        ----------
+        y : np.ndarray, default = None
+            A time series to predict the next horizon value for. If None,
+            predict the next horizon value after series seen in fit.
+        exog : np.ndarray, default =None
+            Optional exogenous time series data assumed to be aligned with y
+
+        Returns
+        -------
+        array[float]
+            Predictions len(y) steps ahead of the data seen in fit.
+        If y is None, then predict 1 step ahead of the data seen in fit.
+        """
+        self.fit(
+            y[:-prediction_horizon],
+            exog[:-prediction_horizon] if exog is not None else None,
+        )
+        self._series = np.array(y.squeeze(), dtype=np.float64)
+        # Model is an array of the (c,p,q)
+        self._differenced_series = np.diff(self._series, n=self.d)
+        #
+        self.aic_, self.residuals_, self.fitted_values_ = _arima_model(
+            self._parameters,
+            self._differenced_series,
+            self._model,
+        )
+        differenced_forecast = self.fitted_values_[-prediction_horizon:]
+        if self.d == 0:
+            forecasts = differenced_forecast
+        else:
+            forecasts = _undifference(differenced_forecast, self._series[-self.d :])[
+                self.d :
+            ]
+        return forecasts
+
     def iterative_forecast(self, y, prediction_horizon):
         self.fit(y)
         n = len(self._differenced_series)
@@ -245,7 +289,7 @@ class ARIMA(BaseForecaster, IterativeForecastingMixin):
             return _undifference(y_forecast_diff, self._series[-self.d :])[self.d :]
 
 
-class AutoARIMA(BaseForecaster, IterativeForecastingMixin):
+class AutoARIMA(BaseForecaster, IterativeForecastingMixin, EvaluateForecastingMixin):
     """AutoRegressive Integrated Moving Average (ARIMA) forecaster.
 
     Implements the Hyndman-Khandakar automatic ARIMA algorithm for time series
@@ -363,6 +407,30 @@ class AutoARIMA(BaseForecaster, IterativeForecastingMixin):
         """Forecast one ahead for time series y."""
         self._fit(y, exog)
         return float(self.final_model_.forecast_)
+
+    def _evaluate_forecast(self, y=None, prediction_horizon=1, exog=None):
+        """
+        Predict the next horizon steps ahead.
+
+        Parameters
+        ----------
+        y : np.ndarray, default = None
+            A time series to predict the next horizon value for. If None,
+            predict the next horizon value after series seen in fit.
+        exog : np.ndarray, default =None
+            Optional exogenous time series data assumed to be aligned with y
+
+        Returns
+        -------
+        array[float]
+            Predictions len(y) steps ahead of the data seen in fit.
+        If y is None, then predict 1 step ahead of the data seen in fit.
+        """
+        self.fit(
+            y[:-prediction_horizon],
+            exog[:-prediction_horizon] if exog is not None else None,
+        )
+        return self.final_model_._evaluate_forecast(y, prediction_horizon, exog)
 
     def iterative_forecast(self, y, prediction_horizon):
         """Forecast ``prediction_horizon`` prediction using a single model fit on `y`.

@@ -12,7 +12,11 @@ __all__ = ["ETS"]
 import numpy as np
 from numba import njit
 
-from aeon.forecasting.base import BaseForecaster, IterativeForecastingMixin
+from aeon.forecasting.base import (
+    BaseForecaster,
+    EvaluateForecastingMixin,
+    IterativeForecastingMixin,
+)
 from aeon.forecasting.utils._extract_paras import _extract_ets_params
 from aeon.forecasting.utils._loss_functions import (
     _ets_fit,
@@ -26,7 +30,7 @@ ADDITIVE = "additive"
 MULTIPLICATIVE = "multiplicative"
 
 
-class ETS(BaseForecaster, IterativeForecastingMixin):
+class ETS(BaseForecaster, IterativeForecastingMixin, EvaluateForecastingMixin):
     """Exponential Smoothing (ETS) forecaster.
 
     Implements the ETS (Error, Trend, Seasonality) forecaster, supporting additive
@@ -248,6 +252,33 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
             self._trend_type, self._seasonality_type, self._seasonal_period, data
         )
 
+    def _evaluate_forecast(self, y=None, prediction_horizon=1, exog=None):
+        """
+        Predict the next horizon steps ahead.
+
+        Parameters
+        ----------
+        y : np.ndarray, default = None
+            A time series to predict the next horizon value for. If None,
+            predict the next horizon value after series seen in fit.
+        exog : np.ndarray, default =None
+            Optional exogenous time series data assumed to be aligned with y
+
+        Returns
+        -------
+        array[float]
+            Predictions len(y) steps ahead of the data seen in fit.
+        If y is None, then predict 1 step ahead of the data seen in fit.
+        """
+        self.fit(
+            y[:-prediction_horizon],
+            exog[:-prediction_horizon] if exog is not None else None,
+        )
+        _, _, _, _, _, _, fitted_values, _, _, _ = _ets_fit(
+            self.parameters_, y, self._model
+        )
+        return fitted_values[-prediction_horizon:]
+
     def iterative_forecast(self, y, prediction_horizon):
         """Forecast with ETS specific iterative method.
 
@@ -323,7 +354,7 @@ def _validate_parameter(var, can_be_none):
         )
 
 
-class AutoETS(BaseForecaster):
+class AutoETS(BaseForecaster, IterativeForecastingMixin, EvaluateForecastingMixin):
     """Automatic Exponential Smoothing forecaster.
 
     An implementation of the exponential smoothing statistics forecasting algorithm.
@@ -447,6 +478,30 @@ class AutoETS(BaseForecaster):
     def _forecast(self, y, exog=None, axis=1):
         self.fit(y, exog=exog)
         return float(self.wrapped_model_.forecast_)
+
+    def _evaluate_forecast(self, y=None, prediction_horizon=1, exog=None):
+        """
+        Predict the next horizon steps ahead.
+
+        Parameters
+        ----------
+        y : np.ndarray, default = None
+            A time series to predict the next horizon value for. If None,
+            predict the next horizon value after series seen in fit.
+        exog : np.ndarray, default =None
+            Optional exogenous time series data assumed to be aligned with y
+
+        Returns
+        -------
+        array[float]
+            Predictions len(y) steps ahead of the data seen in fit.
+        If y is None, then predict 1 step ahead of the data seen in fit.
+        """
+        self.fit(
+            y[:-prediction_horizon],
+            exog[:-prediction_horizon] if exog is not None else None,
+        )
+        return self.wrapped_model_._evaluate_forecast(y, prediction_horizon, exog)
 
     def iterative_forecast(self, y, prediction_horizon):
         """Forecast with ETS specific iterative method.
