@@ -1,4 +1,4 @@
-name: Weekly GitHub maintenance
+name: Monthly GitHub maintenance
 
 on:
   schedule:
