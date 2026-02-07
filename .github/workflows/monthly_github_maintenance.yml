@@ -26,6 +26,5 @@ jobs:
           days-before-stale: 365
           days-before-delete: 455
           comment-updates: true
-          stale-branch-label: "stale branch"
           compare-branches: "info"
           pr-check: true
