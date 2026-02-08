@@ -696,12 +696,15 @@ def _calc_binary_ig(orderline, c1, c2):
     c2_count = 0
 
     # evaluate each split point
-    for split in range(len(orderline)):
+    for split in range(len(orderline) - 1):
         next_class = orderline[split][1]  # +1 if this class, -1 if other
         if next_class > 0:
             c1_count += 1
         else:
             c2_count += 1
+
+        if orderline[split][0] == orderline[split + 1][0]:
+            continue
 
         left_prop = (split + 1) / total_all
         ent_left = _binary_entropy(c1_count, c2_count)
