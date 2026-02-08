@@ -20,6 +20,7 @@ from aeon.forecasting.utils._loss_functions import (
     _ets_predict_value,
 )
 from aeon.forecasting.utils._nelder_mead import nelder_mead
+from aeon.forecasting.utils._seasonality import calc_seasonal_period
 
 ADDITIVE = "additive"
 MULTIPLICATIVE = "multiplicative"
@@ -91,7 +92,7 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
     ...     seasonality_type='multiplicative', seasonal_period=4
     ... )
     >>> forecaster.forecast(y)
-    413.07266877621925
+    413.0682421672687
     """
 
     _tags = {
@@ -320,3 +321,176 @@ def _validate_parameter(var, can_be_none):
             f"variable must be either string or integer with values"
             f" {valid_str} or {valid_int} but saw {var}"
         )
+
+
+class AutoETS(BaseForecaster):
+    """Automatic Exponential Smoothing forecaster.
+
+    An implementation of the exponential smoothing statistics forecasting algorithm.
+    Chooses betweek additive and multiplicative error models,
+    None, additive and multiplicative (including damped) trend and
+    None, additive and multiplicative seasonality[1]_.
+
+    Attempts to make this forecaster stable:
+    - Issues with Zero division Errors:
+        - If any data points are non-positive, multiplicative options are excluded.
+        - With numba fastmath=true, the compiler moves the operations around. This means
+          zero division guards are ineffective. As such I have tried putting the guards
+          in a separate fastmath=false function, with inline=true. This slows it down a
+          lot though.
+        - Need to make sure initialisation function never assigns slices of the data
+        array
+        - fixed bug where the first few values were being changed in the seasonality
+          calculation array
+    - Issues with the nelder mead not finding good parameters,
+      usually ending up with alpha approx 1:
+        - Tested updating the initial conditions (initial level, trend,
+          seasonality array) to be heuristically calculated across the whole
+          array at the start.
+          This seemed to fix some issues, but cause others.
+        - Tested optimising over the initial conditions in the nelder-mead array.
+          This didn't really help, although is how statsmodels does it.
+        - Added guards to the nelder-mead algorithm to reflect points back in when they
+          go above or below (0,1) to ensure parameters stay valid.
+        - Added sigmoid function to output of nelder-mead to ensure parameters stay
+          in (0,1).
+        - Initialised the simplex array with reasonable starting values
+          (a=0.4, b=0.25, phi=0.95, g=0.35)
+    - The algorithms sometimes produce really extreme forecasts of the order of 1e100
+      larger than the data. I assume this is due to the guards on the zero division,
+      but haven't been able to work out how to fix it.
+
+    Parameters
+    ----------
+    horizon : int, default = 1
+        The horizon to forecast to.
+
+    References
+    ----------
+    .. [1] R. J. Hyndman and G. Athanasopoulos,
+        Forecasting: Principles and Practice. Melbourne, Australia: OTexts, 2014.
+
+    Examples
+    --------
+    >>> from aeon.forecasting.stats import AutoETS
+    >>> from aeon.datasets import load_airline
+    >>> y = load_airline()
+    >>> forecaster = AutoETS()
+    >>> forecaster.forecast(y)
+    452.9256738170091
+    """
+
+    _tags = {
+        "capability:horizon": False,
+    }
+
+    def __init__(self):
+        self.error_type_ = 0
+        self.trend_type_ = 0
+        self.seasonality_type_ = 0
+        self.seasonal_period_ = 0
+        self.wrapped_model_ = None
+        super().__init__(horizon=1, axis=1)
+
+    def _fit(self, y, exog=None):
+        """Fit Auto Exponential Smoothing forecaster to series y.
+
+        Fit a forecaster to predict self.horizon steps ahead using y.
+
+        Parameters
+        ----------
+        y : np.ndarray
+            A time series on which to learn a forecaster to predict horizon ahead
+        exog : np.ndarray, default =None
+            Optional exogenous time series data assumed to be aligned with y
+
+        Returns
+        -------
+        self
+            Fitted AutoETS.
+        """
+        data = y.squeeze()
+        best_model = auto_ets(data)
+        self.error_type_ = int(best_model[0])
+        self.trend_type_ = int(best_model[1])
+        self.seasonality_type_ = int(best_model[2])
+        self.seasonal_period_ = int(best_model[3])
+        self.wrapped_model_ = ETS(
+            self.error_type_,
+            self.trend_type_,
+            self.seasonality_type_,
+            self.seasonal_period_,
+        )
+        self.wrapped_model_.fit(y, exog)
+        self.forecast_ = self.wrapped_model_.forecast_
+        return self
+
+    def _predict(self, y=None, exog=None):
+        """
+        Predict the next horizon steps ahead.
+
+        Parameters
+        ----------
+        y : np.ndarray, default = None
+            A time series to predict the next horizon value for. If None,
+            predict the next horizon value after series seen in fit.
+        exog : np.ndarray, default =None
+            Optional exogenous time series data assumed to be aligned with y
+
+        Returns
+        -------
+        float
+            single prediction self.horizon steps ahead of y.
+        """
+        return self.wrapped_model_.predict(y, exog)
+
+    def _forecast(self, y, exog=None, axis=1):
+        self.fit(y, exog=exog)
+        return float(self.wrapped_model_.forecast_)
+
+    def iterative_forecast(self, y, prediction_horizon):
+        """Forecast with ETS specific iterative method.
+
+        Overrides the base class iterative_forecast to avoid refitting on each step.
+        This simply rolls the ETS model forward
+        """
+        return self.wrapped_model_.iterative_forecast(y, prediction_horizon)
+
+
+@njit(fastmath=True, cache=True)
+def auto_ets(data):
+    """Calculate model parameters based on the internal nelder-mead implementation."""
+    seasonal_period = calc_seasonal_period(data)
+    # Technically only needs to be 2 * seasonal periods to calculate initial conditions,
+    # but makes no sense to run a seasonal model with any less than 2 seasonal periods
+    # worth of usable data even that might be a bit low
+    seasonal_enabled = seasonal_period > 1 and len(data) > seasonal_period * 4
+    s_max = 3 if seasonal_enabled else 1
+    all_pos = True
+    for i in range(len(data)):
+        if data[i] <= 0.0:
+            all_pos = False
+            break
+    model = np.empty(4, dtype=np.int32)
+    best_model = np.empty(4, dtype=np.int32)
+    best_aic = np.inf
+    for error_type in range(1, 3):
+        if error_type == 2 and not all_pos:
+            continue
+        for trend_type in range(0, 3):
+            if trend_type == 2 and not all_pos:
+                continue
+            k_base = 1 + (2 if (trend_type != 0) else 0)
+            for seasonality_type in range(0, s_max):
+                if seasonality_type == 2 and not all_pos:
+                    continue
+                model[0] = error_type
+                model[1] = trend_type
+                model[2] = seasonality_type
+                model[3] = seasonal_period if (seasonality_type != 0) else 1
+                k = k_base + (1 if seasonality_type != 0 else 0)
+                _, aic = nelder_mead(1, k, data, model)
+                if aic < best_aic:
+                    best_aic = aic
+                    best_model[:] = model
+    return best_model
