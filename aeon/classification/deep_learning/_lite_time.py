@@ -139,27 +139,27 @@ class LITETimeClassifier(BaseClassifier):
 
     def __init__(
         self,
-        n_classifiers=5,
-        use_litemv=False,
-        n_filters=32,
-        kernel_size=40,
-        strides=1,
-        activation="relu",
-        file_path="./",
-        save_last_model=False,
-        save_best_model=False,
-        save_init_model=False,
-        best_file_name="best_model",
-        last_file_name="last_model",
-        init_file_name="init_model",
-        batch_size=64,
-        use_mini_batch_size=False,
-        n_epochs=1500,
+        n_classifiers: int = 5,
+        use_litemv: bool = False,
+        n_filters: int = 32,
+        kernel_size: int = 40,
+        strides: int | list[int] = 1,
+        activation: str | list[str] = "relu",
+        file_path: str = "./",
+        save_last_model: bool = False,
+        save_best_model: bool = False,
+        save_init_model: bool = False,
+        best_file_name: str = "best_model",
+        last_file_name: str = "last_model",
+        init_file_name: str = "init_model",
+        batch_size: int = 64,
+        use_mini_batch_size: bool = False,
+        n_epochs: int = 1500,
         callbacks=None,
         random_state=None,
-        verbose=False,
-        loss="categorical_crossentropy",
-        metrics="accuracy",
+        verbose: bool = False,
+        loss: str = "categorical_crossentropy",
+        metrics: str | list[str] = "accuracy",
         optimizer=None,
     ):
         self.n_classifiers = n_classifiers
@@ -331,7 +331,7 @@ class LITETimeClassifier(BaseClassifier):
         return classifier
 
     @classmethod
-    def _get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set: str = "default") -> dict | list[dict]:
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -480,26 +480,26 @@ class IndividualLITEClassifier(BaseDeepClassifier):
 
     def __init__(
         self,
-        use_litemv=False,
-        n_filters=32,
-        kernel_size=40,
-        strides=1,
-        activation="relu",
-        file_path="./",
-        save_best_model=False,
-        save_last_model=False,
-        save_init_model=False,
-        best_file_name="best_model",
-        last_file_name="last_model",
-        init_file_name="init_model",
-        batch_size=64,
-        use_mini_batch_size=False,
-        n_epochs=1500,
+        use_litemv: bool = False,
+        n_filters: int = 32,
+        kernel_size: int = 40,
+        strides: int | list[int] = 1,
+        activation: str | list[str] = "relu",
+        file_path: str = "./",
+        save_best_model: bool = False,
+        save_last_model: bool = False,
+        save_init_model: bool = False,
+        best_file_name: str = "best_model",
+        last_file_name: str = "last_model",
+        init_file_name: str = "init_model",
+        batch_size: int = 64,
+        use_mini_batch_size: bool = False,
+        n_epochs: int = 1500,
         callbacks=None,
         random_state=None,
-        verbose=False,
-        loss="categorical_crossentropy",
-        metrics="accuracy",
+        verbose: bool = False,
+        loss: str = "categorical_crossentropy",
+        metrics: str | list[str] = "accuracy",
         optimizer=None,
     ):
         self.use_litemv = use_litemv
@@ -539,7 +539,7 @@ class IndividualLITEClassifier(BaseDeepClassifier):
             activation=self.activation,
         )
 
-    def build_model(self, input_shape, n_classes, **kwargs):
+    def build_model(self, input_shape: tuple[int, int], n_classes: int, **kwargs):
         """
         Construct a compiled, un-trained, keras model that is ready for training.
 
@@ -672,7 +672,7 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         return self
 
     @classmethod
-    def _get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set: str = "default") -> dict | list[dict]:
         """Return testing parameter settings for the estimator.
 
         Parameters
