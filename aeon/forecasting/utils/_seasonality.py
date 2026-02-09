@@ -1,10 +1,12 @@
 """Seasonality Tools.
 
-Includes autocorrelation function (ACF) and seasonal period estimation.
+Includes autocorrelation function (ACF) and seasonal period estimation that uses ACF.
 """
 
 import numpy as np
 from numba import njit
+
+__all__ = ["acf", "calc_seasonal_period"]
 
 
 @njit(cache=True, fastmath=True)
