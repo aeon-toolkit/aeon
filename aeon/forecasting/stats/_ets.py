@@ -212,7 +212,6 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
             self.n_timepoints_,
             self._seasonal_period,
         )
-
         return self
 
     def _predict(self, y, exog=None):
