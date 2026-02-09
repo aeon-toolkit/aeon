@@ -1,12 +1,12 @@
-"""ETS class.
+"""Error, Trend, and Seasonality (ETS) forecasters.
 
-An implementation of the exponential smoothing statistics forecasting algorithm.
-Implements additive and multiplicative error models. We recommend using the AutoETS
-version, but this is useful for demonstrations.
+Implementations of the ETS forecasting algorithm with additive and multiplicative
+error models. There are two versions: ETS and AutoETS. We recommend using the AutoETS
+version, the configurable ETS is primarily useful for examples.
 """
 
 __maintainer__ = []
-__all__ = ["ETS"]
+__all__ = ["ETS", "AutoETS"]
 
 
 import numpy as np
@@ -329,36 +329,11 @@ class AutoETS(BaseForecaster):
     An implementation of the exponential smoothing statistics forecasting algorithm.
     Chooses betweek additive and multiplicative error models,
     None, additive and multiplicative (including damped) trend and
-    None, additive and multiplicative seasonality[1]_.
+    None, additive and multiplicative seasonality [1]_.
 
-    Attempts to make this forecaster stable:
-    - Issues with Zero division Errors:
-        - If any data points are non-positive, multiplicative options are excluded.
-        - With numba fastmath=true, the compiler moves the operations around. This means
-          zero division guards are ineffective. As such I have tried putting the guards
-          in a separate fastmath=false function, with inline=true. This slows it down a
-          lot though.
-        - Need to make sure initialisation function never assigns slices of the data
-        array
-        - fixed bug where the first few values were being changed in the seasonality
-          calculation array
-    - Issues with the nelder mead not finding good parameters,
-      usually ending up with alpha approx 1:
-        - Tested updating the initial conditions (initial level, trend,
-          seasonality array) to be heuristically calculated across the whole
-          array at the start.
-          This seemed to fix some issues, but cause others.
-        - Tested optimising over the initial conditions in the nelder-mead array.
-          This didn't really help, although is how statsmodels does it.
-        - Added guards to the nelder-mead algorithm to reflect points back in when they
-          go above or below (0,1) to ensure parameters stay valid.
-        - Added sigmoid function to output of nelder-mead to ensure parameters stay
-          in (0,1).
-        - Initialised the simplex array with reasonable starting values
-          (a=0.4, b=0.25, phi=0.95, g=0.35)
-    - The algorithms sometimes produce really extreme forecasts of the order of 1e100
-      larger than the data. I assume this is due to the guards on the zero division,
-      but haven't been able to work out how to fix it.
+    There are issues relating to stability
+    and efficiency discussed here https://github.com/aeon-toolkit/aeon/issues/3294.
+
 
     Parameters
     ----------
