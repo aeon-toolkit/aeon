@@ -52,6 +52,9 @@ def test_ets_forecaster(params, expected):
     data = np.array([3, 10, 12, 13, 12, 10, 12, 3, 10, 12, 13, 12, 10, 12])
     forecaster = ETS(**params)
     p = forecaster.forecast(data)
+    # This allows for different values for numba vs no-numba runs.
+    # If there is more than one value in the expected values parameter,
+    # assume this is a value for a numba run and a value for a no-numba run
     if isinstance(expected, list):
         assert any(np.isclose(p, expected, rtol=0.01, atol=0.1))
     else:
