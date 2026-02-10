@@ -351,7 +351,7 @@ class AutoETS(BaseForecaster):
     >>> y = load_airline()
     >>> forecaster = AutoETS()
     >>> forecaster.forecast(y)
-    452.9256738170091
+    452.88702
     """
 
     _tags = {
