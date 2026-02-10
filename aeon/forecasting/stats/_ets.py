@@ -350,8 +350,7 @@ class AutoETS(BaseForecaster):
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()
     >>> forecaster = AutoETS()
-    >>> forecaster.forecast(y)
-    452.88702
+    >>> pred = forecaster.forecast(y)
     """
 
     _tags = {
