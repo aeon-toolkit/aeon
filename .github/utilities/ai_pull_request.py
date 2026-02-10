@@ -7,14 +7,14 @@ from github import Github
 
 context_dict = json.loads(os.getenv("CONTEXT_GITHUB"))
 
-repo_name = context_dict["repository"]
+repo = context_dict["repository"]
 g = Github(os.getenv("GITHUB_TOKEN"))
-repo = g.get_repo(repo_name)
-pr_number = context_dict["event"]["pull_request"]["number"]
-pr = repo.get_pull(pr_number)
-label_name = context_dict["event"]["label"]["name"]
+repo = g.get_repo(repo)
+pr_number = context_dict["event"]["number"]
+pr = repo.get_pull(number=pr_number)
+labels = [label.name for label in pr.get_labels()]
 
-if label_name == "AI pull request":
+if "AI pull request" in labels:
     pr.create_issue_comment(
         "This pull request has been flagged with the **AI pull request** label as it"
         "is suspected to be comprised of AI code and/or breaks our guidelines.\n\n"
