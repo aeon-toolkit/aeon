@@ -36,6 +36,7 @@ Statistical Models
     ARIMA
     AutoARIMA
     ETS
+    AutoETS
     TAR
     AutoTAR
     Theta
