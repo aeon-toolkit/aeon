@@ -1,6 +1,7 @@
 """Test the ARIMA forecaster."""
 
 import numpy as np
+import pandas as pd
 import pytest
 
 from aeon.forecasting.stats._arima import ARIMA, AutoARIMA
@@ -46,6 +47,18 @@ def test_arima_iterative_forecast():
     model = ARIMA(p=1, d=0, q=1, use_constant=True)
     preds = model.iterative_forecast(y, prediction_horizon=horizon)
     assert preds.shape == (horizon,)
+
+
+def test_arima_iterative_forecast_with_alpha():
+    """Test multi-step forecasting using iterative_forecast method with alpha."""
+    model = ARIMA(p=1, d=1, q=1)
+    horizon = 3
+    out = model.iterative_forecast(y, prediction_horizon=horizon, alpha=0.1)
+    assert isinstance(out, pd.DataFrame)
+    assert list(out.columns) == ["mean", "lower", "upper"]
+    assert out.shape == (horizon, 3)
+    assert (out["lower"] <= out["mean"]).all()
+    assert (out["upper"] >= out["mean"]).all()
 
 
 @pytest.mark.parametrize(
@@ -162,6 +175,16 @@ def test_autoarima_iterative_forecast_shape_and_validity():
     assert isinstance(preds, np.ndarray)
     assert preds.shape == (horizon,)
     assert np.all(np.isfinite(preds))
+
+
+def test_autoarima_iterative_forecast_with_alpha():
+    """AutoARIMA should forward alpha to the underlying ARIMA model."""
+    forecaster = AutoARIMA()
+    forecaster.fit(y)
+    out = forecaster.iterative_forecast(y, prediction_horizon=2, alpha=0.2)
+    assert isinstance(out, pd.DataFrame)
+    assert list(out.columns) == ["mean", "lower", "upper"]
+    assert out.shape == (2, 3)
 
 
 def test_autoarima_respects_small_max_orders():
