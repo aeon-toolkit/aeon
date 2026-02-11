@@ -1,13 +1,9 @@
-"""Generic distance factories (non-elastic and reusable scaffolding).
-
-This module builds fast pairwise distance kernels without passing function pointers
-into Numba at runtime. Instead, kernels are specialised by closing over the compiled
-core function at import time.
-"""
+"""Generic distance factories and decorators."""
 
 from __future__ import annotations
 
 from collections.abc import Callable
+from functools import wraps
 
 import numpy as np
 from numba import njit, prange
@@ -149,3 +145,124 @@ def build_pairwise_distance(
 
     pairwise_distance.__name__ = f"{name}_pairwise_distance"
     return pairwise_distance
+
+
+def distance(name: str):
+    """Decorator to create a public distance function from a core implementation.
+
+    The decorated function should:
+    - Accept 2D arrays (n_channels, n_timepoints)
+    - Return float distance
+    - Have a complete docstring
+
+    Creates a public function that handles both 1D and 2D inputs.
+
+    Parameters
+    ----------
+    name : str
+        Base name for the distance (e.g., "euclidean" creates "euclidean_distance")
+
+    Returns
+    -------
+    Callable
+        Decorator function that wraps the core implementation
+    """
+    def decorator(core_func: Callable) -> Callable:
+        # Get docstring from core function
+        core_doc = core_func.__doc__
+
+        @njit(cache=True, fastmath=True)
+        def _wrapper(x, y, *params):
+            # Convert 1D to 2D
+            if x.ndim == 1:
+                x_2d = x.reshape((1, x.shape[0]))
+            elif x.ndim == 2:
+                x_2d = x
+            else:
+                raise ValueError("x must be 1D or 2D")
+
+            if y.ndim == 1:
+                y_2d = y.reshape((1, y.shape[0]))
+            elif y.ndim == 2:
+                y_2d = y
+            else:
+                raise ValueError("y must be 1D or 2D")
+
+            return core_func(x_2d, y_2d, *params)
+
+        # Set public name and docstring
+        public_name = f"{name}_distance"
+        _wrapper.__name__ = public_name
+        _wrapper.__doc__ = core_doc
+
+        # Store for later retrieval
+        _wrapper._is_distance_wrapper = True
+        _wrapper._core_func = core_func
+
+        return _wrapper
+
+    return decorator
+
+
+def pairwise(name: str):
+    """Decorator to create a public pairwise distance function.
+
+    Creates a threaded pairwise distance function that handles collections.
+
+    Parameters
+    ----------
+    name : str
+        Base name for the distance
+
+    Returns
+    -------
+    Callable
+        Decorator function
+    """
+    def decorator(distance_func: Callable) -> Callable:
+        # Get the docstring from the distance function
+        distance_doc = distance_func.__doc__
+
+        # Build the pairwise kernels
+        pairwise_self = make_pairwise_self(distance_func)
+        pairwise_x_to_y = make_pairwise_x_to_y(distance_func)
+
+        @threaded
+        def pairwise_distance(
+            X: np.ndarray | list[np.ndarray],
+            y: np.ndarray | list[np.ndarray] | None = None,
+            n_jobs: int = 1,
+            *params,
+        ) -> np.ndarray:
+            multivariate_conversion = _is_numpy_list_multivariate(X, y)
+            _X, _ = _convert_collection_to_numba_list(
+                X, "X", multivariate_conversion
+            )
+
+            if y is None:
+                return pairwise_self(_X, *params)
+
+            _Y, _ = _convert_collection_to_numba_list(
+                y, "y", multivariate_conversion
+            )
+            return pairwise_x_to_y(_X, _Y, *params)
+
+        # Set name but don't override doc (we'll add a note)
+        public_name = f"{name}_pairwise_distance"
+        pairwise_distance.__name__ = public_name
+
+        # Simple docstring reference
+        if distance_doc:
+            pairwise_distance.__doc__ = f"""Pairwise version of {name}_distance.
+
+Computes pairwise distances between collections of time series.
+
+See {name}_distance for distance computation details.
+"""
+
+        # Store reference to distance function
+        pairwise_distance._distance_func = distance_func
+
+        return pairwise_distance
+
+    return decorator
