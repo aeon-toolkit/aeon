@@ -30,6 +30,7 @@ all_tags_for_estimator`` function with the argument ``"transformer"``.
     MinMaxScaler
     Normalizer
     PeriodogramTransformer
+    SeriesToCollectionBroadcaster
     SlopeTransformer
     SimpleImputer
     Tabularizer
@@ -130,6 +131,7 @@ all_tags_for_estimator`` function with the argument ``"transformer"``.
     :template: class.rst
 
     ADASYN
+    ESMOTE
     SMOTE
     OHIT
 ```
@@ -192,6 +194,8 @@ all_tags_for_estimator`` function with the argument ``"transformer"``.
 
 ```{eval-rst}
 .. currentmodule:: aeon.transformations.collection.unequal_length
+
+.. autosummary::
     :toctree: auto_generated/
     :template: class.rst
 
@@ -211,8 +215,10 @@ all_tags_for_estimator`` function with the argument ``"transformer"``.
 
     AutoCorrelationSeriesTransformer
     ClaSPTransformer
+    DifferenceTransformer
     Dobin
     MatrixProfileSeriesTransformer
+    MatrixProfileTransformer
     LogTransformer
     PLASeriesTransformer
     StatsModelsACF

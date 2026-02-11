@@ -27,7 +27,7 @@ repos:
         args: [ "--create", "--python-folders", "aeon" ]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.14.6
+    rev: v0.15.0
     hooks:
       - id: ruff
         args: [ "--fix"]
@@ -46,7 +46,7 @@ repos:
         args: [ "--profile=black", "--multi-line=3" ]
 
   - repo: https://github.com/psf/black
-    rev: 25.11.0
+    rev: 26.1.0
     hooks:
       - id: black
         language_version: python3

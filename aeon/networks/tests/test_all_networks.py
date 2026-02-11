@@ -54,10 +54,8 @@ def test_all_networks_functionality(network):
                 assert tf.keras.backend.is_keras_tensor(input_layer)
                 assert tf.keras.backend.is_keras_tensor(output_layer)
         else:
-            pytest.skip(
-                f"{network.__name__} dependencies not satisfied or invalid \
-                Python version."
-            )
+            pytest.skip(f"{network.__name__} dependencies not satisfied or invalid \
+                Python version.")
     else:
         pytest.skip(f"{network.__name__} not to be tested since its a base class.")
 
@@ -81,10 +79,8 @@ def test_all_networks_params(network):
         )
         and _check_python_version(network._config["python_version"], severity="none")
     ):
-        pytest.skip(
-            f"{network.__name__} dependencies not satisfied or invalid \
-            Python version."
-        )
+        pytest.skip(f"{network.__name__} dependencies not satisfied or invalid \
+            Python version.")
 
     # check with default parameters
     my_network = network()
