@@ -167,6 +167,7 @@ def distance(name: str):
     Callable
         Decorator function that wraps the core implementation
     """
+
     def decorator(core_func: Callable) -> Callable:
         # Get docstring from core function
         core_doc = core_func.__doc__
@@ -219,6 +220,7 @@ def pairwise(name: str):
     Callable
         Decorator function
     """
+
     def decorator(distance_func: Callable) -> Callable:
         # Get the docstring from the distance function
         distance_doc = distance_func.__doc__
@@ -235,16 +237,12 @@ def pairwise(name: str):
             *params,
         ) -> np.ndarray:
             multivariate_conversion = _is_numpy_list_multivariate(X, y)
-            _X, _ = _convert_collection_to_numba_list(
-                X, "X", multivariate_conversion
-            )
+            _X, _ = _convert_collection_to_numba_list(X, "X", multivariate_conversion)
 
             if y is None:
                 return pairwise_self(_X, *params)
 
-            _Y, _ = _convert_collection_to_numba_list(
-                y, "y", multivariate_conversion
-            )
+            _Y, _ = _convert_collection_to_numba_list(y, "y", multivariate_conversion)
             return pairwise_x_to_y(_X, _Y, *params)
 
         # Set name but don't override doc (we'll add a note)
