@@ -77,22 +77,24 @@ manhattan_pairwise_distance = build_pairwise_distance(
     name="manhattan",
 )
 
-manhattan_pairwise_distance.__doc__ = """Compute the manhattan pairwise distance between a set of time series.
+manhattan_pairwise_distance.__doc__ = """Compute the manhattan pairwise distance.
 
 Parameters
 ----------
 X : np.ndarray or List of np.ndarray
-    A collection of time series instances  of shape ``(n_cases, n_timepoints)``
-    or ``(n_cases, n_channels, n_timepoints)``.
+    A collection of time series instances  of shape
+    ``(n_cases, n_timepoints)`` or ``(n_cases, n_channels, n_timepoints)``.
 y : np.ndarray or List of np.ndarray or None, default=None
-    A single series or a collection of time series of shape ``(m_timepoints,)`` or
-    ``(m_cases, m_timepoints)`` or ``(m_cases, m_channels, m_timepoints)``.
-    If None, then the manhattan pairwise distance between the instances of X is
-    calculated.
+    A single series or a collection of time series of shape
+    ``(m_timepoints,)`` or ``(m_cases, m_timepoints)`` or
+    ``(m_cases, m_channels, m_timepoints)``.
+    If None, then the manhattan pairwise distance between the instances of X
+    is calculated.
 n_jobs : int, default=1
-    The number of jobs to run in parallel. If -1, then the number of jobs is set
-    to the number of CPU cores. If 1, then the function is executed in a single
-    thread. If greater than 1, then the function is executed in parallel.
+    The number of jobs to run in parallel. If -1, then the number of jobs is
+    set to the number of CPU cores. If 1, then the function is executed in a
+    single thread. If greater than 1, then the function is executed in
+    parallel.
 
 Returns
 -------

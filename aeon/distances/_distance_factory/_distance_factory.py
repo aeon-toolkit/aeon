@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from functools import wraps
 
 import numpy as np
 from numba import njit, prange
@@ -148,7 +147,7 @@ def build_pairwise_distance(
 
 
 def distance(name: str):
-    """Decorator to create a public distance function from a core implementation.
+    """Create a public distance function from a core implementation.
 
     The decorated function should:
     - Accept 2D arrays (n_channels, n_timepoints)
@@ -160,7 +159,8 @@ def distance(name: str):
     Parameters
     ----------
     name : str
-        Base name for the distance (e.g., "euclidean" creates "euclidean_distance")
+        Base name for the distance (e.g., "euclidean" creates
+        "euclidean_distance")
 
     Returns
     -------
@@ -206,7 +206,7 @@ def distance(name: str):
 
 
 def pairwise(name: str):
-    """Decorator to create a public pairwise distance function.
+    """Create a public pairwise distance function.
 
     Creates a threaded pairwise distance function that handles collections.
 
