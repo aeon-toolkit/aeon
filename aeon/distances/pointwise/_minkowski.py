@@ -1,16 +1,121 @@
+"""Minkowski distance between two time series."""
+
 __maintainer__ = []
 
-
 import numpy as np
-from numba import njit, prange
-from numba.typed import List as NumbaList
+from numba import njit
 
-from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
-from aeon.utils.numba._threading import threaded
-from aeon.utils.validation.collection import _is_numpy_list_multivariate
+from aeon.distances._distance_factory._distance_factory import (
+    build_distance,
+    build_pairwise_distance,
+)
 
 
 @njit(cache=True, fastmath=True)
+def _minkowski_distance_2d(
+    x: np.ndarray, y: np.ndarray, p: float, w: np.ndarray
+) -> float:
+    """Minkowski distance for 2D inputs with pre-validated parameters.
+
+    Parameters
+    ----------
+    x : np.ndarray
+        First time series, shape ``(n_channels, n_timepoints)``.
+    y : np.ndarray
+        Second time series, shape ``(n_channels, n_timepoints)``.
+    p : float
+        The order of the norm (must be >= 1).
+    w : np.ndarray
+        Weights array of same shape as x and y.
+
+    Returns
+    -------
+    float
+        Minkowski distance between x and y.
+    """
+    dist = 0.0
+    min_rows = min(x.shape[0], y.shape[0])
+
+    for i in range(min_rows):
+        min_cols = min(x[i].shape[0], y[i].shape[0])
+        x_row = x[i][:min_cols]
+        y_row = y[i][:min_cols]
+        w_row = w[i][:min_cols]
+
+        diff = np.abs(x_row - y_row) ** p
+        dist += np.sum(w_row * diff)
+
+    return dist ** (1.0 / p)
+
+
+@njit(cache=True, fastmath=True, inline="always")
+def _univariate_minkowski_distance(
+    x: np.ndarray, y: np.ndarray, p: float, w: np.ndarray
+) -> float:
+    """Minkowski distance for univariate 1D arrays with pre-validated parameters."""
+    min_length = min(x.shape[0], y.shape[0])
+
+    x = x[:min_length]
+    y = y[:min_length]
+    w = w[:min_length]
+
+    dist = np.sum(w * (np.abs(x - y) ** p))
+
+    return float(dist ** (1.0 / p))
+
+
+def _validate_minkowski_params(
+    x: np.ndarray, p: float, w: np.ndarray | None
+) -> np.ndarray:
+    """Validate Minkowski parameters and return processed weights.
+
+    Parameters
+    ----------
+    x : np.ndarray
+        Input time series (for shape validation).
+    p : float
+        The order of the norm.
+    w : np.ndarray or None
+        Optional weights array.
+
+    Returns
+    -------
+    np.ndarray
+        Validated and processed weights array.
+
+    Raises
+    ------
+    ValueError
+        If p < 1 or if weights are invalid.
+    """
+    if p < 1:
+        raise ValueError("p should be greater or equal to 1")
+
+    if w is not None:
+        _w = w.astype(x.dtype)
+        if x.shape != _w.shape:
+            raise ValueError("Weights w must have the same shape as x")
+        if np.any(_w < 0):
+            raise ValueError("Input weights should be all non-negative")
+        return _w
+    else:
+        return np.ones_like(x)
+
+
+@njit(cache=True, fastmath=True)
+def _minkowski_core_wrapper(
+    x: np.ndarray, y: np.ndarray, p: float, w: np.ndarray
+) -> float:
+    """Core Minkowski distance that handles both 1D (converted to 2D) and 2D inputs.
+
+    This is the function passed to build_distance.
+    """
+    if x.ndim == 1:
+        return _univariate_minkowski_distance(x, y, p, w)
+    else:
+        return _minkowski_distance_2d(x, y, p, w)
+
+
 def minkowski_distance(
     x: np.ndarray, y: np.ndarray, p: float = 2.0, w: np.ndarray | None = None
 ) -> float:
@@ -19,12 +124,12 @@ def minkowski_distance(
     The Minkowski distance between two time series of length m
     with a given parameter p is defined as:
     .. math::
-        md(x, y, p) = \left( \sum_{i=1}^{n} |x_i - y_i|^p \right)^{\frac{1}{p}}
+        md(x, y, p) = \\left( \\sum_{i=1}^{n} |x_i - y_i|^p \\right)^{\\frac{1}{p}}
 
     Optionally, a weight vector w can be provided to
     give different weights to the elements:
     .. math::
-        md_w(x, y, p, w) = \left( \sum_{i=1}^{n} w_i \cdot |x_i - y_i|^p \right)^{\frac{1}{p}} # noqa: E501
+        md_w(x, y, p, w) = \\left( \\sum_{i=1}^{n} w_i \\cdot |x_i - y_i|^p \\right)^{\\frac{1}{p}} # noqa: E501
 
     Parameters
     ----------
@@ -71,46 +176,35 @@ def minkowski_distance(
     if x.ndim not in (1, 2) or y.ndim not in (1, 2):
         raise ValueError("x and y must be 1D or 2D arrays")
 
-    if p < 1:
-        raise ValueError("p should be greater or equal to 1")
+    _w = _validate_minkowski_params(x, p, w)
+    return _minkowski_core_wrapper(x, y, p, _w)
 
-    # Handle Weight
-    if w is not None:
-        _w = w.astype(x.dtype)
-        if x.shape != _w.shape:
-            raise ValueError("Weights w must have the same shape as x")
-        if np.any(_w < 0):
-            raise ValueError("Input weights should be all non-negative")
-    else:
-        _w = np.ones_like(x)
 
-    if x.ndim == 1 and y.ndim == 1:
-        return _univariate_minkowski_distance(x, y, p, _w)
-    if x.ndim == 2 and y.ndim == 2:
-        return _multivariate_minkowski_distance(x, y, p, _w)
-
-    raise ValueError("Inconsistent dimensions.")
+# Build the factory version for pairwise (without validation wrapper)
+_minkowski_distance_factory = build_distance(
+    core_distance=_minkowski_core_wrapper,
+    name="minkowski",
+)
 
 
 @njit(cache=True, fastmath=True)
-def _univariate_minkowski_distance(
-    x: np.ndarray, y: np.ndarray, p: float, w: np.ndarray
-) -> float:
-    min_length = min(x.shape[0], y.shape[0])
+def _minkowski_distance_no_weights(x: np.ndarray, y: np.ndarray, p: float) -> float:
+    """Minkowski distance for 2D inputs without weights.
 
-    x = x[:min_length]
-    y = y[:min_length]
-    w = w[:min_length]
+    Parameters
+    ----------
+    x : np.ndarray
+        First time series, shape ``(n_channels, n_timepoints)``.
+    y : np.ndarray
+        Second time series, shape ``(n_channels, n_timepoints)``.
+    p : float
+        The order of the norm (must be >= 1).
 
-    dist = np.sum(w * (np.abs(x - y) ** p))
-
-    return float(dist ** (1.0 / p))
-
-
-@njit(cache=True, fastmath=True)
-def _multivariate_minkowski_distance(
-    x: np.ndarray, y: np.ndarray, p: float, w: np.ndarray
-) -> float:
+    Returns
+    -------
+    float
+        Minkowski distance between x and y.
+    """
     dist = 0.0
     min_rows = min(x.shape[0], y.shape[0])
 
@@ -118,15 +212,20 @@ def _multivariate_minkowski_distance(
         min_cols = min(x[i].shape[0], y[i].shape[0])
         x_row = x[i][:min_cols]
         y_row = y[i][:min_cols]
-        w_row = w[i][:min_cols]
 
         diff = np.abs(x_row - y_row) ** p
-        dist += np.sum(w_row * diff)
+        dist += np.sum(diff)
 
     return dist ** (1.0 / p)
 
 
-@threaded
+# Build the factory version for pairwise (without weights)
+_minkowski_distance_factory_no_weights = build_distance(
+    core_distance=_minkowski_distance_no_weights,
+    name="minkowski_no_weights",
+)
+
+
 def minkowski_pairwise_distance(
     X: np.ndarray | list[np.ndarray],
     y: np.ndarray | list[np.ndarray] | None = None,
@@ -152,6 +251,8 @@ def minkowski_pairwise_distance(
     w : np.ndarray, default=None
         An array of weights, applied to each pairwise calculation.
         The weights should match the shape of the time series in X and y.
+        Note: weights are currently only supported for single distance computation,
+        not for pairwise distances.
     n_jobs : int, default=1
         The number of jobs to run in parallel. If -1, then the number of jobs is set
         to the number of CPU cores. If 1, then the function is executed in a single
@@ -187,13 +288,6 @@ def minkowski_pairwise_distance(
            [12.12435565, 17.32050808, 22.5166605 ],
            [ 6.92820323, 12.12435565, 17.32050808]])
 
-    >>> X = np.array([[1, 2, 3], [4, 5, 6]])
-    >>> y = np.array([[11, 12, 13], [14, 15, 16]])
-    >>> w = np.array([[21, 22, 23], [24, 25, 26]])
-    >>> minkowski_pairwise_distance(X, y, p=2, w=w)
-    array([[ 81.24038405, 105.61249926],
-           [ 60.62177826,  86.60254038]])
-
     >>> X = np.array([[[1, 2, 3]],[[4, 5, 6]], [[7, 8, 9]]])
     >>> y_univariate = np.array([11, 12, 13])
     >>> minkowski_pairwise_distance(X, y_univariate, p=1)
@@ -208,53 +302,21 @@ def minkowski_pairwise_distance(
            [ 5.19615242,  0.        ,  8.        ],
            [12.12435565,  8.        ,  0.        ]])
     """
-    multivariate_conversion = _is_numpy_list_multivariate(X, y)
-    _X, _ = _convert_collection_to_numba_list(X, "X", multivariate_conversion)
-    if y is None:
-        return _minkowski_pairwise_distance(_X, p, w)
+    # Validate p parameter
+    if p < 1:
+        raise ValueError("p should be greater or equal to 1")
 
-    _y, _ = _convert_collection_to_numba_list(y, "y", multivariate_conversion)
-    return _minkowski_from_multiple_to_multiple_distance(_X, _y, p, w)
+    # For now, weights are not supported in pairwise mode (to be implemented)
+    if w is not None:
+        raise NotImplementedError(
+            "Weights are not currently supported for minkowski_pairwise_distance. "
+            "Use minkowski_distance for weighted distance computation."
+        )
 
+    # Build the pairwise function dynamically with the current p
+    pairwise_func = build_pairwise_distance(
+        core_distance=_minkowski_distance_factory_no_weights,
+        name="minkowski",
+    )
 
-@njit(cache=True, fastmath=True, parallel=True)
-def _minkowski_pairwise_distance(
-    X: NumbaList[np.ndarray], p: float, w: np.ndarray | None = None
-) -> np.ndarray:
-    n_cases = len(X)
-    distances = np.zeros((n_cases, n_cases))
-
-    for i in prange(n_cases):
-        for j in range(i + 1, n_cases):
-            if w is None:
-                distances[i, j] = minkowski_distance(X[i], X[j], p)
-            else:
-                # Reshape weights to 2D for matching instance
-                # dimensions in distance calculation.
-                _w = w[i].reshape((1, w.shape[1]))
-                distances[i, j] = minkowski_distance(X[i], X[j], p, _w)
-            distances[j, i] = distances[i, j]
-
-    return distances
-
-
-@njit(cache=True, fastmath=True, parallel=True)
-def _minkowski_from_multiple_to_multiple_distance(
-    x: NumbaList[np.ndarray],
-    y: NumbaList[np.ndarray],
-    p: float,
-    w: np.ndarray | None = None,
-) -> np.ndarray:
-    n_cases = len(x)
-    m_cases = len(y)
-    distances = np.zeros((n_cases, m_cases))
-
-    for i in prange(n_cases):
-        for j in range(m_cases):
-            if w is None:
-                distances[i, j] = minkowski_distance(x[i], y[j], p)
-            else:
-                _w = w[i].reshape((1, w.shape[1]))
-                distances[i, j] = minkowski_distance(x[i], y[j], p, _w)
-
-    return distances
+    return pairwise_func(X, y, n_jobs, p)
