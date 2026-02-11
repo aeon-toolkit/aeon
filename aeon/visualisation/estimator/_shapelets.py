@@ -182,17 +182,17 @@ class ShapeletVisualizer:
             title_string += f" normalise={self.normalise}"
         else:
             title_string = custom_title_string
+        base_label = line_options["label"]
         if ax is None:
             plt.style.use(matplotlib_style)
             plt.rcParams.update(rc_Params_options)
 
             fig = plt.figure(**figure_options)
             for i in range(self.n_channels):
+                current_line_options = line_options.copy()
                 if self.n_channels > 1:
-                    line_options.update(
-                        {"label": str(line_options["label"]) + f" channel {i}"}
-                    )
-                plt.plot(self.values[i], **line_options)
+                    current_line_options["label"] = f"{base_label} channel {i}"
+                plt.plot(self.values[i], **current_line_options)
                 plt.scatter(np.arange(self.length), self.values[i], **scatter_options)
             plt.ylabel("shapelet values")
             plt.xlabel("timepoint")
@@ -202,11 +202,10 @@ class ShapeletVisualizer:
             return fig
         else:
             for i in range(self.n_channels):
+                current_line_options = line_options.copy()
                 if self.n_channels > 1:
-                    line_options.update(
-                        {"label": str(line_options["label"]) + f" channel {i}"}
-                    )
-                ax.plot(self.values[i], **line_options)
+                    current_line_options["label"] = f"{base_label} channel {i}"
+                ax.plot(self.values[i], **current_line_options)
                 ax.scatter(np.arange(self.length), self.values[i], **scatter_options)
             ax.set_title(title_string)
             ax.set_ylabel("shapelet values")
@@ -270,6 +269,7 @@ class ShapeletVisualizer:
 
         if "label" not in line_options.keys():
             line_options["label"] = ""
+        base_label = line_options["label"]
 
         # Get candidate subsequences in X
         X_subs = get_all_subsequences(X, self.length, self.dilation)
@@ -305,11 +305,10 @@ class ShapeletVisualizer:
 
             fig = plt.figure(**figure_options)
             for i in range(self.n_channels):
+                current_line_options = line_options.copy()
                 if self.n_channels > 1:
-                    line_options.update(
-                        {"label": str(line_options["label"]) + f" channel {i}"}
-                    )
-                plt.plot(X[i], **line_options)
+                    current_line_options["label"] = f"{base_label} channel {i}"
+                plt.plot(X[i], **current_line_options)
                 plt.scatter(idx_match, _values[i], **scatter_options)
                 plt.title("Best match of shapelet on X")
             plt.ylabel("shapelet values")
@@ -317,11 +316,10 @@ class ShapeletVisualizer:
             return fig
         else:
             for i in range(self.n_channels):
+                current_line_options = line_options.copy()
                 if self.n_channels > 1:
-                    line_options.update(
-                        {"label": str(line_options["label"]) + f" channel {i}"}
-                    )
-                ax.plot(X[i], **line_options)
+                    current_line_options["label"] = f"{base_label} channel {i}"
+                ax.plot(X[i], **current_line_options)
                 ax.scatter(idx_match, _values[i], **scatter_options)
             ax.set_ylabel("shapelet values")
             ax.set_xlabel("timepoint")
@@ -390,9 +388,9 @@ class ShapeletVisualizer:
         if self.normalise:
             X_means, X_stds = sliding_mean_std_one_series(X, self.length, self.dilation)
             X_subs = normalise_subsequences(X_subs, X_means, X_stds)
-            _values = (self.values - self.values.mean(axis=-1)) / self.values.std(
-                axis=1
-            )
+            _values = (
+                self.values - self.values.mean(axis=-1, keepdims=True)
+            ) / self.values.std(axis=-1, keepdims=True)
         else:
             _values = self.values
         c = compute_shapelet_dist_vector(X_subs, _values)
@@ -820,19 +818,19 @@ class ShapeletClassifierVisualizer:
         id_example_class=None,
         class_colors=("tab:green", "tab:orange"),
         scatter_options={  # noqa: B006
-            "s": 70,
+            "s": 40,
             "alpha": 0.75,
             "zorder": 1,
             "edgecolor": "black",
-            "linewidths": 2,
+            "linewidths": 1,
         },
-        x_plot_options={"linewidth": 4, "alpha": 0.9},  # noqa: B006
+        x_plot_options={"linewidth": 1.5, "alpha": 0.9},  # noqa: B006
         shp_plot_options={  # noqa: B006
             "linewidth": 2,
             "alpha": 0.9,
             "linestyle": "--",
         },
-        dist_plot_options={"linewidth": 3, "alpha": 0.9},  # noqa: B006
+        dist_plot_options={"linewidth": 1.5, "alpha": 0.9},  # noqa: B006
         threshold_plot_options={  # noqa: B006
             "linewidth": 2,
             "alpha": 0.9,
@@ -975,19 +973,22 @@ class ShapeletClassifierVisualizer:
                 i_ax += 1
 
             # Plots of shapelet on X
-            x0_plot_options = copy.deepcopy(x_plot_options)
-            x0_plot_options.update(
-                {
-                    "label": f"Sample of class {y[id_example_other]}",
-                    "c": class_colors[0],
-                }
-            )
             if ax.ndim == 1:
                 current_ax = ax[i_ax % n_cols]
             else:
                 current_ax = ax[i_ax // n_cols, i_ax % n_cols]
+            x0_plot_options = copy.deepcopy(x_plot_options)
+            x0_plot_options.update(
+                {
+                    "label": f"Class {y[id_example_other]}",
+                    "linestyle": "--",
+                }
+            )
+            if "c" in x0_plot_options:
+                del x0_plot_options["c"]
             shp0_scatter_options = copy.deepcopy(scatter_options)
-            shp0_scatter_options.update({"c": class_colors[0]})
+            if "c" in shp0_scatter_options:
+                del shp0_scatter_options["c"]
             self.plot_on_X(
                 i_shp,
                 X[id_example_other],
@@ -999,12 +1000,15 @@ class ShapeletClassifierVisualizer:
             x1_plot_options = copy.deepcopy(x_plot_options)
             x1_plot_options.update(
                 {
-                    "label": f"Sample of class {y[id_example_class]}",
-                    "c": class_colors[1],
+                    "label": f"Class {y[id_example_class]}",
+                    "linestyle": "-",  # Solid for distinction
                 }
             )
+            if "c" in x1_plot_options:
+                del x1_plot_options["c"]
             shp1_scatter_options = copy.deepcopy(scatter_options)
-            shp1_scatter_options.update({"c": class_colors[1]})
+            if "c" in shp1_scatter_options:
+                del shp1_scatter_options["c"]
             self.plot_on_X(
                 i_shp,
                 X[id_example_class],
@@ -1013,7 +1017,7 @@ class ShapeletClassifierVisualizer:
                 scatter_options=shp1_scatter_options,
             )
             current_ax.set_title("Best match on examples")
-            current_ax.legend()
+            current_ax.legend(ncol=2, columnspacing=0.8)
 
             # Plots of shapelet values
             i_ax += 1
@@ -1037,10 +1041,14 @@ class ShapeletClassifierVisualizer:
             d0_plot_options = copy.deepcopy(dist_plot_options)
             d0_plot_options.update(
                 {
-                    "c": class_colors[0],
                     "label": f"Distance vector of class {y[id_example_other]}",
+                    "linestyle": "--",
                 }
             )
+            if "c" in d0_plot_options:
+                del d0_plot_options["c"]
+            d0_plot_options["color"] = class_colors[0]
+
             self.plot_distance_vector(
                 i_shp,
                 X[id_example_other],
@@ -1049,20 +1057,25 @@ class ShapeletClassifierVisualizer:
                 show_threshold=False,
                 line_options=d0_plot_options,
             )
+
             d1_plot_options = copy.deepcopy(dist_plot_options)
             d1_plot_options.update(
                 {
-                    "c": class_colors[1],
                     "label": f"Distance vector of class {y[id_example_class]}",
+                    "linestyle": "-",
                 }
             )
+            if "c" in d1_plot_options:
+                del d1_plot_options["c"]
+            d1_plot_options["color"] = class_colors[1]
+
             self.plot_distance_vector(
                 i_shp,
                 X[id_example_class],
                 ax=current_ax,
                 line_options=d1_plot_options,
             )
-            current_ax.legend()
+            current_ax.legend(bbox_to_anchor=(1.0, 0.98))
             current_ax.set_title("Distance vectors of examples")
             figures.append(fig)
         return figures
