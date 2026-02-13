@@ -14,7 +14,7 @@ from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
 def make_pairwise_self(core_distance: Callable):
-    """Specialised X-vs-X pairwise kernel for a distance core.
+    """X-vs-X pairwise for a distance core.
 
     core_distance signature:
         (x2d: np.ndarray, y2d: np.ndarray, *params) -> float
@@ -40,6 +40,11 @@ def make_pairwise_self(core_distance: Callable):
 
 
 def make_pairwise_x_to_y(core_distance: Callable):
+    """x-vs-y pairwise for a distance core.
+
+    core_distance signature:
+        (x2d: np.ndarray, y2d: np.ndarray, *params) -> float
+    """
 
     @njit(cache=True, fastmath=True, parallel=True)
     def _pairwise_x_to_y(
@@ -61,7 +66,7 @@ def make_pairwise_x_to_y(core_distance: Callable):
 
 
 def build_distance(*, core_distance: Callable, name: str):
-    """Build a numba distance function with automatic 1D/2D handling.
+    """Build a numba distance function.
 
     Parameters
     ----------
@@ -81,8 +86,6 @@ def build_distance(*, core_distance: Callable, name: str):
 
     @njit(cache=True, fastmath=True)
     def distance(x, y, *params):
-        # Handle 1D inputs by reshaping to 2D (1, n_timepoints)
-        # Note: separate variables needed for Numba type unification
         if x.ndim == 1:
             x_2d = x.reshape((1, x.shape[0]))
         elif x.ndim == 2:
@@ -108,7 +111,7 @@ def build_pairwise_distance(
     core_distance: Callable,
     name: str,
 ):
-    """Build the public pairwise_distance wrapper (threaded + conversion).
+    """Build the public pairwise_distance wrapper.
 
     Parameters
     ----------

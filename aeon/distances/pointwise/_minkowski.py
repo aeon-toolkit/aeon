@@ -89,7 +89,6 @@ def _minkowski_core_wrapper(
         return _minkowski_distance_2d(x, y, p, w)
 
 
-# Build the public distance function
 minkowski_distance = build_distance(
     core_distance=_minkowski_core_wrapper,
     name="minkowski",
@@ -151,14 +150,12 @@ Examples
 """
 
 
-# Wrapper for pairwise that always uses unweighted version
 @njit(cache=True, fastmath=True)
 def _minkowski_pairwise_core(x: np.ndarray, y: np.ndarray, p: float) -> float:
     """Wrap core function for pairwise with unweighted version."""
     return _minkowski_core_wrapper(x, y, p, None)
 
 
-# Build the public pairwise distance function
 minkowski_pairwise_distance = build_pairwise_distance(
     core_distance=_minkowski_pairwise_core,
     name="minkowski",
