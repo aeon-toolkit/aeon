@@ -328,3 +328,11 @@ def test_axis():
     assert dummy.metadata_["multivariate"]
     assert dummy.metadata_["n_channels"] == 5
     assert not dummy.metadata_["missing_values"]
+
+
+def test_check_small_scale():
+    """Test that extremely small values raise a ValueError."""
+    dummy = MockAnomalyDetector()
+    X = np.random.random(20) * 1e-25
+    with pytest.raises(ValueError, match="extremely small scale"):
+        dummy._preprocess_series(X, axis=0, store_metadata=False)
