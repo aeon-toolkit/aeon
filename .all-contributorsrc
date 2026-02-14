@@ -2776,6 +2776,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "raphaelgimenezneto",
+      "name": "Raphael Gimenez Neto",
+      "avatar_url": "https://avatars.githubusercontent.com/u/255092243?v=4",
+      "profile": "https://www.linkedin.com/in/raphaelgimenezneto/",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "commitType": "docs"
