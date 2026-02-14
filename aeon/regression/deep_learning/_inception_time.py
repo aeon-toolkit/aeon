@@ -146,6 +146,10 @@ class InceptionTimeRegressor(BaseRegressor):
             a single string metric is provided, it will be
             used as the only metric. If a list of metrics are
             provided, all will be used for evaluation.
+        compile_args: dict or None, default=None
+            Dictionary of additional arguments to pass to the Keras `compile` method.
+        fit_args: dict or None, default=None
+            Dictionary of additional arguments to pass to the Keras `fit` method.
 
     Notes
     -----
@@ -219,6 +223,8 @@ class InceptionTimeRegressor(BaseRegressor):
         loss: str = "mean_squared_error",
         metrics: str | list[str] = "mean_squared_error",
         optimizer: tf.keras.optimizers.Optimizer | None = None,
+        compile_args=None,
+        fit_args=None,
     ):
         self.n_regressors = n_regressors
 
@@ -257,6 +263,9 @@ class InceptionTimeRegressor(BaseRegressor):
         self.loss = loss
         self.metrics = metrics
         self.optimizer = optimizer
+
+        self.compile_args = compile_args
+        self.fit_args = fit_args
 
         self.regressors_: list[IndividualInceptionRegressor] = []
 
@@ -313,6 +322,8 @@ class InceptionTimeRegressor(BaseRegressor):
                 optimizer=self.optimizer,
                 random_state=rng.randint(0, np.iinfo(np.int32).max),
                 verbose=self.verbose,
+                compile_args=self.compile_args,
+                fit_args=self.fit_args,
             )
             rgs.fit(X, y)
             self.regressors_.append(rgs)
@@ -522,6 +533,10 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
             a single string metric is provided, it will be
             used as the only metric. If a list of metrics are
             provided, all will be used for evaluation.
+        compile_args: dict or None, default=None
+            Dictionary of additional arguments to pass to the Keras `compile` method.
+        fit_args: dict or None, default=None
+            Dictionary of additional arguments to pass to the Keras `fit` method.
 
     Notes
     -----
@@ -585,6 +600,8 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
         loss: str = "mean_squared_error",
         metrics: str | list[str] = "mean_squared_error",
         optimizer: tf.keras.optimizers.Optimizer | None = None,
+        compile_args=None,
+        fit_args=None,
     ):
         # predefined
         self.n_filters = n_filters
@@ -620,6 +637,9 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
         self.loss = loss
         self.metrics = metrics
         self.optimizer = optimizer
+
+        self.compile_args = compile_args
+        self.fit_args = fit_args
 
         super().__init__(batch_size=batch_size, last_file_name=last_file_name)
 
@@ -679,7 +699,20 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
             tf.keras.optimizers.Adam() if self.optimizer is None else self.optimizer
         )
 
-        model.compile(loss=self.loss, optimizer=self.optimizer_, metrics=self._metrics)
+        compile_args = {} if not self.compile_args else self.compile_args
+        for key in ["loss", "metrics", "optimizer"]:
+            if key in compile_args:
+                raise ValueError(
+                    f"Cannot specify '{key}' in 'compile_args'. "
+                    f"Specify it in the constructor instead. "
+                )
+
+        model.compile(
+            loss=self.loss,
+            optimizer=self.optimizer_,
+            metrics=self._metrics,
+            **compile_args,
+        )
 
         return model
 
@@ -743,6 +776,14 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
                 file_name=self.file_name_,
             )
 
+        fit_args = {} if not self.fit_args else self.fit_args
+        for key in ["batch_size", "epochs", "verbose", "callbacks"]:
+            if key in fit_args:
+                raise ValueError(
+                    f"Cannot specify '{key}' in 'fit_args'. "
+                    f"Specify it in the constructor instead."
+                )
+
         self.history = self.training_model_.fit(
             X,
             y,
@@ -750,6 +791,7 @@ class IndividualInceptionRegressor(BaseDeepRegressor):
             epochs=self.n_epochs,
             verbose=self.verbose,
             callbacks=self.callbacks_,
+            **fit_args,
         )
 
         try:
