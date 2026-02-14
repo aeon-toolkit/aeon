@@ -38,6 +38,7 @@ class SeriesToCollectionBroadcaster(BaseCollectionTransformer):
         "input_data_type": "Collection",
         "output_data_type": "Collection",
         "capability:unequal_length": True,
+        "capability:inverse_transform": True,
         "X_inner_type": ["numpy3D", "np-list"],
     }
 
@@ -45,15 +46,15 @@ class SeriesToCollectionBroadcaster(BaseCollectionTransformer):
         self,
         transformer: BaseSeriesTransformer,
     ) -> None:
-        # Setting tags before __init__() causes them to be overwritten. Hence we make
-        # a copy before init from the series transformer, then copy the tags of the
-        # BaseSeriesTransformer to this BaseCollectionTransformer
         self.transformer = transformer
+
+        super().__init__()
+
+        # Setting tags before __init__() causes them to be overwritten.
         tags_to_keep = SeriesToCollectionBroadcaster._tags
         tags_to_add = transformer.get_tags()
         for key in tags_to_keep:
             tags_to_add.pop(key, None)
-        super().__init__()
         self.set_tags(**tags_to_add)
 
     def _fit(self, X, y=None):
@@ -100,7 +101,6 @@ class SeriesToCollectionBroadcaster(BaseCollectionTransformer):
 
         """
         n_cases = get_n_cases(X)
-        """If fit is empty is true only single transform is used."""
         Xt = []
         if self.get_tag("fit_is_empty"):
             for i in range(n_cases):
@@ -108,6 +108,7 @@ class SeriesToCollectionBroadcaster(BaseCollectionTransformer):
         else:
             for i in range(n_cases):
                 Xt.append(self.single_transformers_[i]._transform(X[i]))
+
         # Need to make it a valid collection
         for i in range(n_cases):
             if isinstance(Xt[i], np.ndarray) and Xt[i].ndim == 1:
@@ -134,7 +135,7 @@ class SeriesToCollectionBroadcaster(BaseCollectionTransformer):
             The transformed collection of time series, either a 3D numpy or a
             list of 2D numpy.
         """
-        n_cases = len(X)
+        n_cases = get_n_cases(X)
         Xt = []
         if self.get_tag("fit_is_empty"):
             for i in range(n_cases):
@@ -142,6 +143,11 @@ class SeriesToCollectionBroadcaster(BaseCollectionTransformer):
         else:
             for i in range(n_cases):
                 Xt.append(self.single_transformers_[i]._inverse_transform(X[i]))
+
+        # Need to make it a valid collection
+        for i in range(n_cases):
+            if isinstance(Xt[i], np.ndarray) and Xt[i].ndim == 1:
+                Xt[i] = Xt[i].reshape(1, -1)
         return Xt
 
     @classmethod
