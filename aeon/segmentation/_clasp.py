@@ -5,11 +5,14 @@ import warnings
 __maintainer__ = []
 __all__ = ["ClaSPSegmenter", "find_dominant_window_sizes"]
 from queue import PriorityQueue
+
 import numpy as np
 import pandas as pd
+
 from aeon.segmentation.base import BaseSegmenter
 from aeon.transformations.series import ClaSPTransformer
 from aeon.utils.validation import check_n_jobs
+
 
 def find_dominant_window_sizes(X, offset: float = 0.05):
     """Determine the Window-Size using dominant FFT-frequencies.
