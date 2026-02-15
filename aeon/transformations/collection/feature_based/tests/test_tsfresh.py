@@ -6,7 +6,10 @@ import numpy as np
 import pytest
 
 from aeon.datasets import load_unit_test
-from aeon.testing.data_generation import make_example_3d_numpy
+from aeon.testing.data_generation import (
+    make_example_3d_numpy,
+    make_example_3d_numpy_list,
+)
 from aeon.transformations.collection.feature_based import TSFresh, TSFreshRelevant
 from aeon.utils.validation._dependencies import _check_soft_dependencies
 
@@ -19,16 +22,23 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 def test_tsfresh_extractor(default_fc_parameters):
     """Test that mean feature of TSFreshFeatureExtract is identical with sample mean."""
     X = np.random.rand(10, 1, 30)
-
     transformer = TSFresh(
         default_fc_parameters=default_fc_parameters, disable_progressbar=True
     )
-
     Xt = transformer.fit_transform(X)
     indices = [i for i, s in enumerate(transformer.names) if "__mean" in s]
-
     actual = Xt[:, indices].ravel()
     expected = np.mean(X, axis=2).flatten()
+    np.testing.assert_allclose(actual, expected)
+
+    X = make_example_3d_numpy_list(return_y=False)
+    transformer = TSFresh(
+        default_fc_parameters=default_fc_parameters, disable_progressbar=True
+    )
+    Xt = transformer.fit_transform(X)
+    indices = [i for i, s in enumerate(transformer.names) if "__mean" in s]
+    actual = Xt[:, indices].ravel()
+    expected = np.concatenate([np.mean(x, axis=1) for x in X]).flatten()
     np.testing.assert_allclose(actual, expected)
 
 
