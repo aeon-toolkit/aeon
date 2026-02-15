@@ -2785,6 +2785,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "nimra06",
+      "name": "Nimra",
+      "avatar_url": "https://avatars.githubusercontent.com/u/81041675?v=4",
+      "profile": "https://github.com/nimra06",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "commitType": "docs"
