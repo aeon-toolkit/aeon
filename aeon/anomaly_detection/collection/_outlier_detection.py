@@ -54,8 +54,7 @@ class OutlierDetectionAdapter(BaseCollectionAnomalyDetector):
 
     def _predict(self, X):
         pred = self.detector_.predict(X)
-        pred[pred == -1] = 0
-        return pred
+        return (pred == -1).astype(int)
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
