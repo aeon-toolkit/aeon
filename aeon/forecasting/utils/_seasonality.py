@@ -1,10 +1,12 @@
 """Seasonality Tools.
 
-Includes autocorrelation function (ACF) and seasonal period estimation.
+Includes autocorrelation function (ACF) and seasonal period estimation that uses ACF.
 """
 
 import numpy as np
 from numba import njit
+
+__all__ = ["acf", "calc_seasonal_period"]
 
 
 @njit(cache=True, fastmath=True)
@@ -40,30 +42,40 @@ def acf(X, max_lag):
     The returned values correspond to
     lags 1, 2, ..., `max_lag` (not including lag 0).
     """
-    length = len(X)
-    X_t = np.zeros(max_lag, dtype=float)
+    length = X.shape[0]
+    acf_function = np.empty(max_lag, dtype=np.float64)
+    eps = 1e-9
+
     for lag in range(1, max_lag + 1):
         lag_length = length - lag
-        x1 = X[:-lag]
-        x2 = X[lag:]
-        s1 = np.sum(x1)
-        s2 = np.sum(x2)
-        m1 = s1 / lag_length
-        m2 = s2 / lag_length
-        ss1 = np.sum(x1 * x1)
-        ss2 = np.sum(x2 * x2)
-        v1 = ss1 - s1 * m1
-        v2 = ss2 - s2 * m2
-        v1_is_zero, v2_is_zero = v1 <= 1e-9, v2 <= 1e-9
-        if v1_is_zero and v2_is_zero:  # Both zero variance,
-            # so must be 100% correlated
-            X_t[lag - 1] = 1
-        elif v1_is_zero or v2_is_zero:  # One zero variance
-            # the other not
-            X_t[lag - 1] = 0
+
+        s1 = 0.0
+        s2 = 0.0
+        ss1 = 0.0
+        ss2 = 0.0
+        s12 = 0.0
+
+        for i in range(lag_length):
+            a = X[i]
+            b = X[i + lag]
+            s1 += a
+            s2 += b
+            ss1 += a * a
+            ss2 += b * b
+            s12 += a * b
+
+        v1 = ss1 - (s1 * s1) / lag_length
+        v2 = ss2 - (s2 * s2) / lag_length
+
+        if v1 <= eps and v2 <= eps:
+            acf_function[lag - 1] = 1.0
+        elif v1 <= eps or v2 <= eps:
+            acf_function[lag - 1] = 0.0
         else:
-            X_t[lag - 1] = np.sum((x1 - m1) * (x2 - m2)) / np.sqrt(v1 * v2)
-    return X_t
+            cov = s12 - (s1 * s2) / lag_length
+            acf_function[lag - 1] = cov / np.sqrt(v1 * v2)
+
+    return acf_function
 
 
 @njit(cache=True, fastmath=True)
