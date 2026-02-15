@@ -27,9 +27,9 @@ class TimeCNNClassifier(BaseDeepClassifier):
     kernel_size : int or list of int, default = 7
         Kernel size of convolution layers, if not a list, the same kernel size
         is used for all layer, len(list) should be n_layers.
-    n_filters : int or list of int, default = [6, 12]
+    n_filters : int or list of int, default = None
         Number of filters for each convolution layer, if not a list, the same n_filters
-        is used in all layers.
+        is used in all layers. If set to None, defaults to [6, 12].
     avg_pool_size : int or list of int, default = 3
         The size of the average pooling layer, if not a list, the same
         max pooling size is used for all convolution layer.
@@ -121,30 +121,30 @@ class TimeCNNClassifier(BaseDeepClassifier):
 
     def __init__(
         self,
-        n_layers=2,
-        kernel_size=7,
-        n_filters=None,
-        avg_pool_size=3,
-        activation="sigmoid",
-        padding="valid",
-        strides=1,
-        strides_pooling=None,
-        dilation_rate=1,
-        n_epochs=2000,
-        batch_size=16,
+        n_layers: int = 2,
+        kernel_size: int | list[int] = 7,
+        n_filters: int | list[int] = None,
+        avg_pool_size: int | list[int] = 3,
+        activation: str | list[str] = "sigmoid",
+        padding: str | list[str] = "valid",
+        strides: int | list[int] = 1,
+        strides_pooling: int | list[int] = None,
+        dilation_rate: int | list[int] = 1,
+        n_epochs: int = 2000,
+        batch_size: int = 16,
         callbacks=None,
         file_path="./",
-        save_best_model=False,
-        save_last_model=False,
-        save_init_model=False,
-        best_file_name="best_model",
-        last_file_name="last_model",
-        init_file_name="init_model",
-        verbose=False,
-        loss="mean_squared_error",
-        metrics="accuracy",
+        save_best_model: bool = False,
+        save_last_model: bool = False,
+        save_init_model: bool = False,
+        best_file_name: str = "best_model",
+        last_file_name: str = "last_model",
+        init_file_name: str = "init_model",
+        verbose: bool = False,
+        loss: str = "mean_squared_error",
+        metrics: str | list[str] = "accuracy",
         random_state=None,
-        use_bias=True,
+        use_bias: bool | list[bool] = True,
         optimizer=None,
     ):
         self.n_layers = n_layers
@@ -192,7 +192,7 @@ class TimeCNNClassifier(BaseDeepClassifier):
             use_bias=self.use_bias,
         )
 
-    def build_model(self, input_shape, n_classes, **kwargs):
+    def build_model(self, input_shape: tuple[int, int], n_classes: int, **kwargs):
         """Construct a compiled, un-trained, keras model that is ready for training.
 
         In aeon, time series are stored in numpy arrays of shape (d, m), where d
@@ -315,7 +315,7 @@ class TimeCNNClassifier(BaseDeepClassifier):
         return self
 
     @classmethod
-    def _get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set: str = "default") -> dict | list[dict]:
         """Return testing parameter settings for the estimator.
 
         Parameters
