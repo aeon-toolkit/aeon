@@ -24,11 +24,11 @@ class EncoderClassifier(BaseDeepClassifier):
     ----------
     kernel_size : array of int, default = None
         Specifying the length of the 1D convolution windows.
-        If None, it would be mapped to [5, 11, 21].
+        If set to None, defaults to [5, 11, 21].
     n_filters : array of int, default = None
         Specifying the number of 1D convolution filters used for each layer,
         the shape of this array should be the same as kernel_size.
-        If None, it would be mapped to [128, 256, 512].
+        If set to None, defaults to [128, 256, 512].
     max_pool_size : int, default = 2
         Size of the max pooling windows.
     activation : string, default = sigmoid

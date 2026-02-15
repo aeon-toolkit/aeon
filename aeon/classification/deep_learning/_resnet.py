@@ -30,11 +30,11 @@ class ResNetClassifier(BaseDeepClassifier):
         The number of convolution filters for all the convolution layers in the same
         residual block, if not a list, the same number of filters is used in all
         convolutions of all residual blocks.
-        If None, it would be mapped to [128, 64, 64].
+        If set to None, defaults to [128, 64, 64].
     kernel_sizes : int or list of int, default = None
         The kernel size of all the convolution layers in one residual block, if not
         a list, the same kernel size is used in all convolution layers.
-        If None, it would be mapped to [8, 5, 3].
+        If set to None, defaults to [8, 5, 3].
     strides : int or list of int, default = 1
         The strides of convolution kernels in each of the convolution layers in
         one residual block, if not a list, the same kernel size is used in all
