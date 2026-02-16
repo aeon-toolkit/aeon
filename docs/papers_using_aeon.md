@@ -9,7 +9,8 @@ If you want to reference `aeon` please reference this paper.
 Middlehurst, M., Ismail-Fawaz, A., Guillaume, A., Holder, C., Guijo-Rubio, D., Bulatova, G., 
 Tsaprounis, L., Mentel, L., Walter, M., Schäfer, P. and Bagnall, A., 2024. aeon: a Python 
 toolkit for learning from time series. Journal of Machine Learning Research, 25(289), 
-pp.1-10.[Paper](https://www.jmlr.org/papers/v25/23-1444.html)
+pp.1-10.
+[Paper](https://www.jmlr.org/papers/v25/23-1444.html)
 
 ## 2025
 
