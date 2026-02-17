@@ -49,6 +49,9 @@ __all__ = [
     "load_daphnet_s06r02e0",
     "load_ecg_diff_count_3",
     "get_dataset_meta_data",
+    # Monster datasets
+    "load_monster_dataset_names",
+    "load_monster_dataset",
 ]
 
 from aeon.datasets._data_loaders import (
@@ -100,6 +103,10 @@ from aeon.datasets._tsad_data_loaders import (
 from aeon.datasets._tss_data_loaders import (
     load_human_activity_segmentation_datasets,
     load_time_series_segmentation_benchmark,
+)
+from aeon.datasets.monster_loader import (
+    load_monster_dataset,
+    load_monster_dataset_names,
 )
 from aeon.datasets.rehabpile_loader import (
     load_rehab_pile_classification_datasets,
