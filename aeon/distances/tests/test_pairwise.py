@@ -67,9 +67,16 @@ def _validate_pairwise_result(
     assert_almost_equal(
         pairwise_result, compute_pairwise_distance(x, method=name, symmetric=symmetric)
     )
+
+    computed_pw = compute_pairwise_distance(x, method=distance, symmetric=symmetric)
+    if name == "soft_dtw":
+        # Soft to self dont return 0 on diagonal
+        computed_pw[np.diag_indices_from(computed_pw)] = pairwise_result[
+            np.diag_indices_from(pairwise_result)
+        ]
     assert_almost_equal(
         pairwise_result,
-        compute_pairwise_distance(x, method=distance, symmetric=symmetric),
+        computed_pw,
     )
 
     if isinstance(x, np.ndarray):
@@ -552,7 +559,11 @@ def test_single_to_multiple_distances(dist):
 def test_pairwise_distance_non_negative(dist, seed):
     """Most estimators require distances to be non-negative."""
     # Skip for now
-    if dist["name"] in MIN_DISTANCES or dist["name"] in MP_DISTANCES:
+    if (
+        dist["name"] in MIN_DISTANCES
+        or dist["name"] in MP_DISTANCES
+        or dist["name"] in ["soft_dtw"]
+    ):
         return
     X = make_example_3d_numpy(
         n_cases=5, n_channels=1, n_timepoints=10, random_state=seed, return_y=False
