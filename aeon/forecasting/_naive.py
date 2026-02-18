@@ -1,6 +1,6 @@
 """Naive forecaster with multiple strategies."""
 
-__maintainer__ = []
+__maintainer__ = ["TonyBagnall"]
 __all__ = ["NaiveForecaster"]
 
 
