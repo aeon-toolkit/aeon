@@ -29,6 +29,7 @@ from urllib.request import Request, urlopen, urlretrieve
 
 import numpy as np
 import pandas as pd
+import requests
 
 import aeon
 from aeon.datasets.dataset_collections import (
@@ -36,7 +37,7 @@ from aeon.datasets.dataset_collections import (
     get_downloaded_tsf_datasets,
 )
 from aeon.datasets.tsc_datasets import tsc_zenodo
-from aeon.datasets.tser_datasets import tser_monash, tser_soton
+from aeon.datasets.tser_datasets import tsr_zenodo
 from aeon.utils.conversion import convert_collection
 
 DIRNAME = "data"
@@ -1049,6 +1050,18 @@ def load_forecasting(name, extract_path=None, return_metadata=False):
     return data
 
 
+def _url_exists(url: str, timeout: float = 10.0) -> bool:
+    try:
+        r = requests.head(url, allow_redirects=True, timeout=timeout)
+        # Some endpoints return 405 for HEAD, so fall back to GET without the body.
+        if r.status_code == 405:
+            r = requests.get(url, stream=True, allow_redirects=True, timeout=timeout)
+            r.close()
+        return r.status_code == 200
+    except requests.RequestException:
+        return False
+
+
 def load_regression(
     name: str,
     split=None,
@@ -1059,30 +1072,34 @@ def load_regression(
 ):
     """Download/load regression problem.
 
-    Download from either https://timeseriesclassification.com or, if that fails,
-    http://tseregression.org/.
+    Download from zenodo tsml community https://zenodo.org/communities/tsml.
+    The list of datasets stored and appropriate zenodo key is maintained
+    in file tsc_datasets in list tsr_zenodo.
 
     If you want to load a problem from a local file, specify the
     location in ``extract_path``. This function assumes the data is stored in format
     <extract_path>/<name>/<name>_TRAIN.ts and <extract_path>/<name>/<name>_TEST.ts.
-    If you want to load a file directly from a full path, use the function
+    If you want to load a single file directly from a full path, use the function
     `load_from_ts_file`` directly. If you do not specify ``extract_path``, or if the
-    problem is not present in ``extract_path`` it will attempt to download the data
-    from https://timeseriesclassification.com or, if that fails,
-    http://tseregression.org/.
+    problem is not present in ``extract_path`` it will attempt to download the data from
+    https://zenodo.org/communities/tsml
 
-    The list of problems this function can download from the website is in
-    ``datasets/tser_lists.py`` called ``tser_soton``. This function can load timestamped
-    data, but it does not store the time stamps. The time stamp loading is fragile,
-    it will only work if all data are floats.
+    This function can load timestamped data, but it does not store the time stamps.
+    The time stamp loading is fragile, it will only work if all data are floats.
 
     Data is assumed to be in the standard .ts format: each row is a (possibly
-    multivariate) time series. Each dimension is separated by a colon, each value in
+    multivariate) time series. Each channel is separated by a colon, each value in
     a series is comma separated. For an example TSER problem see
-    aeon.datasets.data.Covid3Month. Some of the original problems are unequal length
-    and have missing values. By default, this function loads equal length no
+    aeon.datasets.data.Covid3Month. Some of the data are univariate, some are
+    multivariate. Some of the original problems are unequal length
+    and have missing values. You can
+    download all of them with missing values imputed and mean padded to equal
+    length in a single zip from here
+    https://zenodo.org/records/11236865.
+
+    By default, this function loads equal length no
     missing value versions of the files that have been used in experimental studies.
-    These have suffixes `_eq` or `_nmv` after the name.
+    These have suffixes `_eq` or `_nmv` after the name on zenodo.
     If you want to load a different version, set the flags load_equal_length and/or
     load_no_missing to true. If present, the function will then load these versions
     if it can. aeon supports loading series with missing values and or unequal
@@ -1091,7 +1108,8 @@ def load_regression(
     PGDALIA_eq has length normalised series. If a problem has unequal length series
     and missing values, it is assumed to be of the form <name>_eq_nmv_TRAIN.ts and
     <name>_eq_nmv_TEST.ts. There are currently no problems in the archive with
-    missing and unequal length.
+    missing and unequal length. To get summary information,
+    set return_metadata to True.
 
 
     Parameters
@@ -1137,6 +1155,7 @@ def load_regression(
     >>> from aeon.datasets import load_regression
     >>> X, y=load_regression("FloodModeling1") # doctest: +SKIP
     """
+    # Set up extract location
     if extract_path is not None:
         local_module = extract_path
         local_dirname = ""
@@ -1145,15 +1164,25 @@ def load_regression(
         local_dirname = "data"
     error_str = (
         f"File name {name} is not in the list of valid files to download,"
-        f"see aeon.datasets.tser_datasetss.tser_soton for the list. "
-        f"If it is one tsc.com but not on the list, it means it may not "
-        f"have been fully validated. Download it from the website."
+        f"see aeon.datasets.tser_datasets.tsr_zenodo for the list of valid keys."
     )
     if not os.path.exists(os.path.join(local_module, local_dirname)):
         os.makedirs(os.path.join(local_module, local_dirname))
     path = os.path.join(local_module, local_dirname)
+
+    # If the request is for _eq or _nmv versions, we need to strip that out and set
+    # the flags accordingly. Directory and file always the stripped name
+    base_name = name
+    if name.endswith("_eq"):
+        name = name[:-3]  # strip "_eq"
+        load_equal_length = True
+
+    if name.endswith("_nmv"):
+        name = base_name[:-4]  # strip "_nmv"
+        load_no_missing = True
+    dir_name = name
     if name not in get_downloaded_tsc_tsr_datasets(extract_path):
-        if name in tser_soton:
+        if name in tsr_zenodo.keys():
             if extract_path is None:
                 local_dirname = "local_data"
                 if not os.path.exists(os.path.join(local_module, local_dirname)):
@@ -1164,61 +1193,43 @@ def load_regression(
         if name not in get_downloaded_tsc_tsr_datasets(
             os.path.join(local_module, local_dirname)
         ):
-            # Check if on timeseriesclassification.com
-            try_monash = False
-            url = f"https://timeseriesclassification.com/aeon-toolkit/{name}.zip"
-            # Test if file exists
-            req = Request(url, method="HEAD")
-            try:
-                # Perform the request
-                response = urlopen(req, timeout=60)
-                # Check the status code of the response
-                if response.status != 200:
-                    try_monash = True
-            except (URLError, HTTPError):
-                # If there is an HTTP it might mean the file does not exist
-                try_monash = True
-            else:
-                try:
-                    _download_and_extract(
-                        url,
-                        extract_path=extract_path,
+            if name in tsr_zenodo.keys():
+                id = tsr_zenodo[name]
+                full_path = os.path.join(path, name)
+                train_save = f"{full_path}/{name}_TRAIN.ts"
+                test_save = f"{full_path}/{name}_TEST.ts"
+                if not os.path.exists(full_path):
+                    os.makedirs(full_path)
+                # These will always exist if we get here. Failure will be caused by
+                # the connection
+                url_train = f"https://zenodo.org/record/{id}/files/{name}_TRAIN.ts"
+                url_test = f"https://zenodo.org/record/{id}/files/{name}_TEST.ts"
+                if load_equal_length:
+                    eq_train = (
+                        f"https://zenodo.org/record/{id}/files/" f"{name}_eq_TRAIN.ts"
                     )
-                except zipfile.BadZipFile:
-                    try_monash = True
-            if try_monash:
-                # Try on monash
-                if name in tser_monash.keys():
-                    id = tser_monash[name]
-                    url_train = f"https://zenodo.org/record/{id}/files/{name}_TRAIN.ts"
-                    url_test = f"https://zenodo.org/record/{id}/files/{name}_TEST.ts"
-                    full_path = os.path.join(path, name)
-                    if not os.path.exists(full_path):
-                        os.makedirs(full_path)
+                    eq_test = f"https://zenodo.org/record/{id}/files/{name}_eq_TEST.ts"
+                    # These will only exist if the original is NOT equal length
+                    if _url_exists(eq_train) and _url_exists(eq_test):
+                        url_train = eq_train
+                        url_test = eq_test
+                if load_no_missing:
+                    eq_train = (
+                        f"https://zenodo.org/record/{id}/files/" f"{name}_nmv_TRAIN.ts"
+                    )
+                    eq_test = f"https://zenodo.org/record/{id}/files/{name}_nmv_TEST.ts"
+                    # These will only exist if the original is NOT equal length
+                    if _url_exists(eq_train) and _url_exists(eq_test):
+                        url_train = eq_train
+                        url_test = eq_test
 
-                    train_save = f"{full_path}/{name}_TRAIN.ts"
-                    test_save = f"{full_path}/{name}_TEST.ts"
-                    try:
-                        urlretrieve(url_train, train_save)
-                        urlretrieve(url_test, test_save)
-                    except Exception:
-                        raise ValueError(error_str)
-                else:
+                try:
+                    urlretrieve(url_train, train_save)
+                    urlretrieve(url_test, test_save)
+                except Exception:
                     raise ValueError(error_str)
-    # Test for non missing or equal length versions
-    dir_name = name
-    if load_equal_length:
-        # If there exists a version with equal length, load that
-        train = os.path.join(path, f"{name}/{name}_eq_TRAIN.ts")
-        test = os.path.join(path, f"{name}/{name}_eq_TEST.ts")
-        if os.path.exists(train) and os.path.exists(test):
-            name = name + "_eq"
-    if load_no_missing:
-        train = os.path.join(path, f"{name}/{name}_nmv_TRAIN.ts")
-        test = os.path.join(path, f"{name}/{name}_nmv_TEST.ts")
-        if os.path.exists(train) and os.path.exists(test):
-            name = name + "_nmv"
-
+            else:
+                raise ValueError(error_str)
     X, y, meta = _load_saved_dataset(
         name=name,
         dir_name=dir_name,

@@ -475,9 +475,13 @@ tsml_collections = {
     "TSML Extended Time Series Extrinsic Regression Archive 2024": 11236865,
     "TSML Multivariate Time Series Classification Archive 2018": 11206331,
     "Time Series Classification Bakeoff Redux Datasets 2024": 11206358,
-    "UCR Time Series Classification Archive 2018": 11198697,
+    "TSML Imbalanced Univariate Time Series Classification Archive": 11198697,
+    "Imbalanced univariate time series classification problems": 18641021,
     "UCR": 11206331,
     "UEA": 11206331,
+    "TSER": 11236865,
+    "Unequal": 18300287,
+    "Imbalanced": 18641021,
 }
 
 tsc_zenodo = {
