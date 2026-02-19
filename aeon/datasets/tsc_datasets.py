@@ -1,41 +1,60 @@
-"""Datasets in the UCR/tsml data archives from https://timeseriesclassification.com.
+"""Time Series Classification (TSR) datasets in the UCR/tsml data archives.
 
-Collections of data available from timeseriesclassification.com. Data is available in
-.ts format, and for some problems, in .arff and .tsv format. For any issues with these
-data, please see
-https://github.com/time-series-machine-learning/tsml-repo
+As described in https://timeseriesclassification.com.
 
-There are four main distinctions: univariate/multivariate equal/unequal length.
-Set univariate contains the 128 UCR problems, as described in [1].
-Set multivariate contains the 30 UEA problems, as described in [2], plus 3 new
-additions.
-Set univariate_equal_length contains the 112 UCR archive problems used in [3].
-Set multivariate_equal_length contains the 26 UEA archive problems used in [4].
+Data is available in standard aeon .ts format where each row is a possibly
+multivariate time series, each channel is separated by a colon, each value by a comma
+and the class value is at the end. For any issues with these data, please see
+https://github.com/time-series-machine-learning/tsml-repo.
+
+Datasets are all stored on Zenodo in the TSML grouping
+https://zenodo.org/communities/tsml/records?q=&l=list&p=1&s=10
+The complete list of classification problems is in the dictionary tsc_zenodo,
+which includes names and keys. These can be downloaded from zenodo or loaded in code
+using the following.
+
+from aeon.datasets import load_classification
+load_classification("ArrowHead", extract_path = "Temp/")
+
+This looks in the location for the file in the extract location, and if it is not
+there downloads it. See load_classification documentation for details.
+
+There are four main distinctions of TSC problem: univariate/multivariate equal/unequal
+length. We have provided string lists of different published archives.
+
+UCR2015 contains 85 univariate problem.
+UCR2018 contains the last UCR release of 128 datasets as described in [1].
+UEA contains the 30 UEA problems, as described in [2,3].
+univariate_equal_length contains the 112 UCR archive problems used in [3,4].
+multivariate_equal_length contains the 26 UEA archive problems used in [4].
+univariate_variable_length contains the 11 unequal length series in [1].
+univariate_missing_values contains the 4 series with missing values in [1].
+redux contains the 30 new univariate equal length series introduced in [5].
 
 [1] H.Dau, A. Bagnall, K. Kamgar, C. Yeh, Y. Zhu, S. Gharghabi, C. Ratanamahatana and
-E. Keogh.
-The  UCR  time  series  archive. IEEE/CAA J. Autom. Sinica, 6(6):1293–1305, 2019
+    E. Keogh. The  UCR  time  series  archive.
+    IEEE/CAA J. Autom. Sinica, 6(6):1293–1305, 2019
 [2] A. Bagnall, H. Dau, J. Lines, M. Flynn, J. Large, A. Bostrom, P. Southam,and
-E.  Keogh.
-The UEA  multivariate  time  series  classification  archive, 2018. ArXiv e-prints,
-arXiv:1811.00075, 2018
-[3] A. Bagnall, M. Flynn, J. Large, J. Lines and M. Middlehurst.
-On the Usage and Performance of the Hierarchical Vote Collective of Transformation-Based
-Ensembles Version 1.0 (HIVE-COTE v1.0). Lecture Notes in Computer Science. in proc.
-5th Advanced Analytics and Learning on Temporal Data
-[4] A. Pasos Ruiz, M. Flynn, J. Large, M. Middlehurst and A. Bagnall.
+    E.  Keogh. The UEA  multivariate  time  series  classification  archive, 2018.
+    ArXiv e-prints,arXiv:1811.00075, 2018
+[3] A. Pasos Ruiz, M. Flynn, J. Large, M. Middlehurst and A. Bagnall.
     The great multivariate time series classification bake off: a review and
     experimental evaluation of recent algorithmic advances,
     Data Mining and Knowledge Discovery, 2020.
+[4] Middlehurst, M., J. Large, M. Flynn, M. Middlehurst and A. Bagnall.
+    HIVE-COTE 2.0: a new meta ensemble for time series classification,
+    Machine Learning 110(11), 2021
 [5] Middlehurst, M., Schäfer, P. & Bagnall, A.
     Bake off redux: a review and experimental evaluation of recent time series
     classification algorithms. Data Min Knowl Disc 38, 1958–2031 (2024).
     https://doi.org/10.1007/s10618-024-01022-1
 
+duplicate names for the lists are included for backward compatibility and will
+ultimately be deprecated.
 """
 
 # The 85 UCR univariate time series classification problems in the 2015 version
-univariate2015 = [
+UCR2015 = univariate2015 = [
     "Adiac",
     "ArrowHead",
     "Beef",
@@ -125,7 +144,7 @@ univariate2015 = [
 
 
 # 128 UCR univariate time series classification problems [1]
-univariate = [
+UCR2019 = univariate = [
     "ACSF1",
     "Adiac",
     "AllGestureWiimoteX",
@@ -257,7 +276,7 @@ univariate = [
 ]
 
 # 30 UEA multivariate time series classification problems [2]
-multivariate = [
+UEA = multivariate = [
     "ArticularyWordRecognition",
     "AtrialFibrillation",
     "BasicMotions",

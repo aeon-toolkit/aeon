@@ -1,4 +1,41 @@
-"""Datasets in the Monash tser data archives."""
+"""Datasets in the TSML regression archive. For any issues with these data.
+
+See https://github.com/time-series-machine-learning/tsml-repo.
+
+Datasets are all stored on Zenodo in the TSML grouping
+https://zenodo.org/communities/tsml/records?q=&l=list&p=1&s=10.
+
+The first release of the TSER archive are listed in tser_monash and are also stored
+http://tseregression.org/.
+
+To reference the smaller archive.
+ @article{Tan2020TSER,
+   title={Time Series Extrinsic Regression},
+   author={Tan, Chang Wei and Bergmeir, Christoph and Petitjean, Francois and Webb,
+   Geoffrey I},
+   journal={Data Mining and Knowledge Discovery},
+   pages={1--29},
+   year={2021},
+   publisher={Springer},
+   doi={https://doi.org/10.1007/s10618-021-00745-9}
+}
+
+To reference the larger more recent extension, please reference.
+
+@article{Guijo2024TSER,
+  title={Unsupervised feature based algorithms for time series extrinsic regression},
+  author={Guijo-Rubio, David and Middlehurst, Matthew and Arcencio, Guilherme and
+  Silva, Diego Furtado and Bagnall, Anthony},
+  journal={Data Mining and Knowledge Discovery},
+  pages={2141–2185},
+  volume={28},
+  year={2024},
+  publisher={Springer}
+  doi={https://doi.org/10.1007/s10618-024-01027-w}
+}
+
+
+"""
 
 tsr_zenodo = {
     "AcousticContaminationMadrid": 11235178,
