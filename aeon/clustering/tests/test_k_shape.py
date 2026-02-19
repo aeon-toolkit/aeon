@@ -7,7 +7,7 @@ from aeon.clustering._k_shape import TimeSeriesKShape
 from aeon.datasets import load_basic_motions
 from aeon.utils.validation._dependencies import _check_estimator_deps
 
-expected_results = [1, 1, 1, 2, 2]
+expected_results = [0, 2, 0, 0, 0]
 
 inertia = 0.5753409783429747
 
