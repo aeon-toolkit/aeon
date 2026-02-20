@@ -39,18 +39,20 @@ tsml_archives = {
     "Time Series Classification Bakeoff Redux Datasets 2024": 11206358,
     "UCR Time Series Classification Archive 2018": 11198697,
     "TSML Imbalanced Univariate Time Series Classification Archive 2025": 18641021,
-    "UCR": 11206331,
+    "UCR": 11198697,
     "UEA": 11206331,
     "TSR": 11236865,
     "Unequal": 18300287,
     "Imbalanced": 18641021,
+    "Redux": 11206358,
 }
 tsml_zip_names = {
-    "UCR": "UCR%20Archive%202018.zip",
-    "UEA": "TSML MV Archive 2018.zip",
-    "TSR": "TSER%20Archive%20Datasets%202024.zip",
-    "Unequal": "Unequal Length UCR Datasets 2026.zip",
-    "Imbalanced": "UCR_Imbalanced_9_1.zip",
+    "UCR": "UCR%20Archive%202018.zip",  # ~300MB
+    "UEA": "TSML%20MV%20Archive%202018.zip",
+    "TSR": "TSER%20Archive%20Datasets%202024.zip",  # ~900MB
+    "Unequal": "Unequal%20Length%20UCR%20Datasets%202026.zip",
+    "Imbalanced": "UCR_Imbalanced_9_1.zip",  # ~250MB
+    "Redux": "2024%20Bakeoff%20Redux%20Datasets.zip",  # ~200MB
 }
 
 

@@ -1,7 +1,7 @@
 """Dataset loading functions."""
 
 __maintainer__ = []
-__all__ = [  # Load functions
+__all__ = [
     "load_from_ts_file",
     "load_from_tsf_file",
     "load_from_arff_file",
@@ -9,6 +9,7 @@ __all__ = [  # Load functions
     "load_classification",
     "load_forecasting",
     "load_regression",
+    "download_archive",
     "download_all_regression",
     "get_dataset_meta_data",
 ]
@@ -1358,11 +1359,12 @@ def download_archive(archive="UCR", extract_path=None):
     """Download all datasets in a specified archive.
 
     List of archives stored in dataset_collections.tsml_archives. These are quite large
-    "UCR"
-    "UEA"
-    "Imbalanced"
-    "TSR" ~900MB
-    "Unequal"
+    "UCR": 128 univariate TSC problems (~300MB) [1]
+    "UEA": 30 multivariate TSC problems (~1GB) [2,3]
+    "Redux": 30 new univariate TSC problems (~250MB) [4]
+    "TSR":  63 TSR problems (univariate and multivariate) (~900MB) [5,6]
+    "Imbalanced": 76 unbalanced versions of the UCR archive  (~245MB) [7]
+    "Unequal": Unequal length versions of the UCR (~400MB) [8]
 
     Parameters
     ----------
@@ -1377,6 +1379,32 @@ def download_archive(archive="UCR", extract_path=None):
     ------
     ValueError if an invalid archive is passed.
     URLError or HTTPError if the website is not accessible.
+
+    References
+    ----------
+    [1] H.Dau, A. Bagnall, K. Kamgar, C. Yeh, Y. Zhu, S. Gharghabi, C. Ratanamahatana
+        and E. Keogh. The  UCR  time  series  archive.
+        IEEE/CAA J. Autom. Sinica, 6(6):1293–1305, 2019
+    [2] A. Bagnall, H. Dau, J. Lines, M. Flynn, J. Large, A. Bostrom, P. Southam,and
+        E.  Keogh. The UEA  multivariate  time  series  classification  archive, 2018.
+        ArXiv e-prints,arXiv:1811.00075, 2018
+    [3] A. Pasos Ruiz, M. Flynn, J. Large, M. Middlehurst and A. Bagnall.
+        The great multivariate time series classification bake off: a review and
+        experimental evaluation of recent algorithmic advances,
+        Data Mining and Knowledge Discovery, 2020.
+    [4] Middlehurst, M., Schäfer, P. & Bagnall, A.
+        Bake off redux: a review and experimental evaluation of recent time series
+        classification algorithms. Data Min Knowl Disc 38, 1958–2031 2024.
+        https://doi.org/10.1007/s10618-024-01022-1
+    [5] Tan, C., Bergmeir, C., Petitjean, F. and Webb, G.
+        Time Series Extrinsic Regression. Data Min Knowl Disc, 1--29, 2021
+    [6] Guijo-Rubio, D. and Middlehurst, M. and Arcencio, G. and Silva,
+        D. and Bagnall, A. Unsupervised feature based algorithms for time series
+        extrinsic regression. Data Min Knowl Disc, 2141-2185, 2024.
+    [6] Qiu C., Middlehurst, M., Holder, C. and Bagnall, A.
+        e-SMOTE: a train set rebalancing algorithm for time series classification
+        Proc 10th AALTD at ECML/PKDD, 2025
+    [7] TBC, coming to arxiv soon
     """
     valid = tsml_archives.keys()
     if archive not in valid:
@@ -1405,7 +1433,6 @@ def download_archive(archive="UCR", extract_path=None):
             raise ValueError(
                 f"Unable to download {file_save} from {url}",
             )
-    # zipfile.ZipFile(file_save, "r").extractall(f"{local_module}/{local_dirname}/")
 
 
 def download_all_regression(extract_path=None):

@@ -447,6 +447,38 @@ univariate_missing_values = [
     "DodgerLoopWeekend",
     "MelbournePedestrian",
 ]
+redux = [
+    "AconityMINIPrinterLarge",
+    "AconityMINIPrinterSmall",
+    "AllGestureWiimoteX",
+    "AllGestureWiimoteY",
+    "AllGestureWiimoteZ",
+    "AsphaltObstaclesUni",
+    "AsphaltPavementTypeUni",
+    "AsphaltRegularityUni",
+    "Colposcopy",
+    "Covid3Month_disc",
+    "DodgerLoopDay",
+    "DodgerLoopGame",
+    "DodgerLoopWeekend",
+    "ElectricDeviceDetection",
+    "FloodModeling1_disc",
+    "FloodModeling2_disc",
+    "FloodModeling3_disc",
+    "GestureMidAirD1",
+    "GestureMidAirD2",
+    "GestureMidAirD3",
+    "GesturePebbleZ1",
+    "GesturePebbleZ2",
+    "KeplerLightCurves",
+    "MelbournePedestrian",
+    "PhoneHeartbeatSound",
+    "PickupGestureWiimoteZ",
+    "PLAID",
+    "ShakeGestureWiimoteZ",
+    "SharePriceIncrease",
+    "Tools",
+]
 
 # 26 equal length multivariate time series classification problems [4]"""
 multivariate_equal_length = [
