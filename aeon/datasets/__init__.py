@@ -11,6 +11,7 @@ __all__ = [
     "load_classification",
     "load_forecasting",
     "load_regression",
+    "download_archive",
     "download_all_regression",
     "load_time_series_segmentation_benchmark",
     "load_human_activity_segmentation_datasets",
@@ -56,6 +57,7 @@ __all__ = [
 
 from aeon.datasets._data_loaders import (
     download_all_regression,
+    download_archive,
     get_dataset_meta_data,
     load_classification,
     load_forecasting,

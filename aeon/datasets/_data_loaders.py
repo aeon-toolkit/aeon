@@ -13,7 +13,6 @@ __all__ = [  # Load functions
     "get_dataset_meta_data",
 ]
 
-import glob
 import os
 import re
 import shutil
@@ -35,6 +34,8 @@ import aeon
 from aeon.datasets.dataset_collections import (
     get_downloaded_tsc_tsr_datasets,
     get_downloaded_tsf_datasets,
+    tsml_archives,
+    tsml_zip_names,
 )
 from aeon.datasets.tsc_datasets import tsc_zenodo
 from aeon.datasets.tser_datasets import tsr_zenodo
@@ -1069,6 +1070,7 @@ def load_regression(
     return_metadata: bool = False,
     load_equal_length: bool = True,
     load_no_missing: bool = True,
+    problem_dict=tsr_zenodo,
 ):
     """Download/load regression problem.
 
@@ -1164,7 +1166,8 @@ def load_regression(
         local_dirname = "data"
     error_str = (
         f"File name {name} is not in the list of valid files to download,"
-        f"see aeon.datasets.tser_datasets.tsr_zenodo for the list of valid keys."
+        f"see aeon.datasets.tser_datasets.tsr_zenodo for the list of valid keys for "
+        f"regression and aeon.datasets.tsc_datasets.tsc_zenodo for classification."
     )
     if not os.path.exists(os.path.join(local_module, local_dirname)):
         os.makedirs(os.path.join(local_module, local_dirname))
@@ -1182,7 +1185,7 @@ def load_regression(
         load_no_missing = True
     dir_name = name
     if name not in get_downloaded_tsc_tsr_datasets(extract_path):
-        if name in tsr_zenodo.keys():
+        if name in problem_dict.keys():
             if extract_path is None:
                 local_dirname = "local_data"
                 if not os.path.exists(os.path.join(local_module, local_dirname)):
@@ -1193,8 +1196,8 @@ def load_regression(
         if name not in get_downloaded_tsc_tsr_datasets(
             os.path.join(local_module, local_dirname)
         ):
-            if name in tsr_zenodo.keys():
-                id = tsr_zenodo[name]
+            if name in problem_dict.keys():
+                id = problem_dict[name]
                 full_path = os.path.join(path, name)
                 train_save = f"{full_path}/{name}_TRAIN.ts"
                 test_save = f"{full_path}/{name}_TEST.ts"
@@ -1286,7 +1289,7 @@ def load_classification(
         loads both into a single dataset, otherwise it looks only for files of the
         format <name>_TRAIN.ts or <name>_TEST.ts.
     extract_path : str, default=None
-        the path to look for the data. If no path is provided, the function
+        The path to look for the data. If no path is provided, the function
         looks in `aeon/datasets/local_data/`. If a path is given, it can be absolute,
         e.g. C:/Temp/ or relative, e.g. Temp/ or ./Temp/.
     return_metadata : boolean, default = True
@@ -1329,101 +1332,14 @@ def load_classification(
     >>> from aeon.datasets import load_classification
     >>> X, y = load_classification(name="ArrowHead")  # doctest: +SKIP
     """
-    if extract_path is not None:
-        local_module = extract_path
-        local_dirname = None
-    else:
-        local_module = MODULE
-        local_dirname = "data"
-    if local_dirname is None:
-        path = local_module
-    else:
-        path = os.path.join(local_module, local_dirname)
-    if not os.path.exists(path):
-        os.makedirs(path)
-    if name not in get_downloaded_tsc_tsr_datasets(path):
-        if extract_path is None:
-            local_dirname = "local_data"
-            path = os.path.join(local_module, local_dirname)
-        else:
-            path = extract_path
-        if not os.path.exists(path):
-            os.makedirs(path)
-        if name not in get_downloaded_tsc_tsr_datasets(path):
-            # Check if on timeseriesclassification.com
-            url = f"https://timeseriesclassification.com/aeon-toolkit/{name}.zip"
-            # Test if file exists to generate more informative error
-            req = Request(url, method="HEAD")
-            try_zenodo = False
-            error_str = (
-                f"Invalid dataset name ={name} that is not available on extract path "
-                f"={extract_path} nor is it available on "
-                f"https://timeseriesclassification.com/ or zenodo."
-            )
-            try:
-                # Perform the request
-                response = urlopen(req, timeout=60)
-                # Check the status code of the response, if 200 incorrect input args
-                if response.status != 200:
-                    try_zenodo = True
-            except (URLError, HTTPError):
-                # If there is an HTTP it might mean the file does not exist
-                try_zenodo = True
-            else:
-                try:
-                    _download_and_extract(
-                        url,
-                        extract_path=extract_path,
-                    )
-                except zipfile.BadZipFile:
-                    try_zenodo = True
-            if try_zenodo:
-                # Try on ZENODO
-                if name in tsc_zenodo.keys():
-                    id = tsc_zenodo[name]
-                    url_train = f"https://zenodo.org/record/{id}/files/{name}_TRAIN.ts"
-                    url_test = f"https://zenodo.org/record/{id}/files/{name}_TEST.ts"
-                    full_path = os.path.join(path, name)
-                    if not os.path.exists(full_path):
-                        os.makedirs(full_path)
-                    train_save = f"{full_path}/{name}_TRAIN.ts"
-                    test_save = f"{full_path}/{name}_TEST.ts"
-                    try:
-                        urlretrieve(url_train, train_save)
-                        urlretrieve(url_test, test_save)
-                    except Exception:
-                        raise ValueError(error_str)
-                else:
-                    raise ValueError(error_str)
-
-    # Test for discrete version (first suffix _disc), always use that if it exists
-    dir_name = name
-    # If there exists a version with _discr, load that
-    train = os.path.join(path, f"{name}/{name}_disc*TRAIN.ts")
-    test = os.path.join(path, f"{name}/{name}_disc*TEST.ts")
-    train_match = glob.glob(train)
-    test_match = glob.glob(test)
-    if train_match and test_match:
-        name = name + "_disc"
-    if load_equal_length:
-        # If there exists a version with equal length, load that
-        train = os.path.join(path, f"{dir_name}", f"{name}_eq_TRAIN.ts")
-        test = os.path.join(path, f"{dir_name}", f"{name}_eq_TEST.ts")
-        if os.path.exists(train) and os.path.exists(test):
-            name = name + "_eq"
-    if load_no_missing:
-        train = os.path.join(path, f"{dir_name}", f"{name}_nmv_TRAIN.ts")
-        test = os.path.join(path, f"{dir_name}", f"{name}_nmv_TEST.ts")
-        if os.path.exists(train) and os.path.exists(test):
-            name = name + "_nmv"
-
-    X, y, meta = _load_saved_dataset(
-        name=name,
-        dir_name=dir_name,
-        split=split,
-        local_module=local_module,
-        local_dirname=local_dirname,
-        return_meta=True,
+    X, y, meta = load_regression(
+        name,
+        split,
+        extract_path,
+        return_metadata=True,
+        load_equal_length=load_equal_length,
+        load_no_missing=load_no_missing,
+        problem_dict=tsc_zenodo,
     )
     # Check this is a classification problem
     if "classlabel" not in meta or not meta["classlabel"]:
@@ -1438,6 +1354,60 @@ def load_classification(
     return X, y
 
 
+def download_archive(archive="UCR", extract_path=None):
+    """Download all datasets in a specified archive.
+
+    List of archives stored in dataset_collections.tsml_archives. These are quite large
+    "UCR"
+    "UEA"
+    "Imbalanced"
+    "TSR" ~900MB
+    "Unequal"
+
+    Parameters
+    ----------
+    archive: str, default = "UCR"
+         Archive to download, should be one of "UCR","UEA","Imbalanced","TSR","Unequal".
+    extract_path: str or None, default = None
+         The path to look for the data. If no path is provided, the function
+         looks in `aeon/datasets/local_data/`. If a path is given, it can be absolute,
+         e.g. C:/Temp/ or relative, e.g. Temp/ or ./Temp/.
+
+    Raises
+    ------
+    ValueError if an invalid archive is passed.
+    URLError or HTTPError if the website is not accessible.
+    """
+    valid = tsml_archives.keys()
+    if archive not in valid:
+        raise ValueError(f"Passed archive name {archive}, must be one of {valid}")
+    if extract_path is not None:
+        local_module = extract_path
+        local_dirname = ""
+    else:
+        local_module = MODULE
+        local_dirname = "data"
+    id = tsml_archives[archive]
+    if not os.path.exists(os.path.join(local_module, local_dirname)):
+        os.makedirs(os.path.join(local_module, local_dirname))
+    url = f"https://zenodo.org/records/{id}/files/{tsml_zip_names[archive]}"
+    if extract_path is None:
+        local_dirname = "local_data"
+    if not os.path.exists(os.path.join(local_module, local_dirname)):
+        os.makedirs(os.path.join(local_module, local_dirname))
+
+    file_save = f"{local_module}/{local_dirname}/{archive}.zip"
+    # Check if it already exists at this location, to avoid repeated download
+    if not os.path.exists(file_save):
+        try:
+            urllib.request.urlretrieve(url, file_save)
+        except Exception:
+            raise ValueError(
+                f"Unable to download {file_save} from {url}",
+            )
+    # zipfile.ZipFile(file_save, "r").extractall(f"{local_module}/{local_dirname}/")
+
+
 def download_all_regression(extract_path=None):
     """Download all regression datasets.
 
@@ -1447,40 +1417,15 @@ def download_all_regression(extract_path=None):
     Parameters
     ----------
     extract_path: str or None, default = None
-        where to download the fip file. If none, it goes in
+        The path to look for the data. If no path is provided, the function
+        looks in `aeon/datasets/local_data/`. If a path is given, it can be absolute,
+        e.g. C:/Temp/ or relative, e.g. Temp/ or ./Temp/.
 
     Raises
     ------
     URLError or HTTPError if the website is not accessible.
     """
-    if extract_path is not None:
-        local_module = extract_path
-        local_dirname = ""
-    else:
-        local_module = MODULE
-        local_dirname = "data"
-
-    if not os.path.exists(os.path.join(local_module, local_dirname)):
-        os.makedirs(os.path.join(local_module, local_dirname))
-    url = (
-        "https://zenodo.org/records/11236865/files/"
-        "TSER%20Archive%20Datasets%202024.zip"
-    )
-    if extract_path is None:
-        local_dirname = "local_data"
-    if not os.path.exists(os.path.join(local_module, local_dirname)):
-        os.makedirs(os.path.join(local_module, local_dirname))
-
-    file_save = f"{local_module}/{local_dirname}/Monash_UEA_UCR_Regression_Archive.zip"
-    # Check if it already exists at this location, to avoid repeated download
-    if not os.path.exists(file_save):
-        try:
-            urllib.request.urlretrieve(url, file_save)
-        except Exception:
-            raise ValueError(
-                f"Unable to download {file_save} from {url}",
-            )
-    zipfile.ZipFile(file_save, "r").extractall(f"{local_module}/{local_dirname}/")
+    download_archive("TSR", extract_path)
 
 
 PROBLEM_TYPES = [

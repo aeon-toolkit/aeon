@@ -1,38 +1,28 @@
 """
-List of datasets available for classification, regression and forecasting archives.
+Archives for time series classification, regression and forecasting.
 
 The classification and regression data can also be used for clustering.
+Classification data can be downloaded directly from the zenodo
+archive https://zenodo.org/communities/tsml or in code. Whole archives can be
+downloaded with download_archive, single problems with load_classification,
+load_regression and load_foreasting.
 
-Classification data can be downloaded directly from the timeseriesclassification.com
-archive.
-
-Regression data is and forecasting
-
-
-Classification/Regression
--------------------------
-Classification data available are listed in tsc_datasets.py. Regression problems
-are in tser_datasets.py. The data can be downloaded and loaded with
->>> from aeon.datasets import load_from_ts_file
-
-If the data is already stored on disk, you can just load it directly
-Metadata is loaded from the file header, and return is optional
-
-into 3D numpy arrays (n_cases, n_channels, n_timepoints) if equal length
-
-Forecasting
------------
-
+# Whole archives downloadable to TSML Zenodo from https://zenodo.org/records/<ID> ,
+with IDs listed in tsml_archives
 
 """
 
-__maintainer__ = []
+__maintainer__ = ["TonyBagnall"]
+
 __all__ = [
     "get_downloaded_tsc_tsr_datasets",
     "get_downloaded_tsf_datasets",
     "get_available_tser_datasets",
     "get_available_tsf_datasets",
+    "tsml_archives",
+    "tsml_zip_names",
 ]
+
 import os
 
 import aeon
@@ -41,6 +31,27 @@ from aeon.datasets.tser_datasets import tser_monash, tser_soton
 from aeon.datasets.tsf_datasets import tsf_all
 
 MODULE = os.path.join(os.path.dirname(aeon.__file__), "datasets")
+
+tsml_archives = {
+    "Synthetic Unequal Length UCR Time Series Classification Datasets 2026": 18300287,
+    "TSML Extended Time Series Extrinsic Regression Archive 2024": 11236865,
+    "TSML Multivariate Time Series Classification Archive 2018": 11206331,
+    "Time Series Classification Bakeoff Redux Datasets 2024": 11206358,
+    "UCR Time Series Classification Archive 2018": 11198697,
+    "TSML Imbalanced Univariate Time Series Classification Archive 2025": 18641021,
+    "UCR": 11206331,
+    "UEA": 11206331,
+    "TSR": 11236865,
+    "Unequal": 18300287,
+    "Imbalanced": 18641021,
+}
+tsml_zip_names = {
+    "UCR": "UCR%20Archive%202018.zip",
+    "UEA": "TSML MV Archive 2018.zip",
+    "TSR": "TSER%20Archive%20Datasets%202024.zip",
+    "Unequal": "Unequal Length UCR Datasets 2026.zip",
+    "Imbalanced": "UCR_Imbalanced_9_1.zip",
+}
 
 
 def get_available_tser_datasets(name="tser_soton", return_list=True):
