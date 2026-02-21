@@ -19,8 +19,6 @@ __all__ = [
     "load_rehab_pile_classification_datasets",
     "load_rehab_pile_regression_datasets",
     # Write functions
-    "write_to_ts_file",  # deprecated
-    "write_to_arff_file",  # deprecated
     "save_to_ts_file",
     # Single problem loaders
     "load_airline",
@@ -67,8 +65,6 @@ from aeon.datasets._data_loaders import (
 )
 from aeon.datasets._data_writers import (
     save_to_ts_file,
-    write_to_arff_file,
-    write_to_ts_file,
 )
 from aeon.datasets._single_problem_loaders import (
     load_acsf1,
