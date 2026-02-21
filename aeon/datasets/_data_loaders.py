@@ -215,8 +215,8 @@ def _load_data(file, meta_data, replace_missing_vals_with="NaN"):
             if len(data_series) != current_length:
                 equal_length = meta_data["equallength"]
                 raise OSError(
-                    f"channel {i} in case {n_cases} has a different number of "
-                    f"observations to the other channels. "
+                    f"Error loading {file}. Channel {i} in case {n_cases} has a "
+                    f"different number of observations to the other channels. "
                     f"Saw {current_length} in the first channel but"
                     f" {len(data_series)} in the channel {i}. The meta data "
                     f"specifies equal length == {equal_length}. But even if series "
@@ -1064,7 +1064,7 @@ def _url_exists(url: str, timeout: float = 10.0) -> bool:
         return False
 
 
-def load_regression(
+def load_collection(
     name: str,
     split=None,
     extract_path=None,
@@ -1073,11 +1073,15 @@ def load_regression(
     load_no_missing: bool = True,
     problem_dict=tsr_zenodo,
 ):
-    """Download/load regression problem.
+    """Download/load a TSML collection of data.
 
-    Download from zenodo tsml community https://zenodo.org/communities/tsml.
-    The list of datasets stored and appropriate zenodo key is maintained
-    in file tsc_datasets in list tsr_zenodo.
+    Downloads a collection of time series from zenodo tsml community
+    https://zenodo.org/communities/tsml in standard aeon format. It will download a
+    train and test file. If the problem is unequal length or has missing values,
+    it will also download equal length and no missing value versions. The list of
+    datasets stored and appropriate zenodo key is maintained
+    in file tsc_datasets in list tsr_zenodo and tsc_zenodo. It will validate the
+    series metadata and will work with regression or classification.
 
     If you want to load a problem from a local file, specify the
     location in ``extract_path``. This function assumes the data is stored in format
@@ -1155,8 +1159,8 @@ def load_regression(
 
     Examples
     --------
-    >>> from aeon.datasets import load_regression
-    >>> X, y=load_regression("FloodModeling1") # doctest: +SKIP
+    >>> from aeon.datasets import load_collection
+    >>> X, y=load_collection("FloodModeling1") # doctest: +SKIP
     """
     # Set up extract location
     if extract_path is not None:
@@ -1185,6 +1189,10 @@ def load_regression(
         name = base_name[:-4]  # strip "_nmv"
         load_no_missing = True
     dir_name = name
+    # equal_length = True
+    # no_missing = True
+    eq_present = False
+    nmv_present = False
     if name not in get_downloaded_tsc_tsr_datasets(extract_path):
         if name in problem_dict.keys():
             if extract_path is None:
@@ -1194,6 +1202,7 @@ def load_regression(
                 path = os.path.join(local_module, local_dirname)
         else:
             raise ValueError(error_str)
+        # Need to test again for scenario where no extract path is given
         if name not in get_downloaded_tsc_tsr_datasets(
             os.path.join(local_module, local_dirname)
         ):
@@ -1208,32 +1217,59 @@ def load_regression(
                 # the connection
                 url_train = f"https://zenodo.org/record/{id}/files/{name}_TRAIN.ts"
                 url_test = f"https://zenodo.org/record/{id}/files/{name}_TEST.ts"
-                if load_equal_length:
-                    eq_train = (
-                        f"https://zenodo.org/record/{id}/files/" f"{name}_eq_TRAIN.ts"
-                    )
-                    eq_test = f"https://zenodo.org/record/{id}/files/{name}_eq_TEST.ts"
-                    # These will only exist if the original is NOT equal length
-                    if _url_exists(eq_train) and _url_exists(eq_test):
-                        url_train = eq_train
-                        url_test = eq_test
-                if load_no_missing:
-                    eq_train = (
-                        f"https://zenodo.org/record/{id}/files/" f"{name}_nmv_TRAIN.ts"
-                    )
-                    eq_test = f"https://zenodo.org/record/{id}/files/{name}_nmv_TEST.ts"
-                    # These will only exist if the original is NOT equal length
-                    if _url_exists(eq_train) and _url_exists(eq_test):
-                        url_train = eq_train
-                        url_test = eq_test
-
                 try:
                     urlretrieve(url_train, train_save)
                     urlretrieve(url_test, test_save)
                 except Exception:
                     raise ValueError(error_str)
+                eq_train = f"https://zenodo.org/record/{id}/files/{name}_eq_TRAIN.ts"
+                eq_test = f"https://zenodo.org/record/{id}/files/{name}_eq_TEST.ts"
+                # These will only exist if the original is NOT equal length
+                if _url_exists(eq_train) and _url_exists(eq_test):
+                    eq_present = True
+                    train_save = f"{full_path}/{name}_eq_TRAIN.ts"
+                    test_save = f"{full_path}/{name}_eq_TEST.ts"
+                    try:
+                        urlretrieve(eq_train, train_save)
+                        urlretrieve(eq_test, test_save)
+                    except Exception:
+                        raise ValueError(error_str)  # Change message
+                nmv_train = (
+                    f"https://zenodo.org/record/{id}/files/" f"{name}_nmv_TRAIN.ts"
+                )
+                nmv_train = f"https://zenodo.org/record/{id}/files/{name}_nmv_TEST.ts"
+                # These will only exist if the original is NOT equal length
+                if _url_exists(nmv_train) and _url_exists(nmv_train):
+                    nmv_present = True
+                    train_save = f"{full_path}/{name}_nmv_TRAIN.ts"
+                    test_save = f"{full_path}/{name}_nmv_TEST.ts"
+                    try:
+                        urlretrieve(nmv_train, train_save)
+                        urlretrieve(nmv_train, test_save)
+                    except Exception:
+                        raise ValueError(
+                            f"Cannot retrieve the no missing values "
+                            f"version {eq_train} from {train_save}"
+                        )
+                        # Change message
             else:
                 raise ValueError(error_str)
+    else:  # Loading locally, need to check _eq and _nmv exist
+        eq_train = f"{extract_path}/{name}/{name}_eq_TRAIN.ts"
+        eq_test = f"{extract_path}/{name}/{name}_eq_TEST.ts"
+        # These will only exist if the original is NOT equal length
+        if os.path.isfile(eq_train) and os.path.isfile(eq_test):
+            eq_present = True
+        nmv_train = f"{extract_path}/{name}/{name}_nmv_TRAIN.ts"
+        nmv_train = f"{extract_path}/{name}/{name}_nmv_TEST.ts"
+        # These will only exist if the original is NOT equal length
+        if os.path.isfile(nmv_train) and os.path.isfile(nmv_train):
+            nmv_present = True
+    if load_equal_length and eq_present:
+        name = name + "_eq"
+    if load_no_missing and nmv_present:
+        name = name + "_nmv"
+
     X, y, meta = _load_saved_dataset(
         name=name,
         dir_name=dir_name,
@@ -1247,6 +1283,95 @@ def load_regression(
     return X, y
 
 
+def load_regression(
+    name: str,
+    split=None,
+    extract_path=None,
+    return_metadata: bool = False,
+    load_equal_length: bool = True,
+    load_no_missing: bool = True,
+    problem_dict=tsr_zenodo,
+):
+    """Download/load a TSML regression collection.
+
+    Calls load_collection then further validates that a classification problem has
+    not been loaded by mistake. If this happens, it raises an error.
+
+
+    Parameters
+    ----------
+    name : string
+        Name of the problem to load or download.
+    extract_path : None or str, default = None
+        Path of the location for the data file. If None, data is written to
+        os.path.dirname(__file__)/local_data/<name>/.
+    split : None or str{"train", "test"}, default=None
+        Whether to load the train or test partition of the problem. By default it
+        loads both into a single dataset, otherwise it looks only for files of the
+        format <name>_TRAIN.ts or <name>_TEST.ts.
+    return_metadata : boolean, default = False
+        If True, returns a tuple (X, y, metadata)
+    load_equal_length : boolean, default=True
+        This is for the case when the standard release has unequal length series. The
+        downloaded zip for these contain a version made equal length through
+        truncation. These versions all have the suffix _eq after the name. If this
+        flag is set to True, the function first attempts to load files called
+        <name>_eq_TRAIN.ts/TEST.ts. If these are not present, it will load the normal
+        version.
+    load_no_missing : boolean, default=True
+        This is for the case when the standard release has missing values. The
+        downloaded zip for these contain a version with imputed missing values. These
+        versions all have the suffix _nmv after the name. If this
+        flag is set to True, the function first attempts to load files called
+        <name>_nmv_TRAIN.ts/TEST.ts. If these are not present, it will load the normal
+        version.
+
+    Returns
+    -------
+    X: np.ndarray or list of np.ndarray
+    y: np.ndarray
+        The target response variable for each case in X
+    metadata: dict, optional
+        returns the following metadata
+        'problemname',timestamps, missing,univariate,equallength.
+        targetlabel should be true, and classlabel false
+
+    Raises
+    ------
+    URLError or HTTPError
+        If the website is not accessible.
+    ValueError
+        If a dataset name that does not exist on the repo is given or if a
+        webpage is requested that does not exist.
+
+    Examples
+    --------
+    >>> from aeon.datasets import load_regression
+    >>> X, y=load_regression("FloodModeling1") # doctest: +SKIP
+    """
+    X, y, meta = load_collection(
+        name,
+        split,
+        extract_path,
+        return_metadata=True,
+        load_equal_length=load_equal_length,
+        load_no_missing=load_no_missing,
+        problem_dict=tsc_zenodo,
+    )
+    # Check this is a classification problem
+    if "targetlabel" not in meta or not meta["targetlabel"]:
+        raise ValueError(
+            f"You have tried to load a classification problem called {name} with "
+            f"load_regression. This will cause unintended consequences for any "
+            f"regressor you build, since the class label may be nominal. If you want "
+            f"to load a classification problem, use load_classification, even if you "
+            f"want to build a regressor. "
+        )
+    if return_metadata:
+        return X, y, meta
+    return X, y
+
+
 def load_classification(
     name,
     split=None,
@@ -1255,7 +1380,10 @@ def load_classification(
     load_equal_length: bool = True,
     load_no_missing: bool = True,
 ):
-    """Load a classification dataset.
+    """Download/load a TSML classification collection.
+
+    Calls load_collection then further validates that a regression problem has
+    not been loaded by mistake. If this happens, it raises an error.
 
     This function loads TSC problems into memory, downloading from
     https://timeseriesclassification.com/ if the data is not available at the
@@ -1333,7 +1461,7 @@ def load_classification(
     >>> from aeon.datasets import load_classification
     >>> X, y = load_classification(name="ArrowHead")  # doctest: +SKIP
     """
-    X, y, meta = load_regression(
+    X, y, meta = load_collection(
         name,
         split,
         extract_path,
