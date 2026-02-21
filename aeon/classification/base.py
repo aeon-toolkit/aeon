@@ -551,7 +551,19 @@ class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
         return X, y, len(self.classes_) == 1
 
     def _check_y(self, y, n_cases, update_classes=True):
-        # Check y valid input for classification
+        """Check y input is valid.
+
+        Must be 1-dimensional and contain only binary or multiclass values.
+        """
+        if isinstance(y, pd.DataFrame):
+            # only accept size 1 dataframe
+            if y.shape[1] > 1:
+                raise ValueError(
+                    "Error in input type for y: y input as pd.DataFrame should have a "
+                    "single column series."
+                )
+            y = y.squeeze().values
+
         check_classification_y(y)
 
         # Check matching number of labels

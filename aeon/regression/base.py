@@ -28,10 +28,10 @@ import pandas as pd
 from sklearn.base import RegressorMixin
 from sklearn.metrics import get_scorer, get_scorer_names
 from sklearn.model_selection import cross_val_predict
-from sklearn.utils.multiclass import type_of_target
 
 from aeon.base import BaseCollectionEstimator
 from aeon.base._base import _clone_estimator
+from aeon.utils.validation.labels import check_regression_y
 
 
 class BaseRegressor(RegressorMixin, BaseCollectionEstimator):
@@ -357,36 +357,28 @@ class BaseRegressor(RegressorMixin, BaseCollectionEstimator):
         return X, y
 
     def _check_y(self, y, n_cases):
-        # Check y valid input for regression
-        if not isinstance(y, (pd.Series, np.ndarray)):
-            raise TypeError(
-                f"y must be a np.array or a pd.Series, but found type: {type(y)}"
-            )
-        if isinstance(y, np.ndarray) and y.ndim > 1:
-            raise TypeError(f"y must be 1-dimensional, found {y.ndim} dimensions")
+        """Check y input is valid.
+
+        Must be 1-dimensional and contain continuous values.
+        """
+        if isinstance(y, pd.DataFrame):
+            # only accept size 1 dataframe
+            if y.shape[1] > 1:
+                raise ValueError(
+                    "Error in input type for y: y input as pd.DataFrame should have a "
+                    "single column series."
+                )
+            y = y.squeeze().values
+
+        check_regression_y(y)
 
         # Check matching number of labels
-        n_labels = len(y)
+        n_labels = y.shape[0]
         if n_cases != n_labels:
             raise ValueError(
                 f"Mismatch in number of cases. Found X = {n_cases} and y = {n_labels}"
             )
 
-        y_type = type_of_target(y)
-        if y_type != "continuous" and y_type != "binary" and y_type != "multiclass":
-            raise ValueError(
-                f"y type is {y_type} which is not valid for regression. "
-                f"Should be continuous, binary or multiclass according to "
-                f"sklearn.utils.multiclass.type_of_target"
-            )
-
         if isinstance(y, pd.Series):
             y = pd.Series.to_numpy(y)
-
-        if any([isinstance(label, str) for label in y]):
-            raise ValueError(
-                "y contains strings, cannot fit a regressor. If suitable, convert "
-                "to floats or consider classification."
-            )
-
         return y.astype(float)

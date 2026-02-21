@@ -7,11 +7,9 @@ from abc import abstractmethod
 from typing import final
 
 import numpy as np
-import pandas as pd
 
 from aeon.anomaly_detection.base import BaseAnomalyDetector
 from aeon.base import BaseSeriesEstimator
-from aeon.utils.data_types import VALID_SERIES_INPUT_TYPES
 
 
 class BaseSeriesAnomalyDetector(BaseSeriesEstimator, BaseAnomalyDetector):
@@ -123,7 +121,7 @@ class BaseSeriesAnomalyDetector(BaseSeriesEstimator, BaseAnomalyDetector):
 
         X = self._preprocess_series(X, axis, True)
         if y is not None:
-            y = self._check_y(y)
+            y = self._check_y(y, self.metadata_["n_timepoints"])
 
         self._fit(X=X, y=y)
 
@@ -203,7 +201,7 @@ class BaseSeriesAnomalyDetector(BaseSeriesEstimator, BaseAnomalyDetector):
             return self._predict(X)
 
         if y is not None:
-            y = self._check_y(y)
+            y = self._check_y(y, self.metadata_["n_timepoints"])
 
         pred = self._fit_predict(X, y)
 
@@ -220,69 +218,3 @@ class BaseSeriesAnomalyDetector(BaseSeriesEstimator, BaseAnomalyDetector):
     def _fit_predict(self, X, y):
         self._fit(X, y)
         return self._predict(X)
-
-    def _check_y(self, y: VALID_SERIES_INPUT_TYPES) -> np.ndarray:
-        # Remind user if y is not required for this estimator on failure
-        req_msg = (
-            f"{self.__class__.__name__} does not require a y input."
-            if self.get_tag("requires_y")
-            else ""
-        )
-        new_y = y
-
-        # must be a valid input type, see VALID_SERIES_INPUT_TYPES in
-        # BaseSeriesEstimator
-        if isinstance(y, np.ndarray):
-            # check valid shape
-            if y.ndim > 1:
-                raise ValueError(
-                    "Error in input type for y: y input as np.ndarray should be 1D."
-                    + req_msg
-                )
-
-            # check valid dtype
-            fail = False
-            if issubclass(y.dtype.type, np.integer):
-                new_y = y.astype(bool)
-                fail = not np.array_equal(y, new_y)
-            elif not issubclass(y.dtype.type, np.bool_):
-                fail = True
-
-            if fail:
-                raise ValueError(
-                    "Error in input type for y: y input type must be an integer array "
-                    "containing 0 and 1 or a boolean array." + req_msg
-                )
-        elif isinstance(y, pd.Series):
-            # check series is of boolean dtype
-            if not pd.api.types.is_bool_dtype(y):
-                raise ValueError(
-                    "Error in input type for y: y input as pd.Series must have a "
-                    "boolean dtype." + req_msg
-                )
-
-            new_y = y.values
-        elif isinstance(y, pd.DataFrame):
-            # only accept size 1 dataframe
-            if y.shape[1] > 1:
-                raise ValueError(
-                    "Error in input type for y: y input as pd.DataFrame should have a "
-                    "single column series."
-                )
-
-            # check column is of boolean dtype
-            if not all(pd.api.types.is_bool_dtype(y[col]) for col in y.columns):
-                raise ValueError(
-                    "Error in input type for y: y input as pd.DataFrame must have a "
-                    "boolean dtype." + req_msg
-                )
-
-            new_y = y.squeeze().values
-        else:
-            raise ValueError(
-                f"Error in input type for y: it should be one of "
-                f"{VALID_SERIES_INPUT_TYPES}, saw {type(y)}"
-            )
-
-        new_y = new_y.astype(bool)
-        return new_y

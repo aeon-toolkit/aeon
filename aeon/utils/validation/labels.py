@@ -19,6 +19,7 @@ def check_classification_y(y):
         If y is not a 1D pd.Series or np.ndarray.
     ValueError
         If y is not a binary or multiclass target.
+        if y is empty or contains less than 2 unique labels.
     """
     if not isinstance(y, (pd.Series, np.ndarray)):
         raise TypeError(
@@ -26,6 +27,8 @@ def check_classification_y(y):
         )
     if isinstance(y, np.ndarray) and y.ndim > 1:
         raise TypeError(f"y must be 1-dimensional, found {y.ndim} dimensions")
+    if len(y) == 0:
+        raise ValueError("y must not be empty.")
 
     y_type = type_of_target(y, input_name="y")
     if y_type != "binary" and y_type != "multiclass":
@@ -34,6 +37,10 @@ def check_classification_y(y):
             f"Should be binary or multiclass according to "
             f"sklearn.utils.multiclass.type_of_target"
         )
+
+    u = len(np.unique(y))
+    if u < 2:
+        raise ValueError(f"y must contain at least 2 unique labels, but found {u}.")
 
 
 def check_regression_y(y):
@@ -50,6 +57,7 @@ def check_regression_y(y):
         If y is not a 1D pd.Series or np.ndarray.
     ValueError
         If y is not a continuous target.
+        if y is empty.
     """
     if not isinstance(y, (pd.Series, np.ndarray)):
         raise TypeError(
@@ -57,6 +65,8 @@ def check_regression_y(y):
         )
     if isinstance(y, np.ndarray) and y.ndim > 1:
         raise TypeError(f"y must be 1-dimensional, found {y.ndim} dimensions")
+    if len(y) == 0:
+        raise ValueError("y must not be empty.")
 
     y_type = type_of_target(y, input_name="y")
     if y_type != "continuous":
@@ -79,7 +89,8 @@ def check_anomaly_detection_y(y):
     TypeError
         If y is not a 1D pd.Series or np.ndarray.
     ValueError
-        If y is not a binary target.
+        If y contains values other than 0 or 1.
+        if y is empty or contains less than 2 unique labels.
     """
     if not isinstance(y, (pd.Series, np.ndarray)):
         raise TypeError(
@@ -87,10 +98,14 @@ def check_anomaly_detection_y(y):
         )
     if isinstance(y, np.ndarray) and y.ndim > 1:
         raise TypeError(f"y must be 1-dimensional, found {y.ndim} dimensions")
+    if len(y) == 0:
+        raise ValueError("y must not be empty.")
 
-    y_type = type_of_target(y, input_name="y")
-    if y_type != "binary":
+    u = len(np.unique(y))
+    if u < 2:
+        raise ValueError(f"y must contain at least 2 unique labels, but found {u}.")
+
+    if not np.bitwise_or(y == 0, y == 1).all():
         raise ValueError(
-            f"y type is {y_type} which is not valid for anomaly detection. "
-            f"Should be binary according to sklearn.utils.multiclass.type_of_target"
+            "y input must only contain 0 (not anomalous) or 1 (anomalous) values."
         )
