@@ -21,7 +21,7 @@ class BaseDeepLearningNetwork(ABC):
     }
 
     @abstractmethod
-    def __init__(self, soft_dependencies="tensorflow", python_version="<3.13"):
+    def __init__(self, soft_dependencies="tensorflow", python_version="<3.14"):
         _check_soft_dependencies(soft_dependencies)
         _check_python_version(python_version)
         super().__init__()
