@@ -364,7 +364,7 @@ class BaseRegressor(RegressorMixin, BaseCollectionEstimator):
         if isinstance(y, pd.DataFrame):
             # only accept size 1 dataframe
             if y.shape[1] > 1:
-                raise ValueError(
+                raise TypeError(
                     "Error in input type for y: y input as pd.DataFrame should have a "
                     "single column series."
                 )
