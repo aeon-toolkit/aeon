@@ -57,8 +57,6 @@ EXCLUDED_TESTS = {
     # Unknown issue not producing the same results
     "RDSTRegressor": ["check_regressor_against_expected_results"],
     "RISTRegressor": ["check_regressor_against_expected_results"],
-    # Affected by threading changes in distance module
-    "CanonicalIntervalForestRegressor": ["check_regressor_against_expected_results"],
     # Requires y to be passed in inverse_transform,
     # but this is not currently enabled/supported
     "DifferenceTransformer": ["check_transform_inverse_transform_equivalent"],
