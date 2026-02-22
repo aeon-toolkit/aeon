@@ -69,10 +69,16 @@ def check_regression_y(y):
         raise ValueError("y must not be empty.")
 
     y_type = type_of_target(y, input_name="y")
-    if y_type != "continuous":
+    if y_type != "continuous" and y_type != "multiclass":
         raise ValueError(
             f"y type is {y_type} which is not valid for regression. "
             f"Should be continuous according to sklearn.utils.multiclass.type_of_target"
+        )
+
+    if any([isinstance(label, str) for label in y]):
+        raise ValueError(
+            "y contains strings, cannot fit a regressor. If suitable, convert "
+            "to floats or consider classification."
         )
 
 

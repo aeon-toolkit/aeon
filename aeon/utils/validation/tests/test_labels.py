@@ -62,6 +62,19 @@ def test_check_classification_y_rejects_empty(y):
         check_classification_y(y)
 
 
+@pytest.mark.parametrize(
+    "y", [np.array([0, 0, 1, 2, np.nan]), pd.Series([0, 0, 1, 2, pd.NA])]
+)
+def test_check_classification_y_rejects_nan(y):
+    """Reject y with NaN values for classification."""
+    with pytest.raises(
+        ValueError,
+        match=r"y type is unknown which is not valid for "
+        r"classification\.|Input y contains NaN",
+    ):
+        check_classification_y(y)
+
+
 @pytest.mark.parametrize("y", [np.array([0.1, 0.2, 0.3]), pd.Series([0.1, 0.2, 0.3])])
 def test_check_classification_y_rejects_continuous_targets(y):
     """Reject continuous targets for classification."""
@@ -134,7 +147,7 @@ def test_check_regression_y_rejects_ndim():
         check_regression_y(y)
 
 
-@pytest.mark.parametrize("y", [np.array([]), pd.Series([], dtype=float)])
+@pytest.mark.parametrize("y", [np.array([]), pd.Series([])])
 def test_check_regression_y_rejects_empty(y):
     """Reject empty y for regression."""
     with pytest.raises(ValueError, match=r"y must not be empty\."):
@@ -143,18 +156,46 @@ def test_check_regression_y_rejects_empty(y):
 
 @pytest.mark.parametrize(
     "y",
+    [np.array([0, 0, 1, 2, np.nan]), pd.Series([0, 0, 1, 2, pd.NA])],
+)
+def test_check_regression_y_rejects_nan(y):
+    """Reject y with NaN values for regression."""
+    with pytest.raises(
+        ValueError,
+        match=r"y type is unknown which is not valid for "
+        r"regression\.|Input y contains NaN",
+    ):
+        check_regression_y(y)
+
+
+@pytest.mark.parametrize(
+    "y",
     [
         np.array([0, 1, 0, 1]),
-        np.array([0, 1, 2, 1, 0]),
         pd.Series([0, 1, 0, 1]),
-        pd.Series([0, 1, 2, 1, 0]),
     ],
 )
 def test_check_regression_y_rejects_non_continuous_targets(y):
-    """Reject non-continuous targets for regression."""
+    """Reject non-continuous (or multiclass non string) targets for regression."""
     with pytest.raises(
         ValueError,
         match=r"y type is .* which is not valid for regression\..*continuous",
+    ):
+        check_regression_y(y)
+
+
+@pytest.mark.parametrize(
+    "y",
+    [
+        np.array(["a", "b", "a", "c"]),
+        pd.Series(["a", "b", "a", "c"]),
+    ],
+)
+def test_check_regression_y_rejects_string_targets(y):
+    """Reject string targets for regression."""
+    with pytest.raises(
+        ValueError,
+        match=r"y contains strings, cannot fit a regressor",
     ):
         check_regression_y(y)
 
@@ -227,8 +268,8 @@ def test_check_anomaly_detection_y_rejects_single_label(y):
         pd.Series([0.1, 0.2, 0.3]),
         np.array(["a", "b", "a", "b"]),
         pd.Series(["a", "b", "a", "b"]),
-        np.array([0, 0, 1, 1, np.nan]),
-        pd.Series([0, 0, 1, 1, pd.NA]),
+        np.array([0, 0, 1, 2, np.nan]),
+        pd.Series([0, 0, 1, 2, pd.NA]),
     ],
 )
 def test_check_anomaly_detection_y_rejects_non_binary(y):
