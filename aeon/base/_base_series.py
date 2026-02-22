@@ -146,6 +146,7 @@ class BaseSeriesEstimator(BaseAeonEstimator):
             Metadata about ``X``, with flags:
             ``metadata["multivariate"]``: whether ``X`` has more than one channel or not
             ``metadata["n_channels"]``: number of channels in ``X``
+            ``metadata["n_timepoints"]``: length of the time series
             ``metadata["missing_values"]``: whether ``X`` has missing values or not
         """
         if axis > 1 or axis < 0:
@@ -185,6 +186,10 @@ class BaseSeriesEstimator(BaseAeonEstimator):
             metadata["multivariate"] = False
 
         metadata["n_channels"] = X.shape[channel_idx] if X.ndim > 1 else 1
+
+        # Check n_timepoints
+        timepoint_idx = 1 if axis == 1 else 0
+        metadata["n_timepoints"] = X.shape[timepoint_idx] if X.ndim > 1 else X.shape[0]
 
         # check if has missing values
         if isinstance(X, np.ndarray):
