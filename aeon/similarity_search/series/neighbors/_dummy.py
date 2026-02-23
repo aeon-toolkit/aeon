@@ -1,7 +1,5 @@
 """Implementation of NN with brute force."""
 
-from typing import Optional
-
 __maintainer__ = ["baraline"]
 __all__ = ["DummySNN"]
 
@@ -30,8 +28,8 @@ class DummySNN(BaseSeriesSimilaritySearch):
     def __init__(
         self,
         length: int,
-        normalize: Optional[bool] = False,
-        n_jobs: Optional[int] = 1,
+        normalize: bool | None = False,
+        n_jobs: int | None = 1,
     ):
         self.normalize = normalize
         self.n_jobs = n_jobs
@@ -45,7 +43,8 @@ class DummySNN(BaseSeriesSimilaritySearch):
     ):
         prev_threads = get_num_threads()
 
-        set_num_threads(check_n_jobs(self.n_jobs))
+        self._n_jobs = check_n_jobs(self.n_jobs)
+        set_num_threads(self._n_jobs)
 
         self.X_subs = get_all_subsequences(self.X_, self.length, 1)
         if self.normalize:
@@ -56,12 +55,12 @@ class DummySNN(BaseSeriesSimilaritySearch):
     def _predict(
         self,
         X: np.ndarray,
-        k: Optional[int] = 1,
-        dist_threshold: Optional[float] = np.inf,
-        exclusion_factor: Optional[float] = 0.5,
-        inverse_distance: Optional[bool] = False,
-        allow_neighboring_matches: Optional[bool] = False,
-        X_index: Optional[int] = None,
+        k: int | None = 1,
+        dist_threshold: float | None = np.inf,
+        exclusion_factor: float | None = 0.5,
+        inverse_distance: bool | None = False,
+        allow_neighboring_matches: bool | None = False,
+        X_index: int | None = None,
     ):
         """
         Compute nearest neighbors to X in subsequences of X_.
@@ -81,8 +80,8 @@ class DummySNN(BaseSeriesSimilaritySearch):
             A factor of the query length used to define the exclusion zone when
             ``allow_neighboring_matches`` is set to False. For a given timestamp,
             the exclusion zone starts from
-            :math:`id_timestamp - floor(length * exclusion_factor)` and end at
-            :math:`id_timestamp + floor(length * exclusion_factor)`.
+            :math:``id_timestamp - floor(length * exclusion_factor)`` and end at
+            :math:``id_timestamp + floor(length * exclusion_factor)``.
         X_index : int, optional
             If ``X`` is a subsequence of X_, specify its starting timestamp in ``X_``.
             If specified, neighboring subsequences of X won't be able to match as
@@ -158,7 +157,7 @@ class DummySNN(BaseSeriesSimilaritySearch):
         ----------
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return ``"default"`` set.
             There are currently no reserved values for transformers.
 
         Returns
@@ -166,7 +165,8 @@ class DummySNN(BaseSeriesSimilaritySearch):
         params : dict or list of dict, default = {}
             Parameters to create testing instances of the class
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid test
+            instance.
         """
         if parameter_set == "default":
             params = {"length": 20}

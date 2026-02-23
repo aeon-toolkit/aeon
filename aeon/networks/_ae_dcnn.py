@@ -85,8 +85,8 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
     def build_network(self, input_shape):
         """Construct a network and return its input and output layers.
 
-        Arguments
-        ---------
+        Parameters
+        ----------
         input_shape : tuple of shape = (n_timepoints (m), n_channels (d))
             The shape of the data fed into the input layer.
 
@@ -197,14 +197,18 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
                 kernel_size=1,
             )(x)
 
-        encoder = tf.keras.Model(inputs=input_layer, outputs=output_layer)
+        encoder = tf.keras.Model(
+            inputs=input_layer, outputs=output_layer, name="encoder"
+        )
 
         if self.temporal_latent_space:
             input_layer_decoder = tf.keras.layers.Input(x.shape[1:])
             temp = input_layer_decoder
         elif not self.temporal_latent_space:
             input_layer_decoder = tf.keras.layers.Input((self.latent_space_dim,))
-            dense_layer = tf.keras.layers.Dense(units=np.prod(shape_before_flatten))(
+            # Cast to int to avoid Keras rejecting numpy scalar types
+            decoder_units = int(np.prod(shape_before_flatten))
+            dense_layer = tf.keras.layers.Dense(units=decoder_units)(
                 input_layer_decoder
             )
 
@@ -226,7 +230,9 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
             )
 
         last_layer = tf.keras.layers.Conv1D(filters=input_shape[-1], kernel_size=1)(y)
-        decoder = tf.keras.Model(inputs=input_layer_decoder, outputs=last_layer)
+        decoder = tf.keras.Model(
+            inputs=input_layer_decoder, outputs=last_layer, name="decoder"
+        )
 
         return encoder, decoder
 

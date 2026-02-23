@@ -15,8 +15,9 @@ __all__ = [
     "VALID_ESTIMATOR_BASES",
 ]
 
-
 from aeon.anomaly_detection.base import BaseAnomalyDetector
+from aeon.anomaly_detection.collection.base import BaseCollectionAnomalyDetector
+from aeon.anomaly_detection.series.base import BaseSeriesAnomalyDetector
 from aeon.base import BaseAeonEstimator, BaseCollectionEstimator, BaseSeriesEstimator
 from aeon.classification.base import BaseClassifier
 from aeon.classification.early_classification import BaseEarlyClassifier
@@ -34,23 +35,25 @@ from aeon.transformations.series import BaseSeriesTransformer
 # all base classes
 BASE_CLASS_REGISTER = {
     # abstract - no estimator directly inherits from these
-    "collection-estimator": BaseCollectionEstimator,
     "estimator": BaseAeonEstimator,
+    "collection-estimator": BaseCollectionEstimator,
     "series-estimator": BaseSeriesEstimator,
     "transformer": BaseTransformer,
+    "anomaly-detector": BaseAnomalyDetector,
     "similarity-search": BaseSimilaritySearch,
     # estimator types
-    "anomaly-detector": BaseAnomalyDetector,
+    "collection-anomaly-detector": BaseCollectionAnomalyDetector,
+    "collection-similarity-search": BaseCollectionSimilaritySearch,
     "collection-transformer": BaseCollectionTransformer,
     "classifier": BaseClassifier,
     "clusterer": BaseClusterer,
     "early_classifier": BaseEarlyClassifier,
+    "forecaster": BaseForecaster,
     "regressor": BaseRegressor,
     "segmenter": BaseSegmenter,
-    "series-transformer": BaseSeriesTransformer,
-    "forecaster": BaseForecaster,
+    "series-anomaly-detector": BaseSeriesAnomalyDetector,
     "series-similarity-search": BaseSeriesSimilaritySearch,
-    "collection-similarity-search": BaseCollectionSimilaritySearch,
+    "series-transformer": BaseSeriesTransformer,
 }
 
 # base classes which are valid for estimator to directly inherit from
@@ -62,6 +65,7 @@ VALID_ESTIMATOR_BASES = {
         "collection-estimator",
         "series-estimator",
         "transformer",
+        "anomaly-detector",
         "similarity-search",
     }
 }

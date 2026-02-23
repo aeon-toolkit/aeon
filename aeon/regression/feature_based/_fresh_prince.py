@@ -13,6 +13,7 @@ from sklearn.tree import DecisionTreeRegressor
 from aeon.regression.base import BaseRegressor
 from aeon.regression.sklearn import RotationForestRegressor
 from aeon.transformations.collection.feature_based import TSFresh
+from aeon.utils.validation import check_n_jobs
 
 
 class FreshPRINCERegressor(BaseRegressor):
@@ -161,6 +162,7 @@ class FreshPRINCERegressor(BaseRegressor):
 
     def _fit_fp_shared(self, X, y):
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
+        self._n_jobs = check_n_jobs(self.n_jobs)
 
         self._rotf = RotationForestRegressor(
             n_estimators=self.n_estimators,

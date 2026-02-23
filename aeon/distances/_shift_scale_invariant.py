@@ -1,18 +1,17 @@
 """Shift-invariant distance."""
 
-from typing import Optional, Union
-
 import numpy as np
-from numba import njit
+from numba import njit, prange
 from numba.typed import List as NumbaList
 
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
+from aeon.utils.numba._threading import threaded
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
 @njit(cache=True, fastmath=True)
 def shift_scale_invariant_distance(
-    x: np.ndarray, y: np.ndarray, max_shift: Optional[int] = None
+    x: np.ndarray, y: np.ndarray, max_shift: int | None = None
 ) -> float:
     r"""Compute the shift and scale invariant distance [1]_ between two time series.
 
@@ -156,10 +155,12 @@ def _univariate_shift_scale_invariant_distance(
     return min_dist, best_shifted_y
 
 
+@threaded
 def shift_scale_invariant_pairwise_distance(
-    X: Union[np.ndarray, list[np.ndarray]],
-    y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
-    max_shift: Optional[int] = None,
+    X: np.ndarray | list[np.ndarray],
+    y: np.ndarray | list[np.ndarray] | None = None,
+    max_shift: int | None = None,
+    n_jobs: int = 1,
 ) -> np.ndarray:
     r"""Compute the shift-scale invariant pairwise distance between time series.
 
@@ -193,6 +194,10 @@ def shift_scale_invariant_pairwise_distance(
         Maximum shift allowed in the alignment path. If None, then max_shift is set
         to min(X.shape[-1], y.shape[-1]) or if y is None, max_shift is set to
         X.shape[-1].
+    n_jobs : int, default=1
+        The number of jobs to run in parallel. If -1, then the number of jobs is set
+        to the number of CPU cores. If 1, then the function is executed in a single
+        thread. If greater than 1, then the function is executed in parallel.
 
     Returns
     -------
@@ -308,7 +313,7 @@ def shift_scale_invariant_best_shift(
     raise ValueError("x and y must be 1D or 2D")
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath=True, parallel=True)
 def _shift_invariant_pairwise_distance(
     x: NumbaList[np.ndarray], y: NumbaList[np.ndarray], max_shift: int
 ) -> np.ndarray:
@@ -316,7 +321,7 @@ def _shift_invariant_pairwise_distance(
     m_cases = len(y)
     distances = np.zeros((n_cases, m_cases))
 
-    for i in range(n_cases):
+    for i in prange(n_cases):
         for j in range(m_cases):
             distances[i, j] = shift_scale_invariant_distance(x[i], y[j], max_shift)
     return distances

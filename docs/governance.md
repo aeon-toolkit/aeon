@@ -93,24 +93,26 @@ approving any project expenses and managing any finance related accounts.
 The role of the communications workgroups is to interact with the broader community
 through the `aeon` social network accounts and discussion forums. It is the
 responsibility of the communications workgroup to manage and maintain the `aeon`
-Twitter, LinkedIn, Slack and other relevant communications accounts.
+LinkedIn, X/Twitter, Medium blog, Discord and other relevant communications accounts.
 
 The communications team maintains access to social networking accounts and is
 responsible for managing access to the `aeon` email address. To help manage
 GitHub discussions, the communication workgroup is given triage access to the `aeon`
 GitHub repository.
 
-#### Code of Conduct Workgroup
+#### Code of Conduct Moderators
 
-The Code of Conduct Workgroup (CoCW) consists of contributors tasked with making sure
-`aeon` remains a welcoming and inclusive community. CoCW responsibilities include
-maintaining the `aeon` Code of Conduct (CoC) and managing reports of breaking the CoC.
-CoCW members are expected to review reports of CoC violations, contact and discuss with
-involved individuals and make recommendations on actions to take.
+The Code of Conduct Moderators (CoCM) consists of contributors tasked with making sure
+`aeon` remains a welcoming and inclusive community. CoCM responsibilities include
+ensuring the Code of Conduct (CoC) remains up to date, keeping contact with the
+NumFOCUS Code of Conduct Workgroup and managing reports of breaking the CoC.
+CoCM members are expected to review reports of CoC violations, refer cases to the
+NumFOCUS workgroup when applicable and make decisions on report actions while
+consulting with the greater community.
 
-Any CoCW members involved in a CoC report or CoCW members which have a conflict of
+Any CoCM members involved in a CoC report or CoCM members which have a conflict of
 interest regarding the report are expected to recuse themselves from the process. The
-CoCW is given triage access to the `aeon` GitHub repository to moderate discussions if
+CoCM is given triage access to the `aeon` GitHub repository to moderate discussions if
 necessary.
 
 ## Decision-Making Process
@@ -118,9 +120,9 @@ necessary.
 Decisions about the future of the project are announced publicly to allow discussion
 with all members of the community. The whole process from proposal to implementation
 is fully visible, apart from topics considered sensitive. All non-sensitive project
-management discussion takes place on the project Slack and/or the issue tracker.
+management discussion takes place on the project Discord and/or the issue tracker.
 Occasionally, sensitive discussion and votes such as appointments will occur in private
-Slack channels or meetings.
+Discord channels or meetings.
 
 For most decisions, a consensus seeking process of all interested contributors is used.
 Contributors try to find a resolution that has no open objections among core developers.
@@ -165,7 +167,7 @@ submitted to the community for discussion and comment.
 
 ## Acknowledgements
 
-Significant portions of this document were adapted from or inspired by the following
+Portions of this document were adapted from or inspired by the following
 projects governance documents:
 
 - [Scikit-learn](https://scikit-learn.org/stable/governance.html)

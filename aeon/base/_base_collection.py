@@ -4,20 +4,19 @@ Base class for estimators that fit collections of time series.
     class name: BaseCollectionEstimator
 
 Defining methods:
-    preprocessing         - _preprocess_collection(self, X, store_metadata=True)
-    input checking        - _check_X(self, X)
-    input conversion      - _convert_X(self, X)
-    shape checking        - _check_shape(self, X)
+    preprocessing         - ``_preprocess_collection(self, X, store_metadata=True)``
+    input checking        - ``_check_X(self, X)``
+    input conversion      - ``_convert_X(self, X)``
+    shape checking        - ``_check_shape(self, X)``
 
 Inherited inspection methods:
-    hyper-parameter inspection  - get_params()
-    fitted parameter inspection - get_fitted_params()
+    hyper-parameter inspection  - ``get_params()``
+    fitted parameter inspection - ``get_fitted_params()``
 
 State:
     fitted model/strategy   - by convention, any attributes ending in "_"
     fitted state flag       - is_fitted (property)
     fitted state inspection - check_is_fitted()
-
 """
 
 from abc import abstractmethod
@@ -30,7 +29,6 @@ from aeon.utils.conversion import (
     resolve_equal_length_inner_type,
     resolve_unequal_length_inner_type,
 )
-from aeon.utils.validation import check_n_jobs
 from aeon.utils.validation.collection import (
     get_n_cases,
     get_n_channels,
@@ -65,7 +63,6 @@ class BaseCollectionEstimator(BaseAeonEstimator):
     @abstractmethod
     def __init__(self):
         self.metadata_ = {}  # metadata/properties of data seen in fit
-        self._n_jobs = 1
 
         super().__init__()
 
@@ -80,26 +77,26 @@ class BaseCollectionEstimator(BaseAeonEstimator):
         Parameters
         ----------
         X : collection
-            See aeon.utils.COLLECTIONS_DATA_TYPES for details on aeon supported
+            See ``aeon.utils.COLLECTIONS_DATA_TYPES`` for details on aeon supported
             data structures.
         store_metadata : bool, default=True
-            Whether to store metadata about X in self.metadata_.
+            Whether to store metadata about ``X`` in ``self.metadata_``.
 
         Returns
         -------
         X : collection
-            Processed X. A data structure of type self.get_tag("X_inner_type").
+            Processed ``X``. A data structure of type ``self.get_tag("X_inner_type")``.
 
         Raises
         ------
         ValueError
-            If X is an invalid type or has characteristics that the estimator cannot
+            If ``X`` is an invalid type or has characteristics that the estimator cannot
             handle.
 
         See Also
         --------
         _check_X :
-            Function that checks X is valid before conversion.
+            Function that checks ``X`` is valid before conversion.
         _convert_X :
             Function that converts to inner type.
 
@@ -115,21 +112,12 @@ class BaseCollectionEstimator(BaseAeonEstimator):
         """
         if isinstance(X, list) and isinstance(X[0], np.ndarray):
             X = self._reshape_np_list(X)
+
         meta = self._check_X(X)
         if len(self.metadata_) == 0 and store_metadata:
             self.metadata_ = meta
 
-        X = self._convert_X(X)
-        # This usage of n_jobs is legacy, see issue #102
-        multithread = self.get_tag("capability:multithreading")
-        if multithread:
-            if hasattr(self, "n_jobs"):
-                self._n_jobs = check_n_jobs(self.n_jobs)
-            else:
-                raise AttributeError(
-                    "self.n_jobs must be set if capability:multithreading is True"
-                )
-        return X
+        return self._convert_X(X)
 
     def _check_X(self, X):
         """
@@ -138,37 +126,39 @@ class BaseCollectionEstimator(BaseAeonEstimator):
         Check if the input data is a compatible type, and that this estimator is
         able to handle the data characteristics.
         This is done by matching the capabilities of the estimator against the metadata
-        for X i.e., univariate/multivariate, equal length/unequal length and no missing
-        values/missing values.
+        for ``X`` i.e., univariate/multivariate, equal length/unequal length
+        and no missing values/missing values.
 
         Parameters
         ----------
         X : collection
-           See aeon.utils.COLLECTIONS_DATA_TYPES for details on aeon supported
+           See ``aeon.utils.COLLECTIONS_DATA_TYPES`` for details on aeon supported
            data structures.
 
         Returns
         -------
         metadata : dict
-            Metadata about X, with flags:
-            metadata["multivariate"] : whether X has more than one channel or not
-            metadata["missing_values"] : whether X has missing values or not
-            metadata["unequal_length"] : whether X contains unequal length series.
-            metadata["n_cases"] : number of cases in X
-            metadata["n_channels"] : number of channels in X
-            metadata["n_timepoints"] : number of timepoints in X if equal length, else
-                None
+            Metadata about ```X```, with flags:
+            ``metadata["multivariate"]`` : whether ``X`` has more than one channel or
+            not
+            ``metadata["missing_values"]`` : whether ``X`` has missing values or not
+            ``metadata["unequal_length"]`` : whether ``X`` contains unequal length
+            series.
+            ``metadata["n_cases"]`` : number of cases in ``X``
+            ``metadata["n_channels"]`` : number of channels in ``X``
+            ``metadata["n_timepoints"]`` : number of timepoints in ``X`` if equal
+            length, else ``None``
 
         Raises
         ------
         ValueError
-            If X is an invalid type or has characteristics that the estimator cannot
+            If ``X`` is an invalid type or has characteristics that the estimator cannot
             handle.
 
         See Also
         --------
         _convert_X :
-            Function that converts X after it has been checked.
+            Function that converts ``X`` after it has been checked.
 
         Examples
         --------
@@ -209,36 +199,37 @@ class BaseCollectionEstimator(BaseAeonEstimator):
 
     def _convert_X(self, X):
         """
-        Convert X to type defined by tag X_inner_type.
+        Convert ``X`` to type defined by tag ``X_inner_type``.
 
         If the input data is already an allowed type, it is returned unchanged.
 
-        If multiple types are allowed by self, then the best one for the type of input
-        data is selected. So, for example, if X_inner_tag is ["np-list", "numpy3D"]
-        and an df-list is passed, it will be converted to numpy3D if the series
-        are equal length, and np-list if the series are unequal length.
+        If multiple types are allowed by ``self``, then the best
+        one for the type of input data is selected. So, for example, if
+        ``X_inner_tag`` is ["np-list", "numpy3D"] and an df-list is passed, it will
+        be converted to ``numpy3D`` if the series are equal length, and np-list
+        if the series are unequal length.
 
         Parameters
         ----------
         X : collection
-           See aeon.utils.COLLECTIONS_DATA_TYPES for details on aeon supported
+           See ``aeon.utils.COLLECTIONS_DATA_TYPES`` for details on aeon supported
            data structures.
 
         Returns
         -------
         X : collection
-            Converted X. A data structure of type self.get_tag("X_inner_type").
+            Converted ``X``. A data structure of type ``self.get_tag("X_inner_type")``.
 
         See Also
         --------
         _check_X :
-            Function that checks X is valid and finds metadata.
+            Function that checks ``X`` is valid and finds metadata.
 
         Examples
         --------
         >>> from aeon.testing.mock_estimators import MockClassifier
         >>> from aeon.testing.data_generation import make_example_3d_numpy_list
-        >>> from aeon.utils.validation import get_type
+        >>> from aeon.utils.validation.collection import get_type
         >>> clf = MockClassifier()
         >>> X, _ = make_example_3d_numpy_list(max_n_timepoints=8)
         >>> get_type(X)
@@ -275,17 +266,17 @@ class BaseCollectionEstimator(BaseAeonEstimator):
 
     def _check_shape(self, X):
         """
-        Check that the shape of X is consistent with the data seen in fit.
+        Check that the shape of ``X`` is consistent with the data seen in fit.
 
         Parameters
         ----------
         X : data structure
-            Must be of type aeon.registry.COLLECTIONS_DATA_TYPES.
+            Must be of type ``aeon.registry.COLLECTIONS_DATA_TYPES``.
 
         Raises
         ------
         ValueError
-            If the shape of X is not consistent with the data seen in fit.
+            If the shape of ``X`` is not consistent with the data seen in fit.
         """
         # if metadata is empty, then we have not seen any data in fit. If the estimator
         # has not been fitted, then _is_fitted should catch this.

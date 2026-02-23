@@ -12,6 +12,7 @@ from sklearn.cluster import KMeans
 from aeon.base._base import _clone_estimator
 from aeon.clustering import BaseClusterer
 from aeon.transformations.collection.feature_based import SevenNumberSummary
+from aeon.utils.validation import check_n_jobs
 
 
 class SummaryClusterer(BaseClusterer):
@@ -105,6 +106,8 @@ class SummaryClusterer(BaseClusterer):
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
         """
+        self._n_jobs = check_n_jobs(self.n_jobs)
+
         self._transformer = SevenNumberSummary(
             summary_stats=self.summary_stats,
         )

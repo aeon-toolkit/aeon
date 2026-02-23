@@ -37,7 +37,6 @@ References
 import logging
 import math
 from dataclasses import dataclass, field
-from typing import Optional
 
 import numpy as np
 import numpy.typing as npt
@@ -64,7 +63,7 @@ class _GGS:
     to the data by computing the approximate solution to the combinatorial
     problem of finding the approximate covariance-regularized  maximum
     log-likelihood for fixed number of change points and a reagularization
-    strength. It follows an interative procedure
+    strength. It follows an iterative procedure
     where a new breakpoint is added and then adjusting all breakpoints to
     (approximately) maximize the objective. It is similar to the top-down
     search used in other change point detection problems.
@@ -127,7 +126,7 @@ class _GGS:
     _intermediate_ll: list[float] = field(init=False, default_factory=list)
 
     def initialize_intermediates(self) -> None:
-        """Initialize the state fo the estimator."""
+        """Initialize the state of the estimator."""
         self._intermediate_change_points = []
         self._intermediate_ll = []
 
@@ -147,7 +146,7 @@ class _GGS:
         """
         nrows, ncols = data.shape
         cov = np.cov(data.T, bias=True)
-        (_, logdet) = np.linalg.slogdet(
+        _, logdet = np.linalg.slogdet(
             cov + float(self.lamb) * np.identity(ncols) / nrows
         )
 
@@ -227,7 +226,7 @@ class _GGS:
             )
             ll_left = 2 * sum(map(math.log, np.diag(Lleft)))
             ll_right = 2 * sum(map(math.log, np.diag(Lright)))
-            (trace_left, trace_right) = (0, 0)
+            trace_left, trace_right = (0, 0)
             if self.lamb > 0:
                 trace_left = math.pow(np.linalg.norm(np.linalg.inv(Lleft)), 2)
                 trace_right = math.pow(np.linalg.norm(np.linalg.inv(Lright)), 2)
@@ -388,7 +387,7 @@ class GreedyGaussianSegmenter(BaseSegmenter):
     to the data by computing the approximate solution to the combinatorial
     problem of finding the approximate covariance-regularized  maximum
     log-likelihood for fixed number of change points and a reagularization
-    strength. It follows an interative procedure
+    strength. It follows an iterative procedure
     where a new breakpoint is added and then adjusting all breakpoints to
     (approximately) maximize the objective. It is similar to the top-down
     search used in other change point detection problems.
@@ -457,7 +456,7 @@ class GreedyGaussianSegmenter(BaseSegmenter):
         lamb: float = 1.0,
         max_shuffles: int = 250,
         verbose: bool = False,
-        random_state: Optional[int] = None,
+        random_state: int | None = None,
     ):
         self.k_max = k_max
         self.lamb = lamb
@@ -503,12 +502,10 @@ class GreedyGaussianSegmenter(BaseSegmenter):
             dimension of X. The numerical values represent distinct segments
             labels for each of the data points.
         """
-        self.change_points_ = self.ggs.find_change_points(X)
+        change_points_ = self.ggs.find_change_points(X)
 
         labels = np.zeros(X.shape[0], dtype=np.int32)
-        for i, (start, stop) in enumerate(
-            zip(self.change_points_[:-1], self.change_points_[1:])
-        ):
+        for i, (start, stop) in enumerate(zip(change_points_[:-1], change_points_[1:])):
             labels[start:stop] = i
         return labels
 

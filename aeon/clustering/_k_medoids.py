@@ -1,11 +1,10 @@
 """Time series kmedoids."""
 
-from typing import Optional
-
 __maintainer__ = []
+__all__ = ["TimeSeriesKMedoids"]
 
 import warnings
-from typing import Callable, Union
+from collections.abc import Callable
 
 import numpy as np
 from numpy.random import RandomState
@@ -33,7 +32,7 @@ class TimeSeriesKMedoids(BaseClusterer):
     PAM (Partition Around Medoids)[3]_ algorithm and is the default method used in this
     implementation. However, an adaptation of lloyds method classically used for k-means
     is also available by specifying method='alternate'. Alternate is faster but less
-    accurate than PAM. For a full review of varations of k-medoids for time series
+    accurate than PAM. For a full review of variations of k-medoids for time series
     see [5]_.
 
     K-medoids for time series uses a dissimilarity method to compute the distance
@@ -156,15 +155,15 @@ class TimeSeriesKMedoids(BaseClusterer):
     def __init__(
         self,
         n_clusters: int = 8,
-        init: Union[str, np.ndarray] = "random",
-        distance: Union[str, Callable] = "msm",
+        init: str | np.ndarray = "random",
+        distance: str | Callable = "msm",
         method: str = "pam",
         n_init: int = 10,
         max_iter: int = 300,
         tol: float = 1e-6,
         verbose: bool = False,
-        random_state: Optional[Union[int, RandomState]] = None,
-        distance_params: Optional[dict] = None,
+        random_state: int | RandomState | None = None,
+        distance_params: dict | None = None,
     ):
         self.distance = distance
         self.init = init
