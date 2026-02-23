@@ -67,7 +67,7 @@ def _alias_datatype_check(return_type):
 
 
 def _load_header_info(file):
-    """Load the meta data from a .ts file and advance file to the data.
+    """Load the metadata from a .ts file and advance file to the data.
 
     Parameters
     ----------
@@ -423,13 +423,13 @@ def download_dataset(name, save_path=None):
         save_path
     ) or name not in get_downloaded_tsf_datasets(save_path):
         # Dataset is not already present in the datasets directory provided.
-        # If it is not there, download it.
+        # If it is not there, download it from zenodo
         url = f"https://timeseriesclassification.com/aeon-toolkit/{name}.zip"
         try:
             _download_and_extract(url, extract_path=save_path)
         except zipfile.BadZipFile as e:
             raise ValueError(
-                f"Invalid dataset name ={name} is available on extract path ="
+                f"Invalid dataset name ={name} is not available on extract path ="
                 f" {save_path} or https://timeseriesclassification.com/ but it is not "
                 f"correctly formatted.",
             ) from e
@@ -1072,7 +1072,7 @@ def load_collection(
     return_metadata: bool = False,
     load_equal_length: bool = True,
     load_no_missing: bool = True,
-    problem_dict=tsr_zenodo,
+    problem_dict: dict[str, int] = tsr_zenodo,
 ):
     """Download/load a TSML collection of data.
 
@@ -1080,9 +1080,8 @@ def load_collection(
     https://zenodo.org/communities/tsml in standard aeon format. It will download a
     train and test file. If the problem is unequal length or has missing values,
     it will also download equal length and no missing value versions. The list of
-    datasets stored and appropriate zenodo key is maintained
-    in file tsc_datasets in list tsr_zenodo and tsc_zenodo. It will validate the
-    series metadata and will work with regression or classification.
+    datasets stored and appropriate zenodo key is maintained in file tsc_datasets
+    in dictionaries tsr_zenodo (regression) and tsc_zenodo (classification).
 
     If you want to load a problem from a local file, specify the
     location in ``extract_path``. This function assumes the data is stored in format
@@ -1097,27 +1096,23 @@ def load_collection(
 
     Data is assumed to be in the standard .ts format: each row is a (possibly
     multivariate) time series. Each channel is separated by a colon, each value in
-    a series is comma separated. For an example TSER problem see
-    aeon.datasets.data.Covid3Month. Some of the data are univariate, some are
-    multivariate. Some of the original problems are unequal length
-    and have missing values. You can
-    download all of them with missing values imputed and mean padded to equal
-    length in a single zip from here
-    https://zenodo.org/records/11236865.
+    a series is comma separated. Missing values are indicated by NaN. The last value
+    on each row is the class value for classification or target variable for regression.
+    For an example TSER problem see aeon.datasets.data.Covid3Month. The zenodo TSML
+    community maintains numerous repositories. You can download zips of whole
+    repositories using the function ``download_archive``.
 
     By default, this function loads equal length no
     missing value versions of the files that have been used in experimental studies.
     These have suffixes `_eq` or `_nmv` after the name on zenodo.
-    If you want to load a different version, set the flags load_equal_length and/or
-    load_no_missing to true. If present, the function will then load these versions
-    if it can. aeon supports loading series with missing values and or unequal
-    length between series, but it does not support loading multivariate series where
-    lengths differ between channels. The original PGDALIA is in this format. The data
-    PGDALIA_eq has length normalised series. If a problem has unequal length series
+    If you want to load the original version, set the flags ``load_equal_length`` and/or
+    ``load_no_missing`` to False. If a problem has unequal length series
     and missing values, it is assumed to be of the form <name>_eq_nmv_TRAIN.ts and
     <name>_eq_nmv_TEST.ts. There are currently no problems in the archive with
     missing and unequal length. To get summary information,
-    set return_metadata to True.
+    set return_metadata to True. aeon supports loading series with missing values and
+    or unequal length between series, but it does not support loading multivariate
+    series where lengths differ between channels.
 
 
     Parameters
@@ -1147,6 +1142,9 @@ def load_collection(
         flag is set to True, the function first attempts to load files called
         <name>_nmv_TRAIN.ts/TEST.ts. If these are not present, it will load the normal
         version.
+    problem_dict: default = tsr_zenodo,
+        Dictionary of dataset names and their corresponding zenodo keys. Valid values are
+        tsr_zenodo or tsc_zenodo
 
     Returns
     -------
@@ -1180,7 +1178,7 @@ def load_collection(
     path = os.path.join(local_module, local_dirname)
 
     # If the request is for _eq or _nmv versions, we need to strip that out and set
-    # the flags accordingly. Directory and file always the stripped name
+    # the flags accordingly. Directory always uses the stripped name
     base_name = name
     if name.endswith("_eq"):
         name = name[:-3]  # strip "_eq"
@@ -1190,8 +1188,6 @@ def load_collection(
         name = base_name[:-4]  # strip "_nmv"
         load_no_missing = True
     dir_name = name
-    # equal_length = True
-    # no_missing = True
     eq_present = False
     nmv_present = False
     if name not in get_downloaded_tsc_tsr_datasets(extract_path):
@@ -1279,21 +1275,6 @@ def load_collection(
         local_dirname=local_dirname,
         return_meta=True,
     )
-
-    # REMOVE BEFORE MERGE
-    # if not meta["equallength"] and not eq_present:
-    #     print(f"{name} has unequal length flag meta data but no eq data equivalent")
-    # elif meta["equallength"]:
-    #     if isinstance(X, list):
-    #         print(f"{name} has returned a list but does not have unequal length flag")
-    # if meta["missing"] and not nmv_present:
-    #     print(f"{name} has missing flag meta data but no _nmv data equivalent")
-    #
-    # elif meta["equallength"]:
-    #     has_missing = np.isnan(X).any()
-    #     if has_missing:
-    #         print(f"{name} has NaNs but missing flag not set")
-
     if return_metadata:
         return X, y, meta
     return X, y
@@ -1306,12 +1287,14 @@ def load_regression(
     return_metadata: bool = False,
     load_equal_length: bool = True,
     load_no_missing: bool = True,
-    problem_dict=tsr_zenodo,
 ):
     """Download/load a TSML regression collection.
 
-    Calls load_collection then further validates that a classification problem has
-    not been loaded by mistake. If this happens, it raises an error.
+    If the data is stored locally on "extract_path" it is loaded from there. If not,
+    it is downloaded from the Zenodo TSML community (https://zenodo.org/communities/tsml)
+    then loaded into memory. It does this by calling load_collection (see that functions
+    documentation for more detail) then further checks whether a classification problem has
+    been loaded by mistake. If this happens, it raises an error.
 
 
     Parameters
@@ -1344,8 +1327,8 @@ def load_regression(
 
     Returns
     -------
-    X: np.ndarray or list of np.ndarray
-    y: np.ndarray
+    X : np.ndarray or list of np.ndarray
+    y : np.ndarray
         The target response variable for each case in X
     metadata: dict, optional
         returns the following metadata
@@ -1357,8 +1340,9 @@ def load_regression(
     URLError or HTTPError
         If the website is not accessible.
     ValueError
-        If a dataset name that does not exist on the repo is given or if a
-        webpage is requested that does not exist.
+        If a dataset name that does not exist on the repo is given, if a
+        webpage is requested that does not exist or if a classification
+        problem were loaded in error.
 
     Examples
     --------
@@ -1398,29 +1382,12 @@ def load_classification(
 ):
     """Download/load a TSML classification collection.
 
-    Calls load_collection then further validates that a regression problem has
-    not been loaded by mistake. If this happens, it raises an error.
+    If the data is stored locally on "extract_path" it is loaded from there. If not,
+    it is downloaded from the Zenodo TSML community (https://zenodo.org/communities/tsml)
+    then loaded into memory. It does this by calling load_collection (see that functions
+    documentation for more detail) then further checks whether a regression problem has
+    been loaded by mistake. If this happens, it raises an error.
 
-    This function loads TSC problems into memory, downloading from
-    https://timeseriesclassification.com/ if the data is not available at the
-    specified local path. If you want to load a problem from a local file, specify the
-    location in ``extract_path``. This function assumes the data is stored in format
-    ``<extract_path>/<name>/<name>_TRAIN.ts`` and
-    ``<extract_path>/<name>/<name>_TEST.ts.`` If you want to load a file directly
-    from a full path, use the function `load_from_ts_file`` directly. If you do not
-    specify ``extract_path``, it will set the path to ``aeon/datasets/local_data``. If
-    the  problem is not present in ``extract_path`` it will attempt to download the data
-    from https://timeseriesclassification.com/.
-
-    This function can load timestamped data, but it does not store the time stamps.
-    The time stamp loading is fragile, it will only work if all data are floats.
-
-    Data is assumed to be in the standard .ts format: each row is a (possibly
-    multivariate) time series. Each dimension is separated by a colon, each value in
-    a series is comma separated. For examples see aeon.datasets.data. ArrowHead
-    is an example of a univariate equal length problem, BasicMotions an equal length
-    multivariate problem. See https://www.aeon-toolkit.org/en/stable/api_reference
-    /file_specifications/ts.html for formatting details.
 
     Parameters
     ----------
