@@ -108,25 +108,3 @@ jobs:
         uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: results.sarif
-
-  stale_branches:
-    runs-on: ubuntu-24.04
-
-    steps:
-      - name: Create app token
-        uses: actions/create-github-app-token@v2
-        id: app-token
-        with:
-          app-id: ${{ vars.PR_APP_ID }}
-          private-key: ${{ secrets.PR_APP_KEY }}
-
-      - name: Stale Branches
-        uses: crs-k/stale-branches@v8.2.2
-        with:
-          repo-token: ${{ steps.app-token.outputs.token }}
-          days-before-stale: 180
-          days-before-delete: 210
-          comment-updates: true
-          tag-committer: true
-          compare-branches: "info"
-          pr-check: true
