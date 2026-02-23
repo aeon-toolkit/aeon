@@ -45,12 +45,12 @@ classifiers = [
 requires-python = ">=3.10,<3.14"
 dependencies = [
     "deprecated>=1.2.13",
-    "numba>=0.55,<0.62.0",
-    "numpy>=1.21.0,<2.3.0",
+    "numba>=0.55,<0.64.0",
+    "numpy>=1.21.0,<2.5.0",
     "packaging>=20.0",
     "pandas>=2.0.0,<2.4.0",
     "scikit-learn>=1.0.0,<1.8.0",
-    "scipy>=1.9.0,<1.16.0",
+    "scipy>=1.9.0,<1.18.0",
     "typing-extensions>=4.6.0",
 ]
 
@@ -58,6 +58,7 @@ dependencies = [
 [project.optional-dependencies]
 all_extras = [
     "esig>=1.0.0; platform_system != 'Darwin'",
+    "huggingface-hub>=0.20.0",
     "imbalanced-learn",
     "matplotlib>=3.3.2",
     "pycatch22>=0.4.5",
@@ -93,7 +94,7 @@ dev = [
     "pytest-mock",
     "pytest-randomly",
     "pytest-remotedata",
-    "pytest-rerunfailures<17.0",
+    "pytest-rerunfailures",
     "pytest-timeout",
     "pytest-xdist[psutil]",
 ]
