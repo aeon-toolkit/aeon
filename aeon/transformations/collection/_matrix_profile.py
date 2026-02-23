@@ -195,7 +195,7 @@ def _stomp_self(ts, m):
 
 # TODO: remove in v1.5.0
 @deprecated(
-    version="1.3.0",
+    version="1.4.0",
     reason="MatrixProfile will be removed in v1.5.0. Instead, use the "
     "MatrixProfileTransformer and the SeriesToCollectionBroadcaster.",
     category=FutureWarning,
