@@ -95,7 +95,7 @@ class SAST(BaseCollectionTransformer):
         lengths: np.ndarray | None = None,
         stride: int = 1,
         nb_inst_per_class: int = 1,
-        seed: int | None = None,
+        random_state: int | None = None,
         n_jobs: int = 1,  # Parallel processing
     ):
         super().__init__()
@@ -109,7 +109,7 @@ class SAST(BaseCollectionTransformer):
         self._source_series = []  # To store the index of the original time series
         self.kernels_generators_ = {}  # Reference time series
         self.n_jobs = n_jobs
-        self.seed = seed
+        self.random_state = random_state
 
     def _fit(self, X: np.ndarray, y: np.ndarray | list) -> "SAST":
         """Select reference time series and generate subsequences from them.
@@ -135,9 +135,9 @@ class SAST(BaseCollectionTransformer):
         )
 
         self._random_state = (
-            np.random.RandomState(self.seed)
-            if not isinstance(self.seed, np.random.RandomState)
-            else self.seed
+            np.random.RandomState(self.random_state)
+            if not isinstance(self.random_state, np.random.RandomState)
+            else self.random_state
         )
 
         classes = np.unique(y)
@@ -210,7 +210,7 @@ class SAST(BaseCollectionTransformer):
 
         Returns
         -------
-        X_transformed: np.ndarray shape (n_cases, n_timepoints),
+        X_transformed: np.ndarray shape (n_cases, n_shapelets),
             The transformed data
         """
         X_ = np.reshape(X, (X.shape[0], X.shape[-1]))

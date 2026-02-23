@@ -101,14 +101,14 @@ class RSAST(BaseCollectionTransformer):
         n_random_points: int = 10,
         len_method: str = "both",
         nb_inst_per_class: int = 10,
-        seed: int | None = None,
+        random_state: int | None = None,
         n_jobs: int = 1,  # Parllel Processing
     ):
         self.n_random_points = n_random_points
         self.len_method = len_method
         self.nb_inst_per_class = nb_inst_per_class
         self.n_jobs = n_jobs
-        self.seed = seed
+        self.random_state = random_state
         self._kernels = None  # z-normalized subsequences
         self._cand_length_list = {}
         self._kernel_orig = []
@@ -143,9 +143,9 @@ class RSAST(BaseCollectionTransformer):
         X_ = np.reshape(X, (X.shape[0], X.shape[-1]))
 
         self._random_state = (
-            np.random.RandomState(self.seed)
-            if not isinstance(self.seed, np.random.RandomState)
-            else self.seed
+            np.random.RandomState(self.random_state)
+            if not isinstance(self.random_state, np.random.RandomState)
+            else self.random_state
         )
 
         classes = np.unique(y)

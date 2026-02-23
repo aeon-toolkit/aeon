@@ -21,7 +21,9 @@ def test_plot_cluster_algorithm():
     matplotlib.use("Agg")
 
     data = make_example_3d_numpy()
-    kmeans = TimeSeriesKMeans(n_clusters=2, distance="euclidean", max_iter=5)
+    kmeans = TimeSeriesKMeans(
+        n_clusters=2, distance="euclidean", max_iter=5, averaging_method="mean"
+    )
     kmeans.fit(data[0])
 
     fig, ax = plot_cluster_algorithm(kmeans, data[0], 2)

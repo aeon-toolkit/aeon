@@ -45,32 +45,16 @@ with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
     print(f"repo={repo_name}", file=fh)  # noqa: T201
     print(f"branch={branch_name}", file=fh)  # noqa: T201
 
-new_comment_body = comment_body
-
 if "- [x] Regenerate expected results for testing" in comment_body:
-    new_comment_body = new_comment_body.replace(
-        "- [x] Regenerate expected results for testing",
-        "- [ ] Regenerate expected results for testing",
-    )
-
     with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
         print("expected_results=true", file=fh)  # noqa: T201
 else:
     with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
         print("expected_results=false", file=fh)  # noqa: T201
 
-
 if "- [x] Push an empty commit to re-run CI checks" in comment_body:
-    new_comment_body = new_comment_body.replace(
-        "- [x] Push an empty commit to re-run CI checks",
-        "- [ ] Push an empty commit to re-run CI checks",
-    )
-
     with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
         print("empty_commit=true", file=fh)  # noqa: T201
 else:
     with open(os.environ["GITHUB_OUTPUT"], "a") as fh:
         print("empty_commit=false", file=fh)  # noqa: T201
-
-if new_comment_body != comment_body:
-    comment.edit(new_comment_body)

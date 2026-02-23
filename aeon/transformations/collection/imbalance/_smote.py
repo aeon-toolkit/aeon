@@ -9,18 +9,18 @@ original authors:
 # License: MIT
 """
 
+__maintainer__ = ["TonyBagnall"]
+__all__ = ["SMOTE"]
+
 from collections import OrderedDict
-from typing import Optional, Union
+from collections.abc import Callable
 
 import numpy as np
 from sklearn.utils import check_random_state
 
+from aeon.classification.distance_based import KNeighborsTimeSeriesClassifier
 from aeon.transformations.collection import BaseCollectionTransformer
-from aeon.transformations.collection.imbalance._single_class_knn import Single_Class_KNN
 from aeon.utils.validation import check_n_jobs
-
-__maintainer__ = ["TonyBagnall"]
-__all__ = ["SMOTE"]
 
 
 class SMOTE(BaseCollectionTransformer):
@@ -79,10 +79,10 @@ class SMOTE(BaseCollectionTransformer):
         self,
         n_neighbors: int = 5,
         random_state=None,
-        distance: Union[str, callable] = "euclidean",
-        distance_params: Optional[dict] = None,
+        distance: str | Callable = "euclidean",
+        distance_params: dict | None = None,
         n_jobs: int = 1,
-        weights: Union[str, callable] = "uniform",
+        weights: str | Callable = "uniform",
     ):
 
         self.random_state = random_state
@@ -101,7 +101,7 @@ class SMOTE(BaseCollectionTransformer):
         self._n_jobs = check_n_jobs(self.n_jobs)
 
         # set the additional_neighbor required by SMOTE
-        self.nn_ = Single_Class_KNN(
+        self.nn_ = _Single_Class_KNN(
             n_neighbors=self.n_neighbors + 1,
             distance=self.distance,
             distance_params=self._distance_params,
@@ -279,3 +279,18 @@ class SMOTE(BaseCollectionTransformer):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
         """
         return {"n_neighbors": 1}
+
+
+class _Single_Class_KNN(KNeighborsTimeSeriesClassifier):
+    """
+    KNN classifier for time series data, adapted to work with SMOTE.
+
+    This class is a wrapper around the original KNeighborsTimeSeriesClassifier
+    to ensure compatibility with the Signal class.
+    """
+
+    def _fit_setup(self, X, y):
+        # KNN can support if all labels are the same so always return False for single
+        # class problem so the fit will always run
+        X, y, _ = super()._fit_setup(X, y)
+        return X, y, False

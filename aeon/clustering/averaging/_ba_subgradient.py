@@ -2,12 +2,13 @@ __maintainer__ = []
 
 import numpy as np
 from numba import njit
-from sklearn.utils import check_random_state
 
 from aeon.clustering.averaging._ba_utils import (
+    VALID_BA_DISTANCE_METHODS,
+    _ba_setup,
     _get_alignment_path,
-    _get_init_barycenter,
 )
+from aeon.distances import pairwise_distance
 
 
 def subgradient_barycenter_average(
@@ -22,104 +23,130 @@ def subgradient_barycenter_average(
     precomputed_medoids_pairwise_distance: np.ndarray | None = None,
     verbose: bool = False,
     random_state: int | None = None,
+    n_jobs: int = 1,
+    previous_cost: float | None = None,
+    previous_distance_to_center: np.ndarray | None = None,
+    return_distances_to_center: bool = False,
+    return_cost: bool = False,
     **kwargs,
-) -> np.ndarray:
-    """Compute the stochastic subgradient barycenter average of time series.
+):
+    """
+    Compute the stochastic subgradient barycenter average of time series.
 
-    Stochastic subgradient is much faster than petitjean, however, it is not guaranteed
-    to find the optimal solution.
-
-    This implements a stochastic subgradient DBA algorithm. This changes how
-    the average is computed. Unlike traditional methods, it calculates a subgradient
-    based on each individual time series within the dataset. The barycenter is then
-    iteratively updated using these subgradient. See [2]_ for more details.
+    This implements a stochastic subgradient variant of DBA (cf. [2]_), which
+    updates the barycenter using subgradients computed per time series. It is
+    typically faster than the original Petitjean DBA but is not guaranteed to find
+    the optimal solution.
 
     Parameters
     ----------
-    X: np.ndarray, of shape (n_cases, n_channels, n_timepoints) or
-            (n_cases, n_timepoints)
-        A collection of time series instances to take the average from.
-    distance: str, default='dtw'
-        String defining the distance to use for averaging. Distance to
-        compute similarity between time series. A list of valid strings for metrics
-        can be found in the documentation form
-        :func:`aeon.distances.get_distance_function`.
-    max_iters: int, default=30
-        Maximum number iterations for dba to update over.
-    tol : float (default: 1e-5)
-        Tolerance to use for early stopping: if the decrease in cost is lower
-        than this value, the Expectation-Maximization procedure stops.
-    init_barycenter: np.ndarray or, default=None
-        The initial barycenter to use for the minimisation. If a np.ndarray is provided
-        it must be of shape ``(n_channels, n_timepoints)``. If a str is provided it must
-        be one of the following: ['mean', 'medoids', 'random'].
-    initial_step_size : float (default: 0.05)
-        Initial step size for the subgradient descent algorithm.
-        Default value is suggested by [2]_.
-    final_step_size : float (default: 0.005)
-        Final step size for the subgradient descent algorithm.
-        Default value is suggested by [2]_.
-    weights: Optional[np.ndarray] of shape (n_cases,), default=None
-        The weights associated to each time series instance, if None a weight
-        of 1 will be associated to each instance.
-    precomputed_medoids_pairwise_distance: np.ndarray (of shape (len(X), len(X)),
-                default=None
-        Precomputed medoids pairwise.
-    verbose: bool, default=False
-        Boolean that controls the verbosity.
-    random_state: int or None, default=None
-        Random state to use for the barycenter averaging.
+    X: np.ndarray of shape (n_cases, n_channels, n_timepoints) or (n_cases,
+        n_timepoints)
+        Collection of time series to average. If 2D, it is internally reshaped to
+        (n_cases, 1, n_timepoints).
+    distance : str, default="dtw"
+        Distance function used during averaging. See
+        :func:`aeon.distances.get_distance_function` for valid options.
+    max_iters : int, default=30
+        Maximum number of update iterations.
+    tol : float, default=1e-5
+        Early-stopping tolerance: if the decrease in cost between iterations is
+        smaller than this value, the procedure stops.
+    init_barycenter: {"mean", "medoids", "random"} or np.ndarray of shape (n_channels,
+        n_timepoints), default="mean"
+        Initial barycenter. If a string is provided, it specifies the initialisation
+        strategy. If an array is provided, it is used directly as the starting
+        barycenter.
+    initial_step_size : float, default=0.05
+        Initial step size for the subgradient descent updates (suggested in [2]_).
+    final_step_size : float, default=0.005
+        Final step size for the subgradient descent updates (suggested in [2]_).
+    weights : np.ndarray of shape (n_cases,), default=None
+        Weights for each time series. If None, all series receive weight 1.
+    precomputed_medoids_pairwise_distance : np.ndarray of shape (n_cases, n_cases),
+        default=None
+        Optional precomputed pairwise distance matrix (used when relevant, e.g., for
+        "medoids" initialisation). If None, distances are computed on the fly.
+    verbose : bool, default=False
+        If True, prints progress information.
+    random_state : int or None, default=None
+        Random seed used where applicable (e.g., for shuffling/initialisation).
+    n_jobs : int, default=1
+        The number of jobs to run in parallel. If -1, then the number of jobs is set
+        to the number of CPU cores. If 1, then the function is executed in a single
+        thread. If greater than 1, then the function is executed in parallel.
+    previous_cost : float, default=None
+        The total cost (sum of distances from all series in X to the current
+        barycenter). If None, it is computed in the first iteration.
+    previous_distance_to_center : np.ndarray of shape (n_cases,), default=None
+        Distances from each series in X to the current barycenter. If None, they are
+        computed in the first iteration.
+    return_distances_to_center : bool, default=False
+        If True, also return the distances between each time series and the barycenter.
+    return_cost : bool, default=False
+        If True, also return the total cost.
     **kwargs
-        Keyword arguments to pass to the distance method.
+        Additional keyword arguments forwarded to the chosen distance function.
 
     Returns
     -------
     np.ndarray of shape (n_channels, n_timepoints)
-        Time series that is the average of the collection of instances provided.
+        The barycenter (stochastic subgradient DBA average) of the input time series.
 
     References
     ----------
-    .. [1] F. Petitjean, A. Ketterlin & P. Gancarski. A global averaging method
-       for dynamic time warping, with applications to clustering. Pattern
-       Recognition, Elsevier, 2011, Vol. 44, Num. 3, pp. 678-693
-    .. [2] D. Schultz and B. Jain. Nonsmooth Analysis and Subgradient Methods
-       for Averaging in Dynamic Time Warping Spaces.
-       Pattern Recognition, 74, 340-358.
+    . [1] F. Petitjean, A. Ketterlin & P. Gancarski. "A global averaging method
+           for dynamic time warping, with applications to clustering."
+           Pattern Recognition, 44(3), 678–693, 2011.
+    . [2] D. Schultz & B. Jain. "Nonsmooth Analysis and Subgradient Methods
+           for Averaging in Dynamic Time Warping Spaces."
+           Pattern Recognition, 74, 340–358, 2018.
     """
     if len(X) <= 1:
-        return X
+        center = X[0] if X.ndim == 3 else X
+        if return_distances_to_center and return_cost:
+            return center, np.zeros(X.shape[0]), 0.0
+        elif return_distances_to_center:
+            return center, np.zeros(X.shape[0])
+        elif return_cost:
+            return center, 0.0
+        return center
 
-    if X.ndim == 3:
-        _X = X
-    elif X.ndim == 2:
-        _X = X.reshape((X.shape[0], 1, X.shape[1]))
-    else:
-        raise ValueError("X must be a 2D or 3D array")
+    if distance not in VALID_BA_DISTANCE_METHODS:
+        raise ValueError(
+            f"Invalid distance metric: {distance}. Valid metrics are: "
+            f"{VALID_BA_DISTANCE_METHODS}"
+        )
 
-    if weights is None:
-        weights = np.ones(len(_X))
-
-    barycenter = _get_init_barycenter(
+    (
         _X,
-        init_barycenter,
-        distance,
-        precomputed_medoids_pairwise_distance,
+        barycenter,
+        prev_barycenter,
+        cost,
+        previous_cost,
+        distances_to_center,
+        previous_distance_to_center,
         random_state,
+        n_jobs,
+        weights,
+    ) = _ba_setup(
+        X,
+        distance=distance,
+        init_barycenter=init_barycenter,
+        previous_cost=previous_cost,
+        previous_distance_to_center=previous_distance_to_center,
+        precomputed_medoids_pairwise_distance=precomputed_medoids_pairwise_distance,
+        n_jobs=n_jobs,
+        random_state=random_state,
+        weights=weights,
         **kwargs,
     )
-
-    random_state = check_random_state(random_state)
-
-    cost_prev = np.inf
-    if distance == "wdtw" or distance == "wddtw":
-        if "g" not in kwargs:
-            kwargs["g"] = 0.05
 
     current_step_size = initial_step_size
     X_size = _X.shape[0]
     for i in range(max_iters):
         shuffled_indices = random_state.permutation(X_size)
-        barycenter, cost, current_step_size = _ba_one_iter_subgradient(
+        barycenter, current_step_size = _ba_one_iter_subgradient(
             barycenter,
             _X,
             shuffled_indices,
@@ -131,15 +158,48 @@ def subgradient_barycenter_average(
             i,
             **kwargs,
         )
-        if abs(cost_prev - cost) < tol:
+        pw_dist = pairwise_distance(
+            _X, barycenter, method=distance, n_jobs=n_jobs, **kwargs
+        )
+        cost = np.sum(pw_dist)
+        distances_to_center = pw_dist.flatten()
+
+        if abs(previous_cost - cost) < tol:
+            if previous_cost < cost:
+                barycenter = prev_barycenter
+                distances_to_center = previous_distance_to_center
+            if verbose:
+                print(  # noqa: T001, T201
+                    f"[Subgradient-BA] epoch {i}, early convergence change in cost "
+                    f"between epochs: {previous_cost} - {cost} < tol: {tol}"
+                )
             break
-        elif cost_prev < cost:
+        elif previous_cost < cost:
+            barycenter = prev_barycenter
+            distances_to_center = previous_distance_to_center
+            if verbose:
+                print(  # noqa: T001, T201
+                    f"[Subgradient-BA] epoch {i}, early convergence cost increasing: "
+                    f"{cost} > previous cost: {previous_cost}"
+                )
             break
         else:
-            cost_prev = cost
+            prev_barycenter = barycenter
+            previous_distance_to_center = distances_to_center.copy()
+            previous_cost = cost
 
         if verbose:
-            print(f"[DBA] epoch {i}, cost {cost}")  # noqa: T001, T201
+            print(f"[Subgradient-BA] epoch {i}, cost {cost}")  # noqa: T001, T201
+
+    if verbose:
+        print(f"[Subgradient-BA] converged epoch {i}, cost {cost}")  # noqa: T001, T201
+
+    if return_distances_to_center and return_cost:
+        return barycenter, distances_to_center, cost
+    elif return_distances_to_center:
+        return barycenter, distances_to_center
+    elif return_cost:
+        return barycenter, cost
     return barycenter
 
 
@@ -167,10 +227,10 @@ def _ba_one_iter_subgradient(
     transformation_precomputed: bool = False,
     transformed_x: np.ndarray | None = None,
     transformed_y: np.ndarray | None = None,
+    gamma: float = 1.0,
 ):
 
     X_size, X_dims, X_timepoints = X.shape
-    cost = 0.0
     # Only update current_step_size on the first iteration
     step_size_reduction = 0.0
     if iteration == 0:
@@ -181,22 +241,23 @@ def _ba_one_iter_subgradient(
     for i in shuffled_indices:
         curr_ts = X[i]
         curr_alignment, curr_cost = _get_alignment_path(
-            barycenter_copy,
-            X[i],
-            distance,
-            window,
-            g,
-            epsilon,
-            nu,
-            lmbda,
-            independent,
-            c,
-            descriptor,
-            reach,
-            warp_penalty,
-            transformation_precomputed,
-            transformed_x,
-            transformed_y,
+            center=barycenter_copy,
+            ts=curr_ts,
+            distance=distance,
+            window=window,
+            g=g,
+            epsilon=epsilon,
+            nu=nu,
+            lmbda=lmbda,
+            independent=independent,
+            c=c,
+            descriptor=descriptor,
+            reach=reach,
+            warp_penalty=warp_penalty,
+            transformation_precomputed=transformation_precomputed,
+            transformed_x=transformed_x,
+            transformed_y=transformed_y,
+            gamma=gamma,
         )
 
         new_ba = np.zeros((X_dims, X_timepoints))
@@ -206,5 +267,4 @@ def _ba_one_iter_subgradient(
         barycenter_copy -= (2.0 * current_step_size) * new_ba * weights[i]
 
         current_step_size -= step_size_reduction
-        cost = curr_cost * weights[i]
-    return barycenter_copy, cost, current_step_size
+    return barycenter_copy, current_step_size
