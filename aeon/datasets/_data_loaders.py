@@ -519,7 +519,7 @@ def _load_tsc_dataset(
     ------
     Raise ValueException if the requested return type is not supported
     """
-    # Allow user to have non standard extract path
+    # Allow user to have non-standard extract path
     if extract_path is not None:
         local_module = extract_path
         local_dirname = ""
@@ -604,7 +604,7 @@ def load_from_arff_file(
                 if "@data" in line.lower():
                     data_started = True
                     continue
-                # if the 'data tag has been found, the header information
+                # if the data tag has been found, the header information
                 # has been cleared and now data can be loaded
                 if data_started:
                     line = line.replace("?", replace_missing_vals_with)
@@ -980,7 +980,7 @@ def load_forecasting(name, extract_path=None, return_metadata=False):
     >>> from aeon.datasets import load_forecasting
     >>> X=load_forecasting("m1_yearly_dataset") # doctest: +SKIP
     """
-    # Allow user to have non standard extract path
+    # Allow user to have non-standard extract path
     from aeon.datasets.tsf_datasets import tsf_all
 
     if extract_path is not None:
@@ -1619,10 +1619,10 @@ def get_dataset_meta_data(
     Parameters
     ----------
     data_names : list, default=None
-        List of dataset names to retrieve meta data for. If None, all datasets are
+        List of dataset names to retrieve metadata for. If None, all datasets are
         retrieved.
     features : String or List, default=None
-        List of features to retrieve meta data for. Should be a subset of features
+        List of features to retrieve metadata for. Should be a subset of features
         listed above. Dataset field is always returned.
     url : String
         default = "https://timeseriesclassification.com/aeon-toolkit/metadata.csv"
