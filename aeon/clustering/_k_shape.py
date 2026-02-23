@@ -1,4 +1,4 @@
-"""Time series kshapes."""
+"""Time series K-Shape clustering."""
 
 __maintainer__ = []
 __all__ = ["TimeSeriesKShape"]
