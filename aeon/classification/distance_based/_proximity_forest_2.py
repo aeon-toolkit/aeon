@@ -2,7 +2,8 @@
 
 __all__ = ["ProximityForest2"]
 
-from typing import Any, Callable, Optional, TypedDict, Union
+from collections.abc import Callable
+from typing import Any, Optional, TypedDict, Union
 
 import numpy as np
 from joblib import Parallel, delayed
@@ -99,7 +100,7 @@ class ProximityForest2(BaseClassifier):
         n_splitters: int = 5,
         max_depth: int = None,
         min_samples_split: int = 2,
-        random_state: Union[int, type[np.random.RandomState], None] = None,
+        random_state: int | type[np.random.RandomState] | None = None,
         n_jobs: int = 1,
         parallel_backend=None,
     ):
@@ -267,7 +268,7 @@ class ProximityTree2(BaseClassifier):
         n_splitters: int = 5,
         max_depth: int = None,
         min_samples_split: int = 2,
-        random_state: Union[int, type[np.random.RandomState], None] = None,
+        random_state: int | type[np.random.RandomState] | None = None,
     ) -> None:
         self.n_splitters = n_splitters
         self.max_depth = max_depth
@@ -715,8 +716,8 @@ def _global_warp_penalty(X):
 
 
 class DistanceKwargs(TypedDict, total=False):
-    window: Optional[float]
-    itakura_max_slope: Optional[float]
+    window: float | None
+    itakura_max_slope: float | None
     p: float
     w: np.ndarray
     epsilon: float
@@ -729,7 +730,7 @@ DistanceFunction = Callable[[np.ndarray, np.ndarray, Any], float]
 def distance(
     x: np.ndarray,
     y: np.ndarray,
-    metric: Union[str, DistanceFunction],
+    metric: str | DistanceFunction,
     **kwargs: Unpack[DistanceKwargs],
 ) -> float:
     r"""Compute the distance between two time series.
@@ -802,8 +803,8 @@ def _dtw_distance(
     x: np.ndarray,
     y: np.ndarray,
     p: float = 2.0,
-    window: Optional[float] = None,
-    itakura_max_slope: Optional[float] = None,
+    window: float | None = None,
+    itakura_max_slope: float | None = None,
 ) -> float:
     r"""Return parameterised DTW distance for PF 2.0.
 
@@ -926,8 +927,8 @@ def _adtw_distance(
     x: np.ndarray,
     y: np.ndarray,
     p: float = 2.0,
-    window: Optional[float] = None,
-    itakura_max_slope: Optional[float] = None,
+    window: float | None = None,
+    itakura_max_slope: float | None = None,
     warp_penalty: float = 1.0,
 ) -> float:
     """Parameterised version of ADTW distance for PF 2.0.
