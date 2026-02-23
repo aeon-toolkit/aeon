@@ -1243,9 +1243,9 @@ def load_collection(
                 nmv_train = (
                     f"https://zenodo.org/record/{id}/files/" f"{name}_nmv_TRAIN.ts"
                 )
-                nmv_train = f"https://zenodo.org/record/{id}/files/{name}_nmv_TEST.ts"
+                nmv_test = f"https://zenodo.org/record/{id}/files/{name}_nmv_TEST.ts"
                 # These will only exist if the original is NOT equal length
-                if _url_exists(nmv_train) and _url_exists(nmv_train):
+                if _url_exists(nmv_train) and _url_exists(nmv_test):
                     nmv_present = True
                     train_save = f"{full_path}/{name}_nmv_TRAIN.ts"
                     test_save = f"{full_path}/{name}_nmv_TEST.ts"
