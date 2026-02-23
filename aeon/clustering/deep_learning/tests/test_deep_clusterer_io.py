@@ -31,7 +31,7 @@ ALL_DEEP_CLUSTERERS = [
 @pytest.mark.parametrize("cls", ALL_DEEP_CLUSTERERS)
 def test_deep_clusterer_load_model(cls):
     """Test that all deep autoencoder clusterers load saved Keras models correctly."""
-    X = np.random.randn(4, 10, 1).astype(np.float32)
+    X = np.random.randn(4, 1, 10).astype(np.float32)
     params = cls._get_test_params()[0]
     params["n_epochs"] = 1
     params["save_best_model"] = True
