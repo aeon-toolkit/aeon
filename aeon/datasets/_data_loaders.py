@@ -1066,9 +1066,12 @@ def _url_exists(url: str, timeout: float = 10.0) -> bool:
             req = Request(url, method=method, headers=headers)
             with urlopen(req, timeout=timeout) as resp:
                 status = getattr(resp, "status", resp.getcode())
-                return status == 200  # match your original behaviour
+                return status == 200
         except HTTPError as e:
-            if method == "HEAD" and e.code in (405, 501):  # Method Not Allowed / Not Implemented
+            if method == "HEAD" and e.code in (
+                    405,
+                    501,
+                ):  # Method Not Allowed / Not Implemented
                 continue
             return False
         except URLError:
