@@ -6,6 +6,7 @@ __all__ = [
     "load_from_tsf_file",
     "load_from_arff_file",
     "load_from_tsv_file",
+    "load_collection",
     "load_classification",
     "load_forecasting",
     "load_regression",
