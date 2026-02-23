@@ -422,12 +422,10 @@ def _get_estimator_doc_path(estimator_class, estimator_name):
                     hasattr(parent_module, estimator_name)
                     and getattr(parent_module, estimator_name) is estimator_class
                 ):
-                    # Use public API path
                     return f"{parent_path}.{estimator_name}"
         except (ImportError, AttributeError):
             continue
 
-    # Fallback: use current underscore-filtering logic
     modpath = str(estimator_class)[8:-2]
     path_parts = modpath.split(".")
     clean_path = ".".join([p for p in path_parts if not p.startswith("_")])
