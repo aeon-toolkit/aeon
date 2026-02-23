@@ -24,6 +24,7 @@ __all__ = [
 ]
 
 import os
+from pathlib import Path
 
 import aeon
 from aeon.datasets.tsc_datasets import multivariate, univariate
@@ -113,35 +114,48 @@ def get_available_tsc_datasets(name=None):
     return name in univariate or name in multivariate
 
 
-def get_downloaded_tsc_tsr_datasets(extract_path=None):
-    """Return a list of all the currently downloaded datasets.
+def get_downloaded_tsc_tsr_datasets(extract_path: str | None = None) -> list[str]:
+    """Return dataset names available locally.
 
-    To count as available, each directory in extract_path <dir_name> in the
-    extract_path must contain  files called <dir_name>_TRAIN.ts and <dir_name>_TEST.ts.
+    A dataset is counted as available if a directory ``<name>/`` contains both
+    ``<name>_TRAIN.ts`` and ``<name>_TEST.ts``.
 
     Parameters
     ----------
-    extract_path: string, default None
-        root directory where to look for files, if None defaults to aeon/datasets/data
+    extract_path : str or None, default=None
+        Root directory to search. If None, searches both:
+        1) bundled aeon datasets in ``MODULE/data``
+        2) the user data cache from ``get_data_home()``
 
     Returns
     -------
-    datasets : List
-        List of the names of datasets downloaded
-
+    list[str]
+        Sorted dataset names found locally.
     """
     if extract_path is None:
-        data_dir = os.path.join(MODULE, "data")
+        roots = [os.path.join(MODULE, "data"), get_data_home()]
     else:
-        data_dir = extract_path
-    datasets = []
-    for name in os.listdir(data_dir):
-        sub_dir = os.path.join(data_dir, name)
-        if os.path.isdir(sub_dir):
-            all_files = os.listdir(sub_dir)
-            if name + "_TRAIN.ts" in all_files and name + "_TEST.ts" in all_files:
-                datasets.append(name)
-    return datasets
+        root = os.path.abspath(os.path.expanduser(extract_path))
+        roots = [root]
+
+    datasets: set[str] = set()
+
+    for data_dir in roots:
+        if not os.path.isdir(data_dir):
+            continue
+
+        for entry in os.scandir(data_dir):
+            if not entry.is_dir():
+                continue
+
+            name = entry.name
+            train_file = os.path.join(entry.path, f"{name}_TRAIN.ts")
+            test_file = os.path.join(entry.path, f"{name}_TEST.ts")
+
+            if os.path.isfile(train_file) and os.path.isfile(test_file):
+                datasets.add(name)
+
+    return sorted(datasets)
 
 
 def get_downloaded_tsf_datasets(extract_path=None):
@@ -173,3 +187,32 @@ def get_downloaded_tsf_datasets(extract_path=None):
             if name + ".tsf" in all_files:
                 datasets.append(name)
     return datasets
+
+
+def get_data_home(data_home: str | os.PathLike[str] | None = None) -> str:
+    """Return the aeon data home directory, creating it if needed.
+
+    This directory is used for downloaded datasets (not bundled package data).
+    Based on scikit-learn model,
+
+    Resolution order:
+    1. ``data_home`` argument, if provided
+    2. ``AEON_DATA`` environment variable, if set
+    3. ``~/aeon_data`` (default)
+
+    Parameters
+    ----------
+    data_home : str or path-like or None, default=None
+        Explicit path to the aeon data directory.
+
+    Returns
+    -------
+    data_home : str
+        Absolute path to the aeon data directory.
+    """
+    if data_home is None:
+        data_home = os.environ.get("AEON_DATA", os.path.join("~", "aeon_data"))
+
+    data_home = os.path.abspath(os.path.expanduser(os.fspath(data_home)))
+    Path(data_home).mkdir(parents=True, exist_ok=True)
+    return data_home

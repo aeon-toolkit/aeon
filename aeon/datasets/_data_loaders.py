@@ -2,6 +2,7 @@
 
 __maintainer__ = []
 __all__ = [
+    "get_dataset_meta_data",
     "load_from_ts_file",
     "load_from_tsf_file",
     "load_from_arff_file",
@@ -12,7 +13,6 @@ __all__ = [
     "load_regression",
     "download_archive",
     "download_all_regression",
-    "get_dataset_meta_data",
 ]
 
 import os
@@ -33,6 +33,7 @@ import pandas as pd
 
 import aeon
 from aeon.datasets.dataset_collections import (
+    get_data_home,
     get_downloaded_tsc_tsr_datasets,
     get_downloaded_tsf_datasets,
     tsml_archives,
@@ -998,7 +999,7 @@ def load_forecasting(name, extract_path=None, return_metadata=False):
         # Dataset is not already present in the datasets directory provided.
         # If it is not there, download and install it.
         if name in tsf_all.keys():
-            id = tsf_all[name]
+            zenodo_id = tsf_all[name]
             if extract_path is None:
                 local_dirname = "local_data"
             if not os.path.exists(os.path.join(local_module, local_dirname)):
@@ -1010,7 +1011,7 @@ def load_forecasting(name, extract_path=None, return_metadata=False):
         if name not in get_downloaded_tsf_datasets(
             os.path.join(local_module, local_dirname)
         ):
-            url = f"https://zenodo.org/record/{id}/files/{name}.zip"
+            url = f"https://zenodo.org/record/{zenodo_id}/files/{name}.zip"
             file_save = f"{local_module}/{local_dirname}/{name}.zip"
             if not os.path.exists(file_save):
                 req = Request(url, method="HEAD")
@@ -1096,12 +1097,13 @@ def load_collection(
     location in ``extract_path``. This function assumes the data is stored in format
     <extract_path>/<name>/<name>_TRAIN.ts and <extract_path>/<name>/<name>_TEST.ts.
     If you want to load a single file directly from a full path, use the function
-    `load_from_ts_file`` directly. If you do not specify ``extract_path``, or if the
+    ``load_from_ts_file`` directly. If you do not specify ``extract_path``, or if the
     problem is not present in ``extract_path`` it will attempt to download the data from
     https://zenodo.org/communities/tsml
 
     This function can load timestamped data, but it does not store the time stamps.
-    The time stamp loading is fragile, it will only work if all data are floats.
+    The time stamp loading is fragile, it will only work if all data are floats rather
+    than any specific date format.
 
     Data is assumed to be in the standard .ts format: each row is a (possibly
     multivariate) time series. Each channel is separated by a colon, each value in
@@ -1123,14 +1125,14 @@ def load_collection(
     or unequal length between series, but it does not support loading multivariate
     series where lengths differ between channels.
 
-
     Parameters
     ----------
     name : string
         Name of the problem to load or download.
     extract_path : None or str, default = None
-        Path of the location for the data file. If None, data is written to
-        os.path.dirname(__file__)/local_data/<name>/.
+        Path of the location for the data file. If None, downloaded data is written to
+        ``get_data_home()/<name>/`` (bundled data is still read from
+        ``aeon/datasets/data``).
     split : None or str{"train", "test"}, default=None
         Whether to load the train or test partition of the problem. By default it
         loads both into a single dataset, otherwise it looks only for files of the
@@ -1168,109 +1170,133 @@ def load_collection(
     Examples
     --------
     >>> from aeon.datasets import load_collection
-    >>> X, y=load_collection("FloodModeling1") # doctest: +SKIP
+    >>> X, y = load_collection("FloodModeling1")  # doctest: +SKIP
     """
-    # Set up extract location
-    if extract_path is not None:
-        local_module = extract_path
-        local_dirname = ""
-    else:
-        local_module = MODULE
-        local_dirname = "data"
-    error_str = (
-        f"File name {name} is not in the list of valid files to download,"
-        f"see aeon.datasets.tser_datasets.tsr_zenodo for the list of valid keys for "
-        f"regression and aeon.datasets.tsc_datasets.tsc_zenodo for classification."
-    )
-    if not os.path.exists(os.path.join(local_module, local_dirname)):
-        os.makedirs(os.path.join(local_module, local_dirname))
-    path = os.path.join(local_module, local_dirname)
-
-    # If the request is for _eq or _nmv versions, we need to strip that out and set
-    # the flags accordingly. Directory always uses the stripped name
-    base_name = name
+    # If the request is for _eq or _nmv versions, strip that out and set flags.
+    # Directory always uses the stripped base name.
+    if name.endswith("_nmv"):
+        name = name[:-4]  # strip "_nmv"
+        load_no_missing = True
     if name.endswith("_eq"):
         name = name[:-3]  # strip "_eq"
         load_equal_length = True
 
-    if name.endswith("_nmv"):
-        name = base_name[:-4]  # strip "_nmv"
-        load_no_missing = True
     dir_name = name
+
+    error_str = (
+        f"File name {name} is not in the list of valid files to download, "
+        f"see aeon.datasets.tser_datasets.tsr_zenodo for the list of valid keys for "
+        f"regression and aeon.datasets.tsc_datasets.tsc_zenodo for classification."
+    )
+
+    # Resolve roots
+    bundled_root = os.path.join(MODULE, "data")
+    if extract_path is not None:
+        cache_root = os.path.abspath(os.path.expanduser(extract_path))
+    else:
+        cache_root = get_data_home()
+
+    # Decide where to load from / download to
+    if extract_path is not None:
+        # Explicit extract_path means only use that location.
+        local_module = cache_root
+        local_dirname = ""
+        path = local_module
+        if not os.path.exists(path):
+            os.makedirs(path)
+
+        in_local = name in get_downloaded_tsc_tsr_datasets(cache_root)
+        need_download = not in_local
+    else:
+        # No extract_path: prefer bundled, otherwise use cache.
+        in_bundled = name in get_downloaded_tsc_tsr_datasets(bundled_root)
+        in_cache = name in get_downloaded_tsc_tsr_datasets(cache_root)
+
+        if in_bundled:
+            local_module = MODULE
+            local_dirname = "data"
+            path = bundled_root
+            need_download = False
+        elif in_cache:
+            local_module = cache_root
+            local_dirname = ""
+            path = cache_root
+            need_download = False
+        else:
+            local_module = cache_root
+            local_dirname = ""
+            path = cache_root
+            if not os.path.exists(path):
+                os.makedirs(path)
+            need_download = True
+
     eq_present = False
     nmv_present = False
-    if name not in get_downloaded_tsc_tsr_datasets(extract_path):
-        if name in problem_dict.keys():
-            if extract_path is None:
-                local_dirname = "local_data"
-                if not os.path.exists(os.path.join(local_module, local_dirname)):
-                    os.makedirs(os.path.join(local_module, local_dirname))
-                path = os.path.join(local_module, local_dirname)
-        else:
+
+    # Download if needed
+    if need_download:
+        if name not in problem_dict:
             raise ValueError(error_str)
-        # Need to test again for scenario where no extract path is given
-        if name not in get_downloaded_tsc_tsr_datasets(
-            os.path.join(local_module, local_dirname)
-        ):
-            if name in problem_dict.keys():
-                id = problem_dict[name]
-                full_path = os.path.join(path, name)
-                train_save = f"{full_path}/{name}_TRAIN.ts"
-                test_save = f"{full_path}/{name}_TEST.ts"
-                if not os.path.exists(full_path):
-                    os.makedirs(full_path)
-                # These will always exist if we get here. Failure will be caused by
-                # the connection
-                url_train = f"https://zenodo.org/record/{id}/files/{name}_TRAIN.ts"
-                url_test = f"https://zenodo.org/record/{id}/files/{name}_TEST.ts"
-                try:
-                    urlretrieve(url_train, train_save)
-                    urlretrieve(url_test, test_save)
-                except Exception:
-                    raise ValueError(error_str)
-                eq_train = f"https://zenodo.org/record/{id}/files/{name}_eq_TRAIN.ts"
-                eq_test = f"https://zenodo.org/record/{id}/files/{name}_eq_TEST.ts"
-                # These will only exist if the original is NOT equal length
-                if _url_exists(eq_train) and _url_exists(eq_test):
-                    eq_present = True
-                    train_save = f"{full_path}/{name}_eq_TRAIN.ts"
-                    test_save = f"{full_path}/{name}_eq_TEST.ts"
-                    try:
-                        urlretrieve(eq_train, train_save)
-                        urlretrieve(eq_test, test_save)
-                    except Exception:
-                        raise ValueError(error_str)  # Change message
-                nmv_train = (
-                    f"https://zenodo.org/record/{id}/files/" f"{name}_nmv_TRAIN.ts"
-                )
-                nmv_test = f"https://zenodo.org/record/{id}/files/{name}_nmv_TEST.ts"
-                # These will only exist if the original is NOT equal length
-                if _url_exists(nmv_train) and _url_exists(nmv_test):
-                    nmv_present = True
-                    train_save = f"{full_path}/{name}_nmv_TRAIN.ts"
-                    test_save = f"{full_path}/{name}_nmv_TEST.ts"
-                    try:
-                        urlretrieve(nmv_train, train_save)
-                        urlretrieve(nmv_train, test_save)
-                    except Exception:
-                        raise ValueError(
-                            f"Cannot retrieve the no missing values "
-                            f"version {eq_train} from {train_save}"
-                        )
-                        # Change message
-            else:
-                raise ValueError(error_str)
-    else:  # Loading locally, need to check _eq and _nmv exist
-        eq_train = f"{extract_path}/{name}/{name}_eq_TRAIN.ts"
-        eq_test = f"{extract_path}/{name}/{name}_eq_TEST.ts"
-        # These will only exist if the original is NOT equal length
+
+        zenodo_id = problem_dict[name]
+        full_path = os.path.join(path, name)
+        train_save = os.path.join(full_path, f"{name}_TRAIN.ts")
+        test_save = os.path.join(full_path, f"{name}_TEST.ts")
+
+        if not os.path.exists(full_path):
+            os.makedirs(full_path)
+
+        # Base files (always expected if dataset exists)
+        url_train = f"https://zenodo.org/record/{zenodo_id}/files/{name}_TRAIN.ts"
+        url_test = f"https://zenodo.org/record/{zenodo_id}/files/{name}_TEST.ts"
+        try:
+            urlretrieve(url_train, train_save)
+            urlretrieve(url_test, test_save)
+        except Exception as e:
+            raise ValueError(error_str) from e
+
+        # Optional equal-length variant
+        eq_train = f"https://zenodo.org/record/{zenodo_id}/files/{name}_eq_TRAIN.ts"
+        eq_test = f"https://zenodo.org/record/{zenodo_id}/files/{name}_eq_TEST.ts"
+        if _url_exists(eq_train) and _url_exists(eq_test):
+            eq_present = True
+            train_save = os.path.join(full_path, f"{name}_eq_TRAIN.ts")
+            test_save = os.path.join(full_path, f"{name}_eq_TEST.ts")
+            try:
+                urlretrieve(eq_train, train_save)
+                urlretrieve(eq_test, test_save)
+            except Exception as e:
+                raise ValueError(error_str) from e
+
+        # Optional no-missing-values variant
+        nmv_train = f"https://zenodo.org/record/{zenodo_id}/files/{name}_nmv_TRAIN.ts"
+        nmv_test = f"https://zenodo.org/record/{zenodo_id}/files/{name}_nmv_TEST.ts"
+        if _url_exists(nmv_train) and _url_exists(nmv_test):
+            nmv_present = True
+            train_save = os.path.join(full_path, f"{name}_nmv_TRAIN.ts")
+            test_save = os.path.join(full_path, f"{name}_nmv_TEST.ts")
+            try:
+                urlretrieve(nmv_train, train_save)
+                urlretrieve(nmv_test, test_save)
+            except Exception as e:
+                raise ValueError(
+                    f"Cannot retrieve the no missing values version "
+                    f"{nmv_train} (and {nmv_test}) into {full_path}"
+                ) from e
+
+    else:
+        # Loading locally, check whether _eq and _nmv variants exist in the chosen root
+        active_root = os.path.join(local_module, local_dirname)
+        eq_train = os.path.join(active_root, name, f"{name}_eq_TRAIN.ts")
+        eq_test = os.path.join(active_root, name, f"{name}_eq_TEST.ts")
         if os.path.isfile(eq_train) and os.path.isfile(eq_test):
             eq_present = True
-        nmv_train = f"{extract_path}/{name}/{name}_nmv_TRAIN.ts"
-        nmv_train = f"{extract_path}/{name}/{name}_nmv_TEST.ts"
-        # These will only exist if the original is NOT equal length
-        if os.path.isfile(nmv_train) and os.path.isfile(nmv_train):
+
+        nmv_train = os.path.join(active_root, name, f"{name}_nmv_TRAIN.ts")
+        nmv_test = os.path.join(active_root, name, f"{name}_nmv_TEST.ts")
+        if os.path.isfile(nmv_train) and os.path.isfile(nmv_test):
             nmv_present = True
+
     if load_equal_length and eq_present:
         name = name + "_eq"
     if load_no_missing and nmv_present:
@@ -1537,10 +1563,10 @@ def download_archive(archive="UCR", extract_path=None):
     else:
         local_module = MODULE
         local_dirname = "data"
-    id = tsml_archives[archive]
+    zenodo_id = tsml_archives[archive]
     if not os.path.exists(os.path.join(local_module, local_dirname)):
         os.makedirs(os.path.join(local_module, local_dirname))
-    url = f"https://zenodo.org/records/{id}/files/{tsml_zip_names[archive]}"
+    url = f"https://zenodo.org/records/{zenodo_id}/files/{tsml_zip_names[archive]}"
     if extract_path is None:
         local_dirname = "local_data"
     if not os.path.exists(os.path.join(local_module, local_dirname)):
