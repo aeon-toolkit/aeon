@@ -8,6 +8,7 @@ from aeon.distances.mindist._dft_sfa import mindist_dft_sfa_distance
 from aeon.distances.mindist._paa_sax import mindist_paa_sax_distance
 from aeon.distances.mindist._sax import mindist_sax_distance
 from aeon.distances.mindist._sfa import mindist_sfa_distance
+from aeon.testing.data_generation import make_example_3d_numpy
 from aeon.transformations.collection.dictionary_based import SAX, SFA, SFAFast, SFAWhole
 
 
@@ -47,6 +48,18 @@ def test_sax_mindist():
         assert mindist_sax <= ed
         assert mindist_paa_sax >= mindist_sax  # a tighter lower bound
         assert mindist_paa_sax <= ed
+
+
+def test_single_sample():
+    """Test the SFA Min-Distance function."""
+    x, _ = make_example_3d_numpy(n_cases=1, n_channels=1, n_timepoints=10)
+    y = x + 10
+    transform = SFAWhole(word_length=8, alphabet_size=8, norm=True)
+    x_sfa, _ = transform.fit_transform(x)
+    _, y_dft = transform.transform(y)
+    for i in range(len(x_sfa)):
+        dist = mindist_dft_sfa_distance(y_dft[i], x_sfa[i], transform.breakpoints)
+        assert dist == 0
 
 
 def test_sfa_mindist():

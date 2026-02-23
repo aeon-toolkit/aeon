@@ -1,6 +1,6 @@
-"""Function to createthe Multi-Comparison Matrix (MCM) results visualisation."""
+"""Function to create the Multi-Comparison Matrix (MCM) results visualisation."""
 
-__maintainer__ = ["TonyBagnall"]
+__maintainer__ = ["hadifawaz1999", "TonyBagnall"]
 
 __all__ = ["create_multi_comparison_matrix"]
 
@@ -15,27 +15,20 @@ from aeon.utils.validation._dependencies import _check_soft_dependencies
 
 
 def create_multi_comparison_matrix(
-    df_results,
-    output_dir="./",
-    pdf_savename=None,
-    png_savename=None,
-    csv_savename=None,
-    tex_savename=None,
-    used_statistic="Accuracy",
-    save_as_json=False,
+    results,
+    save_path="./mcm",
+    formats=None,
+    statistic_name="Score",
     plot_1v1_comparisons=False,
-    order_win_tie_loss="higher",
+    higher_stat_better=True,
     include_pvalue=True,
     pvalue_test="wilcoxon",
     pvalue_test_params=None,
-    pvalue_correction=None,
+    pvalue_correction="Holm",
     pvalue_threshold=0.05,
-    use_mean="mean-difference",
     order_stats="average-statistic",
-    order_better="decreasing",
-    dataset_column=None,
+    order_stats_increasing=False,
     precision=4,
-    load_analysis=False,
     row_comparates=None,
     col_comparates=None,
     excluded_row_comparates=None,
@@ -45,11 +38,9 @@ def create_multi_comparison_matrix(
     font_size="auto",
     colorbar_orientation="vertical",
     colorbar_value=None,
-    win_label="r>c",
-    tie_label="r=c",
-    loss_label="r<c",
+    win_tie_loss_labels=None,
     include_legend=True,
-    show_symetry=True,
+    show_symmetry=True,
 ):
     """Generate the Multi-Comparison Matrix (MCM) [1]_.
 
@@ -57,36 +48,34 @@ def create_multi_comparison_matrix(
     datasets. The MCM is a heatmap that shows absolute performance and tests for
     significant difference. It is configurable inmany ways.
 
+    Note: this implementation uses different pvalue parameters from the original
+    by default. To use the original parameters, set ``pvalue_test_params`` to
+    ``{"zero_method": "pratt", "alternative": "two-sided"}`` and
+    ``pvalue_correction`` to ``None``.
+
     Parameters
     ----------
-    df_results: str or pd.DataFrame
-        A csv file containing results in `n_problems,n_estimators` format. The first
-        row should contain the names of the estimators and the first column can
-        contain the names of the problems if `dataset_column` is true.
-    output_dir: str, default = './'
-        The output directory for the results.
-    pdf_savename: str, default = None
-        The name of the saved file into pdf format. if None, it will not be saved into
-        this format.
-    png_savename: str, default = None
-        The name of the saved file into png format, if None, it will not be saved
-        into this format.
-    csv_savename: str, default = None
-        The name of the saved file into csv format, if None, will not be saved into
-        this format.
-    tex_savename: str, default = None
-        The name of the saved file into tex format, if None, will not be saved into
-        this format.
-    used_statistic: str, default = 'Score'
-        Name of the metric being assesses (e.g. accuracy, error, mse).
-    save_as_json: bool, default = True
-        Whether or not to save the python analysis dict into a json file format.
+    results: pd.DataFrame
+        A dataframe of scores. Columns are the names of the estimators and rows are the
+        different problems. The estimator names present in the columns will be used as
+        the comparate names in the MCM.
+    save_path: str, default = './mcm'
+        The output directory for the results. If you want to save the results with a
+        different filename, you must include the filename in the path.
+        (e.g., './your_filename')
+    formats : str or list of str, default = None
+        File formats to save in the save_path.
+        - If None, no files are saved.
+        - Valid formats are 'pdf', 'png', 'json', 'csv', 'tex'.
+    statistic_name: str, default = 'Score'
+        Name of the metric being assessesed (e.g. accuracy, error, mse).
+        By default just generically labelles as 'Score'.
     plot_1v1_comparisons: bool, default = True
-        Whether or not to plot the 1v1 scatter results.
-    order_win_tie_loss: str, default = 'higher'
+        Whether to plot the 1v1 scatter results.
+    higher_stat_better: bool, default = True
         The order on considering a win or a loss for a given statistics.
     include_pvalue bool, default = True
-        Condition whether or not include a pvalue stats.
+        Condition whether include a pvalue stats.
     pvalue_test: str, default = 'wilcoxon'
         The statistical test to produce the pvalue stats. Currently only wilcoxon is
         supported.
@@ -94,16 +83,12 @@ def create_multi_comparison_matrix(
         The default parameter set for the pvalue_test used. If pvalue_test is set
         to Wilcoxon, one should check the scipy.stats.wilcoxon parameters,
         in the case Wilcoxon is set and this parameter is None, then the default setup
-        is {"zero_method": "pratt", "alternative": "greater"}.
+        is {"zero_method": "wilcox", "alternative": "greater"}.
     pvalue_correction: str, default = None
         Correction to use for the pvalue significant test, None or "Holm".
     pvalue_threshold: float, default = 0.05
         Threshold for considering a comparison is significant or not. If pvalue <
         pvalue_threshhold -> comparison is significant.
-    use_mean: str, default = 'mean-difference'
-        The mean used to compare two estimators. The only option available
-        is 'mean-difference' which is the difference between arithmetic mean
-        over all datasets.
     order_stats: str, default = 'average-statistic'
         The way to order the used_statistic, default setup orders by average
         statistic over all datasets.
@@ -117,19 +102,16 @@ def create_multi_comparison_matrix(
         amean-amean            average over difference of use_mean
         pvalue                 average pvalue over all comparates
         ================================================================
-    order_better: str, default = 'decreasing'
-        By which order to sort stats, from best to worse.
-    dataset_column: str, default = 'dataset_name'
-        The name of the datasets column in the csv file.
+    order_stats_increasing: bool, default = False
+        If True, the order_stats will be ordered in increasing order, otherwise they are
+        ordered in decreasing order.
     precision: int, default = 4
         The number of floating numbers after decimal point.
-    load_analysis: bool, default = False
-        If True attempts to load the analysis json file.
     row_comparates: list of str, default = None
-      A list of included row comparates, if None, all of the comparates in the study
+      A list of included row comparates, if None, all the comparates in the study
       are placed in the rows.
     col_comparates: list of str, default = None
-        A list of included col comparates, if None, all of the comparates in the
+        A list of included col comparates, if None, all the comparates in the
         study are placed in the cols.
     excluded_row_comparates: list of str, default = None
         A list of excluded row comparates. If None, all comparates are included.
@@ -138,7 +120,7 @@ def create_multi_comparison_matrix(
     colormap: str, default = 'coolwarm'
         The colormap used in matplotlib, if set to None, no color map is used and the
         heatmap is turned off, no colors will be seen.
-    fig_size: str ot tuple of two int, default = 'auto'
+    fig_size: str or tuple of two int, default = 'auto'
         The height and width of the figure, if 'auto', use _get_fig_size function in
         utils.py. Note that the fig size values are in matplotlib units.
     font_size: int, default = 17
@@ -147,16 +129,18 @@ def create_multi_comparison_matrix(
         In which orientation to show the colorbar either horizontal or vertical.
     colorbar_value: str, default = 'mean-difference'
         The values for which the heat map colors are based on.
-    win_label: str, default = "r>c"
-        The winning label to be set on the MCM.
-    tie_label: str, default = "r=c"
-        The tie label to be set on the MCM.
-    loss_label: str, default = "r<c"
-        The loss label to be set on the MCM.
+    win_tie_loss_labels: tuple of str or None, default = None
+        Custom labels for heatmap cells, in the form (win_label, tie_label, loss_label).
+        If win_tie_loss_labels=None, default labels are chosen based on
+        higher_stat_better:
+        - If higher_stat_better=True, defaults to ('r>c', 'r=c', 'r<c')
+        - If higher_stat_better=False, defaults to ('r<c', 'r=c', 'r>c')
+        The tuple must contain exactly three strings, representing win, tie, and
+        loss outcomes for the row comparate (r) against the column comparate (c).
     include_legend: bool, default = True
-        Whether or not to show the legend on the MCM.
-    show_symetry: bool, default = True
-        Whether or not to show the symetrical part of the heatmap.
+        Whether to show the legend on the MCM.
+    show_symmetry: bool, default = True
+        Whether to show the symmetrical part of the heatmap.
 
     Returns
     -------
@@ -166,7 +150,11 @@ def create_multi_comparison_matrix(
     Example
     -------
     >>> from aeon.visualisation import create_multi_comparison_matrix # doctest: +SKIP
-    >>> create_multi_comparison_matrix(df_results='results.csv') # doctest: +SKIP
+    >>> create_multi_comparison_matrix(
+    ...     results="results.csv",
+    ...     save_path="reports/mymcm",
+    ...     formats=("png", "json")
+    ... )  # doctest: +SKIP
 
     Notes
     -----
@@ -178,40 +166,40 @@ def create_multi_comparison_matrix(
     Evaluations That Is Stable Under Manipulation Of The Comparate Set
     arXiv preprint arXiv:2305.11921, 2023.
     """
-    if isinstance(df_results, str):
-        try:
-            df_results = pd.read_csv(df_results)
-        except Exception as e:
-            raise ValueError(f"No dataframe or valid path is given: Exception {e}")
+    formats = _normalize_formats(formats)
+
+    if win_tie_loss_labels is None:
+        win_tie_loss_labels = (
+            ("r>c", "r=c", "r<c")
+            if higher_stat_better is True
+            else ("r<c", "r=c", "r>c")
+        )
+    if len(win_tie_loss_labels) != 3:
+        raise ValueError("win_tie_loss_labels should be a list of three strings")
+    win_label, tie_label, loss_label = win_tie_loss_labels
 
     analysis = _get_analysis(
-        df_results,
-        output_dir=output_dir,
-        used_statistic=used_statistic,
-        save_as_json=save_as_json,
+        results,
+        save_path=save_path,
+        formats=formats,
+        used_statistic=statistic_name,
         plot_1v1_comparisons=plot_1v1_comparisons,
-        order_win_tie_loss=order_win_tie_loss,
+        higher_stat_better=higher_stat_better,
         include_pvalue=include_pvalue,
         pvalue_test=pvalue_test,
         pvalue_test_params=pvalue_test_params,
         pvalue_correction=pvalue_correction,
         pvalue_threshhold=pvalue_threshold,
-        use_mean=use_mean,
         order_stats=order_stats,
-        order_better=order_better,
-        dataset_column=dataset_column,
+        order_stats_increasing=order_stats_increasing,
         precision=precision,
-        load_analysis=load_analysis,
     )
 
     # start drawing heatmap
     temp = _draw(
         analysis,
-        pdf_savename=pdf_savename,
-        png_savename=png_savename,
-        tex_savename=tex_savename,
-        csv_savename=csv_savename,
-        output_dir=output_dir,
+        save_path=save_path,
+        formats=formats,
         row_comparates=row_comparates,
         col_comparates=col_comparates,
         excluded_row_comparates=excluded_row_comparates,
@@ -222,37 +210,34 @@ def create_multi_comparison_matrix(
         font_size=font_size,
         colorbar_orientation=colorbar_orientation,
         colorbar_value=colorbar_value,
-        win_label=win_label,
-        tie_label=tie_label,
-        loss_label=loss_label,
+        win_tie_loss_labels=win_tie_loss_labels,
         include_legend=include_legend,
-        show_symetry=show_symetry,
+        show_symmetry=show_symmetry,
     )
     return temp
 
 
 def _get_analysis(
     df_results,
-    output_dir="./",
+    save_path="./",
+    formats="json",
     used_statistic="Score",
-    save_as_json=True,
     plot_1v1_comparisons=False,
-    order_win_tie_loss="higher",
+    higher_stat_better=True,
     include_pvalue=True,
     pvalue_test="wilcoxon",
     pvalue_test_params=None,
     pvalue_correction=None,
     pvalue_threshhold=0.05,
-    use_mean="mean-difference",
     order_stats="average-statistic",
-    order_better="decreasing",
-    dataset_column=None,
+    order_stats_increasing=False,
     precision=4,
-    load_analysis=False,
 ):
     _check_soft_dependencies("matplotlib")
     import matplotlib as mpl
     import matplotlib.pyplot as plt
+
+    formats = _normalize_formats(formats)
 
     def _plot_1v1(
         x,
@@ -262,7 +247,7 @@ def _get_analysis(
         win_x,
         loss_x,
         tie,
-        output_directory="./",
+        save_path="./",
         min_lim: int = 0,
         max_lim: int = 1,
         scatter_size: int = 100,
@@ -271,7 +256,7 @@ def _get_analysis(
         fontsize: int = 20,
     ):
         save_path = os.path.join(
-            output_directory,
+            save_path,
             "1v1_plots",
             _get_keys_for_two_comparates(name_x, name_y) + ".pdf",
         )
@@ -332,29 +317,19 @@ def _get_analysis(
 
         ax.legend(handles=legend_elements)
 
-        if not os.path.exists(output_directory + "1v1_plots/"):
-            os.mkdir(output_directory + "1v1_plots/")
+        if not os.path.exists(save_path + "1v1_plots/"):
+            os.mkdir(save_path + "1v1_plots/")
         plt.savefig(save_path, bbox_inches="tight")
         plt.savefig(save_path.replace(".pdf", ".png"), bbox_inches="tight")
         plt.cla()
         plt.clf()
         plt.close()
 
-    save_file = output_dir + "analysis.json"
-
-    if load_analysis and os.path.exists(save_file):
-        with open(save_file) as json_file:
-            analysis = json.load(json_file)
-
-        return analysis
-
     analysis = {
-        "dataset-column": dataset_column,
-        "use-mean": use_mean,
         "order-stats": order_stats,
-        "order-better": order_better,
+        "order_stats_increasing": order_stats_increasing,
         "used-statistics": used_statistic,
-        "order-win_tie_loss": order_win_tie_loss,
+        "higher_stat_better": higher_stat_better,
         "include-pvalue": include_pvalue,
         "pvalue-test": pvalue_test,
         "pvalue-threshold": pvalue_threshhold,
@@ -386,12 +361,11 @@ def _get_analysis(
                 pairwise_content = _get_pairwise_content(
                     x=x,
                     y=y,
-                    order_WinTieLoss=order_win_tie_loss,
+                    higher_stat_better=higher_stat_better,
                     include_pvalue=include_pvalue,
                     pvalue_test=pvalue_test,
                     pvalue_test_params=pvalue_test_params,
                     pvalue_threshhold=pvalue_threshhold,
-                    use_mean=use_mean,
                 )
 
                 analysis[pairwise_key] = pairwise_content
@@ -412,7 +386,7 @@ def _get_analysis(
                         win_x=pairwise_content["win"],
                         tie=pairwise_content["tie"],
                         loss_x=pairwise_content["loss"],
-                        output_directory=output_dir,
+                        save_path=save_path,
                         max_lim=max_lim,
                         min_lim=min_lim,
                     )
@@ -425,7 +399,8 @@ def _get_analysis(
 
     _re_order_comparates(df_results=df_results, analysis=analysis)
 
-    if save_as_json:
+    save_file = f"{save_path}_analysis.json"
+    if "json" in formats:
         with open(save_file, "w") as fjson:
             json.dump(analysis, fjson, cls=_NpEncoder)
 
@@ -434,11 +409,8 @@ def _get_analysis(
 
 def _draw(
     analysis,
-    output_dir="./",
-    pdf_savename=None,
-    png_savename=None,
-    csv_savename=None,
-    tex_savename=None,
+    save_path="./",
+    formats=None,
     row_comparates=None,
     col_comparates=None,
     excluded_row_comparates=None,
@@ -449,14 +421,17 @@ def _draw(
     font_size="auto",
     colorbar_orientation="vertical",
     colorbar_value=None,
-    win_label="r>c",
-    tie_label="r=c",
-    loss_label="r<c",
-    show_symetry=True,
+    win_tie_loss_labels=None,
+    higher_stat_better=True,
+    show_symmetry=True,
     include_legend=True,
 ):
     _check_soft_dependencies("matplotlib")
     import matplotlib.pyplot as plt
+
+    formats = _normalize_formats(formats)
+
+    win_label, tie_label, loss_label = win_tie_loss_labels
 
     latex_string = "\\documentclass[a4,12pt]{article}\n"
     latex_string += "\\usepackage{colortbl}\n"
@@ -581,10 +556,6 @@ def _draw(
 
     longest_string = max(annot_out["longest_string"], longest_string)
 
-    if csv_savename is not None:
-        # todo: can add a argument to save or not
-        df_annotations.to_csv(output_dir + f"{csv_savename}.csv", index=False)
-
     df_annotations.drop("comparates", inplace=True, axis=1)
     df_annotations_np = np.asarray(df_annotations)
 
@@ -674,7 +645,7 @@ def _draw(
 
         latex_row = []
 
-        if can_be_symmetrical and (not show_symetry):
+        if can_be_symmetrical and (not show_symmetry):
             start_j = i
 
         for j in range(start_j, n_cols):
@@ -813,20 +784,6 @@ def _draw(
             verticalalignment="center",
         )
 
-    if pdf_savename is not None:
-        plt.savefig(
-            os.path.join(output_dir + f"{pdf_savename}.pdf"), bbox_inches="tight"
-        )
-        plt.cla()
-        plt.clf()
-        plt.close()
-    elif png_savename is not None:
-        plt.savefig(
-            os.path.join(output_dir + f"{png_savename}.png"), bbox_inches="tight"
-        )
-        plt.cla()
-        plt.clf()
-
     latex_string += (
         f"\\begin{{tabular}}{{{'c' * (len(latex_table[0]) + 1)}}}\n"  # +1 for labels
     )
@@ -891,18 +848,27 @@ def _draw(
     latex_string = latex_string.replace(">", "$>$")
     latex_string = latex_string.replace("<", "$<$")
 
-    if tex_savename is not None:
-        with open(
-            f"{output_dir}/{tex_savename}.tex", "w", encoding="utf8", newline="\n"
-        ) as file:
-            file.writelines(latex_string)
-
     # latex references:
     # * https://tex.stackexchange.com/a/120187
     # * https://tex.stackexchange.com/a/334293
     # * https://tex.stackexchange.com/a/592942
     # * https://tex.stackexchange.com/a/304215
-    return plt.Figure()
+
+    parent = os.path.dirname(save_path)
+    if parent:
+        os.makedirs(parent, exist_ok=True)  # check for dir existence
+
+    if "pdf" in formats:
+        fig.savefig(f"{save_path}.pdf", bbox_inches="tight")
+    if "png" in formats:
+        fig.savefig(f"{save_path}.png", bbox_inches="tight")
+    if "csv" in formats:
+        df_annotations.to_csv(f"{save_path}.csv", index=False)
+    if "tex" in formats:
+        with open(f"{save_path}.tex", "w", encoding="utf8", newline="\n") as file:
+            file.writelines(latex_string)
+
+    return fig
 
 
 def _get_keys_for_two_comparates(a, b):
@@ -921,31 +887,11 @@ def _decode_results_data_frame(df, analysis):
 
     """
     df_columns = list(df.columns)  # extract columns from data frame
-
-    # check if dataset column name is correct
-
-    if analysis["dataset-column"] is not None:
-        if analysis["dataset-column"] not in df_columns:
-            raise KeyError("The column " + analysis["dataset-column"] + " is missing.")
-
-    # get number of examples (datasets)
-    # n_datasets = len(np.unique(np.asarray(df[analysis['dataset-column']])))
-    n_datasets = len(df.index)
-
-    analysis["n-datasets"] = n_datasets  # add number of examples to dictionary
-
-    if analysis["dataset-column"] is not None:
-        analysis["dataset-names"] = list(
-            df[analysis["dataset-column"]]
-        )  # add example names to dict
-        df_columns.remove(
-            analysis["dataset-column"]
-        )  # drop the dataset column name from columns list
-        # and keep comparate names
-
     comparate_names = df_columns.copy()
     n_comparates = len(comparate_names)
 
+    # add number of examples to dictionary
+    analysis["n-datasets"] = len(df.index)
     # add the information about comparates to dict
     analysis["comparate-names"] = comparate_names
     analysis["n-comparates"] = n_comparates
@@ -954,23 +900,22 @@ def _decode_results_data_frame(df, analysis):
 def _get_pairwise_content(
     x,
     y,
-    order_WinTieLoss="higher",
+    higher_stat_better=True,
     include_pvalue=True,
     pvalue_test="wilcoxon",
     pvalue_test_params=None,
     pvalue_threshhold=0.05,
-    use_mean="mean-difference",
 ):
     content = {}
 
-    if order_WinTieLoss == "lower":
-        win = len(x[x < y])
-        loss = len(x[x > y])
-        tie = len(x[x == y])
-
-    else:  # by default we assume higher is better
+    if higher_stat_better is True:
         win = len(x[x > y])
         loss = len(x[x < y])
+        tie = len(x[x == y])
+
+    else:
+        win = len(x[x < y])
+        loss = len(x[x > y])
         tie = len(x[x == y])
 
     content["win"] = win
@@ -995,9 +940,8 @@ def _get_pairwise_content(
 
             else:
                 raise ValueError(f"{pvalue_test} test is not supported yet")
-    if use_mean == "mean-difference":
-        content["mean"] = np.mean(x) - np.mean(y)
 
+    content["mean"] = np.mean(x) - np.mean(y)
     return content
 
 
@@ -1073,13 +1017,7 @@ def _re_order_comparates(df_results, analysis):
             stats.append(analysis["average-statistic"][analysis["comparate-names"][i]])
 
     elif analysis["order-stats"] == "average-rank":
-        if analysis["dataset-column"] is not None:
-            np_results = np.asarray(
-                df_results.drop([analysis["dataset-column"]], axis=1)
-            )
-        else:
-            np_results = np.asarray(df_results)
-
+        np_results = np.asarray(df_results)
         df = pd.DataFrame(columns=["comparate-name", "values"])
 
         for i, comparate_name in enumerate(analysis["comparate-names"]):
@@ -1146,7 +1084,7 @@ def _re_order_comparates(df_results, analysis):
 
             stats.append(np.mean(pvalues))
 
-    if analysis["order-better"] == "increasing":
+    if analysis["order_stats_increasing"]:
         ordered_indices = np.argsort(stats)
     else:  # decreasing
         ordered_indices = np.argsort(stats)[::-1]
@@ -1157,13 +1095,22 @@ def _re_order_comparates(df_results, analysis):
     )
 
 
+def _normalize_formats(formats):
+    """Return a list of extensions or an empty list."""
+    if formats is None:
+        return []
+    if isinstance(formats, str):
+        return [formats]
+    return list(formats)
+
+
 def _get_cell_legend(
     analysis,
     win_label="r>c",
     tie_label="r=c",
     loss_label="r<c",
 ):
-    cell_legend = _capitalize_label(analysis["use-mean"])
+    cell_legend = _capitalize_label("mean-difference")
     longest_string = len(cell_legend)
 
     win_tie_loss_string = f"{win_label} / {tie_label} / {loss_label}"
@@ -1184,7 +1131,6 @@ def _get_cell_legend(
 def _capitalize_label(s):
     if len(s.split("-")) == 1:
         return s.capitalize()
-
     else:
         return "-".join(ss.capitalize() for ss in s.split("-"))
 

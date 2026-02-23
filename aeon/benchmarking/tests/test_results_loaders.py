@@ -85,7 +85,7 @@ data_path = os.path.join(
 )
 @pytest.mark.xfail(raises=CONNECTION_ERRORS)
 @pytest.mark.parametrize(
-    "path", [data_path, "http://timeseriesclassification.com/results/ReferenceResults"]
+    "path", [data_path, "https://timeseriesclassification.com/results/ReferenceResults"]
 )
 def test_get_estimator_results(path):
     """Test loading results returned in a dict."""
@@ -120,7 +120,7 @@ def test_get_estimator_results(path):
 )
 @pytest.mark.xfail(raises=CONNECTION_ERRORS)
 @pytest.mark.parametrize(
-    "path", [data_path, "http://timeseriesclassification.com/results/ReferenceResults"]
+    "path", [data_path, "https://timeseriesclassification.com/results/ReferenceResults"]
 )
 def test_get_estimator_results_as_array(path):
     """Test loading results returned in an array."""

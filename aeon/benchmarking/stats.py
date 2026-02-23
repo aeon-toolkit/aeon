@@ -6,7 +6,7 @@ __all__ = ["check_friedman", "nemenyi_test", "wilcoxon_test"]
 import warnings
 
 import numpy as np
-from scipy.stats import distributions, find_repeats, wilcoxon
+from scipy.stats import distributions, wilcoxon
 
 
 def check_friedman(ranks):
@@ -34,7 +34,8 @@ def check_friedman(ranks):
     # calculate c to correct chisq for ties:
     ties = 0
     for i in range(n_datasets):
-        replist, repnum = find_repeats(ranks[i])
+        _, counts = np.unique(ranks[i], return_counts=True)
+        repnum = counts[counts > 1]
         for t in repnum:
             ties += t * (t * t - 1)
     c = 1 - ties / (n_estimators * (n_estimators * n_estimators - 1) * n_datasets)
@@ -57,7 +58,7 @@ def nemenyi_test(ordered_avg_ranks, n_datasets, alpha):
     ordered_avg_ranks : np.array
         Average ranks of estimators.
     n_datasets : int
-        Mumber of datasets.
+        Number of datasets.
     alpha : float
         alpha level for Nemenyi test.
 

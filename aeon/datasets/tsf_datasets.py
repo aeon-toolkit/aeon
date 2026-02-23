@@ -54,4 +54,17 @@ tsf_all = {
     "australian_electricity_demand_dataset": 4659727,
     "covid_mobility_dataset_with_missing_values": 4663762,
     "covid_mobility_dataset_without_missing_values": 4663809,
+    "bitcoin_dataset_with_missing_values": 5121965,
+    "bitcoin_dataset_without_missing_values": 5122101,
+    "rideshare_dataset_with_missing_values": 5122114,
+    "rideshare_dataset_without_missing_values": 5122232,
+    "vehicle_trips_dataset_with_missing_values": 5122535,
+    "vehicle_trips_dataset_without_missing_values": 5122537,
+    "temperature_rain_dataset_with_missing_values": 5129073,
+    "temperature_rain_dataset_without_missing_values": 5129091,
+    "oikolab_weather_dataset": 5184708,
+    # These datasets generate HTTP Error 404: NOT FOUND errors
+    # "extended_wikipedia_web_traffic_daily_dataset_with_missing_values": 7370977,
+    # "extended_wikipedia_web_traffic_daily_dataset_without_missing_values": 7371038,
+    # "residential_power_and_battery_data": 8219786,
 }

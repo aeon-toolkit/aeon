@@ -2,10 +2,9 @@
 
 __maintainer__ = []
 
-from typing import Optional, Union
 
 import numpy as np
-from numba import njit
+from numba import njit, prange
 from numba.typed import List as NumbaList
 
 from aeon.distances.elastic._alignment_paths import compute_min_return_path
@@ -15,6 +14,8 @@ from aeon.distances.elastic._dtw import (
     create_bounding_matrix,
 )
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
+from aeon.utils.numba._threading import threaded
+from aeon.utils.numba.general import slope_derivative_2d
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
@@ -22,8 +23,8 @@ from aeon.utils.validation.collection import _is_numpy_list_multivariate
 def ddtw_distance(
     x: np.ndarray,
     y: np.ndarray,
-    window: Optional[float] = None,
-    itakura_max_slope: Optional[float] = None,
+    window: float | None = None,
+    itakura_max_slope: float | None = None,
 ) -> float:
     r"""Compute the DDTW distance between two time series.
 
@@ -80,15 +81,15 @@ def ddtw_distance(
     2180
     """
     if x.ndim == 1 and y.ndim == 1:
-        _x = average_of_slope(x.reshape((1, x.shape[0])))
-        _y = average_of_slope(y.reshape((1, y.shape[0])))
+        _x = slope_derivative_2d(x.reshape((1, x.shape[0])))
+        _y = slope_derivative_2d(y.reshape((1, y.shape[0])))
         bounding_matrix = create_bounding_matrix(
             _x.shape[1], _y.shape[1], window, itakura_max_slope
         )
         return _dtw_distance(_x, _y, bounding_matrix)
     if x.ndim == 2 and y.ndim == 2:
-        _x = average_of_slope(x)
-        _y = average_of_slope(y)
+        _x = slope_derivative_2d(x)
+        _y = slope_derivative_2d(y)
         bounding_matrix = create_bounding_matrix(
             _x.shape[1], _y.shape[1], window, itakura_max_slope
         )
@@ -99,9 +100,9 @@ def ddtw_distance(
 @njit(cache=True, fastmath=True)
 def ddtw_cost_matrix(
     x: np.ndarray,
-    y: Optional[np.ndarray] = None,
-    window: Optional[float] = None,
-    itakura_max_slope: Optional[float] = None,
+    y: np.ndarray | None = None,
+    window: float | None = None,
+    itakura_max_slope: float | None = None,
 ) -> np.ndarray:
     r"""Compute the DDTW cost matrix between two time series.
 
@@ -151,15 +152,15 @@ def ddtw_cost_matrix(
            [0., 0., 0., 0., 0., 0., 0., 0.]])
     """
     if x.ndim == 1 and y.ndim == 1:
-        _x = average_of_slope(x.reshape((1, x.shape[0])))
-        _y = average_of_slope(y.reshape((1, y.shape[0])))
+        _x = slope_derivative_2d(x.reshape((1, x.shape[0])))
+        _y = slope_derivative_2d(y.reshape((1, y.shape[0])))
         bounding_matrix = create_bounding_matrix(
             _x.shape[1], _y.shape[1], window, itakura_max_slope
         )
         return _dtw_cost_matrix(_x, _y, bounding_matrix)
     if x.ndim == 2 and y.ndim == 2:
-        _x = average_of_slope(x)
-        _y = average_of_slope(y)
+        _x = slope_derivative_2d(x)
+        _y = slope_derivative_2d(y)
         bounding_matrix = create_bounding_matrix(
             _x.shape[1], _y.shape[1], window, itakura_max_slope
         )
@@ -167,11 +168,13 @@ def ddtw_cost_matrix(
     raise ValueError("x and y must be 1D or 2D")
 
 
+@threaded
 def ddtw_pairwise_distance(
-    X: Union[np.ndarray, list[np.ndarray]],
-    y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
-    window: Optional[float] = None,
-    itakura_max_slope: Optional[float] = None,
+    X: np.ndarray | list[np.ndarray],
+    y: np.ndarray | list[np.ndarray] | None = None,
+    window: float | None = None,
+    itakura_max_slope: float | None = None,
+    n_jobs: int = 1,
 ) -> np.ndarray:
     """Compute the DDTW pairwise distance between a set of time series.
 
@@ -191,6 +194,10 @@ def ddtw_pairwise_distance(
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
+    n_jobs : int, default=1
+        The number of jobs to run in parallel. If -1, then the number of jobs is set
+        to the number of CPU cores. If 1, then the function is executed in a single
+        thread. If greater than 1, then the function is executed in parallel.
 
     Returns
     -------
@@ -254,11 +261,11 @@ def ddtw_pairwise_distance(
     )
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath=True, parallel=True)
 def _ddtw_pairwise_distance(
     X: NumbaList[np.ndarray],
-    window: Optional[float],
-    itakura_max_slope: Optional[float],
+    window: float | None,
+    itakura_max_slope: float | None,
     unequal_length: bool,
 ) -> np.ndarray:
     n_cases = len(X)
@@ -272,9 +279,9 @@ def _ddtw_pairwise_distance(
 
     X_average_of_slope = NumbaList()
     for i in range(n_cases):
-        X_average_of_slope.append(average_of_slope(X[i]))
+        X_average_of_slope.append(slope_derivative_2d(X[i]))
 
-    for i in range(n_cases):
+    for i in prange(n_cases):
         for j in range(i + 1, n_cases):
             x1, x2 = X_average_of_slope[i], X_average_of_slope[j]
             if unequal_length:
@@ -287,12 +294,12 @@ def _ddtw_pairwise_distance(
     return distances
 
 
-@njit(cache=True, fastmath=True)
+@njit(cache=True, fastmath=True, parallel=True)
 def _ddtw_from_multiple_to_multiple_distance(
     x: NumbaList[np.ndarray],
     y: NumbaList[np.ndarray],
-    window: Optional[float],
-    itakura_max_slope: Optional[float],
+    window: float | None,
+    itakura_max_slope: float | None,
     unequal_length: bool,
 ) -> np.ndarray:
     n_cases = len(x)
@@ -307,13 +314,13 @@ def _ddtw_from_multiple_to_multiple_distance(
     # Derive the arrays before so that we dont have to redo every iteration
     x_average_of_slope = NumbaList()
     for i in range(n_cases):
-        x_average_of_slope.append(average_of_slope(x[i]))
+        x_average_of_slope.append(slope_derivative_2d(x[i]))
 
     y_average_of_slope = NumbaList()
     for i in range(m_cases):
-        y_average_of_slope.append(average_of_slope(y[i]))
+        y_average_of_slope.append(slope_derivative_2d(y[i]))
 
-    for i in range(n_cases):
+    for i in prange(n_cases):
         for j in range(m_cases):
             x1, y1 = x_average_of_slope[i], y_average_of_slope[j]
             if unequal_length:
@@ -328,8 +335,8 @@ def _ddtw_from_multiple_to_multiple_distance(
 def ddtw_alignment_path(
     x: np.ndarray,
     y: np.ndarray,
-    window: Optional[float] = None,
-    itakura_max_slope: Optional[float] = None,
+    window: float | None = None,
+    itakura_max_slope: float | None = None,
 ) -> tuple[list[tuple[int, int]], float]:
     """Compute the DDTW alignment path between two time series.
 
@@ -355,7 +362,7 @@ def ddtw_alignment_path(
         of the index in x and the index in y that have the best alignment according
         to the cost matrix.
     float
-        The ddtw distance betweeen the two time series.
+        The ddtw distance between the two time series.
 
     Raises
     ------
@@ -377,48 +384,3 @@ def ddtw_alignment_path(
         compute_min_return_path(cost_matrix),
         cost_matrix[x.shape[-1] - 3, y.shape[-1] - 3],
     )
-
-
-@njit(cache=True, fastmath=True)
-def average_of_slope(q: np.ndarray) -> np.ndarray:
-    r"""Compute the average of a slope between points.
-
-    Computes the average of the slope of the line through the point in question and
-    its left neighbour, and the slope of the line through the left neighbour and the
-    right neighbour. proposed in [1] for use in this context.
-    .. math::
-    q'_(i) = \frac{{}(q_{i} - q_{i-1} + ((q_{i+1} - q_{i-1}/2)}{2}
-    Where q is the original time series and q' is the derived time series.
-
-    Parameters
-    ----------
-    q : np.ndarray (n_channels, n_timepoints)
-        Time series to take derivative of.
-
-    Returns
-    -------
-    np.ndarray (n_channels, n_timepoints - 2)
-        Array containing the derivative of q.
-
-    Raises
-    ------
-    ValueError
-        If the time series has less than 3 points.
-
-    Examples
-    --------
-    >>> import numpy as np
-    >>> from aeon.distances.elastic._ddtw import average_of_slope
-    >>> q = np.array([[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]])
-    >>> average_of_slope(q)
-    array([[1., 1., 1., 1., 1., 1., 1., 1.]])
-    """
-    if q.shape[1] < 3:
-        raise ValueError("Time series must have at least 3 points.")
-    result = np.zeros((q.shape[0], q.shape[1] - 2))
-    for i in range(q.shape[0]):
-        for j in range(1, q.shape[1] - 1):
-            result[i, j - 1] = (
-                (q[i, j] - q[i, j - 1]) + (q[i, j + 1] - q[i, j - 1]) / 2.0
-            ) / 2.0
-    return result

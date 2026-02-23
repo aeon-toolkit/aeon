@@ -1,6 +1,7 @@
 """Sklearn to aeon coercion utility."""
 
 __maintainer__ = ["MatthewMiddlehurst"]
+__all__ = ["sklearn_to_aeon"]
 
 from aeon.pipeline._make_pipeline import make_pipeline
 from aeon.transformations.collection import Tabularizer
@@ -9,19 +10,19 @@ from aeon.transformations.collection import Tabularizer
 def sklearn_to_aeon(estimator):
     """Coerces an sklearn estimator to the aeon pipeline interface.
 
-    Creates a pipeline of two elements, the identity transformer and the estimator.
-    The identity transformer acts as adapter and holds aeon base class logic.
+    Creates a pipeline of two elements, the Tabularizer transformer and the estimator.
+    The Tabularizer transformer acts as adapter and holds aeon base class logic, as
+    well as converting aeon datatypes to a feature vector format. Multivariate series
+    will be concatenated into a single feature vector. Data must be of equal length.
 
     Parameters
     ----------
     estimator : sklearn compatible estimator
-        can be classifier, regressor, transformer, clusterer
+        Can be a classifier, regressor, clusterer, or transformer.
 
     Returns
     -------
-    pipe : aeon estimator of corresponding time series type
-        classifiers, regressors, clusterers are converted to time series counterparts
-        by flattening time series. Assumes equal length time series.
-        transformers are converted to time series transformer by application per series
+    pipe : aeon pipeline estimator
+        A pipeline of the Tabularizer transformer and input estimator.
     """
     return make_pipeline(Tabularizer(), estimator)

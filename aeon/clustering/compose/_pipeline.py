@@ -60,14 +60,14 @@ class ClustererPipeline(BaseCollectionPipeline, BaseClusterer):
 
     Examples
     --------
-    >>> from aeon.transformations.collection import Resizer
+    >>> from aeon.transformations.collection.unequal_length import Resizer
     >>> from aeon.clustering import TimeSeriesKMeans
     >>> from aeon.datasets import load_unit_test
     >>> from aeon.clustering.compose import ClustererPipeline
     >>> X_train, y_train = load_unit_test(split="train")
     >>> X_test, y_test = load_unit_test(split="test")
     >>> pipeline = ClustererPipeline(
-    ...     Resizer(length=10), TimeSeriesKMeans._create_test_instance()
+    ...     Resizer(resized_length=10), TimeSeriesKMeans._create_test_instance()
     ... )
     >>> pipeline.fit(X_train, y_train)
     ClustererPipeline(...)
@@ -108,8 +108,8 @@ class ClustererPipeline(BaseCollectionPipeline, BaseClusterer):
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
         """
         from aeon.clustering import TimeSeriesKMeans
-        from aeon.transformations.collection import Truncator
         from aeon.transformations.collection.feature_based import SevenNumberSummary
+        from aeon.transformations.collection.unequal_length import Truncator
 
         return {
             "transformers": [

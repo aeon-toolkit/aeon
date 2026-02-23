@@ -22,6 +22,8 @@ The reason for this class between BaseClassifier and deep_learning classifiers i
 because we can generalise tags, _predict and _predict_proba
 """
 
+from __future__ import annotations
+
 __maintainer__ = ["hadifawaz1999"]
 __all__ = ["BaseDeepClassifier"]
 
@@ -49,10 +51,9 @@ class BaseDeepClassifier(BaseClassifier):
         The name of the file of the last model, used
         only if save_last_model_to_file is used
 
-    Arguments
-    ---------
+    Attributes
+    ----------
     self.model = None
-
     """
 
     _tags = {
@@ -179,17 +180,20 @@ class BaseDeepClassifier(BaseClassifier):
         """
         self.model_.save(file_path + self.last_file_name + ".keras")
 
-    def load_model(self, model_path, classes):
+    def load_model(self, model_path: str, classes: np.ndarray) -> None:
         """Load a pre-trained keras model instead of fitting.
 
+        Pretrained model should be saved using "save_last_model" or
+        "save_best_model" boolean parameter.
         When calling this function, all functionalities can be used
         such as predict, predict_proba etc. with the loaded model.
 
         Parameters
         ----------
         model_path : str (path including model name and extension)
-            The directory where the model will be saved including the model
-            name with a ".keras" extension.
+            The complete path (including file name and '.keras' extension)
+            from which the pre-trained model's weights and configuration
+            are loaded.
             Example: model_path="path/to/file/best_model.keras"
         classes : np.ndarray
             The set of unique classes the pre-trained loaded model is trained

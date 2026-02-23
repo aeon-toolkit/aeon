@@ -1,11 +1,17 @@
 """Utilities for class __repr__ presentation."""
 
 import inspect
+from typing import Any
 
 from aeon.testing.utils.deep_equals import deep_equals
 
+__maintainer__ = ["MatthewMiddlehurst"]
+__all__ = [
+    "get_unchanged_and_required_params_as_str",
+]
 
-def get_unchanged_and_required_params_as_str(obj):
+
+def get_unchanged_and_required_params_as_str(obj: Any) -> str:
     """
     Get object parameters as a comma delimited string.
 
