@@ -87,11 +87,11 @@ def test_incorrect_input():
         dummy.fit(X, y)
 
 
-def _assert_incorrect_X_input(dummy, correctX, correcty, X, y, msg):
+def _assert_incorrect_X_input(dummy, correct_X, correct_y, X, y, msg):
     with pytest.raises(TypeError, match=msg):
         dummy.fit(X, y)
 
-    dummy.fit(correctX, correcty)
+    dummy.fit(correct_X, correct_y)
 
     with pytest.raises(TypeError, match=msg):
         dummy.predict(X)
@@ -157,7 +157,7 @@ def test_univariate_equal_length_input(data):
     dummy = MockClassifier()
     _assert_fit_and_predict(dummy, X, y)
 
-    # All capabiltiies
+    # All capabilities
     dummy = MockClassifierFullTags()
     _assert_fit_and_predict(dummy, X, y)
 

@@ -102,13 +102,13 @@ class MERLIN(BaseSeriesAnomalyDetector):
 
         r = 2 * np.sqrt(self.min_length)
         distances = np.full(len(lengths), -1.0)
-        indicies = np.full(len(lengths), -1)
+        indices = np.full(len(lengths), -1)
 
-        indicies[0], distances[0] = self._find_index(X, lengths[0], r, np.multiply, 0.5)
+        indices[0], distances[0] = self._find_index(X, lengths[0], r, np.multiply, 0.5)
 
         for i in range(1, min(5, len(lengths))):
             r = distances[i - 1] * 0.99
-            indicies[i], distances[i] = self._find_index(
+            indices[i], distances[i] = self._find_index(
                 X, lengths[i], r, np.multiply, 0.99
             )
 
@@ -116,12 +116,12 @@ class MERLIN(BaseSeriesAnomalyDetector):
             m = mean(distances[i - 5 : i])
             s = std(distances[i - 5 : i])
             r = m - 2 * s
-            indicies[i], distances[i] = self._find_index(
+            indices[i], distances[i] = self._find_index(
                 X, lengths[i], r, np.subtract, s
             )
 
         anomalies = np.zeros(X.shape[0], dtype=bool)
-        for i in indicies:
+        for i in indices:
             if i > -1:
                 anomalies[i] = True
 
@@ -210,13 +210,14 @@ class MERLIN(BaseSeriesAnomalyDetector):
         ----------
         parameter_set : str, default="default"
             Name of the set of test parameters to return, for use in tests. If no
-            special parameters are defined for a value, will return `"default"` set.
+            special parameters are defined for a value, will return ``"default"`` set.
 
         Returns
         -------
         params : dict or list of dict, default={}
             Parameters to create testing instances of the class.
             Each dict are parameters to construct an "interesting" test instance, i.e.,
-            `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
+            ``MyClass(**params)`` or ``MyClass(**params[i])`` creates a valid
+            test instance.
         """
         return {"min_length": 4, "max_length": 7}

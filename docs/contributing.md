@@ -28,7 +28,7 @@ yourself to an issue for such algorithms.
 When using code from another package or writing code inspired from another implementation,
 please mention this in your PR. At the very least credit must be given where
 applicable. If the package has a different license, using the code as is may not be
-acceptable. Using others code without credit will like result in your PR being closed.
+acceptable. Using others code without credit will likely result in your PR being closed.
 
 In the following we will give a brief overview of how to contribute to `aeon`. Making
 contributions to open-source projects takes a bit of proactivity and can be daunting at
@@ -38,7 +38,7 @@ stuck, please don’t hesitate to talk with us or raise an issue.
 Recommended steps for first time contributors, or to get started with regular
 contributions:
 
-1. Say hello in the `introductions` or `contributors` channel on [Slack](https://join.slack.com/t/aeon-toolkit/shared_invite/zt-22vwvut29-HDpCu~7VBUozyfL_8j3dLA)
+1. Say hello in the `introductions` or `contributors` channel on [Discord](https://discord.gg/D6rzqHGKRJ)
 and mention which places you are interested in contributing to.
 2. Get setup for development, see the [developer install instructions](developer_guide/dev_installation.md)
 for creating a fork of `aeon`.
@@ -63,7 +63,7 @@ Developer may suggest a different issue if the one you chose is complex or someb
 already working on it.
 5. Create a [pull request (PR)](https://github.com/aeon-toolkit/aeon/compare)
 with your changes from your fork. For help, see the [GitHub documentation](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request-from-a-fork)
-or ask in Slack. Follow the PR template, template comments and checklist. Please make
+or ask in [Discord](https://discord.gg/D6rzqHGKRJ). Follow the PR template, template comments and checklist. Please make
 sure to include an appropriate [title tag](contributing/issues.md). **Do not just delete the PR template
 text.**
 6. A Core Developer will review your PR and may provide feedback, which you can then
@@ -84,7 +84,7 @@ contributing, but if your issue to related to a specific topic i.e. documentatio
 testing you may find it useful.
 
 If your intended method of contribution does not fit into the above steps, please
-reach out to us on [Slack](https://join.slack.com/t/aeon-toolkit/shared_invite/zt-22vwvut29-HDpCu~7VBUozyfL_8j3dLA)
+reach out to us on [Discord](https://discord.gg/D6rzqHGKRJ)
 for discussion. While GitHub contributions are the most common, it is not the only
 way to contribute to `aeon`.
 
@@ -171,7 +171,7 @@ Mentoring and Projects
 
 +++
 
-```{button-ref} mentoring
+```{button-ref} projects
 :color: primary
 :click-parent:
 :expand:

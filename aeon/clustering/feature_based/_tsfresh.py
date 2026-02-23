@@ -7,14 +7,13 @@ __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["TSFreshClusterer"]
 
 
-from typing import Optional
-
 import numpy as np
 from sklearn.cluster import KMeans
 
 from aeon.base._base import _clone_estimator
 from aeon.clustering import BaseClusterer
 from aeon.transformations.collection.feature_based import TSFresh
+from aeon.utils.validation import check_n_jobs
 
 
 class TSFreshClusterer(BaseClusterer):
@@ -72,8 +71,10 @@ class TSFreshClusterer(BaseClusterer):
     """
 
     _tags = {
+        "X_inner_type": ["np-list", "numpy3D"],
         "capability:multivariate": True,
         "capability:multithreading": True,
+        "capability:unequal_length": True,
         "algorithm_type": "feature",
         "python_dependencies": "tsfresh",
     }
@@ -84,8 +85,8 @@ class TSFreshClusterer(BaseClusterer):
         estimator=None,
         verbose: int = 0,
         n_jobs: int = 1,
-        chunksize: Optional[int] = None,
-        random_state: Optional[int] = None,
+        chunksize: int | None = None,
+        random_state: int | None = None,
         n_clusters: int = 8,  # Default value as 8
     ):
         self.default_fc_parameters = default_fc_parameters
@@ -102,12 +103,14 @@ class TSFreshClusterer(BaseClusterer):
 
         super().__init__()
 
-    def _fit(self, X: np.ndarray, y: Optional[np.ndarray] = None):
+    def _fit(self, X: np.ndarray, y: np.ndarray | None = None):
         """Fit a pipeline on cases X.
 
         Parameters
         ----------
         X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
+            or list of np.ndarray of shape [n_cases], where each array is a
+            2D np.ndarray of shape = [n_channels, n_timepoints_i]
             The training data.
         y : array-like, shape = [n_cases]
             Ignored. The class labels.
@@ -122,6 +125,8 @@ class TSFreshClusterer(BaseClusterer):
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
         """
+        self._n_jobs = check_n_jobs(self.n_jobs)
+
         self._transformer = TSFresh(
             default_fc_parameters=self.default_fc_parameters,
             n_jobs=self._n_jobs,
@@ -171,6 +176,8 @@ class TSFreshClusterer(BaseClusterer):
         Parameters
         ----------
         X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
+            or list of np.ndarray of shape [n_cases], where each array is a
+            2D np.ndarray of shape = [n_channels, n_timepoints_i]
             The data to make predictions for.
 
         Returns
@@ -186,6 +193,8 @@ class TSFreshClusterer(BaseClusterer):
         Parameters
         ----------
         X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
+            or list of np.ndarray of shape [n_cases], where each array is a
+            2D np.ndarray of shape = [n_channels, n_timepoints_i]
             The data to make predictions for.
 
         Returns

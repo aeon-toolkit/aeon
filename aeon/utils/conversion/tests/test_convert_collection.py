@@ -31,7 +31,7 @@ from aeon.utils.data_types import (
     COLLECTIONS_MULTIVARIATE_DATA_TYPES,
     COLLECTIONS_UNEQUAL_DATA_TYPES,
 )
-from aeon.utils.validation import get_type
+from aeon.utils.validation.collection import get_type
 
 
 @pytest.mark.parametrize("input_data", COLLECTIONS_DATA_TYPES)
