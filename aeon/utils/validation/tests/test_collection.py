@@ -194,7 +194,13 @@ def _make_flat_collection(X):
 def _make_tiny_collection(X, eps=1e-9):
     Y = _make_flat_collection(X)
     if isinstance(Y, pd.DataFrame):
-        Y.iat[1, 1] = eps
+        if isinstance(Y.index, pd.MultiIndex):
+            rows = np.where(
+                Y.index.get_level_values(0) == Y.index.get_level_values(0).unique()[1]
+            )[0]
+            Y.iloc[rows[1], 0] = eps
+        else:
+            Y.iat[1, 1] = eps
     elif isinstance(Y, list):
         if isinstance(Y[0], np.ndarray):
             Y[1][0, 1] = eps
@@ -253,7 +259,7 @@ def test_check_collection_variance_errors():
     """Test error catching in check_collection_variance."""
     X = np.zeros((10, 10))
     with pytest.raises(ValueError, match="non-negative"):
-        check_collection_variance(X)
+        check_collection_variance(X, threshold=-1e-7)
 
     X = [np.zeros((2, 5)), np.zeros((3, 5))]
     with pytest.raises(ValueError, match="number of channels is not consistent"):
