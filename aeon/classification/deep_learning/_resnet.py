@@ -26,13 +26,15 @@ class ResNetClassifier(BaseDeepClassifier):
         The number of residual blocks of ResNet's model.
     n_conv_per_residual_block : int, default = 3
         The number of convolution blocks in each residual block.
-    n_filters : int or list of int, default = [128, 64, 64]
+    n_filters : int or list of int, default = None
         The number of convolution filters for all the convolution layers in the same
         residual block, if not a list, the same number of filters is used in all
         convolutions of all residual blocks.
-    kernel_sizes : int or list of int, default = [8, 5, 3]
+        If set to None, defaults to [128, 64, 64].
+    kernel_sizes : int or list of int, default = None
         The kernel size of all the convolution layers in one residual block, if not
         a list, the same kernel size is used in all convolution layers.
+        If set to None, defaults to [8, 5, 3].
     strides : int or list of int, default = 1
         The strides of convolution kernels in each of the convolution layers in
         one residual block, if not a list, the same kernel size is used in all
@@ -46,13 +48,13 @@ class ResNetClassifier(BaseDeepClassifier):
     activation : str or list of str, default = 'relu'
         keras activation used in the convolution layers in one residual block,
         if not a list, the same kernel size is used in all convolution layers.
-    use_bia : bool or list of bool, default = True
+    use_bias : bool or list of bool, default = True
         Condition on whether or not to use bias values in the convolution layers
         in one residual block, if not a list, the same kernel size is used in all
         convolution layers.
     n_epochs : int, default = 1500
         The number of epochs to train the model.
-    batch_size : int, default = 16
+    batch_size : int, default = 64
         The number of samples per gradient update.
     use_mini_batch_size : bool, default = False
         Condition on using the mini batch size formula Wang et al.
@@ -121,30 +123,30 @@ class ResNetClassifier(BaseDeepClassifier):
 
     def __init__(
         self,
-        n_residual_blocks=3,
-        n_conv_per_residual_block=3,
-        n_filters=None,
-        kernel_size=None,
-        strides=1,
-        dilation_rate=1,
-        padding="same",
-        activation="relu",
-        use_bias=True,
-        n_epochs=1500,
+        n_residual_blocks: int = 3,
+        n_conv_per_residual_block: int = 3,
+        n_filters: int | list[int] = None,
+        kernel_size: int | list[int] = None,
+        strides: int | list[int] = 1,
+        dilation_rate: int | list[int] = 1,
+        padding: str | list[str] = "same",
+        activation: str | list[str] = "relu",
+        use_bias: bool | list[bool] = True,
+        n_epochs: int = 1500,
         callbacks=None,
-        verbose=False,
-        loss="categorical_crossentropy",
-        metrics="accuracy",
-        batch_size=64,
-        use_mini_batch_size=False,
+        verbose: bool = False,
+        loss: str = "categorical_crossentropy",
+        metrics: str | list[str] = "accuracy",
+        batch_size: int = 64,
+        use_mini_batch_size: bool = False,
         random_state=None,
-        file_path="./",
-        save_best_model=False,
-        save_last_model=False,
-        save_init_model=False,
-        best_file_name="best_model",
-        last_file_name="last_model",
-        init_file_name="init_model",
+        file_path: str = "./",
+        save_best_model: bool = False,
+        save_last_model: bool = False,
+        save_init_model: bool = False,
+        best_file_name: str = "best_model",
+        last_file_name: str = "last_model",
+        init_file_name: str = "init_model",
         optimizer=None,
     ):
         self.n_residual_blocks = n_residual_blocks
@@ -190,7 +192,7 @@ class ResNetClassifier(BaseDeepClassifier):
             padding=self.padding,
         )
 
-    def build_model(self, input_shape, n_classes, **kwargs):
+    def build_model(self, input_shape: tuple[int, int], n_classes: int, **kwargs):
         """Construct a compiled, un-trained, keras model that is ready for training.
 
         In aeon, time series are stored in numpy arrays of shape (d,m), where d
@@ -322,7 +324,7 @@ class ResNetClassifier(BaseDeepClassifier):
         return self
 
     @classmethod
-    def _get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set: str = "default") -> dict | list[dict]:
         """Return testing parameter settings for the estimator.
 
         Parameters
