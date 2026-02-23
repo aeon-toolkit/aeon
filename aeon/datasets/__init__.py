@@ -19,8 +19,7 @@ __all__ = [
     "load_rehab_pile_classification_datasets",
     "load_rehab_pile_regression_datasets",
     # Write functions
-    "write_to_ts_file",
-    "write_to_arff_file",
+    "save_to_ts_file",
     # Single problem loaders
     "load_airline",
     "load_arrow_head",
@@ -48,6 +47,9 @@ __all__ = [
     "load_daphnet_s06r02e0",
     "load_ecg_diff_count_3",
     "get_dataset_meta_data",
+    # Monster datasets
+    "load_monster_dataset_names",
+    "load_monster_dataset",
 ]
 
 from aeon.datasets._data_loaders import (
@@ -61,7 +63,9 @@ from aeon.datasets._data_loaders import (
     load_from_tsv_file,
     load_regression,
 )
-from aeon.datasets._data_writers import write_to_arff_file, write_to_ts_file
+from aeon.datasets._data_writers import (
+    save_to_ts_file,
+)
 from aeon.datasets._single_problem_loaders import (
     load_acsf1,
     load_airline,
@@ -95,6 +99,10 @@ from aeon.datasets._tsad_data_loaders import (
 from aeon.datasets._tss_data_loaders import (
     load_human_activity_segmentation_datasets,
     load_time_series_segmentation_benchmark,
+)
+from aeon.datasets.monster_loader import (
+    load_monster_dataset,
+    load_monster_dataset_names,
 )
 from aeon.datasets.rehabpile_loader import (
     load_rehab_pile_classification_datasets,

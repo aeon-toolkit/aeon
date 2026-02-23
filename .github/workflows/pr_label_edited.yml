@@ -1,11 +1,11 @@
-name: PR Label Edited
+name: PR label edited
 
 on:
   pull_request_target:
     types: [labeled, unlabeled]
 
 jobs:
-  update-pr-welcome:
+  update-pr:
     runs-on: ubuntu-24.04
 
     steps:
@@ -15,11 +15,11 @@ jobs:
           app-id: ${{ vars.PR_APP_ID }}
           private-key: ${{ secrets.PR_APP_KEY }}
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           sparse-checkout: .github/utilities
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
@@ -28,6 +28,12 @@ jobs:
 
       - name: Process label edit
         run: python .github/utilities/pr_welcome_updater.py
+        env:
+          CONTEXT_GITHUB: ${{ toJson(github) }}
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
+
+      - name: Process AI label
+        run: python .github/utilities/ai_pull_request.py
         env:
           CONTEXT_GITHUB: ${{ toJson(github) }}
           GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}

@@ -981,8 +981,8 @@ def _get_datatypes_for_estimator(estimator):
 
     Parameters
     ----------
-    estimator : BaseAeonEstimator instance or class
-        Estimator instance or class to check for valid input data types.
+    estimator : BaseAeonEstimator instance
+        Estimator instance to check for valid input data types.
 
     Returns
     -------
