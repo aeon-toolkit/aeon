@@ -30,7 +30,6 @@ from urllib.request import Request, urlopen, urlretrieve
 
 import numpy as np
 import pandas as pd
-import requests
 
 import aeon
 from aeon.datasets.dataset_collections import (
@@ -1054,16 +1053,28 @@ def load_forecasting(name, extract_path=None, return_metadata=False):
 
 
 def _url_exists(url: str, timeout: float = 10.0) -> bool:
-    try:
-        r = requests.head(url, allow_redirects=True, timeout=timeout)
-        # Some endpoints return 405 for HEAD, so fall back to GET without the body.
-        if r.status_code == 405:
-            r = requests.get(url, stream=True, allow_redirects=True, timeout=timeout)
-            r.close()
-        return r.status_code == 200
-    except requests.RequestException:
-        return False
+    # Try HEAD first, then fall back to a minimal GET for servers that block HEAD.
+    for method in ("HEAD", "GET"):
+        try:
+            headers = {
+                "User-Agent": "aeon/1.x (url check)",
+            }
+            if method == "GET":
+                # Ask for a single byte to avoid downloading the body.
+                headers["Range"] = "bytes=0-0"
 
+            req = Request(url, method=method, headers=headers)
+            with urlopen(req, timeout=timeout) as resp:
+                status = getattr(resp, "status", resp.getcode())
+                return status == 200  # match your original behaviour
+        except HTTPError as e:
+            if method == "HEAD" and e.code in (405, 501):  # Method Not Allowed / Not Implemented
+                continue
+            return False
+        except URLError:
+            return False
+
+    return False
 
 def load_collection(
     name: str,
