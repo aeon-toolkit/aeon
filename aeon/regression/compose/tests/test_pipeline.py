@@ -21,22 +21,22 @@ from aeon.transformations.collection import (
     AutocorrelationFunctionTransformer,
     HOG1DTransformer,
     Normalizer,
-    Padder,
     Tabularizer,
 )
 from aeon.transformations.collection.feature_based import SevenNumberSummary
+from aeon.transformations.collection.unequal_length import Padder
 
 
 @pytest.mark.parametrize(
     "transformers",
     [
-        Padder(pad_length=15),
+        Padder(padded_length=15),
         SevenNumberSummary(),
-        [Padder(pad_length=15), Tabularizer(), StandardScaler()],
-        [Padder(pad_length=15), SevenNumberSummary()],
+        [Padder(padded_length=15), Tabularizer(), StandardScaler()],
+        [Padder(padded_length=15), SevenNumberSummary()],
         [Tabularizer(), StandardScaler(), SevenNumberSummary()],
         [
-            Padder(pad_length=15),
+            Padder(padded_length=15),
             SevenNumberSummary(),
         ],
     ],
@@ -67,14 +67,14 @@ def test_regressor_pipeline(transformers):
 @pytest.mark.parametrize(
     "transformers",
     [
-        [Padder(pad_length=15), Tabularizer()],
+        [Padder(padded_length=15), Tabularizer()],
         SevenNumberSummary(),
         [Tabularizer(), StandardScaler()],
-        [Padder(pad_length=15), Tabularizer(), StandardScaler()],
-        [Padder(pad_length=15), SevenNumberSummary()],
+        [Padder(padded_length=15), Tabularizer(), StandardScaler()],
+        [Padder(padded_length=15), SevenNumberSummary()],
         [Tabularizer(), StandardScaler(), SevenNumberSummary()],
         [
-            Padder(pad_length=15),
+            Padder(padded_length=15),
             SevenNumberSummary(),
         ],
     ],

@@ -1,11 +1,10 @@
 """Time series kmedoids."""
 
-from typing import Optional
-
 __maintainer__ = []
+__all__ = ["TimeSeriesKMedoids"]
 
 import warnings
-from typing import Callable, Union
+from collections.abc import Callable
 
 import numpy as np
 from numpy.random import RandomState
@@ -33,7 +32,7 @@ class TimeSeriesKMedoids(BaseClusterer):
     PAM (Partition Around Medoids)[3]_ algorithm and is the default method used in this
     implementation. However, an adaptation of lloyds method classically used for k-means
     is also available by specifying method='alternate'. Alternate is faster but less
-    accurate than PAM. For a full review of varations of k-medoids for time series
+    accurate than PAM. For a full review of variations of k-medoids for time series
     see [5]_.
 
     K-medoids for time series uses a dissimilarity method to compute the distance
@@ -46,13 +45,17 @@ class TimeSeriesKMedoids(BaseClusterer):
         The number of clusters to form as well as the number of centroids to generate.
     init : str or np.ndarray, default='random'
         Method for initialising cluster centers. Any of the following are valid:
-        ['kmedoids++', 'random', 'first'].
+        ['kmedoids++', 'random', 'first', 'build'].
         Random is the default as it is very fast and it was found in [2] to
         perform about as well as the other methods.
         Kmedoids++ is a variant of kmeans++ [4] and is slower but often more
         accurate than random. It works by choosing centroids that are distant
         from one another. First is the fastest method and simply chooses the
-        first k time series as centroids.
+        first k time series as centroids. Build [1] greedily selects the k medoids
+        by first selecting the medoid that minimizes the sum of distances
+        to all other points(this point is the most centrally located) and then
+        iteratively selects the next k-1 medoids that maximizes the decrease in sum
+        of distances of all other points to their respective medoids selected so far.
         If a np.ndarray provided it must be of shape (n_clusters,) and contain
         the indexes of the time series to use as centroids.
     distance : str or Callable, default='msm'
@@ -152,15 +155,15 @@ class TimeSeriesKMedoids(BaseClusterer):
     def __init__(
         self,
         n_clusters: int = 8,
-        init: Union[str, np.ndarray] = "random",
-        distance: Union[str, Callable] = "msm",
+        init: str | np.ndarray = "random",
+        distance: str | Callable = "msm",
         method: str = "pam",
         n_init: int = 10,
         max_iter: int = 300,
         tol: float = 1e-6,
         verbose: bool = False,
-        random_state: Optional[Union[int, RandomState]] = None,
-        distance_params: Optional[dict] = None,
+        random_state: int | RandomState | None = None,
+        distance_params: dict | None = None,
     ):
         self.distance = distance
         self.init = init
@@ -428,6 +431,13 @@ class TimeSeriesKMedoids(BaseClusterer):
     def _check_params(self, X: np.ndarray) -> None:
         self._random_state = check_random_state(self.random_state)
 
+        _incorrect_init_str = (
+            f"The value provided for init: {self.init} is "
+            f"invalid. The following are a list of valid init algorithms "
+            f"strings: random, kmedoids++, first, build. You can also pass a "
+            f"np.ndarray of size (n_clusters, n_channels, n_timepoints)"
+        )
+
         if isinstance(self.init, str):
             if self.init == "random":
                 self._init = self._random_center_initializer
@@ -437,16 +447,13 @@ class TimeSeriesKMedoids(BaseClusterer):
                 self._init = self._first_center_initializer
             elif self.init == "build":
                 self._init = self._pam_build_center_initializer
+            else:
+                raise ValueError(_incorrect_init_str)
         else:
             if isinstance(self.init, np.ndarray) and len(self.init) == self.n_clusters:
                 self._init = self.init
             else:
-                raise ValueError(
-                    f"The value provided for init: {self.init} is "
-                    f"invalid. The following are a list of valid init algorithms "
-                    f"strings: random, kmedoids++, first. You can also pass a"
-                    f"np.ndarray of size (n_clusters, n_channels, n_timepoints)"
-                )
+                raise ValueError(_incorrect_init_str)
 
         if self.distance_params is not None:
             self._distance_params = self.distance_params

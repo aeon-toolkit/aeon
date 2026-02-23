@@ -1,7 +1,6 @@
 """Dataset loading functions."""
 
-from typing import Optional
-
+__maintainer__ = []
 __all__ = [  # Load functions
     "load_from_ts_file",
     "load_from_tsf_file",
@@ -235,6 +234,7 @@ def load_from_ts_file(
     replace_missing_vals_with="NaN",
     return_meta_data=False,
     return_type="auto",
+    encoding="utf-8",
 ):
     """Load time series .ts file into X and (optionally) y.
 
@@ -251,6 +251,8 @@ def load_from_ts_file(
         If "auto", returns numpy3D for equal length and list of numpy2D for unequal.
         If "numpy2D", will squash a univariate equal length into a numpy2D (n_cases,
         n_timepoints). Other options are available but not supported medium term.
+    encoding: str
+        name of the encoding used to read file with the open function.
 
     Returns
     -------
@@ -275,7 +277,7 @@ def load_from_ts_file(
     if not ext:
         full_file_path_and_name = root + ".ts"
     # Open file
-    with open(full_file_path_and_name, encoding="utf-8") as file:
+    with open(full_file_path_and_name, encoding=encoding) as file:
         # Read in headers
         meta_data = _load_header_info(file)
         # load into list of numpy
@@ -468,15 +470,17 @@ def _download_and_extract(url, extract_path=None):
         extract_path = os.path.join(extract_path, "%s/" % file_name.split(".")[0])
 
     try:
-        if not os.path.exists(extract_path):
+        already_exists = os.path.exists(extract_path)
+        if not already_exists:
             os.makedirs(extract_path)
         zipfile.ZipFile(zip_file_name, "r").extractall(extract_path)
         shutil.rmtree(dl_dir)
         return extract_path
     except zipfile.BadZipFile:
         shutil.rmtree(dl_dir)
-        if os.path.exists(extract_path):
-            shutil.rmtree(extract_path)
+        if not already_exists:
+            if os.path.exists(extract_path):
+                shutil.rmtree(extract_path)
         raise zipfile.BadZipFile(
             "Could not unzip dataset. Please make sure the URL is valid."
         )
@@ -546,7 +550,7 @@ def _load_tsc_dataset(
             except zipfile.BadZipFile as e:
                 raise ValueError(
                     f"Invalid dataset name ={name} is not available on extract path ="
-                    f"{extract_path}. Nor is it available on {url}",
+                    f"{extract_path} nor is it available on {url}",
                 ) from e
 
     return _load_saved_dataset(
@@ -668,7 +672,7 @@ def load_from_tsv_file(full_file_path_and_name):
 def _convert_tsf_to_hierarchical(
     data: pd.DataFrame,
     metadata,
-    freq: Optional[str] = None,
+    freq: str | None = None,
     value_column_name: str = "series_value",
 ) -> pd.DataFrame:
     """Convert the data from default_tsf to pd_multiindex_hier.
@@ -1206,12 +1210,12 @@ def load_regression(
     if load_equal_length:
         # If there exists a version with equal length, load that
         train = os.path.join(path, f"{name}/{name}_eq_TRAIN.ts")
-        test = os.path.join(path, f"{name}/{name}_eq_TRAIN.ts")
+        test = os.path.join(path, f"{name}/{name}_eq_TEST.ts")
         if os.path.exists(train) and os.path.exists(test):
             name = name + "_eq"
     if load_no_missing:
         train = os.path.join(path, f"{name}/{name}_nmv_TRAIN.ts")
-        test = os.path.join(path, f"{name}/{name}_nmv_TRAIN.ts")
+        test = os.path.join(path, f"{name}/{name}_nmv_TEST.ts")
         if os.path.exists(train) and os.path.exists(test):
             name = name + "_nmv"
 
@@ -1342,7 +1346,7 @@ def load_classification(
             try_zenodo = False
             error_str = (
                 f"Invalid dataset name ={name} that is not available on extract path "
-                f"={extract_path}. Nor is it available on "
+                f"={extract_path} nor is it available on "
                 f"https://timeseriesclassification.com/ or zenodo."
             )
             try:
@@ -1424,7 +1428,10 @@ def load_classification(
 
 
 def download_all_regression(extract_path=None):
-    """Download and unpack all of the Monash TSER datasets.
+    """Download all regression datasets.
+
+    This downloads the extended TSER regression archive (63 datasets)
+    published on Zenodo in 2024 (~900 MB).
 
     Parameters
     ----------
@@ -1445,7 +1452,8 @@ def download_all_regression(extract_path=None):
     if not os.path.exists(os.path.join(local_module, local_dirname)):
         os.makedirs(os.path.join(local_module, local_dirname))
     url = (
-        "https://zenodo.org/record/4632512/files/Monash_UEA_UCR_Regression_Archive.zip"
+        "https://zenodo.org/records/11236865/files/"
+        "TSER%20Archive%20Datasets%202024.zip"
     )
     if extract_path is None:
         local_dirname = "local_data"

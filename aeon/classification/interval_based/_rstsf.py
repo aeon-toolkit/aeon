@@ -95,7 +95,6 @@ class RSTSF(BaseClassifier):
 
     def _fit(self, X, y):
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
-
         self._n_jobs = check_n_jobs(self.n_jobs)
 
         lags = int(12 * (X.shape[2] / 100.0) ** 0.25)

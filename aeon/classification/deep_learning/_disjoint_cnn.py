@@ -25,42 +25,43 @@ class DisjointCNNClassifier(BaseDeepClassifier):
         Number of 1+1D Convolution layers.
     n_filters : int or list of int, default = 64
         Number of filters used in convolution layers. If
-        input is set to a list, the lenght should be the same
+        input is set to a list, the length should be the same
         as `n_layers`, if input is int the a list of the same
         element is created of length `n_layers`.
-    kernel_size : int or list of int, default = [8, 5, 5, 3]
+    kernel_size : int or list of int, default = None
         Size of convolution kernel. If
-        input is set to a list, the lenght should be the same
+        input is set to a list, the length should be the same
         as `n_layers`, if input is int the a list of the same
-        element is created of length `n_layers`.
+        element is created of length `n_layers`. If set to None,
+        defaults to [8, 5, 5, 3].
     dilation_rate : int or list of int, default = 1
         The dilation rate for convolution. If
-        input is set to a list, the lenght should be the same
+        input is set to a list, the length should be the same
         as `n_layers`, if input is int the a list of the same
         element is created of length `n_layers`.
     strides : int or list of int, default = 1
         The strides of the convolution filter. If
-        input is set to a list, the lenght should be the same
+        input is set to a list, the length should be the same
         as `n_layers`, if input is int the a list of the same
         element is created of length `n_layers`.
     padding : str or list of str, default = "same"
         The type of padding used for convolution. If
-        input is set to a list, the lenght should be the same
+        input is set to a list, the length should be the same
         as `n_layers`, if input is int the a list of the same
         element is created of length `n_layers`.
     activation : str or list of str, default = "elu"
         Activation used after the convolution. If
-        input is set to a list, the lenght should be the same
+        input is set to a list, the length should be the same
         as `n_layers`, if input is int the a list of the same
         element is created of length `n_layers`.
     use_bias : bool or list of bool, default = True
-        Whether or not ot use bias in convolution. If
-        input is set to a list, the lenght should be the same
+        Whether or not to use bias in convolution. If
+        input is set to a list, the length should be the same
         as `n_layers`, if input is int the a list of the same
         element is created of length `n_layers`.
     kernel_initializer: str or list of str, default = "he_uniform"
         The initialization method of convolution layers. If
-        input is set to a list, the lenght should be the same
+        input is set to a list, the length should be the same
         as `n_layers`, if input is int the a list of the same
         element is created of length `n_layers`.
     pool_size: int, default = 5
@@ -157,35 +158,35 @@ class DisjointCNNClassifier(BaseDeepClassifier):
 
     def __init__(
         self,
-        n_layers=4,
-        n_filters=64,
-        kernel_size=None,
-        dilation_rate=1,
-        strides=1,
-        padding="same",
-        activation="elu",
-        use_bias=True,
-        kernel_initializer="he_uniform",
-        pool_size=5,
-        pool_strides=None,
-        pool_padding="valid",
-        hidden_fc_units=128,
-        activation_fc="relu",
-        n_epochs=2000,
-        batch_size=16,
-        use_mini_batch_size=False,
+        n_layers: int = 4,
+        n_filters: int | list[int] = 64,
+        kernel_size: int | list[int] = None,
+        dilation_rate: int | list[int] = 1,
+        strides: int | list[int] = 1,
+        padding: str | list[str] = "same",
+        activation: str | list[str] = "elu",
+        use_bias: bool | list[bool] = True,
+        kernel_initializer: str | list[str] = "he_uniform",
+        pool_size: int = 5,
+        pool_strides: int = None,
+        pool_padding: str = "valid",
+        hidden_fc_units: int = 128,
+        activation_fc: str = "relu",
+        n_epochs: int = 2000,
+        batch_size: int = 16,
+        use_mini_batch_size: bool = False,
         random_state=None,
-        verbose=False,
-        loss="categorical_crossentropy",
-        metrics="accuracy",
+        verbose: bool = False,
+        loss: str = "categorical_crossentropy",
+        metrics: str | list[str] = "accuracy",
         optimizer=None,
-        file_path="./",
-        save_best_model=False,
-        save_last_model=False,
-        save_init_model=False,
-        best_file_name="best_model",
-        last_file_name="last_model",
-        init_file_name="init_model",
+        file_path: str = "./",
+        save_best_model: bool = False,
+        save_last_model: bool = False,
+        save_init_model: bool = False,
+        best_file_name: str = "best_model",
+        last_file_name: str = "last_model",
+        init_file_name: str = "init_model",
         callbacks=None,
     ):
         self.n_layers = n_layers
@@ -243,7 +244,7 @@ class DisjointCNNClassifier(BaseDeepClassifier):
             activation_fc=self.activation_fc,
         )
 
-    def build_model(self, input_shape, n_classes, **kwargs):
+    def build_model(self, input_shape: tuple[int, int], n_classes: int, **kwargs):
         """Construct a compiled, un-trained, keras model that is ready for training.
 
         In aeon, time series are stored in numpy arrays of shape (d,m), where d
@@ -264,6 +265,11 @@ class DisjointCNNClassifier(BaseDeepClassifier):
         """
         import numpy as np
         import tensorflow as tf
+
+        if isinstance(self.metrics, str):
+            self._metrics = [self.metrics]
+        else:
+            self._metrics = self.metrics
 
         rng = check_random_state(self.random_state)
         self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
@@ -306,11 +312,6 @@ class DisjointCNNClassifier(BaseDeepClassifier):
         y_onehot = self.convert_y_to_keras(y)
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
-
-        if isinstance(self.metrics, list):
-            self._metrics = self.metrics
-        elif isinstance(self.metrics, str):
-            self._metrics = [self.metrics]
 
         self.input_shape = X.shape[1:]
         self.training_model_ = self.build_model(self.input_shape, self.n_classes_)
@@ -373,7 +374,7 @@ class DisjointCNNClassifier(BaseDeepClassifier):
         return self
 
     @classmethod
-    def _get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set: str = "default") -> dict | list[dict]:
         """Return testing parameter settings for the estimator.
 
         Parameters

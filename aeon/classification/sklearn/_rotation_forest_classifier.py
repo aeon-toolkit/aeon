@@ -8,7 +8,6 @@ __maintainer__ = ["MatthewMiddlehurst"]
 __all__ = ["RotationForestClassifier"]
 
 import time
-from typing import Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -19,6 +18,7 @@ from sklearn.decomposition import PCA
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.utils import check_random_state
 from sklearn.utils.multiclass import check_classification_targets
+from sklearn.utils.validation import validate_data
 
 from aeon.base._base import _clone_estimator
 from aeon.utils.validation import check_n_jobs
@@ -32,7 +32,7 @@ class RotationForestClassifier(ClassifierMixin, BaseEstimator):
     of trees build on random portions of the data transformed using PCA.
 
     Intended as a benchmark for time series data and a base classifier for
-    transformation based appraoches such as ShapeletTransformClassifier, this aeon
+    transformation based approaches such as ShapeletTransformClassifier, this aeon
     implementation only works with continuous attributes.
 
     Parameters
@@ -106,12 +106,12 @@ class RotationForestClassifier(ClassifierMixin, BaseEstimator):
         min_group: int = 3,
         max_group: int = 3,
         remove_proportion: float = 0.5,
-        base_estimator: Optional[BaseEstimator] = None,
+        base_estimator: BaseEstimator | None = None,
         pca_solver: str = "auto",
         time_limit_in_minutes: float = 0.0,
         contract_max_n_estimators: int = 500,
         n_jobs: int = 1,
-        random_state: Union[int, np.random.RandomState, None] = None,
+        random_state: int | np.random.RandomState | None = None,
     ):
         self.n_estimators = n_estimators
         self.min_group = min_group
@@ -192,7 +192,7 @@ class RotationForestClassifier(ClassifierMixin, BaseEstimator):
 
         # data processing
         X = self._check_X(X)
-        X = self._validate_data(X=X, reset=False, accept_sparse=False)
+        X = validate_data(self, X=X, reset=False, accept_sparse=False)
 
         # replace missing values with 0 and remove useless attributes
         X = X[:, self._useful_atts]
@@ -299,12 +299,12 @@ class RotationForestClassifier(ClassifierMixin, BaseEstimator):
     def _fit_rotf(self, X, y, save_transformed_data: bool = False):
         # data processing
         X = self._check_X(X)
-        X, y = self._validate_data(X=X, y=y, ensure_min_samples=2, accept_sparse=False)
+        X, y = validate_data(self, X=X, y=y, ensure_min_samples=2, accept_sparse=False)
         check_classification_targets(y)
 
+        self.n_cases_, self.n_atts_ = X.shape
         self._n_jobs = check_n_jobs(self.n_jobs)
 
-        self.n_cases_, self.n_atts_ = X.shape
         self.classes_ = np.unique(y)
         self.n_classes_ = self.classes_.shape[0]
         self._class_dictionary = {}
@@ -327,6 +327,10 @@ class RotationForestClassifier(ClassifierMixin, BaseEstimator):
         # remove useless attributes
         self._useful_atts = ~np.all(X[1:] == X[:-1], axis=0)
         X = X[:, self._useful_atts]
+        if sum(self._useful_atts) == 0:
+            raise ValueError(
+                "All attributes in X contain the same value.",
+            )
 
         self._n_atts = X.shape[1]
 

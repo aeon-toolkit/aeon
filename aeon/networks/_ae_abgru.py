@@ -64,8 +64,8 @@ class AEAttentionBiGRUNetwork(BaseDeepLearningNetwork):
     def build_network(self, input_shape, **kwargs):
         """Construct a network and return its input and output layers.
 
-        Arguments
-        ---------
+        Parameters
+        ----------
         input_shape : tuple of shape = (n_timepoints (m), n_channels (d))
             The shape of the data fed into the input layer.
         kwargs : dict
@@ -161,6 +161,7 @@ class AEAttentionBiGRUNetwork(BaseDeepLearningNetwork):
             x = tf.keras.layers.Flatten()(x)
             x = tf.keras.layers.Dense(self.latent_space_dim)(x)
         elif self.temporal_latent_space:
+            shape_before_flatten = x.shape[1:]
             x = tf.keras.layers.Conv1D(filters=self.latent_space_dim, kernel_size=1)(x)
 
         encoder = tf.keras.models.Model(inputs=input_layer, outputs=x, name="encoder")

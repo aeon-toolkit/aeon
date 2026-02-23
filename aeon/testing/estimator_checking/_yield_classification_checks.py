@@ -5,18 +5,26 @@ import os
 import sys
 import tempfile
 import time
+from copy import deepcopy
 from functools import partial
 
 import numpy as np
 from numpy.testing import assert_array_almost_equal
-from sklearn.utils._testing import set_random_state
+from sklearn.ensemble._base import _set_random_states
 
 from aeon.base._base import _clone_estimator
 from aeon.classification.deep_learning import BaseDeepClassifier
-from aeon.datasets import load_basic_motions, load_unit_test
-from aeon.testing.expected_results.expected_classifier_outputs import (
-    basic_motions_proba,
-    unit_test_proba,
+from aeon.testing.expected_results._write_estimator_results import (
+    X_bm_test,
+    X_bm_train,
+    X_ut_test,
+    X_ut_train,
+    y_bm_train,
+    y_ut_train,
+)
+from aeon.testing.expected_results.expected_classifier_results import (
+    multivariate_expected_results,
+    univariate_expected_results,
 )
 from aeon.testing.testing_data import FULL_TEST_DATA_DICT
 from aeon.testing.utils.estimator_checks import (
@@ -25,30 +33,30 @@ from aeon.testing.utils.estimator_checks import (
     _get_tag,
 )
 from aeon.utils.data_types import COLLECTIONS_DATA_TYPES
-from aeon.utils.validation import get_n_cases
+from aeon.utils.validation.collection import get_n_cases
 
 
 def _yield_classification_checks(estimator_class, estimator_instances, datatypes):
     """Yield all classification checks for an aeon classifier."""
     # only class required
-    if sys.platform == "linux":  # We cannot guarantee same results on ARM macOS
-        # Compare against results for both UnitTest and BasicMotions if available
-        yield partial(
-            check_classifier_against_expected_results,
-            estimator_class=estimator_class,
-            data_name="UnitTest",
-            data_loader=load_unit_test,
-            results_dict=unit_test_proba,
-            resample_seed=0,
-        )
-        yield partial(
-            check_classifier_against_expected_results,
-            estimator_class=estimator_class,
-            data_name="BasicMotions",
-            data_loader=load_basic_motions,
-            results_dict=basic_motions_proba,
-            resample_seed=4,
-        )
+    yield partial(
+        check_classifier_against_expected_results,
+        estimator_class=estimator_class,
+        data_name="UnitTest",
+        X_train=X_ut_train,
+        y_train=y_ut_train,
+        X_test=X_ut_test,
+        results_dict=univariate_expected_results,
+    )
+    yield partial(
+        check_classifier_against_expected_results,
+        estimator_class=estimator_class,
+        data_name="BasicMotions",
+        X_train=X_bm_train,
+        y_train=y_bm_train,
+        X_test=X_bm_test,
+        results_dict=multivariate_expected_results,
+    )
     yield partial(check_classifier_overrides_and_tags, estimator_class=estimator_class)
 
     # data type irrelevant
@@ -73,7 +81,7 @@ def _yield_classification_checks(estimator_class, estimator_instances, datatypes
             yield partial(
                 check_classifier_train_estimate,
                 estimator=estimator,
-                datatype=datatypes[0][0],
+                datatype=datatypes[i][0],
             )
 
         if isinstance(estimator, BaseDeepClassifier):
@@ -91,11 +99,19 @@ def _yield_classification_checks(estimator_class, estimator_instances, datatypes
 
 
 def check_classifier_against_expected_results(
-    estimator_class, data_name, data_loader, results_dict, resample_seed
+    estimator_class,
+    data_name,
+    X_train,
+    y_train,
+    X_test,
+    results_dict,
 ):
     """Test classifier against stored results."""
     # retrieve expected predict_proba output, and skip test if not available
-    if estimator_class.__name__ in results_dict.keys():
+    if sys.platform != "linux":
+        # we cannot guarantee same results on ARM macOS
+        return "Comparison against expected results is only available on Linux."
+    elif estimator_class.__name__ in results_dict.keys():
         expected_probas = results_dict[estimator_class.__name__]
     else:
         # skip test if no expected probas are registered
@@ -106,19 +122,11 @@ def check_classifier_against_expected_results(
         parameter_set="results_comparison", return_first=True
     )
     # set random seed if possible
-    set_random_state(estimator_instance, 0)
-
-    # load test data
-    X_train, y_train = data_loader(split="train")
-    X_test, y_test = data_loader(split="test")
-    # resample test data
-    indices = np.random.RandomState(resample_seed).choice(
-        len(y_train), 10, replace=False
-    )
+    _set_random_states(estimator_instance, 42)
 
     # train classifier and predict probas
-    estimator_instance.fit(X_train[indices], y_train[indices])
-    y_proba = estimator_instance.predict_proba(X_test[indices])
+    estimator_instance.fit(deepcopy(X_train), deepcopy(y_train))
+    y_proba = estimator_instance.predict_proba(deepcopy(X_test))
 
     # assert probabilities are the same
     assert_array_almost_equal(

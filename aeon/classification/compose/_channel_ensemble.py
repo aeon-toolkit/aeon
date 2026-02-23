@@ -10,6 +10,7 @@ __all__ = ["ClassifierChannelEnsemble"]
 import numpy as np
 from sklearn.utils import check_random_state
 
+from aeon.base._estimators.compose._commons import _get_channel
 from aeon.base._estimators.compose.collection_channel_ensemble import (
     BaseCollectionChannelEnsemble,
 )
@@ -114,14 +115,14 @@ class ClassifierChannelEnsemble(BaseCollectionChannelEnsemble, BaseClassifier):
             # Call predict on each classifier, add the predictions to the
             # current probabilities
             for i, (_, clf) in enumerate(self.ensemble_):
-                preds = clf.predict(X=self._get_channel(X, self.channels_[i]))
+                preds = clf.predict(X=_get_channel(X, self.channels_[i]))
                 for n in range(X.shape[0]):
                     dists[n, self._class_dictionary[preds[n]]] += 1
         else:
             # Call predict_proba on each classifier, then add them to the current
             # probabilities
             for i, (_, clf) in enumerate(self.ensemble_):
-                dists += clf.predict_proba(X=self._get_channel(X, self.channels_[i]))
+                dists += clf.predict_proba(X=_get_channel(X, self.channels_[i]))
 
         # Make each instances probability array sum to 1 and return
         y_proba = dists / dists.sum(axis=1, keepdims=True)
@@ -149,28 +150,14 @@ class ClassifierChannelEnsemble(BaseCollectionChannelEnsemble, BaseClassifier):
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
         """
-        from aeon.classification.dictionary_based import ContractableBOSS
         from aeon.classification.interval_based import (
-            CanonicalIntervalForestClassifier,
             TimeSeriesForestClassifier,
         )
 
-        if parameter_set == "results_comparison":
-            cboss = ContractableBOSS(
-                n_parameter_samples=4, max_ensemble_size=2, random_state=0
-            )
-            cif = CanonicalIntervalForestClassifier(
-                n_estimators=2, n_intervals=4, att_subsample_size=4, random_state=0
-            )
-            return {
-                "classifiers": [("cBOSS", cboss), ("CIF", cif)],
-                "channels": [5, [3, 4]],
-            }
-        else:
-            return {
-                "classifiers": [
-                    ("tsf1", TimeSeriesForestClassifier(n_estimators=2)),
-                    ("tsf2", TimeSeriesForestClassifier(n_estimators=2)),
-                ],
-                "channels": [0, 0],
-            }
+        return {
+            "classifiers": [
+                ("tsf1", TimeSeriesForestClassifier(n_estimators=2)),
+                ("tsf2", TimeSeriesForestClassifier(n_estimators=2)),
+            ],
+            "channels": [0, 0],
+        }

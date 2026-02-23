@@ -2,7 +2,8 @@
 
 import numpy as np
 
-from aeon.anomaly_detection.base import BaseAnomalyDetector
+from aeon.anomaly_detection.collection.base import BaseCollectionAnomalyDetector
+from aeon.anomaly_detection.series.base import BaseSeriesAnomalyDetector
 from aeon.base import BaseCollectionEstimator, BaseSeriesEstimator
 from aeon.classification import BaseClassifier
 from aeon.classification.early_classification import BaseEarlyClassifier
@@ -10,20 +11,22 @@ from aeon.clustering import BaseClusterer
 from aeon.forecasting import BaseForecaster
 from aeon.regression import BaseRegressor
 from aeon.segmentation import BaseSegmenter
-from aeon.similarity_search import BaseSimilaritySearch
+from aeon.similarity_search.collection import BaseCollectionSimilaritySearch
+from aeon.similarity_search.series import BaseSeriesSimilaritySearch
 from aeon.testing.data_generation import (
-    make_example_1d_numpy,
     make_example_2d_dataframe_collection,
     make_example_2d_numpy_collection,
     make_example_2d_numpy_series,
     make_example_3d_numpy,
     make_example_3d_numpy_list,
     make_example_dataframe_list,
+    make_example_dataframe_series,
     make_example_multi_index_dataframe,
+    make_example_pandas_series,
 )
 from aeon.transformations.collection import BaseCollectionTransformer
 from aeon.transformations.series import BaseSeriesTransformer
-from aeon.utils.conversion import convert_collection
+from aeon.utils.conversion import convert_collection, convert_series
 
 data_rng = np.random.RandomState(42)
 
@@ -219,50 +222,6 @@ EQUAL_LENGTH_UNIVARIATE_REGRESSION = {
     },
 }
 
-EQUAL_LENGTH_UNIVARIATE_SIMILARITY_SEARCH = {
-    "numpy3D": {
-        "train": (
-            make_example_3d_numpy(
-                n_cases=10,
-                n_channels=1,
-                n_timepoints=20,
-                random_state=data_rng.randint(np.iinfo(np.int32).max),
-                return_y=False,
-            ),
-            None,
-        ),
-        "test": (
-            make_example_2d_numpy_series(
-                n_timepoints=10,
-                n_channels=1,
-                random_state=data_rng.randint(np.iinfo(np.int32).max),
-            ),
-            None,
-        ),
-    },
-    "np-list": {
-        "train": (
-            make_example_3d_numpy_list(
-                n_cases=10,
-                n_channels=1,
-                min_n_timepoints=20,
-                max_n_timepoints=20,
-                random_state=data_rng.randint(np.iinfo(np.int32).max),
-                return_y=False,
-            ),
-            None,
-        ),
-        "test": (
-            make_example_2d_numpy_series(
-                n_timepoints=10,
-                n_channels=1,
-                random_state=data_rng.randint(np.iinfo(np.int32).max),
-            ),
-            None,
-        ),
-    },
-}
-
 EQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION = {
     "numpy3D": {
         "train": make_example_3d_numpy(
@@ -401,50 +360,6 @@ EQUAL_LENGTH_MULTIVARIATE_REGRESSION = {
     },
 }
 
-EQUAL_LENGTH_MULTIVARIATE_SIMILARITY_SEARCH = {
-    "numpy3D": {
-        "train": (
-            make_example_3d_numpy(
-                n_cases=10,
-                n_channels=2,
-                n_timepoints=20,
-                random_state=data_rng.randint(np.iinfo(np.int32).max),
-                return_y=False,
-            ),
-            None,
-        ),
-        "test": (
-            make_example_2d_numpy_series(
-                n_timepoints=10,
-                n_channels=2,
-                random_state=data_rng.randint(np.iinfo(np.int32).max),
-            ),
-            None,
-        ),
-    },
-    "np-list": {
-        "train": (
-            make_example_3d_numpy_list(
-                n_cases=10,
-                n_channels=2,
-                min_n_timepoints=20,
-                max_n_timepoints=20,
-                random_state=data_rng.randint(np.iinfo(np.int32).max),
-                return_y=False,
-            ),
-            None,
-        ),
-        "test": (
-            make_example_2d_numpy_series(
-                n_timepoints=10,
-                n_channels=2,
-                random_state=data_rng.randint(np.iinfo(np.int32).max),
-            ),
-            None,
-        ),
-    },
-}
-
 UNEQUAL_LENGTH_UNIVARIATE_CLASSIFICATION = {
     "np-list": {
         "train": make_example_3d_numpy_list(
@@ -549,30 +464,6 @@ UNEQUAL_LENGTH_UNIVARIATE_REGRESSION = {
             max_n_timepoints=20,
             random_state=data_rng.randint(np.iinfo(np.int32).max),
             regression_target=True,
-        ),
-    },
-}
-
-UNEQUAL_LENGTH_UNIVARIATE_SIMILARITY_SEARCH = {
-    "np-list": {
-        "train": (
-            make_example_3d_numpy_list(
-                n_cases=10,
-                n_channels=1,
-                min_n_timepoints=10,
-                max_n_timepoints=20,
-                random_state=data_rng.randint(np.iinfo(np.int32).max),
-                return_y=False,
-            ),
-            None,
-        ),
-        "test": (
-            make_example_2d_numpy_series(
-                n_timepoints=10,
-                n_channels=1,
-                random_state=data_rng.randint(np.iinfo(np.int32).max),
-            ),
-            None,
         ),
     },
 }
@@ -685,30 +576,6 @@ UNEQUAL_LENGTH_MULTIVARIATE_REGRESSION = {
     },
 }
 
-UNEQUAL_LENGTH_MULTIVARIATE_SIMILARITY_SEARCH = {
-    "np-list": {
-        "train": (
-            make_example_3d_numpy_list(
-                n_cases=10,
-                n_channels=2,
-                min_n_timepoints=10,
-                max_n_timepoints=20,
-                random_state=data_rng.randint(np.iinfo(np.int32).max),
-                return_y=False,
-            ),
-            None,
-        ),
-        "test": (
-            make_example_2d_numpy_series(
-                n_timepoints=10,
-                n_channels=2,
-                random_state=data_rng.randint(np.iinfo(np.int32).max),
-            ),
-            None,
-        ),
-    },
-}
-
 X_classification_missing_train, y_classification_missing_train = make_example_3d_numpy(
     n_cases=10,
     n_channels=1,
@@ -777,42 +644,252 @@ MISSING_VALUES_REGRESSION = {
 
 # Series testing data
 
-X_series = make_example_1d_numpy(
-    n_timepoints=40, random_state=data_rng.randint(np.iinfo(np.int32).max)
-)
-X_series2 = X_series[20:40]
-X_series = X_series[:20]
-UNIVARIATE_SERIES_NONE = {"train": (X_series, None), "test": (X_series2, None)}
+UNIVARIATE_SERIES = {
+    "pd.Series": {
+        "train": (
+            make_example_pandas_series(
+                n_timepoints=20,
+                random_state=data_rng.randint(np.iinfo(np.int32).max),
+            ),
+            None,
+        ),
+        "test": (
+            make_example_pandas_series(
+                n_timepoints=20,
+                random_state=data_rng.randint(np.iinfo(np.int32).max),
+            ),
+            None,
+        ),
+    },
+    "pd.DataFrame": {
+        "train": (
+            make_example_dataframe_series(
+                n_channels=1,
+                n_timepoints=20,
+                axis=1,
+                random_state=data_rng.randint(np.iinfo(np.int32).max),
+            ),
+            None,
+        ),
+        "test": (
+            make_example_dataframe_series(
+                n_channels=1,
+                n_timepoints=20,
+                axis=1,
+                random_state=data_rng.randint(np.iinfo(np.int32).max),
+            ),
+            None,
+        ),
+    },
+    "np.ndarray": {
+        "train": (
+            make_example_2d_numpy_series(
+                n_channels=1,
+                n_timepoints=20,
+                random_state=data_rng.randint(np.iinfo(np.int32).max),
+            ),
+            None,
+        ),
+        "test": (
+            make_example_2d_numpy_series(
+                n_channels=1,
+                n_timepoints=20,
+                random_state=data_rng.randint(np.iinfo(np.int32).max),
+            ),
+            None,
+        ),
+    },
+}
 
-X_series_mv = make_example_2d_numpy_series(
-    n_timepoints=40,
-    n_channels=2,
+UNIVARIATE_SERIES_ANOMALY = {
+    "pd.Series": {
+        "train": make_example_pandas_series(
+            n_timepoints=20,
+            random_state=data_rng.randint(np.iinfo(np.int32).max),
+            return_y="anomaly",
+        ),
+        "test": make_example_pandas_series(
+            n_timepoints=20,
+            random_state=data_rng.randint(np.iinfo(np.int32).max),
+            return_y="anomaly",
+        ),
+    },
+    "pd.DataFrame": {
+        "train": make_example_dataframe_series(
+            n_channels=1,
+            n_timepoints=20,
+            axis=1,
+            random_state=data_rng.randint(np.iinfo(np.int32).max),
+            return_y="anomaly",
+        ),
+        "test": make_example_dataframe_series(
+            n_channels=1,
+            n_timepoints=20,
+            axis=1,
+            random_state=data_rng.randint(np.iinfo(np.int32).max),
+            return_y="anomaly",
+        ),
+    },
+    "np.ndarray": {
+        "train": make_example_2d_numpy_series(
+            n_channels=1,
+            n_timepoints=20,
+            random_state=data_rng.randint(np.iinfo(np.int32).max),
+            return_y="anomaly",
+        ),
+        "test": make_example_2d_numpy_series(
+            n_channels=1,
+            n_timepoints=20,
+            random_state=data_rng.randint(np.iinfo(np.int32).max),
+            return_y="anomaly",
+        ),
+    },
+}
+
+MULTIVARIATE_SERIES = {
+    "pd.DataFrame": {
+        "train": (
+            make_example_dataframe_series(
+                n_channels=2,
+                n_timepoints=20,
+                axis=1,
+                random_state=data_rng.randint(np.iinfo(np.int32).max),
+            ),
+            None,
+        ),
+        "test": (
+            make_example_dataframe_series(
+                n_channels=2,
+                n_timepoints=20,
+                axis=1,
+                random_state=data_rng.randint(np.iinfo(np.int32).max),
+            ),
+            None,
+        ),
+    },
+    "np.ndarray": {
+        "train": (
+            make_example_2d_numpy_series(
+                n_channels=2,
+                n_timepoints=20,
+                axis=1,
+                random_state=data_rng.randint(np.iinfo(np.int32).max),
+            ),
+            None,
+        ),
+        "test": (
+            make_example_2d_numpy_series(
+                n_channels=2,
+                n_timepoints=20,
+                axis=1,
+                random_state=data_rng.randint(np.iinfo(np.int32).max),
+            ),
+            None,
+        ),
+    },
+}
+
+MULTIVARIATE_SERIES_ANOMALY = {
+    "pd.DataFrame": {
+        "train": make_example_dataframe_series(
+            n_channels=2,
+            n_timepoints=20,
+            axis=1,
+            random_state=data_rng.randint(np.iinfo(np.int32).max),
+            return_y="anomaly",
+        ),
+        "test": make_example_dataframe_series(
+            n_channels=2,
+            n_timepoints=20,
+            axis=1,
+            random_state=data_rng.randint(np.iinfo(np.int32).max),
+            return_y="anomaly",
+        ),
+    },
+    "np.ndarray": {
+        "train": make_example_2d_numpy_series(
+            n_channels=2,
+            n_timepoints=20,
+            axis=1,
+            random_state=data_rng.randint(np.iinfo(np.int32).max),
+            return_y="anomaly",
+        ),
+        "test": make_example_2d_numpy_series(
+            n_channels=2,
+            n_timepoints=20,
+            axis=1,
+            random_state=data_rng.randint(np.iinfo(np.int32).max),
+            return_y="anomaly",
+        ),
+    },
+}
+
+X_series_missing_train = make_example_2d_numpy_series(
+    n_channels=1,
+    n_timepoints=20,
     axis=1,
     random_state=data_rng.randint(np.iinfo(np.int32).max),
 )
-X_series_mv2 = X_series_mv[:, 20:40]
-X_series_mv = X_series_mv[:, :20]
-MULTIVARIATE_SERIES_NONE = {
-    "train": (X_series_mv, None),
-    "test": (X_series_mv2, None),
+X_series_missing_test = make_example_2d_numpy_series(
+    n_channels=1,
+    n_timepoints=20,
+    axis=1,
+    random_state=data_rng.randint(np.iinfo(np.int32).max),
+)
+X_series_missing_train[:, data_rng.choice(20, 1)] = np.nan
+X_series_missing_test[:, data_rng.choice(20, 2)] = np.nan
+
+MISSING_VALUES_SERIES = {
+    "pd.DataFrame": {
+        "train": (convert_series(X_series_missing_train, "pd.DataFrame"), None),
+        "test": (convert_series(X_series_missing_test, "pd.DataFrame"), None),
+    },
+    "np.ndarray": {
+        "train": (X_series_missing_train, None),
+        "test": (X_series_missing_test, None),
+    },
 }
 
-X_series_mi = make_example_1d_numpy(
-    n_timepoints=40, random_state=data_rng.randint(np.iinfo(np.int32).max)
+X_anomaly_missing_train, y_anomaly_missing_train = make_example_2d_numpy_series(
+    n_channels=1,
+    n_timepoints=20,
+    axis=1,
+    random_state=data_rng.randint(np.iinfo(np.int32).max),
+    return_y="anomaly",
 )
-X_series_mi2 = X_series_mi[20:40]
-X_series_mi2[data_rng.choice(20, 1)] = np.nan
-X_series_mi = X_series_mi[:20]
-X_series_mi[data_rng.choice(20, 2)] = np.nan
-MISSING_VALUES_SERIES_NONE = {
-    "train": (X_series_mi, None),
-    "test": (X_series_mi2, None),
+X_anomaly_missing_test, y_anomaly_missing_test = make_example_2d_numpy_series(
+    n_channels=1,
+    n_timepoints=20,
+    axis=1,
+    random_state=data_rng.randint(np.iinfo(np.int32).max),
+    return_y="anomaly",
+)
+X_anomaly_missing_train[:, data_rng.choice(20, 1)] = np.nan
+X_anomaly_missing_test[:, data_rng.choice(20, 2)] = np.nan
+
+MISSING_VALUES_SERIES_ANOMALY = {
+    "pd.DataFrame": {
+        "train": (
+            convert_series(X_anomaly_missing_train, "pd.DataFrame"),
+            y_anomaly_missing_train,
+        ),
+        "test": (
+            convert_series(X_anomaly_missing_test, "pd.DataFrame"),
+            y_anomaly_missing_test,
+        ),
+    },
+    "np.ndarray": {
+        "train": (X_anomaly_missing_train, y_anomaly_missing_train),
+        "test": (X_anomaly_missing_test, y_anomaly_missing_test),
+    },
 }
 
 # All testing data
 
 FULL_TEST_DATA_DICT = {}
+
 # Collection
+
 FULL_TEST_DATA_DICT.update(
     {
         f"EqualLengthUnivariate-Classification-{k}": v
@@ -823,12 +900,6 @@ FULL_TEST_DATA_DICT.update(
     {
         f"EqualLengthUnivariate-Regression-{k}": v
         for k, v in EQUAL_LENGTH_UNIVARIATE_REGRESSION.items()
-    }
-)
-FULL_TEST_DATA_DICT.update(
-    {
-        f"EqualLengthUnivariate-SimilaritySearch-{k}": v
-        for k, v in EQUAL_LENGTH_UNIVARIATE_SIMILARITY_SEARCH.items()
     }
 )
 FULL_TEST_DATA_DICT.update(
@@ -845,12 +916,6 @@ FULL_TEST_DATA_DICT.update(
 )
 FULL_TEST_DATA_DICT.update(
     {
-        f"EqualLengthMultivariate-SimilaritySearch-{k}": v
-        for k, v in EQUAL_LENGTH_MULTIVARIATE_SIMILARITY_SEARCH.items()
-    }
-)
-FULL_TEST_DATA_DICT.update(
-    {
         f"UnequalLengthUnivariate-Classification-{k}": v
         for k, v in UNEQUAL_LENGTH_UNIVARIATE_CLASSIFICATION.items()
     }
@@ -859,12 +924,6 @@ FULL_TEST_DATA_DICT.update(
     {
         f"UnequalLengthUnivariate-Regression-{k}": v
         for k, v in UNEQUAL_LENGTH_UNIVARIATE_REGRESSION.items()
-    }
-)
-FULL_TEST_DATA_DICT.update(
-    {
-        f"UnequalLengthUnivariate-SimilaritySearch-{k}": v
-        for k, v in UNEQUAL_LENGTH_UNIVARIATE_SIMILARITY_SEARCH.items()
     }
 )
 FULL_TEST_DATA_DICT.update(
@@ -881,12 +940,6 @@ FULL_TEST_DATA_DICT.update(
 )
 FULL_TEST_DATA_DICT.update(
     {
-        f"UnequalLengthMultivariate-SimilaritySearch-{k}": v
-        for k, v in UNEQUAL_LENGTH_MULTIVARIATE_SIMILARITY_SEARCH.items()
-    }
-)
-FULL_TEST_DATA_DICT.update(
-    {
         f"MissingValues-Classification-{k}": v
         for k, v in MISSING_VALUES_CLASSIFICATION.items()
     }
@@ -896,9 +949,31 @@ FULL_TEST_DATA_DICT.update(
 )
 
 # Series
-FULL_TEST_DATA_DICT.update({"UnivariateSeries-None": UNIVARIATE_SERIES_NONE})
-FULL_TEST_DATA_DICT.update({"MultivariateSeries-None": MULTIVARIATE_SERIES_NONE})
-FULL_TEST_DATA_DICT.update({"MissingValues-None": MISSING_VALUES_SERIES_NONE})
+
+FULL_TEST_DATA_DICT.update(
+    {f"UnivariateSeries-None-{k}": v for k, v in UNIVARIATE_SERIES.items()}
+)
+FULL_TEST_DATA_DICT.update(
+    {f"UnivariateSeries-Anomaly-{k}": v for k, v in UNIVARIATE_SERIES_ANOMALY.items()}
+)
+FULL_TEST_DATA_DICT.update(
+    {f"MultivariateSeries-None-{k}": v for k, v in MULTIVARIATE_SERIES.items()}
+)
+FULL_TEST_DATA_DICT.update(
+    {
+        f"MultivariateSeries-Anomaly-{k}": v
+        for k, v in MULTIVARIATE_SERIES_ANOMALY.items()
+    }
+)
+FULL_TEST_DATA_DICT.update(
+    {f"MissingValuesSeries-None-{k}": v for k, v in MISSING_VALUES_SERIES.items()}
+)
+FULL_TEST_DATA_DICT.update(
+    {
+        f"MissingValuesSeries-Anomaly-{k}": v
+        for k, v in MISSING_VALUES_SERIES_ANOMALY.items()
+    }
+)
 
 
 def _get_datatypes_for_estimator(estimator):
@@ -906,8 +981,8 @@ def _get_datatypes_for_estimator(estimator):
 
     Parameters
     ----------
-    estimator : BaseAeonEstimator instance or class
-        Estimator instance or class to check for valid input data types.
+    estimator : BaseAeonEstimator instance
+        Estimator instance to check for valid input data types.
 
     Returns
     -------
@@ -916,14 +991,19 @@ def _get_datatypes_for_estimator(estimator):
         FULL_TEST_DATA_DICT. Each tuple is formatted (data_key, label_key).
     """
     datatypes = []
-    univariate, multivariate, unequal_length, missing_values = (
-        _get_capabilities_for_estimator(estimator)
-    )
+    (
+        univariate,
+        multivariate,
+        unequal_length,
+        missing_values,
+    ) = _get_capabilities_for_estimator(estimator)
     task = _get_task_for_estimator(estimator)
 
     inner_types = estimator.get_tag("X_inner_type")
     if not isinstance(inner_types, list):
         inner_types = [inner_types]
+
+    found_missing_type = False
 
     if isinstance(estimator, BaseCollectionEstimator):
         for inner_type in inner_types:
@@ -947,15 +1027,34 @@ def _get_datatypes_for_estimator(estimator):
                     if s in FULL_TEST_DATA_DICT:
                         datatypes.append(s)
 
-        if missing_values:
+            if missing_values:
+                s = f"MissingValues-{task}-{inner_type}"
+                if s in FULL_TEST_DATA_DICT:
+                    datatypes.append(s)
+                found_missing_type = True
+
+        if missing_values and not found_missing_type:
             datatypes.append(f"MissingValues-{task}-numpy3D")
     elif isinstance(estimator, BaseSeriesEstimator):
-        if univariate:
-            datatypes.append(f"UnivariateSeries-{task}")
-        if multivariate:
-            datatypes.append(f"MultivariateSeries-{task}")
-        if missing_values:
-            datatypes.append(f"MissingValues-{task}")
+        for inner_type in inner_types:
+            if univariate:
+                s = f"UnivariateSeries-{task}-{inner_type}"
+                if s in FULL_TEST_DATA_DICT:
+                    datatypes.append(s)
+
+            if multivariate:
+                s = f"MultivariateSeries-{task}-{inner_type}"
+                if s in FULL_TEST_DATA_DICT:
+                    datatypes.append(s)
+
+            if missing_values:
+                s = f"MissingValuesSeries-{task}-{inner_type}"
+                if s in FULL_TEST_DATA_DICT:
+                    datatypes.append(s)
+                found_missing_type = True
+
+        if missing_values and not found_missing_type:
+            datatypes.append(f"MissingValues-{task}-np.ndarray")
     else:
         raise ValueError(f"Unknown estimator type: {type(estimator)}")
 
@@ -1006,27 +1105,30 @@ def _get_task_for_estimator(estimator):
     data_label : str
         Task string for the estimator used in forming a key from FULL_TEST_DATA_DICT.
     """
-    # collection data with class labels
+    # collection data with 0/1 class labels
     if (
         isinstance(estimator, BaseClassifier)
         or isinstance(estimator, BaseEarlyClassifier)
         or isinstance(estimator, BaseClusterer)
         or isinstance(estimator, BaseCollectionTransformer)
+        or isinstance(estimator, BaseCollectionAnomalyDetector)
+        or isinstance(estimator, BaseCollectionSimilaritySearch)
     ):
         data_label = "Classification"
     # collection data with continuous target labels
     elif isinstance(estimator, BaseRegressor):
         data_label = "Regression"
-    elif isinstance(estimator, BaseSimilaritySearch):
-        data_label = "SimilaritySearch"
     # series data with no secondary input
     elif (
-        isinstance(estimator, BaseAnomalyDetector)
-        or isinstance(estimator, BaseSegmenter)
+        isinstance(estimator, BaseSegmenter)
         or isinstance(estimator, BaseSeriesTransformer)
         or isinstance(estimator, BaseForecaster)
+        or isinstance(estimator, BaseSeriesSimilaritySearch)
     ):
         data_label = "None"
+    # series data with 0/1 anomaly labels
+    elif isinstance(estimator, BaseSeriesAnomalyDetector):
+        data_label = "Anomaly"
     else:
         raise ValueError(f"Unknown estimator type: {type(estimator)}")
 

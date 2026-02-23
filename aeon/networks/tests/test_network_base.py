@@ -20,7 +20,8 @@ class DummyDeepNetwork(BaseDeepLearningNetwork):
         import tensorflow as tf
 
         input_layer = tf.keras.layers.Input(input_shape)
-        output_layer = tf.keras.layers.Dense(units=10)(input_layer)
+        flatten_layer = tf.keras.layers.Flatten()(input_layer)
+        output_layer = tf.keras.layers.Dense(units=10)(flatten_layer)
 
         return input_layer, output_layer
 

@@ -24,19 +24,23 @@ runs:
       run: echo "NUMBA_CACHE_DIR=${{ github.workspace }}/.numba_cache" >> $GITHUB_ENV
       shell: bash
 
-    # Sets the cpu name for numba to use
-    - name: Set numba cpu env
+    # Sets the CPU name for numba to use
+    # This is required for reusing the cache across different runners of the same
+    # architecture and OS
+    - name: Set numba CPU env
       run: echo "NUMBA_CPU_NAME=generic" >> $GITHUB_ENV
       shell: bash
 
-    # Sets the cpu features for numba to use
-    - name: Set numba cpu features env
+    # Sets the CPU features for numba to use
+    # Found through a bit of trial and error to run on different CPUs found in GitHub
+    # runners
+    - name: Set numba CPU features env
       run: echo "NUMBA_CPU_FEATURES=+64bit +adx +aes +avx +avx2 -avx512bf16 -avx512bitalg -avx512bw -avx512cd -avx512dq -avx512er -avx512f -avx512ifma -avx512pf -avx512vbmi -avx512vbmi2 -avx512vl -avx512vnni -avx512vpopcntdq +bmi +bmi2 -cldemote -clflushopt -clwb -clzero +cmov +cx16 +cx8 -enqcmd +f16c +fma -fma4 +fsgsbase +fxsr -gfni +invpcid -lwp +lzcnt +mmx +movbe -movdir64b -movdiri -mwaitx +pclmul -pconfig -pku +popcnt -prefetchwt1 +prfchw -ptwrite -rdpid +rdrnd +rdseed +rtm +sahf -sgx -sha -shstk +sse +sse2 +sse3 +sse4.1 +sse4.2 -sse4a +ssse3 -tbm -vaes -vpclmulqdq -waitpkg -wbnoinvd -xop +xsave -xsavec +xsaveopt -xsaves" >> $GITHUB_ENV
       shell: bash
 
-    # Set the CICD_RUNNING env so that numba knows it is running in a CI environment
-    - name: Set CICD_RUNNING env
-      run: echo "CICD_RUNNING=1" >> $GITHUB_ENV
+    # Set the CACHING_CICD_RUNNING env so we know to use custom numba caching
+    - name: Set CACHING_CICD_RUNNING env
+      run: echo "CACHING_CICD_RUNNING=1" >> $GITHUB_ENV
       shell: bash
 
     # Get current date for cache restore
@@ -58,6 +62,6 @@ runs:
         path: ${{ github.workspace }}/.numba_cache
         # Try restore using today's date
         key: numba-${{ inputs.cache_name }}-${{ inputs.runner_os }}-${{ inputs.python_version }}-${{ env.CURRENT_DATE }}
-        # If cant restore with today's date try another cache (without date)
+        # If can't restore with today's date try another cache (without date)
         restore-keys: |
           numba-${{ inputs.cache_name }}-${{ inputs.runner_os }}-${{ inputs.python_version }}-

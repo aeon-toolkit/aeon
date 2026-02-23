@@ -17,6 +17,7 @@ from sklearn.utils import check_random_state
 
 from aeon.classification.base import BaseClassifier
 from aeon.transformations.collection.dictionary_based import SFAFast
+from aeon.utils.validation import check_n_jobs
 
 
 class WEASEL(BaseClassifier):
@@ -195,6 +196,7 @@ class WEASEL(BaseClassifier):
         """
         # Window length parameter space dependent on series length
         self.n_cases, self.n_timepoints = X.shape[0], X.shape[-1]
+        self._n_jobs = check_n_jobs(self.n_jobs)
 
         win_inc = self._compute_window_inc()
         self.max_window = int(min(self.n_timepoints, self.max_window))

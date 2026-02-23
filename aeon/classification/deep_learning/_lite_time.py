@@ -1,5 +1,7 @@
 """LITETime and LITE classifiers."""
 
+from __future__ import annotations
+
 __maintainer__ = ["hadifawaz1999"]
 __all__ = ["LITETimeClassifier"]
 
@@ -137,27 +139,27 @@ class LITETimeClassifier(BaseClassifier):
 
     def __init__(
         self,
-        n_classifiers=5,
-        use_litemv=False,
-        n_filters=32,
-        kernel_size=40,
-        strides=1,
-        activation="relu",
-        file_path="./",
-        save_last_model=False,
-        save_best_model=False,
-        save_init_model=False,
-        best_file_name="best_model",
-        last_file_name="last_model",
-        init_file_name="init_model",
-        batch_size=64,
-        use_mini_batch_size=False,
-        n_epochs=1500,
+        n_classifiers: int = 5,
+        use_litemv: bool = False,
+        n_filters: int = 32,
+        kernel_size: int = 40,
+        strides: int | list[int] = 1,
+        activation: str | list[str] = "relu",
+        file_path: str = "./",
+        save_last_model: bool = False,
+        save_best_model: bool = False,
+        save_init_model: bool = False,
+        best_file_name: str = "best_model",
+        last_file_name: str = "last_model",
+        init_file_name: str = "init_model",
+        batch_size: int = 64,
+        use_mini_batch_size: bool = False,
+        n_epochs: int = 1500,
         callbacks=None,
         random_state=None,
-        verbose=False,
-        loss="categorical_crossentropy",
-        metrics="accuracy",
+        verbose: bool = False,
+        loss: str = "categorical_crossentropy",
+        metrics: str | list[str] = "accuracy",
         optimizer=None,
     ):
         self.n_classifiers = n_classifiers
@@ -193,7 +195,7 @@ class LITETimeClassifier(BaseClassifier):
 
         super().__init__()
 
-    def _fit(self, X, y):
+    def _fit(self, X: np.ndarray, y: np.ndarray) -> LITETimeClassifier:
         """Fit the ensemble of IndividualLITEClassifier models.
 
         Parameters
@@ -239,7 +241,7 @@ class LITETimeClassifier(BaseClassifier):
 
         return self
 
-    def _predict(self, X) -> np.ndarray:
+    def _predict(self, X: np.ndarray) -> np.ndarray:
         """Predict the labels of the test set using LITETime.
 
         Parameters
@@ -260,7 +262,7 @@ class LITETimeClassifier(BaseClassifier):
             ]
         )
 
-    def _predict_proba(self, X) -> np.ndarray:
+    def _predict_proba(self, X: np.ndarray) -> np.ndarray:
         """Predict the proba of labels of the test set using LITETime.
 
         Parameters
@@ -283,7 +285,53 @@ class LITETimeClassifier(BaseClassifier):
         return probs
 
     @classmethod
-    def _get_test_params(cls, parameter_set="default"):
+    def load_model(
+        self, model_path: list[str], classes: np.ndarray
+    ) -> LITETimeClassifier:
+        """Load pre-trained keras models from disk instead of fitting.
+
+        Pretrained models should be saved using "save_best_model"
+        or "save_last_model" boolean parameter.
+        When calling this function, all functionalities can be used
+        such as predict, predict_proba etc. with the loaded model.
+
+        Parameters
+        ----------
+        model_path : list of str (list of paths including the model names and extension)
+            The complete path (including file name and '.keras' extension)
+            from which the pre-trained model's weights and configuration
+            are loaded.
+         classes : np.ndarray
+            The set of unique classes the pre-trained loaded model is trained
+            to predict during the classification task.
+        Example: model_path="path/to/file/best_model.keras"
+
+        Returns
+        -------
+        LITETimeClassifier
+        """
+        assert (
+            type(model_path) is list
+        ), "model_path should be a list of paths to the models"
+
+        classifier = self()
+        classifier.classifiers_ = []
+
+        for i in range(len(model_path)):
+            clf = IndividualLITEClassifier()
+            clf.load_model(model_path=model_path[i], classes=classes)
+            classifier.classifiers_.append(clf)
+
+        classifier.n_classifiers = len(classifier.classifiers_)
+
+        classifier.classes_ = classes
+        classifier.n_classes_ = len(classes)
+        classifier.is_fitted = True
+
+        return classifier
+
+    @classmethod
+    def _get_test_params(cls, parameter_set: str = "default") -> dict | list[dict]:
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -408,7 +456,7 @@ class IndividualLITEClassifier(BaseDeepClassifier):
     References
     ----------
     ..[1] Ismail-Fawaz et al. LITE: Light Inception with boosTing
-    tEchniques for Time Series Classificaion, IEEE International
+    tEchniques for Time Series Classification, IEEE International
     Conference on Data Science and Advanced Analytics, 2023.
     ..[2] Ismail-Fawaz, Ali, et al. "Look Into the LITE
     in Deep Learning for Time Series Classification."
@@ -432,26 +480,26 @@ class IndividualLITEClassifier(BaseDeepClassifier):
 
     def __init__(
         self,
-        use_litemv=False,
-        n_filters=32,
-        kernel_size=40,
-        strides=1,
-        activation="relu",
-        file_path="./",
-        save_best_model=False,
-        save_last_model=False,
-        save_init_model=False,
-        best_file_name="best_model",
-        last_file_name="last_model",
-        init_file_name="init_model",
-        batch_size=64,
-        use_mini_batch_size=False,
-        n_epochs=1500,
+        use_litemv: bool = False,
+        n_filters: int = 32,
+        kernel_size: int = 40,
+        strides: int | list[int] = 1,
+        activation: str | list[str] = "relu",
+        file_path: str = "./",
+        save_best_model: bool = False,
+        save_last_model: bool = False,
+        save_init_model: bool = False,
+        best_file_name: str = "best_model",
+        last_file_name: str = "last_model",
+        init_file_name: str = "init_model",
+        batch_size: int = 64,
+        use_mini_batch_size: bool = False,
+        n_epochs: int = 1500,
         callbacks=None,
         random_state=None,
-        verbose=False,
-        loss="categorical_crossentropy",
-        metrics="accuracy",
+        verbose: bool = False,
+        loss: str = "categorical_crossentropy",
+        metrics: str | list[str] = "accuracy",
         optimizer=None,
     ):
         self.use_litemv = use_litemv
@@ -491,7 +539,7 @@ class IndividualLITEClassifier(BaseDeepClassifier):
             activation=self.activation,
         )
 
-    def build_model(self, input_shape, n_classes, **kwargs):
+    def build_model(self, input_shape: tuple[int, int], n_classes: int, **kwargs):
         """
         Construct a compiled, un-trained, keras model that is ready for training.
 
@@ -509,6 +557,11 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         """
         import numpy as np
         import tensorflow as tf
+
+        if isinstance(self.metrics, str):
+            self._metrics = [self.metrics]
+        else:
+            self._metrics = self.metrics
 
         rng = check_random_state(self.random_state)
         self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
@@ -555,11 +608,6 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         y_onehot = self.convert_y_to_keras(y)
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
-
-        if isinstance(self.metrics, list):
-            self._metrics = self.metrics
-        elif isinstance(self.metrics, str):
-            self._metrics = [self.metrics]
 
         # ignore the number of instances, X.shape[0],
         # just want the shape of each instance
@@ -624,7 +672,7 @@ class IndividualLITEClassifier(BaseDeepClassifier):
         return self
 
     @classmethod
-    def _get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set: str = "default") -> dict | list[dict]:
         """Return testing parameter settings for the estimator.
 
         Parameters
