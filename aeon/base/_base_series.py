@@ -216,7 +216,7 @@ class BaseSeriesEstimator(BaseAeonEstimator):
                 f"Univariate data not supported by {self.__class__.__name__}"
             )
 
-        check_series_variance(X)
+        check_series_variance(X, axis=axis)
 
         return metadata
 
