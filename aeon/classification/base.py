@@ -26,6 +26,7 @@ from typing import final
 
 import numpy as np
 import pandas as pd
+from sklearn.base import ClassifierMixin
 from sklearn.metrics import get_scorer, get_scorer_names
 from sklearn.model_selection import cross_val_predict
 
@@ -35,7 +36,7 @@ from aeon.utils.validation.collection import get_n_cases
 from aeon.utils.validation.labels import check_classification_y
 
 
-class BaseClassifier(BaseCollectionEstimator):
+class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
     """
     Abstract base class for time series classifiers.
 
@@ -51,8 +52,6 @@ class BaseClassifier(BaseCollectionEstimator):
         Number of classes (length of ``classes_``).
     _class_dictionary : dict
         Mapping of classes_ onto integers ``0 ... n_classes_-1``.
-    _estimator_type : string
-        The type of estimator. Required by some ``sklearn`` tools, set to "classifier".
     """
 
     _tags = {
@@ -66,7 +65,6 @@ class BaseClassifier(BaseCollectionEstimator):
         self.classes_ = []  # classes seen in y, unique labels
         self.n_classes_ = -1  # number of unique classes in y
         self._class_dictionary = {}
-        self._estimator_type = "classifier"
 
         super().__init__()
 
@@ -594,13 +592,17 @@ class BaseClassifier(BaseCollectionEstimator):
         random_state = getattr(self, "random_state", None)
         estimator = _clone_estimator(self, random_state)
 
+        n_jobs = getattr(self, "_n_jobs", None)
+        if n_jobs is None:
+            n_jobs = getattr(self, "n_jobs", None)
+
         return cross_val_predict(
             estimator,
             X=X,
             y=y,
             cv=cv_size,
             method=method,
-            n_jobs=self._n_jobs,
+            n_jobs=n_jobs,
         )
 
     @staticmethod

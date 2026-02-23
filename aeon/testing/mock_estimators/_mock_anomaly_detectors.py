@@ -10,15 +10,18 @@ __all__ = [
 
 import numpy as np
 
-from aeon.anomaly_detection.base import BaseAnomalyDetector
+from aeon.anomaly_detection.series.base import BaseSeriesAnomalyDetector
 
 
-class MockAnomalyDetector(BaseAnomalyDetector):
+class MockAnomalyDetector(BaseSeriesAnomalyDetector):
     """Mock anomaly detector."""
 
     _tags = {
         "capability:missing_values": True,
         "capability:multivariate": True,
+        "anomaly_output_type": "anomaly_scores",
+        "learning_type:unsupervised": True,
+        "learning_type:semi_supervised": True,
     }
 
     def __init__(self):

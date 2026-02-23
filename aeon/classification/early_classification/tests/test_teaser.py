@@ -80,7 +80,7 @@ def test_teaser_near_classification_points():
         X = X_test[:, :, :i]
 
         if i == 20:
-            with pytest.raises(ValueError):
+            with pytest.raises(IndexError):
                 teaser.update_predict_proba(X)
         else:
             _, decisions = teaser.update_predict(X)

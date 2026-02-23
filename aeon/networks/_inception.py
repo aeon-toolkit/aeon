@@ -20,7 +20,11 @@ class InceptionNetwork(BaseDeepLearningNetwork):
         the same number of convolution layers is used in all inception modules.
     kernel_size : int or list of int, default = 40
         The head kernel size used for each inception module, if not a list, the same
-        is used in all inception modules.
+        is used in all inception modules. For each inception module, the number
+        of convolution layers in parallel is controlled by the parameter
+        ``n_conv_per_layer`` and the kernel sizes are calculated using the following
+        formula:
+        kernel_sizes = [max(kernel_size/2**i, 1) for i in range(n_conv_per_layer)].
     use_max_pooling : bool or list of bool, default = True
         Conditioning whether or not to use max pooling layer in inception modules,
         if not a list,the same is used in all inception modules.
@@ -133,7 +137,7 @@ class InceptionNetwork(BaseDeepLearningNetwork):
         super().__init__()
 
     def hybrid_layer(self, input_tensor, input_channels, kernel_sizes=None):
-        """Construct the hybrid layer to compute features of cutom filters.
+        """Construct the hybrid layer to compute features of custom filters.
 
         Parameters
         ----------
@@ -272,7 +276,7 @@ class InceptionNetwork(BaseDeepLearningNetwork):
 
         hybrid_layer = tf.keras.layers.Concatenate(axis=2)(
             conv_list
-        )  # concantenate all convolution layers
+        )  # concatenate all convolution layers
         hybrid_layer = tf.keras.layers.Activation(activation="relu")(
             hybrid_layer
         )  # apply activation ReLU
@@ -307,7 +311,7 @@ class InceptionNetwork(BaseDeepLearningNetwork):
         else:
             input_inception = input_tensor
 
-        kernel_size_s = [kernel_size // (2**i) for i in range(n_conv_per_layer)]
+        kernel_size_s = [max(kernel_size // (2**i), 1) for i in range(n_conv_per_layer)]
         self.kernel_size_s = kernel_size_s
 
         conv_list = []

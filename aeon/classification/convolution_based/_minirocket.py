@@ -14,6 +14,7 @@ from sklearn.preprocessing import StandardScaler
 from aeon.base._base import _clone_estimator
 from aeon.classification import BaseClassifier
 from aeon.transformations.collection.convolution_based import MiniRocket
+from aeon.utils.validation import check_n_jobs
 
 
 class MiniRocketClassifier(BaseClassifier):
@@ -89,11 +90,11 @@ class MiniRocketClassifier(BaseClassifier):
 
     def __init__(
         self,
-        n_kernels=10000,
-        max_dilations_per_kernel=32,
+        n_kernels: int = 10000,
+        max_dilations_per_kernel: int = 32,
         estimator=None,
         class_weight=None,
-        n_jobs=1,
+        n_jobs: int = 1,
         random_state=None,
     ):
         self.n_kernels = n_kernels
@@ -127,11 +128,12 @@ class MiniRocketClassifier(BaseClassifier):
         ending in "_" and sets is_fitted flag to True.
         """
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
+        self._n_jobs = check_n_jobs(self.n_jobs)
 
         self._transformer = MiniRocket(
             n_kernels=self.n_kernels,
             max_dilations_per_kernel=self.max_dilations_per_kernel,
-            n_jobs=self.n_jobs,
+            n_jobs=self._n_jobs,
             random_state=self.random_state,
         )
         self._scaler = StandardScaler(with_mean=False)

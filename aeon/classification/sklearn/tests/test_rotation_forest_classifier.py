@@ -6,7 +6,6 @@ from sklearn.metrics import accuracy_score
 
 from aeon.classification.sklearn import RotationForestClassifier
 from aeon.datasets import load_unit_test
-from aeon.testing.data_generation import make_example_3d_numpy
 
 
 def test_rotf_output():
@@ -88,8 +87,10 @@ def test_rotf_fit_predict():
 def test_rotf_input():
     """Test RotF with incorrect input."""
     rotf = RotationForestClassifier()
-    X2 = rotf._check_X(np.random.random((10, 1, 100)))
-    assert X2.shape == (10, 100)
+
+    X = rotf._check_X(np.random.random((10, 1, 100)))
+    assert X.shape == (10, 100)
+
     with pytest.raises(
         ValueError, match="RotationForestClassifier is not a time series classifier"
     ):
@@ -98,4 +99,10 @@ def test_rotf_input():
         ValueError, match="RotationForestClassifier is not a time series classifier"
     ):
         rotf._check_X([[1, 2, 3], [4, 5], [6, 7, 8]])
-    X, y = make_example_3d_numpy()
+
+    X2 = np.zeros((10, 10))
+    y = np.zeros(10)
+    y[0:5] = 1
+
+    with pytest.raises(ValueError, match="All attributes in X contain the same value."):
+        rotf.fit_predict(X2, y)

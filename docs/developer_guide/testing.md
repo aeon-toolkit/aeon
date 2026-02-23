@@ -166,7 +166,8 @@ The `aeon` PR testing workflow runs on every PR to the main branch. By default, 
 will run a constrained set of tests excluding some tests such as those which
 are noticeably expensive or prone to failure (i.e. I/O from external sources).
 The estimators run will also be split into smaller subsets to spread them over
-different Python version and operating system combinations. This is controlled by the
+different Python version and operating system combinations. This can result in failures
+in some runs (likely 3), while others pass without issue. This is controlled by the
 `PR_TESTING` flag in [`testing/testing_config.py`](https://github.com/aeon-toolkit/aeon/blob/main/aeon/testing/testing_config.py).
 
 A large portion of testing time is spent compiling `numba` functions. By default,

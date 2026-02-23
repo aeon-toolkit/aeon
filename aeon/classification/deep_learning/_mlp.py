@@ -21,6 +21,18 @@ class MLPClassifier(BaseDeepClassifier):
 
     Parameters
     ----------
+    n_layers : int, optional (default=3)
+        The number of dense layers in the MLP.
+    n_units : Union[int, List[int]], optional (default=500)
+        Number of units in each dense layer.
+    activation : Union[str, List[str]], optional (default='relu')
+        Activation function(s) for each dense layer.
+    dropout_rate : Union[float, List[Union[int, float]]], optional (default=None)
+        Dropout rate(s) for each dense layer. If None, a default rate of 0.2 is used
+        except the first element, being 0.1. Dropout rate(s) are typically a number
+        in the interval [0, 1].
+    dropout_last : float, default = None
+        The dropout rate of the last layer. If set to None, defaults to 0.3.
     use_bias : bool, default = True
         Condition on whether or not to use bias values for dense layers.
     n_epochs : int, default = 2000
@@ -76,10 +88,6 @@ class MLPClassifier(BaseDeepClassifier):
         a single string metric is provided, it will be
         used as the only metric. If a list of metrics are
         provided, all will be used for evaluation.
-    activation : string or a tf callable, default="sigmoid"
-        Activation function used in the output linear layer.
-        List of available activation functions:
-        https://keras.io/api/layers/activations/
 
     Notes
     -----
@@ -104,32 +112,40 @@ class MLPClassifier(BaseDeepClassifier):
 
     def __init__(
         self,
-        use_bias=True,
-        n_epochs=2000,
-        batch_size=16,
-        use_mini_batch_size=False,
+        n_layers: int = 3,
+        n_units: int | list[int] = 500,
+        activation: str | list[str] = "relu",
+        dropout_rate: float | list[int | float] = None,
+        dropout_last: float = None,
+        use_bias: bool = True,
+        n_epochs: int = 2000,
+        batch_size: int = 16,
+        use_mini_batch_size: bool = False,
         callbacks=None,
-        verbose=False,
-        loss="categorical_crossentropy",
-        metrics="accuracy",
-        file_path="./",
-        save_best_model=False,
-        save_last_model=False,
-        save_init_model=False,
-        best_file_name="best_model",
-        last_file_name="last_model",
-        init_file_name="init_model",
+        verbose: bool = False,
+        loss: str = "categorical_crossentropy",
+        metrics: str | list[str] = "accuracy",
+        file_path: str = "./",
+        save_best_model: bool = False,
+        save_last_model: bool = False,
+        save_init_model: bool = False,
+        best_file_name: str = "best_model",
+        last_file_name: str = "last_model",
+        init_file_name: str = "init_model",
         random_state=None,
-        activation="sigmoid",
         optimizer=None,
     ):
+        self.n_layers = n_layers
+        self.n_units = n_units
+        self.activation = activation
+        self.dropout_rate = dropout_rate
+        self.dropout_last = dropout_last
         self.callbacks = callbacks
         self.n_epochs = n_epochs
         self.verbose = verbose
         self.loss = loss
         self.metrics = metrics
         self.use_mini_batch_size = use_mini_batch_size
-        self.activation = activation
         self.use_bias = use_bias
         self.file_path = file_path
         self.save_best_model = save_best_model
@@ -147,9 +163,16 @@ class MLPClassifier(BaseDeepClassifier):
             last_file_name=last_file_name,
         )
 
-        self._network = MLPNetwork(use_bias=self.use_bias)
+        self._network = MLPNetwork(
+            n_layers=self.n_layers,
+            n_units=self.n_units,
+            activation=self.activation,
+            dropout_rate=self.dropout_rate,
+            dropout_last=self.dropout_last,
+            use_bias=self.use_bias,
+        )
 
-    def build_model(self, input_shape, n_classes, **kwargs):
+    def build_model(self, input_shape: tuple[int, int], n_classes: int, **kwargs):
         """Construct a compiled, un-trained, keras model that is ready for training.
 
         In aeon, time series are stored in numpy arrays of shape (d,m), where d
@@ -171,6 +194,11 @@ class MLPClassifier(BaseDeepClassifier):
         import numpy as np
         import tensorflow as tf
         from tensorflow import keras
+
+        if isinstance(self.metrics, str):
+            self._metrics = [self.metrics]
+        else:
+            self._metrics = self.metrics
 
         rng = check_random_state(self.random_state)
         self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
@@ -212,11 +240,6 @@ class MLPClassifier(BaseDeepClassifier):
         y_onehot = self.convert_y_to_keras(y)
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
-
-        if isinstance(self.metrics, list):
-            self._metrics = self.metrics
-        elif isinstance(self.metrics, str):
-            self._metrics = [self.metrics]
 
         self.input_shape = X.shape[1:]
         self.training_model_ = self.build_model(self.input_shape, self.n_classes_)
@@ -279,7 +302,7 @@ class MLPClassifier(BaseDeepClassifier):
         return self
 
     @classmethod
-    def _get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set: str = "default") -> dict | list[dict]:
         """Return testing parameter settings for the estimator.
 
         Parameters

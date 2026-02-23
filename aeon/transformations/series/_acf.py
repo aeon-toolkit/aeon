@@ -67,18 +67,18 @@ class AutoCorrelationSeriesTransformer(BaseSeriesTransformer):
         """
         # statsmodels acf function uses min(10 * np.log10(nobs), nobs - 1)
         if self.n_lags is None:
-            self._n_lags = int(max(1, X.shape[1] / 4))
+            n_lags = int(max(1, X.shape[1] / 4))
         else:
-            self._n_lags = int(self.n_lags)
-        if self._n_lags < 1:
-            self._n_lags = 1
-        if X.shape[1] - self._n_lags < 3:
+            n_lags = int(self.n_lags)
+        if n_lags < 1:
+            n_lags = 1
+        if X.shape[1] - n_lags < 3:
             raise ValueError(
                 f"The number of lags is too large for the length of the "
                 f"series, autocorrelation would be calculated with just"
                 f"{X.shape[1]-self._n_lags} observations."
             )
-        return self._acf(X, max_lag=self._n_lags)
+        return self._acf(X, max_lag=n_lags)
 
     @staticmethod
     @njit(cache=True, fastmath=True)

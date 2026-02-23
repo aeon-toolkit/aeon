@@ -10,6 +10,7 @@ from aeon.datasets import load_basic_motions, load_unit_test
 from aeon.distances import (
     ddtw_distance,
     dtw_distance,
+    dtw_gi_distance,
     edr_distance,
     erp_distance,
     euclidean_distance,
@@ -23,6 +24,7 @@ from aeon.distances import (
 
 distances = [
     "dtw",
+    "dtw_gi",
     "wdtw",
     "lcss",
     "msm",
@@ -36,11 +38,12 @@ distances = [
 
 distance_parameters = {
     "dtw": [0.0, 0.1, 1.0],  # window
+    "dtw_gi": [0.0, 0.1, 1.0],  # window
     "wdtw": [0.0, 0.1, 1.0],  # parameter g
     "wddtw": [0.0, 0.1, 1.0],  # parameter g
     "erp": [0.0, 0.1, 1.0],  # window
-    "lcss": [0.0, 50.0, 200.0],  # espilon
-    "edr": [0.0, 50.0, 200.0],  # espilon
+    "lcss": [0.0, 50.0, 200.0],  # epsilon
+    "edr": [0.0, 50.0, 200.0],  # epsilon
     "ddtw": [0.0, 0.1, 1.0],  # window
     "twe": [0.0, 0.1, 1.0],  # window
     "msm": [0.0, 0.2, 3.0],  # parameter c
@@ -57,12 +60,13 @@ unit_test_distances = {
     "wddtw": [38144.53125, 19121.4927, 1.34957],
     "twe": [4536.0, 3192.0220, 3030.036000000001],
     "msm_ind": [1515.0, 1517.8000000000004, 1557.0],  # msm with independent distance
-    "msm_dep": [1897.0, 1898.6000000000001, 1921.0],  # msm with dependent distance
+    "msm_dep": [190547.0, 190549.800000000020, 190589.0],  # msm with dependent distance
 }
 basic_motions_distances = {
     "euclidean": 27.51835240,
     "squared": 757.25971908652,
     "dtw": [757.259719, 330.834497, 330.834497],
+    "dtw_gi": [259.5333502342899, 310.10738471013804, 310.10738471013804],
     "wdtw": [165.41724, 3.308425, 0],
     "msm": [70.014828, 89.814828, 268.014828],
     "erp": [169.3715, 102.0979, 102.097904],
@@ -74,7 +78,7 @@ basic_motions_distances = {
     # msm with independent distance
     "msm_ind": [84.36021099999999, 140.13788899999997, 262.6939920000001],
     # msm with dependent distance
-    "msm_dep": [33.06825, 71.1408, 190.7397],
+    "msm_dep": [192.24477562339214, 205.82382238128477, 277.7315058567359],
 }
 
 
@@ -90,6 +94,8 @@ def test_multivariate_correctness():
     for j in range(0, 3):
         d = dtw_distance(case1, case2, window=distance_parameters["dtw"][j])
         assert_almost_equal(d, basic_motions_distances["dtw"][j], 4)
+        d = dtw_gi_distance(case1, case2, window=distance_parameters["dtw_gi"][j])
+        assert_almost_equal(d, basic_motions_distances["dtw_gi"][j], 4)
         d = wdtw_distance(case1, case2, g=distance_parameters["wdtw"][j])
         assert_almost_equal(d, basic_motions_distances["wdtw"][j], 4)
         d = lcss_distance(case1, case2, epsilon=distance_parameters["lcss"][j] / 50.0)

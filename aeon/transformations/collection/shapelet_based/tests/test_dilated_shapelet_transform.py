@@ -14,8 +14,7 @@ from aeon.transformations.collection.shapelet_based._dilated_shapelet_transform 
     compute_shapelet_dist_vector,
     compute_shapelet_features,
 )
-from aeon.utils.numba.general import get_all_subsequences
-from aeon.utils.numba.stats import is_prime
+from aeon.utils.numba.general import get_all_subsequences, is_prime
 
 DATATYPES = ["int64", "float64"]
 
@@ -97,7 +96,7 @@ def test_compute_shapelet_features(dtype):
     X_subs = get_all_subsequences(X, length, dilation)
     _min, _argmin, SO = compute_shapelet_features(X_subs, values, threshold)
 
-    # On some occasion, float32 precision with fasmath retruns things like
+    # On some occasion, float32 precision with fasmath returns things like
     # 2.1835059227370834e-07 instead of 0
     assert_almost_equal(_min, 0.0, decimal=4)
     assert _argmin == 0.0

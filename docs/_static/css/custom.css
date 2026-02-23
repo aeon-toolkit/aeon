@@ -40,3 +40,46 @@ img.avatar {
 .autosummary table {
   margin: 0;
 }
+
+/* DataFrame Color Variables */
+/* The following variables are defined only here, */
+/* meaning they are new variables. */
+/* They are used for displaying pandas dataframes in the rendered notebooks. */
+
+@media (prefers-color-scheme: dark) {
+  body:not([data-theme="light"]) {
+    --dataframe-header: #1f1f1f;
+    --dataframe-body-1: #2f2f2f;
+    --dataframe-body-2: #3f3f3f;
+    --dataframe-text: #f0f0f0;
+  }
+}
+
+body[data-theme="dark"] {
+    --dataframe-header: #1f1f1f;
+    --dataframe-body-1: #2f2f2f;
+    --dataframe-body-2: #3f3f3f;
+    --dataframe-text: #f0f0f0;
+}
+
+body {
+    --dataframe-header: #f0f0f0;
+    --dataframe-body-1: #f8f8f8;
+    --dataframe-body-2: #f0f0f0;
+    --dataframe-text: #000000;
+}
+
+  .dataframe > tbody > tr:nth-child(odd) {
+    background-color: var(--dataframe-body-1) !important;
+    color: var(--dataframe-text) !important;
+  }
+
+  .dataframe > tbody > tr:nth-child(even) {
+    background-color: var(--dataframe-body-2) !important;
+    color: var(--dataframe-text) !important;
+  }
+
+  .dataframe > thead {
+    background-color: var(--dataframe-header) !important;
+    color: var(--dataframe-text) !important;
+  }

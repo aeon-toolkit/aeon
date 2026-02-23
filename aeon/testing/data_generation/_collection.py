@@ -11,7 +11,6 @@ __all__ = [
     "make_example_multi_index_dataframe",
 ]
 
-from typing import Union
 
 import numpy as np
 import pandas as pd
@@ -24,9 +23,9 @@ def make_example_3d_numpy(
     n_labels: int = 2,
     min_cases_per_label: int = 1,
     regression_target: bool = False,
-    random_state: Union[int, None] = None,
+    random_state: int | None = None,
     return_y: bool = True,
-) -> Union[np.ndarray, tuple[np.ndarray, np.ndarray]]:
+) -> np.ndarray | tuple[np.ndarray, np.ndarray]:
     """Randomly generate 3D numpy X and numpy y data for testing.
 
     Generates data in 'numpy3D' format.
@@ -109,9 +108,9 @@ def make_example_2d_numpy_collection(
     n_labels: int = 2,
     min_cases_per_label: int = 1,
     regression_target: bool = False,
-    random_state: Union[int, None] = None,
+    random_state: int | None = None,
     return_y: bool = True,
-) -> Union[np.ndarray, tuple[np.ndarray, np.ndarray]]:
+) -> np.ndarray | tuple[np.ndarray, np.ndarray]:
     """Randomly generate 2D numpy X and numpy y for testing.
 
     Generates data in 'numpy2D' format.
@@ -189,9 +188,9 @@ def make_example_3d_numpy_list(
     max_n_timepoints: int = 12,
     n_labels: int = 2,
     regression_target: bool = False,
-    random_state: Union[int, None] = None,
+    random_state: int | None = None,
     return_y: bool = True,
-) -> Union[list[np.ndarray], tuple[list[np.ndarray], np.ndarray]]:
+) -> list[np.ndarray] | tuple[list[np.ndarray], np.ndarray]:
     """Randomly generate 3D list of numpy X and numpy y for testing.
 
     Generates data in 'np-list' format.
@@ -278,9 +277,9 @@ def make_example_2d_numpy_list(
     max_n_timepoints: int = 12,
     n_labels: int = 2,
     regression_target: bool = False,
-    random_state: Union[int, None] = None,
+    random_state: int | None = None,
     return_y: bool = True,
-) -> Union[list[np.ndarray], tuple[list[np.ndarray], np.ndarray]]:
+) -> list[np.ndarray] | tuple[list[np.ndarray], np.ndarray]:
     """Randomly generate 2D list of numpy X and numpy y for testing.
 
     Will ensure there is at least one sample per label if a classification
@@ -359,9 +358,9 @@ def make_example_dataframe_list(
     max_n_timepoints: int = 12,
     n_labels: int = 2,
     regression_target: bool = False,
-    random_state: Union[int, None] = None,
+    random_state: int | None = None,
     return_y: bool = True,
-) -> Union[list[pd.DataFrame], tuple[list[pd.DataFrame], np.ndarray]]:
+) -> list[pd.DataFrame] | tuple[list[pd.DataFrame], np.ndarray]:
     """Randomly generate list of DataFrame X and numpy y for testing.
 
     Generates data in 'df-list' format.
@@ -408,15 +407,11 @@ def make_example_dataframe_list(
     ...     random_state=0,
     ... )
     >>> print(data)
-    [          0         1
-    0  0.000000  1.688531
-    1  1.715891  1.694503
-    2  1.247127  0.768763
-    3  0.595069  0.113426,           0         1
-    0  2.000000  3.166900
-    1  2.115580  2.272178
-    2  3.702387  0.284144
-    3  0.348517  0.080874]
+    [          0         1         2         3
+    0  0.000000  1.688531  1.715891  1.694503
+    1  1.247127  0.768763  0.595069  0.113426,           0         1         2         3
+    0  2.000000  3.166900  2.115580  2.272178
+    1  3.702387  0.284144  0.348517  0.080874]
     >>> print(labels)
     [0 1]
     >>> get_type(data)
@@ -428,14 +423,14 @@ def make_example_dataframe_list(
 
     for i in range(n_cases):
         n_timepoints = rng.randint(min_n_timepoints, max_n_timepoints + 1)
-        x = n_labels * rng.uniform(size=(n_timepoints, n_channels))
+        x = n_labels * rng.uniform(size=(n_channels, n_timepoints))
         label = x[0, 0].astype(int)
         if i < n_labels and n_cases > i:
             x[0, 0] = i
             label = i
         x = x * (label + 1)
 
-        X.append(pd.DataFrame(x, index=range(n_timepoints), columns=range(n_channels)))
+        X.append(pd.DataFrame(x, index=range(n_channels), columns=range(n_timepoints)))
         y[i] = label
 
     if regression_target:
@@ -452,9 +447,9 @@ def make_example_2d_dataframe_collection(
     n_timepoints: int = 8,
     n_labels: int = 2,
     regression_target: bool = False,
-    random_state: Union[int, None] = None,
+    random_state: int | None = None,
     return_y: bool = True,
-) -> Union[pd.DataFrame, tuple[pd.DataFrame, np.ndarray]]:
+) -> pd.DataFrame | tuple[pd.DataFrame, np.ndarray]:
     """Randomly generate 2D DataFrame X and numpy y for testing.
 
     Generates data in 'pd-wide' format.
@@ -574,16 +569,16 @@ def make_example_multi_index_dataframe(
     ...     random_state=0,
     ... )
     >>> print(data)  # doctest: +NORMALIZE_WHITESPACE
-                    channel_0  channel_1
+    channel                0         1
     case timepoint
-    0    0           0.000000   1.247127
-         1           1.688531   0.768763
-         2           1.715891   0.595069
-         3           1.694503   0.113426
-    1    0           2.000000   3.702387
-         1           3.166900   0.284144
-         2           2.115580   0.348517
-         3           2.272178   0.080874
+    0    0          0.000000  1.247127
+         1          1.688531  0.768763
+         2          1.715891  0.595069
+         3          1.694503  0.113426
+    1    0          2.000000  3.702387
+         1          3.166900  0.284144
+         2          2.115580  0.348517
+         3          2.272178  0.080874
     >>> print(labels)
     [0 1]
     >>> get_type(data)
@@ -616,8 +611,7 @@ def make_example_multi_index_dataframe(
         y[i] = label
 
     X = X.reset_index(drop=True)
-    X = X.set_index(["case", "timepoint"]).pivot(columns="channel")
-    X.columns = [f"channel_{i}" for i in range(n_channels)]
+    X = X.pivot(index=["case", "timepoint"], columns=["channel"], values="value")
 
     if regression_target:
         y = y.astype(np.float32)

@@ -27,9 +27,9 @@ class TimeCNNClassifier(BaseDeepClassifier):
     kernel_size : int or list of int, default = 7
         Kernel size of convolution layers, if not a list, the same kernel size
         is used for all layer, len(list) should be n_layers.
-    n_filters : int or list of int, default = [6, 12]
+    n_filters : int or list of int, default = None
         Number of filters for each convolution layer, if not a list, the same n_filters
-        is used in all layers.
+        is used in all layers. If set to None, defaults to [6, 12].
     avg_pool_size : int or list of int, default = 3
         The size of the average pooling layer, if not a list, the same
         max pooling size is used for all convolution layer.
@@ -42,6 +42,9 @@ class TimeCNNClassifier(BaseDeepClassifier):
     strides : int or list of int, default = 1
         The strides of kernels in the convolution and max pooling layers, if not a
         list, the same strides are used for all layers.
+    strides_pooling : int or list of int, default = None
+        Strides for the pooling layers. If None, defaults to pool_size.
+        If not a list, the same strides are used for all pooling layers.
     dilation_rate : int or list of int, default = 1
         The dilation rate of the convolution layers, if not a list, the same dilation
         rate is used all over the network.
@@ -118,29 +121,30 @@ class TimeCNNClassifier(BaseDeepClassifier):
 
     def __init__(
         self,
-        n_layers=2,
-        kernel_size=7,
-        n_filters=None,
-        avg_pool_size=3,
-        activation="sigmoid",
-        padding="valid",
-        strides=1,
-        dilation_rate=1,
-        n_epochs=2000,
-        batch_size=16,
+        n_layers: int = 2,
+        kernel_size: int | list[int] = 7,
+        n_filters: int | list[int] = None,
+        avg_pool_size: int | list[int] = 3,
+        activation: str | list[str] = "sigmoid",
+        padding: str | list[str] = "valid",
+        strides: int | list[int] = 1,
+        strides_pooling: int | list[int] = None,
+        dilation_rate: int | list[int] = 1,
+        n_epochs: int = 2000,
+        batch_size: int = 16,
         callbacks=None,
         file_path="./",
-        save_best_model=False,
-        save_last_model=False,
-        save_init_model=False,
-        best_file_name="best_model",
-        last_file_name="last_model",
-        init_file_name="init_model",
-        verbose=False,
-        loss="mean_squared_error",
-        metrics="accuracy",
+        save_best_model: bool = False,
+        save_last_model: bool = False,
+        save_init_model: bool = False,
+        best_file_name: str = "best_model",
+        last_file_name: str = "last_model",
+        init_file_name: str = "init_model",
+        verbose: bool = False,
+        loss: str = "mean_squared_error",
+        metrics: str | list[str] = "accuracy",
         random_state=None,
-        use_bias=True,
+        use_bias: bool | list[bool] = True,
         optimizer=None,
     ):
         self.n_layers = n_layers
@@ -148,6 +152,7 @@ class TimeCNNClassifier(BaseDeepClassifier):
         self.n_filters = n_filters
         self.padding = padding
         self.strides = strides
+        self.strides_pooling = strides_pooling
         self.dilation_rate = dilation_rate
         self.avg_pool_size = avg_pool_size
         self.activation = activation
@@ -182,11 +187,12 @@ class TimeCNNClassifier(BaseDeepClassifier):
             activation=self.activation,
             padding=self.padding,
             strides=self.strides,
+            strides_pooling=self.strides_pooling,
             dilation_rate=self.dilation_rate,
             use_bias=self.use_bias,
         )
 
-    def build_model(self, input_shape, n_classes, **kwargs):
+    def build_model(self, input_shape: tuple[int, int], n_classes: int, **kwargs):
         """Construct a compiled, un-trained, keras model that is ready for training.
 
         In aeon, time series are stored in numpy arrays of shape (d, m), where d
@@ -207,6 +213,11 @@ class TimeCNNClassifier(BaseDeepClassifier):
         """
         import numpy as np
         import tensorflow as tf
+
+        if isinstance(self.metrics, str):
+            self._metrics = [self.metrics]
+        else:
+            self._metrics = self.metrics
 
         rng = check_random_state(self.random_state)
         self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
@@ -250,11 +261,6 @@ class TimeCNNClassifier(BaseDeepClassifier):
         y_onehot = self.convert_y_to_keras(y)
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
-
-        if isinstance(self.metrics, list):
-            self._metrics = self.metrics
-        elif isinstance(self.metrics, str):
-            self._metrics = [self.metrics]
 
         self.input_shape = X.shape[1:]
         self.training_model_ = self.build_model(self.input_shape, self.n_classes_)
@@ -309,7 +315,7 @@ class TimeCNNClassifier(BaseDeepClassifier):
         return self
 
     @classmethod
-    def _get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set: str = "default") -> dict | list[dict]:
         """Return testing parameter settings for the estimator.
 
         Parameters

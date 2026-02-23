@@ -56,8 +56,8 @@ def check_y(
     # check labels
     if (
         force_y_pred_continuous
-        and y_true.dtype == np.float64
-        and y_pred.dtype == np.int_
+        and np.issubdtype(y_true.dtype, np.floating)
+        and np.issubdtype(y_pred.dtype, np.integer)
     ):
         warnings.warn(
             "Assuming that y_true and y_score where permuted, because their"
@@ -81,14 +81,16 @@ def check_y(
     y_pred = column_or_1d(y_pred)
 
     check_consistent_length([y_true, y_pred])
-    if not force_y_pred_continuous and y_pred.dtype not in [np.int_, np.bool_]:
+    if not force_y_pred_continuous and not (
+        np.issubdtype(y_pred.dtype, np.integer) or np.issubdtype(y_pred.dtype, bool)
+    ):
         raise ValueError(
             "When using metrics other than AUC/VUS-metrics that need binary "
             "(0 or 1) scores (like Precision, Recall or F1-Score), the scores must "
             "be integers and should only contain the values {0, 1}. Please "
             "consider applying a threshold to the scores!"
         )
-    elif force_y_pred_continuous and y_pred.dtype != np.float64:
+    elif force_y_pred_continuous and not np.issubdtype(y_pred.dtype, np.floating):
         raise ValueError(
             "When using continuous scoring metrics, the scores must be floats!"
         )
@@ -111,7 +113,7 @@ def check_y(
     else:
         penalize_mask = penalize_mask | nan_mask
     y_pred[penalize_mask] = (~np.array(y_true[penalize_mask], dtype=bool)).astype(
-        np.int_
+        np.int32
     )
 
     assert_all_finite(y_pred)

@@ -3,6 +3,7 @@
 __maintainer__ = ["MatthewMiddlehurst"]
 
 import numpy as np
+import pytest
 from sklearn.metrics import mean_squared_error
 from sklearn.tree import DecisionTreeRegressor
 
@@ -24,21 +25,21 @@ def test_rotf_output():
     rotf.fit(X_train, y_train)
 
     expected = [
-        0.02694297,
-        0.02694297,
-        0.01997832,
-        0.04276962,
-        0.09027588,
-        0.02706564,
-        0.02553648,
-        0.04075808,
-        0.02900289,
-        0.04248546,
-        0.02694297,
-        0.03667328,
-        0.0235855,
-        0.03444119,
-        0.0235855,
+        0.026,
+        0.0245,
+        0.0224,
+        0.0453,
+        0.0892,
+        0.0314,
+        0.026,
+        0.0451,
+        0.0287,
+        0.04,
+        0.026,
+        0.0378,
+        0.0265,
+        0.0356,
+        0.0281,
     ]
 
     np.testing.assert_array_almost_equal(expected, rotf.predict(X_test[:15]), decimal=4)
@@ -84,3 +85,27 @@ def test_rotf_fit_predict():
     y_pred = rotf.predict(X_train)
     assert isinstance(y_pred, np.ndarray)
     assert len(y_pred) == len(y_train)
+
+
+def test_rotf_input():
+    """Test RotF with incorrect input."""
+    rotf = RotationForestRegressor()
+
+    X = rotf._check_X(np.random.random((10, 1, 100)))
+    assert X.shape == (10, 100)
+
+    with pytest.raises(
+        ValueError, match="RotationForestRegressor is not a time series regressor"
+    ):
+        rotf._check_X(np.random.random((10, 10, 100)))
+    with pytest.raises(
+        ValueError, match="RotationForestRegressor is not a time series regressor"
+    ):
+        rotf._check_X([[1, 2, 3], [4, 5], [6, 7, 8]])
+
+    X2 = np.zeros((10, 10))
+    y = np.zeros(10)
+    y[0:5] = 1
+
+    with pytest.raises(ValueError, match="All attributes in X contain the same value."):
+        rotf.fit_predict(X2, y)

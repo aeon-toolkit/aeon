@@ -23,7 +23,9 @@ MULTITHREAD_TESTING = False
 NUMBA_DISABLED = os.environ.get("NUMBA_DISABLE_JIT") == "1"
 
 # exclude estimators here for short term fixes
-EXCLUDE_ESTIMATORS = []
+EXCLUDE_ESTIMATORS = [
+    "HydraTransformer",  # returns a pytorch Tensor
+]
 
 # Exclude specific tests for estimators here
 EXCLUDED_TESTS = {
@@ -45,43 +47,35 @@ EXCLUDED_TESTS = {
         "check_save_estimators_to_file",
     ],
     # needs investigation
-    "SASTClassifier": ["check_fit_deterministic"],
-    "RSASTClassifier": ["check_fit_deterministic"],
-    "SAST": ["check_fit_deterministic"],
-    "RSAST": ["check_fit_deterministic"],
-    "SFA": ["check_persistence_via_pickle", "check_fit_deterministic"],
+    "LeftSTAMPi": ["check_series_anomaly_detector_output"],
+    "SeriesToCollectionBroadcaster": ["check_transform_inverse_transform_equivalent"],
+    "CollectionToSeriesWrapper": ["check_transform_inverse_transform_equivalent"],
     # missed in legacy testing, changes state in predict/transform
     "FLUSSSegmenter": ["check_non_state_changing_method"],
-    "InformationGainSegmenter": ["check_non_state_changing_method"],
-    "GreedyGaussianSegmenter": ["check_non_state_changing_method"],
     "ClaSPSegmenter": ["check_non_state_changing_method"],
     "HMMSegmenter": ["check_non_state_changing_method"],
-    "BinSegmenter": ["check_non_state_changing_method"],
-    "QUANTTransformer": ["check_non_state_changing_method"],
-    "MatrixProfileSeriesTransformer": ["check_non_state_changing_method"],
-    "PLASeriesTransformer": ["check_non_state_changing_method"],
-    "AutoCorrelationSeriesTransformer": ["check_non_state_changing_method"],
-    "SIVSeriesTransformer": ["check_non_state_changing_method"],
-    "RocketClassifier": ["check_non_state_changing_method"],
-    "MiniRocketClassifier": ["check_non_state_changing_method"],
-    "MultiRocketClassifier": ["check_non_state_changing_method"],
-    "RocketRegressor": ["check_non_state_changing_method"],
-    "MiniRocketRegressor": ["check_non_state_changing_method"],
-    "MultiRocketRegressor": ["check_non_state_changing_method"],
-    "RSTSF": ["check_non_state_changing_method"],
-    # Keeps length during predict to avoid recomputing means and std of data in fit
-    # if the next predict calls uses the same query length parameter.
-    "QuerySearch": ["check_non_state_changing_method"],
-    "SeriesSearch": ["check_non_state_changing_method"],
     # Unknown issue not producing the same results
     "RDSTRegressor": ["check_regressor_against_expected_results"],
     "RISTRegressor": ["check_regressor_against_expected_results"],
+    # Affected by threading changes in distance module
+    "CanonicalIntervalForestRegressor": ["check_regressor_against_expected_results"],
+    # Requires y to be passed in inverse_transform,
+    # but this is not currently enabled/supported
+    "DifferenceTransformer": ["check_transform_inverse_transform_equivalent"],
+    # broken by 0.63.0 numba update
+    "HIVECOTEV2": ["check_classifier_against_expected_results"],
+    "TemporalDictionaryEnsemble": ["check_classifier_against_expected_results"],
 }
 
 # Exclude specific tests for estimators here only when numba is disabled
 EXCLUDED_TESTS_NO_NUMBA = {
     # See issue #622
     "HIVECOTEV2": ["check_classifier_against_expected_results"],
+    # Other failures
+    "TemporalDictionaryEnsemble": ["check_classifier_against_expected_results"],
+    "OrdinalTDE": ["check_classifier_against_expected_results"],
+    "MultiRocketRegressor": ["check_regressor_against_expected_results"],
+    "MultiRocketHydraRegressor": ["check_regressor_against_expected_results"],
 }
 
 

@@ -12,6 +12,7 @@ from sklearn.ensemble import RandomForestRegressor
 from aeon.base._base import _clone_estimator
 from aeon.regression.base import BaseRegressor
 from aeon.transformations.collection.feature_based import Catch22
+from aeon.utils.validation import check_n_jobs
 
 
 class Catch22Regressor(BaseRegressor):
@@ -43,8 +44,11 @@ class Catch22Regressor(BaseRegressor):
         True. If a List of specific features to extract is provided, "Mean" and/or
         "StandardDeviation" must be added to the List to extract these features.
     outlier_norm : bool, optional, default=False
-        Normalise each series during the two outlier Catch22 features, which can take a
-        while to process for large values.
+        If True, each time series is normalized during the computation of the two
+        outlier Catch22 features, which can take a while to process for large values
+        as it depends on the max value in the timseries. Note that this parameter
+        did not exist in the original publication/implementation as they used time
+        series that were already normalized.
     replace_nans : bool, optional, default=True
         Replace NaN or inf values from the Catch22 transform with 0.
     use_pycatch22 : bool, optional, default=False
@@ -94,8 +98,8 @@ class Catch22Regressor(BaseRegressor):
     >>> reg.fit(X, y)
     Catch22Regressor(...)
     >>> reg.predict(X)
-    array([0.63821896, 1.0906666 , 0.58323551, 1.57550709, 0.48413489,
-           0.70976176, 1.33206165, 1.09927538, 1.51673405, 0.31683308])
+    array([0.63821896, 1.0906666 , 0.64351536, 1.57550709, 0.46036267,
+           0.79297397, 1.32882497, 1.12603087, 1.51673405, 0.31683308])
     """
 
     _tags = {
@@ -110,7 +114,7 @@ class Catch22Regressor(BaseRegressor):
         self,
         features="all",
         catch24=True,
-        outlier_norm=False,
+        outlier_norm=True,
         replace_nans=True,
         use_pycatch22=False,
         estimator=None,
@@ -148,6 +152,8 @@ class Catch22Regressor(BaseRegressor):
         self :
             Reference to self.
         """
+        self._n_jobs = check_n_jobs(self.n_jobs)
+
         self._transformer = Catch22(
             features=self.features,
             catch24=self.catch24,

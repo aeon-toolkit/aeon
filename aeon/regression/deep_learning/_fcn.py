@@ -1,5 +1,7 @@
 """Fully Convolutional Network (FCN) regressor."""
 
+from __future__ import annotations
+
 __maintainer__ = ["hadifawaz1999"]
 __all__ = ["FCNRegressor"]
 
@@ -7,11 +9,17 @@ import gc
 import os
 import time
 from copy import deepcopy
+from typing import TYPE_CHECKING, Any
 
+import numpy as np
 from sklearn.utils import check_random_state
 
 from aeon.networks import FCNNetwork
 from aeon.regression.deep_learning.base import BaseDeepRegressor
+
+if TYPE_CHECKING:
+    import tensorflow as tf
+    from tensorflow.keras.callbacks import Callback
 
 
 class FCNRegressor(BaseDeepRegressor):
@@ -36,7 +44,7 @@ class FCNRegressor(BaseDeepRegressor):
     activation : str or list of str, default = "relu"
         activation used after the convolution
     use_bias : bool or list of bool, default = True
-        whether or not ot use bias in convolution
+        whether or not to use bias in convolution
     n_epochs : int, default = 2000
         the number of epochs to train the model
     batch_size : int, default = 16
@@ -117,32 +125,32 @@ class FCNRegressor(BaseDeepRegressor):
 
     def __init__(
         self,
-        n_layers=3,
-        n_filters=None,
-        kernel_size=None,
-        dilation_rate=1,
-        strides=1,
-        padding="same",
-        activation="relu",
-        file_path="./",
-        save_best_model=False,
-        save_last_model=False,
-        save_init_model=False,
-        best_file_name="best_model",
-        last_file_name="last_model",
-        init_file_name="init_model",
-        n_epochs=2000,
-        batch_size=16,
-        use_mini_batch_size=False,
-        callbacks=None,
-        verbose=False,
-        output_activation="linear",
-        loss="mean_squared_error",
-        metrics="mean_squared_error",
-        random_state=None,
-        use_bias=True,
-        optimizer=None,
-    ):
+        n_layers: int = 3,
+        n_filters: int | list[int] | None = None,
+        kernel_size: int | list[int] | None = None,
+        dilation_rate: int | list[int] = 1,
+        strides: int | list[int] = 1,
+        padding: str | list[str] = "same",
+        activation: str | list[str] = "relu",
+        file_path: str = "./",
+        save_best_model: bool = False,
+        save_last_model: bool = False,
+        save_init_model: bool = False,
+        best_file_name: str = "best_model",
+        last_file_name: str = "last_model",
+        init_file_name: str = "init_model",
+        n_epochs: int = 2000,
+        batch_size: int = 16,
+        use_mini_batch_size: bool = False,
+        callbacks: Callback | list[Callback] | None = None,
+        verbose: bool = False,
+        output_activation: str = "linear",
+        loss: str = "mean_squared_error",
+        metrics: str | list[str] = "mean_squared_error",
+        random_state: int | np.random.RandomState | None = None,
+        use_bias: bool = True,
+        optimizer: tf.keras.optimizers.Optimizer | None = None,
+    ) -> None:
         self.n_layers = n_layers
         self.kernel_size = kernel_size
         self.n_filters = n_filters
@@ -182,7 +190,9 @@ class FCNRegressor(BaseDeepRegressor):
             use_bias=self.use_bias,
         )
 
-    def build_model(self, input_shape, **kwargs):
+    def build_model(
+        self, input_shape: tuple[int, ...], **kwargs: Any
+    ) -> tf.keras.Model:
         """Construct a compiled, un-trained, keras model that is ready for training.
 
         In aeon, time series are stored in numpy arrays of shape (d,m), where d
@@ -199,8 +209,12 @@ class FCNRegressor(BaseDeepRegressor):
         -------
         output : a compiled Keras Model
         """
-        import numpy as np
         import tensorflow as tf
+
+        if isinstance(self.metrics, str):
+            self._metrics = [self.metrics]
+        else:
+            self._metrics = self.metrics
 
         rng = check_random_state(self.random_state)
         self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
@@ -225,7 +239,7 @@ class FCNRegressor(BaseDeepRegressor):
 
         return model
 
-    def _fit(self, X, y):
+    def _fit(self, X: np.ndarray, y: np.ndarray) -> FCNRegressor:
         """Fit the regressor on the training set (X, y).
 
         Parameters
@@ -243,11 +257,6 @@ class FCNRegressor(BaseDeepRegressor):
 
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
-
-        if isinstance(self.metrics, list):
-            self._metrics = self.metrics
-        elif isinstance(self.metrics, str):
-            self._metrics = [self.metrics]
 
         self.input_shape = X.shape[1:]
         self.training_model_ = self.build_model(self.input_shape)
@@ -310,7 +319,9 @@ class FCNRegressor(BaseDeepRegressor):
         return self
 
     @classmethod
-    def _get_test_params(cls, parameter_set="default"):
+    def _get_test_params(
+        cls, parameter_set: str = "default"
+    ) -> dict[str, Any] | list[dict[str, Any]]:
         """Return testing parameter settings for the estimator.
 
         Parameters

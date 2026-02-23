@@ -6,7 +6,7 @@ project development.
 
 For a step-by-step guide for setting up a development version of `aeon`
 and creating a pull request, see the [contributing guide](contributing.md). At any point
-during the process, feel free to post questions on Slack or ask [core developers](./about.md#core-developers)
+during the process, feel free to post questions on Discord or ask [core developers](./about.md#core-developers)
 for help.
 
 `aeon` aims to follow the `scikit-learn` API and conventions whenever possible. If
@@ -16,6 +16,27 @@ their [developer's guide](https://scikit-learn.org/stable/developers/index.html)
 
 ::::{grid} 1 2 3 3
 :gutter: 3
+
+:::{grid-item-card}
+:text-align: center
+
+Type Hints
+
+^^^
+
+Adding type hints to `aeon` code.
+
++++
+
+```{button-ref} developer_guide/adding_typehints
+:color: primary
+:click-parent:
+:expand:
+
+Type Hints
+```
+
+:::
 
 :::{grid-item-card}
 :text-align: center
@@ -190,6 +211,7 @@ Testing
 ```{toctree}
 :hidden:
 
+developer_guide/adding_typehints.md
 developer_guide/aep.md
 developer_guide/coding_standards.md
 developer_guide/dependencies.md

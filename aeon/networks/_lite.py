@@ -22,12 +22,10 @@ class LITENetwork(BaseDeepLearningNetwork):
         if set to `True` then LITEMV is used. LITEMV is the
         same architecture as LITE but specifically designed
         to better handle multivariate time series.
-    n_filters : int or list of int32, default = 32
-        The number of filters used in one lite layer, if not a list, the same
-        number of filters is used in all lite layers.
-    kernel_size : int or list of int, default = 40
-        The head kernel size used for each lite layer, if not a list, the same
-        is used in all lite layers.
+    n_filters : int, default = 32
+        The number of filters used in one lite layer.
+    kernel_size : int , default = 40
+        The head kernel size used for each lite layer,.
     strides : int or list of int, default = 1
         The strides of kernels in convolution layers for each lite layer,
         if not a list, the same is used in all lite layers.
@@ -44,7 +42,7 @@ class LITENetwork(BaseDeepLearningNetwork):
     References
     ----------
     ..[1] Ismail-Fawaz et al. LITE: Light Inception with boosTing
-    tEchniques for Time Series Classificaion, IEEE International
+    tEchniques for Time Series Classification, IEEE International
     Conference on Data Science and Advanced Analytics, 2023.
 
     ..[2] Ismail-Fawaz, Ali, et al. "Look Into the LITE
@@ -277,7 +275,7 @@ class LITENetwork(BaseDeepLearningNetwork):
 
         hybrid_layer = tf.keras.layers.Concatenate(axis=2)(
             conv_list
-        )  # concantenate all convolution layers
+        )  # concatenate all convolution layers
         hybrid_layer = tf.keras.layers.Activation(activation="relu")(
             hybrid_layer
         )  # apply activation ReLU
