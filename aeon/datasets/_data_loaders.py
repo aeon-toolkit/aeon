@@ -152,7 +152,7 @@ def _load_data(file, meta_data, replace_missing_vals_with="NaN"):
     ----------
     file : stream, input file to read data from, assume no comments or header info
     meta_data : dict.
-        with meta data in the file header loaded with _load_header_info
+        with metadata in the file header loaded with _load_header_info
 
     Returns
     -------
@@ -200,7 +200,7 @@ def _load_data(file, meta_data, replace_missing_vals_with="NaN"):
                 if current_channels > 1:
                     raise OSError(
                         f"Seen {current_channels} in case {n_cases}."
-                        f"Expecting univariate from meta data"
+                        f"Expecting univariate from metadata"
                     )
         if meta_data["equallength"]:
             current_length = n_timepoints
@@ -217,7 +217,7 @@ def _load_data(file, meta_data, replace_missing_vals_with="NaN"):
                     f"Error loading {file}. Channel {i} in case {n_cases} has a "
                     f"different number of observations to the other channels. "
                     f"Saw {current_length} in the first channel but"
-                    f" {len(data_series)} in the channel {i}. The meta data "
+                    f" {len(data_series)} in the channel {i}. The metadata "
                     f"specifies equal length == {equal_length}. But even if series "
                     f"length are unequal, all channels for a single case must be the "
                     f"same length"
@@ -247,7 +247,7 @@ def load_from_ts_file(
     replace_missing_vals_with : string, default="NaN"
         issing values in the file are replaces with this value
     return_meta_data : boolean, default=False
-        return a dictionary with the meta data loaded from the file
+        return a dictionary with the metadata loaded from the file
     return_type : string, default = "auto"
         data type to convert to.
         If "auto", returns numpy3D for equal length and list of numpy2D for unequal.
@@ -1603,7 +1603,7 @@ def get_dataset_meta_data(
     features=None,
     url="https://timeseriesclassification.com/aeon-toolkit/metadata.csv",
 ):
-    """Retrieve dataset meta data from timeseriesclassification.com.
+    """Retrieve dataset metadata from timeseriesclassification.com.
 
     Metadata includes the following information for each dataset:
     - Dataset: name of the problem, set the lists in tsc_datasets for valid names.
@@ -1630,7 +1630,7 @@ def get_dataset_meta_data(
 
     Returns
     -------
-     Pandas dataframe containing meta data for each dataset.
+     Pandas dataframe containing metadata for each dataset.
 
     Raises
     ------
