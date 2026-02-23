@@ -40,6 +40,20 @@ def test_check_classification_y_allows_multiclass_targets(y):
 
 
 @pytest.mark.parametrize(
+    "y",
+    [
+        np.array([0, 1, 0, 1]),
+        pd.Series([0, 1, 0, 1]),
+        np.array([0, 0, 0, 0]),
+        pd.Series([0, 0, 0, 0]),
+    ],
+)
+def test_check_classification_y_allow_single_class(y):
+    """Accept binary targets for classification."""
+    check_classification_y(y, allow_single_class=True)
+
+
+@pytest.mark.parametrize(
     "y", [None, 123, "abc", [0, 1], (0, 1), {0, 1}, pd.DataFrame({"a": [0, 1]})]
 )
 def test_check_classification_y_rejects_non_array_or_series(y):

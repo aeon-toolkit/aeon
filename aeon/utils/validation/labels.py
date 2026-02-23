@@ -5,13 +5,16 @@ import pandas as pd
 from sklearn.utils.multiclass import type_of_target
 
 
-def check_classification_y(y):
+def check_classification_y(y, allow_single_class=False):
     """Check y label input is valid for classification tasks.
 
     Parameters
     ----------
     y : pd.Series or np.ndarray
         Target variable array.
+    allow_single_class : bool, default=False
+        Whether to allow y with only a single unique label. If False, y must contain at
+        least 2 unique labels.
 
     Raises
     ------
@@ -39,7 +42,7 @@ def check_classification_y(y):
         )
 
     u = len(np.unique(y))
-    if u < 2:
+    if not allow_single_class and u < 2:
         raise ValueError(f"y must contain at least 2 unique labels, but found {u}.")
 
 
