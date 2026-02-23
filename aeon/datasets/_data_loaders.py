@@ -398,8 +398,7 @@ def download_dataset(name, save_path=None):
     ----------
     name : string,
             name of the dataset to download
-
-    safe_path : string, optional (default: None)
+    save_path : string, optional (default: None)
             Path to the directory where the dataset is downloaded into.
 
     Returns
@@ -1068,16 +1067,14 @@ def _url_exists(url: str, timeout: float = 10.0) -> bool:
                 status = getattr(resp, "status", resp.getcode())
                 return status == 200
         except HTTPError as e:
-            if method == "HEAD" and e.code in (
-                    405,
-                    501,
-                ):  # Method HEAD not allowed
+            if method == "HEAD" and e.code in (405, 501):  # Method HEAD not allowed
                 continue
             return False
         except URLError:
             return False
 
     return False
+
 
 def load_collection(
     name: str,
@@ -1157,8 +1154,8 @@ def load_collection(
         <name>_nmv_TRAIN.ts/TEST.ts. If these are not present, it will load the normal
         version.
     problem_dict: default = tsr_zenodo,
-        Dictionary of dataset names and their corresponding zenodo keys. Valid values are
-        tsr_zenodo or tsc_zenodo
+        Dictionary of dataset names and their corresponding zenodo keys. Valid values
+        are tsr_zenodo or tsc_zenodo
 
     Returns
     -------
@@ -1305,10 +1302,11 @@ def load_regression(
     """Download/load a TSML regression collection.
 
     If the data is stored locally on "extract_path" it is loaded from there. If not,
-    it is downloaded from the Zenodo TSML community (https://zenodo.org/communities/tsml)
-    then loaded into memory. It does this by calling load_collection (see that functions
-    documentation for more detail) then further checks whether a classification problem has
-    been loaded by mistake. If this happens, it raises an error.
+    it is downloaded from the Zenodo TSML community
+    (https://zenodo.org/communities/tsml) then loaded into memory. It does this by
+    calling load_collection (see that functions documentation for more detail)
+    then further checks whether a classification problem has been loaded by mistake.
+    If this happens, it raises an error.
 
 
     Parameters
@@ -1397,10 +1395,11 @@ def load_classification(
     """Download/load a TSML classification collection.
 
     If the data is stored locally on "extract_path" it is loaded from there. If not,
-    it is downloaded from the Zenodo TSML community (https://zenodo.org/communities/tsml)
-    then loaded into memory. It does this by calling load_collection (see that functions
-    documentation for more detail) then further checks whether a regression problem has
-    been loaded by mistake. If this happens, it raises an error.
+    it is downloaded from the Zenodo TSML community
+    (https://zenodo.org/communities/tsml) then loaded into memory. It does this by
+    calling load_collection (see that functions documentation for more detail) then
+    further checks whether a regression problem has been loaded by mistake. If this
+    happens, it raises an error.
 
 
     Parameters
