@@ -1,0 +1,39 @@
+cff-version: 1.2.0
+title: aeon
+type: software
+authors:
+  - name: "The aeon developers"
+message: "If you use aeon in a scientific publication, we would appreciate citations to the following paper:"
+preferred-citation:
+  type: article
+  title: "aeon: a Python Toolkit for Learning from Time Series"
+  authors:
+  - family-names: "Middlehurst"
+    given-names: "Matthew"
+  - family-names: "Ismail-Fawaz"
+    given-names: "Ali"
+  - family-names: "Guillaume"
+    given-names: "Antoine"
+  - family-names: "Holder"
+    given-names: "Christopher"
+  - family-names: "Guijo-Rubio"
+    given-names: "David"
+  - family-names: "Bulatova"
+    given-names: "Guzal "
+  - family-names: "Tsaprounis"
+    given-names: "Leonidas"
+  - family-names: "Mentel"
+    given-names: "Lukasz"
+  - family-names: "Walter"
+    given-names: "Martin"
+  - family-names: "Schäfer"
+    given-names: "Patrick"
+  - family-names: "Bagnall"
+    given-names: "Anthony"
+  journal: "Journal of Machine Learning Research"
+  volume: 25
+  issue: 289
+  start: 1
+  end: 10
+  year: 2024
+  url: "https://www.jmlr.org/papers/v25/23-1444.html"
