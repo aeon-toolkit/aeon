@@ -319,7 +319,7 @@ def _load_saved_dataset(
     split: None or {"TRAIN", "TEST"}, default=None
         Whether to load the train or test instances of the problem.
         By default it loads both train and test instances into a single data structure.
-    return_data_type : str, default = None
+    return_type : str, default = None
         "numpy3D"/"numpy3d"/"np3D": recommended for equal length series, "np-list"
         for unequal length series that cannot be stored in numpy arrays.
         "numpy2D"/"numpy2d"/"np2d": can be used for univariate equal length series,
@@ -1278,6 +1278,21 @@ def load_collection(
         local_dirname=local_dirname,
         return_meta=True,
     )
+
+    # REMOVE BEFORE MERGE
+    # if not meta["equallength"] and not eq_present:
+    #     print(f"{name} has unequal length flag meta data but no eq data equivalent")
+    # elif meta["equallength"]:
+    #     if isinstance(X, list):
+    #         print(f"{name} has returned a list but does not have unequal length flag")
+    # if meta["missing"] and not nmv_present:
+    #     print(f"{name} has missing flag meta data but no _nmv data equivalent")
+    #
+    # elif meta["equallength"]:
+    #     has_missing = np.isnan(X).any()
+    #     if has_missing:
+    #         print(f"{name} has NaNs but missing flag not set")
+
     if return_metadata:
         return X, y, meta
     return X, y
@@ -1356,7 +1371,7 @@ def load_regression(
         return_metadata=True,
         load_equal_length=load_equal_length,
         load_no_missing=load_no_missing,
-        problem_dict=tsc_zenodo,
+        problem_dict=tsr_zenodo,
     )
     # Check this is a classification problem
     if "targetlabel" not in meta or not meta["targetlabel"]:
