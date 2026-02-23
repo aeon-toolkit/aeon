@@ -22,11 +22,13 @@ class EncoderClassifier(BaseDeepClassifier):
 
     Parameters
     ----------
-    kernel_size : array of int, default = [5, 11, 21]
+    kernel_size : array of int, default = None
         Specifying the length of the 1D convolution windows.
-    n_filters : array of int, default = [128, 256, 512]
+        If set to None, defaults to [5, 11, 21].
+    n_filters : array of int, default = None
         Specifying the number of 1D convolution filters used for each layer,
         the shape of this array should be the same as kernel_size.
+        If set to None, defaults to [128, 256, 512].
     max_pool_size : int, default = 2
         Size of the max pooling windows.
     activation : string, default = sigmoid
@@ -110,29 +112,29 @@ class EncoderClassifier(BaseDeepClassifier):
 
     def __init__(
         self,
-        n_epochs=100,
-        batch_size=12,
-        kernel_size=None,
-        n_filters=None,
-        dropout_proba=0.2,
-        activation="sigmoid",
-        max_pool_size=2,
-        padding="same",
-        strides=1,
-        fc_units=256,
+        n_epochs: int = 100,
+        batch_size: int = 12,
+        kernel_size: list[int] = None,
+        n_filters: list[int] = None,
+        dropout_proba: float = 0.2,
+        activation: str = "sigmoid",
+        max_pool_size: int = 2,
+        padding: str = "same",
+        strides: int = 1,
+        fc_units: int = 256,
         callbacks=None,
-        file_path="./",
-        save_best_model=False,
-        save_last_model=False,
-        save_init_model=False,
-        best_file_name="best_model",
-        last_file_name="last_model",
-        init_file_name="init_model",
-        verbose=False,
-        loss="categorical_crossentropy",
-        metrics="accuracy",
+        file_path: str = "./",
+        save_best_model: bool = False,
+        save_last_model: bool = False,
+        save_init_model: bool = False,
+        best_file_name: str = "best_model",
+        last_file_name: str = "last_model",
+        init_file_name: str = "init_model",
+        verbose: bool = False,
+        loss: str = "categorical_crossentropy",
+        metrics: str | list[str] = "accuracy",
         random_state=None,
-        use_bias=True,
+        use_bias: bool = True,
         optimizer=None,
     ):
         self.n_filters = n_filters
@@ -177,7 +179,7 @@ class EncoderClassifier(BaseDeepClassifier):
             activation=self.activation,
         )
 
-    def build_model(self, input_shape, n_classes, **kwargs):
+    def build_model(self, input_shape: tuple[int, int], n_classes: int, **kwargs):
         """Construct a compiled, un-trained, keras model that is ready for training.
 
         In aeon, time series are stored in numpy arrays of shape (d, m), where d
@@ -302,7 +304,7 @@ class EncoderClassifier(BaseDeepClassifier):
         return self
 
     @classmethod
-    def _get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set: str = "default") -> dict | list[dict]:
         """Return testing parameter settings for the estimator.
 
         Parameters
