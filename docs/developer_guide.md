@@ -6,7 +6,7 @@ project development.
 
 For a step-by-step guide for setting up a development version of `aeon`
 and creating a pull request, see the [contributing guide](contributing.md). At any point
-during the process, feel free to post questions on Slack or ask [core developers](./about.md#core-developers)
+during the process, feel free to post questions on Discord or ask [core developers](./about.md#core-developers)
 for help.
 
 `aeon` aims to follow the `scikit-learn` API and conventions whenever possible. If
