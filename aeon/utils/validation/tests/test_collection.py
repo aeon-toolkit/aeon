@@ -22,6 +22,7 @@ from aeon.testing.testing_data import (
 from aeon.utils.data_types import COLLECTIONS_DATA_TYPES, SERIES_DATA_TYPES
 from aeon.utils.validation.collection import (
     _is_numpy_list_multivariate,
+    check_collection_variance,
     get_n_cases,
     get_n_channels,
     get_n_timepoints,
@@ -168,6 +169,95 @@ def test_get_type_errors():
     df = pd.DataFrame(data)
     with pytest.raises(TypeError, match="contain numeric values only"):
         get_type(df)
+
+
+def _make_flat_collection(X):
+    if isinstance(X, pd.DataFrame):
+        Y = X.copy()
+        Y.iloc[:, :] = 0.0
+    elif isinstance(X, list):
+        Y = []
+        for x in X:
+            if isinstance(x, np.ndarray):
+                y = np.array(x, copy=True)
+                y[...] = 0.0
+            else:
+                y = x.copy()
+                y.iloc[:, :] = 0.0
+            Y.append(y)
+    else:
+        Y = np.array(X, copy=True)
+        Y[...] = 0.0
+    return Y
+
+
+def _make_tiny_collection(X, eps=1e-9):
+    Y = _make_flat_collection(X)
+    if isinstance(Y, pd.DataFrame):
+        Y.iat[1, 1] = eps
+    elif isinstance(Y, list):
+        if isinstance(Y[0], np.ndarray):
+            Y[1][0, 1] = eps
+        else:
+            Y[1].iat[0, 1] = eps
+    else:
+        if Y.ndim == 3:
+            Y[1, 0, 1] = eps
+        else:
+            Y[1, 1] = eps
+    return Y
+
+
+@pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
+def test_check_collection_variance(data):
+    """Test check_collection_variance."""
+    assert check_collection_variance(
+        EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[data]["train"][0]
+    )
+    if data in EQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION.keys():
+        assert check_collection_variance(
+            EQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION[data]["train"][0]
+        )
+
+
+@pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
+def test_check_collection_variance_allows_flat_collection(data):
+    """Test that check_collection_variance allows flat series."""
+    X = _make_flat_collection(EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[data]["train"][0])
+    assert check_collection_variance(X)
+    if data in EQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION.keys():
+        X = _make_flat_collection(
+            EQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION[data]["train"][0]
+        )
+        assert check_collection_variance(X)
+
+
+@pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
+def test_check_collection_variance_rejects_tiny_collection(data):
+    """Test that check_collection_variance rejects tiny non-flat series."""
+    X = _make_tiny_collection(EQUAL_LENGTH_UNIVARIATE_CLASSIFICATION[data]["train"][0])
+    with pytest.raises(ValueError, match="too little variation"):
+        check_collection_variance(X)
+
+    assert not check_collection_variance(X, raise_error=False)
+
+    if data in EQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION.keys():
+        X = _make_tiny_collection(
+            EQUAL_LENGTH_MULTIVARIATE_CLASSIFICATION[data]["train"][0]
+        )
+        with pytest.raises(ValueError, match="too little variation"):
+            check_collection_variance(X)
+
+
+def test_check_collection_variance_errors():
+    """Test error catching in check_collection_variance."""
+    X = np.zeros((10, 10))
+    with pytest.raises(ValueError, match="non-negative"):
+        check_collection_variance(X)
+
+    X = [np.zeros((2, 5)), np.zeros((3, 5))]
+    with pytest.raises(ValueError, match="number of channels is not consistent"):
+        check_collection_variance(X)
 
 
 def test_is_numpy_list_multivariate_single():
