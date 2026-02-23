@@ -169,7 +169,6 @@ def _load_data(file, meta_data, replace_missing_vals_with="NaN"):
     data = []
     n_cases = 0
     n_channels = 0  # Assumed the same for all
-    current_channels = 0
     n_timepoints = 0
     y_values = []
     target = False
@@ -284,7 +283,7 @@ def load_from_ts_file(
         # Read in headers
         meta_data = _load_header_info(file)
         # load into list of numpy
-        data, y, meta_data = _load_data(file, meta_data)
+        data, y, meta_data = _load_data(file, meta_data, replace_missing_vals_with)
 
     # if equal load to 3D numpy
     if meta_data["equallength"]:
@@ -460,7 +459,6 @@ def _download_and_extract(url, extract_path=None):
     file_name = os.path.basename(url)
     dl_dir = tempfile.mkdtemp()
     zip_file_name = os.path.join(dl_dir, file_name)
-    #    urlretrieve(url, zip_file_name)
 
     # Using urlopen instead of urlretrieve
     with urlopen(url, timeout=60) as response:
@@ -470,7 +468,7 @@ def _download_and_extract(url, extract_path=None):
         extract_path = os.path.join(MODULE, "local_data/%s/" % file_name.split(".")[0])
     else:
         extract_path = os.path.join(extract_path, "%s/" % file_name.split(".")[0])
-
+    already_exists = False
     try:
         already_exists = os.path.exists(extract_path)
         if not already_exists:
@@ -498,8 +496,8 @@ def _load_tsc_dataset(
     name : string, file name to load from
     split: None or one of "TRAIN", "TEST", default=None
         Whether to load the train or test instances of the problem.
-        By default it loads both train and test instances (in a single container).
-    return_data_type : str, optional, default = None
+        By default, it loads both train and test instances (in a single container).
+    return_type : str, optional, default = None
         "numpy3D"/"numpy3d"/"np3D": recommended for equal length series
         "numpy2D"/"numpy2d"/"np2d": can be used for univariate equal length series,
         although we recommend numpy3d, because some transformers do not work with
