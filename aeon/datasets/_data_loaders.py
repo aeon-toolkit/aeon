@@ -1071,7 +1071,7 @@ def _url_exists(url: str, timeout: float = 10.0) -> bool:
             if method == "HEAD" and e.code in (
                     405,
                     501,
-                ):  # Method Not Allowed / Not Implemented
+                ):  # Method HEAD not allowed
                 continue
             return False
         except URLError:
