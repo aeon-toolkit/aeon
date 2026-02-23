@@ -117,8 +117,8 @@ def _dtw_arow_cost_matrix(x: np.ndarray, y: np.ndarray) -> np.ndarray:
 
 
 def dtw_arow_pairwise_distance(
-    X: Union[np.ndarray, list[np.ndarray]],
-    y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
+    X: np.ndarray | list[np.ndarray],
+    y: np.ndarray | list[np.ndarray] | None = None,
 ) -> np.ndarray:
     multivariate_conversion = _is_numpy_list_multivariate(X, y)
     _X, _ = _convert_collection_to_numba_list(X, "X", multivariate_conversion)
