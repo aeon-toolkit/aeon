@@ -150,28 +150,14 @@ class ClassifierChannelEnsemble(BaseCollectionChannelEnsemble, BaseClassifier):
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
         """
-        from aeon.classification.dictionary_based import ContractableBOSS
         from aeon.classification.interval_based import (
-            CanonicalIntervalForestClassifier,
             TimeSeriesForestClassifier,
         )
 
-        if parameter_set == "results_comparison":
-            cboss = ContractableBOSS(
-                n_parameter_samples=4, max_ensemble_size=2, random_state=0
-            )
-            cif = CanonicalIntervalForestClassifier(
-                n_estimators=2, n_intervals=4, att_subsample_size=4, random_state=0
-            )
-            return {
-                "classifiers": [("cBOSS", cboss), ("CIF", cif)],
-                "channels": [5, [3, 4]],
-            }
-        else:
-            return {
-                "classifiers": [
-                    ("tsf1", TimeSeriesForestClassifier(n_estimators=2)),
-                    ("tsf2", TimeSeriesForestClassifier(n_estimators=2)),
-                ],
-                "channels": [0, 0],
-            }
+        return {
+            "classifiers": [
+                ("tsf1", TimeSeriesForestClassifier(n_estimators=2)),
+                ("tsf2", TimeSeriesForestClassifier(n_estimators=2)),
+            ],
+            "channels": [0, 0],
+        }

@@ -9,13 +9,14 @@ original authors:
 # License: MIT
 """
 
-import numpy as np
-from sklearn.utils import check_random_state
-
-from aeon.transformations.collection.imbalance._smote import SMOTE
-
 __maintainer__ = ["TonyBagnall"]
 __all__ = ["ADASYN"]
+
+from collections.abc import Callable
+
+import numpy as np
+
+from aeon.transformations.collection.imbalance._smote import SMOTE
 
 
 class ADASYN(SMOTE):
@@ -35,7 +36,7 @@ class ADASYN(SMOTE):
     ----------
         random_state : int or None, optional (default=None)
             Random seed for reproducibility.
-        k_neighbors : int, optional (default=5)
+        n_neighbors : int, optional (default=5)
             Number of nearest neighbours used to construct synthetic samples.
 
     References
@@ -55,12 +56,26 @@ class ADASYN(SMOTE):
     >>> X_res, y_res = sampler.fit_transform(X, y)
     """
 
-    def __init__(self, random_state=None, k_neighbors=5):
-        super().__init__(random_state=random_state, k_neighbors=k_neighbors)
+    def __init__(
+        self,
+        n_neighbors: int = 5,
+        random_state=None,
+        distance: str | Callable = "euclidean",
+        distance_params: dict | None = None,
+        n_jobs: int = 1,
+        weights: str | Callable = "uniform",
+    ):
+        super().__init__(
+            random_state=random_state,
+            n_neighbors=n_neighbors,
+            distance=distance,
+            distance_params=distance_params,
+            n_jobs=n_jobs,
+            weights=weights,
+        )
 
     def _transform(self, X, y=None):
         X = np.squeeze(X, axis=1)
-        random_state = check_random_state(self.random_state)
         X_resampled = [X.copy()]
         y_resampled = [y.copy()]
 
@@ -70,8 +85,9 @@ class ADASYN(SMOTE):
                 continue
             target_class_indices = np.flatnonzero(y == class_sample)
             X_class = X[target_class_indices]
+            y_class = y[target_class_indices]
 
-            self.nn_.fit(X)
+            self.nn_.fit(X, y)
             nns = self.nn_.kneighbors(X_class, return_distance=False)[:, 1:]
             # The ratio is computed using a one-vs-rest manner. Using majority
             # in multi-class would lead to slightly different results at the
@@ -97,14 +113,14 @@ class ADASYN(SMOTE):
 
             # the nearest neighbors need to be fitted only on the current class
             # to find the class NN to generate new samples
-            self.nn_.fit(X_class)
+            self.nn_.fit(X_class, y_class)
             nns = self.nn_.kneighbors(X_class, return_distance=False)[:, 1:]
 
             enumerated_class_indices = np.arange(len(target_class_indices))
             rows = np.repeat(enumerated_class_indices, n_samples_generate)
-            cols = random_state.choice(n_neighbors, size=n_samples)
+            cols = self._random_state.choice(n_neighbors, size=n_samples)
             diffs = X_class[nns[rows, cols]] - X_class[rows]
-            steps = random_state.uniform(size=(n_samples, 1))
+            steps = self._random_state.uniform(size=(n_samples, 1))
             X_new = X_class[rows] + steps * diffs
 
             X_new = X_new.astype(X.dtype)

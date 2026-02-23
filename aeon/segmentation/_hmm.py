@@ -6,16 +6,15 @@ To read more about the algorithm, check out the `HMM wikipedia page
 <https://en.wikipedia.org/wiki/Hidden_Markov_model>`_.
 """
 
+__maintainer__ = []
+__all__ = ["HMMSegmenter"]
+
 import warnings
-from typing import Optional
 
 import numpy as np
 from scipy.stats import norm
 
 from aeon.segmentation.base import BaseSegmenter
-
-__maintainer__ = []
-__all__ = ["HMMSegmenter"]
 
 
 class HMMSegmenter(BaseSegmenter):
@@ -138,7 +137,7 @@ class HMMSegmenter(BaseSegmenter):
         self,
         emission_funcs: list,
         transition_prob_mat: np.ndarray,
-        initial_probs: Optional[np.ndarray] = None,
+        initial_probs: np.ndarray | None = None,
     ):
         self.initial_probs = initial_probs
         self.emission_funcs = emission_funcs

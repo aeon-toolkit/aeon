@@ -201,14 +201,14 @@ class BaseCollectionAnomalyDetector(BaseCollectionEstimator, BaseAnomalyDetector
         # reset estimator at the start of fit
         self.reset()
 
-        X = self._preprocess_series(X, axis, store_metadata=True)
+        X = self._preprocess_collection(X)
 
         if self.get_tag("fit_is_empty"):
             self.is_fitted = True
             return self._predict(X)
 
         if y is not None:
-            y = self._check_y(y)
+            y = self._check_y(y, self.metadata_["n_cases"])
 
         pred = self._fit_predict(X, y)
 

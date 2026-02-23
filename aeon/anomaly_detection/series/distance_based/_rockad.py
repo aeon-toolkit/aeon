@@ -4,7 +4,6 @@ __maintainer__ = []
 __all__ = ["ROCKAD"]
 
 import warnings
-from typing import Optional
 
 import numpy as np
 from sklearn.neighbors import NearestNeighbors
@@ -27,8 +26,7 @@ class ROCKAD(BaseSeriesAnomalyDetector):
     approach with bootstrap aggregation for robust anomaly detection.
     After windowing, the data gets transformed into the ROCKET feature space.
     Then the windows are compared based on the feature space by
-    finding the nearest neighbours. Whole-series based ROCKAD as proposed in
-    [1]_ can be found at aeon/anomaly_detection/collection/_rockad.py
+    finding the nearest neighbours.
 
     This class supports both univariate and multivariate time series and
     provides options for normalizing features, applying power transformations,
@@ -86,7 +84,7 @@ class ROCKAD(BaseSeriesAnomalyDetector):
     >>> detector.fit(X_train)
     ROCKAD(...)
     >>> detector.predict(X_test)
-    array([0.        , 0.00554713, 0.0699094 , 0.22881059, 0.32382585,
+    array([0.        , 0.00554713, 0.06990941, 0.22881059, 0.32382585,
            0.43652154, 0.43652154, 0.43652154, 0.43652154, 0.43652154,
            0.43652154, 0.43652154, 0.43652154, 0.43652154, 0.43652154,
            0.52382585, 0.65200875, 0.80313368, 0.85194345, 1.        ])
@@ -126,13 +124,13 @@ class ROCKAD(BaseSeriesAnomalyDetector):
         self.stride = stride
         self.random_state = random_state
 
-        self.rocket_transformer_: Optional[Rocket] = None
-        self.list_baggers_: Optional[list[NearestNeighbors]] = None
-        self.power_transformer_: Optional[PowerTransformer] = None
+        self.rocket_transformer_: Rocket | None = None
+        self.list_baggers_: list[NearestNeighbors] | None = None
+        self.power_transformer_: PowerTransformer | None = None
 
         super().__init__(axis=0)
 
-    def _fit(self, X: np.ndarray, y: Optional[np.ndarray] = None) -> "ROCKAD":
+    def _fit(self, X: np.ndarray, y: np.ndarray | None = None) -> "ROCKAD":
         self._check_params(X)
         # X: (n_timepoints, 1) because __init__(axis==0)
         _X, _ = sliding_windows(
@@ -228,7 +226,7 @@ class ROCKAD(BaseSeriesAnomalyDetector):
 
         return point_anomaly_scores
 
-    def _fit_predict(self, X: np.ndarray, y: Optional[np.ndarray] = None) -> np.ndarray:
+    def _fit_predict(self, X: np.ndarray, y: np.ndarray | None = None) -> np.ndarray:
         self._check_params(X)
         _X, padding = sliding_windows(
             X, window_size=self.window_size, stride=self.stride, axis=0

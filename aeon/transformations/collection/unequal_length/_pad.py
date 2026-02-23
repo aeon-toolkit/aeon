@@ -21,7 +21,7 @@ class Padder(BaseCollectionTransformer):
 
     Parameters
     ----------
-    padded_length  : int, "min" or "max", default="min"
+    padded_length  : int, "min" or "max", default="max"
         Length to pad the series to. If "min", will pad the transformed series to the
         shortest series seen in ``fit``. If "max", will pad to the longest series seen
         in ``fit``. If an integer, will pad to that length.
@@ -71,7 +71,7 @@ class Padder(BaseCollectionTransformer):
         self,
         padded_length="max",
         fill_value=0,
-        add_noise=False,
+        add_noise=None,
         error_on_long=True,
         random_state=None,
     ):

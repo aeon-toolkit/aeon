@@ -23,7 +23,6 @@ Forecasting Models
     BaseForecaster
     NaiveForecaster
     RegressionForecaster
-    TVPForecaster
 
 Statistical Models
 ------------------
@@ -35,4 +34,36 @@ Statistical Models
     :template: class.rst
 
     ARIMA
+    AutoARIMA
     ETS
+    AutoETS
+    TAR
+    AutoTAR
+    Theta
+    TVP
+
+Deep Learning Models
+--------------------
+
+.. currentmodule:: aeon.forecasting.deep_learning
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    BaseDeepForecaster
+    DeepARForecaster
+    TCNForecaster
+
+Machine Learning Models
+------------------------
+
+.. currentmodule:: aeon.forecasting.machine_learning
+
+.. autosummary::
+    :toctree: auto_generated/
+    :template: class.rst
+
+    SETAR
+    SETARForest
+    SETARTree

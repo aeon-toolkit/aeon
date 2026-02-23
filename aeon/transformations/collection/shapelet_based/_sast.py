@@ -1,7 +1,5 @@
 """SAST Transformer."""
 
-from typing import Optional, Union
-
 import numpy as np
 from numba import get_num_threads, njit, prange, set_num_threads
 
@@ -94,10 +92,10 @@ class SAST(BaseCollectionTransformer):
 
     def __init__(
         self,
-        lengths: Optional[np.ndarray] = None,
+        lengths: np.ndarray | None = None,
         stride: int = 1,
         nb_inst_per_class: int = 1,
-        seed: Optional[int] = None,
+        random_state: int | None = None,
         n_jobs: int = 1,  # Parallel processing
     ):
         super().__init__()
@@ -111,9 +109,9 @@ class SAST(BaseCollectionTransformer):
         self._source_series = []  # To store the index of the original time series
         self.kernels_generators_ = {}  # Reference time series
         self.n_jobs = n_jobs
-        self.seed = seed
+        self.random_state = random_state
 
-    def _fit(self, X: np.ndarray, y: Union[np.ndarray, list]) -> "SAST":
+    def _fit(self, X: np.ndarray, y: np.ndarray | list) -> "SAST":
         """Select reference time series and generate subsequences from them.
 
         Parameters
@@ -137,9 +135,9 @@ class SAST(BaseCollectionTransformer):
         )
 
         self._random_state = (
-            np.random.RandomState(self.seed)
-            if not isinstance(self.seed, np.random.RandomState)
-            else self.seed
+            np.random.RandomState(self.random_state)
+            if not isinstance(self.random_state, np.random.RandomState)
+            else self.random_state
         )
 
         classes = np.unique(y)
@@ -199,7 +197,7 @@ class SAST(BaseCollectionTransformer):
         return self
 
     def _transform(
-        self, X: np.ndarray, y: Optional[Union[np.ndarray, list]] = None
+        self, X: np.ndarray, y: np.ndarray | list | None = None
     ) -> np.ndarray:
         """Transform the input X using the generated subsequences.
 
@@ -212,7 +210,7 @@ class SAST(BaseCollectionTransformer):
 
         Returns
         -------
-        X_transformed: np.ndarray shape (n_cases, n_timepoints),
+        X_transformed: np.ndarray shape (n_cases, n_shapelets),
             The transformed data
         """
         X_ = np.reshape(X, (X.shape[0], X.shape[-1]))

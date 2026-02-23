@@ -868,6 +868,9 @@ def _transform_multi(
 
                 feature_index_start = feature_index_end
 
+                combination_index += 1
+                n_channels_start = n_channels_end
+
     return features
 
 

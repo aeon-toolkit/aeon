@@ -6,10 +6,16 @@ __all__ = ["NaiveForecaster"]
 
 import numpy as np
 
-from aeon.forecasting.base import BaseForecaster
+from aeon.forecasting.base import (
+    BaseForecaster,
+    DirectForecastingMixin,
+    IterativeForecastingMixin,
+)
 
 
-class NaiveForecaster(BaseForecaster):
+class NaiveForecaster(
+    BaseForecaster, DirectForecastingMixin, IterativeForecastingMixin
+):
     """
     Naive forecaster with multiple strategies and flexible horizon.
 
@@ -31,29 +37,15 @@ class NaiveForecaster(BaseForecaster):
         Only relevant for "seasonal_last".
     """
 
+    _tags = {
+        "fit_is_empty": True,
+    }
+
     def __init__(self, strategy="last", seasonal_period=1, horizon=1):
         self.strategy = strategy
         self.seasonal_period = seasonal_period
 
         super().__init__(horizon=horizon, axis=1)
-
-    def _fit(self, y, exog=None):
-        y_squeezed = y.squeeze()
-
-        if self.strategy == "last":
-            self.forecast_ = y_squeezed[-1]
-        elif self.strategy == "mean":
-            self.forecast_ = np.mean(y_squeezed)
-        elif self.strategy == "seasonal_last":
-            season = y_squeezed[-self.seasonal_period :]
-            idx = (self.horizon - 1) % self.seasonal_period
-            self.forecast_ = season[idx]
-        else:
-            raise ValueError(
-                f"Unknown strategy: {self.strategy}. "
-                "Valid strategies are 'last', 'mean', 'seasonal_last'."
-            )
-        return self
 
     def _predict(self, y, exog=None):
         y_squeezed = y.squeeze()

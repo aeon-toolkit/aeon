@@ -93,7 +93,7 @@ approving any project expenses and managing any finance related accounts.
 The role of the communications workgroups is to interact with the broader community
 through the `aeon` social network accounts and discussion forums. It is the
 responsibility of the communications workgroup to manage and maintain the `aeon`
-Twitter, LinkedIn, Slack and other relevant communications accounts.
+LinkedIn, X/Twitter, Medium blog, Discord and other relevant communications accounts.
 
 The communications team maintains access to social networking accounts and is
 responsible for managing access to the `aeon` email address. To help manage
@@ -120,9 +120,9 @@ necessary.
 Decisions about the future of the project are announced publicly to allow discussion
 with all members of the community. The whole process from proposal to implementation
 is fully visible, apart from topics considered sensitive. All non-sensitive project
-management discussion takes place on the project Slack and/or the issue tracker.
+management discussion takes place on the project Discord and/or the issue tracker.
 Occasionally, sensitive discussion and votes such as appointments will occur in private
-Slack channels or meetings.
+Discord channels or meetings.
 
 For most decisions, a consensus seeking process of all interested contributors is used.
 Contributors try to find a resolution that has no open objections among core developers.

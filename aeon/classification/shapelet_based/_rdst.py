@@ -7,7 +7,6 @@ shapelet dilated transform and builds (by default) a ridge classifier on the out
 __maintainer__ = ["baraline"]
 __all__ = ["RDSTClassifier"]
 
-from typing import Union
 
 import numpy as np
 from sklearn.linear_model import RidgeClassifierCV
@@ -93,6 +92,8 @@ class RDSTClassifier(BaseClassifier):
         The unique class labels in the training set.
     n_classes_ : int
         The number of unique classes in the training set.
+    n_shapelets_ : int
+        The number of shapelets found during the fitting process.
     transformed_data_ : list of shape (n_estimators) of ndarray
         The transformed training dataset for all classifiers. Only saved when
         ``save_transformed_data`` is `True`.
@@ -146,7 +147,7 @@ class RDSTClassifier(BaseClassifier):
         save_transformed_data: bool = False,
         class_weight=None,
         n_jobs: int = 1,
-        random_state: Union[int, np.random.RandomState, None] = None,
+        random_state: int | np.random.RandomState | None = None,
     ) -> None:
         self.max_shapelets = max_shapelets
         self.shapelet_lengths = shapelet_lengths
@@ -214,6 +215,7 @@ class RDSTClassifier(BaseClassifier):
                 self._estimator.n_jobs = self._n_jobs
 
         X_t = self._transformer.fit_transform(X, y)
+        self.n_shapelets_ = self._transformer.n_shapelets_
 
         if self.save_transformed_data:
             self.transformed_data_ = X_t
@@ -265,9 +267,7 @@ class RDSTClassifier(BaseClassifier):
             return dists
 
     @classmethod
-    def _get_test_params(
-        cls, parameter_set: str = "default"
-    ) -> Union[dict, list[dict]]:
+    def _get_test_params(cls, parameter_set: str = "default") -> dict | list[dict]:
         """Return testing parameter settings for the estimator.
 
         Parameters
