@@ -206,7 +206,9 @@ class AEDCNNNetwork(BaseDeepLearningNetwork):
             temp = input_layer_decoder
         elif not self.temporal_latent_space:
             input_layer_decoder = tf.keras.layers.Input((self.latent_space_dim,))
-            dense_layer = tf.keras.layers.Dense(units=np.prod(shape_before_flatten))(
+            # Cast to int to avoid Keras rejecting numpy scalar types
+            decoder_units = int(np.prod(shape_before_flatten))
+            dense_layer = tf.keras.layers.Dense(units=decoder_units)(
                 input_layer_decoder
             )
 

@@ -178,37 +178,37 @@ class InceptionTimeClassifier(BaseClassifier):
 
     def __init__(
         self,
-        n_classifiers=5,
-        n_filters=32,
-        n_conv_per_layer=3,
-        kernel_size=40,
-        use_max_pooling=True,
-        max_pool_size=3,
-        strides=1,
-        dilation_rate=1,
-        padding="same",
-        activation="relu",
-        use_bias=False,
-        use_residual=True,
-        use_bottleneck=True,
-        bottleneck_size=32,
-        depth=6,
-        use_custom_filters=False,
-        file_path="./",
-        save_last_model=False,
-        save_best_model=False,
-        save_init_model=False,
-        best_file_name="best_model",
-        last_file_name="last_model",
-        init_file_name="init_model",
-        batch_size=64,
-        use_mini_batch_size=False,
-        n_epochs=1500,
+        n_classifiers: int = 5,
+        n_filters: int | list[int] = 32,
+        n_conv_per_layer: int | list[int] = 3,
+        kernel_size: int | list[int] = 40,
+        use_max_pooling: bool | list[bool] = True,
+        max_pool_size: int | list[int] = 3,
+        strides: int | list[int] = 1,
+        dilation_rate: int | list[int] = 1,
+        padding: str | list[str] = "same",
+        activation: str | list[str] = "relu",
+        use_bias: bool | list[bool] = False,
+        use_residual: bool = True,
+        use_bottleneck: bool = True,
+        bottleneck_size: int = 32,
+        depth: int = 6,
+        use_custom_filters: bool = False,
+        file_path: str = "./",
+        save_last_model: bool = False,
+        save_best_model: bool = False,
+        save_init_model: bool = False,
+        best_file_name: str = "best_model",
+        last_file_name: str = "last_model",
+        init_file_name: str = "init_model",
+        batch_size: int = 64,
+        use_mini_batch_size: bool = False,
+        n_epochs: int = 1500,
         callbacks=None,
         random_state=None,
-        verbose=False,
-        loss="categorical_crossentropy",
-        metrics="accuracy",
+        verbose: bool = False,
+        loss: str = "categorical_crossentropy",
+        metrics: str | list[str] = "accuracy",
         optimizer=None,
     ):
         self.n_classifiers = n_classifiers
@@ -399,7 +399,7 @@ class InceptionTimeClassifier(BaseClassifier):
         return classifier
 
     @classmethod
-    def _get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set: str = "default") -> dict | list[dict]:
         """Return testing parameter settings for the estimator.
 
         Parameters
@@ -566,36 +566,36 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
 
     def __init__(
         self,
-        n_filters=32,
-        n_conv_per_layer=3,
-        kernel_size=40,
-        use_max_pooling=True,
-        max_pool_size=3,
-        strides=1,
-        dilation_rate=1,
-        padding="same",
-        activation="relu",
-        use_bias=False,
-        use_residual=True,
-        use_bottleneck=True,
-        bottleneck_size=32,
-        depth=6,
-        use_custom_filters=False,
-        file_path="./",
-        save_best_model=False,
-        save_last_model=False,
-        save_init_model=False,
-        best_file_name="best_model",
-        last_file_name="last_model",
-        init_file_name="init_model",
-        batch_size=64,
-        use_mini_batch_size=False,
-        n_epochs=1500,
+        n_filters: int | list[int] = 32,
+        n_conv_per_layer: int | list[int] = 3,
+        kernel_size: int | list[int] = 40,
+        use_max_pooling: bool | list[bool] = True,
+        max_pool_size: int | list[int] = 3,
+        strides: int | list[int] = 1,
+        dilation_rate: int | list[int] = 1,
+        padding: str | list[str] = "same",
+        activation: str | list[str] = "relu",
+        use_bias: bool | list[bool] = False,
+        use_residual: bool = True,
+        use_bottleneck: bool = True,
+        bottleneck_size: int = 32,
+        depth: int = 6,
+        use_custom_filters: bool = False,
+        file_path: str = "./",
+        save_best_model: bool = False,
+        save_last_model: bool = False,
+        save_init_model: bool = False,
+        best_file_name: str = "best_model",
+        last_file_name: str = "last_model",
+        init_file_name: str = "init_model",
+        batch_size: int = 64,
+        use_mini_batch_size: bool = False,
+        n_epochs: int = 1500,
         callbacks=None,
         random_state=None,
-        verbose=False,
-        loss="categorical_crossentropy",
-        metrics="accuracy",
+        verbose: bool = False,
+        loss: str = "categorical_crossentropy",
+        metrics: str | list[str] = "accuracy",
         optimizer=None,
     ):
         # predefined
@@ -655,7 +655,7 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
             use_custom_filters=self.use_custom_filters,
         )
 
-    def build_model(self, input_shape, n_classes, **kwargs):
+    def build_model(self, input_shape: tuple[int, int], n_classes: int, **kwargs):
         """
         Construct a compiled, un-trained, keras model that is ready for training.
 
@@ -673,6 +673,11 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         """
         import numpy as np
         import tensorflow as tf
+
+        if isinstance(self.metrics, str):
+            self._metrics = [self.metrics]
+        else:
+            self._metrics = self.metrics
 
         rng = check_random_state(self.random_state)
         self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
@@ -720,11 +725,6 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         y_onehot = self.convert_y_to_keras(y)
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
-
-        if isinstance(self.metrics, list):
-            self._metrics = self.metrics
-        elif isinstance(self.metrics, str):
-            self._metrics = [self.metrics]
 
         # ignore the number of instances, X.shape[0],
         # just want the shape of each instance
@@ -789,7 +789,7 @@ class IndividualInceptionClassifier(BaseDeepClassifier):
         return self
 
     @classmethod
-    def _get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set: str = "default") -> dict | list[dict]:
         """Return testing parameter settings for the estimator.
 
         Parameters

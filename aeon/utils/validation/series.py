@@ -12,7 +12,6 @@ __all__ = [
 
 import numpy as np
 import pandas as pd
-from deprecated.sphinx import deprecated
 
 
 def is_series(X, include_2d=False):
@@ -22,11 +21,27 @@ def is_series(X, include_2d=False):
     ----------
     X : array-like
         Input data to be checked.
+    include_2d : bool, default=False
+        If True, also accepts 2D structures like pd.DataFrame and 2D np.ndarray.
 
     Returns
     -------
     bool
         True if input is a series, False otherwise.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import pandas as pd
+    >>> from aeon.utils.validation.series import is_series
+    >>> is_series(pd.Series([1.0, 2.0, 3.0, 4.0, 5.0]))
+    True
+    >>> is_series(np.array([1, 2, 3, 4, 5]))
+    True
+    >>> is_series(pd.DataFrame([[1.0, 2.0], [3.0, 4.0]]))
+    False
+    >>> is_series(pd.DataFrame([[1.0, 2.0], [3.0, 4.0]]), include_2d=True)
+    True
     """
     valid = ["pd.Series", "np1d"]
     if include_2d:
@@ -64,6 +79,20 @@ def get_n_timepoints(X, axis=None):
     ValueError
         Input_type not in SERIES_DATA_TYPES.
         X is 2D but axis is not 0 or 1.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import pandas as pd
+    >>> from aeon.utils.validation.series import get_n_timepoints
+    >>> get_n_timepoints(np.array([1, 2, 3, 4, 5]))
+    5
+    >>> get_n_timepoints(pd.Series([1.0, 2.0, 3.0, 4.0, 5.0]))
+    5
+    >>> get_n_timepoints(np.array([[1, 2], [3, 4], [5, 6]]), axis=0)
+    3
+    >>> get_n_timepoints(pd.DataFrame([[1, 2], [3, 4], [5, 6]]), axis=1)
+    2
     """
     t = get_type(X)
     if (t == "pd.DataFrame" or (t == "np.ndarray" and X.ndim == 2)) and axis not in [
@@ -110,6 +139,20 @@ def get_n_channels(X, axis=None):
     ValueError
         Input_type not in SERIES_DATA_TYPES.
         X is 2D but axis is not 0 or 1.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> import pandas as pd
+    >>> from aeon.utils.validation.series import get_n_channels
+    >>> get_n_channels(np.array([1, 2, 3, 4, 5]))
+    1
+    >>> get_n_channels(pd.Series([1.0, 2.0, 3.0, 4.0, 5.0]))
+    1
+    >>> get_n_channels(np.array([[1, 2], [3, 4], [5, 6]]), axis=0)
+    2
+    >>> get_n_channels(pd.DataFrame([[1, 2], [3, 4], [5, 6]]), axis=1)
+    3
     """
     t = get_type(X)
     if (t == "pd.DataFrame" or (t == "np.ndarray" and X.ndim == 2)) and axis not in [
@@ -263,141 +306,3 @@ def get_type(X, raise_error=True):
     if raise_error and msg is not None:
         raise TypeError(msg)
     return None
-
-
-# TODO: Remove in v1.4.0
-@deprecated(
-    version="1.3.0",
-    reason="is_single_series is deprecated and will be removed in v1.4.0. "
-    "Use is_series instead.",
-    category=FutureWarning,
-)
-def is_single_series(y):
-    """Check if input is a single time series.
-
-    Parameters
-    ----------
-    y : Any object
-
-    Returns
-    -------
-    bool
-        True if y is one of VALID_DATA_TYPES a valid shape with unique columns.
-    """
-    if isinstance(y, pd.Series):
-        return True
-    if isinstance(y, pd.DataFrame):
-        if "object" in y.dtypes.values:
-            return False
-        if y.index.nlevels > 1:
-            return False
-        return True
-    if isinstance(y, np.ndarray):
-        if y.ndim > 2:
-            return False
-        return True
-    return False
-
-
-# TODO: Remove in v1.4.0
-@deprecated(
-    version="1.3.0",
-    reason="check_series is deprecated and will be removed in v1.4.0. "
-    "Use get_type instead.",
-    category=FutureWarning,
-)
-def check_series(y):
-    """Validate a time series is an acceptable type.
-
-    Parameters
-    ----------
-    y : any
-
-    Returns
-    -------
-    y : np.ndarray, pd.Series or pd.DataFrame
-
-    Raises
-    ------
-    ValueError
-        If y is an invalid input
-    """
-    if isinstance(y, np.ndarray):
-        if not (
-            issubclass(y.dtype.type, np.integer)
-            or issubclass(y.dtype.type, np.floating)
-        ):
-            raise ValueError("dtype for np.ndarray must be float or int")
-    elif isinstance(y, pd.Series):
-        if not pd.api.types.is_numeric_dtype(y):
-            raise ValueError("pd.Series dtype must be numeric")
-    elif isinstance(y, pd.DataFrame):
-        if not all(pd.api.types.is_numeric_dtype(y[col]) for col in y.columns):
-            raise ValueError("pd.DataFrame dtype must be numeric")
-    else:
-        raise ValueError(
-            f"Input type of y should be one of np.ndarray, pd.Series or pd.DataFrame, "
-            f"saw {type(y)}"
-        )
-
-    return y
-
-
-# TODO: Remove in v1.4.0
-@deprecated(
-    version="1.3.0",
-    reason="is_hierarchical is deprecated and will be removed in v1.4.0.",
-    category=FutureWarning,
-)
-def is_hierarchical(y):
-    """Check to see if y is in a hierarchical dataframe.
-
-     Hierarchical is defined as a pd.DataFrame having 3 or more indices.
-
-    Parameters
-    ----------
-    y : Any object
-
-    Returns
-    -------
-    bool
-        True if y is a pd.DataFrame with three or more indices.
-    """
-    if isinstance(y, pd.DataFrame):
-        if y.index.nlevels >= 3:
-            return True
-    return False
-
-
-# TODO: Remove in v1.4.0
-@deprecated(
-    version="1.3.0",
-    reason="is_univariate_series is deprecated and will be removed in v1.4.0. "
-    "Use is_univariate instead.",
-    category=FutureWarning,
-)
-def is_univariate_series(y):
-    """Check if series is univariate.
-
-    Parameters
-    ----------
-    y : series
-        Time series data.
-
-    Returns
-    -------
-    bool
-        True if series is pd.Series, single row/column pd.DataFrame or np.ndarray with 1
-        dimension, False otherwise.
-    """
-    if isinstance(y, pd.Series):
-        return True
-    if isinstance(y, pd.DataFrame):
-        if y.shape[0] > 1 and y.shape[1] > 1:
-            return False
-        return True
-    if isinstance(y, np.ndarray):
-        if y.ndim > 1 and y.shape[1] > 1:
-            return False
-        return True
-    return False
