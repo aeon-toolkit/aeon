@@ -631,7 +631,7 @@ class HidalgoSegmenter(BaseSegmenter):
                 bestsampling = sampling
                 maxlik = likelihood
 
-        if bestsampling is None or len(bestsampling) == 0:
+        if bestsampling is None:
             raise ValueError(
                 f"No valid samples after burn-in and sampling_rate filtering. "
                 f"Try reducing burn_in ({burn_in}) or sampling_rate ({sampling_rate})."
