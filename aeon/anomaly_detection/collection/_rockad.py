@@ -3,29 +3,25 @@
 __maintainer__ = []
 __all__ = ["ROCKAD"]
 
-import warnings
-
 import numpy as np
 from sklearn.neighbors import NearestNeighbors
 from sklearn.preprocessing import PowerTransformer
 from sklearn.utils import check_random_state, resample
 
-from aeon.anomaly_detection.series.base import BaseSeriesAnomalyDetector
+from aeon.anomaly_detection.collection.base import BaseCollectionAnomalyDetector
 from aeon.transformations.collection.convolution_based import Rocket
 from aeon.utils.validation import check_n_jobs
-from aeon.utils.windowing import reverse_windowing, sliding_windows
 
 
-class ROCKAD(BaseSeriesAnomalyDetector):
+class ROCKAD(BaseCollectionAnomalyDetector):
     """
-    ROCKET-based Semi-Supervised Anomaly Detector (ROCKAD).
+    ROCKET-based whole-series Anomaly Detector (ROCKAD).
 
-    Adapted ROCKAD [1]_ version to detect anomalies on time-points.
-    ROCKAD leverages the ROCKET transformation for feature extraction from
+    ROCKAD [1]_ leverages the ROCKET transformation for feature extraction from
     time series data and applies the scikit learn k-nearest neighbors (k-NN)
-    approach with bootstrap aggregation for robust anomaly detection.
-    After windowing, the data gets transformed into the ROCKET feature space.
-    Then the windows are compared based on the feature space by
+    approach with bootstrap aggregation for robust semi-supervised anomaly detection.
+    The data gets transformed into the ROCKET feature space.
+    Then the whole-series are compared based on the feature space by
     finding the nearest neighbours.
 
     This class supports both univariate and multivariate time series and
@@ -48,11 +44,7 @@ class ROCKAD(BaseSeriesAnomalyDetector):
         Distance metric to use for the k-NN algorithm.
     power_transform : bool, default=True
         Whether to apply a power transformation (Yeo-Johnson) to the features.
-    window_size : int, default=10
-        Size of the sliding window for segmenting input time series data.
-    stride : int, default=1
-        Step size for moving the sliding window over the time series data.
-    random_state : int, default=42
+    random_state : int, default=None
         Random seed for reproducibility.
 
     Attributes
@@ -72,32 +64,31 @@ class ROCKAD(BaseSeriesAnomalyDetector):
         Data Analysis XXI. IDA 2023. Lecture Notes in Computer Science,
         vol 13876. Springer, Cham. https://doi.org/10.1007/978-3-031-30047-9_33
 
-Examples
+    Examples
     --------
     >>> import numpy as np
-    >>> from aeon.anomaly_detection.series.distance_based import ROCKAD
+    >>> from aeon.anomaly_detection.collection import ROCKAD
     >>> rng = np.random.default_rng(seed=42)
-    >>> X_train = rng.normal(loc=0.0, scale=1.0, size=(1000,))
-    >>> X_test = rng.normal(loc=0.0, scale=1.0, size=(20,))
-    >>> X_test[15:20] -= 5
-    >>> detector = ROCKAD(window_size=15,n_estimators=10,n_kernels=10,n_neighbors=3)
-    >>> detector.fit(X_train)
-    ROCKAD(...)
-    >>> np.round(detector.predict(X_test), 6)
-    array([0.      , 0.290721, 0.498102, 0.623339, 0.714325, 0.748893, 0.748893,
-           0.748893, 0.748893, 0.748893, 0.748893, 0.748893, 0.748893,
-           0.748893, 0.748893, 0.898671, 0.977978, 0.999683, 1.      ,
-           0.92173 ])
+    >>> X_train = rng.normal(loc=0.0, scale=1.0, size=(10, 100))
+    >>> X_test = rng.normal(loc=0.0, scale=1.0, size=(5, 100))
+    >>> X_test[4][50:58] -= 5
+    >>> detector = ROCKAD() # doctest: +SKIP
+    >>> detector.fit(X_train) # doctest: +SKIP
+    >>> detector.predict(X_test) # doctest: +SKIP
+        array([0.        , 0.00554713, 0.06990941, 0.22881059, 0.32382585,
+            0.43652154, 0.43652154, 0.43652154, 0.43652154, 0.43652154,
+            0.43652154, 0.43652154, 0.43652154, 0.43652154, 0.43652154,
+            0.52382585, 0.65200875, 0.80313368, 0.85194344, 1.        ])
     """
 
     _tags = {
+        "anomaly_output_type": "anomaly_scores",
+        "learning_type:semi_supervised": True,
         "capability:univariate": True,
         "capability:multivariate": True,
         "capability:missing_values": False,
         "capability:multithreading": True,
         "fit_is_empty": False,
-        "anomaly_output_type": "anomaly_scores",
-        "learning_type:semi_supervised": True,
     }
 
     def __init__(
@@ -108,11 +99,10 @@ Examples
         n_neighbors=5,
         metric="euclidean",
         power_transform=True,
-        window_size: int = 10,
-        stride: int = 1,
         n_jobs=1,
-        random_state=42,
+        random_state=None,
     ):
+
         self.n_estimators = n_estimators
         self.n_kernels = n_kernels
         self.normalise = normalise
@@ -120,50 +110,16 @@ Examples
         self.n_jobs = n_jobs
         self.metric = metric
         self.power_transform = power_transform
-        self.window_size = window_size
-        self.stride = stride
         self.random_state = random_state
 
         self.rocket_transformer_: Rocket | None = None
         self.list_baggers_: list[NearestNeighbors] | None = None
         self.power_transformer_: PowerTransformer | None = None
 
-        super().__init__(axis=0)
+        super().__init__()
 
-    def _fit(self, X: np.ndarray, y: np.ndarray | None = None) -> "ROCKAD":
-        self._check_params(X)
-        # X: (n_timepoints, 1) because __init__(axis==0)
-        _X, _ = sliding_windows(
-            X, window_size=self.window_size, stride=self.stride, axis=0
-        )
-        # _X: (n_windows, window_size)
-        self._inner_fit(_X)
-
-        return self
-
-    def _check_params(self, X: np.ndarray) -> None:
-        if self.window_size < 1 or self.window_size > X.shape[0]:
-            raise ValueError(
-                "The window size must be at least 1 and at most the length of the "
-                "time series."
-            )
-
-        if self.stride < 1 or self.stride > self.window_size:
-            raise ValueError(
-                "The stride must be at least 1 and at most the window size."
-            )
-
-        if int((X.shape[0] - self.window_size) / self.stride + 1) < self.n_neighbors:
-            raise ValueError(
-                f"Window count ({int((X.shape[0]-self.window_size)/self.stride+1)}) "
-                f"has to be larger than n_neighbors ({self.n_neighbors})."
-                "Please choose a smaller n_neighbors value or increase window count "
-                "by choosing a smaller window size or larger stride."
-            )
-
-    def _inner_fit(self, X: np.ndarray) -> None:
+    def _fit(self, X: np.ndarray, y: np.ndarray | None = None):
         self._n_jobs = check_n_jobs(self.n_jobs)
-
         rng = check_random_state(self.random_state)
 
         self.rocket_transformer_ = Rocket(
@@ -172,27 +128,13 @@ Examples
             n_jobs=self._n_jobs,
             random_state=rng.randint(np.iinfo(np.int32).max),
         )
-        # X: (n_windows, window_size)
-        Xt = self.rocket_transformer_.fit_transform(X)
         # XT: (n_cases, n_kernels*2)
+        Xt = self.rocket_transformer_.fit_transform(X)
         Xt = Xt.astype(np.float64)
 
         if self.power_transform:
             self.power_transformer_ = PowerTransformer()
-            # todo check if this is still an issue with scikit-learn >= 1.7.0
-            # when lower bound is raised
-            try:
-                Xtp = self.power_transformer_.fit_transform(Xt)
-
-            except Exception:
-                warnings.warn(
-                    "Power Transform failed and thus has been disabled. "
-                    "Try increasing the window size.",
-                    UserWarning,
-                    stacklevel=2,
-                )
-                self.power_transformer_ = None
-                Xtp = Xt
+            Xtp = self.power_transformer_.fit_transform(Xt)
         else:
             Xtp = Xt
 
@@ -220,27 +162,8 @@ Examples
             self.list_baggers_.append(estimator)
 
     def _predict(self, X) -> np.ndarray:
-        _X, padding = sliding_windows(
-            X, window_size=self.window_size, stride=self.stride, axis=0
-        )
-
-        point_anomaly_scores = self._inner_predict(_X, padding)
-
-        return point_anomaly_scores
-
-    def _fit_predict(self, X: np.ndarray, y: np.ndarray | None = None) -> np.ndarray:
-        self._check_params(X)
-        _X, padding = sliding_windows(
-            X, window_size=self.window_size, stride=self.stride, axis=0
-        )
-
-        self._inner_fit(_X)
-        point_anomaly_scores = self._inner_predict(_X, padding)
-        return point_anomaly_scores
-
-    def _inner_predict(self, X: np.ndarray, padding: int) -> np.ndarray:
         """
-        Predict the anomaly score for each time-point in the input data.
+        Return the anomaly scores for the input data.
 
         Parameters
         ----------
@@ -249,18 +172,16 @@ Examples
         Returns
         -------
             np.ndarray: The predicted probabilities.
-
         """
         y_scores = np.zeros((len(X), self.n_estimators))
         # Transform into rocket feature space
+        # XT: (n_cases, n_kernels*2)
         Xt = self.rocket_transformer_.transform(X)
 
         Xt = Xt.astype(np.float64)
 
-        if self.power_transformer_ is not None:
-            # Power Transform using yeo-johnson
+        if self.power_transform:
             Xtp = self.power_transformer_.transform(Xt)
-
         else:
             Xtp = Xt
 
@@ -274,15 +195,7 @@ Examples
 
             y_scores[:, idx] = scores
 
-        # Average the scores to get the final score for each time series
-        anomaly_scores = y_scores.mean(axis=1)
+        # Average the scores to get the final score for each whole-series
+        collection_anomaly_scores = y_scores.mean(axis=1)
 
-        point_anomaly_scores = reverse_windowing(
-            anomaly_scores, self.window_size, np.nanmean, self.stride, padding
-        )
-
-        point_anomaly_scores = (point_anomaly_scores - point_anomaly_scores.min()) / (
-            point_anomaly_scores.max() - point_anomaly_scores.min()
-        )
-
-        return point_anomaly_scores
+        return collection_anomaly_scores
