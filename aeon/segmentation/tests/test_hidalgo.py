@@ -1,10 +1,10 @@
 """Test Hidalgo segmenter."""
 
-from aeon.segmentation._hidalgo import _binom, _partition_function
 import numpy as np
 import pytest
 
 from aeon.segmentation import HidalgoSegmenter
+from aeon.segmentation._hidalgo import _binom, _partition_function
 
 
 def test_hidalgo_empty_sampling_raises_valueerror():
@@ -32,6 +32,7 @@ def test_hidalgo_boundary_sampling():
     result = seg.fit_predict(X, axis=0)
     assert result is not None
     assert len(result) == 30
+
 
 def test_partition_function():
     """Test Hidalgo segmenter partition function."""
