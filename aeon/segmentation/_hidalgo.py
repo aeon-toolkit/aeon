@@ -649,7 +649,7 @@ class HidalgoSegmenter(BaseSegmenter):
         for k in range(K):
             Pi[k, :] = np.sum(bestsampling[:, (2 * K) + 1 : 2 * K + N + 1] == k, axis=0)
 
-        Pi = Pi / len(bestsampling)
+        Pi = Pi / bestsampling.shape[0]
         self._Pi = Pi
 
         Z = np.argmax(Pi, axis=0)
