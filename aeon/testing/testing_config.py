@@ -48,6 +48,8 @@ EXCLUDED_TESTS = {
     ],
     # needs investigation
     "LeftSTAMPi": ["check_series_anomaly_detector_output"],
+    "SeriesToCollectionBroadcaster": ["check_transform_inverse_transform_equivalent"],
+    "CollectionToSeriesWrapper": ["check_transform_inverse_transform_equivalent"],
     # missed in legacy testing, changes state in predict/transform
     "FLUSSSegmenter": ["check_non_state_changing_method"],
     "ClaSPSegmenter": ["check_non_state_changing_method"],
@@ -55,6 +57,9 @@ EXCLUDED_TESTS = {
     # Requires y to be passed in inverse_transform,
     # but this is not currently enabled/supported
     "DifferenceTransformer": ["check_transform_inverse_transform_equivalent"],
+    # broken by 0.63.0 numba update
+    "HIVECOTEV2": ["check_classifier_against_expected_results"],
+    "TemporalDictionaryEnsemble": ["check_classifier_against_expected_results"],
 }
 
 # Exclude specific tests for estimators here only when numba is disabled

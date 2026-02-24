@@ -1,6 +1,3 @@
-
-[//]: # (Try to put references in harvard style for consistency.)
-
 # Papers using aeon
 
 This is a list of papers that use `aeon`. If you have a paper that uses `aeon`,
@@ -11,9 +8,9 @@ If you want to reference `aeon` please reference this paper.
 
 Middlehurst, M., Ismail-Fawaz, A., Guillaume, A., Holder, C., Guijo-Rubio, D.,
 Bulatova, G., Tsaprounis, L., Mentel, L., Walter, M., Schäfer, P. and Bagnall, A., 2024.
-aeon: a Python toolkit for learning from time series. Journal of Machine Learning 2025.
-Research, 25(289), pp.1-10.
-[Paper](https://link.springer.com/chapter/10.1007/978-3-031-49896-1_1)
+aeon: a Python toolkit for learning from time series. Journal of Machine Learning Research,
+25(289), pp.1-10.
+[Paper](https://www.jmlr.org/papers/v25/23-1444.html)
 
 ## 2025
 
