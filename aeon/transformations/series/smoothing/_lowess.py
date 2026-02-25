@@ -1,49 +1,66 @@
-"""
-LOWESS series smoother.
+r"""LOWESS series smoother.
 
 LOWESS (locally weighted scatterplot smoothing) is a local linear regression
 smoother introduced by Cleveland (1979). This module implements a statsmodels-aligned
 variant for equally spaced series, where the time index is assumed to be
-t = 0, 1, ..., n_timepoints - 1.
+:math:`t = 0, 1, \\ldots, n_{\\text{timepoints}} - 1`.
 
-For each target time index i:
+For each target time index :math:`i`:
 
 1. Neighbourhood:
-   Use k = int(frac * n + 1e-10) nearest indices in time (clamped to [2, n]).
-   On an equally spaced grid this is a contiguous window around i, adjusted at
-   the boundaries.
+   Use :math:`k = \\mathrm{int}(\\mathrm{frac}\\,n + 10^{-10})` nearest indices in time
+   (clamped to :math:`[2, n]`). On an equally spaced grid, this is a contiguous window
+   around :math:`i`, adjusted at the boundaries.
 
 2. Distance weights (tricube):
-   Assign weights that decay with distance from i using the tricube kernel,
-   w(d) = (1 - (d / d_max)^3)^3, where d_max is the window radius.
+   Assign weights that decay with distance from :math:`i` using the tricube kernel:
+
+   .. math::
+
+      w(d) = \\left(1 - \\left(\\frac{d}{d_{\\max}}\\right)^3\\right)^3,
+
+   where :math:`d_{\\max}` is the window radius.
 
 3. Local fit (local linear regression):
-   Fit a weighted least squares line y ~ a + b * (t - t_i) over the neighbourhood,
-   and take the fitted value at i to be the local intercept a.
+   Fit a weighted least squares line over the neighbourhood:
+
+   .. math::
+
+      y_j \\approx a + b\\,(t_j - t_i),
+
+   and take the fitted value at :math:`i` to be the local intercept :math:`a`.
 
 Robust iterations (it)
 ----------------------
-If it > 0, the smoother is made more resistant to outliers by iteratively
-reweighting observations based on residuals. After an initial LOWESS fit, residuals
-r_i = y_i - y_hat_i are computed and converted to robustness weights using Tukey's
-bisquare applied to |r_i| / (6 * median(|r|)). The next LOWESS fit uses the product
-of the distance weights and these robustness weights. This is repeated it times,
-so the total number of fits is it + 1.
+If :math:`\\texttt{it} > 0`, the smoother is made more resistant to outliers by
+iteratively reweighting observations based on residuals. After an initial LOWESS fit,
+residuals :math:`r_i = y_i - \\hat{y}_i` are computed and converted to robustness
+weights using Tukey's bisquare function applied to
+
+.. math::
+
+   \\frac{|r_i|}{6\\,\\mathrm{median}(|r|)}.
+
+The next LOWESS fit uses the product of the distance weights and these robustness
+weights. This is repeated :math:`\\texttt{it}` times, so the total number of fits is
+:math:`\\texttt{it} + 1`.
 
 Notes
 -----
-- This implementation follows the behaviour of statsmodels'
-  statsmodels.nonparametric.smoothers_lowess.lowess for the regular-grid case.
-- It does not accept a separate exogenous (x) array, and assumes an equally spaced grid.
+- This implementation follows the behaviour of
+   ``statsmodels.nonparametric.smoothers_lowess.lowess``  for the regular-grid case.
+- It does not accept a separate exogenous :math:`x` array, and assumes an equally
+   spaced grid.
 - Missing values (NaN/inf) are not supported.
 
 References
 ----------
 Cleveland, W. S. (1979). Robust locally weighted regression and smoothing scatterplots.
-Journal of the American Statistical Association (JASA), 74(368), 829-836.
+Journal of the American Statistical Association, 74(368), 829-836.
 
-Cleveland, W. S., and Devlin, S. J. (1988). Locally weighted regression: an approach
-to regression analysis by local fitting. JASA, 83(403), 596-610.
+Cleveland, W. S., and Devlin, S. J. (1988). Locally weighted regression: an approach to
+regression analysis by local fitting. Journal of the American Statistical Association,
+83(403), 596-610.
 """
 
 __maintainer__ = "TonyBagnall"
@@ -56,40 +73,46 @@ from aeon.transformations.series.base import BaseSeriesTransformer
 
 
 class LOWESS(BaseSeriesTransformer):
-    """LOWESS smoother for equally spaced time series [1].
+    r"""LOWESS smoother for equally spaced time series [1]_.
 
-    This transformer applies LOWESS independently to each channel of an input series
-    with shape (n_channels, n_timepoints). It implements the local linear LOWESS
-    algorithm, plus optional robust reweighting iterations, in a way that is aligned
-    with statsmodels' LOWESS for the regular-grid case.
+    This transformer applies LOWESS independently to each channel of an input
+    series with shape ``(n_channels, n_timepoints)``. It implements the local
+    linear LOWESS algorithm, plus optional robust reweighting iterations, in a
+    way that is aligned with statsmodels' LOWESS for the regular-grid case.
 
     Parameters
     ----------
     frac : float, default=0.1
-        Fraction of points used in each local regression window. The number of points
-        used is k = int(frac * n_timepoints + 1e-10), clamped to [2, n_timepoints].
-        Set frac low for light smoothing,
+        Fraction of points used in each local regression window. The number of
+        points used is
+        :math:`k = \\mathrm{int}(\\mathrm{frac}\\,n_{\\text{timepoints}} + 10^{-10})`,
+        clamped to :math:`[2, n_{\\text{timepoints}}]`. Set ``frac`` low for
+        light smoothing.
     it : int, default=0
-        Number of robust reweighting iterations. Total fits performed is it + 1
-        (one initial fit plus it reweighted refits). Robust weights are computed from
-        residuals using Tukey's bisquare with scale 6 * median(|residual|). Set
-        higher if there may be outliers.
+        Number of robust reweighting iterations. Total fits performed is
+        :math:`\\texttt{it} + 1` (one initial fit plus :math:`\\texttt{it}`
+        reweighted refits). Robust weights are computed from residuals using
+        Tukey's bisquare function with scale
+        :math:`6\\,\\mathrm{median}(|\\text{residual}|)`. Set higher if there may
+        be outliers.
     delta : float, default=0.0
-        A performance parameter for interpolation distance in x units, matching the
-        statsmodels concept. On an integer grid, delta < 1 typically has no effect.
-        Larger values can reduce computation by skipping some fits and linearly
-        interpolating between fitted points.
+        A performance parameter for interpolation distance in :math:`x` units,
+        matching the statsmodels concept. On an integer grid,
+        :math:`\\delta < 1` typically has no effect. Larger values can reduce
+        computation by skipping some fits and linearly interpolating between
+        fitted points.
 
     Notes
     -----
-    - Regular grid only, the time index is assumed to be 0..n_timepoints-1.
+    - Regular grid only, the time index is assumed to be
+      :math:`0, \\ldots, n_{\\text{timepoints}} - 1`.
     - Missing values are not supported.
 
     References
     ----------
-    [1] Cleveland, W. S. (1979). Robust locally weighted regression and
-    smoothing scatterplots.
-    Journal of the American Statistical Association, 74(368), 829-836.
+    .. [1] Cleveland, W. S. (1979). Robust locally weighted regression and
+           smoothing scatterplots. Journal of the American Statistical
+           Association, 74(368), 829-836.
 
     Examples
     --------
@@ -125,6 +148,7 @@ class LOWESS(BaseSeriesTransformer):
             raise ValueError("it must be >= 0.")
         if delta < 0.0:
             raise ValueError("delta must be >= 0.")
+
         X2 = X.astype(np.float64, copy=False)
         return _lowess_2d(X2, frac, it, delta)
 
@@ -147,7 +171,7 @@ def _bisquare(z: float) -> float:
 
 @njit(cache=True)
 def _median_1d(a: np.ndarray) -> float:
-    """Median matching numpy median (average middle two for even n).
+    """Median matching numpy median (average of the two middle values for even n).
 
     Could be made marginally faster using partition rather than sort.
     """
@@ -161,7 +185,7 @@ def _median_1d(a: np.ndarray) -> float:
 
 @njit(cache=True, fastmath=True)
 def _calc_resid_weights(y: np.ndarray, y_fit: np.ndarray) -> np.ndarray:
-    """Residual weights: bisquare(|r| / (6*median|r|)), trimmed to 1."""
+    """Residual weights: bisquare(|r| / (6 * median(|r|))), clipped to 1."""
     n = y.size
     abs_resid = np.empty(n, dtype=np.float64)
     for i in range(n):
@@ -196,7 +220,7 @@ def _fit_one_point_regular(
     i: int,
     k: int,
 ) -> float:
-    """Compute LOWESS fitted value at index i, regular grid x=j."""
+    """Compute the LOWESS fitted value at index i on a regular grid x=j."""
     n = y.size
 
     # Regular-grid neighbourhood equivalent to statsmodels update_neighborhood
@@ -215,7 +239,7 @@ def _fit_one_point_regular(
     dr = (right - 1) - i
     radius = dl if dl > dr else dr
     if radius <= 0:
-        # Degenerate: all x are identical in window, only possible for n=1
+        # Degenerate: only possible for n=1
         return y[i]
 
     # Compute unnormalised weights
@@ -244,7 +268,6 @@ def _fit_one_point_regular(
         wloc[t] *= inv_sum
 
     # Projection-form local linear regression (matches statsmodels calculate_y_fit)
-    # x_j are just j, xval is i
     sum_wx = 0.0
     for t, j in enumerate(range(left, right)):
         sum_wx += wloc[t] * float(j)
@@ -267,7 +290,7 @@ def _fit_one_point_regular(
 
 @njit(cache=True, fastmath=True)
 def _interpolate_segment(y_fit: np.ndarray, left_i: int, right_i: int) -> None:
-    """Linear interpolation between fitted points at left_i and right_i."""
+    """Linearly interpolate y_fit between fitted points at left_i and right_i."""
     denom = float(right_i - left_i)
     if denom <= 0.0:
         return
@@ -280,7 +303,7 @@ def _interpolate_segment(y_fit: np.ndarray, left_i: int, right_i: int) -> None:
 
 @njit(cache=True, fastmath=True)
 def _lowess_1d(y: np.ndarray, frac: float, it: int, delta: float) -> np.ndarray:
-    """LOWESS for 1D y on regular grid x=0..n-1."""
+    """LOWESS for 1D y on a regular grid x=0..n-1."""
     n = y.size
 
     # statsmodels neighbour count: k = int(frac*n + 1e-10), clamped to [2, n]
@@ -296,8 +319,7 @@ def _lowess_1d(y: np.ndarray, frac: float, it: int, delta: float) -> np.ndarray:
     resid_w = np.ones(n, dtype=np.float64)
     y_fit = np.empty(n, dtype=np.float64)
 
-    # delta skipping only has effect if delta >= 1 on integer grid
-    # interpret delta in "x units" like statsmodels
+    # delta skipping only has effect if delta >= 1 on an integer grid
     for _ in range(total_iters):
         for j in range(n):
             y_fit[j] = 0.0
@@ -306,14 +328,11 @@ def _lowess_1d(y: np.ndarray, frac: float, it: int, delta: float) -> np.ndarray:
         last_fit_i = -1
 
         while True:
-            # fit at i
             y_fit[i] = _fit_one_point_regular(y, resid_w, i, k)
 
-            # interpolate skipped points between last_fit_i and i
             if last_fit_i >= 0 and last_fit_i < i - 1:
                 _interpolate_segment(y_fit, last_fit_i, i)
 
-            # update indices (regular-grid equivalent of statsmodels update_indices)
             last_fit_i = i
             if last_fit_i >= n - 1:
                 break
@@ -323,12 +342,10 @@ def _lowess_1d(y: np.ndarray, frac: float, it: int, delta: float) -> np.ndarray:
                 continue
 
             cutpoint = float(last_fit_i) + delta
-            # first index strictly greater than cutpoint
             nxt = last_fit_i + 1
             while nxt < n and float(nxt) <= cutpoint:
                 nxt += 1
 
-            # statsmodels sets i = max(nxt-1, last_fit_i+1)
             cand = nxt - 1
             if cand < last_fit_i + 1:
                 cand = last_fit_i + 1
@@ -336,7 +353,6 @@ def _lowess_1d(y: np.ndarray, frac: float, it: int, delta: float) -> np.ndarray:
                 cand = n - 1
             i = cand
 
-        # robust reweighting for next iteration (statsmodels does this each iteration)
         resid_w = _calc_resid_weights(y, y_fit)
 
     return y_fit
@@ -344,7 +360,7 @@ def _lowess_1d(y: np.ndarray, frac: float, it: int, delta: float) -> np.ndarray:
 
 @njit(cache=True, fastmath=True)
 def _lowess_2d(X: np.ndarray, frac: float, it: int, delta: float) -> np.ndarray:
-    """Apply 1D LOWESS independently per channel.."""
+    """Apply 1D LOWESS independently per channel."""
     n_channels, n = X.shape
     out = np.empty((n_channels, n), dtype=np.float64)
     for c in range(n_channels):
