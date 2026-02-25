@@ -47,12 +47,84 @@ to regression analysis by local fitting. JASA, 83(403), 596-610.
 """
 
 __maintainer__ = "TonyBagnall"
-__all__ = ["LowessSmoothing"]
+__all__ = ["LOWESS"]
 
 import numpy as np
 from numba import njit
 
 from aeon.transformations.series.base import BaseSeriesTransformer
+
+
+class LOWESS(BaseSeriesTransformer):
+    """LOWESS smoother for equally spaced time series [1].
+
+    This transformer applies LOWESS independently to each channel of an input series
+    with shape (n_channels, n_timepoints). It implements the local linear LOWESS
+    algorithm, plus optional robust reweighting iterations, in a way that is aligned
+    with statsmodels' LOWESS for the regular-grid case.
+
+    Parameters
+    ----------
+    frac : float, default=2/3
+        Fraction of points used in each local regression window. The number of points
+        used is k = int(frac * n_timepoints + 1e-10), clamped to [2, n_timepoints].
+    it : int, default=3
+        Number of robust reweighting iterations. Total fits performed is it + 1
+        (one initial fit plus it reweighted refits). Robust weights are computed from
+        residuals using Tukey's bisquare with scale 6 * median(|residual|).
+    delta : float, default=0.0
+        Interpolation distance in x units, matching the statsmodels concept. On an
+        integer grid, delta < 1 typically has no effect. Larger values can reduce
+        computation by skipping some fits and linearly interpolating between fitted
+        points.
+
+    Notes
+    -----
+    - Regular grid only, the time index is assumed to be 0..n_timepoints-1.
+    - Missing values are not supported.
+
+    References
+    ----------
+    [1] Cleveland, W. S. (1979). Robust locally weighted regression and
+    smoothing scatterplots.
+    Journal of the American Statistical Association, 74(368), 829-836.
+
+    Examples
+    --------
+    >>> import numpy as np
+    >>> from aeon.transformations.series.smoothing import LOWESS
+    >>> X = np.random.RandomState(0).randn(1, 20)  # (n_channels, n_timepoints)
+    >>> transformer = LOWESS(frac=0.3, it=0)
+    >>> Xt = transformer.fit_transform(X)
+    >>> Xt.shape
+    (1, 20)
+    """
+
+    _tags = {
+        "fit_is_empty": True,
+        "capability:multivariate": True,
+    }
+
+    def __init__(self, frac: float = 2.0 / 3.0, it: int = 3, delta: float = 0.0):
+        self.frac = frac
+        self.it = it
+        self.delta = delta
+        super().__init__(axis=1)
+
+    def _transform(self, X: np.ndarray, y=None) -> np.ndarray:
+        # Numba safety
+        frac = float(self.frac)
+        it = int(self.it)
+        delta = float(self.delta)
+
+        if not (0.0 <= frac <= 1.0):
+            raise ValueError("frac must be in [0, 1].")
+        if it < 0:
+            raise ValueError("it must be >= 0.")
+        if delta < 0.0:
+            raise ValueError("delta must be >= 0.")
+        X2 = X.astype(np.float64, copy=False)
+        return _lowess_2d(X2, frac, it, delta)
 
 
 @njit(cache=True, fastmath=True)
@@ -276,75 +348,3 @@ def _lowess_2d(X: np.ndarray, frac: float, it: int, delta: float) -> np.ndarray:
     for c in range(n_channels):
         out[c, :] = _lowess_1d(X[c, :], frac, it, delta)
     return out
-
-
-class LowessSmoothing(BaseSeriesTransformer):
-    """LOWESS smoother for equally spaced time series [1].
-
-    This transformer applies LOWESS independently to each channel of an input series
-    with shape (n_channels, n_timepoints). It implements the local linear LOWESS
-    algorithm, plus optional robust reweighting iterations, in a way that is aligned
-    with statsmodels' LOWESS for the regular-grid case.
-
-    Parameters
-    ----------
-    frac : float, default=2/3
-        Fraction of points used in each local regression window. The number of points
-        used is k = int(frac * n_timepoints + 1e-10), clamped to [2, n_timepoints].
-    it : int, default=3
-        Number of robust reweighting iterations. Total fits performed is it + 1
-        (one initial fit plus it reweighted refits). Robust weights are computed from
-        residuals using Tukey's bisquare with scale 6 * median(|residual|).
-    delta : float, default=0.0
-        Interpolation distance in x units, matching the statsmodels concept. On an
-        integer grid, delta < 1 typically has no effect. Larger values can reduce
-        computation by skipping some fits and linearly interpolating between fitted
-        points.
-
-    Notes
-    -----
-    - Regular grid only, the time index is assumed to be 0..n_timepoints-1.
-    - Missing values are not supported.
-
-    References
-    ----------
-    [1] Cleveland, W. S. (1979). Robust locally weighted regression and
-    smoothing scatterplots.
-    Journal of the American Statistical Association, 74(368), 829-836.
-
-    Examples
-    --------
-    >>> import numpy as np
-    >>> from aeon.transformations.series.smoothing import LowessSmoother
-    >>> X = np.random.RandomState(0).randn(1, 20)  # (n_channels, n_timepoints)
-    >>> transformer = LowessSmoother(frac=0.3, it=0)
-    >>> Xt = transformer.fit_transform(X)
-    >>> Xt.shape
-    (1, 20)
-    """
-
-    _tags = {
-        "fit_is_empty": True,
-        "capability:multivariate": True,
-    }
-
-    def __init__(self, frac: float = 2.0 / 3.0, it: int = 3, delta: float = 0.0):
-        self.frac = frac
-        self.it = it
-        self.delta = delta
-        super().__init__(axis=1)
-
-    def _transform(self, X: np.ndarray, y=None) -> np.ndarray:
-        # Numba safety
-        frac = float(self.frac)
-        it = int(self.it)
-        delta = float(self.delta)
-
-        if not (0.0 <= frac <= 1.0):
-            raise ValueError("frac must be in [0, 1].")
-        if it < 0:
-            raise ValueError("it must be >= 0.")
-        if delta < 0.0:
-            raise ValueError("delta must be >= 0.")
-        X2 = X.astype(np.float64, copy=False)
-        return _lowess_2d(X2, frac, it, delta)
