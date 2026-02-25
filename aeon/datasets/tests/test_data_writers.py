@@ -5,13 +5,10 @@ import tempfile
 
 import numpy as np
 import pytest
-from numpy.testing import assert_array_equal
 
 from aeon.datasets import (
-    load_from_arff_file,
     load_from_ts_file,
     save_to_ts_file,
-    write_to_arff_file,
 )
 from aeon.testing.data_generation import (
     make_example_3d_numpy,
@@ -128,32 +125,3 @@ def test_save_data_to_ts_file_invalid():
             match="The number of cases in X does not match the number of values in y",
         ):
             save_to_ts_file(X, y, path=tmp, label_type="classification")
-
-
-def test_write_to_arff_file():
-    """Test function to check writing into an ARFF file and loading from it."""
-    X, y = make_example_3d_numpy()
-
-    with tempfile.TemporaryDirectory() as tmp:
-        write_to_arff_file(X, y, tmp, problem_name="Test_arff", header="Description")
-
-        load_path = os.path.join(tmp, "Test_arff.arff")
-        X_new, y_new = load_from_arff_file(full_file_path_and_name=load_path)
-
-        assert isinstance(X_new, np.ndarray)
-        assert X.shape == X_new.shape
-        assert_array_equal(X, X_new)
-        assert_array_equal(y.astype(str), y_new)
-
-
-def test_write_to_arff_wrong_inputs():
-    """Tests whether error thrown if wrong input."""
-    # load an example dataset
-    with tempfile.TemporaryDirectory() as tmp:
-        X = "A string"
-        y = [1, 2, 3, 4]
-        with pytest.raises(TypeError, match="Wrong input data type"):
-            write_to_arff_file(X, y, tmp)
-        X2, y2 = make_example_3d_numpy(n_cases=5, n_channels=2)
-        with pytest.raises(ValueError, match="must be a 3D array with shape"):
-            write_to_arff_file(X2, y2, tmp)
