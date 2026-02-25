@@ -730,7 +730,7 @@ tsc_zenodo = {
     "InsectWingbeat": 11206234,
     "InsectWingbeatSound": 11197635,
     "ItalyPowerDemand": 11197656,
-    "JapaneseVowels": 18734009,
+    "JapaneseVowels": 18735628,
     "KERAAL-CTK": 18510796,
     "KERAAL-CTK-MC": 18510800,
     "KERAAL-ELK": 18510806,

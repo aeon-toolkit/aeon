@@ -1278,8 +1278,8 @@ def load_collection(
         local_dirname=local_dirname,
         return_meta=True,
     )
-
-    # REMOVE BEFORE MERGE
+    #
+    # # REMOVE BEFORE MERGE
     # if not meta["equallength"] and not eq_present:
     #     print(f"{name} has unequal length flag meta data but no eq data equivalent")
     # elif meta["equallength"]:
