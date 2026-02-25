@@ -423,11 +423,11 @@ def test_load_classification():
     assert isinstance(y, np.ndarray)
     assert X.shape == (42, 1, 24)
     assert y.shape == (42,)
-    # Try load covid, should work
-    X, y, meta = load_classification("Covid3Month", return_metadata=True)
-
+    # Try load discrete version of covid
+    load_classification("Covid3Month_disc", return_metadata=True)
+    # Regression version should not work
     with pytest.raises(ValueError, match="You have tried to load a regression problem"):
-        X, y = load_classification("CardanoSentiment")
+        load_classification("Covid3Month")
 
 
 @pytest.mark.skipif(

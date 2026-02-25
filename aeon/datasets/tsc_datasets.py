@@ -48,12 +48,17 @@ redux contains the 30 new univariate equal length series introduced in [5].
     Bake off redux: a review and experimental evaluation of recent time series
     classification algorithms. Data Min Knowl Disc 38, 1958–2031 (2024).
     https://doi.org/10.1007/s10618-024-01022-1
+[6] Multiverse
+[7] EEG
+[8] Monster
+[9] Rehab
+
 
 duplicate names for the lists are included for backward compatibility and will
 ultimately be deprecated.
 """
 
-# The 85 UCR univariate time series classification problems in the 2015 version
+# The 85 UCR univariate TSC datasets in the 2015 version
 UCR2015 = univariate2015 = [
     "Adiac",
     "ArrowHead",
@@ -143,7 +148,7 @@ UCR2015 = univariate2015 = [
 ]
 
 
-# 128 UCR univariate time series classification problems [1]
+# 128 UCR univariate time series classification datasets [1]
 UCR2019 = univariate = [
     "ACSF1",
     "Adiac",
@@ -275,7 +280,7 @@ UCR2019 = univariate = [
     "Yoga",
 ]
 
-# 30 UEA multivariate time series classification problems [2]
+# 30 UEA multivariate time series classification datasets [2,3]
 UEA = multivariate = [
     "ArticularyWordRecognition",
     "AtrialFibrillation",
@@ -309,7 +314,7 @@ UEA = multivariate = [
     "UWaveGestureLibrary",
 ]
 
-# 112 equal length/no missing univariate time series classification problems [3]
+# 112 equal length/no missing univariate TSC datasets used in [4]
 univariate_equal_length = [
     "ACSF1",
     "Adiac",
@@ -425,7 +430,7 @@ univariate_equal_length = [
     "Yoga",
 ]
 
-# 11 variable length univariate time series classification problems [3]
+# 11 unequal length univariate TSC datasets in UCR [1]
 univariate_variable_length = [
     "AllGestureWiimoteX",
     "AllGestureWiimoteY",
@@ -440,13 +445,15 @@ univariate_variable_length = [
     "ShakeGestureWiimoteZ",
 ]
 
-# 4 fixed length univariate time series classification problems with missing values"""
+# 4 fixed length univariate TSC datasets with missing values in UCR [1]
 univariate_missing_values = [
     "DodgerLoopDay",
     "DodgerLoopGame",
     "DodgerLoopWeekend",
     "MelbournePedestrian",
 ]
+
+# 30 univariate TSC datasets introduced in [5]
 redux = [
     "AconityMINIPrinterLarge",
     "AconityMINIPrinterSmall",
@@ -480,6 +487,7 @@ redux = [
     "Tools",
 ]
 
+# 66 MTSC datasets recommended for general purpose algorithm comparison [6]
 multiverse_mini = [
     "Alzheimers",
     "AppliancesEnergy_disc",
@@ -549,13 +557,115 @@ multiverse_mini = [
     "WISDM",
 ]
 
-eeg = []
+# 30 EEG TSC datasets in the multiverse [7]
+eeg = [
+    "Alzheimers",
+    "Blink",
+    "ButtonPress",
+    "Epilepsy",
+    "EyesOpenShut",
+    "FaceDetection",
+    "FeedbackButton",
+    "FeetHands",
+    "FibroLiverpool",
+    "FibroUEA",
+    "FingerMovements",
+    "HandMovementDirection",
+    "ImaginedFeetHands",
+    "ImaginedOpenCloseFist",
+    "InnerSpeech",
+    "LongIntervalTask",
+    "LowCost",
+    "MatchingPennies",
+    "MindReading",
+    "MotorImagery",
+    "OpenCloseFist",
+    "PhotoStimulation",
+    "PronouncedSpeech",
+    "SelfRegulationSCP1",
+    "SelfRegulationSCP2",
+    "ShortIntervalTask",
+    "SitStand",
+    "Sleep",
+    "SongFamiliarity",
+    "VisualSpeech",
+]
 
-rehab_pile = []
+# 38 rehab motion [8]
+rehab_pile = [
+    "IRDS-EFL",
+    "IRDS-EFR",
+    "IRDS-SAL",
+    "IRDS-SAR",
+    "IRDS-SFE",
+    "IRDS-SFL",
+    "IRDS-SFR",
+    "IRDS-STL",
+    "IRDS-STR",
+    "KERAAL-CTK",
+    "KERAAL-CTK-MC",
+    "KERAAL-ELK",
+    "KERAAL-ELK-MC",
+    "KERAAL-RTK",
+    "KERAAL-RTK-MC",
+    "KIMORE-LA-C",
+    "KIMORE-LT-C",
+    "KIMORE-PR-C",
+    "KIMORE-Sq-C",
+    "KIMORE-TR-C",
+    "KINECAL-3WFV",
+    "KINECAL-GGFV",
+    "KINECAL-QSEC",
+    "KINECAL-QSEO",
+    "UCDHE-MP",
+    "UCDHE-MP-MC",
+    "UCDHE-Rowing",
+    "UCDHE-Rowing-MC",
+    "UIPRMD-DS-C",
+    "UIPRMD-HS-C",
+    "UIPRMD-IL-C",
+    "UIPRMD-SASLR-C",
+    "UIPRMD-SL-C",
+    "UIPRMD-SSA-C",
+    "UIPRMD-SSE-C",
+    "UIPRMD-SSIER-C",
+    "UIPRMD-SSS-C",
+    "UIPRMD-STS-C",
+]
 
-monster = []
+# 27 large TSC datasets in the Monster archive [9]
+monster = [
+    "AudioMNIST",
+    "AudioMNIST-DS",
+    "CornellWhaleChallenge",
+    "CrowdSourced",
+    "DreamerA",
+    "DreamerV",
+    "FordChallenge",
+    "FruitFlies",
+    "InsectSound",
+    "LakeIce",
+    "LenDB",
+    "MosquitoSound",
+    "Opportunity",
+    "PAMAP2",
+    "Pedestrian",
+    "S2Agri",
+    "S2Agri-10pc",
+    "Skoda",
+    "STEW",
+    "TimeSen2Crop",
+    "Tiselac",
+    "Traffic",
+    "UCIActivity",
+    "USCActivity",
+    "WhaleSounds",
+    "WISDM",
+    "WISDM2",
+]
 
-# 26 equal length multivariate time series classification problems [4]"""
+
+# 26 equal length multivariate TSC datasets in the UEA archive [2,3]"""
 multivariate_equal_length = [
     "ArticularyWordRecognition",
     "AtrialFibrillation",
@@ -585,7 +695,7 @@ multivariate_equal_length = [
     "UWaveGestureLibrary",
 ]
 
-# 7 variable length multivariate time series classification problems [4]"""
+# 7 variable length multivariate time series classification problems [2,3]"""
 multivariate_unequal_length = [
     "AsphaltObstaclesCoordinates",
     "AsphaltPavementTypeCoordinates",
@@ -596,7 +706,7 @@ multivariate_unequal_length = [
     "SpokenArabicDigits",
 ]
 
-
+# All TSC and TSR datasets stored on the TSML zenodo group and keys
 tsc_zenodo = {
     "ACSF1": 11184893,
     "AconityMINIPrinterLarge": 11217986,
