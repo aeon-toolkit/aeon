@@ -65,18 +65,20 @@ class LOWESS(BaseSeriesTransformer):
 
     Parameters
     ----------
-    frac : float, default=2/3
+    frac : float, default=0.1
         Fraction of points used in each local regression window. The number of points
         used is k = int(frac * n_timepoints + 1e-10), clamped to [2, n_timepoints].
-    it : int, default=3
+        Set frac low for light smoothing,
+    it : int, default=0
         Number of robust reweighting iterations. Total fits performed is it + 1
         (one initial fit plus it reweighted refits). Robust weights are computed from
-        residuals using Tukey's bisquare with scale 6 * median(|residual|).
+        residuals using Tukey's bisquare with scale 6 * median(|residual|). Set
+        higher if there may be outliers.
     delta : float, default=0.0
-        Interpolation distance in x units, matching the statsmodels concept. On an
-        integer grid, delta < 1 typically has no effect. Larger values can reduce
-        computation by skipping some fits and linearly interpolating between fitted
-        points.
+        A performance parameter for interpolation distance in x units, matching the
+        statsmodels concept. On an integer grid, delta < 1 typically has no effect.
+        Larger values can reduce computation by skipping some fits and linearly
+        interpolating between fitted points.
 
     Notes
     -----
@@ -105,7 +107,7 @@ class LOWESS(BaseSeriesTransformer):
         "capability:multivariate": True,
     }
 
-    def __init__(self, frac: float = 2.0 / 3.0, it: int = 3, delta: float = 0.0):
+    def __init__(self, frac: float = 0.1, it: int = 0, delta: float = 0.0):
         self.frac = frac
         self.it = it
         self.delta = delta
