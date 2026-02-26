@@ -8,7 +8,7 @@ import warnings
 import numpy as np
 from sklearn.neighbors import NearestNeighbors
 from sklearn.preprocessing import PowerTransformer
-from sklearn.utils import resample
+from sklearn.utils import check_random_state, resample
 
 from aeon.anomaly_detection.series.base import BaseSeriesAnomalyDetector
 from aeon.transformations.collection.convolution_based import Rocket
@@ -72,7 +72,7 @@ class ROCKAD(BaseSeriesAnomalyDetector):
         Data Analysis XXI. IDA 2023. Lecture Notes in Computer Science,
         vol 13876. Springer, Cham. https://doi.org/10.1007/978-3-031-30047-9_33
 
-    Examples
+Examples
     --------
     >>> import numpy as np
     >>> from aeon.anomaly_detection.series.distance_based import ROCKAD
@@ -83,11 +83,11 @@ class ROCKAD(BaseSeriesAnomalyDetector):
     >>> detector = ROCKAD(window_size=15,n_estimators=10,n_kernels=10,n_neighbors=3)
     >>> detector.fit(X_train)
     ROCKAD(...)
-    >>> detector.predict(X_test)
-    array([0.        , 0.00554713, 0.06990941, 0.22881059, 0.32382585,
-           0.43652154, 0.43652154, 0.43652154, 0.43652154, 0.43652154,
-           0.43652154, 0.43652154, 0.43652154, 0.43652154, 0.43652154,
-           0.52382585, 0.65200875, 0.80313368, 0.85194345, 1.        ])
+    >>> np.round(detector.predict(X_test), 6)
+    array([0.      , 0.290721, 0.498102, 0.623339, 0.714325, 0.748893, 0.748893,
+           0.748893, 0.748893, 0.748893, 0.748893, 0.748893, 0.748893,
+           0.748893, 0.748893, 0.898671, 0.977978, 0.999683, 1.      ,
+           0.92173 ])
     """
 
     _tags = {
@@ -164,11 +164,13 @@ class ROCKAD(BaseSeriesAnomalyDetector):
     def _inner_fit(self, X: np.ndarray) -> None:
         self._n_jobs = check_n_jobs(self.n_jobs)
 
+        rng = check_random_state(self.random_state)
+
         self.rocket_transformer_ = Rocket(
             n_kernels=self.n_kernels,
             normalise=self.normalise,
             n_jobs=self._n_jobs,
-            random_state=self.random_state,
+            random_state=rng.randint(np.iinfo(np.int32).max),
         )
         # X: (n_windows, window_size)
         Xt = self.rocket_transformer_.fit_transform(X)
@@ -196,7 +198,7 @@ class ROCKAD(BaseSeriesAnomalyDetector):
 
         self.list_baggers_ = []
 
-        for idx_estimator in range(self.n_estimators):
+        for _ in range(self.n_estimators):
             # Initialize estimator
             estimator = NearestNeighbors(
                 n_neighbors=self.n_neighbors,
@@ -209,7 +211,7 @@ class ROCKAD(BaseSeriesAnomalyDetector):
                 Xtp,
                 replace=True,
                 n_samples=None,
-                random_state=self.random_state + idx_estimator,
+                random_state=rng.randint(np.iinfo(np.int32).max),
                 stratify=None,
             )
 
