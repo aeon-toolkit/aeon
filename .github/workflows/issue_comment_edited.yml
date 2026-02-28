@@ -22,7 +22,7 @@ jobs:
           private-key: ${{ secrets.PR_APP_KEY }}
 
       - name: Checkout main
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           sparse-checkout: .github/utilities
 
@@ -43,11 +43,17 @@ jobs:
 
       - if: ${{ steps.label_out.outputs.expected_results == 'true' || steps.label_out.outputs.empty_commit == 'true' }}
         name: Checkout head
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           repository: ${{ steps.label_out.outputs.repo }}
           ref: ${{ steps.label_out.outputs.branch }}
           token: ${{ steps.app-token.outputs.token }}
+
+      - if: ${{ steps.label_out.outputs.expected_results == 'true' }}
+        name: Install aeon and dependencies
+        uses: ./.github/actions/cpu_all_extras
+        with:
+          additional_extras: "dev"
 
       - if: ${{ steps.label_out.outputs.expected_results == 'true' }}
         name: Regenerate expected results
