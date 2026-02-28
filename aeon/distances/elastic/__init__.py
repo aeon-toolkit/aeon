@@ -26,6 +26,10 @@ __all__ = [
     "wddtw_pairwise_distance",
     "wddtw_alignment_path",
     "wddtw_cost_matrix",
+    "dtw_arow_distance",
+    "dtw_arow_pairwise_distance",
+    "dtw_arow_cost_matrix",
+    "dtw_arow_alignment_path",
     "lcss_distance",
     "lcss_pairwise_distance",
     "lcss_alignment_path",
@@ -74,6 +78,12 @@ from aeon.distances.elastic._dtw import (
     dtw_cost_matrix,
     dtw_distance,
     dtw_pairwise_distance,
+)
+from aeon.distances.elastic._dtw_arow import (
+    dtw_arow_alignment_path,
+    dtw_arow_cost_matrix,
+    dtw_arow_distance,
+    dtw_arow_pairwise_distance,
 )
 from aeon.distances.elastic._dtw_gi import (
     dtw_gi_alignment_path,
