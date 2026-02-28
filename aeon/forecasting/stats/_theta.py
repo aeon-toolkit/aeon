@@ -85,7 +85,7 @@ class Theta(BaseForecaster, IterativeForecastingMixin):
     def _predict(self, y, exog=None):
         return self.forecast_
 
-    def iterative_forecast(self, y, prediction_horizon):
+    def iterative_forecast(self, y, prediction_horizon, exog=None):
         y = np.asarray(y).squeeze().astype(np.float64)
         f, _, _, _ = _fit_predict_numba(y, prediction_horizon, self.theta, self.weight)
         return f
