@@ -70,21 +70,21 @@ def test_load_classification_from_repo():
     name = "FOO"
     with pytest.raises(ValueError):
         load_classification(name)
-    name = "SonyAIBORobotSurface1"
-    X, y, meta = load_classification(name, return_metadata=True)
-    assert isinstance(X, np.ndarray)
-    assert isinstance(y, np.ndarray)
-    assert isinstance(meta, dict)
-    assert len(X) == len(y)
-    assert X.shape == (621, 1, 70)
-    assert meta["problemname"] == "sonyaiborobotsurface1"
-    assert not meta["timestamps"]
-    assert meta["univariate"]
-    assert meta["equallength"]
-    assert meta["classlabel"]
-    assert not meta["targetlabel"]
-    assert meta["class_values"] == ["1", "2"]
-    shutil.rmtree(os.path.dirname(__file__) + "/../local_data")
+    with tempfile.TemporaryDirectory() as tmp:
+        name = "SonyAIBORobotSurface1"
+        X, y, meta = load_classification(name, return_metadata=True, extract_path=tmp)
+        assert isinstance(X, np.ndarray)
+        assert isinstance(y, np.ndarray)
+        assert isinstance(meta, dict)
+        assert len(X) == len(y)
+        assert X.shape == (621, 1, 70)
+        assert meta["problemname"] == "sonyaiborobotsurface1"
+        assert not meta["timestamps"]
+        assert meta["univariate"]
+        assert meta["equallength"]
+        assert meta["classlabel"]
+        assert not meta["targetlabel"]
+        assert meta["class_values"] == ["1", "2"]
 
 
 @pytest.mark.skipif(
