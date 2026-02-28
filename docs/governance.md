@@ -93,7 +93,7 @@ approving any project expenses and managing any finance related accounts.
 The role of the communications workgroups is to interact with the broader community
 through the `aeon` social network accounts and discussion forums. It is the
 responsibility of the communications workgroup to manage and maintain the `aeon`
-LinkedIn, X/Twitter, Medium blog, Discord and other relevant communications accounts.
+LinkedIn, Medium blog, Discord and other relevant communications accounts.
 
 The communications team maintains access to social networking accounts and is
 responsible for managing access to the `aeon` email address. To help manage
