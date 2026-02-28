@@ -73,20 +73,25 @@ def _univariate_paa_sax_distance(
     n_split = np.array_split(np.arange(n), m)
 
     for i in range(x_paa.shape[0]):
-        if y_sax[i] >= breakpoints.shape[0]:
+        # Cast y_sax index to int64 explicitly
+        yi = np.int64(y_sax[i])
+
+        if yi >= breakpoints.shape[0]:
             br_upper = np.inf
         else:
-            br_upper = breakpoints[y_sax[i]]
+            br_upper = breakpoints[yi]
 
-        if y_sax[i] - 1 < 0:
+        if yi - 1 < 0:
             br_lower = -np.inf
         else:
-            br_lower = breakpoints[y_sax[i] - 1]
+            br_lower = breakpoints[yi - 1]
 
         if br_lower > x_paa[i]:
-            dist += n_split[i].shape[0] * (br_lower - x_paa[i]) ** 2
+            diff = br_lower - x_paa[i]
+            dist = dist + n_split[i].shape[0] * diff * diff  # Non-in-place
         elif br_upper < x_paa[i]:
-            dist += n_split[i].shape[0] * (x_paa[i] - br_upper) ** 2
+            diff = x_paa[i] - br_upper
+            dist = dist + n_split[i].shape[0] * diff * diff  # Non-in-place
 
     return np.sqrt(dist)
 
@@ -145,24 +150,24 @@ def _paa_sax_from_multiple_to_multiple_distance(
     X: np.ndarray, y: np.ndarray, breakpoints: np.ndarray, n: int
 ) -> np.ndarray:
     if y is None:
-        n_instances = X.shape[0]
+        n_instances = len(X)
         distances = np.zeros((n_instances, n_instances))
 
         for i in prange(n_instances):
             for j in range(i + 1, n_instances):
                 distances[i, j] = _univariate_paa_sax_distance(
-                    X[i], X[j], breakpoints, n
+                    X[i].ravel(), X[j].ravel(), breakpoints, n
                 )
                 distances[j, i] = distances[i, j]
     else:
-        n_instances = X.shape[0]
-        m_instances = y.shape[0]
+        n_instances = len(X)
+        m_instances = len(y)
         distances = np.zeros((n_instances, m_instances))
 
         for i in prange(n_instances):
             for j in range(m_instances):
                 distances[i, j] = _univariate_paa_sax_distance(
-                    X[i], y[j], breakpoints, n
+                    X[i].ravel(), y[j].ravel(), breakpoints, n
                 )
 
     return distances
