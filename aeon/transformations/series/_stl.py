@@ -422,8 +422,8 @@ class STLSeriesTransformer(BaseSeriesTransformer):
         self,
         period: int,
         seasonal: int = 7,
-        trend: Optional[int] = None,
-        low_pass: Optional[int] = None,
+        trend: int | None = None,
+        low_pass: int | None = None,
         seasonal_deg: int = 1,
         trend_deg: int = 1,
         low_pass_deg: int = 1,
@@ -431,10 +431,10 @@ class STLSeriesTransformer(BaseSeriesTransformer):
         seasonal_jump: int = 1,
         trend_jump: int = 1,
         low_pass_jump: int = 1,
-        inner_iter: Optional[int] = None,
-        outer_iter: Optional[int] = None,
+        inner_iter: int | None = None,
+        outer_iter: int | None = None,
         output: str = "resid",
-        use_numba: Optional[bool] = None,
+        use_numba: bool | None = None,
     ):
         self.period = period
         self.seasonal = seasonal
@@ -636,7 +636,7 @@ class STLSeriesTransformer(BaseSeriesTransformer):
         return x
 
     @staticmethod
-    def _is_pos_int(x: Union[int, np.integer], *, odd: bool) -> bool:
+    def _is_pos_int(x: int | np.integer, *, odd: bool) -> bool:
         if not isinstance(x, (int, np.integer)) or isinstance(x, (bool, np.bool_)):
             return False
         try:
