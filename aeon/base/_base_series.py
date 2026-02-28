@@ -38,6 +38,7 @@ import pandas as pd
 
 from aeon.base._base import BaseAeonEstimator
 from aeon.utils.data_types import VALID_SERIES_INNER_TYPES
+from aeon.utils.validation.series import check_series_variance
 
 
 class BaseSeriesEstimator(BaseAeonEstimator):
@@ -214,6 +215,8 @@ class BaseSeriesEstimator(BaseAeonEstimator):
             raise ValueError(
                 f"Univariate data not supported by {self.__class__.__name__}"
             )
+
+        check_series_variance(X, axis=axis)
 
         return metadata
 

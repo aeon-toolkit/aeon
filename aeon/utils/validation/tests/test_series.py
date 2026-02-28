@@ -12,6 +12,7 @@ from aeon.testing.testing_data import (
 )
 from aeon.utils.data_types import COLLECTIONS_DATA_TYPES, SERIES_DATA_TYPES
 from aeon.utils.validation.series import (
+    check_series_variance,
     get_n_channels,
     get_n_timepoints,
     get_type,
@@ -102,3 +103,67 @@ def test_get_type_errors():
     df = pd.DataFrame(data)
     with pytest.raises(TypeError, match="contain numeric values only"):
         get_type(df)
+
+
+def _make_flat_series(x):
+    if isinstance(x, pd.Series):
+        y = x.copy()
+        y.iloc[:] = 0.0
+    elif isinstance(x, pd.DataFrame):
+        y = x.copy()
+        y.iloc[:, :] = 0.0
+    else:
+        y = np.array(x, copy=True)
+        y[...] = 0.0
+    return y
+
+
+def _make_tiny_series(x, eps=1e-9):
+    y = _make_flat_series(x)
+    if isinstance(y, pd.Series):
+        y.iloc[0] = eps
+    elif isinstance(y, pd.DataFrame):
+        y.iat[0, 0] = eps
+    else:
+        y.flat[0] = eps
+    return y
+
+
+@pytest.mark.parametrize("data", SERIES_DATA_TYPES)
+def test_check_series_variance(data):
+    """Test check_series_variance."""
+    assert check_series_variance(UNIVARIATE_SERIES[data]["train"][0], axis=1)
+    if data in MULTIVARIATE_SERIES.keys():
+        assert check_series_variance(MULTIVARIATE_SERIES[data]["train"][0], axis=1)
+
+
+@pytest.mark.parametrize("data", SERIES_DATA_TYPES)
+def test_check_series_variance_allows_flat_series(data):
+    """Test that check_series_variance allows flat series."""
+    X = _make_flat_series(UNIVARIATE_SERIES[data]["train"][0])
+    assert check_series_variance(X, axis=1)
+    if data in MULTIVARIATE_SERIES.keys():
+        X = _make_flat_series(MULTIVARIATE_SERIES[data]["train"][0])
+        assert check_series_variance(X, axis=1)
+
+
+@pytest.mark.parametrize("data", SERIES_DATA_TYPES)
+def test_check_series_variance_rejects_tiny_series(data):
+    """Test that check_series_variance rejects tiny non-flat series."""
+    X = _make_tiny_series(UNIVARIATE_SERIES[data]["train"][0])
+    with pytest.raises(ValueError, match="too little variation"):
+        check_series_variance(X, axis=1)
+
+    assert not check_series_variance(X, raise_error=False, axis=1)
+
+    if data in MULTIVARIATE_SERIES.keys():
+        X = _make_tiny_series(MULTIVARIATE_SERIES[data]["train"][0])
+        with pytest.raises(ValueError, match="too little variation"):
+            check_series_variance(X, axis=1)
+
+
+def test_check_series_variance_errors():
+    """Test error catching in check_series_variance."""
+    X = np.zeros(10)
+    with pytest.raises(ValueError, match="non-negative"):
+        check_series_variance(X, threshold=-1e-7)
