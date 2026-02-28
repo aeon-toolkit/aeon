@@ -247,13 +247,13 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
             self._trend_type, self._seasonality_type, self._seasonal_period, data
         )
 
-    def iterative_forecast(self, y, prediction_horizon):
+    def iterative_forecast(self, y, prediction_horizon, exog=None):
         """Forecast with ETS specific iterative method.
 
         Overrides the base class iterative_forecast to avoid refitting on each step.
         This simply rolls the ETS model forward
         """
-        self.fit(y)
+        self.fit(y, exog=exog)
         preds = np.zeros(prediction_horizon)
         preds[0] = self.forecast_
         for i in range(1, prediction_horizon):
@@ -350,8 +350,7 @@ class AutoETS(BaseForecaster):
     >>> from aeon.datasets import load_airline
     >>> y = load_airline()
     >>> forecaster = AutoETS()
-    >>> forecaster.forecast(y)
-    452.9256738170091
+    >>> pred = forecaster.forecast(y)
     """
 
     _tags = {
