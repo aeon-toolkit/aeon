@@ -2,6 +2,7 @@
 
 __all__ = [
     "BaseTransformer",
+    "InverseTransformerMixin",
 ]
 
-from aeon.transformations.base import BaseTransformer
+from aeon.transformations.base import BaseTransformer, InverseTransformerMixin
