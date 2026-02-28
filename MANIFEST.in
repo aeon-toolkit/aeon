@@ -19,7 +19,10 @@ exclude .gitattributes
 exclude .gitignore
 exclude .pre-commit-config.yaml
 exclude .readthedocs.yml
+exclude AGENTS.md
+exclude AI_POLICY.md
 exclude CHANGELOG.md
+exclude CITATION.cff
 exclude CODE_OF_CONDUCT.md
 exclude CODEOWNERS
 exclude CONTRIBUTING.md
