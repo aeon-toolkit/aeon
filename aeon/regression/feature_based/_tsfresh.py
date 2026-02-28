@@ -64,8 +64,10 @@ class TSFreshRegressor(BaseRegressor):
     """
 
     _tags = {
+        "X_inner_type": ["np-list", "numpy3D"],
         "capability:multivariate": True,
         "capability:multithreading": True,
+        "capability:unequal_length": True,
         "algorithm_type": "feature",
         "python_dependencies": "tsfresh",
     }
@@ -101,7 +103,9 @@ class TSFreshRegressor(BaseRegressor):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
+        X : 3D np.ndarray of shape [n_cases, n_channels, n_timepoints]
+            or list of np.ndarray of shape [n_cases], where each array is a
+            2D np.ndarray of shape = [n_channels, n_timepoints_i]
             The training data.
         y : array-like, shape = [n_cases]
             The target labels.
@@ -172,7 +176,9 @@ class TSFreshRegressor(BaseRegressor):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
+        X : 3D np.ndarray of shape [n_cases, n_channels, n_timepoints]
+            or list of np.ndarray of shape [n_cases], where each array is a
+            2D np.ndarray of shape = [n_channels, n_timepoints_i]
             The data to make predictions for.
 
         Returns

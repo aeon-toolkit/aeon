@@ -1,5 +1,6 @@
 """Configuration file for the Sphinx documentation builder."""
 
+import importlib
 import os
 import sys
 from pathlib import Path
@@ -240,11 +241,11 @@ html_theme_options = {
     },
     "footer_icons": [
         {
-            "name": "Slack",
-            "url": "https://join.slack.com/t/aeon-toolkit/shared_invite/zt-36dlmbouu-vajTShUYAHopSXUUVtHGzw",  # noqa: E501
+            "name": "Discord",
+            "url": "https://discord.gg/D6rzqHGKRJ",  # noqa: E501
             "html": """
-            <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
-                <path d="M512 64C264.6 64 64 264.6 64 512s200.6 448 448 448 448-200.6 448-448S759.4 64 512 64zM361.5 580.2c0 27.8-22.5 50.4-50.3 50.4-13.3 0-26.1-5.3-35.6-14.8-9.4-9.5-14.7-22.3-14.7-35.6 0-27.8 22.5-50.4 50.3-50.4h50.3v50.4zm134 134.4c0 27.8-22.5 50.4-50.3 50.4-27.8 0-50.3-22.6-50.3-50.4V580.2c0-27.8 22.5-50.4 50.3-50.4 13.3 0 26.1 5.3 35.6 14.8s14.7 22.3 14.7 35.6v134.4zm-50.2-218.4h-134c-27.8 0-50.3-22.6-50.3-50.4 0-27.8 22.5-50.4 50.3-50.4h134c27.8 0 50.3 22.6 50.3 50.4-.1 27.9-22.6 50.4-50.3 50.4zm0-134.4c-13.3 0-26.1-5.3-35.6-14.8S395 324.8 395 311.4c0-27.8 22.5-50.4 50.3-50.4 27.8 0 50.3 22.6 50.3 50.4v50.4h-50.3zm83.7-50.4c0-27.8 22.5-50.4 50.3-50.4 27.8 0 50.3 22.6 50.3 50.4v134.4c0 27.8-22.5 50.4-50.3 50.4-27.8 0-50.3-22.6-50.3-50.4V311.4zM579.3 765c-27.8 0-50.3-22.6-50.3-50.4v-50.4h50.3c27.8 0 50.3 22.6 50.3 50.4 0 27.8-22.5 50.4-50.3 50.4zm134-134.4h-134c-13.3 0-26.1-5.3-35.6-14.8S529 593.6 529 580.2c0-27.8 22.5-50.4 50.3-50.4h134c27.8 0 50.3 22.6 50.3 50.4 0 27.8-22.5 50.4-50.3 50.4zm0-134.4H663v-50.4c0-27.8 22.5-50.4 50.3-50.4s50.3 22.6 50.3 50.4c0 27.8-22.5 50.4-50.3 50.4z"></path>
+            <svg fill="currentColor" stroke="currentColor" stroke-width="0" viewBox="0 0 24 24" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
+                <path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/>
             </svg>
             """,  # noqa: E501
             "class": "",
@@ -255,16 +256,6 @@ html_theme_options = {
             "html": """
             <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
                 <path d="M880 112H144c-17.7 0-32 14.3-32 32v736c0 17.7 14.3 32 32 32h736c17.7 0 32-14.3 32-32V144c0-17.7-14.3-32-32-32zM349.3 793.7H230.6V411.9h118.7v381.8zm-59.3-434a68.8 68.8 0 1 1 68.8-68.8c-.1 38-30.9 68.8-68.8 68.8zm503.7 434H675.1V608c0-44.3-.8-101.2-61.7-101.2-61.7 0-71.2 48.2-71.2 98v188.9H423.7V411.9h113.8v52.2h1.6c15.8-30 54.5-61.7 112.3-61.7 120.2 0 142.3 79.1 142.3 181.9v209.4z"></path>
-            </svg>
-            """,  # noqa: E501
-            "class": "",
-        },
-        {
-            "name": "X/Twitter",
-            "url": "https://twitter.com/aeon_toolkit",
-            "html": """
-            <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
-                <path d="M928 254.3c-30.6 13.2-63.9 22.7-98.2 26.4a170.1 170.1 0 0 0 75-94 336.64 336.64 0 0 1-108.2 41.2A170.1 170.1 0 0 0 672 174c-94.5 0-170.5 76.6-170.5 170.6 0 13.2 1.6 26.4 4.2 39.1-141.5-7.4-267.7-75-351.6-178.5a169.32 169.32 0 0 0-23.2 86.1c0 59.2 30.1 111.4 76 142.1a172 172 0 0 1-77.1-21.7v2.1c0 82.9 58.6 151.6 136.7 167.4a180.6 180.6 0 0 1-44.9 5.8c-11.1 0-21.6-1.1-32.2-2.6C211 652 273.9 701.1 348.8 702.7c-58.6 45.9-132 72.9-211.7 72.9-14.3 0-27.5-.5-41.2-2.1C171.5 822 261.2 850 357.8 850 671.4 850 843 590.2 843 364.7c0-7.4 0-14.8-.5-22.2 33.2-24.3 62.3-54.4 85.5-88.2z"></path>
             </svg>
             """,  # noqa: E501
             "class": "",
@@ -380,6 +371,59 @@ def linkcode_resolve(domain, info):
     )
 
 
+def _get_estimator_doc_path(estimator_class, estimator_name):
+    """
+    Get the documentation path for an estimator.
+
+    Checks if the estimator is re-exported in a parent package's __all__.
+    If found, uses the shorter public API path. Otherwise, falls back to
+    the current underscore-filtering logic.
+
+    Parameters
+    ----------
+    estimator_class : class
+        The estimator class object
+    estimator_name : str
+        Name of the estimator
+
+    Returns
+    -------
+    str
+        The path to use for documentation links
+        (e.g., 'aeon.classification.DummyClassifier')
+    """
+    module_path = estimator_class.__module__
+    module_parts = module_path.split(".")
+
+    # Check parent packages (skip the immediate module itself)
+    # Start from len-1 to avoid checking the module containing the class
+    for i in range(len(module_parts) - 1, 1, -1):
+        parent_path = ".".join(module_parts[:i])
+        try:
+            parent_module = importlib.import_module(parent_path)
+
+            # Check if exported in parent's __all__
+            if (
+                hasattr(parent_module, "__all__")
+                and estimator_name in parent_module.__all__
+            ):
+                # Verify it's the same class
+                if (
+                    hasattr(parent_module, estimator_name)
+                    and getattr(parent_module, estimator_name) is estimator_class
+                ):
+                    # Use public API path
+                    return f"{parent_path}.{estimator_name}"
+        except (ImportError, AttributeError):
+            continue
+
+    # Fallback: use current underscore-filtering logic
+    modpath = str(estimator_class)[8:-2]
+    path_parts = modpath.split(".")
+    clean_path = ".".join([p for p in path_parts if not p.startswith("_")])
+    return clean_path
+
+
 def _make_estimator_overview(app):
     """Make estimator overview table."""
     import pandas as pd
@@ -408,11 +452,8 @@ def _make_estimator_overview(app):
         # fetch tags
         tag_dict = estimator_class.get_class_tags()
 
-        # includes part of class string
-        modpath = str(estimator_class)[8:-2]
-        path_parts = modpath.split(".")
-        # joins strings excluding starting with '_'
-        clean_path = ".".join(list(filter(_does_not_start_with_underscore, path_parts)))
+        # Get documentation path using function that handles public API exports
+        clean_path = _get_estimator_doc_path(estimator_class, estimator_name)
         # adds html link reference
         estimator_name_as_link = str(
             '<a href="api_reference/auto_generated/'
