@@ -134,7 +134,7 @@ def _shape_extraction(aligned: np.ndarray, rng: np.random.RandomState) -> np.nda
 @dataclass(frozen=True)
 class _KShapeRunResult:
     labels: np.ndarray
-    centers: np.ndarray
+    centres: np.ndarray
     inertia: float
     n_iter: int
 
@@ -147,7 +147,7 @@ class KShape(BaseClusterer):
     n_clusters : int, default=8
         Number of clusters.
     init : {"random", "zero"} or np.ndarray, default="random"
-        Initialisation for cluster centers. If array, must be shape
+        Initialisation for cluster centre. If array, must be shape
         (n_clusters, n_channels, n_timepoints).
     n_init : int, default=1
         Number of runs with different random initialisations. Best inertia kept.
@@ -211,19 +211,18 @@ class KShape(BaseClusterer):
 
         self._rng = None
         self._n_jobs = 1
-        self._init_centers = None
+        self._init_centre = None
 
         super().__init__()
 
     def _fit(self, X: np.ndarray, y=None):
         self._check_params(X)
-        Xw = (
-            _zscore_collection(X)
-            if self.z_normalise
-            else np.asarray(X, dtype=np.float64)
-        )
+        if self.z_normalise:
+            Xw = _zscore_collection(X)
+        else:
+            Xw = X
 
-        best: _KShapeRunResult | None = None
+        best = None
         for _ in range(self.n_init):
             # Run-specific RNG
             run_rng = check_random_state(self._rng.randint(0, np.iinfo(np.int32).max))
@@ -232,7 +231,7 @@ class KShape(BaseClusterer):
                 best = res
 
         self.labels_ = best.labels
-        self.cluster_centres_ = best.centers
+        self.cluster_centres_ = best.centre
         self.inertia_ = float(best.inertia)
         self.n_iter_ = int(best.n_iter)
 
@@ -266,9 +265,9 @@ class KShape(BaseClusterer):
         if isinstance(self.init, str):
             if self.init not in {"random", "zero"}:
                 raise ValueError(
-                    "init must be 'random', 'zero', or an ndarray of initial centers."
+                    "init must be 'random', 'zero', or an ndarray of initial centre."
                 )
-            self._init_centers = self.init
+            self._init_centre = self.init
         else:
             init = np.asarray(self.init, dtype=np.float64)
             if init.shape != (self.n_clusters, X.shape[1], X.shape[2]):
@@ -277,22 +276,22 @@ class KShape(BaseClusterer):
                     f"(n_clusters, n_channels, n_timepoints) = "
                     f"({self.n_clusters}, {X.shape[1]}, {X.shape[2]})."
                 )
-            self._init_centers = init.copy()
+            self._init_centre = init.copy()
 
     def _fit_one_init(
         self, X: np.ndarray, rng: np.random.RandomState
     ) -> _KShapeRunResult:
         n_cases, n_channels, L = X.shape
 
-        # Initialise centers
-        if isinstance(self._init_centers, str):
-            if self._init_centers == "zero":
-                centers = np.zeros((self.n_clusters, n_channels, L), dtype=np.float64)
+        # Initialise centre
+        if isinstance(self._init_centre, str):
+            if self._init_centre == "zero":
+                centre = np.zeros((self.n_clusters, n_channels, L), dtype=np.float64)
             else:  # random
                 idx = rng.choice(n_cases, self.n_clusters, replace=False)
-                centers = X[idx].copy()
+                centre = X[idx].copy()
         else:
-            centers = self._init_centers.copy()
+            centre = self._init_centre.copy()
 
         # Random initial assignment
         labels = rng.randint(0, self.n_clusters, size=n_cases, dtype=np.int64)
@@ -301,23 +300,23 @@ class KShape(BaseClusterer):
         for it in range(self.max_iter):
             old_labels = labels.copy()
 
-            # Update centers (shape extraction per cluster, per channel)
+            # Update centre (shape extraction per cluster, per channel)
             for j in range(self.n_clusters):
                 members = np.flatnonzero(labels == j)
                 if members.size == 0:
                     # Empty cluster, re-seed with a random series
-                    centers[j] = X[rng.randint(0, n_cases)].copy()
+                    centre[j] = X[rng.randint(0, n_cases)].copy()
                     continue
 
                 for ch in range(n_channels):
-                    cur_c = centers[j, ch]
+                    cur_c = centre[j, ch]
                     aligned = np.vstack(
                         [_sbd_align_1d(cur_c, X[i, ch]) for i in members]
                     )
-                    centers[j, ch] = _shape_extraction(aligned, rng)
+                    centre[j, ch] = _shape_extraction(aligned, rng)
 
             # Assignment step
-            dists = self._pairwise_sbd_distance(X, centers)
+            dists = self._pairwise_sbd_distance(X, centre)
             labels = dists.argmin(axis=1).astype(np.int64, copy=False)
             inertia = float(dists.min(axis=1).sum())
 
@@ -327,29 +326,29 @@ class KShape(BaseClusterer):
             # Convergence checks: label stability OR small inertia improvement
             if np.array_equal(labels, old_labels):
                 return _KShapeRunResult(
-                    labels=labels, centers=centers, inertia=inertia, n_iter=it + 1
+                    labels=labels, centre=centre, inertia=inertia, n_iter=it + 1
                 )
             if (prev_inertia - inertia) >= 0 and (prev_inertia - inertia) < self.tol:
                 return _KShapeRunResult(
-                    labels=labels, centers=centers, inertia=inertia, n_iter=it + 1
+                    labels=labels, centre=centre, inertia=inertia, n_iter=it + 1
                 )
 
             prev_inertia = inertia
 
         return _KShapeRunResult(
-            labels=labels, centers=centers, inertia=prev_inertia, n_iter=self.max_iter
+            labels=labels, centre=centre, inertia=prev_inertia, n_iter=self.max_iter
         )
 
-    def _pairwise_sbd_distance(self, X: np.ndarray, centers: np.ndarray) -> np.ndarray:
-        """Compute SBD distances between all cases and all centers."""
+    def _pairwise_sbd_distance(self, X: np.ndarray, centre: np.ndarray) -> np.ndarray:
+        """Compute SBD distances between all cases and all centre."""
         n_cases = X.shape[0]
-        k = centers.shape[0]
+        k = centre.shape[0]
 
         def _row(i: int) -> np.ndarray:
             xi = X[i].T  # (L, C)
             out = np.empty(k, dtype=np.float64)
             for j in range(k):
-                cj = centers[j].T
+                cj = centre[j].T
                 ncc = _ncc_time_major(xi, cj)
                 out[j] = 1.0 - float(np.max(ncc))
             return out
