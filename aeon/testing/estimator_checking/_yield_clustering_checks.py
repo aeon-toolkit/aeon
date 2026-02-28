@@ -141,6 +141,23 @@ def check_clusterer_output(estimator, datatype):
     assert isinstance(y_proba, np.ndarray)
     np.testing.assert_almost_equal(y_proba.sum(axis=1), 1, decimal=4)
 
+    # check that the max probability cluster matches the predicted cluster
+    if estimator.__class__.__name__ in [
+        "Catch22Clusterer",
+        "ClustererPipeline",
+        "KASBA",
+        "SummaryClusterer",
+        "TimeSeriesCLARA",
+        "TSFreshClusterer",
+    ]:
+        return  # these classifiers produce non-deterministic results
+    y_pred_from_proba = np.argmax(y_proba, axis=1)
+    np.testing.assert_array_equal(
+        y_pred,
+        y_pred_from_proba,
+        err_msg="Inconsistent predict() and predict_proba() outputs",
+    )
+
 
 def check_clusterer_saving_loading_deep_learning(estimator_class, datatype):
     """Test Deep Clusterer saving."""
