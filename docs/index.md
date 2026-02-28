@@ -21,11 +21,9 @@ segmentation and similarity search.
 
 **GitHub**: [github.com/aeon-toolkit/aeon](https://github.com/aeon-toolkit/aeon)
 
-**Discord**: [aeon discord](https://discord.gg/W4PrQ4Dm7)
+**Discord**: [aeon discord](https://discord.gg/D6rzqHGKRJ)
 
 **LinkedIn**: [linkedin/aeon-toolkit](https://www.linkedin.com/company/aeon-toolkit)
-
-**X/Twitter**: [twitter/aeon-toolkit](https://twitter.com/aeon_toolkit)
 
 **Medium Blog**: [medium/aeon.toolkit](https://medium.com/@aeon.toolkit)
 

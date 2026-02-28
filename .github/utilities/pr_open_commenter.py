@@ -87,8 +87,7 @@ elif title_labels_str == "":
         "update the labels accordingly."
     )
 
-pr.create_issue_comment(
-    f"""
+pr.create_issue_comment(f"""
 ## Thank you for contributing to `aeon`
 
 {title_labels_str}
@@ -98,7 +97,7 @@ The [Checks](https://github.com/aeon-toolkit/aeon/pull/{pr_number}/checks) tab w
 
 If our `pre-commit` code quality check fails, any trivial fixes will automatically be pushed to your PR unless it is a draft.
 
-Don't hesitate to ask questions on the `aeon` [Discord](https://discord.gg/W4PrQ4Dm7) channel if you have any.
+Don't hesitate to ask questions on the `aeon` [Discord](https://discord.gg/D6rzqHGKRJ) channel if you have any.
 
 <details><summary>PR CI actions</summary>
 <p>
@@ -117,5 +116,4 @@ These checkboxes will add labels to enable/disable CI functionality for this PR.
 
 </p>
 </details>
-    """  # noqa
-)
+    """)  # noqa
