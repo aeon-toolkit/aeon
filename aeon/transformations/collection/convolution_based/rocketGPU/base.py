@@ -36,10 +36,10 @@ class BaseROCKETGPU(BaseCollectionTransformer):
     def _get_ppv(self, x):
         import tensorflow as tf
 
-        x_pos = tf.math.count_nonzero(tf.nn.relu(x), axis=1)
-        return tf.math.divide(x_pos, x.shape[1])
+        positive_mask = tf.cast(x > 0, tf.float32)
+        return tf.reduce_mean(positive_mask, axis=1)
 
     def _get_max(self, x):
         import tensorflow as tf
 
-        return tf.math.reduce_max(x, axis=1)
+        return tf.reduce_max(x, axis=1)
