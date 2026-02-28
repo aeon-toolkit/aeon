@@ -140,6 +140,10 @@ class DisjointCNNRegressor(BaseDeepRegressor):
         default = None
         The default list of callbacks are set to
         ModelCheckpoint and ReduceLROnPlateau.
+    compile_args: dict or None, default=None
+        Dictionary of additional arguments to pass to the Keras `compile` method.
+    fit_args: dict or None, default=None
+        Dictionary of additional arguments to pass to the Keras `fit` method.
 
     Notes
     -----
@@ -198,6 +202,8 @@ class DisjointCNNRegressor(BaseDeepRegressor):
         last_file_name: str = "last_model",
         init_file_name: str = "init_model",
         callbacks: Callback | list[Callback] | None = None,
+        compile_args=None,
+        fit_args=None,
     ):
         self.n_layers = n_layers
         self.n_filters = n_filters
@@ -223,6 +229,9 @@ class DisjointCNNRegressor(BaseDeepRegressor):
         self.loss = loss
         self.metrics = metrics
         self.optimizer = optimizer
+
+        self.compile_args = compile_args
+        self.fit_args = fit_args
 
         self.file_path = file_path
         self.save_best_model = save_best_model
@@ -296,11 +305,20 @@ class DisjointCNNRegressor(BaseDeepRegressor):
             tf.keras.optimizers.Adam() if self.optimizer is None else self.optimizer
         )
 
+        compile_args = {} if not self.compile_args else self.compile_args
+        for key in ["loss", "metrics", "optimizer"]:
+            if key in compile_args:
+                raise ValueError(
+                    f"Cannot specify '{key}' in 'compile_args'. "
+                    f"Specify it in the constructor instead. "
+                )
+
         model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
         model.compile(
             loss=self.loss,
             optimizer=self.optimizer_,
             metrics=self._metrics,
+            **compile_args,
         )
 
         return model
@@ -360,6 +378,14 @@ class DisjointCNNRegressor(BaseDeepRegressor):
                 file_name=self.file_name_,
             )
 
+        fit_args = {} if not self.fit_args else self.fit_args
+        for key in ["batch_size", "epochs", "verbose", "callbacks"]:
+            if key in fit_args:
+                raise ValueError(
+                    f"Cannot specify '{key}' in 'fit_args'. "
+                    f"Specify it in the constructor instead."
+                )
+
         self.history = self.training_model_.fit(
             X,
             y,
@@ -367,6 +393,7 @@ class DisjointCNNRegressor(BaseDeepRegressor):
             epochs=self.n_epochs,
             verbose=self.verbose,
             callbacks=self.callbacks_,
+            **fit_args,
         )
 
         try:
