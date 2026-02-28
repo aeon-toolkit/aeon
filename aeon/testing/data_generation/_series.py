@@ -8,7 +8,6 @@ __all__ = [
     "make_example_dataframe_series",
 ]
 
-from typing import Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -18,9 +17,9 @@ from aeon.testing.data_generation import make_anomaly_detection_labels
 
 def make_example_1d_numpy(
     n_timepoints: int = 12,
-    random_state: Optional[int] = None,
-    return_y: Optional[str] = None,
-) -> Union[np.ndarray, tuple[np.ndarray, np.ndarray]]:
+    random_state: int | None = None,
+    return_y: str | None = None,
+) -> np.ndarray | tuple[np.ndarray, np.ndarray]:
     """Randomly generate 1D numpy X.
 
     Generates data in 1D 'np.ndarray' format.
@@ -79,10 +78,10 @@ def make_example_1d_numpy(
 def make_example_2d_numpy_series(
     n_timepoints: int = 12,
     n_channels: int = 1,
-    random_state: Optional[int] = None,
+    random_state: int | None = None,
     axis: int = 1,
-    return_y: Optional[str] = None,
-) -> Union[np.ndarray, tuple[np.ndarray, np.ndarray]]:
+    return_y: str | None = None,
+) -> np.ndarray | tuple[np.ndarray, np.ndarray]:
     """Randomly generate 2D numpy X.
 
     Generates data in 2D 'np.ndarray' format.
@@ -160,9 +159,9 @@ def make_example_2d_numpy_series(
 def make_example_pandas_series(
     n_timepoints: int = 12,
     index_type=None,
-    random_state: Optional[int] = None,
-    return_y: Optional[str] = None,
-) -> Union[pd.Series, tuple[pd.Series, np.ndarray]]:
+    random_state: int | None = None,
+    return_y: str | None = None,
+) -> pd.Series | tuple[pd.Series, np.ndarray]:
     """Randomly generate pandas Series X.
 
     Generates data in 'pd.Series' format.
@@ -231,10 +230,10 @@ def make_example_dataframe_series(
     n_timepoints: int = 12,
     n_channels: int = 1,
     index_type=None,
-    random_state: Optional[int] = None,
+    random_state: int | None = None,
     axis: int = 1,
-    return_y: Optional[str] = None,
-) -> Union[pd.DataFrame, tuple[pd.DataFrame, np.ndarray]]:
+    return_y: str | None = None,
+) -> pd.DataFrame | tuple[pd.DataFrame, np.ndarray]:
     """Randomly generate pandas DataFrame X.
 
     Generates data in 'pd.DataFrame' format.

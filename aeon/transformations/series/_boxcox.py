@@ -9,7 +9,6 @@ from scipy.special import boxcox, inv_boxcox
 from scipy.stats import boxcox_llf, distributions, variation
 
 from aeon.transformations.series.base import BaseSeriesTransformer
-from aeon.utils.validation import is_int
 
 
 # copy-pasted from scipy 1.7.3 since it moved in 1.8.0 and broke this estimator
@@ -265,7 +264,17 @@ def _guerrero(x, sp, bounds=None):
     .. [1] V.M. Guerrero, "Time-series analysis supported by Power
        Transformations ", Journal of Forecasting, vol. 12, pp. 37-48, 1993.
     """
-    if sp is None or not is_int(sp) or sp < 2:
+
+    def _is_int(x) -> bool:
+        """Check if x is of integer type, but not boolean."""
+        # boolean are subclasses of integers in Python, so explicitly exclude them
+        return (
+            isinstance(x, (int, np.integer))
+            and not isinstance(x, bool)
+            and not isinstance(x, np.timedelta64)
+        )
+
+    if sp is None or not _is_int(sp) or sp < 2:
         raise ValueError(
             "Guerrero method requires an integer seasonal periodicity (sp) value >= 2."
         )

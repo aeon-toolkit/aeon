@@ -3,6 +3,7 @@
 __all__ = [
     "AutoCorrelationSeriesTransformer",
     "BaseSeriesTransformer",
+    "CollectionToSeriesWrapper",
     "ClaSPTransformer",
     "Dobin",
     "MatrixProfileTransformer",
@@ -28,6 +29,7 @@ from aeon.transformations.series._acf import (
 from aeon.transformations.series._bkfilter import BKFilter
 from aeon.transformations.series._boxcox import BoxCoxTransformer
 from aeon.transformations.series._clasp import ClaSPTransformer
+from aeon.transformations.series._collection_wrapper import CollectionToSeriesWrapper
 from aeon.transformations.series._diff import DifferenceTransformer
 from aeon.transformations.series._dobin import Dobin
 from aeon.transformations.series._log import LogTransformer

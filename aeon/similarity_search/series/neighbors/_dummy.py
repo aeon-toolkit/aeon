@@ -1,7 +1,5 @@
 """Implementation of NN with brute force."""
 
-from typing import Optional
-
 __maintainer__ = ["baraline"]
 __all__ = ["DummySNN"]
 
@@ -30,8 +28,8 @@ class DummySNN(BaseSeriesSimilaritySearch):
     def __init__(
         self,
         length: int,
-        normalize: Optional[bool] = False,
-        n_jobs: Optional[int] = 1,
+        normalize: bool | None = False,
+        n_jobs: int | None = 1,
     ):
         self.normalize = normalize
         self.n_jobs = n_jobs
@@ -57,12 +55,12 @@ class DummySNN(BaseSeriesSimilaritySearch):
     def _predict(
         self,
         X: np.ndarray,
-        k: Optional[int] = 1,
-        dist_threshold: Optional[float] = np.inf,
-        exclusion_factor: Optional[float] = 0.5,
-        inverse_distance: Optional[bool] = False,
-        allow_neighboring_matches: Optional[bool] = False,
-        X_index: Optional[int] = None,
+        k: int | None = 1,
+        dist_threshold: float | None = np.inf,
+        exclusion_factor: float | None = 0.5,
+        inverse_distance: bool | None = False,
+        allow_neighboring_matches: bool | None = False,
+        X_index: int | None = None,
     ):
         """
         Compute nearest neighbors to X in subsequences of X_.

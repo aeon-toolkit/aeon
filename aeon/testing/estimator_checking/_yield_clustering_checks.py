@@ -10,7 +10,7 @@ import numpy as np
 from aeon.base._base import _clone_estimator
 from aeon.clustering.deep_learning import BaseDeepClusterer
 from aeon.testing.testing_data import FULL_TEST_DATA_DICT
-from aeon.utils.validation import get_n_cases
+from aeon.utils.validation.collection import get_n_cases
 
 
 def _yield_clustering_checks(estimator_class, estimator_instances, datatypes):

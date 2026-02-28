@@ -34,3 +34,63 @@ def check_classification_y(y):
             f"Should be binary or multiclass according to "
             f"sklearn.utils.multiclass.type_of_target"
         )
+
+
+def check_regression_y(y):
+    """Check y label input is valid for regression tasks.
+
+    Parameters
+    ----------
+    y : pd.Series or np.ndarray
+        Target variable array.
+
+    Raises
+    ------
+    TypeError
+        If y is not a 1D pd.Series or np.ndarray.
+    ValueError
+        If y is not a continuous target.
+    """
+    if not isinstance(y, (pd.Series, np.ndarray)):
+        raise TypeError(
+            f"y must be a np.array or a pd.Series, but found type: {type(y)}"
+        )
+    if isinstance(y, np.ndarray) and y.ndim > 1:
+        raise TypeError(f"y must be 1-dimensional, found {y.ndim} dimensions")
+
+    y_type = type_of_target(y, input_name="y")
+    if y_type != "continuous":
+        raise ValueError(
+            f"y type is {y_type} which is not valid for regression. "
+            f"Should be continuous according to sklearn.utils.multiclass.type_of_target"
+        )
+
+
+def check_anomaly_detection_y(y):
+    """Check y label input is valid for anomaly detection tasks.
+
+    Parameters
+    ----------
+    y : pd.Series or np.ndarray
+        Target variable array.
+
+    Raises
+    ------
+    TypeError
+        If y is not a 1D pd.Series or np.ndarray.
+    ValueError
+        If y is not a binary target.
+    """
+    if not isinstance(y, (pd.Series, np.ndarray)):
+        raise TypeError(
+            f"y must be a np.array or a pd.Series, but found type: {type(y)}"
+        )
+    if isinstance(y, np.ndarray) and y.ndim > 1:
+        raise TypeError(f"y must be 1-dimensional, found {y.ndim} dimensions")
+
+    y_type = type_of_target(y, input_name="y")
+    if y_type != "binary":
+        raise ValueError(
+            f"y type is {y_type} which is not valid for anomaly detection. "
+            f"Should be binary according to sklearn.utils.multiclass.type_of_target"
+        )

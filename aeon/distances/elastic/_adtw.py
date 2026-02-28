@@ -2,7 +2,6 @@ r"""Amercing dynamic time warping (ADTW) between two time series."""
 
 __maintainer__ = []
 
-from typing import Optional, Union
 
 import numpy as np
 from numba import njit, prange
@@ -20,8 +19,8 @@ from aeon.utils.validation.collection import _is_numpy_list_multivariate
 def adtw_distance(
     x: np.ndarray,
     y: np.ndarray,
-    window: Optional[float] = None,
-    itakura_max_slope: Optional[float] = None,
+    window: float | None = None,
+    itakura_max_slope: float | None = None,
     warp_penalty: float = 1.0,
 ) -> float:
     r"""Compute the ADTW distance between two time series.
@@ -97,8 +96,8 @@ def adtw_distance(
 def adtw_cost_matrix(
     x: np.ndarray,
     y: np.ndarray,
-    window: Optional[float] = None,
-    itakura_max_slope: Optional[float] = None,
+    window: float | None = None,
+    itakura_max_slope: float | None = None,
     warp_penalty: float = 1.0,
 ) -> np.ndarray:
     r"""Compute the ADTW cost matrix between two time series.
@@ -200,10 +199,10 @@ def _adtw_cost_matrix(
 
 @threaded
 def adtw_pairwise_distance(
-    X: Union[np.ndarray, list[np.ndarray]],
-    y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
-    window: Optional[float] = None,
-    itakura_max_slope: Optional[float] = None,
+    X: np.ndarray | list[np.ndarray],
+    y: np.ndarray | list[np.ndarray] | None = None,
+    window: float | None = None,
+    itakura_max_slope: float | None = None,
     warp_penalty: float = 1.0,
     n_jobs: int = 1,
 ) -> np.ndarray:
@@ -300,8 +299,8 @@ def adtw_pairwise_distance(
 @njit(cache=True, fastmath=True, parallel=True)
 def _adtw_pairwise_distance(
     X: NumbaList[np.ndarray],
-    window: Optional[float],
-    itakura_max_slope: Optional[float],
+    window: float | None,
+    itakura_max_slope: float | None,
     warp_penalty: float,
     unequal_length: bool,
 ) -> np.ndarray:
@@ -330,8 +329,8 @@ def _adtw_pairwise_distance(
 def _adtw_from_multiple_to_multiple_distance(
     x: NumbaList[np.ndarray],
     y: NumbaList[np.ndarray],
-    window: Optional[float],
-    itakura_max_slope: Optional[float],
+    window: float | None,
+    itakura_max_slope: float | None,
     warp_penalty: float,
     unequal_length: bool,
 ) -> np.ndarray:
@@ -358,8 +357,8 @@ def _adtw_from_multiple_to_multiple_distance(
 def adtw_alignment_path(
     x: np.ndarray,
     y: np.ndarray,
-    window: Optional[float] = None,
-    itakura_max_slope: Optional[float] = None,
+    window: float | None = None,
+    itakura_max_slope: float | None = None,
     warp_penalty: float = 1.0,
 ) -> tuple[list[tuple[int, int]], float]:
     """Compute the ADTW alignment path between two time series.

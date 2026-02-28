@@ -2,7 +2,6 @@ r"""Shape Dynamic time warping (ShapeDTW) between two time series."""
 
 __maintainer__ = []
 
-from typing import Optional, Union
 
 import numpy as np
 from numba import njit, prange
@@ -122,13 +121,13 @@ def _transform_subsequences(
 def shape_dtw_distance(
     x: np.ndarray,
     y: np.ndarray,
-    window: Optional[float] = None,
+    window: float | None = None,
     descriptor: str = "identity",
     reach: int = 15,
-    itakura_max_slope: Optional[float] = None,
+    itakura_max_slope: float | None = None,
     transformation_precomputed: bool = False,
-    transformed_x: Optional[np.ndarray] = None,
-    transformed_y: Optional[np.ndarray] = None,
+    transformed_x: np.ndarray | None = None,
+    transformed_y: np.ndarray | None = None,
 ) -> float:
     """Compute the ShapeDTW distance function between two series x and y.
 
@@ -240,8 +239,8 @@ def _shape_dtw_distance(
     descriptor: str = "identity",
     reach: int = 15,
     transformation_precomputed: bool = False,
-    transformed_x: Optional[np.ndarray] = None,
-    transformed_y: Optional[np.ndarray] = None,
+    transformed_x: np.ndarray | None = None,
+    transformed_y: np.ndarray | None = None,
 ) -> float:
     # for compilation purposes
     if transformed_x is None:
@@ -296,13 +295,13 @@ def _get_shape_dtw_distance_from_cost_mat(
 def shape_dtw_cost_matrix(
     x: np.ndarray,
     y: np.ndarray,
-    window: Optional[float] = None,
+    window: float | None = None,
     descriptor: str = "identity",
     reach: int = 15,
-    itakura_max_slope: Optional[float] = None,
+    itakura_max_slope: float | None = None,
     transformation_precomputed: bool = False,
-    transformed_x: Optional[np.ndarray] = None,
-    transformed_y: Optional[np.ndarray] = None,
+    transformed_x: np.ndarray | None = None,
+    transformed_y: np.ndarray | None = None,
 ) -> np.ndarray:
     """Compute the ShapeDTW cost matrix between two series x and y.
 
@@ -401,8 +400,8 @@ def _shape_dtw_cost_matrix(
     descriptor: str = "identity",
     reach: int = 15,
     transformation_precomputed: bool = False,
-    transformed_x: Optional[np.ndarray] = None,
-    transformed_y: Optional[np.ndarray] = None,
+    transformed_x: np.ndarray | None = None,
+    transformed_y: np.ndarray | None = None,
 ) -> np.ndarray:
     # for compilation purposes
     if transformed_x is None:
@@ -429,13 +428,13 @@ def _shape_dtw_cost_matrix(
 def shape_dtw_alignment_path(
     x: np.ndarray,
     y: np.ndarray,
-    window: Optional[float] = None,
+    window: float | None = None,
     descriptor: str = "identity",
     reach: int = 15,
-    itakura_max_slope: Optional[float] = None,
+    itakura_max_slope: float | None = None,
     transformation_precomputed: bool = False,
-    transformed_x: Optional[np.ndarray] = None,
-    transformed_y: Optional[np.ndarray] = None,
+    transformed_x: np.ndarray | None = None,
+    transformed_y: np.ndarray | None = None,
 ) -> tuple[list[tuple[int, int]], float]:
     """Compute the ShapeDTW alignment path between two series x and y.
 
@@ -518,15 +517,15 @@ def shape_dtw_alignment_path(
 
 @threaded
 def shape_dtw_pairwise_distance(
-    X: Union[np.ndarray, list[np.ndarray]],
-    y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
-    window: Optional[float] = None,
+    X: np.ndarray | list[np.ndarray],
+    y: np.ndarray | list[np.ndarray] | None = None,
+    window: float | None = None,
     descriptor: str = "identity",
     reach: int = 15,
-    itakura_max_slope: Optional[float] = None,
+    itakura_max_slope: float | None = None,
     transformation_precomputed: bool = False,
-    transformed_x: Optional[np.ndarray] = None,
-    transformed_y: Optional[np.ndarray] = None,
+    transformed_x: np.ndarray | None = None,
+    transformed_y: np.ndarray | None = None,
     n_jobs: int = 1,
 ) -> np.ndarray:
     """Compute the ShapeDTW pairwise distance among a set of series.
@@ -654,12 +653,12 @@ def shape_dtw_pairwise_distance(
 @njit(cache=True, fastmath=True, parallel=True)
 def _shape_dtw_pairwise_distance(
     X: NumbaList[np.ndarray],
-    window: Optional[float],
+    window: float | None,
     descriptor: str,
     reach: int,
-    itakura_max_slope: Optional[float],
+    itakura_max_slope: float | None,
     transformation_precomputed: bool,
-    transformed_x: Optional[np.ndarray],
+    transformed_x: np.ndarray | None,
     unequal_length: bool,
 ) -> np.ndarray:
     n_cases = len(X)
@@ -706,13 +705,13 @@ def _shape_dtw_pairwise_distance(
 def _shape_dtw_from_multiple_to_multiple_distance(
     x: NumbaList[np.ndarray],
     y: NumbaList[np.ndarray],
-    window: Optional[float],
+    window: float | None,
     descriptor: str,
     reach: int,
-    itakura_max_slope: Optional[float],
+    itakura_max_slope: float | None,
     transformation_precomputed: bool,
-    transformed_x: Optional[np.ndarray],
-    transformed_y: Optional[np.ndarray],
+    transformed_x: np.ndarray | None,
+    transformed_y: np.ndarray | None,
     unequal_length: bool,
 ) -> np.ndarray:
     n_cases = len(x)

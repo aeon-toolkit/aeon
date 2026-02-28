@@ -2,7 +2,6 @@ r"""Dynamic time warping with Global Invariances (DTW-GI) between two time serie
 
 __maintainer__ = []
 
-from typing import Optional, Union
 
 import numpy as np
 from numba import njit, prange
@@ -31,8 +30,8 @@ def _path2mat(
 def _dtw_gi(
     x: np.ndarray,
     y: np.ndarray,
-    window: Optional[float] = None,
-    itakura_max_slope: Optional[float] = None,
+    window: float | None = None,
+    itakura_max_slope: float | None = None,
     init_p: np.ndarray = None,
     max_iter: int = 20,
     use_bias: bool = False,
@@ -135,8 +134,8 @@ def _dtw_gi(
 def dtw_gi_distance(
     x: np.ndarray,
     y: np.ndarray,
-    window: Optional[float] = None,
-    itakura_max_slope: Optional[float] = None,
+    window: float | None = None,
+    itakura_max_slope: float | None = None,
     init_p: np.ndarray = None,
     max_iter: int = 20,
     use_bias: bool = False,
@@ -252,8 +251,8 @@ def dtw_gi_distance(
 def dtw_gi_cost_matrix(
     x: np.ndarray,
     y: np.ndarray,
-    window: Optional[float] = None,
-    itakura_max_slope: Optional[float] = None,
+    window: float | None = None,
+    itakura_max_slope: float | None = None,
     init_p: np.ndarray = None,
     max_iter: int = 20,
     use_bias: bool = False,
@@ -326,10 +325,10 @@ def dtw_gi_cost_matrix(
 
 @threaded
 def dtw_gi_pairwise_distance(
-    X: Union[np.ndarray, list[np.ndarray]],
-    y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
-    window: Optional[float] = None,
-    itakura_max_slope: Optional[float] = None,
+    X: np.ndarray | list[np.ndarray],
+    y: np.ndarray | list[np.ndarray] | None = None,
+    window: float | None = None,
+    itakura_max_slope: float | None = None,
     unequal_length: bool = None,
     init_p: np.ndarray = None,
     max_iter: int = 20,
@@ -448,8 +447,8 @@ def dtw_gi_pairwise_distance(
 def _dtw_gi_from_multiple_to_multiple_distance(
     x: NumbaList[np.ndarray],
     y: NumbaList[np.ndarray],
-    window: Optional[float] = None,
-    itakura_max_slope: Optional[float] = None,
+    window: float | None = None,
+    itakura_max_slope: float | None = None,
     unequal_length: bool = None,
     init_p: np.ndarray = None,
     max_iter: int = 20,
@@ -471,8 +470,8 @@ def _dtw_gi_from_multiple_to_multiple_distance(
 @njit(cache=True, fastmath=True)
 def _dtw_gi_pairwise_distance(
     X: NumbaList[np.ndarray],
-    window: Optional[float] = None,
-    itakura_max_slope: Optional[float] = None,
+    window: float | None = None,
+    itakura_max_slope: float | None = None,
     unequal_length: bool = None,
     init_p: np.ndarray = None,
     max_iter: int = 20,
@@ -496,8 +495,8 @@ def _dtw_gi_pairwise_distance(
 def dtw_gi_alignment_path(
     x: np.ndarray,
     y: np.ndarray,
-    window: Optional[float] = None,
-    itakura_max_slope: Optional[float] = None,
+    window: float | None = None,
+    itakura_max_slope: float | None = None,
     init_p: np.ndarray = None,
     max_iter: int = 20,
     use_bias: bool = False,

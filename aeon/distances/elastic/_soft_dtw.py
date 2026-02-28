@@ -2,7 +2,6 @@ r"""Soft dynamic time warping (soft-DTW) between two time series."""
 
 __maintainer__ = []
 
-from typing import Optional, Union
 
 import numpy as np
 from numba import njit, prange
@@ -52,8 +51,8 @@ def soft_dtw_distance(
     x: np.ndarray,
     y: np.ndarray,
     gamma: float = 1.0,
-    window: Optional[float] = None,
-    itakura_max_slope: Optional[float] = None,
+    window: float | None = None,
+    itakura_max_slope: float | None = None,
 ) -> float:
     r"""Compute the soft-DTW distance between two time series.
 
@@ -140,8 +139,8 @@ def soft_dtw_cost_matrix(
     x: np.ndarray,
     y: np.ndarray,
     gamma: float = 1.0,
-    window: Optional[float] = None,
-    itakura_max_slope: Optional[float] = None,
+    window: float | None = None,
+    itakura_max_slope: float | None = None,
 ) -> np.ndarray:
     r"""Compute the soft-DTW cost matrix between two time series.
 
@@ -246,11 +245,11 @@ def _soft_dtw_cost_matrix(
 
 @threaded
 def soft_dtw_pairwise_distance(
-    X: Union[np.ndarray, list[np.ndarray]],
-    y: Optional[Union[np.ndarray, list[np.ndarray]]] = None,
+    X: np.ndarray | list[np.ndarray],
+    y: np.ndarray | list[np.ndarray] | None = None,
     gamma: float = 1.0,
-    window: Optional[float] = None,
-    itakura_max_slope: Optional[float] = None,
+    window: float | None = None,
+    itakura_max_slope: float | None = None,
     n_jobs: int = 1,
 ) -> np.ndarray:
     r"""Compute the soft-DTW pairwise distance between a set of time series.
@@ -344,8 +343,8 @@ def soft_dtw_pairwise_distance(
 @njit(cache=True, fastmath=True, parallel=True)
 def _soft_dtw_pairwise_distance(
     X: NumbaList[np.ndarray],
-    window: Optional[float],
-    itakura_max_slope: Optional[float],
+    window: float | None,
+    itakura_max_slope: float | None,
     unequal_length: bool,
     gamma: float,
 ) -> np.ndarray:
@@ -374,8 +373,8 @@ def _soft_dtw_pairwise_distance(
 def _soft_dtw_from_multiple_to_multiple_distance(
     x: NumbaList[np.ndarray],
     y: NumbaList[np.ndarray],
-    window: Optional[float],
-    itakura_max_slope: Optional[float],
+    window: float | None,
+    itakura_max_slope: float | None,
     unequal_length: bool,
     gamma: float,
 ) -> np.ndarray:
@@ -403,8 +402,8 @@ def soft_dtw_alignment_path(
     x: np.ndarray,
     y: np.ndarray,
     gamma: float = 1.0,
-    window: Optional[float] = None,
-    itakura_max_slope: Optional[float] = None,
+    window: float | None = None,
+    itakura_max_slope: float | None = None,
 ) -> tuple[list[tuple[int, int]], float]:
     """Compute the soft-DTW alignment path between two time series.
 

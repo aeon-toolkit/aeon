@@ -1,6 +1,7 @@
 """Time series kshapes."""
 
-from typing import Optional, Union
+__maintainer__ = []
+__all__ = ["TimeSeriesKShape"]
 
 import numpy as np
 from numpy.random import RandomState
@@ -76,12 +77,12 @@ class TimeSeriesKShape(BaseClusterer):
     def __init__(
         self,
         n_clusters: int = 8,
-        init: Union[str, np.ndarray] = "random",
+        init: str | np.ndarray = "random",
         n_init: int = 10,
         max_iter: int = 300,
         tol: float = 1e-4,
         verbose: bool = False,
-        random_state: Optional[Union[int, RandomState]] = None,
+        random_state: int | RandomState | None = None,
     ):
         self.n_init = n_init
         self.init = init

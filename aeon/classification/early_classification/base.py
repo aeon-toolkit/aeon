@@ -27,31 +27,31 @@ __all__ = ["BaseEarlyClassifier"]
 from abc import abstractmethod
 
 import numpy as np
+from sklearn.base import ClassifierMixin
 
 from aeon.base import BaseCollectionEstimator
 from aeon.classification import BaseClassifier
 
 
-class BaseEarlyClassifier(BaseCollectionEstimator):
+class BaseEarlyClassifier(ClassifierMixin, BaseCollectionEstimator):
     """
     Abstract base class for early time series classifiers.
 
-    The base classifier specifies the methods and method signatures that all
+    The base early classifier specifies the methods and method signatures that all
     early classifiers have to implement. Attributes with an underscore suffix are set in
     the method fit.
 
     Parameters
     ----------
     classes_ : np.ndarray
-        Class labels, possibly strings.
+        Class labels, either integers or strings.
     n_classes_ : int
-        Number of classes (length of classes_).
+        Number of classes (length of ``classes_``).
     _class_dictionary : dict
-        dictionary mapping classes_ onto integers 0...n_classes_-1.
-    _n_jobs : int, default=1
-        Number of threads to use in fit as determined by n_jobs.
+        Mapping of classes_ onto integers ``0 ... n_classes_-1``.
     state_info : array-like, default=None
-        An array containing the state info for each decision in X.
+        An array containing the state info for each decision in X when updating
+        predictions.
     """
 
     _tags = {
@@ -60,19 +60,17 @@ class BaseEarlyClassifier(BaseCollectionEstimator):
 
     @abstractmethod
     def __init__(self):
-        self.classes_ = []
-        self.n_classes_ = 0
+        self.classes_ = []  # classes seen in y, unique labels
+        self.n_classes_ = -1  # number of unique classes in y
         self._class_dictionary = {}
 
-        """
-        An array containing the state info for each decision in X from update and
-        predict methods. Contains classifier dependent information for future decisions
-        on the data and information on when a cases decision has been made. Each row
-        contains information for a case from the latest decision on its safety made in
-        update/predict. Successive updates are likely to remove rows from the
-        state_info, as it will only store as many rows as there are input instances to
-        update/predict.
-        """
+        # An array containing the state info for each decision in X from update and
+        # predict methods. Contains classifier dependent information for future
+        # decisions on the data and information on when a cases decision has been made.
+        # Each row contains information for a case from the latest decision on its
+        # safety made in update/predict. Successive updates are likely to remove rows
+        # from the state_info, as it will only store as many rows as there are input
+        # instances to update/predict.
         self.state_info = None
 
         super().__init__()

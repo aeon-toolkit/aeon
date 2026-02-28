@@ -5,9 +5,14 @@ A simplified first base class for forecasting models.
 """
 
 __maintainer__ = ["TonyBagnall"]
-__all__ = ["BaseForecaster", "DirectForecastingMixin", "IterativeForecastingMixin"]
+__all__ = [
+    "BaseForecaster",
+    "DirectForecastingMixin",
+    "IterativeForecastingMixin",
+    "SeriesToSeriesForecastingMixin",
+]
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from typing import final
 
 import numpy as np
@@ -74,29 +79,8 @@ class BaseForecaster(BaseSeriesEstimator):
         if self.get_tag("fit_is_empty"):
             self.is_fitted = True
             return self
-
-        horizon = self.get_tag("capability:horizon")
-        if not horizon and self.horizon > 1:
-            raise ValueError(
-                f"Horizon is set >1, but {self.__class__.__name__} cannot handle a "
-                f"horizon greater than 1"
-            )
-
-        exog_tag = self.get_tag("capability:exogenous")
-        if not exog_tag and exog is not None:
-            raise ValueError(
-                f"Exogenous variables passed but {self.__class__.__name__} cannot "
-                "handle exogenous variables"
-            )
-
-        y = self._preprocess_series(y, axis, True)
-
-        if exog is not None:
-            exog = self._convert_y(exog, axis)
-
+        y, exog = self._preprocess_forecasting_input(y, exog, axis, True)
         self._fit(y, exog)
-
-        # this should happen last
         self.is_fitted = True
         return self
 
@@ -118,32 +102,14 @@ class BaseForecaster(BaseSeriesEstimator):
         """
         if not self.get_tag("fit_is_empty"):
             self._check_is_fitted()
-
-        horizon = self.get_tag("capability:horizon")
-        if not horizon and self.horizon > 1:
-            raise ValueError(
-                f"Horizon is set >1, but {self.__class__.__name__} cannot handle a "
-                f"horizon greater than 1"
-            )
-
-        exog_tag = self.get_tag("capability:exogenous")
-        if not exog_tag and exog is not None:
-            raise ValueError(
-                f"Exogenous variables passed but {self.__class__.__name__} cannot "
-                "handle exogenous variables"
-            )
-
-        y = self._preprocess_series(y, axis, False)
-
-        if exog is not None:
-            exog = self._convert_y(exog, axis)
+        y, exog = self._preprocess_forecasting_input(y, exog, axis, False)
         return self._predict(y, exog)
 
     @final
     def forecast(self, y, exog=None, axis=1) -> float:
         """Forecast the next horizon steps ahead of ``y``.
 
-        By default this is simply fit followed by returning forecast_.
+        By default this is simply fit followed by predict.
 
         Parameters
         ----------
@@ -158,6 +124,23 @@ class BaseForecaster(BaseSeriesEstimator):
         float
             single prediction self.horizon steps ahead of y.
         """
+        y, exog = self._preprocess_forecasting_input(y, exog, axis, True)
+        y_pred = self._forecast(y, exog)
+        self.is_fitted = True
+        return y_pred
+
+    def _fit(self, y, exog):
+        return self
+
+    @abstractmethod
+    def _predict(self, y, exog): ...
+
+    def _forecast(self, y, exog):
+        """Forecast values for time series X."""
+        self._fit(y, exog)
+        return self._predict(y, exog)
+
+    def _preprocess_forecasting_input(self, y, exog, axis, store_meta):
         horizon = self.get_tag("capability:horizon")
         if not horizon and self.horizon > 1:
             raise ValueError(
@@ -171,28 +154,11 @@ class BaseForecaster(BaseSeriesEstimator):
                 f"Exogenous variables passed but {self.__class__.__name__} cannot "
                 "handle exogenous variables"
             )
-
-        y = self._preprocess_series(y, axis, True)
+        y = self._preprocess_series(y, axis, store_meta)
 
         if exog is not None:
             exog = self._convert_y(exog, self.axis)
-
-        y_pred = self._forecast(y, exog)
-
-        # this should happen last
-        self.is_fitted = True
-        return y_pred
-
-    def _fit(self, y, exog):
-        return self
-
-    @abstractmethod
-    def _predict(self, y, exog): ...
-
-    def _forecast(self, y, exog):
-        """Forecast values for time series X."""
-        self.fit(y, exog)
-        return self._predict(y, exog)
+        return y, exog
 
     def _convert_y(self, y: VALID_SERIES_INNER_TYPES, axis: int):
         """Convert y to self.get_tag("y_inner_type")."""
@@ -292,7 +258,7 @@ class DirectForecastingMixin:
 class IterativeForecastingMixin:
     """Mixin class for iterative forecasting."""
 
-    def iterative_forecast(self, y, prediction_horizon) -> np.ndarray:
+    def iterative_forecast(self, y, prediction_horizon, exog=None) -> np.ndarray:
         """
         Forecast ``prediction_horizon`` prediction using a single model fit on `y`.
 
@@ -309,6 +275,8 @@ class IterativeForecastingMixin:
             ``(n_channels, n_timepoints)`` if a multivariate time series.
         prediction_horizon : int
             The number of future time steps to forecast.
+        exog : np.ndarray, default =None
+            Optional exogenous time series data assumed to be aligned with y.
 
         Returns
         -------
@@ -335,16 +303,52 @@ class IterativeForecastingMixin:
             )
 
         preds = np.zeros(prediction_horizon)
-        self.fit(y)
+        self.fit(y, exog)
         for i in range(0, prediction_horizon):
-            preds[i] = self.predict(y)
+            preds[i] = self.predict(y, exog)
             y = np.append(y, preds[i])
         return preds
 
 
-class _SeriesToSeriesForecastingMixin:
+class SeriesToSeriesForecastingMixin(ABC):
     """Mixin class for series-to-series forecasting."""
 
-    def series_to_series_forecast(self, y, prediction_horizon) -> np.ndarray:
-        """Unimplemented."""
-        pass
+    @final
+    def series_to_series_forecast(self, y, prediction_horizon, exog=None) -> np.ndarray:
+        """
+        Forecast ``prediction_horizon`` using a series iterative approach.
+
+        This function implements a series-to-series forecasting strategy.
+        The forecaster is trained to predict multiple steps ahead in one go,
+        returning a series of predictions. This is done by fitting the model
+        once and then predicting a series of length `prediction_horizon`.
+
+        y : np.ndarray
+            The time series to make forecasts about.  Must be of shape
+            ``(n_channels, n_timepoints)`` if a multivariate time series.
+        prediction_horizon : int
+            The number of future time steps to forecast.
+        exog : np.ndarray, default =None
+            Optional exogenous time series data assumed to be aligned with y.
+
+        Returns
+        -------
+        np.ndarray
+            An array of shape `(prediction_horizon,)` containing the forecasts for
+            each horizon.
+
+        Raises
+        ------
+        ValueError
+            if prediction_horizon less than 1.
+
+        """
+        if prediction_horizon < 1:
+            raise ValueError(
+                "The `prediction_horizon` must be greater than or equal to 1."
+            )
+
+        return self._series_to_series_forecast(y, prediction_horizon, exog)
+
+    @abstractmethod
+    def _series_to_series_forecast(self, y, prediction_horizon, exog): ...

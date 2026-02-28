@@ -10,7 +10,7 @@ __all__ = ["RandomDilatedShapeletTransform"]
 import warnings
 from typing import Dict
 from typing import List as TypingList
-from typing import Optional, Union
+from typing import Union
 
 import numpy as np
 from numba import njit, prange, set_num_threads
@@ -105,6 +105,8 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
             - mean parameter
             - standard deviation parameter
             - class value
+    n_shapelets_ : int
+        The number of shapelets found during the fitting process.
     max_shapelet_length_ : int
         The maximum actual shapelet length fitted to train data.
     min_n_timepoints_ : int
@@ -153,12 +155,12 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
     def __init__(
         self,
         max_shapelets: int = 10_000,
-        shapelet_lengths: Optional[Union[TypingList[int], np.ndarray]] = None,
+        shapelet_lengths: TypingList[int] | np.ndarray | None = None,
         proba_normalization: float = 0.8,
-        threshold_percentiles: Optional[Union[TypingList[float], np.ndarray]] = None,
+        threshold_percentiles: TypingList[float] | np.ndarray | None = None,
         alpha_similarity: float = 0.5,
         use_prime_dilations: bool = False,
-        random_state: Optional[int] = None,
+        random_state: int | None = None,
         n_jobs: int = 1,
     ):
         self.max_shapelets = max_shapelets
@@ -172,7 +174,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
 
         super().__init__()
 
-    def _fit(self, X: np.ndarray, y: Optional[Union[np.ndarray, TypingList]] = None):
+    def _fit(self, X: np.ndarray, y: np.ndarray | TypingList | None = None):
         """Fit the random dilated shapelet transform to a specified X and y.
 
         Parameters
@@ -251,6 +253,9 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
                 "values for shapelet transformation."
             )
 
+        # Store the number of shapelets found
+        self.n_shapelets_ = len(self.shapelets_[0])
+
         # Shapelet "length" is length-1 times dilation
         self.max_shapelet_length_ = np.max(
             (self.shapelets_[2] - 1) * self.shapelets_[3]
@@ -258,9 +263,7 @@ class RandomDilatedShapeletTransform(BaseCollectionTransformer):
 
         return self
 
-    def _transform(
-        self, X: np.ndarray, y: Optional[Union[np.ndarray, TypingList]] = None
-    ):
+    def _transform(self, X: np.ndarray, y: np.ndarray | TypingList | None = None):
         """Transform X according to the extracted shapelets.
 
         Parameters
