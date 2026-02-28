@@ -49,6 +49,7 @@ class BaseForecaster(BaseSeriesEstimator):
         "capability:missing_values": False,
         "capability:horizon": True,
         "capability:exogenous": False,
+        "capability:is_series_to_series": False,
         "fit_is_empty": False,
         "y_inner_type": "np.ndarray",
     }
@@ -85,7 +86,7 @@ class BaseForecaster(BaseSeriesEstimator):
         return self
 
     @final
-    def predict(self, y, exog=None, axis=1) -> float:
+    def predict(self, y, exog=None, axis=1) -> float | np.ndarray:
         """Predict the next horizon steps ahead.
 
         Parameters
@@ -103,7 +104,12 @@ class BaseForecaster(BaseSeriesEstimator):
         if not self.get_tag("fit_is_empty"):
             self._check_is_fitted()
         y, exog = self._preprocess_forecasting_input(y, exog, axis, False)
-        return self._predict(y, exog)
+        y_pred = self._predict(y, exog)
+
+        if self.get_tag("capability:is_series_to_series", False):
+            return y_pred
+
+        return float(y_pred)
 
     @final
     def forecast(self, y, exog=None, axis=1) -> float:
