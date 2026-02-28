@@ -32,14 +32,20 @@ class RocketRegressor(BaseRegressor):
         The number of kernels for the Rocket transform.
     estimator : sklearn compatible regressor or None, default=None
         The estimator used. If None, a RidgeCV(alphas=np.logspace(-3, 3, 10)) is used.
+    use_gpu : bool, default=False
+        Whether to use GPU acceleration for the ROCKET transformation.
+        If True, requires TensorFlow to be installed. GPU acceleration can
+        significantly speed up computation for large datasets.
+        If False (default), uses CPU-based ROCKET transformation with
+        multithreading support via n_jobs.
+    n_jobs : int, default=1
+        The number of jobs to run in parallel for both `fit` and `predict`.
+        Only used when use_gpu=False. ``-1`` means using all processors.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
         If `None`, the random number generator is the `RandomState` instance used
         by `np.random`.
-    n_jobs : int, default=1
-        The number of jobs to run in parallel for both `fit` and `predict`.
-        ``-1`` means using all processors.
 
     See Also
     --------
@@ -59,10 +65,16 @@ class RocketRegressor(BaseRegressor):
     >>> from aeon.datasets import load_covid_3month
     >>> X_train, y_train = load_covid_3month(split="train")
     >>> X_test, y_test = load_covid_3month(split="test")
+    >>> # CPU mode (default)
     >>> reg = RocketRegressor(n_kernels=500)
     >>> reg.fit(X_train, y_train)
     RocketRegressor(n_kernels=500)
     >>> y_pred = reg.predict(X_test)
+    >>> # GPU mode (requires TensorFlow)
+    >>> reg_gpu = RocketRegressor(n_kernels=500, use_gpu=True)  # doctest: +SKIP
+    >>> reg_gpu.fit(X_train, y_train)  # doctest: +SKIP
+    RocketRegressor(...)  # doctest: +SKIP
+    >>> y_pred_gpu = reg_gpu.predict(X_test)  # doctest: +SKIP
     """
 
     _tags = {
@@ -73,15 +85,17 @@ class RocketRegressor(BaseRegressor):
 
     def __init__(
         self,
-        n_kernels=10000,
+        n_kernels: int = 10000,
         estimator=None,
+        use_gpu: bool = False,
+        n_jobs: int = 1,
         random_state=None,
-        n_jobs=1,
     ):
         self.n_kernels = n_kernels
-        self.random_state = random_state
         self.estimator = estimator
+        self.use_gpu = use_gpu
         self.n_jobs = n_jobs
+        self.random_state = random_state
 
         super().__init__()
 
@@ -105,13 +119,36 @@ class RocketRegressor(BaseRegressor):
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
         """
-        self._n_jobs = check_n_jobs(self.n_jobs)
+        if self.use_gpu:
+            # Check for TensorFlow dependency
+            from aeon.utils.validation._dependencies import _check_soft_dependencies
 
-        self._transformer = Rocket(
-            n_kernels=self.n_kernels,
-            n_jobs=self._n_jobs,
-            random_state=self.random_state,
-        )
+            _check_soft_dependencies("tensorflow", severity="error")
+
+            # Import GPU transformer
+            try:
+                from aeon.transformations.collection.convolution_based.rocketGPU import (  # noqa: E501
+                    ROCKETGPU,
+                )
+            except ModuleNotFoundError as e:
+                raise ImportError(
+                    "GPU mode (use_gpu=True) requires TensorFlow to be installed. "
+                    "Install it with: pip install tensorflow>=2.0.0 "
+                    "or set use_gpu=False to use CPU mode."
+                ) from e
+
+            self._transformer = ROCKETGPU(
+                n_kernels=self.n_kernels,
+                random_state=self.random_state,
+            )
+        else:
+            # Use CPU transformer (existing behavior)
+            self._n_jobs = check_n_jobs(self.n_jobs)
+            self._transformer = Rocket(
+                n_kernels=self.n_kernels,
+                n_jobs=self._n_jobs,
+                random_state=self.random_state,
+            )
         self._scaler = StandardScaler(with_mean=False)
         self._estimator = _clone_estimator(
             (
