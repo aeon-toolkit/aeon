@@ -1,39 +1,30 @@
 """
-List of datasets available for classification, regression and forecasting archives.
+Archives for time series classification, regression and forecasting.
 
 The classification and regression data can also be used for clustering.
+Classification data can be downloaded directly from the zenodo
+archive https://zenodo.org/communities/tsml or in code. Whole archives can be
+downloaded with download_archive, single problems with load_classification,
+load_regression and load_foreasting.
 
-Classification data can be downloaded directly from the timeseriesclassification.com
-archive.
-
-Regression data is and forecasting
-
-
-Classification/Regression
--------------------------
-Classification data available are listed in tsc_datasets.py. Regression problems
-are in tser_datasets.py. The data can be downloaded and loaded with
->>> from aeon.datasets import load_from_ts_file
-
-If the data is already stored on disk, you can just load it directly
-Metadata is loaded from the file header, and return is optional
-
-into 3D numpy arrays (n_cases, n_channels, n_timepoints) if equal length
-
-Forecasting
------------
-
+# Whole archives downloadable to TSML Zenodo from https://zenodo.org/records/<ID> ,
+with IDs listed in tsml_archives
 
 """
 
-__maintainer__ = []
+__maintainer__ = ["TonyBagnall"]
+
 __all__ = [
     "get_downloaded_tsc_tsr_datasets",
     "get_downloaded_tsf_datasets",
     "get_available_tser_datasets",
     "get_available_tsf_datasets",
+    "tsml_archives",
+    "tsml_zip_names",
 ]
+
 import os
+from pathlib import Path
 
 import aeon
 from aeon.datasets.tsc_datasets import multivariate, univariate
@@ -41,6 +32,29 @@ from aeon.datasets.tser_datasets import tser_monash, tser_soton
 from aeon.datasets.tsf_datasets import tsf_all
 
 MODULE = os.path.join(os.path.dirname(aeon.__file__), "datasets")
+
+tsml_archives = {
+    "Synthetic Unequal Length UCR Time Series Classification Datasets 2026": 18300287,
+    "TSML Extended Time Series Extrinsic Regression Archive 2024": 11236865,
+    "TSML Multivariate Time Series Classification Archive 2018": 11206331,
+    "Time Series Classification Bakeoff Redux Datasets 2024": 11206358,
+    "UCR Time Series Classification Archive 2018": 11198697,
+    "TSML Imbalanced Univariate Time Series Classification Archive 2025": 18641021,
+    "UCR": 11198697,
+    "UEA": 11206331,
+    "TSR": 11236865,
+    "Unequal": 18300287,
+    "Imbalanced": 18641021,
+    "Redux": 11206358,
+}
+tsml_zip_names = {
+    "UCR": "UCR%20Archive%202018.zip",  # ~300MB
+    "UEA": "TSML%20MV%20Archive%202018.zip",
+    "TSR": "TSER%20Archive%20Datasets%202024.zip",  # ~900MB
+    "Unequal": "Unequal%20Length%20UCR%20Datasets%202026.zip",
+    "Imbalanced": "UCR_Imbalanced_9_1.zip",  # ~250MB
+    "Redux": "2024%20Bakeoff%20Redux%20Datasets.zip",  # ~200MB
+}
 
 
 def get_available_tser_datasets(name="tser_soton", return_list=True):
@@ -100,35 +114,48 @@ def get_available_tsc_datasets(name=None):
     return name in univariate or name in multivariate
 
 
-def get_downloaded_tsc_tsr_datasets(extract_path=None):
-    """Return a list of all the currently downloaded datasets.
+def get_downloaded_tsc_tsr_datasets(extract_path: str | None = None) -> list[str]:
+    """Return dataset names available locally.
 
-    To count as available, each directory in extract_path <dir_name> in the
-    extract_path must contain  files called <dir_name>_TRAIN.ts and <dir_name>_TEST.ts.
+    A dataset is counted as available if a directory ``<name>/`` contains both
+    ``<name>_TRAIN.ts`` and ``<name>_TEST.ts``.
 
     Parameters
     ----------
-    extract_path: string, default None
-        root directory where to look for files, if None defaults to aeon/datasets/data
+    extract_path : str or None, default=None
+        Root directory to search. If None, searches both:
+        1) bundled aeon datasets in ``MODULE/data``
+        2) the user data cache from ``get_data_home()``
 
     Returns
     -------
-    datasets : List
-        List of the names of datasets downloaded
-
+    list[str]
+        Sorted dataset names found locally.
     """
     if extract_path is None:
-        data_dir = os.path.join(MODULE, "data")
+        roots = [os.path.join(MODULE, "data"), get_data_home()]
     else:
-        data_dir = extract_path
-    datasets = []
-    for name in os.listdir(data_dir):
-        sub_dir = os.path.join(data_dir, name)
-        if os.path.isdir(sub_dir):
-            all_files = os.listdir(sub_dir)
-            if name + "_TRAIN.ts" in all_files and name + "_TEST.ts" in all_files:
-                datasets.append(name)
-    return datasets
+        root = os.path.abspath(os.path.expanduser(extract_path))
+        roots = [root]
+
+    datasets: set[str] = set()
+
+    for data_dir in roots:
+        if not os.path.isdir(data_dir):
+            continue
+
+        for entry in os.scandir(data_dir):
+            if not entry.is_dir():
+                continue
+
+            name = entry.name
+            train_file = os.path.join(entry.path, f"{name}_TRAIN.ts")
+            test_file = os.path.join(entry.path, f"{name}_TEST.ts")
+
+            if os.path.isfile(train_file) and os.path.isfile(test_file):
+                datasets.add(name)
+
+    return sorted(datasets)
 
 
 def get_downloaded_tsf_datasets(extract_path=None):
@@ -160,3 +187,32 @@ def get_downloaded_tsf_datasets(extract_path=None):
             if name + ".tsf" in all_files:
                 datasets.append(name)
     return datasets
+
+
+def get_data_home(data_home: str | os.PathLike[str] | None = None) -> str:
+    """Return the aeon data home directory, creating it if needed.
+
+    This directory is used for downloaded datasets (not bundled package data).
+    Based on scikit-learn model,
+
+    Resolution order:
+    1. ``data_home`` argument, if provided
+    2. ``AEON_DATA`` environment variable, if set
+    3. ``~/aeon_data`` (default)
+
+    Parameters
+    ----------
+    data_home : str or path-like or None, default=None
+        Explicit path to the aeon data directory.
+
+    Returns
+    -------
+    data_home : str
+        Absolute path to the aeon data directory.
+    """
+    if data_home is None:
+        data_home = os.environ.get("AEON_DATA", os.path.join("~", "aeon_data"))
+
+    data_home = os.path.abspath(os.path.expanduser(os.fspath(data_home)))
+    Path(data_home).mkdir(parents=True, exist_ok=True)
+    return data_home

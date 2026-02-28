@@ -1,41 +1,65 @@
-"""Datasets in the UCR/tsml data archives from https://timeseriesclassification.com.
+"""Time Series Classification (TSR) datasets in the UCR/tsml data archives.
 
-Collections of data available from timeseriesclassification.com. Data is available in
-.ts format, and for some problems, in .arff and .tsv format. For any issues with these
-data, please see
-https://github.com/time-series-machine-learning/tsml-repo
+As described in https://timeseriesclassification.com.
 
-There are four main distinctions: univariate/multivariate equal/unequal length.
-Set univariate contains the 128 UCR problems, as described in [1].
-Set multivariate contains the 30 UEA problems, as described in [2], plus 3 new
-additions.
-Set univariate_equal_length contains the 112 UCR archive problems used in [3].
-Set multivariate_equal_length contains the 26 UEA archive problems used in [4].
+Data is available in standard aeon .ts format where each row is a possibly
+multivariate time series, each channel is separated by a colon, each value by a comma
+and the class value is at the end. For any issues with these data, please see
+https://github.com/time-series-machine-learning/tsml-repo.
+
+Datasets are all stored on Zenodo in the TSML grouping
+https://zenodo.org/communities/tsml/records?q=&l=list&p=1&s=10
+The complete list of classification problems is in the dictionary tsc_zenodo,
+which includes names and keys. These can be downloaded from zenodo or loaded in code
+using the following.
+
+from aeon.datasets import load_classification
+load_classification("ArrowHead", extract_path = "Temp/")
+
+This looks in the location for the file in the extract location, and if it is not
+there downloads it. See load_classification documentation for details.
+
+There are four main distinctions of TSC problem: univariate/multivariate equal/unequal
+length. We have provided string lists of different published archives.
+
+UCR2015 contains 85 univariate problem.
+UCR2018 contains the last UCR release of 128 datasets as described in [1].
+UEA contains the 30 UEA problems, as described in [2,3].
+univariate_equal_length contains the 112 UCR archive problems used in [3,4].
+multivariate_equal_length contains the 26 UEA archive problems used in [4].
+univariate_variable_length contains the 11 unequal length series in [1].
+univariate_missing_values contains the 4 series with missing values in [1].
+redux contains the 30 new univariate equal length series introduced in [5].
 
 [1] H.Dau, A. Bagnall, K. Kamgar, C. Yeh, Y. Zhu, S. Gharghabi, C. Ratanamahatana and
-E. Keogh.
-The  UCR  time  series  archive. IEEE/CAA J. Autom. Sinica, 6(6):1293–1305, 2019
+    E. Keogh. The  UCR  time  series  archive.
+    IEEE/CAA J. Autom. Sinica, 6(6):1293–1305, 2019
 [2] A. Bagnall, H. Dau, J. Lines, M. Flynn, J. Large, A. Bostrom, P. Southam,and
-E.  Keogh.
-The UEA  multivariate  time  series  classification  archive, 2018. ArXiv e-prints,
-arXiv:1811.00075, 2018
-[3] A. Bagnall, M. Flynn, J. Large, J. Lines and M. Middlehurst.
-On the Usage and Performance of the Hierarchical Vote Collective of Transformation-Based
-Ensembles Version 1.0 (HIVE-COTE v1.0). Lecture Notes in Computer Science. in proc.
-5th Advanced Analytics and Learning on Temporal Data
-[4] A. Pasos Ruiz, M. Flynn, J. Large, M. Middlehurst and A. Bagnall.
+    E.  Keogh. The UEA  multivariate  time  series  classification  archive, 2018.
+    ArXiv e-prints,arXiv:1811.00075, 2018
+[3] A. Pasos Ruiz, M. Flynn, J. Large, M. Middlehurst and A. Bagnall.
     The great multivariate time series classification bake off: a review and
     experimental evaluation of recent algorithmic advances,
     Data Mining and Knowledge Discovery, 2020.
+[4] Middlehurst, M., J. Large, M. Flynn, M. Middlehurst and A. Bagnall.
+    HIVE-COTE 2.0: a new meta ensemble for time series classification,
+    Machine Learning 110(11), 2021
 [5] Middlehurst, M., Schäfer, P. & Bagnall, A.
     Bake off redux: a review and experimental evaluation of recent time series
     classification algorithms. Data Min Knowl Disc 38, 1958–2031 (2024).
     https://doi.org/10.1007/s10618-024-01022-1
+[6] Multiverse
+[7] EEG
+[8] Monster
+[9] Rehab
 
+
+duplicate names for the lists are included for backward compatibility and will
+ultimately be deprecated.
 """
 
-# The 85 UCR univariate time series classification problems in the 2015 version
-univariate2015 = [
+# The 85 UCR univariate TSC datasets in the 2015 version
+UCR2015 = univariate2015 = [
     "Adiac",
     "ArrowHead",
     "Beef",
@@ -124,8 +148,8 @@ univariate2015 = [
 ]
 
 
-# 128 UCR univariate time series classification problems [1]
-univariate = [
+# 128 UCR univariate time series classification datasets [1]
+UCR2019 = univariate = [
     "ACSF1",
     "Adiac",
     "AllGestureWiimoteX",
@@ -256,8 +280,8 @@ univariate = [
     "Yoga",
 ]
 
-# 30 UEA multivariate time series classification problems [2]
-multivariate = [
+# 30 UEA multivariate time series classification datasets [2,3]
+UEA = multivariate = [
     "ArticularyWordRecognition",
     "AtrialFibrillation",
     "BasicMotions",
@@ -290,7 +314,7 @@ multivariate = [
     "UWaveGestureLibrary",
 ]
 
-# 112 equal length/no missing univariate time series classification problems [3]
+# 112 equal length/no missing univariate TSC datasets used in [4]
 univariate_equal_length = [
     "ACSF1",
     "Adiac",
@@ -406,7 +430,7 @@ univariate_equal_length = [
     "Yoga",
 ]
 
-# 11 variable length univariate time series classification problems [3]
+# 11 unequal length univariate TSC datasets in UCR [1]
 univariate_variable_length = [
     "AllGestureWiimoteX",
     "AllGestureWiimoteY",
@@ -421,7 +445,7 @@ univariate_variable_length = [
     "ShakeGestureWiimoteZ",
 ]
 
-# 4 fixed length univariate time series classification problems with missing values"""
+# 4 fixed length univariate TSC datasets with missing values in UCR [1]
 univariate_missing_values = [
     "DodgerLoopDay",
     "DodgerLoopGame",
@@ -429,7 +453,219 @@ univariate_missing_values = [
     "MelbournePedestrian",
 ]
 
-# 26 equal length multivariate time series classification problems [4]"""
+# 30 univariate TSC datasets introduced in [5]
+redux = [
+    "AconityMINIPrinterLarge",
+    "AconityMINIPrinterSmall",
+    "AllGestureWiimoteX",
+    "AllGestureWiimoteY",
+    "AllGestureWiimoteZ",
+    "AsphaltObstaclesUni",
+    "AsphaltPavementTypeUni",
+    "AsphaltRegularityUni",
+    "Colposcopy",
+    "Covid3Month_disc",
+    "DodgerLoopDay",
+    "DodgerLoopGame",
+    "DodgerLoopWeekend",
+    "ElectricDeviceDetection",
+    "FloodModeling1_disc",
+    "FloodModeling2_disc",
+    "FloodModeling3_disc",
+    "GestureMidAirD1",
+    "GestureMidAirD2",
+    "GestureMidAirD3",
+    "GesturePebbleZ1",
+    "GesturePebbleZ2",
+    "KeplerLightCurves",
+    "MelbournePedestrian",
+    "PhoneHeartbeatSound",
+    "PickupGestureWiimoteZ",
+    "PLAID",
+    "ShakeGestureWiimoteZ",
+    "SharePriceIncrease",
+    "Tools",
+]
+
+# 66 MTSC datasets recommended for general purpose algorithm comparison [6]
+multiverse_mini = [
+    "Alzheimers",
+    "AppliancesEnergy_disc",
+    "ArticularyWordRecognition",
+    "AsphaltObstaclesCoordinates_eq",
+    "AsphaltRegularityCoordinates_eq",
+    "AtrialFibrillation",
+    "AustraliaRainfall_disc",
+    "AutomotiveRoadTrials",
+    "BeijingPM10Quality_disc_nmv",
+    "BeijingPM25Quality_disc_nmv",
+    "BenzeneConcentration_disc_nmv",
+    "BIDMC32HR_disc",
+    "BIDMC32SpO2_disc",
+    "Blink",
+    "BoneIntensitiesAgeGroup",
+    "BoneProbAgeGroup",
+    "CharacterTrajectories_eq",
+    "CounterMovementJump_eq",
+    "Cricket",
+    "CrowdSourced",
+    "DuckDuckGeese",
+    "EigenWorms",
+    "EmoPain",
+    "Epilepsy",
+    "ERing",
+    "EthanolConcentration",
+    "EyesOpenShut",
+    "FaceDetection",
+    "FordChallenge",
+    "HandMovementDirection",
+    "Handwriting",
+    "Heartbeat",
+    "HouseholdPowerConsumption1_disc_nmv",
+    "HouseholdPowerConsumption2_disc_nmv",
+    "IEEEPPG_disc",
+    "IRDS-SFL",
+    "JapaneseVowels_eq",
+    "KERAAL-RTK",
+    "KIMORE-PR-C",
+    "KINECAL-QSEO",
+    "Libras",
+    "Locust2022",
+    "LowCost",
+    "LSST",
+    "MindReading",
+    "MotionSenseHAR",
+    "MotorImagery",
+    "NATOPS",
+    "PEMS-SF",
+    "PenDigits",
+    "PhonemeSpectra",
+    "PhotoStimulation",
+    "RacketSports",
+    "SelfRegulationSCP1",
+    "Skoda",
+    "SpokenArabicDigits_eq",
+    "StandWalkJump",
+    "STEW",
+    "TactileTextureRecognition",
+    "Tiselac",
+    "UCDHE-Rowing-MC",
+    "UCIActivity",
+    "UIPRMD-DS-C",
+    "USCActivity",
+    "UWaveGestureLibrary",
+    "WISDM",
+]
+
+# 30 EEG TSC datasets in the multiverse [7]
+eeg = [
+    "Alzheimers",
+    "Blink",
+    "ButtonPress",
+    "Epilepsy",
+    "EyesOpenShut",
+    "FaceDetection",
+    "FeedbackButton",
+    "FeetHands",
+    "FibroLiverpool",
+    "FibroUEA",
+    "FingerMovements",
+    "HandMovementDirection",
+    "ImaginedFeetHands",
+    "ImaginedOpenCloseFist",
+    "InnerSpeech",
+    "LongIntervalTask",
+    "LowCost",
+    "MatchingPennies",
+    "MindReading",
+    "MotorImagery",
+    "OpenCloseFist",
+    "PhotoStimulation",
+    "PronouncedSpeech",
+    "SelfRegulationSCP1",
+    "SelfRegulationSCP2",
+    "ShortIntervalTask",
+    "SitStand",
+    "Sleep",
+    "SongFamiliarity",
+    "VisualSpeech",
+]
+
+# 38 rehab motion [8]
+rehab_pile = [
+    "IRDS-EFL",
+    "IRDS-EFR",
+    "IRDS-SAL",
+    "IRDS-SAR",
+    "IRDS-SFE",
+    "IRDS-SFL",
+    "IRDS-SFR",
+    "IRDS-STL",
+    "IRDS-STR",
+    "KERAAL-CTK",
+    "KERAAL-CTK-MC",
+    "KERAAL-ELK",
+    "KERAAL-ELK-MC",
+    "KERAAL-RTK",
+    "KERAAL-RTK-MC",
+    "KIMORE-LA-C",
+    "KIMORE-LT-C",
+    "KIMORE-PR-C",
+    "KIMORE-Sq-C",
+    "KIMORE-TR-C",
+    "KINECAL-3WFV",
+    "KINECAL-GGFV",
+    "KINECAL-QSEC",
+    "KINECAL-QSEO",
+    "UCDHE-MP",
+    "UCDHE-MP-MC",
+    "UCDHE-Rowing",
+    "UCDHE-Rowing-MC",
+    "UIPRMD-DS-C",
+    "UIPRMD-HS-C",
+    "UIPRMD-IL-C",
+    "UIPRMD-SASLR-C",
+    "UIPRMD-SL-C",
+    "UIPRMD-SSA-C",
+    "UIPRMD-SSE-C",
+    "UIPRMD-SSIER-C",
+    "UIPRMD-SSS-C",
+    "UIPRMD-STS-C",
+]
+
+# 27 large TSC datasets in the Monster archive [9]
+monster = [
+    "AudioMNIST",
+    "AudioMNIST-DS",
+    "CornellWhaleChallenge",
+    "CrowdSourced",
+    "DreamerA",
+    "DreamerV",
+    "FordChallenge",
+    "FruitFlies",
+    "InsectSound",
+    "LakeIce",
+    "LenDB",
+    "MosquitoSound",
+    "Opportunity",
+    "PAMAP2",
+    "Pedestrian",
+    "S2Agri",
+    "S2Agri-10pc",
+    "Skoda",
+    "STEW",
+    "TimeSen2Crop",
+    "Tiselac",
+    "Traffic",
+    "UCIActivity",
+    "USCActivity",
+    "WhaleSounds",
+    "WISDM",
+    "WISDM2",
+]
+
+
+# 26 equal length multivariate TSC datasets in the UEA archive [2,3]"""
 multivariate_equal_length = [
     "ArticularyWordRecognition",
     "AtrialFibrillation",
@@ -459,7 +695,7 @@ multivariate_equal_length = [
     "UWaveGestureLibrary",
 ]
 
-# 7 variable length multivariate time series classification problems [4]"""
+# 7 variable length multivariate time series classification problems [2,3]"""
 multivariate_unequal_length = [
     "AsphaltObstaclesCoordinates",
     "AsphaltPavementTypeCoordinates",
@@ -470,29 +706,62 @@ multivariate_unequal_length = [
     "SpokenArabicDigits",
 ]
 
-# 158 tsml time series classification problems
+# All TSC and TSR datasets stored on the TSML zenodo group and keys
 tsc_zenodo = {
     "ACSF1": 11184893,
+    "AconityMINIPrinterLarge": 11217986,
+    "AconityMINIPrinterSmall": 11217988,
     "Adiac": 11179788,
     "AllGestureWiimoteX": 11185036,
     "AllGestureWiimoteY": 11185107,
     "AllGestureWiimoteZ": 11185136,
+    "Alzheimers": 15500801,
+    "AppliancesEnergy_disc": 18497240,
     "ArrowHead": 11185163,
+    "ArticularyWordRecognition": 11204924,
+    "AsphaltObstaclesCoordinates": 18497270,
+    "AsphaltObstaclesUni": 11217990,
+    "AsphaltPavementTypeCoordinates": 18497280,
+    "AsphaltPavementTypeUni": 11217994,
+    "AsphaltRegularityCoordinates": 18497298,
+    "AsphaltRegularityUni": 11217996,
+    "AtrialFibrillation": 11206175,
+    "AustraliaRainfall_disc": 18497322,
+    "AutomotiveRoadTrials": 18497336,
+    "BIDMC32HR_disc": 18497352,
+    "BIDMC32RR_disc": 18497425,
+    "BIDMC32SpO2_disc": 18497447,
+    "BME": 11185291,
+    "BasicMotions": 11206179,
     "Beef": 11185190,
     "BeetleFly": 11185218,
+    "BeijingPM10Quality_disc": 18497561,
+    "BeijingPM25Quality_disc": 18498242,
+    "BenzeneConcentration_disc": 18498580,
     "BirdChicken": 11185259,
-    "BME": 11185291,
-    "Car": 11185322,
+    "Blink": 18735667,
+    "BoneIntensitiesAgeGroup": 18498586,
+    "BoneProbAgeGroup": 18498595,
+    "ButtonPress": 15522930,
     "CBF": 11186181,
+    "Car": 11185322,
+    "CharacterTrajectories": 18723007,
     "Chinatown": 11186207,
     "ChlorineConcentration": 11186229,
     "CinCECGTorso": 11186247,
     "Coffee": 11186266,
+    "Colposcopy": 11217999,
     "Computers": 11186293,
+    "CounterMovementJump": 18498603,
+    "Covid3Month_disc": 11218003,
+    "Cricket": 11206185,
     "CricketX": 11186304,
     "CricketY": 11186320,
     "CricketZ": 11186333,
     "Crop": 11186344,
+    "CrowdSourced": 18498611,
+    "DREAMERA": 18498618,
+    "DREAMERV": 18498620,
     "DiatomSizeReduction": 11186365,
     "DistalPhalanxOutlineAgeGroup": 11186386,
     "DistalPhalanxOutlineCorrect": 11186597,
@@ -500,21 +769,36 @@ tsc_zenodo = {
     "DodgerLoopDay": 11186618,
     "DodgerLoopGame": 11186628,
     "DodgerLoopWeekend": 11186647,
-    "Earthquakes": 11186659,
+    "DuckDuckGeese": 11206189,
     "ECG200": 11186675,
     "ECG5000": 11186692,
     "ECGFiveDays": 11186702,
-    "ElectricDevices": 11190880,
     "EOGHorizontalSignal": 11190930,
     "EOGVerticalSignal": 11190951,
+    "ERing": 11206210,
+    "Earthquakes": 11186659,
+    "EigenWorms": 11206196,
+    "ElectricDeviceDetection": 11218007,
+    "ElectricDevices": 11190880,
+    "EmoPain": 18499143,
+    "Epilepsy": 11206204,
+    "EthanolConcentration": 11206212,
     "EthanolLevel": 11190985,
+    "EyesOpenShut": 18496872,
     "FaceAll": 11191011,
+    "FaceDetection": 11206216,
     "FaceFour": 11191042,
     "FacesUCR": 11191065,
+    "FeetHands": 15495750,
     "FiftyWords": 11191097,
+    "FingerMovements": 11206220,
     "Fish": 11191141,
+    "FloodModeling1_disc": 11218009,
+    "FloodModeling2_disc": 11218011,
+    "FloodModeling3_disc": 11218013,
     "FordA": 11191164,
     "FordB": 11191172,
+    "FordChallenge": 18499147,
     "FreezerRegularTrain": 11191184,
     "FreezerSmallTrain": 11191211,
     "Fungi": 11191230,
@@ -528,142 +812,178 @@ tsc_zenodo = {
     "GunPointMaleVersusFemale": 11194429,
     "GunPointOldVersusYoung": 11194437,
     "Ham": 11197526,
+    "HandMovementDirection": 11206224,
     "HandOutlines": 11197528,
+    "Handwriting": 11206227,
     "Haptics": 11197538,
+    "Heartbeat": 11206229,
     "Herring": 11197540,
     "HouseTwenty": 11197555,
+    "HouseholdPowerConsumption1_disc": 18499150,
+    "HouseholdPowerConsumption2_disc": 18499156,
+    "IEEEPPG_disc": 18499163,
+    "IRDS-EFL": 18510498,
+    "IRDS-EFR": 18510501,
+    "IRDS-SAL": 18510505,
+    "IRDS-SAR": 18510507,
+    "IRDS-SFE": 18510509,
+    "IRDS-SFL": 18510515,
+    "IRDS-SFR": 18510518,
+    "IRDS-STL": 18510520,
+    "IRDS-STR": 18510522,
+    "ImaginedFeetHands": 15493041,
+    "ImaginedOpenCloseFist": 15493010,
     "InlineSkate": 11197575,
+    "InnerSpeech": 15425020,
     "InsectEPGRegularTrain": 11197587,
     "InsectEPGSmallTrain": 11197608,
+    "InsectWingbeat": 11206234,
     "InsectWingbeatSound": 11197635,
     "ItalyPowerDemand": 11197656,
+    "JapaneseVowels": 18735628,
+    "KERAAL-CTK": 18510796,
+    "KERAAL-CTK-MC": 18510800,
+    "KERAAL-ELK": 18510806,
+    "KERAAL-ELK-MC": 18510811,
+    "KERAAL-RTK": 18510813,
+    "KERAAL-RTK-MC": 18510817,
+    "KIMORE-LA-C": 18510879,
+    "KIMORE-LT-C": 18510884,
+    "KIMORE-PR-C": 18510887,
+    "KIMORE-Sq-C": 18510889,
+    "KIMORE-TR-C": 18510893,
+    "KINECAL-3WFV": 18510895,
+    "KINECAL-GGFV": 18510901,
+    "KINECAL-QSEC": 18510903,
+    "KINECAL-QSEO": 18510905,
+    "KeplerLightCurves": 11218015,
+    "LSST": 11206243,
     "LargeKitchenAppliances": 11197689,
+    "LenDB": 18499169,
+    "Libras": 11206239,
     "Lightning2": 11197697,
     "Lightning7": 11197706,
+    "LiveFuelMoistureContent_disc": 18497210,
+    "Locust2022": 18499215,
+    "LongIntervalTask": 15427724,
+    "LowCost": 15523038,
     "Mallat": 11197731,
+    "MatchingPennies": 15523058,
     "Meat": 11197742,
     "MedicalImages": 11197752,
     "MelbournePedestrian": 11197762,
     "MiddlePhalanxOutlineAgeGroup": 11197771,
     "MiddlePhalanxOutlineCorrect": 11197782,
     "MiddlePhalanxTW": 11197799,
+    "MindReading": 15523138,
     "MixedShapesRegularTrain": 11197803,
     "MixedShapesSmallTrain": 11197811,
     "MoteStrain": 11197817,
-    "NonInvasiveFetalECGThorax1": 11197817,
+    "MotionSenseHAR": 18499225,
+    "MotorImagery": 11206246,
+    "NATOPS": 11206248,
+    "NewsHeadlineSentiment_disc": 18499242,
+    "NewsTitleSentiment_disc": 18499244,
+    "NonInvasiveFetalECGThorax1": 11197821,
     "NonInvasiveFetalECGThorax2": 11197831,
-    "OliveOil": 11197843,
     "OSULeaf": 11197848,
+    "OliveOil": 11197843,
+    "OpenCloseFist": 15492985,
+    "Opportunity": 18499292,
+    "PAMAP2": 18499363,
+    "PEMS-SF": 11206252,
+    "PLAID": 11197936,
+    "PPGDalia_disc": 18499660,
+    "PenDigits": 11206259,
     "PhalangesOutlinesCorrect": 11197875,
+    "PhoneHeartbeatSound": 11218017,
     "Phoneme": 11197891,
+    "PhonemeSpectra": 11206261,
+    "PhotoStimulation": 15500781,
     "PickupGestureWiimoteZ": 11197898,
     "PigAirwayPressure": 11197911,
     "PigArtPressure": 11197920,
     "PigCVP": 11197924,
-    "PLAID": 11197936,
     "Plane": 11197940,
     "PowerCons": 11197948,
+    "PronouncedSpeech": 15392755,
     "ProximalPhalanxOutlineAgeGroup": 11197960,
     "ProximalPhalanxOutlineCorrect": 11197968,
     "ProximalPhalanxTW": 11197973,
+    "RacketSports": 11206263,
     "RefrigerationDevices": 11197996,
+    "Regression": 11236865,
     "Rock": 11198001,
+    "S2Agri-10pc-17": 18499796,
+    "S2Agri-10pc-34": 18499800,
+    "S2Agri-17": 18505001,
+    "S2Agri-34": 18504996,
+    "SPHERE-WUS": 18510936,
+    "STEW": 18500110,
     "ScreenType": 11198182,
+    "SelfRegulationSCP1": 11206265,
+    "SelfRegulationSCP2": 11206269,
     "SemgHandGenderCh2": 11198193,
     "SemgHandMovementCh2": 11198197,
     "SemgHandSubjectCh2": 11198203,
     "ShakeGestureWiimoteZ": 11198219,
     "ShapeletSim": 11198235,
     "ShapesAll": 11198237,
+    "SharePriceIncrease": 11218021,
+    "ShortIntervalTask": 15491177,
+    "SitStand": 15500726,
+    "Skoda": 18500184,
+    "Sleep": 15526565,
     "SmallKitchenAppliances": 11198251,
     "SmoothSubspace": 11198271,
+    "SongFamiliarity": 15496080,
     "SonyAIBORobotSurface1": 11198277,
     "SonyAIBORobotSurface2": 11198290,
+    "SpokenArabicDigits": 11206274,
+    "StandWalkJump": 11206278,
     "StarLightCurves": 11198308,
     "Strawberry": 11198313,
     "SwedishLeaf": 11198315,
     "Symbols": 11198322,
     "SyntheticControl": 11198330,
+    "TactileTextureRecognition": 18500187,
+    "Tiselac": 18500191,
     "ToeSegmentation1": 11198338,
     "ToeSegmentation2": 11198342,
+    "Tools": 11218023,
     "Trace": 11198344,
     "TwoLeadECG": 11198352,
     "TwoPatterns": 11198356,
+    "UCDHE-MP": 18510938,
+    "UCDHE-MP-MC": 18510940,
+    "UCDHE-Rowing": 18510942,
+    "UCDHE-Rowing-MC": 18510948,
+    "UCIActivity": 18500267,
+    "UIPRMD-DS-C": 18511325,
+    "UIPRMD-HS-C": 18511341,
+    "UIPRMD-IL-C": 18511343,
+    "UIPRMD-SASLR-C": 18511347,
+    "UIPRMD-SL-C": 18511349,
+    "UIPRMD-SSA-C": 18511351,
+    "UIPRMD-SSE-C": 18511355,
+    "UIPRMD-SSIER-C": 18511357,
+    "UIPRMD-SSS-C": 18511361,
+    "UIPRMD-STS-C": 18511363,
     "UMD": 11198362,
+    "USCActivity": 18500265,
+    "UWaveGestureLibrary": 11206282,
     "UWaveGestureLibraryAll": 11198366,
     "UWaveGestureLibraryX": 11198374,
     "UWaveGestureLibraryY": 11198382,
     "UWaveGestureLibraryZ": 11198384,
+    "Unequal": 18300287,
+    "VisualSpeech": 15366803,
+    "WISDM": 18500261,
+    "WISDM2": 18500263,
     "Wafer": 11198387,
     "Wine": 11198391,
     "WordSynonyms": 11198396,
     "Worms": 11198402,
     "WormsTwoClass": 11198406,
     "Yoga": 11198408,
-    "ArticularyWordRecognition": 11204924,
-    "AtrialFibrillation": 11206175,
-    "BasicMotions": 11206179,
-    "CharacterTrajectories": 11206183,
-    "Cricket": 11206185,
-    "DuckDuckGeese": 11206189,
-    "EigenWorms": 11206196,
-    "Epilepsy": 11206204,
-    "EthanolConcentration": 11206212,
-    "ERing": 11206210,
-    "FaceDetection": 11206216,
-    "FingerMovements": 11206220,
-    "HandMovementDirection": 11206224,
-    "Handwriting": 11206227,
-    "Heartbeat": 11206229,
-    "InsectWingbeat": 11206234,
-    "JapaneseVowels": 11206237,
-    "Libras": 11206239,
-    "LSST": 11206243,
-    "MotorImagery": 11206246,
-    "NATOPS": 11206248,
-    "PenDigits": 11206259,
-    "PEMS-SF": 11206252,
-    "PhonemeSpectra": 11206261,
-    "RacketSports": 11206263,
-    "SelfRegulationSCP1": 11206265,
-    "SelfRegulationSCP2": 11206269,
-    "SpokenArabicDigits": 11206274,
-    "StandWalkJump": 11206278,
-    "UWaveGestureLibrary": 11206282,
 }
-
-# 30 new univariate classification problems used in the bake off [5]. Some are new,
-# some are discrete versions of regression problems, some are equal length versions
-# of the current UCR problems and some are no missing versions of the current 128 UCR.
-univariate_bake_off_2024 = [
-    "AconityMINIPrinterLarge",  # AconityMINIPrinterLarge_eq
-    "AconityMINIPrinterSmall",  # AconityMINIPrinterSmall_eq
-    "AllGestureWiimoteX",  # AllGestureWiimoteX_eq
-    "AllGestureWiimoteY",  # AllGestureWiimoteY_eq
-    "AllGestureWiimoteZ",  # AllGestureWiimoteZ_eq
-    "AsphaltObstacles",  # AsphaltObstaclesUni_eq
-    "AsphaltPavementType",  # AsphaltPavementTypeUni_eq
-    "AsphaltRegularity",  # AsphaltRegularityUni_eq
-    "Colposcopy",  # Colposcopy
-    "Covid3Month",  # Covid3Month_disc
-    "DodgerLoopDay",  # DodgerLoopDay_nmv
-    "DodgerLoopGame",  # DodgerLoopGame_nmv
-    "DodgerLoopWeekend",  # DodgerLoopWeekend_nmv
-    "ElectricDeviceDetection",  # ElectricDeviceDetection
-    "FloodModeling1",  # FloodModeling1_disc
-    "FloodModeling2",  # FloodModeling2_disc
-    "FloodModeling3",  # FloodModeling3_disc
-    "GestureMidAirD1",  # GestureMidAirD1_eq
-    "GestureMidAirD2",  # GestureMidAirD2_eq
-    "GestureMidAirD3",  # GestureMidAirD3_eq
-    "GesturePebbleZ1",  # GesturePebbleZ1_eq
-    "GesturePebbleZ2",  # GesturePebbleZ2_eq
-    "KeplerLightCurves",  # KeplerLightCurves
-    "MelbournePedestrian",  # MelbournePedestrian_nmv
-    "PhoneHeartbeatSound",  # PhoneHeartbeatSound
-    "PickupGestureWiimoteZ",  # PickupGestureWiimoteZ_eq
-    "PLAID",  # PLAID_eq
-    "ShakeGestureWiimoteZ",  # ShakeGestureWiimoteZ_eq
-    "SharePriceIncrease",  # SharePriceIncrease
-    "Tools",  # Tools
-]
