@@ -48,6 +48,8 @@ EXCLUDED_TESTS = {
     ],
     # needs investigation
     "LeftSTAMPi": ["check_series_anomaly_detector_output"],
+    "SeriesToCollectionBroadcaster": ["check_transform_inverse_transform_equivalent"],
+    "CollectionToSeriesWrapper": ["check_transform_inverse_transform_equivalent"],
     # missed in legacy testing, changes state in predict/transform
     "FLUSSSegmenter": ["check_non_state_changing_method"],
     "ClaSPSegmenter": ["check_non_state_changing_method"],
@@ -55,11 +57,21 @@ EXCLUDED_TESTS = {
     # Unknown issue not producing the same results
     "RDSTRegressor": ["check_regressor_against_expected_results"],
     "RISTRegressor": ["check_regressor_against_expected_results"],
-    # Affected by threading changes in distance module
-    "CanonicalIntervalForestRegressor": ["check_regressor_against_expected_results"],
     # Requires y to be passed in inverse_transform,
     # but this is not currently enabled/supported
     "DifferenceTransformer": ["check_transform_inverse_transform_equivalent"],
+    # broken by 0.63.0 numba update, see #3307 attempt to fix
+    "HIVECOTEV2": ["check_classifier_against_expected_results"],
+    "TemporalDictionaryEnsemble": ["check_classifier_against_expected_results"],
+    # multithreading issue, sometimes produces different results between single
+    # and multithreading
+    "FreshPRINCEClassifier": ["check_estimator_multithreading"],
+    "FreshPRINCERegressor": ["check_estimator_multithreading"],
+    "TSFreshClassifier": ["check_estimator_multithreading"],
+    "TSFreshRegressor": ["check_estimator_multithreading"],
+    "TSFreshClusterer": ["check_estimator_multithreading"],
+    "TSFreshRelevant": ["check_estimator_multithreading"],
+    "TSFresh": ["check_estimator_multithreading"],
 }
 
 # Exclude specific tests for estimators here only when numba is disabled
