@@ -3,10 +3,12 @@
 __maintainer__ = ["baraline"]
 
 import numpy as np
-from numpy.testing import assert_almost_equal
+import pytest
+from numpy.testing import assert_allclose, assert_almost_equal
 
 from aeon.similarity_search.series._commons import fft_sliding_dot_product
 from aeon.similarity_search.series.neighbors._mass import (
+    MassSNN,
     _normalized_squared_distance_profile,
     _squared_distance_profile,
 )
@@ -42,3 +44,22 @@ def test__normalized_squared_distance_profile():
     for i_t in range(X.shape[1] - L + 1):
         S = z_normalise_series_2d(X[:, i_t : i_t + L])
         assert_almost_equal(dist_profile[i_t], np.sum((S - Q) ** 2))
+
+
+@pytest.mark.parametrize("normalize", [True, False])
+def test_mass_parallel_vs_sequential(normalize):
+    """Test that parallel MASS implementation matches sequential results."""
+    L = 20
+    n_timepoints = 105
+    n_channels = 2
+    X = make_example_2d_numpy_series(
+        n_channels=n_channels, n_timepoints=n_timepoints, random_state=42
+    )
+    Q = X[:, 0:L]
+    mass_seq = MassSNN(length=L, normalize=normalize, n_jobs=1)
+    mass_seq.fit(X)
+    dist_seq = mass_seq.compute_distance_profile(Q)
+    mass_par = MassSNN(length=L, normalize=normalize, n_jobs=2)
+    mass_par.fit(X)
+    dist_par = mass_par.compute_distance_profile(Q)
+    assert_allclose(dist_seq, dist_par, rtol=1e-5, atol=1e-5)
