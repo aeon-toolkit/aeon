@@ -24,7 +24,8 @@ def minkowski_distance(
     Optionally, a weight vector w can be provided to
     give different weights to the elements:
     .. math::
-        md_w(x, y, p, w) = \left( \sum_{i=1}^{n} w_i \cdot |x_i - y_i|^p \right)^{\frac{1}{p}} # noqa: E501
+        md_w(x, y, p, w) = \Bigl( \sum_{i=1}^{n} w_i \cdot |x_i - y_i|^p \Bigr)
+        ^{1/p}
 
     Parameters
     ----------
