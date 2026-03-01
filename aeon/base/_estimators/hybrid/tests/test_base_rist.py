@@ -43,7 +43,7 @@ def test_rist_soft_dependencies():
 )
 def test_rist_estimator_input():
     """Test the RIST class different with estimator input."""
-    X, y = make_example_3d_numpy()
+    X, y = make_example_3d_numpy(n_cases=15, n_labels=4)
 
     rist = RISTClassifier(n_intervals=3, n_shapelets=3, series_transformers=None)
     rist.fit(X, y)
@@ -69,7 +69,7 @@ def test_rist_estimator_input():
     proba = rist.predict_proba(X)
 
     assert isinstance(proba, np.ndarray)
-    assert proba.shape == (10, 2)
+    assert proba.shape == (15, 4)
 
 
 @pytest.mark.skipif(

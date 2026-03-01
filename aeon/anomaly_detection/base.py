@@ -6,8 +6,10 @@ __all__ = ["BaseAnomalyDetector"]
 from abc import abstractmethod
 
 import numpy as np
+import pandas as pd
 
 from aeon.base import BaseAeonEstimator
+from aeon.utils.validation.labels import check_anomaly_detection_y
 
 
 class BaseAnomalyDetector(BaseAeonEstimator):
@@ -92,3 +94,41 @@ class BaseAnomalyDetector(BaseAeonEstimator):
             score.
         """
         ...
+
+    def _check_y(self, y, correct_length) -> np.ndarray:
+        """Check y input is valid.
+
+        Must be 1-dimensional and contain only 0s (no anomaly) and 1s (anomaly).
+        """
+        # Remind user if y is not required for this estimator on failure
+        req_msg = (
+            f" {self.__class__.__name__} does not require a y input."
+            if self.get_tag("requires_y")
+            else ""
+        )
+
+        if isinstance(y, pd.DataFrame):
+            # only accept size 1 dataframe
+            if y.shape[1] > 1:
+                raise TypeError(
+                    "Error in input type for y: y input as pd.DataFrame should have a "
+                    "single column series." + req_msg
+                )
+            y = y.squeeze().values
+
+        try:
+            check_anomaly_detection_y(y)
+        except (TypeError, ValueError) as e:
+            raise type(e)(f"{e}{req_msg}") from e
+
+        # Check matching number of labels
+        n_labels = y.shape[0]
+        if n_labels != correct_length:
+            raise ValueError(
+                f"Mismatch in number of labels. Found {n_labels} and expected "
+                f"{correct_length}." + req_msg
+            )
+
+        if isinstance(y, pd.Series):
+            y = pd.Series.to_numpy(y)
+        return y.astype(bool)

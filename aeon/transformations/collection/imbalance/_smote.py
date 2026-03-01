@@ -101,7 +101,7 @@ class SMOTE(BaseCollectionTransformer):
         self._n_jobs = check_n_jobs(self.n_jobs)
 
         # set the additional_neighbor required by SMOTE
-        self.nn_ = _Single_Class_KNN(
+        self.nn_ = _SingleClassKNN(
             n_neighbors=self.n_neighbors + 1,
             distance=self.distance,
             distance_params=self._distance_params,
@@ -281,16 +281,15 @@ class SMOTE(BaseCollectionTransformer):
         return {"n_neighbors": 1}
 
 
-class _Single_Class_KNN(KNeighborsTimeSeriesClassifier):
+class _SingleClassKNN(KNeighborsTimeSeriesClassifier):
     """
     KNN classifier for time series data, adapted to work with SMOTE.
 
     This class is a wrapper around the original KNeighborsTimeSeriesClassifier
-    to ensure compatibility with the Signal class.
+    to ensure compatibility with a single class.
     """
 
-    def _fit_setup(self, X, y):
-        # KNN can support if all labels are the same so always return False for single
-        # class problem so the fit will always run
-        X, y, _ = super()._fit_setup(X, y)
-        return X, y, False
+    def _check_y(self, y, n_cases, update_classes=True, allow_single_class=False):
+        return super()._check_y(
+            y, n_cases, update_classes=update_classes, allow_single_class=True
+        )
