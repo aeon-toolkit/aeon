@@ -83,7 +83,7 @@ class RClusterer(BaseClusterer):
         self.num_features = num_features
         self.n_init = n_init
         self.random_state = random_state
-        self._n_jobs = check_n_jobs(n_jobs)
+        self.n_jobs = n_jobs
         super().__init__()
 
     def _get_parameterised_data(self, X):
@@ -187,8 +187,9 @@ class RClusterer(BaseClusterer):
             Ignored.
         """
         self.indices = _get_indices()
-
+        self._n_jobs = check_n_jobs(self.n_jobs)
         prev_threads = get_num_threads()
+
         set_num_threads(self._n_jobs)
 
         self.parameters = self._get_parameterised_data(X)
@@ -232,6 +233,7 @@ class RClusterer(BaseClusterer):
             Array of cluster labels for each time series.
         """
         prev_threads = get_num_threads()
+        self._n_jobs = check_n_jobs(self.n_jobs)
         set_num_threads(self._n_jobs)
 
         transformed_data = self._get_transformed_data(X=X, parameters=self.parameters)
