@@ -4,7 +4,6 @@ import warnings
 
 __maintainer__ = []
 __all__ = ["ClaSPSegmenter", "find_dominant_window_sizes"]
-
 from queue import PriorityQueue
 
 import numpy as np
@@ -15,7 +14,7 @@ from aeon.transformations.series import ClaSPTransformer
 from aeon.utils.validation import check_n_jobs
 
 
-def find_dominant_window_sizes(X, offset=0.05):
+def find_dominant_window_sizes(X, offset: float = 0.05):
     """Determine the Window-Size using dominant FFT-frequencies.
 
     Parameters
@@ -55,7 +54,9 @@ def find_dominant_window_sizes(X, offset=0.05):
     )
 
 
-def _is_trivial_match(candidate, change_points, n_timepoints, exclusion_radius=0.05):
+def _is_trivial_match(
+    candidate: int, change_points, n_timepoints: int, exclusion_radius: float = 0.05
+):
     """Check if a candidate change point is in close proximity to other change points.
 
     Parameters
@@ -87,7 +88,9 @@ def _is_trivial_match(candidate, change_points, n_timepoints, exclusion_radius=0
     return False
 
 
-def _segmentation(X, clasp, n_change_points=None, exclusion_radius=0.05):
+def _segmentation(
+    X, clasp, n_change_points: int | None = None, exclusion_radius: float = 0.05
+):
     """Segments the time series by extracting change points.
 
     Parameters
@@ -182,7 +185,7 @@ class ClaSPSegmenter(BaseSegmenter):
         Size of window for sliding, based on the period length of the data.
     n_cps : int, default = 1
         The number of change points to search.
-    exclusion_radius : int
+    exclusion_radius : float
         Exclusion Radius for change points to be non-trivial matches.
     n_jobs : int, default=1
         Number of jobs to be used.
@@ -209,7 +212,13 @@ class ClaSPSegmenter(BaseSegmenter):
 
     _tags = {"capability:multithreading": True, "fit_is_empty": True}
 
-    def __init__(self, period_length=10, n_cps=1, exclusion_radius=0.05, n_jobs=1):
+    def __init__(
+        self,
+        period_length: int = 10,
+        n_cps: int = 1,
+        exclusion_radius: float = 0.05,
+        n_jobs: int = 1,
+    ):
         self.period_length = int(period_length)
         self.n_cps = n_cps
         self.exclusion_radius = exclusion_radius
@@ -289,7 +298,7 @@ class ClaSPSegmenter(BaseSegmenter):
         Parameters
         ----------
         X :         array-like, shape = [n]
-           Univariate time-series data to be segmented.
+        Univariate time-series data to be segmented.
         found_cps : array-like, shape = [n_cps] The found change points found
 
         Returns
@@ -304,7 +313,7 @@ class ClaSPSegmenter(BaseSegmenter):
         return pd.IntervalIndex.from_arrays(start, end)
 
     @classmethod
-    def _get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set: str = "default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
