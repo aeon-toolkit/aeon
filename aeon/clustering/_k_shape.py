@@ -38,15 +38,6 @@ class KShape(BaseClusterer):
     based on the implementation from TheDatumOrg/kshape-python (MIT License)
     adapted to use aeon SBD distance and compliant with aeon BaseClusterer API.
 
-    Minor differences in implementation:
-    [1] Datum version computes NCC on the full multivariate array at once using
-    a Frobenius norm in the denominator and summing CC over channels before
-    normalisation. aeon sbd_pairwise_distance computes SBD independently per channel
-    and then averages across channels.
-    [2] We do not guard against zero std dev in SBD.
-    [3] TheDatum terminate early if labels don't change, we also terminate for very
-    low inertia change.
-
     Parameters
     ----------
     n_clusters : int, default=8
