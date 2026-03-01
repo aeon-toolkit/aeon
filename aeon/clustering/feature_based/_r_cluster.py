@@ -8,7 +8,7 @@ from numba import get_num_threads, set_num_threads
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
-from aeon.utils.validation import check_n_jobs
+
 from aeon.clustering.base import BaseClusterer
 from aeon.transformations.collection.convolution_based._minirocket import (
     _fit_biases,
@@ -16,6 +16,7 @@ from aeon.transformations.collection.convolution_based._minirocket import (
     _quantiles,
     _static_transform_uni,
 )
+from aeon.utils.validation import check_n_jobs
 
 
 class RClusterer(BaseClusterer):
