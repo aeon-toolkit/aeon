@@ -8,7 +8,7 @@ from numba import get_num_threads, set_num_threads
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
-
+from aeon.utils.validation import check_n_jobs
 from aeon.clustering.base import BaseClusterer
 from aeon.transformations.collection.convolution_based._minirocket import (
     _fit_biases,
@@ -83,7 +83,7 @@ class RClusterer(BaseClusterer):
         self.num_features = num_features
         self.n_init = n_init
         self.random_state = random_state
-        self.n_jobs = n_jobs
+        self._n_jobs = check_n_jobs(n_jobs)
         super().__init__()
 
     def _get_parameterised_data(self, X):
@@ -189,7 +189,7 @@ class RClusterer(BaseClusterer):
         self.indices = _get_indices()
 
         prev_threads = get_num_threads()
-        set_num_threads(self.n_jobs)
+        set_num_threads(self._n_jobs)
 
         self.parameters = self._get_parameterised_data(X)
 
@@ -232,7 +232,7 @@ class RClusterer(BaseClusterer):
             Array of cluster labels for each time series.
         """
         prev_threads = get_num_threads()
-        set_num_threads(self.n_jobs)
+        set_num_threads(self._n_jobs)
 
         transformed_data = self._get_transformed_data(X=X, parameters=self.parameters)
 
