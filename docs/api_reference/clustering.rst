@@ -21,6 +21,7 @@ Clustering Algorithms
     :template: class.rst
 
     KASBA
+    KShape
     TimeSeriesKMeans
     TimeSeriesKMedoids
     TimeSeriesKShape
