@@ -30,13 +30,13 @@ class _KShapeRunResult:
 
 
 class KShape(BaseClusterer):
-    """K-Shape [1] clustering for equal-length time series.
+    """K-Shape [1]_ clustering for equal-length time series.
 
     K-Shape is a k-means based clustering algorithm that employs Shape-Based
     Distance (SBD) for assignment and shape extraction via leading eigenvector
     of a centred covariance-like matrix for centroid forming. This implementation is
     based on the implementation from TheDatumOrg/kshape-python (MIT License)
-    adapted to use aeon SBD distance and compliant with aeon BaseClusterer API.
+    adapted to use aeon SBD distance and to be compliant with aeon BaseClusterer API.
 
     Parameters
     ----------
@@ -69,7 +69,7 @@ class KShape(BaseClusterer):
 
     References
     ----------
-    [1] Paparrizos, J. and Gravano, L. (2015). k-Shape: Efficient and Accurate
+    .. [1] Paparrizos, J. and Gravano, L. (2015). k-Shape: Efficient and Accurate
     Clustering of Time Series. Proceedings of ACM SIGMOD
     """
 

@@ -20,7 +20,7 @@ class KASBA(BaseClusterer):
     """KASBA clusterer [1]_.
 
     KASBA is a $k$-means clustering algorithm designed for use with the MSM distance
-    metric [2]_ however, it can be used with any elastic distance that is a metric.
+    metric [2]_. it can be used with any elastic distance that is a metric, such as TWE.
     KASBA finds initial clusters using an adapted form of kmeans++ to use
     elastic distances, a fast assignment step that exploits the metric property
     to avoid distance calculations in assignment, and an adapted elastic barycenter
@@ -83,11 +83,11 @@ class KASBA(BaseClusterer):
 
     References
     ----------
-    .. [1] Holder, Christopher & Bagnall, Anthony. (2024).
+    .. [1] Holder, C. and Bagnall, A.
        Rock the KASBA: Blazingly Fast and Accurate Time Series Clustering.
-       10.48550/arXiv.2411.17838.
+       Data Mining and Knowledge Discovery 40(21), 2026
 
-    .. [2] Stefan A., Athitsos V., Das G.: The Move-Split-Merge metric for time
+    .. [2] Stefan A., Athitsos V. and Das G.: The Move-Split-Merge metric for time
     series. IEEE Transactions on Knowledge and Data Engineering 25(6), 2013.
 
     Examples
@@ -103,6 +103,7 @@ class KASBA(BaseClusterer):
 
     _tags = {
         "capability:multivariate": True,
+        "capability: multithreading": True,
         "algorithm_type": "distance",
     }
 
