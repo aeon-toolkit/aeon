@@ -174,6 +174,11 @@ class DeepARForecaster(
 
         from aeon.utils.loss.gaussian_loss import gaussian_loss
 
+        if isinstance(self.metrics, str):
+            self._metrics = [self.metrics]
+        else:
+            self._metrics = self.metrics
+
         self._loss = gaussian_loss if self.loss == "gaussian_loss" else self.loss
         rng = check_random_state(self.random_state)
         self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
@@ -226,11 +231,6 @@ class DeepARForecaster(
                 f"Data length ({y_inner.shape}) is insufficient for window "
                 f"({self.window}) and horizon ({self.horizon})."
             )
-
-        if isinstance(self.metrics, list):
-            self._metrics = self.metrics
-        elif isinstance(self.metrics, str):
-            self._metrics = [self.metrics]
 
         windows_full = np.lib.stride_tricks.sliding_window_view(
             y_inner, window_shape=(self.window, num_channels)

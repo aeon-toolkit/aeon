@@ -380,6 +380,11 @@ class WEASELTransformerV2:
                 f"all with very short series"
             )
 
+        if (self.feature_selection == "chi2_top_k") and (y is None):
+            raise ValueError(
+                "Class values must be provided for chi2_top_k feature selection."
+            )
+
         # Randomly choose window sizes
         self.window_sizes = np.arange(self.min_window, self.max_window + 1, 1)
 
@@ -387,7 +392,7 @@ class WEASELTransformerV2:
             delayed(_parallel_fit)(
                 i,
                 XX,
-                y.copy(),
+                safe_copy(y),
                 self.window_sizes,
                 self.alphabet_sizes,
                 self.word_lengths,
@@ -522,3 +527,8 @@ def _parallel_fit(
         all_words.append(words)
         all_transformers.append(transformer)
     return all_words, all_transformers
+
+
+@staticmethod
+def safe_copy(y):
+    return y.copy() if y is not None else y
