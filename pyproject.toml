@@ -45,11 +45,11 @@ classifiers = [
 requires-python = ">=3.11,<3.15"
 dependencies = [
     "deprecated>=1.2.13",
-    "numba>=0.55,<0.64.0",
+    "numba>=0.55,<0.65.0",
     "numpy>=2.0.0,<2.5.0",
     "packaging>=20.0",
-    "pandas>=2.0.0,<2.4.0",
-    "scikit-learn>=1.0.0,<1.8.0",
+    "pandas>=2.0.0,<3.1.0",
+    "scikit-learn>=1.0.0,<1.9.0",
     "scipy>=1.9.0,<1.18.0",
     "typing-extensions>=4.6.0",
 ]
@@ -108,7 +108,7 @@ binder = [
     "tensorflow>=2.14; python_version < '3.13'",
 ]
 docs = [
-    "sphinx<8.3.0",
+    "sphinx<9.1.0",
     "sphinx-design",
     "sphinx-version-warning",
     "sphinx_issues",
