@@ -244,7 +244,6 @@ class KShape(BaseClusterer):
             "n_init": 1,
             "max_iter": 2,
             "random_state": 0,
-            "n_jobs": 1,
             "z_normalise": True,
         }
 
