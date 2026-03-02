@@ -75,7 +75,6 @@ class KShape(BaseClusterer):
 
     _tags = {
         "capability:multivariate": True,
-        "capability:multithreading": True,
         "algorithm_type": "distance",
     }
 
@@ -88,7 +87,6 @@ class KShape(BaseClusterer):
         tol: float = 1e-6,
         z_normalise: bool = True,
         random_state=None,
-        n_jobs: int | None = 1,
         verbose: bool = False,
     ):
         self.n_clusters = n_clusters
@@ -98,7 +96,6 @@ class KShape(BaseClusterer):
         self.tol = tol
         self.z_normalise = z_normalise
         self.random_state = random_state
-        self.n_jobs = n_jobs
         self.verbose = verbose
 
         self.cluster_centres_ = None
@@ -107,7 +104,6 @@ class KShape(BaseClusterer):
         self.n_iter_ = 0
 
         self._rng = None
-        self._n_jobs = 1
         self._init_centres = None
 
         super().__init__()
@@ -238,9 +234,7 @@ class KShape(BaseClusterer):
         """Compute SBD distances between all cases and all centres using aeon."""
         # If we've already z-normalised do not ask SBD to standardise again
         standardise = not self.z_normalise
-        return sbd_pairwise_distance(
-            X, centres, standardize=standardise, n_jobs=self._n_jobs
-        )
+        return sbd_pairwise_distance(X, centres, standardize=standardise)
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
