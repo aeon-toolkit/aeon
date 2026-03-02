@@ -63,6 +63,15 @@ EXCLUDED_TESTS = {
     # broken by 0.63.0 numba update, see #3307 attempt to fix
     "HIVECOTEV2": ["check_classifier_against_expected_results"],
     "TemporalDictionaryEnsemble": ["check_classifier_against_expected_results"],
+    # multithreading issue, sometimes produces different results between single
+    # and multithreading
+    "FreshPRINCEClassifier": ["check_estimator_multithreading"],
+    "FreshPRINCERegressor": ["check_estimator_multithreading"],
+    "TSFreshClassifier": ["check_estimator_multithreading"],
+    "TSFreshRegressor": ["check_estimator_multithreading"],
+    "TSFreshClusterer": ["check_estimator_multithreading"],
+    "TSFreshRelevant": ["check_estimator_multithreading"],
+    "TSFresh": ["check_estimator_multithreading"],
 }
 
 # Exclude specific tests for estimators here only when numba is disabled

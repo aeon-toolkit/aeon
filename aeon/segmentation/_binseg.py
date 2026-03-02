@@ -58,7 +58,9 @@ class BinSegmenter(BaseSegmenter):
         "python_dependencies": "ruptures",
     }
 
-    def __init__(self, n_cps=1, model="l2", min_size=2, jump=5):
+    def __init__(
+        self, n_cps: int = 1, model: str = "l2", min_size: int = 2, jump: int = 5
+    ):
         self.n_cps = n_cps
         self.model = model
         self.min_size = min_size
@@ -122,7 +124,7 @@ class BinSegmenter(BaseSegmenter):
         return pd.IntervalIndex.from_arrays(start, end)
 
     @classmethod
-    def _get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set: str = "default"):
         """Return testing parameter settings for the estimator.
 
         Parameters
