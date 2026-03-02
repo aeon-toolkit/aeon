@@ -75,7 +75,7 @@ class KShape(BaseClusterer):
 
     _tags = {
         "capability:multivariate": True,
-        "capability:multithreaded": True,
+        "capability:multithreading": True,
         "algorithm_type": "distance",
     }
 
