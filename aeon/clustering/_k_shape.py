@@ -53,8 +53,14 @@ class KShape(BaseClusterer):
         Convergence tolerance on inertia improvement (in addition to label stability).
     z_normalise : bool, default=True
         If True, z-normalise each (case, channel) over time before clustering.
+    n_jobs : int, default=1
+        The number of jobs to run in parallel. If -1, then the number of jobs is set
+        to the number of CPU cores. If 1, then the function is executed in a single
+        thread. If greater than 1, then the function is executed in parallel.
     random_state : int, RandomState, or None, default=None
         Random seed/control.
+    verbose: bool, default=False
+        Print out debugging info when True.
 
     Attributes
     ----------
@@ -75,6 +81,7 @@ class KShape(BaseClusterer):
 
     _tags = {
         "capability:multivariate": True,
+        "capability:multithreading": True,
         "algorithm_type": "distance",
     }
 
@@ -86,6 +93,7 @@ class KShape(BaseClusterer):
         max_iter: int = 100,
         tol: float = 1e-6,
         z_normalise: bool = True,
+        n_jobs: int = 1,
         random_state=None,
         verbose: bool = False,
     ):
@@ -95,6 +103,7 @@ class KShape(BaseClusterer):
         self.max_iter = max_iter
         self.tol = tol
         self.z_normalise = z_normalise
+        self.n_jobs = n_jobs
         self.random_state = random_state
         self.verbose = verbose
 
@@ -234,7 +243,9 @@ class KShape(BaseClusterer):
         """Compute SBD distances between all cases and all centres using aeon."""
         # If we've already z-normalised do not ask SBD to standardise again
         standardise = not self.z_normalise
-        return sbd_pairwise_distance(X, centres, standardize=standardise)
+        return sbd_pairwise_distance(
+            X, centres, standardize=standardise, n_jobs=self.n_jobs
+        )
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
