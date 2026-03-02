@@ -103,7 +103,6 @@ class KASBA(BaseClusterer):
 
     _tags = {
         "capability:multivariate": True,
-        "capability:multithreading": True,
         "algorithm_type": "distance",
     }
 
