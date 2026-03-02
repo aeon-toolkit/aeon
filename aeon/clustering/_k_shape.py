@@ -19,6 +19,7 @@ from aeon.utils.numba.general import (
     z_normalise_series_2d,
     z_normalise_series_3d,
 )
+from aeon.utils.validation import check_n_jobs
 
 
 @dataclass(frozen=True)
@@ -119,6 +120,7 @@ class KShape(BaseClusterer):
 
     def _fit(self, X: np.ndarray, y=None):
         self._check_params(X)
+        self._n_jobs = check_n_jobs(self.n_jobs)
         if self.z_normalise:
             X = z_normalise_series_3d(X)
 
@@ -244,7 +246,7 @@ class KShape(BaseClusterer):
         # If we've already z-normalised do not ask SBD to standardise again
         standardise = not self.z_normalise
         return sbd_pairwise_distance(
-            X, centres, standardize=standardise, n_jobs=self.n_jobs
+            X, centres, standardize=standardise, n_jobs=self._n_jobs
         )
 
     @classmethod
