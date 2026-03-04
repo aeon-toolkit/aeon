@@ -32,6 +32,7 @@ from sklearn.utils.multiclass import type_of_target
 
 from aeon.base import BaseCollectionEstimator
 from aeon.base._base import _clone_estimator
+from aeon.utils.decorators.method_timer import method_timer
 
 
 class BaseRegressor(RegressorMixin, BaseCollectionEstimator):
@@ -58,6 +59,7 @@ class BaseRegressor(RegressorMixin, BaseCollectionEstimator):
         super().__init__()
 
     @final
+    @method_timer("fit_time_millis_")
     def fit(self, X, y) -> BaseCollectionEstimator:
         """Fit time series regressor to training data.
 

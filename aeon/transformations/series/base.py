@@ -13,6 +13,7 @@ from typing import final
 
 from aeon.base import BaseSeriesEstimator
 from aeon.transformations.base import BaseTransformer
+from aeon.utils.decorators.method_timer import method_timer
 
 
 class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer):
@@ -29,6 +30,7 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer):
         super().__init__(axis=axis)
 
     @final
+    @method_timer("fit_time_millis_")
     def fit(self, X, y=None, axis=1):
         """Fit transformer to X, optionally using y if supervised.
 

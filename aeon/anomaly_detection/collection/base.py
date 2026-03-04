@@ -34,6 +34,7 @@ import pandas as pd
 
 from aeon.anomaly_detection.base import BaseAnomalyDetector
 from aeon.base import BaseCollectionEstimator
+from aeon.utils.decorators.method_timer import method_timer
 
 
 class BaseCollectionAnomalyDetector(BaseCollectionEstimator, BaseAnomalyDetector):
@@ -59,6 +60,7 @@ class BaseCollectionAnomalyDetector(BaseCollectionEstimator, BaseAnomalyDetector
         super().__init__()
 
     @final
+    @method_timer("fit_time_millis_")
     def fit(self, X, y=None):
         """Fit collection anomaly detector to training data.
 
