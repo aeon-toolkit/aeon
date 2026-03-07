@@ -6,6 +6,7 @@ __all__ = [
     "load_human_activity_segmentation_datasets",
 ]
 
+from ast import literal_eval
 from os import PathLike
 from pathlib import Path
 
@@ -94,7 +95,7 @@ def load_time_series_segmentation_benchmark(
 
     # converters to correctly load benchmark
     np_cols = ["change_points", "time_series"]
-    converters = {col: lambda val: np.array(eval(val)) for col in np_cols}
+    converters = {col: _parse_np_array for col in np_cols}
 
     # load benchmark from git repo (and save locally) / or load locally
     if not benchmark_path.exists():
@@ -209,10 +210,7 @@ def load_human_activity_segmentation_datasets(
         "lon",
         "speed",
     ]
-    converters = {
-        col: lambda val: np.array([]) if len(val) == 0 else np.array(eval(val))
-        for col in np_cols
-    }
+    converters = {col: _parse_np_array for col in np_cols}
 
     # load activity data from git repo (and save locally) / or load locally
     if not benchmark_path.exists():
@@ -272,3 +270,14 @@ def load_human_activity_segmentation_datasets(
         return X, y, metadata
 
     return X, y
+
+
+def _parse_np_array(val):
+    if len(val) == 0:
+        return np.array([])
+    try:
+        return np.array(literal_eval(val))
+    except (ValueError, SyntaxError) as exc:
+        raise ValueError(
+            f"Invalid array literal in segmentation dataset CSV: {val!r}"
+        ) from exc
