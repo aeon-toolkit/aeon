@@ -50,8 +50,7 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
     """
 
     _config = {
-        "python_dependencies": ["tensorflow"],
-        "python_version": "<3.13",
+        **BaseDeepLearningNetwork._config,
         "structure": "encoder",
     }
 
@@ -66,7 +65,6 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
         activation="tanh",
         return_sequence_last=False,
     ):
-        super().__init__()
         self.rnn_type = rnn_type.lower()
         self.n_layers = n_layers
         self.n_units = n_units
@@ -75,7 +73,8 @@ class RecurrentNetwork(BaseDeepLearningNetwork):
         self.bidirectional = bidirectional
         self.activation = activation
         self.return_sequence_last = return_sequence_last
-        self._rnn_cell = None
+
+        super().__init__()
 
     def build_network(self, input_shape, **kwargs):
         """Construct a network and return its input and output layers.

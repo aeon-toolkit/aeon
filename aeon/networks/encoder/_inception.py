@@ -2,6 +2,8 @@
 
 __maintainer__ = ["hadifawaz1999"]
 
+import numpy as np
+
 from aeon.networks.base import BaseDeepLearningNetwork
 
 
@@ -95,8 +97,7 @@ class InceptionNetwork(BaseDeepLearningNetwork):
     """
 
     _config = {
-        "python_dependencies": ["tensorflow"],
-        "python_version": "<3.13",
+        **BaseDeepLearningNetwork._config,
         "structure": "encoder",
     }
 
@@ -152,23 +153,11 @@ class InceptionNetwork(BaseDeepLearningNetwork):
         of the output features extracted form hand-crafted convolution filters.
 
         """
-        import numpy as np
         import tensorflow as tf
-
-        kernel_sizes = [2, 4, 8, 16, 32, 64] if kernel_sizes is None else kernel_sizes
 
         self.keep_track = 0
 
-        """
-        Function to create the hybrid layer consisting of non
-        trainable Conv1D layers with custom filters.
-
-        Args:
-
-            input_tensor: input tensor
-            input_channels : number of input channels, 1 in case of UCR Archive
-        """
-
+        kernel_sizes = [2, 4, 8, 16, 32, 64] if kernel_sizes is None else kernel_sizes
         conv_list = []
 
         # for increasing detection filters

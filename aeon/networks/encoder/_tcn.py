@@ -47,8 +47,7 @@ class TCNNetwork(BaseDeepLearningNetwork):
     """
 
     _config = {
-        "python_dependencies": ["tensorflow"],
-        "python_version": "<3.13",
+        **BaseDeepLearningNetwork._config,
         "structure": "encoder",
     }
 
@@ -58,21 +57,11 @@ class TCNNetwork(BaseDeepLearningNetwork):
         kernel_size: int = 2,
         dropout: float = 0.2,
     ):
-        """Initialize the TCN architecture.
-
-        Parameters
-        ----------
-        n_blocks : list of int
-            Number of output channels for each temporal block.
-        kernel_size : int, default=2
-            Size of convolutional kernels.
-        dropout : float, default=0.2
-            Dropout rate for regularization.
-        """
-        super().__init__()
         self.n_blocks = n_blocks
         self.kernel_size = kernel_size
         self.dropout = dropout
+
+        super().__init__()
 
     def _conv1d_with_variable_padding(
         self,

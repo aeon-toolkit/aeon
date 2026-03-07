@@ -41,8 +41,7 @@ class DCNNNetwork(BaseDeepLearningNetwork):
     """
 
     _config = {
-        "python_dependencies": ["tensorflow"],
-        "python_version": "<3.12",
+        **BaseDeepLearningNetwork._config,
         "structure": "encoder",
     }
 
@@ -56,8 +55,6 @@ class DCNNNetwork(BaseDeepLearningNetwork):
         dilation_rate=None,
         padding="causal",
     ):
-        super().__init__()
-
         self.latent_space_dim = latent_space_dim
         self.kernel_size = kernel_size
         self.n_filters = n_filters
@@ -66,7 +63,9 @@ class DCNNNetwork(BaseDeepLearningNetwork):
         self.activation = activation
         self.padding = padding
 
-    def build_network(self, input_shape):
+        super().__init__()
+
+    def build_network(self, input_shape, **kwargs):
         """Construct a network and return its input and output layers.
 
         Parameters

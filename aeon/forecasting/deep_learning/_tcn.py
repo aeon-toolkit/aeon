@@ -16,7 +16,7 @@ from sklearn.utils import check_random_state
 
 from aeon.forecasting.base import IterativeForecastingMixin
 from aeon.forecasting.deep_learning.base import BaseDeepForecaster
-from aeon.networks._tcn import TCNNetwork
+from aeon.networks.encoder._tcn import TCNNetwork
 
 
 class TCNForecaster(BaseDeepForecaster, IterativeForecastingMixin):
