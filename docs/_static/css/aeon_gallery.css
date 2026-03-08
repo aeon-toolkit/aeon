@@ -1,0 +1,54 @@
+.aeon-gallery-wrapper {
+  margin-top: 2.5rem;
+}
+
+.aeon-gallery-heading {
+  font-size: 1.9rem;
+  font-weight: 600;
+  margin-bottom: 1.8rem;
+}
+
+.aeon-mini-gallery {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.8rem;
+}
+
+.aeon-mini-card {
+  display: block;
+  text-decoration: none;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #eaeaea;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+.aeon-mini-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+}
+
+.aeon-mini-image {
+  aspect-ratio: 4 / 3;
+  background: #f8f9fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.aeon-mini-image img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+}
+
+.aeon-mini-title {
+  padding: 0.5rem 0.8rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #2c2c2c;
+  line-height: 1.1;
+}

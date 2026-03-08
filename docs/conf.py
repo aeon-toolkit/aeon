@@ -54,6 +54,7 @@ extensions = [
     "myst_parser",
     # local extensions (_sphinxext/)
     "sphinx_remove_toctrees",
+    "aeon_mini_gallery",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -291,7 +292,10 @@ html_favicon = "images/logo/aeon-favicon.ico"
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
-html_css_files = ["css/custom.css"]
+html_css_files = [
+    "css/custom.css",
+    "css/aeon_gallery.css",
+]
 
 html_show_sourcelink = False
 
