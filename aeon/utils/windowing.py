@@ -249,7 +249,7 @@ def _reverse_windowing_strided(
     reduction: Callable[..., np.ndarray],
 ) -> np.ndarray:
     # compute begin and end indices of windows
-    begins = np.array([i * stride for i in range(scores.shape[0])], dtype=np.int_)
+    begins = np.array([i * stride for i in range(scores.shape[0])], dtype=int)
     ends = begins + window_size
 
     # prepare target array
