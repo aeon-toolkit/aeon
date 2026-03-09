@@ -53,6 +53,7 @@ class ProximityForest(BaseClassifier):
         custom backend.
         See the ``joblib`` Parallel documentation for more details.
 
+
     Notes
     -----
     For the Java version, see
