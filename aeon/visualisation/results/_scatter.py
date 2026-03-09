@@ -60,7 +60,7 @@ def plot_pairwise_scatter(
     lower_better : bool, default = False
         If True, lower values are considered better, i.e. errors.
     statistic_tests : bool, default = True
-        If True, paired ttest and wilcoxon p-values are shown in the bottom of the plot.
+        If True, paired t-test and wilcoxon p-values are shown in the bottom of the plot.
     title : str, default = None
         Title to be shown in the top of the plot.
     figsize : tuple, default = (10, 6)
