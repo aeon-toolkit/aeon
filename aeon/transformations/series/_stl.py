@@ -3,8 +3,6 @@
 __maintainer__ = ["TinaJin0228"]
 __all__ = ["STLSeriesTransformer"]
 
-from typing import Optional, Union
-
 import numpy as np
 
 from aeon.transformations.series.base import BaseSeriesTransformer
