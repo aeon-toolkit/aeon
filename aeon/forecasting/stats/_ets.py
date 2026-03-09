@@ -188,7 +188,7 @@ class ETS(BaseForecaster, IterativeForecastingMixin):
             1
             + (self._trend_type != 0)
             + (self._seasonality_type != 0)
-            + (self._damped_trend != 0),
+            + (self._damped_trend != 0 and self._trend_type != 0),
             data,
             self._model,
             max_iter=self.iterations,
