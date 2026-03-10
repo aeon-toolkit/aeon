@@ -252,9 +252,22 @@ class ContractableBOSS(BaseClassifier):
                 rng.randint(0, len(possible_parameters))
             )
 
-            subsample = rng.choice(self.n_cases_, size=subsample_size, replace=False)
-            X_subsample = X[subsample]
-            y_subsample = y[subsample]
+            attempts = 0
+            while True:
+                subsample = rng.choice(
+                    self.n_cases_, size=subsample_size, replace=False
+                )
+                X_subsample = X[subsample]
+                y_subsample = y[subsample]
+                if len(np.unique(y_subsample)) > 1:
+                    break
+                else:
+                    if attempts > 100:
+                        raise ValueError(
+                            "Unable to create subsample with more than 1 class after "
+                            "100 attempts. Try using more data."
+                        )
+                    attempts += 1
 
             boss = IndividualBOSS(
                 *parameters,

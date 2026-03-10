@@ -30,7 +30,6 @@ from abc import abstractmethod
 from typing import final
 
 import numpy as np
-import pandas as pd
 
 from aeon.anomaly_detection.base import BaseAnomalyDetector
 from aeon.base import BaseCollectionEstimator
@@ -225,33 +224,3 @@ class BaseCollectionAnomalyDetector(BaseCollectionEstimator, BaseAnomalyDetector
     def _fit_predict(self, X, y):
         self._fit(X, y)
         return self._predict(X)
-
-    def _check_y(self, y, n_cases):
-        """Check y input is valid.
-
-        Must be 1-dimensional and contain only 0s (no anomaly) and 1s (anomaly).
-        Must match the number of cases in X.
-        """
-        if not isinstance(y, (pd.Series, np.ndarray)):
-            raise TypeError(
-                f"y must be a np.array or a pd.Series, but found type: {type(y)}"
-            )
-        if isinstance(y, np.ndarray) and y.ndim > 1:
-            raise TypeError(f"y must be 1-dimensional, found {y.ndim} dimensions")
-
-        if not np.bitwise_or(y == 0, y == 1).all():
-            raise ValueError(
-                "y input must only contain 0 (not anomalous) or 1 (anomalous) values."
-            )
-
-        # Check matching number of labels
-        n_labels = y.shape[0]
-        if n_cases != n_labels:
-            raise ValueError(
-                f"Mismatch in number of cases. Found X = {n_cases} and y = {n_labels}"
-            )
-
-        if isinstance(y, pd.Series):
-            y = pd.Series.to_numpy(y)
-
-        return y
