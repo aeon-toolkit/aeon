@@ -46,6 +46,7 @@ tsml_archives = {
     "Unequal": 18300287,
     "Imbalanced": 18641021,
     "Redux": 11206358,
+    "EEG": 15500801,
 }
 tsml_zip_names = {
     "UCR": "UCR%20Archive%202018.zip",  # ~300MB
@@ -54,6 +55,7 @@ tsml_zip_names = {
     "Unequal": "Unequal%20Length%20UCR%20Datasets%202026.zip",
     "Imbalanced": "UCR_Imbalanced_9_1.zip",  # ~250MB
     "Redux": "2024%20Bakeoff%20Redux%20Datasets.zip",  # ~200MB
+    "EEG": "EEG2026.zip",  # ~14.5GB
 }
 
 

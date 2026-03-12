@@ -26,10 +26,11 @@ from datetime import datetime
 from http.client import IncompleteRead, RemoteDisconnected
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlparse
-from urllib.request import Request, urlopen, urlretrieve
+from urllib.request import Request, urlopen
 
 import numpy as np
 import pandas as pd
+import requests
 
 import aeon
 from aeon.datasets.dataset_collections import (
@@ -1233,57 +1234,36 @@ def load_collection(
     eq_present = False
     nmv_present = False
 
-    # Download if needed
     if need_download:
         if name not in problem_dict:
             raise ValueError(error_str)
 
         zenodo_id = problem_dict[name]
         full_path = os.path.join(path, name)
-        train_save = os.path.join(full_path, f"{name}_TRAIN.ts")
-        test_save = os.path.join(full_path, f"{name}_TEST.ts")
 
-        if not os.path.exists(full_path):
-            os.makedirs(full_path)
-
-        # Base files (always expected if dataset exists)
-        url_train = f"https://zenodo.org/record/{zenodo_id}/files/{name}_TRAIN.ts"
-        url_test = f"https://zenodo.org/record/{zenodo_id}/files/{name}_TEST.ts"
         try:
-            urlretrieve(url_train, train_save)
-            urlretrieve(url_test, test_save)
+            downloaded_files = _download_all_zenodo_files(zenodo_id, full_path)
         except Exception as e:
-            raise ValueError(error_str) from e
+            raise ValueError(
+                f"Could not download files for {name} from Zenodo record {zenodo_id}: "
+                f"{type(e).__name__}: {e}"
+            ) from e
 
-        # Optional equal-length variant
-        eq_train = f"https://zenodo.org/record/{zenodo_id}/files/{name}_eq_TRAIN.ts"
-        eq_test = f"https://zenodo.org/record/{zenodo_id}/files/{name}_eq_TEST.ts"
-        if _url_exists(eq_train) and _url_exists(eq_test):
-            eq_present = True
-            train_save = os.path.join(full_path, f"{name}_eq_TRAIN.ts")
-            test_save = os.path.join(full_path, f"{name}_eq_TEST.ts")
-            try:
-                urlretrieve(eq_train, train_save)
-                urlretrieve(eq_test, test_save)
-            except Exception as e:
-                raise ValueError(error_str) from e
-
-        # Optional no-missing-values variant
-        nmv_train = f"https://zenodo.org/record/{zenodo_id}/files/{name}_nmv_TRAIN.ts"
-        nmv_test = f"https://zenodo.org/record/{zenodo_id}/files/{name}_nmv_TEST.ts"
-        if _url_exists(nmv_train) and _url_exists(nmv_test):
-            nmv_present = True
-            train_save = os.path.join(full_path, f"{name}_nmv_TRAIN.ts")
-            test_save = os.path.join(full_path, f"{name}_nmv_TEST.ts")
-            try:
-                urlretrieve(nmv_train, train_save)
-                urlretrieve(nmv_test, test_save)
-            except Exception as e:
-                raise ValueError(
-                    f"Cannot retrieve the no missing values version "
-                    f"{nmv_train} (and {nmv_test}) into {full_path}"
-                ) from e
-
+        eq_present = (
+            f"{name}_eq_TRAIN.ts" in downloaded_files
+            and f"{name}_eq_TEST.ts" in downloaded_files
+        )
+        nmv_present = (
+            f"{name}_nmv_TRAIN.ts" in downloaded_files
+            and f"{name}_nmv_TEST.ts" in downloaded_files
+        )
+        base_train = f"{name}_TRAIN.ts"
+        base_test = f"{name}_TEST.ts"
+        if base_train not in downloaded_files or base_test not in downloaded_files:
+            raise ValueError(
+                f"Zenodo record {zenodo_id} does not contain the expected base files "
+                f"{base_train} and {base_test}. Found: {sorted(downloaded_files)}"
+            )
     else:
         # Loading locally, check whether _eq and _nmv variants exist in the chosen root
         active_root = os.path.join(local_module, local_dirname)
@@ -1514,11 +1494,15 @@ def download_archive(archive="UCR", extract_path=None):
     "TSR":  63 TSR problems (univariate and multivariate) (~900MB) [5,6]
     "Imbalanced": 76 unbalanced versions of the UCR archive  (~245MB) [7]
     "Unequal": Unequal length versions of the UCR (~400MB) [8]
+    "EEG": 28 EEG classification problems (~60GB) [8]
+
+    The links to go directly to zenodo are in the references below.
 
     Parameters
     ----------
     archive: str, default = "UCR"
-         Archive to download, should be one of "UCR","UEA","Imbalanced","TSR","Unequal".
+         Archive to download, should be one of "EEG","UCR","UEA","Imbalanced","TSR",
+         "Unequal".
     extract_path: str or None, default = None
          The path to look for the data. If no path is provided, the function
          looks in `aeon/datasets/local_data/`. If a path is given, it can be absolute,
@@ -1534,6 +1518,7 @@ def download_archive(archive="UCR", extract_path=None):
     [1] H.Dau, A. Bagnall, K. Kamgar, C. Yeh, Y. Zhu, S. Gharghabi, C. Ratanamahatana
         and E. Keogh. The  UCR  time  series  archive.
         IEEE/CAA J. Autom. Sinica, 6(6):1293–1305, 2019
+        Data: https://zenodo.org/records/11198697
     [2] A. Bagnall, H. Dau, J. Lines, M. Flynn, J. Large, A. Bostrom, P. Southam,and
         E.  Keogh. The UEA  multivariate  time  series  classification  archive, 2018.
         ArXiv e-prints,arXiv:1811.00075, 2018
@@ -1541,19 +1526,24 @@ def download_archive(archive="UCR", extract_path=None):
         The great multivariate time series classification bake off: a review and
         experimental evaluation of recent algorithmic advances,
         Data Mining and Knowledge Discovery, 2020.
+        Data: https://zenodo.org/records/11206331
     [4] Middlehurst, M., Schäfer, P. & Bagnall, A.
         Bake off redux: a review and experimental evaluation of recent time series
         classification algorithms. Data Min Knowl Disc 38, 1958–2031 2024.
         https://doi.org/10.1007/s10618-024-01022-1
+        Data: https://zenodo.org/records/11206358
     [5] Tan, C., Bergmeir, C., Petitjean, F. and Webb, G.
         Time Series Extrinsic Regression. Data Min Knowl Disc, 1--29, 2021
     [6] Guijo-Rubio, D. and Middlehurst, M. and Arcencio, G. and Silva,
         D. and Bagnall, A. Unsupervised feature based algorithms for time series
         extrinsic regression. Data Min Knowl Disc, 2141-2185, 2024.
-    [6] Qiu C., Middlehurst, M., Holder, C. and Bagnall, A.
+        Data: https://zenodo.org/records/11236865
+    [7] Qiu C., Middlehurst, M., Holder, C. and Bagnall, A.
         e-SMOTE: a train set rebalancing algorithm for time series classification
         Proc 10th AALTD at ECML/PKDD, 2025
-    [7] TBC, coming to arxiv soon
+        Data: https://zenodo.org/records/18641021
+    [8] TBC, In press
+        Data: https://zenodo.org/records/XXX
     """
     valid = tsml_archives.keys()
     if archive not in valid:
@@ -1683,3 +1673,67 @@ def get_dataset_meta_data(
     except Exception as e:
         raise e
     return df
+
+
+def _download_all_zenodo_files(record_id: int | str, target_dir: str) -> set[str]:
+    """Download every file attached to a Zenodo record into target_dir."""
+    os.makedirs(target_dir, exist_ok=True)
+
+    session = requests.Session()
+    session.headers.update(
+        {
+            "User-Agent": "aeon-datasets/1.0 (dataset downloader)",
+            "Accept": "application/json",
+        }
+    )
+
+    api_url = f"https://zenodo.org/api/records/{record_id}"
+
+    try:
+        resp = session.get(api_url, timeout=30)
+        resp.raise_for_status()
+    except requests.RequestException as e:
+        raise ValueError(
+            f"Failed to retrieve Zenodo metadata for record {record_id}: {e}"
+        ) from e
+
+    try:
+        record = resp.json()
+    except ValueError as e:
+        raise ValueError(
+            f"Zenodo metadata for record {record_id} was not valid JSON."
+        ) from e
+
+    files = record.get("files", [])
+    if not files:
+        raise ValueError(f"No files found in Zenodo record {record_id}")
+
+    downloaded_files = set()
+
+    for file_info in files:
+        filename = file_info.get("key") or file_info.get("filename")
+        links = file_info.get("links", {})
+        download_url = links.get("self") or links.get("download")
+
+        if not filename or not download_url:
+            raise ValueError(
+                f"Missing filename or download URL in Zenodo file metadata: {file_info}"
+            )
+
+        save_path = os.path.join(target_dir, filename)
+
+        try:
+            with session.get(download_url, stream=True, timeout=120) as r:
+                r.raise_for_status()
+                with open(save_path, "wb") as f:
+                    for chunk in r.iter_content(chunk_size=1024 * 1024):
+                        if chunk:
+                            f.write(chunk)
+        except requests.RequestException as e:
+            raise ValueError(
+                f"Failed to download file '{filename}' from record {record_id}: {e}"
+            ) from e
+
+        downloaded_files.add(filename)
+
+    return downloaded_files

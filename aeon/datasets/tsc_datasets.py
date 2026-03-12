@@ -693,18 +693,19 @@ multiverse2026 = [
     "WISDM2",
 ]
 
-# 30 EEG TSC datasets in the multiverse [7]
+# 26 EEG TSC datasets in the multiverse [7]
+# See aeon-neuro for more info.
 eeg = [
     "Alzheimers",
     "Blink",
     "ButtonPress",
-    "EpilepticSeizures",
+    # "EpilepticSeizures", #Univariate
     "EyesOpenShut",
     "FaceDetection",
-    "FeedbackButton",
+    # "FeedbackButton", #Univariate
     "FeetHands",
-    "FibroLiverpool",
-    "FibroUEA",
+    # "FibroLiverpool", These datasets are not fully open access
+    # "FibroUEA",       Contact Tony Bagnall if you would like access for research
     "FingerMovements",
     "HandMovementDirection",
     "ImaginedFeetHands",
@@ -926,6 +927,7 @@ tsc_zenodo = {
     "FaceDetection": 11206216,
     "FaceFour": 11191042,
     "FacesUCR": 11191065,
+    "FeedbackButton": 18957700,
     "FeetHands": 15495750,
     "FiftyWords": 11191097,
     "FingerMovements": 11206220,
