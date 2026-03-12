@@ -1146,13 +1146,13 @@ def load_regression(
     >>> X, y=load_regression("FloodModeling1") # doctest: +SKIP
     """
     X, y, meta = _load_collection(
-        name,
-        split,
-        extract_path,
+        name=name,
+        problem_dict=tsr_zenodo,
+        split=split,
+        extract_path=extract_path,
         return_metadata=True,
         load_equal_length=load_equal_length,
         load_no_missing=load_no_missing,
-        problem_dict=tsr_zenodo,
     )
     # Check this is a classification problem
     if "targetlabel" not in meta or not meta["targetlabel"]:
@@ -1242,9 +1242,9 @@ def load_classification(
     >>> X, y = load_classification(name="ArrowHead")  # doctest: +SKIP
     """
     X, y, meta = _load_collection(
-        name,
-        split,
-        extract_path,
+        name=name,
+        split=split,
+        extract_path=extract_path,
         return_metadata=True,
         load_equal_length=load_equal_length,
         load_no_missing=load_no_missing,
