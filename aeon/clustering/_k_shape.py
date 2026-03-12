@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from typing import Literal
 
 import numpy as np
+from deprecated.sphinx import deprecated
 from numpy.fft import fft, ifft
 from numpy.linalg import eigh
 from numpy.random import RandomState
@@ -261,6 +262,13 @@ class KShape(BaseClusterer):
         }
 
 
+# TODO: remove in v1.5.0
+@deprecated(
+    version="1.4.0",
+    reason="TimeSeriesKShape has been replaced with a bespoke implementation, KShape. "
+    "See #3314 for an explanation. This will be removed in v1.5.0.",
+    category=FutureWarning,
+)
 class TimeSeriesKShape(BaseClusterer):
     """Kshape algorithm: wrapper of the ``tslearn`` implementation.
 
