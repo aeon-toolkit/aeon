@@ -490,3 +490,6 @@ def dtw_alignment_path(
         compute_min_return_path(cost_matrix),
         cost_matrix[x.shape[-1] - 1, y.shape[-1] - 1],
     )
+
+
+from aeon.datasets import load_from_ts_file
