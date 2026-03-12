@@ -149,7 +149,7 @@ class KShape(BaseClusterer):
         if self.n_clusters > X.shape[0]:
             raise ValueError(
                 f"n_clusters ({self.n_clusters}) cannot be larger than"
-                f"n_cases ({X.shape[0]})."
+                f" n_cases ({X.shape[0]})."
             )
         if not isinstance(self.max_iter, int) or self.max_iter < 1:
             raise ValueError("max_iter must be a positive integer.")
@@ -491,8 +491,6 @@ def _shape_extraction(aligned: np.ndarray, P: np.ndarray) -> np.ndarray:
     if aligned.ndim != 2:
         raise ValueError("aligned must be 2D, shape (n_members, n_timepoints)")
     n_members, L = aligned.shape
-    if n_members < 1:
-        raise ValueError("aligned must have at least one member series")
 
     # Normalise each member (rows) across time
     Y = z_normalise_series_2d(np.ascontiguousarray(aligned, dtype=np.float64))  # (n, L)
