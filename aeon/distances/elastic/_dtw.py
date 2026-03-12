@@ -76,7 +76,7 @@ def dtw_distance(
         The window to use for the bounding matrix. If ``window=None`` and
         ``itakura_max_slope=None``, no bounding is used.
         Window is a percentage deviation from the diagonal of the DTW cost matrix, so if
-        window = 0.1 then 10% of the series length is the maximum warping allowed.
+        ``window = 0.1`` then 10% of the series length is the maximum warping allowed.
         This parameter limits how far DTW is allowed to warp in time by restricting
         alignments to a diagonal band whose width is given by a fraction of the maximum
         series length.
