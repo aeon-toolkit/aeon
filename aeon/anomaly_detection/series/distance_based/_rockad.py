@@ -26,8 +26,7 @@ class ROCKAD(BaseSeriesAnomalyDetector):
     approach with bootstrap aggregation for robust anomaly detection.
     After windowing, the data gets transformed into the ROCKET feature space.
     Then the windows are compared based on the feature space by
-    finding the nearest neighbours. Whole-series based ROCKAD as proposed in
-    [1]_ can be found at aeon/anomaly_detection/collection/_rockad.py
+    finding the nearest neighbours.
 
     This class supports both univariate and multivariate time series and
     provides options for normalizing features, applying power transformations,

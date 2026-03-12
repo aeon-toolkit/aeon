@@ -99,17 +99,21 @@ def nelder_mead(
         reflected_point = centre_point + (centre_point - points[-1])
         reflected_value = dispatch_loss(loss_id, reflected_point, data, model)
         # if between best and second best, use reflected value
-        if len(values) > 1 and values[0] <= reflected_value < values[-2]:
+        if (
+            len(values) > 1
+            and not np.isnan(reflected_value)
+            and values[0] <= reflected_value < values[-2]
+        ):
             points[-1] = reflected_point
             values[-1] = reflected_value
             continue
         # Expansion
         # Otherwise if it is better than the best value
-        if reflected_value < values[0]:
+        if not np.isnan(reflected_value) and reflected_value < values[0]:
             expanded_point = centre_point + 2 * (reflected_point - centre_point)
             expanded_value = dispatch_loss(loss_id, expanded_point, data, model)
             # if less than reflected value use expanded, otherwise go back to reflected
-            if expanded_value < reflected_value:
+            if not np.isnan(expanded_value) and expanded_value < reflected_value:
                 points[-1] = expanded_point
                 values[-1] = expanded_value
             else:
@@ -121,7 +125,7 @@ def nelder_mead(
         contracted_point = centre_point - 0.5 * (centre_point - points[-1])
         contracted_value = dispatch_loss(loss_id, contracted_point, data, model)
         # If contraction is better use that otherwise move to shrinkage
-        if contracted_value < values[-1]:
+        if not np.isnan(contracted_value) and contracted_value < values[-1]:
             points[-1] = contracted_point
             values[-1] = contracted_value
             continue
