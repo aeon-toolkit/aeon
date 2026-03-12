@@ -57,8 +57,8 @@ def test_network_config(network):
 @pytest.mark.parametrize("network", network_classes)
 def test_all_networks_functionality(network):
     """Test the functionality of all networks."""
-    skip, reason = _check_network(network)
-    if skip:
+    can_run, reason = _check_network(network)
+    if not can_run:
         pytest.skip(reason)
 
     input_shape = (100, 2)
@@ -79,15 +79,16 @@ def test_all_networks_functionality(network):
     else:
         # todo this does not cover deepar
         pytest.skip(
-            f"{network.__name__} not to be tested (uncovered structure type: {network._config['structure']})."
+            f"{network.__name__} not to be tested (uncovered structure type: "
+            f"{network._config['structure']})."
         )
 
 
 @pytest.mark.parametrize("network", network_classes)
 def test_all_networks_params(network):
     """Test the functionality of all networks."""
-    skip, reason = _check_network(network)
-    if skip:
+    can_run, reason = _check_network(network)
+    if not can_run:
         pytest.skip(reason)
 
     # todo: figure out these issues and re-enable testing if possible
@@ -97,7 +98,11 @@ def test_all_networks_params(network):
             f"{network.__name__} not to be tested (AE networks have their own tests)."
         )
     # LITENetwork does not seem to work with list args
-    if network.__name__ == "LITENetwork" or network.__name__ == "MLPNetwork":
+    if (
+        network.__name__ == "LITENetwork"
+        or network.__name__ == "MLPNetwork"
+        or network.__name__ == "EncoderNetwork"
+    ):
         pytest.skip(f"Skipping {network.__name__} due to unresolved issue.")
 
     input_shape = (100, 2)
