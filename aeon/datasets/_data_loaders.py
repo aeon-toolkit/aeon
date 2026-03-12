@@ -15,6 +15,7 @@ __all__ = [
     "download_all_regression",
 ]
 
+import json
 import os
 import re
 import shutil
@@ -30,7 +31,6 @@ from urllib.request import Request, urlopen
 
 import numpy as np
 import pandas as pd
-import requests
 
 import aeon
 from aeon.datasets.dataset_collections import (
@@ -53,7 +53,6 @@ CONNECTION_ERRORS = (
     RemoteDisconnected,
     IncompleteRead,
     ConnectionResetError,
-    TimeoutError,
     socket.timeout,
 )
 
@@ -1679,27 +1678,22 @@ def _download_all_zenodo_files(record_id: int | str, target_dir: str) -> set[str
     """Download every file attached to a Zenodo record into target_dir."""
     os.makedirs(target_dir, exist_ok=True)
 
-    session = requests.Session()
-    session.headers.update(
-        {
-            "User-Agent": "aeon-datasets/1.0 (dataset downloader)",
-            "Accept": "application/json",
-        }
-    )
+    headers = {
+        "User-Agent": "aeon-datasets/1.0 (dataset downloader)",
+        "Accept": "application/json",
+    }
 
     api_url = f"https://zenodo.org/api/records/{record_id}"
 
     try:
-        resp = session.get(api_url, timeout=30)
-        resp.raise_for_status()
-    except requests.RequestException as e:
+        req = Request(api_url, headers=headers)
+        with urlopen(req, timeout=30) as resp:
+            record = json.load(resp)
+    except (HTTPError, URLError, OSError) as e:
         raise ValueError(
             f"Failed to retrieve Zenodo metadata for record {record_id}: {e}"
         ) from e
-
-    try:
-        record = resp.json()
-    except ValueError as e:
+    except json.JSONDecodeError as e:
         raise ValueError(
             f"Zenodo metadata for record {record_id} was not valid JSON."
         ) from e
@@ -1723,13 +1717,14 @@ def _download_all_zenodo_files(record_id: int | str, target_dir: str) -> set[str
         save_path = os.path.join(target_dir, filename)
 
         try:
-            with session.get(download_url, stream=True, timeout=120) as r:
-                r.raise_for_status()
-                with open(save_path, "wb") as f:
-                    for chunk in r.iter_content(chunk_size=1024 * 1024):
-                        if chunk:
-                            f.write(chunk)
-        except requests.RequestException as e:
+            req = Request(download_url, headers={"User-Agent": headers["User-Agent"]})
+            with urlopen(req, timeout=120) as response, open(save_path, "wb") as f:
+                while True:
+                    chunk = response.read(1024 * 1024)
+                    if not chunk:
+                        break
+                    f.write(chunk)
+        except (HTTPError, URLError, OSError) as e:
             raise ValueError(
                 f"Failed to download file '{filename}' from record {record_id}: {e}"
             ) from e
