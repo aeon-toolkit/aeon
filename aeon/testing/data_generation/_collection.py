@@ -91,11 +91,17 @@ def make_example_3d_numpy(
             if len(y) > idx:
                 X[idx, 0, 0] = i
                 y[idx] = i
+
     X = X * (y[:, None, None] + 1)
 
     if regression_target:
         y = y.astype(np.float32)
         y += rng.uniform(size=y.shape)
+
+    # Randomise case order
+    perm = rng.permutation(n_cases)
+    X = X[perm]
+    y = y[perm]
 
     if return_y:
         return X, y
