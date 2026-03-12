@@ -84,7 +84,7 @@ def test_sklearn_cross_validation():
     X, y = make_example_3d_numpy(
         n_cases=20, n_channels=2, n_timepoints=30, min_cases_per_label=10
     )
-    scores = cross_val_score(clf, X, y=y, cv=KFold(n_splits=2))
+    scores = cross_val_score(clf, X, y=y, cv=StratifiedKFold(n_splits=2))
     assert isinstance(scores, np.ndarray)
 
 
@@ -108,9 +108,8 @@ def test_sklearn_parameter_tuning(parameter_tuning_method):
     X, y = make_example_3d_numpy(
         n_cases=20, n_channels=2, n_timepoints=30, min_cases_per_label=10
     )
-
     parameter_tuning_method = parameter_tuning_method(
-        clf, param_grid, cv=KFold(n_splits=2)
+        clf, param_grid, cv=StratifiedKFold(n_splits=2)
     )
     parameter_tuning_method.fit(X, y)
     assert isinstance(
@@ -124,6 +123,11 @@ def test_sklearn_composite_classifiers(composite_classifier):
     X, y = make_example_3d_numpy(
         n_cases=20, n_channels=2, n_timepoints=30, min_cases_per_label=10
     )
+    rng = np.random.RandomState(0)
+    perm = rng.permutation(len(y))
+    X = X[perm]
+    y = y[perm]
+
     composite_classifier.fit(X, y)
     preds = composite_classifier.predict(X=X)
     assert isinstance(preds, np.ndarray)
