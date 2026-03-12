@@ -9,7 +9,7 @@ __all__ = [
     "load_from_timeeval_csv_file",
     "load_anomaly_detection",
     "load_classification",
-    "load_collection",
+    "_load_collection",
     "load_forecasting",
     "load_regression",
     "download_archive",
@@ -55,11 +55,11 @@ __all__ = [
 ]
 
 from aeon.datasets._data_loaders import (
+    _load_collection,
     download_all_regression,
     download_archive,
     get_dataset_meta_data,
     load_classification,
-    load_collection,
     load_forecasting,
     load_from_arff_file,
     load_from_ts_file,

@@ -7,7 +7,7 @@ __all__ = [
     "load_from_tsf_file",
     "load_from_arff_file",
     "load_from_tsv_file",
-    "load_collection",
+    "_load_collection",
     "load_classification",
     "load_forecasting",
     "load_regression",
@@ -1075,225 +1075,6 @@ def _url_exists(url: str, timeout: float = 10.0) -> bool:
     return False
 
 
-def load_collection(
-    name: str,
-    split=None,
-    extract_path=None,
-    return_metadata: bool = False,
-    load_equal_length: bool = True,
-    load_no_missing: bool = True,
-    problem_dict: dict[str, int] = tsr_zenodo,
-):
-    """Download/load a TSML collection of data.
-
-    Downloads a collection of time series from zenodo tsml community
-    https://zenodo.org/communities/tsml in standard aeon format. It will download a
-    train and test file. If the problem is unequal length or has missing values,
-    it will also download equal length and no missing value versions. The list of
-    datasets stored and appropriate zenodo key is maintained in file tsc_datasets
-    in dictionaries tsr_zenodo (regression) and tsc_zenodo (classification).
-
-    If you want to load a problem from a local file, specify the
-    location in ``extract_path``. This function assumes the data is stored in format
-    <extract_path>/<name>/<name>_TRAIN.ts and <extract_path>/<name>/<name>_TEST.ts.
-    If you want to load a single file directly from a full path, use the function
-    ``load_from_ts_file`` directly. If you do not specify ``extract_path``, or if the
-    problem is not present in ``extract_path`` it will attempt to download the data from
-    https://zenodo.org/communities/tsml
-
-    This function can load timestamped data, but it does not store the time stamps.
-    The time stamp loading is fragile, it will only work if all data are floats rather
-    than any specific date format.
-
-    Data is assumed to be in the standard .ts format: each row is a (possibly
-    multivariate) time series. Each channel is separated by a colon, each value in
-    a series is comma separated. Missing values are indicated by NaN. The last value
-    on each row is the class value for classification or target variable for regression.
-    For an example TSER problem see aeon.datasets.data.Covid3Month. The zenodo TSML
-    community maintains numerous repositories. You can download zips of whole
-    repositories using the function ``download_archive``.
-
-    By default, this function loads equal length no
-    missing value versions of the files that have been used in experimental studies.
-    These have suffixes `_eq` or `_nmv` after the name on zenodo.
-    If you want to load the original version, set the flags ``load_equal_length`` and/or
-    ``load_no_missing`` to False. If a problem has unequal length series
-    and missing values, it is assumed to be of the form <name>_eq_nmv_TRAIN.ts and
-    <name>_eq_nmv_TEST.ts. There are currently no problems in the archive with
-    missing and unequal length. To get summary information,
-    set return_metadata to True. aeon supports loading series with missing values and
-    or unequal length between series, but it does not support loading multivariate
-    series where lengths differ between channels.
-
-    Parameters
-    ----------
-    name : string
-        Name of the problem to load or download.
-    extract_path : None or str, default = None
-        Path of the location for the data file. If None, downloaded data is written to
-        ``_get_data_home()/<name>/`` (bundled data is still read from
-        ``aeon/datasets/data``).
-    split : None or str{"train", "test"}, default=None
-        Whether to load the train or test partition of the problem. By default it
-        loads both into a single dataset, otherwise it looks only for files of the
-        format <name>_TRAIN.ts or <name>_TEST.ts.
-    return_metadata : boolean, default = False
-        If True, returns a tuple (X, y, metadata)
-    load_equal_length : boolean, default=True
-        This is for the case when the standard release has unequal length series. The
-        downloaded zip for these contain a version made equal length through
-        truncation. These versions all have the suffix _eq after the name. If this
-        flag is set to True, the function first attempts to load files called
-        <name>_eq_TRAIN.ts/TEST.ts. If these are not present, it will load the normal
-        version.
-    load_no_missing : boolean, default=True
-        This is for the case when the standard release has missing values. The
-        downloaded zip for these contain a version with imputed missing values. These
-        versions all have the suffix _nmv after the name. If this
-        flag is set to True, the function first attempts to load files called
-        <name>_nmv_TRAIN.ts/TEST.ts. If these are not present, it will load the normal
-        version.
-    problem_dict: default = tsr_zenodo,
-        Dictionary of dataset names and their corresponding zenodo keys. Valid values
-        are tsr_zenodo or tsc_zenodo
-
-    Returns
-    -------
-    X: np.ndarray or list of np.ndarray
-    y: np.ndarray
-        The target response variable for each case in X
-    metadata: dict, optional
-        returns the following metadata
-        'problemname',timestamps, missing,univariate,equallength.
-        targetlabel should be true, and classlabel false
-
-    Examples
-    --------
-    >>> from aeon.datasets import load_collection
-    >>> X, y = load_collection("FloodModeling1")  # doctest: +SKIP
-    """
-    # If the request is for _eq or _nmv versions, strip that out and set flags.
-    # Directory always uses the stripped base name.
-    if name.endswith("_nmv"):
-        name = name[:-4]  # strip "_nmv"
-        load_no_missing = True
-    if name.endswith("_eq"):
-        name = name[:-3]  # strip "_eq"
-        load_equal_length = True
-
-    dir_name = name
-
-    error_str = (
-        f"File name {name} is not in the list of valid files to download, "
-        f"see aeon.datasets.tser_datasets.tsr_zenodo for the list of valid keys for "
-        f"regression and aeon.datasets.tsc_datasets.tsc_zenodo for classification."
-    )
-
-    # Resolve roots
-    bundled_root = os.path.join(MODULE, "data")
-    if extract_path is not None:
-        cache_root = os.path.abspath(os.path.expanduser(extract_path))
-    else:
-        cache_root = _get_data_home()
-
-    # Decide where to load from / download to
-    if extract_path is not None:
-        # Explicit extract_path means only use that location.
-        local_module = cache_root
-        local_dirname = ""
-        path = local_module
-        if not os.path.exists(path):
-            os.makedirs(path)
-
-        in_local = name in get_downloaded_tsc_tsr_datasets(cache_root)
-        need_download = not in_local
-    else:
-        # No extract_path: prefer bundled, otherwise use cache.
-        in_bundled = name in get_downloaded_tsc_tsr_datasets(bundled_root)
-        in_cache = name in get_downloaded_tsc_tsr_datasets(cache_root)
-
-        if in_bundled:
-            local_module = MODULE
-            local_dirname = "data"
-            path = bundled_root
-            need_download = False
-        elif in_cache:
-            local_module = cache_root
-            local_dirname = ""
-            path = cache_root
-            need_download = False
-        else:
-            local_module = cache_root
-            local_dirname = ""
-            path = cache_root
-            if not os.path.exists(path):
-                os.makedirs(path)
-            need_download = True
-
-    eq_present = False
-    nmv_present = False
-
-    if need_download:
-        if name not in problem_dict:
-            raise ValueError(error_str)
-
-        zenodo_id = problem_dict[name]
-        full_path = os.path.join(path, name)
-
-        try:
-            downloaded_files = _download_all_zenodo_files(zenodo_id, full_path)
-        except Exception as e:
-            raise ValueError(
-                f"Could not download files for {name} from Zenodo record {zenodo_id}: "
-                f"{type(e).__name__}: {e}"
-            ) from e
-
-        eq_present = (
-            f"{name}_eq_TRAIN.ts" in downloaded_files
-            and f"{name}_eq_TEST.ts" in downloaded_files
-        )
-        nmv_present = (
-            f"{name}_nmv_TRAIN.ts" in downloaded_files
-            and f"{name}_nmv_TEST.ts" in downloaded_files
-        )
-        base_train = f"{name}_TRAIN.ts"
-        base_test = f"{name}_TEST.ts"
-        if base_train not in downloaded_files or base_test not in downloaded_files:
-            raise ValueError(
-                f"Zenodo record {zenodo_id} does not contain the expected base files "
-                f"{base_train} and {base_test}. Found: {sorted(downloaded_files)}"
-            )
-    else:
-        # Loading locally, check whether _eq and _nmv variants exist in the chosen root
-        active_root = os.path.join(local_module, local_dirname)
-        eq_train = os.path.join(active_root, name, f"{name}_eq_TRAIN.ts")
-        eq_test = os.path.join(active_root, name, f"{name}_eq_TEST.ts")
-        if os.path.isfile(eq_train) and os.path.isfile(eq_test):
-            eq_present = True
-
-        nmv_train = os.path.join(active_root, name, f"{name}_nmv_TRAIN.ts")
-        nmv_test = os.path.join(active_root, name, f"{name}_nmv_TEST.ts")
-        if os.path.isfile(nmv_train) and os.path.isfile(nmv_test):
-            nmv_present = True
-
-    if load_equal_length and eq_present:
-        name = name + "_eq"
-    if load_no_missing and nmv_present:
-        name = name + "_nmv"
-
-    X, y, meta = _load_saved_dataset(
-        name=name,
-        dir_name=dir_name,
-        split=split,
-        local_module=local_module,
-        local_dirname=local_dirname,
-        return_meta=True,
-    )
-    if return_metadata:
-        return X, y, meta
-    return X, y
-
-
 def load_regression(
     name: str,
     split=None,
@@ -1301,14 +1082,13 @@ def load_regression(
     return_metadata: bool = False,
     load_equal_length: bool = True,
     load_no_missing: bool = True,
-    problem_dict=tsr_zenodo,
 ):
     """Download/load a TSML regression collection.
 
     If the data is stored locally on "extract_path" it is loaded from there. If not,
     it is downloaded from the Zenodo TSML community
     (https://zenodo.org/communities/tsml) then loaded into memory. It does this by
-    calling load_collection (see that functions documentation for more detail)
+    calling _load_collection (see that functions documentation for more detail)
     then further checks whether a classification problem has been loaded by mistake.
     If this happens, it raises an error.
 
@@ -1365,7 +1145,7 @@ def load_regression(
     >>> from aeon.datasets import load_regression
     >>> X, y=load_regression("FloodModeling1") # doctest: +SKIP
     """
-    X, y, meta = load_collection(
+    X, y, meta = _load_collection(
         name,
         split,
         extract_path,
@@ -1401,7 +1181,7 @@ def load_classification(
     If the data is stored locally on "extract_path" it is loaded from there. If not,
     it is downloaded from the Zenodo TSML community
     (https://zenodo.org/communities/tsml) then loaded into memory. It does this by
-    calling load_collection (see that functions documentation for more detail) then
+    calling _load_collection (see that functions documentation for more detail) then
     further checks whether a regression problem has been loaded by mistake. If this
     happens, it raises an error.
 
@@ -1411,8 +1191,8 @@ def load_classification(
     name : str
         Name of data set. If a dataset that is listed in tsc_datasets is given,
         this function will look in the extract_path first, and if it is not present,
-        attempt to download the data from www.timeseriesclassification.com, saving it to
-        the extract_path.
+        attempt to download the data from zenodo, saving it to
+        the `extract_path`.
     split : None or str{"train", "test"}, default=None
         Whether to load the train or test partition of the problem. By default it
         loads both into a single dataset, otherwise it looks only for files of the
@@ -1461,7 +1241,7 @@ def load_classification(
     >>> from aeon.datasets import load_classification
     >>> X, y = load_classification(name="ArrowHead")  # doctest: +SKIP
     """
-    X, y, meta = load_collection(
+    X, y, meta = _load_collection(
         name,
         split,
         extract_path,
@@ -1493,7 +1273,7 @@ def download_archive(archive="UCR", extract_path=None):
     "TSR":  63 TSR problems (univariate and multivariate) (~900MB) [5,6]
     "Imbalanced": 76 unbalanced versions of the UCR archive  (~245MB) [7]
     "Unequal": Unequal length versions of the UCR (~400MB) [8]
-    "EEG": 28 EEG classification problems (~60GB) [8]
+    "EEG": 28 EEG classification problems (~14.5GB) [8]
 
     The links to go directly to zenodo are in the references below.
 
@@ -1732,3 +1512,222 @@ def _download_all_zenodo_files(record_id: int | str, target_dir: str) -> set[str
         downloaded_files.add(filename)
 
     return downloaded_files
+
+
+def _load_collection(
+    name: str,
+    problem_dict: dict[str, int],
+    split=None,
+    extract_path=None,
+    return_metadata: bool = False,
+    load_equal_length: bool = True,
+    load_no_missing: bool = True,
+):
+    """Download/load a TSML collection of data.
+
+    Downloads a collection of time series from zenodo tsml community
+    https://zenodo.org/communities/tsml in standard aeon format. It will download a
+    train and test file. If the problem is unequal length or has missing values,
+    it will also download equal length and no missing value versions. The list of
+    datasets stored and appropriate zenodo key is maintained in file tsc_datasets
+    in dictionaries tsr_zenodo (regression) and tsc_zenodo (classification).
+
+    If you want to load a problem from a local file, specify the
+    location in ``extract_path``. This function assumes the data is stored in format
+    <extract_path>/<name>/<name>_TRAIN.ts and <extract_path>/<name>/<name>_TEST.ts.
+    If you want to load a single file directly from a full path, use the function
+    ``load_from_ts_file`` directly. If you do not specify ``extract_path``, or if the
+    problem is not present in ``extract_path`` it will attempt to download the data from
+    https://zenodo.org/communities/tsml
+
+    This function can load timestamped data, but it does not store the time stamps.
+    The time stamp loading is fragile, it will only work if all data are floats rather
+    than any specific date format.
+
+    Data is assumed to be in the standard .ts format: each row is a (possibly
+    multivariate) time series. Each channel is separated by a colon, each value in
+    a series is comma separated. Missing values are indicated by NaN. The last value
+    on each row is the class value for classification or target variable for regression.
+    For an example TSER problem see aeon.datasets.data.Covid3Month. The zenodo TSML
+    community maintains numerous repositories. You can download zips of whole
+    repositories using the function ``download_archive``.
+
+    By default, this function loads equal length no
+    missing value versions of the files that have been used in experimental studies.
+    These have suffixes `_eq` or `_nmv` after the name on zenodo.
+    If you want to load the original version, set the flags ``load_equal_length`` and/or
+    ``load_no_missing`` to False. If a problem has unequal length series
+    and missing values, it is assumed to be of the form <name>_eq_nmv_TRAIN.ts and
+    <name>_eq_nmv_TEST.ts. There are currently no problems in the archive with
+    missing and unequal length. To get summary information,
+    set return_metadata to True. aeon supports loading series with missing values and
+    or unequal length between series, but it does not support loading multivariate
+    series where lengths differ between channels.
+
+    Parameters
+    ----------
+    name : string
+        Name of the problem to load or download.
+    extract_path : None or str, default = None
+        Path of the location for the data file. If None, downloaded data is written to
+        ``_get_data_home()/<name>/`` (bundled data is still read from
+        ``aeon/datasets/data``).
+    split : None or str{"train", "test"}, default=None
+        Whether to load the train or test partition of the problem. By default it
+        loads both into a single dataset, otherwise it looks only for files of the
+        format <name>_TRAIN.ts or <name>_TEST.ts.
+    return_metadata : boolean, default = False
+        If True, returns a tuple (X, y, metadata)
+    load_equal_length : boolean, default=True
+        This is for the case when the standard release has unequal length series. The
+        downloaded zip for these contain a version made equal length through
+        truncation. These versions all have the suffix _eq after the name. If this
+        flag is set to True, the function first attempts to load files called
+        <name>_eq_TRAIN.ts/TEST.ts. If these are not present, it will load the normal
+        version.
+    load_no_missing : boolean, default=True
+        This is for the case when the standard release has missing values. The
+        downloaded zip for these contain a version with imputed missing values. These
+        versions all have the suffix _nmv after the name. If this
+        flag is set to True, the function first attempts to load files called
+        <name>_nmv_TRAIN.ts/TEST.ts. If these are not present, it will load the normal
+        version.
+    problem_dict: dict,
+        Dictionary of dataset names and their corresponding zenodo keys. Valid values
+        are tsr_zenodo or tsc_zenodo
+
+    Returns
+    -------
+    X: np.ndarray or list of np.ndarray
+    y: np.ndarray
+        The target response variable for each case in X
+    metadata: dict, optional
+        returns the following metadata
+        'problemname',timestamps, missing,univariate,equallength.
+        targetlabel should be true, and classlabel false
+
+    Examples
+    --------
+    >>> from aeon.datasets import _load_collection
+    >>> X, y = _load_collection("FloodModeling1")  # doctest: +SKIP
+    """
+    # If the request is for _eq or _nmv versions, strip that out and set flags.
+    # Directory always uses the stripped base name.
+    if name.endswith("_nmv"):
+        name = name[:-4]  # strip "_nmv"
+        load_no_missing = True
+    if name.endswith("_eq"):
+        name = name[:-3]  # strip "_eq"
+        load_equal_length = True
+
+    dir_name = name
+
+    error_str = (
+        f"File name {name} is not in the list of valid files to download, "
+        f"see aeon.datasets.tser_datasets.tsr_zenodo for the list of valid keys for "
+        f"regression and aeon.datasets.tsc_datasets.tsc_zenodo for classification."
+    )
+
+    # Resolve roots
+    bundled_root = os.path.join(MODULE, "data")
+    if extract_path is not None:
+        cache_root = os.path.abspath(os.path.expanduser(extract_path))
+    else:
+        cache_root = _get_data_home()
+
+    # Decide where to load from / download to
+    if extract_path is not None:
+        # Explicit extract_path means only use that location.
+        local_module = cache_root
+        local_dirname = ""
+        path = local_module
+        if not os.path.exists(path):
+            os.makedirs(path)
+
+        in_local = name in get_downloaded_tsc_tsr_datasets(cache_root)
+        need_download = not in_local
+    else:
+        # No extract_path: prefer bundled, otherwise use cache.
+        in_bundled = name in get_downloaded_tsc_tsr_datasets(bundled_root)
+        in_cache = name in get_downloaded_tsc_tsr_datasets(cache_root)
+
+        if in_bundled:
+            local_module = MODULE
+            local_dirname = "data"
+            path = bundled_root
+            need_download = False
+        elif in_cache:
+            local_module = cache_root
+            local_dirname = ""
+            path = cache_root
+            need_download = False
+        else:
+            local_module = cache_root
+            local_dirname = ""
+            path = cache_root
+            if not os.path.exists(path):
+                os.makedirs(path)
+            need_download = True
+
+    eq_present = False
+    nmv_present = False
+
+    if need_download:
+        if name not in problem_dict:
+            raise ValueError(error_str)
+
+        zenodo_id = problem_dict[name]
+        full_path = os.path.join(path, name)
+
+        try:
+            downloaded_files = _download_all_zenodo_files(zenodo_id, full_path)
+        except Exception as e:
+            raise ValueError(
+                f"Could not download files for {name} from Zenodo record {zenodo_id}: "
+                f"{type(e).__name__}: {e}"
+            ) from e
+
+        eq_present = (
+            f"{name}_eq_TRAIN.ts" in downloaded_files
+            and f"{name}_eq_TEST.ts" in downloaded_files
+        )
+        nmv_present = (
+            f"{name}_nmv_TRAIN.ts" in downloaded_files
+            and f"{name}_nmv_TEST.ts" in downloaded_files
+        )
+        base_train = f"{name}_TRAIN.ts"
+        base_test = f"{name}_TEST.ts"
+        if base_train not in downloaded_files or base_test not in downloaded_files:
+            raise ValueError(
+                f"Zenodo record {zenodo_id} does not contain the expected base files "
+                f"{base_train} and {base_test}. Found: {sorted(downloaded_files)}"
+            )
+    else:
+        # Loading locally, check whether _eq and _nmv variants exist in the chosen root
+        active_root = os.path.join(local_module, local_dirname)
+        eq_train = os.path.join(active_root, name, f"{name}_eq_TRAIN.ts")
+        eq_test = os.path.join(active_root, name, f"{name}_eq_TEST.ts")
+        if os.path.isfile(eq_train) and os.path.isfile(eq_test):
+            eq_present = True
+
+        nmv_train = os.path.join(active_root, name, f"{name}_nmv_TRAIN.ts")
+        nmv_test = os.path.join(active_root, name, f"{name}_nmv_TEST.ts")
+        if os.path.isfile(nmv_train) and os.path.isfile(nmv_test):
+            nmv_present = True
+
+    if load_equal_length and eq_present:
+        name = name + "_eq"
+    if load_no_missing and nmv_present:
+        name = name + "_nmv"
+
+    X, y, meta = _load_saved_dataset(
+        name=name,
+        dir_name=dir_name,
+        split=split,
+        local_module=local_module,
+        local_dirname=local_dirname,
+        return_meta=True,
+    )
+    if return_metadata:
+        return X, y, meta
+    return X, y
