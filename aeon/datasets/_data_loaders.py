@@ -34,7 +34,7 @@ import requests
 
 import aeon
 from aeon.datasets.dataset_collections import (
-    get_data_home,
+    _get_data_home,
     get_downloaded_tsc_tsr_datasets,
     get_downloaded_tsf_datasets,
     tsml_archives,
@@ -1132,7 +1132,7 @@ def load_collection(
         Name of the problem to load or download.
     extract_path : None or str, default = None
         Path of the location for the data file. If None, downloaded data is written to
-        ``get_data_home()/<name>/`` (bundled data is still read from
+        ``_get_data_home()/<name>/`` (bundled data is still read from
         ``aeon/datasets/data``).
     split : None or str{"train", "test"}, default=None
         Whether to load the train or test partition of the problem. By default it
@@ -1195,7 +1195,7 @@ def load_collection(
     if extract_path is not None:
         cache_root = os.path.abspath(os.path.expanduser(extract_path))
     else:
-        cache_root = get_data_home()
+        cache_root = _get_data_home()
 
     # Decide where to load from / download to
     if extract_path is not None:

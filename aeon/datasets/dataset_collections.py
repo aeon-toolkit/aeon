@@ -127,7 +127,7 @@ def get_downloaded_tsc_tsr_datasets(extract_path: str | None = None) -> list[str
     extract_path : str or None, default=None
         Root directory to search. If None, searches both:
         1) bundled aeon datasets in ``MODULE/data``
-        2) the user data cache from ``get_data_home()``
+        2) the user data cache from ``_get_data_home()``
 
     Returns
     -------
@@ -135,7 +135,7 @@ def get_downloaded_tsc_tsr_datasets(extract_path: str | None = None) -> list[str
         Sorted dataset names found locally.
     """
     if extract_path is None:
-        roots = [os.path.join(MODULE, "data"), get_data_home()]
+        roots = [os.path.join(MODULE, "data"), _get_data_home()]
     else:
         root = os.path.abspath(os.path.expanduser(extract_path))
         roots = [root]
@@ -191,7 +191,7 @@ def get_downloaded_tsf_datasets(extract_path=None):
     return datasets
 
 
-def get_data_home(data_home: str | os.PathLike[str] | None = None) -> str:
+def _get_data_home(data_home: str | os.PathLike[str] | None = None) -> str:
     """Return the aeon data home directory, creating it if needed.
 
     This directory is used for downloaded datasets (not bundled package data).
