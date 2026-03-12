@@ -124,7 +124,7 @@ def sbd_pairwise_distance(
     Compute the shape-based distance (SBD) between all pairs of time series.
 
     For multivariate time series, SBD is computed independently for each channel and
-    then averaged. Both time series must have the same number of channels! This is not
+    then averaged. Both time series must have the same number of channels. This is not
     checked in code for performance reasons. If the number of channels is different,
     the minimum number of channels is used.
 

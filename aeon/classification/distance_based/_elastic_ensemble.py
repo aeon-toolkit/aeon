@@ -8,6 +8,7 @@ __all__ = ["ElasticEnsemble"]
 
 import math
 import time
+import warnings
 from itertools import product
 
 import numpy as np
@@ -216,6 +217,17 @@ class ElasticEnsemble(BaseClassifier):
                         f"using{len(param_train_x)} training cases instead of "
                         f"{len(X)} for parameter optimisation"
                     )
+
+                _, count = np.unique(param_train_y, return_counts=True)
+                if len(count) < 2 or np.any(count < 2):
+                    warnings.warn(
+                        "The training data used for parameter optimisation contains "
+                        "less than 2 cases for at least one class. This may cause "
+                        "issues with optimising parameters for some distance measures. "
+                        "Consider increasing the proportion of training cases used for "
+                        "parameter optimisation.",
+                        stacklevel=2,
+                    )
         # else, use the full training data for optimising parameters
         else:
             if self.verbose > 0:
@@ -264,41 +276,51 @@ class ElasticEnsemble(BaseClassifier):
                         f"Currently evaluating {self._distance_measures[dm]}"
                     )
 
-            # If 100 parameter options are being considered per measure,
-            # use a GridSearchCV
-            if self.proportion_of_param_options == 1:
-                grid = GridSearchCV(
-                    estimator=KNeighborsTimeSeriesClassifier(
-                        distance=this_measure, n_neighbors=1
-                    ),
-                    param_grid=ElasticEnsemble._get_100_param_options(
-                        self._distance_measures[dm], X
-                    ),
-                    cv=LeaveOneOut(),
-                    scoring="accuracy",
-                    n_jobs=self._n_jobs,
-                    verbose=self.verbose,
-                )
-                grid.fit(param_train_to_use, param_train_y)
+            try:
+                # If 100 parameter options are being considered per measure,
+                # use a GridSearchCV
+                if self.proportion_of_param_options == 1:
+                    grid = GridSearchCV(
+                        estimator=KNeighborsTimeSeriesClassifier(
+                            distance=this_measure, n_neighbors=1
+                        ),
+                        param_grid=ElasticEnsemble._get_100_param_options(
+                            self._distance_measures[dm], X
+                        ),
+                        cv=LeaveOneOut(),
+                        scoring="accuracy",
+                        n_jobs=self._n_jobs,
+                        verbose=self.verbose,
+                    )
+                    grid.fit(param_train_to_use, param_train_y)
 
-            # Else, used RandomizedSearchCV to randomly sample parameter
-            # options for each measure
-            else:
-                grid = RandomizedSearchCV(
-                    estimator=KNeighborsTimeSeriesClassifier(
-                        distance=this_measure, n_neighbors=1
-                    ),
-                    param_distributions=ElasticEnsemble._get_100_param_options(
-                        self._distance_measures[dm], X
-                    ),
-                    n_iter=math.ceil(100 * self.proportion_of_param_options),
-                    cv=LeaveOneOut(),
-                    scoring="accuracy",
-                    n_jobs=self._n_jobs,
-                    random_state=rand,
-                    verbose=self.verbose,
-                )
-                grid.fit(param_train_to_use, param_train_y)
+                # Else, used RandomizedSearchCV to randomly sample parameter
+                # options for each measure
+                else:
+                    grid = RandomizedSearchCV(
+                        estimator=KNeighborsTimeSeriesClassifier(
+                            distance=this_measure, n_neighbors=1
+                        ),
+                        param_distributions=ElasticEnsemble._get_100_param_options(
+                            self._distance_measures[dm], X
+                        ),
+                        n_iter=math.ceil(100 * self.proportion_of_param_options),
+                        cv=LeaveOneOut(),
+                        scoring="accuracy",
+                        n_jobs=self._n_jobs,
+                        random_state=rand,
+                        verbose=self.verbose,
+                    )
+                    grid.fit(param_train_to_use, param_train_y)
+            except ValueError as e:
+                if "y must contain at least 2 unique labels, but found 1" in str(e):
+                    raise ValueError(
+                        "Failed to find best parameters for distance measures due to "
+                        "only one class being present in CV. Increase the proportion "
+                        "of training cases used for parameter search or use more data."
+                    )
+                else:
+                    raise e
 
             if self.majority_vote:
                 acc = 1
