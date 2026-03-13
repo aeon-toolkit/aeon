@@ -246,7 +246,7 @@ jobs:
         run: python -m pip list
 
       - name: Run tests
-        run: python -m pytest -n logical --doctest-only --doctest-continue-on-failure
+        run: python -m pytest -n logical --doctest-only
 
       - name: Save new cache
         uses: actions/cache/save@v5

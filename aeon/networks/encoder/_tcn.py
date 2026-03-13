@@ -39,7 +39,7 @@ class TCNNetwork(BaseDeepLearningNetwork):
 
     Examples
     --------
-    >>> from aeon.networks._tcn import TCNNetwork
+    >>> from aeon.networks.encoder._tcn import TCNNetwork
     >>> network = TCNNetwork(n_blocks=[8, 8])
     >>> input_layer, output = network.build_network(input_shape=(150, 4))
     >>> input_layer.shape, output.shape
