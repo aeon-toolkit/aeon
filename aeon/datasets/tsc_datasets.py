@@ -488,7 +488,7 @@ redux = [
 ]
 
 # 66 MTSC datasets recommended for general purpose algorithm comparison [6]
-multiverse_mini = [
+multiverse_core = [
     "Alzheimers",
     "AppliancesEnergy_disc",
     "ArticularyWordRecognition",
