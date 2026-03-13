@@ -258,7 +258,7 @@ class DirectForecastingMixin:
 class IterativeForecastingMixin:
     """Mixin class for iterative forecasting."""
 
-    def iterative_forecast(self, y, prediction_horizon) -> np.ndarray:
+    def iterative_forecast(self, y, prediction_horizon, exog=None) -> np.ndarray:
         """
         Forecast ``prediction_horizon`` prediction using a single model fit on `y`.
 
@@ -275,6 +275,8 @@ class IterativeForecastingMixin:
             ``(n_channels, n_timepoints)`` if a multivariate time series.
         prediction_horizon : int
             The number of future time steps to forecast.
+        exog : np.ndarray, default =None
+            Optional exogenous time series data assumed to be aligned with y.
 
         Returns
         -------
@@ -301,9 +303,9 @@ class IterativeForecastingMixin:
             )
 
         preds = np.zeros(prediction_horizon)
-        self.fit(y)
+        self.fit(y, exog)
         for i in range(0, prediction_horizon):
-            preds[i] = self.predict(y)
+            preds[i] = self.predict(y, exog)
             y = np.append(y, preds[i])
         return preds
 

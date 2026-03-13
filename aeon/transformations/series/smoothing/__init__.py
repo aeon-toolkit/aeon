@@ -4,6 +4,7 @@ __all__ = [
     "DiscreteFourierApproximation",
     "ExponentialSmoothing",
     "GaussianFilter",
+    "LOWESS",
     "MovingAverage",
     "SavitzkyGolayFilter",
     "RecursiveMedianSieve",
@@ -12,6 +13,7 @@ __all__ = [
 from aeon.transformations.series.smoothing._dfa import DiscreteFourierApproximation
 from aeon.transformations.series.smoothing._exp_smoothing import ExponentialSmoothing
 from aeon.transformations.series.smoothing._gauss import GaussianFilter
+from aeon.transformations.series.smoothing._lowess import LOWESS
 from aeon.transformations.series.smoothing._moving_average import MovingAverage
 from aeon.transformations.series.smoothing._rms import RecursiveMedianSieve
 from aeon.transformations.series.smoothing._sg import SavitzkyGolayFilter

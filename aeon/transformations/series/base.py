@@ -12,7 +12,7 @@ from abc import abstractmethod
 from typing import final
 
 from aeon.base import BaseSeriesEstimator
-from aeon.transformations.base import BaseTransformer
+from aeon.transformations.base import BaseTransformer, InverseTransformerMixin
 
 
 class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer):
@@ -166,44 +166,6 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer):
         self.is_fitted = True
         return self._postprocess_series(Xt, axis=axis)
 
-    @final
-    def inverse_transform(self, X, y=None, axis=1):
-        """Inverse transform X and return an inverse transformed version.
-
-        State required:
-             Requires state to be "fitted".
-
-        Parameters
-        ----------
-        X : Input data
-            Data to fit transform to, of valid collection type.
-        y : Target variable, default=None
-             Additional data, e.g., labels for transformation
-        axis : int, default = 1
-            Axis of time in the input series.
-            If ``axis == 0``, it is assumed each column is a time series and each row is
-            a time point. i.e. the shape of the data is ``(n_timepoints,
-            n_channels)``.
-            ``axis == 1`` indicates the time series are in rows, i.e. the shape of
-            the data is ``(n_channels, n_timepoints)`.``axis is None`` indicates
-            that the axis of X is the same as ``self.axis``.
-
-        Returns
-        -------
-        inverse transformed version of X
-            of the same type as X
-        """
-        if not self.get_tag("capability:inverse_transform"):
-            raise NotImplementedError(
-                f"{type(self)} does not implement inverse_transform"
-            )
-
-        # check whether is fitted
-        self._check_is_fitted()
-        X = self._preprocess_series(X, axis=axis, store_metadata=False)
-        Xt = self._inverse_transform(X=X, y=y)
-        return self._postprocess_series(Xt, axis=axis)
-
     def _fit(self, X, y=None):
         """Fit transformer to X and y.
 
@@ -265,27 +227,6 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer):
             self._fit(X, y)
         return self._transform(X, y)
 
-    def _inverse_transform(self, X, y=None):
-        """Inverse transform X and return an inverse transformed version.
-
-        private _inverse_transform containing core logic, called from inverse_transform.
-
-        Parameters
-        ----------
-        X : Input data
-            Time series to fit transform to, of valid collection type.
-        y : Target variable, default=None
-            Additional data, e.g., labels for transformation
-
-        Returns
-        -------
-        inverse transformed version of X
-            of the same type as X.
-        """
-        raise NotImplementedError(
-            f"{self.__class__.__name__} does not support inverse_transform"
-        )
-
     def _postprocess_series(self, Xt, axis):
         """Postprocess data Xt to revert to original shape.
 
@@ -321,3 +262,58 @@ class BaseSeriesTransformer(BaseSeriesEstimator, BaseTransformer):
             return Xt
         else:
             return Xt.T
+
+
+class SeriesInverseTransformerMixin(InverseTransformerMixin):
+    """Mixin for transformers that support inverse transformation."""
+
+    _tags = {
+        "capability:inverse_transform": True,
+    }
+
+    @final
+    def inverse_transform(self, X, y=None, axis=1):
+        """Inverse transform X and return an inverse transformed version.
+
+        Currently it is assumed that only transformers with tags
+             "input_data_type"="Series", "output_data_type"="Series",
+        can have an inverse_transform.
+
+        State required:
+             Requires state to be "fitted".
+
+        Accesses in self:
+         _is_fitted : must be True
+         fitted model attributes (ending in "_") : accessed by _inverse_transform
+
+        Parameters
+        ----------
+        X : Series or Collection, any supported type
+            Data to fit transform to, of python type as follows:
+                Series: 2D np.ndarray shape (n_channels, n_timepoints)
+                Collection: 3D np.ndarray shape (n_cases, n_channels, n_timepoints)
+                or list of 2D np.ndarray, case i has shape (n_channels, n_timepoints_i)
+        y : Series, default=None
+            Additional data, e.g., labels for transformation.
+        axis : int, default = 1
+            Axis of time in the input series.
+            If ``axis == 0``, it is assumed each column is a time series and each row is
+            a time point. i.e. the shape of the data is ``(n_timepoints,
+            n_channels)``.
+            ``axis == 1`` indicates the time series are in rows, i.e. the shape of
+            the data is ``(n_channels, n_timepoints)`.``axis is None`` indicates
+            that the axis of X is the same as ``self.axis``.
+
+            Only relevant for ``aeon.transformations.series`` transformers.
+
+        Returns
+        -------
+        inverse transformed version of X
+            of the same type as X
+        """
+        # check whether is fitted
+        self._check_is_fitted()
+
+        X = self._preprocess_series(X, axis=axis, store_metadata=False)
+        Xt = self._inverse_transform(X=X, y=y)
+        return self._postprocess_series(Xt, axis=axis)
