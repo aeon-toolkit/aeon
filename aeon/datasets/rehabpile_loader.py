@@ -289,13 +289,8 @@ def load_rehab_pile_dataset(
                     f"name and your internet connection. Error: {e}"
                 ) from e
 
-    X = np.load(dataset_path_fold / files_to_load["X"], allow_pickle=True)
-    y = np.load(dataset_path_fold / files_to_load["y"], allow_pickle=True)
-
-    # Correct issue with pickle loading, ensuring all items are numpy arrays
-
-    X = np.array(X.tolist())
-    y = np.array(y.tolist())
+    X = np.load(dataset_path_fold / files_to_load["X"])
+    y = np.load(dataset_path_fold / files_to_load["y"])
 
     if return_meta:
         meta_path = dataset_path_meta / "info.json"
