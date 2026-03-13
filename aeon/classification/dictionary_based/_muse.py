@@ -14,6 +14,7 @@ import numpy as np
 from joblib import Parallel, delayed
 from scipy.sparse import hstack
 from sklearn.linear_model import LogisticRegression, RidgeClassifierCV
+from sklearn.multiclass import OneVsRestClassifier
 from sklearn.utils import check_random_state
 
 from aeon.classification.base import BaseClassifier
@@ -271,8 +272,9 @@ class MUSE(BaseClassifier):
                 class_weight=self.class_weight,
                 penalty="l2",
                 random_state=self.random_state,
-                n_jobs=self.n_jobs,
             )
+            if self.n_classes_ > 2:
+                self.clf = OneVsRestClassifier(self.clf, n_jobs=self.n_jobs)
 
         self.clf.fit(all_words, y)
         self.total_features_count = all_words.shape[-1]
