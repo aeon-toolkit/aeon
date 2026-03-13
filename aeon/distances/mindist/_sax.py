@@ -73,13 +73,20 @@ def _univariate_sax_distance(
     n_split = np.array_split(np.arange(n), m)
 
     for i in range(x.shape[0]):
-        if np.abs(x[i] - y[i]) <= 1:
+        # Cast to int64 explicitly for numba type inference
+        xi = np.int64(x[i])
+        yi = np.int64(y[i])
+
+        if np.abs(xi - yi) <= 1:
             continue
         else:
-            dist += (
-                n_split[i].shape[0]
-                * (breakpoints[max(x[i], y[i]) - 1] - breakpoints[min(x[i], y[i])]) ** 2
-            )
+            max_idx = xi if xi > yi else yi
+            min_idx = xi if xi < yi else yi
+            idx_max = max_idx - 1
+            idx_min = min_idx
+
+            diff = breakpoints[idx_max] - breakpoints[idx_min]
+            dist = dist + n_split[i].shape[0] * diff * diff  # Non-in-place
 
     return np.sqrt(dist)
 
@@ -139,20 +146,24 @@ def _sax_from_multiple_to_multiple_distance(
     X: np.ndarray, y: np.ndarray | None, breakpoints: np.ndarray, n: int
 ) -> np.ndarray:
     if y is None:
-        n_instances = X.shape[0]
+        n_instances = len(X)
         distances = np.zeros((n_instances, n_instances))
 
         for i in prange(n_instances):
             for j in range(i + 1, n_instances):
-                distances[i, j] = _univariate_sax_distance(X[i], X[j], breakpoints, n)
+                distances[i, j] = _univariate_sax_distance(
+                    X[i].ravel(), X[j].ravel(), breakpoints, n
+                )
                 distances[j, i] = distances[i, j]
     else:
-        n_instances = X.shape[0]
-        m_instances = y.shape[0]
+        n_instances = len(X)
+        m_instances = len(y)
         distances = np.zeros((n_instances, m_instances))
 
         for i in prange(n_instances):
             for j in range(m_instances):
-                distances[i, j] = _univariate_sax_distance(X[i], y[j], breakpoints, n)
+                distances[i, j] = _univariate_sax_distance(
+                    X[i].ravel(), y[j].ravel(), breakpoints, n
+                )
 
     return distances
