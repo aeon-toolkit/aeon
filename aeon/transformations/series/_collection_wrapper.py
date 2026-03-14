@@ -5,10 +5,13 @@ __all__ = ["CollectionToSeriesWrapper"]
 
 
 from aeon.transformations.collection.base import BaseCollectionTransformer
-from aeon.transformations.series.base import BaseSeriesTransformer
+from aeon.transformations.series.base import (
+    BaseSeriesTransformer,
+    SeriesInverseTransformerMixin,
+)
 
 
-class CollectionToSeriesWrapper(BaseSeriesTransformer):
+class CollectionToSeriesWrapper(SeriesInverseTransformerMixin, BaseSeriesTransformer):
     """Wrap a ``BaseCollectionTransformer`` to run on single series datatypes.
 
     Parameters

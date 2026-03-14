@@ -1,3 +1,5 @@
+"""Decorator for handling numba threading based on n_jobs parameters."""
+
 import functools
 import inspect
 import os
@@ -30,7 +32,7 @@ def _num_threads_default():
     return 1
 
 
-def threaded(func: Callable) -> Callable:
+def numba_thread_handler(func: Callable) -> Callable:
     """
     Temporarily set the global thread count based on an `n_jobs` argument.
 

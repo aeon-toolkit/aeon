@@ -43,8 +43,12 @@ from aeon.transformations.collection.unequal_length import Padder
 )
 def test_regressor_pipeline(transformers):
     """Test the regressor pipeline."""
-    X_train, y_train = make_example_3d_numpy(n_cases=10, n_timepoints=12)
-    X_test, _ = make_example_3d_numpy(n_cases=10, n_timepoints=12)
+    X_train, y_train = make_example_3d_numpy(
+        n_cases=10, n_timepoints=12, regression_target=True
+    )
+    X_test, _ = make_example_3d_numpy(
+        n_cases=10, n_timepoints=12, regression_target=True
+    )
 
     r = DummyRegressor()
     pipeline = RegressorPipeline(transformers=transformers, regressor=r)
@@ -81,8 +85,12 @@ def test_regressor_pipeline(transformers):
 )
 def test_sklearn_regressor_pipeline(transformers):
     """Test regressor pipeline with sklearn estimator."""
-    X_train, y_train = make_example_3d_numpy(n_cases=10, n_timepoints=12)
-    X_test, _ = make_example_3d_numpy(n_cases=10, n_timepoints=12)
+    X_train, y_train = make_example_3d_numpy(
+        n_cases=10, n_timepoints=12, regression_target=True
+    )
+    X_test, _ = make_example_3d_numpy(
+        n_cases=10, n_timepoints=12, regression_target=True
+    )
 
     r = RandomForestRegressor(n_estimators=2, random_state=0)
     pipeline = RegressorPipeline(transformers=transformers, regressor=r)
