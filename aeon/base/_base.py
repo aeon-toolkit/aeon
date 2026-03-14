@@ -450,7 +450,7 @@ class BaseAeonEstimator(BaseEstimator, ABC):
             else:
                 return [cls(**params)]
 
-    # override some sklearn private methods
+    # override some sklearn unused and private methods
 
     def __sklearn_is_fitted__(self):
         """Check fitted status and return a Boolean value."""
