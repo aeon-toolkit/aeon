@@ -1,4 +1,4 @@
-"""Time Series Classification (TSR) datasets in the UCR/tsml data archives.
+"""Time Series Classification (TSC) datasets in the UCR/tsml data archives.
 
 As described in https://timeseriesclassification.com.
 
