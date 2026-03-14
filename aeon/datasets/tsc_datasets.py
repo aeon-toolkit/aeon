@@ -48,7 +48,7 @@ redux contains the 30 new univariate equal length series introduced in [5].
     Bake off redux: a review and experimental evaluation of recent time series
     classification algorithms. Data Min Knowl Disc 38, 1958–2031 (2024).
     https://doi.org/10.1007/s10618-024-01022-1
-[6] Multiverse
+[6] Multiverse.
 [7] EEG
 [8] Monster
 [9] Rehab
@@ -693,16 +693,16 @@ multiverse2026 = [
     "WISDM2",
 ]
 
-# 26 EEG TSC datasets in the multiverse [7]
+# 30 EEG TSC datasets [8], 26 are in the multiverse [7]
 # See aeon-neuro for more info.
 eeg = [
     "Alzheimers",
     "Blink",
     "ButtonPress",
-    # "EpilepticSeizures", #Univariate
+    "EpilepticSeizures",  # Univariate
     "EyesOpenShut",
     "FaceDetection",
-    # "FeedbackButton", #Univariate
+    "FeedbackButton",  # Univariate
     "FeetHands",
     # "FibroLiverpool", These datasets are not fully open access
     # "FibroUEA",       Contact Tony Bagnall if you would like access for research
