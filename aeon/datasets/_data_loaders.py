@@ -7,7 +7,6 @@ __all__ = [
     "load_from_tsf_file",
     "load_from_arff_file",
     "load_from_tsv_file",
-    "_load_collection",
     "load_classification",
     "load_forecasting",
     "load_regression",
@@ -1608,7 +1607,7 @@ def _load_collection(
 
     Examples
     --------
-    >>> from aeon.datasets import _load_collection
+    >>> from aeon.datasets._data_loaders import _load_collection
     >>> X, y = _load_collection("FloodModeling1")  # doctest: +SKIP
     """
     # If the request is for _eq or _nmv versions, strip that out and set flags.
