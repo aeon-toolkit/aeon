@@ -2803,6 +2803,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "kennaruk",
+      "name": "Ken Wuttisasiwat",
+      "avatar_url": "https://avatars.githubusercontent.com/u/21194034?v=4",
+      "profile": "https://github.com/kennaruk",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "commitType": "docs"
