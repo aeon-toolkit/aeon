@@ -303,6 +303,7 @@ def load_rehab_pile_dataset(
             meta_url = f"{REHABPILE_ROOT_URL}{collection}/{subfolder}/info.json"
             try:
                 with urlopen(meta_url, timeout=60) as response:
+                    meta_path.parent.mkdir(parents=True, exist_ok=True)
                     with open(meta_path, "wb") as out_file:
                         out_file.write(response.read())
             except (HTTPError, URLError, TimeoutError) as e:
