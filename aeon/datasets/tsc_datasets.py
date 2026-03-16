@@ -1078,7 +1078,7 @@ tsc_zenodo = {
     "SongFamiliarity": 15496080,
     "SonyAIBORobotSurface1": 11198277,
     "SonyAIBORobotSurface2": 11198290,
-    "SpokenArabicDigits": 11206274,
+    "SpokenArabicDigits": 18734026,
     "StandWalkJump": 11206278,
     "StarLightCurves": 11198308,
     "Strawberry": 11198313,
