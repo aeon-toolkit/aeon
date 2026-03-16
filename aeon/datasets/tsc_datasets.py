@@ -1051,7 +1051,6 @@ tsc_zenodo = {
     "ProximalPhalanxTW": 11197973,
     "RacketSports": 11206263,
     "RefrigerationDevices": 11197996,
-    "Regression": 11236865,
     "Rock": 11198001,
     "S2Agri-10pc-17": 18499796,
     "S2Agri-10pc-34": 18499800,
