@@ -30,6 +30,7 @@ from urllib.request import Request, urlopen
 
 import numpy as np
 import pandas as pd
+from deprecated.sphinx import deprecated
 
 import aeon
 from aeon.datasets.dataset_collections import (
@@ -1074,6 +1075,13 @@ def _url_exists(url: str, timeout: float = 10.0) -> bool:
     return False
 
 
+# TODO: Change default values to False in v1.5.0
+@deprecated(
+    version="1.4.0",
+    reason="load_regression parameters load_equal_length and load_no_missing "
+    "will default to False in version 1.5.0",
+    category=FutureWarning,
+)
 def load_regression(
     name: str,
     split=None,
@@ -1167,6 +1175,13 @@ def load_regression(
     return X, y
 
 
+# TODO: Change default values to False in v1.5.0
+@deprecated(
+    version="1.4.0",
+    reason="load_classification parameters load_equal_length and load_no_missing "
+    "will default to False in version 1.5.0",
+    category=FutureWarning,
+)
 def load_classification(
     name,
     split=None,
