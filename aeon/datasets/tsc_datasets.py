@@ -54,7 +54,7 @@ Available archive lists
     [3]_.
 
 ``univariate_equal_length``
-    The 112 UCR archive datasets used in [4]_ and [5]_.
+    The 112 UCR archive datasets used in [4]_.
 
 ``multivariate_equal_length``
     The 26 UEA archive datasets used in [3]_ and [4]_.
@@ -98,24 +98,30 @@ References
 .. [1] H. Dau, A. Bagnall, K. Kamgar, C. Yeh, Y. Zhu, S. Gharghabi,
    C. Ratanamahatana, and E. Keogh. *The UCR Time Series Archive*.
    IEEE/CAA Journal of Automatica Sinica, 6(6):1293-1305, 2019.
+   `PDF <https://ueaeprints.uea.ac.uk/id/eprint/72517/1/the_UCR_Archive_paper_final
+   .pdf>`_
 
 .. [2] A. Bagnall, H. Dau, J. Lines, M. Flynn, J. Large, A. Bostrom,
    P. Southam, and E. Keogh. *The UEA Multivariate Time Series
    Classification Archive, 2018*. arXiv:1811.00075, 2018.
+   `PDF <https://arxiv.org/pdf/1811.00075>`_
 
 .. [3] A. Pasos Ruiz, M. Flynn, J. Large, M. Middlehurst, and A. Bagnall.
    *The Great Multivariate Time Series Classification Bake Off: A Review and
    Experimental Evaluation of Recent Algorithmic Advances*.
    Data Mining and Knowledge Discovery, 2020.
+   `Open Access <https://link.springer.com/article/10.1007/s10618-020-00727-3>`_
 
 .. [4] M. Middlehurst, J. Large, M. Flynn, and A. Bagnall.
    *HIVE-COTE 2.0: A New Meta Ensemble for Time Series Classification*.
    Machine Learning, 110(11), 2021.
+   `Open Access <https://link.springer.com/article/10.1007/s10994-021-06057-9>`_
 
 .. [5] M. Middlehurst, P. Schäfer, and A. Bagnall.
    *Bake Off Redux: A Review and Experimental Evaluation of Recent Time Series
    Classification Algorithms*. Data Mining and Knowledge Discovery,
    38:1958-2031, 2024.
+   `Open Access <https://link.springer.com/article/10.1007/s10618-024-01022-1>`_
 
 .. [6] M. Middlehurst et al. *The Multiverse of Time Series Machine Learning:
    An Archive for Multivariate Time Series Classification*.
@@ -127,10 +133,7 @@ References
 
 .. [8] A. Ismail-Fawaz et al. *Deep Learning for Skeleton-Based Human Motion
    Rehabilitation Assessment: A Benchmark*. arXiv, 2025.
-
-.. [9] A. Dempster et al. *MONSTER: Monash Scalable Time Series Evaluation
-   Repository*. Data-centric Machine Learning, 2025.
-   https://data.mlr.press/assets/pdf/v02-15.pdf
+   `PDF <https://arxiv.org/pdf/2507.21018>`_
 """
 
 # The 85 UCR univariate TSC datasets in the 2015 version
@@ -690,8 +693,8 @@ multiverse2026 = [
     "ImaginedFeetHands",
     "ImaginedOpenCloseFist",
     "InnerSpeech",
-    "InsectWingbeat_eq",
-    "JapaneseVowels_eq",
+    "InsectWingbeat",
+    "JapaneseVowels",
     "KERAAL-CTK",
     "KERAAL-CTK-MC",
     "KERAAL-ELK",
@@ -881,7 +884,7 @@ monster = [
 ]
 
 
-# 26 equal length multivariate TSC datasets in the UEA archive [2,3]"""
+# 26 equal length multivariate TSC datasets in the UEA archive [2,3]
 multivariate_equal_length = [
     "ArticularyWordRecognition",
     "AtrialFibrillation",
@@ -911,7 +914,7 @@ multivariate_equal_length = [
     "UWaveGestureLibrary",
 ]
 
-# 7 variable length multivariate time series classification problems [2,3]"""
+# 7 variable length multivariate time series classification problems [2,3]
 multivariate_unequal_length = [
     "AsphaltObstaclesCoordinates",
     "AsphaltPavementTypeCoordinates",
