@@ -557,7 +557,7 @@ multiverse_core = [
     "WISDM",
 ]
 
-# 132 MTSC equal length no missing value datasets in the 2026 Multiverse [6]
+# 134 MTSC equal length no missing value datasets in the 2026 Multiverse [6]
 multiverse2026 = [
     "Alzheimers",
     "AppliancesEnergy_disc",
@@ -593,6 +593,7 @@ multiverse2026 = [
     "EthanolConcentration",
     "EyesOpenShut",
     "FaceDetection",
+    "FeedbackButton",
     "FeetHands",
     "FingerMovements",
     "FordChallenge",
@@ -702,7 +703,7 @@ eeg = [
     "EpilepticSeizures",  # Univariate
     "EyesOpenShut",
     "FaceDetection",
-    "FeedbackButton",  # Univariate
+    "FeedbackButton",
     "FeetHands",
     # "FibroLiverpool", These datasets are not fully open access
     # "FibroUEA",       Contact Tony Bagnall if you would like access for research
@@ -723,7 +724,7 @@ eeg = [
     "SelfRegulationSCP2",
     "ShortIntervalTask",
     "SitStand",
-    "Sleep",
+    "Sleep",  # Univariate
     "SongFamiliarity",
     "VisualSpeech",
 ]
