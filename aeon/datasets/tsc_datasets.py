@@ -69,13 +69,13 @@ Available archive lists
     The 30 new univariate equal-length datasets introduced in [5]_.
 
 ``multiverse2026``
-    The 134 multivariate TSC problems described in [6]_.
+    The 133 Multivariate TSC problems described in [6]_.
 
 ``multiverse_core``
     A 66-dataset core subset of the Multiverse archive described in [6]_.
 
 ``eeg2026``
-    The 30 EEG classification problems introduced in [7]_.
+    The 28 open source EEG classification problems introduced in [7]_.
 
 ``rehab_pile``
     Rehabilitation assessment datasets based on human motion sequences,
