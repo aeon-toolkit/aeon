@@ -102,7 +102,7 @@ def test_sfa_mindist():
         word_length=n_segments,
         alphabet_size=alphabet_size,
         binning_method=histogram_type,
-        variance=False,  # True gives a tighter lower bound
+        feature_selection_strategy=None,  # True gives a tighter lower bound
         norm=True,
     )
 
