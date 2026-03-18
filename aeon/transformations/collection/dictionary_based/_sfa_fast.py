@@ -962,7 +962,7 @@ def _fast_fourier_transform(X, norm, dft_length, inverse_sqrt_win_size, norm_std
     return dft[:, start:]
 
 
-# @njit(fastmath=True, cache=True)
+@njit(fastmath=True, cache=True)
 def _transform_case(
     X,
     window_size,
@@ -995,10 +995,11 @@ def _transform_case(
 
     if pca_transform is not None:
         # apply PCA transform
-        dfts2 = pca_transform.transform(
-            dfts.reshape(dfts.shape[0] * dfts.shape[1], dfts.shape[2])
-        )
-        dfts = dfts2.reshape(dfts.shape[0], dfts.shape[1], word_length)
+        with objmode(dfts="float32[:,:,:]"):
+            dfts2 = pca_transform.transform(
+                dfts.reshape(dfts.shape[0] * dfts.shape[1], dfts.shape[2])
+            )
+            dfts = dfts2.reshape(dfts.shape[0], dfts.shape[1], word_length)
 
     words = generate_words(
         dfts,
@@ -1404,7 +1405,7 @@ def shorten_words(words, amount, letter_bits):
     return new_words
 
 
-# @njit(fastmath=True, cache=True, parallel=True)
+@njit(fastmath=True, cache=True, parallel=True)
 def _transform_words_case(
     X,
     window_size,
@@ -1433,9 +1434,9 @@ def _transform_words_case(
 
     if pca_transform is not None:
         # apply PCA transform
-        # with objmode(dfts="float32[:,:,:]"):
-        dfts2 = pca_transform.transform(dfts.squeeze(1))
-        dfts = dfts2.reshape(X.shape[0], dfts.shape[1], word_length)
+        with objmode(dfts="float32[:,:,:]"):
+            dfts2 = pca_transform.transform(dfts.squeeze(1))
+            dfts = dfts2.reshape(X.shape[0], dfts.shape[1], word_length)
 
     words = np.zeros((dfts.shape[0], dfts.shape[1], word_length), dtype=np.int32)
     for x in prange(dfts.shape[0]):
