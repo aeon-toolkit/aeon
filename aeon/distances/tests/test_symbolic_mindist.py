@@ -10,6 +10,9 @@ from aeon.distances.mindist._sax import mindist_sax_distance
 from aeon.distances.mindist._sfa import mindist_sfa_distance
 from aeon.testing.data_generation import make_example_3d_numpy
 from aeon.transformations.collection.dictionary_based import SAX, SFA, SFAFast, SFAWhole
+from aeon.transformations.collection.dictionary_based._sfa_fast import (
+    alphabet_allocation_methods,
+)
 
 
 def test_sax_mindist():
@@ -197,11 +200,7 @@ def test_dynamic_alphabet_allocation():
     X_test = zscore(X_test.squeeze(), axis=1)
     histogram_type = "equi-width"
 
-    for alphabet_allocation_method in {
-        "linear_scale",
-        "log_scale",
-        "sqrt_scale",
-    }:
+    for alphabet_allocation_method in alphabet_allocation_methods:
         sfa = SFAWhole(
             word_length=n_segments,
             alphabet_size=alphabet_size,
