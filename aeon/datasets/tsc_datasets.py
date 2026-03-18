@@ -1,61 +1,139 @@
-"""Time Series Classification (TSC) datasets in the UCR/tsml data archives.
+"""Time Series Classification (TSC) datasets in the UCR and TSML archives.
 
-As described in https://timeseriesclassification.com.
+These datasets are described at
+`timeseriesclassification.com <https://timeseriesclassification.com>`_.
 
-Data is available in standard aeon .ts format where each row is a possibly
-multivariate time series, each channel is separated by a colon, each value by a comma
-and the class value is at the end. For any issues with these data, please see
-https://github.com/time-series-machine-learning/tsml-repo.
+Data are stored in the standard aeon ``.ts`` format, where each row is a
+single possibly multivariate time series. Channels are separated by a colon,
+values within each channel are separated by commas, and the class label is
+stored at the end of the row.
 
-Datasets are all stored on Zenodo in the TSML grouping
-https://zenodo.org/communities/tsml/records?q=&l=list&p=1&s=10
-The complete list of classification problems is in the dictionary tsc_zenodo,
-which includes names and keys. These can be downloaded from zenodo or loaded in code
-using the following.
+For data issues and archive maintenance, see the
+`TSML repository <https://github.com/time-series-machine-learning/tsml-repo>`_.
 
-from aeon.datasets import load_classification
-load_classification("ArrowHead", extract_path = "Temp/")
+All datasets are stored on Zenodo in the
+`TSML community <https://zenodo.org/communities/tsml/>`_.
 
-This looks in the location for the file in the extract location, and if it is not
-there downloads it. See load_classification documentation for details.
+The complete list of classification problems is stored in the
+``tsc_zenodo`` dictionary, which maps dataset names to Zenodo record keys.
 
-There are four main distinctions of TSC problem: univariate/multivariate equal/unequal
-length. We have provided string lists of different published archives.
+Examples
+--------
+Load a classification dataset with :func:`aeon.datasets.load_classification`::
 
-UCR2015 contains 85 univariate problem.
-UCR2018 contains the last UCR release of 128 datasets as described in [1].
-UEA contains the 30 UEA problems, as described in [2,3].
-univariate_equal_length contains the 112 UCR archive problems used in [3,4].
-multivariate_equal_length contains the 26 UEA archive problems used in [4].
-univariate_variable_length contains the 11 unequal length series in [1].
-univariate_missing_values contains the 4 series with missing values in [1].
-redux contains the 30 new univariate equal length series introduced in [5].
+    from aeon.datasets import load_classification
+    X, y = load_classification("ArrowHead", extract_path="Temp/")
 
-[1] H.Dau, A. Bagnall, K. Kamgar, C. Yeh, Y. Zhu, S. Gharghabi, C. Ratanamahatana and
-    E. Keogh. The  UCR  time  series  archive.
-    IEEE/CAA J. Autom. Sinica, 6(6):1293–1305, 2019
-[2] A. Bagnall, H. Dau, J. Lines, M. Flynn, J. Large, A. Bostrom, P. Southam,and
-    E.  Keogh. The UEA  multivariate  time  series  classification  archive, 2018.
-    ArXiv e-prints,arXiv:1811.00075, 2018
-[3] A. Pasos Ruiz, M. Flynn, J. Large, M. Middlehurst and A. Bagnall.
-    The great multivariate time series classification bake off: a review and
-    experimental evaluation of recent algorithmic advances,
-    Data Mining and Knowledge Discovery, 2020.
-[4] Middlehurst, M., J. Large, M. Flynn, M. Middlehurst and A. Bagnall.
-    HIVE-COTE 2.0: a new meta ensemble for time series classification,
-    Machine Learning 110(11), 2021
-[5] Middlehurst, M., Schäfer, P. & Bagnall, A.
-    Bake off redux: a review and experimental evaluation of recent time series
-    classification algorithms. Data Min Knowl Disc 38, 1958–2031 (2024).
-    https://doi.org/10.1007/s10618-024-01022-1
-[6] Multiverse.
-[7] EEG
-[8] Monster
-[9] Rehab
+This first checks whether the dataset has already been extracted to the target
+location, or to the default local data directory if no path is given. If the
+dataset is not found locally, it is downloaded automatically. See the
+:func:`aeon.datasets.load_classification` documentation for details.
 
+Notes
+-----
+There are four main categories of TSC problems:
 
-duplicate names for the lists are included for backward compatibility and will
-ultimately be deprecated.
+- univariate, equal length
+- univariate, unequal length
+- multivariate, equal length
+- multivariate, unequal length
+
+For convenience, this module provides lists corresponding to published
+archives and benchmark subsets.
+
+Available archive lists
+-----------------------
+``UCR2015``
+    The 85 univariate datasets from the 2015 UCR archive.
+
+``UCR2019``
+    The 128 datasets from the final UCR archive release, described in [1]_.
+
+``UEA``
+    The 30 multivariate datasets from the UEA archive, described in [2]_ and
+    [3]_.
+
+``univariate_equal_length``
+    The 112 UCR archive datasets used in [4]_.
+
+``multivariate_equal_length``
+    The 26 UEA archive datasets used in [3]_ and [4]_.
+
+``univariate_variable_length``
+    The 11 unequal-length univariate datasets described in [1]_.
+
+``univariate_missing_values``
+    The 4 univariate datasets with missing values described in [1]_.
+
+``redux``
+    The 30 new univariate equal-length datasets introduced in [5]_.
+
+``multiverse2026``
+    The 133 Multivariate TSC problems described in [6]_.
+
+``multiverse_core``
+    A 66-dataset core subset of the Multiverse archive described in [6]_.
+
+``eeg2026``
+    The 28 open source EEG classification problems introduced in [7]_.
+
+``rehab_pile``
+    Rehabilitation assessment datasets based on human motion sequences,
+    described in [8]_.
+
+``monster``
+    Datasets from the MONSTER repository, described in [9]_.
+
+``tsc_zenodo``
+    Dictionary of dataset names and Zenodo record keys for all supported TSC
+    archives.
+
+Backward compatibility
+----------------------
+Some duplicate list names are retained for backward compatibility and will be
+deprecated in a future release.
+
+References
+----------
+.. [1] H. Dau, A. Bagnall, K. Kamgar, C. Yeh, Y. Zhu, S. Gharghabi,
+   C. Ratanamahatana, and E. Keogh. *The UCR Time Series Archive*.
+   IEEE/CAA Journal of Automatica Sinica, 6(6):1293-1305, 2019.
+   `PDF <https://ueaeprints.uea.ac.uk/id/eprint/72517/1/the_UCR_Archive_paper_final
+   .pdf>`_
+
+.. [2] A. Bagnall, H. Dau, J. Lines, M. Flynn, J. Large, A. Bostrom,
+   P. Southam, and E. Keogh. *The UEA Multivariate Time Series
+   Classification Archive, 2018*. arXiv:1811.00075, 2018.
+   `PDF <https://arxiv.org/pdf/1811.00075>`_
+
+.. [3] A. Pasos Ruiz, M. Flynn, J. Large, M. Middlehurst, and A. Bagnall.
+   *The Great Multivariate Time Series Classification Bake Off: A Review and
+   Experimental Evaluation of Recent Algorithmic Advances*.
+   Data Mining and Knowledge Discovery, 2020.
+   `Open Access <https://link.springer.com/article/10.1007/s10618-020-00727-3>`_
+
+.. [4] M. Middlehurst, J. Large, M. Flynn, and A. Bagnall.
+   *HIVE-COTE 2.0: A New Meta Ensemble for Time Series Classification*.
+   Machine Learning, 110(11), 2021.
+   `Open Access <https://link.springer.com/article/10.1007/s10994-021-06057-9>`_
+
+.. [5] M. Middlehurst, P. Schäfer, and A. Bagnall.
+   *Bake Off Redux: A Review and Experimental Evaluation of Recent Time Series
+   Classification Algorithms*. Data Mining and Knowledge Discovery,
+   38:1958-2031, 2024.
+   `Open Access <https://link.springer.com/article/10.1007/s10618-024-01022-1>`_
+
+.. [6] M. Middlehurst et al. *The Multiverse of Time Series Machine Learning:
+   An Archive for Multivariate Time Series Classification*.
+   In preparation.
+
+.. [7] A. Rushbrooke et al. *Time Series Machine Learning for Classifying
+   Electroencephalograms*. Data-centric Machine Learning, 2026.
+   Accepted subject to minor revisions.
+
+.. [8] A. Ismail-Fawaz et al. *Deep Learning for Skeleton-Based Human Motion
+   Rehabilitation Assessment: A Benchmark*. arXiv, 2025.
+   `PDF <https://arxiv.org/pdf/2507.21018>`_
 """
 
 # The 85 UCR univariate TSC datasets in the 2015 version
@@ -492,21 +570,21 @@ multiverse_core = [
     "Alzheimers",
     "AppliancesEnergy_disc",
     "ArticularyWordRecognition",
-    "AsphaltObstaclesCoordinates_eq",
-    "AsphaltRegularityCoordinates_eq",
+    "AsphaltObstaclesCoordinates",
+    "AsphaltRegularityCoordinates",
     "AtrialFibrillation",
     "AustraliaRainfall_disc",
     "AutomotiveRoadTrials",
-    "BeijingPM10Quality_disc_nmv",
-    "BeijingPM25Quality_disc_nmv",
-    "BenzeneConcentration_disc_nmv",
+    "BeijingPM10Quality_disc",
+    "BeijingPM25Quality_disc",
+    "BenzeneConcentration_disc",
     "BIDMC32HR_disc",
     "BIDMC32SpO2_disc",
     "Blink",
     "BoneIntensitiesAgeGroup",
     "BoneProbAgeGroup",
-    "CharacterTrajectories_eq",
-    "CounterMovementJump_eq",
+    "CharacterTrajectories",
+    "CounterMovementJump",
     "Cricket",
     "CrowdSourced",
     "DuckDuckGeese",
@@ -521,11 +599,11 @@ multiverse_core = [
     "HandMovementDirection",
     "Handwriting",
     "Heartbeat",
-    "HouseholdPowerConsumption1_disc_nmv",
-    "HouseholdPowerConsumption2_disc_nmv",
+    "HouseholdPowerConsumption1_disc",
+    "HouseholdPowerConsumption2_disc",
     "IEEEPPG_disc",
     "IRDS-SFL",
-    "JapaneseVowels_eq",
+    "JapaneseVowels",
     "KERAAL-RTK",
     "KIMORE-PR-C",
     "KINECAL-QSEO",
@@ -544,7 +622,7 @@ multiverse_core = [
     "RacketSports",
     "SelfRegulationSCP1",
     "Skoda",
-    "SpokenArabicDigits_eq",
+    "SpokenArabicDigits",
     "StandWalkJump",
     "STEW",
     "TactileTextureRecognition",
@@ -557,14 +635,14 @@ multiverse_core = [
     "WISDM",
 ]
 
-# 132 MTSC equal length no missing value datasets in the 2026 Multiverse [6]
+# 133 MTSC equal length no missing value datasets in the 2026 Multiverse [6]
 multiverse2026 = [
     "Alzheimers",
     "AppliancesEnergy_disc",
     "ArticularyWordRecognition",
-    "AsphaltObstaclesCoordinates_eq",
-    "AsphaltPavementTypeCoordinates_eq",
-    "AsphaltRegularityCoordinates_eq",
+    "AsphaltObstaclesCoordinates",
+    "AsphaltPavementTypeCoordinates",
+    "AsphaltRegularityCoordinates",
     "AtrialFibrillation",
     "AustraliaRainfall_disc",
     "AutomotiveRoadTrials",
@@ -572,15 +650,15 @@ multiverse2026 = [
     "BIDMC32RR_disc",
     "BIDMC32SpO2_disc",
     "BasicMotions",
-    "BeijingPM10Quality_disc_nmv",
-    "BeijingPM25Quality_disc_nmv",
-    "BenzeneConcentration_disc_nmv",
+    "BeijingPM10Quality_disc",
+    "BeijingPM25Quality_disc",
+    "BenzeneConcentration_disc",
     "Blink",
     "BoneIntensitiesAgeGroup",
     "BoneProbAgeGroup",
     "ButtonPress",
-    "CharacterTrajectories_eq",
-    "CounterMovementJump_eq",
+    "CharacterTrajectories",
+    "CounterMovementJump",
     "Cricket",
     "CrowdSourced",
     "DREAMERA",
@@ -593,14 +671,15 @@ multiverse2026 = [
     "EthanolConcentration",
     "EyesOpenShut",
     "FaceDetection",
+    "FeedbackButton",
     "FeetHands",
     "FingerMovements",
     "FordChallenge",
     "HandMovementDirection",
     "Handwriting",
     "Heartbeat",
-    "HouseholdPowerConsumption1_disc_nmv",
-    "HouseholdPowerConsumption2_disc_nmv",
+    "HouseholdPowerConsumption1_disc",
+    "HouseholdPowerConsumption2_disc",
     "IEEEPPG_disc",
     "IRDS-EFL",
     "IRDS-EFR",
@@ -614,8 +693,8 @@ multiverse2026 = [
     "ImaginedFeetHands",
     "ImaginedOpenCloseFist",
     "InnerSpeech",
-    "InsectWingbeat_eq",
-    "JapaneseVowels_eq",
+    "InsectWingbeat",
+    "JapaneseVowels",
     "KERAAL-CTK",
     "KERAAL-CTK-MC",
     "KERAAL-ELK",
@@ -649,7 +728,7 @@ multiverse2026 = [
     "Opportunity",
     "PAMAP2",
     "PEMS-SF",
-    "PPGDalia_disc_eq",
+    "PPGDalia_disc",
     "PenDigits",
     "PhonemeSpectra",
     "PhotoStimulation",
@@ -667,7 +746,7 @@ multiverse2026 = [
     "SitStand",
     "Skoda",
     "SongFamiliarity",
-    "SpokenArabicDigits_eq",
+    "SpokenArabicDigits",
     "StandWalkJump",
     "TactileTextureRecognition",
     "Tiselac",
@@ -693,16 +772,17 @@ multiverse2026 = [
     "WISDM2",
 ]
 
-# 30 EEG TSC datasets [8], 26 are in the multiverse [7]
+# 28 of the 30 EEG TSC datasets [7], 26 are in the multiverse [6], 2 are available only
+# through direct contact with the authors of [7]
 # See aeon-neuro for more info.
-eeg = [
+eeg2026 = [
     "Alzheimers",
     "Blink",
     "ButtonPress",
     "EpilepticSeizures",  # Univariate
     "EyesOpenShut",
     "FaceDetection",
-    "FeedbackButton",  # Univariate
+    "FeedbackButton",
     "FeetHands",
     # "FibroLiverpool", These datasets are not fully open access
     # "FibroUEA",       Contact Tony Bagnall if you would like access for research
@@ -723,7 +803,7 @@ eeg = [
     "SelfRegulationSCP2",
     "ShortIntervalTask",
     "SitStand",
-    "Sleep",
+    "Sleep",  # Univariate
     "SongFamiliarity",
     "VisualSpeech",
 ]
@@ -770,14 +850,14 @@ rehab_pile = [
     "UIPRMD-STS-C",
 ]
 
-# 27 large TSC datasets in the Monster archive [9]
+# 29 large TSC datasets in the Monster archive [9]
 monster = [
     "AudioMNIST",
     "AudioMNIST-DS",
     "CornellWhaleChallenge",
     "CrowdSourced",
-    "DreamerA",
-    "DreamerV",
+    "DREAMERA",
+    "DREAMERV",
     "FordChallenge",
     "FruitFlies",
     "InsectSound",
@@ -804,7 +884,7 @@ monster = [
 ]
 
 
-# 26 equal length multivariate TSC datasets in the UEA archive [2,3]"""
+# 26 equal length multivariate TSC datasets in the UEA archive [2,3]
 multivariate_equal_length = [
     "ArticularyWordRecognition",
     "AtrialFibrillation",
@@ -834,7 +914,7 @@ multivariate_equal_length = [
     "UWaveGestureLibrary",
 ]
 
-# 7 variable length multivariate time series classification problems [2,3]"""
+# 7 variable length multivariate time series classification problems [2,3]
 multivariate_unequal_length = [
     "AsphaltObstaclesCoordinates",
     "AsphaltPavementTypeCoordinates",
@@ -845,7 +925,7 @@ multivariate_unequal_length = [
     "SpokenArabicDigits",
 ]
 
-# All TSC and TSR datasets stored on the TSML zenodo group and keys
+# All TSC datasets stored on the TSML zenodo group and keys
 tsc_zenodo = {
     "ACSF1": 11184893,
     "AconityMINIPrinterLarge": 11217986,
