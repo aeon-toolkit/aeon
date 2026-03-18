@@ -30,6 +30,7 @@ from aeon.utils.conversion import (
     resolve_unequal_length_inner_type,
 )
 from aeon.utils.validation.collection import (
+    check_collection_variance,
     get_n_cases,
     get_n_channels,
     get_n_timepoints,
@@ -194,6 +195,8 @@ class BaseCollectionEstimator(BaseAeonEstimator):
                 f"but {type(self).__name__} cannot handle these characteristics. "
             )
             raise ValueError(msg)
+
+        check_collection_variance(X)
 
         return metadata
 

@@ -9,7 +9,7 @@ from numba.typed import List as NumbaList
 from scipy.signal import correlate
 
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
-from aeon.utils.numba._threading import threaded
+from aeon.utils.decorators.numba_threading import numba_thread_handler
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
@@ -113,7 +113,7 @@ def sbd_distance(x: np.ndarray, y: np.ndarray, standardize: bool = True) -> floa
     raise ValueError("x and y must be 1D or 2D")
 
 
-@threaded
+@numba_thread_handler
 def sbd_pairwise_distance(
     X: np.ndarray | list[np.ndarray],
     y: np.ndarray | list[np.ndarray] | None = None,
@@ -124,7 +124,7 @@ def sbd_pairwise_distance(
     Compute the shape-based distance (SBD) between all pairs of time series.
 
     For multivariate time series, SBD is computed independently for each channel and
-    then averaged. Both time series must have the same number of channels! This is not
+    then averaged. Both time series must have the same number of channels. This is not
     checked in code for performance reasons. If the number of channels is different,
     the minimum number of channels is used.
 
