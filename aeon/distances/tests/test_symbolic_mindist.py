@@ -197,7 +197,6 @@ def test_dynamic_alphabet_allocation():
     X_test = zscore(X_test.squeeze(), axis=1)
     histogram_type = "equi-width"
 
-    # print("Testing")
     for alphabet_allocation_method in {
         "linear_scale",
         "log_scale",
