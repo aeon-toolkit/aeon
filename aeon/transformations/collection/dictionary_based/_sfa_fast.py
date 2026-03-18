@@ -168,7 +168,7 @@ class SFAFast(BaseCollectionTransformer):
         window_size=12,
         norm=False,
         binning_method="equi-depth",
-        feature_selection_strategy="variance",
+        feature_selection_strategy=None,
         alphabet_allocation_method=None,
         anova=False,  # Must be deprecated at some point
         variance=False,  # Must be deprecated at some point
@@ -743,9 +743,9 @@ class SFAFast(BaseCollectionTransformer):
             )
         if self.bigrams:
             raise ValueError("Bigrams are currently not supported.")
-        if self.variance and self.anova:
+        if self.variance or self.anova:
             raise ValueError(
-                "Using both Variance and Anova feature selection is not supported."
+                "Variance or Anova based feature selection is currently not supported."
             )
 
         # determine the new word-length
