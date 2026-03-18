@@ -160,7 +160,6 @@ class SFAFast(BaseCollectionTransformer):
         "capability:multithreading": True,
         "algorithm_type": "dictionary",
     }
-    alphabet_allocation_methods = alphabet_allocation_methods
 
     def __init__(
         self,
