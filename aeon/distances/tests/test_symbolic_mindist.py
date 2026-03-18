@@ -85,7 +85,7 @@ def test_sfa_mindist():
         window_size=n,
         binning_method=histogram_type,
         norm=True,
-        variance=False,  # True gives a tighter lower bound
+        feature_selection_strategy=None,  # True gives a tighter lower bound
         lower_bounding_distances=True,  # This must be set!
     )
 
