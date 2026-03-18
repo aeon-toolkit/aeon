@@ -37,10 +37,12 @@ class SFAWhole(SFAFast):
     binning_method : str, default="equi-width"
         The binning method used to derive the breakpoints. One of {"equi-depth",
         "equi-width", "information-gain", "information-gain-mae", "kmeans", "quantile"},
-    variance : boolean, default = False
-        If True, the Fourier coefficient selection is done via the largest variance.
-        If False, the first Fourier coefficients are selected. Only applicable if
-        labels are given.
+    feature_selection_strategy : {"variance", "pca", "anova"}, default = "variance"
+        Sets the Fourier coefficient selection strategy to be used.
+        Use "variance" to select the Fourier coefficients with the largest variance,
+        "pca" to reduce the Fourier coefficients using PCA, or "anova" to select
+        the Fourier coefficients with the largest F-score. Anova is only applicable
+        if labels are given.
     sampling_factor : float, default = None
        If set to a value <1.0, this percentage of samples are used to learn MCB bins.
     n_jobs : int, default = 1
@@ -77,7 +79,7 @@ class SFAWhole(SFAFast):
         alphabet_allocation_method="linear_scale",
         norm=True,
         binning_method="equi-width",
-        variance=True,
+        feature_selection_strategy="variance",
         sampling_factor=None,
         random_state=None,
         n_jobs=1,
@@ -88,14 +90,13 @@ class SFAWhole(SFAFast):
             norm=norm,
             alphabet_allocation_method=alphabet_allocation_method,
             binning_method=binning_method,
-            variance=variance,
+            feature_selection_strategy=feature_selection_strategy,
             sampling_factor=sampling_factor,
             random_state=random_state,
             n_jobs=n_jobs,
             # Default values for other parameters
             lower_bounding_distances=True,
             feature_selection="none",
-            anova=False,
             save_words=False,
             lower_bounding=False,
             bigrams=False,
@@ -159,6 +160,6 @@ class SFAWhole(SFAFast):
         params = {
             "word_length": 4,
             "alphabet_size": 4,
-            "variance": False,
+            "feature_selection_strategy": "variance",
         }
         return params
