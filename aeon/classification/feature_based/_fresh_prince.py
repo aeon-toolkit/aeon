@@ -13,6 +13,7 @@ from sklearn.tree import DecisionTreeClassifier
 from aeon.classification.base import BaseClassifier
 from aeon.classification.sklearn import RotationForestClassifier
 from aeon.transformations.collection.feature_based import TSFresh
+from aeon.utils.validation import check_n_jobs
 
 
 class FreshPRINCEClassifier(BaseClassifier):
@@ -181,6 +182,7 @@ class FreshPRINCEClassifier(BaseClassifier):
 
     def _fit_fp_shared(self, X, y):
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
+        self._n_jobs = check_n_jobs(self.n_jobs)
 
         self._rotf = RotationForestClassifier(
             n_estimators=self.n_estimators,

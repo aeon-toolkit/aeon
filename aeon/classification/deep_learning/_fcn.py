@@ -23,10 +23,12 @@ class FCNClassifier(BaseDeepClassifier):
     ----------
     n_layers : int, default = 3
         Number of convolution layers.
-    n_filters : int or list of int, default = [128,256,128]
+    n_filters : int or list of int, default = None
         Number of filters used in convolution layers.
-    kernel_size : int or list of int, default = [8,5,3]
-        Size of convolution kernel.
+        If set to None, defaults to [128, 256, 128].
+    kernel_size : int or list of int, default = None
+        Size of convolution kernel. If set to None,
+        defaults to [8,5,3].
     dilation_rate : int or list of int, default = 1
         The dilation rate for convolution.
     strides : int or list of int, default = 1
@@ -36,7 +38,7 @@ class FCNClassifier(BaseDeepClassifier):
     activation : str or list of str, default = "relu"
         Activation used after the convolution.
     use_bias : bool or list of bool, default = True
-        Whether or not ot use bias in convolution.
+        Whether or not to use bias in convolution.
     n_epochs : int, default = 2000
         The number of epochs to train the model.
     batch_size : int, default = 16
@@ -116,29 +118,29 @@ class FCNClassifier(BaseDeepClassifier):
 
     def __init__(
         self,
-        n_layers=3,
-        n_filters=None,
-        kernel_size=None,
-        dilation_rate=1,
-        strides=1,
-        padding="same",
-        activation="relu",
-        file_path="./",
-        save_best_model=False,
-        save_last_model=False,
-        save_init_model=False,
-        best_file_name="best_model",
-        last_file_name="last_model",
-        init_file_name="init_model",
-        n_epochs=2000,
-        batch_size=16,
-        use_mini_batch_size=False,
+        n_layers: int = 3,
+        n_filters: int | list[int] = None,
+        kernel_size: int | list[int] = None,
+        dilation_rate: int | list[int] = 1,
+        strides: int | list[int] = 1,
+        padding: str | list[str] = "same",
+        activation: str | list[str] = "relu",
+        file_path: str = "./",
+        save_best_model: bool = False,
+        save_last_model: bool = False,
+        save_init_model: bool = False,
+        best_file_name: str = "best_model",
+        last_file_name: str = "last_model",
+        init_file_name: str = "init_model",
+        n_epochs: int = 2000,
+        batch_size: int = 16,
+        use_mini_batch_size: bool = False,
         callbacks=None,
-        verbose=False,
-        loss="categorical_crossentropy",
-        metrics="accuracy",
+        verbose: bool = False,
+        loss: str = "categorical_crossentropy",
+        metrics: str | list[str] = "accuracy",
         random_state=None,
-        use_bias=True,
+        use_bias: bool | list[bool] = True,
         optimizer=None,
     ):
         self.n_layers = n_layers
@@ -184,7 +186,7 @@ class FCNClassifier(BaseDeepClassifier):
             use_bias=self.use_bias,
         )
 
-    def build_model(self, input_shape, n_classes, **kwargs):
+    def build_model(self, input_shape: tuple[int, int], n_classes: int, **kwargs):
         """Construct a compiled, un-trained, keras model that is ready for training.
 
         In aeon, time series are stored in numpy arrays of shape (d,m), where d
@@ -205,6 +207,11 @@ class FCNClassifier(BaseDeepClassifier):
         """
         import numpy as np
         import tensorflow as tf
+
+        if isinstance(self.metrics, str):
+            self._metrics = [self.metrics]
+        else:
+            self._metrics = self.metrics
 
         rng = check_random_state(self.random_state)
         self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
@@ -247,11 +254,6 @@ class FCNClassifier(BaseDeepClassifier):
         y_onehot = self.convert_y_to_keras(y)
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
-
-        if isinstance(self.metrics, list):
-            self._metrics = self.metrics
-        elif isinstance(self.metrics, str):
-            self._metrics = [self.metrics]
 
         self.input_shape = X.shape[1:]
         self.training_model_ = self.build_model(self.input_shape, self.n_classes_)
@@ -314,7 +316,7 @@ class FCNClassifier(BaseDeepClassifier):
         return self
 
     @classmethod
-    def _get_test_params(cls, parameter_set="default"):
+    def _get_test_params(cls, parameter_set: str = "default") -> dict | list[dict]:
         """Return testing parameter settings for the estimator.
 
         Parameters

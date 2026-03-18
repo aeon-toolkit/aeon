@@ -1,7 +1,5 @@
 """RSAST Transformer."""
 
-from typing import Optional, Union
-
 import numpy as np
 import pandas as pd
 from numba import get_num_threads, njit, prange, set_num_threads
@@ -103,14 +101,14 @@ class RSAST(BaseCollectionTransformer):
         n_random_points: int = 10,
         len_method: str = "both",
         nb_inst_per_class: int = 10,
-        seed: Optional[int] = None,
+        random_state: int | None = None,
         n_jobs: int = 1,  # Parllel Processing
     ):
         self.n_random_points = n_random_points
         self.len_method = len_method
         self.nb_inst_per_class = nb_inst_per_class
         self.n_jobs = n_jobs
-        self.seed = seed
+        self.random_state = random_state
         self._kernels = None  # z-normalized subsequences
         self._cand_length_list = {}
         self._kernel_orig = []
@@ -120,7 +118,7 @@ class RSAST(BaseCollectionTransformer):
         self._kernels_generators = {}  # Reference time series
         super().__init__()
 
-    def _fit(self, X: np.ndarray, y: Union[np.ndarray, list]) -> "RSAST":
+    def _fit(self, X: np.ndarray, y: np.ndarray | list) -> "RSAST":
         from scipy.stats import ConstantInputWarning, DegenerateDataWarning, f_oneway
         from statsmodels.tsa.stattools import acf, pacf
 
@@ -139,14 +137,15 @@ class RSAST(BaseCollectionTransformer):
             This transformer
 
         """
+        self._n_jobs = check_n_jobs(self.n_jobs)
 
         # 0- initialize variables and convert values in "y" to string
         X_ = np.reshape(X, (X.shape[0], X.shape[-1]))
 
         self._random_state = (
-            np.random.RandomState(self.seed)
-            if not isinstance(self.seed, np.random.RandomState)
-            else self.seed
+            np.random.RandomState(self.random_state)
+            if not isinstance(self.random_state, np.random.RandomState)
+            else self.random_state
         )
 
         classes = np.unique(y)
@@ -323,7 +322,7 @@ class RSAST(BaseCollectionTransformer):
         return self
 
     def _transform(
-        self, X: np.ndarray, y: Optional[Union[np.ndarray, list]] = None
+        self, X: np.ndarray, y: np.ndarray | list | None = None
     ) -> np.ndarray:
         """Transform the input X using the generated subsequences.
 
@@ -342,10 +341,7 @@ class RSAST(BaseCollectionTransformer):
         X_ = np.reshape(X, (X.shape[0], X.shape[-1]))
 
         prev_threads = get_num_threads()
-
-        n_jobs = check_n_jobs(self.n_jobs)
-
-        set_num_threads(n_jobs)
+        set_num_threads(self._n_jobs)
 
         X_transformed = _apply_kernels(X_, self._kernels)  # subsequence transform of X
         set_num_threads(prev_threads)

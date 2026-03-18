@@ -44,7 +44,7 @@ class FCNRegressor(BaseDeepRegressor):
     activation : str or list of str, default = "relu"
         activation used after the convolution
     use_bias : bool or list of bool, default = True
-        whether or not ot use bias in convolution
+        whether or not to use bias in convolution
     n_epochs : int, default = 2000
         the number of epochs to train the model
     batch_size : int, default = 16
@@ -211,6 +211,11 @@ class FCNRegressor(BaseDeepRegressor):
         """
         import tensorflow as tf
 
+        if isinstance(self.metrics, str):
+            self._metrics = [self.metrics]
+        else:
+            self._metrics = self.metrics
+
         rng = check_random_state(self.random_state)
         self.random_state_ = rng.randint(0, np.iinfo(np.int32).max)
         tf.keras.utils.set_random_seed(self.random_state_)
@@ -252,11 +257,6 @@ class FCNRegressor(BaseDeepRegressor):
 
         # Transpose to conform to Keras input style.
         X = X.transpose(0, 2, 1)
-
-        if isinstance(self.metrics, list):
-            self._metrics = self.metrics
-        elif isinstance(self.metrics, str):
-            self._metrics = [self.metrics]
 
         self.input_shape = X.shape[1:]
         self.training_model_ = self.build_model(self.input_shape)

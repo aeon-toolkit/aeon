@@ -8,7 +8,6 @@ aeon distances.
 __maintainer__ = []
 __all__ = ["ProximityTree"]
 
-from typing import Optional, Union
 
 import numpy as np
 from sklearn.utils import check_random_state
@@ -128,9 +127,9 @@ class ProximityTree(BaseClassifier):
     def __init__(
         self,
         n_splitters: int = 5,
-        max_depth: Optional[int] = None,
+        max_depth: int | None = None,
         min_samples_split: int = 2,
-        random_state: Union[int, np.random.RandomState, None] = None,
+        random_state: int | np.random.RandomState | None = None,
     ) -> None:
         self.n_splitters = n_splitters
         self.max_depth = max_depth
@@ -472,9 +471,7 @@ class ProximityTree(BaseClassifier):
             return std(np.concatenate(X, axis=1).flatten())
 
     @classmethod
-    def _get_test_params(
-        cls, parameter_set: str = "default"
-    ) -> Union[dict, list[dict]]:
+    def _get_test_params(cls, parameter_set: str = "default") -> dict | list[dict]:
         """Return testing parameter settings for the estimator.
 
         Parameters

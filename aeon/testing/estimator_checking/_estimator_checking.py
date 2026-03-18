@@ -7,9 +7,9 @@ __all__ = [
 ]
 
 import re
+from collections.abc import Callable
 from functools import partial, wraps
 from inspect import isclass
-from typing import Callable, Optional, Union
 
 from sklearn import config_context
 from sklearn.utils._testing import SkipTest
@@ -31,7 +31,7 @@ from aeon.utils.validation._dependencies import (
 
 
 def parametrize_with_checks(
-    estimators: list[Union[BaseAeonEstimator, type[BaseAeonEstimator]]],
+    estimators: list[BaseAeonEstimator | type[BaseAeonEstimator]],
     use_first_parameter_set: bool = False,
 ) -> Callable:
     """Pytest specific decorator for parametrizing aeon estimator checks.
@@ -99,13 +99,13 @@ def parametrize_with_checks(
 
 
 def check_estimator(
-    estimator: Union[BaseAeonEstimator, type[BaseAeonEstimator]],
+    estimator: BaseAeonEstimator | type[BaseAeonEstimator],
     raise_exceptions: bool = False,
     use_first_parameter_set: bool = False,
-    checks_to_run: Optional[Union[str, list[str]]] = None,
-    checks_to_exclude: Optional[Union[str, list[str]]] = None,
-    full_checks_to_run: Optional[Union[str, list[str]]] = None,
-    full_checks_to_exclude: Optional[Union[str, list[str]]] = None,
+    checks_to_run: str | list[str] | None = None,
+    checks_to_exclude: str | list[str] | None = None,
+    full_checks_to_run: str | list[str] | None = None,
+    full_checks_to_exclude: str | list[str] | None = None,
     verbose: bool = False,
 ):
     """Check if estimator adheres to `aeon` conventions.
@@ -337,7 +337,7 @@ def _get_check_estimator_ids(obj):
     checks.
 
     Some parameters which contain functions or methods will be obfuscated to
-    allow for compatability with `pytest-xdist`. This requires that IDs on each thread
+    allow for compatibility with `pytest-xdist`. This requires that IDs on each thread
     be the same, and functions can generate different IDs.
 
     Based on the `scikit-learn` `_get_check_estimator_ids` function.

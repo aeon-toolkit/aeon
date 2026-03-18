@@ -20,6 +20,7 @@ from sklearn.utils.validation import _num_samples
 
 from aeon.classification.base import BaseClassifier
 from aeon.transformations.collection.dictionary_based import SFAFast
+from aeon.utils.validation import check_n_jobs
 
 
 class BOSSEnsemble(BaseClassifier):
@@ -182,6 +183,7 @@ class BOSSEnsemble(BaseClassifier):
         ending in "_" and sets is_fitted flag to True.
         """
         self.n_cases_, _, self.n_timepoints_ = X.shape
+        self._n_jobs = check_n_jobs(self.n_jobs)
 
         self.estimators_ = []
 
@@ -213,7 +215,7 @@ class BOSSEnsemble(BaseClassifier):
                     save_words=True,
                     use_boss_distance=self.use_boss_distance,
                     feature_selection=self.feature_selection,
-                    n_jobs=self.n_jobs,
+                    n_jobs=self._n_jobs,
                     random_state=self.random_state,
                 )
                 boss.fit(X, y)
@@ -577,6 +579,7 @@ class IndividualBOSS(BaseClassifier):
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
         """
+        self._n_jobs = check_n_jobs(self.n_jobs)
         self._transformer = SFAFast(
             word_length=self.word_length,
             alphabet_size=self.alphabet_size,
@@ -585,7 +588,7 @@ class IndividualBOSS(BaseClassifier):
             bigrams=False,
             remove_repeat_words=True,
             save_words=self.save_words,
-            n_jobs=self.n_jobs,
+            n_jobs=self._n_jobs,
             feature_selection=self.feature_selection,
             random_state=self.random_state,
         )
@@ -716,11 +719,11 @@ def boss_distance(X, Y, i, XX_all=None, XY_all=None):
     """Find the distance between two histograms.
 
     This returns the distance between first and second dictionaries, using a non-
-    symmetric distance measure. It is used to find the distance between historgrams
+    symmetric distance measure. It is used to find the distance between histograms
     of words.
 
     This distance function is designed for sparse matrix, represented as either a
-    dictionary or an arrray. It only measures the distance between counts present in
+    dictionary or an array. It only measures the distance between counts present in
     the first dictionary and the second. Hence dist(a,b) does not necessarily equal
     dist(b,a).
 

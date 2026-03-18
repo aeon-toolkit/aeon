@@ -1,8 +1,10 @@
+"""Difference Transformer."""
+
 import numpy as np
 
 from aeon.transformations.series.base import BaseSeriesTransformer
 
-__maintainer__ = ["TinaJin0228"]
+__maintainer__ = ["TinaJin0228", "alexbanwell1"]
 __all__ = ["DifferenceTransformer"]
 
 

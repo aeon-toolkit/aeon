@@ -17,6 +17,7 @@ from sklearn.utils import check_random_state
 from aeon.classification.base import BaseClassifier
 from aeon.classification.dictionary_based import IndividualBOSS
 from aeon.classification.dictionary_based._boss import pairwise_distances
+from aeon.utils.validation import check_n_jobs
 
 
 class ContractableBOSS(BaseClassifier):
@@ -27,7 +28,7 @@ class ContractableBOSS(BaseClassifier):
     described in [2]_.
 
     Overview: Input "n" series of length "m" and cBOSS randomly samples
-    `n_parameter_samples` parameter sets, evaluting each with LOOCV. It then
+    `n_parameter_samples` parameter sets, evaluating each with LOOCV. It then
     retains `max_ensemble_size` classifiers with the highest accuracy
     There are three primary parameters:
         - alpha: alphabet size
@@ -204,6 +205,7 @@ class ContractableBOSS(BaseClassifier):
         """
         time_limit = self.time_limit_in_minutes * 60
         self.n_cases_, _, self.n_timepoints_ = X.shape
+        self._n_jobs = check_n_jobs(self.n_jobs)
 
         self.estimators_ = []
         self.weights_ = []
@@ -250,9 +252,22 @@ class ContractableBOSS(BaseClassifier):
                 rng.randint(0, len(possible_parameters))
             )
 
-            subsample = rng.choice(self.n_cases_, size=subsample_size, replace=False)
-            X_subsample = X[subsample]
-            y_subsample = y[subsample]
+            attempts = 0
+            while True:
+                subsample = rng.choice(
+                    self.n_cases_, size=subsample_size, replace=False
+                )
+                X_subsample = X[subsample]
+                y_subsample = y[subsample]
+                if len(np.unique(y_subsample)) > 1:
+                    break
+                else:
+                    if attempts > 100:
+                        raise ValueError(
+                            "Unable to create subsample with more than 1 class after "
+                            "100 attempts. Try using more data."
+                        )
+                    attempts += 1
 
             boss = IndividualBOSS(
                 *parameters,

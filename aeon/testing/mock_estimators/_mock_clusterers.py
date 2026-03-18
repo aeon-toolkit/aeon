@@ -55,7 +55,9 @@ class MockDeepClusterer(BaseDeepClusterer):
 
         input_layer_decoder = tf.keras.layers.Input((10,))
         dense = tf.keras.layers.Dense(10)(input_layer_decoder)
-        _output_layer_decoder = tf.keras.layers.Dense(np.prod(input_shape))(dense)
+        # Cast to int to avoid Keras rejecting numpy scalar types
+        decoder_units = int(np.prod(input_shape))
+        _output_layer_decoder = tf.keras.layers.Dense(decoder_units)(dense)
         output_layer_decoder = tf.keras.layers.Reshape(target_shape=input_shape)(
             _output_layer_decoder
         )

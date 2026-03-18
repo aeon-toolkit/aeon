@@ -30,10 +30,10 @@ from abc import abstractmethod
 from typing import final
 
 import numpy as np
-import pandas as pd
 
 from aeon.anomaly_detection.base import BaseAnomalyDetector
 from aeon.base import BaseCollectionEstimator
+from aeon.utils.decorators.method_timer import method_timer
 
 
 class BaseCollectionAnomalyDetector(BaseCollectionEstimator, BaseAnomalyDetector):
@@ -59,6 +59,7 @@ class BaseCollectionAnomalyDetector(BaseCollectionEstimator, BaseAnomalyDetector
         super().__init__()
 
     @final
+    @method_timer("fit_time_millis_")
     def fit(self, X, y=None):
         """Fit collection anomaly detector to training data.
 
@@ -201,14 +202,14 @@ class BaseCollectionAnomalyDetector(BaseCollectionEstimator, BaseAnomalyDetector
         # reset estimator at the start of fit
         self.reset()
 
-        X = self._preprocess_series(X, axis, store_metadata=True)
+        X = self._preprocess_collection(X)
 
         if self.get_tag("fit_is_empty"):
             self.is_fitted = True
             return self._predict(X)
 
         if y is not None:
-            y = self._check_y(y)
+            y = self._check_y(y, self.metadata_["n_cases"])
 
         pred = self._fit_predict(X, y)
 
@@ -225,33 +226,3 @@ class BaseCollectionAnomalyDetector(BaseCollectionEstimator, BaseAnomalyDetector
     def _fit_predict(self, X, y):
         self._fit(X, y)
         return self._predict(X)
-
-    def _check_y(self, y, n_cases):
-        """Check y input is valid.
-
-        Must be 1-dimensional and contain only 0s (no anomaly) and 1s (anomaly).
-        Must match the number of cases in X.
-        """
-        if not isinstance(y, (pd.Series, np.ndarray)):
-            raise TypeError(
-                f"y must be a np.array or a pd.Series, but found type: {type(y)}"
-            )
-        if isinstance(y, np.ndarray) and y.ndim > 1:
-            raise TypeError(f"y must be 1-dimensional, found {y.ndim} dimensions")
-
-        if not np.bitwise_or(y == 0, y == 1).all():
-            raise ValueError(
-                "y input must only contain 0 (not anomalous) or 1 (anomalous) values."
-            )
-
-        # Check matching number of labels
-        n_labels = y.shape[0]
-        if n_cases != n_labels:
-            raise ValueError(
-                f"Mismatch in number of cases. Found X = {n_cases} and y = {n_labels}"
-            )
-
-        if isinstance(y, pd.Series):
-            y = pd.Series.to_numpy(y)
-
-        return y

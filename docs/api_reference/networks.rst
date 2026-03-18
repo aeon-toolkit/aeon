@@ -29,3 +29,6 @@ Deep learning networks
     AEDCNNNetwork
     AEAttentionBiGRUNetwork
     AEDRNNNetwork
+    RecurrentNetwork
+    TCNNetwork
+    DeepARNetwork

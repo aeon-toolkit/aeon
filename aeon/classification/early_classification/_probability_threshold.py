@@ -17,6 +17,7 @@ from sklearn.utils import check_random_state
 from aeon.base._base import _clone_estimator
 from aeon.classification.early_classification.base import BaseEarlyClassifier
 from aeon.classification.interval_based import DrCIFClassifier
+from aeon.utils.validation import check_n_jobs
 
 
 class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
@@ -46,7 +47,7 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
         List of integer time series time stamps to build classifiers and allow
         predictions at. Early predictions must have a series length that matches a value
         in the _classification_points List. Duplicate values will be removed, and the
-        full series length will be appeneded if not present.
+        full series length will be appended if not present.
         If None, will use 20 thresholds linearly spaces from 0 to the series length.
     n_jobs : int, default=1
         The number of jobs to run in parallel for both `fit` and `predict`.
@@ -72,7 +73,7 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
     state_info : 2d np.ndarray (4 columns)
         Information stored about input instances after the decision-making process in
         update/predict methods. Used in update methods to make decisions based on
-        the resutls of previous method calls.
+        the results of previous method calls.
         Records in order: the time stamp index, the number of consecutive decisions
         made, the predicted class and the series length.
 
@@ -127,6 +128,7 @@ class ProbabilityThresholdEarlyClassifier(BaseEarlyClassifier):
 
     def _fit(self, X, y):
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
+        self._n_jobs = check_n_jobs(self.n_jobs)
 
         self._estimator = (
             DrCIFClassifier() if self.estimator is None else self.estimator

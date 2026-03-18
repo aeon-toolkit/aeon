@@ -28,6 +28,7 @@ from sklearn.utils import check_random_state
 from aeon.classification.base import BaseClassifier
 from aeon.classification.dictionary_based._tde import histogram_intersection
 from aeon.transformations.collection.dictionary_based import SFA
+from aeon.utils.validation import check_n_jobs
 
 
 class OrdinalTDE(BaseClassifier):
@@ -238,6 +239,7 @@ class OrdinalTDE(BaseClassifier):
             )
 
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
+        self._n_jobs = check_n_jobs(self.n_jobs)
 
         self.estimators_ = []
         self.weights_ = []
@@ -590,7 +592,7 @@ class IndividualOrdinalTDE(BaseClassifier):
     bigrams : bool, default=False
         Whether to record word bigrams in the SFA transform.
     dim_threshold : float, default=0.85
-        Accuracy threshold as a propotion of the highest accuracy dimension for words
+        Accuracy threshold as a proportion of the highest accuracy dimension for words
         extracted from each dimensions. Only applicable for multivariate data.
     max_dims : int, default=20
         Maximum number of dimensions words are extracted from. Only applicable for
@@ -757,6 +759,7 @@ class IndividualOrdinalTDE(BaseClassifier):
         ending in "_" and sets is_fitted flag to True.
         """
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
+        self._n_jobs = check_n_jobs(self.n_jobs)
         self._class_vals = y
 
         # select dimensions using accuracy estimate if multivariate

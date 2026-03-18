@@ -32,7 +32,7 @@ from sklearn.model_selection import cross_val_predict
 
 from aeon.base import BaseCollectionEstimator
 from aeon.base._base import _clone_estimator
-from aeon.utils.validation.collection import get_n_cases
+from aeon.utils.decorators.method_timer import method_timer
 from aeon.utils.validation.labels import check_classification_y
 
 
@@ -69,6 +69,7 @@ class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
         super().__init__()
 
     @final
+    @method_timer("fit_time_millis_")
     def fit(self, X, y) -> BaseCollectionEstimator:
         """Fit time series classifier to training data.
 
@@ -106,10 +107,9 @@ class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
         """
-        X, y, single_class = self._fit_setup(X, y)
+        X, y = self._fit_setup(X, y)
 
-        if not single_class:
-            self._fit(X, y)
+        self._fit(X, y)
 
         # this should happen last
         self.is_fitted = True
@@ -147,11 +147,6 @@ class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
             indices correspond to instance indices in X
         """
         self._check_is_fitted()
-
-        # handle the single-class-label case
-        if len(self._class_dictionary) == 1:
-            n_cases = get_n_cases(X)
-            return np.repeat(list(self._class_dictionary.keys()), n_cases)
 
         X = self._preprocess_collection(X, store_metadata=False)
         # Check if X is equal length but that is different to the length seen in fit
@@ -192,11 +187,6 @@ class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
             estimated probability that i-th instance is of class j
         """
         self._check_is_fitted()
-
-        # handle the single-class-label case
-        if len(self._class_dictionary) == 1:
-            n_cases = get_n_cases(X)
-            return np.repeat([[1]], n_cases, axis=0)
 
         X = self._preprocess_collection(X, store_metadata=False)
         self._check_shape(X)
@@ -256,12 +246,9 @@ class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
             shape ``[n_cases]`` - predicted class labels indices correspond to
             instance indices in
         """
-        X, y, single_class = self._fit_setup(X, y)
-        if single_class:
-            n_cases = get_n_cases(X)
-            y_pred = np.repeat(list(self._class_dictionary.keys()), n_cases)
-        else:
-            y_pred = self._fit_predict(X, y, **kwargs)
+        X, y = self._fit_setup(X, y)
+
+        y_pred = self._fit_predict(X, y, **kwargs)
 
         # this should happen last
         self.is_fitted = True
@@ -324,13 +311,9 @@ class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
             second dimension indices correspond to class labels, (i, j)-th entry is
             estimated probability that i-th instance is of class j
         """
-        X, y, single_class = self._fit_setup(X, y)
+        X, y = self._fit_setup(X, y)
 
-        if single_class:
-            n_cases = get_n_cases(X)
-            y_proba = np.repeat([[1]], n_cases, axis=0)
-        else:
-            y_proba = self._fit_predict_proba(X, y, **kwargs)
+        y_proba = self._fit_predict_proba(X, y, **kwargs)
 
         # this should happen last
         self.is_fitted = True
@@ -547,12 +530,23 @@ class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
         X = self._preprocess_collection(X)
         y = self._check_y(y, self.metadata_["n_cases"])
 
-        # return processed X and y, and whether there is only one class
-        return X, y, len(self.classes_) == 1
+        return X, y
 
-    def _check_y(self, y, n_cases, update_classes=True):
-        # Check y valid input for classification
-        check_classification_y(y)
+    def _check_y(self, y, n_cases, update_classes=True, allow_single_class=False):
+        """Check y input is valid.
+
+        Must be 1-dimensional and contain only binary or multiclass values.
+        """
+        if isinstance(y, pd.DataFrame):
+            # only accept size 1 dataframe
+            if y.shape[1] > 1:
+                raise TypeError(
+                    "Error in input type for y: y input as pd.DataFrame should have a "
+                    "single column series."
+                )
+            y = y.squeeze().values
+
+        check_classification_y(y, allow_single_class=allow_single_class)
 
         # Check matching number of labels
         n_labels = y.shape[0]
@@ -592,13 +586,17 @@ class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
         random_state = getattr(self, "random_state", None)
         estimator = _clone_estimator(self, random_state)
 
+        n_jobs = getattr(self, "_n_jobs", None)
+        if n_jobs is None:
+            n_jobs = getattr(self, "n_jobs", None)
+
         return cross_val_predict(
             estimator,
             X=X,
             y=y,
             cv=cv_size,
             method=method,
-            n_jobs=self._n_jobs,
+            n_jobs=n_jobs,
         )
 
     @staticmethod

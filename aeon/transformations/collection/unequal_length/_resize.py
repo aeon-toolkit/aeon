@@ -21,7 +21,7 @@ class Resizer(BaseCollectionTransformer):
 
     Parameters
     ----------
-    resized_length  : int, "min" or "max", default="min"
+    resized_length  : int, "min" or "max", default="max"
         Length to resize the series to. If "min", will resize the transformed series
         to the shortest series seen in ``fit``. If "max", will resize to the longest
         series seen in ``fit``. If an integer, will resize to that length.

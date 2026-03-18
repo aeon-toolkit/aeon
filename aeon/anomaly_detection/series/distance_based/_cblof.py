@@ -3,7 +3,6 @@
 __maintainer__ = []
 __all__ = ["CBLOF"]
 
-from typing import Optional, Union
 
 import numpy as np
 
@@ -92,10 +91,10 @@ class CBLOF(PyODAdapter):
         n_clusters: int = 8,
         clustering_estimator=None,
         alpha: float = 0.9,
-        beta: Union[int, float] = 5,
+        beta: int | float = 5,
         use_weights: bool = False,
         check_estimator: bool = False,
-        random_state: Optional[Union[int, np.random.RandomState]] = None,
+        random_state: int | np.random.RandomState | None = None,
         window_size: int = 10,
         stride: int = 1,
     ):
@@ -120,15 +119,13 @@ class CBLOF(PyODAdapter):
         self.random_state = random_state
         super().__init__(model, window_size, stride)
 
-    def _fit(self, X: np.ndarray, y: Union[np.ndarray, None] = None) -> None:
+    def _fit(self, X: np.ndarray, y: np.ndarray | None = None) -> None:
         super()._fit(X, y)
 
     def _predict(self, X: np.ndarray) -> np.ndarray:
         return super()._predict(X)
 
-    def _fit_predict(
-        self, X: np.ndarray, y: Union[np.ndarray, None] = None
-    ) -> np.ndarray:
+    def _fit_predict(self, X: np.ndarray, y: np.ndarray | None = None) -> np.ndarray:
         return super()._fit_predict(X, y)
 
     @classmethod

@@ -1,7 +1,7 @@
 """E-Agglo: agglomerative clustering algorithm that preserves observation order."""
 
 import warnings
-from typing import Callable
+from collections.abc import Callable
 
 import numpy as np
 import pandas as pd
@@ -89,7 +89,7 @@ class EAggloSegmenter(BaseSegmenter):
     def __init__(
         self,
         member=None,
-        alpha=1.0,
+        alpha: float = 1.0,
         penalty=None,
     ):
         self.member = member

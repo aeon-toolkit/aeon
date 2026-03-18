@@ -1,7 +1,5 @@
 """Implementation of NN with MASS."""
 
-from typing import Optional
-
 __maintainer__ = ["baraline"]
 __all__ = ["MassSNN"]
 
@@ -42,7 +40,7 @@ class MassSNN(BaseSeriesSimilaritySearch):
     def __init__(
         self,
         length: int,
-        normalize: Optional[bool] = False,
+        normalize: bool | None = False,
     ):
         self.normalize = normalize
         self.length = length
@@ -60,12 +58,12 @@ class MassSNN(BaseSeriesSimilaritySearch):
     def _predict(
         self,
         X: np.ndarray,
-        k: Optional[int] = 1,
-        dist_threshold: Optional[float] = np.inf,
-        allow_trivial_matches: Optional[bool] = False,
-        exclusion_factor: Optional[float] = 0.5,
-        inverse_distance: Optional[bool] = False,
-        X_index: Optional[int] = None,
+        k: int | None = 1,
+        dist_threshold: float | None = np.inf,
+        allow_trivial_matches: bool | None = False,
+        exclusion_factor: float | None = 0.5,
+        inverse_distance: bool | None = False,
+        X_index: int | None = None,
     ):
         """
         Compute nearest neighbors to X in subsequences of X_.

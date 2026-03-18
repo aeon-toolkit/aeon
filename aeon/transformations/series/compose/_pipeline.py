@@ -49,12 +49,12 @@ class SeriesTransformerPipeline(BaseSeriesPipeline, BaseSeriesTransformer):
     Examples
     --------
     >>> from aeon.transformations.series import LogTransformer
-    >>> from aeon.transformations.series import MovingAverageSeriesTransformer
+    >>> from aeon.transformations.series.smoothing import MovingAverage
     >>> from aeon.datasets import load_airline
     >>> from aeon.transformations.series.compose import SeriesTransformerPipeline
     >>> X = load_airline()
     >>> pipeline = SeriesTransformerPipeline(
-    ...     [LogTransformer(), MovingAverageSeriesTransformer()]
+    ...     [LogTransformer(), MovingAverage()]
     ... )
     >>> pipeline.fit(X)
     SeriesTransformerPipeline(...)
@@ -90,14 +90,12 @@ class SeriesTransformerPipeline(BaseSeriesPipeline, BaseSeriesTransformer):
             Each dict are parameters to construct an "interesting" test instance, i.e.,
             `MyClass(**params)` or `MyClass(**params[i])` creates a valid test instance.
         """
-        from aeon.transformations.series import (
-            LogTransformer,
-            MovingAverageSeriesTransformer,
-        )
+        from aeon.transformations.series import LogTransformer
+        from aeon.transformations.series.smoothing import MovingAverage
 
         return {
             "transformers": [
                 LogTransformer(),
-                MovingAverageSeriesTransformer(),
+                MovingAverage(),
             ]
         }

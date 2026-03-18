@@ -15,7 +15,7 @@ from aeon.testing.testing_data import (
     UNEQUAL_LENGTH_UNIVARIATE_CLASSIFICATION,
 )
 from aeon.utils.data_types import COLLECTIONS_DATA_TYPES
-from aeon.utils.validation import get_type
+from aeon.utils.validation.collection import get_type
 
 
 @pytest.mark.parametrize("data", COLLECTIONS_DATA_TYPES)
@@ -219,15 +219,8 @@ def test_preprocess_collection(data):
     cls = MockClassifier()
 
     X = cls._preprocess_collection(data)
-    assert cls._n_jobs == 1
     assert len(cls.metadata_) == 6
     assert get_type(X) == "numpy3D"
-
-    tags = {"capability:multithreading": True}
-    cls = MockClassifier()
-    cls.set_tags(**tags)
-    with pytest.raises(AttributeError, match="self.n_jobs must be set"):
-        cls._preprocess_collection(data)
 
     # Test two calls do not overwrite metadata (predict should not reset fit meta)
     cls = MockClassifier()

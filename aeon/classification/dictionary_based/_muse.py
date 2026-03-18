@@ -18,6 +18,7 @@ from sklearn.utils import check_random_state
 
 from aeon.classification.base import BaseClassifier
 from aeon.transformations.collection.dictionary_based import SFAFast
+from aeon.utils.validation import check_n_jobs
 
 
 class MUSE(BaseClassifier):
@@ -195,6 +196,8 @@ class MUSE(BaseClassifier):
             Reference to self.
         """
         y = np.asarray(y)
+
+        self._n_jobs = check_n_jobs(self.n_jobs)
 
         # add first order differences in each dimension to TS
         if self.use_first_order_differences:

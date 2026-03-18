@@ -3,7 +3,6 @@
 __maintainer__ = ["TonyBagnall", "MatthewMiddlehurst"]
 __all__ = ["MrSQMClassifier"]
 
-from typing import Union
 
 import numpy as np
 
@@ -85,8 +84,8 @@ class MrSQMClassifier(BaseClassifier):
         nsax: int = 0,
         nsfa: int = 5,
         sfa_norm: bool = True,
-        custom_config: Union[dict, None] = None,
-        random_state: Union[int, None] = None,
+        custom_config: dict | None = None,
+        random_state: int | None = None,
     ) -> None:
         self.strat = strat
         self.features_per_rep = features_per_rep
@@ -123,9 +122,7 @@ class MrSQMClassifier(BaseClassifier):
         return self.clf_.predict_proba(X)
 
     @classmethod
-    def _get_test_params(
-        cls, parameter_set: str = "default"
-    ) -> Union[dict, list[dict]]:
+    def _get_test_params(cls, parameter_set: str = "default") -> dict | list[dict]:
         """Return testing parameter settings for the estimator.
 
         Parameters

@@ -8,10 +8,16 @@ to form ``X`` and trains to predict the next ``horizon`` points ahead.
 import numpy as np
 from sklearn.linear_model import LinearRegression
 
-from aeon.forecasting.base import BaseForecaster
+from aeon.forecasting.base import (
+    BaseForecaster,
+    DirectForecastingMixin,
+    IterativeForecastingMixin,
+)
 
 
-class RegressionForecaster(BaseForecaster):
+class RegressionForecaster(
+    BaseForecaster, DirectForecastingMixin, IterativeForecastingMixin
+):
     """
     Regression based forecasting.
 
@@ -70,9 +76,10 @@ class RegressionForecaster(BaseForecaster):
             self.regressor_ = LinearRegression()
         else:
             self.regressor_ = self.regressor
-
+        self._n_exog = 0
         # Combine y and exog for windowing
         if exog is not None:
+            self._n_exog = exog.shape[0]
             if exog.ndim == 1:
                 exog = exog.reshape(1, -1)
             if exog.shape[1] != y.shape[1]:
@@ -96,16 +103,18 @@ class RegressionForecaster(BaseForecaster):
         X = X[:, :, :].reshape(X.shape[0], -1)
 
         # Ignore the final horizon values for X
-        X = X[: -self.horizon]
+        X_train = X[: -self.horizon]
 
         # Extract y_train from the original series
         y_train = y.squeeze()[self.window + self.horizon - 1 :]
 
-        self.last_ = combined_data[:, -self.window :]
-        self.regressor_.fit(X=X, y=y_train)
+        self.regressor_.fit(X=X_train, y=y_train)
+
+        last = X[[-1]]
+        self.forecast_ = self.regressor_.predict(last)[0]
         return self
 
-    def _predict(self, y=None, exog=None):
+    def _predict(self, y, exog=None):
         """
         Predict the next horizon steps ahead.
 
@@ -122,26 +131,52 @@ class RegressionForecaster(BaseForecaster):
         float
             single prediction self.horizon steps ahead of y.
         """
-        if y is None:
-            # Flatten the last window to be compatible with sklearn regressors
-            last_window_flat = self.last_.reshape(1, -1)
-            return self.regressor_.predict(last_window_flat)[0]
-
+        y = y[:, -self.window :]
+        y = y.squeeze()
+        # Test data compliant for regression based
+        if len(y) < self.window:
+            raise ValueError(
+                f" Series passed in predict length = {len(y)} but this "
+                f"RegressionForecaster was trained on window length = "
+                f"{self.window}"
+            )
         # Combine y and exog for prediction
         if exog is not None:
+            if exog.shape[0] != self._n_exog:
+                raise ValueError(
+                    f" Forecaster passed {exog.shape[0]} exogenous variables in "
+                    f"predict but this RegressionForecaster was trained on"
+                    f" {self._n_exog} variables in fit"
+                )
+
             if exog.ndim == 1:
                 exog = exog.reshape(1, -1)
-            if exog.shape[1] != y.shape[1]:
-                raise ValueError("y and exog must have the same number of time points.")
+            if exog.shape[1] < self.window:
+                raise ValueError(
+                    f" Exogenous variables passed in predict of length = {len(y)} but "
+                    f"this RegressionForecaster was trained on window length = "
+                    f"{self.window}"
+                )
+
+            exog = exog[:, -self.window :]
             combined_data = np.vstack([y, exog])
         else:
+            if self._n_exog > 0:
+                raise ValueError(
+                    f" predict passed no exogenous variables, but this "
+                    f"RegressionForecaster was trained on {self._n_exog} exog in fit"
+                )
             combined_data = y
 
         # Extract the last window and flatten for prediction
-        last_window = combined_data[:, -self.window :]
-        last_window_flat = last_window.reshape(1, -1)
+        last_window = combined_data.reshape(1, -1)
 
-        return self.regressor_.predict(last_window_flat)[0]
+        return self.regressor_.predict(last_window)[0]
+
+    def _forecast(self, y, exog=None):
+        """Forecast values for time series X."""
+        self.fit(y, exog)
+        return self.forecast_
 
     @classmethod
     def _get_test_params(cls, parameter_set: str = "default"):

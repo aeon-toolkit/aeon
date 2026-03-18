@@ -8,8 +8,8 @@ __all__ = ["ElasticEnsemble"]
 
 import math
 import time
+import warnings
 from itertools import product
-from typing import Union
 
 import numpy as np
 from sklearn.metrics import accuracy_score
@@ -26,6 +26,7 @@ from aeon.classification.distance_based._time_series_neighbors import (
     KNeighborsTimeSeriesClassifier,
 )
 from aeon.utils.numba.general import slope_derivative_2d, slope_derivative_3d
+from aeon.utils.validation import check_n_jobs
 
 
 class ElasticEnsemble(BaseClassifier):
@@ -42,7 +43,9 @@ class ElasticEnsemble(BaseClassifier):
       A ``list`` of strings identifying which distance measures to include. Valid values
       are one or more of: ``euclidean``, ``dtw``, ``wdtw``, ``ddtw``, ``wddtw``,
       ``lcss``, ``erp``, ``msm``, ``twe``. The default value ``all`` means that all
-      the previously listed distances are used.
+      the previously listed distances are used. The special value ``ts-quad`` can be
+      used to select the distance measures for the TS-QUAD ensemble: WDTW, DDTW,
+      LCSS, and MSM.
     proportion_of_param_options : float, default=1
       The proportion of the parameter grid space to search optional.
     proportion_train_in_param_finding : float, default=1
@@ -101,7 +104,7 @@ class ElasticEnsemble(BaseClassifier):
 
     def __init__(
         self,
-        distance_measures: Union[str, list[str]] = "all",
+        distance_measures: str | list[str] = "all",
         proportion_of_param_options: float = 1.0,
         proportion_train_in_param_finding: float = 1.0,
         proportion_train_for_test: float = 1.0,
@@ -139,6 +142,8 @@ class ElasticEnsemble(BaseClassifier):
         -------
         self : object
         """
+        self._n_jobs = check_n_jobs(self.n_jobs)
+
         if self.distance_measures == "all":
             self._distance_measures = [
                 "dtw",
@@ -151,6 +156,17 @@ class ElasticEnsemble(BaseClassifier):
                 "euclidean",
                 "twe",
             ]
+        elif self.distance_measures == "ts-quad":
+            self._distance_measures = [
+                "wdtw",
+                "ddtw",
+                "lcss",
+                "msm",
+            ]
+            if self.verbose > 0:
+                print(  # noqa: T201
+                    "Configuring ElasticEnsemble as TS-QUAD with WDTW, DDTW, LCSS, MSM."
+                )
         else:
             self._distance_measures = self.distance_measures
 
@@ -201,6 +217,17 @@ class ElasticEnsemble(BaseClassifier):
                         f"using{len(param_train_x)} training cases instead of "
                         f"{len(X)} for parameter optimisation"
                     )
+
+                _, count = np.unique(param_train_y, return_counts=True)
+                if len(count) < 2 or np.any(count < 2):
+                    warnings.warn(
+                        "The training data used for parameter optimisation contains "
+                        "less than 2 cases for at least one class. This may cause "
+                        "issues with optimising parameters for some distance measures. "
+                        "Consider increasing the proportion of training cases used for "
+                        "parameter optimisation.",
+                        stacklevel=2,
+                    )
         # else, use the full training data for optimising parameters
         else:
             if self.verbose > 0:
@@ -249,41 +276,51 @@ class ElasticEnsemble(BaseClassifier):
                         f"Currently evaluating {self._distance_measures[dm]}"
                     )
 
-            # If 100 parameter options are being considered per measure,
-            # use a GridSearchCV
-            if self.proportion_of_param_options == 1:
-                grid = GridSearchCV(
-                    estimator=KNeighborsTimeSeriesClassifier(
-                        distance=this_measure, n_neighbors=1
-                    ),
-                    param_grid=ElasticEnsemble._get_100_param_options(
-                        self._distance_measures[dm], X
-                    ),
-                    cv=LeaveOneOut(),
-                    scoring="accuracy",
-                    n_jobs=self._n_jobs,
-                    verbose=self.verbose,
-                )
-                grid.fit(param_train_to_use, param_train_y)
+            try:
+                # If 100 parameter options are being considered per measure,
+                # use a GridSearchCV
+                if self.proportion_of_param_options == 1:
+                    grid = GridSearchCV(
+                        estimator=KNeighborsTimeSeriesClassifier(
+                            distance=this_measure, n_neighbors=1
+                        ),
+                        param_grid=ElasticEnsemble._get_100_param_options(
+                            self._distance_measures[dm], X
+                        ),
+                        cv=LeaveOneOut(),
+                        scoring="accuracy",
+                        n_jobs=self._n_jobs,
+                        verbose=self.verbose,
+                    )
+                    grid.fit(param_train_to_use, param_train_y)
 
-            # Else, used RandomizedSearchCV to randomly sample parameter
-            # options for each measure
-            else:
-                grid = RandomizedSearchCV(
-                    estimator=KNeighborsTimeSeriesClassifier(
-                        distance=this_measure, n_neighbors=1
-                    ),
-                    param_distributions=ElasticEnsemble._get_100_param_options(
-                        self._distance_measures[dm], X
-                    ),
-                    n_iter=math.ceil(100 * self.proportion_of_param_options),
-                    cv=LeaveOneOut(),
-                    scoring="accuracy",
-                    n_jobs=self._n_jobs,
-                    random_state=rand,
-                    verbose=self.verbose,
-                )
-                grid.fit(param_train_to_use, param_train_y)
+                # Else, used RandomizedSearchCV to randomly sample parameter
+                # options for each measure
+                else:
+                    grid = RandomizedSearchCV(
+                        estimator=KNeighborsTimeSeriesClassifier(
+                            distance=this_measure, n_neighbors=1
+                        ),
+                        param_distributions=ElasticEnsemble._get_100_param_options(
+                            self._distance_measures[dm], X
+                        ),
+                        n_iter=math.ceil(100 * self.proportion_of_param_options),
+                        cv=LeaveOneOut(),
+                        scoring="accuracy",
+                        n_jobs=self._n_jobs,
+                        random_state=rand,
+                        verbose=self.verbose,
+                    )
+                    grid.fit(param_train_to_use, param_train_y)
+            except ValueError as e:
+                if "y must contain at least 2 unique labels, but found 1" in str(e):
+                    raise ValueError(
+                        "Failed to find best parameters for distance measures due to "
+                        "only one class being present in CV. Increase the proportion "
+                        "of training cases used for parameter search or use more data."
+                    )
+                else:
+                    raise e
 
             if self.majority_vote:
                 acc = 1
@@ -484,9 +521,7 @@ class ElasticEnsemble(BaseClassifier):
         return None
 
     @classmethod
-    def _get_test_params(
-        cls, parameter_set: str = "default"
-    ) -> Union[dict, list[dict]]:
+    def _get_test_params(cls, parameter_set: str = "default") -> dict | list[dict]:
         """Return testing parameter settings for the estimator.
 
         Parameters

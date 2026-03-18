@@ -22,6 +22,7 @@ from aeon.transformations.collection.convolution_based import (
     MultiRocket,
     Rocket,
 )
+from aeon.utils.validation import check_n_jobs
 
 
 class Arsenal(BaseClassifier):
@@ -276,6 +277,8 @@ class Arsenal(BaseClassifier):
 
     def _fit_arsenal(self, X, y, keep_transformed_data=False):
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
+        self._n_jobs = check_n_jobs(self.n_jobs)
+
         time_limit = self.time_limit_in_minutes * 60
         start_time = time.time()
         train_time = 0

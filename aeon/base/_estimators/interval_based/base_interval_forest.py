@@ -352,6 +352,7 @@ class BaseIntervalForest(ABC):
         rng = check_random_state(self.random_state)
 
         self.n_cases_, self.n_channels_, self.n_timepoints_ = X.shape
+        self._n_jobs = check_n_jobs(self.n_jobs)
 
         self._base_estimator = self.base_estimator
         if self.base_estimator is None:
@@ -796,8 +797,6 @@ class BaseIntervalForest(ABC):
         ):
             raise ValueError(f"Invalid replace_nan input. Found {self.replace_nan}")
 
-        self._n_jobs = check_n_jobs(self.n_jobs)
-
         if self.time_limit_in_minutes is not None and self.time_limit_in_minutes > 0:
             time_limit = self.time_limit_in_minutes * 60
             start_time = time.time()
@@ -1158,10 +1157,12 @@ class BaseIntervalForest(ABC):
             raise NotImplementedError(
                 "Temporal importance curves are not available for regression."
             )
-        if not isinstance(self._base_estimator, ContinuousIntervalTree):
+        if not isinstance(
+            self._base_estimator, (ContinuousIntervalTree, BaseDecisionTree)
+        ):
             raise ValueError(
                 "base_estimator for temporal importance curves must"
-                " be ContinuousIntervalTree."
+                " be ContinuousIntervalTree or a scikit-learn BaseDecisionTree."
             )
 
         curves = {}
@@ -1169,9 +1170,31 @@ class BaseIntervalForest(ABC):
             counts = {}
 
         for i, est in enumerate(self.estimators_):
-            splits, gains = est.tree_node_splits_and_gain()
-            split_features = []
+            if isinstance(est, ContinuousIntervalTree):
+                splits, gains = est.tree_node_splits_and_gain()
+            elif isinstance(est, BaseDecisionTree):
+                tree = est.tree_
+                internal_nodes = np.where(tree.feature >= 0)[0]
+                splits = tree.feature[internal_nodes]
+                impurity = tree.impurity[internal_nodes]
+                impurity_left = tree.impurity[tree.children_left[internal_nodes]]
+                impurity_right = tree.impurity[tree.children_right[internal_nodes]]
+                n_samples_node = tree.n_node_samples[internal_nodes]
+                gains = (
+                    impurity
+                    - (
+                        tree.n_node_samples[tree.children_left[internal_nodes]]
+                        / n_samples_node
+                    )
+                    * impurity_left
+                    - (
+                        tree.n_node_samples[tree.children_right[internal_nodes]]
+                        / n_samples_node
+                    )
+                    * impurity_right
+                )
 
+            split_features = []
             for n, rep in enumerate(self.intervals_[i]):
                 t = 0
                 rep_name = (
@@ -1275,7 +1298,7 @@ class BaseIntervalForest(ABC):
 
             names, values = zip(*sorted(zip(names, values)))
 
-            return names, values
+            return list(names), list(values)
 
 
 def _is_transformer(obj):

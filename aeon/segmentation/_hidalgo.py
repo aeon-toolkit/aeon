@@ -5,7 +5,6 @@ __all__ = ["HidalgoSegmenter"]
 
 
 from functools import reduce
-from typing import Union
 
 import numpy as np
 from sklearn.neighbors import NearestNeighbors
@@ -30,7 +29,7 @@ class HidalgoSegmenter(BaseSegmenter):
         distance used in the nearest neighbors part of the algorithm
     K : int, optional, default=2
         number of manifolds used in algorithm
-    zeta : float, optional, defualt=0.8
+    zeta : float, optional, default=0.8
         "local homogeneity level" used in the algorithm, see equation (4)
     q : int, optional, default=3
         number of points for local Z interaction, "local homogeneity range"
@@ -143,7 +142,7 @@ class HidalgoSegmenter(BaseSegmenter):
         m : int
             Number of rows (timepoints) of X.
         mu : np.ndarray
-            1D np.ndarray of length m. parameter in Pereto distribtion estimated by
+            1D np.ndarray of length m. parameter in Pereto distribution estimated by
             ``r2/r1``
         Iin : 1D np.ndarray of length m * q
             encodes the q neighbour index values for point index i in 0:m-1
@@ -171,7 +170,9 @@ class HidalgoSegmenter(BaseSegmenter):
             n_neighbors=q + 1, algorithm="ball_tree", metric=metric
         ).fit(X)
         distances, Iin = nbrs.kneighbors(X)
-        mu = np.divide(distances[:, 2], distances[:, 1])
+        eps = 1e-12
+        # stabilise r2/r1 ratio; protect against zero or near-zero r1
+        mu = np.divide(distances[:, 2], distances[:, 1] + eps)
 
         nbrmat = np.zeros((m, m))
         for n in range(q):
@@ -506,7 +507,7 @@ class HidalgoSegmenter(BaseSegmenter):
             d = sample_d(K, a1, b1, _rng)
             sampling = np.append(sampling, d)
 
-            (p, pp) = sample_p(K, p, pp, c1, _rng)
+            p, pp = sample_p(K, p, pp, c1, _rng)
             sampling = np.append(sampling, p[: K - 1])
             sampling = np.append(sampling, (1 - pp))
 
@@ -537,15 +538,15 @@ class HidalgoSegmenter(BaseSegmenter):
 
             N_in, f1 = self._update_zeta_prior(Z, N, Iin)
 
-            lik = sample_likelihood(N, mu, p, d, Z, N_in, zeta, NN)
-            sampling = np.append(sampling, lik)
+            likelihood = sample_likelihood(N, mu, p, d, Z, N_in, zeta, NN)
+            sampling = np.append(sampling, likelihood)
 
         return sampling
 
     def _fit(self, X, y=None):
         """Run the Hidalgo algorithm.
 
-        Find parameter esimates as distributions in sampling.
+        Find parameter estimates as distributions in sampling.
         Iterate through n_replicas random starts and get posterior
         samples with best max likelihood.
 
@@ -568,7 +569,7 @@ class HidalgoSegmenter(BaseSegmenter):
             probability of posterior of z_i = k, point i can be safely
             assigned to manifold k if Pi > 0.8
         _Z : 1D np.ndarray of length N
-            base-zero integer values corresponsing to segment (manifold k)
+            base-zero integer values corresponding to segment (manifold k)
 
         Parameters
         ----------
@@ -592,7 +593,7 @@ class HidalgoSegmenter(BaseSegmenter):
         V, NN, a1, b1, c1, Z, f1, N_in = self._initialise_params(N, mu, Iin, _rng)
 
         Npar = N + 2 * K + 2 + 1
-        bestsampling = np.zeros(shape=0)
+        bestsampling = None
         maxlik = -1e10
 
         for _ in range(n_replicas):
@@ -620,13 +621,23 @@ class HidalgoSegmenter(BaseSegmenter):
                 for it in range(n_iter)
                 if it % sampling_rate == 0 and it >= n_iter * burn_in
             ]
+
+            if len(idx) == 0:
+                continue
+
             sampling = sampling[idx,]
 
-            lik = np.mean(sampling[:, -1], axis=0)
+            likelihood = np.mean(sampling[:, -1], axis=0)
 
-            if lik > maxlik:
+            if likelihood > maxlik:
                 bestsampling = sampling
-                maxlik = lik
+                maxlik = likelihood
+
+        if bestsampling is None:
+            raise ValueError(
+                f"No valid samples after burn-in and sampling_rate filtering. "
+                f"Try reducing burn_in ({burn_in}) or sampling_rate ({sampling_rate})."
+            )
 
         self._d = np.mean(bestsampling[:, :K], axis=0)
         self._derr = np.std(bestsampling[:, :K], axis=0)
@@ -640,7 +651,7 @@ class HidalgoSegmenter(BaseSegmenter):
         for k in range(K):
             Pi[k, :] = np.sum(bestsampling[:, (2 * K) + 1 : 2 * K + N + 1] == k, axis=0)
 
-        Pi = Pi / len(idx)
+        Pi = Pi / bestsampling.shape[0]
         self._Pi = Pi
 
         Z = np.argmax(Pi, axis=0)
@@ -692,7 +703,7 @@ class HidalgoSegmenter(BaseSegmenter):
         }
 
 
-def _binom(N: Union[int, float], q: Union[int, float]):
+def _binom(N: int | float, q: int | float):
     """Calculate the binomial coefficient.
 
     Parameters

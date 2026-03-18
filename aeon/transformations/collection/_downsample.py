@@ -13,18 +13,17 @@ class DownsampleTransformer(BaseCollectionTransformer):
 
     Parameters
     ----------
-    downsample_by : str, optional
-        The method to downsample by, either "frequency" or "proportion",
-        by default "frequency".
-    source_sfreq : int or float, optional
+    downsample_by : str, default="frequency"
+        The method to downsample by, either "frequency" or "proportion".
+    source_sfreq : float, default=2.0
         The source sampling frequency in Hz.
-        Required if `downsample_by = "frequency"`, by default 2.0.
-    target_sfreq : int or float, optional
-        The target sampling frequency in Hz.
-        Required if `downsample_by = "frequency"`, by default 1.0.
-    proportion : float, optional
-        The proportion between 0-1 to downsample by.
-        Required if `downsample_by = "proportion"`, by default None.
+        Required if ``downsample_by = "frequency"``.
+    target_sfreq : int or float, default=1.0
+        The target sampling frequency in Hz. Required if ``downsample_by =
+        "frequency"``.
+    proportion : float or None, default=None
+        The proportion between 0-1 to downsample by. Required if ``downsample_by =
+        "proportion"``.
 
     Examples
     --------
@@ -56,8 +55,8 @@ class DownsampleTransformer(BaseCollectionTransformer):
     def __init__(
         self,
         downsample_by="frequency",
-        source_sfreq=2.0,
-        target_sfreq=1.0,
+        source_sfreq: float = 2.0,
+        target_sfreq: float = 1.0,
         proportion=None,
     ):
         self.downsample_by = downsample_by

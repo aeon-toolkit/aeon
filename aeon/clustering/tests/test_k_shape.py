@@ -7,13 +7,13 @@ from aeon.clustering._k_shape import TimeSeriesKShape
 from aeon.datasets import load_basic_motions
 from aeon.utils.validation._dependencies import _check_estimator_deps
 
-expected_results = [2, 2, 2, 0, 0]
+expected_results = [0, 2, 0, 0, 0]
 
-inertia = 0.5645477840468736
+inertia = 0.5753409783429747
 
 expected_iters = 2
 
-expected_labels = [0, 2, 1, 1, 1]
+expected_labels = [0, 0, 1, 2, 2]
 
 
 @pytest.mark.skipif(

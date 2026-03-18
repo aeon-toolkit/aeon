@@ -68,12 +68,14 @@ def test_check_X():
     assert meta == meta2 == meta3
     assert not meta["multivariate"]
     assert meta["n_channels"] == 1
+    assert meta["n_timepoints"] == 20
     assert not meta["missing_values"]
 
     # DataFrames are always 2d
     meta = dummy._check_X(UNIVARIATE["pd.DataFrame"].T, axis=0)
     assert not meta["multivariate"]
     assert meta["n_channels"] == 1
+    assert meta["n_timepoints"] == 20
     assert not meta["missing_values"]
 
     # check multivariate capability False
@@ -108,6 +110,7 @@ def test_check_X():
     assert meta == meta2 == meta3 == meta4
     assert meta["multivariate"]
     assert meta["n_channels"] == 5
+    assert meta["n_timepoints"] == 20
     assert not meta["missing_values"]
 
     # check missing value capable
@@ -123,8 +126,10 @@ def test_check_X():
     assert meta["missing_values"] and meta4["missing_values"]
     assert not meta["multivariate"]
     assert meta["n_channels"] == 1
+    assert meta["n_timepoints"] == 20
     assert meta4["multivariate"]
     assert meta4["n_channels"] == 5
+    assert meta4["n_timepoints"] == 20
 
     # check univariate capability False
     dummy.set_tags(**{"capability:univariate": False})
@@ -257,6 +262,7 @@ def test_preprocess_series(input_type, inner_type):
     assert X.shape[-1] == X2.shape[-1]
     assert not dummy.metadata_["multivariate"]
     assert dummy.metadata_["n_channels"] == 1
+    assert dummy.metadata_["n_timepoints"] == 20
     assert not dummy.metadata_["missing_values"]
 
     X3 = dummy._preprocess_series(X.T, axis=0, store_metadata=True)
@@ -264,6 +270,7 @@ def test_preprocess_series(input_type, inner_type):
     assert X.shape[-1] == X3.shape[-1]
     assert not dummy.metadata_["multivariate"]
     assert dummy.metadata_["n_channels"] == 1
+    assert dummy.metadata_["n_timepoints"] == 20
     assert not dummy.metadata_["missing_values"]
 
     # test multivariate, excludes pd.Series input type as it cannot be multivariate
@@ -277,6 +284,7 @@ def test_preprocess_series(input_type, inner_type):
         assert X.shape == X2.shape
         assert dummy.metadata_["multivariate"]
         assert dummy.metadata_["n_channels"] == 5
+        assert dummy.metadata_["n_timepoints"] == 20
         assert not dummy.metadata_["missing_values"]
 
         X3 = dummy._preprocess_series(X.T, axis=0, store_metadata=True)
@@ -285,6 +293,7 @@ def test_preprocess_series(input_type, inner_type):
         assert X.shape == X3.shape
         assert dummy.metadata_["multivariate"]
         assert dummy.metadata_["n_channels"] == 5
+        assert dummy.metadata_["n_timepoints"] == 20
         assert not dummy.metadata_["missing_values"]
 
 
@@ -300,6 +309,7 @@ def test_axis():
     assert X.shape == X2.shape
     assert dummy.metadata_["multivariate"]
     assert dummy.metadata_["n_channels"] == 5
+    assert dummy.metadata_["n_timepoints"] == 20
     assert not dummy.metadata_["missing_values"]
 
     X2 = dummy._preprocess_series(X.T, axis=0, store_metadata=True)
@@ -308,6 +318,7 @@ def test_axis():
     assert X.shape == X2.shape
     assert dummy.metadata_["multivariate"]
     assert dummy.metadata_["n_channels"] == 5
+    assert dummy.metadata_["n_timepoints"] == 20
     assert not dummy.metadata_["missing_values"]
 
     dummy.axis = 0
@@ -319,6 +330,7 @@ def test_axis():
     assert X.shape == X2.shape
     assert dummy.metadata_["multivariate"]
     assert dummy.metadata_["n_channels"] == 5
+    assert dummy.metadata_["n_timepoints"] == 20
     assert not dummy.metadata_["missing_values"]
 
     X2 = dummy._preprocess_series(X, axis=0, store_metadata=True)
@@ -327,4 +339,5 @@ def test_axis():
     assert X.shape == X2.shape
     assert dummy.metadata_["multivariate"]
     assert dummy.metadata_["n_channels"] == 5
+    assert dummy.metadata_["n_timepoints"] == 20
     assert not dummy.metadata_["missing_values"]

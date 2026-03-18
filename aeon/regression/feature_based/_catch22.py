@@ -12,6 +12,7 @@ from sklearn.ensemble import RandomForestRegressor
 from aeon.base._base import _clone_estimator
 from aeon.regression.base import BaseRegressor
 from aeon.transformations.collection.feature_based import Catch22
+from aeon.utils.validation import check_n_jobs
 
 
 class Catch22Regressor(BaseRegressor):
@@ -151,6 +152,8 @@ class Catch22Regressor(BaseRegressor):
         self :
             Reference to self.
         """
+        self._n_jobs = check_n_jobs(self.n_jobs)
+
         self._transformer = Catch22(
             features=self.features,
             catch24=self.catch24,

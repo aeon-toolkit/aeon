@@ -14,6 +14,7 @@ from sklearn.ensemble import RandomForestRegressor
 from aeon.base._base import _clone_estimator
 from aeon.regression.base import BaseRegressor
 from aeon.transformations.collection.feature_based import TSFresh, TSFreshRelevant
+from aeon.utils.validation import check_n_jobs
 
 
 class TSFreshRegressor(BaseRegressor):
@@ -63,8 +64,10 @@ class TSFreshRegressor(BaseRegressor):
     """
 
     _tags = {
+        "X_inner_type": ["np-list", "numpy3D"],
         "capability:multivariate": True,
         "capability:multithreading": True,
+        "capability:unequal_length": True,
         "algorithm_type": "feature",
         "python_dependencies": "tsfresh",
     }
@@ -100,7 +103,9 @@ class TSFreshRegressor(BaseRegressor):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
+        X : 3D np.ndarray of shape [n_cases, n_channels, n_timepoints]
+            or list of np.ndarray of shape [n_cases], where each array is a
+            2D np.ndarray of shape = [n_channels, n_timepoints_i]
             The training data.
         y : array-like, shape = [n_cases]
             The target labels.
@@ -115,6 +120,8 @@ class TSFreshRegressor(BaseRegressor):
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
         """
+        self._n_jobs = check_n_jobs(self.n_jobs)
+
         self._transformer = (
             TSFreshRelevant(
                 default_fc_parameters=self.default_fc_parameters,
@@ -169,7 +176,9 @@ class TSFreshRegressor(BaseRegressor):
 
         Parameters
         ----------
-        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
+        X : 3D np.ndarray of shape [n_cases, n_channels, n_timepoints]
+            or list of np.ndarray of shape [n_cases], where each array is a
+            2D np.ndarray of shape = [n_channels, n_timepoints_i]
             The data to make predictions for.
 
         Returns
