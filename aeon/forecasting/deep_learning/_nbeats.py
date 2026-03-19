@@ -78,7 +78,7 @@ class NBeatsForecaster(BaseDeepForecaster, SeriesToSeriesForecastingMixin):
     >>> forecaster = NBeatsForecaster(window=24, horizon=12, n_epochs=10)
     >>> forecaster.fit(y)
     NBeatsForecaster(...)
-    >>> pred = forecaster.predict()
+    >>> pred = forecaster.predict(y)
     """
 
     _tags = {
