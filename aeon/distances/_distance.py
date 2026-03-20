@@ -89,7 +89,7 @@ from aeon.distances.pointwise import (
     squared_pairwise_distance,
 )
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
-from aeon.utils.numba._threading import threaded
+from aeon.utils.decorators.numba_threading import numba_thread_handler
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
@@ -263,7 +263,7 @@ def pairwise_distance(
         raise ValueError("Method must be one of the supported strings or a callable")
 
 
-@threaded
+@numba_thread_handler
 def _custom_func_pairwise(
     X: np.ndarray | list[np.ndarray] | None,
     y: np.ndarray | list[np.ndarray] | None = None,
