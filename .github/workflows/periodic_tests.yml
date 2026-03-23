@@ -71,7 +71,7 @@ jobs:
           restore_cache: "false"
 
       - name: Install dependencies
-        uses: nick-fields/retry@v3
+        uses: nick-fields/retry@v4
         with:
           timeout_minutes: 30
           max_attempts: 3
@@ -104,7 +104,7 @@ jobs:
           python-version: "3.12"
 
       - name: Install aeon and dependencies
-        uses: nick-fields/retry@v3
+        uses: nick-fields/retry@v4
         with:
           timeout_minutes: 30
           max_attempts: 3
@@ -137,7 +137,7 @@ jobs:
           restore_cache: "false"
 
       - name: Install aeon and dependencies
-        uses: nick-fields/retry@v3
+        uses: nick-fields/retry@v4
         with:
           timeout_minutes: 30
           max_attempts: 3
@@ -196,7 +196,7 @@ jobs:
           restore_cache: "false"
 
       - name: Install aeon and dependencies
-        uses: nick-fields/retry@v3
+        uses: nick-fields/retry@v4
         with:
           timeout_minutes: 30
           max_attempts: 3
@@ -236,7 +236,7 @@ jobs:
           restore_cache: "false"
 
       - name: Install aeon and dependencies
-        uses: nick-fields/retry@v3
+        uses: nick-fields/retry@v4
         with:
           timeout_minutes: 30
           max_attempts: 3
@@ -276,7 +276,7 @@ jobs:
           restore_cache: "false"
 
       - name: Install aeon and dependencies
-        uses: nick-fields/retry@v3
+        uses: nick-fields/retry@v4
         with:
           timeout_minutes: 30
           max_attempts: 3
@@ -311,7 +311,7 @@ jobs:
         run: echo "NUMBA_DISABLE_JIT=1" >> $GITHUB_ENV
 
       - name: Install aeon and dependencies
-        uses: nick-fields/retry@v3
+        uses: nick-fields/retry@v4
         with:
           timeout_minutes: 30
           max_attempts: 3
