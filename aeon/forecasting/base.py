@@ -21,6 +21,7 @@ import pandas as pd
 from aeon.base import BaseSeriesEstimator
 from aeon.base._base import _clone_estimator
 from aeon.utils.data_types import VALID_SERIES_INNER_TYPES
+from aeon.utils.decorators.method_timer import method_timer
 
 
 class BaseForecaster(BaseSeriesEstimator):
@@ -59,6 +60,7 @@ class BaseForecaster(BaseSeriesEstimator):
         super().__init__(axis)
 
     @final
+    @method_timer("fit_time_millis_")
     def fit(self, y, exog=None, axis=1):
         """Fit forecaster to series y.
 

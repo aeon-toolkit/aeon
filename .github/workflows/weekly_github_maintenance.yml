@@ -23,7 +23,7 @@ jobs:
 
       - if: always()
         name: Create app token
-        uses: actions/create-github-app-token@v2
+        uses: actions/create-github-app-token@v3
         id: app-token
         with:
           app-id: ${{ vars.PR_APP_ID }}
@@ -55,7 +55,7 @@ jobs:
         run: pip install -Uq requests
 
       - name: Create app token
-        uses: actions/create-github-app-token@v2
+        uses: actions/create-github-app-token@v3
         id: app-token
         with:
           app-id: ${{ vars.PR_APP_ID }}
@@ -98,7 +98,7 @@ jobs:
           publish_results: true
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: SARIF file
           path: results.sarif
