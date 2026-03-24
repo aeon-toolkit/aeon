@@ -31,6 +31,7 @@ from sklearn.base import ClassifierMixin
 
 from aeon.base import BaseCollectionEstimator
 from aeon.classification import BaseClassifier
+from aeon.utils.decorators.method_timer import method_timer
 
 
 class BaseEarlyClassifier(ClassifierMixin, BaseCollectionEstimator):
@@ -75,6 +76,7 @@ class BaseEarlyClassifier(ClassifierMixin, BaseCollectionEstimator):
 
         super().__init__()
 
+    @method_timer("fit_time_millis_")
     def fit(self, X, y):
         """Fit time series classifier to training data.
 
