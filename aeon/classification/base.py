@@ -102,6 +102,17 @@ class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
         self : BaseClassifier
             Reference to self.
 
+        Raises
+        ------
+        ValueError
+            If ``X`` has multivariate series but the estimator does not have
+            ``capability:multivariate`` tag set to True.
+        ValueError
+            If ``X`` has unequal length series but the estimator does not have
+            ``capability:unequal_length`` tag set to True.
+        TypeError
+            If ``y`` is a ``pd.DataFrame`` with more than one column.
+
         Notes
         -----
         Changes state by creating a fitted model that updates attributes
@@ -145,6 +156,17 @@ class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
         predictions : np.ndarray
             1D np.array of float, of shape (n_cases) - predicted class labels
             indices correspond to instance indices in X
+
+        Raises
+        ------
+        ValueError
+            If ``X`` has multivariate series but the estimator does not have
+            ``capability:multivariate`` tag set to True.
+        ValueError
+            If ``X`` has unequal length series but the estimator does not have
+            ``capability:unequal_length`` tag set to True.
+        NotFittedError
+            If the classifier has not been fitted yet (``fit`` not called).
         """
         self._check_is_fitted()
 
@@ -185,6 +207,17 @@ class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
             First dimension indices correspond to instance indices in X,
             second dimension indices correspond to class labels, (i, j)-th entry is
             estimated probability that i-th instance is of class j
+
+        Raises
+        ------
+        ValueError
+            If ``X`` has multivariate series but the estimator does not have
+            ``capability:multivariate`` tag set to True.
+        ValueError
+            If ``X`` has unequal length series but the estimator does not have
+            ``capability:unequal_length`` tag set to True.
+        NotFittedError
+            If the classifier has not been fitted yet (``fit`` not called).
         """
         self._check_is_fitted()
 
@@ -245,6 +278,20 @@ class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
         predictions : np.ndarray
             shape ``[n_cases]`` - predicted class labels indices correspond to
             instance indices in
+
+        Raises
+        ------
+        ValueError
+            If ``X`` has multivariate series but the estimator does not have
+            ``capability:multivariate`` tag set to True.
+        ValueError
+            If ``X`` has unequal length series but the estimator does not have
+            ``capability:unequal_length`` tag set to True.
+        ValueError
+            If ``cv_size`` is not an integer greater than 0.
+        ValueError
+            If all classes have fewer than 2 samples, making cross-validation
+            impossible.
         """
         X, y = self._fit_setup(X, y)
 
@@ -310,6 +357,20 @@ class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
             First dimension indices correspond to instance indices in X,
             second dimension indices correspond to class labels, (i, j)-th entry is
             estimated probability that i-th instance is of class j
+
+        Raises
+        ------
+        ValueError
+            If ``X`` has multivariate series but the estimator does not have
+            ``capability:multivariate`` tag set to True.
+        ValueError
+            If ``X`` has unequal length series but the estimator does not have
+            ``capability:unequal_length`` tag set to True.
+        ValueError
+            If ``cv_size`` is not an integer greater than 0.
+        ValueError
+            If all classes have fewer than 2 samples, making cross-validation
+            impossible.
         """
         X, y = self._fit_setup(X, y)
 
@@ -360,6 +421,16 @@ class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
         -------
         score : float
              Accuracy score of predict(X) vs y.
+
+        Raises
+        ------
+        ValueError
+            If ``metric`` is a string not found in
+            ``sklearn.metrics.get_scorer_names()``.
+        ValueError
+            If ``metric`` is not a string or callable.
+        NotFittedError
+            If the classifier has not been fitted yet (``fit`` not called).
         """
         self._check_is_fitted()
         self._check_y(y, len(X), update_classes=False)
