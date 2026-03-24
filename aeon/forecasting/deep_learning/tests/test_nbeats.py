@@ -142,6 +142,10 @@ def test_nbeats_series_to_series_horizon_greater():
     assert len(predictions) == 11
 
 
+@pytest.mark.skipif(
+    not _check_soft_dependencies(["tensorflow"], severity="none"),
+    reason="Tensorflow soft dependency unavailable.",
+)
 def test_nbeats_series_to_series_horizon_smaller():
     """Test that prediction horizon < horizon works."""
     y = load_airline()
