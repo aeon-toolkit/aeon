@@ -47,7 +47,7 @@ def test_weasel_v2_transform_no_y_unsupervised():
     X_train, y_train = load_unit_test(split="train")
 
     # train weasel
-    weasel = WEASELTransformerV2(random_state=0, feature_selection="none", n_jobs=1)
+    weasel = WEASELTransformerV2(random_state=0, feature_selection="none")
     all_words = weasel.fit_transform(X_train)
 
     np.testing.assert_equal(len(all_words), X_train.shape[0])
@@ -59,9 +59,7 @@ def test_weasel_v2_transform_no_y_supervised():
     X_train, y_train = load_unit_test(split="train")
 
     # train weasel
-    weasel = WEASELTransformerV2(
-        random_state=0, feature_selection="chi2_top_k", n_jobs=1
-    )
+    weasel = WEASELTransformerV2(random_state=0, feature_selection="chi2_top_k")
 
     with pytest.raises(
         ValueError,

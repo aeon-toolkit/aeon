@@ -299,6 +299,8 @@ class WEASELTransformerV2:
        "chi2" or "random". Else ignored.
     random_state: int or None, default=None
         Seed for random, integer
+    n_jobs : int, default=1
+        Number of CPU cores to use.
     """
 
     def __init__(
@@ -310,7 +312,7 @@ class WEASELTransformerV2:
         feature_selection="chi2_top_k",
         max_feature_count=30_000,
         random_state=None,
-        n_jobs=4,
+        n_jobs=1,
     ):
         self.min_window = min_window
         self.norm_options = norm_options
