@@ -27,6 +27,7 @@ from typing import final
 
 from aeon.base import BaseCollectionEstimator
 from aeon.transformations.base import BaseTransformer, InverseTransformerMixin
+from aeon.utils.decorators.method_timer import method_timer
 from aeon.utils.validation.collection import get_n_cases
 
 
@@ -45,6 +46,7 @@ class BaseCollectionTransformer(BaseCollectionEstimator, BaseTransformer):
         super().__init__()
 
     @final
+    @method_timer("fit_time_millis_")
     def fit(self, X, y=None):
         """Fit transformer to X, optionally using y if supervised.
 

@@ -9,6 +9,7 @@ import numpy as np
 from numpy.random import RandomState
 from sklearn.utils import check_random_state
 
+from aeon.clustering._cluster_initialisation import _kmeans_plus_plus_center_initialiser
 from aeon.clustering._k_means import EmptyClusterError
 from aeon.clustering.averaging import kasba_average
 from aeon.clustering.base import BaseClusterer
@@ -142,8 +143,16 @@ class KASBA(BaseClusterer):
 
     def _fit(self, X: np.ndarray, y=None):
         self._check_params(X)
-        cluster_centers, distances_to_centers, labels = self._elastic_kmeans_plus_plus(
-            X,
+        cluster_centers, labels, distances_to_centers = (
+            _kmeans_plus_plus_center_initialiser(
+                X=X,
+                n_clusters=self.n_clusters,
+                random_state=self._random_state,
+                distance=self.distance,
+                distance_params=self._distance_params,
+                n_jobs=1,
+                return_distance_and_labels=True,
+            )
         )
         self.labels_, self.cluster_centers_, self.inertia_, self.n_iter_ = self._kasba(
             X,
@@ -320,34 +329,6 @@ class KASBA(BaseClusterer):
                 raise EmptyClusterError
 
         return labels, cluster_centers, distances_to_centers
-
-    def _elastic_kmeans_plus_plus(
-        self,
-        X,
-    ):
-        initial_center_idx = self._random_state.randint(X.shape[0])
-        indexes = [initial_center_idx]
-
-        min_distances = pairwise_distance(
-            X, X[initial_center_idx], method=self.distance, **self._distance_params
-        ).flatten()
-        labels = np.zeros(X.shape[0], dtype=int)
-
-        for i in range(1, self.n_clusters):
-            probabilities = min_distances / min_distances.sum()
-            next_center_idx = self._random_state.choice(X.shape[0], p=probabilities)
-            indexes.append(next_center_idx)
-
-            new_distances = pairwise_distance(
-                X, X[next_center_idx], method=self.distance, **self._distance_params
-            ).flatten()
-
-            closer_points = new_distances < min_distances
-            min_distances[closer_points] = new_distances[closer_points]
-            labels[closer_points] = i
-
-        centers = X[indexes]
-        return centers, min_distances, labels
 
     def _check_params(self, X: np.ndarray) -> None:
         self._random_state = check_random_state(self.random_state)
