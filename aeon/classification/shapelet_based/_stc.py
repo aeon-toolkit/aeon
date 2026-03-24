@@ -352,7 +352,7 @@ class ShapeletTransformClassifier(BaseClassifier):
             time_limit_in_minutes=self._transform_limit_in_minutes,
             contract_max_n_shapelet_samples=self.contract_max_n_shapelet_samples,
             n_jobs=self.n_jobs,
-            parallel_backend=self.self.parallel_backend,
+            parallel_backend=self.parallel_backend,
             random_state=self.random_state,
         )
 
