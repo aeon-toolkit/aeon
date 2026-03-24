@@ -32,6 +32,7 @@ from sklearn.model_selection import cross_val_predict
 
 from aeon.base import BaseCollectionEstimator
 from aeon.base._base import _clone_estimator
+from aeon.utils.decorators.method_timer import method_timer
 from aeon.utils.validation.labels import check_classification_y
 
 
@@ -68,6 +69,7 @@ class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
         super().__init__()
 
     @final
+    @method_timer("fit_time_millis_")
     def fit(self, X, y) -> BaseCollectionEstimator:
         """Fit time series classifier to training data.
 

@@ -27,7 +27,7 @@ repos:
         args: [ "--create", "--python-folders", "aeon" ]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.4
+    rev: v0.15.7
     hooks:
       - id: ruff
         args: [ "--fix"]
@@ -46,7 +46,7 @@ repos:
         args: [ "--profile=black", "--multi-line=3" ]
 
   - repo: https://github.com/psf/black
-    rev: 26.1.0
+    rev: 26.3.1
     hooks:
       - id: black
         language_version: python3
@@ -69,7 +69,7 @@ repos:
 
   - repo: https://github.com/codespell-project/codespell
     # Configuration for codespell is in pyproject.toml
-    rev: v2.4.1
+    rev: v2.4.2
     hooks:
       - id: codespell
         additional_dependencies:

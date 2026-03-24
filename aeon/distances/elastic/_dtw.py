@@ -11,7 +11,7 @@ from aeon.distances.elastic._alignment_paths import compute_min_return_path
 from aeon.distances.elastic._bounding_matrix import create_bounding_matrix
 from aeon.distances.pointwise._squared import _univariate_squared_distance
 from aeon.utils.conversion._convert_collection import _convert_collection_to_numba_list
-from aeon.utils.numba._threading import threaded
+from aeon.utils.decorators.numba_threading import numba_thread_handler
 from aeon.utils.validation.collection import _is_numpy_list_multivariate
 
 
@@ -73,10 +73,16 @@ def dtw_distance(
         Second time series, either univariate, shape ``(n_timepoints,)``, or
         multivariate, shape ``(n_channels, n_timepoints)``.
     window : float or None, default=None
-        The window to use for the bounding matrix. If None, no bounding matrix
-        is used. window is a percentage deviation, so if ``window = 0.1`` then
-        10% of the series length is the max warping allowed.
-        is used.
+        The window to use for the bounding matrix. If ``window=None`` and
+        ``itakura_max_slope=None``, no bounding is used.
+        Window is a percentage deviation from the diagonal of the DTW cost matrix, so if
+        ``window = 0.1`` then 10% of the series length is the maximum warping allowed.
+        This parameter limits how far DTW is allowed to warp in time by restricting
+        alignments to a diagonal band whose width is given by a fraction of the maximum
+        series length.
+        For example, if there are 10 time points in the longer series and window = 0.1,
+        DTW alignments are restricted such that the warping path may deviate by at most
+        one cell from the diagonal.
     itakura_max_slope : float, default=None
         Maximum slope as a proportion of the number of time points used to create
         Itakura parallelogram on the bounding matrix. Must be between 0. and 1.
@@ -277,7 +283,7 @@ def _dtw_cost_matrix(
     return cost_matrix[1:, 1:]
 
 
-@threaded
+@numba_thread_handler
 def dtw_pairwise_distance(
     X: np.ndarray | list[np.ndarray],
     y: np.ndarray | list[np.ndarray] | None = None,
