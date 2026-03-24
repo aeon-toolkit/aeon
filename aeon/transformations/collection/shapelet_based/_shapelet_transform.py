@@ -78,8 +78,8 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         The number of jobs to run in parallel for both `fit` and `transform`.
         ``-1`` means using all processors.
     parallel_backend : str, ParallelBackendBase instance or None, default=None
-        Specify the parallelisation backend implementation in joblib, if None a 'prefer'
-        value of "threads" is used by default. Valid options are "loky",
+        Specify the parallelisation backend implementation in joblib, if None the
+        Parallel default "loky" is used. Valid options are "loky",
         "multiprocessing", "threading" or a custom backend. See the joblib Parallel
         documentation for more details.
     random_state : int or None, default=None
@@ -257,9 +257,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
                 fit_time < time_limit
                 and n_shapelets_extracted < self.contract_max_n_shapelet_samples
             ):
-                p = Parallel(
-                    n_jobs=self._n_jobs, backend=self.parallel_backend, prefer="threads"
-                )(
+                p = Parallel(n_jobs=self._n_jobs, backend=self.parallel_backend)(
                     delayed(self._extract_random_shapelet)(
                         X,
                         y,
@@ -319,9 +317,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
                     else self.n_shapelet_samples - n_shapelets_extracted
                 )
 
-                p = Parallel(
-                    n_jobs=self._n_jobs, backend=self.parallel_backend, prefer="threads"
-                )(
+                p = Parallel(n_jobs=self._n_jobs, backend=self.parallel_backend)(
                     delayed(self._extract_random_shapelet)(
                         X,
                         y,
@@ -428,9 +424,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         output = np.zeros((len(X), len(self.shapelets)))
 
         for i, series in enumerate(X):
-            dists = Parallel(
-                n_jobs=self._n_jobs, backend=self.parallel_backend, prefer="threads"
-            )(
+            dists = Parallel(n_jobs=self._n_jobs, backend=self.parallel_backend)(
                 delayed(_online_shapelet_distance)(
                     series[shapelet[3]],
                     shapelet[6],

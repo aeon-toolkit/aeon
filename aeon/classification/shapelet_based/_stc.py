@@ -67,6 +67,11 @@ class ShapeletTransformClassifier(BaseClassifier):
     n_jobs : int, default=1
         The number of jobs to run in parallel for both ``fit`` and ``predict``.
         `-1` means using all processors.
+    parallel_backend : str, ParallelBackendBase instance or None, default=None
+        Specify the parallelisation backend implementation in joblib, if None uses
+        Parallel default "loky".
+        Valid options are "loky", "multiprocessing", "threading" or a custom backend.
+        See the joblib Parallel documentation for more details.
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -143,6 +148,7 @@ class ShapeletTransformClassifier(BaseClassifier):
         time_limit_in_minutes: int = 0,
         contract_max_n_shapelet_samples: int = np.inf,
         n_jobs: int = 1,
+        parallel_backend: str | None = None,
         random_state: int | np.random.RandomState | None = None,
     ) -> None:
         self.n_shapelet_samples = n_shapelet_samples
@@ -155,6 +161,7 @@ class ShapeletTransformClassifier(BaseClassifier):
         self.time_limit_in_minutes = time_limit_in_minutes
         self.contract_max_n_shapelet_samples = contract_max_n_shapelet_samples
         self.random_state = random_state
+        self.parallel_backend = parallel_backend
         self.n_jobs = n_jobs
 
         super().__init__()
@@ -345,6 +352,7 @@ class ShapeletTransformClassifier(BaseClassifier):
             time_limit_in_minutes=self._transform_limit_in_minutes,
             contract_max_n_shapelet_samples=self.contract_max_n_shapelet_samples,
             n_jobs=self.n_jobs,
+            parallel_backend=self.self.parallel_backend,
             random_state=self.random_state,
         )
 
