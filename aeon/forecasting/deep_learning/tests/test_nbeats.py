@@ -122,8 +122,8 @@ def test_nbeats_series_to_series():
     not _check_soft_dependencies(["tensorflow"], severity="none"),
     reason="Tensorflow soft dependency unavailable.",
 )
-def test_nbeats_series_to_series_horizon_mismatch():
-    """Test that mismatched prediction_horizon raises ValueError."""
+def test_nbeats_series_to_series_horizon_greater():
+    """Test that prediction horizon > horizon works."""
     y = load_airline()
 
     forecaster = NBeatsForecaster(
@@ -136,8 +136,29 @@ def test_nbeats_series_to_series_horizon_mismatch():
 
     forecaster.fit(y)
 
-    with pytest.raises(ValueError, match="prediction_horizon"):
-        forecaster.series_to_series_forecast(y=None, prediction_horizon=12)
+    predictions = forecaster.series_to_series_forecast(y=None, prediction_horizon=11)
+
+    assert predictions is not None
+    assert len(predictions) == 11
+
+
+def test_nbeats_series_to_series_horizon_smaller():
+    """Test that prediction horizon < horizon works."""
+    y = load_airline()
+    forecaster = NBeatsForecaster(
+        horizon=10,
+        window=12,
+        n_epochs=2,
+        batch_size=16,
+        verbose=0,
+    )
+
+    forecaster.fit(y)
+
+    predictions = forecaster.series_to_series_forecast(y=None, prediction_horizon=6)
+
+    assert predictions is not None
+    assert len(predictions) == 6
 
 
 @pytest.mark.skipif(

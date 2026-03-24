@@ -327,7 +327,18 @@ class NBeatsForecaster(BaseDeepForecaster, SeriesToSeriesForecastingMixin):
         return prediction
 
     def _series_to_series_forecast(self, y, prediction_horizon, exog=None):
-        """Run one forward pass and return the forecast output.
+        """Run recursive forward passes and return the forecast output.
+
+        Supports arbitrary ``prediction_horizon`` values by tiling recursive
+        predictions and trimming to the exact requested length:
+
+        * ``prediction_horizon < horizon`` — one forward pass, output trimmed
+          to ``prediction_horizon``.
+        * ``prediction_horizon == N * horizon`` — exactly N recursive passes,
+          each pass appends the previous forecast to the rolling window.
+        * ``N * horizon < prediction_horizon < (N+1) * horizon`` — N full
+          passes followed by one final pass whose output is trimmed to the
+          remaining length.
 
         Parameters
         ----------
@@ -335,28 +346,17 @@ class NBeatsForecaster(BaseDeepForecaster, SeriesToSeriesForecastingMixin):
             Context series. Uses ``last_window_`` from fit if None.
             Must have at least ``window`` time steps if provided.
         prediction_horizon : int
-            Must equal ``self.horizon`` (fixed at construction time).
+            Desired number of future steps. Need not equal ``self.horizon``.
         exog : ignored
 
         Returns
         -------
         predictions : np.ndarray of shape (prediction_horizon,)
-
-        Raises
-        ------
-        ValueError
-            If ``prediction_horizon != self.horizon``.
         """
-        if prediction_horizon != self.horizon:
-            raise ValueError(
-                f"prediction_horizon={prediction_horizon} does not match "
-                f"horizon={self.horizon}. Re-instantiate with the desired horizon."
-            )
-
         if y is None:
             if not hasattr(self, "last_window_"):
                 raise ValueError("No fitted data available for prediction.")
-            window_data = self.last_window_
+            window_data = self.last_window_.copy()
         else:
             y_inner = np.asarray(y)
             if y_inner.ndim == 2:
@@ -369,12 +369,27 @@ class NBeatsForecaster(BaseDeepForecaster, SeriesToSeriesForecastingMixin):
                 raise ValueError(
                     f"Input length ({y_inner.shape[0]}) < window ({self.window})."
                 )
-            window_data = y_inner[-self.window :]
+            window_data = y_inner[-self.window :].copy()
 
-        x_input = window_data.reshape(1, self.window)
-        pred = self.model_.predict(x_input, verbose=0)
-        # pred is a dict {"forecast": (1, horizon), "backcast": (1, window)}
-        return pred["forecast"][0]
+        collected = []
+        steps_remaining = prediction_horizon
+
+        while steps_remaining > 0:
+            x_input = window_data.reshape(1, self.window)
+            pred = self.model_.predict(x_input, verbose=0)
+            forecast_step = pred["forecast"][0]
+
+            if steps_remaining >= self.horizon:
+                collected.append(forecast_step)
+                window_data = np.concatenate(
+                    [window_data[self.horizon :], forecast_step]
+                )
+                steps_remaining -= self.horizon
+            else:
+                collected.append(forecast_step[:steps_remaining])
+                steps_remaining = 0
+
+        return np.concatenate(collected)
 
     @classmethod
     def _get_test_params(
