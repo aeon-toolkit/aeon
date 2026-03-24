@@ -31,8 +31,8 @@ from urllib.request import Request, urlopen
 
 import numpy as np
 import pandas as pd
-from sklearn.preprocessing import LabelEncoder
 from deprecated.sphinx import deprecated
+from sklearn.preprocessing import LabelEncoder
 
 import aeon
 from aeon.datasets.dataset_collections import (
