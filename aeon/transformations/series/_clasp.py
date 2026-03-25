@@ -1,16 +1,4 @@
-"""
-ClaSP (Classification Score Profile) Transformer implementation.
-
-Notes
------
-As described in
-@inproceedings{clasp2021,
-  title={ClaSP - Time Series Segmentation},
-  author={Sch"afer, Patrick and Ermshaus, Arik and Leser, Ulf},
-  booktitle={CIKM},
-  year={2021}
-}
-"""
+"""ClaSP (Classification Score Profile) Transformer implementation."""
 
 __maintainer__ = []
 __all__ = ["ClaSPTransformer"]
@@ -102,7 +90,9 @@ def _sliding_mean_std(X, m: int):
 
 
 @njit(fastmath=True, cache=True, parallel=True)
-def _compute_distances_iterative(X, m: int, k: int, n_jobs: int = 1, slack: float = 0.5):
+def _compute_distances_iterative(
+    X, m: int, k: int, n_jobs: int = 1, slack: float = 0.5
+):
     """Compute kNN indices with dot-product.
 
     No-loops implementation for a time series, given
@@ -479,14 +469,17 @@ class ClaSPTransformer(BaseSeriesTransformer):
 
         if len(X) - self.window_length < 2 * self.exclusion_radius * len(X):
             warnings.warn(
-                "Period-Length is larger than size of the time series", stacklevel=1
+                "Period-Length is larger than size of the time series",
+                stacklevel=2,
             )
 
         if X.dtype != np.float64:
             warnings.warn(
-                f"dtype is {X.dtype} but should be {np.float64}. "
-                f"Will apply conversion to float64 now",
-                stacklevel=1,
+                (
+                    f"dtype is {X.dtype} but should be {np.float64}. "
+                    "Will apply conversion to float64 now"
+                ),
+                stacklevel=2,
             )
 
         scoring_metric_call = self._check_scoring_metric(self.scoring_metric)
