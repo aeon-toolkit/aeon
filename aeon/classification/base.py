@@ -165,6 +165,12 @@ class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
         ValueError
             If ``X`` has unequal length series but the estimator does not have
             ``capability:unequal_length`` tag set to True.
+        ValueError
+            If the time series length of ``X`` does not match the length seen
+            during fit.
+        ValueError
+            If the number of channels in ``X`` does not match the number of
+            channels seen during fit (for multivariate estimators).
         NotFittedError
             If the classifier has not been fitted yet (``fit`` not called).
         """
@@ -216,6 +222,12 @@ class BaseClassifier(ClassifierMixin, BaseCollectionEstimator):
         ValueError
             If ``X`` has unequal length series but the estimator does not have
             ``capability:unequal_length`` tag set to True.
+        ValueError
+            If the time series length of ``X`` does not match the length seen
+            during fit.
+        ValueError
+            If the number of channels in ``X`` does not match the number of
+            channels seen during fit (for multivariate estimators).
         NotFittedError
             If the classifier has not been fitted yet (``fit`` not called).
         """
