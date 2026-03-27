@@ -226,13 +226,7 @@ def _minkowski_pairwise_distance(
 
     for i in prange(n_cases):
         for j in range(i + 1, n_cases):
-            if w is None:
-                distances[i, j] = minkowski_distance(X[i], X[j], p)
-            else:
-                # Reshape weights to 2D for matching instance
-                # dimensions in distance calculation.
-                _w = w[i].reshape((1, w.shape[1]))
-                distances[i, j] = minkowski_distance(X[i], X[j], p, _w)
+            distances[i, j] = minkowski_distance(X[i], X[j], p, w)
             distances[j, i] = distances[i, j]
 
     return distances
