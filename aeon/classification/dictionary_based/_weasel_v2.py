@@ -390,7 +390,7 @@ class WEASELTransformerV2:
         # Randomly choose window sizes
         self.window_sizes = np.arange(self.min_window, self.max_window + 1, 1)
 
-        parallel_res = Parallel(n_jobs=self.n_jobs, timeout=99999, prefer="threads")(
+        parallel_res = Parallel(n_jobs=self.n_jobs, prefer="threads")(
             delayed(_parallel_fit)(
                 i,
                 XX,
@@ -449,7 +449,7 @@ class WEASELTransformerV2:
     def _transform_words(self, X):
         XX = X.squeeze(1)
 
-        parallel_res = Parallel(n_jobs=self.n_jobs, timeout=99999, prefer="threads")(
+        parallel_res = Parallel(n_jobs=self.n_jobs, prefer="threads")(
             delayed(transformer.transform)(XX) for transformer in self.SFA_transformers
         )
 
