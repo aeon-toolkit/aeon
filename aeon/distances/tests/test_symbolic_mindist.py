@@ -10,6 +10,9 @@ from aeon.distances.mindist._sax import mindist_sax_distance
 from aeon.distances.mindist._sfa import mindist_sfa_distance
 from aeon.testing.data_generation import make_example_3d_numpy
 from aeon.transformations.collection.dictionary_based import SAX, SFA, SFAFast, SFAWhole
+from aeon.transformations.collection.dictionary_based._sfa_fast import (
+    alphabet_allocation_methods,
+)
 
 
 def test_sax_mindist():
@@ -82,7 +85,7 @@ def test_sfa_mindist():
         window_size=n,
         binning_method=histogram_type,
         norm=True,
-        variance=False,  # True gives a tighter lower bound
+        feature_selection_strategy=None,  # 'variance' gives a tighter lower bound
         lower_bounding_distances=True,  # This must be set!
     )
 
@@ -99,7 +102,7 @@ def test_sfa_mindist():
         word_length=n_segments,
         alphabet_size=alphabet_size,
         binning_method=histogram_type,
-        variance=False,  # True gives a tighter lower bound
+        feature_selection_strategy=None,  # 'variance' gives a tighter lower bound
         norm=True,
     )
 
@@ -183,3 +186,51 @@ def test_sfa_whole_mindist():
         assert mindist_sfa <= ed
         assert mindist_dft_sfa >= mindist_sfa  # a tighter lower bound
         assert mindist_dft_sfa <= ed
+
+
+def test_dynamic_alphabet_allocation():
+    """Test the SFA Min-Distance function."""
+    n_segments = 16
+    alphabet_size = 64
+
+    X_train, _ = load_unit_test("TRAIN")
+    X_test, _ = load_unit_test("TEST")
+
+    X_train = zscore(X_train.squeeze(), axis=1)
+    X_test = zscore(X_test.squeeze(), axis=1)
+    histogram_type = "equi-width"
+
+    for alphabet_allocation_method in alphabet_allocation_methods:
+        sfa = SFAWhole(
+            word_length=n_segments,
+            alphabet_size=alphabet_size,
+            binning_method=histogram_type,
+            alphabet_allocation_method=alphabet_allocation_method,
+            feature_selection_strategy="variance",  # gives a tighter lower bound
+            norm=True,
+        )
+
+        X_train_words, X_train_dfts = sfa.fit_transform(X_train)
+        X_test_words, _ = sfa.transform(X_test)
+
+        for i in range(min(X_train.shape[0], X_test.shape[0])):
+            X = X_train[i].reshape(1, -1)
+            Y = X_test[i].reshape(1, -1)
+
+            # SFA Min-Distance
+            mindist_sfa = mindist_sfa_distance(
+                X_train_words[i], X_test_words[i], sfa.breakpoints
+            )
+
+            # DFT-SFA Min-Distance
+            mindist_dft_sfa = mindist_dft_sfa_distance(
+                X_train_dfts[i], X_test_words[i], sfa.breakpoints
+            )
+
+            # Euclidean Distance
+            ed = np.linalg.norm(X[0] - Y[0])
+
+            assert np.mean(np.log2(sfa.alphabet_sizes)) == np.log2(alphabet_size)
+            assert mindist_sfa <= ed
+            assert mindist_dft_sfa >= mindist_sfa  # a tighter lower bound
+            assert mindist_dft_sfa <= ed
