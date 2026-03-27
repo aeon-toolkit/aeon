@@ -1,3 +1,4 @@
+(referencing_code)=
 # Referencing Externally Written Code
 
 When contributing code to `aeon` that is adapted, inspired by, or directly copied
