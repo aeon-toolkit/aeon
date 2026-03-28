@@ -296,6 +296,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
                             new_distances.append(distances[int(s[6])])
                             s[6] = i
                             i += 1
+                    distances = new_distances
 
                 n_shapelets_extracted += self._batch_size
                 fit_time = time.time() - start_time
