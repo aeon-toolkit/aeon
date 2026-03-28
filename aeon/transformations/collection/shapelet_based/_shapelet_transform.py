@@ -445,6 +445,10 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         """
         n_cases = len(X)
         n_shapelets = len(self.shapelets)
+        output = np.empty((n_cases, n_shapelets))
+
+        if n_cases == 0 or n_shapelets == 0:
+            return output
 
         if self._n_jobs == 1 or n_cases == 1:
             return self._transform_block(
@@ -455,10 +459,6 @@ class RandomShapeletTransform(BaseCollectionTransformer):
                 n_cases,
             )
 
-        output = np.empty((n_cases, n_shapelets))
-
-        if n_cases == 0 or n_shapelets == 0:
-            return output
         n_blocks = min(n_cases, self._n_jobs * 4)
         block_size = (n_cases + n_blocks - 1) // n_blocks
 
