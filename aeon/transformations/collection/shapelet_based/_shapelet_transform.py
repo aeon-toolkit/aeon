@@ -426,7 +426,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         output : 2D np.array of shape = (n_cases, n_shapelets)
             The transformed data.
         """
-        output = np.zeros((len(X), len(self.shapelets)))
+        output = np.empty((len(X), len(self.shapelets)))
 
         for i, series in enumerate(X):
             dists = Parallel(
@@ -529,7 +529,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         other_cls_count,
     ):
         orderline = []
-        distances = np.zeros(len(X))
+        distances = np.empty(len(X))
         this_cls_traversed = 0
         other_cls_traversed = 0
 
