@@ -274,11 +274,11 @@ class RandomShapeletTransform(BaseCollectionTransformer):
                     for i, s in enumerate(candidate_shapelets):
                         s[6] = len(distances) + i
                     distances.extend(candidate_distances)
-
+                candidate_shapelets_list = List(candidate_shapelets)
                 for i, heap in enumerate(shapelets):
                     self._merge_shapelets(
                         heap,
-                        List(candidate_shapelets),
+                        candidate_shapelets_list,
                         max_shapelets_per_class,
                         i,
                     )
