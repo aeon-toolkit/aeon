@@ -413,36 +413,77 @@ class RandomShapeletTransform(BaseCollectionTransformer):
             self.shapelets = [s[:-1] for s in self.shapelets]
             return None
 
+    @staticmethod
+    def _transform_block(X, shapelets, sorted_indicies, start, stop):
+        """Transform a contiguous block of cases."""
+        out = np.empty((stop - start, len(shapelets)))
+
+        for i in range(stop - start):
+            series = X[start + i]
+            for n, shapelet in enumerate(shapelets):
+                out[i, n] = _online_shapelet_distance(
+                    series[shapelet[3]],
+                    shapelet[6],
+                    sorted_indicies[n],
+                    shapelet[2],
+                    shapelet[1],
+                )
+        return out
+
     def _transform(self, X, y=None):
         """Transform X according to the extracted shapelets.
 
         Parameters
         ----------
-        X : np.ndarray shape (n_cases, n_channels, n_timepoints)
-            The input data to transform.
+        X : np.ndarray or list
+            Collection of time series.
 
         Returns
         -------
         output : 2D np.array of shape = (n_cases, n_shapelets)
             The transformed data.
         """
-        output = np.empty((len(X), len(self.shapelets)))
+        n_cases = len(X)
+        n_shapelets = len(self.shapelets)
 
-        for i, series in enumerate(X):
-            dists = Parallel(
-                n_jobs=self._n_jobs, backend=self.parallel_backend, prefer="threads"
-            )(
-                delayed(_online_shapelet_distance)(
-                    series[shapelet[3]],
-                    shapelet[6],
-                    self._sorted_indicies[n],
-                    shapelet[2],
-                    shapelet[1],
-                )
-                for n, shapelet in enumerate(self.shapelets)
+        if self._n_jobs == 1 or n_cases == 1:
+            return self._transform_block(
+                X,
+                self.shapelets,
+                self._sorted_indicies,
+                0,
+                n_cases,
             )
 
-            output[i] = dists
+        output = np.empty((n_cases, n_shapelets))
+
+        if n_cases == 0 or n_shapelets == 0:
+            return output
+        n_blocks = min(n_cases, self._n_jobs * 4)
+        block_size = (n_cases + n_blocks - 1) // n_blocks
+
+        blocks = [
+            (start, min(start + block_size, n_cases))
+            for start in range(0, n_cases, block_size)
+        ]
+
+        results = Parallel(
+            n_jobs=self._n_jobs,
+            backend=self.parallel_backend,
+            prefer="threads",
+        )(
+            delayed(self._transform_block)(
+                X,
+                self.shapelets,
+                self._sorted_indicies,
+                start,
+                stop,
+            )
+            for start, stop in blocks
+        )
+
+        for (start, stop), block in zip(blocks, results):
+            output[start:stop] = block
 
         return output
 
