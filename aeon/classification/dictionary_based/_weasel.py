@@ -239,12 +239,12 @@ class WEASEL(BaseClassifier):
             all_words = np.concatenate(all_words, axis=1)
         else:
             all_words = hstack(all_words)
-
         # Ridge Classifier does not give probabilities
         if not self.support_probabilities:
             self.clf = RidgeClassifierCV(
                 alphas=np.logspace(-3, 3, 10), class_weight=self.class_weight
             )
+            all_words = all_words.astype(np.float64, copy=False)
         else:
             self.clf = LogisticRegression(
                 max_iter=5000,
