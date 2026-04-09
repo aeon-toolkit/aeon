@@ -240,7 +240,8 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         max_shapelets_per_class = int(self._max_shapelets / self.n_classes_)
         if max_shapelets_per_class < 1:
             max_shapelets_per_class = 1
-        # shapelet list content: quality, length, position, channel, inst_idx, cls_idx
+        # shapelet list content:
+        # quality, length, position, channel, inst_idx, cls_idx, normed shapelet array
         shapelets = List(
             [
                 List([List([-1.0, -1, -1, -1, -1, -1, -1])])
