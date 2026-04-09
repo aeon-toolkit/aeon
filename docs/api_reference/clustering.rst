@@ -24,7 +24,6 @@ Clustering Algorithms
     KShape
     TimeSeriesKMeans
     TimeSeriesKMedoids
-    TimeSeriesKShape
     TimeSeriesKernelKMeans
     TimeSeriesCLARA
     TimeSeriesCLARANS
