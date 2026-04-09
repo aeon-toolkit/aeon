@@ -240,7 +240,8 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         max_shapelets_per_class = int(self._max_shapelets / self.n_classes_)
         if max_shapelets_per_class < 1:
             max_shapelets_per_class = 1
-        # shapelet list content: quality, length, position, channel, inst_idx, cls_idx
+        # shapelet list content:
+        # quality, length, position, channel, case index, class index, shapelet array
         shapelets = List(
             [
                 List([List([-1.0, -1, -1, -1, -1, -1, -1])])
@@ -274,11 +275,11 @@ class RandomShapeletTransform(BaseCollectionTransformer):
                     for i, s in enumerate(candidate_shapelets):
                         s[6] = len(distances) + i
                     distances.extend(candidate_distances)
-
+                candidate_shapelets_list = List(candidate_shapelets)
                 for i, heap in enumerate(shapelets):
                     self._merge_shapelets(
                         heap,
-                        List(candidate_shapelets),
+                        candidate_shapelets_list,
                         max_shapelets_per_class,
                         i,
                     )
@@ -296,6 +297,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
                             new_distances.append(distances[int(s[6])])
                             s[6] = i
                             i += 1
+                    distances = new_distances
 
                 n_shapelets_extracted += self._batch_size
                 fit_time = time.time() - start_time
@@ -425,7 +427,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         output : 2D np.array of shape = (n_cases, n_shapelets)
             The transformed data.
         """
-        output = np.zeros((len(X), len(self.shapelets)))
+        output = np.empty((len(X), len(self.shapelets)))
 
         for i, series in enumerate(X):
             dists = Parallel(
@@ -528,7 +530,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         other_cls_count,
     ):
         orderline = []
-        distances = np.zeros(len(X))
+        distances = np.empty(len(X))
         this_cls_traversed = 0
         other_cls_traversed = 0
 
