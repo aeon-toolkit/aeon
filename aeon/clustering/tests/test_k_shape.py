@@ -21,7 +21,7 @@ expected_labels = [0, 0, 1, 2, 2]
     reason="skip test if required soft dependencies not available",
 )
 def test_kshapes():
-    """Test implementation of Kshapes."""
+    """Test tslearn wrapper of K-Shape clustering."""
     max_train = 5
 
     X_train, y_train = load_basic_motions(split="train")
