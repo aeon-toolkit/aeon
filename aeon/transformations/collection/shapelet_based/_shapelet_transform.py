@@ -195,7 +195,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         self._batch_size = batch_size
         self._class_counts = []
         self._class_dictionary = {}
-        self._sorted_indicies = []
+        self._sorted_indices = []
 
         super().__init__()
 
@@ -395,10 +395,10 @@ class RandomShapeletTransform(BaseCollectionTransformer):
         if self.verbose:
             print(f"Final shapelet count: {len(self.shapelets)}")  # noqa: T201
 
-        self._sorted_indicies = []
+        self._sorted_indices = []
         for s in self.shapelets:
             sabs = np.abs(s[6])
-            self._sorted_indicies.append(
+            self._sorted_indices.append(
                 np.array(
                     sorted(range(s[1]), reverse=True, key=lambda j, sabs=sabs: sabs[j]),
                     dtype=np.int32,
@@ -454,7 +454,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
             return self._transform_block(
                 X,
                 self.shapelets,
-                self._sorted_indicies,
+                self._sorted_indices,
                 0,
                 n_cases,
             )
@@ -475,7 +475,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
             delayed(self._transform_block)(
                 X,
                 self.shapelets,
-                self._sorted_indicies,
+                self._sorted_indices,
                 start,
                 stop,
             )
