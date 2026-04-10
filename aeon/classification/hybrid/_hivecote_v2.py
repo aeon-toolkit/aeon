@@ -49,7 +49,10 @@ class HIVECOTEV2(BaseClassifier):
         When predict/predict_proba is called, save each HIVE-COTEV2 component
         probability predictions in component_probas.
     verbose : int, default=0
-        Level of output printed to the console (for information only).
+        Level of output printed to the console
+        - 0: no output
+        - 1: HC2 level progress
+        - 2: also print component parameter summaries
     random_state : int, RandomState instance or None, default=None
         If `int`, random_state is the seed used by the random number generator;
         If `RandomState` instance, random_state is the random number generator;
@@ -183,22 +186,11 @@ class HIVECOTEV2(BaseClassifier):
             f"[HC2] Starting fit: n_cases={X.shape[0]}, "
             f"n_channels={X.shape[1]}, n_timepoints={X.shape[2]}, "
             f"n_jobs={self._n_jobs}",
-            level=1,
         )
         self._initialise_component_params()
 
-        # Build Arsenal
-        self._arsenal, self.arsenal_weight_, self.arsenal_train_acc_ = (
-            self._fit_component(
-                "Arsenal",
-                Arsenal,
-                self._arsenal_params,
-                X,
-                y,
-            )
-        )
         # Build STC
-        self._stc, self.stc_weight_, self.stc_train_acc_ = self._fit_component(
+        self._stc, self.stc_weight_, stc_train_acc_ = self._fit_component(
             "STC",
             ShapeletTransformClassifier,
             self._stc_params,
@@ -206,14 +198,23 @@ class HIVECOTEV2(BaseClassifier):
             y,
         )
         # Build DrCIF
-        self._drcif, self.drcif_weight_, self.drcif_train_acc_ = self._fit_component(
+        self._drcif, self.drcif_weight_, drcif_train_acc_ = self._fit_component(
             "DrCIF",
             DrCIFClassifier,
             self._drcif_params,
             X,
             y,
         )
-        self._tde, self.tde_weight_, self.tde_train_acc_ = self._fit_component(
+        # Build Arsenal
+        self._arsenal, self.arsenal_weight_, arsenal_train_acc_ = self._fit_component(
+            "Arsenal",
+            Arsenal,
+            self._arsenal_params,
+            X,
+            y,
+        )
+        # Build TDE
+        self._tde, self.tde_weight_, tde_train_acc_ = self._fit_component(
             "TDE",
             TemporalDictionaryEnsemble,
             self._tde_params,
@@ -222,14 +223,14 @@ class HIVECOTEV2(BaseClassifier):
         )
 
         total_elapsed = perf_counter() - total_start
-        self._log(f"[HC2] Finished fit in {total_elapsed:.2f}s", level=1)
+        self._log(f"[HC2] Finished fit in {total_elapsed:.2f}s")
         self._log(
-            "[HC2] Component train accuracies and weights: "
-            f"STC={self.stc_train_acc_:.4f}, {self.stc_weight_:.4f}, "
-            f"DrCIF={self.drcif_train_acc_:.4f}, {self.drcif_weight_:.4f}, "
-            f"Arsenal={self.arsenal_train_acc_:.4f}, {self.arsenal_weight_:.4f}, "
-            f"TDE={self.tde_train_acc_:.4f}, {self.tde_weight_:.4f}",
-            level=1,
+            "[HC2] Component summary: "
+            f"STC(train_acc={stc_train_acc_:.4f}, weight={self.stc_weight_:.4f}), "
+            f"DrCIF(train_acc={drcif_train_acc_:.4f}, weight={self.drcif_weight_:.4f}),"
+            f"Arsenal(train_acc={arsenal_train_acc_:.4f}, weight"
+            f"={self.arsenal_weight_:.4f}), "
+            f"TDE(train_acc={tde_train_acc_:.4f}, weight={self.tde_weight_:.4f})",
         )
         return self
 
@@ -335,6 +336,11 @@ class HIVECOTEV2(BaseClassifier):
 
         if self.time_limit_in_minutes > 0:
             ct = self.time_limit_in_minutes / 6
+            self._log(
+                f"[HC2] Contract time = {self.time_limit_in_minutes} minutes, "
+                f"per-component allocation = {ct:.4f} minutes",
+                level=1,
+            )
             self._stc_params["time_limit_in_minutes"] = ct
             self._drcif_params["time_limit_in_minutes"] = ct
             self._arsenal_params["time_limit_in_minutes"] = ct
