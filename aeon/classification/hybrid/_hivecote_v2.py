@@ -49,7 +49,8 @@ class HIVECOTEV2(BaseClassifier):
         When predict/predict_proba is called, save each HIVE-COTEV2 component
         probability predictions in component_probas.
     verbose : int, default=0
-        Level of output printed to the console
+        Level of output printed to the console.
+
         - 0: no output
         - 1: HC2 level progress
         - 2: also print component parameter summaries
