@@ -327,6 +327,11 @@ class HIVECOTEV2(BaseClassifier):
         # Make each instances probability array sum to 1 and return
         return dists / dists.sum(axis=1, keepdims=True)
 
+    def _log(self, message, level=1):
+        """Print a verbose message if the configured verbosity is high enough."""
+        if self.verbose >= level:
+            print(message, flush=True)  # noqa
+
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
         """Return testing parameter settings for the estimator.
