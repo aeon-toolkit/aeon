@@ -185,34 +185,20 @@ class HIVECOTEV2(BaseClassifier):
             f"n_jobs={self._n_jobs}",
             level=1,
         )
+        self._initialise_component_params()
 
-        if self.stc_params is None:
-            self._stc_params = {"n_shapelet_samples": HIVECOTEV2._DEFAULT_N_SHAPELETS}
-        if self.drcif_params is None:
-            self._drcif_params = {"n_estimators": HIVECOTEV2._DEFAULT_N_TREES}
-        if self.arsenal_params is None:
-            self._arsenal_params = {
-                "n_kernels": HIVECOTEV2._DEFAULT_N_KERNELS,
-                "n_estimators": HIVECOTEV2._DEFAULT_N_ESTIMATORS,
-            }
-        if self.tde_params is None:
-            self._tde_params = {
-                "n_parameter_samples": HIVECOTEV2._DEFAULT_N_PARA_SAMPLES,
-                "max_ensemble_size": HIVECOTEV2._DEFAULT_MAX_ENSEMBLE_SIZE,
-                "randomly_selected_params": HIVECOTEV2._DEFAULT_RAND_PARAMS,
-            }
-
-        # If we are contracting split the contract time between each algorithm
-        if self.time_limit_in_minutes > 0:
-            # Leave 1/3 for train estimates
-            ct = self.time_limit_in_minutes / 6
-            self._stc_params["time_limit_in_minutes"] = ct
-            self._drcif_params["time_limit_in_minutes"] = ct
-            self._arsenal_params["time_limit_in_minutes"] = ct
-            self._tde_params["time_limit_in_minutes"] = ct
-
+        # Build Arsenal
+        self._arsenal, self.arsenal_weight_, self.arsenal_train_acc_ = (
+            self._fit_component(
+                "Arsenal",
+                Arsenal,
+                self._arsenal_params,
+                X,
+                y,
+            )
+        )
         # Build STC
-        self._stc, self.stc_weight_, train_acc = self._fit_component(
+        self._stc, self.stc_weight_, self.stc_train_acc_ = self._fit_component(
             "STC",
             ShapeletTransformClassifier,
             self._stc_params,
@@ -220,24 +206,14 @@ class HIVECOTEV2(BaseClassifier):
             y,
         )
         # Build DrCIF
-        self._drcif, self.drcif_weight_, train_acc = self._fit_component(
+        self._drcif, self.drcif_weight_, self.drcif_train_acc_ = self._fit_component(
             "DrCIF",
             DrCIFClassifier,
             self._drcif_params,
             X,
             y,
         )
-
-        # Build Arsenal
-        self._arsenal, self.arsenal_weight_, train_acc = self._fit_component(
-            "Arsenal",
-            Arsenal,
-            self._arsenal_params,
-            X,
-            y,
-        )
-
-        self._tde, self.tde_weight_, train_acc = self._fit_component(
+        self._tde, self.tde_weight_, self.tde_train_acc_ = self._fit_component(
             "TDE",
             TemporalDictionaryEnsemble,
             self._tde_params,
@@ -247,7 +223,14 @@ class HIVECOTEV2(BaseClassifier):
 
         total_elapsed = perf_counter() - total_start
         self._log(f"[HC2] Finished fit in {total_elapsed:.2f}s", level=1)
-
+        self._log(
+            "[HC2] Component train accuracies and weights: "
+            f"STC={self.stc_train_acc_:.4f}, {self.stc_weight_:.4f}, "
+            f"DrCIF={self.drcif_train_acc_:.4f}, {self.drcif_weight_:.4f}, "
+            f"Arsenal={self.arsenal_train_acc_:.4f}, {self.arsenal_weight_:.4f}, "
+            f"TDE={self.tde_train_acc_:.4f}, {self.tde_weight_:.4f}",
+            level=1,
+        )
         return self
 
     def _predict(self, X) -> np.ndarray:
@@ -319,6 +302,43 @@ class HIVECOTEV2(BaseClassifier):
 
         # Make each instances probability array sum to 1 and return
         return dists / dists.sum(axis=1, keepdims=True)
+
+    def _get_component_params(self, params, default_params):
+        """Return a working parameter dict for a HC2 component."""
+        return default_params.copy() if params is None else params.copy()
+
+    def _initialise_component_params(self):
+        """Initialise working parameter dictionaries for HC2 components."""
+        self._stc_params = self._get_component_params(
+            self.stc_params,
+            {"n_shapelet_samples": HIVECOTEV2._DEFAULT_N_SHAPELETS},
+        )
+        self._drcif_params = self._get_component_params(
+            self.drcif_params,
+            {"n_estimators": HIVECOTEV2._DEFAULT_N_TREES},
+        )
+        self._arsenal_params = self._get_component_params(
+            self.arsenal_params,
+            {
+                "n_kernels": HIVECOTEV2._DEFAULT_N_KERNELS,
+                "n_estimators": HIVECOTEV2._DEFAULT_N_ESTIMATORS,
+            },
+        )
+        self._tde_params = self._get_component_params(
+            self.tde_params,
+            {
+                "n_parameter_samples": HIVECOTEV2._DEFAULT_N_PARA_SAMPLES,
+                "max_ensemble_size": HIVECOTEV2._DEFAULT_MAX_ENSEMBLE_SIZE,
+                "randomly_selected_params": HIVECOTEV2._DEFAULT_RAND_PARAMS,
+            },
+        )
+
+        if self.time_limit_in_minutes > 0:
+            ct = self.time_limit_in_minutes / 6
+            self._stc_params["time_limit_in_minutes"] = ct
+            self._drcif_params["time_limit_in_minutes"] = ct
+            self._arsenal_params["time_limit_in_minutes"] = ct
+            self._tde_params["time_limit_in_minutes"] = ct
 
     def _log(self, message, level=1):
         """Print a verbose message if the configured verbosity is high enough."""
