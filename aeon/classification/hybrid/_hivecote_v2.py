@@ -7,7 +7,7 @@ representations, using the weighted probabilistic CAWPE as an ensemble controlle
 __maintainer__ = ["MatthewMiddlehurst", "TonyBagnall"]
 __all__ = ["HIVECOTEV2"]
 
-from datetime import datetime
+from time import perf_counter
 
 import numpy as np
 from sklearn.metrics import accuracy_score
@@ -177,6 +177,14 @@ class HIVECOTEV2(BaseClassifier):
         ending in "_" and sets is_fitted flag to True.
         """
         self._n_jobs = check_n_jobs(self.n_jobs)
+        total_start = perf_counter()
+
+        self._log(
+            f"[HC2] Starting fit: n_cases={X.shape[0]}, "
+            f"n_channels={X.shape[1]}, n_timepoints={X.shape[2]}, "
+            f"n_jobs={self._n_jobs}",
+            level=1,
+        )
 
         if self.stc_params is None:
             self._stc_params = {"n_shapelet_samples": HIVECOTEV2._DEFAULT_N_SHAPELETS}
@@ -204,56 +212,41 @@ class HIVECOTEV2(BaseClassifier):
             self._tde_params["time_limit_in_minutes"] = ct
 
         # Build STC
-        self._stc = ShapeletTransformClassifier(
-            **self._stc_params,
-            random_state=self.random_state,
-            n_jobs=self._n_jobs,
+        self._stc, self.stc_weight_, train_acc = self._fit_component(
+            "STC",
+            ShapeletTransformClassifier,
+            self._stc_params,
+            X,
+            y,
         )
-        train_preds = self._stc.fit_predict(X, y)
-        self.stc_weight_ = accuracy_score(y, train_preds) ** 4
-
-        if self.verbose > 0:
-            print("STC ", datetime.now().strftime("%H:%M:%S %d/%m/%Y"))  # noqa
-            print("STC weight = " + str(self.stc_weight_))  # noqa
-
         # Build DrCIF
-        self._drcif = DrCIFClassifier(
-            **self._drcif_params,
-            random_state=self.random_state,
-            n_jobs=self._n_jobs,
+        self._drcif, self.drcif_weight_, train_acc = self._fit_component(
+            "DrCIF",
+            DrCIFClassifier,
+            self._drcif_params,
+            X,
+            y,
         )
-        train_preds = self._drcif.fit_predict(X, y)
-        self.drcif_weight_ = accuracy_score(y, train_preds) ** 4
-
-        if self.verbose > 0:
-            print("DrCIF ", datetime.now().strftime("%H:%M:%S %d/%m/%Y"))  # noqa
-            print("DrCIF weight = " + str(self.drcif_weight_))  # noqa
 
         # Build Arsenal
-        self._arsenal = Arsenal(
-            **self._arsenal_params,
-            random_state=self.random_state,
-            n_jobs=self._n_jobs,
+        self._arsenal, self.arsenal_weight_, train_acc = self._fit_component(
+            "Arsenal",
+            Arsenal,
+            self._arsenal_params,
+            X,
+            y,
         )
-        train_preds = self._arsenal.fit_predict(X, y)
-        self.arsenal_weight_ = accuracy_score(y, train_preds) ** 4
 
-        if self.verbose > 0:
-            print("Arsenal ", datetime.now().strftime("%H:%M:%S %d/%m/%Y"))  # noqa
-            print("Arsenal weight = " + str(self.arsenal_weight_))  # noqa
-
-        # Build TDE
-        self._tde = TemporalDictionaryEnsemble(
-            **self._tde_params,
-            random_state=self.random_state,
-            n_jobs=self._n_jobs,
+        self._tde, self.tde_weight_, train_acc = self._fit_component(
+            "TDE",
+            TemporalDictionaryEnsemble,
+            self._tde_params,
+            X,
+            y,
         )
-        train_preds = self._tde.fit_predict(X, y)
-        self.tde_weight_ = accuracy_score(y, train_preds) ** 4
 
-        if self.verbose > 0:
-            print("TDE ", datetime.now().strftime("%H:%M:%S %d/%m/%Y"))  # noqa
-            print("TDE weight = " + str(self.tde_weight_))  # noqa
+        total_elapsed = perf_counter() - total_start
+        self._log(f"[HC2] Finished fit in {total_elapsed:.2f}s", level=1)
 
         return self
 
@@ -331,6 +324,36 @@ class HIVECOTEV2(BaseClassifier):
         """Print a verbose message if the configured verbosity is high enough."""
         if self.verbose >= level:
             print(message, flush=True)  # noqa
+
+    def _fit_component(self, name, estimator_cls, params, X, y):
+        """Fit a single HC2 component."""
+        build_params = params.copy()
+        build_params.setdefault("random_state", self.random_state)
+        build_params.setdefault("n_jobs", self._n_jobs)
+
+        if estimator_cls is DrCIFClassifier:
+            build_params.setdefault("parallel_backend", self.parallel_backend)
+
+        self._log(f"[HC2] Starting {name}...", level=1)
+        if self.verbose >= 2:
+            self._log(f"[HC2] {name} params: {build_params}", level=2)
+
+        start = perf_counter()
+
+        estimator = estimator_cls(**build_params)
+        train_preds = estimator.fit_predict(X, y)
+
+        train_acc = accuracy_score(y, train_preds)
+        weight = train_acc**4
+        elapsed = perf_counter() - start
+
+        self._log(
+            f"[HC2] Finished {name} in {elapsed:.2f}s, "
+            f"train_acc={train_acc:.4f}, weight={weight:.4f}",
+            level=1,
+        )
+
+        return estimator, weight, train_acc
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
