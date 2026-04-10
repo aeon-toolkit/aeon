@@ -100,6 +100,7 @@ class RandomShapeletTransform(BaseCollectionTransformer):
     Notes
     -----
     For the Java version, see TSML.
+    <https://github.com/time-series-machine-learning/tsml-java/src/java/tsml/>`_.
 
     References
     ----------
@@ -422,21 +423,31 @@ class RandomShapeletTransform(BaseCollectionTransformer):
     ):
         """Extract, merge, and post-process one batch of candidate shapelets."""
         batch_start = perf_counter()
-
-        results = Parallel(
-            n_jobs=self._n_jobs,
-            backend=self.parallel_backend,
-            prefer="threads",
-        )(
-            delayed(self._extract_random_shapelet)(
-                X,
-                y,
-                start_idx + i,
-                check_random_state(rng.randint(np.iinfo(np.int32).max)),
+        if self._n_jobs == 1:
+            results = []
+            for i in range(batch_size):
+                results.append(
+                    self._extract_random_shapelet(
+                        X,
+                        y,
+                        start_idx + i,
+                        check_random_state(rng.randint(np.iinfo(np.int32).max)),
+                    )
+                )
+        else:
+            results = Parallel(
+                n_jobs=self._n_jobs,
+                backend=self.parallel_backend,
+                prefer="threads",
+            )(
+                delayed(self._extract_random_shapelet)(
+                    X,
+                    y,
+                    start_idx + i,
+                    check_random_state(rng.randint(np.iinfo(np.int32).max)),
+                )
+                for i in range(batch_size)
             )
-            for i in range(batch_size)
-        )
-
         candidate_shapelets, candidate_distances = zip(*results)
 
         if save_distances:
