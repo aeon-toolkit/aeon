@@ -84,7 +84,9 @@ class BaseHIVECOTE(BaseClassifier):
                 est.n_jobs = self._n_jobs
 
             # 3. Call fit_predict to get internal cross-validation/OOB predictions
-            train_preds = est.fit_predict(X, y)
+            train_probs = est.fit_predict_proba(X, y)
+
+            train_preds = est.classes_[np.argmax(train_probs, axis=1)]
 
             # 4. Calculate CAWPE weight: accuracy ^ alpha
             weight = accuracy_score(y, train_preds) ** self.alpha
