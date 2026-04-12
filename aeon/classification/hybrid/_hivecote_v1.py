@@ -7,23 +7,18 @@ representations, using the weighted probabilistic CAWPE as an ensemble controlle
 __maintainer__ = []
 __all__ = ["HIVECOTEV1"]
 
-from datetime import datetime
-
-import numpy as np
-from sklearn.metrics import accuracy_score
-from sklearn.utils import check_random_state
-
-from aeon.classification.base import BaseClassifier
 from aeon.classification.dictionary_based import ContractableBOSS
+
+# import base
+from aeon.classification.hybrid._base_hive_cote import BaseHIVECOTE
 from aeon.classification.interval_based import (
     RandomIntervalSpectralEnsembleClassifier,
     TimeSeriesForestClassifier,
 )
 from aeon.classification.shapelet_based import ShapeletTransformClassifier
-from aeon.utils.validation import check_n_jobs
 
 
-class HIVECOTEV1(BaseClassifier):
+class HIVECOTEV1(BaseHIVECOTE):
     """
     Hierarchical Vote Collective of Transformation-based Ensembles (HIVE-COTE) V1.
 
@@ -106,6 +101,8 @@ class HIVECOTEV1(BaseClassifier):
     """
 
     _tags = {
+        "capability:multivariate": False,
+        "capability:contractable": False,
         "capability:multithreading": True,
         "algorithm_type": "hybrid",
     }
@@ -125,26 +122,15 @@ class HIVECOTEV1(BaseClassifier):
         self.tsf_params = tsf_params
         self.rise_params = rise_params
         self.cboss_params = cboss_params
-        self.verbose = verbose
-        self.random_state = random_state
-        self.n_jobs = n_jobs
         self.parallel_backend = parallel_backend
 
-        self.stc_weight_ = 0
-        self.tsf_weight_ = 0
-        self.rise_weight_ = 0
-        self.cboss_weight_ = 0
-
-        self._stc_params = stc_params
-        self._tsf_params = tsf_params
-        self._rise_params = rise_params
-        self._cboss_params = cboss_params
-        self._stc = None
-        self._tsf = None
-        self._rise = None
-        self._cboss = None
-
-        super().__init__()
+        super().__init__(
+            estimators=None,
+            alpha=4,
+            random_state=random_state,
+            n_jobs=n_jobs,
+            verbose=verbose,
+        )
 
     _DEFAULT_N_TREES = 500
     _DEFAULT_N_SHAPELETS = 10000
@@ -166,133 +152,53 @@ class HIVECOTEV1(BaseClassifier):
         self :
             Reference to self.
         """
-        self._n_jobs = check_n_jobs(self.n_jobs)
-
         if self.stc_params is None:
-            self._stc_params = {"n_shapelet_samples": HIVECOTEV1._DEFAULT_N_SHAPELETS}
+            self._stc_params = {"n_shapelet_samples": self._DEFAULT_N_SHAPELETS}
+        else:
+            _stc_params = self.stc_params
+
         if self.tsf_params is None:
-            self._tsf_params = {"n_estimators": HIVECOTEV1._DEFAULT_N_TREES}
+            self._tsf_params = {"n_estimators": self._DEFAULT_N_TREES}
+        else:
+            _tsf_params = self.tsf_params
+
         if self.rise_params is None:
-            self._rise_params = {"n_estimators": HIVECOTEV1._DEFAULT_N_TREES}
+            self._rise_params = {"n_estimators": self._DEFAULT_N_TREES}
+        else:
+            _rise_params = self.rise_params
+
         if self.cboss_params is None:
             self._cboss_params = {
-                "n_parameter_samples": HIVECOTEV1._DEFAULT_N_PARA_SAMPLES,
-                "max_ensemble_size": HIVECOTEV1._DEFAULT_MAX_ENSEMBLE_SIZE,
+                "n_parameter_samples": self._DEFAULT_N_PARA_SAMPLES,
+                "max_ensemble_size": self._DEFAULT_MAX_ENSEMBLE_SIZE,
             }
+        else:
+            _cboss_params = self.cboss_params
 
-        # Build STC
-        self._stc = ShapeletTransformClassifier(
-            **self._stc_params,
-            random_state=self.random_state,
-            n_jobs=self._n_jobs,
-        )
-        train_preds = self._stc.fit_predict(X, y)
-        self.stc_weight_ = accuracy_score(y, train_preds) ** 4
+        self.estimators = [
+            ("STC", ShapeletTransformClassifier(**_stc_params)),
+            ("TSF", TimeSeriesForestClassifier(**_tsf_params)),
+            ("RISE", RandomIntervalSpectralEnsembleClassifier(**_rise_params)),
+            ("cBOSS", ContractableBOSS(**_cboss_params)),
+        ]
 
-        if self.verbose > 0:
-            print("STC ", datetime.now().strftime("%H:%M:%S %d/%m/%Y"))  # noqa
-            print("STC weight = " + str(self.stc_weight_))  # noqa
+        return super()._fit(X, y)
 
-        # Build TSF
-        self._tsf = TimeSeriesForestClassifier(
-            **self._tsf_params,
-            random_state=self.random_state,
-            n_jobs=self._n_jobs,
-        )
-        train_preds = self._tsf.fit_predict(X, y)
-        self.tsf_weight_ = accuracy_score(y, train_preds) ** 4
+    @property
+    def stc_weight_(self):
+        return self.get_component_weights().get("STC", 0.0)
 
-        if self.verbose > 0:
-            print("TSF ", datetime.now().strftime("%H:%M:%S %d/%m/%Y"))  # noqa
-            print("TSF weight = " + str(self.tsf_weight_))  # noqa
+    @property
+    def tsf_weight_(self):
+        return self.get_component_weights().get("TSF", 0.0)
 
-        # Build RISE
-        self._rise = RandomIntervalSpectralEnsembleClassifier(
-            **self._rise_params,
-            random_state=self.random_state,
-            n_jobs=self._n_jobs,
-        )
-        train_preds = self._rise.fit_predict(X, y)
-        self.rise_weight_ = accuracy_score(y, train_preds) ** 4
+    @property
+    def rise_weight_(self):
+        return self.get_component_weights().get("RISE", 0.0)
 
-        if self.verbose > 0:
-            print("RISE ", datetime.now().strftime("%H:%M:%S %d/%m/%Y"))  # noqa
-            print("RISE weight = " + str(self.rise_weight_))  # noqa
-
-        # Build cBOSS
-        self._cboss = ContractableBOSS(
-            **self._cboss_params,
-            random_state=self.random_state,
-            n_jobs=self._n_jobs,
-        )
-        train_preds = self._cboss.fit_predict(X, y)
-        self.cboss_weight_ = accuracy_score(y, train_preds) ** 4
-
-        if self.verbose > 0:
-            print("cBOSS ", datetime.now().strftime("%H:%M:%S %d/%m/%Y"))  # noqa
-            print("cBOSS weight = " + str(self.cboss_weight_))  # noqa
-
-        return self
-
-    def _predict(self, X) -> np.ndarray:
-        """Predicts labels for sequences in X.
-
-        Parameters
-        ----------
-        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
-            The data to make predictions for.
-
-        Returns
-        -------
-        y : array-like, shape = [n_cases]
-            Predicted class labels.
-        """
-        rng = check_random_state(self.random_state)
-        return np.array(
-            [
-                self.classes_[int(rng.choice(np.flatnonzero(prob == prob.max())))]
-                for prob in self.predict_proba(X)
-            ]
-        )
-
-    def _predict_proba(self, X) -> np.ndarray:
-        """Predicts labels probabilities for sequences in X.
-
-        Parameters
-        ----------
-        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
-            The data to make predict probabilities for.
-
-        Returns
-        -------
-        y : array-like, shape = [n_cases, n_classes_]
-            Predicted probabilities using the ordering in classes_.
-        """
-        dists = np.zeros((X.shape[0], self.n_classes_))
-
-        # Call predict proba on each classifier, multiply the probabilities by the
-        # classifiers weight then add them to the current HC1 probabilities
-        dists = np.add(
-            dists,
-            self._stc.predict_proba(X) * (np.ones(self.n_classes_) * self.stc_weight_),
-        )
-        dists = np.add(
-            dists,
-            self._tsf.predict_proba(X) * (np.ones(self.n_classes_) * self.tsf_weight_),
-        )
-        dists = np.add(
-            dists,
-            self._rise.predict_proba(X)
-            * (np.ones(self.n_classes_) * self.rise_weight_),
-        )
-        dists = np.add(
-            dists,
-            self._cboss.predict_proba(X)
-            * (np.ones(self.n_classes_) * self.cboss_weight_),
-        )
-
-        # Make each instances probability array sum to 1 and return
-        return dists / dists.sum(axis=1, keepdims=True)
+    @property
+    def cboss_weight_(self):
+        return self.get_component_weights().get("cBOSS", 0.0)
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):

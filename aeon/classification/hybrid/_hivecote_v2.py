@@ -7,21 +7,16 @@ representations, using the weighted probabilistic CAWPE as an ensemble controlle
 __maintainer__ = ["MatthewMiddlehurst", "TonyBagnall"]
 __all__ = ["HIVECOTEV2"]
 
-from datetime import datetime
-
 import numpy as np
-from sklearn.metrics import accuracy_score
-from sklearn.utils import check_random_state
 
-from aeon.classification.base import BaseClassifier
 from aeon.classification.convolution_based import Arsenal
 from aeon.classification.dictionary_based import TemporalDictionaryEnsemble
+from aeon.classification.hybrid._base_hive_cote import BaseHIVECOTE
 from aeon.classification.interval_based._drcif import DrCIFClassifier
 from aeon.classification.shapelet_based import ShapeletTransformClassifier
-from aeon.utils.validation import check_n_jobs
 
 
-class HIVECOTEV2(BaseClassifier):
+class HIVECOTEV2(BaseHIVECOTE):
     """
     Hierarchical Vote Collective of Transformation-based Ensembles (HIVE-COTE) V2.
 
@@ -107,6 +102,14 @@ class HIVECOTEV2(BaseClassifier):
         "algorithm_type": "hybrid",
     }
 
+    _DEFAULT_N_TREES = 500
+    _DEFAULT_N_SHAPELETS = 10000
+    _DEFAULT_N_KERNELS = 2000
+    _DEFAULT_N_ESTIMATORS = 25
+    _DEFAULT_N_PARA_SAMPLES = 250
+    _DEFAULT_MAX_ENSEMBLE_SIZE = 50
+    _DEFAULT_RAND_PARAMS = 50
+
     def __init__(
         self,
         stc_params=None,
@@ -126,35 +129,15 @@ class HIVECOTEV2(BaseClassifier):
         self.tde_params = tde_params
         self.time_limit_in_minutes = time_limit_in_minutes
         self.save_component_probas = save_component_probas
-        self.verbose = verbose
-        self.random_state = random_state
-        self.n_jobs = n_jobs
         self.parallel_backend = parallel_backend
 
-        self.stc_weight_ = 0
-        self.drcif_weight_ = 0
-        self.arsenal_weight_ = 0
-        self.tde_weight_ = 0
-        self.component_probas = {}
-
-        self._stc_params = stc_params
-        self._drcif_params = drcif_params
-        self._arsenal_params = arsenal_params
-        self._tde_params = tde_params
-        self._stc = None
-        self._drcif = None
-        self._arsenal = None
-        self._tde = None
-
-        super().__init__()
-
-    _DEFAULT_N_TREES = 500
-    _DEFAULT_N_SHAPELETS = 10000
-    _DEFAULT_N_KERNELS = 2000
-    _DEFAULT_N_ESTIMATORS = 25
-    _DEFAULT_N_PARA_SAMPLES = 250
-    _DEFAULT_MAX_ENSEMBLE_SIZE = 50
-    _DEFAULT_RAND_PARAMS = 50
+        super().__init__(
+            estimators=None,
+            alpha=4,
+            random_state=random_state,
+            n_jobs=n_jobs,
+            verbose=verbose,
+        )
 
     def _fit(self, X, y):
         """Fit HIVE-COTE 2.0 to training data.
@@ -176,107 +159,39 @@ class HIVECOTEV2(BaseClassifier):
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
         """
-        self._n_jobs = check_n_jobs(self.n_jobs)
-
-        if self.stc_params is None:
-            self._stc_params = {"n_shapelet_samples": HIVECOTEV2._DEFAULT_N_SHAPELETS}
-        if self.drcif_params is None:
-            self._drcif_params = {"n_estimators": HIVECOTEV2._DEFAULT_N_TREES}
-        if self.arsenal_params is None:
-            self._arsenal_params = {
-                "n_kernels": HIVECOTEV2._DEFAULT_N_KERNELS,
-                "n_estimators": HIVECOTEV2._DEFAULT_N_ESTIMATORS,
-            }
-        if self.tde_params is None:
-            self._tde_params = {
-                "n_parameter_samples": HIVECOTEV2._DEFAULT_N_PARA_SAMPLES,
-                "max_ensemble_size": HIVECOTEV2._DEFAULT_MAX_ENSEMBLE_SIZE,
-                "randomly_selected_params": HIVECOTEV2._DEFAULT_RAND_PARAMS,
-            }
+        _stc_params = self.stc_params or {
+            "n_shapelet_samples": self._DEFAULT_N_SHAPELETS
+        }
+        _drcif_params = self.drcif_params or {"n_estimators": self._DEFAULT_N_TREES}
+        _arsenal_params = self.arsenal_params or {
+            "n_kernels": self._DEFAULT_N_KERNELS,
+            "n_estimators": self._DEFAULT_N_ESTIMATORS,
+        }
+        _tde_params = self.tde_params or {
+            "n_parameter_samples": self._DEFAULT_N_PARA_SAMPLES,
+            "max_ensemble_size": self._DEFAULT_MAX_ENSEMBLE_SIZE,
+            "randomly_selected_params": self._DEFAULT_RAND_PARAMS,
+        }
 
         # If we are contracting split the contract time between each algorithm
         if self.time_limit_in_minutes > 0:
-            # Leave 1/3 for train estimates
             ct = self.time_limit_in_minutes / 6
-            self._stc_params["time_limit_in_minutes"] = ct
-            self._drcif_params["time_limit_in_minutes"] = ct
-            self._arsenal_params["time_limit_in_minutes"] = ct
-            self._tde_params["time_limit_in_minutes"] = ct
+            _stc_params["time_limit_in_minutes"] = ct
+            _drcif_params["time_limit_in_minutes"] = ct
+            _arsenal_params["time_limit_in_minutes"] = ct
+            _tde_params["time_limit_in_minutes"] = ct
 
         # Build STC
-        self._stc = ShapeletTransformClassifier(
-            **self._stc_params,
-            random_state=self.random_state,
-            n_jobs=self._n_jobs,
-        )
-        train_preds = self._stc.fit_predict(X, y)
-        self.stc_weight_ = accuracy_score(y, train_preds) ** 4
+        # import from _base_hive_cote.py
+        self.estimators = [
+            ("STC", ShapeletTransformClassifier(**_stc_params)),
+            ("DrCIF", DrCIFClassifier(**_drcif_params)),
+            ("Arsenal", Arsenal(**_arsenal_params)),
+            ("TDE", TemporalDictionaryEnsemble(**_tde_params)),
+        ]
 
-        if self.verbose > 0:
-            print("STC ", datetime.now().strftime("%H:%M:%S %d/%m/%Y"))  # noqa
-            print("STC weight = " + str(self.stc_weight_))  # noqa
-
-        # Build DrCIF
-        self._drcif = DrCIFClassifier(
-            **self._drcif_params,
-            random_state=self.random_state,
-            n_jobs=self._n_jobs,
-        )
-        train_preds = self._drcif.fit_predict(X, y)
-        self.drcif_weight_ = accuracy_score(y, train_preds) ** 4
-
-        if self.verbose > 0:
-            print("DrCIF ", datetime.now().strftime("%H:%M:%S %d/%m/%Y"))  # noqa
-            print("DrCIF weight = " + str(self.drcif_weight_))  # noqa
-
-        # Build Arsenal
-        self._arsenal = Arsenal(
-            **self._arsenal_params,
-            random_state=self.random_state,
-            n_jobs=self._n_jobs,
-        )
-        train_preds = self._arsenal.fit_predict(X, y)
-        self.arsenal_weight_ = accuracy_score(y, train_preds) ** 4
-
-        if self.verbose > 0:
-            print("Arsenal ", datetime.now().strftime("%H:%M:%S %d/%m/%Y"))  # noqa
-            print("Arsenal weight = " + str(self.arsenal_weight_))  # noqa
-
-        # Build TDE
-        self._tde = TemporalDictionaryEnsemble(
-            **self._tde_params,
-            random_state=self.random_state,
-            n_jobs=self._n_jobs,
-        )
-        train_preds = self._tde.fit_predict(X, y)
-        self.tde_weight_ = accuracy_score(y, train_preds) ** 4
-
-        if self.verbose > 0:
-            print("TDE ", datetime.now().strftime("%H:%M:%S %d/%m/%Y"))  # noqa
-            print("TDE weight = " + str(self.tde_weight_))  # noqa
-
-        return self
-
-    def _predict(self, X) -> np.ndarray:
-        """Predicts labels for sequences in X.
-
-        Parameters
-        ----------
-        X : 3D np.ndarray of shape = [n_cases, n_channels, n_timepoints]
-            The data to make predictions for.
-
-        Returns
-        -------
-        y : array-like, shape = [n_cases]
-            Predicted class labels.
-        """
-        rng = check_random_state(self.random_state)
-        return np.array(
-            [
-                self.classes_[int(rng.choice(np.flatnonzero(prob == prob.max())))]
-                for prob in self.predict_proba(X)
-            ]
-        )
+        # 4. 把剩下所有脏活累活（训练、算权重等）全部丢给父类！
+        return super()._fit(X, y)
 
     def _predict_proba(self, X, return_component_probas=False) -> np.ndarray:
         """Predicts labels probabilities for sequences in X.
@@ -291,41 +206,31 @@ class HIVECOTEV2(BaseClassifier):
         y : array-like, shape = [n_cases, n_classes_]
             Predicted probabilities using the ordering in classes_.
         """
-        dists = np.zeros((X.shape[0], self.n_classes_))
-
-        # Call predict proba on each classifier, multiply the probabilities by the
-        # classifiers weight then add them to the current HC2 probabilities
-        stc_probas = self._stc.predict_proba(X)
-        dists = np.add(
-            dists,
-            stc_probas * (np.ones(self.n_classes_) * self.stc_weight_),
-        )
-        drcif_probas = self._drcif.predict_proba(X)
-        dists = np.add(
-            dists,
-            drcif_probas * (np.ones(self.n_classes_) * self.drcif_weight_),
-        )
-        arsenal_probas = self._arsenal.predict_proba(X)
-        dists = np.add(
-            dists,
-            arsenal_probas * (np.ones(self.n_classes_) * self.arsenal_weight_),
-        )
-        tde_probas = self._tde.predict_proba(X)
-        dists = np.add(
-            dists,
-            tde_probas * (np.ones(self.n_classes_) * self.tde_weight_),
-        )
+        dists = super()._predict_proba(X)
 
         if self.save_component_probas:
             self.component_probas = {
-                "STC": stc_probas,
-                "DrCIF": drcif_probas,
-                "Arsenal": arsenal_probas,
-                "TDE": tde_probas,
+                name: est.predict_proba(X)
+                for name, est in zip(self.component_names_, self.fitted_estimators_)
             }
-
         # Make each instances probability array sum to 1 and return
-        return dists / dists.sum(axis=1, keepdims=True)
+        return dists
+
+    @property
+    def stc_weight_(self):
+        return self.get_component_weights().get("STC", 0.0)
+
+    @property
+    def drcif_weight_(self):
+        return self.get_component_weights().get("DrCIF", 0.0)
+
+    @property
+    def arsenal_weight_(self):
+        return self.get_component_weights().get("Arsenal", 0.0)
+
+    @property
+    def tde_weight_(self):
+        return self.get_component_weights().get("TDE", 0.0)
 
     @classmethod
     def _get_test_params(cls, parameter_set="default"):
