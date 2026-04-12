@@ -6,6 +6,7 @@ from sklearn.metrics import accuracy_score
 from sklearn.utils import check_random_state
 
 from aeon.classification.base import BaseClassifier
+from aeon.utils.validation import check_n_jobs
 
 
 class BaseHIVECOTE(BaseClassifier):
@@ -62,6 +63,8 @@ class BaseHIVECOTE(BaseClassifier):
 
     def _fit(self, X, y):
         """Fit the ensemble to training data and calculate CAWPE weights."""
+        self._n_jobs = check_n_jobs(self.n_jobs)
+
         if self.estimators is None or len(self.estimators) == 0:
             raise ValueError("No estimators provided to BaseHIVECOTE.")
 
@@ -78,7 +81,7 @@ class BaseHIVECOTE(BaseClassifier):
             if hasattr(est, "random_state") and self.random_state is not None:
                 est.random_state = self.random_state
             if hasattr(est, "n_jobs") and self.n_jobs is not None:
-                est.n_jobs = self.n_jobs
+                est.n_jobs = self._n_jobs
 
             # 3. Call fit_predict to get internal cross-validation/OOB predictions
             train_preds = est.fit_predict(X, y)
@@ -95,13 +98,15 @@ class BaseHIVECOTE(BaseClassifier):
 
     def _predict(self, X) -> np.ndarray:
         """Predict class labels for X."""
-        rng = check_random_state(self.random_state)
         # Predict based on the final probabilities calculated by _predict_proba
-        preds = []
-        for prob in self.predict_proba(X):
-            idx = int(rng.choice(np.flatnonzero(prob == prob.max())))
-            preds.append(prob[idx])
-        return np.array(preds)
+        dists = self._predict_proba(X)
+        rng = check_random_state(self.random_state)
+
+        preds = [
+            self.classes_[int(rng.choice(np.flatnonzero(prob == prob.max())))]
+            for prob in dists
+        ]
+        return np.array(preds, dtype=self.classes_.dtype)
 
     def _predict_proba(self, X) -> np.ndarray:
         """Predict class probabilities for X using CAWPE."""
@@ -114,8 +119,10 @@ class BaseHIVECOTE(BaseClassifier):
             probas = est.predict_proba(X)
             dists = np.add(dists, probas * weight)
 
+        sums = dists.sum(axis=1, keepdims=True)
+        sums[sums == 0] = 1.0
         # Normalize to ensure probabilities sum to 1 for each instance
-        return dists / dists.sum(axis=1, keepdims=True)
+        return dists / sums
 
     def get_component_weights(self):
         """Return the calculated weights for each component."""

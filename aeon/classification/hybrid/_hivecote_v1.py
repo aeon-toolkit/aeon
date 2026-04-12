@@ -155,17 +155,17 @@ class HIVECOTEV1(BaseHIVECOTE):
         if self.stc_params is None:
             self._stc_params = {"n_shapelet_samples": self._DEFAULT_N_SHAPELETS}
         else:
-            _stc_params = self.stc_params
+            self._stc_params = self.stc_params
 
         if self.tsf_params is None:
             self._tsf_params = {"n_estimators": self._DEFAULT_N_TREES}
         else:
-            _tsf_params = self.tsf_params
+            self._tsf_params = self.tsf_params
 
         if self.rise_params is None:
             self._rise_params = {"n_estimators": self._DEFAULT_N_TREES}
         else:
-            _rise_params = self.rise_params
+            self._rise_params = self.rise_params
 
         if self.cboss_params is None:
             self._cboss_params = {
@@ -173,13 +173,13 @@ class HIVECOTEV1(BaseHIVECOTE):
                 "max_ensemble_size": self._DEFAULT_MAX_ENSEMBLE_SIZE,
             }
         else:
-            _cboss_params = self.cboss_params
+            self._cboss_params = self.cboss_params
 
         self.estimators = [
-            ("STC", ShapeletTransformClassifier(**_stc_params)),
-            ("TSF", TimeSeriesForestClassifier(**_tsf_params)),
-            ("RISE", RandomIntervalSpectralEnsembleClassifier(**_rise_params)),
-            ("cBOSS", ContractableBOSS(**_cboss_params)),
+            ("STC", ShapeletTransformClassifier(**self._stc_params)),
+            ("TSF", TimeSeriesForestClassifier(**self._tsf_params)),
+            ("RISE", RandomIntervalSpectralEnsembleClassifier(**self._rise_params)),
+            ("cBOSS", ContractableBOSS(**self._cboss_params)),
         ]
 
         return super()._fit(X, y)

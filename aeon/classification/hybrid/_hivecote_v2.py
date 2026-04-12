@@ -159,35 +159,48 @@ class HIVECOTEV2(BaseHIVECOTE):
         Changes state by creating a fitted model that updates attributes
         ending in "_" and sets is_fitted flag to True.
         """
-        _stc_params = self.stc_params or {
-            "n_shapelet_samples": self._DEFAULT_N_SHAPELETS
-        }
-        _drcif_params = self.drcif_params or {"n_estimators": self._DEFAULT_N_TREES}
-        _arsenal_params = self.arsenal_params or {
-            "n_kernels": self._DEFAULT_N_KERNELS,
-            "n_estimators": self._DEFAULT_N_ESTIMATORS,
-        }
-        _tde_params = self.tde_params or {
-            "n_parameter_samples": self._DEFAULT_N_PARA_SAMPLES,
-            "max_ensemble_size": self._DEFAULT_MAX_ENSEMBLE_SIZE,
-            "randomly_selected_params": self._DEFAULT_RAND_PARAMS,
-        }
+        if self.stc_params is not None:
+            self._stc_params = self.stc_params
+        else:
+            self._stc_params = {"n_shapelet_samples": self._DEFAULT_N_SHAPELETS}
+
+        if self.drcif_params is not None:
+            self._drcif_params = self.drcif_params
+        else:
+            self._drcif_params = {"n_estimators": self._DEFAULT_N_TREES}
+
+        if self.arsenal_params is not None:
+            self._arsenal_params = self.arsenal_params
+        else:
+            self._arsenal_params = {
+                "n_kernels": self._DEFAULT_N_KERNELS,
+                "n_estimators": self._DEFAULT_N_ESTIMATORS,
+            }
+
+        if self.tde_params is not None:
+            self._tde_params = self.tde_params
+        else:
+            self._tde_params = {
+                "n_parameter_samples": self._DEFAULT_N_PARA_SAMPLES,
+                "max_ensemble_size": self._DEFAULT_MAX_ENSEMBLE_SIZE,
+                "randomly_selected_params": self._DEFAULT_RAND_PARAMS,
+            }
 
         # If we are contracting split the contract time between each algorithm
         if self.time_limit_in_minutes > 0:
             ct = self.time_limit_in_minutes / 6
-            _stc_params["time_limit_in_minutes"] = ct
-            _drcif_params["time_limit_in_minutes"] = ct
-            _arsenal_params["time_limit_in_minutes"] = ct
-            _tde_params["time_limit_in_minutes"] = ct
+            self._stc_params["time_limit_in_minutes"] = ct
+            self._drcif_params["time_limit_in_minutes"] = ct
+            self._arsenal_params["time_limit_in_minutes"] = ct
+            self._tde_params["time_limit_in_minutes"] = ct
 
         # Build STC
         # import from _base_hive_cote.py
         self.estimators = [
-            ("STC", ShapeletTransformClassifier(**_stc_params)),
-            ("DrCIF", DrCIFClassifier(**_drcif_params)),
-            ("Arsenal", Arsenal(**_arsenal_params)),
-            ("TDE", TemporalDictionaryEnsemble(**_tde_params)),
+            ("STC", ShapeletTransformClassifier(**self._stc_params)),
+            ("DrCIF", DrCIFClassifier(**self._drcif_params)),
+            ("Arsenal", Arsenal(**self._arsenal_params)),
+            ("TDE", TemporalDictionaryEnsemble(**self._tde_params)),
         ]
 
         # 4. 把剩下所有脏活累活（训练、算权重等）全部丢给父类！
