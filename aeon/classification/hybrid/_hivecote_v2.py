@@ -203,7 +203,6 @@ class HIVECOTEV2(BaseHIVECOTE):
             ("TDE", TemporalDictionaryEnsemble(**self._tde_params)),
         ]
 
-        # 4. 把剩下所有脏活累活（训练、算权重等）全部丢给父类！
         return super()._fit(X, y)
 
     def _predict_proba(self, X, return_component_probas=False) -> np.ndarray:
