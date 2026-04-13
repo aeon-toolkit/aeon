@@ -194,8 +194,6 @@ class HIVECOTEV2(BaseHIVECOTE):
             self._arsenal_params["time_limit_in_minutes"] = ct
             self._tde_params["time_limit_in_minutes"] = ct
 
-        # Build STC
-        # import from _base_hive_cote.py
         self.estimators = [
             ("STC", ShapeletTransformClassifier(**self._stc_params)),
             ("DrCIF", DrCIFClassifier(**self._drcif_params)),
@@ -205,7 +203,7 @@ class HIVECOTEV2(BaseHIVECOTE):
 
         return super()._fit(X, y)
 
-    def _predict_proba(self, X, return_component_probas=False) -> np.ndarray:
+    def _predict_proba(self, X) -> np.ndarray:
         """Predicts labels probabilities for sequences in X.
 
         Parameters
@@ -218,15 +216,19 @@ class HIVECOTEV2(BaseHIVECOTE):
         y : array-like, shape = [n_cases, n_classes_]
             Predicted probabilities using the ordering in classes_.
         """
-        dists = super()._predict_proba(X)
-
+        dists = np.zeros((X.shape[0], self.n_classes_))
         if self.save_component_probas:
-            self.component_probas = {
-                name: est.predict_proba(X)
-                for name, est in zip(self.component_names_, self.fitted_estimators_)
-            }
-        # Make each instances probability array sum to 1 and return
-        return dists
+            self.component_probas = {}
+
+        for i, est in enumerate(self.fitted_estimators_):
+            probas = est.predict_proba(X)
+            dists = np.add(dists, probas * self.weights_[i])
+            if self.save_component_probas:
+                self.component_probas[self.component_names_[i]] = probas
+
+        sums = dists.sum(axis=1, keepdims=True)
+        sums[sums == 0] = 1.0
+        return dists / sums
 
     @property
     def stc_weight_(self):

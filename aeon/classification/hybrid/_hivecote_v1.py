@@ -103,8 +103,6 @@ class HIVECOTEV1(BaseHIVECOTE):
     _tags = {
         "capability:multivariate": False,
         "capability:contractable": False,
-        "capability:multithreading": True,
-        "algorithm_type": "hybrid",
     }
 
     def __init__(

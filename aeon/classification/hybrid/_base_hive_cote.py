@@ -68,31 +68,20 @@ class BaseHIVECOTE(BaseClassifier):
         if self.estimators is None or len(self.estimators) == 0:
             raise ValueError("No estimators provided to BaseHIVECOTE.")
 
-        self.fitted_estimators_ = []
-        self.weights_ = []
-        self.component_names_ = []
-
         # Dynamically traverse and train all the underlying components
         for name, estimator in self.estimators:
-            # 1. Clone model to prevent mutating the original instance
             est = clone(estimator)
 
-            # 2. Pass global parameters
+            # Pass global parameters to the cloned estimator
             if hasattr(est, "random_state") and self.random_state is not None:
                 est.random_state = self.random_state
             if hasattr(est, "n_jobs") and self.n_jobs is not None:
                 est.n_jobs = self._n_jobs
 
-            try:
-                train_preds = est.fit_predict(X, y)
-            except ValueError:
-                train_probs = est.fit_predict_proba(X, y)
-                train_preds = est.classes_[np.argmax(train_probs, axis=1)]
-
-            # 4. Calculate CAWPE weight: accuracy ^ alpha
+            # Get OOB/CV predictions and calculate CAWPE weight
+            train_preds = est.fit_predict(X, y)
             weight = accuracy_score(y, train_preds) ** self.alpha
 
-            # 5. Store state
             self.fitted_estimators_.append(est)
             self.weights_.append(weight)
             self.component_names_.append(name)
