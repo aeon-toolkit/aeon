@@ -7,7 +7,9 @@
 `aeon` is a scikit-learn compatible Python library for learning from time series.
 It covers classification, regression, clustering, forecasting, anomaly detection,
 segmentation, similarity search, and transformation — with implementations
-contributed and maintained by the researchers who designed many of the methods.
+contributed and maintained by the researchers who designed many of the methods,
+including state-of-the-art deep learning models for forecasting, classification,
+regression and clustering.
 
 [Documentation](https://www.aeon-toolkit.org/) ·
 [Examples](https://www.aeon-toolkit.org/en/stable/examples.html) ·
@@ -43,17 +45,47 @@ the maintainers or contributors:
 
 | Method | Reference | Task |
 | --- | --- | --- |
+| **InceptionTime** | Ismail-Fawaz et al., 2020 | Classification |
+| **H-InceptionTime** | Ismail-Fawaz et al., 2022 | Classification |
+| **LITE / LITETime** | Ismail-Fawaz et al., 2023 | Classification |
+| **ResNet, FCN, MLP, Disjoint-CNN, …** | various | Classification / Regression |
 | HIVE-COTE 2.0 | Middlehurst et al., 2021 | Classification |
 | ROCKET / MiniRocket / MultiRocket | Dempster et al., 2020–2022 | Classification |
 | WEASEL 2.0 / BOSS | Schäfer et al. | Classification |
 | Hydra | Dempster et al., 2023 | Classification |
-| Deep learning models (InceptionTime, LITE, …) | Ismail-Fawaz et al. | Classification / Regression |
 | Ordinal classification methods | Guijo-Rubio et al. | Classification |
 
 See the [API reference](https://www.aeon-toolkit.org/en/stable/api_reference.html)
 for the full list across all tasks.
 
 ⭐ **Star the repo** to follow new releases — `aeon` ships frequently, and starring is the easiest way to know when new algorithms land.
+
+## Deep learning for time series
+
+`aeon` provides Keras/TensorFlow implementations of leading deep learning
+architectures for time series, with a consistent scikit-learn compatible API
+and many models contributed by their original authors:
+
+- **Classification:** InceptionTime, H-InceptionTime, LITE, LITETime, ResNet, FCN, MLP, CNN, Disjoint-CNN, and more
+- **Regression:** the same backbone architectures, adapted for continuous targets
+- **Clustering:** deep learning based clustering via learned representations
+
+A minimal example:
+
+```python
+from aeon.datasets import load_unit_test
+from aeon.classification.deep_learning import InceptionTimeClassifier
+
+X_train, y_train = load_unit_test(split="train")
+X_test, y_test = load_unit_test(split="test")
+
+clf = InceptionTimeClassifier(n_epochs=10)
+clf.fit(X_train, y_train)
+print(clf.score(X_test, y_test))
+```
+
+See the [examples gallery](https://www.aeon-toolkit.org/en/stable/examples.html)
+for GPU usage, custom architectures, and benchmarking against classical methods.
 
 ## Installation
 
@@ -65,7 +97,7 @@ Install the latest release from PyPI:
 pip install aeon
 ```
 
-To install with all optional dependencies:
+To install with all optional dependencies (including deep learning):
 
 ```
 pip install aeon[all_extras]
@@ -94,18 +126,20 @@ print(clf.score(X_test, y_test))
 
 ## Tasks supported
 
-`aeon` supports a wide range of time series learning tasks and utilities:
+Ten task areas, one consistent API:
 
-- [Classification](https://www.aeon-toolkit.org/en/stable/api_reference/classification.html)
-- [Regression](https://www.aeon-toolkit.org/en/stable/api_reference/regression.html)
-- [Clustering](https://www.aeon-toolkit.org/en/stable/api_reference/clustering.html)
-- [Forecasting](https://www.aeon-toolkit.org/en/stable/api_reference/forecasting.html)
-- [Anomaly detection](https://www.aeon-toolkit.org/en/stable/api_reference/anomaly_detection.html)
-- [Segmentation](https://www.aeon-toolkit.org/en/stable/api_reference/segmentation.html)
-- [Similarity search](https://www.aeon-toolkit.org/en/stable/api_reference/similarity_search.html)
-- [Transformations and preprocessing](https://www.aeon-toolkit.org/en/stable/api_reference/transformations.html)
-- [Distances, kernels, and similarity measures](https://www.aeon-toolkit.org/en/stable/api_reference/distances.html)
-- [Benchmarking and performance evaluation](https://www.aeon-toolkit.org/en/stable/api_reference/benchmarking.html)
+| Task | What it does | |
+| --- | --- | --- |
+| **Classification** | Predict labels for time series | [docs →](https://www.aeon-toolkit.org/en/stable/api_reference/classification.html) |
+| **Regression** | Predict continuous values from time series | [docs →](https://www.aeon-toolkit.org/en/stable/api_reference/regression.html) |
+| **Clustering** | Group similar series without labels | [docs →](https://www.aeon-toolkit.org/en/stable/api_reference/clustering.html) |
+| **Forecasting** | Predict future values | [docs →](https://www.aeon-toolkit.org/en/stable/api_reference/forecasting.html) |
+| **Anomaly detection** | Find unusual points or subsequences | [docs →](https://www.aeon-toolkit.org/en/stable/api_reference/anomaly_detection.html) |
+| **Segmentation** | Split a series into homogeneous regions | [docs →](https://www.aeon-toolkit.org/en/stable/api_reference/segmentation.html) |
+| **Similarity search** | Find similar subsequences in long series | [docs →](https://www.aeon-toolkit.org/en/stable/api_reference/similarity_search.html) |
+| **Transformations** | Feature extraction and preprocessing | [docs →](https://www.aeon-toolkit.org/en/stable/api_reference/transformations.html) |
+| **Distances & kernels** | Time series similarity measures | [docs →](https://www.aeon-toolkit.org/en/stable/api_reference/distances.html) |
+| **Benchmarking** | Reproducible experimental evaluation | [docs →](https://www.aeon-toolkit.org/en/stable/api_reference/benchmarking.html) |
 
 ## Getting started examples
 
