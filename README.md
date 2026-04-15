@@ -43,17 +43,17 @@ evaluate new methods. That means:
 A selection of methods available in `aeon`, with their original authors among
 the maintainers or contributors:
 
-| Method | Reference | Task |
-| --- | --- | --- |
-| **InceptionTime** | Ismail-Fawaz et al., 2020 | Classification |
-| **H-InceptionTime** | Ismail-Fawaz et al., 2022 | Classification |
-| **LITE / LITETime** | Ismail-Fawaz et al., 2023 | Classification |
-| **ResNet, FCN, MLP, Disjoint-CNN, …** | various | Classification / Regression |
-| HIVE-COTE 2.0 | Middlehurst et al., 2021 | Classification |
-| ROCKET / MiniRocket / MultiRocket | Dempster et al., 2020–2022 | Classification |
-| WEASEL 2.0 / BOSS | Schäfer et al. | Classification |
-| Hydra | Dempster et al., 2023 | Classification |
-| Ordinal classification methods | Guijo-Rubio et al. | Classification |
+| Method                         | Reference                                                                                      | Task           |
+|--------------------------------|------------------------------------------------------------------------------------------------|----------------|
+| **LITETime/InceptionTime**     | Ismail-Fawaz et al., [2020](https://link.springer.com/article/10.1007/s10618-020-00710-y)/2023 | Classification |
+| **Hydra-MultiRocket**          | [Dempster et al., 2023](https://link.springer.com/article/10.1007/s10618-023-00939-3)          | Classification |
+| **SETAR-Tree**                 | [Godahewa et al. 2023](https://link.springer.com/article/10.1007/s10994-023-06316-x)           | Forecasting    |
+| **KASBA**                      | [Holder et al. 2026](https://link.springer.com/article/10.1007/s10618-026-01189-9)             | Clustering     |
+| **CLASP**                      | [Ermshaus et al. 2023](https://link.springer.com/article/10.1007/s10618-023-00923-x)           | Segmentation   |
+| Ordinal classification methods | [Guijo-Rubio et al. 2025](https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=10769513)       | Classification |
+| Multivariate classification    | [Middlehurst et al.2026](https://arxiv.org/abs/2603.20352)                                     | Classification |
+| T                              | [Bagnall et al., 2017](https://link.springer.com/article/10.1007/S10618-016-0483-9)            | Benchmarking   |
+| Deep learning for TSC          | [Ismail-Fawaz et al.](https://link.springer.com/article/10.1007/s10618-019-00619-1)            | Benchmarking   |
 
 See the [API reference](https://www.aeon-toolkit.org/en/stable/api_reference.html)
 for the full list across all tasks.
@@ -149,7 +149,7 @@ Time series classification predicts class labels for unseen series using a model
 
 ```python
 import numpy as np
-from aeon.classification.distance_based import KNeighborsTimeSeriesClassifier
+from aeon.classification.convolution_based import MultiRocketHydraClassifier
 
 X = np.array([
     [[1, 2, 3, 4, 5, 5]],
@@ -158,7 +158,7 @@ X = np.array([
 ])
 y = np.array(["low", "low", "high"])
 
-clf = KNeighborsTimeSeriesClassifier(distance="dtw")
+clf = MultiRocketHydraClassifier(n_kernels=1000)
 clf.fit(X, y)
 
 X_test = np.array([
@@ -178,7 +178,7 @@ Time series clustering groups similar time series together from an unlabelled co
 
 ```python
 import numpy as np
-from aeon.clustering import TimeSeriesKMeans
+from aeon.clustering import KASBA
 
 X = np.array([
     [[1, 2, 3, 4, 5, 5]],
@@ -186,7 +186,7 @@ X = np.array([
     [[8, 7, 6, 5, 4, 4]],
 ])
 
-clu = TimeSeriesKMeans(distance="dtw", n_clusters=2)
+clu = KASBA(n_clusters=2)
 clu.fit(X)
 
 print(clu.labels_)
@@ -201,11 +201,11 @@ statistical models and modern deep learning approaches.
 
 ```python
 from aeon.datasets import load_airline
-from aeon.forecasting.stats import ARIMA
+from aeon.forecasting.machine_learning import SETARForest
 
 y = load_airline()
 
-forecaster = ARIMA(p=1, d=1, q=1)
+forecaster = SETARForest(n_estimators=10)
 pred = forecaster.forecast(y)
 
 print(pred)
@@ -273,6 +273,6 @@ If you let us know about your paper using `aeon`, we will happily list it on the
 
 ## Project status
 
-`aeon` is under active development. The core package is stable and widely used. The following modules are currently considered experimental, and the deprecation policy does not necessarily apply (although we only rarely make non-compatible changes): `anomaly_detection`, `forecasting`, `segmentation`, `similarity_search`, `visualisation`, `transformations.collection.self_supervised`, `transformations.collection.imbalance`.
+`aeon` is under active development. The core package is stable and widely used. The following modules are currently considered in development, and the deprecation policy does not necessarily apply (although we only rarely make non-compatible changes): `anomaly_detection`, `forecasting`, `segmentation`, `similarity_search`, `visualisation`, `transformations.collection.self_supervised`, `transformations.collection.imbalance`.
 
 Please check the documentation for task-specific capabilities, limitations, and current status.
