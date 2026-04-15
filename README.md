@@ -56,6 +56,17 @@ the maintainers or contributors:
 | Bake off redux                   | [Middlehurst et al., 2025](https://link.springer.com/article/10.1007/S10618-016-0483-9)        | Benchmarking   |
 | Deep learning for classification | [Ismail-Fawaz et al.](https://link.springer.com/article/10.1007/s10618-019-00619-1)            | Benchmarking   |
 
+<h4>Supported by</h4>
+<p>
+  <a href="https://www.inria.fr/">
+    <img src="https://raw.githubusercontent.com/aeon-toolkit/aeon/main/docs/images/logos/inria.png" alt="INRIA" height="50">
+  </a>
+  &nbsp;&nbsp;&nbsp;
+  <a href="https://www.ukri.org/councils/epsrc/">
+    <img src="https://raw.githubusercontent.com/aeon-toolkit/aeon/main/docs/images/logos/epsrc.png" alt="EPSRC" height="50">
+  </a>
+</p>
+
 See the [API reference](https://www.aeon-toolkit.org/en/stable/api_reference.html)
 for the full list across all tasks.
 
