@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://raw.githubusercontent.com/aeon-toolkit/aeon/main/docs/images/aeon_logo.png" width="220" alt="aeon logo" />
+  <img src="https://raw.githubusercontent.com/aeon-toolkit/aeon/main/docs/images/logo/aeon-logo-blue-compact.png" width="220" alt="aeon logo" />
 
 # aeon
 
