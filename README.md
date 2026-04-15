@@ -40,8 +40,7 @@ evaluate new methods. That means:
 - **State of the art, sooner.** New methods often land in `aeon` alongside publication.
 - **Evidence-based defaults.** What's included — and what's recommended — is grounded in published comparative studies.
 
-A selection of methods available in `aeon`, with their original authors among
-the maintainers or contributors:
+A selection of algorithms available in `aeon`  and comparative studies based on aeon written by aeon core developers or contributors:
 
 | Method                           | Reference                                                                                      | Task           |
 |----------------------------------|------------------------------------------------------------------------------------------------|----------------|
