@@ -33,7 +33,7 @@ regression and clustering.
 
 `aeon` is developed in close contact with the time series research community.
 Many of its algorithms are contributed or maintained by their original authors,
-and the same team behind `aeon` runs the benchmarks that the field uses to
+and the same team behind `aeon` runs the [benchmarks](https://timeseriesclassification.com/) that the field uses to
 evaluate new methods. That means:
 
 - **Faithful implementations.** Algorithms reflect what the papers actually describe.
