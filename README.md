@@ -43,17 +43,18 @@ evaluate new methods. That means:
 A selection of methods available in `aeon`, with their original authors among
 the maintainers or contributors:
 
-| Method                         | Reference                                                                                      | Task           |
-|--------------------------------|------------------------------------------------------------------------------------------------|----------------|
-| **LITETime/InceptionTime**     | Ismail-Fawaz et al., [2020](https://link.springer.com/article/10.1007/s10618-020-00710-y)/2023 | Classification |
-| **Hydra-MultiRocket**          | [Dempster et al., 2023](https://link.springer.com/article/10.1007/s10618-023-00939-3)          | Classification |
-| **SETAR-Tree**                 | [Godahewa et al. 2023](https://link.springer.com/article/10.1007/s10994-023-06316-x)           | Forecasting    |
-| **KASBA**                      | [Holder et al. 2026](https://link.springer.com/article/10.1007/s10618-026-01189-9)             | Clustering     |
-| **CLASP**                      | [Ermshaus et al. 2023](https://link.springer.com/article/10.1007/s10618-023-00923-x)           | Segmentation   |
-| Ordinal classification methods | [Guijo-Rubio et al. 2025](https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=10769513)       | Classification |
-| Multivariate classification    | [Middlehurst et al.2026](https://arxiv.org/abs/2603.20352)                                     | Classification |
-| T                              | [Bagnall et al., 2017](https://link.springer.com/article/10.1007/S10618-016-0483-9)            | Benchmarking   |
-| Deep learning for TSC          | [Ismail-Fawaz et al.](https://link.springer.com/article/10.1007/s10618-019-00619-1)            | Benchmarking   |
+| Method                           | Reference                                                                                      | Task           |
+|----------------------------------|------------------------------------------------------------------------------------------------|----------------|
+| **LITETime/InceptionTime**       | Ismail-Fawaz et al., [2020](https://link.springer.com/article/10.1007/s10618-020-00710-y)/2023 | Classification |
+| **Hydra-MultiRocket**            | [Dempster et al., 2023](https://link.springer.com/article/10.1007/s10618-023-00939-3)          | Classification |
+| **SETAR-Tree**                   | [Godahewa et al. 2023](https://link.springer.com/article/10.1007/s10994-023-06316-x)           | Forecasting    |
+| **KASBA**                        | [Holder et al. 2026](https://link.springer.com/article/10.1007/s10618-026-01189-9)             | Clustering     |
+| **CLASP**                        | [Ermshaus et al. 2023](https://link.springer.com/article/10.1007/s10618-023-00923-x)           | Segmentation   |
+| Ordinal classification methods   | [Guijo-Rubio et al. 2025](https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=10769513)       | Classification |
+| Multivariate classification      | [Middlehurst et al.2026](https://arxiv.org/abs/2603.20352)                                     | Classification |
+| Classification (the "Bake off")  | [Bagnall et al., 2017](https://link.springer.com/article/10.1007/S10618-016-0483-9)            | Benchmarking   |
+| Bake off redux                   | [Middlehurst et al., 2025](https://link.springer.com/article/10.1007/S10618-016-0483-9)        | Benchmarking   |
+| Deep learning for classification | [Ismail-Fawaz et al.](https://link.springer.com/article/10.1007/s10618-019-00619-1)            | Benchmarking   |
 
 See the [API reference](https://www.aeon-toolkit.org/en/stable/api_reference.html)
 for the full list across all tasks.
