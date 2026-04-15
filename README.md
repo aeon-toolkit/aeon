@@ -40,7 +40,7 @@ evaluate new methods. That means:
 - **State of the art, sooner.** New methods often land in `aeon` alongside publication.
 - **Evidence-based defaults.** What's included — and what's recommended — is grounded in published comparative studies.
 
-A selection of algorithms available in `aeon`  and comparative studies based on aeon written by aeon core developers or contributors:
+A selection of algorithms available in `aeon`  and comparative studies based on code in ``aeon`` written by ``aeon`` core developers or contributors:
 
 | Method                           | Reference                                                                                 | Task           |
 |----------------------------------|-------------------------------------------------------------------------------------------|----------------|
@@ -49,9 +49,9 @@ A selection of algorithms available in `aeon`  and comparative studies based on 
 | **SETAR-Tree**                   | [Godahewa et al. 2023](https://link.springer.com/article/10.1007/s10994-023-06316-x)      | Forecasting    |
 | **KASBA**                        | [Holder et al. 2026](https://link.springer.com/article/10.1007/s10618-026-01189-9)        | Clustering     |
 | **CLASP**                        | [Ermshaus et al. 2023](https://link.springer.com/article/10.1007/s10618-023-00923-x)      | Segmentation   |
+| Regression methods               | [Guijo-Rubio et al.2026](https://link.springer.com/article/10.1007/s10618-024-01027-w)    | Regression     |
 | Ordinal classification methods   | [Guijo-Rubio et al. 2025](https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=10769513)  | Classification |
 | Multivariate classification      | [Middlehurst et al.2026](https://arxiv.org/abs/2603.20352)                                | Classification |
-| Regression methods               | [Guijo-Rubio et al.2026](https://link.springer.com/article/10.1007/s10618-024-01027-w)    | Classification |
 | Distance-based clustering        | [Holder et al.2024](https://link.springer.com/article/10.1007/s10115-023-01952-0)         | Benchmarking   |
 | Classification (the "Bake off")  | [Bagnall et al., 2017](https://link.springer.com/article/10.1007/S10618-016-0483-9)       | Benchmarking   |
 | Bake off redux                   | [Middlehurst et al., 2025](https://link.springer.com/article/10.1007/S10618-016-0483-9)   | Benchmarking   |
