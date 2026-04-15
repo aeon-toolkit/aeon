@@ -1,146 +1,192 @@
-<p align="center">
-    <a href="https://aeon-toolkit.org"><img src="https://raw.githubusercontent.com/aeon-toolkit/aeon/main/docs/images/logo/aeon-logo-blue-compact.png" width="50%" alt="aeon logo" /></a>
-</p>
+<div align="center">
+  <img src="https://raw.githubusercontent.com/aeon-toolkit/aeon/main/docs/images/aeon_logo.png" width="220" alt="aeon logo" />
 
-# ⌛ Welcome to aeon
+# aeon
 
-`aeon` is an open-source toolkit for time series machine learning.
- Fully compatible with [scikit-learn](https://scikit-learn.org), it brings together
-the latest machine learning methods alongside a wide range of classical approaches
-for tasks such as forecasting, clustering, and classification.
+**A Python toolkit for time series machine learning**
 
-Our goal is to provide a comprehensive collection of state-of-the-art time
-series algorithms, with efficient implementations powered by `numba`, and to promote
-reproducible research in the field of time series machine learning.
+Unified, efficient, and extensible tools for learning from time series data in Python.
+`aeon` provides a consistent, scikit-learn compatible interface for tasks including
+classification, regression, clustering, forecasting, anomaly detection, segmentation,
+similarity search, transformation, and benchmarking.
 
-The latest `aeon` release is `v1.4.0`. You can view the full changelog
-[here](https://www.aeon-toolkit.org/en/stable/changelog.html).
+[Documentation](https://www.aeon-toolkit.org/) |
+[Examples](https://www.aeon-toolkit.org/en/stable/examples.html) |
+[API reference](https://www.aeon-toolkit.org/en/stable/api_reference.html) |
+[Getting started](https://www.aeon-toolkit.org/en/stable/getting_started.html) |
+[GitHub Discussions](https://github.com/aeon-toolkit/aeon/discussions) |
+[Discord](https://discord.gg/52F5RAGD)
 
-Our webpage and documentation is available at https://aeon-toolkit.org.
+[![PyPI version](https://img.shields.io/pypi/v/aeon)](https://pypi.org/project/aeon/)
+[![Python versions](https://img.shields.io/pypi/pyversions/aeon)](https://pypi.org/project/aeon/)
+[![License](https://img.shields.io/github/license/aeon-toolkit/aeon)](https://github.com/aeon-toolkit/aeon/blob/main/LICENSE)
+[![Docs](https://readthedocs.org/projects/aeon/badge/?version=latest)](https://www.aeon-toolkit.org/)
+[![Tests](https://github.com/aeon-toolkit/aeon/actions/workflows/tests.yml/badge.svg)](https://github.com/aeon-toolkit/aeon/actions/workflows/tests.yml)
+[![Coverage](https://img.shields.io/codecov/c/github/aeon-toolkit/aeon)](https://codecov.io/gh/aeon-toolkit/aeon)
+[![Discord](https://img.shields.io/discord/930275473265115166?label=discord)](https://discord.gg/52F5RAGD)
 
+</div>
 
-| Overview        |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-|-----------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **CI/CD**       | [![github-actions-release](https://img.shields.io/github/actions/workflow/status/aeon-toolkit/aeon/release.yml?logo=github&label=build%20%28release%29)](https://github.com/aeon-toolkit/aeon/actions/workflows/release.yml) [![github-actions-main](https://img.shields.io/github/actions/workflow/status/aeon-toolkit/aeon/pr_pytest.yml?logo=github&branch=main&label=build%20%28main%29)](https://github.com/aeon-toolkit/aeon/actions/workflows/pr_pytest.yml) [![github-actions-nightly](https://img.shields.io/github/actions/workflow/status/aeon-toolkit/aeon/periodic_tests.yml?logo=github&label=build%20%28nightly%29)](https://github.com/aeon-toolkit/aeon/actions/workflows/periodic_tests.yml) [![docs-main](https://img.shields.io/readthedocs/aeon-toolkit/stable?logo=readthedocs&label=docs%20%28stable%29)](https://www.aeon-toolkit.org/en/stable/) [![docs-main](https://img.shields.io/readthedocs/aeon-toolkit/latest?logo=readthedocs&label=docs%20%28latest%29)](https://www.aeon-toolkit.org/en/latest/) [![codecov](https://codecov.io/gh/aeon-toolkit/aeon/graph/badge.svg?token=I2eve2HzSF)](https://codecov.io/gh/aeon-toolkit/aeon) [![openssf-scorecard](https://api.scorecard.dev/projects/github.com/aeon-toolkit/aeon/badge)](https://scorecard.dev/viewer/?uri=github.com/aeon-toolkit/aeon) |
-| **Code**        | [![!pypi](https://img.shields.io/pypi/v/aeon?logo=pypi&color=blue)](https://pypi.org/project/aeon/) [![!conda](https://img.shields.io/conda/vn/conda-forge/aeon?logo=anaconda&color=blue)](https://anaconda.org/conda-forge/aeon) [![!python-versions](https://img.shields.io/pypi/pyversions/aeon?logo=python)](https://www.python.org/) [![!black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black) [![license](https://img.shields.io/badge/license-BSD%203--Clause-green?logo=style)](https://github.com/aeon-toolkit/aeon/blob/main/LICENSE) [![binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/aeon-toolkit/aeon/main?filepath=examples)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| **Community**   | [![!discord](https://img.shields.io/static/v1?logo=discord&label=discord&message=chat&color=lightgreen)](https://discord.gg/D6rzqHGKRJ) [![!linkedin](https://img.shields.io/static/v1?logo=data:image/svg%2bxml;base64,PHN2ZyByb2xlPSJpbWciIGZpbGw9IiNmZmZmZmYiIHZpZXdCb3g9IjAgMCAyNCAyNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48dGl0bGU+TGlua2VkSW48L3RpdGxlPjxwYXRoIGQ9Ik0yMC40NDcgMjAuNDUyaC0zLjU1NHYtNS41NjljMC0xLjMyOC0uMDI3LTMuMDM3LTEuODUyLTMuMDM3LTEuODUzIDAtMi4xMzYgMS40NDUtMi4xMzYgMi45Mzl2NS42NjdIOS4zNTFWOWgzLjQxNHYxLjU2MWguMDQ2Yy40NzctLjkgMS42MzctMS44NSAzLjM3LTEuODUgMy42MDEgMCA0LjI2NyAyLjM3IDQuMjY3IDUuNDU1djYuMjg2ek01LjMzNyA3LjQzM2MtMS4xNDQgMC0yLjA2My0uOTI2LTIuMDYzLTIuMDY1IDAtMS4xMzguOTItMi4wNjMgMi4wNjMtMi4wNjMgMS4xNCAwIDIuMDY0LjkyNSAyLjA2NCAyLjA2MyAwIDEuMTM5LS45MjUgMi4wNjUtMi4wNjQgMi4wNjV6bTEuNzgyIDEzLjAxOUgzLjU1NVY5aDMuNTY0djExLjQ1MnpNMjIuMjI1IDBIMS43NzFDLjc5MiAwIDAgLjc3NCAwIDEuNzI5djIwLjU0MkMwIDIzLjIyNy43OTIgMjQgMS43NzEgMjRoMjAuNDUxQzIzLjIgMjQgMjQgMjMuMjI3IDI0IDIyLjI3MVYxLjcyOUMyNCAuNzc0IDIzLjIgMCAyMi4yMjIgMGguMDAzeiIvPjwvc3ZnPgo=&label=LinkedIn&message=news&color=lightblue)](https://www.linkedin.com/company/aeon-toolkit/) [![!medium](https://img.shields.io/static/v1?logo=medium&label=Medium&message=blog&color=darkblue)](https://medium.com/@aeon.toolkit)   |
-| **Affiliation** | [![numfocus](https://img.shields.io/badge/NumFOCUS-Affiliated%20Project-orange.svg?style=flat&colorA=E1523D&colorB=007D8A)](https://numfocus.org/sponsored-projects/affiliated-projects)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+## Why aeon?
 
-## ⚙️ Installation
+- **Broad task coverage** across the main areas of time series machine learning in one library
+- **Consistent APIs** inspired by scikit-learn design principles
+- **Efficient implementations** with a focus on practical performance and reproducible evaluation
+- **Research-friendly design** for experimentation, extension, and benchmarking
+- **Open development** with documentation, examples, releases, and community support
 
-`aeon` requires a Python version of 3.10 or greater. Our full installation guide is
-available in our [documentation](https://www.aeon-toolkit.org/en/stable/installation.html).
+## Installation
 
-The easiest way to install `aeon` is via pip:
+`aeon` requires Python 3.10 or newer.
+
+Install the latest release from PyPI:
 
 ```bash
 pip install aeon
 ```
 
-Some estimators require additional packages to be installed. If you want to install
-the full package with all optional dependencies, you can use:
+To install with all optional dependencies:
 
 ```bash
 pip install aeon[all_extras]
 ```
 
-Instructions for installation from the [GitHub source](https://github.com/aeon-toolkit/aeon)
-can be found [here](https://www.aeon-toolkit.org/en/stable/developer_guide/dev_installation.html).
+For development installs and platform-specific notes, see the
+[installation guide](https://www.aeon-toolkit.org/en/stable/installation.html).
 
-## ⏲️ Getting started
+## Quick start
 
-The best place to get started for all `aeon` packages is our [getting started guide](https://www.aeon-toolkit.org/en/stable/getting_started.html).
+The fastest way to try `aeon` is to fit a classifier on a built-in dataset.
 
-Below we provide a quick example of how to use `aeon` for classification and clustering.
+```python
+from aeon.datasets import load_unit_test
+from aeon.classification.convolution_based import RocketClassifier
 
-### Classification/Regression
+X_train, y_train = load_unit_test(split="train")
+X_test, y_test = load_unit_test(split="test")
 
-Time series classification looks to predict class labels fore unseen series using a
-model fitted from a collection of time series. The framework for regression is similar,
-replace the classifier with a regressor and the labels with continuous values.
+clf = RocketClassifier()
+clf.fit(X_train, y_train)
+
+print(clf.score(X_test, y_test))
+```
+
+If `aeon` is useful in your work, please **star the repository**. It helps more people discover the project, helps signal community interest, and supports the long-term visibility of the toolkit.
+
+## What can you do with aeon?
+
+`aeon` supports a wide range of time series learning tasks and utilities, including:
+
+- classification
+- regression
+- clustering
+- forecasting
+- anomaly detection
+- segmentation
+- similarity search
+- transformations and preprocessing
+- distances, kernels, and similarity measures
+- benchmarking and performance evaluation
+
+See the [documentation](https://www.aeon-toolkit.org/) for tutorials, user guides, and full API coverage.
+
+## Getting started examples
+
+### Classification and regression
+
+Time series classification predicts class labels for unseen series using a model fitted on a collection of labelled time series. Regression follows the same pattern, but predicts continuous values instead of class labels.
 
 ```python
 import numpy as np
 from aeon.classification.distance_based import KNeighborsTimeSeriesClassifier
 
-X = np.array([[[1, 2, 3, 4, 5, 5]],  # 3D array example (univariate)
-             [[1, 2, 3, 4, 4, 2]],   # Three samples, one channel,
-             [[8, 7, 6, 5, 4, 4]]])  # six series length
-y = np.array(['low', 'low', 'high'])  # class labels for each sample
+X = np.array([
+    [[1, 2, 3, 4, 5, 5]],
+    [[1, 2, 3, 4, 4, 2]],
+    [[8, 7, 6, 5, 4, 4]],
+])
+y = np.array(["low", "low", "high"])
 
 clf = KNeighborsTimeSeriesClassifier(distance="dtw")
-clf.fit(X, y)  # fit the classifier on train data
->>> KNeighborsTimeSeriesClassifier()
+clf.fit(X, y)
 
-X_test = np.array(
-    [[[2, 2, 2, 2, 2, 2]], [[5, 5, 5, 5, 5, 5]], [[6, 6, 6, 6, 6, 6]]]
-)
-y_pred = clf.predict(X_test)  # make class predictions on new data
->>> ['low' 'high' 'high']
+X_test = np.array([
+    [[2, 2, 2, 2, 2, 2]],
+    [[5, 5, 5, 5, 5, 5]],
+    [[6, 6, 6, 6, 6, 6]],
+])
+
+y_pred = clf.predict(X_test)
+print(y_pred)
 ```
 
 ### Clustering
 
-Time series clustering groups similar time series together from a collection of
-time series.
+Time series clustering groups similar time series together from an unlabelled collection.
 
 ```python
 import numpy as np
 from aeon.clustering import TimeSeriesKMeans
 
-X = np.array([[[1, 2, 3, 4, 5, 5]],  # 3D array example (univariate)
-             [[1, 2, 3, 4, 4, 2]],   # Three samples, one channel,
-             [[8, 7, 6, 5, 4, 4]]])  # six series length
+X = np.array([
+    [[1, 2, 3, 4, 5, 5]],
+    [[1, 2, 3, 4, 4, 2]],
+    [[8, 7, 6, 5, 4, 4]],
+])
 
 clu = TimeSeriesKMeans(distance="dtw", n_clusters=2)
-clu.fit(X)  # fit the clusterer on train data
->>> TimeSeriesKMeans(distance='dtw', n_clusters=2)
+clu.fit(X)
 
-clu.labels_ # get training cluster labels
->>> array([0, 0, 1])
-
-X_test = np.array(
-    [[[2, 2, 2, 2, 2, 2]], [[5, 5, 5, 5, 5, 5]], [[6, 6, 6, 6, 6, 6]]]
-)
-clu.predict(X_test)  # Assign clusters to new data
->>> array([1, 0, 0])
+print(clu.labels_)
 ```
 
-## 💬 Where to ask questions
+For more examples across tasks, visit the
+[examples gallery](https://www.aeon-toolkit.org/en/stable/examples.html).
 
-| Type                               | Platforms                         |
-|------------------------------------|-----------------------------------|
-| 🐛 **Bug Reports**                 | [GitHub Issue Tracker]            |
-| ✨ **Feature Requests & Ideas**     | [GitHub Issue Tracker] & [Discord]  |
-| 💻 **Usage Questions**             | [GitHub Discussions] & [Discord]    |
-| 💬 **General Discussion**          | [GitHub Discussions] & [Discord]    |
-| 🏭 **Contribution & Development**  | [Discord]                           |
+## Support aeon
 
-[GitHub Issue Tracker]: https://github.com/aeon-toolkit/aeon/issues
-[GitHub Discussions]: https://github.com/aeon-toolkit/aeon/discussions
-[Discord]: https://discord.gg/D6rzqHGKRJ
+There are several simple ways to support the project:
 
-For enquiries about the project or collaboration, our email is
-[contact@aeon-toolkit.org](mailto:contact@aeon-toolkit.org).
+- **Star this repository** if you use or follow `aeon`
+- **Watch releases** to stay informed about new features and improvements
+- **Cite `aeon`** in academic work
+- **Report bugs and request features** through GitHub Issues and Discussions
+- **Contribute code, tests, documentation, or examples**
 
-## 🔨 Contributing to aeon
+## Where to ask questions
 
-If you are interested in contributing to `aeon`, please see our [contributing guide](https://www.aeon-toolkit.org/en/latest/contributing.html)
-and have a read through before assigning an issue and creating a pull request. Be
-aware that the `latest` version of the docs is the development version, and the `stable`
-version is the latest release.
+| Type | Platforms |
+| --- | --- |
+| Bug reports | [GitHub Issues](https://github.com/aeon-toolkit/aeon/issues) |
+| Feature requests and ideas | [GitHub Issues](https://github.com/aeon-toolkit/aeon/issues) and [Discord](https://discord.gg/52F5RAGD) |
+| Usage questions | [GitHub Discussions](https://github.com/aeon-toolkit/aeon/discussions) and [Discord](https://discord.gg/52F5RAGD) |
+| General discussion | [GitHub Discussions](https://github.com/aeon-toolkit/aeon/discussions) and [Discord](https://discord.gg/52F5RAGD) |
+| Contribution and development | [GitHub Discussions](https://github.com/aeon-toolkit/aeon/discussions) and [Discord](https://discord.gg/52F5RAGD) |
 
-The `aeon` developers are volunteers so please be patient with responses to comments and
-pull request reviews. If you have any questions, feel free to ask using the above
-mediums.
+For project or collaboration enquiries, contact **contact@aeon-toolkit.org**.
 
-## 📚 Citation
+## Contributing to aeon
 
-If you use `aeon` we would appreciate a citation of the following [paper](https://jmlr.org/papers/v25/23-1444.html):
+If you are interested in contributing, please read the
+[contributing guide](https://github.com/aeon-toolkit/aeon/blob/main/CONTRIBUTING.md)
+before opening a pull request or taking ownership of an issue.
+
+Useful links:
+
+- [Contributing guide](https://github.com/aeon-toolkit/aeon/blob/main/CONTRIBUTING.md)
+- [Code of conduct](https://github.com/aeon-toolkit/aeon/blob/main/CODE_OF_CONDUCT.md)
+- [Governance](https://github.com/aeon-toolkit/aeon/blob/main/GOVERNANCE.md)
+- [Project website](https://www.aeon-toolkit.org/)
+
+The `aeon` developers are volunteers, so please be patient with issue triage and pull request review.
+
+## Citation
+
+If you use `aeon` in academic work, please cite the project:
 
 ```bibtex
 @article{aeon24jmlr,
-  author  = {Matthew Middlehurst and Ali Ismail-Fawaz and Antoine Guillaume and Christopher Holder and David Guijo-Rubio and Guzal Bulatova and Leonidas Tsaprounis and Lukasz Mentel and Martin Walter and Patrick Sch{{\"a}}fer and Anthony Bagnall},
+  author  = {Matthew Middlehurst and Ali Ismail-Fawaz and Antoine Guillaume and Christopher Holder and David Guijo-Rubio and Guzal Bulatova and Leonidas Tsaprounis and Lukasz Mentel and Martin Walter and Patrick Sch{"a}fer and Anthony Bagnall},
   title   = {aeon: a Python Toolkit for Learning from Time Series},
   journal = {Journal of Machine Learning Research},
   year    = {2024},
@@ -151,13 +197,20 @@ If you use `aeon` we would appreciate a citation of the following [paper](https:
 }
 ```
 
-If you let us know about your paper using `aeon`, we will happily list it [here](https://www.aeon-toolkit.org/en/stable/papers_using_aeon.html).
+You can also use the repository's [CITATION.cff](https://github.com/aeon-toolkit/aeon/blob/main/CITATION.cff).
 
-## 👥 Further information
+If you let us know about your paper using `aeon`, we will happily list it on the project website.
 
+## Further information
 
-Please note the following modules are still considered experimental, and the
-[deprecation policy](https://www.aeon-toolkit.org/en/stable/developer_guide/deprecation.html) does not necessarily apply:
+`aeon` was forked from `sktime` `v0.16.0` in 2022 by an initial group of core developers. You can read more about the project's history, values, and governance on the [About Us page](https://www.aeon-toolkit.org/en/stable/about.html).
+
+## Project status
+
+`aeon` is under active development. The core package is stable and widely used, but some modules and recently added functionality remain experimental and may change as the library evolves.
+
+The following modules are currently considered experimental, and the deprecation
+policy does not necessarily apply (although we only rarely make rapid):
 
 - `anomaly_detection`
 - `forecasting`
@@ -166,7 +219,5 @@ Please note the following modules are still considered experimental, and the
 - `visualisation`
 - `transformations.collection.self_supervised`
 - `transformations.collection.imbalance`
--
-`aeon` was forked from `sktime` `v0.16.0` in 2022 by an initial group of eight core
-developers. You can read more about the project's history and governance structure in
-our [About Us page](https://www.aeon-toolkit.org/en/stable/about.html).
+
+Please check the documentation for task-specific capabilities, limitations, and current status.
