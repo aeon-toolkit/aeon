@@ -16,7 +16,7 @@ regression and clustering.
 [API reference](https://www.aeon-toolkit.org/en/stable/api_reference.html) ·
 [Getting started](https://www.aeon-toolkit.org/en/stable/getting_started.html) ·
 [Discussions](https://github.com/aeon-toolkit/aeon/discussions) ·
-[Discord](https://discord.gg/52F5RAGD)
+[Discord](https://discord.gg/D6rzqHGKRJ)
 
 [![PyPI version](https://img.shields.io/pypi/v/aeon)](https://pypi.org/project/aeon/)
 [![Python versions](https://img.shields.io/pypi/pyversions/aeon)](https://pypi.org/project/aeon/)
