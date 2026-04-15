@@ -1,4 +1,6 @@
-[![aeon logo](https://raw.githubusercontent.com/aeon-toolkit/aeon/main/docs/images/logo/aeon-logo-blue-compact.png)](https://www.aeon-toolkit.org/)
+<a href="https://www.aeon-toolkit.org/">
+  <img src="https://raw.githubusercontent.com/aeon-toolkit/aeon/main/docs/images/logo/aeon-logo-blue-compact.png" alt="aeon logo" width="400">
+</a>
 
 **Time series machine learning, built by the researchers behind the algorithms.**
 
