@@ -86,11 +86,11 @@ and many models contributed by their original authors:
 A minimal example:
 
 ```python
-from aeon.datasets import load_unit_test
+from aeon.datasets import load_basic_motions
 from aeon.classification.deep_learning import InceptionTimeClassifier
 
-X_train, y_train = load_unit_test(split="train")
-X_test, y_test = load_unit_test(split="test")
+X_train, y_train = load_basic_motions(split="train")
+X_test, y_test = load_basic_motions(split="test")
 
 clf = InceptionTimeClassifier(n_epochs=10)
 clf.fit(X_train, y_train)
@@ -118,24 +118,6 @@ pip install aeon[all_extras]
 
 For development installs and platform-specific notes, see the
 [installation guide](https://www.aeon-toolkit.org/en/stable/installation.html).
-
-## Quick start
-
-The fastest way to try `aeon` is to fit a classifier on a built-in dataset.
-
-```python
-from aeon.datasets import load_unit_test
-from aeon.classification.convolution_based import RocketClassifier
-
-X_train, y_train = load_unit_test(split="train")
-X_test, y_test = load_unit_test(split="test")
-
-clf = RocketClassifier()
-clf.fit(X_train, y_train)
-
-print(clf.score(X_test, y_test))
-# 1.0
-```
 
 ## Tasks supported
 
@@ -210,8 +192,6 @@ print(clu.labels_)
 `aeon` provides a wide range of forecasting algorithms, including classic
 statistical models and modern deep learning approaches.
 
-<!-- TODO: replace this example with a more aeon-distinctive forecaster -->
-
 ```python
 from aeon.datasets import load_airline
 from aeon.forecasting.machine_learning import SETARForest
@@ -275,14 +255,13 @@ If you use `aeon` in academic work, please cite the project:
   url     = {http://jmlr.org/papers/v25/23-1444.html}
 }
 ```
-
 You can also use the repository's [CITATION.cff](https://github.com/aeon-toolkit/aeon/blob/main/CITATION.cff).
 
-If you let us know about your paper using `aeon`, we will happily list it on the project website.
+If you let us know about your paper using `aeon`, we will happily list it on the (project website)(https://www.aeon-toolkit.org/en/latest/papers_using_aeon.html).
 
 ## Project history
 
-`aeon` was forked from `sktime` `v0.16.0` in 2022 by an initial group of core developers, and has since been substantially rewritten and extended. You can read more about the project's history, values, and governance on the [About Us page](https://www.aeon-toolkit.org/en/stable/about.html).
+`aeon` was forked from `sktime` `v0.16.0` in 2022 by an initial group of eight core developers, and has since been substantially rewritten and extended. You can read more about the project's history, values, and governance on the [About Us page](https://www.aeon-toolkit.org/en/stable/about.html).
 
 ## Project status
 
