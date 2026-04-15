@@ -1,8 +1,6 @@
 <div align="center">
   <img src="https://raw.githubusercontent.com/aeon-toolkit/aeon/main/docs/images/logo/aeon-logo-blue-compact.png" width="220" alt="aeon logo" />
 
-# aeon
-
 **A Python toolkit for time series machine learning**
 
 Unified, efficient, and extensible tools for learning from time series data in Python.
