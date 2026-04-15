@@ -213,21 +213,6 @@ print(pred)
 For more examples across tasks, visit the
 [examples gallery](https://www.aeon-toolkit.org/en/stable/examples.html).
 
-## Support aeon
-
-There are several simple ways to support the project:
-
-- ⭐ **Star this repository** to follow new releases
-- 👀 **Watch releases** for notifications about new features
-- 📝 **Cite `aeon`** in academic work
-- 🐛 **Report bugs and request features** through GitHub Issues and Discussions
-- 🛠️ **Contribute** code, tests, documentation, or examples
-
-## Where to ask questions
-
-- **Bug reports and feature requests** → [GitHub Issues](https://github.com/aeon-toolkit/aeon/issues)
-- **Usage questions and general discussion** → [GitHub Discussions](https://github.com/aeon-toolkit/aeon/discussions) or [Discord](https://discord.gg/52F5RAGD)
-
 For project or collaboration enquiries, contact **[contact@aeon-toolkit.org](mailto:contact@aeon-toolkit.org)**.
 
 ## Contributing to aeon
@@ -238,7 +223,6 @@ before opening a pull request or taking ownership of an issue.
 
 Useful links:
 
-- [Contributing guide](https://github.com/aeon-toolkit/aeon/blob/main/CONTRIBUTING.md)
 - [Code of conduct](https://github.com/aeon-toolkit/aeon/blob/main/CODE_OF_CONDUCT.md)
 - [Governance](https://github.com/aeon-toolkit/aeon/blob/main/GOVERNANCE.md)
 - [Project website](https://www.aeon-toolkit.org/)
