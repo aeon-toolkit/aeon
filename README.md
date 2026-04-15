@@ -137,9 +137,9 @@ clu.fit(X)
 
 print(clu.labels_)
 ```
-### Forecastoing
+### Forecasting
 
-`aeon` also has a wide range of forecasting algorithms, includinng classic and deep
+`aeon` also has a wide range of forecasting algorithms, including classic and deep
 learning approaches.
 
 ```python
