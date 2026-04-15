@@ -5,7 +5,7 @@
 **Time series machine learning, built by the researchers behind the algorithms.**
 
 `aeon` is a scikit-learn compatible Python library for learning from time series.
-It covers classification, regression, clustering, forecasting, anomaly detection,
+It covers classification, regression, clustering, forecasting, anomaly detection, distance functions,
 segmentation, similarity search, and transformation — with implementations
 contributed and maintained by the researchers who designed many of the methods,
 including state-of-the-art deep learning models for forecasting, classification,
