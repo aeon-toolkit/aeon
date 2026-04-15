@@ -18,16 +18,6 @@ The latest `aeon` release is `v1.4.0`. You can view the full changelog
 
 Our webpage and documentation is available at https://aeon-toolkit.org.
 
-The following modules are still considered experimental, and the [deprecation policy](https://www.aeon-toolkit.org/en/stable/developer_guide/deprecation.html)
-does not apply:
-
-- `anomaly_detection`
-- `forecasting`
-- `segmentation`
-- `similarity_search`
-- `visualisation`
-- `transformations.collection.self_supervised`
-- `transformations.collection.imbalance`
 
 | Overview        |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 |-----------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -165,6 +155,18 @@ If you let us know about your paper using `aeon`, we will happily list it [here]
 
 ## 👥 Further information
 
+
+Please note the following modules are still considered experimental, and the
+[deprecation policy](https://www.aeon-toolkit.org/en/stable/developer_guide/deprecation.html) does not apply:
+
+- `anomaly_detection`
+- `forecasting`
+- `segmentation`
+- `similarity_search`
+- `visualisation`
+- `transformations.collection.self_supervised`
+- `transformations.collection.imbalance`
+-
 `aeon` was forked from `sktime` `v0.16.0` in 2022 by an initial group of eight core
 developers. You can read more about the project's history and governance structure in
 our [About Us page](https://www.aeon-toolkit.org/en/stable/about.html).
