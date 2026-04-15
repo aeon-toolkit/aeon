@@ -44,7 +44,7 @@ A selection of algorithms available in `aeon`  and comparative studies based on 
 
 | Method                           | Reference                                                                                 | Task           |
 |----------------------------------|-------------------------------------------------------------------------------------------|----------------|
-| **InceptionTime**                | Ismail-Fawaz et al., [2020](https://link.springer.com/article/10.1007/s10618-020-00710-y) | Classification |
+| **InceptionTime**                | [Ismail-Fawaz et al., 2020](https://link.springer.com/article/10.1007/s10618-020-00710-y) | Classification |
 | **Hydra-MultiRocket**            | [Dempster et al., 2023](https://link.springer.com/article/10.1007/s10618-023-00939-3)     | Classification |
 | **SETAR-Tree**                   | [Godahewa et al. 2023](https://link.springer.com/article/10.1007/s10994-023-06316-x)      | Forecasting    |
 | **KASBA**                        | [Holder et al. 2026](https://link.springer.com/article/10.1007/s10618-026-01189-9)        | Clustering     |
@@ -53,7 +53,7 @@ A selection of algorithms available in `aeon`  and comparative studies based on 
 | Ordinal classification methods   | [Guijo-Rubio et al. 2025](https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=10769513)  | Classification |
 | Multivariate classification      | [Middlehurst et al.2026](https://arxiv.org/abs/2603.20352)                                | Classification |
 | Distance-based clustering        | [Holder et al.2024](https://link.springer.com/article/10.1007/s10115-023-01952-0)         | Benchmarking   |
-| Classification (the "Bake off")  | [Bagnall et al., 2017](https://link.springer.com/article/10.1007/S10618-016-0483-9)       | Benchmarking   |
+| Classification (the "bake off")  | [Bagnall et al., 2017](https://link.springer.com/article/10.1007/S10618-016-0483-9)       | Benchmarking   |
 | Bake off redux                   | [Middlehurst et al., 2025](https://link.springer.com/article/10.1007/S10618-016-0483-9)   | Benchmarking   |
 | Deep learning for classification | [Ismail-Fawaz et al.](https://link.springer.com/article/10.1007/s10618-019-00619-1)       | Benchmarking   |
 
