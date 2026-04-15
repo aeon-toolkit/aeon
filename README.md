@@ -139,6 +139,22 @@ clu.fit(X)
 
 print(clu.labels_)
 ```
+### Forecastoing
+
+`aeon` also has a wide range of forecasting algorithms, includinng classic and deep
+learning approaches.
+
+```python
+from aeon.datasets import load_airline
+from aeon.forecasting.stats import ARIMA
+
+y = load_airline()
+
+forecaster = ARIMA(p=1, d=1, q=1)
+pred = forecaster.forecast(y)
+
+print(pred)
+```
 
 For more examples across tasks, visit the
 [examples gallery](https://www.aeon-toolkit.org/en/stable/examples.html).
@@ -210,7 +226,7 @@ If you let us know about your paper using `aeon`, we will happily list it on the
 `aeon` is under active development. The core package is stable and widely used, but some modules and recently added functionality remain experimental and may change as the library evolves.
 
 The following modules are currently considered experimental, and the deprecation
-policy does not necessarily apply (although we only rarely make rapid):
+policy does not necessarily apply (although we only rarely make non-compatible changes):
 
 - `anomaly_detection`
 - `forecasting`
