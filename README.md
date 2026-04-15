@@ -157,7 +157,7 @@ If you let us know about your paper using `aeon`, we will happily list it [here]
 
 
 Please note the following modules are still considered experimental, and the
-[deprecation policy](https://www.aeon-toolkit.org/en/stable/developer_guide/deprecation.html) does not apply:
+[deprecation policy](https://www.aeon-toolkit.org/en/stable/developer_guide/deprecation.html) does not necessarily apply:
 
 - `anomaly_detection`
 - `forecasting`
