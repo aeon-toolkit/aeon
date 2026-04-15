@@ -6,7 +6,7 @@
 
 `aeon` is a scikit-learn compatible Python library for learning from time series.
 It covers classification, regression, clustering, forecasting, anomaly detection, distance functions,
-segmentation, similarity search, and transformation — with implementations
+segmentation, similarity search, transformation and benchmarking — with implementations
 contributed and maintained by the researchers who designed many of the methods,
 including state-of-the-art deep learning models for forecasting, classification,
 regression and clustering.
@@ -27,6 +27,16 @@ regression and clustering.
 | **Code**        | [![!pypi](https://img.shields.io/pypi/v/aeon?logo=pypi&color=blue)](https://pypi.org/project/aeon/) [![!conda](https://img.shields.io/conda/vn/conda-forge/aeon?logo=anaconda&color=blue)](https://anaconda.org/conda-forge/aeon) [![!python-versions](https://img.shields.io/pypi/pyversions/aeon?logo=python)](https://www.python.org/) [![!black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black) [![license](https://img.shields.io/badge/license-BSD%203--Clause-green?logo=style)](https://github.com/aeon-toolkit/aeon/blob/main/LICENSE) [![binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/aeon-toolkit/aeon/main?filepath=examples)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | **Community**   | [![!discord](https://img.shields.io/static/v1?logo=discord&label=discord&message=chat&color=lightgreen)](https://discord.gg/D6rzqHGKRJ) [![!linkedin](https://img.shields.io/static/v1?logo=data:image/svg%2bxml;base64,PHN2ZyByb2xlPSJpbWciIGZpbGw9IiNmZmZmZmYiIHZpZXdCb3g9IjAgMCAyNCAyNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48dGl0bGU+TGlua2VkSW48L3RpdGxlPjxwYXRoIGQ9Ik0yMC40NDcgMjAuNDUyaC0zLjU1NHYtNS41NjljMC0xLjMyOC0uMDI3LTMuMDM3LTEuODUyLTMuMDM3LTEuODUzIDAtMi4xMzYgMS40NDUtMi4xMzYgMi45Mzl2NS42NjdIOS4zNTFWOWgzLjQxNHYxLjU2MWguMDQ2Yy40NzctLjkgMS42MzctMS44NSAzLjM3LTEuODUgMy42MDEgMCA0LjI2NyAyLjM3IDQuMjY3IDUuNDU1djYuMjg2ek01LjMzNyA3LjQzM2MtMS4xNDQgMC0yLjA2My0uOTI2LTIuMDYzLTIuMDY1IDAtMS4xMzguOTItMi4wNjMgMi4wNjMtMi4wNjMgMS4xNCAwIDIuMDY0LjkyNSAyLjA2NCAyLjA2MyAwIDEuMTM5LS45MjUgMi4wNjUtMi4wNjQgMi4wNjV6bTEuNzgyIDEzLjAxOUgzLjU1NVY5aDMuNTY0djExLjQ1MnpNMjIuMjI1IDBIMS43NzFDLjc5MiAwIDAgLjc3NCAwIDEuNzI5djIwLjU0MkMwIDIzLjIyNy43OTIgMjQgMS43NzEgMjRoMjAuNDUxQzIzLjIgMjQgMjQgMjMuMjI3IDI0IDIyLjI3MVYxLjcyOUMyNCAuNzc0IDIzLjIgMCAyMi4yMjIgMGguMDAzeiIvPjwvc3ZnPgo=&label=LinkedIn&message=news&color=lightblue)](https://www.linkedin.com/company/aeon-toolkit/) [![!medium](https://img.shields.io/static/v1?logo=medium&label=Medium&message=blog&color=darkblue)](https://medium.com/@aeon.toolkit)   |
 | **Affiliation** | [![numfocus](https://img.shields.io/badge/NumFOCUS-Affiliated%20Project-orange.svg?style=flat&colorA=E1523D&colorB=007D8A)](https://numfocus.org/sponsored-projects/affiliated-projects)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+<h4>Supported by</h4>
+<p>
+  <a href="https://www.inria.fr/">
+    <img src="https://raw.githubusercontent.com/aeon-toolkit/aeon/main/docs/images/logos/inria.png" alt="INRIA" height="50">
+  </a>
+  &nbsp;&nbsp;&nbsp;
+  <a href="https://www.ukri.org/councils/epsrc/">
+    <img src="https://raw.githubusercontent.com/aeon-toolkit/aeon/main/docs/images/logos/epsrc.png" alt="UKRI" height="50">
+</a> (grant reference EP/W030756/2)
+</p>
 
 ## From paper to `pip install`
 
@@ -39,17 +49,6 @@ evaluate new methods. That means:
 - **State of the art, sooner.** New methods often land in `aeon` alongside publication.
 - **Evidence-based defaults.** What's included — and what's recommended — is grounded in published comparative studies.
 
-<h4>Supported by</h4>
-<p>
-  <a href="https://www.inria.fr/">
-    <img src="https://raw.githubusercontent.com/aeon-toolkit/aeon/main/docs/images/logos/inria.png" alt="INRIA" height="50">
-  </a>
-  &nbsp;&nbsp;&nbsp;
-  <a href="https://www.ukri.org/councils/epsrc/">
-    <img src="https://raw.githubusercontent.com/aeon-toolkit/aeon/main/docs/images/logos/epsrc.png" alt="UKRI" height="50">
-    (grant reference EP/W030756/2)
-</a>
-</p>
 
 A selection of algorithms available in `aeon` written by ``aeon`` core developers or contributors:
 
