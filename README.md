@@ -53,17 +53,17 @@ evaluate new methods. That means:
 
 A selection of algorithms available in `aeon` written by ``aeon`` core developers or contributors:
 
-| Method                 | Reference                                                                                 | Task           |
-|------------------------|-------------------------------------------------------------------------------------------|----------------|
-| **InceptionTime**      | [Ismail-Fawaz et al., 2020](https://link.springer.com/article/10.1007/s10618-020-00710-y) | Classification |
-| **Hydra-MultiRocket**  | [Dempster et al., 2023](https://link.springer.com/article/10.1007/s10618-023-00939-3)     | Classification |
-| **SETAR-Tree**         | [Godahewa et al., 2023](https://link.springer.com/article/10.1007/s10994-023-06316-x)     | Forecasting    |
-| **KASBA**              | [Holder et al., 2026](https://link.springer.com/article/10.1007/s10618-026-01189-9)       | Clustering     |
-| **CLASP**              | [Ermshaus et al., 2023](https://link.springer.com/article/10.1007/s10618-023-00923-x)     | Segmentation   |
-| **DrCIF**              | [Guijo-Rubio et al., 2024](https://link.springer.com/article/10.1007/s10618-024-01027-w)  | Regression     |
-| **TDE**                | [Guijo-Rubio et al., 2025](https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=10769513) | Classification |
+| Method                 | Reference                                                                                 | Task                   |
+|------------------------|-------------------------------------------------------------------------------------------|------------------------|
+| **InceptionTime**      | [Ismail-Fawaz et al., 2020](https://link.springer.com/article/10.1007/s10618-020-00710-y) | Classification         |
+| **Hydra-MultiRocket**  | [Dempster et al., 2023](https://link.springer.com/article/10.1007/s10618-023-00939-3)     | Classification         |
+| **SETAR-Tree**         | [Godahewa et al., 2023](https://link.springer.com/article/10.1007/s10994-023-06316-x)     | Forecasting            |
+| **KASBA**              | [Holder et al., 2026](https://link.springer.com/article/10.1007/s10618-026-01189-9)       | Clustering             |
+| **CLASP**              | [Ermshaus et al., 2023](https://link.springer.com/article/10.1007/s10618-023-00923-x)     | Segmentation           |
+| **DrCIF**              | [Guijo-Rubio et al., 2024](https://link.springer.com/article/10.1007/s10618-024-01027-w)  | Regression             |
+| **TDE**                | [Guijo-Rubio et al., 2025](https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=10769513) | Ordinal Classification |
 
-Code in `aeon` and legacy toolkits has been used in a wide range of benchmarking studies
+Code in `aeon` and related toolkits has been used in a wide range of benchmarking studies
 
 
 | Task                               | Reference                                                                                 | Task           |
@@ -78,7 +78,7 @@ Code in `aeon` and legacy toolkits has been used in a wide range of benchmarking
 See the [API reference](https://www.aeon-toolkit.org/en/stable/api_reference.html)
 for the full list of estimators across all tasks.
 
-⭐ **Star the repo** to follow new releases — `aeon` ships frequently, and starring is the easiest way to know when new algorithms land.
+⭐ **Star the repo** to follow new releases — `aeon` ships frequently, and starring is the easiest way to know when new algorithms arrive.
 
 ## Deep learning for time series
 
@@ -160,7 +160,7 @@ X = np.array([
 ])
 y = np.array(["low", "low", "high"])
 
-clf = MultiRocketHydraClassifier(n_kernels=1000)
+clf = MultiRocketHydraClassifier(n_kernels=100)
 clf.fit(X, y)
 
 X_test = np.array([
@@ -181,13 +181,9 @@ Time series clustering groups similar time series together from an unlabelled co
 ```python
 import numpy as np
 from aeon.clustering import KASBA
+from aeon.datasets import load_gunpoint
 
-X = np.array([
-    [[1, 2, 3, 4, 5, 5]],
-    [[1, 2, 3, 4, 4, 2]],
-    [[8, 7, 6, 5, 4, 4]],
-])
-
+X, y = load_gunpoint()
 clu = KASBA(n_clusters=2)
 clu.fit(X)
 
@@ -252,7 +248,9 @@ If you let us know about your paper using `aeon`, we will happily list it on the
 
 ## Project history
 
-`aeon` was forked from `sktime` `v0.16.0` in 2022 by an initial group of eight core developers, and has since been substantially rewritten and extended. You can read more about the project's history, values, and governance on the [About Us page](https://www.aeon-toolkit.org/en/stable/about.html).
+`aeon` was forked from `sktime` `v0.16.0` in 2022 by an initial group of eight core developers, and has since been substantially rewritten and extended.
+Our core development team of 13 spans academia and industry, representing seven nationalities across the globe.
+You can read more about the project's history, values, and governance on the [About Us page](https://www.aeon-toolkit.org/en/stable/about.html).
 
 ## Project status
 
