@@ -6,10 +6,9 @@
 
 `aeon` is a scikit-learn compatible Python library for learning from time series.
 It covers classification, regression, clustering, forecasting, anomaly detection, distance functions,
-segmentation, similarity search, transformation and benchmarking — with implementations
-contributed and maintained by the researchers who designed many of the methods,
-including state-of-the-art deep learning models for forecasting, classification,
-regression and clustering.
+segmentation, similarity search, transformation and benchmarking.
+
+Many implementations in aeon are contributed and maintained by the researchers who developed the original methods. This includes a range of modern and state-of-the-art deep learning models for forecasting, classification, regression, and clustering.
 
 [Documentation](https://www.aeon-toolkit.org/) ·
 [Examples](https://www.aeon-toolkit.org/en/stable/examples.html) ·
