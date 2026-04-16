@@ -5,10 +5,10 @@
 **Time series machine learning, built by the researchers behind the algorithms.**
 
 `aeon` is a scikit-learn compatible Python library for learning from time series.
-It covers classification, regression, clustering, forecasting, anomaly detection, distance functions,
+It covers classification, regression, clustering, forecasting, anomaly detection, distances,
 segmentation, similarity search, transformations and benchmarking.
 
-Many implementations in `aeon` are contributed and maintained by the researchers who developed the original methods. This includes a range of modern and state-of-the-art models, including deep learning approaches for forecasting, classification, regression, and clustering.
+Many implementations in `aeon` are contributed and maintained by the researchers who developed the original methods. These include state-of-the-art models for forecasting, classification, regression, and clustering, including deep learning approaches.
 
 [Documentation](https://www.aeon-toolkit.org/) ·
 [Examples](https://www.aeon-toolkit.org/en/stable/examples.html) ·
@@ -87,13 +87,13 @@ for GPU usage, custom architectures, and benchmarking against classical methods.
 
 Install the latest release from PyPI:
 
-```
+```bash
 pip install aeon
 ```
 
 To install with all optional dependencies (including deep learning):
 
-```
+```bash
 pip install aeon[all_extras]
 ```
 
@@ -141,7 +141,7 @@ Time series classification predicts class labels for unseen series using a model
 ```python
 import numpy as np
 from aeon.classification.convolution_based import MultiRocketHydraClassifier
-# aeon works with 2D and 3D numpy
+
 X = np.array([
     [[1, 2, 3, 4, 5, 5]],
     [[1, 2, 3, 4, 4, 2]],
@@ -162,6 +162,7 @@ y_pred = clf.predict(X_test)
 print(y_pred)
 # ['low' 'low' 'high']
 ```
+
 ### Deep learning
 
 `aeon` provides Keras/TensorFlow implementations of leading deep learning
@@ -192,7 +193,6 @@ print(clf.score(X_test, y_test))
 Time series clustering groups similar time series together from an unlabelled collection.
 
 ```python
-import numpy as np
 from aeon.clustering import KASBA
 from aeon.datasets import load_gunpoint
 
