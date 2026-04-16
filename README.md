@@ -107,13 +107,14 @@ Fit a classifier on a standard UCR dataset:
 ```python
 from aeon.classification.convolution_based import RocketClassifier
 from aeon.datasets import load_gunpoint
-train_X, train_y = load_gunpoint(split="train")
-test_X, test_y = load_gunpoint(split="test")
+
+X_train, y_train = load_gunpoint(split="train")
+X_test, y_test = load_gunpoint(split="test")
 
 clf = RocketClassifier()
-clf.fit(train_X,train_y)
+clf.fit(X_train, y_train)
 
-print("Accuracy:", clf.score(test_X, test_y))
+print("Accuracy:", clf.score(X_test, y_test))
 ```
 
 ## Tasks supported
