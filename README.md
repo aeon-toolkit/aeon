@@ -231,7 +231,7 @@ For project or collaboration enquiries, contact **[contact@aeon-toolkit.org](mai
 There are several ways to engage with the project:
 
 - ⭐ **Star this repository** to follow new releases
-- 📝 **Cite `aeon`** in academic work if you use it
+- 📝 **[Cite](https://github.com/aeon-toolkit/aeon/blob/main/CITATION.cff) `aeon`** in academic work if you use it
 - 🐛 **Report bugs or request features** via [GitHub Issues](https://github.com/aeon-toolkit/aeon/issues)
 - 💬 **Ask questions or join the discussion** on [GitHub Discussions](https://github.com/aeon-toolkit/aeon/discussions) or [Discord](https://discord.gg/D6rzqHGKRJ)
 - 🛠️ **Contribute** code, tests, documentation, or examples — see the [contributing guide](https://github.com/aeon-toolkit/aeon/blob/main/CONTRIBUTING.md)
@@ -268,7 +268,6 @@ If you use `aeon` in academic work, please cite the project:
   url     = {http://jmlr.org/papers/v25/23-1444.html}
 }
 ```
-You can also use the repository's [CITATION.cff](https://github.com/aeon-toolkit/aeon/blob/main/CITATION.cff).
 
 If you let us know about your paper using `aeon`, we will happily list it on the [project website](https://www.aeon-toolkit.org/en/latest/papers_using_aeon.html).
 
