@@ -80,29 +80,6 @@ for the full list of estimators across all tasks.
 
 ⭐ **Star the repo** to follow new releases — `aeon` ships frequently, and starring is the easiest way to know when new algorithms arrive.
 
-## Deep learning for time series
-
-`aeon` provides Keras/TensorFlow implementations of leading deep learning
-architectures for time series through the `networks` module, with a consistent scikit-learn compatible API
-and many models contributed by their original authors:
-
-- **Classification:** InceptionTime, H-InceptionTime, LITE, LITETime, ResNet, FCN, MLP, CNN, Disjoint-CNN, and more
-- **Regression:** the same backbone architectures, adapted for continuous targets
-- **Clustering:** deep learning based clustering via learned representations
-
-A minimal example:
-
-```python
-from aeon.datasets import load_basic_motions
-from aeon.classification.deep_learning import InceptionTimeClassifier
-
-X_train, y_train = load_basic_motions(split="train")
-X_test, y_test = load_basic_motions(split="test")
-
-clf = InceptionTimeClassifier(n_epochs=10)
-clf.fit(X_train, y_train)
-print(clf.score(X_test, y_test))
-```
 
 See the [examples gallery](https://www.aeon-toolkit.org/en/stable/examples.html)
 for GPU usage, custom architectures, and benchmarking against classical methods.
@@ -125,6 +102,18 @@ pip install aeon[all_extras]
 
 For development installs and platform-specific notes, see the
 [installation guide](https://www.aeon-toolkit.org/en/stable/installation.html).
+
+## Quick start
+Fit a classifier on a standard UCR dataset:
+```python
+from aeon.classification.convolution_based import RocketClassifier
+from aeon.datasets import load_gunpoint
+train_X, train_y = load_gunpoint(split="train")
+test_X, test_y = load_gunpoint(split="test")
+clf = RocketClassifier()
+clf.fit(train_X,train_y)
+print(clf.score(test_X, test_y))
+```
 
 ## Tasks supported
 
@@ -172,6 +161,30 @@ X_test = np.array([
 y_pred = clf.predict(X_test)
 print(y_pred)
 # ['low' 'low' 'high']
+```
+## Deep learning for time series
+
+`aeon` provides Keras/TensorFlow implementations of leading deep learning
+architectures for time series through the `networks` module, with a consistent scikit-learn compatible API
+and many models contributed by their original authors:
+
+- **Classification:** InceptionTime, H-InceptionTime, LITE, LITETime, ResNet, FCN, MLP, CNN, Disjoint-CNN, and more
+- **Regression:** the same backbone architectures, adapted for continuous targets
+- **Clustering:** deep learning based clustering via learned representations
+- **Forecasting:** deep learning based forecasting
+
+A minimal example:
+
+```python
+from aeon.datasets import load_basic_motions
+from aeon.classification.deep_learning import InceptionTimeClassifier
+
+X_train, y_train = load_basic_motions(split="train")
+X_test, y_test = load_basic_motions(split="test")
+
+clf = InceptionTimeClassifier(n_epochs=10)
+clf.fit(X_train, y_train)
+print(clf.score(X_test, y_test))
 ```
 
 ### Clustering
@@ -244,7 +257,7 @@ If you use `aeon` in academic work, please cite the project:
 ```
 You can also use the repository's [CITATION.cff](https://github.com/aeon-toolkit/aeon/blob/main/CITATION.cff).
 
-If you let us know about your paper using `aeon`, we will happily list it on the (project website)(https://www.aeon-toolkit.org/en/latest/papers_using_aeon.html).
+If you let us know about your paper using `aeon`, we will happily list it on the [project website](https://www.aeon-toolkit.org/en/latest/papers_using_aeon.html).
 
 ## Project history
 
