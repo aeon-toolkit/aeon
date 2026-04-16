@@ -77,8 +77,6 @@ Code in `aeon` and related toolkits has been used in a wide range of benchmarkin
 See the [API reference](https://www.aeon-toolkit.org/en/stable/api_reference.html)
 for the full list of estimators across all tasks.
 
-⭐ **Star the repo** to follow new releases — `aeon` ships frequently, and starring is the easiest way to know when new algorithms arrive.
-
 
 See the [examples gallery](https://www.aeon-toolkit.org/en/stable/examples.html)
 for GPU usage, custom architectures, and benchmarking against classical methods.
@@ -136,7 +134,7 @@ Ten task areas, one consistent API:
 
 ## Getting started examples
 
-### Classification and regression
+### Classification
 
 Time series classification predicts class labels for unseen series using a model fitted on a collection of labelled time series. Regression follows the same pattern, but predicts continuous values instead of class labels.
 
@@ -164,7 +162,7 @@ y_pred = clf.predict(X_test)
 print(y_pred)
 # ['low' 'low' 'high']
 ```
-## Deep learning for time series
+### Deep learning
 
 `aeon` provides Keras/TensorFlow implementations of leading deep learning
 architectures for time series through the `networks` module, with a consistent scikit-learn compatible API
@@ -225,13 +223,12 @@ print(pred)
 For more examples across tasks, visit the
 [examples gallery](https://www.aeon-toolkit.org/en/stable/examples.html).
 
-For project or collaboration enquiries, contact **[contact@aeon-toolkit.org](mailto:contact@aeon-toolkit.org)**.
-
 ## Support aeon
 
 There are several ways to engage with the project:
 
-- ⭐ **Star this repository** to follow new releases
+- ⭐ **Star this repository** to help others discover it
+- 👀 **Watch releases** to get notified when new versions ship
 - 📝 **[Cite](https://github.com/aeon-toolkit/aeon/blob/main/CITATION.cff) `aeon`** in academic work if you use it
 - 🐛 **Report bugs or request features** via [GitHub Issues](https://github.com/aeon-toolkit/aeon/issues)
 - 💬 **Ask questions or join the discussion** on [GitHub Discussions](https://github.com/aeon-toolkit/aeon/discussions) or [Discord](https://discord.gg/D6rzqHGKRJ)
