@@ -115,6 +115,10 @@ clf.fit(train_X,train_y)
 
 print("Accuracy:", clf.score(test_X, test_y))
 ```
+## Where to ask questions
+
+- **Bug reports and feature requests** → [GitHub Issues](https://github.com/aeon-toolkit/aeon/issues)
+- **Usage questions and general discussion** → [GitHub Discussions](https://github.com/aeon-toolkit/aeon/discussions) or [Discord](https://discord.com/invite/D6rzqHGKRJ)
 
 ## Tasks supported
 
