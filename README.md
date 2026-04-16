@@ -67,7 +67,6 @@ Code in `aeon` and related toolkits has been used in a wide range of benchmarkin
 
 | Study                             | Reference                                                                                 | Area         |
 |-----------------------------------|-------------------------------------------------------------------------------------------|--------------|
-| Multivariate classification       | [Middlehurst et al., 2026](https://arxiv.org/abs/2603.20352)                              | Datasets     |
 | Clustering                        | [Holder et al., 2024](https://link.springer.com/article/10.1007/s10115-023-01952-0)       | Benchmarking |
 | Classification (the "bake off")   | [Bagnall et al., 2017](https://link.springer.com/article/10.1007/S10618-016-0483-9)       | Benchmarking |
 | Classification ("bake off redux") | [Middlehurst et al., 2025](https://link.springer.com/article/10.1007/s10618-024-01022-1)  | Benchmarking |
@@ -76,10 +75,6 @@ Code in `aeon` and related toolkits has been used in a wide range of benchmarkin
 
 See the [API reference](https://www.aeon-toolkit.org/en/stable/api_reference.html)
 for the full list of estimators across all tasks.
-
-
-See the [examples gallery](https://www.aeon-toolkit.org/en/stable/examples.html)
-for GPU usage, custom architectures, and benchmarking against classical methods.
 
 ## Installation
 
@@ -136,7 +131,7 @@ Ten task areas, one consistent API:
 
 ### Classification
 
-Time series classification predicts class labels for unseen series using a model fitted on a collection of labelled time series. Regression follows the same pattern, but predicts continuous values instead of class labels.
+Time series classification predicts class labels for unseen series using a model fitted on a collection of labelled time series.
 
 ```python
 import numpy as np
@@ -163,30 +158,6 @@ print(y_pred)
 # ['low' 'low' 'high']
 ```
 
-### Deep learning
-
-`aeon` provides Keras/TensorFlow implementations of leading deep learning
-architectures for time series through the `networks` module, with a consistent scikit-learn compatible API
-and many models contributed by their original authors:
-
-- **Classification:** InceptionTime, H-InceptionTime, LITE, LITETime, ResNet, FCN, MLP, CNN, Disjoint-CNN, and more
-- **Regression:** the same backbone architectures, adapted for continuous targets
-- **Clustering:** deep learning based clustering via learned representations
-- **Forecasting:** deep learning based forecasting
-
-A minimal example:
-
-```python
-from aeon.datasets import load_basic_motions
-from aeon.classification.deep_learning import InceptionTimeClassifier
-
-X_train, y_train = load_basic_motions(split="train")
-X_test, y_test = load_basic_motions(split="test")
-
-clf = InceptionTimeClassifier(n_epochs=10)
-clf.fit(X_train, y_train)
-print(clf.score(X_test, y_test))
-```
 
 ### Clustering
 
@@ -220,6 +191,34 @@ pred = forecaster.forecast(y)
 print(pred)
 ```
 For more advanced forecasting, `aeon` also includes deep learning and machine learning methods not available elsewhere in Python, such as `SETARTree` and `SETARForest`.
+
+### Deep learning
+
+`aeon` provides Keras/TensorFlow implementations of leading deep learning
+architectures for time series through the `networks` module, with a consistent scikit-learn compatible API
+and many models contributed by their original authors:
+
+- **Classification:** InceptionTime, H-InceptionTime, LITE, LITETime, ResNet, FCN, MLP, CNN, Disjoint-CNN, and more
+- **Regression:** the same backbone architectures, adapted for continuous targets
+- **Clustering:** deep learning based clustering via learned representations
+- **Forecasting:** deep learning based forecasting
+
+A minimal example:
+
+```python
+from aeon.datasets import load_basic_motions
+from aeon.classification.deep_learning import InceptionTimeClassifier
+
+X_train, y_train = load_basic_motions(split="train")
+X_test, y_test = load_basic_motions(split="test")
+
+clf = InceptionTimeClassifier(n_epochs=10)
+clf.fit(X_train, y_train)
+print(clf.score(X_test, y_test))
+```
+
+See the [examples gallery](https://www.aeon-toolkit.org/en/stable/examples.html)
+for GPU usage, custom architectures, and benchmarking against classical methods.
 
 For more examples across tasks, visit the
 [examples gallery](https://www.aeon-toolkit.org/en/stable/examples.html).
