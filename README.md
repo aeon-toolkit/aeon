@@ -32,7 +32,7 @@ regression and clustering.
 <p>
   <a href="https://www.inria.fr/">
     <img src="https://raw.githubusercontent.com/aeon-toolkit/aeon/main/docs/images/funder_logos/inria.png" alt="INRIA" height="50">
-  </a>
+  </a> (as part of the AI Programme)
   &nbsp;&nbsp;&nbsp;
   <a href="https://www.ukri.org/councils/epsrc/">
     <img src="https://raw.githubusercontent.com/aeon-toolkit/aeon/main/docs/images/funder_logos/epsrc.png" alt="UKRI" height="50">
