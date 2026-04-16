@@ -6,9 +6,9 @@
 
 `aeon` is a scikit-learn compatible Python library for learning from time series.
 It covers classification, regression, clustering, forecasting, anomaly detection, distance functions,
-segmentation, similarity search, transformation and benchmarking.
+segmentation, similarity search, transformations and benchmarking.
 
-Many implementations in aeon are contributed and maintained by the researchers who developed the original methods. This includes a range of modern and state-of-the-art deep learning models for forecasting, classification, regression, and clustering.
+Many implementations in `aeon` are contributed and maintained by the researchers who developed the original methods. This includes a range of modern and state-of-the-art models, including deep learning approaches for forecasting, classification, regression, and clustering.
 
 [Documentation](https://www.aeon-toolkit.org/) ·
 [Examples](https://www.aeon-toolkit.org/en/stable/examples.html) ·
@@ -50,7 +50,7 @@ evaluate new methods. That means:
 - **Evidence-based defaults.** What's included — and what's recommended — is grounded in published comparative studies.
 
 
-A selection of algorithms available in `aeon` written by ``aeon`` core developers or contributors:
+A selection of algorithms available in `aeon` written by `aeon` core developers or contributors:
 
 | Method                 | Reference                                                                                 | Task                   |
 |------------------------|-------------------------------------------------------------------------------------------|------------------------|
@@ -62,16 +62,16 @@ A selection of algorithms available in `aeon` written by ``aeon`` core developer
 | **DrCIF**              | [Guijo-Rubio et al., 2024](https://link.springer.com/article/10.1007/s10618-024-01027-w)  | Regression             |
 | **TDE**                | [Guijo-Rubio et al., 2025](https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=10769513) | Ordinal Classification |
 
-Code in `aeon` and related toolkits has been used in a wide range of benchmarking studies
+Code in `aeon` and related toolkits has been used in a wide range of benchmarking studies:
 
 
-| Task                               | Reference                                                                                 | Task           |
-|------------------------------------|-------------------------------------------------------------------------------------------|----------------|
-| Multivariate classification        | [Middlehurst et al., 2026](https://arxiv.org/abs/2603.20352)                              | Classification |
-| Clustering                         | [Holder et al., 2024](https://link.springer.com/article/10.1007/s10115-023-01952-0)       | Benchmarking   |
-| Classification (the "bake off")    | [Bagnall et al., 2017](https://link.springer.com/article/10.1007/S10618-016-0483-9)       | Benchmarking   |
-| Classification ("bake off redux")  | [Middlehurst et al., 2025](https://link.springer.com/article/10.1007/s10618-024-01022-1)  | Benchmarking   |
-| Deep learning for classification   | [Ismail-Fawaz et al., 2019](https://link.springer.com/article/10.1007/s10618-019-00619-1) | Benchmarking   |
+| Study                             | Reference                                                                                 | Task           |
+|-----------------------------------|-------------------------------------------------------------------------------------------|----------------|
+| Multivariate classification       | [Middlehurst et al., 2026](https://arxiv.org/abs/2603.20352)                              | Classification |
+| Clustering                        | [Holder et al., 2024](https://link.springer.com/article/10.1007/s10115-023-01952-0)       | Benchmarking   |
+| Classification (the "bake off")   | [Bagnall et al., 2017](https://link.springer.com/article/10.1007/S10618-016-0483-9)       | Benchmarking   |
+| Classification ("bake off redux") | [Middlehurst et al., 2025](https://link.springer.com/article/10.1007/s10618-024-01022-1)  | Benchmarking   |
+| Deep learning for classification  | [Ismail-Fawaz et al., 2019](https://link.springer.com/article/10.1007/s10618-019-00619-1) | Benchmarking   |
 
 
 See the [API reference](https://www.aeon-toolkit.org/en/stable/api_reference.html)
@@ -141,7 +141,7 @@ Time series classification predicts class labels for unseen series using a model
 ```python
 import numpy as np
 from aeon.classification.convolution_based import MultiRocketHydraClassifier
-
+# aeon works with 2D and 3D numpy
 X = np.array([
     [[1, 2, 3, 4, 5, 5]],
     [[1, 2, 3, 4, 4, 2]],
@@ -196,7 +196,7 @@ import numpy as np
 from aeon.clustering import KASBA
 from aeon.datasets import load_gunpoint
 
-X, y = load_gunpoint()
+X, _ = load_gunpoint()
 clu = KASBA(n_clusters=2)
 clu.fit(X)
 
@@ -210,15 +210,16 @@ statistical models and modern deep learning approaches.
 
 ```python
 from aeon.datasets import load_airline
-from aeon.forecasting.machine_learning import SETARForest
+from aeon.forecasting.stats import ARIMA
 
 y = load_airline()
 
-forecaster = SETARForest(n_estimators=10)
+forecaster = ARIMA(order=(1, 1, 1))
 pred = forecaster.forecast(y)
 
 print(pred)
 ```
+For more advanced forecasting, `aeon` also includes deep learning and machine learning methods not available elsewhere in Python, such as `SETARTree` and `SETARForest`.
 
 For more examples across tasks, visit the
 [examples gallery](https://www.aeon-toolkit.org/en/stable/examples.html).
