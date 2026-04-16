@@ -31,11 +31,11 @@ Many implementations in aeon are contributed and maintained by the researchers w
 <p>
   <a href="https://www.inria.fr/">
     <img src="https://raw.githubusercontent.com/aeon-toolkit/aeon/main/docs/images/funder_logos/inria.png" alt="INRIA" height="50">
-  </a> (as part of the AI Programme)
+  </a>
   &nbsp;&nbsp;&nbsp;
   <a href="https://www.ukri.org/councils/epsrc/">
     <img src="https://raw.githubusercontent.com/aeon-toolkit/aeon/main/docs/images/funder_logos/epsrc.png" alt="UKRI" height="50">
-</a> (grant reference EP/W030756/2)
+</a>
 </p>
 
 ## From paper to `pip install`
