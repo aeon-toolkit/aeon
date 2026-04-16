@@ -115,10 +115,6 @@ clf.fit(train_X,train_y)
 
 print("Accuracy:", clf.score(test_X, test_y))
 ```
-## Where to ask questions
-
-- **Bug reports and feature requests** → [GitHub Issues](https://github.com/aeon-toolkit/aeon/issues)
-- **Usage questions and general discussion** → [GitHub Discussions](https://github.com/aeon-toolkit/aeon/discussions) or [Discord](https://discord.com/invite/D6rzqHGKRJ)
 
 ## Tasks supported
 
@@ -227,6 +223,18 @@ print(pred)
 
 For more examples across tasks, visit the
 [examples gallery](https://www.aeon-toolkit.org/en/stable/examples.html).
+
+For project or collaboration enquiries, contact **[contact@aeon-toolkit.org](mailto:contact@aeon-toolkit.org)**.
+
+## Support aeon
+
+There are several ways to engage with the project:
+
+- ⭐ **Star this repository** to follow new releases
+- 📝 **Cite `aeon`** in academic work if you use it
+- 🐛 **Report bugs or request features** via [GitHub Issues](https://github.com/aeon-toolkit/aeon/issues)
+- 💬 **Ask questions or join the discussion** on [GitHub Discussions](https://github.com/aeon-toolkit/aeon/discussions) or [Discord](https://discord.gg/D6rzqHGKRJ)
+- 🛠️ **Contribute** code, tests, documentation, or examples — see the [contributing guide](https://github.com/aeon-toolkit/aeon/blob/main/CONTRIBUTING.md)
 
 For project or collaboration enquiries, contact **[contact@aeon-toolkit.org](mailto:contact@aeon-toolkit.org)**.
 
