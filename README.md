@@ -214,7 +214,7 @@ from aeon.forecasting.stats import ARIMA
 
 y = load_airline()
 
-forecaster = ARIMA(order=(1, 1, 1))
+forecaster = ARIMA(1, 1, 1)
 pred = forecaster.forecast(y)
 
 print(pred)
