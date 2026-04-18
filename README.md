@@ -1,8 +1,12 @@
+<p align="center">
 <a href="https://www.aeon-toolkit.org/">
   <img src="https://raw.githubusercontent.com/aeon-toolkit/aeon/main/docs/images/logo/aeon-logo-blue-compact.png" alt="aeon logo" width="400">
 </a>
+</p>
 
+<p align="center">
 **Time series machine learning, built by the researchers behind the algorithms.**
+</p>
 
 `aeon` is a scikit-learn compatible Python library for learning from time series.
 It covers classification, regression, clustering, forecasting, anomaly detection, distances,
@@ -68,6 +72,7 @@ Code in `aeon` and related toolkits has been used in a wide range of benchmarkin
 | Study                             | Reference                                                                                 | Area         |
 |-----------------------------------|-------------------------------------------------------------------------------------------|--------------|
 | Clustering                        | [Holder et al., 2024](https://link.springer.com/article/10.1007/s10115-023-01952-0)       | Benchmarking |
+| Anomaly detection                 | [Schmidl et al., 2022](https://vldb.org/pvldb/vol15/p1779-wenig.pdf)                      | Benchmarking |
 | Classification (the "bake off")   | [Bagnall et al., 2017](https://link.springer.com/article/10.1007/S10618-016-0483-9)       | Benchmarking |
 | Classification ("bake off redux") | [Middlehurst et al., 2025](https://link.springer.com/article/10.1007/s10618-024-01022-1)  | Benchmarking |
 | Deep learning for classification  | [Ismail-Fawaz et al., 2019](https://link.springer.com/article/10.1007/s10618-019-00619-1) | Benchmarking |
