@@ -5,7 +5,8 @@
 </p>
 
 <p align="center">
-**Time series machine learning, built by the researchers behind the algorithms.**
+<strong>Time series machine learning, built by the researchers behind the algorithms.
+</strong>
 </p>
 
 `aeon` is a scikit-learn compatible Python library for learning from time series.
